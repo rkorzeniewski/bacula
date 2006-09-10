@@ -46,7 +46,6 @@
 !include "Sections.nsh"
 !include "StrFunc.nsh"
 !include "WinMessages.nsh"
-
 ;
 ; Basics
 ;
@@ -72,7 +71,6 @@ ${StrTrimNewLines}
 ;
 
 !define      MUI_COMPONENTSPAGE_SMALLDESC
-!define      MUI_FINISHPAGE_NOAUTOCLOSE
 
 !define      MUI_HEADERIMAGE
 !define      MUI_BGCOLOR                739AB9
@@ -87,7 +85,9 @@ Page custom EnterInstallType
 !InsertMacro MUI_PAGE_DIRECTORY
 Page custom EnterConfigPage1 LeaveConfigPage1
 Page custom EnterConfigPage2 LeaveConfigPage2
+!Define      MUI_PAGE_CUSTOMFUNCTION_LEAVE LeaveInstallPage
 !InsertMacro MUI_PAGE_INSTFILES
+Page custom EnterWriteTemplates
 !Define      MUI_FINISHPAGE_SHOWREADME $INSTDIR\Readme.txt
 !InsertMacro MUI_PAGE_FINISH
 
@@ -158,7 +158,6 @@ Var InstallType
 !define UpgradeInstall  1
 !define MigrateInstall  2
 
-Var InitialSelectionDone
 Var OldInstallDir
 Var PreviousComponents
 Var NewComponents
@@ -205,7 +204,6 @@ Function .onInit
   StrCpy $OldInstallDir ""
   StrCpy $PreviousComponents 0
   StrCpy $NewComponents 0
-  StrCpy $InitialSelectionDone 0
 
   ${GetParameters} $R0
 
@@ -277,7 +275,9 @@ Function .onInit
   File "/oname=$PLUGINSDIR\libeay32.dll" "${DEPKGS_BIN}\libeay32.dll"
   File "/oname=$PLUGINSDIR\ssleay32.dll" "${DEPKGS_BIN}\ssleay32.dll"
   File "/oname=$PLUGINSDIR\sed.exe" "${DEPKGS_BIN}\sed.exe"
-  File "/oname=$PLUGINSDIR\InstallType.ini" "InstallType.ini"
+
+  !InsertMacro MUI_INSTALLOPTIONS_EXTRACT "InstallType.ini"
+  !InsertMacro MUI_INSTALLOPTIONS_EXTRACT "WriteTemplates.ini"
 
   SetPluginUnload alwaysoff
 
@@ -826,6 +826,9 @@ LangString SUBTITLE_ConfigPage2 ${LANG_ENGLISH} "Set installation configuration.
 LangString TITLE_InstallType ${LANG_ENGLISH} "Installation Type"
 LangString SUBTITLE_InstallType ${LANG_ENGLISH} "Choose installation type."
 
+LangString TITLE_WriteTemplates ${LANG_ENGLISH} "Create Templates"
+LangString SUBTITLE_WriteTemplates ${LANG_ENGLISH} "Create resource templates for inclusion in the Director's configuration file."
+
 !InsertMacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecFileDaemon} $(DESC_SecFileDaemon)
   !InsertMacro MUI_DESCRIPTION_TEXT ${SecStorageDaemon} $(DESC_SecStorageDaemon)
@@ -875,9 +878,9 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\Bacula"
 
   ; remove files and uninstaller (preserving config for now)
-  Delete /REBOOTOK "$INSTDIR\bin\*.*"
-  Delete /REBOOTOK "$INSTDIR\doc\*.*"
-  Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
+  Delete /REBOOTOK "$INSTDIR\bin\*"
+  Delete /REBOOTOK "$INSTDIR\doc\*"
+  Delete /REBOOTOK "$INSTDIR\*"
 
   ; Check for existing installation
   MessageBox MB_YESNO|MB_ICONQUESTION \
@@ -1045,6 +1048,7 @@ Function PageComponentsShow
     Call DisableServerSections
   ${EndIf}
 
+  Call SelectPreviousComponents
   Call UpdateComponentUI
 FunctionEnd
 
@@ -1055,13 +1059,151 @@ Function PageDirectoryPre
   ${EndIf}
 FunctionEnd
 
+Function LeaveInstallPage
+  Push "$INSTDIR\install.log"
+  Call DumpLog
+FunctionEnd
+
+Function EnterWriteTemplates
+  Push $R0
+  Push $R1
+
+  Call GetSelectedComponents
+  Pop $R0
+
+  IntOp $R0 $R0 & ${ComponentDirector}
+  IntOp $R1 $NewComponents & ${ComponentsFileAndStorage}
+
+  ${If} $R0 <> 0
+  ${OrIf} $R1 = 0
+    Pop $R1
+    Pop $R0
+    Abort
+  ${EndIf}
+
+  IntOp $R0 $NewComponents & ${ComponentFile}
+  ${If} $R0 = 0
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" State 0
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" Flags DISABLED
+    DeleteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 3" State
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 3" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST|DISABLED
+  ${Else}
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" State 1
+    DeleteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 2" Flags
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 3" State "C:\$ConfigClientName.conf"
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST
+  ${EndIf}
+
+  IntOp $R0 $NewComponents & ${ComponentStorage}
+  ${If} $R0 = 0
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 4" State 0
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 4" Flags DISABLED
+    DeleteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" State
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST|DISABLED
+  ${Else}
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 4" State 1
+    DeleteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 4" Flags
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" State "C:\$ConfigStorageName.conf"
+    WriteINIStr "$PLUGINSDIR\WriteTemplates.ini" "Field 5" Flags REQ_SAVE|FILE_EXPLORER|WARN_IF_EXIST
+  ${EndIf}
+
+  !InsertMacro MUI_HEADER_TEXT "$(TITLE_WriteTemplates)" "$(SUBTITLE_WriteTemplates)"
+  !InsertMacro MUI_INSTALLOPTIONS_DISPLAY "WriteTemplates.ini"
+
+  !InsertMacro MUI_INSTALLOPTIONS_READ $R0 "WriteTemplates.ini" "Field 2" State
+  ${If} $R0 <> 0
+    File "/oname=$PLUGINSDIR\client.conf.in" "client.conf.in"
+
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\client.conf.in"'
+    !InsertMacro MUI_INSTALLOPTIONS_READ $R0 "WriteTemplates.ini" "Field 3" State
+    ${If} $R0 != ""
+      CopyFiles "$PLUGINSDIR\client.conf.in" "$R0"
+    ${EndIf}
+  ${EndIf}
+
+  !InsertMacro MUI_INSTALLOPTIONS_READ $R0 "WriteTemplates.ini" "Field 4" State
+  ${If} $R0 <> 0
+    File "/oname=$PLUGINSDIR\storage.conf.in" "storage.conf.in"
+
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\storage.conf.in"'
+    !InsertMacro MUI_INSTALLOPTIONS_READ $R0 "WriteTemplates.ini" "Field 5" State
+    ${If} $R0 != ""
+      CopyFiles "$PLUGINSDIR\storage.conf.in" "$R0"
+    ${EndIf}
+  ${EndIf}
+
+  Pop $R1
+  Pop $R0
+FunctionEnd
+
+Function SelectPreviousComponents
+  ${If} $InstallType <> ${NewInstall}
+    IntOp $R1 $PreviousComponents & ${ComponentFile}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecFileDaemon}
+      !InsertMacro SetSectionFlag ${SecFileDaemon} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecFileDaemon}
+      !InsertMacro ClearSectionFlag ${SecFileDaemon} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentStorage}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecStorageDaemon}
+      !InsertMacro SetSectionFlag ${SecStorageDaemon} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecStorageDaemon}
+      !InsertMacro ClearSectionFlag ${SecStorageDaemon} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentDirector}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecDirectorDaemon}
+      !InsertMacro SetSectionFlag ${SecDirectorDaemon} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecDirectorDaemon}
+      !InsertMacro ClearSectionFlag ${SecDirectorDaemon} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentTextConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecConsole}
+      !InsertMacro SetSectionFlag ${SecConsole} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecConsole}
+      !InsertMacro ClearSectionFlag ${SecConsole} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentGUIConsole}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecWxConsole}
+      !InsertMacro SetSectionFlag ${SecWxConsole} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecWxConsole}
+      !InsertMacro ClearSectionFlag ${SecWxConsole} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentPDFDocs}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecDocPdf}
+      !InsertMacro SetSectionFlag ${SecDocPdf} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecDocPdf}
+      !InsertMacro ClearSectionFlag ${SecDocPdf} ${SF_RO}
+    ${EndIf}
+    IntOp $R1 $PreviousComponents & ${ComponentHTMLDocs}
+    ${If} $R1 <> 0
+      !InsertMacro SelectSection ${SecDocHtml}
+      !InsertMacro SetSectionFlag ${SecDocHtml} ${SF_RO}
+    ${Else}
+      !InsertMacro UnselectSection ${SecDocHtml}
+      !InsertMacro ClearSectionFlag ${SecDocHtml} ${SF_RO}
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
+
 Function DisableServerSections
   !InsertMacro UnselectSection ${SecGroupServer}
-  !InsertMacro SetSectionFlag ${SecGroupServer} ${SF_RO}
+  !InsertMacro SetSectionFlag  ${SecGroupServer} ${SF_RO}
   !InsertMacro UnselectSection ${SecStorageDaemon}
-  !InsertMacro SetSectionFlag ${SecStorageDaemon} ${SF_RO}
+  !InsertMacro SetSectionFlag  ${SecStorageDaemon} ${SF_RO}
   !InsertMacro UnselectSection ${SecDirectorDaemon}
-  !InsertMacro SetSectionFlag ${SecDirectorDaemon} ${SF_RO}
+  !InsertMacro SetSectionFlag  ${SecDirectorDaemon} ${SF_RO}
 FunctionEnd
 
 Function UpdateComponentUI
@@ -1135,3 +1277,4 @@ FunctionEnd
 !include "InstallType.nsh"
 !include "ConfigPage1.nsh"
 !include "ConfigPage2.nsh"
+!include "DumpLog.nsh"

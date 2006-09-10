@@ -101,7 +101,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\ClientConfig.ini"
+			RelativePath=".\client.conf.in"
 			>
 		</File>
 		<File
@@ -110,6 +110,10 @@
 		</File>
 		<File
 			RelativePath=".\ConfigPage2.nsh"
+			>
+		</File>
+		<File
+			RelativePath=".\DumpLog.nsh"
 			>
 		</File>
 		<File
@@ -125,7 +129,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\storage.conf.in"
+			>
+		</File>
+		<File
 			RelativePath=".\winbacula.nsi"
+			>
+		</File>
+		<File
+			RelativePath=".\WriteTemplates.ini"
 			>
 		</File>
 		<File

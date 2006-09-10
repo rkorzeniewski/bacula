@@ -36,13 +36,13 @@ Function EnterInstallType
       StrCpy $R2 "$OldInstallDir\Doc"
 
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 1" "Text" "An old installation has been found in $OldInstallDir.  The Configuration will be migrated.  Please choose the installation type for any additional components you select."
-      WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" 'The software will be installed in the default directory "$PROGRAMFILES\Bacula".  The configuration files for additional components will be generated using defaults applicable to most installations.'
+      WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"$PROGRAMFILES\Bacula$\".  The configuration files for additional components will be generated using defaults applicable to most installations."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 6" "Text" "You may choose the installation directory.  The configuration defaults will be displayed and you will be given the chance to make changes before the configuration files are written."
     ${EndIf}
   ${Else}
     ; New Install
     StrCpy $InstallType ${NewInstall}
-    WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" 'The software will be installed in the default directory "$PROGRAMFILES\Bacula".  The configuration files will be generated using defaults applicable to most installations.'
+    WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The software will be installed in the default directory $\"$PROGRAMFILES\Bacula$\".  The configuration files will be generated using defaults applicable to most installations."
   ${EndIf}
 
   ${If} $InstallType <> ${NewInstall}
@@ -81,54 +81,6 @@ Function EnterInstallType
     StrCpy $AutomaticInstall 1
   ${Else}
     StrCpy $AutomaticInstall 0
-  ${EndIf}
-
-  ${If} $InstallType <> ${NewInstall}
-  ${AndIf} $InitialSelectionDone = 0
-    StrCpy $InitialSelectionDone 1
-
-    IntOp $R1 $PreviousComponents & ${ComponentFile}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecFileDaemon}
-    ${Else}
-      !InsertMacro UnselectSection ${SecFileDaemon}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentStorage}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecStorageDaemon}
-    ${Else}
-      !InsertMacro UnselectSection ${SecStorageDaemon}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentDirector}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecDirectorDaemon}
-    ${Else}
-      !InsertMacro UnselectSection ${SecDirectorDaemon}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentTextConsole}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecConsole}
-    ${Else}
-      !InsertMacro UnselectSection ${SecConsole}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentGUIConsole}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecWxConsole}
-    ${Else}
-      !InsertMacro UnselectSection ${SecWxConsole}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentPDFDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecDocPdf}
-    ${Else}
-      !InsertMacro UnselectSection ${SecDocPdf}
-    ${EndIf}
-    IntOp $R1 $PreviousComponents & ${ComponentHTMLDocs}
-    ${If} $R1 <> 0
-      !InsertMacro SelectSection ${SecDocHtml}
-    ${Else}
-      !InsertMacro UnselectSection ${SecDocHtml}
-    ${EndIf}
   ${EndIf}
 
   Pop $R2
