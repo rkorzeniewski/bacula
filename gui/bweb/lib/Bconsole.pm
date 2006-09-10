@@ -204,15 +204,13 @@ sub label_barcodes
     $arg{drive} = $arg{drive} || '0' ;
     $arg{pool} = $arg{pool} || 'Scratch';
 
-    my $cmd = "label barcodes pool=\"$arg{pool}\" storage=\"$arg{storage}\"";
+    my $cmd = "label barcodes drive=$arg{drive} pool=\"$arg{pool}\" storage=\"$arg{storage}\"";
 
     if ($arg{slots}) {
 	$cmd .= " slots=$arg{slots}";
     }
 
     $self->send("$cmd\n");
-    $self->expect_it('-re', '\[0\]\s*:');
-    $self->send("$arg{drive}\n");
     $self->expect_it('-re', '[?].+\)\s*:');
     my $res = $self->before();
     $self->send("yes\n");
