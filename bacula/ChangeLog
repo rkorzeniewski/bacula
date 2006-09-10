@@ -1,8 +1,15 @@
               Technical notes on version 1.39  
 
 General:
+10Sep06
+kes  Apply patch from Richard Mortimer to ensure that the number
+     of DVD parts is correctly updated.
+
+Version 1.39.22 beta released:
 08Sep06
-08Sep06
+kes  Fix logic error in handling error return from mtx-changer 
+     script.
+kes  Make status from SD aware of -1 (unknown) Slot status.
 kes  At Eric's suggestion make both the "slots" and "drive" commands
      to the Storage daemon work even if the drive is busy.
 kes  Make two separate Win32 menu links for starting bconsole and
@@ -22,7 +29,7 @@ kes  Integrate multiple console/director patch from
 ebl  Add character substitution in Job/JobDefs WriteBootStrap.
      You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
 kes  Apply patch supplied in bug #656 to pass priority field
-     in the run dialog to the Director.
+     in the run dialog to the Director in gnome console
 kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
      this will fix bug #627 where Bacula eventually gets 
      confused about what Volume it wants.
@@ -65,7 +72,7 @@ kes  Correct spooled_part flag in dev.c close() so that it is cleared
      when the spool file is deleted or does not exist.
 kes  Print part number in read_records when eof hit (restore).
 31Aug06
-kes  Make find with no args in tree restore return error rather than
+-es  Make find with no args in tree restore return error rather than
      stopping the selection. Fixes bug #665
 kes  Rework DVD writing to ensure that the last part is written
      on open_next_part when dealing with a spool file.
@@ -96,7 +103,7 @@ kes  Fixed the use of Slot, so that is more correctly maintained, thus
 25Aug06
 kes  Install man pages with 'make install'
 kes  wx-console crashes because of differences between Bacula and wxWidgets
-     malloc()/free().  Tweek wx-console to use bmalloc()/bfree() for Bacula
+     malloc()/free().  Tweak wx-console to use bmalloc()/bfree() for Bacula
      calls.     
 kes  correct improper indenting in wx-console/console_conf.c
 kes  update wx-console header copyrights
@@ -109,7 +116,7 @@ kes  Require restore case 3 to have sqlquery permission to work.
 kes  Remove obsolete del_MAC sql command.
 kes  Ensure that bscan creates Volumes with Enabled=1.
 
-Version 1.39.20 Beta released:    
+Version 1.39.20 beta released:
 22Aug06
 kes  Correct missing Client table reference in SQL pointed out by
      Marc.
@@ -162,13 +169,13 @@ dsb  Updated rpm spec for 1.39 - updatedb 9 to 10, add new man pages,
      custom of silently converting all manpages to bzip2 format just before
      the final packaging step.
 05Aug06
-rbn  Fixed the Windows Makefiles so that they won't accidently try and
+rbn  Fixed the Windows Makefiles so that they won't accidentally try and
      pickup binaries for the Unix build.  This allows both the Unix
      build and the Windows build to be built in the same tree without
      interfering with each other.
 rbn  Fixed error handling and cleaned up mtx-changer.cmd.
 rbn  Added the rest of the database scripts.  These are installed but are
-     not yet editted for variable replacement.
+     not yet edited for variable replacement.
 rbn  Broke out the cats functionality from bacula.dll and put into new
      separate dlls for each database type.  At installation time the
      correct one is copied to bacula_cats.dll.
@@ -180,9 +187,7 @@ rbn  Added a new sql_cmds.h with all the declarations for the variables
 rbn  Moved catalog_db[] from lib/message.c to a new routine db_get_type()
      which is implemented in bdb.c, mysql.c, postgresql.c and sqlite.c in
      src/cats.
-kes  Correct improperly formated list command output reported by Dan.
-
-Version 1.39.18 Beta released:
+kes  Correct improperly formatted list command output reported by Dan.
 04Aug06
 kes  Correct despool time calculation.
 03Aug06
@@ -192,7 +197,7 @@ kes  Attempt to fix problems with the msg_queue crashing on Solaris
      when Bacula is terminating, but problems remain.
 kes  Add WIN32_VSS to HAVES in src/Makefile.inc.in to correct VSS
      name editing problems with too many \\?\es.
-kes  Fix some Bacula source code stlye problems in compat.cpp.
+kes  Fix some Bacula source code style problems in compat.cpp.
 kes  Add debug code to compat.cpp and convert non-Bacula debug code
      to Bacula style.
 02Aug06
@@ -209,7 +214,7 @@ kes  Implement %q in bsnprintf.c apparently I forgot it.
 kes  Make disk-changer sed command compatible with FreeBSD.
 kes  Make a first cut at a ReleaseNotes and ChangeLog for a 
      beta release.
-kes  Make make clean decend into the src/win32 directory.
+kes  Make make clean descend into the src/win32 directory.
 kes  Fix some #ifdefing so that Solaris and FreeBSD compile 
      sys/stat.h was turned off.
 kes  Use suffix editing for new transfer rate messages.
@@ -246,14 +251,14 @@ kes  Incremented the version number to signify that all of Robert's code
      done).
 kes  I rationalized a few of the names of the variables (mainly jcr names)
      that are used during migration as keeping three different jcrs at the
-     same time clear in one's head is not easy.
+     same time clear in ones head is not easy.
 
 Version 1.39.17
 28Jul06
 eb   Tweak new runscript feature to work with 1.38.x FDs. 
 eb   Correct crypto.c to fix segfault when restoring an encrypted stream 
      on fd which don't use rsa keys.
-eb   Add yes/no english keywords on localised yes/no questions.
+eb   Add yes/no English keywords on localized yes/no questions.
 27Jul06
 kes  Several important commits from Robert Nelson for code cleanup and
      Win32 build.
@@ -261,7 +266,7 @@ kes  Modify console.c so that when conio is enabled, it converts \n to
      \n\r before outputting to the console.  Hopefully this will fix
      the problems with expect in Perl that Eric saw.
 24Jul06
-kes  Change cats/sql.c to elimate %-*s format, which I think is turned
+kes  Change cats/sql.c to eliminate %-*s format, which I think is turned
      off in bsnprintf.
 kes  Add Comment field to llist of a volume.
 kes  Allow true/false in some yes/no questions.
@@ -358,8 +363,8 @@ kes  Rename the cram_md5 routine names to be slightly more appropriate
      to what they are doing (challenge and respond).
 kes  Robert committed his #ifdef and header cleanup.
 30Jun06
-kes  Fix a complier warning in files/backup.c
-kes  Cleanup NOT NULL vs DEFALT 0 in database creation.
+kes  Fix a compiler warning in files/backup.c
+kes  Cleanup NOT NULL vs DEFAULT 0 in database creation.
 kes  Tweak btape.
 kes  Robert committed his low impact changes.
 kes  I removed a size_t from the jcr.h definition.
@@ -1189,6 +1194,5 @@ kes  Apply patch supplied by Eric Bollengier to fix PostgreSQL
 kes  Tweak #ifdefing a bit in new Win32 stream code.
 kes  Fix #ifdeffing for FD_NO_SEND_TEST.
 kes  Add documentation of performance #defines
-
 
 Release 1.38.11 (28Jun06) released 28JunO6
