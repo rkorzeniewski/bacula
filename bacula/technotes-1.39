@@ -1,6 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+10Sep06
+kes  Apply patch from Richard Mortimer to ensure that the number
+     of DVD parts is correctly updated.
 08Sep06
 kes  Fix logic error in handling error return from mtx-changer 
      script.
