@@ -92,7 +92,7 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
 bool begin_data_spool(DCR *dcr)
 {
    bool stat = true;
-   if (dcr->jcr->spool_data) {
+   if (!dcr->dev->is_dvd() && dcr->jcr->spool_data) {
       Dmsg0(100, "Turning on data spooling\n");
       dcr->spool_data = true;
       stat = open_data_spool_file(dcr);
