@@ -47,7 +47,7 @@ New Features in 1.39.22:
   are not compatible. Thus any DVDs written prior to 1.39.22 will
   be unreadable by version 1.39.22.
 
-==== IMPORTANT miscelleaneous ====
+==== IMPORTANT miscellaneous ====
 - The bacula-dir.conf directive Accept Any Volume has been
   removed because it was never implemented. You must delete all
   occurrence of this directive for the Director to run.
@@ -155,7 +155,7 @@ New Features in 1.40.0:
   have the detailed errno found on Linux).  Added Solaris specific code.
   Note, this may apply to other OSes as well.
 - Switch the Win32 build from using Microsoft C++ to using mingw32
-  cross-compiling.  The inital work was done by Howard Thomson,
+  cross-compiling.  The initial work was done by Howard Thomson,
   then tweaked by me.  Robert Nelson then totally reworked the
   cross-compiling code so that it not only cross-compiles, but
   also compiles on Visual Studio, and at the same time, he added
@@ -188,12 +188,12 @@ New Features in 1.40.0:
   or
   "status dir days=xx"
   My use case is to be able to preview the next scheduled job (and the
-  next tape to be used) on fridays if there are no scheduled jobs during
+  next tape to be used) on Fridays if there are no scheduled jobs during
   the weekend.  This patch was probably back ported to 1.38.x
 - Add nagios plugin to the examples directory. Submitted by
   Christian Masopust.
 - Modify most restore error messages to be queued so that they
-  appear at the end of the job rather than mixted with the restore
+  appear at the end of the job rather than mixed with the restore
   listing where they could be "lost".
 - Apply patch supplied by user (slightly modified) to fix
   correct detection of holes in block devices and FIFOs.
@@ -244,7 +244,7 @@ New Features in 1.40.0:
    bacula-ctl-fd  -- starts/stops the File daemon
    bacula-ctl-sd  -- starts/stops the Storage daemon
 - Remove automatic case folding on Windows FDs. You must
-  explictly use the 'Ignore Case = yes' option.
+  explicitly use the 'Ignore Case = yes' option.
 - Implement wild program in tools directory for testing
   wild-cards. Almost identical to the regex program.
 - Use the new bregex.c to implement Regex expressions on Win32.
