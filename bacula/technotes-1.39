@@ -2,6 +2,8 @@
 
 General:
 10Sep06
+kes  Disable normal data spooling for DVD writing which uses  
+     a different spooling mechanism.
 kes  Apply patch from Richard Mortimer to ensure that the number
      of DVD parts is correctly updated.
 
