@@ -4,7 +4,8 @@
   Bacula code: Total files = 447 Total lines = 149,711 (*.h *.c *.in)
 
 New Features in 1.39.22:
-- Fix opening of database in console to respect ACL.     
+- Fix opening of database in a restricted console to respect     
+  any Catalog ACL.
 - Permit multiple console/director resources in bconsole.conf.
   patch from Carsten Paeth calle@calle.in-berlin.de
 - Character substitution in Job/JobDefs WriteBootStrap.
@@ -24,12 +25,6 @@ New Features in 1.39.22:
 - Enforce Media.Enabled=1 for a current restore to work
 - Require restore case 3 to have sqlquery permission to work.
 
-Fixes to 1.39.22:
-- Lots of fixes -- see ChangeLog.
-- Lots of work on DVD writing.
-- Lots of work on documentation in the manual.
-- Lots of work on the rescue disk.
-
 ==== IMPORTANT Catalog update required =====
 - The database format has been updated from what was used in    
   Bacula 1.38.x.  You must manually update your database before 
@@ -45,6 +40,39 @@ Fixes to 1.39.22:
   does not require updating the database again. Depending on the size of your
   database the script make take a bit of time, to run, but in
   general, it should be very fast.
+
+==== IMPORTANT DVD Volume format changed ====
+- The current Volume format written by 1.39.22 is different from
+  the format written by previous versions. The two formats
+  are not compatible. Thus any DVDs written prior to 1.39.22 will
+  be unreadable by version 1.39.22.
+
+==== IMPORTANT miscelleaneous ====
+- The bacula-dir.conf directive Accept Any Volume has been
+  removed because it was never implemented. You must delete all
+  occurrence of this directive for the Director to run.
+- The --mandir ./configure option now points to the top level man
+  directory.  The man files will be installed under mandir/man8 and
+  mandir/man1 as appropriate.
+- The "Accept Any Volume" directive has been removed. It was never
+  implemented. Bacula will always accept any valid tape that is in   
+  the drive for appending.
+- You *should* be able to use 1.38.x FDs with version 1.39.18 Director
+  and SD providing you do not use any of the new features (runscript,   
+  data encryption). It seems to work here, but we do not guarantee it.
+- Your Director and SD must be simultaneously upgraded.
+- The restore command no longer uses the MediaType as the primary method
+  of finding a suitable Storage device. Normally it will select the last
+  device used to write a Volume. If no storage device is defined, it
+  will use the old algorithm which selects the first Storage resource  
+  with the correct MediaType.
+- The MD5/SHA1 hash codes kept in the database are now kept in a binary
+  format compatible with the rest of the world. If you are running verify 
+  jobs, you *must* do an InitCatalog or all files will show an MD5   
+  difference.  Also, authentication uses the new algorithm by
+  default, but *should* accept connections from older components (FD) using
+  the old non-compatible algorithm. This has been tested, but more
+  more testing is still needed.  
 
 ==== IMPORTANT new Win32 install procedure =====
   For Win32 migrations from versions prior to the new installer nothing special
@@ -101,7 +129,7 @@ Fixes to 1.39.22:
   the new Bacula.
 
 
-New Features in 1.40.0 (beginning of release info)
+New Features in 1.40.0:
 - The basic features of Migration are now complete.
 - There is a Migration chapter in the doc.
   http://www.bacula.org/dev-manual/Migration.html
@@ -126,47 +154,6 @@ New Features in 1.40.0 (beginning of release info)
   do a rewind on Solaris when no tape is in the drive (Solaris does not
   have the detailed errno found on Linux).  Added Solaris specific code.
   Note, this may apply to other OSes as well.
-
-
-==========================================
-
-Beta version 1.39.20:
-- Writing DVDs should work much better thanks to Richard Mortimer.
-- Many cleanups/enhancements for Win32 systems.
-- Correct improperly formated list command output reported by Dan.
-- Eric fixed RunScripts, which I (Kern) had broken in the last beta.
-- Correct Client migration SQL as pointed out by Marc.
-
-
-Warning for version 1.39.18 and greater:
-- If you have an old pre 1.39.18 database, you must update it using
-  the update_bacula_tables script. Please backup your database before
-  updating just in case.
-- You *should* be able to use 1.38.x FDs with version 1.39.18 Director
-  and SD providing you do not use any of the new features (runscript,   
-  data encryption). It seems to work here, but we do not guarantee it.
-- Your Director and SD must be simultaneously upgraded.
-- The restore command no longer uses the MediaType as the primary method
-  of finding a suitable Storage device. Normally it will select the last
-  device used to write a Volume. If no storage device is defined, it
-  will use the old algorithm which selects the first Storage resource  
-  with the correct MediaType.
-- The MD5/SHA1 hash codes kept in the database are now kept in a binary
-  format compatible with the rest of the world. If you are running verify 
-  jobs, you *must* do an InitCatalog or all files will show an MD5   
-  difference.  Also, authentication uses the new algorithm by
-  default, but *should* accept connections from older components (FD) using
-  the old non-compatible algorithm. This has been tested, but more
-  more testing is still needed.  
-- The --mandir ./configure option now points to the top level man
-  directory.  The man files will be installed under mandir/man8 and
-  mandir/man1 as appropriate.
-- The "Accept Any Volume" directive has been removed. It was never
-  implemented. Bacula will always accept any valid tape that is in   
-  the drive for appending.
-
-
-A Lot of New features for 1.39.18:
 - Switch the Win32 build from using Microsoft C++ to using mingw32
   cross-compiling.  The inital work was done by Howard Thomson,
   then tweaked by me.  Robert Nelson then totally reworked the
@@ -309,7 +296,9 @@ A Lot of New features for 1.39.18:
 - If using GCC (actually g++) add the following compiler flags
   -fno-strict-aliasing -fno-exceptions -fno-rtti
 - Turn on new bsnprintf() code.  This could cause print output
-  to look different.
+  to look different. The reason for this code is to eliminate the
+  security problems associated with using the system libraries
+  print routines.
 - Implement job report that indicates where Storage and Pool
   came from -- with overrides and Pool storage and NextPool,
   it is all very complicated.

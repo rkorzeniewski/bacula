@@ -438,12 +438,13 @@ bool dvd_write_part(DCR *dcr)
       sm_check(__FILE__, __LINE__, false);
       return false;
    }
-   Jmsg(dcr->jcr, M_INFO, 0, _("Part %d written to DVD.\n"), dev->part);
-   Dmsg2(400, "dvd_write_part: Part %d written to DVD\nResults: %s\n",
-            dev->part, results.c_str());
+   Jmsg(dcr->jcr, M_INFO, 0, _("Part %d (%lld bytes) written to DVD.\n"), dev->part, dev->part_size);
+   Dmsg3(400, "dvd_write_part: Part %d (%lld bytes) written to DVD\nResults: %s\n",
+            dev->part, dev->part_size, results.c_str());
     
    dev->num_dvd_parts++;            /* there is now one more part on DVD */
    dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
+   dcr->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    Dmsg1(000, "Update num_parts=%d\n", dev->num_dvd_parts);
 
    /* Delete spool file */
