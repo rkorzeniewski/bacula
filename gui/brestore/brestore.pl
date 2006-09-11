@@ -1033,6 +1033,54 @@ sub on_estimate_clicked
     return 0;
 }
 
+sub on_gen_bsr_clicked
+{
+    my ($self) = @_;
+    
+    my @options = ("Choose a bsr file", $self->{mainwin}, 'save', 
+		   'gtk-save','ok', 'gtk-cancel', 'cancel');
+
+    
+    my $w = new Gtk2::FileChooserDialog ( @options );
+    my $ok = 0;
+    my $save;
+    while (!$ok) {
+	my $a = $w->run();
+	if ($a eq 'cancel') {
+	    $ok = 1;
+	}
+
+	if ($a eq 'ok') {
+	    my $f = $w->get_filename();
+	    if (-f $f) {
+		my $dlg = Gtk2::MessageDialog->new($self->{mainwin}, 
+						   'destroy-with-parent', 
+						   'warning', 'ok-cancel', 'This file already exists, do you want to overwrite it ?');
+		if ($dlg->run() eq 'ok') {
+		    $save = $f;
+		}
+		$dlg->destroy();
+	    } else {
+		$save = $f;
+	    }
+	    $ok = 1;
+	}
+    }
+
+    $w->destroy();
+    
+    if ($save) {
+	if (open(FP, ">$save")) {
+	    my $bsr = $self->create_filelist();
+	    print FP $bsr;
+	    close(FP);
+	    $self->set_status("Dumping BSR to $save ok");
+	} else {
+	    $self->set_status("Can't dump BSR to $save: $!");
+	}
+    }
+}
+
 use File::Temp qw/tempfile/;
 
 sub on_go_button_clicked 
