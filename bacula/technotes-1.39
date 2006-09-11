@@ -1,6 +1,18 @@
               Technical notes on version 1.39  
 
 General:
+11Sep06
+kes  Modify disk changer to simulate some of the error conditions
+     of mtx-changer.
+kes  Make sure the close() call in the SD tools is just before the
+     getchar() call.
+kes  Implement dir_get_volume_info() in bls using the patch from
+     Richard Mortimer but call find_num_dvd_parts().
+kes  Implement find_num_dvd_parts() that mounts and scans a DVD
+     and counts the parts. 
+kes  Move the omode code in open_dvd() up so that the cannot
+     write on blank disk can check can be bypassed for read mode.
+     Not yet implemented.
 10Sep06
 kes  Disable normal data spooling for DVD writing which uses  
      a different spooling mechanism.

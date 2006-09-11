@@ -2687,7 +2687,6 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    if (dcr->VolumeName[0] == 0) {
       return dir_ask_sysop_to_create_appendable_volume(dcr);
    }
-   dev->close();
    Pmsg1(-1, "%s", dev->errmsg);           /* print reason */
    if (dcr->VolumeName[0] == 0 || strcmp(dcr->VolumeName, "TestVolume2") == 0) {
       fprintf(stderr, _("Mount second Volume on device %s and press return when ready: "),
@@ -2696,6 +2695,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
          dcr->VolumeName, dev->print_name());
    }
+   dev->close();
    getchar();
    return true;
 }
@@ -2716,9 +2716,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    }
    autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
-      dev->close();
       fprintf(stderr, _("Mount blank Volume on device %s and press return when ready: "),
          dev->print_name());
+      dev->close();
       getchar();
    }
    open_device(dcr);

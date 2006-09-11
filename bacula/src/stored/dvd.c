@@ -904,3 +904,76 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
    Dmsg2(29, "OK  can_write_on_non_blank_dvd: got %d files in the mount point (matched=%d)\n", count, matched);
    return matched;
 }
+
+/* 
+ * Mount a DVD device, then scan to find out how many parts
+ *  there are.
+ */
+int find_num_dvd_parts(DCR *dcr)
+{
+   DEVICE *dev = dcr->dev;
+   int num_parts = 0;
+
+   if (!dev->is_dvd()) {
+      return 0;
+   }
+   
+   if (dev->mount(1)) {
+      DIR* dp;
+      struct dirent *entry, *result;
+      int name_max;
+      int len = strlen(dcr->VolCatInfo.VolCatName);
+
+      /* Now count the number of parts */
+      name_max = pathconf(".", _PC_NAME_MAX);
+      if (name_max < 1024) {
+         name_max = 1024;
+      }
+         
+      if (!(dp = opendir(dev->device->mount_point))) {
+         berrno be;
+         dev->dev_errno = errno;
+         Dmsg3(29, "find_num_dvd_parts: failed to open dir %s (dev=%s), ERR=%s\n", 
+               dev->device->mount_point, dev->print_name(), be.strerror());
+         goto get_out;
+      }
+      
+      entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
+
+      Dmsg1(100, "Looking for Vol=%s\n", dcr->VolCatInfo.VolCatName);
+      for ( ;; ) {
+         int flen;
+         bool ignore;
+         if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
+            dev->dev_errno = EIO;
+            Dmsg2(129, "find_num_dvd_parts: failed to find suitable file in dir %s (dev=%s)\n", 
+                  dev->device->mount_point, dev->print_name());
+            break;
+         }
+         flen = strlen(result->d_name);
+         ignore = true;
+         if (flen >= len) {
+            result->d_name[len] = 0;
+            if (strcmp(dcr->VolCatInfo.VolCatName, result->d_name) == 0) {
+               num_parts++;
+               Dmsg1(100, "find_num_dvd_parts: found part: %s\n", result->d_name);
+               ignore = false;
+            }
+         }
+         if (ignore) {
+            Dmsg2(129, "find_num_dvd_parts: ignoring %s in %s\n", 
+                  result->d_name, dev->device->mount_point);
+         }
+      }
+      free(entry);
+      closedir(dp);
+      Dmsg1(29, "find_num_dvd_parts = %d\n", num_parts);
+   }
+   
+get_out:
+   dev->set_freespace_ok();
+   if (dev->is_mounted()) {
+      dev->unmount(0);
+   }
+   return num_parts;
+}
