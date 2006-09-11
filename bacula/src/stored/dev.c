@@ -518,6 +518,23 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    if (num_dvd_parts != VolCatInfo.VolCatParts) {
       num_dvd_parts = VolCatInfo.VolCatParts;
    }
+
+   /*
+    * If we are not trying to access the last part, set mode to 
+    *   OPEN_READ_ONLY as writing would be an error.
+    */
+   Dmsg2(29, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
+   if (part <= num_dvd_parts) {
+      omode = OPEN_READ_ONLY;
+      make_mounted_dvd_filename(this, archive_name);
+      set_part_spooled(false);
+   } else {
+      omode = OPEN_READ_WRITE;
+      make_spooled_dvd_filename(this, archive_name);
+      set_part_spooled(true);
+   }
+   set_mode(omode);
+
    // Clear any previous truncated_dvd status - we will recalculate it here
    truncated_dvd = false;
 
@@ -574,21 +591,6 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    openmode = omode;
    Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
    
-   /*
-    * If we are not trying to access the last part, set mode to 
-    *   OPEN_READ_ONLY as writing would be an error.
-    */
-   Dmsg2(29, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
-   if (part <= num_dvd_parts) {
-      omode = OPEN_READ_ONLY;
-      make_mounted_dvd_filename(this, archive_name);
-      set_part_spooled(false);
-   } else {
-      omode = OPEN_READ_WRITE;
-      make_spooled_dvd_filename(this, archive_name);
-      set_part_spooled(true);
-   }
-   set_mode(omode);
 
    /* If creating file, give 0640 permissions */
    Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 

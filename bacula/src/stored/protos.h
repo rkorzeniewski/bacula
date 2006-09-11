@@ -119,6 +119,7 @@ void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 bool truncate_dvd(DCR *dcr);
 bool check_can_write_on_non_blank_dvd(DCR *dcr);
+int find_num_dvd_parts(DCR *dcr);
 
 /* From device.c */
 bool     open_device(DCR *dcr);
