@@ -99,18 +99,8 @@ to ensure that you pick up all the new Win32 changes:
 Building the Installer
 ======================
 
-The installer isn't built as part of the default rule, you need to do a make
-in the src/win32/installer directory or type:
-
-     cd src/win32
-     make installer
-
-This was done because building the installer takes a bit of time
-and if you are working on the individual executables it's a pain to wait for
-it.  If you want to build everything in one step you can always type:
-
-     cd src/win32
-     make all installer
+The installer is now build as part of the default rule when you
+say "make" in the src/win32 directory.
 
 
 Updating the 3rd party package patches
