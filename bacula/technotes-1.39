@@ -2,6 +2,8 @@
 
 General:
 12Sep06
+kes  Add JobErrors, JobFiles, SDJobFiles, SDJobErrors, SDJobStatus,
+     and FDJobStatus to the Director Python variables.
 kes  Make sure valid argument passed to str_to_utime() where Arno
      had a seg fault.
 kes  Apply Richard Mortimer's patch for bcopy, bextract, and bscan.
