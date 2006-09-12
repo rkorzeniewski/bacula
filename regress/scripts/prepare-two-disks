@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Cread fresh virtual disk changer directory
+# Create fresh virtual disk changer directory
 #
 rm -rf tmp/disk-changer
 mkdir tmp/disk-changer

@@ -5,7 +5,7 @@
 #
 # This script uses the virtual disk autochanger
 #
-TestName="incremental-2disk-test"
+TestName="incremental-2disk"
 JobName=Inc2disk
 . scripts/functions
 set_debug 0
