@@ -1249,7 +1249,6 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
 }
 
 /* Dummies to replace askdir.c */
-bool    dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing) { return 1;}
 bool    dir_find_next_appendable_volume(DCR *dcr) { return 1;}
 bool    dir_update_volume_info(DCR *dcr, bool relabel) { return 1; }
 bool    dir_create_jobmedia_record(DCR *dcr) { return 1; }
@@ -1268,4 +1267,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    dev->close();
    getchar();
    return true;
+}
+
+bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
+{
+   Dmsg0(100, "Fake dir_get_volume_info\n");
+   bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
+   dcr->VolCatInfo.VolCatParts = find_num_dvd_parts(dcr);
+   Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatParts);
+   return 1;
 }
