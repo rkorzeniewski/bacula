@@ -74,6 +74,12 @@ static struct s_vars getvars[] = {
    { "Priority",   "i"},
    { "VolumeName", "s"},
    { "CatalogRes", "(sssssis)"},
+   { "JobErrors",  "i"},
+   { "JobFiles",   "i"},
+   { "SDJobFiles", "i"},
+   { "SDErrors",   "i"},
+   { "FDJobStatus","s"},
+   { "SDJobStatus","s"},
 
    { NULL,             NULL}
 };
@@ -175,7 +181,22 @@ PyObject *job_getattr(PyObject *self, char *attrname)
          jcr->catalog->db_user, jcr->catalog->db_password,
          jcr->catalog->db_socket, jcr->catalog->db_port,
          db_get_type());
-
+   case 15:                           /* JobErrors */
+      return Py_BuildValue(getvars[i].fmt, jcr->JobErrors);
+   case 16:                           /* JobFiles */
+      return Py_BuildValue(getvars[i].fmt, jcr->JobFiles);
+   case 17:                           /* SDJobFiles */
+      return Py_BuildValue(getvars[i].fmt, jcr->SDJobFiles);
+   case 18:                           /* SDErrors */
+      return Py_BuildValue(getvars[i].fmt, jcr->SDErrors);
+   case 19:                           /* FDJobStatus */
+      buf[1] = 0;
+      buf[0] = jcr->FDJobStatus;
+      return Py_BuildValue(getvars[i].fmt, buf);
+   case 29:                           /* SDJobStatus */
+      buf[1] = 0;
+      buf[0] = jcr->SDJobStatus;
+      return Py_BuildValue(getvars[i].fmt, buf);
    }
    bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);
 bail_out:

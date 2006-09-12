@@ -29,6 +29,14 @@ Document:
   building the French PDF.
 - Document more DVD stuff -- particularly that recycling doesn't work,
   and all the other things too.
+- Doc
+   { "JobErrors",  "i"},
+   { "JobFiles",   "i"},
+   { "SDJobFiles", "i"},
+   { "SDErrors",   "i"},
+   { "FDJobStatus","s"},
+   { "SDJobStatus","s"},
+ 
 
 Priority:
 
