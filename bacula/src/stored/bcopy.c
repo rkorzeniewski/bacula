@@ -149,6 +149,7 @@ int main (int argc, char *argv[])
    parse_config(configfile);
 
    /* Setup and acquire input device for reading */
+   Dmsg0(100, "About to setup input jcr\n");
    in_jcr = setup_jcr("bcopy", argv[0], bsr, iVolumeName, 1); /* read device */
    if (!in_jcr) {
       exit(1);
@@ -160,6 +161,7 @@ int main (int argc, char *argv[])
    }
 
    /* Setup output device for writing */
+   Dmsg0(100, "About to setup output jcr\n");
    out_jcr = setup_jcr("bcopy", argv[1], bsr, oVolumeName, 0); /* no acquire */
    if (!out_jcr) {
       exit(1);
@@ -168,6 +170,7 @@ int main (int argc, char *argv[])
    if (!out_dev) {
       exit(1);
    }
+   Dmsg0(100, "About to acquire device for writing\n");
    /* For we must now acquire the device for writing */
    lock_device(out_dev);
    if (out_dev->open(out_jcr->dcr, OPEN_READ_WRITE) < 0) {
@@ -274,7 +277,6 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
 
 
 /* Dummies to replace askdir.c */
-bool    dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing) { return 1;}
 bool    dir_find_next_appendable_volume(DCR *dcr) { return 1;}
 bool    dir_update_volume_info(DCR *dcr, bool relabel) { return 1; }
 bool    dir_create_jobmedia_record(DCR *dcr) { return 1; }
@@ -291,4 +293,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
    dev->close();
    getchar();
    return true;
+}
+
+bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
+{
+   Dmsg0(100, "Fake dir_get_volume_info\n");
+   bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
+   dcr->VolCatInfo.VolCatParts = find_num_dvd_parts(dcr);
+   Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatParts);
+   return 1;
 }

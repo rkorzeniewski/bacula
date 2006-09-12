@@ -66,6 +66,8 @@ For 1.39:
   .move transfer device=xxx fromslot=yyy toslot=zzz
 
 Low priority:
+- Check to see if jcr->stime is lost during rescheduling of
+  jobs in jobq.c
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -1684,4 +1686,3 @@ Block Position: 0
     > to the slots keyword, you can apply the enable/disable to any or all volumes.
 - Restricted consoles start in the Default catalog even if it
   is not permitted.
-

@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+12Sep06
+kes  Make sure valid argument passed to str_to_utime() where Arno
+     had a seg fault.
+kes  Apply Richard Mortimer's patch for bcopy, bextract, and bscan.
+     I.e. part of two different patches.
 11Sep06
 kes  Modify disk changer to simulate some of the error conditions
      of mtx-changer.

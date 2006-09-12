@@ -105,6 +105,11 @@ utime_t str_to_utime(char *str)
    struct tm tm;
    time_t ttime;
 
+   /* Check for bad argument */
+   if (!str || *str == 0) {
+      return 0;
+   }
+
    if (sscanf(str, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
                                         &tm.tm_hour, &tm.tm_min, &tm.tm_sec) != 6) {
       return 0;
