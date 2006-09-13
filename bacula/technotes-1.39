@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+13Sep06
+kes  Apply Richard Mortimer's patches for printing an error 
+     message in btape when a DVD is used, and to initialize traceback.
+kes  Added error message to btape when trying to access a file.
+kes  Move prototype of update_slots() to protos.h.
 12Sep06
 kes  Add JobErrors, JobFiles, SDJobFiles, SDJobErrors, SDJobStatus,
      and FDJobStatus to the Director Python variables.

@@ -911,7 +911,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
 
       /* Check for prefer mounted volumes */
       if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
-         Mmsg(jcr->errmsg, _("3606 JobId=%u wants mounted, but drive %s has no Volume.\n"), 
+         Mmsg(jcr->errmsg, _("3606 JobId=%u prefers mounted drives, but drive %s has no Volume.\n"), 
             jcr->JobId, dev->print_name());
          queue_reserve_message(jcr);
          Dmsg1(110, "failed: want mounted -- no vol JobId=%u\n", jcr->JobId);
@@ -1000,7 +1000,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
          return 1;
       } else {
          /* Drive Pool not suitable for us */
-         Mmsg(jcr->errmsg, _("3609 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" on drive %s.\n"), 
+         Mmsg(jcr->errmsg, _("3609 JobId=%u wants Pool=\"%s\" but has Pool=\"%s\" on drive %s.\n"), 
                jcr->JobId, dcr->pool_name, dev->pool_name, dev->print_name());
          queue_reserve_message(jcr);
          Dmsg2(110, "failed: busy num_writers>0, can_append, pool=%s wanted=%s\n",

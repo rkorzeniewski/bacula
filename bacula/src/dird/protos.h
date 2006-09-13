@@ -176,6 +176,7 @@ void parse_ua_args(UAContext *ua);
 /* ua_label.c */
 bool is_volume_name_legal(UAContext *ua, const char *name);
 int get_num_drives_from_SD(UAContext *ua);
+void update_slots(UAContext *ua);
 
 /* ua_output.c */
 void prtit(void *ctx, const char *msg);

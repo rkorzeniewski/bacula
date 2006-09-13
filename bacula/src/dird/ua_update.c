@@ -25,11 +25,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-/* Imported functions */
-void update_slots(UAContext *ua);
-
-
-
 /* Forward referenced functions */
 static int update_volume(UAContext *ua);
 static bool update_pool(UAContext *ua);

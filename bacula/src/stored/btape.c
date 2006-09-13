@@ -152,6 +152,7 @@ int main(int margc, char *margv[])
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
+   init_stack_dump();
 
    /* Sanity checks */
    if (TAPE_BSIZE % B_DEV_BSIZE != 0 || TAPE_BSIZE / B_DEV_BSIZE == 0) {
@@ -267,6 +268,16 @@ int main(int margc, char *margv[])
    }
    dev = jcr->dcr->dev;
    if (!dev) {
+      exit(1);
+   }
+   if (dev->is_dvd()) {
+      Pmsg0(000, _("btape does not work with DVD storage.\n"));
+      usage();
+      exit(1);
+   }
+   if (!dev->is_tape()) {
+      Pmsg0(000, _("btape only works with tape storage.\n"));
+      usage();
       exit(1);
    }
    dcr = jcr->dcr;
