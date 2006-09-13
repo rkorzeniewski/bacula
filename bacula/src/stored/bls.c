@@ -91,6 +91,7 @@ int main (int argc, char *argv[])
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
+   init_stack_dump();
 
    working_directory = "/tmp";
    my_name_is(argc, argv, "bls");
