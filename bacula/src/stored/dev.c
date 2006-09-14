@@ -378,12 +378,11 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    }
 #endif
 
-   if (fd >= 0) {
+   if (this->is_open()) {
       openmode = omode;              /* save open mode */
       set_blocking();   
       Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
       dev_errno = 0;
-      update_pos_dev(this);                /* update position */
       set_os_device_parameters(this);      /* do system dependent stuff */
    } else {
       clear_opened();
@@ -466,7 +465,8 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       Emsg0(M_FATAL, 0, errmsg);
    } else {
       dev_errno = 0;
-      update_pos_dev(this);                /* update position */
+      file = 0;
+      file_addr = 0;
    }
    Dmsg4(29, "open dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", 
       fd, part, num_dvd_parts, part_size);
@@ -535,8 +535,8 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    }
    set_mode(omode);
 
-   // Clear any previous truncated_dvd status - we will recalculate it here
-   truncated_dvd = false;
+   // Clear any previous blank_dvd status - we will recalculate it here
+   blank_dvd = false;
 
    Dmsg3(99, "open_dvd_device: part=%d num_dvd_parts=%d, VolCatInfo.VolCatParts=%d\n",
       part, num_dvd_parts, dcr->VolCatInfo.VolCatParts);
@@ -557,7 +557,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             clear_opened();
             return;
          }
-         truncated_dvd = true;
+         blank_dvd = true;
       }
    } else {
       Dmsg0(99, "DVD device mount failed.\n");
@@ -620,7 +620,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       }
    }
    Dmsg1(100, "after open fd=%d\n", fd);
-   if (fd >= 0) {
+   if (is_open()) {
       if (omode == OPEN_READ_WRITE || omode == CREATE_READ_WRITE) {
          set_append();
       }
@@ -637,7 +637,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       } else {
          part_size = filestat.st_size;
          dev_errno = 0;
-         update_pos_dev(this);                /* update position */
+         update_pos(dcr);                    /* update position */
       }
    }
 }
@@ -718,10 +718,10 @@ bool DEVICE::rewind(DCR *dcr)
          break;
       }
    } else if (is_file() || is_dvd()) {
-      if (lseek_dev(this, (off_t)0, SEEK_SET) < 0) {
+      if (lseek(dcr, (off_t)0, SEEK_SET) < 0) {
          berrno be;
          dev_errno = errno;
-         Mmsg2(errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
+         Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          return false;
       }
@@ -796,7 +796,7 @@ void DEVICE::set_ateot()
  *  Returns: true  on succes
  *           false on error
  */
-bool DEVICE::eod()
+bool DEVICE::eod(DCR *dcr)
 {
    struct mtop mt_com;
    struct mtget mt_stat;
@@ -805,7 +805,7 @@ bool DEVICE::eod()
 
    if (fd < 0) {
       dev_errno = EBADF;
-      Mmsg1(errmsg, _("Bad call to eod_dev. Device %s not open\n"), print_name());
+      Mmsg1(errmsg, _("Bad call to eod. Device %s not open\n"), print_name());
       return false;
    }
 
@@ -813,7 +813,7 @@ bool DEVICE::eod()
    return fsf(VolCatInfo.VolCatFiles);
 #endif
 
-   Dmsg0(29, "eod_dev\n");
+   Dmsg0(29, "eod\n");
    if (at_eot()) {
       return true;
    }
@@ -825,16 +825,16 @@ bool DEVICE::eod()
       return true;
    }
    if (!is_tape()) {
-      pos = lseek_dev(this, (off_t)0, SEEK_END);
+      pos = lseek(dcr, (off_t)0, SEEK_END);
 //    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
-         update_pos_dev(this);
+         update_pos(dcr);
          set_eot();
          return true;
       }
       dev_errno = errno;
       berrno be;
-      Mmsg2(errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
+      Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
              print_name(), be.strerror());
       return false;
    }
@@ -869,7 +869,7 @@ bool DEVICE::eod()
          berrno be;
          clrerror(mt_com.mt_op);
          Dmsg1(50, "ioctl error: %s\n", be.strerror());
-         update_pos_dev(this);
+         update_pos(dcr);
          Mmsg2(errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          return false;
@@ -900,7 +900,7 @@ bool DEVICE::eod()
        */
       int file_num;
       for (file_num=file; !at_eot(); file_num++) {
-         Dmsg0(200, "eod_dev: doing fsf 1\n");
+         Dmsg0(200, "eod: doing fsf 1\n");
          if (!fsf(1)) {
             Dmsg0(200, "fsf error.\n");
             return false;
@@ -934,10 +934,10 @@ bool DEVICE::eod()
          Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", file , mt_stat.mt_fileno);
          file = mt_stat.mt_fileno;
       } else {
-         file++;                 /* wing it -- not correct on all OSes */
+         file++;                       /* wing it -- not correct on all OSes */
       }
    } else {
-      update_pos_dev(this);                   /* update position */
+      update_pos(dcr);                 /* update position */
    }
    Dmsg1(200, "EOD dev->file=%d\n", file);
    return ok;
@@ -949,39 +949,38 @@ bool DEVICE::eod()
  *  Returns: true  on succes
  *           false on error
  */
-bool update_pos_dev(DEVICE *dev)
+bool DEVICE::update_pos(DCR *dcr)
 {
    off_t pos;
    bool ok = true;
 
-   if (dev->fd < 0) {
-      dev->dev_errno = EBADF;
-      Mmsg0(dev->errmsg, _("Bad device call. Device not open\n"));
-      Emsg0(M_FATAL, 0, dev->errmsg);
+   if (!is_open()) {
+      dev_errno = EBADF;
+      Mmsg0(errmsg, _("Bad device call. Device not open\n"));
+      Emsg1(M_FATAL, 0, "%s", errmsg);
       return false;
    }
 
    /* Find out where we are */
-   if (dev->is_file()) {
-      dev->file = 0;
-      dev->file_addr = 0;
-      pos = lseek_dev(dev, (off_t)0, SEEK_CUR);
+   if (is_file() || is_dvd()) {
+      file = 0;
+      file_addr = 0;
+      pos = lseek(dcr, (off_t)0, SEEK_CUR);
       if (pos < 0) {
          berrno be;
-         dev->dev_errno = errno;
+         dev_errno = errno;
          Pmsg1(000, _("Seek error: ERR=%s\n"), be.strerror());
-         Mmsg2(dev->errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
+         Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
+            print_name(), be.strerror());
          ok = false;
       } else {
-         dev->file_addr = pos;
-         dev->block_num = (uint32_t)pos;
-         dev->file = (uint32_t)(pos >> 32);
+         file_addr = pos;
+         block_num = (uint32_t)pos;
+         file = (uint32_t)(pos >> 32);
       }
    }
    return ok;
 }
-
 
 /*
  * Return the status of the device.  This was meant
@@ -1213,9 +1212,9 @@ bool DEVICE::fsf(int num)
    struct mtop mt_com;
    int stat = 0;
 
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
-      Mmsg0(errmsg, _("Bad call to fsf_dev. Device not open\n"));
+      Mmsg0(errmsg, _("Bad call to fsf. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
       return false;
    }
@@ -1223,6 +1222,7 @@ bool DEVICE::fsf(int num)
    if (!is_tape()) {
       return true;
    }
+
    if (at_eot()) {
       dev_errno = 0;
       Mmsg1(errmsg, _("Device %s at End of Tape.\n"), print_name());
@@ -1303,7 +1303,6 @@ bool DEVICE::fsf(int num)
             }
          }
          if (stat == 0) {                /* EOF */
-            update_pos_dev(this);
             Dmsg1(100, "End of File mark from read. File=%d\n", file+1);
             /* Two reads of zero means end of tape */
             if (at_eof()) {
@@ -1352,7 +1351,6 @@ bool DEVICE::fsf(int num)
          stat = 0;
       }
    }
-   update_pos_dev(this);
    Dmsg1(200, "Return %d from FSF\n", stat);
    if (at_eof()) {
       Dmsg0(200, "ST_EOF set on exit FSF\n");
@@ -1374,7 +1372,7 @@ bool DEVICE::bsf(int num)
    struct mtop mt_com;
    int stat;
 
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
       Mmsg0(errmsg, _("Bad call to bsf. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
@@ -1386,6 +1384,7 @@ bool DEVICE::bsf(int num)
          print_name());
       return false;
    }
+
    Dmsg0(29, "bsf\n");
    clear_eot();
    clear_eof();
@@ -1401,7 +1400,6 @@ bool DEVICE::bsf(int num)
       Mmsg2(errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
          print_name(), be.strerror());
    }
-   update_pos_dev(this);
    return stat == 0;
 }
 
@@ -1416,7 +1414,7 @@ bool DEVICE::fsr(int num)
    struct mtop mt_com;
    int stat;
 
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
       Mmsg0(errmsg, _("Bad call to fsr. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
@@ -1426,6 +1424,7 @@ bool DEVICE::fsr(int num)
    if (!is_tape()) {
       return false;
    }
+
    if (!has_cap(CAP_FSR)) {
       Mmsg1(errmsg, _("ioctl MTFSR not permitted on %s.\n"), print_name());
       return false;
@@ -1458,7 +1457,6 @@ bool DEVICE::fsr(int num)
       Mmsg3(errmsg, _("ioctl MTFSR %d error on %s. ERR=%s.\n"),
          num, print_name(), be.strerror());
    }
-   update_pos_dev(this);
    return stat == 0;
 }
 
@@ -1472,7 +1470,7 @@ bool DEVICE::bsr(int num)
    struct mtop mt_com;
    int stat;
 
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
       Mmsg0(errmsg, _("Bad call to bsr_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
@@ -1501,7 +1499,6 @@ bool DEVICE::bsr(int num)
       Mmsg2(errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
          print_name(), be.strerror());
    }
-   update_pos_dev(this);
    return stat == 0;
 }
 
@@ -1510,9 +1507,9 @@ bool DEVICE::bsr(int num)
  * Returns: false on failure
  *          true  on success
  */
-bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
+bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
 {
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
       Mmsg0(errmsg, _("Bad call to reposition. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
@@ -1521,11 +1518,11 @@ bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
 
    if (!is_tape()) {
       off_t pos = (((off_t)rfile)<<32) + (off_t)rblock;
-      Dmsg1(100, "===== lseek_dev to %d\n", (int)pos);
-      if (lseek_dev(this, pos, SEEK_SET) == (off_t)-1) {
+      Dmsg1(100, "===== lseek to %d\n", (int)pos);
+      if (lseek(dcr, pos, SEEK_SET) == (off_t)-1) {
          berrno be;
          dev_errno = errno;
-         Mmsg2(errmsg, _("lseek_dev error on %s. ERR=%s.\n"),
+         Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          return false;
       }
@@ -1534,6 +1531,8 @@ bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
       file_addr = pos;
       return true;
    }
+
+   /* After this point, we are tape only */
    Dmsg4(100, "reposition from %u:%u to %u:%u\n",
       file, block_num, rfile, rblock);
    if (rfile < file) {
@@ -1554,7 +1553,7 @@ bool DEVICE::reposition(uint32_t rfile, uint32_t rblock)
       Dmsg2(100, "wanted_blk=%d at_blk=%d\n", rblock, block_num);
       Dmsg0(100, "bsf 1\n");
       bsf(1);
-      Dmsg0(100, "fsf_dev 1\n");
+      Dmsg0(100, "fsf 1\n");
       fsf(1);
       Dmsg2(100, "wanted_blk=%d at_blk=%d\n", rblock, block_num);
    }
@@ -1579,7 +1578,7 @@ bool DEVICE::weof(int num)
    int stat;
    Dmsg0(129, "weof_dev\n");
    
-   if (fd < 0) {
+   if (!is_open()) {
       dev_errno = EBADF;
       Mmsg0(errmsg, _("Bad call to weof_dev. Device not open\n"));
       Emsg0(M_FATAL, 0, errmsg);
@@ -1635,6 +1634,7 @@ void DEVICE::clrerror(int func)
    if (!is_tape()) {
       return;
    }
+
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
       switch (func) {
       case -1:
@@ -1763,7 +1763,8 @@ void DEVICE::close()
    if (has_cap(CAP_OFFLINEUNMOUNT)) {
       offline();
    }
-   if (fd >= 0) {
+
+   if (is_open()) {
       if (is_tape()) {
          tape_close(fd);
       } else {
@@ -1780,7 +1781,7 @@ void DEVICE::close()
    }
    
    /* Remove the last part file if it is empty */
-   if (num_dvd_parts > 0) {
+   if (is_dvd() && num_dvd_parts > 0) {
       struct stat statp;
       uint32_t part_save = part;
       POOL_MEM archive_name(PM_FNAME);
@@ -1862,7 +1863,7 @@ off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
 
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
 {
-   Dmsg1(100, "truncate_dev %s\n", print_name());
+   Dmsg1(100, "truncate %s\n", print_name());
    if (is_tape()) {
       return true;                    /* we don't really truncate tapes */
       /* maybe we should rewind and write and eof ???? */
@@ -2061,7 +2062,7 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
             break;
          case 'e':
             if (num_dvd_parts == 0) {
-               if (truncating || truncated_dvd) {
+               if (truncating || blank_dvd) {
                   str = "2";
                } else {
                   str = "1";
@@ -2112,17 +2113,6 @@ dev_vol_name(DEVICE *dev)
    return dev->VolCatInfo.VolCatName;
 }
 
-uint32_t dev_block(DEVICE *dev)
-{
-   update_pos_dev(dev);
-   return dev->block_num;
-}
-
-uint32_t dev_file(DEVICE *dev)
-{
-   update_pos_dev(dev);
-   return dev->file;
-}
 
 /*
  * Free memory allocated for the device

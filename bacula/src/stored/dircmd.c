@@ -398,7 +398,8 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
 
    Dmsg0(90, "try_autoload_device - looking for volume_info\n");
    if (relabel && dev->is_dvd()) {
-      dcr->VolCatInfo.VolCatParts=0;
+      /* Fake at least one partition to ensure that we look for the old volume */
+      dcr->VolCatInfo.VolCatParts = 1;
    }
 
    if (!try_autoload_device(dcr->jcr, slot, volname)) {
