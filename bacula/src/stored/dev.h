@@ -363,6 +363,7 @@ public:
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
    bool reposition(uint32_t rfile, uint32_t rblock); /* in dev.c */
    void clrerror(int func);     /* in dev.c */
+   off_t lseek(DCR *dcr, off_t offset, int whence); /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

@@ -1848,7 +1848,16 @@ void DEVICE::close_part(DCR *dcr)
    memcpy(&dcr->VolCatInfo, &saveVolCatInfo, sizeof(dcr->VolCatInfo));
 }
 
-
+off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
+{
+   if (is_dvd()) {
+      return lseek_dvd(dcr, offset, whence);
+   }
+   if (is_file()) {
+      return ::lseek(fd, offset, whence);
+   }
+   return -1;
+}
 
 
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
