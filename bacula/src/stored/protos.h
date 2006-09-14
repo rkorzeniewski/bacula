@@ -82,7 +82,6 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
-off_t    lseek_dev(DEVICE *dev, off_t offset, int whence);
 bool     can_open_mounted_dev(DEVICE *dev);
 bool     truncate_dev(DCR *dcr);
 void     term_dev(DEVICE *dev);
@@ -120,6 +119,8 @@ void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 bool truncate_dvd(DCR *dcr);
 bool check_can_write_on_non_blank_dvd(DCR *dcr);
 int find_num_dvd_parts(DCR *dcr);
+off_t lseek_dvd(DCR *dcr, off_t offset, int whence);
+off_t lseek_dev(DEVICE *dev, off_t offset, int whence);  /* deprecated */
 
 /* From device.c */
 bool     open_device(DCR *dcr);

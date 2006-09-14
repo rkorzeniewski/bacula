@@ -165,7 +165,7 @@ mount_next_vol:
       mode = OPEN_READ_WRITE;
    }
    while (dev->open(dcr, mode) < 0) {
-      Dmsg0(150, "open_device failed\n");
+      Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
       if (dev->is_file() && dev->is_removable()) {
          Dmsg0(150, "call scan_dir_for_vol\n");
          if (dev->scan_dir_for_volume(dcr)) {

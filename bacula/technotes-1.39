@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+14Sep06
+kes  Create lseek() method for DEVICE that takes dcr as an
+     argument. This is to eliminate the use of attached_dcrs in
+     lseek().  The calls to lseek_dev() must still be changed.
 13Sep06
 kes  Apply Richard Mortimer's patches for printing an error 
      message in btape when a DVD is used, and to initialize traceback.

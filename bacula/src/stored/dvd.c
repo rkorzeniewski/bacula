@@ -592,22 +592,33 @@ int dvd_open_first_part(DCR *dcr, int mode)
    return dev->fd;
 }
 
-
-/* Protected version of lseek, which opens the right part if necessary */
+/* Deprecated */
 off_t lseek_dev(DEVICE *dev, off_t offset, int whence)
 {
    DCR *dcr;
-   off_t pos;
-   char ed1[50], ed2[50];
    
-   Dmsg5(400, "Enter lseek_dev fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd,
-      edit_int64(offset, ed1), whence, dev->part, dev->num_dvd_parts);
    if (!dev->is_dvd()) { 
       Dmsg0(400, "Using sys lseek\n");
       return lseek(dev->fd, offset, whence);
    }
 
    dcr = (DCR *)dev->attached_dcrs->first();  /* any dcr will do */
+   return lseek_dvd(dcr, offset, whence);
+}
+
+
+/* 
+ * Do an lseek on a DVD handling all the different parts
+ */
+off_t lseek_dvd(DCR *dcr, off_t offset, int whence)
+{
+   DEVICE *dev = dcr->dev;
+   off_t pos;
+   char ed1[50], ed2[50];
+   
+   Dmsg5(400, "Enter lseek_dev fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd,
+      edit_int64(offset, ed1), whence, dev->part, dev->num_dvd_parts);
+
    switch(whence) {
    case SEEK_SET:
       Dmsg2(400, "lseek_dev SEEK_SET to %s (part_start=%s)\n",
