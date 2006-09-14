@@ -1776,37 +1776,6 @@ void DEVICE::close()
       return;                         /* already closed */
    }
 
-   if (is_dvd() && !unmount_dvd(this, 1)) {
-      Dmsg1(0, "Cannot unmount device %s.\n", print_name());
-   }
-   
-   /* Remove the last part file if it is empty */
-   if (is_dvd() && num_dvd_parts > 0) {
-      struct stat statp;
-      uint32_t part_save = part;
-      POOL_MEM archive_name(PM_FNAME);
-      int status;
-
-      part = num_dvd_parts;
-      make_spooled_dvd_filename(this, archive_name);
-      /* Check that the part file is empty */
-      status = stat(archive_name.c_str(), &statp);
-      if (status == 0 && statp.st_size == 0) {
-         Dmsg3(100, "Unlink empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
-                part, num_dvd_parts, VolCatInfo.VolCatName);
-         Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
-         unlink(archive_name.c_str());
-         if (part_save == part) {
-           set_part_spooled(false);        /* no spooled part left */
-         }
-      } else if (status < 0) {                         
-         if (part_save == part) {
-           set_part_spooled(false);        /* spool doesn't exit */
-         }
-      }       
-      part = part_save;               /* restore part number */
-   }
-   
    /* Clean up device packet so it can be reused */
    clear_opened();
    state &= ~(ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF);

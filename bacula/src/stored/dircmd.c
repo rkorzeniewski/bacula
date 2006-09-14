@@ -447,12 +447,18 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
          break;
       }
       if (relabel && dev->is_dvd()) {
-         /* Change the partition file name */
-         bstrncpy(dcr->VolumeName, newname, sizeof(dcr->VolumeName));
+         /* Save dev VolumeName */
+         bstrncpy(dcr->VolumeName, dev->VolCatInfo.VolCatName, sizeof(dcr->VolumeName));
+         /* Use new name for DVD truncation */
+         bstrncpy(dev->VolCatInfo.VolCatName, newname, sizeof(dev->VolCatInfo.VolCatName));
          if (!dev->truncate(dcr)) {
             bnet_fsend(dir, _("3912 Failed to truncate previous DVD volume.\n"));
+            /* Restore device VolName */
+            bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dev->VolCatInfo.VolCatName));
             break;
          }
+         /* Restore device VolName */
+         bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dev->VolCatInfo.VolCatName));
       }
       free_volume(dev);               /* release old volume name */
       /* Fall through wanted! */

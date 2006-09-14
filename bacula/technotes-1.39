@@ -2,6 +2,10 @@
 
 General:
 14Sep06
+kes  Put removing zero sized spool part file in subroutine and
+     call from release_device().
+kes  Add Richard's patch for relabel to dircmd.c, but save and restore
+     dev Volume name.
 kes  Rework a lot of subroutines in dev.c to take dcr as an
      argument. This is done to eliminate the usage of attached_dcrs
      in lseek().
