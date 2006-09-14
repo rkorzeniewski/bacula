@@ -52,6 +52,7 @@ void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name)
 static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
 {
    char partnumber[20];
+
    if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
       pm_strcat(archive_name, "/");
    }
@@ -754,6 +755,38 @@ bool dvd_close_job(DCR *dcr)
       }
    }
    return ok;
+}
+
+void dvd_remove_empty_part(DCR *dcr) 
+{
+   DEVICE *dev = dcr->dev;
+
+   /* Remove the last part file if it is empty */
+   if (dev->is_dvd() && dev->num_dvd_parts > 0) {
+      struct stat statp;
+      uint32_t part_save = dev->part;
+      POOL_MEM archive_name(PM_FNAME);
+      int status;
+
+      dev->part = dev->num_dvd_parts;
+      make_spooled_dvd_filename(dev, archive_name);
+      /* Check that the part file is empty */
+      status = stat(archive_name.c_str(), &statp);
+      if (status == 0 && statp.st_size == 0) {
+         Dmsg3(100, "Unlink empty part in close call make_dvd_filename. part=%d num=%d vol=%s\n", 
+                part_save, dev->num_dvd_parts, dev->VolCatInfo.VolCatName);
+         Dmsg1(100, "unlink(%s)\n", archive_name.c_str());
+         unlink(archive_name.c_str());
+         if (part_save == dev->part) {
+            dev->set_part_spooled(false);  /* no spooled part left */
+         }
+      } else if (status < 0) {                         
+         if (part_save == dev->part) {
+            dev->set_part_spooled(false);  /* spool doesn't exit */
+         }
+      }       
+      dev->part = part_save;               /* restore part number */
+   }
 }
 
 bool truncate_dvd(DCR *dcr) 

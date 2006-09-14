@@ -483,6 +483,7 @@ bool release_device(DCR *dcr)
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+      dvd_remove_empty_part(dcr);        /* get rid of any empty spool part */
       dev->close();
    }
 
