@@ -33,8 +33,8 @@
 
 /* Forward referenced functions */
 static void handle_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
-static BSR *position_to_first_file(JCR *jcr, DEVICE *dev);
-static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev);
+static BSR *position_to_first_file(JCR *jcr, DCR *dcr);
+static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr);
 #ifdef DEBUG
 static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
@@ -56,7 +56,7 @@ bool read_records(DCR *dcr,
    dlist *recs;                         /* linked list of rec packets open */
 
    recs = New(dlist(rec, &rec->link));
-   position_to_first_file(jcr, dev);
+   position_to_first_file(jcr, dcr);
    jcr->mount_next_volume = false;
 
    for ( ; ok && !done; ) {
@@ -103,7 +103,7 @@ bool read_records(DCR *dcr,
             handle_session_record(dev, trec, &sessrec);
             ok = record_cb(dcr, trec);
             free_record(trec);
-            position_to_first_file(jcr, dev);
+            position_to_first_file(jcr, dcr);
             /* After reading label, we must read first data block */
             continue;
 
@@ -140,7 +140,7 @@ bool read_records(DCR *dcr,
 #ifdef if_and_when_FAST_BLOCK_REJECTION_is_working
       /* this does not stop when file/block are too big */
       if (!match_bsr_block(jcr->bsr, block)) {
-         if (try_repositioning(jcr, rec, dev)) {
+         if (try_repositioning(jcr, rec, dcr)) {
             break;                    /* get next volume */
          }
          continue;                    /* skip this record */
@@ -239,7 +239,7 @@ bool read_records(DCR *dcr,
                   rec->remainder, rec->FileIndex, dev->file, dev->block_num);
                rec->remainder = 0;
                rec->state &= ~REC_PARTIAL_RECORD;
-               if (try_repositioning(jcr, rec, dev)) {
+               if (try_repositioning(jcr, rec, dcr)) {
                   break;
                }
                continue;              /* we don't want record, read next one */
@@ -264,7 +264,7 @@ bool read_records(DCR *dcr,
          if (crypto_digest_stream_type(rec->Stream) != CRYPTO_DIGEST_NONE) {
             Dmsg3(dbglvl, "Have digest FI=%u before bsr check pos %u:%u\n", rec->FileIndex,
                   dev->file, dev->block_num);
-            if (is_this_bsr_done(jcr->bsr, rec) && try_repositioning(jcr, rec, dev)) {
+            if (is_this_bsr_done(jcr->bsr, rec) && try_repositioning(jcr, rec, dcr)) {
                Dmsg2(dbglvl, "This bsr done, break pos %u:%u\n",
                      dev->file, dev->block_num);
                break;
@@ -292,9 +292,11 @@ bool read_records(DCR *dcr,
  *   Returns:  true  if at end of volume
  *             false otherwise
  */
-static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
+static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
 {
    BSR *bsr;
+   DEVICE *dev = dcr->dev;
+
    bsr = find_next_bsr(jcr->bsr, dev);
    if (bsr == NULL && jcr->bsr->mount_next_volume) {
       Dmsg0(dbglvl, "Would mount next volume here\n");
@@ -318,7 +320,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
       Dmsg4(dbglvl, "Try_Reposition from (file:block) %u:%u to %u:%u\n",
             dev->file, dev->block_num, bsr->volfile->sfile,
             bsr->volblock->sblock);
-      dev->reposition(bsr->volfile->sfile, bsr->volblock->sblock);
+      dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
       rec->Block = 0;
    }
    return false;
@@ -327,9 +329,10 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DEVICE *dev)
 /*
  * Position to the first file on this volume
  */
-static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
+static BSR *position_to_first_file(JCR *jcr, DCR *dcr)
 {
    BSR *bsr = NULL;
+   DEVICE *dev = dcr->dev;
    /*
     * Now find and position to first file and block
     *   on this tape.
@@ -342,7 +345,7 @@ static BSR *position_to_first_file(JCR *jcr, DEVICE *dev)
             bsr->volfile->sfile, bsr->volblock->sblock);
          Dmsg2(dbglvl, "Forward spacing to file:block %u:%u.\n",
             bsr->volfile->sfile, bsr->volblock->sblock);
-         dev->reposition(bsr->volfile->sfile, bsr->volblock->sblock);
+         dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
       }
    }
    return bsr;

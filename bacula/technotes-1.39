@@ -2,6 +2,11 @@
 
 General:
 14Sep06
+kes  Rework a lot of subroutines in dev.c to take dcr as an
+     argument. This is done to eliminate the usage of attached_dcrs
+     in lseek().
+kes  Change truncated_dvd to blank_dvd, which seems more suitable.
+kes  Apply most of Richard Mortimer's truncate patch.
 kes  Create lseek() method for DEVICE that takes dcr as an
      argument. This is to eliminate the use of attached_dcrs in
      lseek().  The calls to lseek_dev() must still be changed.

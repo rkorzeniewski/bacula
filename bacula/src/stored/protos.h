@@ -83,18 +83,9 @@ void    display_tape_error_status(JCR *jcr, DEVICE *dev);
 /* From dev.c */
 DEVICE  *init_dev(JCR *jcr, DEVRES *device);
 bool     can_open_mounted_dev(DEVICE *dev);
-bool     truncate_dev(DCR *dcr);
-void     term_dev(DEVICE *dev);
-char *   strerror_dev(DEVICE *dev);
-void     clrerror_dev(DEVICE *dev, int func);
-bool     update_pos_dev(DEVICE *dev);
 bool     load_dev(DEVICE *dev);
-int      flush_dev(DEVICE *dev);
 int      write_block(DEVICE *dev);
 uint32_t status_dev(DEVICE *dev);
-bool     eod_dev(DEVICE *dev);
-bool     fsf_dev(DEVICE *dev, int num);
-bool     bsf_dev(DEVICE *dev, int num);
 void     attach_jcr_to_device(DEVICE *dev, JCR *jcr);
 void     detach_jcr_from_device(DEVICE *dev, JCR *jcr);
 JCR     *next_attached_jcr(DEVICE *dev, JCR *jcr);
@@ -104,23 +95,20 @@ bool     double_dev_wait_time(DEVICE *dev);
 
 /* Get info about device */
 char *   dev_vol_name(DEVICE *dev);
-uint32_t dev_block(DEVICE *dev);
-uint32_t dev_file(DEVICE *dev);
 
 /* From dvd.c */
-int  dvd_open_next_part(DCR *dcr);
-bool dvd_write_part(DCR *dcr); 
-bool dvd_close_job(DCR *dcr);
-bool mount_dvd(DEVICE* dev, int timeout);
-bool unmount_dvd(DEVICE* dev, int timeout);
-bool update_free_space_dev(DEVICE *dev);
-void make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
-void make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
-bool truncate_dvd(DCR *dcr);
-bool check_can_write_on_non_blank_dvd(DCR *dcr);
-int find_num_dvd_parts(DCR *dcr);
-off_t lseek_dvd(DCR *dcr, off_t offset, int whence);
-off_t lseek_dev(DEVICE *dev, off_t offset, int whence);  /* deprecated */
+int     dvd_open_next_part(DCR *dcr);
+bool    dvd_write_part(DCR *dcr); 
+bool    dvd_close_job(DCR *dcr);
+bool    mount_dvd(DEVICE* dev, int timeout);
+bool    unmount_dvd(DEVICE* dev, int timeout);
+bool    update_free_space_dev(DEVICE *dev);
+void    make_mounted_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
+void    make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
+bool    truncate_dvd(DCR *dcr);
+bool    check_can_write_on_non_blank_dvd(DCR *dcr);
+int     find_num_dvd_parts(DCR *dcr);
+off_t   lseek_dvd(DCR *dcr, off_t offset, int whence);
 
 /* From device.c */
 bool     open_device(DCR *dcr);

@@ -499,7 +499,7 @@ static void weofcmd()
  */
 static void eomcmd()
 {
-   if (!dev->eod()) {
+   if (!dev->eod(dcr)) {
       Pmsg1(0, "%s", dev->bstrerror());
       return;
    } else {
@@ -986,7 +986,7 @@ static int position_test()
          continue;
       }
       Pmsg2(-1, _("Reposition to file:block %d:%d\n"), file, blk);
-      if (!dev->reposition(file, blk)) {
+      if (!dev->reposition(dcr, file, blk)) {
          Pmsg0(0, _("Reposition error.\n"));
          goto bail_out;
       }
@@ -1600,7 +1600,7 @@ static void scancmd()
       Pmsg0(0, _("End of tape\n"));
       return;
    }
-   update_pos_dev(dev);
+   dev->update_pos(dcr);
    tot_files = dev->file;
    Pmsg1(0, _("Starting scan at file %u\n"), dev->file);
    for (;;) {
@@ -1623,7 +1623,7 @@ static void scancmd()
       Dmsg1(200, "read status = %d\n", stat);
 /*    sleep(1); */
       if (stat != block_size) {
-         update_pos_dev(dev);
+         dev->update_pos(dcr);
          if (blocks > 0) {
             if (blocks==1) {
                printf(_("1 block of %d bytes in file %d\n"), block_size, dev->file);
@@ -1636,7 +1636,7 @@ static void scancmd()
          block_size = stat;
       }
       if (stat == 0) {                /* EOF */
-         update_pos_dev(dev);
+         dev->update_pos(dcr);
          printf(_("End of File mark.\n"));
          /* Two reads of zero means end of tape */
          if (dev->state & ST_EOF)
@@ -1656,7 +1656,7 @@ static void scancmd()
          bytes += stat;
       }
    }
-   update_pos_dev(dev);
+   dev->update_pos(dcr);
    tot_files = dev->file - tot_files;
    printf(_("Total files=%d, blocks=%d, bytes = %s\n"), tot_files, tot_blocks,
       edit_uint64_with_commas(bytes, ec1));
@@ -1682,7 +1682,7 @@ static void scan_blocks()
    bytes = 0;
 
    empty_block(block);
-   update_pos_dev(dev);
+   dev->update_pos(dcr);
    tot_files = dev->file;
    for (;;) {
       if (!read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK)) {
@@ -2157,7 +2157,7 @@ static void do_unfill()
    read_records(dcr, quickie_cb, my_mount_next_read_volume);
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
          last_file, last_block_num);
-   if (!dev->reposition(last_file, last_block_num)) {
+   if (!dev->reposition(dcr, last_file, last_block_num)) {
       Pmsg1(-1, _("Reposition error. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
@@ -2208,7 +2208,7 @@ static void do_unfill()
     * on the previous tape.
     */
    Pmsg2(-1, _("Reposition from %u:%u to 0:1\n"), dev->file, dev->block_num);
-   if (!dev->reposition(0, 1)) {
+   if (!dev->reposition(dcr, 0, 1)) {
       Pmsg1(-1, _("Reposition error. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
@@ -2224,7 +2224,7 @@ static void do_unfill()
    /* Now find and compare the last block */
    Pmsg4(-1, _("Reposition from %u:%u to %u:%u\n"), dev->file, dev->block_num,
          last_file, last_block_num);
-   if (!dev->reposition(last_file, last_block_num)) {
+   if (!dev->reposition(dcr, last_file, last_block_num)) {
       Pmsg1(-1, _("Reposition error. ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }

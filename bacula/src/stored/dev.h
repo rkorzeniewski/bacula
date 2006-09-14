@@ -246,7 +246,7 @@ public:
    uint64_t free_space;               /* current free space on medium (without the current part) */
    int free_space_errno;              /* indicates errno getting freespace */
    bool truncating;                   /* if set, we are currently truncating the DVD */
-   bool truncated_dvd;                /* if set, we have a truncated DVD in the drive */
+   bool blank_dvd;                    /* if set, we have a blank DVD in the drive */
    
    
    utime_t  vol_poll_interval;        /* interval between polling Vol mount */
@@ -355,18 +355,21 @@ public:
    bool offline_or_rewind();     /* in dev.c */
    bool offline();               /* in dev.c */
    bool bsf(int count);          /* in dev.c */
-   bool eod();                   /* in dev.c */
+   bool eod(DCR *dcr);           /* in dev.c */
    bool fsr(int num);            /* in dev.c */
    bool fsf(int num);            /* in dev.c */
    bool bsr(int num);            /* in dev.c */
    bool weof(int num);           /* in dev.c */
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
-   bool reposition(uint32_t rfile, uint32_t rblock); /* in dev.c */
-   void clrerror(int func);     /* in dev.c */
+   bool reposition(DCR *dcr, uint32_t rfile, uint32_t rblock); /* in dev.c */
+   void clrerror(int func);      /* in dev.c */
    off_t lseek(DCR *dcr, off_t offset, int whence); /* in dev.c */
+   bool update_pos(DCR *dcr);    /* in dev.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };
+   uint32_t get_file() const { return file; };
+   uint32_t get_block() const { return block_num; };
    const char *print_blocked() const; /* in dev.c */
    bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
 

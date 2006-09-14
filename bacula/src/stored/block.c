@@ -648,7 +648,7 @@ static void reread_last_block(DCR *dcr)
           *    rewind(), but if we do that, higher levels in cleaning up, will
           *    most likely write the EOS record over the beginning of the
           *    tape.  The rewind *is* done later in mount.c when another
-          *    tape is requested. Note, the clrerror_dev() call in bsr()
+          *    tape is requested. Note, the clrerror() call in bsr()
           *    calls ioctl(MTCERRSTAT), which *should* fix the problem.
           */
       }
@@ -1033,9 +1033,9 @@ reread:
          }
       } else {
          Dmsg0(200, "Seek to beginning of block for reread.\n");
-         off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
+         off_t pos = dev->lseek(dcr, (off_t)0, SEEK_CUR); /* get curr pos */
          pos -= block->read_len;
-         lseek_dev(dev, pos, SEEK_SET);
+         dev->lseek(dcr, pos, SEEK_SET);
          dev->file_addr = pos;
       }
       Mmsg1(dev->errmsg, _("Setting block buffer size to %u bytes.\n"), block->block_len);
@@ -1102,10 +1102,10 @@ reread:
    Dmsg0(200, "At end of read block\n");
    if (block->read_len > block->block_len && !dev->is_tape()) {
       char ed1[50];
-      off_t pos = lseek_dev(dev, (off_t)0, SEEK_CUR); /* get curr pos */
+      off_t pos = dev->lseek(dcr, (off_t)0, SEEK_CUR); /* get curr pos */
       Dmsg1(200, "Current lseek pos=%s\n", edit_int64(pos, ed1));
       pos -= (block->read_len - block->block_len);
-      lseek_dev(dev, pos, SEEK_SET);
+      dev->lseek(dcr, pos, SEEK_SET);
       Dmsg3(200, "Did lseek pos=%s blk_size=%d rdlen=%d\n", 
          edit_int64(pos, ed1), block->block_len,
             block->read_len);

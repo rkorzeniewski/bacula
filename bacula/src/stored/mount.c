@@ -341,7 +341,7 @@ read_volume:
       Dmsg0(200, "Device previously written, moving to end of data\n");
       Jmsg(jcr, M_INFO, 0, _("Volume \"%s\" previously written, moving to end of data.\n"),
          dcr->VolumeName);
-      if (!dev->eod()) {
+      if (!dev->eod(dcr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
             dev->print_name(), dev->bstrerror());
          mark_volume_in_error(dcr);
@@ -369,13 +369,13 @@ read_volume:
           * Check if we are positioned on the tape at the same place
           * that the database says we should be.
           */
-         if (dev->VolCatInfo.VolCatFiles == dev_file(dev)) {
+         if (dev->VolCatInfo.VolCatFiles == dev->get_file()) {
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
-                 dcr->VolumeName, dev_file(dev));
+                 dcr->VolumeName, dev->get_file());
          } else {
             Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because:\n"
                  "The number of files mismatch! Volume=%u Catalog=%u\n"),
-                 dcr->VolumeName, dev_file(dev), dev->VolCatInfo.VolCatFiles);
+                 dcr->VolumeName, dev->get_file(), dev->VolCatInfo.VolCatFiles);
             mark_volume_in_error(dcr);
             goto mount_next_vol;
          }
