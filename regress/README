@@ -21,8 +21,9 @@ for the variables that are in that file.  If you want to see
 a real example, look at kern.conf, but please don't use my
 email address!
 
-Make sure that depkgs is pre-built if it isn't 
-already: (cd your-depkgs; make sqlite).
+If you are using SQLite, make sure that depkgs is pre-built if it
+isn't already: (cd your-depkgs; make sqlite).
+
 Using the .conf file, you can now select between any Catalog type:
 SQLite, SQLite3, MySQL, or PostgreSQL.  Be aware, however, if you
 use an installed database on a production server, running these
@@ -47,7 +48,7 @@ a resonable run.  Each test is totally independent of any other
 test. Aside from the required "make setup", each test is totally
 self-initalizing and should clean up after itself.
 
-The tests expect you to execute them from the main regress 
+All the tests expect you to execute them from the main regress 
 directory!               
 
 You can run all the disk based tests by doing:
@@ -98,7 +99,7 @@ conf files, and you do not need a new copy of the source, you can simply do:
 
 Debugging failed tests:
 The simplest thing to do is to edit tests/xxxx where xxxx is the name of
-the test, and change the line "debug=0" to "debug=1".  If the test has
+the test, and change the line "set_debug 0" to "set_debug 1".  If the test has
 not been updated to have the debug variable, please notify Kern, and I
 will be happy to fix it -- I am upgrading them one at a time.
 
