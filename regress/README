@@ -7,7 +7,8 @@ This is Bacula's regression script directory.
 Warning!!!! Make sure not to run it on the same system 
 with your production Catalog because the tables will all
 be cleared. You can run it on the your production system
-if you use a different database.
+if you use a different database. E.g. if your production
+system uses MySQL, you can use SQLite here.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
