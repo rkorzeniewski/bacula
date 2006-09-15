@@ -33,6 +33,7 @@ tests/weird-files-test
 tests/migration-job-test
 tests/migration-volume-test
 tests/migration-time-test
+tests/hardlink-test
 # 
 # The following are Virtual Disk Autochanger tests
 tests/two-pool-test
