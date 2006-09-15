@@ -14957,26 +14957,26 @@ if test "${with_python+set}" = set; then
 	  if test -f $python_root/include/python2.2/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.2
 	     if test -d $python_root/lib64/python2.2/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
+	     fi
 	     break
 	  elif test -f $python_root/include/python2.3/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.3
 	     if test -d $python_root/lib64/python2.3/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
+	     fi
 	     break
 	  elif test -f $python_root/include/python2.4/Python.h; then
 	     PYTHON_INCDIR=-I$python_root/include/python2.4
 	     if test -d $python_root/lib64/python2.4/config; then
-	        PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
-             else
-	        PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
-             fi
+		PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
+	     else
+		PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
+	     fi
 	     break
 	  fi
 	done
@@ -14984,10 +14984,10 @@ if test "${with_python+set}" = set; then
 	  if test -f $prefix/include/Python.h; then
 	     PYTHON_INCDIR=-I$prefix/include
 	     if test -d $prefix/lib64/config; then
-	        PYTHON_LIBS="-L$prefix/lib64/config -lpython"
-             else
-	        PYTHON_LIBS="-L$prefix/lib/config -lpython"
-             fi
+		PYTHON_LIBS="-L$prefix/lib64/config -lpython"
+	     else
+		PYTHON_LIBS="-L$prefix/lib/config -lpython"
+	     fi
 	  else
 	   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
@@ -16631,9 +16631,9 @@ echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
       elif test -f $withval/include/postgresql/libpq-fe.h; then
           POSTGRESQL_INCDIR=$withval/include/postgresql
      if test -d $withval/lib64; then
-          POSTGRESQL_LIBDIR=$withval/lib64
+         POSTGRESQL_LIBDIR=$withval/lib64
      else
-          POSTGRESQL_LIBDIR=$withval/lib
+         POSTGRESQL_LIBDIR=$withval/lib
      fi
           POSTGRESQL_BINDIR=$withval/bin
       else
@@ -16921,7 +16921,7 @@ echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h u
                 fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    if test -f $MYSQL_LIBDIR/libmysqlclient_r.a; then
+    if test -f "$MYSQL_LIBDIR/libmysqlclient_r.a"; then
        SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
        cat >>confdefs.h <<\_ACEOF
 #define HAVE_THREAD_SAFE_MYSQL 1
@@ -17670,7 +17670,7 @@ ac_x_header_dirs='
 /usr/openwin/share/include'
 
 if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Xlib.h.
+  # Guess where to find include files, by looking for Intrinsic.h.
   # First, try using that file with no special directory specified.
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -17678,7 +17678,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -17705,7 +17705,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Xlib.h"; then
+  if test -r "$ac_dir/X11/Intrinsic.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -17726,11 +17726,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 int
 main ()
 {
-XrmInitialize ()
+XtMalloc (0)
   ;
   return 0;
 }
@@ -29769,8 +29769,8 @@ freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
-	   PTHREAD_LIB="${PTHREAD_LIBS}"
-	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+	   PTHREAD_LIB="${PTHREAD_LIBS:--pthread}"
+	   CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS:--pthread}"
 	fi
 	lld="qd"
 	llu="qu"
@@ -29971,7 +29971,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/pygtk-console/Makefile src/tools/Makefile po/Makefile.in $PFILES"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/dvd-simulator scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/pygtk-console/Makefile src/tools/Makefile po/Makefile.in $PFILES"
           ac_config_commands="$ac_config_commands default"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -30541,6 +30541,7 @@ do
   "scripts/mtx-changer" ) CONFIG_FILES="$CONFIG_FILES scripts/mtx-changer" ;;
   "scripts/disk-changer" ) CONFIG_FILES="$CONFIG_FILES scripts/disk-changer" ;;
   "scripts/dvd-handler" ) CONFIG_FILES="$CONFIG_FILES scripts/dvd-handler" ;;
+  "scripts/dvd-simulator" ) CONFIG_FILES="$CONFIG_FILES scripts/dvd-simulator" ;;
   "scripts/bacula-tray-monitor.desktop" ) CONFIG_FILES="$CONFIG_FILES scripts/bacula-tray-monitor.desktop" ;;
   "scripts/logwatch/Makefile" ) CONFIG_FILES="$CONFIG_FILES scripts/logwatch/Makefile" ;;
   "scripts/logwatch/logfile.bacula.conf" ) CONFIG_FILES="$CONFIG_FILES scripts/logwatch/logfile.bacula.conf" ;;
@@ -31624,7 +31625,7 @@ fi
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 dvd-handler
+chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
 

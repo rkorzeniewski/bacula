@@ -1981,6 +1981,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/mtx-changer \
 	   scripts/disk-changer \
 	   scripts/dvd-handler \
+	   scripts/dvd-simulator \
 	   scripts/bacula-tray-monitor.desktop \
 	   scripts/logwatch/Makefile \
 	   scripts/logwatch/logfile.bacula.conf \
@@ -2055,7 +2056,7 @@ AC_OUTPUT([autoconf/Make.common \
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
-chmod 755 dvd-handler
+chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
 
