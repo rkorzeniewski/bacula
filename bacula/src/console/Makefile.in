@@ -41,7 +41,7 @@ CONS_LDFLAGS=@CONS_LDFLAGS@
 
 # inference rules
 .c.o:
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(CONS_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
 all: Makefile bconsole @STATIC_CONS@

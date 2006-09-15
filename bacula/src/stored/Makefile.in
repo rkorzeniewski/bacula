@@ -27,7 +27,7 @@ SDOBJS =  stored.o ansi_label.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
 	  block.o butil.o dev.o \
-	  device.o dircmd.o dvd.o ebcdic.c fd_cmds.o job.o \
+	  device.o dircmd.o dvd.o ebcdic.o fd_cmds.o job.o \
 	  label.o mac.o match_bsr.o mount.o parse_bsr.o \
 	  pythonsd.o read.o read_record.o record.o \
 	  reserve.o scan.o \
