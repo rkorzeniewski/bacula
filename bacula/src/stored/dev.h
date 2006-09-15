@@ -414,6 +414,7 @@ public:
    bool NewFile;                      /* set when EOF written */
    bool reserved_device;              /* set if reserve done */
    bool any_volume;                   /* Any OK for dir_find_next... */
+   bool attached_to_dev;              /* set when attached to dev */
    uint32_t VolFirstIndex;            /* First file index this Volume */
    uint32_t VolLastIndex;             /* Last file index this Volume */
    uint32_t FileIndex;                /* Current File Index */

@@ -357,8 +357,6 @@ bool dvd_write_part(DCR *dcr)
    DEVICE *dev = dcr->dev;
    POOL_MEM archive_name(PM_FNAME);
    
-   dev->clear_freespace_ok();             /* need to update freespace */
-
    /* Don't write empty part files.
     * This is only useful when growisofs does not support write beyond
     * the 4GB boundary.
@@ -393,6 +391,8 @@ bool dvd_write_part(DCR *dcr)
    int timeout;
    char ed1[50];
    
+   dev->clear_freespace_ok();             /* need to update freespace */
+
    sm_check(__FILE__, __LINE__, false);
    Dmsg3(29, "dvd_write_part: device is %s, part is %d, is_mounted=%d\n", dev->print_name(), dev->part, dev->is_mounted());
    icmd = dev->device->write_part_command;
@@ -793,6 +793,7 @@ bool truncate_dvd(DCR *dcr)
 {
    DEVICE* dev = dcr->dev;
 
+   dev->clear_freespace_ok();             /* need to update freespace */
    dev->close_part(dcr);
 
    if (!unmount_dvd(dev, 1)) {

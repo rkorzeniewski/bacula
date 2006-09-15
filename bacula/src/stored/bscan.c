@@ -567,7 +567,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          /* Create JobMedia record */
          mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
          create_jobmedia_record(db, mjcr);
-         dev->attached_dcrs->remove(mjcr->read_dcr);
+         detach_dcr_from_dev(mjcr->read_dcr);
          free_jcr(mjcr);
 
          break;

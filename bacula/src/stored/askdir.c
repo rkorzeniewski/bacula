@@ -287,6 +287,11 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    int InChanger;
    POOL_MEM VolumeName;
 
+   /* If system job, do not update catalog */
+   if (jcr->JobType == JT_SYSTEM) {
+      return true;
+   }
+
    if (vol->VolCatName[0] == 0) {
       Jmsg0(jcr, M_FATAL, 0, _("NULL Volume name. This shouldn't happen!!!\n"));
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
@@ -338,6 +343,11 @@ bool dir_create_jobmedia_record(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
+
+   /* If system job, do not update catalog */
+   if (jcr->JobType == JT_SYSTEM) {
+      return true;
+   }
 
    if (!dcr->WroteVol) {
       return true;                    /* nothing written to tape */

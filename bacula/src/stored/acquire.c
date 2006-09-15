@@ -24,7 +24,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 /* Forward referenced functions */
-static void detach_dcr_from_dev(DCR *dcr);
+static void attach_dcr_to_dev(DCR *dcr);
 
 
 /*********************************************************************
@@ -120,9 +120,7 @@ bool acquire_device_for_read(DCR *dcr)
          jcr->read_dcr = dcr; 
          dcr->device = new_dcr->device;
          dcr->max_job_spool_size = dcr->device->max_job_spool_size;
-         if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
-            dev->attached_dcrs->append(dcr);  /* attach dcr to device */
-         }
+         attach_dcr_to_dev(dcr);
          new_dcr->VolumeName[0] = 0;
          free_dcr(new_dcr);
          dev->block(BST_DOING_ACQUIRE); 
@@ -539,11 +537,7 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
       dcr->block = new_block(dev);
       dcr->rec = new_record();
       dcr->max_job_spool_size = dev->device->max_job_spool_size;
-      /* Attach this dcr only if dev is initialized */
-      if (dev->fd != 0 && jcr && jcr->JobType != JT_SYSTEM) {
-         dev->attached_dcrs->append(dcr);  /* attach dcr to device */
-//       jcr->dcrs->append(dcr);         /* put dcr in list for Job */
-      }
+      attach_dcr_to_dev(dcr);
    }
    dcr->spool_fd = -1;
    return dcr;
@@ -575,7 +569,18 @@ static void remove_dcr_from_dcrs(DCR *dcr)
 }
 #endif
 
-static void detach_dcr_from_dev(DCR *dcr)
+static void attach_dcr_to_dev(DCR *dcr)
+{
+   DEVICE *dev = dcr->dev;
+   JCR *jcr = dcr->jcr;
+
+   if (!dcr->attached_to_dev && dev->is_open() && jcr && jcr->JobType != JT_SYSTEM) {
+      dev->attached_dcrs->append(dcr);  /* attach dcr to device */
+      dcr->attached_to_dev = true;
+   }
+}
+
+void detach_dcr_from_dev(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
 
@@ -596,9 +601,10 @@ static void detach_dcr_from_dev(DCR *dcr)
       unlock_device(dev);
    }
 
-   /* Detach this dcr only if the dev is initialized */
-   if (dcr->dev->fd != 0 && dcr->jcr && dcr->jcr->JobType != JT_SYSTEM) {
+   /* Detach this dcr only if attached */
+   if (dcr->attached_to_dev) {
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
+      dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
    }
    free_unused_volume(dcr);           /* free unused vols attached to this dcr */

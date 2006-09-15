@@ -1,6 +1,17 @@
               Technical notes on version 1.39  
 
 General:
+15Sep06
+kes  Put attach_dcr_to_dev in a subroutine.
+kes  Make attaching/detaching to/from a device use a flag and 
+     only detach if actually attached.
+kes  Add dvd-simulator.in to scripts directory and add to configure.
+kes  Fix code in acquire.c that checks fd != 0 to use dev->is_open().  
+     This could be a cause of a number of drive reservation problems.
+     Note, this code is now in attach_dcr_to_dev().
+kes  Suppress doing Volume updates if it is a system job.  This should
+     prevent the DVD label blocking.
+kes  Clear the freespace ok flag in a couple of strategic places.
 14Sep06
 kes  Put removing zero sized spool part file in subroutine and
      call from release_device().
