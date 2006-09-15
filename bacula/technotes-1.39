@@ -2,6 +2,7 @@
 
 General:
 15Sep06
+kes  Minor Makefile fixes.
 kes  Put attach_dcr_to_dev in a subroutine.
 kes  Make attaching/detaching to/from a device use a flag and 
      only detach if actually attached.
