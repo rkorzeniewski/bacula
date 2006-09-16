@@ -46,6 +46,13 @@ install -m 755 -o root -g root brestore.pl    /usr/bin
 # you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
 install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
+# to copy bsr file directly to your director, use must use scp (or nfs stuff)
+# if you doesn't want to use this, you can dump the bsr file with "Gen BSR" button.
+# so you must have an ssh-key exchange. (you can also hack brestore.pl to use 
+# something like '$err = `xterm -e scp $src $1 2>&1`'
+
+your_login@yourws:~$ ssh-copy-id -i .ssh/your_pub_key login@bacula-dir
+
 ################ INSTALL MODULES ###############################
 
 Perl Modules
