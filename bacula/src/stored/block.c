@@ -570,7 +570,7 @@ bool write_block_to_dev(DCR *dcr)
    }
 
    /* We successfully wrote the block, now do housekeeping */
-   Dmsg2(400, "VolCatBytes=%d newVolCatBytes=%d\n", (int)dev->VolCatInfo.VolCatBytes,
+   Dmsg2(1300, "VolCatBytes=%d newVolCatBytes=%d\n", (int)dev->VolCatInfo.VolCatBytes,
       (int)(dev->VolCatInfo.VolCatBytes+wlen));
    dev->VolCatInfo.VolCatBytes += wlen;         
    dev->VolCatInfo.VolCatBlocks++;
@@ -919,23 +919,25 @@ reread:
       return false;
    }
    
-   /*Dmsg1(100, "dev->file_size=%u\n",(unsigned int)dev->file_size);
-   Dmsg1(100, "dev->file_addr=%u\n",(unsigned int)dev->file_addr);
-   Dmsg1(100, "lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
-   Dmsg1(100, "dev->part_start=%u\n",(unsigned int)dev->part_start);
-   Dmsg1(100, "dev->file_addr-dev->part_start=%u\n",(unsigned int)dev->file_addr-dev->part_start);
-   Dmsg1(100, "dev->file_size-dev->part_start=%u\n",(unsigned int)dev->file_size-dev->part_start);
-   Dmsg1(100, "dev->part_size=%u\n", (unsigned int)dev->part_size);
-   Dmsg1(100, "dev->part=%u\n", (unsigned int)dev->part);
-   Dmsg1(100, "dev->num_dvd_parts=%u\n", (unsigned int)dev->num_dvd_parts);
-   Dmsg1(100, "dev->VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
-   Dmsg3(100, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
+#define lots_of_debug
+#ifdef lots_of_debug
+   if (dev->at_eof() && dev->is_dvd()) {
+      Dmsg1(100, "file_size=%u\n",(unsigned int)dev->file_size);
+      Dmsg1(100, "file_addr=%u\n",(unsigned int)dev->file_addr);
+      Dmsg1(100, "lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
+      Dmsg1(100, "part_start=%u\n",(unsigned int)dev->part_start);
+      Dmsg1(100, "part_size=%u\n", (unsigned int)dev->part_size);
+      Dmsg2(100, "part=%u num_dvd_parts=%u\n", dev->part, dev->num_dvd_parts);
+      Dmsg1(100, "VolCatInfo.VolCatParts=%u\n", (unsigned int)dev->VolCatInfo.VolCatParts);
+      Dmsg3(100, "Tests : %d %d %d\n", (dev->VolCatInfo.VolCatParts > 0), 
          ((dev->file_addr-dev->part_start) == dev->part_size), 
-         (dev->part <= dev->VolCatInfo.VolCatParts));*/
+         (dev->part <= dev->VolCatInfo.VolCatParts));
+  }
+#endif
 
    /* Check for DVD part file end */
    if (dev->at_eof() && dev->is_dvd() && dev->num_dvd_parts > 0 &&
-        dev->part < dev->num_dvd_parts) {
+        dev->part <= dev->num_dvd_parts) {
       Dmsg0(400, "Call dvd_open_next_part\n");
       if (dvd_open_next_part(dcr) < 0) {
          Jmsg3(dcr->jcr, M_FATAL, 0, _("Unable to open device part=%d %s: ERR=%s\n"),

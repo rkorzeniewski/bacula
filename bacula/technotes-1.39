@@ -1,6 +1,20 @@
               Technical notes on version 1.39  
 
 General:
+16Sep06
+kes  Correct a test in block.c that prevented restore of a DVD from
+     looking at the last part in the spool directory.
+kes  Make some error messages clearer mostly by using the word DVD
+     in the message. Improve infor message in read_record for DVDs.
+kes  Remove DVD kludges in dircmd.c label/relabel.
+kes  Move the dvd relabel code from dircmd.c into      
+     write_new_volume_label_to_dvd() adding a relabel argument.
+kes  Rewrite the truncate_dvd() code to be much simpler and
+     more logical. First blow away any spool part, then create a
+     new empty part and write to the DVD.
+kes  Rewrite the can_write_on_non_blank_dvd() code making it
+     only ensure that no valid data is on the DVD -- i.e. it
+     can be overwritten.
 15Sep06
 kes  Minor Makefile fixes.
 kes  Put attach_dcr_to_dev in a subroutine.

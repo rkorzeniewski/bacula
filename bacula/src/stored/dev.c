@@ -490,7 +490,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          archive_name.c_str(), mode_to_str(omode));
 
    /*
-    * For a DVD we must alway pull the state info from dcr->VolCatInfo
+    * For a DVD we must always pull the state info from dcr->VolCatInfo
     *  This is a bit ugly, but is necessary because we need to open/close/re-open
     *  the dvd file in order to properly mount/unmount and access the
     *  DVD. So we store the state of the DVD as far as is known in the 
@@ -551,7 +551,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
           * we continue (it's the method used by truncate_dvd to truncate a volume).   
           */
          if (!check_can_write_on_non_blank_dvd(dcr)) {
-            Mmsg(errmsg, _("The media in the device %s is not empty, please blank it before writing anything to it.\n"), print_name());
+            Mmsg(errmsg, _("The DVD in device %s contains data, please blank it before writing.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
             unmount_dvd(this, 1); /* Unmount the device, so the operator can change it. */
             clear_opened();
@@ -572,13 +572,13 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          if (have_media()) {
             Dmsg1(29, "Could not mount device %s, this is not a problem (num_dvd_parts == 0), and have media.\n", print_name());
          } else {
-            Mmsg(errmsg, _("There is no valid media in the device %s.\n"), print_name());
+            Mmsg(errmsg, _("There is no valid DVD in device %s.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
             clear_opened();
             return;
          }
       }  else {
-         Mmsg(errmsg, _("Could not mount device %s.\n"), print_name());
+         Mmsg(errmsg, _("Could not mount DVD device %s.\n"), print_name());
          Emsg0(M_FATAL, 0, errmsg);
          clear_opened();
          return;
@@ -1842,6 +1842,9 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
       return truncate_dvd(dcr);
    }
    
+   /* ***FIXME*** we really need to unlink() the file so that
+    *  its name can be changed for a relabel.
+    */
    if (ftruncate(fd, 0) != 0) {
       berrno be;
       Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
