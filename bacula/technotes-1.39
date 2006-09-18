@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+18Sep06
+ebl  Add yes keyword to prune/purge command
 16Sep06
 kes  Correct a test in block.c that prevented restore of a DVD from
      looking at the last part in the spool directory.
