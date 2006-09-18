@@ -26,10 +26,10 @@ else
   else			      
     if test xpostgresql = x@DB_NAME@ ; then
       if test $# -gt 2; then
-        PGPASSWORD=$3
+	PGPASSWORD=$3
 		export PGPASSWORD
       fi
-      exec @SQL_BINDIR@/pg_dump -U $2 $1 >$1.sql
+      exec @SQL_BINDIR@/pg_dump -c -U $2 $1 >$1.sql
     else
       echo ".dump" | @SQL_BINDIR@/sqlite3 $1.db >$1.sql
     fi
