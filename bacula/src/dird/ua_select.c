@@ -36,9 +36,14 @@ int confirm_retention(UAContext *ua, utime_t *ret, const char *msg)
    char ed1[100];
    int val;
 
+   int yes_in_arg = find_arg(ua, NT_("yes"));
+
    for ( ;; ) {
        bsendmsg(ua, _("The current %s retention period is: %s\n"),
           msg, edit_utime(*ret, ed1, sizeof(ed1)));
+       if (yes_in_arg != -1) {
+          return 1;
+       }
        if (!get_cmd(ua, _("Continue? (yes/mod/no): "))) {
           return 0;
        }
