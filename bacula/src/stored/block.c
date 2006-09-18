@@ -513,14 +513,15 @@ bool write_block_to_dev(DCR *dcr)
     *  I/O errors, or from the OS telling us it is busy.
     */ 
    int retry = 0;
+   errno = 0;
    do {
+      if ((retry > 0 && errno == EBUSY) || retry > 10) {
+         bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
+      }
       if (dev->is_tape()) {
          stat = tape_write(dev->fd, block->buf, (size_t)wlen);
       } else {
          stat = write(dev->fd, block->buf, (size_t)wlen);
-      }
-      if (retry > 10) {
-         bmicrosleep(0, 100000);    /* pause a bit if lots of errors */
       }
    } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 30);
 
@@ -544,6 +545,7 @@ bool write_block_to_dev(DCR *dcr)
             dev->dev_errno = ENOSPC;        /* out of space */
          }
          if (dev->dev_errno != ENOSPC) {
+            dev->VolCatInfo.VolCatErrors++;
             Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"),
                dev->file, dev->block_num, dev->print_name(), be.strerror());
          }
@@ -907,7 +909,7 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
       return false;
    }
    looping = 0;
-   Dmsg1(200, "Full read() in read_block_from_device() len=%d\n",
+   Dmsg1(200, "Full read in read_block_from_device() len=%d\n",
          block->buf_len);
 reread:
    if (looping > 1) {
@@ -948,25 +950,20 @@ reread:
    }
    
    retry = 0;
+   errno = 0;
    do {
-//    uint32_t *bp = (uint32_t *)block->buf;
-//    Pmsg3(000, "Read %p %u at %llu\n", block->buf, block->buf_len, lseek(dev->fd, 0, SEEK_CUR));
-
+      if ((retry > 0 && errno == EBUSY) || retry > 10) {
+         bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
+      }
       if (dev->is_tape()) {
          stat = tape_read(dev->fd, block->buf, (size_t)block->buf_len);
       } else {
          stat = read(dev->fd, block->buf, (size_t)block->buf_len);
       }
-
-//    Pmsg8(000, "stat=%d Csum=%u blen=%u bnum=%u %c%c%c%c\n",stat, bp[0],bp[1],bp[2],
-//      block->buf[12],block->buf[13],block->buf[14],block->buf[15]);
-
-      if (retry == 1) {
-         dev->VolCatInfo.VolCatErrors++;
-      }
-   } while (stat == -1 && (errno == EINTR || errno == EIO) && retry++ < 11);
+   } while (stat == -1 && (errno == EBUSY || errno == EINTR || errno == EIO) && retry++ < 30);
    if (stat < 0) {
       berrno be;
+      dev->VolCatInfo.VolCatErrors++;
       dev->clrerror(-1);
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
@@ -1070,6 +1067,9 @@ reread:
 
    dev->VolCatInfo.VolCatBytes += block->block_len;
    dev->VolCatInfo.VolCatBlocks++;
+   if (dev->VolCatInfo.VolFirstWritten == 0) {
+      dev->VolCatInfo.VolFirstWritten = time(NULL);    /* Set first written time */
+   }
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
    dev->block_num++;

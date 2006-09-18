@@ -2,6 +2,12 @@
 
 General:
 18Sep06
+kes  Add -c option to pg_dump so that it initializes tables when   
+     restored.
+kes  Fix FirstWritten time on Volume to be obtained from SD so that
+     it is the actual time the volume was first written.
+kes  Minor Makefile changes.
+kes  Handle EBUSY during read(). Improve how EBUSY is handled in write().
 ebl  Add yes keyword to prune/purge command
 16Sep06
 kes  Correct a test in block.c that prevented restore of a DVD from

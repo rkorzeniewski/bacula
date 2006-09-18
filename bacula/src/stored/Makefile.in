@@ -101,7 +101,7 @@ static-bacula-sd: $(SDOBJS) ../lib/libbac.a
 	strip $@
 
 btape.o: btape.c
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
@@ -110,27 +110,27 @@ btape:	$(TAPEOBJS) ../lib/libbac.a ../cats/libsql.a
  -lsql $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bls.o:	bls.c
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bls:	../findlib/libfind.a $(BLSOBJS) ../lib/libbac.a
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BLSOBJS) $(DLIB) -lfind \
  -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bextract.o: bextract.c
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
 bextract: ../findlib/libfind.a $(BEXTOBJS) ../lib/libbac.a
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(BEXTOBJS) $(DLIB) $(FDLIBS) \
  -lfind -lbac -lm $(PYTHON_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bscan.o: bscan.c
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 
@@ -139,7 +139,7 @@ bscan:	../findlib/libfind.a $(SCNOBJS) ../cats/libsql.a
  -lsql $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 bcopy.o: bcopy.c
-	echo "Compiling $<"
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) \
  -I$(basedir) $(OPENSSL_INC) $(DINCLUDE) $(CFLAGS) $<
 

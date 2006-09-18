@@ -163,13 +163,14 @@ struct VOLUME_CAT_INFO {
    uint32_t EndBlock;                 /* Last block number */
    int32_t  LabelType;                /* Bacula/ANSI/IBM */
    int32_t  Slot;                     /* >0=Slot loaded, 0=nothing, -1=unknown */
-   bool     InChanger;                /* Set if vol in current magazine */
+   utime_t  VolFirstWritten;          /* Time of first write */
    uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */
    uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */
    uint64_t VolCatMaxBytes;           /* Max bytes to write to volume */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    uint64_t VolReadTime;              /* time spent reading */
    uint64_t VolWriteTime;             /* time spent writing this Volume */
+   bool     InChanger;                /* Set if vol in current magazine */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */
 };
