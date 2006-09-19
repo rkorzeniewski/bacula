@@ -213,7 +213,7 @@ function percent_usage(value, parent)
        return;
    }
 
-   if (value <= 0) {
+   if (value <= 0.001) {
       type = "Empty";
       value = 0;      
    } else if (value <= 40) {
