@@ -401,6 +401,7 @@ bool write_block_to_dev(DCR *dcr)
    return true;
 #endif
    ASSERT(block->binbuf == ((uint32_t) (block->bufp - block->buf)));
+   ASSERT(dev->is_open());
 
    /* dump_block(block, "before write"); */
    if (dev->at_weot()) {
@@ -909,6 +910,8 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    DEV_BLOCK *block = dcr->block;
+
+   ASSERT(dev->is_open());
    
    if (dev->at_eot()) {
       return false;
