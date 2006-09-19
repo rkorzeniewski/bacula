@@ -514,12 +514,14 @@ bool write_block_to_dev(DCR *dcr)
     */ 
    int retry = 0;
    errno = 0;
+   stat = 0;
    do {
       if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
          berrno be;
-         Dmsg4(100, "===== retry=%d stat=%d errno=%d: ERR=%s\n",
+         Dmsg4(100, "===== read retry=%d stat=%d errno=%d: ERR=%s\n",
                retry, stat, errno, be.strerror());
-         bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
+         bmicrosleep(0, 100000);    /* pause a bit if busy or lots of errors */
+         dev->clrerror(-1);
       }
       if (dev->is_tape()) {
          stat = tape_write(dev->fd, block->buf, (size_t)wlen);
@@ -958,9 +960,10 @@ reread:
    do {
       if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
          berrno be;
-         Dmsg4(100, "===== retry=%d stat=%d errno=%d: ERR=%s\n",
+         Dmsg4(100, "===== write retry=%d stat=%d errno=%d: ERR=%s\n",
                retry, stat, errno, be.strerror());
-         bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
+         bmicrosleep(0, 100000);    /* pause a bit if busy or lots of errors */
+         dev->clrerror(-1);
       }
       if (dev->is_tape()) {
          stat = tape_read(dev->fd, block->buf, (size_t)block->buf_len);
@@ -970,7 +973,6 @@ reread:
    } while (stat == -1 && (errno == EBUSY || errno == EINTR || errno == EIO) && retry++ < 30);
    if (stat < 0) {
       berrno be;
-      dev->VolCatInfo.VolCatErrors++;
       dev->clrerror(-1);
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;

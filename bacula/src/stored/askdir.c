@@ -31,7 +31,7 @@ static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
    " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s"
    " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s"
-   " VolFirstWritten=%s VolParts=%u\n";
+   " VolParts=%u\n";
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u"
    " StartBlock=%u EndBlock=%u Copy=%d Strip=%d\n";
@@ -282,7 +282,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev = dcr->dev;
    time_t LastWritten = time(NULL);
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
    int InChanger;
    POOL_MEM VolumeName;
@@ -320,7 +320,6 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       InChanger,                      /* bool in structure */
       edit_uint64(vol->VolReadTime, ed3),
       edit_uint64(vol->VolWriteTime, ed4),
-      edit_uint64(vol->VolFirstWritten, ed5),
       vol->VolCatParts);
     Dmsg1(100, ">dird: %s", dir->msg);
 
