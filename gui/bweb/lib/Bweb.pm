@@ -2281,7 +2281,7 @@ sub do_update_media
 	    $update .= " Slot=0, ";
 	}
     } else {
-	$update = " Slot=0, InChanger=0, ";
+	$update .= " Slot=0, InChanger=0, ";
     }
 
     my $pool = CGI::param('pool') || '';
@@ -2622,10 +2622,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
     foreach my $vol (values %$all) {
 	my $a = $self->ach_get($vol->{location});
-	unless ($a) {
-	    $self->error("Can't find autochanger $vol->{location}");
-	    next;
-	}
+	next unless ($a) ;
 
 	unless ($a->{have_status}) {
 	    $a->status();
