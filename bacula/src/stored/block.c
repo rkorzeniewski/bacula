@@ -515,7 +515,10 @@ bool write_block_to_dev(DCR *dcr)
    int retry = 0;
    errno = 0;
    do {
-      if ((retry > 0 && errno == EBUSY) || retry > 10) {
+      if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
+         berrno be;
+         Dmsg4(100, "===== retry=%d stat=%d errno=%d: ERR=%s\n",
+               retry, stat, errno, be.strerror());
          bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
       }
       if (dev->is_tape()) {
@@ -951,8 +954,12 @@ reread:
    
    retry = 0;
    errno = 0;
+   stat = 0;
    do {
-      if ((retry > 0 && errno == EBUSY) || retry > 10) {
+      if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
+         berrno be;
+         Dmsg4(100, "===== retry=%d stat=%d errno=%d: ERR=%s\n",
+               retry, stat, errno, be.strerror());
          bmicrosleep(0, 50000);    /* pause a bit if busy or lots of errors */
       }
       if (dev->is_tape()) {
