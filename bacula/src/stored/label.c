@@ -290,7 +290,7 @@ bool write_volume_label_to_block(DCR *dcr)
  *  This routine should be used only when labeling a blank tape.
  */
 bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, 
-                                   const char *PoolName, bool relabel, bool dvdnow)
+                                   const char *PoolName, bool dvdnow)
 {
    DEVICE *dev = dcr->dev;
 
@@ -298,19 +298,6 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    Dmsg0(99, "write_volume_label()\n");
    empty_block(dcr->block);
 
-   /* If relabeling, truncate the device */
-   if (relabel && !dev->truncate(dcr)) {
-      goto bail_out;
-   }
-
-   if (relabel) {
-      dev->close_part(dcr);              /* make sure closed for rename */
-   }
-
-   /* Set the new filename for open, ... */
-   bstrncpy(dev->VolCatInfo.VolCatName, VolName, sizeof(dev->VolCatInfo.VolCatName));
-   bstrncpy(dcr->VolCatInfo.VolCatName, VolName, sizeof(dcr->VolCatInfo.VolCatName));
-   Dmsg1(150, "New VolName=%s\n", VolName);
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       /* If device is not tape, attempt to create it */
       if (dev->is_tape() || dev->open(dcr, CREATE_READ_WRITE) < 0) {
@@ -364,7 +351,6 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
 
    /* Now commit block to DVD if we should write now */
    if (dev->is_dvd() && dvdnow) {
-      Dmsg1(150, "New VolName=%s\n", dev->VolCatInfo.VolCatName);
       if (!dvd_write_part(dcr)) {
          Dmsg2(30, "Bad DVD write on %s: ERR=%s\n", dev->print_name(), dev->bstrerror());
          goto bail_out;
