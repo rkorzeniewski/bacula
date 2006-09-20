@@ -872,15 +872,20 @@ sub new
     $widget = $glade->get_widget('restorelist');
     my $restore_list = $self->{restore_list} = Gtk2::SimpleList->new_from_treeview(
                                               $widget,
-					      'h_name'        => 'hidden',
-                                              'h_jobid'       => 'hidden',
-					      'h_type'        => 'hidden',
-                                              'h_curjobid'    => 'hidden',
+					      'h_name'      => 'hidden',
+                                              'h_jobid'     => 'hidden',
+					      'h_type'      => 'hidden',
+                                              'h_curjobid'  => 'hidden',
 
-                                              ''              => 'pixbuf',
-                                              'File Name'     => 'text',
-                                              'JobId'         => 'text',
-                                              'FileIndex'     => 'text');
+                                              ''            => 'pixbuf',
+                                              'File Name'   => 'text',
+                                              'JobId'       => 'text',
+                                              'FileIndex'   => 'text',
+
+					      'Nb Files'    => 'text', #8
+                                              'Size'        => 'text', #9
+					      'size_b'      => 'hidden', #10
+					      );
 
     my @restore_list_target_table = ({'target' => 'STRING',
 				      'flags' => [], 
@@ -1015,14 +1020,20 @@ sub on_estimate_clicked
     my $txt="";
     foreach my $entry (@{$self->{restore_list}->{data}})
     {
-	my ($size, $nb) = $self->estimate_restore_size($entry);
+	unless ($entry->[9]) {
+	    my ($size, $nb) = $self->estimate_restore_size($entry);
+	    $entry->[10] = $size;
+	    $entry->[9] = human($size);
+	    $entry->[8] = $nb;
+	}
+
 	my $name = unpack('u', $entry->[0]);
 
-	$txt .= "\n<i>$name</i> : $nb file(s)/" . human($size) ;
+	$txt .= "\n<i>$name</i> : " . $entry->[8] . " file(s)/" . $entry->[9] ;
 	$widget->set_markup($title . $txt);
-
-	$size_total+=$size;
-	$nb_total+=$nb;
+	
+	$size_total+=$entry->[10];
+	$nb_total+=$entry->[8];
 	refresh_screen();
     }
     
@@ -1670,7 +1681,7 @@ sub add_selected_file_to_list
 	my $dirfileindex = get_fileindex_from_dir_jobid($dbh,$name,$jobid);
 	listview_push($restore_list, 
 		      $name, $jobid, 'dir', $curjobids,
-		      $diricon, $name,$jobid,$dirfileindex);
+		      $diricon, $name,$curjobids,$dirfileindex);
     }
     elsif ($type eq 'file')
     {
