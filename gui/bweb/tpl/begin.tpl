@@ -30,7 +30,7 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="?action=restore" title="Launch brestore">Restore</a> </li>
    </ul>
  </li>
- <li style="padding: 0.25em 2em;">Media
+ <li style="padding: 0.25em 2em;">Medias
   <ul>
      <li><a href="?action=pool">Pools</a> </li>
      <li><a href="?action=location">Locations</a> </li>
