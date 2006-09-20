@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+20Sep06
+kes  Start adding back removed code.
+kes  Back out a number of changes because backups to tape crash my
+     system.
+kes  Remove the inetd code from the File daemon.
 18Sep06
 kes  Add -c option to pg_dump so that it initializes tables when   
      restored.

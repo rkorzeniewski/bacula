@@ -40,7 +40,6 @@ bool no_signals = false;
 
 char *configfile = NULL;
 static bool foreground = false;
-static bool inetd_request = false;
 static workq_t dir_workq;             /* queue of work from Director */
 static pthread_t server_tid;
 
@@ -55,7 +54,6 @@ static void usage()
 "        -dnn        set debug level to nn\n"
 "        -f          run in foreground (for debugging)\n"
 "        -g          groupid\n"
-"        -i          inetd request\n"
 "        -s          no signals (for debugging)\n"
 "        -t          test configuration file and exit\n"
 "        -u          userid\n"
@@ -91,7 +89,7 @@ int main (int argc, char *argv[])
    init_msg(NULL, NULL);
    daemon_start_time = time(NULL);
 
-   while ((ch = getopt(argc, argv, "c:d:fg:istu:v?")) != -1) {
+   while ((ch = getopt(argc, argv, "c:d:fg:stu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* configuration file */
          if (configfile != NULL) {
@@ -115,9 +113,6 @@ int main (int argc, char *argv[])
          gid = optarg;
          break;
 
-      case 'i':
-         inetd_request = true;
-         break;
       case 's':
          no_signals = true;
          break;
@@ -184,7 +179,7 @@ int main (int argc, char *argv[])
       terminate_filed(0);
    }
 
-   if (!foreground &&!inetd_request) {
+   if (!foreground) {
       daemon_start();
       init_stack_dump();              /* set new pid */
    }
@@ -209,25 +204,12 @@ int main (int argc, char *argv[])
    }
    server_tid = pthread_self();
 
-   if (inetd_request) {
-      /* Socket is on fd 0 */
-      struct sockaddr client_addr;
-      int port = -1;
-      socklen_t client_addr_len = sizeof(client_addr);
-      if (getsockname(0, &client_addr, &client_addr_len) == 0) {
-                /* MA BUG 6 remove ifdefs */
-                port = sockaddr_get_port_net_order(&client_addr);
-      }
-      BSOCK *bs = init_bsock(NULL, 0, "client", "unknown client", port, &client_addr);
-      handle_client_request((void *)bs);
-   } else {
-      /* Become server, and handle requests */
-      IPADDR *p;
-      foreach_dlist(p, me->FDaddrs) {
-         Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
-      }
-      bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
+   /* Become server, and handle requests */
+   IPADDR *p;
+   foreach_dlist(p, me->FDaddrs) {
+      Dmsg1(10, "filed: listening on port %d\n", p->get_port_host_order());
    }
+   bnet_thread_server(me->FDaddrs, me->MaxConcurrentJobs, &dir_workq, handle_client_request);
 
    terminate_filed(0);
    exit(0);                           /* should never get here */
