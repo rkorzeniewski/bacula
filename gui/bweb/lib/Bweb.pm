@@ -2480,9 +2480,9 @@ sub display_pool
 # TODO : afficher les tailles et les dates
 
     my $query = "
-SELECT sum(subq.volmax)   AS volmax,
-       sum(subq.volnum)   AS volnum,
-       sum(subq.voltotal) AS voltotal,
+SELECT subq.volmax        AS volmax,
+       subq.volnum        AS volnum,
+       subq.voltotal      AS voltotal,
        Pool.Name          AS name,
        Pool.Recycle       AS recycle,
        Pool.VolRetention  AS volretention,
@@ -2505,10 +2505,9 @@ FROM
               WHERE Media.VolStatus = 'Full' 
               GROUP BY Media.MediaType
                ) AS media_avg_size ON (Media.MediaType = media_avg_size.MediaType)
-    GROUP BY Media.MediaType, Media.PoolId
-  ) AS subq 
-LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId) 
-GROUP BY subq.PoolId
+    GROUP BY Media.MediaType, Media.PoolId, media_avg_size.volavg
+  ) AS subq
+LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId)
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
