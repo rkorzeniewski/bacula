@@ -180,6 +180,8 @@ mount_next_vol:
       if (dev->poll || dev->is_dvd() || dev->is_removable()) {
          goto mount_next_vol;
       } else {
+         Jmsg(jcr, M_ERROR, 0, _("Could not open device %s: ERR=%s\n"),
+            dev->print_name(), dev->print_errmsg());
          return false;
       }
    }
@@ -445,7 +447,7 @@ static int try_autolabel(DCR *dcr)
       Dmsg0(150, "Create volume label\n");
       /* Create a new Volume label and write it to the device */
       if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
-             dcr->pool_name, false /* defer DVD label */)) {
+             dcr->pool_name, false, /* no relabel */ false /* defer DVD label */)) {
          Dmsg0(150, "!write_vol_label\n");
          mark_volume_in_error(dcr);
          return try_next_vol;

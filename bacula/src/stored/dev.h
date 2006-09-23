@@ -341,6 +341,7 @@ public:
    void clear_short_block() { state &= ~ST_SHORT; };
    void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; };
    char *bstrerror(void) { return errmsg; };
+   char *print_errmsg() { return errmsg; };
 
    void block(int why);          /* in dev.c */
    void unblock();               /* in dev.c */
@@ -380,8 +381,6 @@ private:
    void open_tape_device(DCR *dcr, int omode); /* in dev.c */
    void open_file_device(DCR *dcr, int omode); /* in dev.c */
    void open_dvd_device(DCR *dcr, int omode);  /* in dev.c */
-   void set_blocking();                        /* in dev.c */
-
 };
 
 /* Note, these return int not bool! */

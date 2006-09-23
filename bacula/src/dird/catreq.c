@@ -44,7 +44,7 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u"
    " VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s"
    " Slot=%d relabel=%d InChanger=%d VolReadTime=%" lld " VolWriteTime=%" lld
-   " VolParts=%u\n";
+   " VolFirstWritten=%" lld " VolParts=%u\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
@@ -96,6 +96,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    POOLMEM *omsg;
    POOL_DBR pr;
    uint32_t Stripe;
+   utime_t VolFirstWritten;
 
    memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
@@ -197,7 +198,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       &sdmr.VolJobs, &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes,
       &sdmr.VolMounts, &sdmr.VolErrors, &sdmr.VolWrites, &sdmr.MaxVolBytes,
       &sdmr.LastWritten, &sdmr.VolStatus, &sdmr.Slot, &label, &sdmr.InChanger,
-      &sdmr.VolReadTime, &sdmr.VolWriteTime, &sdmr.VolParts) == 18) {
+      &sdmr.VolReadTime, &sdmr.VolWriteTime, &VolFirstWritten,
+      &sdmr.VolParts) == 19) {
 
       db_lock(jcr->db);
       Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
@@ -214,7 +216,11 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       }
       /* Set first written time if this is first job */
       if (mr.FirstWritten == 0) {
-         mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
+         if (VolFirstWritten == 0) {
+            mr.FirstWritten = jcr->start_time;   /* use Job start time as first write */
+         } else {
+            mr.FirstWritten = VolFirstWritten;
+         }
          mr.set_first_written = true;
       }
       /* If we just labeled the tape set time */

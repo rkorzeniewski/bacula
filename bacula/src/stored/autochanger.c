@@ -105,7 +105,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    POOLMEM *changer;
 
    if (!dev->is_autochanger()) {
-      Dmsg0(200, "== NOT AUTOCHANGER ==\n");
+      Dmsg1(200, "Device %s is not an autochanger\n", dev->print_name());
       return 0;
    }
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
