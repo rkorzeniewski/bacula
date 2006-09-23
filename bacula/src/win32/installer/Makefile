@@ -106,6 +106,7 @@ clean:
 	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES)
 	$(CMD_ECHO)-rm -f $(BACULA_BINARIES) $(addsuffix .dbg,$(basename $(BACULA_BINARIES)))
 	$(CMD_ECHO)-rm -f $(DEPKGS_BINARIES) $(addsuffix .dbg,$(basename $(DEPKGS_BINARIES)))
+	$(CMD_ECHO)-rm -f *.exe
 
 #
 # Rules

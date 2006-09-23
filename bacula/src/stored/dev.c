@@ -323,69 +323,67 @@ void DEVICE::set_mode(int new_mode)
 void DEVICE::open_tape_device(DCR *dcr, int omode) 
 {
    file_size = 0;
-   int timeout;
-   int nonblocking = O_NONBLOCK;
-   Dmsg0(29, "open dev: device is tape\n");
+   int timeout = max_open_wait;
+   struct mtop mt_com;
+   utime_t start_time = time(NULL);
+   Dmsg0(29, "Open dev: device is tape\n");
 
    get_autochanger_loaded_slot(dcr);
 
    set_mode(omode);
-   timeout = max_open_wait;
+   if (timeout < 1) {
+      timeout = 1;
+   }
    errno = 0;
    if (is_fifo() && timeout) {
       /* Set open timer */
       tid = start_thread_timer(pthread_self(), timeout);
    }
    /* If busy retry each second for max_open_wait seconds */
-   Dmsg3(100, "Try open %s mode=%s nonblocking=%d\n", print_name(),
-      mode_to_str(omode), nonblocking);
+   Dmsg2(100, "Try open %s mode=%s\n", print_name(), mode_to_str(omode));
    /* Use system open() */
-
 #if defined(HAVE_WIN32)
    if ((fd = tape_open(dev_name, mode)) < 0) {
-      berrno be;
       dev_errno = errno;
-
-      Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
-            print_name(), be.strerror(dev_errno));
-      Jmsg0(dcr->jcr, M_FATAL, 0, errmsg);
    }
 #else
-   while ((fd = ::open(dev_name, mode+nonblocking)) < 0) {
-      berrno be;
-      dev_errno = errno;
-      Dmsg5(050, "Open omode=%d mode=%x nonblock=%d error errno=%d ERR=%s\n", 
-           omode, mode, nonblocking, errno, be.strerror());
-      if (dev_errno == EINTR || dev_errno == EAGAIN) {
-         Dmsg0(100, "Continue open\n");
-         continue;
+   for ( ;; ) {
+      fd = ::open(dev_name, mode);
+      if (fd < 0) {
+         berrno be;
+         dev_errno = errno;
+         Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
+              print_name(), omode, mode, errno, be.strerror());
+      } else {
+         /* Tape open, now rewind it */
+         mt_com.mt_op = MTREW;
+         mt_com.mt_count = 1;
+         if (tape_ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
+            berrno be;
+            dev_errno = errno;           /* set error status from rewind */
+            ::close(fd);
+            clear_opened();
+            Dmsg2(100, "Rewind error on %s close: ERR=%s\n", print_name(),
+                  be.strerror(dev_errno));
+         } else {
+            dev_errno = 0;
+            set_os_device_parameters(this);      /* do system dependent stuff */
+            break;                    /* Successfully opened and rewound */
+         }
       }
-      /* Busy wait for specified time (default = 5 mins) */
-      if (dev_errno == EBUSY && timeout-- > 0) {
-         Dmsg2(100, "Device %s busy. ERR=%s\n", print_name(), be.strerror());
-         bmicrosleep(1, 0);
-         continue;
+      bmicrosleep(5, 0);
+      /* Exceed wait time ? */
+      if (time(NULL) - start_time >= max_open_wait) {
+         break;                       /* yes, get out */
       }
-      Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
-            print_name(), be.strerror(dev_errno));
-      /* Stop any open timer we set */
-      if (tid) {
-         stop_thread_timer(tid);
-         tid = 0;
-      }
-      Jmsg0(dcr->jcr, M_FATAL, 0, errmsg);
-      break;
    }
 #endif
 
-   if (this->is_open()) {
-      openmode = omode;              /* save open mode */
-      set_blocking();   
-      Dmsg2(100, "openmode=%d %s\n", openmode, mode_to_str(openmode));
-      dev_errno = 0;
-      set_os_device_parameters(this);      /* do system dependent stuff */
-   } else {
-      clear_opened();
+   if (!is_open()) {
+      berrno be;
+      Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
+            print_name(), be.strerror(dev_errno));
+      Dmsg1(100, "%s", errmsg);
    }
 
    /* Stop any open() timer we started */
@@ -396,24 +394,6 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    Dmsg1(29, "open dev: tape %d opened\n", fd);
 }
 
-void DEVICE::set_blocking()
-{
-   int oflags;
-   /* Try to reset blocking */
-#ifdef xxx
-   if ((oflags = fcntl(fd, F_GETFL, 0)) < 0 ||
-       fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK) < 0) {
-      berrno be;
-      ::close(fd);                   /* use system close() */
-      fd = ::open(dev_name, mode);       
-      Dmsg2(100, "fcntl error. ERR=%s. Close-reopen fd=%d\n", be.strerror(), fd);
-   }
-#endif
-   oflags = fcntl(fd, F_GETFL, 0);       
-   if (oflags > 0 && (oflags & O_NONBLOCK)) {
-      fcntl(fd, F_SETFL, oflags & ~O_NONBLOCK);
-   }
-}
 
 /*
  * Open a file device
@@ -1673,6 +1653,17 @@ void DEVICE::clrerror(int func)
          msg = "MTSETBLK";
          break;
 #endif
+#ifdef MTSETDRVBUFFER
+      case MTSETDRVBUFFER:
+         msg = "MTSETDRVBUFFER";
+         break;
+#endif
+#ifdef MTRESET
+      case MTRESET:
+         msg = "MTRESET";
+         break;
+#endif
+
 #ifdef MTSETBSIZ 
       case MTSETBSIZ:
          msg = "MTSETBSIZ";
@@ -1907,7 +1898,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    
    edit_mount_codes(ocmd, icmd);
    
-   Dmsg2(000, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
+   Dmsg2(100, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
 
    if (dotimeout) {
       /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
@@ -2184,6 +2175,15 @@ void set_os_device_parameters(DEVICE *dev)
 {
 #if defined(HAVE_LINUX_OS) || defined(HAVE_WIN32)
    struct mtop mt_com;
+
+#if defined(MTRESET)
+   mt_com.mt_op = MTRESET;
+   mt_com.mt_count = 0;
+   if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
+      dev->clrerror(MTRESET);
+   }
+#endif
+#if defined(MTSETBLK) 
    if (dev->min_block_size == dev->max_block_size &&
        dev->min_block_size == 0) {    /* variable block mode */
       mt_com.mt_op = MTSETBLK;
@@ -2191,6 +2191,11 @@ void set_os_device_parameters(DEVICE *dev)
       if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
          dev->clrerror(MTSETBLK);
       }
+      Dmsg0(100, "Set block size to 0\n");
+   }
+#endif
+#if defined(MTSETDRVBUFFER)
+   if (getpid() == 0) {          /* Only root can do this */
       mt_com.mt_op = MTSETDRVBUFFER;
       mt_com.mt_count = MT_ST_CLEARBOOLEANS;
       if (!dev->has_cap(CAP_TWOEOF)) {
@@ -2200,9 +2205,10 @@ void set_os_device_parameters(DEVICE *dev)
          mt_com.mt_count |= MT_ST_FAST_MTEOM;
       }
       if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-         dev->clrerror(MTSETBLK);
+         dev->clrerror(MTSETDRVBUFFER);
       }
    }
+#endif
    return;
 #endif
 

@@ -1,6 +1,19 @@
               Technical notes on version 1.39  
 
 General:
+23Sep06
+kes  All code added back. Fixed block.c read/write to loop only 3
+     times. This apparently keeps the OS from crashing (at least     
+     most of the time).
+kes  The kernel bug still persists. Backup something then immediately
+     do a bscan on the same tape, and the kernel will crash.     
+kes  Simplifed tape open().  It no longer uses nonblocking mode, which 
+     means that opening with no tape loaded will probably take at least
+     6 minutes before an error is reported.
+kes  Do not use MTSETDRVBUFFER if not running as root.  Do a MTRESET
+     when doing set_os_device_parameters.
+kes  Report open error in mount.c
+kes  Remove all .exe files from the installer directory on make clean.
 20Sep06
 kes  Start adding back removed code.
 kes  Back out a number of changes because backups to tape crash my

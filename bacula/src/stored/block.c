@@ -517,11 +517,11 @@ bool write_block_to_dev(DCR *dcr)
    errno = 0;
    stat = 0;
    do {
-      if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
+      if (retry > 0 && stat == -1 && errno == EBUSY) {
          berrno be;
-         Dmsg4(100, "===== read retry=%d stat=%d errno=%d: ERR=%s\n",
+         Dmsg4(100, "===== write retry=%d stat=%d errno=%d: ERR=%s\n",
                retry, stat, errno, be.strerror());
-         bmicrosleep(0, 100000);    /* pause a bit if busy or lots of errors */
+         bmicrosleep(5, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
       if (dev->is_tape()) {
@@ -529,7 +529,7 @@ bool write_block_to_dev(DCR *dcr)
       } else {
          stat = write(dev->fd, block->buf, (size_t)wlen);
       }
-   } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 30);
+   } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 3);
 
 #ifdef DEBUG_BLOCK_ZEROING
    if (bp[0] == 0 && bp[1] == 0 && bp[2] == 0 && block->buf[12] == 0) {
@@ -961,11 +961,11 @@ reread:
    errno = 0;
    stat = 0;
    do {
-      if ((retry > 0 && stat == -1 && errno == EBUSY) || retry > 10) {
+      if ((retry > 0 && stat == -1 && errno == EBUSY)) {
          berrno be;
-         Dmsg4(100, "===== write retry=%d stat=%d errno=%d: ERR=%s\n",
+         Dmsg4(100, "===== read retry=%d stat=%d errno=%d: ERR=%s\n",
                retry, stat, errno, be.strerror());
-         bmicrosleep(0, 100000);    /* pause a bit if busy or lots of errors */
+         bmicrosleep(10, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
       if (dev->is_tape()) {
@@ -973,14 +973,14 @@ reread:
       } else {
          stat = read(dev->fd, block->buf, (size_t)block->buf_len);
       }
-   } while (stat == -1 && (errno == EBUSY || errno == EINTR || errno == EIO) && retry++ < 30);
+   } while (stat == -1 && (errno == EBUSY || errno == EINTR || errno == EIO) && retry++ < 3);
    if (stat < 0) {
       berrno be;
       dev->clrerror(-1);
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
-      Mmsg4(dev->errmsg, _("Read error at file:blk %u:%u on device %s. ERR=%s.\n"),
-         dev->file, dev->block_num, dev->print_name(), be.strerror());
+      Mmsg5(dev->errmsg, _("Read error on fd=%d at file:blk %u:%u on device %s. ERR=%s.\n"),
+         dev->fd, dev->file, dev->block_num, dev->print_name(), be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->at_eof()) {        /* EOF just seen? */
          dev->set_eot();          /* yes, error => EOT */

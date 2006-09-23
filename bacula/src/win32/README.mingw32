@@ -1,6 +1,15 @@
-This file documents building Bacula for Microsoft Windows using the
-cross-compiler tools on a Linux or FreeBSD system (other Unix systems 
-remain to be tested).
+
+This file documents the tools (scripts) we use for building
+Bacula for Microsoft Windows using the cross-compiler tools on a
+Linux system.
+
+We don't officially support this script, but it is what we use, and it should 
+build on any Linux machine if you carefully follow the instructions and have 
+all the prerequisite programs loaded on your machine. We expect that there 
+will be problems on other distributions (FreeBSD, Mac OS X, ...), where you 
+are pretty much on your own.  However, we will try to provide responses to 
+your questions on the bacula-devel list, but that we don't guarantee 
+anything.
 
 The basic directory structure you need to have is:
 

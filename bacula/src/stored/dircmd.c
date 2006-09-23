@@ -390,18 +390,14 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    DEVICE *dev = dcr->dev;
    int label_status;
    int mode;
-   const char *volname = (relabel == 0) ? newname : oldname;
+   const char *volname = (relabel == 1) ? oldname : newname;
    char ed1[50];
 
    steal_device_lock(dev, &hold, BST_WRITING_LABEL);
    Dmsg1(100, "Stole device %s lock, writing label.\n", dev->print_name());
 
-   Dmsg0(90, "try_autoload_device - looking for volume_info\n");
-   if (relabel && dev->is_dvd()) {
-      /* Fake at least one partition to ensure that we look for the old volume */
-      dcr->VolCatInfo.VolCatParts = 1;
-   }
 
+   Dmsg0(90, "try_autoload_device - looking for volume_info\n");
    if (!try_autoload_device(dcr->jcr, slot, volname)) {
       goto bail_out;                  /* error */
    }
@@ -412,10 +408,12 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    } else {
       mode = CREATE_READ_WRITE;
    }
-   if (dev->is_dvd()) {
-      bstrncpy(dcr->VolCatInfo.VolCatName, volname, sizeof(dcr->VolCatInfo.VolCatName));
-   }
 
+   if (relabel) {
+      dev->truncating = true;         /* let open() know we will truncate it */
+   }
+   /* Set old volume name for open if relabeling */
+   bstrncpy(dcr->VolCatInfo.VolCatName, volname, sizeof(dcr->VolCatInfo.VolCatName));
    if (dev->open(dcr, mode) < 0) {
       bnet_fsend(dir, _("3910 Unable to open device %s: ERR=%s\n"),
          dev->print_name(), dev->strerror());
@@ -425,6 +423,8 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    /* See what we have for a Volume */
    label_status = read_dev_volume_label(dcr);
    
+   /* Set new volume name */
+   bstrncpy(dcr->VolCatInfo.VolCatName, newname, sizeof(dcr->VolCatInfo.VolCatName));
    switch(label_status) {
    case VOL_NAME_ERROR:
    case VOL_VERSION_ERROR:
@@ -446,25 +446,11 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
          bnet_fsend(dir, _("3922 Cannot relabel an ANSI/IBM labeled Volume.\n"));
          break;
       }
-      if (relabel && dev->is_dvd()) {
-         /* Save dev VolumeName */
-         bstrncpy(dcr->VolumeName, dev->VolCatInfo.VolCatName, sizeof(dcr->VolumeName));
-         /* Use new name for DVD truncation */
-         bstrncpy(dev->VolCatInfo.VolCatName, newname, sizeof(dev->VolCatInfo.VolCatName));
-         if (!dev->truncate(dcr)) {
-            bnet_fsend(dir, _("3912 Failed to truncate previous DVD volume.\n"));
-            /* Restore device VolName */
-            bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dev->VolCatInfo.VolCatName));
-            break;
-         }
-         /* Restore device VolName */
-         bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dev->VolCatInfo.VolCatName));
-      }
-      free_volume(dev);               /* release old volume name */
       /* Fall through wanted! */
    case VOL_IO_ERROR:
    case VOL_NO_LABEL:
-      if (!write_new_volume_label_to_dev(dcr, newname, poolname, true /* write dvd now */)) {
+      if (!write_new_volume_label_to_dev(dcr, newname, poolname, 
+           relabel, true /* write dvd now */)) {
          bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
          break;
       }
