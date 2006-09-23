@@ -434,7 +434,7 @@ bool dvd_write_part(DCR *dcr)
          dev->part, results.c_str());
       Mmsg1(dev->errmsg, _("Error while writing current part to the DVD: %s"), 
             results.c_str());
-      Dmsg1(000, "%s\n", dev->errmsg);
+      Dmsg1(100, "%s\n", dev->errmsg);
       dev->dev_errno = EIO;
       if (!dev->truncating) {
          mark_volume_in_error(dcr);
@@ -449,7 +449,7 @@ bool dvd_write_part(DCR *dcr)
    dev->num_dvd_parts++;            /* there is now one more part on DVD */
    dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    dcr->VolCatInfo.VolCatParts = dev->num_dvd_parts;
-   Dmsg1(000, "Update num_parts=%d\n", dev->num_dvd_parts);
+   Dmsg1(100, "Update num_parts=%d\n", dev->num_dvd_parts);
 
    /* Delete spool file */
    make_spooled_dvd_filename(dev, archive_name);
@@ -481,7 +481,7 @@ int dvd_open_next_part(DCR *dcr)
       dev->part, dev->num_dvd_parts, dev->print_name(),
          dev->VolCatInfo.VolCatName, dev->openmode, dev->file_addr);
    if (!dev->is_dvd()) {
-      Dmsg1(000, "Device %s is not dvd!!!!\n", dev->print_name()); 
+      Dmsg1(100, "Device %s is not dvd!!!!\n", dev->print_name()); 
       return -1;
    }
    
