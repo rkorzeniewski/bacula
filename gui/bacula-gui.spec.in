@@ -222,7 +222,7 @@ chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/README.bacula-web
 
 # install the libbweb files
 cp -p %{bweb}-%{version}/lib/*.pm $RPM_BUILD_ROOT%{perl_sitearch}/
-chmod 644 $RPM_BUILD_ROOT%{perl_site_arch}/*.pm
+chmod 644 $RPM_BUILD_ROOT%{perl_sitearch}/*.pm
 
 # install the brestore files
 cp -p %{brestore}-%{version}/brestore.pl $RPM_BUILD_ROOT/usr/bin/
@@ -231,8 +231,8 @@ cp -p %{brestore}-%{version}/brestore.glade $RPM_BUILD_ROOT/usr/share/brestore/
 cp -p %{brestore}-%{version}/brestore.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/brestore.desktop
 %else
 cp -p %{brestore}-%{version}/brestore.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/brestore.desktop
-cp -p brestore.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/brestore
-cp -p brestore.pamd $RPM_BUILD_ROOT/etc/pam.d/brestore
+cp -p %{brestore}-%{version}/brestore.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/brestore
+cp -p %{brestore}-%{version}/brestore.pamd $RPM_BUILD_ROOT/etc/pam.d/brestore
 ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/brestore
 %endif
 cp -p %{brestore}-%{version}/brestore.png $RPM_BUILD_ROOT/usr/share/pixmaps/
