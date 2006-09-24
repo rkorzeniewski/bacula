@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Brestore
+Comment=Bacula Restoration GUI
+Icon=/usr/share/pixmaps/brestore.png
+Exec=gnomesu -t "Query" -c "/usr/bin/brestore.pl" -d -e -m "In order to run the bacula restore gui as root, ^additional information is required."
+Terminal=false
+Type=Application
+Encoding=UTF-8
+X-Desktop-File-Install-Version=0.3
+Categories=System;Application;Utility;
+StartupNotify=true

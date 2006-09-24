@@ -192,6 +192,11 @@ chmod 750 $RPM_BUILD_ROOT/etc/bweb
 mkdir -p $RPM_BUILD_ROOT/usr/share/bweb/tpl
 mkdir -p $RPM_BUILD_ROOT%{docdir}/%{bweb}
 
+%if !%{suse}
+mkdir -p $RPM_BUILD_ROOT/etc/security/console.apps
+mkdir -p $RPM_BUILD_ROOT/etc/pam.d
+%endif
+
 # install bimagemgr files
 cp -p %{bimagemgr}-%{version}/bimagemgr.pl $RPM_BUILD_ROOT%{cgidir}/
 cp -p %{bimagemgr}-%{version}/config.pm $RPM_BUILD_ROOT%{cgidir}/
@@ -222,7 +227,14 @@ chmod 644 $RPM_BUILD_ROOT%{perl_site_arch}/*.pm
 # install the brestore files
 cp -p %{brestore}-%{version}/brestore.pl $RPM_BUILD_ROOT/usr/bin/
 cp -p %{brestore}-%{version}/brestore.glade $RPM_BUILD_ROOT/usr/share/brestore/
-cp -p %{brestore}-%{version}/brestore.desktop $RPM_BUILD_ROOT/usr/share/applications/
+%if %{suse}
+cp -p %{brestore}-%{version}/brestore.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/brestore.desktop
+%else
+cp -p %{brestore}-%{version}/brestore.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/brestore.desktop
+cp -p brestore.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/brestore
+cp -p brestore.pamd $RPM_BUILD_ROOT/etc/pam.d/brestore
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/brestore
+%endif
 cp -p %{brestore}-%{version}/brestore.png $RPM_BUILD_ROOT/usr/share/pixmaps/
 chmod 755 $RPM_BUILD_ROOT/usr/bin/brestore.pl
 chmod 644 $RPM_BUILD_ROOT/usr/share/brestore/brestore.glade
@@ -327,6 +339,12 @@ rm -rf docs
 /usr/share/applications/brestore.desktop
 /usr/share/pixmaps/brestore.png
 %doc docs/%{brestore}/*
+%if !%{suse}
+# add the console helper files
+%config(noreplace,missingok) /etc/pam.d/brestore
+%config(noreplace,missingok) /etc/security/console.apps/brestore
+/usr/bin/brestore
+%endif
 
 %files bweb
 %defattr(-,%{binowner},%{bingroup})
@@ -362,7 +380,7 @@ echo "You should remove user %{dataowner} from group bacula."
 echo
 %endif
 
-%post brestore
+%post bweb
 %if %{suse}
 # add the web server user to group bacula
 %{groupmod} -A %{dataowner} bacula
@@ -372,7 +390,7 @@ cp -p %{groupfile} %{groupfile}.old
 awk '{if (/bacula:/) print $0",%{dataowner}"; else print $0}' %{groupfile}.old > %{groupfile}
 %endif
 
-%postun brestore
+%postun bweb
 %if %{suse}
 # remove the web server user to group bacula
 %{groupmod} -R %{dataowner} bacula
@@ -383,6 +401,9 @@ echo
 %endif
 
 %changelog
+* Sun Sep 24 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
+- it's bweb not brestore that needs to add dataowner to group bacula
+- brestore will need to run xsu or usermod
 * Sun Sep 03 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - seems that groupmod -A or -R is only available on SuSE
 - use awk or add warning for other platforms
