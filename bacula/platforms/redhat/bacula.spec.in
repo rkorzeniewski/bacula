@@ -1118,7 +1118,7 @@ mv $RPM_BUILD_ROOT/etc/bacula/wx-console.conf $RPM_BUILD_ROOT/etc/bacula/wxconso
 %if ! %{client_only}
 chmod o-r $RPM_BUILD_ROOT/etc/bacula/query.sql
 %endif
-chmod o-rwx $RPM_BUILD_ROOT/var/bacula
+chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
 %if %{gconsole} && ! %{rh8}
 chmod 755 $RPM_BUILD_ROOT/usr/sbin/bacula-tray-monitor
 chmod 644 $RPM_BUILD_ROOT/etc/bacula/tray-monitor.conf
@@ -1217,7 +1217,8 @@ rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
 %attr(-, root, %{daemon_group}) /etc/bacula/query.sql
-%attr(-, root, %{daemon_group}) %dir %{working_dir}
+
+%attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
 
 /usr/sbin/bacula-dir
 /usr/sbin/bacula-fd
@@ -1502,6 +1503,7 @@ fi
 
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bacula-fd.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
+
 %attr(-, root, %{daemon_group}) %dir %{working_dir}
 
 /usr/sbin/bacula-fd
@@ -1683,6 +1685,9 @@ fi
 %endif
 
 %changelog
+* Sun Sep 24 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- change ownership of working_dir on server packages to bacula.bacula so that
+- bacula-sd can create bootstrap files
 * Sat Sep 02 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.39.22 remove separate cd and make of manpages the main Makefile does it now
 * Sun Aug 06 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
