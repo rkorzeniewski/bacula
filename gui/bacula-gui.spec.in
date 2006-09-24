@@ -403,7 +403,7 @@ echo
 %changelog
 * Sun Sep 24 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - it's bweb not brestore that needs to add dataowner to group bacula
-- brestore will need to run xsu or usermod
+- brestore will need to run xsu or consolehelper
 * Sun Sep 03 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - seems that groupmod -A or -R is only available on SuSE
 - use awk or add warning for other platforms
