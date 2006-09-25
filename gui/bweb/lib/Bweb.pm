@@ -1781,7 +1781,11 @@ sub get_param
 	my $status = CGI::param('status') || '';
 	if ($status =~ /^(\w)$/) {
 	    $ret{status} = $1;
-	    $limit .= "AND Job.JobStatus = '$1' ";
+	    if ($1 eq 'f') {
+		$limit .= "AND Job.JobStatus IN ('f','E') ";		
+	    } else {
+		$limit .= "AND Job.JobStatus = '$1' ";		
+	    }
 	}
     }
 
