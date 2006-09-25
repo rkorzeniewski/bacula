@@ -569,6 +569,10 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       }
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
+      if (ua->jcr) {
+         Jmsg1(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
+            mr->VolumeName); 
+      }
       return true;
    } else {
       bsendmsg(ua, _("Cannot purge Volume with VolStatus=%s\n"), mr->VolStatus);
