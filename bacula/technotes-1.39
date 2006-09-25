@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+25Sep06
+kes  Add new version of upgrade-win32-client.txt to examples directory.
+     Submitted by Michel Meyers.
+kes  Print an INFO message in the job report when a Volume is marked Purged.
 24Sep06
 kes  Apply the recycle patch from Richard Mortimer.
 kes  Convert a few if statements in dev.c to switch statements.
