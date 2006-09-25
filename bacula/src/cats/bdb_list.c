@@ -182,6 +182,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, uint32_t JobId,
 void db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
                          DB_LIST_HANDLER *sendit, void *ctx)
 {
+#ifdef xxx
    int jrlen;
    JOB_DBR ojr;
    int done = 0;
@@ -220,6 +221,7 @@ void db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr,
    }
    sendit(ctx, "============================================================================\n");
    db_unlock(mdb);
+#endif
    return;
 }
 

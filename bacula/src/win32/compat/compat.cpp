@@ -1657,7 +1657,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
 
       if (pExtension == NULL) {
          /* Try appending extensions */
-         for (int index = 0; index < sizeof(ExtensionList) / sizeof(ExtensionList[0]); index++) {
+         for (int index = 0; index < (int)(sizeof(ExtensionList) / sizeof(ExtensionList[0])); index++) {
 
             if (!bHasPathSeparators) {
                /* There are no path separators, search in the standard locations */
@@ -1668,8 +1668,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
                   break;
                }
             } else {
-               strcpy(&pPathname[dwBasePathLength], ExtensionList[index]);
-
+               bstrncpy(&pPathname[dwBasePathLength], ExtensionList[index], MAX_PATHLENGTH);
                if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
                   break;
                }

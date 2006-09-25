@@ -127,11 +127,18 @@ NOTE: The -C means clobber.  Any local changes to the source code in
 the depkgs-mingw32/src directory will be lost.  The source will be 
 reextracted from the archive and the current patches will be applied.
 
-If you add a new subroutine or global symbol in the CATS library 
+If you add a new subroutine, external or global symbol in the CATS library 
 ================================================================= 
 Edit src/win32/cats/bacula_cats.def and update it appropriately. 
 The output of a link will tell you the C++ mangled subroutine name 
 to add, and for global symbols, it is rather easy.  See the file.
+
+There are also dlls for other libraires: src/win32/dll/bacula.def
+For this file, if you have an undefined symbol, do:
+
+  strings src/lib/libbac.a | grep <symbol>
+
+then enter it in the appropriate place.
            
 
                                      
@@ -154,3 +161,4 @@ executables, etc.
 Makefile.template is a template for creating new Makefiles, if you are
 creating a new directory, copy Makefile.template to Makefile in that
 directory and edit to suit.
+

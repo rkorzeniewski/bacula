@@ -9,7 +9,7 @@ EXPORTS
 ;umask
 ;utime
 _Z10open_bpipePciPKc
-_Z11close_bpipeP7s_bpipe
+_Z11close_bpipeP5BPIPE
 ;_Z11close_wpipeP7s_bpipe
 ;_Z11strncasecmpPKcS0_i
 _Z11win32_cgetsPci

@@ -422,7 +422,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       case -1:                        /* error or cancel */
          return 0;
       case 0:                         /* list last 20 Jobs run */
-         /* ***FIXME*** restrict clients on restricted console */
+         if (!acl_access_ok(ua, Command_ACL, NT_("sqlquery"), 8)) {
+            bsendmsg(ua, _("SQL query not authorized.\n"));
+            return 0;
+         }
          gui_save = ua->jcr->gui;
          ua->jcr->gui = true;
          db_list_sql_query(ua->jcr, ua->db, uar_list_jobs, prtit, ua, 1, HORZ_LIST);
@@ -455,6 +458,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          break;
       case 3:                         /* Enter an SQL list command */
          if (!acl_access_ok(ua, Command_ACL, NT_("sqlquery"), 8)) {
+            bsendmsg(ua, _("SQL query not authorized.\n"));
             return 0;
          }
          if (!get_cmd(ua, _("Enter SQL list command: "))) {

@@ -21,14 +21,12 @@ Document:
   \bacula\working).
 - Document techniques for restoring large numbers of files.
 - Document setting my.cnf to big file usage.
-- Add example of proper index output to doc.
-   show index from File;
+- Add example of proper index output to doc. show index from File;
 - Correct the Include syntax in the m4.xxx files in examples/conf
 - Document JobStatus and Termination codes.
 - Fix the error with the "DVI file can't be opened" while
   building the French PDF.
-- Document more DVD stuff -- particularly that recycling doesn't work,
-  and all the other things too.
+- Document more DVD stuff
 - Doc
    { "JobErrors",  "i"},
    { "JobFiles",   "i"},
@@ -41,8 +39,6 @@ Document:
 Priority:
 
 For 1.39:
-- When reading through parts on the DVD, the DVD is mounted and
-  unmounted for each part.
 - Make sure that the restore options don't permit "seeing" other
   Client's job data. -- mostly fixed.
 - Implement Python event for backing up/restoring a file.
@@ -56,8 +52,7 @@ For 1.39:
 - Look at zlib 32 => 64 problems.
 - Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
-- Fix bextract to restore ACLs, or better yet, use common
-  routines.
+- Fix bextract to restore ACLs, or better yet, use common routines.
 - Do we migrate appendable Volumes?
 - Remove queue.c code.
 - Some users claim that they must do two prune commands to get a
@@ -1694,3 +1689,6 @@ Block Position: 0
     > to the slots keyword, you can apply the enable/disable to any or all volumes.
 - Restricted consoles start in the Default catalog even if it
   is not permitted.
+- When reading through parts on the DVD, the DVD is mounted and
+  unmounted for each part.
+
