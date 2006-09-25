@@ -27,6 +27,7 @@
 
 #define b_errno_win32 (1<<29)
 
+#define MAX_PATHLENGTH  1024
 
 /* UTF-8 to UCS2 path conversion is expensive,
    so we cache the conversion. During backup the
@@ -1532,88 +1533,274 @@ getArgv0(const char *cmdline)
     return rval;
 }
 
+/*
+ * Extracts the executable or script name from the first string in 
+ * cmdline.
+ *
+ * If the name contains blanks then it must be quoted with double quotes,
+ * otherwise quotes are optional.  If the name contains blanks then it 
+ * will be converted to a short name.
+ *
+ * The optional quotes will be removed.  The result is copied to a malloc'ed
+ * buffer and returned through the pexe argument.  The pargs parameter is set
+ * to the address of the character in cmdline located after the name.
+ *
+ * The malloc'ed buffer returned in *pexe must be freed by the caller.
+ */
+bool
+GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
+{
+   const char *pExeStart = NULL;    /* Start of executable name in cmdline */
+   const char *pExeEnd = NULL;      /* Character after executable name (separator) */
+
+   const char *pBasename = NULL;    /* Character after last path separator */
+   const char *pExtension = NULL;   /* Period at start of extension */
+
+   const char *current = cmdline;
+
+   bool bHasBlanks = false;
+   bool bQuoted = false;
+
+   /* Skip initial whitespace */
+
+   while (*current == ' ' || *current == '\t')
+   {
+      current++;
+   }
+
+   /* Calculate start of name and determine if quoted */
+
+   if (*current == '"') {
+      pExeStart = ++current;
+      bQuoted = true;
+   } else {
+      pExeStart = current;
+      bQuoted = false;
+   }
+
+   *pargs = NULL;
+
+   /* 
+    * Scan command line looking for path separators (/ and \\) and the 
+    * terminator, either a quote or a blank.  The location of the 
+    * extension is also noted.
+    */
+
+   for ( ; *current != '\0'; current++)
+   {
+      if (*current == ' ') {
+         bHasBlanks = true;
+      } else if (*current == '.') {
+         pExtension = current;
+      } else if ((*current == '\\' || *current == '/') && current[1] != '\0') {
+         pBasename = &current[1];
+         pExtension = NULL;
+      }
+
+      /* Check for terminator, either quote or blank */
+      if (bQuoted) {
+         if (*current != '"') {
+            continue;
+         }
+      } else {
+         if (*current != ' ') {
+            continue;
+         }
+      }
+
+      /*
+       * Hit terminator, remember end of name (address of terminator) and 
+       * start of arguments 
+       */
+      pExeEnd = current;
+
+      if (bQuoted && *current == '"') {
+         *pargs = &current[1];
+      } else {
+         *pargs = current;
+      }
+
+      break;
+   }
+
+   if (pBasename == NULL) {
+      pBasename = pExeStart;
+   }
+
+   if (pExeEnd == NULL) {
+      pExeEnd = current;
+   }
+
+   if (!bQuoted) {
+      bHasBlanks = false;
+   }
+
+   bool bHasPathSeparators = pExeStart != pBasename;
+
+   /* We have the pointers to all the useful parts of the name */
+
+   /* Default extensions in the order cmd.exe uses to search */
+
+   static const char ExtensionList[][5] = { ".com", ".exe", ".bat", ".cmd" };
+   DWORD dwBasePathLength = pExeEnd - pExeStart;
+
+   if (bHasBlanks) {
+      DWORD dwShortNameLength = 0;
+      char *pPathname = (char *)alloca(MAX_PATHLENGTH + 1);
+      char *pShortPathname = (char *)alloca(MAX_PATHLENGTH + 1);
+
+      pPathname[MAX_PATHLENGTH] = '\0';
+      pShortPathname[MAX_PATHLENGTH] = '\0';
+
+      memcpy(pPathname, pExeStart, dwBasePathLength);
+      pPathname[dwBasePathLength] = '\0';
+
+      if (pExtension == NULL) {
+         /* Try appending extensions */
+         for (int index = 0; index < sizeof(ExtensionList) / sizeof(ExtensionList[0]); index++) {
+
+            if (!bHasPathSeparators) {
+               /* There are no path separators, search in the standard locations */
+               dwShortNameLength = SearchPath(NULL, pPathname, ExtensionList[index], MAX_PATHLENGTH, pShortPathname, NULL);
+               if (dwShortNameLength > 0 && dwShortNameLength <= MAX_PATHLENGTH) {
+                  memcpy(pPathname, pShortPathname, dwShortNameLength);
+                  pPathname[dwShortNameLength] = '\0';
+                  break;
+               }
+            } else {
+               strcpy(&pPathname[dwBasePathLength], ExtensionList[index]);
+
+               if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
+                  break;
+               }
+            }
+         }
+      } else {
+         if (!bHasPathSeparators) {
+            /* There are no path separators, search in the standard locations */
+            dwShortNameLength = SearchPath(NULL, pPathname, NULL, MAX_PATHLENGTH, pShortPathname, NULL);
+            if (dwShortNameLength == 0 || dwShortNameLength > MAX_PATHLENGTH) {
+               return false;
+            }
+
+            memcpy(pPathname, pShortPathname, dwShortNameLength);
+            pPathname[dwShortNameLength] = '\0';
+         }
+      }
+
+      dwShortNameLength = GetShortPathName(pPathname, pShortPathname, MAX_PATHLENGTH);
+
+      if (dwShortNameLength > 0 && dwShortNameLength <= MAX_PATHLENGTH) {
+         *pexe = (char *)malloc(dwShortNameLength + 1);
+         if (*pexe != NULL) {
+            memcpy(*pexe, pShortPathname, dwShortNameLength + 1);
+         } else {
+            return false;
+         }
+      } else {
+         return false;
+      }
+   } else {
+      /* There are no blanks so we don't need to munge the name */
+      *pexe = (char *)malloc(dwBasePathLength + 1);
+      if (*pexe != NULL) {
+         memcpy(*pexe, pExeStart, dwBasePathLength);
+         (*pexe)[dwBasePathLength] = '\0';
+      } else {
+         return false;
+      }
+   }
+
+   return true;
+}
 
 /**
  * OK, so it would seem CreateProcess only handles true executables:
- *  .com or .exe files.
- * So test to see whether we're getting a .bat file and if so grab
- * $COMSPEC value and pass batch file to it.
+ * .com or .exe files.  So grab $COMSPEC value and pass command line to it.
  */
 HANDLE
 CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
 {
-    static const char *comspec = NULL;
-    PROCESS_INFORMATION piProcInfo;
-    STARTUPINFOA siStartInfo;
-    BOOL bFuncRetn = FALSE;
+   static const char *comspec = NULL;
+   PROCESS_INFORMATION piProcInfo;
+   STARTUPINFOA siStartInfo;
+   BOOL bFuncRetn = FALSE;
 
-    if (comspec == NULL) {
-       comspec = getenv("COMSPEC");
-    }
-    if (comspec == NULL) // should never happen
-        return INVALID_HANDLE_VALUE;
+   if (comspec == NULL) {
+      comspec = getenv("COMSPEC");
+   }
+   if (comspec == NULL) // should never happen
+      return INVALID_HANDLE_VALUE;
 
-    // Set up members of the PROCESS_INFORMATION structure.
-    ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+   // Set up members of the PROCESS_INFORMATION structure.
+   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
 
-    // Set up members of the STARTUPINFO structure.
+   // Set up members of the STARTUPINFO structure.
 
-    ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
-    siStartInfo.cb = sizeof(STARTUPINFO);
-    // setup new process to use supplied handles for stdin,stdout,stderr
-    // if supplied handles are not used the send a copy of our STD_HANDLE
-    // as appropriate
-    siStartInfo.dwFlags = STARTF_USESTDHANDLES;
+   ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+   siStartInfo.cb = sizeof(STARTUPINFO);
+   // setup new process to use supplied handles for stdin,stdout,stderr
+   // if supplied handles are not used the send a copy of our STD_HANDLE
+   // as appropriate
+   siStartInfo.dwFlags = STARTF_USESTDHANDLES;
 
-    if (in != INVALID_HANDLE_VALUE)
-        siStartInfo.hStdInput = in;
-    else
-        siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+   if (in != INVALID_HANDLE_VALUE)
+      siStartInfo.hStdInput = in;
+   else
+      siStartInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 
-    if (out != INVALID_HANDLE_VALUE)
-        siStartInfo.hStdOutput = out;
-    else
-        siStartInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (err != INVALID_HANDLE_VALUE)
-        siStartInfo.hStdError = err;
-    else
-        siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-    // Create the child process.
+   if (out != INVALID_HANDLE_VALUE)
+      siStartInfo.hStdOutput = out;
+   else
+      siStartInfo.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+   if (err != INVALID_HANDLE_VALUE)
+      siStartInfo.hStdError = err;
+   else
+      siStartInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 
-    char exeFile[256];
-    int cmdLen = strlen(cmdline) + strlen(comspec) + 16;
+   // Create the child process.
 
-    char *cmdLine = (char *)alloca(cmdLen);
+   char *exeFile;
+   const char *argStart;
 
-    bstrncpy(exeFile, comspec, sizeof(exeFile));
-    bstrncpy(cmdLine, comspec, cmdLen);
-    bstrncat(cmdLine, " /c ", cmdLen);
-    bstrncat(cmdLine, cmdline, cmdLen);
+   if (!GetApplicationName(cmdline, &exeFile, &argStart)) {
+      return INVALID_HANDLE_VALUE;
+   }
 
-    // try to execute program
-    bFuncRetn = CreateProcessA(exeFile,
-                              cmdLine, // command line
-                              NULL, // process security attributes
-                              NULL, // primary thread security attributes
-                              TRUE, // handles are inherited
-                              0, // creation flags
-                              NULL, // use parent's environment
-                              NULL, // use parent's current directory
-                              &siStartInfo, // STARTUPINFO pointer
-                              &piProcInfo); // receives PROCESS_INFORMATION
+   int cmdLen = strlen(comspec) + 4 + strlen(exeFile) + strlen(argStart) + 1;
 
-    if (bFuncRetn == 0) {
-        ErrorExit("CreateProcess failed\n");
-        const char *err = errorString();
-        Dmsg3(99, "CreateProcess(%s, %s, ...)=%s\n", exeFile, cmdLine, err);
-        LocalFree((void *)err);
-        return INVALID_HANDLE_VALUE;
-    }
-    // we don't need a handle on the process primary thread so we close
-    // this now.
-    CloseHandle(piProcInfo.hThread);
+   char *cmdLine = (char *)alloca(cmdLen);
 
-    return piProcInfo.hProcess;
+   snprintf(cmdLine, cmdLen, "%s /c %s%s", comspec, exeFile, argStart);
+
+   free(exeFile);
+
+   Dmsg2(150, "Calling CreateProcess(%s, %s, ...)\n", comspec, cmdLine);
+
+   // try to execute program
+   bFuncRetn = CreateProcessA(comspec,
+                              cmdLine,       // command line
+                              NULL,          // process security attributes
+                              NULL,          // primary thread security attributes
+                              TRUE,          // handles are inherited
+                              0,             // creation flags
+                              NULL,          // use parent's environment
+                              NULL,          // use parent's current directory
+                              &siStartInfo,  // STARTUPINFO pointer
+                              &piProcInfo);  // receives PROCESS_INFORMATION
+
+   if (bFuncRetn == 0) {
+      ErrorExit("CreateProcess failed\n");
+      const char *err = errorString();
+      Dmsg3(99, "CreateProcess(%s, %s, ...)=%s\n", comspec, cmdLine, err);
+      LocalFree((void *)err);
+      return INVALID_HANDLE_VALUE;
+   }
+   // we don't need a handle on the process primary thread so we close
+   // this now.
+   CloseHandle(piProcInfo.hThread);
+
+   return piProcInfo.hProcess;
 }
 
 
