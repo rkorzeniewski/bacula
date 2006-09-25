@@ -2,6 +2,13 @@
 
 General:
 25Sep06
+kes  Update src/win32/dll/bacula.def for change in BPIPE definition for
+     Win32 build.                 
+kes  Fix a compiler warning in compat.cpp
+kes  Change strcpy to bstrncpy in compat.cpp
+kes  Remove some broken code in bdb_list.c
+kes  Fix, hopefully the last, ACL problem in the restore command.
+kes  Update the README.mingw32
 kes  Add new version of upgrade-win32-client.txt to examples directory.
      Submitted by Michel Meyers.
 kes  Print an INFO message in the job report when a Volume is marked Purged.
