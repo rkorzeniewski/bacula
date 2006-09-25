@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+24Sep06
+kes  Apply the recycle patch from Richard Mortimer.
+kes  Convert a few if statements in dev.c to switch statements.
+kes  Start using print_errmsg instead of bstrerror().
+kes  Print a job message in SD when a job is marked to be canceled.
 23Sep06
 kes  All code added back. Fixed block.c read/write to loop only 3
      times. This apparently keeps the OS from crashing (at least     

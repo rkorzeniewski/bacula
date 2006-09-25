@@ -279,6 +279,7 @@ static bool cancel_cmd(JCR *cjcr)
             pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
             pthread_cond_broadcast(&wait_device_release);
          }
+         Jmsg(jcr, M_INFO, 0, _("Job marked to be canceled.\n"));
          bnet_fsend(dir, _("3000 Job %s marked to be canceled.\n"), jcr->Job);
          free_jcr(jcr);
       }
