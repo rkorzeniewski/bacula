@@ -1811,12 +1811,12 @@ void DEVICE::close_part(DCR *dcr)
 
 off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
 {
-   if (is_dvd()) {
+   switch (dev_type) {
+   case B_DVD_DEV:
       return lseek_dvd(dcr, offset, whence);
-   }
-   if (is_file()) {
+   case B_FILE_DEV:
       return ::lseek(fd, offset, whence);
-   }
+   }  
    return -1;
 }
 
@@ -1824,25 +1824,25 @@ off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
 {
    Dmsg1(100, "truncate %s\n", print_name());
-   if (is_tape()) {
-      return true;                    /* we don't really truncate tapes */
+   switch (dev_type) {
+   case B_TAPE_DEV:
       /* maybe we should rewind and write and eof ???? */
-   }
-   
-   if (is_dvd()) {
+      return true;                    /* we don't really truncate tapes */
+   case B_DVD_DEV:
       return truncate_dvd(dcr);
+   case B_FILE_DEV:
+      /* ***FIXME*** we really need to unlink() the file so that
+       *  its name can be changed for a relabel.
+       */
+      if (ftruncate(fd, 0) != 0) {
+         berrno be;
+         Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
+               print_name(), be.strerror());
+         return false;
+      }
+      return true;
    }
-   
-   /* ***FIXME*** we really need to unlink() the file so that
-    *  its name can be changed for a relabel.
-    */
-   if (ftruncate(fd, 0) != 0) {
-      berrno be;
-      Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
-            print_name(), be.strerror());
-      return false;
-   }
-   return true;
+   return false;
 }
 
 /* Mount the device.

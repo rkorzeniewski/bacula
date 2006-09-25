@@ -205,8 +205,6 @@ bool do_append_data(JCR *jcr)
             if (!write_block_to_device(dcr)) {
                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
                   dev->print_name(), dev->bstrerror());
-               Jmsg2(jcr, M_FATAL, 0, _("Fatal append error on device %s: ERR=%s\n"),
-                     dev->print_name(), dev->bstrerror());
                ok = false;
                break;
             }
