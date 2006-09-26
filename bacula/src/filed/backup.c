@@ -240,8 +240,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    case FT_NOFSCHG:
       /* Suppress message for /dev filesystems */
       if (strncmp(ff_pkt->fname, "/dev/", 5) != 0) {
-         Jmsg(jcr, M_INFO, 1, _("     Filesystem change prohibited. Will not descend from %s into %s\n"),
-              ff_pkt->top_fname, ff_pkt->fname);
+         Jmsg(jcr, M_INFO, 1, _("     %s is a different filesystem. Will not descend from %s into %s\n"),
+              ff_pkt->fname, ff_pkt->top_fname, ff_pkt->fname);
       }
       ff_pkt->type = FT_DIREND;       /* Backup only the directory entry */
       break;
