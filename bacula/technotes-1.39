@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+26Sep06
+kes  Add back code to open tape device nonblocking, but if rewind fails
+     release file descriptor.
+kes  Modify acquire.c to first try autoloading the device. Also, ask operator
+     to mount tape if drive cannot be opened.
 25Sep06
 kes  Update src/win32/dll/bacula.def for change in BPIPE definition for
      Win32 build.                 

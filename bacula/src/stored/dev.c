@@ -326,6 +326,8 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    int timeout = max_open_wait;
    struct mtop mt_com;
    utime_t start_time = time(NULL);
+
+
    Dmsg0(29, "Open dev: device is tape\n");
 
    get_autochanger_loaded_slot(dcr);
@@ -343,12 +345,17 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    Dmsg2(100, "Try open %s mode=%s\n", print_name(), mode_to_str(omode));
    /* Use system open() */
 #if defined(HAVE_WIN32)
+
+   /*   Windows Code */
    if ((fd = tape_open(dev_name, mode)) < 0) {
       dev_errno = errno;
    }
 #else
+   /*  UNIX  Code */
+   
    for ( ;; ) {
-      fd = ::open(dev_name, mode);
+      /* Try non-blocking open */
+      fd = ::open(dev_name, mode+O_NONBLOCK);
       if (fd < 0) {
          berrno be;
          dev_errno = errno;
@@ -365,8 +372,23 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
             clear_opened();
             Dmsg2(100, "Rewind error on %s close: ERR=%s\n", print_name(),
                   be.strerror(dev_errno));
+            /* If we get busy, device is probably rewinding, try again */
+            if (dev_errno != EBUSY) {
+               break;                    /* error -- no medium */
+            }
          } else {
-            dev_errno = 0;
+            /* Got fd and rewind worked, so we must have medium in drive */
+            ::close(fd);
+            fd = ::open(dev_name, mode);  /* open normally */
+            if (fd < 0) {
+               berrno be;
+               dev_errno = errno;
+               Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
+                     print_name(), omode, mode, errno, be.strerror());
+               break;
+            } else {
+               dev_errno = 0;
+            }
             set_os_device_parameters(this);      /* do system dependent stuff */
             break;                    /* Successfully opened and rewound */
          }
