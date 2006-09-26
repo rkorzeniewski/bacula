@@ -167,6 +167,9 @@ bool acquire_device_for_read(DCR *dcr)
          Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
          goto get_out;                /* error return */
       }
+
+      autoload_device(dcr, 0, NULL);
+
       /*
        * This code ensures that the device is ready for
        * reading. If it is a file, it opens it.
@@ -174,15 +177,9 @@ bool acquire_device_for_read(DCR *dcr)
        */
       Dmsg1(100, "bstored: open vol=%s\n", dcr->VolumeName);
       if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
-         if (dev->dev_errno == EIO) {   /* no tape loaded */
-           Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed (EIO): ERR=%s\n"),
-                 dev->print_name(), dcr->VolumeName, dev->bstrerror());
-            goto default_path;
-         }
-         
-         Jmsg3(jcr, M_FATAL, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
-             dev->print_name(), dcr->VolumeName, dev->bstrerror());
-         goto get_out;
+        Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
+              dev->print_name(), dcr->VolumeName, dev->bstrerror());
+         goto default_path;
       }
       Dmsg1(100, "opened dev %s OK\n", dev->print_name());
       
