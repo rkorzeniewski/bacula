@@ -43,16 +43,13 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
 static void list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
 static void list_running_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
 static void list_jobs_waiting_on_reservation(void sendit(const char *msg, int len, void *sarg), void *arg);
-#if defined(HAVE_WIN32)
-static void win32_sendit(const char *msg, int len, void *arg);
-#endif
 
 static const char *level_to_str(int level);
 
 /*
  * Status command from Director
  */
-bool do_status(void sendit(const char *msg, int len, void *sarg), void *arg)
+void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    DEVRES *device;
    AUTOCHANGER *changer;
@@ -168,21 +165,19 @@ bool do_status(void sendit(const char *msg, int len, void *sarg), void *arg)
          if (dev) {
             len = Mmsg(msg, _("Device %s is not open.\n"), dev->print_name());
             sendit(msg, len, arg);
+            send_blocked_status(dev, sendit, arg);
         } else {
             len = Mmsg(msg, _("Device \"%s\" is not open or does not exist.\n"), device->hdr.name);
             sendit(msg, len, arg);
          }
-         send_blocked_status(dev, sendit, arg);
       }
    }
-   len = Mmsg(msg, _("====\n\n"));
-   sendit(msg, len, arg);
+   sendit("====\n\n", 6, arg);
    len = Mmsg(msg, _("In Use Volume status:\n"));
    sendit(msg, len, arg);
    list_volumes(sendit, arg);
-   len = Mmsg(msg, _("====\n\n"));
-   sendit(msg, len, arg);
-       
+   sendit("====\n\n", 6, arg);
+
 #ifdef xxx
    if (debug_level > 10) {
       bnet_fsend(user, _("====\n\n"));
@@ -194,7 +189,6 @@ bool do_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    list_spool_stats(sendit, arg);
 
    free_pool_memory(msg);
-   return true;
 }
 
 static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int len, void *sarg), void *arg)
@@ -410,12 +404,7 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
    }
    endeach_jcr(jcr);
 
-   if (!found) {
-      len = Mmsg(msg, _("No Jobs running.\n"));
-      sendit(msg, len, arg);
-   }
-   len = Mmsg(msg, _("====\n"));
-   sendit(msg, len, arg);
+   sendit("====\n", 5, arg);
 
    free_pool_memory(msg);
 }
@@ -436,8 +425,7 @@ static void list_jobs_waiting_on_reservation(void sendit(const char *msg, int le
    }
    endeach_jcr(jcr);
 
-   msg = _("====\n");
-   sendit(msg, strlen(msg), arg);
+   sendit("====\n", 5, arg);
 }
 
 
@@ -448,14 +436,13 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
    struct s_last_job *je;
    const char *msg;
 
+   msg =  _("\nTerminated Jobs:\n");
+   sendit(msg, strlen(msg), arg);
    if (last_jobs->size() == 0) {
-      msg = _("No Terminated Jobs.\n");
-      sendit(msg, strlen(msg), arg);
+      sendit("====\n", 5, arg);
       return;
    }
    lock_last_jobs_list();
-   msg =  _("\nTerminated Jobs:\n");
-   sendit(msg, strlen(msg), arg);
    msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
    msg =  _("===================================================================\n");
@@ -514,8 +501,8 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
          dt, JobName);
       sendit(buf, strlen(buf), arg);
    }
-   sendit(_("====\n"), 5, arg);
    unlock_last_jobs_list();
+   sendit("====\n", 5, arg);
 }
 
 /*
@@ -585,7 +572,7 @@ bool status_cmd(JCR *jcr)
    BSOCK *user = jcr->dir_bsock;
 
    bnet_fsend(user, "\n");
-   do_status(bsock_sendit, (void *)user);
+   output_status(bsock_sendit, (void *)user);
 
    bnet_sig(user, BNET_EOD);
    return 1;
@@ -638,46 +625,10 @@ bool qstatus_cmd(JCR *jcr)
 #if defined(HAVE_WIN32)
 int bacstat = 0;
 
-struct s_win32_arg {
-   HWND hwnd;
-   int idlist;
-};
-
-/*
- * Put message in Window List Box
- */
-static void win32_sendit(const char *msg, int len, void *marg)
-{
-   struct s_win32_arg *arg = (struct s_win32_arg *)marg;
-
-   if (len > 0 && msg[len-1] == '\n') {
-       // when compiling with visual studio some strings are read-only
-       // and cause access violations.  So we creat a tmp copy.
-       char *_msg = (char *)alloca(len);
-       bstrncpy(_msg, msg, len);
-       msg = _msg;
-   }
-   SendDlgItemMessage(arg->hwnd, arg->idlist, LB_ADDSTRING, 0, (LONG)msg);
-
-}
-
-void FillStatusBox(HWND hwnd, int idlist)
-{
-   struct s_win32_arg arg;
-
-   arg.hwnd = hwnd;
-   arg.idlist = idlist;
-
-   /* Empty box */
-   for ( ; SendDlgItemMessage(hwnd, idlist, LB_DELETESTRING, 0, (LONG)0) > 0; )
-      { }
-   do_status(win32_sendit, (void *)&arg);
-}
-
 char *bac_status(char *buf, int buf_len)
 {
    JCR *njcr;
-   const char *termstat = _("Bacula Idle");
+   const char *termstat = _("Bacula Storage: Idle");
    struct s_last_job *job;
    int stat = 0;                      /* Idle */
 
@@ -688,7 +639,7 @@ char *bac_status(char *buf, int buf_len)
    foreach_jcr(njcr) {
       if (njcr->JobId != 0) {
          stat = JS_Running;
-         termstat = _("Bacula Running");
+         termstat = _("Bacula Storage: Running");
          break;
       }
    }
@@ -702,15 +653,15 @@ char *bac_status(char *buf, int buf_len)
       stat = job->JobStatus;
       switch (job->JobStatus) {
       case JS_Canceled:
-         termstat = _("Last Job Canceled");
+         termstat = _("Bacula Storage: Last Job Canceled");
          break;
       case JS_ErrorTerminated:
       case JS_FatalError:
-         termstat = _("Last Job Failed");
+         termstat = _("Bacula Storage: Last Job Failed");
          break;
       default:
          if (job->Errors) {
-            termstat = _("Last Job had Warnings");
+            termstat = _("Bacula Storage: Last Job had Warnings");
          }
          break;
       }
