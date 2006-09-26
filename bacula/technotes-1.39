@@ -2,6 +2,9 @@
 
 General:
 26Sep06
+kes  Enhance error message when restoring without bootstrap file.
+kes  Check restored size only for regular files.
+kes  Store Python job level in job record in Dir.
 kes  Add back code to open tape device nonblocking, but if rewind fails
      release file descriptor.
 kes  Modify acquire.c to first try autoloading the device. Also, ask operator

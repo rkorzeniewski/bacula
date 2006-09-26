@@ -70,7 +70,9 @@ bool do_restore(JCR *jcr)
    Dmsg1(20, "RestoreJobId=%d\n", jcr->job->RestoreJobId);
 
    if (!jcr->RestoreBootstrap) {
-      Jmsg0(jcr, M_FATAL, 0, _("Cannot restore without bootstrap file.\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Cannot restore without a bootstrap file.\n"
+          "You probably ran a restore job directly. All restore jobs must\n"
+          "be run using the restore command.\n"));
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
