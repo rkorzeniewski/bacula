@@ -29,68 +29,144 @@
 #include "winstat.h"
 #include "winres.h"
 
-extern void FillStatusBox(HWND hwnd, int id_list);
+extern void output_status(void sendit(const char *msg, int len, void *sarg), void *arg);
 
 bacStatus::bacStatus()
 {
-   visible = FALSE;
+   m_bVisible = FALSE;
+   m_hTextDisplay = NULL;
 }
 
 bacStatus::~bacStatus()
 {
 }
 
+void
+bacStatus::DisplayString(const char *msg, int len, void *context)
+{
+   /* Get class pointer from user data */
+   bacStatus *_this = (bacStatus *)context;
+   const char *pStart;
+   const char *pCurrent;
+
+   for (pStart = msg, pCurrent = msg; ; pCurrent++) {
+      if (*pCurrent == '\n' || *pCurrent == '\0') {
+         int lenSubstring = pCurrent - pStart;
+         if (lenSubstring > 0) {
+            char *pSubString = (char *)alloca(lenSubstring + 1);
+            bstrncpy(pSubString, pStart, lenSubstring + 1);
+
+            SendMessage(_this->m_hTextDisplay, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+            SendMessage(_this->m_hTextDisplay, EM_REPLACESEL, 0, (LPARAM)pSubString);
+         }
+         
+         if (*pCurrent == '\n') {
+            SendMessage(_this->m_hTextDisplay, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+            SendMessage(_this->m_hTextDisplay, EM_REPLACESEL, 0, (LONG)"\r\n");
+         }
+
+         if (*pCurrent == '\0'){
+            break;
+         }
+         pStart = pCurrent + 1;
+      }
+   }
+}
+
+void 
+bacStatus::UpdateDisplay()
+{
+   if (m_hTextDisplay != NULL) {
+      long  lHorizontalPos = GetScrollPos(m_hTextDisplay, SB_HORZ);
+      long  lVerticalPos = GetScrollPos(m_hTextDisplay, SB_VERT);
+      long  selStart, selEnd;
+
+      SendMessage(m_hTextDisplay, EM_GETSEL, (WPARAM)&selStart, (LPARAM)&selEnd);
+
+      SetWindowText(m_hTextDisplay, "");
+
+      output_status(DisplayString, this);
+
+      SendMessage(m_hTextDisplay, EM_SETSEL, (WPARAM)selStart, (LPARAM)selEnd);
+      SendMessage(m_hTextDisplay, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, lHorizontalPos), 0);
+      SendMessage(m_hTextDisplay, WM_VSCROLL, MAKEWPARAM(SB_THUMBPOSITION, lVerticalPos), 0);
+   }
+}
 
 /* Dialog box handling functions */
 void
 bacStatus::Show(BOOL show)
 {
-   if (show && !visible) {
+   if (show && !m_bVisible) {
       DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_STATUS), NULL,
           (DLGPROC)DialogProc, (LONG)this);
    }
 }
 
+void
+bacStatus::ResizeChildren(HWND hDlg, WORD wWidth, WORD wHeight)
+{
+   if (m_hTextDisplay != NULL) {
+      HWND  hwndButton = GetDlgItem(hDlg, IDOK);
+      RECT  rcWindow;
+
+      GetWindowRect(hwndButton, &rcWindow);
+
+      LONG  lButtonWidth = rcWindow.right - rcWindow.left;
+      LONG  lButtonHeight = rcWindow.bottom - rcWindow.top;
+
+      MoveWindow(m_hTextDisplay, 8, 8, wWidth - lButtonWidth - 24, wHeight - 16, TRUE);
+      MoveWindow(hwndButton, wWidth - lButtonWidth - 8, 8, lButtonWidth, lButtonHeight, TRUE);
+   }
+}
+
+
 BOOL CALLBACK
-bacStatus::DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+bacStatus::DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    /* Get class pointer from user data */
-   bacStatus *_this = (bacStatus *)GetWindowLong(hwnd, GWL_USERDATA);
+   bacStatus *_this = (bacStatus *)GetWindowLong(hDlg, GWL_USERDATA);
 
    switch (uMsg) {
    case WM_INITDIALOG:
       /* Set class pointer in user data */
-      SetWindowLong(hwnd, GWL_USERDATA, lParam);
+      SetWindowLong(hDlg, GWL_USERDATA, lParam);
       _this = (bacStatus *)lParam;
+      _this->m_hTextDisplay = GetDlgItem(hDlg, IDC_TEXTDISPLAY);
 
       /* show the dialog */
-      SetForegroundWindow(hwnd);
+      SetForegroundWindow(hDlg);
 
       /* Update every 5 seconds */
-      SetTimer(hwnd, 1, 5000, NULL); 
-      _this->visible = TRUE;
-      FillStatusBox(hwnd, IDC_LIST);
+      SetTimer(hDlg, 1, 5000, NULL); 
+      _this->m_bVisible = TRUE;
+      _this->UpdateDisplay();
       return TRUE;
 
    case WM_TIMER:
-      FillStatusBox(hwnd, IDC_LIST);
+      _this->UpdateDisplay();
+      return TRUE;
+
+   case WM_SIZE:
+      _this->ResizeChildren(hDlg, LOWORD(lParam), HIWORD(lParam));
       return TRUE;
 
    case WM_COMMAND:
       switch (LOWORD(wParam)) {
       case IDCANCEL:
       case IDOK:
-         KillTimer(hwnd, 1);
-         EndDialog(hwnd, TRUE);
-         _this->visible = FALSE;
+         KillTimer(hDlg, 1);
+         EndDialog(hDlg, TRUE);
+         _this->m_bVisible = FALSE;
          return TRUE;
       }
       break;
 
    case WM_DESTROY:
-      KillTimer(hwnd, 1);
-      EndDialog(hwnd, FALSE);
-      _this->visible = FALSE;
+      _this->m_hTextDisplay = NULL;
+      KillTimer(hDlg, 1);
+      EndDialog(hDlg, FALSE);
+      _this->m_bVisible = FALSE;
       return TRUE;
    }
    return 0;

@@ -85,7 +85,7 @@ PURGE_DIR="Y"
 # You need to set both the URL they will be downloaded from
 # and the exact name of the individual component files.
 
-MINGW_URL="http://heanet.dl.sourceforge.net/sourceforge/mingw"
+MINGW_URL="http://superb-west.dl.sourceforge.net/sourceforge/mingw"
 
 # GCC_CORE is required; the other components are optional.
 # Set any you don't want to "".  You need binutils,
@@ -403,66 +403,62 @@ install_gcc()
 
 extract_mingw_utils()
 {
-	cd "$SRCDIR"
-	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
-	if [ "x${MINGW_UTILS}" != "x./" ]; then
-	   rm -rf "$MINGW_UTILS"
-	fi
-	echo "Extracting mingw-utils"
-	tar -xzf "$SRCDIR/$MINGW_UTILS_ARCHIVE"
-	cd "$BUILDDIR"
+        cd "$SRCDIR"
+        MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
+        if [ "x${MINGW_UTILS}" != "x./" ]; then
+           rm -rf "$MINGW_UTILS"
+        fi
+        echo "Extracting mingw-utils"
+        tar -xzf "$SRCDIR/$MINGW_UTILS_ARCHIVE"
+        cd "$BUILDDIR"
 }
 
 
 patch_mingw_utils()
 {
-	MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
-	cd "${SRCDIR}/${MINGW_UTILS}"
-	echo "Patching mingw-utils"
-	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils1.patch 2>&1 > patch.log
-	cd dos2unix
-	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils2.patch 2>&1 >> patch.log
-	cd ../unix2dos
-	patch -p0 < ${SCRIPTDIR}/patches/mingw-utils3.patch 2>&1 >> patch.log
-	cd "$BUILDDIR"
+        MINGW_UTILS=`tar -tzf "$SRCDIR/$MINGW_UTILS_ARCHIVE" | head -n 1`
+        cd "${SRCDIR}/${MINGW_UTILS}"
+        echo "Patching mingw-utils"
+        patch -p0 < ${SCRIPTDIR}/patches/mingw-utils.patch 2>&1 > patch.log
+        cd "$BUILDDIR"
 }
 
 
 configure_mingw_utils()
 {
-	cd "$BUILDDIR"
-	rm -rf "mingw-utils"
-	mkdir "mingw-utils"
-	cd "mingw-utils"
-	echo "Configuring mingw-utils"
-	"$SRCDIR/$MINGW_UTILS/configure" --disable-nonportable --prefix="${PREFIX}/${TARGET}" 2>&1 > configure.log
-	cd "$BUILDDIR"
+        cd "$BUILDDIR"
+        rm -rf "mingw-utils"
+        mkdir "mingw-utils"
+        cd "mingw-utils"
+        echo "Configuring mingw-utils"
+        "$SRCDIR/$MINGW_UTILS/configure" --disable-nonportable --prefix="${PREFIX}/${TARGET}" 2>&1 > configure.log
+        cd "$BUILDDIR"
 }
 
 
 build_mingw_utils()
 {
-	cd "$BUILDDIR/mingw-utils"
-	echo "Building mingw-utils"
-	make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" 2>&1 > make.log
-	if test $? -ne 0; then
-		echo "make of mingw-utils failed - log available: mingw-utils/make.log"
-		exit 1
-	fi
-	cd "$BUILDDIR"
+        cd "$BUILDDIR/mingw-utils"
+        echo "Building mingw-utils"
+        make CFLAGS="-O2 -fno-exceptions" LDFLAGS="-s" 2>&1 > make.log
+        if test $? -ne 0; then
+                echo "make of mingw-utils failed - log available: mingw-utils/make.log"
+                exit 1
+        fi
+        cd "$BUILDDIR"
 }
 
 
 install_mingw_utils()
 {
-	cd "$BUILDDIR/mingw-utils"
-	echo "Installing mingw-utils"
-	make install 2>&1 > make-install.log
-	if test $? -ne 0; then
-		echo "install of mingw-utils failed - log available: mingw-utils/make-install.log"
-		exit 1
-	fi
-	cd "$BUILDDIR"
+        cd "$BUILDDIR/mingw-utils"
+        echo "Installing mingw-utils"
+        make install 2>&1 > make-install.log
+        if test $? -ne 0; then
+                echo "install of mingw-utils failed - log available: mingw-utils/make-install.log"
+                exit 1
+        fi
+        cd "$BUILDDIR"
 }
 
 
@@ -527,11 +523,11 @@ build_gcc
 install_gcc
 
 if test -n "${MINGW_UTILS_ARCHIVE}"; then
-	extract_mingw_utils
-	patch_mingw_utils
-	configure_mingw_utils
-	build_mingw_utils
-	install_mingw_utils
+        extract_mingw_utils
+        patch_mingw_utils
+        configure_mingw_utils
+        build_mingw_utils
+        install_mingw_utils
 fi
 
 final_tweaks

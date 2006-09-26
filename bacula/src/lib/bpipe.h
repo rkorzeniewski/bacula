@@ -27,4 +27,4 @@ public:
    btimer_t *timer_id;
    FILE *rfd;
    FILE *wfd;
-};      
+};

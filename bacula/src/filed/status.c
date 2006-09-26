@@ -49,7 +49,7 @@ extern VSSClient *g_pVSSClient;
 /*
  * General status generator
  */
-static void do_status(void sendit(const char *msg, int len, void *sarg), void *arg)
+void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    int sec, bps;
    char *msg, b1[32], b2[32], b3[32], b4[32];
@@ -125,7 +125,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
     * List running jobs
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
-   len = Mmsg(msg, _("Running Jobs:\n"));
+   len = Mmsg(msg, _("\nRunning Jobs:\n"));
    sendit(msg, len, arg);
    char *vss = "";
 #ifdef WIN32_VSS
@@ -180,12 +180,7 @@ static void do_status(void sendit(const char *msg, int len, void *sarg), void *a
    }
    endeach_jcr(njcr);
 
-   if (!found) {
-      len = Mmsg(msg, _("No Jobs running.\n"));
-      sendit(msg, len, arg);
-   }
-   len = Mmsg(msg, _("====\n"));
-   sendit(msg, len, arg);
+   sendit(_("====\n"), 5, arg);
 
    list_terminated_jobs(sendit, arg);
 
@@ -199,15 +194,14 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
    struct s_last_job *je;
    const char *msg;
 
+   msg =  _("\nTerminated Jobs:\n");
+   sendit(msg, strlen(msg), arg);
+
    if (last_jobs->size() == 0) {
-      msg = _("No Terminated Jobs.\n");
-      sendit(msg, strlen(msg), arg);
+      sendit(_("====\n"), 5, arg);
       return;
    }
    lock_last_jobs_list();
-   sendit("\n", 1, arg);               /* send separately */
-   msg =  _("Terminated Jobs:\n");
-   sendit(msg, strlen(msg), arg);
    msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
    sendit(msg, strlen(msg), arg);
    msg = _("======================================================================\n");
@@ -292,7 +286,7 @@ int status_cmd(JCR *jcr)
    BSOCK *user = jcr->dir_bsock;
 
    bnet_fsend(user, "\n");
-   do_status(bsock_sendit, (void *)user);
+   output_status(bsock_sendit, (void *)user);
 
    bnet_sig(user, BNET_EOD);
    return 1;
@@ -399,46 +393,13 @@ static const char *level_to_str(int level)
 #if defined(HAVE_WIN32)
 int bacstat = 0;
 
-struct s_win32_arg {
-   HWND hwnd;
-   int idlist;
-};
-
 /*
  * Put message in Window List Box
  */
-static void win32_sendit(const char *msg, int len, void *marg)
-{
-   struct s_win32_arg *arg = (struct s_win32_arg *)marg;
-
-   if (len > 0 && msg[len-1] == '\n') {
-       // when compiling with visual studio some strings are read-only
-       // and cause access violations.  So we creat a tmp copy.
-       char *_msg = (char *)alloca(len);
-       bstrncpy(_msg, msg, len);
-       msg = _msg;
-   }
-   SendDlgItemMessage(arg->hwnd, arg->idlist, LB_ADDSTRING, 0, (LONG)msg);
-
-}
-
-void FillStatusBox(HWND hwnd, int idlist)
-{
-   struct s_win32_arg arg;
-
-   arg.hwnd = hwnd;
-   arg.idlist = idlist;
-
-   /* Empty box */
-   for ( ; SendDlgItemMessage(hwnd, idlist, LB_DELETESTRING, 0, (LONG)0) > 0; )
-      { }
-   do_status(win32_sendit, (void *)&arg);
-}
-
 char *bac_status(char *buf, int buf_len)
 {
    JCR *njcr;
-   const char *termstat = _("Bacula Idle");
+   const char *termstat = _("Bacula Client: Idle");
    struct s_last_job *job;
    int stat = 0;                      /* Idle */
 
@@ -449,7 +410,7 @@ char *bac_status(char *buf, int buf_len)
    foreach_jcr(njcr) {
       if (njcr->JobId != 0) {
          stat = JS_Running;
-         termstat = _("Bacula Running");
+         termstat = _("Bacula Client: Running");
          break;
       }
    }
@@ -463,15 +424,15 @@ char *bac_status(char *buf, int buf_len)
       stat = job->JobStatus;
       switch (job->JobStatus) {
       case JS_Canceled:
-         termstat = _("Last Job Canceled");
+         termstat = _("Bacula Client: Last Job Canceled");
          break;
       case JS_ErrorTerminated:
       case JS_FatalError:
-         termstat = _("Last Job Failed");
+         termstat = _("Bacula Client: Last Job Failed");
          break;
       default:
          if (job->Errors) {
-            termstat = _("Last Job had Warnings");
+            termstat = _("Bacula Client: Last Job had Warnings");
          }
          break;
       }

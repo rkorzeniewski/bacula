@@ -248,24 +248,32 @@ process_postgresql()
                 echo Patching postgreSQL
                 >patch.log
                 do_patch postgresql.patch
-                echo Configuring postgreSQL
+
+                # We need a native version of zic to build the timezone tables.
+                echo Configuring postgreSQL to build native zic
+                ./configure 2>&1 > make.log
+
+                echo Building native zic
+                cd src/timezone
+                do_make Makefile 2>&1 >> make.log
+                cp zic ../..
+                cd ../..
+                do_make GNUmakefile distclean 2>&1 >> make.log
+
+                echo Configuring postgreSQL for MinGW32
+
                 ./configure --host=mingw32 \
                             --enable-shared \
                             --enable-thread-safety \
                             --prefix=${DEPPKG_DIR} \
                             --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads \
-                            --with-libraries=${DEPPKG_DIR}/lib &> make.log
+                            --with-libraries=${DEPPKG_DIR}/lib 2>&1 >> make.log
         fi
         echo Building postgreSQL
-        if [ -e /usr/sbin/zic ]; then ZIC=/usr/sbin/zic
-        elif [ -e /sbin/zic ]; then ZIC=/sbin/zic
-        elif [ -e /usr/bin/zic ]; then ZIC=/usr/bin/zic
-        elif [ -e /bin/zic ]; then ZIC=/bin/zic
-        else ZIC=./zic
-        fi
-        do_make Makefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC}
+        ZIC=`pwd`/zic
+        do_make GNUmakefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC}
         echo Installing postgreSQL
-        do_make Makefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC} install
+        do_make GNUmakefile AR=mingw32-ar DLLTOOL=mingw32-dlltool DLLWRAP=mingw32-dllwrap WINDRES=mingw32-windres PTHREAD_LIBS=-lpthreadGCE ZIC=${ZIC} install
 }
 
 process_sqlite()
@@ -399,18 +407,18 @@ process_sed()
 {
         if get_source "${URL_SED}" "${DIR_SED}" "${MKD_SED}"
         then
-                echo Patching SED
+                echo Patching sed
                 >patch.log
                 do_patch sed.patch
-                echo Configuring SED
+                echo Configuring sed
                 ./configure --host=mingw32 \
                             --prefix=${DEPPKG_DIR} \
                             --disable-nls &>make.log
-	fi
-	echo Building SED
-	do_make Makefile all
-	echo Installing SED
-	do_make Makefile install
+        fi
+        echo Building sed
+        do_make Makefile all
+        echo Installing sed
+        do_make Makefile install
 }
 
 if [ "$#" -eq 0 ]

@@ -36,10 +36,17 @@ public:
 
    /* The Windows callback routine */
    static BOOL CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+   static void DisplayString(const char *msg, int len, void *context);
+
+   void UpdateDisplay();
 
    void Show(BOOL show);
 
-   BOOL visible;
+   void ResizeChildren(HWND hDlg, WORD wWidth, WORD wHeight);
+
+private:
+   BOOL m_bVisible;
+   HWND m_hTextDisplay;
 };
 
 #endif

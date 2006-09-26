@@ -1668,7 +1668,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
                   break;
                }
             } else {
-               bstrncpy(&pPathname[dwBasePathLength], ExtensionList[index], MAX_PATHLENGTH);
+               bstrncpy(&pPathname[dwBasePathLength], ExtensionList[index], MAX_PATHLENGTH - dwBasePathLength);
                if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
                   break;
                }

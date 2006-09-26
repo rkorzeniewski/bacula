@@ -71,7 +71,6 @@ BEXTRACT_OBJS = \
 
 OBJS_WIN = \
 	$(OBJDIR)/winabout.o \
-	$(OBJDIR)/winevents.o \
 	$(OBJDIR)/winservice.o \
 	$(OBJDIR)/winstat.o \
 	$(OBJDIR)/wintray.o \

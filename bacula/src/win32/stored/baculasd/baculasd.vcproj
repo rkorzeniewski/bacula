@@ -263,10 +263,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winevents.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\winmain.cpp"
 				>
 				<FileConfiguration
@@ -345,10 +341,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\winevents.h"
-				>
-			</File>
-			<File
 				RelativePath=".\winres.h"
 				>
 			</File>
@@ -370,6 +362,30 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\bacula.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\bacula.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\error.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\idle.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\running.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\warn.ico"
+				>
+			</File>
 			<File
 				RelativePath=".\winres.rc"
 				>

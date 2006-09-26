@@ -41,14 +41,10 @@ class bacMenu;
 
 #include "winabout.h"
 #include "winstat.h"
-#include "winevents.h"
 
 // Constants
 extern const UINT MENU_ABOUTBOX_SHOW;
 extern const UINT MENU_STATUS_SHOW;
-extern const UINT MENU_EVENTS_SHOW;
-extern const UINT MENU_SERVICEHELPER_MSG;
-extern const UINT MENU_ADD_CLIENT_MSG;
 extern const char *MENU_CLASS_NAME;
 
 // The tray menu class itself
@@ -75,8 +71,6 @@ protected:
 
    // Status dialog for this server
    bacStatus m_status;
-
-   bacEvents m_events;
 
    HWND  m_hwnd;
    HMENU m_hmenu;

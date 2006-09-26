@@ -35,15 +35,11 @@
 // Implementation of a system tray icon & menu for Bacula
 
 #include "bacula.h"
+#include "jcr.h"
 #include "winbacula.h"
 #include "winservice.h"
 #include "winres.h"
-
-// Header
-
 #include "wintray.h"
-#include "bacula.h"
-#include "jcr.h"
 
 // Constants
 #ifdef properties_implemented
@@ -52,9 +48,6 @@ const UINT MENU_DEFAULT_PROPERTIES_SHOW = RegisterWindowMessage("Bacula.Properti
 #endif
 const UINT MENU_ABOUTBOX_SHOW = RegisterWindowMessage("Bacula.AboutBox.Show");
 const UINT MENU_STATUS_SHOW = RegisterWindowMessage("Bacula.Status.Show");
-const UINT MENU_EVENTS_SHOW = RegisterWindowMessage("Bacula.Events.Show");
-const UINT MENU_SERVICEHELPER_MSG = RegisterWindowMessage("Bacula.ServiceHelper.Message");
-const UINT MENU_ADD_CLIENT_MSG = RegisterWindowMessage("Bacula.AddClient.Message");
 const char *MENU_CLASS_NAME = "BaculaSD Tray Icon";
 
 extern void terminate_stored(int sig);
@@ -243,17 +236,6 @@ LRESULT CALLBACK bacMenu::WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
          // Show the status dialog
          _this->m_status.Show(TRUE);
          _this->UpdateTrayIcon(bacstat);
-         break;
-
-      case ID_EVENTS:
-         // Show the Events dialog
-         _this->m_events.Show(TRUE);
-         _this->UpdateTrayIcon(bacstat);
-         break;
-
-
-      case ID_KILLCLIENTS:
-         // Disconnect all currently connected clients
          break;
 
       case ID_ABOUT:

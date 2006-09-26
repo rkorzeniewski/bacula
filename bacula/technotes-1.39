@@ -9,6 +9,14 @@ kes  Add back code to open tape device nonblocking, but if rewind fails
      release file descriptor.
 kes  Modify acquire.c to first try autoloading the device. Also, ask operator
      to mount tape if drive cannot be opened.
+rbn  Made Windows service tray status windows resizable.
+rbn  Fixed horizontal scrolling of text in status window.
+rbn  Preserve horizontal and vertical scroll position while 
+     updating.  This prevents the display being reset to the
+     top line every 5 seconds.
+rbn  Fix Windows cross-compile compatibilty problems with 
+     *nix variants such as OS X without the zic command.
+rbn  Eliminate dependency on man2html.
 25Sep06
 kes  Update src/win32/dll/bacula.def for change in BPIPE definition for
      Win32 build.                 
@@ -20,6 +28,11 @@ kes  Update the README.mingw32
 kes  Add new version of upgrade-win32-client.txt to examples directory.
      Submitted by Michel Meyers.
 kes  Print an INFO message in the job report when a Volume is marked Purged.
+rbn  Fixed handling of external program and script execution
+     so that the format of the command line is more flexible.
+     Now executable path names containing spaces are translated
+     to the equivalent short name automatically.  The result is
+     passed to cmd.exe with the quotes removed.
 24Sep06
 kes  Apply the recycle patch from Richard Mortimer.
 kes  Convert a few if statements in dev.c to switch statements.
@@ -119,6 +132,12 @@ kes  Disable normal data spooling for DVD writing which uses
      a different spooling mechanism.
 kes  Apply patch from Richard Mortimer to ensure that the number
      of DVD parts is correctly updated.
+rbn  Save installer details log in the Bacula directory as 
+     install.log.
+rbn  Add installer generation of client and storage templates
+     suitable for @inclusion on the director.
+rbn  Mark previously installed components read-only since 
+     deselection doesn't do anything.
 
 Version 1.39.22 beta released:
 08Sep06
@@ -165,6 +184,24 @@ kes  Manual updates.
 kes  Update examples directory.
 kes  Remove unused variable in winservice.cpp
 kes  Make Win32 make command build installer.
+rbn  Add new Install Type page, used to select between Automatic
+     and Custom installs.  Automatic installs only prompt for
+     configuration items that can't be reasonably defaulted.
+rbn  Added Bacula logo to page headers.
+rbn  Added Upgrade support
+     - Configuration and component selection are migrated from
+       pre-1.39 installs.
+     - Configuration of upgraded components is preserved and 
+       not prompted for
+     - Configuration of new components is handled according to
+       the Automatic / Custom selection.
+     - Component selection is defaulted to previously selected 
+       components.
+rbn  Installation of Server components is disabled on 
+     Windows 95, 98 and ME.
+rbn  Added URLs for support, info and upgrades to Bacula entry
+     in Add/Remove Programs.
+rbn  Added Version info to Bacula entry in Add/Remove Programs.
 04Sep06
 kes  Correct dvd code that breaks tape labeling.      
 kes  Implement Enabled on update slots.
@@ -186,16 +223,22 @@ kes  Tweak so that debug level 20 shows only DVD commands.
 kes  Correct spooled_part flag in dev.c close() so that it is cleared
      when the spool file is deleted or does not exist.
 kes  Print part number in read_records when eof hit (restore).
+rbn  Installer default changed to start services on new install.
 31Aug06
--es  Make find with no args in tree restore return error rather than
+kes  Make find with no args in tree restore return error rather than
      stopping the selection. Fixes bug #665
 kes  Rework DVD writing to ensure that the last part is written
      on open_next_part when dealing with a spool file.
 kes  Correct the lseek_dev() routine to handle end point correctly
      (bug introduced by me).
 kes  Allow part number to exceed num_dvd_parts in lseek_dev().
+rbn  Change make_session_key on Windows to use WIN32 APIs to produce 
+     a better seed.
+rbn  Add new tool scsilist.exe which displays the changer, tape and 
+     CD/DVD (1394, SCSI, SATA, ATAPI) devices and the information required 
+     to add them to bacula-sd.conf.
 30Aug06
-kes  Apply dvd-handler patch from Richard Mortimer.                        
+kes  Apply dvd-handler patch from Richard Mortimer.
 kes  Apply dvd error check patch from Richard Mortimer.
 kes  Apply bpipe race patch from Richard Mortimer.
 kes  Rework how DVD labels are handled and set append only
@@ -266,7 +309,23 @@ kes  When not descending into a directory, print the File= name that
      triggered it -- makes why not descending a bit clearer.
 kes  Do not unload autochanger when doing a list command -- basic code
      from Eric Bollengier.
-07Aug06                
+12Aug06
+rbn  Reworked the MinGW32 build-dependencies script, it has been renamed
+     to build-depkgs-mingw32.  It now handles two options -h to display
+     help and -C to reextract the source and apply the patches.  The -C
+     option is useful for updating the source after new patches are 
+     released.
+rbn  Moved the 3rd party package URLs to a separate file External-mingw32.
+     This allows updating to new versions without having to modify the
+     script and makes it easier to figure out which packages and which
+     versions are used.
+rbn  Added a new script build-depkgs-msvc.cmd which does the same thing
+     as build-depkgs-mingw32 except they are built using Microsoft Visual C
+     and placed in the depkgs-msvc directory.  There is also an 
+     External-msvc file to describe the packages.
+08Aug06
+rbn  Fix Windows cross-compile compatibilty problems with FreeBSD.
+07Aug06
 kes  Fix bug #462 incorrect error message printed when client script called
      from File= was not found.
 kes  Fix bug #558 (waiting for feedback) where Bacula needs too much time to

@@ -37,8 +37,6 @@
 // Windows NT and Windows 95.  Some routines only operate under one
 // OS, others operate under any OS.
 
-class bacService;
-
 #if (!defined(_win_bacService))
 #define _win_bacService
 

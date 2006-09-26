@@ -56,9 +56,9 @@ all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BIN
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(call clean_obj,$(addprefix $(OBJDIR)/mysql/,mysql.o $(SQL_OBJS)))
-	$(call clean_obj,$(addprefix $(OBJDIR)/pgsql/,postgresql.o $(SQL_OBJS)))
-	$(call clean_obj,$(addprefix $(OBJDIR)/bdb/,sql_cmds.o $(BDB_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_bdb/,sql_cmds.o $(BDB_OBJS)))
 	$(call clean_exe,$(BINDIR)/cats_mysql.dll)
 	$(call clean_exe,$(BINDIR)/cats_pgsql.dll)
 	$(call clean_exe,$(BINDIR)/cats_bdb.dll)
@@ -67,17 +67,17 @@ clean:
 $(LIBDIR)/libcats.a $(OBJDIR)/libcats.exp: bacula_cats.def
 	$(DLLTOOL) --dllname bacula_cats.dll --no-export-all-symbols --input-def bacula_cats.def --output-exp $(OBJDIR)/libcats.exp --output-lib $(LIBDIR)/libcats.a $^
 
-$(BINDIR)/cats_mysql.dll: $(addprefix $(OBJDIR)/mysql/,mysql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_mysql.dll: $(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_MYSQL) $(LIBS_DLL) -o $@
 
-$(BINDIR)/cats_pgsql.dll: $(addprefix $(OBJDIR)/pgsql/,postgresql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_pgsql.dll: $(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_POSTGRESQL) $(LIBS_DLL) -o $@
 
-$(BINDIR)/cats_bdb.dll: $(addprefix $(OBJDIR)/bdb/,sql_cmds.o $(BDB_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_bdb.dll: $(addprefix $(OBJDIR)/cats_bdb/,sql_cmds.o $(BDB_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_DLL) -o $@
@@ -101,9 +101,9 @@ $(OBJDIR)/$(1)/%.o: %.cpp
 
 endef
 
-$(eval $(call Link_Dll,mysql,MYSQL))
+$(eval $(call Link_Dll,cats_mysql,MYSQL))
 
-$(eval $(call Link_Dll,pgsql,POSTGRESQL))
+$(eval $(call Link_Dll,cats_pgsql,POSTGRESQL))
 
-$(eval $(call Link_Dll,bdb,BACULA_DB))
+$(eval $(call Link_Dll,cats_bdb,BACULA_DB))
 

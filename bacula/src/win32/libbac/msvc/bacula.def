@@ -258,9 +258,9 @@ b_regfree
 ;?getArgv0@@YAPBDPBD@Z
 ;?CreateChildProcess@@YAPAXPBDPAX11@Z
 ;?ErrorExit@@YAXPBD@Z
-?open_bpipe@@YAPAUs_bpipe@@PADHPBD@Z
+?open_bpipe@@YAPAVBPIPE@@PADHPBD@Z
 ?kill@@YAHHH@Z
-?close_bpipe@@YAHPAUs_bpipe@@@Z
+?close_bpipe@@YAHPAVBPIPE@@@Z
 ;?close_wpipe@@YAHPAUs_bpipe@@@Z
 ?utime@@YAHPBDPAUutimbuf@@@Z
  

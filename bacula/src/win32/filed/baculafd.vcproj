@@ -494,10 +494,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\libwin32\winevents.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\winmain.cpp"
 				>
 			</File>
@@ -544,7 +540,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\libwin32\winabout.h"
+				>
+			</File>
+			<File
 				RelativePath="..\compat\winconfig.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libwin32\winres.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libwin32\winservice.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libwin32\winstat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\libwin32\wintray.h"
 				>
 			</File>
 		</Filter>

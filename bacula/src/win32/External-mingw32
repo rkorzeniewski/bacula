@@ -32,5 +32,6 @@ SCONS|http://superb-west.dl.sourceforge.net/sourceforge/scons/scons-0.96.92.tar.
 NSIS_BIN|http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17.zip
 NSIS_SRC|http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17-src.tar.bz2
 MTX|http://superb-west.dl.sourceforge.net/sourceforge/mtx/mtx-1.3.9.tar.gz
-MT|ftp://ftp.ibiblio.org/pub/linux/system/backup/mt-st-0.9b.tar.gz
+#MT|ftp://ftp.ibiblio.org/pub/linux/system/backup/mt-st-0.9b.tar.gz
+MT|http://www.ibiblio.org/pub/linux/system/backup/mt-st-0.9b.tar.gz
 SED|ftp://mirrors.kernel.org/gnu/sed/sed-4.1.5.tar.gz

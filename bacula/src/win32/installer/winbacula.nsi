@@ -518,12 +518,6 @@ Section "-Initialize"
     FileWrite $R1 's;\(Pid *Directory *= *\)[^ ][^ ]*.*$$;\1"$R2";$\r$\n'
     FileClose $R1
   ${EndIf}
-SectionEnd
-
-SectionGroup "Client" SecGroupClient
-
-Section "File Service" SecFileDaemon
-  SectionIn 1 2 3
 
   ${If} ${FileExists} "$OldInstallDir\bin\bacula-fd.exe"
     ${If} $InstallType <> ${MigrateInstall}
@@ -536,6 +530,25 @@ Section "File Service" SecFileDaemon
       nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /remove'   ; Remove existing service
     ${EndIf}
   ${EndIf}
+
+  ${If} ${FileExists} "$OldInstallDir\bin\bacula-sd.exe"
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /remove'   ; Remove existing service
+  ${EndIf}
+
+  ${If} ${FileExists} "$OldInstallDir\bin\bacula-dir.exe"
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /remove'   ; Remove existing service
+  ${EndIf}
+
+SectionEnd
+
+SectionGroup "Client" SecGroupClient
+
+Section "File Service" SecFileDaemon
+  SectionIn 1 2 3
 
   SetOutPath "$INSTDIR\bin"
 
@@ -574,12 +587,6 @@ SectionGroup "Server" SecGroupServer
 
 Section "Storage Service" SecStorageDaemon
   SectionIn 2 3
-
-  ${If} ${FileExists} "$OldInstallDir\bin\bacula-sd.exe"
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /kill'     ; Shutdown any bacula that could be running
-    Sleep 3000
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /remove'   ; Remove existing service
-  ${EndIf}
 
   SetOutPath "$INSTDIR\bin"
 
@@ -620,12 +627,6 @@ SectionEnd
 
 Section "Director Service" SecDirectorDaemon
   SectionIn 2 3
-
-  ${If} ${FileExists} "$OldInstallDir\bin\bacula-dir.exe"
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /kill'     ; Shutdown any bacula that could be running
-    Sleep 3000
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /remove'   ; Remove existing service
-  ${EndIf}
 
   SetOutPath "$INSTDIR\bin"
 
