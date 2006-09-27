@@ -1329,11 +1329,16 @@ sub get_form
 		 priority => 10,
 		 age    => 60*60*24*7,
 		 days   => 1,
+		 maxvoljobs  => 0,
+		 maxvolbytes => 0,
+		 maxvolfiles => 0,
 		 );
 
     my %opt_s = (		# default to ''
 		 ach    => 1,
 		 status => 1,
+		 volstatus => 1,
+                 inchanger => 1,
                  client => 1,
 		 level  => 1,
 		 pool   => 1,
@@ -1350,6 +1355,11 @@ sub get_form
 		 precmd => 1,
 		 device => 1,
 		 );
+
+    my %opt_d = (		# option with date
+		 voluseduration=> 1,
+		 volretention => 1,
+		);
 
     foreach my $i (@what) {
 	if (exists $opt_i{$i}) {# integer param
@@ -1381,6 +1391,11 @@ sub get_form
 	} elsif (exists $opt_p{$i}) {
 	    my $value = CGI::param($i) || '';
 	    if ($value =~ /^([\w\d\.\/\s:\@\-]+)$/) {
+		$ret{$i} = $1;
+	    }
+	} elsif (exists $opt_d{$i}) {
+	    my $value = CGI::param($i) || '';
+	    if ($value =~ /^\s*(\d+\s+\w+)$/) {
 		$ret{$i} = $1;
 	    }
 	}
@@ -2258,82 +2273,6 @@ sub get_media_max_size
     }
 }
 
-sub do_update_media
-{
-    my ($self) = @_ ;
-
-    my $media = CGI::param('media');
-    unless ($media) {
-	return $self->error("Can't find media selection");
-    }
-
-    $media = $self->dbh_quote($media);
-
-    my $update = '';
-
-    my $volstatus = CGI::param('volstatus') || ''; 
-    $volstatus = $self->dbh_quote($volstatus); # is checked by db
-    $update .= " VolStatus=$volstatus, ";
-    
-    my $inchanger = CGI::param('inchanger') || '';
-    if ($inchanger) {
-	$update .= " InChanger=1, " ;
-	my $slot = CGI::param('slot') || '';
-	if ($slot =~ /^(\d+)$/) {
-	    $update .= " Slot=$1, ";
-	} else {
-	    $update .= " Slot=0, ";
-	}
-    } else {
-	$update .= " Slot=0, InChanger=0, ";
-    }
-
-    my $pool = CGI::param('pool') || '';
-    $pool = $self->dbh_quote($pool); # is checked by db
-    $update .= " PoolId=(SELECT PoolId FROM Pool WHERE Name=$pool), ";
-
-    my $volretention = CGI::param('volretention') || '';
-    $volretention = from_human_sec($volretention);
-    unless ($volretention) {
-	return $self->error("Can't get volume retention");
-    }
-
-    $update .= " VolRetention = $volretention, ";
-
-    my $loc = CGI::param('location') || '';
-    $loc = $self->dbh_quote($loc); # is checked by db
-    $update .= " LocationId=(SELECT LocationId FROM Location WHERE Location=$loc), ";
-
-    my $usedu = CGI::param('voluseduration') || '0';
-    $usedu = from_human_sec($usedu);
-    $update .= " VolUseDuration=$usedu, ";
-
-    my $maxj = CGI::param('maxvoljobs') || '0';
-    unless ($maxj =~ /^(\d+)$/) {
-	return $self->error("Can't get max jobs");
-    }
-    $update .= " MaxVolJobs=$1, " ;
-
-    my $maxf = CGI::param('maxvolfiles') || '0';
-    unless ($maxj =~ /^(\d+)$/) {
-	return $self->error("Can't get max files");
-    }
-    $update .= " MaxVolFiles=$1, " ;
-   
-    my $maxb = CGI::param('maxvolbytes') || '0';
-    unless ($maxb =~ /^(\d+)$/) {
-	return $self->error("Can't get max bytes");
-    }
-    $update .= " MaxVolBytes=$1 " ;
-    
-    my $row=$self->dbh_do("UPDATE Media SET $update WHERE VolumeName=$media");
-    
-    if ($row) {
-	print "Update Ok\n";
-	$self->update_media();
-    }
-}
-
 sub update_media
 {
     my ($self) = @_ ;
@@ -2811,11 +2750,92 @@ sub delete
 	my $ret = $b->send_cmd("delete jobid=\"$arg->{jobid}\"");
 
 	$self->display({
-	    content => $b->send_cmd("delete jobid=\"$arg->{jobid}\""),
+	    content => $ret,
 	    title => "Delete a job ",
 	    name => "delete jobid=$arg->{jobid}",
 	}, "command.tpl");	
     }
+}
+
+sub do_update_media
+{
+    my ($self) = @_ ;
+
+    my $arg = $self->get_form(qw/media volstatus inchanger pool
+			         slot volretention voluseduration 
+			         maxvoljobs maxvolfiles maxvolbytes
+			      /);
+
+    unless ($arg->{media}) {
+	return $self->error("Can't find media selection");
+    }
+
+    my $update = "update volume=$arg->{media} ";
+
+    if ($arg->{volstatus}) {
+	$update .= " volstatus=$arg->{volstatus} ";
+    }
+    
+    if ($arg->{inchanger}) {
+	$update .= " inchanger=yes " ;
+	if ($arg->{slot}) {
+	    $update .= " slot=$arg->{slot} ";
+	}
+    } else {
+	$update .= " slot=0 inchanger=no ";
+    }
+
+    if ($arg->{pool}) {
+	$update .= " pool=$arg->{pool} " ;
+    }
+
+    $arg->{volretention} ||= 0 ; 
+    if ($arg->{volretention}) {
+	$update .= " volretention=\"$arg->{volretention}\" " ;
+    }
+
+    $arg->{voluseduration} ||= 0 ; 
+    if ($arg->{voluseduration}) {
+	$update .= " voluse=\"$arg->{voluseduration}\" " ;
+    }
+
+    $arg->{maxvoljobs} ||= 0;
+    if ($arg->{maxvoljobs}) {
+	$update .= " maxvoljobs=$arg->{maxvoljobs} " ;
+    }
+    
+    $arg->{maxvolfiles} ||= 0;
+    if ($arg->{maxvolfiles}) {
+	$update .= " maxvolfiles=$arg->{maxvolfiles} " ;
+    }    
+
+    $arg->{maxvolbytes} ||= 0;
+    if ($arg->{maxvolbytes}) {
+	$update .= " maxvolbytes=$arg->{maxvolbytes} " ;
+    }    
+
+    my $b = $self->get_bconsole();
+
+    $self->display({
+	content => $b->send_cmd($update),
+	title => "Update a volume ",
+	name => $update,
+    }, "command.tpl");	
+
+
+    my $loc = CGI::param('location') || '';
+    if ($loc) {
+	my $media = $self->dbh_quote($arg->{media});
+	$loc = $self->dbh_quote($loc); # is checked by db
+	my $query = "
+UPDATE Media 
+   SET LocationId=(SELECT LocationId FROM Location WHERE Location=$loc)
+ WHERE Media.VolumeName = $media
+";
+	$self->dbh_do($query);
+    }
+
+    $self->update_media();
 }
 
 sub update_slots
