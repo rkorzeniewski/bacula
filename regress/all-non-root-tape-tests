@@ -2,14 +2,13 @@
 #
 # Run all tape tests
 #
-. config.out
+. ./config.out
 if test ! x$AUTOCHANGER = x/dev/null ; then
    mtx -f $AUTOCHANGER load 1 >/dev/null &2>/dev/null
 fi
 cp test.out test1.out
 tests/test0
 tests/backup-bacula-tape
-tests/bscan-tape
 tests/btape-fill-tape
 tests/fixed-block-size-tape
 tests/four-concurrent-jobs-tape
@@ -21,6 +20,7 @@ tests/small-file-size-tape
 tests/truncate-bug-tape
 tests/two-pool-tape
 tests/2drive-incremental-2tape
+#tests/bscan-tape
 echo " "
 echo " "
 echo "Test results"

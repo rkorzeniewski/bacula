@@ -15,10 +15,6 @@ JobName=Two-pool
 set_debug 0
 
 . config.out
-if test x${AUTOCHANGER} = x/dev/null ; then
-   echo "two-pool-test skipped. No autochanger."
-   exit
-fi
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs

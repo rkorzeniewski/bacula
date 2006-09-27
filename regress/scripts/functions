@@ -50,6 +50,15 @@ run_btape()
    fi
 }
 
+run_bscan()
+{
+   if test "$debug" -eq 1 ; then
+      bin/bscan $* | tee tmp/log.out
+   else
+      bin/bscan $* 2>&1 >/dev/null
+   fi
+}
+
 
 stop_bacula()
 {
