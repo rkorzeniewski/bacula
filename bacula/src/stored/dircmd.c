@@ -745,7 +745,7 @@ static bool unmount_cmd(JCR *jcr)
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             if (!dev->is_busy()) {
-               unload_autochanger(jcr->dcr, -1);          
+               unload_autochanger(dcr, -1);          
             }
             if (dev->is_dvd()) {
                if (unmount_dvd(dev, 0)) {
@@ -762,7 +762,7 @@ static bool unmount_cmd(JCR *jcr)
          } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
-            if (!unload_autochanger(jcr->dcr, -1)) {
+            if (!unload_autochanger(dcr, -1)) {
                dev->close();
             }
             if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
@@ -793,7 +793,7 @@ static bool unmount_cmd(JCR *jcr)
             /*  block_device(dev, BST_UNMOUNTED); replace with 2 lines below */
             dev->dev_blocked = BST_UNMOUNTED;
             dev->no_wait_id = 0;
-            if (!unload_autochanger(jcr->dcr, -1)) {
+            if (!unload_autochanger(dcr, -1)) {
                dev->close();
             }
             if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
@@ -839,12 +839,21 @@ static bool release_cmd(JCR *jcr)
          dev = dcr->dev;
          P(dev->mutex);               /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
+            if (!dev->is_busy()) {
+               unload_autochanger(dcr, -1);
+            }
             Dmsg0(90, "Device already released\n");
             bnet_fsend(dir, _("3921 Device %s already released.\n"), 
                dev->print_name());
 
-         } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP ||
-                    dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP) {
+         } else if (dev->dev_blocked == BST_WAITING_FOR_SYSOP) {
+            Dmsg2(90, "%d waiter dev_block=%d.\n", dev->num_waiting,
+               dev->dev_blocked);
+            unload_autochanger(dcr, -1);
+            bnet_fsend(dir, _("3922 Device %s waiting for sysop.\n"), 
+               dev->print_name());
+
+         } else if (dev->dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP) {
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
             bnet_fsend(dir, _("3922 Device %s waiting for mount.\n"), 
@@ -861,8 +870,9 @@ static bool release_cmd(JCR *jcr)
          } else if (dev->is_busy()) {
             send_dir_busy_message(dir, dev);
          } else {                     /* device not being used */
-            Dmsg0(90, "Device not in use, unmounting\n");
-            release_volume(jcr->dcr);
+            Dmsg0(90, "Device not in use, releaseing\n");
+            unload_autochanger(dcr, -1);
+            release_volume(dcr);
             bnet_fsend(dir, _("3022 Device %s released.\n"), 
                dev->print_name());
          }

@@ -214,7 +214,7 @@ read_volume:
    switch (vol_label_status) {
    case VOL_OK:
       Dmsg1(150, "Vol OK name=%s\n", dcr->VolumeName);
-      memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+      dev->VolCatInfo = dcr->VolCatInfo;       /* structure assignment */
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
@@ -241,8 +241,8 @@ read_volume:
        *  this volume is really OK. If not, put back the desired
        *  volume name, mark it not in changer and continue.
        */
-      memcpy(&dcrVolCatInfo, &dcr->VolCatInfo, sizeof(dcrVolCatInfo));
-      memcpy(&devVolCatInfo, &dev->VolCatInfo, sizeof(devVolCatInfo));
+      dcrVolCatInfo = dcr->VolCatInfo;      /* structure assignment */
+      devVolCatInfo = dev->VolCatInfo;      /* structure assignment */
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
@@ -257,7 +257,7 @@ read_volume:
              */
             mark_volume_not_inchanger(dcr);
          }
-         memcpy(&dev->VolCatInfo, &devVolCatInfo, sizeof(dev->VolCatInfo));
+         dev->VolCatInfo = devVolCatInfo;    /* structure assignment */
          bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
@@ -266,7 +266,7 @@ read_volume:
              jcr->dir_bsock->msg);
          ask = true;
          /* Restore saved DCR before continuing */
-         memcpy(&dcr->VolCatInfo, &dcrVolCatInfo, sizeof(dcr->VolCatInfo));
+         dcr->VolCatInfo = dcrVolCatInfo;  /* structure assignment */
          goto mount_next_vol;
       }
       /*
@@ -274,7 +274,7 @@ read_volume:
        * the Director, so use it.
        */
       Dmsg1(150, "want new name=%s\n", dcr->VolumeName);
-      memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+      dev->VolCatInfo = dcr->VolCatInfo;   /* structure assignment */
       recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
       break;                /* got a Volume */
    /*
@@ -454,7 +454,7 @@ static int try_autolabel(DCR *dcr)
       }
       Dmsg0(150, "dir_update_vol_info. Set Append\n");
       /* Copy Director's info into the device info */
-      memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+      dev->VolCatInfo = dcr->VolCatInfo;    /* structure assignment */
       if (!dir_update_volume_info(dcr, true)) {  /* indicate tape labeled */
          return try_error;
       }
@@ -485,7 +485,7 @@ void mark_volume_in_error(DCR *dcr)
    DEVICE *dev = dcr->dev;
    Jmsg(dcr->jcr, M_INFO, 0, _("Marking Volume \"%s\" in Error in Catalog.\n"),
         dcr->VolumeName);
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->VolCatInfo = dcr->VolCatInfo;     /* structure assignment */
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Error", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg0(150, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(dcr, false);
@@ -502,7 +502,7 @@ static void mark_volume_not_inchanger(DCR *dcr)
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
 "    Setting InChanger to zero in catalog.\n"),
         dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->VolCatInfo = dcr->VolCatInfo;    /* structure assignment */
    dcr->VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
    Dmsg0(400, "update vol info in mount\n");

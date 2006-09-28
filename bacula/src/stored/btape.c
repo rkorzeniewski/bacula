@@ -66,6 +66,7 @@ static void rewindcmd();
 static void clearcmd();
 static void wrcmd();
 static void rrcmd();
+static void rbcmd();
 static void eodcmd();
 static void fillcmd();
 static void qfillcmd();
@@ -1513,6 +1514,14 @@ static void fsrcmd()
    }
 }
 
+/*
+ * Read a Bacula block from the tape
+ */
+static void rbcmd()
+{
+   dev->open(dcr, OPEN_READ_ONLY);
+   read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK);  
+}
 
 /*
  * Write a Bacula block to the tape
@@ -1523,6 +1532,7 @@ static void wrcmd()
    DEV_RECORD *rec = dcr->rec;
    int i;
 
+   open_the_device();
    sm_check(__FILE__, __LINE__, false);
    empty_block(block);
    if (verbose > 1) {
@@ -2574,6 +2584,7 @@ static struct cmdstruct commands[] = {
  {NT_("weof"),      weofcmd,      _("write an EOF on the tape")},
  {NT_("wr"),        wrcmd,        _("write a single Bacula block")},
  {NT_("rr"),        rrcmd,        _("read a single record")},
+ {NT_("rb"),        rbcmd,        _("read a single Bacula block")},
  {NT_("qfill"),     qfillcmd,     _("quick fill command")}
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))

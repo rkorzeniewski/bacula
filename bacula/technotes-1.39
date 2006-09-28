@@ -1,6 +1,16 @@
               Technical notes on version 1.39  
 
 General:
+28Sep06
+kes  Print the Volume purged message only for real jobs to keep
+     from cluttering up the daemon messages.
+kes  Lock the tape drive door while Bacula is using the device.
+kes  Add back the 'No Jobs running' message to FD and SD status because
+     my regression script depends on it, and I'm too lazy to change the
+     scripts.
+kes  Start using structure assignments (not too happy about it ...).
+kes  Fix a bug in the tools Makefile that broke on Solaris.
+kes  Unload any autochanger drive during a 'release' command.
 26Sep06
 kes  Enhance error message when restoring without bootstrap file.
 kes  Check restored size only for regular files.
@@ -144,7 +154,7 @@ Version 1.39.22 beta released:
 kes  Fix logic error in handling error return from mtx-changer 
      script.
 kes  Make status from SD aware of -1 (unknown) Slot status.
-kes  At Eric's suggestion make both the "slots" and "drive" commands
+kes  At Eric's suggestion make both the 'slots' and 'drive' commands
      to the Storage daemon work even if the drive is busy.
 kes  Make two separate Win32 menu links for starting bconsole and
      wx-console in winbacula.nsi
@@ -161,7 +171,7 @@ kes  Use get_catalog_resource() to open catalog database
 kes  Integrate multiple console/director patch from 
      Carsten Paeth calle@calle.in-berlin.de
 ebl  Add character substitution in Job/JobDefs WriteBootStrap.
-     You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
+     You can use now 'WriteBootStrap = '/path/%c_%n.bsr''
 kes  Apply patch supplied in bug #656 to pass priority field
      in the run dialog to the Director in gnome console
 kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
@@ -588,7 +598,7 @@ kes  Harden authentication failure in FD by single threading errors
      and forcing a 6 second wait.
 
      ===================== Warning =============================
-          Removed  "Accept Any Volume" directive.
+          Removed  'Accept Any Volume' directive.
      ===========================================================
 
 kes  Major cleanup and simplification of regress using shell functions
@@ -690,7 +700,7 @@ kes  Apply patch from adioso bug #616 to correct text in manual (replace
 kes  Rework a few of the zlib changes so that they build properly.
 
 21May06
-kes  Move DIR "run" command to SD before starting the message thread
+kes  Move DIR 'run' command to SD before starting the message thread
      as suggested by Cristopher Hull to avoid a race deadlock from
      two threads using the bsock structure.
 kes  Modify LICENSE to correct some problems pointed out by Debian.
@@ -1178,7 +1188,7 @@ kes  Simplify code in askdir.c that waits for creating an appendable
      volume so that it can handle multiple returns from the wait
      code.
 kes  Modify the wait code to permit multiple returns.
-kes  Return a zero when "autochanger drives" is called and
+kes  Return a zero when 'autochanger drives' is called and
      it is not an autochanger.
 kes  Make rewind_dev() a method taking a DCR as an argument.
      This permits closing and reopening the drive if the
@@ -1274,7 +1284,7 @@ kes  Remove warning message about multiple saves of hardlinked files
      from find_one.c as it can generate too many warning messages.
 kes  Modify most restore error messages to be queued so that they
      appear at the end of the job rather than mixted with the restore
-     listing where they could be "lost".
+     listing where they could be 'lost'.
 06Dec05
 kes  Reset timeout values before select() per patch from 
      Frank Sweetser for problems with non-blocking sockets.
@@ -1298,9 +1308,9 @@ kes  Rework reservation algorithm so that two drives can be used
 kes  Landon merged his data encription changes into the HEAD
 kes  Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
      If this patch is applied, the number of days can be specified with
-     "list nextvol days=xx"
+     'list nextvol days=xx'
      or
-     "status dir days=xx"
+     'status dir days=xx'
      My use case is to be able to preview the next scheduled job (and the 
      next tape to be used) on fridays if there are no scheduled jobs during 
      the weekend.

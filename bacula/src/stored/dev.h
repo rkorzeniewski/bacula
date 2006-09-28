@@ -163,13 +163,13 @@ struct VOLUME_CAT_INFO {
    uint32_t EndBlock;                 /* Last block number */
    int32_t  LabelType;                /* Bacula/ANSI/IBM */
    int32_t  Slot;                     /* >0=Slot loaded, 0=nothing, -1=unknown */
-   utime_t  VolFirstWritten;          /* Time of first write */
    uint32_t VolCatMaxJobs;            /* Maximum Jobs to write to volume */
    uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */
    uint64_t VolCatMaxBytes;           /* Max bytes to write to volume */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    uint64_t VolReadTime;              /* time spent reading */
    uint64_t VolWriteTime;             /* time spent writing this Volume */
+   utime_t  VolFirstWritten;          /* Time of first write */
    bool     InChanger;                /* Set if vol in current magazine */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */
@@ -362,6 +362,8 @@ public:
    bool fsf(int num);            /* in dev.c */
    bool bsr(int num);            /* in dev.c */
    bool weof(int num);           /* in dev.c */
+   void lock_door();             /* in dev.c */
+   void unlock_door();           /* in dev.c */
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
    bool reposition(DCR *dcr, uint32_t rfile, uint32_t rblock); /* in dev.c */
    void clrerror(int func);      /* in dev.c */
