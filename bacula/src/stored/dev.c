@@ -341,18 +341,18 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       /* Set open timer */
       tid = start_thread_timer(pthread_self(), timeout);
    }
-   /* If busy retry each second for max_open_wait seconds */
    Dmsg2(100, "Try open %s mode=%s\n", print_name(), mode_to_str(omode));
-   /* Use system open() */
 #if defined(HAVE_WIN32)
 
    /*   Windows Code */
    if ((fd = tape_open(dev_name, mode)) < 0) {
       dev_errno = errno;
    }
+
 #else
+
    /*  UNIX  Code */
-   
+   /* If busy retry each second for max_open_wait seconds */
    for ( ;; ) {
       /* Try non-blocking open */
       fd = ::open(dev_name, mode+O_NONBLOCK);
@@ -363,9 +363,10 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
               print_name(), omode, mode, errno, be.strerror());
       } else {
          /* Tape open, now rewind it */
+         Dmsg0(050, "Rewind after open\n");
          mt_com.mt_op = MTREW;
          mt_com.mt_count = 1;
-         if (tape_ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
+         if (ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
             berrno be;
             dev_errno = errno;           /* set error status from rewind */
             ::close(fd);
@@ -386,11 +387,11 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
                Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
                      print_name(), omode, mode, errno, be.strerror());
                break;
-            } else {
-               dev_errno = 0;
             }
+            dev_errno = 0;
+            lock_door();
             set_os_device_parameters(this);      /* do system dependent stuff */
-            break;                    /* Successfully opened and rewound */
+            break;                               /* Successfully opened and rewound */
          }
       }
       bmicrosleep(5, 0);
@@ -499,7 +500,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     *  catalog in dcr->VolCatInfo, and thus we refresh the dev->VolCatInfo
     *  copy here, when opening.
     */
-   memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
+   VolCatInfo = dcr->VolCatInfo;         /* structure assignment */
    Dmsg1(100, "Volume=%s\n", VolCatInfo.VolCatName);
 
    if (VolCatInfo.VolCatName[0] == 0) {
@@ -1165,11 +1166,7 @@ bool DEVICE::offline()
    block_num = file = 0;
    file_size = 0;
    file_addr = 0;
-#ifdef MTUNLOCK
-   mt_com.mt_op = MTUNLOCK;
-   mt_com.mt_count = 1;
-   tape_ioctl(fd, MTIOCTOP, (char *)&mt_com);
-#endif
+   unlock_door();
    mt_com.mt_op = MTOFFL;
    mt_com.mt_count = 1;
    if (tape_ioctl(fd, MTIOCTOP, (char *)&mt_com) < 0) {
@@ -1504,6 +1501,27 @@ bool DEVICE::bsr(int num)
    return stat == 0;
 }
 
+void DEVICE::lock_door()
+{
+#ifdef MTLOCK
+   struct mtop mt_com;
+   mt_com.mt_op = MTLOCK;
+   mt_com.mt_count = 1;
+   tape_ioctl(fd, MTIOCTOP, (char *)&mt_com);
+#endif
+}
+
+void DEVICE::unlock_door()
+{
+#ifdef MTUNLOCK
+   struct mtop mt_com;
+   mt_com.mt_op = MTUNLOCK;
+   mt_com.mt_count = 1;
+   tape_ioctl(fd, MTIOCTOP, (char *)&mt_com);
+#endif
+}
+ 
+
 /*
  * Reposition the device to file, block
  * Returns: false on failure
@@ -1777,16 +1795,19 @@ void DEVICE::close()
       offline();
    }
 
-   if (is_open()) {
-      if (is_tape()) {
-         tape_close(fd);
-      } else {
-         ::close(fd);
-      }
-   } else {
+   if (!is_open()) {
       Dmsg2(100, "device %s already closed vol=%s\n", print_name(),
          VolHdr.VolumeName);
       return;                         /* already closed */
+   }
+
+   switch (dev_type) {
+   case B_TAPE_DEV:
+      tape_close(fd);
+      unlock_door(); 
+      break;
+   default:
+      ::close(fd);
    }
 
    /* Clean up device packet so it can be reused */
@@ -1797,6 +1818,7 @@ void DEVICE::close()
    file_size = 0;
    file_addr = 0;
    EndFile = EndBlock = 0;
+   openmode = 0;
    Slot = -1;             /* unknown slot */
    free_volume(this);
    memset(&VolCatInfo, 0, sizeof(VolCatInfo));
@@ -1805,7 +1827,6 @@ void DEVICE::close()
       stop_thread_timer(tid);
       tid = 0;
    }
-   openmode = 0;
 }
 
 /*
@@ -1823,12 +1844,12 @@ void DEVICE::close_part(DCR *dcr)
    VOLUME_CAT_INFO saveVolCatInfo;     /* Volume Catalog Information */
 
 
-   memcpy(&saveVolHdr, &VolHdr, sizeof(saveVolHdr));
-   memcpy(&saveVolCatInfo, &VolCatInfo, sizeof(saveVolCatInfo));
+   saveVolHdr = VolHdr;               /* structure assignment */
+   saveVolCatInfo = VolCatInfo;       /* structure assignment */
    close();                           /* close current part */
-   memcpy(&VolHdr, &saveVolHdr, sizeof(VolHdr));
-   memcpy(&VolCatInfo, &saveVolCatInfo, sizeof(VolCatInfo));
-   memcpy(&dcr->VolCatInfo, &saveVolCatInfo, sizeof(dcr->VolCatInfo));
+   VolHdr = saveVolHdr;               /* structure assignment */
+   VolCatInfo = saveVolCatInfo;       /* structure assignment */
+   dcr->VolCatInfo = saveVolCatInfo;  /* structure assignment */
 }
 
 off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
@@ -2198,22 +2219,16 @@ void set_os_device_parameters(DEVICE *dev)
 #if defined(HAVE_LINUX_OS) || defined(HAVE_WIN32)
    struct mtop mt_com;
 
-#if defined(MTRESET)
-   mt_com.mt_op = MTRESET;
-   mt_com.mt_count = 0;
-   if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
-      dev->clrerror(MTRESET);
-   }
-#endif
+   Dmsg0(050, "In set_os_device_parameters\n");
 #if defined(MTSETBLK) 
    if (dev->min_block_size == dev->max_block_size &&
        dev->min_block_size == 0) {    /* variable block mode */
       mt_com.mt_op = MTSETBLK;
       mt_com.mt_count = 0;
+      Dmsg0(050, "Set block size to zero\n");
       if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
          dev->clrerror(MTSETBLK);
       }
-      Dmsg0(100, "Set block size to 0\n");
    }
 #endif
 #if defined(MTSETDRVBUFFER)
@@ -2226,6 +2241,7 @@ void set_os_device_parameters(DEVICE *dev)
       if (dev->has_cap(CAP_EOM)) {
          mt_com.mt_count |= MT_ST_FAST_MTEOM;
       }
+      Dmsg0(050, "MTSETDRVBUFFER\n");
       if (tape_ioctl(dev->fd, MTIOCTOP, (char *)&mt_com) < 0) {
          dev->clrerror(MTSETDRVBUFFER);
       }
@@ -2282,6 +2298,7 @@ void set_os_device_parameters(DEVICE *dev)
 
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat)
 {
+   Dmsg0(050, "dev_get_os_pos\n");
    return dev->has_cap(CAP_MTIOCGET) && 
           tape_ioctl(dev->fd, MTIOCGET, (char *)mt_stat) == 0 &&
           mt_stat->mt_fileno >= 0;

@@ -181,7 +181,7 @@ static bool do_get_volume_info(DCR *dcr)
     vol.InChanger = InChanger;        /* bool in structure */
     unbash_spaces(vol.VolCatName);
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
-    memcpy(&dcr->VolCatInfo, &vol, sizeof(dcr->VolCatInfo));
+    dcr->VolCatInfo = vol;            /* structure assignment */
 
     Dmsg2(300, "do_reqest_vol_info return true slot=%d Volume=%s\n",
           vol.Slot, vol.VolCatName);
@@ -282,8 +282,8 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev = dcr->dev;
    time_t LastWritten = time(NULL);
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
    int InChanger;
    POOL_MEM VolumeName;
 
@@ -333,7 +333,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    }
    Dmsg1(420, "get_volume_info(): %s", dir->msg);
    /* Update dev Volume info in case something changed (e.g. expired) */
-   memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+   dev->VolCatInfo = dcr->VolCatInfo;
    return true;
 }
 

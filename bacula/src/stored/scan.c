@@ -98,8 +98,8 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
        *  this volume is really OK. If not, put back the desired
        *  volume name, mark it not in changer and continue.
        */
-      memcpy(&dcrVolCatInfo, &dcr->VolCatInfo, sizeof(dcrVolCatInfo));
-      memcpy(&devVolCatInfo, &VolCatInfo, sizeof(devVolCatInfo));
+      dcrVolCatInfo = dcr->VolCatInfo;     /* structure assignment */
+      devVolCatInfo = VolCatInfo;          /* structure assignment */
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, result->d_name, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
@@ -108,7 +108,7 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
       /* This was not the volume we expected, but it is OK with
        * the Director, so use it.
        */
-      memcpy(&VolCatInfo, &dcr->VolCatInfo, sizeof(VolCatInfo));
+      VolCatInfo = dcr->VolCatInfo;       /* structure assignment */
       found = true;
       break;                /* got a Volume */
    }

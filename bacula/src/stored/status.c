@@ -124,7 +124,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
                dev->pool_name[0]?dev->pool_name:"*unknown*");
             sendit(msg, len, arg);
          } else {
-            len = Mmsg(msg, _("Device %s open but no Bacula volume is mounted.\n"), 
+            len = Mmsg(msg, _("Device %s open but no Bacula volume is currently mounted.\n"), 
                dev->print_name());
             sendit(msg, len, arg);
          }
@@ -404,6 +404,10 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
    }
    endeach_jcr(jcr);
 
+   if (!found) {
+      len = Mmsg(msg, _("No Jobs running.\n"));
+      sendit(msg, len, arg);
+   }
    sendit("====\n", 5, arg);
 
    free_pool_memory(msg);

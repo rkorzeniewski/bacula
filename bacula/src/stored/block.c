@@ -1080,7 +1080,7 @@ reread:
    dev->VolCatInfo.VolCatBytes += block->block_len;
    dev->VolCatInfo.VolCatBlocks++;
    if (dev->VolCatInfo.VolFirstWritten == 0) {
-      dev->VolCatInfo.VolFirstWritten = time(NULL);    /* Set first written time */
+      dev->VolCatInfo.VolFirstWritten = (utime_t)time(NULL);    /* Set first written time */
    }
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;

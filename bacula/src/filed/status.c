@@ -53,12 +53,12 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    int sec, bps;
    char *msg, b1[32], b2[32], b3[32], b4[32];
-   int found, len;
+   int len;
+   bool found = false;
    JCR *njcr;
    char dt[MAX_TIME_LENGTH];
 
    msg = (char *)get_pool_memory(PM_MESSAGE);
-   found = 0;
    len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s %s\n"), 
               my_name, VERSION, BDATE, VSS, HOST_OS, DISTNAME, DISTVER);
    sendit(msg, len, arg);
@@ -168,7 +168,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
          sendit(msg, len, arg);
       }
 
-      found = 1;
+      found = true;
       if (njcr->store_bsock) {
          len = Mmsg(msg, "    SDReadSeqNo=%" lld " fd=%d\n",
              njcr->store_bsock->read_seqno, njcr->store_bsock->fd);
@@ -180,6 +180,10 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    }
    endeach_jcr(njcr);
 
+   if (!found) {
+      len = Mmsg(msg, _("No Jobs running.\n"));
+      sendit(msg, len, arg);
+   }
    sendit(_("====\n"), 5, arg);
 
    list_terminated_jobs(sendit, arg);

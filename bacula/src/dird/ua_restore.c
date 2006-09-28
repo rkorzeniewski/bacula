@@ -819,7 +819,7 @@ static void split_path_and_filename(RESTORE_CTX *rx, char *name)
       rx->pnl = 0;
    }
 
-   Dmsg2(100, "sllit path=%s file=%s\n", rx->path, rx->fname);
+   Dmsg2(100, "split path=%s file=%s\n", rx->path, rx->fname);
 }
 
 static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
