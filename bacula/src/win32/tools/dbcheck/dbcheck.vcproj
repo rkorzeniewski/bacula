@@ -141,7 +141,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="bacula_cats.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\debug"
+				AdditionalLibraryDirectories="..\..\release"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

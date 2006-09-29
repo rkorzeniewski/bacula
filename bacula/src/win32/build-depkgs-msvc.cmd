@@ -70,6 +70,7 @@ REM	CALL :process_scons
 	CALL :process_nsis
 	CALL :process_mtx
 	CALL :process_mt
+	CALL :process_sed
 	GOTO :EOF
 
 :ProcessArgs
@@ -313,6 +314,23 @@ REM	find . -name makefile.gcc -exec sh -c "sed -f %SCRIPT_DIR%/patches/wx.sed {%
 	EXIT /B 0
 :mt_error
 	ECHO Unable to download mt source from %URL_MT%
+	EXIT /B 1
+
+:process_sed
+	CALL :get_source %URL_SED% %DIR_SED% %MKD_SED%
+	IF ERRORLEVEL 2 GOTO :sed_error
+	IF ERRORLEVEL 1 GOTO :sed_skip_patch
+	ECHO Patching sed
+	COPY /Y nul patch.log
+	CALL :do_patch sed_msc.patch
+:sed_skip_patch
+	ECHO Building sed
+	CALL :do_nmake Makefile.msc all
+	ECHO Installing sed
+	CALL :do_nmake Makefile.msc install
+	EXIT /B 0
+:sed_error
+	ECHO Unable to download sed source from %URL_MT%
 	EXIT /B 1
 
 :do_patch
