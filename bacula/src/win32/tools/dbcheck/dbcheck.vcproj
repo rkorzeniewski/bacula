@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../compat;../../..;../../stored;&quot;../../../../../depkgs-msvc/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
@@ -141,6 +141,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="bacula_cats.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

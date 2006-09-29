@@ -22,9 +22,10 @@
 			ConfigurationType="1"
 			InheritedPropertySheets="..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
-			UseOfATL="1"
+			UseOfATL="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -80,7 +81,7 @@
 				OutputFile="$(OutDir)\bacula-fd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\..\depkgs-win32\pthreads\release;..\..\..\..\depkgs-win32\zlib\release;..\..\..\..\depkgs-win32\gettext\lib;%VSSSDK_DIR%\lib\win2003\obj\i386"
+				AdditionalLibraryDirectories="../../../../depkgs-msvc/lib"
 				IgnoreDefaultLibraryNames=""
 				DelayLoadDLLs="$(NOINHERIT)"
 				GenerateDebugInformation="true"

@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc\lib\wx_dll\msw&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;wxUSE_GUI;_CONSOLE;HAVE_WIN32;HAVE_WXCONSOLE;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;wxUSE_GUI;WXUSINGDLL;__WXMSW__;HAVE_WIN32;HAVE_WXCONSOLE;USING_DLL;_STAT_H;_STAT_DEFINED;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"

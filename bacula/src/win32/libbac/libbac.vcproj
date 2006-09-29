@@ -144,7 +144,7 @@
 				AdditionalDependencies="wsock32.lib pthreadVCE.lib ssleay32.lib libeay32.lib "
 				OutputFile="$(OutDir)\bacula.dll"
 				AdditionalLibraryDirectories="..\..\..\..\depkgs-msvc\lib"
-				ModuleDefinitionFile="..\dll\bacula.def"
+				ModuleDefinitionFile="msvc\bacula.def"
 				ImportLibrary="$(TargetDir)libbac.lib"
 			/>
 			<Tool
@@ -1036,6 +1036,14 @@
 						CompileAs="2"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\compat\print.cpp"
@@ -1588,11 +1596,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\findlib\protos.h"
+				RelativePath="..\..\lib\protos.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\protos.h"
+				RelativePath="..\..\findlib\protos.h"
 				>
 			</File>
 			<File
