@@ -24,7 +24,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=100 storage=DDS-4
+setdebug level=2 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
 wait
@@ -32,9 +32,24 @@ messages
 quit
 END_OF_DATA
 
-run_bacula
-check_for_zombie_jobs storage=DDS-4
-stop_bacula
+echo "Starting Bacula tape writing"
+#bin/btape -c bin/bacula-sd.conf /dev/nst0 <<END_OF_DATA
+#rewind
+#label
+#Test001
+#wr
+#wr
+#wr
+#wr
+#wr
+#wr
+#weof
+#quit
+#END_OF_DATA
+#run_bacula
+#check_for_zombie_jobs storage=DDS-4
+#stop_bacula
+echo "End writing tape"
 
 #
 # now drop and recreate the database
@@ -45,9 +60,10 @@ cd bin
 ./grant_bacula_privileges 2>&1 >/dev/null
 cd ..
 
+echo "Begin attempt to read tape that crashes the system"
 echo "volume=TestVolume001" >tmp/bscan.bsr
-bin/bscan -d200 -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4
-
+strace -o strace.new bin/bscan -d200 -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4
+exit
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
