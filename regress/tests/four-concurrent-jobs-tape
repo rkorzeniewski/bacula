@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# Run two jobs at the same time
+# Run four jobs at the same time
 #
-TestName="auto-label-test"
-JobName=AutoLabel
+TestName="four-concurrent-jobs-tape"
+JobName=FourConcurrentJobs
 . scripts/functions
 set_debug 0
 
