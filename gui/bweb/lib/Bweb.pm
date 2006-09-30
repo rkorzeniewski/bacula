@@ -2843,13 +2843,14 @@ sub update_slots
     my ($self) = @_;
 
     my $ach = CGI::param('ach') ;
-    unless ($ach =~ /^([\w\d\.-]+)$/) {
+    $ach = $self->ach_get($ach);
+    unless ($ach) {
 	return $self->error("Bad autochanger name");
     }
 
     print "<pre>";
     my $b = new Bconsole(pref => $self->{info},timeout => 60,log_stdout => 1);
-    $b->update_slots($ach);
+    $b->update_slots($ach->{name});
     print "</pre>\n" 
 }
 
