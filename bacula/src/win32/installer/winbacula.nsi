@@ -50,7 +50,7 @@
 ; Basics
 ;
 Name "Bacula"
-OutFile "winbacula-${VERSION}.exe"
+OutFile "${OUT_DIR}\winbacula-${VERSION}.exe"
 SetCompressor lzma
 InstallDir "$PROGRAMFILES\Bacula"
 InstallDirRegKey HKLM "Software\Bacula" "InstallLocation"

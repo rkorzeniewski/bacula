@@ -22,10 +22,10 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="..\..\..\..\depkgs-msvc\nsis\makensis /V3 /DVERSION=1.39.23 /DDOC_DIR=..\..\..\..\docs /DBUILD_TOOLS=VC8_DEBUG /DVC_REDIST_DIR=&quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot; /DDEPKGS_BIN=..\..\..\..\depkgs-msvc\bin /DBACULA_BIN=..\$(ConfigurationName) /DCATS_DIR=..\cats /DSCRIPT_DIR=..\scripts winbacula.nsi"
-				ReBuildCommandLine="del winbacula-*.exe&#x0D;&#x0A;..\..\..\..\depkgs-msvc\nsis\makensis -V3 -DVERSION=1.39.23 -DDOC_DIR=..\..\..\..\docs -DBUILD_TOOLS=VC8_DEBUG -DVC_REDIST_DIR=$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT -DDEPKGS_BIN=..\..\..\..\depkgs-msvc\bin -DBACULA_BIN=..\$(ConfigurationName) -DCATS_DIR=..\cats -DSCRIPT_DIR=..\scripts winbacula.nsi&#x0D;&#x0A;"
-				CleanCommandLine="del winbacula-*.exe"
-				Output="winbacula-1.39.23.exe"
+				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot;&#x0D;&#x0A;"
+				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot;&#x0D;&#x0A;"
+				CleanCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe"
+				Output=""
 				PreprocessorDefinitions="VERSION=$(VERSION);DOC_DIR=..\..\..\..\docs;BUILD_TOOLS=VC8_DEBUG;VC_REDIST_DIR=$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT;DEPKGS_BIN=..\..\..\..\depkgs-msvc\bin;BACULA_BIN=..\$(ConfigurationName);CATS_DIR=..\cats;SCRIPT_DIR=..\scripts"
 				IncludeSearchPath=""
 				ForcedIncludes=""
@@ -42,10 +42,10 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="..\..\..\..\depkgs-msvc\nsis\makensis /V3 /DVERSION=1.39.23 /DDOC_DIR=..\..\..\..\docs /DBUILD_TOOLS=VC8_DEBUG /DVC_REDIST_DIR=&quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot; /DDEPKGS_BIN=..\..\..\..\depkgs-msvc\bin /DBACULA_BIN=..\$(ConfigurationName) /DCATS_DIR=..\cats /DSCRIPT_DIR=..\scripts winbacula.nsi"
-				ReBuildCommandLine="del winbacula-*.exe&#x0D;&#x0A;..\..\..\..\depkgs-msvc\nsis\makensis -V3 -DVERSION=1.39.23 -DDOC_DIR=..\..\..\..\docs -DBUILD_TOOLS=VC8 -DVC_REDIST_DIR=$(VCInstallDir)redist\x86\Microsoft.VC80.CRT -DDEPKGS_BIN=..\..\..\..\depkgs-msvc\bin -DBACULA_BIN=..\$(ConfigurationName) -DCATS_DIR=..\cats -DSCRIPT_DIR=..\scripts winbacula.nsi&#x0D;&#x0A;"
-				CleanCommandLine="del winbacula-*.exe"
-				Output="winbacula-1.39.23.exe"
+				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist\x86\Microsoft.VC80.CRT&quot;&#x0D;&#x0A;"
+				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist\x86\Microsoft.VC80.CRT&quot;&#x0D;&#x0A;"
+				CleanCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe"
+				Output=""
 				PreprocessorDefinitions=""
 				IncludeSearchPath=""
 				ForcedIncludes=""
@@ -98,6 +98,10 @@
 		</File>
 		<File
 			RelativePath=".\bconsole.conf.in"
+			>
+		</File>
+		<File
+			RelativePath=".\build-installer.cmd"
 			>
 		</File>
 		<File

@@ -73,6 +73,8 @@ class wxbPrintObject: public wxObject {
 // wxbThreadEvent - Event used by wxbTHREAD_EVENT
 // ----------------------------------------------------------------------------
 
+DECLARE_LOCAL_EVENT_TYPE(wxbTHREAD_EVENT, -1)
+
 class wxbThreadEvent: public wxEvent {
    public:
       wxbThreadEvent(int id);

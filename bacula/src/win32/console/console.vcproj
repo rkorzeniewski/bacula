@@ -5,7 +5,6 @@
 	Name="console"
 	ProjectGUID="{A0F65E06-9F18-40AC-81F6-A080852F1104}"
 	RootNamespace="console"
-	Keyword="MFCProj"
 	>
 	<Platforms>
 		<Platform
@@ -18,9 +17,8 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Debug"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -45,16 +43,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;"
+				AdditionalIncludeDirectories="../compat;../../../../depkgs-msvc/include;../.."
 				PreprocessorDefinitions="_DEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				PrecompiledHeaderFile=".\Debug/console.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				UsePrecompiledHeader="0"
+				BrowseInformation="1"
 				WarningLevel="3"
+				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 			/>
@@ -110,12 +107,12 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory=".\Release"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="..\..\..\..\..\..\Program Files\Microsoft Visual Studio 8\VC\VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -137,17 +134,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="4"
-				AdditionalIncludeDirectories="../compat;&quot;../../../../depkgs-msvc/include&quot;;../..;&quot;../../../../depkgs-msvc/include/mysql&quot;"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../compat;../../../../depkgs-msvc/include;../.."
 				PreprocessorDefinitions="NDEBUG;HAVE_CONSOLE;_WINMAIN_;PTW32_BUILD;WIN32;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
-				PrecompiledHeaderFile=".\Release/console.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
+				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>

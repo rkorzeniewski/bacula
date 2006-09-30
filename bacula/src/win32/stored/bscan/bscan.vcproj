@@ -5,7 +5,6 @@
 	Name="bscan"
 	ProjectGUID="{56EADEDB-FBED-4758-8B54-7B0B47ABDABF}"
 	RootNamespace="bscan"
-	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -40,14 +39,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../compat;../../..;../../stored;&quot;../../../../../depkgs-msvc/include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../../compat;../../..;../../stored;../../../../../depkgs-msvc/include"
+				PreprocessorDefinitions="_DEBUG;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -62,8 +62,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="bacula_cats.lib wsock32.lib pthreadVCE.lib atlsd.lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;../../../../../depkgs-msvc/lib&quot;;&quot;$(SolutionDir)$(ConfigurationName)&quot;"
+				LinkIncremental="0"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib;$(SolutionDir)$(ConfigurationName)"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -100,7 +101,7 @@
 			ConfigurationType="1"
 			UseOfATL="1"
 			CharacterSet="2"
-			WholeProgramOptimization="0"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -119,17 +120,20 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="4"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../compat;../../..;../../stored;&quot;../../../../../depkgs-msvc/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../../compat;../../..;../../stored;../../../../../depkgs-msvc/include"
+				PreprocessorDefinitions="NDEBUG;_CONSOLE;HAVE_WIN32;USING_DLL;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				StringPooling="true"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -144,8 +148,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="bacula_cats.lib wsock32.lib pthreadVCE.lib atls.lib"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;../../../../../depkgs-msvc/lib&quot;;&quot;$(SolutionDir)$(ConfigurationName)&quot;"
+				LinkIncremental="0"
+				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib;$(SolutionDir)$(ConfigurationName)"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

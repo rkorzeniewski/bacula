@@ -81,9 +81,6 @@ enum
 /*
  *   wxbTHREAD_EVENT declaration, used by csprint
  */
-BEGIN_DECLARE_EVENT_TYPES()
-   DECLARE_EVENT_TYPE(wxbTHREAD_EVENT,       1)
-END_DECLARE_EVENT_TYPES()
 
 DEFINE_EVENT_TYPE(wxbTHREAD_EVENT)
 

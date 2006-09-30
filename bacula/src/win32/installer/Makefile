@@ -11,6 +11,7 @@ VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t][ \t]*"\(.*\)"/\1/p' < ../../ve
 
 DEFINES := \
 	-DVERSION=$(VERSION) \
+	-DOUT_DIR=..\\release \
 	-DDOC_DIR=$(DOCDIR) \
 	-DBUILD_TOOLS=MinGW \
 	-DMINGW_BIN=$(MINGW_BIN) \
@@ -19,7 +20,7 @@ DEFINES := \
 	-DCATS_DIR=..\\cats \
 	-DSCRIPT_DIR=..\\scripts
 
-INSTALL_EXE := winbacula-$(VERSION).exe
+INSTALL_EXE := ../release/winbacula-$(VERSION).exe
 
 BACULA_BINARIES := \
 	bacula.dll \

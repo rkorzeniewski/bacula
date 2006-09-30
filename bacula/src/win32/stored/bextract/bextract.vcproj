@@ -5,7 +5,6 @@
 	Name="bextract"
 	ProjectGUID="{6A7AA493-E46C-4994-B8D6-AA6C9C19C9BA}"
 	RootNamespace="bextract"
-	Keyword="Win32Proj"
 	>
 	<Platforms>
 		<Platform
@@ -40,14 +39,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../compat;../../..;../../stored;&quot;../../../../../depkgs-msvc/include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;USING_DLL;HAVE_WIN32;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../../compat;../../..;../../stored;../../../../../depkgs-msvc/include"
+				PreprocessorDefinitions="_DEBUG;_CONSOLE;USING_DLL;HAVE_WIN32;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -62,7 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib zlib.lib pthreadVCE.lib atlsd.lib"
-				LinkIncremental="2"
+				LinkIncremental="0"
 				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -100,7 +100,7 @@
 			ConfigurationType="1"
 			UseOfATL="1"
 			CharacterSet="2"
-			WholeProgramOptimization="0"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -119,17 +119,20 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="4"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../compat;../../..;../../stored;&quot;../../../../../depkgs-msvc/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;USING_DLL;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../../compat;../../..;../../stored;../../../../../depkgs-msvc/include"
+				PreprocessorDefinitions="NDEBUG;_CONSOLE;USING_DLL;HAVE_WIN32;WIN32_VSS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				StringPooling="true"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -144,7 +147,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="wsock32.lib zlib.lib pthreadVCE.lib atls.lib"
-				LinkIncremental="1"
+				LinkIncremental="0"
 				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
