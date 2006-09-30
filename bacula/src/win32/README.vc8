@@ -41,8 +41,9 @@ Getting the Bacula files
       + latest source from the CVS (into <dev dir>\bacula)
    
    You need to download one of the doc tar balls and extract to <dev dir>.
-   The directory name will be docs-version where version is the version number.  
-   The directory must be renamed to docs (ie remove the version portion of the name).
+   The directory name will be bacula-docs-version where version is the
+   version number.  The directory must be renamed to docs (ie remove the
+   leading bacula- and the -version portion of the name).
       + docs 
 
 Build instructions
