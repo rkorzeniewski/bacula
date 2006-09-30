@@ -1,117 +1,122 @@
+Instructions to build Bacula with Microsoft Visual C++ 2005 
+===========================================================
 
-Instructions to build Bacula with Microsoft Visual C++ 2005 Express Edition (free version).
----
+Using the Express Edition (free version)
+----------------------------------------
+   Download instructions:
+    - Visual C++ 2005 Express Edition (2MB + 66MB)
+      http://msdn.microsoft.com/vstudio/express/visualc/download/  
+      NOTE: You may want to download the whole CD for offline usage 
+      instead of the web installer, as Microsoft will
+      start to charge for VC++ one year after the product launch 
+      (launch was in November 2005, see VC++ FAQ).
 
-What you need to download:
-- Visual C++ 2005 Express Edition (2MB + 66MB)
-  http://msdn.microsoft.com/vstudio/express/visualc/download/  
-  NOTE: You may want to download the whole CD for offline usage 
-  instead of the web installer, as Microsoft will
-  start to charge for VC++ one year after the product launch 
-  (launch was in November 2005, see VC++ FAQ).
+    - Windows® Server 2003 SP1 Platform SDK Full Download (385MB)
+      http://www.microsoft.com/downloads/details.aspx?FamilyId=A55B6B43-E24F-4EA3-A93E-40C0EC4F68E5&displaylang=en
+      NOTE: choose "Full Download" version on the bottom of that page.
 
-- Windows® Server 2003 SP1 Platform SDK Full Download (385MB)
-  http://www.microsoft.com/downloads/details.aspx?FamilyId=A55B6B43-E24F-4EA3-A93E-40C0EC4F68E5&displaylang=en
-  NOTE: choose "Full Download" version on the bottom of that page.
+   Installation instructions:
+    - Visual C++ Express Edition Beta 2:
+      + Run vcsetup.exe.
+      + When asked for Installation Options, only check "Graphical IDE" 
+        (MSDN Library is NOT needed).
+      + Remember where you install it (e.g. E:\Microsoft Visual Studio 8\)
 
-- wxWidgets for Win32 (17MB) (exe file)
-  http://www.wxwidgets.org/dl_msw2.htm#stable
+    - Windows® Server 2003 SP1 Platform SDK Full Download
+      + Run psdk-full.exe, type the directory where you downloaded the cab 
+        files.
+      + In a command prompt, run "PSDK-full.bat <temp directory>"
+        (e.g. "PSDK-full.bat E:\temp")
+      + Run <temp directory>\setup.exe
+      + When asked for the installation directory, choose 
+        <vc++ install dir>\VC\PlatformSDK (e.g. 
+        E:\Microsoft Visual Studio 8\VC\PlatformSDK\)
+      + When asked for components, you can safely remove documentation, 
+        samples, and all 64-bit tools and libs if you want to save disk 
+        space.
 
-- gettext packages (2MB)
-  + http://mirror.switch.ch/ftp/mirror/gnu/gettext/gettext-runtime-0.13.1.bin.woe32.zip
-  + http://mirror.switch.ch/ftp/mirror/gnu/gettext/gettext-tools-0.13.1.bin.woe32.zip
-  + http://mirror.switch.ch/ftp/mirror/gnu/libiconv/libiconv-1.9.1.bin.woe32.zip
+Getting the Bacula files
+------------------------
+   You will also need to checkout the latest Bacula source files:
+      + latest source from the CVS (into <dev dir>\bacula)
+   
+   You need to download one of the doc tar balls and extract to <dev dir>.
+   The directory name will be docs-version where version is the version number.  
+   The directory must be renamed to docs (ie remove the version portion of the name).
+      + docs 
 
-- Bacula source files:
-  + deppkgs-win32 from SF download page (extracted in <dev dir>/deppkgs-win32)
-  + latest source from the CVS (maybe you want to use mingw-msys to checkout them) (in <dev dir>/bacula)
+Build instructions
+------------------
+   The script build-depkgs-msvc.cmd is used to download and build all the 
+   third party dependencies required by Bacula.  In order to build the 
+   dependencies you need the following utilities.  Only the binaries listed 
+   in parenthesis are required.  Perl must be listed in the PATH, the other 
+   utilities can either be on the PATH or copied to 
+   <dev dir>\depkgs-msvc\tools.
 
-Installation instructions:
- - Visual C++ Express Edition Beta 2:
-   + Run vcsetup.exe.
-   + When asked for Installation Options, only check "Graphical IDE" (MSDN Library is NOT needed).
-   + Remember where you install it (e.g. E:\Microsoft Visual Studio 8\)
+      Perl (Normal Install, with binaries in the PATH)
+         http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.8.819-MSWin32-x86-267479.msi
+      
+      7-Zip (7z.exe)
+         http://prdownloads.sourceforge.net/sevenzip/7za443.zip?download
+      
+      NASM (nasmw.exe)
+         http://prdownloads.sourceforge.net/nasm/nasm-0.98.39-win32.zip?download
+         
+      patch (patch.exe)
+         http://prdownloads.sourceforge.net/gnuwin32/patch-2.5.9-6-bin.zip?download
+         
+      sed (sed.exe) Depends on libintl, libiconv
+         http://prdownloads.sourceforge.net/gnuwin32/sed-4.1.4-bin.zip?download
 
- - Windows® Server 2003 SP1 Platform SDK Full Download
-   + Run psdk-full.exe, type the directory where you downloaded the cab files.
-   + In a command prompt, run "PSDK-full.bat <temp directory>" (e.g. "PSDK-full.bat E:\temp")
-   + Run <temp directory>\setup.exe
-   + When asked for the installation directory, choose <vc++ install dir>\VC\PlatformSDK
-     (e.g. E:\Microsoft Visual Studio 8\VC\PlatformSDK\)
-   + When asked for components, you can safely remove documentation, samples, and all 64-bit tools and libs if you want to save disk space.
+      tee (tee.exe) Depends on libintl, libiconv
+         http://prdownloads.sourceforge.net/gnuwin32/coreutils-5.3.0-bin.zip?download
+         
+      wget (wget.exe) Depends on libintl, libiconv, openssl
+         http://prdownloads.sourceforge.net/gnuwin32/wget-1.10.1-bin.zip?download
 
- - gettext packages
-   + extract them all in <dev dir>/deppkgs-win32/gettext
+      libintl (libintl3.dll) Dependency of sed, tee, wget
+         http://prdownloads.sourceforge.net/gnuwin32/libintl-0.14.4-bin.zip?download
 
- - wxWidgets for Win32
-   + delete <dev dir>/deppkgs-win32/wx directory
-   + run wxMSW-2.6.1-Setup.exe, and install it to <dev dir>/deppkgs-win32/wx
+      libiconv (libiconv2.dll) Dependency of sed, tee, wget
+         http://prdownloads.sourceforge.net/gnuwin32/libiconv-1.9.2-1-bin.zip?download
 
-Build instructions:
- - deppkgs:
+      openssl (libeay32.dll, ssleay32.dll) Dependency of wget
+         http://prdownloads.sourceforge.net/gnuwin32/openssl-0.9.7c-bin.zip?download
 
-   You need 7-Zip, dlltool, nasm, patch, perl, sed, wget
-
-   build-depkgs
-      Builds
-         libz
-         mt
-         mtx
-         mysql
-         openssl
-         postgreSQL
-         pthreads
-         wxWidgets
-
+   Once the utilities are installed continue with the next steps.
+   
    + Start VC++ 2005 command prompt (in the start menu)
-   + run "<vc++ install dir>\VC\PlatformSDK\SetEnv.Cmd"
-   + cd <dev dir>/deppkgs-win32/zlib
-   + run "nmake -f win32\Makefile.msc" (don't worry about the warnings)
-   + cd <dev dir>/deppkgs-win32/pthreads
-   + run "nmake clean VCE" (again, don't worry about the warnings)
-   + (note pthreadVCE.dll has been created in this directory)
- - wxWidgets:
-   + Open <dev dir>\depkgs-win32\wx\build\msw\wx.dsw in VC++ 2005
-   + Click on "Yes to all"
-   + In the solution explorer, open core/Setup Headers/setup.h and add, at the end of the file (before the last #endif):
-#if (_MSC_VER >= 1400) // VC8+
-#pragma warning(disable : 4996) // Either disable all deprecation warnings,
-// #define _CRT_SECURE_NO_DEPRECATE // Or just turn off warnings about the newly deprecated CRT functions.
-#endif // VC8+
-     This is not absolutely necessary, but this will remove annoying warnings.
+   
+   + Change to the bacula\src\win32 directory.
+   
+   Only if you are using Microsoft Visual C++ Express 
+   
+      + run "%VCINSTALLDIR%\PlatformSDK\SetEnv"
 
-   + Launch Build->Configuration Manager, then select "Unicode Release"
-     and close this window. Then run Build->Build Solution.
-   + If the build of wx-console fails, try removing the comments around
-     #ifndef (line 145) and #endif (line 147) in file:
-     <dev dir>/bacula/src/win32/compat/compat.h
-   + Repeat the operation for the "Unicode Debug" configuration if needed.
-   + Open <dev dir>/bacula/src/win32/bacula.sln
-   + Launch Build->Configuration Manager, then select your configuration.
-   + Then run Build->Build Solution (this will build wx-console, bconsole 
-     and bacula-fd).
+   The following step should only need to be done the first time and whenever 
+   the dependencies change.
 
-Deploy instructions
- - Bacula:
-   + To deploy bacula on Windows clients, create a setup using NSIS 
-     (Nullsoft Scriptable Install System).
-     http://nsis.sourceforge.net/Download
-   + Modify the default <dev dir>\bacula\src\win32\winbacula.nsi.in 
-     script to include your own customizations.
-     These are the required modifications:
-     
-     * Remove all references to msvcr71.dll, as this is a pre VC++ 2005 library.
-     * VC++ 2005 compiled binaries require a new way of deploying DLLs: WinSxS.
-       More info: http://blogs.msdn.com/nikolad/archive/2005/03/18/398720.aspx
-       Collect the following 4 files from c:\WINDOWS\WinSxS and copy them into the
-       directory where winbacula.nsi resides. Also add them to winbacula.nsi where
-       msvcr71.dll was previously.
-       
-       File msvcm80.dll
-       File msvcp80.dll
-       File msvcr80.dll
-       File Microsoft.VC80.CRT.manifest
-       
-       Modify Microsoft.VC80.CRT.manifest to match the version number mentioned in
-       bacula-fd.exe.intermediate.manifest that is in /bacula/src/win32/baculafd/Release.
+      + run build-depkgs-msvc
+   
+   At this point all of the dependencies should have been downloaded and built.  
 
+   To build the debug version
+  
+   + run build-msvc "Debug|Win32"
+   
+   To build the release version
+
+   + run build-msvc "Release|Win32"
+  
+   To cleanup all the built files
+   
+   + run build-msvc /c
+
+   To cleanup only the debug built files
+   
+   + run build-msvc /c "Debug|Win32"
+   
+   To rebuild the debug version
+   
+   + run build-msvc /r "Debug|Win32"
