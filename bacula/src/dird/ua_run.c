@@ -339,7 +339,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          }
          store = select_storage_resource(ua);
       }
-   } else {
+   } else if (job->storage) {
       store = (STORE *)job->storage->first();           /* use default */
    }
    if (!store) {
