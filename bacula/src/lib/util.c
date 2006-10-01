@@ -287,6 +287,15 @@ const char *job_type_to_str(int type)
    case JT_COPY:
       str = _("Copy");
       break;
+   case JT_CONSOLE:
+      str = _("Console");
+      break;
+   case JT_SYSTEM:
+      str = _("System or Console");
+      break;
+   case JT_SCAN:
+      str = _("Scan");
+      break;
    default:
       str = _("Unknown Type");
       break;

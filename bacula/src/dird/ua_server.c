@@ -132,13 +132,15 @@ static void *handle_UA_client_request(void *arg)
             do_a_command(ua, ua->cmd);
          }
          if (!ua->quit) {
-            if (ua->auto_display_messages) {
-               pm_strcpy(ua->cmd, "messages");
-               qmessagescmd(ua, ua->cmd);
-               ua->user_notified_msg_pending = FALSE;
-            } else if (!ua->gui && !ua->user_notified_msg_pending && console_msg_pending) {
-               bsendmsg(ua, _("You have messages.\n"));
-               ua->user_notified_msg_pending = TRUE;
+            if (acl_access_ok(ua, Command_ACL, "messages", 8)) {
+               if (ua->auto_display_messages) {
+                  pm_strcpy(ua->cmd, "messages");
+                  qmessagescmd(ua, ua->cmd);
+                  ua->user_notified_msg_pending = FALSE;
+               } else if (!ua->gui && !ua->user_notified_msg_pending && console_msg_pending) {
+                  bsendmsg(ua, _("You have messages.\n"));
+                  ua->user_notified_msg_pending = TRUE;
+               }
             }
             bnet_sig(ua->UA_sock, BNET_EOD); /* send end of command */
          }

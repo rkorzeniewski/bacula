@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+01Sep06
+kes  Require a messages command acl to be able to receive messages
+     in a console.
+kes  Add console, system, and scan job types in util.c.
 28Sep06
 kes  Print the Volume purged message only for real jobs to keep
      from cluttering up the daemon messages.
