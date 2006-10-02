@@ -29,6 +29,11 @@ New Features in 1.39.24
 - Enforce Media.Enabled=1 for a current restore to work
 - Require restore case 3 to have sqlquery permission to work.
 
+==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
+- A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
+  the tape drive. Workaround, load a Fedora kernel, which works fine,
+  or load the SuSE 10.2 rc5 kernel which also works fine.
+
 ==== IMPORTANT Catalog update required =====
 - The database format has been updated from what was used in    
   Bacula 1.38.x.  You must manually update your database before 
