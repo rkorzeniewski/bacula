@@ -4,4 +4,5 @@ Version 1.39:
  - Add Gen BSR function
  - Add new option "see all version"
  - Add Estimate function
-
+ - BugFix : perl << operator works only with 32bytes value
+   => using *64 instead
