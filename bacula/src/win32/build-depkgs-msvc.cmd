@@ -21,7 +21,9 @@ SET SCRIPT_DIR=%CD%
 CD ..\..\..
 set TOP_DIR=%CD%
 
-cd %TOP_DIR%/depkgs-msvc
+IF NOT EXIST %TOP_DIR%\depkgs-msvc\nul MD %TOP_DIR%\depkgs-msvc
+
+cd %TOP_DIR%\depkgs-msvc
 set DEPPKG_DIR=%CD%
 
 cd %DEPPKG_DIR%
