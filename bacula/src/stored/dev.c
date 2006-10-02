@@ -332,7 +332,9 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
 
    get_autochanger_loaded_slot(dcr);
 
+   openmode = omode;
    set_mode(omode);
+
    if (timeout < 1) {
       timeout = 1;
    }
