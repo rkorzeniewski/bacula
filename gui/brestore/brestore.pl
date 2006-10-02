@@ -2947,7 +2947,7 @@ sub estimate_restore_size
 	}
 	
 	while ($where ne '') {
-	    $val <<= 6;
+	    $val *= 64;
 	    my $d = substr($where, 0, 1);
 	    $val += $base64_map[ord(substr($where, 0, 1))];
 	    $where = substr($where, 1);
