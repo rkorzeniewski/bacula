@@ -49,7 +49,7 @@
  * On either an I/O error or end of tape,
  * we will stop writing on the physical device (no I/O recovery is
  * attempted at least in this daemon). The state flag will be sent
- * to include ST_EOT, which is ephimeral, and ST_WEOT, which is
+ * to include ST_EOT, which is ephemeral, and ST_WEOT, which is
  * persistent. Lots of routines clear ST_EOT, but ST_WEOT is
  * cleared only when the problem goes away.  Now when ST_WEOT
  * is set all calls to write_block_to_device() call the fix_up
@@ -489,8 +489,8 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    /*
     * Handle opening of DVD Volume
     */     
-   Dmsg3(29, "Enter: open_dvd_dev: %s dev=%s mode=%s\n", is_dvd()?"DVD":"disk",
-         archive_name.c_str(), mode_to_str(omode));
+   Dmsg2(29, "Enter: open_dvd_dev: DVD vol=%s mode=%s\n", 
+         &dcr->VolCatInfo, mode_to_str(omode));
 
    /*
     * For a DVD we must always pull the state info from dcr->VolCatInfo
@@ -527,6 +527,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     *   OPEN_READ_ONLY as writing would be an error.
     */
    Dmsg2(29, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
+   /* Now find the name of the part that we want to access */
    if (part <= num_dvd_parts) {
       omode = OPEN_READ_ONLY;
       make_mounted_dvd_filename(this, archive_name);
@@ -544,7 +545,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    Dmsg3(99, "open_dvd_device: part=%d num_dvd_parts=%d, VolCatInfo.VolCatParts=%d\n",
       part, num_dvd_parts, dcr->VolCatInfo.VolCatParts);
      
-   if (mount_dvd(this, 1)) {
+   if (mount(1)) {
       Dmsg0(99, "DVD device mounted.\n");
       if (num_dvd_parts == 0 && !truncating) {
          /*
@@ -556,18 +557,46 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          if (!check_can_write_on_non_blank_dvd(dcr)) {
             Mmsg(errmsg, _("The DVD in device %s contains data, please blank it before writing.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
-            unmount_dvd(this, 1); /* Unmount the device, so the operator can change it. */
+            unmount(1); /* Unmount the device, so the operator can change it. */
             clear_opened();
             return;
          }
          blank_dvd = true;
+      } else {
+         /*
+          * Ensure that we have the correct DVD loaded by looking for part1.
+          * We only succeed the open if it exists. Failure to do this could
+          * leave us trying to add a part to a different DVD!
+          */
+         uint32_t oldpart = part;
+         struct stat statp;
+         POOL_MEM part1_name(PM_FNAME);
+         part = 1;
+         make_mounted_dvd_filename(this, part1_name);
+         part = oldpart;
+         if (stat(part1_name.c_str(), &statp) < 0) {
+            berrno be;
+            Mmsg(errmsg, _("Unable to stat DVD part 1 file %s: ERR=%s\n"),
+               part1_name.c_str(), be.strerror());
+            Emsg0(M_FATAL, 0, errmsg);
+            clear_opened();
+            return;
+         }
+         if (!S_ISREG(statp.st_mode)) {
+            /* It is not a regular file */
+            Mmsg(errmsg, _("DVD part 1 is not a regular file %s.\n"),
+               part1_name.c_str());
+            Emsg0(M_FATAL, 0, errmsg);
+            clear_opened();
+            return;
+         }
       }
    } else {
       Dmsg0(99, "DVD device mount failed.\n");
       /* We cannot mount the device */
       if (num_dvd_parts == 0) {
          /* Run free space, check there is a media. */
-         if (!update_free_space_dev(this)) {
+         if (!update_freespace()) {
             Emsg0(M_FATAL, 0, errmsg);
             clear_opened();
             return;
@@ -1909,7 +1938,7 @@ bool DEVICE::mount(int timeout)
  */
 bool DEVICE::unmount(int timeout) 
 {
-   Dmsg0(90, "Enter unmount_dvd\n");
+   Dmsg0(90, "Enter unmount\n");
    if (is_mounted()) {
       return do_mount(0, timeout);
    }
@@ -1939,9 +1968,10 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       icmd = device->unmount_command;
    }
    
+   clear_freespace_ok();
    edit_mount_codes(ocmd, icmd);
    
-   Dmsg2(100, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
+   Dmsg2(100, "do_mount: cmd=%s mounted=%d\n", ocmd.c_str(), !!is_mounted());
 
    if (dotimeout) {
       /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
@@ -1949,7 +1979,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    } else {
       timeout = 0;
    }
-   results = get_memory(2000);
+   results = get_memory(4000);
    results[0] = 0;
 
    /* If busy retry each second */
@@ -1957,7 +1987,10 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    while ((status = run_program_full_output(ocmd.c_str(), 
                        max_open_wait/2, results)) != 0) {
       /* Doesn't work with internationalization (This is not a problem) */
-      if (fnmatch("*is already mounted on", results, 0) == 0) {
+      if (mount && fnmatch("*is already mounted on*", results, 0) == 0) {
+         break;
+      }
+      if (!mount && fnmatch("* not mounted*", results, 0) == 0) {
          break;
       }
       if (timeout-- > 0) {
@@ -1970,9 +2003,18 @@ bool DEVICE::do_mount(int mount, int dotimeout)
          bmicrosleep(1, 0);
          continue;
       }
-      Dmsg2(40, "Device %s cannot be mounted. ERR=%s\n", print_name(), results);
-      Mmsg(errmsg, _("Device %s cannot be mounted. ERR=%s\n"), 
-           print_name(), results);
+      if (status != 0) {
+         berrno be;
+         Dmsg5(40, "Device %s cannot be %smounted. stat=%d result=%s ERR=%s\n", print_name(),
+              (mount ? "" : "un"), status, results, be.strerror(status));
+         Mmsg(errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
+              print_name(), (mount ? "" : "un"), be.strerror(status));
+      } else {
+         Dmsg4(40, "Device %s cannot be %smounted. stat=%d ERR=%s\n", print_name(),
+              (mount ? "" : "un"), status, results);
+         Mmsg(errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
+              print_name(), (mount ? "" : "un"), results);
+      }
       /*
        * Now, just to be sure it is not mounted, try to read the
        *  filesystem.
@@ -2017,8 +2059,18 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       Dmsg1(29, "do_mount: got %d files in the mount point (not counting ., .. and .keep)\n", count);
       
       if (count > 0) {
-         mount = 1;                      /* If we got more than ., .. and .keep */
-         break;                          /*   there must be something mounted */
+         /* If we got more than ., .. and .keep */
+         /*   there must be something mounted */
+         if (mount) {
+            Dmsg1(100, "Did Mount by count=%d\n", count);
+            break;
+         } else {
+            /* An unmount request. We failed to unmount - report an error */
+            set_mounted(true);
+            free_pool_memory(results);
+            Dmsg0(200, "== error mount=1 wanted unmount\n");
+            return false;
+         }
       }
 get_out:
       set_mounted(false);
@@ -2030,6 +2082,10 @@ get_out:
    
    set_mounted(mount);              /* set/clear mounted flag */
    free_pool_memory(results);
+   /* Do not check free space when unmounting */
+   if (mount && !update_freespace()) {
+      return false;
+   }
    Dmsg1(200, "============ mount=%d\n", mount);
    return true;
 }

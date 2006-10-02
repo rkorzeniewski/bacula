@@ -846,9 +846,7 @@ static bool do_dvd_size_checks(DCR *dcr)
       }
    }
 
-   if (!dev->is_freespace_ok()) {
-      update_free_space_dev(dev);
-   }
+   dev->update_freespace();
    
    if (!dev->is_freespace_ok()) { /* Error while getting free space */
       char ed1[50], ed2[50];

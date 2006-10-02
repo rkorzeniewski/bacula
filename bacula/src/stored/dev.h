@@ -369,6 +369,7 @@ public:
    void clrerror(int func);      /* in dev.c */
    off_t lseek(DCR *dcr, off_t offset, int whence); /* in dev.c */
    bool update_pos(DCR *dcr);    /* in dev.c */
+   bool update_freespace();      /* in dvd.c */
 
    void set_blocked(int block) { dev_blocked = block; };
    int  get_blocked() const { return dev_blocked; };

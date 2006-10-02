@@ -26,7 +26,6 @@
 #include "stored.h"
 
 /* Forward referenced functions */
-static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout);
 static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name);
 
 /* 
@@ -68,191 +67,8 @@ static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
                   archive_name.c_str(), dev->part);
 }  
 
-/* Mount the device.
- * If timeout, wait until the mount command returns 0.
- * If !timeout, try to mount the device only once.
- */
-bool mount_dvd(DEVICE* dev, int timeout) 
-{
-   Dmsg0(90, "Enter mount_dvd\n");
-   if (dev->is_mounted()) {
-      return true;
-   } else if (dev->requires_mount()) {
-      return do_mount_dvd(dev, 1, timeout);
-   }       
-   return true;
-}
-
-/* Unmount the device
- * If timeout, wait until the unmount command returns 0.
- * If !timeout, try to unmount the device only once.
- */
-bool unmount_dvd(DEVICE *dev, int timeout) 
-{
-   if (!dev->is_dvd()) {
-      return true;
-   }
-   Dmsg0(90, "Enter unmount_dvd\n");
-   if (dev->is_mounted()) {
-      return do_mount_dvd(dev, 0, timeout);
-   }
-   return true;
-}
-
-/* (Un)mount the device */
-static bool do_mount_dvd(DEVICE* dev, int mount, int dotimeout) 
-{
-   POOL_MEM ocmd(PM_FNAME);
-   POOLMEM *results;
-   char *icmd;
-   int status, timeout;
-   
-   sm_check(__FILE__, __LINE__, false);
-   if (mount) {
-      if (dev->is_mounted()) {
-         Dmsg0(200, "======= DVD mount=1\n");
-         return true;
-      }
-      icmd = dev->device->mount_command;
-   } else {
-      if (!dev->is_mounted()) {
-         Dmsg0(200, "======= DVD mount=0\n");
-         return true;
-      }
-      icmd = dev->device->unmount_command;
-   }
-   
-   dev->clear_freespace_ok();
-   dev->edit_mount_codes(ocmd, icmd);
-   
-   Dmsg2(200, "do_mount_dvd: cmd=%s mounted=%d\n", ocmd.c_str(), !!dev->is_mounted());
-
-   if (dotimeout) {
-      /* Try at most 1 time to (un)mount the device. This should perhaps be configurable. */
-      timeout = 1;
-   } else {
-      timeout = 0;
-   }
-   results = get_memory(2000);
-   results[0] = 0;
-   /* If busy retry each second */
-   Dmsg1(20, "Run mount prog=%s\n", ocmd.c_str());
-   while ((status = run_program_full_output(ocmd.c_str(), 
-                       dev->max_open_wait/2, results)) != 0) {
-      Dmsg2(20, "Mount status=%d result=%s\n", status, results);
-      /* Doesn't work with internationalization (This is not a problem) */
-      if (mount && fnmatch("*is already mounted on*", results, 0) == 0) {
-         break;
-      }
-      if (!mount && fnmatch("* not mounted*", results, 0) == 0) {
-         break;
-      }
-      if (timeout-- > 0) {
-         /* Sometimes the device cannot be mounted because it is already mounted.
-          * Try to unmount it, then remount it */
-         if (mount) {
-            Dmsg1(400, "Trying to unmount the device %s...\n", dev->print_name());
-            do_mount_dvd(dev, 0, 0);
-         }
-         bmicrosleep(1, 0);
-         continue;
-      }
-      if (status != 0) {
-         berrno be;
-         Dmsg5(40, "Device %s cannot be %smounted. stat=%d result=%s ERR=%s\n", dev->print_name(),
-              (mount ? "" : "un"), status, results, be.strerror(status));
-         Mmsg(dev->errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
-              dev->print_name(), (mount ? "" : "un"), be.strerror(status));
-      } else {
-         Dmsg4(40, "Device %s cannot be %smounted. stat=%d ERR=%s\n", dev->print_name(),
-              (mount ? "" : "un"), status, results);
-         Mmsg(dev->errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
-              dev->print_name(), (mount ? "" : "un"), results);
-      }
-      /*
-       * Now, just to be sure it is not mounted, try to read the
-       *  filesystem.
-       */
-      DIR* dp;
-      struct dirent *entry, *result;
-      int name_max;
-      int count;
-      
-      name_max = pathconf(".", _PC_NAME_MAX);
-      if (name_max < 1024) {
-         name_max = 1024;
-      }
-         
-      if (!(dp = opendir(dev->device->mount_point))) {
-         berrno be;
-         dev->dev_errno = errno;
-         Dmsg3(29, "do_mount_dvd: failed to open dir %s (dev=%s), ERR=%s\n", 
-               dev->device->mount_point, dev->print_name(), be.strerror());
-         goto get_out;
-      }
-      
-      entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
-      count = 0;
-      while (1) {
-         if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
-            dev->dev_errno = EIO;
-            Dmsg2(129, "do_mount_dvd: failed to find suitable file in dir %s (dev=%s)\n", 
-                  dev->device->mount_point, dev->print_name());
-            break;
-         }
-         if (strcmp(result->d_name, ".") && strcmp(result->d_name, "..") && 
-             strcmp(result->d_name, ".keep")) {
-            count++; /* result->d_name != ., .. or .keep (Gentoo-specific) */
-            Dmsg1(100, "Inc count=%d\n", count);
-            break;
-         } else {
-            Dmsg2(129, "do_mount_dvd: ignoring %s in %s\n", 
-                  result->d_name, dev->device->mount_point);
-         }
-      }
-      free(entry);
-      closedir(dp);
-      
-      Dmsg1(29, "do_mount_dvd: got %d files in the mount point (not counting ., .. and .keep)\n", count);
-      
-      if (count > 0) {
-         /* If we got more than ., .. and .keep */
-         /*   there must be something mounted */
-         if (mount) {
-            Dmsg1(100, "Did Mount by count=%d\n", count);
-            break;
-         } else {
-            /* An unmount request. We failed to unmount - report an error */
-            dev->set_mounted(true);
-            free_pool_memory(results);
-            Dmsg0(200, "== DVD mount=1\n");
-            return false;
-         }
-      }
-get_out:
-      dev->set_mounted(false);
-      sm_check(__FILE__, __LINE__, false);
-      free_pool_memory(results);
-      Dmsg0(200, "== DVD mount=0\n");
-      return false;
-   }
-   Dmsg0(100, "Out of mount/umount loop\n");
-   
-   dev->set_mounted(mount);              /* set/clear mounted flag */
-   free_pool_memory(results);
-   /* Do not check free space when unmounting */
-   if (mount) {
-      Dmsg0(100, "Calling update_free_space\n");
-      if (!update_free_space_dev(dev)) {
-         return false;
-      }
-   }
-   Dmsg1(200, "== DVD mount=%d\n", mount);
-   return true;
-}
-
 /* Update the free space on the device */
-bool update_free_space_dev(DEVICE* dev) 
+bool DEVICE::update_freespace() 
 {
    POOL_MEM ocmd(PM_FNAME);
    POOLMEM* results;
@@ -263,30 +79,30 @@ bool update_free_space_dev(DEVICE* dev)
    bool ok = false;
    int status;
 
-   if (!dev->is_dvd() || dev->is_freespace_ok()) {
+   if (!is_dvd() || is_freespace_ok()) {
       return true;
    }
    
    /* The device must be mounted in order to dvd-freespace to work */
-   mount_dvd(dev, 1);
+   mount(1);
    
    sm_check(__FILE__, __LINE__, false);
-   icmd = dev->device->free_space_command;
+   icmd = device->free_space_command;
    
    if (!icmd) {
-      dev->free_space = 0;
-      dev->free_space_errno = 0;
-      dev->clear_freespace_ok();              /* No valid freespace */
-      dev->clear_media();
+      free_space = 0;
+      free_space_errno = 0;
+      clear_freespace_ok();              /* No valid freespace */
+      clear_media();
       Dmsg2(29, "ERROR: update_free_space_dev: free_space=%s, free_space_errno=%d (!icmd)\n", 
-            edit_uint64(dev->free_space, ed1), dev->free_space_errno);
-      Mmsg(dev->errmsg, _("No FreeSpace command defined.\n"));
+            edit_uint64(free_space, ed1), free_space_errno);
+      Mmsg(errmsg, _("No FreeSpace command defined.\n"));
       return false;
    }
    
-   dev->edit_mount_codes(ocmd, icmd);
+   edit_mount_codes(ocmd, icmd);
    
-   Dmsg1(29, "update_free_space_dev: cmd=%s\n", ocmd.c_str());
+   Dmsg1(29, "update_freespace: cmd=%s\n", ocmd.c_str());
 
    results = get_pool_memory(PM_MESSAGE);
    
@@ -296,47 +112,47 @@ bool update_free_space_dev(DEVICE* dev)
    while (1) {
       berrno be;
       Dmsg1(20, "Run freespace prog=%s\n", ocmd.c_str());
-      status = run_program_full_output(ocmd.c_str(), dev->max_open_wait/2, results);
+      status = run_program_full_output(ocmd.c_str(), max_open_wait/2, results);
       Dmsg2(500, "Freespace status=%d result=%s\n", status, results);
       if (status == 0) {
          free = str_to_int64(results);
          Dmsg1(400, "Free space program run: Freespace=%s\n", results);
          if (free >= 0) {
-            dev->free_space = free;
-            dev->free_space_errno = 0;
-            dev->set_freespace_ok();     /* have valid freespace */
-            dev->set_media();
-            Mmsg(dev->errmsg, "");
+            free_space = free;
+            free_space_errno = 0;
+            set_freespace_ok();     /* have valid freespace */
+            set_media();
+            Mmsg(errmsg, "");
             ok = true;
             break;
          }
       }
-      dev->free_space = 0;
-      dev->free_space_errno = EPIPE;
-      dev->clear_freespace_ok();         /* no valid freespace */
-      Mmsg2(dev->errmsg, _("Cannot run free space command. Results=%s ERR=%s\n"), 
+      free_space = 0;
+      free_space_errno = EPIPE;
+      clear_freespace_ok();         /* no valid freespace */
+      Mmsg2(errmsg, _("Cannot run free space command. Results=%s ERR=%s\n"), 
             results, be.strerror(status));
       
       if (--timeout > 0) {
          Dmsg4(40, "Cannot get free space on device %s. free_space=%s, "
-            "free_space_errno=%d ERR=%s\n", dev->print_name(), 
-               edit_uint64(dev->free_space, ed1), dev->free_space_errno, 
-               dev->errmsg);
+            "free_space_errno=%d ERR=%s\n", print_name(), 
+               edit_uint64(free_space, ed1), free_space_errno, 
+               errmsg);
          bmicrosleep(1, 0);
          continue;
       }
 
-      dev->dev_errno = dev->free_space_errno;
+      dev_errno = free_space_errno;
       Dmsg4(40, "Cannot get free space on device %s. free_space=%s, "
          "free_space_errno=%d ERR=%s\n",
-            dev->print_name(), edit_uint64(dev->free_space, ed1),
-            dev->free_space_errno, dev->errmsg);
+            print_name(), edit_uint64(free_space, ed1),
+            free_space_errno, errmsg);
       break;
    }
    
    free_pool_memory(results);
-   Dmsg4(29, "leave update_free_space_dev: free_space=%s freespace_ok=%d free_space_errno=%d have_media=%d\n", 
-      edit_uint64(dev->free_space, ed1), !!dev->is_freespace_ok(), dev->free_space_errno, !!dev->have_media());
+   Dmsg4(29, "leave update_freespace: free_space=%s freespace_ok=%d free_space_errno=%d have_media=%d\n", 
+      edit_uint64(free_space, ed1), !!is_freespace_ok(), free_space_errno, !!have_media());
    sm_check(__FILE__, __LINE__, false);
    return ok;
 }
@@ -460,7 +276,7 @@ bool dvd_write_part(DCR *dcr)
    
    /* growisofs umounted the device, so remount it (it will update the free space) */
    dev->clear_mounted();
-   mount_dvd(dev, 1);
+   dev->mount(1);
    Jmsg(dcr->jcr, M_INFO, 0, _("Remaining free space %s on %s\n"), 
       edit_uint64_with_commas(dev->free_space, ed1), dev->print_name());
    sm_check(__FILE__, __LINE__, false);
@@ -797,7 +613,7 @@ bool truncate_dvd(DCR *dcr)
    dev->clear_freespace_ok();             /* need to update freespace */
    dev->close_part(dcr);
 
-   if (!unmount_dvd(dev, 1)) {
+   if (!dev->unmount(1)) {
       Dmsg0(400, "truncate_dvd: Failed to unmount DVD\n");
       return false;
    }
