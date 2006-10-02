@@ -156,7 +156,7 @@ rbn  Save installer details log in the Bacula directory as
      install.log.
 rbn  Add installer generation of client and storage templates
      suitable for @inclusion on the director.
-rbn  Mark previously installed components read-only since 
+rbn  Mark previously installed Win32 components read-only since 
      deselection doesn't do anything.
 
 Version 1.39.22 beta released:

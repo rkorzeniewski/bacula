@@ -1,16 +1,174 @@
               Technical notes on version 1.39  
 
 General:
+Version 1.39.24 beta released:
+02Sep06
+rbn  Fix restore problem with c:\ prefix bug #676.
+rbn  Verify that drive letter is valid on restore.
+rbn  Fix re-open() options for tape.
+kes  Apply dvd find volume patch from Richard Mortimer.
+kes  Eliminate the dvd specific mount routines using only the
+     dev->mount/unmount.
+kes  Make update_free_space a method of DEVICE and rename 
+     update_freespace.
+01Sep06
+kes  Require a messages command acl to be able to receive messages
+     in a console.
+kes  Add console, system, and scan job types in util.c.
+28Sep06
+kes  Print the Volume purged message only for real jobs to keep
+     from cluttering up the daemon messages.
+kes  Lock the tape drive door while Bacula is using the device.
+kes  Add back the 'No Jobs running' message to FD and SD status because
+     my regression script depends on it, and I'm too lazy to change the
+     scripts.
+kes  Start using structure assignments (not too happy about it ...).
+kes  Fix a bug in the tools Makefile that broke on Solaris.
+kes  Unload any autochanger drive during a 'release' command.
+26Sep06
+kes  Enhance error message when restoring without bootstrap file.
+kes  Check restored size only for regular files.
+kes  Store Python job level in job record in Dir.
+kes  Add back code to open tape device nonblocking, but if rewind fails
+     release file descriptor.
+kes  Modify acquire.c to first try autoloading the device. Also, ask operator
+     to mount tape if drive cannot be opened.
+rbn  Made Windows service tray status windows resizable.
+rbn  Fixed horizontal scrolling of text in status window.
+rbn  Preserve horizontal and vertical scroll position while 
+     updating.  This prevents the display being reset to the
+     top line every 5 seconds.
+rbn  Fix Windows cross-compile compatibilty problems with 
+     *nix variants such as OS X without the zic command.
+rbn  Eliminate dependency on man2html.
+25Sep06
+kes  Update src/win32/dll/bacula.def for change in BPIPE definition for
+     Win32 build.                 
+kes  Fix a compiler warning in compat.cpp
+kes  Change strcpy to bstrncpy in compat.cpp
+kes  Remove some broken code in bdb_list.c
+kes  Fix, hopefully the last, ACL problem in the restore command.
+kes  Update the README.mingw32
+kes  Add new version of upgrade-win32-client.txt to examples directory.
+     Submitted by Michel Meyers.
+kes  Print an INFO message in the job report when a Volume is marked Purged.
+rbn  Fixed handling of external program and script execution
+     so that the format of the command line is more flexible.
+     Now executable path names containing spaces are translated
+     to the equivalent short name automatically.  The result is
+     passed to cmd.exe with the quotes removed.
+24Sep06
+kes  Apply the recycle patch from Richard Mortimer.
+kes  Convert a few if statements in dev.c to switch statements.
+kes  Start using print_errmsg instead of bstrerror().
+kes  Print a job message in SD when a job is marked to be canceled.
+23Sep06
+kes  All code added back. Fixed block.c read/write to loop only 3
+     times. This apparently keeps the OS from crashing (at least     
+     most of the time).
+kes  The kernel bug still persists. Backup something then immediately
+     do a bscan on the same tape, and the kernel will crash.     
+kes  Simplifed tape open().  It no longer uses nonblocking mode, which 
+     means that opening with no tape loaded will probably take at least
+     6 minutes before an error is reported.
+kes  Do not use MTSETDRVBUFFER if not running as root.  Do a MTRESET
+     when doing set_os_device_parameters.
+kes  Report open error in mount.c
+kes  Remove all .exe files from the installer directory on make clean.
+20Sep06
+kes  Start adding back removed code.
+kes  Back out a number of changes because backups to tape crash my
+     system.
+kes  Remove the inetd code from the File daemon.
+18Sep06
+kes  Add -c option to pg_dump so that it initializes tables when   
+     restored.
+kes  Fix FirstWritten time on Volume to be obtained from SD so that
+     it is the actual time the volume was first written.
+kes  Minor Makefile changes.
+kes  Handle EBUSY during read(). Improve how EBUSY is handled in write().
+ebl  Add yes keyword to prune/purge command
+16Sep06
+kes  Correct a test in block.c that prevented restore of a DVD from
+     looking at the last part in the spool directory.
+kes  Make some error messages clearer mostly by using the word DVD
+     in the message. Improve infor message in read_record for DVDs.
+kes  Remove DVD kludges in dircmd.c label/relabel.
+kes  Move the dvd relabel code from dircmd.c into      
+     write_new_volume_label_to_dvd() adding a relabel argument.
+kes  Rewrite the truncate_dvd() code to be much simpler and
+     more logical. First blow away any spool part, then create a
+     new empty part and write to the DVD.
+kes  Rewrite the can_write_on_non_blank_dvd() code making it
+     only ensure that no valid data is on the DVD -- i.e. it
+     can be overwritten.
+15Sep06
+kes  Minor Makefile fixes.
+kes  Put attach_dcr_to_dev in a subroutine.
+kes  Make attaching/detaching to/from a device use a flag and 
+     only detach if actually attached.
+kes  Add dvd-simulator.in to scripts directory and add to configure.
+kes  Fix code in acquire.c that checks fd != 0 to use dev->is_open().  
+     This could be a cause of a number of drive reservation problems.
+     Note, this code is now in attach_dcr_to_dev().
+kes  Suppress doing Volume updates if it is a system job.  This should
+     prevent the DVD label blocking.
+kes  Clear the freespace ok flag in a couple of strategic places.
+14Sep06
+kes  Put removing zero sized spool part file in subroutine and
+     call from release_device().
+kes  Add Richard's patch for relabel to dircmd.c, but save and restore
+     dev Volume name.
+kes  Rework a lot of subroutines in dev.c to take dcr as an
+     argument. This is done to eliminate the usage of attached_dcrs
+     in lseek().
+kes  Change truncated_dvd to blank_dvd, which seems more suitable.
+kes  Apply most of Richard Mortimer's truncate patch.
+kes  Create lseek() method for DEVICE that takes dcr as an
+     argument. This is to eliminate the use of attached_dcrs in
+     lseek().  The calls to lseek_dev() must still be changed.
+13Sep06
+kes  Apply Richard Mortimer's patches for printing an error 
+     message in btape when a DVD is used, and to initialize traceback.
+kes  Added error message to btape when trying to access a file.
+kes  Move prototype of update_slots() to protos.h.
+12Sep06
+kes  Add JobErrors, JobFiles, SDJobFiles, SDJobErrors, SDJobStatus,
+     and FDJobStatus to the Director Python variables.
+kes  Make sure valid argument passed to str_to_utime() where Arno
+     had a seg fault.
+kes  Apply Richard Mortimer's patch for bcopy, bextract, and bscan.
+     I.e. part of two different patches.
+11Sep06
+kes  Modify disk changer to simulate some of the error conditions
+     of mtx-changer.
+kes  Make sure the close() call in the SD tools is just before the
+     getchar() call.
+kes  Implement dir_get_volume_info() in bls using the patch from
+     Richard Mortimer but call find_num_dvd_parts().
+kes  Implement find_num_dvd_parts() that mounts and scans a DVD
+     and counts the parts. 
+kes  Move the omode code in open_dvd() up so that the cannot
+     write on blank disk can check can be bypassed for read mode.
+     Not yet implemented.
 10Sep06
+kes  Disable normal data spooling for DVD writing which uses  
+     a different spooling mechanism.
 kes  Apply patch from Richard Mortimer to ensure that the number
      of DVD parts is correctly updated.
+rbn  Save installer details log in the Bacula directory as 
+     install.log.
+rbn  Add installer generation of client and storage templates
+     suitable for @inclusion on the director.
+rbn  Mark previously installed components for Win32 read-only since 
+     deselection doesn't do anything.
 
 Version 1.39.22 beta released:
 08Sep06
 kes  Fix logic error in handling error return from mtx-changer 
      script.
 kes  Make status from SD aware of -1 (unknown) Slot status.
-kes  At Eric's suggestion make both the "slots" and "drive" commands
+kes  At Eric's suggestion make both the 'slots' and 'drive' commands
      to the Storage daemon work even if the drive is busy.
 kes  Make two separate Win32 menu links for starting bconsole and
      wx-console in winbacula.nsi
@@ -27,7 +185,7 @@ kes  Use get_catalog_resource() to open catalog database
 kes  Integrate multiple console/director patch from 
      Carsten Paeth calle@calle.in-berlin.de
 ebl  Add character substitution in Job/JobDefs WriteBootStrap.
-     You can use now 'WriteBootStrap = "/path/%c_%n.bsr"'
+     You can use now 'WriteBootStrap = '/path/%c_%n.bsr''
 kes  Apply patch supplied in bug #656 to pass priority field
      in the run dialog to the Director in gnome console
 kes  Restore DCR after VOL_NAME_ERROR in mount.c.  Hopefully
@@ -50,6 +208,24 @@ kes  Manual updates.
 kes  Update examples directory.
 kes  Remove unused variable in winservice.cpp
 kes  Make Win32 make command build installer.
+rbn  Add new Install Type page, used to select between Automatic
+     and Custom installs.  Automatic installs only prompt for
+     configuration items that can't be reasonably defaulted.
+rbn  Added Bacula logo to page headers.
+rbn  Added Upgrade support
+     - Configuration and component selection are migrated from
+       pre-1.39 installs.
+     - Configuration of upgraded components is preserved and 
+       not prompted for
+     - Configuration of new components is handled according to
+       the Automatic / Custom selection.
+     - Component selection is defaulted to previously selected 
+       components.
+rbn  Installation of Server components is disabled on 
+     Windows 95, 98 and ME.
+rbn  Added URLs for support, info and upgrades to Bacula entry
+     in Add/Remove Programs.
+rbn  Added Version info to Bacula entry in Add/Remove Programs.
 04Sep06
 kes  Correct dvd code that breaks tape labeling.      
 kes  Implement Enabled on update slots.
@@ -71,16 +247,22 @@ kes  Tweak so that debug level 20 shows only DVD commands.
 kes  Correct spooled_part flag in dev.c close() so that it is cleared
      when the spool file is deleted or does not exist.
 kes  Print part number in read_records when eof hit (restore).
+rbn  Installer default changed to start services on new install.
 31Aug06
--es  Make find with no args in tree restore return error rather than
+kes  Make find with no args in tree restore return error rather than
      stopping the selection. Fixes bug #665
 kes  Rework DVD writing to ensure that the last part is written
      on open_next_part when dealing with a spool file.
 kes  Correct the lseek_dev() routine to handle end point correctly
      (bug introduced by me).
 kes  Allow part number to exceed num_dvd_parts in lseek_dev().
+rbn  Change make_session_key on Windows to use WIN32 APIs to produce 
+     a better seed.
+rbn  Add new tool scsilist.exe which displays the changer, tape and 
+     CD/DVD (1394, SCSI, SATA, ATAPI) devices and the information required 
+     to add them to bacula-sd.conf.
 30Aug06
-kes  Apply dvd-handler patch from Richard Mortimer.                        
+kes  Apply dvd-handler patch from Richard Mortimer.
 kes  Apply dvd error check patch from Richard Mortimer.
 kes  Apply bpipe race patch from Richard Mortimer.
 kes  Rework how DVD labels are handled and set append only
@@ -151,7 +333,23 @@ kes  When not descending into a directory, print the File= name that
      triggered it -- makes why not descending a bit clearer.
 kes  Do not unload autochanger when doing a list command -- basic code
      from Eric Bollengier.
-07Aug06                
+12Aug06
+rbn  Reworked the MinGW32 build-dependencies script, it has been renamed
+     to build-depkgs-mingw32.  It now handles two options -h to display
+     help and -C to reextract the source and apply the patches.  The -C
+     option is useful for updating the source after new patches are 
+     released.
+rbn  Moved the 3rd party package URLs to a separate file External-mingw32.
+     This allows updating to new versions without having to modify the
+     script and makes it easier to figure out which packages and which
+     versions are used.
+rbn  Added a new script build-depkgs-msvc.cmd which does the same thing
+     as build-depkgs-mingw32 except they are built using Microsoft Visual C
+     and placed in the depkgs-msvc directory.  There is also an 
+     External-msvc file to describe the packages.
+08Aug06
+rbn  Fix Windows cross-compile compatibilty problems with FreeBSD.
+07Aug06
 kes  Fix bug #462 incorrect error message printed when client script called
      from File= was not found.
 kes  Fix bug #558 (waiting for feedback) where Bacula needs too much time to
@@ -414,7 +612,7 @@ kes  Harden authentication failure in FD by single threading errors
      and forcing a 6 second wait.
 
      ===================== Warning =============================
-          Removed  "Accept Any Volume" directive.
+          Removed  'Accept Any Volume' directive.
      ===========================================================
 
 kes  Major cleanup and simplification of regress using shell functions
@@ -516,7 +714,7 @@ kes  Apply patch from adioso bug #616 to correct text in manual (replace
 kes  Rework a few of the zlib changes so that they build properly.
 
 21May06
-kes  Move DIR "run" command to SD before starting the message thread
+kes  Move DIR 'run' command to SD before starting the message thread
      as suggested by Cristopher Hull to avoid a race deadlock from
      two threads using the bsock structure.
 kes  Modify LICENSE to correct some problems pointed out by Debian.
@@ -1004,7 +1202,7 @@ kes  Simplify code in askdir.c that waits for creating an appendable
      volume so that it can handle multiple returns from the wait
      code.
 kes  Modify the wait code to permit multiple returns.
-kes  Return a zero when "autochanger drives" is called and
+kes  Return a zero when 'autochanger drives' is called and
      it is not an autochanger.
 kes  Make rewind_dev() a method taking a DCR as an argument.
      This permits closing and reopening the drive if the
@@ -1100,7 +1298,7 @@ kes  Remove warning message about multiple saves of hardlinked files
      from find_one.c as it can generate too many warning messages.
 kes  Modify most restore error messages to be queued so that they
      appear at the end of the job rather than mixted with the restore
-     listing where they could be "lost".
+     listing where they could be 'lost'.
 06Dec05
 kes  Reset timeout values before select() per patch from 
      Frank Sweetser for problems with non-blocking sockets.
@@ -1124,9 +1322,9 @@ kes  Rework reservation algorithm so that two drives can be used
 kes  Landon merged his data encription changes into the HEAD
 kes  Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at 
      If this patch is applied, the number of days can be specified with
-     "list nextvol days=xx"
+     'list nextvol days=xx'
      or
-     "status dir days=xx"
+     'status dir days=xx'
      My use case is to be able to preview the next scheduled job (and the 
      next tape to be used) on fridays if there are no scheduled jobs during 
      the weekend.
@@ -1194,5 +1392,3 @@ kes  Apply patch supplied by Eric Bollengier to fix PostgreSQL
 kes  Tweak #ifdefing a bit in new Win32 stream code.
 kes  Fix #ifdeffing for FD_NO_SEND_TEST.
 kes  Add documentation of performance #defines
-
-Release 1.38.11 (28Jun06) released 28JunO6
