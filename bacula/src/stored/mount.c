@@ -166,10 +166,21 @@ mount_next_vol:
    }
    while (dev->open(dcr, mode) < 0) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
-      if (dev->is_file() && dev->is_removable()) {
+      if ((dev->is_file() && dev->is_removable()) || dev->is_dvd()) {
+         bool ok = true;
          Dmsg0(150, "call scan_dir_for_vol\n");
-         if (dev->scan_dir_for_volume(dcr)) {
-            break;                    /* got a valid volume */
+         if (dev->is_dvd()) {
+            if (!dev->mount(0)) {
+               ok = false;
+            }
+         }
+         if (ok && dev->scan_dir_for_volume(dcr)) {
+            if (dev->open(dcr, mode) >= 0) {
+               break;                    /* got a valid volume */
+            }
+         }
+         if (ok && dev->is_dvd()) {
+            dev->unmount(0);
          }
       }
       if (try_autolabel(dcr) == try_read_vol) {

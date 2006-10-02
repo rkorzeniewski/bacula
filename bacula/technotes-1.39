@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+02Sep06
+kes  Apply dvd find volume patch from Richard Mortimer.
+kes  Eliminate the dvd specific mount routines using only the
+     dev->mount/unmount.
+kes  Make update_free_space a method of DEVICE and rename 
+     update_freespace.
 01Sep06
 kes  Require a messages command acl to be able to receive messages
      in a console.

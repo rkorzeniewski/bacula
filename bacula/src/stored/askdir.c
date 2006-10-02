@@ -527,7 +527,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       }
 
       if (dev->is_dvd()) {   
-         unmount_dvd(dev, 0);
+         dev->unmount(0);
       }
       
       /*

@@ -697,7 +697,7 @@ static bool mount_cmd(JCR *jcr)
                              dev->print_name());
                }
             } else if (dev->is_dvd()) {
-               if (mount_dvd(dev, 1)) {
+               if (dev->mount(1)) {
                   bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
                      dev->print_name());
                } else {
@@ -748,7 +748,7 @@ static bool unmount_cmd(JCR *jcr)
                unload_autochanger(dcr, -1);          
             }
             if (dev->is_dvd()) {
-               if (unmount_dvd(dev, 0)) {
+               if (dev->unmount(0)) {
                   bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
                      dev->print_name());
                } else {
@@ -765,7 +765,7 @@ static bool unmount_cmd(JCR *jcr)
             if (!unload_autochanger(dcr, -1)) {
                dev->close();
             }
-            if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
+            if (dev->is_dvd() && !dev->unmount(0)) {
                bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
             } else {
                dev->dev_blocked = BST_UNMOUNTED_WAITING_FOR_SYSOP;
@@ -796,7 +796,7 @@ static bool unmount_cmd(JCR *jcr)
             if (!unload_autochanger(dcr, -1)) {
                dev->close();
             }
-            if (dev->is_dvd() && !unmount_dvd(dev, 0)) {
+            if (dev->is_dvd() && !dev->unmount(0)) {
                bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
             } else {
                bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
