@@ -1,9 +1,13 @@
 
-          Release Notes for Bacula 1.39.22
+          Release Notes for Bacula 1.39.24
 
   Bacula code: Total files = 447 Total lines = 149,711 (*.h *.c *.in)
 
-New Features in 1.39.22:
+New Features in 1.39.24
+- Windows tray status windows are scrollable and resizable.
+- Win32 external script excution is much more flexible -- handles
+  spaces in names better, ...
+- Lots of DVD fixes -- I think they now work!
 - Fix opening of database in a restricted console to respect     
   any Catalog ACL.
 - Permit multiple console/director resources in bconsole.conf.
