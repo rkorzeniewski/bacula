@@ -44,11 +44,11 @@ New Features in 1.39.24
 
      ./update_bacula_tables
 
-  It is necessary to run it only once the first time you move to a
-  1.39.x beta or to 1.40.0. Upgrading the Bacula version thereafter
-  does not require updating the database again. Depending on the size of your
-  database the script make take a bit of time, to run, but in
-  general, it should be very fast.
+  It is necessary to run it only once the first time you move to
+  a 1.39.x beta or to 1.40.0.  Upgrading the Bacula version
+  thereafter does not require updating the database again.
+  Depending on the size of your database the script make take a
+  bit of time, to run, but in general, it should be very fast.
 
 ==== IMPORTANT DVD Volume format changed ====
 - The current Volume format written by 1.39.22 is different from
@@ -57,6 +57,14 @@ New Features in 1.39.24
   be unreadable by version 1.39.22.
 
 ==== IMPORTANT miscellaneous ====
+- The Gnome console program (gconsole) no longer functions as it
+  should.  If you have multiple catalogs, you will need to select
+  the catalog (this I will fix).  More importantly, in restore
+  mode, the restore tree is no longer shown in the left pane.  I
+  suspect this is due to incompatible changes in the GTK+ API,
+  and hence have given up on gnome and gtk+, as this has already
+  happened several times previously.  At some point there
+  will be a new GUI console.
 - The bacula-dir.conf directive Accept Any Volume has been
   removed because it was never implemented. You must delete all
   occurrence of this directive for the Director to run.
