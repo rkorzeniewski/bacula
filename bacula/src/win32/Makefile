@@ -8,6 +8,7 @@ DIRS=	dll \
 	console \
 	wx-console \
 	tools \
+	scripts \
 	installer
 
 .PHONY: $(DIRS) clean all

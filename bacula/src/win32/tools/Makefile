@@ -35,6 +35,8 @@ ALL_OBJS = \
 	$(DIRCONF_OBJS) \
 	$(OBJDIR)/bsmtp.o \
 	$(OBJDIR)/dbcheck.o \
+	$(OBJDIR)/scsilist.o \
+	$(OBJDIR)/ScsiDeviceList.o \
 	$(OBJDIR)/fstype.o \
 	$(OBJDIR)/drivetype.o \
 	$(OBJDIR)/testfind.o \
@@ -49,22 +51,19 @@ ALL_OBJS = \
 .PHONY: all clean
 
 all: \
-	$(BINDIR)/dbcheck.exe $(BINDIR)/fstype.exe $(BINDIR)/drivetype.exe \
-	$(BINDIR)/testfind.exe $(BINDIR)/testls.exe $(BINDIR)/bregex.exe \
-	$(BINDIR)/bwild.exe $(BINDIR)/scsilist.exe
-
-#
-# bsmtp needs passwd file emulation
-#
-#	$(BINDIR)/bsmtp.exe
+	$(BINDIR)/bsmtp.exe $(BINDIR)/dbcheck.exe  $(BINDIR)/scsilist.exe \
+	$(BINDIR)/drivetype.exe $(BINDIR)/fstype.exe \
+	$(BINDIR)/testfind.exe $(BINDIR)/testls.exe \
+	$(BINDIR)/bregex.exe $(BINDIR)/bwild.exe
 
 clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(ALL_OBJS))
 	$(call clean_exe,$(BINDIR)/bsmtp.exe)
 	$(call clean_exe,$(BINDIR)/dbcheck.exe)
-	$(call clean_exe,$(BINDIR)/fstype.exe)
+	$(call clean_exe,$(BINDIR)/scsilist.exe)
 	$(call clean_exe,$(BINDIR)/drivetype.exe)
+	$(call clean_exe,$(BINDIR)/fstype.exe)
 	$(call clean_exe,$(BINDIR)/testfind.exe)
 	$(call clean_exe,$(BINDIR)/testls.exe)
 	$(call clean_exe,$(BINDIR)/bregex.exe)
@@ -75,15 +74,18 @@ clean:
 #
 
 $(BINDIR)/bsmtp.exe: $(OBJDIR)/bsmtp.o $(LIBS_BACULA)
-	$(call link_conapp,)
+	$(call link_conapp,-lws2_32)
 
 $(BINDIR)/dbcheck.exe: $(OBJDIR)/dbcheck.o $(DIRCONF_OBJS) $(LIBS_BACULA) $(LIBS_CATS)
 	$(call link_conapp,)
 
-$(BINDIR)/fstype.exe: $(OBJDIR)/fstype.o $(LIBS_BACULA)
+$(BINDIR)/scsilist.exe: $(OBJDIR)/scsilist.o $(OBJDIR)/ScsiDeviceList.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 $(BINDIR)/drivetype.exe: $(OBJDIR)/drivetype.o $(LIBS_BACULA)
+	$(call link_conapp,)
+
+$(BINDIR)/fstype.exe: $(OBJDIR)/fstype.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 $(BINDIR)/testfind.exe: $(OBJDIR)/testfind.o $(DIRCONF_OBJS) $(LIBS_BACULA)
@@ -96,9 +98,6 @@ $(BINDIR)/bregex.exe: $(OBJDIR)/bregex.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 $(BINDIR)/bwild.exe: $(OBJDIR)/bwild.o $(LIBS_BACULA)
-	$(call link_conapp,)
-
-$(BINDIR)/scsilist.exe: $(OBJDIR)/scsilist.o ScsiDeviceList.o $(LIBS_BACULA)
 	$(call link_conapp,)
 
 include ../Makefile.rules

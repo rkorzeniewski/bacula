@@ -35,6 +35,8 @@ BACULA_BINARIES := \
 	bextract.exe \
 	bls.exe \
 	bscan.exe \
+	bsleep.exe \
+	bsmtp.exe \
 	btape.exe \
 	dbcheck.exe \
 	scsilist.exe \

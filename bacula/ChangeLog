@@ -2,7 +2,7 @@
 
 General:
 Version 1.39.24 beta released:
-02Sep06
+02Oct06
 rbn  Fix restore problem with c:\ prefix bug #676.
 rbn  Verify that drive letter is valid on restore.
 rbn  Fix re-open() options for tape.
@@ -11,7 +11,7 @@ kes  Eliminate the dvd specific mount routines using only the
      dev->mount/unmount.
 kes  Make update_free_space a method of DEVICE and rename 
      update_freespace.
-01Sep06
+01Oct06
 kes  Require a messages command acl to be able to receive messages
      in a console.
 kes  Add console, system, and scan job types in util.c.

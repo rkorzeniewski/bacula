@@ -365,6 +365,8 @@ Function InstallCommonFiles
     File "${DEPKGS_BIN}\zlib1.dll.manifest"
 !endif
     File "${DEPKGS_BIN}\openssl.exe"
+    File "${BACULA_BIN}\bsleep.exe"
+    File "${BACULA_BIN}\bsmtp.exe"
     File "${BACULA_BIN}\bacula.dll"
 
     CreateShortCut "$SMPROGRAMS\Bacula\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
@@ -441,11 +443,13 @@ Section "-Initialize"
 
   ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\\\"
   FileWrite $R1 's;@working_dir@;$R2;$\r$\n'
+  ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\"
+  FileWrite $R1 's;@working_dir_cmd@;$R2;$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\\\"
   FileWrite $R1 's;@bin_dir@;$R2;$\r$\n'
-
-  FileWrite $R1 's;@TAPEDRIVE@;Tape0;$\r$\n'
+  ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
+  FileWrite $R1 's;@bin_dir_cmd@;$R2;$\r$\n'
 
   Call IsDirectorSelected
   Pop $R2
@@ -602,7 +606,13 @@ Section "Storage Service" SecStorageDaemon
   File "${BACULA_BIN}\bscan.exe"
   File "${BACULA_BIN}\btape.exe"
   File "${BACULA_BIN}\scsilist.exe"
-  File /oname=mtx-changer.cmd ${SCRIPT_DIR}\mtx-changer.cmd
+
+  ${Unless} ${FileExists} "${BACULA_BIN}\mtx-changer.cmd"
+    File "/oname=$PLUGINSDIR\mtx-changer.cmd" "${SCRIPT_DIR}\mtx-changer.cmd"
+
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\mtx-changer.cmd"'
+    CopyFiles "$PLUGINSDIR\mtx-changer.cmd" "$INSTDIR\bin\mtx-changer.cmd"
+  ${EndUnless}
 
   ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-sd.conf"
     File "/oname=$PLUGINSDIR\bacula-sd.conf.in" "bacula-sd.conf.in"

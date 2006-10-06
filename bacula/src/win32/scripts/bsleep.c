@@ -8,7 +8,7 @@ main(int argc, const char ** argv)
 
    if (argc != 2)
    {
-      fputs("usage: sleep <n>\n    n = number of seconds\n", stderr);
+      fputs("usage: bsleep <n>\n    n = number of seconds\n", stderr);
       exit(1);
    }
 

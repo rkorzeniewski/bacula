@@ -1558,7 +1558,6 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
 
    const char *current = cmdline;
 
-   bool bHasBlanks = false;
    bool bQuoted = false;
 
    /* Skip initial whitespace */
@@ -1588,9 +1587,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
 
    for ( ; *current != '\0'; current++)
    {
-      if (*current == ' ') {
-         bHasBlanks = true;
-      } else if (*current == '.') {
+      if (*current == '.') {
          pExtension = current;
       } else if ((*current == '\\' || *current == '/') && current[1] != '\0') {
          pBasename = &current[1];
@@ -1631,68 +1628,62 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
       pExeEnd = current;
    }
 
-   if (!bQuoted) {
-      bHasBlanks = false;
-   }
-
    bool bHasPathSeparators = pExeStart != pBasename;
 
-   /* We have the pointers to all the useful parts of the name */
+   /* We have pointers to all the useful parts of the name */
 
    /* Default extensions in the order cmd.exe uses to search */
 
    static const char ExtensionList[][5] = { ".com", ".exe", ".bat", ".cmd" };
    DWORD dwBasePathLength = pExeEnd - pExeStart;
 
-   if (bHasBlanks) {
-      DWORD dwShortNameLength = 0;
-      char *pPathname = (char *)alloca(MAX_PATHLENGTH + 1);
-      char *pShortPathname = (char *)alloca(MAX_PATHLENGTH + 1);
+   DWORD dwAltNameLength = 0;
+   char *pPathname = (char *)alloca(MAX_PATHLENGTH + 1);
+   char *pAltPathname = (char *)alloca(MAX_PATHLENGTH + 1);
 
-      pPathname[MAX_PATHLENGTH] = '\0';
-      pShortPathname[MAX_PATHLENGTH] = '\0';
+   pPathname[MAX_PATHLENGTH] = '\0';
+   pAltPathname[MAX_PATHLENGTH] = '\0';
 
-      memcpy(pPathname, pExeStart, dwBasePathLength);
-      pPathname[dwBasePathLength] = '\0';
+   memcpy(pPathname, pExeStart, dwBasePathLength);
+   pPathname[dwBasePathLength] = '\0';
 
-      if (pExtension == NULL) {
-         /* Try appending extensions */
-         for (int index = 0; index < (int)(sizeof(ExtensionList) / sizeof(ExtensionList[0])); index++) {
+   if (pExtension == NULL) {
+      /* Try appending extensions */
+      for (int index = 0; index < (int)(sizeof(ExtensionList) / sizeof(ExtensionList[0])); index++) {
 
-            if (!bHasPathSeparators) {
-               /* There are no path separators, search in the standard locations */
-               dwShortNameLength = SearchPath(NULL, pPathname, ExtensionList[index], MAX_PATHLENGTH, pShortPathname, NULL);
-               if (dwShortNameLength > 0 && dwShortNameLength <= MAX_PATHLENGTH) {
-                  memcpy(pPathname, pShortPathname, dwShortNameLength);
-                  pPathname[dwShortNameLength] = '\0';
-                  break;
-               }
-            } else {
-               bstrncpy(&pPathname[dwBasePathLength], ExtensionList[index], MAX_PATHLENGTH - dwBasePathLength);
-               if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
-                  break;
-               }
-            }
-         }
-      } else {
          if (!bHasPathSeparators) {
             /* There are no path separators, search in the standard locations */
-            dwShortNameLength = SearchPath(NULL, pPathname, NULL, MAX_PATHLENGTH, pShortPathname, NULL);
-            if (dwShortNameLength == 0 || dwShortNameLength > MAX_PATHLENGTH) {
-               return false;
+            dwAltNameLength = SearchPath(NULL, pPathname, ExtensionList[index], MAX_PATHLENGTH, pAltPathname, NULL);
+            if (dwAltNameLength > 0 && dwAltNameLength <= MAX_PATHLENGTH) {
+               memcpy(pPathname, pAltPathname, dwAltNameLength);
+               pPathname[dwAltNameLength] = '\0';
+               break;
             }
-
-            memcpy(pPathname, pShortPathname, dwShortNameLength);
-            pPathname[dwShortNameLength] = '\0';
+         } else {
+            bstrncpy(&pPathname[dwBasePathLength], ExtensionList[index], MAX_PATHLENGTH - dwBasePathLength);
+            if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
+               break;
+            }
          }
       }
+   } else if (!bHasPathSeparators) {
+      /* There are no path separators, search in the standard locations */
+      dwAltNameLength = SearchPath(NULL, pPathname, NULL, MAX_PATHLENGTH, pAltPathname, NULL);
+      if (dwAltNameLength == 0 || dwAltNameLength > MAX_PATHLENGTH) {
+         return false;
+      }
 
-      dwShortNameLength = GetShortPathName(pPathname, pShortPathname, MAX_PATHLENGTH);
+      memcpy(pPathname, pAltPathname, dwAltNameLength);
+      pPathname[dwAltNameLength] = '\0';
+   }
 
-      if (dwShortNameLength > 0 && dwShortNameLength <= MAX_PATHLENGTH) {
-         *pexe = (char *)malloc(dwShortNameLength + 1);
+   if (strchr(pPathname, ' ') != NULL) {
+      dwAltNameLength = GetShortPathName(pPathname, pAltPathname, MAX_PATHLENGTH);
+
+      if (dwAltNameLength > 0 && dwAltNameLength <= MAX_PATHLENGTH) {
+         *pexe = (char *)malloc(dwAltNameLength + 1);
          if (*pexe != NULL) {
-            memcpy(*pexe, pShortPathname, dwShortNameLength + 1);
+            memcpy(*pexe, pAltPathname, dwAltNameLength + 1);
          } else {
             return false;
          }
@@ -1700,11 +1691,10 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
          return false;
       }
    } else {
-      /* There are no blanks so we don't need to munge the name */
-      *pexe = (char *)malloc(dwBasePathLength + 1);
+      DWORD dwPathnameLength = strlen(pPathname);
+      *pexe = (char *)malloc(dwPathnameLength + 1);
       if (*pexe != NULL) {
-         memcpy(*pexe, pExeStart, dwBasePathLength);
-         (*pexe)[dwBasePathLength] = '\0';
+         memcpy(*pexe, pPathname, dwPathnameLength + 1);
       } else {
          return false;
       }
