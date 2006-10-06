@@ -488,51 +488,51 @@ void re_compile_initialize(void)
       plain_ops[(int)'\174'] = Ror;
    } else {
       quoted_ops[(int)'\174'] = Ror;
-      plain_ops[(int)'*'] = Rstar;
-      if (regexp_syntax & RE_BK_PLUS_QM) {
-         quoted_ops[(int)'+'] = Rplus;
-         quoted_ops[(int)'?'] = Roptional;
-      } else {
-         plain_ops[(int)'+'] = Rplus;
-         plain_ops[(int)'?'] = Roptional;
-      }
-      if (regexp_syntax & RE_NEWLINE_OR) {
-         plain_ops[(int)'\n'] = Ror;
-      }
-      plain_ops[(int)'\133'] = Ropenset;
-      plain_ops[(int)'\136'] = Rbol;
-      plain_ops[(int)'$'] = Reol;
-      plain_ops[(int)'.'] = Ranychar;
-      if (!(regexp_syntax & RE_NO_GNU_EXTENSIONS)) {
-         quoted_ops[(int)'w'] = Rwordchar;
-         quoted_ops[(int)'W'] = Rnotwordchar;
-         quoted_ops[(int)'<'] = Rwordbeg;
-         quoted_ops[(int)'>'] = Rwordend;
-         quoted_ops[(int)'b'] = Rwordbound;
-         quoted_ops[(int)'B'] = Rnotwordbound;
-         quoted_ops[(int)'`'] = Rbegbuf;
-         quoted_ops[(int)'\''] = Rendbuf;
-      }
-      if (regexp_syntax & RE_ANSI_HEX) {
-         quoted_ops[(int)'v'] = Rextended_memory;
-      }
-      for (a = 0; a < Rnum_ops; a++) {
-         precedences[a] = 4;
-      }
-      if (regexp_syntax & RE_TIGHT_VBAR) {
-         precedences[Ror] = 3;
-         precedences[Rbol] = 2;
-         precedences[Reol] = 2;
-      } else {
-         precedences[Ror] = 2;
-         precedences[Rbol] = 3;
-         precedences[Reol] = 3;
-      }
-      precedences[Rclosepar] = 1;
-      precedences[Rend] = 0;
-      regexp_context_indep_ops = (regexp_syntax & RE_CONTEXT_INDEP_OPS) != 0;
-      regexp_ansi_sequences = (regexp_syntax & RE_ANSI_HEX) != 0;
    }
+   plain_ops[(int)'*'] = Rstar;
+   if (regexp_syntax & RE_BK_PLUS_QM) {
+      quoted_ops[(int)'+'] = Rplus;
+      quoted_ops[(int)'?'] = Roptional;
+   } else {
+      plain_ops[(int)'+'] = Rplus;
+      plain_ops[(int)'?'] = Roptional;
+   }
+   if (regexp_syntax & RE_NEWLINE_OR) {
+      plain_ops[(int)'\n'] = Ror;
+   }
+   plain_ops[(int)'\133'] = Ropenset;
+   plain_ops[(int)'\136'] = Rbol;
+   plain_ops[(int)'$'] = Reol;
+   plain_ops[(int)'.'] = Ranychar;
+   if (!(regexp_syntax & RE_NO_GNU_EXTENSIONS)) {
+      quoted_ops[(int)'w'] = Rwordchar;
+      quoted_ops[(int)'W'] = Rnotwordchar;
+      quoted_ops[(int)'<'] = Rwordbeg;
+      quoted_ops[(int)'>'] = Rwordend;
+      quoted_ops[(int)'b'] = Rwordbound;
+      quoted_ops[(int)'B'] = Rnotwordbound;
+      quoted_ops[(int)'`'] = Rbegbuf;
+      quoted_ops[(int)'\''] = Rendbuf;
+   }
+   if (regexp_syntax & RE_ANSI_HEX) {
+      quoted_ops[(int)'v'] = Rextended_memory;
+   }
+   for (a = 0; a < Rnum_ops; a++) {
+      precedences[a] = 4;
+   }
+   if (regexp_syntax & RE_TIGHT_VBAR) {
+      precedences[Ror] = 3;
+      precedences[Rbol] = 2;
+      precedences[Reol] = 2;
+   } else {
+      precedences[Ror] = 2;
+      precedences[Rbol] = 3;
+      precedences[Reol] = 3;
+   }
+   precedences[Rclosepar] = 1;
+   precedences[Rend] = 0;
+   regexp_context_indep_ops = (regexp_syntax & RE_CONTEXT_INDEP_OPS) != 0;
+   regexp_ansi_sequences = (regexp_syntax & RE_ANSI_HEX) != 0;
 }
 
 int re_set_syntax(int syntax) {

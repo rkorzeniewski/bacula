@@ -1,7 +1,7 @@
               Technical notes on version 1.39  
 
 General:
-02Sep06
+02Oct06
 kes  Apply dvd find volume patch from Richard Mortimer.
 kes  Eliminate the dvd specific mount routines using only the
      dev->mount/unmount.
