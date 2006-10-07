@@ -381,16 +381,16 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
       szDrive[0] = szDriveLetters[i];
       volume = GetUniqueVolumeNameForPath(szDrive);
       // store uniquevolumname
-      if (SUCCEEDED(pVss->AddToSnapshotSet((LPWSTR)volume.c_str(), GUID_NULL, &pid)))
+      if (SUCCEEDED(pVss->AddToSnapshotSet((LPWSTR)volume.c_str(), GUID_NULL, &pid))) {
          wcsncpy (m_wszUniqueVolumeName[szDriveLetters[i]-'A'], (LPWSTR) volume.c_str(), MAX_PATH);
-      else
-      {            
+      } else {            
          szDriveLetters[i] = tolower (szDriveLetters[i]);               
       }
    }
 
    /* PrepareForBackup */
    if (FAILED(pVss->PrepareForBackup(&pAsync1.p))) {      
+      errno = b_errno_win32;
       return FALSE;   
    }
    
@@ -399,11 +399,13 @@ BOOL VSSClientGeneric::CreateSnapshots(char* szDriveLetters)
 
    /* get latest info about writer status */
    if (!CheckWriterStatus()) {
+      errno = b_errno_win32;
       return FALSE;
    }
 
    /* DoSnapShotSet */   
    if (FAILED(pVss->DoSnapshotSet(&pAsync2.p))) {      
+      errno = b_errno_win32;
       return FALSE;   
    }
 
@@ -605,16 +607,16 @@ BOOL VSSClientGeneric::CheckWriterStatus()
         /* store text info */
         char str[1000];
         char szBuf[200];        
-        strcpy(str, "\"");
+        bstrncpy(str, "\"", sizeof(str));
         wchar_2_UTF8(szBuf, bstrWriterName.p, sizeof(szBuf));
-        strcat(str, szBuf);
-        strcat(str, "\", State: 0x");
+        bstrncat(str, szBuf, sizeof(str));
+        bstrncat(str, "\", State: 0x");
         itoa(eWriterStatus, szBuf, sizeof(szBuf));
-        strcat(str, szBuf);
-        strcat(str, " (");
+        bstrncat(str, szBuf, sizeof(str));
+        bstrncat(str, " (", sizeof(str));
         wchar_2_UTF8(szBuf, GetStringFromWriterStatus(eWriterStatus), sizeof(szBuf));
-        strcat(str, szBuf);
-        strcat(str, ")");
+        bstrncat(str, szBuf, sizeof(str));
+        bstrncat(str, ")", sizeof(str));
 
         AppendWriterInfo(nState, (const char *)str);     
     }

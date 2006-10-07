@@ -131,13 +131,13 @@ BOOL VSSClient::GetShadowPath(const char *szFilePath, char *szShadowPath, int nB
 
          if (WideCharToMultiByte(CP_UTF8,0,m_szShadowCopyName[nDriveIndex],-1,szShadowPath,nBuflen-1,NULL,NULL)) {
             nBuflen -= (int)strlen(szShadowPath);
-            strncat(szShadowPath, szFilePath+2, nBuflen);
+            bstrncat(szShadowPath, szFilePath+2, nBuflen);
             return TRUE;
          }
       }
    }
    
-   strncpy(szShadowPath,  szFilePath, nBuflen);
+   bstrncpy(szShadowPath, szFilePath, nBuflen);
    errno = EINVAL;
    return FALSE;   
 }
@@ -166,7 +166,7 @@ BOOL VSSClient::GetShadowPathW(const wchar_t *szFilePath, wchar_t *szShadowPath,
       }
    }
    
-   wcsncpy(szShadowPath,  szFilePath, nBuflen);
+   wcsncpy(szShadowPath, szFilePath, nBuflen);
    errno = EINVAL;
    return FALSE;   
 }
@@ -174,21 +174,21 @@ BOOL VSSClient::GetShadowPathW(const wchar_t *szFilePath, wchar_t *szShadowPath,
 
 const size_t VSSClient::GetWriterCount()
 {
-   alist* pV = (alist*) m_pAlistWriterInfoText;
+   alist* pV = (alist*)m_pAlistWriterInfoText;
    return pV->size();
 }
 
 const char* VSSClient::GetWriterInfo(int nIndex)
 {
-   alist* pV = (alist*) m_pAlistWriterInfoText;
-   return (char*) pV->get(nIndex);
+   alist* pV = (alist*)m_pAlistWriterInfoText;
+   return (char*)pV->get(nIndex);
 }
 
 
 const int VSSClient::GetWriterState(int nIndex)
 {
-   alist* pV = (alist*) m_pAlistWriterState;   
-   return (int) pV->get(nIndex);
+   alist* pV = (alist*)m_pAlistWriterState;   
+   return (int)pV->get(nIndex);
 }
 
 void VSSClient::AppendWriterInfo(int nState, const char* pszInfo)
@@ -196,17 +196,17 @@ void VSSClient::AppendWriterInfo(int nState, const char* pszInfo)
    alist* pT = (alist*) m_pAlistWriterInfoText;
    alist* pS = (alist*) m_pAlistWriterState;
 
-   pT->push (bstrdup(pszInfo));
-   pS->push ((void*) nState);   
+   pT->push(bstrdup(pszInfo));
+   pS->push((void*)nState);   
 }
 
 void VSSClient::DestroyWriterInfo()
 {
-   alist* pT = (alist*) m_pAlistWriterInfoText;
-   alist* pS = (alist*) m_pAlistWriterState;
+   alist* pT = (alist*)m_pAlistWriterInfoText;
+   alist* pS = (alist*)m_pAlistWriterState;
 
    while (!pT->empty())
-      free (pT->pop());
+      free(pT->pop());
 
    while (!pS->empty())
       pS->pop();      

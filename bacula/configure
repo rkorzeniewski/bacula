@@ -16631,9 +16631,9 @@ echo "$as_me: error: Unable to find libpq-fe.h in standard locations" >&2;}
       elif test -f $withval/include/postgresql/libpq-fe.h; then
           POSTGRESQL_INCDIR=$withval/include/postgresql
      if test -d $withval/lib64; then
-          POSTGRESQL_LIBDIR=$withval/lib64
+         POSTGRESQL_LIBDIR=$withval/lib64
      else
-          POSTGRESQL_LIBDIR=$withval/lib
+         POSTGRESQL_LIBDIR=$withval/lib
      fi
           POSTGRESQL_BINDIR=$withval/bin
       else
@@ -16848,80 +16848,84 @@ if test "${with_mysql+set}" = set; then
 
   if test "$withval" != "no"; then
         if test "$withval" = "yes"; then
-                if test -f /usr/local/mysql/include/mysql/mysql.h; then
-                        MYSQL_INCDIR=/usr/local/mysql/include/mysql
-                        if test -f /usr/local/mysql/lib64/mysql/libmysqlclient.a; then
-                                MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
-                        else
-                                MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
-                        fi
-                        MYSQL_BINDIR=/usr/local/mysql/bin
-                elif test -f /usr/include/mysql/mysql.h; then
-                        MYSQL_INCDIR=/usr/include/mysql
-                        if test -f /usr/lib64/mysql/libmysqlclient.a; then
-                                MYSQL_LIBDIR=/usr/lib64/mysql
-                        else
-                                MYSQL_LIBDIR=/usr/lib/mysql
-                        fi
-                        MYSQL_BINDIR=/usr/bin
-                elif test -f /usr/include/mysql.h; then
-                        MYSQL_INCDIR=/usr/include
-                        if test -f /usr/lib64/libmysqlclient.a; then
-                                MYSQL_LIBDIR=/usr/lib64
-                        else
-                                MYSQL_LIBDIR=/usr/lib
-                        fi
-                        MYSQL_BINDIR=/usr/bin
-                elif test -f /usr/local/include/mysql/mysql.h; then
-                        MYSQL_INCDIR=/usr/local/include/mysql
-                        if test -f /usr/local/lib64/mysql/libmysqlclient.a; then
-                                MYSQL_LIBDIR=/usr/local/lib64/mysql
-                        else
-                                MYSQL_LIBDIR=/usr/local/lib/mysql
-                        fi
-                        MYSQL_BINDIR=/usr/local/bin
-                elif test -f /usr/local/include/mysql.h; then
-                        MYSQL_INCDIR=/usr/local/include
-                        if test -f /usr/local/lib64/libmysqlclient.a; then
-                                MYSQL_LIBDIR=/usr/local/lib64
-                        else
-                                MYSQL_LIBDIR=/usr/local/lib
-                        fi
-                        MYSQL_BINDIR=/usr/local/bin
-                else
-                   echo "$as_me:$LINENO: result: no" >&5
+           if test -f /usr/local/mysql/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/mysql/include/mysql
+                   if test -f /usr/local/mysql/lib64/mysql/libmysqlclient.a; then
+                           MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
+                   fi
+                   MYSQL_BINDIR=/usr/local/mysql/bin
+           elif test -f /usr/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/include/mysql
+                   if test -f /usr/lib64/mysql/libmysqlclient.a; then
+                           MYSQL_LIBDIR=/usr/lib64/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/lib/mysql
+                   fi
+                   MYSQL_BINDIR=/usr/bin
+           elif test -f /usr/include/mysql.h; then
+                   MYSQL_INCDIR=/usr/include
+                   if test -f /usr/lib64/libmysqlclient.a; then
+                           MYSQL_LIBDIR=/usr/lib64
+                   else
+                           MYSQL_LIBDIR=/usr/lib
+                   fi
+                   MYSQL_BINDIR=/usr/bin
+           elif test -f /usr/local/include/mysql/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/include/mysql
+                   if test -f /usr/local/lib64/mysql/libmysqlclient.a; then
+                           MYSQL_LIBDIR=/usr/local/lib64/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/local/lib/mysql
+                   fi
+                   MYSQL_BINDIR=/usr/local/bin
+           elif test -f /usr/local/include/mysql.h; then
+                   MYSQL_INCDIR=/usr/local/include
+                   if test -f /usr/local/lib64/libmysqlclient.a; then
+                           MYSQL_LIBDIR=/usr/local/lib64
+                   else
+                           MYSQL_LIBDIR=/usr/local/lib
+                   fi
+                   MYSQL_BINDIR=/usr/local/bin
+           else
+              echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                   { { echo "$as_me:$LINENO: error: Unable to find mysql.h in standard locations" >&5
+              { { echo "$as_me:$LINENO: error: Unable to find mysql.h in standard locations" >&5
 echo "$as_me: error: Unable to find mysql.h in standard locations" >&2;}
    { (exit 1); exit 1; }; }
-                fi
+           fi
         else
-                if test -f $withval/include/mysql/mysql.h; then
-                        MYSQL_INCDIR=$withval/include/mysql
-                        if test -f $withval/lib64/mysql/libmysqlclient.a; then
-                                MYSQL_LIBDIR=$withval/lib64/mysql
-                        else
-                                MYSQL_LIBDIR=$withval/lib/mysql
-                        fi
-                        MYSQL_BINDIR=$withval/bin
-                elif test -f $withval/include/mysql.h; then
-                        MYSQL_INCDIR=$withval/include
-                        if test -f "$withval/lib64/libmysqlclient.a"; then
-                                MYSQL_LIBDIR=$withval/lib64
-                        else
-                                MYSQL_LIBDIR=$withval/lib
-                        fi
-                        MYSQL_BINDIR=$withval/bin
-                else
-                   echo "$as_me:$LINENO: result: no" >&5
+           if test -f $withval/include/mysql/mysql.h; then
+              MYSQL_INCDIR=$withval/include/mysql
+              if test -f $withval/lib64/mysql/libmysqlclient.a; then
+                 MYSQL_LIBDIR=$withval/lib64/mysql
+              else
+                 MYSQL_LIBDIR=$withval/lib/mysql
+                 # Solaris ...
+                 if test -f $withval/lib/libmysqlclient.so; then
+                    MYSQL_LIBDIR=$withval/lib
+                 fi
+              fi
+              MYSQL_BINDIR=$withval/bin
+           elif test -f $withval/include/mysql.h; then
+              MYSQL_INCDIR=$withval/include
+              if test -f "$withval/lib64/libmysqlclient.a"; then
+                 MYSQL_LIBDIR=$withval/lib64
+              else
+                 MYSQL_LIBDIR=$withval/lib
+              fi
+              MYSQL_BINDIR=$withval/bin
+           else
+              echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                   { { echo "$as_me:$LINENO: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&5
+              { { echo "$as_me:$LINENO: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&5
 echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h under $withval" >&2;}
    { (exit 1); exit 1; }; }
-                fi
+           fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    if test -f $MYSQL_LIBDIR/libmysqlclient_r.a; then
+    if test -f "$MYSQL_LIBDIR/libmysqlclient_r.a"; then
        SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
        cat >>confdefs.h <<\_ACEOF
 #define HAVE_THREAD_SAFE_MYSQL 1
