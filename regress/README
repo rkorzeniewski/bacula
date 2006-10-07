@@ -24,6 +24,11 @@ email address!
 If you are using SQLite, make sure that depkgs is pre-built if it
 isn't already: (cd your-depkgs; make sqlite).
 
+Note, if you use any database other than SQLite, be sure it is not              
+your production database because Bacula will delete all the tables
+and recreate them.  With SQLite, a new different database is created,
+so it will not affect your production system.
+
 Using the .conf file, you can now select between any Catalog type:
 SQLite, SQLite3, MySQL, or PostgreSQL.  Be aware, however, if you
 use an installed database on a production server, running these
@@ -55,9 +60,21 @@ You can run all the disk based tests by doing:
 
   ./do_file
 
+The disk based tests are totally separate from any production
+system, provided you have configured the database appropriately     
+as noted above.
+
 You can run all the disk and most of the tape tests by doing:
 
   ./do_all
+
+======== Important !!! ============
+When running the tape tests, Bacula will write on any tape that
+is in the tape drive that you have configured.  If it is a production
+Bacula tape, it will be destroyed.  If you have configured an Autochanger,
+Bacula will write on the tapes in slots 1 and 2 thus destroying any
+information on those tapes, even if they are Bacula production tapes.
+=================================== 
 
 Each of the above calls one or more scripts. By looking at the
 scripts available in this directory, you can see that there are a number
