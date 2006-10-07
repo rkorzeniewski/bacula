@@ -47,7 +47,7 @@ char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
-static char *catalog_db = NULL;	      /* database type */
+static char *catalog_db = NULL;       /* database type */
 
 const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
@@ -549,7 +549,19 @@ void term_msg()
    term_last_jobs_list();
 }
 
-
+static bool open_dest_file(JCR *jcr, DEST *d, const char *mode) 
+{
+   d->fd = fopen(d->where, mode);
+   if (!d->fd) {
+      berrno be;
+      d->fd = stdout;
+      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
+            be.strerror());
+      d->fd = NULL;
+      return false;
+   }
+   return true;
+}
 
 /*
  * Handle sending the message to the appropriate place
@@ -562,6 +574,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     int len, dtlen;
     MSGS *msgs;
     BPIPE *bpipe;
+    char *mode;
 
     Dmsg2(850, "Enter dispatch_msg type=%d msg=%s", type, msg);
 
@@ -693,37 +706,27 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 }
                 fputs(msg, d->fd);
                 break;
-             case MD_FILE:
-                Dmsg1(850, "FILE for following msg: %s", msg);
-                if (!d->fd) {
-                   d->fd = fopen(d->where, "w+b");
-                   if (!d->fd) {
-                      berrno be;
-                      d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
-                            be.strerror());
-                      d->fd = NULL;
-                      break;
-                   }
-                }
-                fputs(dt, d->fd);
-                fputs(msg, d->fd);
-                break;
              case MD_APPEND:
                 Dmsg1(850, "APPEND for following msg: %s", msg);
-                if (!d->fd) {
-                   d->fd = fopen(d->where, "ab");
-                   if (!d->fd) {
-                      berrno be;
-                      d->fd = stdout;
-                      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
-                            be.strerror());
-                      d->fd = NULL;
-                      break;
-                   }
+                mode = "ab";
+                goto send_to_file;
+             case MD_FILE:
+                Dmsg1(850, "FILE for following msg: %s", msg);
+                mode = "w+b";
+send_to_file:
+                if (!d->fd && !open_dest_file(jcr, d, mode)) {
+                   break;
                 }
                 fputs(dt, d->fd);
                 fputs(msg, d->fd);
+                /* On error, we close and reopen to handle log rotation */
+                if (ferror(d->fd)) {
+                   fclose(d->fd);
+                   if (open_dest_file(jcr, d, mode)) {
+                      fputs(dt, d->fd);
+                      fputs(msg, d->fd);
+                   }
+                }
                 break;
              case MD_DIRECTOR:
                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);

@@ -36,6 +36,24 @@
 
 MTX=@MTX@
 
+# mt status output
+# SunOS     No Additional Sense
+# FreeBSD   Current Driver State: at rest.
+# Linux     ONLINE
+
+OS=`uname`
+case ${OS} in
+  SunOS)
+    ready="No Additional Sense"
+    ;;
+  FreeBSD)
+    ready="Current Driver State: at rest."
+    ;;
+  *)
+    stat="ONLINE"
+  ;;
+esac
+
 #
 # log whats done
 #
@@ -72,11 +90,13 @@ make_temp_file() {
 # Note, this is very system dependent, so if you are
 #   not running on Linux, you will probably need to
 #   re-write it, or at least change the grep target.
+#   We've attempted to get the appropriate OS grep targets
+#   in the code at the top of this script.
 #
 wait_for_drive() {
   i=0 
   while [ $i -le 300 ]; do  # Wait max 300 seconds
-    if mt -f $1 status | grep ONLINE  >/dev/null 2>&1; then
+    if mt -f $1 status | grep ${ready}	>/dev/null 2>&1; then
       break
     fi
     debug "Device $1 - not ready, retrying..."

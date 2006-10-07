@@ -1,13 +1,31 @@
               Technical notes on version 1.39  
 
 General:
+07Oct06
+kes  Begin work on new GUI "console".
+kes  Make configure look in non-standard MySQL library directory 
+     for Solaris.
+kes  Make mtx-changer automatically configure the autochanger wait
+     procedure for Solaris, FreeBSD, and Linux.  Previously, only Linux
+     was implemented.
+kes  Correct drop_sqlite_tables.in script to not delete the database.
+kes  When writing to a log file, close and reopen the file descriptor
+     if there is an error writing the file.
+kes  Modify the autochanger loaded?, load, and unload commands to print
+     the full text of any mtx output if there is an error.  Helps to
+     ease diagnosis of autochanger problems.
+kes  Correct a few Win32 errno returns in the VSS code so that hopefully
+     a resonable Win32 error message will be printed.
+kes  Convert a few strcat()... to bstrncat() in the Win32 code.
+
+Version 1.39.24 released:
 02Oct06
 kes  Apply dvd find volume patch from Richard Mortimer.
 kes  Eliminate the dvd specific mount routines using only the
      dev->mount/unmount.
 kes  Make update_free_space a method of DEVICE and rename 
      update_freespace.
-01Sep06
+01Oct06
 kes  Require a messages command acl to be able to receive messages
      in a console.
 kes  Add console, system, and scan job types in util.c.

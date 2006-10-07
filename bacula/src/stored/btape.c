@@ -2779,10 +2779,10 @@ static bool my_mount_next_read_volume(DCR *dcr)
    }
 
    free_restore_volume_list(jcr);
+   dev->close();
    set_volume_name("TestVolume2", 2);
    jcr->bsr = NULL;
    create_restore_volume_list(jcr);
-   dev->close();
    if (!acquire_device_for_read(dcr)) {
       Pmsg2(0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(), dcr->VolumeName);
       return false;
