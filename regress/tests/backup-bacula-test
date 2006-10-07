@@ -6,7 +6,7 @@
 TestName="backup-bacula-test"
 JobName=backup
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/cleanup
 scripts/copy-confs
