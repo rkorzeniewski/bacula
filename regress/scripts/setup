@@ -2,6 +2,15 @@
 #
 # Script to setup running Bacula regression tests
 #
+
+check_exit_code()
+{
+   if [ $? != 0 ] ; then
+      echo "Bad exit code giving up"
+      exit 1 
+   fi
+}
+
 cwd=`pwd`
 if [ $# != 6 ] ; then
    echo "Incorrect number of arguments. Got $#. Need:"
@@ -23,18 +32,25 @@ cd build
 rm -f Makefile config.cache
 # Run Bacula configuration, make, install
 ./regress-config ${cwd} $2 $3 $4 $5 $6
+check_exit_code
 make
+check_exit_code
 make install
+check_exit_code
 cp src/tools/testls ../bin
+check_exit_code
 
-cd ..
+cd ${cwd}
 bin/bacula stop
+
+mkdir -p working
 cd bin
+echo "Running database creation scripts"
 ./create_bacula_database bacula
 ./drop_bacula_tables bacula
-./make_bacula_tables bacula
+./make_bacula_tables
 ./grant_bacula_privileges bacula
-cd ..
+cd ${cwd}
 # Start and stop Bacula to ensure conf files are OK
 bin/bacula start
 bin/bacula stop
