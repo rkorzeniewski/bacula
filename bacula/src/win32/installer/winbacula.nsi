@@ -345,6 +345,10 @@ Function InstallCommonFiles
     File "${DEPKGS_BIN}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "VC8_DEBUG"
+    File "${VC_REDIST_DIR}\msvcm80.dll"
+    File "${VC_REDIST_DIR}\msvcp80.dll"
+    File "${VC_REDIST_DIR}\msvcr80.dll"
+    File "${VC_REDIST_DIR}\Microsoft.VC80.CRT.manifest"
     File "${VC_REDIST_DIR}\msvcm80d.dll"
     File "${VC_REDIST_DIR}\msvcp80d.dll"
     File "${VC_REDIST_DIR}\msvcr80d.dll"
@@ -360,9 +364,14 @@ Function InstallCommonFiles
     File "${DEPKGS_BIN}\zlib1.dll"
 !if "${BUILD_TOOLS}" == "VC8"
     File "${DEPKGS_BIN}\zlib1.dll.manifest"
+    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\openssl.cnf"
 !endif
 !If "${BUILD_TOOLS}" == "VC8_DEBUG"
     File "${DEPKGS_BIN}\zlib1.dll.manifest"
+    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\openssl.cnf"
+!endif
+!if "${BUILD_TOOLS}" == "MinGW"
+    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\ssl\openssl.cnf"
 !endif
     File "${DEPKGS_BIN}\openssl.exe"
     File "${BACULA_BIN}\bsleep.exe"

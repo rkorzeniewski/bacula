@@ -55,6 +55,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    char *szCmdLine = CmdLine;
    char *wordPtr, *tempPtr;
    int i, quote;
+   DWORD dwCharsWritten;
 
    /* Save the application instance and main thread id */
    hAppInstance = hInstance;
@@ -83,7 +84,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    if (*szCmdLine != '"' && *wordPtr == '"') {
       szCmdLine = wordPtr + 1;
    }
-// MessageBox(NULL, szCmdLine, "Cmdline", MB_OK);
 
    /* Build Unix style argc *argv[] */      
 
@@ -133,7 +133,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    /*
     * Now process Windows command line options
     */
-   bool argfound = false;
    for (i = 0; i < (int)strlen(szCmdLine); i++) {
       if (szCmdLine[i] <= ' ') {
          continue;
@@ -143,69 +142,67 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
          break;
       }
 
-      argfound = true;
-
       /* Now check for command-line arguments */
 
       /* /silent install quietly -- no prompts */
-      if (strnicmp(&szCmdLine[i], "/silent", strlen("/silent")) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaSilent, sizeof(BaculaSilent) - 1) == 0) {
          silent = true;
-         i += strlen("/silent");
+         i += sizeof(BaculaSilent) - 1;
          continue;
       }
 
       /* /service start service */
-      if (strnicmp(&szCmdLine[i], BaculaRunService, strlen(BaculaRunService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRunService, sizeof(BaculaRunService) - 1) == 0) {
          /* Run Bacula as a service */
          return bacService::BaculaServiceMain();
       }
       /* /run  (this is the default if no command line arguments) */
-      if (strnicmp(&szCmdLine[i], BaculaRunAsUserApp, strlen(BaculaRunAsUserApp)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRunAsUserApp, sizeof(BaculaRunAsUserApp) - 1) == 0) {
          /* Bacula is being run as a user-level program */
+         if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+            AllocConsole();
+         }
+         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\r\n", 2, &dwCharsWritten, NULL);
+
          return BaculaAppMain();
       }
       /* /install */
-      if (strnicmp(&szCmdLine[i], BaculaInstallService, strlen(BaculaInstallService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaInstallService, sizeof(BaculaInstallService) - 1) == 0) {
          /* Install Bacula as a service */
-         bacService::InstallService(&szCmdLine[i + strlen(BaculaInstallService)]);
-         i += strlen(BaculaInstallService);
-         continue;
+         return bacService::InstallService(&szCmdLine[i + sizeof(BaculaInstallService) - 1]);
       }
       /* /remove */
-      if (strnicmp(&szCmdLine[i], BaculaRemoveService, strlen(BaculaRemoveService)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaRemoveService, sizeof(BaculaRemoveService) - 1) == 0) {
          /* Remove the Bacula service */
-         bacService::RemoveService();
-         i += strlen(BaculaRemoveService);
-         continue;
+         return bacService::RemoveService();
       }
 
       /* /kill */
-      if (strnicmp(&szCmdLine[i], BaculaKillRunningCopy, strlen(BaculaKillRunningCopy)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaKillRunningCopy, sizeof(BaculaKillRunningCopy) - 1) == 0) {
          /* Kill running copy of Bacula */
-         bacService::KillRunningCopy();
-         i += strlen(BaculaKillRunningCopy);
-         continue;
+         return bacService::KillRunningCopy() ? 0 : 1;
       }
 
       /* /help */
-      if (strnicmp(&szCmdLine[i], BaculaShowHelp, strlen(BaculaShowHelp)) == 0) {
+      if (strnicmp(&szCmdLine[i], BaculaShowHelp, sizeof(BaculaShowHelp) - 1) == 0) {
          MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK|MB_ICONINFORMATION);
-         i += strlen(BaculaShowHelp);
-         continue;
+         return 0;
       }
       
       MessageBox(NULL, szCmdLine, _("Bad Command Line Options"), MB_OK);
 
       /* Show the usage dialog */
       MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK | MB_ICONINFORMATION);
-      break;
+      return 1;
    }
 
    /* If no arguments were given then just run */
-   if (!argfound) {
-      BaculaAppMain();
+   if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+      AllocConsole();
    }
-   return 0;
+   WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\r\n", 2, &dwCharsWritten, NULL);
+
+   return BaculaAppMain();
 }
 
 
@@ -217,7 +214,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 void *Main_Msg_Loop(LPVOID lpwThreadParam) 
 {
    DWORD old_servicethread = g_servicethread;
-
 
    pthread_detach(pthread_self());
 
@@ -271,15 +267,6 @@ int BaculaAppMain()
    if (p_SetProcessShutdownParameters) {
       p_SetProcessShutdownParameters(0x100, 0);
    }
-
-#if 0
-   HWND hservwnd = FindWindow(MENU_CLASS_NAME, NULL);
-   if (hservwnd != NULL) {
-      /* We don't allow multiple instances! */
-      MessageBox(NULL, _("Another instance of Bacula is already running"), szAppName, MB_OK);
-      _exit(0);
-   }
-#endif
 
    /* Create a thread to handle the Windows messages */
    pthread_create(&tid, NULL,  Main_Msg_Loop, (void *)0);
