@@ -385,6 +385,7 @@ static void labelcmd()
       }
    }
    dev->rewind(dcr);
+   dev->weof(1);
    write_new_volume_label_to_dev(dcr, cmd, "Default", false,/*no relabel*/ true /* label dvd now */);
    Pmsg1(-1, _("Wrote Volume label for volume \"%s\".\n"), cmd);
 }
@@ -1848,14 +1849,7 @@ static void fillcmd()
    min_block_size = dev->min_block_size;
    dev->min_block_size = dev->max_block_size;
    set_volume_name("TestVolume1", 1);
-
-   if (!dev->rewind(dcr)) {
-      Pmsg0(000, _("Rewind failed.\n"));
-   }
-   if (!dev->weof(1)) {
-      Pmsg0(000, _("Write EOF failed.\n"));
-   }
-   labelcmd();
+   dir_ask_sysop_to_create_appendable_volume(dcr);
    dev->set_append();                 /* force volume to be relabeled */
 
    /*
@@ -1892,7 +1886,7 @@ static void fillcmd()
     * Put some random data in the record
     */
    fd = open("/dev/urandom", O_RDONLY);
-   if (fd) {
+   if (fd != -1) {
       read(fd, rec.data, rec.data_len);
       close(fd);
    } else {
@@ -2127,6 +2121,19 @@ static void do_unfill()
    last_file = last_file1;
    last_block = last_block1;
 
+   free_restore_volume_list(jcr);
+   jcr->bsr = NULL;
+   bstrncpy(dcr->VolumeName, "TestVolume1|TestVolume2", sizeof(dcr->VolumeName));
+   create_restore_volume_list(jcr);
+   if (jcr->VolList != NULL) {
+      jcr->VolList->Slot = 1;
+      if (jcr->VolList->next != NULL) {
+         jcr->VolList->next->Slot = 2;
+      }
+   }
+
+   set_volume_name("TestVolume1", 1);
+
    if (!simple) {
       /* Multiple Volume tape */
       /* Close device so user can use autochanger if desired */
@@ -2140,11 +2147,6 @@ static void do_unfill()
       }
    }
 
-   free_restore_volume_list(jcr);
-   jcr->dcr = new_dcr(jcr, dev);
-   set_volume_name("TestVolume1", 1);
-   jcr->bsr = NULL;
-   create_restore_volume_list(jcr);
    dev->close();
    dev->num_writers = 0;
    if (!acquire_device_for_read(dcr)) {
@@ -2198,10 +2200,8 @@ static void do_unfill()
       dev->offline();
    }
 
-   free_restore_volume_list(jcr);
    set_volume_name("TestVolume2", 2);
-   jcr->bsr = NULL;
-   create_restore_volume_list(jcr);
+
    autochanger = autoload_device(dcr, 1, NULL);
    if (!autochanger) {
       dev->close();
@@ -2743,7 +2743,6 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       dev->close();
       getchar();
    }
-   open_device(dcr);
    labelcmd();
    VolumeName = NULL;
    BlockNumber = 0;
@@ -2778,11 +2777,9 @@ static bool my_mount_next_read_volume(DCR *dcr)
       return false;
    }
 
-   free_restore_volume_list(jcr);
-   dev->close();
    set_volume_name("TestVolume2", 2);
-   jcr->bsr = NULL;
-   create_restore_volume_list(jcr);
+
+   dev->close();
    if (!acquire_device_for_read(dcr)) {
       Pmsg2(0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(), dcr->VolumeName);
       return false;
@@ -2799,4 +2796,5 @@ static void set_volume_name(const char *VolName, int volnum)
    bstrncpy(dcr->VolCatInfo.VolCatName, VolName, sizeof(dcr->VolCatInfo.VolCatName));
    bstrncpy(dcr->VolumeName, VolName, sizeof(dcr->VolumeName));
    dcr->VolCatInfo.Slot = volnum;
+   dcr->VolCatInfo.InChanger = true;
 }

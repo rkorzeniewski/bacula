@@ -380,7 +380,18 @@ char *encode_mode(mode_t mode, char *buf)
   return cp;
 }
 
+#if defined(HAVE_WIN32)
+int do_shell_expansion(char *name, int name_len)
+{
+   char *src = bstrdup(name);
 
+   ExpandEnvironmentStrings(src, name, name_len);
+
+   free(src);
+
+   return 1;
+}
+#else
 int do_shell_expansion(char *name, int name_len)
 {
    static char meta[] = "~\\$[]*?`'<>\"";
@@ -426,6 +437,7 @@ int do_shell_expansion(char *name, int name_len)
    }
    return 1;
 }
+#endif
 
 
 /*  MAKESESSIONKEY  --  Generate session key with optional start
