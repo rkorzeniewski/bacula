@@ -610,7 +610,7 @@ BOOL VSSClientGeneric::CheckWriterStatus()
         bstrncpy(str, "\"", sizeof(str));
         wchar_2_UTF8(szBuf, bstrWriterName.p, sizeof(szBuf));
         bstrncat(str, szBuf, sizeof(str));
-        bstrncat(str, "\", State: 0x");
+        bstrncat(str, "\", State: 0x",sizeof(str));
         itoa(eWriterStatus, szBuf, sizeof(szBuf));
         bstrncat(str, szBuf, sizeof(str));
         bstrncat(str, " (", sizeof(str));

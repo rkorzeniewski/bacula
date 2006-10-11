@@ -20,6 +20,7 @@ INCLUDES = \
 
 DEFINES = \
 	-DUSING_DLL \
+	-DWINVER=0x500 \
 	$(HAVES)
 
 vpath %.c ../../stored baculasd

@@ -94,6 +94,9 @@ SCRIPTS := \
 	../cats/make_catalog_backup.cmd \
 	../cats/delete_catalog_backup.cmd
 
+SSL_FILES := \
+	openssl.cnf
+
 ##########################################################################
 
 # Targets
@@ -106,7 +109,7 @@ installer:	$(INSTALL_EXE)
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES)
+	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES)
 	$(CMD_ECHO)-rm -f $(BACULA_BINARIES) $(addsuffix .dbg,$(basename $(BACULA_BINARIES)))
 	$(CMD_ECHO)-rm -f $(DEPKGS_BINARIES) $(addsuffix .dbg,$(basename $(DEPKGS_BINARIES)))
 	$(CMD_ECHO)-rm -f *.exe
@@ -134,7 +137,9 @@ $(foreach file,$(addprefix $(DEPKGS)/lib/, $(NONGCC_LIBRARIES)),$(eval $(call Co
 
 $(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Strip_Binary,$(file))))
 
-$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES)
+$(foreach file,$(addprefix $(DEPKGS)/ssl/, $(SSL_FILES)),$(eval $(call Copy_Binary,$(file))))
+
+$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES)
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 

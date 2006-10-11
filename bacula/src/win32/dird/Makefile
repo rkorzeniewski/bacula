@@ -17,6 +17,7 @@ INCLUDES = \
 DEFINES = \
 	-DUSING_DLL \
 	-DUSING_CATS \
+	-DWINVER=0x500 \
 	$(HAVES)
 
 vpath %.c ../../dird

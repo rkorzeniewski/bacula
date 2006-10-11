@@ -19,6 +19,7 @@ INCLUDES = \
 DEFINES = \
 	-DUSING_DLL \
 	-DWIN32_VSS \
+	-DWINVER=0x500 \
 	$(HAVES)
 
 vpath %.c ../../filed ../libwin32

@@ -371,7 +371,7 @@ Function InstallCommonFiles
     File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\openssl.cnf"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
-    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\ssl\openssl.cnf"
+    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\openssl.cnf"
 !endif
     File "${DEPKGS_BIN}\openssl.exe"
     File "${BACULA_BIN}\bsleep.exe"
