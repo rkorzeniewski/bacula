@@ -63,7 +63,8 @@
  * We enter with device locked, and
  *     exit with device locked.
  *
- * Note, we are called only from one place in block.c
+ * Note, we are called only from one place in block.c for the daemons.  
+ *     The btape utility calls it from btape.c.
  *
  *  Returns: true  on success
  *           false on failure

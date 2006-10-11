@@ -162,6 +162,7 @@ void
 init_msg(JCR *jcr, MSGS *msg)
 {
    DEST *d, *dnew, *temp_chain = NULL;
+   int i;
 
    if (jcr == NULL && msg == NULL) {
       init_last_jobs_list();
@@ -176,7 +177,6 @@ init_msg(JCR *jcr, MSGS *msg)
     *
     */
    int fd;
-   int i;
    fd = open("/dev/null", O_RDONLY, 0644);
    if (fd > 2) {
       close(fd);
@@ -193,11 +193,9 @@ init_msg(JCR *jcr, MSGS *msg)
    if (msg == NULL) {
       daemon_msgs = (MSGS *)malloc(sizeof(MSGS));
       memset(daemon_msgs, 0, sizeof(MSGS));
-#if !defined(HAVE_WIN32)
       for (i=1; i<=M_MAX; i++) {
          add_msg_dest(daemon_msgs, MD_STDOUT, i, NULL, NULL);
       }
-#endif
       Dmsg1(050, "Create daemon global message resource %p\n", daemon_msgs);
       return;
    }
@@ -823,7 +821,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
        if (trace) {
           if (!trace_fd) {
              char fn[200];
-             bsnprintf(fn, sizeof(fn), "%s/bacula.trace", working_directory ? working_directory : ".");
+             bsnprintf(fn, sizeof(fn), "%s/%s.trace", working_directory ? working_directory : ".", my_name);
              trace_fd = fopen(fn, "a+b");
           }
           if (trace_fd) {
@@ -919,7 +917,7 @@ t_msg(const char *file, int line, int level, const char *fmt,...)
 
     if (level <= debug_level) {
        if (!trace_fd) {
-          bsnprintf(buf, sizeof(buf), "%s/bacula.trace", working_directory);
+          bsnprintf(buf, sizeof(buf), "%s/%s.trace", working_directory ? working_directory : ".", my_name);
           trace_fd = fopen(buf, "a+b");
        }
 
