@@ -47,8 +47,8 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -153,8 +153,8 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\depkgs-msvc\lib"
 				ModuleDefinitionFile="msvc\bacula.def"
-				ImportLibrary="$(TargetDir)libbac.lib"
 				GenerateDebugInformation="true"
+				ImportLibrary="$(TargetDir)libbac.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1605,11 +1605,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\protos.h"
+				RelativePath="..\..\findlib\protos.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\findlib\protos.h"
+				RelativePath="..\..\lib\protos.h"
 				>
 			</File>
 			<File
@@ -1706,6 +1706,10 @@
 			</File>
 			<File
 				RelativePath="..\..\lib\watchdog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\winapi.h"
 				>
 			</File>
 			<File

@@ -418,16 +418,24 @@ static void cleanup_old_files()
 {
    POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
    int len = strlen(me->working_directory);
+#if defined(HAVE_WIN32)
+   pm_strcpy(cleanup, "del /q ");
+#else
    pm_strcpy(cleanup, "/bin/rm -f ");
+#endif
    pm_strcat(cleanup, me->working_directory);
-   if (len > 0 && me->working_directory[len-1] != '/') {
+   if (len > 0 && me->working_directory[len-1] != '/'
+#if defined(HAVE_WIN32)
+       && me->working_directory[len-1] != '\\'
+#endif
+       ) {
       pm_strcat(cleanup, "/");
    }
    pm_strcat(cleanup, my_name);
    pm_strcat(cleanup, "*.spool");
    run_program(cleanup, 0, NULL);
    free_pool_memory(cleanup);
-}      
+}
 
 
 /*

@@ -34,13 +34,13 @@ t_LookupPrivilegeValue  p_LookupPrivilegeValue = NULL;
 
 t_SetProcessShutdownParameters p_SetProcessShutdownParameters = NULL;
 
-t_CreateFileA   p_CreateFileA = NULL;
-t_CreateFileW   p_CreateFileW = NULL;
-t_CreateDirectoryA   p_CreateDirectoryA;
-t_CreateDirectoryW   p_CreateDirectoryW;
+t_CreateFileA           p_CreateFileA = NULL;
+t_CreateFileW           p_CreateFileW = NULL;
+t_CreateDirectoryA      p_CreateDirectoryA;
+t_CreateDirectoryW      p_CreateDirectoryW;
 
-t_wunlink p_wunlink = NULL;
-t_wmkdir p_wmkdir = NULL;
+t_wunlink               p_wunlink = NULL;
+t_wmkdir                p_wmkdir = NULL;
 
 t_GetFileAttributesA    p_GetFileAttributesA = NULL;
 t_GetFileAttributesW    p_GetFileAttributesW = NULL;
@@ -52,22 +52,24 @@ t_SetFileAttributesA    p_SetFileAttributesA = NULL;
 t_SetFileAttributesW    p_SetFileAttributesW = NULL;
 t_BackupRead            p_BackupRead = NULL;
 t_BackupWrite           p_BackupWrite = NULL;
-t_WideCharToMultiByte p_WideCharToMultiByte = NULL;
-t_MultiByteToWideChar p_MultiByteToWideChar = NULL;
+t_WideCharToMultiByte   p_WideCharToMultiByte = NULL;
+t_MultiByteToWideChar   p_MultiByteToWideChar = NULL;
 
-t_FindFirstFileA p_FindFirstFileA = NULL;
-t_FindFirstFileW p_FindFirstFileW = NULL;
+t_AttachConsole         p_AttachConsole = NULL;
 
-t_FindNextFileA p_FindNextFileA = NULL;
-t_FindNextFileW p_FindNextFileW = NULL;
+t_FindFirstFileA        p_FindFirstFileA = NULL;
+t_FindFirstFileW        p_FindFirstFileW = NULL;
 
-t_SetCurrentDirectoryA p_SetCurrentDirectoryA = NULL;
-t_SetCurrentDirectoryW p_SetCurrentDirectoryW = NULL;
+t_FindNextFileA         p_FindNextFileA = NULL;
+t_FindNextFileW         p_FindNextFileW = NULL;
 
-t_GetCurrentDirectoryA p_GetCurrentDirectoryA = NULL;
-t_GetCurrentDirectoryW p_GetCurrentDirectoryW = NULL;
+t_SetCurrentDirectoryA  p_SetCurrentDirectoryA = NULL;
+t_SetCurrentDirectoryW  p_SetCurrentDirectoryW = NULL;
 
-t_GetVolumePathNameW p_GetVolumePathNameW = NULL;
+t_GetCurrentDirectoryA  p_GetCurrentDirectoryA = NULL;
+t_GetCurrentDirectoryW  p_GetCurrentDirectoryW = NULL;
+
+t_GetVolumePathNameW    p_GetVolumePathNameW = NULL;
 t_GetVolumeNameForVolumeMountPointW p_GetVolumeNameForVolumeMountPointW = NULL;
 
 void 
@@ -124,9 +126,9 @@ InitWinAPIWrapper()
 
       if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
          p_CreateFileW = (t_CreateFileW)
-             GetProcAddress(hLib, "CreateFileW");      
+             GetProcAddress(hLib, "CreateFileW");
          p_CreateDirectoryW = (t_CreateDirectoryW)
-             GetProcAddress(hLib, "CreateDirectoryW");      
+             GetProcAddress(hLib, "CreateDirectoryW");
 
          /* backup calls */
          p_BackupRead = (t_BackupRead)
@@ -141,13 +143,13 @@ InitWinAPIWrapper()
          p_SetFileAttributesW = (t_SetFileAttributesW)
              GetProcAddress(hLib, "SetFileAttributesW");
          p_FindFirstFileW = (t_FindFirstFileW)
-             GetProcAddress(hLib, "FindFirstFileW");       
+             GetProcAddress(hLib, "FindFirstFileW");
          p_FindNextFileW = (t_FindNextFileW)
              GetProcAddress(hLib, "FindNextFileW");
          p_GetCurrentDirectoryW = (t_GetCurrentDirectoryW)
-             GetProcAddress(hLib, "GetCurrentDirectoryW");      
+             GetProcAddress(hLib, "GetCurrentDirectoryW");
          p_SetCurrentDirectoryW = (t_SetCurrentDirectoryW)
-             GetProcAddress(hLib, "SetCurrentDirectoryW");       
+             GetProcAddress(hLib, "SetCurrentDirectoryW");
 
          /* some special stuff we need for VSS
             but statically linkage doesn't work on Win 9x */
@@ -155,6 +157,9 @@ InitWinAPIWrapper()
              GetProcAddress(hLib, "GetVolumePathNameW");
          p_GetVolumeNameForVolumeMountPointW = (t_GetVolumeNameForVolumeMountPointW)
              GetProcAddress(hLib, "GetVolumeNameForVolumeMountPointW");
+
+         p_AttachConsole = (t_AttachConsole)
+             GetProcAddress(hLib, "AttachConsole");
       }
 
       FreeLibrary(hLib);

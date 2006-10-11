@@ -533,27 +533,21 @@ Section "-Initialize"
   ${EndIf}
 
   ${If} ${FileExists} "$OldInstallDir\bin\bacula-fd.exe"
-    ${If} $InstallType <> ${MigrateInstall}
-      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /silent /kill'     ; Shutdown any bacula that could be running
-      Sleep 3000
-      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /silent /remove'   ; Remove existing service
-    ${Else}
-      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /kill'     ; Shutdown any bacula that could be running
-      Sleep 3000
-      nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /remove'   ; Remove existing service
-    ${EndIf}
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /kill'     ; Shutdown any bacula that could be running
+    Sleep 3000
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-fd.exe" /remove'   ; Remove existing service
   ${EndIf}
 
   ${If} ${FileExists} "$OldInstallDir\bin\bacula-sd.exe"
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /kill'     ; Shutdown any bacula that could be running
     Sleep 3000
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /silent /remove'   ; Remove existing service
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-sd.exe" /remove'   ; Remove existing service
   ${EndIf}
 
   ${If} ${FileExists} "$OldInstallDir\bin\bacula-dir.exe"
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /kill'     ; Shutdown any bacula that could be running
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /kill'     ; Shutdown any bacula that could be running
     Sleep 3000
-    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /silent /remove'   ; Remove existing service
+    nsExec::ExecToLog '"$OldInstallDir\bin\bacula-dir.exe" /remove'   ; Remove existing service
   ${EndIf}
 
 SectionEnd
@@ -865,27 +859,27 @@ UninstallText "This will uninstall Bacula. Hit next to continue."
 
 Section "Uninstall"
   ; Shutdown any baculum that could be running
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /silent /kill'
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /silent /kill'
-  nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /silent /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /kill'
+  nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /kill'
   Sleep 3000
 
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-fd"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /silent /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-fd.exe" /remove'
   ${EndIf}
   
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-sd"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /silent /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-sd.exe" /remove'
   ${EndIf}
   
   ReadRegDWORD $R0 HKLM "Software\Bacula" "Service_Bacula-dir"
   ${If} $R0 = 1
     ; Remove bacula service
-    nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /silent /remove'
+    nsExec::ExecToLog '"$INSTDIR\bin\bacula-dir.exe" /remove'
   ${EndIf}
   
   ; remove registry keys
@@ -930,14 +924,14 @@ Function InstallDaemon
   WriteRegDWORD HKLM "Software\Bacula" "Service_$0" $2
   
   ${If} $2 = 1
-    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /silent /install -c "$APPDATA\Bacula\$0.conf"'
+    nsExec::ExecToLog '"$INSTDIR\bin\$0.exe" /install -c "$APPDATA\Bacula\$0.conf"'
 
     ${If} $OsIsNT <> 1
       File "Start.bat"
       File "Stop.bat"
     ${EndIf}
 
-    ; Start the service? (default skipped if silent, use /start to force starting)
+    ; Start the service?
 
     ${If} $3 = 1  
       ${If} $OsIsNT = 1

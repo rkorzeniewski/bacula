@@ -121,7 +121,9 @@ typedef DWORD (WINAPI * t_GetCurrentDirectoryW) (DWORD, LPWSTR);
 
 typedef BOOL (WINAPI * t_GetVolumePathNameW) (LPCWSTR, LPWSTR, DWORD);
 typedef BOOL (WINAPI * t_GetVolumeNameForVolumeMountPointW) (LPCWSTR, LPWSTR, DWORD);
-  
+
+typedef BOOL (WINAPI * t_AttachConsole) (DWORD);
+
 extern t_GetFileAttributesA   DLL_IMP_EXP p_GetFileAttributesA;
 extern t_GetFileAttributesW   DLL_IMP_EXP p_GetFileAttributesW;
 
@@ -158,6 +160,8 @@ extern t_GetCurrentDirectoryW DLL_IMP_EXP p_GetCurrentDirectoryW;
 
 extern t_GetVolumePathNameW DLL_IMP_EXP p_GetVolumePathNameW;
 extern t_GetVolumeNameForVolumeMountPointW DLL_IMP_EXP p_GetVolumeNameForVolumeMountPointW;
+
+extern t_AttachConsole DLL_IMP_EXP p_AttachConsole;
 
 void InitWinAPIWrapper();
 #endif

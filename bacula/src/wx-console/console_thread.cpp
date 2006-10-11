@@ -216,9 +216,7 @@ wxString console_thread::LoadConfig(wxString configfile)
    MSGS* msgs = (MSGS *)bmalloc(sizeof(MSGS));
    memset(msgs, 0, sizeof(MSGS));
    for (int i=1; i<=M_MAX; i++) {
-#ifndef HAVE_WIN32
       add_msg_dest(msgs, MD_STDOUT, i, NULL, NULL);
-#endif
 //    add_msg_dest(msgs, MD_SYSLOG, i, NULL, NULL);
       add_msg_dest(msgs, MD_CONSOLE, i, NULL, NULL);
    }

@@ -52,7 +52,7 @@ void set_service_description(SC_HANDLE hSCManager, SC_HANDLE hService,
 
 bacService init;
 
-extern bool    silent;
+extern bool    opt_debug;
 
 bacService::bacService()
 {
@@ -317,7 +317,7 @@ _("Provides storage services. Bacula -- the network backup solution."));
    CloseServiceHandle(hservice);
 
    // Everything went fine
-   if (!silent) {
+   if (opt_debug) {
       MessageBox(NULL,
               _("The Bacula Storage service was successfully installed.\n"
               "The service may be started from the Control Panel and will\n"
@@ -364,7 +364,7 @@ bacService::RemoveService()
 
          // Now remove the service from the SCM
          if(DeleteService(hservice)) {
-            if (!silent) {
+            if (opt_debug) {
                MessageBox(NULL, _("The Bacula Storage service has been removed"), szAppName, MB_ICONINFORMATION | MB_OK);
             }
          } else {

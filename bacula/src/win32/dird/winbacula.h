@@ -49,7 +49,7 @@ extern int BaculaAppMain();
 extern void LogErrorMsg(char *msg);
 
 // Standard command-line flag definitions
-const char BaculaSilent[]                = "/silent";
+const char BaculaOptDebug[]              = "/debug";
 
 const char BaculaRunService[]            = "/service";
 const char BaculaRunAsUserApp[]          = "/run";
@@ -61,7 +61,7 @@ const char BaculaRemoveService[]         = "/remove";
 const char BaculaShowHelp[]              = "/help";
 
 // Usage string
-const char BaculaUsageText[] = "Bacula [/silent] [/service] [/run] [/kill] [/install] [/remove] [/help]\n";
+const char BaculaUsageText[] = "Bacula [/debug] [/service] [/run] [/kill] [/install] [/remove] [/help]\n";
 
 void LogErrorMsg(char *msg, char *fname, int lineno);
 #define log_error_message(msg) LogErrorMsg((msg), __FILE__, __LINE__)

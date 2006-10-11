@@ -198,14 +198,17 @@ VSSClientGeneric::~VSSClientGeneric()
 BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 {
    if (!(p_CreateVssBackupComponents && p_VssFreeSnapshotProperties)) {
+      Dmsg2(0, "VSSClientGeneric::Initialize: p_CreateVssBackupComponents = 0x%08X, p_VssFreeSnapshotProperties = 0x%08X\n", p_CreateVssBackupComponents, p_VssFreeSnapshotProperties);
       errno = ENOSYS;
       return FALSE;
    }
 
    HRESULT hr;
-   // Initialize COM 
-   if (!m_bCoInitializeCalled)  {
-      if (FAILED(CoInitialize(NULL))) {
+   // Initialize COM
+   if (!m_bCoInitializeCalled) {
+      hr = CoInitialize(NULL);
+      if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: CoInitialize returned 0x%08X\n", hr);
          errno = b_errno_win32;
          return FALSE;
       }
@@ -227,13 +230,14 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
          NULL                            //  Reserved parameter
          );
 
-      if (FAILED(hr)) {         
+      if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: CoInitializeSecurity returned 0x%08X\n", hr);
          errno = b_errno_win32;
          return FALSE;
       }
-      m_bCoInitializeSecurityCalled = true;      
+      m_bCoInitializeSecurityCalled = true;
    }
-   
+
    // Release the IVssBackupComponents interface 
    if (m_pVssObject) {
       m_pVssObject->Release();
@@ -242,7 +246,8 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 
    // Create the internal backup components object
    hr = p_CreateVssBackupComponents((IVssBackupComponents**) &m_pVssObject);
-   if (FAILED(hr)) {      
+   if (FAILED(hr)) {
+      Dmsg1(0, "VSSClientGeneric::Initialize: CreateVssBackupComponents returned 0x%08X\n", hr);
       errno = b_errno_win32;
       return FALSE;
    }
@@ -251,6 +256,7 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
    if (dwContext != VSS_CTX_BACKUP) {
       hr = ((IVssBackupComponents*) m_pVssObject)->SetContext(dwContext);
       if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: IVssBackupComponents->SetContext returned 0x%08X\n", hr);
          errno = b_errno_win32;
          return FALSE;
       }
@@ -258,31 +264,33 @@ BOOL VSSClientGeneric::Initialize(DWORD dwContext, BOOL bDuringRestore)
 #endif
 
    if (!bDuringRestore) {
-       // 1. InitializeForBackup
-       hr = ((IVssBackupComponents*) m_pVssObject)->InitializeForBackup();
-       if (FAILED(hr)) {
-           errno = b_errno_win32; 
-           return FALSE;
-       }
+      // 1. InitializeForBackup
+      hr = ((IVssBackupComponents*) m_pVssObject)->InitializeForBackup();
+      if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: IVssBackupComponents->InitializeForBackup returned 0x%08X\n", hr);
+         errno = b_errno_win32; 
+         return FALSE;
+      }
  
-       // 2. SetBackupState
-       hr = ((IVssBackupComponents*) m_pVssObject)->SetBackupState(true, true, VSS_BT_FULL, false);
-       if (FAILED(hr)) {
-           errno = b_errno_win32;
-           return FALSE;
-       }
-       
-       CComPtr<IVssAsync>  pAsync1;       
-       // 3. GatherWriterMetaData
-       hr = ((IVssBackupComponents*) m_pVssObject)->GatherWriterMetadata(&pAsync1.p);
-       if (FAILED(hr)) {
-           errno = b_errno_win32;
-           return FALSE;
-       }
-        // Waits for the async operation to finish and checks the result
-       WaitAndCheckForAsyncOperation(pAsync1.p);
-   }
+      // 2. SetBackupState
+      hr = ((IVssBackupComponents*) m_pVssObject)->SetBackupState(true, true, VSS_BT_FULL, false);
+      if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: IVssBackupComponents->SetBackupState returned 0x%08X\n", hr);
+         errno = b_errno_win32;
+         return FALSE;
+      }
 
+      CComPtr<IVssAsync>  pAsync1;
+      // 3. GatherWriterMetaData
+      hr = ((IVssBackupComponents*) m_pVssObject)->GatherWriterMetadata(&pAsync1.p);
+      if (FAILED(hr)) {
+         Dmsg1(0, "VSSClientGeneric::Initialize: IVssBackupComponents->GatherWriterMetadata returned 0x%08X\n", hr);
+         errno = b_errno_win32;
+         return FALSE;
+      }
+      // Waits for the async operation to finish and checks the result
+      WaitAndCheckForAsyncOperation(pAsync1.p);
+   }
 
    // We are during restore now?
    m_bDuringRestore = bDuringRestore;
@@ -610,7 +618,7 @@ BOOL VSSClientGeneric::CheckWriterStatus()
         bstrncpy(str, "\"", sizeof(str));
         wchar_2_UTF8(szBuf, bstrWriterName.p, sizeof(szBuf));
         bstrncat(str, szBuf, sizeof(str));
-        bstrncat(str, "\", State: 0x",sizeof(str));
+        bstrncat(str, "\", State: 0x", sizeof(str));
         itoa(eWriterStatus, szBuf, sizeof(szBuf));
         bstrncat(str, szBuf, sizeof(str));
         bstrncat(str, " (", sizeof(str));

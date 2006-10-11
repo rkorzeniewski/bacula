@@ -31,10 +31,10 @@ extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
 extern void d_msg(const char *, int, int, const char *, ...);
 
 /* Globals */
-HINSTANCE       hAppInstance;
-const char      *szAppName = "Bacula-dir";
-DWORD           mainthreadId;
-bool            silent = false;
+HINSTANCE      hAppInstance;
+const char     *szAppName = "Bacula-dir";
+DWORD          mainthreadId;
+bool           opt_debug = false;
 
 /* Imported variables */
 extern DWORD    g_servicethread;
@@ -55,7 +55,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    char *szCmdLine = CmdLine;
    char *wordPtr, *tempPtr;
    int i, quote;
-   DWORD dwCharsWritten;
 
    /* Save the application instance and main thread id */
    hAppInstance = hInstance;
@@ -144,10 +143,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
       /* Now check for command-line arguments */
 
-      /* /silent install quietly -- no prompts */
-      if (strnicmp(&szCmdLine[i], BaculaSilent, sizeof(BaculaSilent) - 1) == 0) {
-         silent = true;
-         i += sizeof(BaculaSilent) - 1;
+      /* /debug install quietly -- no prompts */
+      if (strnicmp(&szCmdLine[i], BaculaOptDebug, sizeof(BaculaOptDebug) - 1) == 0) {
+         opt_debug = true;
+         i += sizeof(BaculaOptDebug) - 1;
          continue;
       }
 
@@ -159,11 +158,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       /* /run  (this is the default if no command line arguments) */
       if (strnicmp(&szCmdLine[i], BaculaRunAsUserApp, sizeof(BaculaRunAsUserApp) - 1) == 0) {
          /* Bacula is being run as a user-level program */
-         if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
-            AllocConsole();
-         }
-         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\r\n", 2, &dwCharsWritten, NULL);
-
          return BaculaAppMain();
       }
       /* /install */
@@ -195,12 +189,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       MessageBox(NULL, BaculaUsageText, _("Bacula Usage"), MB_OK | MB_ICONINFORMATION);
       return 1;
    }
-
-   /* If no arguments were given then just run */
-   if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
-      AllocConsole();
-   }
-   WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\r\n", 2, &dwCharsWritten, NULL);
 
    return BaculaAppMain();
 }
@@ -258,10 +246,19 @@ int BaculaAppMain()
 {
  /* DWORD dwThreadID; */
    pthread_t tid;
+   DWORD dwCharsWritten;
 
    InitWinAPIWrapper();
 
    WSA_Init();
+
+   /* If no arguments were given then just run */
+   if (p_AttachConsole == NULL || !p_AttachConsole(ATTACH_PARENT_PROCESS)) {
+      if (opt_debug) {
+         AllocConsole();
+      }
+   }
+   WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\r\n", 2, &dwCharsWritten, NULL);
 
    /* Set this process to be the last application to be shut down. */
    if (p_SetProcessShutdownParameters) {
