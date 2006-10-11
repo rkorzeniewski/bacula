@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+08Oct06
+kes  Turn on heap reporting in Dir with zero debug level.
+kes  Send a message to the sys log when Bacula forces a SEG FAULT, and
+     send the same message to stdout.
 07Oct06
 kes  Begin work on new GUI "console".
 kes  Make configure look in non-standard MySQL library directory 

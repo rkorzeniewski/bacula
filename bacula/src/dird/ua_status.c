@@ -237,6 +237,7 @@ static void do_all_status(UAContext *ua)
 static void do_director_status(UAContext *ua)
 {
    char dt[MAX_TIME_LENGTH];
+   char b1[35], b2[35], b3[35], b4[35];
 
    bsendmsg(ua, _("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
             HOST_OS, DISTNAME, DISTVER);
@@ -248,14 +249,12 @@ static void do_director_status(UAContext *ua)
       bsendmsg(ua, _("Daemon started %s, %d Jobs run since started.\n"),
         dt, num_jobs_run);
    }
-   if (debug_level > 0) {
-      char b1[35], b2[35], b3[35], b4[35];
-      bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+   bsendmsg(ua, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
             edit_uint64_with_commas(sm_bytes, b1),
             edit_uint64_with_commas(sm_max_bytes, b2),
             edit_uint64_with_commas(sm_buffers, b3),
             edit_uint64_with_commas(sm_max_buffers, b4));
-   }
+
    /*
     * List scheduled Jobs
     */

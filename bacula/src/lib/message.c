@@ -1099,6 +1099,8 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
 
     if (type == M_ABORT){
        char *p = 0;
+       printf("Bacula forced SEG FAULT to obtain traceback.\n");
+       syslog(LOG_DAEMON|LOG_ERR, "Bacula forced SEG FAULT to obtain traceback.\n");
        p[0] = 0;                      /* generate segmentation violation */
     }
     if (type == M_ERROR_TERM) {
