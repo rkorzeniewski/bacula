@@ -596,11 +596,9 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     }
 
     if (type == M_ABORT || type == M_ERROR_TERM) {
-#if !defined(HAVE_WIN32)
        fputs(dt, stdout);
        fputs(msg, stdout);         /* print this here to INSURE that it is printed */
        fflush(stdout);
-#endif
     }
 
     /* Now figure out where to send the message */

@@ -4,6 +4,36 @@ General:
 11Oct06
 kes  Correct mtx-changer bug that I introduced in a recent commit, and
      pointed out by Robert Nelson -- thanks.
+rbn  Fix Windows' daemons so that messages print to stdout if not 
+     running as a service.
+rbn  Add daemon name to trace file name (eg bacula-dir.trace).
+rbn  Fix environment variable expansion in directory names on Windows.
+rbn  Fix autochanger support in fill command.
+rbn  Update SQL scripts to match Unix versions.
+rbn  Fix daemon usage displays.
+rbn  Cleanup bacula-dir.conf template.
+rbn  Install openssl.cnf so that the openssl.exe installed in the
+     Bacula\bin directory can be used to generate keys and 
+     certificates for TLS and encryption.
+rbn  Fix cleanup of spool files on Windows.
+rbn  Remove /silent option from daemons on Windows.  The new default 
+     is the same as the old /silent.  To enable the message boxes that 
+     previously were suppressed by /silent you must add /debug instead.
+     NOTE: As a result of this change, the first time you upgrade from 
+           a previous version of 1.39.x you will receive the message 
+           boxes when the remove of the old services succeeds.  This 
+           is the same behaviour as when migrating from a version prior 
+           to 1.39.0.
+     However, going forward, these message boxes will not appear on 
+     upgrades or new installs.
+rbn  Add new /debug option. This option enables the message boxes that 
+     previously were suppressed by the /silent option.  In addition the 
+     daemons running as services will open a console window if this 
+     option is used.
+rbn  Fix bug with service not being removed on migrated installs.  This 
+     should correct those cases where the file daemon install was failing
+     when upgrading from versions prior to 1.39.x.
+
 08Oct06
 kes  Turn on heap reporting in Dir with zero debug level.
 kes  Send a message to the sys log when Bacula forces a SEG FAULT, and
@@ -24,6 +54,12 @@ kes  Modify the autochanger loaded?, load, and unload commands to print
 kes  Correct a few Win32 errno returns in the VSS code so that hopefully
      a resonable Win32 error message will be printed.
 kes  Convert a few strcat()... to bstrncat() in the Win32 code.
+06Oct06
+rbn  Added Windows version of bsmtp.
+rbn  Fixed path search for Windows so that Bacula\bin is automatically 
+     searched for programs and scripts.
+rbn  Fixed bugs in mtx-changer.cmd and made template bacula-sd.conf
+     Windows specific.
 
 Version 1.39.24 released:
 02Oct06
