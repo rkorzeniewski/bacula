@@ -1,6 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+11Oct06
+kes  Correct mtx-changer bug that I introduced in a recent commit, and
+     pointed out by Robert Nelson -- thanks.
 08Oct06
 kes  Turn on heap reporting in Dir with zero debug level.
 kes  Send a message to the sys log when Bacula forces a SEG FAULT, and

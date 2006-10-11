@@ -85,7 +85,7 @@ static int numdir = 0;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2002-2005 Kern Sibbald\n"
+"Copyright (C) 2002-2006 Kern Sibbald\n"
 "\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"

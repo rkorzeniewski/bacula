@@ -50,7 +50,7 @@ case ${OS} in
     ready="Current Driver State: at rest."
     ;;
   *)
-    stat="ONLINE"
+    ready="ONLINE"
   ;;
 esac
 
