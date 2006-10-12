@@ -436,10 +436,6 @@ minutes).
 
 - In restore don't compare byte count on a raw device -- directory
   entry does not contain bytes.
-- To mark files as deleted, run essentially a Verify to disk, and
-  when a file is found missing (MarkId != JobId), then create
-  a new File record with FileIndex == -1. This could be done
-  by the FD at the same time as the backup.
 === rate design
   jcr->last_rate
   jcr->last_runtime
@@ -488,7 +484,12 @@ minutes).
 - Bug: if a job is manually scheduled to run later, it does not appear
   in any status report and cannot be cancelled.
 
-==== Keeping track of deleted files ====
+==== Keeping track of deleted/new files ====
+- To mark files as deleted, run essentially a Verify to disk, and
+  when a file is found missing (MarkId != JobId), then create
+  a new File record with FileIndex == -1. This could be done
+  by the FD at the same time as the backup.
+
      My "trick" for keeping track of deletions is the following.
      Assuming the user turns on this option, after all the files
      have been backed up, but before the job has terminated, the
@@ -499,7 +500,14 @@ minutes).
      pass.  The DIR will then compare that to what is stored in
      the catalog.  Any files in the catalog but not in what the
      FD sent will receive a catalog File entry that indicates
-     that at that point in time the file was deleted.
+     that at that point in time the file was deleted. This
+     either transmitted to the FD or simultaneously computed in
+     the FD, so that the FD can put a record on the tape that
+     indicates that the file has been deleted at this point.
+     A delete file entry could potentially be one with a FileIndex
+     of 0 or perhaps -1 (need to check if FileIndex is used for
+     some other thing as many of the Bacula fields are "overloaded"
+     in the SD).
 
      During a restore, any file initially picked up by some
      backup (Full, ...) then subsequently having a File entry
@@ -525,6 +533,12 @@ minutes).
 
      Make sure this information is stored on the tape too so
      that it can be restored directly from the tape.
+
+     All the code (with the exception of formally generating and
+     saving the delete file entries) already exists in the Verify
+     Catalog command.  It explicitly recognizes added/deleted files since
+     the last InitCatalog.  It is more or less a "simple" matter of
+     taking that code and adapting it slightly to work for backups.
 
   Comments from Martin Simmons (I think they are all covered):
   Ok, that should cover the basics.  There are few issues though:
@@ -1694,4 +1708,3 @@ Block Position: 0
 - Restore of a raw drive should not try to check the volume size.
 - Lock tape drive door when open()
 - Make release unload any autochanger.
-
