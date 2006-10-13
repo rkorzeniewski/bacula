@@ -1,33 +1,10 @@
 
-          Release Notes for Bacula 1.39.24
+          Release Notes for Bacula 1.39.26
 
   Bacula code: Total files = 447 Total lines = 149,711 (*.h *.c *.in)
 
-New Features in 1.39.24
-- Windows tray status windows are scrollable and resizable.
-- Win32 external script excution is much more flexible -- handles
-  spaces in names better, ...
-- Lots of DVD fixes -- I think they now work!
-- Fix opening of database in a restricted console to respect     
-  any Catalog ACL.
-- Permit multiple console/director resources in bconsole.conf.
-  patch from Carsten Paeth calle@calle.in-berlin.de
-- Character substitution in Job/JobDefs WriteBootStrap.
-  from Eric Bollengier.
-- Apply patch supplied in bug #656 to pass priority field
-  in the run dialog to the Director in gnome console.
-- Add support of encrypted data stream to bscan from Eric.
-  display data_len instead of data content (may be binary)
-- Add Enabled=xxx on update slots command.
-- Add host:port to connect failure messages to FD and SD from Dir
-- Add WhereACL to console ACL list.  If nothing is specified, only
-  the default is permitted for restore. Otherwise, *all* allows any
-  path, or you can specify permitted paths. This should allow control
-  over where users can restore files. This is untested.
-- Install man pages with 'make install'
-- Add Media.Enabled flag to client backups for dotcmds.c
-- Enforce Media.Enabled=1 for a current restore to work
-- Require restore case 3 to have sqlquery permission to work.
+Version 1.39.26 contains mainly bug fixes to 1.39.24. Please
+  see the ChangeLog for more details.
 
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
@@ -147,6 +124,30 @@ New Features in 1.39.24
 
 
 New Features in 1.40.0:
+- Windows tray status windows are scrollable and resizable.
+- Win32 external script excution is much more flexible -- handles
+  spaces in names better, ...
+- Lots of DVD fixes -- I think they now work!
+- Fix opening of database in a restricted console to respect     
+  any Catalog ACL.
+- Permit multiple console/director resources in bconsole.conf.
+  patch from Carsten Paeth calle@calle.in-berlin.de
+- Character substitution in Job/JobDefs WriteBootStrap.
+  from Eric Bollengier.
+- Apply patch supplied in bug #656 to pass priority field
+  in the run dialog to the Director in gnome console.
+- Add support of encrypted data stream to bscan from Eric.
+  display data_len instead of data content (may be binary)
+- Add Enabled=xxx on update slots command.
+- Add host:port to connect failure messages to FD and SD from Dir
+- Add WhereACL to console ACL list.  If nothing is specified, only
+  the default is permitted for restore. Otherwise, *all* allows any
+  path, or you can specify permitted paths. This should allow control
+  over where users can restore files. This is untested.
+- Install man pages with 'make install'
+- Add Media.Enabled flag to client backups for dotcmds.c
+- Enforce Media.Enabled=1 for a current restore to work
+- Require restore case 3 to have sqlquery permission to work.
 - The basic features of Migration are now complete.
 - There is a Migration chapter in the doc.
   http://www.bacula.org/dev-manual/Migration.html
