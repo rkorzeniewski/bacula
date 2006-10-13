@@ -1533,7 +1533,9 @@ static void wrcmd()
    DEV_RECORD *rec = dcr->rec;
    int i;
 
-   open_the_device();
+   if (!dev->is_open()) {
+      open_the_device();
+   }
    sm_check(__FILE__, __LINE__, false);
    empty_block(block);
    if (verbose > 1) {
