@@ -2,6 +2,7 @@
 #
 # Create two blank tapes
 #
+# mt -f @tape_drive@ offline
 @changer_path@ -f @autochanger@ unload
 @changer_path@ -f @autochanger@ load 1
 mt -f @tape_drive@ rewind
