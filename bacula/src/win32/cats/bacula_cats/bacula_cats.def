@@ -7,7 +7,6 @@ EXPORTS
 ; sqlite.c:
 ?db_get_type@@YAPBDXZ
 ?db_sql_query@@YAHPAUB_DB@@PBDP6AHPAXHPAPAD@Z2@Z
-;?db_next_index@@YAHPAVJCR@@PAUB_DB@@PAD2@Z
 ?db_escape_string@@YAXPAD0H@Z
 ?db_init_database@@YAPAUB_DB@@PAVJCR@@PBD111H1H@Z
 ?db_open_database@@YAHPAVJCR@@PAUB_DB@@@Z
@@ -16,19 +15,10 @@ EXPORTS
 ; sql.c:
 ?_db_unlock@@YAXPBDHPAUB_DB@@@Z
 ?db_strerror@@YAPADPAUB_DB@@@Z
-;?list_dashes@@YAXPAUB_DB@@P6AXPAXPBD@Z1@Z
-;?list_result@@YAXPAVJCR@@PAUB_DB@@P6AXPAXPBD@Z2W4e_list_type@@@Z
 ?db_int64_handler@@YAHPAXHPAPAD@Z
 ?db_end_transaction@@YAXPAVJCR@@PAUB_DB@@@Z
-;?get_sql_record_max@@YAHPAVJCR@@PAUB_DB@@@Z
-;?split_path_and_file@@YAXPAVJCR@@PAUB_DB@@PBD@Z
-;?check_tables_version@@YA_NPAVJCR@@PAUB_DB@@@Z
 ?db_start_transaction@@YAXPAVJCR@@PAUB_DB@@@Z
-;?QueryDB@@YAHPBDHPAVJCR@@PAUB_DB@@PAD@Z
 ?_db_lock@@YAXPBDHPAUB_DB@@@Z
-;?DeleteDB@@YAHPBDHPAVJCR@@PAUB_DB@@PAD@Z
-;?InsertDB@@YAHPBDHPAVJCR@@PAUB_DB@@PAD@Z
-;?UpdateDB@@YAHPBDHPAVJCR@@PAUB_DB@@PAD@Z
 
 ; sql_cmds.c
 ?list_pool@@3PBDB DATA
@@ -77,7 +67,6 @@ EXPORTS
 ?db_create_job_record@@YA_NPAVJCR@@PAUB_DB@@PAUJOB_DBR@@@Z
 ?db_create_jobmedia_record@@YA_NPAVJCR@@PAUB_DB@@PAUJOBMEDIA_DBR@@@Z
 ?db_create_pool_record@@YA_NPAVJCR@@PAUB_DB@@PAUPOOL_DBR@@@Z
-;?db_create_device_record@@YA_NPAVJCR@@PAUB_DB@@PAVDEVICE_DBR@@@Z
 ?db_create_storage_record@@YA_NPAVJCR@@PAUB_DB@@PAVSTORAGE_DBR@@@Z
 ?db_create_mediatype_record@@YA_NPAVJCR@@PAUB_DB@@PAVMEDIATYPE_DBR@@@Z
 ?db_create_media_record@@YAHPAVJCR@@PAUB_DB@@PAUMEDIA_DBR@@@Z
@@ -90,7 +79,6 @@ EXPORTS
 ; sql_delete.c:
 ?db_delete_pool_record@@YAHPAVJCR@@PAUB_DB@@PAUPOOL_DBR@@@Z
 ?db_delete_media_record@@YAHPAVJCR@@PAUB_DB@@PAUMEDIA_DBR@@@Z
-;?db_purge_media_record@@YAHPAVJCR@@PAUB_DB@@PAUMEDIA_DBR@@@Z
 
 ; bdb_find.c:
 ; sql_find.c:
@@ -105,14 +93,11 @@ EXPORTS
 ?db_get_job_record@@YA_NPAVJCR@@PAUB_DB@@PAUJOB_DBR@@@Z
 ?db_get_job_volume_names@@YAHPAVJCR@@PAUB_DB@@IPAPAD@Z
 ?db_get_job_volume_parameters@@YAHPAVJCR@@PAUB_DB@@IPAPAUVOL_PARAMS@@@Z
-;?db_get_num_pool_records@@YAHPAVJCR@@PAUB_DB@@@Z
 ?db_get_pool_ids@@YAHPAVJCR@@PAUB_DB@@PAHPAPAI@Z
 ?db_get_client_ids@@YAHPAVJCR@@PAUB_DB@@PAHPAPAI@Z
 ?db_get_pool_record@@YA_NPAVJCR@@PAUB_DB@@PAUPOOL_DBR@@@Z
 ?db_get_client_record@@YAHPAVJCR@@PAUB_DB@@PAUCLIENT_DBR@@@Z
-;?db_get_counter_record@@YAHPAVJCR@@PAUB_DB@@PAUCOUNTER_DBR@@@Z
 ?db_get_fileset_record@@YAHPAVJCR@@PAUB_DB@@PAUFILESET_DBR@@@Z
-;?db_get_num_media_records@@YAHPAVJCR@@PAUB_DB@@@Z
 ?db_get_media_ids@@YA_NPAVJCR@@PAUB_DB@@IPAHPAPAI@Z
 ?db_get_media_record@@YA_NPAVJCR@@PAUB_DB@@PAUMEDIA_DBR@@@Z
 

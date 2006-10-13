@@ -10,7 +10,7 @@ EXIT /B 1
 
 :PERL_OK
 
-SET CLOBBER_SOURCE=
+IF "%CLOBBER_SOURCE%"=="" SET CLOBBER_SOURCE=false
 
 FOR /F "eol=# delims=| tokens=1-4" %%I in ( External-msvc ) DO SET URL_%%I=%%J & SET DIR_%%I=%%K & SET MKD_%%I=%%L
 

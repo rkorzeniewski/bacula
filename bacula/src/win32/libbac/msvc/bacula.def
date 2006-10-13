@@ -2,22 +2,9 @@ LIBRARY bacula.dll
 EXPORTS
 
 ; address_conf.obj 
-;?set_type@IPADDR@@QAEXW4i_type@1@@Z
-;?get_type@IPADDR@@QBE?AW4i_type@1@XZ
 ?get_port_net_order@IPADDR@@QBEGXZ
-;?set_port_net@IPADDR@@QAEXG@Z
-;?get_family@IPADDR@@QBEHXZ
-;?get_sockaddr@IPADDR@@QAEPAUsockaddr@@XZ
-;?get_sockaddr_len@IPADDR@@QAEHXZ
-;?copy_addr@IPADDR@@QAEXPAV1@@Z
-;?set_addr_any@IPADDR@@QAEXXZ
-;?set_addr4@IPADDR@@QAEXPAUin_addr@@@Z
 ?get_address@IPADDR@@QAEPBDPADH@Z
-;?build_address_str@IPADDR@@QAEPBDPADH@Z
-;??? ?get_port_host_order@IPADDR@@QBEGXZ
-;?build_addresses_str@@YAPBDPAVdlist@@PADH@Z
 ?get_first_address@@YAPBDPAVdlist@@PADH@Z
-;?get_first_port_net_order@@YAHPAVdlist@@@Z
 ?get_first_port_host_order@@YAHPAVdlist@@@Z
 ?init_default_addresses@@YAXPAPAVdlist@@H@Z
 ?store_addresses@@YAXPAUs_lex_context@@PAURES_ITEM@@HH@Z
@@ -25,15 +12,11 @@ EXPORTS
 ?store_addresses_port@@YAXPAUs_lex_context@@PAURES_ITEM@@HH@Z
 ?free_addresses@@YAXPAVdlist@@@Z
 ?sockaddr_get_port_net_order@@YAHPBUsockaddr@@@Z
-;?sockaddr_get_port@@YAHPBUsockaddr@@@Z
 ?sockaddr_to_ascii@@YAPADPBUsockaddr@@PADH@Z
  
-;; alist.obj 
-;?grow_list@alist@@AAEXXZ
+; alist.obj 
 ?first@alist@@QAEPAXXZ
-;?last@alist@@QAEPAXXZ
 ?next@alist@@QAEPAXXZ
-;?prev@alist@@QAEPAXXZ
 ?prepend@alist@@QAEXPAX@Z
 ?append@alist@@QAEXPAX@Z
 ?remove@alist@@QAEPAXH@Z
@@ -56,19 +39,8 @@ EXPORTS
 ?decode_LinkFI@@YAJPADPAUstat@@@Z
 ?set_attributes@@YA_NPAVJCR@@PAUATTR@@PAUBFILE@@@Z
 ?encode_attribsEx@@YAHPAVJCR@@PADPAUFF_PKT@@@Z
-;?win_error@@YAXPAVJCR@@PAD1@Z
-;?win_error@@YAXPAVJCR@@PADK@Z
-;??$plug@I@@YAXAAI_K@Z
-;??$plug@_K@@YAXAA_K_K@Z
-;??$plug@G@@YAXAAG_K@Z
-;??$plug@F@@YAXAAF_K@Z
-;??$plug@J@@YAXAAJ_K@Z
-;??$plug@K@@YAXAAK_K@Z
  
 ; base64.obj 
-;?base64_init@@YAXXZ
-;?to_base64@@YAH_JPAD@Z
-;?from_base64@@YAHPA_JPAD@Z
 ?bin_to_base64@@YAHPADH0HH@Z
  
 ; berrno.obj 
@@ -78,17 +50,13 @@ EXPORTS
 ; bfile.obj 
 ?is_win32_stream@@YA_NH@Z
 ?stream_to_ascii@@YAPBDH@Z
-;?int64_LE2BE@@YAXPA_J_J@Z
-;?int32_LE2BE@@YAXPAJJ@Z
 ?processWin32BackupAPIBlock@@YA_NPAUBFILE@@PAXH@Z
 ?binit@@YAXPAUBFILE@@@Z
-;?set_win32_backup@@YA_NPAUBFILE@@@Z
 ?set_portable_backup@@YA_NPAUBFILE@@@Z
 ?set_prog@@YA_NPAUBFILE@@PADPAVJCR@@@Z
 ?is_portable_backup@@YA_NPAUBFILE@@@Z
 ?have_win32_api@@YA_NXZ
 ?is_restore_stream_supported@@YA_NH@Z
-;?bget_handle@@YAPAXPAUBFILE@@@Z
 ?bopen@@YAHPAUBFILE@@PBDHI@Z
 ?bclose@@YAHPAUBFILE@@@Z
 ?bread@@YAHPAUBFILE@@PAXI@Z
@@ -110,15 +78,11 @@ EXPORTS
 ?bnet_tls_client@@YA_NPAUTLS_Context@@PAUBSOCK@@@Z
 ?bnet_wait_data@@YAHPAUBSOCK@@H@Z
 ?bnet_wait_data_intr@@YAHPAUBSOCK@@H@Z
-;?bnet_host2ipaddrs@@YAPAVdlist@@PBDHPAPBD@Z
 ?bnet_connect@@YAPAUBSOCK@@PAVJCR@@HHPBDPAD2HH@Z
 ?bnet_strerror@@YAPBDPAUBSOCK@@@Z
 ?bnet_fsend@@YA_NPAUBSOCK@@PBDZZ
 ?bnet_get_peer@@YAHPAUBSOCK@@PADH@Z
 ?bnet_set_buffer_size@@YA_NPAUBSOCK@@IH@Z
-;?bnet_set_nonblocking@@YAHPAUBSOCK@@@Z
-;?bnet_set_blocking@@YAHPAUBSOCK@@@Z
-;?bnet_restore_blocking@@YAXPAUBSOCK@@H@Z
 ?bnet_sig@@YA_NPAUBSOCK@@H@Z
 ?bnet_sig_to_ascii@@YAPBDPAUBSOCK@@@Z
 ?init_bsock@@YAPAUBSOCK@@PAVJCR@@HPBD1HPAUsockaddr@@@Z
@@ -135,16 +99,10 @@ EXPORTS
 ?run_program_full_output@@YAHPADH0@Z
  
 ; bregex.obj 
-;b_re_compile_initial
-;b_re_set_syntax
-;b_re_compile_fastmap
-;b_re_compile_pattern
 b_regcomp
 b_regexec
 b_regerror
 b_regfree
-;b_re_match
-;b_re_search
 
 ; bsnprintf.obj 
 ?bsnprintf@@YAHPADJPBDZZ
@@ -155,14 +113,11 @@ b_regfree
 ?bstrncpy@@YAPADPADPBDH@Z
 ?bstrncpy@@YAPADPADAAVPOOL_MEM@@H@Z
 ?bstrncat@@YAPADPADPBDH@Z
-;?bstrncat@@YAPADPADAAVPOOL_MEM@@H@Z
 ?bstrcmp@@YA_NPBD0@Z
 ?cstrlen@@YAHPBD@Z
 ?bfree@@YAXPAX@Z
 ?b_malloc@@YAPAXPBDHI@Z
 ?brealloc@@YAPAXPAXI@Z
-;?bcalloc@@YAPAXII@Z
-;?bstrerror@@YAHHPADI@Z
 ?_p@@YAXPAPAUpthread_mutex_t_@@@Z
 ?_v@@YAXPAPAUpthread_mutex_t_@@@Z
 ?create_pid_file@@YAXPADPBDH@Z
@@ -171,34 +126,21 @@ b_regfree
 ?write_state_file@@YAXPADPBDH@Z
 ?drop@@YAXPAD0@Z
 ?bfgets@@YAPADPADHPAU_iobuf@@@Z
-;?make_unique_filename@@YAXPAPADHPAD@Z
  
 ; btime.obj 
 ?bstrftime@@YAPADPADH_J@Z
 ?bstrftimes@@YAPADPADH_J@Z
-;?bstrftime_ny@@YAPADPADH_J@Z
 ?bstrftime_nc@@YAPADPADH_J@Z
 ?bstrutime@@YAPADPADH_J@Z
 ?str_to_utime@@YA_JPAD@Z
 ?get_current_btime@@YA_JXZ
 ?btime_to_unix@@YAJ_J@Z
 ?btime_to_utime@@YA_J_J@Z
-;?tm_wom@@YAHHH@Z
 ?tm_woy@@YAHJ@Z
 ?get_current_time@@YAXPAUdate_time@@@Z
-;?date_encode@@YANIEE@Z
-;?time_encode@@YANEEEM@Z
-;?date_time_encode@@YAXPAUdate_time@@IEEEEEM@Z
-;?date_decode@@YAXNPAIPAE1@Z
-;?time_decode@@YAXNPAE00PAM@Z
-;?date_time_decode@@YAXPAUdate_time@@PAIPAE2222PAM@Z
-;?tm_encode@@YAXPAUdate_time@@PAUtm@@@Z
 ?tm_decode@@YAXPAUdate_time@@PAUtm@@@Z
-;?date_time_compare@@YAHPAUdate_time@@0@Z
  
 ; btimers.obj 
-;?start_child_timer@@YAPAUs_btimer_t@@HI@Z
-;?stop_child_timer@@YAXPAUs_btimer_t@@@Z
 ?start_thread_timer@@YAPAUs_btimer_t@@PAUpthread_t_@@I@Z
 ?start_bsock_timer@@YAPAUs_btimer_t@@PAUBSOCK@@I@Z
 ?stop_bsock_timer@@YAXPAUs_btimer_t@@@Z
@@ -206,62 +148,29 @@ b_regfree
  
 ; compat.obj 
 ?SetVSSPathConvert@@YAXP6AHPBDPADH@ZP6AHPB_WPA_WH@Z@Z
-;?Win32ConvCleanupCache@@YAXXZ
-;?conv_unix_to_win32_path@@YAXPBDPADK@Z
-;?unix_name_to_win32@@YAXPAPADPAD@Z
-;?make_wchar_win32_path@@YAPADPADPAH@Z
 ?wchar_2_UTF8@@YAHPADPB_WH@Z
-;?UTF8_2_wchar@@YAHPAPADPBD@Z
-;?wchar_win32_path@@YAXPBDPA_W@Z
-;?make_win32_path_UTF8_2_wchar@@YAHPAPADPBDPAH@Z
-;?fcntl@@YAHHH@Z
-;?chmod@@YAHPBDI@Z
-;?chown@@YAHPBDII@Z
-;?lchown@@YAHPBDII@Z
 ?random@@YAJXZ
 ?srandom@@YAXI@Z
-;?cvt_utime_to_ftime@@YAXABJAAU_FILETIME@@@Z
-;?cvt_ftime_to_utime@@YAJABU_FILETIME@@@Z
 ?fstat@@YAHHPAUstat@@@Z
 ?stat@@YAHPBDPAU0@@Z
 ?fcntl@@YAHHHJ@Z
 ?lstat@@YAHPBDPAUstat@@@Z
 ?sleep@@YAXH@Z
-;?geteuid@@YAHXZ
-;?execvp@@YAHPBDQAPAD@Z
-;?fork@@YAHXZ
-;?pipe@@YAHQAH@Z
-;?waitpid@@YAHHPAHH@Z
-;?readlink@@YAHPBDPADH@Z
 ?strcasecmp@@YAHPBD0@Z
-;?strncasecmp@@YAHPBD0H@Z
 ?gettimeofday@@YAHPAUtimeval@@PAUtimezone@@@Z
-;?closelog@@YAXXZ
-;?getpwuid@@YAPAUpasswd@@I@Z
-;?getgrgid@@YAPAUgroup@@I@Z
 ?opendir@@YAPAXPBD@Z
 ?closedir@@YAHPAX@Z
 ?readdir_r@@YAHPAXPAUdirent@@PAPAU1@@Z
-;?inet_aton@@YAHPBDPAUin_addr@@@Z
-;?nanosleep@@YAHPBUtimespec@@PAU1@@Z
 ?init_signals@@YAXP6AXH@Z@Z
 ?init_stack_dump@@YAXXZ
 ?pathconf@@YAJPBDH@Z
 ?WSA_Init@@YAHXZ
-;?win32_chdir@@YAHPBD@Z
-;?win32_mkdir@@YAHPBD@Z
-;?win32_getcwd@@YAPADPADH@Z
 ?win32_fputs@@YAHPBDPAU_iobuf@@@Z
 ?win32_cgets@@YAPADPADH@Z
 ?win32_unlink@@YAHPBD@Z
-;??0winver@@QAE@XZ
-;?getArgv0@@YAPBDPBD@Z
-;?CreateChildProcess@@YAPAXPBDPAX11@Z
-;?ErrorExit@@YAXPBD@Z
 ?open_bpipe@@YAPAVBPIPE@@PADHPBD@Z
 ?kill@@YAHHH@Z
 ?close_bpipe@@YAHPAVBPIPE@@@Z
-;?close_wpipe@@YAHPAUs_bpipe@@@Z
 ?utime@@YAHPBDPAUutimbuf@@@Z
  
 ; cram-md5.obj 
@@ -314,7 +223,6 @@ b_regfree
 ?append@dlist@@QAEXPAX@Z
 ?prepend@dlist@@QAEXPAX@Z
 ?insert_before@dlist@@QAEXPAX0@Z
-;?insert_after@dlist@@QAEXPAX0@Z
 ?binary_insert@dlist@@QAEPAXPAXP6AH00@Z@Z
 ?first@dlist@@QBEPAXXZ
 ?last@dlist@@QBEPAXXZ
@@ -322,7 +230,6 @@ b_regfree
 ?binary_search@dlist@@QAEPAXPAXP6AH00@Z@Z
 ?remove@dlist@@QAEXPAX@Z
 ?next@dlist@@QBEPAXPBX@Z
-;?prev@dlist@@QBEPAXPBX@Z
 ?destroy@dlist@@QAEXXZ
  
 ; drivetype.obj 
@@ -347,7 +254,6 @@ b_regfree
 ?enable_backup_privileges@@YAHPAVJCR@@H@Z
  
 ; enh_fnmatch.obj 
-;?enh_fnmatch_sub@@YAHPBD0HH@Z
  
 ; find.obj 
 ?init_find_files@@YAPAUFF_PKT@@XZ
@@ -358,7 +264,6 @@ b_regfree
  
 ; find_one.obj 
 ?find_one_file@@YAHPAVJCR@@PAUFF_PKT@@P6AH1PAX_N@Z2PADI3@Z
-;?term_find_one@@YAHPAUFF_PKT@@@Z
  
 ; fnmatch.obj 
 fnmatch
@@ -370,31 +275,15 @@ fnmatch
 ?hmac_md5@@YAXPAEH0H0@Z
  
 ; htable.obj 
-;?hash_index@htable@@AAEXPAD@Z
-;??0htable@@QAE@PAX0H@Z
-;?init@htable@@QAEXPAX0H@Z
-;?size@htable@@QAEIXZ
-;?stats@htable@@QAEXXZ
-;?grow_table@htable@@AAEXXZ
-;?insert@htable@@QAE_NPADPAX@Z
-;?lookup@htable@@QAEPAXPAD@Z
-;?next@htable@@QAEPAXXZ
-;?first@htable@@QAEPAXXZ
-;?destroy@htable@@QAEXXZ
  
 ; idcache.obj 
 ?getuser@@YAPADIPADH@Z
-;?free_getuser_cache@@YAXXZ
 ?getgroup@@YAPADIPADH@Z
-;?free_getgroup_cache@@YAXXZ
  
 ; jcr.obj 
 ?lock_jobs@@YAXXZ
 ?unlock_jobs@@YAXXZ
-;?init_last_jobs_list@@YAXXZ
 ?term_last_jobs_list@@YAXXZ
-;?read_last_jobs_list@@YA_NH_K@Z
-;?write_last_jobs_list@@YA_KH_K@Z
 ?lock_last_jobs_list@@YAXXZ
 ?unlock_last_jobs_list@@YAXXZ
 ?job_end_push@@YAXPAVJCR@@P6AX0PAX@Z1@Z
@@ -419,26 +308,20 @@ fnmatch
  
 ; lex.obj 
 ?scan_to_eol@@YAXPAUs_lex_context@@@Z
-;?scan_to_next_not_eol@@YAHPAUs_lex_context@@@Z
 ?lex_set_default_error_handler@@YAXPAUs_lex_context@@@Z
 ?lex_set_error_handler_error_type@@YAHPAUs_lex_context@@H@Z
 ?lex_close_file@@YAPAUs_lex_context@@PAU1@@Z
 ?lex_open_file@@YAPAUs_lex_context@@PAU1@PBDP6AX1H01ZZ@Z
-;?lex_get_char@@YAHPAUs_lex_context@@@Z
-;?lex_unget_char@@YAXPAUs_lex_context@@@Z
 ?lex_tok_to_str@@YAPBDH@Z
 ?lex_get_token@@YAHPAUs_lex_context@@H@Z
  
 ; makepath.obj 
-;?isAbsolute@@YAHPBD@Z
-;?make_path@@YAHPAVJCR@@PBDHHIIHPAD@Z
  
 ; match.obj 
 ?match_files@@YAHPAVJCR@@PAUFF_PKT@@P6AH1PAX_N@Z2@Z
 ?term_include_exclude_files@@YAXPAUFF_PKT@@@Z
 ?add_fname_to_include_list@@YAXPAUFF_PKT@@HPBD@Z
 ?add_fname_to_exclude_list@@YAXPAUFF_PKT@@PBD@Z
-;?get_next_included_file@@YAPAUs_included_file@@PAUFF_PKT@@PAU1@@Z
 ?file_is_included@@YAHPAUFF_PKT@@PBD@Z
 ?file_is_excluded@@YAHPAUFF_PKT@@PBD@Z
  
@@ -446,7 +329,6 @@ fnmatch
 ?MD5Init@@YAXPAUMD5Context@@@Z
 ?MD5Update@@YAXPAUMD5Context@@PAEI@Z
 ?MD5Final@@YAXQAEPAUMD5Context@@@Z
-;?MD5Transform@@YAXQAI0@Z
  
 ; mem_pool.obj 
 ?sm_get_pool_memory@@YAPADPBDHH@Z
@@ -455,12 +337,10 @@ fnmatch
 ?sm_realloc_pool_memory@@YAPADPBDHPADJ@Z
 ?sm_check_pool_memory_size@@YAPADPBDHPADJ@Z
 ?sm_free_pool_memory@@YAXPBDHPAD@Z
-;?garbage_collect_memory_pool@@YAXXZ
 ?close_memory_pool@@YAXXZ
 ?print_memory_pool_stats@@YAXXZ
 ?pm_strcat@@YAHPAPADPBD@Z
 ?pm_strcat@@YAHAAPADPBD@Z
-;?pm_strcat@@YAHAAPADAAVPOOL_MEM@@@Z
 ?c_str@POOL_MEM@@QBEPADXZ
 ?pm_strcat@@YAHAAVPOOL_MEM@@PBD@Z
 ?check_size@POOL_MEM@@QAEPADJ@Z
@@ -469,9 +349,6 @@ fnmatch
 ?pm_strcpy@@YAHAAPADAAVPOOL_MEM@@@Z
 ?pm_strcpy@@YAHAAVPOOL_MEM@@PBD@Z
 ?max_size@POOL_MEM@@QAEJXZ
-;?realloc_pm@POOL_MEM@@QAEXJ@Z
-;?strcat@POOL_MEM@@QAEHPBD@Z
-;?strcpy@POOL_MEM@@QAEHPBD@Z
  
 ; message.obj 
 ?my_name_is@@YAXHQAPADPBD@Z
@@ -494,7 +371,6 @@ fnmatch
 ?set_trace@@YAXH@Z
 ?get_trace@@YA_NXZ
 ?p_msg@@YAXPBDHH0ZZ
-;?t_msg@@YAXPBDHH0ZZ
 ?e_msg@@YAXPBDHHH0ZZ
 ?Jmsg@@YAXPAVJCR@@HJPBDZZ
 ?j_msg@@YAXPBDHPAVJCR@@HJ0ZZ
@@ -508,11 +384,6 @@ fnmatch
 ?q_msg@@YAXPBDHPAVJCR@@HJ0ZZ
  
 ; print.obj 
-;?dopr@@YAHPADIPBD0P6AX0PAIIH@Z@Z
-;?__sprintf@@YAHPADPBDZZ
-;?__snprintf@@YAHPADIPBDZZ
-;?__vsprintf@@YAHPADPBD0@Z
-;?__vsnprintf@@YAHPADIPBD0@Z
  
 ; pythonlib.obj 
 ?generate_daemon_event@@YAHPAVJCR@@PBD@Z
@@ -521,7 +392,6 @@ fnmatch
  
 ; queue.obj 
 ?qinsert@@YAXPAUb_queue@@0@Z
-;?qremove@@YAPAUb_queue@@PAU1@@Z
 ?qnext@@YAPAUb_queue@@PAU1@0@Z
 ?qdchain@@YAPAUb_queue@@PAU1@@Z
  
@@ -531,7 +401,6 @@ fnmatch
 ?copy_runscript@@YAPAVRUNSCRIPT@@PAV1@@Z
 ?free_runscript@@YAXPAVRUNSCRIPT@@@Z
 ?run_scripts@@YAHPAVJCR@@PAValist@@PBD@Z
-;?is_local@RUNSCRIPT@@QAE_NXZ
 ?set_command@RUNSCRIPT@@QAEXPBD@Z
 ?set_target@RUNSCRIPT@@QAEXPBD@Z
 ?run@RUNSCRIPT@@QAEHPAVJCR@@PBD@Z
@@ -541,50 +410,31 @@ fnmatch
 ; rwlock.obj 
 ?rwl_init@@YAHPAUs_rwlock_tag@@@Z
 ?rwl_destroy@@YAHPAUs_rwlock_tag@@@Z
-;?rwl_readlock@@YAHPAUs_rwlock_tag@@@Z
-;?rwl_readtrylock@@YAHPAUs_rwlock_tag@@@Z
-;?rwl_readunlock@@YAHPAUs_rwlock_tag@@@Z
 ?rwl_writelock@@YAHPAUs_rwlock_tag@@@Z
-;?rwl_writetrylock@@YAHPAUs_rwlock_tag@@@Z
 ?rwl_writeunlock@@YAHPAUs_rwlock_tag@@@Z
  
 ; save-cwd.obj 
-;?save_cwd@@YAHPAUsaved_cwd@@@Z
-;?restore_cwd@@YAHPBUsaved_cwd@@PBD1@Z
-;?free_cwd@@YAXPAUsaved_cwd@@@Z
  
 ; scan.obj 
 ?strip_leading_space@@YAXPAD@Z
 ?strip_trailing_junk@@YAXPAD@Z
 ?strip_trailing_newline@@YAXPAD@Z
-;?strip_trailing_slashes@@YAXPAD@Z
 ?skip_spaces@@YA_NPAPAD@Z
 ?skip_nonspaces@@YA_NPAPAD@Z
 ?fstrsch@@YAHPBD0@Z
 ?next_arg@@YAPADPAPAD@Z
 ?parse_args@@YAHPADPAPADPAH11H@Z
-;?split_path_and_filename@@YAXPBDPAPADPAH12@Z
 ?bsscanf@@YAHPBD0ZZ
  
 ; semlock.obj 
-;?sem_init@@YAHPAUs_semlock_tag@@H@Z
-;?sem_destroy@@YAHPAUs_semlock_tag@@@Z
-;?sem_lock@@YAHPAUs_semlock_tag@@@Z
-;?sem_trylock@@YAHPAUs_semlock_tag@@@Z
-;?sem_unlock@@YAHPAUs_semlock_tag@@@Z
  
 ; serial.obj 
-;?serial_int16@@YAXQAPAEF@Z
-;?serial_uint16@@YAXQAPAEG@Z
 ?serial_int32@@YAXQAPAEJ@Z
 ?serial_uint32@@YAXQAPAEI@Z
-;?serial_int64@@YAXPAPAE_J@Z
 ?serial_uint64@@YAXQAPAE_K@Z
 ?serial_btime@@YAXQAPAE_J@Z
 ?serial_float64@@YAXQAPAEN@Z
 ?serial_string@@YAXQAPAEQBD@Z
-;?unserial_int16@@YAFQAPAE@Z
-;?unserial_uint16@@YAGQAPAE@Z
 ?unserial_int32@@YAJQAPAE@Z
 ?unserial_uint32@@YAIQAPAE@Z
 ?unserial_uint64@@YA_KQAPAE@Z
@@ -593,25 +443,16 @@ fnmatch
 ?unserial_string@@YAXQAPAEQAD@Z
  
 ; sha1.obj 
-;?SHA1Init@@YAHPAUSHA1Context@@@Z
-;?SHA1Final@@YAHPAUSHA1Context@@QAE@Z
-;?SHA1Update@@YAHPAUSHA1Context@@PBEI@Z
  
 ; signal.obj 
  
 ; smartall.obj 
-;?sm_new_owner@@YAXPBDHPAD@Z
 ?sm_free@@YAXPBDHPAX@Z
 ?sm_malloc@@YAPAXPBDHI@Z
 ?sm_calloc@@YAPAXPBDHII@Z
 ?sm_realloc@@YAPAXPBDHPAXI@Z
-;?actuallymalloc@@YAPAXI@Z
-;?actuallycalloc@@YAPAXII@Z
-;?actuallyrealloc@@YAPAXPAXI@Z
-;?actuallyfree@@YAXPAX@Z
 ?sm_dump@@YAX_N@Z
 ?sm_check@@YAXPBDH_N@Z
-;?sm_check_rtn@@YAHPBDH_N@Z
 ?sm_static@@YAXH@Z
  
 ; tls.obj 
@@ -623,17 +464,14 @@ fnmatch
 ?free_tree@@YAXPAUs_tree_root@@@Z
 ?insert_tree_node@@YAPAUs_tree_node@@PAD0HPAUs_tree_root@@PAU1@@Z
 ?strrchr@@YAPADPADH@Z
-;?make_tree_path@@YAPAUs_tree_node@@PADPAUs_tree_root@@@Z
 ?tree_getpath@@YAHPAUs_tree_node@@PADH@Z
 ?tree_cwd@@YAPAUs_tree_node@@PADPAUs_tree_root@@PAU1@@Z
-;?tree_relcwd@@YAPAUs_tree_node@@PADPAUs_tree_root@@PAU1@@Z
  
 ; util.obj 
 ?is_buf_zero@@YAHPADH@Z
 ?lcase@@YAXPAD@Z
 ?bash_spaces@@YAXPAD@Z
 ?bash_spaces@@YAXAAVPOOL_MEM@@@Z
-;??? ?c_str@POOL_MEM@@QBEPADXZ
 ?unbash_spaces@@YAXPAD@Z
 ?unbash_spaces@@YAXAAVPOOL_MEM@@@Z
 ?encode_time@@YAPADJPAD@Z
@@ -653,8 +491,6 @@ fnmatch
 ?var_config@@YA?AW4var_rc_t@@PAUvar_st@@W4var_config_t@@ZZ
 ?var_unescape@@YA?AW4var_rc_t@@PAUvar_st@@PBDHPADHH@Z
 ?var_expand@@YA?AW4var_rc_t@@PAUvar_st@@PBDHPAPADPAHH@Z
-;?var_formatv@@YA?AW4var_rc_t@@PAUvar_st@@PAPADHPBDPAD@Z
-;?var_format@@YA?AW4var_rc_t@@PAUvar_st@@PAPADHPBDZZ
 ?var_strerror@@YAPBDPAUvar_st@@W4var_rc_t@@@Z
  
 ; watchdog.obj 
@@ -662,13 +498,8 @@ fnmatch
 ?stop_watchdog@@YAHXZ
 ?new_watchdog@@YAPAUs_watchdog_t@@XZ
 ?register_watchdog@@YA_NPAUs_watchdog_t@@@Z
-;?unregister_watchdog@@YA_NPAUs_watchdog_t@@@Z
  
 ; winapi.obj 
 ?InitWinAPIWrapper@@YAXXZ
  
 ; workq.obj 
-;?workq_init@@YAHPAUworkq_tag@@HP6APAXPAX@Z@Z
-;?workq_destroy@@YAHPAUworkq_tag@@@Z
-;?workq_add@@YAHPAUworkq_tag@@PAXPAPAUworkq_ele_tag@@H@Z
-;?workq_remove@@YAHPAUworkq_tag@@PAUworkq_ele_tag@@@Z

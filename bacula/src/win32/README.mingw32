@@ -1,42 +1,19 @@
+Instructions to build Bacula using the MinGW32 on Linux
+=======================================================
 
-This file documents the tools (scripts) we use for building
-Bacula for Microsoft Windows using the cross-compiler tools on a
-Linux system.
+This file documents the tools (scripts) we use for building Bacula for
+Microsoft Windows using the cross-compiler tools on a Linux system.  We
+use Fedora Core 5 and SuSE so those should definitely work.  But there
+shouldn't be any issues on other Linux distributions.
 
-We don't officially support this script, but it is what we use, and it should 
-build on any Linux machine if you carefully follow the instructions and have 
-all the prerequisite programs loaded on your machine. We expect that there 
-will be problems on other distributions (FreeBSD, Mac OS X, ...), where you 
-are pretty much on your own.  However, we will try to provide responses to 
-your questions on the bacula-devel list, but that we don't guarantee 
-anything.
+We don't officially support this script, but it is what we use, and it should
+build on any Linux machine if you carefully follow the instructions and have
+all the prerequisite programs loaded on your machine.
 
-The basic directory structure you need to have is:
-
-  bacula-top                 top level directory -- any name 
-    bacula                   top level Bacula source directory -- any name
-      src
-        win32                main directory where the Windows version is built.
-
-    depkgs-mingw32           3rd Party Dependencies
-      bin              --
-      include            |
-      lib                |
-      man                |   Created by script
-      nsis               |-- ..../bacula/src/win32/build-depkgs-mingw32
-      scons              |   
-      share              |
-      src                |
-      ssl              --
-      vss
-        inc                  A copy of the Windows VSS/inc directory
-
-    cross-tools              Cross compilation tools (gcc, g++, mingw32, ...)
-      binutils-mingw32 --
-      gcc-mingw32        |   Created by script
-      mingw32            |-- ..../bacula/src/win32/build-win32-cross-tools
-      mingw-utils        | 
-      source           --
+It has also been tested on other systems such as FreeBSD and CentOS.  We
+expect that there may be problems on systems other than Linux where you
+are pretty much on your own.  However, we will try to provide responses to
+your questions on the bacula-devel list, but we can't guarantee anything.
 
 One-time Setup
 ==============
@@ -44,8 +21,16 @@ One-time Setup
 If you're reading this file you've probably already enlisted in the CVS tree or
 extracted the contents of the source tar.  If not you need to do that first.
 
+You also need to download one of the doc tar balls and extract to your
+top level Bacula directory.  It is referred to as bacula-top in the
+diagram located in README.win32.  It will be signified in this file as ...
+
+The extracted doc directory name will be bacula-docs-version where version
+is the version number.  The directory must be renamed to docs (ie remove
+the leading bacula- and the -version portion of the name).
+
 Once the source is on your system, change to the win32 directory
-        cd ..../bacula/src/win32
+        cd .../bacula/src/win32
 
 Download and build the cross compiler tools
         ./build-win32-cross-tools
@@ -65,12 +50,12 @@ If that link doesn't work then go to http://www.microsoft.com and search for
 
 Normally the files will be installed in:
 
-        c:/Program Files/Microsoft/VSSSDK72
+        c:\Program Files\Microsoft\VSSSDK72
 
-You only need to copy everything under the c:/Program Files/Microsoft/VSSSDK72/inc
-directory into ..../depkgs-mingw32/vss/inc.
+You only need to copy everything under the c:\Program Files\Microsoft\VSSSDK72\inc
+directory into .../depkgs-mingw32/vss/inc.
 
-The above only needs to be done once unless we change the cross-tools 
+The above only needs to be done once unless we change the cross-tools
 or the dependencies versions.  In general, you can run the script multiple
 times with no problem.  For it to work, you must have at a minimum the
 following:
@@ -80,84 +65,127 @@ following:
         wget
         texinfo
         bison
-        man2html (in man rpm on Fedora, not available on SuSE, must
-                  manually build and install)
 
 and possibly other packages.
+
 
 Building
 ========
 
 Finally, to build the Microsoft Windows version of Bacula, do the following:
 
-     cd ..../bacula/src/win32
-     make
+   cd .../bacula/src/win32
+   make
 
 If all goes well, you will end with all the executables in the
-..../bacula/src/win32/release directory.
+.../bacula/src/win32/release directory.
 
 If you have an older build environment, you might do the following
 to ensure that you pick up all the new Win32 changes:
 
-     cd <bacula>
-     make clean
-     cvs update
-     cd src/win32
-     make
+   cd .../bacula
+   make clean
+   cvs -q update -d -P
+   cd src/win32
+   make
 
-Building the Installer
-======================
-
-The installer is now build as part of the default rule when you
+The installer is now built as part of the default rule when you
 say "make" in the src/win32 directory.
 
 
 Updating the 3rd party package patches
-====================================== 
+======================================
 
-If one of the patches change in src/win32/patches, you shouldn't
-need to update the cross-tools or dependencies for it to build.
-You can install new patches by doing the following (we assume the patch
-in question is for openssl):
+If one of the patches changes in .../bacula/src/win32/patches, you will
+need to update the corresponding dependency.  You can install new patches
+by doing the following (we assume the patch in question is for openssl).
 
-     cd <bacula-source>/src/win32
-     ./build-depkgs-mingw32 -C openssl
+   cd .../bacula/src/win32
+   ./build-depkgs-mingw32 -C openssl
 
-NOTE: The -C means clobber.  Any local changes to the source code in 
-the depkgs-mingw32/src directory will be lost.  The source will be 
-reextracted from the archive and the current patches will be applied.
-
-If you add a new subroutine, external or global symbol in the CATS library 
-================================================================= 
-Edit src/win32/cats/bacula_cats.def and update it appropriately. 
-The output of a link will tell you the C++ mangled subroutine name 
-to add, and for global symbols, it is rather easy.  See the file.
-
-There are also dlls for other libraries: src/win32/dll/bacula.def
-For this file, if you have an undefined symbol, do:
-
-  strings src/lib/libbac.a | grep <symbol>
-
-then enter it in the appropriate place.
+NOTE: The -C means clobber.  Any local changes to the source code in
+      the .../depkgs-mingw32/src directory will be lost.  The source
+      will be reextracted from the archive and the current patches
+      will be applied.
 
 
-Structure of the new Win32 build environment
-============================================
+Adding a new global function or global data
+===========================================
+
+bacula.dll
+----------
+
+The code from the following directories is built into bacula.dll:
+
+   .../bacula/src/lib
+   .../bacula/src/libfind
+   .../bacula/src/win32/compat
+
+A new function or data variable which must be accessed from outside
+of bacula.dll requires special treatment.  It must be specifically
+exported.
+
+New data variables are exported by adding the macro DLL_IMP_EXP to
+the variable declaration in the header file.  All exported variables
+must be declared in a header file and MUST NOT be declared in a
+source file referencing the variable.
+
+Exporting a function requires a bit more work.  You must determine the
+C++ mangled name of the new function.
+
+   strings .../bacula/src/win32/dll/<file>.o | grep <symbol>
+
+Replace <file> with the base part of the name of the source code file
+which contains the new function.  Replace <symbol> with the name of
+the new function.  Remove the leading underscore and place the result
+in the .../bacula/src/win32/dll/bacula.def file.
+
+bacula_cats.dll
+---------------
+
+The code from the .../bacula/src/cats directory is built into database
+provider specific libraries of the form cats_<db>.dll.
+
+The database specific portion <db> is mysql for MySQL, pgsql for
+PostgreSQL, sqlite for SQLite, and bdb for the built-in Bacula database.
+
+During installation of the Director, one of the database libraries is
+copied to the system and renamed bacula_cats.dll.
+
+A new function or data variable which must be accessed from outside
+of bacula_cats.dll requires special treatment.  It must be specifically
+exported.
+
+New data variables are exported by placing their name in the file
+.../bacula/src/win32/cats/bacula_cats.def.
+
+Exporting a function requires a bit more work.  You must determine the
+C++ mangled name of the new function.
+
+   strings .../bacula/src/win32/cats/cats_*/<file>.o | grep <symbol>
+
+Replace <file> with the base part of the name of the source code file
+which contains the new function.  Replace <symbol> with the name of
+the new function.  Remove the leading underscore and place the result
+in the .../bacula/src/win32/cats/bacula_cats.def file.
+
+
+Structure of the MinGW32 build environment
+==========================================
 
 The basic strategy is each Makefile in the various subdirectories includes
 Makefile.inc, defines variables and rules specific to what is being built,
 then includes Makefile.rules which defines all the rules.
- 
+
 Makefile.inc defines the locations of all the dependencies and the compiler
 and linker flags.  It is automatically created from Makefile.inc.in.  Any
 changes must be made to Makefile.inc.in not Makefile.inc or they will be
 overwritten the next time Makefile.inc.in is updated.
- 
+
 Makefile.rules defines a bunch of macros to simplify building.  It also
 includes all the basic rules for building objects, GUI and console
 executables, etc.
- 
+
 Makefile.template is a template for creating new Makefiles, if you are
 creating a new directory, copy Makefile.template to Makefile in that
 directory and edit to suit.
-
