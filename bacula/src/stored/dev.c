@@ -118,7 +118,7 @@ init_dev(JCR *jcr, DEVRES *device)
       } else if (S_ISCHR(statp.st_mode)) {
          device->dev_type = B_TAPE_DEV;
       } else if (S_ISFIFO(statp.st_mode)) {
-         device->dev_type = B_FILE_DEV;
+         device->dev_type = B_FIFO_DEV;
       } else if (!(device->cap_bits & CAP_REQMOUNT)) {
          Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory\n"
                " or have RequiresMount=yes for DVD. st_mode=%x\n"),
@@ -942,12 +942,12 @@ bool DEVICE::eod(DCR *dcr)
          /*
           * Avoid infinite loop by ensuring we advance.
           */
-         if (file_num == (int)file) {
+         if (!at_eot() && file_num == (int)file) {
             struct mtget mt_stat;
             Dmsg1(100, "fsf did not advance from file %d\n", file_num);
             set_ateof();
             if (dev_get_os_pos(this, &mt_stat)) {
-               Dmsg2(100, "Adjust file from %d to %d\n", file , mt_stat.mt_fileno);
+               Dmsg2(100, "Adjust file from %d to %d\n", file_num, mt_stat.mt_fileno);
                file = mt_stat.mt_fileno;
             }       
             break;
@@ -1584,8 +1584,7 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
    }
 
    /* After this point, we are tape only */
-   Dmsg4(100, "reposition from %u:%u to %u:%u\n",
-      file, block_num, rfile, rblock);
+   Dmsg4(100, "reposition from %u:%u to %u:%u\n", file, block_num, rfile, rblock);
    if (rfile < file) {
       Dmsg0(100, "Rewind\n");
       if (!rewind(NULL)) {
@@ -1612,6 +1611,17 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
       /* Ignore errors as Bacula can read to the correct block */
       Dmsg1(100, "fsr %d\n", rblock-block_num);
       return fsr(rblock-block_num);
+   } else {
+      while (rblock > block_num) {
+         if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
+            berrno be;
+            dev_errno = errno;
+            Dmsg2(30, "Failed to find requested block on %s: ERR=%s",
+               print_name(), be.strerror());
+            return false;
+         }
+         Dmsg2(300, "moving forward wanted_blk=%d at_blk=%d\n", rblock, block_num);
+      }
    }
    return true;
 }
@@ -1834,8 +1844,8 @@ void DEVICE::close()
 
    switch (dev_type) {
    case B_TAPE_DEV:
-      tape_close(fd);
       unlock_door(); 
+      tape_close(fd);
       break;
    default:
       ::close(fd);

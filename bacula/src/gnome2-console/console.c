@@ -7,7 +7,7 @@
  *     Version $Id$
  */
 /*
-   Copyright (C) 2002-2005 Kern Sibbald
+   Copyright (C) 2002-2006 Kern Sibbald
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -124,7 +124,7 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
  */
 static int check_resources()
 {
-   int xOK = true;
+   bool ok = true;
    DIRRES *director;
 
    LockRes();
@@ -138,7 +138,7 @@ static int check_resources()
             director->tls_enable = true;
          } else {
             Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
-            xOK = false;
+            ok = false;
             continue;
          }
       }
@@ -148,14 +148,14 @@ static int check_resources()
                              " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
                              " At least one CA certificate store is required.\n"),
                              director->hdr.name, configfile);
-         xOK = false;
+         ok = false;
       }
    }
    
    if (numdir == 0) {
       Emsg1(M_FATAL, 0, _("No Director resource defined in %s\n"
                           "Without that I don't how to speak to the Director :-(\n"), configfile);
-      xOK = false;
+      ok = false;
    }
 
    CONRES *cons;
@@ -167,7 +167,7 @@ static int check_resources()
             cons->tls_enable = true;
          } else {
             Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
-            xOK = false;
+            ok = false;
             continue;
          }
       }
@@ -176,13 +176,13 @@ static int check_resources()
          Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                              " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
                              cons->hdr.name, configfile);
-         xOK = false;
+         ok = false;
       }
    }
 
    UnlockRes();
 
-   return xOK;
+   return ok;
 }
 
 
