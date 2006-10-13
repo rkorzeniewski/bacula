@@ -20,7 +20,9 @@ fi
 
 scripts/cleanup
 scripts/copy-2tape-confs
+echo "Prepare two tapes"
 scripts/prepare-two-tapes
+echo "Done prepare two tapes"
  
 # Make a relatively large backup set 5 x source code directory
 echo "${cwd}/build" >/tmp/file-list

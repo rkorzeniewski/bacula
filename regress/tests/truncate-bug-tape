@@ -6,7 +6,7 @@ TestName="truncate-bug-tape"
 JobName=truncatebug
 . scripts/functions
 
-set_debug 0
+set_debug 1
 copy_tape_confs
 
 echo "${cwd}/build" >/tmp/file-list
@@ -32,6 +32,7 @@ run level=Full job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
 run level=Full job=$JobName yes
+@#setdebug level=100 storage=DDS-4
 wait
 messages
 quit
