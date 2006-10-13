@@ -34,6 +34,10 @@ Document:
    { "SDErrors",   "i"},
    { "FDJobStatus","s"},
    { "SDJobStatus","s"},
+- Document all the little details of setting up certificates for
+  the Bacula data encryption code.
+- Document more precisely how to use master keys -- especially
+  for disaster recovery.
  
 
 Priority:
