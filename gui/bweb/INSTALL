@@ -146,7 +146,7 @@ cd bacula-src
 patch -p1 < message.patch
 --- cvs/src/lib/message.c       2006-07-27 21:06:20.000000000 +0200
 +++ cvs/src/lib/message.c.director      2006-07-28 13:46:49.171083494 +0200
-@@ -716,6 +716,18 @@
+@@ -716,6 +716,20 @@
                  }
                  fputs(dt, d->fd);
                  fputs(msg, d->fd);
@@ -158,8 +158,10 @@ patch -p1 < message.patch
 +                       char *p = (char *)malloc(len * 2 + 1);
 +                       db_escape_string(p, msg, len);
 +                       FILE *fp = fopen("/tmp/log.sql", "a");
-+                       fprintf(fp, "INSERT INTO Log (Time, JobId, LogText) VALUES (NOW(),%s, '%s');\n", edit_int64(jcr->JobId, ed1), p);
-+                       fclose(fp);
++                       if (fp) {
++                          fprintf(fp, "INSERT INTO Log (Time, JobId, LogText) VALUES (Now(), %s, '%s');\n", edit_int64(jcr->JobId, ed1), p);
++                          fclose(fp);
++                       }
 +               }
 +
                  break;
