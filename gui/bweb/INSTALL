@@ -14,6 +14,10 @@ Bweb works well with 1.39 release.
 8) using sudo with autochanger
 
 ################ FILE COPY #####################################
+ # you must get bweb cvs files
+ cvs -d:pserver:anonymous@bacula.cvs.sourceforge.net:/cvsroot/bacula login 
+ cvs -z3 -d:pserver:anonymous@bacula.cvs.sourceforge.net:/cvsroot/bacula co -P gui
+ cd gui
 
  # first, copy bweb perl librarie in your PERL5 INC path
  install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
