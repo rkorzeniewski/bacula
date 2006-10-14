@@ -57,7 +57,7 @@ clean:
 	rm -f test.out
 	rm -f diff
 	rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3
-	@find . -name .#* -exec $(RMF) {} \;
+	find . -name .#* -exec rm -rf {} \;
 
 # Reset our userid after running as root
 reset:
