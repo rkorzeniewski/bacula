@@ -2456,7 +2456,7 @@ LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId)
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
 
     foreach my $p (values %$all) {
-	if ($p->{volmax} && $p->{volmax} > 0) { # mysql returns 0.0000
+	if ($p->{volmax} > 0) { # mysql returns 0.0000
 	    $p->{poolusage} = sprintf('%.2f', $p->{voltotal} * 100/ $p->{volmax}) ;
 	} else {
 	    $p->{poolusage} = 0;
