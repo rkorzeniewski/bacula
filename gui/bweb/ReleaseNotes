@@ -1,5 +1,8 @@
           Release Notes for bweb 1.39.23
 
+2006/10/14:
+ - Fix Mysql bug for pool display #639
+
 2006/09/20:
  - Fix SQL query for pool display
 
