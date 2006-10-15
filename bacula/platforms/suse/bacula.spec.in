@@ -824,7 +824,8 @@ cd ${cwd}
 patch src/cats/make_sqlite_tables.in src/cats/make_sqlite_tables.in.patch
 
 # patch the create_sqlite_database script for installation bindir
-patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
+# not necessary after 1.39.26 no longer references sqlite binary
+#patch src/cats/create_sqlite_database.in src/cats/create_sqlite_database.in.patch
 
 # patch the make_catalog_backup script for installation bindir
 patch src/cats/make_catalog_backup.in src/cats/make_catalog_backup.in.patch
@@ -1685,6 +1686,8 @@ fi
 %endif
 
 %changelog
+* Sun Oct 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 1.39.26 remove create_sqlite_database.in.patch
 * Sun Sep 24 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - change ownership of working_dir on server packages to bacula.bacula so that
 - bacula-sd can create bootstrap files
