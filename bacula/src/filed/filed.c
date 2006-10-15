@@ -402,16 +402,6 @@ static int check_resources()
                } else {
                   if (crypto_keypair_load_cert(keypair, filepath)) {
                      me->pki_recipients->append(keypair);
-
-                     /* Attempt to load a private key, if available */
-                     if (crypto_keypair_has_key(filepath)) {
-                        if (!crypto_keypair_load_key(keypair, filepath, NULL, NULL)) {
-                           Emsg3(M_FATAL, 0, _("Failed to load private key from file %s for File"
-                              " daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
-                           OK = false;
-                        }
-                     }
-
                   } else {
                      Emsg3(M_FATAL, 0, _("Failed to load master key certificate"
                         " from file %s for File daemon \"%s\" in %s.\n"), filepath, me->hdr.name, configfile);
