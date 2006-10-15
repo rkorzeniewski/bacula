@@ -69,6 +69,23 @@ Job {
 # Prefer Mounted Volumes = no
 }
 
+Job {
+  Name = "VerifyTape"
+  Type = Verify
+  Level = VolumeToCatalog
+  Client=@hostname@-fd 
+  FileSet="Verify Set"
+  Storage = DDS-4
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+# Prefer Mounted Volumes = no
+}
+
+
+
 
 # Standard Restore template, to be changed by Console program
 Job {
@@ -90,6 +107,18 @@ FileSet {
     File =  </tmp/file-list
   }
 }
+
+FileSet {
+  Name = "Verify Set"
+  Include { 
+    Options { 
+       signature=MD5
+       verify=pins1
+    }
+    File =  </tmp/file-list
+  }
+}
+
 
 
 #

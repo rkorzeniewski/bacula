@@ -21,6 +21,7 @@ tests/truncate-bug-tape
 tests/two-pool-tape
 tests/2drive-incremental-2tape
 tests/bscan-tape
+tests/verify-vol-tape
 echo " "
 echo " "
 echo "Test results"
