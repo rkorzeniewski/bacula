@@ -128,6 +128,7 @@
 	  <child>
 	    <widget class="GtkToolButton" id="back_button">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Parent directory</property>
 	      <property name="stock_id">gtk-go-up</property>
 	      <property name="visible_horizontal">True</property>
 	      <property name="visible_vertical">True</property>
@@ -156,6 +157,7 @@
 	  <child>
 	    <widget class="GtkToolButton" id="prefs_button">
 	      <property name="visible">True</property>
+	      <property name="tooltip" translatable="yes">Preferences</property>
 	      <property name="stock_id">gtk-preferences</property>
 	      <property name="visible_horizontal">True</property>
 	      <property name="visible_vertical">True</property>
@@ -1978,6 +1980,7 @@ or if director works with the http connector
 			  <child>
 			    <widget class="GtkEntry" id="entry_bconsole">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">/path/to/bconsole -n -c /path/to/bconsole.conf</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
