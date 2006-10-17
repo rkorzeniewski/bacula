@@ -53,6 +53,8 @@ install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
 your_login@yourws:~$ ssh-copy-id -i .ssh/your_pub_key login@bacula-dir
 
+# you have to configure brestore preferences.
+
 ################ INSTALL MODULES ###############################
 
 Perl Modules
