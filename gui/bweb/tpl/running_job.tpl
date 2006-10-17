@@ -7,12 +7,13 @@
    <table id='id<TMPL_VAR NAME=ID>'></table>
    <br/>
 <label>
-<input type="image" type='submit' name='action' value='cancel_job'
- title='Cancel job' src='/bweb/cancel.png'>
-</label>
-<label>
 <input type='image' name='action' value='dsp_cur_job' 
  title='View job' src='/bweb/zoom.png'>
+</label>
+<label>
+<input type="image" type='submit' name='action' value='cancel_job'
+ onclick="return confirm('Do you want to cancel selected job ?')"
+ title='Cancel job' src='/bweb/cancel.png'>
 </label>
    </form>
 

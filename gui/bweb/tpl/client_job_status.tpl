@@ -29,6 +29,7 @@
 <input type='hidden' name='client' value='<TMPL_VAR Client>'>
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
 <input type="image" name='action' value='cancel_job'
+       onclick="return confirm('Do you want to cancel this job ?')"
         title='Cancel job' src='/bweb/cancel.png'>&nbsp;
 </form>
  </div>

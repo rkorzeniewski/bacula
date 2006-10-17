@@ -21,7 +21,7 @@ Location : <TMPL_VAR location>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png'>&nbsp;
+      <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");'>&nbsp;
       <input type="image" name='action' value='intern' title='Move in' src='/bweb/intern.png'>&nbsp;
       <input type="image" name='action' value='update_media' title='Update media' src='/bweb/edit.png'>&nbsp;
       <input type="image" name='action' value='media_zoom' title='Informations' src='/bweb/zoom.png'>&nbsp;

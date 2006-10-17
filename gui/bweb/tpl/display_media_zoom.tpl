@@ -19,7 +19,7 @@
       <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
 </TMPL_IF>
       <input type="image" name='action' value='update_media' title='Update' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
+      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume ?')">&nbsp;
       <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>&nbsp;
 <TMPL_IF Locationlog>
       <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='View location log' src='/bweb/zoom.png'></a>

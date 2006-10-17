@@ -8,6 +8,7 @@
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <label>
   <input type="image" name='action' value='delete' title='delete this job'
+ onclick="return confirm('Do you want to delete this job from the catalog ?');"
    src='/bweb/purge.png'> Delete
   </label>
  </form>
