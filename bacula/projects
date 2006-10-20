@@ -1074,3 +1074,82 @@ Item 1:   Filesystemwatch triggered backup.
   Notes:  This can be combined with configration that specifies
           something like: "at most every 15 minutes or when changes
           consumed XX MB".
+
+Item n:  Message mailing based on backup types
+Origin:  Evan Kaufman <evan.kaufman@gmail.com>
+  Date:  January 6, 2006
+Status:
+
+  What:  In the "Messages" resource definitions, allowing messages
+         to be mailed based on the type (backup, restore, etc.) and level
+         (full, differential, etc) of job that created the originating
+         message(s).
+
+Why:     It would, for example, allow someone's boss to be emailed
+         automatically only when a Full Backup job runs, so he can
+         retrieve the tapes for offsite storage, even if the IT dept.
+         doesn't (or can't) explicitly notify him.  At the same time, his
+         mailbox wouldnt be filled by notifications of Verifies, Restores,
+         or Incremental/Differential Backups (which would likely be kept
+         onsite).
+
+Notes:
+        One way this could be done is through additional message types, for example:
+
+   Messages {
+     # email the boss only on full system backups
+     Mail = boss@mycompany.com = full, !incremental, !differential, !restore, 
+            !verify, !admin
+     # email us only when something breaks
+     MailOnError = itdept@mycompany.com = all
+   }
+
+
+Item n:   Allow inclusion/exclusion of files in a fileset by creation/mod times
+  Origin: Evan Kaufman <evan.kaufman@gmail.com>
+  Date:   January 11, 2006
+  Status:
+
+  What:   In the vein of the Wild and Regex directives in a Fileset's
+          Options, it would be helpful to allow a user to include or exclude
+          files and directories by creation or modification times.
+
+          You could factor the Exclude=yes|no option in much the same way it
+          affects the Wild and Regex directives.  For example, you could exclude
+          all files modified before a certain date:
+
+   Options {
+     Exclude = yes
+     Modified Before = ####
+   }
+
+           Or you could exclude all files created/modified since a certain date:
+
+   Options {
+      Exclude = yes
+     Created Modified Since = ####
+   }
+
+           The format of the time/date could be done several ways, say the number
+           of seconds since the epoch:
+           1137008553 = Jan 11 2006, 1:42:33PM   # result of `date +%s`
+
+           Or a human readable date in a cryptic form:
+           20060111134233 = Jan 11 2006, 1:42:33PM   # YYYYMMDDhhmmss
+
+  Why:    I imagine a feature like this could have many uses. It would
+          allow a user to do a full backup while excluding the base operating
+          system files, so if I installed a Linux snapshot from a CD yesterday,
+          I'll *exclude* all files modified *before* today.  If I need to
+          recover the system, I use the CD I already have, plus the tape backup.
+          Or if, say, a Windows client is hit by a particularly corrosive
+          virus, and I need to *exclude* any files created/modified *since* the
+          time of infection.
+
+  Notes:  Of course, this feature would work in concert with other
+          in/exclude rules, and wouldnt override them (or each other).
+
+  Notes:  The directives I'd imagine would be along the lines of
+          "[Created] [Modified] [Before|Since] = <date>".
+          So one could compare against 'ctime' and/or 'mtime', but ONLY 'before'
+           or 'since'.

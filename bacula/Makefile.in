@@ -19,8 +19,8 @@ dummy:
 
 # --client-only directories
 fd_subdirs = src scripts src/lib src/findlib src/filed \
-	     @READLINE_SRC@ src/console \
-	     @GNOME_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@
+       @READLINE_SRC@ @GNOME_DIR@ @TRAY_MONITOR_DIR@ @WX_DIR@ \
+       src/console
 
 # Non-client-only directores
 subdirs =    src/cats @DIRD_DIR@ @STORED_DIR@ src/tools
