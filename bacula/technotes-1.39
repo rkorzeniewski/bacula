@@ -2,9 +2,17 @@
 
 General:
 
-Version 1.39.24 released:
-12Oct06
-kes  Apply the three patches from Richard Mortimer. 
+20Oct06
+kes  Fix optional files in Makefile.in of src/filed that caused
+     a syntax error when using no optional files.
+15Oct06
+lf   Fix a cosmetic bug in filed.c that caused spurious OpenSSL error
+     messages; there is no reason to attempt to load a private key.
+     from master key files.  
+
+Version 1.39.24 released: 
+12Oct06 
+kes  Apply the three patches from Richard Mortimer.
      bacula-reposition.patch, bacula-tape-reopen.patch, and
      bacula-eod.patch. This corrects tape positioning on older devices,
      and also a problem with btape.
