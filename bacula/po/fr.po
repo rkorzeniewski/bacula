@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-09-10 00:16+0200\n"
+"PO-Revision-Date: 2006-10-21 14:32+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1080,11 +1080,11 @@ msgstr "Attendait un identifiant [addr|port], pas : %s"
 
 #: src/lib/address_conf.c:446
 msgid "Only one port per address block"
-msgstr ""
+msgstr "Seulement un port par bloc d'adresse"
 
 #: src/lib/address_conf.c:452
 msgid "Only one addr per address block"
-msgstr ""
+msgstr "Seulement une adresse par bloc d'adresse"
 
 #: src/lib/address_conf.c:468
 #, c-format
@@ -1103,7 +1103,7 @@ msgstr ""
 #: src/lib/address_conf.c:486 src/lib/address_conf.c:499
 #, c-format
 msgid "Expected a end of block }, got: %s"
-msgstr "Attendait une fin de bloque }, pas : %s"
+msgstr "Attendait une fin de bloc }, pas : %s"
 
 #: src/lib/address_conf.c:492
 #, c-format
@@ -1263,7 +1263,7 @@ msgstr ""
 #: src/lib/bnet.c:966 src/lib/bnet.c:990
 #, c-format
 msgid "Network buffer size %d not multiple of tape block size.\n"
-msgstr ""
+msgstr "La taille du buffer réseau %d n'est pas un multiple de la taille de bloc du lecteur.\n"
 
 #: src/lib/bnet.c:1010 src/lib/bnet.c:1044
 #, c-format
@@ -9934,7 +9934,7 @@ msgstr ""
 #: src/stored/bls.c:309
 #, c-format
 msgid "Block: %d size=%d\n"
-msgstr ""
+msgstr "Bloc : %d taille=%d\n"
 
 #: src/stored/bls.c:360 src/stored/bextract.c:281 src/stored/bscan.c:640
 msgid "Cannot continue.\n"
@@ -10009,7 +10009,7 @@ msgstr ""
 #: src/stored/dev.c:196
 #, c-format
 msgid "Block size %u on device %s is too large, using default %u\n"
-msgstr ""
+msgstr "La taille de bloc %u sur le Device %s est trop grande, utilisation de la valeur par défaut %u\n"
 
 #: src/stored/dev.c:201
 #, c-format
@@ -10118,7 +10118,7 @@ msgstr ""
 #: src/stored/dev.c:1004 src/stored/dev.c:1087 src/stored/dev.c:1089
 #, c-format
 msgid " file=%d block=%d\n"
-msgstr ""
+msgstr " fichier=%d bloc=%d\n"
 
 #: src/stored/dev.c:1012
 msgid " Device status:"
@@ -10347,7 +10347,7 @@ msgstr ""
 
 #: src/stored/label.c:144
 msgid "Could not read Volume label from block.\n"
-msgstr ""
+msgstr "Impossible de lire le label du Volume depuis le média.\n"
 
 #: src/stored/label.c:147
 #, c-format
@@ -10372,7 +10372,7 @@ msgstr "Le volume sur %s possède un mauvais label Bacula : %x\n"
 #: src/stored/label.c:272
 #, c-format
 msgid "Cannot write Volume label to block for device %s\n"
-msgstr ""
+msgstr "Impossible d'écrire le label du Volume sur le Device %s\n"
 
 #: src/stored/label.c:421
 #, c-format
@@ -10686,16 +10686,16 @@ msgstr ""
 #: src/stored/read_record.c:70
 #, c-format
 msgid "End of Volume at file %u on device %s, Volume \"%s\"\n"
-msgstr ""
+msgstr "Fin de Volume au fichier %u sur le Device %s, Volume « %s »\n"
 
 #: src/stored/read_record.c:73
 msgid "End of all volumes.\n"
-msgstr ""
+msgstr "Fin de tous les Volumes.\n"
 
 #: src/stored/read_record.c:112
 #, c-format
 msgid "End of file %u  on device %s, Volume \"%s\"\n"
-msgstr ""
+msgstr "Fin du fichier %u  sur le Device %s, Volume « %s »\n"
 
 #: src/stored/read_record.c:126
 msgid "Did fsr\n"
@@ -10704,12 +10704,12 @@ msgstr ""
 #: src/stored/read_record.c:305
 #, c-format
 msgid "Reposition from (file:block) %u:%u to %u:%u\n"
-msgstr ""
+msgstr "Repositionnement de (fichier:bloc) %u:%u à %u:%u\n"
 
 #: src/stored/read_record.c:332
 #, c-format
 msgid "Forward spacing to file:block %u:%u.\n"
-msgstr ""
+msgstr "Postionnement en avant sur le fichier:bloc %u:%u.\n"
 
 #: src/stored/read_record.c:358
 msgid "Begin Session"
@@ -11321,7 +11321,7 @@ msgstr "Le device %s est occupé en lecture.\n"
 #: src/stored/acquire.c:340
 #, c-format
 msgid "Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n"
-msgstr ""
+msgstr "Voulait le Volume « %s », mais le Device %s est occupé à écrire sur « %s ».\n"
 
 #: src/stored/acquire.c:359
 #, c-format
@@ -11395,12 +11395,12 @@ msgstr ""
 #: src/stored/reserve.c:775
 #, c-format
 msgid "3601 JobId=%u device %s is BLOCKED due to user unmount.\n"
-msgstr ""
+msgstr "3601 JobId=%u device %s est BLOQUÉ car il a été demonté par l'utilisateur.\n"
 
 #: src/stored/reserve.c:784
 #, c-format
 msgid "3602 JobId=%u device %s is busy (already reading/writing).\n"
-msgstr ""
+msgstr "3602 JobId=%u device %s est occupé (à lire ou écrire).\n"
 
 #: src/stored/reserve.c:831
 #, c-format
@@ -11558,42 +11558,42 @@ msgstr "Le job %s est en attente de réservation d'un device.\n"
 msgid ""
 "\n"
 "Device status:\n"
-msgstr ""
+msgstr "\nStatut du Device :\n"
 
 #: src/stored/status.c:107
 #, c-format
 msgid "Autochanger \"%s\" with devices:\n"
-msgstr ""
+msgstr "Autochangeur « %s » avec les Devices :\n"
 
 #: src/stored/status.c:125
 #, c-format
 msgid "Device %s is mounted with Volume=\"%s\" Pool=\"%s\"\n"
-msgstr ""
+msgstr "Le Device %s est monté avec le Volume=« %s » Pool=« %s »\n"
 
 #: src/stored/status.c:130
 #, c-format
 msgid "Device %s open but no Bacula volume is mounted.\n"
-msgstr ""
+msgstr "Le Device %s est ouvert, mais il n'y a pas de Volume Bacula monté.\n"
 
 #: src/stored/status.c:141
 #, c-format
 msgid "    Total Bytes=%s Blocks=%s Bytes/block=%s\n"
-msgstr ""
+msgstr "    Total Octets=%s Blocs=%s Octets/Bloc=%s\n"
 
 #: src/stored/status.c:156
 #, c-format
 msgid "    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"
-msgstr ""
+msgstr "    Total des Octets lu=%s Blocs lu=%s Octets/Bloc=%s\n"
 
 #: src/stored/status.c:162
 #, c-format
 msgid "    Positioned at File=%s Block=%s\n"
-msgstr ""
+msgstr "    Positionné sur Fichier=%s Bloc=%s\n"
 
 #: src/stored/status.c:169
 #, c-format
 msgid "Device %s is not open.\n"
-msgstr ""
+msgstr "Le Device %s n'est pas ouvert.\n"
 
 #: src/stored/status.c:172
 #, c-format
@@ -11619,38 +11619,38 @@ msgstr ""
 
 #: src/stored/status.c:215
 msgid "    Device is BLOCKED. User unmounted.\n"
-msgstr ""
+msgstr "    Le Device est BLOQUÉ. Démonté par l'utilisateur.\n"
 
 #: src/stored/status.c:219
 msgid "    Device is BLOCKED. User unmounted during wait for media/mount.\n"
-msgstr ""
+msgstr "    Le Device est BLOQUÉ. Démonté par l'utilisateur à cause d'un chargement de média.\n"
 
 #: src/stored/status.c:232
 #, c-format
 msgid "    Device is BLOCKED waiting for mount of volume \"%s\".\n"
-msgstr ""
+msgstr "    Le Device est BLOQUÉ en attente du montage du volume « %s ».\n"
 
 #: src/stored/status.c:241
 msgid "    Device is BLOCKED waiting for media.\n"
-msgstr ""
+msgstr "    Le Device est BLOQUÉ en attente d'un média.\n"
 
 #: src/stored/status.c:247
 msgid "    Device is being initialized.\n"
-msgstr ""
+msgstr "    Le Device est en cours d'initialisation.\n"
 
 #: src/stored/status.c:251
 msgid "    Device is blocked labeling a Volume.\n"
-msgstr ""
+msgstr "    Le Device est occupé à labéliser un Volume.\n"
 
 #: src/stored/status.c:260
 #, c-format
 msgid "    Slot %d is loaded in drive %d.\n"
-msgstr ""
+msgstr "    Le slot %d est chargé dans le lecteur %d.\n"
 
 #: src/stored/status.c:264
 #, c-format
 msgid "    Drive %d is not loaded.\n"
-msgstr ""
+msgstr "    Le lecteur %d n'est pas chargé.\n"
 
 #: src/stored/status.c:269 src/stored/btape.c:553
 #, c-format
@@ -11681,7 +11681,7 @@ msgstr ""
 #: src/stored/status.c:315
 #, c-format
 msgid "File=%u block=%u\n"
-msgstr ""
+msgstr "Fichier=%u bloc=%u\n"
 
 #: src/stored/status.c:318
 #, c-format
@@ -11691,7 +11691,7 @@ msgstr ""
 #: src/stored/status.c:342
 #, c-format
 msgid "%s Job %s waiting for Client connection.\n"
-msgstr ""
+msgstr "%s Job %s est en attente de la connexion du Client.\n"
 
 #: src/stored/status.c:358
 #, c-format
@@ -11720,7 +11720,7 @@ msgstr ""
 msgid ""
 "\n"
 "Jobs waiting to reserve a drive:\n"
-msgstr ""
+msgstr "\nJobs en attente de réservation de lecteur :\n"
 
 #: src/stored/status.c:458
 #, fuzzy
@@ -11826,7 +11826,7 @@ msgstr ""
 #: src/stored/device.c:97
 #, c-format
 msgid "End of medium on Volume \"%s\" Bytes=%s Blocks=%s at %s.\n"
-msgstr "Fin de média sur le Volume « %s » Bytes=%s Blocks=%s à %s.\n"
+msgstr "Fin de média sur le Volume « %s » Octets=%s Blocs=%s à %s.\n"
 
 #: src/stored/device.c:111
 #, c-format
@@ -13112,7 +13112,7 @@ msgstr ""
 #: src/stored/btape.c:928
 #, c-format
 msgid "Wrote 1000 blocks of %d bytes.\n"
-msgstr ""
+msgstr "Ecriture de 1000 blocs de %d octets.\n"
 
 #: src/stored/btape.c:825 src/stored/btape.c:937
 msgid "Rewind OK.\n"
@@ -13139,7 +13139,7 @@ msgstr ""
 
 #: src/stored/btape.c:856
 msgid "1000 blocks re-read correctly.\n"
-msgstr ""
+msgstr "1000 blocs relus correctement.\n"
 
 #: src/stored/btape.c:859 src/stored/btape.c:1023
 msgid ""
