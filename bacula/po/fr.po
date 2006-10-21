@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-10-21 14:32+0200\n"
+"PO-Revision-Date: 2006-10-21 15:03+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -2511,7 +2511,7 @@ msgstr "Pas de job trouvé pour : %s.\n"
 #: src/cats/sql_find.c:241
 #, c-format
 msgid "No Job found for: %s\n"
-msgstr ""
+msgstr "Pas de job trouvé pour %s\n"
 
 #: src/cats/sql_find.c:315
 #, fuzzy, c-format
@@ -5764,7 +5764,7 @@ msgstr ""
 #: src/dird/backup.c:99
 #, c-format
 msgid "Start Backup JobId %s, Job=%s\n"
-msgstr ""
+msgstr "Démarrage du backup JobId %s, Job=%s\n"
 
 #: src/dird/backup.c:260
 #, c-format
@@ -5787,19 +5787,19 @@ msgstr ""
 
 #: src/dird/backup.c:352
 msgid "Backup OK -- with warnings"
-msgstr ""
+msgstr "Backup OK -- avec des erreurs"
 
 #: src/dird/backup.c:354 src/stored/bscan.c:1099
 msgid "Backup OK"
-msgstr ""
+msgstr "Backup OK"
 
 #: src/dird/backup.c:359 src/stored/bscan.c:1103
 msgid "*** Backup Error ***"
-msgstr ""
+msgstr "*** Backup en erreur ***"
 
 #: src/dird/backup.c:369 src/stored/bscan.c:1106
 msgid "Backup Canceled"
-msgstr ""
+msgstr "Backup annulé"
 
 #: src/dird/backup.c:419
 #, c-format
@@ -5834,6 +5834,34 @@ msgid ""
 "  Termination:            %s\n"
 "\n"
 msgstr ""
+"Bacula %s (%s): %s\n"
+"  JobId :                  %d\n"
+"  Job :                    %s\n"
+"  Niveau de backup :       %s%s\n"
+"  Client :                 « %s » %s\n"
+"  FileSet :                « %s » %s\n"
+"  Pool :                   « %s » (Depuis %s)\n"
+"  Storage :                « %s » (Depuis %s)\n"
+"  Date prévue :            %s\n"
+"  Date de début :          %s\n"
+"  Date de fin :            %s\n"
+"  Temps écoulé :           %s\n"
+"  Priorité :               %d\n"
+"  Fichier écrit FD :       %s\n"
+"  Fichier écrit SD :       %s\n"
+"  Octet écrit FD :         %s (%so)\n"
+"  Octet écrit SD :         %s (%so)\n"
+"  Débit :                  %.1f Ko/s\n"
+"  Compression logicielle : %s\n"
+"  Nom des Volumes :        %s\n"
+"  Volume Session Id :      %d\n"
+"  Volume Session date :    %d\n"
+"  Taille du volume :       %s (%so)\n"
+"  Erreur FD non fatale :   %d\n"
+"  Erreurs du SD :          %d\n"
+"  Statut de fin du FD :    %s\n"
+"  Statut de fin du SD :    %s\n"
+"  Statut de fin :          %s\n"
 
 #: src/dird/backup.c:511
 #, c-format
@@ -6071,7 +6099,7 @@ msgstr "Flag InChanger"
 
 #: src/dird/ua_update.c:491
 msgid "Volume Files"
-msgstr ""
+msgstr "Fichiers du Volume"
 
 #: src/dird/ua_update.c:493
 msgid "Volume from Pool"
@@ -6088,7 +6116,7 @@ msgstr "Fin"
 #: src/dird/ua_update.c:504
 #, c-format
 msgid "Updating Volume \"%s\"\n"
-msgstr ""
+msgstr "Mise à jour du Volume « %s »\n"
 
 #: src/dird/ua_update.c:509
 #, c-format
@@ -6151,7 +6179,7 @@ msgstr "Saisissez la nouvelle taille maximum (octets) : "
 #: src/dird/ua_update.c:570
 #, c-format
 msgid "Current recycle flag is: %s\n"
-msgstr ""
+msgstr "Le flag de recyclage courant est : %s\n"
 
 #: src/dird/ua_update.c:572
 msgid "Enter new Recycle status: "
@@ -6169,16 +6197,16 @@ msgstr "Saisissez le nouveau slot : "
 #: src/dird/ua_update.c:587
 #, c-format
 msgid "Current InChanger flag is: %d\n"
-msgstr ""
+msgstr "Le flag InChanger courant est : %d\n"
 
 #: src/dird/ua_update.c:588
 msgid "Set InChanger flag? yes/no: "
-msgstr ""
+msgstr "Positionner le flag InChanger ? oui/non : "
 
 #: src/dird/ua_update.c:599
 #, c-format
 msgid "New InChanger flag is: %d\n"
-msgstr ""
+msgstr "Le nouveau flag InChanger est : %d\n"
 
 #: src/dird/ua_update.c:606
 msgid ""
@@ -6186,19 +6214,22 @@ msgid ""
 "in loss of data on your Volume\n"
 "\n"
 msgstr ""
+"Attention, changer le nombre de fichier du Volume peut\n"
+"vous faire perdre des données du Volume\n"
+"\n"
 
 #: src/dird/ua_update.c:608
 #, c-format
 msgid "Current Volume Files is: %u\n"
-msgstr ""
+msgstr "Le nombre courant de fichier sur le Volume est : %u\n"
 
 #: src/dird/ua_update.c:609
 msgid "Enter new number of Files for Volume: "
-msgstr ""
+msgstr "Saisissez le nouveau nombre de fichiers du Volume : "
 
 #: src/dird/ua_update.c:614
 msgid "Normally, you should only increase Volume Files by one!\n"
-msgstr ""
+msgstr "Logiquement, vous devez augmenter le nombre de fichier du Volume d'un !\n"
 
 #: src/dird/ua_update.c:615
 msgid "Continue? (yes/no): "
@@ -6207,7 +6238,7 @@ msgstr "Continuez ? (oui/non) : "
 #: src/dird/ua_update.c:625
 #, c-format
 msgid "New Volume Files is: %u\n"
-msgstr ""
+msgstr "Le nouveau nombre de fichier du Volume est : %u\n"
 
 #: src/dird/ua_update.c:637
 #, c-format
@@ -6601,6 +6632,20 @@ msgid ""
 "  Termination:            %s\n"
 "\n"
 msgstr ""
+"Bacula %s (%s) : %s\n"
+"  JobId :                 %d\n"
+"  Job :                   %s\n"
+"  Client :                %s\n"
+"  Début :                 %s\n"
+"  Fin :                   %s\n"
+"  Fichiers attendus :     %s\n"
+"  Fichiers restaurés :    %s\n"
+"  Octets restaurés :      %s\n"
+"  Débit :                 %.1f Ko/s\n"
+"  Erreurs du FD :         %d\n"
+"  Statut de fin du FD :   %s\n"
+"  Statut de fin du SD :   %s\n"
+"  Etat :                  %s\n"
 
 #: src/dird/autoprune.c:57
 msgid "Begin pruning Jobs.\n"
@@ -7414,7 +7459,7 @@ msgstr "Utilisation du Catalogue par défaut name=%s DB=%s\n"
 
 #: src/dird/ua_output.c:61 src/dird/ua_output.c:85
 msgid "ON or OFF keyword missing.\n"
-msgstr ""
+msgstr "Mot clef ON ou OFF manquant.\n"
 
 #: src/dird/ua_output.c:173
 msgid "Keywords for the show command are:\n"
@@ -7423,12 +7468,12 @@ msgstr ""
 #: src/dird/ua_output.c:179
 #, c-format
 msgid "%s resource %s not found.\n"
-msgstr ""
+msgstr "%s ressource %s introuvable.\n"
 
 #: src/dird/ua_output.c:182
 #, c-format
 msgid "Resource %s not found\n"
-msgstr ""
+msgstr "Ressource %s introuvable\n"
 
 #: src/dird/ua_output.c:250
 msgid "Hey! DB is NULL\n"
