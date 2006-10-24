@@ -126,6 +126,7 @@ b_regfree
 ?write_state_file@@YAXPADPBDH@Z
 ?drop@@YAXPAD0@Z
 ?bfgets@@YAPADPADHPAU_iobuf@@@Z
+?escape_filename@@YAPADPBD@Z
  
 ; btime.obj 
 ?bstrftime@@YAPADPADH_J@Z

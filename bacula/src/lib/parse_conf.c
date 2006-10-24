@@ -50,6 +50,12 @@
 
 #include "bacula.h"
 
+#if defined(HAVE_WIN32)
+#include "shlobj.h"
+#else
+#define MAX_PATH  1024
+#endif
+
 /* Each daemon has a slightly different set of
  * resources, so it will define the following
  * global values.
@@ -60,7 +66,7 @@ extern RES_TABLE resources[];
 extern RES **res_head;
 
 #if defined(_MSC_VER)
-// work around visual studio name manling preventing external linkage since res_all
+// work around visual studio name mangling preventing external linkage since res_all
 // is declared as a different type when instantiated.
 extern "C" CURES res_all;
 #else
@@ -73,7 +79,8 @@ extern brwlock_t res_lock;            /* resource lock */
 
 /* Forward referenced subroutines */
 static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
-
+static const char *get_default_configdir();
+static bool find_config_file(const char *config_file, char *full_path);
 
 /* Common Resource definitions */
 
@@ -193,7 +200,7 @@ void init_resource(int type, RES_ITEM *items, int pass)
          if (items[i].handler == store_bit) {
             *(int *)(items[i].value) |= items[i].code;
          } else if (items[i].handler == store_bool) {
-            *(bool *)(items[i].value) = items[i].default_value;
+            *(bool *)(items[i].value) = items[i].default_value != 0;
          } else if (items[i].handler == store_pint ||
                     items[i].handler == store_int) {
             *(int *)(items[i].value) = items[i].default_value;
@@ -768,6 +775,12 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
    RES_ITEM *items = NULL;
    int level = 0;
 
+   char *full_path = (char *)alloca(MAX_PATH);
+
+   if (find_config_file(cf, full_path)) {
+      cf = full_path;
+   }
+
    /* Make two passes. The first builds the name symbol table,
     * and the second picks up the items.
     */
@@ -893,6 +906,68 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
    }
    Dmsg0(900, "Leave parse_config()\n");
    return 1;
+}
+
+const char *get_default_configdir()
+{
+#if defined(HAVE_WIN32)
+#define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
+
+   HRESULT hr;
+   static char szConfigDir[MAX_PATH + 1] = { 0 };
+
+   if (szConfigDir[0] == '\0') {
+      hr = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, szConfigDir);
+
+      if (SUCCEEDED(hr)) {
+         bstrncat(szConfigDir, "\\Bacula", sizeof(szConfigDir));
+      } else {
+         bstrncpy(szConfigDir, DEFAULT_CONFIGDIR, sizeof(szConfigDir));
+      }
+   }
+   return szConfigDir;
+#else
+   return "/etc/bacula";
+#endif
+}
+
+bool
+find_config_file(const char *config_file, char *full_path)
+{
+#if defined(HAVE_WIN32)
+   if (strpbrk(config_file, ":/\\") != NULL) {
+      return false;
+   }
+#else
+   if (strchr(config_file, '/') != NULL) {
+      return false;
+   }
+#endif
+
+   struct stat st;
+
+   if (stat(config_file, &st) == 0) {
+      return false;
+   }
+
+   const char *config_dir = get_default_configdir();
+   size_t dir_length = strlen(config_dir);
+   size_t file_length = strlen(config_file);
+
+   if ((dir_length + 1 + file_length + 1) > MAX_PATH) {
+      return false;
+   }
+
+   memcpy(full_path, config_dir, dir_length + 1);
+
+   if (full_path[dir_length - 1] != '/' && 
+       full_path[dir_length - 1] != '\\') {
+      full_path[dir_length++] = '/';
+   }
+
+   memcpy(&full_path[dir_length], config_file, file_length + 1);
+
+   return true;
 }
 
 /*********************************************************************

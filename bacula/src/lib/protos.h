@@ -62,6 +62,7 @@ long long int strtoll            (const char *ptr, char **endptr, int base);
 #endif
 void      read_state_file(char *dir, const char *progname, int port);
 int       bstrerror(int errnum, char *buf, size_t bufsiz);
+char     *escape_filename(const char *file_path);
 
 /* bnet.c */
 int32_t    bnet_recv             (BSOCK *bsock);

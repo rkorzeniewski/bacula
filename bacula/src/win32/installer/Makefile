@@ -94,6 +94,9 @@ SCRIPTS := \
 	../cats/make_catalog_backup.cmd \
 	../cats/delete_catalog_backup.cmd
 
+DIRD_FILES := \
+	query.sql
+
 SSL_FILES := \
 	openssl.cnf
 
@@ -139,7 +142,9 @@ $(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Strip_B
 
 $(foreach file,$(addprefix $(DEPKGS)/ssl/, $(SSL_FILES)),$(eval $(call Copy_Binary,$(file))))
 
-$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES)
+$(foreach file,$(addprefix ../../dird/, $(DIRD_FILES)),$(eval $(call Copy_Binary,$(file))))
+
+$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES) $(DIRD_FILES)
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 

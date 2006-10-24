@@ -28,6 +28,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Copying dird scripts"
+				CommandLine="copy ..\..\dird\query.sql ..\installer"
+				AdditionalDependencies="..\..\dird\query.sql"
+				Outputs="..\installer\query.sql"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -120,6 +124,10 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Copying dird scripts"
+				CommandLine="copy ..\..\dird\query.sql ..\installer"
+				AdditionalDependencies="..\..\dird\query.sql"
+				Outputs="..\installer\query.sql"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"

@@ -185,6 +185,7 @@ _Z9bsnprintfPciPKcz
 _Z11bmicrosleepll
 _Z15create_pid_filePcPKci
 _Z15delete_pid_filePcPKci
+_Z15escape_filenamePKc
 _Z15read_state_filePcPKci
 _Z16write_state_filePcPKci
 _Z2_pPP16pthread_mutex_t_

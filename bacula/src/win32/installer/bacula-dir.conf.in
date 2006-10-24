@@ -80,7 +80,7 @@ Job {
   Storage = File
   Pool = Default
   Messages = Standard
-  Where = C:\\tmp\\bacula-restores
+  Where = "C:\\tmp\\bacula-restores"
 }
 
 
@@ -105,7 +105,7 @@ FileSet {
 #    directory to give a reasonable FileSet to backup to
 #    disk storage during initial testing.
 #
-    File = @BUILD_DIR@
+    File = "@bin_dir@"
   }
 
 #
@@ -144,7 +144,7 @@ FileSet {
     Options {
       signature = MD5
     }
-    File = "@working_dir@/bacula.sql"
+    File = "@working_dir@\\bacula.sql"
   }
 }
 

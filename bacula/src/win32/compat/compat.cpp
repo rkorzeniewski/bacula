@@ -302,27 +302,27 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
 
 
    wchar_t *win32_name = (wchar_t *)pwszBuf+nParseOffset;
+   wchar_t *name_start = name;
 
    while (*name) {
-      /* Check for Unix separator and convert to Win32 */
-      if (*name == '/') {
+      /* Check for Unix separator and convert to Win32, eliminating 
+       * duplicate separators.
+       */
+      if (*name == '/' || *name == '\\') {
          *win32_name++ = '\\';     /* convert char */
-         /* If Win32 separated that is "quoted", remove quote */
-/* HELPME (Thorsten Engel): I don't understand the following part
- * and it removes a backslash from e.g. "\\.\c:" which I need for 
- * RAW device access. So I took it out.  
- */
-#ifdef needed
-        } else if (*name == '\\' && name[1] == '\\') {
-         *win32_name++ = '\\';
-         name++;                     /* skip first \ */ 
-#endif
+
+         /* Eliminate consecutive slashes, but not at the start so that 
+          * \\.\ still works.
+          */
+         if (name_start != name && (name[1] == '/' || name[1] == '\\')) {
+            name++;
+         }
       } else {
          *win32_name++ = *name;    /* copy character */
       }
       name++;
    }
-   
+
    /* null terminate string */
    *win32_name = 0;
 

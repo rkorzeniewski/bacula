@@ -174,7 +174,7 @@
 				RelativePath="..\..\..\stored\acquire.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -182,7 +182,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -194,7 +194,7 @@
 				RelativePath="..\..\..\stored\ansi_label.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -202,7 +202,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -214,7 +214,7 @@
 				RelativePath="..\..\..\stored\append.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -222,7 +222,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -234,7 +234,7 @@
 				RelativePath="..\..\..\stored\askdir.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -242,7 +242,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -254,7 +254,7 @@
 				RelativePath="..\..\..\stored\authenticate.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -262,7 +262,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -274,7 +274,7 @@
 				RelativePath="..\..\..\stored\autochanger.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -282,7 +282,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -294,7 +294,7 @@
 				RelativePath="..\..\..\stored\block.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -302,7 +302,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -314,7 +314,7 @@
 				RelativePath="..\..\..\stored\butil.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -322,7 +322,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -334,7 +334,7 @@
 				RelativePath="..\..\..\stored\dev.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -342,7 +342,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -354,7 +354,7 @@
 				RelativePath="..\..\..\stored\device.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -362,7 +362,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -374,7 +374,7 @@
 				RelativePath="..\..\..\stored\dircmd.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -382,7 +382,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -394,7 +394,7 @@
 				RelativePath="..\..\..\stored\dvd.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -402,7 +402,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -414,7 +414,7 @@
 				RelativePath="..\..\..\stored\ebcdic.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -422,7 +422,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -434,7 +434,7 @@
 				RelativePath="..\..\..\stored\fd_cmds.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -442,7 +442,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -454,7 +454,7 @@
 				RelativePath="..\..\..\stored\job.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -462,7 +462,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -474,7 +474,7 @@
 				RelativePath="..\..\..\stored\label.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -482,7 +482,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -494,7 +494,7 @@
 				RelativePath="..\..\..\stored\mac.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -502,7 +502,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -514,7 +514,7 @@
 				RelativePath="..\..\..\stored\match_bsr.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -522,7 +522,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -534,7 +534,7 @@
 				RelativePath="..\..\..\stored\mount.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -542,7 +542,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -554,7 +554,7 @@
 				RelativePath="..\mtops.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -563,7 +563,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -576,7 +576,7 @@
 				RelativePath="..\..\..\stored\parse_bsr.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -584,7 +584,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -596,7 +596,7 @@
 				RelativePath="..\..\..\stored\pythonsd.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -604,7 +604,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -616,7 +616,7 @@
 				RelativePath="..\..\..\stored\read.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -624,7 +624,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -636,7 +636,7 @@
 				RelativePath="..\..\..\stored\read_record.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -644,7 +644,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -656,7 +656,7 @@
 				RelativePath="..\..\..\stored\record.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -664,7 +664,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -676,7 +676,7 @@
 				RelativePath="..\..\..\stored\reserve.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -684,7 +684,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -696,7 +696,7 @@
 				RelativePath="..\..\..\stored\scan.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -704,7 +704,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -716,7 +716,7 @@
 				RelativePath="..\..\..\stored\spool.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -724,7 +724,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -736,7 +736,7 @@
 				RelativePath="..\..\..\stored\stored_conf.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -744,7 +744,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -756,7 +756,7 @@
 				RelativePath="..\..\..\stored\wait.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -764,7 +764,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

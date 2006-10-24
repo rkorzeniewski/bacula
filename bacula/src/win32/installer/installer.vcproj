@@ -22,8 +22,8 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot;&#x0D;&#x0A;"
-				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT&quot;&#x0D;&#x0A;"
+				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist&quot;&#x0D;&#x0A;"
+				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8_DEBUG &quot;$(VCInstallDir)redist&quot;&#x0D;&#x0A;"
 				CleanCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe"
 				Output=""
 				PreprocessorDefinitions="VERSION=$(VERSION);DOC_DIR=..\..\..\..\docs;BUILD_TOOLS=VC8_DEBUG;VC_REDIST_DIR=$(VCInstallDir)redist\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT;DEPKGS_BIN=..\..\..\..\depkgs-msvc\bin;BACULA_BIN=..\$(ConfigurationName);CATS_DIR=..\cats;SCRIPT_DIR=..\scripts"
@@ -42,8 +42,8 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist\x86\Microsoft.VC80.CRT&quot;&#x0D;&#x0A;"
-				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist\x86\Microsoft.VC80.CRT&quot;&#x0D;&#x0A;"
+				BuildCommandLine="build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist&quot;&#x0D;&#x0A;"
+				ReBuildCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe&#x0D;&#x0A;build-installer $(SolutionDir) $(ConfigurationName) VC8 &quot;$(VCInstallDir)redist&quot;&#x0D;&#x0A;"
 				CleanCommandLine="del $(SolutionDir)$(ConfigurationName)\winbacula-*.exe"
 				Output=""
 				PreprocessorDefinitions=""
