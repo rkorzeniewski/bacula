@@ -36,7 +36,7 @@ CLIENT *me;                           /* my resource */
 bool no_signals = false;
 
 
-#define CONFIG_FILE "./bacula-fd.conf" /* default config file */
+#define CONFIG_FILE "bacula-fd.conf" /* default config file */
 
 char *configfile = NULL;
 static bool foreground = false;

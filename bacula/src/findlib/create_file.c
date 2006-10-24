@@ -348,15 +348,18 @@ static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
 
    /* Separate pathname and filename */
    for (q=p=f=ofile; *p; p++) {
-      if (*p == '/') {
-         f = q;                    /* possible filename */
-      }
 #ifdef HAVE_WIN32
-      if (*p == '\\') {            /* strip backslashes on Win32 */
-         continue;
+      if (*p == '\\' || *p == '/') {
+         f = q;
+         if (p[1] == '\\' || p[1] == '/') {
+            p++;
+         }
       }
       *q++ = *p;                   /* copy data */
 #else
+      if (*p == '/') {
+         f = q;                    /* possible filename */
+      }
       q++;
 #endif
    }

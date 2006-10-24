@@ -744,3 +744,27 @@ void make_unique_filename(POOLMEM **name, int Id, char *what)
 {
    Mmsg(name, "%s/%s.%s.%d.tmp", working_directory, my_name, what, Id);
 }
+
+char *escape_filename(const char *file_path)
+{
+   if (file_path == NULL || strpbrk(file_path, "\"\\") == NULL) {
+      return NULL;
+   }
+
+   char *escaped_path = (char *)bmalloc(2 * (strlen(file_path) + 1));
+   char *cur_char = escaped_path;
+
+   while (*file_path) {
+      if (*file_path == '\\' || *file_path == '"') {
+         *cur_char++ = '\\';
+      }
+
+      *cur_char++ = *file_path++;
+   }
+
+   *cur_char = '\0';
+
+   return escaped_path;
+}
+
+

@@ -90,7 +90,7 @@ static int timecmd(FILE *input, BSOCK *UA_sock);
 static int sleepcmd(FILE *input, BSOCK *UA_sock);
 
 
-#define CONFIG_FILE "./bconsole.conf"   /* default configuration file */
+#define CONFIG_FILE "bconsole.conf"   /* default configuration file */
 
 static void usage()
 {

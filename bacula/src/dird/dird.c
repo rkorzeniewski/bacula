@@ -70,7 +70,7 @@ extern "C" { // work around visual compiler mangling variables
 extern URES res_all;
 #endif
 
-#define CONFIG_FILE "./bacula-dir.conf" /* default configuration file */
+#define CONFIG_FILE "bacula-dir.conf" /* default configuration file */
 
 static void usage()
 {

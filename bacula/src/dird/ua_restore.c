@@ -68,6 +68,8 @@ int restore_cmd(UAContext *ua, const char *cmd)
    JOB *job;
    int i;
    JCR *jcr = ua->jcr;
+   char *escaped_bsr_name = NULL;
+   char *escaped_where_name = NULL;
 
    memset(&rx, 0, sizeof(rx));
    rx.path = get_pool_memory(PM_FNAME);
@@ -166,24 +168,40 @@ int restore_cmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
 
+   escaped_bsr_name = escape_filename(jcr->RestoreBootstrap);
+   escaped_where_name = escape_filename(rx.where);
+
    /* Build run command */
    if (rx.where) {
       if (!acl_access_ok(ua, Where_ACL, rx.where)) {
          bsendmsg(ua, _("Forbidden \"where\" specified.\n"));
          goto bail_out;
       }
+
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
           " where=\"%s\" files=%d catalog=\"%s\"",
           job->name(), rx.ClientName, rx.store?rx.store->name():"",
-          jcr->RestoreBootstrap, rx.where, rx.selected_files, ua->catalog->name());
+          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
+          escaped_where_name ? escaped_where_name : rx.where,
+          rx.selected_files, ua->catalog->name());
    } else {
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
           " files=%d catalog=\"%s\"",
           job->name(), rx.ClientName, rx.store?rx.store->name():"",
-          jcr->RestoreBootstrap, rx.selected_files, ua->catalog->name());
+          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
+          rx.selected_files, ua->catalog->name());
    }
+
+   if (escaped_bsr_name != NULL) {
+      bfree(escaped_bsr_name);
+   }
+
+   if (escaped_where_name != NULL) {
+      bfree(escaped_where_name);
+   }
+
    if (find_arg(ua, NT_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
    }
@@ -194,6 +212,14 @@ int restore_cmd(UAContext *ua, const char *cmd)
    return 1;
 
 bail_out:
+   if (escaped_bsr_name != NULL) {
+      bfree(escaped_bsr_name);
+   }
+
+   if (escaped_where_name != NULL) {
+      bfree(escaped_where_name);
+   }
+
    free_rx(&rx);
    return 0;
 
