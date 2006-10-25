@@ -13,7 +13,7 @@ rem
 rem 
 @echo on
 
-cd @working_dir@
+cd @working_dir_cmd@
 del /f bacula.sql 2>nul
 
 set MYSQLPASSWORD=
@@ -24,18 +24,18 @@ if not "%3"=="" set MYSQLPASSWORD=--password=%3
 @echo off
 rem 
 rem   To read back a MySQL database use: 
-rem      cd @working_dir@
-rem      rd /s /q -f @SQL_BINDIR@\..\data\bacula
-rem      mysql <bacula.sql
+rem      cd @working_dir_cmd@
+rem      rd /s /q @SQL_BINDIR@\..\data\bacula
+rem      mysql < bacula.sql
 rem 
 rem   To read back a SQLite database use:
-rem      cd @working_dir@
-rem      rm -f bacula.db
-rem      sqlite bacula.db <bacula.sql
+rem      cd @working_dir_cmd@
+rem      del /f bacula.db
+rem      sqlite bacula.db < bacula.sql
 rem 
 rem   To read back a PostgreSQL database use:
-rem      cd @working_dir@
+rem      cd @working_dir_cmd@
 rem      dropdb bacula
 rem      createdb bacula
-rem      psql bacula <bacula.sql
+rem      psql bacula < bacula.sql
 rem 

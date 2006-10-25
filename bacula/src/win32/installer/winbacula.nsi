@@ -338,21 +338,21 @@ Function InstallCommonFiles
 
     SetOutPath "$INSTDIR\bin"
 !if "${BUILD_TOOLS}" == "VC8"
-    File "${VC_REDIST_DIR}\msvcm80.dll"
-    File "${VC_REDIST_DIR}\msvcp80.dll"
-    File "${VC_REDIST_DIR}\msvcr80.dll"
-    File "${VC_REDIST_DIR}\Microsoft.VC80.CRT.manifest"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcm80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcp80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcr80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
     File "${DEPKGS_BIN}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "VC8_DEBUG"
-    File "${VC_REDIST_DIR}\msvcm80.dll"
-    File "${VC_REDIST_DIR}\msvcp80.dll"
-    File "${VC_REDIST_DIR}\msvcr80.dll"
-    File "${VC_REDIST_DIR}\Microsoft.VC80.CRT.manifest"
-    File "${VC_REDIST_DIR}\msvcm80d.dll"
-    File "${VC_REDIST_DIR}\msvcp80d.dll"
-    File "${VC_REDIST_DIR}\msvcr80d.dll"
-    File "${VC_REDIST_DIR}\Microsoft.VC80.DebugCRT.manifest"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcm80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcp80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcr80.dll"
+    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
+    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcm80d.dll"
+    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcp80d.dll"
+    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcr80d.dll"
+    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\Microsoft.VC80.DebugCRT.manifest"
     File "${DEPKGS_BIN}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
@@ -677,8 +677,17 @@ Section "Director Service" SecDirectorDaemon
     File /oname=update_tables.cmd ${CATS_DIR}\update_bdb_tables.cmd
     File /oname=grant_privileges.cmd ${CATS_DIR}\grant_bdb_privileges.cmd
   ${EndIf}
-  File ${CATS_DIR}\make_catalog_backup.cmd
-  File ${CATS_DIR}\delete_catalog_backup.cmd
+  ${Unless} ${FileExists} "$INSTDIR\bin\make_catalog_backup.cmd"
+    File "/oname=$PLUGINSDIR\make_catalog_backup.cmd" "${CATS_DIR}\make_catalog_backup.cmd"
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\make_catalog_backup.cmd"'
+    CopyFiles "$PLUGINSDIR\make_catalog_backup.cmd" "$INSTDIR\bin\make_catalog_backup.cmd"
+  ${EndUnless}
+  ${Unless} ${FileExists} "$INSTDIR\bin\delete_catalog_backup.cmd"
+    File "/oname=$PLUGINSDIR\delete_catalog_backup.cmd" "${CATS_DIR}\delete_catalog_backup.cmd"
+    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\delete_catalog_backup.cmd"'
+    CopyFiles "$PLUGINSDIR\delete_catalog_backup.cmd" "$INSTDIR\bin\delete_catalog_backup.cmd"
+  ${EndUnless}
+  File "query.sql"
 
   ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-dir.conf"
     File "/oname=$PLUGINSDIR\bacula-dir.conf.in" "bacula-dir.conf.in"
