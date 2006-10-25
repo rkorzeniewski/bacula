@@ -1174,6 +1174,10 @@ sub connect_db
 	    unless ($self->{dbh});
 
 	$self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
+
+	if ($self->{info}->{dbi} =~ /^dbi:Pg/i) {
+	    $self->{dbh}->do("SET datestyle TO 'ISO, YMD'");
+	}
     }
 }
 
