@@ -86,7 +86,7 @@ nrsTable.setup(
  page_nav: true,
  padding: 3,
  rows_per_page: rows_per_page,
- disable_sorting: new Array(1,9)
+ disable_sorting: new Array(1,3,9)
 }
 );
 </script>
