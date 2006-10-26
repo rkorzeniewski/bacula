@@ -1,5 +1,9 @@
           Release Notes for bweb 1.39.23
 
+2006/10/26:
+ - Fix javascript sort bug
+ - Add french translation for bweb (template_dir must point to bweb/lang/fr/tpl)
+
 2006/10/14:
  - Fix Mysql bug for pool display #639
 
