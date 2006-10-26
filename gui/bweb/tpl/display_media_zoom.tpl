@@ -14,7 +14,7 @@
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <input type="image" name='action' value='extern' title='move out' src='/bweb/extern.png'>&nbsp;
+      <input type="image" name='action' value='extern' onclick='return confirm("Do you want to eject this media ?");' title='move out' src='/bweb/extern.png'>&nbsp;
 <TMPL_ELSE>
       <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
 </TMPL_IF>
