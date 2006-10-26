@@ -199,12 +199,14 @@ nrsTable.prototype.quickSort = function(left, right)
 	var i = left;
 	var j = right;
 	var k = this.data[Math.round((left + right) / 2)][this.field_to_sort];
-        if (isNaN(k)) {
-          k = k.toLowerCase();
-        } else {
-	  k = parseInt(k, 10);
-	}
-        
+	if (k != '') {
+           if (isNaN(k)) {
+             k = k.toLowerCase();
+           } else {
+	     k = parseInt(k, 10);
+	   }
+        }
+
 	while(j > i)
 	{
 		if(this.field_asc)
