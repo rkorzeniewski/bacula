@@ -9,7 +9,7 @@
   <label>
   <input type="image" name='action' value='delete' title='Supprimer ce job'
  onclick="return confirm('Voulez vous vraiment supprimer ce job du catalogue ?');"
-   src='/bweb/purge.png'> Delete
+   src='/bweb/purge.png'> Purger
   </label>
  </form>
  </td><td>
