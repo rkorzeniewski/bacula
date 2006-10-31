@@ -2459,8 +2459,21 @@ LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId)
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
 
+    $query = "
+SELECT Pool.Name AS name,
+       sum(VolBytes) AS size
+FROM   Media JOIN Pool ON (Media.PoolId = Pool.PoolId)
+WHERE  Media.VolStatus IN ('Recycled', 'Purged')
+GROUP BY Pool.Name;
+";
+    my $empty = $self->dbh_selectall_hashref($query, 'name');
+
     foreach my $p (values %$all) {
 	if ($p->{volmax} > 0) { # mysql returns 0.0000
+	    # we remove Recycled/Purged media from pool usage
+	    if (defined $empty->{$p->{name}}) {
+		$p->{voltotal} -= $empty->{$p->{name}}->{size};
+	    }
 	    $p->{poolusage} = sprintf('%.2f', $p->{voltotal} * 100/ $p->{volmax}) ;
 	} else {
 	    $p->{poolusage} = 0;

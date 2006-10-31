@@ -27,7 +27,7 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="?action=job">Historique</a> </li>
      <li><a href="?action=running">Jobs en cours</a>
      <li><a href="?action=next_job">Prochains Jobs</a> </li>
-     <li><a href="?action=restore" title="Lancer brestore">Restaure</a> </li>
+     <li><a href="?action=restore" title="Lancer brestore">Restauration</a> </li>
    </ul>
  </li>
  <li style="padding: 0.25em 2em;">Medias
