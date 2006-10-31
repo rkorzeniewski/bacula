@@ -48,7 +48,7 @@ data.push( new Array(
 "<TMPL_VAR Duration>",
 "<TMPL_VAR JobFiles>",   
 human_size(<TMPL_VAR JobBytes>),
-"<TMPL_VAR joberrors">",   
+"<TMPL_VAR joberrors>",   
 a
  )
 );
