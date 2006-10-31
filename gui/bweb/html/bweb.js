@@ -19,6 +19,7 @@
  var odd_cell_color  = "#EEEEEE";
  var header_color    = "#E1E0DA";
  var rows_per_page   = 20;
+ var bweb_root       = "/bweb/";
  var up_icon         = "/bweb/up.gif";
  var down_icon       = "/bweb/down.gif";
  var prev_icon       = "/bweb/left.gif";
@@ -240,6 +241,25 @@ function percent_usage(value, parent)
    } 
 
    return parent;
+}
+
+function bweb_get_job_img(status, errors)
+{
+  var ret;
+
+  if (status == "T") {
+     if (errors > 0) {
+        ret = "W.png";
+
+     } else {
+        ret = "T.png";
+     }
+
+  } else {
+     ret = status + ".png";
+  }
+
+  return bweb_root + ret;
 }
 
 function search_media()

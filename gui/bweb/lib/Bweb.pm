@@ -1932,6 +1932,7 @@ SELECT DISTINCT Job.JobId       AS jobid,
                 JobFiles        AS jobfiles, 
                 JobBytes        AS jobbytes,
 		JobStatus       AS jobstatus,
+                JobErrors       AS joberrors,
                 $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                                             - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) AS duration
 

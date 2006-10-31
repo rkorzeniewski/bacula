@@ -64,6 +64,7 @@ var header = new Array("JobId",
 	               "Durée",
                        "Fichiers",
                        "Taille",
+                       "Erreurs",
 	               "Pool",
                        "Volumes utilisés",
 	               "Statut");
@@ -71,7 +72,7 @@ var header = new Array("JobId",
 var data = new Array();
 
 img = document.createElement("IMG");
-img.src="/bweb/<TMPL_VAR JobStatus>.png";
+img.src=bweb_get_job_img("<TMPL_VAR JobStatus>", <TMPL_VAR joberrors>);
 img.title=jobstatus['<TMPL_VAR JobStatus>']; 
 
 data.push( new Array(
@@ -84,6 +85,7 @@ data.push( new Array(
 "<TMPL_VAR duration>",
 "<TMPL_VAR JobFiles>",   
 human_size(<TMPL_VAR JobBytes>),
+"<TMPL_VAR joberrors>",
 "<TMPL_VAR poolname>",
 "<TMPL_LOOP volumes><TMPL_VAR VolumeName>\n</TMPL_LOOP>",   
 img
