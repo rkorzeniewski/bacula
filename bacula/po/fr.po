@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-10-21 15:03+0200\n"
+"PO-Revision-Date: 2006-10-31 23:44+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -832,12 +832,12 @@ msgstr "inconnu"
 #: src/lib/runscript.c:200
 #, c-format
 msgid "%s: run command \"%s\"\n"
-msgstr "%s: éxécution de la commande « %s »\n"
+msgstr "%s: exécution de la commande « %s »\n"
 
 #: src/lib/runscript.c:206
 #, c-format
 msgid "Runscript: %s could not execute. ERR=%s\n"
-msgstr "Runscript : impossible d'éxécuter %s. ERR=%s\n"
+msgstr "Runscript : impossible d'exécuter %s. ERR=%s\n"
 
 #: src/lib/runscript.c:215
 #, c-format
@@ -5759,7 +5759,7 @@ msgstr ""
 #: src/dird/inc_conf.c:672
 #, c-format
 msgid "Expected a FileSet keyword, got: %s"
-msgstr ""
+msgstr "Attendait le mot clef FileSet, eu : %s"
 
 #: src/dird/backup.c:99
 #, c-format
@@ -11062,7 +11062,7 @@ msgstr ""
 
 #: src/stored/spool.c:101
 msgid "Spooling data ...\n"
-msgstr ""
+msgstr "Spooling des données...\n"
 
 #: src/stored/spool.c:127
 #, c-format
@@ -11077,18 +11077,18 @@ msgstr ""
 #: src/stored/spool.c:213
 #, c-format
 msgid "Committing spooled data to Volume \"%s\". Despooling %s bytes ...\n"
-msgstr ""
+msgstr "Transfert des données spoolées sur le Volume « %s ». Transfert de %s octets...\n"
 
 #: src/stored/spool.c:217
 #, c-format
 msgid "Writing spooled data to Volume. Despooling %s bytes ...\n"
-msgstr ""
+msgstr "Écriture des données spoolées sur le Volume. Transfert de %s octets...\n"
 
 #: src/stored/spool.c:280
 #, c-format
 msgid ""
 "Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
-msgstr ""
+msgstr "Temps du transfert des données spoolées = %02d:%02d:%02d, Taux de transfert = %s o/s\n"
 
 #: src/stored/spool.c:289 src/stored/spool.c:464 src/stored/spool.c:502
 #, c-format
@@ -11127,7 +11127,7 @@ msgstr ""
 
 #: src/stored/spool.c:415
 msgid "User specified spool size reached.\n"
-msgstr ""
+msgstr "Taille du spool spécifié par l'utlisateur atteind.\n"
 
 #: src/stored/spool.c:417
 msgid "Bad return from despool in write_block.\n"
@@ -11135,7 +11135,7 @@ msgstr ""
 
 #: src/stored/spool.c:425
 msgid "Spooling data again ...\n"
-msgstr ""
+msgstr "Reprise du spool des données...\n"
 
 #: src/stored/spool.c:456
 #, c-format
