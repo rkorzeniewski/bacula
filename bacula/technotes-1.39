@@ -2,6 +2,8 @@
 
 General:
 
+31Oct06
+ebl  Small fix src/dird/job.c to add JobErrors count to catalog.
 20Oct06
 kes  Fix optional files in Makefile.in of src/filed that caused
      a syntax error when using no optional files.
