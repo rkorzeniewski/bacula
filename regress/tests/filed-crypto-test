@@ -31,7 +31,7 @@ messages
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 mark *
-
+done
 yes
 wait
 messages
