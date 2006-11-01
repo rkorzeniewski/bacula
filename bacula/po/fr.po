@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-10-31 23:44+0100\n"
+"PO-Revision-Date: 2006-11-01 23:43+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -11225,7 +11225,7 @@ msgstr ""
 #, c-format
 msgid ""
 "Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
-msgstr ""
+msgstr "Temps d'écriture du job = %02d:%02d:%02d, Taux de transfert = %s o/s\n"
 
 #: src/stored/append.c:275 src/stored/btape.c:1982
 #, c-format
