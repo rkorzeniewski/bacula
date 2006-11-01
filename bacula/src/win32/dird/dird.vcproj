@@ -66,6 +66,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
+				AdditionalIncludeDirectories="../libwin32"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -1105,6 +1106,18 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath="..\libwin32\bacula.bmp"
+				>
+			</File>
+			<File
+				RelativePath="..\libwin32\bacula.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\winres.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

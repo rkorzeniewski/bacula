@@ -48,8 +48,8 @@
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -247,6 +247,14 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\wx-console.manifest"
+				>
+			</File>
+			<File
+				RelativePath="..\..\wx-console\wx-console_private.rc"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Source Files"
@@ -299,10 +307,6 @@
 			</File>
 			<File
 				RelativePath="..\..\wx-console\main.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\wx-console\wx-console_private.rc"
 				>
 			</File>
 			<File

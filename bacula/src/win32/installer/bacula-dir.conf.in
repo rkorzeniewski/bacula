@@ -28,7 +28,7 @@ JobDefs {
   Type = Backup
   Level = Incremental
   Client = @client_name@
-  FileSet = "Full Set"
+  FileSet = "Test Set"
   Schedule = "WeeklyCycle"
   Storage = File
   Messages = Standard
@@ -76,20 +76,23 @@ Job {
   Name = "RestoreFiles"
   Type = Restore
   Client=@client_name@
-  FileSet="Full Set"
+  FileSet="Test Set"
   Storage = File
   Pool = Default
   Messages = Standard
   Where = "C:\\tmp\\bacula-restores"
 }
 
-
+#
+# Note: Windows path separators do NOT work correctly in FileSets.
+#
 # List of files to be backed up
 FileSet {
-  Name = "Full Set"
+  Name = "Test Set"
   Include {
     Options {
       signature = MD5
+      ignore case = yes
     }
 #    
 #  Put your list of files here, preceded by 'File =', one per line
@@ -97,26 +100,128 @@ FileSet {
 #
 #    File = <file-name
 #
-#  Note: / backs up everything on the root partition.
-#    if you have other partitons such as /usr or /home
+#  Note: C:/ backs up everything on drive C.
+#    if you have other drives such as D:/
 #    you will probably want to add them too.
 #
-#  By default this is defined to point to the Bacula build
+#  By default this is defined to point to the Bacula 
 #    directory to give a reasonable FileSet to backup to
 #    disk storage during initial testing.
 #
-    File = "@bin_dir@"
+    File = "C:/Program Files/Bacula"
   }
 
 #
-# If you backup the root directory, the following two excluded
+# If you backup the root directory, the following excluded
 #   files can be useful
 #
   Exclude {
-    File = /proc
-    File = /tmp
-    File = /.journal
-    File = /.fsck
+    Options {
+      signature = MD5
+      ignore case = yes
+    }
+    File = C:/Temp
+    File = C:/tmp
+  }
+}
+
+#
+# This is an example which will backup all the hard drives of a Windows System.
+#
+FileSet {
+  Name = "Windows Full Set"
+  Enable VSS = yes
+  Include {
+    Options {
+      Signature = MD5
+      Exclude = yes
+      IgnoreCase = yes
+      EnhancedWild = yes
+      DriveType = fixed
+
+      # Exclude directories full of lots and lots of useless little files
+      WildDir = "[A-Z]:/Documents and Settings/*/Cookies"
+      WildDir = "[A-Z]:/Documents and Settings/*/Recent"
+      WildDir = "[A-Z]:/Documents and Settings/*/{Local Settings,LOCALS~1}/History"
+      WildDir = "[A-Z]:/Documents and Settings/*/{Local Settings,LOCALS~1}/Temp"
+      WildDir = "[A-Z]:/Documents and Settings/*/{Local Settings,LOCALS~1}/Temporary Internet Files"
+
+      # Exclude directories full of lots and lots of useless little files
+      WildDir = "[A-Z]:/{WINNT,Windows}/Profiles/*/Cookies"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Profiles/*/Recent"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Profiles/*/{Local Settings,LOCALS~1}/History"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Profiles/*/{Local Settings,LOCALS~1}/Temp"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Profiles/*/{Local Settings,LOCALS~1}/Temporary Internet Files"
+
+      # Exclude directories full of lots and lots of useless little files
+      WildDir = "[A-Z]:/{WINNT,Windows}/system32/config/systemprofile/Cookies"
+      WildDir = "[A-Z]:/{WINNT,Windows}/system32/config/systemprofile/Recent"
+      WildDir = "[A-Z]:/{WINNT,Windows}/system32/config/systemprofile/{Local Settings,LOCALS~1}/History"
+      WildDir = "[A-Z]:/{WINNT,Windows}/system32/config/systemprofile/{Local Settings,LOCALS~1}/Temp"
+      WildDir = "[A-Z]:/{WINNT,Windows}/system32/config/systemprofile/{Local Settings,LOCALS~1}/Temporary Internet Files"
+
+      # Some random bits of Windows we want to ignore
+      WildDir = "[A-Z]:/{WINNT,Windows}/Prefetch"
+      WildDir = "[A-Z]:/{WINNT,Windows}/msdownld.tmp"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Internet Logs"
+      WildDir = "[A-Z]:/{WINNT,Windows}/$Nt*Uninstall*"
+      WildDir = "[A-Z]:/{WINNT,Windows}/Downloaded Installations"
+
+      # Temporary directories & files
+      WildDir = "[A-Z]:/{WINNT,Windows}/Temp"
+      WildDir = "[A-Z]:/Temp"
+      WildFile = "*.tmp"
+      WildDir = "[A-Z]:/tmp"
+
+      # Fast Find
+      WildFile = "[A-Z]:/ffastun*"
+
+      # System Restore
+      WildDir = "[A-Z]:/System Volume Information"
+
+      # Windows Update
+      WildDir = "[A-Z]:/WUTemp"
+
+      # Recycle bins
+      WildDir = "[A-Z]:/RECYCLE[DR]"
+
+      # Swap files
+      WildFile = "[A-Z]:/pagefile.sys"
+      WildFile = "[A-Z]:/hiberfil.sys"
+
+      # These are programs and are easier to reinstall than restore from
+      # backup
+      WildDir = "[A-Z]:/cygwin"
+      WildDir = "[A-Z]:/{Program Files,PROGRA~1}/Java"
+      WildDir = "[A-Z]:/{Program Files,PROGRA~1}/Java Web Start"
+      WildDir = "[A-Z]:/{Program Files,PROGRA~1}/JavaSoft"
+      WildDir = "[A-Z]:/{Program Files,PROGRA~1}/Microsoft Office"
+    }
+
+    File = "C:/"
+    File = "D:/"
+    File = "E:/"
+    File = "F:/"
+    File = "G:/"
+    File = "H:/"
+    File = "I:/"
+    File = "J:/"
+    File = "K:/"
+    File = "L:/"
+    File = "M:/"
+    File = "N:/"
+    File = "O:/"
+    File = "P:/"
+    File = "Q:/"
+    File = "R:/"
+    File = "S:/"
+    File = "T:/"
+    File = "U:/"
+    File = "V:/"
+    File = "W:/"
+    File = "X:/"
+    File = "Y:/"
+    File = "Z:/"
   }
 }
 

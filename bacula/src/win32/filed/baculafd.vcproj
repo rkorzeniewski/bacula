@@ -68,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib atlsd.lib"
+				AdditionalDependencies="pthreadVCE.lib zlib.lib comctl32.lib wsock32.lib atlsd.lib"
 				OutputFile="$(OutDir)\bacula-fd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
@@ -164,7 +164,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib atls.lib"
+				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib atls.lib"
 				OutputFile="$(OutDir)\bacula-fd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
@@ -566,6 +566,10 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\bacula-fd.manifest"
+				>
+			</File>
 			<File
 				RelativePath="..\libwin32\bacula.bmp"
 				>

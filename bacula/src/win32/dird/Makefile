@@ -98,7 +98,7 @@ clean:
 $(BINDIR)/bacula-dir.exe: $(DIRD_OBJS) $(LIBS_CATS) $(LIBS_BACULA)
 	$(call link_winapp,$(DIRD_LIBS))
 
-$(OBJDIR)/winres.res: ../libwin32/winres.rc
+$(OBJDIR)/winres.res: winres.rc
 	$(WINDRES) $(INCLUDE_ICONS) -O coff $< -o $@
 
 include ../Makefile.rules

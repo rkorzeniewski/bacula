@@ -90,7 +90,8 @@ ALL_OBJS = \
 
 LIBS_STORED = \
 	$(LIBS_PTHREADS) \
-	-lwsock32
+	-lwsock32 \
+	-lcomctl32
 
 ######################################################################
 
@@ -141,9 +142,9 @@ $(OBJDIR)/mtops.o: mtops.cpp
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(CFLAGS) $(INCLUDE_DDK) -I../../stored -c $< -o $@
 
-$(OBJDIR)/winres.res:	  ../libwin32/winres.rc
+$(OBJDIR)/winres.res:	  baculasd/winres.rc
 	@echo "Compiling $@"
 	$(call checkdir,$@)
-	$(ECHO_CMD)$(WINDRES) $(INCLUDE_ICONS) -O coff $< -o $@
+	$(ECHO_CMD)$(WINDRES) $(INCLUDE_ICONS) -I baculasd -O coff $< -o $@
 
 include ../Makefile.rules

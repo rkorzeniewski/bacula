@@ -324,6 +324,7 @@ lex_get_token(LEX *lf, int expect)
    int ch;
    int token = T_NONE;
    bool esc_next = false;
+   int unicode_count = 0;
 
    Dmsg0(dbglvl, "enter lex_get_token\n");
    while (token == T_NONE) {
@@ -394,6 +395,16 @@ lex_get_token(LEX *lf, int expect)
          case '@':
             lf->state = lex_include;
             begin_str(lf, 0);
+            break;
+         case 0xEF:
+            if (lf->line_no != 1 || lf->col_no != 1)
+            {
+               lf->state = lex_string;
+               begin_str(lf, ch);
+               break;
+            }
+            lf->state = lex_unicode_mark;
+            unicode_count = 1;
             break;
          default:
             lf->state = lex_string;
@@ -525,6 +536,27 @@ lex_get_token(LEX *lf, int expect)
             break;
          }
          add_str(lf, ch);
+         break;
+      case lex_unicode_mark:
+         if (ch == L_EOF) {
+            token = T_ERROR;
+            break;
+         }
+         unicode_count++;
+         if (unicode_count == 2) {
+            if (ch != 0xBB) {
+               token = T_ERROR;
+               break;
+            }
+         } else if (unicode_count == 3) {
+            if (ch != 0xBF) {
+               token = T_ERROR;
+               break;
+            }
+            token = T_UNICODE_MARK;
+            lf->state = lex_none;
+            break;
+         }
          break;
       }
       Dmsg4(dbglvl, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),

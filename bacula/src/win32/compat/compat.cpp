@@ -1628,6 +1628,11 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
       pExeEnd = current;
    }
 
+   if (*pargs == NULL)
+   {
+      *pargs = current;
+   }
+
    bool bHasPathSeparators = pExeStart != pBasename;
 
    /* We have pointers to all the useful parts of the name */

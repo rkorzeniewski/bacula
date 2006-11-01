@@ -378,7 +378,7 @@ Function InstallCommonFiles
     File "${BACULA_BIN}\bsmtp.exe"
     File "${BACULA_BIN}\bacula.dll"
 
-    CreateShortCut "$SMPROGRAMS\Bacula\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
+    CreateShortCut "$SMPROGRAMS\Bacula\Documentation\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
 
     StrCpy $CommonFilesDone 1
   ${EndIf}
@@ -421,8 +421,18 @@ Section "-Initialize"
   Pop $R2
   WriteRegDWORD HKLM Software\Bacula Components $R2
 
+  ; remove start menu items
   SetShellVarContext all
+
+  Delete /REBOOTOK "$SMPROGRAMS\Bacula\Configuration\*"
+  Delete /REBOOTOK "$SMPROGRAMS\Bacula\Documentation\*"
+  Delete /REBOOTOK "$SMPROGRAMS\Bacula\*"
+  RMDir "$SMPROGRAMS\Bacula\Configuration"
+  RMDir "$SMPROGRAMS\Bacula\Documentation"
+  RMDir "$SMPROGRAMS\Bacula"
   CreateDirectory "$SMPROGRAMS\Bacula"
+  CreateDirectory "$SMPROGRAMS\Bacula\Configuration"
+  CreateDirectory "$SMPROGRAMS\Bacula\Documentation"
 
   CreateDirectory "$INSTDIR"
   CreateDirectory "$INSTDIR\bin"
@@ -585,7 +595,7 @@ Section "File Service" SecFileDaemon
 
   Call InstallDaemon
 
-  CreateShortCut "$SMPROGRAMS\Bacula\Edit Client Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-fd.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Client Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-fd.conf"'
 SectionEnd
 
 SectionGroupEnd
@@ -634,8 +644,8 @@ Section "Storage Service" SecStorageDaemon
   StrCpy $3 $ConfigStorageStartService
   Call InstallDaemon
 
-  CreateShortCut "$SMPROGRAMS\Bacula\List Devices.lnk" "$INSTDIR\bin\scsilist.exe" "/pause"
-  CreateShortCut "$SMPROGRAMS\Bacula\Edit Storage Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-sd.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\List Devices.lnk" "$INSTDIR\bin\scsilist.exe" "/pause"
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Storage Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-sd.conf"'
 SectionEnd
 
 Section "Director Service" SecDirectorDaemon
@@ -705,7 +715,7 @@ Section "Director Service" SecDirectorDaemon
   StrCpy $3 $ConfigDirectorStartService
   Call InstallDaemon
 
-  CreateShortCut "$SMPROGRAMS\Bacula\Edit Director Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-dir.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Director Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bacula-dir.conf"'
 SectionEnd
 
 SectionGroupEnd
@@ -736,7 +746,7 @@ Section "Command Console" SecConsole
   ${EndIf}
 
   CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bin\bconsole.exe" '-c "$APPDATA\Bacula\bconsole.conf"' "$INSTDIR\bin\bconsole.exe" 0
-  CreateShortCut "$SMPROGRAMS\Bacula\Edit Command Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bconsole.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Command Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bconsole.conf"'
 
 SectionEnd
 
@@ -778,7 +788,7 @@ Section "Graphical Console" SecWxConsole
 
   ; Create Start Menu entry
   CreateShortCut "$SMPROGRAMS\Bacula\wx-console.lnk" "$INSTDIR\bin\wx-console.exe" '-c "$APPDATA\Bacula\wx-console.conf"' "$INSTDIR\bin\wx-console.exe" 0
-  CreateShortCut "$SMPROGRAMS\Bacula\Edit Graphical Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\wx-console.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Graphical Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\wx-console.conf"'
 SectionEnd
 
 SectionGroupEnd
@@ -792,7 +802,7 @@ Section "Documentation (Acrobat Format)" SecDocPdf
   CreateDirectory "$INSTDIR\doc"
 
   File "${DOC_DIR}\manual\bacula.pdf"
-  CreateShortCut "$SMPROGRAMS\Bacula\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
 SectionEnd
 
 Section "Documentation (HTML Format)" SecDocHtml
@@ -804,7 +814,7 @@ Section "Documentation (HTML Format)" SecDocHtml
   File "${DOC_DIR}\manual\bacula\*.html"
   File "${DOC_DIR}\manual\bacula\*.png"
   File "${DOC_DIR}\manual\bacula\*.css"
-  CreateShortCut "$SMPROGRAMS\Bacula\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
 SectionEnd
 
 SectionGroupEnd

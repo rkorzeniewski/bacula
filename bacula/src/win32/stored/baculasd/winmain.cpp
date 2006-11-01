@@ -25,6 +25,12 @@
 #include <signal.h>
 #include <pthread.h>
 
+#undef  _WIN32_IE
+#define _WIN32_IE 0x0501
+#undef  _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#include <commctrl.h>
+
 extern int BaculaMain(int argc, char *argv[]);
 extern void terminate_stored(int sig);
 extern DWORD g_error;
@@ -63,6 +69,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
    main_pid = getpid();
    main_tid = pthread_self();
+
+   INITCOMMONCONTROLSEX    initCC = {
+      sizeof(INITCOMMONCONTROLSEX), 
+      ICC_STANDARD_CLASSES
+   };
+
+   InitCommonControlsEx(&initCC);
 
    /*
     * Funny things happen with the command line if the

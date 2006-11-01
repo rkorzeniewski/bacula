@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib atlsd.lib"
+				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib atlsd.lib"
 				OutputFile="$(OutDir)/bacula-sd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
@@ -144,8 +144,8 @@
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -162,7 +162,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib atls.lib"
+				AdditionalDependencies="pthreadVCE.lib zlib.lib wsock32.lib comctl32.lib atls.lib"
 				OutputFile="$(OutDir)\bacula-sd.exe"
 				LinkIncremental="0"
 				SuppressStartupBanner="true"
@@ -216,7 +216,7 @@
 				RelativePath="..\..\..\stored\status.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -224,7 +224,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -236,7 +236,7 @@
 				RelativePath="..\..\..\stored\stored.c"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
+					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -244,7 +244,7 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug|Win32"
+					Name="Release|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -356,6 +356,10 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\bacula-sd.manifest"
+				>
+			</File>
 			<File
 				RelativePath=".\bacula.bmp"
 				>

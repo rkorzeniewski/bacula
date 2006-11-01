@@ -99,7 +99,7 @@ get_source()
                 rm -rf ${SRC_DIR}
                 [ "${MAKE_DIR}" = "true" ] && mkdir ${SRC_DIR} && cd ${SRC_DIR}
                 echo Extracting ${ARCHIVE}
-                ${ARCHIVER} ${ARCHIVE} &> ${ARCHIVE}.log
+                ${ARCHIVER} ${ARCHIVE} 2>&1 > ${ARCHIVE}.log
                 cd ${SRC_DIR}
                 return 0
         fi
@@ -174,7 +174,7 @@ process_pcre()
                             --host=mingw32 \
                             --prefix=${DEPPKG_DIR} \
                             --enable-utf8 \
-                            --enable-unicode-properties &>make.log
+                            --enable-unicode-properties 2>&1 >make.log
         fi
         echo Building PCRE
         do_make Makefile PREFIX=${DEPPKG_DIR} all
@@ -213,7 +213,7 @@ process_openssl()
                             shared zlib-dynamic \
                             threads \
                             --with-zlib-include=${DEPPKG_DIR}/include \
-                            mingw32 &> make.log
+                            mingw32 2>&1 > make.log
         fi
         echo Building openssl
         perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
@@ -334,7 +334,7 @@ process_scons()
 {
         get_source "${URL_SCONS}" "${DIR_SCONS}" "${MKD_SCONS}"
         echo Installing scons
-        if python setup.py install --prefix=${DEPPKG_DIR}/scons &> make.log
+        if python setup.py install --prefix=${DEPPKG_DIR}/scons 2>&1 > make.log
         then
                 :
         else
@@ -413,11 +413,28 @@ process_sed()
                 echo Configuring sed
                 ./configure --host=mingw32 \
                             --prefix=${DEPPKG_DIR} \
-                            --disable-nls &>make.log
+                            --disable-nls 2>&1 >make.log
         fi
         echo Building sed
         do_make Makefile all
         echo Installing sed
+        do_make Makefile install
+}
+
+process_stab2cv()
+{
+        if get_source "${URL_STAB2CV}" "${DIR_STAB2CV}" "${MKD_STAB2CV}"
+        then
+                # echo Patching stab2cv
+                # >patch.log
+                # do_patch stab2cv.patch
+                echo Configuring stab2cv
+                ./configure --prefix=${DEPPKG_DIR}/tools \
+                            2>&1 >make.log
+        fi
+        echo Building stab2c
+        do_make Makefile 
+        echo Installing stab2c
         do_make Makefile install
 }
 
@@ -436,6 +453,7 @@ then
         process_mtx
         process_mt
         process_sed
+        process_stab2cv
 else
         for dependency in "$@"
         do

@@ -112,7 +112,7 @@ installer:	$(INSTALL_EXE)
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES)
+	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES) $(DIRD_FILES)
 	$(CMD_ECHO)-rm -f $(BACULA_BINARIES) $(addsuffix .dbg,$(basename $(BACULA_BINARIES)))
 	$(CMD_ECHO)-rm -f $(DEPKGS_BINARIES) $(addsuffix .dbg,$(basename $(DEPKGS_BINARIES)))
 	$(CMD_ECHO)-rm -f *.exe
@@ -121,10 +121,10 @@ clean:
 # Rules
 #
 
-define Strip_Binary
+define Convert_Binary
 $$(notdir $(1)): $(1)
-	$(ECHO_CMD)cp -f $$^ $$@
-	$$(call makedbg,$$@)
+	$(ECHO_CMD)cp -f $$^ $$@ ; \
+	$(STAB2CV) $$@
 endef
 
 define Copy_Binary
@@ -132,13 +132,13 @@ $$(notdir $(1)): $(1)
 	$(ECHO_CMD)cp -f $$^ $$@
 endef
 
-$(foreach file,$(addprefix $(DEPKGS)/bin/, $(DEPKGS_BINARIES)),$(eval $(call Strip_Binary,$(file))))
+$(foreach file,$(addprefix $(DEPKGS)/bin/, $(DEPKGS_BINARIES)),$(eval $(call Convert_Binary,$(file))))
 
 $(foreach file,$(addprefix $(DEPKGS)/bin/, $(NONGCC_BINARIES)),$(eval $(call Copy_Binary,$(file))))
 
 $(foreach file,$(addprefix $(DEPKGS)/lib/, $(NONGCC_LIBRARIES)),$(eval $(call Copy_Binary,$(file))))
 
-$(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Strip_Binary,$(file))))
+$(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Convert_Binary,$(file))))
 
 $(foreach file,$(addprefix $(DEPKGS)/ssl/, $(SSL_FILES)),$(eval $(call Copy_Binary,$(file))))
 
