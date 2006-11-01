@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-11-01 23:43+0100\n"
+"PO-Revision-Date: 2006-11-01 23:48+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -11167,7 +11167,7 @@ msgstr ""
 #: src/stored/spool.c:590
 #, c-format
 msgid "Sending spooled attrs to the Director. Despooling %s bytes ...\n"
-msgstr ""
+msgstr "Transfert des attributs spoolés au Director. Transfert de %s octets...\n"
 
 #: src/stored/spool.c:617
 #, c-format
