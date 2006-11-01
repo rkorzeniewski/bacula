@@ -46,6 +46,8 @@
 #define T_COMMA                       111
 #define T_EOL                         112
 #define T_ERROR                       200
+#define T_UNICODE_MARK                201
+
 /*
  * The following will be returned only if
  * the appropriate expect flag has been set
@@ -69,7 +71,8 @@ enum lex_state {
    lex_identifier,
    lex_string,
    lex_quoted_string,
-   lex_include
+   lex_include,
+   lex_unicode_mark
 };
 
 /* Lex scan options */

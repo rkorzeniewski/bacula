@@ -813,6 +813,9 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
             if (token == T_EOL) {
                break;
             }
+            if (token == T_UNICODE_MARK) {
+               break;
+            }
             if (token != T_IDENTIFIER) {
                scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
                return 0;
@@ -827,7 +830,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
                }
             if (state == p_none) {
                scan_err1(lc, _("expected resource name, got: %s"), lc->str);
-          return 0;
+               return 0;
             }
             break;
          case p_resource:
