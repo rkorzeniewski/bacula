@@ -350,6 +350,12 @@ void do_restore(JCR *jcr)
 
          Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
 
+	 /* Do we have any keys at all? */
+	 if (!jcr->pki_recipients) {
+		 Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data."));
+		 break;
+	 }
+
          /* Decode and save session keys. */
          cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, jcr->pki_recipients, &cs);
          switch(cryptoerr) {
