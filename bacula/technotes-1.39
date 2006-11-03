@@ -2,6 +2,9 @@
 
 General:
 
+03Nov06
+ebl  Fix broken runscript on director. (RunBefore, RunAfter)
+ebl  Use M_FATAL instead of M_ERROR in runscript.c
 31Oct06
 ebl  Small fix src/dird/job.c to add JobErrors count to catalog.
 rbn  Ignore UTF-8 marker at the start of .conf files.
