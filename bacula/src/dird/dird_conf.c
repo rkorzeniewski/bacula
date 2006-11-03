@@ -1598,7 +1598,7 @@ static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
       } else if (strcmp(lc->str, "yes") == 0) {
          ((RUNSCRIPT*) item->value)->set_target("%c");
       } else if (strcmp(lc->str, "no") == 0) {
-         /* store nothing, run on director */
+         ((RUNSCRIPT*) item->value)->set_target("");
       } else {
          RES *res = GetResWithName(R_CLIENT, lc->str);
          if (res == NULL) {
@@ -1640,11 +1640,13 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
       if (strcmp(item->name, "runbeforejob") == 0) {
          script->when = SCRIPT_Before;
          script->abort_on_error = true;
+         script->set_target("");
 
       } else if (strcmp(item->name, "runafterjob") == 0) {
          script->when = SCRIPT_After;
          script->on_success = true;
          script->on_failure = false;
+         script->set_target("");
          
       } else if (strcmp(item->name, "clientrunafterjob") == 0) {
          script->old_proto = true;
@@ -1663,6 +1665,7 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
          script->when = SCRIPT_After;
          script->on_failure = true;
          script->on_success = false;
+         script->set_target("");
       }
 
       if (*runscripts == NULL) {
