@@ -8,7 +8,7 @@ echo Depending on the size of your database,
 echo this script may take several minutes to run.
 echo.
 
-"%SQL_BINDIR%\mysql" %* -f -u bacula --password=bacula bacula < update_mysql_tables.sql
+"%SQL_BINDIR%\mysql" %* -f -u bacula bacula < update_mysql_tables.sql
 set RESULT=%ERRORLEVEL%
 if %RESULT% GTR 0 goto :ERROR
 echo "Update of Bacula MySQL tables succeeded."

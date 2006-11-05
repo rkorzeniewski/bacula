@@ -37,7 +37,7 @@
  *  it is thread safe.
  *
  * If bit 29 in berrno_ is set then it is a Win32 error, and we
- *  must to a GetLastError() to get the error code for formatting.
+ *  must do a GetLastError() to get the error code for formatting.
  * If bit 29 in berrno_ is not set, then it is a Unix errno.
  *
  */

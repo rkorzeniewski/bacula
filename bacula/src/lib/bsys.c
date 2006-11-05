@@ -705,8 +705,8 @@ char *bfgets(char *s, int size, FILE *fd)
       do {
          errno = 0;
          ch = fgetc(fd);
-      } while (ch == -1 && (errno == EINTR || errno == EAGAIN));
-      if (ch == -1) {
+      } while (ch == EOF && ferror(fd) && (errno == EINTR || errno == EAGAIN));
+      if (ch == EOF) {
          if (i == 0) {
             return NULL;
          } else {
@@ -717,13 +717,10 @@ char *bfgets(char *s, int size, FILE *fd)
       *p = 0;
       if (ch == '\r') { /* Support for Mac/Windows file format */
          ch = fgetc(fd);
-         if (ch == '\n') { /* Windows (\r\n) */
-            *p++ = ch;
-            *p = 0;
-         }
-         else { /* Mac (\r only) */
+         if (ch != '\n') { /* Mac (\r only) */
             (void)ungetc(ch, fd); /* Push next character back to fd */
          }
+         p[-1] = '\n';
          break;
       }
       if (ch == '\n') {

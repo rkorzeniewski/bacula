@@ -1915,18 +1915,18 @@ open_bpipe(char *prog, int wait, const char *mode)
                                      // process terminates we can
                                      // detect eof.
         // ugly but convert WIN32 HANDLE to FILE*
-        int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY);
+        int rfd = _open_osfhandle((long)hChildStdoutRdDup, O_RDONLY | O_BINARY);
         if (rfd >= 0) {
-           bpipe->rfd = _fdopen(rfd, "r");
+           bpipe->rfd = _fdopen(rfd, "rb");
         }
     }
     if (mode_write) {
         CloseHandle(hChildStdinRd); // close our read side so as not
                                     // to interfre with child's copy
         // ugly but convert WIN32 HANDLE to FILE*
-        int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY);
+        int wfd = _open_osfhandle((long)hChildStdinWrDup, O_WRONLY | O_BINARY);
         if (wfd >= 0) {
-           bpipe->wfd = _fdopen(wfd, "w");
+           bpipe->wfd = _fdopen(wfd, "wb");
         }
     }
 
@@ -1968,6 +1968,16 @@ close_bpipe(BPIPE *bpipe)
    int rval = 0;
    int32_t remaining_wait = bpipe->wait;
 
+   /* Close pipes */
+   if (bpipe->rfd) {
+      fclose(bpipe->rfd);
+      bpipe->rfd = NULL;
+   }
+   if (bpipe->wfd) {
+      fclose(bpipe->wfd);
+      bpipe->wfd = NULL;
+   }
+
    if (remaining_wait == 0) {         /* wait indefinitely */
       remaining_wait = INT32_MAX;
    }
@@ -2008,16 +2018,16 @@ close_bpipe(BPIPE *bpipe)
 int
 close_wpipe(BPIPE *bpipe)
 {
-    int stat = 1;
+    int result = 1;
 
     if (bpipe->wfd) {
         fflush(bpipe->wfd);
         if (fclose(bpipe->wfd) != 0) {
-            stat = 0;
+            result = 0;
         }
         bpipe->wfd = NULL;
     }
-    return stat;
+    return result;
 }
 
 #include "findlib/find.h"
