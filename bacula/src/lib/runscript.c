@@ -136,7 +136,7 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
         /* cancel running job properly */
         if (   script->abort_on_error 
             && (status == false) 
-            && (jcr->JobStatus == JS_Created)
+            && (jcr->JobStatus == JS_Created || jcr->JobStatus == JS_Running)
            )
         {
            set_jcr_job_status(jcr, JS_ErrorTerminated);
