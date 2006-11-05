@@ -216,6 +216,10 @@ int main (int argc, char *argv[])
       exit(1);
    }
 
+#if defined(HAVE_WIN32)
+   _setmode(0, _O_BINARY);
+#endif
+
    /*
     *  Determine SMTP server
     */
@@ -314,7 +318,7 @@ hp:
    Dmsg0(20, "Connected\n");
 
 #if defined(HAVE_WIN32)
-   int fdSocket = _open_osfhandle(s, _O_RDWR);
+   int fdSocket = _open_osfhandle(s, _O_RDWR | _O_BINARY);
    if (fdSocket == -1) {
       Pmsg1(0, _("Fatal _open_osfhandle error: ERR=%s\n"), strerror(errno));
       exit(1);
@@ -449,11 +453,13 @@ __MINGW_IMPORT long	_dstbias;
          Dmsg1(20, "skip line because of maxlines limit: %lu\n", maxlines);
          break;
       }
-      buf[strlen(buf)-1] = 0;
-      if (strcmp(buf, ".") == 0) { /* quote lone dots */
-         fprintf(sfp, "..\r\n");
+      buf[sizeof(buf)-1] = '\0';
+      buf[strlen(buf)-1] = '\0';
+      if (buf[0] == '.' && buf[1] == '\0') { /* quote lone dots */
+         fputs("..\r\n", sfp);
       } else {                     /* pass body through unchanged */
-         fprintf(sfp, "%s\r\n", buf);
+         fputs(buf, sfp);
+         fputs("\r\n", sfp);
       }
    }
 

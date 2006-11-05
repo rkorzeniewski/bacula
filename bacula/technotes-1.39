@@ -2,6 +2,15 @@
 
 General:
 
+05Nov06
+rbn  Fixed problems with encryption when combined with compression 
+     or sparse files.  Unfortunately this means that all previous 
+     encrypted backups can't be restored.
+rbn  Fixed problem in bfgets with Windows and Mac end of lines.
+rbn  Fixed bug in Windows version of close_bpipe() that cause programs
+     like bsmtp() to hang waiting for the pipe to be closed.  Fixed 
+     binary file type problems in open_bpipe().
+rbn  Fixed a number of bugs in the mysql DB scripts.
 03Nov06
 ebl  Fix broken runscript on director. (RunBefore, RunAfter)
 ebl  Use M_FATAL instead of M_ERROR in runscript.c

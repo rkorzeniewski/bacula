@@ -69,18 +69,18 @@ Version 1.39.26 contains mainly bug fixes to 1.39.24. Please
   more testing is still needed.  
 
 ==== IMPORTANT new Win32 install procedure =====
-  For Win32 migrations from versions prior to the new installer nothing special
+  For Win32 migrations from versions prior to 1.39.0 nothing special
   needs to be done to upgrade.  Everything should be taken care of
   automatically.  The only thing not done is to delete the old C:\Bacula
   directory (mostly out of paranoia, we can change that prior to release if
   everyone is comfortable with it).
 
-  Prior to using the current installer, if you used a prior 1.39.x 
-  beta version, you must do one of the following three things:
+  Prior to using the current installer, if you used a version of the beta 
+  prior to 1.39.26, you must do one of the following three things:
 
    1)      Uninstall prior beta version and select the option to delete
    the configuration and state files.  This will get rid of the bogus
-   configuration files.  Reinstall the new 1.39.22 version.
+   configuration files.  Reinstall the new 1.39.26 version.
 
    2)      Manually copy the *.conf files from C:\Bacula\bin to
    C:\Documents and Settings\All Users\Application Data\Bacula.
@@ -90,37 +90,6 @@ Version 1.39.26 contains mainly bug fixes to 1.39.24. Please
    can be used to avoid having to enter that ugly path.
 
   After one of these has been done the upgrade should work fine.
-
-  If you have problems with the above, try the following
-  The new Win32 installer requires that you deinstall any
-  previous 1.39.x beta version before installing the new version.
-  The following is not necessary if you are upgrading from
-  a 1.38.x installation.
-
-  The simplest way to do clean up a prior 1.39.x beta is in a DOS shell:
-          
-  cd c:\bacula\bin
-  net stop bacula
-  net stop baculfd
-  ./bacula-fd /remove
-  (Install the new Bacula)
-    
-  Note, one or both of the 'net stop' commands may fail. Don't
-  worry about it.      
-
-  If you didn't read the release notes or forgot to do those 
-  commands, try the following:
-
-  cd c:\bacula\bin
-  net stop bacula
-  net stop baculafd
-  sc delete bacula
-  sc delete baculafd
-
-  Note, at least one of the 'net' commands and possibly both
-  will fail, and at least one of the 'sc' commands will fail.
-  Don't worry about it.  After that, try again to install
-  the new Bacula.
 
 
 New Features in 1.40.0:
@@ -179,7 +148,7 @@ New Features in 1.40.0:
   also compiles on Visual Studio, and at the same time, he added
   all the current Unix features to the FD, such as selection on
   drives, encryption support, building *all* the tools, ...
-  Finally, he also ported the Directory and the Storage daemon to
+  Finally, he also ported the Director and the Storage daemon to
   Win32.
 - Data encryption done in the Client is now supported due to code
   submitted by Landon Fuller.
@@ -188,7 +157,7 @@ New Features in 1.40.0:
   the Microsoft specific permissions and ACLs will be lost.  Thanks
   to Thorsten Engel for this code.
 - The 260 character limitation for Win32 paths name lengths is now 
-  eliminated thanks to Thorsted Engel.
+  eliminated thanks to Thorsten Engel.
 - Eric Bollengier wrote new RunScript directives that includes
   the old RunBefore/AfterJob and ClientRunBefore/AfterJob features
   plus a *lot* more, allowing you to control just about every aspect
@@ -281,8 +250,7 @@ New Features in 1.40.0:
   - Hash hard link filenames rather than linked list (performance).
   - Fix for security failure in chdir on Win32.
   - Add CreateDirectoryA/W win32 API entry points.
-- Add /silent option to Win32 FD for Install/Remove service.
-  programs to duplicate Bacula's base64 algorithm using standard
+- programs to duplicate Bacula's base64 algorithm using standard
   routines. This fixes bugs #296, and 565. Patch submitted by
   author of bug #565.
 - Fixes to reloading the Dir conf file from Eric Bollengier and Christopher
@@ -373,18 +341,3 @@ WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local
 Settings,LOCALS~1}/Temp"
 WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local
 Settings,LOCALS~1}/Temporary Internet Files"
-
-
-
-Here are some hints if you want to play with the Windows Director and/or
-Storage daemon.
- 
-Changer and Tape device names in Windows are Changer0, Changer1, etc and
-Tape0, Tape1, etc.  If there isn't a device driver loaded for the Changer
-then you need to use the address <Port>:<Bus>:<Target>:<Lun>.  Port is the
-SCSI Adapter Number, Bus is the Bus Number on the adapter (usually 0 since
-most adapters only have one bus), Target is the device's Target Device ID,
-Lun is the Logical Unit Number.
- 
-You must specify DeviceType = tape in the Device resource in bacula-sd.conf
-since detection doesn't currently work.

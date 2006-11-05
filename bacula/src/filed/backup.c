@@ -343,13 +343,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    // TODO landonf: We should really only calculate the digest once, for both verification and signing.
    if (jcr->pki_sign) {
       signing_digest = crypto_digest_new(signing_algorithm);
-   }
-   /* Full-stop if a failure occured initializing the signature digest */
-   if (jcr->pki_sign && signing_digest == NULL) {
-      Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
-         stream_to_ascii(signing_algorithm));
-      jcr->Errors++;
-      return 1;
+
+      /* Full-stop if a failure occured initializing the signature digest */
+      if (signing_digest == NULL) {
+         Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
+            stream_to_ascii(signing_algorithm));
+         jcr->Errors++;
+         return 1;
+      }
    }
 
    /* Enable encryption */
@@ -599,7 +600,6 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    wbuf = sd->msg;                    /* write buffer */
    cipher_input = (uint8_t *)rbuf;    /* encrypt uncompressed data */
 
-
    Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
 
 #ifdef HAVE_LIBZ
@@ -620,7 +620,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
       /* 
        * Only change zlib parameters if there is no pending operation.
-       * This should never happen as deflaterset is called after each
+       * This should never happen as deflatereset is called after each
        * deflate.
        */
 
@@ -652,7 +652,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
        * could be returned for the given read buffer size.
        * (Using the larger of either rsize or max_compress_len)
        */
-      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX(rsize, (int32_t)max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
+      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX(rsize + sizeof(uint32_t), (int32_t)max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
 
       wbuf = jcr->crypto_buf; /* Encrypted, possibly compressed output here. */
    }
@@ -670,7 +670,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
    /*
     * Make space at beginning of buffer for fileAddr because this
-    *   same buffer will be used for writing if compression if off.
+    *   same buffer will be used for writing if compression is off.
     */
    if (ff_pkt->flags & FO_SPARSE) {
       rbuf += SPARSE_FADDR_SIZE;
@@ -687,7 +687,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    /* a RAW device read on win32 only works if the buffer is a multiple of 512 */
 #ifdef HAVE_WIN32
    if (S_ISBLK(ff_pkt->statp.st_mode))
-      rsize = (rsize/512) * 512;      
+      rsize = (rsize/512) * 512;
 #endif
    
    /*
@@ -705,9 +705,10 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
                (uint64_t)ff_pkt->statp.st_size == 0)) {
             sparseBlock = is_buf_zero(rbuf, rsize);
          }
-
-         ser_begin(wbuf, SPARSE_FADDR_SIZE);
-         ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
+         if (!sparseBlock) {
+            ser_begin(wbuf, SPARSE_FADDR_SIZE);
+            ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
+         }
       }
 
       jcr->ReadBytes += sd->msglen;         /* count bytes read */
@@ -728,15 +729,14 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
 #ifdef HAVE_LIBZ
       /* Do compression if turned on */
-      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && jcr->pZLIB_compress_workset) {         
-         compress_len = max_compress_len;
+      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && jcr->pZLIB_compress_workset) {
          Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
             rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
-                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;               
+                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;
          ((z_stream*)jcr->pZLIB_compress_workset)->next_out  = (Bytef *)cbuf;
-                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_out = compress_len;
+                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_out = max_compress_len;
 
          if ((zstat=deflate((z_stream*)jcr->pZLIB_compress_workset, Z_FINISH)) != Z_STREAM_END) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflate error: %d\n"), zstat);
@@ -751,24 +751,37 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
             goto err;
          }
 
-         Dmsg2(400, "compressed len=%d uncompressed len=%d\n",
-            compress_len, sd->msglen);
+         Dmsg2(400, "compressed len=%d uncompressed len=%d\n", compress_len, sd->msglen);
 
          sd->msglen = compress_len;      /* set compressed length */
          cipher_input_len = compress_len;
       }
 #endif
 
-      if (ff_pkt->flags & FO_ENCRYPT) {
+      if (!sparseBlock && (ff_pkt->flags & FO_ENCRYPT)) {
+         uint32_t initial_len = 0;
+
+         if (ff_pkt->flags & FO_SPARSE) {
+            cipher_input_len += SPARSE_FADDR_SIZE;
+         }
+
+         /* Encrypt the length of the input block */
+         uint32_t packet_len = htonl(cipher_input_len);
+
+         if (!crypto_cipher_update(cipher_ctx, (const u_int8_t *)&packet_len, sizeof(packet_len), (u_int8_t *)jcr->crypto_buf, &initial_len)) {
+            /* Encryption failed. Shouldn't happen. */
+            Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
+            goto err;
+         }
+
          /* Encrypt the input block */
-         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
-            if (encrypted_len == 0) {
+         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, (u_int8_t *)&jcr->crypto_buf[initial_len], &encrypted_len)) {
+            if ((initial_len + encrypted_len) == 0) {
                /* No full block of data available, read more data */
                continue;
             }
-            Dmsg2(400, "encrypted len=%d unencrypted len=%d\n",
-               encrypted_len, sd->msglen);
-            sd->msglen = encrypted_len; /* set encrypted length */
+            Dmsg2(400, "encrypted len=%d unencrypted len=%d\n", encrypted_len, sd->msglen);
+            sd->msglen = initial_len + encrypted_len; /* set encrypted length */
          } else {
             /* Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
@@ -796,40 +809,35 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    } /* end while read file data */
 
    /* Send any remaining encrypted data + padding */
-   if (ff_pkt->flags & FO_ENCRYPT) {
-      if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
-         /* Padding failed. Shouldn't happen. */
-         Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
-         goto err;
-      }
-
-      if (encrypted_len > 0) {
-         sd->msglen = encrypted_len; /* set encrypted length */
-
-         /* Send remaining encrypted data to the SD */
-         if (ff_pkt->flags & FO_SPARSE) {
-            sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
-         }
-         sd->msg = wbuf;              /* set correct write buffer */
-         if (!bnet_send(sd)) {
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-                  bnet_strerror(sd));
+   if (sd->msglen >= 0) {
+      if (ff_pkt->flags & FO_ENCRYPT) {
+         if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
+            /* Padding failed. Shouldn't happen. */
+            Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
             goto err;
          }
-         Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
-         jcr->JobBytes += sd->msglen;      /* count bytes saved possibly compressed/encrypted */
-         sd->msg = msgsave;                /* restore bnet buffer */
-      }
-   }
 
-   if (sd->msglen < 0) {
+         if (encrypted_len > 0) {
+            sd->msglen = encrypted_len;      /* set encrypted length */
+
+            sd->msg = jcr->crypto_buf;       /* set correct write buffer */
+            if (!bnet_send(sd)) {
+               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                     bnet_strerror(sd));
+               goto err;
+            }
+            Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
+            jcr->JobBytes += sd->msglen;     /* count bytes saved possibly compressed/encrypted */
+            sd->msg = msgsave;               /* restore bnet buffer */
+         }
+      }
+   } else {
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
          ff_pkt->fname, be.strerror(ff_pkt->bfd.berrno));
       if (jcr->Errors++ > 1000) {       /* insanity check */
          Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
       }
-
    }
 
    if (!bnet_sig(sd, BNET_EOD)) {        /* indicate end of file data */
