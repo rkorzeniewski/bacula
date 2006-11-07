@@ -149,6 +149,9 @@
 /* LOCALEDIR */
 #undef LOCALEDIR
 
+/* Set to value of --sysconfdir option */
+#undef SYSCONFDIR
+
 /* Define if you have zlib */
 #undef HAVE_LIBZ
 

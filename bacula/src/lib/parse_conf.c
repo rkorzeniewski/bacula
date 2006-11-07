@@ -930,7 +930,7 @@ const char *get_default_configdir()
    }
    return szConfigDir;
 #else
-   return "/etc/bacula";
+   return SYSCONFDIR;
 #endif
 }
 

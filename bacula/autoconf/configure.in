@@ -146,6 +146,7 @@ sysconfdir=`eval echo ${sysconfdir}`
 datadir=`eval echo ${datadir}`
 localedir=`eval echo ${datadir}/locale`
 AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
+AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
 
 # -------------------------------------------------------------------------
 #  If the user has not set --exec-prefix, we default to ${prefix}
@@ -301,7 +302,7 @@ if test x$support_tray_monitor = xyes; then
      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
      pkg=$?
      if test $pkg = 0; then
-	AC_DEFINE(HAVE_GTK_2_4)
+     AC_DEFINE(HAVE_GTK_2_4)
      fi
   fi
 fi

@@ -6736,6 +6736,10 @@ cat >>confdefs.h <<_ACEOF
 #define LOCALEDIR "$localedir"
 _ACEOF
 
+cat >>confdefs.h <<_ACEOF
+#define SYSCONFDIR "$sysconfdir"
+_ACEOF
+
 
 # -------------------------------------------------------------------------
 #  If the user has not set --exec-prefix, we default to ${prefix}
@@ -12883,7 +12887,7 @@ if test x$support_tray_monitor = xyes; then
      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
      pkg=$?
      if test $pkg = 0; then
-	cat >>confdefs.h <<\_ACEOF
+     cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK_2_4 1
 _ACEOF
 
