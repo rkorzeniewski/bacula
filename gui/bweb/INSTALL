@@ -53,6 +53,7 @@ Bweb works well with 1.39 release.
     - HTML::Template
     - CGI
     - Expect
+    - Time::ParseDate
 
  You can install perl modules with CPAN
  perl -e shell -MCPAN
@@ -60,7 +61,7 @@ Bweb works well with 1.39 release.
 
  Or use your distribution
  apt-get install libgd-graph-perl libhtml-template-perl libexpect-perl
- apt-get install libdbd-mysql-perl libdbd-pg-perl libdbi-perl
+ apt-get install libdbd-mysql-perl libdbd-pg-perl libdbi-perl libtime-modules-perl
 
 ################ APACHE CONFIGURATION ##########################
 
