@@ -89,7 +89,7 @@ WARNING : You must be able to execute bconsole and able to read bconsole.conf !
 
 ################ CONFIGURATION #################################
 
-You can make configuration from brestore himself (if brestore can find
+You can make configuration from brestore himself (if brestore can't find
 his glade file).
 
 Example :
