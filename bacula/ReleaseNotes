@@ -14,7 +14,20 @@ Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
   be restored. We strongly recommend that anyone using encryption 
   carefully review his/her backups and at a minium do a Full backup
   with 1.39.28 of all encrypted data.  Robert Nelson has identified 
-  and fixed the following cases:
+  and fixed it as follows:
+     As of 1.39.27:
+        No filters = Works fine
+        Sparse = Works fine
+        Compression = Works fine
+        Encryption = Works fine
+        Sparse + Compression = Works fine
+
+        Sparse + Encryption = Restore broken
+        Sparse + Compression + Encryption = Restore broken
+        Compression + Encryption = Restore broken
+
+     As of 1.39.28:
+        All combinations work fine.
 
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
