@@ -824,7 +824,10 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
 
    ASSERT(dcr);
 
+   /* Get locks in correct order */
+   unlock_reservations();
    P(dev->mutex);
+   lock_reservations();
 
    /* If device is being read, we cannot write it */
    if (dev->can_read()) {

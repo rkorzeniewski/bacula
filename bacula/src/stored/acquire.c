@@ -417,6 +417,9 @@ get_out:
  * This job is done, so release the device. From a Unix standpoint,
  *  the device remains open.
  *
+ * Note, if we are spooling, we may enter with the device locked.
+ * However, in all cases, unlock the device when leaving.
+ *
  */
 bool release_device(DCR *dcr)
 {
@@ -424,7 +427,10 @@ bool release_device(DCR *dcr)
    DEVICE *dev = dcr->dev;
    bool ok = true;
 
-   lock_device(dev);
+   /* lock only if not already locked by this thread */
+   if (!dcr->dev_locked) {
+      lock_device(dev);
+   }
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");
 
    /* if device is reserved, job never started, so release the reserve here */
@@ -508,6 +514,7 @@ bool release_device(DCR *dcr)
       Dmsg1(400, "alert status=%d\n", status);
       free_pool_memory(alert);
    }
+   dcr->dev_locked = false;              /* set no longer locked */
    unlock_device(dev);
    if (jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;

@@ -294,6 +294,7 @@ bool do_append_data(JCR *jcr)
    if (!ok) {
       discard_data_spool(dcr);
    } else {
+      /* Note: if commit is OK, the device will remain locked */
       commit_data_spool(dcr);
    }
 
@@ -301,7 +302,10 @@ bool do_append_data(JCR *jcr)
       ok = dvd_close_job(dcr);  /* do DVD cleanup if any */
    }
    
-   /* Release the device -- and send final Vol info to DIR */
+   /*
+    * Release the device -- and send final Vol info to DIR
+    *  and unlock it.
+    */
    release_device(dcr);
 
    if (!ok || job_canceled(jcr)) {

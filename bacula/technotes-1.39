@@ -2,6 +2,21 @@
 
 General:
 
+12Nov06
+kes  Change error message 'illegal' to 'invalid' -- bug #707
+kes  Add rather primitive device resource deadlock detection in
+     the job queue handler. It detects the same read and write device
+     for migration and cancels the job. 
+kes  Start adding a unique_dbid_hander() routine in migration to avoid
+     duplicate mediaids and duplicate jobids.
+kes  Add patch from bug #708 to permit relative paths such as ../xxx
+     in the restore tree routine.
+kes  Add Eric Bollengier's patch to reduce locking time in the SD after
+     despooling, and thus many jobs finish faster.
+kes  Correct locking order of reservations lock and device mutex in
+     reserve.c -- this should correct Arno's deadlock that occurred
+     when doing mount/unmount at the same time a job is reserving a
+     drive.
 05Nov06
 rbn  Fixed problems with encryption when combined with compression 
      or sparse files.  Unfortunately this means that all previous 
@@ -31,10 +46,10 @@ rbn  Reorganize Start menu so that documentation and configuration are
 21Oct06
 rbn  Change daemons and utilities so that if -c is omitted from the 
      command line AND there is no configuration file in the current 
-     directory then the "standard" configuration file (eg 
+     directory then the 'standard' configuration file (eg 
      /etc/bacula/bacula-*.conf) will be used.  If the argument to -c 
      doesn't contain any path separators AND there is no configuration 
-     file by that name in the current directory then the "standard" 
+     file by that name in the current directory then the 'standard' 
      configuration file directory will be searched for a file by that 
      name.
 rbn  Fixed restore on Windows so that backslashes as path separators works.
@@ -95,7 +110,7 @@ kes  Turn on heap reporting in Dir with zero debug level.
 kes  Send a message to the sys log when Bacula forces a SEG FAULT, and
      send the same message to stdout.
 07Oct06
-kes  Begin work on new GUI "console".
+kes  Begin work on new GUI 'console'.
 kes  Make configure look in non-standard MySQL library directory 
      for Solaris.
 kes  Make mtx-changer automatically configure the autochanger wait

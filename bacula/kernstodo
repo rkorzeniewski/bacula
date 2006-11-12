@@ -41,6 +41,22 @@ Document:
  
 
 Priority:
+- Arno's reservation deadlock.
+- Doc items
+- Bug reports
+- Eric's SD patch
+- Add encryption regression tests
+- Test Volume compatibility between machine architectures
+- Encryption documentation
+- Migration Volume span bug
+- Wrong jobbytes with query 12 (todo)
+- bacula-1.38.2-ssl.patch
+- Bare-metal recovery Windows (todo)
+- Rescue release
+- Test FIFO backup/restore -- make regression
+- Document need for UTF-8 format
+
+
 
 For 1.39:
 - Implement Python event for backing up/restoring a file.

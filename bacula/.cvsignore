@@ -63,3 +63,8 @@ zapall
 zaptapes
 kerns-pgsql-config
 fake-mtx
+filter
+label
+relabel
+sed
+weof

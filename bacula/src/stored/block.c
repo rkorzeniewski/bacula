@@ -332,8 +332,8 @@ bool write_block_to_device(DCR *dcr)
       return stat;
    }
 
-   if (!dcr->dev_locked) {
-      lock_device(dev);
+   if (!dcr->dev_locked) {            /* device already locked? */
+      lock_device(dev);               /* no, lock it */
    }
 
    /*
@@ -374,8 +374,8 @@ bool write_block_to_device(DCR *dcr)
    }
 
 bail_out:
-   if (!dcr->dev_locked) {
-      unlock_device(dev);
+   if (!dcr->dev_locked) {            /* did we lock dev above? */
+      unlock_device(dev);             /* unlock it now */
    }
    return stat;
 }
