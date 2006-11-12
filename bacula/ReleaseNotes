@@ -1,10 +1,20 @@
 
-          Release Notes for Bacula 1.39.26
+          Release Notes for Bacula 1.39.28
 
-  Bacula code: Total files = 447 Total lines = 149,711 (*.h *.c *.in)
+  Bacula code: Total files = 442 Total lines = 150,218 (*.h *.c *.in)
 
-Version 1.39.26 contains mainly bug fixes to 1.39.24. Please
+
+Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
   see the ChangeLog for more details.
+
+==== IMPORTANT Encrypted Volume data may be unreadable ====
+- If you have been using the data encryption feature of 1.39.x, please
+  be aware that certain combinations of encryption and other options
+  with version 1.39.0 through 1.39.26 created Volume data that cannot
+  be restored. We strongly recommend that anyone using encryption 
+  carefully review his/her backups and at a minium do a Full backup
+  with 1.39.28 of all encrypted data.  Robert Nelson has identified 
+  and fixed the following cases:
 
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
@@ -93,6 +103,14 @@ Version 1.39.26 contains mainly bug fixes to 1.39.24. Please
 
 
 New Features in 1.40.0:
+- Relative path specifications (i.e. ../xxx) are now permitted in
+  the restore cd command.
+- When running multiple simultaneous jobs, most jobs that use spooling
+  will now finish faster due to a mutex optimization made by Eric
+  Bollengier.
+- Conf files containing UTF-8 marker at the head of the file as well as
+  conf files containing Window cr/lf and Mac cr line termination characters 
+  are now accepted thanks to Robert Nelson.
 - Windows tray status windows are scrollable and resizable.
 - Win32 external script excution is much more flexible -- handles
   spaces in names better, ...
