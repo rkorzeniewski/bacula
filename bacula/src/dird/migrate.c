@@ -354,6 +354,7 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
+#ifdef xxx  /* in development */
 static int unique_dbid_handler(void *ctx, int num_fields, char **row)
 {
    dlist *list = (dlist *)ctx;
@@ -372,7 +373,7 @@ static int unique_dbid_handler(void *ctx, int num_fields, char **row)
    }
    return 0;
 }
-
+#endif
 
 
 
