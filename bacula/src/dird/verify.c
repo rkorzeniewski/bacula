@@ -502,6 +502,9 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       char *attr, *p, *fn;
       char Opts_Digest[MAXSTRING];        /* Verify Opts or MD5/SHA1 digest */
 
+      if (job_canceled(jcr)) {
+         return false;
+      }
       fname = check_pool_memory_size(fname, fd->msglen);
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
       Dmsg1(200, "Atts+Digest=%s\n", fd->msg);
@@ -736,6 +739,9 @@ static int missing_handler(void *ctx, int num_fields, char **row)
 {
    JCR *jcr = (JCR *)ctx;
 
+   if (job_canceled(jcr)) {
+      return 1;
+   }
    if (!jcr->fn_printed) {
       Jmsg(jcr, M_INFO, 0, "\n");
       Jmsg(jcr, M_INFO, 0, _("The following files are missing:\n"));
