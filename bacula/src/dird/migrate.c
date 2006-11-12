@@ -354,6 +354,28 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    return 0;
 }
 
+static int unique_dbid_handler(void *ctx, int num_fields, char **row)
+{
+   dlist *list = (dlist *)ctx;
+
+   uitem *new_item = (uitem *)malloc(sizeof(uitem));
+   uitem *item;
+   
+   memset(new_item, 0, sizeof(uitem));
+   new_item->item = bstrdup(row[0]);
+   Dmsg1(dbglevel, "Item=%s\n", row[0]);
+   item = (uitem *)list->binary_insert((void *)new_item, item_compare);
+   if (item != new_item) {            /* already in list */
+      free(new_item->item);
+      free((char *)new_item);
+      return 0;
+   }
+   return 0;
+}
+
+
+
+
 /* Get Job names in Pool */
 const char *sql_job =
    "SELECT DISTINCT Job.Name from Job,Pool"

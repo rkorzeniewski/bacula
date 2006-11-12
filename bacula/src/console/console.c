@@ -185,7 +185,7 @@ static int do_a_command(FILE *input, BSOCK *UA_sock)
       }
    }
    if (!found) {
-      pm_strcat(&UA_sock->msg, _(": is an illegal command\n"));
+      pm_strcat(&UA_sock->msg, _(": is an invalid command\n"));
       UA_sock->msglen = strlen(UA_sock->msg);
       sendit(UA_sock->msg);
    }

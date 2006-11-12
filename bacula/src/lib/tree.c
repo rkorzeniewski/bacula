@@ -342,11 +342,13 @@ TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node)
    if (strcmp(path, ".") == 0) {
       return node;
    }
-   if (strcmp(path, "..") == 0) {
-      if (node->parent) {
-         return node->parent;
+   /* Handle relative path */
+   if (strncmp(path, "..", 2) == 0 && (path[2] == '/' || path[2] == 0)) {
+      TREE_NODE *parent = node->parent ? node->parent : node;
+      if (path[2] == 0) { 
+         return parent;
       } else {
-         return node;
+         return tree_cwd(path+3, root, parent);
       }
    }
    if (path[0] == '/') {

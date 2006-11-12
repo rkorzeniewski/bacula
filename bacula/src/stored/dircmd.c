@@ -763,6 +763,7 @@ static bool unmount_cmd(JCR *jcr)
             Dmsg2(90, "%d waiter dev_block=%d. doing unmount\n", dev->num_waiting,
                dev->dev_blocked);
             if (!unload_autochanger(dcr, -1)) {
+               /* ***FIXME**** what is this ????  */
                dev->close();
             }
             if (dev->is_dvd() && !dev->unmount(0)) {

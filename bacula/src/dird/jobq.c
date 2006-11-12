@@ -592,12 +592,18 @@ void *jobq_server(void *arg)
             }
 
             if (!acquire_resources(jcr)) {
-               je = jn;            /* point to next waiting job */
-               continue;
+               /* If resource conflict, job is canceled */
+               if (!job_canceled(jcr)) {
+                  je = jn;            /* point to next waiting job */
+                  continue;
+               }
             }
 
-            /* Got all locks, now remove it from wait queue and append it
-             *   to the ready queue
+            /*
+             * Got all locks, now remove it from wait queue and append it
+             *   to the ready queue.  Note, we may also get here if the
+             *    job was canceled.  Once it is "run", it will quickly
+             *    terminate.
              */
             jq->waiting_jobs->remove(je);
             jq->ready_jobs->append(je);
@@ -683,6 +689,12 @@ static bool acquire_resources(JCR *jcr)
    }
    
    if (jcr->wstore) {
+      if (jcr->rstore == jcr->wstore) {           /* deadlock */
+         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
+         Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"));
+         set_jcr_job_status(jcr, JS_Canceled);
+         return false;
+      }
       if (jcr->wstore->NumConcurrentJobs == 0 &&
           jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
          /* Simple case, first job */
@@ -736,9 +748,6 @@ static bool acquire_resources(JCR *jcr)
       set_jcr_job_status(jcr, JS_WaitJobRes);
       return false;
    }
-   /* Check actual device availability */
-   /* ***FIXME****/
-
 
    jcr->acquired_resource_locks = true;
    return true;

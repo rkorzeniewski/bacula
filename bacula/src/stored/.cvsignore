@@ -21,3 +21,8 @@ changer.out
 mtx-changer
 stored.conf
 test.conf
+dvd-simulator
+mount-simulator
+mounted
+slots
+unmount-simulator

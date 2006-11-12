@@ -309,10 +309,13 @@ static bool despool_data(DCR *dcr, bool commit)
    rdcr->jcr = NULL;
    free_dcr(rdcr);
    free(rdev);
-   dcr->dev_locked = false;
    dcr->spooling = true;           /* turn on spooling again */
    dcr->despooling = false;
-   unlock_device(dcr->dev);
+   /* If doing a commit, leave the device locked -- unlocked in release_device() */
+   if (!commit) {
+      dcr->dev_locked = false;
+      unlock_device(dcr->dev);
+   }
    return ok;
 }
 
