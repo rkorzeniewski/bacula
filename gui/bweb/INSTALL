@@ -139,43 +139,18 @@ bconsole -n option.
 
 ################ BACULA LOG ####################################
 
-To use Bweb log engine, you must apply this little patch and have the
-new Log table in your database.
+To use Bweb log engine you MUST use catalog message type.
 
-After, you can fill your database with :
-while true; do
-	tail -f /tmp/log.sql | bacula -u bacula bacula
-done
+Messages {
+  Name = Standard
 
-cd bacula-src
-patch -p1 < message.patch
---- cvs/src/lib/message.c       2006-07-27 21:06:20.000000000 +0200
-+++ cvs/src/lib/message.c.director      2006-07-28 13:46:49.171083494 +0200
-@@ -716,6 +716,20 @@
-                 }
-                 fputs(dt, d->fd);
-                 fputs(msg, d->fd);
-+               void db_escape_string(char *snew, char *old, int len);
-+               if (jcr) {
-+                       char ed1[50];
-+                       POOL_MEM cmd(PM_MESSAGE);
-+                       int len = strlen(msg);
-+                       char *p = (char *)malloc(len * 2 + 1);
-+                       db_escape_string(p, msg, len);
-+                       FILE *fp = fopen("/tmp/log.sql", "a");
-+                       if (fp) {
-+                          fprintf(fp, "INSERT INTO Log (Time, JobId, LogText) VALUES (Now(), %s, '%s');\n", edit_int64(jcr->JobId, ed1), p);
-+                          fclose(fp);
-+                       }
-+               }
-+
-                 break;
-              case MD_DIRECTOR:
-                 Dmsg1(850, "DIRECTOR for following msg: %s", msg);
+  operator = root@localhost = mount
+  console = all, !skipped, !saved
+  append = "/tmp/bacula/var/bacula/working/log" = all, !skipped
 
+  catalog = all, !skipped, !saved
+}
 
-This patch is only for director, this will breaks the rest.
-you can revert it with patch -p1 -R < message.patch
 
 ################ BWEB LIMITATION ###############################
 
