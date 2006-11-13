@@ -27,6 +27,7 @@
 #include "jcr.h"
 
 sql_query p_sql_query = NULL;
+sql_escape p_sql_escape = NULL;
 
 #define FULL_LOCATION 1               /* set for file:line in Debug messages */
 
@@ -617,12 +618,21 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 if (!jcr || !jcr->db) {
                    break;
                 }
-                if (p_sql_query) {
-                   POOL_MEM cmd(PM_MESSAGE);
+                if (p_sql_query && p_sql_escape) {
+                   POOLMEM *cmd = get_pool_memory(PM_MESSAGE);
+                   POOLMEM *esc_msg = get_pool_memory(PM_MESSAGE);
+                   
+                   int len = strlen(msg) + 1;
+                   esc_msg = check_pool_memory_size(esc_msg, len*2+1);
+                   p_sql_escape(esc_msg, msg, len);
+
                    bstrftimes(dt, sizeof(dt), mtime);
                    Mmsg(cmd, "INSERT INTO Log (JobId, Time, LogText) VALUES (%s,'%s','%s')",
-                         edit_int64(jcr->JobId, ed1), dt, msg);
-                   p_sql_query(jcr, cmd.c_str());
+                         edit_int64(jcr->JobId, ed1), dt, esc_msg);
+                   p_sql_query(jcr, cmd);
+                   
+                   free_pool_memory(cmd);
+                   free_pool_memory(esc_msg);
                 }
                 break;
              case MD_CONSOLE:
