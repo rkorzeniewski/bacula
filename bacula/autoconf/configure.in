@@ -146,7 +146,7 @@ sysconfdir=`eval echo ${sysconfdir}`
 datadir=`eval echo ${datadir}`
 localedir=`eval echo ${datadir}/locale`
 AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
-AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
+AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")  
 
 # -------------------------------------------------------------------------
 #  If the user has not set --exec-prefix, we default to ${prefix}
@@ -774,10 +774,10 @@ if test "x$with_openssl_directory" != "x"; then
 		OPENSSL_INC="-I$with_openssl_directory/include $OPENSSL_INC"
 	fi
 
-	saved_LIBS="$LIBS"
-	saved_CFLAGS="$CFLAGS"
-	LIBS="$saved_LIBS $OPENSSL_LIBS"
-	CFLAGS="$saved_CFLAGS $OPENSSL_INC"
+	saved_LIBS="${LIBS}"
+	saved_CFLAGS="${CFLAGS}"
+	LIBS="${saved_LIBS} ${OPENSSL_LIBS}"
+	CFLAGS="${saved_CFLAGS} ${OPENSSL_INC}"
 
 	AC_TRY_LINK([ #include <openssl/ssl.h> ],
 		[ CRYPTO_set_id_callback(NULL); ],
@@ -794,8 +794,8 @@ if test "x$with_openssl_directory" != "x"; then
 		[ ac_cv_openssl_sha2="no" ]
 	)
 
-	LIBS="$saved_LIBS"
-	CFLAGS="$saved_CFLAGS"
+	LIBS="${saved_LIBS}"
+	CFLAGS="${saved_CFLAGS}"
 
 	if test "$support_tls" = "yes"; then
 		AC_DEFINE(HAVE_OPENSSL, 1, [Define if OpenSSL library is available])
@@ -1779,7 +1779,7 @@ freebsd)
   ;;
 hpux)
 	PSCMD="UNIX95=1 ps -e -o pid,comm"
-	CFLAGS="$(CFLAGS) -D_XOPEN_SOURCE_EXTENDED=1"
+	CFLAGS="${CFLAGS} -D_XOPEN_SOURCE_EXTENDED=1"
 	DISTVER=`uname -r`
 	TAPEDRIVE="/dev/rmt/0hnb"
 	PTHREAD_LIB="-lpthread"

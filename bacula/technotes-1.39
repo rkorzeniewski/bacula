@@ -1,7 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+13Nov06
+kes  Replace () by {} in configure.in for proper HP configuration.
+kes  Shorten some lines over 80 characters in filed/backup.c
+kes  Cast sizeof() in filed/backup.c to avoid compiler warning.
 
+Version 1.39.28 released: 
 12Nov06
 kes  Change error message 'illegal' to 'invalid' -- bug #707
 kes  Add rather primitive device resource deadlock detection in
