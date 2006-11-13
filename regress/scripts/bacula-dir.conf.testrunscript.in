@@ -21,7 +21,7 @@ Director {                            # define myself
   SubSysDirectory = "@subsysdir@"
   Maximum Concurrent Jobs = 4
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
-  Messages = Daemon
+  Messages = Standard
 }
 
 JobDefs {
@@ -146,40 +146,7 @@ Catalog {
 
 Messages {
   Name = Standard
-  mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
-  operatorcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: Intervention needed for %j\" %r
-"
-  MailOnError = @job_email@ = all
-  operator = @job_email@ = mount
-  console = all, !skipped, !terminate, !restored
-#
-# WARNING! the following will create a file that you must cycle from
-#          time to time as it will grow indefinitely. However, it will
-#          also keep all your messages if the scroll off the console.
-#
-  append = "@working_dir@/log" = all, !skipped
-}
-
-Messages {
-  Name = NoEmail
-  mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula Regression\) %r\" -s \"Bacula: %t %e of %c %l\" %r"
-  console = all, !skipped, !terminate
-#
-# WARNING! the following will create a file that you must cycle from
-#          time to time as it will grow indefinitely. However, it will
-#          also keep all your messages if the scroll off the console.
-#
-  append = "@working_dir@/log" = all, !skipped
-}
-
-
-# Message delivery for daemon messages (no job).
-Messages {
-  Name = Daemon
-  mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula\) %r\" -s \"Bacula daemon message\" %r"
-  mail = @job_email@ = all, !skipped
-  console = all, !skipped, !saved
-  append = "@working_dir@/log" = all, !skipped
+  stdout = all, !skipped
 }
 
 # Default pool definition
