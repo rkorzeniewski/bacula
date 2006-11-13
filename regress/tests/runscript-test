@@ -21,12 +21,12 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 label volume=TestVolume001
 @#setdebug level=100 storage=File
-@output tmp/log.RUN1.out
-run job=RUN_ALL_OK yes
+@output tmp/log.RUN2.out
+run job=RUN_FD_WARNING yes
 wait
 @sleep 5
 messages
-run job=RUN_FD_WARNING yes
+run job=RUN_ALL_OK yes
 wait
 @sleep 5
 messages
@@ -42,7 +42,10 @@ st dir
 quit
 END_OF_DATA
 
-run_bacula
+
+bin/bacula start
+cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf &> tmp/log.RUN1.out
+
 stop_bacula
 
 if grep -q 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"'          tmp/log.RUN1.out   &&
