@@ -218,7 +218,8 @@ int main (int argc, char *argv[])
    my_name_is(0, NULL, director->hdr.name);    /* set user defined name */
 
    /* Plug database interface for library routines */
-   p_sql_query = (sql_query)dir_sql_query;                                   
+   p_sql_query = (sql_query)dir_sql_query;
+   p_sql_escape = (sql_escape)db_escape_string;
 
    FDConnectTimeout = (int)director->FDConnectTimeout;
    SDConnectTimeout = (int)director->SDConnectTimeout;
