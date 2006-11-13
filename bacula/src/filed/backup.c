@@ -579,7 +579,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
  * Currently this is not a problem as the only other stream, resource forks,
  * are not handled as sparse files.
  */
-int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signing_digest)
+int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, 
+              DIGEST *signing_digest)
 {
    BSOCK *sd = jcr->store_bsock;
    uint64_t fileAddr = 0;             /* file address */
@@ -603,7 +604,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    Dmsg1(300, "Saving data, type=%d\n", ff_pkt->type);
 
 #ifdef HAVE_LIBZ
-   uLong compress_len, max_compress_len = 0;
+   uLong compress_len = 0;
+   uLong max_compress_len = 0;
    const Bytef *cbuf = NULL;
    int zstat;
 
@@ -626,7 +628,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
       if (((z_stream*)jcr->pZLIB_compress_workset)->total_in == 0) {
          /* set gzip compression level - must be done per file */
-         if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
+         if ((zstat=deflateParams((z_stream*)jcr->pZLIB_compress_workset, 
+              ff_pkt->GZIP_level, Z_DEFAULT_STRATEGY)) != Z_OK) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflateParams error: %d\n"), zstat);
             set_jcr_job_status(jcr, JS_ErrorTerminated);
             goto err;
@@ -639,7 +642,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
 
    if (ff_pkt->flags & FO_ENCRYPT) {
       /* Allocate the cipher context */
-      if ((cipher_ctx = crypto_cipher_new(jcr->pki_session, true, &cipher_block_size)) == NULL) {
+      if ((cipher_ctx = crypto_cipher_new(jcr->pki_session, true, 
+           &cipher_block_size)) == NULL) {
          /* Shouldn't happen! */
          Jmsg0(jcr, M_FATAL, 0, _("Failed to initialize encryption context\n"));
          goto err;
@@ -652,7 +656,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
        * could be returned for the given read buffer size.
        * (Using the larger of either rsize or max_compress_len)
        */
-      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, (MAX(rsize + sizeof(uint32_t), (int32_t)max_compress_len) + cipher_block_size - 1) / cipher_block_size * cipher_block_size);
+      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
+           (MAX(rsize + (int)sizeof(uint32_t), (int32_t)max_compress_len) + 
+            cipher_block_size - 1) / cipher_block_size * cipher_block_size);
 
       wbuf = jcr->crypto_buf; /* Encrypted, possibly compressed output here. */
    }
@@ -734,9 +740,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
             rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
-                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;
+                ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;
          ((z_stream*)jcr->pZLIB_compress_workset)->next_out  = (Bytef *)cbuf;
-                        ((z_stream*)jcr->pZLIB_compress_workset)->avail_out = max_compress_len;
+                ((z_stream*)jcr->pZLIB_compress_workset)->avail_out = max_compress_len;
 
          if ((zstat=deflate((z_stream*)jcr->pZLIB_compress_workset, Z_FINISH)) != Z_STREAM_END) {
             Jmsg(jcr, M_FATAL, 0, _("Compression deflate error: %d\n"), zstat);
@@ -751,7 +757,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
             goto err;
          }
 
-         Dmsg2(400, "compressed len=%d uncompressed len=%d\n", compress_len, sd->msglen);
+         Dmsg2(400, "compressed len=%d uncompressed len=%d\n", compress_len, 
+               sd->msglen);
 
          sd->msglen = compress_len;      /* set compressed length */
          cipher_input_len = compress_len;
@@ -768,19 +775,22 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
          /* Encrypt the length of the input block */
          uint32_t packet_len = htonl(cipher_input_len);
 
-         if (!crypto_cipher_update(cipher_ctx, (const u_int8_t *)&packet_len, sizeof(packet_len), (u_int8_t *)jcr->crypto_buf, &initial_len)) {
+         if (!crypto_cipher_update(cipher_ctx, (const u_int8_t *)&packet_len, 
+              sizeof(packet_len), (u_int8_t *)jcr->crypto_buf, &initial_len)) {
             /* Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;
          }
 
          /* Encrypt the input block */
-         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, (u_int8_t *)&jcr->crypto_buf[initial_len], &encrypted_len)) {
+         if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, 
+             (u_int8_t *)&jcr->crypto_buf[initial_len], &encrypted_len)) {
             if ((initial_len + encrypted_len) == 0) {
                /* No full block of data available, read more data */
                continue;
             }
-            Dmsg2(400, "encrypted len=%d unencrypted len=%d\n", encrypted_len, sd->msglen);
+            Dmsg2(400, "encrypted len=%d unencrypted len=%d\n", encrypted_len, 
+                  sd->msglen);
             sd->msglen = initial_len + encrypted_len; /* set encrypted length */
          } else {
             /* Encryption failed. Shouldn't happen. */
@@ -811,7 +821,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *sign
    /* Send any remaining encrypted data + padding */
    if (sd->msglen >= 0) {
       if (ff_pkt->flags & FO_ENCRYPT) {
-         if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, &encrypted_len)) {
+         if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, 
+              &encrypted_len)) {
             /* Padding failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
             goto err;
