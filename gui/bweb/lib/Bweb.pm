@@ -2899,7 +2899,7 @@ SELECT Job.Name as name, Client.Name as clientname
 SELECT Time AS time, LogText AS log
  FROM  Log
  WHERE JobId = $arg->{jobid}
- ORDER BY Time
+ ORDER BY LogId
 ";
     my $log = $self->dbh_selectall_arrayref($query);
     unless ($log) {
