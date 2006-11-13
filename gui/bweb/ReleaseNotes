@@ -1,5 +1,8 @@
           Release Notes for bweb 1.39.26
 
+2006/11/13:
+ - Use LogId instead of Time in get_log function
+
 2006/10/31:
  - remove Purged and Recycle volume size from total pool size
 
