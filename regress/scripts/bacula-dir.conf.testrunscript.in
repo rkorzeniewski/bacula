@@ -74,24 +74,24 @@ Job {
   Name = "RUN_DIR_FAILED"
   FileSet = FS_TESTJOB  
   JobDefs = DefaultJob
-  RunBeforeJob = "/bin/false"
+  RunBeforeJob = "/bin/false RUN_DIR_FAILED"
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
 }
 
-#@hostname@-fd: ClientBeforeJob: run command "/bin/false"
-#@hostname@-fd: ClientBeforeJob: run command "/bin/false 2"
+#@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"
+#@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"
 #@hostname@-dir: AfterJob: run command "/bin/echo RunAfterFailedJob"
 Job {
   Name = "RUN_FD_FAILED"
   FileSet = FS_TESTJOB  
   JobDefs = DefaultJob
   RunScript {
-    Command = "/bin/false"
+    Command = "/bin/false RUN_FD_FAILED1"
     abortjobonerror = no
     RunsWhen = Before
   }
   RunScript {
-    Command = "/bin/false 2"
+    Command = "/bin/false RUN_FD_FAILED2"
     abortjobonerror = yes
     RunsWhen = Before
   }
@@ -99,14 +99,14 @@ Job {
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
 }
 
-#@hostname@-fd: ClientBeforeJob: run command "/bin/false"
+#@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"
 #Backup OK -- with warnings
 Job {
   Name = "RUN_FD_WARNING"
   FileSet = FS_TESTJOB  
   JobDefs = DefaultJob
   RunScript {
-    Command = "/bin/false After False"
+    Command = "/bin/false RUN_FD_WARNING"
     abortjobonerror = no
     RunsWhen = Before
   }
