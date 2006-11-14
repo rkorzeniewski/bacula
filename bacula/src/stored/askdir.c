@@ -34,11 +34,9 @@ static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolFirstWritten=%s VolParts=%u\n";
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u"
-   " StartBlock=%u EndBlock=%u Copy=%d Strip=%d\n";
+   " StartBlock=%u EndBlock=%u Copy=%d Strip=%d MediaId=%s\n";
 static char FileAttributes[] = "UpdCat Job=%s FileAttributes ";
 static char Job_status[]     = "Status Job=%s JobStatus=%d\n";
-
-
 
 /* Responses received from the Director */
 static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%lu"
@@ -46,7 +44,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%lu"
    " MaxVolBytes=%lld VolCapacityBytes=%lld VolStatus=%20s"
    " Slot=%ld MaxVolJobs=%lu MaxVolFiles=%lu InChanger=%ld"
    " VolReadTime=%lld VolWriteTime=%lld EndFile=%lu EndBlock=%lu"
-   " VolParts=%lu LabelType=%ld";
+   " VolParts=%lu LabelType=%ld MediaId=%lld\n";
 
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
@@ -162,7 +160,7 @@ static bool do_get_volume_info(DCR *dcr)
        return false;
     }
     memset(&vol, 0, sizeof(vol));
-    Dmsg1(110, "<dird %s", dir->msg);
+    Dmsg1(100, "<dird %s", dir->msg);
     n = sscanf(dir->msg, OK_media, vol.VolCatName,
                &vol.VolCatJobs, &vol.VolCatFiles,
                &vol.VolCatBlocks, &vol.VolCatBytes,
@@ -172,9 +170,9 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
                &InChanger, &vol.VolReadTime, &vol.VolWriteTime,
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
-               &vol.LabelType);
-    if (n != 21) {
-       Dmsg2(110, "Bad response from Dir fields=%d: %s", n, dir->msg);
+               &vol.LabelType, &vol.VolMediaId);
+    if (n != 22) {
+       Dmsg2(100, "Bad response from Dir fields=%d: %s", n, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
@@ -183,7 +181,7 @@ static bool do_get_volume_info(DCR *dcr)
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
     dcr->VolCatInfo = vol;            /* structure assignment */
 
-    Dmsg2(300, "do_reqest_vol_info return true slot=%d Volume=%s\n",
+    Dmsg2(100, "do_reqest_vol_info return true slot=%d Volume=%s\n",
           vol.Slot, vol.VolCatName);
     return true;
 }
@@ -344,6 +342,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
+   char ed1[50];
 
    /* If system job, do not update catalog */
    if (jcr->JobType == JT_SYSTEM) {
@@ -359,7 +358,8 @@ bool dir_create_jobmedia_record(DCR *dcr)
       dcr->VolFirstIndex, dcr->VolLastIndex,
       dcr->StartFile, dcr->EndFile,
       dcr->StartBlock, dcr->EndBlock, 
-      dcr->Copy, dcr->Stripe);
+      dcr->Copy, dcr->Stripe, 
+      edit_uint64(dcr->dev->VolCatInfo.VolMediaId, ed1));
     Dmsg1(100, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");

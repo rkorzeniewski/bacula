@@ -250,7 +250,6 @@ RES_ITEM job_items[] = {
    {"verifyjob", store_res,     ITEM(res_job.verify_job), R_JOB, 0, 0},
    {"jobtoverify", store_res,   ITEM(res_job.verify_job), R_JOB, 0, 0},
    {"jobdefs",   store_res,     ITEM(res_job.jobdefs),    R_JOBDEFS, 0, 0},
-   {"nextpool",  store_res,     ITEM(res_job.next_pool),  R_POOL, 0, 0},
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},

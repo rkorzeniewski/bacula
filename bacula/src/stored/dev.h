@@ -169,6 +169,7 @@ struct VOLUME_CAT_INFO {
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
    uint64_t VolReadTime;              /* time spent reading */
    uint64_t VolWriteTime;             /* time spent writing this Volume */
+   int64_t VolMediaId;                /* MediaId */
    utime_t  VolFirstWritten;          /* Time of first write */
    bool     InChanger;                /* Set if vol in current magazine */
    char VolCatStatus[20];             /* Volume status */

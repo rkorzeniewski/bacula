@@ -345,7 +345,6 @@ public:
    POOL      *full_pool;              /* Pool for Full backups */
    POOL      *inc_pool;               /* Pool for Incremental backups */
    POOL      *diff_pool;              /* Pool for Differental backups */
-   POOL      *next_pool;              /* Next Pool for Migration */
    char      *selection_pattern;
    int        selection_type;
    union {
