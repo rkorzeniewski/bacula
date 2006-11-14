@@ -1,6 +1,15 @@
               Technical notes on version 1.39  
 
 General:
+14Nov06
+kes  Implement code to pass the MediaId to the SD. The SD then uses
+     this MediaId when creating JobMedia records. This fixes a bug
+     with Migration where the MediaId got set to the second Volume
+     read rather than the write Volume.  Possibly (unlikely) fixes
+     bug #709.
+kes  Remove NextPool from Job resource.
+kes  Edit a few numbers in the restore dialog with commas.
+kes  Note, the DIR<->SD protocol has changed.
 13Nov06
 kes  Replace () by {} in configure.in for proper HP configuration.
 kes  Shorten some lines over 80 characters in filed/backup.c

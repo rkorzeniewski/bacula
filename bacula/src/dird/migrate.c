@@ -311,7 +311,6 @@ static int dbid_handler(void *ctx, int num_fields, char **row)
 {
    idpkt *ids = (idpkt *)ctx;
 
-   Dmsg3(dbglevel, "count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
    if (ids->count == 0) {
       ids->list[0] = 0;
    } else {
@@ -319,6 +318,7 @@ static int dbid_handler(void *ctx, int num_fields, char **row)
    }
    pm_strcat(ids->list, row[0]);
    ids->count++;
+   Dmsg3(dbglevel, "dbid_hdlr count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
    return 0;
 }
 
@@ -344,7 +344,7 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    
    memset(new_item, 0, sizeof(uitem));
    new_item->item = bstrdup(row[0]);
-   Dmsg1(dbglevel, "Item=%s\n", row[0]);
+   Dmsg1(dbglevel, "Unique_name_hdlr Item=%s\n", row[0]);
    item = (uitem *)list->binary_insert((void *)new_item, item_compare);
    if (item != new_item) {            /* already in list */
       free(new_item->item);
@@ -676,12 +676,14 @@ static bool get_job_to_migrate(JCR *jcr)
    p = ids.list;
    Jmsg(jcr, M_INFO, 0, _("The following %u JobIds will be migrated: %s\n"),
       ids.count, ids.list);
+   Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
    for (int i=1; i < (int)ids.count; i++) {
       JobId = 0;
       stat = get_next_jobid_from_list(&p, &JobId);
-      Dmsg2(dbglevel, "get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+      Dmsg3(dbglevel, "get_jobid_no=%d stat=%d JobId=%u\n", i, stat, JobId);
       jcr->MigrateJobId = JobId;
       start_migration_job(jcr);
+      Dmsg0(dbglevel, "Back from start_migration_job\n");
       if (stat < 0) {
          Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
          goto bail_out;
@@ -823,7 +825,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
    }
    /* Basic query for names */
    Mmsg(query, query1, jcr->pool->hdr.name);
-   Dmsg1(dbglevel, "query1=%s\n", query.c_str());
+   Dmsg1(dbglevel, "get name query1=%s\n", query.c_str());
    if (!db_sql_query(jcr->db, query.c_str(), unique_name_handler, 
         (void *)item_chain)) {
       Jmsg(jcr, M_FATAL, 0,
@@ -839,7 +841,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
          free(last_item->item);
          item_chain->remove(last_item);
       }
-      Dmsg1(dbglevel, "Item=%s\n", item->item);
+      Dmsg1(dbglevel, "get name Item=%s\n", item->item);
       rc = regexec(&preg, item->item, nmatch, pmatch,  0);
       if (rc == 0) {
          last_item = NULL;   /* keep this one */
@@ -862,7 +864,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
    foreach_dlist(item, item_chain) {
       Dmsg2(dbglevel, "Got %s: %s\n", type, item->item);
       Mmsg(query, query2, item->item, jcr->pool->hdr.name);
-      Dmsg1(dbglevel, "query2=%s\n", query.c_str());
+      Dmsg1(dbglevel, "get id from name query2=%s\n", query.c_str());
       if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
          Jmsg(jcr, M_FATAL, 0,
               _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));

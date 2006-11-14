@@ -48,7 +48,7 @@ static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
-   " StartBlock=%u EndBlock=%u Copy=%d Strip=%d\n";
+   " StartBlock=%u EndBlock=%u Copy=%d Strip=%d MediaId=%" lld "\n";
 
 
 /* Responses  sent to Storage daemon */
@@ -56,7 +56,8 @@ static char OK_media[] = "1000 OK VolName=%s VolJobs=%u VolFiles=%u"
    " VolBlocks=%u VolBytes=%s VolMounts=%u VolErrors=%u VolWrites=%u"
    " MaxVolBytes=%s VolCapacityBytes=%s VolStatus=%s Slot=%d"
    " MaxVolJobs=%u MaxVolFiles=%u InChanger=%d VolReadTime=%s"
-   " VolWriteTime=%s EndFile=%u EndBlock=%u VolParts=%u LabelType=%d\n";
+   " VolWriteTime=%s EndFile=%u EndBlock=%u VolParts=%u LabelType=%d"
+   " MediaId=%s\n";
 
 static char OK_create[] = "1000 OK CreateJobMedia\n";
 
@@ -64,7 +65,7 @@ static char OK_create[] = "1000 OK CreateJobMedia\n";
 static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50];
 
    jcr->MediaId = mr->MediaId;
    pm_strcpy(jcr->VolumeName, mr->VolumeName);
@@ -80,7 +81,8 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
       edit_uint64(mr->VolWriteTime, ed5),
       mr->EndFile, mr->EndBlock,
       mr->VolParts,
-      mr->LabelType);
+      mr->LabelType,
+      edit_uint64(mr->MediaId, ed6));
    unbash_spaces(mr->VolumeName);
    Dmsg2(100, "Vol Info for %s: %s", jcr->Job, sd->msg);
    return stat;
@@ -96,6 +98,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    POOLMEM *omsg;
    POOL_DBR pr;
    uint32_t Stripe;
+   uint64_t MediaId;
    utime_t VolFirstWritten;
 
    memset(&mr, 0, sizeof(mr));
@@ -286,15 +289,14 @@ void catalog_request(JCR *jcr, BSOCK *bs)
     */
    } else if (sscanf(bs->msg, Create_job_media, &Job,
       &jm.FirstIndex, &jm.LastIndex, &jm.StartFile, &jm.EndFile,
-      &jm.StartBlock, &jm.EndBlock, &jm.Copy, &Stripe) == 9) {
+      &jm.StartBlock, &jm.EndBlock, &jm.Copy, &Stripe, &MediaId) == 10) {
 
       if (jcr->mig_jcr) {
          jm.JobId = jcr->mig_jcr->JobId;
-         jm.MediaId = jcr->MediaId;
       } else {
          jm.JobId = jcr->JobId;
-         jm.MediaId = jcr->MediaId;
       }
+      jm.MediaId = MediaId;
       Dmsg6(400, "create_jobmedia JobId=%d MediaId=%d SF=%d EF=%d FI=%d LI=%d\n",
          jm.JobId, jm.MediaId, jm.StartFile, jm.EndFile, jm.FirstIndex, jm.LastIndex);
       if (!db_create_jobmedia_record(jcr, jcr->db, &jm)) {

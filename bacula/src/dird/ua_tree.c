@@ -703,7 +703,8 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
    } else if (count == 1) {
       bsendmsg(ua, _("1 file unmarked.\n"));
    } else {
-      bsendmsg(ua, _("%d files unmarked.\n"), count);
+      char ed1[50];
+      bsendmsg(ua, _("%s files unmarked.\n"), edit_uint64_with_commas(count, ed1));
    }
    return 1;
 }

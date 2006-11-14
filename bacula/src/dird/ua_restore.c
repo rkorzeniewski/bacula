@@ -130,6 +130,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    if (rx.bsr->JobId) {
       uint32_t selected_files;
+      char ed1[50];
       if (!complete_bsr(ua, rx.bsr)) {   /* find Vol, SessId, SessTime from JobIds */
          bsendmsg(ua, _("Unable to construct a valid BSR. Cannot continue.\n"));
          goto bail_out;
@@ -146,7 +147,8 @@ int restore_cmd(UAContext *ua, const char *cmd)
          bsendmsg(ua, _("\n1 file selected to be restored.\n\n"));
       }
       else {
-         bsendmsg(ua, _("\n%u files selected to be restored.\n\n"), rx.selected_files);
+         bsendmsg(ua, _("\n%s files selected to be restored.\n\n"), 
+            edit_uint64_with_commas(rx.selected_files, ed1));
       }
    } else {
       bsendmsg(ua, _("No files selected to be restored.\n"));
