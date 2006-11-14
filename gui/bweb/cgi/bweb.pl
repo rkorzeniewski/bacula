@@ -69,11 +69,11 @@ if ($action eq 'begin') {		# main display
     print "</td><td valign='top'>";
     print "
 <div class='titlediv'>
-  <h1 class='newstitle'> Statistics (last 48 hours)</h1>
+  <h1 class='newstitle'> Statistics </h1>
 </div>
 <div class='bodydiv'>
 <a href='?action=job;age=172800;jobtype=B'>
-<img src='bgraph.pl?age=172800;width=600;height=250;graph=job_size;limit=100;action=graph;legend=off' alt='Nothing to display'>
+<img src='bgraph.pl?age=2678400;width=600;height=250;graph=job_sum_day;limit=300;action=graph;legend=off' alt='Nothing to display'>
 </a>
 </div>";
     print "</td></tr></table></div>";
