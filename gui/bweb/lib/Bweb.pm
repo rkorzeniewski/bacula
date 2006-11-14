@@ -2897,10 +2897,15 @@ SELECT Job.Name as name, Client.Name as clientname
 
     $query = "
 SELECT Time AS time, LogText AS log
- FROM  Log
- WHERE JobId = $arg->{jobid}
+ FROM  Log INNER JOIN Job ON (Job.JobId = Log.JobId)
+ WHERE Log.JobId = $arg->{jobid}
+    OR (    Log.JobId = 0 
+        AND Log.Time >= Job.StartTime
+        AND Log.Time <= COALESCE(Job.EndTime, Now())
+       )
  ORDER BY LogId
 ";
+
     my $log = $self->dbh_selectall_arrayref($query);
     unless ($log) {
 	return $self->error("Can't get log for jobid $arg->{jobid}");
