@@ -46,7 +46,7 @@
  <form action='?'>
   <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
   <label>
-  <input type="image" name='action' value='fileset_view' title='view fileset'
+  <input type="image" name='action' value='fileset_view' title='Voir le fileset associé'
    src='/bweb/zoom.png'> Voir le FileSet
   </label>
  </form>
