@@ -2856,6 +2856,9 @@ sub do_update_media
     if ($arg->{recyclepool}) {
 	push @q, "RecyclePoolId=(SELECT PoolId FROM Pool WHERE Name='$arg->{recyclepool}')";
     }
+    if (!$arg->{qcomment}) {
+	$arg->{qcomment} = "''";
+    }
     push @q, "Comment=$arg->{qcomment}";
     
 
