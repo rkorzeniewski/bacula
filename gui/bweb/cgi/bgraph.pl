@@ -103,9 +103,10 @@ sub get_graph
 	use GD::Graph::linespoints;
 	$graph = GD::Graph::linespoints->new ( $arg->{width}, $arg->{height} );
 
-    } elsif ($gtype eq 'bars3d') {
-	use GD::Graph::bars3d;
-	$graph = GD::Graph::bars3d->new ( $arg->{width}, $arg->{height} );
+#   this doesnt works at this time
+#    } elsif ($gtype eq 'bars3d') {
+#	use GD::Graph::bars3d;
+#	$graph = GD::Graph::bars3d->new ( $arg->{width}, $arg->{height} );
 
     } else {
 	return undef;
@@ -337,7 +338,7 @@ $limitq
     my @arg;			# arg for plotting
 
     if (!$per_t) {		# much better aspect
-	$gtype = 'lines';
+	#$gtype = 'lines';
     } else {
 	push @arg, ("x_number_format" => undef,
 		    "x_min_value" => 0,
