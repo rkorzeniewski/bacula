@@ -1352,6 +1352,7 @@ sub get_form
 		 graph  => 1,
                  gtype  => 1,
                  type   => 1,
+		 recyclepool => 1,
 		 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
@@ -2299,7 +2300,9 @@ SELECT Media.Slot         AS slot,
        Media.MaxVolJobs   AS maxvoljobs,
        Media.MaxVolFiles  AS maxvolfiles,
        Media.VolUseDuration AS voluseduration,
-       Media.VolRetention AS volretention
+       Media.VolRetention AS volretention,
+       Media.Comment      AS comment,
+       Media.RecyclePoolId AS recyclepoolid
 
 FROM Media INNER JOIN Pool ON (Media.PoolId = Pool.PoolId)
            LEFT  JOIN Location ON (Media.LocationId = Location.LocationId)
@@ -2782,6 +2785,7 @@ sub do_update_media
     my $arg = $self->get_form(qw/media volstatus inchanger pool
 			         slot volretention voluseduration 
 			         maxvoljobs maxvolfiles maxvolbytes
+			         qcomment recyclepool
 			      /);
 
     unless ($arg->{media}) {
@@ -2841,17 +2845,26 @@ sub do_update_media
     }, "command.tpl");	
 
 
+    my @q;
+    my $media = $self->dbh_quote($arg->{media});
+
     my $loc = CGI::param('location') || '';
     if ($loc) {
-	my $media = $self->dbh_quote($arg->{media});
 	$loc = $self->dbh_quote($loc); # is checked by db
-	my $query = "
+	push @q, "LocationId=(SELECT LocationId FROM Location WHERE Location=$loc)";
+    }
+    if ($arg->{recyclepool}) {
+	push @q, "RecyclePoolId=(SELECT PoolId FROM Pool WHERE Name='$arg->{recyclepool}')";
+    }
+    push @q, "Comment=$arg->{qcomment}";
+    
+
+    my $query = "
 UPDATE Media 
-   SET LocationId=(SELECT LocationId FROM Location WHERE Location=$loc)
+   SET " . join (',', @q) . "
  WHERE Media.VolumeName = $media
 ";
-	$self->dbh_do($query);
-    }
+    $self->dbh_do($query);
 
     $self->update_media();
 }

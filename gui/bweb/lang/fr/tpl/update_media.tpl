@@ -85,6 +85,20 @@
                name='maxvolbytes' value='<TMPL_VAR maxvolbytes>'>
         </td>
     </tr>
+    <tr><td>Pool de recyclage :</td>
+        <td><select name='recyclepool' class='formulaire'>
+<TMPL_LOOP db_pools>
+             <option value='<TMPL_VAR name>'><TMPL_VAR name></option>
+</TMPL_LOOP>
+           </select>
+        </td>
+    </tr>
+    <tr><td> Commentaire : </td>
+        <td>
+          <input class='formulaire' type='text' title='un commentaire'
+               name='comment' value='<TMPL_VAR comment>'>
+        </td>
+    </tr>
     </table>
 <table>
  <td>
