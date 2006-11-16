@@ -1,5 +1,11 @@
           Release Notes for brestore 1.39.22
 
+Version 1.40:
+ - Add brestore tables to bacula's database for
+   speedup charging
+ - BugFix : perl << operator works only with 32bytes value
+   => using *64 instead
+
 Version 1.39:
  - Add Gen BSR function
  - Add new option "see all version"

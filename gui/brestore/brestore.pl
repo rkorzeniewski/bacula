@@ -21,6 +21,8 @@ my $glade_file = 'brestore.glade' ;
     - libdbd-mysql-perl or libdbd-pg-perl
     - libexpect-perl
 
+  You have to add brestore_xxx tables to your catalog.
+
   To speed up database query you have to create theses indexes
     - CREATE INDEX file_pathid on File(PathId);
     - ...
@@ -52,7 +54,7 @@ my $glade_file = 'brestore.glade' ;
 =cut
 
 use File::Spec;			# portable path manipulations
-use Gtk2 '-init';		# auto-initialize Gtk2
+use Gtk2;		# auto-initialize Gtk2
 use Gtk2::GladeXML;
 use Gtk2::SimpleList;		# easy wrapper for list views
 use Gtk2::Gdk::Keysyms;		# keyboard code constants
@@ -72,7 +74,7 @@ sub on_versions_close_clicked
 
 sub on_selection_button_press_event
 {
-    print "on_selection_button_press_event()\n";
+    print STDERR "on_selection_button_press_event()\n";
 }
 
 sub fileview_data_get
@@ -160,7 +162,7 @@ sub new
     $glade->signal_autoconnect_from_package($self);
     $glade->get_widget('label_warn')->set_text($text);
 
-    print "$text\n";
+    print STDERR "$text\n";
 
     $self->{window} = $glade->get_widget('dlg_warn');
     $self->{window}->show_all();
@@ -667,6 +669,8 @@ sub on_applybutton_clicked
 	$self->{dlgresto}->set_dbh($pref->{dbh});
         $self->{dlgresto}->set_status('Preferences updated');
 	$self->{dlgresto}->init_server_backup_combobox();
+	$self->{dlgresto}->create_brestore_tables();
+	$self->{dlgresto}->set_status($pref->{error});
     } else {
 	$self->{dlgresto}->set_status($pref->{error});
     }
@@ -799,6 +803,47 @@ sub init_drag_drop
     }
 }
 
+sub debug
+{
+    my ($self, $what) = @_;
+
+    if ($debug) {
+	if (ref $what) {
+	    print Data::Dumper::Dumper($what);
+	} elsif (defined $what) {
+	    print "$what\n";
+	}
+    }
+}
+
+sub dbh_prepare
+{
+    my ($self, $query) = @_;
+    $self->debug($query);
+    return $self->{dbh}->prepare($query);    
+}
+
+sub dbh_do
+{
+    my ($self, $query) = @_;
+    $self->debug($query);
+    return $self->{dbh}->do($query);
+}
+
+sub dbh_selectall_arrayref
+{
+    my ($self, $query) = @_;
+    $self->debug($query);
+    return $self->{dbh}->selectall_arrayref($query);
+}
+
+sub dbh_selectrow_arrayref
+{
+    my ($self, $query) = @_;
+    $self->debug($query);
+    return $self->{dbh}->selectrow_arrayref($query);
+}
+
 sub new
 {
     my ($class, $pref) = @_;
@@ -821,6 +866,7 @@ sub new
 	restore_backup_combobox => undef, # date combobox widget
 	list_client => undef,   # Gtk2::ListStore
         list_backup => undef,   # Gtk2::ListStore
+	cache_ppathid => {},    # 
     };
 
     # load menu (to use handler with self reference)
@@ -915,13 +961,18 @@ sub new
     if ($pref->{dbh}) {
 	$self->{dbh} = $pref->{dbh};
 	$self->init_server_backup_combobox();
+	$self->create_brestore_tables();
     }
+
+    $self->set_status($pref->{error});
 }
 
 # set status bar informations
 sub set_status
 {
     my ($self, $string) = @_;
+    return unless ($string);
+
     my $context = $self->{status}->get_context_id('Main');
     $self->{status}->push($context, $string);
 }
@@ -943,14 +994,11 @@ sub get_all_clients
 {
     my $dbh = shift;
     my $query = "SELECT Name FROM Client ORDER BY Name";
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
+
     my $result = $dbh->selectall_arrayref($query);
-    my @return_array;
-    foreach my $refrow (@$result)
-    {
-	push @return_array,($refrow->[0]);
-    }
-    return @return_array;
+
+    return map { $_->[0] } @$result;
 }
 
 sub get_wanted_job_status
@@ -980,7 +1028,7 @@ sub get_all_endtimes_for_job
   AND JobStatus IN ($status)
   AND Job.FileSetId = FileSet.FileSetId
   ORDER BY EndTime desc";
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     my $result = $dbh->selectall_arrayref($query);
 
     return @$result;
@@ -1165,9 +1213,9 @@ sub on_list_client_changed
 						   $self->{pref}->{use_ok_bkp_only})
 			      ];
 
-    $self->ch_dir('');
+    $self->update_brestore_table(@{$self->{CurrentJobIds}});
 
-#     undef $self->{dirtree};
+    $self->ch_dir('');
     $self->refresh_fileview();
     0;
 }
@@ -1221,7 +1269,7 @@ sub refresh_fileview
 	return;
     }
 
-    my @dirs     = $self->list_dirs($cwd,$client_name);
+    my @list_dirs     = $self->list_dirs($cwd,$client_name);
     # [ [listfiles.id, listfiles.Name, File.LStat, File.JobId]..]
     my $files    = $self->list_files($cwd); 
     print "CWD : $cwd\n" if ($debug);
@@ -1230,8 +1278,10 @@ sub refresh_fileview
     my $total_bytes = 0;
     
     # Add directories to view
-    foreach my $dir (@dirs) {
-	my $time = localtime($self->dir_attrib("$cwd/$dir",'st_mtime'));
+    foreach my $dir_entry (@list_dirs) {
+	#my $time = localtime($self->dir_attrib("$cwd/$dir",'st_mtime'));
+	my $time = localtime(lstat_attrib($dir_entry->[1],'st_mtime'));
+	my $dir = $dir_entry->[0];
 	$total_bytes += 4096;
 	$file_count++;
 
@@ -1564,6 +1614,7 @@ sub on_list_backups_changed
 						   $self->current_date,
 						   $self->{pref}->{use_ok_bkp_only})
 			      ];
+    $self->update_brestore_table(@{$self->{CurrentJobIds}});
 
     $self->refresh_fileview();
     0;
@@ -1726,7 +1777,7 @@ sub set_job_ids_for_date
 		AND JobStatus IN ($status)
 		ORDER BY FileSet, JobTDate DESC";
 	
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     my @CurrentJobIds;
     my $result = $dbh->selectall_arrayref($query);
     my %progress;
@@ -1771,54 +1822,102 @@ sub set_job_ids_for_date
 sub list_dirs
 {
     my ($self,$dir,$client)=@_;
-    print "list_dirs($dir, $client)\n";
 
-    # Is data allready cached ?
-    if (not $self->{dirtree}->{$client})
-    {
-	$self->cache_dirs($client);
-    }
+    print "list_dirs(<$dir>, <$client>)\n" if $debug;
 
     if ($dir ne '' and substr $dir,-1 ne '/')
     {
 	$dir .= '/'; # In the db, there is a / at the end of the dirs ...
     }
-    # Here, the tree is cached in ram
-    my @dir = split('/',$dir,-1);
-    pop @dir; # We don't need the empty trailing element
-    
-    # We have to get the reference of the hash containing $dir contents
-    # Get to the root
-    my $refdir=$self->{dirtree}->{$client};
 
-    # Find the leaf
-    foreach my $subdir (@dir)
-    {
-	if ($subdir eq '')
-	{
-		$subdir = '/';
-	}
-	$refdir = $refdir->[0]->{$subdir};
-    }
-    
-    # We reached the directory
+    my $dbh = $self->{dbh};
+    my $query = "SELECT PathId FROM Path WHERE Path = ?
+                 UNION SELECT PathId FROM brestore_missing_path WHERE PATH = ?";
+    my $sth = $dbh->prepare($query);
+    $sth->execute($dir,$dir);
+    my $result = $sth->fetchrow_arrayref();
+    $sth->finish();
+    my $pathid = $result->[0];
+    my @jobids = @{$self->{CurrentJobIds}};
+    my $jobclause = join (',', @jobids);
+    # Let's retrieve the list of the visible dirs in this dir ...
+    # First, I need the empty filenameid to locate efficiently the dirs in the file table
+    $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
+    $sth = $dbh->prepare($query);
+    $sth->execute();
+    $result = $sth->fetchrow_arrayref();
+    $sth->finish();
+    my $dir_filenameid = $result->[0];
+     
+    # Then we get all the dir entries from File ...
+    # It's ugly because there are records in brestore_missing_path ...
+    $query = "
+SELECT Path, JobId, Lstat FROM(
+    (
+    SELECT Path.Path, lower(Path.Path), 
+           listfile.JobId, listfile.Lstat
+    FROM (
+	SELECT DISTINCT brestore_pathhierarchy.PathId
+	FROM brestore_pathhierarchy
+	JOIN Path 
+	    ON (brestore_pathhierarchy.PathId = Path.PathId)
+	JOIN brestore_pathvisibility 
+	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
+	WHERE brestore_pathhierarchy.PPathId = $pathid
+	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
+    JOIN Path ON (listpath.PathId = Path.PathId)
+    LEFT JOIN (
+	SELECT File.PathId, File.JobId, File.Lstat FROM File
+	WHERE File.FilenameId = $dir_filenameid
+	AND File.JobId IN ($jobclause)) AS listfile
+	ON (listpath.PathId = listfile.PathId)
+    UNION
+    SELECT brestore_missing_path.Path, lower(brestore_missing_path.Path), 
+           listfile.JobId, listfile.Lstat
+    FROM (
+	SELECT DISTINCT brestore_pathhierarchy.PathId
+	FROM brestore_pathhierarchy
+	JOIN brestore_missing_path 
+	    ON (brestore_pathhierarchy.PathId = brestore_missing_path.PathId)
+	JOIN brestore_pathvisibility 
+	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
+	WHERE brestore_pathhierarchy.PPathId = $pathid
+	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
+    JOIN brestore_missing_path ON (listpath.PathId = brestore_missing_path.PathId)
+    LEFT JOIN (
+	SELECT File.PathId, File.JobId, File.Lstat FROM File
+	WHERE File.FilenameId = $dir_filenameid
+	AND File.JobId IN ($jobclause)) AS listfile
+	ON (listpath.PathId = listfile.PathId))
+ORDER BY 2,3 DESC ) As a";
+    print STDERR "$query\n" if $debug;
+    $sth=$dbh->prepare($query);
+    $sth->execute();
+    $result = $sth->fetchall_arrayref();
     my @return_list;
-  DIRLOOP:
-    foreach my $dir (sort(keys %{$refdir->[0]}))
+    my $prev_dir='';
+    foreach my $refrow (@{$result})
     {
-	# We return the directory's content : only visible directories
-	foreach my $jobid (reverse(sort(@{$self->{CurrentJobIds}})))
-	{
-	    if (defined $refdir->[0]->{$dir}->[1]->{$jobid})
-	    {
-		my $dirname = $refdir->[0]->{$dir}->[2]; # The real dirname...
-		push @return_list,($dirname);
-		next DIRLOOP; # No need to waste more CPU cycles...
-	    }
-	}
+        my $dir = $refrow->[0];
+        my $jobid = $refrow->[1];
+        my $lstat = $refrow->[2];
+        next if ($dir eq $prev_dir);
+        # We have to clean up this dirname ... we only want it's 'basename'
+        my $return_value;
+        if ($dir ne '/')
+        {
+            my @temp = split ('/',$dir);
+            $return_value = pop @temp;
+        }
+        else
+        {
+            $return_value = '/';
+        }
+        my @return_array = ($return_value,$lstat);
+        push @return_list,(\@return_array);
+        $prev_dir = $dir;
     }
-    print "LIST DIR : ", Data::Dumper::Dumper(\@return_list),"\n";
-    return @return_list;
+    return @return_list;    
 }
 
 
@@ -1831,14 +1930,20 @@ sub list_files
 
     my $empty = [];
 
-    print "list_files($dir)\n";
+    print "list_files($dir)\n" if $debug;
 
     if ($dir ne '' and substr $dir,-1 ne '/')
     {
 	$dir .= '/'; # In the db, there is a / at the end of the dirs ...
     }
 
-    my $query = "SELECT Path.PathId FROM Path WHERE Path.Path = '$dir'";
+    my $query = "SELECT Path.PathId 
+                    FROM Path 
+                    WHERE Path.Path = '$dir'
+                 UNION 
+                 SELECT brestore_missing_path.PathId 
+                    FROM brestore_missing_path 
+                    WHERE brestore_missing_path.Path = '$dir'";
     print $query,"\n" if $debug;
     my @list_pathid=();
     my $result = $dbh->selectall_arrayref($query);
@@ -1874,7 +1979,7 @@ sub list_files
 File
 WHERE File.FileId = listfiles.id";
 	
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     $result = $dbh->selectall_arrayref($query);
 	
     return $result;
@@ -1885,241 +1990,73 @@ sub refresh_screen
     Gtk2->main_iteration while (Gtk2->events_pending);
 }
 
-# For the dirs, because of the db schema, it's inefficient to get the
-# directories contained inside other directories (regexp match or tossing
-# lots of records...). So we load all the tree and cache it.  The data is 
-# stored in a structure of this form :
-# Each directory is an array. 
-# - In this array, the first element is a ref to next dir (hash) 
-# - The second element is a hash containing all jobids pointing
-# on an array containing their lstat (or 1 if this jobid is there because 
-# of dependencies)
-# - The third is the filename itself (it could get mangled because of 
-# the hashing...) 
-
-# So it looks like this :
-# $reftree->[  	{ 'dir1' => $refdir1
-#		  'dir2' => $refdir2
-#		......
-#		},
-#		{ 'jobid1' => 'lstat1',
-#		  'jobid2' => 'lstat2',
-#		  'jobid3' => 1            # This one is here for "visibility"
-#		},
-#		'dirname'
-#	   ]
-
-# Client as a parameter
-# Returns an array of dirs
-sub cache_dirs
+sub create_brestore_tables
 {
-    my ($self, $client) = @_;
-    print "cache_dirs()\n";
+    my ($self) = @_;
 
-    $self->{dirtree}->{$client} = [];	# reset cache
-    my $dbh = $self->{dbh};
+    my $verif = "SELECT 1 FROM brestore_knownjobid LIMIT 1";
 
-    # TODO : If we get here, things could get lenghty ... draw a popup window .
-    my $widget = Gtk2::MessageDialog->new($self->{mainwin}, 
-					  'destroy-with-parent', 
-					  'info', 'none', 
-					  'Populating cache');
-    $widget->show;
-	
-    # We have to build the tree, as it's the first time it is asked...
-    
-    
-    # First, we only need the jobids of the selected server.
-    # It's not the same as @CurrentJobIds (we need ALL the jobs)
-    # We get the JobIds first in order to have the best execution
-    # plan possible for the big query, with an in clause.
-    my $query;
-    my $status = get_wanted_job_status($self->{pref}->{use_ok_bkp_only});
-    $query = 
-"SELECT JobId 
- FROM Job,Client
- WHERE Job.ClientId = Client.ClientId
-   AND Client.Name = '$client'
-   AND Job.JobStatus IN ($status)
-   AND Job.Type = 'B'";
-	
-    print $query,"\n" if $debug;
-    my $result = $dbh->selectall_arrayref($query);
-    refresh_screen();
+    unless ($self->dbh_do($verif)) {
+	new DlgWarn("brestore can't find brestore_xxx tables on your database. I will create them.");
 
-    my @jobids;
-    foreach my $record (@{$result})
-    {
-	push @jobids,($record->[0]);
+	$self->{error} = "Creating internal brestore tables";
+	my $req = "
+    CREATE TABLE brestore_knownjobid
+    (
+     JobId int4 NOT NULL,
+     CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId)
+    )";
+	$self->dbh_do($req);
     }
-    my $inclause = join(',',@jobids);
-    if ($inclause eq '')
-    {
-	$widget->destroy();
-        $self->set_status("No previous backup found for $client");
-	return ();
-    }
-
-# Then, still to help dear mysql, we'll retrieve the PathId from empty Path (directory entries...)
-   my @dirids;
-    $query =
-"SELECT Filename.FilenameId FROM Filename WHERE Filename.Name=''";
-
-    print $query,"\n" if $debug;
-    $result = $dbh->selectall_arrayref($query);
-    refresh_screen();
-
-    foreach my $record (@{$result})
-    {
-    	push @dirids,$record->[0];
-    }
-    my $dirinclause = join(',',@dirids);
-
-   # This query is a bit complicated : 
-   # whe need to find all dir entries that should be displayed, even
-   # if the directory itself has no entry in File table (it means a file
-   # is explicitely chosen in the backup configuration)
-   # Here's what I wanted to do :
-#     $query = 
-# "
-# SELECT T1.Path, T2.Lstat, T2.JobId
-# FROM (    SELECT DISTINCT Path.PathId, Path.Path FROM File, Path
-#     WHERE File.PathId = Path.PathId
-# AND File.JobId IN ($inclause)) AS T1
-# LEFT JOIN 
-#     (    SELECT File.Lstat, File.JobId, File.PathId FROM File
-#         WHERE File.FilenameId IN ($dirinclause)
-#         AND File.JobId IN ($inclause)) AS T2
-# ON (T1.PathId = T2.PathId)
-# ";		
-    # It works perfectly with postgresql, but mysql doesn't seem to be able
-    # to do the hash join correcty, so the performance sucks.
-    # So it will be done in 4 steps :
-    # o create T1 and T2 as temp tables
-    # o create an index on T2.PathId
-    # o do the query
-    # o remove the temp tables
-    $query = "
-CREATE TEMPORARY TABLE T1 AS
-SELECT DISTINCT Path.PathId, Path.Path FROM File, Path
-WHERE File.PathId = Path.PathId
-  AND File.JobId IN ($inclause)
-";
-    print $query,"\n" if $debug;
-    $dbh->do($query);
-    refresh_screen();
-
-    $query = "
-CREATE TEMPORARY TABLE T2 AS
-SELECT File.Lstat, File.JobId, File.PathId FROM File
-WHERE File.FilenameId IN ($dirinclause)
-  AND File.JobId IN ($inclause)
-";
-    print $query,"\n" if $debug;
-    $dbh->do($query);
-    refresh_screen();
-
-    $query = "
-CREATE INDEX tmp2 ON T2(PathId)
-";
-    print $query,"\n" if $debug;
-    $dbh->do($query);
-    refresh_screen();
     
-    $query = "
-SELECT T1.Path, T2.Lstat, T2.JobId
-FROM T1 LEFT JOIN T2
-ON (T1.PathId = T2.PathId)
-";
-    print $query,"\n" if $debug;
-    $result = $dbh->selectall_arrayref($query);
-    refresh_screen();
-    
-    my $rcount=0;
-    foreach my $record (@{$result})
-    {
-	if ($rcount > 15000) {
-	    refresh_screen();
-	    $rcount=0;
-	} else {
-	    $rcount++;
-	}
-    	# Dirty hack to force the string encoding on perl... we don't
-    	# want implicit conversions
-	my $path = pack "U0C*", unpack "C*",$record->[0];
-	
-	my @path = split('/',$path,-1);
-	pop @path; # we don't need the trailing empty element
-	my $lstat = $record->[1];
-	my $jobid = $record->[2];
-	
-	# We're going to store all the data on the cache tree.
-	# We find the leaf, then store data there
-	my $reftree=$self->{dirtree}->{$client};
-	foreach my $dir(@path)
-	{
-	    if ($dir eq '')
-	    {
-	    	$dir = '/';
-	    }
-	    if (not defined($reftree->[0]->{$dir}))
-	    {
-		my @tmparray;
-		$reftree->[0]->{$dir}=\@tmparray;
-	    }
-	    $reftree=$reftree->[0]->{$dir};
-	    $reftree->[2]=$dir;
-	}
-	# We can now add the metadata for this dir ...
-	
-#         $result = $dbh->selectall_arrayref($query);
-	if ($lstat)
-	{
-            # contains something
-            $reftree->[1]->{$jobid}=$lstat;
-	}
-	else
-	{
-            # We have a very special case here...
-            # lstat is not defined.
-            # it means the directory is there because a file has been
-            # backuped. so the dir has no entry in File table.
-            # That's a rare case, so we can afford to determine it's
-            # visibility with a query
-            my $select_path=$record->[0];
-            $select_path=$dbh->quote($select_path); # gotta be careful
-            my $query = "
-SELECT File.JobId
-FROM File, Path
-WHERE File.PathId = Path.PathId
-AND Path.Path = $select_path
-";
-            print $query,"\n" if $debug;
-            my $result2 = $dbh->selectall_arrayref($query);
-            foreach my $record (@{$result2})
-            {
-                my $jobid=$record->[0];
-                $reftree->[1]->{$jobid}=1;
-            }
-	}
-	
+    $verif = "SELECT 1 FROM brestore_pathhierarchy LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+	my $req = "
+   CREATE TABLE brestore_pathhierarchy
+   (
+     PathId int4 NOT NULL,
+     PPathId int4 NOT NULL,
+     CONSTRAINT brestore_pathhierarchy_pkey PRIMARY KEY (PathId)
+   )";
+	$self->dbh_do($req);
+
+
+	$req = "CREATE INDEX brestore_pathhierarchy_ppathid 
+                          ON brestore_pathhierarchy (PPathId)";
+	$self->dbh_do($req);
     }
-    $query = "
-DROP TABLE T1;
-";
-    print $query,"\n" if $debug;
-    $dbh->do($query);
-    $query = "
-DROP TABLE T2;
-";
-    print $query,"\n" if $debug;
-    $dbh->do($query);
+    
+    $verif = "SELECT 1 FROM brestore_pathvisibility LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+	my $req = "
+    CREATE TABLE brestore_pathvisibility
+    (
+      PathId int4 NOT NULL,
+      JobId int4 NOT NULL,
+      CONSTRAINT brestore_pathvisibility_pkey PRIMARY KEY (JobId, PathId)
+    )";
+	$self->dbh_do($req);
 
+	$req = "CREATE INDEX brestore_pathvisibility_jobid
+                          ON brestore_pathvisibility (JobId)";
+	$self->dbh_do($req);
+    }
+    
+    $verif = "SELECT 1 FROM brestore_missing_path LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+    	my $req = "
+    CREATE TABLE brestore_missing_path
+    (
+      PathId int4 NOT NULL,
+      Path text NOT NULL,
+      CONSTRAINT brestore_missing_path_pkey PRIMARY KEY (PathId)
+    )";
+	$self->dbh_do($req);
 
-    list_visible($self->{dirtree}->{$client});
-    $widget->destroy();
-
-#      print Data::Dumper::Dumper($self->{dirtree});
+	$req = "CREATE INDEX brestore_missing_path_path
+                          ON brestore_missing_path (Path)";
+	$self->dbh_do($req);
+    }
 }
 
 # Recursive function to calculate the visibility of each directory in the cache
@@ -2215,7 +2152,7 @@ sub get_fileindex_from_dir_jobid
 		AND File.JobId = '$jobid'
 		";
 		
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     my $result = $dbh->selectall_arrayref($query);
     return $result->[0]->[0];
 }
@@ -2242,7 +2179,7 @@ sub get_fileindex_from_file_jobid
    AND Path.Path = '$dirname'
    AND File.JobId = '$jobid'";
 		
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     my $result = $dbh->selectall_arrayref($query);
     return $result->[0]->[0];
 }
@@ -2278,7 +2215,7 @@ sub get_all_file_versions
    AND Filename.Name = '$file'
    AND Client.Name = '$client'";
 	
-    print $query if $debug;
+    print STDERR $query if $debug;
 	
     my $result = $dbh->selectall_arrayref($query);
 	
@@ -2347,7 +2284,6 @@ sub get_all_file_versions
 sub create_filelist
 {
     	my $self = shift;
-    	my $dbh = $self->{dbh};
 	my %mediainfos;
 	# This query gets all jobid/jobmedia/media combination.
 	my $query = "
@@ -2361,7 +2297,7 @@ WHERE Job.JobId = JobMedia.JobId
   ORDER BY JobMedia.FirstIndex, JobMedia.LastIndex";
 	
 
-	my $result = $dbh->selectall_arrayref($query);
+	my $result = $self->dbh_selectall_arrayref($query);
 
 	# We will store everything hashed by jobid.
 
@@ -2435,13 +2371,13 @@ WHERE Job.JobId = JobMedia.JobId
 	}
 	$query = join("\nUNION ALL\n",@select_queries) . "\nORDER BY FileIndex\n";
 
-	print $query,"\n" if $debug;
+	print STDERR $query,"\n" if $debug;
 	
 	#Now we run the query and parse the result...
 	# there may be a lot of records, so we better be efficient
 	# We use the bind column method, working with references...
 
-	my $sth = $dbh->prepare($query);
+	my $sth = $self->dbh_prepare($query);
 	$sth->execute;
 
 	my ($path,$name,$fileindex,$jobid);
@@ -2743,7 +2679,6 @@ sub estimate_restore_size
     my $self=shift;
     my ($entry)=@_;
     my $query;
-    my $dbh = $self->{dbh};
     if ($entry->[2] eq 'dir')
     {
 	my $dir = unpack('u', $entry->[0]);
@@ -2779,9 +2714,9 @@ sub estimate_restore_size
   AND Filename.FilenameId = File.FilenameId";
     }
 
-    print $query,"\n" if $debug;
+    print STDERR $query,"\n" if $debug;
     my ($path,$nameid,$lstat);
-    my $sth = $dbh->prepare($query);
+    my $sth = $self->dbh_prepare($query);
     $sth->execute;
     $sth->bind_columns(\$path,\$nameid,\$lstat);
     my $old_path='';
@@ -2815,6 +2750,217 @@ sub estimate_restore_size
     return ($total_size,$total_files);
 }
 
+sub update_brestore_table
+{
+    my ($self, @jobs) = @_;
+    my $dbh = $self->{dbh};
+
+    foreach my $job (sort {$a <=> $b} @jobs)
+    {
+	my $query = "SELECT 1 FROM brestore_knownjobid WHERE JobId = $job";
+	my $retour = $self->dbh_selectrow_arrayref($query);
+	next if ($retour and ($retour->[0] == 1)); # We have allready done this one ...
+
+	print STDERR "Inserting path records for JobId $job\n";
+	$query = "INSERT INTO brestore_pathvisibility (PathId, JobId) 
+                   (SELECT DISTINCT PathId, JobId FROM File WHERE JobId = $job)";
+
+	$self->dbh_do($query);
+
+	# Now we have to do the directory recursion stuff to determine missing visibility
+	# We try to avoid recursion, to be as fast as possible
+	# We also only work on not allready hierarchised directories...
+
+	print STDERR "Creating missing recursion paths for $job\n";
+
+	$query = "SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility 
+		  JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId)
+		  LEFT JOIN brestore_pathhierarchy ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId)
+		  WHERE brestore_pathvisibility.JobId = $job
+		  AND brestore_pathhierarchy.PathId IS NULL
+		  ORDER BY Path";
+
+	my $sth = $self->dbh_prepare($query);
+	$sth->execute();
+	my $pathid; my $path;
+	$sth->bind_columns(\$pathid,\$path);
+	
+	while ($sth->fetch)
+	{
+	    $self->build_path_hierarchy($path,$pathid);
+	}
+	$sth->finish();
+
+	# Great. We have calculated all dependancies. We can use them to add the missing pathids ...
+	# This query gives all parent pathids for a given jobid that aren't stored.
+	# It has to be called until no record is updated ...
+	$query = "
+	INSERT INTO brestore_pathvisibility (PathId, JobId) (
+	SELECT a.PathId,$job
+	FROM
+		(SELECT DISTINCT h.PPathId AS PathId
+		FROM brestore_pathhierarchy AS h
+		JOIN  brestore_pathvisibility AS p ON (h.PathId=p.PathId)
+		WHERE p.JobId=$job) AS a
+		LEFT JOIN
+		(SELECT PathId
+		FROM brestore_pathvisibility
+		WHERE JobId=$job) AS b
+		ON (a.PathId = b.PathId)
+	WHERE b.PathId IS NULL)";
+	print STDERR $query,"\n" if ($debug);
+        my $rows_affected;
+	while (($rows_affected = $dbh->do($query)) and ($rows_affected !~ /^0/))
+	{
+	    print STDERR "Recursively adding $rows_affected records from $job\n";
+	}
+	# Job's done
+	$query = "INSERT INTO brestore_knownjobid (JobId) VALUES ($job)";
+	$dbh->do($query);
+    }
+}
+
+sub cleanup_brestore_table
+{
+    my ($self) = @_;
+    my $dbh = $self->{dbh};
+
+    my $query = "SELECT JobId from brestore_knownjobid";
+    my @jobs = @{$dbh->selectall_arrayref($query)};
+
+    foreach my $jobentry (@jobs)
+    {
+	my $job = $jobentry->[0];
+	$query = "SELECT FileId from File WHERE JobId = $job LIMIT 1";
+	my $result = $dbh->selectall_arrayref($query);
+	if (scalar(@{$result}))
+	{
+	    # There are still files for this jobid
+	    print STDERR "$job still exists. Not cleaning...\n";
+
+	} else {
+		$query = "DELETE FROM brestore_pathvisibility WHERE JobId = $job";
+		$dbh->do($query);
+		$query = "DELETE FROM brestore_knownjobid WHERE JobId = $job";
+		$dbh->do($query);
+	}
+    }
+}
+
+sub build_path_hierarchy
+{
+    my ($self, $path,$pathid)=@_;
+    # Does the ppathid exist for this ? we use a memory cache...
+    # In order to avoid the full loop, we consider that if a dir is allready in the
+    # brestore_pathhierarchy table, then there is no need to calculate all the hierarchy
+    while ($path ne '')
+    {
+        #print STDERR "$path\n" if $debug;
+	if (! $self->{cache_ppathid}->{$pathid})
+	{
+	    my $query = "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId = ?";
+	    my $sth2 = $self->{dbh}->prepare_cached($query);
+	    $sth2->execute($pathid);
+	    # Do we have a result ?
+	    if (my $refrow = $sth2->fetchrow_arrayref)
+	    {
+		$self->{cache_ppathid}->{$pathid}=$refrow->[0];
+		$sth2->finish();
+		# This dir was in the db ...
+		# It means we can leave, the tree has allready been built for
+		# this dir
+		return 1;
+	    } else {
+		$sth2->finish();
+		# We have to create the record ...
+		# What's the current p_path ?
+		my $ppath = parent_dir($path);
+		my $ppathid = $self->return_pathid_from_path($ppath);
+		$self->{cache_ppathid}->{$pathid}= $ppathid;
+		
+		$query = "INSERT INTO brestore_pathhierarchy (pathid, ppathid) VALUES (?,?)";
+		$sth2 = $self->{dbh}->prepare_cached($query);
+		$sth2->execute($pathid,$ppathid);
+		$sth2->finish();
+		$path = $ppath;
+		$pathid = $ppathid;
+	    }
+	} else {
+	   # It's allready in the cache.
+	   # We can leave, no time to waste here, all the parent dirs have allready
+	   # been done
+	   return 1;
+	}
+    }
+    return 1;
+}
+
+sub return_pathid_from_path
+{
+    my ($self, $path) = @_;
+    my $query = "SELECT PathId FROM Path WHERE Path = ?
+                 UNION
+                 SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+    #print STDERR $query,"\n" if $debug;
+    my $sth = $self->{dbh}->prepare_cached($query);
+    $sth->execute($path,$path);
+    my $result =$sth->fetchrow_arrayref();
+    $sth->finish();
+    if (defined $result)
+    {
+	return $result->[0];
+
+    } else {
+        # A bit dirty : we insert into path AND missing_path, to be sure
+        # we aren't deleted by a purge. We still need to insert into path to get
+        # the pathid, because of mysql
+        $query = "INSERT INTO Path (Path) VALUES (?)";
+        #print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+        
+	$query = " INSERT INTO brestore_missing_path (PathId,Path)
+	           SELECT PathId,Path FROM Path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+	$query = " DELETE FROM Path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+	$query = "SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$result = $sth->fetchrow_arrayref();
+	$sth->finish();
+	return $result->[0];
+    }
+}
+
+sub parent_dir
+{
+    my ($path) = @_;
+    # Root Unix case :
+    if ($path eq '/')
+    {
+        return '';
+    }
+    # Root Windows case :
+    if ($path =~ /^[a-z]+:\/$/i)
+    {
+	return '';
+    }
+    # Split
+    my @tmp = split('/',$path);
+    # We remove the last ...
+    pop @tmp;
+    my $tmp = join ('/',@tmp) . '/';
+    return $tmp;
+}
 
 # Get metadata
 {
@@ -2898,11 +3044,12 @@ sub estimate_restore_size
     sub lstat_attrib
     {
         my ($lstat,$attrib)=@_;
-        if (defined $attrib_name_id{$attrib}) 
+        if ($lstat and defined $attrib_name_id{$attrib}) 
         {
 	    my @d = split(' ', $lstat) ; # TODO : cache this
 	    return from_base64($d[$attrib_name_id{$attrib}]);
 	}
+	return 0;
     }
 }
 
@@ -2966,17 +3113,68 @@ sub estimate_restore_size
 	return @attribs;
     }
 }
+
+
 1;
 
 ################################################################
 
+package Batch;
+use base qw/DlgResto/;
+
+sub new
+{
+    my ($class, $conf) = @_;
+    my $self = bless {info => $conf}, $class;
+
+    $self->{dbh} = $conf->{dbh};
+
+    return $self;
+}
+
+sub update_cache
+{
+    my ($self) = @_;
+
+    my $query = "SELECT JobId from Job WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) order by JobId";
+    my $jobs = $self->dbh_selectall_arrayref($query);
+
+    $self->update_brestore_table(map { $_->[0] } @$jobs);
+}
+
+1;
+
 package main;
 
-my $conf = "$ENV{HOME}/.brestore.conf" ;
-my $p = new Pref($conf);
+use Getopt::Long ;
 
-if (! -f $conf) {
+sub HELP_MESSAGE
+{
+    print STDERR "Usage: $0 [--conf=brestore.conf] [--batch] [--debug]\n";
+    exit 1;
+}
+
+my $file_conf = "$ENV{HOME}/.brestore.conf" ;
+my $batch_mod;
+
+GetOptions("conf=s"   => \$file_conf,
+	   "batch"    => \$batch_mod,
+	   "debug"    => \$debug,
+	   "help"     => \&HELP_MESSAGE) ;
+
+my $p = new Pref($file_conf);
+
+if (! -f $file_conf) {
     $p->write_config();
+}
+
+if ($batch_mod) {
+    my $b = new Batch($p);
+    if ($p->connect_db()) {
+	$b->set_dbh($p->{dbh});
+	$b->update_cache();
+    }
+    exit (0);
 }
 
 $glade_file = $p->{glade_file};
@@ -2988,13 +3186,15 @@ foreach my $path ('','.','/usr/share/brestore','/usr/local/share/brestore') {
     }
 }
 
+Gtk2->init();
+
 if ( -f $glade_file) {
     my $w = new DlgResto($p);
 
 } else {
     my $widget = Gtk2::MessageDialog->new(undef, 'modal', 'error', 'close', 
 "Can't find your brestore.glade (glade_file => '$glade_file')
-Please, edit your $conf to setup it." );
+Please, edit your $file_conf to setup it." );
  
     $widget->signal_connect('destroy', sub { Gtk2->main_quit() ; });
     $widget->run;
