@@ -1,6 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+16Nov06
+ebl  Enable RecycleCount.
+ebl  Fix "echo python | bconsole" segfault
 14Nov06
 kes  Implement code to pass the MediaId to the SD. The SD then uses
      this MediaId when creating JobMedia records. This fixes a bug
