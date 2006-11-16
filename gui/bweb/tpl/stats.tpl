@@ -3,7 +3,7 @@
 </div>
 <div class='bodydiv'>
 <a href='?action=job;age=172800;jobtype=B'>
-<img src='bgraph.pl?age=2678400;width=600;height=250;graph=job_sum_day;limit=500;action=graph;legend=off' alt='Nothing to display'>
+<img src='bgraph.pl?age=2678400;width=450;height=200;graph=job_sum_day;limit=500;action=graph;legend=off' alt='Nothing to display'>
 </a>
 </div>
 

@@ -1352,7 +1352,7 @@ sub get_form
 		 graph  => 1,
                  gtype  => 1,
                  type   => 1,
-		 recyclepool => 1,
+		 poolrecycle => 1,
 		 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
@@ -2291,7 +2291,7 @@ sub update_media
 
     my $query = "
 SELECT Media.Slot         AS slot,
-       Pool.Name          AS poolname,
+       PoolMedia.Name     AS poolname,
        Media.VolStatus    AS volstatus,
        Media.InChanger    AS inchanger,
        Location.Location  AS location,
@@ -2302,9 +2302,10 @@ SELECT Media.Slot         AS slot,
        Media.VolUseDuration AS voluseduration,
        Media.VolRetention AS volretention,
        Media.Comment      AS comment,
-       Media.RecyclePoolId AS recyclepoolid
+       PoolRecycle.Name   AS poolrecycle
 
-FROM Media INNER JOIN Pool ON (Media.PoolId = Pool.PoolId)
+FROM Media INNER JOIN Pool AS PoolMedia ON (Media.PoolId = PoolMedia.PoolId)
+           LEFT  JOIN Pool AS PoolRecycle ON (Media.RecyclePoolId = PoolRecycle.PoolId)
            LEFT  JOIN Location ON (Media.LocationId = Location.LocationId)
 
 WHERE Media.VolumeName = $media->{qmedia}
@@ -2785,7 +2786,7 @@ sub do_update_media
     my $arg = $self->get_form(qw/media volstatus inchanger pool
 			         slot volretention voluseduration 
 			         maxvoljobs maxvolfiles maxvolbytes
-			         qcomment recyclepool
+			         qcomment poolrecycle
 			      /);
 
     unless ($arg->{media}) {
@@ -2853,8 +2854,8 @@ sub do_update_media
 	$loc = $self->dbh_quote($loc); # is checked by db
 	push @q, "LocationId=(SELECT LocationId FROM Location WHERE Location=$loc)";
     }
-    if ($arg->{recyclepool}) {
-	push @q, "RecyclePoolId=(SELECT PoolId FROM Pool WHERE Name='$arg->{recyclepool}')";
+    if ($arg->{poolrecycle}) {
+	push @q, "RecyclePoolId=(SELECT PoolId FROM Pool WHERE Name='$arg->{poolrecycle}')";
     }
     if (!$arg->{qcomment}) {
 	$arg->{qcomment} = "''";

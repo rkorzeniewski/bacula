@@ -86,7 +86,7 @@
         </td>
     </tr>
     <tr><td>Pool de recyclage :</td>
-        <td><select name='recyclepool' class='formulaire'>
+        <td><select name='poolrecycle' class='formulaire'>
 <TMPL_LOOP db_pools>
              <option value='<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
@@ -131,7 +131,13 @@ for (var i=0; ok && i < document.form1.pool.length; ++i) {
       ok=0;
    }
 }
-
+ok=1;
+for (var i=0; ok && i < document.form1.poolrecycle.length; ++i) {
+   if (document.form1.poolrecycle[i].value == '<TMPL_VAR poolrecycle>') {
+      document.form1.poolrecycle[i].selected = true;
+      ok=0;
+   }
+}
 ok=1;
 for (var i=0; ok && i < document.form1.location.length; ++i) {
    if (document.form1.location[i].value == '<TMPL_VAR location>') {
