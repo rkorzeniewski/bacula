@@ -1,7 +1,7 @@
 <table>
 <td valign='top'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Media : <TMPL_VAR volumename></h1>
+  <h1 class='newstitle'> Media : <TMPL_VAR volumename> <TMPL_VAR comment></h1>
  </div>
  <div class='bodydiv'>
     <b> Media Infos</b><br/>
@@ -79,11 +79,12 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Vol Mounts", "Read time", "Write time", "Errors");
+var header = new Array( "Vol Mounts", "Recycle count", "Read time", "Write time", "Errors");
 
 var data = new Array();
 data.push( new Array(
 "<TMPL_VAR nb_mounts>",
+"<TMPL_VAR recyclecount>",
 human_sec(<TMPL_VAR volreadtime>),
 human_sec(<TMPL_VAR volwritetime>),
 "<TMPL_VAR nb_errors>"
