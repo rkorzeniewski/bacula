@@ -2055,6 +2055,8 @@ SELECT InChanger     AS online,
        Media.LastWritten  AS lastwritten,
        Media.VolReadTime/1000000  AS volreadtime,
        Media.VolWriteTime/1000000 AS volwritetime,
+       Media.RecycleCount AS recyclecount,
+       Media.Comment      AS comment,
        $self->{sql}->{FROM_UNIXTIME}(
           $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
         + $self->{sql}->{TO_SEC}(Media.VolRetention)
