@@ -67,15 +67,7 @@ if ($action eq 'begin') {		# main display
     $bweb->display_general(age => $arg->{age});
     $bweb->display_running_jobs(0);
     print "</td><td valign='top'>";
-    print "
-<div class='titlediv'>
-  <h1 class='newstitle'> Statistics </h1>
-</div>
-<div class='bodydiv'>
-<a href='?action=job;age=172800;jobtype=B'>
-<img src='bgraph.pl?age=2678400;width=600;height=250;graph=job_sum_day;limit=300;action=graph;legend=off' alt='Nothing to display'>
-</a>
-</div>";
+    $bweb->display({}, "stats.tpl");
     print "</td></tr></table></div>";
     $bweb->display_job(limit => 10); 
 
