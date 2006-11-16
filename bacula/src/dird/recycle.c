@@ -116,6 +116,7 @@ int recycle_volume(JCR *jcr, MEDIA_DBR *mr)
    mr->VolJobs = mr->VolFiles = mr->VolBlocks = mr->VolErrors = 0;
    mr->VolBytes = 1;
    mr->FirstWritten = mr->LastWritten = 0;
+   mr->RecycleCount++;
    mr->set_first_written = true;
    return db_update_media_record(jcr, jcr->db, mr);
 }
