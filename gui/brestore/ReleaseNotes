@@ -1,6 +1,7 @@
           Release Notes for brestore 1.39.28
 
 Version 1.40:
+ - Add french translation use brestore-fr.glade instead of brestore.glade
  - Add brestore tables to bacula's database for
    speedup charging
  - BugFix : perl << operator works only with 32bytes value
