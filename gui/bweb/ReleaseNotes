@@ -1,4 +1,8 @@
-          Release Notes for bweb 1.39.26
+          Release Notes for bweb 1.39.28
+
+2006/11/18
+ - Add cgi/bconsole.pl and BwebConsole package to keep bconsole installation and
+   scp usage on admin workstation.
 
 2006/11/16
  - Add Comment and RecyclePool to Media Update
