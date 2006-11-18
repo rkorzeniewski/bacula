@@ -1338,6 +1338,10 @@ sub get_form
 		 maxvolfiles => 0,
 		 );
 
+    my %opt_ss =(		# string with space
+		 job     => 1,
+		 storage => 1,
+		 );
     my %opt_s = (		# default to ''
 		 ach    => 1,
 		 status => 1,
@@ -1353,12 +1357,14 @@ sub get_form
                  gtype  => 1,
                  type   => 1,
 		 poolrecycle => 1,
+		 replace => 1,
 		 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
 		 mtxcmd => 1,
 		 precmd => 1,
 		 device => 1,
+		 where  => 1,
 		 );
 
     my %opt_d = (		# option with date
@@ -1377,7 +1383,11 @@ sub get_form
 	    if ($value =~ /^([\w\d\.-]+)$/) {
 		$ret{$i} = $1;
 	    }
-
+	} elsif ($opt_ss{$i}) {	# simple string param (with space)
+	    my $value = CGI::param($i) || '';
+	    if ($value =~ /^([\w\d\.\-\s]+)$/) {
+		$ret{$i} = $1;
+	    }
 	} elsif ($i =~ /^j(\w+)s$/) { # quote join args
 	    my @value = CGI::param($1) ;
 	    if (@value) {
