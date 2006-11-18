@@ -31,6 +31,7 @@ tests/verify-vol-test
 tests/weird-files2-test
 tests/weird-files-test
 tests/migration-job-test
+tests/migration-jobspan-test
 tests/migration-volume-test
 tests/migration-time-test
 tests/hardlink-test

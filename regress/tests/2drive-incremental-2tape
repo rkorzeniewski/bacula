@@ -13,7 +13,7 @@ fi
 TestName="2drive-incremental-2tape"
 JobName="2drive2tape"
 . scripts/functions
-set_debug 1
+set_debug 0
 
 cwd=`pwd`
 
