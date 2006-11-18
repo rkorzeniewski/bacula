@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "1.39.29"
-#define BDATE   "14 November 2006"
-#define LSMDATE "14Nov06"
+#define BDATE   "18 November 2006"
+#define LSMDATE "18Nov06"
 #define BYEAR "2006"       /* year for copyright messages in progs */
 
 /* Debug flags */
@@ -28,6 +28,13 @@
 /* #define TRACE_RES 1 */
 /* #define DEBUG_MEMSET 1 */
 /* #define DEBUG_MUTEX 1 */
+/*
+ * Set SMALLOC_SANITY_CHECK to zero to turn off, otherwise
+ *  it is the maximum memory malloced before Bacula will
+ *  abort.  Except for debug situations, this should be zero
+ */
+#define SMALLOC_SANITY_CHECK 0  /* 500000000  0.5 GB max */
+
 
 /* Check if header of tape block is zero before writing */
 /* #define DEBUG_BLOCK_ZEROING 1 */

@@ -1,6 +1,15 @@
               Technical notes on version 1.39  
 
 General:
+18Nov06
+kes  Add a SMALLOC_SANITY_CHECK for Arno, which aborts Bacula
+     if memory usage gets too big.
+kes  Tweak migration to ensure that read/write devices are different.
+17Nov06
+kes  Create an AUTHORS file to list Bacula contributors.
+kes  Add Richard Stallman's four GPL freedoms to LICENSE 
+kes  Require the conf file to have a valid NextPool for writing the
+     migration output.
 16Nov06
 ebl  Enable RecycleCount in catalog.
 ebl  Fix "echo python | bconsole" segfault

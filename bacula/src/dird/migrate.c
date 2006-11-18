@@ -77,10 +77,10 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-   /* If pool storage specified, use it instead of job storage */
+  /* If pool storage specified, use it instead of job storage */
    copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
-   if (!jcr->wstorage) {
+   if (jcr->wstorage->size() == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
       return false;
    }
@@ -205,10 +205,20 @@ bool do_migration(JCR *jcr)
       mig_jcr->pool = jcr->pool = pool->NextPool;
       mig_jcr->jr.PoolId = jcr->jr.PoolId;
       pm_strcpy(jcr->pool_source, _("NextPool in Pool resource"));
+   } else {
+      Jmsg(jcr, M_FATAL, 0, _("No Next Pool specification found in Pool \"%s\".\n"),
+         pool->hdr.name);
+      return false;
+   }
+
+   if (!jcr->pool->storage) {
+      Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Next Pool \"%s\".\n"),
+         jcr->pool->hdr.name);
+      return false;
    }
 
    /* If pool storage specified, use it instead of job storage for backup */
-   copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
+   copy_wstorage(jcr, jcr->pool->storage, _("Next pool resource"));
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
@@ -257,6 +267,10 @@ bool do_migration(JCR *jcr)
    Dmsg2(dbglevel, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
+   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
+      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
+           ((STORE *)jcr->rstorage->first())->name());
+   }
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
    }
