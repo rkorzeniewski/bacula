@@ -65,8 +65,7 @@ sub run
 	return 0;
     }
 
-    print "=> $cmd yes\n";
-
+    print STDERR "===> $cmd yes\n";
     $self->{bconsole}->clear_accum();
     $self->send("$cmd yes\n");
     $self->expect_it('-re',qr/^[*]/);
@@ -76,6 +75,12 @@ sub run
     } else {
 	return 0;
     }
+}
+
+# for brestore.pl::BwebConsole
+sub prepare
+{
+    # do nothing
 }
 
 sub send
@@ -361,7 +366,7 @@ sub prune_volume
     my $sel = $self->_get_volume(@volume);
     my $ret;
     if ($sel) {
-	$ret = $self->send_cmd_yes("prune $sel");
+	$ret = $self->send_cmd("prune $sel yes");
     } else {
 	$ret = $self->{error};
     }
