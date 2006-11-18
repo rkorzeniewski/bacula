@@ -43,10 +43,12 @@ mkdir -p /usr/share/brestore
 install -m 644 -o root -g root brestore.glade /usr/share/brestore
 install -m 755 -o root -g root brestore.pl    /usr/bin
 
+# if you doesn't use bweb and bconsole.pl
 # you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+
 install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
-# to copy bsr file directly to your director, use must use scp (or nfs stuff)
+# copy bsr file directly to your director, use must use scp (or nfs stuff)
 # if you doesn't want to use this, you can dump the bsr file with "Gen BSR" button.
 # so you must have an ssh-key exchange. (you can also hack brestore.pl to use 
 # something like '$err = `xterm -e scp $src $1 2>&1`'
@@ -54,6 +56,11 @@ install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 your_login@yourws:~$ ssh-copy-id -i .ssh/your_pub_key login@bacula-dir
 
 # you have to configure brestore preferences.
+
+################ WINDOWS INSTALL ###############################
+
+Brestore works on win32 with ActivePerl. To get all libraries, you
+can install GCSTAR. You have also to copy libglade-2.0.dll
 
 ################ INSTALL MODULES ###############################
 
@@ -64,6 +71,7 @@ apt-get install libgtk2-gladexml-perl
 apt-get install libdbd-mysql-perl
 apt-get install libdbd-pg-perl
 apt-get install libexpect-perl
+apt-get install libwww-perl
 
 The Red Hat way
 Please contribute, neither of us have a Red Hat to test on :)
@@ -75,6 +83,7 @@ perl -MCPAN -e shell
 install Gtk2
 install Expect
 install Gtk2::GladeXML
+install LWP
 
 install DBD::mysql
 or
@@ -82,7 +91,7 @@ install DBD::Pg
 
 ################ BCONSOLE WITHOUT CONIO ########################
 
-You must use bconsole without conio support. For that, use
+If you doesn't use Bweb, you must use bconsole without conio support. For that, use
 bconsole -n option.
 
 WARNING : You must be able to execute bconsole and able to read bconsole.conf !
