@@ -78,6 +78,20 @@ as well as at www.bacula.org. You may also obtain a copy of the
 GPL (or LGPL) by writing to: Free Software Foundation, Inc., 
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 
+The Four Freedoms Guaranteed by the GPL:
+Freedom zero is the freedom to run the program as you wish for any purpose. 
+
+Freedom one is the freedom to study the source code and change it
+to do what you wish.
+
+Freedom two is the freedom to help your neighbour, that's the
+freedom to make copies and distribute them to others when you
+wish.
+
+Freedom three is the freedom to help your community, that's the
+freedom to publish or distribute modified versions when you wish.
+
+Other Licenses:
 Certain parts of the Bacula software are licensed by their
 copyright holder(s) under the GPL with no modifications.  These
 software files are clearly marked as such.

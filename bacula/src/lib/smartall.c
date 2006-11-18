@@ -132,6 +132,11 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
       Emsg0(M_ABORT, 0, _("Out of memory\n"));
    }
    Dmsg4(1150, "smalloc %d at %x from %s:%d\n", nbytes, buf, fname, lineno);
+#if    SMALLOC_SANITY_CHECK > 0
+   if (sm_bytes > SMALLOC_SANITY_CHECK) {
+      Emsg0(M_ABORT, 0, _("Too much memory used."));
+   }
+#endif
    return (void *)buf;
 }
 
