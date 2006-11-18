@@ -1,7 +1,10 @@
           Release Notes for brestore 1.39.28
 
 Version 1.40:
- - Add french translation use brestore-fr.glade instead of brestore.glade
+ - Add BwebConsole package to keep bconsole installation and
+   scp usage on admin workstation. It permit to use brestore on
+   win32 system.
+ - Add brestore.pl -b option to batch cache creation
  - Add brestore tables to bacula's database for
    speedup charging
  - BugFix : perl << operator works only with 32bytes value
@@ -11,5 +14,4 @@ Version 1.39:
  - Add Gen BSR function
  - Add new option "see all version"
  - Add Estimate function
- - BugFix : perl << operator works only with 32bytes value
-   => using *64 instead
+
