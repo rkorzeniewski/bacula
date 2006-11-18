@@ -1,3 +1,5 @@
+bacula-dir-migration.conf
+bacula-sd-migration.conf
 crypto-bacula-fd.conf
 new-test-bacula-dir.conf
 bacula-dir.conf
