@@ -132,7 +132,7 @@ of perl modules required by bacula-gui-bweb and bacula-gui-brestore utilities.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 
-Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-Expect
+Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-Expect, perl-libwww-perl
 Requires: perl-Gtk2-GladeXML, bacula-gui-libbweb = %{version}
 
 %description brestore
