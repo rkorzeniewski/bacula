@@ -1,6 +1,7 @@
           Release Notes for brestore 1.39.28
 
 Version 1.40:
+ - Add debian package
  - Add BwebConsole package to keep bconsole installation and
    scp usage on admin workstation. It permit to use brestore on
    win32 system.

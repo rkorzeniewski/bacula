@@ -1,6 +1,7 @@
           Release Notes for bweb 1.39.28
 
 2006/11/18
+ - Add debian package
  - Add cgi/bconsole.pl and BwebConsole package to keep bconsole installation and
    scp usage on admin workstation.
 
