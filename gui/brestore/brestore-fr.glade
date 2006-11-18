@@ -473,7 +473,7 @@ This year</property>
 
 	      <child>
 		<widget class="GtkEntry" id="entry_location">
-		  <property name="width_request">380</property>
+		  <property name="width_request">250</property>
 		  <property name="visible">True</property>
 		  <property name="can_focus">True</property>
 		  <property name="editable">True</property>
@@ -1875,7 +1875,9 @@ Ou, si le director est sur une autre machine :
 &lt;b&gt; scp://bacula@hostdir:/path/to/bsr &lt;/b&gt;
 
 Ou si le director fonctionne avec le connecteur http bweb
-&lt;b&gt; http://bacula:mdp@hostdir/cgi-bin/bweb/bput.pl&lt;/b&gt;</property>
+&lt;b&gt; file://var/tmp&lt;/b&gt;
+Et vous devez positionner bconsole sur
+&lt;b&gt; http://user:pass@director/cgi-bin/bweb/bconsole.pl&lt;/b&gt;</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">True</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -1980,11 +1982,14 @@ Ou si le director fonctionne avec le connecteur http bweb
 			  <child>
 			    <widget class="GtkEntry" id="entry_bconsole">
 			      <property name="visible">True</property>
+			      <property name="tooltip" translatable="yes">/path/to/bconsole -n -c /path/to/bconsole.conf
+or
+http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
 			      <property name="max_length">0</property>
-			      <property name="text" translatable="yes">/usr/local/bacula/etc/bconsole</property>
+			      <property name="text" translatable="yes">/usr/local/bacula/sbin/bconsole -n -c /usr/local/bacula/etc/bconsole.conf</property>
 			      <property name="has_frame">True</property>
 			      <property name="invisible_char">*</property>
 			      <property name="activates_default">False</property>
@@ -2183,7 +2188,7 @@ Ou si le director fonctionne avec le connecteur http bweb
 			  <child>
 			    <widget class="GtkEntry" id="entry_bweb">
 			      <property name="visible">True</property>
-			      <property name="tooltip" translatable="yes">http://bacula-dir/cgi-bin/bweb/bweb.pl</property>
+			      <property name="tooltip" translatable="yes">http://bacula-dir/cgi-bin/bweb/bweb.pl (ou laisser vide)</property>
 			      <property name="can_focus">True</property>
 			      <property name="editable">True</property>
 			      <property name="visibility">True</property>
