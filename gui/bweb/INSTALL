@@ -45,6 +45,10 @@ Bweb works well with 1.39 release.
  WARNING : Your www-data user must be able to execute bconsole and able to read bconsole.conf !
            You can create an bconsole group for that.
 
+################ USE FRENCH VERSION ############################
+
+Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
+
 ################ INSTALL PERL LIBRARY ##########################
 
  - perl modules
