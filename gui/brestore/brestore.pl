@@ -53,7 +53,6 @@ my $glade_file = 'brestore.glade' ;
 
 =cut
 
-use File::Spec;			# portable path manipulations
 use Gtk2;		# auto-initialize Gtk2
 use Gtk2::GladeXML;
 use Gtk2::SimpleList;		# easy wrapper for list views
@@ -177,15 +176,140 @@ sub on_close_clicked
 1;
 
 ################################################################
+package BwebConsole;
+use LWP::UserAgent;
+use HTTP::Request::Common;
+
+sub new
+{
+    my ($class, %arg) = @_;
+
+    my $self = bless {
+	pref => $arg{pref},	# Pref object
+	timeout => $arg{timeout} || 20,
+	debug   => $arg{debug} || 0,
+	'list_job'     => '',
+	'list_client'  => '',
+	'list_fileset' => '',
+	'list_storage' => '',
+	'run'          => '',
+    };
+
+    return $self;
+}
+
+sub prepare
+{
+    my ($self, @what) = @_;
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Brestore ");
+    my $req = POST($self->{pref}->{bconsole},
+		   Content_Type => 'form-data',
+		   Content => [ map { (action => $_) } @what ]);
+    #$req->authorization_basic('eric', 'test');
+
+    my $res = $ua->request($req);
+
+    if ($res->is_success) {
+	foreach my $l (split(/\n/, $res->content)) {
+	    my ($k, $c) = split(/=/,$l,2);
+	    $self->{$k} = $c;
+	}
+    } else {
+	$self->{error} = "Can't connect to bweb : " . $res->status_line;
+	new DlgWarn($self->{error});
+    }
+}
+
+sub run
+{
+    my ($self, %arg) = @_;
+
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Brestore ");
+    my $req = POST($self->{pref}->{bconsole},
+		   Content_Type => 'form-data',
+		   Content => [ job     => $arg{job},
+				client  => $arg{client},
+				storage => $arg{storage} || '',
+				fileset => $arg{fileset} || '',
+				where   => $arg{where},
+				replace => $arg{replace},
+				priority=> $arg{prio}    || '',
+				action  => 'run',
+				timeout => 10,
+				bootstrap => [$arg{bootstrap}],
+				]);
+    #$req->authorization_basic('eric', 'test');
+
+    my $res = $ua->request($req);
+
+    if ($res->is_success) {
+	foreach my $l (split(/\n/, $res->content)) {
+	    my ($k, $c) = split(/=/,$l,2);
+	    $self->{$k} = $c;
+	}
+    } 
+
+    if ($self->{run}) {
+	unlink($arg{bootstrap});
+	new DlgWarn("Can't connect to bweb : " . $res->status_line);
+    } 
+
+    return $self->{run};
+}
+
+sub list_job
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_job'});
+}
+
+sub list_fileset
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_fileset'});
+}
+
+sub list_storage
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_storage'});
+}
+sub list_client
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_client'});
+}
+
+1;
+
+################################################################
 
 package DlgLaunch;
 
-use Bconsole;
+#use Bconsole;
 
 # %arg = (bsr_file => '/path/to/bsr',       # on director
 #         volumes  => [ '00001', '00004']
 #         pref     => ref Pref
 #         );
+
+sub get_bconsole
+{
+    my ($pref) = (@_);
+
+    if ($pref->{bconsole} =~ /^http/) {
+	return new BwebConsole(pref => $pref);
+    } else {
+	if (eval { require Bconsole; }) {
+	    return new Bconsole(pref => $pref);
+	} else {
+	    new DlgWarn("Can't use bconsole, verify your setup");
+	    return undef;
+	}
+    }
+}
 
 sub new
 {
@@ -197,6 +321,11 @@ sub new
 	glade => undef,		# GladeXML ref
 	bconsole => undef,	# Bconsole ref
     };
+
+    my $console = $self->{bconsole} = get_bconsole($arg{pref});
+    unless ($console) {
+	return undef;
+    }
 
     # we load launch widget of $glade_file
     my $glade = $self->{glade} = Gtk2::GladeXML->new($glade_file, 
@@ -225,8 +354,8 @@ sub new
 
     # fill volume view
     push @{ $volview->{data} }, @{$infos} ;
-
-    my $console = $self->{bconsole} = new Bconsole(pref => $arg{pref});
+    
+    $console->prepare(qw/list_client list_job list_fileset list_storage/);
 
     # fill client combobox (with director defined clients
     my @clients = $console->list_client() ; # get from bconsole
@@ -589,15 +718,18 @@ sub go_bweb
 	return -1;
     }
 
-    system("$self->{mozilla} -remote 'Ping()'");
-    if ($? != 0) {
-	new DlgWarn("Warning, you must have a running $self->{mozilla} to $msg");
-	return 0;
-    }
+    if ($^O eq 'MSWin32') {
+	system("start $self->{mozilla} \"$self->{bweb}$url\"");
 
-    my $cmd = "$self->{mozilla} -remote 'OpenURL($self->{bweb}$url,new-tab)'" ;
-    print "$cmd\n";
-    system($cmd);
+    } elsif (!fork()) {
+	system("$self->{mozilla} -remote 'Ping()'");
+	my $cmd = "$self->{mozilla} '$self->{bweb}$url'";
+	if ($? == 0) {
+	    $cmd = "$self->{mozilla} -remote 'OpenURL($self->{bweb}$url,new-tab)'" ;
+	}
+	exec($cmd);
+	exit 1;
+    } 
     return ($? == 0);
 }
 
@@ -1422,9 +1554,9 @@ sub up_dir
     {
     	$self->ch_dir('');
     }
-    my @dirs = File::Spec->splitdir ($self->{cwd});
+    my @dirs = split(/\//, $self->{cwd});
     pop @dirs;
-    $self->ch_dir(File::Spec->catdir(@dirs));
+    $self->ch_dir(join('/', @dirs));
 }
 
 # Change the current working directory
@@ -2164,9 +2296,9 @@ sub get_fileindex_from_file_jobid
 {
     my ($dbh, $filename, $jobid)=@_;
     
-    my @dirs = File::Spec->splitdir ($filename);
+    my @dirs = split(/\//, $filename);
     $filename=pop(@dirs);
-    my $dirname = File::Spec->catdir(@dirs) . '/';
+    my $dirname = join('/', @dirs) . '/';
     
     
     my $query;
@@ -3184,6 +3316,13 @@ foreach my $path ('','.','/usr/share/brestore','/usr/local/share/brestore') {
 	$glade_file = "$path/$glade_file" ;
 	last;
     }
+}
+
+# gtk have lots of warning on stderr
+if ($^O eq 'MSWin32')
+{
+    close(STDERR);
+    open(STDERR, ">stderr.log");
 }
 
 Gtk2->init();
