@@ -38,7 +38,7 @@
 #include <regex.h>
 #endif
 
-static const int dbglevel = 100;
+static const int dbglevel = 10;
 
 static char OKbootstrap[] = "3000 OK bootstrap\n";
 static bool get_job_to_migrate(JCR *jcr);
@@ -61,12 +61,15 @@ bool do_migration_init(JCR *jcr)
    if (!get_job_to_migrate(jcr)) {
       return false;
    }
+   Dmsg1(dbglevel, "Back from get_job_to_migrate JobId=%d\n", (int)jcr->JobId);
 
    if (jcr->previous_jr.JobId == 0) {
+      Dmsg1(dbglevel, "JobId=%d no previous JobId\n", (int)jcr->JobId);
       return true;                    /* no work */
    }
 
    if (!get_or_create_fileset_record(jcr)) {
+      Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
       return false;
    }
 
@@ -74,6 +77,7 @@ bool do_migration_init(JCR *jcr)
 
    jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->hdr.name);
    if (jcr->jr.PoolId == 0) {
+      Dmsg1(dbglevel, "JobId=%d no PoolId\n", (int)jcr->JobId);
       return false;
    }
 
@@ -122,16 +126,19 @@ bool do_migration(JCR *jcr)
     */
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
+      Dmsg1(dbglevel, "JobId=%d expected files == 0\n", (int)jcr->JobId);
       migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
 
-   Dmsg4(dbglevel, "Previous: Name=%s JobId=%d Type=%c Level=%c\n",
-      jcr->previous_jr.Name, jcr->previous_jr.JobId, 
+   Dmsg5(dbglevel, "JobId=%d: Previous: Name=%s JobId=%d Type=%c Level=%c\n",
+      (int)jcr->JobId,
+      jcr->previous_jr.Name, (int)jcr->previous_jr.JobId, 
       jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
-   Dmsg4(dbglevel, "Current: Name=%s JobId=%d Type=%c Level=%c\n",
-      jcr->jr.Name, jcr->jr.JobId, 
+   Dmsg5(dbglevel, "JobId=%d: Current: Name=%s JobId=%d Type=%c Level=%c\n",
+      (int)jcr->JobId,
+      jcr->jr.Name, (int)jcr->jr.JobId, 
       jcr->jr.JobType, jcr->jr.JobLevel);
 
    LockRes();
@@ -163,7 +170,7 @@ bool do_migration(JCR *jcr)
    mig_jcr->jr.JobId = mig_jcr->JobId;
 
    Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      mig_jcr->jr.Name, mig_jcr->jr.JobId, 
+      mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
       mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
    /*
@@ -226,7 +233,7 @@ bool do_migration(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_Running);
    set_jcr_job_status(mig_jcr, JS_Running);
-   Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", jcr->jr.JobId, jcr->jr.JobLevel);
+   Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", (int)jcr->jr.JobId, jcr->jr.JobLevel);
 
    /* Update job start record for this migration control job */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
@@ -235,7 +242,7 @@ bool do_migration(JCR *jcr)
    }
 
    Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      mig_jcr->jr.Name, mig_jcr->jr.JobId, 
+      mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
       mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
 
    /* Update job start record for the real migration backup job */
@@ -318,20 +325,49 @@ struct idpkt {
    uint32_t count;
 };
 
-/*
- * Callback handler make list of DB Ids
- */
-static int dbid_handler(void *ctx, int num_fields, char **row)
+/* Add an item to the list if it is unique */
+static void add_unique_id(idpkt *ids, char *item) 
 {
-   idpkt *ids = (idpkt *)ctx;
+   char id[30];
+   char *q = ids->list;
 
+   /* Walk through current list to see if each item is the same as item */
+   for ( ; *q; ) {
+       id[0] = 0;
+       for (int i=0; i<(int)sizeof(id); i++) {
+          if (*q == 0) {
+             break;
+          } else if (*q == ',') {
+             q++;
+             break;
+          }
+          id[i] = *q++;
+          id[i+1] = 0;
+       }
+       if (strcmp(item, id) == 0) {
+          return;
+       }
+   }
+   /* Did not find item, so add it to list */
    if (ids->count == 0) {
       ids->list[0] = 0;
    } else {
       pm_strcat(ids->list, ",");
    }
-   pm_strcat(ids->list, row[0]);
+   pm_strcat(ids->list, item);
    ids->count++;
+// Dmsg3(0, "add_uniq count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
+   return;
+}
+
+/*
+ * Callback handler make list of DB Ids
+ */
+static int unique_dbid_handler(void *ctx, int num_fields, char **row)
+{
+   idpkt *ids = (idpkt *)ctx;
+
+   add_unique_id(ids, row[0]);
    Dmsg3(dbglevel, "dbid_hdlr count=%d Ids=%p %s\n", ids->count, ids->list, ids->list);
    return 0;
 }
@@ -367,29 +403,6 @@ static int unique_name_handler(void *ctx, int num_fields, char **row)
    }
    return 0;
 }
-
-#ifdef xxx  /* in development */
-static int unique_dbid_handler(void *ctx, int num_fields, char **row)
-{
-   dlist *list = (dlist *)ctx;
-
-   uitem *new_item = (uitem *)malloc(sizeof(uitem));
-   uitem *item;
-   
-   memset(new_item, 0, sizeof(uitem));
-   new_item->item = bstrdup(row[0]);
-   Dmsg1(dbglevel, "Item=%s\n", row[0]);
-   item = (uitem *)list->binary_insert((void *)new_item, item_compare);
-   if (item != new_item) {            /* already in list */
-      free(new_item->item);
-      free((char *)new_item);
-      return 0;
-   }
-   return 0;
-}
-#endif
-
-
 
 /* Get Job names in Pool */
 const char *sql_job =
@@ -557,7 +570,7 @@ static bool get_job_to_migrate(JCR *jcr)
          }
          Dmsg1(dbglevel, "SQL=%s\n", jcr->job->selection_pattern);
          if (!db_sql_query(jcr->db, jcr->job->selection_pattern,
-              dbid_handler, (void *)&ids)) {
+              unique_dbid_handler, (void *)&ids)) {
             Jmsg(jcr, M_FATAL, 0,
                  _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
@@ -598,8 +611,8 @@ static bool get_job_to_migrate(JCR *jcr)
          ids.count = 0;
          /* Find a list of MediaIds that could be migrated */
          Mmsg(query, sql_mediaids, jcr->pool->hdr.name);
-//       Dmsg1(dbglevel, "query=%s\n", query.c_str());
-         if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)&ids)) {
+         Dmsg1(dbglevel, "query=%s\n", query.c_str());
+         if (!db_sql_query(jcr->db, query.c_str(), unique_dbid_handler, (void *)&ids)) {
             Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
@@ -664,8 +677,8 @@ static bool get_job_to_migrate(JCR *jcr)
 
          ids.count = 0;
          Mmsg(query, sql_pool_time, jcr->pool->hdr.name, dt);
-//       Dmsg1(000, "query=%s\n", query.c_str());
-         if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)&ids)) {
+         Dmsg1(dbglevel, "query=%s\n", query.c_str());
+         if (!db_sql_query(jcr->db, query.c_str(), unique_dbid_handler, (void *)&ids)) {
             Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
             goto bail_out;
          }
@@ -688,8 +701,8 @@ static bool get_job_to_migrate(JCR *jcr)
     *  for each of them.  For the last JobId, we handle it below.
     */
    p = ids.list;
-   Jmsg(jcr, M_INFO, 0, _("The following %u JobIds will be migrated: %s\n"),
-      ids.count, ids.list);
+   Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s will be migrated: %s\n"),
+      ids.count, ids.count==0?"":"s", ids.list);
    Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
    for (int i=1; i < (int)ids.count; i++) {
       JobId = 0;
@@ -710,7 +723,7 @@ static bool get_job_to_migrate(JCR *jcr)
    /* Now get the last JobId and handle it in the current job */
    JobId = 0;
    stat = get_next_jobid_from_list(&p, &JobId);
-   Dmsg2(dbglevel, "Last get_next_jobid stat=%d JobId=%u\n", stat, JobId);
+   Dmsg2(dbglevel, "Last get_next_jobid stat=%d JobId=%u\n", stat, (int)JobId);
    if (stat < 0) {
       Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
       goto bail_out;
@@ -720,7 +733,7 @@ static bool get_job_to_migrate(JCR *jcr)
    }
 
    jcr->previous_jr.JobId = JobId;
-   Dmsg1(100, "Previous jobid=%d\n", jcr->previous_jr.JobId);
+   Dmsg1(dbglevel, "Previous jobid=%d\n", (int)jcr->previous_jr.JobId);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),
@@ -728,20 +741,25 @@ static bool get_job_to_migrate(JCR *jcr)
            db_strerror(jcr->db));
       goto bail_out;
    }
-   Jmsg(jcr, M_INFO, 0, _("Migration using JobId=%d Job=%s\n"),
-      jcr->previous_jr.JobId, jcr->previous_jr.Job);
+   Jmsg(jcr, M_INFO, 0, _("Migration using JobId=%s Job=%s\n"),
+      edit_int64(jcr->previous_jr.JobId, ed1), jcr->previous_jr.Job);
+   Dmsg3(dbglevel, "Migration JobId=%d  using JobId=%s Job=%s\n",
+      jcr->JobId,
+      edit_int64(jcr->previous_jr.JobId, ed1), jcr->previous_jr.Job);
 
 ok_out:
-   free_pool_memory(ids.list);
-   free_pool_memory(mid.list);
-   free_pool_memory(jids.list);
-   return true;
+   ok = true;
+   goto out;
 
 bail_out:
+   jcr->MigrateJobId = 0;
+   ok = false;
+           
+out:
    free_pool_memory(ids.list);
    free_pool_memory(mid.list);
    free_pool_memory(jids.list);
-   return false;
+   return ok;
 }
 
 static void start_migration_job(JCR *jcr)
@@ -771,7 +789,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
    ids->count = 0;
    /* Basic query for MediaId */
    Mmsg(query, query1, jcr->pool->hdr.name);
-   if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
+   if (!db_sql_query(jcr->db, query.c_str(), unique_dbid_handler, (void *)ids)) {
       Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
       goto bail_out;
    }
@@ -798,7 +816,7 @@ static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type
 
    Mmsg(query, sql_jobids_from_mediaid, ids->list);
    ids->count = 0;
-   if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
+   if (!db_sql_query(jcr->db, query.c_str(), unique_dbid_handler, (void *)ids)) {
       Jmsg(jcr, M_FATAL, 0, _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
       goto bail_out;
    }
@@ -879,7 +897,7 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
       Dmsg2(dbglevel, "Got %s: %s\n", type, item->item);
       Mmsg(query, query2, item->item, jcr->pool->hdr.name);
       Dmsg1(dbglevel, "get id from name query2=%s\n", query.c_str());
-      if (!db_sql_query(jcr->db, query.c_str(), dbid_handler, (void *)ids)) {
+      if (!db_sql_query(jcr->db, query.c_str(), unique_dbid_handler, (void *)ids)) {
          Jmsg(jcr, M_FATAL, 0,
               _("SQL failed. ERR=%s\n"), db_strerror(jcr->db));
          goto bail_out;

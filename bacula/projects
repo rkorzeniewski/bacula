@@ -1154,35 +1154,3 @@ Item n:   Allow inclusion/exclusion of files in a fileset by creation/mod times
           So one could compare against 'ctime' and/or 'mtime', but ONLY 'before'
            or 'since'.
 
-
-Item 1:   Bacula support for a MailOnSuccess feature.
-  Origin: Jaime Ventura <jaimeventura at ipp dot pt>
-  Date:   15 November 2006
-  Status: for 1.38.11: coded(patch on attachment), compiled, tested
-          for 1.39.28: coded(patch on attachment), complied, NOT tested
-
-
-  What:  be able to send a email message for a specified email address if (and only if) a job finishes successfully.
-         Its similar to the MailOnError feature. 
-
-  Why:    The importance is about the same as MailOnError feature.
-          Since its not possible to do it using bacula's message types(info, error,...)filter, this could be done using some kind of filter, right after the mail was sent.
-          But since there is a MailOnError feature, why not have a MailOnSuccess feature?
-
-
-Notes: 
-
-        Why its not possible to do it using bacula's message types(info, error,...)? 
-
-        Imagine I want bacula to send ONLY successful job reports/messages to baculaOK@domain.
-        When a job starts, bacula send the message : 10-Nov 17:37 bserver-dir: Start Backup JobId 1605, Job=Job.GSI04.2006-11-10_17.37.30   
-        Since this is a info message (msgtype = M_INFO) the "bacula's messaging system" put it on the job messages (jcr->jcr_msgs) to be sent 
-        to all dest that have the info type enabled (including baculaOK@domain).
-        But when/if the job fails, that message (10-Nov 17:37 bserver-dir: Start Backup JobId 1605, Job=Job.GSI04.2006-11-10_17.37.30) has already 
-        been queued to be sent to baculaOK@domain, even though it refers to a unsuccessful backup.
-        So when its time to send all messages to emails, the "bacula's messaging system" send that message (10-Nov 17:37 bserver-dir: Start 
-        Backup JobId 1605, Job=Job.GSI04.2006-11-10_17.37.30) to baculaOK@domain, but using the subject "bacula ERROR", because the job terminated unsuccessful.
-   
-        This "problem" could also happen if I wanted bacula to send emails regarding unsuccessful backups, if i didnt use the MailOnError feature. 
-        This feature is implemented so that if messages that  where queued to be sent if the backup was unsuccessful, to be discarded if the backup is 
-
