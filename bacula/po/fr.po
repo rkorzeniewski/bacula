@@ -12178,8 +12178,8 @@ msgstr ""
 
 #: src/stored/autochanger.c:231
 #, c-format
-msgid "3301 Issuing autochanger \"loaded drive %d\" command.\n"
-msgstr "3301 Envoi de la commande « loaded drive %d » à l'autochangeur.\n"
+msgid "3301 Issuing autochanger \"loaded? drive %d\" command.\n"
+msgstr "3301 Envoi de la commande « loaded? drive %d » à l'autochangeur.\n"
 
 #: src/stored/autochanger.c:241
 #, c-format
