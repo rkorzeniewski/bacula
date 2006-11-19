@@ -418,12 +418,18 @@ void close_msg(JCR *jcr)
             break;
          case MD_MAIL:
          case MD_MAIL_ON_ERROR:
-            Dmsg0(850, "Got MD_MAIL or MD_MAIL_ON_ERROR\n");
+         case MD_MAIL_ON_SUCCESS:
+            Dmsg0(850, "Got MD_MAIL, MD_MAIL_ON_ERROR or MD_MAIL_ON_SUCCESS\n");
             if (!d->fd) {
                break;
             }
-            if (d->dest_code == MD_MAIL_ON_ERROR && jcr &&
-                jcr->JobStatus == JS_Terminated) {
+            if (
+                (d->dest_code == MD_MAIL_ON_ERROR && jcr &&
+                 jcr->JobStatus == JS_Terminated) 
+                ||
+                (d->dest_code == MD_MAIL_ON_SUCCESS && jcr &&
+                 jcr->JobStatus == JS_ErrorTerminated)
+                ){
                goto rem_temp_file;
             }
 
@@ -689,6 +695,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                 break;
              case MD_MAIL:
              case MD_MAIL_ON_ERROR:
+             case MD_MAIL_ON_SUCCESS:
                 Dmsg1(850, "MAIL for following msg: %s", msg);
                 if (!d->fd) {
                    POOLMEM *name = get_pool_memory(PM_MESSAGE);

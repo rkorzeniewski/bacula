@@ -1,7 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+19Nov06
+kes  Implement unique dbid routine for migration to prevent the same
+     JobId from being migrated twice. This should fix bug #709.
 18Nov06
+kes  Apply Jaime Ventura's 'mail on success' patch.
 kes  Add a SMALLOC_SANITY_CHECK for Arno, which aborts Bacula
      if memory usage gets too big.
 kes  Tweak migration to ensure that read/write devices are different.

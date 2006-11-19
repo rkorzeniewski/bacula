@@ -95,6 +95,7 @@ RES_ITEM msgs_items[] = {
    {"syslog",      store_msgs, ITEM(res_msgs), MD_SYSLOG,   0, 0},
    {"mail",        store_msgs, ITEM(res_msgs), MD_MAIL,     0, 0},
    {"mailonerror", store_msgs, ITEM(res_msgs), MD_MAIL_ON_ERROR, 0, 0},
+   {"mailonsuccess", store_msgs, ITEM(res_msgs), MD_MAIL_ON_SUCCESS, 0, 0},
    {"file",        store_msgs, ITEM(res_msgs), MD_FILE,     0, 0},
    {"append",      store_msgs, ITEM(res_msgs), MD_APPEND,   0, 0},
    {"stdout",      store_msgs, ITEM(res_msgs), MD_STDOUT,   0, 0},
@@ -244,6 +245,7 @@ void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass)
       case MD_DIRECTOR:            /* send to Director */
       case MD_MAIL:                /* mail */
       case MD_MAIL_ON_ERROR:       /* mail if Job errors */
+      case MD_MAIL_ON_SUCCESS:     /* mail if Job succeeds */
          if (item->code == MD_OPERATOR) {
             cmd = res_all.res_msgs.operator_cmd;
          } else {

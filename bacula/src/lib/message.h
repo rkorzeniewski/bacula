@@ -114,6 +114,7 @@ enum {
    MD_OPERATOR,                       /* email a single message to the operator */
    MD_CONSOLE,                        /* send msg to UserAgent or console */
    MD_MAIL_ON_ERROR,                  /* email messages if job errors */
+   MD_MAIL_ON_SUCCESS,		      /* email messages if job succeeds */
    MD_CATALOG                         /* sent to catalog Log table */
 };
 
