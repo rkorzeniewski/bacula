@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-09-09 19:45+0200\n"
-"PO-Revision-Date: 2006-11-16 21:46+0100\n"
+"PO-Revision-Date: 2006-11-19 12:17+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -12090,6 +12090,11 @@ msgid ""
 "    Media type:   %s\n"
 "    Pool:         %s\n"
 msgstr ""
+"Le Job %s est en bloque. Bacula n'a pas pu trouver de media disponible.\n"
+"Merci de creer un nouveau volume via la commande \"label\" pour :\n"
+"    Storage :       %s\n"
+"    Type du Media : %s\n"
+"    Pool :          %s\n"
 
 #: src/stored/askdir.c:461 src/stored/askdir.c:543
 #, c-format
@@ -12310,7 +12315,7 @@ msgstr ""
 #: src/stored/block.c:656
 #, c-format
 msgid "Re-read last block at EOT failed. ERR=%s"
-msgstr ""
+msgstr "Erreur sur la re-lecture du dernier bloc en EOT. ERR=%s"
 
 #: src/stored/block.c:666
 #, c-format
@@ -12321,7 +12326,7 @@ msgstr ""
 
 #: src/stored/block.c:669
 msgid "Re-read of last block succeeded.\n"
-msgstr ""
+msgstr "La re-lecture du dernier bloc écrit a réussi.\n"
 
 #: src/stored/block.c:697
 #, c-format
