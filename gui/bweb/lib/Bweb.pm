@@ -2925,14 +2925,13 @@ SELECT Job.Name as name, Client.Name as clientname
     }
 
     $query = "
-SELECT Time AS time, LogText AS log
- FROM  Log INNER JOIN Job ON (Job.JobId = Log.JobId)
- WHERE Log.JobId = $arg->{jobid}
-    OR (    Log.JobId = 0 
-        AND Log.Time >= Job.StartTime
-        AND Log.Time <= COALESCE(Job.EndTime, Now())
+SELECT Time AS time, LogText AS log 
+  FROM  Log 
+ WHERE Log.JobId = $arg->{jobid} 
+    OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
+                      AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
        )
- ORDER BY LogId
+ ORDER BY LogId;
 ";
 
     my $log = $self->dbh_selectall_arrayref($query);
