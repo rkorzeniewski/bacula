@@ -2,6 +2,7 @@
 
 General:
 20Nov06
+kes  Add additional error messages in acquiring a drive for read.   
 kes  Make WritePartAfterJob the default so that the last DVD part 
      always gets written to the DVD by default.
 kes  Add additional error messages in migration. 

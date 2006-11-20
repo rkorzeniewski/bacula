@@ -61,7 +61,9 @@ bool acquire_device_for_read(DCR *dcr)
    /* Find next Volume, if any */
    vol = jcr->VolList;
    if (!vol) {
-      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job %d canceled.\n"), jcr->JobId);
+      char ed1[50];
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job %s canceled.\n"), 
+         edit_int64(jcr->JobId, ed1));
       goto get_out;
    }
    jcr->CurVolume++;
@@ -69,6 +71,8 @@ bool acquire_device_for_read(DCR *dcr)
       vol = vol->next;
    }
    if (!vol) {
+      Jmsg(jcr, M_FATAL, 0, _("Logic error: no next volume. Numvol=%d Curvol=%d\n"),
+         jcr->NumVolumes, jcr->CurVolume);
       goto get_out;                   /* should not happen */   
    }
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
@@ -164,7 +168,9 @@ bool acquire_device_for_read(DCR *dcr)
       }
       dev->clear_labeled();              /* force reread of label */
       if (job_canceled(jcr)) {
-         Mmsg1(dev->errmsg, _("Job %d canceled.\n"), jcr->JobId);
+         char ed1[50];
+         Mmsg1(dev->errmsg, _("Job %s canceled.\n"), edit_int64(jcr->JobId, ed1));
+         Jmsg(jcr, M_INFO, 0, dev->errmsg);
          goto get_out;                /* error return */
       }
 
