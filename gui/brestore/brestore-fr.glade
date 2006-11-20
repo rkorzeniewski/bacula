@@ -2493,7 +2493,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 
 <widget class="GtkDialog" id="dlg_launch">
   <property name="visible">True</property>
-  <property name="title" translatable="yes">Ready to submit to bacula ?</property>
+  <property name="title" translatable="yes">Demande de restauration bacula</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">False</property>
@@ -2589,7 +2589,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 		      <child>
 			<widget class="GtkLabel" id="label33">
 			  <property name="visible">True</property>
-			  <property name="label" translatable="yes">This job will use following volume(s) : </property>
+			  <property name="label" translatable="yes">Ce job va utiliser les m√dias suivant(s) : </property>
 			  <property name="use_underline">False</property>
 			  <property name="use_markup">False</property>
 			  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -2801,7 +2801,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			<widget class="GtkCheckButton" id="chkbp_launch_replace">
 			  <property name="visible">True</property>
 			  <property name="can_focus">True</property>
-			  <property name="label" translatable="yes">Replace</property>
+			  <property name="label" translatable="yes">Ecraser</property>
 			  <property name="use_underline">True</property>
 			  <property name="relief">GTK_RELIEF_NORMAL</property>
 			  <property name="focus_on_click">True</property>
@@ -2976,7 +2976,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			  <child>
 			    <widget class="GtkLabel" id="label42">
 			      <property name="visible">True</property>
-			      <property name="label" translatable="yes">Priority</property>
+			      <property name="label" translatable="yes">Priorit√©</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">False</property>
 			      <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -3015,7 +3015,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 	      <child>
 		<widget class="GtkLabel" id="label32">
 		  <property name="visible">True</property>
-		  <property name="label" translatable="yes">&lt;b&gt;More Options&lt;/b&gt;</property>
+		  <property name="label" translatable="yes">&lt;b&gt;Options avanc√es&lt;/b&gt;</property>
 		  <property name="use_underline">False</property>
 		  <property name="use_markup">True</property>
 		  <property name="justify">GTK_JUSTIFY_LEFT</property>
