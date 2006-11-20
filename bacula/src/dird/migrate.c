@@ -65,11 +65,13 @@ bool do_migration_init(JCR *jcr)
 
    if (jcr->previous_jr.JobId == 0) {
       Dmsg1(dbglevel, "JobId=%d no previous JobId\n", (int)jcr->JobId);
+      Jmsg(jcr, M_INFO, 0, _("No previous Job found to migrate.\n"));
       return true;                    /* no work */
    }
 
    if (!get_or_create_fileset_record(jcr)) {
       Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
+      Jmsg(jcr, M_FATAL, 0, _("Could not get or create the FileSet record.\n"));
       return false;
    }
 
@@ -78,6 +80,7 @@ bool do_migration_init(JCR *jcr)
    jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->hdr.name);
    if (jcr->jr.PoolId == 0) {
       Dmsg1(dbglevel, "JobId=%d no PoolId\n", (int)jcr->JobId);
+      Jmsg(jcr, M_FATAL, 0, _("Could not get or create a Pool record.\n"));
       return false;
    }
 
@@ -127,6 +130,11 @@ bool do_migration(JCR *jcr)
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
       Dmsg1(dbglevel, "JobId=%d expected files == 0\n", (int)jcr->JobId);
+      if (jcr->previous_jr.JobId == 0) {
+         Jmsg(jcr, M_INFO, 0, _("No previous Job found to migrate.\n"));
+      } else {
+         Jmsg(jcr, M_INFO, 0, _("Previous Job has no data to migrate.\n"));
+      }
       migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
@@ -277,6 +285,7 @@ bool do_migration(JCR *jcr)
    if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
       Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
            ((STORE *)jcr->rstorage->first())->name());
+      return false;
    }
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
@@ -701,6 +710,10 @@ static bool get_job_to_migrate(JCR *jcr)
     *  for each of them.  For the last JobId, we handle it below.
     */
    p = ids.list;
+   if (ids.count == 0) {
+      Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
+      goto ok_out;
+   }
    Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s will be migrated: %s\n"),
       ids.count, ids.count==0?"":"s", ids.list);
    Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
@@ -716,7 +729,7 @@ static bool get_job_to_migrate(JCR *jcr)
          goto bail_out;
       } else if (stat == 0) {
          Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
-         goto ok_out;
+         goto bail_out;
       }
    }
    
@@ -729,7 +742,7 @@ static bool get_job_to_migrate(JCR *jcr)
       goto bail_out;
    } else if (stat == 0) {
       Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
-      goto ok_out;
+      goto bail_out;
    }
 
    jcr->previous_jr.JobId = JobId;

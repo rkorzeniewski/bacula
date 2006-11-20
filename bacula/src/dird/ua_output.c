@@ -588,6 +588,7 @@ RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays)
    /* Nothing found */
    return NULL;
 }
+
 /*
  * Fill in the remaining fields of the jcr as if it
  *  is going to run the job.

@@ -377,6 +377,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       if (ok) {
          mr.PoolId = jcr->jr.PoolId;
          mr.StorageId = sp->store->StorageId;
+         jcr->wstore = sp->store;
          ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
       }
       if (!ok) {
@@ -400,7 +401,6 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       db_close_database(jcr, jcr->db);
    }
    jcr->db = ua->db;                  /* restore ua db to jcr */
-
 }
 
 /*

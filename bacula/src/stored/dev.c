@@ -80,7 +80,7 @@
 #endif
 
 /* Forward referenced functions */
-void set_os_device_parameters(DEVICE *dev);
+void set_os_device_parameters(DCR *dcr);   
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
 static char *mode_to_str(int mode);
 
@@ -392,7 +392,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
             }
             dev_errno = 0;
             lock_door();
-            set_os_device_parameters(this);      /* do system dependent stuff */
+            set_os_device_parameters(dcr);       /* do system dependent stuff */
             break;                               /* Successfully opened and rewound */
          }
       }
@@ -2282,8 +2282,10 @@ bool double_dev_wait_time(DEVICE *dev)
 }
 
 
-void set_os_device_parameters(DEVICE *dev)
+void set_os_device_parameters(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
+
 #if defined(HAVE_LINUX_OS) || defined(HAVE_WIN32)
    struct mtop mt_com;
 
@@ -2347,6 +2349,22 @@ void set_os_device_parameters(DEVICE *dev)
          dev->clrerror(MTSETBSIZ);
       }
    }
+/* Turn this on later when fully tested */
+#if defined(xxxMTIOCSETEOTMODEL) 
+   uint32_t neof;
+   if (dev_cap(dev, CAP_TWOEOF)) {
+      neof = 2;
+   } else {
+      neof = 1;
+   }
+   if (ioctl(dev->fd, MTIOCSETEOTMODEL, (caddr_t)&neof) < 0) {
+      berrno be;
+      dev->dev_errno = errno;         /* save errno */
+      Mmsg2(dev->errmsg, _("Unable to set eotmodel on device %s: ERR=%s\n"),
+            dev->print_name(), be.strerror(dev->dev_errno));
+      Jmsg(dcr->jcr, M_FATAL, 0, dev->errmsg);
+   }
+#endif
    return;
 #endif
 

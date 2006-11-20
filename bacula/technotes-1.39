@@ -1,6 +1,16 @@
               Technical notes on version 1.39  
 
 General:
+20Nov06
+kes  Make WritePartAfterJob the default so that the last DVD part 
+     always gets written to the DVD by default.
+kes  Add additional error messages in migration. 
+kes  Suppress redundant error messages in migration (possibly more to do).
+kes  Apply Martin's fix (updated to 1.39) that takes into account
+     run storage overrides in the Director status display.
+kes  Implement, but turn off the submitted code that sets the EOT
+     model on FreeBSD machines. Turning on this code is too risky at
+     this point in the development.
 19Nov06
 kes  Implement unique dbid routine for migration to prevent the same
      JobId from being migrated twice. This should fix bug #709.
