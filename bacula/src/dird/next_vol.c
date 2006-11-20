@@ -32,7 +32,7 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger);
 /*
  *  Items needed:
  *   mr.PoolId must be set
- *   jcr->store
+ *   jcr->wstore
  *   jcr->db
  *   jcr->pool
  *   MEDIA_DBR mr (zeroed out)
