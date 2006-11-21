@@ -44,7 +44,6 @@
 #include "crypto.h"
 #include "mem_pool.h"
 #include "rwlock.h"
-#include "semlock.h"
 #include "queue.h"
 #include "serial.h"
 #include "message.h"

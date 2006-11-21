@@ -22,7 +22,7 @@ DEBUG=@DEBUG@
 first_rule: all
 dummy:
 
-LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
+LIBSRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  bnet.c bnet_server.c runscript.c \
 	  bpipe.c bsnprintf.c btime.c \
 	  cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
@@ -30,12 +30,12 @@ LIBSRCS = alloc.c attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  md5.c message.c mem_pool.c openssl.c parse_conf.c \
 	  queue.c bregex.c \
 	  res.c rwlock.c scan.c serial.c sha1.c \
-	  semlock.c signal.c smartall.c tls.c tree.c \
+	  signal.c smartall.c tls.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
 	  address_conf.c pythonlib.c
 
 
-LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
+LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  bnet.o bnet_server.o runscript.o \
 	  bpipe.o bsnprintf.o btime.o \
 	  cram-md5.o crc32.o crypto.o daemon.o edit.o enh_fnmatch.o fnmatch.o \
@@ -43,7 +43,7 @@ LIBOBJS = alloc.o attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  md5.o message.o mem_pool.o openssl.o parse_conf.o \
 	  queue.o bregex.o \
 	  res.o rwlock.o scan.o serial.o sha1.o \
-	  semlock.o signal.o smartall.o tls.o tree.o \
+	  signal.o smartall.o tls.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
 	  address_conf.o pythonlib.o
 
