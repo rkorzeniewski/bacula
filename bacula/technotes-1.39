@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+21Nov06 
+kes  Start applying new FSFE copyright.
 20Nov06
 kes  Add additional error messages in acquiring a drive for read.   
 kes  Make WritePartAfterJob the default so that the last DVD part 
