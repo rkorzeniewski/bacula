@@ -254,11 +254,11 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             if (cflags == DP_C_INT16) {
                value = va_arg(args, uint32_t);
             } else if (cflags == DP_C_INT32) {
-               value = (long)va_arg(args, uint32_t);
+               value = va_arg(args, uint32_t);
             } else if (cflags == DP_C_INT64) {
-               value = (int64_t) va_arg(args, uint64_t);
+               value = va_arg(args, uint64_t);
             } else {
-               value = (long)va_arg(args, unsigned int);
+               value = va_arg(args, unsigned int);
             }
             currlen = fmtint(buffer, currlen, maxlen, value, base, min, max, flags);
             break;
