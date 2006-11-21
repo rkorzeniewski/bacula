@@ -15,18 +15,18 @@ Robotique : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Lecteurs
     <tr>
     <td valign='top'>
     <div class='otherboxtitle'>
-     Tools
+     Options
     </div>
     <div class='otherbox'>
 <label>
 <input type="image" name='action' value='label_barcodes'
-        title='Labélisation des médias, (label barcodes)' src='/bweb/label.png'>Label
+        title='Labélisation des médias, (label barcodes)' src='/bweb/label.png'>Labéliser
 </label>
 <TMPL_IF nb_io>
 <label>
 <input type="image" name='action' value='eject'
         title='Mettre les médias sélectionnés dans le guichet' src='/bweb/extern.png'>
-Eject
+Ejecter
 </label>
 <label>
 <input type="image" name='action' value='clear_io'
@@ -37,7 +37,7 @@ Vider le guichet
 <label>
 <input type="image" name='action' value='update_slots'
         title='Mettre à jour la base bacula, (update slots)' src='/bweb/update.png'>
-Update
+Scanner
 </label>
 <br/><br/>
 <label>
