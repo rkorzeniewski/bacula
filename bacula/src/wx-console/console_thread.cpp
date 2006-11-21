@@ -142,7 +142,7 @@ static int check_resources()
 
 
 void console_thread::SetWorkingDirectory(wxString w_dir) {
-   if ((w_dir.Last() == '/') || (w_dir.Last() == '\\')) {
+   if (IsPathSeparator(w_dir.Last())) {
       console_thread::working_dir = w_dir.Mid(0, w_dir.Length()-1);
    }
    else {

@@ -736,8 +736,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 #ifdef HAVE_LIBZ
       /* Do compression if turned on */
       if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && jcr->pZLIB_compress_workset) {
-         Dmsg4(400, "cbuf=0x%x len=%u rbuf=0x%x len=%u\n", cbuf, compress_len,
-            rbuf, sd->msglen);
+         Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
                 ((z_stream*)jcr->pZLIB_compress_workset)->avail_in  = sd->msglen;
@@ -767,16 +766,20 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
       if (!sparseBlock && (ff_pkt->flags & FO_ENCRYPT)) {
          uint32_t initial_len = 0;
+         ser_declare;
 
          if (ff_pkt->flags & FO_SPARSE) {
             cipher_input_len += SPARSE_FADDR_SIZE;
          }
 
          /* Encrypt the length of the input block */
-         uint32_t packet_len = htonl(cipher_input_len);
+         uint8_t packet_len[sizeof(uint32_t)];
 
-         if (!crypto_cipher_update(cipher_ctx, (const u_int8_t *)&packet_len, 
-              sizeof(packet_len), (u_int8_t *)jcr->crypto_buf, &initial_len)) {
+         ser_begin(packet_len, sizeof(uint32_t));
+         ser_uint32(cipher_input_len);    /* store fileAddr in begin of buffer */
+
+         if (!crypto_cipher_update(cipher_ctx, packet_len, sizeof(packet_len),
+                  (u_int8_t *)jcr->crypto_buf, &initial_len)) {
             /* Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;

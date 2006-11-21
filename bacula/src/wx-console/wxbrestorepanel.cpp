@@ -1310,7 +1310,7 @@ void wxbRestorePanel::CmdMark(wxTreeItemId treeitem, long* listitems, int listsi
       wxString file;
 
       if (dir != wxT("/")) {
-         if (dir.GetChar(dir.Length()-1) == '/') {
+         if (IsPathSeparator(dir.GetChar(dir.Length()-1))) {
             dir.RemoveLast();
          }
 
@@ -1440,7 +1440,7 @@ void wxbRestorePanel::UpdateTreeItem(wxTreeItemId item, bool updatelist, bool re
 
       wxTreeItemId treeid;
 
-      if (entry.fullname.GetChar(entry.fullname.Length()-1) == '/') {
+      if (IsPathSeparator(entry.fullname.GetChar(entry.fullname.Length()-1))) {
          wxString itemStr;
 
 #if wxCHECK_VERSION(2, 6, 0)
@@ -1545,7 +1545,7 @@ int wxbRestorePanel::ParseList(wxString line, wxbDirEntry* entry)
    entry->fullname = tkz.GetString();
    
    /* Get only the filename (cut path by finding the last '/') */
-   if (entry->fullname.GetChar(entry->fullname.Length()-1) == '/') {
+   if (IsPathSeparator(entry->fullname.GetChar(entry->fullname.Length()-1))) {
       wxString tmp = entry->fullname;
       tmp.RemoveLast();
       entry->filename = entry->fullname.Mid(tmp.Find('/', true)+1);
@@ -2232,7 +2232,7 @@ void wxbRestorePanel::OnListActivated(wxListEvent& event) {
       long cookie;
 #endif
 
-      if (name.GetChar(name.Length()-1) == '/') {
+      if (IsPathSeparator(name.GetChar(name.Length()-1))) {
          wxTreeItemId currentChild = tree->GetFirstChild(currentTreeItem, cookie);
 
          while (currentChild.IsOk()) {

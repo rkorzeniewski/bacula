@@ -57,7 +57,7 @@ _Z5binitP5BFILE
 _Z5bopenP5BFILEPKcit
 _Z5breadP5BFILEPvj
 _Z6bcloseP5BFILE
-_Z6blseekP5BFILEli
+_Z6blseekP5BFILExi
 _Z6bwriteP5BFILEPvj
 _Z8is_bopenP5BFILE
 _Z8set_progP5BFILEPcP3JCR

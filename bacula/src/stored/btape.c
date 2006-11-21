@@ -163,9 +163,9 @@ int main(int margc, char *margv[])
    if (TAPE_BSIZE != (1 << (ffs(TAPE_BSIZE)-1))) {
       Emsg1(M_ABORT, 0, _("Tape block size (%d) is not a power of 2\n"), TAPE_BSIZE);
    }
-   if (sizeof(off_t) < 8) {
-      Pmsg1(-1, _("\n\n!!!! Warning large disk addressing disabled. off_t=%d should be 8 or more !!!!!\n\n\n"),
-         sizeof(off_t));
+   if (sizeof(boffset_t) < 8) {
+      Pmsg1(-1, _("\n\n!!!! Warning large disk addressing disabled. boffset_t=%d should be 8 or more !!!!!\n\n\n"),
+         sizeof(boffset_t));
    }
    x32 = 123456789;
    bsnprintf(buf, sizeof(buf), "%u", x32);
@@ -2100,7 +2100,7 @@ static void unfillcmd()
 static void do_unfill()
 {
    DEV_BLOCK *block = dcr->block;
-   bool autochanger;
+   int autochanger;
 
    dumped = 0;
    VolBytes = 0;
@@ -2143,7 +2143,7 @@ static void do_unfill()
          dev->offline();
       }
       autochanger = autoload_device(dcr, 1, NULL);
-      if (!autochanger) {
+      if (autochanger != 1) {
          dev->close();
          get_cmd(_("Mount first tape. Press enter when ready: "));
       }
@@ -2205,7 +2205,7 @@ static void do_unfill()
    set_volume_name("TestVolume2", 2);
 
    autochanger = autoload_device(dcr, 1, NULL);
-   if (!autochanger) {
+   if (autochanger != 1) {
       dev->close();
       get_cmd(_("Mount second tape. Press enter when ready: "));
    }
@@ -2726,7 +2726,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
 
 bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 {
-   bool autochanger;
+   int autochanger;
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_create_appendable_volume\n");
    if (stop == 0) {
@@ -2739,7 +2739,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       dev->offline();
    }
    autochanger = autoload_device(dcr, 1, NULL);
-   if (!autochanger) {
+   if (autochanger != 1) {
       fprintf(stderr, _("Mount blank Volume on device %s and press return when ready: "),
          dev->print_name());
       dev->close();

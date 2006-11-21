@@ -1565,8 +1565,8 @@ static int restore_cmd(JCR *jcr)
       *where = 0;
    }
    /* Turn / into nothing */
-   if (where[0] == '/' && where[1] == 0) {
-      where[0] = 0;
+   if (IsPathSeparator(where[0]) && where[1] == '\0') {
+      where[0] = '\0';
    }
 
    Dmsg2(150, "Got replace %c, where=%s\n", replace, where);

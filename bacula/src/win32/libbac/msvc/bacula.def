@@ -62,7 +62,7 @@ EXPORTS
 ?bread@@YAHPAUBFILE@@PAXI@Z
 ?bwrite@@YAHPAUBFILE@@PAXI@Z
 ?is_bopen@@YA_NPAUBFILE@@@Z
-?blseek@@YAJPAUBFILE@@JH@Z
+?blseek@@YA_JPAUBFILE@@_JH@Z
  
 ; bget_msg.obj 
 ?bget_msg@@YAHPAUBSOCK@@@Z

@@ -164,7 +164,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../libwin32"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"

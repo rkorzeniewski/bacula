@@ -368,7 +368,7 @@ public:
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
    bool reposition(DCR *dcr, uint32_t rfile, uint32_t rblock); /* in dev.c */
    void clrerror(int func);      /* in dev.c */
-   off_t lseek(DCR *dcr, off_t offset, int whence); /* in dev.c */
+   boffset_t lseek(DCR *dcr, boffset_t offset, int whence); /* in dev.c */
    bool update_pos(DCR *dcr);    /* in dev.c */
    bool update_freespace();      /* in dvd.c */
 

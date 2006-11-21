@@ -65,7 +65,7 @@ static POOLMEM *make_filename(B_DB *mdb, char *name)
    POOLMEM *dbf;
 
    dbf = get_pool_memory(PM_FNAME);
-   if (working_directory[strlen(working_directory)-1] == '/') {
+   if (IsPathSeparator(working_directory[strlen(working_directory)-1])) {
       sep = 0;
    } else {
       sep = '/';

@@ -79,7 +79,7 @@ void strip_trailing_slashes(char *dir)
    p = dir + strlen(dir) - 1;
 
    /* strip trailing slashes */
-   while ((p >= dir) && (*p == '/'))
+   while (p >= dir && IsPathSeparator(*p))
       *p-- = 0;
 }
 
@@ -288,16 +288,16 @@ void split_path_and_filename(const char *fname, POOLMEM **path, int *pnl,
     */
    f = fname + len - 1;
    /* "strip" any trailing slashes */
-   while (slen > 1 && *f == '/') {
+   while (slen > 1 && IsPathSeparator(*f)) {
       slen--;
       f--;
    }
    /* Walk back to last slash -- begin of filename */
-   while (slen > 0 && *f != '/') {
+   while (slen > 0 && !IsPathSeparator(*f)) {
       slen--;
       f--;
    }
-   if (*f == '/') {                   /* did we find a slash? */
+   if (IsPathSeparator(*f)) {         /* did we find a slash? */
       f++;                            /* yes, point to filename */
    } else {                           /* no, whole thing must be path name */
       f = fname;

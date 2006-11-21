@@ -90,10 +90,10 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
 
     Dmsg0(100, "Enter convert_unix_to_win32_path\n");
 
-    if ((name[0] == '/' || name[0] == '\\') &&
-        (name[1] == '/' || name[1] == '\\') &&
-        (name[2] == '.') &&
-        (name[3] == '/' || name[3] == '\\')) {
+    if (IsPathSeparator(name[0]) &&
+        IsPathSeparator(name[1]) &&
+        name[2] == '.' &&
+        IsPathSeparator(name[3])) {
 
         *win32_name++ = '\\';
         *win32_name++ = '\\';
@@ -117,7 +117,7 @@ void conv_unix_to_win32_path(const char *name, char *win32_name, DWORD dwSize)
         }
         if (*name == '/') {
             *win32_name++ = '\\';     /* convert char */
-        /* If Win32 separated that is "quoted", remove quote */
+        /* If Win32 separator that is "quoted", remove quote */
         } else if (*name == '\\' && name[1] == '\\') {
             *win32_name++ = '\\';
             name++;                   /* skip first \ */
@@ -193,13 +193,13 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
       return pszUCSPath;
    }
 
-   POOLMEM *pwszBuf = get_pool_memory(PM_FNAME);
-   POOLMEM *pwszCurDirBuf = get_pool_memory(PM_FNAME);
+   wchar_t *pwszBuf = (wchar_t *)get_pool_memory(PM_FNAME);
+   wchar_t *pwszCurDirBuf = (wchar_t *)get_pool_memory(PM_FNAME);
    DWORD dwCurDirPathSize = 0;
 
    /* get buffer with enough size (name+max 6. wchars+1 null terminator */
    DWORD dwBufCharsNeeded = (wcslen(name)+7);
-   pwszBuf = check_pool_memory_size(pwszBuf, dwBufCharsNeeded*sizeof(wchar_t));
+   pwszBuf = (wchar_t *)check_pool_memory_size((POOLMEM *)pwszBuf, dwBufCharsNeeded*sizeof(wchar_t));
       
    /* add \\?\ to support 32K long filepaths 
       it is important to make absolute paths, so we add drive and
@@ -210,23 +210,25 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    BOOL bAddPrefix = TRUE;
 
    /* does path begin with drive? if yes, it is absolute */
-   if (wcslen(name) >= 3 && (iswalpha (*name) && *(name+1) == ':'
-       && (*(name+2) == '\\' || *(name+2) == '/'))) {
+   if (iswalpha(name[0]) && name[1] == ':' && IsPathSeparator(name[2])) {
       bAddDrive = FALSE;
       bAddCurrentPath = FALSE;
    }
 
    /* is path absolute? */
-   if (*name == '/' || *name == '\\')
+   if (IsPathSeparator(name[0]))
       bAddCurrentPath = FALSE; 
 
    /* is path relative to itself?, if yes, skip ./ */
-   if (wcslen(name) > 2 && ((wcsncmp(name, L"./", 2) == 0) || (wcsncmp(name, L".\\", 2) == 0))) {
+   if (name[0] == '.' && IsPathSeparator(name[1])) {
       name += 2;
    }
 
-   /* is path of form '//./'? */   
-   if (wcslen(name) > 3 && ((wcsncmp(name, L"//./", 4) == 0) || (wcsncmp(name, L"\\\\.\\", 4) == 0))) {
+   /* is path of form '//./'? */
+   if (IsPathSeparator(name[0]) && 
+       IsPathSeparator(name[1]) && 
+       name[2] == '.' && 
+       IsPathSeparator(name[3])) {
       bAddDrive = FALSE;
       bAddCurrentPath = FALSE;
       bAddPrefix = FALSE;
@@ -240,7 +242,7 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    /* add 4 bytes header */
    if (bAddPrefix) {
       nParseOffset = 4;
-      wcscpy((wchar_t *)pwszBuf, L"\\\\?\\");
+      wcscpy(pwszBuf, L"\\\\?\\");
    }
 
    /* get current path if needed */
@@ -248,8 +250,8 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
       dwCurDirPathSize = p_GetCurrentDirectoryW(0, NULL);
       if (dwCurDirPathSize > 0) {
          /* get directory into own buffer as it may either return c:\... or \\?\C:\.... */         
-         pwszCurDirBuf = check_pool_memory_size(pwszCurDirBuf, (dwCurDirPathSize+1)*sizeof(wchar_t));
-         p_GetCurrentDirectoryW(dwCurDirPathSize,(wchar_t *)pwszCurDirBuf);
+         pwszCurDirBuf = (wchar_t *)check_pool_memory_size((POOLMEM *)pwszCurDirBuf, (dwCurDirPathSize+1)*sizeof(wchar_t));
+         p_GetCurrentDirectoryW(dwCurDirPathSize, pwszCurDirBuf);
       } else {
          /* we have no info for doing so */
          bAddDrive = FALSE;
@@ -262,17 +264,21 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    if (bAddDrive && !bAddCurrentPath) {
       wchar_t szDrive[3];
 
-      if (dwCurDirPathSize > 3 && wcsncmp((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0) {
+      if (IsPathSeparator(pwszCurDirBuf[0]) && 
+          IsPathSeparator(pwszCurDirBuf[1]) && 
+          pwszCurDirBuf[2] == '?' && 
+          IsPathSeparator(pwszCurDirBuf[3])) {
          /* copy drive character */
-         wcsncpy((wchar_t *)szDrive, (LPCWSTR)pwszCurDirBuf+4, 2);          
+         szDrive[0] = pwszCurDirBuf[4];
       } else {
          /* copy drive character */
-         wcsncpy((wchar_t *)szDrive, (LPCWSTR)pwszCurDirBuf, 2);  
+         szDrive[0] = pwszCurDirBuf[0];
       }
 
+      szDrive[1] = ':';
       szDrive[2] = 0;
-            
-      wcscat((wchar_t *)pwszBuf, szDrive);  
+
+      wcscat(pwszBuf, szDrive);
       nParseOffset +=2;
    }
 
@@ -280,41 +286,43 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    if (bAddCurrentPath) {
       /* the 1 add. character is for the eventually added backslash */
       dwBufCharsNeeded += dwCurDirPathSize+1; 
-      pwszBuf = check_pool_memory_size(pwszBuf, dwBufCharsNeeded*sizeof(wchar_t));
+      pwszBuf = (wchar_t *)check_pool_memory_size((POOLMEM *)pwszBuf, dwBufCharsNeeded*sizeof(wchar_t));
       /* get directory into own buffer as it may either return c:\... or \\?\C:\.... */
       
-      if (dwCurDirPathSize > 3 && wcsncmp((LPCWSTR)pwszCurDirBuf, L"\\\\?\\", 4) == 0) {
+      if (IsPathSeparator(pwszCurDirBuf[0]) && 
+          IsPathSeparator(pwszCurDirBuf[1]) && 
+          pwszCurDirBuf[2] == '?' && 
+          IsPathSeparator(pwszCurDirBuf[3])) {
          /* copy complete string */
-         wcscpy((wchar_t *)pwszBuf, (LPCWSTR)pwszCurDirBuf);          
+         wcscpy(pwszBuf, pwszCurDirBuf);
       } else {
          /* append path  */
-         wcscat((wchar_t *)pwszBuf, (LPCWSTR)pwszCurDirBuf);       
+         wcscat(pwszBuf, pwszCurDirBuf);
       }
 
       nParseOffset = wcslen((LPCWSTR) pwszBuf);
 
       /* check if path ends with backslash, if not, add one */
-      if (*((wchar_t *)pwszBuf+nParseOffset-1) != L'\\') {
-         wcscat((wchar_t *)pwszBuf, L"\\");
+      if (!IsPathSeparator(pwszBuf[nParseOffset-1])) {
+         wcscat(pwszBuf, L"\\");
          nParseOffset++;
-      }      
+      }
    }
 
-
-   wchar_t *win32_name = (wchar_t *)pwszBuf+nParseOffset;
+   wchar_t *win32_name = &pwszBuf[nParseOffset];
    wchar_t *name_start = name;
 
    while (*name) {
       /* Check for Unix separator and convert to Win32, eliminating 
        * duplicate separators.
        */
-      if (*name == '/' || *name == '\\') {
+      if (IsPathSeparator(*name)) {
          *win32_name++ = '\\';     /* convert char */
 
          /* Eliminate consecutive slashes, but not at the start so that 
           * \\.\ still works.
           */
-         if (name_start != name && (name[1] == '/' || name[1] == '\\')) {
+         if (name_start != name && IsPathSeparator(name[1])) {
             name++;
          }
       } else {
@@ -333,24 +341,26 @@ make_wchar_win32_path(POOLMEM *pszUCSPath, BOOL *pBIsRawPath /*= NULL*/)
    */ 
    if (g_pVSSPathConvertW != NULL) {
       /* is output buffer large enough? */
-      pwszBuf = check_pool_memory_size(pwszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
+      pwszBuf = (wchar_t *)check_pool_memory_size((POOLMEM *)pwszBuf, 
+                                                  (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
       /* create temp. buffer */
-      POOLMEM* pszBuf = get_pool_memory(PM_FNAME);
-      pszBuf = check_pool_memory_size(pszBuf, (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
+      wchar_t *pszBuf = (wchar_t *)get_pool_memory(PM_FNAME);
+      pszBuf = (wchar_t *)check_pool_memory_size((POOLMEM *)pszBuf, 
+                                                 (dwBufCharsNeeded+MAX_PATH)*sizeof(wchar_t));
       if (bAddPrefix)
          nParseOffset = 4;
       else
          nParseOffset = 0; 
-      wcsncpy((wchar_t *)pszBuf, (wchar_t *)pwszBuf+nParseOffset, wcslen((wchar_t *)pwszBuf)+1-nParseOffset);
-      g_pVSSPathConvertW((wchar_t *)pszBuf, (wchar_t *)pwszBuf, dwBufCharsNeeded+MAX_PATH);
-      free_pool_memory(pszBuf);
+      wcsncpy(pszBuf, &pwszBuf[nParseOffset], wcslen(pwszBuf)+1-nParseOffset);
+      g_pVSSPathConvertW(pszBuf, pwszBuf, dwBufCharsNeeded+MAX_PATH);
+      free_pool_memory((POOLMEM *)pszBuf);
    }   
 
    free_pool_memory(pszUCSPath);
-   free_pool_memory(pwszCurDirBuf);
+   free_pool_memory((POOLMEM *)pwszCurDirBuf);
 
    Dmsg1(100, "Leave wchar_win32_path=%s\n", pwszBuf);
-   return pwszBuf;
+   return (POOLMEM *)pwszBuf;
 }
 
 int
@@ -1589,7 +1599,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
    {
       if (*current == '.') {
          pExtension = current;
-      } else if ((*current == '\\' || *current == '/') && current[1] != '\0') {
+      } else if (IsPathSeparator(*current) && current[1] != '\0') {
          pBasename = &current[1];
          pExtension = NULL;
       }
@@ -2170,11 +2180,14 @@ file_read(int fd, void *data, ssize_t len)
     return -1;
 }
 
-off_t
-file_seek(int fd, off_t offset, int whence)
+boffset_t
+file_seek(int fd, boffset_t offset, int whence)
 {
     DWORD method = 0;
     DWORD val;
+    LONG  offset_low = (LONG)offset;
+    LONG  offset_high = (LONG)(offset >> 32);
+
     switch (whence) {
     case SEEK_SET :
         method = FILE_BEGIN;
@@ -2190,7 +2203,8 @@ file_seek(int fd, off_t offset, int whence)
         return -1;
     }
 
-    if ((val=SetFilePointer((HANDLE)fd, (DWORD)offset, NULL, method)) == INVALID_SET_FILE_POINTER) {
+
+    if ((val=SetFilePointer((HANDLE)fd, offset_low, &offset_high, method)) == INVALID_SET_FILE_POINTER) {
        errno = b_errno_win32;
        return -1;
     }

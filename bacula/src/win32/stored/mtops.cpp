@@ -189,7 +189,7 @@ tape_open(const char *file, int flags, int mode)
 
    memset(&TapeHandleTable[idxFile], 0, sizeof(TapeHandleTable[idxFile]));
 
-   if (file[0] != '\\' && file[0] != '/') {
+   if (!IsPathSeparator(file[0])) {
        bstrncpy(&szDeviceName[4], file, sizeof(szDeviceName) - 4);
    } else {
        bstrncpy(&szDeviceName[0], file, sizeof(szDeviceName));

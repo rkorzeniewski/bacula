@@ -199,7 +199,7 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
    len = strlen(p);
    /* Zap trailing slashes.  */
    p += len - 1;
-   while (p > inc->fname && *p == '/') {
+   while (p > inc->fname && IsPathSeparator(*p)) {
       *p-- = 0;
       len--;
    }
@@ -246,11 +246,7 @@ void add_fname_to_exclude_list(FF_PKT *ff, const char *fname)
 
    Dmsg1(20, "Add name to exclude: %s\n", fname);
 
-#if defined(HAVE_WIN32)
-   if (strchr(fname, '/') || strchr(fname, '\\')) {
-#else
-   if (strchr(fname, '/')) {
-#endif
+   if (first_path_separator(fname) != NULL) {
       list = &ff->excluded_paths_list;
    } else {
       list = &ff->excluded_files_list;
@@ -322,11 +318,11 @@ int file_is_included(FF_PKT *ff, const char *file)
       if (inc->len == len && strcmp(inc->fname, file) == 0) {
          return 1;
       }
-      if (inc->len < len && file[inc->len] == '/' &&
+      if (inc->len < len && IsPathSeparator(file[inc->len]) &&
           strncmp(inc->fname, file, inc->len) == 0) {
          return 1;
       }
-      if (inc->len == 1 && inc->fname[0] == '/') {
+      if (inc->len == 1 && IsPathSeparator(inc->fname[0])) {
          return 1;
       }
    }
@@ -382,7 +378,7 @@ int file_is_excluded(FF_PKT *ff, const char *file)
    /* Try each component */
    for (p = file; *p; p++) {
       /* Match from the beginning of a component only */
-      if ((p == file || (*p != '/' && *(p-1) == '/'))
+      if ((p == file || (!IsPathSeparator(*p) && IsPathSeparator(p[-1])))
            && file_in_excluded_list(ff->excluded_files_list, p)) {
          return 1;
       }

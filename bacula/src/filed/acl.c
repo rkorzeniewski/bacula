@@ -431,7 +431,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
    }
 
-   prgname = strrchr(argv[0], '/');
+   prgname = last_path_separator(argv[0]);
    if (prgname == NULL || *++prgname == '\0') {
       prgname = argv[0];
    }

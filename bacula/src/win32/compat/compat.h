@@ -67,16 +67,11 @@ typedef double float64_t;
 typedef long time_t;
 #endif
 
-#if __STDC__
-#if !defined(HAVE_MINGW)
+#if __STDC__ && !defined(HAVE_MINGW)
 typedef _dev_t dev_t;
 #if !defined(HAVE_WXCONSOLE)
 typedef __int64 ino_t;
-typedef __int64 off_t;          /* STDC=1 means we can define this */
 #endif
-#endif
-#else
-typedef long _off_t;            /* must be same as sys/types.h */
 #endif
 
 typedef UINT32 u_int32_t;
@@ -356,7 +351,7 @@ inline unsigned long ffs(unsigned long word)
       return 0;
 }
 
-#define ftruncate    _chsize
+#define ftruncate    _chsize_s
 #else
 #define  ffs   __builtin_ffs
 #endif

@@ -304,7 +304,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             be.set_errno(bfd->berrno);
 #ifdef HAVE_WIN32
             /* Check for trying to create a drive, if so, skip */
-            if (attr->ofname[1] == ':' && attr->ofname[2] == '/' && attr->ofname[3] == 0) {
+            if (attr->ofname[1] == ':' && 
+                IsPathSeparator(attr->ofname[2]) && 
+                attr->ofname[3] == '\0') {
                return CF_SKIP;
             }
 #endif
@@ -349,22 +351,22 @@ static int separate_path_and_file(JCR *jcr, char *fname, char *ofile)
    /* Separate pathname and filename */
    for (q=p=f=ofile; *p; p++) {
 #ifdef HAVE_WIN32
-      if (*p == '\\' || *p == '/') {
+      if (IsPathSeparator(*p)) {
          f = q;
-         if (p[1] == '\\' || p[1] == '/') {
+         if (IsPathSeparator(p[1])) {
             p++;
          }
       }
       *q++ = *p;                   /* copy data */
 #else
-      if (*p == '/') {
+      if (IsPathSeparator(*p)) {
          f = q;                    /* possible filename */
       }
       q++;
 #endif
    }
 
-   if (*f == '/') {
+   if (IsPathSeparator(*f)) {
       f++;
    }
    *q = 0;                         /* terminate string */

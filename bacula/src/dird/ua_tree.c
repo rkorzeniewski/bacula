@@ -174,8 +174,8 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
 
 // Dmsg4(000, "Path=%s%s FI=%s JobId=%s\n", row[0], row[1],
 //    row[2], row[3]);
-   if (*row[1] == 0) {                /* no filename => directory */
-      if (*row[0] != '/') {           /* Must be Win32 directory */
+   if (*row[1] == 0) {                 /* no filename => directory */
+      if (!IsPathSeparator(*row[0])) { /* Must be Win32 directory */
          type = TN_DIR_NLS;
       } else {
          type = TN_DIR;

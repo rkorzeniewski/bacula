@@ -64,7 +64,7 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
    
    len = strlen(mount_point);
    if (len > 0) {
-      need_slash = mount_point[len - 1] != '/';
+      need_slash = !IsPathSeparator(mount_point[len - 1]);
    }
    entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
    for ( ;; ) {

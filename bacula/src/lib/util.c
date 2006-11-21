@@ -700,3 +700,16 @@ void set_working_directory(char *wd)
    }
    working_directory = wd;            /* set global */
 }
+
+const char *last_path_separator(const char *str)
+{
+   if (*str != '\0') {
+      for (const char *p = &str[strlen(str) - 1]; p >= str; p--) {
+         if (IsPathSeparator(*p)) {
+            return p;
+         }
+      }
+   }
+   return NULL;
+}
+

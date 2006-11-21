@@ -1042,7 +1042,7 @@ reread:
          }
       } else {
          Dmsg0(200, "Seek to beginning of block for reread.\n");
-         off_t pos = dev->lseek(dcr, (off_t)0, SEEK_CUR); /* get curr pos */
+         boffset_t pos = dev->lseek(dcr, (boffset_t)0, SEEK_CUR); /* get curr pos */
          pos -= block->read_len;
          dev->lseek(dcr, pos, SEEK_SET);
          dev->file_addr = pos;
@@ -1114,7 +1114,7 @@ reread:
    Dmsg0(200, "At end of read block\n");
    if (block->read_len > block->block_len && !dev->is_tape()) {
       char ed1[50];
-      off_t pos = dev->lseek(dcr, (off_t)0, SEEK_CUR); /* get curr pos */
+      boffset_t pos = dev->lseek(dcr, (boffset_t)0, SEEK_CUR); /* get curr pos */
       Dmsg1(200, "Current lseek pos=%s\n", edit_int64(pos, ed1));
       pos -= (block->read_len - block->block_len);
       dev->lseek(dcr, pos, SEEK_SET);
