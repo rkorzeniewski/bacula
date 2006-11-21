@@ -79,7 +79,7 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Nb montage", "Nb recyclage", "Temps de lecture", "Temps d'écriture", "Erreurs");
+var header = new Array( "Nb montages", "Nb recyclages", "Temps de lecture", "Temps d'écriture", "Erreurs");
 
 var data = new Array();
 data.push( new Array(
