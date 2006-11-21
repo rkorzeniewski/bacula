@@ -88,7 +88,7 @@ extern URES res_all;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-%s Kern Sibbald.\n"
+PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
