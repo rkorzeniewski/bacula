@@ -324,7 +324,13 @@ typedef int (INTHANDLER)();
 #define MODE_RW 0666
 #endif
 
-#ifdef DEBUG_MUTEX
+#if defined(HAVE_WIN32)
+typedef int64_t   boffset_t;
+#else
+typedef off_t     boffset_t;
+#endif
+
+#if defined(DEBUG_MUTEX)
 extern void _p(char *file, int line, pthread_mutex_t *m);
 extern void _v(char *file, int line, pthread_mutex_t *m);
 
@@ -538,7 +544,7 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #define REPLACE_NEVER    'n'
 #define REPLACE_IFOLDER  'o'
 
-/* This probably should be done on a machine by machine basic, but it works */
+/* This probably should be done on a machine by machine basis, but it works */
 /* This is critical for the smartalloc routines to properly align memory */
 #define ALIGN_SIZE (sizeof(double))
 #define BALIGN(x) (((x) + ALIGN_SIZE - 1) & ~(ALIGN_SIZE -1))
@@ -595,14 +601,24 @@ extern "C" int mknod ( const char *path, int mode, dev_t device );
 #endif
 
 
+#if defined(HAVE_WIN32)
+#define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
+
+inline bool IsPathSeparator(int ch) { return ch == '/' || ch == '\\'; }
+inline char *first_path_separator(char *path) { return strpbrk(path, ":/\\"); }
+inline const char *first_path_separator(const char *path) { return strpbrk(path, ":/\\"); }
+
+#else
 /* Define Winsock functions if we aren't on Windows */
-#if !defined HAVE_WIN32
+
 #define WSA_Init() 0 /* 0 = success */
 #define WSACleanup() 0 /* 0 = success */
+
+inline bool IsPathSeparator(int ch) { return ch == '/'; }
+inline char *first_path_separator(char *path) { return strchr(path, '/'); }
+inline const char *first_path_separator(const char *path) { return strchr(path, '/'); }
 #endif
 
-#ifdef HAVE_AIX_OS
-#endif
 
 /* HP-UX 11 specific workarounds */
 
@@ -624,12 +640,6 @@ extern "C" int setdomainname(char *name, int namelen);
 #undef HAVE_CHFLAGS  /* chflags is incorrectly detected */
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
-#endif
-
-
-/* Added by KES to deal with Win32 systems */
-#ifndef S_ISWIN32
-#define S_ISWIN32 020000
 #endif
 
 

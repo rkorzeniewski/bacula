@@ -1035,7 +1035,7 @@ static void repair_bad_filenames()
             printf("%s\n", db_strerror(db));
          }
          /* Strip trailing slash(es) */
-         for (len=strlen(name); len > 0 && name[len-1]=='/'; len--)
+         for (len=strlen(name); len > 0 && IsPathSeparator(name[len-1]); len--)
             {  }
          if (len == 0) {
             len = 1;

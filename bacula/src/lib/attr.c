@@ -121,11 +121,11 @@ static void strip_double_slashes(char *fname)
 {
    char *p = fname;
    while (p && *p) {
-      p = strchr(p, '/');
-      if (p && p[1] == '/') {
-         strcpy(p, p+1);
-      }      
-      if (p) {
+      p = strpbrk(p, "/\\");
+      if (p != NULL) {
+         if (IsPathSeparator(p[1])) {
+            strcpy(p, p+1);
+         }
          p++;
       }
    }
@@ -162,7 +162,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 #endif
       fn = attr->fname;            /* take whole name */
       /* Ensure where is terminated with a slash */
-      if (jcr->where[wherelen-1] != '/' && fn[0] != '/') {
+      if (!IsPathSeparator(jcr->where[wherelen-1]) && !IsPathSeparator(fn[0])) {
          pm_strcat(attr->ofname, "/");
       }
       pm_strcat(attr->ofname, fn); /* copy rest of name */
@@ -174,7 +174,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
          /* Always add prefix to hard links (FT_LNKSAVED) and
           *  on user request to soft links
           */
-         if (attr->lname[0] == '/' &&
+         if (IsPathSeparator(attr->lname[0]) &&
              (attr->type == FT_LNKSAVED || jcr->prefix_links)) {
             pm_strcpy(attr->olname, jcr->where);
             add_link = true;
@@ -190,15 +190,17 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
 #endif
          fn = attr->lname;       /* take whole name */
          /* Ensure where is terminated with a slash */
-         if (add_link && jcr->where[wherelen-1] != '/' && fn[0] != '/') {
+         if (add_link && 
+            !IsPathSeparator(jcr->where[wherelen-1]) && 
+            !IsPathSeparator(fn[0])) {
             pm_strcat(attr->olname, "/");
          }
          pm_strcat(attr->olname, fn);     /* copy rest of link */
       }
    }
 #if defined(HAVE_WIN32)
-      strip_double_slashes(attr->ofname);
-      strip_double_slashes(attr->olname);
+   strip_double_slashes(attr->ofname);
+   strip_double_slashes(attr->olname);
 #endif
 }
 

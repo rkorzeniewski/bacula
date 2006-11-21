@@ -191,7 +191,7 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
     */
    if (path_len > 0) {
       q = path + path_len - 1;
-      if (*q == '/') {
+      if (IsPathSeparator(*q)) {
          *q = 0;                      /* strip trailing slash */
       } else {
          q = NULL;                    /* no trailing slash */
@@ -201,10 +201,10 @@ TREE_NODE *insert_tree_node(char *path, char *fname, int type,
    }
    /* If no filename, strip last component of path as "filename" */
    if (*fname == 0) {
-      p = strrchr(path, '/');         /* separate path and filename */
+      p = (char *)last_path_separator(path);  /* separate path and filename */
       if (p) {
          fname = p + 1;               /* set new filename */
-         *p = 0;                      /* terminate new path */
+         *p = '\0';                   /* terminate new path */
       }
    } else {
       p = NULL;
@@ -258,7 +258,7 @@ TREE_NODE *make_tree_path(char *path, TREE_ROOT *root)
       Dmsg0(100, "make_tree_path: parent=*root*\n");
       return (TREE_NODE *)root;
    }
-   p = strrchr(path, '/');           /* get last dir component of path */
+   p = (char *)last_path_separator(path);           /* get last dir component of path */
    if (p) {
       fname = p + 1;
       *p = 0;                         /* terminate path */
@@ -332,15 +332,15 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
     *    there is only a / in the buffer, remove it since
     *    win32 names don't generally start with /
     */
-   if (node->type == TN_DIR_NLS && buf[0] == '/' && buf[1] == 0) {
-      buf[0] = 0;
+   if (node->type == TN_DIR_NLS && IsPathSeparator(buf[0]) && buf[1] == '\0') {
+      buf[0] = '\0';
    }
    bstrncat(buf, node->fname, buf_size);
    /* Add a slash for all directories unless we are at the root,
     *  also add a slash to a soft linked file if it has children
     *  i.e. it is linked to a directory.
     */
-   if ((node->type != TN_FILE && !(buf[0] == '/' && buf[1] == 0)) ||
+   if ((node->type != TN_FILE && !(IsPathSeparator(buf[0]) && buf[1] == '\0')) ||
        (node->soft_link && tree_node_has_child(node))) {
       bstrncat(buf, "/", buf_size);
    }
@@ -364,7 +364,7 @@ TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node)
          return tree_cwd(path+3, root, parent);
       }
    }
-   if (path[0] == '/') {
+   if (IsPathSeparator(path[0])) {
       Dmsg0(100, "Doing absolute lookup.\n");
       return tree_relcwd(path+1, root, (TREE_NODE *)root);
    }
@@ -386,8 +386,7 @@ TREE_NODE *tree_relcwd(char *path, TREE_ROOT *root, TREE_NODE *node)
       return node;
    }
    /* Check the current segment only */
-   p = strchr(path, '/');
-   if (p) {
+   if ((p = first_path_separator(path)) != NULL) {
       len = p - path;
    } else {
       len = strlen(path);

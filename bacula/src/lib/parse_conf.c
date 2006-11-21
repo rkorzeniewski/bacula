@@ -929,8 +929,6 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 const char *get_default_configdir()
 {
 #if defined(HAVE_WIN32)
-#define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
-
    HRESULT hr;
    static char szConfigDir[MAX_PATH + 1] = { 0 };
 
@@ -952,15 +950,9 @@ const char *get_default_configdir()
 bool
 find_config_file(const char *config_file, char *full_path)
 {
-#if defined(HAVE_WIN32)
-   if (strpbrk(config_file, ":/\\") != NULL) {
+   if (first_path_separator(config_file) != NULL) {
       return false;
    }
-#else
-   if (strchr(config_file, '/') != NULL) {
-      return false;
-   }
-#endif
 
    struct stat st;
 
@@ -978,8 +970,7 @@ find_config_file(const char *config_file, char *full_path)
 
    memcpy(full_path, config_dir, dir_length + 1);
 
-   if (full_path[dir_length - 1] != '/' && 
-       full_path[dir_length - 1] != '\\') {
+   if (!IsPathSeparator(full_path[dir_length - 1])) {
       full_path[dir_length++] = '/';
    }
 

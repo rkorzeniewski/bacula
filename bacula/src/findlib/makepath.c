@@ -137,9 +137,9 @@ int
 isAbsolute(const char *path)
 {
 #if defined(HAVE_WIN32)
-    return path[1] == ':' || *path == '/' || *path == '\\';     /* drivespec:/blah is absolute */
+    return path[1] == ':' || IsPathSeparator(*path);     /* drivespec:/blah is absolute */
 #else
-    return *path == '/';
+    return IsPathSeparator(*path);
 #endif
 }
 
@@ -255,31 +255,19 @@ make_path(
       }
 
       /* Skip over leading slashes.  */
-#if defined(HAVE_WIN32)
-      while (*slash == '/' || *slash == '\\')
+      while (IsPathSeparator(*slash))
          slash++;
-#else
-      while (*slash == '/')
-         slash++;
-#endif
-      while (1) {
+
+      for ( ; ; ) {
           int newly_created_dir;
           int fail;
 
           /* slash points to the leftmost unprocessed component of dirpath.  */
           basename_dir = slash;
-
-#if defined(HAVE_WIN32)
-          slash = strpbrk(slash, ":/\\");
+          slash = first_path_separator(slash);
           if (slash == NULL) {
              break;
           }
-#else
-          slash = strchr (slash, '/');
-          if (slash == NULL) {
-             break;
-          }
-#endif
 
           /* If we're *not* doing chdir before each mkdir, then we have to refer
              to the target using the full (multi-component) directory name.  */
@@ -338,13 +326,8 @@ make_path(
 
           /* Avoid unnecessary calls to `stat' when given
              pathnames containing multiple adjacent slashes.  */
-#if defined(HAVE_WIN32)
-         while (*slash == '/' || *slash == '\\')
+         while (IsPathSeparator(*slash))
             slash++;
-#else
-         while (*slash == '/')
-            slash++;
-#endif
       } /* end while (1) */
 
       if (!cwd.do_chdir) {

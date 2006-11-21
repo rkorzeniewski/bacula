@@ -907,7 +907,7 @@ try_again:
             free(jcr->where);
             jcr->where = NULL;
          }
-         if (ua->cmd[0] == '/' && ua->cmd[1] == 0) {
+         if (IsPathSeparator(ua->cmd[0]) && ua->cmd[1] == '\0') {
             ua->cmd[0] = 0;
          }
          jcr->where = bstrdup(ua->cmd);

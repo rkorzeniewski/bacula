@@ -140,9 +140,9 @@ static DCR *setup_to_access_device(JCR *jcr, char *dev_name,
          /* Try stripping file part */
          p = dev_name + strlen(dev_name);
 
-         while (p >= dev_name && *p != '/')
+         while (p >= dev_name && !IsPathSeparator(*p))
             p--;
-         if (*p == '/') {
+         if (IsPathSeparator(*p)) {
             bstrncpy(VolName, p+1, sizeof(VolName));
             *p = 0;
          }

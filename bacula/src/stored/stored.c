@@ -424,11 +424,7 @@ static void cleanup_old_files()
    pm_strcpy(cleanup, "/bin/rm -f ");
 #endif
    pm_strcat(cleanup, me->working_directory);
-   if (len > 0 && me->working_directory[len-1] != '/'
-#if defined(HAVE_WIN32)
-       && me->working_directory[len-1] != '\\'
-#endif
-       ) {
+   if (len > 0 && !IsPathSeparator(me->working_directory[len-1])) {
       pm_strcat(cleanup, "/");
    }
    pm_strcat(cleanup, my_name);

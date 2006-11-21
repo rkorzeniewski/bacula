@@ -335,7 +335,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
 
    /* This is not a link to a previously dumped file, so dump it.  */
    if (S_ISREG(ff_pkt->statp.st_mode)) {
-      off_t sizeleft;
+      boffset_t sizeleft;
 
       sizeleft = ff_pkt->statp.st_size;
 
@@ -416,7 +416,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       link = (char *)bmalloc(link_len + 2);
       bstrncpy(link, fname, link_len);
       /* Strip all trailing slashes */
-      while (len >= 1 && link[len - 1] == '/')
+      while (len >= 1 && IsPathSeparator(link[len - 1]))
         len--;
       link[len++] = '/';             /* add back one */
       link[len] = 0;

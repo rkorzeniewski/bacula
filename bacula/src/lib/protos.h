@@ -311,8 +311,9 @@ const char *     job_type_to_str         (int type);
 const char *     job_status_to_str       (int stat);
 const char *     job_level_to_str        (int level);
 void             make_session_key        (char *key, char *seed, int mode);
-POOLMEM         *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to);
-void             set_working_directory(char *wd);
+POOLMEM *        edit_job_codes          (JCR *jcr, char *omsg, char *imsg, const char *to);
+void             set_working_directory   (char *wd);
+const char *     last_path_separator     (const char *str);
 
 
 /* watchdog.c */

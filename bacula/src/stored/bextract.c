@@ -339,7 +339,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             unser_uint64(faddr);
             if (fileAddr != faddr) {
                fileAddr = faddr;
-               if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+               if (blseek(&bfd, (boffset_t)fileAddr, SEEK_SET) < 0) {
                   berrno be;
                   Emsg2(M_ERROR_TERM, 0, _("Seek error on %s: %s\n"),
                      attr->ofname, be.strerror());
@@ -379,7 +379,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             unser_uint64(faddr);
             if (fileAddr != faddr) {
                fileAddr = faddr;
-               if (blseek(&bfd, (off_t)fileAddr, SEEK_SET) < 0) {
+               if (blseek(&bfd, (boffset_t)fileAddr, SEEK_SET) < 0) {
                   berrno be;
                   Emsg3(M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
                      edit_uint64(fileAddr, ec1), attr->ofname, be.strerror());

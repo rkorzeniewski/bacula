@@ -462,7 +462,12 @@ static bool write_spool_header(DCR *dcr)
       if (stat != (ssize_t)sizeof(hdr)) {
          /* If we wrote something, truncate it, then despool */
          if (stat != -1) {
-            if (ftruncate(dcr->spool_fd, lseek(dcr->spool_fd, (off_t)0, SEEK_CUR) - stat) != 0) {
+#if defined(HAVE_WIN32)
+            boffset_t   pos = _lseeki64(dcr->spool_fd, (__int64)0, SEEK_CUR);
+#else
+            boffset_t   pos = lseek(dcr->spool_fd, (off_t)0, SEEK_CUR);
+#endif
+            if (ftruncate(dcr->spool_fd, pos - stat) != 0) {
                berrno be;
                Jmsg(dcr->jcr, M_FATAL, 0, _("Ftruncate spool file failed: ERR=%s\n"),
                   be.strerror());
@@ -499,8 +504,12 @@ static bool write_spool_data(DCR *dcr)
           * If we wrote something, truncate it and the header, then despool
           */
          if (stat != -1) {
-            if (ftruncate(dcr->spool_fd, lseek(dcr->spool_fd, (off_t)0, SEEK_CUR)
-                      - stat - sizeof(spool_hdr)) != 0) {
+#if defined(HAVE_WIN32)
+            boffset_t   pos = _lseeki64(dcr->spool_fd, (__int64)0, SEEK_CUR);
+#else
+            boffset_t   pos = lseek(dcr->spool_fd, (off_t)0, SEEK_CUR);
+#endif
+            if (ftruncate(dcr->spool_fd, pos - stat - sizeof(spool_hdr)) != 0) {
                berrno be;
                Jmsg(dcr->jcr, M_FATAL, 0, _("Ftruncate spool file failed: ERR=%s\n"),
                   be.strerror());

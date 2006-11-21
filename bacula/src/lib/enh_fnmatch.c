@@ -42,10 +42,10 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
         case '?':
           if (*n == '\0')
             return 0;
-          else if ((flags & FNM_FILE_NAME) && *n == '/')
+          else if ((flags & FNM_FILE_NAME) && IsPathSeparator(*n))
             return 0;
           else if ((flags & FNM_PERIOD) && *n == '.' &&
-                   (n == string || ((flags & FNM_FILE_NAME) && n[-1] == '/')))
+                   (n == string || ((flags & FNM_FILE_NAME) && IsPathSeparator(n[-1]))))
             return 0;
           break;
 
@@ -65,7 +65,7 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
 
         case '*':
           if ((flags & FNM_PERIOD) && *n == '.' &&
-              (n == string || ((flags & FNM_FILE_NAME) && n[-1] == '/')))
+              (n == string || ((flags & FNM_FILE_NAME) && IsPathSeparator(n[-1]))))
             return FNM_NOMATCH;
 
           if ((p - pattern) >= patternlen)
@@ -73,7 +73,7 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
 
           for (c = *p++; ((p - pattern) <= patternlen) && (c == '?' || c == '*'); c = *p++)
             {
-              if ((flags & FNM_FILE_NAME) && *n == '/')
+              if ((flags & FNM_FILE_NAME) && IsPathSeparator(*n))
                 /* A slash does not match a wildcard under FNM_FILE_NAME.  */
                 return 0;
               else if (c == '?')
@@ -109,7 +109,7 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
                   }
                 else
                   {
-                    if ((flags & FNM_FILE_NAME) && *n == '/')
+                    if ((flags & FNM_FILE_NAME) && IsPathSeparator(*n))
                       return 0;    /* A slash does not match a wildcard under FNM_FILE_NAME.  */
                   }
 
@@ -179,7 +179,7 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
               return 0;
 
             if ((flags & FNM_PERIOD) && *n == '.' &&
-                (n == string || ((flags & FNM_FILE_NAME) && n[-1] == '/')))
+                (n == string || ((flags & FNM_FILE_NAME) && IsPathSeparator(n[-1]))))
               return 0;
 
             nnot = (*p == '!' || *p == '^');
@@ -205,7 +205,7 @@ enh_fnmatch_sub(const char *pattern, const char *string, int patternlen, int fla
                 c = *p++;
                 c = FOLD (c);
 
-                if ((flags & FNM_FILE_NAME) && c == '/')
+                if ((flags & FNM_FILE_NAME) && IsPathSeparator(c))
                   /* [/] can never match.  */
                   return 0;
 
@@ -277,7 +277,7 @@ enh_fnmatch(const char *pattern, const char *string, int flags)
   if (string[matchlen] == '\0')
     return 0;
 
-  if ((flags & FNM_LEADING_DIR) && string[matchlen] == '/')
+  if ((flags & FNM_LEADING_DIR) && IsPathSeparator(string[matchlen]))
     /* The FNM_LEADING_DIR flag says that "foo*" matches "foobar/frobozz".  */
     return 0;
 

@@ -105,11 +105,11 @@ void my_name_is(int argc, char *argv[], const char *name)
    if (argc>0 && argv && argv[0]) {
       /* strip trailing filename and save exepath */
       for (l=p=argv[0]; *p; p++) {
-         if (*p == '/') {
+         if (IsPathSeparator(*p)) {
             l = p;                       /* set pos of last slash */
          }
       }
-      if (*l == '/') {
+      if (IsPathSeparator(*l)) {
          l++;
       } else {
          l = argv[0];
@@ -135,7 +135,7 @@ void my_name_is(int argc, char *argv[], const char *name)
          *q++ = *p++;
       }
       *q = 0;
-      if (strchr(exepath, '.') || exepath[0] != '/') {
+      if (strchr(exepath, '.') || !IsPathSeparator(exepath[0])) {
          if (getcwd(cpath, sizeof(cpath))) {
             free(exepath);
             exepath = (char *)malloc(strlen(cpath) + 1 + len);

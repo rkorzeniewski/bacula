@@ -387,11 +387,11 @@ void split_path_and_file(JCR *jcr, B_DB *mdb, const char *fname)
     * must be a path name (e.g. c:).
     */
    for (p=f=fname; *p; p++) {
-      if (*p == '/') {
+      if (IsPathSeparator(*p)) {
          f = p;                       /* set pos of last slash */
       }
    }
-   if (*f == '/') {                   /* did we find a slash? */
+   if (IsPathSeparator(*f)) {                   /* did we find a slash? */
       f++;                            /* yes, point to filename */
    } else {                           /* no, whole thing must be path name */
       f = p;

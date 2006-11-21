@@ -112,12 +112,12 @@ extern "C" void signal_handler(int sig)
          bstrncpy(btpath, "btraceback", sizeof(btpath));
       } else {
          bstrncpy(btpath, exepath, sizeof(btpath));
-         if (btpath[exelen-1] == '/') {
+         if (IsPathSeparator(btpath[exelen-1])) {
             btpath[exelen-1] = 0;
          }
          bstrncat(btpath, "/btraceback", sizeof(btpath));
       }
-      if (exepath[exelen-1] != '/') {
+      if (!IsPathSeparator(exepath[exelen - 1])) {
          strcat(exepath, "/");
       }
       strcat(exepath, exename);

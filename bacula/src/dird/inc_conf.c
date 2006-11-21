@@ -508,7 +508,7 @@ static void store_wild(LEX *lc, RES_ITEM *item, int index, int pass)
             res_incexe.current_opts->wilddir.append(bstrdup(lc->str));
             newsize = res_incexe.current_opts->wilddir.size();
          } else if (item->code == 2) {
-            if (strchr(lc->str, '/') != NULL) {
+            if (strpbrk(lc->str, "/\\") != NULL) {
                type = "wildfile";
                res_incexe.current_opts->wildfile.append(bstrdup(lc->str));
                newsize = res_incexe.current_opts->wildfile.size();

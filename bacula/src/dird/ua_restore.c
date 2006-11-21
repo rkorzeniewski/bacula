@@ -613,7 +613,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
                break;
             }
             /* Add trailing slash to end of directory names */
-            if (ua->cmd[0] != '<' && ua->cmd[len-1] != '/') {
+            if (ua->cmd[0] != '<' && !IsPathSeparator(ua->cmd[len-1])) {
                strcat(ua->cmd, "/");
             }
             insert_one_file_or_dir(ua, rx, date, true);
@@ -825,11 +825,11 @@ static void split_path_and_filename(RESTORE_CTX *rx, char *name)
     * must be a path name (e.g. c:).
     */
    for (p=f=name; *p; p++) {
-      if (*p == '/') {
+      if (IsPathSeparator(*p)) {
          f = p;                       /* set pos of last slash */
       }
    }
-   if (*f == '/') {                   /* did we find a slash? */
+   if (IsPathSeparator(*f)) {         /* did we find a slash? */
       f++;                            /* yes, point to filename */
    } else {                           /* no, whole thing must be path name */
       f = p;

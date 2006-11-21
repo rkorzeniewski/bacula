@@ -133,7 +133,7 @@ int     bopen_rsrc(BFILE *bfd, const char *fname, int flags, mode_t mode);
 int     bclose(BFILE *bfd);
 ssize_t bread(BFILE *bfd, void *buf, size_t count);
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count);
-off_t   blseek(BFILE *bfd, off_t offset, int whence);
+boffset_t blseek(BFILE *bfd, boffset_t offset, int whence);
 const char   *stream_to_ascii(int stream);
 
 bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize);

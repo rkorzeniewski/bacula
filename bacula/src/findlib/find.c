@@ -200,7 +200,7 @@ static bool accept_file(FF_PKT *ff)
 
    if (ff->flags & FO_ENHANCEDWILD) {
       match_func = enh_fnmatch;
-      if ((basename = strrchr(ff->fname, '/')) != NULL)
+      if ((basename = last_path_separator(ff->fname)) != NULL)
          basename++;
       else
          basename = ff->fname;
@@ -209,7 +209,7 @@ static bool accept_file(FF_PKT *ff)
       basename = ff->fname;
    }
 
-   for (j=0; j<incexe->opts_list.size(); j++) {
+   for (j = 0; j < incexe->opts_list.size(); j++) {
       findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
       ff->flags = fo->flags;
       ff->GZIP_level = fo->GZIP_level;

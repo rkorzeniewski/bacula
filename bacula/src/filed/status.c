@@ -117,8 +117,8 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
          edit_uint64_with_commas(sm_buffers, b3),
          edit_uint64_with_commas(sm_max_buffers, b4));
    sendit(msg, len, arg);
-   len = Mmsg(msg, _(" Sizeof: off_t=%d size_t=%d debug=%d trace=%d\n"),
-         sizeof(off_t), sizeof(size_t), debug_level, get_trace());
+   len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
+         sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());
    sendit(msg, len, arg);
 
    /*

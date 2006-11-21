@@ -148,7 +148,7 @@ void int32_LE2BE(int32_t* pBE, const int32_t v)
 
 
 bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
-{   
+{
    /* pByte contains the buffer 
       dwSize the len to be processed.  function assumes to be
       called in successive incremental order over the complete
@@ -165,12 +165,11 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
     */
    int32_t dwSizeHeader = 20; 
 
-   do {               
-      if (pContext->liNextHeader >= dwSize) {                        
+   do {
+      if (pContext->liNextHeader >= dwSize) {
          dwDataLen = dwSize-dwDataOffset;
          bContinue = false; /* 1 iteration is enough */
-      }
-      else {                        
+      } else {
          dwDataLen = pContext->liNextHeader-dwDataOffset;
          bContinue = true; /* multiple iterations may be necessary */
       }
@@ -179,34 +178,34 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
       /* copy block of real DATA */
       if (pContext->bIsInData) {
          if (bwrite(bfd, ((char *)pBuffer)+dwDataOffset, dwDataLen) != (ssize_t)dwDataLen)
-            return false;         
+            return false;
       }
 
       if (pContext->liNextHeader < dwSize) {/* is a header in this block ? */
          int32_t dwOffsetTarget;
          int32_t dwOffsetSource;
-            
+
          if (pContext->liNextHeader < 0) {
             /* start of header was before this block, so we
              * continue with the part in the current block 
              */
-            dwOffsetTarget = -pContext->liNextHeader;        
-            dwOffsetSource = 0;                            
+            dwOffsetTarget = -pContext->liNextHeader;
+            dwOffsetSource = 0;
          } else {
             /* start of header is inside of this block */
             dwOffsetTarget = 0;
-            dwOffsetSource = pContext->liNextHeader;                        
+            dwOffsetSource = pContext->liNextHeader;
          }
 
          int32_t dwHeaderPartLen = dwSizeHeader-dwOffsetTarget;
          bool bHeaderIsComplete;
 
-         if (dwHeaderPartLen <= dwSize-dwOffsetSource) 
+         if (dwHeaderPartLen <= dwSize-dwOffsetSource) {
             /* header (or rest of header) is completely available
                in current block 
              */
             bHeaderIsComplete = true;
-         else  {
+         } else {
             /* header will continue in next block */
             bHeaderIsComplete = false;
             dwHeaderPartLen = dwSize-dwOffsetSource;
@@ -221,22 +220,21 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
             int32_t dwNameSize; 
             int32_LE2BE (&dwNameSize, pContext->header_stream.dwStreamNameSize);
             dwDataOffset = dwNameSize+pContext->liNextHeader+dwSizeHeader;
-            
+
             /* convert stream size (64 bit little endian) to machine type */
             int64_LE2BE (&(pContext->liNextHeader), pContext->header_stream.Size);
             pContext->liNextHeader += dwDataOffset;
 
             pContext->bIsInData = pContext->header_stream.dwStreamId == WIN32_BACKUP_DATA;
             if (dwDataOffset == dwSize)
-                  bContinue = false;
-         }
-         else {
+               bContinue = false;
+         } else {
             /* stop and continue with next block */
             bContinue = false;
             pContext->bIsInData = false;
          }
-      }                
-   } while (bContinue);    
+      }
+   } while (bContinue);
 
    /* set "NextHeader" relative to the beginning of the next block */
    pContext->liNextHeader-= dwSize;
@@ -257,7 +255,6 @@ bool processWin32BackupAPIBlock (BFILE *bfd, void *pBuffer, ssize_t dwSize)
 
 void unix_name_to_win32(POOLMEM **win32_name, char *name);
 extern "C" HANDLE get_osfhandle(int fd);
-
 
 
 void binit(BFILE *bfd)
@@ -307,7 +304,6 @@ bool have_win32_api()
 {
    return p_BackupRead && p_BackupWrite;
 }
-
 
 
 /*
@@ -385,7 +381,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    if (!(p_CreateFileA || p_CreateFileW))
       return 0;
 
-   if (p_CreateFileW && p_MultiByteToWideChar)               
+   if (p_CreateFileW && p_MultiByteToWideChar)
       make_win32_path_UTF8_2_wchar(&win32_fname_wchar, fname);
 
    if (flags & O_CREAT) {             /* Create */
@@ -620,10 +616,19 @@ bool is_bopen(BFILE *bfd)
    return bfd->mode != BF_CLOSED;
 }
 
-off_t blseek(BFILE *bfd, off_t offset, int whence)
+boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
 {
-   /* ****FIXME**** this must be implemented if we want to read Win32 Archives */
-   return -1;
+   LONG  offset_low = (LONG)offset;
+   LONG  offset_high = (LONG)(offset >> 32);
+   DWORD dwResult;
+
+   dwResult = SetFilePointer(bfd->fh, offset_low, &offset_high, whence);
+
+   if (dwResult == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR) {
+      return (boffset_t)-1;
+   }
+
+   return ((boffset_t)offset_high << 32) | dwResult;
 }
 
 #else  /* Unix systems */
@@ -854,10 +859,10 @@ bool is_bopen(BFILE *bfd)
    return bfd->fid >= 0;
 }
 
-off_t blseek(BFILE *bfd, off_t offset, int whence)
+boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
 {
-    off_t pos;
-    pos = lseek(bfd->fid, offset, whence);
+    boffset_t pos;
+    pos = (boffset_t)lseek(bfd->fid, (off_t)offset, whence);
     bfd->berrno = errno;
     return pos;
 }

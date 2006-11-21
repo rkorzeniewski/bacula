@@ -52,7 +52,7 @@ static void add_file_and_part_name(DEVICE *dev, POOL_MEM &archive_name)
 {
    char partnumber[20];
 
-   if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
+   if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
       pm_strcat(archive_name, "/");
    }
 
@@ -416,10 +416,10 @@ static bool dvd_open_first_part(DCR *dcr, int mode)
 /* 
  * Do an lseek on a DVD handling all the different parts
  */
-off_t lseek_dvd(DCR *dcr, off_t offset, int whence)
+boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
 {
    DEVICE *dev = dcr->dev;
-   off_t pos;
+   boffset_t pos;
    char ed1[50], ed2[50];
    
    Dmsg5(400, "Enter lseek_dvd fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd,
@@ -433,7 +433,12 @@ off_t lseek_dvd(DCR *dcr, off_t offset, int whence)
          if ((uint64_t)offset == dev->part_start || 
              (uint64_t)offset < dev->part_start+dev->part_size) {
             /* We are staying in the current part, just seek */
-            if ((pos = lseek(dev->fd, offset-dev->part_start, SEEK_SET)) < 0) {
+#if defined(HAVE_WIN32)
+            pos = _lseeki64(dev->fd, offset-dev->part_start, SEEK_SET);
+#else
+            pos = lseek(dev->fd, offset-dev->part_start, SEEK_SET);
+#endif
+            if (pos < 0) {
                return pos;
             } else {
                return pos + dev->part_start;
@@ -721,7 +726,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
             /* Found a file, checking it is empty */
             POOL_MEM filename(PM_FNAME);
             pm_strcpy(filename, dev->device->mount_point);
-            if (filename.c_str()[strlen(filename.c_str())-1] != '/') {
+            if (!IsPathSeparator(filename.c_str()[strlen(filename.c_str())-1])) {
                pm_strcat(filename, "/");
             }
             pm_strcat(filename, result->d_name);

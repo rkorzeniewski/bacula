@@ -338,11 +338,11 @@ static void count_files(FF_PKT *ar)
     * must be a path name (e.g. c:).
     */
    for (p=l=ar->fname; *p; p++) {
-      if (*p == '/') {
+      if (IsPathSeparator(*p)) {
          l = p;                       /* set pos of last slash */
       }
    }
-   if (*l == '/') {                   /* did we find a slash? */
+   if (IsPathSeparator(*l)) {                   /* did we find a slash? */
       l++;                            /* yes, point to filename */
    } else {                           /* no, whole thing must be path name */
       l = p;

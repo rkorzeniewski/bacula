@@ -106,7 +106,7 @@ void    make_spooled_dvd_filename(DEVICE *dev, POOL_MEM &archive_name);
 bool    truncate_dvd(DCR *dcr);
 bool    check_can_write_on_non_blank_dvd(DCR *dcr);
 int     find_num_dvd_parts(DCR *dcr);
-off_t   lseek_dvd(DCR *dcr, off_t offset, int whence);
+boffset_t   lseek_dvd(DCR *dcr, boffset_t offset, int whence);
 void    dvd_remove_empty_part(DCR *dcr);
 
 /* From device.c */

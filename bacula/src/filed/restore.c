@@ -56,10 +56,10 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint3
  * Close a bfd check that we are at the expected file offset.
  * Makes some code in set_attributes().
  */
-int bclose_chksize(JCR *jcr, BFILE *bfd, off_t osize)
+int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
 {
    char ec1[50], ec2[50];
-   off_t fsize;
+   boffset_t fsize;
 
    fsize = blseek(bfd, 0, SEEK_CUR);
    bclose(bfd);                              /* first close file */
@@ -808,6 +808,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
    if (flags & FO_ENCRYPT) {
       ASSERT(cipher);
+      unser_declare;
 
       while (jcr->crypto_size > 0 && jcr->crypto_count > 0 && wsize > 0) {
          uint32_t chunk_size = 16;
@@ -892,7 +893,9 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       jcr->crypto_count += decrypted_len;
 
       if (jcr->crypto_size == 0 && jcr->crypto_count >= 4) {
-         jcr->crypto_size = ntohl(*(uint32_t *)&jcr->crypto_buf[0]) + 4;
+         unser_begin(&jcr->crypto_buf[0], sizeof(uint32_t));
+         unser_uint32(jcr->crypto_size);
+         jcr->crypto_size += 4;
       }
 
       if (jcr->crypto_size == 0 || jcr->crypto_count < jcr->crypto_size) {
@@ -904,14 +907,14 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    }
 
    if (flags & FO_SPARSE) {
-      ser_declare;
+      unser_declare;
       uint64_t faddr;
       char ec1[50];
-      ser_begin(wbuf, SPARSE_FADDR_SIZE);
+      unser_begin(wbuf, SPARSE_FADDR_SIZE);
       unser_uint64(faddr);
       if (*addr != faddr) {
          *addr = faddr;
-         if (blseek(bfd, (off_t)*addr, SEEK_SET) < 0) {
+         if (blseek(bfd, (boffset_t)*addr, SEEK_SET) < 0) {
             berrno be;
             Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
                   edit_uint64(*addr, ec1), jcr->last_fname, 

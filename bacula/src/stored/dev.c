@@ -447,7 +447,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
          return;
       }
 
-      if (archive_name.c_str()[strlen(archive_name.c_str())-1] != '/') {
+      if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
          pm_strcat(archive_name, "/");
       }
       pm_strcat(archive_name, VolCatInfo.VolCatName);
@@ -752,7 +752,7 @@ bool DEVICE::rewind(DCR *dcr)
          break;
       }
    } else if (is_file() || is_dvd()) {
-      if (lseek(dcr, (off_t)0, SEEK_SET) < 0) {
+      if (lseek(dcr, (boffset_t)0, SEEK_SET) < 0) {
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
@@ -835,7 +835,7 @@ bool DEVICE::eod(DCR *dcr)
    struct mtop mt_com;
    struct mtget mt_stat;
    bool ok = true;
-   off_t pos;
+   boffset_t pos;
 
    if (fd < 0) {
       dev_errno = EBADF;
@@ -859,7 +859,7 @@ bool DEVICE::eod(DCR *dcr)
       return true;
    }
    if (!is_tape()) {
-      pos = lseek(dcr, (off_t)0, SEEK_END);
+      pos = lseek(dcr, (boffset_t)0, SEEK_END);
 //    Dmsg1(100, "====== Seek to %lld\n", pos);
       if (pos >= 0) {
          update_pos(dcr);
@@ -985,7 +985,7 @@ bool DEVICE::eod(DCR *dcr)
  */
 bool DEVICE::update_pos(DCR *dcr)
 {
-   off_t pos;
+   boffset_t pos;
    bool ok = true;
 
    if (!is_open()) {
@@ -999,7 +999,7 @@ bool DEVICE::update_pos(DCR *dcr)
    if (is_file() || is_dvd()) {
       file = 0;
       file_addr = 0;
-      pos = lseek(dcr, (off_t)0, SEEK_CUR);
+      pos = lseek(dcr, (boffset_t)0, SEEK_CUR);
       if (pos < 0) {
          berrno be;
          dev_errno = errno;
@@ -1568,9 +1568,9 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
    }
 
    if (!is_tape()) {
-      off_t pos = (((off_t)rfile)<<32) + (off_t)rblock;
+      boffset_t pos = (((boffset_t)rfile)<<32) | rblock;
       Dmsg1(100, "===== lseek to %d\n", (int)pos);
-      if (lseek(dcr, pos, SEEK_SET) == (off_t)-1) {
+      if (lseek(dcr, pos, SEEK_SET) == (boffset_t)-1) {
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
@@ -1893,14 +1893,18 @@ void DEVICE::close_part(DCR *dcr)
    dcr->VolCatInfo = saveVolCatInfo;  /* structure assignment */
 }
 
-off_t DEVICE::lseek(DCR *dcr, off_t offset, int whence)
+boffset_t DEVICE::lseek(DCR *dcr, boffset_t offset, int whence)
 {
    switch (dev_type) {
    case B_DVD_DEV:
       return lseek_dvd(dcr, offset, whence);
    case B_FILE_DEV:
-      return ::lseek(fd, offset, whence);
-   }  
+#if defined(HAVE_WIN32)
+      return ::_lseeki64(fd, (__int64)offset, whence);
+#else
+      return ::lseek(fd, (off_t)offset, whence);
+#endif
+   }
    return -1;
 }
 
