@@ -24,13 +24,14 @@ Média :
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-Quand cela sera terminé, pouvez vous mettre à jour la localisation ?
+Quand cela sera terminé, pouvez vouscliquer sur le lien ci-dessous pour mettre à jour la localisation ?
 (Vous pouvez utiliser ce lien : <TMPL_VAR url>).
 
 Merci
 </textarea>
 </td></tr></table>
-<input class='formulaire' type='submit' name='action' value='move_email'>
+<input type="hidden" name='action' value='move_email'>
+<input class='formulaire' type='submit' name='bp' value='Envoyer'>
 </form>
 <br>
 <a href="<TMPL_VAR url>"><img alt='update now' src='/bweb/update.png'>Mettre à jour maintenant</a>
