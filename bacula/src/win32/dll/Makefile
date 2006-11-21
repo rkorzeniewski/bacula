@@ -46,7 +46,6 @@ FIND_OBJS = \
 LIB_OBJS = \
 	$(OBJDIR)/address_conf.o \
 	$(OBJDIR)/alist.o \
-	$(OBJDIR)/alloc.o \
 	$(OBJDIR)/attr.o \
 	$(OBJDIR)/base64.o \
 	$(OBJDIR)/berrno.o \
@@ -82,7 +81,6 @@ LIB_OBJS = \
 	$(OBJDIR)/runscript.o \
 	$(OBJDIR)/rwlock.o \
 	$(OBJDIR)/scan.o \
-	$(OBJDIR)/semlock.o \
 	$(OBJDIR)/serial.o \
 	$(OBJDIR)/sha1.o \
 	$(OBJDIR)/signal.o \
