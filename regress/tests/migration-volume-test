@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Run a simple backup of the Bacula build directory then migrate it
-#   to another device.
+# Run a backup of the Bacula build directory on two Volumes
+#   then migrate it to another device.             
 #
 # This script uses the virtual disk autochanger
 #
@@ -16,6 +16,8 @@ scripts/cleanup
 scripts/copy-migration-confs
 scripts/prepare-two-disks
 echo "${cwd}/build" >/tmp/file-list
+#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 change_jobname NightlySave $JobName
 start_test
@@ -32,23 +34,21 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=FileVolume001 Pool=Default
+label storage=File volume=FileVolume002 Pool=Default
+update Volume=FileVolume001 MaxVolBytes=3000000 pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 list volumes
-@# run two jobs (both will be migrated)
+@# 
 run job=$JobName yes
 wait
 run job=$JobName yes
-@sleep 1
-status storage=File       
-@sleep 1
-status storage=File
-@sleep 1
-status storage=File
 wait
 update volume=FileVolume001 VolStatus=Used
+update volume=FileVolume002 VolStatus=Used
 list volumes
 @# should migrate two jobs
+@# setdebug level=11 dir
 run job=migrate-volume yes
 list volumes
 @sleep 3
