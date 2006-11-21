@@ -17,12 +17,39 @@
    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* Written by David MacKenzie <djm@gnu.ai.mit.edu> and Jim Meyering.  */
-
 /*
  *   Modified by Kern Sibbald for use in Bacula, December 2000
  *
  *   Version $Id$
  */
+/*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation plus additions
+   that are listed in the file LICENSE.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+
+   Bacula® is a registered trademark of John Walker.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+
 
 #include "bacula.h"
 #include "jcr.h"
@@ -83,7 +110,7 @@ cleanup(struct saved_cwd *cwd)
 
 /* Attempt to create directory DIR (aka DIRPATH) with the specified MODE.
    If CREATED_DIR_P is non-NULL, set *CREATED_DIR_P to non-zero if this
-   function creates DIR and to zero otherwise.	Give a diagnostic and
+   function creates DIR and to zero otherwise.  Give a diagnostic and
    return non-zero if DIR cannot be created or cannot be determined to
    exist already.  Use DIRPATH in any diagnostic, not DIR.
    Note that if DIR already exists, this function will return zero
@@ -104,7 +131,7 @@ make_dir(JCR *jcr, const char *dir, const char *dirpath, mode_t mode, int *creat
       struct stat stats;
 
       /* The mkdir and stat calls below may appear to be reversed.
-         They are not.	It is important to call mkdir first and then to
+         They are not.  It is important to call mkdir first and then to
          call stat (to distinguish the three cases) only if mkdir fails.
          The alternative to this approach is to `stat' each directory,
          then to call mkdir if it doesn't exist.  But if some other process
@@ -241,7 +268,7 @@ make_path(
       }
 #else
       /* If we can record the current working directory, we may be able
-         to do the chdir optimization.	*/
+         to do the chdir optimization.  */
       cwd.do_chdir = !save_cwd(&cwd);
 
       slash = dirpath;
