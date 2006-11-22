@@ -483,7 +483,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
       if (run->storage) {
          jcr->wstore = run->storage;
       } else {
-         jcr->wstore = (STORE *)job->storage->first();
+         jcr->wstore = get_job_storage(job);
       }
       mr.StorageId = jcr->wstore->StorageId;
       if (!find_next_volume_for_append(jcr, &mr, 1, false/*no create*/)) {

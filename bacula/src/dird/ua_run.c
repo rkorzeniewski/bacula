@@ -352,8 +352,8 @@ int run_cmd(UAContext *ua, const char *cmd)
          }
          store = select_storage_resource(ua);
       }
-   } else if (job->storage) {
-      store = (STORE *)job->storage->first();           /* use default */
+   } else {
+      store = get_job_storage(job);            /* use default */
    }
    if (!store) {
       return 1;

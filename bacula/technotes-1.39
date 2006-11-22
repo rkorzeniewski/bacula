@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+22Nov06
+kes  Make sure that the storage for a job is pulled first from
+     the Pool and if not from the Job.  
+kes  Ensure that either the Pool or the Job specifies a Storage
+     resource.
 21Nov06 
 kes  Start applying new FSFE copyright.
 20Nov06

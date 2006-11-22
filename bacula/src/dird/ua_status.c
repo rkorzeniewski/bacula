@@ -483,7 +483,7 @@ static void list_scheduled_jobs(UAContext *ua)
          if (run->storage) {
             store = run->storage;
          } else {
-            store = (STORE *)job->storage->first();
+            store = get_job_storage(job);
          }
          if (!hdr_printed) {
             prt_runhdr(ua);
