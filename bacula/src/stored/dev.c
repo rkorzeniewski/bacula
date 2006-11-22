@@ -337,8 +337,10 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
 {
    file_size = 0;
    int timeout = max_open_wait;
+#if !defined(HAVE_WIN32)
    struct mtop mt_com;
    utime_t start_time = time(NULL);
+#endif
 
 
    Dmsg0(29, "Open dev: device is tape\n");

@@ -714,6 +714,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 
 #else /* no readline, do it ourselves */
 
+#if !defined(HAVE_WIN32)
 static bool bisatty(int fd)
 {
    if (no_conio) {
@@ -721,6 +722,7 @@ static bool bisatty(int fd)
    }
    return isatty(fd);
 }
+#endif
 
 /*
  *   Returns: 1 if data available
