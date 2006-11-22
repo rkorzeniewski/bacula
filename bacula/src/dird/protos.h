@@ -111,6 +111,7 @@ extern DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name);
 extern void apply_pool_overrides(JCR *jcr);
 extern JobId_t run_job(JCR *jcr);
 extern bool cancel_job(UAContext *ua, JCR *jcr);
+extern STORE *get_job_storage(JOB *job);
 extern void init_jcr_job_record(JCR *jcr);
 extern void copy_rwstorage(JCR *jcr, alist *storage, const char *where);
 extern void set_rwstorage(JCR *jcr, STORE *store);

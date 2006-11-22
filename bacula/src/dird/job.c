@@ -883,6 +883,20 @@ void dird_free_jcr(JCR *jcr)
    Dmsg0(200, "End dird free_jcr\n");
 }
 
+/* 
+ * The Job storage definition must be either in the Job record
+ *  or in the Pool record.  The Pool record overrides the Job 
+ *  record.
+ */
+STORE *get_job_storage(JOB *job)
+{
+   if (job->pool->storage) {
+      return (STORE *)job->pool->storage->first();
+   } else {
+      return (STORE *)job->storage->first();
+   }
+}
+
 /*
  * Set some defaults in the JCR necessary to
  * run. These items are pulled from the job
@@ -916,7 +930,11 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
-   copy_rwstorage(jcr, job->storage, _("Job resource"));
+   if (job->storage) {
+      copy_rwstorage(jcr, job->storage, _("Job resource"));
+   } else {
+      copy_rwstorage(jcr, job->pool->storage, _("Job resource"));
+   }
    jcr->client = job->client;
    if (!jcr->client_name) {
       jcr->client_name = get_pool_memory(PM_NAME);
@@ -974,6 +992,10 @@ void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 /* Set storage override */
 void set_rwstorage(JCR *jcr, STORE *store)
 {
+   if (!store) {
+      Jmsg(jcr, M_FATAL, 0, _("No storage specified.\n"));
+      return;
+   }
    set_rstorage(jcr, store);
    set_wstorage(jcr, store);
 }
@@ -1011,6 +1033,12 @@ void set_rstorage(JCR *jcr, STORE *store)
 {
    STORE *storage;
 
+   if (!store) {
+      return;
+   }
+   if (!jcr->rstorage) {
+      jcr->rstorage = New(alist(10, not_owned_by_alist));
+   }
    jcr->rstore = store;
    foreach_alist(storage, jcr->rstorage) {
       if (store == storage) {
@@ -1057,6 +1085,12 @@ void set_wstorage(JCR *jcr, STORE *store)
 {
    STORE *storage;
 
+   if (!store) {
+      return;
+   }
+   if (!jcr->wstorage) {
+      jcr->wstorage = New(alist(10, not_owned_by_alist));
+   }
    jcr->wstore = store;
    foreach_alist(storage, jcr->wstorage) {
       if (store == storage) {
@@ -1075,8 +1109,6 @@ void free_wstorage(JCR *jcr)
    }
    jcr->wstore = NULL;
 }
-
-
 
 void create_clones(JCR *jcr)
 {

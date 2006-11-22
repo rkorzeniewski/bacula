@@ -296,7 +296,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
          bsendmsg(ua, "pool=%s", job->pool->hdr.name);
          bsendmsg(ua, "messages=%s", job->messages->hdr.name);
          bsendmsg(ua, "client=%s", job->client->hdr.name);
-         store = (STORE *)job->storage->first();
+         store = get_job_storage(job);
          bsendmsg(ua, "storage=%s", store->hdr.name);
          bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
          bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
