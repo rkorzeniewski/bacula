@@ -10,7 +10,7 @@
 TestName="migration-jobspan-test"
 JobName=MigrationJobSpanSave
 . scripts/functions
-set_debug 0
+set_debug 1
 
 . config.out
 
@@ -52,6 +52,8 @@ list volumes
 @# should migrate both Volumes
 run job=migrate-job yes
 wait
+purge volume=FileVolume001
+purge volume=FileVolume002
 list volumes
 list jobs
 messages
