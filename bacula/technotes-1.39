@@ -2,6 +2,7 @@
 
 General:
 22Nov06
+kes  Cleanup some of the error termination code in migration.
 kes  Separate read/write source strings to keep track of where
      storage devices are used in a job.
 kes  Implement a new method of keeping track of which storage 

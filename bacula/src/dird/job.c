@@ -896,20 +896,20 @@ void get_job_storage(USTORE *store, JOB *job, RUN *run)
 {
    if (run && run->pool && run->pool->storage) {
       store->store = (STORE *)run->pool->storage->first();
-      pm_strcpy(store->store_source, _("run pool override"));
+      pm_strcpy(store->store_source, _("Run pool override"));
       return;
    }
    if (run && run->storage) {
       store->store = run->storage;
-      pm_strcpy(store->store_source, _("run storage override"));
+      pm_strcpy(store->store_source, _("Run storage override"));
       return;
    }
    if (job->pool->storage) {
       store->store = (STORE *)job->pool->storage->first();
-      pm_strcpy(store->store_source, _("job pool storage"));
+      pm_strcpy(store->store_source, _("Pool resource"));
    } else {
       store->store = (STORE *)job->storage->first();
-      pm_strcpy(store->store_source, _("job storage"));
+      pm_strcpy(store->store_source, _("Job resource"));
    }
 }
 

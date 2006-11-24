@@ -99,6 +99,7 @@ static int inputcmd(FILE *input, BSOCK *UA_sock);
 static int outputcmd(FILE *input, BSOCK *UA_sock);
 static int teecmd(FILE *input, BSOCK *UA_sock);
 static int quitcmd(FILE *input, BSOCK *UA_sock);
+static int echocmd(FILE *input, BSOCK *UA_sock);
 static int timecmd(FILE *input, BSOCK *UA_sock);
 static int sleepcmd(FILE *input, BSOCK *UA_sock);
 
@@ -164,6 +165,7 @@ static struct cmdstruct commands[] = {
  { N_("sleep"),      sleepcmd,     _("sleep specified time")},
  { N_("time"),       timecmd,      _("print current time")},
  { N_("version"),    versioncmd,   _("print Console's version")},
+ { N_("echo"),       echocmd,      _("echo command string")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
  { N_("zed_keys"),   zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
              };
@@ -888,6 +890,16 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
       return 1;
    }
    output = fd;
+   return 1;
+}
+
+static int echocmd(FILE *intut, BSOCK *UA_sock)
+{
+   for (int i=1; i < argc; i++) {
+      senditf("%s", argk[i]);
+      sendit(" ");
+   }
+   sendit("\n");
    return 1;
 }
 

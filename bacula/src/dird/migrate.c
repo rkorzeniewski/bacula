@@ -124,14 +124,6 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-   /* If pool storage specified, use it instead of job storage */
-   copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
-
-   if (jcr->wstorage->size() == 0) {
-      Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Job or Pool.\n"));
-      return false;
-   }
-
    create_restore_bootstrap_file(jcr);
 
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
@@ -159,7 +151,13 @@ bool do_migration_init(JCR *jcr)
    job = (JOB *)GetResWithName(R_JOB, jcr->jr.Name);
    prev_job = (JOB *)GetResWithName(R_JOB, jcr->previous_jr.Name);
    UnlockRes();
-   if (!job || !prev_job) {
+   if (!job) {
+      Jmsg(jcr, M_FATAL, 0, _("Job resource not found for \"%s\".\n"), jcr->jr.Name);
+      return false;
+   }
+   if (!prev_job) {
+      Jmsg(jcr, M_FATAL, 0, _("Previous Job resource not found for \"%s\".\n"), 
+           jcr->previous_jr.Name);
       return false;
    }
 
@@ -173,6 +171,7 @@ bool do_migration_init(JCR *jcr)
     */
    set_jcr_defaults(mig_jcr, prev_job);
    if (!setup_job(mig_jcr)) {
+      Jmsg(jcr, M_FATAL, 0, _("setup job failed.\n"));
       return false;
    }
 
@@ -232,15 +231,14 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-   if (!jcr->pool->storage) {
+   if (!jcr->pool->storage || jcr->pool->storage->size() == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Storage specification found in Next Pool \"%s\".\n"),
          jcr->pool->hdr.name);
       return false;
    }
 
    /* If pool storage specified, use it instead of job storage for backup */
-   copy_wstorage(jcr, jcr->pool->storage, _("Next pool resource"));
-
+   copy_wstorage(jcr, jcr->pool->storage, _("NextPool in Pool resource"));
 
    return true;
 }
@@ -257,6 +255,10 @@ bool do_migration(JCR *jcr)
    BSOCK *sd;
    JCR *mig_jcr = jcr->mig_jcr;    /* newly migrated job */
 
+   if (!mig_jcr) {
+      Jmsg(jcr, M_INFO, 0, _("No files found to migrate.\n"));
+      return false;
+   }
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
@@ -788,7 +790,6 @@ ok_out:
    goto out;
 
 bail_out:
-   jcr->MigrateJobId = 0;
    ok = false;
            
 out:
@@ -1031,41 +1032,42 @@ void migration_cleanup(JCR *jcr, int TermCode)
          }
          mig_jcr->VolumeName[0] = 0;         /* none */
       }
+      switch (jcr->JobStatus) {
+      case JS_Terminated:
+         if (jcr->Errors || jcr->SDErrors) {
+            term_msg = _("%s OK -- with warnings");
+         } else {
+            term_msg = _("%s OK");
+         }
+         break;
+      case JS_FatalError:
+      case JS_ErrorTerminated:
+         term_msg = _("*** %s Error ***");
+         msg_type = M_ERROR;          /* Generate error message */
+         if (jcr->store_bsock) {
+            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+            if (jcr->SD_msg_chan) {
+               pthread_cancel(jcr->SD_msg_chan);
+            }
+         }
+         break;
+      case JS_Canceled:
+         term_msg = _("%s Canceled");
+         if (jcr->store_bsock) {
+            bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+            if (jcr->SD_msg_chan) {
+               pthread_cancel(jcr->SD_msg_chan);
+            }
+         }
+         break;
+      default:
+         term_msg = _("Inappropriate %s term code");
+         break;
+      }
+  } else {
+     term_msg = _("%s -- no files to migrate");
   }
 
-   msg_type = M_INFO;                 /* by default INFO message */
-   switch (jcr->JobStatus) {
-   case JS_Terminated:
-      if (jcr->Errors || jcr->SDErrors) {
-         term_msg = _("%s OK -- with warnings");
-      } else {
-         term_msg = _("%s OK");
-      }
-      break;
-   case JS_FatalError:
-   case JS_ErrorTerminated:
-      term_msg = _("*** %s Error ***");
-      msg_type = M_ERROR;          /* Generate error message */
-      if (jcr->store_bsock) {
-         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-         if (jcr->SD_msg_chan) {
-            pthread_cancel(jcr->SD_msg_chan);
-         }
-      }
-      break;
-   case JS_Canceled:
-      term_msg = _("%s Canceled");
-      if (jcr->store_bsock) {
-         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
-         if (jcr->SD_msg_chan) {
-            pthread_cancel(jcr->SD_msg_chan);
-         }
-      }
-      break;
-   default:
-      term_msg = _("Inappropriate %s term code");
-      break;
-   }
    bsnprintf(term_code, sizeof(term_code), term_msg, "Migration");
    bstrftimes(sdt, sizeof(sdt), jcr->jr.StartTime);
    bstrftimes(edt, sizeof(edt), jcr->jr.EndTime);
@@ -1088,7 +1090,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  Client:                 %s\n"
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\" (From %s)\n"
-"  Read Storage:           \"%s\" (From %s_\n"
+"  Read Storage:           \"%s\" (From %s)\n"
 "  Write Storage:          \"%s\" (From %s)\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
@@ -1115,8 +1117,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
         jcr->client->name(),
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
-        jcr->rstore->name(), jcr->rstore_source,
-        jcr->wstore->name(), jcr->wstore_source,
+        jcr->rstore?jcr->rstore->name():"*None*", 
+        NPRT(jcr->rstore_source), 
+        jcr->wstore?jcr->wstore->name():"*None*", 
+        NPRT(jcr->wstore_source),
         sdt,
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),
