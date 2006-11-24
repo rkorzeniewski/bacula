@@ -45,6 +45,7 @@ run job=migrate-job yes
 list volumes
 wait
 messages
+purge volume=FileVolume001
 wait
 @# 
 @# now do a restore
