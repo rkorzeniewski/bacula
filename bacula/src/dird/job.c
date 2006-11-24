@@ -87,6 +87,7 @@ JobId_t run_job(JCR *jcr)
 {
    int stat;
    if (setup_job(jcr)) {
+      Dmsg0(200, "Add jrc to work queue\n");
       /* Queue the job to be run */
       if ((stat = jobq_add(&job_queue, jcr)) != 0) {
          berrno be;
@@ -143,10 +144,6 @@ bool setup_job(JCR *jcr)
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
-   if (!jcr->storage_source) {
-      jcr->storage_source = get_pool_memory(PM_MESSAGE);
-      pm_strcpy(jcr->storage_source, _("unknown source"));
-   }
 
    /*
     * Create Job record
@@ -160,11 +157,11 @@ bool setup_job(JCR *jcr)
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
 
-   generate_daemon_event(jcr, "JobStart");
-
    if (!get_or_create_client_record(jcr)) {
       goto bail_out;
    }
+
+   generate_daemon_event(jcr, "JobStart");
 
    if (job_canceled(jcr)) {
       goto bail_out;
@@ -209,8 +206,6 @@ bool setup_job(JCR *jcr)
    }
 
    generate_job_event(jcr, "JobInit");
-
-   Dmsg0(200, "Add jrc to work queue\n");
    return true;
 
 bail_out:
@@ -389,12 +384,17 @@ bool cancel_job(UAContext *ua, JCR *jcr)
                copy_wstorage(ua->jcr, jcr->wstorage, _("Job resource")); 
             }
          } else {
+            USTORE store;
             if (jcr->rstorage) {
-               set_wstorage(ua->jcr, jcr->rstore);
+               store.store = jcr->rstore;
+               pm_strcpy(store.store_source, jcr->rstore_source);
             } else {
-               set_wstorage(ua->jcr, jcr->wstore);
+               store.store = jcr->wstore;
+               pm_strcpy(store.store_source, jcr->wstore_source);
             }
+            set_wstorage(ua->jcr, &store);
          }
+
          if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
             bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
             return false;
@@ -616,7 +616,7 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 void apply_pool_overrides(JCR *jcr)
 {
    if (jcr->run_pool_override) {
-      pm_strcpy(jcr->pool_source, _("Run Pool override"));
+      pm_strcpy(jcr->pool_source, _("run pool override"));
    }
    /*
     * Apply any level related Pool selections
@@ -626,9 +626,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
          if (jcr->run_full_pool_override) {
-            pm_strcpy(jcr->pool_source, _("Run FullPool override"));
+            pm_strcpy(jcr->pool_source, _("run FullPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("Job FullPool override"));
+            pm_strcpy(jcr->pool_source, _("job FullPool override"));
          }
       }
       break;
@@ -636,9 +636,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->inc_pool) {
          jcr->pool = jcr->inc_pool;
          if (jcr->run_inc_pool_override) {
-            pm_strcpy(jcr->pool_source, _("Run IncPool override"));
+            pm_strcpy(jcr->pool_source, _("run IncPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("Job IncPool override"));
+            pm_strcpy(jcr->pool_source, _("job IncPool override"));
          }
       }
       break;
@@ -646,9 +646,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->diff_pool) {
          jcr->pool = jcr->diff_pool;
          if (jcr->run_diff_pool_override) {
-            pm_strcpy(jcr->pool_source, _("Run DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("run DiffPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("Job DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("job DiffPool override"));
          }
       }
       break;
@@ -834,9 +834,13 @@ void dird_free_jcr_pointers(JCR *jcr)
       free_pool_memory(jcr->pool_source);
       jcr->pool_source = NULL;
    }
-   if (jcr->storage_source) {
-      free_pool_memory(jcr->storage_source);
-      jcr->storage_source = NULL;
+   if (jcr->wstore_source) {
+      free_pool_memory(jcr->wstore_source);
+      jcr->wstore_source = NULL;
+   }
+   if (jcr->rstore_source) {
+      free_pool_memory(jcr->rstore_source);
+      jcr->rstore_source = NULL;
    }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");
@@ -888,12 +892,24 @@ void dird_free_jcr(JCR *jcr)
  *  or in the Pool record.  The Pool record overrides the Job 
  *  record.
  */
-STORE *get_job_storage(JOB *job)
+void get_job_storage(USTORE *store, JOB *job, RUN *run) 
 {
+   if (run && run->pool && run->pool->storage) {
+      store->store = (STORE *)run->pool->storage->first();
+      pm_strcpy(store->store_source, _("run pool override"));
+      return;
+   }
+   if (run && run->storage) {
+      store->store = run->storage;
+      pm_strcpy(store->store_source, _("run storage override"));
+      return;
+   }
    if (job->pool->storage) {
-      return (STORE *)job->pool->storage->first();
+      store->store = (STORE *)job->pool->storage->first();
+      pm_strcpy(store->store_source, _("job pool storage"));
    } else {
-      return (STORE *)job->storage->first();
+      store->store = (STORE *)job->storage->first();
+      pm_strcpy(store->store_source, _("job storage"));
    }
 }
 
@@ -924,16 +940,12 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
-   if (!jcr->storage_source) {
-      jcr->storage_source = get_pool_memory(PM_MESSAGE);
-      pm_strcpy(jcr->storage_source, _("unknown source"));
-   }
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
    if (job->storage) {
       copy_rwstorage(jcr, job->storage, _("Job resource"));
    } else {
-      copy_rwstorage(jcr, job->pool->storage, _("Job resource"));
+      copy_rwstorage(jcr, job->pool->storage, _("Pool resource"));
    }
    jcr->client = job->client;
    if (!jcr->client_name) {
@@ -974,6 +986,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
          jcr->JobLevel = L_NONE;
          break;
       default:
+         jcr->JobLevel = L_FULL;
          break;
       }
    }
@@ -984,20 +997,36 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
  */
 void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 {
-   copy_rstorage(jcr, storage, where);
-   copy_wstorage(jcr, storage, where);
+   switch(jcr->JobType) {
+   case JT_RESTORE:
+   case JT_VERIFY:
+   case JT_MIGRATE:
+      copy_rstorage(jcr, storage, where);
+      break;
+   default:
+      copy_wstorage(jcr, storage, where);
+      break;
+   }
 }
 
 
 /* Set storage override */
-void set_rwstorage(JCR *jcr, STORE *store)
+void set_rwstorage(JCR *jcr, USTORE *store)
 {
    if (!store) {
       Jmsg(jcr, M_FATAL, 0, _("No storage specified.\n"));
       return;
    }
-   set_rstorage(jcr, store);
-   set_wstorage(jcr, store);
+   switch(jcr->JobType) {
+   case JT_RESTORE:
+   case JT_VERIFY:
+   case JT_MIGRATE:
+      set_rstorage(jcr, store);
+      break;
+   default:
+      set_wstorage(jcr, store);
+      break;
+   }
 }
 
 void free_rwstorage(JCR *jcr)
@@ -1020,33 +1049,40 @@ void copy_rstorage(JCR *jcr, alist *storage, const char *where)
       foreach_alist(st, storage) {
          jcr->rstorage->append(st);
       }
-      pm_strcpy(jcr->storage_source, where);
-   }               
-   if (jcr->rstorage) {
-      jcr->rstore = (STORE *)jcr->rstorage->first();
+      if (!jcr->rstore_source) {
+         jcr->rstore_source = get_pool_memory(PM_MESSAGE);
+      }
+      pm_strcpy(jcr->rstore_source, where);
+      if (jcr->rstorage) {
+         jcr->rstore = (STORE *)jcr->rstorage->first();
+      }
    }
 }
 
 
 /* Set storage override */
-void set_rstorage(JCR *jcr, STORE *store)
+void set_rstorage(JCR *jcr, USTORE *store)
 {
    STORE *storage;
 
-   if (!store) {
+   if (!store->store) {
       return;
    }
    if (!jcr->rstorage) {
       jcr->rstorage = New(alist(10, not_owned_by_alist));
    }
-   jcr->rstore = store;
+   jcr->rstore = store->store;
+   if (!jcr->rstore_source) {
+      jcr->rstore_source = get_pool_memory(PM_MESSAGE);
+   }
+   pm_strcpy(jcr->rstore_source, store->store_source);
    foreach_alist(storage, jcr->rstorage) {
-      if (store == storage) {
+      if (store->store == storage) {
          return;
       }
    }
    /* Store not in list, so add it */
-   jcr->rstorage->prepend(store);
+   jcr->rstorage->prepend(store->store);
 }
 
 void free_rstorage(JCR *jcr)
@@ -1070,35 +1106,45 @@ void copy_wstorage(JCR *jcr, alist *storage, const char *where)
       }
       jcr->wstorage = New(alist(10, not_owned_by_alist));
       foreach_alist(st, storage) {
+         Dmsg1(50, "storage=%s\n", st->name());
          jcr->wstorage->append(st);
       }
-      pm_strcpy(jcr->storage_source, where);
-   }               
-   if (jcr->wstorage) {
-      jcr->wstore = (STORE *)jcr->wstorage->first();
+      if (!jcr->wstore_source) {
+         jcr->wstore_source = get_pool_memory(PM_MESSAGE);
+      }
+      pm_strcpy(jcr->wstore_source, where);
+      if (jcr->wstorage) {
+         jcr->wstore = (STORE *)jcr->wstorage->first();
+         Dmsg2(100, "wstore=%s where=%s\n", jcr->wstore->name(), jcr->wstore_source);
+      }
    }
 }
 
 
 /* Set storage override */
-void set_wstorage(JCR *jcr, STORE *store)
+void set_wstorage(JCR *jcr, USTORE *store)
 {
    STORE *storage;
 
-   if (!store) {
+   if (!store->store) {
       return;
    }
    if (!jcr->wstorage) {
       jcr->wstorage = New(alist(10, not_owned_by_alist));
    }
-   jcr->wstore = store;
+   jcr->wstore = store->store;
+   if (!jcr->wstore_source) {
+      jcr->wstore_source = get_pool_memory(PM_MESSAGE);
+   }
+   pm_strcpy(jcr->wstore_source, store->store_source);
+   Dmsg2(50, "wstore=%s where=%s\n", jcr->wstore->name(), jcr->wstore_source);
    foreach_alist(storage, jcr->wstorage) {
-      if (store == storage) {
+      if (store->store == storage) {
          return;
       }
    }
    /* Store not in list, so add it */
-   jcr->wstorage->prepend(store);
+   jcr->wstorage->prepend(store->store);
 }
 
 void free_wstorage(JCR *jcr)

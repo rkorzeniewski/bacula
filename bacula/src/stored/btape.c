@@ -92,7 +92,6 @@ static bool my_mount_next_read_volume(DCR *dcr);
 static void scan_blocks();
 static void set_volume_name(const char *VolName, int volnum);
 static void rawfill_cmd();
-static void bfill_cmd();
 static bool open_the_device();
 static void autochangercmd();
 static void do_unfill();
@@ -2522,60 +2521,12 @@ static void rawfill_cmd()
 }
 
 
-/*
- * Fill a tape using Bacula block writes
- */
-static void bfill_cmd()
-{
-   DEV_BLOCK *block = dcr->block;
-   uint32_t block_num = 0;
-   uint32_t *p;
-   int my_errno;
-   int fd;
-   uint32_t i;
-
-   fd = open("/dev/urandom", O_RDONLY);
-   if (fd) {
-      read(fd, block->buf, block->buf_len);
-      close(fd);
-   } else {
-      uint32_t *p = (uint32_t *)block->buf;
-      srandom(time(NULL));
-      for (i=0; i<block->buf_len/sizeof(uint32_t); i++) {
-         p[i] = random();
-      }
-   }
-   p = (uint32_t *)block->buf;
-   Pmsg1(0, _("Begin writing Bacula blocks of %u bytes.\n"), block->buf_len);
-   for ( ;; ) {
-      *p = block_num;
-      block->binbuf = block->buf_len;
-      block->bufp = block->buf + block->binbuf;
-      if (!write_block_to_dev(dcr)) {
-         break;
-      }
-      if ((block_num++ % 100) == 0) {
-         printf("+");
-         fflush(stdout);
-      }
-      p[0] += p[13];
-      for (i=1; i<(block->buf_len/sizeof(uint32_t)-1); i++) {
-         p[i] += p[i-1];
-      }
-   }
-   my_errno = errno;
-   printf("\n");
-   printf(_("Write failed at block %u.\n"), block_num);
-   weofcmd();
-}
-
 
 struct cmdstruct { const char *key; void (*func)(); const char *help; };
 static struct cmdstruct commands[] = {
  {NT_("autochanger"),autochangercmd, _("test autochanger")},
  {NT_("bsf"),       bsfcmd,       _("backspace file")},
  {NT_("bsr"),       bsrcmd,       _("backspace record")},
- {NT_("bfill"),     bfill_cmd,    _("fill tape using Bacula writes")},
  {NT_("cap"),       capcmd,       _("list device capabilities")},
  {NT_("clear"),     clearcmd,     _("clear tape errors")},
  {NT_("eod"),       eodcmd,       _("go to end of Bacula data for append")},

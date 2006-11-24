@@ -291,13 +291,13 @@ static int defaultscmd(UAContext *ua, const char *cmd)
       }
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
-         STORE *store;
+         USTORE store;
          bsendmsg(ua, "job=%s", job->hdr.name);
          bsendmsg(ua, "pool=%s", job->pool->hdr.name);
          bsendmsg(ua, "messages=%s", job->messages->hdr.name);
          bsendmsg(ua, "client=%s", job->client->hdr.name);
-         store = get_job_storage(job);
-         bsendmsg(ua, "storage=%s", store->hdr.name);
+         get_job_storage(&store, job, NULL);
+         bsendmsg(ua, "storage=%s", store.store->name());
          bsendmsg(ua, "where=%s", job->RestoreWhere?job->RestoreWhere:"");
          bsendmsg(ua, "level=%s", level_to_str(job->JobLevel));
          bsendmsg(ua, "type=%s", job_type_to_str(job->JobType));

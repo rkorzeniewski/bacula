@@ -236,7 +236,8 @@ public:
    };
    POOLMEM *client_uname;             /* client uname */
    POOLMEM *pool_source;              /* Where pool came from */
-   POOLMEM *storage_source;           /* Where storage came from */
+   POOLMEM *rstore_source;            /* Where read storage came from */
+   POOLMEM *wstore_source;            /* Where write storage came from */
    int replace;                       /* Replace option */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */

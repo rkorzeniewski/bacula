@@ -162,7 +162,7 @@ bail_out:
  */
 void update_slots(UAContext *ua)
 {
-   STORE *store;
+   USTORE store;
    vol_list_t *vl, *vol_list = NULL;
    MEDIA_DBR mr;
    char *slot_list;
@@ -177,12 +177,13 @@ void update_slots(UAContext *ua)
    if (!open_db(ua)) {
       return;
    }
-   store = get_storage_resource(ua, true/*arg is storage*/);
-   if (!store) {
+   store.store = get_storage_resource(ua, true/*arg is storage*/);
+   if (!store.store) {
       return;
    }
-   set_wstorage(ua->jcr, store);
-   drive = get_storage_drive(ua, store);
+   pm_strcpy(store.store_source, _("command line"));
+   set_wstorage(ua->jcr, &store);
+   drive = get_storage_drive(ua, store.store);
 
    scan = find_arg(ua, NT_("scan")) >= 0;
    if ((i=find_arg_with_value(ua, NT_("Enabled"))) >= 0) {
@@ -242,7 +243,7 @@ void update_slots(UAContext *ua)
       memset(&mr, 0, sizeof(mr));
       mr.Slot = vl->Slot;
       mr.InChanger = 1;
-      mr.StorageId = store->StorageId;
+      mr.StorageId = store.store->StorageId;
       /* Set InChanger to zero for this Slot */
       db_lock(ua->db);
       db_make_inchanger_unique(ua->jcr, ua->db, &mr);
@@ -256,10 +257,10 @@ void update_slots(UAContext *ua)
       bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
       db_lock(ua->db);
       if (db_get_media_record(ua->jcr, ua->db, &mr)) {
-         if (mr.Slot != vl->Slot || !mr.InChanger || mr.StorageId != store->StorageId) {
+         if (mr.Slot != vl->Slot || !mr.InChanger || mr.StorageId != store.store->StorageId) {
             mr.Slot = vl->Slot;
             mr.InChanger = 1;
-            mr.StorageId = store->StorageId;
+            mr.StorageId = store.store->StorageId;
             if (have_enabled) {
                mr.Enabled = Enabled;
             }
@@ -284,7 +285,7 @@ void update_slots(UAContext *ua)
    }
    memset(&mr, 0, sizeof(mr));
    mr.InChanger = 1;
-   mr.StorageId = store->StorageId;
+   mr.StorageId = store.store->StorageId;
    db_lock(ua->db);
    for (int i=1; i <= max_slots; i++) {
       if (slot_list[i]) {
@@ -310,7 +311,7 @@ bail_out:
  */
 static int do_label(UAContext *ua, const char *cmd, int relabel)
 {
-   STORE *store;
+   USTORE store;
    BSOCK *sd;
    char dev_name[MAX_NAME_LENGTH];
    MEDIA_DBR mr, omr;
@@ -341,12 +342,13 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
       label_barcodes = true;
    }
 
-   store = get_storage_resource(ua, true/*use default*/);
-   if (!store) {
+   store.store = get_storage_resource(ua, true/*use default*/);
+   if (!store.store) {
       return 1;
    }
-   set_wstorage(ua->jcr, store);
-   drive = get_storage_drive(ua, store);
+   pm_strcpy(store.store_source, _("command line"));
+   set_wstorage(ua->jcr, &store);
+   drive = get_storage_drive(ua, store.store);
 
    if (label_barcodes) {
       label_from_barcodes(ua, drive);
@@ -416,16 +418,16 @@ checkName:
    if (i >= 0) {
       mr.Slot = atoi(ua->argv[i]);
       mr.InChanger = 1;               /* assumed if we are labeling it */
-   } else if (store->autochanger) {
+   } else if (store.store->autochanger) {
       if (!get_pint(ua, _("Enter slot (0 or Enter for none): "))) {
          return 1;
       }
       mr.Slot = ua->pint32_val;
       mr.InChanger = 1;               /* assumed if we are labeling it */
    }
-   mr.StorageId = store->StorageId;
+   mr.StorageId = store.store->StorageId;
 
-   bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
+   bstrncpy(mr.MediaType, store.store->media_type, sizeof(mr.MediaType));
 
    /* Must select Pool if not already done */
    if (pr.PoolId == 0) {
@@ -455,7 +457,7 @@ checkName:
          }
       }
       if (ua->automount) {
-         bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
+         bstrncpy(dev_name, store.store->dev_name(), sizeof(dev_name));
          bsendmsg(ua, _("Requesting to mount %s ...\n"), dev_name);
          bash_spaces(dev_name);
          bnet_fsend(sd, "mount %s drive=%d", dev_name, drive);

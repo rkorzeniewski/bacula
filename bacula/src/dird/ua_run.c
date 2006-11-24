@@ -70,7 +70,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    JOB *job = NULL;
    JOB *verify_job = NULL;
    JOB *previous_job = NULL;
-   STORE *store = NULL;
+   USTORE store;
    CLIENT *client = NULL;
    FILESET *fileset = NULL;
    POOL *pool = NULL;
@@ -345,24 +345,26 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
 
    if (store_name) {
-      store = (STORE *)GetResWithName(R_STORAGE, store_name);
-      if (!store) {
+      store.store = (STORE *)GetResWithName(R_STORAGE, store_name);
+      pm_strcpy(store.store_source, _("command line"));
+      if (!store.store) {
          if (*store_name != 0) {
             bsendmsg(ua, _("Storage \"%s\" not found.\n"), store_name);
          }
-         store = select_storage_resource(ua);
+         store.store = select_storage_resource(ua);
+         pm_strcpy(store.store_source, _("user selection"));
       }
    } else {
-      store = get_job_storage(job);            /* use default */
+      get_job_storage(&store, job, NULL);      /* use default */
    }
-   if (!store) {
+   if (!store.store) {
       return 1;
-   } else if (!acl_access_ok(ua, Storage_ACL, store->name())) {
+   } else if (!acl_access_ok(ua, Storage_ACL, store.store->name())) {
       bsendmsg(ua, _("No authorization. Storage \"%s\".\n"),
-               store->name());
+               store.store->name());
       return 0;
    }
-   Dmsg1(800, "Using storage=%s\n", store->name());
+   Dmsg1(800, "Using storage=%s\n", store.store->name());
 
    if (pool_name) {
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
@@ -451,7 +453,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 
    jcr->verify_job = verify_job;
    jcr->previous_job = previous_job;
-   set_rwstorage(jcr, store);
+   set_rwstorage(jcr, &store);
    jcr->client = client;
    jcr->fileset = fileset;
    jcr->pool = pool;
@@ -800,9 +802,10 @@ try_again:
          goto try_again;
       case 1:
          /* Storage */
-         store = select_storage_resource(ua);
-         if (store) {
-            set_rwstorage(jcr, store);
+         store.store = select_storage_resource(ua);
+         if (store.store) {
+            pm_strcpy(store.store_source, _("user selection"));
+            set_rwstorage(jcr, &store);
             goto try_again;
          }
          break;
