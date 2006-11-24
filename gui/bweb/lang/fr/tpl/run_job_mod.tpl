@@ -70,6 +70,10 @@
   <input type="image" name='action' value='run_job_now' title='Lancer maintenant'
    src='/bweb/R.png'>Lancer maintenant
   </label>
+  <label>
+  <input type="image" name='action' value='fileset_view' title='Voir le FileSet'
+   src='/bweb/zoom.png'>Voir le FileSet
+  </label>
   </form>
  </div>
 
