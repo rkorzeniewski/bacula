@@ -253,7 +253,7 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    err = ferror(fd);
    fclose(fd);
    if (count == 0) {
-      bsendmsg(ua, _("No files found to restore.\n"));
+      bsendmsg(ua, _("No files found to restore/migrate. No bootstrap file written.\n"));
       goto bail_out;
    }
    if (err) {

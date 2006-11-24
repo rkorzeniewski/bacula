@@ -256,7 +256,6 @@ bool do_migration(JCR *jcr)
    JCR *mig_jcr = jcr->mig_jcr;    /* newly migrated job */
 
    if (!mig_jcr) {
-      Jmsg(jcr, M_INFO, 0, _("No files found to migrate.\n"));
       return false;
    }
 
@@ -1109,7 +1108,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    VERSION,
    LSMDATE,
         edt, 
-        mig_jcr ? edit_uint64(jcr->previous_jr.JobId, ec6) : "0", 
+        edit_uint64(jcr->previous_jr.JobId, ec6),
         mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",
         edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
