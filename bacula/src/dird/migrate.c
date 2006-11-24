@@ -66,10 +66,37 @@ static int get_next_dbid_from_list(char **p, DBId_t *DBId);
 
 /* 
  * Called here before the job is run to do the job
- *   specific setup.
+ *   specific setup.  Note, one of the important things to
+ *   complete in this init code is to make the definitive
+ *   choice of input and output storage devices.  This is
+ *   because immediately after the init, the job is queued
+ *   in the jobq.c code, and it checks that all the resources
+ *   (storage resources in particular) are available, so these
+ *   must all be properly defined.
+ *
+ *  previous_jr refers to the job DB record of the Job that is
+ *    going to be migrated.
+ *  prev_job refers to the job resource of the Job that is
+ *    going to be migrated.
+ *  jcr is the jcr for the current "migration" job.  It is a
+ *    control job that is put in the DB as a migration job, which
+ *    means that this job migrated a previous job to a new job.
+ *    No Volume or File data is associated with this control
+ *    job.
+ *  mig_jcr refers to the newly migrated job that is run by
+ *    the current jcr.  It is a backup job that moves (migrates) the
+ *    data written for the previous_jr into the new pool.  This
+ *    job (mig_jcr) becomes the new backup job that replaces
+ *    the original backup job.
  */
 bool do_migration_init(JCR *jcr)
 {
+   POOL_DBR pr;
+   POOL *pool;
+   char ed1[100];
+   JOB *job, *prev_job;
+   JCR *mig_jcr;                   /* newly migrated job */
+
    /* If we find a job or jobs to migrate it is previous_jr.JobId */
    if (!get_job_to_migrate(jcr)) {
       return false;
@@ -97,7 +124,7 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
-  /* If pool storage specified, use it instead of job storage */
+   /* If pool storage specified, use it instead of job storage */
    copy_wstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
    if (jcr->wstorage->size() == 0) {
@@ -106,40 +133,7 @@ bool do_migration_init(JCR *jcr)
    }
 
    create_restore_bootstrap_file(jcr);
-   return true;
-}
 
-/*
- * Do a Migration of a previous job
- *
- *  Returns:  false on failure
- *            true  on success
- */
-bool do_migration(JCR *jcr)
-{
-   POOL_DBR pr;
-   POOL *pool;
-   char ed1[100];
-   BSOCK *sd;
-   JOB *job, *prev_job;
-   JCR *mig_jcr;                   /* newly migrated job */
-
-   /* 
-    *  previous_jr refers to the job DB record of the Job that is
-    *    going to be migrated.
-    *  prev_job refers to the job resource of the Job that is
-    *    going to be migrated.
-    *  jcr is the jcr for the current "migration" job.  It is a
-    *    control job that is put in the DB as a migration job, which
-    *    means that this job migrated a previous job to a new job.
-    *    No Volume or File data is associated with this control
-    *    job.
-    *  mig_jcr refers to the newly migrated job that is run by
-    *    the current jcr.  It is a backup job that moves (migrates) the
-    *    data written for the previous_jr into the new pool.  This
-    *    job (mig_jcr) becomes the new backup job that replaces
-    *    the original backup job.
-    */
    if (jcr->previous_jr.JobId == 0 || jcr->ExpectedFiles == 0) {
       set_jcr_job_status(jcr, JS_Terminated);
       Dmsg1(dbglevel, "JobId=%d expected files == 0\n", (int)jcr->JobId);
@@ -148,7 +142,6 @@ bool do_migration(JCR *jcr)
       } else {
          Jmsg(jcr, M_INFO, 0, _("Previous Job has no data to migrate.\n"));
       }
-      migration_cleanup(jcr, jcr->JobStatus);
       return true;                    /* no work */
    }
 
@@ -247,6 +240,23 @@ bool do_migration(JCR *jcr)
 
    /* If pool storage specified, use it instead of job storage for backup */
    copy_wstorage(jcr, jcr->pool->storage, _("Next pool resource"));
+
+
+   return true;
+}
+
+/*
+ * Do a Migration of a previous job
+ *
+ *  Returns:  false on failure
+ *            true  on success
+ */
+bool do_migration(JCR *jcr)
+{
+   char ed1[100];
+   BSOCK *sd;
+   JCR *mig_jcr = jcr->mig_jcr;    /* newly migrated job */
+
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
@@ -1078,7 +1088,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  Client:                 %s\n"
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\" (From %s)\n"
-"  Storage:                \"%s\" (From %s)\n"
+"  Read Storage:           \"%s\" (From %s_\n"
+"  Write Storage:          \"%s\" (From %s)\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
 "  Elapsed time:           %s\n"
@@ -1104,7 +1115,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
         jcr->client->name(),
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
-        jcr->wstore->name(), jcr->storage_source,
+        jcr->rstore->name(), jcr->rstore_source,
+        jcr->wstore->name(), jcr->wstore_source,
         sdt,
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),

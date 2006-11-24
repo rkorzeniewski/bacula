@@ -84,10 +84,10 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    }
 
    /* If there is a write storage use it */
-   if (jcr->wstorage) {
-      store = (STORE *)jcr->wstorage->first();
+   if (jcr->wstore) {
+      store = jcr->wstore;
    } else {
-      store = (STORE *)jcr->rstorage->first();
+      store = jcr->rstore;
    }
 
    /*
@@ -216,7 +216,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    /* Do read side of storage daemon */
    if (ok && rstore) {
       foreach_alist(storage, rstore) {
-         pm_strcpy(store_name, storage->hdr.name);
+         Dmsg1(100, "Rstore=%s\n", storage->name());
+         pm_strcpy(store_name, storage->name());
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);
@@ -246,7 +247,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    /* Do write side of storage daemon */
    if (ok && wstore) {
       foreach_alist(storage, wstore) {
-         pm_strcpy(store_name, storage->hdr.name);
+         Dmsg1(100, "Wstore=%s\n", storage->name());
+         pm_strcpy(store_name, storage->name());
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);

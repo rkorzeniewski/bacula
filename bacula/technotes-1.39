@@ -2,6 +2,18 @@
 
 General:
 22Nov06
+kes  Separate read/write source strings to keep track of where
+     storage devices are used in a job.
+kes  Implement a new method of keeping track of which storage 
+     device is used in a Job.  USTORE keeps both a pointer to the
+     resource and to the source string.
+kes  Modify all code to use new storage set subroutines in job.c
+kes  Modify migrate.c so that the definitive selection of the storage
+     resource is done in the do_migration_init() routine prior to
+     the job going into the job queue.  This permits accurate 
+     deadlock detection (same read and write storage resource).
+kes  Remove bfill from btape (I think it was a left over stub).
+22Nov06
 kes  Make sure that the storage for a job is pulled first from
      the Pool and if not from the Job.  
 kes  Ensure that either the Pool or the Job specifies a Storage

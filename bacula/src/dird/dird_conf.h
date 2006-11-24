@@ -307,6 +307,40 @@ inline char *STORE::dev_name() const
 
 inline char *STORE::name() const { return hdr.name; }
 
+/*
+ * This is a sort of "unified" store that has both the
+ *  storage pointer and the text of where the pointer was
+ *  found.
+ */
+class USTORE {
+public:
+   STORE *store;
+   POOLMEM *store_source;
+
+   /* Methods */
+   USTORE() { store = NULL; store_source = get_pool_memory(PM_MESSAGE); }
+   ~USTORE() { destroy(); }   
+   void set_source(const char *where);
+   void destroy();
+};
+
+inline void USTORE::destroy()
+{
+   if (store_source) {
+      free_pool_memory(store_source);
+      store_source = NULL;
+   }
+}
+
+
+inline void USTORE::set_source(const char *where)
+{
+   if (!store_source) {
+      store_source = get_pool_memory(PM_MESSAGE);
+   }
+   pm_strcpy(store_source, where);
+}
+
 
 /*
  *   Job Resource

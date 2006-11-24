@@ -202,7 +202,6 @@ bool do_backup(JCR *jcr)
       goto bail_out;
    }
 
-
    if (!send_runscripts_commands(jcr)) {
       goto bail_out;
    }
@@ -466,7 +465,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
-        jcr->wstore->name(), jcr->storage_source,
+        jcr->wstore->name(), jcr->wstore_source,
         schedt,
         sdt,
         edt,

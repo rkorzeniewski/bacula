@@ -702,9 +702,12 @@ static bool acquire_resources(JCR *jcr)
    }
    
    if (jcr->wstore) {
+      Dmsg1(200, "Wstore=%s\n", jcr->wstore->name());
       if (jcr->rstore == jcr->wstore) {           /* deadlock */
          jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
-         Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"));
+         Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
+            "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
+            jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
          set_jcr_job_status(jcr, JS_Canceled);
          return false;
       }

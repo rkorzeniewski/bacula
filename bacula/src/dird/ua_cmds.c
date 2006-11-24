@@ -684,8 +684,11 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
 {
    BSOCK *sd;
    JCR *jcr = ua->jcr;
-
-   set_wstorage(jcr, store);
+   USTORE lstore;
+   
+   lstore.store = store;
+   pm_strcpy(lstore.store_source, _("unknown source"));
+   set_wstorage(jcr, &lstore);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
       store->name(), store->address, store->SDport);
@@ -1309,7 +1312,7 @@ static int delete_pool(UAContext *ua)
 
 static void do_mount_cmd(UAContext *ua, const char *command)
 {
-   STORE *store;
+   USTORE store;
    BSOCK *sd;
    JCR *jcr = ua->jcr;
    char dev_name[MAX_NAME_LENGTH];
@@ -1321,25 +1324,26 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    }
    Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
 
-   store = get_storage_resource(ua, true/*arg is storage*/);
-   if (!store) {
+   store.store = get_storage_resource(ua, true/*arg is storage*/);
+   pm_strcpy(store.store_source, _("unknown source"));
+   if (!store.store) {
       return;
    }
-   set_wstorage(jcr, store);
-   drive = get_storage_drive(ua, store);
+   set_wstorage(jcr, &store);
+   drive = get_storage_drive(ua, store.store);
    if (strcmp(command, "mount") == 0) {
-      slot = get_storage_slot(ua, store);
+      slot = get_storage_slot(ua, store.store);
    }
 
    Dmsg3(120, "Found storage, MediaType=%s DevName=%s drive=%d\n",
-      store->media_type, store->dev_name(), drive);
+      store.store->media_type, store.store->dev_name(), drive);
 
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
       bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
       return;
    }
    sd = jcr->store_bsock;
-   bstrncpy(dev_name, store->dev_name(), sizeof(dev_name));
+   bstrncpy(dev_name, store.store->dev_name(), sizeof(dev_name));
    bash_spaces(dev_name);
    if (slot > 0) {
       bnet_fsend(sd, "%s %s drive=%d slot=%d", command, dev_name, drive, slot);

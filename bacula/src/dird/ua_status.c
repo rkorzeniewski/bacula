@@ -288,8 +288,11 @@ static void do_director_status(UAContext *ua)
 static void do_storage_status(UAContext *ua, STORE *store)
 {
    BSOCK *sd;
+   USTORE lstore;
 
-   set_wstorage(ua->jcr, store);
+   lstore.store = store;
+   pm_strcpy(lstore.store_source, _("unknown source"));
+   set_wstorage(ua->jcr, &lstore);
    /* Try connecting for up to 15 seconds */
    bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
       store->name(), store->address, store->SDport);
@@ -445,7 +448,6 @@ static void list_scheduled_jobs(UAContext *ua)
    time_t runtime;
    RUN *run;
    JOB *job;
-   STORE* store;
    int level, num_jobs = 0;
    int priority;
    bool hdr_printed = false;
@@ -472,6 +474,7 @@ static void list_scheduled_jobs(UAContext *ua)
          continue;
       }
       for (run=NULL; (run = find_next_run(run, job, runtime, days)); ) {
+         USTORE store;
          level = job->JobLevel;
          if (run->level) {
             level = run->level;
@@ -479,11 +482,6 @@ static void list_scheduled_jobs(UAContext *ua)
          priority = job->Priority;
          if (run->Priority) {
             priority = run->Priority;
-         }
-         if (run->storage) {
-            store = run->storage;
-         } else {
-            store = get_job_storage(job);
          }
          if (!hdr_printed) {
             prt_runhdr(ua);
@@ -495,7 +493,8 @@ static void list_scheduled_jobs(UAContext *ua)
          sp->priority = priority;
          sp->runtime = runtime;
          sp->pool = run->pool;
-         sp->store = store;
+         get_job_storage(&store, job, run);
+         sp->store = store.store;
          sched.binary_insert_multiple(sp, my_compare);
          num_jobs++;
       }
