@@ -52,6 +52,7 @@ run job=migrate-time yes
 wait
 messages
 wait
+purge volume=FileVolume001
 list jobs
 list volumes
 @# 

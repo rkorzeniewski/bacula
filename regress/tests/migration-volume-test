@@ -8,7 +8,7 @@
 TestName="migration-volume-test"
 JobName=MigVolBackup
 . scripts/functions
-set_debug 0
+set_debug 0 
 
 . config.out
 
@@ -49,6 +49,8 @@ update volume=FileVolume002 VolStatus=Used
 list volumes
 @# should migrate two jobs
 @# setdebug level=11 dir
+@echo "Run migrate-volume Job"
+@#setdebug level=100 dir
 run job=migrate-volume yes
 list volumes
 @sleep 3
@@ -58,6 +60,9 @@ status storage=DiskChanger
 @sleep 1
 status storage=DiskChanger
 wait
+purge volume=FileVolume001
+purge volume=FileVolume002
+@echo "Now do a restore"
 messages
 @# 
 @# now do a restore

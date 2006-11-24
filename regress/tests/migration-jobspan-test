@@ -10,7 +10,7 @@
 TestName="migration-jobspan-test"
 JobName=MigrationJobSpanSave
 . scripts/functions
-set_debug 1
+set_debug 0
 
 . config.out
 
