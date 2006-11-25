@@ -364,7 +364,7 @@ void do_restore(JCR *jcr)
 
          /* Do we have any keys at all? */
          if (!jcr->pki_recipients) {
-            Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data."));
+            Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
             break;
          }
 
@@ -375,14 +375,14 @@ void do_restore(JCR *jcr)
             /* Success */
             break;
          case CRYPTO_ERROR_NORECIPIENT:
-            Jmsg(jcr, M_ERROR, 0, _("Missing private key required to decrypt encrypted backup data."));
+            Jmsg(jcr, M_ERROR, 0, _("Missing private key required to decrypt encrypted backup data.\n"));
             break;
          case CRYPTO_ERROR_DECRYPTION:
-            Jmsg(jcr, M_ERROR, 0, _("Decrypt of the session key failed."));
+            Jmsg(jcr, M_ERROR, 0, _("Decrypt of the session key failed.\n"));
             break;
          default:
             /* Shouldn't happen */
-            Jmsg1(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream: %s"), crypto_strerror(cryptoerr));
+            Jmsg1(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream: %s\n"), crypto_strerror(cryptoerr));
             break;
          }
 
