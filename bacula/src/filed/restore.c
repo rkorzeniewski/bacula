@@ -224,7 +224,8 @@ void do_restore(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
-      Dmsg2(30, "Got hdr: FilInx=%d Stream=%d.\n", file_index, stream);
+      Dmsg4(30, "Got hdr: Files=%d FilInx=%d Stream=%d, %s.\n", 
+            jcr->JobFiles, file_index, stream, stream_to_ascii(stream));
 
       /* * Now we expect the Stream Data */
       if (bget_msg(sd) < 0) {
@@ -235,7 +236,8 @@ void do_restore(JCR *jcr)
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
          goto bail_out;
       }
-      Dmsg1(30, "Got stream data, len=%d\n", sd->msglen);
+      Dmsg3(30, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(stream), 
+            sd->msglen, extract);
 
       /* If we change streams, close and reset alternate data streams */
       if (prev_stream != stream) {
@@ -250,7 +252,6 @@ void do_restore(JCR *jcr)
       switch (stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
-         Dmsg1(30, "Stream=Unix Attributes. extract=%d\n", extract);
          /*
           * If extracting, it was from previous stream, so
           * close the output file and validate the signature.
@@ -360,8 +361,6 @@ void do_restore(JCR *jcr)
       /* Data stream */
       case STREAM_ENCRYPTED_SESSION_DATA:
          crypto_error_t cryptoerr;
-
-         Dmsg1(30, "Stream=Encrypted Session Data, size: %d\n", sd->msglen);
 
          /* Do we have any keys at all? */
          if (!jcr->pki_recipients) {

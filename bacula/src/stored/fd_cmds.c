@@ -359,7 +359,7 @@ bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
       Jmsg(jcr, M_FATAL, 0, _("Error parsing bootstrap file.\n"));
       goto bail_out;
    }
-   if (debug_level > 20) {
+   if (debug_level >= 10) {
       dump_bsr(jcr->bsr, true);
    }
    ok = true;
