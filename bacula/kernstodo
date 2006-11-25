@@ -41,6 +41,10 @@ Document:
  
 
 Priority:
+- Look at moving the Storage directive from the Job to the
+  Pool in the default conf files.
+- Make sure the new level=Full syntax is used in all 
+  example conf files (especially in the manual).
 - Fix prog copyright (SD) all other files.
 - Migration Volume span bug
 - Rescue release

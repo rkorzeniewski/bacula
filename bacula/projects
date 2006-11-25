@@ -1154,3 +1154,42 @@ Item n:   Allow inclusion/exclusion of files in a fileset by creation/mod times
           So one could compare against 'ctime' and/or 'mtime', but ONLY 'before'
            or 'since'.
 
+
+Item:   Implement support for stacking arbitrary stream filters, sinks.
+Date:   23 November 2006
+Origin: Landon Fuller <landonf@threerings.net>
+Status: Planning. Assigned to landonf.
+
+What:
+        Implement support for the following:
+        - Stacking arbitrary stream filters (eg, encryption, compression,  
+          sparse data handling))
+        - Attaching file sinks to terminate stream filters (ie, write out  
+          the resultant data to a file)
+        - Refactor the restoration state machine accordingly
+
+Why:
+        The existing stream implementation suffers from the following:
+         - All state (compression, encryption, stream restoration), is  
+           global across the entire restore process, for all streams. There are  
+           multiple entry and exit points in the restoration state machine, and  
+           thus multiple places where state must be allocated, deallocated,  
+           initialized, or reinitialized. This results in exceptional complexity  
+           for the author of a stream filter.
+         - The developer must enumerate all possible combinations of filters  
+           and stream types (ie, win32 data with encryption, without encryption,  
+           with encryption AND compression, etc).
+
+Notes:
+        This feature request only covers implementing the stream filters/ 
+        sinks, and refactoring the file daemon's restoration implementation  
+        accordingly. If I have extra time, I will also rewrite the backup  
+        implementation. My intent in implementing the restoration first is to  
+        solve pressing bugs in the restoration handling, and to ensure that  
+        the new restore implementation handles existing backups correctly.
+
+        I do not plan on changing the network or tape data structures to  
+        support defining arbitrary stream filters, but supporting that  
+        functionality is the ultimate goal.
+
+        Assistance with either code or testing would be fantastic.
