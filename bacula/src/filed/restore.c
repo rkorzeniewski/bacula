@@ -365,6 +365,8 @@ void do_restore(JCR *jcr)
          /* Do we have any keys at all? */
          if (!jcr->pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
+            extract = false;
+            bclose(&bfd);
             break;
          }
 
