@@ -34,12 +34,12 @@ Vous devrez choisir parmi la sélection de l'écran suivant.
     </td>
     </tr>
     <tr>
-        <td>Expiré :</td> 
+        <td>Choisir des médias <br/> expirés :</td> 
         <td> <input type='checkbox' name='expired' class='formulaire' 
 		checked> </td>
     </tr>
     <tr>
-        <td>Nombre de média <br/> à internaliser :</td> 
+        <td>Nombre de médias <br/> à internaliser :</td> 
         <td> <input type='text' name='limit' class='formulaire' 
 		size='3' value='10'> </td>
     </tr>

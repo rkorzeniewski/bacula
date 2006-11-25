@@ -33,7 +33,7 @@ Vous devrez choisir parmi la sélection de l'écran suivant.
         </td>
     </tr>
     <tr>
-        <td>Nombre de média <br/> à externaliser :</td> 
+        <td>Nombre de médias <br/> à externaliser :</td> 
         <td> <input type='text' name='limit' size='3' class='formulaire' 
               value='10'> </td>
     </tr>
