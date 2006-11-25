@@ -18,7 +18,7 @@ rm -rf ${cwd}/tmp/build
 mkdir ${cwd}/tmp/build
 # Copy only the .c files (to be restored)
 #  set files to "*.c" for all c files
-files="ua_update.c"
+files="ua_tree.c ua_update.c"
 # files="*.c"
 for i in ${files}; do
    cp -p ${cwd}/build/src/dird/${i} ${cwd}/tmp/build
@@ -62,6 +62,7 @@ messages
 @#
 @$out tmp/log2.out
 setdebug level=30 fd     
+setdebug level=10 storage=File
 sql
 @# print the JobMedia records
 select * from JobMedia;
