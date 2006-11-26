@@ -41,6 +41,8 @@ Document:
  
 
 Priority:
+- Ensure that the SD re-reads the Media record if the JobFiles
+  does not match -- it may have been updated by another job.
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
 - Make sure the new level=Full syntax is used in all 
