@@ -330,7 +330,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
                      SESSION_LABEL *sessrec, bool done)
 {
    if (bsr->done) {
-      Dmsg0(dbglevel, "bsr->done set\n");
+//    Dmsg0(dbglevel, "bsr->done set\n");
       goto no_match;
    }
    if (!match_volume(bsr, bsr->volume, volrec, 1)) {
