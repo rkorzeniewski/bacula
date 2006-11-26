@@ -34,6 +34,23 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+/*
+ * ***FIXME***
+ * find_smallest_volfile needs to be fixed to only look at items that
+ *   are not marked as done.  Otherwise, it can find a bsr
+ *   that has already been consumed, and this will cause the
+ *   bsr to be used, thus we may seek back and re-read the
+ *   same records, causing an error.  This deficiency must
+ *   be fixed.  For the moment, it has been kludged in 
+ *   read_record.c to avoid seeking back if find_next_bsr
+ *   returns a bsr pointing to a smaller address (file/block).
+ *
+ * Also for efficiency, once a bsr is done, it really should be
+ *   delinked from the bsr chain.  This will avoid the above 
+ *   problem and make traversal of the bsr chain more efficient.
+ *
+ *   To be done ...
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -186,6 +203,7 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
    }
    Dmsg2(dbglevel, "use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
    root_bsr->mount_next_volume = false;
+   /* Walk through all bsrs to find the next one to use => smallest file,block */
    for (bsr=root_bsr; bsr; bsr=bsr->next) {
       if (bsr->done || !match_volume(bsr, bsr->volume, &dev->VolHdr, 1)) {
          continue;
@@ -207,6 +225,17 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
    return found_bsr;
 }
 
+/*
+ * ***FIXME***
+ * This routine needs to be fixed to only look at items that
+ *   are not marked as done.  Otherwise, it can find a bsr
+ *   that has already been consumed, and this will cause the
+ *   bsr to be used, thus we may seek back and re-read the
+ *   same records, causing an error.  This deficiency must
+ *   be fixed.  For the moment, it has been kludged in 
+ *   read_record.c to avoid seeking back if find_next_bsr
+ *   returns a bsr pointing to a smaller address (file/block).
+ */
 static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
 {
    BSR *return_bsr = found_bsr;
@@ -215,6 +244,7 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
    uint32_t found_bsr_sfile, bsr_sfile;
    uint32_t found_bsr_sblock, bsr_sblock;
 
+   /* Find the smallest file in the found_bsr */
    vf = found_bsr->volfile;
    found_bsr_sfile = vf->sfile;
    while ( (vf=vf->next) ) {
@@ -222,6 +252,8 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
          found_bsr_sfile = vf->sfile;
       }
    }
+
+   /* Find the smallest file in the bsr */
    vf = bsr->volfile;
    bsr_sfile = vf->sfile;
    while ( (vf=vf->next) ) {
@@ -229,10 +261,13 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
          bsr_sfile = vf->sfile;
       }
    }
+    
+   /* if the bsr file is less than the found_bsr file, return bsr */
    if (found_bsr_sfile > bsr_sfile) {
       return_bsr = bsr;
    } else if (found_bsr_sfile == bsr_sfile) {
-      /* Must check block */
+      /* Files are equal */
+      /* find smallest block in found_bsr */
       vb = found_bsr->volblock;
       found_bsr_sblock = vb->sblock;
       while ( (vb=vb->next) ) {
@@ -240,6 +275,7 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
             found_bsr_sblock = vb->sblock;
          }
       }
+      /* Find smallest block in bsr */
       vb = bsr->volblock;
       bsr_sblock = vb->sblock;
       while ( (vb=vb->next) ) {
@@ -247,11 +283,11 @@ static BSR *find_smallest_volfile(BSR *found_bsr, BSR *bsr)
             bsr_sblock = vb->sblock;
          }
       }
+      /* Compare and return the smallest */
       if (found_bsr_sblock > bsr_sblock) {
          return_bsr = bsr;
       }
    }
-
    return return_bsr;
 }
 
@@ -303,8 +339,8 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
       goto no_match;
    }
    if (!match_volfile(bsr, bsr->volfile, rec, 1)) {
-      Dmsg2(dbglevel, "Fail on file. bsr=%d rec=%d\n", bsr->volfile->efile,
-         rec->File);
+      Dmsg3(dbglevel, "Fail on file=%d. bsr=%d,%d\n", 
+         rec->File, bsr->volfile->sfile, bsr->volfile->efile);
       goto no_match;
    }
    if (!match_sesstime(bsr, bsr->sesstime, rec, 1)) {
@@ -554,24 +590,24 @@ static int match_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_RECORD *rec)
  *  ***FIXME*** optimizations
  * We could optimize a lot here by removing the recursion, and 
  *   stopping the search earlier -- say when rec->FileIndex > findex->findex2
- *   and findex->next == NULL.  Also, the current entry tests could be skipped
- *   if findex->done is set.
+ *   and findex->next == NULL.  
  */
 static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done)
 {
    if (!findex) {
       return 1;                       /* no specification matches all */
    }
-   if (findex->findex <= rec->FileIndex && findex->findex2 >= rec->FileIndex) {
-      Dmsg3(dbglevel, "Match on findex=%d. bsr=%d,%d\n",
-            rec->FileIndex, findex->findex, findex->findex2);
-      return 1;
-   }
-   if (rec->FileIndex > findex->findex2) {
-      findex->done = true;
+   if (!findex->done) {
+      if (findex->findex <= rec->FileIndex && findex->findex2 >= rec->FileIndex) {
+         Dmsg3(dbglevel, "Match on findex=%d. bsr=%d,%d\n",
+               rec->FileIndex, findex->findex, findex->findex2);
+         return 1;
+      }
+      if (rec->FileIndex > findex->findex2) {
+         findex->done = true;
+      }
    }
    if (findex->next) {
-      Dmsg0(dbglevel, "Next findex link\n");
       return match_findex(bsr, findex->next, rec, findex->done && done);
    }
    if (findex->done && done) {
