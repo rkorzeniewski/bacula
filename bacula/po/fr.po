@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-11-20 19:17+0100\n"
-"PO-Revision-Date: 2006-11-20 20:16+0100\n"
+"PO-Revision-Date: 2006-11-26 23:19+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -290,7 +290,7 @@ msgstr ""
 
 #: src/stored/spool.c:418
 msgid "User specified spool size reached.\n"
-msgstr "Taille du spool spécifié par l'utlisateur atteind.\n"
+msgstr "Taille du spool spécifiée par l'utlisateur atteinte.\n"
 
 #: src/stored/spool.c:420
 msgid "Bad return from despool in write_block.\n"
@@ -12741,8 +12741,7 @@ msgstr ""
 #: src/dird/next_vol.c:200
 #, c-format
 msgid "Max Volume files exceeded. Marking Volume \"%s\" as Used.\n"
-msgstr ""
-"Nombre de fichier maximum atteind. Marquage du volume « %s » comme Used.\n"
+msgstr "Nombre de fichier maximum atteint. Marquage du volume « %s » comme Used.\n"
 
 #: src/dird/next_vol.c:210
 #, c-format
