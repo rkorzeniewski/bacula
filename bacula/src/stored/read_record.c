@@ -328,6 +328,15 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
       return true;
    }
    if (bsr) {
+      /*
+       * ***FIXME*** gross kludge to make disk seeking work.  Remove
+       *   when find_next_bsr() is fixed not to return a bsr already
+       *   completed.
+       */
+      if (dev->file > bsr->volfile->sfile ||             
+         (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
+         return false;
+      }
       if (verbose) {
          Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
             dev->file, dev->block_num, bsr->volfile->sfile,

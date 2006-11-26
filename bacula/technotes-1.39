@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+26Nov06
+kes  Implement fixes to make disk seeking work.  Currently turned
+     off in version.h pending reserch on what problems it will cause
+     because of the previous bsnprinf() sign extension bug.
 25Nov06
 kes  Add Landon's refactor of restore Feature request to the
      projects file.
