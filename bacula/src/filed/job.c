@@ -134,7 +134,7 @@ static char OKverify[]    = "2000 OK verify\n";
 static char OKrestore[]   = "2000 OK restore\n";
 static char OKsession[]   = "2000 OK session\n";
 static char OKstore[]     = "2000 OK storage\n";
-static char OKjob[]       = "2000 OK Job %s,%s,%s";
+static char OKjob[]       = "2000 OK Job %s (%s) %s,%s,%s";
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
 static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
@@ -432,7 +432,7 @@ static int job_cmd(JCR *jcr)
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
-   return bnet_fsend(dir, OKjob, HOST_OS, DISTNAME, DISTVER);
+   return bnet_fsend(dir, OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
 static int runbefore_cmd(JCR *jcr)

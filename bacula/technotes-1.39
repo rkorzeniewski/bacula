@@ -2,6 +2,9 @@
 
 General:
 26Nov06
+kes  Add Bacula version+date to Client record. This is a very minor
+     security problem in that passing the version facilitates a hacker's
+     life, but it will make support easier.
 kes  Implement fixes to make disk seeking work.  Currently turned
      off in version.h pending reserch on what problems it will cause
      because of the previous bsnprinf() sign extension bug.
