@@ -1977,6 +1977,7 @@ sub display_media
     my ($self) = @_ ;
 
     my ($where, %elt) = $self->get_param('pool',
+					 'mediatype',
 					 'location');
 
     my $arg = $self->get_form('jmedias', 'qre_media');
