@@ -751,9 +751,6 @@ void dump_sesstime(BSR_SESSTIME *sesstime)
 }
 
 
-
-
-
 void dump_bsr(BSR *bsr, bool recurse)
 {
    int save_debug = debug_level;

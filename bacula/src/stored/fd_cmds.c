@@ -349,11 +349,13 @@ bool get_bootstrap_file(JCR *jcr, BSOCK *sock)
          jcr->RestoreBootstrap, strerror(errno));
       goto bail_out;
    }
+   Dmsg0(10, "=== Bootstrap file ===\n");
    while (bnet_recv(sock) >= 0) {
-       Dmsg1(400, "stored<filed: bootstrap file %s", sock->msg);
+       Dmsg1(10, "%s", sock->msg);
        fputs(sock->msg, bs);
    }
    fclose(bs);
+   Dmsg0(10, "=== end bootstrap file ===\n");
    jcr->bsr = parse_bsr(jcr, jcr->RestoreBootstrap);
    if (!jcr->bsr) {
       Jmsg(jcr, M_FATAL, 0, _("Error parsing bootstrap file.\n"));
