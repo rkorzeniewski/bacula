@@ -1,6 +1,6 @@
 # French translations for Bacula package
 # Traduction anglaise du package Bacula.
-# Copyright (C) 2005 Kern Sibbald
+# Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
 # Nicolas Boichat <nicolas@boichat.ch>, 2005.
 #
 msgid ""
