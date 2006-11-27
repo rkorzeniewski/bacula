@@ -2601,7 +2601,7 @@ PROG_COPYRIGHT
 "       -s          turn off signals\n"
 "       -v          be verbose\n"
 "       -?          print this message.\n"
-"\n"), BYEAR, VERSION, BDATE);
+"\n"), 2000, VERSION, BDATE);
 
 }
 

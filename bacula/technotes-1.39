@@ -1,6 +1,11 @@
               Technical notes on version 1.39  
 
 General:
+27Nov06
+kes  More copyright changes.
+kes  Make sure we don't detach from the despool read device since it
+     is a temporary structure where the condition variables are not
+     initialized.  Bug #711.
 26Nov06
 kes  Add Bacula version+date to Client record. This is a very minor
      security problem in that passing the version facilitates a hacker's

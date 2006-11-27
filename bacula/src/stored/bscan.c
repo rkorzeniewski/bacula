@@ -129,7 +129,7 @@ PROG_COPYRIGHT
 "       -v                verbose\n"
 "       -V <Volumes>      specify Volume names (separated by |)\n"
 "       -w <dir>          specify working directory (default from conf file)\n"
-"       -?                print this message\n\n"), BYEAR, VERSION, BDATE);
+"       -?                print this message\n\n"), 2001, VERSION, BDATE);
    exit(1);
 }
 

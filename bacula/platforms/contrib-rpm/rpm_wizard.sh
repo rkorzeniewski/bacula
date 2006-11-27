@@ -4,7 +4,7 @@
 # requires zenity to be installed
 # 30 Jul 2006 D. Scott Barninger
 
-# Copyright (C) 2006 Kern Sibbald
+# Copyright (C) 2006 Free Software Foundation Europe e.V.
 # licensed under GPL-v2
 
 # usage ./rpm_wizard.sh
@@ -13,8 +13,8 @@
 HAVE_ZENITY=`which zenity`
 if [ -z $HAVE_ZENITY ];
 then
-	echo You need zenity installed to run this script;
-	exit;
+        echo You need zenity installed to run this script;
+        exit;
 fi
 
 zenity --question --text "Bacula rpm rebuilding wizard. Do you wish to continue?"
@@ -22,7 +22,7 @@ zenity --question --text "Bacula rpm rebuilding wizard. Do you wish to continue?
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 # get packager name and email adddress
@@ -34,7 +34,7 @@ SELECTED_FILE=`zenity --file-selection --title "Choose SRPM file to rebuild"`
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 # select build platform
@@ -43,7 +43,7 @@ PLATFORM=`zenity --title "Select Platform" --text "Please choose a build platfor
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 # select database support
@@ -52,7 +52,7 @@ DATABASE=`zenity --title "Select Database" --text "Please choose database suppor
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 # select other build options
@@ -61,7 +61,7 @@ OPTIONS=`zenity --title "Select Options" --text "Please choose other options." -
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 OPTION1=`echo $OPTIONS|cut --delimiter=\| -f1`
@@ -74,19 +74,19 @@ COMMAND="rpmbuild --rebuild --define 'build_$PLATFORM 1' --define 'build_$DATABA
 
 if [ ! -z $OPTION1 ];
 then
-	COMMAND="${COMMAND} --define '$OPTION1 1'";
+        COMMAND="${COMMAND} --define '$OPTION1 1'";
 fi
 if [ ! -z $OPTION2 ];
 then
-	COMMAND="${COMMAND} --define '$OPTION2 1'";
+        COMMAND="${COMMAND} --define '$OPTION2 1'";
 fi
 if [ ! -z $OPTION3 ];
 then
-	COMMAND="${COMMAND} --define '$OPTION3 1'";
+        COMMAND="${COMMAND} --define '$OPTION3 1'";
 fi
 if [ ! -z $OPTION4 ];
 then
-	COMMAND="${COMMAND} --define '$OPTION4 1'";
+        COMMAND="${COMMAND} --define '$OPTION4 1'";
 fi
 
 COMMAND="${COMMAND} ${SELECTED_FILE}"
@@ -96,7 +96,7 @@ zenity --question --text "Ready to rebuild the src rpm with $COMMAND. Do you wis
 RESULT="$?"
 if [ "$RESULT" == "1" ];
 then
-	exit;
+        exit;
 fi
 
 # execute the build
@@ -105,4 +105,3 @@ echo $COMMAND | sh
 # ChangeLog
 # 30 Jul 2006 initial release
 # 05 Aug 2006 add option for build_python
-

@@ -4,7 +4,7 @@
 # copy this script into a working directory with the src rpm to build and execute
 # 19 Aug 2006 D. Scott Barninger
 
-# Copyright (C) 2006 Kern Sibbald
+# Copyright (C) 2006 Free Software Foundation Europe e.V.
 # licensed under GPL-v2
 
 # signing rpms
@@ -115,9 +115,9 @@ rm -rf ${RPMBUILD}/*
 # delete the updatedb package and any debuginfo packages built
 rm -f ${RPMDIR}/bacula*debug*
 if [ "$SAVEUPDATEDB" = "1" ]; then
-	mv -f ${RPMDIR}/bacula-updatedb* ./;
+        mv -f ${RPMDIR}/bacula-updatedb* ./;
 else
-	rm -f ${RPMDIR}/bacula-updatedb*;
+        rm -f ${RPMDIR}/bacula-updatedb*;
 fi
 
 # copy files to cwd and rename files to final upload names
@@ -145,9 +145,9 @@ mv -f ${RPMDIR}/bacula-wxconsole-${VERSION}-${RELEASE}.${ARCH}.rpm \
 
 # now sign the packages
 if [ "$SIGN" = "1" ]; then
-	echo Ready to sign packages...;
-	sleep 2;
-	rpm --addsign ./*.rpm;
+        echo Ready to sign packages...;
+        sleep 2;
+        rpm --addsign ./*.rpm;
 fi
 
 echo
@@ -160,6 +160,5 @@ ls
 # 05 Aug 2006 add python support
 # 06 Aug 2006 add remote source directory, add switch for signing, refine file names
 # 19 Aug 2006 add $LANG override to config section per request Felix Schwartz
-
 
 

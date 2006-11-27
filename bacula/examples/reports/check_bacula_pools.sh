@@ -1,6 +1,6 @@
 #! /bin/sh
 # Author : Ludovic Strappazon. l.strappazon@gmail.com
-# Copyright : Kern Sibbald 
+# Copyright 2004, Free Software Foundation e.V.
 # Any comment, advice or enhancement are welcome :-)
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
@@ -24,17 +24,17 @@ print_help() {
         echo ""
         echo "This plugin checks the space available in the pool against the space required for the next scheduled backups"
         echo "Example : $PROGNAME -P default -M LTO -w 20 -c 10 will check the default pool, return OK if (available space) > 1,20*(required space), WARNING if 1,20*(required space) > (available space) > 1,10*(required space), and CRITICAL else."
-	echo ""
-	echo "With the -S option, it will check the pool named Scratch and return WARNING instead of CRITICAL if the Scratch pool can save the situation."
-	echo "Example : $PROGNAME -P default -M LTO -w 20 -c 10 -S will check the default pool, return OK if (available space) > 1,20*(required space), WARNING if 1,20*(required space) > (available space) > 1,10*(required space) or if (available space in default and Scratch) > 1,10*(required space) > (available space in default), and CRITICAL else."
-	echo ""
-	echo "The evaluation of the space required is done by adding the biggest backups of the same level than the scheduled jobs"
-	echo "The available space is evaluated by the number of out of retention tapes and the average VolBytes of these Full tapes"
-	echo ""
-	echo "The Information Status are : \"Required, Available, Volume Errors\" and \"Will use Scratch pool\" if necessary."
-	echo ""
-	echo "I think this plugin should be used in passive mode, and ran by a RunAfterJob"
-	exit 3
+        echo ""
+        echo "With the -S option, it will check the pool named Scratch and return WARNING instead of CRITICAL if the Scratch pool can save the situation."
+        echo "Example : $PROGNAME -P default -M LTO -w 20 -c 10 -S will check the default pool, return OK if (available space) > 1,20*(required space), WARNING if 1,20*(required space) > (available space) > 1,10*(required space) or if (available space in default and Scratch) > 1,10*(required space) > (available space in default), and CRITICAL else."
+        echo ""
+        echo "The evaluation of the space required is done by adding the biggest backups of the same level than the scheduled jobs"
+        echo "The available space is evaluated by the number of out of retention tapes and the average VolBytes of these Full tapes"
+        echo ""
+        echo "The Information Status are : \"Required, Available, Volume Errors\" and \"Will use Scratch pool\" if necessary."
+        echo ""
+        echo "I think this plugin should be used in passive mode, and ran by a RunAfterJob"
+        exit 3
 }
 
 NB_ARGS=$#
@@ -63,15 +63,15 @@ done
 shift $(($OPTIND - 1))
 
 if [ "$NB_ARGS" -ne 8 -a "$NB_ARGS" -ne 9 ]; then
-	print_revision $PROGNAME 13/06/2006
-	print_usage
+        print_revision $PROGNAME 13/06/2006
+        print_usage
         exit 3
 fi
 
 LAST_CHECK=`ps -ef | grep check_ba[Cc]ula_pools.sh | awk {'print $5'} | uniq | wc -l`
 if [ "$LAST_CHECK" -gt 1 ]; then
-	echo "The last check was not complete, you should increase the check_period."
-	exit 3
+        echo "The last check was not complete, you should increase the check_period."
+        exit 3
 fi
 
 NB_VOLUMES=`$MYSQL << EOF
@@ -176,4 +176,3 @@ else
      else exit 0
   fi
 fi
-

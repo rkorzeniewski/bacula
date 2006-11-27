@@ -79,7 +79,7 @@ PROG_COPYRIGHT
 "       -p                proceed inspite of errors\n"
 "       -v                verbose\n"
 "       -w <dir>          specify working directory (default /tmp)\n"
-"       -?                print this message\n\n"), BYEAR, VERSION, BDATE);
+"       -?                print this message\n\n"), 2002, VERSION, BDATE);
    exit(1);
 }
 

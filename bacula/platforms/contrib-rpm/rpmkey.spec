@@ -1,5 +1,5 @@
 # rpm public key package
-# Copyright (C) 2006 Kern Sibbald
+# Copyright (C) 2006 Free Software Foundation Europe e.V.
 #
 #
 
@@ -49,4 +49,3 @@ cp -a %{SOURCE0} %{buildroot}%{gpgkeypath}/
 - change key directory to /etc/bacula/pubkeys
 * Sun Jul 16 2006 D. Scott Barninger <barninger@fairfieldcomputers.com
 - initial spec file
-

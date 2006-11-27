@@ -89,7 +89,7 @@ PROG_COPYRIGHT
 "       -p              proceed inspite of errors\n"
 "       -v              be verbose\n"
 "       -V              specify Volume names (separated by |)\n"
-"       -?              print this message\n\n"), BYEAR, VERSION, BDATE);
+"       -?              print this message\n\n"), 2000, VERSION, BDATE);
    exit(1);
 }
 
