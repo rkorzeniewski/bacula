@@ -1,6 +1,6 @@
 # German translations for Bacula package
 # German messages for Bacula.
-# Copyright (C) 2005 Kern Sibbald
+# Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
 # This file is distributed under the same license as the Bacula package.
 #  <bacula-devel@lists.sourceforge.net>, 2005.
 #

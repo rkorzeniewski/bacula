@@ -1,6 +1,6 @@
 # Italian translations for Bacula package
 # Traduzioni italiane per il pacchetto Bacula..
-# Copyright (C) 2005 Kern Sibbald
+# Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
 #  <fparacchini@alteanet.it>, 2005.
 #
 msgid ""
