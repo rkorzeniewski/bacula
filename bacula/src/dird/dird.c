@@ -101,7 +101,7 @@ PROG_COPYRIGHT
 "       -u          userid\n"
 "       -v          verbose user messages\n"
 "       -?          print this message.\n"
-"\n"), BYEAR, VERSION, BDATE);
+"\n"), 2000, VERSION, BDATE);
 
    exit(1);
 }

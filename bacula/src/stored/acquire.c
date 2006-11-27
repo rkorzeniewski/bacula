@@ -642,7 +642,9 @@ void detach_dcr_from_dev(DCR *dcr)
 void free_dcr(DCR *dcr)
 {
 
-   detach_dcr_from_dev(dcr);
+   if (dcr->dev) {
+      detach_dcr_from_dev(dcr);
+   }
 
    if (dcr->block) {
       free_block(dcr->block);

@@ -85,7 +85,7 @@ PROG_COPYRIGHT
 "       -p              proceed inspite of I/O errors\n"
 "       -v              verbose\n"
 "       -V <volumes>    specify Volume names (separated by |)\n"
-"       -?              print this message\n\n"), BYEAR, VERSION, BDATE);
+"       -?              print this message\n\n"), 2000, VERSION, BDATE);
    exit(1);
 }
 

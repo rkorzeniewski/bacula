@@ -90,7 +90,7 @@ PROG_COPYRIGHT
 "        -u <user>   userid to <user>\n"
 "        -v          verbose user messages\n"
 "        -?          print this message.\n"
-"\n"), BYEAR, VERSION, BDATE);
+"\n"), 2000, VERSION, BDATE);
    exit(1);
 }
 

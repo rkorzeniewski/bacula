@@ -106,7 +106,7 @@ static gboolean blinkstate = TRUE;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2000-%s Kern Sibbald\n"
+PROG_COPYRIGHT
 "Written by Nicolas Boichat (2004)\n"
 "\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: tray-monitor [-c config_file] [-d debug_level]\n"
@@ -114,7 +114,7 @@ static void usage()
 "       -dnn          set debug level to nn\n"
 "       -t            test - read configuration and exit\n"
 "       -?            print this message.\n"
-"\n"), BYEAR, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
+"\n"), 2004, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
 static GtkWidget *new_image_button(const gchar *stock_id,
@@ -507,20 +507,20 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
       "%s"
       "\n<small>%s: %s (%s) %s %s %s</small>",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004-2006 Kern Sibbald\n"
+      PROG_COPYRIGHT
         "Written by Nicolas Boichat\n"),
       _("Version:"),
-      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
+      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER, 2004);
 #else
    GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,   
       "%s\n\n"
       "%s"
       "\n%s %s (%s) %s %s %s",
       _("Bacula Tray Monitor"),
-      _("Copyright (C) 2004-2006 Kern Sibbald\n"
+      PROG_COPYRIGHT
         "Written by Nicolas Boichat\n"),
       _("Version:"),
-      BYEAR, VERSION, BDATE, HOST_OS, DISTNAME);
+      BYEAR, VERSION, BDATE, HOST_OS, DISTNAME, 2004);
 #endif
    gtk_dialog_run(GTK_DIALOG(about));
    gtk_widget_destroy(about);

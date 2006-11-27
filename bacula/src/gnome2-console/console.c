@@ -98,7 +98,7 @@ static int numdir = 0;
 static void usage()
 {
    fprintf(stderr, _(
-"Copyright (C) 2002-2006 Kern Sibbald\n"
+PROG_COPYRIGHT
 "\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
@@ -106,7 +106,7 @@ static void usage()
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
 "       -?          print this message.\n"
-"\n"), VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
+"\n"), 2002, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 
    exit(1);
 }

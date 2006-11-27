@@ -7,7 +7,7 @@
 #define BDATE   "26 November 2006"
 #define LSMDATE "26Nov06"
 
-#define PROG_COPYRIGHT "Copyright (C) 2000-%s Free Software Foundation Europe e.V.\n"
+#define PROG_COPYRIGHT "Copyright (C) %s-2006 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2006"       /* year for copyright messages in progs */
 
 /*
