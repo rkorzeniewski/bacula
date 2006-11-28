@@ -214,6 +214,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    DIGEST *digest = NULL;
    DIGEST *signing_digest = NULL;
    int digest_stream = STREAM_NONE;
+   bool has_file_data = false;
    // TODO landonf: Allow the user to specify the digest algorithm
 #ifdef HAVE_SHA2
    crypto_digest_t signing_algorithm = CRYPTO_DIGEST_SHA256;
@@ -235,9 +236,11 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       break;
    case FT_REGE:
       Dmsg1(130, "FT_REGE saving: %s\n", ff_pkt->fname);
+      has_file_data = true;
       break;
    case FT_REG:
       Dmsg1(130, "FT_REG saving: %s\n", ff_pkt->fname);
+      has_file_data = true;
       break;
    case FT_LNK:
       Dmsg2(130, "FT_LNK saving: %s -> %s\n", ff_pkt->fname, ff_pkt->link);
@@ -275,6 +278,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       break;
    case FT_RAW:
       Dmsg1(130, "FT_RAW saving: %s\n", ff_pkt->fname);
+      has_file_data = true;
       break;
    case FT_FIFO:
       Dmsg1(130, "FT_FIFO saving: %s\n", ff_pkt->fname);
@@ -322,53 +326,56 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 
    Dmsg1(130, "bfiled: sending %s to stored\n", ff_pkt->fname);
 
-   /*
-    * Setup for digest handling. If this fails, the digest will be set to NULL
-    * and not used.
-    */
-   if (ff_pkt->flags & FO_MD5) {
-      digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
-      digest_stream = STREAM_MD5_DIGEST;
+   /* Digests and encryption are only useful if there's file data */
+   if (has_file_data) {
+      /*
+       * Setup for digest handling. If this fails, the digest will be set to NULL
+       * and not used.
+       */
+      if (ff_pkt->flags & FO_MD5) {
+         digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
+         digest_stream = STREAM_MD5_DIGEST;
 
-   } else if (ff_pkt->flags & FO_SHA1) {
-      digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
-      digest_stream = STREAM_SHA1_DIGEST;
+      } else if (ff_pkt->flags & FO_SHA1) {
+         digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
+         digest_stream = STREAM_SHA1_DIGEST;
 
-   } else if (ff_pkt->flags & FO_SHA256) {
-      digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
-      digest_stream = STREAM_SHA256_DIGEST;
+      } else if (ff_pkt->flags & FO_SHA256) {
+         digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
+         digest_stream = STREAM_SHA256_DIGEST;
 
-   } else if (ff_pkt->flags & FO_SHA512) {
-      digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
-      digest_stream = STREAM_SHA512_DIGEST;
-   }
-
-   /* Did digest initialization fail? */
-   if (digest_stream != STREAM_NONE && digest == NULL) {
-      Jmsg(jcr, M_WARNING, 0, _("%s digest initialization failed\n"),
-         stream_to_ascii(digest_stream));
-   }
-
-   /*
-    * Set up signature digest handling. If this fails, the signature digest will be set to
-    * NULL and not used.
-    */
-   // TODO landonf: We should really only calculate the digest once, for both verification and signing.
-   if (jcr->pki_sign) {
-      signing_digest = crypto_digest_new(signing_algorithm);
-
-      /* Full-stop if a failure occured initializing the signature digest */
-      if (signing_digest == NULL) {
-         Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
-            stream_to_ascii(signing_algorithm));
-         jcr->Errors++;
-         return 1;
+      } else if (ff_pkt->flags & FO_SHA512) {
+         digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
+         digest_stream = STREAM_SHA512_DIGEST;
       }
-   }
 
-   /* Enable encryption */
-   if (jcr->pki_encrypt) {
-      ff_pkt->flags |= FO_ENCRYPT;
+      /* Did digest initialization fail? */
+      if (digest_stream != STREAM_NONE && digest == NULL) {
+         Jmsg(jcr, M_WARNING, 0, _("%s digest initialization failed\n"),
+            stream_to_ascii(digest_stream));
+      }
+
+      /*
+       * Set up signature digest handling. If this fails, the signature digest will be set to
+       * NULL and not used.
+       */
+      // TODO landonf: We should really only calculate the digest once, for both verification and signing.
+      if (jcr->pki_sign) {
+         signing_digest = crypto_digest_new(signing_algorithm);
+
+         /* Full-stop if a failure occured initializing the signature digest */
+         if (signing_digest == NULL) {
+            Jmsg(jcr, M_NOTSAVED, 0, _("%s signature digest initialization failed\n"),
+               stream_to_ascii(signing_algorithm));
+            jcr->Errors++;
+            return 1;
+         }
+      }
+
+      /* Enable encryption */
+      if (jcr->pki_encrypt) {
+         ff_pkt->flags |= FO_ENCRYPT;
+      }
    }
 
    /* Initialise the file descriptor we use for data and other streams. */
