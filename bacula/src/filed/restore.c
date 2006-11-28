@@ -523,7 +523,7 @@ void do_restore(JCR *jcr)
 
       case STREAM_SIGNED_DIGEST:
          /* Save signature. */
-         if ((sig = crypto_sign_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
+         if (extract && (sig = crypto_sign_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
          }
          break;
@@ -978,9 +978,8 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint3
       Jmsg1(jcr, M_FATAL, 0, _("Decryption error for %s\n"), jcr->last_fname);
    }
 
-   if (decrypted_len == 0)
-   {
-      ASSERT(jcr->crypto_count == 0);
+   /* If nothing new was decrypted, and our output buffer is empty, return */
+   if (decrypted_len == 0 && jcr->crypto_count == 0) {
       return true;
    }
 
