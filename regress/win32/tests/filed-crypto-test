@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Run a simple backup (with encryption) of the Bacula build directory
+#   then verify the signatures.
+#
+TestName="filed-crypto-test"
+JobName=Crypto
+. scripts/functions
+set_debug 0
+
+scripts/cleanup
+scripts/copy-crypto-confs
+echo "${cwd}/build" >/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+setdebug level=1 storage=File sd
+label storage=File volume=TestVolume001
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores storage=File
+5
+mark *
+done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula
+sleep 2
+check_for_zombie_jobs storage=File 
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test

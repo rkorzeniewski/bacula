@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# Run a backup of the Bacula build directory on two Volumes
+#   then migrate it to another device.             
+#
+# This script uses the virtual disk autochanger
+#
+TestName="migration-volume-test"
+JobName=MigVolBackup
+. scripts/functions
+set_debug 0
+
+. config.out
+
+scripts/cleanup
+scripts/copy-migration-confs
+scripts/prepare-two-disks
+echo "${cwd}/build" >/tmp/file-list
+#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+#sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+
+change_jobname NightlySave $JobName
+start_test
+
+#
+# Note, we first backup into Pool Default, 
+#          then Migrate into Pool Full. 
+#              Pool Default uses Storage=File
+#              Pool Full    uses Storage=DiskChanger
+
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
+@output
+messages
+@$out tmp/log1.out
+label storage=File volume=FileVolume001 Pool=Default
+label storage=File volume=FileVolume002 Pool=Default
+update Volume=FileVolume001 MaxVolBytes=3000000 pool=Default
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
+list volumes
+@# 
+run job=$JobName yes
+wait
+run job=$JobName yes
+wait
+update volume=FileVolume001 VolStatus=Used
+update volume=FileVolume002 VolStatus=Used
+list volumes
+@# should migrate two jobs
+@# setdebug level=11 dir
+run job=migrate-volume yes
+list volumes
+@sleep 3
+status storage=DiskChanger
+@sleep 1
+status storage=DiskChanger
+@sleep 1
+status storage=DiskChanger
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
