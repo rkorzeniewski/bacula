@@ -74,7 +74,7 @@ for my $a (@action)
 	$have_run=1;
 
 	my $arg = $bweb->get_form(qw/job client storage fileset 
-				     replace priority/);
+				     where replace priority/);
 
 	my $bootstrap = CGI::param('bootstrap');
 	
