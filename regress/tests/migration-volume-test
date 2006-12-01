@@ -53,6 +53,7 @@ list volumes
 @#setdebug level=100 dir
 run job=migrate-volume yes
 list volumes
+list jobs
 @sleep 3
 status storage=DiskChanger
 @sleep 1
@@ -60,6 +61,11 @@ status storage=DiskChanger
 @sleep 1
 status storage=DiskChanger
 wait
+list jobs
+sql
+select * from JobMedia where JobId=1;
+
+@# ensure we don't pickup old backup by purging volume
 purge volume=FileVolume001
 purge volume=FileVolume002
 @echo "Now do a restore"
