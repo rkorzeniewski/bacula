@@ -2,6 +2,8 @@
 
 General:
 01Dec06
+kes  Do not update Migrated Job type if migration does not terminate
+     normally. This fixes bug #719.
 kes  Update ReleaseNotes
 kes  Purge Job records from the catalog for Migration. This was
      not properly done previously. This fixes bug #718.
