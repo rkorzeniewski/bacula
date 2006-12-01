@@ -12,6 +12,7 @@ tests/bscan-test
 tests/bsr-opt-test
 tests/compressed-test
 tests/concurrent-jobs-test
+tests/data-encrypt-test
 tests/differential-test
 tests/four-concurrent-jobs-test
 tests/four-jobs-test
