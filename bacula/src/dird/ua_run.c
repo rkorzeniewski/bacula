@@ -561,7 +561,7 @@ try_again:
                  job->name(),
                  jcr->fileset->name(),
                  NPRT(jcr->client->name()),
-                 NPRT(jcr->wstore->name()),
+                 jcr->wstore?jcr->wstore->name():"*None*",
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
       jcr->JobLevel = L_FULL;
@@ -583,7 +583,7 @@ try_again:
                  jcr->fileset->name(),
                  level_to_str(jcr->JobLevel),
                  jcr->client->name(),
-                 jcr->wstore->name(),
+                 jcr->wstore?jcr->wstore->name():"*None*",
                  NPRT(jcr->pool->name()),
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
@@ -699,7 +699,7 @@ try_again:
            NPRT(jcr->RestoreBootstrap),
            jcr->fileset->name(),
            jcr->client->name(),
-           jcr->wstore->name(),
+           jcr->wstore?jcr->wstore->name():"*None*",
            jcr->MigrateJobId==0?"*None*":edit_uint64(jcr->MigrateJobId, ec1),
            bstrutime(dt, sizeof(dt), jcr->sched_time),
            jcr->catalog->name(),
