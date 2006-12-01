@@ -765,12 +765,14 @@ send_to_file:
                 if (type != M_ABORT && type != M_ERROR_TERM) { /* already printed */
                    fputs(dt, stdout);
                    fputs(msg, stdout);
+                   fflush(stdout);
                 }
                 break;
              case MD_STDERR:
                 Dmsg1(850, "STDERR for following msg: %s", msg);
                 fputs(dt, stderr);
                 fputs(msg, stderr);
+                fflush(stdout);
                 break;
              default:
                 break;
@@ -860,6 +862,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
           }
        } else {   /* not tracing */
           fputs(buf, stdout);
+          fflush(stdout);
        }
     }
 }
@@ -916,6 +919,7 @@ p_msg(const char *file, int line, int level, const char *fmt,...)
     bvsnprintf(buf+len, sizeof(buf)-len, (char *)fmt, arg_ptr);
     va_end(arg_ptr);
     fputs(buf, stdout);
+    fflush(stdout);
 }
 
 
