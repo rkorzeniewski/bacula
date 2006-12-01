@@ -999,10 +999,12 @@ void migration_cleanup(JCR *jcr, int TermCode)
          edit_uint64(mig_jcr->jr.JobId, ec2));
       db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
-      /* Now marke the previous job as migrated */
-      Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
-           (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
-      db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+      /* Now mark the previous job as migrated if it terminated normally */
+      if (jcr->JobStatus == JS_Terminated) {
+         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
+              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
+         db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+      } 
 
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
          Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
@@ -1021,7 +1023,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
       if (!db_get_job_volume_names(mig_jcr, mig_jcr->db, mig_jcr->jr.JobId, &mig_jcr->VolumeName)) {
          /*
-          * Note, if the job has erred, most likely it did not write any
+          * Note, if the job has failed, most likely it did not write any
           *  tape, so suppress this "error" message since in that case
           *  it is normal.  Or look at it the other way, only for a
           *  normal exit should we complain about this error.
