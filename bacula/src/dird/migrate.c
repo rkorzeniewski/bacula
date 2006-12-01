@@ -961,7 +961,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
    char ec6[50], ec7[50], ec8[50];
    char term_code[100], sd_term_msg[100];
    const char *term_msg;
-   int msg_type;
+   int msg_type = M_INFO;
    MEDIA_DBR mr;
    double kbps;
    utime_t RunTime;

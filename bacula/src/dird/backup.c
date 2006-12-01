@@ -322,7 +322,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    char ec6[30], ec7[30], ec8[30], elapsed[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
-   int msg_type;
+   int msg_type = M_INFO;
    MEDIA_DBR mr;
    CLIENT_DBR cr;
    double kbps, compression;
@@ -357,7 +357,6 @@ void backup_cleanup(JCR *jcr, int TermCode)
 
    update_bootstrap_file(jcr);
 
-   msg_type = M_INFO;                 /* by default INFO message */
    switch (jcr->JobStatus) {
       case JS_Terminated:
          if (jcr->Errors || jcr->SDErrors) {

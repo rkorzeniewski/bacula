@@ -92,6 +92,8 @@ For 1.39:
   .move transfer device=xxx fromslot=yyy toslot=zzz
 
 Low priority:
+- After pruning, check to see if the Volume retention period has
+  expired.
 - Check to see if jcr->stime is lost during rescheduling of
   jobs in jobq.c
 - Fix re-read of last block to check if job has actually written

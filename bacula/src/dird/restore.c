@@ -222,7 +222,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
    char ec1[30], ec2[30], ec3[30];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
-   int msg_type;
+   int msg_type = M_INFO;
    double kbps;
 
    Dmsg0(20, "In restore_cleanup\n");
@@ -236,7 +236,6 @@ void restore_cleanup(JCR *jcr, int TermCode)
 
    update_job_end_record(jcr);
 
-   msg_type = M_INFO;                 /* by default INFO message */
    switch (TermCode) {
    case JS_Terminated:
       if (jcr->ExpectedFiles > jcr->jr.JobFiles) {
