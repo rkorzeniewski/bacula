@@ -719,7 +719,7 @@ sub go_bweb
     }
 
     if ($^O eq 'MSWin32') {
-	system("start $self->{mozilla} \"$self->{bweb}$url\"");
+	system("start /B $self->{mozilla} \"$self->{bweb}$url\"");
 
     } elsif (!fork()) {
 	system("$self->{mozilla} -remote 'Ping()'");
