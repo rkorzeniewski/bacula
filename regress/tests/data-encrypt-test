@@ -3,23 +3,22 @@
 # Run a simple backup (with encryption) of the Bacula build directory
 #   then verify the signatures.
 #
-TestName="filed-crypto-test"
+TestName="data-encrypt-test"
 JobName=Crypto
 . scripts/functions
-set_debug 0
+set_debug 1
 
 scripts/cleanup
 scripts/copy-crypto-confs
 echo "${cwd}/build" >/tmp/file-list
 
-change_jobname NightlySave $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=1 storage=File sd
+@#setdebug level=100 dir
 label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
