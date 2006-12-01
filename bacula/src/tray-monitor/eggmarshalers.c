@@ -28,7 +28,7 @@
 
 extern "C" {
 
-#include        <glib-object.h>
+#include <glib-object.h>
 
 
 #ifdef G_ENABLE_DEBUG

@@ -25,6 +25,15 @@ Function EnterInstallType
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 1" "Text" "A previous installation has been found in $OldInstallDir.  Please choose the installation type for any additional components you select."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 5" "Text" "The configuration files for additional components will be generated using defaults applicable to most installations."
       WriteINIStr "$PLUGINSDIR\InstallType.ini" "Field 6" "Text" "The configuration defaults for additional components will be displayed and you will be given the chance to make changes before the configuration files are written."
+
+      ReadRegDWORD $ConfigDirectorDB HKLM Software\Bacula Database
+
+      ${If} $ConfigDirectorDB = 0
+        IntOp $R0 $PreviousComponents & ${ComponentDirector}
+        ${If} $R0 <> 0
+          StrCpy $ConfigDirectorDB 1
+        ${EndIf}
+      ${EndIf}
     ${Else}
       ; Processing Upgrade - Get Install Directory
       ${StrRep} $R0 $R0 '"' ''

@@ -45,7 +45,7 @@ Director {
 Device {
   Name = FileStorage
   Media Type = File
-  Archive Device = "C:\\Temp"
+  Archive Device = "C:\\Tmp"
   LabelMedia = yes                   # lets Bacula label unlabeled media
   Random Access = Yes
   AutomaticMount = yes               # when device opened, read it

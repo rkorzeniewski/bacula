@@ -382,6 +382,46 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<Filter
+			Name="Script Files"
+			>
+			<File
+				RelativePath="..\create_mysql_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_mysql_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_mysql_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_mysql_tables.sql"
+				>
+			</File>
+			<File
+				RelativePath="..\grant_mysql_privileges.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\grant_mysql_privileges.sql"
+				>
+			</File>
+			<File
+				RelativePath="..\make_mysql_catalog_backup.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_mysql_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_mysql_tables.sql"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

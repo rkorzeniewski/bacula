@@ -1604,6 +1604,7 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
    }
 
    *pargs = NULL;
+   *pexe = NULL;
 
    /* 
     * Scan command line looking for path separators (/ and \\) and the 
@@ -1695,17 +1696,16 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
             if (GetFileAttributes(pPathname) != INVALID_FILE_ATTRIBUTES) {
                break;
             }
+            pPathname[dwBasePathLength] = '\0';
          }
       }
    } else if (!bHasPathSeparators) {
       /* There are no path separators, search in the standard locations */
       dwAltNameLength = SearchPath(NULL, pPathname, NULL, MAX_PATHLENGTH, pAltPathname, NULL);
-      if (dwAltNameLength == 0 || dwAltNameLength > MAX_PATHLENGTH) {
-         return false;
+      if (dwAltNameLength > 0 && dwAltNameLength < MAX_PATHLENGTH) {
+         memcpy(pPathname, pAltPathname, dwAltNameLength);
+         pPathname[dwAltNameLength] = '\0';
       }
-
-      memcpy(pPathname, pAltPathname, dwAltNameLength);
-      pPathname[dwAltNameLength] = '\0';
    }
 
    if (strchr(pPathname, ' ') != NULL) {
@@ -1713,22 +1713,20 @@ GetApplicationName(const char *cmdline, char **pexe, const char **pargs)
 
       if (dwAltNameLength > 0 && dwAltNameLength <= MAX_PATHLENGTH) {
          *pexe = (char *)malloc(dwAltNameLength + 1);
-         if (*pexe != NULL) {
-            memcpy(*pexe, pAltPathname, dwAltNameLength + 1);
-         } else {
+         if (*pexe == NULL) {
             return false;
          }
-      } else {
-         return false;
+         memcpy(*pexe, pAltPathname, dwAltNameLength + 1);
       }
-   } else {
+   }
+
+   if (*pexe == NULL) {
       DWORD dwPathnameLength = strlen(pPathname);
       *pexe = (char *)malloc(dwPathnameLength + 1);
-      if (*pexe != NULL) {
-         memcpy(*pexe, pPathname, dwPathnameLength + 1);
-      } else {
+      if (*pexe == NULL) {
          return false;
       }
+      memcpy(*pexe, pPathname, dwPathnameLength + 1);
    }
 
    return true;
@@ -1762,7 +1760,8 @@ CreateChildProcess(const char *cmdline, HANDLE in, HANDLE out, HANDLE err)
    // setup new process to use supplied handles for stdin,stdout,stderr
    // if supplied handles are not used the send a copy of our STD_HANDLE
    // as appropriate
-   siStartInfo.dwFlags = STARTF_USESTDHANDLES;
+   siStartInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+   siStartInfo.wShowWindow = SW_SHOWMINNOACTIVE;
 
    if (in != INVALID_HANDLE_VALUE)
       siStartInfo.hStdInput = in;

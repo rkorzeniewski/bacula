@@ -65,7 +65,7 @@ REM	CALL :process_pcre
 	CALL :process_pthreads
 	CALL :process_openssl
 	CALL :process_mysql
-REM	CALL :process_sqlite
+	CALL :process_sqlite
 	CALL :process_postgreSQL
 	CALL :process_wx
 REM	CALL :process_scons
@@ -229,21 +229,26 @@ REM	do_patch postgresql.patch
 
 :process_sqlite
 	CALL :get_source %URL_SQLITE% %DIR_SQLITE% %MKD_SQLITE%
-	CALL :get_source %URL_SQLITE_WINSRC% %DIR_SQLITE_WINSRC% %MKD_SQLITE_WINSRC%
-REM	ECHO Patching SQLite
-REM	COPY /Y nul patch.log
-REM	do_patch sqlite.patch
+	IF ERRORLEVEL 2 GOTO :sqlite_error
+	IF ERRORLEVEL 1 GOTO :sqlite_skip_patch
+	ECHO Patching SQLite
+	COPY /Y nul patch.log
+	CALL :do_patch sqlite_msc.patch
+:sqlite_skip_patch
 	ECHO Configuring SQLite
 	IF NOT EXIST bld/nul MKDIR bld
 	CD bld
 	ECHO Building SQLite
 	COPY /Y nul make.log
-	do_make ../Makefile.mingw32 CROSSTOOLS=%BIN_DIR% TLIBS="-L%DEPPKG_DIR%/lib" TCL_FLAGS="-I%DEPPKG_DIR%/include" clean all
+	CALL :do_nmake ../Makefile.msvc clean all
 	ECHO Installing SQLite
-	cp -p sqlite3.exe %DEPPKG_DIR%/bin
-	cp -p libsqlite3.a %DEPPKG_DIR%/lib
-	cp -p sqlite3.h %DEPPKG_DIR%/include
+	COPY sqlite3.exe %DEPPKG_DIR%\bin
+	COPY sqlite3.lib %DEPPKG_DIR%\lib
+	COPY sqlite3.h %DEPPKG_DIR%\include
 	EXIT /B 0
+:sqlite_error
+	ECHO Unable to download sqlite source from %URL_SQLITE%
+	EXIT /B 1
 
 :process_wx
 	CALL :get_source %URL_WX% %DIR_WX% %MKD_WX%

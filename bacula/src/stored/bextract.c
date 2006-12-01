@@ -220,6 +220,9 @@ int main (int argc, char *argv[])
 static void do_extract(char *devname)
 {
    struct stat statp;
+
+   enable_backup_privileges(NULL, 1);
+
    jcr = setup_jcr("bextract", devname, bsr, VolumeName, 1); /* acquire for read */
    if (!jcr) {
       exit(1);

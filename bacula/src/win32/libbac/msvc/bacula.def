@@ -23,8 +23,6 @@ EXPORTS
 ?get@alist@@QAEPAXH@Z
 ?destroy@alist@@QAEXXZ
  
-; alloc.obj 
- 
 ; attr.obj 
 ?new_attr@@YAPAUATTR@@XZ
 ?free_attr@@YAXPAUATTR@@@Z
@@ -364,8 +362,6 @@ fnmatch
 ?free_msgs_res@@YAXPAUMSGS@@@Z
 ?term_msg@@YAXXZ
 ?dispatch_message@@YAXPAVJCR@@HJPAD@Z
-??0POOL_MEM@@QAE@H@Z
-??1POOL_MEM@@QAE@XZ
 ?c_str@POOL_MEM@@QBEPADXZ
 ?d_msg@@YAXPBDHH0ZZ
 ?get_basename@@YAPBDPBD@Z
@@ -426,8 +422,6 @@ fnmatch
 ?next_arg@@YAPADPAPAD@Z
 ?parse_args@@YAHPADPAPADPAH11H@Z
 ?bsscanf@@YAHPBD0ZZ
- 
-; semlock.obj 
  
 ; serial.obj 
 ?serial_int32@@YAXQAPAEJ@Z

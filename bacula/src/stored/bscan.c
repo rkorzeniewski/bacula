@@ -147,6 +147,7 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bscan");
    init_msg(NULL, NULL);
 
+   OSDependentInit();
 
    while ((ch = getopt(argc, argv, "b:c:d:h:mn:pP:rsSu:vV:w:?")) != -1) {
       switch (ch) {

@@ -1,15 +1,14 @@
-rem 
-rem  shell script to drop Bacula database(s)
-rem 
+@ECHO off
+REM
+REM  Script to drop Bacula database(s)
+REM
 
-bindir=@SQL_BINDIR@
-
-$bindir/dropdb bacula
-if ERRORLEVEL 1 GOTO :ERROR
-echo "Drop of bacula database succeeded."
+"@SQL_BINDIR@\dropdb" %* bacula
+IF ERRORLEVEL 1 GOTO :ERROR
+ECHO Drop of bacula database succeeded.
 EXIT /b 0
 GOTO :EOF
 
 :ERROR
-echo "Drop of bacula database failed."
+ECHO Drop of bacula database failed.
 EXIT /b 1

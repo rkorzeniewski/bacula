@@ -145,6 +145,16 @@ Function EnterConfigPage2
     IntOp $R7 $R7 - 2
     IntOp $R8 $R8 + 2
 
+    ${If} $ConfigDirectorDB = 0
+      ${If} $MySQLPath != ""
+        StrCpy $ConfigDirectorDB 1
+      ${ElseIf} $PostgreSQLPath != ""
+        StrCpy $ConfigDirectorDB 2
+      ${Else}
+        StrCpy $ConfigDirectorDB 3
+      ${EndIf}
+    ${EndIf}
+
     ${If} $ConfigDirectorDB = 1
       StrCpy $R9 1
     ${Else}
@@ -172,16 +182,6 @@ Function EnterConfigPage2
     ${EndIf}
 
     FileWrite $R5 '[Field $R6]$\r$\nType="RadioButton"$\r$\nState=$R9$\r$\nText="Sqlite"$\r$\nFlags="NOTABSTOP"$\r$\nLeft=150$\r$\nTop=$R7$\r$\nRight=182$\r$\nBottom=$R8$\r$\n$\r$\n'
-
-    IntOp $R6 $R6 + 1
-
-    ${If} $ConfigDirectorDB = 4
-      StrCpy $R9 1
-    ${Else}
-      StrCpy $R9 0
-    ${EndIf}
-
-    FileWrite $R5 '[Field $R6]$\r$\nType="RadioButton"$\r$\nState=$R9$\r$\nText="Builtin"$\r$\nFlags="NOTABSTOP"$\r$\nLeft=186$\r$\nTop=$R7$\r$\nRight=222$\r$\nBottom=$R8$\r$\n$\r$\n'
 
     IntOp $R6 $R6 + 1
     IntOp $R7 $R7 + 12
@@ -394,11 +394,6 @@ Function EnterConfigPage2
     !insertmacro MUI_INSTALLOPTIONS_READ $R5 "ConfigPage2.ini" "Field $R6" "State"
     ${If} $R5 = 1
       StrCpy $ConfigDirectorDB 3
-    ${Endif}
-    IntOp $R6 $R6 + 1
-    !insertmacro MUI_INSTALLOPTIONS_READ $R5 "ConfigPage2.ini" "Field $R6" "State"
-    ${If} $R5 = 1
-      StrCpy $ConfigDirectorDB 4
     ${Endif}
     IntOp $R6 $R6 + 1
 

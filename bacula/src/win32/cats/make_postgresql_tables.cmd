@@ -1,14 +1,14 @@
-rem 
-rem  shell script to create Bacula PostgreSQL tables
-rem 
-bindir=@SQL_BINDIR@
+@ECHO off
+REM
+REM  Script to create Bacula PostgreSQL tables
+REM
 
-$bindir/psql -f make_postgresql_tables.sql -d bacula $*
-if ERRORLEVEL 1 GOTO :ERROR
-echo "Creation of Bacula PostgreSQL tables succeeded."
+"@SQL_BINDIR@\psql" -f "@bin_dir_cmd@\make_postgresql_tables.sql" -d bacula %*
+IF ERRORLEVEL 1 GOTO :ERROR
+ECHO Creation of Bacula PostgreSQL tables succeeded.
 EXIT /b 0
 GOTO :EOF
 
 :ERROR
-echo "Creation of Bacula PostgreSQL tables failed."
+ECHO Creation of Bacula PostgreSQL tables failed.
 EXIT /b 1

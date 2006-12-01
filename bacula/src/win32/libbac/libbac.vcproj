@@ -231,26 +231,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\alloc.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\lib\attr.c"
 				>
 				<FileConfiguration
@@ -1195,26 +1175,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\lib\semlock.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\lib\serial.c"
 				>
 				<FileConfiguration
@@ -1605,11 +1565,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\findlib\protos.h"
+				RelativePath="..\..\lib\protos.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\lib\protos.h"
+				RelativePath="..\..\findlib\protos.h"
 				>
 			</File>
 			<File
@@ -1634,10 +1594,6 @@
 			</File>
 			<File
 				RelativePath="..\compat\sched.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\lib\semlock.h"
 				>
 			</File>
 			<File

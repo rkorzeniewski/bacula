@@ -12,13 +12,8 @@ VERSION := $(shell sed -ne 's/.*[ \t]VERSION[ \t][ \t]*"\(.*\)"/\1/p' < ../../ve
 DEFINES := \
 	-DVERSION=$(VERSION) \
 	-DOUT_DIR=..\\release \
-	-DDOC_DIR=$(DOCDIR) \
+	-DSRC_DIR=release \
 	-DBUILD_TOOLS=MinGW \
-	-DMINGW_BIN=$(MINGW_BIN) \
-	-DDEPKGS_BIN=. \
-	-DBACULA_BIN=. \
-	-DCATS_DIR=..\\cats \
-	-DSCRIPT_DIR=..\\scripts
 
 INSTALL_EXE := ../release/winbacula-$(VERSION).exe
 
@@ -26,7 +21,7 @@ BACULA_BINARIES := \
 	bacula.dll \
 	cats_mysql.dll \
 	cats_pgsql.dll \
-	cats_bdb.dll \
+	cats_sqlite.dll \
 	bacula-dir.exe \
 	bacula-fd.exe \
 	bacula-sd.exe \
@@ -47,6 +42,7 @@ DEPKGS_BINARIES := \
 	pthreadGCE.dll \
 	ssleay32.dll \
 	zlib1.dll \
+	sqlite3.exe \
 	openssl.exe \
 	loaderinfo.exe \
 	mt.exe \
@@ -63,42 +59,50 @@ NONGCC_BINARIES := \
 NONGCC_LIBRARIES := \
 	libpq.dll
 
-SCRIPTS := \
-	../scripts/mtx-changer.cmd \
-	../cats/create_bdb_database.cmd \
-	../cats/drop_bdb_database.cmd \
-	../cats/make_bdb_tables.cmd \
-	../cats/drop_bdb_tables.cmd \
-	../cats/update_bdb_tables.cmd \
-	../cats/grant_bdb_privileges.cmd \
-	../cats/create_mysql_database.cmd \
-	../cats/drop_mysql_database.cmd \
-	../cats/make_mysql_tables.cmd \
-	../cats/make_mysql_tables.sql \
-	../cats/drop_mysql_tables.cmd \
-	../cats/drop_mysql_tables.sql \
-	../cats/update_mysql_tables.cmd \
-	../cats/update_mysql_tables.sql \
-	../cats/grant_mysql_privileges.cmd \
-	../cats/grant_mysql_privileges.sql \
-	../cats/create_postgresql_database.cmd \
-	../cats/drop_postgresql_database.cmd \
-	../cats/make_postgresql_tables.cmd \
-	../cats/make_postgresql_tables.sql \
-	../cats/drop_postgresql_tables.cmd \
-	../cats/drop_postgresql_tables.sql \
-	../cats/update_postgresql_tables.cmd \
-	../cats/update_postgresql_tables.sql \
-	../cats/grant_postgresql_privileges.cmd \
-	../cats/grant_postgresql_privileges.sql \
-	../cats/make_catalog_backup.cmd \
-	../cats/delete_catalog_backup.cmd
+MINGW_BINARIES := \
+	mingwm10.dll
+
+SCRIPT_FILES := \
+	mtx-changer.cmd
+
+CAT_FILES := \
+	create_mysql_database.cmd \
+	drop_mysql_database.cmd \
+	make_mysql_tables.cmd \
+	make_mysql_tables.sql \
+	drop_mysql_tables.cmd \
+	drop_mysql_tables.sql \
+	grant_mysql_privileges.cmd \
+	grant_mysql_privileges.sql \
+	make_mysql_catalog_backup.cmd \
+	create_postgresql_database.cmd \
+	drop_postgresql_database.cmd \
+	make_postgresql_tables.cmd \
+	make_postgresql_tables.sql \
+	drop_postgresql_tables.cmd \
+	drop_postgresql_tables.sql \
+	grant_postgresql_privileges.cmd \
+	grant_postgresql_privileges.sql \
+	make_postgresql_catalog_backup.cmd \
+	create_sqlite3_database.cmd \
+	drop_sqlite3_database.cmd \
+	make_sqlite3_tables.cmd \
+	drop_sqlite3_tables.cmd \
+	grant_sqlite3_privileges.cmd \
+	make_sqlite3_catalog_backup.cmd \
+	delete_catalog_backup.cmd
 
 DIRD_FILES := \
 	query.sql
 
 SSL_FILES := \
 	openssl.cnf
+
+DOC_FILES := \
+	manual/bacula.pdf \
+	manual/bacula/*.html \
+	manual/bacula/*.png  \
+	manual/bacula/*.css
 
 ##########################################################################
 
@@ -112,24 +116,30 @@ installer:	$(INSTALL_EXE)
 
 clean:
 	@echo "Cleaning `pwd`"
-	$(CMD_ECHO)-rm -f $(INSTALL_EXE) $(BACULA_BINARIES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES) $(DIRD_FILES)
-	$(CMD_ECHO)-rm -f $(BACULA_BINARIES) $(addsuffix .dbg,$(basename $(BACULA_BINARIES)))
-	$(CMD_ECHO)-rm -f $(DEPKGS_BINARIES) $(addsuffix .dbg,$(basename $(DEPKGS_BINARIES)))
-	$(CMD_ECHO)-rm -f *.exe
+	$(CMD_ECHO)-rm -f $(INSTALL_EXE)
+	$(CMD_ECHO)-rm -rf release
 
 #
 # Rules
 #
 
 define Convert_Binary
-$$(notdir $(1)): $(1)
+release/$$(notdir $(1)): $(1)
+	$$(call checkdir,$$@)
 	$(ECHO_CMD)cp -f $$^ $$@ ; \
 	$(STAB2CV) $$@
 endef
 
 define Copy_Binary
-$$(notdir $(1)): $(1)
+release/$$(notdir $(1)): $(1)
+	$$(call checkdir,$$@)
 	$(ECHO_CMD)cp -f $$^ $$@
+endef
+
+define Copy_Docs
+release/$(1): $(DOCDIR)/$(1)
+	$$(call checkdir,$$@)
+	$(ECHO_CMD)cp -f $$^ $$(dir $$@)
 endef
 
 $(foreach file,$(addprefix $(DEPKGS)/bin/, $(DEPKGS_BINARIES)),$(eval $(call Convert_Binary,$(file))))
@@ -140,11 +150,19 @@ $(foreach file,$(addprefix $(DEPKGS)/lib/, $(NONGCC_LIBRARIES)),$(eval $(call Co
 
 $(foreach file,$(addprefix $(BINDIR)/, $(BACULA_BINARIES)),$(eval $(call Convert_Binary,$(file))))
 
+$(foreach file,$(addprefix $(MINGW_DLLDIR)/, $(MINGW_BINARIES)),$(eval $(call Copy_Binary,$(file))))
+
 $(foreach file,$(addprefix $(DEPKGS)/ssl/, $(SSL_FILES)),$(eval $(call Copy_Binary,$(file))))
+
+$(foreach file,$(addprefix ../scripts/, $(SCRIPT_FILES)),$(eval $(call Copy_Binary,$(file))))
+
+$(foreach file,$(addprefix ../cats/, $(CAT_FILES)),$(eval $(call Copy_Binary,$(file))))
 
 $(foreach file,$(addprefix ../../dird/, $(DIRD_FILES)),$(eval $(call Copy_Binary,$(file))))
 
-$(INSTALL_EXE): winbacula.nsi $(BACULA_BINARIES) $(SCRIPTS) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(SSL_FILES) $(DIRD_FILES)
+$(foreach file,$(DOC_FILES),$(eval $(call Copy_Docs,$(file))))
+
+$(INSTALL_EXE): winbacula.nsi $(addprefix release/,$(BACULA_BINARIES) $(SCRIPT_FILES) $(CAT_FILES) $(DEPKGS_BINARIES) $(NONGCC_BINARIES) $(NONGCC_LIBRARIES) $(MINGW_BINARIES) $(SSL_FILES) $(DIRD_FILES) $(DOC_FILES))
 	NSISDIR=$(NSIS_DIR) \
 	$(NSIS_DIR)/makensis -V3 $(DEFINES) winbacula.nsi
 

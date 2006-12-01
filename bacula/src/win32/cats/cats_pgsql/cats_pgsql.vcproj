@@ -382,6 +382,50 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<Filter
+			Name="Script Files"
+			>
+			<File
+				RelativePath="..\create_postgresql_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\create_postgresql_database.sql"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_postgresql_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_postgresql_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_postgresql_tables.sql"
+				>
+			</File>
+			<File
+				RelativePath="..\grant_postgresql_privileges.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\grant_postgresql_privileges.sql"
+				>
+			</File>
+			<File
+				RelativePath="..\make_postgresql_catalog_backup.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_postgresql_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_postgresql_tables.sql"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

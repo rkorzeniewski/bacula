@@ -301,7 +301,7 @@ int BaculaAppMain()
    pthread_t tid;
    DWORD dwCharsWritten;
 
-   InitWinAPIWrapper();
+   OSDependentInit();
 
    /* If no arguments were given then just run */
    if (p_AttachConsole == NULL || !p_AttachConsole(ATTACH_PARENT_PROCESS)) {

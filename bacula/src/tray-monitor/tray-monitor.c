@@ -504,23 +504,25 @@ static void MonitorAbout(GtkWidget *widget, gpointer data) {
 #if HAVE_GTK_2_4
    GtkWidget* about = gtk_message_dialog_new_with_markup(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
       "<span size='x-large' weight='bold'>%s</span>\n\n"
+      PROG_COPYRIGHT
       "%s"
       "\n<small>%s: %s (%s) %s %s %s</small>",
       _("Bacula Tray Monitor"),
-      PROG_COPYRIGHT
-        "Written by Nicolas Boichat\n"),
-      _("Version:"),
-      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER, 2004);
+        2004,
+      _("Written by Nicolas Boichat\n"),
+      _("Version"),
+      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 #else
    GtkWidget* about = gtk_message_dialog_new(GTK_WINDOW(window),GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,   
       "%s\n\n"
-      "%s"
-      "\n%s %s (%s) %s %s %s",
-      _("Bacula Tray Monitor"),
       PROG_COPYRIGHT
-        "Written by Nicolas Boichat\n"),
-      _("Version:"),
-      BYEAR, VERSION, BDATE, HOST_OS, DISTNAME, 2004);
+      "%s"
+      "\n%s: %s (%s) %s %s %s",
+      _("Bacula Tray Monitor"),
+        2004,
+      _("Written by Nicolas Boichat\n"),
+      _("Version"),
+      VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
 #endif
    gtk_dialog_run(GTK_DIALOG(about));
    gtk_widget_destroy(about);

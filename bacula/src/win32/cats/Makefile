@@ -24,15 +24,6 @@ vpath %.cpp ../../cats
 
 # Files files in src/lib
 
-BDB_OBJS = \
-	bdb.o \
-	bdb_create.o \
-	bdb_delete.o \
-	bdb_find.o \
-	bdb_get.o \
-	bdb_list.o \
-	bdb_update.o \
-
 SQL_OBJS = \
 	sql.o \
 	sql_cmds.o \
@@ -52,16 +43,16 @@ LIBS_DLL = \
 
 .PHONY: all clean
 
-all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_bdb.dll
+all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_sqlite.dll
 
 clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS)))
 	$(call clean_obj,$(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_OBJS)))
-	$(call clean_obj,$(addprefix $(OBJDIR)/cats_bdb/,sql_cmds.o $(BDB_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_sqlite/,sqlite.o $(SQL_OBJS)))
 	$(call clean_exe,$(BINDIR)/cats_mysql.dll)
 	$(call clean_exe,$(BINDIR)/cats_pgsql.dll)
-	$(call clean_exe,$(BINDIR)/cats_bdb.dll)
+	$(call clean_exe,$(BINDIR)/cats_sqlite.dll)
 	$(ECHO_CMD)rm -f $(OBJDIR)/libcats.exp $(LIBDIR)/libcats.a
 
 $(LIBDIR)/libcats.a $(OBJDIR)/libcats.exp: bacula_cats.def
@@ -77,10 +68,10 @@ $(BINDIR)/cats_pgsql.dll: $(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_O
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_POSTGRESQL) $(LIBS_DLL) -o $@
 
-$(BINDIR)/cats_bdb.dll: $(addprefix $(OBJDIR)/cats_bdb/,sql_cmds.o $(BDB_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_sqlite.dll: $(addprefix $(OBJDIR)/cats_sqlite/,sqlite.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
-	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_DLL) -o $@
+	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_SQLITE) $(LIBS_DLL) -o $@
 
 #
 # Rules for generating from ../cats
@@ -105,5 +96,5 @@ $(eval $(call Link_Dll,cats_mysql,MYSQL))
 
 $(eval $(call Link_Dll,cats_pgsql,POSTGRESQL))
 
-$(eval $(call Link_Dll,cats_bdb,BACULA_DB))
+$(eval $(call Link_Dll,cats_sqlite,SQLITE3))
 

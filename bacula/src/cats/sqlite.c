@@ -353,7 +353,11 @@ int my_sqlite_query(B_DB *mdb, const char *cmd)
    int stat;
 
    if (mdb->sqlite_errmsg) {
+#ifdef HAVE_SQLITE3
+      sqlite3_free(mdb->sqlite_errmsg);
+#else
       actuallyfree(mdb->sqlite_errmsg);
+#endif
       mdb->sqlite_errmsg = NULL;
    }
    stat = sqlite_get_table(mdb->db, (char *)cmd, &mdb->result, &mdb->nrow, &mdb->ncolumn,

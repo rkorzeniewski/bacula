@@ -108,7 +108,7 @@ FileSet {
 #    directory to give a reasonable FileSet to backup to
 #    disk storage during initial testing.
 #
-    File = "C:/Program Files/Bacula"
+    File = "@BUILD_DIR@"
   }
 
 #

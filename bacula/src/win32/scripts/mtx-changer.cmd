@@ -11,7 +11,7 @@ REM  Changer Command = "mtx-changer %c %o %S %a %d"
 REM    you will have the following input to this script:
 REM
 REM  Bacula will always call with all the following arguments, even though
-REM    in come cases, not all are used.
+REM    in some cases, not all are used.
 REM
 REM  mtx-changer "changer-device" "command" "slot" "archive-device" "drive-index"
 REM                     %1           %2       %3          %4             %5
@@ -42,7 +42,7 @@ SET working_dir=@working_dir_cmd@
 SET dbgfile="%working_dir%\mtx.log"
 
 REM to turn on logging, uncomment the following line
-REM findstr xxx <nul >>"%working_dir%\mtx.log"
+REM copy nul "%working_dir%\mtx.log"
 
 REM
 REM check parameter count on commandline

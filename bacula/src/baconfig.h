@@ -618,8 +618,8 @@ extern "C" int mknod ( const char *path, int mode, dev_t device );
 #define DEFAULT_CONFIGDIR "C:\\Documents and Settings\\All Users\\Application Data\\Bacula"
 
 inline bool IsPathSeparator(int ch) { return ch == '/' || ch == '\\'; }
-inline char *first_path_separator(char *path) { return strpbrk(path, ":/\\"); }
-inline const char *first_path_separator(const char *path) { return strpbrk(path, ":/\\"); }
+inline char *first_path_separator(char *path) { return strpbrk(path, "/\\"); }
+inline const char *first_path_separator(const char *path) { return strpbrk(path, "/\\"); }
 
 #else
 /* Define Winsock functions if we aren't on Windows */

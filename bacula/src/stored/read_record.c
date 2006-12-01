@@ -275,7 +275,7 @@ bool read_records(DCR *dcr,
          /*
           * If we have a digest stream, we check to see if we have 
           *  finished the current bsr, and if so, repositioning will
-          *  be truned on.
+          *  be turned on.
           */
          if (crypto_digest_stream_type(rec->Stream) != CRYPTO_DIGEST_NONE) {
             Dmsg3(dbglvl, "Have digest FI=%u before bsr check pos %u:%u\n", rec->FileIndex,

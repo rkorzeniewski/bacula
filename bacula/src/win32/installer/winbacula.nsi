@@ -30,7 +30,6 @@
 ;
 ; Command line options:
 ;
-; /cygwin     -  do cygwin install into c:\cygwin\bacula
 ; /service    - 
 ; /start
 
@@ -109,13 +108,11 @@ DirText "Setup will install Bacula ${VERSION} to the directory specified below. 
 ;
 ; Global Variables
 ;
-Var OptCygwin
 Var OptService
 Var OptStart
 Var OptSilent
 
 Var CommonFilesDone
-Var DatabaseDone
 
 Var OsIsNT
 
@@ -151,6 +148,11 @@ Var ConfigMonitorPassword
 
 Var LocalDirectorPassword
 Var LocalHostAddress
+
+Var MySQLPath
+Var MySQLVersion
+Var PostgreSQLPath
+Var PostgreSQLVersion
 
 Var AutomaticInstall
 Var InstallType
@@ -192,25 +194,22 @@ Function .onInit
   Push $R1
 
   ; Process Command Line Options
-  StrCpy $OptCygwin 0
   StrCpy $OptService 1
   StrCpy $OptStart 1
   StrCpy $OptSilent 0
   StrCpy $CommonFilesDone 0
-  StrCpy $DatabaseDone 0
   StrCpy $OsIsNT 0
   StrCpy $AutomaticInstall 0
   StrCpy $InstallType ${NewInstall}
   StrCpy $OldInstallDir ""
   StrCpy $PreviousComponents 0
   StrCpy $NewComponents 0
+  StrCpy $MySQLPath ""
+  StrCpy $MySQLVersion ""
+  StrCpy $PostgreSQLPath ""
+  StrCpy $PostgreSQLVersion ""
 
   ${GetParameters} $R0
-
-  ClearErrors
-  ${GetOptions} $R0 "/cygwin" $R1
-  IfErrors +2
-    StrCpy $OptCygwin 1
 
   ClearErrors
   ${GetOptions} $R0 "/noservice" $R1
@@ -224,10 +223,6 @@ Function .onInit
 
   IfSilent 0 +2
     StrCpy $OptSilent 1
-
-  ${If} $OptCygwin = 1
-    StrCpy $INSTDIR "C:\cygwin\bacula"
-  ${EndIf}
 
   ReadRegStr $R0 HKLM "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
   ${If} $R0 != ""
@@ -243,38 +238,40 @@ Function .onInit
   Call GetUserName
   Pop $ConfigDirectorMailAddress
 
+  Call FindDatabaseApps
+
   ; Configuration Defaults
 
-  StrCpy $ConfigClientName              "$HostName-fd"
-  StrCpy $ConfigClientPort              "9102"
-  StrCpy $ConfigClientMaxJobs           "2"
+  StrCpy $ConfigClientName               "$HostName-fd"
+  StrCpy $ConfigClientPort               9102
+  StrCpy $ConfigClientMaxJobs            2
   ;StrCpy $ConfigClientPassword
-  StrCpy $ConfigClientInstallService    "$OptService"
-  StrCpy $ConfigClientStartService      "$OptStart"
+  StrCpy $ConfigClientInstallService     "$OptService"
+  StrCpy $ConfigClientStartService       "$OptStart"
 
-  StrCpy $ConfigStorageName             "$HostName-sd"
-  StrCpy $ConfigStoragePort             "9103"
-  StrCpy $ConfigStorageMaxJobs          "10"
+  StrCpy $ConfigStorageName              "$HostName-sd"
+  StrCpy $ConfigStoragePort              9103
+  StrCpy $ConfigStorageMaxJobs           10
   ;StrCpy $ConfigStoragePassword
-  StrCpy $ConfigStorageInstallService   "$OptService"
-  StrCpy $ConfigStorageStartService     "$OptStart"
+  StrCpy $ConfigStorageInstallService    "$OptService"
+  StrCpy $ConfigStorageStartService      "$OptStart"
 
   ;StrCpy $ConfigDirectorName            "$HostName-dir"
-  StrCpy $ConfigDirectorPort            "9101"
-  StrCpy $ConfigDirectorMaxJobs         "1"
+  StrCpy $ConfigDirectorPort             9101
+  StrCpy $ConfigDirectorMaxJobs          1
   ;StrCpy $ConfigDirectorPassword
-  StrCpy $ConfigDirectorDB              "1"
-  StrCpy $ConfigDirectorInstallService  "$OptService"
-  StrCpy $ConfigDirectorStartService    "$OptStart"
+  StrCpy $ConfigDirectorDB               0
+  StrCpy $ConfigDirectorInstallService   "$OptService"
+  StrCpy $ConfigDirectorStartService     "$OptStart"
 
-  StrCpy $ConfigMonitorName            "$HostName-mon"
+  StrCpy $ConfigMonitorName              "$HostName-mon"
   ;StrCpy $ConfigMonitorPassword
 
   InitPluginsDir
-  File "/oname=$PLUGINSDIR\openssl.exe"  "${DEPKGS_BIN}\openssl.exe"
-  File "/oname=$PLUGINSDIR\libeay32.dll" "${DEPKGS_BIN}\libeay32.dll"
-  File "/oname=$PLUGINSDIR\ssleay32.dll" "${DEPKGS_BIN}\ssleay32.dll"
-  File "/oname=$PLUGINSDIR\sed.exe" "${DEPKGS_BIN}\sed.exe"
+  File "/oname=$PLUGINSDIR\openssl.exe"  "${SRC_DIR}\openssl.exe"
+  File "/oname=$PLUGINSDIR\libeay32.dll" "${SRC_DIR}\libeay32.dll"
+  File "/oname=$PLUGINSDIR\ssleay32.dll" "${SRC_DIR}\ssleay32.dll"
+  File "/oname=$PLUGINSDIR\sed.exe"      "${SRC_DIR}\sed.exe"
 
   !InsertMacro MUI_INSTALLOPTIONS_EXTRACT "InstallType.ini"
   !InsertMacro MUI_INSTALLOPTIONS_EXTRACT "WriteTemplates.ini"
@@ -338,45 +335,41 @@ Function InstallCommonFiles
 
     SetOutPath "$INSTDIR\bin"
 !if "${BUILD_TOOLS}" == "VC8"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcm80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcp80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcr80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
-    File "${DEPKGS_BIN}\pthreadVCE.dll"
+    File "${SRC_DIR}\msvcm80.dll"
+    File "${SRC_DIR}\msvcp80.dll"
+    File "${SRC_DIR}\msvcr80.dll"
+    File "${SRC_DIR}\Microsoft.VC80.CRT.manifest"
+    File "${SRC_DIR}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "VC8_DEBUG"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcm80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcp80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\msvcr80.dll"
-    File "${VC_REDIST_DIR}\x86\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
-    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcm80d.dll"
-    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcp80d.dll"
-    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcr80d.dll"
-    File "${VC_REDIST_DIR}\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\Microsoft.VC80.DebugCRT.manifest"
-    File "${DEPKGS_BIN}\pthreadVCE.dll"
+    File "${SRC_DIR}\msvcm80.dll"
+    File "${SRC_DIR}\msvcp80.dll"
+    File "${SRC_DIR}\msvcr80.dll"
+    File "${SRC_DIR}\Microsoft.VC80.CRT.manifest"
+    File "${SRC_DIR}\msvcm80d.dll"
+    File "${SRC_DIR}\msvcp80d.dll"
+    File "${SRC_DIR}\msvcr80d.dll"
+    File "${SRC_DIR}\Microsoft.VC80.DebugCRT.manifest"
+    File "${SRC_DIR}\pthreadVCE.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
-    File "${MINGW_BIN}\..\mingw32\bin\mingwm10.dll"
-    File "${DEPKGS_BIN}\pthreadGCE.dll"
+    File "${SRC_DIR}\mingwm10.dll"
+    File "${SRC_DIR}\pthreadGCE.dll"
 !endif
-    File "${DEPKGS_BIN}\libeay32.dll"
-    File "${DEPKGS_BIN}\ssleay32.dll"
-    File "${DEPKGS_BIN}\zlib1.dll"
+    File "${SRC_DIR}\libeay32.dll"
+    File "${SRC_DIR}\ssleay32.dll"
+    File "${SRC_DIR}\zlib1.dll"
 !if "${BUILD_TOOLS}" == "VC8"
-    File "${DEPKGS_BIN}\zlib1.dll.manifest"
-    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\openssl.cnf"
+    File "${SRC_DIR}\zlib1.dll.manifest"
 !endif
 !If "${BUILD_TOOLS}" == "VC8_DEBUG"
-    File "${DEPKGS_BIN}\zlib1.dll.manifest"
-    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\..\openssl.cnf"
+    File "${SRC_DIR}\zlib1.dll.manifest"
 !endif
-!if "${BUILD_TOOLS}" == "MinGW"
-    File "/oname=$INSTDIR\openssl.cnf" "${DEPKGS_BIN}\openssl.cnf"
-!endif
-    File "${DEPKGS_BIN}\openssl.exe"
-    File "${BACULA_BIN}\bsleep.exe"
-    File "${BACULA_BIN}\bsmtp.exe"
-    File "${BACULA_BIN}\bacula.dll"
+    File "/oname=$INSTDIR\openssl.cnf" "${SRC_DIR}\openssl.cnf"
+    File "${SRC_DIR}\openssl.exe"
+    File "${SRC_DIR}\bsleep.exe"
+    File "${SRC_DIR}\bsmtp.exe"
+    File "${SRC_DIR}\bacula.dll"
 
     CreateShortCut "$SMPROGRAMS\Bacula\Documentation\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
 
@@ -384,42 +377,21 @@ Function InstallCommonFiles
   ${EndIf}
 FunctionEnd
 
-Function InstallDatabase
-  SetOutPath "$INSTDIR\bin"
-
-  ${If} $DatabaseDone = 0
-    ${If} $ConfigDirectorDB = 1
-      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_mysql.dll"
-      File "${DEPKGS_BIN}\libmysql.dll"
-    ${ElseIf} $ConfigDirectorDB = 2
-      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_pgsql.dll"
-      File "${DEPKGS_BIN}\libpq.dll"
-!if "${BUILD_TOOLS}" == "VC8"
-      File "${DEPKGS_BIN}\comerr32.dll"
-      File "${DEPKGS_BIN}\libintl-2.dll"
-      File "${DEPKGS_BIN}\libiconv-2.dll"
-      File "${DEPKGS_BIN}\krb5_32.dll"
-!endif
-!If "${BUILD_TOOLS}" == "VC8_DEBUG"
-      File "${DEPKGS_BIN}\comerr32.dll"
-      File "${DEPKGS_BIN}\libintl-2.dll"
-      File "${DEPKGS_BIN}\libiconv-2.dll"
-      File "${DEPKGS_BIN}\krb5_32.dll"
-!endif
-    ${ElseIf} $ConfigDirectorDB = 4
-      File /oname=bacula_cats.dll "${BACULA_BIN}\cats_bdb.dll"
-    ${EndIf}
-
-    StrCpy $DatabaseDone 1
-  ${EndIf}
-FunctionEnd
-
 Section "-Initialize"
+  ${If} $MySQLPath != ""
+    DetailPrint "Found MySQL (version $MySQLVersion)"
+  ${EndIf}
+  ${If} $PostgreSQLPath != ""
+    DetailPrint "Found PostgreSQL (version $PostgreSQLVersion)"
+  ${EndIf}
+
   WriteRegStr   HKLM Software\Bacula InstallLocation "$INSTDIR"
 
   Call GetSelectedComponents
   Pop $R2
   WriteRegDWORD HKLM Software\Bacula Components $R2
+
+  WriteRegDWORD HKLM Software\Bacula Database $ConfigDirectorDB
 
   ; remove start menu items
   SetShellVarContext all
@@ -469,6 +441,9 @@ Section "-Initialize"
   FileWrite $R1 's;@bin_dir@;$R2;$\r$\n'
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
   FileWrite $R1 's;@bin_dir_cmd@;$R2;$\r$\n'
+
+  ${StrRep} $R2 "$INSTDIR" "\" "/"
+  FileWrite $R1 "s;@BUILD_DIR@;$R2;$\r$\n"
 
   Call IsDirectorSelected
   Pop $R2
@@ -532,6 +507,18 @@ Section "-Initialize"
     FileWrite $R1 "s;@monitor_password@;$ConfigMonitorPassword;$\r$\n"
   ${EndIf}
 
+  ${If} $ConfigDirectorDB = 1
+    ${If} $MySQLPath != ""
+      ${StrRep} $R2 "$MySQLPath\bin" "\" "\\"
+      FileWrite $R1 "s;@SQL_BINDIR@;$R2;$\r$\n"
+    ${EndIf}
+  ${ElseIf} $ConfigDirectorDB = 2
+    ${If} $PostgreSQLPath != ""
+      ${StrRep} $R2 "$PostgreSQLPath\bin" "\" "\\"
+      FileWrite $R1 "s;@SQL_BINDIR@;$R2;$\r$\n"
+    ${EndIf}
+  ${EndIf}
+
   FileClose $R1
 
   ${If} $InstallType = ${MigrateInstall}
@@ -569,23 +556,18 @@ Section "File Service" SecFileDaemon
 
   SetOutPath "$INSTDIR\bin"
 
-  File "${BACULA_BIN}\bacula-fd.exe"
+  File "${SRC_DIR}\bacula-fd.exe"
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bacula-fd.conf"
     CopyFiles "$OldInstallDir\bin\bacula-fd.conf" "$APPDATA\Bacula"
     nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\migrate.sed" -i.bak "$APPDATA\Bacula\bacula-fd.conf"'
   ${Else}
-    ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-fd.conf"
-      File "/oname=$PLUGINSDIR\bacula-fd.conf.in" "bacula-fd.conf.in"
+    File "/oname=$PLUGINSDIR\bacula-fd.conf" "bacula-fd.conf.in"
 
-      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-fd.conf.in"'
-      CopyFiles "$PLUGINSDIR\bacula-fd.conf.in" "$APPDATA\Bacula\bacula-fd.conf"
-    ${EndUnless}
-  ${EndIf}
-
-  ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    StrCpy $0 "$APPDATA\Bacula"
+    StrCpy $1 bacula-fd.conf
+    Call ConfigEditAndCopy
   ${EndIf}
 
   StrCpy $0 bacula-fd
@@ -607,36 +589,30 @@ Section "Storage Service" SecStorageDaemon
 
   SetOutPath "$INSTDIR\bin"
 
-  File "${DEPKGS_BIN}\loaderinfo.exe"
-  File "${DEPKGS_BIN}\mt.exe"
-  File "${DEPKGS_BIN}\mtx.exe"
-  File "${DEPKGS_BIN}\scsitape.exe"
-  File "${DEPKGS_BIN}\tapeinfo.exe"
-  File "${BACULA_BIN}\bacula-sd.exe"
-  File "${BACULA_BIN}\bcopy.exe"
-  File "${BACULA_BIN}\bextract.exe"
-  File "${BACULA_BIN}\bls.exe"
-  File "${BACULA_BIN}\bscan.exe"
-  File "${BACULA_BIN}\btape.exe"
-  File "${BACULA_BIN}\scsilist.exe"
+  File "${SRC_DIR}\loaderinfo.exe"
+  File "${SRC_DIR}\mt.exe"
+  File "${SRC_DIR}\mtx.exe"
+  File "${SRC_DIR}\scsitape.exe"
+  File "${SRC_DIR}\tapeinfo.exe"
+  File "${SRC_DIR}\bacula-sd.exe"
+  File "${SRC_DIR}\bcopy.exe"
+  File "${SRC_DIR}\bextract.exe"
+  File "${SRC_DIR}\bls.exe"
+  File "${SRC_DIR}\bscan.exe"
+  File "${SRC_DIR}\btape.exe"
+  File "${SRC_DIR}\scsilist.exe"
 
-  ${Unless} ${FileExists} "${BACULA_BIN}\mtx-changer.cmd"
-    File "/oname=$PLUGINSDIR\mtx-changer.cmd" "${SCRIPT_DIR}\mtx-changer.cmd"
+  File "/oname=$PLUGINSDIR\mtx-changer.cmd" "${SRC_DIR}\mtx-changer.cmd"
 
-    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\mtx-changer.cmd"'
-    CopyFiles "$PLUGINSDIR\mtx-changer.cmd" "$INSTDIR\bin\mtx-changer.cmd"
-  ${EndUnless}
+  StrCpy $0 "$INSTDIR\bin"
+  StrCpy $1 mtx-changer.cmd
+  Call ConfigEditAndCopy
 
-  ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-sd.conf"
-    File "/oname=$PLUGINSDIR\bacula-sd.conf.in" "bacula-sd.conf.in"
+  File "/oname=$PLUGINSDIR\bacula-sd.conf" "bacula-sd.conf.in"
 
-    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-sd.conf.in"'
-    CopyFiles "$PLUGINSDIR\bacula-sd.conf.in" "$APPDATA\Bacula\bacula-sd.conf"
-  ${EndUnless}
-
-  ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
-  ${EndIf}
+  StrCpy $0 "$APPDATA\Bacula"
+  StrCpy $1 bacula-sd.conf
+  Call ConfigEditAndCopy
 
   StrCpy $0 bacula-sd
   StrCpy $1 "Storage Service"
@@ -653,61 +629,94 @@ Section "Director Service" SecDirectorDaemon
 
   SetOutPath "$INSTDIR\bin"
 
-  Call InstallDatabase
-  File "${BACULA_BIN}\bacula-dir.exe"
-  File "${BACULA_BIN}\dbcheck.exe"
-
   ${If} $ConfigDirectorDB = 1
-    File /oname=create_database.cmd ${CATS_DIR}\create_mysql_database.cmd
-    File /oname=drop_database.cmd ${CATS_DIR}\drop_mysql_database.cmd
-    File /oname=make_tables.cmd ${CATS_DIR}\make_mysql_tables.cmd
-    File ${CATS_DIR}\make_mysql_tables.sql
-    File /oname=drop_tables.cmd ${CATS_DIR}\drop_mysql_tables.cmd
-    File ${CATS_DIR}\drop_mysql_tables.sql
-    File /oname=update_tables.cmd ${CATS_DIR}\update_mysql_tables.cmd
-    File ${CATS_DIR}\update_mysql_tables.sql
-    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_mysql_privileges.cmd
-    File ${CATS_DIR}\grant_mysql_privileges.sql
+    File /oname=bacula_cats.dll "${SRC_DIR}\cats_mysql.dll"
+    File "${SRC_DIR}\libmysql.dll"
+    File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_mysql_database.cmd
+    File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_mysql_database.cmd
+    File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_mysql_tables.cmd
+    File ${SRC_DIR}\make_mysql_tables.sql
+    File /oname=$PLUGINSDIR\drop_tables.cmd ${SRC_DIR}\drop_mysql_tables.cmd
+    File ${SRC_DIR}\drop_mysql_tables.sql
+    File /oname=$PLUGINSDIR\grant_privileges.cmd ${SRC_DIR}\grant_mysql_privileges.cmd
+    File ${SRC_DIR}\grant_mysql_privileges.sql
+    File /oname=$PLUGINSDIR\make_catalog_backup.cmd ${SRC_DIR}\make_mysql_catalog_backup.cmd
   ${ElseIf} $ConfigDirectorDB = 2
-    File /oname=create_database.cmd ${CATS_DIR}\create_postgresql_database.cmd
-    File /oname=drop_database.cmd ${CATS_DIR}\drop_postgresql_database.cmd
-    File /oname=make_tables.cmd ${CATS_DIR}\make_postgresql_tables.cmd
-    File ${CATS_DIR}\make_postgresql_tables.sql
-    File /oname=drop_tables.cmd ${CATS_DIR}\drop_postgresql_tables.cmd
-    File ${CATS_DIR}\drop_postgresql_tables.sql
-    File /oname=update_tables.cmd ${CATS_DIR}\update_postgresql_tables.cmd
-    File ${CATS_DIR}\update_postgresql_tables.sql
-    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_postgresql_privileges.cmd
-    File ${CATS_DIR}\grant_postgresql_privileges.sql
-  ${ElseIf} $ConfigDirectorDB = 4
-    File /oname=create_database.cmd ${CATS_DIR}\create_bdb_database.cmd
-    File /oname=drop_database.cmd ${CATS_DIR}\drop_bdb_database.cmd
-    File /oname=make_tables.cmd ${CATS_DIR}\make_bdb_tables.cmd
-    File /oname=drop_tables.cmd ${CATS_DIR}\drop_bdb_tables.cmd
-    File /oname=update_tables.cmd ${CATS_DIR}\update_bdb_tables.cmd
-    File /oname=grant_privileges.cmd ${CATS_DIR}\grant_bdb_privileges.cmd
+    File /oname=bacula_cats.dll "${SRC_DIR}\cats_pgsql.dll"
+    File "${SRC_DIR}\libpq.dll"
+!if "${BUILD_TOOLS}" == "VC8"
+    File "${SRC_DIR}\comerr32.dll"
+    File "${SRC_DIR}\libintl-2.dll"
+    File "${SRC_DIR}\libiconv-2.dll"
+    File "${SRC_DIR}\krb5_32.dll"
+!endif
+!If "${BUILD_TOOLS}" == "VC8_DEBUG"
+    File "${SRC_DIR}\comerr32.dll"
+    File "${SRC_DIR}\libintl-2.dll"
+    File "${SRC_DIR}\libiconv-2.dll"
+    File "${SRC_DIR}\krb5_32.dll"
+!endif
+    File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_postgresql_database.cmd
+    File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_postgresql_database.cmd
+    File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_postgresql_tables.cmd
+    File ${SRC_DIR}\make_postgresql_tables.sql
+    File /oname=$PLUGINSDIR\drop_tables.cmd ${SRC_DIR}\drop_postgresql_tables.cmd
+    File ${SRC_DIR}\drop_postgresql_tables.sql
+    File /oname=$PLUGINSDIR\grant_privileges.cmd ${SRC_DIR}\grant_postgresql_privileges.cmd
+    File ${SRC_DIR}\grant_postgresql_privileges.sql
+    File /oname=$PLUGINSDIR\make_catalog_backup.cmd ${SRC_DIR}\make_postgresql_catalog_backup.cmd
+  ${ElseIf} $ConfigDirectorDB = 3
+    File "${SRC_DIR}\sqlite3.exe"
+!if "${BUILD_TOOLS}" == "VC8"
+    File "${SRC_DIR}\sqlite3.exe.manifest"
+!endif
+!If "${BUILD_TOOLS}" == "VC8_DEBUG"
+    File "${SRC_DIR}\sqlite3.exe.manifest"
+!endif
+    File /oname=bacula_cats.dll "${SRC_DIR}\cats_sqlite.dll"
+    File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_sqlite3_database.cmd
+    File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_sqlite3_database.cmd
+    File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_sqlite3_tables.cmd
+    File /oname=$PLUGINSDIR\drop_tables.cmd ${SRC_DIR}\drop_sqlite3_tables.cmd
+    File /oname=$PLUGINSDIR\grant_privileges.cmd ${SRC_DIR}\grant_sqlite3_privileges.cmd
+    File /oname=$PLUGINSDIR\make_catalog_backup.cmd ${SRC_DIR}\make_sqlite3_catalog_backup.cmd
   ${EndIf}
-  ${Unless} ${FileExists} "$INSTDIR\bin\make_catalog_backup.cmd"
-    File "/oname=$PLUGINSDIR\make_catalog_backup.cmd" "${CATS_DIR}\make_catalog_backup.cmd"
-    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\make_catalog_backup.cmd"'
-    CopyFiles "$PLUGINSDIR\make_catalog_backup.cmd" "$INSTDIR\bin\make_catalog_backup.cmd"
-  ${EndUnless}
-  ${Unless} ${FileExists} "$INSTDIR\bin\delete_catalog_backup.cmd"
-    File "/oname=$PLUGINSDIR\delete_catalog_backup.cmd" "${CATS_DIR}\delete_catalog_backup.cmd"
-    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\delete_catalog_backup.cmd"'
-    CopyFiles "$PLUGINSDIR\delete_catalog_backup.cmd" "$INSTDIR\bin\delete_catalog_backup.cmd"
-  ${EndUnless}
-  File "query.sql"
 
-  ${Unless} ${FileExists} "$APPDATA\Bacula\bacula-dir.conf"
-    File "/oname=$PLUGINSDIR\bacula-dir.conf.in" "bacula-dir.conf.in"
-    nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bacula-dir.conf.in"'
-    CopyFiles "$PLUGINSDIR\bacula-dir.conf.in" "$APPDATA\Bacula\bacula-dir.conf"
-  ${EndUnless}
+  File "${SRC_DIR}\bacula-dir.exe"
+  File "${SRC_DIR}\dbcheck.exe"
 
-  ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
-  ${EndIf}
+  File "/oname=$PLUGINSDIR\delete_catalog_backup.cmd" "${SRC_DIR}\delete_catalog_backup.cmd"
+
+  StrCpy $0 "$INSTDIR\bin"
+  
+  StrCpy $1 create_database.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 drop_database.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 make_tables.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 drop_tables.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 grant_privileges.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 make_catalog_backup.cmd
+  Call ConfigEditAndCopy
+
+  StrCpy $1 delete_catalog_backup.cmd
+  Call ConfigEditAndCopy
+
+  File "${SRC_DIR}\query.sql"
+
+  File "/oname=$PLUGINSDIR\bacula-dir.conf" "bacula-dir.conf.in"
+
+  StrCpy $0 "$APPDATA\Bacula"
+  StrCpy $1 bacula-dir.conf
+  Call ConfigEditAndCopy
 
   StrCpy $0 bacula-dir
   StrCpy $1 "Director Service"
@@ -727,22 +736,17 @@ Section "Command Console" SecConsole
 
   SetOutPath "$INSTDIR\bin"
 
-  File "${BACULA_BIN}\bconsole.exe"
+  File "${SRC_DIR}\bconsole.exe"
   Call InstallCommonFiles
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\bconsole.conf"
     CopyFiles "$OldInstallDir\bin\bconsole.conf" "$APPDATA\Bacula"
   ${Else}
-    ${Unless} ${FileExists} "$APPDATA\Bacula\bconsole.conf"
-      File "/oname=$PLUGINSDIR\bconsole.conf.in" "bconsole.conf.in"
-      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\bconsole.conf.in"'
-      CopyFiles "$PLUGINSDIR\bconsole.conf.in" "$APPDATA\Bacula\bconsole.conf"
-    ${EndUnless}
-  ${EndIf}
-
-  ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    File "/oname=$PLUGINSDIR\bconsole.conf" "bconsole.conf.in"
+    StrCpy $0 "$APPDATA\Bacula"
+    StrCpy $1 bconsole.conf
+    Call ConfigEditAndCopy
   ${EndIf}
 
   CreateShortCut "$SMPROGRAMS\Bacula\bconsole.lnk" "$INSTDIR\bin\bconsole.exe" '-c "$APPDATA\Bacula\bconsole.conf"' "$INSTDIR\bin\bconsole.exe" 0
@@ -757,33 +761,28 @@ Section "Graphical Console" SecWxConsole
 
   Call InstallCommonFiles
 !if "${BUILD_TOOLS}" == "VC8"
-  File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
-  File "${DEPKGS_BIN}\wxmsw270_core_vc_bacula.dll"
+  File "${SRC_DIR}\wxbase270_vc_bacula.dll"
+  File "${SRC_DIR}\wxmsw270_core_vc_bacula.dll"
 !endif
 !If "${BUILD_TOOLS}" == "VC8_DEBUG"
-  File "${DEPKGS_BIN}\wxbase270_vc_bacula.dll"
-  File "${DEPKGS_BIN}\wxmsw270_core_vc_bacula.dll"
+  File "${SRC_DIR}\wxbase270_vc_bacula.dll"
+  File "${SRC_DIR}\wxmsw270_core_vc_bacula.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
-  File "${DEPKGS_BIN}\wxbase26_gcc_bacula.dll"
-  File "${DEPKGS_BIN}\wxmsw26_core_gcc_bacula.dll"
+  File "${SRC_DIR}\wxbase26_gcc_bacula.dll"
+  File "${SRC_DIR}\wxmsw26_core_gcc_bacula.dll"
 !endif
 
-  File "${BACULA_BIN}\wx-console.exe"
+  File "${SRC_DIR}\wx-console.exe"
 
   ${If} $InstallType = ${MigrateInstall}
   ${AndIf} ${FileExists} "$OldInstallDir\bin\wx-console.conf"
     CopyFiles "$OldInstallDir\bin\wx-console.conf" "$APPDATA\Bacula"
   ${Else}
-    ${Unless} ${FileExists} "$APPDATA\Bacula\wx-console.conf"
-      File "/oname=$PLUGINSDIR\wx-console.conf.in" "wx-console.conf.in"
-      nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\wx-console.conf.in"'
-      CopyFiles "$PLUGINSDIR\wx-console.conf.in" "$APPDATA\Bacula\wx-console.conf"
-    ${EndUnless}
-  ${EndIf}
-
-  ${If} $OsIsNT = 1
-    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$R1" /G SYSTEM:F Administrators:F'
+    File "/oname=$PLUGINSDIR\wx-console.conf" "wx-console.conf.in"
+    StrCpy $0 "$APPDATA\Bacula"
+    StrCpy $1 wx-console.conf
+    Call ConfigEditAndCopy
   ${EndIf}
 
   ; Create Start Menu entry
@@ -801,7 +800,7 @@ Section "Documentation (Acrobat Format)" SecDocPdf
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
 
-  File "${DOC_DIR}\manual\bacula.pdf"
+  File "${SRC_DIR}\manual\bacula.pdf"
   CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual.lnk" '"$INSTDIR\doc\bacula.pdf"'
 SectionEnd
 
@@ -811,16 +810,22 @@ Section "Documentation (HTML Format)" SecDocHtml
   SetOutPath "$INSTDIR\doc"
   CreateDirectory "$INSTDIR\doc"
 
-  File "${DOC_DIR}\manual\bacula\*.html"
-  File "${DOC_DIR}\manual\bacula\*.png"
-  File "${DOC_DIR}\manual\bacula\*.css"
+  File "${SRC_DIR}\manual\bacula\*.html"
+  File "${SRC_DIR}\manual\bacula\*.png"
+  File "${SRC_DIR}\manual\bacula\*.css"
   CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
 SectionEnd
 
 SectionGroupEnd
 
-Section "-Write Uninstaller"
+Section "-Finish"
   Push $R0
+
+  ${If} $OsIsNT = 1
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$INSTDIR" /T /G SYSTEM:F Administrators:F'
+    nsExec::ExecToLog 'cmd.exe /C echo Y|cacls "$APPDATA\Bacula" /T /G SYSTEM:F Administrators:F'
+  ${EndIf}
+
   ; Write the uninstall keys for Windows & create Start Menu entry
   WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "DisplayName" "Bacula"
   WriteRegStr   HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Bacula" "InstallLocation" "$INSTDIR"
@@ -1042,6 +1047,54 @@ Function GetUserName
   Exch $R0
 FunctionEnd
 
+Function ConfigEditAndCopy
+  Push $R1
+
+  ${If} ${FileExists} "$0\$1"
+    StrCpy $R1 ".new"
+  ${Else}
+    StrCpy $R1 ""
+  ${EndIf}
+
+  nsExec::ExecToLog '$PLUGINSDIR\sed.exe -f "$PLUGINSDIR\config.sed" -i.bak "$PLUGINSDIR\$1"'
+  CopyFiles "$PLUGINSDIR\$1" "$0\$1$R1"
+
+  Pop $R1
+FunctionEnd
+
+Function FindDatabaseApps
+  Push $R1
+
+  ReadRegStr $0 HKLM "Software\MySQL AB\MySQL Server 5.0" "Location"
+
+  ${If} $0 != ""
+    Call RemoveTrailingSlash
+    StrCpy $MySQLPath $0
+    ReadRegStr $0 HKLM "Software\MySQL AB\MySQL Server 5.0" "Version"
+    StrCpy $MySQLVersion $0
+  ${EndIf}
+
+  EnumRegKey $R1 HKLM "Software\PostgreSQL\Installations" 0
+  ${If} $R1 != ""
+    ReadRegStr $0 HKLM "Software\PostgreSQL\Installations\$R1" "Base Directory"
+    Call RemoveTrailingSlash
+    StrCpy $PostgreSQLPath $0
+    ReadRegStr $0 HKLM "Software\PostgreSQL\Installations\$R1" "Version"
+    StrCpy $PostgreSQLVersion $0
+  ${EndIf}
+
+  Pop $R1
+FunctionEnd
+
+Function RemoveTrailingSlash
+  Push $R1
+  StrCpy $R1 $0 "" -1
+  ${If} $R1 == "\"
+    StrCpy $0 $0 -1
+  ${EndIf}
+  Pop $R1
+FunctionEnd
+
 Function IsDirectorSelected
   Push $R0
   SectionGetFlags ${SecDirectorDaemon} $R0
@@ -1077,7 +1130,7 @@ Function GetSelectedComponents
 FunctionEnd
 
 Function PageComponentsShow
-  ${If} $OsIsNT != 1
+  ${If} $OsIsNT <> 1
     Call DisableServerSections
   ${EndIf}
 

@@ -1,15 +1,14 @@
-rem 
-rem  shell script to delete Bacula tables for PostgreSQL
-rem
+@ECHO off
+REM
+REM  Script to delete Bacula tables for PostgreSQL
+REM
 
-bindir=@SQL_BINDIR@
-
-$bindir/psql -f drop_postgresql_tables.sql -d bacula $*
-if ERRORLEVEL 1 GOTO :ERROR
-echo "Deletion of Bacula PostgreSQL tables succeeded."
+"@SQL_BINDIR@\psql" -f "@bin_dir_cmd@\drop_postgresql_tables.sql" -d bacula %*
+IF ERRORLEVEL 1 GOTO :ERROR
+ECHO Deletion of Bacula PostgreSQL tables succeeded.
 EXIT /b 0
 GOTO :EOF
 
 :ERROR
-echo "Deletion of Bacula PostgreSQL tables failed."
+ECHO Deletion of Bacula PostgreSQL tables failed.
 EXIT /b 1

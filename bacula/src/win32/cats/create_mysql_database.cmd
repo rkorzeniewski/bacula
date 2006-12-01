@@ -1,14 +1,14 @@
-@echo off
-rem
-rem Script to create Bacula database(s)
-rem
+@ECHO off
+REM
+REM Script to create Bacula database(s)
+REM
 
-"%SQL_BINDIR%\mysql" %* -e "CREATE DATABASE bacula;"
-set RESULT=%ERRORLEVEL%
-if %RESULT% GTR 0 goto :ERROR
-echo "Creation of bacula database succeeded."
-exit /b 0
+"@SQL_BINDIR@\mysql" %* -e "CREATE DATABASE bacula;"
+SET RESULT=%ERRORLEVEL%
+IF %RESULT% GTR 0 GOTO :ERROR
+ECHO Creation of bacula database succeeded.
+EXIT /b 0
 
 :ERROR
-echo "Creation of bacula database failed."
-exit /b %RESULT%
+ECHO Creation of bacula database failed.
+EXIT /b %RESULT%

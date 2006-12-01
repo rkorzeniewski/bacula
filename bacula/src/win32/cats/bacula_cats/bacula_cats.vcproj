@@ -66,10 +66,6 @@
 			<File
 				RelativePath=".\bacula_cats.def"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -83,6 +79,14 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="Script Files"
+			>
+			<File
+				RelativePath="..\delete_catalog_backup.cmd"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

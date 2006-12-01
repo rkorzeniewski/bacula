@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="cats_bdb"
-	ProjectGUID="{1E6FC8D7-0A08-461A-B9AB-FD3CC5DC0B9C}"
-	RootNamespace="cats_bdb"
+	Name="cats_sqlite"
+	ProjectGUID="{23BFE838-5682-4F39-969F-0B40366D4D98}"
+	RootNamespace="cats_sqlite"
 	>
 	<Platforms>
 		<Platform
@@ -40,7 +40,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../compat;../../../../../depkgs-msvc/include;../../.."
-				PreprocessorDefinitions="_DEBUG;_LIB;HAVE_WIN32;HAVE_BACULA_DB;USING_DLL;BUILDING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="_DEBUG;_LIB;HAVE_WIN32;HAVE_SQLITE3;USING_DLL;BUILDING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,8 +60,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="bacula_cats.exp"
+				AdditionalDependencies="sqlite3.lib bacula_cats.exp"
 				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib;../../$(ConfigurationName)"
+				IgnoreDefaultLibraryNames="msvcrt"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -117,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="../../compat;../../../../../depkgs-msvc/include;../../.."
-				PreprocessorDefinitions="NDEBUG;_LIB;HAVE_WIN32;HAVE_BACULA_DB;USING_DLL;BUILDING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="NDEBUG;_LIB;HAVE_WIN32;HAVE_SQLITE3;USING_DLL;BUILDING_CATS;_USE_32BIT_TIME_T;_WIN32_WINNT=0x0500;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -135,8 +136,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="bacula_cats.exp"
-				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib;../../$(ConfigurationName)"
+				AdditionalDependencies="sqlite3.lib bacula_cats.exp"
+				AdditionalLibraryDirectories="&quot;../../../../../depkgs-msvc/lib&quot;;&quot;../../$(ConfigurationName)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -178,127 +179,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\cats\bdb.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_create.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_delete.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_find.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_get.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_list.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						CompileAs="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\cats\bdb_update.c"
+				RelativePath="..\..\..\cats\sql.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -319,6 +200,146 @@
 			</File>
 			<File
 				RelativePath="..\..\..\cats\sql_cmds.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_create.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_delete.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_find.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_get.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_list.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sql_update.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\cats\sqlite.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -361,6 +382,38 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="Script Files"
+			>
+			<File
+				RelativePath="..\create_sqlite3_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_sqlite3_database.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\drop_sqlite3_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\grant_sqlite3_privileges.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_sqlite3_catalog_backup.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_sqlite3_tables.cmd"
+				>
+			</File>
+			<File
+				RelativePath="..\make_sqlite3_tables.sql"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

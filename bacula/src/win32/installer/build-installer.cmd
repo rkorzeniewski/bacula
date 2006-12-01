@@ -1,7 +1,71 @@
 @ECHO OFF
 SETLOCAL
-PATH ..\..\..\..\depkgs-msvc\nsis;..\..\..\..\depkgs-msvc\tools;%PATH%
+
+SET CWD=%CD%
+CD %1..\..\..
+SET TOP_DIR=%CD%
+CD %CWD%
+SET DEPKG_DIR=%TOP_DIR%\depkgs-msvc
+SET DOCS_DIR=%TOP_DIR%\docs\manual
+
+SET BACULA_DLLS=bacula.dll cats_mysql.dll cats_pgsql.dll cats_sqlite.dll
+SET BACULA_EXES=bacula-dir.exe bacula-fd.exe bacula-sd.exe bconsole.exe wx-console.exe
+SET BACULA_TOOLS=bcopy.exe bextract.exe bls.exe bscan.exe bsleep.exe bsmtp.exe btape.exe dbcheck.exe scsilist.exe
+
+SET DEP_DLLS=libeay32.dll pthreadVCE.dll ssleay32.dll zlib1.dll zlib1.dll.manifest wxbase270_vc_bacula.dll wxmsw270_core_vc_bacula.dll libmysql.dll libpq.dll comerr32.dll libintl-2.dll libiconv-2.dll krb5_32.dll
+SET DEP_EXES=openssl.exe loaderinfo.exe mt.exe mtx.exe scsitape.exe sed.exe tapeinfo.exe sqlite3.exe sqlite3.exe.manifest
+
+SET SCRIPTS=mtx-changer.cmd 
+SET CATS_MYSQL_CMD=create_mysql_database.cmd drop_mysql_database.cmd make_mysql_tables.cmd drop_mysql_tables.cmd grant_mysql_privileges.cmd
+SET CATS_MYSQL_SQL=make_mysql_tables.sql drop_mysql_tables.sql grant_mysql_privileges.sql
+SET CATS_PGSQL_CMD=create_postgresql_database.cmd drop_postgresql_database.cmd make_postgresql_tables.cmd drop_postgresql_tables.cmd grant_postgresql_privileges.cmd
+SET CATS_PGSQL_SQL=make_postgresql_tables.sql drop_postgresql_tables.sql grant_postgresql_privileges.sql
+SET CATS_SQLITE_CMD=create_sqlite3_database.cmd drop_sqlite3_database.cmd make_sqlite3_tables.cmd drop_sqlite3_tables.cmd grant_sqlite3_privileges.cmd
+SET CATS_SQLITE_SQL=make_sqlite3_tables.sql
+SET CATS_CATALOG=make_mysql_catalog_backup.cmd make_postgresql_catalog_backup.cmd make_sqlite3_catalog_backup.cmd delete_catalog_backup.cmd
+SET DIRD_FILES=query.sql
+SET SSL_FILES=openssl.cnf
+
+SET DOC_PDF_FILES=%DOCS_DIR%\bacula.pdf %DOCS_DIR%\bacula\*.html %DOCS_DIR%\bacula\*.png %DOCS_DIR%\bacula\*.css
+SET DOC_HTML_FILES=%DOCS_DIR%\bacula\*.html %DOCS_DIR%\bacula\*.png %DOCS_DIR%\bacula\*.css
+
+FOR %%i in ( %BACULA_DLLS% )     DO COPY %1%2\%%i %1installer\%2
+FOR %%i in ( %BACULA_EXES% )     DO COPY %1%2\%%i %1installer\%2
+FOR %%i in ( %BACULA_TOOLS% )    DO COPY %1%2\%%i %1installer\%2
+
+FOR %%i in ( %DEP_DLLS% )        DO COPY %DEPKG_DIR%\bin\%%i %1installer\%2
+FOR %%i in ( %DEP_EXES% )        DO COPY %DEPKG_DIR%\bin\%%i %1installer\%2
+
+FOR %%i in ( %SCRIPTS% )         DO COPY %1scripts\%%i %1installer\%2
+FOR %%i in ( %CATS_MYSQL_CMD% )  DO COPY %1cats\%%i %1installer\%2
+FOR %%i in ( %CATS_MYSQL_SQL% )  DO COPY %1cats\%%i %1installer\%2
+FOR %%i in ( %CATS_PGSQL_CMD% )  DO COPY %1cats\%%i %1installer\%2
+FOR %%i in ( %CATS_PGSQL_SQL% )  DO COPY %1cats\%%i %1installer\%2
+FOR %%i in ( %CATS_SQLITE_CMD% ) DO COPY %1cats\%%i %1installer\%2
+FOR %%i in ( %CATS_SQLITE_SQL% ) DO COPY %1cats\%%i %1installer\%2
+
+FOR %%i in ( %CATS_CATALOG% )    DO COPY %1cats\%%i %1installer\%2
+
+FOR %%i in ( %DIRD_FILES% )      DO COPY %1..\dird\%%i %1installer\%2
+FOR %%i in ( %SSL_FILES% )       DO COPY %DEPKG_DIR%\%%i %1installer\%2
+
+IF NOT EXIST %1installer\%2\manual MKDIR %1installer\%2\manual
+FOR %%i in ( %DOC_PDF_FILES% )   DO COPY %%i %1installer\%2\manual
+
+IF NOT EXIST %1installer\%2\manual\bacula MKDIR %1installer\%2\manual\bacula
+FOR %%i in ( %DOC_HTML_FILES% )  DO COPY %%i %1installer\%2\manual\bacula
+
+COPY %4\x86\Microsoft.VC80.CRT\msvcm80.dll %1installer\%2
+COPY %4\x86\Microsoft.VC80.CRT\msvcp80.dll %1installer\%2
+COPY %4\x86\Microsoft.VC80.CRT\msvcr80.dll %1installer\%2
+COPY %4\x86\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest %1installer\%2
+COPY %4\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcm80d.dll %1installer\%2
+COPY %4\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcp80d.dll %1installer\%2
+COPY %4\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\msvcr80d.dll %1installer\%2
+COPY %4\Debug_NonRedist\x86\Microsoft.VC80.DebugCRT\Microsoft.VC80.DebugCRT.manifest %1installer\%2
+
+PATH %DEPKG_DIR%\nsis;%DEPKG_DIR%\tools;%PATH%
+
 FOR /F %%i IN ( 'sed -ne "s/.*[ \t]VERSION[ \t][ \t]*\x22\(.*\)\x22/\1/p" ^< ..\..\version.h' ) DO @SET VERSION=%%i 
-makensis /V3 /DVERSION=%VERSION% /DOUT_DIR=%1%2 /DDOC_DIR=..\..\..\..\docs /DBUILD_TOOLS=%3 /DVC_REDIST_DIR=%4 /DDEPKGS_BIN=..\..\..\..\depkgs-msvc\bin /DBACULA_BIN=..\%2 /DCATS_DIR=..\cats /DSCRIPT_DIR=..\scripts winbacula.nsi
+makensis /V3 /DVERSION=%VERSION% /DSRC_DIR=%1installer\%2 /DOUT_DIR=%1%2 /DBUILD_TOOLS=%3 winbacula.nsi
 EXIT /B %ERRORLEVEL%
-ENDLOCAL

@@ -46,8 +46,8 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -64,6 +64,7 @@
 				AdditionalDependencies="wsock32.lib zlib.lib pthreadVCE.lib atlsd.lib"
 				LinkIncremental="0"
 				AdditionalLibraryDirectories="../../../../../depkgs-msvc/lib"
+				IgnoreDefaultLibraryNames="msvcrt"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -131,8 +132,8 @@
 				UsePrecompiledHeader="0"
 				BrowseInformation="1"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
