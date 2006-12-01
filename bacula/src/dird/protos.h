@@ -255,6 +255,7 @@ void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
 int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
 void purge_files_from_job(UAContext *ua, JobId_t JobId);
 void purge_job_from_catalog(UAContext *ua, JobId_t JobId);
+void purge_job_records_from_catalog(UAContext *ua, JobId_t JobId);
 
 
 /* ua_run.c */

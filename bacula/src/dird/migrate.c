@@ -347,7 +347,7 @@ bool do_migration(JCR *jcr)
    migration_cleanup(jcr, jcr->JobStatus);
    if (mig_jcr) {
       UAContext *ua = new_ua_context(jcr);
-      purge_files_from_job(ua, jcr->previous_jr.JobId);
+      purge_job_records_from_catalog(ua, jcr->previous_jr.JobId);
       free_ua_context(ua);
    }
    return true;
