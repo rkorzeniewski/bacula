@@ -10,7 +10,7 @@ set_debug 1
 
 scripts/cleanup
 scripts/copy-crypto-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build/po/LINGUAS" >/tmp/file-list
 
 start_test
 
@@ -19,6 +19,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
+setdebug level=300 fd
 run job=$JobName yes
 wait
 messages
@@ -26,7 +27,7 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-@#setdebug level=50 storage=File
+setdebug level=0 fd
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 mark *
