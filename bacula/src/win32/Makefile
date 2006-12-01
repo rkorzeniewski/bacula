@@ -33,9 +33,11 @@ Makefile.inc: Makefile.inc.in
 	if test -e ../../../cross-tools/mingw32/bin/mingw32-gcc; then \
 		BINDIR=$${TOPDIR}/cross-tools/mingw32/bin; \
 		INCDIR=$${TOPDIR}/cross-tools/mingw32/mingw32/include; \
+		DLLDIR=$${TOPDIR}/cross-tools/mingw32/mingw32/bin; \
 	elif test -e /mingw/bin/mingw32-gcc; then \
 		BINDIR=/mingw/bin; \
 		INCDIR=/mingw/include; \
+		DLLDIR=/mingw/bin; \
 	else \
 		echo -e "\nThe GCC cross compiler isn't installed."; \
 		echo -e "You must run build-win32-cross-tools and build-dependencies first.\n"; \
@@ -43,4 +45,5 @@ Makefile.inc: Makefile.inc.in
 	fi ; \
 	sed -e "s^@TOPDIR@^$${TOPDIR}^" \
 		-e "s^@BINDIR@^$${BINDIR}^" \
-		-e "s^@INCDIR@^$${INCDIR}^" < Makefile.inc.in > $@
+		-e "s^@INCDIR@^$${INCDIR}^" \
+		-e "s^@DLLDIR@^$${DLLDIR}^" < Makefile.inc.in > $@

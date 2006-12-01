@@ -19,6 +19,7 @@ OBJDIR := .
 
 MINGW_BIN := @BINDIR@
 MINGW_INCLUDE := @INCDIR@
+MINGW_DLLDIR := @DLLDIR@
 
 CC = $(MINGW_BIN)/mingw32-g++ $(DEFINES) $(INCLUDES)
 CXX = $(MINGW_BIN)/mingw32-g++ $(DEFINES) $(INCLUDES)
@@ -54,6 +55,9 @@ LIBS_MYSQL := \
 
 LIBS_POSTGRESQL := \
 	$(DEPKGS)/lib/libpq.a
+
+LIBS_SQLITE := \
+	$(DEPKGS)/lib/libsqlite3.a
 
 LIBS_SSL := \
 	$(DEPKGS)/lib/libssl.dll.a
