@@ -18,7 +18,6 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-@#setdebug level=100 dir
 label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
@@ -27,6 +26,7 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
+@#setdebug level=50 storage=File
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 mark *
