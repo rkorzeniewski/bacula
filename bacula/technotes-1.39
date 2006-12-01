@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+01Dec06
+kes  Update ReleaseNotes
+kes  Purge Job records from the catalog for Migration. This was
+     not properly done previously. This fixes bug #718.
 28Nov06
 kes  Initialize msg_type to M_INFO in migration. Pointed out by
      Robert Nelson.

@@ -114,42 +114,9 @@ Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
 
   After one of these has been done the upgrade should work fine.
 
-
-New Features in 1.40.0:
-- Relative path specifications (i.e. ../xxx) are now permitted in
-  the restore cd command.
-- When running multiple simultaneous jobs, most jobs that use spooling
-  will now finish faster due to a mutex optimization made by Eric
-  Bollengier.
-- Conf files containing UTF-8 marker at the head of the file as well as
-  conf files containing Window cr/lf and Mac cr line termination characters 
-  are now accepted thanks to Robert Nelson.
-- Windows tray status windows are scrollable and resizable.
-- Win32 external script excution is much more flexible -- handles
-  spaces in names better, ...
-- Lots of DVD fixes -- I think they now work!
-- Fix opening of database in a restricted console to respect     
-  any Catalog ACL.
-- Permit multiple console/director resources in bconsole.conf.
-  patch from Carsten Paeth calle@calle.in-berlin.de
-- Character substitution in Job/JobDefs WriteBootStrap.
-  from Eric Bollengier.
-- Apply patch supplied in bug #656 to pass priority field
-  in the run dialog to the Director in gnome console.
-- Add support of encrypted data stream to bscan from Eric.
-  display data_len instead of data content (may be binary)
-- Add Enabled=xxx on update slots command.
-- Add host:port to connect failure messages to FD and SD from Dir
-- Add WhereACL to console ACL list.  If nothing is specified, only
-  the default is permitted for restore. Otherwise, *all* allows any
-  path, or you can specify permitted paths. This should allow control
-  over where users can restore files. This is untested.
-- Install man pages with 'make install'
-- Add Media.Enabled flag to client backups for dotcmds.c
-- Enforce Media.Enabled=1 for a current restore to work
-- Require restore case 3 to have sqlquery permission to work.
-- The basic features of Migration are now complete.
-- There is a Migration chapter in the doc.
+Major new Features in 1.40.0:
+- The basic features of Migration are now complete, and
+  are documented in a new Migration chapter in the manual 
   http://www.bacula.org/dev-manual/Migration.html
 - There is an Encryption chapter in the doc.
   http://www.bacula.org/dev-manual/Bacula_Data_Encryption.html
@@ -159,19 +126,6 @@ New Features in 1.40.0:
   http://www.bacula.org/dev-manual/Storage_Daemon_Configuratio.html
   Also see the Edit Codes for Mount and Unmount Directives in the
   same chapter.
-- Add -n option to bconsole to turn off conio.
-- The bytes field in the terminated jobs part of the status
-  command now reports in KB, MB, ... units.
-- When not descending into a directory, print the File= name that
-  triggered it -- makes why not descending a bit clearer
-- Do not unload autochanger when doing "update slots"
-- Implement mount command for autochanger
-- Fix bug #462 incorrect error message printed when client script called
-  from File= was not found.
-- Fix bug #558 (waiting for feedback) where Bacula needs too much time to
-  do a rewind on Solaris when no tape is in the drive (Solaris does not
-  have the detailed errno found on Linux).  Added Solaris specific code.
-  Note, this may apply to other OSes as well.
 - Switch the Win32 build from using Microsoft C++ to using mingw32
   cross-compiling.  The initial work was done by Howard Thomson,
   then tweaked by me.  Robert Nelson then totally reworked the
@@ -179,8 +133,9 @@ New Features in 1.40.0:
   also compiles on Visual Studio, and at the same time, he added
   all the current Unix features to the FD, such as selection on
   drives, encryption support, building *all* the tools, ...
-  Finally, he also ported the Director and the Storage daemon to
-  Win32.
+- The Director and Storage daemon have now been ported to Win32.
+  This code is working but should still be considered beta (i.e.
+  test carefully before putting into production).
 - Data encryption done in the Client is now supported due to code
   submitted by Landon Fuller.
 - Bacula restore and bextract can now extract non-portable Win32 data to
@@ -194,20 +149,81 @@ New Features in 1.40.0:
   plus a *lot* more, allowing you to control just about every aspect
   of running scripts.  See the manual for detailed documentation.
   http://www.bacula.org/dev-manual/Configuring_Director.html#5227
-- The examples directory has a new bacula_mail_summary.sh file that
-  creates a single email summary of any number of jobs. Submitted by
-  Andrew J. Millar.
 - SunOS ACLs should now work thanks to a patch from David Duchscher.
-- The database Id records should be 32/64 bit independent now. 64 bits
-  can be enabled by changing one define, but this has never been tested.
 - Apply days keyword patch from Alexander.Bergolth at wu-wien.ac.at
   If this patch is applied, the number of days can be specified with
   "list nextvol days=xx"
   or
   "status dir days=xx"
-  My use case is to be able to preview the next scheduled job (and the
+  This can be used to preview the next scheduled job (and the
   next tape to be used) on Fridays if there are no scheduled jobs during
-  the weekend.  This patch was probably back ported to 1.38.x
+  the weekend.
+- Apply patch for enhancing wait from Eric Bollengier. One can now:
+   wait  (wait for all jobs to stop)
+   wait jobid=nn
+   wait jobuid=unique id
+   wait job=job-name
+- Volumes can now be set to Enable, Disable, or Archive. If they
+  are not enabled, Volumes will not be mounted.             
+  Implement update volume enable=(on|off|true|false|archived|0|1|2)
+- Add Catalog message destination in Messages resource that puts the
+  job report in the Log database table.
+
+
+New Features in 1.40.0:
+- Add enable/disable job=<job-name>.  This command prevents
+  the specified job from being scheduled. Even when disabled,
+  the job can be manually started from the console.
+- The database Id records should be 32/64 bit independent now. 64 bits
+  can be enabled by changing one define, but this has never been tested.
+- Relative path specifications (i.e. ../xxx) are now permitted in
+  the restore cd command.
+- When running multiple simultaneous jobs, most jobs that use spooling
+  will now finish faster due to a mutex optimization made by Eric
+  Bollengier.
+- Conf files containing UTF-8 marker at the head of the file as well as
+  conf files containing Window cr/lf and Mac cr line termination characters 
+  are now accepted thanks to Robert Nelson.
+- Windows tray status windows are scrollable and resizable.
+- Win32 external script execution is much more flexible -- handles
+  spaces in names better, ...
+- Lots of DVD fixes -- writing DVDs is now reported to work.
+- Fix opening of database in a restricted console to respect     
+  any Catalog ACL.
+- Permit multiple console/director resources in bconsole.conf.
+  patch from Carsten Paeth calle@calle.in-berlin.de
+- Character substitution in Job/JobDefs WriteBootStrap.
+  from Eric Bollengier.
+- Apply patch supplied in bug #656 to pass priority field
+  in the run dialog to the Director in gnome console.
+- Add support of encrypted data stream to bscan from Eric.
+  display data_len instead of data content (may be binary).
+- Add Enabled=xxx on update slots command.
+- Add host:port to connect failure messages to FD and SD from Dir/
+- Add WhereACL to console ACL list.  If nothing is specified, only
+  the default is permitted for restore. Otherwise, *all* allows any
+  path, or you can specify permitted paths. This should allow control
+  over where users can restore files. This is untested.
+- Install man pages with 'make install'.
+- Add Media.Enabled flag to client backups for dotcmds.c
+- Enforce Media.Enabled=1 for a current restore to work
+- Require restore case 3 to have sqlquery permission to work.
+- Add -n option to bconsole to turn off conio.
+- The bytes field in the terminated jobs part of the status
+  command now reports in KB, MB, ... units.
+- When not descending into a directory, print the File= name that
+  triggered it -- makes why not descending a bit clearer
+- Do not unload autochanger when doing "update slots"
+- Implement mount command for autochanger
+- Fix bug #462 incorrect error message printed when client script called
+  from File= was not found.
+- Fix bug #558 (waiting for feedback) where Bacula needs too much time to
+  do a rewind on Solaris when no tape is in the drive (Solaris does not
+  have the detailed errno found on Linux).  Added Solaris specific code.
+  Note, this may apply to other OSes as well.
+- The examples directory has a new bacula_mail_summary.sh file that
+  creates a single email summary of any number of jobs. Submitted by
+  Andrew J. Millar.
 - Add nagios plugin to the examples directory. Submitted by
   Christian Masopust.
 - Modify most restore error messages to be queued so that they
@@ -217,9 +233,6 @@ New Features in 1.40.0:
   correct detection of holes in block devices and FIFOs.
   Bug # 506.
 - Added a report.pl program to the examples directory from Jonas Bjorklund.
-- Add enable/disable job=<job-name>.  This command prevents
-  the specified job from being scheduled. Even when disabled,
-  the job can be manually started from the console.
 - Add two new queries to query.sql provided by Arno. One
   list volumes known to the Storage device, and the other
   lists volumes possibly needing replacement (error, ...).
@@ -242,11 +255,6 @@ New Features in 1.40.0:
   accept time qualifiers.
 - Implement jobuid to replace old usage of job in keywords as
   suggested by Eric Bollengier.
-- Apply patch for enhancing wait from Eric Bollengier. One can now:
-   wait  (wait for all jobs to stop)
-   wait jobid=nn
-   wait jobuid=unique id
-   wait job=job-name
 - Implement write variables for Python to set Priority (anytime), and
   Job Level, only during JobInit event.
 - Use the keyword ujobid to mean the unique job id; job or jobname
@@ -312,8 +320,8 @@ New Features in 1.40.0:
   and forcing a 6 second wait.
 - If using GCC (actually g++) add the following compiler flags
   -fno-strict-aliasing -fno-exceptions -fno-rtti
-- Turn on new bsnprintf() code.  This could cause print output
-  to look different. The reason for this code is to eliminate the
+- Turn on new bsnprintf() code.
+  The reason for this code is to eliminate the
   security problems associated with using the system libraries
   print routines.
 - Implement job report that indicates where Storage and Pool
@@ -323,26 +331,22 @@ New Features in 1.40.0:
   for restore.
 - Add new VOLMGMT message class. No messages are yet sent with this 
   class.
-- Add Catalog message destination in Messages resource that puts the
-  job report in the Log database table.
 - Spend a lot of time integrating mkcdrec with the rescue disk.
 - Add spooling/despooling info in status output of SD.
 - Add Comment field to llist of a volume.
 - Allow true/false in some yes/no questions.
-- Implement update volume enable=(on|off|true|false|archived|0|1|2)
 
 Additional Features Added for Win32:
-
-Added DriveType directive to the Director's Include Option FileSet
-resource.  Allowed values are: fixed, removable, cdrom, and remote.  There
-is only an implementation for Windows because it is the only platform that
-has the concept of drives.
+- Added DriveType directive to the Director's Include Option FileSet
+  resource.  Allowed values are: fixed, removable, cdrom, and remote.  There
+  is only an implementation for Windows because it is the only platform that
+  has the concept of drives.
  
-Adds EnhancedWild directive to the Director's Include Option FileSet
-resource.  Allowed values are: yes and no.
+- Adds EnhancedWild directive to the Director's Include Option FileSet
+  resource.  Allowed values are: yes and no.
  
-When EnhancedWild is enabled then the processing of the
-Wild, WildDir and WildFile is changed in the following ways.
+  When EnhancedWild is enabled then the processing of the
+  Wild, WildDir and WildFile is changed in the following ways.
  
   Patterns conform to Posix
       \ is not a special character in character classification []
@@ -352,23 +356,18 @@ Wild, WildDir and WildFile is changed in the following ways.
       fnmatch option FNM_FILE_NAME is specified * doesn't match a / 
       so it won't match multiple directory levels in a path
  
-Relative WildFile patterns (ones without a leading /) match
-against the filename portion.  This in combination with the
-FNM_FILE_NAME fnmatch() flag makes directives such as WildFile =
-abc*.def work as expected.
+- Relative WildFile patterns (ones without a leading /) match
+  against the filename portion.  This in combination with the
+  FNM_FILE_NAME fnmatch() flag makes directives such as WildFile =
+  abc*.def work as expected.
  
-Adds support for the shell's feature of brace expansion.
+- Adds support for the shell's feature of brace expansion.
 
-Here is an example where braces allow 24 lines to be expressed in 5.
+  Here is an example where braces allow 24 lines to be expressed in 5.
 
-# Exclude directories full of lots and lots of useless little files
-WildDir = "[A-Z]:/{Documents and
-Settings,{WINNT,Windows}/Profiles}/*/Cookies"
-WildDir = "[A-Z]:/{Documents and
-Settings,{WINNT,Windows}/Profiles}/*/Recent"
-WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local
-Settings,LOCALS~1}/History"
-WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local
-Settings,LOCALS~1}/Temp"
-WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local
-Settings,LOCALS~1}/Temporary Internet Files"
+  # Exclude directories full of lots and lots of useless little files
+  WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/Cookies"
+  WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/Recent"
+  WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local Settings,LOCALS~1}/History"
+  WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local Settings,LOCALS~1}/Temp"
+  WildDir = "[A-Z]:/{Documents and Settings,{WINNT,Windows}/Profiles}/*/{Local Settings,LOCALS~1}/Temporary Internet Files"

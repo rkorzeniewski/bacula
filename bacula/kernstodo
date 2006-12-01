@@ -92,6 +92,18 @@ For 1.39:
   .move transfer device=xxx fromslot=yyy toslot=zzz
 
 Low priority:
+- It appears to me that you have run into some sort of race
+  condition where two threads want to use the same Volume and they
+  were both given access.  Normally that is no problem.  However,
+  one thread wanted the particular Volume in drive 0, but it was
+  loaded into drive 1 so it decided to unload it from drive 1 and
+  then loaded it into drive 0, while the second thread went on
+  thinking that the Volume could be used in drive 1 not realizing
+  that in between time, it was loaded in drive 0.
+  I'll look at the code to see if there is some way we can avoid
+  this kind of problem.  Probably the best solution is to make the
+  first thread simply start using the Volume in drive 1 rather than
+  transferring it to drive 0.
 - After pruning, check to see if the Volume retention period has
   expired.
 - Check to see if jcr->stime is lost during rescheduling of

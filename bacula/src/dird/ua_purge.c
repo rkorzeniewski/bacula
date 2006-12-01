@@ -419,11 +419,29 @@ void purge_job_from_catalog(UAContext *ua, JobId_t JobId)
    POOL_MEM query(PM_MESSAGE);
    char ed1[50];
 
+   /* Remove job records */
+   purge_job_records_from_catalog(ua, JobId);
+
+   /* Now remove the Job record itself */
    edit_int64(JobId, ed1);
    Mmsg(query, "DELETE FROM Job WHERE JobId=%s", ed1);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete Job sql=%s\n", query.c_str());
+}
 
+/*
+ * This removes all the records associated with a Job from
+ *  the catalog (i.e. prunes it) without removing the Job
+ *  record itself.
+ */
+void purge_job_records_from_catalog(UAContext *ua, JobId_t JobId)
+{
+   POOL_MEM query(PM_MESSAGE);
+   char ed1[50];
+
+   purge_files_from_job(ua, JobId);
+
+   edit_int64(JobId, ed1);
    Mmsg(query, "DELETE FROM JobMedia WHERE JobId=%s", ed1);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
    Dmsg1(050, "Delete JobMedia sql=%s\n", query.c_str());
@@ -434,6 +452,10 @@ void purge_job_from_catalog(UAContext *ua, JobId_t JobId)
 
 }
 
+
+/*
+ * Remove File records for a particular Job.
+ */
 void purge_files_from_job(UAContext *ua, JobId_t JobId)
 {
    POOL_MEM query(PM_MESSAGE);
@@ -450,6 +472,7 @@ void purge_files_from_job(UAContext *ua, JobId_t JobId)
     * could grow very large.
     */
    Mmsg(query, upd_Purged, ed1);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
 }
 
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
