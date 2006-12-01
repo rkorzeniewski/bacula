@@ -124,14 +124,15 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     }
 
     /* Return a bit map of permissions set. */
-    if (enable_priv(jcr, hToken, SE_SECURITY_NAME, ignore_errors)) {
-       stat |= 1<<0;
-    }
     if (enable_priv(jcr, hToken, SE_BACKUP_NAME, ignore_errors)) {
        stat |= 1<<1;
     }
     if (enable_priv(jcr, hToken, SE_RESTORE_NAME, ignore_errors)) {
        stat |= 1<<2;
+    }
+#if 0
+    if (enable_priv(jcr, hToken, SE_SECURITY_NAME, ignore_errors)) {
+       stat |= 1<<0;
     }
     if (enable_priv(jcr, hToken, SE_TAKE_OWNERSHIP_NAME, ignore_errors)) {
        stat |= 1<<3;
@@ -154,6 +155,7 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors)
     if (enable_priv(jcr, hToken, SE_CREATE_PERMANENT_NAME, ignore_errors)) {
        stat |= 1<<10;
     }
+#endif
     if (stat) {
        stat |= 1<<9;
     }

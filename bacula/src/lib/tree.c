@@ -352,11 +352,11 @@ int tree_getpath(TREE_NODE *node, char *buf, int buf_size)
  */
 TREE_NODE *tree_cwd(char *path, TREE_ROOT *root, TREE_NODE *node)
 {
-   if (strcmp(path, ".") == 0) {
+   if (path[0] == '.' && path[1] == '\0') {
       return node;
    }
    /* Handle relative path */
-   if (strncmp(path, "..", 2) == 0 && (path[2] == '/' || path[2] == 0)) {
+   if (path[0] == '.' && path[1] == '.' && (IsPathSeparator(path[2]) || path[2] == '\0')) {
       TREE_NODE *parent = node->parent ? node->parent : node;
       if (path[2] == 0) { 
          return parent;
