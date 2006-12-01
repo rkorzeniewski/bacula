@@ -1277,6 +1277,10 @@ use File::Temp qw/tempfile/;
 sub on_go_button_clicked 
 {
     my $self = shift;
+    unless (scalar(@{$self->{restore_list}->{data}})) {
+	new DlgWarn("No file to restore");
+	return 0;
+    }
     my $bsr = $self->create_filelist();
     my ($fh, $filename) = tempfile();
     $fh->print($bsr);
