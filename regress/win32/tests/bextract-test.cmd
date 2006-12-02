@@ -21,7 +21,7 @@ CALL scripts\functions check_for_zombie_jobs storage=File1
 CALL scripts\functions stop_bacula
 
 MKDIR %CD%\tmp\bacula-restores
-bin\bextract -b tmp/restore.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp %CD:\=/%/tmp/bacula-restores 2>&1 >nul
+bin\bextract -b working/restore.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp %CD:\=/%/tmp/bacula-restores 2>&1 >nul
 SET rstat=%ERRORLEVEL%
 grep "^  Termination: *Backup OK" tmp\log1.out 2>&1 >nul
 SET bstat=%ERRORLEVEL%

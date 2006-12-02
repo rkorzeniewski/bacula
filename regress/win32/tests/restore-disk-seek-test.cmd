@@ -8,7 +8,7 @@ REM
 SET TestName=restore-disk-seek-test
 SET JobName=restore-disk-seek
 
-CALL scripts\functions set_debug 0
+CALL scripts\functions set_debug 1
 CALL scripts\functions copy_test_confs
 
 ECHO %CD:\=/%/tmp/build >\tmp\file-list
@@ -17,7 +17,10 @@ IF EXIST tmp\build RD /s /q  tmp\build
 MKDIR tmp\build
 
 REM Copy only the .c files (to be restored)
-COPY build\src\dird\*.c tmp\build >nul 2>&1
+REM  set files to "*.c" for all c files
+SET files=ua_tree.c ua_update.c
+REM SET files=*.c
+FOR %%i in ( %files% ) DO COPY build\src\dird\%%i tmp\build >nul 2>&1
 DIR /b tmp\build >tmp\1
 sed -e "s;^;%CD:\=/%/tmp/build/;" tmp\1 >tmp\restore-list
 
@@ -45,7 +48,7 @@ CALL scripts\functions stop_bacula
 REM Now setup a control directory of only what we *should* restore
 RD /s /q tmp\build
 MKDIR tmp\build
-COPY build\src\dird\*.c tmp\build >nul 2>&1
+FOR %%i in ( %files% ) DO COPY build\src\dird\%%i tmp\build >nul 2>&1
 
 CALL scripts\functions check_two_logs
 CALL scripts\functions check_restore_tmp_build_diff

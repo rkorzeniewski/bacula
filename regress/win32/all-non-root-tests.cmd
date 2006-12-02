@@ -11,6 +11,7 @@ CALL tests\bscan-test
 CALL tests\bsr-opt-test
 CALL tests\compressed-test
 CALL tests\concurrent-jobs-test
+CALL tests\data-encrypt-test
 CALL tests\differential-test
 CALL tests\four-concurrent-jobs-test
 CALL tests\four-jobs-test
@@ -29,10 +30,10 @@ CALL tests\two-vol-test
 CALL tests\verify-vol-test
 REM CALL tests\weird-files2-test
 REM CALL tests\weird-files-test
-REM CALL tests\migration-job-test
-REM CALL tests\migration-jobspan-test
-REM CALL tests\migration-volume-test
-REM CALL tests\migration-time-test
+CALL tests\migration-job-test
+CALL tests\migration-jobspan-test
+CALL tests\migration-volume-test
+CALL tests\migration-time-test
 REM CALL tests\hardlink-test
 REM 
 REM The following are Virtual Disk Autochanger tests

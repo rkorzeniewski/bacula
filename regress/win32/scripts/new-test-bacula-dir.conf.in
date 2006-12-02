@@ -5,7 +5,7 @@
 #   file or directory names in the Include directive of the
 #   FileSet resource.
 #
-#  For Bacula release 1.33 
+#  For Bacula release 1.39 or later
 #
 #  You might also want to change the default email address
 #   from root to your address.  See the "mail" and "operator"
@@ -39,6 +39,20 @@ Job {
   Maximum Concurrent Jobs = 4
   SpoolData=yes
 }
+
+Job {
+  Name = "Crypto"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="SparseCompressedSet"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData=yes
+}
+
 
 Job {
   Name = "MonsterSave"
@@ -163,6 +177,7 @@ FileSet {
   Include {
     Options {
       signature=MD5 compression=GZIP
+      sparse=yes
     }
     File = </tmp/file-list
   }

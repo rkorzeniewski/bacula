@@ -8,7 +8,7 @@ REM   Note we use the viritual disk autochanger
 REM 
 SET TestName=two-volume-test
 SET JobName=TwoVolume
-CALL scripts\functions set_debug 0
+CALL scripts\functions set_debug 1
 CALL config_out
 
 CALL scripts\cleanup

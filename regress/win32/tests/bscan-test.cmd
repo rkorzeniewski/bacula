@@ -11,7 +11,7 @@ SET JobName=bscan
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-echo %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >\tmp\file-list
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test
@@ -22,7 +22,7 @@ CALL scripts\functions run_bacula
 CALL scripts\functions check_for_zombie_jobs storage=File1
 CALL scripts\functions stop_bacula
 
-echo volume=TestVolume001^|TestVolume002 >tmp\bscan.bsr
+ECHO volume=TestVolume001^|TestVolume002 >tmp\bscan.bsr
 
 IF %debug% EQU 1 (
    bin\bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp | tools\tee tmp\log.out
