@@ -428,7 +428,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          if (j >= 0) {
             n = atoi(ua->argv[j]);
             if ((n < 0) || (n > 50)) {
-              bsendmsg(ua, _("Ignoring illegal value for days.\n"));
+              bsendmsg(ua, _("Ignoring invalid value for days. Max is 50.\n"));
               n = 1;
             }
          }

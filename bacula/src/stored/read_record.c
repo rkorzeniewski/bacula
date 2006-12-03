@@ -333,12 +333,10 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr)
        *   when find_next_bsr() is fixed not to return a bsr already
        *   completed.
        */
-#ifdef xxx
       if (dev->file > bsr->volfile->sfile ||             
          (dev->file == bsr->volfile->sfile && dev->block_num > bsr->volblock->sblock)) {
          return false;
       }
-#endif
       if (verbose) {
          Jmsg(jcr, M_INFO, 0, _("Reposition from (file:block) %u:%u to %u:%u\n"),
             dev->file, dev->block_num, bsr->volfile->sfile,

@@ -62,7 +62,7 @@ extern bool init_done;
 /* Static variables */
 static char derrmsg[]     = "3900 Invalid command\n";
 static char OKsetdebug[]  = "3000 OK setdebug=%d\n";
-static char illegal_cmd[] = "3997 Illegal command for a Director with Monitor directive enabled\n";
+static char invalid_cmd[] = "3997 Invalid command for a Director with Monitor directive enabled.\n";
 
 /* Imported functions */
 extern void terminate_child();
@@ -212,8 +212,8 @@ void *handle_connection_request(void *arg)
       for (i=0; cmds[i].cmd; i++) {
         if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
            if ((!cmds[i].monitoraccess) && (jcr->director->monitor)) {
-              Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
-              bnet_fsend(bs, illegal_cmd);
+              Dmsg1(100, "Command \"%s\" is invalid.\n", cmds[i].cmd);
+              bnet_fsend(bs, invalid_cmd);
               bnet_sig(bs, BNET_EOD);
               break;
            }

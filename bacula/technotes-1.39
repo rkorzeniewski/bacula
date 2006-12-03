@@ -2,6 +2,11 @@
 
 General:
 03Dec06
+kes  Enable disk seeking on restore.
+kes  Implement the SD 'Block Positioning = yes|no' directive. This
+     allows the user to turn off block level seeking, but restores
+     will be much slower.
+kes  Change the word illegal to read invalid in a few places.
 kes  Fix Win32 build, which broke when I added parse_args_only in
      lib. I'm not sure I got the entry point right for msvc.
 kes  Turn off data encryption. It can be enabled by defining

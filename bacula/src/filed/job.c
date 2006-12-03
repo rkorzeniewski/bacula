@@ -124,7 +124,7 @@ static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
 static char no_auth[]     = "2998 No Authorization\n";
-static char illegal_cmd[] = "2997 Illegal command for a Director with Monitor directive enabled\n";
+static char invalid_cmd[] = "2997 Invalid command for a Director with Monitor directive enabled.\n";
 static char OKinc[]       = "2000 OK include\n";
 static char OKest[]       = "2000 OK estimate files=%u bytes=%s\n";
 static char OKlevel[]     = "2000 OK level\n";
@@ -223,8 +223,8 @@ void *handle_client_request(void *dirp)
                break;
             }
             if ((jcr->authenticated) && (!cmds[i].monitoraccess) && (jcr->director->monitor)) {
-               Dmsg1(100, "Command %s illegal.\n", cmds[i].cmd);
-               bnet_fsend(dir, illegal_cmd);
+               Dmsg1(100, "Command \"%s\" is invalid.\n", cmds[i].cmd);
+               bnet_fsend(dir, invalid_cmd);
                bnet_sig(dir, BNET_EOD);
                break;
             }
