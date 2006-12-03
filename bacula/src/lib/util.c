@@ -43,21 +43,21 @@
  */
 
 /* Return true of buffer has all zero bytes */
-int is_buf_zero(char *buf, int len)
+bool is_buf_zero(char *buf, int len)
 {
    uint64_t *ip;
    char *p;
    int i, len64, done, rem;
 
    if (buf[0] != 0) {
-      return 0;
+      return false;
    }
    ip = (uint64_t *)buf;
    /* Optimize by checking uint64_t for zero */
    len64 = len / sizeof(uint64_t);
    for (i=0; i < len64; i++) {
       if (ip[i] != 0) {
-         return 0;
+         return false;
       }
    }
    done = len64 * sizeof(uint64_t);  /* bytes already checked */
@@ -65,10 +65,10 @@ int is_buf_zero(char *buf, int len)
    rem = len - done;
    for (i = 0; i < rem; i++) {
       if (p[i] != 0) {
-         return 0;
+         return false;
       }
    }
-   return 1;
+   return true;
 }
 
 
@@ -712,4 +712,3 @@ const char *last_path_separator(const char *str)
    }
    return NULL;
 }
-

@@ -264,6 +264,8 @@ int              fstrsch                 (const char *a, const char *b);
 char            *next_arg(char **s);
 int              parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
                         char **argk, char **argv, int max_args);
+int              parse_args_only(POOLMEM *cmd, POOLMEM **args, int *argc,
+                        char **argk, char **argv, int max_args);
 void            split_path_and_filename(const char *fname, POOLMEM **path,
                         int *pnl, POOLMEM **file, int *fnl);
 int             bsscanf(const char *buf, const char *fmt, ...);
@@ -295,7 +297,7 @@ int              tls_bsock_readn         (BSOCK *bsock, char *ptr, int32_t nbyte
 
 
 /* util.c */
-int              is_buf_zero             (char *buf, int len);
+bool             is_buf_zero             (char *buf, int len);
 void             lcase                   (char *str);
 void             bash_spaces             (char *str);
 void             bash_spaces             (POOL_MEM &pm);

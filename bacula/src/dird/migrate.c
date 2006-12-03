@@ -344,6 +344,7 @@ bool do_migration(JCR *jcr)
    if (jcr->JobStatus != JS_Terminated) {
       return false;
    }
+
    migration_cleanup(jcr, jcr->JobStatus);
    if (mig_jcr) {
       UAContext *ua = new_ua_context(jcr);
@@ -987,8 +988,6 @@ void migration_cleanup(JCR *jcr, int TermCode)
       mig_jcr->jr.PriorJobId = jcr->previous_jr.JobId;
 
       set_jcr_job_status(mig_jcr, TermCode);
-
-  
       update_job_end_record(mig_jcr);
      
       /* Update final items to set them to the previous job's values */
@@ -1066,7 +1065,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
          break;
       }
   } else {
-     term_msg = _("%s -- no files to migrate");
+     msg_type = M_ERROR;          /* Generate error message */
+     term_msg = _("*** %s Error ***");
   }
 
    bsnprintf(term_code, sizeof(term_code), term_msg, "Migration");

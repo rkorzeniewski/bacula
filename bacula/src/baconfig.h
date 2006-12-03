@@ -277,6 +277,9 @@ void InitWinAPIWrapper();
 /* Size of File Address stored in STREAM_SPARSE_DATA. Do NOT change! */
 #define SPARSE_FADDR_SIZE (sizeof(uint64_t))
 
+/* Size of crypto length stored at head of crypto buffer. Do NOT change! */
+#define CRYPTO_LEN_SIZE ((int)sizeof(uint32_t))
+
 
 /* This is for dumb compilers/libraries like Solaris. Linux GCC
  * does it correctly, so it might be worthwhile

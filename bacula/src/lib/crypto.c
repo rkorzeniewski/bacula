@@ -653,7 +653,8 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
  * Returns: true on success
  *          false on failure
  */
-bool crypto_digest_finalize (DIGEST *digest, uint8_t *dest, uint32_t *length) {
+bool crypto_digest_finalize (DIGEST *digest, uint8_t *dest, uint32_t *length)
+{
    if (!EVP_DigestFinal(&digest->ctx, dest, (unsigned int *)length)) {
       return false;
    } else {

@@ -154,7 +154,18 @@ fstrsch(const char *a, const char *b)   /* folded case search */
 
 /*
  * Return next argument from command line.  Note, this
- * routine is destructive.
+ *   routine is destructive because it stored 0 at the end
+ *   of each argument.
+ * Called with pointer to pointer to command line. This
+ *   pointer is updated to point to the remainder of the
+ *   command line.
+ * 
+ * Returns pointer to next argument -- don't store the result
+ *   in the pointer you passed as an argument ...
+ *   The next argument is terminated by a space unless within
+ *   quotes. Double quote characters (unless preceded by a \) are
+ *   stripped.
+ *   
  */
 char *next_arg(char **s)
 {
@@ -167,8 +178,8 @@ char *next_arg(char **s)
    }
    Dmsg1(900, "Next arg=%s\n", p);
    for (n = q = p; *p ; ) {
-      if (*p == '\\') {
-         p++;
+      if (*p == '\\') {                 /* slash? */
+         p++;                           /* yes, skip it */
          if (*p) {
             *q++ = *p++;
          } else {
@@ -177,16 +188,11 @@ char *next_arg(char **s)
          continue;
       }
       if (*p == '"') {                  /* start or end of quote */
-         if (in_quote) {
-            p++;                        /* skip quote */
-            in_quote = false;
-            continue;
-         }
-         in_quote = true;
          p++;
+         in_quote = !in_quote;          /* change state */
          continue;
       }
-      if (!in_quote && B_ISSPACE(*p)) {     /* end of field */
+      if (!in_quote && B_ISSPACE(*p)) { /* end of field */
          p++;
          break;
       }
@@ -201,7 +207,7 @@ char *next_arg(char **s)
 /*
  * This routine parses the input command line.
  * It makes a copy in args, then builds an
- *  argc, argv like list where
+ *  argc, argk, argv list where:
  *
  *  argc = count of arguments
  *  argk[i] = argument keyword (part preceding =)
@@ -217,11 +223,60 @@ char *next_arg(char **s)
  *  argk[2] = arg3
  *  argv[2] =
  */
-
 int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
                char **argk, char **argv, int max_args)
 {
-   char *p, *q, *n;
+   char *p;
+
+   parse_args_only(cmd, args, argc, argk, argv, max_args);
+
+   /* Separate keyword and value */
+   for (int i=0; i < *argc; i++) {
+      p = strchr(argk[i], '=');
+      if (p) {
+         *p++ = 0;                    /* terminate keyword and point to value */
+         if (strlen(p) > MAX_NAME_LENGTH-1) {
+            p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
+         }
+      }
+      argv[i] = p;                    /* save ptr to value or NULL */
+   }
+#ifdef xxx_debug
+   for (int i=0; i < *argc; i++) {
+      Pmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
+   }
+#endif
+   return 1;
+}
+
+
+/*
+ * This routine parses the input command line.
+ *   It makes a copy in args, then builds an
+ *   argc, argk, but no argv (values).
+ *   This routine is useful for scanning command lines where the data 
+ *   is a filename and no keywords are expected.  If we scan a filename
+ *   for keywords, any = in the filename will be interpreted as the
+ *   end of a keyword, and this is not good.
+ *
+ *  argc = count of arguments
+ *  argk[i] = argument keyword (part preceding =)
+ *  argv[i] = NULL                         
+ *
+ *  example:  arg1 arg2=abc arg3=
+ *
+ *  argc = c
+ *  argk[0] = arg1
+ *  argv[0] = NULL
+ *  argk[1] = arg2=abc
+ *  argv[1] = NULL
+ *  argk[2] = arg3
+ *  argv[2] =
+ */
+int parse_args_only(POOLMEM *cmd, POOLMEM **args, int *argc,
+                    char **argk, char **argv, int max_args)
+{
+   char *p, *n;
 
    pm_strcpy(args, cmd);
    strip_trailing_junk(*args);
@@ -237,35 +292,9 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
          break;
       }
    }
-   /* Separate keyword and value */
-   for (int i=0; i < *argc; i++) {
-      p = strchr(argk[i], '=');
-      if (p) {
-         *p++ = 0;                    /* terminate keyword and point to value */
-         /* Unquote quoted values */
-         if (*p == '"') {
-            for (n = q = ++p; *p && *p != '"'; ) {
-               if (*p == '\\') {
-                  p++;
-               }
-               *q++ = *p++;
-            }
-            *q = 0;                   /* terminate string */
-            p = n;                    /* point to string */
-         }
-         if (strlen(p) > MAX_NAME_LENGTH-1) {
-            p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
-         }
-      }
-      argv[i] = p;                    /* save ptr to value or NULL */
-   }
-#ifdef xxxx
-   for (int i=0; i < *argc; i++) {
-      Pmsg3(000, "Arg %d: kw=%s val=%s\n", i, argk[i], argv[i]?argv[i]:"NULL");
-   }
-#endif
    return 1;
 }
+
 
 /*
  * Given a full filename, split it into its path
