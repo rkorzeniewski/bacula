@@ -115,7 +115,7 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       }
    }
    if (!found) {
-      pm_strcat(ua->UA_sock->msg, _(": is an illegal command\n"));
+      pm_strcat(ua->UA_sock->msg, _(": is an invalid command\n"));
       ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
       bnet_send(ua->UA_sock);
    }

@@ -191,13 +191,10 @@ BSR *find_next_bsr(BSR *root_bsr, DEVICE *dev)
 {
    BSR *bsr;
    BSR *found_bsr = NULL;
-   bool no_file_seek = !dev->is_tape();
-#ifdef FILE_SEEK
-   no_file_seek = false;
-#endif
 
+   /* Do tape/disk seeking only if CAP_POSITIONBLOCKS is on */
    if (!root_bsr || !root_bsr->use_positioning ||
-       !root_bsr->reposition || no_file_seek) {
+       !root_bsr->reposition || !dev->has_cap(CAP_POSITIONBLOCKS)) {
       Dmsg2(dbglevel, "No nxt_bsr use_pos=%d repos=%d\n", root_bsr->use_positioning, root_bsr->reposition);
       return NULL;
    }

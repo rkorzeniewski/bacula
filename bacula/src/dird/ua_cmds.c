@@ -177,7 +177,7 @@ int do_a_command(UAContext *ua, const char *cmd)
       }
    }
    if (!found) {
-      bnet_fsend(ua->UA_sock, _("%s: is an illegal command.\n"), ua->argk[0]);
+      bnet_fsend(ua->UA_sock, _("%s: is an invalid command.\n"), ua->argk[0]);
    }
    return stat;
 }
@@ -613,7 +613,7 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    CLIENT *client;
    char buf[1024];
    if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
-      bsendmsg(ua, _("Illegal command from this console.\n"));
+      bsendmsg(ua, _("Unauthorized command from this console.\n"));
       return 1;
    }
    LockRes();
@@ -659,7 +659,7 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
    }
 
    if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
-      bsendmsg(ua, _("Illegal command from this console.\n"));
+      bsendmsg(ua, _("Unauthorized command from this console.\n"));
       return;
    }
    job->enabled = setting;

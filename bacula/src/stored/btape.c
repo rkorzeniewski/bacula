@@ -2572,7 +2572,7 @@ do_tape_cmds()
             break;
          }
       if (!found) {
-         Pmsg1(0, _("\"%s\" is an illegal command\n"), cmd);
+         Pmsg1(0, _("\"%s\" is an invalid command\n"), cmd);
       }
    }
 }

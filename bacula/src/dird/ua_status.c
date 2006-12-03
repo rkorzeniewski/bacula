@@ -462,7 +462,7 @@ static void list_scheduled_jobs(UAContext *ua)
    if (i >= 0) {
      days = atoi(ua->argv[i]);
      if ((days < 0) || (days > 50)) {
-       bsendmsg(ua, _("Ignoring illegal value for days.\n"));
+       bsendmsg(ua, _("Ignoring invalid value for days. Max is 50.\n"));
        days = 1;
      }
    }
