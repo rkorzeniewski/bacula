@@ -2,6 +2,9 @@
 
 General:
 03Dec06
+kes  Turn off data encryption. It can be enabled by defining
+     DATA_ENCRYPTION in src/version.h and recompiling.
+kes  Implement flag to turn off data encryption feature.
 kes  Move unserial code in restore.c to a subroutine. Add a bit of debug
      code.
 kes  Rework a bit of code in backup.c to handle sparse blocks correctly.

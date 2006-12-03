@@ -49,11 +49,13 @@
 /* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1
 
+/* #define DATA_ENCRYPTION 1 */
+
 #define USE_BSNPRINTF 1
 
 /* Debug flags not normally turned on */
 
-/* #define FILE_SEEK 1 */
+#define FILE_SEEK 1
 
 /* #define TRACE_JCR_CHAIN 1 */
 /* #define TRACE_RES 1 */

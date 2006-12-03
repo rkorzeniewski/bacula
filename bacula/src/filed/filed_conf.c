@@ -101,11 +101,13 @@ static RES_ITEM cli_items[] = {
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
+#ifdef DATA_ENCRYPTION
    {"pkisignatures",         store_bool,    ITEM(res_client.pki_sign), 0, ITEM_DEFAULT, 0},
    {"pkiencryption",         store_bool,    ITEM(res_client.pki_encrypt), 0, ITEM_DEFAULT, 0},
    {"pkikeypair",            store_dir,       ITEM(res_client.pki_keypair_file), 0, 0, 0},
    {"pkisigner",             store_alist_str, ITEM(res_client.pki_signing_key_files), 0, 0, 0},
    {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_master_key_files), 0, 0, 0},
+#endif
    {"tlsenable",             store_bool,    ITEM(res_client.tls_enable),  0, 0, 0},
    {"tlsrequire",            store_bool,    ITEM(res_client.tls_require), 0, 0, 0},
    {"tlscacertificatefile",  store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
@@ -165,26 +167,27 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       recurse = 0;
    }
    switch (type) {
-      case R_DIRECTOR:
-         sendit(sock, "Director: name=%s password=%s\n", reshdr->name,
-                 res->res_dir.password);
-         break;
-      case R_CLIENT:
-         sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
-                 get_first_port_host_order(res->res_client.FDaddrs));
-         break;
-      case R_MSGS:
-         sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
-         if (res->res_msgs.mail_cmd)
-            sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
-         if (res->res_msgs.operator_cmd)
-            sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
-         break;
-      default:
-         sendit(sock, "Unknown resource type %d\n", type);
+   case R_DIRECTOR:
+      sendit(sock, "Director: name=%s password=%s\n", reshdr->name,
+              res->res_dir.password);
+      break;
+   case R_CLIENT:
+      sendit(sock, "Client: name=%s FDport=%d\n", reshdr->name,
+              get_first_port_host_order(res->res_client.FDaddrs));
+      break;
+   case R_MSGS:
+      sendit(sock, "Messages: name=%s\n", res->res_msgs.hdr.name);
+      if (res->res_msgs.mail_cmd)
+         sendit(sock, "      mailcmd=%s\n", res->res_msgs.mail_cmd);
+      if (res->res_msgs.operator_cmd)
+         sendit(sock, "      opcmd=%s\n", res->res_msgs.operator_cmd);
+      break;
+   default:
+      sendit(sock, "Unknown resource type %d\n", type);
    }
-   if (recurse && res->res_dir.hdr.next)
+   if (recurse && res->res_dir.hdr.next) {
       dump_resource(type, res->res_dir.hdr.next, sendit, sock);
+   }
 }
 
 /*
