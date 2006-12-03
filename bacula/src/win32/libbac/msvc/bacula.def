@@ -421,6 +421,7 @@ fnmatch
 ?fstrsch@@YAHPBD0@Z
 ?next_arg@@YAPADPAPAD@Z
 ?parse_args@@YAHPADPAPADPAH11H@Z
+?parse_args_only@@YAHPADPAPADPAH11H@Z
 ?bsscanf@@YAHPBD0ZZ
  
 ; serial.obj 

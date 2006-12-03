@@ -135,6 +135,11 @@ C++ mangled name of the new function.
 
    strings .../bacula/src/win32/dll/<file>.o | grep <symbol>
 
+Note, strings often will not show the desired symbol. In that case,
+use:
+   
+   nm .../bacula/src/win32/dll/<file>.o
+
 Replace <file> with the base part of the name of the source code file
 which contains the new function.  Replace <symbol> with the name of
 the new function.  Remove the leading underscore and place the result
@@ -163,6 +168,11 @@ Exporting a function requires a bit more work.  You must determine the
 C++ mangled name of the new function.
 
    strings .../bacula/src/win32/cats/cats_*/<file>.o | grep <symbol>
+
+Note, strings often will not show the desired symbol. In that case,
+use:
+
+   nm .../bacula/src/win32/dll/<file>.o
 
 Replace <file> with the base part of the name of the source code file
 which contains the new function.  Replace <symbol> with the name of

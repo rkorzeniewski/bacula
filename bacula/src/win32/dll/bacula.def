@@ -411,6 +411,7 @@ _Z8rwl_initP12s_rwlock_tag
 
 ; scan.c:
 _Z10parse_argsPcPS_PiS0_S0_i
+_Z15parse_args_onlyPcPS_PiS0_S0_i
 _Z11skip_spacesPPc
 _Z14skip_nonspacesPPc
 _Z19strip_leading_spacePc
