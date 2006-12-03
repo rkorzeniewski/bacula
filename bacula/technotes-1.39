@@ -1,6 +1,16 @@
               Technical notes on version 1.39  
 
 General:
+03Dec06
+kes  Move unserial code in restore.c to a subroutine. Add a bit of debug
+     code.
+kes  Rework a bit of code in backup.c to handle sparse blocks correctly.
+     The main problem was that signatures were being generated on blocks
+     of zeros, which is unnecessary.
+02Dec06
+kes  Fix scanner (next_arg) to handle leading double quote correctly.     
+kes  Modify cd command in restore tree to look at full argument without
+     keywords.  This fixes bug #716.
 01Dec06
 kes  Do not update Migrated Job type if migration does not terminate
      normally. This fixes bug #719.

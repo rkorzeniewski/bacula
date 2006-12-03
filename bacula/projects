@@ -476,7 +476,7 @@ Item 13:  Multiple threads in file daemon for the same job
           enable or disable this feature. The configuration option could
           specify the maximum number of threads in the file daemon.
 
-          If the theads could spool the data to separate spool files
+          If the threads could spool the data to separate spool files
           the restore process will not be much slower.
 
   Why:    Multiple concurrent backups of a large fileserver with many

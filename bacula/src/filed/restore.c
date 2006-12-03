@@ -781,6 +781,16 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
 #endif
 }
 
+static void unser_crypto_size(JCR *jcr)
+{
+   unser_declare;
+   if (jcr->crypto_size == 0 && jcr->crypto_count >= CRYPTO_LEN_SIZE) {
+      unser_begin(&jcr->crypto_buf[0], CRYPTO_LEN_SIZE);
+      unser_uint32(jcr->crypto_size);
+      jcr->crypto_size += CRYPTO_LEN_SIZE;
+   }
+}
+
 bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win32_decomp)
 {
    if (win32_decomp) {
@@ -822,7 +832,6 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
    if (flags & FO_ENCRYPT) {
       ASSERT(cipher);
-      unser_declare;
 
       while (jcr->crypto_size > 0 && jcr->crypto_count > 0 && wsize > 0) {
          uint32_t chunk_size = 16;
@@ -854,9 +863,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
          wsize -= chunk_size;
 
          if (jcr->crypto_count >= jcr->crypto_size) {
-
-            char *packet = &jcr->crypto_buf[4]; /* Decrypted, possibly decompressed output here. */
-            uint32_t packet_size = jcr->crypto_size - 4;
+            char *packet = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
+            uint32_t packet_size = jcr->crypto_size - CRYPTO_LEN_SIZE;
 
             if (flags & FO_GZIP) {
                if (!decompress_data(jcr, &packet, &packet_size)) {
@@ -906,18 +914,15 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
       jcr->crypto_count += decrypted_len;
 
-      if (jcr->crypto_size == 0 && jcr->crypto_count >= 4) {
-         unser_begin(&jcr->crypto_buf[0], sizeof(uint32_t));
-         unser_uint32(jcr->crypto_size);
-         jcr->crypto_size += 4;
-      }
+      unser_crypto_size(jcr);
+      wsize = jcr->crypto_size - CRYPTO_LEN_SIZE;
+      Dmsg1(10, "Decrypt size=%d\n", wsize);
+      wbuf = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
 
       if (jcr->crypto_size == 0 || jcr->crypto_count < jcr->crypto_size) {
          return 0;
       }
 
-      wsize = jcr->crypto_size - 4;
-      wbuf = &jcr->crypto_buf[4]; /* Decrypted, possibly decompressed output here. */
    }
 
    if (flags & FO_SPARSE) {
@@ -971,9 +976,11 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint3
    char ec1[50];                      /* Buffer printing huge values */
 
    /* Write out the remaining block and free the cipher context */
-   jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_count + cipher_block_size);
+   jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_count + 
+                     cipher_block_size);
 
-   if (!crypto_cipher_finalize(cipher, (uint8_t *)&jcr->crypto_buf[jcr->crypto_count], &decrypted_len)) {
+   if (!crypto_cipher_finalize(cipher, (uint8_t *)&jcr->crypto_buf[jcr->crypto_count],
+        &decrypted_len)) {
       /* Writing out the final, buffered block failed. Shouldn't happen. */
       Jmsg1(jcr, M_FATAL, 0, _("Decryption error for %s\n"), jcr->last_fname);
    }
@@ -985,15 +992,12 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint3
 
    jcr->crypto_count += decrypted_len;
 
-   if (jcr->crypto_size == 0) {
-      ASSERT(jcr->crypto_count >= 4);
-      jcr->crypto_size = ntohl(*(uint32_t *)&jcr->crypto_buf[0]) + 4;
-   }
+   unser_crypto_size(jcr);
+   wsize = jcr->crypto_size - CRYPTO_LEN_SIZE;
+   Dmsg1(10, "Unser size=%d\n", wsize);
+   wbuf = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
 
    ASSERT(jcr->crypto_count == jcr->crypto_size);
-
-   wbuf = &jcr->crypto_buf[4];
-   wsize = jcr->crypto_size - 4;
 
    if (flags & FO_GZIP) {
       decompress_data(jcr, &wbuf, &wsize);

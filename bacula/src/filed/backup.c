@@ -720,7 +720,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     * Read the file data
     */
    while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
-      int sparseBlock = 0;
+      bool sparseBlock = false;
 
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
@@ -735,10 +735,13 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
             ser_begin(wbuf, SPARSE_FADDR_SIZE);
             ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
          }
+         fileAddr += sd->msglen;      /* update file address */
+         if (sparseBlock) {
+            continue;                 /* skip block of zeros */
+         }
       }
 
       jcr->ReadBytes += sd->msglen;         /* count bytes read */
-      fileAddr += sd->msglen;
 
       /* Uncompressed cipher input length */
       cipher_input_len = sd->msglen;
@@ -755,7 +758,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
 #ifdef HAVE_LIBZ
       /* Do compression if turned on */
-      if (!sparseBlock && (ff_pkt->flags & FO_GZIP) && jcr->pZLIB_compress_workset) {
+      if (ff_pkt->flags & FO_GZIP && jcr->pZLIB_compress_workset) {
          Dmsg3(400, "cbuf=0x%x rbuf=0x%x len=%u\n", cbuf, rbuf, sd->msglen);
          
          ((z_stream*)jcr->pZLIB_compress_workset)->next_in   = (Bytef *)rbuf;
@@ -783,8 +786,20 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          cipher_input_len = compress_len;
       }
 #endif
-
-      if (!sparseBlock && (ff_pkt->flags & FO_ENCRYPT)) {
+      /* 
+       * Note, here we prepend the current record length to the beginning
+       *  of the encrypted data. This is because both sparse and compression
+       *  restore handling want records returned to them with exactly the
+       *  same number of bytes that were processed in the backup handling.
+       *  That is, both are block filters rather than a stream.  When doing
+       *  compression, the compression routines may buffer data, so that for
+       *  any one record compressed, when it is decompressed the same size
+       *  will not be obtained. Of course, the buffered data eventually comes
+       *  out in subsequent crypto_cipher_update() calls or at least
+       *  when crypto_cipher_finalize() is called.  Unfortunately, this
+       *  "feature" of encryption enormously complicates the restore code.
+       */
+      if (ff_pkt->flags & FO_ENCRYPT) {
          uint32_t initial_len = 0;
          ser_declare;
 
@@ -796,7 +811,8 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          uint8_t packet_len[sizeof(uint32_t)];
 
          ser_begin(packet_len, sizeof(uint32_t));
-         ser_uint32(cipher_input_len);    /* store fileAddr in begin of buffer */
+         ser_uint32(cipher_input_len);    /* store data len in begin of buffer */
+         Dmsg1(20, "Encrypt len=%d\n", cipher_input_len);
 
          if (!crypto_cipher_update(cipher_ctx, packet_len, sizeof(packet_len),
                   (u_int8_t *)jcr->crypto_buf, &initial_len)) {
@@ -823,16 +839,14 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
 
       /* Send the buffer to the Storage daemon */
-      if (!sparseBlock) {
-         if (ff_pkt->flags & FO_SPARSE) {
-            sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
-         }
-         sd->msg = wbuf;              /* set correct write buffer */
-         if (!bnet_send(sd)) {
-            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-                  bnet_strerror(sd));
-            goto err;
-         }
+      if (ff_pkt->flags & FO_SPARSE) {
+         sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
+      }
+      sd->msg = wbuf;              /* set correct write buffer */
+      if (!bnet_send(sd)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+               bnet_strerror(sd));
+         goto err;
       }
       Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
       /*          #endif */
@@ -841,36 +855,37 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
    } /* end while read file data */
 
-   /* Send any remaining encrypted data + padding */
-   if (sd->msglen >= 0) {
-      if (ff_pkt->flags & FO_ENCRYPT) {
-         if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, 
-              &encrypted_len)) {
-            /* Padding failed. Shouldn't happen. */
-            Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
-            goto err;
-         }
-
-         if (encrypted_len > 0) {
-            sd->msglen = encrypted_len;      /* set encrypted length */
-
-            sd->msg = jcr->crypto_buf;       /* set correct write buffer */
-            if (!bnet_send(sd)) {
-               Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-                     bnet_strerror(sd));
-               goto err;
-            }
-            Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
-            jcr->JobBytes += sd->msglen;     /* count bytes saved possibly compressed/encrypted */
-            sd->msg = msgsave;               /* restore bnet buffer */
-         }
-      }
-   } else {
+   if (sd->msglen < 0) {                 /* error */
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
          ff_pkt->fname, be.strerror(ff_pkt->bfd.berrno));
       if (jcr->Errors++ > 1000) {       /* insanity check */
          Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
+      }
+   } else if (ff_pkt->flags & FO_ENCRYPT) {
+      /* 
+       * For encryption, we must call finalize to push out any
+       *  buffered data.
+       */
+      if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, 
+           &encrypted_len)) {
+         /* Padding failed. Shouldn't happen. */
+         Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
+         goto err;
+      }
+
+      /* Note, on SSL pre-0.9.7, there is always some output */
+      if (encrypted_len > 0) {
+         sd->msglen = encrypted_len;      /* set encrypted length */
+         sd->msg = jcr->crypto_buf;       /* set correct write buffer */
+         if (!bnet_send(sd)) {
+            Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+                  bnet_strerror(sd));
+            goto err;
+         }
+         Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
+         jcr->JobBytes += sd->msglen;     /* count bytes saved possibly compressed/encrypted */
+         sd->msg = msgsave;               /* restore bnet buffer */
       }
    }
 

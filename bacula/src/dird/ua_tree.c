@@ -120,7 +120,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       if (!get_cmd(ua, "$ ")) {
          break;
       }
-      parse_ua_args(ua);
+      parse_args_only(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
       if (ua->argc == 0) {
          bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
          continue;
@@ -661,10 +661,11 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    TREE_NODE *node;
    char cwd[2000];
 
+
    if (ua->argc != 2) {
+      bsendmsg(ua, _("Too many arguments. Try using double quotes.\n"));
       return 1;
    }
-   strip_leading_space(ua->argk[1]);
    node = tree_cwd(ua->argk[1], tree->root, tree->node);
    if (!node) {
       /* Try once more if Win32 drive -- make absolute */
