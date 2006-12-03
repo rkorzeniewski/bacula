@@ -2,6 +2,8 @@
 
 General:
 03Dec06
+kes  Fix Win32 build, which broke when I added parse_args_only in
+     lib. I'm not sure I got the entry point right for msvc.
 kes  Turn off data encryption. It can be enabled by defining
      DATA_ENCRYPTION in src/version.h and recompiling.
 kes  Implement flag to turn off data encryption feature.
