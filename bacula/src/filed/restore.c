@@ -61,7 +61,8 @@ const bool have_libz = false;
 int verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size);
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size);
+bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, 
+                  uint32_t cipher_block_size);
 
 #define RETRY 10                      /* retry wait time */
 
@@ -446,7 +447,8 @@ void do_restore(JCR *jcr)
                flags |= FO_WIN32DECOMP;    /* "decompose" BackupWrite data */
             }
 
-            if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags, cipher_ctx, cipher_block_size) < 0) {
+            if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags, 
+                             cipher_ctx, cipher_block_size) < 0) {
                extract = false;
                bclose(&bfd);
                continue;
@@ -471,7 +473,8 @@ void do_restore(JCR *jcr)
                Dmsg0(30, "Restoring resource fork\n");
             }
             flags = 0;
-            if (extract_data(jcr, &altbfd, sd->msg, sd->msglen, &alt_addr, flags, cipher_ctx, cipher_block_size) < 0) {
+            if (extract_data(jcr, &altbfd, sd->msg, sd->msglen, &alt_addr, flags, 
+                             cipher_ctx, cipher_block_size) < 0) {
                extract = false;
                bclose(&altbfd);
                continue;
@@ -845,7 +848,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
           * crypto_cipher_update() will process only whole blocks,
           * buffering the remaining input.
           */
-         jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_count + chunk_size + cipher_block_size);
+         jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
+                           jcr->crypto_count + chunk_size + cipher_block_size);
 
          /* Decrypt the input block */
          if (!crypto_cipher_update(cipher, 
@@ -881,7 +885,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
             jcr->JobBytes += packet_size;
             *addr += packet_size;
 
-            memmove(&jcr->crypto_buf[0], &jcr->crypto_buf[jcr->crypto_size], jcr->crypto_count - jcr->crypto_size);
+            memmove(&jcr->crypto_buf[0], &jcr->crypto_buf[jcr->crypto_size], 
+                    jcr->crypto_count - jcr->crypto_size);
             jcr->crypto_count -= jcr->crypto_size;
             jcr->crypto_size = 0;
          }
@@ -892,7 +897,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
        * crypto_cipher_update() will process only whole blocks,
        * buffering the remaining input.
        */
-      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_count + wsize + cipher_block_size);
+      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
+                        jcr->crypto_count + wsize + cipher_block_size);
 
       /* Decrypt the input block */
       if (!crypto_cipher_update(cipher, 
@@ -968,7 +974,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
  * writing it to bfd.
  * Return value is true on success, false on failure.
  */
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size)
+bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, 
+                  uint32_t cipher_block_size)
 {
    uint32_t decrypted_len;
    char *wbuf;                        /* write buffer */
