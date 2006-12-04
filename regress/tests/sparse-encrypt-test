@@ -3,10 +3,10 @@
 # Run a simple backup (with encryption) of the Bacula build directory
 #   then verify the signatures.
 #
-TestName="data-encrypt-test"
+TestName="sparse-encrypt-test"
 JobName=Crypto
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs
@@ -51,6 +51,11 @@ run_bacula
 sleep 2
 check_for_zombie_jobs storage=File 
 stop_bacula
+
+size=`du ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif | cut -f 1`
+if [ $size -gt 120 ]; then
+   echo "========== restored sparse file: gigaslam.gif too big ========="
+fi
 
 check_two_logs
 check_restore_diff
