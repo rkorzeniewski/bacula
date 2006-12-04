@@ -11,6 +11,14 @@ set_debug 1
 scripts/cleanup
 scripts/copy-crypto-confs
 echo "${cwd}/build" >/tmp/file-list
+cd ${cwd}/build/src/tools
+./gigaslam
+if [ $? != 0 ]; then
+   echo "Execute of ${cwd}/build/src/tools/gigaslam failed."
+   rm -f ${cwd}/build/src/tools/gigaslam.gif
+   exit 1
+fi
+cd ${cwd}
 
 start_test
 
@@ -19,7 +27,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-@#setdebug level=10 fd
+setdebug level=10 fd
 run job=$JobName yes
 wait
 messages
@@ -27,7 +35,7 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-@#setdebug level=10 fd
+@# setdebug level=0 fd
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 mark *
@@ -47,3 +55,4 @@ stop_bacula
 check_two_logs
 check_restore_diff
 end_test
+rm -f ${cwd}/build/src/tools/gigaslam.gif
