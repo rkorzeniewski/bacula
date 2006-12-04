@@ -13,6 +13,8 @@ tests/bsr-opt-test
 tests/compressed-test
 tests/concurrent-jobs-test
 tests/data-encrypt-test
+#tests/sparse-encrypt-test
+#tests/gigaslam-sparse-test
 tests/differential-test
 tests/four-concurrent-jobs-test
 tests/four-jobs-test

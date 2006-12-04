@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory using the Sparse option
+#   then restore it.
+#
+TestName="sparse-test"
+JobName=SparseTest
+. scripts/functions
+set_debug 1
+
+cwd=`pwd`
+scripts/cleanup
+scripts/copy-test-confs
+echo "${cwd}/build" >/tmp/file-list
+cd ${cwd}/build/src/tools
+./gigaslam
+if [ $? != 0 ]; then
+   echo "Execute of ${cwd}/build/src/tools/gigaslam failed."
+   rm -f ${cwd}/build/src/tools/gigaslam.gif
+   exit 1
+fi
+cd ${cwd}
+
+start_test
+
+cat >tmp/bconcmds <<END_OF_DATA
+@output /dev/null
+messages
+@$out tmp/log1.out
+label storage=File volume=TestVolume001
+run job=$JobName yes
+wait
+messages
+list volumes
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=File
+unmark *
+mark *
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File 
+ls -l ${cwd}/tmp
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
+rm -f ${cwd}/build/src/tools/gigaslam.gif
