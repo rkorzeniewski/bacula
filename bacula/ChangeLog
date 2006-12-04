@@ -2,6 +2,128 @@
 
 General:
 
+04Dec06
+kes  Make migration with no files to migrate set normal termination.
+kes  Change message when job manually started to say Job queued. ... 
+kes  Add job report indication of whether or not VSS and Encryption were
+     used by the FD.
+kes  Modify sparseBlock variable name to make the code clearer.
+kes  Add more sparse tests to regress using gigaslam sparse file
+     generator.
+kes  Enable data encryption code.
+kes  Add gigaslam.c to src/tools. It creates a 1GB file that contains
+     only two blocks -- i.e. it is a real sparse file.
+03Dec06
+kes  Enable disk seeking on restore.
+kes  Implement the SD 'Block Positioning = yes|no' directive. This
+     allows the user to turn off block level seeking, but restores
+     will be much slower.
+kes  Change the word illegal to read invalid in a few places.
+kes  Fix Win32 build, which broke when I added parse_args_only in
+     lib. I'm not sure I got the entry point right for msvc.
+kes  Turn off data encryption. It can be enabled by defining
+     DATA_ENCRYPTION in src/version.h and recompiling.
+kes  Implement flag to turn off data encryption feature.
+kes  Move unserial code in restore.c to a subroutine. Add a bit of debug
+     code.
+kes  Rework a bit of code in backup.c to handle sparse blocks correctly.
+     The main problem was that signatures were being generated on blocks
+     of zeros, which is unnecessary.
+02Dec06
+kes  Fix scanner (next_arg) to handle leading double quote correctly.     
+kes  Modify cd command in restore tree to look at full argument without
+     keywords.  This fixes bug #716.
+01Dec06
+kes  Do not update Migrated Job type if migration does not terminate
+     normally. This fixes bug #719.
+kes  Update ReleaseNotes
+kes  Purge Job records from the catalog for Migration. This was
+     not properly done previously. This fixes bug #718.
+28Nov06
+kes  Initialize msg_type to M_INFO in migration. Pointed out by
+     Robert Nelson.
+kes  Add some fflush() statements for debug output. This should not
+     really be necessary and defeats buffering but users continue
+     to complain.
+27Nov06
+kes  More copyright changes.
+kes  Make sure we don't detach from the despool read device since it
+     is a temporary structure where the condition variables are not
+     initialized.  Bug #711.
+26Nov06
+kes  Add Bacula version+date to Client record. This is a very minor
+     security problem in that passing the version facilitates a hacker's
+     life, but it will make support easier.
+kes  Implement fixes to make disk seeking work.  Currently turned
+     off in version.h pending reserch on what problems it will cause
+     because of the previous bsnprinf() sign extension bug.
+25Nov06
+kes  Add Landon's refactor of restore Feature request to the
+     projects file.
+kes  Tweak debug levels and messages for examining the disk
+     seek problem.
+22Nov06
+kes  Cleanup some of the error termination code in migration.
+kes  Separate read/write source strings to keep track of where
+     storage devices are used in a job.
+kes  Implement a new method of keeping track of which storage 
+     device is used in a Job.  USTORE keeps both a pointer to the
+     resource and to the source string.
+kes  Modify all code to use new storage set subroutines in job.c
+kes  Modify migrate.c so that the definitive selection of the storage
+     resource is done in the do_migration_init() routine prior to
+     the job going into the job queue.  This permits accurate 
+     deadlock detection (same read and write storage resource).
+kes  Remove bfill from btape (I think it was a left over stub).
+22Nov06
+kes  Make sure that the storage for a job is pulled first from
+     the Pool and if not from the Job.  
+kes  Ensure that either the Pool or the Job specifies a Storage
+     resource.
+21Nov06 
+kes  Start applying new FSFE copyright.
+20Nov06
+kes  Add additional error messages in acquiring a drive for read.   
+kes  Make WritePartAfterJob the default so that the last DVD part 
+     always gets written to the DVD by default.
+kes  Add additional error messages in migration. 
+kes  Suppress redundant error messages in migration (possibly more to do).
+kes  Apply Martin's fix (updated to 1.39) that takes into account
+     run storage overrides in the Director status display.
+kes  Implement, but turn off the submitted code that sets the EOT
+     model on FreeBSD machines. Turning on this code is too risky at
+     this point in the development.
+19Nov06
+kes  Implement unique dbid routine for migration to prevent the same
+     JobId from being migrated twice. This should fix bug #709.
+18Nov06
+kes  Apply Jaime Ventura's 'mail on success' patch.
+kes  Add a SMALLOC_SANITY_CHECK for Arno, which aborts Bacula
+     if memory usage gets too big.
+kes  Tweak migration to ensure that read/write devices are different.
+17Nov06
+kes  Create an AUTHORS file to list Bacula contributors.
+kes  Add Richard Stallman's four GPL freedoms to LICENSE 
+kes  Require the conf file to have a valid NextPool for writing the
+     migration output.
+16Nov06
+ebl  Enable RecycleCount in catalog.
+ebl  Fix "echo python | bconsole" segfault
+14Nov06
+kes  Implement code to pass the MediaId to the SD. The SD then uses
+     this MediaId when creating JobMedia records. This fixes a bug
+     with Migration where the MediaId got set to the second Volume
+     read rather than the write Volume.  Possibly (unlikely) fixes
+     bug #709.
+kes  Remove NextPool from Job resource.
+kes  Edit a few numbers in the restore dialog with commas.
+kes  Note, the DIR<->SD protocol has changed.
+13Nov06
+kes  Replace () by {} in configure.in for proper HP configuration.
+kes  Shorten some lines over 80 characters in filed/backup.c
+kes  Cast sizeof() in filed/backup.c to avoid compiler warning.
+
+Version 1.39.28 released: 
 12Nov06
 kes  Change error message 'illegal' to 'invalid' -- bug #707
 kes  Add rather primitive device resource deadlock detection in
