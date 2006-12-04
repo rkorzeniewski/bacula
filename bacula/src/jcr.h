@@ -249,6 +249,8 @@ public:
    bool needs_sd;                     /* set if SD needed by Job */
    bool cloned;                       /* set if cloned */
    bool unlink_bsr;                   /* Unlink bsr file created */
+   bool VSS;                          /* VSS used by FD */
+   bool Encrypt;                      /* Encryption used by FD */
 #endif /* DIRECTOR_DAEMON */
 
 

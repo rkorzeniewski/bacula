@@ -137,7 +137,8 @@ static char OKstore[]     = "2000 OK storage\n";
 static char OKjob[]       = "2000 OK Job %s (%s) %s,%s,%s";
 static char OKsetdebug[]  = "2000 OK setdebug=%d\n";
 static char BADjob[]      = "2901 Bad Job\n";
-static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s JobBytes=%s Errors=%u\n";
+static char EndJob[]      = "2800 End Job TermCode=%d JobFiles=%u ReadBytes=%s"
+                            " JobBytes=%s Errors=%u VSS=%d Encrypt=%d\n";
 static char OKRunBefore[] = "2000 OK RunBefore\n";
 static char OKRunBeforeNow[] = "2000 OK RunBeforeNow\n";
 static char OKRunAfter[]  = "2000 OK RunAfter\n";
@@ -1269,7 +1270,7 @@ static int storage_cmd(JCR *jcr)
 
 
 /*
- * Do a backup. For now, we handle only Full and Incremental.
+ * Do a backup.
  */
 static int backup_cmd(JCR *jcr)
 {
@@ -1278,17 +1279,17 @@ static int backup_cmd(JCR *jcr)
    int ok = 0;
    int SDJobStatus;
    char ed1[50], ed2[50];
+   bool bDoVSS = false;
 
 #if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
    // and one enables vss and the other does not then enable_vss can change
    // between here and where its evaluated after the job completes.
-   bool bDoVSS = false;
-
    bDoVSS = g_pVSSClient && enable_vss;
-   if (bDoVSS)
+   if (bDoVSS) {
       /* Run only one at a time */
       P(vss_mutex);
+   }
 #endif
 
    set_jcr_job_status(jcr, JS_Blocked);
@@ -1460,7 +1461,8 @@ cleanup:
 
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->ReadBytes, ed1),
-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors);
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)bDoVSS, 
+      jcr->pki_encrypt);
    Dmsg1(110, "End FD msg: %s\n", dir->msg);
    
    return 0;                          /* return and stop command loop */
