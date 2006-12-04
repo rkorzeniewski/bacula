@@ -36,8 +36,8 @@ Version 1.39.30 contains mainly bug fixes to 1.39.28. Please
 
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
-  the tape drive. Workaround, load a Fedora kernel, which works fine,
-  or load the SuSE 10.2 rc5 kernel which also works fine.
+  the tape drive. Workaround, load the SuSE 10.1 version 2.6.16.21-0.25
+  kernel or later. The SuSE 10.2 Alpha 5 or later kernel also works.
 
 ==== IMPORTANT Catalog update required =====
 - The database format has been updated from what was used in    
