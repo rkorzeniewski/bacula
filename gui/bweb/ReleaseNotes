@@ -1,5 +1,8 @@
           Release Notes for bweb 1.39.28
 
+2006/12/04
+ - Add mediatype filter to pool view
+
 2006/11/18
  - Add system log to job log (JobId = 0)
 
