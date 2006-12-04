@@ -289,8 +289,8 @@ public:
    uint8_t *pki_session_encoded;      /* Cached DER-encoded copy of pki_session */
    int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
    POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
-   int32_t crypto_count;              /* Count of bytes currently in crypto_buf */
-   int32_t crypto_size;               /* Total bytes in packet */
+   int32_t crypto_buf_len;            /* Count of bytes currently in crypto_buf */
+   int32_t crypto_packet_len;         /* Total bytes in packet */
    DIRRES* director;                  /* Director resource */
    bool runscript_after;              /* Don't run After Script twice */
 #endif /* FILE_DAEMON */
