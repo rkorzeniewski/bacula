@@ -3,10 +3,10 @@
 # Run a simple backup of the Bacula build directory using the Sparse option
 #   then restore it.
 #
-TestName="sparse-test"
+TestName="gigaslam-sparse-test"
 JobName=SparseTest
 . scripts/functions
-set_debug 1
+set_debug 0
 
 cwd=`pwd`
 scripts/cleanup
@@ -49,8 +49,12 @@ END_OF_DATA
 
 run_bacula
 check_for_zombie_jobs storage=File 
-ls -l ${cwd}/tmp
 stop_bacula
+
+size=`du ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif | cut -f 1`
+if [ $size -gt 120 ]; then
+   echo "========== restored sparse file gigaslam.gif too big ========="
+fi
 
 check_two_logs
 check_restore_diff
