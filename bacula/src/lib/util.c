@@ -76,8 +76,9 @@ bool is_buf_zero(char *buf, int len)
 void lcase(char *str)
 {
    while (*str) {
-      if (B_ISUPPER(*str))
+      if (B_ISUPPER(*str)) {
          *str = tolower((int)(*str));
+       }
        str++;
    }
 }

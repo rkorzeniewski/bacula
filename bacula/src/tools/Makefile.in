@@ -55,7 +55,7 @@ INSTOOLS = $(INS@DIR_TOOLS@)
 	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile $(TOOLS) 
+all: Makefile $(TOOLS) gigaslam
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -96,6 +96,11 @@ bwild:	../findlib/libfind.a ../lib/libbac.a bwild.o
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -o $@ bwild.o \
 	  $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
+gigaslam.o: gigaslam.c
+	$(CC) -c $<  
+
+gigaslam: gigaslam.o
+	$(CC) -o $@ gigaslam.o
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status

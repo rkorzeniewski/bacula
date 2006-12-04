@@ -145,7 +145,7 @@ bool read_records(DCR *dcr,
             display_tape_error_status(jcr, dev);
             if (forge_on || jcr->ignore_label_errors) {
                dev->fsr(1);       /* try skipping bad record */
-               Pmsg0(000, _("Did fsr\n"));
+               Pmsg0(000, _("Did fsr in attemp to skip bad record.\n"));
                continue;              /* try to continue */
             }
             ok = false;               /* stop everything */
