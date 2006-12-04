@@ -1,11 +1,12 @@
 
-          Release Notes for Bacula 1.39.28
+          Release Notes for Bacula 1.39.30
 
-  Bacula code: Total files = 442 Total lines = 150,218 (*.h *.c *.in)
+  Bacula code: Total files = 438 Total lines = 153,698 (*.h *.c *.in)
 
 
-Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
+Version 1.39.30 contains mainly bug fixes to 1.39.28. Please
   see the ChangeLog for more details.
+
 
 ==== IMPORTANT Encrypted Volume data may be unreadable ====
 - If you have been using the data encryption feature of 1.39.x, please
@@ -27,7 +28,11 @@ Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
         Compression + Encryption = Restore broken
 
      As of 1.39.28:
-        All combinations work fine.
+        Most combinations work, but some encrypted files are
+        not properly restored.
+
+     As of 1.39.30:
+        All combinations work fine except Sparse+Encryption.
 
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
@@ -113,6 +118,19 @@ Version 1.39.28 contains mainly bug fixes to 1.39.26. Please
    can be used to avoid having to enter that ugly path.
 
   After one of these has been done the upgrade should work fine.
+======  
+
+New Features in 1.39.30:
+- The Bacula source code is now copyrighted by the Free Software 
+  Foundation Europe. The Developer's Guide documents the new procedures,
+  and the LICENSE file has been updated.
+- Turn on disk seek code for restores.
+- Apply Jaime Ventura's patch that implements the Messages resource
+  Mail On Success directive.
+- The Client returns its Version string, which is printed in the Job
+  report.
+- The Client returns whether or not VSS and Encryption are used, which
+  are printed in the Job report.
 
 Major new Features in 1.40.0:
 - The basic features of Migration are now complete, and
