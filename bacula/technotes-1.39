@@ -2,6 +2,8 @@
 
 General:
 04Dec06
+kes  Make migration with nothing to do set normal termination.
+kes  Change message when job manually started to say Job queued. ... 
 kes  Add job report indication of whether or not VSS and Encryption were
      used by the FD.
 kes  Modify sparseBlock variable name to make the code clearer.

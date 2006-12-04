@@ -958,7 +958,7 @@ start_job:
          bsendmsg(ua, _("Job failed.\n"));
       } else {
          char ed1[50];
-         bsendmsg(ua, _("Job started. JobId=%s\n"), edit_int64(JobId,ed1));
+         bsendmsg(ua, _("Job queued. JobId=%s\n"), edit_int64(JobId,ed1));
       }
       return JobId;
    }

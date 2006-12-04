@@ -255,8 +255,14 @@ bool do_migration(JCR *jcr)
    BSOCK *sd;
    JCR *mig_jcr = jcr->mig_jcr;    /* newly migrated job */
 
+   /*
+    * If mig_jcr is NULL, there is nothing to do for this job,
+    *  so set a normal status, cleanup and return OK.
+    */
    if (!mig_jcr) {
-      return false;
+      set_jcr_job_status(jcr, JS_Terminated);
+      migration_cleanup(jcr, jcr->JobStatus);
+      return true;
    }
 
    /* Print Job Start message */
