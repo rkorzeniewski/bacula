@@ -6,6 +6,9 @@
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
     <input type="image" type='submit' name='action' value='media' title='Show content' src='/bweb/zoom.png'>
+<TMPL_LOOP MediaType>
+    <input type='hidden' name='mediatype' value=<TMPL_VAR name>>
+</TMPL_LOOP>
    </form>
    <br/>
    Tips: To modify pool properties, you have to edit your bacula configuration

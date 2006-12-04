@@ -2441,6 +2441,14 @@ GROUP BY Client.Name
 sub display_pool
 {
     my ($self, $poolname) = @_ ;
+    my $whereA = '';
+    my $whereW = '';
+
+    my $arg = $self->get_form('jmediatypes', 'qmediatypes');
+    if ($arg->{jmediatypes}) {
+	$whereW = "WHERE MediaType IN ($arg->{jmediatypes}) ";
+	$whereA = "AND   MediaType IN ($arg->{jmediatypes}) ";
+    }
     
 # TODO : afficher les tailles et les dates
 
@@ -2473,6 +2481,7 @@ FROM
     GROUP BY Media.MediaType, Media.PoolId, media_avg_size.volavg
   ) AS subq
 LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId)
+$whereW
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
@@ -2482,6 +2491,7 @@ SELECT Pool.Name AS name,
        sum(VolBytes) AS size
 FROM   Media JOIN Pool ON (Media.PoolId = Pool.PoolId)
 WHERE  Media.VolStatus IN ('Recycled', 'Purged')
+       $whereA
 GROUP BY Pool.Name;
 ";
     my $empty = $self->dbh_selectall_hashref($query, 'name');
@@ -2501,6 +2511,7 @@ GROUP BY Pool.Name;
   SELECT VolStatus AS volstatus, count(MediaId) AS nb
     FROM Media 
    WHERE PoolId=$p->{poolid} 
+         $whereA
 GROUP BY VolStatus
 ";
 	my $content = $self->dbh_selectall_hashref($query, 'volstatus');
@@ -2511,6 +2522,7 @@ GROUP BY VolStatus
 
     $self->debug($all);
     $self->display({ ID => $cur_id++,
+		     MediaType => $arg->{qmediatypes}, # [ { name => type1 } , { name => type2 } ]
 		     Pools => [ values %$all ]},
 		   "display_pool.tpl");
 }
