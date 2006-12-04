@@ -201,7 +201,7 @@ static PyObject *job_write(PyObject *self, PyObject *args)
    char *text = NULL;
 
    if (!PyArg_ParseTuple(args, "s:write", &text)) {
-      Dmsg0(000, "Parse tuple error in job_write\n");
+      Pmsg0(000, "Parse tuple error in job_write\n");
       return NULL;
    }
    if (text) {
@@ -219,7 +219,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
 
    Dmsg0(100, "In set_job_events.\n");
    if (!PyArg_ParseTuple(arg, "O", &eObject)) {
-      Dmsg0(000, "Parse error looking for Object argument\n");
+      Pmsg0(000, "Parse error looking for Object argument\n");
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
@@ -268,7 +268,7 @@ int generate_job_event(JCR *jcr, const char *event)
    if (result == NULL) {
       if (PyErr_Occurred()) {
          PyErr_Print();
-         Dmsg1(000, "Error in Python method %s\n", event);
+         Pmsg1(000, "Error in Python method %s\n", event);
       }
    } else {
       stat = 1;

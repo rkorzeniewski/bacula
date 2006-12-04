@@ -53,8 +53,11 @@ static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 static char OKbackup[]   = "2000 OK backup\n";
 static char OKstore[]    = "2000 OK storage\n";
 static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
+                           "ReadBytes=%lld JobBytes=%lld Errors=%u "  
+                           "VSS=%d Encrypt=%d\n";
+/* Pre 1.39.29 (04Dec06) EndJob */
+static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
                            "ReadBytes=%lld JobBytes=%lld Errors=%u\n";
-
 /* 
  * Called here before the job is run to do the job
  *   specific setup.
@@ -259,12 +262,17 @@ int wait_for_job_termination(JCR *jcr)
    bool fd_ok = false;
    uint32_t JobFiles, Errors;
    uint64_t ReadBytes, JobBytes;
+   int VSS = 0;
+   int Encrypt = 0;
 
    set_jcr_job_status(jcr, JS_Running);
    /* Wait for Client to terminate */
    while ((n = bget_dirmsg(fd)) >= 0) {
-      if (!fd_ok && sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-          &ReadBytes, &JobBytes, &Errors) == 5) {
+      if (!fd_ok && 
+          (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+              &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
+           sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
+                 &ReadBytes, &JobBytes, &Errors) == 5)) {
          fd_ok = true;
          set_jcr_job_status(jcr, jcr->FDJobStatus);
          Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
@@ -292,6 +300,8 @@ int wait_for_job_termination(JCR *jcr)
       jcr->Errors = Errors;
       jcr->ReadBytes = ReadBytes;
       jcr->JobBytes = JobBytes;
+      jcr->VSS = VSS;
+      jcr->Encrypt = Encrypt;
    } else {
       Jmsg(jcr, M_FATAL, 0, _("No Job status returned from FD.\n"));
    }
@@ -446,6 +456,8 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
 "  Software Compression:   %s\n"
+"  VSS:                    %s\n"
+"  Encryption:             %s\n"
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
@@ -478,6 +490,8 @@ void backup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         (float)kbps,
         compress,
+        jcr->VSS?"yes":"no",
+        jcr->Encrypt?"yes":"no",
         jcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,

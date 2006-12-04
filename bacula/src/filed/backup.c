@@ -595,7 +595,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
  * We return 1 on sucess and 0 on errors.
  *
  * ***FIXME***
- * We use ff_pkt->statp.st_size when FO_SPARSE.
+ * We use ff_pkt->statp.st_size when FO_SPARSE to know when to stop
+ *  reading.
  * Currently this is not a problem as the only other stream, resource forks,
  * are not handled as sparse files.
  */
@@ -720,23 +721,23 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     * Read the file data
     */
    while ((sd->msglen=(uint32_t)bread(&ff_pkt->bfd, rbuf, rsize)) > 0) {
-      bool sparseBlock = false;
 
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
          ser_declare;
+         bool haveBlock = true;
          if (sd->msglen == rsize &&
              fileAddr+sd->msglen < (uint64_t)ff_pkt->statp.st_size ||
              ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
                (uint64_t)ff_pkt->statp.st_size == 0)) {
-            sparseBlock = is_buf_zero(rbuf, rsize);
+            haveBlock = !is_buf_zero(rbuf, rsize);
          }
-         if (!sparseBlock) {
+         if (haveBlock) {
             ser_begin(wbuf, SPARSE_FADDR_SIZE);
             ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
          }
          fileAddr += sd->msglen;      /* update file address */
-         if (sparseBlock) {
+         if (!haveBlock) {
             continue;                 /* skip block of zeros */
          }
       }

@@ -2,6 +2,11 @@
 
 General:
 04Dec06
+kes  Add job report indication of whether or not VSS and Encryption were
+     used by the FD.
+kes  Modify sparseBlock variable name to make the code clearer.
+kes  Add more sparse tests to regress using gigaslam sparse file
+     generator.
 kes  Enable data encryption code.
 kes  Add gigaslam.c to src/tools. It creates a 1GB file that contains
      only two blocks -- i.e. it is a real sparse file.
