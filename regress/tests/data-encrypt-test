@@ -10,7 +10,7 @@ set_debug 1
 
 scripts/cleanup
 scripts/copy-crypto-confs
-echo "${cwd}/build/po/LINGUAS" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
 
 start_test
 
