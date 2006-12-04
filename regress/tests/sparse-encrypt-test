@@ -55,6 +55,7 @@ stop_bacula
 size=`du ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif | cut -f 1`
 if [ $size -gt 120 ]; then
    echo "========== restored sparse file: gigaslam.gif too big ========="
+   echo "      size is ${size}K it should be 120K"
 fi
 
 check_two_logs
