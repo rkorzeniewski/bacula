@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+04Dec06
+kes  Enable data encryption code.
+kes  Add gigaslam.c to src/tools. It creates a 1GB file that contains
+     only two blocks -- i.e. it is a real sparse file.
 03Dec06
 kes  Enable disk seeking on restore.
 kes  Implement the SD 'Block Positioning = yes|no' directive. This
