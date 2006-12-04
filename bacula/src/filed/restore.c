@@ -61,7 +61,7 @@ const bool have_libz = false;
 int verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, uint32_t cipher_block_size);
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, 
+bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, 
                   uint32_t cipher_block_size);
 
 #define RETRY 10                      /* retry wait time */
@@ -182,6 +182,8 @@ void do_restore(JCR *jcr)
 
    if (have_crypto) {
       jcr->crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+      jcr->crypto_buf_len = 0;
+      jcr->crypto_packet_len = 0;
    }
    
    /*
@@ -263,7 +265,7 @@ void do_restore(JCR *jcr)
             }
             /* Flush and deallocate previous stream's cipher context */
             if (cipher_ctx && prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
-               flush_cipher(jcr, &bfd, flags, cipher_ctx, cipher_block_size);
+               flush_cipher(jcr, &bfd, &fileAddr, flags, cipher_ctx, cipher_block_size);
                crypto_cipher_free(cipher_ctx);
                cipher_ctx = NULL;
             }
@@ -405,8 +407,6 @@ void do_restore(JCR *jcr)
             continue;
          }
 
-         jcr->crypto_count = 0;
-         jcr->crypto_size = 0;
          break;
 
       case STREAM_FILE_DATA:
@@ -554,7 +554,7 @@ void do_restore(JCR *jcr)
             }
             /* Flush and deallocate cipher context */
             if (cipher_ctx) {
-               flush_cipher(jcr, &bfd, flags, cipher_ctx, cipher_block_size);
+               flush_cipher(jcr, &bfd, &fileAddr, flags, cipher_ctx, cipher_block_size);
                crypto_cipher_free(cipher_ctx);
                cipher_ctx = NULL;
             }
@@ -591,7 +591,7 @@ void do_restore(JCR *jcr)
    if (extract) {
       /* Flush and deallocate cipher context */
       if (cipher_ctx) {
-         flush_cipher(jcr, &bfd, flags, cipher_ctx, cipher_block_size);
+         flush_cipher(jcr, &bfd, &fileAddr, flags, cipher_ctx, cipher_block_size);
          crypto_cipher_free(cipher_ctx);
          cipher_ctx = NULL;
       }
@@ -754,6 +754,28 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
    return false;
 }
 
+bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *length)
+{
+      unser_declare;
+      uint64_t faddr;
+      char ec1[50];
+      unser_begin(*data, SPARSE_FADDR_SIZE);
+      unser_uint64(faddr);
+      if (*addr != faddr) {
+         *addr = faddr;
+         if (blseek(bfd, (boffset_t)*addr, SEEK_SET) < 0) {
+            berrno be;
+            Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
+                  edit_uint64(*addr, ec1), jcr->last_fname, 
+                  be.strerror(bfd->berrno));
+	    return false;
+         }
+      }
+      *data += SPARSE_FADDR_SIZE;
+      *length -= SPARSE_FADDR_SIZE;
+      return true;
+}
+
 bool decompress_data(JCR *jcr, char **data, uint32_t *length)
 {
 #ifdef HAVE_LIBZ
@@ -784,13 +806,13 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
 #endif
 }
 
-static void unser_crypto_size(JCR *jcr)
+static void unser_crypto_packet_len(JCR *jcr)
 {
    unser_declare;
-   if (jcr->crypto_size == 0 && jcr->crypto_count >= CRYPTO_LEN_SIZE) {
+   if (jcr->crypto_packet_len == 0 && jcr->crypto_buf_len >= CRYPTO_LEN_SIZE) {
       unser_begin(&jcr->crypto_buf[0], CRYPTO_LEN_SIZE);
-      unser_uint32(jcr->crypto_size);
-      jcr->crypto_size += CRYPTO_LEN_SIZE;
+      unser_uint32(jcr->crypto_packet_len);
+      jcr->crypto_packet_len += CRYPTO_LEN_SIZE;
    }
 }
 
@@ -836,61 +858,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    if (flags & FO_ENCRYPT) {
       ASSERT(cipher);
 
-      while (jcr->crypto_size > 0 && jcr->crypto_count > 0 && wsize > 0) {
-         uint32_t chunk_size = 16;
-
-         if (chunk_size > wsize) {
-            chunk_size = wsize;
-         }
-
-         /*
-          * Grow the crypto buffer, if necessary.
-          * crypto_cipher_update() will process only whole blocks,
-          * buffering the remaining input.
-          */
-         jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
-                           jcr->crypto_count + chunk_size + cipher_block_size);
-
-         /* Decrypt the input block */
-         if (!crypto_cipher_update(cipher, 
-                                   (const u_int8_t *)wbuf, 
-                                   chunk_size, 
-                                   (u_int8_t *)&jcr->crypto_buf[jcr->crypto_count], 
-                                   &decrypted_len)) {
-            /* Decryption failed. Shouldn't happen. */
-            Jmsg(jcr, M_FATAL, 0, _("Decryption error\n"));
-            return -1;
-         }
-
-         jcr->crypto_count += decrypted_len;
-         wbuf += chunk_size;
-         wsize -= chunk_size;
-
-         if (jcr->crypto_count >= jcr->crypto_size) {
-            char *packet = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
-            uint32_t packet_size = jcr->crypto_size - CRYPTO_LEN_SIZE;
-
-            if (flags & FO_GZIP) {
-               if (!decompress_data(jcr, &packet, &packet_size)) {
-                  return -1;
-               }
-            } else {
-               Dmsg2(30, "Write %u bytes, total before write=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
-            }
-
-            if (!store_data(jcr, bfd, packet, packet_size, (flags & FO_WIN32DECOMP) != 0)) {
-               return -1;
-            }
-
-            jcr->JobBytes += packet_size;
-            *addr += packet_size;
-
-            memmove(&jcr->crypto_buf[0], &jcr->crypto_buf[jcr->crypto_size], 
-                    jcr->crypto_count - jcr->crypto_size);
-            jcr->crypto_count -= jcr->crypto_size;
-            jcr->crypto_size = 0;
-         }
-      }
+      /* NOTE: We must implement block preserving semantics for the
+       * non-streaming compression and sparse code. */
 
       /*
        * Grow the crypto buffer, if necessary.
@@ -898,57 +867,52 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
        * buffering the remaining input.
        */
       jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
-                        jcr->crypto_count + wsize + cipher_block_size);
+                        jcr->crypto_buf_len + wsize + cipher_block_size);
 
       /* Decrypt the input block */
       if (!crypto_cipher_update(cipher, 
                                 (const u_int8_t *)wbuf, 
                                 wsize, 
-                                (u_int8_t *)&jcr->crypto_buf[jcr->crypto_count], 
+                                (u_int8_t *)&jcr->crypto_buf[jcr->crypto_buf_len], 
                                 &decrypted_len)) {
          /* Decryption failed. Shouldn't happen. */
          Jmsg(jcr, M_FATAL, 0, _("Decryption error\n"));
          return -1;
       }
 
+      if (decrypted_len == 0) {
+         /* No full block of encrypted data available, write more data */
+         return 0;
+      }
+
       Dmsg2(100, "decrypted len=%d encrypted len=%d\n", decrypted_len, wsize);
 
-      if (decrypted_len == 0) {
-         /* No full block of data available, write more data */
-         return 0;
+      jcr->crypto_buf_len += decrypted_len;
+      wbuf = jcr->crypto_buf;
+
+      /* If one full preserved block is available, write it to disk,
+       * and then buffer any remaining data. This should be effecient
+       * as long as Bacula's block size is not significantly smaller than the
+       * encryption block size (extremely unlikely!) */
+      unser_crypto_packet_len(jcr);
+      Dmsg1(500, "Crypto unser block size=%d\n", jcr->crypto_packet_len - CRYPTO_LEN_SIZE);
+
+      if (jcr->crypto_packet_len == 0 || jcr->crypto_buf_len < jcr->crypto_packet_len) {
+	 /* No full preserved block is available. */
+	 return 0;
       }
 
-      jcr->crypto_count += decrypted_len;
-
-      unser_crypto_size(jcr);
-      wsize = jcr->crypto_size - CRYPTO_LEN_SIZE;
-      Dmsg1(10, "Decrypt size=%d\n", wsize);
-      wbuf = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
-
-      if (jcr->crypto_size == 0 || jcr->crypto_count < jcr->crypto_size) {
-         return 0;
-      }
-
+      /* We have one full block, set up the filter input buffers */
+      wsize = jcr->crypto_packet_len - CRYPTO_LEN_SIZE;
+      wbuf = &wbuf[CRYPTO_LEN_SIZE]; /* Skip the block length header */
+      jcr->crypto_buf_len -= jcr->crypto_packet_len;
+      Dmsg2(30, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, jcr->crypto_buf_len);
    }
 
    if (flags & FO_SPARSE) {
-      unser_declare;
-      uint64_t faddr;
-      char ec1[50];
-      unser_begin(wbuf, SPARSE_FADDR_SIZE);
-      unser_uint64(faddr);
-      if (*addr != faddr) {
-         *addr = faddr;
-         if (blseek(bfd, (boffset_t)*addr, SEEK_SET) < 0) {
-            berrno be;
-            Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
-                  edit_uint64(*addr, ec1), jcr->last_fname, 
-                  be.strerror(bfd->berrno));
-            return -1;
-         }
-      }
-      wbuf += SPARSE_FADDR_SIZE;
-      wsize -= SPARSE_FADDR_SIZE;
+	if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
+	   return -1;
+	}
    }
 
    if (flags & FO_GZIP) {
@@ -966,6 +930,19 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    jcr->JobBytes += wsize;
    *addr += wsize;
 
+   /* Clean up crypto buffers */
+   if (flags & FO_ENCRYPT) {
+      /* Move any remaining data to start of buffer */
+      if (jcr->crypto_buf_len > 0) {
+	 Dmsg1(30, "Moving %u buffered bytes to start of buffer\n", jcr->crypto_buf_len);
+	 memmove(jcr->crypto_buf, &jcr->crypto_buf[jcr->crypto_packet_len], 
+	    jcr->crypto_buf_len);
+      }
+      /* The packet was successfully written, reset the length so that the next
+       * packet length may be re-read by unser_crypto_packet_len() */
+      jcr->crypto_packet_len = 0;
+   }
+
    return wsize;
 }
 
@@ -974,7 +951,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
  * writing it to bfd.
  * Return value is true on success, false on failure.
  */
-bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher, 
+bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, CIPHER_CONTEXT *cipher, 
                   uint32_t cipher_block_size)
 {
    uint32_t decrypted_len;
@@ -983,28 +960,42 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, int flags, CIPHER_CONTEXT *cipher,
    char ec1[50];                      /* Buffer printing huge values */
 
    /* Write out the remaining block and free the cipher context */
-   jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_count + 
+   jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, jcr->crypto_buf_len + 
                      cipher_block_size);
 
-   if (!crypto_cipher_finalize(cipher, (uint8_t *)&jcr->crypto_buf[jcr->crypto_count],
+   if (!crypto_cipher_finalize(cipher, (uint8_t *)&jcr->crypto_buf[jcr->crypto_buf_len],
         &decrypted_len)) {
       /* Writing out the final, buffered block failed. Shouldn't happen. */
       Jmsg1(jcr, M_FATAL, 0, _("Decryption error for %s\n"), jcr->last_fname);
    }
 
    /* If nothing new was decrypted, and our output buffer is empty, return */
-   if (decrypted_len == 0 && jcr->crypto_count == 0) {
+   if (decrypted_len == 0 && jcr->crypto_buf_len == 0) {
       return true;
    }
 
-   jcr->crypto_count += decrypted_len;
+   jcr->crypto_buf_len += decrypted_len;
 
-   unser_crypto_size(jcr);
-   wsize = jcr->crypto_size - CRYPTO_LEN_SIZE;
-   Dmsg1(10, "Unser size=%d\n", wsize);
+   unser_crypto_packet_len(jcr);
+   Dmsg1(500, "Crypto unser block size=%d\n", jcr->crypto_packet_len - CRYPTO_LEN_SIZE);
+   wsize = jcr->crypto_packet_len - CRYPTO_LEN_SIZE;
    wbuf = &jcr->crypto_buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
 
-   ASSERT(jcr->crypto_count == jcr->crypto_size);
+   if (jcr->crypto_buf_len != jcr->crypto_packet_len) {
+      Jmsg2(jcr, M_FATAL, 0,
+	    _("Unexpected number of bytes remaining at end of file, received %u, expected %u\n"),
+	    jcr->crypto_packet_len, jcr->crypto_buf_len);
+      return false;
+   }
+
+   jcr->crypto_buf_len = 0;
+   jcr->crypto_packet_len = 0;
+
+   if (flags & FO_SPARSE) {
+	if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
+	   return false;
+	}
+   }
 
    if (flags & FO_GZIP) {
       decompress_data(jcr, &wbuf, &wsize);
