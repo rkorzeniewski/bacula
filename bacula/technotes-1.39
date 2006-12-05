@@ -2,6 +2,7 @@
 
 General:
 05Dec06
+kes  Update configure.in to include python 2.5 search.
 kes  Back out unwanted migration change reported by Richard Mortimer.
 04Dec06
 kes  Make migration with no files to migrate set normal termination.
