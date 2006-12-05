@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+05Dec06
+kes  Back out unwanted migration change reported by Richard Mortimer.
 04Dec06
 kes  Make migration with no files to migrate set normal termination.
 kes  Change message when job manually started to say Job queued. ... 
