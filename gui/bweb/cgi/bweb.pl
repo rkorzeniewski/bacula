@@ -99,7 +99,15 @@ if ($action eq 'begin') {		# main display
     $bweb->location_del();
 
 } elsif ($action eq 'media') {
+    print "<div><table border='0'><tr><td valign='top'>\n";
+    my $fields = $bweb->get_form(qw/db_locations db_pools
+				    qlocations qpools volstatus qre_media
+				    limit  qmediatypes db_mediatypes/);
+    $bweb->display($fields, "display_form_media.tpl");
+
+    print "</td><td valign='top'>";
     $bweb->display_media();
+    print "</td></tr></table></div>";
 
 } elsif ($action eq 'medias') {
     $bweb->display_medias();

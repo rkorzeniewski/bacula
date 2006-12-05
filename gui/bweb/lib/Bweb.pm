@@ -1389,7 +1389,7 @@ sub get_form
 		$ret{$i} = $1;
 	    }
 	} elsif ($i =~ /^j(\w+)s$/) { # quote join args
-	    my @value = CGI::param($1) ;
+	    my @value = grep { ! /^\s*$/ } CGI::param($1) ;
 	    if (@value) {
 		$ret{$i} = $self->dbh_join(@value) ;
 	    }
@@ -1402,7 +1402,7 @@ sub get_form
 
 	} elsif ($i =~ /^q(\w+)s$/) { #[ 'arg1', 'arg2']
 	    $ret{$i} = [ map { { name => $self->dbh_quote($_) } } 
-			          CGI::param($1) ];
+			                   grep { ! /^\s*$/ } CGI::param($1) ];
 	} elsif (exists $opt_p{$i}) {
 	    my $value = CGI::param($i) || '';
 	    if ($value =~ /^([\w\d\.\/\s:\@\-]+)$/) {
@@ -1757,7 +1757,7 @@ sub get_param
     my $limit = '';
 
     if ($elt{clients}) {
-	my @clients = CGI::param('client');
+	my @clients = grep { ! /^\s*$/ } CGI::param('client');
 	if (@clients) {
 	    $ret{clients} = \@clients;
 	    my $str = $self->dbh_join(@clients);
@@ -1766,7 +1766,7 @@ sub get_param
     }
 
     if ($elt{filesets}) {
-	my @filesets = CGI::param('fileset');
+	my @filesets = grep { ! /^\s*$/ } CGI::param('fileset');
 	if (@filesets) {
 	    $ret{filesets} = \@filesets;
 	    my $str = $self->dbh_join(@filesets);
@@ -1775,7 +1775,7 @@ sub get_param
     }
 
     if ($elt{mediatypes}) {
-	my @medias = CGI::param('mediatype');
+	my @medias = grep { ! /^\s*$/ } CGI::param('mediatype');
 	if (@medias) {
 	    $ret{mediatypes} = \@medias;
 	    my $str = $self->dbh_join(@medias);
@@ -1819,8 +1819,16 @@ sub get_param
 	}
     }
 
+    if ($elt{volstatus}) {
+	my $status = CGI::param('volstatus') || '';
+	if ($status =~ /^(\w)$/) {
+	    $ret{status} = $1;
+	    $limit .= "AND Media.VolStatus = '$1' ";		
+	}
+    }
+
     if ($elt{locations}) {
-	my @location = CGI::param('location') ;
+	my @location = grep { ! /^\s*$/ } CGI::param('location') ;
 	if (@location) {
 	    $ret{locations} = \@location;	    
 	    my $str = $self->dbh_join(@location);
@@ -1829,7 +1837,7 @@ sub get_param
     }
 
     if ($elt{pools}) {
-	my @pool = CGI::param('pool') ;
+	my @pool = grep { ! /^\s*$/ } CGI::param('pool') ;
 	if (@pool) {
 	    $ret{pools} = \@pool; 
 	    my $str = $self->dbh_join(@pool);
@@ -1978,6 +1986,7 @@ sub display_media
 
     my ($where, %elt) = $self->get_param('pools',
 					 'mediatypes',
+					 'volstatus',
 					 'locations');
 
     my $arg = $self->get_form('jmedias', 'qre_media');
