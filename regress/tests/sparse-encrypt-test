@@ -6,7 +6,7 @@
 TestName="sparse-encrypt-test"
 JobName=Crypto
 . scripts/functions
-set_debug 0
+set_debug 1
 
 scripts/cleanup
 scripts/copy-crypto-confs
@@ -31,6 +31,7 @@ setdebug level=10 fd
 run job=$JobName yes
 wait
 messages
+list volumes
 @# 
 @# now do a restore
 @#
