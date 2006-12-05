@@ -1071,8 +1071,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
          break;
       }
   } else {
-     msg_type = M_ERROR;          /* Generate error message */
-     term_msg = _("*** %s Error ***");
+     term_msg = _("%s -- no files to migrate");
   }
 
    bsnprintf(term_code, sizeof(term_code), term_msg, "Migration");
