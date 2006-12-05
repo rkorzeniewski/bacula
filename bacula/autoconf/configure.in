@@ -611,31 +611,17 @@ AC_ARG_WITH(python,
   if test "$withval" != "no"; then
      if test "$withval" = "yes"; then
 	for python_root in /usr /usr/local /usr/sfw; do
-	  if test -f $python_root/include/python2.2/Python.h; then
-	     PYTHON_INCDIR=-I$python_root/include/python2.2
-	     if test -d $python_root/lib64/python2.2/config; then
-		PYTHON_LIBS="-L$python_root/lib64/python2.2/config -lpython2.2"
-	     else
-		PYTHON_LIBS="-L$python_root/lib/python2.2/config -lpython2.2"
+	  for ver in python2.2 python2.3 python2.4 python2.5; do
+	     if test -f $python_root/include/${ver}/Python.h; then
+		PYTHON_INCDIR=-I$python_root/include/${ver}
+		if test -d $python_root/lib64/${ver}/config; then
+		   PYTHON_LIBS="-L$python_root/lib64/${ver}/config -l${ver}"
+		else
+		   PYTHON_LIBS="-L$python_root/lib/${ver}/config -l${ver}"
+		fi
+		break 
 	     fi
-	     break
-	  elif test -f $python_root/include/python2.3/Python.h; then
-	     PYTHON_INCDIR=-I$python_root/include/python2.3
-	     if test -d $python_root/lib64/python2.3/config; then
-		PYTHON_LIBS="-L$python_root/lib64/python2.3/config -lpython2.3"
-	     else
-		PYTHON_LIBS="-L$python_root/lib/python2.3/config -lpython2.3"
-	     fi
-	     break
-	  elif test -f $python_root/include/python2.4/Python.h; then
-	     PYTHON_INCDIR=-I$python_root/include/python2.4
-	     if test -d $python_root/lib64/python2.4/config; then
-		PYTHON_LIBS="-L$python_root/lib64/python2.4/config -lpython2.4"
-	     else
-		PYTHON_LIBS="-L$python_root/lib/python2.4/config -lpython2.4"
-	     fi
-	     break
-	  fi
+	  done
 	done
 	if test x$PYTHON_INCDIR = x; then
 	  if test -f $prefix/include/Python.h; then
