@@ -53,11 +53,11 @@ static char storaddr[]  = "storage address=%s port=%d ssl=%d\n";
 static char OKbackup[]   = "2000 OK backup\n";
 static char OKstore[]    = "2000 OK storage\n";
 static char EndJob[]     = "2800 End Job TermCode=%d JobFiles=%u "
-                           "ReadBytes=%lld JobBytes=%lld Errors=%u "  
+                           "ReadBytes=%llu JobBytes=%llu Errors=%u "  
                            "VSS=%d Encrypt=%d\n";
 /* Pre 1.39.29 (04Dec06) EndJob */
 static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
-                           "ReadBytes=%lld JobBytes=%lld Errors=%u\n";
+                           "ReadBytes=%llu JobBytes=%llu Errors=%u\n";
 /* 
  * Called here before the job is run to do the job
  *   specific setup.
@@ -261,7 +261,8 @@ int wait_for_job_termination(JCR *jcr)
    BSOCK *fd = jcr->file_bsock;
    bool fd_ok = false;
    uint32_t JobFiles, Errors;
-   uint64_t ReadBytes, JobBytes;
+   uint64_t ReadBytes = 0;
+   uint64_t JobBytes = 0;
    int VSS = 0;
    int Encrypt = 0;
 
@@ -284,6 +285,7 @@ int wait_for_job_termination(JCR *jcr)
          break;
       }
    }
+
    if (is_bnet_error(fd)) {
       Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
           job_type_to_str(jcr->JobType), bnet_strerror(fd));

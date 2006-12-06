@@ -2,6 +2,13 @@
 
 General:
 06Dec06
+kes  Put make_catalog_backup SQL_BINDIR in an environment variable to
+     make it easier for the user to change.
+kes  Fail any backup job that tries to use encryption and sparse options.
+     Hopefully this is a temporary change.
+kes  Correct the EndJob return string for non-backup jobs.
+kes  Review the encryption restore code.
+kes  Implement a new encryption regression test with compression.
 kes  Modify migrate not to fail if nothing found to migrate. 
 kes  Add #undef HAVE_OPENSSL, HAVE_TLS, HAVE_CYRPTO to autoconf/config.h.in
      because they were not always set correctly.

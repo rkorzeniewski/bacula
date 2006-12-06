@@ -99,7 +99,6 @@ void do_restore(JCR *jcr)
    bool extract = false;
    int32_t file_index;
    char ec1[50];                      /* Buffer printing huge values */
-
    BFILE bfd;                         /* File content */
    uint64_t fileAddr = 0;             /* file write address */
    uint32_t size;                     /* Size of file */
@@ -768,7 +767,7 @@ bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *le
             Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
                   edit_uint64(*addr, ec1), jcr->last_fname, 
                   be.strerror(bfd->berrno));
-	    return false;
+            return false;
          }
       }
       *data += SPARSE_FADDR_SIZE;
@@ -898,8 +897,8 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       Dmsg1(500, "Crypto unser block size=%d\n", jcr->crypto_packet_len - CRYPTO_LEN_SIZE);
 
       if (jcr->crypto_packet_len == 0 || jcr->crypto_buf_len < jcr->crypto_packet_len) {
-	 /* No full preserved block is available. */
-	 return 0;
+         /* No full preserved block is available. */
+         return 0;
       }
 
       /* We have one full block, set up the filter input buffers */
@@ -910,9 +909,9 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    }
 
    if (flags & FO_SPARSE) {
-	if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
-	   return -1;
-	}
+      if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
+         return -1;
+      }
    }
 
    if (flags & FO_GZIP) {
@@ -934,9 +933,9 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    if (flags & FO_ENCRYPT) {
       /* Move any remaining data to start of buffer */
       if (jcr->crypto_buf_len > 0) {
-	 Dmsg1(30, "Moving %u buffered bytes to start of buffer\n", jcr->crypto_buf_len);
-	 memmove(jcr->crypto_buf, &jcr->crypto_buf[jcr->crypto_packet_len], 
-	    jcr->crypto_buf_len);
+         Dmsg1(30, "Moving %u buffered bytes to start of buffer\n", jcr->crypto_buf_len);
+         memmove(jcr->crypto_buf, &jcr->crypto_buf[jcr->crypto_packet_len], 
+            jcr->crypto_buf_len);
       }
       /* The packet was successfully written, reset the length so that the next
        * packet length may be re-read by unser_crypto_packet_len() */
@@ -983,8 +982,8 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, CIPHER_CONTEX
 
    if (jcr->crypto_buf_len != jcr->crypto_packet_len) {
       Jmsg2(jcr, M_FATAL, 0,
-	    _("Unexpected number of bytes remaining at end of file, received %u, expected %u\n"),
-	    jcr->crypto_packet_len, jcr->crypto_buf_len);
+            _("Unexpected number of bytes remaining at end of file, received %u, expected %u\n"),
+            jcr->crypto_packet_len, jcr->crypto_buf_len);
       return false;
    }
 
@@ -992,9 +991,9 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, CIPHER_CONTEX
    jcr->crypto_packet_len = 0;
 
    if (flags & FO_SPARSE) {
-	if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
-	   return false;
-	}
+      if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
+         return false;
+      }
    }
 
    if (flags & FO_GZIP) {

@@ -41,13 +41,11 @@ Document:
  
 
 Priority:
+- Check if gnome-console works with TLS.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
-- Make sure the new level=Full syntax is used in all 
-  example conf files (especially in the manual).
-- Fix prog copyright (SD) all other files.
 - Migration Volume span bug
 - Rescue release
 - Bug reports
@@ -59,7 +57,6 @@ Priority:
 - Wrong jobbytes with query 12 (todo)
 - bacula-1.38.2-ssl.patch
 - Bare-metal recovery Windows (todo)
-- Document need for UTF-8 format
 
 
 
@@ -1749,3 +1746,8 @@ Block Position: 0
 - Make release unload any autochanger.
 - Arno's reservation deadlock.
 - Eric's SD patch
+- Make sure the new level=Full syntax is used in all 
+  example conf files (especially in the manual).
+- Fix prog copyright (SD) all other files.
+- Document need for UTF-8 format
+

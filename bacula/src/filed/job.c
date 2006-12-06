@@ -1543,7 +1543,9 @@ static int verify_cmd(JCR *jcr)
    /* Send termination status back to Dir */
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->ReadBytes, ed1),
-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors);
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+      jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
@@ -1637,7 +1639,9 @@ bail_out:
    /* Send termination status back to Dir */
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->ReadBytes, ed1),
-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors);
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+      jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
 
    /* Inform Director that we are done */
    bnet_sig(dir, BNET_TERMINATE);
