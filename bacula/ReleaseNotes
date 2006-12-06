@@ -34,6 +34,9 @@ Version 1.39.30 contains mainly bug fixes to 1.39.28. Please
      As of 1.39.30:
         All combinations work fine except Sparse+Encryption.
 
+  Bottom line, if you are using data encryption, please test restoring
+  data to be sure it all works correctly.
+
 ==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
 - A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
   the tape drive. Workaround, load the SuSE 10.1 version 2.6.16.21-0.25
