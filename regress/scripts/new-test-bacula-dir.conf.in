@@ -41,20 +41,6 @@ Job {
 }
 
 Job {
-  Name = "Crypto"
-  Type = Backup
-  Client=@hostname@-fd 
-  FileSet="SparseCompressedSet"
-  Storage = File
-  Messages = Standard
-  Pool = Default
-  Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  Maximum Concurrent Jobs = 4
-  SpoolData=yes
-}
-
-
-Job {
   Name = "MonsterSave"
   Type = Backup
   Client=@hostname@-fd 

@@ -8,7 +8,7 @@
 TestName="migration-volume-test"
 JobName=MigVolBackup
 . scripts/functions
-set_debug 1 
+set_debug 0 
 
 . config.out
 
@@ -88,6 +88,8 @@ END_OF_DATA
 run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
+
+exit
 
 check_two_logs
 check_restore_diff

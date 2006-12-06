@@ -11,6 +11,7 @@ tests/bextract-test
 tests/bscan-test
 tests/bsr-opt-test
 tests/compressed-test
+tests/compressed-encrypt-test
 tests/concurrent-jobs-test
 tests/data-encrypt-test
 #tests/sparse-encrypt-test
