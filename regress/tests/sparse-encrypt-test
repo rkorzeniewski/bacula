@@ -1,12 +1,11 @@
 #!/bin/sh
 #
-# Run a simple backup (with encryption) of the Bacula build directory
-#   then verify the signatures.
+# Run a simple backup with encryption and a real sparse file.
 #
 TestName="sparse-encrypt-test"
 JobName=Crypto
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs

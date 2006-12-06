@@ -7,7 +7,7 @@
 TestName="win32-to-linux-tape"
 JobName=AutoLabel
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/copy-win32-confs
 scripts/cleanup-tape

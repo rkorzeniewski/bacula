@@ -9,7 +9,7 @@
 TestName="restore-seek-tape"
 JobName=restore-tape-seek
 . scripts/functions
-set_debug 1
+set_debug 0
 
 copy_tape_confs
 echo "${cwd}/tmp/build" >/tmp/file-list
