@@ -7,8 +7,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
+<<<<<<< fr.po
+"POT-Creation-Date: 2006-12-06 10:02+0100\n"
+"PO-Revision-Date: 2006-12-06 22:09+0100\n"
+=======
 "POT-Creation-Date: 2006-12-06 20:24+0100\n"
 "PO-Revision-Date: 2006-11-20 20:16+0100\n"
+>>>>>>> 1.31
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -178,7 +183,7 @@ msgstr ""
 #: src/cats/sql_create.c:182
 #, c-format
 msgid "pool record %s already exists\n"
-msgstr ""
+msgstr "Le pool %s existe déjà en base\n"
 
 #: src/cats/sql_create.c:208
 #, c-format
@@ -188,7 +193,7 @@ msgstr ""
 #: src/cats/sql_create.c:239
 #, c-format
 msgid "Device record %s already exists\n"
-msgstr ""
+msgstr "Le device %s existe déjà en base\n"
 
 #: src/cats/sql_create.c:255
 #, c-format
@@ -341,7 +346,7 @@ msgstr ""
 #: src/cats/sql_find.c:232
 #, c-format
 msgid "Unknown Job level=%d\n"
-msgstr ""
+msgstr "Niveau de job inconnu %d\n"
 
 #: src/cats/sql_find.c:242
 #, c-format
@@ -570,15 +575,15 @@ msgstr ""
 
 #: src/dird/admin.c:98
 msgid "Admin OK"
-msgstr ""
+msgstr "Admin OK"
 
 #: src/dird/admin.c:102
 msgid "*** Admin Error ***"
-msgstr ""
+msgstr "*** Admin en Erreur ***"
 
 #: src/dird/admin.c:106
 msgid "Admin Canceled"
-msgstr ""
+msgstr "Admin Annulé"
 
 #: src/dird/admin.c:110 src/dird/backup.c:402 src/dird/restore.c:269
 #, c-format
@@ -605,6 +610,13 @@ msgid ""
 "  Termination:            %s\n"
 "\n"
 msgstr ""
+") : %s\n"
+"  JobId :                  %d\n"
+"  Job :                    %s\n"
+"  Début :                  %s\n"
+"  Fin :                    %s\n"
+"  Statut de fin :          %s\n"
+"\n"
 
 #: src/dird/authenticate.c:80 src/dird/authenticate.c:81
 #: src/tray-monitor/authenticate.c:132
@@ -662,7 +674,7 @@ msgstr "Mauvaise réponse à la commande Hello : ERR=%s\n"
 
 #: src/dird/authenticate.c:152 src/tray-monitor/authenticate.c:152
 msgid "Storage daemon rejected Hello command\n"
-msgstr ""
+msgstr "Le storage a rejeté la commande Hello\n"
 
 #: src/dird/authenticate.c:153
 #, fuzzy, c-format
@@ -676,7 +688,7 @@ msgstr ""
 
 #: src/dird/authenticate.c:208
 msgid "Director and File daemon passwords or names not the same.\n"
-msgstr ""
+msgstr "Le mot de passe ou le nom du Director et du Client ne sont pas identiques.\n"
 
 #: src/dird/authenticate.c:210
 #, fuzzy, c-format
@@ -724,7 +736,7 @@ msgstr "Mauvaise réponse à la commande Hello : ERR=%s\n"
 
 #: src/dird/authenticate.c:258 src/tray-monitor/authenticate.c:198
 msgid "File daemon rejected Hello command\n"
-msgstr ""
+msgstr "Le Client a rejeté la commande Hello\\n\n"
 
 #: src/dird/authenticate.c:259
 #, fuzzy, c-format
@@ -765,7 +777,7 @@ msgstr ""
 #: src/dird/authenticate.c:386
 #, c-format
 msgid "1000 OK: %s Version: %s (%s)\n"
-msgstr ""
+msgstr "1000 OK: %s Version: %s (%s)\n"
 
 #: src/dird/autoprune.c:64
 msgid "Begin pruning Jobs.\n"
@@ -791,7 +803,7 @@ msgstr "Pool à partir de sa définition"
 
 #: src/dird/backup.c:90
 msgid "No Storage specification found in Job or Pool.\n"
-msgstr ""
+msgstr "Pas de Storage défini dans le Job ou le Pool.\n"
 
 #: src/dird/backup.c:115
 #, c-format
@@ -913,6 +925,8 @@ msgid ""
 "Could not open WriteBootstrap file:\n"
 "%s: ERR=%s\n"
 msgstr ""
+"Impossible d'ouvrir le fichier bootstrap (WriteBootstrap) :\n"
+"%s : ERR=%s\n"
 
 #: src/dird/bsr.c:188
 #, c-format
@@ -949,6 +963,9 @@ msgid ""
 "   Volume(s)                 Storage(s)                SD Device(s)\n"
 "===========================================================================\n"
 msgstr ""
+"Ce job va utiliser les éléments suivants :\n"
+"   Volume(s)                 Storage(s)                SD Device(s)\n"
+"===========================================================================\n"
 
 #: src/dird/bsr.c:316
 msgid "No Volumes found to restore.\n"
@@ -12798,13 +12815,13 @@ msgstr "3001 Volume=%s Slot=%d\n"
 #: src/stored/dircmd.c:1071
 #, c-format
 msgid "3931 Device %s is BLOCKED. user unmounted.\n"
-msgstr "3931 Device %s est bloqué, démonté par l'utilisateur.\n"
+msgstr "3931 Device %s est BLOQUÉ, démonté par l'utilisateur.\n"
 
 #: src/stored/dircmd.c:1075
 #, c-format
 msgid ""
 "3932 Device %s is BLOCKED. user unmounted during wait for media/mount.\n"
-msgstr ""
+msgstr "3932 Device %s est BLOQUÉ, démonté par l'utilisateur alors que bacula était en attente d'un média.\n"
 
 #: src/stored/dircmd.c:1079
 #, c-format
@@ -13155,6 +13172,9 @@ msgid ""
 "    Current Volume \"%s\" not acceptable because:\n"
 "    %s"
 msgstr ""
+"Le director voulait utiliser le volume « %s ».\n"
+"    Le volume courant « %s » n'est pas utilisable car :\n"
+"    %s"
 
 #: src/stored/mount.c:368
 #, c-format
@@ -13178,6 +13198,8 @@ msgid ""
 "I cannot write on Volume \"%s\" because: The sizes do not match! Volume=%s "
 "Catalog=%s\n"
 msgstr ""
+"Impossible d'écrire sur le volume « %s » car :\n"
+"Les tailles ne correspondent pas. Volume=%s Catalogue=%s\n"
 
 #: src/stored/mount.c:399
 #, c-format
@@ -13190,6 +13212,8 @@ msgid ""
 "I cannot write on Volume \"%s\" because:\n"
 "The number of files mismatch! Volume=%u Catalog=%u\n"
 msgstr ""
+"Impossible d'écrire sur le volume « %s » \n"
+"car le nombre de fichiers ne correspond pas. Volume=%u Catalogue=%u\n"
 
 #: src/stored/mount.c:430
 #, c-format
@@ -13213,7 +13237,7 @@ msgstr "Le nouveau volume « %s » a été labélisé sur le device %s.\n"
 #: src/stored/mount.c:490
 #, c-format
 msgid "Warning device %s not configured to autolabel Volumes.\n"
-msgstr ""
+msgstr "Attention, le device %s n'est pas configuré pour labéliser automatiquement les volumes.\n"
 
 #: src/stored/mount.c:510
 #, c-format
@@ -13671,7 +13695,7 @@ msgstr ""
 #: src/stored/spool.c:513
 #, c-format
 msgid "Error writing data to spool file. ERR=%s\n"
-msgstr ""
+msgstr "Erreur pendant l'écriture des données vers le fichier de spool. ERR=%s\n"
 
 #: src/stored/spool.c:544
 msgid "Retrying after data spooling error failed.\n"
@@ -13688,10 +13712,11 @@ msgid "Sending spooled attrs to the Director. Despooling %s bytes ...\n"
 msgstr ""
 "Transfert des attributs spoolés au Director. Transfert de %s octets...\n"
 
+# Impossible d'ouvrir le fichier de spool des attributs : ERR=%s
 #: src/stored/spool.c:643
 #, c-format
 msgid "fopen attr spool file %s failed: ERR=%s\n"
-msgstr ""
+msgstr "Impossible d'ouvrir le fichier de spool des attributs %s : ERR=%s\n"
 
 #: src/stored/status.c:113
 msgid ""
@@ -13825,7 +13850,7 @@ msgstr "Fichier=%u bloc=%u\n"
 #: src/stored/status.c:328
 #, c-format
 msgid "Min block=%u Max block=%u\n"
-msgstr ""
+msgstr "Min bloc=%u Max bloc=%u\n"
 
 #: src/stored/status.c:352
 #, c-format
@@ -13838,6 +13863,8 @@ msgid ""
 "Reading: %s %s job %s JobId=%d Volume=\"%s\"\n"
 "    pool=\"%s\" device=\"%s\"\n"
 msgstr ""
+"Lecture : %s %s job %s JobId=%d Volume=« %s »\n"
+"   pool=« %s » device=« %s »\n"
 
 #: src/stored/status.c:381
 #, c-format
@@ -13845,6 +13872,8 @@ msgid ""
 "Writing: %s %s job %s JobId=%d Volume=\"%s\"\n"
 "    pool=\"%s\" device=\"%s\"\n"
 msgstr ""
+"Ecriture : %s %s job %s JobId=%d Volume=« %s »\n"
+"   pool=« %s » device=« %s »\n"
 
 #: src/stored/status.c:406
 #, c-format
@@ -13878,23 +13907,23 @@ msgstr ""
 
 #: src/stored/status.c:648
 msgid "Bacula Storage: Idle"
-msgstr ""
+msgstr "Bacula Storage : En attente"
 
 #: src/stored/status.c:659
 msgid "Bacula Storage: Running"
-msgstr ""
+msgstr "Bacula Storage : En cours"
 
 #: src/stored/status.c:673
 msgid "Bacula Storage: Last Job Canceled"
-msgstr ""
+msgstr "Bacula Storage : Dernier Job annulé"
 
 #: src/stored/status.c:677
 msgid "Bacula Storage: Last Job Failed"
-msgstr ""
+msgstr "Bacula Storage : Dernier Job en erreur"
 
 #: src/stored/status.c:681
 msgid "Bacula Storage: Last Job had Warnings"
-msgstr ""
+msgstr "Bacula Storage : Le dernier Job avait des erreurs"
 
 #: src/stored/stored.c:81
 #, fuzzy, c-format
@@ -13982,17 +14011,17 @@ msgstr ""
 #: src/stored/stored.c:480
 #, c-format
 msgid "Could not initialize %s\n"
-msgstr ""
+msgstr "Impossible d'initialiser %s\n"
 
 #: src/stored/stored.c:493
 #, c-format
 msgid "Could not open device %s\n"
-msgstr ""
+msgstr "Impossible d'ouvrir le device %s\n"
 
 #: src/stored/stored.c:506
 #, c-format
 msgid "Could not mount device %s\n"
-msgstr ""
+msgstr "Impossible de monter le device %s\n"
 
 #: src/stored/stored_conf.c:233
 #, c-format
@@ -14022,12 +14051,12 @@ msgstr ""
 #: src/stored/stored_conf.c:562
 #, c-format
 msgid "Too many items in \"%s\" resource\n"
-msgstr ""
+msgstr "Trop d'éléments dans la ressource « %s »\n"
 
 #: src/stored/stored_conf.c:596
 #, c-format
 msgid "Cannot find AutoChanger resource %s\n"
-msgstr ""
+msgstr "Impossible de trouver la ressource AutoChanger %s\n"
 
 #: src/stored/stored_conf.c:667
 #, c-format
