@@ -662,5 +662,14 @@
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
 
-/* Define to system config director */
+/* Define to system config directory */
 #undef SYSCONFDIR
+
+/* Define if OPENSSL is available */
+#undef HAVE_OPENSSL
+
+/* Define if comm encryption should be enabled */
+#undef HAVE_TLS
+
+/* Define if data encryption should be enabled */
+#undef HAVE_CRYPTO

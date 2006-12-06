@@ -54,7 +54,7 @@
 static const int dbglevel = 10;
 
 static char OKbootstrap[] = "3000 OK bootstrap\n";
-static bool get_job_to_migrate(JCR *jcr);
+static int get_job_to_migrate(JCR *jcr);
 struct idpkt;
 static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
                  const char *query2, const char *type);
@@ -96,11 +96,17 @@ bool do_migration_init(JCR *jcr)
    char ed1[100];
    JOB *job, *prev_job;
    JCR *mig_jcr;                   /* newly migrated job */
+   int count;
 
    /* If we find a job or jobs to migrate it is previous_jr.JobId */
-   if (!get_job_to_migrate(jcr)) {
+   count = get_job_to_migrate(jcr);
+   if (count < 0) {
       return false;
    }
+   if (count == 0) {
+      return true;
+   }
+
    Dmsg1(dbglevel, "Back from get_job_to_migrate JobId=%d\n", (int)jcr->JobId);
 
    if (jcr->previous_jr.JobId == 0) {
@@ -547,10 +553,11 @@ const char *sql_pool_time =
  *   one starting a new job with MigrationJobId set to that JobId, and
  *   finally, it returns the last JobId to the caller.
  *
- * Returns: false on error
- *          true  if OK and jcr->previous_jr filled in
+ * Returns: -1  on error
+ *           0  if no jobs to migrate
+ *           1  if OK and jcr->previous_jr filled in
  */
-static bool get_job_to_migrate(JCR *jcr)
+static int get_job_to_migrate(JCR *jcr)
 {
    char ed1[30];
    POOL_MEM query(PM_MESSAGE);
@@ -561,10 +568,10 @@ static bool get_job_to_migrate(JCR *jcr)
    idpkt ids, mid, jids;
    db_int64_ctx ctx;
    int64_t pool_bytes;
-   bool ok;
    time_t ttime;
    struct tm tm;
    char dt[MAX_TIME_LENGTH];
+   int count = 0;
 
    ids.list = get_pool_memory(PM_MESSAGE);
    ids.list[0] = 0;
@@ -678,8 +685,7 @@ static bool get_job_to_migrate(JCR *jcr)
             }
             mid.count = 1;
             Mmsg(mid.list, "%s", edit_int64(MediaId, ed1));
-            ok = find_jobids_from_mediaid_list(jcr, &mid, "Volumes");
-            if (!ok) {
+            if (!find_jobids_from_mediaid_list(jcr, &mid, "Volumes")) {
                continue;
             }
             if (i != 0) {
@@ -760,7 +766,7 @@ static bool get_job_to_migrate(JCR *jcr)
          goto bail_out;
       } else if (stat == 0) {
          Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
-         goto bail_out;
+         goto ok_out;
       }
    }
    
@@ -773,7 +779,7 @@ static bool get_job_to_migrate(JCR *jcr)
       goto bail_out;
    } else if (stat == 0) {
       Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
-      goto bail_out;
+      goto ok_out;
    }
 
    jcr->previous_jr.JobId = JobId;
@@ -790,19 +796,19 @@ static bool get_job_to_migrate(JCR *jcr)
    Dmsg3(dbglevel, "Migration JobId=%d  using JobId=%s Job=%s\n",
       jcr->JobId,
       edit_int64(jcr->previous_jr.JobId, ed1), jcr->previous_jr.Job);
+   count = 1;
 
 ok_out:
-   ok = true;
    goto out;
 
 bail_out:
-   ok = false;
+   count = -1;
            
 out:
    free_pool_memory(ids.list);
    free_pool_memory(mid.list);
    free_pool_memory(jids.list);
-   return ok;
+   return count;
 }
 
 static void start_migration_job(JCR *jcr)

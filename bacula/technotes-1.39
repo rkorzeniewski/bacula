@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+06Dec06
+kes  Modify migrate not to fail if nothing found to migrate. 
+kes  Add #undef HAVE_OPENSSL, HAVE_TLS, HAVE_CYRPTO to autoconf/config.h.in
+     because they were not always set correctly.
 05Dec06
 kes  Update configure.in to include python 2.5 search.
 kes  Back out unwanted migration change reported by Richard Mortimer.
