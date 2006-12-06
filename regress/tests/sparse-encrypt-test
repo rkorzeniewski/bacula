@@ -62,3 +62,4 @@ check_two_logs
 check_restore_diff
 end_test
 rm -f ${cwd}/build/src/tools/gigaslam.gif
+rm -r ${cwd}/build/gigaslam.gif
