@@ -12,7 +12,7 @@ rm -rf tmp/fd.out tmp/dir.out tmp/sd.out
 rm -rf working/log tmp/TEST-*
 rm -rf working/*.bsr
 rm -rf tmp/disk-changer /tmp/disk-changer
-rm -rf build/gigaslam.gif
+find . -name "gigaslam.gif" -exec rm -f {} \;
 
 bin/bacula stop 2>&1 >/dev/null
 cd bin
