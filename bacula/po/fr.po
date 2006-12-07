@@ -683,7 +683,8 @@ msgstr ""
 
 #: src/dird/authenticate.c:208
 msgid "Director and File daemon passwords or names not the same.\n"
-msgstr "Le mot de passe ou le nom du Director et du Client ne sont pas identiques.\n"
+msgstr ""
+"Le mot de passe ou le nom du Director et du Client ne sont pas identiques.\n"
 
 #: src/dird/authenticate.c:210
 #, fuzzy, c-format
@@ -12816,7 +12817,9 @@ msgstr "3931 Device %s est BLOQUÉ, démonté par l'utilisateur.\n"
 #, c-format
 msgid ""
 "3932 Device %s is BLOCKED. user unmounted during wait for media/mount.\n"
-msgstr "3932 Device %s est BLOQUÉ, démonté par l'utilisateur alors que bacula était en attente d'un média.\n"
+msgstr ""
+"3932 Device %s est BLOQUÉ, démonté par l'utilisateur alors que bacula était "
+"en attente d'un média.\n"
 
 #: src/stored/dircmd.c:1079
 #, c-format
@@ -13232,7 +13235,9 @@ msgstr "Le nouveau volume « %s » a été labélisé sur le device %s.\n"
 #: src/stored/mount.c:490
 #, c-format
 msgid "Warning device %s not configured to autolabel Volumes.\n"
-msgstr "Attention, le device %s n'est pas configuré pour labéliser automatiquement les volumes.\n"
+msgstr ""
+"Attention, le device %s n'est pas configuré pour labéliser automatiquement "
+"les volumes.\n"
 
 #: src/stored/mount.c:510
 #, c-format
@@ -13690,7 +13695,8 @@ msgstr ""
 #: src/stored/spool.c:513
 #, c-format
 msgid "Error writing data to spool file. ERR=%s\n"
-msgstr "Erreur pendant l'écriture des données vers le fichier de spool. ERR=%s\n"
+msgstr ""
+"Erreur pendant l'écriture des données vers le fichier de spool. ERR=%s\n"
 
 #: src/stored/spool.c:544
 msgid "Retrying after data spooling error failed.\n"
