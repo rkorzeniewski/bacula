@@ -443,9 +443,9 @@ process_stab2cv()
                 ./configure --prefix=${DEPPKG_DIR}/tools \
                             >make.log 2>&1
         fi
-        echo Building stab2c
+        echo Building stab2cv
         do_make Makefile 
-        echo Installing stab2c
+        echo Installing stab2cv
         do_make Makefile install
 }
 
