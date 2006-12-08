@@ -213,9 +213,11 @@ int main(int argc, char *argv[])
    const char *gargv[2] = {"gnome-console", NULL};
    CONFONTRES *con_font;
 
+#ifdef ENABLE_NLS
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
+#endif
 
    init_stack_dump();
    my_name_is(argc, argv, "gnome-console");

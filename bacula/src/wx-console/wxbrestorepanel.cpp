@@ -70,6 +70,7 @@ Select parameter to modify (1-11):
 #undef _DEBUG
 
 #include "bacula.h"
+
 #include "wxbrestorepanel.h"
 #include "wxbmainframe.h"
 #include "csprint.h"

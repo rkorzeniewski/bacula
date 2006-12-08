@@ -115,7 +115,7 @@ bool setup_job(JCR *jcr)
    }
    jcr->term_wait_inited = true;
 
-   create_unique_job_name(jcr, jcr->job->hdr.name);
+   create_unique_job_name(jcr, jcr->job->name());
    set_jcr_job_status(jcr, JS_Created);
    jcr->unlock();
 
@@ -143,6 +143,13 @@ bool setup_job(JCR *jcr)
    if (!jcr->pool_source) {
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
+   }
+   Dmsg2(500, "pool=%s (From %s)\n", jcr->pool->name(), jcr->pool_source);
+   if (jcr->JobType == JT_MIGRATE) {
+      if (!jcr->rpool_source) {
+         jcr->rpool_source = get_pool_memory(PM_MESSAGE);
+         pm_strcpy(jcr->rpool_source, _("unknown source"));
+      }
    }
 
    /*
@@ -599,6 +606,7 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
+   Dmsg1(010, "get_or_create_pool=%s\n", pool_name);
 
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
@@ -616,7 +624,7 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 void apply_pool_overrides(JCR *jcr)
 {
    if (jcr->run_pool_override) {
-      pm_strcpy(jcr->pool_source, _("run pool override"));
+      pm_strcpy(jcr->pool_source, _("Run pool override"));
    }
    /*
     * Apply any level related Pool selections
@@ -626,9 +634,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
          if (jcr->run_full_pool_override) {
-            pm_strcpy(jcr->pool_source, _("run FullPool override"));
+            pm_strcpy(jcr->pool_source, _("Run FullPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("job FullPool override"));
+            pm_strcpy(jcr->pool_source, _("Job FullPool override"));
          }
       }
       break;
@@ -636,9 +644,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->inc_pool) {
          jcr->pool = jcr->inc_pool;
          if (jcr->run_inc_pool_override) {
-            pm_strcpy(jcr->pool_source, _("run IncPool override"));
+            pm_strcpy(jcr->pool_source, _("Run IncPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("job IncPool override"));
+            pm_strcpy(jcr->pool_source, _("Job IncPool override"));
          }
       }
       break;
@@ -646,9 +654,9 @@ void apply_pool_overrides(JCR *jcr)
       if (jcr->diff_pool) {
          jcr->pool = jcr->diff_pool;
          if (jcr->run_diff_pool_override) {
-            pm_strcpy(jcr->pool_source, _("run DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("Run DiffPool override"));
          } else {
-            pm_strcpy(jcr->pool_source, _("job DiffPool override"));
+            pm_strcpy(jcr->pool_source, _("Job DiffPool override"));
          }
       }
       break;
@@ -735,7 +743,7 @@ void init_jcr_job_record(JCR *jcr)
    jcr->jr.JobLevel = jcr->JobLevel;
    jcr->jr.JobStatus = jcr->JobStatus;
    jcr->jr.JobId = jcr->JobId;
-   bstrncpy(jcr->jr.Name, jcr->job->hdr.name, sizeof(jcr->jr.Name));
+   bstrncpy(jcr->jr.Name, jcr->job->name(), sizeof(jcr->jr.Name));
    bstrncpy(jcr->jr.Job, jcr->Job, sizeof(jcr->jr.Job));
 }
 
@@ -833,6 +841,10 @@ void dird_free_jcr_pointers(JCR *jcr)
    if (jcr->pool_source) {
       free_pool_memory(jcr->pool_source);
       jcr->pool_source = NULL;
+   }
+   if (jcr->rpool_source) {
+      free_pool_memory(jcr->rpool_source);
+      jcr->rpool_source = NULL;
    }
    if (jcr->wstore_source) {
       free_pool_memory(jcr->wstore_source);

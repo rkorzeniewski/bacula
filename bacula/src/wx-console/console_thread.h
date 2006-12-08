@@ -37,6 +37,13 @@
 #ifndef CONSOLE_THREAD_H
 #define CONSOLE_THREAD_H
 
+#ifndef ENABLE_NLS
+#undef setlocale
+#undef textdomain
+#undef bindtextdomain
+#endif
+
+
 #include <wx/wxprec.h>
 
 #include <wx/string.h>

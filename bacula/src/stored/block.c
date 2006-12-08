@@ -940,7 +940,7 @@ reread:
       return false;
    }
    
-#define lots_of_debug
+// #define lots_of_debug
 #ifdef lots_of_debug
    if (dev->at_eof() && dev->is_dvd()) {
       Dmsg1(100, "file_size=%u\n",(unsigned int)dev->file_size);

@@ -749,7 +749,7 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
    for ( ;; ) {
       /* First item is the prompt string, not the items */
       if (ua->num_prompts == 1) {
-         bsendmsg(ua, _("Selection is empty!\n"));
+         bsendmsg(ua, _("Selection list for \"%s\" is empty!\n"), automsg);
          item = -1;                    /* list is empty ! */
          break;
       }

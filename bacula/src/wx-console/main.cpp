@@ -51,10 +51,6 @@
 
 #include "bacula.h"
 
-#undef setlocale
-#undef textdomain
-#undef bindtextdomain
-
 #include <wx/wxprec.h>
 #include <wx/config.h>
 #include <wx/intl.h>

@@ -203,10 +203,11 @@ public:
    alist *wstorage;                   /* Write storage possibilities */
    STORE *wstore;                     /* Selected write storage */
    CLIENT *client;                    /* Client resource */
-   POOL *pool;                        /* Pool resource */
+   POOL *pool;                        /* Pool resource = write for migration */
+   POOL *rpool;                       /* Read pool. Used only in migration */
    POOL *full_pool;                   /* Full backup pool resource */
    POOL *inc_pool;                    /* Incremental backup pool resource */
-   POOL *diff_pool;                    /* Differential backup pool resource */
+   POOL *diff_pool;                   /* Differential backup pool resource */
    bool run_pool_override;
    bool run_full_pool_override;
    bool run_inc_pool_override;
@@ -236,6 +237,7 @@ public:
    };
    POOLMEM *client_uname;             /* client uname */
    POOLMEM *pool_source;              /* Where pool came from */
+   POOLMEM *rpool_source;             /* Where migrate read pool came from */
    POOLMEM *rstore_source;            /* Where read storage came from */
    POOLMEM *wstore_source;            /* Where write storage came from */
    int replace;                       /* Replace option */

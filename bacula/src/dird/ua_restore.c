@@ -1037,6 +1037,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
       }
       if (do_prompt(ua, _("FileSet"), _("Select FileSet resource"),
                  fileset_name, sizeof(fileset_name)) < 0) {
+         bsendmsg(ua, _("No FileSet found for client \"%s\".\n"), cr.Name);
          goto bail_out;
       }
 

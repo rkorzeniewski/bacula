@@ -110,6 +110,7 @@ void InitWinAPIWrapper();
 #define  tape_read            read
 #define  tape_write           write
 #define  tape_close           ::close
+
 #endif
 
 
@@ -123,6 +124,12 @@ void InitWinAPIWrapper();
       #define N_(s) (s)
    #endif /* N_ */
 #else /* !ENABLE_NLS */
+   #undef _
+   #undef N_
+   #undef textdomain
+   #undef bindtextdomain
+   #undef setlocale
+
    #ifndef _
       #define _(s) (s)
    #endif
@@ -139,6 +146,8 @@ void InitWinAPIWrapper();
       #define setlocale(p, d)
    #endif
 #endif /* ENABLE_NLS */
+
+
 /* Use the following for strings not to be translated */
 #define NT_(s) (s)   
 
@@ -532,6 +541,14 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #ifndef HAVE_WXCONSOLE
 #undef strdup
 #define strdup(buf) bad_call_on_strdup_use_bstrdup(buf)
+#else 
+/* Groan, WxWidgets has its own way of doing NLS so cleanup */
+#ifndef ENABLE_NLS
+#undef _
+#undef setlocale
+#undef textdomain
+#undef bindtextdomain
+#endif  
 #endif
 
 /* Use our fgets which handles interrupts */
