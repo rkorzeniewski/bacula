@@ -36,7 +36,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output
 messages
 @$out tmp/log1.out
-@#setdebug level=100 dir
+@#setdebug level=10 dir
 @#setdebug level=100 storage=File
 label storage=File volume=FileVolume001 Pool=Default
 label storage=File volume=FileVolume002 Pool=Default
@@ -49,6 +49,7 @@ run job=$JobName yes
 @#run job=$JobName yes
 wait
 list volumes
+@#setdebug level=200 dir
 @# should migrate both Volumes
 run job=migrate-job yes
 wait
