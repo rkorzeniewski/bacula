@@ -2,6 +2,36 @@
 
 General:
 
+08Dec06
+kes  Mark build-depkgs-mingw3 executable in configure process.
+kes  Update autoconf/config.h.in to include LOCALEDIR
+kes  Undefine NLS settings for wxWidgets as there is a conflict with
+     their way of doing things.
+kes  Implement a rpool and rpool_source in jcr.h for Migration jobs.
+kes  Change a bunch of ->hdr.name to ->name()
+kes  Straighten out handling of read and write pools for Migration, including
+     getting the code in the proper order.
+kes  Improve migration error messages and debug output.
+kes  Shorten code path in migration if nothing found to do.
+kes  Implement read/write pool in migration job report.
+kes  Move ua_run.c select_job_level code into a subroutine (readability).
+kes  Move ua_run.c display_job_parameters into a subroutine.
+kes  Do not bash dcr->VolumeName in get_volume_info() because it makes
+     restore dependent on a valid catalog containing the Volume name.
+06Dec06
+kes  Put make_catalog_backup SQL_BINDIR in an environment variable to
+     make it easier for the user to change.
+kes  Fail any backup job that tries to use encryption and sparse options.
+     Hopefully this is a temporary change.
+kes  Correct the EndJob return string for non-backup jobs.
+kes  Review the encryption restore code.
+kes  Implement a new encryption regression test with compression.
+kes  Modify migrate not to fail if nothing found to migrate. 
+kes  Add #undef HAVE_OPENSSL, HAVE_TLS, HAVE_CYRPTO to autoconf/config.h.in
+     because they were not always set correctly.
+05Dec06
+kes  Update configure.in to include python 2.5 search.
+kes  Back out unwanted migration change reported by Richard Mortimer.
 04Dec06
 kes  Make migration with no files to migrate set normal termination.
 kes  Change message when job manually started to say Job queued. ... 
