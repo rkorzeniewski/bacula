@@ -662,7 +662,7 @@ Section "Director Service" SecDirectorDaemon
     File ${SRC_DIR}\grant_mysql_privileges.sql
     File /oname=$PLUGINSDIR\make_catalog_backup.cmd ${SRC_DIR}\make_mysql_catalog_backup.cmd
   ${ElseIf} $ConfigDirectorDB = 2
-    File /oname=bacula_cats.dll "${SRC_DIR}\cats_pgsql.dll"
+    File /oname=bacula_cats.dll "${SRC_DIR}\cats_postgresql.dll"
     File "${SRC_DIR}\libpq.dll"
 !if "${BUILD_TOOLS}" == "VC8"
     File "${SRC_DIR}\comerr32.dll"
@@ -693,7 +693,7 @@ Section "Director Service" SecDirectorDaemon
 !If "${BUILD_TOOLS}" == "VC8_DEBUG"
     File "${SRC_DIR}\sqlite3.exe.manifest"
 !endif
-    File /oname=bacula_cats.dll "${SRC_DIR}\cats_sqlite.dll"
+    File /oname=bacula_cats.dll "${SRC_DIR}\cats_sqlite3.dll"
     File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_sqlite3_database.cmd
     File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_sqlite3_database.cmd
     File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_sqlite3_tables.cmd

@@ -8,7 +8,7 @@ CD %CWD%
 SET DEPKG_DIR=%TOP_DIR%\depkgs-msvc
 SET DOCS_DIR=%TOP_DIR%\docs\manual
 
-SET BACULA_DLLS=bacula.dll cats_mysql.dll cats_pgsql.dll cats_sqlite.dll
+SET BACULA_DLLS=bacula.dll cats_mysql.dll cats_postgresql.dll cats_sqlite3.dll
 SET BACULA_EXES=bacula-dir.exe bacula-fd.exe bacula-sd.exe bconsole.exe wx-console.exe
 SET BACULA_TOOLS=bcopy.exe bextract.exe bls.exe bscan.exe bsleep.exe bsmtp.exe btape.exe dbcheck.exe scsilist.exe
 

@@ -20,8 +20,8 @@ INSTALL_EXE := ../release/winbacula-$(VERSION).exe
 BACULA_BINARIES := \
 	bacula.dll \
 	cats_mysql.dll \
-	cats_pgsql.dll \
-	cats_sqlite.dll \
+	cats_postgresql.dll \
+	cats_sqlite3.dll \
 	bacula-dir.exe \
 	bacula-fd.exe \
 	bacula-sd.exe \

@@ -43,16 +43,16 @@ LIBS_DLL = \
 
 .PHONY: all clean
 
-all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_pgsql.dll $(BINDIR)/cats_sqlite.dll
+all: $(LIBDIR)/libcats.a $(BINDIR)/cats_mysql.dll $(BINDIR)/cats_postgresql.dll $(BINDIR)/cats_sqlite3.dll
 
 clean:
 	@echo "Cleaning `pwd`"
 	$(call clean_obj,$(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS)))
-	$(call clean_obj,$(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_OBJS)))
-	$(call clean_obj,$(addprefix $(OBJDIR)/cats_sqlite/,sqlite.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_postgresql/,postgresql.o $(SQL_OBJS)))
+	$(call clean_obj,$(addprefix $(OBJDIR)/cats_sqlite3/,sqlite.o $(SQL_OBJS)))
 	$(call clean_exe,$(BINDIR)/cats_mysql.dll)
-	$(call clean_exe,$(BINDIR)/cats_pgsql.dll)
-	$(call clean_exe,$(BINDIR)/cats_sqlite.dll)
+	$(call clean_exe,$(BINDIR)/cats_postgresql.dll)
+	$(call clean_exe,$(BINDIR)/cats_sqlite3.dll)
 	$(ECHO_CMD)rm -f $(OBJDIR)/libcats.exp $(LIBDIR)/libcats.a
 
 $(LIBDIR)/libcats.a $(OBJDIR)/libcats.exp: bacula_cats.def
@@ -63,12 +63,12 @@ $(BINDIR)/cats_mysql.dll: $(addprefix $(OBJDIR)/cats_mysql/,mysql.o $(SQL_OBJS))
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_MYSQL) $(LIBS_DLL) -o $@
 
-$(BINDIR)/cats_pgsql.dll: $(addprefix $(OBJDIR)/cats_pgsql/,postgresql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_postgresql.dll: $(addprefix $(OBJDIR)/cats_postgresql/,postgresql.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_POSTGRESQL) $(LIBS_DLL) -o $@
 
-$(BINDIR)/cats_sqlite.dll: $(addprefix $(OBJDIR)/cats_sqlite/,sqlite.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
+$(BINDIR)/cats_sqlite3.dll: $(addprefix $(OBJDIR)/cats_sqlite3/,sqlite.o $(SQL_OBJS)) $(OBJDIR)/libcats.exp
 	@echo "Linking $@"
 	$(call checkdir,$@)
 	$(ECHO_CMD)$(CXX) $(LDFLAGS) -mdll -mwindows $^ $(LIBS_SQLITE) $(LIBS_DLL) -o $@
@@ -94,7 +94,7 @@ endef
 
 $(eval $(call Link_Dll,cats_mysql,MYSQL))
 
-$(eval $(call Link_Dll,cats_pgsql,POSTGRESQL))
+$(eval $(call Link_Dll,cats_postgresql,POSTGRESQL))
 
-$(eval $(call Link_Dll,cats_sqlite,SQLITE3))
+$(eval $(call Link_Dll,cats_sqlite3,SQLITE3))
 

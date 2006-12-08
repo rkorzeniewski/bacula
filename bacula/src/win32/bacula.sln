@@ -144,7 +144,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dbcheck", "tools\dbcheck\db
 		{8B79A2B5-8889-43D4-9B92-9AE8A6F00413} = {8B79A2B5-8889-43D4-9B92-9AE8A6F00413}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cats_pgsql", "cats\cats_pgsql\cats_pgsql.vcproj", "{2FB961E5-213C-4475-8CB3-72F904D40752}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cats_postgresql", "cats\cats_postgresql\cats_postgresql.vcproj", "{2FB961E5-213C-4475-8CB3-72F904D40752}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2D729599-C008-4154-BCCB-53E6A260F220} = {2D729599-C008-4154-BCCB-53E6A260F220}
 	EndProjectSection
@@ -194,7 +194,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{40CA
 		scripts\mtx-changer.cmd = scripts\mtx-changer.cmd
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cats_sqlite", "cats\cats_sqlite\cats_sqlite.vcproj", "{23BFE838-5682-4F39-969F-0B40366D4D98}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cats_sqlite3", "cats\cats_sqlite3\cats_sqlite3.vcproj", "{23BFE838-5682-4F39-969F-0B40366D4D98}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2D729599-C008-4154-BCCB-53E6A260F220} = {2D729599-C008-4154-BCCB-53E6A260F220}
 	EndProjectSection
