@@ -50,8 +50,16 @@ DEPKGS_BINARIES := \
 	scsitape.exe \
 	sed.exe \
 	tapeinfo.exe \
-	wxbase26_gcc_bacula.dll \
-	wxmsw26_core_gcc_bacula.dll
+	expr64.exe \
+	snooze.exe \
+	mkisofs.exe \
+	growisofs.exe \
+	dvd-ram-control.exe \
+	dvd+rw-booktype.exe \
+	dvd+rw-format.exe \
+	dvd+rw-mediainfo.exe \
+	wxbase270_gcc_bacula.dll \
+	wxmsw270_core_gcc_bacula.dll
 
 NONGCC_BINARIES := \
 	libmysql.dll
@@ -63,7 +71,9 @@ MINGW_BINARIES := \
 	mingwm10.dll
 
 SCRIPT_FILES := \
-	mtx-changer.cmd
+	mtx-changer.cmd \
+	disk-changer.cmd \
+	dvd-handler.cmd
 
 CAT_FILES := \
 	create_mysql_database.cmd \
@@ -87,6 +97,7 @@ CAT_FILES := \
 	create_sqlite3_database.cmd \
 	drop_sqlite3_database.cmd \
 	make_sqlite3_tables.cmd \
+	make_sqlite3_tables.sql \
 	drop_sqlite3_tables.cmd \
 	grant_sqlite3_privileges.cmd \
 	make_sqlite3_catalog_backup.cmd \

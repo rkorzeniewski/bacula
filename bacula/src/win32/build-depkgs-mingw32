@@ -74,9 +74,10 @@ get_source()
         ARCHIVE=`basename ${URL}`
         
         case ${ARCHIVE} in
-        *.tar.gz)       ARCHIVER="tar xzf"; [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.gz'`;;
-        *.tar.bz2)      ARCHIVER="tar xjf"; [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.bz2'`;;
+        *.tar.gz)       ARCHIVER="tar xzf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.gz'`;;
+        *.tar.bz2)      ARCHIVER="tar xjf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.bz2'`;;
         *.zip)          ARCHIVER="unzip -q";   [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
+        *.exe)          ARCHIVER="";           [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
         *)              echo Unsupported archive type - $ARCHIVE; exit 1;;
         esac
         
@@ -94,13 +95,21 @@ get_source()
                 fi
         fi
 
+        [ -z "${ARCHIVER}" ] && return 0
+
         if [ ! -e "${SRC_DIR}" -o "${CLOBBER_SOURCE}" = "true" ]
         then
                 rm -rf ${SRC_DIR}
-                [ "${MAKE_DIR}" = "true" ] && mkdir ${SRC_DIR} && cd ${SRC_DIR}
                 echo Extracting ${ARCHIVE}
-                ${ARCHIVER} ${ARCHIVE} 2>&1 > ${ARCHIVE}.log
-                cd ${SRC_DIR}
+                if [ "${MAKE_DIR}" = "true" ]
+                then
+                        mkdir ${SRC_DIR}
+                        cd ${SRC_DIR}
+                        ${ARCHIVER} ../${ARCHIVE} > ../${ARCHIVE}.log 2>&1
+                else
+                        ${ARCHIVER} ${ARCHIVE} > ${ARCHIVE}.log 2>&1
+                        cd ${SRC_DIR}
+                fi
                 return 0
         fi
 
@@ -174,7 +183,7 @@ process_pcre()
                             --host=mingw32 \
                             --prefix=${DEPPKG_DIR} \
                             --enable-utf8 \
-                            --enable-unicode-properties 2>&1 >make.log
+                            --enable-unicode-properties >make.log 2>&1
         fi
         echo Building PCRE
         do_make Makefile PREFIX=${DEPPKG_DIR} all
@@ -213,7 +222,7 @@ process_openssl()
                             shared zlib-dynamic \
                             threads \
                             --with-zlib-include=${DEPPKG_DIR}/include \
-                            mingw32 2>&1 > make.log
+                            mingw32 > make.log 2>&1
         fi
         echo Building openssl
         perl util/mkdef.pl 32 libeay no-static-engine >ms/libeay32.def
@@ -251,14 +260,14 @@ process_postgresql()
 
                 # We need a native version of zic to build the timezone tables.
                 echo Configuring postgreSQL to build native zic
-                ./configure 2>&1 > make.log
+                ./configure > make.log 2>&1
 
                 echo Building native zic
                 cd src/timezone
-                do_make Makefile 2>&1 >> make.log
+                do_make Makefile >> make.log 2>&1
                 cp zic ../..
                 cd ../..
-                do_make GNUmakefile distclean 2>&1 >> make.log
+                do_make GNUmakefile distclean >> make.log 2>&1
 
                 echo Configuring postgreSQL for MinGW32
 
@@ -267,7 +276,7 @@ process_postgresql()
                             --enable-thread-safety \
                             --prefix=${DEPPKG_DIR} \
                             --with-includes=${DEPPKG_DIR}/include:${DEPPKG_DIR}/include/pthreads \
-                            --with-libraries=${DEPPKG_DIR}/lib 2>&1 >> make.log
+                            --with-libraries=${DEPPKG_DIR}/lib >> make.log 2>&1
         fi
         echo Building postgreSQL
         ZIC=`pwd`/zic
@@ -318,6 +327,8 @@ process_wx()
         cp -p include/wx/generic/* ../../include/wx/generic 2>&1 | grep -v 'omitting directory'
         mkdir ../../include/wx/msw
         cp -p include/wx/msw/* ../../include/wx/msw 2>&1 | grep -v 'omitting directory'
+        mkdir ../../include/wx/msw/ole
+        cp -p include/wx/msw/ole/* ../../include/wx/msw/ole 2>&1 | grep -v 'omitting directory'
         cp -p lib/gcc_dll/*.dll ../../bin
         rm -rf ../../lib/wx_dll
         mkdir ../../lib/wx_dll
@@ -334,7 +345,7 @@ process_scons()
 {
         get_source "${URL_SCONS}" "${DIR_SCONS}" "${MKD_SCONS}"
         echo Installing scons
-        if python setup.py install --prefix=${DEPPKG_DIR}/scons 2>&1 > make.log
+        if python setup.py install --prefix=${DEPPKG_DIR}/scons > make.log 2>&1
         then
                 :
         else
@@ -413,7 +424,7 @@ process_sed()
                 echo Configuring sed
                 ./configure --host=mingw32 \
                             --prefix=${DEPPKG_DIR} \
-                            --disable-nls 2>&1 >make.log
+                            --disable-nls >make.log 2>&1
         fi
         echo Building sed
         do_make Makefile all
@@ -430,12 +441,51 @@ process_stab2cv()
                 # do_patch stab2cv.patch
                 echo Configuring stab2cv
                 ./configure --prefix=${DEPPKG_DIR}/tools \
-                            2>&1 >make.log
+                            >make.log 2>&1
         fi
         echo Building stab2c
         do_make Makefile 
         echo Installing stab2c
         do_make Makefile install
+}
+
+process_cmd_utils()
+{
+        if get_source "${URL_CMD_UTILS}" "${DIR_CMD_UTILS}" "${MKD_CMD_UTILS}"
+        then
+                # echo Patching cmd-utils
+                # >patch.log
+                # do_patch cmd-utils.patch
+                echo Configuring cmd-utils
+                ./configure --host=mingw32 \
+                            --prefix=${DEPPKG_DIR} \
+                            >make.log 2>&1
+        fi
+        echo Building cmd-utils
+        do_make Makefile 
+        echo Installing cmd-utils
+        do_make Makefile install
+}
+
+process_mkisofs()
+{
+        get_source "${URL_MKISOFS}" "${DIR_MKISOFS}" "${MKD_MKISOFS}"
+        echo Installing mkisofs
+        cp `basename ${URL_MKISOFS}` ${DEPPKG_DIR}/bin
+}
+
+process_dvd_rw_tools()
+{
+        if get_source "${URL_DVD_RW_TOOLS}" "${DIR_DVD_RW_TOOLS}" "${MKD_DVD_RW_TOOLS}"
+        then
+                echo Patching dvd+rw-tools
+                >patch.log
+                do_patch dvd+rw-tools.patch
+        fi
+        echo Building dvd+rw-tools
+	m4 -DOS=XMINGW32 Makefile.m4 | make -f - dvd+rw-tools >make.log 2>&1
+        echo Installing dvd+rw-tools
+	m4 -DOS=XMINGW32 Makefile.m4 | make -f - prefix=${DEPPKG_DIR} install >>make.log 2>&1
 }
 
 if [ "$#" -eq 0 ]
@@ -454,6 +504,9 @@ then
         process_mt
         process_sed
         process_stab2cv
+        process_cmd_utils
+        process_mkisofs
+        process_dvd_rw_tools
 else
         for dependency in "$@"
         do

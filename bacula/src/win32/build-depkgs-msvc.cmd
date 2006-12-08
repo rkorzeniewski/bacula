@@ -12,7 +12,7 @@ EXIT /B 1
 
 IF "%CLOBBER_SOURCE%"=="" SET CLOBBER_SOURCE=false
 
-FOR /F "eol=# delims=| tokens=1-4" %%I in ( External-msvc ) DO SET URL_%%I=%%J & SET DIR_%%I=%%K & SET MKD_%%I=%%L
+FOR /F "eol=# delims=| tokens=1-4" %%I in ( External-msvc ) DO SET URL_%%I=%%J& SET DIR_%%I=%%K& SET MKD_%%I=%%L
 
 SET CWD=%CD%
 FOR %%I IN ( %0 ) DO CD %%~dpI
@@ -43,7 +43,7 @@ IF NOT EXIST lib\nul MKDIR lib
 
 CD src
 
-COPY NUL parse_output.sed
+COPY NUL parse_output.sed >nul 2>&1
 REM ECHO /\\$/N >>parse_output.sed
 REM ECHO s/\\\n// >>parse_output.sed
 ECHO s/\t\+/ /g >>parse_output.sed
@@ -73,6 +73,9 @@ REM	CALL :process_scons
 	CALL :process_mtx
 	CALL :process_mt
 	CALL :process_sed
+	CALL :process_cmd_utils
+	CALL :process_mkisofs
+	CALL :process_dvd_rw_tools
 	GOTO :EOF
 
 :ProcessArgs
@@ -89,7 +92,7 @@ REM	CALL :process_scons
 	SET BASENAME=
 
 	IF NOT "%SRC_DIR%"=="" GOTO :get_source_make_src
-	FOR %%I IN ( %URL% ) DO (SET BASENAME=%%~nI & IF NOT "%%~xI"==".gz" IF NOT "%%~xI"==".bz2" SET SRC_DIR=%%~nI)
+	FOR %%I IN ( %URL% ) DO (SET BASENAME=%%~nI& IF NOT "%%~xI"==".gz" IF NOT "%%~xI"==".bz2" SET SRC_DIR=%%~nI)
 	IF "%SRC_DIR%"=="" FOR %%I IN ( %BASENAME% ) DO SET SRC_DIR=%%~nI
 
 :get_source_make_src
@@ -98,7 +101,7 @@ REM	CALL :process_scons
 	IF /I "%MAKE_SRC_ENABLE:~0,1%"=="t" SET MAKE_SRC_DIR=true
 	IF /I "%MAKE_SRC_ENABLE:~0,1%"=="1" SET MAKE_SRC_DIR=true
 
-	FOR %%I IN ( %URL% ) DO SET ARCHIVE=%%~nxI
+	FOR %%I IN ( %URL% ) DO ( SET ARCHIVE=%%~nxI& SET ARCHIVE_EXT=%%~xI)
 	
 	CD %DEPPKG_DIR%\src
 	
@@ -110,16 +113,18 @@ REM	CALL :process_scons
 	EXIT /B 2
 
 :get_source_check_srcdir
+	IF /I "%ARCHIVE_EXT%"==".exe" EXIT /B 0
 	IF NOT EXIST %SRC_DIR%\nul GOTO :get_source_extract
 	IF NOT "%CLOBBER_SOURCE%"=="true" GOTO :get_source_skipped
-	IF EXIST "%SRC_DIR%\nul" RD /s /q "%SRC_DIR%"
+	IF EXIST %SRC_DIR%\nul RD /s /q "%SRC_DIR%"
 :get_source_extract
+	IF /I "%ARCHIVE_EXT%"==".exe" EXIT /B 0
 	SET TAR_ARCHIVE=
 	FOR %%I IN ( "%ARCHIVE%" ) do IF "%%~xI"==".gz" SET TAR_ARCHIVE=%%~nI
 	FOR %%I IN ( "%ARCHIVE%" ) do IF "%%~xI"==".bz2" SET TAR_ARCHIVE=%%~nI
 
 	SET TARGET_DIR=.
-	IF DEFINED MAKE_SRC_DIR IF NOT EXIST "%SRC_DIR%\nul" MKDIR %SRC_DIR%
+	IF DEFINED MAKE_SRC_DIR IF NOT EXIST %SRC_DIR%\nul MKDIR %SRC_DIR%
 	IF DEFINED MAKE_SRC_DIR SET TARGET_DIR=%SRC_DIR%
 
 	ECHO Extracting %ARCHIVE%
@@ -340,6 +345,55 @@ REM	find . -name makefile.gcc -exec sh -c "sed -f %SCRIPT_DIR%/patches/wx.sed {%
 	ECHO Unable to download sed source from %URL_MT%
 	EXIT /B 1
 
+:process_cmd_utils
+	CALL :get_source %URL_CMD_UTILS% %DIR_CMD_UTILS% %MKD_CMD_UTILS%
+	IF ERRORLEVEL 2 GOTO :cmd_utils_error
+	IF ERRORLEVEL 1 GOTO :cmd_utils_skip_patch
+REM	ECHO Patching cmd-utils
+REM	COPY /Y nul patch.log
+REM	CALL :do_patch cmd_utils_msc.patch
+:cmd_utils_skip_patch
+	ECHO Building cmd-utils
+	vcbuild /nologo cmd-utils.sln "Release|WIN32" 2>&1 | tee -a make.log | sed -nf "%DEPPKG_DIR%\src\parse_output.sed"
+	IF ERRORLEVEL 1 GOTO :cmd_utils_build_error
+	ECHO Installing cmd-utils
+	XCOPY Release\*.exe %DEPPKG_DIR%\bin
+	EXIT /B 0
+:cmd_utils_build_error
+	ECHO Make failed - Check %CD%\make.log > con
+	EXIT /B 1
+:cmd_utils_error
+	ECHO Unable to download cmd-utils source from %URL_MT%
+	EXIT /B 1
+
+:process_mkisofs
+	CALL :get_source %URL_MKISOFS% %DIR_MKISOFS% %MKD_MKISOFS%
+	IF ERRORLEVEL 2 GOTO :mkisofs_error
+	ECHO Installing mkisofs
+	FOR %%i IN ( %URL_MKISOFS% ) DO XCOPY %DEPPKG_DIR%\src\%%~nxi %DEPPKG_DIR%\bin /Y /Q >nul 2>&1
+	EXIT /B 0
+:mkisofs_error
+	ECHO Unable to download mkisofs source from %URL_MKISOFS%
+	EXIT /B 1
+
+:process_dvd_rw_tools
+	CALL :get_source %URL_DVD_RW_TOOLS% %DIR_DVD_RW_TOOLS% %MKD_DVD_RW_TOOLS%
+	IF ERRORLEVEL 2 GOTO :dvd_rw_tools_error
+	IF ERRORLEVEL 1 GOTO :dvd_rw_tools_skip_patch
+	ECHO Patching dvd+rw-tools
+	COPY /Y nul patch.log
+	CALL :do_patch dvd+rw-tools.patch
+:dvd_rw_tools_skip_patch
+	ECHO Building dvd+rw-tools
+	IF NOT EXIST Release\nul MKDIR Release
+	CALL :do_nmake Makefile.msc dvd+rw-tools
+	ECHO Installing dvd+rw-tools
+	CALL :do_nmake Makefile.msc prefix=%DEPPKG_DIR% install
+	EXIT /B 0
+:dvd_rw_tools_error
+	ECHO Unable to download dvd+rw-tools source from %URL_DVD_RW_TOOLS%
+	EXIT /B 1
+
 :do_patch
 	SET PATCH_FILE=%SCRIPT_DIR%\patches\%1
 	SHIFT
@@ -350,7 +404,7 @@ REM	find . -name makefile.gcc -exec sh -c "sed -f %SCRIPT_DIR%/patches/wx.sed {%
 
 :do_nmake
 	nmake /nologo -f %* 2>&1 | tee -a make.log | sed -nf "%DEPPKG_DIR%\src\parse_output.sed"
-	IF NOT ERRORLEVEL 1 EXIT/B 0
+	IF NOT ERRORLEVEL 1 EXIT /B 0
 	ECHO Make failed - Check %CD%\make.log > con
 	EXIT /B 1
 

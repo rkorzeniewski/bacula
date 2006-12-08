@@ -370,6 +370,8 @@ Function InstallCommonFiles
     File "${SRC_DIR}\bsleep.exe"
     File "${SRC_DIR}\bsmtp.exe"
     File "${SRC_DIR}\bacula.dll"
+    File "${SRC_DIR}\expr64.exe"
+    File "${SRC_DIR}\snooze.exe"
 
     CreateShortCut "$SMPROGRAMS\Bacula\Documentation\View Readme.lnk" "write.exe" '"$INSTDIR\Readme.txt"'
 
@@ -601,11 +603,29 @@ Section "Storage Service" SecStorageDaemon
   File "${SRC_DIR}\bscan.exe"
   File "${SRC_DIR}\btape.exe"
   File "${SRC_DIR}\scsilist.exe"
+  File "${SRC_DIR}\mkisofs.exe"
+  File "${SRC_DIR}\growisofs.exe"
+  File "${SRC_DIR}\dvd-ram-control.exe"
+  File "${SRC_DIR}\dvd+rw-booktype.exe"
+  File "${SRC_DIR}\dvd+rw-format.exe"
+  File "${SRC_DIR}\dvd+rw-mediainfo.exe"
 
   File "/oname=$PLUGINSDIR\mtx-changer.cmd" "${SRC_DIR}\mtx-changer.cmd"
 
   StrCpy $0 "$INSTDIR\bin"
   StrCpy $1 mtx-changer.cmd
+  Call ConfigEditAndCopy
+
+  File "/oname=$PLUGINSDIR\disk-changer.cmd" "${SRC_DIR}\disk-changer.cmd"
+
+  StrCpy $0 "$INSTDIR\bin"
+  StrCpy $1 disk-changer.cmd
+  Call ConfigEditAndCopy
+
+  File "/oname=$PLUGINSDIR\dvd-handler.cmd" "${SRC_DIR}\dvd-handler.cmd"
+
+  StrCpy $0 "$INSTDIR\bin"
+  StrCpy $1 dvd-handler.cmd
   Call ConfigEditAndCopy
 
   File "/oname=$PLUGINSDIR\bacula-sd.conf" "bacula-sd.conf.in"
@@ -677,6 +697,7 @@ Section "Director Service" SecDirectorDaemon
     File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_sqlite3_database.cmd
     File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_sqlite3_database.cmd
     File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_sqlite3_tables.cmd
+    File ${SRC_DIR}\make_sqlite3_tables.sql
     File /oname=$PLUGINSDIR\drop_tables.cmd ${SRC_DIR}\drop_sqlite3_tables.cmd
     File /oname=$PLUGINSDIR\grant_privileges.cmd ${SRC_DIR}\grant_sqlite3_privileges.cmd
     File /oname=$PLUGINSDIR\make_catalog_backup.cmd ${SRC_DIR}\make_sqlite3_catalog_backup.cmd
@@ -769,8 +790,8 @@ Section "Graphical Console" SecWxConsole
   File "${SRC_DIR}\wxmsw270_core_vc_bacula.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
-  File "${SRC_DIR}\wxbase26_gcc_bacula.dll"
-  File "${SRC_DIR}\wxmsw26_core_gcc_bacula.dll"
+  File "${SRC_DIR}\wxbase270_gcc_bacula.dll"
+  File "${SRC_DIR}\wxmsw270_core_gcc_bacula.dll"
 !endif
 
   File "${SRC_DIR}\wx-console.exe"

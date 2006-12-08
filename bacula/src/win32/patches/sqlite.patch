@@ -10,25 +10,7 @@ Index: main.mk
           update.o util.o vacuum.o \
           vdbe.o vdbeapi.o vdbeaux.o vdbefifo.o vdbemem.o \
           where.o utf.o legacy.o
-@@ -174,7 +174,7 @@
- # of the most recently modified source code file
- #
- last_change:	$(SRC)
--	cat $(SRC) | grep '$$Id: ' | sort +4 | tail -1 \
-+	cat $(SRC) | grep '$$Id: ' | sort -k 5 | tail -1 \
-           | $(NAWK) '{print $$5,$$6}' >last_change
- 
- libsqlite3.a:	$(LIBOBJ)
-@@ -264,7 +264,7 @@
- 	$(TCCX) -c opcodes.c
- 
- opcodes.c:	opcodes.h $(TOP)/mkopcodec.awk
--	sort -n -b +2 opcodes.h | $(NAWK) -f $(TOP)/mkopcodec.awk >opcodes.c
-+	sort -n -b -k 3 opcodes.h | $(NAWK) -f $(TOP)/mkopcodec.awk >opcodes.c
- 
- opcodes.h:	parse.h $(TOP)/src/vdbe.c $(TOP)/mkopcodeh.awk
- 	cat parse.h $(TOP)/src/vdbe.c | $(NAWK) -f $(TOP)/mkopcodeh.awk >opcodes.h
-@@ -360,8 +360,8 @@
+@@ -394,8 +394,8 @@
  
  # Rules for building test programs and for running tests
  #
@@ -39,7 +21,7 @@ Index: main.mk
  		$(TOP)/src/tclsqlite.c libsqlite3.a $(LIBTCL) $(THREADLIB)
  
  testfixture$(EXE):	$(TOP)/src/tclsqlite.c libsqlite3.a $(TESTSRC)
-@@ -563,8 +563,8 @@
+@@ -604,8 +604,8 @@
  
  # Standard install and cleanup targets
  #
