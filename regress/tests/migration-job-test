@@ -34,18 +34,20 @@ messages
 label storage=File volume=FileVolume001 Pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
-list volumes
 @# run two jobs (both will be migrated)
 run job=$JobName yes
 run job=$JobName yes
 wait
+list jobs
 list volumes
+@#setdebug level=100 dir
 @# should migrate two jobs
 run job=migrate-job yes
-list volumes
 wait
 messages
-purge volume=FileVolume001
+@# purge volume=FileVolume001
+list jobs 
+list volumes
 wait
 @# 
 @# now do a restore
