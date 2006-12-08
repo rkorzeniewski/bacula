@@ -146,7 +146,7 @@ sysconfdir=`eval echo ${sysconfdir}`
 datadir=`eval echo ${datadir}`
 localedir=`eval echo ${datadir}/locale`
 AC_DEFINE_UNQUOTED(LOCALEDIR, "$localedir") 
-AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")  
+AC_DEFINE_UNQUOTED(SYSCONFDIR, "$sysconfdir")
 
 # -------------------------------------------------------------------------
 #  If the user has not set --exec-prefix, we default to ${prefix}

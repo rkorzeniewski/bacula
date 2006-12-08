@@ -820,7 +820,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          Dmsg1(20, "Encrypt len=%d\n", cipher_input_len);
 
          if (!crypto_cipher_update(cipher_ctx, packet_len, sizeof(packet_len),
-                  (u_int8_t *)jcr->crypto_buf, &initial_len)) {
+             (u_int8_t *)jcr->crypto_buf, &initial_len)) {
             /* Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;
