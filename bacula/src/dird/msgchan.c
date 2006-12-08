@@ -199,11 +199,6 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
       return 0;
    }
 
-   pm_strcpy(pool_type, jcr->pool->pool_type);
-   pm_strcpy(pool_name, jcr->pool->hdr.name);
-   bash_spaces(pool_type);
-   bash_spaces(pool_name);
-
    /*
     * We have two loops here. The first comes from the 
     *  Storage = associated with the Job, and we need 
@@ -215,15 +210,24 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
     */
    /* Do read side of storage daemon */
    if (ok && rstore) {
+      /* For the moment, only migrate has rpool */
+      if (jcr->JobType == JT_MIGRATE) {
+         pm_strcpy(pool_type, jcr->rpool->pool_type);
+         pm_strcpy(pool_name, jcr->rpool->name());
+      } else {
+         pm_strcpy(pool_type, jcr->pool->pool_type);
+         pm_strcpy(pool_name, jcr->pool->name());
+      }
+      bash_spaces(pool_type);
+      bash_spaces(pool_name);
       foreach_alist(storage, rstore) {
          Dmsg1(100, "Rstore=%s\n", storage->name());
-         pm_strcpy(store_name, storage->name());
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);
          bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
                     pool_name.c_str(), pool_type.c_str(), 0, copy, stripe);
-
+         Dmsg1(100, "rstore >stored: %s", sd->msg);
          DEVICE *dev;
          /* Loop over alternative storage Devices until one is OK */
          foreach_alist(dev, storage->device) {
@@ -246,8 +250,11 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
 
    /* Do write side of storage daemon */
    if (ok && wstore) {
+      pm_strcpy(pool_type, jcr->pool->pool_type);
+      pm_strcpy(pool_name, jcr->pool->name());
+      bash_spaces(pool_type);
+      bash_spaces(pool_name);
       foreach_alist(storage, wstore) {
-         Dmsg1(100, "Wstore=%s\n", storage->name());
          pm_strcpy(store_name, storage->name());
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
@@ -255,6 +262,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
                     pool_name.c_str(), pool_type.c_str(), 1, copy, stripe);
 
+         Dmsg1(100, "wstore >stored: %s", sd->msg);
          DEVICE *dev;
          /* Loop over alternative storage Devices until one is OK */
          foreach_alist(dev, storage->device) {

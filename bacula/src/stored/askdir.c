@@ -166,7 +166,6 @@ static bool do_get_volume_info(DCR *dcr)
     int n;
     int32_t InChanger;
 
-    dcr->VolumeName[0] = 0;           /* No volume */
     if (bnet_recv(dir) <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
        Mmsg(jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
@@ -220,6 +219,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
     Dmsg1(100, ">dird: %s", dir->msg);
+    unbash_spaces(dcr->VolCatInfo.VolCatName);
     bool ok = do_get_volume_info(dcr);
     return ok;
 }

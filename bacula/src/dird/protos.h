@@ -130,6 +130,7 @@ extern bool create_restore_bootstrap_file(JCR *jcr);
 extern bool do_migration(JCR *jcr);
 extern bool do_migration_init(JCR *jcr);
 extern void migration_cleanup(JCR *jcr, int TermCode);
+extern bool set_migration_wstorage(JCR *jcr, POOL *pool);
 
 
 /* mountreq.c */
