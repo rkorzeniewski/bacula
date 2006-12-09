@@ -462,6 +462,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
             ff_pkt->flags & FO_HFSPLUS)) {
       if (ff_pkt->hfsinfo.rsrclength > 0) {
          int flags;
+	 int rsrc_stream;
          if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
             ff_pkt->ff_errno = errno;
             berrno be;
@@ -475,7 +476,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          }
          flags = ff_pkt->flags;
          ff_pkt->flags &= ~(FO_GZIP|FO_SPARSE);
-         stat = send_data(jcr, STREAM_MACOS_FORK_DATA, ff_pkt, digest, signing_digest);
+	 if (flags & FO_ENCRYPT) {
+	    rsrc_stream = STREAM_ENCRYPTED_MACOS_FORK_DATA;
+	 } else {
+	    rsrc_stream = STREAM_MACOS_FORK_DATA;
+	 }
+	 stat = send_data(jcr, rsrc_stream, ff_pkt, digest, signing_digest);
          ff_pkt->flags = flags;
          bclose(&ff_pkt->bfd);
          if (!stat) {
