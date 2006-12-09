@@ -349,7 +349,6 @@ void verify_cleanup(JCR *jcr, int TermCode)
    const char *Name;
 
 // Dmsg1(100, "Enter verify_cleanup() TermCod=%d\n", TermCode);
-   dequeue_messages(jcr);             /* display any queued messages */
 
    Dmsg3(900, "JobLevel=%c Expected=%u JobFiles=%u\n", jcr->JobLevel,
       jcr->ExpectedFiles, jcr->JobFiles);
@@ -365,9 +364,9 @@ void verify_cleanup(JCR *jcr, int TermCode)
    }
 
    JobId = jcr->jr.JobId;
-   set_jcr_job_status(jcr, TermCode);
 
-   update_job_end_record(jcr);
+   update_job_end(jcr, TermCode);
+
    if (jcr->unlink_bsr && jcr->RestoreBootstrap) {
       unlink(jcr->RestoreBootstrap);
       jcr->unlink_bsr = false;

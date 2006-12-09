@@ -219,6 +219,13 @@ bail_out:
    return false;
 }
 
+void update_job_end(JCR *jcr, int TermCode)
+{
+   dequeue_messages(jcr);             /* display any queued messages */
+   set_jcr_job_status(jcr, TermCode);
+   run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
+   update_job_end_record(jcr);
+}
 
 /*
  * This is the engine called by jobq.c:jobq_add() when we were pulled
@@ -259,7 +266,7 @@ static void *job_thread(void *arg)
    run_scripts(jcr, jcr->job->RunScripts, "BeforeJob");
 
    if (job_canceled(jcr)) {
-      update_job_end_record(jcr);
+      update_job_end(jcr, jcr->JobStatus);
 
    } else {
       /*
@@ -321,8 +328,6 @@ static void *job_thread(void *arg)
          Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
          break;
       }
-
-      run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
 
       /* Send off any queued messages */
       if (jcr->msg_queue && jcr->msg_queue->size() > 0) {

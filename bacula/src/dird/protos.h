@@ -113,6 +113,7 @@ extern JobId_t run_job(JCR *jcr);
 extern bool cancel_job(UAContext *ua, JCR *jcr);
 extern void get_job_storage(USTORE *store, JOB *job, RUN *run);
 extern void init_jcr_job_record(JCR *jcr);
+extern void update_job_end(JCR *jcr, int TermCode);
 extern void copy_rwstorage(JCR *jcr, alist *storage, const char *where);
 extern void set_rwstorage(JCR *jcr, USTORE *store);
 extern void free_rwstorage(JCR *jcr);

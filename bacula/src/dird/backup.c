@@ -341,12 +341,10 @@ void backup_cleanup(JCR *jcr, int TermCode)
    utime_t RunTime;
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
-   dequeue_messages(jcr);             /* display any queued messages */
    memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
-   set_jcr_job_status(jcr, TermCode);
 
-   update_job_end_record(jcr);        /* update database */
+   update_job_end(jcr, TermCode);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
