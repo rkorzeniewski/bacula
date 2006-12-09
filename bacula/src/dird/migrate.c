@@ -998,10 +998,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
    POOL_MEM query(PM_MESSAGE);
 
    Dmsg2(100, "Enter migrate_cleanup %d %c\n", TermCode, TermCode);
-   dequeue_messages(jcr);             /* display any queued messages */
+   update_job_end(jcr, TermCode);
    memset(&mr, 0, sizeof(mr));
-   set_jcr_job_status(jcr, TermCode);
-   update_job_end_record(jcr);        /* update database */
 
    /* 
     * Check if we actually did something.  
@@ -1015,8 +1013,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
       mig_jcr->jr.RealEndTime = 0; 
       mig_jcr->jr.PriorJobId = jcr->previous_jr.JobId;
 
-      set_jcr_job_status(mig_jcr, TermCode);
-      update_job_end_record(mig_jcr);
+      update_job_end(mig_jcr, TermCode);
      
       /* Update final items to set them to the previous job's values */
       Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"

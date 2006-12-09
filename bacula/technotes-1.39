@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+09Dec06
+ebl  Fix runscript to always execute command after all job type.
 08Dec06
 kes  Mark build-depkgs-mingw3 executable in configure process.
 kes  Update autoconf/config.h.in to include LOCALEDIR

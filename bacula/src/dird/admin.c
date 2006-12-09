@@ -82,9 +82,8 @@ void admin_cleanup(JCR *jcr, int TermCode)
 
    Dmsg0(100, "Enter backup_cleanup()\n");
    memset(&mr, 0, sizeof(mr));
-   set_jcr_job_status(jcr, TermCode);
 
-   update_job_end_record(jcr);        /* update database */
+   update_job_end(jcr, TermCode);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
