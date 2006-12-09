@@ -300,8 +300,8 @@ RES_ITEM job_items[] = {
    {"priority",   store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
    {"writepartafterjob",   store_bool, ITEM(res_job.write_part_after_job), 0, ITEM_DEFAULT, true},
    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
-   {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
+   {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
