@@ -665,7 +665,6 @@ extern int h_errno;
  */
 extern "C" int getdomainname(char *name, int namelen);
 extern "C" int setdomainname(char *name, int namelen);
-#define uLong unsigned long
 #endif /* HAVE_HPUX_OS */
 
 
