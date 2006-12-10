@@ -775,7 +775,8 @@ static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level)
  * Verify the signature for the last restored file
  * Return value is either true (signature correct)
  * or false (signature could not be verified).
- * TODO landonf: Better signature failure handling.
+ * TODO landonf: Implement without using find_one_file and
+ * without re-reading the file.
  */
 int verify_signature(JCR *jcr, SIGNATURE *sig)
 {
@@ -793,10 +794,13 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
          jcr->digest = digest;
 
          /* Checksum the entire file */
+         uint64_t saved_bytes = jcr->JobBytes;
          if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
             Jmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
+            jcr->JobBytes = saved_bytes;
             return false;
          }
+         jcr->JobBytes = saved_bytes;
 
          /* Verify the signature */
          if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
