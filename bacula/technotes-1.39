@@ -1,8 +1,20 @@
               Technical notes on version 1.39  
 
 General:
+10Dec06
+kes  Remove typedef uLong for HP in baconfig.h.  It broke things.
+lf   Fix job byte reporting -- the digest code runs in verify.c and
+     increases this value.  The better solution is to digest the
+     stream as we receive it, thus removing the need to re-read
+     from disk at all, but that requires more extensive and
+     potentially destabilizing changes.
+lf   This commit fixes backup and restore of HFS+ resource forks.
+lf   Add a long-missing 'break' statement in HFS+ attribute
+     handling that resulted in restore failures.
 09Dec06
 ebl  Fix runscript to always execute command after all job type.
+
+Version 1.39.30 released: 
 08Dec06
 kes  Mark build-depkgs-mingw3 executable in configure process.
 kes  Update autoconf/config.h.in to include LOCALEDIR
