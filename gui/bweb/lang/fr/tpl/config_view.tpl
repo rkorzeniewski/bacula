@@ -7,7 +7,7 @@
     <tr>  <td><b>Connexion SQL</b></td>  <td/></tr>
     <tr><td>DBI :</td>      <td> <TMPL_VAR dbi>      </td></tr>
     <tr><td>user :</td>     <td> <TMPL_VAR user>     </td></tr>
-    <tr><td>password :</td> <td> <TMPL_VAR password> </td></tr>
+    <tr><td>password :</td> <td> xxxxxxxx </td></tr>
     <tr>  <td><b>Options Générales</b></td>  <td/></tr>
     <tr><td>email_media :</td> <td> <TMPL_VAR email_media> </td></tr>
     <tr>  <td><b>Configuration Bweb</b></td>  <td/></tr>

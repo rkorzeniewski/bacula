@@ -17,7 +17,7 @@
          </td>
      </tr>
      <tr><td>password :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=password>' name='password'> 
+         <td> <input class="formulaire" type='password' value='<TMPL_VAR NAME=password>' name='password'> 
          </td></tr>
 
      <tr>  <td><b>General Options</b></td>  <td/></tr>
