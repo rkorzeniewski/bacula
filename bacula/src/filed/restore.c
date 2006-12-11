@@ -545,7 +545,7 @@ void do_restore(JCR *jcr)
 #else
          non_support_finfo++;
 #endif
-	 break;
+         break;
 
       case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
 #ifdef HAVE_ACL
@@ -783,6 +783,7 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
    X509_KEYPAIR *keypair;
    DIGEST *digest = NULL;
    crypto_error_t err;
+   uint64_t saved_bytes;
 
    /* Iterate through the trusted signers */
    foreach_alist(keypair, jcr->pki_signers) {
@@ -794,7 +795,8 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
          jcr->digest = digest;
 
          /* Checksum the entire file */
-         uint64_t saved_bytes = jcr->JobBytes;
+         /* Make sure we don't modify JobBytes by saving and restoring it */
+         saved_bytes = jcr->JobBytes;                     
          if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
             Jmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
             jcr->JobBytes = saved_bytes;
