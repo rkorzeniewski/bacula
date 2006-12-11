@@ -31,6 +31,9 @@ What's missing :
     * Plenty of features. As we don't have lots of imagination. Don't hesitate
       to suggest us your ideas ...
 
+    * We want use bacula to generate bsr files, at this time, you can't restore
+      files across different Storage (Full on tape, Incr on Disk for example)
+
 For the moment, we want to concentrate on having a restoration interface. We
 don't care about seeing the restoration progress, or anything else.
 
