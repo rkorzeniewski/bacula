@@ -2463,7 +2463,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
   <child>
     <widget class="GtkMenuItem" id="add__to_the_restore_list1">
       <property name="visible">True</property>
-      <property name="label" translatable="yes">Add to the restore list</property>
+      <property name="label" translatable="yes">Ajouter à la liste de restauration</property>
       <property name="use_underline">True</property>
       <signal name="activate" handler="context_add_to_filelist" last_modification_time="Tue, 30 May 2006 19:21:52 GMT"/>
     </widget>
@@ -2472,7 +2472,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
   <child>
     <widget class="GtkMenuItem" id="see_all_versions1">
       <property name="visible">True</property>
-      <property name="label" translatable="yes">See all versions</property>
+      <property name="label" translatable="yes">Voir toutes les versions</property>
       <property name="use_underline">True</property>
       <signal name="activate" handler="on_see_all_version" last_modification_time="Tue, 30 May 2006 19:21:52 GMT"/>
     </widget>
