@@ -58,14 +58,23 @@
      <option id='level_Full' value='Full'>Full</option>
      <option id='level_Differential' value='Differential'>Différentielle</option>
    </select>
+   </td></tr><tr id='more1' style="visibility:hidden"><td>Start Time: </td><td>
+   <input class='formulaire' 
+	  type='text' title='YYYY-MM-DD HH:MM:SS'
+          size='17' name='when' value='<TMPL_VAR when>'>
 
-   </td></tr><tr><td>Priorité : </td><td>
+   </td></tr><tr id='more2' style="visibility:hidden"><td>Priorité : </td><td>
    <input class='formulaire' type='text' 
           size='3' name='priority' value='<TMPL_VAR priority>'>
 
    </td></tr>
    </table>
    <br/>
+  <label onclick='
+           document.getElementById("more1").style.visibility="visible";
+           document.getElementById("more2").style.visibility="visible";'>
+  <img title="Affiche plus d'options" src='/bweb/add.png'>Options</label>
+  <label>
   <label>
   <input type="image" name='action' value='run_job_now' title='Lancer maintenant'
    src='/bweb/R.png'>Lancer maintenant

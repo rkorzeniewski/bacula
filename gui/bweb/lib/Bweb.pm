@@ -1436,6 +1436,13 @@ sub get_form
 	}
     }
 
+    if ($what{when}) {
+	my $when = CGI::param('when') || '';
+	if ($when =~ /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})$/) {
+	    $ret{when} = $1;
+	}
+    }
+
     if ($what{db_clients}) {
 	my $query = "
 SELECT Client.Name as clientname
@@ -3219,7 +3226,7 @@ sub run_job_now
     
     # TODO: check input (don't use pool, level)
 
-    my $arg = $self->get_form('pool', 'level', 'client', 'priority');
+    my $arg = $self->get_form('pool', 'level', 'client', 'priority', 'when');
     my $job = CGI::param('job') || '';
     my $storage = CGI::param('storage') || '';
 
@@ -3229,6 +3236,7 @@ sub run_job_now
 			level => $arg->{level},
 			storage => $storage,
 			pool => $arg->{pool},
+			when => $arg->{when},
 			);
 
     print $jobid, $b->{error};    

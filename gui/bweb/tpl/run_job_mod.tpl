@@ -59,13 +59,22 @@
      <option id='level_Differential' value='Differential'>Differential</option>
    </select>
 
-   </td></tr><tr><td>Priority: </td><td>
+   </td></tr><tr id='more1' style="visibility:hidden"><td>Start Time: </td><td>
+   <input class='formulaire' 
+	  type='text' title='YYYY-MM-DD HH:MM:SS'
+          size='17' name='when' value='<TMPL_VAR when>'>
+
+   </td></tr><tr id='more2' style="visibility:hidden"><td>Priority: </td><td>
    <input class='formulaire' type='text' 
           size='3' name='priority' value='<TMPL_VAR priority>'>
 
    </td></tr>
    </table>
    <br/>
+  <label onclick='
+           document.getElementById("more1").style.visibility="visible";
+           document.getElementById("more2").style.visibility="visible";'>
+  <img title='Display more options' src='/bweb/add.png'>More options</label>
   <label>
   <input type="image" name='action' value='run_job_now' title='Run job'
    src='/bweb/R.png'>Run now
