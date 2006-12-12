@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+12Dec06
+
 10Dec06
 kes  Remove typedef uLong for HP in baconfig.h.  It broke things.
 lf   Fix job byte reporting -- the digest code runs in verify.c and

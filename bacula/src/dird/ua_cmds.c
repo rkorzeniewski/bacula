@@ -1627,7 +1627,7 @@ bool open_db(UAContext *ua)
                              ua->catalog->db_port, ua->catalog->db_socket,
                              ua->catalog->mult_db_connections);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
-      bsendmsg(ua, _("Could not open database \"%s\".\n"),
+      bsendmsg(ua, _("Could not open catalog database \"%s\".\n"),
                  ua->catalog->db_name);
       if (ua->db) {
          bsendmsg(ua, "%s", db_strerror(ua->db));
