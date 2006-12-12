@@ -177,6 +177,10 @@ mount_next_vol:
    } else {
       mode = OPEN_READ_WRITE;
    }
+   /* Try autolabel if enabled */
+   if (dev->open(dcr, mode) < 0) {
+      try_autolabel(dcr);
+   }
    while (dev->open(dcr, mode) < 0) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
       if ((dev->is_file() && dev->is_removable()) || dev->is_dvd()) {

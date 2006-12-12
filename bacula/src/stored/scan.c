@@ -49,6 +49,7 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
    int name_max;
    char *mount_point;
    VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
+   char VolumeName[MAX_NAME_LENGTH];
    struct stat statp;
    bool found = false;
    POOL_MEM fname(PM_FNAME);
@@ -56,6 +57,7 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
    int len;
 
    
+   bstrncpy(VolumeName, dcr->VolumeName, sizeof(VolumeName));
    name_max = pathconf(".", _PC_NAME_MAX);
    if (name_max < 1024) {
       name_max = 1024;
@@ -113,6 +115,7 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
        */
       dcrVolCatInfo = dcr->VolCatInfo;     /* structure assignment */
       devVolCatInfo = VolCatInfo;          /* structure assignment */
+      bstrncpy(VolumeName, dcr->VolumeName, sizeof(VolumeName));
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, result->d_name, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
@@ -129,6 +132,10 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
    closedir(dp);
    
 get_out:
+   if (!found) {
+      /* Restore VolumeName we really wanted */
+      bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
+   }
    sm_check(__FILE__, __LINE__, false);
    return found;
 }
