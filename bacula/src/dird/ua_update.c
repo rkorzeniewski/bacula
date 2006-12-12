@@ -114,6 +114,7 @@ static void update_volstatus(UAContext *ua, const char *val, MEDIA_DBR *mr)
       NT_("Recycle"),
       NT_("Read-Only"),
       NT_("Error"),
+      NT_("Purged"),
       NULL};
    bool found = false;
    int i;
