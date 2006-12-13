@@ -1193,3 +1193,29 @@ Notes:
         functionality is the ultimate goal.
 
         Assistance with either code or testing would be fantastic.
+
+Item 1: On the bconsole "restore" command line, implement separate
+           option for specifying the host to restore from, and the 
+           host to restore to.
+           
+   Date: 11 December 2006
+   
+   Origin: Discussion on Bacula-users entitled 'Scripted restores to
+           different clients', December 2006 
+           
+   Status: New feature request
+ 
+   What: While using bconsole interactively, you can specify the client
+           that a backup job is to be restored for, and then you can
+           specify later a different client to send the restored files
+           back to. However, using the 'restore' command with all options
+           on the command line, this cannot be done, due to the ambiguous
+           'client' parameter. Additionally, this parameter means different
+           things depending on if it's specified on the command line or
+           afterwards, in the Modify Job screens.
+ 
+   Why: This feature would enable restore jobs to be more completely
+           automated, for example by a web or GUI front-end.
+ 
+   Notes: client can also be implied by specifying the jobid on the command
+           line

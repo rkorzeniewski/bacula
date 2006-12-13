@@ -751,7 +751,7 @@ static int re_read_block_test()
       goto bail_out;
    }
    memset(rec->data, 0, rec->data_len);
-   if (!read_record_from_block(block, rec)) {
+   if (!read_record_from_block(dcr, block, rec)) {
       berrno be;
       Pmsg1(0, _("Read block failed! ERR=%s\n"), be.strerror(dev->dev_errno));
       goto bail_out;
@@ -863,7 +863,7 @@ read_again:
          goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);
-      if (!read_record_from_block(block, rec)) {
+      if (!read_record_from_block(dcr, block, rec)) {
          berrno be;
          Pmsg2(0, _("Read record failed. Block %d! ERR=%s\n"), i, be.strerror(dev->dev_errno));
          goto bail_out;
@@ -1030,7 +1030,7 @@ read_again:
          goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);
-      if (!read_record_from_block(block, rec)) {
+      if (!read_record_from_block(dcr, block, rec)) {
          berrno be;
          Pmsg1(0, _("Read record failed! ERR=%s\n"), be.strerror(dev->dev_errno));
          goto bail_out;
@@ -1773,7 +1773,7 @@ static void scan_blocks()
          block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
          DEV_RECORD *rec = new_record();
-         read_record_from_block(block, rec);
+         read_record_from_block(dcr, block, rec);
          Pmsg8(-1, _("Blk_block: %u dev_blk=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
               block->BlockNumber, dev->block_num, block->block_len,
               FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId, rec->VolSessionTime,

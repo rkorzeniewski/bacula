@@ -153,7 +153,7 @@ int read_dev_volume_label(DCR *dcr)
            "labeled Volume, because: ERR=%s"), NPRT(VolName), 
            dev->print_name(), dev->print_errmsg());
       Dmsg1(30, "%s", jcr->errmsg);
-   } else if (!read_record_from_block(block, record)) {
+   } else if (!read_record_from_block(dcr, block, record)) {
       Mmsg(jcr->errmsg, _("Could not read Volume label from block.\n"));
       Dmsg1(30, "%s", jcr->errmsg);
    } else if (!unser_volume_label(dev, record)) {

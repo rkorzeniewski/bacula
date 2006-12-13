@@ -188,16 +188,19 @@ void do_restore(JCR *jcr)
       jcr->compress_buf_size = compress_buf_size;
    }
 
+   cipher_ctx.cipher = NULL;
+   alt_cipher_ctx.cipher = NULL;
    if (have_crypto) {
-      cipher_ctx.cipher = NULL;
       cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
       cipher_ctx.buf_len = 0;
       cipher_ctx.packet_len = 0;
 
-      cipher_ctx.cipher = NULL;
       alt_cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
       alt_cipher_ctx.buf_len = 0;
       alt_cipher_ctx.packet_len = 0;
+   } else {
+      cipher_ctx.buf = NULL;
+      alt_cipher_ctx.buf = NULL;
    }
    
    /*
