@@ -61,6 +61,8 @@ Priority:
 
 
 For 1.39:
+- Fix hardlinked immutable files when linking a second file, the
+  immutable flag must be removed prior to trying to link it.
 - Implement Python event for backing up/restoring a file.
 - Change dbcheck to tell users to use native tools for fixing
   broken databases, and to ensure they have the proper indexes.
@@ -1750,4 +1752,3 @@ Block Position: 0
   example conf files (especially in the manual).
 - Fix prog copyright (SD) all other files.
 - Document need for UTF-8 format
-

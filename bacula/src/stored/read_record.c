@@ -112,7 +112,7 @@ bool read_records(DCR *dcr,
              *  most likely reading the previous record.
              */
             read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
-            read_record_from_block(block, trec);
+            read_record_from_block(dcr, block, trec);
             handle_session_record(dev, trec, &sessrec);
             ok = record_cb(dcr, trec);
             free_record(trec);
@@ -188,7 +188,7 @@ bool read_records(DCR *dcr,
       rec->state = 0;
       Dmsg1(dbglvl, "Block %s empty\n", is_block_empty(rec)?"is":"NOT");
       for (rec->state=0; ok && !is_block_empty(rec); ) {
-         if (!read_record_from_block(block, rec)) {
+         if (!read_record_from_block(dcr, block, rec)) {
             Dmsg3(400, "!read-break. state=%s blk=%d rem=%d\n", rec_state_to_str(rec),
                   block->BlockNumber, rec->remainder);
             break;

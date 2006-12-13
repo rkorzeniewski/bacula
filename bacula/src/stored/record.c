@@ -426,7 +426,7 @@ bool can_write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
  *                 routine may have to be called again with a new
  *                 block if the entire record was not read.
  */
-bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
+bool read_record_from_block(DCR *dcr, DEV_BLOCK *block, DEV_RECORD *rec)
 {
    ser_declare;
    uint32_t remlen;
@@ -538,7 +538,18 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       return false;
    }
 
-   ASSERT(data_bytes < MAX_BLOCK_LENGTH);       /* temp sanity check */
+   /* Sanity check */
+   if (data_bytes >= MAX_BLOCK_LENGTH) {
+      /*
+       * Something is wrong, force read of next block, abort 
+       *   continuing with this block.
+       */
+      rec->state |= (REC_NO_HEADER | REC_BLOCK_EMPTY);
+      empty_block(block);
+      Jmsg2(dcr->jcr, M_WARNING, 0, _("Sanity check failed. maxlen=%d datalen=%d. Block discarded.\n"),
+         MAX_BLOCK_LENGTH, data_bytes);
+      return false;
+   }
 
    rec->data = check_pool_memory_size(rec->data, rec->data_len+data_bytes);
 
@@ -565,7 +576,7 @@ bool read_record_from_block(DEV_BLOCK *block, DEV_RECORD *rec)
       rec->remainder = 1;             /* partial record transferred */
       Dmsg1(450, "read_record_block: partial xfered=%d\n", rec->data_len);
       rec->state |= (REC_PARTIAL_RECORD | REC_BLOCK_EMPTY);
-      return 1;
+      return true;
    }
    rec->remainder = 0;
    Dmsg4(450, "Rtn full rd_rec_blk FI=%s SessId=%d Strm=%s len=%d\n",

@@ -284,7 +284,7 @@ static void do_blocks(char *infname)
             DEV_RECORD *record;
             record = new_record();
             read_block_from_device(dcr, NO_BLOCK_NUMBER_CHECK);
-            read_record_from_block(block, record);
+            read_record_from_block(dcr, block, record);
             get_session_record(dev, record, &sessrec);
             free_record(record);
             Jmsg(jcr, M_INFO, 0, _("Mounted Volume \"%s\".\n"), dcr->VolumeName);
@@ -312,7 +312,7 @@ static void do_blocks(char *infname)
         block->BlockNumber, block->block_len, block->BlockVer,
         block->VolSessionId, block->VolSessionTime);
       if (verbose == 1) {
-         read_record_from_block(block, rec);
+         read_record_from_block(dcr, block, rec);
          Pmsg9(-1, _("File:blk=%u:%u blk_num=%u blen=%u First rec FI=%s SessId=%u SessTim=%u Strm=%s rlen=%d\n"),
               dev->file, dev->block_num,
               block->BlockNumber, block->block_len,
