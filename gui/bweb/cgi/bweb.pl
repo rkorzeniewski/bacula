@@ -273,7 +273,7 @@ if ($action eq 'begin') {		# main display
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/status level db_clients db_filesets
 				    limit age offset qclients qfilesets
-				    jobtype/);
+				    jobtype qpools db_pools/);
     $bweb->display($fields, "display_form_job.tpl");
 
     print "</td><td valign='top'>";

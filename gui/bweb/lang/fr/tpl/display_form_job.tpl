@@ -28,6 +28,17 @@
   </td>
 </tr>
 <tr>
+ <td valign='top'>
+    <h2>Pool</h2>
+    <select name='pool' class='formulaire'>
+      <option id='pool_tout' value=''>Tous</option>
+<TMPL_LOOP NAME=db_pools>
+      <option id='pool_<TMPL_VAR name>'><TMPL_VAR name></option>
+</TMPL_LOOP>
+    </select>
+  </td>
+</tr>
+<tr>
   <td valign='top'>
     <h2>Période</h2>
     <select name='age' class='formulaire'>

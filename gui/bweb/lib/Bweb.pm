@@ -1910,6 +1910,7 @@ sub display_job
 					  'level',
 					  'filesets',
 					  'jobtype',
+					  'pools',
 					  'jobid',
 					  'status');
 
