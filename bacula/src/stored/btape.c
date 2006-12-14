@@ -726,14 +726,14 @@ static int re_read_block_test()
       Pmsg1(0, _("Wrote third record of %d bytes.\n"), rec->data_len);
    }
    weofcmd();
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    if (!dev->bsf(1)) {
       Pmsg1(0, _("Backspace file failed! ERR=%s\n"), dev->bstrerror());
       goto bail_out;
    }
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       if (!dev->bsf(1)) {
          Pmsg1(0, _("Backspace file failed! ERR=%s\n"), dev->bstrerror());
          goto bail_out;
@@ -840,7 +840,7 @@ static int write_read_test()
    }
    Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
    weofcmd();
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    if (!dev->rewind(dcr)) {
@@ -952,7 +952,7 @@ static int position_test()
    }
    Pmsg1(0, _("Wrote 1000 blocks of %d bytes.\n"), rec->data_len);
    weofcmd();
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    if (!dev->rewind(dcr)) {
@@ -1080,7 +1080,7 @@ static int append_test()
    wrcmd();
    wrcmd();
    weofcmd();     /* end file 2 */
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    dev->close();              /* release device */
@@ -1100,7 +1100,7 @@ static int append_test()
    Pmsg0(-1, _("\nNow the important part, I am going to attempt to append to the tape.\n\n"));
    wrcmd();
    weofcmd();
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    rewindcmd();
@@ -1129,7 +1129,7 @@ static int autochanger_test()
    int sleep_time = 0;
 
    Dmsg1(100, "Max changer wait = %d sec\n", timeout);
-   if (!dev_cap(dev, CAP_AUTOCHANGER)) {
+   if (!dev->has_cap(CAP_AUTOCHANGER)) {
       return 1;
    }
    if (!(dcr->device && dcr->device->changer_name && dcr->device->changer_command)) {
@@ -1296,7 +1296,7 @@ static int fsf_test()
    weofcmd();     /* end file 3 */
    wrcmd();
    weofcmd();     /* end file 4 */
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
 
@@ -1359,10 +1359,10 @@ test_again:
 
 bail_out:
    Pmsg0(-1, _("\nThe forward space file test failed.\n"));
-   if (dev_cap(dev, CAP_FASTFSF)) {
+   if (dev->has_cap(CAP_FASTFSF)) {
       Pmsg0(-1, _("You have Fast Forward Space File enabled.\n"
               "I am turning it off then retrying the test.\n"));
-      dev->capabilities &= ~CAP_FASTFSF;
+      dev->clear_cap(CAP_FASTFSF);
       set_off = true;
       goto test_again;
    }
@@ -1397,13 +1397,13 @@ static void testcmd()
       goto all_done;
    }
    if (stat == -1) {                  /* first test failed */
-      if (dev_cap(dev, CAP_EOM) || dev_cap(dev, CAP_FASTFSF)) {
+      if (dev->has_cap(CAP_EOM) || dev->has_cap(CAP_FASTFSF)) {
          Pmsg0(-1, _("\nAppend test failed. Attempting again.\n"
                    "Setting \"Hardware End of Medium = no\n"
                    "    and \"Fast Forward Space File = no\n"
                    "and retrying append test.\n\n"));
-         dev->capabilities &= ~CAP_EOM; /* turn off eom */
-         dev->capabilities &= ~CAP_FASTFSF; /* turn off fast fsf */
+         dev->clear_cap(CAP_EOM);      /* turn off eom */
+         dev->clear_cap(CAP_FASTFSF);  /* turn off fast fsf */
          stat = append_test();
          if (stat == 1) {
             Pmsg0(-1, _("\n\nIt looks like the test worked this time, please add:\n\n"
@@ -2119,8 +2119,8 @@ static void do_unfill()
    LastBlock = 0;
 
    Dmsg0(20, "Enter do_unfill\n");
-   dev->capabilities |= CAP_ANONVOLS; /* allow reading any volume */
-   dev->capabilities &= ~CAP_LABEL;   /* don't label anything here */
+   dev->set_cap(CAP_ANONVOLS);        /* allow reading any volume */
+   dev->clear_cap(CAP_LABEL);         /* don't label anything here */
 
    end_of_tape = 0;
 
@@ -2151,7 +2151,7 @@ static void do_unfill()
    if (!simple) {
       /* Multiple Volume tape */
       /* Close device so user can use autochanger if desired */
-      if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+      if (dev->has_cap(CAP_OFFLINEUNMOUNT)) {
          dev->offline();
       }
       autochanger = autoload_device(dcr, 1, NULL);
@@ -2210,7 +2210,7 @@ static void do_unfill()
 
    /* Multiple Volume tape */
    /* Close device so user can use autochanger if desired */
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+   if (dev->has_cap(CAP_OFFLINEUNMOUNT)) {
       dev->offline();
    }
 
@@ -2456,7 +2456,7 @@ static void qfillcmd()
    }
    printf("\n");
    weofcmd();
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       weofcmd();
    }
    rewindcmd();
@@ -2699,7 +2699,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       set_volume_name("TestVolume2", 2);
    }
    /* Close device so user can use autochanger if desired */
-   if (dev_cap(dev, CAP_OFFLINEUNMOUNT)) {
+   if (dev->has_cap(CAP_OFFLINEUNMOUNT)) {
       dev->offline();
    }
    autochanger = autoload_device(dcr, 1, NULL);

@@ -890,8 +890,8 @@ void create_restore_volume_list(JCR *jcr)
    /*
     * Build a list of volumes to be processed
     */
-   jcr->NumVolumes = 0;
-   jcr->CurVolume = 0;
+   jcr->NumReadVolumes = 0;
+   jcr->CurReadVolume = 0;
    if (jcr->bsr) {
       BSR *bsr = jcr->bsr;
       if (!bsr->volume || !bsr->volume->VolumeName) {
@@ -917,7 +917,7 @@ void create_restore_volume_list(JCR *jcr)
             vol->Slot = bsrvol->Slot;
             vol->start_file = sfile;
             if (add_restore_volume(jcr, vol)) {
-               jcr->NumVolumes++;
+               jcr->NumReadVolumes++;
                Dmsg2(400, "Added volume=%s mediatype=%s\n", vol->VolumeName,
                   vol->MediaType);
             } else {
@@ -938,7 +938,7 @@ void create_restore_volume_list(JCR *jcr)
          bstrncpy(vol->VolumeName, p, sizeof(vol->VolumeName));
          bstrncpy(vol->MediaType, jcr->dcr->media_type, sizeof(vol->MediaType));
          if (add_restore_volume(jcr, vol)) {
-            jcr->NumVolumes++;
+            jcr->NumReadVolumes++;
          } else {
             free((char *)vol);
          }

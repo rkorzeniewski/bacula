@@ -93,9 +93,6 @@ enum {
 #define BMT_IM_REP_EN      (1<<9)     /* immediate report enabled */
 
 
-/* Test capabilities */
-#define dev_cap(dev, cap) ((dev)->capabilities & (cap))
-
 /* Bits for device capabilities */
 #define CAP_EOF            (1<<0)     /* has MTWEOF */
 #define CAP_BSR            (1<<1)     /* has MTBSR */
@@ -285,6 +282,8 @@ public:
 
    /* Methods */
    int has_cap(int cap) const { return capabilities & cap; }
+   void clear_cap(int cap) { capabilities &= ~cap; }
+   void set_cap(int cap) { capabilities |= cap; }
    int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
    int requires_mount() const { return capabilities & CAP_REQMOUNT; }
    int is_removable() const { return capabilities & CAP_REM; }

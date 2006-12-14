@@ -643,7 +643,7 @@ static void reread_last_block(DCR *dcr)
     *   then re-read it and verify that the block number is
     *   correct.
     */
-   if (dev->is_tape() && dev_cap(dev, CAP_BSR)) {
+   if (dev->is_tape() && dev->has_cap(CAP_BSR)) {
       /* Now back up over what we wrote and read the last block */
       if (!dev->bsf(1)) {
          berrno be;
@@ -762,7 +762,7 @@ static bool terminate_writing_volume(DCR *dcr)
    /* Set new file/block parameters for current dcr */
    set_new_file_parameters(dcr);
 
-   if (ok && dev_cap(dev, CAP_TWOEOF) && !dev->weof(1)) {  /* end the tape */
+   if (ok && dev->has_cap(CAP_TWOEOF) && !dev->weof(1)) {  /* end the tape */
       dev->VolCatInfo.VolCatErrors++;
       /* This may not be fatal since we already wrote an EOF */
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);

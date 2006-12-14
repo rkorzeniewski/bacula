@@ -172,7 +172,7 @@ mount_next_vol:
    }
 
    /* Ensure the device is open */
-   if (dev_cap(dev, CAP_STREAM)) {
+   if (dev->has_cap(CAP_STREAM)) {
       mode = OPEN_WRITE_ONLY;
    } else {
       mode = OPEN_READ_WRITE;
@@ -565,7 +565,7 @@ void release_volume(DCR *dcr)
    dev->label_type = B_BACULA_LABEL;
    dcr->VolumeName[0] = 0;
 
-   if (dev->is_open() && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+   if (dev->is_open() && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
       dev->close();
    }
 
@@ -584,11 +584,11 @@ bool mount_next_read_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
-   Dmsg2(90, "NumVolumes=%d CurVolume=%d\n", jcr->NumVolumes, jcr->CurVolume);
+   Dmsg2(90, "NumReadVolumes=%d CurReadVolume=%d\n", jcr->NumReadVolumes, jcr->CurReadVolume);
    /*
     * End Of Tape -- mount next Volume (if another specified)
     */
-   if (jcr->NumVolumes > 1 && jcr->CurVolume < jcr->NumVolumes) {
+   if (jcr->NumReadVolumes > 1 && jcr->CurReadVolume < jcr->NumReadVolumes) {
       dev->close();
       if (!acquire_device_for_read(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Cannot open Dev=%s, Vol=%s\n"), dev->print_name(),

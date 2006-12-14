@@ -473,7 +473,7 @@ const char *sql_client =
 const char *sql_jobids_from_client =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Job,Pool,Client"
    " WHERE Client.Name='%s' AND Pool.Name='%s' AND Job.PoolId=Pool.PoolId"
-   " AND Job.ClientId=Client.ClientId "
+   " AND Job.ClientId=Client.ClientId AND Job.Type='B'"
    " ORDER by Job.StartTime";
 
 /* Get Volume names in Pool */
@@ -486,7 +486,7 @@ const char *sql_vol =
 const char *sql_jobids_from_vol =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM Media,JobMedia,Job"
    " WHERE Media.VolumeName='%s' AND Media.MediaId=JobMedia.MediaId"
-   " AND JobMedia.JobId=Job.JobId" 
+   " AND JobMedia.JobId=Job.JobId AND Job.Type='B'"
    " ORDER by Job.StartTime";
 
 
@@ -506,6 +506,7 @@ const char *sql_oldest_vol =
 const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
    " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
+   " AND Job.Type='B'"
    " ORDER by Job.StartTime";
 
 /* Get tne number of bytes in the pool */
@@ -530,6 +531,7 @@ const char *sql_pool_time =
    "SELECT DISTINCT Job.JobId from Pool,Job,Media,JobMedia WHERE"
    " Pool.Name='%s' AND Media.PoolId=Pool.PoolId AND"
    " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
+   " Job.Type='B' AND"
    " JobMedia.JobId=Job.JobId AND Job.PoolId=Media.PoolId"
    " AND Job.RealEndTime<='%s'";
 
@@ -1094,6 +1096,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         /* Mark previous job as migrated */
         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
+        Dmsg1(000, "Mark: %s\n", query.c_str());
         db_sql_query(jcr->db, query.c_str(), NULL, NULL);
      }
      term_msg = _("%s -- no files to migrate");

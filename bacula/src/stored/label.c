@@ -122,7 +122,7 @@ int read_dev_volume_label(DCR *dcr)
   
   want_ansi_label = dcr->VolCatInfo.LabelType != B_BACULA_LABEL ||
                     dcr->device->label_type != B_BACULA_LABEL;
-  if (want_ansi_label || dev_cap(dev, CAP_CHECKLABELS)) {
+  if (want_ansi_label || dev->has_cap(CAP_CHECKLABELS)) {
       stat = read_ansi_ibm_label(dcr);            
       /* If we want a label and didn't find it, return error */
       if (want_ansi_label && stat != VOL_OK) {
@@ -239,7 +239,7 @@ int read_dev_volume_label(DCR *dcr)
    }
    Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
    /* If we are a streaming device, we only get one chance to read */
-   if (!dev_cap(dev, CAP_STREAM)) {
+   if (!dev->has_cap(CAP_STREAM)) {
       dev->rewind(dcr);
       if (have_ansi_label) {
          stat = read_ansi_ibm_label(dcr);            
@@ -436,7 +436,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
     * We do not write the block now if this is an ANSI label. This
     *  avoids re-writing the ANSI label, which we do not want to do.
     */
-   if (!dev_cap(dev, CAP_STREAM)) {
+   if (!dev->has_cap(CAP_STREAM)) {
       if (!dev->rewind(dcr)) {
          Jmsg2(jcr, M_FATAL, 0, _("Rewind error on device %s: ERR=%s\n"),
                dev->print_name(), dev->print_errmsg());
@@ -571,7 +571,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    rec->FileIndex = dev->VolHdr.LabelType;
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
-   rec->Stream = jcr->NumVolumes;
+   rec->Stream = jcr->NumWriteVolumes;
    Dmsg2(150, "Created Vol label rec: FI=%s len=%d\n", FI_to_ascii(buf, rec->FileIndex),
       rec->data_len);
 }

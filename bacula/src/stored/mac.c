@@ -83,12 +83,12 @@ bool do_mac(JCR *jcr)
 
 
    create_restore_volume_list(jcr);
-   if (jcr->NumVolumes == 0) {
+   if (jcr->NumReadVolumes == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for %s.\n"), Type);
       goto bail_out;
    }
 
-   Dmsg3(200, "Found %d volumes names for %s. First=%s\n", jcr->NumVolumes,
+   Dmsg3(200, "Found %d volumes names for %s. First=%s\n", jcr->NumReadVolumes,
       jcr->VolList->VolumeName, Type);
 
    /* Ready devices for reading and writing */

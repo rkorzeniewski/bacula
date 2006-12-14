@@ -79,13 +79,13 @@ bool acquire_device_for_read(DCR *dcr)
          edit_int64(jcr->JobId, ed1));
       goto get_out;
    }
-   jcr->CurVolume++;
-   for (i=1; i<jcr->CurVolume; i++) {
+   jcr->CurReadVolume++;
+   for (i=1; i<jcr->CurReadVolume; i++) {
       vol = vol->next;
    }
    if (!vol) {
       Jmsg(jcr, M_FATAL, 0, _("Logic error: no next volume. Numvol=%d Curvol=%d\n"),
-         jcr->NumVolumes, jcr->CurVolume);
+         jcr->NumReadVolumes, jcr->CurReadVolume);
       goto get_out;                   /* should not happen */   
    }
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
@@ -403,8 +403,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
 
    dev->num_writers++;                /* we are now a writer */
-   if (jcr->NumVolumes == 0) {
-      jcr->NumVolumes = 1;
+   if (jcr->NumWriteVolumes == 0) {
+      jcr->NumWriteVolumes = 1;
    }
    P(dev->mutex);
    if (dcr->reserved_device) {
@@ -502,7 +502,7 @@ bool release_device(DCR *dcr)
    }
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
-   if (dev->num_writers == 0 && (!dev->is_tape() || !dev_cap(dev, CAP_ALWAYSOPEN))) {
+   if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
       dvd_remove_empty_part(dcr);        /* get rid of any empty spool part */
       dev->close();
    }

@@ -204,6 +204,9 @@ init_dev(JCR *jcr, DEVRES *device)
       if (!device->write_part_command) {
          Jmsg0(jcr, M_ERROR_TERM, 0, _("Write part command must be defined for a device which requires mount.\n"));
       }
+      /* Don't let DVD do block positioning since it is not tested   
+       *  ***FIXME**** remove if this works */
+      dev->clear_cap(CAP_POSITIONBLOCKS);
    }
 
    if (dev->max_block_size > 1000000) {
@@ -1714,32 +1717,32 @@ void DEVICE::clrerror(int func)
    if (errno == ENOTTY || errno == ENOSYS) { /* Function not implemented */
       switch (func) {
       case -1:
-         break;              /* ignore message printed later */
+         break;                  /* ignore message printed later */
       case MTWEOF:
          msg = "WTWEOF";
-         capabilities &= ~CAP_EOF; /* turn off feature */
+         clear_cap(CAP_EOF);     /* turn off feature */
          break;
 #ifdef MTEOM
       case MTEOM:
          msg = "WTEOM";
-         capabilities &= ~CAP_EOM; /* turn off feature */
+         clear_cap(CAP_EOM);     /* turn off feature */
          break;
 #endif
       case MTFSF:
          msg = "MTFSF";
-         capabilities &= ~CAP_FSF; /* turn off feature */
+         clear_cap(CAP_FSF);     /* turn off feature */
          break;
       case MTBSF:
          msg = "MTBSF";
-         capabilities &= ~CAP_BSF; /* turn off feature */
+         clear_cap(CAP_BSF);     /* turn off feature */
          break;
       case MTFSR:
          msg = "MTFSR";
-         capabilities &= ~CAP_FSR; /* turn off feature */
+         clear_cap(CAP_FSR);     /* turn off feature */
          break;
       case MTBSR:
          msg = "MTBSR";
-         capabilities &= ~CAP_BSR; /* turn off feature */
+         clear_cap(CAP_BSR);     /* turn off feature */
          break;
       case MTREW:
          msg = "MTREW";
@@ -2371,7 +2374,7 @@ void set_os_device_parameters(DCR *dcr)
 /* Turn this on later when fully tested */
 #if defined(xxxMTIOCSETEOTMODEL) 
    uint32_t neof;
-   if (dev_cap(dev, CAP_TWOEOF)) {
+   if (dev->has_cap(CAP_TWOEOF)) {
       neof = 2;
    } else {
       neof = 1;

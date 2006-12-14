@@ -64,14 +64,14 @@ bool do_read_data(JCR *jcr)
 
 
    create_restore_volume_list(jcr);
-   if (jcr->NumVolumes == 0) {
+   if (jcr->NumReadVolumes == 0) {
       Jmsg(jcr, M_FATAL, 0, _("No Volume names found for restore.\n"));
       free_restore_volume_list(jcr);
       bnet_fsend(fd, FD_error);
       return false;
    }
 
-   Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumVolumes,
+   Dmsg2(200, "Found %d volumes names to restore. First=%s\n", jcr->NumReadVolumes,
       jcr->VolList->VolumeName);
 
    /* Ready device for reading */
