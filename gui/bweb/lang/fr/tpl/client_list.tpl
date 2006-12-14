@@ -11,7 +11,7 @@
         <div class="otherbox">
 <!--        <h1>Actions</h1> -->	
        <label>
-       <input type="image" name='action' value='job' title='Voir l'historique' src='/bweb/zoom.png'>Historique</label> &nbsp;
+       <input type="image" name='action' value='job' title="Voir l'historique" src='/bweb/zoom.png'>Historique</label> &nbsp;
        <label>
        <input type="image" name='action' value='dsp_cur_job' title='Voir les jobs courants' src='/bweb/zoom.png'>Jobs courants</label> &nbsp;
        <label>
