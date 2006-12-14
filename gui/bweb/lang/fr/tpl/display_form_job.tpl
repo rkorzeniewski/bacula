@@ -118,5 +118,9 @@
      document.getElementById('fileset_' + <TMPL_VAR name>).selected = true;
   </TMPL_LOOP>
 
+  <TMPL_LOOP qpools>
+     document.getElementById('pool_' + <TMPL_VAR name>).selected = true;
+  </TMPL_LOOP>
+
 </script>
 
