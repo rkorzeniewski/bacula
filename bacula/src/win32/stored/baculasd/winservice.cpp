@@ -25,7 +25,7 @@
 // by Kern E. Sibbald.  Many thanks to ATT and James Weatherall,
 // the original author, for providing an excellent template.
 //
-// Copyright (C) 2000-2006 Kern E. Sibbald
+// Copyright (C) 2000-2006 Free Software Foundataion Europe e.V.
 //
 
 

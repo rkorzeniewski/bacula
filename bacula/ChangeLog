@@ -2,6 +2,44 @@
 
 General:
 
+14Dec06
+kes  Complete hopefully the last of the copyright transfer changes.
+kes  Separate NumVolumes in SD to NumReadVolumes and NumWrite volumes so
+     that migration writing to multiple volumes doesn't mess up reading
+     Volumes. This should fix bug #720 -- multivol migration fails.
+kes  Make migration SQL look only for Type='B' jobs to migrate.  This should
+     fix bug #724 jobs getting migrated twice.
+kes  Convert remaining dev_cap(dev, ...) to use dev->has_cap().
+kes  Implement dev->clear_cap() and dev->set_cap() methods.
+kes  Turn off disk seeking on restore for DVDs since I am not 100%
+     sure it works.
+13Dec06
+kes  Implement code that should properly set that a job was migrated,    
+     if the migration was successful even if there were no file to
+     migrate.
+kes  Apply Richard's patch to fix building or filed/restore.c without
+     OpenSSL support.
+kes  Ensure that at least one block is written by the SD even if the
+     FD dies or fails -- should fix bug #728.
+kes  Convert stored/record.c ASSERT into a soft fail if the length of   
+     a record is too insanely long. This should fix bug #???
+12Dec06
+kes  Fix automatic labeling of File volumes, which was broken by new
+     removable device code.
+10Dec06
+kes  Remove typedef uLong for HP in baconfig.h.  It broke things.
+lf   Fix job byte reporting -- the digest code runs in verify.c and
+     increases this value.  The better solution is to digest the
+     stream as we receive it, thus removing the need to re-read
+     from disk at all, but that requires more extensive and
+     potentially destabilizing changes.
+lf   This commit fixes backup and restore of HFS+ resource forks.
+lf   Add a long-missing 'break' statement in HFS+ attribute
+     handling that resulted in restore failures.
+09Dec06
+ebl  Fix runscript to always execute command after all job type.
+
+Version 1.39.30 released: 
 08Dec06
 kes  Mark build-depkgs-mingw3 executable in configure process.
 kes  Update autoconf/config.h.in to include LOCALEDIR

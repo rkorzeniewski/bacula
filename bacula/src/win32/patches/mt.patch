@@ -490,7 +490,7 @@ diff -ru ..\release\mt-st-0.9b/stinit.def.examples ./stinit.def.examples
 + *
 + * Version $Id$
 + *
-+ * Copyright (C) 2006 Kern Sibbald
++ * Copyright (C) 2006 Free Software Foundation Europe e.V.
 + *
 + * This file was contributed to the Bacula project by Robert Nelson.
 + *
@@ -506,7 +506,7 @@ diff -ru ..\release\mt-st-0.9b/stinit.def.examples ./stinit.def.examples
 + * Robert Nelson <robertn@the-nelsons.org>.
 + */
 +/*
-+   Copyright (C) 2006 Kern Sibbald
++   Copyright (C) 2006 Free Software Foundation Europe e.V.
 +
 +   This program is free software; you can redistribute it and/or
 +   modify it under the terms of the GNU General Public License

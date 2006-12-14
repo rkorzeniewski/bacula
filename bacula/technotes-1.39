@@ -1,6 +1,17 @@
               Technical notes on version 1.39  
 
 General:
+14Dec06
+kes  Complete hopefully the last of the copyright transfer changes.
+kes  Separate NumVolumes in SD to NumReadVolumes and NumWrite volumes so
+     that migration writing to multiple volumes doesn't mess up reading
+     Volumes. This should fix bug #720 -- multivol migration fails.
+kes  Make migration SQL look only for Type='B' jobs to migrate.  This should
+     fix bug #724 jobs getting migrated twice.
+kes  Convert remaining dev_cap(dev, ...) to use dev->has_cap().
+kes  Implement dev->clear_cap() and dev->set_cap() methods.
+kes  Turn off disk seeking on restore for DVDs since I am not 100%
+     sure it works.
 13Dec06
 kes  Implement code that should properly set that a job was migrated,    
      if the migration was successful even if there were no file to

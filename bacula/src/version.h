@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "1.39.31"
-#define BDATE   "12 December 2006"
-#define LSMDATE "12Dec06"
+#define BDATE   "14 December 2006"
+#define LSMDATE "14Dec06"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2006 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2006"       /* year for copyright messages in progs */
@@ -53,9 +53,9 @@
 
 #define USE_BSNPRINTF 1
 
-/* Debug flags not normally turned on */
+/* Disk file seeking is now controled by CAP_POSITIONBLOCKS */
 
-#define FILE_SEEK 1
+/* Debug flags not normally turned on */
 
 /* #define TRACE_JCR_CHAIN 1 */
 /* #define TRACE_RES 1 */

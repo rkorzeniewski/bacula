@@ -311,8 +311,9 @@ public:
    POOLMEM *fileset_name;             /* FileSet */
    POOLMEM *fileset_md5;              /* MD5 for FileSet */
    VOL_LIST *VolList;                 /* list to read */
-   int32_t NumVolumes;                /* number of volumes used */
-   int32_t CurVolume;                 /* current volume number */
+   int32_t NumWriteVolumes;           /* number of volumes written */
+   int32_t NumReadVolumes;            /* total number of volumes to read */
+   int32_t CurReadVolume;             /* current read volume number */
    int label_errors;                  /* count of label errors */
    bool session_opened;
    long Ticket;                       /* ticket for this job */

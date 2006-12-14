@@ -203,7 +203,7 @@ void set_new_volume_parameters(DCR *dcr)
    /* Reset indicies */
    dcr->VolFirstIndex = 0;
    dcr->VolLastIndex = 0;
-   jcr->NumVolumes++;
+   jcr->NumWriteVolumes++;
    dcr->NewVol = false;
    dcr->WroteVol = false;
 }
@@ -267,7 +267,7 @@ bool first_open_device(DCR *dcr)
    }
 
     int mode;
-    if (dev_cap(dev, CAP_STREAM)) {
+    if (dev->has_cap(CAP_STREAM)) {
        mode = OPEN_WRITE_ONLY;
     } else {
        mode = OPEN_READ_ONLY;
@@ -293,7 +293,7 @@ bool open_device(DCR *dcr)
    DEVICE *dev = dcr->dev;
    /* Open device */
    int mode;
-   if (dev_cap(dev, CAP_STREAM)) {
+   if (dev->has_cap(CAP_STREAM)) {
       mode = OPEN_WRITE_ONLY;
    } else {
       mode = OPEN_READ_WRITE;

@@ -89,7 +89,8 @@ JCR *setup_jcr(const char *name, char *dev_name, BSR *bsr,
    jcr->bsr = bsr;
    jcr->VolSessionId = 1;
    jcr->VolSessionTime = (uint32_t)time(NULL);
-   jcr->NumVolumes = 0;
+   jcr->NumReadVolumes = 0;
+   jcr->NumWriteVolumes = 0;
    jcr->JobId = 0;
    jcr->JobType = JT_CONSOLE;
    jcr->JobLevel = L_FULL;
