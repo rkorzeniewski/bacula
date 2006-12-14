@@ -1,5 +1,8 @@
           Release Notes for bweb 1.39.28
 
+2006/12/14
+ - Add pool filter to job form
+
 2006/12/12
  - Add More options button to run_job and Start Date field
 
