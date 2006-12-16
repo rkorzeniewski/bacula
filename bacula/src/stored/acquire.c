@@ -149,7 +149,7 @@ bool acquire_device_for_read(DCR *dcr)
          bstrncpy(dcr->pool_name, store->pool_name, sizeof(dcr->pool_name));
          bstrncpy(dcr->pool_type, store->pool_type, sizeof(dcr->pool_type));
       } else if (stat == 0) {   /* device busy */
-         Dmsg1(000, "Device %s is busy.\n", vol->device);
+         Pmsg1(000, "Device %s is busy.\n", vol->device);
       } else {
          /* error */
          Jmsg1(jcr, M_FATAL, 0, _("No suitable device found to read Volume \"%s\"\n"),
@@ -480,7 +480,7 @@ bool release_device(DCR *dcr)
                dcr->VolCatInfo.VolCatName, jcr->Job);
          }
          /* If no more writers, write an EOF */
-         if (!dev->num_writers && dev->can_write()) {
+         if (!dev->num_writers && dev->can_write() && dev->block_num > 0) {
             dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
          }

@@ -207,7 +207,7 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
 
    Dmsg0(100, "In set_job_events.\n");
    if (!PyArg_ParseTuple(arg, "O:set_events", &eObject)) {
-      Dmsg0(000, _("Error in ParseTuple\n"));
+      Pmsg0(000, _("Error in ParseTuple\n"));
       return NULL;
    }
    jcr = get_jcr_from_PyObject(self);
@@ -223,7 +223,7 @@ static PyObject *job_write(PyObject *self, PyObject *args)
    char *text = NULL;
 
    if (!PyArg_ParseTuple(args, "s:write", &text)) {
-      Dmsg0(000, _("Parse tuple error in job_write\n"));
+      Pmsg0(000, _("Parse tuple error in job_write\n"));
       return NULL;
    }
    if (text) {

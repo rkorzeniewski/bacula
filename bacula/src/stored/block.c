@@ -787,11 +787,11 @@ static bool do_new_file_bookkeeping(DCR *dcr)
    if (!dir_create_jobmedia_record(dcr)) {
       Dmsg0(190, "Error from create_job_media.\n");
       dev->dev_errno = EIO;
-       Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
-            dcr->VolCatInfo.VolCatName, jcr->Job);
-       terminate_writing_volume(dcr);
-       dev->dev_errno = EIO;
-       return false;
+      Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+           dcr->VolCatInfo.VolCatName, jcr->Job);
+      terminate_writing_volume(dcr);
+      dev->dev_errno = EIO;
+      return false;
    }
    dev->VolCatInfo.VolCatFiles = dev->file;
    if (!dir_update_volume_info(dcr, false)) {

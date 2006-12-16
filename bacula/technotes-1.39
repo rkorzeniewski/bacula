@@ -1,6 +1,17 @@
               Technical notes on version 1.39  
 
 General:
+16Dec06
+kes  Update projects file for next vote.
+kes  Implement a fix (more could be done) for bug #728 where a double
+     EOF is writing on the Volume when spooling is enabled and the    
+     connection with the FD fails (FD crash, comm error).
+kes  Disable attempting to autolabel when polling and device is not
+     a tape. This fixes bug #730 where polling with a removable disk
+     not mounted caused lots of new Volumes to be created then marked
+     in error.
+15Dec06
+kes  Enable VSS by default.
 14Dec06
 kes  Complete hopefully the last of the copyright transfer changes.
 kes  Separate NumVolumes in SD to NumReadVolumes and NumWrite volumes so
