@@ -2,6 +2,8 @@
 
 General:
 16Dec06
+kes  Implement cleaner orphan buffer dumping with buf address.
+kes  Fix orphaned buffer when canceling job waiting on op intervention.
 kes  Update projects file for next vote.
 kes  Implement a fix (more could be done) for bug #728 where a double
      EOF is writing on the Volume when spooling is enabled and the    

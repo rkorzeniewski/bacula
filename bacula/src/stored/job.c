@@ -353,6 +353,7 @@ void stored_free_jcr(JCR *jcr)
       delete jcr->dcrs;
    }
    jcr->dcrs = NULL;
+
    if (jcr->dcr) {
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
@@ -380,6 +381,5 @@ void stored_free_jcr(JCR *jcr)
       delete jcr->write_store;
       jcr->write_store = NULL;
    }
-
    return;
 }

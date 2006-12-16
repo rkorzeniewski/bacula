@@ -510,6 +510,13 @@ void *device_initialization(void *arg)
       free_dcr(dcr);
       jcr->dcr = NULL;
    }
+#ifdef xxx
+   if (jcr->dcr) {
+      Dmsg1(000, "free_dcr=%p\n", jcr->dcr);
+      free_dcr(jcr->dcr);
+      jcr->dcr = NULL;
+   }
+#endif
    free_jcr(jcr); 
    init_done = true;
    UnlockRes();
