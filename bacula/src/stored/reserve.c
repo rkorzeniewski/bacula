@@ -308,7 +308,7 @@ void free_volume_list()
    }
    P(vol_list_lock);
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
-      Dmsg3(000, "Unreleased Volume=%s dcr=0x%x dev=0x%x\n", vol->vol_name,
+      Dmsg3(100, "Unreleased Volume=%s dcr=0x%x dev=0x%x\n", vol->vol_name,
          vol->dcr, vol->dev);
    }
    delete vol_list;
@@ -604,7 +604,6 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
          break;
       }
    }
-
    return ok;
 }
 

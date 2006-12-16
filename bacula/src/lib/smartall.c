@@ -388,16 +388,16 @@ void sm_dump(bool bufdump)
       if (ap->abfname != NULL) {
          unsigned memsize = ap->ablen - (HEAD_SIZE + 1);
          char errmsg[500];
+         char *cp = ((char *)ap) + HEAD_SIZE;
 
          bsnprintf(errmsg, sizeof(errmsg),
-           _("Orphaned buffer:  %6u bytes allocated at line %d of %s %s\n"),
-            memsize, ap->ablineno, my_name, ap->abfname
+           _("Orphaned buffer:  %s %6u bytes buf=%p allocated at %s:%d\n"),
+            my_name, memsize, cp, ap->abfname, ap->ablineno
          );
          fprintf(stderr, "%s", errmsg);
          if (bufdump) {
             char buf[20];
             unsigned llen = 0;
-            char *cp = ((char *) ap) + HEAD_SIZE;
 
             errmsg[0] = EOS;
             while (memsize) {

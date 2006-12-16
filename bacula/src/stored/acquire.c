@@ -641,6 +641,7 @@ void detach_dcr_from_dev(DCR *dcr)
  */
 void free_dcr(DCR *dcr)
 {
+   JCR *jcr = dcr->jcr;
 
    if (dcr->dev) {
       detach_dcr_from_dev(dcr);
@@ -652,8 +653,8 @@ void free_dcr(DCR *dcr)
    if (dcr->rec) {
       free_record(dcr->rec);
    }
-   if (dcr->jcr) {
-      dcr->jcr->dcr = NULL;
+   if (jcr && jcr->dcr == dcr) {
+      jcr->dcr = NULL;
    }
    free(dcr);
 }

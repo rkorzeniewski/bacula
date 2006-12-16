@@ -83,7 +83,6 @@ bool do_append_data(JCR *jcr)
 
    if (!acquire_device_for_append(dcr)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-      jcr->dcr = NULL;
       return false;
    }
 
@@ -305,7 +304,6 @@ bool do_append_data(JCR *jcr)
    }
 
    if (!ok) {
-      Dmsg1(000, "Tape block=%d\n", dev->block_num);
       discard_data_spool(dcr);
    } else {
       /* Note: if commit is OK, the device will remain locked */
