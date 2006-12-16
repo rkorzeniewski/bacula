@@ -124,7 +124,6 @@ int wait_for_sysop(DCR *dcr)
 
       if (stat == EINVAL) {
          berrno be;
-         Dmsg1(000, "pthread stat=%d\n", stat);
          Jmsg1(jcr, M_FATAL, 0, _("pthread timedwait error. ERR=%s\n"), be.strerror(stat));
          stat = W_ERROR;               /* error */
          break;

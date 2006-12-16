@@ -179,7 +179,7 @@ mount_next_vol:
    }
    /* Try autolabel if enabled */
    if (dev->open(dcr, mode) < 0) {
-      try_autolabel(dcr);
+      try_autolabel(dcr);             /* try to create a new volume label */
    }
    while (dev->open(dcr, mode) < 0) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
@@ -465,10 +465,19 @@ read_volume:
  * As noted above, at this point dcr->VolCatInfo has what
  *   the Director wants and dev->VolCatInfo has info on the
  *   previous tape (or nothing).
+ *
+ * Return codes are:
+ *   try_next_vol        label failed, look for another volume
+ *   try_read_vol        labeled volume, now re-read the label
+ *   try_error           hard error (catalog update)
+ *   try_default         I couldn't do anything
  */
 static int try_autolabel(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
+   if (dev->poll && !dev->is_tape()) {
+      return try_default;       /* if polling, don't try to create new labels */
+   }
    if (dev->has_cap(CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
          (!dev->is_tape() && strcmp(dcr->VolCatInfo.VolCatStatus,
                                 "Recycle") == 0))) {
