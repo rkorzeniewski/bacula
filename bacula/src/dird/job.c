@@ -443,7 +443,7 @@ static void job_monitor_watchdog(watchdog_t *self)
    Dmsg1(800, "job_monitor_watchdog %p called\n", self);
 
    foreach_jcr(jcr) {
-      bool cancel;
+      bool cancel = false;
 
       if (jcr->JobId == 0 || job_canceled(jcr)) {
          Dmsg2(800, "Skipping JCR=%p Job=%s\n", jcr, jcr->Job);

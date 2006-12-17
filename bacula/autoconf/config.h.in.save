@@ -676,3 +676,6 @@
 
 /* Define the LOCALEDIR if a translation */
 #undef LOCALEDIR
+
+/* Define if language support is enabled */
+#undef ENABLE_NLS

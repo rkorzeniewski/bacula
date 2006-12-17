@@ -2,6 +2,8 @@
 
 General:
 17Dec06
+kes  Add ENABLE_NLS (as suggested by Eric) to correct NLS problems.
+     Remove NLS kludge from baconfig.h.  This fixes bug #729.
 kes  Allow seeking on DVD.
 kes  Add additional messages when Job canceled automatically for
      max run time or max start wait exceeded.  This fixes bug #621.
