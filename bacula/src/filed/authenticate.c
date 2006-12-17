@@ -112,6 +112,10 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    tid = start_bsock_timer(bs, AUTH_TIMEOUT);
    /* Challenge the director */
    auth_success = cram_md5_challenge(bs, director->password, tls_local_need, compatible);  
+   if (job_canceled(jcr)) {
+      auth_success = false;
+      goto auth_fatal;                   /* quick exit */
+   }
    if (auth_success) {
       auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
@@ -215,8 +219,17 @@ int authenticate_storagedaemon(JCR *jcr)
       }
    }
 
+   if (job_canceled(jcr)) {
+      auth_success = false;     /* force quick exit */
+      goto auth_fatal;
+   }
+
    /* Respond to SD challenge */
    auth_success = cram_md5_respond(sd, jcr->sd_auth_key, &tls_remote_need, &compatible);
+   if (job_canceled(jcr)) {
+      auth_success = false;     /* force quick exit */
+      goto auth_fatal;
+   }
    if (!auth_success) {
       Dmsg1(50, "cram_respond failed for %s\n", sd->who);
    } else {
@@ -226,9 +239,6 @@ int authenticate_storagedaemon(JCR *jcr)
          Dmsg1(50, "cram_challenge failed for %s\n", sd->who);
       }
    }
-
-   /* Destroy session key */
-   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization key rejected by Storage daemon.\n"
@@ -261,6 +271,8 @@ int authenticate_storagedaemon(JCR *jcr)
    }
 
 auth_fatal:
+   /* Destroy session key */
+   memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    stop_bsock_timer(tid);
    /* Single thread all failures to avoid DOS */
    if (!auth_success) {
