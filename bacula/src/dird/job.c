@@ -174,7 +174,6 @@ bool setup_job(JCR *jcr)
       goto bail_out;
    }
 
-
    /*
     * Now, do pre-run stuff, like setting job level (Inc/diff, ...)
     *  this allows us to setup a proper job start record for restarting
@@ -248,8 +247,8 @@ static void *job_thread(void *arg)
 
    if (jcr->job->MaxStartDelay != 0 && jcr->job->MaxStartDelay <
        (utime_t)(jcr->start_time - jcr->sched_time)) {
-      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
       set_jcr_job_status(jcr, JS_Canceled);
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
    }
 
    /* TODO : check if it is used somewhere */
@@ -352,6 +351,7 @@ static void *job_thread(void *arg)
 bool cancel_job(UAContext *ua, JCR *jcr)
 {
    BSOCK *sd, *fd;
+   char ed1[50];
 
    set_jcr_job_status(jcr, JS_Canceled);
 
@@ -363,8 +363,8 @@ bool cancel_job(UAContext *ua, JCR *jcr)
    case JS_WaitPriority:
    case JS_WaitMaxJobs:
    case JS_WaitStartTime:
-      bsendmsg(ua, _("JobId %d, Job %s marked to be canceled.\n"),
-              jcr->JobId, jcr->Job);
+      bsendmsg(ua, _("JobId %s, Job %s marked to be canceled.\n"),
+              edit_uint64(jcr->JobId, ed1), jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
       return true;
 
@@ -445,32 +445,34 @@ static void job_monitor_watchdog(watchdog_t *self)
    foreach_jcr(jcr) {
       bool cancel;
 
-      if (jcr->JobId == 0) {
-         Dmsg2(800, "Skipping JCR %p (%s) with JobId 0\n",
-               jcr, jcr->Job);
+      if (jcr->JobId == 0 || job_canceled(jcr)) {
+         Dmsg2(800, "Skipping JCR=%p Job=%s\n", jcr, jcr->Job);
          continue;
       }
 
       /* check MaxWaitTime */
-      cancel = job_check_maxwaittime(control_jcr, jcr);
-
+      if (job_check_maxwaittime(control_jcr, jcr)) {
+         set_jcr_job_status(jcr, JS_Canceled);
+         Jmsg(jcr, M_FATAL, 0, _("Max wait time exceeded. Job canceled.\n"));
+         cancel = true;
       /* check MaxRunTime */
-      cancel |= job_check_maxruntime(control_jcr, jcr);
+      } else if (job_check_maxruntime(control_jcr, jcr)) {
+         set_jcr_job_status(jcr, JS_Canceled);
+         Jmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
+         cancel = true;
+      }
 
       if (cancel) {
-         Dmsg3(800, "Cancelling JCR %p jobid %d (%s)\n",
-               jcr, jcr->JobId, jcr->Job);
-
+         Dmsg3(800, "Cancelling JCR %p jobid %d (%s)\n", jcr, jcr->JobId, jcr->Job);
          UAContext *ua = new_ua_context(jcr);
          ua->jcr = control_jcr;
          cancel_job(ua, jcr);
          free_ua_context(ua);
-
          Dmsg2(800, "Have cancelled JCR %p Job=%d\n", jcr, jcr->JobId);
       }
 
-      /* Keep reference counts correct */
    }
+   /* Keep reference counts correct */
    endeach_jcr(jcr);
 }
 
@@ -484,6 +486,9 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
    bool ok_to_cancel = false;
    JOB *job = jcr->job;
 
+   if (job_canceled(jcr)) {
+      return false;                /* already canceled */
+   }
    if (job->MaxWaitTime == 0 && job->FullMaxWaitTime == 0 &&
        job->IncMaxWaitTime == 0 && job->DiffMaxWaitTime == 0) {
       return false;
@@ -504,6 +509,11 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
    if (!ok_to_cancel) {
       return false;
    }
+
+/*
+ * I don't see the need for all this -- kes 17Dec06
+ */
+#ifdef xxx
    Dmsg3(800, "Job %d (%s): MaxWaitTime of %d seconds exceeded, "
          "checking status\n",
          jcr->JobId, jcr->Job, job->MaxWaitTime);
@@ -547,7 +557,7 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
    }
    Dmsg3(800, "MaxWaitTime result: %scancel JCR %p (%s)\n",
          cancel ? "" : "do not ", jcr, jcr->job);
-
+#endif
    return cancel;
 }
 
@@ -559,7 +569,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
 {
    bool cancel = false;
 
-   if (jcr->job->MaxRunTime == 0) {
+   if (jcr->job->MaxRunTime == 0 || job_canceled(jcr)) {
       return false;
    }
    if ((watchdog_time - jcr->start_time) < jcr->job->MaxRunTime) {
@@ -568,6 +578,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
       return false;
    }
 
+#ifdef xxx
    switch (jcr->JobStatus) {
    case JS_Created:
    case JS_Running:
@@ -596,7 +607,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
 
    Dmsg3(200, "MaxRunTime result: %scancel JCR %p (%s)\n",
          cancel ? "" : "do not ", jcr, jcr->job);
-
+#endif
    return cancel;
 }
 

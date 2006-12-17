@@ -419,7 +419,7 @@ void purge_job_from_catalog(UAContext *ua, JobId_t JobId)
    POOL_MEM query(PM_MESSAGE);
    char ed1[50];
 
-   /* Records associated with the job */
+   /* Delete (or purge) records associated with the job */
    purge_job_records_from_catalog(ua, JobId);
 
    /* Now remove the Job record itself */
