@@ -247,6 +247,7 @@ read_volume:
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
       VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
+      char VolumeName[MAX_NAME_LENGTH];
 
       /* If not removable, Volume is broken */
       if (!dev->is_removable()) {
@@ -272,6 +273,7 @@ read_volume:
       dcrVolCatInfo = dcr->VolCatInfo;      /* structure assignment */
       devVolCatInfo = dev->VolCatInfo;      /* structure assignment */
       /* Check if this is a valid Volume in the pool */
+      bstrncpy(VolumeName, dcr->VolumeName, sizeof(VolumeName));
       bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
          /* Restore desired volume name, note device info out of sync */
@@ -294,6 +296,7 @@ read_volume:
              jcr->dir_bsock->msg);
          ask = true;
          /* Restore saved DCR before continuing */
+         bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
          dcr->VolCatInfo = dcrVolCatInfo;  /* structure assignment */
          goto mount_next_vol;
       }

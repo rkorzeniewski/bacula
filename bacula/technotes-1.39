@@ -2,6 +2,8 @@
 
 General:
 16Dec06
+kes  Save and restore volume name in stored/mount.c fixed bug #712
+     where wrong tape was requested in a mount.
 kes  Implement cleaner orphan buffer dumping with buf address.
 kes  Fix orphaned buffer when canceling job waiting on op intervention.
 kes  Update projects file for next vote.
