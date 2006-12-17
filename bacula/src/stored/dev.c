@@ -204,9 +204,6 @@ init_dev(JCR *jcr, DEVRES *device)
       if (!device->write_part_command) {
          Jmsg0(jcr, M_ERROR_TERM, 0, _("Write part command must be defined for a device which requires mount.\n"));
       }
-      /* Don't let DVD do block positioning since it is not tested   
-       *  ***FIXME**** remove if this works */
-      dev->clear_cap(CAP_POSITIONBLOCKS);
    }
 
    if (dev->max_block_size > 1000000) {

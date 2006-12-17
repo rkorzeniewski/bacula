@@ -2,6 +2,7 @@
 
 General:
 17Dec06
+kes  Allow seeking on DVD.
 kes  Add additional messages when Job canceled automatically for
      max run time or max start wait exceeded.  This fixes bug #621.
 kes  Update maxruntime-test in regression script to properly test
