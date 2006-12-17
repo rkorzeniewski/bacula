@@ -83,7 +83,6 @@ void InitWinAPIWrapper();
 
 #define  OSDependentInit()    InitWinAPIWrapper()
 
-#undef ENABLE_NLS
 
 #if defined(BUILDING_DLL)
 #  define DLL_IMP_EXP   _declspec(dllexport)
