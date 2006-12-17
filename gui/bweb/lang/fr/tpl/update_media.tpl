@@ -48,6 +48,7 @@
 
     <tr><td> Localisation : </td>
         <td><select name='location' class='formulaire'>
+      <option value=''></option>
   <TMPL_LOOP db_locations>
       <option value='<TMPL_VAR location>'><TMPL_VAR location></option>
   </TMPL_LOOP>
