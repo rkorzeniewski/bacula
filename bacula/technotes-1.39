@@ -1,6 +1,14 @@
               Technical notes on version 1.39  
 
 General:
+17Dec06
+kes  Add additional messages when Job canceled automatically for
+     max run time or max start wait exceeded.  This fixes bug #621.
+kes  Update maxruntime-test in regression script to properly test
+     max run time -- from info given in bug #621.
+kes  Simplify automatic cancel code.
+kes  Add check for job_canceled() in FD when contacting SD so that if
+     job is canceled from max runtime, it terminates faster.
 16Dec06
 kes  Save and restore volume name in stored/mount.c fixed bug #712
      where wrong tape was requested in a mount.
