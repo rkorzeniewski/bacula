@@ -1,6 +1,8 @@
               Technical notes on version 1.39  
 
 General:
+19Dec06
+ebl  Fix runscript configuration parsing bug.
 17Dec06
 kes  Add ENABLE_NLS (as suggested by Eric) to correct NLS problems.
      Remove NLS kludge from baconfig.h.  This fixes bug #729.

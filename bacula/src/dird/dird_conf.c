@@ -1691,19 +1691,35 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
 }
 
+/* Store a bool in a bit field without modifing res_all.hdr 
+ * We can also add an option to store_bool to skip res_all.hdr
+ */
+void store_runscript_bool(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   lex_get_token(lc, T_NAME);
+   if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
+      *(bool *)(item->value) = true;
+   } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
+      *(bool *)(item->value) = false;
+   } else {
+      scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
+   }
+   scan_to_eol(lc);
+}
+
 /*
  * new RunScript items
- *   name             handler         value                                code flags default_value
+ *   name             handler              value                             code flags default_value
  */
 static RES_ITEM runscript_items[] = {
-   {"command", store_runscript_cmd,    {(char **)&res_runscript},           0,  ITEM_REQUIRED, 0}, 
-   {"target", store_runscript_target,  {(char **)&res_runscript},            0,  0, 0}, 
-   {"runsonsuccess",    store_bool,    {(char **)&res_runscript.on_success}, 0,  0, 0},
-   {"runsonfailure",    store_bool,    {(char **)&res_runscript.on_failure}, 0,  0, 0},
-   {"abortjobonerror", store_bool,     {(char **)&res_runscript.abort_on_error}, 0, 0,   0},
-   {"runswhen", store_runscript_when,  {(char **)&res_runscript.when},       0,  0, 0},
-   {"runsonclient", store_runscript_target,  {(char **)&res_runscript},       0,  0, 0}, /* TODO */
-   {NULL, NULL, {0}, 0, 0, 0}
+ {"command",        store_runscript_cmd,  {(char **)&res_runscript},           0,  ITEM_REQUIRED, 0}, 
+ {"target",         store_runscript_target,{(char **)&res_runscript},          0,  0, 0}, 
+ {"runsonsuccess",  store_runscript_bool, {(char **)&res_runscript.on_success},0,  0, 0},
+ {"runsonfailure",  store_runscript_bool, {(char **)&res_runscript.on_failure},0,  0, 0},
+ {"abortjobonerror",store_runscript_bool, {(char **)&res_runscript.abort_on_error},0, 0, 0},
+ {"runswhen",       store_runscript_when, {(char **)&res_runscript.when},      0,  0, 0},
+ {"runsonclient",   store_runscript_target,{(char **)&res_runscript},          0,  0, 0}, /* TODO */
+ {NULL, NULL, {0}, 0, 0, 0}
 };
 
 /*
