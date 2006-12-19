@@ -1,0 +1,8 @@
+This patch allow you to :
+ - use Purged media in Scratch (not only on Append mode)
+ - move Purged media to there RecyclePool
+
+$Log$
+Revision 1.1  2006/12/19 21:08:32  ricozz
+ebl  it build against bacula-1.39.30
+
