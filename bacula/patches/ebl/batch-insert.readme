@@ -21,6 +21,6 @@ CREATE UNIQUE INDEX path_name_idx on path (path);
 
 
 $Log$
-Revision 1.1  2006/12/19 21:19:38  ricozz
-ebl  this build with bacula-1.39.30 and 2006-12-19 cvs
+Revision 1.1  2006/12/19 21:33:06  ricozz
+ebl  ok against 1.39.30
 
