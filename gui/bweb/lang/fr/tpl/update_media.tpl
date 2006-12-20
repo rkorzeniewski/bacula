@@ -25,7 +25,6 @@
            <option value='Cleaning'>Cleaning</option>
            <option value='Error'>Error</option>
 	   <option value='Full'>Full</option>
-           <option value='Purged'>Purged</option>
            <option value='Read-Only'>Read-Only</option>
            <option value='Used'>Used</option>
            </select>
