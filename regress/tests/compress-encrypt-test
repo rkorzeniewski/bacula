@@ -6,7 +6,7 @@
 TestName="compressed-encrypt-test"
 JobName=CompressedTest
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs

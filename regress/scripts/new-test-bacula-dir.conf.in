@@ -117,6 +117,33 @@ Job {
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
 }
 
+JobDefs {
+  Name = "BackupJob"
+  Type = Backup
+  Pool = Default
+  Storage = File
+  Messages = Standard
+  Priority = 10
+}
+
+Job {
+  JobDefs = "BackupJob"
+  Name = "bug621-job-1"
+  Client = @hostname@-fd
+  FileSet="Full Set"
+  ClientRunBeforeJob = "/bin/sleep 60"
+}
+
+Job {
+  JobDefs = "BackupJob"
+  Name = "bug621-job-2"
+  Client = @hostname@-fd
+  FileSet = "Full Set"
+  Max Run Time = 30
+  Priority = 15
+}
+
+
 # Standard Restore template, to be changed by Console program
 Job {
   Name = "RestoreFiles"
