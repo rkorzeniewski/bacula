@@ -4,6 +4,9 @@ General:
 
 Version 1.39.32 released: 
 20Dec06
+kes  Fix a couple of compiler warnings in wx-console
+kes  Apply the immutable patch for FreeBSD hardlinked files supplied
+     by Olivier Lehmann.
 kes  Add Volume name to Forward spacing message.
 kes  Update migration job start time (so it is not zero) to prevent
      immediate recycling of the job.  This *should* fix bug #733.

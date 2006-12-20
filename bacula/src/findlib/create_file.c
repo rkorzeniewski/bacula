@@ -289,9 +289,46 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          Dmsg2(130, "Hard link %s => %s\n", attr->ofname, attr->olname);
          if (link(attr->olname, attr->ofname) != 0) {
             berrno be;
+#ifdef HAVE_CHFLAGS
+            struct stat s;
+
+        /*
+            * If using BSD user flags, maybe has a file flag
+            * preventing this. So attempt to disable, retry link,
+            * and reset flags.
+            * Note that BSD securelevel may prevent disabling flag.
+	*/
+
+            if (stat(attr->olname, &s) == 0 && s.st_flags != 0) {
+               if (chflags(attr->olname, 0) == 0) {
+                  if (link(attr->olname, attr->ofname) != 0) {
+                     /* restore original file flags even when linking failed */
+                     if (chflags(attr->olname, s.st_flags) < 0) {
+                        Qmsg2(jcr, M_ERROR, 0, _("Could not restore file flags for file %s: ERR=%s\n"),
+                              attr->olname, be.strerror());
+                     }
+#endif /* HAVE_CHFLAGS */
             Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
                   attr->ofname, attr->olname, be.strerror());
             return CF_ERROR;
+#ifdef HAVE_CHFLAGS
+                  }
+                  /* finally restore original file flags */
+                  if (chflags(attr->olname, s.st_flags) < 0) {
+                     Qmsg2(jcr, M_ERROR, 0, _("Could not restore file flags for file %s: ERR=%s\n"),
+                            attr->olname, be.strerror());
+                  }
+               } else {
+                 Qmsg2(jcr, M_ERROR, 0, _("Could not reset file flags for file %s: ERR=%s\n"),
+                       attr->olname, be.strerror());
+               }
+            } else {
+              Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
+                    attr->ofname, attr->olname, be.strerror());
+              return CF_ERROR;
+            }
+#endif /* HAVE_CHFLAGS */
+
          }
          return CF_CREATED;
 #endif
