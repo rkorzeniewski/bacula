@@ -1,0 +1,31 @@
+From: Eric Bollengier <eric AT eb.homelinux.org>
+
+This patch allow you to use Batch insert mode with all database.
+It have tested this with postgresql 8.1 and mysql 4.1 and sqlite.
+
+To use it, you MUST change some indexes.
+
+mysql)
+
+ALTER TABLE Filename DROP INDEX Name;
+ALTER TABLE Filename ADD UNIQUE (Name(255));
+
+ALTER TABLE Path DROP INDEX Path;
+ALTER TABLE Path ADD  UNIQUE (Path(255));
+
+postgresql)
+
+DROP INDEX filename_name_idx;
+CREATE UNIQUE INDEX filename_name_idx on filename (name);
+
+DROP INDEX path_name_idx;
+CREATE UNIQUE INDEX path_name_idx on path (path);
+
+
+$Log$
+Revision 1.1  2006/12/20 18:47:42  ricozz
+ebl  works with 1.39.30
+
+Revision 1.1  2006/12/19 21:33:06  ricozz
+ebl  ok against 1.39.30
+
