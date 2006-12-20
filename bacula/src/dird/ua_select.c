@@ -213,6 +213,19 @@ CAT *get_catalog_resource(UAContext *ua)
          }
       }
    }
+   if (ua->gui && !catalog) {
+      LockRes();
+      catalog = (CAT *)GetNextRes(R_CATALOG, NULL);
+      UnlockRes();
+      if (!catalog) {
+         bsendmsg(ua, _("Could not find a Catalog resource\n"));
+         return NULL;
+      } else if (!acl_access_ok(ua, Catalog_ACL, ua->catalog->hdr.name)) {
+         bsendmsg(ua, _("You must specify a \"use <catalog-name>\" command before continuing.\n"));
+         return NULL;
+      }
+      return catalog;
+   }
    if (!catalog) {
       start_prompt(ua, _("The defined Catalog resources are:\n"));
       LockRes();

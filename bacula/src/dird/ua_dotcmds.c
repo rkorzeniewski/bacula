@@ -109,7 +109,10 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
    }
    for (i=0; i<(int)comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
+         bool gui = ua->gui;
+         ua->gui = true;
          stat = (*commands[i].func)(ua, cmd);   /* go execute command */
+         ua->gui = gui;
          found = true;
          break;
       }
@@ -227,6 +230,7 @@ static int typescmd(UAContext *ua, const char *cmd)
    bsendmsg(ua, "Restore\n");
    bsendmsg(ua, "Admin\n");
    bsendmsg(ua, "Verify\n");
+   bsendmsg(ua, "Migrate\n");
    return 1;
 }
 
