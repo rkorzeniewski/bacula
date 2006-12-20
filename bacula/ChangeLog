@@ -2,6 +2,41 @@
 
 General:
 
+Version 1.39.32 released: 
+20Dec06
+kes  Add Volume name to Forward spacing message.
+kes  Update migration job start time (so it is not zero) to prevent
+     immediate recycling of the job.  This *should* fix bug #733.
+19Dec06
+ebl  Fix runscript configuration parsing bug.
+17Dec06
+kes  Add ENABLE_NLS (as suggested by Eric) to correct NLS problems.
+     Remove NLS kludge from baconfig.h.  This fixes bug #729.
+kes  Allow seeking on DVD.
+kes  Add additional messages when Job canceled automatically for
+     max run time or max start wait exceeded.  This fixes bug #621.
+kes  Update maxruntime-test in regression script to properly test
+     max run time -- from info given in bug #621.
+kes  Simplify automatic cancel code.
+kes  Add check for job_canceled() in FD when contacting SD so that if
+     job is canceled from max runtime, it terminates faster.
+16Dec06
+kes  Save and restore volume name in stored/mount.c fixed bug #712
+     where wrong tape was requested in a mount.
+kes  Implement cleaner orphan buffer dumping with buf address.
+kes  Fix orphaned buffer when canceling job waiting on op intervention.
+kes  Update projects file for next vote.
+kes  Implement a fix (more could be done) for bug #728 where a double
+     EOF is writing on the Volume when spooling is enabled and the    
+     connection with the FD fails (FD crash, comm error).
+kes  Disable attempting to autolabel when polling and device is not
+     a tape. This fixes bug #730 where polling with a removable disk
+     not mounted caused lots of new Volumes to be created then marked
+     in error.
+15Dec06
+kes  Enable VSS by default.
+
+Version 1.39.30 released: 
 14Dec06
 kes  Complete hopefully the last of the copyright transfer changes.
 kes  Separate NumVolumes in SD to NumReadVolumes and NumWrite volumes so

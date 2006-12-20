@@ -1,6 +1,7 @@
               Technical notes on version 1.39  
 
 General:
+Version 1.39.32 released: 
 20Dec06
 kes  Add Volume name to Forward spacing message.
 kes  Update migration job start time (so it is not zero) to prevent
@@ -33,6 +34,8 @@ kes  Disable attempting to autolabel when polling and device is not
      in error.
 15Dec06
 kes  Enable VSS by default.
+
+Version 1.39.30 released: 
 14Dec06
 kes  Complete hopefully the last of the copyright transfer changes.
 kes  Separate NumVolumes in SD to NumReadVolumes and NumWrite volumes so
