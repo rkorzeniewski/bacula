@@ -220,7 +220,7 @@ CAT *get_catalog_resource(UAContext *ua)
       if (!catalog) {
          bsendmsg(ua, _("Could not find a Catalog resource\n"));
          return NULL;
-      } else if (!acl_access_ok(ua, Catalog_ACL, ua->catalog->hdr.name)) {
+      } else if (!acl_access_ok(ua, Catalog_ACL, catalog->hdr.name)) {
          bsendmsg(ua, _("You must specify a \"use <catalog-name>\" command before continuing.\n"));
          return NULL;
       }
