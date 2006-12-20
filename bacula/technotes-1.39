@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+20Dec06
+kes  Add Volume name to Forward spacing message.
+kes  Update migration job start time (so it is not zero) to prevent
+     immediate recycling of the job.  This *should* fix bug #733.
 19Dec06
 ebl  Fix runscript configuration parsing bug.
 17Dec06

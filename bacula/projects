@@ -5,10 +5,10 @@ Projects:
 
 
 Summary:
-Item  1:  Accurate restoration of renamed/deleted files from
+Item  1:  Accurate restoration of renamed/deleted files     
 Item  2:  Implement a Bacula GUI/management tool.
 Item  3:  Implement Base jobs.
-Item  4:   Implement from-client and to-client on restore command line.
+Item  4:  Implement from-client and to-client on restore command line.
 Item  5:  Implement creation and maintenance of copy pools
 Item  6:  Merge multiple backups (Synthetic Backup or Consolidation).
 Item  8:  Deletion of Disk-Based Bacula Volumes
@@ -44,11 +44,10 @@ Item 36:  Implement multiple numeric backup levels as supported by dump
 
 Below, you will find more information on future projects:
 
-Item  1:  Accurate restoration of renamed/deleted files from
-          Incremental/Differential backups
+Item  1:  Accurate restoration of renamed/deleted files
   Date:   28 November 2005
   Origin: Martin Simmons (martin at lispworks dot com)
-  Status:
+  Status: Robert Nelson will implement this
 
   What:   When restoring a fileset for a specified date (including "most
           recent"), Bacula should give you exactly the files and directories
@@ -1023,6 +1022,55 @@ Why:      Support of multiple backup levels would provide for more advanced back
 
 Notes:    Legato Networker supports a similar system with full, incr, and 1-9 as
           levels.
+Item 1:   Implement a server-side compression feature
+  Date:   18 December 2006
+  Origin: Vadim A. Umanski , e-mail umanski@ext.ru
+  Status:
+  What:   The ability to compress backup data on server receiving data
+          instead of doing that on client sending data.
+  Why:    The need is practical. I've got some machines that can send
+          data to the network 4 or 5 times faster than compressing
+          them (I've measured that). They're using fast enough SCSI/FC
+          disk subsystems but rather slow CPUs (ex. UltraSPARC II).
+          And the backup server has got a quite fast CPUs (ex. Dual P4
+          Xeons) and quite a low load. When you have 20, 50 or 100 GB
+          of raw data - running a job 4 to 5 times faster - that
+          really matters. On the other hand, the data can be
+          compressed 50% or better - so losing twice more space for
+          disk backup is not good at all. And the network is all mine
+          (I have a dedicated management/provisioning network) and I
+          can get as high bandwidth as I need - 100Mbps, 1000Mbps...
+          That's why the server-side compression feature is needed!
+  Notes:
+
+Item 1:  Cause daemons to use a specific IP address to source communications
+ Origin: Bill Moran <wmoran@collaborativefusion.com>
+ Date:   18 Dec 2006
+ Status:
+ What:   Cause Bacula daemons (dir, fd, sd) to always use the ip address
+         specified in the [DIR|DF|SD]Addr directive as the source IP
+         for initiating communication.
+ Why:    On complex networks, as well as extremely secure networks, it's
+         not unusual to have multiple possible routes through the network.
+         Often, each of these routes is secured by different policies
+         (effectively, firewalls allow or deny different traffic depending
+         on the source address)
+         Unfortunately, it can sometimes be difficult or impossible to
+         represent this in a system routing table, as the result is
+         excessive subnetting that quickly exhausts available IP space.
+         The best available workaround is to provide multiple IPs to
+         a single machine that are all on the same subnet.  In order
+         for this to work properly, applications must support the ability
+         to bind outgoing connections to a specified address, otherwise
+         the operating system will always choose the first IP that
+         matches the required route.
+ Notes:  Many other programs support this.  For example, the following
+         can be configured in BIND:
+         query-source address 10.0.0.1;
+         transfer-source 10.0.0.2;
+         Which means queries from this server will always come from
+         10.0.0.1 and zone transfers will always originate from
+         10.0.0.2.
 
 Kern notes: I think this would add very little functionality, but a *lot* of
           additional overhead to Bacula.

@@ -366,9 +366,8 @@ static BSR *position_to_first_file(JCR *jcr, DCR *dcr)
       jcr->bsr->reposition = true;    /* force repositioning */
       bsr = find_next_bsr(jcr->bsr, dev);
       if (bsr && (bsr->volfile->sfile != 0 || bsr->volblock->sblock != 0)) {
-         Jmsg(jcr, M_INFO, 0, _("Forward spacing to file:block %u:%u.\n"),
-            bsr->volfile->sfile, bsr->volblock->sblock);
-         Dmsg2(dbglvl, "Forward spacing to file:block %u:%u.\n",
+         Jmsg(jcr, M_INFO, 0, _("Forward spacing Volume \"%s\" to file:block %u:%u.\n"),
+            dev->VolHdr.VolumeName,
             bsr->volfile->sfile, bsr->volblock->sblock);
          dev->reposition(dcr, bsr->volfile->sfile, bsr->volblock->sblock);
       }
