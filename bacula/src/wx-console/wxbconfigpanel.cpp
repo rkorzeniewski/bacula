@@ -137,13 +137,13 @@ void wxbConfigParam::SetValue(wxString str) {
    case choice:
       if (choicectrl) {
          int k;
-         for (k = 0; k < choicectrl->GetCount(); k++) {
+         for (k = 0; k < (int)choicectrl->GetCount(); k++) {
             if (str == choicectrl->GetString(k)) {
                choicectrl->SetSelection(k);
                break;
             }
          }
-         if (k == choicectrl->GetCount()) { // Should never happen
+         if (k == (int)choicectrl->GetCount()) { // Should never happen
             choicectrl->Append(str);
             choicectrl->SetSelection(k);
          }
