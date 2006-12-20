@@ -27,7 +27,6 @@
 	   <option value='Full'>Full</option>
            <option value='Read-Only'>Read-Only</option>
            <option value='Used'>Used</option>
-           <option value='Purged'>Purged</option>
            </select>
         </td>
     </tr>
