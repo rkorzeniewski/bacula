@@ -1840,7 +1840,7 @@ sub get_param
 
     if ($elt{volstatus}) {
 	my $status = CGI::param('volstatus') || '';
-	if ($status =~ /^(\w)$/) {
+	if ($status =~ /^(\w+)$/) {
 	    $ret{status} = $1;
 	    $limit .= "AND Media.VolStatus = '$1' ";		
 	}
