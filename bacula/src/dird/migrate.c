@@ -277,25 +277,6 @@ bool do_migration(JCR *jcr)
    Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
-   set_jcr_job_status(jcr, JS_Running);
-   set_jcr_job_status(mig_jcr, JS_Running);
-   Dmsg2(dbglevel, "JobId=%d JobLevel=%c\n", (int)jcr->jr.JobId, jcr->jr.JobLevel);
-
-   /* Update job start record for this migration control job */
-   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      return false;
-   }
-
-   Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
-      mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
-
-   /* Update job start record for the real migration backup job */
-   if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(mig_jcr->db));
-      return false;
-   }
 
 
    /*
@@ -335,6 +316,49 @@ bool do_migration(JCR *jcr)
       return false;
    }
 
+   /*    
+    * We re-update the job start record so that the start
+    *  time is set after the run before job.  This avoids 
+    *  that any files created by the run before job will
+    *  be saved twice.  They will be backed up in the current
+    *  job, but not in the next one unless they are changed.
+    *  Without this, they will be backed up in this job and
+    *  in the next job run because in that case, their date 
+    *   is after the start of this run.
+    */
+   jcr->start_time = time(NULL);
+   jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.JobTDate = jcr->start_time;
+   set_jcr_job_status(jcr, JS_Running);
+
+   /* Update job start record for this migration control job */
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+      return false;
+   }
+
+
+   mig_jcr->start_time = time(NULL);
+   mig_jcr->jr.StartTime = mig_jcr->start_time;
+   mig_jcr->jr.JobTDate = mig_jcr->start_time;
+   set_jcr_job_status(mig_jcr, JS_Running);
+
+   /* Update job start record for the real migration backup job */
+   if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(mig_jcr->db));
+      return false;
+   }
+
+   Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
+      mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
+      mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
+
+
+   /*
+    * Start the job prior to starting the message thread below
+    * to avoid two threads from using the BSOCK structure at
+    * the same time.
+    */
    if (!bnet_fsend(sd, "run")) {
       return false;
    }
