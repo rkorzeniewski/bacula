@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2006-12-20 12:48+0100\n"
+"POT-Creation-Date: 2006-12-20 15:07+0100\n"
 "PO-Revision-Date: 2005-08-08 17:50+0200\n"
 "Last-Translator:  <fparacchini@alteanet.it>\n"
 "Language-Team: Italian <bacula-devel@lists.sourceforge.net>\n"
@@ -3458,7 +3458,7 @@ msgid "Cannot purge Volume with VolStatus=%s\n"
 msgstr ""
 
 #: src/dird/ua_query.c:72 src/findlib/create_file.c:267
-#: src/findlib/create_file.c:326
+#: src/findlib/create_file.c:363
 #, c-format
 msgid "Could not open %s: ERR=%s\n"
 msgstr ""
@@ -6790,7 +6790,7 @@ msgid "File %s already exists and could not be replaced. ERR=%s.\n"
 msgstr ""
 
 #: src/findlib/create_file.c:212 src/findlib/create_file.c:261
-#: src/findlib/create_file.c:313
+#: src/findlib/create_file.c:350
 #, c-format
 msgid "bpkt already open fid=%d\n"
 msgstr ""
@@ -6815,22 +6815,32 @@ msgstr ""
 msgid "Could not symlink %s -> %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:292
+#: src/findlib/create_file.c:307 src/findlib/create_file.c:318
+#, c-format
+msgid "Could not restore file flags for file %s: ERR=%s\n"
+msgstr ""
+
+#: src/findlib/create_file.c:311 src/findlib/create_file.c:326
 #, c-format
 msgid "Could not hard link %s -> %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:345
+#: src/findlib/create_file.c:322
+#, c-format
+msgid "Could not reset file flags for file %s: ERR=%s\n"
+msgstr ""
+
+#: src/findlib/create_file.c:382
 #, c-format
 msgid "Original file %s not saved: type=%d\n"
 msgstr ""
 
-#: src/findlib/create_file.c:348
+#: src/findlib/create_file.c:385
 #, c-format
 msgid "Unknown file type %d; not restored: %s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:392
+#: src/findlib/create_file.c:429
 #, c-format
 msgid "Zero length filename: %s\n"
 msgstr ""
