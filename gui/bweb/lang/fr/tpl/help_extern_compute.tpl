@@ -10,7 +10,7 @@
     <td style='align: left;'>
     <input type="image" onclick='javascript:window.history.go(-2);' title='Précédent' src='/bweb/prev.png'>
     </td><td style='align: right;'>
-    <input type="image" name='action' value='extern' src='/bweb/extern.png'>
+    <input type="image" name='action' value='extern' src='/bweb/extern.png' title='Externaliser la selection'>
    </td></tr>
    </form>
  </div>
