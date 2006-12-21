@@ -1,4 +1,3 @@
-<br/>
  <div class='titlediv'>
   <h1 class='newstitle'> 
    Médias
