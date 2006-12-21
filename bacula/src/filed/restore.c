@@ -742,6 +742,7 @@ ok_out:
 
 }
 
+#ifdef HAVE_LIBZ
 /*
  * Convert ZLIB error code into an ASCII message
  */
@@ -767,6 +768,7 @@ static const char *zlib_strerror(int stat)
       return _("*none*");
    }
 }
+#endif
 
 static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) 
 {
