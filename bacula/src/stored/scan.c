@@ -56,8 +56,10 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
    bool need_slash = false;
    int len;
 
-   
+   dcrVolCatInfo = dcr->VolCatInfo;     /* structure assignment */
+   devVolCatInfo = VolCatInfo;          /* structure assignment */
    bstrncpy(VolumeName, dcr->VolumeName, sizeof(VolumeName));
+
    name_max = pathconf(".", _PC_NAME_MAX);
    if (name_max < 1024) {
       name_max = 1024;
@@ -113,9 +115,6 @@ bool DEVICE::scan_dir_for_volume(DCR *dcr)
        *  this volume is really OK. If not, put back the desired
        *  volume name, mark it not in changer and continue.
        */
-      dcrVolCatInfo = dcr->VolCatInfo;     /* structure assignment */
-      devVolCatInfo = VolCatInfo;          /* structure assignment */
-      bstrncpy(VolumeName, dcr->VolumeName, sizeof(VolumeName));
       /* Check if this is a valid Volume in the pool */
       bstrncpy(dcr->VolumeName, result->d_name, sizeof(dcr->VolumeName));
       if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
@@ -135,6 +134,8 @@ get_out:
    if (!found) {
       /* Restore VolumeName we really wanted */
       bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
+      dcr->VolCatInfo = dcrVolCatInfo;     /* structure assignment */
+      VolCatInfo = devVolCatInfo;          /* structure assignment */
    }
    sm_check(__FILE__, __LINE__, false);
    return found;
