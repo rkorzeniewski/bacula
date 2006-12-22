@@ -2,6 +2,8 @@
 
 General:
 22Dec06
+kes  Fix code to check for two resources of same name. It forgot
+     to check the last entry.  Fixes bug #734.
 kes  Apply scanvolume patch from Richard Mortimer that fixes bug
      #738.
 kes  Apply Eric's patch for recycling the Scratch pool.
