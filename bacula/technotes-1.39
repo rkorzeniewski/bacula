@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+22Dec06
+kes  Apply scanvolume patch from Richard Mortimer that fixes bug
+     #738.
+
 Version 1.39.32 released: 
 20Dec06
 kes  Take first catalog if gui is set, or if using dotcmd.
