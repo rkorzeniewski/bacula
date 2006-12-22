@@ -192,9 +192,8 @@ init_dev(JCR *jcr, DEVRES *device)
       if (!device->mount_point || stat(device->mount_point, &statp) < 0) {
          berrno be;
          dev->dev_errno = errno;
-         Jmsg2(jcr, M_ERROR, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
+         Jmsg2(jcr, M_ERROR_TERM, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
             device->mount_point, be.strerror());
-         return NULL;
       }
    }
    if (dev->is_dvd()) {
@@ -521,9 +520,9 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    Dmsg1(100, "Volume=%s\n", VolCatInfo.VolCatName);
 
    if (VolCatInfo.VolCatName[0] == 0) {
-      Dmsg1(10,  "Could not open file device %s. No Volume name given.\n",
+      Dmsg1(10,  "Could not open DVD device %s. No Volume name given.\n",
          print_name());
-      Mmsg(errmsg, _("Could not open file device %s. No Volume name given.\n"),
+      Mmsg(errmsg, _("Could not open DVD device %s. No Volume name given.\n"),
          print_name());
       clear_opened();
       return;

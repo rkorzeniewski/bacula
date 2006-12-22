@@ -455,6 +455,8 @@ int run_cmd(UAContext *ua, const char *cmd)
     */
    jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    set_jcr_defaults(jcr, job);
+   jcr->unlink_bsr = ua->jcr->unlink_bsr;    /* copy unlink flag from caller */
+   ua->jcr->unlink_bsr = false;
 
    jcr->verify_job = verify_job;
    jcr->previous_job = previous_job;

@@ -288,7 +288,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
 
-   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
+   bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
@@ -305,7 +305,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
 
    if (del.tot_ids == 0) {
       bsendmsg(ua, _("No Files found for client %s to purge from %s catalog.\n"),
-         client->hdr.name, client->catalog->hdr.name);
+         client->name(), client->catalog->name());
       goto bail_out;
    }
 
@@ -324,7 +324,7 @@ static int purge_files_from_client(UAContext *ua, CLIENT *client)
       purge_files_from_job(ua, del.JobId[i]);
    }
    bsendmsg(ua, _("%d Files for client \"%s\" purged from %s catalog.\n"), del.num_ids,
-      client->hdr.name, client->catalog->hdr.name);
+      client->name(), client->catalog->name());
 
 bail_out:
    if (del.JobId) {
@@ -354,7 +354,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
 
-   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
+   bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       return 0;
    }
@@ -371,7 +371,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
    }
    if (del.tot_ids == 0) {
       bsendmsg(ua, _("No Jobs found for client %s to purge from %s catalog.\n"),
-         client->hdr.name, client->catalog->hdr.name);
+         client->name(), client->catalog->name());
       goto bail_out;
    }
 
@@ -401,7 +401,7 @@ static int purge_jobs_from_client(UAContext *ua, CLIENT *client)
       purge_job_from_catalog(ua, del.JobId[i]);
    }
    bsendmsg(ua, _("%d Jobs for client %s purged from %s catalog.\n"), del.num_ids,
-      client->hdr.name, client->catalog->hdr.name);
+      client->name(), client->catalog->name());
 
 bail_out:
    if (del.JobId) {

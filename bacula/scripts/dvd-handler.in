@@ -88,7 +88,7 @@ class disk:
 #		 This method should also prepare a blank disk so that a
 #		 certain part of the disk is used to allow detection of a
 #		 used disk by all / more disk drives.
-# blank 	 Blank the device
+# prepare 	 Blank the device
 #
 ###############################################################################
    def __init__(self, devicename):
@@ -412,7 +412,7 @@ Usage:
 dvd-handler DEVICE test
 dvd-handler DEVICE free
 dvd-handler DEVICE write APPEND FILE
-dvd-handler DEVICE blank
+dvd-handler DEVICE prepare
 
 where DEVICE is a device name like /dev/sr0 or /dev/dvd.
 

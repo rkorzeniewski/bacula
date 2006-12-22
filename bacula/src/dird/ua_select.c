@@ -160,8 +160,8 @@ STORE *select_storage_resource(UAContext *ua)
    start_prompt(ua, _("The defined Storage resources are:\n"));
    LockRes();
    foreach_res(store, R_STORAGE) {
-      if (acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
-         add_prompt(ua, store->hdr.name);
+      if (acl_access_ok(ua, Storage_ACL, store->name())) {
+         add_prompt(ua, store->name());
       }
    }
    UnlockRes();
@@ -183,8 +183,8 @@ FILESET *select_fileset_resource(UAContext *ua)
    start_prompt(ua, _("The defined FileSet resources are:\n"));
    LockRes();
    foreach_res(fs, R_FILESET) {
-      if (acl_access_ok(ua, FileSet_ACL, fs->hdr.name)) {
-         add_prompt(ua, fs->hdr.name);
+      if (acl_access_ok(ua, FileSet_ACL, fs->name())) {
+         add_prompt(ua, fs->name());
       }
    }
    UnlockRes();
@@ -220,7 +220,7 @@ CAT *get_catalog_resource(UAContext *ua)
       if (!catalog) {
          bsendmsg(ua, _("Could not find a Catalog resource\n"));
          return NULL;
-      } else if (!acl_access_ok(ua, Catalog_ACL, catalog->hdr.name)) {
+      } else if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
          bsendmsg(ua, _("You must specify a \"use <catalog-name>\" command before continuing.\n"));
          return NULL;
       }
@@ -230,8 +230,8 @@ CAT *get_catalog_resource(UAContext *ua)
       start_prompt(ua, _("The defined Catalog resources are:\n"));
       LockRes();
       foreach_res(catalog, R_CATALOG) {
-         if (acl_access_ok(ua, Catalog_ACL, catalog->hdr.name)) {
-            add_prompt(ua, catalog->hdr.name);
+         if (acl_access_ok(ua, Catalog_ACL, catalog->name())) {
+            add_prompt(ua, catalog->name());
          }
       }
       UnlockRes();
@@ -255,8 +255,8 @@ JOB *select_job_resource(UAContext *ua)
    start_prompt(ua, _("The defined Job resources are:\n"));
    LockRes();
    foreach_res(job, R_JOB) {
-      if (acl_access_ok(ua, Job_ACL, job->hdr.name)) {
-         add_prompt(ua, job->hdr.name);
+      if (acl_access_ok(ua, Job_ACL, job->name())) {
+         add_prompt(ua, job->name());
       }
    }
    UnlockRes();
@@ -278,8 +278,8 @@ JOB *select_restore_job_resource(UAContext *ua)
    start_prompt(ua, _("The defined Restore Job resources are:\n"));
    LockRes();
    foreach_res(job, R_JOB) {
-      if (job->JobType == JT_RESTORE && acl_access_ok(ua, Job_ACL, job->hdr.name)) {
-         add_prompt(ua, job->hdr.name);
+      if (job->JobType == JT_RESTORE && acl_access_ok(ua, Job_ACL, job->name())) {
+         add_prompt(ua, job->name());
       }
    }
    UnlockRes();
@@ -303,8 +303,8 @@ CLIENT *select_client_resource(UAContext *ua)
    start_prompt(ua, _("The defined Client resources are:\n"));
    LockRes();
    foreach_res(client, R_CLIENT) {
-      if (acl_access_ok(ua, Client_ACL, client->hdr.name)) {
-         add_prompt(ua, client->hdr.name);
+      if (acl_access_ok(ua, Client_ACL, client->name())) {
+         add_prompt(ua, client->name());
       }
    }
    UnlockRes();
@@ -587,8 +587,8 @@ POOL *select_pool_resource(UAContext *ua)
    start_prompt(ua, _("The defined Pool resources are:\n"));
    LockRes();
    foreach_res(pool, R_POOL) {
-      if (acl_access_ok(ua, Pool_ACL, pool->hdr.name)) {
-         add_prompt(ua, pool->hdr.name);
+      if (acl_access_ok(ua, Pool_ACL, pool->name())) {
+         add_prompt(ua, pool->name());
       }
    }
    UnlockRes();
@@ -889,7 +889,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
         }
       }
    }
-   if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+   if (store && !acl_access_ok(ua, Storage_ACL, store->name())) {
       store = NULL;
    }
 
@@ -899,7 +899,7 @@ STORE *get_storage_resource(UAContext *ua, bool use_default)
          bsendmsg(ua, _("Storage resource \"%s\": not found\n"), store_name);
       }
    }
-   if (store && !acl_access_ok(ua, Storage_ACL, store->hdr.name)) {
+   if (store && !acl_access_ok(ua, Storage_ACL, store->name())) {
       store = NULL;
    }
    /* No keywords found, so present a selection list */

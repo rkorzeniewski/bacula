@@ -527,7 +527,7 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
 
    memset(&pr, 0, sizeof(POOL_DBR));
 
-   bstrncpy(pr.Name, pool->hdr.name, sizeof(pr.Name));
+   bstrncpy(pr.Name, pool->name(), sizeof(pr.Name));
 
    if (db_get_pool_record(jcr, db, &pr)) {
       /* Pool Exists */
@@ -568,7 +568,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
    switch (create_pool(ua->jcr, ua->db, pool, POOL_OP_CREATE)) {
    case 0:
       bsendmsg(ua, _("Error: Pool %s already exists.\n"
-               "Use update to change it.\n"), pool->hdr.name);
+               "Use update to change it.\n"), pool->name());
       break;
 
    case -1:
@@ -578,7 +578,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
    default:
      break;
    }
-   bsendmsg(ua, _("Pool %s created.\n"), pool->hdr.name);
+   bsendmsg(ua, _("Pool %s created.\n"), pool->name());
    return 1;
 }
 
@@ -593,7 +593,7 @@ static int python_cmd(UAContext *ua, const char *cmd)
 {
    if (ua->argc >= 2 && strcasecmp(ua->argk[1], NT_("restart")) == 0) {
       term_python_interpreter();
-      init_python_interpreter(director->hdr.name, 
+      init_python_interpreter(director->name(), 
          director->scripts_directory, "DirStartUp");
       bsendmsg(ua, _("Python interpreter restarted.\n"));
    } else {
@@ -612,15 +612,15 @@ static int setip_cmd(UAContext *ua, const char *cmd)
 {
    CLIENT *client;
    char buf[1024];
-   if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->hdr.name)) {
+   if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->name())) {
       bsendmsg(ua, _("Unauthorized command from this console.\n"));
       return 1;
    }
    LockRes();
-   client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->hdr.name);
+   client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->name());
 
    if (!client) {
-      bsendmsg(ua, _("Client \"%s\" not found.\n"), ua->cons->hdr.name);
+      bsendmsg(ua, _("Client \"%s\" not found.\n"), ua->cons->name());
       goto get_out;
    }
    if (client->address) {
@@ -630,7 +630,7 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    sockaddr_to_ascii(&(ua->UA_sock->client_addr), buf, sizeof(buf));
    client->address = bstrdup(buf);
    bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
-            client->hdr.name, client->address);
+            client->name(), client->address);
 get_out:
    UnlockRes();
    return 1;
@@ -658,12 +658,12 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
       return;
    }
 
-   if (!acl_access_ok(ua, Job_ACL, job->hdr.name)) {
+   if (!acl_access_ok(ua, Job_ACL, job->name())) {
       bsendmsg(ua, _("Unauthorized command from this console.\n"));
       return;
    }
    job->enabled = setting;
-   bsendmsg(ua, _("Job \"%s\" %sabled\n"), job->hdr.name, setting?"en":"dis");
+   bsendmsg(ua, _("Job \"%s\" %sabled\n"), job->name(), setting?"en":"dis");
    return;
 }
 
@@ -717,7 +717,7 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int tra
    ua->jcr->client = client;
    /* Try to connect for 15 seconds */
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
-      client->hdr.name, client->address, client->FDport);
+      client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client.\n"));
       return;
@@ -1056,7 +1056,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    get_level_since_time(ua->jcr, since, sizeof(since));
 
    bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
-      job->client->hdr.name, job->client->address, job->client->FDport);
+      job->client->name(), job->client->address, job->client->FDport);
    if (!connect_to_file_daemon(jcr, 1, 15, 0)) {
       bsendmsg(ua, _("Failed to connect to Client.\n"));
       return 1;
@@ -1407,7 +1407,7 @@ static int use_cmd(UAContext *ua, const char *cmd)
    }
    if (open_db(ua)) {
       bsendmsg(ua, _("Using Catalog name=%s DB=%s\n"),
-         ua->catalog->hdr.name, ua->catalog->db_name);
+         ua->catalog->name(), ua->catalog->db_name);
    }
    return 1;
 }

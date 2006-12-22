@@ -41,6 +41,8 @@ Document:
  
 
 Priority:
+- Document fact that CatalogACL now needed for Tray monitor.
+- If you have two Catalogs, it will take the first one.
 - Check if gnome-console works with TLS.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
