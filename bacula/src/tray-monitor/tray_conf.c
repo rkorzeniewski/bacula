@@ -327,7 +327,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       size = sizeof(STORE);
       break;
    default:
-      printf(_("Unknown resource type %d in save_resrouce.\n"), type);
+      printf(_("Unknown resource type %d in save_resource.\n"), type);
       error = 1;
       size = 1;
       break;
@@ -337,20 +337,21 @@ void save_resource(int type, RES_ITEM *items, int pass)
       res = (URES *)malloc(size);
       memcpy(res, &res_all, size);
       if (!res_head[rindex]) {
-   res_head[rindex] = (RES *)res; /* store first entry */
+        res_head[rindex] = (RES *)res; /* store first entry */
          Dmsg3(900, "Inserting first %s res: %s index=%d\n", res_to_str(type),
          res->res_monitor.hdr.name, rindex);
       } else {
-   RES *next;
-   /* Add new res to end of chain */
-   for (next=res_head[rindex]; next->next; next=next->next) {
-      if (strcmp(next->name, res->res_monitor.hdr.name) == 0) {
-         Emsg2(M_ERROR_TERM, 0,
+         RES *next, *last;
+         /* Add new res to end of chain */
+         for (last=next=res_head[rindex]; next; next=next->next) {
+            last = next;
+            if (strcmp(next->name, res->res_monitor.hdr.name) == 0) {
+               Emsg2(M_ERROR_TERM, 0,
                   _("Attempt to define second %s resource named \"%s\" is not permitted.\n"),
-         resources[rindex].name, res->res_monitor.hdr.name);
-      }
-   }
-   next->next = (RES *)res;
+               resources[rindex].name, res->res_monitor.hdr.name);
+            }
+         }
+         last->next = (RES *)res;
          Dmsg4(900, "Inserting %s res: %s index=%d pass=%d\n", res_to_str(type),
          res->res_monitor.hdr.name, rindex, pass);
       }
