@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
       terminate_dird(0);
    }
 
-   my_name_is(0, NULL, director->hdr.name);    /* set user defined name */
+   my_name_is(0, NULL, director->name());    /* set user defined name */
 
    /* Plug database interface for library routines */
    p_sql_query = (sql_query)dir_sql_query;
@@ -254,7 +254,7 @@ int main (int argc, char *argv[])
 
    init_console_msg(working_directory);
 
-   init_python_interpreter(director->hdr.name, director->scripts_directory, 
+   init_python_interpreter(director->name(), director->scripts_directory, 
        "DirStartUp");
 
    set_thread_concurrency(director->MaxConcurrentJobs * 2 +
@@ -548,13 +548,13 @@ static int check_resources()
 
       if (!director->tls_certfile && director->tls_enable) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
-            director->hdr.name, configfile);
+            director->name(), configfile);
          OK = false;
       }
 
       if (!director->tls_keyfile && director->tls_enable) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
-            director->hdr.name, configfile);
+            director->name(), configfile);
          OK = false;
       }
 
@@ -563,7 +563,7 @@ static int check_resources()
               " Certificate Dir\" are defined for Director \"%s\" in %s."
               " At least one CA certificate store is required"
               " when using \"TLS Verify Peer\".\n"),
-              director->hdr.name, configfile);
+              director->name(), configfile);
          OK = false;
       }
 
@@ -579,7 +579,7 @@ static int check_resources()
          
          if (!director->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Director \"%s\" in %s.\n"),
-                 director->hdr.name, configfile);
+                 director->name(), configfile);
             OK = false;
          }
       }
@@ -625,14 +625,14 @@ static int check_resources()
             uint32_t offset;
 
             Dmsg4(1400, "Job \"%s\", field \"%s\" bit=%d def=%d\n",
-                job->hdr.name, job_items[i].name,
+                job->name(), job_items[i].name,
                 bit_is_set(i, job->hdr.item_present),
                 bit_is_set(i, job->jobdefs->hdr.item_present));
 
             if (!bit_is_set(i, job->hdr.item_present) &&
                  bit_is_set(i, job->jobdefs->hdr.item_present)) {
                Dmsg2(400, "Job \"%s\", field \"%s\": getting default.\n",
-                 job->hdr.name, job_items[i].name);
+                 job->name(), job_items[i].name);
                offset = (char *)(job_items[i].value) - (char *)&res_all;
                /*
                 * Handle strings and directory strings
@@ -641,7 +641,7 @@ static int check_resources()
                    job_items[i].handler == store_dir) {
                   def_svalue = (char **)((char *)(job->jobdefs) + offset);
                   Dmsg5(400, "Job \"%s\", field \"%s\" def_svalue=%s item %d offset=%u\n",
-                       job->hdr.name, job_items[i].name, *def_svalue, i, offset);
+                       job->name(), job_items[i].name, *def_svalue, i, offset);
                   svalue = (char **)((char *)job + offset);
                   if (*svalue) {
                      Pmsg1(000, _("Hey something is wrong. p=0x%lu\n"), *svalue);
@@ -654,7 +654,7 @@ static int check_resources()
                } else if (job_items[i].handler == store_res) {
                   def_svalue = (char **)((char *)(job->jobdefs) + offset);
                   Dmsg4(400, "Job \"%s\", field \"%s\" item %d offset=%u\n",
-                       job->hdr.name, job_items[i].name, i, offset);
+                       job->name(), job_items[i].name, i, offset);
                   svalue = (char **)((char *)job + offset);
                   if (*svalue) {
                      Pmsg1(000, _("Hey something is wrong. p=0x%lu\n"), *svalue);
@@ -680,7 +680,7 @@ static int check_resources()
                           job_items[i].handler == store_replace) {
                   def_ivalue = (int *)((char *)(job->jobdefs) + offset);
                   Dmsg5(400, "Job \"%s\", field \"%s\" def_ivalue=%d item %d offset=%u\n",
-                       job->hdr.name, job_items[i].name, *def_ivalue, i, offset);
+                       job->name(), job_items[i].name, *def_ivalue, i, offset);
                   ivalue = (int *)((char *)job + offset);
                   *ivalue = *def_ivalue;
                   set_bit(i, job->hdr.item_present);
@@ -692,7 +692,7 @@ static int check_resources()
                           job_items[i].handler == store_int64) {
                   def_lvalue = (int64_t *)((char *)(job->jobdefs) + offset);
                   Dmsg5(400, "Job \"%s\", field \"%s\" def_lvalue=%" lld " item %d offset=%u\n",
-                       job->hdr.name, job_items[i].name, *def_lvalue, i, offset);
+                       job->name(), job_items[i].name, *def_lvalue, i, offset);
                   lvalue = (int64_t *)((char *)job + offset);
                   *lvalue = *def_lvalue;
                   set_bit(i, job->hdr.item_present);
@@ -702,7 +702,7 @@ static int check_resources()
                } else if (job_items[i].handler == store_bool) {
                   def_bvalue = (bool *)((char *)(job->jobdefs) + offset);
                   Dmsg5(400, "Job \"%s\", field \"%s\" def_bvalue=%d item %d offset=%u\n",
-                       job->hdr.name, job_items[i].name, *def_bvalue, i, offset);
+                       job->name(), job_items[i].name, *def_bvalue, i, offset);
                   bvalue = (bool *)((char *)job + offset);
                   *bvalue = *def_bvalue;
                   set_bit(i, job->hdr.item_present);
@@ -717,7 +717,7 @@ static int check_resources()
          if (job_items[i].flags & ITEM_REQUIRED) {
                if (!bit_is_set(i, job->hdr.item_present)) {
                   Jmsg(NULL, M_FATAL, 0, _("\"%s\" directive in Job \"%s\" resource is required, but not found.\n"),
-                    job_items[i].name, job->hdr.name);
+                    job_items[i].name, job->name());
                   OK = false;
                 }
          }
@@ -728,7 +728,7 @@ static int check_resources()
       }
       if (!job->storage && !job->pool->storage) {
          Jmsg(NULL, M_FATAL, 0, _("No storage specified in Job \"%s\" nor in Pool.\n"),
-            job->hdr.name);
+            job->name());
          OK = false;
       }
    } /* End loop over Job res */
@@ -747,7 +747,7 @@ static int check_resources()
                          catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
          Jmsg(NULL, M_FATAL, 0, _("Could not open Catalog \"%s\", database \"%s\".\n"),
-              catalog->hdr.name, catalog->db_name);
+              catalog->name(), catalog->db_name);
          if (db) {
             Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
          }
@@ -793,7 +793,7 @@ static int check_resources()
          if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable) {
             Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                  " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
-                 store->hdr.name, configfile);
+                 store->name(), configfile);
             OK = false;
          }
 
@@ -808,7 +808,7 @@ static int check_resources()
          
             if (!store->tls_ctx) {
                Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
-                    store->hdr.name, configfile);
+                    store->name(), configfile);
                OK = false;
             }
          }
@@ -821,19 +821,19 @@ static int check_resources()
          /* Write to catalog? */
          if (!counter->created && counter->Catalog == catalog) {
             COUNTER_DBR cr;
-            bstrncpy(cr.Counter, counter->hdr.name, sizeof(cr.Counter));
+            bstrncpy(cr.Counter, counter->name(), sizeof(cr.Counter));
             cr.MinValue = counter->MinValue;
             cr.MaxValue = counter->MaxValue;
             cr.CurrentValue = counter->MinValue;
             if (counter->WrapCounter) {
-               bstrncpy(cr.WrapCounter, counter->WrapCounter->hdr.name, sizeof(cr.WrapCounter));
+               bstrncpy(cr.WrapCounter, counter->WrapCounter->name(), sizeof(cr.WrapCounter));
             } else {
                cr.WrapCounter[0] = 0;  /* empty string */
             }
             if (db_create_counter_record(NULL, db, &cr)) {
                counter->CurrentValue = cr.CurrentValue;
                counter->created = true;
-               Dmsg2(100, "Create counter %s val=%d\n", counter->hdr.name, counter->CurrentValue);
+               Dmsg2(100, "Create counter %s val=%d\n", counter->name(), counter->CurrentValue);
             }
          }
          if (!counter->created) {
@@ -859,13 +859,13 @@ static int check_resources()
 
       if (!cons->tls_certfile && cons->tls_enable) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Console \"%s\" in %s.\n"),
-            cons->hdr.name, configfile);
+            cons->name(), configfile);
          OK = false;
       }
 
       if (!cons->tls_keyfile && cons->tls_enable) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Console \"%s\" in %s.\n"),
-            cons->hdr.name, configfile);
+            cons->name(), configfile);
          OK = false;
       }
 
@@ -874,7 +874,7 @@ static int check_resources()
             " Certificate Dir\" are defined for Console \"%s\" in %s."
             " At least one CA certificate store is required"
             " when using \"TLS Verify Peer\".\n"),
-            cons->hdr.name, configfile);
+            cons->name(), configfile);
          OK = false;
       }
       /* If everything is well, attempt to initialize our per-resource TLS context */
@@ -888,7 +888,7 @@ static int check_resources()
          
          if (!cons->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
-               cons->hdr.name, configfile);
+               cons->name(), configfile);
             OK = false;
          }
       }
@@ -912,7 +912,7 @@ static int check_resources()
       if ((!client->tls_ca_certfile && !client->tls_ca_certdir) && client->tls_enable) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
             " or \"TLS CA Certificate Dir\" are defined for File daemon \"%s\" in %s.\n"),
-            client->hdr.name, configfile);
+            client->name(), configfile);
          OK = false;
       }
 
@@ -928,7 +928,7 @@ static int check_resources()
          
          if (!client->tls_ctx) {
             Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for File daemon \"%s\" in %s.\n"),
-               client->hdr.name, configfile);
+               client->name(), configfile);
             OK = false;
          }
       }

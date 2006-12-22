@@ -326,6 +326,7 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
    MEDIA_DBR smr;
    POOL_DBR spr, pr;
    bool ok = false;
+   bool found = false;
    char ed1[50], ed2[50];
 
    /* Only one thread at a time can pull from the scratch pool */
@@ -343,7 +344,23 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
       }
       bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
       bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
+
+      /*
+       * If we do not find a valid Scratch volume, try
+       *  recycling any existing purged volumes, then
+       *  try to take the oldest volume.
+       */
       if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
+         found = true;
+
+      } else if (find_recycled_volume(jcr, InChanger, &smr)) {
+         found = true;
+
+      } else if (recycle_oldest_purged_volume(jcr, InChanger, &smr)) {
+         found = true;
+      }
+
+      if (found) {
          POOL_MEM query(PM_MESSAGE);
 
          /*   
@@ -382,6 +399,9 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
          memcpy(mr, &smr, sizeof(MEDIA_DBR));
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+         /* set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
+          * we could have Recycled media */
+         bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
          if (!db_update_media_record(jcr, jcr->db, mr)) {
             Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
                  db_strerror(jcr->db));

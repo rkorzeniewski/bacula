@@ -4,6 +4,19 @@ General:
 22Dec06
 kes  Apply scanvolume patch from Richard Mortimer that fixes bug
      #738.
+kes  Apply Eric's patch for recycling the Scratch pool.
+kes  Note, for the tray-monitor (or almost any restricted console_
+     to work, in version 1.39.x you must add CatalogACL = catalog-name
+kes  Add appropriate new #undefs to autoconf/acconfig.h so that 
+     configure works correctly.
+kes  Implement configure code to allow the user to disable IPv6 with
+     --disable-ipv6 
+kes  Apply Richard Mortimer's patch to prevent seg fault if mount point
+     not specified -- SD refuses to start.
+kes  Add magic.bacula from bug #715 to the scripts directory along with
+     Arno's explanation of how to install it.
+kes  Convert a bunch of hdr.name into name() method calls.
+kes  Fix the code to remove .bsr files.  Fixes bug #736 -- Martin.
 
 Version 1.39.32 released: 
 20Dec06
