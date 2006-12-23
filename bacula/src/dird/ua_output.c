@@ -249,7 +249,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
    POOL_DBR pr;
    MEDIA_DBR mr;
 
-   if (!open_db(ua))
+   if (!open_client_db(ua))
       return 1;
 
    memset(&jr, 0, sizeof(jr));

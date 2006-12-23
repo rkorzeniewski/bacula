@@ -220,7 +220,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
 "creates database records without labeling the Volumes.\n"
 "You probably want to use the \"label\" command.\n\n"));
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 
@@ -384,7 +384,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    JCR *jcr = NULL;
    char JobName[MAX_NAME_LENGTH];
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 
@@ -556,7 +556,7 @@ static int create_cmd(UAContext *ua, const char *cmd)
 {
    POOL *pool;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 
@@ -824,7 +824,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    int trace_flag = -1;
    int i;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
    Dmsg1(120, "setdebug:%s:\n", cmd);
@@ -958,7 +958,7 @@ static int var_cmd(UAContext *ua, const char *cmd)
    POOLMEM *val = get_pool_memory(PM_FNAME);
    char *var;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
    for (var=ua->cmd; *var != ' '; ) {    /* skip command */
@@ -995,12 +995,20 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (ua->argv[i]) {
             job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+            if (job && !acl_access_ok(ua, Job_ACL, job->name())) {
+               bsendmsg(ua, _("No authorization for Job \"%s\"\n"), job->name());
+               return 1;
+            }
             continue;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("fileset")) == 0) {
          if (ua->argv[i]) {
             fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
+            if (fileset && !acl_access_ok(ua, FileSet_ACL, fileset->name())) {
+               bsendmsg(ua, _("No authorization for FileSet \"%s\"\n"), fileset->name());
+               return 1;
+            }
             continue;
          }
       }
@@ -1024,6 +1032,10 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
       if (!job) {
          bsendmsg(ua, _("No job specified.\n"));
+         return 1;
+      }
+      if (!acl_access_ok(ua, Job_ACL, job->name())) {
+         bsendmsg(ua, _("No authorization for Job \"%s\"\n"), job->name());
          return 1;
       }
    }
@@ -1131,7 +1143,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       NT_("jobid"),
       NULL};
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 
@@ -1319,7 +1331,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    int drive;
    int slot = -1;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return;
    }
    Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
@@ -1465,7 +1477,7 @@ int wait_cmd(UAContext *ua, const char *cmd)
 
    uint32_t jobid = 0 ;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       bsendmsg(ua, _("ERR: Can't open db\n")) ;
       return 1;
    }
@@ -1602,6 +1614,56 @@ static int version_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
+/* 
+ * This call explicitly checks for a catalog=xxx and
+ *  if given, opens that catalog.  It also checks for
+ *  client=xxx and if found, opens the catalog 
+ *  corresponding to that client.
+ */
+bool open_client_db(UAContext *ua)
+{
+   int i;
+   CAT *catalog;
+   CLIENT *client;
+
+   /* Try for catalog keyword */
+   i = find_arg_with_value(ua, NT_("catalog"));
+   if (i >= 0) {
+      if (!acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
+         bsendmsg(ua, _("No authorization for catalog \"%s\"\n"), ua->argv[i]);
+         return false;
+      }
+      catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
+      if (catalog) {
+         if (ua->catalog && ua->catalog != catalog) {
+            close_db(ua);
+         }
+         ua->catalog = catalog;
+         return open_db(ua);
+      }
+   }
+
+   /* Try for client keyword */
+   i = find_arg_with_value(ua, NT_("client"));
+   if (i >= 0) {
+      if (!acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
+         bsendmsg(ua, _("No authorization for client \"%s\"\n"), ua->argv[i]);
+         return false;
+      }
+      client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+      if (client) {
+         if (ua->catalog && ua->catalog != client->catalog) {
+            close_db(ua);
+         }
+         ua->catalog = client->catalog;
+         return open_db(ua);
+      }
+   }
+   return open_db(ua);
+}
+
+
+                 
 
 /*
  * Open the catalog database.
@@ -1636,6 +1698,7 @@ bool open_db(UAContext *ua)
       return false;
    }
    ua->jcr->db = ua->db;
+   bsendmsg(ua, _("Using Catalog \"%s\"\n"), ua->catalog->name()); 
    Dmsg1(150, "DB %s opened\n", ua->catalog->db_name);
    return true;
 }

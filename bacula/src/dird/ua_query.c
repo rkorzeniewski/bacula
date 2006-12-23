@@ -65,7 +65,7 @@ int querycmd(UAContext *ua, const char *cmd)
    int nprompt = 0;;
    char *query_file = director->query_file;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       goto bail_out;
    }
    if ((fd=fopen(query_file, "rb")) == NULL) {
@@ -256,7 +256,7 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
    int len;
    const char *msg;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       free_pool_memory(query);
       return 1;
    }

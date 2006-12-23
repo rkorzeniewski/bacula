@@ -105,7 +105,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 
 #define YES_POS 14
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 
@@ -321,6 +321,10 @@ int run_cmd(UAContext *ua, const char *cmd)
        if (catalog == NULL) {
             bsendmsg(ua, _("Catalog \"%s\" not found\n"), catalog_name);
            return 0;
+       }
+       if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
+          bsendmsg(ua, _("No authorization. Catalog \"%s\".\n"), catalog->name());
+          return 0;
        }
    }
    Dmsg1(800, "Using catalog=%s\n", NPRT(catalog_name));

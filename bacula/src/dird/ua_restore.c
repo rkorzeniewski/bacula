@@ -100,7 +100,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       }
    }
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       goto bail_out;
    }
 
@@ -179,7 +179,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    get_client_name(ua, &rx);
    if (!rx.ClientName) {
-      bsendmsg(ua, _("No Restore Job resource found!\n"));
+      bsendmsg(ua, _("No Client resource found!\n"));
       goto bail_out;
    }
 
