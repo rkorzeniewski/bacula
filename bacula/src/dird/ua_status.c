@@ -58,9 +58,6 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
    s_last_job* job;
    char ed1[50];
 
-   if (!open_db(ua)) {
-      return 1;
-   }
    Dmsg1(20, "status:%s:\n", cmd);
 
    if ((ua->argc != 3) || (strcasecmp(ua->argk[1], "dir"))) {
@@ -71,7 +68,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
    if (strcasecmp(ua->argk[2], "current") == 0) {
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       foreach_jcr(njcr) {
-         if (njcr->JobId != 0) {
+         if (njcr->JobId != 0 && acl_access_ok(ua, Job_ACL, njcr->job->name())) {
             bsendmsg(ua, DotStatusJob, edit_int64(njcr->JobId, ed1), 
                      njcr->JobStatus, njcr->JobErrors);
          }
@@ -81,8 +78,10 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, OKqstatus, ua->argk[2]);
       if ((last_jobs) && (last_jobs->size() > 0)) {
          job = (s_last_job*)last_jobs->last();
-         bsendmsg(ua, DotStatusJob, edit_int64(job->JobId, ed1), 
+         if (acl_access_ok(ua, Job_ACL, job->Job)) {
+            bsendmsg(ua, DotStatusJob, edit_int64(job->JobId, ed1), 
                   job->JobStatus, job->Errors);
+         }
       }
    } else {
       bsendmsg(ua, "1900 Bad .status command, wrong argument.\n");
@@ -101,7 +100,7 @@ int status_cmd(UAContext *ua, const char *cmd)
    CLIENT *client;
    int item, i;
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
    Dmsg1(20, "status:%s:\n", cmd);
@@ -641,7 +640,7 @@ static void list_running_jobs(UAContext *ua)
          break;
       case JS_WaitFD:
          if (!pool_mem) {
-            emsg = (char *) get_pool_memory(PM_FNAME);
+            emsg = (char *)get_pool_memory(PM_FNAME);
             pool_mem = true;
          }
          Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),

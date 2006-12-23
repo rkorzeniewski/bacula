@@ -189,6 +189,9 @@ void catalog_request(JCR *jcr, BSOCK *bs)
                check_if_volume_valid_or_recyclable(jcr, &mr, &reason);
             }
          }
+         if (!reason && mr.Enabled != 1) {
+            reason = _("is not Enabled");
+         }
          if (reason == NULL) {
             /*
              * Send Find Media response to Storage daemon

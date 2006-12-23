@@ -174,7 +174,7 @@ void update_slots(UAContext *ua)
    int i;
 
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return;
    }
    store.store = get_storage_resource(ua, true/*arg is storage*/);
@@ -329,7 +329,7 @@ static int do_label(UAContext *ua, const char *cmd, int relabel)
 
 
    memset(&pr, 0, sizeof(pr));
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 

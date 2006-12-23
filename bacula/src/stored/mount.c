@@ -39,7 +39,7 @@
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
 static void mark_volume_not_inchanger(DCR *dcr);
-static int try_autolabel(DCR *dcr);
+static int try_autolabel(DCR *dcr, bool opened);
 
 enum {
    try_next_vol = 1,
@@ -179,7 +179,7 @@ mount_next_vol:
    }
    /* Try autolabel if enabled */
    if (dev->open(dcr, mode) < 0) {
-      try_autolabel(dcr);             /* try to create a new volume label */
+      try_autolabel(dcr, false);      /* try to create a new volume label */
    }
    while (dev->open(dcr, mode) < 0) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
@@ -200,7 +200,7 @@ mount_next_vol:
             dev->unmount(0);
          }
       }
-      if (try_autolabel(dcr) == try_read_vol) {
+      if (try_autolabel(dcr, false) == try_read_vol) {
          break;                       /* created a new volume label */
       }
       /* If DVD, ignore the error, very often you cannot open the device
@@ -319,7 +319,7 @@ read_volume:
       }
       /* Fall through wanted */
    case VOL_NO_LABEL:
-      switch (try_autolabel(dcr)) {
+      switch (try_autolabel(dcr, true)) {
       case try_next_vol:
          goto mount_next_vol;
       case try_read_vol:
@@ -475,11 +475,16 @@ read_volume:
  *   try_error           hard error (catalog update)
  *   try_default         I couldn't do anything
  */
-static int try_autolabel(DCR *dcr)
+static int try_autolabel(DCR *dcr, bool opened)
 {
    DEVICE *dev = dcr->dev;
+
    if (dev->poll && !dev->is_tape()) {
       return try_default;       /* if polling, don't try to create new labels */
+   }
+   /* For a tape require it to be opened and read before labeling */
+   if (!opened && dev->is_tape()) {
+      return try_default;
    }
    if (dev->has_cap(CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
          (!dev->is_tape() && strcmp(dcr->VolCatInfo.VolCatStatus,
@@ -489,7 +494,9 @@ static int try_autolabel(DCR *dcr)
       if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
              dcr->pool_name, false, /* no relabel */ false /* defer DVD label */)) {
          Dmsg0(150, "!write_vol_label\n");
-         mark_volume_in_error(dcr);
+         if (opened) { 
+            mark_volume_in_error(dcr);
+         }
          return try_next_vol;
       }
       Dmsg0(150, "dir_update_vol_info. Set Append\n");

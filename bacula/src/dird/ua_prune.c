@@ -156,7 +156,7 @@ int prunecmd(UAContext *ua, const char *cmd)
       NT_("Volume"),
       NULL};
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return false;
    }
 

@@ -545,7 +545,7 @@ on_select_files_button_clicked(GtkButton *button, gpointer user_data)
 
    bsnprintf(cmd, sizeof(cmd),
              "restore select current fileset=\"%s\" client=\"%s\" pool=\"%s\" "
-             "storage=\"%s\"", fileset, client, pool, storage);
+             "storage=\"%s\"\n", fileset, client, pool, storage);
    write_director(cmd);
    set_text(cmd, strlen(cmd));
    gtk_widget_show(restore_file_selection);

@@ -62,7 +62,7 @@ int update_cmd(UAContext *ua, const char *cmd)
       NT_("slots"),  /* 3 */
       NULL};
 
-   if (!open_db(ua)) {
+   if (!open_client_db(ua)) {
       return 1;
    }
 

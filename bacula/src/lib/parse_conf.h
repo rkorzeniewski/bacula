@@ -67,7 +67,8 @@ struct RES_ITEM {
  * at the beginning of every resource
  * record.
  */
-struct RES {
+class RES {
+public:
    RES *next;                         /* pointer to next resource of this type */
    char *name;                        /* resource name */
    char *desc;                        /* resource description */
@@ -97,13 +98,19 @@ struct RES_TABLE {
 #define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
 
 /* Message Resource */
-struct MSGS {
+class MSGS {
+public:
    RES   hdr;
    char *mail_cmd;                    /* mail command */
    char *operator_cmd;                /* Operator command */
    DEST *dest_chain;                  /* chain of destinations */
    char send_msg[nbytes_for_bits(M_MAX+1)];  /* bit array of types */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *MSGS::name() const { return hdr.name; }
 
 
 /* Define the Union of all the above common
