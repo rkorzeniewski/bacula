@@ -434,7 +434,7 @@ on_run_ok_clicked(GtkButton *button, gpointer user_data)
 
    bsnprintf(cmd, sizeof(cmd),
              "run job=\"%s\" fileset=\"%s\" level=%s client=\"%s\" pool=\"%s\" "
-             "when=\"%s\" where=\"%s\" storage=\"%s\" priority=\"%s\"",
+             "when=\"%s\" where=\"%s\" storage=\"%s\" priority=\"%s\"\n",
              job, fileset, level, client, pool, when, where, storage, priority);
    write_director(cmd);
    set_text(cmd, strlen(cmd));
@@ -507,7 +507,7 @@ on_label_ok_clicked(GtkButton *button, gpointer user_data)
    }
 
    bsnprintf(cmd, sizeof(cmd),
-             "label volume=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s",
+             "label volume=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s\n", 
              volume, pool, storage, slot);
    write_director(cmd);
    set_text(cmd, strlen(cmd));

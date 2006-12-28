@@ -1,6 +1,43 @@
               Technical notes on version 1.39  
 
 General:
+28Dec06
+kes  Update projects
+kes  Make rescue work.      
+kes  Clarify Volume migration error message.
+kes  Look for Job keyword when opening DB in console.
+23Dec06
+kes  Add code in catreq.c to reject volumes not marked Enabled.
+kes  Add a few more ACL access checks.
+kes  Add \n in gnome2-console restore command so that output prints 
+     nicer -- i.e. lines do not run together.
+kes  Fix autolabeling so that it will not mark a volume in error
+     if the volume was not actually opened. This should fix bugs
+     #737 and 738.
+kes  Require tape drive to be open before autolabeling.
+kes  Require explicit mount command on non-tapes before autolabeling.
+kes  Implement an open_client_db() that searches the keywords for
+     either a catolg or client, and opens the appropriate catalog.
+     This makes Bacula adjust better to multiple catalogs.
+kes  Use more name() methods for resources rather than hdr.name.
+22Dec06
+kes  Fix code to check for two resources of same name. It forgot
+     to check the last entry.  Fixes bug #734.
+kes  Apply scanvolume patch from Richard Mortimer that fixes bug
+     #738.
+kes  Apply Eric's patch for recycling the Scratch pool.
+kes  Note, for the tray-monitor (or almost any restricted console_
+     to work, in version 1.39.x you must add CatalogACL = catalog-name
+kes  Add appropriate new #undefs to autoconf/acconfig.h so that 
+     configure works correctly.
+kes  Implement configure code to allow the user to disable IPv6 with
+     --disable-ipv6 
+kes  Apply Richard Mortimer's patch to prevent seg fault if mount point
+     not specified -- SD refuses to start.
+kes  Add magic.bacula from bug #715 to the scripts directory along with
+     Arno's explanation of how to install it.
+kes  Convert a bunch of hdr.name into name() method calls.
+kes  Fix the code to remove .bsr files.  Fixes bug #736 -- Martin.
 
 Version 1.39.32 released: 
 20Dec06

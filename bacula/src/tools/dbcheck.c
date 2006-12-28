@@ -46,7 +46,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
    { return 1; }
 
 typedef struct s_id_ctx {
-   uint32_t *Id;                      /* ids to be modified */
+   int64_t *Id;                       /* ids to be modified */
    int num_ids;                       /* ids stored */
    int max_ids;                       /* size of array */
    int num_del;                       /* number deleted */
@@ -482,13 +482,13 @@ static int id_list_handler(void *ctx, int num_fields, char **row)
    if (lst->num_ids == lst->max_ids) {
       if (lst->max_ids == 0) {
          lst->max_ids = 10000;
-         lst->Id = (uint32_t *)bmalloc(sizeof(uint32_t) * lst->max_ids);
+         lst->Id = (int64_t *)bmalloc(sizeof(int64_t) * lst->max_ids);
       } else {
          lst->max_ids = (lst->max_ids * 3) / 2;
-         lst->Id = (uint32_t *)brealloc(lst->Id, sizeof(uint32_t) * lst->max_ids);
+         lst->Id = (int64_t *)brealloc(lst->Id, sizeof(int64_t) * lst->max_ids);
       }
    }
-   lst->Id[lst->num_ids++] = (uint32_t)strtod(row[0], NULL);
+   lst->Id[lst->num_ids++] = str_to_int64(row[0]);
    return 0;
 }
 
@@ -623,14 +623,15 @@ static void eliminate_duplicate_filenames()
          }
          /* Force all records to use the first id then delete the other ids */
          for (int j=1; j<id_list.num_ids; j++) {
-            bsnprintf(buf, sizeof(buf), "UPDATE File SET FilenameId=%u WHERE FilenameId=%u",
-               id_list.Id[0], id_list.Id[j]);
+            char ed1[50], ed2[50];
+            bsnprintf(buf, sizeof(buf), "UPDATE File SET FilenameId=%s WHERE FilenameId=%s",
+               edit_int64(id_list.Id[0], ed1), edit_int64(id_list.Id[j], ed2));
             if (verbose > 1) {
                printf("%s\n", buf);
             }
             db_sql_query(db, buf, NULL, NULL);
-            bsnprintf(buf, sizeof(buf), "DELETE FROM Filename WHERE FilenameId=%u",
-               id_list.Id[j]);
+            bsnprintf(buf, sizeof(buf), "DELETE FROM Filename WHERE FilenameId=%s",
+               ed2);
             if (verbose > 2) {
                printf("%s\n", buf);
             }
@@ -680,14 +681,14 @@ static void eliminate_duplicate_paths()
          }
          /* Force all records to use the first id then delete the other ids */
          for (int j=1; j<id_list.num_ids; j++) {
-            bsnprintf(buf, sizeof(buf), "UPDATE File SET PathId=%u WHERE PathId=%u",
-               id_list.Id[0], id_list.Id[j]);
+            char ed1[50], ed2[50];
+            bsnprintf(buf, sizeof(buf), "UPDATE File SET PathId=%s WHERE PathId=%s",
+               edit_int64(id_list.Id[0], ed1), edit_int64(id_list.Id[j], ed2));
             if (verbose > 1) {
                printf("%s\n", buf);
             }
             db_sql_query(db, buf, NULL, NULL);
-            bsnprintf(buf, sizeof(buf), "DELETE FROM Path WHERE PathId=%u",
-               id_list.Id[j]);
+            bsnprintf(buf, sizeof(buf), "DELETE FROM Path WHERE PathId=%s", ed2);
             if (verbose > 2) {
                printf("%s\n", buf);
             }
@@ -712,9 +713,11 @@ static void eliminate_orphaned_jobmedia_records()
    printf(_("Found %d orphaned JobMedia records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
 "SELECT JobMedia.JobMediaId,JobMedia.JobId,Media.VolumeName FROM JobMedia,Media "
-"WHERE JobMedia.JobMediaId=%u AND Media.MediaId=JobMedia.MediaId", id_list.Id[i]);
+"WHERE JobMedia.JobMediaId=%s AND Media.MediaId=JobMedia.MediaId", 
+            edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_jobmedia_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -726,7 +729,7 @@ static void eliminate_orphaned_jobmedia_records()
 
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned JobMedia records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM JobMedia WHERE JobMediaId=%u", &id_list);
+      delete_id_list("DELETE FROM JobMedia WHERE JobMediaId=%s", &id_list);
    }
 }
 
@@ -747,9 +750,11 @@ static void eliminate_orphaned_file_records()
    printf(_("Found %d orphaned File records.\n"), id_list.num_ids);
    if (name_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
 "SELECT File.FileId,File.JobId,Filename.Name FROM File,Filename "
-"WHERE File.FileId=%u AND File.FilenameId=Filename.FilenameId", id_list.Id[i]);
+"WHERE File.FileId=%s AND File.FilenameId=Filename.FilenameId", 
+            edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_file_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -760,7 +765,7 @@ static void eliminate_orphaned_file_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned File records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM File WHERE FileId=%u", &id_list);
+      delete_id_list("DELETE FROM File WHERE FileId=%s", &id_list);
    }
 }
 
@@ -781,7 +786,9 @@ static void eliminate_orphaned_path_records()
    printf(_("Found %d orphaned Path records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
-         bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+         char ed1[50];
+         bsnprintf(buf, sizeof(buf), "SELECT Path FROM Path WHERE PathId=%s", 
+            edit_int64(id_list.Id[i], ed1));
          db_sql_query(db, buf, print_name_handler, NULL);
       }
    }
@@ -790,7 +797,7 @@ static void eliminate_orphaned_path_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Path records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Path WHERE PathId=%u", &id_list);
+      delete_id_list("DELETE FROM Path WHERE PathId=%s", &id_list);
    }
 }
 
@@ -811,7 +818,9 @@ static void eliminate_orphaned_filename_records()
    printf(_("Found %d orphaned Filename records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
-         bsnprintf(buf, sizeof(buf), "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+         char ed1[50];
+         bsnprintf(buf, sizeof(buf), "SELECT Name FROM Filename WHERE FilenameId=%s", 
+            edit_int64(id_list.Id[i], ed1));
          db_sql_query(db, buf, print_name_handler, NULL);
       }
    }
@@ -820,7 +829,7 @@ static void eliminate_orphaned_filename_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Filename records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Filename WHERE FilenameId=%u", &id_list);
+      delete_id_list("DELETE FROM Filename WHERE FilenameId=%s", &id_list);
    }
 }
 
@@ -841,8 +850,9 @@ static void eliminate_orphaned_fileset_records()
    printf(_("Found %d orphaned FileSet records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf), "SELECT FileSetId,FileSet,MD5 FROM FileSet "
-                      "WHERE FileSetId=%u", id_list.Id[i]);
+                      "WHERE FileSetId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_fileset_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -853,7 +863,7 @@ static void eliminate_orphaned_fileset_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned FileSet records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM FileSet WHERE FileSetId=%u", &id_list);
+      delete_id_list("DELETE FROM FileSet WHERE FileSetId=%s", &id_list);
    }
 }
 
@@ -881,8 +891,9 @@ static void eliminate_orphaned_client_records()
    printf(_("Found %d orphaned Client records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf), "SELECT ClientId,Name FROM Client "
-                      "WHERE ClientId=%u", id_list.Id[i]);
+                      "WHERE ClientId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_client_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -893,7 +904,7 @@ static void eliminate_orphaned_client_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Client records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Client WHERE ClientId=%u", &id_list);
+      delete_id_list("DELETE FROM Client WHERE ClientId=%s", &id_list);
    }
 }
 
@@ -921,8 +932,9 @@ static void eliminate_orphaned_job_records()
    printf(_("Found %d orphaned Job records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf), "SELECT JobId,Name,StartTime FROM Job "
-                      "WHERE JobId=%u", id_list.Id[i]);
+                      "WHERE JobId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_job_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -933,11 +945,11 @@ static void eliminate_orphaned_job_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d orphaned Job records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
+      delete_id_list("DELETE FROM Job WHERE JobId=%s", &id_list);
       printf(_("Deleting JobMedia records of orphaned Job records.\n"));
-      delete_id_list("DELETE FROM JobMedia WHERE JobId=%u", &id_list);
+      delete_id_list("DELETE FROM JobMedia WHERE JobId=%s", &id_list);
       printf(_("Deleting Log records of orphaned Job records.\n"));
-      delete_id_list("DELETE FROM Log WHERE JobId=%u", &id_list);
+      delete_id_list("DELETE FROM Log WHERE JobId=%s", &id_list);
    }
 }
 
@@ -958,8 +970,9 @@ static void eliminate_admin_records()
    printf(_("Found %d Admin Job records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf), "SELECT JobId,Name,StartTime FROM Job "
-                      "WHERE JobId=%u", id_list.Id[i]);
+                      "WHERE JobId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_job_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -970,7 +983,7 @@ static void eliminate_admin_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d Admin Job records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
+      delete_id_list("DELETE FROM Job WHERE JobId=%s", &id_list);
    }
 }
 
@@ -990,8 +1003,9 @@ static void eliminate_restore_records()
    printf(_("Found %d Restore Job records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (int i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf), "SELECT JobId,Name,StartTime FROM Job "
-                      "WHERE JobId=%u", id_list.Id[i]);
+                      "WHERE JobId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_job_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -1002,7 +1016,7 @@ static void eliminate_restore_records()
    }
    if (fix && id_list.num_ids > 0) {
       printf(_("Deleting %d Restore Job records.\n"), id_list.num_ids);
-      delete_id_list("DELETE FROM Job WHERE JobId=%u", &id_list);
+      delete_id_list("DELETE FROM Job WHERE JobId=%s", &id_list);
    }
 }
 
@@ -1026,8 +1040,10 @@ static void repair_bad_filenames()
    printf(_("Found %d bad Filename records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+            "SELECT Name FROM Filename WHERE FilenameId=%s", 
+                edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_name_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -1042,8 +1058,10 @@ static void repair_bad_filenames()
       printf(_("Reparing %d bad Filename records.\n"), id_list.num_ids);
       for (i=0; i < id_list.num_ids; i++) {
          int len;
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Name FROM Filename WHERE FilenameId=%u", id_list.Id[i]);
+            "SELECT Name FROM Filename WHERE FilenameId=%s", 
+               edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, get_name_handler, name)) {
             printf("%s\n", db_strerror(db));
          }
@@ -1059,8 +1077,8 @@ static void repair_bad_filenames()
             db_escape_string(esc_name, name, len);
          }
          bsnprintf(buf, sizeof(buf),
-            "UPDATE Filename SET Name='%s' WHERE FilenameId=%u",
-            esc_name, id_list.Id[i]);
+            "UPDATE Filename SET Name='%s' WHERE FilenameId=%s",
+            esc_name, edit_int64(id_list.Id[i], ed1));
          if (verbose > 1) {
             printf("%s\n", buf);
          }
@@ -1086,8 +1104,9 @@ static void repair_bad_paths()
    printf(_("Found %d bad Path records.\n"), id_list.num_ids);
    if (id_list.num_ids && verbose && yes_no(_("Print them? (yes/no): "))) {
       for (i=0; i < id_list.num_ids; i++) {
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+            "SELECT Path FROM Path WHERE PathId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, print_name_handler, NULL)) {
             printf("%s\n", db_strerror(db));
          }
@@ -1102,8 +1121,9 @@ static void repair_bad_paths()
       printf(_("Reparing %d bad Filename records.\n"), id_list.num_ids);
       for (i=0; i < id_list.num_ids; i++) {
          int len;
+         char ed1[50];
          bsnprintf(buf, sizeof(buf),
-            "SELECT Path FROM Path WHERE PathId=%u", id_list.Id[i]);
+            "SELECT Path FROM Path WHERE PathId=%s", edit_int64(id_list.Id[i], ed1));
          if (!db_sql_query(db, buf, get_name_handler, name)) {
             printf("%s\n", db_strerror(db));
          }
@@ -1114,8 +1134,8 @@ static void repair_bad_paths()
          /* Add trailing slash */
          len = pm_strcat(&name, "/");
          db_escape_string(esc_name, name, len);
-         bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%u",
-            esc_name, id_list.Id[i]);
+         bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%s",
+            esc_name, edit_int64(id_list.Id[i], ed1));
          if (verbose > 1) {
             printf("%s\n", buf);
          }

@@ -1618,19 +1618,22 @@ static int version_cmd(UAContext *ua, const char *cmd)
  * This call explicitly checks for a catalog=xxx and
  *  if given, opens that catalog.  It also checks for
  *  client=xxx and if found, opens the catalog 
- *  corresponding to that client.
+ *  corresponding to that client. If we still don't 
+ *  have a catalog, look for a Job keyword and get the
+ *  catalog from its client record.
  */
 bool open_client_db(UAContext *ua)
 {
    int i;
    CAT *catalog;
    CLIENT *client;
+   JOB *job;
 
    /* Try for catalog keyword */
    i = find_arg_with_value(ua, NT_("catalog"));
    if (i >= 0) {
       if (!acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
-         bsendmsg(ua, _("No authorization for catalog \"%s\"\n"), ua->argv[i]);
+         bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), ua->argv[i]);
          return false;
       }
       catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
@@ -1646,24 +1649,50 @@ bool open_client_db(UAContext *ua)
    /* Try for client keyword */
    i = find_arg_with_value(ua, NT_("client"));
    if (i >= 0) {
-      if (!acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
-         bsendmsg(ua, _("No authorization for client \"%s\"\n"), ua->argv[i]);
+      if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
+         bsendmsg(ua, _("No authorization for Client \"%s\"\n"), ua->argv[i]);
          return false;
       }
       client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
       if (client) {
-         if (ua->catalog && ua->catalog != client->catalog) {
+         catalog = client->catalog;
+         if (ua->catalog && ua->catalog != catalog) {
             close_db(ua);
          }
-         ua->catalog = client->catalog;
+         if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
+            bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), catalog->name());
+            return false;
+         }
+         ua->catalog = catalog;
          return open_db(ua);
       }
    }
+
+   /* Try for Job keyword */
+   i = find_arg_with_value(ua, NT_("job"));
+   if (i >= 0) {
+      if (!acl_access_ok(ua, Job_ACL, ua->argv[i])) {
+         bsendmsg(ua, _("No authorization for Job \"%s\"\n"), ua->argv[i]);
+         return false;
+      }
+      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      if (job) {
+         catalog = job->client->catalog;
+         if (ua->catalog && ua->catalog != catalog) {
+            close_db(ua);
+         }
+         if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
+            bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), catalog->name());
+            return false;
+         }
+         ua->catalog = catalog;
+         return open_db(ua);
+      }
+   }
+
    return open_db(ua);
 }
 
-
-                 
 
 /*
  * Open the catalog database.

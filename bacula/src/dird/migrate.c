@@ -872,9 +872,10 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
    }
    if (ids->count == 0) {
       Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
-   }
-   if (ids->count != 1) {
-      Jmsg(jcr, M_FATAL, 0, _("SQL logic error. Count should be 1 but is %d\n"), 
+      ok = true;         /* Not an error */
+      goto bail_out;
+   } else if (ids->count != 1) {
+      Jmsg(jcr, M_FATAL, 0, _("SQL error. Expected 1 MediaId got %d\n"), 
          ids->count);
       goto bail_out;
    }

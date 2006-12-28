@@ -1072,9 +1072,27 @@ Item 1:  Cause daemons to use a specific IP address to source communications
          10.0.0.1 and zone transfers will always originate from
          10.0.0.2.
 
-Kern notes: I think this would add very little functionality, but a *lot* of
-          additional overhead to Bacula.
+Item n:   Multiple threads in file daemon for the same job
+  Date:   27 November 2005
+  Origin: Ove Risberg (Ove.Risberg at octocode dot com)
+  Status:
 
+  What:   I want the file daemon to start multiple threads for a backup
+          job so the fastest possible backup can be made.
+
+          The file daemon could parse the FileSet information and start
+          one thread for each File entry located on a separate
+          filesystem.
+
+          A confiuration option in the job section should be used to
+          enable or disable this feature. The confgutration option could
+          specify the maximum number of threads in the file daemon.
+
+          If the theads could spool the data to separate spool files
+          the restore process will not be much slower.
+
+  Why:    Multiple concurrent backups of a large fileserver with many
+          disks and controllers will be much faster.
 
 
 ============= Empty Feature Request form ===========
