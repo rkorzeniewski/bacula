@@ -1,6 +1,12 @@
               Technical notes on version 1.39  
 
 General:
+28Dec06
+kes  Convert dbcheck to use 64 bit DB IDs.
+kes  Update projects
+kes  Make rescue work.      
+kes  Clarify Volume migration error message.
+kes  Look for Job keyword when opening DB in console.
 23Dec06
 kes  Add code in catreq.c to reject volumes not marked Enabled.
 kes  Add a few more ACL access checks.

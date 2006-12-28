@@ -60,6 +60,27 @@ Priority:
 - bacula-1.38.2-ssl.patch
 - Bare-metal recovery Windows (todo)
 
+Projects:
+- GUI
+  - Admin
+  - Management reports
+  - Look at Webmin
+     http://www.orangecrate.com/modules.php?name=News&file=article&sid=501
+- Performance
+  - FD-SD quick disconnect
+  - Despool attributes in separate thread
+  - Database speedups
+  - Embedded MySQL
+- Features
+  - Better scheduling  
+  - Full at least once a month, ...
+  - Cancel Inc if Diff/Full running
+  - More intelligent re-run
+  - New/deleted file backup   
+  - FD plugins
+  - Incremental backup -- rsync, Stow
+
+
 
 
 For 1.39:
