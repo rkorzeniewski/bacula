@@ -41,19 +41,13 @@ Document:
  
 
 Priority:
-- Document fact that CatalogACL now needed for Tray monitor.
-- If you have two Catalogs, it will take the first one.
 - Check if gnome-console works with TLS.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
-- Migration Volume span bug
-- Rescue release
-- Bug reports
 - Test FIFO backup/restore -- make regression
 - Doc items
-- Add encryption regression tests
 - Test Volume compatibility between machine architectures
 - Encryption documentation
 - Wrong jobbytes with query 12 (todo)
@@ -84,6 +78,7 @@ Projects:
 
 
 For 1.39:
+- Make Bacula by default not backup tmpfs, procfs, sysfs, ...
 - Fix hardlinked immutable files when linking a second file, the
   immutable flag must be removed prior to trying to link it.
 - Implement Python event for backing up/restoring a file.
@@ -95,13 +90,10 @@ For 1.39:
 - Look at why SIGPIPE during connection can cause seg fault in
   writing the daemon message, when Dir dropped to bacula:bacula
 - Look at zlib 32 => 64 problems.
-- Try turning on disk seek code.
 - Possibly turn on St. Bernard code.
 - Fix bextract to restore ACLs, or better yet, use common routines.
 - Do we migrate appendable Volumes?
 - Remove queue.c code.
-- Some users claim that they must do two prune commands to get a
-  Volume marked as purged.
 - Print warning message if LANG environment variable does not specify
   UTF-8.
 - New dot commands from Arno.
@@ -1775,3 +1767,11 @@ Block Position: 0
   example conf files (especially in the manual).
 - Fix prog copyright (SD) all other files.
 - Document need for UTF-8 format
+- Try turning on disk seek code.
+- Some users claim that they must do two prune commands to get a
+  Volume marked as purged.
+- Document fact that CatalogACL now needed for Tray monitor (fixed).
+- If you have two Catalogs, it will take the first one.
+- Migration Volume span bug
+- Rescue release
+- Bug reports
