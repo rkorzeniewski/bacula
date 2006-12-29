@@ -2180,6 +2180,7 @@ sub create_brestore_tables
     (
       PathId int4 NOT NULL,
       JobId int4 NOT NULL,
+      Size int8 DEFAULT 0, 
       CONSTRAINT brestore_pathvisibility_pkey PRIMARY KEY (JobId, PathId)
     )";
 	$self->dbh_do($req);
