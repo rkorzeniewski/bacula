@@ -192,8 +192,18 @@ chown www-data /var/spool/bweb
 You must use brestore.pl -b to initialise the database, and
 you can use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 
-At this time, it's a good idea to schedule brestore.pl -g after your BackupCatalog
-job.
+At this time, it's a good idea to schedule brestore.pl -g after your 
+BackupCatalog job.
+
+Job {
+  Name = "BackupCatalog"
+  ...
+  # This creates an ASCII copy of the catalog
+  RunBeforeJob = "/opt/bacula/etc/make_catalog_backup bacula bacula Pei0ahm9"
+  # This deletes the copy of the catalog
+  RunAfterJob  = "/opt/bacula/etc/delete_catalog_backup"
+  RunAfterJob  = "/usr/local/bin/brestore.pl -b"
+}
 
 To upgrade from an old installation, you can use :
 ALTER TABLE brestore_pathvisibility ADD Size int8;
