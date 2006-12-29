@@ -76,12 +76,6 @@ if ($batch eq 'batch') {
     exit 1;
 }
 
-my $url_action = "bfileview.pl?opt_level=$opt_level" ;
-my $top = new CCircle(
-		      display_other => 1,
-		      base_url => "$url_action;$jobid_url;where=$where",
-		      ) ;
-
 print CGI::header('text/html');
 $bweb->display_begin();
 $bweb->display_job_zoom($jobid);
@@ -112,6 +106,12 @@ if (!$root) {
 }
 
 my $total = fv_compute_size($jobid, $root);
+
+my $url_action = "bfileview.pl?opt_level=$opt_level" ;
+my $top = new CCircle(
+		      display_other => 1,
+		      base_url => "$url_action;$jobid_url;where=$where",
+		      ) ;
 
 fv_display_rep($top, $total, $root, $opt_level) ;
 
