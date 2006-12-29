@@ -4,7 +4,7 @@
  <div class="bodydiv">
  <table id='id0'></table>
  <table><td>
- <form action='?'>
+ <form action='bweb.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <label>
   <input type="image" name='action' value='delete' title='delete this job'
@@ -13,7 +13,7 @@
   </label>
  </form>
  </td><td>
- <form action='?'>
+ <form action='bweb.pl?'>
   <TMPL_LOOP volumes>
    <input type='hidden' name='media' value='<TMPL_VAR VolumeName>'>
   </TMPL_LOOP>   
@@ -24,7 +24,7 @@
  </form>
  </td>
  <td>
- <form action='?'>
+ <form action='bweb.pl?'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
   <label>
   <input type="image" name='action' value='job' title='view <TMPL_VAR Client> jobs' src='/bweb/zoom.png'>View jobs
@@ -32,7 +32,7 @@
  </form>
  </td>
  <td>
- <form action='?'>
+ <form action='bweb.pl?'>
   <input type='hidden' name='age' value='2678400'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
   <input type='hidden' name='jobname' value='<TMPL_VAR jobname>'>
@@ -43,7 +43,7 @@
  </form>
  </td>
  <td>
- <form action='?'>
+ <form action='bweb.pl?'>
   <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
   <label>
   <input type="image" name='action' value='fileset_view' title='view fileset'
@@ -51,6 +51,18 @@
   </label>
  </form>
  </td>
+<!-- Remove this to enable fileview
+ <td>
+ <form action='bfileview.pl?'>
+  <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
+  <input type='hidden' name='where' value='/'>
+  <label>
+  <input type="image" name='action' value='bfileview' title='view file usage'
+   src='/bweb/colorscm.png'> View file usage
+  </label>
+ </form>
+ </td>
+-->
  </table>
 </div>
 

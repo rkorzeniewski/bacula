@@ -12,6 +12,7 @@ Bweb works well with 1.39 release.
 6) get bacula log more useful
 7) bweb limitation
 8) using sudo with autochanger
+9) using bfileview.pl
 
 ################ FILE COPY #####################################
  # you must get bweb cvs files
@@ -54,6 +55,7 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
  - perl modules
     - DBI (with mysql or postgresql support DBD::Pg and DBD::mysql)
     - Gd::Graph
+    - Gd
     - HTML::Template
     - CGI
     - Expect
@@ -170,6 +172,31 @@ www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer transfer *
 www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer status
 www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer load *
 www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer unload *
+
+################ BFILEVIEW SETUP ###############################
+
+At this time, bfileview works only with postgresql.
+
+Alias /bweb/fv /var/spool/bweb
+<Directory "/var/spool/bweb">
+    Options None
+    AllowOverride AuthConfig
+    Order allow,deny
+    Allow from all
+</Directory>
+
+mkdir /var/spool/bweb
+chmod 700 /var/spool/bweb
+chown www-data /var/spool/bweb
+
+You must use brestore.pl -b to initialise the database, and
+you can use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
+
+At this time, it's a good idea to schedule brestore.pl -g after your BackupCatalog
+job.
+
+To upgrade from an old installation, you can use :
+ALTER TABLE brestore_pathvisibility ADD Size int8;
 
 
 Enjoy !

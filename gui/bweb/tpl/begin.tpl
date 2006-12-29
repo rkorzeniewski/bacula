@@ -19,44 +19,44 @@ if (navigator.appName == 'Konqueror') {
 </script>
 
 <ul id="menu">
- <li><a href="?">Main</a> </li>
- <li><a href="?action=client">Clients</a></li>
- <li><a href="?action=run_job">Jobs</a>
+ <li><a href="bweb.pl?">Main</a> </li>
+ <li><a href="bweb.pl?action=client">Clients</a></li>
+ <li><a href="bweb.pl?action=run_job">Jobs</a>
    <ul> 
-     <li><a href="?action=run_job">Defined Jobs</a>
-     <li><a href="?action=job">Last Jobs</a> </li>
-     <li><a href="?action=running">Running Jobs</a>
-     <li><a href="?action=next_job">Next Jobs</a> </li>
-     <li><a href="?action=restore" title="Launch brestore">Restore</a> </li>
+     <li><a href="bweb.pl?action=run_job">Defined Jobs</a>
+     <li><a href="bweb.pl?action=job">Last Jobs</a> </li>
+     <li><a href="bweb.pl?action=running">Running Jobs</a>
+     <li><a href="bweb.pl?action=next_job">Next Jobs</a> </li>
+     <li><a href="bweb.pl?action=restore" title="Launch brestore">Restore</a> </li>
    </ul>
  </li>
  <li style="padding: 0.25em 2em;">Medias
   <ul>
-     <li><a href="?action=pool">Pools</a> </li>
-     <li><a href="?action=location">Locations</a> </li>
-     <li><a href="?action=media">All Medias</a><hr></li>
-     <li><a href="?action=extern_media">Eject Medias</a> </li>
-     <li><a href="?action=intern_media">Load Medias</a> </li>
+     <li><a href="bweb.pl?action=pool">Pools</a> </li>
+     <li><a href="bweb.pl?action=location">Locations</a> </li>
+     <li><a href="bweb.pl?action=media">All Medias</a><hr></li>
+     <li><a href="bweb.pl?action=extern_media">Eject Medias</a> </li>
+     <li><a href="bweb.pl?action=intern_media">Load Medias</a> </li>
   </ul>
  </li>
 <TMPL_IF achs>
  <li style="padding: 0.25em 2em;">Autochanger
   <ul>
 <TMPL_LOOP achs>
-   <li><a href="?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
+   <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
 </TMPL_LOOP>
   </ul>
  </li>
 </TMPL_IF> 
- <li><a href="?action=graph"> Statistics </a></li>
- <li> <a href="?action=view_conf"> Configuration </a> </li>
- <li> <a href="?action=about"> About </a> </li>
+ <li><a href="bweb.pl?action=graph"> Statistics </a></li>
+ <li> <a href="bweb.pl?action=view_conf"> Configuration </a> </li>
+ <li> <a href="bweb.pl?action=about"> About </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Logged as <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
 <input type="image" class="button" title="search media" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="search client" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value="search..." onclick="this.value='';" title="search media or client"></li>
 </ul>
 
-<form name="search" action="?" method='GET'>
+<form name="search" action="bweb.pl?" method='GET'>
  <input type="hidden" name="action" value="">
  <input type="hidden" name="re_media" value="">
  <input type="hidden" name="re_client" value="">

@@ -13,6 +13,7 @@
     <tr>  <td><b>Configuration Bweb</b></td>  <td/></tr>
     <tr><td title="/chemin/vers/votre/template_dir">template_dir :</td> <td> <TMPL_VAR template_dir> </td></tr>
     <tr><td title="/chemin/vers/une/font.ttf">graph_font :</td> <td> <TMPL_VAR graph_font> </td></tr>
+    <tr><td title="Ce répertoire doit être accessible en ecriture pour apache et être sous /bweb/fv">fv_write_path :</td> <td> <TMPL_VAR fv_write_path> </td></tr>
     <tr><td title="/chemin/vers/bconsole -n -c /chemin/vers/bconsole.conf">bconsole :</td> <td> <TMPL_VAR bconsole> </td></tr>
     <tr><td>debug :</td> <td> <TMPL_VAR debug> </td></tr>
     <TMPL_IF achs>

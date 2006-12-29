@@ -9,34 +9,37 @@
  
      <tr><td>DBI :</td>     
          <td> 
-          <input class="formulaire" type='text' value='<TMPL_VAR NAME=dbi>' size='64' name='dbi'> 
+          <input class="formulaire" type='text' value='<TMPL_VAR dbi>' size='64' name='dbi'> 
          </td>
      </tr>
      <tr><td>user :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=user>' name='user'>
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR user>' name='user'>
          </td>
      </tr>
      <tr><td>password :</td> 
-         <td> <input class="formulaire" type='password' value='<TMPL_VAR NAME=password>' name='password'> 
+         <td> <input class="formulaire" type='password' value='<TMPL_VAR password>' name='password'> 
          </td></tr>
 
      <tr>  <td><b>General Options</b></td>  <td/></tr>
 
      <tr><td>email_media :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=email_media>' name='email_media'> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR email_media>' name='email_media'> 
          </td></tr>
          </td></tr>
 
      <tr>  <td><b>Bweb Configuration</b></td>  <td/></tr>
 
      <tr><td>graph_font :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=graph_font>' size='64' name='graph_font'> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR graph_font>' size='64' name='graph_font'> 
          </td></tr>
      <tr><td>template_dir :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=template_dir>' size='64' name='template_dir'> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR template_dir>' size='64' name='template_dir'> 
+         </td></tr>
+     <tr><td>fv_write_path :</td> 
+         <td> <input class="formulaire" title="This folder must be writable by apache user and must be accessible on /bweb/fv" type='text' value='<TMPL_VAR fv_write_path>' size='64' name='fv_write_path'> 
          </td></tr>
      <tr><td>bconsole :</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR NAME=bconsole>' size='64' name='bconsole'> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR bconsole>' size='64' name='bconsole'> 
          </td></tr>
      <tr><td>debug :</td> 
          <td> <input class="formulaire" type='checkbox' name='debug'> 

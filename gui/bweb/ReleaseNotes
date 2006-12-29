@@ -1,4 +1,11 @@
-          Release Notes for bweb 1.39.28
+          Release Notes for bweb 1.39.32
+
+2006/12/29
+ - Add graphical backup view. See INSTALL to enable it. It's usefull
+   for tuning backup.
+   NOTES : 
+    - You must use brestore -b to initialise database after BackupCatalog job
+    - If you have an old installation, you must alter your schema (see INSTALL)
 
 2006/12/14
  - Add pool filter to job form

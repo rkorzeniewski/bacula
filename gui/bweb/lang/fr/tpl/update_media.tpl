@@ -106,7 +106,7 @@
   </label>
   <label>
   <input type="image" name='action' title='Mettre à jour à partir du pool'
-    value='update_from_pool' src='/bweb/update.png'> Mettre à jour
+    value='update_from_pool' src='/bweb/update.png'> Reinitialiser
   </label>
  </form>
  </td>

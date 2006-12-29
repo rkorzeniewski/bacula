@@ -107,7 +107,7 @@
   </label>
   <label>
   <input type="image" name='action' title='Update from pool'
-    value='update_from_pool' src='/bweb/update.png'> Update
+    value='update_from_pool' src='/bweb/update.png'> Update from pool
   </label>
  </form>
  </td>
