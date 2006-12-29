@@ -1,7 +1,9 @@
               Technical notes on version 1.39  
 
 General:
+Version 1.39.34 released:
 28Dec06
+kes  Convert dbcheck to use 64 bit DB IDs.
 kes  Update projects
 kes  Make rescue work.      
 kes  Clarify Volume migration error message.

@@ -367,6 +367,7 @@ minutes).
    3905 Device "LTO-Drive1" (/dev/nst0) open but no Bacula volume is mounted.
    If this is not a blank tape, try unmounting and remounting the Volume.
 
+- http://www.dwheeler.com/essays/commercial-floss.html
 - Add VolumeState (enable, disable, archive)
 - Add VolumeLock to prevent all but lock holder (SD) from updating
   the Volume data (with the exception of VolumeState).

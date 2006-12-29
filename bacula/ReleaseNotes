@@ -1,10 +1,10 @@
 
-          Release Notes for Bacula 1.39.32
+          Release Notes for Bacula 1.39.34
 
   Bacula code: Total files = 438 Total lines = 153,698 (*.h *.c *.in)
 
 
-Version 1.39.32 contains mainly bug fixes to 1.39.30  Please
+Version 1.39.34 contains mainly bug fixes to 1.39.32  Please
   see the ChangeLog for more details.
 
 
