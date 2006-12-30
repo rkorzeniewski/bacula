@@ -1,14 +1,66 @@
 
-          Release Notes for Bacula 1.39.34
+          Release Notes for Bacula 2.0.0
 
-  Bacula code: Total files = 438 Total lines = 153,698 (*.h *.c *.in)
+  Bacula code: Total files = 438 Total lines = 154,329 (*.h *.c *.in)
 
+==== IMPORTANT Catalog update required =====
+- The database format has been updated from what was used in    
+  Bacula 1.38.x.  You must manually update your database before 
+  running Bacula 1.39.x or higher.  If you are using Bacula supplied
+  RPMs this is not necessary as the RPM does it automatically.
+  Please backup your previous version of the database before
+  running the update.  The update script will be automatically
+  installed in your scripts directory, or can also be found in
+  <bacula-source>/src/cats.  It is called:
 
-Version 1.39.34 contains mainly bug fixes to 1.39.32  Please
-  see the ChangeLog for more details.
+     ./update_bacula_tables
 
+  It is necessary to run it only once the first time you move to
+  a 2.0.0.  Upgrading the Bacula version thereafter does not
+  require updating the database again.  Depending on the size of
+  your database the script make take a bit of time, to run, but
+  in general, it should be very fast.
 
-==== IMPORTANT Encrypted Volume data may be unreadable ====
+==== IMPORTANT new Win32 install procedure =====
+  For Win32 migrations from versions prior to 1.39.0 nothing special
+  needs to be done to upgrade.  Everything should be taken care of
+  automatically.  The only thing not done is to delete the old C:\bacula
+  directory mostly out of paranoia.
+
+==== IMPORTANT miscellaneous ====
+- The Gnome console program (gconsole) no longer functions as it
+  should.More importantly, in restore mode, the restore tree is
+  no longer shown in the left pane.  I suspect this is due to
+  incompatible changes in the GTK+ API, and hence have given up
+  on gnome and gtk+, as this has already happened several times
+  previously.  At some point there will be a new GUI console.
+- The bacula-dir.conf directive Accept Any Volume has been
+  removed because it was never implemented. You must delete all
+  occurrence of this directive for the Director to run. The Storage
+  daemon will automatically accept any valid Volume that you mount.
+- The --mandir ./configure option now points to the top level man
+  directory.  The man files will be installed under mandir/man8 and
+  mandir/man1 as appropriate.
+- You *should* be able to use 1.38.x FDs with version 2.0.0 Director
+  and SD providing you do not use any of the new features (runscript,   
+  data encryption). It seems to work here, but we do not guarantee it.
+- Your Director and SD must be simultaneously upgraded.
+- The restore command no longer uses the MediaType as the primary method
+  of finding a suitable Storage device. Normally it will select the last
+  device used to write a Volume. If no storage device is defined, it
+  will use the old algorithm which selects the first Storage resource  
+  with the correct MediaType.
+- The MD5/SHA1 hash codes kept in the database are now kept in a binary
+  format compatible with the rest of the world. If you are running verify 
+  jobs, you *must* do an InitCatalog or all files will show an MD5   
+  difference.  Also, authentication uses the new algorithm by
+  default, but *should* accept connections from older components (FD) using
+  the old non-compatible algorithm. This has been tested, but more
+  more testing is still needed.  
+- A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
+  the tape drive. Workaround, load the SuSE 10.1 version 2.6.16.21-0.25
+  kernel or later. The SuSE 10.2 Alpha 5 or later kernel also works.
+  This problem may also be present in certain Fedora FC5 kernels.
 - If you have been using the data encryption feature of 1.39.x, please
   be aware that certain combinations of encryption and other options
   with version 1.39.0 through 1.39.26 created Volume data that cannot
@@ -36,110 +88,30 @@ Version 1.39.34 contains mainly bug fixes to 1.39.32  Please
 
   Bottom line, if you are using data encryption, please test restoring
   data to be sure it all works correctly.
-
-==== IMPORTANT a stock SuSE 10.1 kernel may crash  =====
-- A stock SuSE 10.1 kernel may crash when Bacula runs and accesses
-  the tape drive. Workaround, load the SuSE 10.1 version 2.6.16.21-0.25
-  kernel or later. The SuSE 10.2 Alpha 5 or later kernel also works.
-
-==== IMPORTANT Catalog update required =====
-- The database format has been updated from what was used in    
-  Bacula 1.38.x.  You must manually update your database before 
-  running Bacula 1.39.x or higher.  Please backup your previous
-  version of the database before running the update.  The update
-  script will be automatically installed in your scripts directory,
-  or can also be found in <bacula-source>/src/cats.  It is called:
-
-     ./update_bacula_tables
-
-  It is necessary to run it only once the first time you move to
-  a 1.39.x beta or to 1.40.0.  Upgrading the Bacula version
-  thereafter does not require updating the database again.
-  Depending on the size of your database the script make take a
-  bit of time, to run, but in general, it should be very fast.
-
-==== IMPORTANT DVD Volume format changed ====
 - The current Volume format written by 1.39.22 is different from
   the format written by previous versions. The two formats
   are not compatible. Thus any DVDs written prior to 1.39.22 will
   be unreadable by version 1.39.22.
+- If you previously run a Bacula version prior to 1.39.30, the JobMedia
+  data may not be correct for disk Volumes. This can cause incorrect
+  seeking in versions after 1.39.30. If you experience what appears to
+  be data I/O or integrity errors during restores, please add the
+  following directive to your disk DEVICE resource in the Storage
+  daemon conf file:
 
-==== IMPORTANT miscellaneous ====
-- The Gnome console program (gconsole) no longer functions as it
-  should.  If you have multiple catalogs, you will need to select
-  the catalog (this I will fix).  More importantly, in restore
-  mode, the restore tree is no longer shown in the left pane.  I
-  suspect this is due to incompatible changes in the GTK+ API,
-  and hence have given up on gnome and gtk+, as this has already
-  happened several times previously.  At some point there
-  will be a new GUI console.
-- The bacula-dir.conf directive Accept Any Volume has been
-  removed because it was never implemented. You must delete all
-  occurrence of this directive for the Director to run.
-- The --mandir ./configure option now points to the top level man
-  directory.  The man files will be installed under mandir/man8 and
-  mandir/man1 as appropriate.
-- The "Accept Any Volume" directive has been removed. It was never
-  implemented. Bacula will always accept any valid tape that is in   
-  the drive for appending.
-- You *should* be able to use 1.38.x FDs with version 1.39.18 Director
-  and SD providing you do not use any of the new features (runscript,   
-  data encryption). It seems to work here, but we do not guarantee it.
-- Your Director and SD must be simultaneously upgraded.
-- The restore command no longer uses the MediaType as the primary method
-  of finding a suitable Storage device. Normally it will select the last
-  device used to write a Volume. If no storage device is defined, it
-  will use the old algorithm which selects the first Storage resource  
-  with the correct MediaType.
-- The MD5/SHA1 hash codes kept in the database are now kept in a binary
-  format compatible with the rest of the world. If you are running verify 
-  jobs, you *must* do an InitCatalog or all files will show an MD5   
-  difference.  Also, authentication uses the new algorithm by
-  default, but *should* accept connections from older components (FD) using
-  the old non-compatible algorithm. This has been tested, but more
-  more testing is still needed.  
+    Block Positioning = no
 
-==== IMPORTANT new Win32 install procedure =====
-  For Win32 migrations from versions prior to 1.39.0 nothing special
-  needs to be done to upgrade.  Everything should be taken care of
-  automatically.  The only thing not done is to delete the old C:\Bacula
-  directory (mostly out of paranoia, we can change that prior to release if
-  everyone is comfortable with it).
+  This will turn off all seek requests during restores and avoid
+  this problem.
+- VSS for Windows clients is now enabled by default.
 
-  Prior to using the current installer, if you used a version of the beta 
-  prior to 1.39.26, you must do one of the following three things:
-
-   1)      Uninstall prior beta version and select the option to delete
-   the configuration and state files.  This will get rid of the bogus
-   configuration files.  Reinstall the new 1.39.26 version.
-
-   2)      Manually copy the *.conf files from C:\Bacula\bin to
-   C:\Documents and Settings\All Users\Application Data\Bacula.
-
-   3)      Manually edit the *.conf files in C:\Documents and
-   Settings\All Users\Application Data\Bacula.  The links in the Bacula menu
-   can be used to avoid having to enter that ugly path.
-
-  After one of these has been done the upgrade should work fine.
-======  
-
-New Features in 1.39.30:
-- The Bacula source code is now copyrighted by the Free Software 
-  Foundation Europe. The Developer's Guide documents the new procedures,
-  and the LICENSE file has been updated.
+New Features in 1.40.0:
 - Turn on disk seek code for restores.
-- Apply Jaime Ventura's patch that implements the Messages resource
-  Mail On Success directive.
-- The Client returns its Version string, which is printed in the Job
-  report.
-- The Client returns whether or not VSS and Encryption are used, which
-  are printed in the Job report.
-
-Major new Features in 1.40.0:
-- The basic features of Migration are now complete, and
-  are documented in a new Migration chapter in the manual 
+- Bacula now support Migration jobs that are documented in a new
+  Migration chapter in the manual
   http://www.bacula.org/dev-manual/Migration.html
-- There is an Encryption chapter in the doc.
+- Data encryption is now implemented and is documented in
+  a new chapter of the manual at:
   http://www.bacula.org/dev-manual/Bacula_Data_Encryption.html
 - Additional support for removable devices.  See the 
   Requires Mount, Mount Point, Mount Command, and Unmount
@@ -155,16 +127,17 @@ Major new Features in 1.40.0:
   all the current Unix features to the FD, such as selection on
   drives, encryption support, building *all* the tools, ...
 - The Director and Storage daemon have now been ported to Win32.
-  This code is working but should still be considered beta (i.e.
-  test carefully before putting into production).
-- Data encryption done in the Client is now supported due to code
-  submitted by Landon Fuller.
+  This code is working but should still be tested carefully
+  before putting into production.
 - Bacula restore and bextract can now extract non-portable Win32 data to
   any client (including Unix/Linux clients). Of course, in doing so,
   the Microsoft specific permissions and ACLs will be lost.  Thanks
   to Thorsten Engel for this code.
 - The 260 character limitation for Win32 paths name lengths is now 
-  eliminated thanks to Thorsten Engel.
+  eliminated thanks to Thorsten Engel. However, if you are using
+  Volume Shadow Copy, please be careful to specify all the paths
+  in the bacula-fd.conf file using a full path notation including
+  the drive letter.
 - Eric Bollengier wrote new RunScript directives that includes
   the old RunBefore/AfterJob and ClientRunBefore/AfterJob features
   plus a *lot* more, allowing you to control just about every aspect
@@ -179,7 +152,7 @@ Major new Features in 1.40.0:
   This can be used to preview the next scheduled job (and the
   next tape to be used) on Fridays if there are no scheduled jobs during
   the weekend.
-- Apply patch for enhancing wait from Eric Bollengier. One can now:
+- From Eric Bollengier. One can now using the bconsole wait command do:
    wait  (wait for all jobs to stop)
    wait jobid=nn
    wait jobuid=unique id
@@ -189,9 +162,8 @@ Major new Features in 1.40.0:
   Implement update volume enable=(on|off|true|false|archived|0|1|2)
 - Add Catalog message destination in Messages resource that puts the
   job report in the Log database table.
-
-
-New Features in 1.40.0:
+- Writing/reading DVD Volumes is much more stable -- to the point
+  of being useful. Thanks to Richard Mortimer.
 - Add enable/disable job=<job-name>.  This command prevents
   the specified job from being scheduled. Even when disabled,
   the job can be manually started from the console.
@@ -263,7 +235,10 @@ New Features in 1.40.0:
 - Transfer rates are now presented in a more readable format thanks
   to a user submission.
 - SD is now aware of what volumes are mounted. More information is printed
-  in the Status report.
+  in the Status report. You must take much more care now to unmount
+  devices prior to removing tapes that Bacula has open or prior to
+  changing a magazine. Don't forget to do a mount afterwards or the
+  device will be blocked.
 - The Pool Maximum Volumes directive is now respected in all places.
 - A Storage device can now be specified in a Pool resource. It will override
   all other Storage specifications.
@@ -282,7 +257,7 @@ New Features in 1.40.0:
   to mean the Job name given on the Name directive, and jobid to
   be the numeric (non-unique) job id.
 - Allow the SD to use multiple drives during a backup/restore (only
-  one at a time). This is not well tested.
+  one at a time).
 - Integrate addition of line count limitation to bsmtp -l from
   Sebastian Stark <stark at tuebingen.mpg.de>
 - Split the bacula start/start script into four files:
@@ -329,7 +304,6 @@ New Features in 1.40.0:
   The effect of this option is similar to the keepatime option except
   it is more efficient and avoids modifying ctime.
 - Implement a pile of new man pages contributed by Jose Tallon.
-- Implement a number of user supplied patches for DVD writing.
 - Modify the database format for handling Migration jobs:
    Add PriorJobId, RealEndTime to Job table
    Delete MAC table
@@ -341,10 +315,9 @@ New Features in 1.40.0:
   and forcing a 6 second wait.
 - If using GCC (actually g++) add the following compiler flags
   -fno-strict-aliasing -fno-exceptions -fno-rtti
-- Turn on new bsnprintf() code.
-  The reason for this code is to eliminate the
-  security problems associated with using the system libraries
-  print routines.
+- Turn on new bsnprintf() code.  The reason for this code is to
+  eliminate the security problems associated with using the
+  system libraries print routines.
 - Implement job report that indicates where Storage and Pool
   came from -- with overrides and Pool storage and NextPool,
   it is all very complicated.
@@ -352,10 +325,20 @@ New Features in 1.40.0:
   for restore.
 - Add new VOLMGMT message class. No messages are yet sent with this 
   class.
-- Spend a lot of time integrating mkcdrec with the rescue disk.
+- Improved Bacula rescue procedures -- see the Disaster Recovery
+  chapter of the manual
 - Add spooling/despooling info in status output of SD.
 - Add Comment field to llist of a volume.
-- Allow true/false in some yes/no questions.
+- Allow true/false in many but not all yes/no directives.
+- The Bacula source code is now copyrighted by the Free Software 
+  Foundation Europe. The Developer's Guide documents the new procedures,
+  and the LICENSE file has been updated.
+- Apply Jaime Ventura's patch that implements the Messages resource
+  Mail On Success directive.
+- The Client returns its Version string, which is printed in the Job
+  report.
+- The Client returns whether or not VSS and Encryption are used, which
+  are printed in the Job report.
 
 Additional Features Added for Win32:
 - Added DriveType directive to the Director's Include Option FileSet

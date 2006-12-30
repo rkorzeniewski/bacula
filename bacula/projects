@@ -1094,6 +1094,24 @@ Item n:   Multiple threads in file daemon for the same job
   Why:    Multiple concurrent backups of a large fileserver with many
           disks and controllers will be much faster.
 
+Item  n:  Restore only file attributes (permissions, ACL, owner, group...)
+  Origin: Eric Bollengier
+  Date:   30/12/2006
+  Status:
+
+  What:   The goal of this project is to be able to restore only rights
+          and attributes of files without crushing them.
+
+  Why:    Who have never had to repair a chmod -R 777, or a wild update
+          of recursive right under Windows? At this time, you must have
+          enough space to restore data, dump attributes (easy with acl,
+          more complex with unix/windows rights) and apply them to your 
+          broken tree. With this options, it will be very easy to compare
+          right or ACL over the time.
+
+  Notes:  If the file is here, we skip restore and we change rights.
+          If the file isn't here, we can create an empty one and apply
+          rights or do nothing.
 
 ============= Empty Feature Request form ===========
 Item  n:  One line summary ...

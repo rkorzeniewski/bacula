@@ -53,6 +53,7 @@ Priority:
 - Wrong jobbytes with query 12 (todo)
 - bacula-1.38.2-ssl.patch
 - Bare-metal recovery Windows (todo)
+   
 
 Projects:
 - GUI
@@ -77,7 +78,11 @@ Projects:
 
 
 
-For 1.39:
+For next release:
+- Look at mondo/mindi
+- Don't restore Solaris Door files:
+   #define   S_IFDOOR   in st_mode.
+  see: http://docs.sun.com/app/docs/doc/816-5173/6mbb8ae23?a=view#indexterm-360
 - Make Bacula by default not backup tmpfs, procfs, sysfs, ...
 - Fix hardlinked immutable files when linking a second file, the
   immutable flag must be removed prior to trying to link it.
@@ -118,10 +123,6 @@ Low priority:
   this kind of problem.  Probably the best solution is to make the
   first thread simply start using the Volume in drive 1 rather than
   transferring it to drive 0.
-- After pruning, check to see if the Volume retention period has
-  expired.
-- Check to see if jcr->stime is lost during rescheduling of
-  jobs in jobq.c
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -151,7 +152,6 @@ Low priority:
 
   The problem is that it requires m4, which is not present on all machines
   at ./configure time.
-- Get Perl replacement for bregex.c
 - Given all the problems with FIFOs, I think the solution is to do something a
   little different, though I will look at the code and see if there is not some
   simple solution (i.e. some bug that was introduced).  What might be a better
@@ -368,7 +368,6 @@ minutes).
    If this is not a blank tape, try unmounting and remounting the Volume.
 
 - http://www.dwheeler.com/essays/commercial-floss.html
-- Add VolumeState (enable, disable, archive)
 - Add VolumeLock to prevent all but lock holder (SD) from updating
   the Volume data (with the exception of VolumeState).
 - The btape fill command does not seem to use the Autochanger
@@ -390,16 +389,9 @@ minutes).
 - What happens when you rename a Disk Volume?
 - Job retention period in a Pool (and hence Volume).  The job would
   then be migrated.
-- Detect resource deadlock in Migrate when same job wants to read
-  and write the same device.
-- Queue warning/error messages during restore so that they
-  are reported at the end of the report rather than being
-  hidden in the file listing ...
 - Look at -D_FORTIFY_SOURCE=2
 - Add Win32 FileSet definition somewhere
 - Look at fixing restore status stats in SD.
-- Make selection of Database used in restore correspond to
-  client.
 - Look at using ioctl(FIMAP) and FIGETBSZ for sparse files.
   http://www.informatik.uni-frankfurt.de/~loizides/reiserfs/fibmap.html
 - Implement a mode that says when a hard read error is
@@ -412,7 +404,6 @@ minutes).
   ("F","Full"),
   ("D","Diff"),
   ("I","Inc");
-- Add ACL to restore only to original location.
 - Show files/second in client status output.
 - Add a recursive mark command (rmark) to restore.
 - "Minimum Job Interval = nnn" sets minimum interval between Jobs
@@ -871,8 +862,6 @@ Documentation to do: (any release a little bit at a time)
   block numbers in btape "test".  Possibly adjust in Bacula.
 - Fix list volumes to output volume retention in some other
   units, perhaps via a directive.
-- If opening a tape in read/write mode fails attempt to open
-  it in read-only mode, and mark the tape for read only.
 - Allow Simultaneous Priorities = yes  => run up to Max concurrent jobs even
   with multiple priorities.
 - If you use restore replace=never, the directory attributes for
@@ -880,11 +869,6 @@ Documentation to do: (any release a little bit at a time)
 
 - see lzma401.zip in others directory for new compression
   algorithm/library.
-- Minimal autochanger handling in Bacula and in btape.
-- Look into how tar does not save sockets and the possiblity of
-  not saving them in Bacula (Martin Simmons reported this).
-- Fix restore jobs so that multiple jobs can run if they
-  are not using the same tape(s).
 - Allow the user to select JobType for manual pruning/purging.
 - bscan does not put first of two volumes back with all info in
   bscan-test.
@@ -934,8 +918,6 @@ Documentation to do: (any release a little bit at a time)
   are not restored. See bug 213. To fix this requires creating a
   list of newly restored directories so that those directory 
   permissions *can* be restored.
-- Compaction of Disk space by "migrating" Volumes that have pruned
-  Jobs (what criteria? size, #jobs, time).
 - Add prune all command
 - Document fact that purge can destroy a part of a restore by purging
   one volume while others remain valid -- perhaps mark Jobs.
@@ -956,9 +938,6 @@ Documentation to do: (any release a little bit at a time)
 - Add tree pane to left of window.
 - Add progress meter.
 - Max wait time or max run time causes seg fault -- see runtime-bug.txt
-- Document writing to a CD/DVD with Bacula.
-- Add a "base" package to the window installer for pthreadsVCE.dll
-  which is needed by all packages.
 - Add message to user to check for fixed block size when the forward
   space test fails in btape.
 - When unmarking a directory check if all files below are unmarked and
@@ -967,7 +946,6 @@ Documentation to do: (any release a little bit at a time)
 - Setup lrrd graphs: (http://www.linpro.no/projects/lrrd/) Mike Acar.
 - Revisit the question of multiple Volumes (disk) on a single device.
 - Add a block copy option to bcopy.
-- Investigate adding Mac Resource Forks.
 - Finish work on Gnome restore GUI.
 - Fix "llist jobid=xx" where no fileset or client exists.
 - For each job type (Admin, Restore, ...) require only the really necessary
@@ -1117,11 +1095,6 @@ Documentation to do: (any release a little bit at a time)
   to start a job or pass its DHCP obtained IP number.
 - Implement a query tape prompt/replace feature for a console
 - Copy console @ code to gnome2-console
-- Make AES the only encryption algorithm see 
-  http://csrc.nist.gov/CryptoToolkit/aes/).  It's
-  an officially adopted standard, has survived peer
-  review, and provides keys up to 256 bits.
-- Take a careful look at SetACL http://setacl.sourceforge.net     
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
 - Make sure that Bacula rechecks the tape after the 20 min wait.
@@ -1138,7 +1111,6 @@ Documentation to do: (any release a little bit at a time)
     in the "short" pool to the "long" pool if this pool runs out of volume 
     space?
 - What to do about "list files job=xxx".
-- Get and test MySQL 4.0
 - Look at how fuser works and /proc/PID/fd that is how Nic found the
   file descriptor leak in Bacula.
 - Implement WrapCounters in Counters.
@@ -1161,14 +1133,8 @@ Documentation to do: (any release a little bit at a time)
   run the job but don't save the files.
 - Make things like list where a file is saved case independent for
   Windows.
-- Implement migrate
 - Use autochanger to handle multiple devices.
-- On Windows with very long path names, it may be impossible to create 
-  a file (and thus restore it) because the total length is too long.
-  We must cd into the directory then create the file without the
-  full path name.
 - Implement a Recycle command
-- Test a second language e.g. french.
 - Start working on Base jobs.
 - Implement UnsavedFiles DB record.
 - From Phil Stracchino:
@@ -1198,8 +1164,6 @@ Documentation to do: (any release a little bit at a time)
 - If SD cannot open a drive, make it periodically retry.
 - Add more of the config info to the tape label.
 
-- If tape is marked read-only, then try opening it read-only rather than
-  failing, and remember that it cannot be written.
 - Refine SD waiting output:
     Device is being positioned
     >     Device is being positioned for append
@@ -1238,7 +1202,6 @@ Documentation to do: (any release a little bit at a time)
 - Compare tape to Client files (attributes, or attributes and data) 
 - Make all database Ids 64 bit.
 - Allow console commands to detach or run in background.
-- Fix status delay on storage daemon during rewind.
 - Add SD message variables to control operator wait time
   - Maximum Operator Wait
   - Minimum Message Interval
@@ -1462,16 +1425,6 @@ Longer term to do:
 
 Migration: Move a backup from one Volume to another
 Clone:     Copy a backup -- two Volumes
-
-Bacula Migration is based on Jobs (apparently Networker is file by file).
-
-Migration triggered by:
-  Number of Jobs
-  Number of Volumes
-  Age of Jobs
-  Highwater mark (keep total size)
-  Lowwater mark
-  
 
 
 ======================================================
