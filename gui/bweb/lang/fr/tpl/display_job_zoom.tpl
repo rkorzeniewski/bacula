@@ -57,7 +57,9 @@
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <input type='hidden' name='where' value='/'>
   <label>
-  <input type="image" name='action' value='bfileview' title="Voir la répartition des fichiers"
+  <input type="image" name='action' value='bfileview' 
+   title="Voir la répartition des fichiers"
+   onclick='if (<TMPL_VAR JobFiles> > 5000) { return confirm("Ce traitement peut prendre beaucoup de temps, voulez vous continuer ?")} else { return 1; }'
    src='/bweb/colorscm.png'> Voir la répartition des fichiers
   </label>
  </form>

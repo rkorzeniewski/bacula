@@ -43,6 +43,7 @@
 #
 
 use strict;
+use POSIX qw/strftime/;
 use Bweb;
 use CCircle ;
 use Digest::MD5 qw(md5_hex);
@@ -65,9 +66,7 @@ my $md5_rep = md5_hex("$where:$jobid") ;
 my $base_url = '/bweb/fv' ;
 my $base_fich = $conf->{fv_write_path};
 
-die "Can't get where" unless ($where and $jobid);
-
-if ($batch eq 'batch') {
+if ($where and $jobid and $batch eq 'batch') {
     my $root = fv_get_root_pathid($where);
     if ($root) {
 	fv_compute_size($jobid, $root);
@@ -79,6 +78,16 @@ if ($batch eq 'batch') {
 print CGI::header('text/html');
 $bweb->display_begin();
 $bweb->display_job_zoom($jobid);
+
+unless ($where and $jobid) {
+    $bweb->error("Can't get where or jobid");
+    exit 0;
+}
+
+unless (-w $base_fich) {
+    $bweb->error("$base_fich is not writable");
+    exit 0;
+}
 
 if (-f "$base_fich/$md5_rep.png" and -f "$base_fich/$md5_rep.tpl")
 {
@@ -237,8 +246,13 @@ sub fv_get_file_attribute
     my $path     = $bweb->dbh_quote(dirname($full_name) . "/");
 
     my $attr = $bweb->dbh_selectrow_hashref("
- SELECT 1 AS found,
-        base64_decode_lstat(8, lstat) AS size
+ SELECT 1    AS found,
+        MD5  AS md5,
+        base64_decode_lstat(8,  LStat) AS size,
+        base64_decode_lstat(11, LStat) AS atime,
+        base64_decode_lstat(12, LStat) AS mtime,
+        base64_decode_lstat(13, LStat) AS ctime
+
    FROM File INNER JOIN Filename USING (FilenameId)
              INNER JOIN Path     USING (PathId)
   WHERE Name  = $filename
@@ -248,6 +262,9 @@ sub fv_get_file_attribute
 
     $attr->{filename} = $full_name;
     $attr->{size} = Bweb::human_size($attr->{size});
+    foreach my $d (qw/atime ctime mtime/) {
+	$attr->{$d} = strftime('%F %H:%M', localtime($attr->{$d}));
+    }
     return $attr;
 }
 
@@ -270,7 +287,7 @@ sub fv_get_files_size
     my ($jobid, $rep) = @_;
 
     my $ret = $bweb->dbh_selectrow_hashref("
- SELECT sum(base64_decode_lstat(8,lstat)) AS size
+ SELECT sum(base64_decode_lstat(8,LStat)) AS size
    FROM File
   WHERE PathId  = $rep
     AND JobId = $jobid
@@ -286,7 +303,7 @@ sub fv_get_big_files
     my $ret = $bweb->dbh_selectall_arrayref("
    SELECT Name, size
    FROM (
-         SELECT FilenameId,base64_decode_lstat(8,lstat) AS size
+         SELECT FilenameId,base64_decode_lstat(8,LStat) AS size
            FROM File
           WHERE PathId  = $rep
             AND JobId = $jobid

@@ -189,10 +189,13 @@ mkdir /var/spool/bweb
 chmod 700 /var/spool/bweb
 chown www-data /var/spool/bweb
 
+You have to remove "<!-- Remove this to activate bfileview" and "-->" from
+tpl/display_job_zoom.tpl.
+
 You must use brestore.pl -b to initialise the database, and
 you can use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 
-At this time, it's a good idea to schedule brestore.pl -g after your 
+At this time, it's a good idea to schedule brestore.pl -b after your 
 BackupCatalog job.
 
 Job {
