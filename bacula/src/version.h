@@ -3,7 +3,7 @@
  */
 
 #undef  VERSION
-#define VERSION "1.39.35"
+#define VERSION "2.0.0"
 #define BDATE   "28 December 2006"
 #define LSMDATE "28Dec06"
 
