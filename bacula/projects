@@ -490,7 +490,7 @@ Item 20:  An option to operate on all pools with update vol parameters
 Item 21:  Include JobID in spool file name
   Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
   Date:   Tue Aug 22 17:13:39 EDT 2006
-  Status:
+  Status: Ok (patches/testing/project-include-jobid-in-spool-name.patch)
 
   What:   Change the name of the spool file to include the JobID
 
