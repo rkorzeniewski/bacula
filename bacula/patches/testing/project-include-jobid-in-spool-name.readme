@@ -1,0 +1,8 @@
+From: Eric Bollengier <eric at eb dot homelinux dot org >
+
+This patch implement the include JobID in spool file name project
+
+$Log$
+Revision 1.1  2006/12/30 09:30:03  ricozz
+ebl  works against 1.39.34
+
