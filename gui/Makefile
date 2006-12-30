@@ -6,9 +6,9 @@
 
 # autoconf/Make.common.in        -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
-DATE="18 January 2006"
+DATE="28 December 2006"
 LSMDATE=@LSMDATE@
-VERSION=1.38.5
+VERSION=2.0.0
 VERNAME=bacula-$(VERSION)#
 MAINT=Kern Sibbald#
 MAINTEMAIL=<kern@sibbald.com>#
@@ -135,6 +135,38 @@ release-bimagemgr:
 	  echo "bimagemgr release is in: $$cwd/bimagemgr-$(VERSION).tar.gz"; \
 	  echo " ")
 
-release: clean release-bacula-web release-bimagemgr
+release-brestore:
+	(cwd=`pwd`; rm -rf /tmp/brestore-$(VERSION); \
+	  cd ..; cp -rp $$cwd/brestore /tmp/brestore-$(VERSION); \
+	  cd /tmp/brestore-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/brestore-$(VERSION).tar.gz brestore-$(VERSION); \
+	  rm -rf /tmp/brestore-$(VERSION); \
+	  echo " "; \
+	  echo "brestore release is in: $$cwd/brestore-$(VERSION).tar.gz"; \
+	  echo " ")
+
+release-bweb:
+	(cwd=`pwd`; rm -rf /tmp/bweb-$(VERSION); \
+	  cd ..; cp -rp $$cwd/bweb /tmp/bweb-$(VERSION); \
+	  cd /tmp/bweb-$(VERSION); \
+	  make clean; \
+	  find . -name ".#*" -exec rm -rf {} \; ; \
+	  find . -name "CVS" -exec rm -rf {} \; ; \
+	  find . -name ".cvsignore" -exec rm -rf {} \; ; \
+	  rm -rf autom4te.cache; \
+	  cd ..; \
+	  tar cvfz $$cwd/bweb-$(VERSION).tar.gz bweb-$(VERSION); \
+	  rm -rf /tmp/bweb-$(VERSION); \
+	  echo " "; \
+	  echo "bweb release is in: $$cwd/bweb-$(VERSION).tar.gz"; \
+	  echo " ")
+
+release: clean release-bacula-web release-bimagemgr release-brestore release-bweb
 
 # ------------------------------------------------------------------------
