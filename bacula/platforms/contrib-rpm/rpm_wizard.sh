@@ -20,7 +20,7 @@ fi
 zenity --question --text "Bacula rpm rebuilding wizard. Do you wish to continue?"
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
@@ -32,7 +32,7 @@ PACKAGER=`zenity --text-info --editable --height=25 --width=300 --title="Enter Y
 SELECTED_FILE=`zenity --file-selection --title "Choose SRPM file to rebuild"`
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
@@ -41,7 +41,7 @@ fi
 PLATFORM=`zenity --title "Select Platform" --text "Please choose a build platform." --list --radiolist --column "Select" --column "Platform" False rh7 False rh8 False rh9 False fc1 False fc3 False fc4 False fc5 False wb3 False rhel3 False rhel4 False centos3 False centos4 False su9 False su10 False mdk False mdv`
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
@@ -50,7 +50,7 @@ fi
 DATABASE=`zenity --title "Select Database" --text "Please choose database support." --list --radiolist --column "Select" --column "Platform" False sqlite False mysql False mysql4 False mysql5 False postgresql False client_only`
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
@@ -59,7 +59,7 @@ fi
 OPTIONS=`zenity --title "Select Options" --text "Please choose other options." --list --checklist --column "Select" --column "Platform" False build_wxconsole False nobuild_gconsole False build_x86_64 False build_python`
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
@@ -94,7 +94,7 @@ COMMAND="${COMMAND} ${SELECTED_FILE}"
 zenity --question --text "Ready to rebuild the src rpm with $COMMAND. Do you wish to continue?"
 
 RESULT="$?"
-if [ "$RESULT" == "1" ];
+if [ "$RESULT" = "1" ];
 then
         exit;
 fi
