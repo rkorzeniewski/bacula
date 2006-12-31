@@ -7,7 +7,7 @@
 # Modified by Silas Bennett <silas.bennett_AT_ge.com>, April 2006 for use with Bacula 1.36.2
 #
 
-if [ $1 == '-h' ] || [ $1 == '--help' ] ; then
+if [ $1 = '-h' ] || [ $1 = '--help' ] ; then
 	echo `basename "$0"`" Usage:"
 	echo "	"`basename $0`" takes a ASCII bacula sqlite database dump as an argument,"
 	echo "	and writes an SQL dump suitable for use with MySQL to STDOUT."
