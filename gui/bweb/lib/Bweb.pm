@@ -52,7 +52,7 @@ package Bweb::Gui;
 
 use HTML::Template;
 our $template_dir='/usr/share/bweb/tpl';
-
+our $config_file='/etc/bacula/bweb.conf';
 
 =head1 FUNCTION
 

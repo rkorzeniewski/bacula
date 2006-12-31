@@ -1,4 +1,7 @@
-          Release Notes for bweb 1.39.32
+          Release Notes for bweb 2.0
+
+2006/12/31
+ - Move /etc/bweb/config to /etc/bacula/bweb.conf
 
 2006/12/29
  - Add graphical backup view. See INSTALL to enable it. It's usefull

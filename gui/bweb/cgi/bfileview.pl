@@ -37,11 +37,6 @@
 
 =cut
 
-# TODO:
-#  Si c'est un fichier selectionne, afficher ses attributs
-#  ajouter le base_fic et base_url dans les options bweb
-#
-
 use strict;
 use POSIX qw/strftime/;
 use Bweb;
@@ -49,7 +44,7 @@ use CCircle ;
 use Digest::MD5 qw(md5_hex);
 use File::Basename qw/basename dirname/;
 
-my $conf = new Bweb::Config(config_file => '/etc/bweb/config');
+my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
 my $bweb = new Bweb(info => $conf);
 $bweb->connect_db();
@@ -360,4 +355,8 @@ RETURN val;
 END;
 $$ language 'plpgsql';
 
-ALTER TABLE brestore_pathvisibility ADD Size int8;
+ALTER TABLE brestore_pathvisibility ADD Size  int8;
+
+
+
+ALTER TABLE brestore_pathvisibility ADD Files int4;

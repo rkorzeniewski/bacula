@@ -28,10 +28,10 @@ Bweb works well with 1.39 release.
  install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
 
  # get a config file
- mkdir -m 750 /etc/bweb
- chown root:www-data /etc/bweb
- echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bweb/config
- chown www-data /etc/bweb/config
+ mkdir -m 755 /etc/bacula
+ chown root:bacula /etc/bacula
+ echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
+ chown www-data /etc/bacula/bweb.conf
 
  # copy bweb template file
  mkdir -p /usr/share/bweb/tpl
@@ -87,11 +87,11 @@ Put this in you httpd.conf, and add user with htpasswd
 
 ################ CONFIGURATION #################################
 
-/etc/bweb/config looks like : (you can edit it inside bweb)
+/etc/bacula/bweb.conf looks like : (you can edit it inside bweb)
 $VAR1 = bless( {
   'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
   'name' => undef,
-  'config_file' => '/etc/bweb/config',
+  'config_file' => '/etc/bacula/bweb.conf',
   'bconsole' => '/usr/sbin/bconsole -n -c /etc/bacula/bconsole.conf',
   'ach_list' => {
      'S1_L80' => bless( {

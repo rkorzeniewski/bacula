@@ -54,7 +54,7 @@ if ($action eq 'restore') {
 }
 
 # loading config file
-my $conf = new Bweb::Config(config_file => '/etc/bweb/config');
+my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
 
 my $bweb = new Bweb(info => $conf);
