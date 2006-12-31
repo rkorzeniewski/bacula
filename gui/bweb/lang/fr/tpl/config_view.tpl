@@ -11,6 +11,7 @@
     <tr>  <td><b>Options Générales</b></td>  <td/></tr>
     <tr><td>email_media :</td> <td> <TMPL_VAR email_media> </td></tr>
     <tr>  <td><b>Configuration Bweb</b></td>  <td/></tr>
+    <tr><td>config_file :</td> <td> <TMPL_VAR config_file> </td></tr>
     <tr><td title="/chemin/vers/votre/template_dir">template_dir :</td> <td> <TMPL_VAR template_dir> </td></tr>
     <tr><td title="/chemin/vers/une/font.ttf">graph_font :</td> <td> <TMPL_VAR graph_font> </td></tr>
     <tr><td title="Ce répertoire doit être accessible en ecriture pour apache et être sous /bweb/fv">fv_write_path :</td> <td> <TMPL_VAR fv_write_path> </td></tr>
