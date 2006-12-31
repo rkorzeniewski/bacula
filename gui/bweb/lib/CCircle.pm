@@ -280,7 +280,7 @@ sub finalize
     my ($self) = @_ ;
 
     $self->add_part($self->{min_total}, 
-		    "other < $self->{min_percent}",
+		    "other < $self->{min_percent}%",
 		    $black) ; 
 
 }

@@ -160,10 +160,11 @@ sub fv_display_rep
 	my $size = fv_compute_size($jobid, $dir->[0]);
 	$sum += $size;
 
-	my $chld = $ccircle->add_part($size * 100 / $max, 
+	my $per = $size * 100 / $max;
+	my $chld = $ccircle->add_part($per, 
 				      basename($dir->[1]) . '/',
 				      basename($dir->[1]) 
-				       . "\n" 
+				       . sprintf(' %.0f%% ', $per)
 				       . Bweb::human_size($size)
 				      ) ;
 	
@@ -183,7 +184,7 @@ sub fv_display_rep
 
     if ($sum < $max) {
 	$ccircle->add_part(($max - $sum) * 100 / $max, 
-			   "other files < 3",
+			   "other files < 3%",
 			   "other\n" . Bweb::human_size($max - $sum));
     }
 
