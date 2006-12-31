@@ -312,7 +312,7 @@ sub push_image_map
 {
     my ($self, $label, $tips, $start_degrees, $end_degrees) = @_ ;
 
-    if ($label =~ /^other </) {
+    if ($label =~ /^other .*</) {
 	if (!$self->{display_other}) {
 	    return ;
 	}
@@ -471,7 +471,7 @@ sub draw_labels
 
 	next if ($level > $self->{max_label_level}) ;
 
-	next if (!$self->{display_other} and $label =~ /^other </) ;
+	next if (!$self->{display_other} and $label =~ /^other .*</) ;
 
 	my $dx = ($x - $self->{center_x})*($last_level - $level) + $x ;
 	my $dy = ($y - $self->{center_y})*($last_level - $level) + $y ;
