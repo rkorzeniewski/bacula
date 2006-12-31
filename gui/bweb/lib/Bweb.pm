@@ -52,7 +52,6 @@ package Bweb::Gui;
 
 use HTML::Template;
 our $template_dir='/usr/share/bweb/tpl';
-our $config_file='/etc/bacula/bweb.conf';
 
 =head1 FUNCTION
 
@@ -234,7 +233,7 @@ sub load
 
     unless (open(FP, $self->{config_file}))
     {
-	return $self->error("$self->{config_file} : $!");
+	return $self->error("can't load config_file $self->{config_file} : $!");
     }
     my $f=''; my $tmpbuffer;
     while(read FP,$tmpbuffer,4096)
@@ -1019,6 +1018,8 @@ use base q/Bweb::Gui/;
 use DBI;
 use POSIX qw/strftime/;
 
+our $config_file='/etc/bacula/bweb.conf';
+
 our $cur_id=0;
 
 =head1 VARIABLE
@@ -1183,7 +1184,7 @@ sub connect_db
 				    $self->{info}->{user},
 				    $self->{info}->{password});
 
-	print "Can't connect to your database, see error log\n"
+	$self->error("Can't connect to your database:\n$DBI::errstr\n")
 	    unless ($self->{dbh});
 
 	$self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
