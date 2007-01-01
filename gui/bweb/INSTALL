@@ -13,6 +13,7 @@ Bweb works well with 1.39 release or later.
 7) bweb limitation
 8) using sudo with autochanger
 9) using bfileview.pl
+10) accessing to bweb
 
 ################ FILE COPY #####################################
  # you must get bweb cvs files
@@ -214,5 +215,9 @@ Job {
 To upgrade from an old installation, you can use :
 ALTER TABLE brestore_pathvisibility ADD Size int8;
 
+################ ACCESSING TO BWEB ###############################
+
+Now, you are able to launch firefox/mozilla and go on
+http://your-server/bweb
 
 Enjoy !
