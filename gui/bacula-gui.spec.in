@@ -113,7 +113,7 @@ web server based utility to monitor your bacula server.
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 
-Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-GDGraph
+Requires: perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-GDGraph, perl-GD
 Requires: perl-HTML-Template, perl-Time-modules
 
 %if %{suse}
@@ -187,8 +187,6 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 
 mkdir -p $RPM_BUILD_ROOT%{cgidir}/bweb
 chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb
-mkdir -p $RPM_BUILD_ROOT/etc/bweb
-chmod 750 $RPM_BUILD_ROOT/etc/bweb
 mkdir -p $RPM_BUILD_ROOT/usr/share/bweb/tpl
 mkdir -p $RPM_BUILD_ROOT%{docdir}/%{bweb}
 
@@ -244,7 +242,7 @@ chmod 644 $RPM_BUILD_ROOT/usr/share/pixmaps/brestore.png
 # install the bweb files
 cp -p %{bweb}-%{version}/cgi/*.pl $RPM_BUILD_ROOT%{cgidir}/bweb/
 chmod 755 $RPM_BUILD_ROOT%{cgidir}/bweb/*
-echo "template_dir = /usr/share/bweb/tpl" > $RPM_BUILD_ROOT/etc/bweb/config
+echo "template_dir = /usr/share/bweb/tpl" > $RPM_BUILD_ROOT%{sysconfdir}/bweb.conf
 cp -p %{bweb}-%{version}/tpl/*.tpl $RPM_BUILD_ROOT/usr/share/bweb/tpl/
 chmod 644 $RPM_BUILD_ROOT/usr/share/bweb/tpl/*
 cp -p %{bweb}-%{version}/html/*.js $RPM_BUILD_ROOT%{docdir}/%{bweb}/
@@ -252,8 +250,8 @@ cp -p %{bweb}-%{version}/html/*.png $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.css $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.gif $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 chmod 644 $RPM_BUILD_ROOT%{docdir}/%{bweb}/*
-cp -p %{bweb}-%{version}/script/bweb-postgresql.sql $RPM_BUILD_ROOT/etc/bweb/
-chmod 644 $RPM_BUILD_ROOT/etc/bweb/bweb-postgresql.sql
+cp -p %{bweb}-%{version}/script/bweb-postgresql.sql $RPM_BUILD_ROOT%{sysconfdir}
+chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/bweb-postgresql.sql
 
 
 # remove the standard doc files from the install directory
@@ -351,14 +349,14 @@ rm -rf docs
 %{cgidir}/bweb/*.pl
 /usr/share/bweb/tpl/*.tpl
 %{docdir}/bweb/*
-/etc/bweb/bweb-postgresql.sql
+%{sysconfdir}/bweb-postgresql.sql
 %doc docs/%{bweb}/*
 
 %defattr(-,%{binowner},%{datagroup})
-%dir /etc/bweb
+%dir %{sysconfdir}
 
 %defattr(-,%{dataowner},%{datagroup})
-/etc/bweb/config
+%{sysconfdir}/bweb.conf
 
 %post bimagemgr
 %if %{suse}
@@ -389,6 +387,11 @@ echo
 cp -p %{groupfile} %{groupfile}.old
 awk '{if (/bacula:/) print $0",%{dataowner}"; else print $0}' %{groupfile}.old > %{groupfile}
 %endif
+echo
+echo If you are using postgresql, you should load %{sysconfdir}/bweb-postgresql.sql into
+echo your database.
+echo postgres:~$ psql bacula < %{sysconfdir}/bweb-postgresql.sql
+echo
 
 %postun bweb
 %if %{suse}
@@ -401,6 +404,8 @@ echo
 %endif
 
 %changelog
+* Sun Dec 31 2006 ebl
+- move /etc/bweb/config to /etc/bacula/bweb.conf
 * Sun Sep 24 2006 D. Scott Barninger <barninger at fairfieldcomputers.com>
 - it's bweb not brestore that needs to add dataowner to group bacula
 - brestore will need to run xsu or consolehelper
