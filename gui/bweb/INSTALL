@@ -39,7 +39,7 @@ Bweb works well with 1.39 release or later.
  mkdir -p /usr/share/bweb/tpl
  install -m 644 -o root -g root  bweb/tpl/*.tpl /usr/share/bweb/tpl
 
- # copy the bweb graphics elements (bweb elements must reside inn /bweb)
+ # copy the bweb graphics elements (bweb elements must reside in /bweb)
  mkdir /var/www/bweb
  install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico} /var/www/bweb
 
