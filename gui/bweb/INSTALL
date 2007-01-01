@@ -2,13 +2,13 @@
 #               INSTALL NOTES                                  #
 ################################################################
 
-Bweb works well with 1.39 release.
+Bweb works well with 1.39 release or later.
 
 1) install perl lib
 2) copy your files
 3) intialise your configuration file
-4) do some sql stuff (for postgresql user)
-5) get a bconsole that work with Expect
+4) do some sql stuff (for postgresql users)
+5) use the -n option on bconsole so that it works with Expect
 6) get bacula log more useful
 7) bweb limitation
 8) using sudo with autochanger
@@ -20,10 +20,12 @@ Bweb works well with 1.39 release.
  cvs -z3 -d:pserver:anonymous@bacula.cvs.sourceforge.net:/cvsroot/bacula co -P gui
  cd gui
 
- # first, copy bweb perl librarie in your PERL5 INC path
+ # or get them from the released tar files or from the apt or rpms.
+
+ # first, copy the bweb perl library into your PERL5 INC path
  install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
 
- # copy bweb perl program to you cgi location
+ # copy the bweb perl program to your cgi location
  mkdir -m 755 /usr/lib/cgi-bin/bweb
  install -m 755 -o root -g root  bweb/cgi/*.pl /usr/lib/cgi-bin/bweb
 
@@ -33,17 +35,18 @@ Bweb works well with 1.39 release.
  echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
  chown www-data /etc/bacula/bweb.conf
 
- # copy bweb template file
+ # copy the bweb template file
  mkdir -p /usr/share/bweb/tpl
  install -m 644 -o root -g root  bweb/tpl/*.tpl /usr/share/bweb/tpl
 
- # copy bweb graphics elements (bweb elements must reside on /bweb)
+ # copy the bweb graphics elements (bweb elements must reside inn /bweb)
  mkdir /var/www/bweb
  install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico} /var/www/bweb
 
  # done !
 
- WARNING : Your www-data user must be able to execute bconsole and able to read bconsole.conf !
+ WARNING : Your www-data user must be able to execute bconsole and able 
+           to read the bconsole.conf file!
            You can create an bconsole group for that.
 
 ################ USE FRENCH VERSION ############################
@@ -73,7 +76,7 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
 
 It could be a good idea to protect your bweb installation.
 
-Put this in you httpd.conf, and add user with htpasswd
+Put this in your httpd.conf, and add user with htpasswd
 
 <Directory /usr/lib/cgi-bin/bweb>
         Options ExecCGI -MultiViews +SymLinksIfOwnerMatch
@@ -128,20 +131,20 @@ $VAR1 = bless( {
 
 ################ BRESTORE ######################################
 
-If you want to use brestore with bweb, you must associate mime type
+If you want to use brestore with bweb, you must associate a mime type
 text/brestore with your brestore.pl.
 
 ################ POSTGRESQL NOTES ##############################
 
-If you think that Mysql is not a great database (or just a toy), you must add
-function to the Postgresql bacula database to get Bweb works.
+If you want to use PostgreSQL instead of MySQL, you must add
+a function to the PostgreSQL Bacula database to get Bweb to work.
 
 psql -u bacula bacula < script/bweb-postgresql.sql
 
 ################ BCONSOLE NOTES ################################
 
 You must use bconsole without conio/readline support. For that, use
-bconsole -n option.
+the bconsole -n option.
 
 ################ BACULA LOG ####################################
 
@@ -175,7 +178,7 @@ www-data ALL = (root) NOPASSWD: /usr/sbin/mtx -f /dev/changer unload *
 
 ################ BFILEVIEW SETUP ###############################
 
-At this time, bfileview works only with postgresql.
+At this time, bfileview works only with PostgreSQL.
 
 Alias /bweb/fv /var/spool/bweb
 <Directory "/var/spool/bweb">
