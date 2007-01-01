@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-12-28 19:14+0100\n"
-"PO-Revision-Date: 2007-01-01 19:03+0100\n"
+"PO-Revision-Date: 2007-01-01 20:36+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -13475,9 +13475,9 @@ msgid "Reposition from (file:block) %u:%u to %u:%u\n"
 msgstr "Repositionnement de (fichier:bloc) %u:%u à %u:%u\n"
 
 #: src/stored/read_record.c:369
-#, fuzzy, c-format
+#, c-format
 msgid "Forward spacing Volume \"%s\" to file:block %u:%u.\n"
-msgstr "Postionnement en avant sur le fichier:bloc %u:%u.\n"
+msgstr "Postionnement en avant du Volume « %s » sur le fichier:bloc %u:%u.\n"
 
 #: src/stored/read_record.c:394
 msgid "Begin Session"
@@ -13559,17 +13559,14 @@ msgstr ""
 "3605 JobId=%u voulait libérer le lecteur, mais le device %s est occupé.\n"
 
 #: src/stored/reserve.c:929
-#, fuzzy, c-format
+#, c-format
 msgid "3606 JobId=%u prefers mounted drives, but drive %s has no Volume.\n"
-msgstr ""
-"3605 JobId=%u voulait libérer le lecteur, mais le device %s est occupé.\n"
+msgstr "3606 JobId=%u voulait un lecteur monté, mais le lecteur %s est vide.\n"
 
 #: src/stored/reserve.c:939
 #, c-format
 msgid "3607 JobId=%u wants Vol=\"%s\" drive has Vol=\"%s\" on drive %s.\n"
-msgstr ""
-"3607 JobId=%u voulait Vol=« %s », c'est le Vol=« %s » qui est dans le drive %"
-"s.\n"
+msgstr "3607 JobId=%u voulait Vol=« %s », c'est le Vol=« %s » qui est dans le drive %s.\n"
 
 #: src/stored/reserve.c:975
 #, c-format
@@ -13749,7 +13746,7 @@ msgid "Device %s is mounted with Volume=\"%s\" Pool=\"%s\"\n"
 msgstr "Le Device %s est monté avec le Volume=« %s » Pool=« %s »\n"
 
 #: src/stored/status.c:140
-#, fuzzy, c-format
+#, c-format
 msgid "Device %s open but no Bacula volume is currently mounted.\n"
 msgstr "Le Device %s est ouvert, mais il n'y a pas de Volume Bacula monté.\n"
 
@@ -13834,9 +13831,9 @@ msgid "    Drive %d is not loaded.\n"
 msgstr "    Le lecteur %d n'est pas chargé.\n"
 
 #: src/stored/status.c:274
-#, fuzzy, c-format
+#, c-format
 msgid "    Drive %d status unknown.\n"
-msgstr "    Le lecteur %d n'est pas chargé.\n"
+msgstr "    Le statut du lecteur %d est inconnu.\n"
 
 #: src/stored/status.c:297
 msgid "Device state:\n"
@@ -13905,9 +13902,8 @@ msgstr ""
 "Jobs en attente de réservation de lecteur :\n"
 
 #: src/stored/status.c:465
-#, fuzzy
 msgid "===================================================================\n"
-msgstr "======================================================================\n"
+msgstr "===================================================================\n"
 
 #: src/stored/status.c:611
 msgid "3900 Bad .status command, missing argument.\n"
@@ -14087,9 +14083,9 @@ msgid "Job %s waiting to reserve a device.\n"
 msgstr "Le job %s est en attente de réservation d'un device.\n"
 
 #: src/tools/bregex.c:147 src/tools/bwild.c:122
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open data file: %s\n"
-msgstr "Impossible d'ouvrir la base de données « %s ».\n"
+msgstr "Impossible d'ouvrir le fichier de données %s.\n"
 
 #: src/tools/bsmtp.c:92
 #, c-format
@@ -14709,7 +14705,6 @@ msgid "Skip: File system change prohibited. Directory not entered. %s\n"
 msgstr ""
 
 #: src/tray-monitor/authenticate.c:88
-#, fuzzy
 msgid ""
 "Director authorization problem.\n"
 "Most likely the passwords do not agree.\n"
@@ -14718,24 +14713,17 @@ msgid ""
 msgstr ""
 "Problème d'authentification avec le director.\n"
 "Le plus souvent, les mots de pass ne correspondent pas.\n"
-"Si vous utilisez TLS, il peut y avoir une erreur de validation du "
-"certificat\n"
-"pendant l'initialisation de la connexion TLS.\n"
 "Vous trouverez de l'aide sur\n"
 "http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors\n"
 
 #: src/tray-monitor/authenticate.c:138
-#, fuzzy
 msgid ""
 "Director and Storage daemon passwords or names not the same.\n"
 "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for "
 "help.\n"
 msgstr ""
-"Problème d'authentification avec le director.\n"
+"Problème d'authentification entre le storage et le director.\n"
 "Le plus souvent, les mots de pass ne correspondent pas.\n"
-"Si vous utilisez TLS, il peut y avoir une erreur de validation du "
-"certificat\n"
-"pendant l'initialisation de la connexion TLS.\n"
 "Vous trouverez de l'aide sur\n"
 "http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors\n"
 
@@ -14750,17 +14738,13 @@ msgid "Error sending Hello to File daemon. ERR=%s\n"
 msgstr ""
 
 #: src/tray-monitor/authenticate.c:184
-#, fuzzy
 msgid ""
 "Director and File daemon passwords or names not the same.\n"
 "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for "
 "help.\n"
 msgstr ""
-"Problème d'authentification avec le director.\n"
+"Problème d'authentification entre le client et le director.\n"
 "Le plus souvent, les mots de pass ne correspondent pas.\n"
-"Si vous utilisez TLS, il peut y avoir une erreur de validation du "
-"certificat\n"
-"pendant l'initialisation de la connexion TLS.\n"
 "Vous trouverez de l'aide sur\n"
 "http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors\n"
 
@@ -14878,9 +14862,8 @@ msgid "Written by Nicolas Boichat\n"
 msgstr ""
 
 #: src/tray-monitor/tray-monitor.c:513 src/tray-monitor/tray-monitor.c:524
-#, fuzzy
 msgid "Version"
-msgstr "%s Version : %s (%s)\n"
+msgstr "Version"
 
 #: src/tray-monitor/tray-monitor.c:592
 #, c-format
