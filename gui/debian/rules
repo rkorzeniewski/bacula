@@ -1,0 +1,121 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+
+#Architecture 
+build: build-arch build-indep
+
+build-arch: build-arch-stamp
+build-arch-stamp: 
+	touch build-arch-stamp
+
+build-indep: build-indep-stamp
+build-indep-stamp: 
+	dh_installdirs -i
+	touch build-indep-stamp
+
+clean:
+	dh_testdir
+	rm -f build-arch-stamp build-indep-stamp binary-common-stamp install-indep-stamp install-arch-stamp #CONFIGURE-STAMP#
+	rm -f debian/*.1
+	rm -f debian/*.init
+	dh_clean 
+
+install: install-indep-stamp
+install-indep-stamp: install-indep
+install-indep:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -i 
+	dh_installdirs -i
+	install -m 755 brestore/brestore.pl debian/brestore/usr/bin
+	install -m 644 brestore/brestore.glade debian/brestore/usr/share/brestore
+	install -m 644 brestore/brestore-fr.glade debian/brestore/usr/share/brestore
+	install -m 644 brestore/brestore.png debian/brestore/usr/share/brestore
+
+	install -m 644 bweb/lib/Bconsole.pm debian/bweb-common/usr/share/perl5
+	install -m 644 bweb/lib/CCircle.pm debian/bweb/usr/share/perl5
+	install -m 644 bweb/lib/Bweb.pm debian/bweb/usr/share/perl5
+	install -m 644 bweb/script/bweb.conf debian/bweb/etc/apache/conf.d
+	install -m 755 bweb/cgi/bgraph.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 755 bweb/cgi/bweb.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 755 bweb/cgi/bfileview.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 755 bweb/cgi/bconsole.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 644 bweb/tpl/*.tpl debian/bweb/usr/share/bweb/tpl 
+	install -m 644 bweb/html/*.js debian/bweb/usr/share/bweb/html
+	install -m 644 bweb/html/*.css debian/bweb/usr/share/bweb/html
+	install -m 644 bweb/html/*.png debian/bweb/usr/share/bweb/html
+	install -m 644 bweb/html/*.gif debian/bweb/usr/share/bweb/html
+	install -m 644 bweb/script/bweb-postgresql.sql debian/bweb/usr/share/bweb
+	dh_install -i
+	touch install-indep-stamp
+
+install-arch: install-arch-stamp
+install-arch-stamp:
+	dh_testdir
+	dh_testroot
+#	dh_clean -pbrestore -k -s 
+#	dh_clean -pbweb    -k -s 
+
+	touch install-arch-stamp
+
+binary: build install binary-common 
+# Must not depend on anything. This is to be called by
+# binary-arch/binary-indep
+# in another 'make' thread.
+binary-common: binary-common-stamp
+binary-common-stamp:
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_installmenu -psched-builder
+	dh_installdebconf	
+#	dh_installlogrotate	
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+#	dh_installcron
+#	dh_installinfo
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress 
+	dh_fixperms
+#	dh_perl
+#	dh_python
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+	touch binary-common-stamp
+
+# Build architecture independant packages using the common target.
+binary-indep: build-indep install-indep-stamp
+	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
+
+# Build architecture dependant packages using the common target.
+binary-arch: build-arch install-arch
+	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
+
+binary: binary-arch binary-indep
+.PHONY: build clean binary-indep binary-arch binary install install-indep install-arch configure

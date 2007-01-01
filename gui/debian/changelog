@@ -1,0 +1,13 @@
+bweb (2.0.0-1) stable; urgency=low
+
+  * Change revision.
+  * move /etc/bweb/config to /etc/bacula/bweb.conf
+
+ -- Eric Bollengier <eb.homelinux.org>  Sun,  30 Dec 2006 09:22:47 +0000
+	
+bweb (1.40-1) stable; urgency=low
+
+  * Initial Release.
+
+ -- Eric Bollengier <eb.homelinux.org>  Sam,  18 Nov 2006 23:22:47 +0000
+

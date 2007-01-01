@@ -1,0 +1,1 @@
+?package(brestore):needs="X11" section="Apps/Utils" title="brestore" command="/usr/bin/brestore.pl" icon="/usr/share/brestore/brestore.png"

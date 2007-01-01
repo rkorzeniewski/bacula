@@ -1,0 +1,9 @@
+etc/bweb
+etc/apache/conf.d
+usr/lib/cgi-bin/bweb
+usr/share/doc/bweb
+usr/share/bweb
+usr/share/bweb/tpl
+usr/share/bweb/html
+usr/share/perl5
+var/spool/bweb
