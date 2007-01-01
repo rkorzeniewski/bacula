@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
 "POT-Creation-Date: 2006-12-28 19:14+0100\n"
-"PO-Revision-Date: 2007-01-01 20:36+0100\n"
+"PO-Revision-Date: 2007-01-01 20:45+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1072,8 +1072,6 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Copyright (C) 2000-2005 Kern Sibbald.\n"
-"\n"
 "Version : %s (%s)\n"
 "\n"
 "Usage : dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
@@ -1099,7 +1097,7 @@ msgstr ""
 #: src/gnome2-console/console.c:290 src/stored/stored.c:212
 #, c-format
 msgid "Please correct configuration file: %s\n"
-msgstr ""
+msgstr "Merci de corriger le fichier de configuration : %s\n"
 
 #: src/dird/dird.c:441
 msgid "Too many open reload requests. Request ignored.\n"
@@ -1111,7 +1109,7 @@ msgstr ""
 
 #: src/dird/dird.c:459
 msgid "Resetting previous configuration.\n"
-msgstr ""
+msgstr "Retour à la dernière configuration.\n"
 
 #: src/dird/dird.c:522
 #, c-format
@@ -1593,12 +1591,12 @@ msgstr ""
 #: src/dird/dird_conf.c:1528
 #, c-format
 msgid "Expected a Job Level keyword, got: %s"
-msgstr "Attendait un niveau de sauvegarde, eu :%s"
+msgstr "Attendait un niveau de sauvegarde, eu : %s"
 
 #: src/dird/dird_conf.c:1548
 #, c-format
 msgid "Expected a Restore replacement option, got: %s"
-msgstr ""
+msgstr "Attendait un niveau de remplacement, eu : %s"
 
 #: src/dird/dird_conf.c:1596 src/dird/dird_conf.c:1706
 #: src/lib/parse_conf.c:722 src/lib/parse_conf.c:737
@@ -1779,7 +1777,7 @@ msgstr "Erreur de socket sur la commande %s : ERR=%s\n"
 #: src/dird/inc_conf.c:284
 #, c-format
 msgid "Expected a FileSet option keyword, got:%s:"
-msgstr ""
+msgstr "Attendait une option de FileSet, eu : %s:"
 
 #: src/dird/inc_conf.c:317
 msgid "Old style Include/Exclude not supported\n"
@@ -1818,7 +1816,7 @@ msgstr ""
 #: src/dird/inc_conf.c:614
 #, c-format
 msgid "Expected a filename, got: %s"
-msgstr ""
+msgstr "Attendait un nom de fichier, eu : %s"
 
 #: src/dird/inc_conf.c:685
 #, c-format
