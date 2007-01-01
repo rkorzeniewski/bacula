@@ -61,6 +61,7 @@ install-indep:
 	install -m 644 bweb/html/*.css debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/html/*.png debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/html/*.gif debian/bweb/usr/share/bweb/html
+	install -m 644 bweb/html/*.html debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/script/bweb-postgresql.sql debian/bweb/usr/share/bweb
 	dh_install -i
 	touch install-indep-stamp

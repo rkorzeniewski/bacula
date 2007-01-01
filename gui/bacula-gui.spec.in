@@ -249,6 +249,7 @@ cp -p %{bweb}-%{version}/html/*.js $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.png $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.css $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 cp -p %{bweb}-%{version}/html/*.gif $RPM_BUILD_ROOT%{docdir}/%{bweb}/
+cp -p %{bweb}-%{version}/html/*.html $RPM_BUILD_ROOT%{docdir}/%{bweb}/
 chmod 644 $RPM_BUILD_ROOT%{docdir}/%{bweb}/*
 cp -p %{bweb}-%{version}/script/bweb-postgresql.sql $RPM_BUILD_ROOT%{sysconfdir}
 chmod 644 $RPM_BUILD_ROOT%{sysconfdir}/bweb-postgresql.sql
