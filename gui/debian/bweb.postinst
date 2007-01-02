@@ -29,4 +29,6 @@ if [ "$1" = "configure" ] ; then
 	echo "postgres@localhost:~$ psql bacula < /usr/share/bweb/bweb-postgresql.sql"
 
  fi
+ echo "You have to reload your apache configuration"
+ echo "You can use user/passwd by editing /etc/apache/conf.d/bweb.conf"
 fi
