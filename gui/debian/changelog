@@ -1,9 +1,15 @@
+bweb (2.0.0-2) stable; urgency=low
+
+  * Add french tpl in /usr/share/bweb/fr/tpl
+
+ -- Eric Bollengier <eb.homelinux.org>  Mon,  01 Jan 2007 09:22:47 +0000
+	
 bweb (2.0.0-1) stable; urgency=low
 
   * Change revision.
   * move /etc/bweb/config to /etc/bacula/bweb.conf
 
- -- Eric Bollengier <eb.homelinux.org>  Sun,  30 Dec 2006 09:22:47 +0000
+ -- Eric Bollengier <eb.homelinux.org>  Sun,  31 Dec 2006 09:22:47 +0000
 	
 bweb (1.40-1) stable; urgency=low
 
