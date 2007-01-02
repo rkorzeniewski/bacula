@@ -1,6 +1,7 @@
 bweb (2.0.0-2) stable; urgency=low
 
   * Add french tpl in /usr/share/bweb/fr/tpl
+  * Add favicon.ico
 
  -- Eric Bollengier <eb.homelinux.org>  Mon,  01 Jan 2007 09:22:47 +0000
 	
