@@ -15,7 +15,7 @@ if [ "$1" = "configure" ] ; then
  fi
 
  if [ ! -f /etc/bacula/bweb.conf ] ; then
-	echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
+	echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl", fv_write_path => "/var/spool/bweb" };' > /etc/bacula/bweb.conf
 
  	chown www-data:root /etc/bacula/bweb.conf
  	chmod 640 /etc/bacula/bweb.conf
@@ -27,8 +27,8 @@ if [ "$1" = "configure" ] ; then
 	echo "If you are using postgresql, you have to load /usr/share/bweb/bweb-postgresql.sql in your database"
 
 	echo "postgres@localhost:~$ psql bacula < /usr/share/bweb/bweb-postgresql.sql"
-
+        echo 
+        echo "You can use user/passwd (see /etc/apache/conf.d/bweb.conf)"
+        echo "You have to reload your apache configuration"
  fi
- echo "You have to reload your apache configuration"
- echo "You can use user/passwd by editing /etc/apache/conf.d/bweb.conf"
 fi
