@@ -7,28 +7,21 @@ db_version 2.0
 
 if [ "$1" = "configure" ] ; then
  if [ -f /etc/bweb/config ] ; then
-     echo "/etc/bweb/config have moved to /etc/bacula/bweb.conf"
-     echo "you can remove /etc/bweb"
-     [ ! -d /etc/bacula ] && mkdir /etc/bacula
-     cp -p /etc/bweb/config /etc/bacula/bweb.conf
-     sed -i 's!/etc/bweb/config!/etc/bacula/bweb.conf!' /etc/bacula/bweb.conf
+     echo "WARNING: /etc/bweb/config is no longer in use."
+     echo "Please, use /etc/bacula/bweb.conf instead."
  fi
 
- if [ ! -f /etc/bacula/bweb.conf ] ; then
-	echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl", fv_write_path => "/var/spool/bweb" };' > /etc/bacula/bweb.conf
+ chown www-data:root /etc/bacula/bweb.conf
+ chmod 600 /etc/bacula/bweb.conf
 
- 	chown www-data:root /etc/bacula/bweb.conf
- 	chmod 640 /etc/bacula/bweb.conf
-
-	chown www-data:root /var/spool/bweb
-	chmod 700 /var/spool/bweb
+ chown www-data:root /var/spool/bweb
+ chmod 700 /var/spool/bweb
 	
-	echo
-	echo "If you are using postgresql, you have to load /usr/share/bweb/bweb-postgresql.sql in your database"
-
-	echo "postgres@localhost:~$ psql bacula < /usr/share/bweb/bweb-postgresql.sql"
-        echo 
-        echo "You can use user/passwd (see /etc/apache/conf.d/bweb.conf)"
-        echo "You have to reload your apache configuration"
- fi
+ echo
+ echo "If you are using postgresql, you have to load /usr/share/bweb/bweb-postgresql.sql in your database"
+ 
+ echo "postgres@localhost:~$ psql bacula < /usr/share/bweb/bweb-postgresql.sql"
+ echo 
+ echo "You can use user/passwd (see /etc/apache/conf.d/bweb.conf)"
+ echo "You have to reload your apache configuration"
 fi

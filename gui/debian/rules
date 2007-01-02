@@ -65,6 +65,8 @@ install-indep:
 	install -m 644 bweb/html/*.html debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/html/*.ico debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/script/bweb-postgresql.sql debian/bweb/usr/share/bweb
+	echo '$$VAR1 = { template_dir => "/usr/share/bweb/tpl", fv_write_path => "/var/spool/bweb" };' > debian/bweb/etc/bacula/bweb.conf
+	chmod 600 debian/bweb/etc/bacula/bweb.conf
 	dh_install -i
 	touch install-indep-stamp
 

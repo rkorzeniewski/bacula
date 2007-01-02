@@ -1,4 +1,4 @@
-etc/bweb
+etc/bacula
 etc/apache/conf.d
 usr/lib/cgi-bin/bweb
 usr/share/doc/bweb
