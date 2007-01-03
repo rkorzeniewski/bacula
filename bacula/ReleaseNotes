@@ -109,6 +109,15 @@
 
 New Features in 2.0.0:
 - Turn on disk seek code for restores.
+- There is a partial but reasonable translation of the Bacula
+  messages for French.  To install it, first configure and build
+  Bacula, then as root run:
+
+    cd <bacula-source>/po
+    make install
+
+  If you have your locale set properly you will get the translated
+  messages.
 - Bacula now support Migration jobs that are documented in a new
   Migration chapter in the manual
   http://www.bacula.org/dev-manual/Migration.html
