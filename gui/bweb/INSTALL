@@ -214,6 +214,7 @@ Job {
 
 To upgrade from an old installation, you can use :
 ALTER TABLE brestore_pathvisibility ADD Size int8;
+ALTER TABLE brestore_pathvisibility ADD Files int4;
 
 ################ ACCESSING TO BWEB ###############################
 
