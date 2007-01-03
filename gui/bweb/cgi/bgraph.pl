@@ -4,7 +4,7 @@ use strict;
 =head1 LICENSE
 
    Bweb - A Bacula web interface
-   Bacula® - The Network Backup Solution
+   BaculaÂ® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
 
@@ -27,7 +27,7 @@ use strict;
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   BaculaÂ® is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -44,6 +44,7 @@ use Data::Dumper;
 use CGI;
 
 use POSIX qw/strftime/;
+use File::Basename qw/basename dirname/;
 
 my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
@@ -57,7 +58,7 @@ my $graph = CGI::param('graph') || 'job_size';
 my $legend = CGI::param('legend') || 'on' ;
 $legend = ($legend eq 'on')?1:0;
 
-my $arg = $bweb->get_form(qw/width height limit offset age
+my $arg = $bweb->get_form(qw/width height limit offset age where jobid
 			     jfilesets level status jjobnames jclients/);
 
 my ($limitq, $label) = $bweb->get_limit(age   => $arg->{age},
@@ -247,6 +248,102 @@ $limitq
 			);
 
     my $all = $dbh->selectall_arrayref($query) ;
+
+    my ($d, $ret) = make_tab($all);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
+    print $obj->plot([$d, values %$ret])->png;
+}
+
+# it works only with postgresql at this time
+elsif ($graph eq 'file_histo' and $arg->{where}) {
+    
+    my $dir  = $dbh->quote(dirname($arg->{where}) . '/');
+    my $file = $dbh->quote(basename($arg->{where}));
+
+    my $query = "
+SELECT UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
+       Client.Name                      AS client,
+       Job.Name                         AS jobname,
+       base64_decode_lstat(8,LStat)     AS lstat
+
+FROM Job, Client, FileSet, Filename, Path, File
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
+  AND File.JobId = Job.JobId
+  AND File.FilenameId = Filename.FilenameId
+  AND File.PathId = Path.PathId
+  AND Path.Path = $dir
+  AND Filename.Name = $file
+  $clientq
+  $statusq
+  $filesetq
+  $levelq
+  $jobnameq
+$limitq
+";
+
+    print STDERR $query if ($debug);
+
+    my $all = $dbh->selectall_arrayref($query) ;
+
+    my $obj = get_graph('title' => "File size : $arg->{where}",
+			'y_label' => 'File size',
+			'y_min_value' => 0,
+			'y_min_value' => 0,
+			'y_number_format' => \&Bweb::human_size,
+			);
+
+
+    my ($d, $ret) = make_tab($all);
+    if ($legend) {
+	$obj->set_legend(keys %$ret);
+    }
+    print $obj->plot([$d, values %$ret])->png;
+}
+
+# it works only with postgresql at this time
+# TODO: use brestore_missing_path
+elsif ($graph eq 'rep_histo' and $arg->{where}) {
+    
+    my $dir  = $arg->{where};
+    $dir .= '/' if ($dir !~ m!/$!);
+    $dir = $dbh->quote($dir);
+
+    my $query = "
+SELECT UNIX_TIMESTAMP(Job.StartTime) AS starttime,
+       Client.Name                   AS client,
+       Job.Name                      AS jobname,
+       brestore_pathvisibility.size  AS size
+
+FROM Job, Client, FileSet, Path, brestore_pathvisibility
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
+  AND Job.JobId = brestore_pathvisibility.JobId
+  AND Path.PathId = brestore_pathvisibility.PathId
+  AND Path.Path = $dir
+  $clientq
+  $statusq
+  $filesetq
+  $levelq
+  $jobnameq
+$limitq
+";
+
+    print STDERR $query if ($debug);
+
+    my $all = $dbh->selectall_arrayref($query) ;
+
+    my $obj = get_graph('title' => "Directory size : $arg->{where}",
+			'y_label' => 'Directory size',
+			'y_min_value' => 0,
+			'y_min_value' => 0,
+			'y_number_format' => \&Bweb::human_size,
+			);
+
 
     my ($d, $ret) = make_tab($all);
     if ($legend) {
