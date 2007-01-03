@@ -1,6 +1,10 @@
               Technical notes on version 1.39  
 
 General:
+Version 2.0.0 released: 4 January 2007
+03Jan07
+kes  Fix an incorrect dbcheck reference to Id.
+
 Version 1.39.34 released:
 28Dec06
 kes  Convert dbcheck to use 64 bit DB IDs.

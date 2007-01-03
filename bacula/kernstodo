@@ -41,6 +41,8 @@ Document:
  
 
 Priority:
+- Look at the possibility of adding "SET NAMES UTF8" for MySQL,
+  and possibly changing the blobs into varchar.
 - Check if gnome-console works with TLS.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
@@ -59,6 +61,7 @@ Projects:
 - GUI
   - Admin
   - Management reports
+  - Add doc for bweb -- especially Installation
   - Look at Webmin
      http://www.orangecrate.com/modules.php?name=News&file=article&sid=501
 - Performance

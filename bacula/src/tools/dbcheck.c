@@ -513,8 +513,9 @@ static int make_id_list(const char *query, ID_LIST *id_list)
  */
 static int delete_id_list(const char *query, ID_LIST *id_list)
 {
+   char ed1[50];
    for (int i=0; i < id_list->num_ids; i++) {
-      bsnprintf(buf, sizeof(buf), query, id_list->Id[i]);
+      bsnprintf(buf, sizeof(buf), query, edit_int64(id_list->Id[i], ed1));
       if (verbose) {
          printf(_("Deleting: %s\n"), buf);
       }
