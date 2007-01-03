@@ -4,16 +4,16 @@
 
 #undef  VERSION
 #define VERSION "2.0.0"
-#define BDATE   "28 December 2006"
-#define LSMDATE "28Dec06"
+#define BDATE   "04 January 2007"
+#define LSMDATE "04Jan07"
 
-#define PROG_COPYRIGHT "Copyright (C) %d-2006 Free Software Foundation Europe e.V.\n"
-#define BYEAR "2006"       /* year for copyright messages in progs */
+#define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
+#define BYEAR "2007"       /* year for copyright messages in progs */
 
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
