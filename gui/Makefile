@@ -6,7 +6,7 @@
 
 # autoconf/Make.common.in        -*- Makefile -*-
 # release date (man), LSM date, version number/name, current maintainer
-DATE="28 December 2006"
+DATE="04 January 2007"
 LSMDATE=@LSMDATE@
 VERSION=2.0.0
 VERNAME=bacula-$(VERSION)#
