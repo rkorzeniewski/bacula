@@ -3,6 +3,8 @@
   <h1 class='newstitle'><TMPL_UNLESS name>New</TMPL_UNLESS> Autochanger </h1>
 </div>
 <div class='bodydiv'>
+   You have to create a Location which will have the same name.<br/><br/>
+
    <form name='form1' action="?" method='get'>
     <table>
      <tr><td>Name :</td>     

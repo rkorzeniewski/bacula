@@ -3,6 +3,7 @@
   <h1 class='newstitle'><TMPL_UNLESS name>Nouvelle</TMPL_UNLESS> Robotique (Autochanger) </h1>
 </div>
 <div class='bodydiv'>
+   Vous devez créer une Location du même nom que votre robotique.<br/><br/>
    <form name='form1' action="?" method='get'>
     <table>
      <tr><td>Nom :</td>     
