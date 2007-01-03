@@ -104,8 +104,10 @@
   This will turn off all seek requests during restores and avoid
   this problem.
 - VSS for Windows clients is now enabled by default.
+- Do not unload autochanger when doing "update slots"
+- Implement mount command for autochanger, see manual.
 
-New Features in 1.40.0:
+New Features in 2.0.0:
 - Turn on disk seek code for restores.
 - Bacula now support Migration jobs that are documented in a new
   Migration chapter in the manual
@@ -168,7 +170,8 @@ New Features in 1.40.0:
   the specified job from being scheduled. Even when disabled,
   the job can be manually started from the console.
 - The database Id records should be 32/64 bit independent now. 64 bits
-  can be enabled by changing one define, but this has never been tested.
+  can be enabled by changing one define and changing the appropriate
+  table variable. Normally, you need 64 bits only for FileId.
 - Relative path specifications (i.e. ../xxx) are now permitted in
   the restore cd command.
 - When running multiple simultaneous jobs, most jobs that use spooling
@@ -183,6 +186,8 @@ New Features in 1.40.0:
 - Lots of DVD fixes -- writing DVDs is now reported to work.
 - Fix opening of database in a restricted console to respect     
   any Catalog ACL.
+- Much better automatic handling of multiple database catalogs in
+  the restore command.
 - Permit multiple console/director resources in bconsole.conf.
   patch from Carsten Paeth calle@calle.in-berlin.de
 - Character substitution in Job/JobDefs WriteBootStrap.
@@ -201,7 +206,7 @@ New Features in 1.40.0:
 - Add Media.Enabled flag to client backups for dotcmds.c
 - Enforce Media.Enabled=1 for a current restore to work
 - Require restore case 3 to have sqlquery permission to work.
-- Add -n option to bconsole to turn off conio.
+- Add -n option to bconsole to turn off conio -- used in bweb.
 - The bytes field in the terminated jobs part of the status
   command now reports in KB, MB, ... units.
 - When not descending into a directory, print the File= name that
@@ -231,7 +236,8 @@ New Features in 1.40.0:
   lists volumes possibly needing replacement (error, ...).
 - Implement new code for changing userid and group at startup. This
   should get Bacula into the correct groups.
-- Implement support for removable filesystems.
+- Implement support for removable filesystems -- device type directive
+  and mount, unmount directives.
 - Transfer rates are now presented in a more readable format thanks
   to a user submission.
 - SD is now aware of what volumes are mounted. More information is printed
