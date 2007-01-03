@@ -4,3 +4,4 @@ Makefile
 stamp-po
 remove-potcdate.sed
 *.mo
+*.gmo
