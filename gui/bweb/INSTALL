@@ -24,6 +24,9 @@ Bweb works well with 1.39 release or later.
  # or get them from the released tar files or from the apt or rpms.
 
  # first, copy the bweb perl library into your PERL5 INC path
+ perl Makefile.PL
+ make install
+ # or
  install -m 644 -o root -g root  bweb/lib/*.pm /usr/share/perl5
 
  # copy the bweb perl program to your cgi location
