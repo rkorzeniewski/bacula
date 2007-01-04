@@ -1,0 +1,7 @@
+lib/Bweb.pm
+lib/Bconsole.pm
+lib/CCircle.pm
+Makefile.PL
+INSTALL
+COPYING
+MANIFEST
