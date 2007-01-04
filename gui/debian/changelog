@@ -1,5 +1,6 @@
 bweb (2.0.0-2) stable; urgency=low
 
+  * Depends: DBD-Pg or DBD-Mysql 
   * Add french tpl in /usr/share/bweb/fr/tpl
   * Add favicon.ico
   * Change /etc/bacula/bweb.conf initialisation
