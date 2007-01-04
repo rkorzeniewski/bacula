@@ -8,24 +8,21 @@ Standards-Version: 3.6.1
 Package: brestore
 Section: base
 Architecture: all
-Depends: libwww-perl (>= 5.8), libtime-modules-perl, libgtk2-gladexml-perl, bweb-common
-Recommends: libdbd-pg-perl, libdbd-mysql-perl
+Depends: libwww-perl (>= 5.8), libtime-modules-perl, libgtk2-gladexml-perl, bweb-common, libdbd-pg-perl|libdbd-mysql-perl
 Description: Bacula restore interface
   Brestore allow you to restore yours files with a Gtk2 interface.
 
 Package: bweb
 Section: base
 Architecture: all
-Depends: libtime-modules-perl, bweb-common, libgd-graph-perl
-Recommends: libdbd-pg-perl, libdbd-mysql-perl
+Depends: libtime-modules-perl, bweb-common, libgd-graph-perl, libdbd-pg-perl|libdbd-mysql-perl
 Description: Bacula restore interface
   Bweb is a bacula web interface
 
 Package: bweb-common
 Section: base
 Architecture: all
-Depends: libtime-modules-perl
-Recommends: libexpect-perl
+Depends: libtime-modules-perl, libexpect-perl
 Description: Bacula restore interface
   Bweb is a bacula web interface
 
