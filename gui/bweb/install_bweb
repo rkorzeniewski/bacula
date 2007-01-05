@@ -16,8 +16,8 @@ CGI_BIN=/srv/www/cgi-bin
 #
 # Userid the web server is running under
 #
-HTTP_USER=root
-HTTP_GROUP=root
+HTTP_USER=wwwrun
+HTTP_GROUP=www
 
 if [ `whoami` != "root" ] ; then
   echo "You must be root to run this script."
@@ -42,7 +42,47 @@ if [ ! -d /etc/bacula ] ; then
    mkdir -m 755 /etc/bacula
    chown root:bacula /etc/bacula
 fi
-echo '$VAR1 = { template_dir => "${SHARE_DIR}/bweb/tpl" };' > /etc/bacula/bweb.conf
+
+# Setup a default /etc/bacula/bweb.conf
+cat > /etc/bacula/bweb.conf <<END_OF_DATA
+$VAR1 = bless( {
+  'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
+  'name' => undef,
+  'config_file' => '/etc/bacula/bweb.conf',
+  'bconsole' => '/usr/sbin/bconsole -n -c /etc/bacula/bconsole.conf',
+  'ach_list' => {
+     'S1_L80' => bless( {
+         'info' => {
+                     'drive' => 0,
+                     'io' => 0,
+                     'slot' => 0
+                   },
+         'name' => 'S1_L80',
+         'bweb' => undef,
+         'device' => '/dev/changer',
+         'drive' => [],
+         'debug' => 0,
+         'label' => {},
+         'precmd' => 'sudo',
+         'io' => [],
+         'mtxcmd' => '/usr/sbin/mtx',
+         'drive_name' => [
+                           'S1_L80_SDLT0',
+                           'S1_L80_SDLT1'
+                         ],
+         'slot' => []
+       }, 'Bweb::Autochanger' )
+   },
+  'password' => 'xxx',
+  'template_dir' => '${SHARE_DIR}/bweb/tpl',
+  'dbi' => 'DBI:mysql:database=bacula',
+  'error' => '',
+  'debug' => 0,
+  'user' => 'bacula',
+  'email_media' => 'xxxx@localhost'
+}, 'Bweb::Config' );
+END_OF_DATA
+
 chown ${HTTP_USER} /etc/bacula/bweb.conf
 
 # copy the bweb template file
