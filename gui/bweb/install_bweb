@@ -4,7 +4,7 @@
 #
 # Root directory of web files       
 #
-WEB_DIR=/var/www
+WEB_DIR=/srv/www/htdocs 
 #
 # share directory for programs
 #
@@ -12,11 +12,17 @@ SHARE_DIR=/usr/share
 #
 # cgi_bin location for web server
 #
-CGI_BIN=/usr/lib/cgi-bin
+CGI_BIN=/srv/www/cgi-bin
 #
 # Userid the web server is running under
 #
-HTTP_UID=www-data
+HTTP_USER=root
+HTTP_GROUP=root
+
+if [ `whoami` != "root" ] ; then
+  echo "You must be root to run this script."
+  exit 1
+fi
 
 #
 # Normally you should not need to change the following
@@ -26,21 +32,29 @@ perl Makefile.PL
 make install
 
 # copy the bweb perl program to your cgi location
-mkdir -m 755 ${CGI_BIN}/bweb
+if [ ! -d ${CGI_BIN}/bweb ] ; then
+   mkdir -m 755 ${CGI_BIN}/bweb
+fi
 install -m 755 -o root -g root  cgi/*.pl ${CGI_BIN}/bweb
 
 # get a config file
-mkdir -m 755 /etc/bacula
-chown root:bacula /etc/bacula
+if [ ! -d /etc/bacula ] ; then
+   mkdir -m 755 /etc/bacula
+   chown root:bacula /etc/bacula
+fi
 echo '$VAR1 = { template_dir => "${SHARE_DIR}/bweb/tpl" };' > /etc/bacula/bweb.conf
-chown ${HTTP_UID} /etc/bacula/bweb.conf
+chown ${HTTP_USER} /etc/bacula/bweb.conf
 
 # copy the bweb template file
-mkdir -p ${SHARE_DIR}/bweb/tpl
-install -m 644 -o root -g root  bweb/tpl/*.tpl ${SHARE_DIR}/bweb/tpl
+if [ ! -d ${SHARE_DIR}/bweb/tpl ] ; then
+   mkdir -p ${SHARE_DIR}/bweb/tpl
+fi
+install -m 644 -o root -g root  tpl/*.tpl ${SHARE_DIR}/bweb/tpl
 
 # copy the bweb graphics elements (bweb elements must reside in /bweb)
-mkdir ${WEB_DIR}/bweb
-install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico} ${WEB_DIR}/bweb
+if [ ! -d ${WEB_DIR} ] ; then
+   mkdir ${WEB_DIR}/bweb
+fi
+install -m 644 -o root -g root  html/*.{js,png,css,gif,ico} ${WEB_DIR}/bweb
 
 # done !
