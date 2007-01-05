@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Change the following four environment variables to suit your system
+#
+# Root directory of web files       
+#
+WEB_DIR=/var/www
+#
+# share directory for programs
+#
+SHARE_DIR=/usr/share
+#
+# cgi_bin location for web server
+#
+CGI_BIN=/usr/lib/cgi-bin
+#
+# Userid the web server is running under
+#
+HTTP_UID=www-data
+
+#
+# Normally you should not need to change the following
+#
+# first, copy the bweb perl library into your PERL5 INC path
+perl Makefile.PL
+make install
+
+# copy the bweb perl program to your cgi location
+mkdir -m 755 ${CGI_BIN}/bweb
+install -m 755 -o root -g root  cgi/*.pl ${CGI_BIN}/bweb
+
+# get a config file
+mkdir -m 755 /etc/bacula
+chown root:bacula /etc/bacula
+echo '$VAR1 = { template_dir => "${SHARE_DIR}/bweb/tpl" };' > /etc/bacula/bweb.conf
+chown ${HTTP_UID} /etc/bacula/bweb.conf
+
+# copy the bweb template file
+mkdir -p ${SHARE_DIR}/bweb/tpl
+install -m 644 -o root -g root  bweb/tpl/*.tpl ${SHARE_DIR}/bweb/tpl
+
+# copy the bweb graphics elements (bweb elements must reside in /bweb)
+mkdir ${WEB_DIR}/bweb
+install -m 644 -o root -g root  bweb/html/*.{js,png,css,gif,ico} ${WEB_DIR}/bweb
+
+# done !
