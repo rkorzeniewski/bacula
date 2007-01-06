@@ -95,6 +95,6 @@ install -m 644 -o root -g root  tpl/*.tpl ${SHARE_DIR}/bweb/tpl
 if [ ! -d ${WEB_DIR} ] ; then
    mkdir ${WEB_DIR}/bweb
 fi
-install -m 644 -o root -g root  html/*.{js,png,css,gif,ico} ${WEB_DIR}/bweb
+install -m 644 -o root -g root  html/*.{js,png,css,gif,ico,html} ${WEB_DIR}/bweb
 
 # done !
