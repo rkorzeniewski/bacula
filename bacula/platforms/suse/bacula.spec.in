@@ -1,13 +1,13 @@
 # Bacula RPM spec file
-# Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+# Copyright (C) 2000-2006 Kern Sibbald
 
 # Platform Build Configuration
 
 # basic defines for every build
 %define _version @VERSION@
 %define _release 1
-%define depkgs_version 25Jun06
-%define _rescuever 1.8.6
+%define depkgs_version 04Jan07
+%define _rescuever 2.0.0
 %define docs_version @VERSION@
 
 # any patches for this release
@@ -861,9 +861,9 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
         --with-scriptdir=/etc/bacula \
         --enable-smartalloc \
         --enable-client-only \
-        %if %{mdk}
-        --disable-nls \
-        %endif
+	%if %{mdk}
+	--disable-nls \
+	%endif
         --enable-static-fd
 
 make
@@ -890,15 +890,15 @@ make
         --with-postgresql \
 %endif
 %if %{wxconsole}
-        --enable-wx-console \
+	--enable-wx-console \
 %endif
 %if %{python}
-        --with-python \
+	--with-python \
 %endif
 %if %{client_only}
-        --enable-client-only \
+	--enable-client-only \
 %endif
-        --mandir=%{_mandir} \
+	--mandir=%{_mandir} \
         --with-working-dir=%{working_dir} \
         --with-pid-dir=/var/run \
         --with-subsys-dir=/var/lock/subsys \
@@ -956,7 +956,7 @@ make \
         sysconfdir=$RPM_BUILD_ROOT/etc/bacula \
         scriptdir=$RPM_BUILD_ROOT/etc/bacula \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
-        mandir=$RPM_BUILD_ROOT%{_mandir} \
+	mandir=$RPM_BUILD_ROOT%{_mandir} \
         install
 
 %if ! %{client_only}
@@ -1686,6 +1686,8 @@ fi
 %endif
 
 %changelog
+* Sat Jan 06 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 2.0.0 release
 * Sun Oct 15 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 1.39.26 remove create_sqlite_database.in.patch
 * Sun Sep 24 2006 D. Scott Barninger <barninger@fairfieldcomputers.com>
