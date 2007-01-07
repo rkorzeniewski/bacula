@@ -19,6 +19,12 @@ CGI_BIN=/srv/www/cgi-bin
 HTTP_USER=wwwrun
 HTTP_GROUP=www
 
+# Bacula database name and password
+DB=bacula
+DB_PW=""
+EMAIL_ADDR="xxx@localhost"
+MTX="/sbin/mtx"
+
 if [ `whoami` != "root" ] ; then
   echo "You must be root to run this script."
   exit 1
@@ -45,7 +51,7 @@ fi
 
 # Setup a default /etc/bacula/bweb.conf
 cat > /etc/bacula/bweb.conf <<END_OF_DATA
-$VAR1 = bless( {
+\$VAR1 = bless( {
   'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
   'name' => undef,
   'config_file' => '/etc/bacula/bweb.conf',
@@ -65,7 +71,7 @@ $VAR1 = bless( {
          'label' => {},
          'precmd' => 'sudo',
          'io' => [],
-         'mtxcmd' => '/usr/sbin/mtx',
+         'mtxcmd' => '${MTX}',
          'drive_name' => [
                            'S1_L80_SDLT0',
                            'S1_L80_SDLT1'
@@ -73,13 +79,13 @@ $VAR1 = bless( {
          'slot' => []
        }, 'Bweb::Autochanger' )
    },
-  'password' => 'xxx',
+  'password' => '${DB_PW}',
   'template_dir' => '${SHARE_DIR}/bweb/tpl',
   'dbi' => 'DBI:mysql:database=bacula',
   'error' => '',
   'debug' => 0,
-  'user' => 'bacula',
-  'email_media' => 'xxxx@localhost'
+  'user' => '${DB}',
+  'email_media' => '${EMAIL_ADDR}'
 }, 'Bweb::Config' );
 END_OF_DATA
 
