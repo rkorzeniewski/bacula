@@ -3,7 +3,7 @@
   <h1 class='newstitle'> Help to eject media (part 2/2)</h1>
  </div>
  <div class='bodydiv'>
-  Now, you can verify the selection and eject media.
+  Now, you can verify the selection and eject the media.
    <form action='?' method='get'>
     <table id='compute'></table>
     <table><tr>
@@ -18,7 +18,7 @@
 <script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name","Vol Status",
-	               "Media Type","Pool Name","Last Written", 
+                       "Media Type","Pool Name","Last Written", 
                        "When expire ?", "Select");
 
 var data = new Array();

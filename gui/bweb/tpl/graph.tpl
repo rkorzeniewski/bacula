@@ -6,7 +6,7 @@
 <table border='0'>
 <td>
 <form name='form1' action='?' method='GET'>
-	<div class="otherboxtitle">
+        <div class="otherboxtitle">
           Options &nbsp;
         </div>
         <div class="otherbox">
@@ -42,9 +42,9 @@
   <td  valign='top'>
     <h2>Size</h2>
      Width: &nbsp;<input class='formulaire' type='text' 
-			 name='width' value='<TMPL_VAR width>' size='4'><br/>
+                         name='width' value='<TMPL_VAR width>' size='4'><br/>
      Height:  <input type='text' class='formulaire' 
-		name='height' value='<TMPL_VAR height>' size='4'><br/>
+                name='height' value='<TMPL_VAR height>' size='4'><br/>
   </td>
 </tr>
 <tr>
@@ -71,15 +71,15 @@
    <option id='job_size'     value='job_size' title="Job size per job for the period">Job Size</option>
    <option id='job_duration' value='job_duration' title="Job duration per job for the period">Job Duration</option>
    <option id='job_rate' value='job_rate' title="Job rate per job for the period">Job Rate</option>
-   <option id='job_file' value='job_file' title="Number of backped file per job for the period">Job Files</option>
-   <option id='job_count_phour' value='job_count_phour' title="Number of job per hour for the period">Job per hour</option>
-   <option id='job_count_pday' value='job_count_pday' title="Number of job per day for the period">Job per day</option>
+   <option id='job_file' value='job_file' title="Number of backed files per job for the period">Job Files</option>
+   <option id='job_count_phour' value='job_count_phour' title="Number of jobs per hour for the period">Job per hour</option>
+   <option id='job_count_pday' value='job_count_pday' title="Number of jobs per day for the period">Job per day</option>
    <option id='job_avg_phour' value='job_avg_pday' title="Average backup size per day for the period">Job avg B/hour</option>
    <option id='job_avg_pday' value='job_avg_pday' title="Average backup size per hour for the period">Job avg B/day</option>
    <option id='job_sum_phour' value='job_sum_phour' title="Job size per hour">Job total B/hour</option>
    <option id='job_sum_pday' value='job_sum_pday' title="Job size per day">Job total B/day</option>
-   <option id='job_count_hour' value='job_count_hour' title="Number of job per hour for the period">Jobs Count (h)</option>
-   <option id='job_count_day' value='job_count_day' title="Number of job per day for the period">Jobs Count (d)</option>
+   <option id='job_count_hour' value='job_count_hour' title="Number of jobs per hour for the period">Jobs Count (h)</option>
+   <option id='job_count_day' value='job_count_day' title="Number of jobs per day for the period">Jobs Count (d)</option>
    <option id='job_avg_hour' value='job_avg_hour' title="Average backup size per hour for the period">Job avg size (h)</option>
    <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
    <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
@@ -89,7 +89,7 @@
   <td valign='bottom'> 
     <h2>Number of items</h2>
     <input type='text' name='limit' value='<TMPL_VAR NAME=limit>' 
-	class='formulaire' size='4'>
+        class='formulaire' size='4'>
   </td>
 </tr>
 <tr>
@@ -169,4 +169,3 @@
   </TMPL_IF>
 
 </script>
-

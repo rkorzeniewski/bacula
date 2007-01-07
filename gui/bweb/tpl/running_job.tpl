@@ -12,7 +12,7 @@
 </label>
 <label>
 <input type="image" type='submit' name='action' value='cancel_job'
- onclick="return confirm('Do you want to cancel selected job ?')"
+ onclick="return confirm('Do you want to cancel the selected job?')"
  title='Cancel job' src='/bweb/cancel.png'>
 </label>
    </form>
@@ -21,16 +21,16 @@
 
 <script type="text/javascript" language="JavaScript">
 var header = new Array("JobId",
-	               "Client",
-	               "Job Name", 
+                       "Client",
+                       "Job Name", 
                        "Level",
                        "Start Time", 
                        "Duration", 
 //                       "Job Files",
 //                       "Job Bytes", 
-	               "Status",
-	               "Select"
-	);
+                       "Status",
+                       "Select"
+        );
 
 var data = new Array();
 var chkbox;

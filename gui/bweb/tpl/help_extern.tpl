@@ -3,8 +3,8 @@
  <h1 class='newstitle'> Help to eject media (part 1/2)</h1>
 </div>
 <div class='bodydiv'>
-This tool will select for you best candidate to eject. You will
-be asked for choose inside the selection in the next screen. 
+This tool will select the best candidate to eject. You will
+be asked for choose the selection on the next screen. 
   <form action="?" method='GET'>
    <table>
     <tr><td>Pool:</td>      

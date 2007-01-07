@@ -1,5 +1,5 @@
 <div class='titlediv'>
-  <h1 class='newstitle'> Informations about <TMPL_VAR filename> </h1>
+  <h1 class='newstitle'> Information about <TMPL_VAR filename> </h1>
 </div>
 <div class='bodydiv'>
    <table>

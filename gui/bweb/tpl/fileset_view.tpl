@@ -15,6 +15,6 @@
 <TMPL_LOOP E><TMPL_VAR file>
 </TMPL_LOOP></pre>
 
-Tips: Warning, this is the current fileset, it could have change...
+Tips: Warning, this is the current fileset, it could have changed ...
 
  </div>

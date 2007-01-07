@@ -1,4 +1,4 @@
-<h1>An error as occured :</h1>
+<h1>An error has occurred :</h1>
 <pre>
 <TMPL_VAR NAME=error>
 </pre>

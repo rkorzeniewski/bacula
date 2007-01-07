@@ -1,10 +1,10 @@
 <br/>
 <div class='titlediv'>
-  <h1 class='newstitle'> Help to load media (part 1/2)</h1>
+  <h1 class='newstitle'> Help loading media (part 1/2)</h1>
 </div>
 <div class="bodydiv">
-This tool will select for you best candidate to load. You will
-be asked for choose inside the selection in the next screen. 
+This tool will select the best candidate to load. You will
+be asked to choose the selection on the next screen. 
   <form action="?" method='GET'>
    <table>
     <tr><td>Pool:</td>      
@@ -35,16 +35,16 @@ be asked for choose inside the selection in the next screen.
     <tr>
         <td>Expired :</td> 
         <td> <input type='checkbox' name='expired' class='formulaire' 
-		checked> </td>
+                checked> </td>
     </tr>
     <tr>
         <td>Number of media <br/> to load:</td> 
         <td> <input type='text' name='limit' class='formulaire' 
-		size='3' value='10'> </td>
+                size='3' value='10'> </td>
     </tr>
     <tr>
         <td><input type="image" name='action' value='compute_intern_media' 
-		title='Next' src='/bweb/next.png'>
+                title='Next' src='/bweb/next.png'>
         </td><td/>
     </tr>
    </table>

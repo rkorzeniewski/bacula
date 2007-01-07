@@ -11,14 +11,14 @@
 </TMPL_LOOP>
    </form>
    <br/>
-   Tips: To modify pool properties, you have to edit your bacula configuration
-   and reload it. After, you have to run "update pool=mypool" on bconsole.
+   Tips: To modify pool properties, you have to edit your Bacula configuration
+   and reload it. After, you have to run "update pool=mypool" with bconsole.
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
 var header = new Array("Name","Recycle","Retention","Use Duration",
-	               "Max job per volume","Max file per volume", 
+                       "Max jobs per volume","Max files per volume", 
                        "Max volume size","Nb volumes", "Vol Status", "Usage", "Select");
 
 var data = new Array();
