@@ -4,9 +4,9 @@
 
 Bweb works well with 1.39 release or later.
 
-1) install perl lib
+1) install Perl lib
 2) copy your files
-3) intialise your configuration file
+3) initialize your configuration file
 4) do some sql stuff (for postgresql users)
 5) use the -n option on bconsole so that it works with Expect
 6) get bacula log more useful
@@ -23,7 +23,12 @@ Bweb works well with 1.39 release or later.
 
  # or get them from the released tar files or from the apt or rpms.
 
- # first, copy the bweb perl library into your PERL5 INC path
+ # Once you have all these files, follow the instructions below
+ #  or edit the environment variables in the file install_bweb
+ #  then execute it.
+ #
+
+ # first, copy the bweb Perl library into your PERL5 INC path
  perl Makefile.PL
  make install
  # or
@@ -75,6 +80,14 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
  Or use your distribution
  apt-get install libgd-graph-perl libhtml-template-perl libexpect-perl
  apt-get install libdbd-mysql-perl libdbd-pg-perl libdbi-perl libtime-modules-perl
+
+ Note: the best way to test if you have all the dependencies
+ fullfilled for Perl is to:
+  
+    cd /var/www/cgi-bin/bweb
+    ./bweb.pl 
+
+ That should show you if any of the pre-requisites are missing.
 
 ################ APACHE CONFIGURATION ##########################
 
@@ -199,7 +212,7 @@ chown www-data /var/spool/bweb
 You have to remove "<!-- Remove this to activate bfileview" and "-->" from
 tpl/display_job_zoom.tpl.
 
-You must use brestore.pl -b to initialise the database, and
+You must use brestore.pl -b to initialize the database, and
 you can use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 
 At this time, it's a good idea to schedule brestore.pl -b after your 
