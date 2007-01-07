@@ -14,7 +14,7 @@
 
 <script type="text/javascript" language="JavaScript">
 if (navigator.appName == 'Konqueror') {
-	alert("Sorry at this moment, bweb works only with mozilla.");
+        alert("Sorry at this moment, bweb works only with mozilla.");
 }
 </script>
 
@@ -30,13 +30,13 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="bweb.pl?action=restore" title="Launch brestore">Restore</a> </li>
    </ul>
  </li>
- <li style="padding: 0.25em 2em;">Medias
+ <li style="padding: 0.25em 2em;">Media
   <ul>
      <li><a href="bweb.pl?action=pool">Pools</a> </li>
      <li><a href="bweb.pl?action=location">Locations</a> </li>
-     <li><a href="bweb.pl?action=media">All Medias</a><hr></li>
-     <li><a href="bweb.pl?action=extern_media">Eject Medias</a> </li>
-     <li><a href="bweb.pl?action=intern_media">Load Medias</a> </li>
+     <li><a href="bweb.pl?action=media">All Media</a><hr></li>
+     <li><a href="bweb.pl?action=extern_media">Eject Media</a> </li>
+     <li><a href="bweb.pl?action=intern_media">Load Media</a> </li>
   </ul>
  </li>
 <TMPL_IF achs>
