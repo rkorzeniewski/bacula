@@ -23,9 +23,11 @@ Bweb works well with 1.39 release or later.
 
  # or get them from the released tar files or from the apt or rpms.
 
- # Once you have all these files, follow the instructions below
+ #
+ # Once you have the gui directory loaded, follow the instructions below
  #  or edit the environment variables in the file install_bweb
- #  then execute it.
+ #  then execute it. install_web does everything to the next
+ #  set of #######'s.
  #
 
  # first, copy the bweb Perl library into your PERL5 INC path
@@ -88,10 +90,13 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
     ./bweb.pl 
 
  That should show you if any of the pre-requisites are missing.
+ On SuSE 10.2, I was able to load all the appropriate modules via rpms,
+  with the exception of Expect and Time::ParseDate, which I loaded manually
+  using perl.
 
 ################ APACHE CONFIGURATION ##########################
 
-It could be a good idea to protect your bweb installation.
+It could be a good idea to protect your bweb installation (optional).
 
 Put this in your httpd.conf, and add user with htpasswd
 
@@ -106,6 +111,8 @@ Put this in your httpd.conf, and add user with htpasswd
 
 
 ################ CONFIGURATION #################################
+
+Note, this is automatically installed by the install_bweb script.
 
 /etc/bacula/bweb.conf looks like : (you can edit it inside bweb)
 $VAR1 = bless( {
@@ -149,7 +156,8 @@ $VAR1 = bless( {
 ################ BRESTORE ######################################
 
 If you want to use brestore with bweb, you must associate a mime type
-text/brestore with your brestore.pl.
+text/brestore with your brestore.pl, and you must install brestore.
+See gui/brestore/README for instructions on installing brestore.pl.
 
 ################ POSTGRESQL NOTES ##############################
 
@@ -161,11 +169,19 @@ psql -u bacula bacula < script/bweb-postgresql.sql
 ################ BCONSOLE NOTES ################################
 
 You must use bconsole without conio/readline support. For that, use
-the bconsole -n option.
+the bconsole -n option. This is done automatically with the standard
+configuration file.  In addition, please ensure that the binary
+bconsole file can be executed by your web server. It is normally
+located in /usr/bin/bconsole (or some such file), and must have
+modes 755 or it will not be executable by your web server.  The
+normal Bacula installation usually sets mode 750.
 
 ################ BACULA LOG ####################################
 
-To use Bweb log engine you MUST use catalog message type.
+If you want Bweb to be able to show listings of the Job output,
+you must add a "catalog = all, !skipped, !saved" to your
+messages resource in bacula-dir.conf and restart your Bacula 
+server.  This is shown below:
 
 Messages {
   Name = Standard
