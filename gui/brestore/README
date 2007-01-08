@@ -17,7 +17,7 @@ It has the following features :
 
     * Simple restoration by the generation of a BSR file
 
-    * Works indifferently with postgresql and mysql 
+    * Works with either PostgreSQL or MySQL
 
 We have a working (if a bit unpolished) version ready, and think it is time for
 us to publish it and have user and Kern feedback.  
@@ -31,23 +31,26 @@ What's missing :
     * Plenty of features. As we don't have lots of imagination. Don't hesitate
       to suggest us your ideas ...
 
-    * We want use bacula to generate bsr files, at this time, you can't restore
+    * We want use Bacula to generate bsr files, at this time, you can't restore
       files across different Storage (Full on tape, Incr on Disk for example)
 
 For the moment, we want to concentrate on having a restoration interface. We
 don't care about seeing the restoration progress, or anything else.
 
-These tools are available with Bweb.
+brestore is also available within Bweb.
 
 ################ INSTALL #######################################
 
-# you can put glade file on /usr/share/brestore or /usr/local/share/brestore
+# you can install the user interfact glade file on 
+#   /usr/share/brestore or /usr/local/share/brestore
 mkdir -p /usr/share/brestore
 install -m 644 -o root -g root brestore.glade /usr/share/brestore
 install -m 755 -o root -g root brestore.pl    /usr/bin
 
-# if you doesn't use bweb and bconsole.pl
-# you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+# If you don't use bweb and bconsole.pl
+#   you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+#   and install it.  If bweb is installed, Bconsole.pm is already 
+#   installed.
 
 install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
@@ -94,27 +97,27 @@ install DBD::Pg
 
 ################ BCONSOLE WITHOUT CONIO ########################
 
-If you doesn't use Bweb, you must use bconsole without conio support. For that, use
+If you don't use Bweb, you must use bconsole without conio support. For that, use
 bconsole -n option.
 
 WARNING : You must be able to execute bconsole and able to read bconsole.conf !
 
 ################ CONFIGURATION #################################
 
-You can make configuration from brestore himself (if brestore can't find
+You can modify the configuration from brestore itself (if brestore can't find
 his glade file).
 
 Example :
 
 $parameters = {
-                'mozilla' => 'mozilla',
-                'bconsole' => '/usr/local/bin/bconsole.noconio -c /etc/bacula/bconsole.conf',
-                'bweb' => 'http://localhost/cgi-bin/bweb/bweb.pl',
-                'connection_string' => 'DBI:mysql:database=bacula;host=127.0.0.1;port=3306',
-                'username' => 'bacula',
-                'password' => 'xxxx',
-                'bsr_dest' => 'file://var/tmp',
-                'debug' => 0,
-                'use_ok_bkp_only' => 1,
-                'default_restore_job' => 'restore'
-              };
+      'mozilla' => 'mozilla',
+      'bconsole' => '/usr/local/bin/bconsole.noconio -c /etc/bacula/bconsole.conf',
+      'bweb' => 'http://localhost/cgi-bin/bweb/bweb.pl',
+      'connection_string' => 'DBI:mysql:database=bacula;host=127.0.0.1;port=3306',
+      'username' => 'bacula',
+      'password' => 'xxxx',
+      'bsr_dest' => 'file://var/tmp',
+      'debug' => 0,
+      'use_ok_bkp_only' => 1,
+      'default_restore_job' => 'restore'
+    };
