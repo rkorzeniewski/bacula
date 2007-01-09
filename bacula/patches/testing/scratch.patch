@@ -1,50 +1,7 @@
-diff -Naur cvs/src/dird/next_vol.c my/src/dird/next_vol.c
---- cvs/src/dird/next_vol.c	2006-11-15 22:16:02.000000000 +0100
-+++ my/src/dird/next_vol.c	2006-11-15 23:47:43.000000000 +0100
-@@ -313,6 +313,7 @@
-    MEDIA_DBR smr;
-    POOL_DBR spr, pr;
-    bool ok = false;
-+   bool found = false;
-    char ed1[50], ed2[50];
- 
-    /* Only one thread at a time can pull from the scratch pool */
-@@ -328,9 +329,20 @@
-       if (InChanger) {       
-          smr.StorageId = mr->StorageId;  /* want only Scratch Volumes in changer */
-       }
--      bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));  /* want only appendable volumes */
-       bstrncpy(smr.MediaType, mr->MediaType, sizeof(smr.MediaType));
-+      
-+      /* first, try to get Append volume */
-+      bstrncpy(smr.VolStatus, "Append", sizeof(smr.VolStatus));
-       if (db_find_next_volume(jcr, jcr->db, 1, InChanger, &smr)) {
-+          found = true;
-+      /* next, we can try to find an Recycled volume */
-+      } else if (find_recycled_volume(jcr, InChanger, &smr)) {
-+          found = true;
-+      /* finaly, we take a Purged volume */
-+      } else if (recycle_oldest_purged_volume(jcr, InChanger, &smr)) {
-+          found = true;
-+      }
-+      if (found) {
-          POOL_MEM query(PM_MESSAGE);
- 
-          /*   
-@@ -369,6 +381,9 @@
-          memcpy(mr, &smr, sizeof(MEDIA_DBR));
-          /* Set default parameters from current pool */
-          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-+         /* set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
-+          * we could have Recycled media */
-+         bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
-          if (!db_update_media_record(jcr, jcr->db, mr)) {
-             Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
-                  db_strerror(jcr->db));
-diff -Naur cvs/src/dird/protos.h my/src/dird/protos.h
---- cvs/src/dird/protos.h	2006-11-15 22:16:02.000000000 +0100
-+++ my/src/dird/protos.h	2006-11-15 23:26:50.000000000 +0100
-@@ -178,6 +178,9 @@
+diff -Naur org/bacula-2.0.0/src/dird/protos.h bacula-2.0.0/src/dird/protos.h
+--- org/bacula-2.0.0/src/dird/protos.h	2006-12-23 17:33:52.000000000 +0100
++++ bacula-2.0.0/src/dird/protos.h	2007-01-09 16:12:18.000000000 +0100
+@@ -195,6 +195,9 @@
  int get_num_drives_from_SD(UAContext *ua);
  void update_slots(UAContext *ua);
  
@@ -54,10 +11,10 @@ diff -Naur cvs/src/dird/protos.h my/src/dird/protos.h
  /* ua_output.c */
  void prtit(void *ctx, const char *msg);
  int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
-diff -Naur cvs/src/dird/ua_purge.c my/src/dird/ua_purge.c
---- cvs/src/dird/ua_purge.c	2006-11-15 22:16:03.000000000 +0100
-+++ my/src/dird/ua_purge.c	2006-11-15 23:55:14.000000000 +0100
-@@ -569,6 +569,18 @@
+diff -Naur org/bacula-2.0.0/src/dird/ua_purge.c bacula-2.0.0/src/dird/ua_purge.c
+--- org/bacula-2.0.0/src/dird/ua_purge.c	2006-12-22 16:01:05.000000000 +0100
++++ bacula-2.0.0/src/dird/ua_purge.c	2007-01-09 16:12:18.000000000 +0100
+@@ -605,6 +605,18 @@
        }
        pm_strcpy(jcr->VolumeName, mr->VolumeName);
        generate_job_event(jcr, "VolumePurged");
@@ -76,10 +33,10 @@ diff -Naur cvs/src/dird/ua_purge.c my/src/dird/ua_purge.c
        /* Send message to Job report, if it is a *real* job */           
        if (jcr && jcr->JobId > 0) {
           Jmsg1(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
-diff -Naur cvs/src/dird/ua_update.c my/src/dird/ua_update.c
---- cvs/src/dird/ua_update.c	2006-11-15 23:30:10.000000000 +0100
-+++ my/src/dird/ua_update.c	2006-11-15 23:56:30.000000000 +0100
-@@ -276,7 +276,7 @@
+diff -Naur org/bacula-2.0.0/src/dird/ua_update.c bacula-2.0.0/src/dird/ua_update.c
+--- org/bacula-2.0.0/src/dird/ua_update.c	2006-12-23 17:33:52.000000000 +0100
++++ bacula-2.0.0/src/dird/ua_update.c	2007-01-09 16:12:18.000000000 +0100
+@@ -290,7 +290,7 @@
  }
  
  /* Modify the Pool in which this Volume is located */

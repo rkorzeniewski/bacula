@@ -1,11 +1,14 @@
---- my/src/stored/spool.c       2006-12-13 19:02:47.000000000 +0100
-+++ cvs/src/stored/spool.c      2006-12-30 10:24:31.000000000 +0100
+diff -Naur org/bacula-2.0.0/src/stored/spool.c bacula-2.0.0/src/stored/spool.c
+--- org/bacula-2.0.0/src/stored/spool.c	2006-11-27 11:03:03.000000000 +0100
++++ bacula-2.0.0/src/stored/spool.c	2007-01-09 16:15:02.000000000 +0100
 @@ -154,8 +154,8 @@
     } else {
        dir = working_directory;
     }
--   Mmsg(name, "%s/%s.data.%s.%s.spool", dir, my_name, dcr->jcr->Job,
+-   Mmsg(name, "%s/%s.data.%s.%s.spool", dir, my_name, dcr->jcr->Job, 
 -        dcr->device->hdr.name);
 +   Mmsg(name, "%s/%s.data.%u.%s.%s.spool", dir, my_name, dcr->jcr->JobId,
 +        dcr->jcr->Job, dcr->device->hdr.name);
  }
+ 
+ 
