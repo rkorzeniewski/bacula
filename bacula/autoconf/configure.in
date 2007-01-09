@@ -453,6 +453,19 @@ fi
 AC_SUBST(STORED_DIR)
 
 # ---------------------------------------------------
+# Check for conio (Bacula readline substitute)(
+# ---------------------------------------------------
+# this allows you to turn it completely off
+AC_ARG_ENABLE(conio,
+  [ --disable-conio disable conio support [enabled]
+					      ],
+  [if test x$enableval = xno; then
+     support_conio=no
+  fi]
+)
+  
+
+# ---------------------------------------------------
 # Check for IPv6 support
 # ---------------------------------------------------
 # this allows you to turn it completely off
