@@ -1,0 +1,96 @@
+################ INSTALL NOTES FOR BRESTORE ####################
+
+# you can put glade file on /usr/share/brestore or /usr/local/share/brestore
+mkdir -p /usr/share/brestore
+install -m 644 -o root -g root brestore.glade /usr/share/brestore
+install -m 755 -o root -g root brestore.pl    /usr/bin
+
+# if you doesn't use bweb and bconsole.pl
+# you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+
+install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
+
+# copy bsr file directly to your director, use must use scp (or nfs stuff)
+# if you doesn't want to use this, you can dump the bsr file with "Gen BSR" button.
+# so you must have an ssh-key exchange. (you can also hack brestore.pl to use 
+# something like '$err = `xterm -e scp $src $1 2>&1`'
+
+your_login@yourws:~$ ssh-copy-id -i .ssh/your_pub_key login@bacula-dir
+
+# you have to configure brestore preferences.
+
+################ WINDOWS INSTALL ###############################
+
+Brestore works on win32 with ActivePerl. To get all libraries, you
+can install GCSTAR. You have also to copy libglade-2.0.dll
+
+################ INSTALL MODULES ###############################
+
+Perl Modules
+The Debian Way
+
+apt-get install libgtk2-gladexml-perl
+apt-get install libdbd-mysql-perl
+apt-get install libdbd-pg-perl
+apt-get install libexpect-perl
+apt-get install libwww-perl
+
+The Red Hat way
+perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-Expect, perl-libwww-perl
+perl-Gtk2-GladeXML
+
+The generic Way, if those modules aren't packaged by your distro
+perl -MCPAN -e shell
+install Gtk2
+install Expect
+install Gtk2::GladeXML
+install LWP
+
+install DBD::mysql
+or
+install DBD::Pg
+
+################ BCONSOLE WITHOUT CONIO ########################
+
+If you doesn't use Bweb, you must use bconsole without conio support. For that, use
+bconsole -n option.
+
+WARNING : You must be able to execute bconsole and able to read bconsole.conf !
+
+################ CONFIGURATION #################################
+
+You can make configuration from brestore himself (if brestore can't find
+his glade file).
+
+Example :
+
+$parameters = {
+                'mozilla' => 'mozilla',
+                'bconsole' => '/usr/local/bin/bconsole -n -c /etc/bacula/bconsole.conf',
+                'bweb' => 'http://localhost/cgi-bin/bweb/bweb.pl',
+                'connection_string' => 'DBI:mysql:database=bacula;host=127.0.0.1;port=3306',
+                'username' => 'bacula',
+                'password' => 'xxxx',
+                'bsr_dest' => 'file://var/tmp',
+                'debug' => 0,
+                'use_ok_bkp_only' => 1,
+                'default_restore_job' => 'restore'
+              };
+
+or if you are using bweb http connector
+
+$parameters = {
+                'glade_file' => '/home/eric/brestore/brestore-fr.glade',
+                'mozilla' => 'firefox',
+                'bconsole' => 'http://bacula-dir/cgi-bin/bweb/bconsole.pl',
+                'bweb' => 'http://bacula-dir/cgi-bin/bweb/bweb.pl',
+                'username' => 'bacula',
+                'connection_string' => 'DBI:Pg:database=bacula;host=95.1.8.205',
+                'password' => 'xxxx',
+                'bsr_dest' => 'file://var/tmp',
+                'see_all_versions' => '',
+                'debug' => 1,
+                'use_ok_bkp_only' => '',
+                'default_restore_job' => 'Restore'
+              };
+
