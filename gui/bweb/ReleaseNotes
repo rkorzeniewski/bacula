@@ -1,5 +1,11 @@
           Release Notes for bweb 2.0
 
+2007/01/09
+ - fix stats bug on main page
+
+2007/01/01
+ - Add an index.html page on /bweb
+
 2006/12/31
  - Move /etc/bweb/config to /etc/bacula/bweb.conf
 
