@@ -1,12 +1,16 @@
 ################ INSTALL NOTES FOR BRESTORE ####################
 
-# you can put glade file on /usr/share/brestore or /usr/local/share/brestore
+# you can install the user interfact glade file on
+# /usr/share/brestore or /usr/local/share/brestore
+
 mkdir -p /usr/share/brestore
 install -m 644 -o root -g root brestore.glade /usr/share/brestore
 install -m 755 -o root -g root brestore.pl    /usr/bin
 
-# if you doesn't use bweb and bconsole.pl
+# if you don't use bweb and bconsole.pl
 # you must get Bconsole.pm from bweb modules (bweb/lib/Bconsole.pm)
+# and install it.  If bweb is installed, Bconsole.pm is already
+# installed.
 
 install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
@@ -52,14 +56,14 @@ install DBD::Pg
 
 ################ BCONSOLE WITHOUT CONIO ########################
 
-If you doesn't use Bweb, you must use bconsole without conio support. For that, use
+If you don't use Bweb, you must use bconsole without conio support. For that, use
 bconsole -n option.
 
 WARNING : You must be able to execute bconsole and able to read bconsole.conf !
 
 ################ CONFIGURATION #################################
 
-You can make configuration from brestore himself (if brestore can't find
+You can modify the configuration from brestore itself (if brestore can't find
 his glade file).
 
 Example :
