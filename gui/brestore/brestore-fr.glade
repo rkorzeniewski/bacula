@@ -1133,8 +1133,7 @@ This year</property>
 	  <child>
 	    <widget class="GtkLabel" id="copyright_lable">
 	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">&lt;small&gt;Bacula Copyright ©2000-2006 Kern Sibbald &lt;/small&gt;
-&lt;small&gt;brestore Copyright ©2006 Marc Cousin and Eric Bollengier&lt;/small&gt;
+	      <property name="label" translatable="yes">&lt;small&gt;Bacula Copyright ©2000-2006FSF Europe &lt;/small&gt;
 </property>
 	      <property name="use_underline">False</property>
 	      <property name="use_markup">True</property>
