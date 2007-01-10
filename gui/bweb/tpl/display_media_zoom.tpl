@@ -1,12 +1,12 @@
 <table>
 <td valign='top'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Media : <TMPL_VAR volumename> <TMPL_VAR comment></h1>
+  <h1 class='newstitle'> Medium : <TMPL_VAR volumename> <TMPL_VAR comment></h1>
  </div>
  <div class='bodydiv'>
-    <b> Media Infos</b><br/>
+    <b> Medium Infos</b><br/>
     <table id='id_info_<TMPL_VAR volumename>'></table>
-    <b> Media Stats</b><br/>
+    <b> Medium Stats</b><br/>
     <table id='id_media_<TMPL_VAR volumename>'></table>
     <b> Job List </b></br>
     <table id='id_jobs_<TMPL_VAR volumename>'></table>
@@ -14,7 +14,7 @@
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <input type="image" name='action' value='extern' onclick='return confirm("Do you want to eject this media ?");' title='move out' src='/bweb/extern.png'>&nbsp;
+      <input type="image" name='action' value='extern' onclick='return confirm("Do you want to eject this medium ?");' title='move out' src='/bweb/extern.png'>&nbsp;
 <TMPL_ELSE>
       <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
 </TMPL_IF>

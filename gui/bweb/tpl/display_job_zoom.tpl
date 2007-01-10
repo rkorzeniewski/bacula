@@ -51,18 +51,18 @@
   </label>
  </form>
  </td>
-<!-- Remove this to activate bfileview
+<!-- Remove this to activate bfileview -->
  <td>
  <form action='bfileview.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <input type='hidden' name='where' value='/'>
   <label>
   <input type="image" name='action' value='bfileview' title='view file usage'
-   src='/bweb/colorscm.png' onclick='if (<TMPL_VAR JobFiles> > 5000) { return confirm("It could take long time, do you want to continue ?")} else { return 1; }'> View file usage
+   src='/bweb/colorscm.png' onclick='if (<TMPL_VAR JobFiles> > 50000) { return confirm("It could take long time, do you want to continue ?")} else { return 1; }'> View file usage
   </label>
  </form>
  </td>
--->
+<!-- -->
  </table>
 </div>
 
