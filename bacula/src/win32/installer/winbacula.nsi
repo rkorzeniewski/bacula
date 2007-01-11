@@ -442,7 +442,7 @@ Section "-Initialize"
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\\\"
   FileWrite $R1 's;@bin_dir@;$R2;$\r$\n'
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
-  FileWrite $R1 's;@bin_dir_cmd@;$R2;$\r$\n'
+  FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR" "\" "/"
   FileWrite $R1 "s;@BUILD_DIR@;$R2;$\r$\n"

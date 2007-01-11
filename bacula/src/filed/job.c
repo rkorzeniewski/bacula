@@ -676,6 +676,7 @@ static void add_fileset(JCR *jcr, const char *item)
 
    /* Skip all lines we receive after an error */
    if (state == state_error) {
+      Dmsg0(100, "State=error return\n");
       return;
    }
 
@@ -687,6 +688,7 @@ static void add_fileset(JCR *jcr, const char *item)
     */
    if (subcode != ' ') {
       state = state_error;
+      Dmsg0(100, "Set state=error\n"); 
    }
    switch (code) {
    case 'I':
@@ -942,10 +944,6 @@ static void set_options(findFOPTS *fo, const char *opts)
          break;
       case 'S':
          switch(*(p + 1)) {
-         case ' ':
-            /* Old director did not specify SHA variant */
-            fo->flags |= FO_SHA1;
-            break;
          case '1':
             fo->flags |= FO_SHA1;
             p++;
@@ -961,10 +959,14 @@ static void set_options(findFOPTS *fo, const char *opts)
             break;
 #endif
          default:
-            /* Automatically downgrade to SHA-1 if an unsupported
-             * SHA variant is specified */
+            /*
+             * If 2 or 3 is seen here, SHA2 is not configured, so
+             *  eat the option, and drop back to SHA-1.
+             */
+            if (p[1] == '2' || p[1] == '3') {
+               p++;
+            }
             fo->flags |= FO_SHA1;
-            p++;
             break;
          }
          break;
@@ -999,7 +1001,6 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'Z':                 /* gzip compression */
          fo->flags |= FO_GZIP;
          fo->GZIP_level = *++p - '0';
-         Dmsg1(200, "Compression level=%d\n", fo->GZIP_level);
          break;
       case 'K':
          fo->flags |= FO_NOATIME;

@@ -318,7 +318,8 @@ public:
    POOLMEM *store_source;
 
    /* Methods */
-   USTORE() { store = NULL; store_source = get_pool_memory(PM_MESSAGE); }
+   USTORE() { store = NULL; store_source = get_pool_memory(PM_MESSAGE); 
+              *store_source = 0; };
    ~USTORE() { destroy(); }   
    void set_source(const char *where);
    void destroy();

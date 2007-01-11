@@ -75,7 +75,6 @@ extern DWORD DLL_IMP_EXP g_platform_id;
 extern DWORD DLL_IMP_EXP g_MinorVersion;
 
 /* In ADVAPI32.DLL */
-
 typedef BOOL (WINAPI * t_OpenProcessToken)(HANDLE, DWORD, PHANDLE);
 typedef BOOL (WINAPI * t_AdjustTokenPrivileges)(HANDLE, BOOL,
           PTOKEN_PRIVILEGES, DWORD, PTOKEN_PRIVILEGES, PDWORD);
@@ -177,6 +176,11 @@ extern t_GetVolumeNameForVolumeMountPointW DLL_IMP_EXP p_GetVolumeNameForVolumeM
 extern t_AttachConsole DLL_IMP_EXP p_AttachConsole;
 
 void InitWinAPIWrapper();
+
+/* In SHFolder.dll on older systems, and now Shell32.dll */
+typedef BOOL (WINAPI * t_SHGetFolderPath)(HWND, int, HANDLE, DWORD, LPTSTR);
+extern t_SHGetFolderPath  DLL_IMP_EXP p_SHGetFolderPath;
+
 #endif
 
 #endif /* __WINAPI_H */

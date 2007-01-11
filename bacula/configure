@@ -1439,6 +1439,8 @@ Optional Features:
   --enable-client-only    build client (File daemon) only disabled
   --enable-build-dird     enable building of dird (Director) enabled
   --enable-build-stored   enable building of stored (Storage daemon) enabled
+ --disable-conio disable conio support enabled
+
   --enable-ipv6		    enable ipv6 support enabled
 
   --disable-readline      disable readline support disable
@@ -14897,6 +14899,20 @@ if test x$build_stored = xyes; then
 else
    STORED_DIR=""
 fi
+
+
+# ---------------------------------------------------
+# Check for conio (Bacula readline substitute)(
+# ---------------------------------------------------
+# this allows you to turn it completely off
+# Check whether --enable-conio was given.
+if test "${enable_conio+set}" = set; then
+  enableval=$enable_conio; if test x$enableval = xno; then
+     support_conio=no
+  fi
+
+fi
+
 
 
 # ---------------------------------------------------

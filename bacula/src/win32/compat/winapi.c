@@ -85,6 +85,8 @@ t_GetCurrentDirectoryW  p_GetCurrentDirectoryW = NULL;
 t_GetVolumePathNameW    p_GetVolumePathNameW = NULL;
 t_GetVolumeNameForVolumeMountPointW p_GetVolumeNameForVolumeMountPointW = NULL;
 
+t_SHGetFolderPath       p_SHGetFolderPath = NULL;
+
 void 
 InitWinAPIWrapper() 
 {
@@ -201,6 +203,22 @@ InitWinAPIWrapper()
             GetProcAddress(hLib, "LookupPrivilegeValueA");
          FreeLibrary(hLib);
       }
+   }
+
+   /* First try in SHFOLDER for older systems */
+   hLib = LoadLibraryA("SHFOLDER.DLL");
+   if (hLib) {
+      p_SHGetFolderPath = (t_SHGetFolderPath)
+         GetProcAddress(hLib, "SHGetFolderPath");
+      FreeLibrary(hLib);
+   }
+
+   /* Now try Shell32.dll for newer systems */
+   hLib = LoadLibraryA("SHELL32.DLL");
+   if (hLib) {
+      p_SHGetFolderPath = (t_SHGetFolderPath)
+         GetProcAddress(hLib, "SHGetFolderPath");
+      FreeLibrary(hLib);
    }
 
    atexit(Win32ConvCleanupCache);

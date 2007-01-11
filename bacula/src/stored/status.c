@@ -389,6 +389,9 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
                    dcr->dev?dcr->dev->print_name(): 
                             dcr->device->device_name);
             sendit(msg, len, arg);
+            len= Mmsg(msg, _("    spooling=%d despooling=%d despool_wait=%d\n"),
+                   dcr->spooling, dcr->despooling, dcr->despool_wait);
+            sendit(msg, len, arg);
          }
          sec = time(NULL) - jcr->run_time;
          if (sec <= 0) {

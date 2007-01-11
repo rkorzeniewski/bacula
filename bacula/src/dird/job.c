@@ -399,10 +399,8 @@ bool cancel_job(UAContext *ua, JCR *jcr)
             USTORE store;
             if (jcr->rstorage) {
                store.store = jcr->rstore;
-               pm_strcpy(store.store_source, jcr->rstore_source);
             } else {
                store.store = jcr->wstore;
-               pm_strcpy(store.store_source, jcr->wstore_source);
             }
             set_wstorage(ua->jcr, &store);
          }

@@ -41,6 +41,7 @@ Document:
  
 
 Priority:
+- Add the OS version back to the Win32 client info.
 - Look at the possibility of adding "SET NAMES UTF8" for MySQL,
   and possibly changing the blobs into varchar.
 - Check if gnome-console works with TLS.
@@ -69,6 +70,9 @@ Projects:
   - Despool attributes in separate thread
   - Database speedups
   - Embedded MySQL
+  - Check why restore repeatedly sends Rechdrs between
+    each data chunk -- according to James Harper 9Jan07.
+  - Building the in memory restore tree is slow.
 - Features
   - Better scheduling  
   - Full at least once a month, ...
