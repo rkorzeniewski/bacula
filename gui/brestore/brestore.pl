@@ -71,6 +71,7 @@ use Gtk2::Gdk::Keysyms;		# keyboard code constants
 use Data::Dumper qw/Dumper/;
 use DBI;
 my $debug=0;			# can be on brestore.conf
+our $VERSION='$Revision$';
 
 ################################################################
 
@@ -213,7 +214,7 @@ sub prepare
 {
     my ($self, @what) = @_;
     my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore ");
+    $ua->agent("Brestore ($VERSION)");
     my $req = POST($self->{pref}->{bconsole},
 		   Content_Type => 'form-data',
 		   Content => [ map { (action => $_) } @what ]);
@@ -237,7 +238,7 @@ sub run
     my ($self, %arg) = @_;
 
     my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore ");
+    $ua->agent("Brestore ($VERSION)");
     my $req = POST($self->{pref}->{bconsole},
 		   Content_Type => 'form-data',
 		   Content => [ job     => $arg{job},
