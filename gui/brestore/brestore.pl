@@ -214,7 +214,7 @@ sub prepare
 {
     my ($self, @what) = @_;
     my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore ($VERSION)");
+    $ua->agent("Brestore/$VERSION");
     my $req = POST($self->{pref}->{bconsole},
 		   Content_Type => 'form-data',
 		   Content => [ map { (action => $_) } @what ]);
@@ -238,7 +238,7 @@ sub run
     my ($self, %arg) = @_;
 
     my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore ($VERSION)");
+    $ua->agent("Brestore/$VERSION");
     my $req = POST($self->{pref}->{bconsole},
 		   Content_Type => 'form-data',
 		   Content => [ job     => $arg{job},
