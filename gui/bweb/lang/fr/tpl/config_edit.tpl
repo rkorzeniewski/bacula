@@ -42,7 +42,7 @@
          <td> <input class="formulaire" title="/chemin/vers/bconsole -n -c /chemin/vers/bconsole.conf" type='text' value='<TMPL_VAR NAME=bconsole>' size='64' name='bconsole'> 
          </td></tr>
      <tr><td>debug :</td> 
-         <td> <input class="formulaire" type='checkbox' name='debug'> 
+         <td> <input class="formulaire" type='checkbox' name='debug' <TMPL_IF debug> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>
     </table>
     <input type="image" name='action' value='apply_conf' src='/bweb/save.png'>
