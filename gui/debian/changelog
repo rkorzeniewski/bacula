@@ -1,3 +1,10 @@
+bweb (2.0.0-3) stable; urgency=low
+
+  * Fix warning message when using bweb http connector
+  * Add version number to Brestore User Agent
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Wed,  10 Jan 2007 08:00:47 +0000
+
 bweb (2.0.0-2) stable; urgency=low
 
   * Depends: DBD-Pg or DBD-Mysql 

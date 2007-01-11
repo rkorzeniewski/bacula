@@ -1,5 +1,9 @@
           Release Notes for brestore 2.0.0
 
+Version 2.0.0-3:
+ - Fix warning message when using with bweb http connector
+ - Add CVS version number to UA brestore
+
 Version 2.0.0:
  - Add debian package
  - Add BwebConsole package to keep bconsole installation and
