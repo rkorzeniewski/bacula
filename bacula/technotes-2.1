@@ -1,4 +1,21 @@
-              Technical notes on version 2.1
+              Technical notes on version 2.0
 
 General:
+Version 2.0.1
+11Jan06
+kes  Add dynamic dll entry point for SHGetFolderPath to Win32 code.
+     This *should* fix bug #747.
+kes  Modify winbacula.nsi to substitute with g bin_dir_cmd. Should fix
+     bug #742.
+09Jan06
+kes  Modify USTORE constructor to set an empty store_source string, 
+     and don't copy the store_source string in a cancel.  Hopefully
+     this will fix Arno's seg fault, bug #744.
+kes  Add back code to disable conio in configure. Fixes bug #743.
+kes  Correct the Options scanner in the FD to correctly handle  
+     SHA1 option, which was eating the next option.  Reported by    
+     Sebastien Guilbaud.
+kes  Add code to indicate when the SD is spooling, spool wait, and 
+     despooling as requested by Alan Brown.
+
 Version 2.0.0 released: 4 January 2007

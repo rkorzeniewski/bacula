@@ -932,8 +932,13 @@ const char *get_default_configdir()
    HRESULT hr;
    static char szConfigDir[MAX_PATH + 1] = { 0 };
 
+   if (!p_SHGetFolderPath) {
+      bstrncpy(szConfigDir, DEFAULT_CONFIGDIR, sizeof(szConfigDir));
+      return szConfigDir;
+   }
+
    if (szConfigDir[0] == '\0') {
-      hr = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, szConfigDir);
+      hr = p_SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, szConfigDir);
 
       if (SUCCEEDED(hr)) {
          bstrncat(szConfigDir, "\\Bacula", sizeof(szConfigDir));

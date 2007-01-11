@@ -3,9 +3,9 @@
  */
 
 #undef  VERSION
-#define VERSION "2.1.0"
-#define BDATE   "05 January 2007"
-#define LSMDATE "05Jan07"
+#define VERSION "2.1.1"
+#define BDATE   "11 January 2007"
+#define LSMDATE "11Jan07"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2007"       /* year for copyright messages in progs */
@@ -47,7 +47,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-/* #define DEVELOPER 1 */
+#define DEVELOPER 1
 
 #define DATA_ENCRYPTION 1
 

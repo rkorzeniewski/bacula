@@ -245,7 +245,8 @@ void add_fname_to_include_list(FF_PKT *ff, int prefixed, const char *fname)
          { }
       next->next = inc;
    }
-   Dmsg1(50, "add_fname_to_include fname=%s\n", inc->fname);
+   Dmsg3(00, "add_fname_to_include prefix=%d gzip=%d fname=%s\n", 
+         prefixed, !!(inc->options & FO_GZIP), inc->fname);
 }
 
 /*
