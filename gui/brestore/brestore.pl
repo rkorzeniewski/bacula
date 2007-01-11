@@ -262,10 +262,11 @@ sub run
 	}
     } 
 
-    if ($self->{run}) {
-	unlink($arg{bootstrap});
-	new DlgWarn("Can't connect to bweb : " . $res->status_line);
+    if (!$self->{run}) {
+        new DlgWarn("Can't connect to bweb : " . $res->status_line);
     } 
+
+    unlink($arg{bootstrap});
 
     return $self->{run};
 }
