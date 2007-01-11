@@ -71,7 +71,7 @@ use Gtk2::Gdk::Keysyms;		# keyboard code constants
 use Data::Dumper qw/Dumper/;
 use DBI;
 my $debug=0;			# can be on brestore.conf
-our $VERSION='$Revision$';
+our ($VERSION) = ('$Revision$' =~ /(\d+\.\d+)/);
 
 ################################################################
 
