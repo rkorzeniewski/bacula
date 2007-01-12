@@ -16,7 +16,7 @@ if [ "$1" = "configure" ] ; then
 
  chown www-data:root /var/spool/bweb
  chmod 700 /var/spool/bweb
-	
+ 
  echo
  echo "If you are using postgresql, you have to load /usr/share/bweb/bweb-postgresql.sql in your database"
  
@@ -24,4 +24,10 @@ if [ "$1" = "configure" ] ; then
  echo 
  echo "You can use user/passwd (see /etc/apache/conf.d/bweb.conf)"
  echo "You have to reload your apache configuration"
+ echo 
+ echo "'/usr/bin/bconsole -n -c /etc/bacula/bconsole.conf' must be accessible"
+ echo "by your www-data. You meed to use :"
+ echo "chmod 644 /etc/bacula/bconsole.conf"
+ echo "chmod 755 /usr/bin/bconsole"
+ 
 fi
