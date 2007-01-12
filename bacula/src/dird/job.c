@@ -9,7 +9,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -852,22 +852,6 @@ void dird_free_jcr_pointers(JCR *jcr)
       free_pool_memory(jcr->fname);
       jcr->fname = NULL;
    }
-   if (jcr->pool_source) {
-      free_pool_memory(jcr->pool_source);
-      jcr->pool_source = NULL;
-   }
-   if (jcr->rpool_source) {
-      free_pool_memory(jcr->rpool_source);
-      jcr->rpool_source = NULL;
-   }
-   if (jcr->wstore_source) {
-      free_pool_memory(jcr->wstore_source);
-      jcr->wstore_source = NULL;
-   }
-   if (jcr->rstore_source) {
-      free_pool_memory(jcr->rstore_source);
-      jcr->rstore_source = NULL;
-   }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");
       free_pool_memory(jcr->stime);
@@ -904,6 +888,27 @@ void dird_free_jcr(JCR *jcr)
    if (jcr->term_wait_inited) {
       pthread_cond_destroy(&jcr->term_wait);
       jcr->term_wait_inited = false;
+   }
+   if (jcr->fname) {
+      Dmsg0(200, "Free JCR fname\n");
+      free_pool_memory(jcr->fname);
+      jcr->fname = NULL;
+   }
+   if (jcr->pool_source) {
+      free_pool_memory(jcr->pool_source);
+      jcr->pool_source = NULL;
+   }
+   if (jcr->rpool_source) {
+      free_pool_memory(jcr->rpool_source);
+      jcr->rpool_source = NULL;
+   }
+   if (jcr->wstore_source) {
+      free_pool_memory(jcr->wstore_source);
+      jcr->wstore_source = NULL;
+   }
+   if (jcr->rstore_source) {
+      free_pool_memory(jcr->rstore_source);
+      jcr->rstore_source = NULL;
    }
 
    /* Delete lists setup to hold storage pointers */
@@ -955,6 +960,12 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    case JT_RESTORE:
       jcr->JobLevel = L_NONE;
       break;
+   case JT_MIGRATE:
+      if (!jcr->rpool_source) {
+         jcr->rpool_source = get_pool_memory(PM_MESSAGE);
+         pm_strcpy(jcr->rpool_source, _("unknown source"));
+      }
+      /* Fall-through wanted */
    default:
       jcr->JobLevel = job->JobLevel;
       break;
@@ -966,6 +977,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
+
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
    if (job->storage) {

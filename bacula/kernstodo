@@ -42,6 +42,9 @@ Document:
 
 Priority:
 - Add the OS version back to the Win32 client info.
+- Restarted jobs have a NULL in the from field.
+
+
 - Look at the possibility of adding "SET NAMES UTF8" for MySQL,
   and possibly changing the blobs into varchar.
 - Check if gnome-console works with TLS.
