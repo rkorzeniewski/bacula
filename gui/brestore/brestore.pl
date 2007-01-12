@@ -424,6 +424,8 @@ sub show_job
 
     my $ret = $self->{pref}->go_bweb("?action=dsp_cur_job;jobid=$jobid;client=$client", "view job status");
 
+    $self->on_cancel_resto_clicked();
+
     if ($ret == -1) {
 	my $widget = Gtk2::MessageDialog->new(undef, 'modal', 'info', 'close', 
 "Your job have been submited to bacula.
@@ -431,8 +433,6 @@ To follow it, you must use bconsole (or install/configure bweb)");
 	$widget->run;
 	$widget->destroy();
     }
-
-    $self->on_cancel_resto_clicked();
 }
 
 sub on_cancel_resto_clicked
@@ -540,6 +540,10 @@ sub copy_bsr
     my ($self, $src, $dst) = @_ ;
     print "$src => $dst\n"
 	if ($debug);
+
+    if (!$dst) {
+        return $src;
+    }
 
     my $ret=0 ;
     my $err ; 

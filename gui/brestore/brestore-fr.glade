@@ -1874,8 +1874,7 @@ Ou, si le director est sur une autre machine :
 &lt;b&gt; scp://bacula@hostdir:/path/to/bsr &lt;/b&gt;
 
 Ou si le director fonctionne avec le connecteur http bweb
-&lt;b&gt; file://var/tmp&lt;/b&gt;
-Et vous devez positionner bconsole sur
+vous devez laisser ce champs vide, et vous devez positionner bconsole sur
 &lt;b&gt; http://user:pass@director/cgi-bin/bweb/bconsole.pl&lt;/b&gt;</property>
 			      <property name="use_underline">False</property>
 			      <property name="use_markup">True</property>
