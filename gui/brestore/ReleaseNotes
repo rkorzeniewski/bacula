@@ -1,6 +1,7 @@
-          Release Notes for brestore 2.0.0
+          Release Notes for brestore 2.0.1
 
-Version 2.0.0-3:
+Version 2.0.1-1:
+ - Do nothing if destination string is empty
  - Fix warning message when using with bweb http connector
  - Add CVS version number to UA brestore
 
