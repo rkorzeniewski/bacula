@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# shell script to update SQLite from version 1.38 to 1.39
+# shell script to update SQLite from version 1.38 to 2.0
 #
 echo " "
 echo "This script will update a Bacula SQLite database from version 9 to 10"
-echo " which is needed to convert from Bacula version 1.38.x to 1.39.x or higher"
+echo " which is needed to convert from Bacula version 1.38.x to 2.0.x or higher"
 echo "Depending on the size of your database,"
 echo "this script may take several minutes to run."
 echo " "
