@@ -11,7 +11,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -275,12 +275,12 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    if (jr->JobId == 0) {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name,PriorJobId,RealEndTime "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name,PriorJobId,RealEndTime "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId "
 "FROM Job WHERE JobId=%s", 
           edit_int64(jr->JobId, ed1));
     }
@@ -312,6 +312,9 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    bstrncpy(jr->Name, row[13]!=NULL?row[13]:"", sizeof(jr->Name));
    jr->PriorJobId = str_to_uint64(row[14]!=NULL?row[14]:(char *)"");
    bstrncpy(jr->cRealEndTime, row[15]!=NULL?row[15]:"", sizeof(jr->cRealEndTime));
+   if (jr->JobId == 0) {
+      jr->JobId = str_to_int64(row[16]);
+   }
    sql_free_result(mdb);
 
    db_unlock(mdb);

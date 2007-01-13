@@ -834,7 +834,7 @@ Section "Documentation (HTML Format)" SecDocHtml
   File "${SRC_DIR}\manual\bacula\*.html"
   File "${SRC_DIR}\manual\bacula\*.png"
   File "${SRC_DIR}\manual\bacula\*.css"
-  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\bacula.html"'
+  CreateShortCut "$SMPROGRAMS\Bacula\Documentation\Manual (HTML).lnk" '"$INSTDIR\doc\index.html"'
 SectionEnd
 
 SectionGroupEnd
