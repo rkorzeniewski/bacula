@@ -43,8 +43,8 @@ Document:
 Priority:
 - Add the OS version back to the Win32 client info.
 - Restarted jobs have a NULL in the from field.
-
-
+- Modify SD status command to indicate when the SD is writing
+  to a DVD (the device is not open -- see bug #732).
 - Look at the possibility of adding "SET NAMES UTF8" for MySQL,
   and possibly changing the blobs into varchar.
 - Check if gnome-console works with TLS.

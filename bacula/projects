@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 11 January 2007
+                    Status updated 12 January 2007
 
 Summary:
 Item  1:  Accurate restoration of renamed/deleted files
@@ -490,10 +490,11 @@ Item 19:  An option to operate on all pools with update vol parameters
 
 
 
-Item 20:  Include JobID in spool file name
+Item 20:  Include JobID in spool file name ****DONE****
   Origin: Mark Bergman <mark.bergman@uphs.upenn.edu>
   Date:   Tue Aug 22 17:13:39 EDT 2006
-  Status: Ok (patches/testing/project-include-jobid-in-spool-name.patch)
+  Status: Done. (patches/testing/project-include-jobid-in-spool-name.patch)
+          No need to vote for this item.
 
   What:   Change the name of the spool file to include the JobID
 
