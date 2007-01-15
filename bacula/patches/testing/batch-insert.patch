@@ -479,7 +479,7 @@ diff -Naur cvs/src/cats/sql_create.c my/src/cats/sql_create.c
 +{
 +   size_t len;
 +   char *digest;
-+   char edi1[50];
++   char ed1[50];
 +
 +   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
 +   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
