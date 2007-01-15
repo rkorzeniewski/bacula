@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/01/15
+ - fix do_update_media timeout bug
+
 2007/01/09
  - fix stats bug on main page
 
