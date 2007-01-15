@@ -147,7 +147,10 @@ sub connect
 	{ 
 	    my $sav = $SIG{__DIE__};
 	    $SIG{__DIE__} = sub {  _exit 1 ;};
+            my $old = $ENV{COLUMNS};
+            $ENV{COLUMNS} = 300;
 	    $ret = $self->{bconsole}->spawn(@cmd) ;
+            $ENV{COLUMNS} = $old;
 	    $SIG{__DIE__} = $sav;
 	}
 
