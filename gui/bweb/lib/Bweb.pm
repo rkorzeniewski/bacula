@@ -2868,28 +2868,23 @@ sub do_update_media
 	$update .= " pool=$arg->{pool} " ;
     }
 
-    $arg->{volretention} ||= 0 ; 
-    if ($arg->{volretention}) {
+    if (defined $arg->{volretention}) {
 	$update .= " volretention=\"$arg->{volretention}\" " ;
     }
 
-    $arg->{voluseduration} ||= 0 ; 
-    if ($arg->{voluseduration}) {
+    if (defined $arg->{voluseduration}) {
 	$update .= " voluse=\"$arg->{voluseduration}\" " ;
     }
 
-    $arg->{maxvoljobs} ||= 0;
-    if ($arg->{maxvoljobs}) {
+    if (defined $arg->{maxvoljobs}) {
 	$update .= " maxvoljobs=$arg->{maxvoljobs} " ;
     }
     
-    $arg->{maxvolfiles} ||= 0;
-    if ($arg->{maxvolfiles}) {
+    if (defined $arg->{maxvolfiles}) {
 	$update .= " maxvolfiles=$arg->{maxvolfiles} " ;
     }    
 
-    $arg->{maxvolbytes} ||= 0;
-    if ($arg->{maxvolbytes}) {
+    if (defined $arg->{maxvolbytes}) {
 	$update .= " maxvolbytes=$arg->{maxvolbytes} " ;
     }    
 
