@@ -89,10 +89,21 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
     cd /var/www/cgi-bin/bweb
     ./bweb.pl 
 
+ you might also want to try:
+
+    ./bgraph.pl 
+
+ To make sure the graphing modules are loaded.  However, running it
+ will spray binary graphics data on your terminal.  Otherwise, you will
+ get an error.
+
  That should show you if any of the pre-requisites are missing.
  On SuSE 10.2, I was able to load all the appropriate modules via rpms,
   with the exception of Expect and Time::ParseDate, which I loaded manually
   using perl.
+
+  If you experience problems, always consult the Apache error_log
+  file.
 
 ################ APACHE CONFIGURATION ##########################
 
