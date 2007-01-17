@@ -1,3 +1,4 @@
+CREATE PROCEDURAL LANGUAGE plpgsql;
 BEGIN;
 
 CREATE FUNCTION SEC_TO_TIME(timestamp with time zone)
