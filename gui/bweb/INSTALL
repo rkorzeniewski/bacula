@@ -56,7 +56,7 @@ Bweb works well with 1.39 release or later.
 
  # done !
 
- WARNING : Your www-data user must be able to execute bconsole and able 
+ WARNING : Your www-data (or wwwrun on SuSE) user must be able to execute bconsole and able 
            to read the bconsole.conf file!
            You can create an bconsole group for that.
 
@@ -68,8 +68,8 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
 
  - perl modules
     - DBI (with mysql or postgresql support DBD::Pg and DBD::mysql)
-    - Gd::Graph
-    - Gd
+    - GD::Graph
+    - GD
     - HTML::Template
     - CGI
     - Expect
