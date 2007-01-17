@@ -231,7 +231,7 @@ sub label_barcodes
     }
 
     $self->send("$cmd\n");
-    $self->expect_it('-re', '[?].+\)\s*:');
+    $self->expect_it('-re', '[?].+\).*:');
     my $res = $self->before();
     $self->send("yes\n");
     $self->expect_it("yes");
