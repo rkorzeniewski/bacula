@@ -23,7 +23,7 @@ Location : <TMPL_VAR location>
       <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");'>&nbsp;
       <input type="image" name='action' value='intern' title='Move in' src='/bweb/intern.png'>&nbsp;
       <input type="image" name='action' value='update_media' title='Update medium' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='media_zoom' title='Informations' src='/bweb/zoom.png'>&nbsp;
+      <input type="image" name='action' value='media_zoom' title='Information' src='/bweb/zoom.png'>&nbsp;
 <!--
       <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
 -->
@@ -34,8 +34,8 @@ Location : <TMPL_VAR location>
 <script type="text/javascript" language="JavaScript">
 
 var header = new Array("Volume Name","Online","Vol Bytes", "Vol Usage", "Vol Status",
-		       "Pool", "Media Type",
-		       "Last Written", "When expire ?", "Select");
+                       "Pool", "Media Type",
+                       "Last Written", "When expire ?", "Select");
 
 var data = new Array();
 var img;

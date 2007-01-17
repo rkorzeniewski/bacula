@@ -4,7 +4,7 @@ bweb_add_refresh();
 </script>
 <div class='titlediv'>
   <h1 class="newstitle">
-   Informations
+   Information
   </h1>
 </div>
 <div class="bodydiv">
