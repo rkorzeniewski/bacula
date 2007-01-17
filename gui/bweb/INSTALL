@@ -109,6 +109,16 @@ Put this in your httpd.conf, and add user with htpasswd
         Require valid-user
 </Directory>
 
+On SuSE 10.2, the following in /etc/apache2/default-server.conf works. 
+However, it is not secure:
+
+Directory "/srv/www/cgi-bin/bweb">
+ AllowOverride None
+ Options +ExecCGI -Includes
+ Order allow,deny
+ Allow from all
+</Directory>
+
 
 ################ CONFIGURATION #################################
 

@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Change the following four environment variables to suit your system
+#   Note, the configuration below works on a stock SuSE 10.2 system
 #
 # Root directory of web files       
 #
