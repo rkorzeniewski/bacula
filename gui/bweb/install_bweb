@@ -3,6 +3,10 @@
 # Change the following four environment variables to suit your system
 #   Note, the configuration below works on a stock SuSE 10.2 system
 #
+# You can, in general, execute this file multiple times.  However, if
+#   you edit certain of the installed files, your changes might be lost.
+#   This script will not overwrite any installed /etc/bacula/bweb.conf
+#
 # Root directory of web files       
 #
 WEB_DIR=/srv/www/htdocs 
@@ -51,6 +55,7 @@ if [ ! -d /etc/bacula ] ; then
 fi
 
 # Setup a default /etc/bacula/bweb.conf
+if [ ! -e /etc/bacula/bweb.conf ] ; then
 cat > /etc/bacula/bweb.conf <<END_OF_DATA
 \$VAR1 = bless( {
   'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
@@ -89,6 +94,7 @@ cat > /etc/bacula/bweb.conf <<END_OF_DATA
   'email_media' => '${EMAIL_ADDR}'
 }, 'Bweb::Config' );
 END_OF_DATA
+fi
 
 chown ${HTTP_USER} /etc/bacula/bweb.conf
 
