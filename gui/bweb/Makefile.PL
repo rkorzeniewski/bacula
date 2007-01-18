@@ -1,3 +1,14 @@
+use Test::More tests => 7;
+
+require_ok('DBI');
+require_ok('GD::Graph');
+require_ok('GD');
+require_ok('HTML::Template');
+require_ok('CGI');
+require_ok('Expect');
+require_ok('Time::ParseDate');
+
+
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
