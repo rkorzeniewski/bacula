@@ -185,7 +185,10 @@ See gui/brestore/README for instructions on installing brestore.pl.
 If you want to use PostgreSQL instead of MySQL, you must add
 a function to the PostgreSQL Bacula database to get Bweb to work.
 
-psql -u bacula bacula < script/bweb-postgresql.sql
+psql -U bacula bacula < script/bweb-postgresql.sql
+
+Tips: PL must be enable in your cluster, you can do this with postgres user
+postgres:~$ echo 'CREATE PROCEDURAL LANGUAGE plpgsql;' | psql bacula 
 
 ################ BCONSOLE NOTES ################################
 
