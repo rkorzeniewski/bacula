@@ -41,6 +41,9 @@ Document:
  
 
 Priority:
+- Figure out some way to "automatically" backup conf changes.
+- Look at using posix_fadvise(2) for backups -- see bug #751.
+  Possibly add the code at findlib/bfile.c:795
 - Add the OS version back to the Win32 client info.
 - Restarted jobs have a NULL in the from field.
 - Modify SD status command to indicate when the SD is writing

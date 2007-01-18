@@ -852,11 +852,6 @@ void dird_free_jcr_pointers(JCR *jcr)
       free_pool_memory(jcr->fname);
       jcr->fname = NULL;
    }
-   if (jcr->stime) {
-      Dmsg0(200, "Free JCR stime\n");
-      free_pool_memory(jcr->stime);
-      jcr->stime = NULL;
-   }
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;
@@ -888,6 +883,11 @@ void dird_free_jcr(JCR *jcr)
    if (jcr->term_wait_inited) {
       pthread_cond_destroy(&jcr->term_wait);
       jcr->term_wait_inited = false;
+   }
+   if (jcr->stime) {
+      Dmsg0(200, "Free JCR stime\n");
+      free_pool_memory(jcr->stime);
+      jcr->stime = NULL;
    }
    if (jcr->fname) {
       Dmsg0(200, "Free JCR fname\n");
