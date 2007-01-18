@@ -91,7 +91,7 @@ $parameters = {
                 'username' => 'bacula',
                 'connection_string' => 'DBI:Pg:database=bacula;host=95.1.8.205',
                 'password' => 'xxxx',
-                'bsr_dest' => 'file://var/tmp',
+                'bsr_dest' => '',
                 'see_all_versions' => '',
                 'debug' => 1,
                 'use_ok_bkp_only' => '',
