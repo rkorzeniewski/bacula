@@ -1,3 +1,10 @@
+bweb (2.0.1-2) stable; urgency=low
+
+  * fix /etc/bacula permissions
+  * fix label_barcodes drive bug 
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Fri,  19 Jan 2007 21:10:47 +0000
+
 bweb (2.0.1-1) stable; urgency=low
 
   * Do nothing if destination string is empty
