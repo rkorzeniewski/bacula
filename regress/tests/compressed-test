@@ -47,4 +47,9 @@ stop_bacula
 
 check_two_logs
 check_restore_diff
+grep " Software Compression" tmp/log1.out | grep "%" 2>&1 1>/dev/null
+if [ $? != 0 ] ; then
+   echo "  !!!!! No compression !!!!!"
+   bstat=1
+fi
 end_test
