@@ -3004,6 +3004,16 @@ sub label_barcodes
 	return $self->error("Can't find autochanger name");
     }
 
+    my $a = $self->ach_get($arg->{ach});
+    unless ($a) {
+	return $self->error("Can't find autochanger name in configuration");
+    } 
+
+    my $storage = $a->get_drive_name($arg->{drive});
+    unless ($storage) {
+	return $self->error("Can't get your drive name");
+    }
+
     my $slots = '';
     my $t = 300 ;
     if ($arg->{slots}) {
@@ -3014,7 +3024,7 @@ sub label_barcodes
     my $b = new Bconsole(pref => $self->{info}, timeout => $t,log_stdout => 1);
     print "<h1>This command can take long time, be patient...</h1>";
     print "<pre>" ;
-    $b->label_barcodes(storage => $arg->{ach},
+    $b->label_barcodes(storage => $storage,
 		       drive => $arg->{drive},
 		       pool  => 'Scratch',
 		       slots => $slots) ;
