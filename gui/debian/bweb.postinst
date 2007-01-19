@@ -11,6 +11,8 @@ if [ "$1" = "configure" ] ; then
      echo "Please, use /etc/bacula/bweb.conf instead."
  fi
 
+ chmod 755 /etc/bacula
+
  chown www-data:root /etc/bacula/bweb.conf
  chmod 600 /etc/bacula/bweb.conf
 
