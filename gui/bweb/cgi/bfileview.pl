@@ -79,8 +79,9 @@ unless ($where and $jobid) {
     exit 0;
 }
 
-unless (-w $base_fich) {
-    $bweb->error("$base_fich is not writable");
+unless ($base_fich and -w $base_fich) {
+    $bweb->error("fv_write_path ($base_fich) is not writable." . 
+		 " See Bweb configuration.");
     exit 0;
 }
 

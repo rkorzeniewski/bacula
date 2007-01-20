@@ -207,7 +207,7 @@ use CGI;
 our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      user     => qr/^([\w\d\.-]+)$/i,
 	      password => qr/^(.*)$/i,
-	      fv_write_path => qr!^([/\w\d\.-]+)$!,
+	      fv_write_path => qr!^([/\w\d\.-]*)$!,
 	      template_dir => qr!^([/\w\d\.-]+)$!,
 	      debug    => qr/^(on)?$/,
 	      email_media => qr/^([\w\d\.-]+@[\d\w\.-]+)$/,
