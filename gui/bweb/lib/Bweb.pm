@@ -3030,6 +3030,19 @@ sub label_barcodes
 		       slots => $slots) ;
     $b->close();
     print "</pre>";
+
+    $self->dbh_do("
+  UPDATE Media 
+       SET LocationId =   (SELECT LocationId 
+                             FROM Location 
+                            WHERE Location = '$arg->{ach}'),
+
+     WHERE Media.PoolId = (SELECT PoolId 
+                             FROM Pool
+                            WHERE Name = 'Scratch')
+       AND LocationId = 0
+");
+
 }
 
 sub purge
