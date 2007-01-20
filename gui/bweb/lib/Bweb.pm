@@ -3035,7 +3035,7 @@ sub label_barcodes
   UPDATE Media 
        SET LocationId =   (SELECT LocationId 
                              FROM Location 
-                            WHERE Location = '$arg->{ach}'),
+                            WHERE Location = '$arg->{ach}')
 
      WHERE Media.PoolId = (SELECT PoolId 
                              FROM Pool
