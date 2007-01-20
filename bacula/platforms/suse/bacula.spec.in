@@ -126,7 +126,7 @@ Packager: %{_packager}
 %{?build_client_only:%define client_only 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -1179,6 +1179,10 @@ rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf "$RPM_BUILD_ROOT"
+rm -rf $RPM_BUILD_DIR/%{name}-docs-%{docs_version}
+rm -rf $RPM_BUILD_DIR/%{name}-rescue-%{_rescuever}
+rm -rf $RPM_BUILD_DIR/depkgs
+rm -f $RPM_BUILD_DIR/Release_Notes-%{version}-%{release}.txt
 
 %if %{mysql}
 # MySQL specific files
@@ -1256,7 +1260,7 @@ rm -rf $RPM_BUILD_ROOT/etc/bacula/updatedb
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/bconsole.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/logfiles/bacula.conf
 %attr(-, root, %{daemon_group}) %config(noreplace) /etc/log.d/conf/services/bacula.conf
-%attr(-, root, %{daemon_group}) /etc/bacula/query.sql
+%attr(-, root, %{daemon_group}) %config(noreplace) /etc/bacula/query.sql
 
 %attr(-, %{storage_daemon_user}, %{daemon_group}) %dir %{working_dir}
 
@@ -1725,6 +1729,10 @@ fi
 %endif
 
 %changelog
+* Sat Jan 20 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- correct bug 752
+- set query.sql as config file
+- correct bug 754
 * Sun Jan 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 2.0.1 release
 - change determination of gcc version per patch from Marc Hennes
