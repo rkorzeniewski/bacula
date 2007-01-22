@@ -3035,12 +3035,14 @@ sub label_barcodes
   UPDATE Media 
        SET LocationId =   (SELECT LocationId 
                              FROM Location 
-                            WHERE Location = '$arg->{ach}')
+                            WHERE Location = '$arg->{ach}'),
+
+           RecyclePoolId = PoolId
 
      WHERE Media.PoolId = (SELECT PoolId 
                              FROM Pool
                             WHERE Name = 'Scratch')
-       AND LocationId = 0
+       AND (LocationId = 0 OR LocationId IS NULL)
 ");
 
 }
