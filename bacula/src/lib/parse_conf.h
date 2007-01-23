@@ -30,7 +30,7 @@
 */
 
 struct RES_ITEM;                    /* Declare forward referenced structure */
-struct RES;                         /* Declare forware referenced structure */
+class RES;                         /* Declare forware referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 /* This is the structure that defines

@@ -241,7 +241,7 @@ bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
    SSL *ssl = tls->openssl;
    X509 *cert;
    X509_NAME *subject;
-   int auth_success = false;
+   bool auth_success = false;
    char data[256];
 
    /* Check if peer provided a certificate */
@@ -280,7 +280,7 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
    SSL *ssl = tls->openssl;
    X509 *cert;
    X509_NAME *subject;
-   int auth_success = false;
+   bool auth_success = false;
    int extensions;
    char data[256];
    int i, j;
