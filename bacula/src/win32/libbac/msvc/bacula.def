@@ -353,13 +353,13 @@ fnmatch
 ?my_name_is@@YAXHQAPADPBD@Z
 ?get_db_type@@YAPBDXZ
 ?set_db_type@@YAXPBD@Z
-?init_msg@@YAXPAVJCR@@PAUMSGS@@@Z
+?init_msg@@YAXPAVJCR@@PAVMSGS@@@Z
 ?init_console_msg@@YAXPBD@Z
-?add_msg_dest@@YAXPAUMSGS@@HHPAD1@Z
-?rem_msg_dest@@YAXPAUMSGS@@HHPAD@Z
+?add_msg_dest@@YAXPAVMSGS@@HHPAD1@Z
+?rem_msg_dest@@YAXPAVMSGS@@HHPAD@Z
 ?close_msg@@YAXPAVJCR@@@Z
 ?set_errno@berrno@@QAEXH@Z
-?free_msgs_res@@YAXPAUMSGS@@@Z
+?free_msgs_res@@YAXPAVMSGS@@@Z
 ?term_msg@@YAXXZ
 ?dispatch_message@@YAXPAVJCR@@HJPAD@Z
 ?c_str@POOL_MEM@@QBEPADXZ
@@ -464,7 +464,7 @@ fnmatch
 ?tree_cwd@@YAPAUs_tree_node@@PADPAUs_tree_root@@PAU1@@Z
  
 ; util.obj 
-?is_buf_zero@@YAHPADH@Z
+?is_buf_zero@@YA_NPADH@Z
 ?lcase@@YAXPAD@Z
 ?bash_spaces@@YAXPAD@Z
 ?bash_spaces@@YAXAAVPOOL_MEM@@@Z

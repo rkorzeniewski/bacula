@@ -15,7 +15,7 @@ REM
 
 DEL /f "@working_dir_cmd@\%1.sql" 2>nul
 
-ECHO .dump | "@bin_dir_cmd@\sqlite3" %1.db > "@working_dir_cmd@\%1.sql"
+ECHO .dump | "@bin_dir_cmd@\sqlite3" "@working_dir_cmd@\%1.db" > "@working_dir_cmd@\%1.sql"
 
 @ECHO off
 REM 

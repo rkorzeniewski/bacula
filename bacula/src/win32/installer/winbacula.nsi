@@ -418,9 +418,9 @@ Section "-Initialize"
   Delete /REBOOTOK "$INSTDIR\bin\License.txt"
 
   FileOpen $R1 $PLUGINSDIR\config.sed w
-  FileWrite $R1 "s;@VERSION@;${VERSION};$\r$\n"
-  FileWrite $R1 "s;@DATE@;${__DATE__};$\r$\n"
-  FileWrite $R1 "s;@DISTNAME@;Windows;$\r$\n"
+  FileWrite $R1 "s;@VERSION@;${VERSION};g$\r$\n"
+  FileWrite $R1 "s;@DATE@;${__DATE__};g$\r$\n"
+  FileWrite $R1 "s;@DISTNAME@;Windows;g$\r$\n"
 
 !If "$BUILD_TOOLS" == "MinGW"
   StrCpy $R2 "MinGW32"
@@ -432,92 +432,92 @@ Section "-Initialize"
   Exch $R3
   Pop $R3
 
-  FileWrite $R1 "s;@DISTVER@;$R2;$\r$\n"
+  FileWrite $R1 "s;@DISTVER@;$R2;g$\r$\n"
 
   ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\\\"
-  FileWrite $R1 's;@working_dir@;$R2;$\r$\n'
+  FileWrite $R1 's;@working_dir@;$R2;g$\r$\n'
   ${StrRep} $R2 "$APPDATA\Bacula\Work" "\" "\\"
-  FileWrite $R1 's;@working_dir_cmd@;$R2;$\r$\n'
+  FileWrite $R1 's;@working_dir_cmd@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\\\"
-  FileWrite $R1 's;@bin_dir@;$R2;$\r$\n'
+  FileWrite $R1 's;@bin_dir@;$R2;g$\r$\n'
   ${StrRep} $R2 "$INSTDIR\bin" "\" "\\"
   FileWrite $R1 's;@bin_dir_cmd@;$R2;g$\r$\n'
 
   ${StrRep} $R2 "$INSTDIR" "\" "/"
-  FileWrite $R1 "s;@BUILD_DIR@;$R2;$\r$\n"
+  FileWrite $R1 "s;@BUILD_DIR@;$R2;g$\r$\n"
 
   Call IsDirectorSelected
   Pop $R2
   ${If} $R2 = 1
-    FileWrite $R1 "s;@director_address@;$LocalHostAddress;$\r$\n"
+    FileWrite $R1 "s;@director_address@;$LocalHostAddress;g$\r$\n"
   ${Else}
     ${If} "$ConfigDirectorAddress" != ""
-      FileWrite $R1 "s;@director_address@;$ConfigDirectorAddress;$\r$\n"
+      FileWrite $R1 "s;@director_address@;$ConfigDirectorAddress;g$\r$\n"
     ${EndIf}
   ${EndIf}
 
-  FileWrite $R1 "s;@client_address@;$LocalHostAddress;$\r$\n"
-  FileWrite $R1 "s;@storage_address@;$LocalHostAddress;$\r$\n"
+  FileWrite $R1 "s;@client_address@;$LocalHostAddress;g$\r$\n"
+  FileWrite $R1 "s;@storage_address@;$LocalHostAddress;g$\r$\n"
 
   ${If} "$ConfigClientName" != ""
-    FileWrite $R1 "s;@client_name@;$ConfigClientName;$\r$\n"
+    FileWrite $R1 "s;@client_name@;$ConfigClientName;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigClientPort" != ""
-    FileWrite $R1 "s;@client_port@;$ConfigClientPort;$\r$\n"
+    FileWrite $R1 "s;@client_port@;$ConfigClientPort;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigClientMaxJobs" != ""
-    FileWrite $R1 "s;@client_maxjobs@;$ConfigClientMaxJobs;$\r$\n"
+    FileWrite $R1 "s;@client_maxjobs@;$ConfigClientMaxJobs;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigClientPassword" != ""
-    FileWrite $R1 "s;@client_password@;$ConfigClientPassword;$\r$\n"
+    FileWrite $R1 "s;@client_password@;$ConfigClientPassword;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigStorageName" != ""
-    FileWrite $R1 "s;@storage_name@;$ConfigStorageName;$\r$\n"
+    FileWrite $R1 "s;@storage_name@;$ConfigStorageName;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigStoragePort" != ""
-    FileWrite $R1 "s;@storage_port@;$ConfigStoragePort;$\r$\n"
+    FileWrite $R1 "s;@storage_port@;$ConfigStoragePort;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigStorageMaxJobs" != ""
-    FileWrite $R1 "s;@storage_maxjobs@;$ConfigStorageMaxJobs;$\r$\n"
+    FileWrite $R1 "s;@storage_maxjobs@;$ConfigStorageMaxJobs;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigStoragePassword" != ""
-    FileWrite $R1 "s;@storage_password@;$ConfigStoragePassword;$\r$\n"
+    FileWrite $R1 "s;@storage_password@;$ConfigStoragePassword;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorName" != ""
-    FileWrite $R1 "s;@director_name@;$ConfigDirectorName;$\r$\n"
+    FileWrite $R1 "s;@director_name@;$ConfigDirectorName;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorPort" != ""
-    FileWrite $R1 "s;@director_port@;$ConfigDirectorPort;$\r$\n"
+    FileWrite $R1 "s;@director_port@;$ConfigDirectorPort;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorMaxJobs" != ""
-    FileWrite $R1 "s;@director_maxjobs@;$ConfigDirectorMaxJobs;$\r$\n"
+    FileWrite $R1 "s;@director_maxjobs@;$ConfigDirectorMaxJobs;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorPassword" != ""
-    FileWrite $R1 "s;@director_password@;$ConfigDirectorPassword;$\r$\n"
+    FileWrite $R1 "s;@director_password@;$ConfigDirectorPassword;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorMailServer" != ""
-    FileWrite $R1 "s;@smtp_host@;$ConfigDirectorMailServer;$\r$\n"
+    FileWrite $R1 "s;@smtp_host@;$ConfigDirectorMailServer;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigDirectorMailAddress" != ""
-    FileWrite $R1 "s;@job_email@;$ConfigDirectorMailAddress;$\r$\n"
+    FileWrite $R1 "s;@job_email@;$ConfigDirectorMailAddress;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigMonitorName" != ""
-    FileWrite $R1 "s;@monitor_name@;$ConfigMonitorName;$\r$\n"
+    FileWrite $R1 "s;@monitor_name@;$ConfigMonitorName;g$\r$\n"
   ${EndIf}
   ${If} "$ConfigMonitorPassword" != ""
-    FileWrite $R1 "s;@monitor_password@;$ConfigMonitorPassword;$\r$\n"
+    FileWrite $R1 "s;@monitor_password@;$ConfigMonitorPassword;g$\r$\n"
   ${EndIf}
 
   ${If} $ConfigDirectorDB = 1
     ${If} $MySQLPath != ""
       ${StrRep} $R2 "$MySQLPath\bin" "\" "\\"
-      FileWrite $R1 "s;@SQL_BINDIR@;$R2;$\r$\n"
+      FileWrite $R1 "s;@SQL_BINDIR@;$R2;g$\r$\n"
     ${EndIf}
   ${ElseIf} $ConfigDirectorDB = 2
     ${If} $PostgreSQLPath != ""
       ${StrRep} $R2 "$PostgreSQLPath\bin" "\" "\\"
-      FileWrite $R1 "s;@SQL_BINDIR@;$R2;$\r$\n"
+      FileWrite $R1 "s;@SQL_BINDIR@;$R2;g$\r$\n"
     ${EndIf}
   ${EndIf}
 

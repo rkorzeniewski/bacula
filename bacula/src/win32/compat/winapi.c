@@ -176,8 +176,6 @@ InitWinAPIWrapper()
          p_AttachConsole = (t_AttachConsole)
              GetProcAddress(hLib, "AttachConsole");
       }
-
-      FreeLibrary(hLib);
    }
    
    if (g_platform_id != VER_PLATFORM_WIN32_WINDOWS) {
@@ -189,8 +187,6 @@ InitWinAPIWrapper()
          /* wmkdir */
          p_wmkdir = (t_wmkdir)
          GetProcAddress(hLib, "_wmkdir");
-
-         FreeLibrary(hLib);
       }
 
       hLib = LoadLibraryA("ADVAPI32.DLL");
@@ -201,25 +197,20 @@ InitWinAPIWrapper()
             GetProcAddress(hLib, "AdjustTokenPrivileges");
          p_LookupPrivilegeValue = (t_LookupPrivilegeValue)
             GetProcAddress(hLib, "LookupPrivilegeValueA");
-         FreeLibrary(hLib);
       }
    }
 
-   /* First try in SHFOLDER for older systems */
-   hLib = LoadLibraryA("SHFOLDER.DLL");
-   if (hLib) {
-      p_SHGetFolderPath = (t_SHGetFolderPath)
-         GetProcAddress(hLib, "SHGetFolderPath");
-      FreeLibrary(hLib);
-   }
-
-   /* Now try Shell32.dll for newer systems */
    hLib = LoadLibraryA("SHELL32.DLL");
    if (hLib) {
       p_SHGetFolderPath = (t_SHGetFolderPath)
-         GetProcAddress(hLib, "SHGetFolderPath");
-      FreeLibrary(hLib);
+         GetProcAddress(hLib, "SHGetFolderPathA");
+   } else {
+      /* If SHELL32 isn't found try SHFOLDER for older systems */
+      hLib = LoadLibraryA("SHFOLDER.DLL");
+      if (hLib) {
+         p_SHGetFolderPath = (t_SHGetFolderPath)
+            GetProcAddress(hLib, "SHGetFolderPathA");
+      }
    }
-
    atexit(Win32ConvCleanupCache);
 }

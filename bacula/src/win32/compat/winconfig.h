@@ -376,7 +376,7 @@
 /* Enable NLS only if we are using the new VC++.
  * NLS should also work with VC++ 7.1, but the Makefiles are
  * not adapted to support it (include, lib...). */
-#define ENABLE_NLS 1
+//#define ENABLE_NLS 1
 #endif
 
 #undef  LOCALEDIR

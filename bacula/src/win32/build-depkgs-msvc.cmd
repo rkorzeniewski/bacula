@@ -175,6 +175,12 @@ REM	do_patch pcre.patch
 
 :process_pthreads
 	CALL :get_source %URL_PTHREADS% %DIR_PTHREADS% %MKD_PTHREADS%
+	FOR %%I IN ( %URL_PTHREADS% ) DO (SET ARCHIVE=%%~nxI)
+	IF EXIST %SRC_DIR%\nul GOTO :install_pthreads
+	ECHO Extracting %ARCHIVE%
+	7z x -bd -y -o"%DIR_PTHREADS%" "%ARCHIVE%" 2>&1 > "%ARCHIVE%.log"
+:install_pthreads
+	CD %DIR_PTHREADS%
 	ECHO Installing pthreads
 	XCOPY Pre-built\include\*.h %DEPPKG_DIR%\include\ /Y
 	XCOPY Pre-built\lib\pthreadVCE.lib %DEPPKG_DIR%\lib\ /Y
@@ -248,6 +254,7 @@ REM	do_patch postgresql.patch
 	CALL :do_nmake ../Makefile.msvc clean all
 	ECHO Installing SQLite
 	COPY sqlite3.exe %DEPPKG_DIR%\bin
+	COPY sqlite3.exe.manifest %DEPPKG_DIR%\bin
 	COPY sqlite3.lib %DEPPKG_DIR%\lib
 	COPY sqlite3.h %DEPPKG_DIR%\include
 	EXIT /B 0

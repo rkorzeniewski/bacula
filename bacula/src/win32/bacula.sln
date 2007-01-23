@@ -189,6 +189,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bsmtp", "tools\bsmtp\bsmtp.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{40CADEE4-8D53-4157-AA36-B256F4934FC3}"
 	ProjectSection(SolutionItems) = preProject
+		build-depkgs-msvc.cmd = build-depkgs-msvc.cmd
 		scripts\disk-changer.cmd = scripts\disk-changer.cmd
 		scripts\dvd-handler.cmd = scripts\dvd-handler.cmd
 		scripts\mtx-changer.cmd = scripts\mtx-changer.cmd
