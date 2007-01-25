@@ -1,4 +1,4 @@
-ECHO_CMD=
+ECHO_CMD=@
 
 DIRS=	dll \
 	cats \
