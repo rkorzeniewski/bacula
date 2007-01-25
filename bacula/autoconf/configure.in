@@ -548,7 +548,7 @@ got_readline="no"
 READLINE_SRC=
 if test x$support_readline = xyes; then
    AC_ARG_WITH(readline,
-     [ --with-readline=DIR		 specify readline library directory],
+     [ --with-readline@<:@=DIR@:>@	       specify readline library directory],
      [
 	case "$with_readline" in
 	no) : ;;
@@ -630,7 +630,7 @@ AC_CHECK_HEADERS(varargs.h)
 AC_MSG_CHECKING(for Python support)
 AC_ARG_WITH(python,
 [
-  --with-python[=DIR]	  Include Python support.  DIR is the Python base
+  --with-python@<:@=DIR@:>@	Include Python support.  DIR is the Python base
 			  install directory, default is to search through
 			  a number of common places for the Python files.],
 [
@@ -723,7 +723,7 @@ AC_CHECK_FUNC(socket,
 TCPW_MSG="no" 
 WRAPLIBS=""
 AC_ARG_WITH(tcp-wrappers,
-  [  --with-tcp-wrappers=DIR	 enable tcpwrappers support],
+  [  --with-tcp-wrappers@<:@=DIR@:>@   enable tcpwrappers support],
   [
     if test "x$withval" != "xno" ; then
        saved_LIBS="$LIBS"

@@ -4,7 +4,7 @@ db_found=no
 AC_MSG_CHECKING(for MySQL support)
 AC_ARG_WITH(mysql,
 [
-  --with-mysql[=DIR]      Include MySQL support.  DIR is the MySQL base
+  --with-mysql@<:@=DIR@:>@      Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.],
 [
@@ -104,7 +104,7 @@ AC_ARG_WITH(mysql,
 
 AC_ARG_WITH(embedded-mysql,
 [
-  --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
+  --with-embedded-mysql@<:@=DIR@:>@ Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.],
 [
@@ -208,7 +208,7 @@ db_found=no
 AC_MSG_CHECKING(for SQLite support)
 AC_ARG_WITH(sqlite,
 [
-  --with-sqlite[=DIR]     Include SQLite support.  DIR is the SQLite base
+  --with-sqlite@<:@=DIR@:>@     Include SQLite support.  DIR is the SQLite base
                           install directory, default is to search through
                           a number of common places for the SQLite files.],
 [
@@ -289,7 +289,7 @@ db_found=no
 AC_MSG_CHECKING(for SQLite3 support)
 AC_ARG_WITH(sqlite3,
 [
-  --with-sqlite3[=DIR]    Include SQLite3 support.  DIR is the SQLite3 base
+  --with-sqlite3@<:@=DIR@:>@    Include SQLite3 support.  DIR is the SQLite3 base
                           install directory, default is to search through
                           a number of common places for the SQLite3 files.],
 [
@@ -371,7 +371,7 @@ AC_DEFUN(BA_CHECK_POSTGRESQL_DB,
 db_found=no
 AC_MSG_CHECKING(for PostgreSQL support)
 AC_ARG_WITH(postgresql,
-[  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
+[  --with-postgresql@<:@=DIR@:>@      Include PostgreSQL support.  DIR is the PostgreSQL
                           base install directory, defaults to /usr/local/pgsql],
 [
   if test "$withval" != "no"; then
@@ -479,7 +479,7 @@ fi
 AC_MSG_CHECKING(for Berkeley DB support)
 AC_ARG_WITH(berkeleydb,
 [
-  --with-berkeleydb[=DIR] Include Berkeley DB support.  DIR is the Berkeley DB base
+  --with-berkeleydb@<:@=DIR@:>@ Include Berkeley DB support.  DIR is the Berkeley DB base
                           install directory, default is to search through
                           a number of common places for the DB files.],
 [
@@ -536,7 +536,7 @@ fi
 
 AC_MSG_CHECKING(for mSQL support)
 AC_ARG_WITH(msql,
-[  --with-msql[=DIR]       Include mSQL support.  DIR is the mSQL base
+[  --with-msql@<:@=DIR@:>       Include mSQL support.  DIR is the mSQL base
                           install directory, defaults to /usr/local/Hughes.],
 [
   if test "$withval" != "no"; then
@@ -578,7 +578,7 @@ AC_SUBST(MSQL_INCLUDE)
 
 AC_MSG_CHECKING(for iODBC support)
 AC_ARG_WITH(iodbc,
-[  --with-iodbc[=DIR]      Include iODBC support.  DIR is the iODBC base
+[  --with-iodbc@<:@=DIR@:>      Include iODBC support.  DIR is the iODBC base
                           install directory, defaults to /usr/local.],
 [
         if test "$withval" != "no"; then
@@ -619,7 +619,7 @@ AC_SUBST(IODBC_INCLUDE)
 
 AC_MSG_CHECKING(for unixODBC support)
 AC_ARG_WITH(unixODBC,
-[  --with-unixODBC[=DIR]   Include unixODBC support.  DIR is the unixODBC base
+[  --with-unixODBC@<:@=DIR@:>   Include unixODBC support.  DIR is the unixODBC base
                           install directory, defaults to /usr/local.],
 [
         if test "$withval" != "no"; then
@@ -660,7 +660,7 @@ AC_SUBST(UNIXODBC_INCLUDE)
 
 AC_MSG_CHECKING(for Solid support)
 AC_ARG_WITH(solid,
-[  --with-solid[=DIR]      Include Solid support.  DIR is the Solid base
+[  --with-solid@<:@=DIR@:>      Include Solid support.  DIR is the Solid base
                           install directory, defaults to /usr/local.],
 [
         if test "$withval" != "no"; then
@@ -700,7 +700,7 @@ AC_SUBST(SOLID_INCLUDE)
 
 AC_MSG_CHECKING(for OpenLink ODBC support)
 AC_ARG_WITH(openlink,
-[  --with-openlink[=DIR]   Include OpenLink ODBC support. 
+[  --with-openlink@<:@=DIR@:>   Include OpenLink ODBC support. 
                           DIR is the base OpenLink ODBC install directory],
 [
   if test "$withval" != "no"; then
@@ -775,7 +775,7 @@ AC_SUBST(VIRT_INCLUDE)
 
 AC_MSG_CHECKING(for EasySoft ODBC support)
 AC_ARG_WITH(easysoft,
-[  --with-easysoft[=DIR]   Include EasySoft ODBC support. 
+[  --with-easysoft@<:@=DIR@:>   Include EasySoft ODBC support. 
                           DIR is the base EasySoft ODBC install directory],
 [
   if test "$withval" != "no"; then
@@ -830,7 +830,7 @@ AC_SUBST(EASYSOFT_INCLUDE)
 
 AC_MSG_CHECKING(for InterBase support)
 AC_ARG_WITH(ibase,
-[  --with-ibase[=DIR]      Include InterBase support.  DIR is the InterBase
+[  --with-ibase@<:@=DIR@:>      Include InterBase support.  DIR is the InterBase
                           install directory, defaults to /usr/interbase.],
 [
         if test "$withval" != "no"; then
@@ -870,7 +870,7 @@ AC_SUBST(IBASE_INCLUDE)
 
 AC_MSG_CHECKING(for Oracle8 support)
 AC_ARG_WITH(oracle8,
-[  --with-oracle8[=DIR]    Include Oracle8 support.  DIR is the Oracle
+[  --with-oracle8@<:@=DIR@:>    Include Oracle8 support.  DIR is the Oracle
                           home directory, defaults to $ORACLE_HOME or
                           /oracle8/app/oracle/product/8.0.5.],
 [
@@ -927,7 +927,7 @@ AC_SUBST(ORACLE8_INCLUDE)
 
 AC_MSG_CHECKING(for Oracle7 support)
 AC_ARG_WITH(oracle7,
-[  --with-oracle7[=DIR]    Include Oracle 7.3 support.  DIR is the Oracle
+[  --with-oracle7@<:@=DIR@:>    Include Oracle 7.3 support.  DIR is the Oracle
                           home directory, defaults to 
                           ORACLE_HOME [$ORACLE_HOME]],
 [
