@@ -101,7 +101,8 @@
     <option id='gtype_linespoints' value='linespoints'>Líneas y puntos</option>
 </td>
 <td>
-  <input type='submit' name='action' value='graficar' class='formulaire'> 
+  <input type='hidden' name='action' value='graph'>
+  <input type='submit' name='_action' value='graficar' class='formulaire'> 
 </td>
 </tr>
 </table>
