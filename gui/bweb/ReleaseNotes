@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/01/25
+ - Add spanish translation, thanks to Santiago Alberch <caesarneron@gmail.com>
+
 2007/01/15
  - fix do_update_media timeout bug
 
