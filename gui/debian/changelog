@@ -3,6 +3,7 @@ bweb (2.0.1-2) stable; urgency=low
   * fv_write_path is optionnal now
   * fix /etc/bacula permissions
   * fix label_barcodes drive bug 
+  * add spanish translation
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Fri,  19 Jan 2007 21:10:47 +0000
 

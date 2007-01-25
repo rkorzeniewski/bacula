@@ -58,6 +58,7 @@ install-indep:
 	install -m 755 bweb/cgi/bconsole.pl debian/bweb/usr/lib/cgi-bin/bweb
 	install -m 644 bweb/tpl/*.tpl debian/bweb/usr/share/bweb/tpl 
 	install -m 644 bweb/lang/fr/tpl/*.tpl debian/bweb/usr/share/bweb/fr/tpl 
+	install -m 644 bweb/lang/es/tpl/*.tpl debian/bweb/usr/share/bweb/es/tpl 
 	install -m 644 bweb/html/*.js debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/html/*.css debian/bweb/usr/share/bweb/html
 	install -m 644 bweb/html/*.png debian/bweb/usr/share/bweb/html
