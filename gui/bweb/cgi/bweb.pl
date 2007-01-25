@@ -220,8 +220,15 @@ if ($action eq 'begin') {		# main display
     $bweb->help_extern_compute();
 
 } elsif ($action eq 'extern') {
-    $bweb->eject_media();
+    print "<div style='float: left;'>";
+    my @achs = $bweb->eject_media();
+    for my $ach (@achs) {
+        CGI::param('ach', $ach);
+	$bweb->update_slots();
+    }
+    print "</div><div style='float: left;margin-left: 20px;'>";
     $bweb->move_media();
+    print "</div>";
 
 } elsif ($action eq 'move_email') {
     $bweb->move_email();

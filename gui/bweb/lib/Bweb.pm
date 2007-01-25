@@ -2618,9 +2618,11 @@ WHERE JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
 		   "running_job.tpl") ;
 }
 
+# return the autochanger list to update
 sub eject_media
 {
     my ($self) = @_;
+    my %ret; 
     my $arg = $self->get_form('jmedias');
 
     unless ($arg->{jmedias}) {
@@ -2643,6 +2645,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
     foreach my $vol (values %$all) {
 	my $a = $self->ach_get($vol->{location});
 	next unless ($a) ;
+	$ret{$vol->{location}} = 1;
 
 	unless ($a->{have_status}) {
 	    $a->status();
@@ -2656,6 +2659,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 	    print "err</br>";
 	}
     }
+    return keys %ret;
 }
 
 sub move_email
