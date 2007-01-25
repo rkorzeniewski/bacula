@@ -10,7 +10,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -510,7 +510,7 @@ static int try_autolabel(DCR *dcr, bool opened)
       return try_read_vol;   /* read label we just wrote */
    }
    if (!dev->has_cap(CAP_LABEL) && dcr->VolCatInfo.VolCatBytes == 0) {
-      Jmsg(dcr->jcr, M_INFO, 0, _("Warning device %s not configured to autolabel Volumes.\n"), 
+      Jmsg(dcr->jcr, M_WARNING, 0, _("Device %s not configured to autolabel Volumes.\n"), 
          dev->print_name());
    }
    /* If not removable, Volume is broken */
