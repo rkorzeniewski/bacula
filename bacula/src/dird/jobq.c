@@ -495,7 +495,6 @@ void *jobq_server(void *arg)
          if (jcr->job->RescheduleOnError &&
              jcr->JobStatus != JS_Terminated &&
              jcr->JobStatus != JS_Canceled &&
-             jcr->job->RescheduleTimes > 0 &&
              jcr->JobType == JT_BACKUP &&
              (jcr->job->RescheduleTimes == 0 ||
               jcr->reschedule_count < jcr->job->RescheduleTimes)) {
