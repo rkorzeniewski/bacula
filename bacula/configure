@@ -1456,12 +1456,12 @@ Optional Packages:
   --with-libintl-prefix[=DIR]  search for libintl in DIR/include and DIR/lib
   --without-libintl-prefix     don't search for libintl in includedir and libdir
   --with-included-gettext use the GNU gettext library included here
- --with-readline=DIR		 specify readline library directory
+ --with-readline[=DIR]	       specify readline library directory
 
-  --with-python=DIR	  Include Python support.  DIR is the Python base
+  --with-python[=DIR]	Include Python support.  DIR is the Python base
 			  install directory, default is to search through
 			  a number of common places for the Python files.
-  --with-tcp-wrappers=DIR	 enable tcpwrappers support
+  --with-tcp-wrappers[=DIR]   enable tcpwrappers support
   --with-openssl[=DIR]    Include OpenSSL support. DIR is the OpenSSL base
   --with-working-dir=PATH	 specify path of Bacula working directory
   --with-scriptdir=PATH    specify path of Bacula scripts directory
@@ -1484,22 +1484,22 @@ Optional Packages:
   --with-fd-user=USER		 specify user for File daemon
   --with-fd-group=GROUP		 specify group for File daemon
   --with-sbin-perm=MODE		 specify permissions for sbin binaries (0754)
-  --with-postgresql=DIR      Include PostgreSQL support.  DIR is the PostgreSQL
+  --with-postgresql[=DIR]      Include PostgreSQL support.  DIR is the PostgreSQL
                           base install directory, defaults to /usr/local/pgsql
 
-  --with-mysql=DIR      Include MySQL support.  DIR is the MySQL base
+  --with-mysql[=DIR]      Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.
 
-  --with-embedded-mysql=DIR Include MySQL support.  DIR is the MySQL base
+  --with-embedded-mysql[=DIR] Include MySQL support.  DIR is the MySQL base
                           install directory, default is to search through
                           a number of common places for the MySQL files.
 
-  --with-sqlite3=DIR    Include SQLite3 support.  DIR is the SQLite3 base
+  --with-sqlite3[=DIR]    Include SQLite3 support.  DIR is the SQLite3 base
                           install directory, default is to search through
                           a number of common places for the SQLite3 files.
 
-  --with-sqlite=DIR     Include SQLite support.  DIR is the SQLite base
+  --with-sqlite[=DIR]     Include SQLite support.  DIR is the SQLite base
                           install directory, default is to search through
                           a number of common places for the SQLite files.
   --with-x                use the X Window System
