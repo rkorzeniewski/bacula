@@ -7,6 +7,9 @@
 #   you edit certain of the installed files, your changes might be lost.
 #   This script will not overwrite any installed /etc/bacula/bweb.conf
 #
+# Configuration directory for bweb
+CONF_DIR=/etc/bacula
+#
 # Root directory of web files       
 #
 WEB_DIR=/srv/www/htdocs 
@@ -39,6 +42,7 @@ fi
 # Normally you should not need to change the following
 #
 # first, copy the bweb perl library into your PERL5 INC path
+sed -i "s!/etc/bacula!${CONF_DIR!" lib/Bweb.conf
 perl Makefile.PL
 make install
 
@@ -49,18 +53,18 @@ fi
 install -m 755 -o root -g root  cgi/*.pl ${CGI_BIN}/bweb
 
 # get a config file
-if [ ! -d /etc/bacula ] ; then
-   mkdir -m 755 /etc/bacula
-   chown root:bacula /etc/bacula
+if [ ! -d ${CONF_DIR} ] ; then
+   mkdir -m 755 ${CONF_DIR}
+   chown root:bacula ${CONF_DIR}
 fi
 
-# Setup a default /etc/bacula/bweb.conf
-if [ ! -e /etc/bacula/bweb.conf ] ; then
-cat > /etc/bacula/bweb.conf <<END_OF_DATA
+# Setup a default ${CONF_DIR}/bweb.conf
+if [ ! -e ${CONF_DIR}/bweb.conf ] ; then
+cat > ${CONF_DIR}/bweb.conf <<END_OF_DATA
 \$VAR1 = bless( {
   'graph_font' => '/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf',
   'name' => undef,
-  'config_file' => '/etc/bacula/bweb.conf',
+  'config_file' => '${CONF_DIR}/bweb.conf',
   'bconsole' => '/usr/sbin/bconsole -n -c /etc/bacula/bconsole.conf',
   'ach_list' => {
      'S1_L80' => bless( {
@@ -96,7 +100,7 @@ cat > /etc/bacula/bweb.conf <<END_OF_DATA
 END_OF_DATA
 fi
 
-chown ${HTTP_USER} /etc/bacula/bweb.conf
+chown ${HTTP_USER} ${CONF_DIR}/bweb.conf
 
 # copy the bweb template file
 if [ ! -d ${SHARE_DIR}/bweb/tpl ] ; then
