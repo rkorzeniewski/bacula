@@ -8,7 +8,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -121,22 +121,25 @@ void  operator delete(void *ptr)
 }
 void  operator delete[](void *ptr, size_t i)
 {
+   (void)i;                           /* eliminate compiler complaints */
    free(ptr);
 }
 
 void  operator delete(void *ptr, const char *fname, int line)
 {
+   (void)fname; (void)line;          /* eliminate compiler complaints */
    free(ptr);
 }
 void  operator delete[](void *ptr, size_t i, const char *fname, int line)
 {
+   (void)i; (void)fname; (void)line; /* eliminate compiler complaints */
    free(ptr);
 }
 
 
 private:
-void *operator new(size_t s) throw() { return 0; }
-void *operator new[](size_t s) throw() { return 0; }
+void *operator new(size_t s) throw() { (void)s; return 0; }
+void *operator new[](size_t s) throw() { (void)s; return 0; }
 };
 
 
