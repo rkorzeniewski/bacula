@@ -1,16 +1,20 @@
 <ui version="4.0" >
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
+ <author>Kern Sibbald</author>
+ <class>MainForm</class>
+ <widget class="QMainWindow" name="MainForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
     <width>889</width>
-    <height>600</height>
+    <height>802</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>MainWindow</string>
+   <string>qt-console</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset>images/bat_icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" >
@@ -102,8 +106,7 @@
        <property name="currentIndex" >
         <number>1</number>
        </property>
-       <widget class="QWidget" name="page" />
-       <widget class="QWidget" name="page_2" >
+       <widget class="QWidget" name="pageConsole" >
         <layout class="QGridLayout" >
          <property name="margin" >
           <number>9</number>
@@ -152,6 +155,33 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="Restore" >
+        <layout class="QGridLayout" >
+         <property name="margin" >
+          <number>9</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item row="0" column="0" >
+          <widget class="QTabWidget" name="tabWidget" >
+           <property name="currentIndex" >
+            <number>0</number>
+           </property>
+           <widget class="QWidget" name="restore_1" >
+            <attribute name="title" >
+             <string>Restore 1</string>
+            </attribute>
+           </widget>
+           <widget class="QWidget" name="restore_2" >
+            <attribute name="title" >
+             <string>Restore 2</string>
+            </attribute>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -183,22 +213,41 @@
      <x>0</x>
      <y>0</y>
      <width>889</width>
-     <height>28</height>
+     <height>33</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_qt_console" />
+   </widget>
+   <widget class="QMenu" name="menuEdit" >
+    <property name="title" >
+     <string>Edit</string>
+    </property>
+    <addaction name="actionCopy" />
+    <addaction name="actionCut" />
+    <addaction name="actionPaste" />
+   </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
      <string>File</string>
     </property>
+    <addaction name="actionPrint" />
+    <addaction name="actionSave" />
+    <addaction name="actionExit" />
    </widget>
    <addaction name="menuFile" />
+   <addaction name="menuEdit" />
+   <addaction name="menuHelp" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
   <widget class="QToolBar" name="toolBar" >
    <property name="minimumSize" >
     <size>
-     <width>15</width>
-     <height>6</height>
+     <width>51</width>
+     <height>39</height>
     </size>
    </property>
    <property name="orientation" >
@@ -207,25 +256,78 @@
    <attribute name="toolBarArea" >
     <number>4</number>
    </attribute>
+   <addaction name="actionSave" />
+   <addaction name="actionPrint" />
   </widget>
+  <action name="actionExit" >
+   <property name="text" >
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionAbout_qt_console" >
+   <property name="text" >
+    <string>About qt-console</string>
+   </property>
+  </action>
+  <action name="actionCopy" >
+   <property name="icon" >
+    <iconset>images/copy.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="actionCut" >
+   <property name="icon" >
+    <iconset>images/cut.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Cut</string>
+   </property>
+  </action>
+  <action name="actionNew" >
+   <property name="icon" >
+    <iconset>images/new.png</iconset>
+   </property>
+   <property name="text" >
+    <string>new</string>
+   </property>
+  </action>
+  <action name="actionOpen" >
+   <property name="icon" >
+    <iconset>images/open.png</iconset>
+   </property>
+   <property name="text" >
+    <string>open</string>
+   </property>
+  </action>
+  <action name="actionPaste" >
+   <property name="icon" >
+    <iconset>images/paste.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Paste</string>
+   </property>
+  </action>
+  <action name="actionPrint" >
+   <property name="icon" >
+    <iconset>images/print.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Print</string>
+   </property>
+  </action>
+  <action name="actionSave" >
+   <property name="icon" >
+    <iconset>images/save.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Save</string>
+   </property>
+  </action>
  </widget>
- <resources/>
- <connections>
-  <connection>
-   <sender>lineEdit</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>textEdit</receiver>
-   <slot>setText(QString)</slot>
-   <hints>
-    <hint type="sourcelabel" >
-     <x>137</x>
-     <y>560</y>
-    </hint>
-    <hint type="destinationlabel" >
-     <x>192</x>
-     <y>407</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <resources>
+  <include location="main.qrc" />
+ </resources>
+ <connections/>
 </ui>

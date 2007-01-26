@@ -1,3 +1,10 @@
 ui_main.h
 *.o
 qt-console
+about-func
+brestore.ui
+main.qrc
+mult-inheritance
+print-func
+qrc_main.cpp
+
