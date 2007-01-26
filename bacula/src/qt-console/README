@@ -1,0 +1,21 @@
+
+At the current time, the contents of this directory are under
+development.  If you want to help, please contact Kern directly.
+If you want to build it, you need Qt4 loaded and setup as your
+default Qt or with the appropriate Qt Environment variables set.
+
+To build the qt-console, you simply enter:
+
+  qmake 
+  make
+    
+then to execute it
+
+  ./qt-console
+
+The qmake command needs to be entered only if you add a new file, in
+which case, you should edit qt-console.pro and add the new filename
+in the appropriate place.  In running qmake, it will build a new 
+Makefile, and there after, you simply use "make".
+
+

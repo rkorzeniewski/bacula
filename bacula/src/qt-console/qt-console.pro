@@ -10,5 +10,6 @@ RESOURCES = main.qrc
 
 # Input
 FORMS += main.ui
+HEADERS += mainwindow.h
 SOURCES += main.cpp
 SOURCES += mainwindow.cpp
