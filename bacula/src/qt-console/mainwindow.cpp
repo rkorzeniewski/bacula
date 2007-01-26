@@ -55,3 +55,45 @@ void MainWindow::input_line()
    lineEdit->clear();                    /* clear the lineEdit box */
    textEdit->append(cmdStr);             /* append text on screen */
 }
+
+void set_textf(const char *fmt, ...)
+{
+   va_list arg_ptr;
+   char buf[1000];
+   int len;
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+   mainWin->textEdit->append(buf);
+}
+
+void set_text(const char *buf)
+{
+   mainWin->textEdit->append(buf);
+}
+
+void set_statusf(const char *fmt, ...)
+{
+   va_list arg_ptr;
+   char buf[1000];
+   int len;
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+// gtk_label_set_text(GTK_LABEL(status1), buf);
+// set_scroll_bar_to_end();
+// ready = false;
+}
+
+void set_status_ready()
+{
+   mainWin->statusBar()->showMessage("Ready");
+// ready = true;
+// set_scroll_bar_to_end();
+}
+
+void set_status(const char *buf)
+{
+   mainWin->statusBar()->showMessage(buf);
+// ready = false;
+}

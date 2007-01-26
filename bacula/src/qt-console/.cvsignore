@@ -7,4 +7,4 @@ main.qrc
 mult-inheritance
 print-func
 qrc_main.cpp
-
+moc_*.cpp

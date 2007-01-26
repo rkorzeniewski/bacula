@@ -14,7 +14,7 @@
    <string>qt-console</string>
   </property>
   <property name="windowIcon" >
-   <iconset>images/bat_icon.png</iconset>
+   <iconset>images/bat-natural-fullsize.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" >
