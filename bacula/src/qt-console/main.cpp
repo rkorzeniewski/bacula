@@ -27,20 +27,15 @@
 */
 
 
-
-#include "ui_main.h"
-#include <QtGui>
+#include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {
    QApplication app(argc, argv);        
    app.setQuitOnLastWindowClosed(true);
    
-   QMainWindow *main = new QMainWindow;
-   Ui::MainWindow ui;
-   ui.setupUi(main);
+   MainWindow *main = new MainWindow;
 
-   ui.textEdit->setPlainText("Hello Baculites\nThis is the main console window.");
    main->show();
    return app.exec();
 }

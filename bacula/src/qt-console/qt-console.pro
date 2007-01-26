@@ -6,7 +6,9 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+RESOURCES = main.qrc
 
 # Input
 FORMS += main.ui
 SOURCES += main.cpp
+SOURCES += mainwindow.cpp
