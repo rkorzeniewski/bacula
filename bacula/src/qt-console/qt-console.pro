@@ -6,10 +6,14 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+INCLUDEPATH += ..
+LIBS        += -L../lib
+LIBS        += -lbac
+LIBS        += -lssl -lcrypto
 RESOURCES = main.qrc
 
 # Input
 FORMS += main.ui
-HEADERS += mainwindow.h
-SOURCES += main.cpp
+HEADERS += mainwindow.h console_conf.h
+SOURCES += main.cpp authenticate.cpp console_conf.cpp
 SOURCES += mainwindow.cpp
