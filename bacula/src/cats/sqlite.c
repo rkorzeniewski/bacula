@@ -161,6 +161,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
    int stat = sqlite3_open(db_name, &mdb->db);
    if (stat != SQLITE_OK) {
       mdb->sqlite_errmsg = (char *)sqlite3_errmsg(mdb->db); 
+      sqlite3_close(mdb->db);
+      mdb->db = NULL;
    } else {
       mdb->sqlite_errmsg = NULL;
    }
