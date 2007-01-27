@@ -33,7 +33,7 @@
  *
  */ 
 
-#include "mainwindow.h"
+#include "console.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -91,10 +91,10 @@ void MainWindow::input_line()
 }
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About qt-console"),
-            tr("<h2>Qt_console 0.1</h2>"
-            "<p>Copyright &copy; 2007 Free Software Foundation Europe e.V."
-            "<p>The <b>qt-console</b> is an administrative"
+   QMessageBox::about(this, tr("About bat"),
+            tr("<h2>bat 0.1</h2>"
+            "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
+            "<p>The <b>bat</b> is an administrative console"
                " interface to the Director."));
 }
 

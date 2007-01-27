@@ -26,12 +26,8 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#include "mainwindow.h"
 #include <QApplication>
-#include "config.h"
-#include "bacula.h"
-#include "console_conf.h"
-#include "jcr.h"
+#include "console.h"
 
 
 /* Imported functions */
@@ -42,7 +38,7 @@ void terminate_console(int sig);
 static void usage();
 static int check_resources();
 
-#define CONFIG_FILE "./qt-console.conf"   /* default configuration file */
+#define CONFIG_FILE "./bat.conf"   /* default configuration file */
 
 /* Static variables */
 static char *configfile = NULL;
@@ -150,7 +146,7 @@ static void usage()
    fprintf(stderr, _(
 PROG_COPYRIGHT
 "\nVersion: %s (%s) %s %s %s\n\n"
-"Usage: qt-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
+"Usage: bat [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
