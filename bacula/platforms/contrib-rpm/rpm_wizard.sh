@@ -38,7 +38,7 @@ then
 fi
 
 # select build platform
-PLATFORM=`zenity --title "Select Platform" --text "Please choose a build platform." --list --radiolist --column "Select" --column "Platform" False rh7 False rh8 False rh9 False fc1 False fc3 False fc4 False fc5 False wb3 False rhel3 False rhel4 False centos3 False centos4 False su9 False su10 False mdk False mdv`
+PLATFORM=`zenity --title "Select Platform" --text "Please choose a build platform." --list --radiolist --column "Select" --column "Platform" False rh7 False rh8 False rh9 False fc1 False fc3 False fc4 False fc5 False fc6 False wb3 False rhel3 False rhel4 False centos3 False centos4 False su9 False su10 False mdk False mdv`
 
 RESULT="$?"
 if [ "$RESULT" = "1" ];
@@ -105,3 +105,4 @@ echo $COMMAND | sh
 # ChangeLog
 # 30 Jul 2006 initial release
 # 05 Aug 2006 add option for build_python
+# 27 Jan 2007 add fc6
