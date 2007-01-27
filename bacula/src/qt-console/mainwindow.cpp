@@ -37,14 +37,48 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+   QTreeWidgetItem *item, *topItem;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
    stackedWidget->setCurrentIndex(0);
    /* Dummy message ***FIXME*** remove a bit later */
    textEdit->setPlainText("Hello Baculites\nThis is the main console window.");
+   lineEdit->setFocus();
    /* Connect command line edit to input_line */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
-   lineEdit->setFocus();
+   connect(actionAbout_qt_console, SIGNAL(triggered()), this, SLOT(about()));
+
+   connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
+           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+   connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
+           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+   connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
+           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+
+
+   /* Dummy setup of treeWidget */
+   treeWidget->clear();
+   treeWidget->setColumnCount(1);
+   treeWidget->setHeaderLabel("Selection");
+   topItem = new QTreeWidgetItem(treeWidget);
+   topItem->setText(0, "Rufus");
+   item = new QTreeWidgetItem(topItem);
+   item->setText(0, "Console");
+   item->setText(1, "0");
+   item = new QTreeWidgetItem(topItem);
+   item->setText(0, "Restore");
+   item->setText(1, "1");
+   treeWidget->expandItem(topItem);
 }
+
+void MainWindow::treeItemClicked(QTreeWidgetItem *item, int column)
+{
+   (void)column;
+   int index = item->text(1).toInt();
+   if (index >= 0 && index < 2) {
+      stackedWidget->setCurrentIndex(index);
+   }
+}
+
 
 /*
  * The user just finished typing a line in the command line edit box
@@ -54,6 +88,14 @@ void MainWindow::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    textEdit->append(cmdStr);             /* append text on screen */
+}
+void MainWindow::about()
+{
+   QMessageBox::about(this, tr("About qt-console"),
+            tr("<h2>Qt_console 0.1</h2>"
+            "<p>Copyright &copy; 2007 Free Software Foundation Europe e.V."
+            "<p>The <b>qt-console</b> is an administrative"
+               " interface to the Director."));
 }
 
 void set_textf(const char *fmt, ...)
