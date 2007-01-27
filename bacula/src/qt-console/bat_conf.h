@@ -1,5 +1,5 @@
 /*
- * Bacula GNOME User Agent specific configuration and defines
+ * Bacula Adminstration Tool (bat) 
  *
  *     Kern Sibbald, March 2002
  *

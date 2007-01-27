@@ -50,7 +50,7 @@
 */
 
 #include "bacula.h"
-#include "console_conf.h"
+#include "bat_conf.h"
 
 /* Define the first and last resource ID record
  * types. Note, these should be unique for each

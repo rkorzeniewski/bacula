@@ -40,7 +40,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#include "console.h"
+#include "bat.h"
 
 
 /* Commands sent to Director */

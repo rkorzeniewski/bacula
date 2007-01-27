@@ -14,6 +14,6 @@ RESOURCES = main.qrc
 
 # Input
 FORMS += main.ui
-HEADERS += mainwindow.h console_conf.h
-SOURCES += main.cpp authenticate.cpp console_conf.cpp
+HEADERS += mainwindow.h bat.h bat_conf.h
+SOURCES += main.cpp authenticate.cpp bat_conf.cpp
 SOURCES += mainwindow.cpp
