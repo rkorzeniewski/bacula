@@ -1,6 +1,6 @@
 ui_main.h
 *.o
-qt-console
+bat
 about-func
 brestore.ui
 main.qrc
