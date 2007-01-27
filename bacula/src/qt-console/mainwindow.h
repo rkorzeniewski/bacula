@@ -52,9 +52,3 @@ private:
    QString m_UserInput;
 };
 
-extern MainWindow *mainWin;
-
-void set_textf(const char *fmt, ...);
-void set_text(const char *buf);
-
-int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);

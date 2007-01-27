@@ -33,7 +33,7 @@
  *
  */ 
 
-#include "console.h"
+#include "bat.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {

@@ -26,8 +26,16 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+/*
+ *  Main program for bat (qt-console)
+ *
+ *   Kern Sibbald, January MMVI
+ *
+ */ 
+
+
 #include <QApplication>
-#include "console.h"
+#include "bat.h"
 
 
 /* Imported functions */
@@ -44,6 +52,7 @@ static int check_resources();
 static char *configfile = NULL;
 
 MainWindow *mainWin;
+QApplication *app;
 
 int main(int argc, char *argv[])
 {
@@ -53,8 +62,8 @@ int main(int argc, char *argv[])
    bool test_config = false;
 
 
-   QApplication app(argc, argv);        
-   app.setQuitOnLastWindowClosed(true);
+   app = new QApplication(argc, argv);        
+   app->setQuitOnLastWindowClosed(true);
 
    mainWin = new MainWindow;
 
@@ -122,7 +131,6 @@ int main(int argc, char *argv[])
    }
 
    parse_config(configfile);
-   set_text("Configuration read.\n");
 
    if (init_crypto() != 0) {
       Emsg0(M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
@@ -132,7 +140,7 @@ int main(int argc, char *argv[])
       Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
-   return app.exec();
+   return app->exec();
 }
 
 void terminate_console(int sig)
