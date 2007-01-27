@@ -27,7 +27,7 @@
 */
 
 /*
- *  Main Window control for qt-console
+ *  Main Window control for bat (qt-console)
  *
  *   Kern Sibbald, January MMVI
  *

@@ -53,6 +53,8 @@ static char *configfile = NULL;
 
 MainWindow *mainWin;
 QApplication *app;
+BSOCK *UA_sock = NULL;
+
 
 int main(int argc, char *argv[])
 {
