@@ -40,10 +40,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#include "mainwindow.h"
-#include "bacula.h"
-#include "console_conf.h"
-#include "jcr.h"
+#include "console.h"
 
 
 /* Commands sent to Director */
