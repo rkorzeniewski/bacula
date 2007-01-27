@@ -32,6 +32,8 @@
  *  Written by Kern Sibbald, January MMVI
  */
 
+#ifndef _MAINWINDOW_H_
+#define _MAINWINDOW_H_
 
 #include <QtGui>
 #include "ui_main.h"
@@ -52,3 +54,4 @@ private:
    QString m_UserInput;
 };
 
+#endif /* _MAINWINDOW_H_ */

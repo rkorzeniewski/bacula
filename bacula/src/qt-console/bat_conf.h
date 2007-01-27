@@ -33,8 +33,8 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
-#ifndef __CONSOLE_CONF_H_
-#define __CONSOLE_CONF_H_
+#ifndef _BAT_CONF_H_
+#define _BAT_CONF_H_
 
 /*
  * Resource codes -- they must be sequential for indexing
@@ -108,4 +108,4 @@ union u_res {
 
 typedef union u_res URES;
 
-#endif
+#endif /* _BAT_CONF_H_ */
