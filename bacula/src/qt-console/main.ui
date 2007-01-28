@@ -11,10 +11,10 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>qt-console</string>
+   <string>bat - Bacula Admin Tool</string>
   </property>
   <property name="windowIcon" >
-   <iconset>images/bat-natural-fullsize.png</iconset>
+   <iconset>images/bat.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" >
@@ -266,7 +266,7 @@
   </action>
   <action name="actionAbout_qt_console" >
    <property name="text" >
-    <string>About qt-console</string>
+    <string>About bat</string>
    </property>
   </action>
   <action name="actionCopy" >
