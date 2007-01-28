@@ -41,6 +41,7 @@ Console::Console()
    QTreeWidgetItem *item, *topItem;
    QTreeWidget *treeWidget = mainWin->treeWidget;
 
+   m_sock = NULL;
    m_textEdit = mainWin->textEdit;   /* our console screen */
 
    /* Just take the first Director */
@@ -67,15 +68,19 @@ Console::Console()
  * Connect to Director. If there are more than one, put up
  * a modal dialog so that the user chooses one.
  */
-bool Console::connect()
+void Console::connect()
 {
    JCR jcr;
 
    m_textEdit = mainWin->textEdit;   /* our console screen */
 
-
-   if (!m_dir) {
-      return false;
+   if (!m_dir) {          
+      set_text("No Director to connect to.\n");
+      return;
+   }
+   if (m_sock) {
+      set_text("Already connected.\n");
+      return;
    }
 
    memset(&jcr, 0, sizeof(jcr));
@@ -94,14 +99,15 @@ bool Console::connect()
    m_sock = bnet_connect(NULL, 5, 15, _("Director daemon"), m_dir->address,
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {
-      return false;
+      set_text("Connection failed\n");
+      return;
    }
 
    jcr.dir_bsock = m_sock;
 
    if (!authenticate_director(&jcr, m_dir, cons)) {
       set_text(m_sock->msg);
-      return false;
+      return;
    }
 
    /* Give GUI a chance */
@@ -124,7 +130,9 @@ bool Console::connect()
     */
 
    set_status(_(" Connected"));
-   return true;
+   set_text("Connected\n");
+
+   return;
 }
 
 void Console::set_textf(const char *fmt, ...)
@@ -163,6 +171,7 @@ void Console::set_status_ready()
 void Console::set_status(const char *buf)
 {
    mainWin->statusBar()->showMessage(buf);
+   set_text(buf);
 // ready = false;
 }
 

@@ -40,12 +40,17 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
    stackedWidget->setCurrentIndex(0);
+
+   m_console = new Console();
+
    /* Dummy message ***FIXME*** remove a bit later */
    textEdit->setPlainText("Hello Baculites\nThis is the main console window.");
    lineEdit->setFocus();
-   /* Connect command line edit to input_line */
+
+
+   /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
-   connect(actionAbout_qt_console, SIGNAL(triggered()), this, SLOT(about()));
+   connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
 
    connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
@@ -53,8 +58,8 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-
-   m_console = new Console();
+   connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
+   connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
 
 }
 

@@ -218,13 +218,13 @@
    </property>
    <widget class="QMenu" name="menuHelp" >
     <property name="title" >
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
-    <addaction name="actionAbout_qt_console" />
+    <addaction name="actionAbout_bat" />
    </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionCopy" />
     <addaction name="actionCut" />
@@ -232,23 +232,33 @@
    </widget>
    <widget class="QMenu" name="menuFile" >
     <property name="title" >
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionPrint" />
     <addaction name="actionSave" />
-    <addaction name="actionExit" />
+    <addaction name="actionQuit" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
    <addaction name="menuHelp" />
   </widget>
-  <widget class="QStatusBar" name="statusbar" />
+  <widget class="QStatusBar" name="statusbar" >
+   <property name="toolTip" >
+    <string>Current Status</string>
+   </property>
+   <property name="statusTip" >
+    <string>Current Status</string>
+   </property>
+  </widget>
   <widget class="QToolBar" name="toolBar" >
    <property name="minimumSize" >
     <size>
      <width>51</width>
      <height>39</height>
     </size>
+   </property>
+   <property name="toolTip" >
+    <string>Tool Bar</string>
    </property>
    <property name="orientation" >
     <enum>Qt::Horizontal</enum>
@@ -261,15 +271,22 @@
    <addaction name="actionPrint" />
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
+   <addaction name="actionRun" />
   </widget>
-  <action name="actionExit" >
+  <action name="actionQuit" >
    <property name="text" >
-    <string>Quit</string>
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Q</string>
+   </property>
+   <property name="menuRole" >
+    <enum>QAction::QuitRole</enum>
    </property>
   </action>
-  <action name="actionAbout_qt_console" >
+  <action name="actionAbout_bat" >
    <property name="text" >
-    <string>About bat</string>
+    <string>&amp;About bat</string>
    </property>
   </action>
   <action name="actionCopy" >
@@ -277,7 +294,7 @@
     <iconset>images/copy.png</iconset>
    </property>
    <property name="text" >
-    <string>Copy</string>
+    <string>&amp;Copy</string>
    </property>
   </action>
   <action name="actionCut" >
@@ -285,7 +302,7 @@
     <iconset>images/cut.png</iconset>
    </property>
    <property name="text" >
-    <string>Cut</string>
+    <string>Cu&amp;t</string>
    </property>
   </action>
   <action name="actionNew" >
@@ -309,7 +326,7 @@
     <iconset>images/paste.png</iconset>
    </property>
    <property name="text" >
-    <string>Paste</string>
+    <string>&amp;Paste</string>
    </property>
   </action>
   <action name="actionPrint" >
@@ -317,7 +334,7 @@
     <iconset>images/print.png</iconset>
    </property>
    <property name="text" >
-    <string>Print</string>
+    <string>&amp;Print</string>
    </property>
   </action>
   <action name="actionSave" >
@@ -325,7 +342,7 @@
     <iconset>images/save.png</iconset>
    </property>
    <property name="text" >
-    <string>Save</string>
+    <string>&amp;Save</string>
    </property>
   </action>
   <action name="actionConnect" >
@@ -343,6 +360,12 @@
    <property name="text" >
     <string>Label</string>
    </property>
+   <property name="toolTip" >
+    <string>Label a Volume</string>
+   </property>
+   <property name="statusTip" >
+    <string>Label a Volume</string>
+   </property>
   </action>
   <action name="actionRestore" >
    <property name="icon" >
@@ -350,6 +373,26 @@
    </property>
    <property name="text" >
     <string>Restore</string>
+   </property>
+   <property name="statusTip" >
+    <string>Restore Files</string>
+   </property>
+  </action>
+  <action name="actionRun" >
+   <property name="checked" >
+    <bool>false</bool>
+   </property>
+   <property name="icon" >
+    <iconset>images/run.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Run Job</string>
+   </property>
+   <property name="iconText" >
+    <string>Run Job</string>
+   </property>
+   <property name="toolTip" >
+    <string>Run Job</string>
    </property>
   </action>
  </widget>
