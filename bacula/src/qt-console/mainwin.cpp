@@ -81,6 +81,7 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    textEdit->append(cmdStr);             /* append text on screen */
+   m_console->write_dir(cmdStr.toUtf8().data());         /* send to dir */
 }
 void MainWin::about()
 {
