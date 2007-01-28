@@ -27,7 +27,7 @@
 */
  
 /*
- *  Connect to a Bacula daemon
+ *  Console Class
  *
  *   Kern Sibbald, January MMVI
  *
@@ -36,50 +36,42 @@
 #include "bat.h"
 #include "console.h"
 
+Console::Console()
+{
+   QTreeWidgetItem *item, *topItem;
+   QTreeWidget *treeWidget = mainWin->treeWidget;
+
+   m_textEdit = mainWin->textEdit;   /* our console screen */
+
+   /* Dummy setup of treeWidget */
+   treeWidget->clear();
+   treeWidget->setColumnCount(1);
+   treeWidget->setHeaderLabel("Selection");
+   topItem = new QTreeWidgetItem(treeWidget);
+   topItem->setText(0, "Rufus");
+   item = new QTreeWidgetItem(topItem);
+   item->setText(0, "Console");
+   item->setText(1, "0");
+   item = new QTreeWidgetItem(topItem);
+   item->setText(0, "Restore");
+   item->setText(1, "1");
+   treeWidget->expandItem(topItem);
+}
+
 /*
  * Connect to Director. If there are more than one, put up
  * a modal dialog so that the user chooses one.
  */
-bool Console::connect(QWidget *textEdit)
+bool Console::connect()
 {
    JCR jcr;
 
-   m_textEdit = textEdit;
+   m_textEdit = mainWin->textEdit;   /* our console screen */
 
-#ifdef xxx
-   if (ndir > 1) {
-      LockRes();
-      foreach_res(dir, R_DIRECTOR) {
-         dirs = g_list_append(dirs, dir->hdr.name);
-      }
-      UnlockRes();
-      dir_dialog = create_SelectDirectorDialog();
-      combo = lookup_widget(dir_dialog, "combo1");
-      dir_select = lookup_widget(dir_dialog, "dirselect");
-      if (dirs) {
-         gtk_combo_set_popdown_strings(GTK_COMBO(combo), dirs);
-      }
-      gtk_widget_show(dir_dialog);
-      gtk_main();
-
-      if (reply == OK) {
-         gchar *ecmd = gtk_editable_get_chars((GtkEditable *)dir_select, 0, -1);
-         dir = (DIRRES *)GetResWithName(R_DIRECTOR, ecmd);
-         if (ecmd) {
-            g_free(ecmd);             /* release director name string */
-         }
-      }
-      if (dirs) {
-         g_free(dirs);
-      }
-      gtk_widget_destroy(dir_dialog);
-      dir_dialog = NULL;
-   } else {
-#endif
-      /* Just take the first Director */
-      LockRes();
-      m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-      UnlockRes();
+   /* Just take the first Director */
+   LockRes();
+   m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   UnlockRes();
 
    if (!m_dir) {
       return false;
@@ -87,72 +79,32 @@ bool Console::connect(QWidget *textEdit)
 
    memset(&jcr, 0, sizeof(jcr));
 
-   set_statusf(_(" Connecting to Director %s:%d"), m_dir->address,dir->DIRport);
-   set_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address,dir->DIRport);
+   set_statusf(_(" Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
+   set_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
 
+   /* Give GUI a chance */
+   app->processEvents();
    
    LockRes();
    /* If cons==NULL, default console will be used */
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
 
-#ifdef xxx
-   char buf[1024];
-   /* Initialize Console TLS context */
-   if (cons && (cons->tls_enable || cons->tls_require)) {
-      /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), _("Passphrase for Console \"%s\" TLS private key: "), cons->hdr.name);
-
-      /* Initialize TLS context:
-       * Args: CA certfile, CA certdir, Certfile, Keyfile,
-       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-      cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
-         cons->tls_ca_certdir, cons->tls_certfile,
-         cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
-
-      if (!cons->tls_ctx) {
-         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Console \"%s\".\n"),
-            dir->hdr.name);
-         set_text(buf, strlen(buf));
-         terminate_console(0);
-         return true;
-      }
-
-   }
-
-   /* Initialize Director TLS context */
-   if (dir->tls_enable || dir->tls_require) {
-      /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), _("Passphrase for Director \"%s\" TLS private key: "), dir->hdr.name);
-
-      /* Initialize TLS context:
-       * Args: CA certfile, CA certdir, Certfile, Keyfile,
-       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-      dir->tls_ctx = new_tls_context(dir->tls_ca_certfile,
-         dir->tls_ca_certdir, dir->tls_certfile,
-         dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
-
-      if (!dir->tls_ctx) {
-         bsnprintf(buf, sizeof(buf), _("Failed to initialize TLS context for Director \"%s\".\n"),
-            dir->hdr.name);
-         set_text(buf, strlen(buf));
-         terminate_console(0);
-         return true;
-      }
-   }
-#endif
-
    m_sock = bnet_connect(NULL, 5, 15, _("Director daemon"), m_dir->address,
                           NULL, m_dir->DIRport, 0);
-   if (m__sock == NULL) {
+   if (m_sock == NULL) {
       return false;
    }
 
    jcr.dir_bsock = m_sock;
+
    if (!authenticate_director(&jcr, m_dir, cons)) {
       set_text(m_sock->msg);
       return false;
    }
+
+   /* Give GUI a chance */
+   app->processEvents();
 
    set_status(_(" Initializing ..."));
 
@@ -160,39 +112,59 @@ bool Console::connect(QWidget *textEdit)
 
    /* Read and display all initial messages */
    while (bnet_recv(m_sock) > 0) {
-      set_text(UA_sock->msg);
+      set_text(m_sock->msg);
    }
 
    /* Give GUI a chance */
    app->processEvents();
 
-#ifdef xxx
-   /* Fill the run_dialog combo boxes */
-   job_list      = get_and_fill_combo(run_dialog, "combo_job", ".jobs");
-   client_list   = get_and_fill_combo(run_dialog, "combo_client", ".clients");
-   fileset_list  = get_and_fill_combo(run_dialog, "combo_fileset", ".filesets");
-   messages_list = get_and_fill_combo(run_dialog, "combo_messages", ".msgs");
-   pool_list     = get_and_fill_combo(run_dialog, "combo_pool", ".pools");
-   storage_list  = get_and_fill_combo(run_dialog, "combo_storage", ".storage");
-   type_list     = get_and_fill_combo(run_dialog, "combo_type", ".types");
-   level_list    = get_and_fill_combo(run_dialog, "combo_level", ".levels");
-
-   /* Fill the label dialog combo boxes */
-   fill_combo(label_dialog, "label_combo_storage", storage_list);
-   fill_combo(label_dialog, "label_combo_pool", pool_list);
-
-
-   /* Fill the restore_dialog combo boxes */
-   fill_combo(restore_dialog, "combo_restore_job", job_list);
-   fill_combo(restore_dialog, "combo_restore_client", client_list);
-   fill_combo(restore_dialog, "combo_restore_fileset", fileset_list);
-   fill_combo(restore_dialog, "combo_restore_pool", pool_list);
-   fill_combo(restore_dialog, "combo_restore_storage", storage_list);
-#endif
+   /* Query Directory for .jobs, .clients, .filesets, .msgs,
+    *  .pools, .storage, .types, .levels, ...
+    */
 
    set_status(_(" Connected"));
    return true;
 }
+
+void Console::set_textf(const char *fmt, ...)
+{
+   va_list arg_ptr;
+   char buf[1000];
+   int len;
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+   m_textEdit->append(buf);
+}
+
+void Console::set_text(const char *buf)
+{
+   m_textEdit->append(buf);
+}
+
+void Console::set_statusf(const char *fmt, ...)
+{
+   va_list arg_ptr;
+   char buf[1000];
+   int len;
+   va_start(arg_ptr, fmt);
+   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+   set_status(buf);
+}
+
+void Console::set_status_ready()
+{
+   mainWin->statusBar()->showMessage("Ready");
+// ready = true;
+}
+
+void Console::set_status(const char *buf)
+{
+   mainWin->statusBar()->showMessage(buf);
+// ready = false;
+}
+
 
 #ifdef xxx
 void write_director(const gchar *msg)
