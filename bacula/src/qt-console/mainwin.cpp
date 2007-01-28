@@ -86,7 +86,7 @@ void MainWin::input_line()
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
-            tr("<h2>bat 0.1</h2>"
+            tr("<br><h2>bat 0.1</h2>"
             "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
             "<p>The <b>bat</b> is an administrative console"
                " interface to the Director."));

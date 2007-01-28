@@ -216,12 +216,6 @@
      <height>33</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuHelp" >
-    <property name="title" >
-     <string>&amp;Help</string>
-    </property>
-    <addaction name="actionAbout_bat" />
-   </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -237,6 +231,12 @@
     <addaction name="actionPrint" />
     <addaction name="actionSave" />
     <addaction name="actionQuit" />
+   </widget>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout_bat" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -285,6 +285,9 @@
    </property>
   </action>
   <action name="actionAbout_bat" >
+   <property name="icon" >
+    <iconset>images/bat.png</iconset>
+   </property>
    <property name="text" >
     <string>&amp;About bat</string>
    </property>
