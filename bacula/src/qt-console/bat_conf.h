@@ -74,7 +74,12 @@ struct DIRRES {
    char *tls_keyfile;                 /* TLS Client Key File */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *DIRRES::name() const { return hdr.name; }
 
 struct CONFONTRES {
    RES   hdr;
