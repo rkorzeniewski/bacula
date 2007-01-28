@@ -256,8 +256,11 @@
    <attribute name="toolBarArea" >
     <number>4</number>
    </attribute>
+   <addaction name="actionConnect" />
    <addaction name="actionSave" />
    <addaction name="actionPrint" />
+   <addaction name="actionLabel" />
+   <addaction name="actionRestore" />
   </widget>
   <action name="actionExit" >
    <property name="text" >
@@ -323,6 +326,30 @@
    </property>
    <property name="text" >
     <string>Save</string>
+   </property>
+  </action>
+  <action name="actionConnect" >
+   <property name="icon" >
+    <iconset>images/connect.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionLabel" >
+   <property name="icon" >
+    <iconset>images/label.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Label</string>
+   </property>
+  </action>
+  <action name="actionRestore" >
+   <property name="icon" >
+    <iconset>images/restore.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Restore</string>
    </property>
   </action>
  </widget>

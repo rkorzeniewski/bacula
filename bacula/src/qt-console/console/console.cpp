@@ -43,12 +43,17 @@ Console::Console()
 
    m_textEdit = mainWin->textEdit;   /* our console screen */
 
+   /* Just take the first Director */
+   LockRes();
+   m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   UnlockRes();
+
    /* Dummy setup of treeWidget */
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Selection");
    topItem = new QTreeWidgetItem(treeWidget);
-   topItem->setText(0, "Rufus");
+   topItem->setText(0, m_dir->name());
    item = new QTreeWidgetItem(topItem);
    item->setText(0, "Console");
    item->setText(1, "0");
@@ -68,10 +73,6 @@ bool Console::connect()
 
    m_textEdit = mainWin->textEdit;   /* our console screen */
 
-   /* Just take the first Director */
-   LockRes();
-   m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-   UnlockRes();
 
    if (!m_dir) {
       return false;
