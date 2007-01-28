@@ -14,12 +14,14 @@ class Console : public QWidget
    Q_OBJECT 
 public:
    Console();
-   bool connect();
    void set_text(const char *buf);
    void set_textf(const char *fmt, ...);
    void set_statusf(const char *fmt, ...);
    void set_status_ready();
    void set_status(const char *buf);
+
+public slots:
+   void connect();
 
 private:
    QTextEdit *m_textEdit;
