@@ -33,6 +33,7 @@
  *
  */ 
 
+#include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "console.h"
 
@@ -42,6 +43,7 @@ Console::Console()
    QTreeWidget *treeWidget = mainWin->treeWidget;
 
    m_sock = NULL;
+   m_at_prompt = false;
    m_textEdit = mainWin->textEdit;   /* our console screen */
 
    /* Just take the first Director */
@@ -117,15 +119,15 @@ void Console::connect()
 
    bnet_fsend(m_sock, "autodisplay on");
 
-   /* Read and display all initial messages */
-   while (bnet_recv(m_sock) > 0) {
-      set_text(m_sock->msg);
-   }
+   /* Set up input notifier */
+   m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
+   QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
    /* Give GUI a chance */
    app->processEvents();
 
-   /* Query Directory for .jobs, .clients, .filesets, .msgs,
+   /*  *** FIXME *** 
+    * Query Directory for .jobs, .clients, .filesets, .msgs,
     *  .pools, .storage, .types, .levels, ...
     */
 
@@ -134,6 +136,13 @@ void Console::connect()
 
    return;
 }
+#ifdef xxx
+    QByteArray bytes = m_Bash->readAllStandardOutput();
+    QStringList lines = QString(bytes).split("\n");
+    foreach (QString line, lines) {
+        m_Logw->append(line);
+    }
+#endif
 
 void Console::set_textf(const char *fmt, ...)
 {
@@ -171,58 +180,59 @@ void Console::set_status_ready()
 void Console::set_status(const char *buf)
 {
    mainWin->statusBar()->showMessage(buf);
-   set_text(buf);
+// set_text(buf);
 // ready = false;
 }
 
 
-#ifdef xxx
-void write_director(const gchar *msg)
+void Console::write_dir(const char *msg)
 {
-   if (UA_sock) {
-      at_prompt = false;
+   if (m_sock) {
+      m_at_prompt = false;
       set_status(_(" Processing command ..."));
-      UA_sock->msglen = strlen(msg);
-      pm_strcpy(&UA_sock->msg, msg);
-      bnet_send(UA_sock);
+      m_sock->msglen = strlen(msg);
+      pm_strcpy(&m_sock->msg, msg);
+      bnet_send(m_sock);
    }
    if (strcmp(msg, ".quit") == 0 || strcmp(msg, ".exit") == 0) {
-      disconnect_from_director((gpointer)NULL);
-      gtk_main_quit();
+      app->closeAllWindows();
    }
 }
 
-extern "C"
-void read_director(gpointer data, gint fd, GdkInputCondition condition)
+void Console::read_dir(int fd)
 {
    int stat;
+   (void)fd;
 
-   if (!UA_sock || UA_sock->fd != fd) {
+   if (!m_sock) {
       return;
    }
-   stat = bnet_recv(UA_sock);
+   stat = bnet_recv(m_sock);
    if (stat >= 0) {
-      if (at_prompt) {
-         set_text("\n", 1);
-         at_prompt = false;
+      if (m_at_prompt) {
+         set_text("\n");
+         m_at_prompt = false;
       }
-      set_text(UA_sock->msg, UA_sock->msglen);
+      set_text(m_sock->msg);
       return;
    }
-   if (is_bnet_stop(UA_sock)) {         /* error or term request */
-      gtk_main_quit();
+   if (is_bnet_stop(m_sock)) {         /* error or term request */
+      bnet_close(m_sock);
+      m_sock = NULL;
       return;
    }
    /* Must be a signal -- either do something or ignore it */
-   if (UA_sock->msglen == BNET_PROMPT) {
-      at_prompt = true;
+   if (m_sock->msglen == BNET_PROMPT) {
+      m_at_prompt = true;
       set_status(_(" At prompt waiting for input ..."));
    }
-   if (UA_sock->msglen == BNET_EOD) {
+   if (m_sock->msglen == BNET_EOD) {
       set_status_ready();
    }
    return;
 }
+
+#ifdef xxx
 
 static gint tag;
 
