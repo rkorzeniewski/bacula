@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = bat
 DEPENDPATH += .
-INCLUDEPATH += .
+INCLUDEPATH += . ./console
 INCLUDEPATH += ..
 LIBS        += -L../lib
 LIBS        += -lbac
@@ -14,6 +14,6 @@ RESOURCES = main.qrc
 
 # Input
 FORMS += main.ui
-HEADERS += mainwin.h bat.h bat_conf.h console.h
+HEADERS += mainwin.h bat.h bat_conf.h console/console.h
 SOURCES += main.cpp authenticate.cpp bat_conf.cpp
-SOURCES += mainwin.cpp console.cpp
+SOURCES += mainwin.cpp console/console.cpp
