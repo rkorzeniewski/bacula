@@ -32,18 +32,20 @@
  *  Written by Kern Sibbald, January MMVI
  */
 
-#ifndef _MAINWINDOW_H_
-#define _MAINWINDOW_H_
+#ifndef _MAINWIN_H_
+#define _MAINWIN_H_
 
 #include <QtGui>
 #include "ui_main.h"
 
-class MainWindow : public QMainWindow, public Ui::MainForm    
+class Console;
+
+class MainWin : public QMainWindow, public Ui::MainForm    
 {
    Q_OBJECT
 
 public:
-   MainWindow(QWidget *parent = 0);
+   MainWin(QWidget *parent = 0);
 
 public slots:
    void input_line();
@@ -52,6 +54,7 @@ public slots:
 
 private:
    QString m_UserInput;
+   Console *m_console;
 };
 
-#endif /* _MAINWINDOW_H_ */
+#endif /* _MAINWIN_H_ */

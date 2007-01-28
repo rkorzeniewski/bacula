@@ -51,7 +51,7 @@ static int check_resources();
 /* Static variables */
 static char *configfile = NULL;
 
-MainWindow *mainWin;
+MainWin *mainWin;
 QApplication *app;
 BSOCK *UA_sock = NULL;
 
@@ -67,9 +67,6 @@ int main(int argc, char *argv[])
    app = new QApplication(argc, argv);        
    app->setQuitOnLastWindowClosed(true);
 
-   mainWin = new MainWindow;
-
-   mainWin->show();
 
 #ifdef ENABLE_NLS
    setlocale(LC_ALL, "");
@@ -142,6 +139,9 @@ int main(int argc, char *argv[])
       Emsg1(M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
+   mainWin = new MainWin;
+   mainWin->show();
+
    return app->exec();
 }
 
@@ -167,6 +167,7 @@ PROG_COPYRIGHT
    exit(1);
 }
 
+#ifdef xxx
 /*
  * Call-back for reading a passphrase for an encrypted PEM file
  * This function uses getpass(), which uses a static buffer and is NOT thread-safe.
@@ -185,6 +186,7 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
    return 0;
 #endif
 }
+#endif
 
 
 /*

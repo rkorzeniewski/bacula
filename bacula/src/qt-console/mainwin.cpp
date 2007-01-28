@@ -35,9 +35,9 @@
 
 #include "bat.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
-   QTreeWidgetItem *item, *topItem;
+   mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
    stackedWidget->setCurrentIndex(0);
    /* Dummy message ***FIXME*** remove a bit later */
@@ -54,23 +54,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
 
+   m_console = new Console();
 
-   /* Dummy setup of treeWidget */
-   treeWidget->clear();
-   treeWidget->setColumnCount(1);
-   treeWidget->setHeaderLabel("Selection");
-   topItem = new QTreeWidgetItem(treeWidget);
-   topItem->setText(0, "Rufus");
-   item = new QTreeWidgetItem(topItem);
-   item->setText(0, "Console");
-   item->setText(1, "0");
-   item = new QTreeWidgetItem(topItem);
-   item->setText(0, "Restore");
-   item->setText(1, "1");
-   treeWidget->expandItem(topItem);
 }
 
-void MainWindow::treeItemClicked(QTreeWidgetItem *item, int column)
+void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    (void)column;
    int index = item->text(1).toInt();
@@ -83,13 +71,13 @@ void MainWindow::treeItemClicked(QTreeWidgetItem *item, int column)
 /*
  * The user just finished typing a line in the command line edit box
  */
-void MainWindow::input_line()
+void MainWin::input_line()
 {
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    textEdit->append(cmdStr);             /* append text on screen */
 }
-void MainWindow::about()
+void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
             tr("<h2>bat 0.1</h2>"

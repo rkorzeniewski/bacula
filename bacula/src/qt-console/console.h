@@ -2,36 +2,31 @@
 #ifndef _CONSOLE_H_
 #define _CONSOLE_H_
 
-#include "mainwindow.h"
-#include "config.h"
-#include "bacula.h"
-#include "console_conf.h"
-#include "jcr.h"
+#include <QtGui>
 
-extern MainWindow *mainWin;
-extern QApplication *app;
+class DIRRES;
+class BSOCK;
+class JCR;
+class CONRES;
 
-class Console(QWidget *textEdit)
+class Console : public QWidget
 {
+   Q_OBJECT 
 public:
    Console();
    bool connect();
-// void setDirector()
-// void write();
-// void read();
    void set_text(const char *buf);
    void set_textf(const char *fmt, ...);
+   void set_statusf(const char *fmt, ...);
+   void set_status_ready();
+   void set_status(const char *buf);
+
 private:
-   QWidget *m_textEdit;
+   QTextEdit *m_textEdit;
    DIRRES *m_dir;
    BSOCK *m_sock;   
 };
 
-
-
-void set_textf(const char *fmt, ...);
-void set_text(const char *buf);
-
-int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);
+extern int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 #endif /* _CONSOLE_H_ */
