@@ -351,6 +351,9 @@
    <property name="text" >
     <string>&amp;Print</string>
    </property>
+   <property name="statusTip" >
+    <string>Print</string>
+   </property>
   </action>
   <action name="actionSave" >
    <property name="icon" >
@@ -359,6 +362,9 @@
    <property name="text" >
     <string>&amp;Save</string>
    </property>
+   <property name="statusTip" >
+    <string>Save (not implemented)</string>
+   </property>
   </action>
   <action name="actionConnect" >
    <property name="icon" >
@@ -366,6 +372,9 @@
    </property>
    <property name="text" >
     <string>Connect</string>
+   </property>
+   <property name="statusTip" >
+    <string>Connect/disconnect</string>
    </property>
   </action>
   <action name="actionLabel" >
@@ -408,6 +417,9 @@
    </property>
    <property name="toolTip" >
     <string>Run Job</string>
+   </property>
+   <property name="statusTip" >
+    <string>Run a Job</string>
    </property>
   </action>
  </widget>
