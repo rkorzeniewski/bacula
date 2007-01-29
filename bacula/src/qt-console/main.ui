@@ -362,7 +362,7 @@
   </action>
   <action name="actionConnect" >
    <property name="icon" >
-    <iconset>images/connect.png</iconset>
+    <iconset>images/disconnected.png</iconset>
    </property>
    <property name="text" >
     <string>Connect</string>
