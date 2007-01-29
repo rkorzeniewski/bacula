@@ -66,9 +66,12 @@ Console::Console()
    treeWidget->setHeaderLabel("Selection");
    topItem = new QTreeWidgetItem(treeWidget);
    topItem->setText(0, m_dir->name());
+   topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
    item = new QTreeWidgetItem(topItem);
+   m_consoleItem = item;
    item->setText(0, "Console");
    item->setText(1, "0");
+   item->setIcon(0, QIcon(QString::fromUtf8("images/disconnected.png")));
    item = new QTreeWidgetItem(topItem);
    item->setText(0, "Restore");
    item->setText(1, "1");
@@ -114,6 +117,7 @@ void Console::connect()
       return;
    } else {
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
+      m_consoleItem->setIcon(0, QIcon(QString::fromUtf8("images/connected.png")));
    }
 
 
@@ -195,6 +199,7 @@ void Console::write_dir(const char *msg)
    } else {
       mainWin->set_status(" Director not connected. Click on connect button.");
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+      m_consoleItem->setIcon(0, QIcon(QString::fromUtf8("images/disconnected.png")));
    }
 }
 
@@ -219,6 +224,7 @@ void Console::read_dir(int fd)
       bnet_close(m_sock);
       m_sock = NULL;
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+      m_consoleItem->setIcon(0, QIcon(QString::fromUtf8("images/disconnected.png")));
       m_notifier->setEnabled(false);
       delete m_notifier;
       m_notifier = NULL;

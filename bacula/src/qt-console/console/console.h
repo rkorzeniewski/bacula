@@ -33,6 +33,7 @@ private:
    bool m_at_prompt;
    QSocketNotifier *m_notifier;
    QTextCursor *m_cursor;
+   QTreeWidgetItem *m_consoleItem;
 };
 
 #endif /* _CONSOLE_H_ */
