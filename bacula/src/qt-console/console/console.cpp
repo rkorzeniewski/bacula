@@ -47,6 +47,7 @@ Console::Console()
    m_at_prompt = false;
    m_textEdit = mainWin->textEdit;   /* our console screen */
    m_cursor = new QTextCursor(m_textEdit->document());
+   mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
    /* ***FIXME*** make this configurable */
    font.setFamily("Courier");
@@ -111,7 +112,10 @@ void Console::connect()
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");
       return;
+   } else {
+      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
    }
+
 
    jcr.dir_bsock = m_sock;
 
@@ -190,6 +194,7 @@ void Console::write_dir(const char *msg)
       bnet_send(m_sock);
    } else {
       mainWin->set_status(" Director not connected. Click on connect button.");
+      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
    }
 }
 
@@ -213,6 +218,7 @@ void Console::read_dir(int fd)
    if (is_bnet_stop(m_sock)) {         /* error or term request */
       bnet_close(m_sock);
       m_sock = NULL;
+      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
       m_notifier->setEnabled(false);
       delete m_notifier;
       m_notifier = NULL;
