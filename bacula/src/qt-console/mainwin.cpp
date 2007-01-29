@@ -41,12 +41,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
    stackedWidget->setCurrentIndex(0);
 
+   statusBar()->showMessage("Director not connected. Click on connect button.");
+
    m_console = new Console();
 
-   /* Dummy message ***FIXME*** remove a bit later */
-   textEdit->setPlainText("Hello Baculites\nThis is the main console window.");
    lineEdit->setFocus();
-
 
    /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
@@ -80,9 +79,15 @@ void MainWin::input_line()
 {
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
-   textEdit->append(cmdStr);             /* append text on screen */
-   m_console->write_dir(cmdStr.toUtf8().data());         /* send to dir */
+   if (m_console->is_connected()) {
+      m_console->set_text(cmdStr + "\n");
+      m_console->write_dir(cmdStr.toUtf8().data());         /* send to dir */
+   } else {
+      set_status("Director not connected. Click on connect button.");
+   }
 }
+
+
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
@@ -92,7 +97,7 @@ void MainWin::about()
                " interface to the Director."));
 }
 
-void set_textf(const char *fmt, ...)
+void MainWin::set_statusf(const char *fmt, ...)
 {
    va_list arg_ptr;
    char buf[1000];
@@ -100,36 +105,18 @@ void set_textf(const char *fmt, ...)
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    va_end(arg_ptr);
-   mainWin->textEdit->append(buf);
-}
-
-void set_text(const char *buf)
-{
-   mainWin->textEdit->append(buf);
-}
-
-void set_statusf(const char *fmt, ...)
-{
-   va_list arg_ptr;
-   char buf[1000];
-   int len;
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
-   va_end(arg_ptr);
-// gtk_label_set_text(GTK_LABEL(status1), buf);
-// set_scroll_bar_to_end();
-// ready = false;
-}
-
-void set_status_ready()
-{
-   mainWin->statusBar()->showMessage("Ready");
-// ready = true;
+   set_status(buf);
 // set_scroll_bar_to_end();
 }
 
-void set_status(const char *buf)
+void MainWin::set_status_ready()
 {
-   mainWin->statusBar()->showMessage(buf);
+   set_status("Ready");
+// set_scroll_bar_to_end();
+}
+
+void MainWin::set_status(const char *buf)
+{
+   statusBar()->showMessage(buf);
 // ready = false;
 }

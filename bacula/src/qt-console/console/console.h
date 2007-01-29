@@ -16,11 +16,11 @@ class Console : public QWidget
 public:
    Console();
    void set_text(const char *buf);
+   void set_text(const QString buf);
    void set_textf(const char *fmt, ...);
-   void set_statusf(const char *fmt, ...);
-   void set_status_ready();
-   void set_status(const char *buf);
    void write_dir(const char *buf);
+   bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
+   bool is_connected() { return m_sock != NULL; };
 
 public slots:
    void connect();
@@ -32,8 +32,7 @@ private:
    BSOCK *m_sock;   
    bool m_at_prompt;
    QSocketNotifier *m_notifier;
+   QTextCursor *m_cursor;
 };
-
-extern int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
 
 #endif /* _CONSOLE_H_ */
