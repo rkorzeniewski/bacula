@@ -46,6 +46,9 @@ class MainWin : public QMainWindow, public Ui::MainForm
 
 public:
    MainWin(QWidget *parent = 0);
+   void set_statusf(const char *fmt, ...);
+   void set_status_ready();
+   void set_status(const char *buf);
 
 public slots:
    void input_line();

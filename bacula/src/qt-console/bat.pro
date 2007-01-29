@@ -12,8 +12,11 @@ LIBS        += -lbac
 LIBS        += -lssl -lcrypto
 RESOURCES = main.qrc
 
-# Input
+# Main directory
 FORMS += main.ui
-HEADERS += mainwin.h bat.h bat_conf.h console/console.h
-SOURCES += main.cpp authenticate.cpp bat_conf.cpp
-SOURCES += mainwin.cpp console/console.cpp
+HEADERS += mainwin.h bat.h bat_conf.h 
+SOURCES += main.cpp bat_conf.cpp mainwin.cpp 
+
+# Console
+HEADERS += console/console.h
+SOURCES += console/authenticate.cpp console/console.cpp

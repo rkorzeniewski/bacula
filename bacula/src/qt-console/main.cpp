@@ -38,9 +38,6 @@
 #include "bat.h"
 
 
-/* Imported functions */
-int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
-
 /* Forward referenced functions */
 void terminate_console(int sig);                                
 static void usage();
