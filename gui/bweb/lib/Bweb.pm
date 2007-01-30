@@ -860,12 +860,13 @@ sub send_to_io
 sub transfer
 {
     my ($self, $src, $dst) = @_ ;
-    print "<pre>$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst</pre>\n";
+    if ($self->{debug}) {
+	print "<pre>$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst</pre>\n";
+    }
     my $out = `$self->{precmd} $self->{mtxcmd} -f $self->{device} transfer $src $dst 2>&1`;
     
     if ($? == 0) {
 	my $content = $self->get_slot($src);
-	print "$content ($src) => $dst<br/>";
 	$self->{slot}->[$src] = 'empty';
 	$self->set_slot($dst, $content);
 	return 1;
@@ -901,13 +902,17 @@ sub clear_io
 	if ($self->slot_is_full($slot))
 	{
 	    my $free = $self->slot_get_first_free() ;
-	    print "want to move $slot to $free\n";
+	    print "move $slot to $free :\n";
 
 	    if ($free) {
-		$self->transfer($slot, $free) || print "$self->{error}\n";
+		if ($self->transfer($slot, $free)) {
+		    print "<img src='/bweb/T.png' alt='ok'><br/>\n";
+		} else {
+		    print "<img src='/bweb/E.png' alt='ok' title='$self->{error}'><br/>\n";
+		}
 		
 	    } else {
-		$self->{error} = "E : Can't find free slot";
+		$self->{error} = "<img src='/bweb/E.png' alt='ok' title='E : Can t find free slot'><br/>\n";
 	    }
 	}
     }
@@ -2432,7 +2437,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
     $self->display({ email  => $self->{info}->{email_media},
 		     url => $url,
 		     newlocation => $newloc,
-		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
+		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
 		     medias => [ values %$medias ],
 		   },
 		   "change_location.tpl");
@@ -2654,9 +2659,9 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 
 	print "eject $vol->{volumename} from $vol->{storage} : ";
 	if ($a->send_to_io($vol->{slot})) {
-	    print "ok</br>";
+	    print "<img src='/bweb/T.png' alt='ok'><br/>";
 	} else {
-	    print "err</br>";
+	    print "<img src='/bweb/E.png' alt='err'><br/>";
 	}
     }
     return keys %ret;
@@ -2716,7 +2721,8 @@ sub ach_get
 	return undef;
     }
 
-    $a->{bweb} = $self;
+    $a->{bweb}  = $self;
+    $a->{debug} = $self->{debug};
 
     return $a;
 }
