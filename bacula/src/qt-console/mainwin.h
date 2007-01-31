@@ -54,6 +54,7 @@ public slots:
    void input_line();
    void about();
    void treeItemClicked(QTreeWidgetItem *item, int column);
+   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
 
 private:
    QString m_UserInput;
