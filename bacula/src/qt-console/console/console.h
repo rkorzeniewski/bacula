@@ -18,13 +18,15 @@ public:
    void set_text(const char *buf);
    void set_text(const QString buf);
    void set_textf(const char *fmt, ...);
+   void update_cursor(void);
    void write_dir(const char *buf);
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
    bool is_connected() { return m_sock != NULL; };
 
 public slots:
-   void connect();
+   void connect(void);
    void read_dir(int fd);
+   void status_dir(void);
 
 private:
    QTextEdit *m_textEdit;

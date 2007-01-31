@@ -72,4 +72,16 @@ Design decisions:
 - All signal/slots are connected by explict code (most all are
   done in the MainWin constructor), rather than using designer.      
 
+Major projects:
+- Implement a restore page that does a directory tree restore selection
+  much like wx-console does.
+- Implement other restore interfaces such as brestore ...
+- Implement a database browser
+- Implement graphical commands that allow updating most aspects of
+  the database (i.e. commands for label, update Volume, ...)
+- Implement a resource (conf file) browser
+- Implement a reports page -- e.g. something similar to bweb
+- Implement Qt plugins to add new functionality to bat
+- Implement a GUI configuration file editor (something like JBacula).
+...
 

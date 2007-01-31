@@ -57,9 +57,12 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+   connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, 
+           SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
+
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
-
+   connect(actionStatusDir, SIGNAL(triggered()), m_console, SLOT(status_dir()));
 }
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
@@ -70,6 +73,21 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
       stackedWidget->setCurrentIndex(index);
    }
 }
+
+/*
+ * ***FIXME***
+ * If item is a Console, then connect it
+ */
+void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+   (void)column;
+   int index = item->text(1).toInt();
+   /* ***FIXME**** make this automatic */
+   if (index >= 0 && index < 2) {
+      stackedWidget->setCurrentIndex(index);
+   }
+}
+
 
 
 /*

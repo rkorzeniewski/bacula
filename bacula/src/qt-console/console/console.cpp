@@ -117,11 +117,11 @@ void Console::connect()
       mainWin->set_status("Connection failed");
       return;
    } else {
+      /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
       QBrush greenBrush(Qt::green);
       m_consoleItem->setForeground(0, greenBrush);
    }
-
 
    jcr.dir_bsock = m_sock;
 
@@ -152,13 +152,11 @@ void Console::connect()
    mainWin->set_status(_(" Connected"));
    return;
 }
-#ifdef xxx
-    QByteArray bytes = m_Bash->readAllStandardOutput();
-    QStringList lines = QString(bytes).split("\n");
-    foreach (QString line, lines) {
-        m_Logw->append(line);
-    }
-#endif
+
+void Console::status_dir()
+{
+   write_dir("status dir\n");
+}
 
 void Console::set_textf(const char *fmt, ...)
 {
@@ -175,8 +173,6 @@ void Console::set_text(const QString buf)
 {
    m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
-   m_textEdit->moveCursor(QTextCursor::End);
-   m_textEdit->ensureCursorVisible();
 }
 
 
@@ -184,11 +180,18 @@ void Console::set_text(const char *buf)
 {
    m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
+}
+
+/* Position cursor to end of screen */
+void Console::update_cursor()
+{
+   QApplication::restoreOverrideCursor();
    m_textEdit->moveCursor(QTextCursor::End);
    m_textEdit->ensureCursorVisible();
 }
 
 
+/* Send a command to the Director */
 void Console::write_dir(const char *msg)
 {
    if (m_sock) {
@@ -206,6 +209,7 @@ void Console::write_dir(const char *msg)
    }
 }
 
+/* Called by signal when the Director has output for us */
 void Console::read_dir(int fd)
 {
    int stat;
@@ -240,11 +244,11 @@ void Console::read_dir(int fd)
    if (m_sock->msglen == BNET_PROMPT) {
       m_at_prompt = true;
       mainWin->set_status(_(" At prompt waiting for input ..."));
-      QApplication::restoreOverrideCursor();
+      update_cursor();
    }
    if (m_sock->msglen == BNET_EOD) {
       mainWin->set_status_ready();
-      QApplication::restoreOverrideCursor();
+      update_cursor();
    }
    return;
 }
