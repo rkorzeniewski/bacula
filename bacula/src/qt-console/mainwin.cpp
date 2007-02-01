@@ -47,6 +47,13 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    lineEdit->setFocus();
 
+   createConnections();
+
+   readSettings();
+}
+
+void MainWin::createConnections()
+{
    /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
@@ -63,6 +70,38 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
    connect(actionStatusDir, SIGNAL(triggered()), m_console, SLOT(status_dir()));
+   connect(actionSelectFont, SIGNAL(triggered()), m_console, SLOT(set_font()));
+}
+
+/* 
+ * Reimplementation of QWidget closeEvent virtual function   
+ */
+void MainWin::closeEvent(QCloseEvent *event)
+{
+   /* ***FIXME*** close any open sockets */
+   writeSettings();
+   m_console->writeSettings();
+   event->accept();
+}
+
+void MainWin::writeSettings()
+{
+   QSettings settings("bacula.org", "bat");
+
+   settings.beginGroup("MainWin");
+   settings.setValue("winSize", size());
+   settings.setValue("winPos", pos());
+   settings.endGroup();
+}
+
+void MainWin::readSettings()
+{ 
+   QSettings settings("bacula.org", "bat");
+
+   settings.beginGroup("MainWin");
+   resize(settings.value("winSize", QSize(1041, 801)).toSize());
+   move(settings.value("winPos", QPoint(200, 150)).toPoint());
+   settings.endGroup();
 }
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)

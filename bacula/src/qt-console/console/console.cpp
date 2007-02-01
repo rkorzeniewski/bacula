@@ -49,11 +49,6 @@ Console::Console()
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
-   /* ***FIXME*** make this configurable */
-   font.setFamily("Courier");
-   font.setFixedPitch(true);
-   font.setPointSize(10);
-   m_textEdit->setFont(font);
 
    /* Just take the first Director */
    LockRes();
@@ -77,6 +72,9 @@ Console::Console()
    item->setText(0, "Restore");
    item->setText(1, "1");
    treeWidget->expandItem(topItem);
+
+   readSettings();
+
 }
 
 /*
@@ -152,6 +150,47 @@ void Console::connect()
    mainWin->set_status(_(" Connected"));
    return;
 }
+
+
+void Console::writeSettings()
+{
+   QFont font = get_font();
+
+   QSettings settings("bacula.org", "bat");
+   settings.beginGroup("Console");
+   settings.setValue("consoleFont", font.family());
+   settings.setValue("consolePointSize", font.pointSize());
+   settings.setValue("consoleFixedPitch", font.fixedPitch());
+   settings.endGroup();
+}
+
+void Console::readSettings()
+{ 
+   QFont font = get_font();
+
+   QSettings settings("bacula.org", "bat");
+   settings.beginGroup("Console");
+   font.setFamily(settings.value("consoleFont", "Courier").value<QString>());
+   font.setPointSize(settings.value("consolePointSize", 10).toInt());
+   font.setFixedPitch(settings.value("consoleFixedPitch", true).toBool());
+   settings.endGroup();
+   m_textEdit->setFont(font);
+}
+
+void Console::set_font()
+{
+   bool ok;
+   QFont font = QFontDialog::getFont(&ok, QFont(m_textEdit->font()), this);
+   if (ok) {
+      m_textEdit->setFont(font);
+   }
+}
+
+const QFont Console::get_font()
+{
+   return m_textEdit->font();
+}
+
 
 void Console::status_dir()
 {

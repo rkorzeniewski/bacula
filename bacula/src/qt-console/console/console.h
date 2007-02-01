@@ -22,11 +22,15 @@ public:
    void write_dir(const char *buf);
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
    bool is_connected() { return m_sock != NULL; };
+   const QFont get_font();
+   void writeSettings();
+   void readSettings();
 
 public slots:
    void connect(void);
    void read_dir(int fd);
    void status_dir(void);
+   void set_font(void);
 
 private:
    QTextEdit *m_textEdit;

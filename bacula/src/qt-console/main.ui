@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1038</width>
-    <height>802</height>
+    <width>1041</width>
+    <height>801</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -230,10 +230,22 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1038</width>
+     <width>1041</width>
      <height>33</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout_bat" />
+   </widget>
+   <widget class="QMenu" name="menuSettings" >
+    <property name="title" >
+     <string>Settings</string>
+    </property>
+    <addaction name="actionSelectFont" />
+   </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -250,14 +262,9 @@
     <addaction name="actionSave" />
     <addaction name="actionQuit" />
    </widget>
-   <widget class="QMenu" name="menuHelp" >
-    <property name="title" >
-     <string>&amp;Help</string>
-    </property>
-    <addaction name="actionAbout_bat" />
-   </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
+   <addaction name="menuSettings" />
    <addaction name="menuHelp" />
   </widget>
   <widget class="QStatusBar" name="statusbar" >
@@ -438,6 +445,11 @@
    </property>
    <property name="statusTip" >
     <string>Status of Director</string>
+   </property>
+  </action>
+  <action name="actionSelectFont" >
+   <property name="text" >
+    <string>&amp;Select Font ...</string>
    </property>
   </action>
  </widget>
