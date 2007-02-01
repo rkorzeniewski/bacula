@@ -99,8 +99,6 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
-exit
-
 check_two_logs
 check_restore_diff
 end_test
