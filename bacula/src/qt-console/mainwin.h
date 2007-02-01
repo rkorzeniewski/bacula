@@ -49,12 +49,20 @@ public:
    void set_statusf(const char *fmt, ...);
    void set_status_ready();
    void set_status(const char *buf);
+   void writeSettings();
+   void readSettings();
 
 public slots:
    void input_line();
    void about();
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
+
+protected:
+   void closeEvent(QCloseEvent *event);
+
+private:
+   void createConnections(); 
 
 private:
    QString m_UserInput;
