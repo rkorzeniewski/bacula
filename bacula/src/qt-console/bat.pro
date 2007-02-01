@@ -12,11 +12,17 @@ LIBS        += -lbac
 LIBS        += -lssl -lcrypto
 RESOURCES = main.qrc
 
-# Main directory
+# Main window
 FORMS += main.ui
+# Label dialog
+FORMS += label.ui
+
+
 HEADERS += mainwin.h bat.h bat_conf.h 
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp 
 
 # Console
 HEADERS += console/console.h
 SOURCES += console/authenticate.cpp console/console.cpp
+
+# Label dialog
