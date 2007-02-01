@@ -299,9 +299,6 @@
    <property name="shortcut" >
     <string>Ctrl+Q</string>
    </property>
-   <property name="menuRole" >
-    <enum>QAction::QuitRole</enum>
-   </property>
   </action>
   <action name="actionAbout_bat" >
    <property name="icon" >
