@@ -412,12 +412,10 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
          stat = 0;
       } else {
          stat = mdb->num_rows;
-         DBId_t *SId;
+         DBId_t *SId = NULL;
          if (stat > 0) {
             *VolParams = Vols = (VOL_PARAMS *)malloc(stat * sizeof(VOL_PARAMS));
             SId = (DBId_t *)malloc(stat * sizeof(DBId_t));
-         } else {
-            SId = NULL;
          }
          for (i=0; i < stat; i++) {
             if ((row = sql_fetch_row(mdb)) == NULL) {
@@ -452,6 +450,9 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                   }
                }
             }
+         }
+         if (SId) {
+            free(SId);
          }
       }
       sql_free_result(mdb);

@@ -47,12 +47,13 @@
  *
  * Loop var through each member of list
  */
-#define foreach_btree(var, tree) \
-    for(*((bnode **)&(var))=(tree)->first(); (*((bnode **)&(var))=(tree)->next((bnode *)var)); )
 
-#ifdef the_old_way
+#ifdef HAVE_TYPEOF
 #define foreach_btree(var, tree) \
-        for((var)=(tree)->first(); (((bnode *)(var))=(tree)->next((bnode *)var)); )
+        for((var)=(typeof(var))(tree)->first(); (var); (var)=(typeof(var))(tree)->next((bnode *)var) )
+#else
+#define foreach_btree(var, tree) \
+    for(*((bnode **)&(var))=(tree)->first(); (var); (*((bnode **)&(var))=(tree)->next((bnode *)var)) )
 #endif
 
 struct bnode;

@@ -58,8 +58,8 @@ struct s_mem {
 struct s_tree_node {
    /* KEEP sibling as the first member to avoid having to
     *  do initialization of child */
-   dlink sibling;
-   dlist child;
+   rblink sibling;
+   rblist child;
    char *fname;                       /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */
@@ -79,8 +79,8 @@ typedef struct s_tree_node TREE_NODE;
 struct s_tree_root {
    /* KEEP sibling as the first member to avoid having to
     *  do initialization of child */
-   dlink sibling;
-   dlist child;
+   rblink sibling;
+   rblist child;
    const char *fname;                 /* file name */
    int32_t FileIndex;                 /* file index */
    uint32_t JobId;                    /* JobId */

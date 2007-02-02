@@ -558,10 +558,6 @@ void *jobq_server(void *arg)
             Dmsg0(2300, "Back from running new job.\n");
          }
          /* Clean up and release old jcr */
-         if (jcr->db) {
-            db_close_database(jcr, jcr->db);
-            jcr->db = NULL;
-         }
          Dmsg2(2300, "====== Termination job=%d use_cnt=%d\n", jcr->JobId, jcr->use_count());
          jcr->SDJobStatus = 0;
          V(jq->mutex);                /* release internal lock */

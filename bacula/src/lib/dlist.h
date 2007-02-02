@@ -1,12 +1,7 @@
 /*
- *  Written by Kern Sibbald MMIV
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,13 +25,21 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Written by Kern Sibbald MMIV
+ *
+ *   Version $Id$
+ */
 
 
 /* ========================================================================
  *
  *   Doubly linked list  -- dlist
+ * 
+ *   See the end of the file for the dlistString class which
+ *     facilitates storing strings in a dlist.
  *
- *    Kern Sibbald, MMIV
+ *    Kern Sibbald, MMIV and MMVII
  *
  */
 
@@ -59,8 +62,6 @@
     for((var)=NULL; (*((void **)&(var))=(void*)((list)->next(var))); )
 #endif
 
-
-
 struct dlink {
    void *next;
    void *prev;
@@ -78,6 +79,8 @@ public:
    void init(void *item, dlink *link);
    void prepend(void *item);
    void append(void *item);
+   void set_prev(void *item, void *prev);
+   void set_next(void *item, void *next);
    void insert_before(void *item, void *where);
    void insert_after(void *item, void *where);
    void *binary_insert(void *item, int compare(void *item1, void *item2));
@@ -127,6 +130,18 @@ inline dlist::dlist(void) : head(0), tail(0), loffset(0), num_items(0)
 {
 }
 
+inline void dlist::set_prev(void *item, void *prev)
+{
+   ((dlink *)(((char *)item)+loffset))->prev = prev;
+}
+
+inline void dlist::set_next(void *item, void *next)
+{
+   ((dlink *)(((char *)item)+loffset))->next = next;
+}
+
+
+
 inline bool dlist::empty() const
 {
    return head == NULL;
@@ -148,3 +163,25 @@ inline void * dlist::last() const
 {
    return tail;
 }
+
+/*
+ * C string helper routines for dlist   
+ *   The string (char *) is kept in the node
+ *
+ *   Kern Sibbald, February 2007
+ *
+ */
+class dlistString : public dlink
+{
+public:   
+   char *c_str() { return m_str; };
+
+private:
+   char m_str[1];                                
+   /* !!! Don't put anything after this as this space is used
+    *     to hold the string in inline
+    */
+};
+
+extern dlistString *new_dlistString(const char *str, int len);
+extern dlistString *new_dlistString(const char *str);
