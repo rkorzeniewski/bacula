@@ -30,7 +30,7 @@ LIBSRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  md5.c message.c mem_pool.c openssl.c parse_conf.c \
 	  queue.c bregex.c \
 	  res.c rwlock.c scan.c serial.c sha1.c \
-	  signal.c smartall.c tls.c tree.c \
+	  signal.c smartall.c rblist.c tls.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
 	  address_conf.c pythonlib.c
 
@@ -43,7 +43,7 @@ LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  md5.o message.o mem_pool.o openssl.o parse_conf.o \
 	  queue.o bregex.o \
 	  res.o rwlock.o scan.o serial.o sha1.o \
-	  signal.o smartall.o tls.o tree.o \
+	  signal.o smartall.o rblist.o tls.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
 	  address_conf.o pythonlib.o
 

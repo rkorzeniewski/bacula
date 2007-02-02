@@ -41,6 +41,7 @@ Document:
  
 
 Priority:
+- Why doesn't @"xxx abc" work in a conf file?
 - Figure out some way to "automatically" backup conf changes.
 - Look at using posix_fadvise(2) for backups -- see bug #751.
   Possibly add the code at findlib/bfile.c:795

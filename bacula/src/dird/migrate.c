@@ -1002,6 +1002,9 @@ static bool regex_find_jobids(JCR *jcr, idpkt *ids, const char *query1,
 
 bail_out:
    Dmsg2(dbglevel, "Count=%d Jobids=%s\n", ids->count, ids->list);
+   foreach_dlist(item, item_chain) {
+      free(item->item);
+   }
    delete item_chain;
    return ok;
 }

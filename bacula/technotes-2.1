@@ -1,7 +1,32 @@
               Technical notes on version 2.1
 
 General:
-28Jan08 
+02Feb07
+kes  Fix memory leak with storage ids in cats/sql_get.c
+kes  Terminate watchdog earlier to avoid reference to released
+     memory -- reported by Jason Austin.
+kes  Move closing the database from jobq.c to the director daemon
+     termination routine. This fixes memory leaks for shadow jobs
+     (i.e. migration jobs).
+kes  Free up the unique jobid chain items in migrate.c.  This fixes
+     a memory leak problem.
+kes  Convert some ugly looking for statements to use foreach_alist
+     in findlib/find.c.  This will facilitate converting the structures
+     to use dlist (for large include/exclude lists).
+kes  Fix a bug in the btree.c and btree.h routines, then rename them
+     rblist and add them to be built in src/lib.  Include some new
+     methods written by Rudolf Cejka that make the code more readable
+     (hides some of the ugly casting).
+kes  Add set_next() and set_prev() methods which make the code much more 
+     readable. Also add a new dlistString class that facilitates storing
+     strings in dlists.  To be used in the large include/exclude lists.
+kes  Make some trivial modifications to lib/tree.h that use rblist
+     rather than dlist for storing the tree links. This was suggested
+     by Rudolf Cejka.  The result of this is that the restore tree now
+     uses red-black binary trees rather than simple linked lists. This
+     should give rather dramatic speed improvements for directories
+     contining large numbers of directories/files (more than 10000).
+28Jan07 
 kes  Fix maxruntime bug #621.
 26Jan07
 ebl  Implement the include JobID in spool file name project.

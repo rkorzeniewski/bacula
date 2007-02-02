@@ -1,18 +1,7 @@
 /*
- *  Bacula doubly linked list routines.
- *
- *    dlist is a doubly linked list with the links being in the
- *       list data item.
- *
- *   Kern Sibbald, July MMIII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -36,6 +25,17 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula doubly linked list routines.
+ *
+ *    dlist is a doubly linked list with the links being in the
+ *       list data item.
+ *
+ *   Kern Sibbald, July MMIII
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 
@@ -48,10 +48,10 @@
  */
 void dlist::append(void *item)
 {
-   ((dlink *)(((char *)item)+loffset))->next = NULL;
-   ((dlink *)(((char *)item)+loffset))->prev = tail;
+   set_next(item, NULL);
+   set_prev(item, tail);
    if (tail) {
-      ((dlink *)(((char *)tail)+loffset))->next = item;
+      set_next(tail, item);
    }
    tail = item;
    if (head == NULL) {                /* if empty list, */
@@ -65,10 +65,10 @@ void dlist::append(void *item)
  */
 void dlist::prepend(void *item)
 {
-   ((dlink *)(((char *)item)+loffset))->next = head;
-   ((dlink *)(((char *)item)+loffset))->prev = NULL;
+   set_next(item, head);
+   set_prev(item, NULL);
    if (head) {
-      ((dlink *)(((char *)head)+loffset))->prev = item;
+      set_prev(head, item);
    }
    head = item;
    if (tail == NULL) {                /* if empty list, */
@@ -81,11 +81,11 @@ void dlist::insert_before(void *item, void *where)
 {
    dlink *where_link = (dlink *)((char *)where+loffset);
 
-   ((dlink *)(((char *)item)+loffset))->next = where;
-   ((dlink *)(((char *)item)+loffset))->prev = where_link->prev;
+   set_next(item, where);
+   set_prev(item, where_link->prev);
 
    if (where_link->prev) {
-      ((dlink *)(((char *)(where_link->prev))+loffset))->next = item;
+      set_next(where_link->prev, item);
    }
    where_link->prev = item;
    if (head == where) {
@@ -98,11 +98,11 @@ void dlist::insert_after(void *item, void *where)
 {
    dlink *where_link = (dlink *)((char *)where+loffset);
 
-   ((dlink *)(((char *)item)+loffset))->next = where_link->next;
-   ((dlink *)(((char *)item)+loffset))->prev = where;
+   set_next(item, where_link->next);
+   set_prev(item, where);
 
    if (where_link->next) {
-      ((dlink *)(((char *)(where_link->next))+loffset))->prev = item;
+      set_prev(where_link->next, item);
    }
    where_link->next = item;
    if (tail == where) {
@@ -294,7 +294,7 @@ void dlist::remove(void *item)
    if (item == head) {
       head = ilink->next;
       if (head) {
-         ((dlink *)(((char *)head)+loffset))->prev = NULL;
+         set_prev(head, NULL);
       }
       if (item == tail) {
          tail = ilink->prev;
@@ -302,13 +302,13 @@ void dlist::remove(void *item)
    } else if (item == tail) {
       tail = ilink->prev;
       if (tail) {
-         ((dlink *)(((char *)tail)+loffset))->next = NULL;
+         set_next(tail, NULL);
       }
    } else {
       xitem = ilink->next;
-      ((dlink *)(((char *)xitem)+loffset))->prev = ilink->prev;
+      set_prev(xitem, ilink->prev);
       xitem = ilink->prev;
-      ((dlink *)(((char *)xitem)+loffset))->next = ilink->next;
+      set_next(xitem, ilink->next);
    }
    num_items--;
    if (num_items == 0) {
@@ -345,7 +345,20 @@ void dlist::destroy()
    head = tail = NULL;
 }
 
+/* String helpers for dlist usage */
 
+dlistString *new_dlistString(const char *str)
+{
+   return new_dlistString(str, strlen(str));
+}
+
+dlistString *new_dlistString(const char *str, int len)
+{
+   dlistString *node;
+   node = (dlistString *)malloc(sizeof(dlistString) + len);
+   bstrncpy(node->c_str(), str, len);
+   return node;
+}
 
 #ifdef TEST_PROGRAM
 
@@ -373,6 +386,7 @@ int main()
    MYJCR *jcr1;
    MYJCR *save_jcr = NULL;
    MYJCR *next_jcr;
+   int count;
 
    jcr_chain = (dlist *)malloc(sizeof(dlist));
    jcr_chain->init(jcr, &jcr->link);
@@ -406,6 +420,10 @@ int main()
    jcr_chain->destroy();
    free(jcr_chain);
 
+   /* The following may seem a bit odd, but we create a chaing
+    *  of jcr objects.  Within a jcr object, there is a buf
+    *  that points to a malloced string containing data   
+    */
    jcr_chain = New(dlist(jcr, &jcr->link));
    printf("append 20 items 0-19\n");
    for (int i=0; i<20; i++) {
@@ -442,7 +460,7 @@ int main()
 #define CNT 26
    printf("append %d items\n", CNT*CNT*CNT);
    strcpy(buf, "ZZZ");
-   int count = 0;
+   count = 0;
    for (int i=0; i<CNT; i++) {
       for (int j=0; j<CNT; j++) {
          for (int k=0; k<CNT; k++) {
@@ -498,6 +516,39 @@ int main()
    }
    delete jcr_chain;
 
+   /* Finally, do a test using the dlistString string helper, which
+    *  allocates a dlist node and stores the string directly in
+    *  it.
+    */
+   dlist chain;
+   dlistString *node;
+#define CNT 26
+   printf("append %d dlistString items\n", CNT*CNT*CNT);
+   strcpy(buf, "ZZZ");
+   count = 0;
+   for (int i=0; i<CNT; i++) {
+      for (int j=0; j<CNT; j++) {
+         for (int k=0; k<CNT; k++) {
+            count++;
+            if ((count & 0x3FF) == 0) {
+               Dmsg1(000, "At %d\n", count);
+            }
+            node = new_dlistString(buf);
+            chain.append(node);
+            buf[1]--;
+         }
+         buf[1] = 'Z';
+         buf[2]--;
+      }
+      buf[2] = 'Z';
+      buf[0]--;
+   }
+   printf("dlistString items appended, walking chain\n");
+   foreach_dlist(node, &chain) {
+      printf("%s\n", node->c_str());
+   }
+   printf("destroy dlistString chain\n");
+   chain.destroy();
 
    sm_dump(false);
 
