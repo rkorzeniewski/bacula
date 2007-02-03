@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-01-04 09:52+0100\n"
+"POT-Creation-Date: 2007-01-12 17:30+0100\n"
 "PO-Revision-Date: 2005-08-08 17:50+0200\n"
 "Last-Translator:  <fparacchini@alteanet.it>\n"
 "Language-Team: Italian <bacula-devel@lists.sourceforge.net>\n"
@@ -134,8 +134,8 @@ msgid ""
 msgstr ""
 
 #: src/cats/sql.c:235 src/cats/sql.c:242 src/cats/sql_create.c:792
-#: src/cats/sql_get.c:186 src/cats/sql_get.c:237 src/cats/sql_get.c:592
-#: src/cats/sql_get.c:667 src/cats/sql_get.c:898
+#: src/cats/sql_get.c:186 src/cats/sql_get.c:237 src/cats/sql_get.c:595
+#: src/cats/sql_get.c:670 src/cats/sql_get.c:901
 #, c-format
 msgid "error fetching row: %s\n"
 msgstr ""
@@ -416,104 +416,104 @@ msgstr ""
 msgid "No Job found for JobId %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:352 src/cats/sql_get.c:408
+#: src/cats/sql_get.c:355 src/cats/sql_get.c:411
 #, c-format
 msgid "No volumes found for JobId=%d\n"
 msgstr ""
 
-#: src/cats/sql_get.c:358 src/cats/sql_get.c:421
+#: src/cats/sql_get.c:361 src/cats/sql_get.c:424
 #, c-format
 msgid "Error fetching row %d: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:372
+#: src/cats/sql_get.c:375
 #, c-format
 msgid "No Volume for JobId %d found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:508
+#: src/cats/sql_get.c:511
 #, c-format
 msgid "Pool id select failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:545
+#: src/cats/sql_get.c:548
 #, c-format
 msgid "Client id select failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:587
+#: src/cats/sql_get.c:590
 #, c-format
 msgid "More than one Pool!: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:628
+#: src/cats/sql_get.c:631
 msgid "Pool record not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:662
+#: src/cats/sql_get.c:665
 #, c-format
 msgid "More than one Client!: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:679 src/cats/sql_get.c:683
+#: src/cats/sql_get.c:682 src/cats/sql_get.c:686
 msgid "Client record not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:708
+#: src/cats/sql_get.c:711
 #, c-format
 msgid "More than one Counter!: %d\n"
 msgstr ""
 
-#: src/cats/sql_get.c:713
+#: src/cats/sql_get.c:716
 #, c-format
 msgid "error fetching Counter row: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:733
+#: src/cats/sql_get.c:736
 #, c-format
 msgid "Counter record: %s not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:769
+#: src/cats/sql_get.c:772
 #, c-format
 msgid "Error got %s FileSets but expected only one!\n"
 msgstr ""
 
-#: src/cats/sql_get.c:774
+#: src/cats/sql_get.c:777
 #, c-format
 msgid "FileSet record \"%s\" not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:784
+#: src/cats/sql_get.c:787
 msgid "FileSet record not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:841
+#: src/cats/sql_get.c:844
 #, c-format
 msgid "Media id select failed: ERR=%s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:893
+#: src/cats/sql_get.c:896
 #, c-format
 msgid "More than one Volume!: %s\n"
 msgstr ""
 
-#: src/cats/sql_get.c:946
+#: src/cats/sql_get.c:949
 #, c-format
 msgid "Media record MediaId=%s not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:949
+#: src/cats/sql_get.c:952
 #, c-format
 msgid "Media record for Volume \"%s\" not found.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:956
+#: src/cats/sql_get.c:959
 #, c-format
 msgid "Media record for MediaId=%u not found in Catalog.\n"
 msgstr ""
 
-#: src/cats/sql_get.c:959
+#: src/cats/sql_get.c:962
 #, c-format
 msgid "Media record for Vol=%s not found in Catalog.\n"
 msgstr ""
@@ -744,7 +744,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/dird/backup.c:87 src/dird/job.c:937 src/dird/job.c:976
+#: src/dird/backup.c:87 src/dird/job.c:940 src/dird/job.c:986
 #: src/dird/migrate.c:229 src/dird/migrate.c:230
 msgid "Pool resource"
 msgstr ""
@@ -1649,7 +1649,7 @@ msgstr ""
 msgid "Cannot open included file: %s. ERR=%s\n"
 msgstr ""
 
-#: src/dird/fd_cmds.c:468 src/filed/job.c:1771
+#: src/dird/fd_cmds.c:468 src/filed/job.c:1772
 #, c-format
 msgid "Could not open bootstrap file %s: ERR=%s\n"
 msgstr ""
@@ -1767,7 +1767,7 @@ msgstr ""
 msgid "Could not open database \"%s\".\n"
 msgstr ""
 
-#: src/dird/job.c:145 src/dird/job.c:151 src/dird/job.c:969
+#: src/dird/job.c:145 src/dird/job.c:151 src/dird/job.c:966 src/dird/job.c:978
 #: src/dird/ua_cmds.c:690 src/dird/ua_cmds.c:1340 src/dird/ua_status.c:293
 msgid "unknown source"
 msgstr ""
@@ -1790,99 +1790,99 @@ msgstr ""
 msgid "Failed to connect to File daemon.\n"
 msgstr ""
 
-#: src/dird/job.c:394 src/dird/job.c:396 src/dird/job.c:940 src/dird/job.c:974
-#: src/dird/job.c:983
+#: src/dird/job.c:394 src/dird/job.c:396 src/dird/job.c:943 src/dird/job.c:984
+#: src/dird/job.c:993
 msgid "Job resource"
 msgstr ""
 
-#: src/dird/job.c:411 src/dird/ua_cmds.c:696 src/dird/ua_cmds.c:1354
+#: src/dird/job.c:409 src/dird/ua_cmds.c:696 src/dird/ua_cmds.c:1354
 #: src/dird/ua_label.c:753
 msgid "Failed to connect to Storage daemon.\n"
 msgstr ""
 
-#: src/dird/job.c:456
+#: src/dird/job.c:454
 msgid "Max wait time exceeded. Job canceled.\n"
 msgstr ""
 
-#: src/dird/job.c:461
+#: src/dird/job.c:459
 msgid "Max run time exceeded. Job canceled.\n"
 msgstr ""
 
-#: src/dird/job.c:555 src/dird/job.c:604
+#: src/dird/job.c:553 src/dird/job.c:602
 #, c-format
 msgid "Unhandled job status code %d\n"
 msgstr ""
 
-#: src/dird/job.c:630 src/dird/ua_output.c:630
+#: src/dird/job.c:628 src/dird/ua_output.c:630
 #, c-format
 msgid "Pool %s not in database. %s"
 msgstr ""
 
-#: src/dird/job.c:634 src/dird/ua_output.c:638
+#: src/dird/job.c:632 src/dird/ua_output.c:638
 #, c-format
 msgid "Pool %s created in database.\n"
 msgstr ""
 
-#: src/dird/job.c:643 src/dird/job.c:927
+#: src/dird/job.c:641 src/dird/job.c:930
 msgid "Run pool override"
 msgstr ""
 
-#: src/dird/job.c:653
+#: src/dird/job.c:651
 msgid "Run FullPool override"
 msgstr ""
 
-#: src/dird/job.c:655
+#: src/dird/job.c:653
 msgid "Job FullPool override"
 msgstr ""
 
-#: src/dird/job.c:663
+#: src/dird/job.c:661
 msgid "Run IncPool override"
 msgstr ""
 
-#: src/dird/job.c:665
+#: src/dird/job.c:663
 msgid "Job IncPool override"
 msgstr ""
 
-#: src/dird/job.c:673
+#: src/dird/job.c:671
 msgid "Run DiffPool override"
 msgstr ""
 
-#: src/dird/job.c:675
+#: src/dird/job.c:673
 msgid "Job DiffPool override"
 msgstr ""
 
-#: src/dird/job.c:700 src/stored/bscan.c:962
+#: src/dird/job.c:698 src/stored/bscan.c:962
 #, c-format
 msgid "Could not create Client record. ERR=%s\n"
 msgstr ""
 
-#: src/dird/job.c:736
+#: src/dird/job.c:734
 msgid "FileSet MD5 digest not found.\n"
 msgstr ""
 
-#: src/dird/job.c:741
+#: src/dird/job.c:739
 #, c-format
 msgid "Could not create FileSet \"%s\" record. ERR=%s\n"
 msgstr ""
 
-#: src/dird/job.c:781
+#: src/dird/job.c:779
 #, c-format
 msgid "Error updating job record. %s"
 msgstr ""
 
-#: src/dird/job.c:932
+#: src/dird/job.c:935
 msgid "Run storage override"
 msgstr ""
 
-#: src/dird/job.c:1045 src/dird/ua_run.c:389
+#: src/dird/job.c:1055 src/dird/ua_run.c:389
 msgid "No storage specified.\n"
 msgstr ""
 
-#: src/dird/job.c:1206
+#: src/dird/job.c:1216
 msgid "Could not start clone job.\n"
 msgstr ""
 
-#: src/dird/job.c:1208
+#: src/dird/job.c:1218
 #, c-format
 msgid "Clone JobId %d started.\n"
 msgstr ""
@@ -2179,7 +2179,7 @@ msgstr ""
 msgid "Storage from Pool's NextPool resource"
 msgstr ""
 
-#: src/dird/msgchan.c:99 src/filed/job.c:1247
+#: src/dird/msgchan.c:99 src/filed/job.c:1248
 #: src/tray-monitor/tray-monitor.c:888
 msgid "Storage daemon"
 msgstr ""
@@ -2790,7 +2790,7 @@ msgstr ""
 msgid "Warning Job %s is not running. Continuing anyway ...\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:441 src/filed/status.c:197 src/stored/status.c:421
+#: src/dird/ua_cmds.c:441 src/filed/status.c:197 src/stored/status.c:424
 msgid "No Jobs running.\n"
 msgstr ""
 
@@ -3619,7 +3619,7 @@ msgid "Enter a list of directories to restore for found JobIds"
 msgstr ""
 
 #: src/dird/ua_restore.c:329 src/dird/ua_status.c:732 src/filed/status.c:254
-#: src/stored/status.c:495 src/wx-console/wxbconfigpanel.cpp:212
+#: src/stored/status.c:498 src/wx-console/wxbconfigpanel.cpp:212
 msgid "Cancel"
 msgstr ""
 
@@ -4163,27 +4163,27 @@ msgid "Levels:\n"
 msgstr ""
 
 #: src/dird/ua_run.c:782 src/filed/status.c:371 src/lib/util.c:329
-#: src/stored/status.c:534
+#: src/stored/status.c:537
 msgid "Base"
 msgstr ""
 
 #: src/dird/ua_run.c:783 src/filed/status.c:373 src/lib/util.c:331
-#: src/stored/status.c:536
+#: src/stored/status.c:539
 msgid "Full"
 msgstr ""
 
 #: src/dird/ua_run.c:784 src/filed/status.c:376 src/lib/util.c:334
-#: src/stored/status.c:539
+#: src/stored/status.c:542
 msgid "Incremental"
 msgstr ""
 
 #: src/dird/ua_run.c:785 src/filed/status.c:379 src/lib/util.c:337
-#: src/stored/status.c:542
+#: src/stored/status.c:545
 msgid "Differential"
 msgstr ""
 
 #: src/dird/ua_run.c:786 src/filed/status.c:382 src/lib/util.c:340
-#: src/stored/status.c:545
+#: src/stored/status.c:548
 msgid "Since"
 msgstr ""
 
@@ -4196,7 +4196,7 @@ msgid "Initialize Catalog"
 msgstr ""
 
 #: src/dird/ua_run.c:809 src/filed/status.c:385 src/lib/util.c:343
-#: src/stored/status.c:548
+#: src/stored/status.c:551
 msgid "Verify Catalog"
 msgstr ""
 
@@ -4761,13 +4761,13 @@ msgstr ""
 msgid "No Terminated Jobs.\n"
 msgstr ""
 
-#: src/dird/ua_status.c:689 src/filed/status.c:214 src/stored/status.c:456
+#: src/dird/ua_status.c:689 src/filed/status.c:214 src/stored/status.c:459
 msgid ""
 "\n"
 "Terminated Jobs:\n"
 msgstr ""
 
-#: src/dird/ua_status.c:690 src/filed/status.c:222 src/stored/status.c:463
+#: src/dird/ua_status.c:690 src/filed/status.c:222 src/stored/status.c:466
 msgid " JobId  Level    Files      Bytes   Status   Finished        Name \n"
 msgstr ""
 
@@ -4776,30 +4776,30 @@ msgid "====================================================================\n"
 msgstr ""
 
 #: src/dird/ua_status.c:722 src/filed/status.c:244 src/lib/util.c:179
-#: src/stored/status.c:485
+#: src/stored/status.c:488
 msgid "Created"
 msgstr ""
 
 #: src/dird/ua_status.c:726 src/filed/status.c:248 src/lib/util.c:192
-#: src/lib/util.c:259 src/stored/status.c:489
+#: src/lib/util.c:259 src/stored/status.c:492
 msgid "Error"
 msgstr ""
 
-#: src/dird/ua_status.c:729 src/filed/status.c:251 src/stored/status.c:492
+#: src/dird/ua_status.c:729 src/filed/status.c:251 src/stored/status.c:495
 msgid "Diffs"
 msgstr ""
 
 #: src/dird/ua_status.c:735 src/filed/status.c:257 src/lib/util.c:188
-#: src/lib/util.c:255 src/stored/btape.c:1187 src/stored/status.c:498
+#: src/lib/util.c:255 src/stored/btape.c:1187 src/stored/status.c:501
 #: src/wx-console/wxbconfigpanel.cpp:201
 msgid "OK"
 msgstr ""
 
-#: src/dird/ua_status.c:738 src/filed/status.c:260 src/stored/status.c:501
+#: src/dird/ua_status.c:738 src/filed/status.c:260 src/stored/status.c:504
 msgid "Other"
 msgstr ""
 
-#: src/dird/ua_status.c:741 src/filed/status.c:271 src/stored/status.c:512
+#: src/dird/ua_status.c:741 src/filed/status.c:271 src/stored/status.c:515
 #, c-format
 msgid "%6d  %-6s %8s %10s  %-7s  %-8s %s\n"
 msgstr ""
@@ -6149,151 +6149,151 @@ msgstr ""
 msgid "Cannot open FileSet input file: %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:731
+#: src/filed/job.c:733
 #, c-format
 msgid "REGEX %s compile error. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:793
+#: src/filed/job.c:795
 #, c-format
 msgid "Invalid FileSet command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1008 src/findlib/match.c:199 src/tools/testfind.c:635
+#: src/filed/job.c:1009 src/findlib/match.c:199 src/tools/testfind.c:635
 #, c-format
 msgid "Unknown include/exclude option: %c\n"
 msgstr ""
 
-#: src/filed/job.c:1077 src/stored/fd_cmds.c:348
+#: src/filed/job.c:1078 src/stored/fd_cmds.c:348
 #, c-format
 msgid "Could not create bootstrap file %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1179
+#: src/filed/job.c:1180
 #, c-format
 msgid "DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"
 msgstr ""
 
-#: src/filed/job.c:1187
+#: src/filed/job.c:1188
 #, c-format
 msgid "Unknown backup level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1199
+#: src/filed/job.c:1200
 #, c-format
 msgid "Bad level command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1220
+#: src/filed/job.c:1221
 #, c-format
 msgid "Bad session command: %s"
 msgstr ""
 
-#: src/filed/job.c:1241
+#: src/filed/job.c:1242
 #, c-format
 msgid "Bad storage command: %s"
 msgstr ""
 
-#: src/filed/job.c:1250
+#: src/filed/job.c:1251
 #, c-format
 msgid "Failed to connect to Storage daemon: %s:%d\n"
 msgstr ""
 
-#: src/filed/job.c:1262
+#: src/filed/job.c:1263
 msgid "Failed to authenticate Storage daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1300
+#: src/filed/job.c:1301
 msgid "Cannot contact Storage daemon\n"
 msgstr ""
 
-#: src/filed/job.c:1318
+#: src/filed/job.c:1319
 #, c-format
 msgid "Bad response to append open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1323
+#: src/filed/job.c:1324
 msgid "Bad response from stored to open command\n"
 msgstr ""
 
-#: src/filed/job.c:1350
+#: src/filed/job.c:1351
 #, c-format
 msgid "Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"
 msgstr ""
 
-#: src/filed/job.c:1352
+#: src/filed/job.c:1353
 msgid "Generate VSS snapshots failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1359
+#: src/filed/job.c:1360
 #, c-format
 msgid ""
 "Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on "
 "this drive.\n"
 msgstr ""
 
-#: src/filed/job.c:1366
+#: src/filed/job.c:1367
 #, c-format
 msgid "VSS Writer (PrepareForBackup): %s\n"
 msgstr ""
 
-#: src/filed/job.c:1371
+#: src/filed/job.c:1372
 msgid "No drive letters found for generating VSS snapshots.\n"
 msgstr ""
 
-#: src/filed/job.c:1375
+#: src/filed/job.c:1376
 #, c-format
 msgid "VSS was not initialized properly. VSS support is disabled. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1433
+#: src/filed/job.c:1434
 msgid "Append Close with SD failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1437
+#: src/filed/job.c:1438
 #, c-format
 msgid "Bad status %d returned from Storage Daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1455
+#: src/filed/job.c:1456
 #, c-format
 msgid "VSS Writer (BackupComplete): %s\n"
 msgstr ""
 
-#: src/filed/job.c:1483
+#: src/filed/job.c:1484
 #, c-format
 msgid "2994 Bad verify command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1498 src/filed/job.c:1537
+#: src/filed/job.c:1499 src/filed/job.c:1538
 #, c-format
 msgid "2994 Bad verify level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1579
+#: src/filed/job.c:1580
 #, c-format
 msgid "Bad replace command. CMD=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1658
+#: src/filed/job.c:1659
 msgid "Improper calling sequence.\n"
 msgstr ""
 
-#: src/filed/job.c:1678
+#: src/filed/job.c:1679
 #, c-format
 msgid "Bad response to SD read open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1683
+#: src/filed/job.c:1684
 msgid "Bad response from stored to read open command\n"
 msgstr ""
 
-#: src/filed/job.c:1747
+#: src/filed/job.c:1748
 #, c-format
 msgid "Comm error with SD. bad response to %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1750
+#: src/filed/job.c:1751
 #, c-format
 msgid "Bad response to %s command. Wanted %s, got %s\n"
 msgstr ""
@@ -6563,7 +6563,7 @@ msgstr ""
 msgid "    %s%s Job started: %s\n"
 msgstr ""
 
-#: src/filed/status.c:169 src/stored/status.c:398
+#: src/filed/status.c:169 src/stored/status.c:401
 #, c-format
 msgid "    Files=%s Bytes=%s Bytes/sec=%s\n"
 msgstr ""
@@ -6582,8 +6582,8 @@ msgstr ""
 msgid "    SDSocket closed.\n"
 msgstr ""
 
-#: src/filed/status.c:326 src/filed/status.c:350 src/stored/status.c:610
-#: src/stored/status.c:633
+#: src/filed/status.c:326 src/filed/status.c:350 src/stored/status.c:613
+#: src/stored/status.c:636
 #, c-format
 msgid "Bad .status command: %s\n"
 msgstr ""
@@ -6596,23 +6596,23 @@ msgstr ""
 msgid "2900 Bad .status command, wrong argument.\n"
 msgstr ""
 
-#: src/filed/status.c:388 src/stored/status.c:551
+#: src/filed/status.c:388 src/stored/status.c:554
 msgid "Init Catalog"
 msgstr ""
 
-#: src/filed/status.c:391 src/stored/status.c:554
+#: src/filed/status.c:391 src/stored/status.c:557
 msgid "Volume to Catalog"
 msgstr ""
 
-#: src/filed/status.c:394 src/stored/status.c:557
+#: src/filed/status.c:394 src/stored/status.c:560
 msgid "Disk to Catalog"
 msgstr ""
 
-#: src/filed/status.c:397 src/stored/status.c:560
+#: src/filed/status.c:397 src/stored/status.c:563
 msgid "Data"
 msgstr ""
 
-#: src/filed/status.c:403 src/lib/util.c:361 src/stored/status.c:566
+#: src/filed/status.c:403 src/lib/util.c:361 src/stored/status.c:569
 msgid "Unknown Job Level"
 msgstr ""
 
@@ -13345,50 +13345,55 @@ msgid ""
 "    pool=\"%s\" device=\"%s\"\n"
 msgstr ""
 
-#: src/stored/status.c:406
+#: src/stored/status.c:392
+#, c-format
+msgid "    spooling=%d despooling=%d despool_wait=%d\n"
+msgstr ""
+
+#: src/stored/status.c:409
 #, c-format
 msgid "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n"
 msgstr ""
 
-#: src/stored/status.c:412
+#: src/stored/status.c:415
 msgid "    FDSocket closed\n"
 msgstr ""
 
-#: src/stored/status.c:434
+#: src/stored/status.c:437
 msgid ""
 "\n"
 "Jobs waiting to reserve a drive:\n"
 msgstr ""
 
-#: src/stored/status.c:465
+#: src/stored/status.c:468
 msgid "===================================================================\n"
 msgstr ""
 
-#: src/stored/status.c:611
+#: src/stored/status.c:614
 msgid "3900 Bad .status command, missing argument.\n"
 msgstr ""
 
-#: src/stored/status.c:634
+#: src/stored/status.c:637
 msgid "3900 Bad .status command, wrong argument.\n"
 msgstr ""
 
-#: src/stored/status.c:648
+#: src/stored/status.c:651
 msgid "Bacula Storage: Idle"
 msgstr ""
 
-#: src/stored/status.c:659
+#: src/stored/status.c:662
 msgid "Bacula Storage: Running"
 msgstr ""
 
-#: src/stored/status.c:673
+#: src/stored/status.c:676
 msgid "Bacula Storage: Last Job Canceled"
 msgstr ""
 
-#: src/stored/status.c:677
+#: src/stored/status.c:680
 msgid "Bacula Storage: Last Job Failed"
 msgstr ""
 
-#: src/stored/status.c:681
+#: src/stored/status.c:684
 msgid "Bacula Storage: Last Job had Warnings"
 msgstr ""
 
