@@ -16,6 +16,7 @@ RESOURCES = main.qrc
 FORMS += main.ui
 # Label dialog
 FORMS += label.ui
+FORMS += console/console.ui
 
 
 HEADERS += mainwin.h bat.h bat_conf.h 

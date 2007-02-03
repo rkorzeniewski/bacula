@@ -37,15 +37,17 @@
 #include "bat.h"
 #include "console.h"
 
-Console::Console()
+Console::Console(QStackedWidget *parent)
 {
    QFont font;
    QTreeWidgetItem *item, *topItem;
    QTreeWidget *treeWidget = mainWin->treeWidget;
 
+   setupUi(this);
+   parent->addWidget(this);
    m_sock = NULL;
    m_at_prompt = false;
-   m_textEdit = mainWin->textEdit;   /* our console screen */
+   m_textEdit = textEdit;   /* our console screen */
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
@@ -85,7 +87,7 @@ void Console::connect()
 {
    JCR jcr;
 
-   m_textEdit = mainWin->textEdit;   /* our console screen */
+   m_textEdit = textEdit;   /* our console screen */
 
    if (!m_dir) {          
       mainWin->set_status("No Director found.");

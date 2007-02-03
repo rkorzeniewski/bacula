@@ -110,96 +110,8 @@
         </size>
        </property>
        <property name="currentIndex" >
-        <number>0</number>
+        <number>-1</number>
        </property>
-       <widget class="QWidget" name="pageConsole" >
-        <layout class="QGridLayout" >
-         <property name="margin" >
-          <number>9</number>
-         </property>
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QTextEdit" name="textEdit" >
-           <property name="sizePolicy" >
-            <sizepolicy>
-             <hsizetype>7</hsizetype>
-             <vsizetype>7</vsizetype>
-             <horstretch>200</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize" >
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="sizeIncrement" >
-            <size>
-             <width>1</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="focusPolicy" >
-            <enum>Qt::NoFocus</enum>
-           </property>
-           <property name="acceptDrops" >
-            <bool>false</bool>
-           </property>
-           <property name="toolTip" >
-            <string comment="Console Window" />
-           </property>
-           <property name="statusTip" >
-            <string comment="Console Window" />
-           </property>
-           <property name="whatsThis" >
-            <string comment="Console Window" />
-           </property>
-           <property name="horizontalScrollBarPolicy" >
-            <enum>Qt::ScrollBarAsNeeded</enum>
-           </property>
-           <property name="documentTitle" >
-            <string comment="Console Window" />
-           </property>
-           <property name="lineWrapMode" >
-            <enum>QTextEdit::NoWrap</enum>
-           </property>
-           <property name="readOnly" >
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="Restore" >
-        <layout class="QGridLayout" >
-         <property name="margin" >
-          <number>9</number>
-         </property>
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QTabWidget" name="tabWidget" >
-           <property name="currentIndex" >
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="restore_1" >
-            <attribute name="title" >
-             <string>Restore 1</string>
-            </attribute>
-           </widget>
-           <widget class="QWidget" name="restore_2" >
-            <attribute name="title" >
-             <string>Restore 2</string>
-            </attribute>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
       </widget>
      </widget>
     </item>
@@ -292,8 +204,6 @@
     <number>4</number>
    </attribute>
    <addaction name="actionConnect" />
-   <addaction name="actionSave" />
-   <addaction name="actionPrint" />
    <addaction name="actionStatusDir" />
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
