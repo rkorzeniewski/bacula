@@ -36,6 +36,7 @@
 #include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "console.h"
+#include "restore.h"
 
 Console::Console(QStackedWidget *parent)
 {
@@ -51,6 +52,9 @@ Console::Console(QStackedWidget *parent)
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
+   bRestore *restore = new bRestore(parent);
+   restore->setupUi(restore);
+   parent->addWidget(restore);
 
    /* Just take the first Director */
    LockRes();
