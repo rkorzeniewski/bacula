@@ -3,18 +3,19 @@
 #define _CONSOLE_H_
 
 #include <QtGui>
+#include "ui_console.h"
 
 class DIRRES;
 class BSOCK;
 class JCR;
 class CONRES;
 
-class Console : public QWidget
+class Console : public QWidget, public Ui::ConsoleForm
 {
    Q_OBJECT 
 
 public:
-   Console();
+   Console(QStackedWidget *parent);
    void set_text(const char *buf);
    void set_text(const QString buf);
    void set_textf(const char *fmt, ...);

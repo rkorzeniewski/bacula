@@ -39,11 +39,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
-   stackedWidget->setCurrentIndex(0);
 
    statusBar()->showMessage("Director not connected. Click on connect button.");
 
-   m_console = new Console();
+   m_console = new Console(stackedWidget);
+   stackedWidget->setCurrentIndex(0);
 
    lineEdit->setFocus();
 
