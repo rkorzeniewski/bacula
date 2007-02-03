@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = bat
 DEPENDPATH += .
-INCLUDEPATH += . ./console
+INCLUDEPATH += . ./console ./restore
 INCLUDEPATH += ..
 LIBS        += -L../lib
 LIBS        += -lbac
@@ -17,6 +17,7 @@ FORMS += main.ui
 # Label dialog
 FORMS += label.ui
 FORMS += console/console.ui
+FORMS += restore/brestore.ui
 
 
 HEADERS += mainwin.h bat.h bat_conf.h 
@@ -25,5 +26,9 @@ SOURCES += main.cpp bat_conf.cpp mainwin.cpp
 # Console
 HEADERS += console/console.h
 SOURCES += console/authenticate.cpp console/console.cpp
+
+# Restore
+HEADERS += restore/restore.h
+SOURCES += restore/brestore.cpp
 
 # Label dialog
