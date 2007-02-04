@@ -93,7 +93,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
                  p_CreateFileA?"":"!",
                  p_CreateFileW?"":"!");
       sendit(msg, len, arg);
-      len = Mmsg(msg, " %sWUL,%sWMKD,%sWOP,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
+      len = Mmsg(msg, " %sWUL,%sWMKD,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
                  p_wunlink?"":"!",
                  p_wmkdir?"":"!",
                  p_GetFileAttributesA?"":"!",
