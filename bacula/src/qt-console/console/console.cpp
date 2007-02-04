@@ -297,27 +297,3 @@ void Console::read_dir(int fd)
    }
    return;
 }
-
-#ifdef xxx
-
-static gint tag;
-
-void start_director_reader(gpointer data)
-{
-
-   if (director_reader_running || !UA_sock) {
-      return;
-   }
-   tag = gdk_input_add(UA_sock->fd, GDK_INPUT_READ, read_director, NULL);
-   director_reader_running = true;
-}
-
-void stop_director_reader(gpointer data)
-{
-   if (!director_reader_running) {
-      return;
-   }
-   gdk_input_remove(tag);
-   director_reader_running = false;
-}
-#endif

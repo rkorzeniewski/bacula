@@ -52,6 +52,34 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    readSettings();
 }
 
+#ifdef xxx
+   job_list      = get_and_fill_combo(run_dialog, "combo_job", ".jobs");
+   client_list   = get_and_fill_combo(run_dialog, "combo_client", ".clients");
+   fileset_list  = get_and_fill_combo(run_dialog, "combo_fileset", ".filesets");
+   messages_list = get_and_fill_combo(run_dialog, "combo_messages", ".msgs");
+   pool_list     = get_and_fill_combo(run_dialog, "combo_pool", ".pools");
+   storage_list  = get_and_fill_combo(run_dialog, "combo_storage", ".storage");
+   type_list     = get_and_fill_combo(run_dialog, "combo_type", ".types");
+   level_list    = get_and_fill_combo(run_dialog, "combo_level", ".levels");
+
+static GList *get_list(char *cmd)
+{
+   GList *options;
+   char *msg;
+
+   options = NULL;
+   write_director(cmd);
+   while (bnet_recv(UA_sock) > 0) {
+      strip_trailing_junk(UA_sock->msg);
+      msg = (char *)malloc(strlen(UA_sock->msg) + 1);
+      strcpy(msg, UA_sock->msg);
+      options = g_list_append(options, msg);
+   }
+   return options;
+
+}
+#endif
+
 void MainWin::createConnections()
 {
    /* Connect signals to slots */

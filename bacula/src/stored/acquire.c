@@ -66,7 +66,7 @@ bool acquire_device_for_read(DCR *dcr)
    dev->block(BST_DOING_ACQUIRE);
 
    if (dev->num_writers > 0) {
-      Jmsg2(jcr, M_FATAL, 0, _("Num_writers=%d not zero. Job %d canceled.\n"), 
+      Jmsg2(jcr, M_FATAL, 0, _("Acquire read: num_writers=%d not zero. Job %d canceled.\n"), 
          dev->num_writers, jcr->JobId);
       goto get_out;
    }
@@ -75,7 +75,7 @@ bool acquire_device_for_read(DCR *dcr)
    vol = jcr->VolList;
    if (!vol) {
       char ed1[50];
-      Jmsg(jcr, M_FATAL, 0, _("No volumes specified. Job %s canceled.\n"), 
+      Jmsg(jcr, M_FATAL, 0, _("No volumes specified for reading. Job %s canceled.\n"), 
          edit_int64(jcr->JobId, ed1));
       goto get_out;
    }
@@ -84,7 +84,7 @@ bool acquire_device_for_read(DCR *dcr)
       vol = vol->next;
    }
    if (!vol) {
-      Jmsg(jcr, M_FATAL, 0, _("Logic error: no next volume. Numvol=%d Curvol=%d\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Logic error: no next volume to read. Numvol=%d Curvol=%d\n"),
          jcr->NumReadVolumes, jcr->CurReadVolume);
       goto get_out;                   /* should not happen */   
    }
@@ -268,7 +268,7 @@ default_path:
       break;
    } /* end for loop */
    if (!ok) {
-      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
+      Jmsg1(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s for reading.\n"),
             dev->print_name());
       goto get_out;
    }
@@ -321,8 +321,8 @@ DCR *acquire_device_for_append(DCR *dcr)
     * With the reservation system, this should not happen
     */
    if (dev->can_read()) {
-      Jmsg1(jcr, M_FATAL, 0, _("Device %s is busy reading.\n"), dev->print_name());
-      Dmsg1(200, "Device %s is busy reading.\n", dev->print_name());
+      Jmsg1(jcr, M_FATAL, 0, _("Want to append, but device %s is busy reading.\n"), dev->print_name());
+      Dmsg1(200, "Want to append but device %s is busy reading.\n", dev->print_name());
       goto get_out;
    }
 
@@ -351,9 +351,9 @@ DCR *acquire_device_for_append(DCR *dcr)
             free_unused_volume(dcr);
          }
          if (dev->num_writers != 0) {
-            Jmsg3(jcr, M_FATAL, 0, _("Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
+            Jmsg3(jcr, M_FATAL, 0, _("Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
-            Dmsg3(200, "Wanted Volume \"%s\", but device %s is busy writing on \"%s\" .\n",  
+            Dmsg3(200, "Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n",  
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
             goto get_out;
          }
