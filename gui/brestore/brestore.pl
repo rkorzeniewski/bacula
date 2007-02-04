@@ -2301,6 +2301,17 @@ sub get_pathid
     return join(',', map { $_->[0] } @$result);
 }
 
+
+sub update_cache
+{
+    my ($self) = @_;
+
+    my $query = "SELECT JobId from Job WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) order by JobId";
+    my $jobs = $self->dbh_selectall_arrayref($query);
+
+    $self->update_brestore_table(map { $_->[0] } @$jobs);
+}
+
 sub get_root
 {
     my ($self, $dir) = @_;
@@ -3215,33 +3226,6 @@ sub list_client
 
 1;
 
-################################################################
-
-package Batch;
-use base qw/DlgResto/;
-
-sub new
-{
-    my ($class, $conf) = @_;
-    my $self = bless {info => $conf}, $class;
-
-    $self->{dbh} = $conf->{dbh};
-
-    return $self;
-}
-
-sub update_cache
-{
-    my ($self) = @_;
-
-    my $query = "SELECT JobId from Job WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) order by JobId";
-    my $jobs = $self->dbh_selectall_arrayref($query);
-
-    $self->{bvfs}->update_brestore_table(map { $_->[0] } @$jobs);
-}
-
-1;
-
 package main;
 
 use Getopt::Long ;
@@ -3267,10 +3251,9 @@ if (! -f $file_conf) {
 }
 
 if ($batch_mod) {
-    my $b = new Batch($p);
+    my $vfs = new Bvfs(conf => $p);
     if ($p->connect_db()) {
-	$b->set_dbh($p->{dbh});
-	$b->update_cache();
+	$vfs->update_cache();
     }
     exit (0);
 }
