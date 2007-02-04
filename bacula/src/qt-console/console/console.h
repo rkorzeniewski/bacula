@@ -26,10 +26,24 @@ public:
    const QFont get_font();
    void writeSettings();
    void readSettings();
+   char *msg();
+   void setEnabled(bool enable) { m_notifier->setEnabled(enable); };
+   QStringList get_list(char *cmd);
+
+   QStringList job_list;
+   QStringList client_list;
+   QStringList fileset_list;
+   QStringList messages_list;
+   QStringList pool_list;
+   QStringList storage_list;
+   QStringList type_list;
+   QStringList level_list;
 
 public slots:
    void connect(void);
    void read_dir(int fd);
+   int read(void);
+   int write(const char *msg);
    void status_dir(void);
    void set_font(void);
 

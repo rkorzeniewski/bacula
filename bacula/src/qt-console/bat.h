@@ -8,6 +8,9 @@
 #include "bat_conf.h"
 #include "jcr.h"
 #include "console.h"
+#include "qstd.h"
+
+using namespace qstd;
 
 extern MainWin *mainWin;
 extern QApplication *app;
