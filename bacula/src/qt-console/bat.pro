@@ -20,8 +20,8 @@ FORMS += console/console.ui
 FORMS += restore/brestore.ui
 
 
-HEADERS += mainwin.h bat.h bat_conf.h 
-SOURCES += main.cpp bat_conf.cpp mainwin.cpp 
+HEADERS += mainwin.h bat.h bat_conf.h qstd.h
+SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
 
 # Console
 HEADERS += console/console.h

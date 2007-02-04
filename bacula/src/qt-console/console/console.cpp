@@ -94,11 +94,11 @@ void Console::connect()
    m_textEdit = textEdit;   /* our console screen */
 
    if (!m_dir) {          
-      mainWin->set_status("No Director found.");
+      mainWin->set_status(" No Director found.");
       return;
    }
    if (m_sock) {
-      mainWin->set_status("Already connected.");
+      mainWin->set_status(" Already connected.");
       return;
    }
 
@@ -139,22 +139,41 @@ void Console::connect()
 
    mainWin->set_status(_(" Initializing ..."));
 
-   bnet_fsend(m_sock, "autodisplay on");
-
    /* Set up input notifier */
    m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
-   /* Give GUI a chance */
-   app->processEvents();
-
-   /*  *** FIXME *** 
-    * Query Directory for .jobs, .clients, .filesets, .msgs,
-    *  .pools, .storage, .types, .levels, ...
-    */
+   job_list = get_list(".jobs");
+   client_list = get_list(".clients");
+   fileset_list = get_list(".filesets");
+   messages_list = get_list(".messages");
+   messages_list = get_list(".pools");
+   messages_list = get_list(".storages");
+   messages_list = get_list(".types");
+   messages_list = get_list(".levels");
 
    mainWin->set_status(_(" Connected"));
    return;
+}
+
+
+/*  
+ * Send a command to the director, and read all the resulting
+ *  output into a list.
+ */
+QStringList Console::get_list(char *cmd)
+{
+   QStringList list;
+   int stat;
+
+   setEnabled(false);
+   write(cmd);
+   while ((stat = read()) > 0) {
+      strip_trailing_junk(msg());
+      list << msg();
+   }
+   setEnabled(true);
+   return list;
 }
 
 
@@ -235,6 +254,13 @@ void Console::update_cursor()
    m_textEdit->ensureCursorVisible();
 }
 
+char *Console::msg()
+{
+   if (m_sock) {
+      return m_sock->msg;
+   }
+   return NULL;
+}
 
 /* Send a command to the Director */
 void Console::write_dir(const char *msg)
@@ -252,6 +278,34 @@ void Console::write_dir(const char *msg)
       QBrush redBrush(Qt::red);
       m_consoleItem->setForeground(0, redBrush);
    }
+}
+
+int Console::write(const char *msg)
+{
+   m_sock->msglen = strlen(msg);
+   pm_strcpy(&m_sock->msg, msg);
+   return bnet_send(m_sock);
+}
+
+/* 
+ * Blocking read from director */
+int Console::read()
+{
+   int stat;
+   if (m_sock) {
+      for (;;) {
+         stat = bnet_wait_data_intr(m_sock, 1);
+         if (stat > 0) {
+            break;
+         } 
+         app->processEvents();
+         if (stat < 0) {
+            return BNET_ERROR;
+         }
+      }
+      return bnet_recv(m_sock);
+   } 
+   return BNET_HARDEOF;
 }
 
 /* Called by signal when the Director has output for us */
