@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
-use strict ;
+
+use strict;
 
 # path to your brestore.glade
 my $glade_file = 'brestore.glade' ;
@@ -69,9 +70,335 @@ use Gtk2::GladeXML;
 use Gtk2::SimpleList;		# easy wrapper for list views
 use Gtk2::Gdk::Keysyms;		# keyboard code constants
 use Data::Dumper qw/Dumper/;
-use DBI;
 my $debug=0;			# can be on brestore.conf
 our ($VERSION) = ('$Revision$' =~ /(\d+\.\d+)/);
+
+package Pref;
+use DBI;
+sub new
+{
+    my ($class, $config_file) = @_;
+    
+    my $self = bless {
+	config_file => $config_file,
+	password => '',		# db passwd
+	username => '',		# db username
+	connection_string => '',# db connection string
+	bconsole => 'bconsole',	# path and arg to bconsole
+	bsr_dest => '',		# destination url for bsr files
+	debug    => 0,		# debug level 0|1
+	use_ok_bkp_only => 1,	# dont use bad backup
+	bweb     => 'http://localhost/cgi-bin/bweb/bweb.pl', # bweb url
+	see_all_versions => 0,  # display all file versions in FileInfo
+	mozilla  => 'mozilla',  # mozilla bin
+	default_restore_job => 'restore', # regular expression to select default
+				   # restore job
+
+	# keywords that are used to fill DlgPref
+	chk_keyword =>  [ qw/use_ok_bkp_only debug see_all_versions/ ],
+        entry_keyword => [ qw/username password bweb mozilla
+			  connection_string default_restore_job
+			  bconsole bsr_dest glade_file/],
+    };
+
+    $self->read_config();
+
+    return $self;
+}
+
+sub read_config
+{
+    my ($self) = @_;
+
+    # We read the parameters. They come from the configuration files
+    my $cfgfile ; my $tmpbuffer;
+    if (open FICCFG, $self->{config_file})
+    {
+	while(read FICCFG,$tmpbuffer,4096)
+	{
+	    $cfgfile .= $tmpbuffer;
+	}
+	close FICCFG;
+	my $refparams;
+	no strict; # I have no idea of the contents of the file
+	eval '$refparams' . " = $cfgfile";
+	use strict;
+	
+	for my $p (keys %{$refparams}) {
+	    $self->{$p} = $refparams->{$p};
+	}
+
+    } else {
+	# TODO : Force dumb default values and display a message
+    }
+}
+
+sub write_config
+{
+    my ($self) = @_;
+    
+    my %parameters;
+
+    for my $k (@{ $self->{entry_keyword} }) { 
+	$parameters{$k} = $self->{$k};
+    }
+
+    for my $k (@{ $self->{chk_keyword} }) { 
+	$parameters{$k} = $self->{$k};
+    }
+
+    if (open FICCFG,">$self->{config_file}")
+    {
+	print FICCFG Data::Dumper->Dump([\%parameters], [qw($parameters)]);
+	close FICCFG;
+    }
+    else
+    {
+	# TODO : Display a message
+    }
+}
+
+sub connect_db
+{
+    my $self = shift ;
+
+    if ($self->{dbh}) {
+	$self->{dbh}->disconnect() ;
+    }
+
+    delete $self->{dbh};
+    delete $self->{error};
+
+    if (not $self->{connection_string})
+    {
+	# The parameters have not been set. Maybe the conf
+	# file is empty for now
+	$self->{error} = "No configuration found for database connection. " .
+	                 "Please set this up.";
+	return 0;
+    }
+    
+    if (not eval {
+	$self->{dbh} = DBI->connect($self->{connection_string}, 
+				    $self->{username},
+				    $self->{password})
+	})
+    {
+	$self->{error} = "Can't open bacula database. " . 
+	                 "Database connect string '" . 
+                         $self->{connection_string} ."' $!";
+	return 0;
+    }
+    $self->{dbh}->{RowCacheSize}=100;
+    return 1;
+}
+
+sub go_bweb
+{    
+    my ($self, $url, $msg) = @_;
+
+    unless ($self->{mozilla} and $self->{bweb}) {
+	new DlgWarn("You must install Bweb and set your mozilla bin to $msg");
+	return -1;
+    }
+
+    if ($^O eq 'MSWin32') {
+	system("start /B $self->{mozilla} \"$self->{bweb}$url\"");
+
+    } elsif (!fork()) {
+	system("$self->{mozilla} -remote 'Ping()'");
+	my $cmd = "$self->{mozilla} '$self->{bweb}$url'";
+	if ($? == 0) {
+	    $cmd = "$self->{mozilla} -remote 'OpenURL($self->{bweb}$url,new-tab)'" ;
+	}
+	exec($cmd);
+	exit 1;
+    } 
+    return ($? == 0);
+}
+
+1;
+
+################################################################
+
+package Bbase;
+
+sub new
+{
+    my ($class, %arg) = @_;
+
+    my $self = bless {
+	conf => $arg{conf},
+    }, $class;
+
+    return $self;
+}
+
+use Data::Dumper;
+
+sub debug
+{
+    my ($self, $what, %arg) = @_;
+    
+    if ($self->{conf}->{debug} and defined $what) {
+	my $level=0;
+	if ($arg{up}) {
+	    $level++;
+	}
+	my $line = (caller($level))[2];
+	my $func = (caller($level+1))[3] || 'main';
+	print "$func:$line\t";  
+	if (ref $what) {
+	    print Data::Dumper::Dumper($what);
+	} elsif ($arg{md5}) {
+	    print "MD5=", md5_base64($what), " str=", $what,"\n";
+	} else {
+	    print $what, "\n";
+	}
+    }
+}
+
+sub dbh_strcat
+{
+    my ($self, @what) = @_;
+    if ($self->{conf}->{connection_string} =~ /dbi:pg/i) {
+	return join(' || ', @what);
+    } else {
+	return 'CONCAT(' . join(',', @what) . ')' ;
+    }
+}
+
+sub dbh_prepare
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{conf}->{dbh}->prepare($query);    
+}
+
+sub dbh_do
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{conf}->{dbh}->do($query);
+}
+
+sub dbh_selectall_arrayref
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{conf}->{dbh}->selectall_arrayref($query);
+}
+
+sub dbh_selectrow_arrayref
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{conf}->{dbh}->selectrow_arrayref($query);
+}
+
+sub dbh
+{
+    my ($self) = @_;
+    return $self->{conf}->{dbh};
+}
+
+1;
+
+################################################################
+# Manage preference
+package DlgPref;
+
+# my $pref = new Pref(config_file => 'brestore.conf');
+# my $dlg = new DlgPref($pref);
+# my $dlg_resto = new DlgResto($pref);
+# $dlg->display($dlg_resto);
+sub new
+{
+    my ($class, $pref) = @_;
+
+    my $self = bless {
+	pref => $pref,		# Pref ref
+	dlgresto => undef,	# DlgResto ref
+	};
+
+    return $self;
+}
+
+sub display
+{
+    my ($self, $dlgresto) = @_ ;
+
+    unless ($self->{glade}) {
+	$self->{glade} = Gtk2::GladeXML->new($glade_file, "dlg_pref") ;
+	$self->{glade}->signal_autoconnect_from_package($self);
+    }
+
+    $self->{dlgresto} = $dlgresto;
+
+    my $g = $self->{glade};
+    my $p = $self->{pref};
+
+    for my $k (@{ $p->{entry_keyword} }) {
+	$g->get_widget("entry_$k")->set_text($p->{$k}) ;
+    }
+
+    for my $k (@{ $p->{chk_keyword} }) {
+	$g->get_widget("chkbp_$k")->set_active($p->{$k}) ;
+    }
+
+    $g->get_widget("dlg_pref")->show_all() ;
+}
+
+sub on_applybutton_clicked
+{
+    my ($self) = @_;
+    my $glade = $self->{glade};
+    my $pref  = $self->{pref};
+
+    for my $k (@{ $pref->{entry_keyword} }) {
+	my $w = $glade->get_widget("entry_$k") ;
+	$pref->{$k} = $w->get_text();
+    }
+
+    for my $k (@{ $pref->{chk_keyword} }) {
+	my $w = $glade->get_widget("chkbp_$k") ;
+	$pref->{$k} = $w->get_active();
+    }
+
+    $pref->write_config();
+    if ($pref->connect_db()) {
+        $self->{dlgresto}->set_status('Preferences updated');
+	$self->{dlgresto}->init_server_backup_combobox();
+	$self->{dlgresto}->set_status($pref->{error});
+    } else {
+	$self->{dlgresto}->set_status($pref->{error});
+    }
+}
+
+# Handle prefs ok click (apply/dismiss dialog)
+sub on_okbutton_clicked 
+{
+    my ($self) = @_;
+    $self->on_applybutton_clicked();
+
+    unless ($self->{pref}->{error}) {
+	$self->on_cancelbutton_clicked();
+    }
+}
+sub on_dialog_delete_event
+{
+    my ($self) = @_;
+    $self->on_cancelbutton_clicked();
+    1;
+}
+
+sub on_cancelbutton_clicked
+{
+    my ($self) = @_;
+    $self->{glade}->get_widget('dlg_pref')->hide();
+    delete $self->{dlgresto};
+}
+1;
 
 ################################################################
 
@@ -99,9 +426,9 @@ sub fileview_data_get
 
 sub new
 {
-    my ($class, $dbh, $client, $path, $file) = @_;
+    my ($class, $bvfs, $client, $path, $file, $cwd, $fn) = @_;
     my $self = bless {
-	cwd       => $path,
+	cwd       => $cwd,
 	version   => undef, # main window
 	};
 
@@ -112,11 +439,13 @@ sub new
     $glade_box->signal_autoconnect_from_package($self);
 
     $glade_box->get_widget("version_label")
-	->set_markup("<b>File revisions : $client:$path/$file</b>");
+	->set_markup("<b>File revisions : $client:$cwd$fn</b>");
 
     my $widget = $glade_box->get_widget('version_fileview');
     my $fileview = Gtk2::SimpleList->new_from_treeview(
 		   $widget,
+		   'h_pathid'      => 'hidden',
+		   'h_filenameid'  => 'hidden',
 		   'h_name'        => 'hidden',
                    'h_jobid'       => 'hidden',
                    'h_type'        => 'hidden',
@@ -130,18 +459,17 @@ sub new
 						       );
     DlgResto::init_drag_drop($fileview);
 
-    my @v = DlgResto::get_all_file_versions($dbh, 
-					    "$path/", 
-					    $file,
-					    $client,
-					    1);
+    my @v = $bvfs->get_all_file_versions($path, 
+					 $file,
+					 $client,
+					 1);
     for my $ver (@v) {
-	my (undef,$fn,$jobid,$fileindex,$mtime,$size,$inchanger,$md5,$volname)
-	    = @{$ver};
+	my (undef,$pid,$fid,$jobid,$fileindex,$mtime,$size,
+	    $inchanger,$md5,$volname) = @{$ver};
 	my $icon = ($inchanger)?$DlgResto::yesicon:$DlgResto::noicon;
 
-	DlgResto::listview_push($fileview,
-				$file, $jobid, 'file', 
+	DlgResto::listview_push($fileview,$pid,$fid,
+				$fn, $jobid, 'file', 
 				$icon, $volname, $jobid,DlgResto::human($size),
 				scalar(localtime($mtime)), $md5);
     }
@@ -185,116 +513,6 @@ sub on_close_clicked
     my ($self) = @_;
     $self->{window}->destroy();
 }
-1;
-
-################################################################
-package BwebConsole;
-use LWP::UserAgent;
-use HTTP::Request::Common;
-
-sub new
-{
-    my ($class, %arg) = @_;
-
-    my $self = bless {
-	pref => $arg{pref},	# Pref object
-	timeout => $arg{timeout} || 20,
-	debug   => $arg{debug} || 0,
-	'list_job'     => '',
-	'list_client'  => '',
-	'list_fileset' => '',
-	'list_storage' => '',
-	'run'          => '',
-    };
-
-    return $self;
-}
-
-sub prepare
-{
-    my ($self, @what) = @_;
-    my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore/$VERSION");
-    my $req = POST($self->{pref}->{bconsole},
-		   Content_Type => 'form-data',
-		   Content => [ map { (action => $_) } @what ]);
-    #$req->authorization_basic('eric', 'test');
-
-    my $res = $ua->request($req);
-
-    if ($res->is_success) {
-	foreach my $l (split(/\n/, $res->content)) {
-	    my ($k, $c) = split(/=/,$l,2);
-	    $self->{$k} = $c;
-	}
-    } else {
-	$self->{error} = "Can't connect to bweb : " . $res->status_line;
-	new DlgWarn($self->{error});
-    }
-}
-
-sub run
-{
-    my ($self, %arg) = @_;
-
-    my $ua = LWP::UserAgent->new();
-    $ua->agent("Brestore/$VERSION");
-    my $req = POST($self->{pref}->{bconsole},
-		   Content_Type => 'form-data',
-		   Content => [ job     => $arg{job},
-				client  => $arg{client},
-				storage => $arg{storage} || '',
-				fileset => $arg{fileset} || '',
-				where   => $arg{where},
-				replace => $arg{replace},
-				priority=> $arg{prio}    || '',
-				action  => 'run',
-				timeout => 10,
-				bootstrap => [$arg{bootstrap}],
-				]);
-    #$req->authorization_basic('eric', 'test');
-
-    my $res = $ua->request($req);
-
-    if ($res->is_success) {
-	foreach my $l (split(/\n/, $res->content)) {
-	    my ($k, $c) = split(/=/,$l,2);
-	    $self->{$k} = $c;
-	}
-    } 
-
-    if (!$self->{run}) {
-        new DlgWarn("Can't connect to bweb : " . $res->status_line);
-    } 
-
-    unlink($arg{bootstrap});
-
-    return $self->{run};
-}
-
-sub list_job
-{
-    my ($self) = @_;
-    return sort split(/;/, $self->{'list_job'});
-}
-
-sub list_fileset
-{
-    my ($self) = @_;
-    return sort split(/;/, $self->{'list_fileset'});
-}
-
-sub list_storage
-{
-    my ($self) = @_;
-    return sort split(/;/, $self->{'list_storage'});
-}
-sub list_client
-{
-    my ($self) = @_;
-    return sort split(/;/, $self->{'list_client'});
-}
-
 1;
 
 ################################################################
@@ -601,259 +819,9 @@ sub on_about_okbutton_clicked
 1;
 
 ################################################################
-# preference reader
-package Pref;
-
-sub new
-{
-    my ($class, $config_file) = @_;
-    
-    my $self = bless {
-	config_file => $config_file,
-	password => '',		# db passwd
-	username => '',		# db username
-	connection_string => '',# db connection string
-	bconsole => 'bconsole',	# path and arg to bconsole
-	bsr_dest => '',		# destination url for bsr files
-	debug    => 0,		# debug level 0|1
-	use_ok_bkp_only => 1,	# dont use bad backup
-	bweb     => 'http://localhost/cgi-bin/bweb/bweb.pl', # bweb url
-	glade_file => $glade_file,
-	see_all_versions => 0,  # display all file versions in FileInfo
-	mozilla  => 'mozilla',  # mozilla bin
-	default_restore_job => 'restore', # regular expression to select default
-				   # restore job
-
-	# keywords that are used to fill DlgPref
-	chk_keyword =>  [ qw/use_ok_bkp_only debug see_all_versions/ ],
-        entry_keyword => [ qw/username password bweb mozilla
-			  connection_string default_restore_job
-			  bconsole bsr_dest glade_file/],
-    };
-
-    $self->read_config();
-
-    return $self;
-}
-
-sub read_config
-{
-    my ($self) = @_;
-
-    # We read the parameters. They come from the configuration files
-    my $cfgfile ; my $tmpbuffer;
-    if (open FICCFG, $self->{config_file})
-    {
-	while(read FICCFG,$tmpbuffer,4096)
-	{
-	    $cfgfile .= $tmpbuffer;
-	}
-	close FICCFG;
-	my $refparams;
-	no strict; # I have no idea of the contents of the file
-	eval '$refparams' . " = $cfgfile";
-	use strict;
-	
-	for my $p (keys %{$refparams}) {
-	    $self->{$p} = $refparams->{$p};
-	}
-
-	if (defined $self->{debug}) {
-	    $debug = $self->{debug} ;
-	}
-    } else {
-	# TODO : Force dumb default values and display a message
-    }
-}
-
-sub write_config
-{
-    my ($self) = @_;
-    
-    my %parameters;
-
-    for my $k (@{ $self->{entry_keyword} }) { 
-	$parameters{$k} = $self->{$k};
-    }
-
-    for my $k (@{ $self->{chk_keyword} }) { 
-	$parameters{$k} = $self->{$k};
-    }
-
-    if (open FICCFG,">$self->{config_file}")
-    {
-	print FICCFG Data::Dumper->Dump([\%parameters], [qw($parameters)]);
-	close FICCFG;
-    }
-    else
-    {
-	# TODO : Display a message
-    }
-}
-
-sub connect_db
-{
-    my $self = shift ;
-
-    if ($self->{dbh}) {
-	$self->{dbh}->disconnect() ;
-    }
-
-    delete $self->{dbh};
-    delete $self->{error};
-
-    if (not $self->{connection_string})
-    {
-	# The parameters have not been set. Maybe the conf
-	# file is empty for now
-	$self->{error} = "No configuration found for database connection. " .
-	                 "Please set this up.";
-	return 0;
-    }
-    
-    if (not eval {
-	$self->{dbh} = DBI->connect($self->{connection_string}, 
-				    $self->{username},
-				    $self->{password})
-	})
-    {
-	$self->{error} = "Can't open bacula database. " . 
-	                 "Database connect string '" . 
-                         $self->{connection_string} ."' $!";
-	return 0;
-    }
-    $self->{dbh}->{RowCacheSize}=100;
-    return 1;
-}
-
-sub go_bweb
-{    
-    my ($self, $url, $msg) = @_;
-
-    unless ($self->{mozilla} and $self->{bweb}) {
-	new DlgWarn("You must install Bweb and set your mozilla bin to $msg");
-	return -1;
-    }
-
-    if ($^O eq 'MSWin32') {
-	system("start /B $self->{mozilla} \"$self->{bweb}$url\"");
-
-    } elsif (!fork()) {
-	system("$self->{mozilla} -remote 'Ping()'");
-	my $cmd = "$self->{mozilla} '$self->{bweb}$url'";
-	if ($? == 0) {
-	    $cmd = "$self->{mozilla} -remote 'OpenURL($self->{bweb}$url,new-tab)'" ;
-	}
-	exec($cmd);
-	exit 1;
-    } 
-    return ($? == 0);
-}
-
-1;
-
-################################################################
-# Manage preference
-package DlgPref;
-
-# my $pref = new Pref(config_file => 'brestore.conf');
-# my $dlg = new DlgPref($pref);
-# my $dlg_resto = new DlgResto($pref);
-# $dlg->display($dlg_resto);
-sub new
-{
-    my ($class, $pref) = @_;
-
-    my $self = bless {
-	pref => $pref,		# Pref ref
-	dlgresto => undef,	# DlgResto ref
-	};
-
-    return $self;
-}
-
-sub display
-{
-    my ($self, $dlgresto) = @_ ;
-
-    unless ($self->{glade}) {
-	$self->{glade} = Gtk2::GladeXML->new($glade_file, "dlg_pref") ;
-	$self->{glade}->signal_autoconnect_from_package($self);
-    }
-
-    $self->{dlgresto} = $dlgresto;
-
-    my $g = $self->{glade};
-    my $p = $self->{pref};
-
-    for my $k (@{ $p->{entry_keyword} }) {
-	$g->get_widget("entry_$k")->set_text($p->{$k}) ;
-    }
-
-    for my $k (@{ $p->{chk_keyword} }) {
-	$g->get_widget("chkbp_$k")->set_active($p->{$k}) ;
-    }
-
-    $g->get_widget("dlg_pref")->show_all() ;
-}
-
-sub on_applybutton_clicked
-{
-    my ($self) = @_;
-    my $glade = $self->{glade};
-    my $pref  = $self->{pref};
-
-    for my $k (@{ $pref->{entry_keyword} }) {
-	my $w = $glade->get_widget("entry_$k") ;
-	$pref->{$k} = $w->get_text();
-    }
-
-    for my $k (@{ $pref->{chk_keyword} }) {
-	my $w = $glade->get_widget("chkbp_$k") ;
-	$pref->{$k} = $w->get_active();
-    }
-
-    $pref->write_config();
-    if ($pref->connect_db()) {
-	$self->{dlgresto}->set_dbh($pref->{dbh});
-        $self->{dlgresto}->set_status('Preferences updated');
-	$self->{dlgresto}->init_server_backup_combobox();
-	$self->{dlgresto}->create_brestore_tables();
-	$self->{dlgresto}->set_status($pref->{error});
-    } else {
-	$self->{dlgresto}->set_status($pref->{error});
-    }
-}
-
-# Handle prefs ok click (apply/dismiss dialog)
-sub on_okbutton_clicked 
-{
-    my ($self) = @_;
-    $self->on_applybutton_clicked();
-
-    unless ($self->{pref}->{error}) {
-	$self->on_cancelbutton_clicked();
-    }
-}
-sub on_dialog_delete_event
-{
-    my ($self) = @_;
-    $self->on_cancelbutton_clicked();
-    1;
-}
-
-sub on_cancelbutton_clicked
-{
-    my ($self) = @_;
-    $self->{glade}->get_widget('dlg_pref')->hide();
-    delete $self->{dlgresto};
-}
-1;
-
-################################################################
-# Main Interface
 
 package DlgResto;
+use base qw/Bbase/;
 
 our $diricon;
 our $fileicon;
@@ -872,7 +840,6 @@ sub render_icons
 	$noicon   = $self->{mainwin}->render_icon('gtk-no',   $size);
     }
 }
-
 # init combo (and create ListStore object)
 sub init_combo
 {
@@ -926,10 +893,36 @@ sub human
     return sprintf($format, $val, $unit[$i]);
 }
 
-sub set_dbh
+sub get_wanted_job_status
 {
-    my ($self, $dbh) = @_;
-    $self->{dbh} = $dbh;
+    my ($ok_only) = @_;
+
+    if ($ok_only) {
+	return "'T'";
+    } else {
+	return "'T', 'A', 'E'";
+    }
+}
+
+# This sub gives a full list of the EndTimes for a ClientId
+# ( [ 'Date', 'FileSet', 'Type', 'Status', 'JobId'], 
+#   ['Date', 'FileSet', 'Type', 'Status', 'JobId']..)
+sub get_all_endtimes_for_job
+{
+    my ($self, $client, $ok_only)=@_;
+    my $status = get_wanted_job_status($ok_only);
+    my $query = "
+ SELECT Job.EndTime, FileSet.FileSet, Job.Level, Job.JobStatus, Job.JobId
+  FROM Job,Client,FileSet
+  WHERE Job.ClientId=Client.ClientId
+  AND Client.Name = '$client'
+  AND Job.Type = 'B'
+  AND JobStatus IN ($status)
+  AND Job.FileSetId = FileSet.FileSetId
+  ORDER BY EndTime desc";
+    my $result = $self->dbh_selectall_arrayref($query);
+
+    return @$result;
 }
 
 sub init_drag_drop
@@ -952,52 +945,11 @@ sub init_drag_drop
     }
 }
 
-sub debug
-{
-    my ($self, $what) = @_;
-
-    if ($debug) {
-	if (ref $what) {
-	    print Data::Dumper::Dumper($what);
-	} elsif (defined $what) {
-	    print "$what\n";
-	}
-    }
-}
-
-sub dbh_prepare
-{
-    my ($self, $query) = @_;
-    $self->debug($query);
-    return $self->{dbh}->prepare($query);    
-}
-
-sub dbh_do
-{
-    my ($self, $query) = @_;
-    $self->debug($query);
-    return $self->{dbh}->do($query);
-}
-
-sub dbh_selectall_arrayref
-{
-    my ($self, $query) = @_;
-    $self->debug($query);
-    return $self->{dbh}->selectall_arrayref($query);
-}
-
-sub dbh_selectrow_arrayref
-{
-    my ($self, $query) = @_;
-    $self->debug($query);
-    return $self->{dbh}->selectrow_arrayref($query);
-}
-
 sub new
 {
     my ($class, $pref) = @_;
     my $self = bless { 
-	pref => $pref,
+	conf => $pref,
 	dirtree => undef,
 	CurrentJobIds => [],
 	location => undef,	# location entry widget
@@ -1015,8 +967,11 @@ sub new
 	restore_backup_combobox => undef, # date combobox widget
 	list_client => undef,   # Gtk2::ListStore
         list_backup => undef,   # Gtk2::ListStore
-	cache_ppathid => {},    # 
+	cache_ppathid => {},    #
+	bvfs => undef,
     };
+
+    $self->{bvfs} = new Bvfs(conf => $pref);
 
     # load menu (to use handler with self reference)
     my $glade = Gtk2::GladeXML->new($glade_file, "filelist_file_menu");
@@ -1052,6 +1007,8 @@ sub new
     my $widget = $glade->get_widget('fileview');
     my $fileview = $self->{fileview} = Gtk2::SimpleList->new_from_treeview(
 					      $widget,
+		                              'h_pathid'      => 'hidden',
+		                              'h_filenameid'  => 'hidden',
 					      'h_name'        => 'hidden',
 					      'h_jobid'       => 'hidden',
 					      'h_type'        => 'hidden',
@@ -1067,19 +1024,21 @@ sub new
     $widget = $glade->get_widget('restorelist');
     my $restore_list = $self->{restore_list} = Gtk2::SimpleList->new_from_treeview(
                                               $widget,
+		                              'h_pathid'      => 'hidden', #0
+		                              'h_filenameid'  => 'hidden',
 					      'h_name'      => 'hidden',
                                               'h_jobid'     => 'hidden',
 					      'h_type'      => 'hidden',
-                                              'h_curjobid'  => 'hidden',
+                                              'h_curjobid'  => 'hidden', #5
 
                                               ''            => 'pixbuf',
                                               'File Name'   => 'text',
                                               'JobId'       => 'text',
                                               'FileIndex'   => 'text',
 
-					      'Nb Files'    => 'text', #8
-                                              'Size'        => 'text', #9
-					      'size_b'      => 'hidden', #10
+					      'Nb Files'    => 'text', #10
+                                              'Size'        => 'text', #11
+					      'size_b'      => 'hidden', #12
 					      );
 
     my @restore_list_target_table = ({'target' => 'STRING',
@@ -1092,6 +1051,8 @@ sub new
     $widget = $glade->get_widget('infoview');
     my $infoview = $self->{fileinfo} = Gtk2::SimpleList->new_from_treeview(
 		   $widget,
+                   'h_pathid'      => 'hidden',
+		   'h_filenameid'  => 'hidden',
                    'h_name'        => 'hidden',
                    'h_jobid'       => 'hidden',
 		   'h_type'        => 'hidden',
@@ -1108,9 +1069,8 @@ sub new
     $pref->connect_db() ||  $self->{dlg_pref}->display($self);
 
     if ($pref->{dbh}) {
-	$self->{dbh} = $pref->{dbh};
 	$self->init_server_backup_combobox();
-	$self->create_brestore_tables();
+	$self->{bvfs}->create_brestore_tables();
     }
 
     $self->set_status($pref->{error});
@@ -1150,40 +1110,6 @@ sub get_all_clients
     return map { $_->[0] } @$result;
 }
 
-sub get_wanted_job_status
-{
-    my ($ok_only) = @_;
-
-    if ($ok_only) {
-	return "'T'";
-    } else {
-	return "'T', 'A', 'E'";
-    }
-}
-
-# This sub gives a full list of the EndTimes for a ClientId
-# ( [ 'Date', 'FileSet', 'Type', 'Status', 'JobId'], 
-#   ['Date', 'FileSet', 'Type', 'Status', 'JobId']..)
-sub get_all_endtimes_for_job
-{
-    my ($dbh, $client, $ok_only)=@_;
-    my $status = get_wanted_job_status($ok_only);
-    my $query = "
- SELECT Job.EndTime, FileSet.FileSet, Job.Level, Job.JobStatus, Job.JobId
-  FROM Job,Client,FileSet
-  WHERE Job.ClientId=Client.ClientId
-  AND Client.Name = '$client'
-  AND Job.Type = 'B'
-  AND JobStatus IN ($status)
-  AND Job.FileSetId = FileSet.FileSetId
-  ORDER BY EndTime desc";
-    print STDERR $query,"\n" if $debug;
-    my $result = $dbh->selectall_arrayref($query);
-
-    return @$result;
-}
-
-
 # init infoview widget
 sub clear_infoview
 {
@@ -1215,22 +1141,26 @@ sub on_estimate_clicked
 
     my $title = "Computing size...\n";
     my $txt="";
+
+    # ($pid,$fid,$name,$jobid,'file',$curjobids,
+    #   undef, undef, undef, $dirfileindex);
     foreach my $entry (@{$self->{restore_list}->{data}})
     {
-	unless ($entry->[9]) {
-	    my ($size, $nb) = $self->estimate_restore_size($entry);
-	    $entry->[10] = $size;
-	    $entry->[9] = human($size);
-	    $entry->[8] = $nb;
+	unless ($entry->[11]) {
+	    my ($size, $nb) = $self->{bvfs}->estimate_restore_size($entry,\&refresh_screen);
+	    $entry->[12] = $size;
+	    $entry->[11] = human($size);
+	    $entry->[10] = $nb;
 	}
 
-	my $name = unpack('u', $entry->[0]);
+	my $name = unpack('u', $entry->[2]);
 
-	$txt .= "\n<i>$name</i> : " . $entry->[8] . " file(s)/" . $entry->[9] ;
+	$txt .= "\n<i>$name</i> : ". $entry->[10] ." file(s)/". $entry->[11] ;
+	$self->debug($title . $txt);
 	$widget->set_markup($title . $txt);
 	
-	$size_total+=$entry->[10];
-	$nb_total+=$entry->[8];
+	$size_total+=$entry->[12];
+	$nb_total+=$entry->[10];
 	refresh_screen();
     }
     
@@ -1240,6 +1170,8 @@ sub on_estimate_clicked
 
     return 0;
 }
+
+
 
 sub on_gen_bsr_clicked
 {
@@ -1289,6 +1221,7 @@ sub on_gen_bsr_clicked
     }
 }
 
+
 use File::Temp qw/tempfile/;
 
 sub on_go_button_clicked 
@@ -1311,12 +1244,13 @@ sub on_go_button_clicked
     my %a = map { $_ => 1 } ($bsr =~ /Volume="(.+)"/g);
     my $vol = [ keys %a ] ;	# need only one occurrence of each volume
 
-    new DlgLaunch(pref     => $self->{pref},
+    new DlgLaunch(pref     => $self->{conf},
 		  volumes  => $vol,
 		  bsr_file => $filename,
 		  );
 
 }
+
 
 our $client_list_empty = 'Clients list'; 
 our %type_markup = ('F' => '<b>$label F</b>',
@@ -1333,7 +1267,6 @@ sub on_list_client_changed
 {
     my ($self, $widget) = @_;
     return 0 unless defined $self->{fileview};
-    my $dbh = $self->{dbh};
 
     $self->{list_backup}->clear();
 
@@ -1341,9 +1274,23 @@ sub on_list_client_changed
 	return 0 ;
     }
 
-    my @endtimes=get_all_endtimes_for_job($dbh, 
-					  $self->current_client,
-					  $self->{pref}->{use_ok_bkp_only});
+    $self->{CurrentJobIds} = [
+			      set_job_ids_for_date($self->dbh(),
+						   $self->current_client,
+						   $self->current_date,
+						   $self->{pref}->{use_ok_bkp_only})
+			      ];
+
+    my $fs = $self->{bvfs};
+    $fs->set_curjobids(@{$self->{CurrentJobIds}});
+    $fs->update_brestore_table(@{$self->{CurrentJobIds}});
+    $fs->ch_dir($fs->get_root());
+    # refresh_fileview will be done by list_backup_changed
+
+
+    my @endtimes=$self->get_all_endtimes_for_job($self->current_client,
+						 $self->{pref}->{use_ok_bkp_only});
+
     foreach my $endtime (@endtimes)
     {
 	my $i = $self->{list_backup}->append();
@@ -1358,20 +1305,9 @@ sub on_list_client_changed
 				  );
     }
     $self->{restore_backup_combobox}->set_active(0);
-
-    $self->{CurrentJobIds} = [
-			      set_job_ids_for_date($dbh,
-						   $self->current_client,
-						   $self->current_date,
-						   $self->{pref}->{use_ok_bkp_only})
-			      ];
-
-    $self->update_brestore_table(@{$self->{CurrentJobIds}});
-
-    $self->ch_dir('');
-    $self->refresh_fileview();
     0;
 }
+
 
 sub fill_server_list
 {
@@ -1395,7 +1331,7 @@ sub fill_server_list
 sub init_server_backup_combobox
 {
     my $self = shift ;
-    fill_server_list($self->{dbh}, 
+    fill_server_list($self->{conf}->{dbh}, 
 		     $self->{client_combobox},
 		     $self->{list_client}) ;
 }
@@ -1409,7 +1345,7 @@ sub refresh_fileview
     my ($self) = @_;
     my $fileview = $self->{fileview};
     my $client_combobox = $self->{client_combobox};
-    my $cwd = $self->{cwd};
+    my $bvfs = $self->{bvfs};
 
     @{$fileview->{data}} = ();
 
@@ -1422,29 +1358,30 @@ sub refresh_fileview
 	return;
     }
 
-    my @list_dirs     = $self->list_dirs($cwd,$client_name);
-    # [ [listfiles.id, listfiles.Name, File.LStat, File.JobId]..]
-    my $files    = $self->list_files($cwd); 
-    print "CWD : $cwd\n" if ($debug);
+    # [ [dirid, dir_basename, File.LStat, jobid]..]
+    my $list_dirs = $bvfs->ls_dirs();
+    # [ [filenameid, listfiles.id, listfiles.Name, File.LStat, File.JobId]..]
+    my $files     = $bvfs->ls_files(); 
     
     my $file_count = 0 ;
     my $total_bytes = 0;
     
     # Add directories to view
-    foreach my $dir_entry (@list_dirs) {
-	#my $time = localtime($self->dir_attrib("$cwd/$dir",'st_mtime'));
-	my $time = localtime(lstat_attrib($dir_entry->[1],'st_mtime'));
-	my $dir = $dir_entry->[0];
+    foreach my $dir_entry (@$list_dirs) {
+	my $time = localtime(Bvfs::lstat_attrib($dir_entry->[2],'st_mtime'));
 	$total_bytes += 4096;
 	$file_count++;
 
 	listview_push($fileview,
-		      $dir,
-		      $self->dir_attrib("$cwd/$dir",'jobid'),
+		      $dir_entry->[0],
+		      0,
+		      $dir_entry->[1],
+		      # TODO: voir ce que l'on met la
+		      $dir_entry->[3],
 		      'dir',
 
 		      $diricon, 
-		      $dir, 
+		      $dir_entry->[1], 
 		      "4 Kb", 
 		      $time);
     }
@@ -1452,24 +1389,26 @@ sub refresh_fileview
     # Add files to view 
     foreach my $file (@$files) 
     {
-	my $size = file_attrib($file,'st_size');
-	my $time = localtime(file_attrib($file,'st_mtime'));
+	my $size = Bvfs::file_attrib($file,'st_size');
+	my $time = localtime(Bvfs::file_attrib($file,'st_mtime'));
 	$total_bytes += $size;
 	$file_count++;
-	# $file = [listfiles.id, listfiles.Name, File.LStat, File.JobId]
-
+	# $file = [filenameid,listfiles.id,listfiles.Name,File.LStat,File.JobId]
 	listview_push($fileview,
-		      $file->[1],
-		      $file->[3],
+		      $bvfs->{cwd},
+		      $file->[0],
+		      $file->[2],
+		      $file->[4],
 		      'file',
 		      
 		      $fileicon, 
-		      $file->[1], 
+		      $file->[2], 
 		      human($size), $time);
     }
     
     $self->set_status("$file_count files/" . human($total_bytes));
-
+    $self->{cwd} = $self->{bvfs}->pwd();
+    $self->{location}->set_text($self->{cwd});
     # set a decent default selection (makes keyboard nav easy)
     $fileview->select(0);
 }
@@ -1493,18 +1432,13 @@ sub drag_set_info
 	# doc ligne 93
         # Ok, we have a corner case :
         # path can be empty
-        my $file;
-        if ($path eq '')
-        {
-	    $file = pack("u", $file_info[0]);
-	}
-	else
-	{
-		$file = pack("u", $path . '/' . $file_info[0]);
-	}
-	push @ret, join(" ; ", $file, 
-			$file_info[1], # $jobid
-			$file_info[2], # $type
+	my $file = pack("u", $path . $file_info[2]);
+
+	push @ret, join(" ; ", $file,
+			$file_info[0], # $pathid
+			$file_info[1], # $filenameid
+			$file_info[3], # $jobid
+			$file_info[4], # $type
 			);
     }
 
@@ -1512,6 +1446,8 @@ sub drag_set_info
     
     $data->set_text($data_get,-1);
 }
+
+
 
 sub fileview_data_get
 {
@@ -1529,24 +1465,26 @@ sub restore_list_data_received
 {
     my ($self, $widget, $context, $x, $y, $data, $info, $time) = @_;
     my @ret;
-
+    $self->debug("start\n");
     if  ($info eq 40 || $info eq 0) # patch for display!=:0
     {
 	foreach my $elt (split(/ :: /, $data->data()))
 	{
-	    
-	    my ($file, $jobid, $type) = 
+	    my ($file, $pathid, $filenameid, $jobid, $type) = 
 		split(/ ; /, $elt);
 	    $file = unpack("u", $file);
 	    
-	    $self->add_selected_file_to_list($file, $jobid, $type);
+	    $self->add_selected_file_to_list($pathid,$filenameid,
+					     $file, $jobid, $type);
 	}
     }
+    $self->debug("end\n");
 }
 
 sub on_back_button_clicked {
     my $self = shift;
-    $self->up_dir();
+    $self->{bvfs}->up_dir();
+    $self->refresh_fileview();
 }
 sub on_location_go_button_clicked 
 {
@@ -1567,30 +1505,20 @@ sub on_bweb_activate
     $self->{pref}->go_bweb('', "go on bweb");
 }
 
-# Change to parent directory
-sub up_dir
-{
-    my $self = shift ;
-    if ($self->{cwd} eq '/')
-    {
-    	$self->ch_dir('');
-    }
-    my @dirs = split(/\//, $self->{cwd});
-    pop @dirs;
-    $self->ch_dir(join('/', @dirs));
-}
-
 # Change the current working directory
 #   * Updates fileview, location, and selection
 #
 sub ch_dir 
 {
-    my $self = shift;
-    $self->{cwd} = shift;
-    
-    $self->refresh_fileview();
-    $self->{location}->set_text($self->{cwd});
-    
+    my ($self,$l) = @_;
+
+    my $p = $self->{bvfs}->get_pathid($l);
+    if ($p) {
+	$self->{bvfs}->ch_dir($p);
+	$self->refresh_fileview();
+    } else {
+	$self->set_status("Can't find $l");
+    }
     1;
 }
 
@@ -1638,8 +1566,8 @@ sub listview_get_first
     my ($list) = shift; 
     my @selected = $list->get_selected_indices();
     if (@selected > 0) {
-	my ($name, @other) = @{$list->{data}->[$selected[0]]};
-	return (unpack('u', $name), @other);
+	my ($pid,$fid,$name, @other) = @{$list->{data}->[$selected[0]]};
+	return ($pid,$fid,unpack('u', $name), @other);
     } else {
 	return undef;
     }
@@ -1652,20 +1580,19 @@ sub listview_get_all
     my @selected = $list->get_selected_indices();
     my @ret;
     for my $i (@selected) {
-	my ($name, @other) = @{$list->{data}->[$i]};
-	push @ret, [unpack('u', $name), @other];
+	my ($pid,$fid,$name, @other) = @{$list->{data}->[$i]};
+	push @ret, [$pid,$fid,unpack('u', $name), @other];
     } 
     return @ret;
 }
 
-
 sub listview_push
 {
-    my ($list, $name, @other) = @_;
-    push @{$list->{data}}, [pack('u', $name), @other];
+    my ($list, $pid, $fid, $name, @other) = @_;
+    push @{$list->{data}}, [$pid,$fid,pack('u', $name), @other];
 }
 
-#----------------------------------------------------------------------
+#-----------------------------------------------------------------
 # Handle keypress in file-view
 #   * Translates backspace into a 'cd ..' command 
 #   * All other key presses left for GTK
@@ -1678,7 +1605,7 @@ sub on_fileview_key_release_event
 	return 0;
     }
     if ($event->keyval == $Gtk2::Gdk::Keysyms{BackSpace}) {
-	$self->up_dir();
+	$self->on_back_button_clicked();
 	return 1; # eat keypress
     }
 
@@ -1690,7 +1617,7 @@ sub on_forward_keypress
     return 0;
 }
 
-#----------------------------------------------------------------------
+#-------------------------------------------------------------------
 # Handle double-click (or enter) on file-view
 #   * Translates into a 'cd <dir>' command
 #
@@ -1698,25 +1625,14 @@ sub on_fileview_row_activated
 {
     my ($self, $widget) = @_;
     
-    my ($name, undef, $type, undef) = listview_get_first($widget);
+    my ($pid,$fid,$name, undef, $type, undef) = listview_get_first($widget);
 
     if ($type eq 'dir')
     {
-    	if ($self->{cwd} eq '')
-    	{
-    		$self->ch_dir($name);
-    	}
-    	elsif ($self->{cwd} eq '/')
-    	{
-    		$self->ch_dir('/' . $name);
-    	}
-    	else
-    	{
-		$self->ch_dir($self->{cwd} . '/' . $name);
-	}
-
+	$self->{bvfs}->ch_dir($pid);
+	$self->refresh_fileview();
     } else {
-	$self->fill_infoview($self->{cwd}, $name);
+	$self->fill_infoview($pid,$fid,$name);
     }
     
     return 1; # consume event
@@ -1724,22 +1640,21 @@ sub on_fileview_row_activated
 
 sub fill_infoview
 {
-    my ($self, $path, $file) = @_;
+    my ($self, $path, $file, $fn) = @_;
     $self->clear_infoview();
-    my @v = get_all_file_versions($self->{dbh}, 
-				  "$path/", 
-				  $file,
-				  $self->current_client,
-				  $self->{pref}->{see_all_versions});
+    my @v = $self->{bvfs}->get_all_file_versions($path, 
+						 $file,
+						 $self->current_client,
+						 $self->{pref}->{see_all_versions});
     for my $ver (@v) {
-	my (undef,$fn,$jobid,$fileindex,$mtime,$size,$inchanger,$md5,$volname)
-	    = @{$ver};
+	my (undef,$pid,$fid,$jobid,$fileindex,$mtime,
+	    $size,$inchanger,$md5,$volname) = @{$ver};
 	my $icon = ($inchanger)?$yesicon:$noicon;
 
 	$mtime = localtime($mtime) ;
 
-	listview_push($self->{fileinfo},
-		      $file, $jobid, 'file', 
+	listview_push($self->{fileinfo},$pid,$fid,
+		      $fn, $jobid, 'file', 
 		      $icon, $volname, $jobid, human($size), $mtime, $md5);
     }
 }
@@ -1762,13 +1677,12 @@ sub on_list_backups_changed
     return 0 unless defined $self->{fileview};
 
     $self->{CurrentJobIds} = [
-			      set_job_ids_for_date($self->{dbh},
+			      set_job_ids_for_date($self->dbh(),
 						   $self->current_client,
 						   $self->current_date,
 						   $self->{pref}->{use_ok_bkp_only})
 			      ];
-    $self->update_brestore_table(@{$self->{CurrentJobIds}});
-
+    $self->{bvfs}->set_curjobids(@{$self->{CurrentJobIds}});
     $self->refresh_fileview();
     0;
 }
@@ -1811,11 +1725,11 @@ sub on_see_all_version
     my @lst = listview_get_all($self->{fileview});
 
     for my $i (@lst) {
-	my ($name, undef) = @{$i};
+	my ($pid,$fid,$name, undef) = @{$i};
 
-	new DlgFileVersion($self->{dbh}, 
+	new DlgFileVersion($self->{bvfs}, 
 			   $self->current_client, 
-			   $self->{cwd}, $name);
+			   $pid,$fid,$self->{cwd},$name);
     }
 }
 
@@ -1828,7 +1742,7 @@ sub on_right_click_filelist
     my $type = '';
 
     if (@sel == 1) {
-	$type = $sel[0]->[2];	# $type
+	$type = $sel[0]->[4];	# $type
     }
 
     my $w;
@@ -1857,18 +1771,17 @@ sub context_add_to_filelist
 
     foreach my $i (@sel)
     {
-	my ($file, $jobid, $type, undef) = @{$i};
+	my ($pid, $fid, $file, $jobid, $type, undef) = @{$i};
 	$file = $self->{cwd} . '/' . $file;
-	$self->add_selected_file_to_list($file, $jobid, $type);
+	$self->add_selected_file_to_list($pid, $fid, $file, $jobid, $type);
     }
 }
 
 # Adds a file to the filelist
 sub add_selected_file_to_list
 {
-    my ($self, $name, $jobid, $type)=@_;
+    my ($self, $pid, $fid, $name, $jobid, $type)=@_;
 
-    my $dbh = $self->{dbh};
     my $restore_list = $self->{restore_list};
 
     my $curjobids=join(',', @{$self->{CurrentJobIds}});
@@ -1882,16 +1795,16 @@ sub add_selected_file_to_list
 	{
 		$name .= '/'; # For bacula
 	}
-	my $dirfileindex = get_fileindex_from_dir_jobid($dbh,$name,$jobid);
-	listview_push($restore_list, 
+	my $dirfileindex = $self->{bvfs}->get_fileindex_from_dir_jobid($pid,$jobid);
+	listview_push($restore_list,$pid,0, 
 		      $name, $jobid, 'dir', $curjobids,
 		      $diricon, $name,$curjobids,$dirfileindex);
     }
     elsif ($type eq 'file')
     {
-	my $fileindex = get_fileindex_from_file_jobid($dbh,$name,$jobid);
+	my $fileindex = $self->{bvfs}->get_fileindex_from_file_jobid($pid,$fid,$jobid);
 
-	listview_push($restore_list,
+	listview_push($restore_list,$pid,$fid,
 		      $name, $jobid, 'file', $curjobids,
 		      $fileicon, $name, $jobid, $fileindex );
     }
@@ -1930,7 +1843,6 @@ sub set_job_ids_for_date
 		AND JobStatus IN ($status)
 		ORDER BY FileSet, JobTDate DESC";
 	
-    print STDERR $query,"\n" if $debug;
     my @CurrentJobIds;
     my $result = $dbh->selectall_arrayref($query);
     my %progress;
@@ -1964,473 +1876,13 @@ sub set_job_ids_for_date
 	    $progress{$fileset} = $level;
 	}
     }
-    print Data::Dumper::Dumper(\@CurrentJobIds) if $debug;
 
     return @CurrentJobIds;
-}
-
-# Lists all directories contained inside a directory.
-# Uses the current dir, the client name, and CurrentJobIds for visibility.
-# Returns an array of dirs
-sub list_dirs
-{
-    my ($self,$dir,$client)=@_;
-
-    print "list_dirs(<$dir>, <$client>)\n" if $debug;
-
-    if ($dir ne '' and substr $dir,-1 ne '/')
-    {
-	$dir .= '/'; # In the db, there is a / at the end of the dirs ...
-    }
-
-    my $dbh = $self->{dbh};
-    my $query = "SELECT PathId FROM Path WHERE Path = ?
-                 UNION SELECT PathId FROM brestore_missing_path WHERE PATH = ?";
-    my $sth = $dbh->prepare($query);
-    $sth->execute($dir,$dir);
-    my $result = $sth->fetchrow_arrayref();
-    $sth->finish();
-    my $pathid = $result->[0];
-    my @jobids = @{$self->{CurrentJobIds}};
-    my $jobclause = join (',', @jobids);
-    # Let's retrieve the list of the visible dirs in this dir ...
-    # First, I need the empty filenameid to locate efficiently the dirs in the file table
-    $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
-    $sth = $dbh->prepare($query);
-    $sth->execute();
-    $result = $sth->fetchrow_arrayref();
-    $sth->finish();
-    my $dir_filenameid = $result->[0];
-     
-    # Then we get all the dir entries from File ...
-    # It's ugly because there are records in brestore_missing_path ...
-    $query = "
-SELECT Path, JobId, Lstat FROM(
-    (
-    SELECT Path.Path, lower(Path.Path), 
-           listfile.JobId, listfile.Lstat
-    FROM (
-	SELECT DISTINCT brestore_pathhierarchy.PathId
-	FROM brestore_pathhierarchy
-	JOIN Path 
-	    ON (brestore_pathhierarchy.PathId = Path.PathId)
-	JOIN brestore_pathvisibility 
-	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
-	WHERE brestore_pathhierarchy.PPathId = $pathid
-	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
-    JOIN Path ON (listpath.PathId = Path.PathId)
-    LEFT JOIN (
-	SELECT File.PathId, File.JobId, File.Lstat FROM File
-	WHERE File.FilenameId = $dir_filenameid
-	AND File.JobId IN ($jobclause)) AS listfile
-	ON (listpath.PathId = listfile.PathId)
-    UNION
-    SELECT brestore_missing_path.Path, lower(brestore_missing_path.Path), 
-           listfile.JobId, listfile.Lstat
-    FROM (
-	SELECT DISTINCT brestore_pathhierarchy.PathId
-	FROM brestore_pathhierarchy
-	JOIN brestore_missing_path 
-	    ON (brestore_pathhierarchy.PathId = brestore_missing_path.PathId)
-	JOIN brestore_pathvisibility 
-	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
-	WHERE brestore_pathhierarchy.PPathId = $pathid
-	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
-    JOIN brestore_missing_path ON (listpath.PathId = brestore_missing_path.PathId)
-    LEFT JOIN (
-	SELECT File.PathId, File.JobId, File.Lstat FROM File
-	WHERE File.FilenameId = $dir_filenameid
-	AND File.JobId IN ($jobclause)) AS listfile
-	ON (listpath.PathId = listfile.PathId))
-ORDER BY 2,3 DESC ) As a";
-    print STDERR "$query\n" if $debug;
-    $sth=$dbh->prepare($query);
-    $sth->execute();
-    $result = $sth->fetchall_arrayref();
-    my @return_list;
-    my $prev_dir='';
-    foreach my $refrow (@{$result})
-    {
-        my $dir = $refrow->[0];
-        my $jobid = $refrow->[1];
-        my $lstat = $refrow->[2];
-        next if ($dir eq $prev_dir);
-        # We have to clean up this dirname ... we only want it's 'basename'
-        my $return_value;
-        if ($dir ne '/')
-        {
-            my @temp = split ('/',$dir);
-            $return_value = pop @temp;
-        }
-        else
-        {
-            $return_value = '/';
-        }
-        my @return_array = ($return_value,$lstat);
-        push @return_list,(\@return_array);
-        $prev_dir = $dir;
-    }
-    return @return_list;    
-}
-
-
-# List all files in a directory. dir as parameter, CurrentJobIds for visibility
-# Returns an array of dirs
-sub list_files
-{
-    my ($self, $dir)=@_;
-    my $dbh = $self->{dbh};
-
-    my $empty = [];
-
-    print "list_files($dir)\n" if $debug;
-
-    if ($dir ne '' and substr $dir,-1 ne '/')
-    {
-	$dir .= '/'; # In the db, there is a / at the end of the dirs ...
-    }
-
-    my $query = "SELECT Path.PathId 
-                    FROM Path 
-                    WHERE Path.Path = '$dir'
-                 UNION 
-                 SELECT brestore_missing_path.PathId 
-                    FROM brestore_missing_path 
-                    WHERE brestore_missing_path.Path = '$dir'";
-    print $query,"\n" if $debug;
-    my @list_pathid=();
-    my $result = $dbh->selectall_arrayref($query);
-    foreach my $refrow (@$result)
-    {
-	push @list_pathid,($refrow->[0]);
-    }
-	
-    if  (@list_pathid == 0)
-    {
-	print "No pathid found for $dir\n" if $debug;
-	return $empty;
-    }
-	
-    my $inlistpath = join (',', @list_pathid);
-    my $inclause = join (',', @{$self->{CurrentJobIds}});
-    if ($inclause eq '')
-    {
-	return $empty;
-    }
-	
-    $query = 
-"SELECT listfiles.id, listfiles.Name, File.LStat, File.JobId
- FROM
-	(SELECT Filename.Name, max(File.FileId) as id
-	 FROM File, Filename
-	 WHERE File.FilenameId = Filename.FilenameId
-	   AND Filename.Name != ''
-	   AND File.PathId IN ($inlistpath)
-	   AND File.JobId IN ($inclause)
-	 GROUP BY Filename.Name
-	 ORDER BY Filename.Name) AS listfiles,
-File
-WHERE File.FileId = listfiles.id";
-	
-    print STDERR $query,"\n" if $debug;
-    $result = $dbh->selectall_arrayref($query);
-	
-    return $result;
 }
 
 sub refresh_screen
 {
     Gtk2->main_iteration while (Gtk2->events_pending);
-}
-
-sub create_brestore_tables
-{
-    my ($self) = @_;
-
-    my $verif = "SELECT 1 FROM brestore_knownjobid LIMIT 1";
-
-    unless ($self->dbh_do($verif)) {
-	new DlgWarn("brestore can't find brestore_xxx tables on your database. I will create them.");
-
-	$self->{error} = "Creating internal brestore tables";
-	my $req = "
-    CREATE TABLE brestore_knownjobid
-    (
-     JobId int4 NOT NULL,
-     CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId)
-    )";
-	$self->dbh_do($req);
-    }
-    
-    $verif = "SELECT 1 FROM brestore_pathhierarchy LIMIT 1";
-    unless ($self->dbh_do($verif)) {
-	my $req = "
-   CREATE TABLE brestore_pathhierarchy
-   (
-     PathId int4 NOT NULL,
-     PPathId int4 NOT NULL,
-     CONSTRAINT brestore_pathhierarchy_pkey PRIMARY KEY (PathId)
-   )";
-	$self->dbh_do($req);
-
-
-	$req = "CREATE INDEX brestore_pathhierarchy_ppathid 
-                          ON brestore_pathhierarchy (PPathId)";
-	$self->dbh_do($req);
-    }
-    
-    $verif = "SELECT 1 FROM brestore_pathvisibility LIMIT 1";
-    unless ($self->dbh_do($verif)) {
-	my $req = "
-    CREATE TABLE brestore_pathvisibility
-    (
-      PathId int4 NOT NULL,
-      JobId int4 NOT NULL,
-      Size int8 DEFAULT 0,
-      Files int4 DEFAULT 0,
-      CONSTRAINT brestore_pathvisibility_pkey PRIMARY KEY (JobId, PathId)
-    )";
-	$self->dbh_do($req);
-
-	$req = "CREATE INDEX brestore_pathvisibility_jobid
-                          ON brestore_pathvisibility (JobId)";
-	$self->dbh_do($req);
-    }
-    
-    $verif = "SELECT 1 FROM brestore_missing_path LIMIT 1";
-    unless ($self->dbh_do($verif)) {
-    	my $req = "
-    CREATE TABLE brestore_missing_path
-    (
-      PathId int4 NOT NULL,
-      Path text NOT NULL,
-      CONSTRAINT brestore_missing_path_pkey PRIMARY KEY (PathId)
-    )";
-	$self->dbh_do($req);
-
-	$req = "CREATE INDEX brestore_missing_path_path
-                          ON brestore_missing_path (Path)";
-	$self->dbh_do($req);
-    }
-}
-
-# Recursive function to calculate the visibility of each directory in the cache
-# tree Working with references to save time and memory
-# For each directory, we want to propagate it's visible jobids onto it's
-# parents directory.
-# A tree is visible if
-# - it's been in a backup pointed by the CurrentJobIds
-# - one of it's subdirs is in a backup pointed by the CurrentJobIds
-# In the second case, the directory is visible but has no metadata.
-# We symbolize this with lstat = 1 for this jobid in the cache.
-
-# Input : reference directory
-# Output : visibility of this dir. Has to know visibility of all subdirs
-# to know it's visibility, hence the recursing.
-sub list_visible
-{
-    my ($refdir)=@_;
-	
-    my %visibility;
-    # Get the subdirs array references list
-    my @list_ref_subdirs;
-    while( my (undef,$ref_subdir) = each (%{$refdir->[0]}))
-    {
-	push @list_ref_subdirs,($ref_subdir);
-    }
-
-    # Now lets recurse over these subdirs and retrieve the reference of a hash
-    # containing the jobs where they are visible
-    foreach my $ref_subdir (@list_ref_subdirs)
-    {
-	my $ref_list_jobs = list_visible($ref_subdir);
-	foreach my $jobid (keys %$ref_list_jobs)
-	{
-	    $visibility{$jobid}=1;
-	}
-    }
-
-    # Ok. Now, we've got the list of those jobs.  We are going to update our
-    # hash (element 1 of the dir array) containing our jobs Do NOT overwrite
-    # the lstat for the known jobids. Put 1 in the new elements...  But first,
-    # let's store the current jobids
-    my @known_jobids;
-    foreach my $jobid (keys %{$refdir->[1]})
-    {
-	push @known_jobids,($jobid);
-    }
-    
-    # Add the new jobs
-    foreach my $jobid (keys %visibility)
-    {
-	next if ($refdir->[1]->{$jobid});
-	$refdir->[1]->{$jobid} = 1;
-    }
-    # Add the known_jobids to %visibility
-    foreach my $jobid (@known_jobids)
-    {
-	$visibility{$jobid}=1;
-    }
-    return \%visibility;
-}
-
-# Returns the list of media required for a list of jobids.
-# Input : dbh, jobid1, jobid2...
-# Output : reference to array of (joibd, inchanger)
-sub get_required_media_from_jobid
-{
-    my ($dbh, @jobids)=@_;
-    my $inclause = join(',',@jobids);
-    my $query = "
-SELECT DISTINCT JobMedia.MediaId, Media.InChanger 
-FROM JobMedia, Media 
-WHERE JobMedia.MediaId=Media.MediaId 
-AND JobId In ($inclause)
-ORDER BY MediaId";
-    my $result = $dbh->selectall_arrayref($query);
-    return $result;
-}
-
-# Returns the fileindex from dirname and jobid.
-# Input : dbh, dirname, jobid
-# Output : fileindex
-sub get_fileindex_from_dir_jobid
-{
-    my ($dbh, $dirname, $jobid)=@_;
-    my $query;
-    $query = "SELECT File.FileIndex
-		FROM File, Filename, Path
-		WHERE File.FilenameId = Filename.FilenameId
-		AND File.PathId = Path.PathId
-		AND Filename.Name = ''
-		AND Path.Path = '$dirname'
-		AND File.JobId = '$jobid'
-		";
-		
-    print STDERR $query,"\n" if $debug;
-    my $result = $dbh->selectall_arrayref($query);
-    return $result->[0]->[0];
-}
-
-# Returns the fileindex from filename and jobid.
-# Input : dbh, filename, jobid
-# Output : fileindex
-sub get_fileindex_from_file_jobid
-{
-    my ($dbh, $filename, $jobid)=@_;
-    
-    my @dirs = split(/\//, $filename);
-    $filename=pop(@dirs);
-    my $dirname = join('/', @dirs) . '/';
-    
-    
-    my $query;
-    $query = 
-"SELECT File.FileIndex
- FROM File, Filename, Path
- WHERE File.FilenameId = Filename.FilenameId
-   AND File.PathId = Path.PathId
-   AND Filename.Name = '$filename'
-   AND Path.Path = '$dirname'
-   AND File.JobId = '$jobid'";
-		
-    print STDERR $query,"\n" if $debug;
-    my $result = $dbh->selectall_arrayref($query);
-    return $result->[0]->[0];
-}
-
-
-# Returns list of versions of a file that could be restored
-# returns an array of 
-# ('FILE:',filename,jobid,fileindex,mtime,size,inchanger,md5,volname)
-# It's the same as entries of restore_list (hidden) + mtime and size and inchanger
-# and volname and md5
-# and of course, there will be only one jobid in the array of jobids...
-sub get_all_file_versions
-{
-    my ($dbh,$path,$file,$client,$see_all)=@_;
-    
-    defined $see_all or $see_all=0;
-    
-    my @versions;
-    my $query;
-    $query = 
-"SELECT File.JobId, File.FileIndex, File.Lstat, 
-        File.Md5, Media.VolumeName, Media.InChanger
- FROM File, Filename, Path, Job, Client, JobMedia, Media
- WHERE File.FilenameId = Filename.FilenameId
-   AND File.PathId=Path.PathId
-   AND File.JobId = Job.JobId
-   AND Job.ClientId = Client.ClientId
-   AND Job.JobId = JobMedia.JobId
-   AND File.FileIndex >= JobMedia.FirstIndex
-   AND File.FileIndex <= JobMedia.LastIndex
-   AND JobMedia.MediaId = Media.MediaId
-   AND Path.Path = '$path'
-   AND Filename.Name = '$file'
-   AND Client.Name = '$client'";
-	
-    print STDERR $query if $debug;
-	
-    my $result = $dbh->selectall_arrayref($query);
-	
-    foreach my $refrow (@$result)
-    {
-	my ($jobid, $fileindex, $lstat, $md5, $volname, $inchanger) = @$refrow;
-	my @attribs = parse_lstat($lstat);
-	my $mtime = array_attrib('st_mtime',\@attribs);
-	my $size = array_attrib('st_size',\@attribs);
-		
-	my @list = ('FILE:', $path.$file, $jobid, $fileindex, $mtime, $size,
-		    $inchanger, $md5, $volname);
-	push @versions, (\@list);
-    }
-	
-    # We have the list of all versions of this file.
-    # We'll sort it by mtime desc, size, md5, inchanger desc
-    # the rest of the algorithm will be simpler
-    # ('FILE:',filename,jobid,fileindex,mtime,size,inchanger,md5,volname)
-    @versions = sort { $b->[4] <=> $a->[4] 
-		    || $a->[5] <=> $b->[5] 
-		    || $a->[7] cmp $a->[7] 
-		    || $b->[6] <=> $a->[6]} @versions;
-	
-    my @good_versions;
-    my %allready_seen_by_mtime;
-    my %allready_seen_by_md5;
-    # Now we should create a new array with only the interesting records
-    foreach my $ref (@versions)
-    {	
-	if ($ref->[7])
-	{
-	    # The file has a md5. We compare his md5 to other known md5...
-	    # We take size into account. It may happen that 2 files
-	    # have the same md5sum and are different. size is a supplementary
-	    # criterion
-            
-            # If we allready have a (better) version
-	    next if ( (not $see_all) 
-	              and $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]}); 
-
-	    # we never met this one before...
-	    $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]}=1;
-	}
-	# Even if it has a md5, we should also work with mtimes
-        # We allready have a (better) version
-	next if ( (not $see_all)
-	          and $allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5]}); 
-	$allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5] . '-' . $ref->[7]}=1;
-	
-	# We reached there. The file hasn't been seen.
-	push @good_versions,($ref);
-    }
-	
-    # To be nice with the user, we re-sort good_versions by
-    # inchanger desc, mtime desc
-    @good_versions = sort { $b->[4] <=> $a->[4] 
-                         || $b->[2] <=> $a->[2]} @good_versions;
-	
-    return @good_versions;
 }
 
 # TODO : bsr must use only good backup or not (see use_ok_bkp_only)
@@ -2478,7 +1930,8 @@ WHERE Job.JobId = JobMedia.JobId
 
 	
 	# reminder : restore_list looks like this : 
-	# ($name,$jobid,'file',$curjobids, undef, undef, undef, $dirfileindex);
+	# ($pid,$fid,$name,$jobid,'file',$curjobids,
+	#   undef, undef, undef, $dirfileindex);
 	
 	# Here, we retrieve every file/dir that could be in the restore
 	# We do as simple as possible for the SQL engine (no crazy joins,
@@ -2487,17 +1940,22 @@ WHERE Job.JobId = JobMedia.JobId
 	my @select_queries;
 	foreach my $entry (@{$self->{restore_list}->{data}})
 	{
-		if ($entry->[2] eq 'dir')
+		if ($entry->[4] eq 'dir')
 		{
-			my $dir = unpack('u', $entry->[0]);
-			my $inclause = $entry->[3]; #curjobids
-
+			my $dirid = $entry->[0];
+			my $inclause = $entry->[5]; #curjobids
+	
 			my $query = 
 "(SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId
   FROM File, Path, Filename
   WHERE Path.PathId = File.PathId
   AND File.FilenameId = Filename.FilenameId
-  AND Path.Path LIKE '$dir%'
+  AND Path.Path LIKE 
+        (SELECT ". $self->dbh_strcat('Path',"'\%'") ." FROM Path 
+          WHERE PathId IN ($dirid)
+    UNION 
+         SELECT " . $self->dbh_strcat('Path',"'\%'") ." FROM brestore_missing_path          WHERE PathId IN ($dirid)
+        )
   AND File.JobId IN ($inclause) )";
 			push @select_queries,($query);
 		}
@@ -2505,29 +1963,27 @@ WHERE Job.JobId = JobMedia.JobId
 		{
 			# It's a file. Great, we allready have most 
 			# of what is needed. Simple and efficient query
-			my $file = unpack('u', $entry->[0]);
-			my @file = split '/',$file;
-			$file = pop @file;
-			my $dir = join('/',@file);
+			my $dir = $entry->[0];
+			my $file = $entry->[1];
 			
-			my $jobid = $entry->[1];
-			my $fileindex = $entry->[7];
-			my $inclause = $entry->[3]; # curjobids
+			my $jobid = $entry->[3];
+			my $fileindex = $entry->[9];
+			my $inclause = $entry->[5]; # curjobids
 			my $query = 
 "(SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId
-  FROM File, Path, Filename
-  WHERE Path.PathId = File.PathId
+  FROM File,Path,Filename
+  WHERE File.PathId = $dir
+  AND File.PathId = Path.PathId
+  AND File.FilenameId = $file
   AND File.FilenameId = Filename.FilenameId
-  AND Path.Path = '$dir/'
-  AND Filename.Name = '$file'
-  AND File.JobId = $jobid)";
+  AND File.JobId = $jobid
+ )
+";
 			push @select_queries,($query);
 		}
 	}
 	$query = join("\nUNION ALL\n",@select_queries) . "\nORDER BY FileIndex\n";
 
-	print STDERR $query,"\n" if $debug;
-	
 	#Now we run the query and parse the result...
 	# there may be a lot of records, so we better be efficient
 	# We use the bind column method, working with references...
@@ -2823,6 +2279,261 @@ sub print_bsr_section
     return $bsr;
 }
 
+1;
+
+################################################################
+
+package Bvfs;
+use base qw/Bbase/;
+
+sub get_pathid
+{
+    my ($self, $dir) = @_;
+    my $query = 
+	"SELECT PathId FROM Path WHERE Path = ?
+          UNION 
+         SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+    my $sth = $self->dbh_prepare($query);
+    $sth->execute($dir,$dir);
+    my $result = $sth->fetchall_arrayref();
+    $sth->finish();
+    
+    return join(',', map { $_->[0] } @$result);
+}
+
+sub get_root
+{
+    my ($self, $dir) = @_;
+    return $self->get_pathid('');
+}
+
+sub ch_dir
+{
+    my ($self, $pathid) = @_;
+    $self->{cwd} = $pathid;
+}
+
+sub up_dir
+{
+    my ($self) = @_ ;
+    my $query = 
+  "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId IN ($self->{cwd}) ";
+
+    my $all = $self->dbh_selectall_arrayref($query);
+    return unless ($all);	# already at root
+
+    my $dir = join(',', map { $_->[0] } @$all);
+    if ($dir) {
+	$self->{cwd} = $dir;
+    }
+}
+
+sub pwd
+{
+    my ($self) = @_;
+    return $self->get_path($self->{cwd});
+}
+
+sub get_path
+{
+    my ($self, $pathid) = @_;
+    $self->debug("Call with pathid = $pathid");
+    my $query = 
+	"SELECT Path FROM Path WHERE PathId IN (?)
+          UNION 
+         SELECT Path FROM brestore_missing_path WHERE PathId IN (?)";
+    my $sth = $self->dbh_prepare($query);
+    $sth->execute($pathid,$pathid);
+    my $result = $sth->fetchrow_arrayref();
+    $sth->finish();
+    return $result->[0];    
+}
+
+sub set_curjobids
+{
+    my ($self, @jobids) = @_;
+    $self->{curjobids} = join(',', @jobids);
+}
+
+sub ls_files
+{
+    my ($self) = @_;
+
+    return undef unless ($self->{curjobids});
+
+    my $inclause   = $self->{curjobids};
+    my $inlistpath = $self->{cwd};
+
+    my $query = 
+"SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
+ FROM
+	(SELECT Filename.Name, max(File.FileId) as id
+	 FROM File, Filename
+	 WHERE File.FilenameId = Filename.FilenameId
+	   AND Filename.Name != ''
+	   AND File.PathId IN ($inlistpath)
+	   AND File.JobId IN ($inclause)
+	 GROUP BY Filename.Name
+	 ORDER BY Filename.Name) AS listfiles,
+File
+WHERE File.FileId = listfiles.id";
+	
+    $self->debug($query);
+    my $result = $self->dbh_selectall_arrayref($query);
+    $self->debug($result);
+	
+    return $result;
+}
+
+# return ($dirid,$dir_basename,$lstat,$jobid)
+sub ls_dirs
+{
+    my ($self) = @_;
+
+    return undef unless ($self->{curjobids});
+
+    my $pathid = $self->{cwd};
+    my $jobclause = $self->{curjobids};
+
+    # Let's retrieve the list of the visible dirs in this dir ...
+    # First, I need the empty filenameid to locate efficiently the dirs in the file table
+    my $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
+    my $sth = $self->dbh_prepare($query);
+    $sth->execute();
+    my $result = $sth->fetchrow_arrayref();
+    $sth->finish();
+    my $dir_filenameid = $result->[0];
+     
+    # Then we get all the dir entries from File ...
+    # It's ugly because there are records in brestore_missing_path ...
+    $query = "
+SELECT PathId, Path, JobId, Lstat FROM(
+    (
+    SELECT Path.PathId, Path.Path, lower(Path.Path), 
+           listfile.JobId, listfile.Lstat
+    FROM (
+	SELECT DISTINCT brestore_pathhierarchy.PathId
+	FROM brestore_pathhierarchy
+	JOIN Path 
+	    ON (brestore_pathhierarchy.PathId = Path.PathId)
+	JOIN brestore_pathvisibility 
+	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
+	WHERE brestore_pathhierarchy.PPathId = $pathid
+	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
+    JOIN Path ON (listpath.PathId = Path.PathId)
+    LEFT JOIN (
+	SELECT File.PathId, File.JobId, File.Lstat FROM File
+	WHERE File.FilenameId = $dir_filenameid
+	AND File.JobId IN ($jobclause)) AS listfile
+	ON (listpath.PathId = listfile.PathId)
+    UNION
+    SELECT brestore_missing_path.PathId, brestore_missing_path.Path, 
+           lower(brestore_missing_path.Path), listfile.JobId, listfile.Lstat
+    FROM (
+	SELECT DISTINCT brestore_pathhierarchy.PathId
+	FROM brestore_pathhierarchy
+	JOIN brestore_missing_path 
+	    ON (brestore_pathhierarchy.PathId = brestore_missing_path.PathId)
+	JOIN brestore_pathvisibility 
+	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
+	WHERE brestore_pathhierarchy.PPathId = $pathid
+	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
+    JOIN brestore_missing_path ON (listpath.PathId = brestore_missing_path.PathId)
+    LEFT JOIN (
+	SELECT File.PathId, File.JobId, File.Lstat FROM File
+	WHERE File.FilenameId = $dir_filenameid
+	AND File.JobId IN ($jobclause)) AS listfile
+	ON (listpath.PathId = listfile.PathId))
+ORDER BY 2,3 DESC ) As a";
+    $self->debug($query);
+    $sth=$self->dbh_prepare($query);
+    $sth->execute();
+    $result = $sth->fetchall_arrayref();
+    my @return_list;
+    my $prev_dir='';
+    foreach my $refrow (@{$result})
+    {
+	my $dirid = $refrow->[0];
+        my $dir = $refrow->[1];
+        my $lstat = $refrow->[3];
+        my $jobid = $refrow->[2] || 0;
+        next if ($dirid eq $prev_dir);
+        # We have to clean up this dirname ... we only want it's 'basename'
+        my $return_value;
+        if ($dir ne '/')
+        {
+            my @temp = split ('/',$dir);
+            $return_value = pop @temp;
+        }
+        else
+        {
+            $return_value = '/';
+        }
+        my @return_array = ($dirid,$return_value,$lstat,$jobid);
+        push @return_list,(\@return_array);
+        $prev_dir = $dirid;
+    }
+    $self->debug(\@return_list);
+    return \@return_list;    
+}
+
+# Returns the list of media required for a list of jobids.
+# Input : self, jobid1, jobid2...
+# Output : reference to array of (joibd, inchanger)
+sub get_required_media_from_jobid
+{
+    my ($self, @jobids)=@_;
+    my $inclause = join(',',@jobids);
+    my $query = "
+SELECT DISTINCT JobMedia.MediaId, Media.InChanger 
+FROM JobMedia, Media 
+WHERE JobMedia.MediaId=Media.MediaId 
+AND JobId In ($inclause)
+ORDER BY MediaId";
+    my $result = $self->dbh_selectall_arrayref($query);
+    return $result;
+}
+
+# Returns the fileindex from dirname and jobid.
+# Input : self, dirid, jobid
+# Output : fileindex
+sub get_fileindex_from_dir_jobid
+{
+    my ($self, $dirid, $jobid)=@_;
+    my $query;
+    $query = "SELECT File.FileIndex
+		FROM File, Filename
+		WHERE File.FilenameId = Filename.FilenameId
+		AND File.PathId = $dirid
+		AND Filename.Name = ''
+		AND File.JobId = '$jobid'
+		";
+		
+    $self->debug($query);
+    my $result = $self->dbh_selectall_arrayref($query);
+    return $result->[0]->[0];
+}
+
+# Returns the fileindex from filename and jobid.
+# Input : self, dirid, filenameid, jobid
+# Output : fileindex
+sub get_fileindex_from_file_jobid
+{
+    my ($self, $dirid, $filenameid, $jobid)=@_;
+    
+    my $query;
+    $query = 
+"SELECT File.FileIndex
+ FROM File
+ WHERE File.PathId = $dirid
+   AND File.FilenameId = $filenameid
+   AND File.JobId = $jobid";
+		
+    $self->debug($query);
+    my $result = $self->dbh_selectall_arrayref($query);
+    return $result->[0]->[0];
+}
+
 # This function estimates the size to be restored for an entry of the restore
 # list
 # In : self,reference to the entry
@@ -2830,20 +2541,25 @@ sub print_bsr_section
 sub estimate_restore_size
 {
     # reminder : restore_list looks like this : 
-    # ($name,$jobid,'file',$curjobids, undef, undef, undef, $dirfileindex);
-    my $self=shift;
-    my ($entry)=@_;
+    # ($pid,$fid,$name,$jobid,'file',$curjobids, 
+    #  undef, undef, undef, $dirfileindex);
+    my ($self, $entry, $refresh) = @_;
     my $query;
-    if ($entry->[2] eq 'dir')
+    if ($entry->[4] eq 'dir')
     {
-	my $dir = unpack('u', $entry->[0]);
-	my $inclause = $entry->[3]; #curjobids
+	my $dir = $entry->[0];
+
+	my $inclause = $entry->[5]; #curjobids
 	$query = 
 "SELECT Path.Path, File.FilenameId, File.LStat
   FROM File, Path, Job
   WHERE Path.PathId = File.PathId
   AND File.JobId = Job.JobId
-  AND Path.Path LIKE '$dir%'
+  AND Path.Path LIKE 
+        (SELECT Path || '%' FROM Path WHERE PathId IN ($dir)
+          UNION 
+         SELECT Path || '%' FROM brestore_missing_path WHERE PathId IN ($dir)
+        )
   AND File.JobId IN ($inclause)
   ORDER BY Path.Path, File.FilenameId, Job.StartTime DESC";
     }
@@ -2851,25 +2567,21 @@ sub estimate_restore_size
     {
 	# It's a file. Great, we allready have most 
 	# of what is needed. Simple and efficient query
-	my $file = unpack('u', $entry->[0]);
-	my @file = split '/',$file;
-	$file = pop @file;
-	my $dir = join('/',@file);
+	my $dir = $entry->[0];
+	my $fileid = $entry->[1];
 	
-	my $jobid = $entry->[1];
-	my $fileindex = $entry->[7];
-	my $inclause = $entry->[3]; # curjobids
+	my $jobid = $entry->[3];
+	my $fileindex = $entry->[9];
+	my $inclause = $entry->[5]; # curjobids
 	$query = 
 "SELECT Path.Path, File.FilenameId, File.Lstat
-  FROM File, Path, Filename
+  FROM File, Path
   WHERE Path.PathId = File.PathId
-  AND Path.Path = '$dir/'
-  AND Filename.Name = '$file'
-  AND File.JobId = $jobid
-  AND Filename.FilenameId = File.FilenameId";
+  AND Path.PathId = $dir
+  AND File.FilenameId = $fileid
+  AND File.JobId = $jobid";
     }
 
-    print STDERR $query,"\n" if $debug;
     my ($path,$nameid,$lstat);
     my $sth = $self->dbh_prepare($query);
     $sth->execute;
@@ -2879,7 +2591,7 @@ sub estimate_restore_size
     my $total_size=0;
     my $total_files=0;
 
-    refresh_screen();
+    &$refresh();
 
     my $rcount=0;
     # We fetch all rows
@@ -2889,7 +2601,7 @@ sub estimate_restore_size
         next if ($nameid eq $old_nameid and $path eq $old_path);
 
 	if ($rcount > 15000) {
-	    refresh_screen();
+	    &$refresh();
 	    $rcount=0;
 	} else {
 	    $rcount++;
@@ -2902,13 +2614,105 @@ sub estimate_restore_size
         $old_path=$path;
         $old_nameid=$nameid;
     }
+
     return ($total_size,$total_files);
 }
+
+# Returns list of versions of a file that could be restored
+# returns an array of 
+# ('FILE:',jobid,fileindex,mtime,size,inchanger,md5,volname)
+# there will be only one jobid in the array of jobids...
+sub get_all_file_versions
+{
+    my ($self,$pathid,$fileid,$client,$see_all)=@_;
+    
+    defined $see_all or $see_all=0;
+    
+    my @versions;
+    my $query;
+    $query = 
+"SELECT File.JobId, File.FileIndex, File.Lstat, 
+        File.Md5, Media.VolumeName, Media.InChanger
+ FROM File, Job, Client, JobMedia, Media
+ WHERE File.FilenameId = $fileid
+   AND File.PathId=$pathid
+   AND File.JobId = Job.JobId
+   AND Job.ClientId = Client.ClientId
+   AND Job.JobId = JobMedia.JobId
+   AND File.FileIndex >= JobMedia.FirstIndex
+   AND File.FileIndex <= JobMedia.LastIndex
+   AND JobMedia.MediaId = Media.MediaId
+   AND Client.Name = '$client'";
+	
+    $self->debug($query);
+	
+    my $result = $self->dbh_selectall_arrayref($query);
+	
+    foreach my $refrow (@$result)
+    {
+	my ($jobid, $fileindex, $lstat, $md5, $volname, $inchanger) = @$refrow;
+	my @attribs = parse_lstat($lstat);
+	my $mtime = array_attrib('st_mtime',\@attribs);
+	my $size = array_attrib('st_size',\@attribs);
+		
+	my @list = ('FILE:',$pathid,$fileid,$jobid,
+		    $fileindex, $mtime, $size, $inchanger,
+		    $md5, $volname);
+	push @versions, (\@list);
+    }
+	
+    # We have the list of all versions of this file.
+    # We'll sort it by mtime desc, size, md5, inchanger desc
+    # the rest of the algorithm will be simpler
+    # ('FILE:',filename,jobid,fileindex,mtime,size,inchanger,md5,volname)
+    @versions = sort { $b->[5] <=> $a->[5] 
+		    || $a->[6] <=> $b->[6] 
+		    || $a->[8] cmp $a->[8] 
+		    || $b->[7] <=> $a->[7]} @versions;
+
+	
+    my @good_versions;
+    my %allready_seen_by_mtime;
+    my %allready_seen_by_md5;
+    # Now we should create a new array with only the interesting records
+    foreach my $ref (@versions)
+    {	
+	if ($ref->[8])
+	{
+	    # The file has a md5. We compare his md5 to other known md5...
+	    # We take size into account. It may happen that 2 files
+	    # have the same md5sum and are different. size is a supplementary
+	    # criterion
+            
+            # If we allready have a (better) version
+	    next if ( (not $see_all) 
+	              and $allready_seen_by_md5{$ref->[8] .'-'. $ref->[6]}); 
+
+	    # we never met this one before...
+	    $allready_seen_by_md5{$ref->[8] .'-'. $ref->[6]}=1;
+	}
+	# Even if it has a md5, we should also work with mtimes
+        # We allready have a (better) version
+	next if ( (not $see_all)
+	          and $allready_seen_by_mtime{$ref->[5] .'-'. $ref->[6]}); 
+	$allready_seen_by_mtime{$ref->[5] .'-'. $ref->[6] . '-' . $ref->[8]}=1;
+	
+	# We reached there. The file hasn't been seen.
+	push @good_versions,($ref);
+    }
+	
+    # To be nice with the user, we re-sort good_versions by
+    # inchanger desc, mtime desc
+    @good_versions = sort { $b->[5] <=> $a->[5] 
+                         || $b->[3] <=> $a->[3]} @good_versions;
+	
+    return @good_versions;
+}
+
 
 sub update_brestore_table
 {
     my ($self, @jobs) = @_;
-    my $dbh = $self->{dbh};
 
     foreach my $job (sort {$a <=> $b} @jobs)
     {
@@ -2963,31 +2767,30 @@ sub update_brestore_table
 		WHERE JobId=$job) AS b
 		ON (a.PathId = b.PathId)
 	WHERE b.PathId IS NULL)";
-	print STDERR $query,"\n" if ($debug);
+
         my $rows_affected;
-	while (($rows_affected = $dbh->do($query)) and ($rows_affected !~ /^0/))
+	while (($rows_affected = $self->dbh_do($query)) and ($rows_affected !~ /^0/))
 	{
 	    print STDERR "Recursively adding $rows_affected records from $job\n";
 	}
 	# Job's done
 	$query = "INSERT INTO brestore_knownjobid (JobId) VALUES ($job)";
-	$dbh->do($query);
+	$self->dbh_do($query);
     }
 }
 
 sub cleanup_brestore_table
 {
     my ($self) = @_;
-    my $dbh = $self->{dbh};
 
     my $query = "SELECT JobId from brestore_knownjobid";
-    my @jobs = @{$dbh->selectall_arrayref($query)};
+    my @jobs = @{$self->dbh_selectall_arrayref($query)};
 
     foreach my $jobentry (@jobs)
     {
 	my $job = $jobentry->[0];
 	$query = "SELECT FileId from File WHERE JobId = $job LIMIT 1";
-	my $result = $dbh->selectall_arrayref($query);
+	my $result = $self->dbh_selectall_arrayref($query);
 	if (scalar(@{$result}))
 	{
 	    # There are still files for this jobid
@@ -2995,104 +2798,10 @@ sub cleanup_brestore_table
 
 	} else {
 		$query = "DELETE FROM brestore_pathvisibility WHERE JobId = $job";
-		$dbh->do($query);
+		$self->dbh_do($query);
 		$query = "DELETE FROM brestore_knownjobid WHERE JobId = $job";
-		$dbh->do($query);
+		$self->dbh_do($query);
 	}
-    }
-}
-
-sub build_path_hierarchy
-{
-    my ($self, $path,$pathid)=@_;
-    # Does the ppathid exist for this ? we use a memory cache...
-    # In order to avoid the full loop, we consider that if a dir is allready in the
-    # brestore_pathhierarchy table, then there is no need to calculate all the hierarchy
-    while ($path ne '')
-    {
-        #print STDERR "$path\n" if $debug;
-	if (! $self->{cache_ppathid}->{$pathid})
-	{
-	    my $query = "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId = ?";
-	    my $sth2 = $self->{dbh}->prepare_cached($query);
-	    $sth2->execute($pathid);
-	    # Do we have a result ?
-	    if (my $refrow = $sth2->fetchrow_arrayref)
-	    {
-		$self->{cache_ppathid}->{$pathid}=$refrow->[0];
-		$sth2->finish();
-		# This dir was in the db ...
-		# It means we can leave, the tree has allready been built for
-		# this dir
-		return 1;
-	    } else {
-		$sth2->finish();
-		# We have to create the record ...
-		# What's the current p_path ?
-		my $ppath = parent_dir($path);
-		my $ppathid = $self->return_pathid_from_path($ppath);
-		$self->{cache_ppathid}->{$pathid}= $ppathid;
-		
-		$query = "INSERT INTO brestore_pathhierarchy (pathid, ppathid) VALUES (?,?)";
-		$sth2 = $self->{dbh}->prepare_cached($query);
-		$sth2->execute($pathid,$ppathid);
-		$sth2->finish();
-		$path = $ppath;
-		$pathid = $ppathid;
-	    }
-	} else {
-	   # It's allready in the cache.
-	   # We can leave, no time to waste here, all the parent dirs have allready
-	   # been done
-	   return 1;
-	}
-    }
-    return 1;
-}
-
-sub return_pathid_from_path
-{
-    my ($self, $path) = @_;
-    my $query = "SELECT PathId FROM Path WHERE Path = ?
-                 UNION
-                 SELECT PathId FROM brestore_missing_path WHERE Path = ?";
-    #print STDERR $query,"\n" if $debug;
-    my $sth = $self->{dbh}->prepare_cached($query);
-    $sth->execute($path,$path);
-    my $result =$sth->fetchrow_arrayref();
-    $sth->finish();
-    if (defined $result)
-    {
-	return $result->[0];
-
-    } else {
-        # A bit dirty : we insert into path AND missing_path, to be sure
-        # we aren't deleted by a purge. We still need to insert into path to get
-        # the pathid, because of mysql
-        $query = "INSERT INTO Path (Path) VALUES (?)";
-        #print STDERR $query,"\n" if $debug;
-	$sth = $self->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$sth->finish();
-        
-	$query = " INSERT INTO brestore_missing_path (PathId,Path)
-	           SELECT PathId,Path FROM Path WHERE Path = ?";
-	#print STDERR $query,"\n" if $debug;
-	$sth = $self->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$sth->finish();
-	$query = " DELETE FROM Path WHERE Path = ?";
-	#print STDERR $query,"\n" if $debug;
-	$sth = $self->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$sth->finish();
-	$query = "SELECT PathId FROM brestore_missing_path WHERE Path = ?";
-	#print STDERR $query,"\n" if $debug;
-	$sth = $self->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$result = $sth->fetchrow_arrayref();
-	$sth->finish();
-	return $result->[0];
     }
 }
 
@@ -3117,6 +2826,172 @@ sub parent_dir
     return $tmp;
 }
 
+sub build_path_hierarchy
+{
+    my ($self, $path,$pathid)=@_;
+    # Does the ppathid exist for this ? we use a memory cache...
+    # In order to avoid the full loop, we consider that if a dir is allready in the
+    # brestore_pathhierarchy table, then there is no need to calculate all the hierarchy
+    while ($path ne '')
+    {
+	if (! $self->{cache_ppathid}->{$pathid})
+	{
+	    my $query = "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId = ?";
+	    my $sth2 = $self->{conf}->{dbh}->prepare_cached($query);
+	    $sth2->execute($pathid);
+	    # Do we have a result ?
+	    if (my $refrow = $sth2->fetchrow_arrayref)
+	    {
+		$self->{cache_ppathid}->{$pathid}=$refrow->[0];
+		$sth2->finish();
+		# This dir was in the db ...
+		# It means we can leave, the tree has allready been built for
+		# this dir
+		return 1;
+	    } else {
+		$sth2->finish();
+		# We have to create the record ...
+		# What's the current p_path ?
+		my $ppath = parent_dir($path);
+		my $ppathid = $self->return_pathid_from_path($ppath);
+		$self->{cache_ppathid}->{$pathid}= $ppathid;
+		
+		$query = "INSERT INTO brestore_pathhierarchy (pathid, ppathid) VALUES (?,?)";
+		$sth2 = $self->{conf}->{dbh}->prepare_cached($query);
+		$sth2->execute($pathid,$ppathid);
+		$sth2->finish();
+		$path = $ppath;
+		$pathid = $ppathid;
+	    }
+	} else {
+	   # It's allready in the cache.
+	   # We can leave, no time to waste here, all the parent dirs have allready
+	   # been done
+	   return 1;
+	}
+    }
+    return 1;
+}
+
+
+sub return_pathid_from_path
+{
+    my ($self, $path) = @_;
+    my $query = "SELECT PathId FROM Path WHERE Path = ?
+                 UNION
+                 SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+    #print STDERR $query,"\n" if $debug;
+    my $sth = $self->{conf}->{dbh}->prepare_cached($query);
+    $sth->execute($path,$path);
+    my $result =$sth->fetchrow_arrayref();
+    $sth->finish();
+    if (defined $result)
+    {
+	return $result->[0];
+
+    } else {
+        # A bit dirty : we insert into path AND missing_path, to be sure
+        # we aren't deleted by a purge. We still need to insert into path to get
+        # the pathid, because of mysql
+        $query = "INSERT INTO Path (Path) VALUES (?)";
+        #print STDERR $query,"\n" if $debug;
+	$sth = $self->{conf}->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+        
+	$query = " INSERT INTO brestore_missing_path (PathId,Path)
+	           SELECT PathId,Path FROM Path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{conf}->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+	$query = " DELETE FROM Path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{conf}->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+	$query = "SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{conf}->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$result = $sth->fetchrow_arrayref();
+	$sth->finish();
+	return $result->[0];
+    }
+}
+
+
+sub create_brestore_tables
+{
+    my ($self) = @_;
+
+    my $verif = "SELECT 1 FROM brestore_knownjobid LIMIT 1";
+
+    unless ($self->dbh_do($verif)) {
+	new DlgWarn("brestore can't find brestore_xxx tables on your database. I will create them.");
+
+	$self->{error} = "Creating internal brestore tables";
+	my $req = "
+    CREATE TABLE brestore_knownjobid
+    (
+     JobId int4 NOT NULL,
+     CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId)
+    )";
+	$self->dbh_do($req);
+    }
+    
+    $verif = "SELECT 1 FROM brestore_pathhierarchy LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+	my $req = "
+   CREATE TABLE brestore_pathhierarchy
+   (
+     PathId int4 NOT NULL,
+     PPathId int4 NOT NULL,
+     CONSTRAINT brestore_pathhierarchy_pkey PRIMARY KEY (PathId)
+   )";
+	$self->dbh_do($req);
+
+
+	$req = "CREATE INDEX brestore_pathhierarchy_ppathid 
+                          ON brestore_pathhierarchy (PPathId)";
+	$self->dbh_do($req);
+    }
+    
+    $verif = "SELECT 1 FROM brestore_pathvisibility LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+	my $req = "
+    CREATE TABLE brestore_pathvisibility
+    (
+      PathId int4 NOT NULL,
+      JobId int4 NOT NULL,
+      Size int8 DEFAULT 0,
+      Files int4 DEFAULT 0,
+      CONSTRAINT brestore_pathvisibility_pkey PRIMARY KEY (JobId, PathId)
+    )";
+	$self->dbh_do($req);
+
+	$req = "CREATE INDEX brestore_pathvisibility_jobid
+                          ON brestore_pathvisibility (JobId)";
+	$self->dbh_do($req);
+    }
+    
+    $verif = "SELECT 1 FROM brestore_missing_path LIMIT 1";
+    unless ($self->dbh_do($verif)) {
+    	my $req = "
+    CREATE TABLE brestore_missing_path
+    (
+      PathId int4 NOT NULL,
+      Path text NOT NULL,
+      CONSTRAINT brestore_missing_path_pkey PRIMARY KEY (PathId)
+    )";
+	$self->dbh_do($req);
+
+	$req = "CREATE INDEX brestore_missing_path_path
+                          ON brestore_missing_path (Path)";
+	$self->dbh_do($req);
+    }
+}
+
 # Get metadata
 {
     my %attrib_name_id = ( 'st_dev' => 0,'st_ino' => 1,'st_mode' => 2,
@@ -3132,68 +3007,27 @@ sub parent_dir
     }
 	
     sub file_attrib
-    {   # $file = [listfiles.id, listfiles.Name, File.LStat, File.JobId]
+    {   # $file = [filenameid,listfiles.id,listfiles.Name, File.LStat, File.JobId]
 
 	my ($file, $attrib)=@_;
 	
 	if (defined $attrib_name_id{$attrib}) {
 
-	    my @d = split(' ', $file->[2]) ; # TODO : cache this
+	    my @d = split(' ', $file->[3]) ; # TODO : cache this
 	    
 	    return from_base64($d[$attrib_name_id{$attrib}]);
 
 	} elsif ($attrib eq 'jobid') {
 
-	    return $file->[3];
+	    return $file->[4];
 
         } elsif ($attrib eq 'name') {
 
-	    return $file->[1];
+	    return $file->[2];
 	    
 	} else	{
 	    die "Attribute not known : $attrib.\n";
 	}
-    }
-
-    # Return the jobid or attribute asked for a dir
-    sub dir_attrib
-    {
-	my ($self,$dir,$attrib)=@_;
-	
-	my @dir = split('/',$dir,-1);
-	my $refdir=$self->{dirtree}->{$self->current_client};
-	
-	if (not defined $attrib_name_id{$attrib} and $attrib ne 'jobid')
-	{
-	    die "Attribute not known : $attrib.\n";
-	}
-	# Find the leaf
-	foreach my $subdir (@dir)
-	{
-	    $refdir = $refdir->[0]->{$subdir};
-	}
-	
-	# $refdir is now the reference to the dir's array
-	# Is the a jobid in @CurrentJobIds where the lstat is
-	# defined (we'll search in reverse order)
-	foreach my $jobid (reverse(sort {$a <=> $b } @{$self->{CurrentJobIds}}))
-	{
-	    if (defined $refdir->[1]->{$jobid} and $refdir->[1]->{$jobid} ne '1')
-	    {
-		if ($attrib eq 'jobid')
-		{
-		    return $jobid;
-		}
-		else
-		{
-		    my @attribs = parse_lstat($refdir->[1]->{$jobid});
-		    return $attribs[$attrib_name_id{$attrib}+1];
-		}
-	    }
-	}
-
-	return 0; # We cannot get a good attribute.
-		  # This directory is here for the sake of visibility
     }
     
     sub lstat_attrib
@@ -3269,6 +3103,115 @@ sub parent_dir
     }
 }
 
+1;
+
+################################################################
+package BwebConsole;
+use LWP::UserAgent;
+use HTTP::Request::Common;
+
+sub new
+{
+    my ($class, %arg) = @_;
+
+    my $self = bless {
+	pref => $arg{pref},	# Pref object
+	timeout => $arg{timeout} || 20,
+	debug   => $arg{debug} || 0,
+	'list_job'     => '',
+	'list_client'  => '',
+	'list_fileset' => '',
+	'list_storage' => '',
+	'run'          => '',
+    };
+
+    return $self;
+}
+
+sub prepare
+{
+    my ($self, @what) = @_;
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Brestore/$VERSION");
+    my $req = POST($self->{pref}->{bconsole},
+		   Content_Type => 'form-data',
+		   Content => [ map { (action => $_) } @what ]);
+    #$req->authorization_basic('eric', 'test');
+
+    my $res = $ua->request($req);
+
+    if ($res->is_success) {
+	foreach my $l (split(/\n/, $res->content)) {
+	    my ($k, $c) = split(/=/,$l,2);
+	    $self->{$k} = $c;
+	}
+    } else {
+	$self->{error} = "Can't connect to bweb : " . $res->status_line;
+	new DlgWarn($self->{error});
+    }
+}
+
+sub run
+{
+    my ($self, %arg) = @_;
+
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Brestore/$VERSION");
+    my $req = POST($self->{pref}->{bconsole},
+		   Content_Type => 'form-data',
+		   Content => [ job     => $arg{job},
+				client  => $arg{client},
+				storage => $arg{storage} || '',
+				fileset => $arg{fileset} || '',
+				where   => $arg{where},
+				replace => $arg{replace},
+				priority=> $arg{prio}    || '',
+				action  => 'run',
+				timeout => 10,
+				bootstrap => [$arg{bootstrap}],
+				]);
+    #$req->authorization_basic('eric', 'test');
+
+    my $res = $ua->request($req);
+
+    if ($res->is_success) {
+	foreach my $l (split(/\n/, $res->content)) {
+	    my ($k, $c) = split(/=/,$l,2);
+	    $self->{$k} = $c;
+	}
+    } 
+
+    if (!$self->{run}) {
+        new DlgWarn("Can't connect to bweb : " . $res->status_line);
+    } 
+
+    unlink($arg{bootstrap});
+
+    return $self->{run};
+}
+
+sub list_job
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_job'});
+}
+
+sub list_fileset
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_fileset'});
+}
+
+sub list_storage
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_storage'});
+}
+sub list_client
+{
+    my ($self) = @_;
+    return sort split(/;/, $self->{'list_client'});
+}
 
 1;
 
@@ -3294,7 +3237,7 @@ sub update_cache
     my $query = "SELECT JobId from Job WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) order by JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
-    $self->update_brestore_table(map { $_->[0] } @$jobs);
+    $self->{bvfs}->update_brestore_table(map { $_->[0] } @$jobs);
 }
 
 1;
@@ -3369,27 +3312,22 @@ Gtk2->main; # Start Gtk2 main loop
 
 exit 0;
 
-
 __END__
+package main;
 
-TODO : 
+my $p = new Pref("$ENV{HOME}/.brestore.conf");
+$p->{debug} = 1;
+$p->connect_db() || print $p->{error};
 
+my $bvfs = new Bvfs(conf => $p);
 
-# Code pour trier les colonnes    
-    my $mod = $fileview->get_model();
-    $mod->set_default_sort_func(sub {
-            my ($model, $item1, $item2) = @_;
-            my $a = $model->get($item1, 1);  # récupération de la valeur de la 2ème 
-            my $b = $model->get($item2, 1);  # colonne (indice 1)
-            return $a cmp $b;
-        }
-    );
-    
-    $fileview->set_headers_clickable(1);
-    my $col = $fileview->get_column(1);    # la colonne NOM, colonne numéro 2
-    $col->signal_connect('clicked', sub {
-            my ($colonne, $model) = @_;
-            $model->set_sort_column_id (1, 'ascending');
-        },
-        $mod
-    );
+$bvfs->debug($bvfs->get_root());
+$bvfs->ch_dir($bvfs->get_root());
+$bvfs->up_dir();
+$bvfs->set_curjobids(268,178,282,281,279);
+$bvfs->ls_files();
+my $dirs = $bvfs->ls_dirs();
+$bvfs->ch_dir(123496);
+$dirs = $bvfs->ls_dirs();
+$bvfs->ls_files();
+map { $bvfs->debug($_) } $bvfs->get_all_file_versions($bvfs->{cwd},312433, "exw3srv3", 1);

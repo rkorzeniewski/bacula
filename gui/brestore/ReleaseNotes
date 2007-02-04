@@ -1,4 +1,7 @@
-          Release Notes for brestore 2.0.1
+          Release Notes for brestore 2.0.2
+
+Version 2.0.2-1:
+ - Fix bug with accent, use filenameid/pathid instead of filename
 
 Version 2.0.1-1:
  - Do nothing if destination string is empty
