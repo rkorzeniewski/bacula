@@ -137,6 +137,7 @@ sub write_config
 {
     my ($self) = @_;
     
+    $self->{error} = '';
     my %parameters;
 
     for my $k (@{ $self->{entry_keyword} }) { 
@@ -154,8 +155,9 @@ sub write_config
     }
     else
     {
-	# TODO : Display a message
+	$self->{error} = "Can't write configuration $!";
     }
+    return $self->{error};
 }
 
 sub connect_db
@@ -365,11 +367,11 @@ sub on_applybutton_clicked
 	$pref->{$k} = $w->get_active();
     }
 
-    $pref->write_config();
-    if ($pref->connect_db()) {
+    if (!$pref->write_config() && $pref->connect_db()) {
         $self->{dlgresto}->set_status('Preferences updated');
 	$self->{dlgresto}->init_server_backup_combobox();
 	$self->{dlgresto}->set_status($pref->{error});
+
     } else {
 	$self->{dlgresto}->set_status($pref->{error});
     }
