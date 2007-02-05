@@ -14,7 +14,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -89,9 +89,11 @@ enum {
 #define BNET_SETBUF_WRITE 2           /* Arg for bnet_set_buffer_size */
 
 /* Return status from bnet_recv() */
-#define BNET_SIGNAL  -1
-#define BNET_HARDEOF -2
-#define BNET_ERROR   -3
+enum {
+   BNET_SIGNAL         = -1,
+   BNET_HARDEOF        = -2,
+   BNET_ERROR          = -3
+};
 
 /*
  * TLS enabling values. Value is important for comparison, ie:
