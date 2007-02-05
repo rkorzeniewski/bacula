@@ -1608,9 +1608,9 @@ static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
    if (pass == 2) {
       if (strcmp(lc->str, "%c") == 0) {
          ((RUNSCRIPT*) item->value)->set_target(lc->str);
-      } else if (strcmp(lc->str, "yes") == 0) {
+      } else if (strcasecmp(lc->str, "yes") == 0) {
          ((RUNSCRIPT*) item->value)->set_target("%c");
-      } else if (strcmp(lc->str, "no") == 0) {
+      } else if (strcasecmp(lc->str, "no") == 0) {
          ((RUNSCRIPT*) item->value)->set_target("");
       } else {
          RES *res = GetResWithName(R_CLIENT, lc->str);
