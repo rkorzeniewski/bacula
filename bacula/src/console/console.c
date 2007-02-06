@@ -57,7 +57,7 @@
 
 /* Exported variables */
 
-extern int rl_catch_signals;
+//extern int rl_catch_signals;
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);

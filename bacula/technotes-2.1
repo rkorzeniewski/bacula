@@ -1,7 +1,18 @@
               Technical notes on version 2.1
 
 General:
+06Feb07
+kes  Delete src/lib/btree.c from win32 build, then add rblist.c
+     plus the entrypoints.
+kes  Apply patch supplied that corrects debug print
+     in canceling jobs for max run time.  Supplied as
+     part of bug #621, which was previously fixed.
 05Feb07
+kes  Test on job_canceled() and sd_msg_thread_done inside
+     loop starting the message thread to avoid a race condition.
+     Fixes bug #771.
+kes  Remove rl_catch_signal from console.c as it conflicted
+     with the header definition. Fixes bug #765.
 ebl  Fixes bug #766 about RunsOnClient = Yes
 04Feb07
 kes  Clarify some stored/acquire messages to indicate if the

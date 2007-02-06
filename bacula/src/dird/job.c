@@ -554,7 +554,7 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
             jcr->JobStatus);
    }
    Dmsg3(800, "MaxWaitTime result: %scancel JCR %p (%s)\n",
-         cancel ? "" : "do not ", jcr, jcr->job);
+         cancel ? "" : "do not ", jcr, jcr->Job);
 #endif
    return cancel;
 }
@@ -602,7 +602,7 @@ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
    }
 
    Dmsg3(200, "MaxRunTime result: %scancel JCR %p (%s)\n",
-         cancel ? "" : "do not ", jcr, jcr->job);
+         cancel ? "" : "do not ", jcr, jcr->Job);
 #endif
    return true;
 }
