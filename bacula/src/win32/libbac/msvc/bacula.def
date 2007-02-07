@@ -391,7 +391,7 @@ fnmatch
 ?qinsert@@YAXPAUb_queue@@0@Z
 ?qnext@@YAPAUb_queue@@PAU1@0@Z
 ?qdchain@@YAPAUb_queue@@PAU1@@Z
- 
+
 ; runscript.obj 
 ?new_runscript@@YAPAVRUNSCRIPT@@XZ
 ?reset_default@RUNSCRIPT@@QAEX_N@Z
@@ -450,19 +450,22 @@ fnmatch
 ?sm_dump@@YAX_N@Z
 ?sm_check@@YAXPBDH_N@Z
 ?sm_static@@YAXH@Z
- 
-; tls.obj 
+
+; tls.obj
 ?new_tls_context@@YAPAUTLS_Context@@PBD000P6AHPADHPBX@Z20_N@Z
 ?free_tls_context@@YAXPAUTLS_Context@@@Z
- 
-; tree.obj 
+
+; tree.obj
 ?new_tree@@YAPAUs_tree_root@@H@Z
 ?free_tree@@YAXPAUs_tree_root@@@Z
 ?insert_tree_node@@YAPAUs_tree_node@@PAD0HPAUs_tree_root@@PAU1@@Z
 ?strrchr@@YAPADPADH@Z
 ?tree_getpath@@YAHPAUs_tree_node@@PADH@Z
 ?tree_cwd@@YAPAUs_tree_node@@PADPAUs_tree_root@@PAU1@@Z
- 
+; rblist
+?insert@rblist@@QAEPAXPAXP6AH00@Z@Z
+?next@rblist@@QAEPAXPAX@Z
+
 ; util.obj 
 ?is_buf_zero@@YA_NPADH@Z
 ?lcase@@YAXPAD@Z

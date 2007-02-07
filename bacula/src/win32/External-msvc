@@ -24,8 +24,8 @@ PCRE|http://superb-west.dl.sourceforge.net/sourceforge/pcre/pcre-6.3.tar.bz2
 PTHREADS|ftp://sources.redhat.com/pub/pthreads-win32/pthreads-2004-06-22x.exe|pthreads-2004-06-22x|true
 OPENSSL|http://www.openssl.org/source/openssl-0.9.8b.tar.gz
 MYSQL|http://mirror.x10.com/mirror/mysql/Downloads/MySQL-5.0/mysql-noinstall-5.0.27-win32.zip|mysql-5.0.27-win32
-POSTGRESQL|ftp://ftp2.us.postgresql.org/postgresql/binary/v8.1.4/win32/postgresql-8.1.4-1-binaries-no-installer.zip|pgsql
-POSTGRESQL_SRC|ftp://ftp4.us.postgresql.org/pub/postgresql/source/v8.1.4/postgresql-8.1.4.tar.bz2
+POSTGRESQL|ftp://ftp2.us.postgresql.org/postgresql/binary/v8.1.6/win32/postgresql-8.1.6-1-binaries-no-installer.zip|pgsql
+POSTGRESQL_SRC|ftp://ftp4.us.postgresql.org/pub/postgresql/source/v8.1.6/postgresql-8.1.6.tar.bz2
 SQLITE|http://www.sqlite.org/sqlite-3.3.8.tar.gz
 WX|http://superb-west.dl.sourceforge.net/sourceforge/wxwindows/wxWidgets-2.7.0.zip
 NSIS_BIN|http://superb-west.dl.sourceforge.net/sourceforge/nsis/nsis-2.17.zip
