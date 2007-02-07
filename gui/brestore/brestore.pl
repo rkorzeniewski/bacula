@@ -1020,7 +1020,7 @@ sub new
 					      'Size'          => 'text',
 					      'Date'          => 'text');
     init_drag_drop($fileview);
-    $fileview->set_search_column(4); # search on File Name
+    $fileview->set_search_column(6); # search on File Name
 
     # Connect glade-restore_list to Gtk2::SimpleList
     $widget = $glade->get_widget('restorelist');
