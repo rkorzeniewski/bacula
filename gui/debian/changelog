@@ -1,3 +1,10 @@
+bweb (2.0.2-1) stable; urgency=low
+
+  * fix utf8 bug in brestore
+  * fix dependency
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Tue,  06 Feb 2007 21:10:47 +0000
+	
 bweb (2.0.1-2) stable; urgency=low
 
   * fv_write_path is optionnal now
