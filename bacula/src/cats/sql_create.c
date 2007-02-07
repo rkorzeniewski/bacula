@@ -70,7 +70,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    struct tm tm;
    bool ok;
    utime_t JobTDate;
-   char ed1[30];
+   char ed1[30],ed2[30];
 
    db_lock(mdb);
 
@@ -83,10 +83,11 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 
    /* Must create it */
    Mmsg(mdb->cmd,
-"INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate) VALUES "
-"('%s','%s','%c','%c','%c','%s',%s)",
+"INSERT INTO Job (Job,Name,Type,Level,JobStatus,SchedTime,JobTDate,ClientId) "
+"VALUES ('%s','%s','%c','%c','%c','%s',%s,%s)",
            jr->Job, jr->Name, (char)(jr->JobType), (char)(jr->JobLevel),
-           (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1));
+           (char)(jr->JobStatus), dt, edit_uint64(JobTDate, ed1),
+           edit_int64(jr->ClientId, ed2));
 
    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
       Mmsg2(&mdb->errmsg, _("Create DB Job record %s failed. ERR=%s\n"),

@@ -156,6 +156,10 @@ bool setup_job(JCR *jcr)
     * Create Job record
     */
    init_jcr_job_record(jcr);
+   if (!get_or_create_client_record(jcr)) {
+      goto bail_out;
+   }
+
    if (!db_create_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
@@ -163,10 +167,6 @@ bool setup_job(JCR *jcr)
    jcr->JobId = jcr->jr.JobId;
    Dmsg4(100, "Created job record JobId=%d Name=%s Type=%c Level=%c\n",
        jcr->JobId, jcr->Job, jcr->jr.JobType, jcr->jr.JobLevel);
-
-   if (!get_or_create_client_record(jcr)) {
-      goto bail_out;
-   }
 
    generate_daemon_event(jcr, "JobStart");
 
