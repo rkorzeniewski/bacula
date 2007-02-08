@@ -423,15 +423,24 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       }
 
    }
-   /* If we still do not have a jcr,
-    *   throw up a list and ask the user to select one.
-    */
-   if (!jcr) {
+   if (jcr) {
+      if (jcr->job && !acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+         bsendmsg(ua, _("Unauthorized command from this console.\n"));
+         return 1;
+      }
+   } else {
+     /*
+      * If we still do not have a jcr,
+      *   throw up a list and ask the user to select one.
+      */
       char buf[1000];
       /* Count Jobs running */
       foreach_jcr(jcr) {
          if (jcr->JobId == 0) {      /* this is us */
             continue;
+         }
+         if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+            continue;               /* skip not authorized */
          }
          njobs++;
       }

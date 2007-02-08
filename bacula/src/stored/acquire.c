@@ -8,7 +8,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -406,6 +406,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    if (jcr->NumWriteVolumes == 0) {
       jcr->NumWriteVolumes = 1;
    }
+   dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
+   dir_update_volume_info(dcr, false);        /* send Volume info to Director */
    P(dev->mutex);
    if (dcr->reserved_device) {
       dev->reserved_device--;
@@ -486,7 +488,6 @@ bool release_device(DCR *dcr)
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
-            dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs */
             /* Note! do volume update before close, which zaps VolCatInfo */
             Dmsg0(100, "dir_update_vol_info. Release0\n");
             dir_update_volume_info(dcr, false); /* send Volume info to Director */
