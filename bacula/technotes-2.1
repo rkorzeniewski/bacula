@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+08Feb07
+kes  Fix dird/ua_cmds.c so that a cancel command checks if the
+     console is authorized to cancel the job.  This fixes bug 
+     #767.
+kes  Modify SD so that the VolCatJobs medium record is updated
+     at the beginning of a Job rather than the end.  This
+     fixes bug #775 where exceeding MaxVolJobs caused jobs
+     to fail.
+kes  Added a mutex around getting and setting Volume information
+     so that multiple simultaneous jobs will single thread.
 07Feb07
      Switch to using Subversion
 kes  Remove src/pygtk-console/ from configure
