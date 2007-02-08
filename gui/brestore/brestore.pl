@@ -1285,7 +1285,6 @@ sub on_list_client_changed
 
     my $fs = $self->{bvfs};
     $fs->set_curjobids(@{$self->{CurrentJobIds}});
-    $fs->update_brestore_table(@{$self->{CurrentJobIds}});
     $fs->ch_dir($fs->get_root());
     # refresh_fileview will be done by list_backup_changed
 
@@ -2366,6 +2365,7 @@ sub set_curjobids
 {
     my ($self, @jobids) = @_;
     $self->{curjobids} = join(',', @jobids);
+    $self->update_brestore_table(@jobids);
 }
 
 sub ls_files
@@ -2726,6 +2726,8 @@ sub get_all_file_versions
 sub update_brestore_table
 {
     my ($self, @jobs) = @_;
+
+    $self->debug(\@jobs);
 
     foreach my $job (sort {$a <=> $b} @jobs)
     {
