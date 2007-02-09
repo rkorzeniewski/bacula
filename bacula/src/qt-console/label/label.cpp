@@ -25,50 +25,53 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
-/* 
- * qt-console main window class definition.
+ 
+/*
+ *  Label Dialog class
  *
- *  Written by Kern Sibbald, January MMVI
- */
+ *   Kern Sibbald, February MMVI
+ *
+ */ 
 
-#ifndef _MAINWIN_H_
-#define _MAINWIN_H_
+#include "bat.h"
+#include "label.h"
 
-#include <QtGui>
-#include "ui_main.h"
-#include "label/label.h"
-
-class Console;
-
-class MainWin : public QMainWindow, public Ui::MainForm    
+labelDialog::labelDialog(Console *console)
 {
-   Q_OBJECT
+   setupUi(this);
+   storageCombo->addItems(console->storage_list);
+   poolCombo->addItems(console->pool_list);
+   this->show();
+}
 
-public:
-   MainWin(QWidget *parent = 0);
-   void set_statusf(const char *fmt, ...);
-   void set_status_ready();
-   void set_status(const char *buf);
-   void writeSettings();
-   void readSettings();
+void labelDialog::accept()
+{
+   printf("Storage=%s\n"
+          "Pool=%s\n", 
+           storageCombo->currentText().toUtf8().data(),
+           poolCombo->currentText().toUtf8().data());
+   this->hide();
 
-public slots:
-   void input_line();
-   void about();
-   void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
-   void labelDialogClicked();
+#ifdef xxx
+   volume  = get_entry_text(label_dialog, "label_entry_volume");
 
-protected:
-   void closeEvent(QCloseEvent *event);
+   slot    = get_spin_text(label_dialog, "label_slot");
 
-private:
-   void createConnections(); 
+   if (!pool || !storage || !volume || !(*volume)) {
+      set_status_ready();
+      return;
+   }
 
-private:
-   QString m_UserInput;
-   Console *m_console;
-};
+   bsnprintf(cmd, sizeof(cmd),
+             "label volume=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s\n", 
+             volume, pool, storage, slot);
+   write_director(cmd);
+   set_text(cmd, strlen(cmd));
+#endif
+}
 
-#endif /* _MAINWIN_H_ */
+void labelDialog::reject()
+{
+   printf("Rejected\n");
+   this->hide();
+}

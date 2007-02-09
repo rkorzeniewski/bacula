@@ -15,7 +15,7 @@ RESOURCES = main.qrc
 # Main window
 FORMS += main.ui
 # Label dialog
-FORMS += label.ui
+FORMS += label/label.ui
 FORMS += console/console.ui
 FORMS += restore/brestore.ui
 
@@ -32,3 +32,5 @@ HEADERS += restore/restore.h
 SOURCES += restore/brestore.cpp
 
 # Label dialog
+HEADERS += label/label.h
+SOURCES += label/label.cpp
