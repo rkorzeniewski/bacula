@@ -6,7 +6,7 @@
 #include "ui_label.h"
 #include "console.h"
 
-class labelDialog : public QDialog, public Ui::labelVolume
+class labelDialog : public QDialog, public Ui::labelForm
 {
    Q_OBJECT 
 

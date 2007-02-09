@@ -27,16 +27,16 @@
 */
  
 /*
- *  Label Dialog class
+ *  Run Dialog class
  *
  *   Kern Sibbald, February MMVI
  *
  */ 
 
 #include "bat.h"
-#include "label.h"
+#include "run.h"
 
-labelDialog::labelDialog(Console *console)
+runDialog::runDialog(Console *console)
 {
    setupUi(this);
    storageCombo->addItems(console->storage_list);
@@ -44,7 +44,7 @@ labelDialog::labelDialog(Console *console)
    this->show();
 }
 
-void labelDialog::accept()
+void runDialog::accept()
 {
    printf("Storage=%s\n"
           "Pool=%s\n", 
@@ -71,7 +71,7 @@ void labelDialog::accept()
 #endif
 }
 
-void labelDialog::reject()
+void runDialog::reject()
 {
    printf("Rejected\n");
    this->hide();
