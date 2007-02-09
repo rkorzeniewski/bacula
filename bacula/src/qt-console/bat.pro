@@ -14,10 +14,10 @@ RESOURCES = main.qrc
 
 # Main window
 FORMS += main.ui
-# Label dialog
 FORMS += label/label.ui
 FORMS += console/console.ui
 FORMS += restore/brestore.ui
+FORMS += run/run.ui
 
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
@@ -34,3 +34,8 @@ SOURCES += restore/brestore.cpp
 # Label dialog
 HEADERS += label/label.h
 SOURCES += label/label.cpp
+
+# Run dialog
+HEADERS += run/run.h
+SOURCES += run/run.cpp
+

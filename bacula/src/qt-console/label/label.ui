@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>labelVolume</class>
- <widget class="QDialog" name="labelVolume" >
+ <class>labelForm</class>
+ <widget class="QDialog" name="labelForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -193,7 +193,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>labelVolume</receiver>
+   <receiver>labelForm</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
@@ -209,7 +209,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>labelVolume</receiver>
+   <receiver>labelForm</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >

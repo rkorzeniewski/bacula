@@ -38,6 +38,7 @@
 #include <QtGui>
 #include "ui_main.h"
 #include "label/label.h"
+#include "run/run.h"
 
 class Console;
 
@@ -59,6 +60,7 @@ public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
    void labelDialogClicked();
+   void runDialogClicked();
 
 protected:
    void closeEvent(QCloseEvent *event);
