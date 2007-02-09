@@ -355,8 +355,8 @@ dlistString *new_dlistString(const char *str)
 dlistString *new_dlistString(const char *str, int len)
 {
    dlistString *node;
-   node = (dlistString *)malloc(sizeof(dlistString) + len);
-   bstrncpy(node->c_str(), str, len);
+   node = (dlistString *)malloc(sizeof(dlink) + len +1);
+   bstrncpy(node->c_str(), str, len + 1);
    return node;
 }
 

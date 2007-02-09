@@ -445,7 +445,7 @@ static bool copy_fileset(FF_PKT *ff, JCR *jcr)
             fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
             memset(fileset->incexe, 0, sizeof(findINCEXE));
             fileset->incexe->opts_list.init(1, true);
-            fileset->incexe->name_list.init(1, true);
+            fileset->incexe->name_list.init(0, 0);
             fileset->include_list.append(fileset->incexe);
          } else {
             ie = jcr_fileset->exclude_items[i];
@@ -454,7 +454,7 @@ static bool copy_fileset(FF_PKT *ff, JCR *jcr)
             fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
             memset(fileset->incexe, 0, sizeof(findINCEXE));
             fileset->incexe->opts_list.init(1, true);
-            fileset->incexe->name_list.init(1, true);
+            fileset->incexe->name_list.init(0, 0);
             fileset->exclude_list.append(fileset->incexe);
          }
 

@@ -7,6 +7,7 @@ Projects:
 Items Completed:
 Item:  18   Quick release of FD-SD connection after backup.
 Item:  40   Include JobID in spool file name
+Item:  25   Implement huge exclude list support using dlist   
 
 Summary:
 Item:   1   Accurate restoration of renamed/deleted files
@@ -33,7 +34,7 @@ Item:  21   Split documentation
 Item:  22   Implement support for stacking arbitrary stream filters, sinks.
 Item:  23   Implement from-client and to-client on restore command line.
 Item:  24   Add an override in Schedule for Pools based on backup types.
-Item:  25   Implement huge exclude list support using hashing.
+Item:  25*  Implement huge exclude list support using hashing.
 Item:  26   Implement more Python events in Bacula.
 Item:  27   Incorporation of XACML2/SAML2 parsing
 Item:  28   Filesystem watch triggered backup.
@@ -86,7 +87,7 @@ Item  1:  Accurate restoration of renamed/deleted files
 Item  2:  Implement a Bacula GUI/management tool.
   Origin: Kern
   Date:   28 October 2005
-  Status:         
+  Status: In progress
 
   What:   Implement a Bacula console, and management tools
           probably using Qt3 and C++.
@@ -750,10 +751,12 @@ Status:
           backups, then the Full job would use the proper Storage device, which
           has more capacity (i.e. a 8TB tape library.
 
-Item 25:  Implement huge exclude list support using hashing.
+Item 25:  Implement huge exclude list support using hashing (dlists).
   Date:   28 October 2005
   Origin: Kern
-  Status: 
+  Status: Done in 2.1.2 but was done with dlists (doubly linked lists
+          since hashing will not help. The huge list also supports
+          large include lists).
 
   What:   Allow users to specify very large exclude list (currently
           more than about 1000 files is too many).
