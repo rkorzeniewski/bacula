@@ -147,10 +147,10 @@ void Console::connect()
    client_list = get_list(".clients");
    fileset_list = get_list(".filesets");
    messages_list = get_list(".messages");
-   messages_list = get_list(".pools");
-   messages_list = get_list(".storages");
-   messages_list = get_list(".types");
-   messages_list = get_list(".levels");
+   pool_list = get_list(".pools");
+   storage_list = get_list(".storage");
+   type_list = get_list(".types");
+   level_list = get_list(".levels");
 
    mainWin->set_status(_(" Connected"));
    return;
@@ -173,6 +173,7 @@ QStringList Console::get_list(char *cmd)
       list << msg();
    }
    setEnabled(true);
+   list.sort();
    return list;
 }
 

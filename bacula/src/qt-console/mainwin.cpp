@@ -74,6 +74,7 @@ void MainWin::createConnections()
    connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
    connect(actionStatusDir, SIGNAL(triggered()), m_console, SLOT(status_dir()));
    connect(actionSelectFont, SIGNAL(triggered()), m_console, SLOT(set_font()));
+   connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
 }
 
 /* 
@@ -117,8 +118,6 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 }
 
 /*
- * ***FIXME***
- * If item is a Console, then connect it
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
@@ -130,6 +129,10 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
    }
 }
 
+void MainWin::labelDialogClicked() 
+{
+   new labelDialog(m_console);
+}
 
 
 /*
