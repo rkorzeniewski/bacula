@@ -163,7 +163,7 @@ struct findFOPTS {
 struct findINCEXE {
    findFOPTS *current_opts;           /* points to current options structure */
    alist opts_list;                   /* options list */
-   alist name_list;                   /* filename list -- holds char * */
+   dlist name_list;                   /* filename list -- holds dlistString */
 };
 
 /*

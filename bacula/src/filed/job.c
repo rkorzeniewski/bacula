@@ -620,7 +620,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       free_pool_memory(fn);
       while (fgets(buf, sizeof(buf), bpipe->rfd)) {
          strip_trailing_junk(buf);
-         fileset->incexe->name_list.append(bstrdup(buf));
+         fileset->incexe->name_list.append(new_dlistString(buf));
       }
       if ((stat=close_bpipe(bpipe)) != 0) {
          berrno be;
@@ -641,12 +641,12 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       while (fgets(buf, sizeof(buf), ffd)) {
          strip_trailing_junk(buf);
          Dmsg1(100, "%s\n", buf);
-         fileset->incexe->name_list.append(bstrdup(buf));
+         fileset->incexe->name_list.append(new_dlistString(buf));
       }
       fclose(ffd);
       break;
    default:
-      fileset->incexe->name_list.append(bstrdup(fname));
+      fileset->incexe->name_list.append(new_dlistString(fname));
       break;
    }
 }
@@ -696,7 +696,7 @@ static void add_fileset(JCR *jcr, const char *item)
       fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
       memset(fileset->incexe, 0, sizeof(findINCEXE));
       fileset->incexe->opts_list.init(1, true);
-      fileset->incexe->name_list.init(1, true);
+      fileset->incexe->name_list.init(); /* for dlist;  was 1,true for alist */
       fileset->include_list.append(fileset->incexe);
       break;
    case 'E':
@@ -704,7 +704,7 @@ static void add_fileset(JCR *jcr, const char *item)
       fileset->incexe = (findINCEXE *)malloc(sizeof(findINCEXE));
       memset(fileset->incexe, 0, sizeof(findINCEXE));
       fileset->incexe->opts_list.init(1, true);
-      fileset->incexe->name_list.init(1, true);
+      fileset->incexe->name_list.init();
       fileset->exclude_list.append(fileset->incexe);
       break;
    case 'N':
@@ -849,8 +849,9 @@ static bool term_fileset(JCR *jcr)
             Dmsg1(400, "T %s\n", fo->writer);
          }
       }
-      for (j=0; j<incexe->name_list.size(); j++) {
-         Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
+      dlistString *node;
+      foreach_dlist(node, &incexe->name_list) {
+         Dmsg1(400, "F %s\n", node->c_str());
       }
    }
    for (i=0; i<fileset->exclude_list.size(); i++) {
@@ -889,8 +890,9 @@ static bool term_fileset(JCR *jcr)
             Dmsg1(400, "XD %s\n", (char *)fo->drivetype.get(k));
          }
       }
-      for (j=0; j<incexe->name_list.size(); j++) {
-         Dmsg1(400, "F %s\n", (char *)incexe->name_list.get(j));
+      dlistString *node;
+      foreach_dlist(node, incexe->name_list) {
+         Dmsg1(400, "F %s\n", node->c_str());
       }
    }
 #endif

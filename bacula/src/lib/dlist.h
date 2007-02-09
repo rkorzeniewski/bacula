@@ -77,10 +77,14 @@ public:
    dlist(void);
    ~dlist() { destroy(); }
    void init(void *item, dlink *link);
+   void init();
    void prepend(void *item);
    void append(void *item);
    void set_prev(void *item, void *prev);
    void set_next(void *item, void *next);
+   void *get_prev(void *item);
+   void *get_next(void *item);
+   dlink *get_link(void *item);
    void insert_before(void *item, void *where);
    void insert_after(void *item, void *where);
    void *binary_insert(void *item, int compare(void *item1, void *item2));
@@ -112,6 +116,14 @@ inline void dlist::init(void *item, dlink *link)
    num_items = 0;
 }
 
+inline void dlist::init()
+{
+   head = tail = NULL;
+   loffset = 0;
+   num_items = 0;
+}
+
+
 /*
  * Constructor called with the address of a
  *   member of the list (not the list head), and
@@ -138,6 +150,22 @@ inline void dlist::set_prev(void *item, void *prev)
 inline void dlist::set_next(void *item, void *next)
 {
    ((dlink *)(((char *)item)+loffset))->next = next;
+}
+
+inline void *dlist::get_prev(void *item)
+{
+   return ((dlink *)(((char *)item)+loffset))->prev;
+}
+
+inline void *dlist::get_next(void *item)
+{
+   return ((dlink *)(((char *)item)+loffset))->next;
+}
+
+
+inline dlink *dlist::get_link(void *item)
+{
+   return (dlink *)((dlink *)(((char *)item)+loffset));
 }
 
 
@@ -171,12 +199,13 @@ inline void * dlist::last() const
  *   Kern Sibbald, February 2007
  *
  */
-class dlistString : public dlink
+class dlistString
 {
 public:   
    char *c_str() { return m_str; };
 
 private:
+   dlink m_link;
    char m_str[1];                                
    /* !!! Don't put anything after this as this space is used
     *     to hold the string in inline
