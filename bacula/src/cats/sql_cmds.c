@@ -120,6 +120,7 @@ const char *insert_delcand =
  * At the same time, we select "orphanned" jobs
  * (i.e. no files, ...) for deletion.
  */
+#ifdef old_way
 const char *select_backup_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
@@ -177,6 +178,68 @@ const char *select_migrate_del =
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
+
+#else
+/* Faster way */
+const char *select_backup_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCandidates.JobId AND ((DelCandidates.JobFiles=0) OR "
+   "(DelCandidates.JobStatus!='T'))) OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Level='F' AND Job.JobStatus='T' AND Job.Type IN ('B','M') "
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
+
+/* Select Jobs from the DelCandidates table that have a
+ * more recent InitCatalog -- i.e. are not the only InitCatalog
+ * This is the list of Jobs to delete for a Verify Job.
+ */
+const char *select_verify_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='V' AND Job.Level='V' AND Job.JobStatus='T' "
+   "AND Job.FileSetId=DelCandidates.FileSetId)";
+
+
+/* Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for a Restore Job.
+ */
+const char *select_restore_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='R')";
+
+/* Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for an Admin Job.
+ */
+const char *select_admin_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='D')";
+
+/*
+ * Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for an Migrate Job.
+ */
+const char *select_migrate_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCanditates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='g')";
+
+#endif
 
 /* ======= ua_restore.c */
 const char *uar_count_files =

@@ -2223,7 +2223,6 @@ ssize_t DEVICE::read(void *buf, size_t len)
 
    if (read_len > 0) {          /* skip error */
       DevReadBytes += read_len;
-      VolCatInfo.VolCatRBytes += read_len;
    }
 
    return read_len;   
@@ -2249,7 +2248,6 @@ ssize_t DEVICE::write(const void *buf, size_t len)
 
    if (write_len > 0) {         /* skip error */
       DevWriteBytes += write_len;
-      VolCatInfo.VolCatBytes += write_len;
    }
 
    return write_len;   
