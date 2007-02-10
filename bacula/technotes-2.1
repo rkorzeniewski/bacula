@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:                                                       a
+10Feb07
+kes  Apply Eric's scratch patch that moves a purged Volume to
+     the RecyclePool.  Question: how is RecyclePool set? what
+     happens to the ScratchPool?
+kes  Apply Eric's media patch that collects read/write media
+     times as well as byte counts.  This patch requires a
+     simultaneous upgrade of the DIR and SD.  Note, there
+     should be some way to turn of timing. I'm not sure
+     times are in Bacula units.
+kes  Apply Eric's batch-insert patch.
 09Feb07
 kes  Update projects list.
 08Feb07

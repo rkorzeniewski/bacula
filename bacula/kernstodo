@@ -41,6 +41,8 @@ Document:
  
 
 Priority:
+- Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
+  does the right thing.
 - Why doesn't @"xxx abc" work in a conf file?
 - Figure out some way to "automatically" backup conf changes.
 - Look at using posix_fadvise(2) for backups -- see bug #751.

@@ -269,6 +269,8 @@ int main (int argc, char *argv[])
 
    init_job_server(director->MaxConcurrentJobs);
 
+//   init_device_resources();
+
    Dmsg0(200, "wait for next job\n");
    /* Main loop -- call scheduler to get next job to run */
    while ( (jcr = wait_for_next_job(runjob)) ) {

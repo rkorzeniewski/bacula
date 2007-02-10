@@ -108,6 +108,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname = get_pool_memory(PM_FNAME);
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
+   mdb->esc_name2 = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
@@ -215,6 +216,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->fname);
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
+      free_pool_memory(mdb->esc_name2);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -434,5 +436,17 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
 {
    return mdb->fields[mdb->field++];
 }
+
+char *my_sqlite_batch_lock_query = "BEGIN";
+char *my_sqlite_batch_unlock_query = "COMMIT";
+char *my_sqlite_batch_fill_path_query = "INSERT INTO Path (Path)          " 
+                                        " SELECT DISTINCT Path FROM batch "
+                                        " EXCEPT SELECT Path FROM Path    ";
+
+char *my_sqlite_batch_fill_filename_query = "INSERT INTO Filename (Name)       " 
+                                            " SELECT DISTINCT Name FROM batch  "
+                                            " EXCEPT SELECT Name FROM Filename ";
+
+
 
 #endif /* HAVE_SQLITE */

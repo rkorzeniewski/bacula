@@ -574,6 +574,7 @@ Item 17:  Restore only file attributes (permissions, ACL, owner, group...)
   Notes:  If the file is here, we skip restore and we change rights.
           If the file isn't here, we can create an empty one and apply
           rights or do nothing.
+
 Item 18:  Quick release of FD-SD connection after backup.
   Origin: Frank Volf (frank at deze dot org)
   Date:   17 November 2005

@@ -93,8 +93,8 @@ public:
    void remove(void *item);
    bool empty() const;
    int  size() const;
-   void *next(const void *item) const;
-   void *prev(const void *item) const;
+   void *next(void *item);      
+   void *prev(void *item);
    void destroy();
    void *first() const;
    void *last() const;
@@ -165,7 +165,7 @@ inline void *dlist::get_next(void *item)
 
 inline dlink *dlist::get_link(void *item)
 {
-   return (dlink *)((dlink *)(((char *)item)+loffset));
+   return (dlink *)(((char *)item)+loffset);
 }
 
 

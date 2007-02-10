@@ -140,7 +140,8 @@ struct B_DB {
    int changes;                       /* changes during transaction */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
-   POOLMEM *esc_name;                 /* Escaped file/path name */
+   POOLMEM *esc_name;                 /* Escaped file name */
+   POOLMEM *esc_name2;                /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -170,8 +171,14 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
-
-
+#define sql_batch_start(x)    db_batch_start(x)
+#define sql_batch_end(x,y)    db_batch_end(x,y)
+#define sql_batch_insert(x,y) db_batch_insert(x,y)
+#define sql_batch_lock_path_query       my_sqlite_batch_lock_query
+#define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
+#define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
+#define sql_batch_fill_filename_query   my_sqlite_batch_fill_filename_query
+#define sql_batch_fill_path_query       my_sqlite_batch_fill_path_query    
 
 /* In cats/sqlite.c */
 void       my_sqlite_free_table(B_DB *mdb);
@@ -179,6 +186,10 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+extern char* my_sqlite_batch_lock_query;
+extern char* my_sqlite_batch_unlock_query;
+extern char* my_sqlite_batch_fill_filename_query;
+extern char* my_sqlite_batch_fill_path_query;
 
 
 #else
@@ -248,7 +259,8 @@ struct B_DB {
    int changes;                       /* changes during transaction */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
-   POOLMEM *esc_name;                 /* Escaped file/path name */
+   POOLMEM *esc_name;                 /* Escaped file name */
+   POOLMEM *esc_name2;                /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -289,8 +301,14 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
-
-
+#define sql_batch_start(x)    db_batch_start(x)
+#define sql_batch_end(x,y)    db_batch_end(x,y)
+#define sql_batch_insert(x,y) db_batch_insert(x,y)
+#define sql_batch_lock_path_query       my_sqlite_batch_lock_query
+#define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
+#define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
+#define sql_batch_fill_filename_query   my_sqlite_batch_fill_filename_query
+#define sql_batch_fill_path_query       my_sqlite_batch_fill_path_query
 
 /* In cats/sqlite.c */
 void       my_sqlite_free_table(B_DB *mdb);
@@ -298,6 +316,10 @@ SQL_ROW    my_sqlite_fetch_row(B_DB *mdb);
 int        my_sqlite_query(B_DB *mdb, const char *cmd);
 void       my_sqlite_field_seek(B_DB *mdb, int field);
 SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb);
+extern char* my_sqlite_batch_lock_query;
+extern char* my_sqlite_batch_unlock_query;
+extern char* my_sqlite_batch_fill_filename_query;
+extern char* my_sqlite_batch_fill_path_query;
 
 
 #else
@@ -340,7 +362,8 @@ struct B_DB {
    int changes;                       /* changes made to db */
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
-   POOLMEM *esc_name;                 /* Escaped file/path name */
+   POOLMEM *esc_name;                 /* Escaped file name */
+   POOLMEM *esc_name2;                /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -362,8 +385,24 @@ struct B_DB {
 #define sql_field_seek(x, y)  mysql_field_seek((x)->result, (y))
 #define sql_fetch_field(x)    mysql_fetch_field((x)->result)
 #define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
+#define sql_batch_start(x)    db_batch_start(x)
+#define sql_batch_end(x,y)    db_batch_end(x,y)
+#define sql_batch_insert(x,y) db_batch_insert(x,y)
+#define sql_batch_lock_path_query       my_mysql_batch_lock_path_query
+#define sql_batch_lock_filename_query   my_mysql_batch_lock_filename_query
+#define sql_batch_unlock_tables_query   my_mysql_batch_unlock_tables_query
+#define sql_batch_fill_filename_query   my_mysql_batch_fill_filename_query
+#define sql_batch_fill_path_query       my_mysql_batch_fill_path_query
 #define SQL_ROW               MYSQL_ROW
 #define SQL_FIELD             MYSQL_FIELD
+
+
+int my_mysql_batch_start(B_DB *mdb);
+extern char* my_mysql_batch_lock_path_query;
+extern char* my_mysql_batch_lock_filename_query;
+extern char* my_mysql_batch_unlock_tables_query;
+extern char* my_mysql_batch_fill_filename_query;
+extern char* my_mysql_batch_fill_path_query;
 
 #else
 
@@ -424,7 +463,8 @@ struct B_DB {
    int changes;                   /* changes made to db */
    POOLMEM *fname;                /* Filename only */
    POOLMEM *path;                 /* Path only */
-   POOLMEM *esc_name;             /* Escaped file/path name */
+   POOLMEM *esc_name;             /* Escaped file name */
+   POOLMEM *esc_name2;            /* Escaped path name */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
 };     
@@ -436,7 +476,19 @@ void               my_postgresql_data_seek  (B_DB *mdb, int row);
 int                my_postgresql_currval    (B_DB *mdb, char *table_name);
 void               my_postgresql_field_seek (B_DB *mdb, int row);
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
+int my_postgresql_lock_table(B_DB *mdb, const char *table);
+int my_postgresql_unlock_table(B_DB *mdb);
+int my_postgresql_batch_start(B_DB *mdb);
+int my_postgresql_batch_end(B_DB *mdb, const char *error);
+typedef struct ATTR_DBR ATTR_DBR;
+int my_postgresql_batch_insert(B_DB *mdb, ATTR_DBR *ar);
+char *my_postgresql_copy_escape(char *dest, char *src, size_t len);
 
+extern char* my_pg_batch_lock_path_query;
+extern char* my_pg_batch_lock_filename_query;
+extern char* my_pg_batch_unlock_tables_query;
+extern char* my_pg_batch_fill_filename_query;
+extern char* my_pg_batch_fill_path_query;
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   ((x)->result)
@@ -452,6 +504,17 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
+#define sql_batch_start(x)    my_postgresql_batch_start(x)
+#define sql_batch_end(x,y)    my_postgresql_batch_end(x,y)
+#define sql_batch_insert(x,y) my_postgresql_batch_insert(x,y)
+#define sql_lock_table(x,y)   my_postgresql_lock_table(x, y)
+#define sql_unlock_table(x,y) my_postgresql_unlock_table(x)
+#define sql_batch_lock_path_query       my_pg_batch_lock_path_query
+#define sql_batch_lock_filename_query   my_pg_batch_lock_filename_query
+#define sql_batch_unlock_tables_query   my_pg_batch_unlock_tables_query
+#define sql_batch_fill_filename_query   my_pg_batch_fill_filename_query
+#define sql_batch_fill_path_query       my_pg_batch_fill_path_query
+
 #define SQL_ROW               POSTGRESQL_ROW
 #define SQL_FIELD             POSTGRESQL_FIELD
 

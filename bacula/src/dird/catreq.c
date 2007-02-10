@@ -280,7 +280,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolWriteTime = sdmr.VolWriteTime;
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
-      if (jcr->wstore->StorageId) {
+      if (jcr->wstore && jcr->wstore->StorageId) {
          mr.StorageId = jcr->wstore->StorageId;
       }
 

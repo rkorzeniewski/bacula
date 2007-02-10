@@ -13,7 +13,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -605,6 +605,21 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       }
       pm_strcpy(jcr->VolumeName, mr->VolumeName);
       generate_job_event(jcr, "VolumePurged");
+      /*
+       * If the RecyclePool is defined, move the volume there
+       */
+      if (mr->RecyclePoolId && mr->RecyclePoolId != mr->PoolId) {
+         POOL_DBR oldpr, newpr;
+         memset(&oldpr, 0, sizeof(POOL_DBR));
+         memset(&newpr, 0, sizeof(POOL_DBR));
+         newpr.PoolId = mr->RecyclePoolId;
+         oldpr.PoolId = mr->PoolId;
+         if (db_get_pool_record(jcr, ua->db, &oldpr) && db_get_pool_record(jcr, ua->db, &newpr)) {
+            update_vol_pool(ua, newpr.Name, mr, &oldpr);
+         } else {
+            bsendmsg(ua, "%s", db_strerror(ua->db));
+         }
+      }
       /* Send message to Job report, if it is a *real* job */           
       if (jcr && jcr->JobId > 0) {
          Jmsg1(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),

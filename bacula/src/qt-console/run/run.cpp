@@ -38,42 +38,47 @@
 
 runDialog::runDialog(Console *console)
 {
+   QDateTime dt;
+   m_console = console;
    setupUi(this);
-   storageCombo->addItems(console->storage_list);
+   jobCombo->addItems(console->job_list);
+   filesetCombo->addItems(console->fileset_list);
+   levelCombo->addItems(console->level_list);
+   clientCombo->addItems(console->client_list);
    poolCombo->addItems(console->pool_list);
+   storageCombo->addItems(console->storage_list);
+   dateTimeEdit->setDateTime(dt.currentDateTime());
    this->show();
 }
 
 void runDialog::accept()
 {
-   printf("Storage=%s\n"
-          "Pool=%s\n", 
-           storageCombo->currentText().toUtf8().data(),
-           poolCombo->currentText().toUtf8().data());
+   char cmd[1000];
+
    this->hide();
-   delete this;
-
-#ifdef xxx
-   volume  = get_entry_text(label_dialog, "label_entry_volume");
-
-   slot    = get_spin_text(label_dialog, "label_slot");
-
-   if (!pool || !storage || !volume || !(*volume)) {
-      set_status_ready();
-      return;
-   }
-
+   
    bsnprintf(cmd, sizeof(cmd),
-             "label volume=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s\n", 
-             volume, pool, storage, slot);
-   write_director(cmd);
-   set_text(cmd, strlen(cmd));
-#endif
+             "run job=\"%s\" fileset=\"%s\" level=%s client=\"%s\" pool=\"%s\" "
+             "when=\"%s\" storage=\"%s\" priority=\"%d\" yes\n",
+             jobCombo->currentText().toUtf8().data(),
+             filesetCombo->currentText().toUtf8().data(),
+             levelCombo->currentText().toUtf8().data(),
+             clientCombo->currentText().toUtf8().data(),
+             poolCombo->currentText().toUtf8().data(),
+//           dateTimeEdit->textFromDateTime(dateTimeEdit->dateTime()).toUtf8().data(),
+             "",
+             storageCombo->currentText().toUtf8().data(),
+             prioritySpin->value());
+
+// m_console->write(cmd);
+   m_console->set_text(cmd);
+   delete this;
 }
+
 
 void runDialog::reject()
 {
-   printf("Rejected\n");
+   mainWin->set_status(" Canceled");
    this->hide();
    delete this;
 }

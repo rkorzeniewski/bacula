@@ -283,7 +283,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
           "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
-          "LabelType "
+          "LabelType,VolReadTime,VolWriteTime "
           "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus IN ('Full',"
           "'Recycle','Purged','Used','Append') AND Enabled=1 "
           "ORDER BY LastWritten LIMIT 1", 
@@ -308,7 +308,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
           "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
           "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
-          "LabelType "
+          "LabelType,VolReadTime,VolWriteTime "
           "FROM Media WHERE PoolId=%s AND MediaType='%s' AND Enabled=1 "
           "AND VolStatus='%s' "
           "%s "
@@ -371,6 +371,8 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    mr->InChanger = str_to_int64(row[20]);
    mr->VolParts = str_to_int64(row[21]);
    mr->LabelType = str_to_int64(row[22]);
+   mr->VolReadTime = str_to_uint64(row[23]);
+   mr->VolWriteTime = str_to_uint64(row[24]);
    mr->Enabled = 1;   /* ensured via query */
    sql_free_result(mdb);
 

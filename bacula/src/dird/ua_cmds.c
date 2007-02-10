@@ -384,10 +384,6 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    JCR *jcr = NULL;
    char JobName[MAX_NAME_LENGTH];
 
-   if (!open_client_db(ua)) {
-      return 1;
-   }
-
    for (i=1; i<ua->argc; i++) {
       if (strcasecmp(ua->argk[i], NT_("jobid")) == 0) {
          uint32_t JobId;
@@ -434,27 +430,37 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       *   throw up a list and ask the user to select one.
       */
       char buf[1000];
+      int tjobs = 0;                  /* total # number jobs */
       /* Count Jobs running */
       foreach_jcr(jcr) {
          if (jcr->JobId == 0) {      /* this is us */
             continue;
          }
+         tjobs++;                    /* count of all jobs */
          if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
             continue;               /* skip not authorized */
          }
-         njobs++;
+         njobs++;                   /* count of authorized jobs */
       }
       endeach_jcr(jcr);
 
-      if (njobs == 0) {
-         bsendmsg(ua, _("No Jobs running.\n"));
+      if (njobs == 0) {            /* no authorized */
+         if (tjobs == 0) {
+            bsendmsg(ua, _("No Jobs running.\n"));
+         } else {
+            bsendmsg(ua, _("None of your jobs are running.\n"));
+         }
          return 1;
       }
+
       start_prompt(ua, _("Select Job:\n"));
       foreach_jcr(jcr) {
          char ed1[50];
          if (jcr->JobId == 0) {      /* this is us */
             continue;
+         }
+         if (!acl_access_ok(ua, Job_ACL, jcr->job->name())) {
+            continue;               /* skip not authorized */
          }
          bsnprintf(buf, sizeof(buf), _("JobId=%s Job=%s"), edit_int64(jcr->JobId, ed1), jcr->Job);
          add_prompt(ua, buf);
@@ -472,7 +478,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
-         bsendmsg(ua, _("Job %s not found.\n"), JobName);
+         bsendmsg(ua, _("Job \"%s\" not found.\n"), JobName);
          return 1;
       }
    }

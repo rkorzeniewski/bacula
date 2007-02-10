@@ -124,6 +124,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname          = get_pool_memory(PM_FNAME);
    mdb->path           = get_pool_memory(PM_FNAME);
    mdb->esc_name       = get_pool_memory(PM_FNAME);
+   mdb->esc_name2      = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
@@ -228,6 +229,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->fname);
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
+      free_pool_memory(mdb->esc_name2);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -538,5 +540,202 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
    return id;
 }
 
+int my_postgresql_lock_table(B_DB *mdb, const char *table)
+{
+   my_postgresql_query(mdb, "BEGIN");
+   Mmsg(mdb->cmd, "LOCK TABLE %s IN SHARE ROW EXCLUSIVE MODE", table);
+   return my_postgresql_query(mdb, mdb->cmd);
+}
 
+int my_postgresql_unlock_table(B_DB *mdb)
+{
+   return my_postgresql_query(mdb, "COMMIT");
+}
+
+int my_postgresql_batch_start(B_DB *mdb)
+{
+   Dmsg0(500, "my_postgresql_batch_start started\n");
+
+   if (my_postgresql_query(mdb,
+			   " CREATE TEMPORARY TABLE batch "
+			   "        (fileindex int,       "
+			   "        jobid int,            "
+			   "        path varchar,         "
+			   "        name varchar,         "
+			   "        lstat varchar,        "
+			   "        md5 varchar)") == 1)
+   {
+      Dmsg0(500, "my_postgresql_batch_start failed\n");
+      return 1;
+   }
+   
+   // We are starting a new query.  reset everything.
+   mdb->num_rows     = -1;
+   mdb->row_number   = -1;
+   mdb->field_number = -1;
+
+   if (mdb->result != NULL) {
+      my_postgresql_free_result(mdb);
+   }
+
+   mdb->result = PQexec(mdb->db, "COPY batch FROM STDIN");
+   mdb->status = PQresultStatus(mdb->result);
+   if (mdb->status == PGRES_COPY_IN) {
+      // how many fields in the set?
+      mdb->num_fields = (int) PQnfields(mdb->result);
+      mdb->num_rows   = 0;
+      mdb->status = 0;
+   } else {
+      Dmsg0(500, "we failed\n");
+      mdb->status = 1;
+   }
+
+   Dmsg0(500, "my_postgresql_batch_start finishing\n");
+
+   return mdb->status;
+}
+
+/* set error to something to abort operation */
+int my_postgresql_batch_end(B_DB *mdb, const char *error)
+{
+   int res;
+   int count=30;
+   Dmsg0(500, "my_postgresql_batch_end started\n");
+
+   if (!mdb) {			/* no files ? */
+      return 0;
+   }
+
+   do { 
+      res = PQputCopyEnd(mdb->db, error);
+   } while (res == 0 && --count > 0);
+
+   if (res == 1) {
+      Dmsg0(500, "ok\n");
+      mdb->status = 0;
+   }
+   
+   if (res <= 0) {
+      Dmsg0(500, "we failed\n");
+      mdb->status = 1;
+      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
+   }
+   
+   Dmsg0(500, "my_postgresql_batch_end finishing\n");
+
+   return mdb->status;
+}
+
+int my_postgresql_batch_insert(B_DB *mdb, ATTR_DBR *ar)
+{
+   int res;
+   int count=30;
+   size_t len;
+   char *digest;
+   char ed1[50];
+
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
+   my_postgresql_copy_escape(mdb->esc_name, mdb->fname, mdb->fnl);
+
+   mdb->esc_name2 = check_pool_memory_size(mdb->esc_name2, mdb->pnl*2+1);
+   my_postgresql_copy_escape(mdb->esc_name2, mdb->path, mdb->pnl);
+
+   if (ar->Digest == NULL || ar->Digest[0] == 0) {
+      digest = "0";
+   } else {
+      digest = ar->Digest;
+   }
+
+   len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
+	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->path, 
+	      mdb->fname, ar->attr, digest);
+
+   do { 
+      res = PQputCopyData(mdb->db,
+			  mdb->cmd,
+			  len);
+   } while (res == 0 && --count > 0);
+
+   if (res == 1) {
+      Dmsg0(500, "ok\n");
+      mdb->changes++;
+      mdb->status = 0;
+   }
+
+   if (res <= 0) {
+      Dmsg0(500, "we failed\n");
+      mdb->status = 1;
+      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
+   }
+
+   Dmsg0(500, "my_postgresql_batch_insert finishing\n");
+
+   return mdb->status;
+}
+
+/*
+ * Escape strings so that PostgreSQL is happy on COPY
+ *
+ *   NOTE! len is the length of the old string. Your new
+ *         string must be long enough (max 2*old+1) to hold
+ *         the escaped output.
+ */
+char *my_postgresql_copy_escape(char *dest, char *src, size_t len)
+{
+   /* we have to escape \t, \n, \r, \ */
+   char c = '\0' ;
+
+   while (len > 0 && *src) {
+      switch (*src) {
+      case '\n':
+	 c = 'n';
+	 break;
+      case '\\':
+	 c = '\\';
+	 break;
+      case '\t':
+	 c = 't';
+	 break;
+      case '\r':
+	 c = 'r';
+	 break;
+      default:
+	 c = '\0' ;
+      }
+
+      if (c) {
+	 *dest = '\\';
+	 dest++;
+	 *dest = c;
+      } else {
+	 *dest = *src;
+      }
+
+      len--;
+      src++;
+      dest++;
+   }
+
+   *dest = '\0';
+   return dest;
+}
+
+char *my_pg_batch_lock_path_query = "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE";
+
+
+char *my_pg_batch_lock_filename_query = "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE";
+
+char *my_pg_batch_unlock_tables_query = "COMMIT";
+
+char *my_pg_batch_fill_path_query = "INSERT INTO Path (Path)                                    "
+                                    "  SELECT a.Path FROM                                       "
+                                    "      (SELECT DISTINCT Path FROM batch) AS a               "
+                                    "  WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ";
+
+
+char *my_pg_batch_fill_filename_query = "INSERT INTO Filename (Name)        "
+                                        "  SELECT a.Name FROM               "
+                                        "    (SELECT DISTINCT Name FROM batch) as a "
+                                        "    WHERE NOT EXISTS               "
+                                        "      (SELECT Name FROM Filename WHERE Name = a.Name)";
 #endif /* HAVE_POSTGRESQL */

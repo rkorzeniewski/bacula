@@ -886,6 +886,10 @@ void dird_free_jcr(JCR *jcr)
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
    }
+   if (jcr->db_batch) {
+      db_close_database(jcr, jcr->db_batch);
+      jcr->db_batch = NULL;
+   }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");
       free_pool_memory(jcr->stime);

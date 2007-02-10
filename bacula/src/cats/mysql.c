@@ -121,6 +121,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname = get_pool_memory(PM_FNAME);
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
+   mdb->esc_name2 = get_pool_memory(PM_FNAME);
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
    return mdb;
@@ -231,6 +232,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->fname);
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
+      free_pool_memory(mdb->esc_name2);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -372,4 +374,34 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 
 }
 
+char *my_mysql_batch_lock_path_query = "LOCK TABLES Path write,     " 
+				       "            batch write,    " 
+				       "            Path as p write ";
+
+
+char *my_mysql_batch_lock_filename_query = "LOCK TABLES Filename write,     "
+                                           "            batch write,        "
+                                           "            Filename as f write ";
+
+char *my_mysql_batch_unlock_tables_query = "UNLOCK TABLES";
+
+char *my_mysql_batch_fill_path_query = "INSERT IGNORE INTO Path (Path) "
+                                       " SELECT a.Path FROM            " 
+                                       "  (SELECT DISTINCT Path        "
+                                       "     FROM batch) AS a          " 
+                                       " WHERE NOT EXISTS              "
+                                       "  (SELECT Path                 "
+                                       "     FROM Path AS p            "
+                                       "    WHERE p.Path = a.Path)     ";     
+
+char *my_mysql_batch_fill_filename_query = "INSERT IGNORE INTO Filename (Name)"
+                                           "  SELECT a.Name FROM              " 
+                                           "   (SELECT DISTINCT Name          "
+                                           "      FROM batch) AS a            " 
+                                           "  WHERE NOT EXISTS                "
+                                           "   (SELECT Name                   "
+                                           "      FROM Filename AS f          "
+                                           "      WHERE f.Name = a.Name)      ";
+
 #endif /* HAVE_MYSQL */
+

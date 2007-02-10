@@ -31,7 +31,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1325,7 +1325,7 @@ bool DEVICE::fsf(int num)
       mt_com.mt_count = 1;
       while (num-- && !at_eot()) {
          Dmsg0(100, "Doing read before fsf\n");
-         if ((stat = tape_read(fd, (char *)rbuf, rbuf_len)) < 0) {
+         if ((stat = this->read((char *)rbuf, rbuf_len)) < 0) {
             if (errno == ENOMEM) {     /* tape record exceeds buf len */
                stat = rbuf_len;        /* This is OK */
             /*
@@ -2192,6 +2192,68 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
    }
 }
 
+/* return the last timer interval (ms) */
+int DEVICE::get_timer_count()
+{
+   uint64_t old = last_timer;
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   last_timer = tv.tv_usec + tv.tv_sec * 1000000;
+
+   return last_timer - old;
+}
+
+/* read from fd */
+ssize_t DEVICE::read(void *buf, size_t len)
+{
+   ssize_t read_len ;
+
+// get_timer_count();
+
+   if (this->is_tape()) {
+      read_len = tape_read(fd, buf, len);
+   } else {
+      read_len = ::read(fd, buf, len);
+   }
+
+// last_tick = get_timer_count();
+
+   DevReadTime += last_tick;
+   VolCatInfo.VolReadTime += last_tick;
+
+   if (read_len > 0) {          /* skip error */
+      DevReadBytes += read_len;
+      VolCatInfo.VolCatRBytes += read_len;
+   }
+
+   return read_len;   
+}
+
+/* write to fd */
+ssize_t DEVICE::write(const void *buf, size_t len)
+{
+   ssize_t write_len ;
+
+// get_timer_count();
+
+   if (this->is_tape()) {
+      write_len = tape_write(fd, buf, len);
+   } else {
+      write_len = ::write(fd, buf, len);
+   }
+
+// last_tick = get_timer_count();
+
+   DevWriteTime += last_tick;
+   VolCatInfo.VolWriteTime += last_tick;
+
+   if (write_len > 0) {         /* skip error */
+      DevWriteBytes += write_len;
+      VolCatInfo.VolCatBytes += write_len;
+   }
+
+   return write_len;   
+}
 
 /* Return the resource name for the device */
 const char *DEVICE::name() const

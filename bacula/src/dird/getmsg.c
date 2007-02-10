@@ -62,7 +62,9 @@ static char Device_update[]   = "DevUpd Job=%127s "
    "open=%d labeled=%d offline=%d "
    "reserved=%d max_writers=%d "
    "autoselect=%d autochanger=%d "
-   "changer_name=%127s media_type=%127s volume_name=%127s\n";
+   "changer_name=%127s media_type=%127s volume_name=%127s "
+   "DevReadTime=%d DevWriteTime=%d DevReadBytes=%d "
+   "DevWriteBytes=%d\n";
 #endif
 
 
@@ -243,6 +245,7 @@ int bget_dirmsg(BSOCK *bs)
          int dev_open, dev_append, dev_read, dev_labeled;
          int dev_offline, dev_autochanger, dev_autoselect;
          int dev_num_writers, dev_max_writers, dev_reserved;
+         uint64_t dev_read_time, dev_write_time, dev_write_bytes, dev_read_bytes;
          uint64_t dev_PoolId;
          Dmsg1(100, "<stored: %s", bs->msg);
          if (sscanf(bs->msg, Device_update,
@@ -253,7 +256,9 @@ int bget_dirmsg(BSOCK *bs)
              &dev_max_writers, &dev_autoselect, 
              &dev_autochanger, 
              changer_name.c_str(), media_type.c_str(),
-             volume_name.c_str()) != 15) {
+             volume_name.c_str(),
+             &dev_read_time, &dev_write_time, &dev_read_bytes,
+             &dev_write_bytes) != 19) {
             Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
          } else {
             unbash_spaces(dev_name);
@@ -283,6 +288,10 @@ int bget_dirmsg(BSOCK *bs)
             dev->max_writers = dev_max_writers;
             dev->reserved = dev_reserved;
             dev->found = true;
+            dev->DevReadTime = dev_read_time; /* TODO : have to update database */
+            dev->DevWriteTime = dev_write_time;
+            dev->DevReadBytes = dev_read_bytes;
+            dev->DevWriteBytes = dev_write_bytes;
          }
          continue;
       }

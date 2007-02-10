@@ -756,7 +756,7 @@ static int missing_handler(void *ctx, int num_fields, char **row)
    }
    if (!jcr->fn_printed) {
       Jmsg(jcr, M_INFO, 0, "\n");
-      Jmsg(jcr, M_INFO, 0, _("The following files are missing:\n"));
+      Jmsg(jcr, M_INFO, 0, _("The following files are in the Catalog but not on disk:\n"));
       jcr->fn_printed = true;
    }
    Jmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");

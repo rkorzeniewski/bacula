@@ -537,11 +537,8 @@ bool write_block_to_dev(DCR *dcr)
          bmicrosleep(5, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
-      if (dev->is_tape()) {
-         stat = tape_write(dev->fd, block->buf, (size_t)wlen);
-      } else {
-         stat = write(dev->fd, block->buf, (size_t)wlen);
-      }
+      stat = dev->write(block->buf, (size_t)wlen);
+
    } while (stat == -1 && (errno == EBUSY || errno == EIO) && retry++ < 3);
 
 #ifdef DEBUG_BLOCK_ZEROING
@@ -978,11 +975,8 @@ reread:
          bmicrosleep(10, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
-      if (dev->is_tape()) {
-         stat = tape_read(dev->fd, block->buf, (size_t)block->buf_len);
-      } else {
-         stat = read(dev->fd, block->buf, (size_t)block->buf_len);
-      }
+      stat = dev->read(block->buf, (size_t)block->buf_len);
+
    } while (stat == -1 && (errno == EBUSY || errno == EINTR || errno == EIO) && retry++ < 3);
    if (stat < 0) {
       berrno be;

@@ -665,7 +665,206 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  *  };
  */
 
+/*  All db_batch_* functions are used to do bulk batch insert in File/Filename/Path
+ *  tables. This code can be activated by adding "#define HAVE_BATCH_FILE_INSERT 1"
+ *  in baconfig.h
+ *  
+ *  To sum up :
+ *   - bulk load a temp table
+ *   - insert missing filenames into filename with a single query (lock filenames 
+ *   - table before that to avoid possible duplicate inserts with concurrent update)
+ *   - insert missing paths into path with another single query
+ *   - then insert the join between the temp, filename and path tables into file.
+ */
 
+int db_batch_start(B_DB *mdb)
+{
+   return sql_query(mdb,
+             " CREATE TEMPORARY TABLE batch "
+             "        (fileindex integer,   "
+             "        jobid integer,        "
+             "        path blob,            "
+             "        name blob,            "
+             "        lstat tinyblob,       "
+             "        md5 tinyblob)         ");
+}
+
+int db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
+{
+   size_t len;
+   char *digest;
+   char ed1[50];
+
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
+   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+
+   mdb->esc_name2 = check_pool_memory_size(mdb->esc_name2, mdb->pnl*2+1);
+   db_escape_string(mdb->esc_name2, mdb->path, mdb->pnl);
+
+   if (ar->Digest == NULL || ar->Digest[0] == 0) {
+      digest = "0";
+   } else {
+      digest = ar->Digest;
+   }
+
+   len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
+              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->path, 
+              mdb->fname, ar->attr, digest);
+
+   sql_query(mdb, mdb->cmd);
+
+   return mdb->status;
+}
+
+/* set error to something to abort operation */
+int db_batch_end(B_DB *mdb, const char *error)
+{
+   
+   Dmsg0(50, "db_batch_end started");
+
+   if (mdb) {
+      mdb->status = 0;
+      return mdb->status;
+   }
+   return 0;
+}
+
+int db_create_batch_file_record(JCR *jcr)
+{
+   Dmsg0(50,"db_create_file_record : no files");
+
+   if (!jcr->db_batch) {         /* no files to backup ? */
+      Dmsg0(50,"db_create_file_record : no files\n");
+      return 0;
+   }
+
+   if (sql_batch_end(jcr->db_batch, NULL)) {
+      Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
+      return 1;
+   }
+
+   /* we have to lock tables */
+   if (sql_query(jcr->db_batch, sql_batch_lock_path_query))
+   {
+      Jmsg(jcr, M_FATAL, 0, "Can't lock Path table %s\n", jcr->db_batch->errmsg);
+      return 1;
+   }
+
+   if (sql_query(jcr->db_batch, sql_batch_fill_path_query))
+   {
+      Jmsg(jcr, M_FATAL, 0, "Can't fill Path table %s\n",jcr->db_batch->errmsg);
+      sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
+      return 1;
+   }
+   
+   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query))
+   {
+      Jmsg(jcr, M_FATAL, 0, "Can't unlock Path table %s\n", jcr->db_batch->errmsg);
+      return 1;      
+   }
+
+   /* we have to lock tables */
+   if (sql_query(jcr->db_batch, sql_batch_lock_filename_query))
+   {
+      Jmsg(jcr, M_FATAL, 0, "Can't lock Filename table %s\n", jcr->db_batch->errmsg);
+      return 1;
+   }
+   
+   if (sql_query(jcr->db_batch, sql_batch_fill_filename_query))
+   {
+      Jmsg(jcr,M_FATAL,0,"Can't fill Filename table %s\n",jcr->db_batch->errmsg);
+      sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
+      return 1;            
+   }
+
+   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query)) {
+      Jmsg(jcr, M_FATAL, 0, "Can't unlock Filename table %s\n", jcr->db_batch->errmsg);
+      return 1;
+   }
+   
+   if (sql_query(jcr->db_batch, 
+       " INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5)"
+       "  SELECT batch.FileIndex, batch.JobId, Path.PathId,               " 
+       "         Filename.FilenameId,batch.LStat, batch.MD5               "
+       "  FROM batch                                                      "
+       "    JOIN Path ON (batch.Path = Path.Path)                         "
+       "    JOIN Filename ON (batch.Name = Filename.Name)                 "))
+   {
+      Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
+      return 1;
+   }
+
+   sql_query(jcr->db_batch, "DROP TABLE batch");
+
+   return 0;
+}
+
+#ifdef HAVE_BATCH_FILE_INSERT
+/*
+ * Create File record in B_DB
+ *
+ *  In order to reduce database size, we store the File attributes,
+ *  the FileName, and the Path separately.  In principle, there
+ *  is a single FileName record and a single Path record, no matter
+ *  how many times it occurs.  This is this subroutine, we separate
+ *  the file and the path and fill temporary tables with this three records.
+ */
+int db_create_file_attributes_record(JCR *jcr, B_DB *_mdb, ATTR_DBR *ar)
+{
+
+   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
+   Dmsg0(dbglevel, "put_file_into_catalog\n");
+
+   if (!jcr->db_batch) {
+      jcr->db_batch = db_init_database(jcr, 
+                                      jcr->db->db_name, 
+                                      jcr->db->db_user,
+                                      jcr->db->db_password, 
+                                      jcr->db->db_address,
+                                      jcr->db->db_port,
+                                      jcr->db->db_socket,
+                                      1 /* multi_db = true */);
+
+      if (!jcr->db_batch || !db_open_database(jcr, jcr->db_batch)) {
+         Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
+              jcr->db->db_name);
+         if (jcr->db_batch) {
+            Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
+         }
+         return 0;
+      }      
+      
+      sql_batch_start(jcr->db_batch);
+   }
+
+   B_DB *mdb = jcr->db_batch;
+
+   /*
+    * Make sure we have an acceptable attributes record.
+    */
+   if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
+         ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
+      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
+         ar->Stream);
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      return 0;
+   }
+
+   split_path_and_file(jcr, mdb, ar->fname);
+
+
+/*
+   if (jcr->changes > 100000) {
+      sql_batch_end(mdb, NULL);
+      sql_batch_start(mdb);
+      jcr->changes = 0;
+   }
+*/
+
+   return (sql_batch_insert(mdb, ar) == 0);
+}
+
+#else  /* ! HAVE_BATCH_FILE_INSERT */
 
 /*
  * Create File record in B_DB
@@ -721,6 +920,8 @@ bail_out:
    db_unlock(mdb);
    return 0;
 }
+
+#endif /* ! HAVE_BATCH_FILE_INSERT */
 
 /*
  * This is the master File entry containing the attributes.
