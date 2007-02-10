@@ -28,11 +28,6 @@
   directory mostly out of paranoia.
 
 ==== IMPORTANT miscellaneous ====
-- ClientRunAfterJob and RunScript directives are, in 2.0, run as
-  soon as data spooling is complete in order to allow restarting
-  applications on the client as soon as possible. If you want to use
-  command at the end of backup (after despooling and attributes transfert)
-  you should use RunAfterJob.
 - The Gnome console program (gconsole) no longer functions as it
   should.More importantly, in restore mode, the restore tree is
   no longer shown in the left pane.  I suspect this is due to
