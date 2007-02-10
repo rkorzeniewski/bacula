@@ -393,19 +393,19 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    edit_int64(cr.ClientId, ed2);
    switch (JobType) {
    case JT_BACKUP:
-      Mmsg(query, select_backup_del, ed1, ed1, ed2);
+      Mmsg(query, select_backup_del, ed1, ed2);
       break;
    case JT_RESTORE:
-      Mmsg(query, select_restore_del, ed1, ed1, ed2);
+      Mmsg(query, select_restore_del, ed1, ed2);
       break;
    case JT_VERIFY:
-      Mmsg(query, select_verify_del, ed1, ed1, ed2);
+      Mmsg(query, select_verify_del, ed1, ed2);
       break;
    case JT_ADMIN:
-      Mmsg(query, select_admin_del, ed1, ed1, ed2);
+      Mmsg(query, select_admin_del, ed1, ed2);
       break;
    case JT_MIGRATE:
-      Mmsg(query, select_migrate_del, ed1, ed1, ed2);
+      Mmsg(query, select_migrate_del, ed1, ed2);
       break;
    }
    if (!db_sql_query(ua->db, query, job_delete_handler, (void *)&del)) {
