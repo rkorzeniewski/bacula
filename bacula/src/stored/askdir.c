@@ -321,11 +321,6 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
       return false;
    }
-   if (dev->can_read()) {
-      Jmsg0(jcr, M_FATAL, 0, _("Attempt to update_volume_info in read mode!!!\n"));
-      Pmsg0(000, _("Attempt to update_volume_info in read mode!!!\n"));
-      return false;
-   }
 
    /* Lock during Volume update */
    P(vol_info_mutex);

@@ -280,7 +280,17 @@ public:
    int rem_wait_sec;
    int num_wait;
 
+   uint64_t last_timer;		      /* used by read/write/seek to get stats (usec) */
+   int last_tick;		      /* contains last read/write time (usec) */
+
+   uint64_t DevReadTime;
+   uint64_t DevWriteTime;
+   uint64_t DevWriteBytes;
+   uint64_t DevReadBytes;
+
    /* Methods */
+   int get_timer_count();	      /* return the last timer interval (ms) */
+
    int has_cap(int cap) const { return capabilities & cap; }
    void clear_cap(int cap) { capabilities &= ~cap; }
    void set_cap(int cap) { capabilities |= cap; }
@@ -363,6 +373,8 @@ public:
    bool truncate(DCR *dcr);      /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
    void term(void);              /* in dev.c */
+   ssize_t read(void *buf, size_t len);	/* in dev.c */
+   ssize_t write(const void *buf, size_t len);	/* in dev.c */
    bool rewind(DCR *dcr);        /* in dev.c */
    bool mount(int timeout);      /* in dev.c */
    bool unmount(int timeout);    /* in dev.c */

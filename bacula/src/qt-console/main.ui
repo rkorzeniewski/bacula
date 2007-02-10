@@ -50,6 +50,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="focusPolicy" >
+        <enum>Qt::ClickFocus</enum>
+       </property>
        <property name="windowTitle" >
         <string>Page Selector</string>
        </property>
@@ -108,6 +111,9 @@
          <width>1</width>
          <height>0</height>
         </size>
+       </property>
+       <property name="focusPolicy" >
+        <enum>Qt::ClickFocus</enum>
        </property>
        <property name="currentIndex" >
         <number>-1</number>

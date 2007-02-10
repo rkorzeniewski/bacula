@@ -87,7 +87,7 @@ int read_ansi_ibm_label(DCR *dcr)
    /* Read a maximum of 5 records VOL1, HDR1, ... HDR4 */
    for (i=0; i < 6; i++) {
       do {
-         stat = tape_read(dev->fd, label, sizeof(label));
+         stat = dev->read(label, sizeof(label));
       } while (stat == -1 && errno == EINTR);
       if (stat < 0) {
          berrno be;
@@ -309,7 +309,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
          } else {
             label[79] = '3';                /* ANSI label flag */
          }
-         stat = tape_write(dev->fd, label, sizeof(label));
+         stat = dev->write(label, sizeof(label));
          if (stat != sizeof(label)) {
             berrno be;
             Jmsg1(jcr, M_FATAL, 0,  _("Could not write ANSI VOL1 label. ERR=%s\n"),
@@ -341,7 +341,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
        * This could come at the end of a tape, ignore
        *  EOT errors.
        */
-      stat = tape_write(dev->fd, label, sizeof(label));
+      stat = dev->write(label, sizeof(label));
       if (stat != sizeof(label)) {
          berrno be;
          if (stat == -1) {
@@ -370,7 +370,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
          label[4] = 'V';
          ascii_to_ebcdic(label, label, sizeof(label));
       }
-      stat = tape_write(dev->fd, label, sizeof(label));
+      stat = dev->write(label, sizeof(label));
       if (stat != sizeof(label)) {
          berrno be;
          if (stat == -1) {

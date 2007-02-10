@@ -18,6 +18,7 @@ public slots:
    void reject();
 
 private:
+   Console *m_console;
 
 };
 

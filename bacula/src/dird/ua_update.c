@@ -290,7 +290,7 @@ static void update_volslot(UAContext *ua, char *val, MEDIA_DBR *mr)
 }
 
 /* Modify the Pool in which this Volume is located */
-static void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
+void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
 {
    POOL_DBR pr;
    POOLMEM *query;

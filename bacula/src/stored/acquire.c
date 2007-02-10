@@ -463,8 +463,8 @@ bool release_device(DCR *dcr)
 
    if (dev->can_read()) {
       dev->clear_read();              /* clear read bit */
-
-      /******FIXME**** send read volume usage statistics to director */
+      Dmsg0(100, "dir_update_vol_info. Release0\n");
+      dir_update_volume_info(dcr, false); /* send Volume info to Director */
 
    } else if (dev->num_writers > 0) {
       /* 

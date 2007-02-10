@@ -106,8 +106,8 @@ void InitWinAPIWrapper();
 #define  OSDependentInit()
 #define  tape_open            open
 #define  tape_ioctl           ioctl
-#define  tape_read            read
-#define  tape_write           write
+#define  tape_read            ::read
+#define  tape_write           ::write
 #define  tape_close           ::close
 
 #endif

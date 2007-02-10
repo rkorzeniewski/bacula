@@ -79,7 +79,7 @@ void dlist::prepend(void *item)
 
 void dlist::insert_before(void *item, void *where)
 {
-   dlink *where_link = (dlink *)((char *)where+loffset);
+   dlink *where_link = get_link(where);
 
    set_next(item, where);
    set_prev(item, where_link->prev);
@@ -96,7 +96,7 @@ void dlist::insert_before(void *item, void *where)
 
 void dlist::insert_after(void *item, void *where)
 {
-   dlink *where_link = (dlink *)((char *)where+loffset);
+   dlink *where_link = get_link(where);
 
    set_next(item, where_link->next);
    set_prev(item, where);
@@ -290,7 +290,7 @@ void *dlist::binary_search(void *item, int compare(void *item1, void *item2))
 void dlist::remove(void *item)
 {
    void *xitem;
-   dlink *ilink = (dlink *)(((char *)item)+loffset);   /* item's link */
+   dlink *ilink = get_link(item);   /* item's link */
    if (item == head) {
       head = ilink->next;
       if (head) {
@@ -316,20 +316,20 @@ void dlist::remove(void *item)
    }
 }
 
-void * dlist::next(const void *item) const
+void *dlist::next(void *item)
 {
    if (item == NULL) {
       return head;
    }
-   return ((dlink *)(((char *)item)+loffset))->next;
+   return get_next(item);
 }
 
-void * dlist::prev(const void *item) const
+void *dlist::prev(void *item)
 {
    if (item == NULL) {
       return tail;
    }
-   return ((dlink *)(((char *)item)+loffset))->prev;
+   return get_prev(item);
 }
 
 
@@ -337,7 +337,7 @@ void * dlist::prev(const void *item) const
 void dlist::destroy()
 {
    for (void *n=head; n; ) {
-      void *ni = ((dlink *)(((char *)n)+loffset))->next;
+      void *ni = get_next(n);
       free(n);
       n = ni;
    }
@@ -521,7 +521,7 @@ int main()
     *  it.
     */
    dlist chain;
-   dlistString *node;
+   chain.append(new_dlistString("This is a long test line"));
 #define CNT 26
    printf("append %d dlistString items\n", CNT*CNT*CNT);
    strcpy(buf, "ZZZ");
@@ -533,8 +533,7 @@ int main()
             if ((count & 0x3FF) == 0) {
                Dmsg1(000, "At %d\n", count);
             }
-            node = new_dlistString(buf);
-            chain.append(node);
+            chain.append(new_dlistString(buf));
             buf[1]--;
          }
          buf[1] = 'Z';
@@ -544,6 +543,7 @@ int main()
       buf[0]--;
    }
    printf("dlistString items appended, walking chain\n");
+   dlistString *node;
    foreach_dlist(node, &chain) {
       printf("%s\n", node->c_str());
    }

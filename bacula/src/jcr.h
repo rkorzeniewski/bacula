@@ -184,6 +184,7 @@ public:
    bool cached_attribute;             /* set if attribute is cached */
    POOLMEM *attr;                     /* Attribute string from SD */
    B_DB *db;                          /* database pointer */
+   B_DB *db_batch;                    /* database pointer for batch insert */
    ATTR_DBR *ar;                      /* DB attribute record */
 
    /* Daemon specific part of JCR */
