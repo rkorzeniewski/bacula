@@ -8,7 +8,7 @@ default Qt or with the appropriate Qt Environment variables set.
 
 To build bat, you simply enter:
 
-  qmake 
+  qmake
   make
     
 then to execute it
@@ -22,7 +22,7 @@ Makefile, and there after, you simply use "make". In fact, providing
 you edit bat.pro, doing a "make" will automatically call qmake to
 rebuild the Makefile.
 
-Development status as of 29 Jan 07.
+Development status as of 11 Feb 07.
 
 Items implemented:
 - Reads a basic bat.conf (same as documented for the gnome-console 
@@ -30,19 +30,20 @@ Items implemented:
 - Basic main window structure
 - About dialog
 - Quit menu item
-- Connect button (initally shows disconnected) will connect to
-  the first Director defined in the conf file.
+- Connect button will connect to the first Director defined in the conf file.
 - The Director name will appear in the Selection tree followed
   by Console and Restore.  
 - Clicking on Console brings forward the console display screen
   (default at startup).
-- Clicking on Restore brings up a dummy two tab "restore" page.
+- Clicking on Restore brings up a brestore page that is not active.
 - The command line is implemented.
 - The status line (below the command line) is implemented.
+- Selection of Font is implemented.
+- The Font and the window size are saved on exit and restored on
+  execution of bat.
 
 Items not implemented:
 - None of the menu items except About, Quit.
-- None of the tool bar icons except the connect/disconnect.
 - Nothing on the restore page
      
 Design/implementation considerations:
@@ -51,26 +52,24 @@ Design/implementation considerations:
 - The Console class needs to be a list or be attached to the
   currently active Director.
 - Need icons in front of the Director.
-- Need indication if a director is connected or not.
 - The console page should be in a DockWidget so it can be removed
-  from the main window.
+  from the main window. It is currently in a dock window, but it
+  does not remove properly -- more research needed.
 - Need to figure out a good implementation of adding pages and even
   having plugins that load as pages.  Currently the page mechanism
   is a bit kludged.
-- Each page should in principle be a separate designer .ui file 
-  Currently the two pages console, restore are part of main.ui,
-  but they should be pulled out into their own .ui files.
 
 Design decisions:
-- If possible all windows will be created with designer and have
-  a name such as xxxForm i.e. the main window is MainForm and kept
-  in main.ui.  
 - If possible all code for a particular component will be kept in
   and appropriate subdirectory.
 - All private class variables are named "m_xxx" this makes it very
   clear if one is referencing a class variable or a local.
 - All signal/slots are connected by explict code (most all are
   done in the MainWin constructor), rather than using designer.      
+- Each page has a separate designer .ui file in a subdirectory.
+- All windows are created with designer and have
+  a name such as xxxForm i.e. the main window is MainForm and kept
+  in main.ui.  
 
 Major projects:
 - Implement a restore page that does a directory tree restore selection
@@ -84,4 +83,3 @@ Major projects:
 - Implement Qt plugins to add new functionality to bat
 - Implement a GUI configuration file editor (something like JBacula).
 ...
-

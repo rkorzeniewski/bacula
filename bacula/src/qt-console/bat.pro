@@ -17,6 +17,7 @@ FORMS += main.ui
 FORMS += label/label.ui
 FORMS += console/console.ui
 FORMS += restore/brestore.ui
+FORMS += restore/restore.ui restore/restore-select.ui
 FORMS += run/run.ui
 
 
@@ -38,4 +39,3 @@ SOURCES += label/label.cpp
 # Run dialog
 HEADERS += run/run.h
 SOURCES += run/run.cpp
-
