@@ -11,6 +11,8 @@ LIBS        += -L../lib
 LIBS        += -lbac
 LIBS        += -lssl -lcrypto
 RESOURCES = main.qrc
+MOC_DIR = moc
+OBJECTS_DIR = obj
 
 # Main window
 FORMS += main.ui
