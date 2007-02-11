@@ -200,7 +200,7 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr);
 
 /* ua_output.c */
 void prtit(void *ctx, const char *msg);
-int complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
+bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool);
 RUN *find_next_run(RUN *run, JOB *job, time_t &runtime, int ndays);
 
 /* ua_restore.c */
