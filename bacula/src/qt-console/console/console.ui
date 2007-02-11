@@ -21,6 +21,9 @@
    </property>
    <item row="0" column="0" >
     <widget class="QDockWidget" name="dockWidget" >
+     <property name="allowedAreas" >
+      <set>Qt::AllDockWidgetAreas</set>
+     </property>
      <widget class="QWidget" name="dockWidgetContents" >
       <layout class="QGridLayout" >
        <property name="margin" >

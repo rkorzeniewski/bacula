@@ -42,4 +42,3 @@ bRestore::bRestore(QStackedWidget *parent)
    setupUi(this);
    parent->addWidget(this);
 }
-
