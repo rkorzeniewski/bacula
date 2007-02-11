@@ -58,6 +58,7 @@ Design/implementation considerations:
 - Need to figure out a good implementation of adding pages and even
   having plugins that load as pages.  Currently the page mechanism
   is a bit kludged.
+- moc files should be moved into a subdirectory.
 
 Design decisions:
 - If possible all code for a particular component will be kept in
