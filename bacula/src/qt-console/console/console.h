@@ -4,6 +4,7 @@
 
 #include <QtGui>
 #include "ui_console.h"
+#include "restore.h"
 
 class DIRRES;
 class BSOCK;

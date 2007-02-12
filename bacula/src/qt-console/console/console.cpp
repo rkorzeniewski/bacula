@@ -27,6 +27,8 @@
 */
  
 /*
+ *   Version $Id$
+ *
  *  Console Class
  *
  *   Kern Sibbald, January MMVI
@@ -36,7 +38,6 @@
 #include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "console.h"
-#include "restore.h"
 
 Console::Console(QStackedWidget *parent)
 {
@@ -52,9 +53,9 @@ Console::Console(QStackedWidget *parent)
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
-   bRestore *restore = new bRestore(parent);
-   restore->setupUi(restore);
-   parent->addWidget(restore);
+   bRestore *brestore = new bRestore(parent);
+   brestore->setupUi(brestore);
+   parent->addWidget(brestore);
 
    /* Just take the first Director */
    LockRes();
@@ -75,7 +76,7 @@ Console::Console(QStackedWidget *parent)
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
    item = new QTreeWidgetItem(topItem);
-   item->setText(0, "Restore");
+   item->setText(0, "brestore");
    item->setText(1, "1");
    treeWidget->expandItem(topItem);
 
@@ -177,7 +178,9 @@ QStringList Console::get_list(char *cmd)
    return list;
 }
 
-
+/*
+ * Save user settings
+ */
 void Console::writeSettings()
 {
    QFont font = get_font();
@@ -190,6 +193,9 @@ void Console::writeSettings()
    settings.endGroup();
 }
 
+/*
+ * Read and restore user settings
+ */
 void Console::readSettings()
 { 
    QFont font = get_font();
@@ -203,6 +209,9 @@ void Console::readSettings()
    m_textEdit->setFont(font);
 }
 
+/*
+ * Set the console textEdit font
+ */
 void Console::set_font()
 {
    bool ok;
@@ -212,6 +221,9 @@ void Console::set_font()
    }
 }
 
+/*
+ * Get the console text edit font
+ */
 const QFont Console::get_font()
 {
    return m_textEdit->font();
@@ -223,6 +235,9 @@ void Console::status_dir()
    write_dir("status dir\n");
 }
 
+/*
+ * Put text into the console window
+ */
 void Console::set_textf(const char *fmt, ...)
 {
    va_list arg_ptr;
@@ -255,6 +270,9 @@ void Console::update_cursor()
    m_textEdit->ensureCursorVisible();
 }
 
+/* 
+ * This should be moved into a bSocket class 
+ */
 char *Console::msg()
 {
    if (m_sock) {

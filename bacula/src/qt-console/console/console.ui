@@ -25,6 +25,9 @@
       <set>Qt::AllDockWidgetAreas</set>
      </property>
      <widget class="QWidget" name="dockWidgetContents" >
+      <property name="focusPolicy" >
+       <enum>Qt::StrongFocus</enum>
+      </property>
       <layout class="QGridLayout" >
        <property name="margin" >
         <number>9</number>

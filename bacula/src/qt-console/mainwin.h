@@ -27,6 +27,8 @@
 */
 
 /* 
+ *   Version $Id$
+ *
  * qt-console main window class definition.
  *
  *  Written by Kern Sibbald, January MMVI
@@ -39,6 +41,7 @@
 #include "ui_main.h"
 #include "label/label.h"
 #include "run/run.h"
+#include "restore/restore.h"
 
 class Console;
 
@@ -61,6 +64,7 @@ public slots:
    void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
    void labelDialogClicked();
    void runDialogClicked();
+   void restoreDialogClicked();
 
 protected:
    void closeEvent(QCloseEvent *event);
