@@ -178,6 +178,27 @@ QStringList Console::get_list(char *cmd)
    return list;
 }
 
+/*  
+ * Send a job name to the director, and read all the resulting
+ *  defaults. 
+ */
+bool Console::get_job_defaults(char *job_name, struct job_defaults &job_defs)
+{
+   char cmd[1000];
+   int stat;
+
+   setEnabled(false);
+   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_name);
+   write(cmd);
+   while ((stat = read()) > 0) {
+      strip_trailing_junk(msg());
+      set_text(msg());
+   }
+   setEnabled(true);
+   return true;
+}
+
+
 /*
  * Save user settings
  */
