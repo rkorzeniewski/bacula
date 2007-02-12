@@ -1,6 +1,3 @@
-#ifndef _RESTORE_H_
-#define _RESTORE_H_
-
 /*
    Bacula® - The Network Backup Solution
 
@@ -28,59 +25,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+ 
 /*
- *   Version $Id$
+ *   Version $Id: $
  *
- *  Kern Sibbald, February 2007
- */
+ *  Restore Class  (Eric's brestore)
+ *
+ *   Kern Sibbald, February MMVI
+ *
+ */ 
 
-#include <QtGui>
-#include "ui_brestore.h"
-#include "ui_restore.h"
-#include "ui_prerestore.h"
+#include "bat.h"
+#include "restore.h"
 
-class Console;
-
-class prerestoreDialog : public QDialog, public Ui::prerestoreForm
+restoreDialog::restoreDialog(Console *parent)
 {
-   Q_OBJECT 
+   setupUi(this);
+   this->show();
+}
 
-public:
-   prerestoreDialog(Console *parent);
-
-public slots:
-
-private:
-
-};
-
-class restoreDialog : public QDialog, public Ui::restoreForm
+prerestoreDialog::prerestoreDialog(Console *parent)
 {
-   Q_OBJECT 
-
-public:
-   restoreDialog(Console *parent);
-
-public slots:
-
-private:
-
-};
-
-
-class bRestore : public QWidget, public Ui::bRestoreForm
-{
-   Q_OBJECT 
-
-public:
-   bRestore(QStackedWidget *parent);
-
-public slots:
-
-private:
-
-};
-
-
-
-#endif /* _RESTORE_H_ */
+   setupUi(this);
+   this->show();
+}

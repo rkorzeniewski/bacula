@@ -27,6 +27,8 @@
 */
 
 /*
+ *   Version $Id$
+ *
  *  Main Window control for bat (qt-console)
  *
  *   Kern Sibbald, January MMVI
@@ -76,6 +78,7 @@ void MainWin::createConnections()
    connect(actionSelectFont, SIGNAL(triggered()), m_console, SLOT(set_font()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
+   connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
 }
 
 /* 
@@ -113,7 +116,7 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    (void)column;
    int index = item->text(1).toInt();
-   if (index >= 0 && index < 2) {
+   if (index >= 0 && index < 4) {
       stackedWidget->setCurrentIndex(index);
    }
 }
@@ -125,7 +128,7 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
    (void)column;
    int index = item->text(1).toInt();
    /* ***FIXME**** make this automatic */
-   if (index >= 0 && index < 2) {
+   if (index >= 0 && index < 4) {
       stackedWidget->setCurrentIndex(index);
    }
 }
@@ -139,6 +142,12 @@ void MainWin::runDialogClicked()
 {
    new runDialog(m_console);
 }
+
+void MainWin::restoreDialogClicked() 
+{
+   new prerestoreDialog(m_console);
+}
+
 
 
 /*

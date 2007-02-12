@@ -27,13 +27,14 @@
 */
  
 /*
+ *   Version $Id$
+ *
  *  bRestore Class  (Eric's brestore)
  *
  *   Kern Sibbald, January MMVI
  *
  */ 
 
-#include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "restore.h"
 

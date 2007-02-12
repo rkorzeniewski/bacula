@@ -25,8 +25,9 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
 /*
+ *   Version $Id$
+ *
  *  Main program for bat (qt-console)
  *
  *   Kern Sibbald, January MMVI

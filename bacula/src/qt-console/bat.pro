@@ -18,8 +18,7 @@ OBJECTS_DIR = obj
 FORMS += main.ui
 FORMS += label/label.ui
 FORMS += console/console.ui
-FORMS += restore/brestore.ui
-FORMS += restore/restore.ui restore/restore-select.ui
+FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui
 
 
@@ -32,7 +31,7 @@ SOURCES += console/authenticate.cpp console/console.cpp
 
 # Restore
 HEADERS += restore/restore.h
-SOURCES += restore/brestore.cpp
+SOURCES += restore/restore.cpp restore/brestore.cpp
 
 # Label dialog
 HEADERS += label/label.h
