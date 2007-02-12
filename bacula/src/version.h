@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "2.1.4"
-#define BDATE   "11 February 2007"
-#define LSMDATE "11Feb07"
+#define BDATE   "12 February 2007"
+#define LSMDATE "12Feb07"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2007"       /* year for copyright messages in progs */
@@ -53,7 +53,11 @@
 
 #define USE_BSNPRINTF 1
 
-/* Disk file seeking is now controled by CAP_POSITIONBLOCKS */
+/* Turn on the following flag to enable batch attribute inserts
+ *  in the catalog.  This gives a large speedup.
+ */
+/* #define HAVE_BATCH_FILE_INSERT 1 */
+
 
 /* Debug flags not normally turned on */
 
