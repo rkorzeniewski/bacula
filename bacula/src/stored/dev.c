@@ -2195,7 +2195,7 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
 /* return the last timer interval (ms) */
 int DEVICE::get_timer_count()
 {
-   uint64_t old = last_timer;
+   btime_t old = last_timer;
    struct timeval tv;
    gettimeofday(&tv, NULL);
    last_timer = tv.tv_usec + tv.tv_sec * 1000000;

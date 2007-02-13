@@ -280,8 +280,8 @@ public:
    int rem_wait_sec;
    int num_wait;
 
-   uint64_t last_timer;		      /* used by read/write/seek to get stats (usec) */
-   int last_tick;		      /* contains last read/write time (usec) */
+   btime_t last_timer;        /* used by read/write/seek to get stats (usec) */
+   btime_t last_tick;         /* contains last read/write time (usec) */
 
    uint64_t DevReadTime;
    uint64_t DevWriteTime;
