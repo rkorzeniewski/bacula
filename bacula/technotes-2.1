@@ -1,6 +1,8 @@
               Technical notes on version 2.1
 
 General:
+13Feb07
+ebl  Use btime_t instead of uint64_t in media patch.
 11Feb07
 kes  Optimize the use of the database a bit in the Status dir command.
      Only open it when needed, ensure that if any previous database
@@ -18,7 +20,7 @@ kes  Apply Eric's scratch patch that moves a purged Volume to
 kes  Apply Eric's media patch that collects read/write media
      times as well as byte counts.  This patch requires a
      simultaneous upgrade of the DIR and SD.  Note, there
-     should be some way to turn of timing. I'm not sure
+     should be some way to turn off timing. I'm not sure
      times are in Bacula units.
 kes  Apply Eric's batch-insert patch.
 09Feb07

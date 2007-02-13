@@ -177,9 +177,9 @@ struct VOLUME_CAT_INFO {
    uint32_t VolCatMaxFiles;           /* Maximum files to write to volume */
    uint64_t VolCatMaxBytes;           /* Max bytes to write to volume */
    uint64_t VolCatCapacityBytes;      /* capacity estimate */
-   uint64_t VolReadTime;              /* time spent reading */
-   uint64_t VolWriteTime;             /* time spent writing this Volume */
-   int64_t VolMediaId;                /* MediaId */
+   btime_t  VolReadTime;              /* time spent reading */
+   btime_t  VolWriteTime;             /* time spent writing this Volume */
+   int64_t  VolMediaId;               /* MediaId */
    utime_t  VolFirstWritten;          /* Time of first write */
    bool     InChanger;                /* Set if vol in current magazine */
    char VolCatStatus[20];             /* Volume status */
@@ -283,13 +283,13 @@ public:
    btime_t last_timer;        /* used by read/write/seek to get stats (usec) */
    btime_t last_tick;         /* contains last read/write time (usec) */
 
-   uint64_t DevReadTime;
-   uint64_t DevWriteTime;
+   btime_t  DevReadTime;
+   btime_t  DevWriteTime;
    uint64_t DevWriteBytes;
    uint64_t DevReadBytes;
 
    /* Methods */
-   int get_timer_count();	      /* return the last timer interval (ms) */
+   btime_t get_timer_count();	      /* return the last timer interval (ms) */
 
    int has_cap(int cap) const { return capabilities & cap; }
    void clear_cap(int cap) { capabilities &= ~cap; }

@@ -339,8 +339,8 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2),
       LastWritten, vol->VolCatStatus, vol->Slot, label,
       InChanger,                      /* bool in structure */
-      edit_uint64(vol->VolReadTime, ed3),
-      edit_uint64(vol->VolWriteTime, ed4),
+      edit_int64(vol->VolReadTime, ed3),
+      edit_int64(vol->VolWriteTime, ed4),
       edit_uint64(vol->VolFirstWritten, ed5),
       vol->VolCatParts);
     Dmsg1(100, ">dird: %s", dir->msg);
