@@ -1,6 +1,7 @@
 bweb (2.0.2-2) stable; urgency=low
 
   * fix brestore batch mode
+  * add EndTime to display_job in bweb
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Wed,  14 Feb 2007 11:10:47 +0000
 
