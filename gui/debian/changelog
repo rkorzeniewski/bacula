@@ -1,3 +1,9 @@
+bweb (2.0.2-2) stable; urgency=low
+
+  * fix brestore batch mode
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Wed,  14 Feb 2007 11:10:47 +0000
+
 bweb (2.0.2-1) stable; urgency=low
 
   * fix utf8 bug in brestore
