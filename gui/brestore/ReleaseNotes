@@ -1,5 +1,8 @@
           Release Notes for brestore 2.0.2
 
+Version 2.0.2-2:
+ - fix cache create bug
+
 Version 2.0.2-1:
  - Fix bug with accent, use filenameid/pathid instead of filename
 
