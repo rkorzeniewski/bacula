@@ -41,6 +41,21 @@ Document:
  
 
 Priority:
+- btape "test" command with Offline on Unmount = yes
+
+   This test is essential to Bacula.
+
+   I'm going to write one record  in file 0,
+   two records in file 1,
+   and three records in file 2
+
+   02-Feb 11:00 btape: ABORTING due to ERROR in dev.c:715
+   dev.c:714 Bad call to rewind. Device "LTO" (/dev/nst0) not open
+   02-Feb 11:00 btape: Fatal Error because: Bacula interrupted by signal 11: Segmentation violation
+   Kaboom! btape, btape got signal 11. Attempting traceback.
+
+- Why the heck doesn't bacula drop root priviledges before connecting to
+  the DB?
 - Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
   does the right thing.
 - Why doesn't @"xxx abc" work in a conf file?

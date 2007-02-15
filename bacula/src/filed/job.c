@@ -249,7 +249,7 @@ void *handle_client_request(void *dirp)
       bnet_sig(jcr->store_bsock, BNET_TERMINATE);
    }
 
-   /* run after job */   
+   /* Run the after job */
    run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
 
    generate_daemon_event(jcr, "JobEnd");

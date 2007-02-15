@@ -2205,7 +2205,7 @@ ssize_t DEVICE::read(void *buf, size_t len)
 {
    ssize_t read_len ;
 
-// get_timer_count();
+   get_timer_count();
 
    if (this->is_tape()) {
       read_len = tape_read(fd, buf, len);
@@ -2213,7 +2213,7 @@ ssize_t DEVICE::read(void *buf, size_t len)
       read_len = ::read(fd, buf, len);
    }
 
-// last_tick = get_timer_count();
+   last_tick = get_timer_count();
 
    DevReadTime += last_tick;
    VolCatInfo.VolReadTime += last_tick;
@@ -2230,7 +2230,7 @@ ssize_t DEVICE::write(const void *buf, size_t len)
 {
    ssize_t write_len ;
 
-// get_timer_count();
+   get_timer_count();
 
    if (this->is_tape()) {
       write_len = tape_write(fd, buf, len);
@@ -2238,7 +2238,7 @@ ssize_t DEVICE::write(const void *buf, size_t len)
       write_len = ::write(fd, buf, len);
    }
 
-// last_tick = get_timer_count();
+   last_tick = get_timer_count();
 
    DevWriteTime += last_tick;
    VolCatInfo.VolWriteTime += last_tick;

@@ -193,9 +193,6 @@ static bool append_data_cmd(JCR *jcr)
       jcr->JobType = JT_BACKUP;
       if (do_append_data(jcr)) {
          return true;
-#ifdef xxx 
-         return bnet_fsend(fd, OK_append);
-#endif
       } else {
          bnet_suppress_error_messages(fd, 1); /* ignore errors at this point */
          bnet_fsend(fd, ERROR_append);
