@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Run a simple backup of untitled15.jpg that fails to
+#  restore properly in bug #763 
+#
+TestName="encrypt-bug-test"
+JobName=Crypto-bug
+. scripts/functions
+set_debug 1
+
+scripts/cleanup
+scripts/copy-crypto-confs
+echo "${cwd}/untitled15.jpg" >/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+label storage=File volume=TestVolume001
+@#setdebug level=10 fd
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+@#setdebug level=10 fd
+restore where=${cwd}/tmp/bacula-restores storage=File
+5
+mark *
+done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula
+sleep 2
+check_for_zombie_jobs storage=File 
+stop_bacula
+
+du -s build
+du -s tmp/bacula-restores/
+
+
+check_two_logs
+check_restore_diff
+end_test
