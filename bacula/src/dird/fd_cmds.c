@@ -1,21 +1,7 @@
 /*
- *
- *   Bacula Director -- fd_cmds.c -- send commands to File daemon
- *
- *     Kern Sibbald, October MM
- *
- *    This routine is run as a separate thread.  There may be more
- *    work to be done to make it totally reentrant!!!!
- *
- *  Utility functions for sending info to File Daemon.
- *   These functions are used by both backup and verify.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- fd_cmds.c -- send commands to File daemon
+ *
+ *     Kern Sibbald, October MM
+ *
+ *    This routine is run as a separate thread.  There may be more
+ *    work to be done to make it totally reentrant!!!!
+ *
+ *  Utility functions for sending info to File Daemon.
+ *   These functions are used by both backup and verify.
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
