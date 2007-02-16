@@ -417,7 +417,7 @@ void do_restore(JCR *jcr)
             break;
          default:
             /* Shouldn't happen */
-            Jmsg1(jcr, M_ERROR, 0, _("An error occured while decoding encrypted session data stream: %s\n"), crypto_strerror(cryptoerr));
+            Jmsg1(jcr, M_ERROR, 0, _("An error occurred while decoding encrypted session data stream: %s\n"), crypto_strerror(cryptoerr));
             break;
          }
 
