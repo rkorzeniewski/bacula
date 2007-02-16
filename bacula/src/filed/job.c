@@ -1,12 +1,4 @@
 /*
- *  Bacula File Daemon Job processing
- *
- *    Kern Sibbald, October MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon Job processing
+ *
+ *    Kern Sibbald, October MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -179,7 +179,23 @@ static char read_close[]   = "read close session %d\n";
  *   Accept commands one at a time from the Director
  *     and execute them.
  *
+ * Concerning ClientRunBefore/After, the sequence of events
+ * is rather critical. If they are not done in the right
+ * order one can easily get FD->SD timeouts if the script
+ * runs a long time.
+ *
+ * The current sequence of events is:
+ *  1. Dir starts job with FD
+ *  2. Dir connects to SD
+ *  3. Dir connects to FD
+ *  4. FD connects to SD
+ *  5. FD gets/runs ClientRunBeforeJob and sends ClientRunAfterJob
+ *  6. Dir sends include/exclude
+ *  7. FD sends data to SD
+ *  8. SD/FD disconnects while SD despools data and attributes (optionnal)
+ *  9. FD runs ClientRunAfterJob
  */
+
 void *handle_client_request(void *dirp)
 {
    int i;
