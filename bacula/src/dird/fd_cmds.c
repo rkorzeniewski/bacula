@@ -505,6 +505,9 @@ int send_runscript_with_old_proto(JCR *jcr, int when, POOLMEM *msg)
 
 /*
  * Send RunScripts to File daemon
+ * 1) We send all runscript to FD, they can be executed Before, After, or twice
+ * 2) Then, we send a "RunBeforeNow" command to the FD to tell him to do the
+ *    first run_script() call. (ie ClientRunBeforeJob)
  */
 int send_runscripts_commands(JCR *jcr)
 {
@@ -552,15 +555,16 @@ int send_runscripts_commands(JCR *jcr)
                return 0;
             }
          }
-         /*
+         /* TODO : we have to play with other client */
+	 /*
            else {
            send command to an other client
            }
          */
       }        
-   }
-   
-   /* TODO : we have to play with other client */
+   } 
+
+   /* We tell to the FD that i can execute commands (ie ClientRunBeforeJob) */
    if (launch_before_cmd) {
       bnet_fsend(fd, runbeforenow);
       if (!response(jcr, fd, OKRunBeforeNow, "RunBeforeNow", DISPLAY_ERROR)) {
