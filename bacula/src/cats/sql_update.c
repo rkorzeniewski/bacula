@@ -399,30 +399,32 @@ int
 db_update_media_defaults(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
    int stat;
-   char ed1[50], ed2[50], ed3[50], ed4[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
 
 
    db_lock(mdb);
    if (mr->VolumeName[0]) {
       Mmsg(mdb->cmd, "UPDATE Media SET "
            "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,RecyclePoolId=%s"
            " WHERE VolumeName='%s'",
            mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
            edit_uint64(mr->MaxVolBytes, ed3),
+           edit_uint64(mr->RecyclePoolId, ed4),
            mr->VolumeName);
    } else {
       Mmsg(mdb->cmd, "UPDATE Media SET "
            "Recycle=%d,VolRetention=%s,VolUseDuration=%s,"
-           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s"
+           "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,RecyclePoolId=%s"
            " WHERE PoolId=%s",
            mr->Recycle,edit_uint64(mr->VolRetention, ed1),
            edit_uint64(mr->VolUseDuration, ed2),
            mr->MaxVolJobs, mr->MaxVolFiles,
            edit_uint64(mr->MaxVolBytes, ed3),
-           edit_int64(mr->PoolId, ed4));
+           edit_int64(mr->RecyclePoolId, ed4),
+           edit_int64(mr->PoolId, ed5));
    }
 
    Dmsg1(400, "%s\n", mdb->cmd);
