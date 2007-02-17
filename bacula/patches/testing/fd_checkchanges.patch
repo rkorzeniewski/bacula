@@ -1,0 +1,144 @@
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/dird/inc_conf.c bacula/src/dird/inc_conf.c
+--- bacula.org/src/dird/inc_conf.c	2007-02-17 18:11:27.000000000 +0100
++++ bacula/src/dird/inc_conf.c	2007-02-17 17:47:16.000000000 +0100
+@@ -120,6 +120,7 @@
+    {"noatime",         store_opts,    {0},     0, 0, 0},
+    {"enhancedwild",    store_opts,    {0},     0, 0, 0},
+    {"drivetype",       store_drivetype, {0},     0, 0, 0},
++   {"checkchanges",    store_opts,    {0},     0, 0, 0},
+    {NULL, NULL, {0}, 0, 0, 0}
+ };
+ 
+@@ -145,7 +146,8 @@
+    INC_KW_IGNORECASE,
+    INC_KW_HFSPLUS,
+    INC_KW_NOATIME,
+-   INC_KW_ENHANCEDWILD
++   INC_KW_ENHANCEDWILD,
++   INC_KW_CHKCHANGES
+ };
+ 
+ /*
+@@ -174,6 +176,7 @@
+    {"hfsplussupport", INC_KW_HFSPLUS},
+    {"noatime",     INC_KW_NOATIME},
+    {"enhancedwild", INC_KW_ENHANCEDWILD},
++   {"checkchanges", INC_KW_CHKCHANGES},
+    {NULL,          0}
+ };
+ 
+@@ -239,6 +242,8 @@
+    {"no",       INC_KW_NOATIME,       "0"},
+    {"yes",      INC_KW_ENHANCEDWILD,  "K"},
+    {"no",       INC_KW_ENHANCEDWILD,  "0"},
++   {"yes",      INC_KW_CHKCHANGES,    "c"},
++   {"no",       INC_KW_CHKCHANGES,    "0"},
+    {NULL,       0,                      0}
+ };
+ 
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/filed/backup.c bacula/src/filed/backup.c
+--- bacula.org/src/filed/backup.c	2007-02-17 18:11:28.000000000 +0100
++++ bacula/src/filed/backup.c	2007-02-17 18:37:19.000000000 +0100
+@@ -454,6 +454,11 @@
+ 
+       stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
+       bclose(&ff_pkt->bfd);
++
++      if (ff_pkt->flags & FO_CHKCHANGES) {
++	 file_have_changed(jcr, ff_pkt);
++      }
++      
+       if (!stat) {
+          return 0;
+       }
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/filed/job.c bacula/src/filed/job.c
+--- bacula.org/src/filed/job.c	2007-02-17 18:11:28.000000000 +0100
++++ bacula/src/filed/job.c	2007-02-17 18:37:19.000000000 +0100
+@@ -1021,6 +1021,9 @@
+       case 'K':
+          fo->flags |= FO_NOATIME;
+          break;
++      case 'c':
++         fo->flags |= FO_CHKCHANGES;
++         break;
+       default:
+          Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
+          break;
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/find.h bacula/src/findlib/find.h
+--- bacula.org/src/findlib/find.h	2007-02-17 18:11:57.000000000 +0100
++++ bacula/src/findlib/find.h	2007-02-17 14:07:59.000000000 +0100
+@@ -107,6 +107,7 @@
+ #define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
+ #define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
+ #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
++#define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
+ 
+ struct s_included_file {
+    struct s_included_file *next;
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/find_one.c bacula/src/findlib/find_one.c
+--- bacula.org/src/findlib/find_one.c	2007-02-17 18:11:57.000000000 +0100
++++ bacula/src/findlib/find_one.c	2007-02-17 18:08:37.000000000 +0100
+@@ -181,6 +181,51 @@
+    return false;
+ }
+ 
++/* check if a file have changed during backup and display an error */
++bool file_have_changed(JCR *jcr, FF_PKT *ff_pkt)
++{
++   struct stat statp;
++   Dmsg1(500, "file_have_changed fname=%s\n",ff_pkt->fname);
++
++   if (ff_pkt->type != FT_REG) { /* not a regular file */
++      return false;
++   }
++
++   if (lstat(ff_pkt->fname, &statp) != 0) {
++      berrno be;
++      Jmsg(jcr, M_WARNING, 0, 
++	   _("Can't check if %s have changed ERR=%s.\n"),ff_pkt->fname,be.strerror());
++      return true;
++   }
++
++   if (statp.st_mtime != ff_pkt->statp.st_mtime) {
++      /* TODO: add time of changes */
++      Jmsg(jcr, M_ERROR, 0, _("%s have changed during backup.\n"), ff_pkt->fname);
++      return true;
++   }
++
++   if (statp.st_ctime != ff_pkt->statp.st_ctime) {
++      /* TODO: add time of changes */
++      Jmsg(jcr, M_ERROR, 0, _("%s have changed during backup.\n"), ff_pkt->fname);
++      return true;
++   }
++  
++   if (statp.st_size != ff_pkt->statp.st_size) {
++      /* TODO: add size change */
++      Jmsg(jcr, M_ERROR, 0, _("%s size have changed during backup.\n"),ff_pkt->fname);
++      return true;
++   }
++
++   if ((statp.st_blksize*statp.st_blocks) != 
++       (ff_pkt->statp.st_blksize*ff_pkt->statp.st_blocks)) {
++      /* TODO: add size change */
++      Jmsg(jcr, M_ERROR, 0, _("%s size have changed during backup.\n"),ff_pkt->fname);
++      return true;
++   }
++
++   return false;
++}
++
+ /*
+  * Find a single file.
+  * handle_file is the callback for handling the file.
+diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/protos.h bacula/src/findlib/protos.h
+--- bacula.org/src/findlib/protos.h	2007-02-17 18:11:57.000000000 +0100
++++ bacula/src/findlib/protos.h	2007-02-17 12:34:18.000000000 +0100
+@@ -65,7 +65,7 @@
+                int handle_file(FF_PKT *ff_pkt, void *hpkt, bool top_level),
+                void *pkt, char *p, dev_t parent_device, bool top_level);
+ int   term_find_one(FF_PKT *ff);
+-
++bool  file_have_changed(JCR *jcr, FF_PKT *ff_pkt);
+ 
+ /* From get_priv.c */
+ int enable_backup_privileges(JCR *jcr, int ignore_errors);

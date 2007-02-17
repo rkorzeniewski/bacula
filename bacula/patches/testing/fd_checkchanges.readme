@@ -1,0 +1,48 @@
+From: Eric Bollengier <eric at homelinux dot org>
+
+Check size, age of each file after their backup to see if
+they have changed during backup.
+
+This patch ask to fd to do an extra check (stat(2)) after
+each file backup. mtime, ctime and size are compared with
+"before backup" informations. If time or size mismatch, an
+error will raise.
+
+You must upgrade FD and DIR at the same time.
+
+FileSet {
+  Name = "Full Set"
+  Include {
+    Options {
+      checkchanges = yes           # use this to enable it
+    }
+    File = /tmp/bacula
+  }
+}
+
+
+17-fév 18:03 zog-fd: Client1.2007-02-17_18.02.21 Error: /tmp/bacula/etc/toto have changed during backup.
+17-fév 18:03 zog-fd: Client1.2007-02-17_18.02.21 Error: /tmp/bacula/var/bacula/working/bacula.db size have changed during backup.
+17-fév 18:03 zog-sd: Job write elapsed time = 00:00:03, Transfer rate = 22.94 M bytes/second
+17-fév 18:03 zog-dir: Bacula 2.1.4 (12Feb07): 17-fév-2007 18:03:01
+  JobId:                  3
+  Job:                    Client1.2007-02-17_18.02.21
+  Backup Level:           Incremental, since=2007-02-17 17:58:56
+  Client:                 "zog-fd" 2.1.4 (12Feb07) i686-pc-linux-gnu,debian,testing/unstable
+  FileSet:                "Full Set" 2007-02-17 17:57:36
+  Pool:                   "Default" (From Job resource)
+  Storage:                "File" (From Job resource)
+  Scheduled time:         17-fév-2007 18:02:19
+...
+  Volume Session Time:    1171731706
+  Last Volume Bytes:      5,973,631 (5.973 MB)
+  Non-fatal FD errors:    2
+  SD Errors:              0
+  FD termination status:  OK
+  SD termination status:  OK
+  Termination:            Backup OK -- with warnings
+
+
+
+$Log$
+
