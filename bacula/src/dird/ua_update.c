@@ -326,6 +326,35 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
    free_pool_memory(query);
 }
 
+/* Modify the RecyclePool of a Volume */
+void update_vol_recyclepool(UAContext *ua, char *val, MEDIA_DBR *mr)
+{
+   POOL_DBR pr;
+   POOLMEM *query;
+   char ed1[50], ed2[50];
+
+   memset(&pr, 0, sizeof(pr));
+   bstrncpy(pr.Name, val, sizeof(pr.Name));
+   if (!get_pool_dbr(ua, &pr, NT_("recyclepool"))) {
+      return;
+   }
+   /* pool = select_pool_resource(ua);  */
+   mr->RecyclePoolId = pr.PoolId;            /* get the PoolId */
+
+   query = get_pool_memory(PM_MESSAGE);
+   db_lock(ua->db);
+   Mmsg(query, "UPDATE Media SET RecyclePoolId=%s WHERE MediaId=%s",
+      edit_int64(mr->RecyclePoolId, ed1),
+      edit_int64(mr->MediaId, ed2));
+   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
+   } else {
+      bsendmsg(ua, _("New RecyclePool is: %s\n"), pr.Name);
+   }
+   db_unlock(ua->db);
+   free_pool_memory(query);
+}
+
 /*
  * Refresh the Volume information from the Pool record
  */
@@ -414,6 +443,7 @@ static int update_volume(UAContext *ua)
       _("FromPool"),                 /* 10 */
       _("AllFromPool"),              /* 11 !!! see below !!! */
       _("Enabled"),                  /* 12 */
+      _("RecyclePool"),              /* 13 */
       NULL };
 
 #define AllFromPool 11               /* keep this updated with above */
@@ -472,6 +502,9 @@ static int update_volume(UAContext *ua)
          case 12:
             update_volenabled(ua, ua->argv[j], &mr);
             break;
+	 case 13:
+            update_vol_recyclepool(ua, ua->argv[j], &mr);
+            break;
          }
          done = true;
       }
@@ -493,11 +526,12 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Volume from Pool"));           /* 11 */
       add_prompt(ua, _("All Volumes from Pool"));      /* 12 */
       add_prompt(ua, _("Enabled")),                    /* 13 */
-      add_prompt(ua, _("Done"));                       /* 14 */
+      add_prompt(ua, _("RecyclePool")),                /* 14 */
+      add_prompt(ua, _("Done"));                       /* 15 */
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
 
       /* For All Volumes from Pool and Done, we don't need a Volume record */
-      if (i != 12 && i != 14) {
+      if (i != 12 && i != 15) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;
          }
@@ -664,6 +698,20 @@ static int update_volume(UAContext *ua)
          }
          update_volenabled(ua, ua->cmd, &mr);
          break;
+
+      case 14:
+         memset(&pr, 0, sizeof(POOL_DBR));
+         pr.PoolId = mr.RecyclePoolId;
+         if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
+            bsendmsg(ua, _("Current RecyclePool is: %s\n"), pr.Name);
+         } else {
+            bsendmsg(ua, _("No current RecyclePool\n"));
+         }
+         if (!get_cmd(ua, _("Enter new RecyclePool name: "))) {
+            return 0;
+         }
+         update_vol_recyclepool(ua, ua->cmd, &mr);
+         return 1;
 
       default:                        /* Done or error */
          bsendmsg(ua, _("Selection terminated.\n"));
