@@ -431,11 +431,11 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
    return 1;
 }
 
-
-
 /* Scan what the user has entered looking for:
  *
- *  pool=<pool-name>
+ *  argk=<pool-name>
+ *
+ *  where argk can be : pool, recyclepool, scratchpool, nextpool etc..
  *
  *  if error or not found, put up a list of pool DBRs
  *  to choose from.
@@ -443,7 +443,7 @@ int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
  *   returns: false on error
  *            true  on success and fills in POOL_DBR
  */
-bool get_pool_dbr(UAContext *ua, POOL_DBR *pr)
+bool get_pool_dbr(UAContext *ua, POOL_DBR *pr, char *argk)
 {
    if (pr->Name[0]) {                 /* If name already supplied */
       if (db_get_pool_record(ua->jcr, ua->db, pr) &&
@@ -452,16 +452,17 @@ bool get_pool_dbr(UAContext *ua, POOL_DBR *pr)
       }
       bsendmsg(ua, _("Could not find Pool \"%s\": ERR=%s"), pr->Name, db_strerror(ua->db));
    }
-   if (!select_pool_dbr(ua, pr)) {  /* try once more */
+   if (!select_pool_dbr(ua, pr, argk)) {  /* try once more */
       return false;
    }
    return true;
 }
 
 /*
- * Select a Pool record from the catalog
+ * Select a Pool record from catalog
+ * argk can be pool, recyclepool, scratchpool etc..
  */
-bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
+bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, char *argk)
 {
    POOL_DBR opr;
    char name[MAX_NAME_LENGTH];
@@ -469,7 +470,7 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr)
    uint32_t *ids;
 
    for (i=1; i<ua->argc; i++) {
-      if (strcasecmp(ua->argk[i], NT_("pool")) == 0 && ua->argv[i] &&
+      if (strcasecmp(ua->argk[i], argk) == 0 && ua->argv[i] &&
           acl_access_ok(ua, Pool_ACL, ua->argv[i])) {
          bstrncpy(pr->Name, ua->argv[i], sizeof(pr->Name));
          if (!db_get_pool_record(ua->jcr, ua->db, pr)) {
