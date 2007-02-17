@@ -1,13 +1,7 @@
 /*
- * Process and thread timer routines, built on top of watchdogs.
- *
- *    Nic Bellamy <nic@bellamy.co.nz>, October 2004.
- *
-*/
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,6 +24,12 @@
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ * Process and thread timer routines, built on top of watchdogs.
+ *
+ *    Nic Bellamy <nic@bellamy.co.nz>, October 2004.
+ *
 */
 
 #include "bacula.h"

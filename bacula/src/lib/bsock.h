@@ -1,17 +1,4 @@
 /*
- * Bacula Sock Structure definition
- *
- * Kern Sibbald, May MM
- *
- * Zero msglen from other end indicates soft eof (usually
- *   end of some binary data stream, but not end of conversation).
- *
- * Negative msglen, is special "signal" (no data follows).
- *   See below for SIGNAL codes.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -38,8 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Sock Structure definition
+ *
+ * Kern Sibbald, May MM
+ *
+ * Zero msglen from other end indicates soft eof (usually
+ *   end of some binary data stream, but not end of conversation).
+ *
+ * Negative msglen, is special "signal" (no data follows).
+ *   See below for SIGNAL codes.
+ *
+ *   Version $Id$
+ */
 
-struct BSOCK {
+
+class BSOCK {
+public:
    uint64_t read_seqno;               /* read sequence number */
    uint32_t in_msg_no;                /* input message number */
    uint32_t out_msg_no;               /* output message number */
@@ -67,6 +69,11 @@ struct BSOCK {
    JCR *jcr;                          /* jcr or NULL for error msgs */
    struct sockaddr client_addr;    /* client's IP address */
    struct sockaddr_in peer_addr;    /* peer's IP address */
+
+   /* methods -- in bsock.c */
+   bool send();
+   bool fsend(const char*, ...);
+
 };
 
 /* Signal definitions for use in bnet_sig() */
@@ -102,3 +109,6 @@ enum {
 #define BNET_TLS_NONE     0           /* cannot do TLS */
 #define BNET_TLS_OK       1           /* can do, but not required on my end */
 #define BNET_TLS_REQUIRED 2           /* TLS is required */
+
+int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);
+int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);
