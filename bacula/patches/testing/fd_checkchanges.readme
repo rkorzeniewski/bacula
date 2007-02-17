@@ -10,6 +10,12 @@ error will raise.
 
 You must upgrade FD and DIR at the same time.
 
+TODO:
+ - Add documentation
+ - Add informations on warning/error messages
+
+Configuration :
+
 FileSet {
   Name = "Full Set"
   Include {
@@ -20,6 +26,7 @@ FileSet {
   }
 }
 
+Output : 
 
 17-fév 18:03 zog-fd: Client1.2007-02-17_18.02.21 Error: /tmp/bacula/etc/toto have changed during backup.
 17-fév 18:03 zog-fd: Client1.2007-02-17_18.02.21 Error: /tmp/bacula/var/bacula/working/bacula.db size have changed during backup.
