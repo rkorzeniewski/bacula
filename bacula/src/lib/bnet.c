@@ -1,14 +1,4 @@
 /*
- * Network Utility Routines
- *
- *  by Kern Sibbald
- *
- * Adapted and enhanced for Bacula, originally written
- * for inclusion in the Apcupsd package
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Network Utility Routines
+ *
+ *  by Kern Sibbald
+ *
+ * Adapted and enhanced for Bacula, originally written
+ * for inclusion in the Apcupsd package
+ *
+ *   Version $Id$
+ */
 
 
 #include "bacula.h"
@@ -69,7 +69,7 @@ static pthread_mutex_t ip_mutex = PTHREAD_MUTEX_INITIALIZER;
  * read requests
  */
 
-static int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
+int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nread;
 
@@ -110,7 +110,7 @@ static int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
  * It may require several writes.
  */
 
-static int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
+int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nwritten;
 
@@ -374,6 +374,12 @@ int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t siz
  * Returns: false on failure
  *          true  on success
  */
+bool bnet_send(BSOCK *bsock)
+{
+   return bsock->send();
+}
+
+#ifdef xxx
 bool bnet_send(BSOCK * bsock)
 {
    int32_t rc;
@@ -382,7 +388,7 @@ bool bnet_send(BSOCK * bsock)
    if (bsock->errors || bsock->terminated || bsock->msglen > 1000000) {
       return false;
    }
-   pktsiz = htonl((int32_t) bsock->msglen);
+   pktsiz = htonl((int32_t)bsock->msglen);
    /* send int32_t containing size of data packet */
    bsock->timer_start = watchdog_time;  /* start timer */
    bsock->timed_out = 0;
@@ -447,6 +453,7 @@ bool bnet_send(BSOCK * bsock)
    }
    return true;
 }
+#endif
 
 /*
  * Establish a TLS connection -- server side
@@ -917,7 +924,8 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
       }
       bs->msg = realloc_pool_memory(bs->msg, maxlen + maxlen / 2);
    }
-   return bnet_send(bs);
+   return bs->send();
+// return bnet_send(bs);
 }
 
 int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen) {

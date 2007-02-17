@@ -1,28 +1,7 @@
 /*
- *  Bacula memory pool routines.
- *
- *  The idea behind these routines is that there will be
- *  pools of memory that are pre-allocated for quick
- *  access. The pools will have a fixed memory size on allocation
- *  but if need be, the size can be increased. This is
- *  particularly useful for filename
- *  buffers where 256 bytes should be sufficient in 99.99%
- *  of the cases, but when it isn't we want to be able to
- *  increase the size.
- *
- *  A major advantage of the pool memory aside from the speed
- *  is that the buffer carrys around its size, so to ensure that
- *  there is enough memory, simply call the check_pool_memory_size()
- *  with the desired size and it will adjust only if necessary.
- *
- *           Kern E. Sibbald
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +25,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula memory pool routines.
+ *
+ *  The idea behind these routines is that there will be
+ *  pools of memory that are pre-allocated for quick
+ *  access. The pools will have a fixed memory size on allocation
+ *  but if need be, the size can be increased. This is
+ *  particularly useful for filename
+ *  buffers where 256 bytes should be sufficient in 99.99%
+ *  of the cases, but when it isn't we want to be able to
+ *  increase the size.
+ *
+ *  A major advantage of the pool memory aside from the speed
+ *  is that the buffer carrys around its size, so to ensure that
+ *  there is enough memory, simply call the check_pool_memory_size()
+ *  with the desired size and it will adjust only if necessary.
+ *
+ *           Kern E. Sibbald
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 
@@ -90,6 +90,7 @@ struct abufhead {
    int32_t ablen;                     /* Buffer length in bytes */
    int32_t pool;                      /* pool */
    struct abufhead *next;             /* pointer to next free buffer */
+   int32_t bnet_size;                 /* dummy for bnet_send() */
 };
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
