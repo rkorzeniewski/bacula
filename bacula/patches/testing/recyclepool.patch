@@ -1,0 +1,161 @@
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/cats/cats.h bacula.org/src/cats/cats.h
+--- bacula/src/cats/cats.h	2007-02-18 12:01:05.000000000 +0100
++++ bacula.org/src/cats/cats.h	2007-02-18 11:04:55.000000000 +0100
+@@ -734,6 +734,7 @@
+    uint32_t MaxVolJobs;               /* Max Jobs on Volume */
+    uint32_t MaxVolFiles;              /* Max files on Volume */
+    uint64_t MaxVolBytes;              /* Max bytes on Volume */
++   DBId_t RecyclePoolId;              /* RecyclePool destination when media is purged */
+    char PoolType[MAX_NAME_LENGTH];
+    char LabelFormat[MAX_NAME_LENGTH];
+    /* Extra stuff not in DB */
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/cats/sql_create.c bacula.org/src/cats/sql_create.c
+--- bacula/src/cats/sql_create.c	2007-02-18 12:01:05.000000000 +0100
++++ bacula.org/src/cats/sql_create.c	2007-02-18 11:36:02.000000000 +0100
+@@ -170,7 +170,7 @@
+ db_create_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
+ {
+    bool stat;        
+-   char ed1[30], ed2[30], ed3[50];
++   char ed1[30], ed2[30], ed3[50], ed4[50];
+ 
+    Dmsg0(200, "In create pool\n");
+    db_lock(mdb);
+@@ -192,8 +192,8 @@
+    Mmsg(mdb->cmd,
+ "INSERT INTO Pool (Name,NumVols,MaxVols,UseOnce,UseCatalog,"
+ "AcceptAnyVolume,AutoPrune,Recycle,VolRetention,VolUseDuration,"
+-"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat) "
+-"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s')",
++"MaxVolJobs,MaxVolFiles,MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId) "
++"VALUES ('%s',%u,%u,%d,%d,%d,%d,%d,%s,%s,%u,%u,%s,'%s',%d,'%s',%s)",
+                   pr->Name,
+                   pr->NumVols, pr->MaxVols,
+                   pr->UseOnce, pr->UseCatalog,
+@@ -203,7 +203,8 @@
+                   edit_uint64(pr->VolUseDuration, ed2),
+                   pr->MaxVolJobs, pr->MaxVolFiles,
+                   edit_uint64(pr->MaxVolBytes, ed3),
+-                  pr->PoolType, pr->LabelType, pr->LabelFormat);
++                  pr->PoolType, pr->LabelType, pr->LabelFormat,
++                  edit_int64(pr->RecyclePoolId,ed4));
+    Dmsg1(200, "Create Pool: %s\n", mdb->cmd);
+    if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
+       Mmsg2(&mdb->errmsg, _("Create db Pool record %s failed: ERR=%s\n"),
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/cats/sql_get.c bacula.org/src/cats/sql_get.c
+--- bacula/src/cats/sql_get.c	2007-02-18 12:01:05.000000000 +0100
++++ bacula.org/src/cats/sql_get.c	2007-02-18 11:03:59.000000000 +0100
+@@ -574,13 +574,13 @@
+       Mmsg(mdb->cmd,
+ "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
+ "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
+-"MaxVolBytes,PoolType,LabelType,LabelFormat FROM Pool WHERE Pool.PoolId=%s", 
++"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId FROM Pool WHERE Pool.PoolId=%s", 
+          edit_int64(pdbr->PoolId, ed1));
+    } else {                           /* find by name */
+       Mmsg(mdb->cmd,
+ "SELECT PoolId,Name,NumVols,MaxVols,UseOnce,UseCatalog,AcceptAnyVolume,"
+ "AutoPrune,Recycle,VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,"
+-"MaxVolBytes,PoolType,LabelType,LabelFormat FROM Pool WHERE Pool.Name='%s'", 
++"MaxVolBytes,PoolType,LabelType,LabelFormat,RecyclePoolId FROM Pool WHERE Pool.Name='%s'", 
+          pdbr->Name);
+    }
+ 
+@@ -613,6 +613,7 @@
+             bstrncpy(pdbr->PoolType, row[14]!=NULL?row[14]:"", sizeof(pdbr->PoolType));
+             pdbr->LabelType = str_to_int64(row[15]);
+             bstrncpy(pdbr->LabelFormat, row[16]!=NULL?row[16]:"", sizeof(pdbr->LabelFormat));
++	    pdbr->RecyclePoolId = str_to_int64(row[17]);
+             ok = true;
+          }
+       }
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/cats/sql_update.c bacula.org/src/cats/sql_update.c
+--- bacula/src/cats/sql_update.c	2007-02-18 12:01:05.000000000 +0100
++++ bacula.org/src/cats/sql_update.c	2007-02-18 11:11:54.000000000 +0100
+@@ -255,7 +255,7 @@
+ db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
+ {
+    int stat;
+-   char ed1[50], ed2[50], ed3[50], ed4[50];
++   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
+ 
+    db_lock(mdb);
+    Mmsg(mdb->cmd, "SELECT count(*) from Media WHERE PoolId=%s",
+@@ -267,14 +267,14 @@
+ "UPDATE Pool SET NumVols=%u,MaxVols=%u,UseOnce=%d,UseCatalog=%d,"
+ "AcceptAnyVolume=%d,VolRetention='%s',VolUseDuration='%s',"
+ "MaxVolJobs=%u,MaxVolFiles=%u,MaxVolBytes=%s,Recycle=%d,"
+-"AutoPrune=%d,LabelType=%d,LabelFormat='%s' WHERE PoolId=%s",
++"AutoPrune=%d,LabelType=%d,LabelFormat='%s',RecyclePoolId=%s WHERE PoolId=%s",
+       pr->NumVols, pr->MaxVols, pr->UseOnce, pr->UseCatalog,
+       pr->AcceptAnyVolume, edit_uint64(pr->VolRetention, ed1),
+       edit_uint64(pr->VolUseDuration, ed2),
+       pr->MaxVolJobs, pr->MaxVolFiles,
+       edit_uint64(pr->MaxVolBytes, ed3),
+       pr->Recycle, pr->AutoPrune, pr->LabelType,
+-      pr->LabelFormat, 
++      pr->LabelFormat, edit_int64(pr->RecyclePoolId,ed5),
+       ed4);
+ 
+    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/dird/dird_conf.c bacula.org/src/dird/dird_conf.c
+--- bacula/src/dird/dird_conf.c	2007-02-18 12:00:55.000000000 +0100
++++ bacula.org/src/dird/dird_conf.c	2007-02-18 11:51:52.000000000 +0100
+@@ -19,7 +19,7 @@
+  *
+  *     Kern Sibbald, January MM
+  *
+- *     Version $Id: dird_conf.c 4200 2007-02-18 10:51:23Z ricozz $
++ *     Version $Id: dird_conf.c 4104 2007-02-05 14:23:39Z ricozz $
+  */
+ /*
+    Bacula® - The Network Backup Solution
+@@ -856,6 +856,9 @@
+       if (res->res_pool.NextPool) {
+          sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->hdr.name);
+       }
++      if (res->res_pool.RecyclePool) {
++         sendit(sock, _("      RecyclePool=%s\n"), res->res_pool.RecyclePool->hdr.name);
++      }
+       if (res->res_pool.storage) {
+          STORE *store;
+          foreach_alist(store, res->res_pool.storage) {
+@@ -1245,6 +1248,7 @@
+          }
+          /* Explicitly copy resource pointers from this pass (res_all) */
+          res->res_pool.NextPool = res_all.res_pool.NextPool;
++         res->res_pool.RecyclePool = res_all.res_pool.RecyclePool;
+          res->res_pool.storage    = res_all.res_pool.storage;
+          break;
+       case R_CONSOLE:
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/dird/dird_conf.h bacula.org/src/dird/dird_conf.h
+--- bacula/src/dird/dird_conf.h	2007-02-18 12:00:55.000000000 +0100
++++ bacula.org/src/dird/dird_conf.h	2007-02-18 11:01:07.000000000 +0100
+@@ -523,7 +523,7 @@
+    bool  recycle_current_volume;      /* attempt recycle of current volume */
+    bool  AutoPrune;                   /* default for pool auto prune */
+    bool  Recycle;                     /* default for media recycle yes/no */
+-
++   POOL  *RecyclePool;                /* RecyclePool destination when media is purged */
+    /* Methods */
+    char *name() const;
+ };
+diff -Naur --exclude=.svn --exclude='*~' bacula/src/dird/ua_cmds.c bacula.org/src/dird/ua_cmds.c
+--- bacula/src/dird/ua_cmds.c	2007-02-18 12:00:55.000000000 +0100
++++ bacula.org/src/dird/ua_cmds.c	2007-02-18 11:56:10.000000000 +0100
+@@ -194,6 +194,7 @@
+    mr->Recycle = pr->Recycle;
+    mr->VolRetention = pr->VolRetention;
+    mr->VolUseDuration = pr->VolUseDuration;
++   mr->RecyclePoolId = pr->RecyclePoolId;
+    mr->MaxVolJobs = pr->MaxVolJobs;
+    mr->MaxVolFiles = pr->MaxVolFiles;
+    mr->MaxVolBytes = pr->MaxVolBytes;
+@@ -525,6 +526,7 @@
+    } else {
+       bstrncpy(pr->LabelFormat, "*", sizeof(pr->LabelFormat));    /* none */
+    }
++   /* TODO : set RecyclePoolId, Warning if creating Pool and RecyclePool = ThisPool */
+ }
+ 
+ 
