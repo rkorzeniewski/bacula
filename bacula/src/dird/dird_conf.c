@@ -361,6 +361,7 @@ static RES_ITEM pool_items[] = {
    {"storage",       store_alist_res, ITEM(res_pool.storage),  R_STORAGE, 0, 0},
    {"autoprune",       store_bool,    ITEM(res_pool.AutoPrune), 0, ITEM_DEFAULT, true},
    {"recycle",         store_bool,    ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
+   {"recyclepool",     store_res,     ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -853,8 +854,7 @@ next_run:
               edit_uint64(res->res_pool.MigrationHighBytes, ed2),
               edit_uint64(res->res_pool.MigrationLowBytes, ed3));
       if (res->res_pool.NextPool) {
-         sendit(sock, _("  --> "));
-         dump_resource(-R_POOL, (RES *)res->res_pool.NextPool, sendit, sock);
+         sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->hdr.name);
       }
       if (res->res_pool.storage) {
          STORE *store;
