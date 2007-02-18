@@ -419,7 +419,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       return false;
    }
-   Dmsg2(190, "set append found freshly labeled volume. fd=%d dev=%x\n", dev->fd, dev);
+   Dmsg2(190, "set append found freshly labeled volume. fd=%d dev=%x\n", dev->fd(), dev);
    dev->VolHdr.LabelType = VOL_LABEL; /* set Volume label */
    dev->set_append();
    if (!write_volume_label_to_block(dcr)) {
@@ -471,7 +471,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       }
 
       /* Attempt write to check write permission */
-      Dmsg1(200, "Attempt to write to device fd=%d.\n", dev->fd);
+      Dmsg1(200, "Attempt to write to device fd=%d.\n", dev->fd());
       if (!write_block_to_dev(dcr)) {
          Jmsg2(jcr, M_ERROR, 0, _("Unable to write device %s: ERR=%s\n"),
             dev->print_name(), dev->print_errmsg());

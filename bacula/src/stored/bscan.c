@@ -270,7 +270,7 @@ int main (int argc, char *argv[])
    if (showProgress) {
       char ed1[50];
       struct stat sb;
-      fstat(dev->fd, &sb);
+      fstat(dev->fd(), &sb);
       currentVolumeSize = sb.st_size;
       Pmsg1(000, _("First Volume Size = %sn"), 
          edit_uint64(currentVolumeSize, ed1));
@@ -343,7 +343,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
    if (showProgress) {
       char ed1[50];
       struct stat sb;
-      fstat(dev->fd, &sb);
+      fstat(dev->fd(), &sb);
       currentVolumeSize = sb.st_size;
       Pmsg1(000, _("First Volume Size = %sn"), 
          edit_uint64(currentVolumeSize, ed1));

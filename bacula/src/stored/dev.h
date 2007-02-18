@@ -202,6 +202,8 @@ class DCR; /* forward reference */
  *  that device and effects all jobs using the device.
  */
 class DEVICE {
+private:
+   int m_fd;                          /* file descriptor */
 public:
    dlist *attached_dcrs;              /* attached DCR list */
    pthread_mutex_t mutex;             /* access control */
@@ -218,7 +220,6 @@ public:
    /* New access control in process of being implemented */
    brwlock_t lock;                    /* New mutual exclusion lock */
 
-   int fd;                            /* file descriptor */
    int capabilities;                  /* capabilities mask */
    int state;                         /* state mask */
    int dev_errno;                     /* Our own errno */
@@ -289,7 +290,7 @@ public:
    uint64_t DevReadBytes;
 
    /* Methods */
-   btime_t get_timer_count();	      /* return the last timer interval (ms) */
+   btime_t get_timer_count();         /* return the last timer interval (ms) */
 
    int has_cap(int cap) const { return capabilities & cap; }
    void clear_cap(int cap) { capabilities &= ~cap; }
@@ -302,7 +303,7 @@ public:
    int is_fifo() const { return dev_type == B_FIFO_DEV; }
    int is_dvd() const  { return dev_type == B_DVD_DEV; }
    int is_prog() const  { return dev_type == B_PROG_DEV; }
-   int is_open() const { return fd >= 0; }
+   int is_open() const { return m_fd >= 0; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
    int is_mounted() const { return state & ST_MOUNTED; }
@@ -358,7 +359,7 @@ public:
    void clear_offline() { state &= ~ST_OFFLINE; };
    void clear_eot() { state &= ~ST_EOT; };
    void clear_eof() { state &= ~ST_EOF; };
-   void clear_opened() { fd = -1; };
+   void clear_opened() { m_fd = -1; };
    void clear_mounted() { state &= ~ST_MOUNTED; };
    void clear_media() { state &= ~ST_MEDIA; };
    void clear_short_block() { state &= ~ST_SHORT; };
@@ -373,8 +374,8 @@ public:
    bool truncate(DCR *dcr);      /* in dev.c */
    int open(DCR *dcr, int mode); /* in dev.c */
    void term(void);              /* in dev.c */
-   ssize_t read(void *buf, size_t len);	/* in dev.c */
-   ssize_t write(const void *buf, size_t len);	/* in dev.c */
+   ssize_t read(void *buf, size_t len); /* in dev.c */
+   ssize_t write(const void *buf, size_t len);  /* in dev.c */
    bool rewind(DCR *dcr);        /* in dev.c */
    bool mount(int timeout);      /* in dev.c */
    bool unmount(int timeout);    /* in dev.c */
@@ -402,6 +403,7 @@ public:
    uint32_t get_block() const { return block_num; };
    const char *print_blocked() const; /* in dev.c */
    bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
+   int fd() const { return m_fd; };
 
 private:
    bool do_mount(int mount, int timeout);      /* in dev.c */

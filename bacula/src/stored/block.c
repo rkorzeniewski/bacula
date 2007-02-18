@@ -574,7 +574,7 @@ bool write_block_to_dev(DCR *dcr)
             dev->file, dev->block_num, dev->print_name(), wlen, stat);
       }
       Dmsg7(100, "=== Write error. fd=%d size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n",
-         dev->fd, wlen, stat, dev->block_num, block->BlockNumber, 
+         dev->fd(), wlen, stat, dev->block_num, block->BlockNumber, 
          dev->dev_errno, strerror(dev->dev_errno));
 
       ok = terminate_writing_volume(dcr);
@@ -941,7 +941,7 @@ reread:
    if (dev->at_eof() && dev->is_dvd()) {
       Dmsg1(100, "file_size=%u\n",(unsigned int)dev->file_size);
       Dmsg1(100, "file_addr=%u\n",(unsigned int)dev->file_addr);
-      Dmsg1(100, "lseek=%u\n",(unsigned int)lseek(dev->fd, 0, SEEK_CUR));
+      Dmsg1(100, "lseek=%u\n",(unsigned int)lseek(dev->fd(), 0, SEEK_CUR));
       Dmsg1(100, "part_start=%u\n",(unsigned int)dev->part_start);
       Dmsg1(100, "part_size=%u\n", (unsigned int)dev->part_size);
       Dmsg2(100, "part=%u num_dvd_parts=%u\n", dev->part, dev->num_dvd_parts);
@@ -984,7 +984,7 @@ reread:
       Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
       block->read_len = 0;
       Mmsg5(dev->errmsg, _("Read error on fd=%d at file:blk %u:%u on device %s. ERR=%s.\n"),
-         dev->fd, dev->file, dev->block_num, dev->print_name(), be.strerror());
+         dev->fd(), dev->file, dev->block_num, dev->print_name(), be.strerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->at_eof()) {        /* EOF just seen? */
          dev->set_eot();          /* yes, error => EOT */

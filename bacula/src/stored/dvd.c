@@ -318,7 +318,7 @@ int dvd_open_next_part(DCR *dcr)
    if (dev->can_append() && (dev->part > dev->num_dvd_parts) && 
        (dev->part_size == 0)) {
       Dmsg0(29, "open_next_part exited immediately (dev->part_size == 0).\n");
-      return dev->fd;
+      return dev->fd();
    }
 
    dev->close_part(dcr);               /* close current part */
@@ -392,7 +392,7 @@ int dvd_open_next_part(DCR *dcr)
    } 
    dev->set_labeled();                   /* all next parts are "labeled" */
    
-   return dev->fd;
+   return dev->fd();
 }
 
 /*
@@ -435,7 +435,7 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
    boffset_t pos;
    char ed1[50], ed2[50];
    
-   Dmsg5(400, "Enter lseek_dvd fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd,
+   Dmsg5(400, "Enter lseek_dvd fd=%d off=%s w=%d part=%d nparts=%d\n", dev->fd(),
       edit_int64(offset, ed1), whence, dev->part, dev->num_dvd_parts);
 
    switch(whence) {
@@ -447,9 +447,9 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
              (uint64_t)offset < dev->part_start+dev->part_size) {
             /* We are staying in the current part, just seek */
 #if defined(HAVE_WIN32)
-            pos = _lseeki64(dev->fd, offset-dev->part_start, SEEK_SET);
+            pos = _lseeki64(dev->fd(), offset-dev->part_start, SEEK_SET);
 #else
-            pos = lseek(dev->fd, offset-dev->part_start, SEEK_SET);
+            pos = lseek(dev->fd(), offset-dev->part_start, SEEK_SET);
 #endif
             if (pos < 0) {
                return pos;
@@ -486,7 +486,7 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
       break;
    case SEEK_CUR:
       Dmsg1(400, "lseek_dvd SEEK_CUR to %s\n", edit_int64(offset, ed1));
-      if ((pos = lseek(dev->fd, (off_t)0, SEEK_CUR)) < 0) {
+      if ((pos = lseek(dev->fd(), (off_t)0, SEEK_CUR)) < 0) {
          Dmsg0(400, "Seek error.\n");
          return pos;                  
       }
@@ -518,7 +518,7 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
        *  right part number, simply seek
        */
       if (dev->is_part_spooled() && dev->part > dev->num_dvd_parts) {
-         if ((pos = lseek(dev->fd, (off_t)0, SEEK_END)) < 0) {
+         if ((pos = lseek(dev->fd(), (off_t)0, SEEK_END)) < 0) {
             return pos;   
          } else {
             Dmsg1(400, "lseek_dvd SEEK_END returns %s\n", 

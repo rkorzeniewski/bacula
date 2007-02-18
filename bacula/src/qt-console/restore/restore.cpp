@@ -40,14 +40,14 @@
 
 restoreDialog::restoreDialog(Console *parent)
 {
-   (void)parent;
+   (void)parent;                      /* keep compiler quiet */
    setupUi(this);
    this->show();
 }
 
 prerestoreDialog::prerestoreDialog(Console *parent)
 {
-   (void)parent;
+   (void)parent;                      /* keep compiler quiet */
    setupUi(this);
    this->show();
 }

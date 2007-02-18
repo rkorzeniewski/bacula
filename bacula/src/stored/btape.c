@@ -1594,7 +1594,7 @@ static void rrcmd()
       len = 1024;
    }
    buf = (char *)malloc(len);
-   stat = read(dev->fd, buf, len);
+   stat = read(dev->fd(), buf, len);
    if (stat > 0 && stat <= len) {
       errno = 0;
    }
@@ -1629,7 +1629,7 @@ static void scancmd()
    tot_files = dev->file;
    Pmsg1(0, _("Starting scan at file %u\n"), dev->file);
    for (;;) {
-      if ((stat = read(dev->fd, buf, sizeof(buf))) < 0) {
+      if ((stat = read(dev->fd(), buf, sizeof(buf))) < 0) {
          berrno be;
          dev->clrerror(-1);
          Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
@@ -2495,9 +2495,9 @@ static void rawfill_cmd()
    for ( ;; ) {
       *p = block_num;
       if (dev->is_tape()) {
-         stat = tape_write(dev->fd, block->buf, block->buf_len);
+         stat = tape_write(dev->fd(), block->buf, block->buf_len);
       } else {
-         stat = write(dev->fd, block->buf, block->buf_len);
+         stat = write(dev->fd(), block->buf, block->buf_len);
       }
       if (stat == (int)block->buf_len) {
          if ((block_num++ % 100) == 0) {
