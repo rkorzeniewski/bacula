@@ -361,7 +361,7 @@ static RES_ITEM pool_items[] = {
    {"storage",       store_alist_res, ITEM(res_pool.storage),  R_STORAGE, 0, 0},
    {"autoprune",       store_bool,    ITEM(res_pool.AutoPrune), 0, ITEM_DEFAULT, true},
    {"recycle",         store_bool,    ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
-   {"recyclepool",     store_res,     ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
+// {"recyclepool",     store_res,     ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
