@@ -62,7 +62,7 @@ Console::Console(QStackedWidget *parent)
    m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    UnlockRes();
 
-   /* Dummy setup of treeWidget */
+   /* ***FIXME*** Dummy setup of treeWidget */
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Selection");
@@ -182,20 +182,84 @@ QStringList Console::get_list(char *cmd)
  * Send a job name to the director, and read all the resulting
  *  defaults. 
  */
-bool Console::get_job_defaults(char *job_name, struct job_defaults &job_defs)
+bool Console::get_job_defaults(struct job_defaults &job_defs)
 {
    char cmd[1000];
    int stat;
+   char *def;
 
    setEnabled(false);
-   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_name);
+   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_defs.job_name);
    write(cmd);
    while ((stat = read()) > 0) {
-      strip_trailing_junk(msg());
-      set_text(msg());
+      def = strchr(msg(), '=');
+      if (!def) {
+         continue;
+      }
+      /* Pointer to default value */
+      *def++ = 0;
+      strip_trailing_junk(def);
+
+      if (strcmp(msg(), "job") == 0) {
+         if (strcmp(def, job_defs.job_name) != 0) {
+            goto bail_out;
+         }
+         continue;
+      }
+      if (strcmp(msg(), "pool") == 0) {
+         bstrncpy(job_defs.pool_name, def, sizeof(job_defs.pool_name));
+         continue;
+      }
+      if (strcmp(msg(), "messages") == 0) {
+         bstrncpy(job_defs.messages_name, def, sizeof(job_defs.messages_name));
+         continue;
+      }
+      if (strcmp(msg(), "client") == 0) {
+         bstrncpy(job_defs.client_name, def, sizeof(job_defs.client_name));
+         continue;
+      }
+      if (strcmp(msg(), "storage") == 0) {
+         bstrncpy(job_defs.store_name, def, sizeof(job_defs.store_name));
+         continue;
+      }
+      if (strcmp(msg(), "where") == 0) {
+         bstrncpy(job_defs.where, def, sizeof(job_defs.where));
+         continue;
+      }
+      if (strcmp(msg(), "level") == 0) {
+         bstrncpy(job_defs.level, def, sizeof(job_defs.level));
+         continue;
+      }
+      if (strcmp(msg(), "type") == 0) {
+         bstrncpy(job_defs.type, def, sizeof(job_defs.type));
+         continue;
+      }
+      if (strcmp(msg(), "fileset") == 0) {
+         bstrncpy(job_defs.fileset_name, def, sizeof(job_defs.fileset_name));
+         continue;
+      }
+      if (strcmp(msg(), "catalog") == 0) {
+         bstrncpy(job_defs.catalog_name, def, sizeof(job_defs.catalog_name));
+         continue;
+      }
+      if (strcmp(msg(), "enabled") == 0) {
+         job_defs.enabled = *def == '1' ? true : false;
+         continue;
+      }
    }
+   bsnprintf(cmd, sizeof(cmd), "job=%s pool=%s client=%s storage=%s where=%s\n"
+      "level=%s type=%s fileset=%s catalog=%s enabled=%d\n",
+      job_defs.job_name, job_defs.pool_name, job_defs.client_name, 
+      job_defs.pool_name, job_defs.messages_name, job_defs.store_name,
+      job_defs.where, job_defs.level, job_defs.type, job_defs.fileset_name,
+      job_defs.catalog_name, job_defs.enabled);
+
    setEnabled(true);
    return true;
+
+bail_out:
+   setEnabled(true);
+   return false;
 }
 
 
