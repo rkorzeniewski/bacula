@@ -1,6 +1,14 @@
               Technical notes on version 2.1
 
 General:
+18Feb07
+kes  Make DEVICE fd private. Its new name is m_fd, and can be
+     obtained with dev->fd() outside the class.  This is the
+     first of many DEVICE members to be made private.
+kes  Implement Michael Renner's idea on having a virtual disk
+     changer. I made some minor modifications (e.g. I did not
+     implement the Virtual Changer directive, but simply set
+     the Changer Command to an empty string.
 17Feb07
 kes  Implement a BSOCK send() method that writes the whole record
      in a single write() request rather than in two.
