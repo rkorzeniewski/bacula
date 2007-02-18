@@ -35,6 +35,7 @@
 
 #include "bat.h"
 #include "label.h"
+#include <QMessageBox>
 
 labelDialog::labelDialog(Console *console)
 {
@@ -46,29 +47,18 @@ labelDialog::labelDialog(Console *console)
 
 void labelDialog::accept()
 {
-   printf("Storage=%s\n"
-          "Pool=%s\n", 
-           storageCombo->currentText().toUtf8().data(),
-           poolCombo->currentText().toUtf8().data());
-   this->hide();
-   delete this;
-
-#ifdef xxx
-   volume  = get_entry_text(label_dialog, "label_entry_volume");
-
-   slot    = get_spin_text(label_dialog, "label_slot");
-
-   if (!pool || !storage || !volume || !(*volume)) {
-      set_status_ready();
+   QString scmd;
+   if (volumeName->text().toUtf8().data()[0] == 0) {
+      QMessageBox::warning(this, "No Volume name", "No Volume name given",
+                           QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
-
-   bsnprintf(cmd, sizeof(cmd),
-             "label volume=\"%s\" pool=\"%s\" storage=\"%s\" slot=%s\n", 
-             volume, pool, storage, slot);
-   write_director(cmd);
-   set_text(cmd, strlen(cmd));
-#endif
+   this->hide();
+   scmd = QString("label volume=\"%1\" pool=\"%2\" storage=\"%3\" slot=%4\n")
+         .arg(volumeName->text()).arg(storageCombo->currentText()) 
+         .arg(poolCombo->currentText()).arg(slotSpin->value());
+   printf(scmd.toUtf8().data());
+   delete this;
 }
 
 void labelDialog::reject()
