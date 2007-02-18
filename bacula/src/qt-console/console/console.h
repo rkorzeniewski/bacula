@@ -48,6 +48,7 @@ struct job_defaults {
    char messages_name[MAX_NAME_LENGTH];
    char client_name[MAX_NAME_LENGTH];
    char store_name[MAX_NAME_LENGTH];
+   char where[MAX_NAME_LENGTH];
    char level[MAX_NAME_LENGTH];
    char type[MAX_NAME_LENGTH];
    char fileset_name[MAX_NAME_LENGTH];
@@ -79,7 +80,7 @@ public:
    char *msg();
    void setEnabled(bool enable) { m_notifier->setEnabled(enable); };
    QStringList get_list(char *cmd);
-   bool get_job_defaults(char *job_name, struct job_defaults &);
+   bool get_job_defaults(struct job_defaults &);
 
    QStringList job_list;
    QStringList client_list;

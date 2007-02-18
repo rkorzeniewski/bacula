@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,9 +27,9 @@
 */
  
 /*
- *   Version $Id: $
+ *   Version $Id: restore.cpp 0 2007-02-12 10:39:38Z kerns $
  *
- *  Restore Class  (Eric's brestore)
+ *  Restore Class 
  *
  *   Kern Sibbald, February MMVI
  *
@@ -40,12 +40,14 @@
 
 restoreDialog::restoreDialog(Console *parent)
 {
+   (void)parent;
    setupUi(this);
    this->show();
 }
 
 prerestoreDialog::prerestoreDialog(Console *parent)
 {
+   (void)parent;
    setupUi(this);
    this->show();
 }
