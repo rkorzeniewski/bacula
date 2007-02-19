@@ -2,6 +2,9 @@
 
 General:
 19Feb07
+kes  Restore of sockets created false error messages because Bacula
+     no longer restores sockets, but the code was still trying to
+     set the attributes on a non-existent file. Reported by a user.
 ebl  finish RecyclePool feature
      Media will takes Pool.RecyclePool
      when moving from Scratch to a Pool or when user will do
