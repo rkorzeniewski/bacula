@@ -545,7 +545,7 @@ bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
         pr->RecyclePoolId = rpool.PoolId;
       } else {
         Jmsg(jcr, M_WARNING, 0,
-             _("Can't set %s RecyclePool to %s, %s is not in database, try to upda
+        _("Can't set %s RecyclePool to %s, %s is not in database, try to update it with 'update pool=%s'\n"),pool->name(),rpool.Name, rpool.Name,pool->name());
 
         ret = false;
       }
