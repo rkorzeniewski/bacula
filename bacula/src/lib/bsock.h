@@ -73,6 +73,7 @@ public:
    /* methods -- in bsock.c */
    bool send();
    bool fsend(const char*, ...);
+   bool signal(int signal);
 
 };
 
@@ -89,7 +90,11 @@ enum {
    BNET_BTIME          = -9,          /* Send UTC btime */
    BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
    BNET_START_SELECT   = -11,         /* Start of a selection list */
-   BNET_END_SELECT     = -12          /* End of a select list */
+   BNET_END_SELECT     = -12,         /* End of a select list */
+   BNET_INVALID_CMD    = -13,         /* Invalid command sent */
+   BNET_CMD_FAILED     = -14,         /* Command failed */
+   BNET_CMD_OK         = -15,         /* Command succeeded */
+   BNET_CMD_BEGIN      = -16          /* Start command execution */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
@@ -106,9 +111,11 @@ enum {
  * TLS enabling values. Value is important for comparison, ie:
  * if (tls_remote_need < BNET_TLS_REQUIRED) { ... }
  */
-#define BNET_TLS_NONE     0           /* cannot do TLS */
-#define BNET_TLS_OK       1           /* can do, but not required on my end */
-#define BNET_TLS_REQUIRED 2           /* TLS is required */
+enum {
+   BNET_TLS_NONE        = 0,          /* cannot do TLS */
+   BNET_TLS_OK          = 1,          /* can do, but not required on my end */
+   BNET_TLS_REQUIRED    = 2           /* TLS is required */
+};
 
 int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);
 int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);

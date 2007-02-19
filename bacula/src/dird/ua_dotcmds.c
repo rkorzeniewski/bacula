@@ -1,19 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Commands
- *     These are "dot" commands, i.e. commands preceded
- *        by a period. These commands are meant to be used
- *        by a program, so there is no prompting, and the
- *        returned results are (supposed to be) predictable.
- *
- *     Kern Sibbald, April MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -37,6 +25,18 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- User Agent Commands
+ *     These are "dot" commands, i.e. commands preceded
+ *        by a period. These commands are meant to be used
+ *        by a program, so there is no prompting, and the
+ *        returned results are (supposed to be) predictable.
+ *
+ *     Kern Sibbald, April MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -50,40 +50,46 @@ extern struct s_res resources[];
 extern void do_messages(UAContext *ua, const char *cmd);
 extern int quit_cmd(UAContext *ua, const char *cmd);
 extern int qhelp_cmd(UAContext *ua, const char *cmd);
-extern int qstatus_cmd(UAContext *ua, const char *cmd);
+extern bool dot_status_cmd(UAContext *ua, const char *cmd);
+
 
 /* Forward referenced functions */
-static int diecmd(UAContext *ua, const char *cmd);
-static int jobscmd(UAContext *ua, const char *cmd);
-static int filesetscmd(UAContext *ua, const char *cmd);
-static int clientscmd(UAContext *ua, const char *cmd);
-static int msgscmd(UAContext *ua, const char *cmd);
-static int poolscmd(UAContext *ua, const char *cmd);
-static int storagecmd(UAContext *ua, const char *cmd);
-static int defaultscmd(UAContext *ua, const char *cmd);
-static int typescmd(UAContext *ua, const char *cmd);
-static int backupscmd(UAContext *ua, const char *cmd);
-static int levelscmd(UAContext *ua, const char *cmd);
-static int getmsgscmd(UAContext *ua, const char *cmd);
+static bool diecmd(UAContext *ua, const char *cmd);
+static bool jobscmd(UAContext *ua, const char *cmd);
+static bool filesetscmd(UAContext *ua, const char *cmd);
+static bool clientscmd(UAContext *ua, const char *cmd);
+static bool msgscmd(UAContext *ua, const char *cmd);
+static bool poolscmd(UAContext *ua, const char *cmd);
+static bool storagecmd(UAContext *ua, const char *cmd);
+static bool defaultscmd(UAContext *ua, const char *cmd);
+static bool typescmd(UAContext *ua, const char *cmd);
+static bool backupscmd(UAContext *ua, const char *cmd);
+static bool levelscmd(UAContext *ua, const char *cmd);
+static bool getmsgscmd(UAContext *ua, const char *cmd);
 
-struct cmdstruct { const char *key; int (*func)(UAContext *ua, const char *cmd); const char *help; };
+static bool api_cmd(UAContext *ua, const char *cmd);
+static bool dot_quit_cmd(UAContext *ua, const char *cmd);
+static bool dot_help_cmd(UAContext *ua, const char *cmd);
+
+struct cmdstruct { const char *key; bool (*func)(UAContext *ua, const char *cmd); const char *help; };
 static struct cmdstruct commands[] = {
- { NT_(".backups"),    backupscmd,   NULL},
- { NT_(".clients"),    clientscmd,   NULL},
- { NT_(".defaults"),   defaultscmd,  NULL},
- { NT_(".die"),        diecmd,       NULL},
- { NT_(".exit"),       quit_cmd,     NULL},
- { NT_(".filesets"),   filesetscmd,  NULL},
- { NT_(".help"),       qhelp_cmd,    NULL},
- { NT_(".jobs"),       jobscmd,      NULL},
- { NT_(".levels"),     levelscmd,    NULL},
- { NT_(".messages"),   getmsgscmd,   NULL},
- { NT_(".msgs"),       msgscmd,      NULL},
- { NT_(".pools"),      poolscmd,     NULL},
- { NT_(".quit"),       quit_cmd,     NULL},
- { NT_(".status"),     qstatus_cmd,  NULL},
- { NT_(".storage"),    storagecmd,   NULL},
- { NT_(".types"),      typescmd,     NULL} 
+ { NT_(".api"),        api_cmd,        NULL},
+ { NT_(".backups"),    backupscmd,     NULL},
+ { NT_(".clients"),    clientscmd,     NULL},
+ { NT_(".defaults"),   defaultscmd,    NULL},
+ { NT_(".die"),        diecmd,         NULL},
+ { NT_(".exit"),       dot_quit_cmd,   NULL},
+ { NT_(".filesets"),   filesetscmd,    NULL},
+ { NT_(".help"),       dot_help_cmd,   NULL},
+ { NT_(".jobs"),       jobscmd,        NULL},
+ { NT_(".levels"),     levelscmd,      NULL},
+ { NT_(".messages"),   getmsgscmd,     NULL},
+ { NT_(".msgs"),       msgscmd,        NULL},
+ { NT_(".pools"),      poolscmd,       NULL},
+ { NT_(".quit"),       dot_quit_cmd,   NULL},
+ { NT_(".status"),     dot_status_cmd, NULL},
+ { NT_(".storage"),    storagecmd,     NULL},
+ { NT_(".types"),      typescmd,       NULL} 
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -93,10 +99,10 @@ static struct cmdstruct commands[] = {
 int do_a_dot_command(UAContext *ua, const char *cmd)
 {
    int i;
-   int len, stat;
+   int len;
+   bool ok = false;
    bool found = false;
-
-   stat = 1;
+   BSOCK *sock = ua->UA_sock;
 
    Dmsg1(1400, "Dot command: %s\n", ua->UA_sock->msg);
    if (ua->argc == 0) {
@@ -111,21 +117,38 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
          bool gui = ua->gui;
          ua->gui = true;
-         stat = (*commands[i].func)(ua, cmd);   /* go execute command */
+         if (ua->api) {
+            sock->signal(BNET_CMD_BEGIN);
+         }
+         ok = (*commands[i].func)(ua, cmd);   /* go execute command */
          ua->gui = gui;
          found = true;
          break;
       }
    }
    if (!found) {
-      pm_strcat(ua->UA_sock->msg, _(": is an invalid command\n"));
-      ua->UA_sock->msglen = strlen(ua->UA_sock->msg);
-      bnet_send(ua->UA_sock);
+      pm_strcat(sock->msg, _(": is an invalid command\n"));
+      sock->msglen = strlen(sock->msg);
+      sock->send();
+      sock->signal(BNET_INVALID_CMD);
    }
-   return stat;
+   sock->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
+   return 1;
 }
 
-static int getmsgscmd(UAContext *ua, const char *cmd)
+static bool dot_quit_cmd(UAContext *ua, const char *cmd)
+{
+   quit_cmd(ua, cmd);
+   return true;
+}
+
+static bool dot_help_cmd(UAContext *ua, const char *cmd)
+{
+   qhelp_cmd(ua, cmd);
+   return true;
+}
+
+static bool getmsgscmd(UAContext *ua, const char *cmd)
 {
    if (console_msg_pending) {
       do_messages(ua, cmd);
@@ -136,7 +159,7 @@ static int getmsgscmd(UAContext *ua, const char *cmd)
 /*
  * Create segmentation fault
  */
-static int diecmd(UAContext *ua, const char *cmd)
+static bool diecmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr = NULL;
    int a;
@@ -144,10 +167,10 @@ static int diecmd(UAContext *ua, const char *cmd)
    bsendmsg(ua, _("The Director will segment fault.\n"));
    a = jcr->JobId; /* ref NULL pointer */
    jcr->JobId = 1000; /* another ref NULL pointer */
-   return 0;
+   return true;
 }
 
-static int jobscmd(UAContext *ua, const char *cmd)
+static bool jobscmd(UAContext *ua, const char *cmd)
 {
    JOB *job = NULL;
    LockRes();
@@ -157,10 +180,10 @@ static int jobscmd(UAContext *ua, const char *cmd)
       }
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
-static int filesetscmd(UAContext *ua, const char *cmd)
+static bool filesetscmd(UAContext *ua, const char *cmd)
 {
    FILESET *fs = NULL;
    LockRes();
@@ -170,10 +193,10 @@ static int filesetscmd(UAContext *ua, const char *cmd)
       }
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
-static int clientscmd(UAContext *ua, const char *cmd)
+static bool clientscmd(UAContext *ua, const char *cmd)
 {
    CLIENT *client = NULL;
    LockRes();
@@ -183,10 +206,10 @@ static int clientscmd(UAContext *ua, const char *cmd)
       }
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
-static int msgscmd(UAContext *ua, const char *cmd)
+static bool msgscmd(UAContext *ua, const char *cmd)
 {
    MSGS *msgs = NULL;
    LockRes();
@@ -194,10 +217,10 @@ static int msgscmd(UAContext *ua, const char *cmd)
       bsendmsg(ua, "%s\n", msgs->name());
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
-static int poolscmd(UAContext *ua, const char *cmd)
+static bool poolscmd(UAContext *ua, const char *cmd)
 {
    POOL *pool = NULL;
    LockRes();
@@ -207,10 +230,10 @@ static int poolscmd(UAContext *ua, const char *cmd)
       }
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
-static int storagecmd(UAContext *ua, const char *cmd)
+static bool storagecmd(UAContext *ua, const char *cmd)
 {
    STORE *store = NULL;
    LockRes();
@@ -220,18 +243,18 @@ static int storagecmd(UAContext *ua, const char *cmd)
       }
    }
    UnlockRes();
-   return 1;
+   return true;
 }
 
 
-static int typescmd(UAContext *ua, const char *cmd)
+static bool typescmd(UAContext *ua, const char *cmd)
 {
    bsendmsg(ua, "Backup\n");
    bsendmsg(ua, "Restore\n");
    bsendmsg(ua, "Admin\n");
    bsendmsg(ua, "Verify\n");
    bsendmsg(ua, "Migrate\n");
-   return 1;
+   return true;
 }
 
 static int client_backups_handler(void *ctx, int num_field, char **row)
@@ -242,28 +265,49 @@ static int client_backups_handler(void *ctx, int num_field, char **row)
    return 0;
 }
 
-static int backupscmd(UAContext *ua, const char *cmd)
+/*
+ * If this command is called, it tells the director that we
+ *  are a program that wants a sort of API, and hence,
+ *  we will probably suppress certain output, include more
+ *  error codes, and most of all send back a good number
+ *  of new signals that indicate whether or not the command
+ *  succeeded.
+ */
+static bool api_cmd(UAContext *ua, const char *cmd)
+{
+   /* Eventually we will probably have several levels or
+    *  capabilities enabled by this.
+    */
+   ua->api = 1;
+   return true;
+}
+
+/*
+ * Return the backups for this client 
+ */
+static bool backupscmd(UAContext *ua, const char *cmd)
 {
    if (!open_client_db(ua)) {
-      return 1;
+      return true;
    }
    if (ua->argc != 3 || strcmp(ua->argk[1], "client") != 0 || strcmp(ua->argk[2], "fileset") != 0) {
-      return 1;
+      return true;
    }
    if (!acl_access_ok(ua, Client_ACL, ua->argv[1]) ||
        !acl_access_ok(ua, FileSet_ACL, ua->argv[2])) {
-      return 1;
+      return true;
    }
    Mmsg(ua->cmd, client_backups, ua->argv[1], ua->argv[2]);
    if (!db_sql_query(ua->db, ua->cmd, client_backups_handler, (void *)ua)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
-      return 1;
+      return true;
    }
-   return 1;
+   return true;
 }
 
 
-static int levelscmd(UAContext *ua, const char *cmd)
+
+static bool levelscmd(UAContext *ua, const char *cmd)
 {
    bsendmsg(ua, "Incremental\n");
    bsendmsg(ua, "Full\n");
@@ -271,13 +315,13 @@ static int levelscmd(UAContext *ua, const char *cmd)
    bsendmsg(ua, "Catalog\n");
    bsendmsg(ua, "InitCatalog\n");
    bsendmsg(ua, "VolumeToCatalog\n");
-   return 1;
+   return true;
 }
 
 /*
  * Return default values for a job
  */
-static int defaultscmd(UAContext *ua, const char *cmd)
+static bool defaultscmd(UAContext *ua, const char *cmd)
 {
    JOB *job;
    CLIENT *client;
@@ -285,13 +329,13 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    POOL *pool;
 
    if (ua->argc != 2 || !ua->argv[1]) {
-      return 1;
+      return true;
    }
 
    /* Job defaults */   
    if (strcmp(ua->argk[1], "job") == 0) {
       if (!acl_access_ok(ua, Job_ACL, ua->argv[1])) {
-         return 1;
+         return true;
       }
       job = (JOB *)GetResWithName(R_JOB, ua->argv[1]);
       if (job) {
@@ -313,7 +357,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    /* Client defaults */
    else if (strcmp(ua->argk[1], "client") == 0) {
       if (!acl_access_ok(ua, Client_ACL, ua->argv[1])) {
-         return 1;   
+         return true;   
       }
       client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[1]);
       if (client) {
@@ -329,7 +373,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    /* Storage defaults */
    else if (strcmp(ua->argk[1], "storage") == 0) {
       if (!acl_access_ok(ua, Storage_ACL, ua->argv[1])) {
-         return 1;
+         return true;
       }
       storage = (STORE *)GetResWithName(R_STORAGE, ua->argv[1]);
       DEVICE *device;
@@ -351,7 +395,7 @@ static int defaultscmd(UAContext *ua, const char *cmd)
    /* Pool defaults */
    else if (strcmp(ua->argk[1], "pool") == 0) {
       if (!acl_access_ok(ua, Pool_ACL, ua->argv[1])) {
-         return 1;
+         return true;
       }
       pool = (POOL *)GetResWithName(R_POOL, ua->argv[1]);
       if (pool) {
@@ -372,5 +416,5 @@ static int defaultscmd(UAContext *ua, const char *cmd)
          bsendmsg(ua, "recycle=%d", pool->Recycle);
       }
    }
-   return 1;
+   return true;
 }

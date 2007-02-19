@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Commands
- *
- *     Kern Sibbald, September MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,7 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
+/*
+ *
+ *   Bacula Director -- User Agent Commands
+ *
+ *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
+ */
+ 
 #include "bacula.h"
 #include "dird.h"
 
@@ -494,11 +494,11 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
  *   Pool DB base record from a Pool Resource. We handle
  *   the setting of MaxVols and NumVols slightly differently
  *   depending on if we are creating the Pool or we are
- *   simply bringing it into agreement with the resource (update).
+ *   simply bringing it into agreement with the resource (updage).
  *
  * Caution : RecyclePoolId isn't setup in this function.
  *           You can use set_pooldbr_recyclepoolid();
- * 
+ *
  */
 void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 {
@@ -542,18 +542,19 @@ bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
 
       bstrncpy(rpool.Name, pool->RecyclePool->name(), sizeof(rpool.Name));
       if (db_get_pool_record(jcr, db, &rpool)) {
-	 pr->RecyclePoolId = rpool.PoolId;
+        pr->RecyclePoolId = rpool.PoolId;
       } else {
-	 Jmsg(jcr, M_WARNING, 0, 
-	      _("Can't set %s RecyclePool to %s, %s is not in database, try to update it with 'update pool=%s'\n"),pool->name(),rpool.Name, rpool.Name,pool->name());
-	 
-	 ret = false;
+        Jmsg(jcr, M_WARNING, 0,
+             _("Can't set %s RecyclePool to %s, %s is not in database, try to upda
+
+        ret = false;
       }
-   } else {			/* no RecyclePool used, set it to 0 */
+   } else {                    /* no RecyclePool used, set it to 0 */
       pr->RecyclePoolId = 0;
    }
    return ret;
 }
+
 
 /*
  * Create a pool record from a given Pool resource
@@ -1469,7 +1470,7 @@ static int use_cmd(UAContext *ua, const char *cmd)
 
 int quit_cmd(UAContext *ua, const char *cmd)
 {
-   ua->quit = TRUE;
+   ua->quit = true;
    return 1;
 }
 
