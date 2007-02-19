@@ -14,6 +14,10 @@ tests/compressed-test
 tests/compress-encrypt-test
 tests/concurrent-jobs-test
 tests/data-encrypt-test
+tests/encrypt-bug-test
+# The following two can uses *lots* of disk space
+#   so they are normally turned off, but if you have
+#   at least two GB free, you can run them
 #tests/sparse-encrypt-test
 #tests/gigaslam-sparse-test
 tests/differential-test

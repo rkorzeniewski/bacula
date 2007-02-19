@@ -6,11 +6,12 @@
 TestName="encrypt-bug-test"
 JobName=Crypto-bug
 . scripts/functions
-set_debug 1
+set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs
-echo "${cwd}/untitled15.jpg" >/tmp/file-list
+file="${cwd}/encrypt-bug.jpg"
+echo "${file}" >/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
@@ -20,7 +21,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
-@#setdebug level=10 fd
+setdebug level=100 fd
 run job=$JobName yes
 wait
 messages
@@ -28,7 +29,7 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-@#setdebug level=10 fd
+setdebug level=100 fd
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 mark *
@@ -50,5 +51,6 @@ du -s tmp/bacula-restores/
 
 
 check_two_logs
-check_restore_diff
+diff ${file} ${cwd}/tmp/bacula-restores/${file} 2>&1 >/dev/null
+dstat=$?
 end_test
