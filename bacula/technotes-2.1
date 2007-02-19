@@ -1,6 +1,18 @@
               Technical notes on version 2.1
 
 General:
+19Feb07
+ebl  finish RecyclePool feature
+     Media will takes Pool.RecyclePool
+     when moving from Scratch to a Pool or when user will do
+     update volume=xxx frompool
+     To use it, add RecyclePool = aPool to your Pool resource
+        Pool {
+                Name = Default
+                RecyclePool = Scratch
+                ...
+        }
+     TODO: update manual
 18Feb07
 kes  Make DEVICE fd private. Its new name is m_fd, and can be
      obtained with dev->fd() outside the class.  This is the
@@ -14,7 +26,6 @@ kes  Implement a BSOCK send() method that writes the whole record
      in a single write() request rather than in two.
 ebl  add update volume=xxx recyclepool=yyyy
      volume takes recyclepool from pool when using update volume=xxx from pool
-     TODO: update manual
 16Feb07
 kes  Fix encryption deblocking bug, which caused some restored files
      to be truncated. This fixes bug #763.
