@@ -1,6 +1,6 @@
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/dird/inc_conf.c bacula/src/dird/inc_conf.c
---- bacula.org/src/dird/inc_conf.c	2007-02-17 18:11:27.000000000 +0100
-+++ bacula/src/dird/inc_conf.c	2007-02-17 17:47:16.000000000 +0100
+diff -Naur bacula1/src/dird/inc_conf.c bacula2/src/dird/inc_conf.c
+--- bacula1/src/dird/inc_conf.c	2007-02-19 20:44:13.000000000 +0100
++++ bacula2/src/dird/inc_conf.c	2007-02-19 20:44:33.000000000 +0100
 @@ -120,6 +120,7 @@
     {"noatime",         store_opts,    {0},     0, 0, 0},
     {"enhancedwild",    store_opts,    {0},     0, 0, 0},
@@ -36,24 +36,26 @@ diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/dir
     {NULL,       0,                      0}
  };
  
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/filed/backup.c bacula/src/filed/backup.c
---- bacula.org/src/filed/backup.c	2007-02-17 18:11:28.000000000 +0100
-+++ bacula/src/filed/backup.c	2007-02-17 18:37:19.000000000 +0100
-@@ -454,6 +454,11 @@
+diff -Naur bacula1/src/filed/backup.c bacula2/src/filed/backup.c
+--- bacula1/src/filed/backup.c	2007-02-19 20:44:13.000000000 +0100
++++ bacula2/src/filed/backup.c	2007-02-19 20:47:14.000000000 +0100
+@@ -453,7 +453,13 @@
+       }
  
        stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
-       bclose(&ff_pkt->bfd);
 +
 +      if (ff_pkt->flags & FO_CHKCHANGES) {
-+	 file_have_changed(jcr, ff_pkt);
++         file_have_changed(jcr, ff_pkt);
 +      }
++
+       bclose(&ff_pkt->bfd);
 +      
        if (!stat) {
           return 0;
        }
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/filed/job.c bacula/src/filed/job.c
---- bacula.org/src/filed/job.c	2007-02-17 18:11:28.000000000 +0100
-+++ bacula/src/filed/job.c	2007-02-17 18:37:19.000000000 +0100
+diff -Naur bacula1/src/filed/job.c bacula2/src/filed/job.c
+--- bacula1/src/filed/job.c	2007-02-19 20:44:13.000000000 +0100
++++ bacula2/src/filed/job.c	2007-02-19 20:44:33.000000000 +0100
 @@ -1021,6 +1021,9 @@
        case 'K':
           fo->flags |= FO_NOATIME;
@@ -64,9 +66,9 @@ diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/fil
        default:
           Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
           break;
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/find.h bacula/src/findlib/find.h
---- bacula.org/src/findlib/find.h	2007-02-17 18:11:57.000000000 +0100
-+++ bacula/src/findlib/find.h	2007-02-17 14:07:59.000000000 +0100
+diff -Naur bacula1/src/findlib/find.h bacula2/src/findlib/find.h
+--- bacula1/src/findlib/find.h	2007-02-19 20:44:16.000000000 +0100
++++ bacula2/src/findlib/find.h	2007-02-19 20:44:33.000000000 +0100
 @@ -107,6 +107,7 @@
  #define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
  #define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
@@ -75,10 +77,10 @@ diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/fin
  
  struct s_included_file {
     struct s_included_file *next;
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/find_one.c bacula/src/findlib/find_one.c
---- bacula.org/src/findlib/find_one.c	2007-02-17 18:11:57.000000000 +0100
-+++ bacula/src/findlib/find_one.c	2007-02-17 18:08:37.000000000 +0100
-@@ -181,6 +181,51 @@
+diff -Naur bacula1/src/findlib/find_one.c bacula2/src/findlib/find_one.c
+--- bacula1/src/findlib/find_one.c	2007-02-19 20:44:16.000000000 +0100
++++ bacula2/src/findlib/find_one.c	2007-02-19 20:44:33.000000000 +0100
+@@ -271,6 +271,51 @@
     return false;
  }
  
@@ -130,9 +132,9 @@ diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/fin
  /*
   * Find a single file.
   * handle_file is the callback for handling the file.
-diff -Naur --exclude=qt-console --exclude=.svn --exclude='*~' bacula.org/src/findlib/protos.h bacula/src/findlib/protos.h
---- bacula.org/src/findlib/protos.h	2007-02-17 18:11:57.000000000 +0100
-+++ bacula/src/findlib/protos.h	2007-02-17 12:34:18.000000000 +0100
+diff -Naur bacula1/src/findlib/protos.h bacula2/src/findlib/protos.h
+--- bacula1/src/findlib/protos.h	2007-02-19 20:44:16.000000000 +0100
++++ bacula2/src/findlib/protos.h	2007-02-19 20:44:33.000000000 +0100
 @@ -65,7 +65,7 @@
                 int handle_file(FF_PKT *ff_pkt, void *hpkt, bool top_level),
                 void *pkt, char *p, dev_t parent_device, bool top_level);
