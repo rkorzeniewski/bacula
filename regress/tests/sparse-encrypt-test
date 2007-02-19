@@ -52,10 +52,15 @@ sleep 2
 check_for_zombie_jobs storage=File 
 stop_bacula
 
-size=`du ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif | cut -f 1`
-if [ $size -gt 120 ]; then
-   echo "========== restored sparse file: gigaslam.gif too big ========="
-   echo "      size is ${size}K it should be 120K"
+if [ ! -f ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif ]; then
+   echo "============= file gigaslam.gif was not restored ======="
+   size=0
+else
+   size=`du ${cwd}/tmp/bacula-restores/${cwd}/build/src/tools/gigaslam.gif | cut -f 1`
+  if [ $size -gt 120 ]; then
+      echo "========== restored sparse file: gigaslam.gif too big ========="
+      echo "      size is ${size}K it should be 120K"
+   fi                                                    
 fi
 
 check_two_logs
