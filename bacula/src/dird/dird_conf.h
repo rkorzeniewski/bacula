@@ -523,7 +523,7 @@ public:
    bool  recycle_current_volume;      /* attempt recycle of current volume */
    bool  AutoPrune;                   /* default for pool auto prune */
    bool  Recycle;                     /* default for media recycle yes/no */
-
+   POOL  *RecyclePool;                /* RecyclePool destination when media is purged */
    /* Methods */
    char *name() const;
 };

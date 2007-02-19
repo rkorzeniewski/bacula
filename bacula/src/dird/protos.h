@@ -180,6 +180,7 @@ enum e_pool_op {
 };
 int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op);
 void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr);
+bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool);
 void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op);
 
 /* ua_input.c */

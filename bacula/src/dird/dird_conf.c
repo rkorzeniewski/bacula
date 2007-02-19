@@ -361,7 +361,7 @@ static RES_ITEM pool_items[] = {
    {"storage",       store_alist_res, ITEM(res_pool.storage),  R_STORAGE, 0, 0},
    {"autoprune",       store_bool,    ITEM(res_pool.AutoPrune), 0, ITEM_DEFAULT, true},
    {"recycle",         store_bool,    ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
-// {"recyclepool",     store_res,     ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
+   {"recyclepool",     store_res,     ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -854,7 +854,10 @@ next_run:
               edit_uint64(res->res_pool.MigrationHighBytes, ed2),
               edit_uint64(res->res_pool.MigrationLowBytes, ed3));
       if (res->res_pool.NextPool) {
-         sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->hdr.name);
+         sendit(sock, _("      NextPool=%s\n"), res->res_pool.NextPool->name());
+      }
+      if (res->res_pool.RecyclePool) {
+         sendit(sock, _("      RecyclePool=%s\n"), res->res_pool.RecyclePool->name());
       }
       if (res->res_pool.storage) {
          STORE *store;
@@ -1245,6 +1248,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          }
          /* Explicitly copy resource pointers from this pass (res_all) */
          res->res_pool.NextPool = res_all.res_pool.NextPool;
+         res->res_pool.RecyclePool = res_all.res_pool.RecyclePool;
          res->res_pool.storage    = res_all.res_pool.storage;
          break;
       case R_CONSOLE:

@@ -194,6 +194,7 @@ void set_pool_dbr_defaults_in_media_dbr(MEDIA_DBR *mr, POOL_DBR *pr)
    mr->Recycle = pr->Recycle;
    mr->VolRetention = pr->VolRetention;
    mr->VolUseDuration = pr->VolUseDuration;
+   mr->RecyclePoolId = pr->RecyclePoolId;
    mr->MaxVolJobs = pr->MaxVolJobs;
    mr->MaxVolFiles = pr->MaxVolFiles;
    mr->MaxVolBytes = pr->MaxVolBytes;
@@ -493,7 +494,11 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
  *   Pool DB base record from a Pool Resource. We handle
  *   the setting of MaxVols and NumVols slightly differently
  *   depending on if we are creating the Pool or we are
- *   simply bringing it into agreement with the resource (updage).
+ *   simply bringing it into agreement with the resource (update).
+ *
+ * Caution : RecyclePoolId isn't setup in this function.
+ *           You can use set_pooldbr_recyclepoolid();
+ * 
  */
 void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
 {
@@ -527,6 +532,28 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    }
 }
 
+bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
+{
+   POOL_DBR rpool;
+   bool ret = true;
+
+   if (pool->RecyclePool) {
+      memset(&rpool, 0, sizeof(POOL_DBR));
+
+      bstrncpy(rpool.Name, pool->RecyclePool->name(), sizeof(rpool.Name));
+      if (db_get_pool_record(jcr, db, &rpool)) {
+	 pr->RecyclePoolId = rpool.PoolId;
+      } else {
+	 Jmsg(jcr, M_WARNING, 0, 
+	      _("Can't set %s RecyclePool to %s, %s is not in database, try to update it with 'update pool=%s'\n"),pool->name(),rpool.Name, rpool.Name,pool->name());
+	 
+	 ret = false;
+      }
+   } else {			/* no RecyclePool used, set it to 0 */
+      pr->RecyclePoolId = 0;
+   }
+   return ret;
+}
 
 /*
  * Create a pool record from a given Pool resource
@@ -554,6 +581,7 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
    }
 
    set_pooldbr_from_poolres(&pr, pool, op);
+   set_pooldbr_recyclepoolid(jcr, db, &pr, pool);
 
    if (!db_create_pool_record(jcr, db, &pr)) {
       return -1;                      /* error */
