@@ -1,22 +1,7 @@
 /*
- * SQL header file
- *
- *   by Kern E. Sibbald
- *
- *   Anyone who accesses the database will need to include
- *   this file.
- *
- * This file contains definitions common to sql.c and
- * the external world, and definitions destined only
- * for the external world. This is control with
- * the define __SQL_C, which is defined only in sql.c
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,6 +25,21 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * SQL header file
+ *
+ *   by Kern E. Sibbald
+ *
+ *   Anyone who accesses the database will need to include
+ *   this file.
+ *
+ * This file contains definitions common to sql.c and
+ * the external world, and definitions destined only
+ * for the external world. This is control with
+ * the define __SQL_C, which is defined only in sql.c
+ *
+ *    Version $Id$
+ */
 
 /*
    Here is how database versions work. 
