@@ -52,7 +52,8 @@ static char DotStatusJob[] = "JobId=%s JobStatus=%c JobErrors=%d\n";
 /*
  * .status command
  */
-int qstatus_cmd(UAContext *ua, const char *cmd)
+
+bool dot_status_cmd(UAContext *ua, const char *cmd)
 {
    JCR* njcr = NULL;
    s_last_job* job;
@@ -62,7 +63,7 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
 
    if ((ua->argc != 3) || (strcasecmp(ua->argk[1], "dir"))) {
       bsendmsg(ua, "1900 Bad .status command, missing arguments.\n");
-      return 1;
+      return false;
    }
 
    if (strcasecmp(ua->argk[2], "current") == 0) {
@@ -85,9 +86,18 @@ int qstatus_cmd(UAContext *ua, const char *cmd)
       }
    } else {
       bsendmsg(ua, "1900 Bad .status command, wrong argument.\n");
-      return 1;
+      return false;
    }
 
+   return true;
+}
+
+/* This is the *old* command handler, so we must return
+ *  1 or it closes the connection
+ */
+int qstatus_cmd(UAContext *ua, const char *cmd)
+{
+   dot_status_cmd(ua, cmd);
    return 1;
 }
 

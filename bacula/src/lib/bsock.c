@@ -130,3 +130,15 @@ bool BSOCK::fsend(const char *fmt, ...)
    }
    return send();
 }
+
+/*
+ * Send a signal
+ */
+bool BSOCK::signal(int signal)
+{
+   msglen = signal;
+   if (signal == BNET_TERMINATE) {
+      suppress_error_msgs = true;
+   }
+   return send();
+}

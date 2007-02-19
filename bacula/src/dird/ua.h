@@ -1,14 +1,7 @@
 /*
- * Includes specific to the Director User Agent Server
- *
- *     Kern Sibbald, August MMI
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Includes specific to the Director User Agent Server
+ *
+ *     Kern Sibbald, August MMI
+ *
+ *     Version $Id$
+ */
 
 #ifndef __UA_H_
 #define __UA_H_ 1
@@ -51,6 +51,7 @@ struct UAContext {
    char **prompt;                     /* list of prompts */
    int max_prompts;                   /* max size of list */
    int num_prompts;                   /* current number in list */
+   int api;                           /* For programs want an API */
    bool auto_display_messages;        /* if set, display messages */
    bool user_notified_msg_pending;    /* set when user notified */
    bool automount;                    /* if set, mount after label */

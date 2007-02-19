@@ -1113,13 +1113,9 @@ void bnet_restore_blocking (BSOCK *bsock, int flags)
  *  Returns: false on failure
  *           true  on success
  */
-bool bnet_sig(BSOCK * bs, int sig)
+bool bnet_sig(BSOCK * bs, int signal)
 {
-   bs->msglen = sig;
-   if (sig == BNET_TERMINATE) {
-      bs->suppress_error_msgs = true;
-   }
-   return bnet_send(bs);
+   return bs->signal(signal);
 }
 
 /*
