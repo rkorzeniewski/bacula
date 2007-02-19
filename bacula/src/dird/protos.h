@@ -1,9 +1,4 @@
 /*
- * Director external function prototypes
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -30,6 +25,11 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Director external function prototypes
+ *
+ *   Version $Id$
+ */
 
 /* admin.c */
 extern bool do_admin_init(JCR *jcr);

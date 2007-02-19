@@ -1,16 +1,7 @@
 /*
- *
- *   Bacula Director -- Update command processing
- *     Split from ua_cmds.c March 2005
- *
- *     Kern Sibbald, September MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- Update command processing
+ *     Split from ua_cmds.c March 2005
+ *
+ *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -502,7 +502,7 @@ static int update_volume(UAContext *ua)
          case 12:
             update_volenabled(ua, ua->argv[j], &mr);
             break;
-	 case 13:
+         case 13:
             update_vol_recyclepool(ua, ua->argv[j], &mr);
             break;
          }

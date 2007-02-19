@@ -1,11 +1,4 @@
 /*
- * Director specific configuration and defines
- *
- *     Kern Sibbald, Feb MM
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Director specific configuration and defines
+ *
+ *     Kern Sibbald, Feb MM
+ *
+ *    Version $Id$
+ */
 
 /* NOTE:  #includes at the end of this file */
 

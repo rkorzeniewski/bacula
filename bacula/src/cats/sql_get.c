@@ -1,14 +1,4 @@
 /*
- * Bacula Catalog Database Get record interface routines
- *  Note, these routines generally get a record by id or
- *        by name.  If more logic is involved, the routine
- *        should be in find.c
- *
- *    Kern Sibbald, March 2000
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -35,7 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
+/*
+ * Bacula Catalog Database Get record interface routines
+ *  Note, these routines generally get a record by id or
+ *        by name.  If more logic is involved, the routine
+ *        should be in find.c
+ *
+ *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
+ */
 
 
 /* The following is necessary so that we do not include
