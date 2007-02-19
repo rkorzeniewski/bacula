@@ -744,6 +744,7 @@ static bool update_pool(UAContext *ua)
    }
 
    set_pooldbr_from_poolres(&pr, pool, POOL_OP_UPDATE); /* update */
+   set_pooldbr_recyclepoolid(ua->jcr, ua->db, &pr, pool);
 
    id = db_update_pool_record(ua->jcr, ua->db, &pr);
    if (id <= 0) {
