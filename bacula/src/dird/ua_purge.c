@@ -614,8 +614,18 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
          memset(&newpr, 0, sizeof(POOL_DBR));
          newpr.PoolId = mr->RecyclePoolId;
          oldpr.PoolId = mr->PoolId;
-         if (db_get_pool_record(jcr, ua->db, &oldpr) && db_get_pool_record(jcr, ua->db, &newpr)) {
-            update_vol_pool(ua, newpr.Name, mr, &oldpr);
+         if (   db_get_pool_record(jcr, ua->db, &oldpr) 
+             && db_get_pool_record(jcr, ua->db, &newpr)) 
+         {
+            /* check if destination pool size is ok */
+            if (newpr.MaxVols > 0 && newpr.NumVols >= newpr.MaxVols) {
+               bsendmsg(ua, _("Unable move recycled Volume in full " 
+                              "Pool \"%s\" MaxVols=%d\n"),
+                        newpr.Name, newpr.MaxVols);
+
+            } else {            /* move media */
+               update_vol_pool(ua, newpr.Name, mr, &oldpr);
+            }
          } else {
             bsendmsg(ua, "%s", db_strerror(ua->db));
          }
