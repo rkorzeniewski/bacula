@@ -42,6 +42,7 @@ runDialog::runDialog(Console *console)
 
    m_console = console;
    setupUi(this);
+   m_console->beginNewCommand();
    jobCombo->addItems(console->job_list);
    filesetCombo->addItems(console->fileset_list);
    levelCombo->addItems(console->level_list);
@@ -98,9 +99,7 @@ void runDialog::job_name_change(int index)
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
       poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
-      while (typeCombo->count() > 0) {
-         typeCombo->removeItem(0);
-      }
+      typeCombo->clear();
       typeCombo->addItem(job_defs.type);
    }
 }

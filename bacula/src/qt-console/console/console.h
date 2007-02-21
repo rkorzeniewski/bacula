@@ -56,17 +56,6 @@ struct job_defaults {
    QString type;
    QString fileset_name;
    QString catalog_name;
-#ifdef xxx
-   char pool_name[MAX_NAME_LENGTH];
-   char messages_name[MAX_NAME_LENGTH];
-   char client_name[MAX_NAME_LENGTH];
-   char store_name[MAX_NAME_LENGTH];
-   char where[MAX_NAME_LENGTH];
-   char level[MAX_NAME_LENGTH];
-   char type[MAX_NAME_LENGTH];
-   char fileset_name[MAX_NAME_LENGTH];
-   char catalog_name[MAX_NAME_LENGTH];
-#endif
    bool enabled;
 };
 
@@ -96,6 +85,8 @@ public:
    QStringList get_list(char *cmd);
    bool get_job_defaults(struct job_defaults &);
    void terminate();
+   void beginNewCommand();
+   void displayToPrompt();
 
    QStringList job_list;
    QStringList client_list;
@@ -111,6 +102,7 @@ public slots:
    void read_dir(int fd);
    int read(void);
    int write(const char *msg);
+   int write(QString msg);
    void status_dir(void);
    void set_font(void);
 

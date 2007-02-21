@@ -64,11 +64,13 @@ class restoreDialog : public QDialog, public Ui::restoreForm
 
 public:
    restoreDialog(Console *parent);
+   void fillDirectory(const char *path);
 
 public slots:
-   
 
 private:
+   Console *m_console;
+   QString m_fname;
 
 };
 
