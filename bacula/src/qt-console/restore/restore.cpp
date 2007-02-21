@@ -45,9 +45,59 @@ restoreDialog::restoreDialog(Console *parent)
    this->show();
 }
 
-prerestoreDialog::prerestoreDialog(Console *parent)
+prerestoreDialog::prerestoreDialog(Console *console)
 {
-   (void)parent;                      /* keep compiler quiet */
+   m_console = console;               /* keep compiler quiet */
    setupUi(this);
+   jobCombo->addItems(console->job_list);
+   filesetCombo->addItems(console->fileset_list);
+   clientCombo->addItems(console->client_list);
+   poolCombo->addItems(console->pool_list);
+   storageCombo->addItems(console->storage_list);
+   job_name_change(0);
+   connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
+
    this->show();
+}
+
+void prerestoreDialog::accept()
+{
+   QString cmd;
+
+   this->hide();
+   
+   cmd = QString(
+         "restore select current fileset=\"%1\" client=\"%2\" pool=\"%3\" "
+             "storage=\"%4\"\n")
+             .arg(filesetCombo->currentText())
+             .arg(clientCombo->currentText())
+             .arg(poolCombo->currentText())
+             .arg(storageCombo->currentText());
+
+// m_console->write(cmd);
+   m_console->display_text(cmd);
+   delete this;
+}
+
+
+void prerestoreDialog::reject()
+{
+   mainWin->set_status("Canceled");
+   this->hide();
+   delete this;
+}
+
+
+void prerestoreDialog::job_name_change(int index)
+{
+   job_defaults job_defs;
+
+   (void)index;
+   job_defs.job_name = jobCombo->currentText();
+   if (m_console->get_job_defaults(job_defs)) {
+      filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
+      clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
+      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
+      storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
+   }
 }
