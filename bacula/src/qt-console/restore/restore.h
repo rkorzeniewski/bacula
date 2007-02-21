@@ -49,8 +49,12 @@ public:
    prerestoreDialog(Console *parent);
 
 public slots:
+   void accept();
+   void reject();
+   void job_name_change(int index);
 
 private:
+   Console *m_console;
 
 };
 
@@ -62,6 +66,7 @@ public:
    restoreDialog(Console *parent);
 
 public slots:
+   
 
 private:
 

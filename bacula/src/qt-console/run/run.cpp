@@ -39,7 +39,6 @@
 runDialog::runDialog(Console *console)
 {
    QDateTime dt;
-   job_defaults job_defs;
 
    m_console = console;
    setupUi(this);
@@ -50,14 +49,8 @@ runDialog::runDialog(Console *console)
    poolCombo->addItems(console->pool_list);
    storageCombo->addItems(console->storage_list);
    dateTimeEdit->setDateTime(dt.currentDateTime());
-   job_defs.job_name = jobCombo->currentText();
-   if (console->get_job_defaults(job_defs)) {
-      filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
-      levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
-      clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
-      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
-      storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
-   }
+   job_name_change(0);
+   connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    this->show();
 }
 
@@ -91,4 +84,23 @@ void runDialog::reject()
    mainWin->set_status(" Canceled");
    this->hide();
    delete this;
+}
+
+void runDialog::job_name_change(int index)
+{
+   job_defaults job_defs;
+
+   (void)index;
+   job_defs.job_name = jobCombo->currentText();
+   if (m_console->get_job_defaults(job_defs)) {
+      filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
+      levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
+      clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
+      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
+      storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
+      while (typeCombo->count() > 0) {
+         typeCombo->removeItem(0);
+      }
+      typeCombo->addItem(job_defs.type);
+   }
 }
