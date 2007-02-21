@@ -104,17 +104,17 @@ void Console::connect()
    m_textEdit = textEdit;   /* our console screen */
 
    if (!m_dir) {          
-      mainWin->set_status(" No Director found.");
+      mainWin->set_status("No Director found.");
       return;
    }
    if (m_sock) {
-      mainWin->set_status(" Already connected.");
+      mainWin->set_status("Already connected.");
       return;
    }
 
    memset(&jcr, 0, sizeof(jcr));
 
-   mainWin->set_statusf(_(" Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
+   mainWin->set_statusf(_("Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
    display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
 
    /* Give GUI a chance */
@@ -147,12 +147,13 @@ void Console::connect()
    /* Give GUI a chance */
    app->processEvents();
 
-   mainWin->set_status(_(" Initializing ..."));
+   mainWin->set_status(_("Initializing ..."));
 
    /* Set up input notifier */
    m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
+   beginNewCommand();
    job_list = get_list(".jobs");
    client_list = get_list(".clients");
    fileset_list = get_list(".filesets");
@@ -162,7 +163,7 @@ void Console::connect()
    type_list = get_list(".types");
    level_list = get_list(".levels");
 
-   mainWin->set_status(_(" Connected"));
+   mainWin->set_status(_("Connected"));
    return;
 }
 
@@ -193,13 +194,15 @@ QStringList Console::get_list(char *cmd)
  */
 bool Console::get_job_defaults(struct job_defaults &job_defs)
 {
+   QString scmd;
    char cmd[1000];
    int stat;
    char *def;
 
    setEnabled(false);
-   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_defs.job_name.toUtf8().data());
-   write(cmd);
+   beginNewCommand();
+   scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
+   write(scmd);
    while ((stat = read()) > 0) {
       def = strchr(msg(), '=');
       if (!def) {
@@ -384,11 +387,11 @@ void Console::write_dir(const char *msg)
 {
    if (m_sock) {
       m_at_prompt = false;
-      mainWin->set_status(_(" Processing command ..."));
+      mainWin->set_status(_("Processing command ..."));
       QApplication::setOverrideCursor(Qt::WaitCursor);
       m_sock->msglen = strlen(msg);
       pm_strcpy(&m_sock->msg, msg);
-      bnet_send(m_sock);
+      m_sock->send();
    } else {
       mainWin->set_status(" Director not connected. Click on connect button.");
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
@@ -397,11 +400,42 @@ void Console::write_dir(const char *msg)
    }
 }
 
+int Console::write(const QString msg)
+{
+   return write(msg.toUtf8().data());
+}
+
 int Console::write(const char *msg)
 {
    m_sock->msglen = strlen(msg);
    pm_strcpy(&m_sock->msg, msg);
-   return bnet_send(m_sock);
+   return m_sock->send();
+}
+
+/*
+ * Get to main command prompt 
+ */
+void Console::beginNewCommand()
+{
+// displayToPrompt();
+   write(".\n");
+   while (read() > 0) {
+   }
+   write(".\n");
+   while (read() > 0) {
+   }
+   write(".\n");
+   while (read() > 0) {
+   }
+   display_text("\n");
+}
+
+void Console::displayToPrompt()
+{ 
+   while (read() > 0) {
+      display_text(msg());
+   }
+
 }
 
 /* 
@@ -420,7 +454,7 @@ int Console::read()
             return BNET_ERROR;
          }
       }
-      return bnet_recv(m_sock);
+      return m_sock->recv();
    } 
    return BNET_HARDEOF;
 }
@@ -434,13 +468,13 @@ void Console::read_dir(int fd)
    if (!m_sock) {
       return;
    }
-   stat = bnet_recv(m_sock);
+   stat = read();
    if (stat >= 0) {
       if (m_at_prompt) {
          display_text("\n");
          m_at_prompt = false;
       }
-      display_text(m_sock->msg);
+      display_text(msg());
       return;
    }
    if (is_bnet_stop(m_sock)) {         /* error or term request */
@@ -452,14 +486,14 @@ void Console::read_dir(int fd)
       m_notifier->setEnabled(false);
       delete m_notifier;
       m_notifier = NULL;
-      mainWin->set_status(_(" Director disconnected."));
+      mainWin->set_status(_("Director disconnected."));
       QApplication::restoreOverrideCursor();
       return;
    }
    /* Must be a signal -- either do something or ignore it */
    if (m_sock->msglen == BNET_PROMPT) {
       m_at_prompt = true;
-      mainWin->set_status(_(" At prompt waiting for input ..."));
+      mainWin->set_status(_("At prompt waiting for input ..."));
       update_cursor();
    }
    if (m_sock->msglen == BNET_EOD) {

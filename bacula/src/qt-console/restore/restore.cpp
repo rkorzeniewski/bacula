@@ -38,12 +38,6 @@
 #include "bat.h"
 #include "restore.h"
 
-restoreDialog::restoreDialog(Console *parent)
-{
-   (void)parent;                      /* keep compiler quiet */
-   setupUi(this);
-   this->show();
-}
 
 prerestoreDialog::prerestoreDialog(Console *console)
 {
@@ -74,9 +68,10 @@ void prerestoreDialog::accept()
              .arg(poolCombo->currentText())
              .arg(storageCombo->currentText());
 
-// m_console->write(cmd);
+   m_console->write(cmd);
    m_console->display_text(cmd);
    delete this;
+   new restoreDialog(m_console);
 }
 
 
@@ -100,4 +95,100 @@ void prerestoreDialog::job_name_change(int index)
       poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
    }
+}
+
+restoreDialog::restoreDialog(Console *console)
+{
+   m_console = console;
+   setupUi(this);
+   fillDirectory("/");
+   this->show();
+}
+
+/*
+ * Fill the CList box with files at path
+ */
+void restoreDialog::fillDirectory(const char *path)
+{
+   char pathbuf[MAXSTRING];
+   char modes[20], user[20], group[20], size[20], date[30];
+   char file[1000];
+   char marked[10];
+   int row = 0;
+
+   m_console->setEnabled(false);
+   m_fname = path;
+
+
+   m_console->displayToPrompt();
+   bsnprintf(pathbuf, sizeof(pathbuf), "cd %s", path);
+   Dmsg1(100, "%s\n", pathbuf);
+
+   m_console->write(pathbuf);
+   m_console->display_text(pathbuf);
+   m_console->displayToPrompt();
+
+   m_console-> write_dir("dir");
+   m_console->display_text("dir");
+   while (m_console->read() > 0) {
+      char *p = m_console->msg();
+      char *l;
+      strip_trailing_junk(p);
+      if (*p == '$') {
+         break;
+      }
+      Dmsg1(200, "Got: %s\n", p);
+      if (!*p) {
+         continue;
+      }
+      l = p;
+      skip_nonspaces(&p);             /* permissions */
+      *p++ = 0;
+      bstrncpy(modes, l, sizeof(modes));
+      skip_spaces(&p);
+      skip_nonspaces(&p);             /* link count */
+      *p++ = 0;
+      skip_spaces(&p);
+      l = p;
+      skip_nonspaces(&p);             /* user */
+      *p++ = 0;
+      skip_spaces(&p);
+      bstrncpy(user, l, sizeof(user));
+      l = p;
+      skip_nonspaces(&p);             /* group */
+      *p++ = 0;
+      bstrncpy(group, l, sizeof(group));
+      skip_spaces(&p);
+      l = p;
+      skip_nonspaces(&p);             /* size */
+      *p++ = 0;
+      bstrncpy(size, l, sizeof(size));
+      skip_spaces(&p);
+      l = p;
+      skip_nonspaces(&p);             /* date/time */
+      skip_spaces(&p);
+      skip_nonspaces(&p);
+      *p++ = 0;
+      bstrncpy(date, l, sizeof(date));
+      skip_spaces(&p);
+      if (*p == '*') {
+         bstrncpy(marked, "x", sizeof(marked));
+         p++;
+      } else {
+         bstrncpy(marked, " ", sizeof(marked));
+      }
+//    split_path_and_filename(p, &restore->path, &restore->pnl,
+//                            &restore->file, &restore->fnl);
+
+//    Dmsg1(000, "restore->fname=%s\n", restore->fname);
+//    bstrncpy(file, restore->file, sizeof(file));
+      printf("modes=%s user=%s group=%s size=%s date=%s file=%s\n",
+         modes, user, group, size, date, file);
+
+//    append to list
+
+      row++;
+   }
+
+     m_console->setEnabled(true);
 }
