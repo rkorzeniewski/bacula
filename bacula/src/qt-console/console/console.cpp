@@ -84,6 +84,15 @@ Console::Console(QStackedWidget *parent)
 
 }
 
+/* Terminate any open socket */
+void Console::terminate()
+{
+   if (m_sock) {
+      m_sock->close();
+      m_sock = NULL;
+   }
+}
+
 /*
  * Connect to Director. If there are more than one, put up
  * a modal dialog so that the user chooses one.
@@ -106,7 +115,7 @@ void Console::connect()
    memset(&jcr, 0, sizeof(jcr));
 
    mainWin->set_statusf(_(" Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
-   set_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
+   display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
 
    /* Give GUI a chance */
    app->processEvents();
@@ -131,7 +140,7 @@ void Console::connect()
    jcr.dir_bsock = m_sock;
 
    if (!authenticate_director(&jcr, m_dir, cons)) {
-      set_text(m_sock->msg);
+      display_text(m_sock->msg);
       return;
    }
 
@@ -189,7 +198,7 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
    char *def;
 
    setEnabled(false);
-   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_defs.job_name);
+   bsnprintf(cmd, sizeof(cmd), ".defaults job=\"%s\"", job_defs.job_name.toUtf8().data());
    write(cmd);
    while ((stat = read()) > 0) {
       def = strchr(msg(), '=');
@@ -201,45 +210,45 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
       strip_trailing_junk(def);
 
       if (strcmp(msg(), "job") == 0) {
-         if (strcmp(def, job_defs.job_name) != 0) {
+         if (strcmp(def, job_defs.job_name.toUtf8().data()) != 0) {
             goto bail_out;
          }
          continue;
       }
       if (strcmp(msg(), "pool") == 0) {
-         bstrncpy(job_defs.pool_name, def, sizeof(job_defs.pool_name));
+         job_defs.pool_name = def;
          continue;
       }
       if (strcmp(msg(), "messages") == 0) {
-         bstrncpy(job_defs.messages_name, def, sizeof(job_defs.messages_name));
+         job_defs.messages_name = def;
          continue;
       }
       if (strcmp(msg(), "client") == 0) {
-         bstrncpy(job_defs.client_name, def, sizeof(job_defs.client_name));
+         job_defs.client_name = def;
          continue;
       }
       if (strcmp(msg(), "storage") == 0) {
-         bstrncpy(job_defs.store_name, def, sizeof(job_defs.store_name));
+         job_defs.store_name = def;
          continue;
       }
       if (strcmp(msg(), "where") == 0) {
-         bstrncpy(job_defs.where, def, sizeof(job_defs.where));
+         job_defs.where = def;
          continue;
       }
       if (strcmp(msg(), "level") == 0) {
-         bstrncpy(job_defs.level, def, sizeof(job_defs.level));
+         job_defs.level = def;
          continue;
       }
       if (strcmp(msg(), "type") == 0) {
-         bstrncpy(job_defs.type, def, sizeof(job_defs.type));
+         job_defs.type = def;
          continue;
       }
       if (strcmp(msg(), "fileset") == 0) {
-         bstrncpy(job_defs.fileset_name, def, sizeof(job_defs.fileset_name));
+         job_defs.fileset_name = def;
          continue;
       }
       if (strcmp(msg(), "catalog") == 0) {
-         bstrncpy(job_defs.catalog_name, def, sizeof(job_defs.catalog_name));
+         job_defs.catalog_name = def;
          continue;
       }
       if (strcmp(msg(), "enabled") == 0) {
@@ -249,10 +258,13 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
    }
    bsnprintf(cmd, sizeof(cmd), "job=%s pool=%s client=%s storage=%s where=%s\n"
       "level=%s type=%s fileset=%s catalog=%s enabled=%d\n",
-      job_defs.job_name, job_defs.pool_name, job_defs.client_name, 
-      job_defs.pool_name, job_defs.messages_name, job_defs.store_name,
-      job_defs.where, job_defs.level, job_defs.type, job_defs.fileset_name,
-      job_defs.catalog_name, job_defs.enabled);
+      job_defs.job_name.toUtf8().data(), job_defs.pool_name.toUtf8().data(), 
+      job_defs.client_name.toUtf8().data(), 
+      job_defs.pool_name.toUtf8().data(), job_defs.messages_name.toUtf8().data(), 
+      job_defs.store_name.toUtf8().data(),
+      job_defs.where.toUtf8().data(), job_defs.level.toUtf8().data(), 
+      job_defs.type.toUtf8().data(), job_defs.fileset_name.toUtf8().data(),
+      job_defs.catalog_name.toUtf8().data(), job_defs.enabled);
 
    setEnabled(true);
    return true;
@@ -264,13 +276,14 @@ bail_out:
 
 
 /*
- * Save user settings
+ * Save user settings associated with this console
  */
 void Console::writeSettings()
 {
    QFont font = get_font();
 
    QSettings settings("bacula.org", "bat");
+   /* ***FIXME*** make console name unique */
    settings.beginGroup("Console");
    settings.setValue("consoleFont", font.family());
    settings.setValue("consolePointSize", font.pointSize());
@@ -279,7 +292,7 @@ void Console::writeSettings()
 }
 
 /*
- * Read and restore user settings
+ * Read and restore user settings associated with this console
  */
 void Console::readSettings()
 { 
@@ -323,7 +336,7 @@ void Console::status_dir()
 /*
  * Put text into the console window
  */
-void Console::set_textf(const char *fmt, ...)
+void Console::display_textf(const char *fmt, ...)
 {
    va_list arg_ptr;
    char buf[1000];
@@ -331,17 +344,17 @@ void Console::set_textf(const char *fmt, ...)
    va_start(arg_ptr, fmt);
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    va_end(arg_ptr);
-   set_text(buf);
+   display_text(buf);
 }
 
-void Console::set_text(const QString buf)
+void Console::display_text(const QString buf)
 {
    m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
 }
 
 
-void Console::set_text(const char *buf)
+void Console::display_text(const char *buf)
 {
    m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
@@ -424,14 +437,14 @@ void Console::read_dir(int fd)
    stat = bnet_recv(m_sock);
    if (stat >= 0) {
       if (m_at_prompt) {
-         set_text("\n");
+         display_text("\n");
          m_at_prompt = false;
       }
-      set_text(m_sock->msg);
+      display_text(m_sock->msg);
       return;
    }
    if (is_bnet_stop(m_sock)) {         /* error or term request */
-      bnet_close(m_sock);
+      m_sock->close();
       m_sock = NULL;
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
       QBrush redBrush(Qt::red);

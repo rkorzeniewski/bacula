@@ -42,8 +42,21 @@
 #define MAX_NAME_LENGTH 128
 #endif
 
+/*
+ * Structure for obtaining the defaults for a job
+ */
 struct job_defaults {
-   char job_name[MAX_NAME_LENGTH];
+   QString job_name;
+   QString pool_name;
+   QString messages_name;
+   QString client_name;
+   QString store_name;
+   QString where;
+   QString level;
+   QString type;
+   QString fileset_name;
+   QString catalog_name;
+#ifdef xxx
    char pool_name[MAX_NAME_LENGTH];
    char messages_name[MAX_NAME_LENGTH];
    char client_name[MAX_NAME_LENGTH];
@@ -53,6 +66,7 @@ struct job_defaults {
    char type[MAX_NAME_LENGTH];
    char fileset_name[MAX_NAME_LENGTH];
    char catalog_name[MAX_NAME_LENGTH];
+#endif
    bool enabled;
 };
 
@@ -67,9 +81,9 @@ class Console : public QWidget, public Ui::ConsoleForm
 
 public:
    Console(QStackedWidget *parent);
-   void set_text(const char *buf);
-   void set_text(const QString buf);
-   void set_textf(const char *fmt, ...);
+   void display_text(const char *buf);
+   void display_text(const QString buf);
+   void display_textf(const char *fmt, ...);
    void update_cursor(void);
    void write_dir(const char *buf);
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
@@ -81,6 +95,7 @@ public:
    void setEnabled(bool enable) { m_notifier->setEnabled(enable); };
    QStringList get_list(char *cmd);
    bool get_job_defaults(struct job_defaults &);
+   void terminate();
 
    QStringList job_list;
    QStringList client_list;

@@ -82,8 +82,8 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
       stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
-      set_text(_("Director authorization problem.\n"));    
-      set_text(_(
+      display_text(_("Director authorization problem.\n"));    
+      display_text(_(
        "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
       return false;
    }
@@ -91,20 +91,20 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    Dmsg1(6, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       stop_bsock_timer(tid);
-      set_textf(_("Bad response to Hello command: ERR=%s\n"),
+      display_textf(_("Bad response to Hello command: ERR=%s\n"),
          bnet_strerror(dir));
       printf(_("%s: Bad response to Hello command: ERR=%s\n"),
          my_name, bnet_strerror(dir));
-      set_text(_("The Director is probably not running.\n"));
+      display_text(_("The Director is probably not running.\n"));
       return false;
    }
   stop_bsock_timer(tid);
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
-      set_text(_("Director rejected Hello command\n"));    
+      display_text(_("Director rejected Hello command\n"));    
       return false;
    } else {
-      set_text(dir->msg);
+      display_text(dir->msg);
    }
    return true;
 }

@@ -39,6 +39,8 @@
 runDialog::runDialog(Console *console)
 {
    QDateTime dt;
+   job_defaults job_defs;
+
    m_console = console;
    setupUi(this);
    jobCombo->addItems(console->job_list);
@@ -48,6 +50,14 @@ runDialog::runDialog(Console *console)
    poolCombo->addItems(console->pool_list);
    storageCombo->addItems(console->storage_list);
    dateTimeEdit->setDateTime(dt.currentDateTime());
+   job_defs.job_name = jobCombo->currentText();
+   if (console->get_job_defaults(job_defs)) {
+      filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
+      levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
+      clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
+      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
+      storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
+   }
    this->show();
 }
 
@@ -71,7 +81,7 @@ void runDialog::accept()
              prioritySpin->value());
 
 // m_console->write(cmd);
-   m_console->set_text(cmd);
+   m_console->display_text(cmd);
    delete this;
 }
 

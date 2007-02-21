@@ -86,9 +86,9 @@ void MainWin::createConnections()
  */
 void MainWin::closeEvent(QCloseEvent *event)
 {
-   /* ***FIXME*** close any open sockets */
    writeSettings();
    m_console->writeSettings();
+   m_console->terminate();
    event->accept();
 }
 
@@ -158,7 +158,7 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_console->is_connected()) {
-      m_console->set_text(cmdStr + "\n");
+      m_console->display_text(cmdStr + "\n");
       m_console->write_dir(cmdStr.toUtf8().data());         /* send to dir */
    } else {
       set_status("Director not connected. Click on connect button.");
@@ -189,7 +189,7 @@ void MainWin::set_statusf(const char *fmt, ...)
 
 void MainWin::set_status_ready()
 {
-   set_status("Ready");
+   set_status(" Ready");
 // set_scroll_bar_to_end();
 }
 

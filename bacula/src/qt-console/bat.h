@@ -47,9 +47,6 @@ using namespace qstd;
 extern MainWin *mainWin;
 extern QApplication *app;
 
-void set_textf(const char *fmt, ...);
-void set_text(const char *buf);
-
 int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);
 
 #endif /* _BAT_H_ */
