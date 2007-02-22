@@ -62,9 +62,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (bs->msglen < 25 || bs->msglen > 500) {
       Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
-            bs->who, bs->msglen);
+            bs->who(), bs->msglen);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
-            bs->who, bs->msglen);
+            bs->who(), bs->msglen);
       return 0;
    }
    dirname = get_pool_memory(PM_MESSAGE);
@@ -73,9 +73,9 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (sscanf(bs->msg, "Hello Director %127s calling", dirname) != 1) {
       bs->msg[100] = 0;
       Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
-            bs->who, bs->msg);
+            bs->who(), bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
-            bs->who, bs->msg);
+            bs->who(), bs->msg);
       return 0;
    }
    director = NULL;
@@ -86,10 +86,10 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (!director) {
       Dmsg2(50, "Connection from unknown Director %s at %s rejected.\n",
-            dirname, bs->who);
+            dirname, bs->who());
       Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"
        "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-            dirname, bs->who);
+            dirname, bs->who());
       free_pool_memory(dirname);
       return 0;
    }
@@ -113,10 +113,10 @@ static int authenticate(int rcode, BSOCK *bs, JCR* jcr)
    if (auth_success) {
       auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_get_auth failed with %s\n", bs->who);
+         Dmsg1(50, "cram_get_auth failed with %s\n", bs->who());
       }
    } else {
-      Dmsg1(50, "cram_auth failed with %s\n", bs->who);
+      Dmsg1(50, "cram_auth failed with %s\n", bs->who());
    }
 
    if (!auth_success) {
@@ -175,8 +175,8 @@ int authenticate_director(JCR *jcr)
 
    if (!authenticate(R_DIRECTOR, dir, jcr)) {
       bnet_fsend(dir, "%s", Dir_sorry);
-      Dmsg1(50, "Unable to authenticate Director at %s.\n", dir->who);
-      Emsg1(M_ERROR, 0, _("Unable to authenticate Director at %s.\n"), dir->who);
+      Dmsg1(50, "Unable to authenticate Director at %s.\n", dir->who());
+      Emsg1(M_ERROR, 0, _("Unable to authenticate Director at %s.\n"), dir->who());
       bmicrosleep(5, 0);
       return 0;
    }
@@ -213,16 +213,16 @@ int authenticate_filed(JCR *jcr)
        /* Respond to his challenge */
        auth_success = cram_md5_respond(fd, jcr->sd_auth_key, &tls_remote_need, &compatible);
        if (!auth_success) {
-          Dmsg1(50, "cram-get-auth failed with %s\n", fd->who);
+          Dmsg1(50, "cram-get-auth failed with %s\n", fd->who());
        }
    } else {
-      Dmsg1(50, "cram-auth failed with %s\n", fd->who);
+      Dmsg1(50, "cram-auth failed with %s\n", fd->who());
    }
 
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
        "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-           fd->who);
+           fd->who());
       auth_success = false;
       goto auth_fatal;
    }
@@ -256,7 +256,7 @@ auth_fatal:
    if (!auth_success) {
       Jmsg(jcr, M_FATAL, 0, _("Incorrect authorization key from File daemon at %s rejected.\n"
        "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-           fd->who);
+           fd->who());
    }
    jcr->authenticated = auth_success;
    return auth_success;

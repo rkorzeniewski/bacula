@@ -91,7 +91,7 @@ static struct cmdstruct commands[] = {
  { NT_(".storage"),    storagecmd,     NULL},
  { NT_(".types"),      typescmd,       NULL} 
              };
-#define comsize (sizeof(commands)/sizeof(struct cmdstruct))
+#define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
 /*
  * Execute a command from the UA
@@ -113,13 +113,11 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
    if (len == 1) {
       return 1;                       /* no op */
    }
-   for (i=0; i<(int)comsize; i++) {     /* search for command */
+   for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
          bool gui = ua->gui;
          ua->gui = true;
-         if (ua->api) {
-            sock->signal(BNET_CMD_BEGIN);
-         }
+         if (ua->api) sock->signal(BNET_CMD_BEGIN);
          ok = (*commands[i].func)(ua, cmd);   /* go execute command */
          ua->gui = gui;
          found = true;
@@ -130,9 +128,9 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       pm_strcat(sock->msg, _(": is an invalid command\n"));
       sock->msglen = strlen(sock->msg);
       sock->send();
-      sock->signal(BNET_INVALID_CMD);
+      if (ua->api) sock->signal(BNET_INVALID_CMD);
    }
-   sock->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
+   if (ua->api) sock->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
    return 1;
 }
 

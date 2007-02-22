@@ -41,6 +41,13 @@
 
 
 class BSOCK {
+private:
+   BSOCK *m_next;                     /* next BSOCK if duped */
+   JCR *m_jcr;                        /* jcr or NULL for error msgs */
+   char *m_who;                       /* Name of daemon to which we are talking */
+   char *m_host;                      /* Host name/IP */
+   int m_port;                        /* desired port */
+   
 public:
    uint64_t read_seqno;               /* read sequence number */
    uint32_t in_msg_no;                /* input message number */
@@ -49,7 +56,6 @@ public:
    TLS_CONNECTION *tls;               /* associated tls connection */
    int32_t msglen;                    /* message length */
    int b_errno;                       /* bsock errno */
-   int port;                          /* desired port */
    int blocking;                      /* blocking state (0 = nonblocking, 1 = blocking) */
    volatile int errors;               /* incremented for each error on socket */
    volatile bool suppress_error_msgs: 1; /* set to suppress error messages */
@@ -60,20 +66,27 @@ public:
    volatile time_t timer_start;       /* time started read/write */
    volatile time_t timeout;           /* timeout BSOCK after this interval */
    POOLMEM *msg;                      /* message pool buffer */
-   char *who;                         /* Name of daemon to which we are talking */
-   char *host;                        /* Host name/IP */
    POOLMEM *errmsg;                   /* edited error message */
    RES *res;                          /* Resource to which we are connected */
-   BSOCK *next;                       /* next BSOCK if duped */
    FILE *spool_fd;                    /* spooling file */
-   JCR *jcr;                          /* jcr or NULL for error msgs */
-   struct sockaddr client_addr;    /* client's IP address */
-   struct sockaddr_in peer_addr;    /* peer's IP address */
+   struct sockaddr client_addr;       /* client's IP address */
+   struct sockaddr_in peer_addr;      /* peer's IP address */
 
    /* methods -- in bsock.c */
+   int32_t recv();
    bool send();
    bool fsend(const char*, ...);
    bool signal(int signal);
+   void close();                      /* close connection and destroy packet */
+   void destroy();                    /* destroy socket packet */
+   void set_jcr(JCR *jcr) { m_jcr = jcr; };
+   void set_who(char *who) { m_who = who; };
+   void set_host(char *host) { m_host = host; };
+   void set_port(int port) { m_port = port; };
+   char *who() { return m_who; };
+   char *host() { return m_host; };
+   int port() { return m_port; };
+   JCR *jcr() { return m_jcr; };
 
 };
 

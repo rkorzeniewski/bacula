@@ -1,16 +1,7 @@
 /*
- * Bacula Catalog Database routines specific to MySQL
- *   These are MySQL specific routines -- hopefully all
- *    other files are generic.
- *
- *    Kern Sibbald, March 2000
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Catalog Database routines specific to MySQL
+ *   These are MySQL specific routines -- hopefully all
+ *    other files are generic.
+ *
+ *    Kern Sibbald, March 2000
+ *
+ *    Version $Id$
+ */
 
 
 /* The following is necessary so that we do not include
@@ -375,8 +375,8 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 }
 
 char *my_mysql_batch_lock_path_query = "LOCK TABLES Path write,     " 
-				       "            batch write,    " 
-				       "            Path as p write ";
+                                       "            batch write,    " 
+                                       "            Path as p write ";
 
 
 char *my_mysql_batch_lock_filename_query = "LOCK TABLES Filename write,     "
@@ -404,4 +404,3 @@ char *my_mysql_batch_fill_filename_query = "INSERT IGNORE INTO Filename (Name)"
                                            "      WHERE f.Name = a.Name)      ";
 
 #endif /* HAVE_MYSQL */
-

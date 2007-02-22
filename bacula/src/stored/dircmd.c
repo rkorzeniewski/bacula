@@ -178,7 +178,7 @@ void *handle_connection_request(void *arg)
    Dmsg0(110, "Start Dir Job\n");
    jcr = new_jcr(sizeof(JCR), stored_free_jcr); /* create Job Control Record */
    jcr->dir_bsock = bs;               /* save Director bsock */
-   jcr->dir_bsock->jcr = jcr;
+   jcr->dir_bsock->set_jcr(jcr);
    jcr->dcrs = New(alist(10, not_owned_by_alist));
    /* Initialize FD start condition variable */
    int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);

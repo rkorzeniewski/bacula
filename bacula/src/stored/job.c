@@ -208,7 +208,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    }
 
    jcr->file_bsock = fd;
-   jcr->file_bsock->jcr = jcr;
+   jcr->file_bsock->set_jcr(jcr);
 
    Dmsg1(110, "Found Job %s\n", job_name);
 

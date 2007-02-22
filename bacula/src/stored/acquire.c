@@ -1,11 +1,4 @@
 /*
- *  Routines to acquire and release a device for read/write
- *
- *   Kern Sibbald, August MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Routines to acquire and release a device for read/write
+ *
+ *   Kern Sibbald, August MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */

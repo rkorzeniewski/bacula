@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+22Feb08
+kes  Begin implementing new comm signals for API.
+kes  Fix a few places in lib/message.c where the open fd may 
+     not be zeroed.
+kes  Continue implementing lib/bsock.c (real class).  Make jcr,
+     who, host, and port private. There are new methods to access
+     them for non-class use. This required touching a number of files.
+21Feb07
+kes  Add LANG=C to autoconf/randpass so it works with languages other
+     than English.  Fixes bug #788.
 20Feb07
 ebl  Revert ClientRunBeforeJob to old position as in 1.38.X.
      This fixes bug #780
