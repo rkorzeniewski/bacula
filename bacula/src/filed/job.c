@@ -217,7 +217,7 @@ void *handle_client_request(void *dirp)
    jcr->pki_keypair = me->pki_keypair;
    jcr->pki_signers = me->pki_signers;
    jcr->pki_recipients = me->pki_recipients;
-   dir->jcr = jcr;
+   dir->set_jcr(jcr);
    enable_backup_privileges(NULL, 1 /* ignore_errors */);
 
    /**********FIXME******* add command handler error code */

@@ -62,9 +62,9 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (bs->msglen < 25 || bs->msglen > 500) {
       Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
-            bs->who, bs->msglen);
+            bs->who(), bs->msglen);
       char addr[64];
-      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
              who, bs->msglen);
       goto auth_fatal;
@@ -73,10 +73,10 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
 
    if (sscanf(bs->msg, "Hello Director %s calling", dirname) != 1) {
       char addr[64];
-      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
       bs->msg[100] = 0;
       Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
-            bs->who, bs->msg);
+            bs->who(), bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
             who, bs->msg);
       goto auth_fatal;
@@ -88,7 +88,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    }
    if (!director) {
        char addr[64];
-       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
       Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
             dirname, who);
       goto auth_fatal;
@@ -120,17 +120,17 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       auth_success = cram_md5_respond(bs, director->password, &tls_remote_need, &compatible);
       if (!auth_success) {
           char addr[64];
-          char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+          char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
           Dmsg1(50, "cram_get_auth failed for %s\n", who);
       }
    } else {
        char addr[64];
-       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who : addr;
+       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
        Dmsg1(50, "cram_auth failed for %s\n", who);
    }
    if (!auth_success) {
        Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
-             bs->who);
+             bs->who());
        goto auth_fatal;
    }
 
@@ -231,12 +231,12 @@ int authenticate_storagedaemon(JCR *jcr)
       goto auth_fatal;
    }
    if (!auth_success) {
-      Dmsg1(50, "cram_respond failed for %s\n", sd->who);
+      Dmsg1(50, "cram_respond failed for %s\n", sd->who());
    } else {
       /* Now challenge him */
       auth_success = cram_md5_challenge(sd, jcr->sd_auth_key, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_challenge failed for %s\n", sd->who);
+         Dmsg1(50, "cram_challenge failed for %s\n", sd->who());
       }
    }
 

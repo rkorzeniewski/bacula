@@ -118,7 +118,7 @@ void run_job(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
    char ec1[30];
 
-   dir->jcr = jcr;
+   dir->set_jcr(jcr);
    Dmsg1(120, "Start run Job=%s\n", jcr->Job);
    bnet_fsend(dir, Job_start, jcr->Job);
    jcr->start_time = time(NULL);
@@ -145,7 +145,7 @@ void do_fd_commands(JCR *jcr)
    bool found, quit;
    BSOCK *fd = jcr->file_bsock;
 
-   fd->jcr = jcr;
+   fd->set_jcr(jcr);
    for (quit=false; !quit;) {
       int stat;
 

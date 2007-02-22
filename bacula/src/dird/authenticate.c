@@ -95,10 +95,10 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (auth_success) {
       auth_success = cram_md5_challenge(sd, store->password, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_challenge failed for %s\n", sd->who);
+         Dmsg1(50, "cram_challenge failed for %s\n", sd->who());
       }
    } else {
-      Dmsg1(50, "cram_respond failed for %s\n", sd->who);
+      Dmsg1(50, "cram_respond failed for %s\n", sd->who());
    }
 
    if (!auth_success) {
@@ -110,7 +110,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
             "Maximum Concurrent Jobs exceeded on the SD or\n"
             "SD networking messed up (restart daemon).\n"
             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-            sd->host, sd->port);
+            sd->host(), sd->port());
       return 0;
    }
 
@@ -134,7 +134,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       if (!bnet_tls_client(store->tls_ctx, sd)) {
          stop_bsock_timer(tid);
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with SD on \"%s:%d\"\n"),
-            sd->host, sd->port);
+            sd->host(), sd->port());
          return 0;
       }
    }
@@ -143,7 +143,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (bnet_recv(sd) <= 0) {
       stop_bsock_timer(tid);
       Jmsg3(jcr, M_FATAL, 0, _("bdird<stored: \"%s:%s\" bad response to Hello command: ERR=%s\n"),
-         sd->who, sd->host, bnet_strerror(sd));
+         sd->who(), sd->host(), bnet_strerror(sd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", sd->msg);
@@ -151,7 +151,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
       Dmsg0(50, _("Storage daemon rejected Hello command\n"));
       Jmsg2(jcr, M_FATAL, 0, _("Storage daemon on \"%s:%d\" rejected Hello command\n"),
-         sd->host, sd->port);
+         sd->host(), sd->port());
       return 0;
    }
    return 1;
@@ -180,7 +180,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (!bnet_fsend(fd, hello, dirname)) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon on \"%s:%d\". ERR=%s\n"), 
-           fd->host, fd->port, bnet_strerror(fd));
+           fd->host(), fd->port(), bnet_strerror(fd));
       return 0;
    }
    Dmsg1(50, "Sent: %s", fd->msg);
@@ -198,10 +198,10 @@ int authenticate_file_daemon(JCR *jcr)
    if (auth_success) {
       auth_success = cram_md5_challenge(fd, client->password, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_auth failed for %s\n", fd->who);
+         Dmsg1(50, "cram_auth failed for %s\n", fd->who());
       }
    } else {
-      Dmsg1(50, "cram_get_auth failed for %s\n", fd->who);
+      Dmsg1(50, "cram_get_auth failed for %s\n", fd->who());
    }
    if (!auth_success) {
       stop_bsock_timer(tid);
@@ -212,7 +212,7 @@ int authenticate_file_daemon(JCR *jcr)
             "Maximum Concurrent Jobs exceeded on the FD or\n"
             "FD networking messed up (restart daemon).\n"
             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"),
-            fd->host, fd->port);
+            fd->host(), fd->port());
       return 0;
    }
 
@@ -220,7 +220,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Authorization problem: FD \"%s:%s\" did not advertise required TLS support.\n"),
-           fd->who, fd->host);
+           fd->who(), fd->host());
       return 0;
    }
 
@@ -228,7 +228,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       stop_bsock_timer(tid);
       Jmsg(jcr, M_FATAL, 0, _("Authorization problem: FD on \"%s:%d\" requires TLS.\n"),
-           fd->host, fd->port);
+           fd->host(), fd->port());
       return 0;
    }
 
@@ -238,7 +238,7 @@ int authenticate_file_daemon(JCR *jcr)
       if (!bnet_tls_client(client->tls_ctx, fd)) {
          stop_bsock_timer(tid);
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with FD on \"%s:%d\".\n"),
-              fd->host, fd->port);
+              fd->host(), fd->port());
          return 0;
       }
    }
@@ -249,7 +249,7 @@ int authenticate_file_daemon(JCR *jcr)
       Dmsg1(50, _("Bad response from File daemon to Hello command: ERR=%s\n"),
          bnet_strerror(fd));
       Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon on \"%s:%d\" to Hello command: ERR=%s\n"),
-         fd->host, fd->port, bnet_strerror(fd));
+         fd->host(), fd->port(), bnet_strerror(fd));
       return 0;
    }
    Dmsg1(110, "<stored: %s", fd->msg);
@@ -257,7 +257,7 @@ int authenticate_file_daemon(JCR *jcr)
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
       Dmsg0(50, _("File daemon rejected Hello command\n"));
       Jmsg(jcr, M_FATAL, 0, _("File daemon on \"%s:%d\" rejected Hello command\n"),
-           fd->host, fd->port);
+           fd->host(), fd->port());
       return 0;
    }
    return 1;
@@ -279,18 +279,18 @@ int authenticate_user_agent(UAContext *uac)
    alist *verify_list = NULL;
  
 
-//  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
-//          ua->host, ua->port, ua->msglen);
+//  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who(),
+//          ua->host(), ua->port(), ua->msglen);
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
-      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who,
-            ua->host, ua->port, ua->msglen);
+      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who(),
+            ua->host(), ua->port(), ua->msglen);
       return 0;
    }
 
    if (sscanf(ua->msg, "Hello %127s calling\n", name) != 1) {
       ua->msg[100] = 0;               /* terminate string */
-      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Got: %s\n"), ua->who,
-            ua->host, ua->port, ua->msg);
+      Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Got: %s\n"), ua->who(),
+            ua->host(), ua->port(), ua->msg);
       return 0;
    }
 
@@ -379,7 +379,7 @@ auth_done:
    if (!auth_success) {
       bnet_fsend(ua, "%s", _(Dir_sorry));
       Emsg4(M_ERROR, 0, _("Unable to authenticate console \"%s\" at %s:%s:%d.\n"),
-            name, ua->who, ua->host, ua->port);
+            name, ua->who(), ua->host(), ua->port());
       sleep(5);
       return 0;
    }
