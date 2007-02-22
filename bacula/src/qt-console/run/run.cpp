@@ -31,6 +31,7 @@
  *
  *   Kern Sibbald, February MMVI
  *
+ *  $Id$
  */ 
 
 #include "bat.h"
