@@ -27,7 +27,7 @@
 */
  
 /*
- *   Version $Id: restore.cpp 0 2007-02-12 10:39:38Z kerns $
+ *   Version $Id$
  *
  *  Restore Class 
  *
