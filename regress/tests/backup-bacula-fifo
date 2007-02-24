@@ -16,6 +16,7 @@ scripts/copy-fifo-confs
 echo "${cwd}/build" >/tmp/file-list
 
 change_jobname NightlySave $JobName
+rm -f tmp/log1.out tmp/log2.out
 start_test
 
 
@@ -30,6 +31,7 @@ run job=$JobName yes
 status storage=Dummy
 @sleep 1
 wait
+@sleep 3
 messages
 quit
 END_OF_DATA
@@ -47,11 +49,12 @@ echo "test test" > ${cwd}/build/src/dird/xxx
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out tmp/log2.out
 list volumes
 run job=$JobName yes
 wait
 list volumes
+@sleep 3
 messages
 quit
 END_OF_DATA
@@ -62,9 +65,10 @@ stop_bacula
 
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
+grep "^  Termination: *Backup OK" tmp/log2.out 2>&1 >/dev/null
+dstat=$?
 
 # not yet implemented
-dstat=0
 rstat=0
 
 end_test
