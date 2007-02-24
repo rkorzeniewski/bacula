@@ -28,7 +28,7 @@ Director {
 
 Device {
   Name = Dummy
-  Media Type = Dumyy
+  Media Type = Dummy
   Device Type = Fifo
   Archive Device = /dev/null
   LabelMedia = yes
