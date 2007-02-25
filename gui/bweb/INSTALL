@@ -14,12 +14,11 @@ Bweb works well with 1.39 release or later.
 8) using sudo with autochanger
 9) using bfileview.pl
 10) accessing to bweb
+11) setting mysql read-only account
 
 ################ FILE COPY #####################################
- # you must get bweb cvs files
- cvs -d:pserver:anonymous@bacula.cvs.sourceforge.net:/cvsroot/bacula login 
- cvs -z3 -d:pserver:anonymous@bacula.cvs.sourceforge.net:/cvsroot/bacula co -P gui
- cd gui
+ # you must get bweb svn files
+ svn checkout https://bacula.svn.sourceforge.net/svnroot/bacula/trunk/gui/bweb bweb
 
  # or get them from the released tar files or from the apt or rpms.
 
@@ -276,5 +275,27 @@ ALTER TABLE brestore_pathvisibility ADD Files int4;
 
 Now, you are able to launch firefox/mozilla and go on
 http://your-server/bweb
+
+################ SETTING MYSQL ACCOUNT ###########################
+
+At this time, Bweb needs a write access to :
+- Location 
+- LocationLog
+- Media::LocationId
+- Media::Comment
+- Media::RecyclePoolId (it will change soon)
+
+If your doesn't use Location feature, you can use ReadOnly access
+for all tables, or setup something like :
+
+GRANT SELECT ON bacula.* TO 'bweb'@'%'  IDENTIFIED BY 'password';
+GRANT INSERT,UPDATE,DELETE ON bacula.Location 
+  TO 'bweb'@'%' IDENTIFIED BY 'password';
+GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog 
+  TO 'bweb'@'%' IDENTIFIED BY 'password';
+GRANT UPDATE (LocationId,Comment,RecyclePoolId) ON bacula.Media 
+  TO 'bweb'@'%'  IDENTIFIED BY 'password';
+
+###################################################################
 
 Enjoy !
