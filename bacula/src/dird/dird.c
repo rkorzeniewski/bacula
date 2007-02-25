@@ -763,6 +763,11 @@ static int check_resources()
          create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
       }
 
+      /* Loop over all pools for updating RecyclePool */
+      foreach_res(pool, R_POOL) {
+	 update_pool_recyclepool(NULL, db, pool);
+      }
+
       STORE *store;
       foreach_res(store, R_STORAGE) {
          STORAGE_DBR sr;

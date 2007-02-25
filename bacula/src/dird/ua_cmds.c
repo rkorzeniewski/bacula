@@ -532,6 +532,37 @@ void set_pooldbr_from_poolres(POOL_DBR *pr, POOL *pool, e_pool_op op)
    }
 }
 
+/* set/update Pool.RecyclePoolId in Catalog */
+int update_pool_recyclepool(JCR *jcr, B_DB *db, POOL *pool)
+{
+   POOL_DBR  pr;
+
+   if (!pool->RecyclePool) {
+      return 1;
+   }
+
+   memset(&pr, 0, sizeof(POOL_DBR));
+   bstrncpy(pr.Name, pool->name(), sizeof(pr.Name));
+
+   if (!db_get_pool_record(jcr, db, &pr)) {
+      return -1;                       /* not exists in database */
+   }
+
+   set_pooldbr_from_poolres(&pr, pool, POOL_OP_UPDATE);
+
+   if (!set_pooldbr_recyclepoolid(jcr, db, &pr, pool)) {
+      return -1;                      /* error */
+   }
+
+   if (!db_update_pool_record(jcr, db, &pr)) {
+      return -1;                      /* error */
+   }
+   return 1;
+}
+
+/* set POOL_DBR.RecyclePoolId from Pool resource 
+ * works with set_pooldbr_from_poolres
+ */
 bool set_pooldbr_recyclepoolid(JCR *jcr, B_DB *db, POOL_DBR *pr, POOL *pool)
 {
    POOL_DBR rpool;
@@ -584,7 +615,6 @@ int create_pool(JCR *jcr, B_DB *db, POOL *pool, e_pool_op op)
    }
 
    set_pooldbr_from_poolres(&pr, pool, op);
-   set_pooldbr_recyclepoolid(jcr, db, &pr, pool);
 
    if (!db_create_pool_record(jcr, db, &pr)) {
       return -1;                      /* error */
