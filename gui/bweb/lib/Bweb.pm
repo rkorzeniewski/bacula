@@ -215,6 +215,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      bconsole    => qr!^(.+)?$!,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
+	      stat_job_table => qr!^(\w*)$!,
 	      );
 
 =head1 FUNCTION

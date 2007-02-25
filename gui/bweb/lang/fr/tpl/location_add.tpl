@@ -14,7 +14,7 @@
          <td> <input class="formulaire" type='text' value='10' name='cost' size='3'>
          </td>
      </tr>
-     <tr><td>Enabled :</td> 
+     <tr><td>En ligne :</td> 
          <td> <input class="formulaire" type='checkbox' value='10' name='enabled'>
          </td>
      </tr>

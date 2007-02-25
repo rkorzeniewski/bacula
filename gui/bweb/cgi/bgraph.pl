@@ -48,11 +48,17 @@ use File::Basename qw/basename dirname/;
 
 my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
-
 my $bweb = new Bweb(info => $conf);
 $bweb->connect_db();
 my $dbh = $bweb->{dbh};
 my $debug = $bweb->{debug};
+
+# Job table keep use Media or Job retention, so it's quite enought
+# for good statistics
+# CREATE TABLE job_old (LIKE Job);
+# INSERT INTO job_old
+#    (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
+my $jobt = $conf->{stat_job_table} || 'Job';
 
 my $graph = CGI::param('graph') || 'job_size';
 my $legend = CGI::param('legend') || 'on' ;
@@ -64,17 +70,17 @@ my $arg = $bweb->get_form(qw/width height limit offset age where jobid
 my ($limitq, $label) = $bweb->get_limit(age   => $arg->{age},
 					limit => $arg->{limit},
 					offset=> $arg->{offset},
-					order => 'Job.StartTime ASC',
+					order => "$jobt.StartTime ASC",
 					);
 
 my $statusq='';
 if ($arg->{status} and $arg->{status} ne 'Any') {
-    $statusq = " AND Job.JobStatus = '$arg->{status}' ";
+    $statusq = " AND $jobt.JobStatus = '$arg->{status}' ";
 }
     
 my $levelq='';
 if ($arg->{level} and $arg->{level} ne 'Any') {
-    $levelq = " AND Job.Level = '$arg->{level}' ";
+    $levelq = " AND $jobt.Level = '$arg->{level}' ";
 } 
 
 my $filesetq='';
@@ -84,7 +90,7 @@ if ($arg->{jfilesets}) {
 
 my $jobnameq='';
 if ($arg->{jjobnames}) {
-    $jobnameq = " AND Job.Name IN ($arg->{jjobnames}) ";
+    $jobnameq = " AND $jobt.Name IN ($arg->{jjobnames}) ";
 } else {
     $arg->{jjobnames} = 'all';	# skip warning
 } 
@@ -187,14 +193,14 @@ if ($graph eq 'job_size') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
+       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
        Client.Name                      AS clientname,
-       Job.Name                         AS jobname,
-       Job.JobBytes                     AS jobbytes
-FROM Job, Client, FileSet
-WHERE Job.ClientId = Client.ClientId
-  AND Job.FileSetId = FileSet.FileSetId
-  AND Job.Type = 'B'
+       $jobt.Name                       AS jobname,
+       $jobt.JobBytes                   AS jobbytes
+FROM $jobt, Client, FileSet
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.FileSetId = FileSet.FileSetId
+  AND $jobt.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -224,14 +230,14 @@ if ($graph eq 'job_file') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
+       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
        Client.Name                      AS clientname,
-       Job.Name                         AS jobname,
-       Job.JobFiles                     AS jobfiles
-FROM Job, Client, FileSet
-WHERE Job.ClientId = Client.ClientId
-  AND Job.FileSetId = FileSet.FileSetId
-  AND Job.Type = 'B'
+       $jobt.Name                       AS jobname,
+       $jobt.JobFiles                   AS jobfiles
+FROM $jobt, Client, FileSet
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.FileSetId = FileSet.FileSetId
+  AND $jobt.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -257,6 +263,7 @@ $limitq
 }
 
 # it works only with postgresql at this time
+# we dont use $jobt because we use File, so job is in Job table
 elsif ($graph eq 'file_histo' and $arg->{where}) {
     
     my $dir  = $dbh->quote(dirname($arg->{where}) . '/');
@@ -356,19 +363,19 @@ elsif ($graph eq 'job_rate') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP(Job.StartTime)                          AS starttime,
+       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
        Client.Name                      AS clientname,
-       Job.Name                         AS jobname,
-       Job.JobBytes /
+       $jobt.Name                       AS jobname,
+       $jobt.JobBytes /
        ($bweb->{sql}->{SEC_TO_INT}(
                           $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                         - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) + 0.01) 
          AS rate
 
-FROM Job, Client, FileSet
-WHERE Job.ClientId = Client.ClientId
-  AND Job.FileSetId = FileSet.FileSetId
-  AND Job.Type = 'B'
+FROM $jobt, Client, FileSet
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.FileSetId = FileSet.FileSetId
+  AND $jobt.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -400,16 +407,16 @@ elsif ($graph eq 'job_duration') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP(Job.StartTime)                           AS starttime,
+       UNIX_TIMESTAMP($jobt.StartTime)                         AS starttime,
        Client.Name                                             AS clientname,
-       Job.Name                                                AS jobname,
+       $jobt.Name                                              AS jobname,
   $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                              - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
          AS duration
-FROM Job, Client, FileSet
-WHERE Job.ClientId = Client.ClientId
-  AND Job.FileSetId = FileSet.FileSetId
-  AND Job.Type = 'B'
+FROM $jobt, Client, FileSet
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.FileSetId = FileSet.FileSetId
+  AND $jobt.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -457,15 +464,18 @@ $limitq
     if ($t eq 'sum' or $t eq 'avg') {
 	push @arg, ('y_number_format' => \&Bweb::human_size);
     }
+    
+    my $stime = $bweb->{sql}->{"STARTTIME_$d"};
+    $stime =~ s/Job\./$jobt\./;
 
     my $query = "
 SELECT
-     " . ($per_t?"":"UNIX_TIMESTAMP") . "(" . $bweb->{sql}->{"STARTTIME_$d"} . ") AS A,
+     " . ($per_t?"":"UNIX_TIMESTAMP") . "($stime) AS A,
      $t(JobBytes)                  AS nb
-FROM Job, Client, FileSet
-WHERE Job.ClientId = Client.ClientId
-  AND Job.FileSetId = FileSet.FileSetId
-  AND Job.Type = 'B'
+FROM $jobt, Client, FileSet
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.FileSetId = FileSet.FileSetId
+  AND $jobt.Type = 'B'
   $clientq
   $statusq
   $filesetq

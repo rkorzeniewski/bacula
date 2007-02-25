@@ -37,6 +37,8 @@
          </td></tr>
      <tr><td>fv_write_path :</td> 
          <td> <input class="formulaire" title="This folder must be writable by apache user and must be accessible on /bweb/fv" type='text' value='<TMPL_VAR fv_write_path>' size='64' name='fv_write_path'> 
+     <tr><td>stat_job_table :</td> 
+         <td> <input class="formulaire" title="You can choose the Job table that you want to use to get statistics" type='text' value='<TMPL_IF stat_job_table><TMPL_VAR stat_job_table><TMPL_ELSE>Job</TMPL_IF>' size='64' name='stat_job_table'> 
          </td></tr>
      <tr><td>bconsole :</td> 
          <td> <input class="formulaire" type='text' value='<TMPL_VAR bconsole>' size='64' name='bconsole'> 

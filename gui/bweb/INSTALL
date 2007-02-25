@@ -15,6 +15,7 @@ Bweb works well with 1.39 release or later.
 9) using bfileview.pl
 10) accessing to bweb
 11) setting mysql read-only account
+12) get more statistics
 
 ################ FILE COPY #####################################
  # you must get bweb svn files
@@ -271,12 +272,12 @@ To upgrade from an old installation, you can use :
 ALTER TABLE brestore_pathvisibility ADD Size int8;
 ALTER TABLE brestore_pathvisibility ADD Files int4;
 
-################ ACCESSING TO BWEB ###############################
+################ ACCESSING TO BWEB ############################
 
 Now, you are able to launch firefox/mozilla and go on
 http://your-server/bweb
 
-################ SETTING MYSQL ACCOUNT ###########################
+################ SETTING MYSQL ACCOUNT ########################
 
 At this time, Bweb needs a write access to :
 - Location 
@@ -296,6 +297,17 @@ GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog
 GRANT UPDATE (LocationId,Comment,RecyclePoolId) ON bacula.Media 
   TO 'bweb'@'%'  IDENTIFIED BY 'password';
 
-###################################################################
+################ GET MORE STATISTICS ###########################
+
+You keep Jobs informations across retention into a job_old table.
+You have to setup stat_job_table = job_old in bweb configuration.
+
+CREATE TABLE job_old (LIKE Job);
+
+And run this on crontab when you want :
+INSERT INTO job_old 
+  (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
+
+################################################################
 
 Enjoy !

@@ -1,7 +1,9 @@
           Release Notes for bweb 2.0
-
 2007/02/25
  - Update INSTALL notes (GRANT options for mysql)
+ - You can choose a other table than Job to do your statistics
+   Job is purged by Media or Job retention, it's not very useful
+   to follow trends.
 
 2007/02/14
  - Add EndTime to display_job if you want add it to your tpl
