@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/02/25
+ - Update INSTALL notes (GRANT options for mysql)
+
 2007/02/14
  - Add EndTime to display_job if you want add it to your tpl
 
