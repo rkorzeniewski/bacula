@@ -1,3 +1,9 @@
+bweb (2.0.2-3) stable; urgency=low
+
+  * Add new stat_job_table option
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Sun,  25 Feb 2007 11:10:47 +0000
+
 bweb (2.0.2-2) stable; urgency=low
 
   * fix brestore batch mode
