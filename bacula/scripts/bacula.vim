@@ -41,7 +41,7 @@ syn region    BacFileSet display start="FileSet {" end="^}" contains=BacString,B
 syn region    BacFSInc   contained display start="Include {" end="}" contains=BacString,BacComment,BacFSOpt,BacFS1
 syn region    BacFSExc   contained display start="Exclude {" end="}" contains=BacString,BacComment,BacFSOpt,BacFS1
 syn region    BacFSOpt   contained display  start="Options {" end="}" contains=BacString,BacComment,BacFSOpt1,BacFSOpt2
-syn keyword   BacFSOpt1  contained verify signature onefs noatime RegexFile Exclude Wild WildDir WildFile
+syn keyword   BacFSOpt1  contained verify signature onefs noatime RegexFile Exclude Wild WildDir WildFile CheckChanges
 syn match     BacFSOpt2  contained /ignore case/
 syn keyword   BacFS1     contained File
 syn match     BacFS2     contained /Enable VSS/
