@@ -25,7 +25,7 @@ VERSION=2.0.2
 RELEASE=1
 
 # build platform for spec
-# set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,fc6,wb3,rhel3,rhel4,centos3,centos4,su9,su10,mdk,mdv
+# set to one of rh7,rh8,rh9,fc1,fc3,fc4,fc5,fc6,wb3,rhel3,rhel4,centos3,centos4,su9,su10,su102,mdk,mdv
 PLATFORM=su10
 
 # platform designator for file names
