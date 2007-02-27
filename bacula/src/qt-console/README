@@ -22,7 +22,7 @@ Makefile, and there after, you simply use "make". In fact, providing
 you edit bat.pro, doing a "make" will automatically call qmake to
 rebuild the Makefile.
 
-Development status as of 11 Feb 07.
+Development status as of 27 Feb 07.
 
 Items implemented:
 - Reads a basic bat.conf (same as documented for the gnome-console 
@@ -30,21 +30,36 @@ Items implemented:
 - Basic main window structure
 - About dialog
 - Quit menu item
-- Connect button will connect to the first Director defined in the conf file.
+- Will automatically connnect to the first Director in the
+  conf file. Doesn't know about multiple Directors.
 - The Director name will appear in the Selection tree followed
   by Console and Restore.  
 - Clicking on Console brings forward the console display screen
   (default at startup).
-- Clicking on Restore brings up a brestore page that is not active.
+- Clicking on 
+- Clicking on bRestore brings up a brestore page that is not active.
 - The command line is implemented.
 - The status line (below the command line) is implemented.
 - Selection of Font is implemented.
 - The Font and the window size are saved on exit and restored on
   execution of bat.
+- The Status menu bar icon is implemented.
 
 Items not implemented:
-- None of the menu items except About, Quit.
-- Nothing on the restore page
+- None of the menu items except About, Select Font, and Quit.
+- Nothing on the brestore page
+- The Label menu bar item, prints on the shell window what you entered.
+- The Run menu bar item, prints on the console window what you entered.
+- The Restore menu bar item, brings up dialog, then when OK is
+  clicked, it goes on to the next dialog (oops, it seems to crash
+  now -- will fix soon).
+
+Not working:
+- The left selection window and the right window (where the console
+  is) are dockable windows so should be movable once they are properly
+  clicked.  Well, they sort of move, but then get stuck.  I haven't figured
+  out what is going on, so for the current time, I am implemeting most
+  stuff through dialogs.
      
 Design/implementation considerations:
 - We need to have multiple Directors
@@ -58,7 +73,6 @@ Design/implementation considerations:
 - Need to figure out a good implementation of adding pages and even
   having plugins that load as pages.  Currently the page mechanism
   is a bit kludged.
-- moc files should be moved into a subdirectory.
 
 Design decisions:
 - If possible all code for a particular component will be kept in
