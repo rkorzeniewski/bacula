@@ -975,7 +975,7 @@ WHERE Media.VolumeName IN ($media_list)
 
 	    } else {		# empty or no label
 		push @{ $param }, {realslot => $slot,
-				   volstatus => 'Unknow',
+				   volstatus => 'Unknown',
 				   volumename => $self->{slot}->[$slot]} ;
 	    }
 	} else {		# empty
@@ -2413,7 +2413,7 @@ sub change_location
     }
     my $newloc = CGI::param('newlocation');
 
-    my $user = CGI::param('user') || 'unknow';
+    my $user = CGI::param('user') || 'unknown';
     my $comm = CGI::param('comment') || '';
     $comm = $self->dbh_quote("$user: $comm");
 

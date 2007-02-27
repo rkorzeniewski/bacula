@@ -6,7 +6,7 @@
   <form name='form1' action="?" method='GET'>
    <table>
     <tr><td>Volume Name:</td>
-        <td><input type='text' name='media' class='formulaire' value='<TMPL_VAR volumename>' title='Change this to update an other media'>
+        <td><input type='text' name='media' class='formulaire' value='<TMPL_VAR volumename>' title='Change this to update an other volume'>
         </td>
     </tr>
     <tr><td>Pool:</td>
