@@ -51,9 +51,10 @@ Items not implemented:
 - The Label menu bar item, prints on the shell window what you entered.
 - The Run menu bar item, prints on the console window what you entered.
 - The Restore menu bar item, brings up dialog, then when OK is
-  clicked, it goes on to the next dialog (oops, it seems to crash
-  now -- will fix soon).
-
+  clicked, it goes on to the next dialog, which is meant to be
+  a tree view, but for the moment does nothing ...  It is a bit
+  ugly. Cancelling it should get you back to the normal command prompt.
+         
 Not working:
 - The left selection window and the right window (where the console
   is) are dockable windows so should be movable once they are properly
