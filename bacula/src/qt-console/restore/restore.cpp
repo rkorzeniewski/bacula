@@ -70,8 +70,8 @@ void prerestoreDialog::accept()
 
    m_console->write(cmd);
    m_console->display_text(cmd);
-   delete this;
    new restoreDialog(m_console);
+   delete this;
 }
 
 
