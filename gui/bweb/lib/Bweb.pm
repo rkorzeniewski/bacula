@@ -2956,9 +2956,13 @@ sub get_job_log
 {
     my ($self) = @_;
 
-    my $arg = $self->get_form('jobid');
+    my $arg = $self->get_form('jobid', 'limit', 'offset');
     unless ($arg->{jobid}) {
 	return $self->error("Can't get jobid");
+    }
+
+    if ($arg->{limit} == 100) {
+        $arg->{limit} = 1000;
     }
 
     my $t = CGI::param('time') || '';
@@ -2982,7 +2986,9 @@ SELECT Time AS time, LogText AS log
     OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
                       AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
        )
- ORDER BY LogId;
+ ORDER BY LogId
+ LIMIT $arg->{limit}
+ OFFSET $arg->{offset}
 ";
 
     my $log = $self->dbh_selectall_arrayref($query);
@@ -3002,6 +3008,8 @@ SELECT Time AS time, LogText AS log
 		     jobid => $arg->{jobid},
 		     name  => $row->{name},
 		     client => $row->{clientname},
+		     offset => $arg->{offset},
+		     limit  => $arg->{limit},
 		 }, 'display_log.tpl');
 }
 
