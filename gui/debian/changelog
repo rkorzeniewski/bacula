@@ -1,3 +1,9 @@
+bweb (2.0.3-1) stable; urgency=low
+
+  * Add limit and offset options to log view (for big log)
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Wed,  28 Feb 2007 21:10:47 +0000
+
 bweb (2.0.2-3) stable; urgency=low
 
   * Add new stat_job_table option
