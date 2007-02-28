@@ -1,4 +1,7 @@
           Release Notes for bweb 2.0
+2007/02/28
+ - Add limit and offset params to display_log
+
 2007/02/25
  - Update INSTALL notes (GRANT options for mysql)
  - You can choose a other table than Job to do your statistics
