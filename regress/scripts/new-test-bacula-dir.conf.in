@@ -99,6 +99,18 @@ Job {
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
 }
 
+Job {
+  Name = "FIFOTest"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="FIFOSet"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+}
+
+
 
 # Backup the catalog database (after the nightly save)
 Job {
@@ -186,6 +198,18 @@ FileSet {
     File = </tmp/file-list
   }
 }
+
+FileSet {
+  Name = "FIFOSet"
+  Include {
+    Options {
+      readfifo = yes
+      signature=MD5 
+    }
+    File = </tmp/file-list
+  }
+}
+
 
 FileSet {
   Name = "SparseCompressedSet"

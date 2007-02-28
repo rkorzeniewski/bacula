@@ -8,7 +8,7 @@ rm -rf tmp/original tmp/bacula-restores tmp/Small* tmp/TestVolume*
 rm -rf tmp/restored tmp/largefile tmp/bscan.bsr tmp/log*.out
 rm -rf /tmp/sed_tmp /tmp/file-list
 rm -rf tmp/build tmp/restore-list tmp/restore2-list
-rm -rf tmp/fd.out tmp/dir.out tmp/sd.out
+rm -rf tmp/fd.out tmp/dir.out tmp/sd.out tmp/*.jpg
 rm -rf working/log tmp/TEST-*
 rm -rf working/*.bsr
 rm -rf tmp/disk-changer /tmp/disk-changer

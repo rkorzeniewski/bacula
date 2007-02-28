@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+# Attempt to backup from a fifo and restore to a fifo
+#
+TestName="fifo-test"
+JobName=FIFOTest
+. scripts/functions
+set_debug 0
+
+cwd=`pwd`
+scripts/cleanup
+scripts/copy-test-confs
+echo "/tmp/bfifo" >/tmp/file-list
+
+rm -f /tmp/bfifo
+# send a file into the fifo
+file=encrypt-bug.jpg
+cat ${file} >/tmp/bfifo&
+
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+label storage=File1 volume=TestVolume001
+run job=$JobName storage=File1 yes
+wait
+messages
+quit
+END_OF_DATA
+
+
+run_bacula
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=File1 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+cat </tmp/bfifo >tmp/${file} &
+
+run_bconsole
+
+check_for_zombie_jobs storage=File1
+stop_bacula
+
+check_two_logs
+diff ${file} tmp/${file}
+dstat=$?
+end_test
