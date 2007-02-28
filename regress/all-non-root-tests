@@ -15,6 +15,7 @@ tests/compress-encrypt-test
 tests/concurrent-jobs-test
 tests/data-encrypt-test
 tests/encrypt-bug-test
+tests/fifo-test
 tests/backup-bacula-fifo
 # The following two can uses *lots* of disk space
 #   so they are normally turned off, but if you have
