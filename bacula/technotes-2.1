@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+29Feb07
+kes  Correct virtual changer check which was backwards. This caused
+     volumes to be unloaded into slots already occupied.
+28Feb07
+kes  Apply Command ACL filter to JobId list in restore command.
+kes  Correct typeo in var.c patch.
+27Feb07
+kes  Don't let Bacula prune File or Job records for the current Job.
+kes  Fix variable substitution pad + inc bug reported (with patch)
+     in bug #791.
 26Feb07
 kes  Correct SQLite log table index as reported by Luca Berra.
 24Feb07
@@ -112,7 +122,7 @@ kes  Test on job_canceled() and sd_msg_thread_done inside
      Fixes bug #771.
 kes  Remove rl_catch_signal from console.c as it conflicted
      with the header definition. Fixes bug #765.
-ebl  Fixes bug #766 about RunsOnClient = Yes
+ebl  Fixes bug #766 about RunsOnClient = Yes (case sensitive)
 04Feb07
 kes  Clarify some stored/acquire messages to indicate if the
      problem is with read or append.
