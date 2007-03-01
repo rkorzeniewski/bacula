@@ -144,3 +144,17 @@ diff -Naur bacula1/src/findlib/protos.h bacula2/src/findlib/protos.h
  
  /* From get_priv.c */
  int enable_backup_privileges(JCR *jcr, int ignore_errors);
+diff -Naur bacula1/src/win32/dll/bacula.def bacula2/src/win32/dll/bacula.def
+--- bacula1/src/win32/dll/bacula.def    2007-02-28 14:35:43.000000000 +0100
++++ bacula2/src/win32/dll/bacula.def    2007-03-01 11:15:50.000000000 +0100
+@@ -80,6 +80,8 @@
+
+ ; find_one.c:
+ _Z13find_one_fileP3JCRP6FF_PKTPFiS2_PvbES3_Pcjb
++_Z17file_have_changedP3JCRP6FF_PKT
++
+
+ ; fstype.c:
+ _Z6fstypePKcPci
+
+
