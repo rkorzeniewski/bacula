@@ -18,7 +18,7 @@ your questions on the bacula-devel list, but we can't guarantee anything.
 One-time Setup
 ==============
 
-If you're reading this file you've probably already enlisted in the CVS tree or
+If you're reading this file you've probably already enlisted in the SVN tree or
 extracted the contents of the source tar.  If not you need to do that first.
 
 You also need to download one of the doc tar balls and extract to your

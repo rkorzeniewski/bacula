@@ -6,6 +6,8 @@ Project                     Developer
 =======                     =========                         
 
 Document:
+- !!! Cannot restore two jobs a the same time that were
+  written simultaneously unless they were totally spooled.
 - Document cleaning up the spool files:
   db, pid, state, bsr, mail, conmsg, spool
 - Document the multiple-drive-changer.txt script.
@@ -41,6 +43,7 @@ Document:
  
 
 Priority:
+- Look at sg_logs -a /dev/sg0 for getting soft errors.
 - btape "test" command with Offline on Unmount = yes
 
    This test is essential to Bacula.
