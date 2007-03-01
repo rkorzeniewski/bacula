@@ -22,6 +22,7 @@
     <select name='status' class='formulaire'>
       <option id='status_Any' value='Any'>Tous</option>
       <option id='status_T'   value='T'>Ok</option>
+      <option id='status_W'   value='W'>Warning</option>
       <option id='status_f'   value='f'>Erreur</option>
       <option id='status_A'   value='A'>Annulé</option>
     </select>     

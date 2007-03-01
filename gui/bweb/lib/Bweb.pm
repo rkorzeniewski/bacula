@@ -1841,7 +1841,9 @@ sub get_param
 	    $ret{status} = $1;
 	    if ($1 eq 'f') {
 		$limit .= "AND Job.JobStatus IN ('f','E') ";		
-	    } else {
+	    } elsif ($1 eq 'W') {
+		$limit .= "AND Job.JobStatus = 'T' AND Job.JobErrors > 0 ";		
+            } else {
 		$limit .= "AND Job.JobStatus = '$1' ";		
 	    }
 	}
