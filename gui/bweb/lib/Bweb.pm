@@ -216,6 +216,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
 	      stat_job_table => qr!^(\w*)$!,
+	      display_log_time => qr!^(on)?$!,
 	      );
 
 =head1 FUNCTION
@@ -2965,7 +2966,7 @@ sub get_job_log
         $arg->{limit} = 1000;
     }
 
-    my $t = CGI::param('time') || '';
+    my $t = CGI::param('time') || $self->{info}->{display_log_time} || '';
 
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
