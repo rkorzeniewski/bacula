@@ -17,6 +17,7 @@
     <tr><td title="Ce répertoire doit être accessible en ecriture pour apache et être sous /bweb/fv">fv_write_path :</td> <td> <TMPL_VAR fv_write_path> </td></tr>
     <tr><td title="Vous pouvez utiliser une autre table que Job pour vos statistiques">stat_job_table :</td> <td> <TMPL_IF stat_job_table><TMPL_VAR stat_job_table><TMPL_ELSE>Job</TMPL_IF> </td></tr>
     <tr><td title="/chemin/vers/bconsole -n -c /chemin/vers/bconsole.conf">bconsole :</td> <td> <TMPL_VAR bconsole> </td></tr>
+    <tr><td title="affiche les heures dans le log des jobs">display_log_time :</td> <td> <TMPL_VAR display_log_time> </td></tr>
     <tr><td>debug :</td> <td> <TMPL_VAR debug> </td></tr>
     <TMPL_IF achs>
     <tr>  <td><b>Robotique (Autochanger)</b></td>  <td/></tr>
