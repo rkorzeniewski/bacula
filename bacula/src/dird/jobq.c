@@ -682,13 +682,14 @@ static bool acquire_resources(JCR *jcr)
    jcr->acquired_resource_locks = false;
    if (jcr->rstore) {
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
-      /* 
-       * Let only one Restore/verify job run at a time regardless
-       *   of MaxConcurrentJobs.
-       */ 
-      if (jcr->rstore->NumConcurrentJobs == 0) {
+      if (jcr->rstore->NumConcurrentJobs == 0 &&
+          jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+         /* Simple case, first job */
          jcr->rstore->NumConcurrentJobs = 1;
          Dmsg0(200, "Set rncj=1\n");
+      } else if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+         jcr->rstore->NumConcurrentJobs++;
+         Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       } else {
          Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
@@ -699,7 +700,7 @@ static bool acquire_resources(JCR *jcr)
    if (jcr->wstore) {
       Dmsg1(200, "Wstore=%s\n", jcr->wstore->name());
       if (jcr->rstore == jcr->wstore) {           /* deadlock */
-         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
+         jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
          Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
             "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
             jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
@@ -715,7 +716,7 @@ static bool acquire_resources(JCR *jcr)
          jcr->wstore->NumConcurrentJobs++;
          Dmsg1(200, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       } else if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
+         jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
          Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
          skip_this_jcr = true;
       } else {
@@ -737,7 +738,7 @@ static bool acquire_resources(JCR *jcr)
          Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       }
       if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;
+         jcr->rstore->NumConcurrentJobs--;  
          Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       }
       set_jcr_job_status(jcr, JS_WaitClientRes);
@@ -752,7 +753,7 @@ static bool acquire_resources(JCR *jcr)
          Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       }
       if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;
+         jcr->rstore->NumConcurrentJobs--;
          Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       }
       jcr->client->NumConcurrentJobs--;

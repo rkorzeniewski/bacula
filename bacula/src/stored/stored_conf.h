@@ -86,6 +86,7 @@ public:
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
    MSGS *messages;                    /* Daemon message handler */
    utime_t heartbeat_interval;        /* Interval to send hb to FD */
+   utime_t client_wait;               /* Time to wait for FD to connect */
    int tls_enable;                    /* Enable TLS */
    int tls_require;                   /* Require TLS */
    int tls_verify_peer;               /* TLS Verify Client Certificate */

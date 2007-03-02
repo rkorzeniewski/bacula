@@ -1,12 +1,4 @@
 /*
- *   Job control and execution for Storage Daemon
- *
- *   Kern Sibbald, MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Job control and execution for Storage Daemon
+ *
+ *   Kern Sibbald, MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -166,9 +166,10 @@ bool run_cmd(JCR *jcr)
 
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + 30 * 60;        /* wait 30 minutes */
+   timeout.tv_sec = tv.tv_sec + me->client_wait;
 
-   Dmsg1(100, "%s waiting on FD to contact SD\n", jcr->Job);
+   Dmsg2(100, "%s waiting %d sec for FD to contact SD\n", 
+        jcr->Job, (int)me->client_wait);
    /*
     * Wait for the File daemon to contact us to start the Job,
     *  when he does, we will be released, unless the 30 minutes

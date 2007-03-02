@@ -43,6 +43,8 @@ Document:
  
 
 Priority:
+- Add Catalog = to Pool resource so that pools will exist
+  in only one catalog -- currently Pools are "global".
 - Look at sg_logs -a /dev/sg0 for getting soft errors.
 - btape "test" command with Offline on Unmount = yes
 

@@ -1,6 +1,11 @@
               Technical notes on version 2.1
 
 General:
+02Mar07
+kes  Modify jobq.c to let simultaneous restore jobs run. This may 
+     cause them to fail if they cannot get a drive.
+kes  Add Client Connect Wait to Storage daemon to permit users to
+     modify the time the SD waits for a FD connection.
 29Feb07
 kes  Correct virtual changer check which was backwards. This caused
      volumes to be unloaded into slots already occupied.
