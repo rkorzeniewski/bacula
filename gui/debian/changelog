@@ -1,6 +1,7 @@
 bweb (2.0.3-2) stable; urgency=low
 
   * Add display_log_time option to view timestamp in display_log
+  * Add db_size information (for mysql5 and postgresql users)
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Thu,  01 Feb 2007 01:10:47 +0000
 
