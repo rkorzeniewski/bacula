@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/03/02
+ - Add Postgresql and Mysql5 database size information (See INSTALL for mysql)
+
 2007/03/01
  - Add display_time_log option to get timestamp in display_log
  - Add Warning filter on display_job (see jobstatus=T and joberrors > 0)

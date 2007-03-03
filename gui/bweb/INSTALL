@@ -7,7 +7,7 @@ Bweb works well with 1.39 release or later.
 1) install Perl lib
 2) copy your files
 3) initialize your configuration file
-4) do some sql stuff (for postgresql users)
+4) do some sql stuff (for postgresql or mysql 5 users)
 5) use the -n option on bconsole so that it works with Expect
 6) get bacula log more useful
 7) bweb limitation
@@ -180,15 +180,23 @@ If you want to use brestore with bweb, you must associate a mime type
 text/brestore with your brestore.pl, and you must install brestore.
 See gui/brestore/README for instructions on installing brestore.pl.
 
-################ POSTGRESQL NOTES ##############################
+################ POSTGRESQL AND MYSQL5 NOTES ####################
 
 If you want to use PostgreSQL instead of MySQL, you must add
 a function to the PostgreSQL Bacula database to get Bweb to work.
 
 psql -U bacula bacula < script/bweb-postgresql.sql
 
-Tips: PL must be enable in your cluster, you can do this with postgres user
+Tips: PL must be enabled in your cluster, you can do this with postgres user
 postgres:~$ echo 'CREATE PROCEDURAL LANGUAGE plpgsql;' | psql bacula 
+
+
+To get database size with mysql5, edit Bweb.pm and change the DB_SIZE macro
+
+ # with mysql < 5, you have to play with the ugly SHOW command
+ DB_SIZE => " SELECT 0 ",
+ # works only with mysql 5
+ # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
 
 ################ BCONSOLE NOTES ################################
 
