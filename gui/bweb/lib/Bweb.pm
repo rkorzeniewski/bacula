@@ -1049,6 +1049,7 @@ our %sql_func = (
 	      STARTTIME_PHOUR=> " date_part('hour', Job.StartTime) ",
 	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
 	      STARTTIME_PMONTH => " date_part('month', Job.StartTime) ",
+	      DB_SIZE => " SELECT pg_database_size(current_database()) ",
 	  },
 	  mysql => {
 	      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
@@ -1063,6 +1064,10 @@ our %sql_func = (
 	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
 	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
 	      STARTTIME_PMONTH => " DATE_FORMAT(StartTime, '%m') ",
+	      # with mysql < 5, you have to play with the ugly SHOW command
+	      DB_SIZE => " SELECT 0 ",
+	      # works only with mysql 5
+	      # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
 	  },
 	 );
 
@@ -1758,6 +1763,7 @@ SELECT
     (SELECT count(Media.MediaId) FROM Media)  AS nb_media,
     (SELECT count(Job.JobId)     FROM Job)    AS nb_job,
     (SELECT sum(VolBytes)        FROM Media)  AS nb_bytes,
+    ($self->{sql}->{DB_SIZE})                 AS db_size,
     (SELECT count(Job.JobId)
       FROM Job
       WHERE Job.JobStatus IN ('E','e','f','A')
@@ -1770,7 +1776,7 @@ SELECT
 
     $row->{nb_bytes} = human_size($row->{nb_bytes});
 
-    $row->{db_size} = '???';
+    $row->{db_size} = human_size($row->{db_size});
     $row->{label} = $label;
 
     $self->display($row, "general.tpl");
