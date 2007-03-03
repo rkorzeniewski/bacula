@@ -122,6 +122,16 @@ sub log_stdout
     $self->{log_stdout} = $how;
 }
 
+sub error
+{
+    my ($self, $error) = @_;
+    $self->{error} = $!;
+    if ($self->{debug}) {
+	print "E: bconsole (", $self->{pref}->{bconsole}, ") $!\n";
+    }
+    return 0;
+}
+
 sub connect
 {
     my ($self) = @_;
@@ -133,8 +143,7 @@ sub connect
     unless ($self->{bconsole}) {
 	my @cmd = split(/\s+/, $self->{pref}->{bconsole}) ;
 	unless (@cmd) {
-	    $self->{error} = "bconsole string not found";
-	    return 0;
+	    return $self->error("bconsole string not found");
 	}
 	$self->{bconsole} = new Expect;
 	$self->{bconsole}->raw_pty(0);
@@ -150,13 +159,13 @@ sub connect
             my $old = $ENV{COLUMNS};
             $ENV{COLUMNS} = 300;
 	    $ret = $self->{bconsole}->spawn(@cmd) ;
-            $ENV{COLUMNS} = $old;
+	    delete $ENV{COLUMNS};
+	    $ENV{COLUMNS} = $old if ($old) ;
 	    $SIG{__DIE__} = $sav;
 	}
 
 	unless ($ret) {
-	    $self->{error} = $!;
-	    return 0;
+	    return $self->error($ret);
 	}
 	
 	# TODO : we must verify that expect return the good value
@@ -352,7 +361,7 @@ sub _get_volume
 	    $sel .= " volume=$1";
 
 	} else {
-	    $self->{error} = "Sorry media is bad";
+	    $self->error("Sorry media is bad");
 	    return '';
 	}
     }
@@ -400,8 +409,7 @@ sub purge_job
 	    $sel .= " jobid=$1";
 
 	} else {
-	    $self->{error} = "Sorry jobid is bad";
-	    return 0;
+	    return $self->error("Sorry jobid is bad");
 	}
     }
 
