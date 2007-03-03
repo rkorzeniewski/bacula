@@ -101,28 +101,34 @@ restoreDialog::restoreDialog(Console *console)
 {
    m_console = console;
    setupUi(this);
-   fillDirectory("/");
+   fillDirectory("/home/kern/bacula/k");
    this->show();
 }
 
 /*
  * Fill the CList box with files at path
  */
-void restoreDialog::fillDirectory(const char *path)
+void restoreDialog::fillDirectory(const char *dir)
 {
    char pathbuf[MAXSTRING];
    char modes[20], user[20], group[20], size[20], date[30];
-   char file[1000];
    char marked[10];
    int row = 0;
+   int pnl, fnl;
+   POOLMEM *file = get_pool_memory(PM_FNAME);
+   POOLMEM *path = get_pool_memory(PM_FNAME);
 
    m_console->setEnabled(false);
-   m_fname = path;
+   m_fname = dir;
 
 
    m_console->displayToPrompt();
-   bsnprintf(pathbuf, sizeof(pathbuf), "cd %s", path);
+   bsnprintf(pathbuf, sizeof(pathbuf), "cd %s", dir);
    Dmsg1(100, "%s\n", pathbuf);
+
+   QStringList titles;
+   titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
+   fileWidget->setHeaderLabels(titles);
 
    m_console->write(pathbuf);
    m_console->display_text(pathbuf);
@@ -130,6 +136,9 @@ void restoreDialog::fillDirectory(const char *path)
 
    m_console-> write_dir("dir");
    m_console->display_text("dir");
+
+   QList<QTreeWidgetItem *> items;
+   QStringList item;
    while (m_console->read() > 0) {
       char *p = m_console->msg();
       char *l;
@@ -137,7 +146,7 @@ void restoreDialog::fillDirectory(const char *path)
       if (*p == '$') {
          break;
       }
-      Dmsg1(200, "Got: %s\n", p);
+//    Dmsg1(000, "Got: %s\n", p);
       if (!*p) {
          continue;
       }
@@ -177,18 +186,19 @@ void restoreDialog::fillDirectory(const char *path)
       } else {
          bstrncpy(marked, " ", sizeof(marked));
       }
-//    split_path_and_filename(p, &restore->path, &restore->pnl,
-//                            &restore->file, &restore->fnl);
+      split_path_and_filename(p, &path, &pnl,
+                              &file, &fnl);
 
-//    Dmsg1(000, "restore->fname=%s\n", restore->fname);
-//    bstrncpy(file, restore->file, sizeof(file));
-      printf("modes=%s user=%s group=%s size=%s date=%s file=%s\n",
-         modes, user, group, size, date, file);
+//    printf("modes=%s user=%s group=%s size=%s date=%s path=%s file=%s\n",
+//       modes, user, group, size, date, path, file);
 
-//    append to list
+      item.clear();
+      item << "" << file << modes << user << group << size << date;
+      items.append(new QTreeWidgetItem((QTreeWidget *)0, item));
 
       row++;
    }
+   fileWidget->insertTopLevelItems(0, items);
 
-     m_console->setEnabled(true);
+   m_console->setEnabled(true);
 }
