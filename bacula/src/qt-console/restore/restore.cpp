@@ -101,6 +101,9 @@ restoreDialog::restoreDialog(Console *console)
 {
    m_console = console;
    setupUi(this);
+   connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
+           this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
+   setFont(m_console->get_font());
    fillDirectory("/home/kern/bacula/k");
    this->show();
 }
@@ -113,7 +116,6 @@ void restoreDialog::fillDirectory(const char *dir)
    char pathbuf[MAXSTRING];
    char modes[20], user[20], group[20], size[20], date[30];
    char marked[10];
-   int row = 0;
    int pnl, fnl;
    POOLMEM *file = get_pool_memory(PM_FNAME);
    POOLMEM *path = get_pool_memory(PM_FNAME);
@@ -146,7 +148,6 @@ void restoreDialog::fillDirectory(const char *dir)
       if (*p == '$') {
          break;
       }
-//    Dmsg1(000, "Got: %s\n", p);
       if (!*p) {
          continue;
       }
@@ -186,19 +187,38 @@ void restoreDialog::fillDirectory(const char *dir)
       } else {
          bstrncpy(marked, " ", sizeof(marked));
       }
-      split_path_and_filename(p, &path, &pnl,
-                              &file, &fnl);
-
-//    printf("modes=%s user=%s group=%s size=%s date=%s path=%s file=%s\n",
-//       modes, user, group, size, date, path, file);
-
+      split_path_and_filename(p, &path, &pnl, &file, &fnl);
       item.clear();
       item << "" << file << modes << user << group << size << date;
-      items.append(new QTreeWidgetItem((QTreeWidget *)0, item));
-
-      row++;
+      QTreeWidgetItem *ti = new QTreeWidgetItem((QTreeWidget *)0, item);
+      ti->setTextAlignment(5, Qt::AlignRight); /* right align size */
+      items.append(ti);
    }
+   fileWidget->clear();
    fileWidget->insertTopLevelItems(0, items);
 
    m_console->setEnabled(true);
+   free_pool_memory(file);
+   free_pool_memory(path);
+}
+
+void restoreDialog::accept()
+{
+   this->hide();
+   m_console->write("done");
+   delete this;
+}
+
+
+void restoreDialog::reject()
+{
+   this->hide();
+   m_console->write("quit");
+   mainWin->set_status("Canceled");
+   delete this;
+}
+
+void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
+{
+   printf("Text=%s column=%d\n", item->text(1).toUtf8().data(), column);
 }

@@ -41,6 +41,10 @@
 
 class Console;
 
+/*
+ * The pre-restore dialog selects the Job/Client to be restored
+ * It really could use considerable enhancement.
+ */
 class prerestoreDialog : public QDialog, public Ui::prerestoreForm
 {
    Q_OBJECT 
@@ -58,6 +62,11 @@ private:
 
 };
 
+/*  
+ * The restore dialog is brought up once we are in the Bacula
+ * restore tree routines.  It handles putting up a GUI tree
+ * representation of the files to be restored.
+ */
 class restoreDialog : public QDialog, public Ui::restoreForm
 {
    Q_OBJECT 
@@ -66,7 +75,10 @@ public:
    restoreDialog(Console *parent);
    void fillDirectory(const char *path);
 
-public slots:
+private slots:
+   void accept();
+   void reject();
+   void fileDoubleClicked(QTreeWidgetItem *item, int column);
 
 private:
    Console *m_console;
