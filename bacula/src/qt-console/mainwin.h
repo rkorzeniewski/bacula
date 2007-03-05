@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,7 @@
  *
  * qt-console main window class definition.
  *
- *  Written by Kern Sibbald, January MMVI
+ *  Written by Kern Sibbald, January MMVII
  */
 
 #ifndef _MAINWIN_H_
@@ -56,6 +56,7 @@ public:
    void set_status(const char *buf);
    void writeSettings();
    void readSettings();
+   void resetFocus();
 
 public slots:
    void input_line();

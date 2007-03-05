@@ -31,7 +31,7 @@
  *
  *  Main Window control for bat (qt-console)
  *
- *   Kern Sibbald, January MMVI
+ *   Kern Sibbald, January MMVII
  *
  */ 
 
@@ -45,7 +45,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    m_console = new Console(stackedWidget);
    stackedWidget->setCurrentIndex(0);
 
-   lineEdit->setFocus();
+   resetFocus();
 
    createConnections();
 
@@ -55,6 +55,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    m_console->connect();
 }
+
+void MainWin::resetFocus()
+{  
+   lineEdit->setFocus();
+}   
 
 
 void MainWin::createConnections()

@@ -5,7 +5,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
+    <width>1196</width>
     <height>649</height>
    </rect>
   </property>
@@ -79,15 +79,15 @@
         <widget class="QTreeWidget" name="treeWidget" >
          <property name="sizePolicy" >
           <sizepolicy>
-           <hsizetype>5</hsizetype>
+           <hsizetype>7</hsizetype>
            <vsizetype>7</vsizetype>
            <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
+           <verstretch>1</verstretch>
           </sizepolicy>
          </property>
          <property name="minimumSize" >
           <size>
-           <width>0</width>
+           <width>100</width>
            <height>0</height>
           </size>
          </property>

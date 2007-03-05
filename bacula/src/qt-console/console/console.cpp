@@ -153,6 +153,9 @@ void Console::connect()
    m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
+   write(".api");
+   discardToPrompt();
+
    beginNewCommand();
    job_list = get_list(".jobs");
    client_list = get_list(".clients");
@@ -184,7 +187,7 @@ QStringList Console::get_list(char *cmd)
       list << msg();
    }
    setEnabled(true);
-   list.sort();
+// list.sort();
    return list;
 }
 
@@ -386,12 +389,9 @@ char *Console::msg()
 void Console::write_dir(const char *msg)
 {
    if (m_sock) {
-      m_at_prompt = false;
       mainWin->set_status(_("Processing command ..."));
       QApplication::setOverrideCursor(Qt::WaitCursor);
-      m_sock->msglen = strlen(msg);
-      pm_strcpy(&m_sock->msg, msg);
-      m_sock->send();
+      write(msg);
    } else {
       mainWin->set_status(" Director not connected. Click on connect button.");
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
@@ -409,6 +409,8 @@ int Console::write(const char *msg)
 {
    m_sock->msglen = strlen(msg);
    pm_strcpy(&m_sock->msg, msg);
+   m_at_prompt = false;
+   if (commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();
 }
 
@@ -417,7 +419,6 @@ int Console::write(const char *msg)
  */
 void Console::beginNewCommand()
 {
-// displayToPrompt();
    write(".\n");
    while (read() > 0) {
    }
@@ -432,31 +433,95 @@ void Console::beginNewCommand()
 
 void Console::displayToPrompt()
 { 
-   while (read() > 0) {
+   int stat;
+   if (commDebug) Pmsg0(000, "DisplaytoPrompt\n");
+   m_notifier->setEnabled(false);
+   while ((stat = read()) > 0) {
       display_text(msg());
    }
-
+   if (commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
+   m_notifier->setEnabled(true);
 }
 
+void Console::discardToPrompt()
+{ 
+   int stat;
+   if (commDebug) Pmsg0(000, "discardToPrompt\n");
+   m_notifier->setEnabled(false);
+   while ((stat = read()) > 0) {
+   }
+   if (commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
+   m_notifier->setEnabled(true);
+}
+
+
 /* 
- * Blocking read from director */
+ * Blocking read from director
+ */
 int Console::read()
 {
-   int stat;
-   if (m_sock) {
+   int stat = BNET_HARDEOF;
+   while (m_sock) {
       for (;;) {
          stat = bnet_wait_data_intr(m_sock, 1);
          if (stat > 0) {
             break;
          } 
          app->processEvents();
-         if (stat < 0) {
-            return BNET_ERROR;
-         }
       }
-      return m_sock->recv();
+      stat = m_sock->recv();
+      if (stat >= 0) {
+         if (m_at_prompt) {
+            display_text("\n");
+            m_at_prompt = false;
+         }
+         if (commDebug) Pmsg1(000, "got: %s", m_sock->msg);
+
+      }
+      switch (m_sock->msglen) {
+      case BNET_CMD_BEGIN:
+         m_at_prompt = false;
+         continue;
+      case BNET_PROMPT:
+      case BNET_CMD_OK:
+         if (commDebug) Pmsg0(000, "CMD OK/PROMPT\n");
+         m_at_prompt = true;
+         mainWin->set_status(_("At prompt waiting for input ..."));
+         update_cursor();
+         QApplication::restoreOverrideCursor();
+         break;
+      case BNET_CMD_FAILED:
+         if (commDebug) Pmsg0(000, "CMD FAIL\n");
+         m_at_prompt = true;
+         mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
+         update_cursor();
+         QApplication::restoreOverrideCursor();
+         break;
+      case BNET_EOD:
+         if (commDebug) Pmsg0(000, "EOD\n");
+         mainWin->set_status_ready();
+         update_cursor();
+         QApplication::restoreOverrideCursor();
+         if (!m_api_set) {
+            break;
+         }
+         continue;
+      }
+      if (is_bnet_stop(m_sock)) {         /* error or term request */
+         m_sock->close();
+         m_sock = NULL;
+         mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+         QBrush redBrush(Qt::red);
+         m_consoleItem->setForeground(0, redBrush);
+         m_notifier->setEnabled(false);
+         delete m_notifier;
+         m_notifier = NULL;
+         mainWin->set_status(_("Director disconnected."));
+         QApplication::restoreOverrideCursor();
+      }
+      break;
    } 
-   return BNET_HARDEOF;
+   return stat;
 }
 
 /* Called by signal when the Director has output for us */
@@ -465,40 +530,9 @@ void Console::read_dir(int fd)
    int stat;
    (void)fd;
 
-   if (!m_sock) {
-      return;
-   }
+   if (commDebug) Pmsg0(000, "read_dir\n");
    stat = read();
    if (stat >= 0) {
-      if (m_at_prompt) {
-         display_text("\n");
-         m_at_prompt = false;
-      }
       display_text(msg());
-      return;
    }
-   if (is_bnet_stop(m_sock)) {         /* error or term request */
-      m_sock->close();
-      m_sock = NULL;
-      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
-      QBrush redBrush(Qt::red);
-      m_consoleItem->setForeground(0, redBrush);
-      m_notifier->setEnabled(false);
-      delete m_notifier;
-      m_notifier = NULL;
-      mainWin->set_status(_("Director disconnected."));
-      QApplication::restoreOverrideCursor();
-      return;
-   }
-   /* Must be a signal -- either do something or ignore it */
-   if (m_sock->msglen == BNET_PROMPT) {
-      m_at_prompt = true;
-      mainWin->set_status(_("At prompt waiting for input ..."));
-      update_cursor();
-   }
-   if (m_sock->msglen == BNET_EOD) {
-      mainWin->set_status_ready();
-      update_cursor();
-   }
-   return;
 }

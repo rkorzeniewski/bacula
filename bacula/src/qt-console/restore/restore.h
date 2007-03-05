@@ -52,7 +52,7 @@ class prerestoreDialog : public QDialog, public Ui::prerestoreForm
 public:
    prerestoreDialog(Console *parent);
 
-public slots:
+private slots:
    void accept();
    void reject();
    void job_name_change(int index);
@@ -73,7 +73,8 @@ class restoreDialog : public QDialog, public Ui::restoreForm
 
 public:
    restoreDialog(Console *parent);
-   void fillDirectory(const char *path);
+   void fillDirectory();
+   char *get_cwd();
 
 private slots:
    void accept();
@@ -82,8 +83,7 @@ private slots:
 
 private:
    Console *m_console;
-   QString m_fname;
-
+   QString m_cwd;
 };
 
 
@@ -99,7 +99,5 @@ public slots:
 private:
 
 };
-
-
 
 #endif /* _RESTORE_H_ */

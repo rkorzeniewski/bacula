@@ -87,6 +87,7 @@ public:
    void terminate();
    void beginNewCommand();
    void displayToPrompt();
+   void discardToPrompt();
 
    QStringList job_list;
    QStringList client_list;
@@ -114,6 +115,7 @@ private:
    QSocketNotifier *m_notifier;
    QTextCursor *m_cursor;
    QTreeWidgetItem *m_consoleItem;
+   bool m_api_set;
 };
 
 #endif /* _CONSOLE_H_ */

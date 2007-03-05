@@ -4,7 +4,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +46,7 @@ using namespace qstd;
 
 extern MainWin *mainWin;
 extern QApplication *app;
+extern bool commDebug;
 
 int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);
 
