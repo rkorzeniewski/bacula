@@ -31,124 +31,57 @@
  *
  *  Restore Class 
  *
- *   Kern Sibbald, February MMVI
+ *   Kern Sibbald, February MMVII
  *
  */ 
 
 #include "bat.h"
 #include "restore.h"
 
-
-prerestoreDialog::prerestoreDialog(Console *console)
-{
-   m_console = console;               /* keep compiler quiet */
-   setupUi(this);
-   jobCombo->addItems(console->job_list);
-   filesetCombo->addItems(console->fileset_list);
-   clientCombo->addItems(console->client_list);
-   poolCombo->addItems(console->pool_list);
-   storageCombo->addItems(console->storage_list);
-   job_name_change(0);
-   connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
-
-   this->show();
-}
-
-void prerestoreDialog::accept()
-{
-   QString cmd;
-
-   this->hide();
-   
-   cmd = QString(
-         "restore select current fileset=\"%1\" client=\"%2\" pool=\"%3\" "
-             "storage=\"%4\"\n")
-             .arg(filesetCombo->currentText())
-             .arg(clientCombo->currentText())
-             .arg(poolCombo->currentText())
-             .arg(storageCombo->currentText());
-
-   m_console->write(cmd);
-   m_console->display_text(cmd);
-   new restoreDialog(m_console);
-   delete this;
-}
-
-
-void prerestoreDialog::reject()
-{
-   mainWin->set_status("Canceled");
-   this->hide();
-   delete this;
-}
-
-
-void prerestoreDialog::job_name_change(int index)
-{
-   job_defaults job_defs;
-
-   (void)index;
-   job_defs.job_name = jobCombo->currentText();
-   if (m_console->get_job_defaults(job_defs)) {
-      filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
-      clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
-      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
-      storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
-   }
-}
-
 restoreDialog::restoreDialog(Console *console)
 {
    m_console = console;
+  
+   m_console->setEnabled(false);
    setupUi(this);
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
    setFont(m_console->get_font());
-   fillDirectory("/home/kern/bacula/k");
+   m_console->displayToPrompt();
+   fillDirectory();
    this->show();
 }
 
 /*
- * Fill the CList box with files at path
+ * Fill the fileWidget box with the contents of the current directory
  */
-void restoreDialog::fillDirectory(const char *dir)
+void restoreDialog::fillDirectory()
 {
-   char pathbuf[MAXSTRING];
+   char cd_cmd[MAXSTRING];
    char modes[20], user[20], group[20], size[20], date[30];
    char marked[10];
    int pnl, fnl;
    POOLMEM *file = get_pool_memory(PM_FNAME);
    POOLMEM *path = get_pool_memory(PM_FNAME);
-
-   m_console->setEnabled(false);
-   m_fname = dir;
-
-
-   m_console->displayToPrompt();
-   bsnprintf(pathbuf, sizeof(pathbuf), "cd %s", dir);
-   Dmsg1(100, "%s\n", pathbuf);
-
    QStringList titles;
+
    titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
    fileWidget->setHeaderLabels(titles);
 
-   m_console->write(pathbuf);
-   m_console->display_text(pathbuf);
-   m_console->displayToPrompt();
+   char *dir = get_cwd();
+   bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"\n", dir);
+   Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
+   m_console->write_dir(cd_cmd);
+   m_console->discardToPrompt();
 
-   m_console-> write_dir("dir");
-   m_console->display_text("dir");
-
+   m_console->write_dir("dir");
    QList<QTreeWidgetItem *> items;
    QStringList item;
    while (m_console->read() > 0) {
       char *p = m_console->msg();
       char *l;
       strip_trailing_junk(p);
-      if (*p == '$') {
-         break;
-      }
-      if (!*p) {
+      if (*p == '$' || !*p) {
          continue;
       }
       l = p;
@@ -182,7 +115,7 @@ void restoreDialog::fillDirectory(const char *dir)
       bstrncpy(date, l, sizeof(date));
       skip_spaces(&p);
       if (*p == '*') {
-         bstrncpy(marked, "x", sizeof(marked));
+         bstrncpy(marked, "*", sizeof(marked));
          p++;
       } else {
          bstrncpy(marked, " ", sizeof(marked));
@@ -197,7 +130,6 @@ void restoreDialog::fillDirectory(const char *dir)
    fileWidget->clear();
    fileWidget->insertTopLevelItems(0, items);
 
-   m_console->setEnabled(true);
    free_pool_memory(file);
    free_pool_memory(path);
 }
@@ -207,6 +139,8 @@ void restoreDialog::accept()
    this->hide();
    m_console->write("done");
    delete this;
+   m_console->setEnabled(true);
+   mainWin->resetFocus();
 }
 
 
@@ -216,9 +150,44 @@ void restoreDialog::reject()
    m_console->write("quit");
    mainWin->set_status("Canceled");
    delete this;
+   m_console->setEnabled(true);
+   mainWin->resetFocus();
 }
 
 void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   printf("Text=%s column=%d\n", item->text(1).toUtf8().data(), column);
+   char cmd[1000];
+//   printf("cwd=%s Text=%s column=%d\n", m_cwd.toUtf8().data(), 
+//          item->text(1).toUtf8().data(), column);
+   if (column == 0) {                 /* mark/unmark */
+      if (item->text(0) == "*") {
+         bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"\n", item->text(1).toUtf8().data());
+         item->setText(0, " ");
+      } else {
+         bsnprintf(cmd, sizeof(cmd), "mark \"%s\"\n", item->text(1).toUtf8().data());
+         item->setText(0, "*");
+      }
+      m_console->write(cmd);
+//    printf("cmd=%s", cmd);
+      m_console->displayToPrompt();
+      return;
+   }
+}
+
+/*
+ * Return cwd when in tree restore mode 
+ */
+char *restoreDialog::get_cwd()
+{
+   int stat;
+   m_console->write_dir(".pwd");
+   Dmsg0(100, "send: .pwd\n");
+   if ((stat = m_console->read()) > 0) {
+      m_cwd = m_console->msg();
+      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+   } else {
+      Dmsg1(000, "stat=%d\n", stat);
+   }
+   m_console->displayToPrompt(); 
+   return m_cwd.toUtf8().data();
 }

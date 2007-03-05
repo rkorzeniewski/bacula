@@ -32,7 +32,7 @@ SOURCES += console/authenticate.cpp console/console.cpp
 
 # Restore
 HEADERS += restore/restore.h
-SOURCES += restore/restore.cpp restore/brestore.cpp
+SOURCES += restore/prerestore.cpp restore/restore.cpp restore/brestore.cpp
 
 # Label dialog
 HEADERS += label/label.h
