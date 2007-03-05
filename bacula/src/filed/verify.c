@@ -248,7 +248,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
          
          if (digest_file(jcr, ff_pkt, digest) != 0) {
             jcr->Errors++;
-            return 1;
+            goto good_rtn;
          }
 
          if (crypto_digest_finalize(digest, (uint8_t *)md, &size)) {
@@ -267,11 +267,13 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
 
             free(digest_buf);
          }
-
-         crypto_digest_free(digest);
       }
    }
 
+good_rtn:
+   if (digest) {
+      crypto_digest_free(digest);
+   }
    return 1;
 }
 

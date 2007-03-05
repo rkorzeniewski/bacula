@@ -1,10 +1,9 @@
 #ifndef _CONSOLE_H_
 #define _CONSOLE_H_
-
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -98,6 +97,7 @@ public:
    QStringList type_list;
    QStringList level_list;
 
+
 public slots:
    void connect(void);
    void read_dir(int fd);
@@ -106,6 +106,7 @@ public slots:
    int write(QString msg);
    void status_dir(void);
    void set_font(void);
+   void poll_messages(void);
 
 private:
    QTextEdit *m_textEdit;
@@ -116,6 +117,8 @@ private:
    QTextCursor *m_cursor;
    QTreeWidgetItem *m_consoleItem;
    bool m_api_set;
+   bool m_messages_pending;
+   QTimer *m_timer;
 };
 
 #endif /* _CONSOLE_H_ */

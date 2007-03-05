@@ -107,7 +107,9 @@ enum {
    BNET_INVALID_CMD    = -13,         /* Invalid command sent */
    BNET_CMD_FAILED     = -14,         /* Command failed */
    BNET_CMD_OK         = -15,         /* Command succeeded */
-   BNET_CMD_BEGIN      = -16          /* Start command execution */
+   BNET_CMD_BEGIN      = -16,         /* Start command execution */
+   BNET_MESSAGES_PENDING = 17,        /* Messages pending */
+   BNET_SERVER_READY   = 18           /* Server ready and waiting */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */

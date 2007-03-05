@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,7 +29,7 @@
 /*
  *  Label Dialog class
  *
- *   Kern Sibbald, February MMVI
+ *   Kern Sibbald, February MMVII
  *
  */ 
 
@@ -39,6 +39,7 @@
 
 labelDialog::labelDialog(Console *console)
 {
+   m_console = console;
    setupUi(this);
    storageCombo->addItems(console->storage_list);
    poolCombo->addItems(console->pool_list);
@@ -57,8 +58,10 @@ void labelDialog::accept()
    scmd = QString("label volume=\"%1\" pool=\"%2\" storage=\"%3\" slot=%4\n")
          .arg(volumeName->text()).arg(storageCombo->currentText()) 
          .arg(poolCombo->currentText()).arg(slotSpin->value());
-   printf(scmd.toUtf8().data());
+   m_console->write_dir(scmd.toUtf8().data());
+   m_console->displayToPrompt();
    delete this;
+   mainWin->resetFocus();
 }
 
 void labelDialog::reject()
@@ -66,4 +69,5 @@ void labelDialog::reject()
    printf("Rejected\n");
    this->hide();
    delete this;
+   mainWin->resetFocus();
 }
