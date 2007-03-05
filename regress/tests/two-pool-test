@@ -23,6 +23,9 @@ scripts/prepare-two-disks
 # Make a relatively large backup set 5 x source code directory
 #  Reduced to 1 for portable
 echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
 
 start_test
 

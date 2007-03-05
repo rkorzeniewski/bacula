@@ -108,6 +108,7 @@ Job {
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  ClientRunBeforeJob = "/bin/sleep 60"
 }
 
 
