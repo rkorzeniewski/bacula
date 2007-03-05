@@ -3278,7 +3278,7 @@ sub run_job_now
     
     # TODO: check input (don't use pool, level)
 
-    my $arg = $self->get_form('pool', 'level', 'client', 'priority', 'when');
+    my $arg = $self->get_form('pool', 'level', 'client', 'priority', 'when', 'fileset');
     my $job = CGI::param('job') || '';
     my $storage = CGI::param('storage') || '';
 
@@ -3288,6 +3288,7 @@ sub run_job_now
 			level => $arg->{level},
 			storage => $storage,
 			pool => $arg->{pool},
+			fileset => $arg->{fileset},
 			when => $arg->{when},
 			);
 
