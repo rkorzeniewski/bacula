@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,13 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
- 
 /*
  *   Version $Id$
  *
  *  Console Class
  *
- *   Kern Sibbald, January MMVI
+ *   Kern Sibbald, January MMVII
  *
  */ 
 
@@ -81,7 +80,16 @@ Console::Console(QStackedWidget *parent)
    treeWidget->expandItem(topItem);
 
    readSettings();
+   /* Check for messages every 5 seconds */
+// m_timer = new QTimer(this);
+// QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
+// m_timer->start(5000);
 
+}
+
+void Console::poll_messages()
+{
+   m_messages_pending = true;
 }
 
 /* Terminate any open socket */
@@ -91,6 +99,7 @@ void Console::terminate()
       m_sock->close();
       m_sock = NULL;
    }
+   m_timer->stop();
 }
 
 /*
@@ -337,6 +346,7 @@ const QFont Console::get_font()
 void Console::status_dir()
 {
    write_dir("status dir\n");
+   displayToPrompt();
 }
 
 /*
@@ -468,6 +478,10 @@ int Console::read()
             break;
          } 
          app->processEvents();
+//       if (m_api_set && m_messages_pending) {
+//          write_dir(".messages");
+//          m_messages_pending = false;
+//       }
       }
       stat = m_sock->recv();
       if (stat >= 0) {
@@ -479,6 +493,16 @@ int Console::read()
 
       }
       switch (m_sock->msglen) {
+      case BNET_SERVER_READY:
+//       if (m_api_set && m_messages_pending) {
+//          write_dir(".messages");
+//          m_messages_pending = false;
+//       }
+         m_at_prompt = true;
+         continue;
+      case BNET_MESSAGES_PENDING:
+         m_messages_pending = true;
+         continue;
       case BNET_CMD_BEGIN:
          m_at_prompt = false;
          continue;
@@ -531,8 +555,7 @@ void Console::read_dir(int fd)
    (void)fd;
 
    if (commDebug) Pmsg0(000, "read_dir\n");
-   stat = read();
-   if (stat >= 0) {
+   while ((stat = read()) >= 0) {
       display_text(msg());
    }
 }

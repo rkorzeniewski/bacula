@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -29,7 +29,7 @@
 /*
  *  Run Dialog class
  *
- *   Kern Sibbald, February MMVI
+ *   Kern Sibbald, February MMVII
  *
  *  $Id$
  */ 
@@ -37,6 +37,9 @@
 #include "bat.h"
 #include "run.h"
 
+/*
+ * Setup all the combo boxes and display the dialog
+ */
 runDialog::runDialog(Console *console)
 {
    QDateTime dt;
@@ -75,9 +78,11 @@ void runDialog::accept()
              storageCombo->currentText().toUtf8().data(),
              prioritySpin->value());
 
-// m_console->write(cmd);
+   m_console->write_dir(cmd);
    m_console->display_text(cmd);
+   m_console->displayToPrompt();
    delete this;
+   mainWin->resetFocus();
 }
 
 
@@ -86,8 +91,14 @@ void runDialog::reject()
    mainWin->set_status(" Canceled");
    this->hide();
    delete this;
+   mainWin->resetFocus();
 }
 
+/*
+ * Called here when the jobname combo box is changed.
+ *  We load the default values for the new job in the
+ *  other combo boxes.
+ */
 void runDialog::job_name_change(int index)
 {
    job_defaults job_defs;
