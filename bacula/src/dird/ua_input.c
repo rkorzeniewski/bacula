@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Input and scanning code
- *
- *     Kern Sibbald, October MMI
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- User Agent Input and scanning code
+ *
+ *     Kern Sibbald, October MMI
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -52,10 +52,10 @@ int get_cmd(UAContext *ua, const char *prompt)
    if (!sock) {                       /* No UA */
       return 0;
    }
-   bnet_fsend(sock, "%s", prompt);
-   bnet_sig(sock, BNET_PROMPT);       /* request more input */
+   sock->fsend("%s", prompt);
+   sock->signal(BNET_PROMPT);       /* request more input */
    for ( ;; ) {
-      stat = bnet_recv(sock);
+      stat = sock->recv();
       if (stat == BNET_SIGNAL) {
          continue;                    /* ignore signals */
       }

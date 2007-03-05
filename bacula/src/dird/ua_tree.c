@@ -1,17 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Database File tree for Restore
- *      command. This file interacts with the user implementing the
- *      UA tree commands.
- *
- *     Kern Sibbald, July MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- User Agent Database File tree for Restore
+ *      command. This file interacts with the user implementing the
+ *      UA tree commands.
+ *
+ *     Kern Sibbald, July MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -60,6 +60,7 @@ static int estimatecmd(UAContext *ua, TREE_CTX *tree);
 static int helpcmd(UAContext *ua, TREE_CTX *tree);
 static int cdcmd(UAContext *ua, TREE_CTX *tree);
 static int pwdcmd(UAContext *ua, TREE_CTX *tree);
+static int dot_pwdcmd(UAContext *ua, TREE_CTX *tree);
 static int unmarkcmd(UAContext *ua, TREE_CTX *tree);
 static int unmarkdircmd(UAContext *ua, TREE_CTX *tree);
 static int quitcmd(UAContext *ua, TREE_CTX *tree);
@@ -82,13 +83,13 @@ static struct cmdstruct commands[] = {
  { NT_("mark"),       markcmd,      _("mark dir/file to be restored recursively, wildcards allowed")},
  { NT_("markdir"),    markdircmd,   _("mark directory name to be restored (no files)")},
  { NT_("pwd"),        pwdcmd,       _("print current working directory")},
+ { NT_(".pwd"),       dot_pwdcmd,   _("print current working directory")},
  { NT_("unmark"),     unmarkcmd,    _("unmark dir/file to be restored recursively in dir")},
  { NT_("unmarkdir"),  unmarkdircmd, _("unmark directory name only no recursion")},
  { NT_("quit"),       quitcmd,      _("quit and do not do restore")},
  { NT_("?"),          helpcmd,      _("print help")},
              };
-#define comsize (sizeof(commands)/sizeof(struct cmdstruct))
-
+#define comsize ((int)(sizeof(commands)/sizeof(struct cmdstruct)))
 
 /*
  * Enter a prompt mode where the user can select/deselect
@@ -129,7 +130,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       len = strlen(ua->argk[0]);
       found = 0;
       stat = false;
-      for (i=0; i<(int)comsize; i++)       /* search for command */
+      for (i=0; i<comsize; i++)       /* search for command */
          if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
             stat = (*commands[i].func)(ua, tree);   /* go execute command */
             found = 1;
@@ -298,6 +299,18 @@ static int set_extract(UAContext *ua, TREE_NODE *node, TREE_CTX *tree, bool extr
    return count;
 }
 
+static void strip_trailing_slash(char *arg)
+{
+   int len = strlen(arg);
+   if (len == 0) {
+      return;
+   }
+   len--;
+   if (arg[len] == '/') {       /* strip any trailing slash */
+      arg[len] = 0;
+   }
+}
+
 /*
  * Recursively mark the current directory to be restored as
  *  well as all directories and files below it.
@@ -313,6 +326,7 @@ static int markcmd(UAContext *ua, TREE_CTX *tree)
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
+      strip_trailing_slash(ua->argk[i]);
       foreach_child(node, tree->node) {
          if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
             count += set_extract(ua, node, tree, true);
@@ -341,6 +355,7 @@ static int markdircmd(UAContext *ua, TREE_CTX *tree)
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
+      strip_trailing_slash(ua->argk[i]);
       foreach_child(node, tree->node) {
          if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
             if (node->type == TN_DIR || node->type == TN_DIR_NLS) {
@@ -695,6 +710,13 @@ static int pwdcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
+static int dot_pwdcmd(UAContext *ua, TREE_CTX *tree)
+{
+   char cwd[2000];
+   tree_getpath(tree->node, cwd, sizeof(cwd));
+   bsendmsg(ua, _("%s"), cwd);
+   return 1;
+}
 
 static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
 {
@@ -706,6 +728,7 @@ static int unmarkcmd(UAContext *ua, TREE_CTX *tree)
       return 1;
    }
    for (int i=1; i < ua->argc; i++) {
+      strip_trailing_slash(ua->argk[i]);
       foreach_child(node, tree->node) {
          if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
             count += set_extract(ua, node, tree, false);
@@ -734,6 +757,7 @@ static int unmarkdircmd(UAContext *ua, TREE_CTX *tree)
    }
 
    for (int i=1; i < ua->argc; i++) {
+      strip_trailing_slash(ua->argk[i]);
       foreach_child(node, tree->node) {
          if (fnmatch(ua->argk[i], node->fname, 0) == 0) {
             if (node->type == TN_DIR || node->type == TN_DIR_NLS) {

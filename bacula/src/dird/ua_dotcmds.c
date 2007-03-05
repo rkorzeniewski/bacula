@@ -102,22 +102,29 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
    int len;
    bool ok = false;
    bool found = false;
-   BSOCK *sock = ua->UA_sock;
+   BSOCK *user = ua->UA_sock;
 
-   Dmsg1(1400, "Dot command: %s\n", ua->UA_sock->msg);
+   Dmsg1(1400, "Dot command: %s\n", user->msg);
    if (ua->argc == 0) {
       return 1;
    }
 
    len = strlen(ua->argk[0]);
    if (len == 1) {
+      if (ua->api) user->signal(BNET_CMD_BEGIN);
+      if (ua->api) user->signal(BNET_CMD_OK);
       return 1;                       /* no op */
    }
    for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
          bool gui = ua->gui;
+         /* Check if command permitted, but "quit" is always OK */
+         if (strcmp(ua->argk[0], NT_(".quit")) != 0 &&
+             !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
+            break;
+         }
          ua->gui = true;
-         if (ua->api) sock->signal(BNET_CMD_BEGIN);
+         if (ua->api) user->signal(BNET_CMD_BEGIN);
          ok = (*commands[i].func)(ua, cmd);   /* go execute command */
          ua->gui = gui;
          found = true;
@@ -125,12 +132,11 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
       }
    }
    if (!found) {
-      pm_strcat(sock->msg, _(": is an invalid command\n"));
-      sock->msglen = strlen(sock->msg);
-      sock->send();
-      if (ua->api) sock->signal(BNET_INVALID_CMD);
+      pm_strcat(user->msg, _(": is an invalid command.\n"));
+      user->msglen = strlen(user->msg);
+      user->send();
    }
-   if (ua->api) sock->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
+   if (ua->api) user->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
    return 1;
 }
 
