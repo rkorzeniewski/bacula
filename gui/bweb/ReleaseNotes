@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/03/05
+ - Fix fileset option when running a job
+
 2007/03/02
  - Add Postgresql and Mysql5 database size information (See INSTALL for mysql)
 
