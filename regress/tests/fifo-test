@@ -9,7 +9,7 @@ set_debug 0
 
 cwd=`pwd`
 scripts/cleanup
-scripts/copy-test-confs
+#scripts/copy-test-confs
 echo "/tmp/bfifo" >/tmp/file-list
 
 rm -f /tmp/bfifo
