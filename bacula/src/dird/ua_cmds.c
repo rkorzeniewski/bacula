@@ -150,7 +150,9 @@ int do_a_command(UAContext *ua, const char *cmd)
 {
    unsigned int i;
    int len, stat;
+   bool ok = false;
    bool found = false;
+   BSOCK *user = ua->UA_sock;
 
    stat = 1;
 
@@ -171,15 +173,17 @@ int do_a_command(UAContext *ua, const char *cmd)
              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
             break;
          }
-         stat = (*commands[i].func)(ua, cmd);   /* go execute command */
+         if (ua->api) user->signal(BNET_CMD_BEGIN);
+         ok = (*commands[i].func)(ua, cmd);   /* go execute command */
          found = true;
          break;
       }
    }
    if (!found) {
-      bnet_fsend(ua->UA_sock, _("%s: is an invalid command.\n"), ua->argk[0]);
+      user->fsend(_("%s: is an invalid command.\n"), ua->argk[0]);
    }
-   return stat;
+   if (ua->api) user->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
+   return ok;
 }
 
 /*

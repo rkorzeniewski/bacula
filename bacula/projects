@@ -1129,6 +1129,57 @@ Item 40:  Include JobID in spool file name ****DONE****
           spoolfile name doesn't include that information. The date/time
           stamp is useful (and should be retained).
 
+============= New Freature Requests after vote of 26 Jan 2007 ========
+Item  n:  Enable to relocate files and directories when restoring
+  Date:   2007-03-01
+  Origin: Eric Bollengier <eric@eb.homelinux.org>
+  Status:
+
+  What:   The where= option is not powerful enough. It will be
+          a great feature if bacula can restore a file in the
+          same directory, but with a different name, or in 
+          an other directory without recreating the full path.
+
+  Why:    When i want to restore a production environment to a
+          development environment, i just want change the first
+          directory. ie restore /prod/data/file.dat to /rect/data/file.dat.
+          At this time, i have to move by hand files. You must have a big
+          dump space to restore and move data after.
+
+          When i use Linux or SAN snapshot, i mount them to /mnt/snap_xxx
+          so, when a restore a file, i have to move by hand
+          from /mnt/snap_xxx/file to /xxx/file. I can't replace a file
+          easily.
+
+          When a user ask me to restore a file in its personal folder,
+          (without replace the existing one), i can't restore from
+          my_file.txt to my_file.txt.old witch is very practical.
+
+          
+  Notes:  I think we can enhance the where= option very easily by
+          allowing regexp expression. (by replacing bregex by libpcre 
+          see http://en.wikipedia.org/wiki/PCRE and http://www.pcre.org/)
+
+          Since, many users think that regexp are not user friendly, i think
+          that bat, bconsole or brestore must provide a simple way to
+          configure where= option (i think to something like in
+          openoffice "search and replace").
+
+          Ie, if user uses where=/tmp/bacula-restore, we keep the old
+          fashion.
+
+          If user uses something like where=s!/prod!/test!, files will
+          be restored from /prod/xxx to /test/xxx.
+
+          If user uses something like where=s/$/.old/, files will
+          be restored from /prod/xxx.txt to /prod/xxx.txt.old.
+
+          If user uses something like where=s/txt$/old.txt/, files will
+          be restored from /prod/xxx.txt to /prod/xxx.old.txt
+
+          if user uses something like where=s/([a-z]+)$/old.$1/, files will
+          be restored from /prod/xxx.ext to /prod/xxx.old.ext
+
 ============= Empty Feature Request form ===========
 Item  n:  One line summary ...
   Date:   Date submitted 
