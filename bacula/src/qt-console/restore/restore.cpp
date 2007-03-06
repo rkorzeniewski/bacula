@@ -122,7 +122,7 @@ void restoreDialog::fillDirectory()
       }
       split_path_and_filename(p, &path, &pnl, &file, &fnl);
       item.clear();
-      item << "" << file << modes << user << group << size << date;
+      item << marked << file << modes << user << group << size << date;
       QTreeWidgetItem *ti = new QTreeWidgetItem((QTreeWidget *)0, item);
       ti->setTextAlignment(5, Qt::AlignRight); /* right align size */
       items.append(ti);
@@ -159,13 +159,17 @@ void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
    char cmd[1000];
    if (column == 0) {                 /* mark/unmark */
       if (item->text(0) == "*") {
-         bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"\n", item->text(1).toUtf8().data());
+         bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
          item->setText(0, " ");
       } else {
-         bsnprintf(cmd, sizeof(cmd), "mark \"%s\"\n", item->text(1).toUtf8().data());
+         bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
          item->setText(0, "*");
       }
-      m_console->write(cmd);
+      m_console->write_dir(cmd);
+      if (m_console->read() > 0) {
+         strip_trailing_junk(m_console->msg());
+         statusLine->setText(m_console->msg());
+      }
       m_console->displayToPrompt();
       return;
    }    
@@ -191,14 +195,15 @@ void restoreDialog::markButtonPushed()
    QTreeWidgetItem *item;
    char cmd[1000];
    foreach (item, items) {
-      Dmsg1(000, "item=%s\n", item->text(1).toUtf8().data());
-      if (item->text(0) == " ") {
-         bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
-         item->setText(0, "*");
-         m_console->write(cmd);
-         Dmsg1(000, "cmd=%s\n", cmd);
-         m_console->displayToPrompt();
+      bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
+      item->setText(0, "*");
+      m_console->write_dir(cmd);
+      if (m_console->read() > 0) {
+         strip_trailing_junk(m_console->msg());
+         statusLine->setText(m_console->msg());
       }
+      Dmsg1(100, "cmd=%s\n", cmd);
+      m_console->discardToPrompt();
    }
 }
 
@@ -208,13 +213,15 @@ void restoreDialog::unmarkButtonPushed()
    QTreeWidgetItem *item;
    char cmd[1000];
    foreach (item, items) {
-      if (item->text(0) == "*") {
-         bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
-         item->setText(0, " ");
-         m_console->write(cmd);
-         Dmsg1(000, "cmd=%s\n", cmd);
-         m_console->displayToPrompt();
+      bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
+      item->setText(0, " ");
+      m_console->write_dir(cmd);
+      if (m_console->read() > 0) {
+         strip_trailing_junk(m_console->msg());
+         statusLine->setText(m_console->msg());
       }
+      Dmsg1(100, "cmd=%s\n", cmd);
+      m_console->discardToPrompt();
    }
 }
 
@@ -226,7 +233,7 @@ bool restoreDialog::cwd(const char *dir)
    int stat;
    char cd_cmd[MAXSTRING];
 
-   bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"\n", dir);
+   bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"", dir);
    Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
    m_console->write_dir(cd_cmd);
    if ((stat = m_console->read()) > 0) {

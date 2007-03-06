@@ -12,30 +12,14 @@
   <property name="windowTitle" >
    <string>Restore File Selection</string>
   </property>
-  <layout class="QVBoxLayout" >
+  <layout class="QGridLayout" >
    <property name="margin" >
     <number>9</number>
    </property>
    <property name="spacing" >
     <number>6</number>
    </property>
-   <item>
-    <spacer>
-     <property name="orientation" >
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType" >
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" >
-      <size>
-       <width>20</width>
-       <height>16</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
+   <item row="1" column="0" >
     <widget class="QSplitter" name="splitter" >
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
@@ -146,7 +130,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="layoutWidget" >
+     <widget class="QWidget" name="" >
       <layout class="QVBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -327,6 +311,15 @@
          <property name="alternatingRowColors" >
           <bool>true</bool>
          </property>
+         <property name="selectionMode" >
+          <enum>QAbstractItemView::ExtendedSelection</enum>
+         </property>
+         <property name="horizontalScrollMode" >
+          <enum>QAbstractItemView::ScrollPerItem</enum>
+         </property>
+         <property name="uniformRowHeights" >
+          <bool>true</bool>
+         </property>
          <property name="columnCount" >
           <number>7</number>
          </property>
@@ -371,7 +364,23 @@
      </widget>
     </widget>
    </item>
-   <item>
+   <item row="0" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType" >
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>16</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0" >
     <layout class="QHBoxLayout" >
      <property name="margin" >
       <number>0</number>
@@ -435,7 +444,7 @@
      </item>
     </layout>
    </item>
-   <item>
+   <item row="3" column="0" >
     <layout class="QHBoxLayout" >
      <property name="margin" >
       <number>0</number>
