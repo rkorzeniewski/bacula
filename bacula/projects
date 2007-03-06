@@ -1180,6 +1180,51 @@ Item  n:  Enable to relocate files and directories when restoring
           if user uses something like where=s/([a-z]+)$/old.$1/, files will
           be restored from /prod/xxx.ext to /prod/xxx.old.ext
 
+Item n:   Implement Catalog directive for Pool resource in Director
+configuration 
+  Origin: Alan Davis adavis@ruckus.com
+  Date:   6 March 2007
+  Status: Submitted
+ 
+  What:   The current behavior is for the director to create all pools
+          found in the configuration file in all catalogs.  Add a
+          Catalog directive to the Pool resource to specify which
+          catalog to use for each pool definition.
+ 
+  Why:    This allows different catalogs to have different pool
+          attributes and eliminates the side-effect of adding
+          pools to catalogs that don't need/use them.
+ 
+  Notes:  
+
+
+Item n:   Implement NDMP protocol support
+  Origin: Alan Davis
+  Date:   06 March 2007
+  Status: Submitted
+
+  What:   Network Data Management Protocol is implemented by a number of
+          NAS filer vendors to enable backups using third-party
+          software.
+
+  Why:    This would allow NAS filer backups in Bacula without incurring
+          the overhead of NFS or SBM/CIFS.
+
+  Notes:  Further information is available:
+          http://www.ndmp.org
+          http://www.ndmp.org/wp/wp.shtml
+          http://www.traakan.com/ndmjob/index.html
+
+          There are currently no viable open-source NDMP
+          implementations.  There is a reference SDK and example
+          app available from ndmp.org but it has problems
+          compiling on recent Linux and Solaris OS'.  The ndmjob
+          reference implementation from Traakan is known to
+          compile on Solaris 10.
+
+  Notes (Kern): I am not at all in favor of this until NDMP becomes
+          an Open Standard or until there are Open Source libraries
+          that interface to it.
 ============= Empty Feature Request form ===========
 Item  n:  One line summary ...
   Date:   Date submitted 
