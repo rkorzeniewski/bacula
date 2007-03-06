@@ -75,11 +75,15 @@ public:
    restoreDialog(Console *parent);
    void fillDirectory();
    char *get_cwd();
+   bool cwd(const char *);
 
 private slots:
    void accept();
    void reject();
    void fileDoubleClicked(QTreeWidgetItem *item, int column);
+   void upButtonPushed();
+   void unmarkButtonPushed();
+   void markButtonPushed();
 
 private:
    Console *m_console;

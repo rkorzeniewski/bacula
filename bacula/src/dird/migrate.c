@@ -783,8 +783,10 @@ static int get_job_to_migrate(JCR *jcr)
       Jmsg(jcr, M_INFO, 0, _("No JobIds found to migrate.\n"));
       goto ok_out;
    }
-   Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s will be migrated: %s\n"),
+
+   Jmsg(jcr, M_INFO, 0, _("The following %u JobId%s were chosen to be migrated: %s\n"),
       ids.count, ids.count==0?"":"s", ids.list);
+
    Dmsg2(dbglevel, "Before loop count=%d ids=%s\n", ids.count, ids.list);
    for (int i=1; i < (int)ids.count; i++) {
       JobId = 0;

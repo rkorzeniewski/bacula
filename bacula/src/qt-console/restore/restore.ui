@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1196</width>
-    <height>649</height>
+    <width>1285</width>
+    <height>759</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -20,11 +20,27 @@
     <number>6</number>
    </property>
    <item>
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType" >
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>16</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <widget class="QSplitter" name="splitter" >
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QVBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -45,10 +61,13 @@
            <property name="orientation" >
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Preferred</enum>
+           </property>
            <property name="sizeHint" >
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>50</width>
+             <height>30</height>
             </size>
            </property>
           </spacer>
@@ -65,10 +84,13 @@
            <property name="orientation" >
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Preferred</enum>
+           </property>
            <property name="sizeHint" >
             <size>
-             <width>40</width>
-             <height>20</height>
+             <width>50</width>
+             <height>30</height>
             </size>
            </property>
           </spacer>
@@ -79,7 +101,7 @@
         <widget class="QTreeWidget" name="treeWidget" >
          <property name="sizePolicy" >
           <sizepolicy>
-           <hsizetype>7</hsizetype>
+           <hsizetype>5</hsizetype>
            <vsizetype>7</vsizetype>
            <horstretch>1</horstretch>
            <verstretch>1</verstretch>
@@ -87,7 +109,7 @@
          </property>
          <property name="minimumSize" >
           <size>
-           <width>100</width>
+           <width>60</width>
            <height>0</height>
           </size>
          </property>
@@ -99,7 +121,13 @@
          </property>
          <property name="sizeIncrement" >
           <size>
-           <width>0</width>
+           <width>1</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="baseSize" >
+          <size>
+           <width>50</width>
            <height>0</height>
           </size>
          </property>
@@ -118,7 +146,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QVBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -138,6 +166,111 @@
           <spacer>
            <property name="orientation" >
             <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>16</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="upButton" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>5</hsizetype>
+             <vsizetype>0</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text" >
+            <string>Up</string>
+           </property>
+           <property name="icon" >
+            <iconset>../images/up.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>16</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="markButton" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>5</hsizetype>
+             <vsizetype>0</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text" >
+            <string>Mark</string>
+           </property>
+           <property name="icon" >
+            <iconset>../images/mark.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" >
+            <size>
+             <width>16</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="unmarkButton" >
+           <property name="sizePolicy" >
+            <sizepolicy>
+             <hsizetype>5</hsizetype>
+             <vsizetype>0</vsizetype>
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text" >
+            <string>Unmark</string>
+           </property>
+           <property name="icon" >
+            <iconset>../images/unmark.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer>
+           <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType" >
+            <enum>QSizePolicy::Fixed</enum>
            </property>
            <property name="sizeHint" >
             <size>
@@ -161,8 +294,8 @@
            </property>
            <property name="sizeHint" >
             <size>
-             <width>91</width>
-             <height>20</height>
+             <width>261</width>
+             <height>30</height>
             </size>
            </property>
           </spacer>
@@ -259,6 +392,9 @@
        <property name="text" >
         <string>Current Dir:</string>
        </property>
+       <property name="buddy" >
+        <cstring>lineEdit</cstring>
+       </property>
       </widget>
      </item>
      <item>
@@ -309,17 +445,61 @@
      </property>
      <item>
       <widget class="QLabel" name="label_4" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>0</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text" >
         <string>Status:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_2" />
+      <widget class="QLabel" name="statusLine" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>5</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
   </layout>
+  <action name="actionUp" >
+   <property name="icon" >
+    <iconset>../images/up.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Up</string>
+   </property>
+  </action>
+  <action name="actionMark" >
+   <property name="icon" >
+    <iconset>../images/mark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Mark</string>
+   </property>
+  </action>
+  <action name="actionUnmark" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Unmark</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -330,8 +510,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>248</x>
-     <y>254</y>
+     <x>955</x>
+     <y>719</y>
     </hint>
     <hint type="destinationlabel" >
      <x>157</x>
@@ -346,8 +526,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>316</x>
-     <y>260</y>
+     <x>1023</x>
+     <y>719</y>
     </hint>
     <hint type="destinationlabel" >
      <x>286</x>

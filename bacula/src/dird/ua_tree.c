@@ -123,7 +123,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       }
       parse_args_only(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
       if (ua->argc == 0) {
-         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+         bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
          continue;
       }
 
@@ -137,7 +137,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
             break;
          }
       if (!found) {
-         bsendmsg(tree->ua, _("Illegal command. Enter \"done\" to exit.\n"));
+         bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
          continue;
       }
       if (!stat) {
@@ -678,7 +678,7 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
 
 
    if (ua->argc != 2) {
-      bsendmsg(ua, _("Too many arguments. Try using double quotes.\n"));
+      bsendmsg(ua, _("Too few or too many arguments. Try using double quotes.\n"));
       return 1;
    }
    node = tree_cwd(ua->argk[1], tree->root, tree->node);
@@ -698,7 +698,11 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
       tree->node = node;
    }
    tree_getpath(tree->node, cwd, sizeof(cwd));
-   bsendmsg(ua, _("cwd is: %s\n"), cwd);
+   if (ua->api) {
+      bsendmsg(ua, "%s", cwd);
+   } else {
+      bsendmsg(ua, _("cwd is: %s\n"), cwd);
+   }
    return 1;
 }
 

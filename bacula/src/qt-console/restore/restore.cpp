@@ -40,14 +40,24 @@
 
 restoreDialog::restoreDialog(Console *console)
 {
+   QStringList titles;
    m_console = console;
   
    m_console->setEnabled(false);
    setupUi(this);
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
+   connect(upButton, SIGNAL(pressed()), this, SLOT(upButtonPushed()));
+   connect(markButton, SIGNAL(pressed()), this, SLOT(markButtonPushed()));
+   connect(unmarkButton, SIGNAL(pressed()), this, SLOT(unmarkButtonPushed()));
    setFont(m_console->get_font());
    m_console->displayToPrompt();
+
+
+   titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
+   fileWidget->setHeaderLabels(titles);
+
+   get_cwd();
    fillDirectory();
    this->show();
 }
@@ -57,23 +67,13 @@ restoreDialog::restoreDialog(Console *console)
  */
 void restoreDialog::fillDirectory()
 {
-   char cd_cmd[MAXSTRING];
    char modes[20], user[20], group[20], size[20], date[30];
    char marked[10];
    int pnl, fnl;
    POOLMEM *file = get_pool_memory(PM_FNAME);
    POOLMEM *path = get_pool_memory(PM_FNAME);
-   QStringList titles;
 
-   titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
-   fileWidget->setHeaderLabels(titles);
-
-   char *dir = get_cwd();
-   bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"\n", dir);
-   Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
-   m_console->write_dir(cd_cmd);
-   m_console->discardToPrompt();
-
+   fileWidget->clear();
    m_console->write_dir("dir");
    QList<QTreeWidgetItem *> items;
    QStringList item;
@@ -157,8 +157,6 @@ void restoreDialog::reject()
 void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
 {
    char cmd[1000];
-//   printf("cwd=%s Text=%s column=%d\n", m_cwd.toUtf8().data(), 
-//          item->text(1).toUtf8().data(), column);
    if (column == 0) {                 /* mark/unmark */
       if (item->text(0) == "*") {
          bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"\n", item->text(1).toUtf8().data());
@@ -168,10 +166,79 @@ void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
          item->setText(0, "*");
       }
       m_console->write(cmd);
-//    printf("cmd=%s", cmd);
       m_console->displayToPrompt();
       return;
+   }    
+   /* 
+    * Double clicking other than column 0 means to decend into
+    *  the directory -- or nothing if it is not a directory.
+    */
+   if (item->text(1).endsWith("/")) {
+      cwd(item->text(1).toUtf8().data());
+      fillDirectory();
    }
+}
+
+void restoreDialog::upButtonPushed()
+{
+   cwd("..");
+   fillDirectory();
+}
+
+void restoreDialog::markButtonPushed()
+{
+   QList<QTreeWidgetItem *> items = fileWidget->selectedItems();
+   QTreeWidgetItem *item;
+   char cmd[1000];
+   foreach (item, items) {
+      Dmsg1(000, "item=%s\n", item->text(1).toUtf8().data());
+      if (item->text(0) == " ") {
+         bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
+         item->setText(0, "*");
+         m_console->write(cmd);
+         Dmsg1(000, "cmd=%s\n", cmd);
+         m_console->displayToPrompt();
+      }
+   }
+}
+
+void restoreDialog::unmarkButtonPushed()
+{
+   QList<QTreeWidgetItem *> items = fileWidget->selectedItems();
+   QTreeWidgetItem *item;
+   char cmd[1000];
+   foreach (item, items) {
+      if (item->text(0) == "*") {
+         bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
+         item->setText(0, " ");
+         m_console->write(cmd);
+         Dmsg1(000, "cmd=%s\n", cmd);
+         m_console->displayToPrompt();
+      }
+   }
+}
+
+/*
+ * Change current working directory 
+ */
+bool restoreDialog::cwd(const char *dir)
+{
+   int stat;
+   char cd_cmd[MAXSTRING];
+
+   bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"\n", dir);
+   Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
+   m_console->write_dir(cd_cmd);
+   if ((stat = m_console->read()) > 0) {
+      m_cwd = m_console->msg();
+      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+   } else {
+      Dmsg1(000, "stat=%d\n", stat);
+   }
+   m_console->discardToPrompt();
+   lineEdit->clear();
+   lineEdit->insert(m_cwd);
+   return true;  /* ***FIXME*** return real status */
 }
 
 /*
