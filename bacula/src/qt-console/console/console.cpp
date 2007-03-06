@@ -99,7 +99,7 @@ void Console::terminate()
       m_sock->close();
       m_sock = NULL;
    }
-   m_timer->stop();
+// m_timer->stop();
 }
 
 /*

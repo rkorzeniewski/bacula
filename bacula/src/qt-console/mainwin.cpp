@@ -61,6 +61,39 @@ void MainWin::resetFocus()
    lineEdit->setFocus();
 }   
 
+void MainWin::keyPressEvent(QKeyEvent *event)
+{
+   if (m_cmd_history.size() == 0) {
+      event->ignore();
+      return;
+   }
+   switch (event->key()) {
+   case Qt::Key_Down:
+//    Dmsg0(000, "Down key pressed\n");
+      if (m_cmd_last < 0 || m_cmd_last >= (m_cmd_history.size()-1)) {
+         event->ignore();
+         return;
+      }
+      m_cmd_last++;
+      break;
+   case Qt::Key_Up:
+//    Dmsg0(000, "Up key pressed\n");
+      if (m_cmd_last == 0) {
+         event->ignore();
+         return;
+      }
+      if (m_cmd_last < 0 || m_cmd_last > (m_cmd_history.size()-1)) {
+         m_cmd_last = m_cmd_history.size() - 1;
+      } else {
+         m_cmd_last--;
+      }
+      break;
+   default:
+      event->ignore();
+      return;
+   }
+   lineEdit->setText(m_cmd_history[m_cmd_last]);
+}
 
 void MainWin::createConnections()
 {
@@ -168,6 +201,8 @@ void MainWin::input_line()
    } else {
       set_status("Director not connected. Click on connect button.");
    }
+   m_cmd_history.append(cmdStr);
+   m_cmd_last = -1;
 }
 
 

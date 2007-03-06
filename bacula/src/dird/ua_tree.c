@@ -103,6 +103,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    /* Get a new context so we don't destroy restore command args */
    UAContext *ua = new_ua_context(tree->ua->jcr);
    ua->UA_sock = tree->ua->UA_sock;   /* patch in UA socket */
+   BSOCK *user = ua->UA_sock;
 
    bsendmsg(tree->ua, _(
       "\nYou are now entering file selection mode where you add (mark) and\n"
@@ -121,9 +122,11 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       if (!get_cmd(ua, "$ ")) {
          break;
       }
+      if (ua->api) user->signal(BNET_CMD_BEGIN);
       parse_args_only(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
       if (ua->argc == 0) {
          bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
+         if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
 
@@ -138,8 +141,10 @@ bool user_select_files_from_tree(TREE_CTX *tree)
          }
       if (!found) {
          bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
+         if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
+      if (ua->api) user->signal(BNET_CMD_OK);
       if (!stat) {
          break;
       }

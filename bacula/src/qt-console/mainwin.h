@@ -69,6 +69,7 @@ public slots:
 
 protected:
    void closeEvent(QCloseEvent *event);
+   void keyPressEvent(QKeyEvent *event);
 
 private:
    void createConnections(); 
@@ -76,6 +77,8 @@ private:
 private:
    QString m_UserInput;
    Console *m_console;
+   QStringList m_cmd_history;
+   int m_cmd_last;
 };
 
 #endif /* _MAINWIN_H_ */
