@@ -21,8 +21,17 @@
    </property>
    <item row="0" column="0" >
     <widget class="QDockWidget" name="dockWidget" >
+     <property name="focusPolicy" >
+      <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="windowIcon" >
+      <iconset>../images/print.png</iconset>
+     </property>
+     <property name="features" >
+      <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
+     </property>
      <property name="allowedAreas" >
-      <set>Qt::AllDockWidgetAreas</set>
+      <set>Qt::NoDockWidgetArea</set>
      </property>
      <widget class="QWidget" name="dockWidgetContents" >
       <property name="focusPolicy" >
@@ -58,7 +67,7 @@
           </size>
          </property>
          <property name="focusPolicy" >
-          <enum>Qt::NoFocus</enum>
+          <enum>Qt::StrongFocus</enum>
          </property>
          <property name="acceptDrops" >
           <bool>false</bool>
@@ -74,6 +83,12 @@
          </property>
          <property name="horizontalScrollBarPolicy" >
           <enum>Qt::ScrollBarAsNeeded</enum>
+         </property>
+         <property name="autoFormatting" >
+          <set>QTextEdit::AutoNone</set>
+         </property>
+         <property name="tabChangesFocus" >
+          <bool>false</bool>
          </property>
          <property name="documentTitle" >
           <string comment="Console Window" />

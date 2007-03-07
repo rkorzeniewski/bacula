@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -69,7 +69,6 @@ void MainWin::keyPressEvent(QKeyEvent *event)
    }
    switch (event->key()) {
    case Qt::Key_Down:
-//    Dmsg0(000, "Down key pressed\n");
       if (m_cmd_last < 0 || m_cmd_last >= (m_cmd_history.size()-1)) {
          event->ignore();
          return;
@@ -77,7 +76,6 @@ void MainWin::keyPressEvent(QKeyEvent *event)
       m_cmd_last++;
       break;
    case Qt::Key_Up:
-//    Dmsg0(000, "Up key pressed\n");
       if (m_cmd_last == 0) {
          event->ignore();
          return;
@@ -224,17 +222,14 @@ void MainWin::set_statusf(const char *fmt, ...)
    len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
    va_end(arg_ptr);
    set_status(buf);
-// set_scroll_bar_to_end();
 }
 
 void MainWin::set_status_ready()
 {
    set_status(" Ready");
-// set_scroll_bar_to_end();
 }
 
 void MainWin::set_status(const char *buf)
 {
    statusBar()->showMessage(buf);
-// ready = false;
 }
