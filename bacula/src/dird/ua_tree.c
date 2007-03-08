@@ -702,20 +702,18 @@ static int cdcmd(UAContext *ua, TREE_CTX *tree)
    } else {
       tree->node = node;
    }
-   tree_getpath(tree->node, cwd, sizeof(cwd));
-   if (ua->api) {
-      bsendmsg(ua, "%s", cwd);
-   } else {
-      bsendmsg(ua, _("cwd is: %s\n"), cwd);
-   }
-   return 1;
+   return pwdcmd(ua, tree);
 }
 
 static int pwdcmd(UAContext *ua, TREE_CTX *tree)
 {
    char cwd[2000];
    tree_getpath(tree->node, cwd, sizeof(cwd));
-   bsendmsg(ua, _("cwd is: %s\n"), cwd);
+   if (ua->api) {
+      bsendmsg(ua, "%s", cwd);
+   } else {
+      bsendmsg(ua, _("cwd is: %s\n"), cwd);
+   }
    return 1;
 }
 

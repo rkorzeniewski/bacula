@@ -56,7 +56,8 @@ public:
    void set_status(const char *buf);
    void writeSettings();
    void readSettings();
-   void resetFocus();
+   void resetFocus() { lineEdit->setFocus(); };
+
 
 public slots:
    void input_line();
@@ -73,6 +74,7 @@ protected:
 
 private:
    void createConnections(); 
+   void createStackedWidgets();
 
 private:
    QString m_UserInput;

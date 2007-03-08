@@ -41,43 +41,16 @@
 Console::Console(QStackedWidget *parent)
 {
    QFont font;
-   QTreeWidgetItem *item, *topItem;
-   QTreeWidget *treeWidget = mainWin->treeWidget;
+   (void)parent;
 
    setupUi(this);
-   parent->addWidget(this);
    m_sock = NULL;
    m_at_prompt = false;
    m_textEdit = textEdit;   /* our console screen */
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
-   bRestore *brestore = new bRestore(parent);
-   brestore->setupUi(brestore);
-   parent->addWidget(brestore);
 
-   /* Just take the first Director */
-   LockRes();
-   m_dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-   UnlockRes();
-
-   /* ***FIXME*** Dummy setup of treeWidget */
-   treeWidget->clear();
-   treeWidget->setColumnCount(1);
-   treeWidget->setHeaderLabel("Selection");
-   topItem = new QTreeWidgetItem(treeWidget);
-   topItem->setText(0, m_dir->name());
-   topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
-   item = new QTreeWidgetItem(topItem);
-   m_consoleItem = item;
-   item->setText(0, "Console");
-   item->setText(1, "0");
-   QBrush redBrush(Qt::red);
-   item->setForeground(0, redBrush);
-   item = new QTreeWidgetItem(topItem);
-   item->setText(0, "brestore");
-   item->setText(1, "1");
-   treeWidget->expandItem(topItem);
 
    readSettings();
    /* Check for messages every 5 seconds */
@@ -207,7 +180,6 @@ QStringList Console::get_list(char *cmd)
 bool Console::get_job_defaults(struct job_defaults &job_defs)
 {
    QString scmd;
-   char cmd[1000];
    int stat;
    char *def;
 
@@ -271,6 +243,8 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
          continue;
       }
    }
+
+#ifdef xxx
    bsnprintf(cmd, sizeof(cmd), "job=%s pool=%s client=%s storage=%s where=%s\n"
       "level=%s type=%s fileset=%s catalog=%s enabled=%d\n",
       job_defs.job_name.toUtf8().data(), job_defs.pool_name.toUtf8().data(), 
@@ -280,6 +254,7 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
       job_defs.where.toUtf8().data(), job_defs.level.toUtf8().data(), 
       job_defs.type.toUtf8().data(), job_defs.fileset_name.toUtf8().data(),
       job_defs.catalog_name.toUtf8().data(), job_defs.enabled);
+#endif
 
    setEnabled(true);
    return true;
@@ -559,3 +534,19 @@ void Console::read_dir(int fd)
       display_text(msg());
    }
 }
+
+void Console::setEnabled(bool enable) 
+{ 
+   m_notifier->setEnabled(enable);   
+}
+
+void Console::setTreeItem(QTreeWidgetItem *item) 
+{ 
+   m_consoleItem = item;
+}
+
+void Console::setDirRes(DIRRES *dir) 
+{ 
+   m_dir = dir;
+}
+

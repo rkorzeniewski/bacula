@@ -1,21 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Database restore Command
- *      Creates a bootstrap file for restoring files and
- *      starts the restore job.
- *
- *      Tree handling routines split into ua_tree.c July MMIII.
- *      BSR (bootstrap record) handling routines split into
- *        bsr.c July MMIII
- *
- *     Kern Sibbald, July MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- User Agent Database restore Command
+ *      Creates a bootstrap file for restoring files and
+ *      starts the restore job.
+ *
+ *      Tree handling routines split into ua_tree.c July MMIII.
+ *      BSR (bootstrap record) handling routines split into
+ *        bsr.c July MMIII
+ *
+ *     Kern Sibbald, July MMII
+ *
+ *   Version $Id$
+ */
 
 
 #include "bacula.h"

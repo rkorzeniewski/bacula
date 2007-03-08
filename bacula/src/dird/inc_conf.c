@@ -1,15 +1,7 @@
 /*
- *   Configuration file parser for new and old Include and
- *      Exclude records
- *
- *     Kern Sibbald, March MMIII
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Configuration file parser for new and old Include and
+ *      Exclude records
+ *
+ *     Kern Sibbald, March MMIII
+ *
+ *     Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
