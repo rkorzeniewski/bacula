@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Director -- User Agent Prompt and Selection code
- *
- *     Kern Sibbald, October MMI
- *
- *   Version  $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- User Agent Prompt and Selection code
+ *
+ *     Kern Sibbald, October MMI
+ *
+ *   Version  $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -731,10 +731,12 @@ void add_prompt(UAContext *ua, const char *prompt)
  *               is copied to prompt if not NULL
  *             prompt is set to the chosen prompt item string
  */
-int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt, int max_prompt)
+int do_prompt(UAContext *ua, const char *automsg, const char *msg, 
+              char *prompt, int max_prompt)
 {
    int i, item;
    char pmsg[MAXSTRING];
+   BSOCK *user = ua->UA_sock;
 
    if (prompt) {
       *prompt = 0;
@@ -753,12 +755,12 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       item = -1;
       goto done;
    }
-// bnet_sig(ua->UA_sock, BNET_START_SELECT);
+   if (ua->api) user->signal(BNET_START_SELECT);
    bsendmsg(ua, ua->prompt[0]);
    for (i=1; i < ua->num_prompts; i++) {
       bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
    }
-// bnet_sig(ua->UA_sock, BNET_END_SELECT);
+   if (ua->api) user->signal(BNET_END_SELECT);
 
    for ( ;; ) {
       /* First item is the prompt string, not the items */
@@ -769,7 +771,7 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
       }
       if (ua->num_prompts == 2) {
          item = 1;
-         bsendmsg(ua, _("Item 1 selected automatically.\n"));
+         bsendmsg(ua, _("Automatically selected: %s\n"), ua->prompt[1]);
          if (prompt) {
             bstrncpy(prompt, ua->prompt[1], max_prompt);
          }
@@ -778,6 +780,7 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg, char *prompt,
          sprintf(pmsg, "%s (1-%d): ", msg, ua->num_prompts-1);
       }
       /* Either a . or an @ will get you out of the loop */
+      if (ua->api) user->signal(BNET_SELECT_INPUT);
       if (!get_pint(ua, pmsg)) {
          item = -1;                   /* error */
          bsendmsg(ua, _("Selection aborted, nothing done.\n"));

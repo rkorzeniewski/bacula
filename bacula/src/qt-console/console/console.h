@@ -80,13 +80,15 @@ public:
    void writeSettings();
    void readSettings();
    char *msg();
-   void setEnabled(bool enable) { m_notifier->setEnabled(enable); };
+   void setEnabled(bool enable);
    QStringList get_list(char *cmd);
    bool get_job_defaults(struct job_defaults &);
    void terminate();
    void beginNewCommand();
    void displayToPrompt();
    void discardToPrompt();
+   void setTreeItem(QTreeWidgetItem *item);
+   void setDirRes(DIRRES *dir);
 
    QStringList job_list;
    QStringList client_list;
@@ -99,7 +101,7 @@ public:
 
 
 public slots:
-   void connect(void);
+   void connect();                     
    void read_dir(int fd);
    int read(void);
    int write(const char *msg);

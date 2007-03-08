@@ -39,11 +39,11 @@
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
+
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
 
-   m_console = new Console(stackedWidget);
-   stackedWidget->setCurrentIndex(0);
+   createStackedWidgets();
 
    resetFocus();
 
@@ -56,11 +56,46 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    m_console->connect();
 }
 
-void MainWin::resetFocus()
-{  
-   lineEdit->setFocus();
-}   
+void MainWin::createStackedWidgets()
+{
+   QTreeWidgetItem *item, *topItem;
+   m_console = new Console(stackedWidget);
+   stackedWidget->addWidget(m_console);
 
+   bRestore *brestore = new bRestore(stackedWidget);
+   stackedWidget->addWidget(brestore);
+
+   /* Just take the first Director */
+   LockRes();
+   DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   m_console->setDirRes(dir);
+   UnlockRes();
+
+   /* ***FIXME*** Dummy setup of treeWidget */
+   treeWidget->clear();
+   treeWidget->setColumnCount(1);
+   treeWidget->setHeaderLabel("Selection");
+   topItem = new QTreeWidgetItem(treeWidget);
+   topItem->setText(0, dir->name());
+   topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+   item = new QTreeWidgetItem(topItem);
+   m_console->setTreeItem(item);
+   item->setText(0, "Console");
+   item->setText(1, "0");
+   QBrush redBrush(Qt::red);
+   item->setForeground(0, redBrush);
+   item = new QTreeWidgetItem(topItem);
+   item->setText(0, "brestore");
+   item->setText(1, "1");
+   treeWidget->expandItem(topItem);
+
+   stackedWidget->setCurrentIndex(0);
+}
+
+/*
+ * Handle up and down arrow keys for the command line
+ *  history.
+ */
 void MainWin::keyPressEvent(QKeyEvent *event)
 {
    if (m_cmd_history.size() == 0) {

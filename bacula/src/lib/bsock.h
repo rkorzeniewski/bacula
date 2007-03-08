@@ -90,26 +90,30 @@ public:
 
 };
 
-/* Signal definitions for use in bnet_sig() */
+/* 
+ *  Signal definitions for use in bnet_sig()   
+ *  Note! These must be negative 
+ */
 enum {
-   BNET_EOD            = -1,          /* End of data stream, new data may follow */
-   BNET_EOD_POLL       = -2,          /* End of data and poll all in one */
-   BNET_STATUS         = -3,          /* Send full status */
-   BNET_TERMINATE      = -4,          /* Conversation terminated, doing close() */
-   BNET_POLL           = -5,          /* Poll request, I'm hanging on a read */
-   BNET_HEARTBEAT      = -6,          /* Heartbeat Response requested */
-   BNET_HB_RESPONSE    = -7,          /* Only response permited to HB */
-   BNET_PROMPT         = -8,          /* Prompt for UA */
-   BNET_BTIME          = -9,          /* Send UTC btime */
-   BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
-   BNET_START_SELECT   = -11,         /* Start of a selection list */
-   BNET_END_SELECT     = -12,         /* End of a select list */
-   BNET_INVALID_CMD    = -13,         /* Invalid command sent */
-   BNET_CMD_FAILED     = -14,         /* Command failed */
-   BNET_CMD_OK         = -15,         /* Command succeeded */
-   BNET_CMD_BEGIN      = -16,         /* Start command execution */
-   BNET_MESSAGES_PENDING = 17,        /* Messages pending */
-   BNET_SERVER_READY   = 18           /* Server ready and waiting */
+   BNET_EOD              = -1,        /* End of data stream, new data may follow */
+   BNET_EOD_POLL         = -2,        /* End of data and poll all in one */
+   BNET_STATUS           = -3,        /* Send full status */
+   BNET_TERMINATE        = -4,        /* Conversation terminated, doing close() */
+   BNET_POLL             = -5,        /* Poll request, I'm hanging on a read */
+   BNET_HEARTBEAT        = -6,        /* Heartbeat Response requested */
+   BNET_HB_RESPONSE      = -7,        /* Only response permited to HB */
+   BNET_PROMPT           = -8,        /* Prompt for UA */
+   BNET_BTIME            = -9,        /* Send UTC btime */
+   BNET_BREAK            = -10,       /* Stop current command -- ctl-c */
+   BNET_START_SELECT     = -11,       /* Start of a selection list */
+   BNET_END_SELECT       = -12,       /* End of a select list */
+   BNET_INVALID_CMD      = -13,       /* Invalid command sent */
+   BNET_CMD_FAILED       = -14,       /* Command failed */
+   BNET_CMD_OK           = -15,       /* Command succeeded */
+   BNET_CMD_BEGIN        = -16,       /* Start command execution */
+   BNET_MESSAGES_PENDING = -17,       /* Messages pending */
+   BNET_SERVER_READY     = -18,       /* Server ready and waiting */
+   BNET_SELECT_INPUT     = -19        /* Return selection input */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */

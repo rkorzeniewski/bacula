@@ -398,9 +398,10 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
             wxFileName filename(::wxGetHomeDir());
             filename.MakeAbsolute();
             configfile = filename.GetLongPath();
-            if (!IsPathSeparator(configfile.Last())
+            if (!IsPathSeparator(configfile.Last())) {
                configfile += '/';
-            configfile += "Library/Preferences/org.bacula.wxconsole.conf";
+            }
+            configfile += L"Library/Preferences/org.bacula.wxconsole.conf";
 #else
             wxFileName filename(::wxGetCwd(), wxT("wx-console.conf"));
             filename.MakeAbsolute();

@@ -176,9 +176,9 @@ static bool diecmd(UAContext *ua, const char *cmd)
 
 static bool jobscmd(UAContext *ua, const char *cmd)
 {
-   JOB *job = NULL;
+   JOB *job;
    LockRes();
-   while ( (job = (JOB *)GetNextRes(R_JOB, (RES *)job)) ) {
+   foreach_res(job, R_JOB) {
       if (acl_access_ok(ua, Job_ACL, job->name())) {
          bsendmsg(ua, "%s\n", job->name());
       }
@@ -189,9 +189,9 @@ static bool jobscmd(UAContext *ua, const char *cmd)
 
 static bool filesetscmd(UAContext *ua, const char *cmd)
 {
-   FILESET *fs = NULL;
+   FILESET *fs;
    LockRes();
-   while ( (fs = (FILESET *)GetNextRes(R_FILESET, (RES *)fs)) ) {
+   foreach_res(fs, R_FILESET) {
       if (acl_access_ok(ua, FileSet_ACL, fs->name())) {
          bsendmsg(ua, "%s\n", fs->name());
       }
@@ -202,9 +202,9 @@ static bool filesetscmd(UAContext *ua, const char *cmd)
 
 static bool clientscmd(UAContext *ua, const char *cmd)
 {
-   CLIENT *client = NULL;
+   CLIENT *client;       
    LockRes();
-   while ( (client = (CLIENT *)GetNextRes(R_CLIENT, (RES *)client)) ) {
+   foreach_res(client, R_CLIENT) {
       if (acl_access_ok(ua, Client_ACL, client->name())) {
          bsendmsg(ua, "%s\n", client->name());
       }
@@ -217,7 +217,7 @@ static bool msgscmd(UAContext *ua, const char *cmd)
 {
    MSGS *msgs = NULL;
    LockRes();
-   while ( (msgs = (MSGS *)GetNextRes(R_MSGS, (RES *)msgs)) ) {
+   foreach_res(msgs, R_MSGS) {
       bsendmsg(ua, "%s\n", msgs->name());
    }
    UnlockRes();
@@ -226,9 +226,9 @@ static bool msgscmd(UAContext *ua, const char *cmd)
 
 static bool poolscmd(UAContext *ua, const char *cmd)
 {
-   POOL *pool = NULL;
+   POOL *pool;       
    LockRes();
-   while ( (pool = (POOL *)GetNextRes(R_POOL, (RES *)pool)) ) {
+   foreach_res(pool, R_POOL) {
       if (acl_access_ok(ua, Pool_ACL, pool->name())) {
          bsendmsg(ua, "%s\n", pool->name());
       }
@@ -239,9 +239,9 @@ static bool poolscmd(UAContext *ua, const char *cmd)
 
 static bool storagecmd(UAContext *ua, const char *cmd)
 {
-   STORE *store = NULL;
+   STORE *store;
    LockRes();
-   while ( (store = (STORE *)GetNextRes(R_STORAGE, (RES *)store)) ) {
+   foreach_res(store, R_STORAGE) {
       if (acl_access_ok(ua, Storage_ACL, store->name())) {
          bsendmsg(ua, "%s\n", store->name());
       }
