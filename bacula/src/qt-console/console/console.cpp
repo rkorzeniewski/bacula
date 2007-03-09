@@ -505,6 +505,9 @@ int Console::read()
             break;
          }
          continue;
+      case BNET_START_SELECT:
+         new selectDialog(this);    
+         break;
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
          m_sock->close();
@@ -549,4 +552,3 @@ void Console::setDirRes(DIRRES *dir)
 { 
    m_dir = dir;
 }
-

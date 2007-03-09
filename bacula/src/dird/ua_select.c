@@ -758,7 +758,11 @@ int do_prompt(UAContext *ua, const char *automsg, const char *msg,
    if (ua->api) user->signal(BNET_START_SELECT);
    bsendmsg(ua, ua->prompt[0]);
    for (i=1; i < ua->num_prompts; i++) {
-      bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
+      if (ua->api) {
+         bsendmsg(ua, "%s", ua->prompt[i]);
+      } else {
+         bsendmsg(ua, "%6d: %s\n", i, ua->prompt[i]);
+      }
    }
    if (ua->api) user->signal(BNET_END_SELECT);
 
