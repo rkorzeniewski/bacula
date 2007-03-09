@@ -34,24 +34,33 @@
         <sizepolicy>
          <hsizetype>5</hsizetype>
          <vsizetype>7</vsizetype>
-         <horstretch>1</horstretch>
+         <horstretch>0</horstretch>
          <verstretch>1</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize" >
         <size>
-         <width>200</width>
+         <width>50</width>
          <height>100</height>
         </size>
        </property>
        <property name="maximumSize" >
         <size>
-         <width>400</width>
+         <width>16777215</width>
          <height>16777215</height>
         </size>
        </property>
        <property name="focusPolicy" >
         <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="floating" >
+        <bool>false</bool>
+       </property>
+       <property name="features" >
+        <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
+       </property>
+       <property name="allowedAreas" >
+        <set>Qt::NoDockWidgetArea</set>
        </property>
        <property name="windowTitle" >
         <string>Page Selector</string>
@@ -80,6 +89,12 @@
              <height>0</height>
             </size>
            </property>
+           <property name="maximumSize" >
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="sizeIncrement" >
             <size>
              <width>0</width>
@@ -105,7 +120,7 @@
         <sizepolicy>
          <hsizetype>7</hsizetype>
          <vsizetype>7</vsizetype>
-         <horstretch>200</horstretch>
+         <horstretch>1</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>

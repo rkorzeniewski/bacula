@@ -1,6 +1,9 @@
 <ui version="4.0" >
  <class>runForm</class>
  <widget class="QDialog" name="runForm" >
+  <property name="windowModality" >
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry" >
    <rect>
     <x>0</x>

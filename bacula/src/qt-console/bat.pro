@@ -6,7 +6,7 @@ CONFIG += qt debug
 TEMPLATE = app
 TARGET = bat
 DEPENDPATH += .
-INCLUDEPATH += . ./console ./restore
+INCLUDEPATH += . ./console ./restore ./select
 INCLUDEPATH += ..
 LIBS        += -L../lib
 LIBS        += -lbac
@@ -21,6 +21,7 @@ FORMS += label/label.ui
 FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui
+FORMS += select/select.ui
 
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
@@ -41,3 +42,7 @@ SOURCES += label/label.cpp
 # Run dialog
 HEADERS += run/run.h
 SOURCES += run/run.cpp
+
+# Select dialgo
+HEADERS += select/select.h
+SOURCES += select/select.cpp
