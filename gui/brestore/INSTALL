@@ -41,7 +41,7 @@ apt-get install libwww-perl
 
 The Red Hat way
 perl, perl-DBI, perl-DBD-mysql, perl-DBD-Pg, perl-Expect, perl-libwww-perl
-perl-Gtk2-GladeXML
+perl-Gtk2-GladeXML perl-Gtk2
 
 The generic Way, if those modules aren't packaged by your distro
 perl -MCPAN -e shell
