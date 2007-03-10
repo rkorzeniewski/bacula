@@ -716,10 +716,8 @@ void prtit(void *ctx, const char *msg)
  * agent, so we are being called from Bacula core. In
  * that case direct the messages to the Job.
  */
-void bsendmsg(void *ctx, const char *fmt, ...)
+void bmsg(UAContext *ua, const char *fmt, va_list arg_ptr)
 {
-   va_list arg_ptr;
-   UAContext *ua = (UAContext *)ctx;
    BSOCK *bs = ua->UA_sock;
    int maxlen, len;
    POOLMEM *msg;
@@ -732,9 +730,7 @@ void bsendmsg(void *ctx, const char *fmt, ...)
 
 again:
    maxlen = sizeof_pool_memory(msg) - 1;
-   va_start(arg_ptr, fmt);
    len = bvsnprintf(msg, maxlen, fmt, arg_ptr);
-   va_end(arg_ptr);
    if (len < 0 || len >= maxlen) {
       msg = realloc_pool_memory(msg, maxlen + maxlen/2);
       goto again;
@@ -749,4 +745,72 @@ again:
       free_pool_memory(msg);
    }
 
+}
+ 
+void bsendmsg(void *ctx, const char *fmt, ...)
+{
+   va_list arg_ptr;
+   va_start(arg_ptr, fmt);
+   bmsg((UAContext *)ctx, fmt, arg_ptr);
+   va_end(arg_ptr);
+}
+
+/*
+ * The following UA methods are mainly intended for GUI
+ * programs
+ */
+/*
+ * This is a message that should be displayed on the user's 
+ *  console.
+ */
+void UAContext::send_msg(const char *fmt, ...)
+{
+   va_list arg_ptr;
+   va_start(arg_ptr, fmt);
+   bmsg(this, fmt, arg_ptr);
+   va_end(arg_ptr);
+}
+
+
+/*
+ * This is an error condition with a command. The gui should put
+ *  up an error or critical dialog box.  The command is aborted.
+ */
+void UAContext::error_msg(const char *fmt, ...)
+{
+   BSOCK *bs = UA_sock;
+   va_list arg_ptr;
+   va_start(arg_ptr, fmt);
+   if (bs && api) bs->signal(BNET_ERROR_MSG);
+   bmsg(this, fmt, arg_ptr);
+   va_end(arg_ptr);
+}
+
+/*  
+ * This is a warning message, that should bring up a warning
+ *  dialog box on the GUI. The command is not aborted, but something
+ *  went wrong.
+ */
+void UAContext::warning_msg(const char *fmt, ...)
+{
+   BSOCK *bs = UA_sock;
+   va_list arg_ptr;
+   va_start(arg_ptr, fmt);
+   if (bs && api) bs->signal(BNET_WARNING_MSG);
+   bmsg(this, fmt, arg_ptr);
+   va_end(arg_ptr);
+}
+
+/* 
+ * This is an information message that should probably be put
+ *  into the status line of a GUI program.
+ */
+void UAContext::info_msg(const char *fmt, ...)
+{
+   BSOCK *bs = UA_sock;
+   va_list arg_ptr;
+   va_start(arg_ptr, fmt);
+   if (bs && api) bs->signal(BNET_INFO_MSG);
+   bmsg(this, fmt, arg_ptr);
+   va_end(arg_ptr);
 }

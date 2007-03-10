@@ -27,50 +27,47 @@
 */
  
 /*
- *  Label Dialog class
+ *  Run Command Dialog class
  *
- *   Kern Sibbald, February MMVII
+ *   Kern Sibbald, March MMVII
  *
+ *  $Id: $
  */ 
 
 #include "bat.h"
-#include "label.h"
-#include <QMessageBox>
+#include "run.h"
 
-labelDialog::labelDialog(Console *console)
+/*
+ * Setup all the combo boxes and display the dialog
+ */
+runCmdDialog::runCmdDialog(Console *console)
 {
+   QDateTime dt;
+
    m_console = console;
    m_console->notify(false);
    setupUi(this);
-   storageCombo->addItems(console->storage_list);
-   poolCombo->addItems(console->pool_list);
    this->show();
 }
 
-void labelDialog::accept()
+void runCmdDialog::accept()
 {
-   QString scmd;
-   if (volumeName->text().toUtf8().data()[0] == 0) {
-      QMessageBox::warning(this, "No Volume name", "No Volume name given",
-                           QMessageBox::Ok, QMessageBox::Ok);
-      return;
-   }
+
    this->hide();
-   scmd = QString("label volume=\"%1\" pool=\"%2\" storage=\"%3\" slot=%4\n")
-         .arg(volumeName->text()).arg(storageCombo->currentText()) 
-         .arg(poolCombo->currentText()).arg(slotSpin->value());
-   m_console->write_dir(scmd.toUtf8().data());
+   
+   m_console->write_dir("yes");
    m_console->displayToPrompt();
    m_console->notify(true);
    delete this;
    mainWin->resetFocus();
 }
 
-void labelDialog::reject()
+
+void runCmdDialog::reject()
 {
-   printf("Rejected\n");
+   mainWin->set_status(" Canceled");
    this->hide();
+   m_console->notify(true);
    delete this;
    mainWin->resetFocus();
-   m_console->notify(true);
 }

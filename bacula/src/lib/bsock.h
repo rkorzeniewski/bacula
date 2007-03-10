@@ -92,34 +92,43 @@ public:
 
 /* 
  *  Signal definitions for use in bnet_sig()   
- *  Note! These must be negative 
+ *  Note! These must be negative.  There are signals that are generated
+ *   by the software ...
  */
 enum {
-   BNET_EOD              = -1,        /* End of data stream, new data may follow */
-   BNET_EOD_POLL         = -2,        /* End of data and poll all in one */
-   BNET_STATUS           = -3,        /* Send full status */
-   BNET_TERMINATE        = -4,        /* Conversation terminated, doing close() */
-   BNET_POLL             = -5,        /* Poll request, I'm hanging on a read */
-   BNET_HEARTBEAT        = -6,        /* Heartbeat Response requested */
-   BNET_HB_RESPONSE      = -7,        /* Only response permited to HB */
-   BNET_PROMPT           = -8,        /* Prompt for UA */
-   BNET_BTIME            = -9,        /* Send UTC btime */
-   BNET_BREAK            = -10,       /* Stop current command -- ctl-c */
-   BNET_START_SELECT     = -11,       /* Start of a selection list */
-   BNET_END_SELECT       = -12,       /* End of a select list */
-   BNET_INVALID_CMD      = -13,       /* Invalid command sent */
-   BNET_CMD_FAILED       = -14,       /* Command failed */
-   BNET_CMD_OK           = -15,       /* Command succeeded */
-   BNET_CMD_BEGIN        = -16,       /* Start command execution */
-   BNET_MESSAGES_PENDING = -17,       /* Messages pending */
-   BNET_SERVER_READY     = -18,       /* Server ready and waiting */
-   BNET_SELECT_INPUT     = -19        /* Return selection input */
+   BNET_EOD            = -1,          /* End of data stream, new data may follow */
+   BNET_EOD_POLL       = -2,          /* End of data and poll all in one */
+   BNET_STATUS         = -3,          /* Send full status */
+   BNET_TERMINATE      = -4,          /* Conversation terminated, doing close() */
+   BNET_POLL           = -5,          /* Poll request, I'm hanging on a read */
+   BNET_HEARTBEAT      = -6,          /* Heartbeat Response requested */
+   BNET_HB_RESPONSE    = -7,          /* Only response permited to HB */
+   BNET_PROMPT         = -8,          /* Prompt for UA */
+   BNET_BTIME          = -9,          /* Send UTC btime */
+   BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
+   BNET_START_SELECT   = -11,         /* Start of a selection list */
+   BNET_END_SELECT     = -12,         /* End of a select list */
+   BNET_INVALID_CMD    = -13,         /* Invalid command sent */
+   BNET_CMD_FAILED     = -14,         /* Command failed */
+   BNET_CMD_OK         = -15,         /* Command succeeded */
+   BNET_CMD_BEGIN      = -16,         /* Start command execution */
+   BNET_MSGS_PENDING   = -17,         /* Messages pending */
+   BNET_SERVER_READY   = -18,         /* Server ready and waiting */
+   BNET_SELECT_INPUT   = -19,         /* Return selection input */
+   BNET_WARNING_MSG    = -20,         /* Warning message */
+   BNET_ERROR_MSG      = -21,         /* Error message -- command failed */
+   BNET_INFO_MSG       = -22,         /* Info message -- status line */
+   BNET_RUN_CMD        = -23          /* Run command follows */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */
 #define BNET_SETBUF_WRITE 2           /* Arg for bnet_set_buffer_size */
 
-/* Return status from bnet_recv() */
+/* 
+ * Return status from bnet_recv()
+ * Note, the HARDEOF and ERROR refer to comm status/problems 
+ *  rather than the BNET_xxx above, which are software signals.
+ */
 enum {
    BNET_SIGNAL         = -1,
    BNET_HARDEOF        = -2,

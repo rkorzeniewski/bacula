@@ -45,6 +45,7 @@ runDialog::runDialog(Console *console)
    QDateTime dt;
 
    m_console = console;
+   m_console->notify(false);
    setupUi(this);
    m_console->beginNewCommand();
    jobCombo->addItems(console->job_list);
@@ -81,6 +82,7 @@ void runDialog::accept()
    m_console->write_dir(cmd);
    m_console->display_text(cmd);
    m_console->displayToPrompt();
+   m_console->notify(true);
    delete this;
    mainWin->resetFocus();
 }
@@ -90,6 +92,7 @@ void runDialog::reject()
 {
    mainWin->set_status(" Canceled");
    this->hide();
+   m_console->notify(true);
    delete this;
    mainWin->resetFocus();
 }

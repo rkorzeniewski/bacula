@@ -1,16 +1,7 @@
 /*
- * Miscellaneous Bacula memory and thread safe routines
- *   Generally, these are interfaces to system or standard
- *   library routines.
- *
- *  Bacula utility functions are in util.c
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,7 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
+/*
+ * Miscellaneous Bacula memory and thread safe routines
+ *   Generally, these are interfaces to system or standard
+ *   library routines.
+ *
+ *  Bacula utility functions are in util.c
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #ifdef HAVE_PWD_H
@@ -232,9 +231,6 @@ void bfree(void *buf)
   free(buf);
 #endif
 }
-
-
-
 
 void *brealloc (void *buf, size_t size)
 {
@@ -776,4 +772,3 @@ char *escape_filename(const char *file_path)
 
    return escaped_path;
 }
-

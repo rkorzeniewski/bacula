@@ -279,22 +279,27 @@ static int client_backups_handler(void *ctx, int num_field, char **row)
  */
 static bool api_cmd(UAContext *ua, const char *cmd)
 {
-   /* Eventually we will probably have several levels or
-    *  capabilities enabled by this.
-    */
-   ua->api = 1;
+   if (ua->argc == 2) {
+      ua->api = atoi(ua->argk[1]);
+   } else {
+      ua->api = 1;
+   }
    return true;
 }
 
 /*
  * Return the backups for this client 
+ *
+ *  .backups client=xxx fileset=yyy
+ *
  */
 static bool backupscmd(UAContext *ua, const char *cmd)
 {
    if (!open_client_db(ua)) {
       return true;
    }
-   if (ua->argc != 3 || strcmp(ua->argk[1], "client") != 0 || strcmp(ua->argk[2], "fileset") != 0) {
+   if (ua->argc != 3 || strcmp(ua->argk[1], "client") != 0 || 
+       strcmp(ua->argk[2], "fileset") != 0) {
       return true;
    }
    if (!acl_access_ok(ua, Client_ACL, ua->argv[1]) ||

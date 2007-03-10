@@ -96,13 +96,13 @@ bool get_pint(UAContext *ua, const char *prompt)
          return true;
       }
       if (!is_a_number(ua->cmd)) {
-         bsendmsg(ua, _("Expected a positive integer, got: %s\n"), ua->cmd);
+         ua->warning_msg(_("Expected a positive integer, got: %s\n"), ua->cmd);
          continue;
       }
       errno = 0;
       dval = strtod(ua->cmd, NULL);
       if (errno != 0 || dval < 0) {
-         bsendmsg(ua, _("Expected a positive integer, got: %s\n"), ua->cmd);
+         ua->warning_msg(_("Expected a positive integer, got: %s\n"), ua->cmd);
          continue;
       }
       ua->pint32_val = (uint32_t)dval;
@@ -158,7 +158,7 @@ bool get_yesno(UAContext *ua, const char *prompt)
          ua->pint32_val = ret;
          return true;
       }
-      bsendmsg(ua, _("Invalid response. You must answer yes or no.\n"));
+      ua->warning_msg(_("Invalid response. You must answer yes or no.\n"));
    }
 }
 
@@ -181,7 +181,7 @@ int get_enabled(UAContext *ua, const char *val)
       Enabled = atoi(val);
    }
    if (Enabled < 0 || Enabled > 2) {
-      bsendmsg(ua, _("Invalid Enabled value, it must be yes, no, archived, 0, 1, or 2\n"));
+      ua->error_msg(_("Invalid Enabled value, it must be yes, no, archived, 0, 1, or 2\n"));
       return -1;     
    }
    return Enabled;
