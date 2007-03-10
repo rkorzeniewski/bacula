@@ -8,7 +8,7 @@ It has the following features :
 
     * Direct SQL access to the database for good performance
 
-    * Fast Time Navigation (switch almost instantaneously between the different
+    * Fast Time Navigation (switches almost instantaneously between the different
       versions of a directory, by changing the date from a list)
 
     * Possibility to choose a selected file, then browse all its available
@@ -20,7 +20,7 @@ It has the following features :
     * Works with either PostgreSQL or MySQL
 
 We have a working (if a bit unpolished) version ready, and think it is time for
-us to publish it and have user and Kern feedback.  
+us to publish it and have user and Kern's feedback.  
 
 What's missing :
 
@@ -38,4 +38,3 @@ For the moment, we want to concentrate on having a restoration interface. We
 don't care about seeing the restoration progress, or anything else.
 
 brestore is also available within Bweb.
-

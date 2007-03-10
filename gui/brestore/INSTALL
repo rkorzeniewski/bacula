@@ -1,6 +1,6 @@
 ################ INSTALL NOTES FOR BRESTORE ####################
 
-# you can install the user interfact glade file on
+# you can install the user interface glade file in
 # /usr/share/brestore or /usr/local/share/brestore
 
 mkdir -p /usr/share/brestore
@@ -14,8 +14,8 @@ install -m 755 -o root -g root brestore.pl    /usr/bin
 
 install -m 644 -o root -g root Bconsole.pm /usr/share/perl5
 
-# copy bsr file directly to your director, use must use scp (or nfs stuff)
-# if you doesn't want to use this, you can dump the bsr file with "Gen BSR" button.
+# To copy the bsr file where the director can access it, we use scp (or nfs stuff)
+# if you don't want to use this, you can dump the bsr file with "Gen BSR" button.
 # so you must have an ssh-key exchange. (you can also hack brestore.pl to use 
 # something like '$err = `xterm -e scp $src $1 2>&1`'
 
@@ -97,4 +97,3 @@ $parameters = {
                 'use_ok_bkp_only' => '',
                 'default_restore_job' => 'Restore'
               };
-
