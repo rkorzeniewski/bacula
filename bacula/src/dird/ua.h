@@ -36,7 +36,8 @@
 #ifndef __UA_H_
 #define __UA_H_ 1
 
-struct UAContext {
+class UAContext {
+public:
    BSOCK *UA_sock;
    BSOCK *sd;
    JCR *jcr;
@@ -62,6 +63,14 @@ struct UAContext {
    uint32_t pint32_val;               /* positive integer */
    int32_t  int32_val;                /* positive/negative */
    int64_t  int64_val;                /* big int */
+
+   void signal(int sig) { UA_sock->signal(sig); };
+
+   /* The below are in ua_output.c */
+   void send_msg(const char *fmt, ...);
+   void error_msg(const char *fmt, ...);
+   void warning_msg(const char *fmt, ...);
+   void info_msg(const char *fmt, ...);
 };
 
 /* Context for insert_tree_handler() */

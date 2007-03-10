@@ -135,7 +135,7 @@ void Console::connect()
    m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
-   write(".api");
+   write(".api 1");
    discardToPrompt();
 
    beginNewCommand();
@@ -162,14 +162,13 @@ QStringList Console::get_list(char *cmd)
    QStringList list;
    int stat;
 
-   setEnabled(false);
+   notify(false);
    write(cmd);
    while ((stat = read()) > 0) {
       strip_trailing_junk(msg());
       list << msg();
    }
-   setEnabled(true);
-// list.sort();
+   notify(true);
    return list;
 }
 
@@ -183,7 +182,7 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
    int stat;
    char *def;
 
-   setEnabled(false);
+   notify(false);
    beginNewCommand();
    scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
    write(scmd);
@@ -256,11 +255,11 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
       job_defs.catalog_name.toUtf8().data(), job_defs.enabled);
 #endif
 
-   setEnabled(true);
+   notify(true);
    return true;
 
 bail_out:
-   setEnabled(true);
+   notify(true);
    return false;
 }
 
@@ -382,6 +381,7 @@ void Console::write_dir(const char *msg)
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
       QBrush redBrush(Qt::red);
       m_consoleItem->setForeground(0, redBrush);
+      m_at_prompt = false;
    }
 }
 
@@ -420,23 +420,22 @@ void Console::displayToPrompt()
 { 
    int stat;
    if (commDebug) Pmsg0(000, "DisplaytoPrompt\n");
-   m_notifier->setEnabled(false);
-   while ((stat = read()) > 0) {
-      display_text(msg());
+   while (!m_at_prompt) {
+      if ((stat=read()) > 0) {
+         display_text(msg());
+      }
    }
    if (commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
-   m_notifier->setEnabled(true);
 }
 
 void Console::discardToPrompt()
 { 
    int stat;
    if (commDebug) Pmsg0(000, "discardToPrompt\n");
-   m_notifier->setEnabled(false);
-   while ((stat = read()) > 0) {
+   while (!m_at_prompt) {
+      stat = read();
    }
    if (commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
-   m_notifier->setEnabled(true);
 }
 
 
@@ -445,7 +444,7 @@ void Console::discardToPrompt()
  */
 int Console::read()
 {
-   int stat = BNET_HARDEOF;
+   int stat = 0;
    while (m_sock) {
       for (;;) {
          stat = bnet_wait_data_intr(m_sock, 1);
@@ -453,10 +452,10 @@ int Console::read()
             break;
          } 
          app->processEvents();
-//       if (m_api_set && m_messages_pending) {
-//          write_dir(".messages");
-//          m_messages_pending = false;
-//       }
+         if (m_api_set && m_messages_pending) {
+            write_dir(".messages");
+            m_messages_pending = false;
+         }
       }
       stat = m_sock->recv();
       if (stat >= 0) {
@@ -465,25 +464,29 @@ int Console::read()
             m_at_prompt = false;
          }
          if (commDebug) Pmsg1(000, "got: %s", m_sock->msg);
-
       }
       switch (m_sock->msglen) {
       case BNET_SERVER_READY:
-//       if (m_api_set && m_messages_pending) {
-//          write_dir(".messages");
-//          m_messages_pending = false;
-//       }
+         if (m_api_set && m_messages_pending) {
+            write_dir(".messages");
+            m_messages_pending = false;
+         }
          m_at_prompt = true;
          continue;
-      case BNET_MESSAGES_PENDING:
+      case BNET_MSGS_PENDING:
+         if (commDebug) Pmsg0(000, "MSGS PENDING\n");
          m_messages_pending = true;
          continue;
+      case BNET_CMD_OK:
+         if (commDebug) Pmsg0(000, "CMD OK\n");
+         m_at_prompt = false;
+         continue;
       case BNET_CMD_BEGIN:
+         if (commDebug) Pmsg0(000, "CMD BEGIN\n");
          m_at_prompt = false;
          continue;
       case BNET_PROMPT:
-      case BNET_CMD_OK:
-         if (commDebug) Pmsg0(000, "CMD OK/PROMPT\n");
+         if (commDebug) Pmsg0(000, "PROMPT\n");
          m_at_prompt = true;
          mainWin->set_status(_("At prompt waiting for input ..."));
          update_cursor();
@@ -491,11 +494,11 @@ int Console::read()
          break;
       case BNET_CMD_FAILED:
          if (commDebug) Pmsg0(000, "CMD FAIL\n");
-         m_at_prompt = true;
          mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
          update_cursor();
          QApplication::restoreOverrideCursor();
          break;
+      /* We should not get this one */
       case BNET_EOD:
          if (commDebug) Pmsg0(000, "EOD\n");
          mainWin->set_status_ready();
@@ -507,6 +510,24 @@ int Console::read()
          continue;
       case BNET_START_SELECT:
          new selectDialog(this);    
+         break;
+      case BNET_RUN_CMD:
+         new runCmdDialog(this);
+         break;
+      case BNET_ERROR_MSG:
+         m_sock->recv();              /* get the message */
+         display_text(msg());
+         QMessageBox::critical(this, "Error", msg(), QMessageBox::Ok);
+         break;
+      case BNET_WARNING_MSG:
+         m_sock->recv();              /* get the message */
+         display_text(msg());
+         QMessageBox::critical(this, "Warning", msg(), QMessageBox::Ok);
+         break;
+      case BNET_INFO_MSG:
+         m_sock->recv();              /* get the message */
+         display_text(msg());
+         mainWin->set_status(msg());
          break;
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
@@ -520,6 +541,7 @@ int Console::read()
          m_notifier = NULL;
          mainWin->set_status(_("Director disconnected."));
          QApplication::restoreOverrideCursor();
+         stat = BNET_HARDEOF;
       }
       break;
    } 
@@ -538,7 +560,17 @@ void Console::read_dir(int fd)
    }
 }
 
-void Console::setEnabled(bool enable) 
+/*
+ * When the notifier is enabled, read_dir() will automatically be
+ * called by the Qt event loop when ever there is any output 
+ * from the Directory, and read_dir() will then display it on
+ * the console.
+ *
+ * When we are in a bat dialog, we want to control *all* output
+ * from the Directory, so we set notify to off.
+ *    m_console->notifiy(false);
+ */
+void Console::notify(bool enable) 
 { 
    m_notifier->setEnabled(enable);   
 }

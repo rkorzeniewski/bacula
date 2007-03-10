@@ -38,6 +38,10 @@
 #include <QApplication>
 #include "bat.h"
 
+bool commDebug = false;
+MainWin *mainWin;
+QApplication *app;
+
 
 /* Forward referenced functions */
 void terminate_console(int sig);                                
@@ -48,11 +52,6 @@ static int check_resources();
 
 /* Static variables */
 static char *configfile = NULL;
-
-MainWin *mainWin;
-QApplication *app;
-bool commDebug = false;
-
 
 int main(int argc, char *argv[])
 {

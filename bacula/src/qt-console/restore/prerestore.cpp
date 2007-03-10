@@ -42,6 +42,7 @@
 prerestoreDialog::prerestoreDialog(Console *console)
 {
    m_console = console;               /* keep compiler quiet */
+   m_console->notify(false);
    setupUi(this);
    jobCombo->addItems(console->job_list);
    filesetCombo->addItems(console->fileset_list);
@@ -70,6 +71,7 @@ void prerestoreDialog::accept()
 
    m_console->write(cmd);
    m_console->display_text(cmd);
+   /* Note, do not turn notifier back on here ... */
    new restoreDialog(m_console);
    delete this;
 }
@@ -79,6 +81,7 @@ void prerestoreDialog::reject()
 {
    mainWin->set_status("Canceled");
    this->hide();
+   m_console->notify(true);
    delete this;
 }
 

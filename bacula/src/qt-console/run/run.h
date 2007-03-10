@@ -23,4 +23,21 @@ private:
 
 };
 
+class runCmdDialog : public QDialog, public Ui::runForm
+{
+   Q_OBJECT 
+
+public:
+   runCmdDialog(Console *console);
+
+public slots:
+   void accept();
+   void reject();
+
+private:
+   Console *m_console;
+
+};
+
+
 #endif /* _RUN_H_ */

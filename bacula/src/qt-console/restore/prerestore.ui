@@ -2,7 +2,7 @@
  <class>prerestoreForm</class>
  <widget class="QDialog" name="prerestoreForm" >
   <property name="windowModality" >
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::WindowModal</enum>
   </property>
   <property name="geometry" >
    <rect>

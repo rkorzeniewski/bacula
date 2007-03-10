@@ -41,9 +41,10 @@
 restoreDialog::restoreDialog(Console *console)
 {
    QStringList titles;
+
    m_console = console;
-  
-   m_console->setEnabled(false);
+   m_console->notify(false);          /* this should already be off */
+
    setupUi(this);
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
@@ -139,7 +140,7 @@ void restoreDialog::accept()
    this->hide();
    m_console->write("done");
    delete this;
-   m_console->setEnabled(true);
+   m_console->notify(true);
    mainWin->resetFocus();
 }
 
@@ -150,7 +151,7 @@ void restoreDialog::reject()
    m_console->write("quit");
    mainWin->set_status("Canceled");
    delete this;
-   m_console->setEnabled(true);
+   m_console->notify(true);
    mainWin->resetFocus();
 }
 
@@ -236,15 +237,16 @@ bool restoreDialog::cwd(const char *dir)
    bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"", dir);
    Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
    m_console->write_dir(cd_cmd);
+   lineEdit->clear();
    if ((stat = m_console->read()) > 0) {
       m_cwd = m_console->msg();
-      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+      lineEdit->insert(m_cwd);
+      Dmsg2(000, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
       Dmsg1(000, "stat=%d\n", stat);
+      QMessageBox::critical(this, "Error", "cd command failed", QMessageBox::Ok);
    }
    m_console->discardToPrompt();
-   lineEdit->clear();
-   lineEdit->insert(m_cwd);
    return true;  /* ***FIXME*** return real status */
 }
 
@@ -261,7 +263,9 @@ char *restoreDialog::get_cwd()
       Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
       Dmsg1(000, "stat=%d\n", stat);
+      QMessageBox::critical(this, "Error", ".pwd command failed", QMessageBox::Ok);
+      Dmsg1(000, "stat=%d\n", stat);
    }
-   m_console->displayToPrompt(); 
+   m_console->discardToPrompt(); 
    return m_cwd.toUtf8().data();
 }

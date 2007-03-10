@@ -133,14 +133,14 @@ int run_cmd(UAContext *ua, const char *cmd)
          if (strcasecmp(ua->argk[i], kw[j]) == 0) {
             /* Note, yes and run have no value, so do not fail */
             if (!ua->argv[i] && j != YES_POS /*yes*/) {
-               bsendmsg(ua, _("Value missing for keyword %s\n"), ua->argk[i]);
+               ua->send_msg(_("Value missing for keyword %s\n"), ua->argk[i]);
                return 1;
             }
             Dmsg1(800, "Got keyword=%s\n", NPRT(kw[j]));
             switch (j) {
             case 0: /* job */
                if (job_name) {
-                  bsendmsg(ua, _("Job name specified twice.\n"));
+                  ua->send_msg(_("Job name specified twice.\n"));
                   return 0;
                }
                job_name = ua->argv[i];
@@ -148,7 +148,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 1: /* JobId */
                if (jid) {
-                  bsendmsg(ua, _("JobId specified twice.\n"));
+                  ua->send_msg(_("JobId specified twice.\n"));
                   return 0;
                }
                jid = ua->argv[i];
@@ -157,7 +157,7 @@ int run_cmd(UAContext *ua, const char *cmd)
             case 2: /* client */
             case 3: /* fd */
                if (client_name) {
-                  bsendmsg(ua, _("Client specified twice.\n"));
+                  ua->send_msg(_("Client specified twice.\n"));
                   return 0;
                }
                client_name = ua->argv[i];
@@ -165,7 +165,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 4: /* fileset */
                if (fileset_name) {
-                  bsendmsg(ua, _("FileSet specified twice.\n"));
+                  ua->send_msg(_("FileSet specified twice.\n"));
                   return 0;
                }
                fileset_name = ua->argv[i];
@@ -173,7 +173,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 5: /* level */
                if (level_name) {
-                  bsendmsg(ua, _("Level specified twice.\n"));
+                  ua->send_msg(_("Level specified twice.\n"));
                   return 0;
                }
                level_name = ua->argv[i];
@@ -182,7 +182,7 @@ int run_cmd(UAContext *ua, const char *cmd)
             case 6: /* storage */
             case 7: /* sd */
                if (store_name) {
-                  bsendmsg(ua, _("Storage specified twice.\n"));
+                  ua->send_msg(_("Storage specified twice.\n"));
                   return 0;
                }
                store_name = ua->argv[i];
@@ -190,7 +190,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 8: /* pool */
                if (pool_name) {
-                  bsendmsg(ua, _("Pool specified twice.\n"));
+                  ua->send_msg(_("Pool specified twice.\n"));
                   return 0;
                }
                pool_name = ua->argv[i];
@@ -198,19 +198,19 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 9: /* where */
                if (where) {
-                  bsendmsg(ua, _("Where specified twice.\n"));
+                  ua->send_msg(_("Where specified twice.\n"));
                   return 0;
                }
                where = ua->argv[i];
                if (!acl_access_ok(ua, Where_ACL, where)) {
-                  bsendmsg(ua, _("Forbidden \"where\" specified.\n"));
+                  ua->send_msg(_("Forbidden \"where\" specified.\n"));
                   return 0;
                }
                kw_ok = true;
                break;
             case 10: /* bootstrap */
                if (bootstrap) {
-                  bsendmsg(ua, _("Bootstrap specified twice.\n"));
+                  ua->send_msg(_("Bootstrap specified twice.\n"));
                   return 0;
                }
                bootstrap = ua->argv[i];
@@ -218,7 +218,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 11: /* replace */
                if (replace) {
-                  bsendmsg(ua, _("Replace specified twice.\n"));
+                  ua->send_msg(_("Replace specified twice.\n"));
                   return 0;
                }
                replace = ua->argv[i];
@@ -226,7 +226,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 12: /* When */
                if (when) {
-                  bsendmsg(ua, _("When specified twice.\n"));
+                  ua->send_msg(_("When specified twice.\n"));
                   return 0;
                }
                when = ua->argv[i];
@@ -234,12 +234,12 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 13:  /* Priority */
                if (Priority) {
-                  bsendmsg(ua, _("Priority specified twice.\n"));
+                  ua->send_msg(_("Priority specified twice.\n"));
                   return 0;
                }
                Priority = atoi(ua->argv[i]);
                if (Priority <= 0) {
-                  bsendmsg(ua, _("Priority must be positive nonzero setting it to 10.\n"));
+                  ua->send_msg(_("Priority must be positive nonzero setting it to 10.\n"));
                   Priority = 10;
                }
                kw_ok = true;
@@ -249,7 +249,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 15: /* Verify Job */
                if (verify_job_name) {
-                  bsendmsg(ua, _("Verify Job specified twice.\n"));
+                  ua->send_msg(_("Verify Job specified twice.\n"));
                   return 0;
                }
                verify_job_name = ua->argv[i];
@@ -281,7 +281,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                break;
             case 21: /* Migration Job */
                if (previous_job_name) {
-                  bsendmsg(ua, _("Migration Job specified twice.\n"));
+                  ua->send_msg(_("Migration Job specified twice.\n"));
                   return 0;
                }
                previous_job_name = ua->argv[i];
@@ -307,7 +307,7 @@ int run_cmd(UAContext *ua, const char *cmd)
             job_name = ua->argk[i];   /* use keyword as job name */
             Dmsg1(800, "Set jobname=%s\n", job_name);
          } else {
-            bsendmsg(ua, _("Invalid keyword: %s\n"), ua->argk[i]);
+            ua->send_msg(_("Invalid keyword: %s\n"), ua->argk[i]);
             return 0;
          }
       }
@@ -319,11 +319,11 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (catalog_name != NULL) {
        catalog = (CAT *)GetResWithName(R_CATALOG, catalog_name);
        if (catalog == NULL) {
-            bsendmsg(ua, _("Catalog \"%s\" not found\n"), catalog_name);
+            ua->error_msg(_("Catalog \"%s\" not found\n"), catalog_name);
            return 0;
        }
        if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
-          bsendmsg(ua, _("No authorization. Catalog \"%s\".\n"), catalog->name());
+          ua->error_msg(_("No authorization. Catalog \"%s\".\n"), catalog->name());
           return 0;
        }
    }
@@ -334,20 +334,20 @@ int run_cmd(UAContext *ua, const char *cmd)
       job = (JOB *)GetResWithName(R_JOB, job_name);
       if (!job) {
          if (*job_name != 0) {
-            bsendmsg(ua, _("Job \"%s\" not found\n"), job_name);
+            ua->send_msg(_("Job \"%s\" not found\n"), job_name);
          }
          job = select_job_resource(ua);
       } else {
          Dmsg1(800, "Found job=%s\n", job_name);
       }
    } else {
-      bsendmsg(ua, _("A job name must be specified.\n"));
+      ua->send_msg(_("A job name must be specified.\n"));
       job = select_job_resource(ua);
    }
    if (!job) {
       return 0;
    } else if (!acl_access_ok(ua, Job_ACL, job->name())) {
-      bsendmsg(ua, _("No authorization. Job \"%s\".\n"),
+      ua->error_msg( _("No authorization. Job \"%s\".\n"),
          job->name());
       return 0;
    }
@@ -356,7 +356,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       pool = (POOL *)GetResWithName(R_POOL, pool_name);
       if (!pool) {
          if (*pool_name != 0) {
-            bsendmsg(ua, _("Pool \"%s\" not found.\n"), pool_name);
+            ua->warning_msg(_("Pool \"%s\" not found.\n"), pool_name);
          }
          pool = select_pool_resource(ua);
       }
@@ -366,7 +366,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (!pool) {
       return 0;
    } else if (!acl_access_ok(ua, Pool_ACL, pool->name())) {
-      bsendmsg(ua, _("No authorization. Pool \"%s\".\n"),
+      ua->error_msg(_("No authorization. Pool \"%s\".\n"),
                pool->name());
       return 0;
    }
@@ -377,7 +377,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       pm_strcpy(store.store_source, _("command line"));
       if (!store.store) {
          if (*store_name != 0) {
-            bsendmsg(ua, _("Storage \"%s\" not found.\n"), store_name);
+            ua->warning_msg(_("Storage \"%s\" not found.\n"), store_name);
          }
          store.store = select_storage_resource(ua);
          pm_strcpy(store.store_source, _("user selection"));
@@ -386,10 +386,10 @@ int run_cmd(UAContext *ua, const char *cmd)
       get_job_storage(&store, job, NULL);      /* use default */
    }
    if (!store.store) {
-      bsendmsg(ua, _("No storage specified.\n"));
+      ua->error_msg(_("No storage specified.\n"));
       return 1;
    } else if (!acl_access_ok(ua, Storage_ACL, store.store->name())) {
-      bsendmsg(ua, _("No authorization. Storage \"%s\".\n"),
+      ua->error_msg(_("No authorization. Storage \"%s\".\n"),
                store.store->name());
       return 0;
    }
@@ -399,7 +399,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       client = (CLIENT *)GetResWithName(R_CLIENT, client_name);
       if (!client) {
          if (*client_name != 0) {
-            bsendmsg(ua, _("Client \"%s\" not found.\n"), client_name);
+            ua->warning_msg(_("Client \"%s\" not found.\n"), client_name);
          }
          client = select_client_resource(ua);
       }
@@ -409,7 +409,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (!client) {
       return 0;
    } else if (!acl_access_ok(ua, Client_ACL, client->name())) {
-      bsendmsg(ua, _("No authorization. Client \"%s\".\n"),
+      ua->error_msg(_("No authorization. Client \"%s\".\n"),
                client->name());
       return 0;
    }
@@ -418,7 +418,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (fileset_name) {
       fileset = (FILESET *)GetResWithName(R_FILESET, fileset_name);
       if (!fileset) {
-         bsendmsg(ua, _("FileSet \"%s\" not found.\n"), fileset_name);
+         ua->send_msg(_("FileSet \"%s\" not found.\n"), fileset_name);
          fileset = select_fileset_resource(ua);
       }
    } else {
@@ -427,7 +427,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (!fileset) {
       return 0;
    } else if (!acl_access_ok(ua, FileSet_ACL, fileset->name())) {
-      bsendmsg(ua, _("No authorization. FileSet \"%s\".\n"),
+      ua->send_msg(_("No authorization. FileSet \"%s\".\n"),
                fileset->name());
       return 0;
    }
@@ -435,7 +435,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (verify_job_name) {
       verify_job = (JOB *)GetResWithName(R_JOB, verify_job_name);
       if (!verify_job) {
-         bsendmsg(ua, _("Verify Job \"%s\" not found.\n"), verify_job_name);
+         ua->send_msg(_("Verify Job \"%s\" not found.\n"), verify_job_name);
          verify_job = select_job_resource(ua);
       }
    } else {
@@ -445,7 +445,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (previous_job_name) {
       previous_job = (JOB *)GetResWithName(R_JOB, previous_job_name);
       if (!previous_job) {
-         bsendmsg(ua, _("Migration Job \"%s\" not found.\n"), previous_job_name);
+         ua->send_msg(_("Migration Job \"%s\" not found.\n"), previous_job_name);
          previous_job = select_job_resource(ua);
       }
    } else {
@@ -483,7 +483,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    if (when) {
       jcr->sched_time = str_to_utime(when);
       if (jcr->sched_time == 0) {
-         bsendmsg(ua, _("Invalid time, using current time.\n"));
+         ua->send_msg(_("Invalid time, using current time.\n"));
          jcr->sched_time = time(NULL);
       }
    }
@@ -503,7 +503,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          }
       }
       if (!jcr->replace) {
-         bsendmsg(ua, _("Invalid replace option: %s\n"), replace);
+         ua->send_msg(_("Invalid replace option: %s\n"), replace);
          goto bail_out;
       }
    } else if (job->replace) {
@@ -545,7 +545,7 @@ try_again:
    }
    if (level_name) {
       if (!get_level_from_name(jcr, level_name)) {
-         bsendmsg(ua, _("Level %s not valid.\n"), level_name);
+         ua->send_msg(_("Level %s not valid.\n"), level_name);
          goto bail_out;
       }
    }
@@ -647,7 +647,7 @@ try_again:
          } else {
             jcr->sched_time = str_to_utime(ua->cmd);
             if (jcr->sched_time == 0) {
-               bsendmsg(ua, _("Invalid time, using current time.\n"));
+               ua->send_msg(_("Invalid time, using current time.\n"));
                jcr->sched_time = time(NULL);
             }
          }
@@ -658,7 +658,7 @@ try_again:
             break;
          }
          if (ua->pint32_val == 0) {
-            bsendmsg(ua, _("Priority must be a positive integer.\n"));
+            ua->send_msg(_("Priority must be a positive integer.\n"));
          } else {
             jcr->JobPriority = ua->pint32_val;
          }
@@ -689,7 +689,7 @@ try_again:
             jcr->RestoreBootstrap = bstrdup(ua->cmd);
             fd = fopen(jcr->RestoreBootstrap, "rb");
             if (!fd) {
-               bsendmsg(ua, _("Warning cannot open %s: ERR=%s\n"),
+               ua->send_msg(_("Warning cannot open %s: ERR=%s\n"),
                   jcr->RestoreBootstrap, strerror(errno));
                free(jcr->RestoreBootstrap);
                jcr->RestoreBootstrap = NULL;
@@ -736,7 +736,7 @@ try_again:
          jid = NULL;                  /* force reprompt */
          jcr->RestoreJobId = 0;
          if (jcr->RestoreBootstrap) {
-            bsendmsg(ua, _("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
+            ua->send_msg(_("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
          }
          goto try_again;
       case -1:                        /* error or cancel */
@@ -754,23 +754,23 @@ start_job:
       Dmsg1(100, "Using pool %s\n", jcr->pool->name());
       JobId = run_job(jcr);
 #if 0  
-      bsendmsg(ua, "<job director=\"console\" time=\"%u\" status=\"%c\" type=\"%c\" "
+      ua->send_msg("<job director=\"console\" time=\"%u\" status=\"%c\" type=\"%c\" "
               "jobid=\"%u\" job=\"%s\" level=\"%c\" finished=\"false\" priority=\"%u\"/>\n",
                time(NULL), jcr->JobStatus, jcr->JobType, jcr->JobId,
               jcr->Job, jcr->JobLevel, jcr->JobPriority);
 #endif
       free_jcr(jcr);                  /* release jcr */
       if (JobId == 0) {
-         bsendmsg(ua, _("Job failed.\n"));
+         ua->error_msg(_("Job failed.\n"));
       } else {
          char ed1[50];
-         bsendmsg(ua, _("Job queued. JobId=%s\n"), edit_int64(JobId,ed1));
+         ua->send_msg(_("Job queued. JobId=%s\n"), edit_int64(JobId,ed1));
       }
       return JobId;
    }
 
 bail_out:
-   bsendmsg(ua, _("Job not run.\n"));
+   ua->send_msg(_("Job not run.\n"));
    free_jcr(jcr);
    return 0;                       /* do not run */
 }
@@ -830,7 +830,7 @@ static void select_job_level(UAContext *ua, JCR *jcr)
          break;
       }
    } else {
-      bsendmsg(ua, _("Level not appropriate for this Job. Cannot be changed.\n"));
+      ua->warning_msg(_("Level not appropriate for this Job. Cannot be changed.\n"));
    }
    return;
 }
@@ -843,13 +843,14 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
       char ec1[30];
       char dt[MAX_TIME_LENGTH];
    case JT_ADMIN:
-         bsendmsg(ua, _("Run %s job\n"
-                        "JobName:  %s\n"
-                        "FileSet:  %s\n"
-                        "Client:   %s\n"
-                        "Storage:  %s\n"
-                        "When:     %s\n"
-                        "Priority: %d\n"),
+      if (ua->api) ua->signal(BNET_RUN_CMD);   
+      ua->send_msg(_("Run %s job\n"
+                     "JobName:  %s\n"
+                     "FileSet:  %s\n"
+                     "Client:   %s\n"
+                     "Storage:  %s\n"
+                     "When:     %s\n"
+                     "Priority: %d\n"),
                  _("Admin"),
                  job->name(),
                  jcr->fileset->name(),
@@ -862,7 +863,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
    case JT_BACKUP:
    case JT_VERIFY:
       if (jcr->JobType == JT_BACKUP) {
-         bsendmsg(ua, _("Run %s job\n"
+         if (ua->api) ua->signal(BNET_RUN_CMD);   
+         ua->send_msg(_("Run %s job\n"
                         "JobName:  %s\n"
                         "Level:    %s\n"
                         "Client:   %s\n"
@@ -893,7 +895,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
          if (!verify_list) {
             verify_list = "";
          }
-         bsendmsg(ua, _("Run %s job\n"
+         if (ua->api) ua->signal(BNET_RUN_CMD);   
+         ua->send_msg(_("Run %s job\n"
                         "JobName:     %s\n"
                         "Level:       %s\n"
                         "Client:      %s\n"
@@ -931,7 +934,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
       jcr->JobLevel = L_FULL;      /* default level */
       Dmsg1(800, "JobId to restore=%d\n", jcr->RestoreJobId);
       if (jcr->RestoreJobId == 0) {
-         bsendmsg(ua, _("Run Restore job\n"
+         if (ua->api) ua->signal(BNET_RUN_CMD);   
+         ua->send_msg(_("Run Restore job\n"
                         "JobName:    %s\n"
                         "Bootstrap:  %s\n"
                         "Where:      %s\n"
@@ -953,7 +957,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
               jcr->catalog->name(),
               jcr->JobPriority);
       } else {
-         bsendmsg(ua, _("Run Restore job\n"
+         if (ua->api) ua->signal(BNET_RUN_CMD);   
+         ua->send_msg(_("Run Restore job\n"
                        "JobName:    %s\n"
                        "Bootstrap:  %s\n"
                        "Where:      %s\n"
@@ -978,7 +983,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
       break;
    case JT_MIGRATE:
       jcr->JobLevel = L_FULL;      /* default level */
-      bsendmsg(ua, _("Run Migration job\n"
+      if (ua->api) ua->signal(BNET_RUN_CMD);   
+      ua->send_msg(_("Run Migration job\n"
                      "JobName:       %s\n"
                      "Bootstrap:     %s\n"
                      "Client:        %s\n"
@@ -1003,7 +1009,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
            jcr->JobPriority);
       break;
    default:
-      bsendmsg(ua, _("Unknown Job Type=%d\n"), jcr->JobType);
+      ua->error_msg(_("Unknown Job Type=%d\n"), jcr->JobType);
       return false;
    }
    return true;

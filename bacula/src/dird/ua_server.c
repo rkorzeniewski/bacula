@@ -136,6 +136,7 @@ static void *handle_UA_client_request(void *arg)
    }
 
    while (!ua->quit) {
+      if (ua->api) user->signal(BNET_PROMPT);
       stat = user->recv();
       if (stat >= 0) {
          pm_strcpy(ua->cmd, ua->UA_sock->msg);
@@ -153,7 +154,7 @@ static void *handle_UA_client_request(void *arg)
                   ua->user_notified_msg_pending = false;
                } else if (!ua->gui && !ua->user_notified_msg_pending && console_msg_pending) {
                   if (ua->api) {
-                     user->signal(BNET_MESSAGES_PENDING);
+                     user->signal(BNET_MSGS_PENDING);
                   } else {
                      bsendmsg(ua, _("You have messages.\n"));
                   }

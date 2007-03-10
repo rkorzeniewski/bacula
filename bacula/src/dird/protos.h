@@ -210,7 +210,10 @@ int get_next_jobid_from_list(char **p, JobId_t *JobId);
 void find_storage_resource(UAContext *ua, RESTORE_CTX &rx, char *Storage, char *MediaType);
 
 /* ua_server.c */
-void bsendmsg(void *sock, const char *fmt, ...);
+void bsendmsg(void *ua_ctx, const char *fmt, ...);
+void berrormsg(void *ua_ctx, const char *fmt, ...);
+void bwarningmsg(void *ua_ctx, const char *fmt, ...);
+void binfomsg(void *ua_ctx, const char *fmt, ...);
 UAContext *new_ua_context(JCR *jcr);
 JCR *new_control_jcr(const char *base_name, int job_type);
 void free_ua_context(UAContext *ua);

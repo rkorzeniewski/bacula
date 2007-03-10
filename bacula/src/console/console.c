@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Console interface to the Director
- *
- *     Kern Sibbald, September MM
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Console interface to the Director
+ *
+ *     Kern Sibbald, September MM
+ *
+ *     Version $Id$
+ */
 
 #include "bacula.h"
 #include "console_conf.h"
@@ -520,7 +520,8 @@ try_again:
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
-       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer   
+       */
       cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
          cons->tls_ca_certdir, cons->tls_certfile,
          cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
@@ -587,8 +588,8 @@ try_again:
    read_and_process_input(stdin, UA_sock);
 
    if (UA_sock) {
-      bnet_sig(UA_sock, BNET_TERMINATE); /* send EOF */
-      bnet_close(UA_sock);
+      UA_sock->signal(BNET_TERMINATE); /* send EOF */
+      UA_sock->close();
    }
 
    terminate_console(0);

@@ -81,7 +81,7 @@ public:
    void writeSettings();
    void readSettings();
    char *msg();
-   void setEnabled(bool enable);
+   void notify(bool enable);
    QStringList get_list(char *cmd);
    bool get_job_defaults(struct job_defaults &);
    void terminate();
