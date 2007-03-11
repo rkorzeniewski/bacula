@@ -4,6 +4,7 @@
 
 #include <QtGui>
 #include "ui_run.h"
+#include "ui_runcmd.h"
 #include "console.h"
 
 class runDialog : public QDialog, public Ui::runForm
@@ -23,7 +24,7 @@ private:
 
 };
 
-class runCmdDialog : public QDialog, public Ui::runForm
+class runCmdDialog : public QDialog, public Ui::runCmdForm
 {
    Q_OBJECT 
 
@@ -35,8 +36,9 @@ public slots:
    void reject();
 
 private:
-   Console *m_console;
+   void fillRunDialog();
 
+   Console *m_console;
 };
 
 
