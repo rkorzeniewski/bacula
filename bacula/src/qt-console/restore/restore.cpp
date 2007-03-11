@@ -139,8 +139,8 @@ void restoreDialog::accept()
 {
    this->hide();
    m_console->write("done");
-   delete this;
    m_console->notify(true);
+   delete this;
    mainWin->resetFocus();
 }
 
@@ -241,7 +241,7 @@ bool restoreDialog::cwd(const char *dir)
    if ((stat = m_console->read()) > 0) {
       m_cwd = m_console->msg();
       lineEdit->insert(m_cwd);
-      Dmsg2(000, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
+      Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
       Dmsg1(000, "stat=%d\n", stat);
       QMessageBox::critical(this, "Error", "cd command failed", QMessageBox::Ok);

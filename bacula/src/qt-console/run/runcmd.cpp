@@ -42,12 +42,68 @@
  */
 runCmdDialog::runCmdDialog(Console *console)
 {
-   QDateTime dt;
-
    m_console = console;
    m_console->notify(false);
    setupUi(this);
+   fillRunDialog();
    this->show();
+   m_console->discardToPrompt();
+}
+
+void runCmdDialog::fillRunDialog()
+{
+   QString item, val;
+   QStringList items;
+   QRegExp rx("^.*:\\s*(\\S.*$)");
+
+   m_console->read();
+   item = m_console->msg();
+   items = item.split("\n");
+   label->setText(items[0]);
+   Dmsg1(000, "Title=%s\n", items[0].toUtf8().data());
+   items.removeFirst();               /* remove title */
+   foreach(item, items) {
+      rx.indexIn(item);
+      val = rx.cap(1);
+      Dmsg1(000, "Item=%s\n", item.toUtf8().data());
+      Dmsg1(000, "Value=%s\n", val.toUtf8().data());
+
+      if (item.startsWith("JobName:")) {
+         jobCombo->addItem(val);
+         continue;
+      }
+      if (item.startsWith("Bootstrap:")) {
+         bootstrap->setText(val);
+         continue;
+      }
+      if (item.startsWith("Client:")) {
+         clientCombo->addItem(val);
+         continue;
+      }
+      if (item.startsWith("Storage:")) {
+         storageCombo->addItem(val);
+         continue;
+      }
+      if (item.startsWith("Where:")) {
+         where->setText(val);
+         continue;
+      }
+      if (item.startsWith("When:")) {
+         continue;
+      }
+      if (item.startsWith("Catalog:")) {
+         catalogCombo->addItem(val);
+         continue;
+      }
+      if (item.startsWith("Fileset:")) {
+         filesetCombo->addItem(val);
+         continue;
+      }
+      if (item.startsWith("Priority:")) {
+//       prioritySpin->setValue(atoi(val));
+         continue;
+      }
+   }
 }
 
 void runCmdDialog::accept()

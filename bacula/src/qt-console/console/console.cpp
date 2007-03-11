@@ -50,8 +50,6 @@ Console::Console(QStackedWidget *parent)
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
-
-
    readSettings();
    /* Check for messages every 5 seconds */
 // m_timer = new QTimer(this);
