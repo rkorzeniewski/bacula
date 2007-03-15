@@ -147,6 +147,10 @@ int gettimeofday(struct timeval *, struct timezone *);
 #define ENOMEDIUM 123
 #endif
 
+#if !defined(ENODATA)
+#define ENODATA 61
+#endif
+
 struct stat
 {
     _dev_t      st_dev;

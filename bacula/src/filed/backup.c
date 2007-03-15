@@ -406,10 +406,20 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
     * Note, if is_win32_backup, we must open the Directory so that
     * the BackupRead will save its permissions and ownership streams.
     */
-   if (ff_pkt->type != FT_LNKSAVED && (S_ISREG(ff_pkt->statp.st_mode) &&
-         ff_pkt->statp.st_size > 0) ||
-         ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
+   bool do_read = false;
+
+   if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode)) {
+#ifdef HAVE_WIN32
+      do_read = !is_portable_backup(&ff_pkt->bfd) || ff_pkt->statp.st_size > 0;
+#else
+      do_read = ff_pkt->statp.st_size > 0;
+#endif
+   } else if (ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
+      do_read = true;
+   }
+
+   if (do_read) {
       btimer_t *tid;
       if (ff_pkt->type == FT_FIFO) {
          tid = start_thread_timer(pthread_self(), 60);
