@@ -294,6 +294,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
               "     Storage daemon didn't accept Device \"%s\" command.\n"), 
               device_name.c_str());
       }
+   } else {
+      Jmsg(jcr, M_INFO, 0, _("Using Device \"%s\"\n"), device_name.c_str());
    }
    return ok;
 }
