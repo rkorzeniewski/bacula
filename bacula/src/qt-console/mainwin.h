@@ -42,6 +42,7 @@
 #include "label/label.h"
 #include "run/run.h"
 #include "restore/restore.h"
+#include "medialist/medialist.h"
 
 class Console;
 
@@ -74,13 +75,17 @@ protected:
 
 private:
    void createConnections(); 
-   void createStackedWidgets();
+   void createPages();
+   QTreeWidgetItem *createTopPage(char *name, bool canDisplay);
+   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent, bool canDisplay);
 
 private:
    QString m_UserInput;
    Console *m_console;
+   MediaList *m_medialist;
    QStringList m_cmd_history;
    int m_cmd_last;
+   int m_pages;
 };
 
 #endif /* _MAINWIN_H_ */

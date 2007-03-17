@@ -43,6 +43,8 @@ Document:
  
 
 Priority:
+- Ensure that each device in an Autochanger has a different
+  Device Index.
 - Add Catalog = to Pool resource so that pools will exist
   in only one catalog -- currently Pools are "global".
 - Look at sg_logs -a /dev/sg0 for getting soft errors.

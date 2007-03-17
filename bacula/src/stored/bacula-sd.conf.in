@@ -162,6 +162,7 @@ Device {
 #Device {
 #  Name = "DVD-Writer"
 #  Media Type = DVD
+#  Device Type = DVD
 #  Archive Device = /dev/hdc
 #  LabelMedia = yes;                   # lets Bacula label unlabeled media
 #  Random Access = Yes;

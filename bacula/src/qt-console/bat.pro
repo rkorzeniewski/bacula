@@ -14,6 +14,7 @@ LIBS        += -lssl -lcrypto
 RESOURCES = main.qrc
 MOC_DIR = moc
 OBJECTS_DIR = obj
+UI_DIR = ui
 
 # Main window
 FORMS += main.ui
@@ -22,6 +23,7 @@ FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui run/runcmd.ui
 FORMS += select/select.ui
+FORMS += medialist/medialist.ui
 
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
@@ -43,6 +45,10 @@ SOURCES += label/label.cpp
 HEADERS += run/run.h
 SOURCES += run/run.cpp run/runcmd.cpp
 
-# Select dialgo
+# Select dialog
 HEADERS += select/select.h
 SOURCES += select/select.cpp
+
+## Medialist
+HEADERS += medialist/medialist.h
+SOURCES += medialist/medialist.cpp
