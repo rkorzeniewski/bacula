@@ -36,14 +36,19 @@
  */ 
 
 #include "bat.h"
+#include "medialist/medialist.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
 
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
+   treeWidget->clear();
+   treeWidget->setColumnCount(1);
+   treeWidget->setHeaderLabel("Select Page");
 
-   createStackedWidgets();
+   m_pages = 0;
+   createPages();
 
    resetFocus();
 
@@ -56,8 +61,10 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    m_console->connect();
 }
 
-void MainWin::createStackedWidgets()
+void MainWin::createPages()
 {
+   DIRRES *dir;
+
    QTreeWidgetItem *item, *topItem;
    m_console = new Console(stackedWidget);
    stackedWidget->addWidget(m_console);
@@ -65,32 +72,55 @@ void MainWin::createStackedWidgets()
    bRestore *brestore = new bRestore(stackedWidget);
    stackedWidget->addWidget(brestore);
 
+   m_medialist = new MediaList(stackedWidget);
+   stackedWidget->addWidget(m_medialist);
+
    /* Just take the first Director */
    LockRes();
-   DIRRES *dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+   dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    m_console->setDirRes(dir);
    UnlockRes();
 
-   /* ***FIXME*** Dummy setup of treeWidget */
-   treeWidget->clear();
-   treeWidget->setColumnCount(1);
-   treeWidget->setHeaderLabel("Selection");
-   topItem = new QTreeWidgetItem(treeWidget);
-   topItem->setText(0, dir->name());
+   topItem = createTopPage(dir->name(), false);
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
-   item = new QTreeWidgetItem(topItem);
+
+   item = createPage("Console", topItem, true);
    m_console->setTreeItem(item);
-   item->setText(0, "Console");
-   item->setText(1, "0");
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
-   item = new QTreeWidgetItem(topItem);
-   item->setText(0, "brestore");
-   item->setText(1, "1");
+
+   item = createPage("brestore", topItem, true);
+   item = createPage("MediaList", topItem, true);
+
    treeWidget->expandItem(topItem);
 
    stackedWidget->setCurrentIndex(0);
 }
+
+QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
+{
+   QTreeWidgetItem *item = new QTreeWidgetItem(treeWidget);
+   item->setText(0, name);
+   if (canDisplay) {
+      item->setData(0, Qt::UserRole, QVariant(m_pages++));
+   } else {
+      item->setData(0, Qt::UserRole, QVariant(-1));
+   }
+   return item;
+}
+
+QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent, bool canDisplay)
+{
+   QTreeWidgetItem *item = new QTreeWidgetItem(parent);
+   item->setText(0, name);
+   if (canDisplay) {
+      item->setData(0, Qt::UserRole, QVariant(m_pages++));
+   } else {
+      item->setData(0, Qt::UserRole, QVariant(-1));
+   }
+   return item;
+}
+
 
 /*
  * Handle up and down arrow keys for the command line
@@ -185,9 +215,8 @@ void MainWin::readSettings()
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   (void)column;
-   int index = item->text(1).toInt();
-   if (index >= 0 && index < 4) {
+   int index = item->data(column, Qt::UserRole).toInt();
+   if (index >= 0) {
       stackedWidget->setCurrentIndex(index);
    }
 }
@@ -196,11 +225,12 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   (void)column;
-   int index = item->text(1).toInt();
-   /* ***FIXME**** make this automatic */
-   if (index >= 0 && index < 4) {
+   int index = item->data(column, Qt::UserRole).toInt();
+   if (index >= 0) {
       stackedWidget->setCurrentIndex(index);
+      if( index == 2 ){
+         m_medialist->DoDisplay(m_console);
+      }
    }
 }
 
