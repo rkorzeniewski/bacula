@@ -171,9 +171,6 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
-#define sql_batch_start(x)    db_batch_start(x)
-#define sql_batch_end(x,y)    db_batch_end(x,y)
-#define sql_batch_insert(x,y) db_batch_insert(x,y)
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
 #define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
@@ -301,9 +298,6 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
-#define sql_batch_start(x)    db_batch_start(x)
-#define sql_batch_end(x,y)    db_batch_end(x,y)
-#define sql_batch_insert(x,y) db_batch_insert(x,y)
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
 #define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
@@ -386,9 +380,6 @@ struct B_DB {
 #define sql_fetch_field(x)    mysql_fetch_field((x)->result)
 #define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
 #define sql_batch_start(x)    db_batch_start(x)
-#define sql_batch_end(x,y)    db_batch_end(x,y)
-#define sql_batch_insert(x,y) db_batch_insert(x,y)
-#define sql_batch_lock_path_query       my_mysql_batch_lock_path_query
 #define sql_batch_lock_filename_query   my_mysql_batch_lock_filename_query
 #define sql_batch_unlock_tables_query   my_mysql_batch_unlock_tables_query
 #define sql_batch_fill_filename_query   my_mysql_batch_fill_filename_query
@@ -504,9 +495,6 @@ extern char* my_pg_batch_fill_path_query;
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
-#define sql_batch_start(x)    my_postgresql_batch_start(x)
-#define sql_batch_end(x,y)    my_postgresql_batch_end(x,y)
-#define sql_batch_insert(x,y) my_postgresql_batch_insert(x,y)
 #define sql_lock_table(x,y)   my_postgresql_lock_table(x, y)
 #define sql_unlock_table(x,y) my_postgresql_unlock_table(x)
 #define sql_batch_lock_path_query       my_pg_batch_lock_path_query
