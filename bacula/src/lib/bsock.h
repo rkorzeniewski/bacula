@@ -87,7 +87,6 @@ public:
    char *host() { return m_host; };
    int port() { return m_port; };
    JCR *jcr() { return m_jcr; };
-
 };
 
 /* 

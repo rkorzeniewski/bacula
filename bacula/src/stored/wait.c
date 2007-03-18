@@ -1,17 +1,7 @@
 /*
- *  Subroutines to handle waiting for operator intervention
- *   or waiting for a Device to be released
- *
- *  Code for wait_for_sysop() pulled from askdir.c
- *
- *   Kern Sibbald, March 2005
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Subroutines to handle waiting for operator intervention
+ *   or waiting for a Device to be released
+ *
+ *  Code for wait_for_sysop() pulled from askdir.c
+ *
+ *   Kern Sibbald, March 2005
+ *
+ *   Version $Id$
+ */
 
 
 #include "bacula.h"                   /* pull in global headers */
@@ -61,7 +61,7 @@ int wait_for_sysop(DCR *dcr)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   P(dev->mutex);
+   dev->lock();  
    Dmsg1(100, "Enter blocked=%s\n", dev->print_blocked());
    unmounted = is_device_unmounted(dev);
 
@@ -85,7 +85,7 @@ int wait_for_sysop(DCR *dcr)
 
    if (!unmounted) {
       Dmsg1(400, "blocked=%s\n", dev->print_blocked());
-      dev->dev_prev_blocked = dev->dev_blocked;
+      dev->dev_prev_blocked = dev->blocked();
       dev->set_blocked(BST_WAITING_FOR_SYSOP); /* indicate waiting for mount */
    }
 
@@ -100,7 +100,7 @@ int wait_for_sysop(DCR *dcr)
          dev->print_name(), (int)me->heartbeat_interval, dev->wait_sec, add_wait);
       start = time(NULL);
       /* Wait required time */
-      stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->mutex, &timeout);
+      stat = pthread_cond_timedwait(&dev->wait_next_vol, &dev->m_mutex, &timeout);
       Dmsg2(400, "Wokeup from sleep on device stat=%d blocked=%s\n", stat,
          dev->print_blocked());
 
@@ -151,7 +151,7 @@ int wait_for_sysop(DCR *dcr)
       /*
        * Check if user mounted the device while we were waiting
        */
-      if (dev->get_blocked() == BST_MOUNT) {   /* mount request ? */
+      if (dev->blocked() == BST_MOUNT) {   /* mount request ? */
          stat = W_MOUNT;
          break;
       }
@@ -184,7 +184,7 @@ int wait_for_sysop(DCR *dcr)
       Dmsg1(400, "set %s\n", dev->print_blocked());
    }
    Dmsg1(400, "Exit blocked=%s\n", dev->print_blocked());
-   V(dev->mutex);
+   dev->unlock();
    return stat;
 }
 

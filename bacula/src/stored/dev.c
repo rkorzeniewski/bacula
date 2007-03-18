@@ -218,7 +218,7 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->errmsg = get_pool_memory(PM_EMSG);
    *dev->errmsg = 0;
 
-   if ((errstat = pthread_mutex_init(&dev->mutex, NULL)) != 0) {
+   if ((errstat = pthread_mutex_init(&dev->m_mutex, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
@@ -242,12 +242,14 @@ init_dev(JCR *jcr, DEVRES *device)
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
+#ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
       Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
+#endif
 
    dev->clear_opened();
    dev->attached_dcrs = New(dlist(dcr, &dcr->dev_link));
@@ -782,19 +784,19 @@ void DEVICE::block(int why)
 {
    lock_device(this);
    block_device(this, why);
-   V(mutex);
+   unlock();
 }
 
 void DEVICE::unblock()
 {  
-   P(mutex);
+   lock();   
    unblock_device(this);
-   V(mutex);
+   unlock();
 }
 
 const char *DEVICE::print_blocked() const 
 {
-   switch (dev_blocked) {
+   switch (m_blocked) {
    case BST_NOT_BLOCKED:
       return "BST_NOT_BLOCKED";
    case BST_UNMOUNTED:
@@ -2283,11 +2285,11 @@ void DEVICE::term(void)
       free_pool_memory(errmsg);
       errmsg = NULL;
    }
-   pthread_mutex_destroy(&mutex);
+   pthread_mutex_destroy(&m_mutex);
    pthread_cond_destroy(&wait);
    pthread_cond_destroy(&wait_next_vol);
    pthread_mutex_destroy(&spool_mutex);
-   rwl_destroy(&lock);
+// rwl_destroy(&lock);
    if (attached_dcrs) {
       delete attached_dcrs;
       attached_dcrs = NULL;

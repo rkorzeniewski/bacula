@@ -281,13 +281,13 @@ default_path:
       dcr->VolumeName, dev->print_name());
 
 get_out:
-   P(dev->mutex);
+   dev->lock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   V(dev->mutex);
+   dev->unlock();
    dev->unblock();
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
@@ -408,13 +408,13 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false);        /* send Volume info to Director */
-   P(dev->mutex);
+   dev->lock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   V(dev->mutex);
+   dev->unlock();
    dev->unblock();
    return dcr;
 
@@ -422,13 +422,13 @@ DCR *acquire_device_for_append(DCR *dcr)
  * Error return
  */
 get_out:
-   P(dev->mutex);
+   dev->lock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   V(dev->mutex);
+   dev->unlock();
    dev->unblock();
    return NULL;
 }

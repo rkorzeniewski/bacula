@@ -1,16 +1,7 @@
 /*
- * Definitions for using the Device functions in Bacula
- *  Tape and File storage access
- *
- * Kern Sibbald, MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Definitions for using the Device functions in Bacula
+ *  Tape and File storage access
+ *
+ * Kern Sibbald, MM
+ *
+ *   Version $Id$
+ *
+ */
 
 
 #ifndef __DEV_H
@@ -144,7 +144,7 @@ enum {
 #define ST_PART_SPOOLED    (1<<18)    /* spooling part */
 #define ST_FREESPACE_OK    (1<<19)    /* Have valid freespace for DVD */
 
-/* dev_blocked states (mutually exclusive) */
+/* m_blocked states (mutually exclusive) */
 enum {
    BST_NOT_BLOCKED = 0,               /* not blocked */
    BST_UNMOUNTED,                     /* User unmounted device */
@@ -204,21 +204,21 @@ class DCR; /* forward reference */
 class DEVICE {
 private:
    int m_fd;                          /* file descriptor */
+   int m_blocked;                     /* set if we must wait (i.e. change tape) */
 public:
    dlist *attached_dcrs;              /* attached DCR list */
-   pthread_mutex_t mutex;             /* access control */
+   pthread_mutex_t m_mutex;           /* access control */
    pthread_mutex_t spool_mutex;       /* mutex for updating spool_size */
    pthread_cond_t wait;               /* thread wait variable */
    pthread_cond_t wait_next_vol;      /* wait for tape to be mounted */
    pthread_t no_wait_id;              /* this thread must not wait */
-   int dev_blocked;                   /* set if we must wait (i.e. change tape) */
    int dev_prev_blocked;              /* previous blocked state */
    int num_waiting;                   /* number of threads waiting */
    int num_writers;                   /* number of writing threads */
    int reserved_device;               /* number of device reservations */
 
    /* New access control in process of being implemented */
-   brwlock_t lock;                    /* New mutual exclusion lock */
+// brwlock_t xlock;                   /* New mutual exclusion lock */
 
    int capabilities;                  /* capabilities mask */
    int state;                         /* state mask */
@@ -324,14 +324,14 @@ public:
    int can_write() const { return is_open() && can_append() &&
                             is_labeled() && !at_weot(); }
    int can_read() const   { return state & ST_READ; }
-   bool can_steal_lock() const { return dev_blocked &&
-                    (dev_blocked == BST_UNMOUNTED ||
-                     dev_blocked == BST_WAITING_FOR_SYSOP ||
-                     dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
+   bool can_steal_lock() const { return m_blocked &&
+                    (m_blocked == BST_UNMOUNTED ||
+                     m_blocked == BST_WAITING_FOR_SYSOP ||
+                     m_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    bool waiting_for_mount() const { return 
-                    (dev_blocked == BST_UNMOUNTED ||
-                     dev_blocked == BST_WAITING_FOR_SYSOP ||
-                     dev_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
+                    (m_blocked == BST_UNMOUNTED ||
+                     m_blocked == BST_WAITING_FOR_SYSOP ||
+                     m_blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP); };
    const char *strerror() const;
    const char *archive_name() const;
    const char *name() const;
@@ -366,6 +366,8 @@ public:
    void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; };
    char *bstrerror(void) { return errmsg; };
    char *print_errmsg() { return errmsg; };
+   void lock() { P(m_mutex); } 
+   void unlock() { V(m_mutex); } 
 
    void block(int why);          /* in dev.c */
    void unblock();               /* in dev.c */
@@ -397,12 +399,12 @@ public:
    bool update_pos(DCR *dcr);    /* in dev.c */
    bool update_freespace();      /* in dvd.c */
 
-   void set_blocked(int block) { dev_blocked = block; };
-   int  get_blocked() const { return dev_blocked; };
+   void set_blocked(int block) { m_blocked = block; };
+   int  blocked() const { return m_blocked; };
    uint32_t get_file() const { return file; };
    uint32_t get_block() const { return block_num; };
    const char *print_blocked() const; /* in dev.c */
-   bool is_blocked() const { return dev_blocked != BST_NOT_BLOCKED; };
+   bool is_blocked() const { return m_blocked != BST_NOT_BLOCKED; };
    int fd() const { return m_fd; };
 
 private:

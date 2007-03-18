@@ -459,7 +459,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
    bool got_vol = false;
 
    Dmsg0(400, "enter dir_ask_sysop_to_create_appendable_volume\n");
-   ASSERT(dev->dev_blocked);
+   ASSERT(dev->blocked());
    for ( ;; ) {
       if (job_canceled(jcr)) {
          Mmsg(dev->errmsg,
@@ -468,9 +468,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
          return false;
       }
-      P(dev->mutex);
+      dev->lock();  
       got_vol = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
-      V(dev->mutex);
+      dev->unlock();
       if (got_vol) {
          return true;
       } else {
@@ -545,7 +545,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       Mmsg0(dev->errmsg, _("Cannot request another volume: no volume name given.\n"));
       return false;
    }
-   ASSERT(dev->dev_blocked);
+   ASSERT(dev->blocked());
    for ( ;; ) {
       if (job_canceled(jcr)) {
          Mmsg(dev->errmsg, _("Job %s canceled while waiting for mount on Storage Device %s.\n"),

@@ -211,6 +211,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
  */
 static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 {
+   bool do_read = false;
    int stat, data_stream; 
    int rtnstat = 0;
    DIGEST *digest = NULL;
@@ -406,7 +407,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
     * Note, if is_win32_backup, we must open the Directory so that
     * the BackupRead will save its permissions and ownership streams.
     */
-   bool do_read = false;
 
    if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode)) {
 #ifdef HAVE_WIN32
