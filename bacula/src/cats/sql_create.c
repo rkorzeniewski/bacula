@@ -741,6 +741,7 @@ bool db_batch_end(B_DB *mdb, const char *error)
    return true;
 }
 
+#ifdef HAVE_BATCH_FILE_INSERT
 /* 
  * Returns 1 if OK
  *         0 if failed
@@ -814,7 +815,6 @@ bool db_write_batch_file_records(JCR *jcr)
    return true;
 }
 
-#ifdef HAVE_BATCH_FILE_INSERT
 /*
  * Create File record in B_DB
  *
