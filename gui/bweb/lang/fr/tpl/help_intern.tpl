@@ -11,7 +11,7 @@ Vous devrez choisir parmi la sélection de l'écran suivant.
     <tr><td>Pool :</td>      
         <td><select name='pool' class='formulaire' multiple>
 <TMPL_LOOP db_pools>
-             <option><TMPL_VAR name></option>
+             <option selected><TMPL_VAR name></option>
 </TMPL_LOOP>
            </select>
         </td>

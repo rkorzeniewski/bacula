@@ -10,7 +10,7 @@ be asked to make your selection on the next screen.
     <tr><td>Pool:</td>      
         <td><select name='pool' class='formulaire' multiple>
 <TMPL_LOOP NAME=db_pools>
-             <option><TMPL_VAR NAME=name></option>
+             <option selected><TMPL_VAR NAME=name></option>
 </TMPL_LOOP>
            </select>
         </td>
