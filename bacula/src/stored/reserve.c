@@ -1,17 +1,7 @@
 /*
- *   Drive reservation functions for Storage Daemon
- *
- *   Kern Sibbald, MM
- *
- *   Split from job.c and acquire.c June 2005
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Drive reservation functions for Storage Daemon
+ *
+ *   Kern Sibbald, MM
+ *
+ *   Split from job.c and acquire.c June 2005
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -402,7 +402,7 @@ static bool use_storage_cmd(JCR *jcr)
       store->append = append;
 
       /* Now get all devices */
-      while (bnet_recv(dir) >= 0) {
+      while (dir->recv() >= 0) {
          Dmsg1(100, "<dird device: %s", dir->msg);
          ok = sscanf(dir->msg, use_device, dev_name.c_str()) == 1;
          if (!ok) {
@@ -411,7 +411,7 @@ static bool use_storage_cmd(JCR *jcr)
          unbash_spaces(dev_name);
          store->device->append(bstrdup(dev_name.c_str()));
       }
-   }  while (ok && bnet_recv(dir) >= 0);
+   }  while (ok && dir->recv() >= 0);
 
 #ifdef DEVELOPER
    /* This loop is debug code and can be removed */
@@ -779,7 +779,7 @@ static bool reserve_device_for_read(DCR *dcr)
 
    /* Get locks in correct order */
    unlock_reservations();
-   P(dev->mutex);
+   dev->lock();  
    lock_reservations();
 
    if (is_device_unmounted(dev)) {             
@@ -808,7 +808,7 @@ static bool reserve_device_for_read(DCR *dcr)
    dcr->reserved_device = true;
 
 bail_out:
-   V(dev->mutex);
+   dev->unlock();
    return ok;
 }
 
@@ -838,7 +838,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
 
    /* Get locks in correct order */
    unlock_reservations();
-   P(dev->mutex);
+   dev->lock();
    lock_reservations();
 
    /* If device is being read, we cannot write it */
@@ -874,7 +874,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
    ok = true;
 
 bail_out:
-   V(dev->mutex);
+   dev->unlock();
    return ok;
 }
 

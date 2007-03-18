@@ -135,8 +135,6 @@ void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
 bool     is_device_unmounted(DEVICE *dev);
-void     dev_lock(DEVICE *dev);
-void     dev_unlock(DEVICE *dev);
 
 /* From dircmd.c */
 void     *handle_connection_request(void *arg);

@@ -1,4 +1,31 @@
 /*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation plus additions
+   that are listed in the file LICENSE.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+
+   Bacula® is a registered trademark of John Walker.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
  *
  *  Higher Level Device routines.
  *  Knows about Bacula tape labels and such
@@ -28,33 +55,6 @@
  *
  *   Version $Id$
  */
-/*
-   Bacula® - The Network Backup Solution
-
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
-
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation plus additions
-   that are listed in the file LICENSE.
-
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula® is a registered trademark of John Walker.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
-*/
 
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
@@ -116,11 +116,11 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!mount_next_write_volume(dcr, 1)) {
       free_block(label_blk);
       dcr->block = block;
-      P(dev->mutex);
+      dev->lock();  
       unblock_device(dev);
       return false;                /* device locked */
    }
-   P(dev->mutex);                  /* lock again */
+   dev->lock();                    /* lock again */
 
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false);        /* send Volume info to Director */
@@ -318,6 +318,7 @@ bool open_device(DCR *dcr)
 
 
 
+#ifdef xxx
 void dev_lock(DEVICE *dev)
 {
    int errstat;
@@ -333,6 +334,7 @@ void dev_unlock(DEVICE *dev)
       Emsg1(M_ABORT, 0, _("Device write unlock failure. ERR=%s\n"), strerror(errstat));
    }
 }
+#endif 
 
 /*
  * When dev_blocked is set, all threads EXCEPT thread with id no_wait_id
@@ -342,13 +344,13 @@ void dev_unlock(DEVICE *dev)
 void _lock_device(const char *file, int line, DEVICE *dev)
 {
    int stat;
-   Dmsg3(500, "lock %d from %s:%d\n", dev->dev_blocked, file, line);
-   P(dev->mutex);
-   if (dev->dev_blocked && !pthread_equal(dev->no_wait_id, pthread_self())) {
+   Dmsg3(500, "lock %d from %s:%d\n", dev->blocked(), file, line);
+   dev->lock();   
+   if (dev->blocked() && !pthread_equal(dev->no_wait_id, pthread_self())) {
       dev->num_waiting++;             /* indicate that I am waiting */
-      while (dev->dev_blocked) {
-         if ((stat = pthread_cond_wait(&dev->wait, &dev->mutex)) != 0) {
-            V(dev->mutex);
+      while (dev->blocked()) {
+         if ((stat = pthread_cond_wait(&dev->wait, &dev->m_mutex)) != 0) {
+            dev->unlock();
             Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
                strerror(stat));
          }
@@ -363,7 +365,7 @@ void _lock_device(const char *file, int line, DEVICE *dev)
 bool is_device_unmounted(DEVICE *dev)
 {
    bool stat;
-   int blocked = dev->dev_blocked;
+   int blocked = dev->blocked();
    stat = (blocked == BST_UNMOUNTED) ||
           (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
@@ -372,7 +374,7 @@ bool is_device_unmounted(DEVICE *dev)
 void _unlock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg2(500, "unlock from %s:%d\n", file, line);
-   V(dev->mutex);
+   dev->unlock();
 }
 
 /*
@@ -386,12 +388,10 @@ void _unlock_device(const char *file, int line, DEVICE *dev)
 void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
    Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
-   ASSERT(dev->get_blocked() == BST_NOT_BLOCKED);
+   ASSERT(dev->blocked() == BST_NOT_BLOCKED);
    dev->set_blocked(state);           /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
 }
-
-
 
 /*
  * Unblock the device, and wake up anyone who went to sleep.
@@ -399,7 +399,7 @@ void _block_device(const char *file, int line, DEVICE *dev, int state)
 void _unblock_device(const char *file, int line, DEVICE *dev)
 {
    Dmsg3(500, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
-   ASSERT(dev->dev_blocked);
+   ASSERT(dev->blocked());
    dev->set_blocked(BST_NOT_BLOCKED);
    dev->no_wait_id = 0;
    if (dev->num_waiting > 0) {
@@ -416,13 +416,13 @@ void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *
 
    Dmsg3(400, "steal lock. old=%s from %s:%d\n", dev->print_blocked(),
       file, line);
-   hold->dev_blocked = dev->get_blocked();
+   hold->dev_blocked = dev->blocked();
    hold->dev_prev_blocked = dev->dev_prev_blocked;
    hold->no_wait_id = dev->no_wait_id;
    dev->set_blocked(state);
    Dmsg1(400, "steal lock. new=%s\n", dev->print_blocked());
    dev->no_wait_id = pthread_self();
-   V(dev->mutex);
+   dev->unlock();
 }
 
 /*
@@ -433,8 +433,8 @@ void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock
 {
    Dmsg3(400, "return lock. old=%s from %s:%d\n",
       dev->print_blocked(), file, line);
-   P(dev->mutex);
-   dev->dev_blocked = hold->dev_blocked;
+   dev->lock();
+   dev->set_blocked(hold->dev_blocked);
    dev->dev_prev_blocked = hold->dev_prev_blocked;
    dev->no_wait_id = hold->no_wait_id;
    Dmsg1(400, "return lock. new=%s\n", dev->print_blocked());

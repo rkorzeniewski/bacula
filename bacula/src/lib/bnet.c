@@ -751,13 +751,15 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
 /*
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
-BSOCK *bnet_connect(JCR * jcr, int retry_interval, int max_retry_time,
+BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
                     const char *name, char *host, char *service, int port,
                     int verbose)
 {
    int i;
    BSOCK *bsock;
    int fatal = 0;
+   time_t begin_time = time(NULL);
+   time_t now;
 
    for (i = 0; (bsock = bnet_open(jcr, name, host, service, port, &fatal)) == NULL;
         i -= retry_interval) {
@@ -775,8 +777,8 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, int max_retry_time,
                "Retrying ...\n"), name, host, port, be.strerror());
       }
       bmicrosleep(retry_interval, 0);
-      max_retry_time -= retry_interval;
-      if (max_retry_time <= 0) {
+      now = time(NULL);
+      if (begin_time + max_retry_time <= now) {
          Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
                name, host, port, be.strerror());
          return NULL;

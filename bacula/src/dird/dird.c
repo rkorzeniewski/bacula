@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Director daemon -- this is the main program
- *
- *     Kern Sibbald, March MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,13 +25,22 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director daemon -- this is the main program
+ *
+ *     Kern Sibbald, March MM
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
 
 /* Forward referenced subroutines */
 void terminate_dird(int sig);
-static int check_resources();
+static bool check_resources();
+static bool check_catalog();
 static void dir_sql_query(JCR *jcr, const char *cmd);
   
 /* Exported subroutines */
@@ -113,6 +114,7 @@ PROG_COPYRIGHT
  *
  */
 #if defined(HAVE_WIN32)
+/* For Win32 main() is in src/win32 code ... */
 #define main BaculaMain
 #endif
 
@@ -246,7 +248,11 @@ int main (int argc, char *argv[])
    create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
    read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 
-   drop(uid, gid);                    /* reduce priveleges if requested */
+   drop(uid, gid);                    /* reduce privileges if requested */
+
+   if (!check_catalog()) {
+      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+   }
 
 #if !defined(HAVE_WIN32)
    signal(SIGHUP, reload_config);
@@ -511,7 +517,7 @@ bail_out:
  *  **** FIXME **** this routine could be a lot more
  *   intelligent and comprehensive.
  */
-static int check_resources()
+static bool check_resources()
 {
    bool OK = true;
    JOB *job;
@@ -735,120 +741,6 @@ static int check_resources()
       }
    } /* End loop over Job res */
 
-   /* Loop over databases */
-   CAT *catalog;
-   foreach_res(catalog, R_CATALOG) {
-      B_DB *db;
-      /*
-       * Make sure we can open catalog, otherwise print a warning
-       * message because the server is probably not running.
-       */
-      db = db_init_database(NULL, catalog->db_name, catalog->db_user,
-                         catalog->db_password, catalog->db_address,
-                         catalog->db_port, catalog->db_socket,
-                         catalog->mult_db_connections);
-      if (!db || !db_open_database(NULL, db)) {
-         Jmsg(NULL, M_FATAL, 0, _("Could not open Catalog \"%s\", database \"%s\".\n"),
-              catalog->name(), catalog->db_name);
-         if (db) {
-            Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
-         }
-         OK = false;
-         continue;
-      }
-
-      /* Loop over all pools, defining/updating them in each database */
-      POOL *pool;
-      foreach_res(pool, R_POOL) {
-         create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
-      }
-
-      /* Loop over all pools for updating RecyclePool */
-      foreach_res(pool, R_POOL) {
-	 update_pool_recyclepool(NULL, db, pool);
-      }
-
-      STORE *store;
-      foreach_res(store, R_STORAGE) {
-         STORAGE_DBR sr;
-         MEDIATYPE_DBR mr;
-         if (store->media_type) {
-            bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
-            mr.ReadOnly = 0;
-            db_create_mediatype_record(NULL, db, &mr);
-         } else {
-            mr.MediaTypeId = 0;
-         }
-         bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
-         sr.AutoChanger = store->autochanger;
-         db_create_storage_record(NULL, db, &sr);
-         store->StorageId = sr.StorageId;   /* set storage Id */
-         if (!sr.created) {                 /* if not created, update it */
-            db_update_storage_record(NULL, db, &sr);
-         }
-
-         /* tls_require implies tls_enable */
-         if (store->tls_require) {
-            if (have_tls) {
-               store->tls_enable = true;
-            } else {
-               Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
-               OK = false;
-            }
-         } 
-
-         if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable) {
-            Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
-                 " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
-                 store->name(), configfile);
-            OK = false;
-         }
-
-         /* If everything is well, attempt to initialize our per-resource TLS context */
-         if (OK && (store->tls_enable || store->tls_require)) {
-           /* Initialize TLS context:
-            * Args: CA certfile, CA certdir, Certfile, Keyfile,
-            * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
-            store->tls_ctx = new_tls_context(store->tls_ca_certfile,
-               store->tls_ca_certdir, store->tls_certfile,
-               store->tls_keyfile, NULL, NULL, NULL, true);
-         
-            if (!store->tls_ctx) {
-               Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
-                    store->name(), configfile);
-               OK = false;
-            }
-         }
-      }
-
-      /* Loop over all counters, defining them in each database */
-      /* Set default value in all counters */
-      COUNTER *counter;
-      foreach_res(counter, R_COUNTER) {
-         /* Write to catalog? */
-         if (!counter->created && counter->Catalog == catalog) {
-            COUNTER_DBR cr;
-            bstrncpy(cr.Counter, counter->name(), sizeof(cr.Counter));
-            cr.MinValue = counter->MinValue;
-            cr.MaxValue = counter->MaxValue;
-            cr.CurrentValue = counter->MinValue;
-            if (counter->WrapCounter) {
-               bstrncpy(cr.WrapCounter, counter->WrapCounter->name(), sizeof(cr.WrapCounter));
-            } else {
-               cr.WrapCounter[0] = 0;  /* empty string */
-            }
-            if (db_create_counter_record(NULL, db, &cr)) {
-               counter->CurrentValue = cr.CurrentValue;
-               counter->created = true;
-               Dmsg2(100, "Create counter %s val=%d\n", counter->name(), counter->CurrentValue);
-            }
-         }
-         if (!counter->created) {
-            counter->CurrentValue = counter->MinValue;  /* default value */
-         }
-      }
-      db_close_database(NULL, db);
-   }
 
    /* Loop over Consoles */
    CONRES *cons;
@@ -945,6 +837,127 @@ static int check_resources()
    if (OK) {
       close_msg(NULL);                /* close temp message handler */
       init_msg(NULL, director->messages); /* open daemon message handler */
+   }
+   return OK;
+}
+
+static bool check_catalog()
+{
+   bool OK = true;
+
+   /* Loop over databases */
+   CAT *catalog;
+   foreach_res(catalog, R_CATALOG) {
+      B_DB *db;
+      /*
+       * Make sure we can open catalog, otherwise print a warning
+       * message because the server is probably not running.
+       */
+      db = db_init_database(NULL, catalog->db_name, catalog->db_user,
+                         catalog->db_password, catalog->db_address,
+                         catalog->db_port, catalog->db_socket,
+                         catalog->mult_db_connections);
+      if (!db || !db_open_database(NULL, db)) {
+         Jmsg(NULL, M_FATAL, 0, _("Could not open Catalog \"%s\", database \"%s\".\n"),
+              catalog->name(), catalog->db_name);
+         if (db) {
+            Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
+         }
+         OK = false;
+         continue;
+      }
+
+      /* Loop over all pools, defining/updating them in each database */
+      POOL *pool;
+      foreach_res(pool, R_POOL) {
+         create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
+      }
+
+      /* Loop over all pools for updating RecyclePool */
+      foreach_res(pool, R_POOL) {
+         update_pool_recyclepool(NULL, db, pool);
+      }
+
+      STORE *store;
+      foreach_res(store, R_STORAGE) {
+         STORAGE_DBR sr;
+         MEDIATYPE_DBR mr;
+         if (store->media_type) {
+            bstrncpy(mr.MediaType, store->media_type, sizeof(mr.MediaType));
+            mr.ReadOnly = 0;
+            db_create_mediatype_record(NULL, db, &mr);
+         } else {
+            mr.MediaTypeId = 0;
+         }
+         bstrncpy(sr.Name, store->name(), sizeof(sr.Name));
+         sr.AutoChanger = store->autochanger;
+         db_create_storage_record(NULL, db, &sr);
+         store->StorageId = sr.StorageId;   /* set storage Id */
+         if (!sr.created) {                 /* if not created, update it */
+            db_update_storage_record(NULL, db, &sr);
+         }
+
+         /* tls_require implies tls_enable */
+         if (store->tls_require) {
+            if (have_tls) {
+               store->tls_enable = true;
+            } else {
+               Jmsg(NULL, M_FATAL, 0, _("TLS required but not configured in Bacula.\n"));
+               OK = false;
+            }
+         } 
+
+         if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable) {
+            Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
+                 " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
+                 store->name(), configfile);
+            OK = false;
+         }
+
+         /* If everything is well, attempt to initialize our per-resource TLS context */
+         if (OK && (store->tls_enable || store->tls_require)) {
+           /* Initialize TLS context:
+            * Args: CA certfile, CA certdir, Certfile, Keyfile,
+            * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+            store->tls_ctx = new_tls_context(store->tls_ca_certfile,
+               store->tls_ca_certdir, store->tls_certfile,
+               store->tls_keyfile, NULL, NULL, NULL, true);
+         
+            if (!store->tls_ctx) {
+               Jmsg(NULL, M_FATAL, 0, _("Failed to initialize TLS context for Storage \"%s\" in %s.\n"),
+                    store->name(), configfile);
+               OK = false;
+            }
+         }
+      }
+
+      /* Loop over all counters, defining them in each database */
+      /* Set default value in all counters */
+      COUNTER *counter;
+      foreach_res(counter, R_COUNTER) {
+         /* Write to catalog? */
+         if (!counter->created && counter->Catalog == catalog) {
+            COUNTER_DBR cr;
+            bstrncpy(cr.Counter, counter->name(), sizeof(cr.Counter));
+            cr.MinValue = counter->MinValue;
+            cr.MaxValue = counter->MaxValue;
+            cr.CurrentValue = counter->MinValue;
+            if (counter->WrapCounter) {
+               bstrncpy(cr.WrapCounter, counter->WrapCounter->name(), sizeof(cr.WrapCounter));
+            } else {
+               cr.WrapCounter[0] = 0;  /* empty string */
+            }
+            if (db_create_counter_record(NULL, db, &cr)) {
+               counter->CurrentValue = cr.CurrentValue;
+               counter->created = true;
+               Dmsg2(100, "Create counter %s val=%d\n", counter->name(), counter->CurrentValue);
+            }
+         }
+         if (!counter->created) {
+            counter->CurrentValue = counter->MinValue;  /* default value */
+         }
+      }
+      db_close_database(NULL, db);
    }
    return OK;
 }

@@ -414,14 +414,14 @@ static bool unload_other_drive(DCR *dcr, int slot)
       }
       break;
    }
-   P(dev->mutex);
+   dev->lock();  
    if (dev->is_busy()) {
       Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
            dcr->VolumeName, dev->print_name());
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
            dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), slot);
       Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
-      V(dev->mutex);
+      dev->unlock();
       return false;
    }
 
@@ -463,7 +463,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
       Dmsg0(100, "Slot unloaded\n");
    }
    unlock_changer(dcr);
-   V(dev->mutex);
+   dev->unlock();
    free_pool_memory(changer_cmd);
    return ok;
 }

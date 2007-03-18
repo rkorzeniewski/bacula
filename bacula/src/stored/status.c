@@ -1,12 +1,4 @@
 /*
- *  This file handles the status command
- *
- *     Kern Sibbald, May MMIII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  This file handles the status command
+ *
+ *     Kern Sibbald, May MMIII
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -217,7 +217,7 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
       free_pool_memory(msg);
       return;
    }
-   switch (dev->dev_blocked) {
+   switch (dev->blocked()) {
    case BST_UNMOUNTED:
       len = Mmsg(msg, _("    Device is BLOCKED. User unmounted.\n"));
       sendit(msg, len, arg);
@@ -312,7 +312,7 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
          dev->state & ST_MOUNTED ? "" : "!");
       sendit(msg, len, arg);
 
-      len = Mmsg(msg, _("num_writers=%d block=%d\n\n"), dev->num_writers, dev->dev_blocked);
+      len = Mmsg(msg, _("num_writers=%d block=%d\n\n"), dev->num_writers, dev->blocked());
       sendit(msg, len, arg);
 
       len = Mmsg(msg, _("Device parameters:\n"));

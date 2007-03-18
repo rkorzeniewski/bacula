@@ -1,20 +1,7 @@
 /*
- * Second generation Storage daemon.
- *
- *  Kern Sibbald, MM
- *
- * It accepts a number of simple commands from the File daemon
- * and acts on them. When a request to append data is made,
- * it opens a data channel and accepts data from the
- * File daemon.
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -38,6 +25,19 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Second generation Storage daemon.
+ *
+ *  Kern Sibbald, MM
+ *
+ * It accepts a number of simple commands from the File daemon
+ * and acts on them. When a request to append data is made,
+ * it opens a data channel and accepts data from the
+ * File daemon.
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -556,11 +556,11 @@ void terminate_stored(int sig)
             Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
             /* ***FIXME*** wiffle through all dcrs */
-            if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->dev_blocked) {
+            if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->blocked()) {
                pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
                pthread_cond_broadcast(&wait_device_release);
             }
-            if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->dev_blocked) {
+            if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->blocked()) {
                pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
                pthread_cond_broadcast(&wait_device_release);
             }

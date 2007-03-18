@@ -1,6 +1,25 @@
               Technical notes on version 2.1
 
 General:
+18Mar07
+kes  Move the checking of the database in initializion of the Director
+     to after we drop privileges.  This avoids the need for both root
+     and bacula access to the DB.
+kes  Correct a misplaced variable definition in src/filed/backup.c
+kes  Correct how the new batch insert db_create_attributes_record()
+     uses the arguments.  Caused a seg fault in bscan.
+kes  Implement lock() and unlock() methods in DEVICE class.
+     Implement block() and set_block(xx) methods in DEVICE class.
+kes  Modify bnet_connect() so that it uses time() to check for the
+     wait time expiring (on some OSes, some system calls may not
+     return immediately).
+kes  Modify Verify to obtain the previous JobId when it is actually
+     running rather than at schedule time (as it was in 1.38.x).     
+kes  Fix src/job.c to handle MaxWaitTime correctly.  This should
+     fix bug #802.
+kes  When checking pid in pid file, continue running if the pid is
+     the same as ours. This occurs on IRIX after a system crash.
+     Fixes bug #797.
 10Mar07
 kes  Extend new GUI API.
 kes  Make the ua structure a class, and implement send_msg(),

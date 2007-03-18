@@ -53,9 +53,11 @@ static const int dbglevel = 500;
  */
 
 /* Forward referenced subroutines */
+#ifndef HAVE_BATCH_FILE_INSERT
 static int db_create_file_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+#endif /* HAVE_BATCH_FILE_INSERT */
 
 
 /* Create a new record for the Job
@@ -810,20 +812,19 @@ int db_create_batch_file_record(JCR *jcr)
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and fill temporary tables with this three records.
  */
-int db_create_file_attributes_record(JCR *jcr, B_DB *_mdb, ATTR_DBR *ar)
+int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
-
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
    if (!jcr->db_batch) {
       jcr->db_batch = db_init_database(jcr, 
-                                      jcr->db->db_name, 
-                                      jcr->db->db_user,
-                                      jcr->db->db_password, 
-                                      jcr->db->db_address,
-                                      jcr->db->db_port,
-                                      jcr->db->db_socket,
+                                      mdb->db_name, 
+                                      mdb->db_user,
+                                      mdb->db_password, 
+                                      mdb->db_address,
+                                      mdb->db_port,
+                                      mdb->db_socket,
                                       1 /* multi_db = true */);
 
       if (!jcr->db_batch || !db_open_database(jcr, jcr->db_batch)) {
@@ -838,31 +839,31 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *_mdb, ATTR_DBR *ar)
       sql_batch_start(jcr->db_batch);
    }
 
-   B_DB *mdb = jcr->db_batch;
+   B_DB *bdb = jcr->db_batch;
 
    /*
     * Make sure we have an acceptable attributes record.
     */
    if (!(ar->Stream == STREAM_UNIX_ATTRIBUTES ||
          ar->Stream == STREAM_UNIX_ATTRIBUTES_EX)) {
-      Mmsg1(&mdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
+      Mmsg1(&bdb->errmsg, _("Attempt to put non-attributes into catalog. Stream=%d\n"),
          ar->Stream);
-      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      Jmsg(jcr, M_ERROR, 0, "%s", bdb->errmsg);
       return 0;
    }
 
-   split_path_and_file(jcr, mdb, ar->fname);
+   split_path_and_file(jcr, bdb, ar->fname);
 
 
 /*
    if (jcr->changes > 100000) {
-      sql_batch_end(mdb, NULL);
-      sql_batch_start(mdb);
+      sql_batch_end(bdb, NULL);
+      sql_batch_start(bdb);
       jcr->changes = 0;
    }
 */
 
-   return (sql_batch_insert(mdb, ar) == 0);
+   return (sql_batch_insert(bdb, ar) == 0);
 }
 
 #else  /* ! HAVE_BATCH_FILE_INSERT */
@@ -922,7 +923,6 @@ bail_out:
    return 0;
 }
 
-#endif /* ! HAVE_BATCH_FILE_INSERT */
 
 /*
  * This is the master File entry containing the attributes.
@@ -1080,5 +1080,7 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
    return ar->FilenameId > 0;
 }
+
+#endif /* ! HAVE_BATCH_FILE_INSERT */
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL */

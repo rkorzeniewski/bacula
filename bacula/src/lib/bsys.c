@@ -467,8 +467,18 @@ void create_pid_file(char *dir, const char *progname, int port)
            sscanf(pidbuf, "%d", &oldpid) != 1) {
          Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
       }
-      /* See if other Bacula is still alive */
-      if (kill(oldpid, 0) != -1 || errno != ESRCH) {
+      /* Some OSes (IRIX) don't bother to clean out the old pid files after a crash, and
+       * since they use a deterministic algorithm for assigning PIDs, we can have
+       * pid conflicts with the old PID file after a reboot.
+       * The intent the following code is to check if the oldpid read from the pid
+       * file is the same as the currently executing process's pid,
+       * and if oldpid == getpid(), skip the attempt to
+       * kill(oldpid,0), since the attempt is guaranteed to succeed,
+       * but the success won't actually mean that there is an
+       * another Bacula process already running.
+       * For more details see bug #797.
+       */
+       if ((oldpid != (int)getpid()) && (kill(oldpid, 0) != -1 || errno != ESRCH)) {
          Emsg3(M_ERROR_TERM, 0, _("%s is already running. pid=%d\nCheck file %s\n"),
                progname, oldpid, fname);
       }
