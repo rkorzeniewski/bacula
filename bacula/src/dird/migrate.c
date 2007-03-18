@@ -377,8 +377,8 @@ bool do_migration(JCR *jcr)
    /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
-
    set_jcr_job_status(jcr, jcr->SDJobStatus);
+   db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
    if (jcr->JobStatus != JS_Terminated) {
       return false;
    }

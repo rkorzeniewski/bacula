@@ -680,7 +680,11 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  *   - then insert the join between the temp, filename and path tables into file.
  */
 
-int db_batch_start(B_DB *mdb)
+/* 
+ * Returns 1 if OK
+ *         0 if failed
+ */
+bool db_batch_start(B_DB *mdb)
 {
    return sql_query(mdb,
              " CREATE TEMPORARY TABLE batch "
@@ -689,10 +693,14 @@ int db_batch_start(B_DB *mdb)
              "        path blob,            "
              "        name blob,            "
              "        lstat tinyblob,       "
-             "        md5 tinyblob)         ");
+             "        md5 tinyblob)         ") == 0;
 }
 
-int db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
+/* 
+ * Returns 1 if OK
+ *         0 if failed
+ */
+bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
 {
    size_t len;
    char *digest;
@@ -714,75 +722,79 @@ int db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
               ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->path, 
               mdb->fname, ar->attr, digest);
 
-   sql_query(mdb, mdb->cmd);
-
-   return mdb->status;
+   return sql_query(mdb, mdb->cmd) == 0;
 }
 
 /* set error to something to abort operation */
-int db_batch_end(B_DB *mdb, const char *error)
+/* 
+ * Returns 1 if OK
+ *         0 if failed
+ */
+bool db_batch_end(B_DB *mdb, const char *error)
 {
    
    Dmsg0(50, "db_batch_end started");
 
    if (mdb) {
       mdb->status = 0;
-      return mdb->status;
    }
-   return 0;
+   return true;
 }
 
-int db_create_batch_file_record(JCR *jcr)
+/* 
+ * Returns 1 if OK
+ *         0 if failed
+ */
+bool db_write_batch_file_records(JCR *jcr)
 {
    Dmsg0(50,"db_create_file_record : no files");
 
    if (!jcr->db_batch) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
-      return 0;
+      return true;
    }
 
-   if (sql_batch_end(jcr->db_batch, NULL)) {
+   if (!db_batch_end(jcr->db_batch, NULL)) {
       Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
-      return 1;
+      return false;
+   }
+
+   if (job_canceled(jcr)) {
+      return false;
    }
 
    /* we have to lock tables */
-   if (sql_query(jcr->db_batch, sql_batch_lock_path_query))
-   {
+   if (sql_query(jcr->db_batch, sql_batch_lock_path_query) != 0) {
       Jmsg(jcr, M_FATAL, 0, "Can't lock Path table %s\n", jcr->db_batch->errmsg);
-      return 1;
+      return false;
    }
 
-   if (sql_query(jcr->db_batch, sql_batch_fill_path_query))
-   {
+   if (sql_query(jcr->db_batch, sql_batch_fill_path_query) != 0) {
       Jmsg(jcr, M_FATAL, 0, "Can't fill Path table %s\n",jcr->db_batch->errmsg);
       sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
-      return 1;
+      return false;
    }
    
-   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query))
-   {
+   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query) !=0) {
       Jmsg(jcr, M_FATAL, 0, "Can't unlock Path table %s\n", jcr->db_batch->errmsg);
-      return 1;      
+      return false;      
    }
 
    /* we have to lock tables */
-   if (sql_query(jcr->db_batch, sql_batch_lock_filename_query))
-   {
+   if (sql_query(jcr->db_batch, sql_batch_lock_filename_query) != 0) {
       Jmsg(jcr, M_FATAL, 0, "Can't lock Filename table %s\n", jcr->db_batch->errmsg);
-      return 1;
+      return false;
    }
    
-   if (sql_query(jcr->db_batch, sql_batch_fill_filename_query))
-   {
+   if (sql_query(jcr->db_batch, sql_batch_fill_filename_query) != 0) {
       Jmsg(jcr,M_FATAL,0,"Can't fill Filename table %s\n",jcr->db_batch->errmsg);
       sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
-      return 1;            
+      return false;            
    }
 
-   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query)) {
+   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query) != 0) {
       Jmsg(jcr, M_FATAL, 0, "Can't unlock Filename table %s\n", jcr->db_batch->errmsg);
-      return 1;
+      return false;
    }
    
    if (sql_query(jcr->db_batch, 
@@ -791,15 +803,15 @@ int db_create_batch_file_record(JCR *jcr)
        "         Filename.FilenameId,batch.LStat, batch.MD5               "
        "  FROM batch                                                      "
        "    JOIN Path ON (batch.Path = Path.Path)                         "
-       "    JOIN Filename ON (batch.Name = Filename.Name)                 "))
+       "    JOIN Filename ON (batch.Name = Filename.Name)                 ") != 0)
    {
       Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
-      return 1;
+      return false;
    }
 
    sql_query(jcr->db_batch, "DROP TABLE batch");
 
-   return 0;
+   return true;
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
@@ -812,7 +824,7 @@ int db_create_batch_file_record(JCR *jcr)
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and fill temporary tables with this three records.
  */
-int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
+bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
@@ -833,10 +845,13 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
          if (jcr->db_batch) {
             Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
          }
-         return 0;
+         return false;
       }      
       
-      sql_batch_start(jcr->db_batch);
+      if (!db_batch_start(jcr->db_batch)) {
+         Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
+         return false;
+      }
    }
 
    B_DB *bdb = jcr->db_batch;
@@ -857,13 +872,13 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
 /*
    if (jcr->changes > 100000) {
-      sql_batch_end(bdb, NULL);
-      sql_batch_start(bdb);
+      db_batch_end(bdb, NULL);
+      db_batch_start(bdb);
       jcr->changes = 0;
    }
 */
 
-   return (sql_batch_insert(bdb, ar) == 0);
+   return db_batch_insert(bdb, ar);
 }
 
 #else  /* ! HAVE_BATCH_FILE_INSERT */
@@ -877,9 +892,8 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
  *  how many times it occurs.  This is this subroutine, we separate
  *  the file and the path and create three database records.
  */
-int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
+bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
-
    db_lock(mdb);
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
@@ -916,11 +930,11 @@ int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    Dmsg3(dbglevel, "CreateAttributes Path=%s File=%s FilenameId=%d\n", mdb->path, mdb->fname, ar->FilenameId);
    db_unlock(mdb);
-   return 1;
+   return true;
 
 bail_out:
    db_unlock(mdb);
-   return 0;
+   return false;
 }
 
 
@@ -1079,6 +1093,11 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       ar->FilenameId = sql_insert_id(mdb, NT_("Filename"));
    }
    return ar->FilenameId > 0;
+}
+
+bool db_write_batch_file_records(JCR *jcr)
+{
+   return true;
 }
 
 #endif /* ! HAVE_BATCH_FILE_INSERT */

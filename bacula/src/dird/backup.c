@@ -233,9 +233,7 @@ bool do_backup(JCR *jcr)
 
    /* Pickup Job termination data */
    stat = wait_for_job_termination(jcr);
-#ifdef HAVE_BATCH_FILE_INSERT
-   db_create_batch_file_record(jcr);	/* used by bulk batch file insert */
-#endif
+   db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
    if (stat == JS_Terminated) {
       backup_cleanup(jcr, stat);
       return true;

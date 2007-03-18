@@ -56,7 +56,7 @@ int db_int64_handler(void *ctx, int num_fields, char **row);
 
 
 /* create.c */
-int db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
 int db_create_client_record(JCR *jcr, B_DB *db, CLIENT_DBR *cr);
@@ -67,10 +67,10 @@ int db_create_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 bool db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr);
 bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
 bool db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr);
-int db_create_batch_file_record(JCR *jcr);
-int db_batch_start(B_DB *mdb);
-int db_batch_end(B_DB *mdb, const char *error);
-int db_batch_insert(B_DB *mdb, ATTR_DBR *ar);
+bool db_write_batch_file_records(JCR *jcr);
+bool db_batch_start(B_DB *mdb);
+bool db_batch_end(B_DB *mdb, const char *error);
+bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar);
 
 /* delete.c */
 int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
