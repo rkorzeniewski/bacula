@@ -222,7 +222,6 @@ void update_job_end(JCR *jcr, int TermCode)
 {
    dequeue_messages(jcr);             /* display any queued messages */
    set_jcr_job_status(jcr, TermCode);
-   run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
    update_job_end_record(jcr);
 }
 
@@ -327,11 +326,13 @@ static void *job_thread(void *arg)
          Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
          break;
       }
+   }
 
-      /* Send off any queued messages */
-      if (jcr->msg_queue && jcr->msg_queue->size() > 0) {
-         dequeue_messages(jcr);
-      }
+   run_scripts(jcr, jcr->job->RunScripts, "AfterJob");
+
+   /* Send off any queued messages */
+   if (jcr->msg_queue && jcr->msg_queue->size() > 0) {
+      dequeue_messages(jcr);
    }
 
    generate_daemon_event(jcr, "JobEnd");
