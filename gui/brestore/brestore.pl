@@ -191,6 +191,7 @@ sub connect_db
                          $self->{connection_string} ."' $!";
 	return 0;
     }
+    $self->{is_mysql} = ($self->{connection_string} =~ m/dbi:mysql/i);
     $self->{dbh}->{RowCacheSize}=100;
     return 1;
 }
@@ -1280,7 +1281,7 @@ sub on_list_client_changed
 			      set_job_ids_for_date($self->dbh(),
 						   $self->current_client,
 						   $self->current_date,
-						   $self->{pref}->{use_ok_bkp_only})
+						   $self->{conf}->{use_ok_bkp_only})
 			      ];
 
     my $fs = $self->{bvfs};
@@ -1290,7 +1291,7 @@ sub on_list_client_changed
 
 
     my @endtimes=$self->get_all_endtimes_for_job($self->current_client,
-						 $self->{pref}->{use_ok_bkp_only});
+						 $self->{conf}->{use_ok_bkp_only});
 
     foreach my $endtime (@endtimes)
     {
@@ -1503,7 +1504,7 @@ sub on_bweb_activate
 {
     my $self = shift; 
     $self->set_status("Open bweb on your browser");
-    $self->{pref}->go_bweb('', "go on bweb");
+    $self->{conf}->go_bweb('', "go on bweb");
 }
 
 # Change the current working directory
@@ -1646,7 +1647,7 @@ sub fill_infoview
     my @v = $self->{bvfs}->get_all_file_versions($path, 
 						 $file,
 						 $self->current_client,
-						 $self->{pref}->{see_all_versions});
+						 $self->{conf}->{see_all_versions});
     for my $ver (@v) {
 	my (undef,$pid,$fid,$jobid,$fileindex,$mtime,
 	    $size,$inchanger,$md5,$volname) = @{$ver};
@@ -1681,7 +1682,7 @@ sub on_list_backups_changed
 			      set_job_ids_for_date($self->dbh(),
 						   $self->current_client,
 						   $self->current_date,
-						   $self->{pref}->{use_ok_bkp_only})
+						   $self->{conf}->{use_ok_bkp_only})
 			      ];
     $self->{bvfs}->set_curjobids(@{$self->{CurrentJobIds}});
     $self->refresh_fileview();
@@ -2420,44 +2421,45 @@ sub ls_dirs
     # Then we get all the dir entries from File ...
     # It's ugly because there are records in brestore_missing_path ...
     $query = "
-SELECT PathId, Path, JobId, Lstat FROM(
-    (
-    SELECT Path.PathId, Path.Path, lower(Path.Path), 
-           listfile.JobId, listfile.Lstat
+SELECT PathId, Path, JobId, Lstat FROM (
+    
+    SELECT Path1.PathId, Path1.Path, lower(Path1.Path),
+           listfile1.JobId, listfile1.Lstat
     FROM (
-	SELECT DISTINCT brestore_pathhierarchy.PathId
-	FROM brestore_pathhierarchy
-	JOIN Path 
-	    ON (brestore_pathhierarchy.PathId = Path.PathId)
-	JOIN brestore_pathvisibility 
-	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
-	WHERE brestore_pathhierarchy.PPathId = $pathid
-	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
-    JOIN Path ON (listpath.PathId = Path.PathId)
+        SELECT DISTINCT brestore_pathhierarchy1.PathId
+        FROM brestore_pathhierarchy AS brestore_pathhierarchy1
+        JOIN Path AS Path2
+            ON (brestore_pathhierarchy1.PathId = Path2.PathId)
+        JOIN brestore_pathvisibility AS brestore_pathvisibility1
+            ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId)
+        WHERE brestore_pathhierarchy1.PPathId = $pathid
+        AND brestore_pathvisibility1.jobid IN ($jobclause)) AS listpath1
+    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
     LEFT JOIN (
-	SELECT File.PathId, File.JobId, File.Lstat FROM File
-	WHERE File.FilenameId = $dir_filenameid
-	AND File.JobId IN ($jobclause)) AS listfile
-	ON (listpath.PathId = listfile.PathId)
+        SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
+        WHERE File1.FilenameId = $dir_filenameid
+        AND File1.JobId IN ($jobclause)) AS listfile1
+        ON (listpath1.PathId = listfile1.PathId)
     UNION
-    SELECT brestore_missing_path.PathId, brestore_missing_path.Path, 
-           lower(brestore_missing_path.Path), listfile.JobId, listfile.Lstat
+    SELECT brestore_missing_path1.PathId, brestore_missing_path1.Path,
+           lower(brestore_missing_path1.Path), listfile2.JobId, listfile2.Lstat
     FROM (
-	SELECT DISTINCT brestore_pathhierarchy.PathId
-	FROM brestore_pathhierarchy
-	JOIN brestore_missing_path 
-	    ON (brestore_pathhierarchy.PathId = brestore_missing_path.PathId)
-	JOIN brestore_pathvisibility 
-	    ON (brestore_pathhierarchy.PathId = brestore_pathvisibility.PathId)
-	WHERE brestore_pathhierarchy.PPathId = $pathid
-	AND brestore_pathvisibility.jobid IN ($jobclause)) AS listpath
-    JOIN brestore_missing_path ON (listpath.PathId = brestore_missing_path.PathId)
+        SELECT DISTINCT brestore_pathhierarchy2.PathId
+        FROM brestore_pathhierarchy AS brestore_pathhierarchy2
+        JOIN brestore_missing_path AS brestore_missing_path2
+            ON (brestore_pathhierarchy2.PathId = brestore_missing_path2.PathId)
+        JOIN brestore_pathvisibility AS brestore_pathvisibility2
+            ON (brestore_pathhierarchy2.PathId = brestore_pathvisibility2.PathId)
+        WHERE brestore_pathhierarchy2.PPathId = $pathid
+        AND brestore_pathvisibility2.jobid IN ($jobclause)) AS listpath2
+    JOIN brestore_missing_path AS brestore_missing_path1 ON (listpath2.PathId = brestore_missing_path1.PathId)
     LEFT JOIN (
-	SELECT File.PathId, File.JobId, File.Lstat FROM File
-	WHERE File.FilenameId = $dir_filenameid
-	AND File.JobId IN ($jobclause)) AS listfile
-	ON (listpath.PathId = listfile.PathId))
-ORDER BY 2,3 DESC ) As a";
+        SELECT File2.PathId, File2.JobId, File2.Lstat FROM File AS File2
+        WHERE File2.FilenameId = $dir_filenameid
+        AND File2.JobId IN ($jobclause)) AS listfile2
+        ON (listpath2.PathId = listfile2.PathId)
+     ) AS A ORDER BY 2,3 DESC 
+";
     $self->debug($query);
     $sth=$self->dbh_prepare($query);
     $sth->execute();
@@ -2569,9 +2571,9 @@ sub estimate_restore_size
   WHERE Path.PathId = File.PathId
   AND File.JobId = Job.JobId
   AND Path.Path LIKE 
-        (SELECT Path || '%' FROM Path WHERE PathId IN ($dir)
+        (SELECT " . $self->dbh_strcat('Path',"'\%'") . " FROM Path WHERE PathId IN ($dir)
           UNION 
-         SELECT Path || '%' FROM brestore_missing_path WHERE PathId IN ($dir)
+         SELECT " . $self->dbh_strcat('Path',"'\%'") . " FROM brestore_missing_path WHERE PathId IN ($dir)
         )
   AND File.JobId IN ($inclause)
   ORDER BY Path.Path, File.FilenameId, Job.StartTime DESC";
@@ -3001,8 +3003,10 @@ sub create_brestore_tables
     )";
 	$self->dbh_do($req);
 
+	my $len = ($self->{conf}->{is_mysql} == 1)?'(255)':'';
+
 	$req = "CREATE INDEX brestore_missing_path_path
-                          ON brestore_missing_path (Path)";
+                          ON brestore_missing_path (Path$len)";
 	$self->dbh_do($req);
     }
 }
