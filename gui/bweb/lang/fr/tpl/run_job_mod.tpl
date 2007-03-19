@@ -124,7 +124,7 @@
      }
   </TMPL_IF>
   <TMPL_IF level>
-<!--     document.getElementById('level_<TMPL_VAR level>').selected=true; -->
+    document.getElementById('level_<TMPL_VAR level>').selected=true;
   </TMPL_IF>
   <TMPL_IF fileset>
      ok=1;

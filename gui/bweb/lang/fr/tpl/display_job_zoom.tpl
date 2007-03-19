@@ -59,12 +59,26 @@
   <label>
   <input type="image" name='action' value='bfileview' 
    title="Voir la répartition des fichiers"
-   onclick='if (<TMPL_VAR JobFiles> > 5000) { return confirm("Ce traitement peut prendre beaucoup de temps, voulez vous continuer ?")} else { return 1; }'
+   onclick='if (<TMPL_VAR JobFiles> > 5000) { return confirm("Ce traitement peut prendre beaucoup de temps, voulez vous continuer ?")} else { return 1;}'
    src='/bweb/colorscm.png'> Voir la répartition des fichiers
   </label>
  </form>
  </td>
 -->
+ <td>
+ <form action='bweb.pl?' onsubmit="document.getElementById('rerun_level').value=joblevelname['<TMPL_VAR NAME=Level>']">
+  <input type='hidden' name='storage' value='<TMPL_VAR storage>'>
+  <input type='hidden' name='fileset' value='<TMPL_VAR fileset>'>
+  <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
+  <input type='hidden' name='client' value='<TMPL_VAR client>'>
+  <input type='hidden' id="rerun_level" name='level'>
+  <input type='hidden' name='job' value='<TMPL_VAR jobname>'>
+  <label>
+  <input type="image" name='action' value='run_job_mod' title='Relancer ce job'
+   src='/bweb/R.png'> Relancer ce job
+  </label>
+ </form>
+ </td>
  </table>
 </div>
 

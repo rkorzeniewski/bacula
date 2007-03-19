@@ -3239,8 +3239,12 @@ sub run_job_mod
     
     my $job = CGI::param('job') || '';
 
+    # we take informations from director, and we overwrite with user wish
     my $info = $b->send_cmd("show job=\"$job\"");
     my $attr = $self->run_parse_job($info);
+
+    my $arg = $self->get_form('pool', 'level', 'client', 'fileset', 'storage');
+    my %job_opt = (%$attr, %$arg);
     
     my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
 
@@ -3255,7 +3259,7 @@ sub run_job_mod
 	clients  => $clients,
 	filesets => $filesets,
 	storages => $storages,
-	%$attr,
+	%job_opt,
     }, "run_job_mod.tpl");
 }
 

@@ -73,6 +73,12 @@ var joblevel = {
  'B': 'Base level job'
 };
 
+var joblevelname = {
+ 'F': 'Full',
+ 'I': 'Incremental',
+ 'D': 'Differential',
+};
+
 
 var refresh_time = 60000;
 

@@ -51,7 +51,7 @@
   </label>
  </form>
  </td>
-<!-- Remove this to activate bfileview -->
+<!-- Remove this to activate bfileview 
  <td>
  <form action='bfileview.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
@@ -62,7 +62,21 @@
   </label>
  </form>
  </td>
-<!-- -->
+-->
+ <td>
+ <form action='bweb.pl?' onsubmit="document.getElementById('rerun_level').value=joblevelname['<TMPL_VAR NAME=Level>']">
+  <input type='hidden' name='storage' value='<TMPL_VAR storage>'>
+  <input type='hidden' name='fileset' value='<TMPL_VAR fileset>'>
+  <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
+  <input type='hidden' name='client' value='<TMPL_VAR client>'>
+  <input type='hidden' id="rerun_level" name='level'>
+  <input type='hidden' name='job' value='<TMPL_VAR jobname>'>
+  <label>
+  <input type="image" name='action' value='run_job_mod' title='run this job again'
+   src='/bweb/R.png'> Run this job
+  </label>
+ </form>
+ </td>
  </table>
 </div>
 
