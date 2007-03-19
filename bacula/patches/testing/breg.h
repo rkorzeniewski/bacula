@@ -35,8 +35,12 @@
 #ifndef __BREG_H_
 #define __BREG_H_ 1
 
-//#include "bregex.h"
+
+#ifndef HAVE_REGEX_H
+#include "bregex.h"
+#else
 #include <regex.h>
+#endif
 
 /* Usage:
  *
@@ -57,7 +61,6 @@ public:
    POOLMEM *result;		/* match result */
    char *replace(const char *fname);
    void debug();
-
 
    /* private */
    POOLMEM *expr;		/* search epression */
