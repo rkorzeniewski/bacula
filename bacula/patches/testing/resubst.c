@@ -12,11 +12,32 @@
  * edit()
  */
 
+typedef struct {
+   char *subst;
+   char *motif;
+   int nmatch;
+   regex_t preg;
+} breg_t ;
+
+breg_t *breg_new(char *regexp)
+{
+   Dmsg0(500, "breg: creating new breg_t object\n");
+   RUNSCRIPT *cmd = (RUNSCRIPT *)malloc(sizeof(RUNSCRIPT));
+   memset(cmd, 0, sizeof(RUNSCRIPT));
+   cmd->reset_default();
+   
+   return cmd;
+
+}
+
+
 int compute_dest_len(char *fname, char *subst, 
 		     regmatch_t *pmatch, int nmatch)
 {
    int len=0;
    char *p;
+   int no;
+
    if (!fname || !subst || !pmatch || !nmatch) {
       return 0;
    }
@@ -26,7 +47,6 @@ int compute_dest_len(char *fname, char *subst,
       return 0;
    }
 
-   int no;
    for (p = subst++; *p ; p = subst++) {
       /* match $1 \1 back references */
       if ((*p == '$' || *p == '\\') && ('0' <= *subst && *subst <= '9')) {
@@ -56,6 +76,44 @@ int compute_dest_len(char *fname, char *subst,
  */
 bool extract_regexp(char *motif, regex_t *preg, POOLMEM **subst)
 {
+   if (!motif || !preg || !subst) {
+      return false;
+   }
+   /* extract 1st part */
+   POOLMEM *dest = bstrdup(motif);
+   char sep = motif[0];
+   char *search = motif + 1;
+   char *replace;
+   bool ok = false;
+   bool found_motif = false;
+
+   while (*search && !ok) {
+      if (*search == sep && *dest == '\\') {
+	 *dest++ = *++search;       /* we skip separator */ 
+
+      } else if (*search == sep) {
+	 *dest++ = '\0';
+	 if (found_motif) {	/* already have found motif */
+	    ok = true;
+	 } else {
+	    replace = dest;	/* get replaced string */
+	    found_motif = true;
+	 }
+      } else {
+	 *dest++ = *search++;
+      }
+   }
+   *dest = '\0';		/* in case of */
+   
+   if (!ok || !found_motif) {
+      /* bad regexp */
+      free(dest);
+      return false;
+   }
+
+   
+  
+
    /* rechercher le 1er car sans \ devant */
    /* compiler la re dans preg */
    /* extraire le subst */
@@ -67,6 +125,8 @@ char *edit_subst(char *fname, char *subst, regmatch_t *pmatch, char *dest)
 {
    int i;
    char *p;
+   int no;
+   int len;
 
    /* il faut recopier fname dans dest
     *  on recopie le debut fname -> pmatch[0].rm_so
@@ -78,8 +138,6 @@ char *edit_subst(char *fname, char *subst, regmatch_t *pmatch, char *dest)
 
    /* on recopie le motif de remplacement (avec tous les $x) */
 
-   int no;
-   int len;
    for (p = subst++; *p ; p = subst++) {
       /* match $1 \1 back references */
       if ((*p == '$' || *p == '\\') && ('0' <= *subst && *subst <= '9')) {
