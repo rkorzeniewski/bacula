@@ -58,13 +58,12 @@
      <option id='level_Full' value='Full'>Full</option>
      <option id='level_Differential' value='Differential'>Différentielle</option>
    </select>
-   </td></tr><tr id='more1' style="visibility:hidden"><td>Start Time: </td><td>
-   <input class='formulaire' 
-	  type='text' title='YYYY-MM-DD HH:MM:SS'
+   </td></tr><tr id='more1' style="visibility:hidden"><td>Date de dÃ©marrag : </td><td>
+   <input type='text' title='AAA-MM-JJ HH:MM:SS'
           size='17' name='when' value='<TMPL_VAR when>'>
 
    </td></tr><tr id='more2' style="visibility:hidden"><td>Priorité : </td><td>
-   <input class='formulaire' type='text' 
+   <input type='text' 
           size='3' name='priority' value='<TMPL_VAR priority>'>
 
    </td></tr>
