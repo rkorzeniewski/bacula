@@ -1,7 +1,7 @@
 /*
  * Manipulation routines for BREGEXP list
  *
- *  Eric Bollengier, Mars 2007
+ *  Eric Bollengier, March 2007
  *
  *  Version $Id$
  *
@@ -46,8 +46,6 @@ BREGEXP *new_bregexp(const char *motif)
    BREGEXP *self = (BREGEXP *)malloc(sizeof(BREGEXP));
    memset(self, 0, sizeof(BREGEXP));
    
-   self->nmatch = 20;
-
    if (!self->extract_regexp(motif)) {
 //      Dmsg0(100, "bregexp: extract_regexp error\n");
       printf("bregexp: extract_regexp error\n");
@@ -55,9 +53,50 @@ BREGEXP *new_bregexp(const char *motif)
       return NULL;
    }
 
+   static int _start[RE_NREGS];
+   static int _end[RE_NREGS];
+
    self->result = get_pool_memory(PM_FNAME);
+   self->result[0] = '\0';
+
+#ifdef HAVE_REGEX_H
+   /* TODO: que devient cette memoire... */
+   self->_regs_match = (int *) malloc (2*RE_NREGS * sizeof(int));
+
+   self->regs.num_regs = RE_NREGS;
+   self->regs.start = self->_regs_match;
+   self->regs.end   = self->_regs_match+(RE_NREGS * sizeof(int));
+#endif 
 
    return self;
+}
+
+void free_bregexp(BREGEXP *self)
+{
+   Dmsg0(500, "bregexp: freeing BREGEXP object\n");
+
+   if (self->expr) {
+      free(self->expr);
+   }
+   if (self->result) {
+      free_pool_memory(self->result);
+   }
+   if (self->_regs_match) {
+      free(self->_regs_match);
+   }
+
+   regfree(&self->preg);
+   free(self);
+}
+
+void free_bregexps(alist *bregexps)
+{
+   Dmsg0(500, "bregexp: freeing all BREGEXP object\n");
+
+   BREGEXP *elt;
+   foreach_alist(elt, bregexps) {
+      free_bregexp(elt);
+   }
 }
 
 bool BREGEXP::extract_regexp(const char *motif)
@@ -69,7 +108,7 @@ bool BREGEXP::extract_regexp(const char *motif)
    char sep = motif[0];
    char *search = (char *) motif + 1;
    char *replace;
-   int options = REG_EXTENDED;
+   int options = REG_EXTENDED | REG_NEWLINE;
    bool ok = false;
    bool found_motif = false;
 
@@ -104,6 +143,9 @@ bool BREGEXP::extract_regexp(const char *motif)
       if (*search == 'i') {
 	 options |= REG_ICASE;
       }
+      if (*search == 'g') {
+	      /* recherche multiple*/
+      }
       search++;
    }
 
@@ -115,41 +157,21 @@ bool BREGEXP::extract_regexp(const char *motif)
 //      Dmsg1(100, "bregexp: compile error: %s\n", prbuf);
       return false;
    }
-   
+
    return true;
 }
 
-
-void free_bregexp(BREGEXP *self)
-{
-   Dmsg0(500, "bregexp: freeing BREGEXP object\n");
-
-   if (self->expr) {
-      free(self->expr);
-   }
-   if (self->result) {
-      free_pool_memory(self->result);
-   }
-   regfree(&self->preg);
-   free(self);
-}
-
-void free_bregexps(alist *bregexps)
-{
-   Dmsg0(500, "bregexp: freeing all BREGEXP object\n");
-
-   BREGEXP *elt;
-   foreach_alist(elt, bregexps) {
-      free_bregexp(elt);
-   }
-}
+#ifndef HAVE_REGEX_H
+ #define BREGEX_CAST unsigned
+#else
+ #define BREGEX_CAST const
+#endif
 
 /* return regexp->result */
 char *BREGEXP::replace(const char *fname)
 {
-   struct re_registers regs;
    int flen = strlen(fname);
-   int rc = re_search(&preg, fname, flen, 0, flen, &regs);
+   int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
 
    if (rc < 0) {
       printf("E: regex mismatch\n");
@@ -248,6 +270,7 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
       }
    }
 
+   /* we copy what is out of the match */
    strcpy(result + i, fname + regs->end[0]);
 
    return result;
@@ -259,6 +282,8 @@ void BREGEXP::debug()
    printf("subst=[%s]\n", subst);
    printf("result=%s\n", result?result:"(null)");
 }
+
+#ifdef TEST
 
 int main(int argc, char **argv)
 {
@@ -274,3 +299,4 @@ int main(int argc, char **argv)
    exit(0);
 }
 
+#endif
