@@ -1,5 +1,5 @@
-#ifndef _MEDIALIST_H_
-#define _MEDIALIST_H_
+#ifndef _MEDIAEDIT_H_
+#define _MEDIAEDIT_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -27,40 +27,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
- *
- *   Kern Sibbald, January 2007
- */
 
 #include <QtGui>
-#include "ui_medialist.h"
+#include "ui_mediaedit.h"
 #include "console.h"
-#include <qstringlist.h>
 
-class MediaList : public QWidget, public Ui::MediaListForm
+class MediaEdit : public QWidget, public Ui::MediaEdit
 {
    Q_OBJECT 
 
 public:
-   MediaList(QStackedWidget *parent,Console *console);
-   void populateTree();
-
+   MediaEdit(Console *console, QString &medianame );
 
 public slots:
-   void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
-   void editMedia();
-   void showJobs();
-
-private:
-   void createConnections();
 
 private:
    Console *m_console;
-   QTreeWidget *m_treeWidget;
-   QStringList *poollist;
-   QString popupmedia;
+
 };
 
-#endif /* _MEDIALIST_H_ */
+#endif /* _MEDIAEDIT_H_ */
