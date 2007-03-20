@@ -99,6 +99,17 @@ void free_bregexps(alist *bregexps)
    }
 }
 
+char *apply_bregexps(const char *fname, alist *bregexps)
+{
+   BREGEXP *elt;
+   char *ret = (char *) fname;
+   foreach_alist(elt, bregexps) {
+      ret = elt->replace(ret);
+   }
+   return ret;
+}
+
+
 bool BREGEXP::extract_regexp(const char *motif)
 {
    
