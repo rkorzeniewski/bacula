@@ -1,6 +1,6 @@
 /*
  * Bacula BREGEXP Structure definition for FileDaemon
- * Eric Bollengier Mars 2007
+ * Eric Bollengier March 2007
  * Version $Id$
  */
 /*
@@ -35,6 +35,7 @@
 #ifndef __BREG_H_
 #define __BREG_H_ 1
 
+//#undef HAVE_REGEX_H
 
 #ifndef HAVE_REGEX_H
 #include "bregex.h"
@@ -49,7 +50,7 @@
  * BREGEXP *breg = new_bregexp("!/prod!/test!");
  * char *filename = breg->replace("/prod/data.dat");
  *   or
- * filename = breg->result;
+ * char *filename = breg->result;
  * free_bregexp(breg);
  */
 
@@ -66,8 +67,9 @@ public:
    POOLMEM *expr;		/* search epression */
    POOLMEM *subst;		/* substitution */
    regex_t preg;		/* regex_t result of regcomp() */
-   
-   int nmatch;
+   struct re_registers regs;	/* contains match */
+
+   int *_regs_match;
    
    char *return_fname(const char *fname, int len); /* return fname as result */
    char *edit_subst(const char *fname, struct re_registers *regs);
