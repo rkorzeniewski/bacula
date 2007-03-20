@@ -23,8 +23,7 @@ FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui run/runcmd.ui
 FORMS += select/select.ui
-FORMS += medialist/medialist.ui
-
+FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
@@ -49,6 +48,14 @@ SOURCES += run/run.cpp run/runcmd.cpp
 HEADERS += select/select.h
 SOURCES += select/select.cpp
 
-## Medialist
+## MediaList
 HEADERS += medialist/medialist.h
 SOURCES += medialist/medialist.cpp
+
+## MediaEdit
+HEADERS += mediaedit/mediaedit.h
+SOURCES += mediaedit/mediaedit.cpp
+
+## JobList
+HEADERS += joblist/joblist.h
+SOURCES += joblist/joblist.cpp

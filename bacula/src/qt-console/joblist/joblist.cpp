@@ -1,5 +1,3 @@
-#ifndef _MEDIALIST_H_
-#define _MEDIALIST_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -27,40 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
- *
- *   Kern Sibbald, January 2007
- */
+ 
+#include <QAbstractEventDispatcher>
+#include "bat.h"
+#include "joblist.h"
+#include <QTableWidgetItem>
 
-#include <QtGui>
-#include "ui_medialist.h"
-#include "console.h"
-#include <qstringlist.h>
-
-class MediaList : public QWidget, public Ui::MediaListForm
+JobList::JobList(Console *console, QString &medianame)
 {
-   Q_OBJECT 
-
-public:
-   MediaList(QStackedWidget *parent,Console *console);
-   void populateTree();
-
-
-public slots:
-   void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
-   void editMedia();
-   void showJobs();
-
-private:
-   void createConnections();
-
-private:
-   Console *m_console;
-   QTreeWidget *m_treeWidget;
-   QStringList *poollist;
-   QString popupmedia;
-};
-
-#endif /* _MEDIALIST_H_ */
+   printf("Listing Jobs on Media %s\n", medianame.toUtf8().data());
+   setupUi(this);
+   m_console = console;
+   tableWidget->clear();
+   tableWidget->setColumnCount(2);
+   tableWidget->setRowCount(5);
+   QTableWidgetItem* item = new QTableWidgetItem(medianame,1);
+   tableWidget->setItem(1, 1, item);
+}

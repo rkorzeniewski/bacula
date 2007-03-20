@@ -59,6 +59,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    readSettings();
 
    m_console->connect();
+   m_medialist->populateTree();
 }
 
 void MainWin::createPages()
@@ -72,7 +73,7 @@ void MainWin::createPages()
    bRestore *brestore = new bRestore(stackedWidget);
    stackedWidget->addWidget(brestore);
 
-   m_medialist = new MediaList(stackedWidget);
+   m_medialist = new MediaList(stackedWidget, m_console);
    stackedWidget->addWidget(m_medialist);
 
    /* Just take the first Director */
@@ -228,9 +229,6 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
    int index = item->data(column, Qt::UserRole).toInt();
    if (index >= 0) {
       stackedWidget->setCurrentIndex(index);
-      if( index == 2 ){
-         m_medialist->DoDisplay(m_console);
-      }
    }
 }
 
