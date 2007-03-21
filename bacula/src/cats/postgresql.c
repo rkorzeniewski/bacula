@@ -540,19 +540,7 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
    return id;
 }
 
-int my_postgresql_lock_table(B_DB *mdb, const char *table)
-{
-   my_postgresql_query(mdb, "BEGIN");
-   Mmsg(mdb->cmd, "LOCK TABLE %s IN SHARE ROW EXCLUSIVE MODE", table);
-   return my_postgresql_query(mdb, mdb->cmd);
-}
-
-int my_postgresql_unlock_table(B_DB *mdb)
-{
-   return my_postgresql_query(mdb, "COMMIT");
-}
-
-int my_postgresql_batch_start(B_DB *mdb)
+int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
 {
    Dmsg0(500, "my_postgresql_batch_start started\n");
 
@@ -584,10 +572,10 @@ int my_postgresql_batch_start(B_DB *mdb)
       // how many fields in the set?
       mdb->num_fields = (int) PQnfields(mdb->result);
       mdb->num_rows   = 0;
-      mdb->status = 0;
+      mdb->status = 1;
    } else {
       Dmsg0(500, "we failed\n");
-      mdb->status = 1;
+      mdb->status = 0;
    }
 
    Dmsg0(500, "my_postgresql_batch_start finishing\n");
@@ -596,7 +584,7 @@ int my_postgresql_batch_start(B_DB *mdb)
 }
 
 /* set error to something to abort operation */
-int my_postgresql_batch_end(B_DB *mdb, const char *error)
+int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
    int res;
    int count=30;
@@ -612,12 +600,12 @@ int my_postgresql_batch_end(B_DB *mdb, const char *error)
 
    if (res == 1) {
       Dmsg0(500, "ok\n");
-      mdb->status = 0;
+      mdb->status = 1;
    }
    
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
-      mdb->status = 1;
+      mdb->status = 0;
       Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
    }
    
@@ -626,7 +614,7 @@ int my_postgresql_batch_end(B_DB *mdb, const char *error)
    return mdb->status;
 }
 
-int my_postgresql_batch_insert(B_DB *mdb, ATTR_DBR *ar)
+int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    int res;
    int count=30;
@@ -659,12 +647,12 @@ int my_postgresql_batch_insert(B_DB *mdb, ATTR_DBR *ar)
    if (res == 1) {
       Dmsg0(500, "ok\n");
       mdb->changes++;
-      mdb->status = 0;
+      mdb->status = 1;
    }
 
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
-      mdb->status = 1;
+      mdb->status = 0;
       Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
    }
 
