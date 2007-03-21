@@ -392,6 +392,7 @@ public:
    bool weof(int num);           /* in dev.c */
    void lock_door();             /* in dev.c */
    void unlock_door();           /* in dev.c */
+   int32_t get_os_tape_file();   /* in dev.c */
    bool scan_dir_for_volume(DCR *dcr); /* in scan.c */
    bool reposition(DCR *dcr, uint32_t rfile, uint32_t rblock); /* in dev.c */
    void clrerror(int func);      /* in dev.c */
