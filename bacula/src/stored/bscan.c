@@ -366,6 +366,9 @@ static void do_scan()
 
    read_records(bjcr->read_dcr, record_cb, bscan_mount_next_read_volume);
 
+   if (update_db) {
+      db_write_batch_file_records(bjcr); /* used by bulk batch file insert */
+   }
    free_attr(attr);
 }
 
