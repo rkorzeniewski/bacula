@@ -58,7 +58,8 @@ void labelDialog::accept()
    this->hide();
    scmd = QString("label volume=\"%1\" pool=\"%2\" storage=\"%3\" slot=%4\n")
          .arg(volumeName->text()).arg(storageCombo->currentText()) 
-         .arg(poolCombo->currentText()).arg(slotSpin->value());
+         .arg(poolCombo->currentText())
+         .arg(slotSpin->value());
    m_console->write_dir(scmd.toUtf8().data());
    m_console->displayToPrompt();
    m_console->notify(true);

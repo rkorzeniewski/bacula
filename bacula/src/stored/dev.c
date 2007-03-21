@@ -850,9 +850,9 @@ void DEVICE::set_ateot()
 bool DEVICE::eod(DCR *dcr)
 {
    struct mtop mt_com;
-   struct mtget mt_stat;
    bool ok = true;
    boffset_t pos;
+   int32_t os_file;
 
    if (m_fd < 0) {
       dev_errno = EBADF;
@@ -893,7 +893,7 @@ bool DEVICE::eod(DCR *dcr)
    if (has_cap(CAP_FASTFSF) && !has_cap(CAP_EOM)) {
       Dmsg0(100,"Using FAST FSF for EOM\n");
       /* If unknown position, rewind */
-      if (!dev_get_os_pos(this, &mt_stat)) {
+      if (get_os_tape_file() < 0) {
         if (!rewind(NULL)) {
           return false;
         }
@@ -926,16 +926,17 @@ bool DEVICE::eod(DCR *dcr)
          return false;
       }
 
-      if (!dev_get_os_pos(this, &mt_stat)) {
+      os_file = get_os_tape_file();
+      if (os_file < 0) {
          berrno be;
          clrerror(-1);
          Mmsg2(errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
             print_name(), be.strerror());
          return false;
       }
-      Dmsg2(100, "EOD file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      Dmsg1(100, "EOD file=%d\n", os_file);
       set_ateof();
-      file = mt_stat.mt_fileno;
+      file = os_file;
    } else {
 #else
    {
@@ -960,12 +961,12 @@ bool DEVICE::eod(DCR *dcr)
           * Avoid infinite loop by ensuring we advance.
           */
          if (!at_eot() && file_num == (int)file) {
-            struct mtget mt_stat;
             Dmsg1(100, "fsf did not advance from file %d\n", file_num);
             set_ateof();
-            if (dev_get_os_pos(this, &mt_stat)) {
-               Dmsg2(100, "Adjust file from %d to %d\n", file_num, mt_stat.mt_fileno);
-               file = mt_stat.mt_fileno;
+            os_file = get_os_tape_file();
+            if (os_file >= 0) {
+               Dmsg2(100, "Adjust file from %d to %d\n", file_num, os_file);
+               file = os_file;
             }       
             break;
          }
@@ -977,13 +978,13 @@ bool DEVICE::eod(DCR *dcr)
     * the second EOF.
     */
    if (has_cap(CAP_BSFATEOM)) {
-      struct mtget mt_stat;
       /* Backup over EOF */
       ok = bsf(1);
       /* If BSF worked and fileno is known (not -1), set file */
-      if (dev_get_os_pos(this, &mt_stat)) {
-         Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", file , mt_stat.mt_fileno);
-         file = mt_stat.mt_fileno;
+      os_file = get_os_tape_file();
+      if (os_file >= 0) {
+         Dmsg2(100, "BSFATEOF adjust file from %d to %d\n", file , os_file);
+         file = os_file;
       } else {
          file++;                       /* wing it -- not correct on all OSes */
       }
@@ -1255,7 +1256,7 @@ bool DEVICE::offline_or_rewind()
  */
 bool DEVICE::fsf(int num)
 {
-   struct mtget mt_stat;
+   int32_t os_file;
    struct mtop mt_com;
    int stat = 0;
 
@@ -1292,7 +1293,7 @@ bool DEVICE::fsf(int num)
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
       stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
-      if (stat < 0 || !dev_get_os_pos(this, &mt_stat)) {
+      if (stat < 0 || (os_file=get_os_tape_file()) < 0) {
          berrno be;
          set_eot();
          Dmsg0(200, "Set ST_EOT\n");
@@ -1302,9 +1303,9 @@ bool DEVICE::fsf(int num)
          Dmsg1(200, "%s", errmsg);
          return false;
       }
-      Dmsg2(200, "fsf file=%d block=%d\n", mt_stat.mt_fileno, mt_stat.mt_blkno);
+      Dmsg1(200, "fsf file=%d\n", os_file);
       set_ateof();
-      file = mt_stat.mt_fileno;
+      file = os_file;
       return true;
 
    /*
@@ -1701,7 +1702,6 @@ bool DEVICE::weof(int num)
 void DEVICE::clrerror(int func)
 {
    const char *msg = NULL;
-   struct mtget mt_stat;
    char buf[100];
 
    dev_errno = errno;         /* save errno */
@@ -1804,7 +1804,7 @@ void DEVICE::clrerror(int func)
     */
 
    /* On some systems such as NetBSD, this clears all errors */
-   tape_ioctl(m_fd, MTIOCGET, (char *)&mt_stat);
+   get_os_tape_file();
 
 /* Found on Linux */
 #ifdef MTIOCLRERR
@@ -2257,6 +2257,18 @@ ssize_t DEVICE::write(const void *buf, size_t len)
 const char *DEVICE::name() const
 {
    return device->hdr.name;
+}
+
+/* Returns file position on tape or -1 */
+int32_t DEVICE::get_os_tape_file()
+{
+   struct mtget mt_stat;
+
+   if (has_cap(CAP_MTIOCGET) &&
+       tape_ioctl(m_fd, MTIOCGET, (char *)&mt_stat) == 0) {
+      return mt_stat.mt_fileno;
+   }
+   return -1;
 }
 
 char *
