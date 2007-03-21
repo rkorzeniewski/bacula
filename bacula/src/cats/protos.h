@@ -68,9 +68,9 @@ bool db_create_device_record(JCR *jcr, B_DB *mdb, DEVICE_DBR *dr);
 bool db_create_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
 bool db_create_mediatype_record(JCR *jcr, B_DB *mdb, MEDIATYPE_DBR *mr);
 bool db_write_batch_file_records(JCR *jcr);
-bool db_batch_start(B_DB *mdb);
-bool db_batch_end(B_DB *mdb, const char *error);
-bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar);
+bool my_batch_start(JCR *jcr, B_DB *mdb);
+bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error);
+bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 
 /* delete.c */
 int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);

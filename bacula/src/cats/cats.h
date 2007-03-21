@@ -171,6 +171,10 @@ struct B_DB {
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
+
+#define sql_batch_start(x,y)    my_batch_start(x,y) 
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
+#define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
 #define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
@@ -297,6 +301,9 @@ struct B_DB {
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
+#define sql_batch_start(x,y)    my_batch_start(x,y)   
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
+#define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define SQL_ROW               char**
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
@@ -379,16 +386,19 @@ struct B_DB {
 #define sql_field_seek(x, y)  mysql_field_seek((x)->result, (y))
 #define sql_fetch_field(x)    mysql_fetch_field((x)->result)
 #define sql_num_fields(x)     (int)mysql_num_fields((x)->result)
-#define sql_batch_start(x)    db_batch_start(x)
+#define SQL_ROW               MYSQL_ROW
+#define SQL_FIELD             MYSQL_FIELD
+
+#define sql_batch_start(x,y)    my_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
+#define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)   
+#define sql_batch_lock_path_query       my_mysql_batch_lock_path_query
 #define sql_batch_lock_filename_query   my_mysql_batch_lock_filename_query
 #define sql_batch_unlock_tables_query   my_mysql_batch_unlock_tables_query
 #define sql_batch_fill_filename_query   my_mysql_batch_fill_filename_query
 #define sql_batch_fill_path_query       my_mysql_batch_fill_path_query
-#define SQL_ROW               MYSQL_ROW
-#define SQL_FIELD             MYSQL_FIELD
 
 
-int my_mysql_batch_start(B_DB *mdb);
 extern char* my_mysql_batch_lock_path_query;
 extern char* my_mysql_batch_lock_filename_query;
 extern char* my_mysql_batch_unlock_tables_query;
@@ -467,12 +477,11 @@ void               my_postgresql_data_seek  (B_DB *mdb, int row);
 int                my_postgresql_currval    (B_DB *mdb, char *table_name);
 void               my_postgresql_field_seek (B_DB *mdb, int row);
 POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb);
-int my_postgresql_lock_table(B_DB *mdb, const char *table);
-int my_postgresql_unlock_table(B_DB *mdb);
-int my_postgresql_batch_start(B_DB *mdb);
-int my_postgresql_batch_end(B_DB *mdb, const char *error);
+
+int my_postgresql_batch_start(JCR *jcr, B_DB *mdb);
+int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error);
 typedef struct ATTR_DBR ATTR_DBR;
-int my_postgresql_batch_insert(B_DB *mdb, ATTR_DBR *ar);
+int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 char *my_postgresql_copy_escape(char *dest, char *src, size_t len);
 
 extern char* my_pg_batch_lock_path_query;
@@ -495,8 +504,10 @@ extern char* my_pg_batch_fill_path_query;
 #define sql_field_seek(x, y)  my_postgresql_field_seek((x), (y))
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
-#define sql_lock_table(x,y)   my_postgresql_lock_table(x, y)
-#define sql_unlock_table(x,y) my_postgresql_unlock_table(x)
+
+#define sql_batch_start(x,y)    my_postgresql_batch_start(x,y)   
+#define sql_batch_end(x,y,z)    my_postgresql_batch_end(x,y,z)   
+#define sql_batch_insert(x,y,z) my_postgresql_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_pg_batch_lock_path_query
 #define sql_batch_lock_filename_query   my_pg_batch_lock_filename_query
 #define sql_batch_unlock_tables_query   my_pg_batch_unlock_tables_query

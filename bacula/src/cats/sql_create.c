@@ -668,7 +668,7 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  *  };
  */
 
-/*  All db_batch_* functions are used to do bulk batch insert in File/Filename/Path
+/*  All sql_batch_* functions are used to do bulk batch insert in File/Filename/Path
  *  tables. This code can be activated by adding "#define HAVE_BATCH_FILE_INSERT 1"
  *  in baconfig.h
  *  
@@ -684,23 +684,23 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  * Returns 1 if OK
  *         0 if failed
  */
-bool db_batch_start(B_DB *mdb)
+bool my_batch_start(JCR *jcr, B_DB *mdb)
 {
-   return sql_query(mdb,
+   return QUERY_DB(jcr, mdb,
              " CREATE TEMPORARY TABLE batch "
              "        (fileindex integer,   "
              "        jobid integer,        "
              "        path blob,            "
              "        name blob,            "
              "        lstat tinyblob,       "
-             "        md5 tinyblob)         ") == 0;
+             "        md5 tinyblob)         ");
 }
 
 /* 
  * Returns 1 if OK
  *         0 if failed
  */
-bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
+bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    size_t len;
    char *digest;
@@ -722,7 +722,7 @@ bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
               ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->path, 
               mdb->fname, ar->attr, digest);
 
-   return sql_query(mdb, mdb->cmd) == 0;
+   return QUERY_DB(jcr, mdb, mdb->cmd);
 }
 
 /* set error to something to abort operation */
@@ -730,10 +730,10 @@ bool db_batch_insert(B_DB *mdb, ATTR_DBR *ar)
  * Returns 1 if OK
  *         0 if failed
  */
-bool db_batch_end(B_DB *mdb, const char *error)
+bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
    
-   Dmsg0(50, "db_batch_end started");
+   Dmsg0(50, "sql_batch_end started");
 
    if (mdb) {
       mdb->status = 0;
@@ -755,7 +755,7 @@ bool db_write_batch_file_records(JCR *jcr)
       return true;
    }
 
-   if (!db_batch_end(jcr->db_batch, NULL)) {
+   if (!sql_batch_end(jcr, jcr->db_batch, NULL)) {
       Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
       return false;
    }
@@ -765,52 +765,52 @@ bool db_write_batch_file_records(JCR *jcr)
    }
 
    /* we have to lock tables */
-   if (sql_query(jcr->db_batch, sql_batch_lock_path_query) != 0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_lock_path_query)) {
       Jmsg(jcr, M_FATAL, 0, "Can't lock Path table %s\n", jcr->db_batch->errmsg);
       return false;
    }
 
-   if (sql_query(jcr->db_batch, sql_batch_fill_path_query) != 0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_fill_path_query)) {
       Jmsg(jcr, M_FATAL, 0, "Can't fill Path table %s\n",jcr->db_batch->errmsg);
-      sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
+      QUERY_DB(jcr, jcr->db_batch, sql_batch_unlock_tables_query);
       return false;
    }
    
-   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query) !=0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_unlock_tables_query)) {
       Jmsg(jcr, M_FATAL, 0, "Can't unlock Path table %s\n", jcr->db_batch->errmsg);
       return false;      
    }
 
    /* we have to lock tables */
-   if (sql_query(jcr->db_batch, sql_batch_lock_filename_query) != 0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_lock_filename_query)) {
       Jmsg(jcr, M_FATAL, 0, "Can't lock Filename table %s\n", jcr->db_batch->errmsg);
       return false;
    }
    
-   if (sql_query(jcr->db_batch, sql_batch_fill_filename_query) != 0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_fill_filename_query)) {
       Jmsg(jcr,M_FATAL,0,"Can't fill Filename table %s\n",jcr->db_batch->errmsg);
-      sql_query(jcr->db_batch, sql_batch_unlock_tables_query);
+      QUERY_DB(jcr, jcr->db_batch, sql_batch_unlock_tables_query);
       return false;            
    }
 
-   if (sql_query(jcr->db_batch, sql_batch_unlock_tables_query) != 0) {
+   if (!QUERY_DB(jcr, jcr->db_batch, sql_batch_unlock_tables_query)) {
       Jmsg(jcr, M_FATAL, 0, "Can't unlock Filename table %s\n", jcr->db_batch->errmsg);
       return false;
    }
    
-   if (sql_query(jcr->db_batch, 
+   if (!QUERY_DB(jcr, jcr->db_batch, 
        " INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5)"
        "  SELECT batch.FileIndex, batch.JobId, Path.PathId,               " 
        "         Filename.FilenameId,batch.LStat, batch.MD5               "
        "  FROM batch                                                      "
        "    JOIN Path ON (batch.Path = Path.Path)                         "
-       "    JOIN Filename ON (batch.Name = Filename.Name)                 ") != 0)
+       "    JOIN Filename ON (batch.Name = Filename.Name)                 "))
    {
       Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
       return false;
    }
 
-   sql_query(jcr->db_batch, "DROP TABLE batch");
+   QUERY_DB(jcr, jcr->db_batch, "DROP TABLE batch");
 
    return true;
 }
@@ -848,7 +848,7 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
          return false;
       }      
       
-      if (!db_batch_start(jcr->db_batch)) {
+      if (!sql_batch_start(jcr, jcr->db_batch)) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
          return false;
       }
@@ -872,13 +872,12 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
 /*
    if (jcr->changes > 100000) {
-      db_batch_end(bdb, NULL);
-      db_batch_start(bdb);
+      db_write_batch_file_records(jcr);
       jcr->changes = 0;
    }
 */
 
-   return db_batch_insert(bdb, ar);
+   return sql_batch_insert(jcr, bdb, ar);
 }
 
 #else  /* ! HAVE_BATCH_FILE_INSERT */
