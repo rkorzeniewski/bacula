@@ -64,6 +64,14 @@ const char *del_JobMedia = "DELETE FROM JobMedia WHERE JobId=%s";
 const char *cnt_JobMedia = "SELECT count(*) FROM JobMedia WHERE MediaId=%s";
 const char *sel_JobMedia = "SELECT JobId FROM JobMedia WHERE MediaId=%s";
 
+/* Count Select JobIds for File deletion */
+const char *count_select_job = 
+   "SELECT count(*) from Job "
+   "WHERE JobTDate<%s "
+   "AND ClientId=%s "
+   "AND PurgedFiles=0";
+
+
 /* Select JobIds for File deletion. */
 const char *select_job =
    "SELECT JobId from Job "
@@ -427,9 +435,9 @@ const char *uar_mediatype =
  *  for use when inserting individual files into the tree.
  */
 const char *uar_jobid_fileindex =
-   "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId=File.JobId "
-   "AND Job.StartTime<'%s' "
+   "AND Job.StartTime<='%s' "
    "AND Path.Path='%s' "
    "AND Filename.Name='%s' "
    "AND Client.Name='%s' "
@@ -439,10 +447,10 @@ const char *uar_jobid_fileindex =
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
 const char *uar_jobids_fileindex =
-   "SELECT Job.JobId, File.FileIndex FROM Job,File,Path,Filename,Client "
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
    "AND Job.JobId=File.JobId "
-   "AND Job.StartTime<'%s' "
+   "AND Job.StartTime<='%s' "
    "AND Path.Path='%s' "
    "AND Filename.Name='%s' "
    "AND Client.Name='%s' "

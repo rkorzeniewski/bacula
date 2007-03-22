@@ -1,6 +1,18 @@
               Technical notes on version 2.1
 
 General:
+22Mar07
+kes  Implement new prunning code that prunes up to 1000 jobs at
+     the same time.  The same technique can be applied to a number
+     of other prune/purge subroutines.
+kes  Add an insanity check when starting a new tape job to ensure
+     that the tape position has not been changed. If so fail the
+     job.
+kes  Fix Win32 build for dlls to add the folllowing:
+     src/lib/bsock.c -- new file with new entry points
+     src/lib/dlist.c  -- new entry points
+     src/cats/sql_create.c -- new entry point
+     src/cats/sql_cmds.c -- new DATA item exported
 21Mar07
 ebl  batch mode cleanup bscan-test is ok now.
 kes  Implement SD code to check length of disk volume before appending.

@@ -771,6 +771,7 @@ static bool insert_file_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *f
    }
    if (!rx->found) {
       ua->error_msg(_("No database record found for: %s\n"), file);
+//    ua->error_msg("Query=%s\n", rx->query);
       return true;
    }
    return true;

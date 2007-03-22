@@ -37,6 +37,7 @@ extern const char CATS_IMP_EXP *select_restore_del;
 extern const char CATS_IMP_EXP *select_admin_del;
 extern const char CATS_IMP_EXP *select_migrate_del;
 extern const char CATS_IMP_EXP *select_job;
+extern const char CATS_IMP_EXP *count_select_job;
 extern const char CATS_IMP_EXP *del_File;
 extern const char CATS_IMP_EXP *cnt_File;
 extern const char CATS_IMP_EXP *cnt_DelCand;

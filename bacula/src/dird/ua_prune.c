@@ -85,17 +85,6 @@ static int count_handler(void *ctx, int num_fields, char **row)
 
 
 /*
- * Called here to count the number of Jobs to be pruned
- */
-static int file_count_handler(void *ctx, int num_fields, char **row)
-{
-   struct s_file_del_ctx *del = (struct s_file_del_ctx *)ctx;
-   del->tot_ids++;
-   return 0;
-}
-
-
-/*
  * Called here to make in memory list of JobIds to be
  *  deleted and the associated PurgedFiles flag.
  *  The in memory list will then be transversed
@@ -217,6 +206,7 @@ int prunecmd(UAContext *ua, const char *cmd)
 int prune_files(UAContext *ua, CLIENT *client)
 {
    struct s_file_del_ctx del;
+   struct s_count_ctx cnt;
    POOLMEM *query = get_pool_memory(PM_MESSAGE);
    int i;
    utime_t now, period;
@@ -236,26 +226,25 @@ int prune_files(UAContext *ua, CLIENT *client)
    now = (utime_t)time(NULL);
 
    /* Select Jobs -- for counting */
-   Mmsg(query, select_job, edit_uint64(now - period, ed1), 
+   Mmsg(query, count_select_job, edit_uint64(now - period, ed1), 
         edit_int64(cr.ClientId, ed2));
    Dmsg3(050, "select now=%u period=%u sql=%s\n", (uint32_t)now, (uint32_t)period, query);
-   if (!db_sql_query(ua->db, query, file_count_handler, (void *)&del)) {
-      if (ua->verbose) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
-      }
+   cnt.count = 0;
+   if (!db_sql_query(ua->db, query, count_handler, (void *)&cnt)) {
+      bsendmsg(ua, "%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
 
-   if (del.tot_ids == 0) {
+   if (cnt.count == 0) {
       if (ua->verbose) {
          bsendmsg(ua, _("No Files found to prune.\n"));
       }
       goto bail_out;
    }
 
-   if (del.tot_ids < MAX_DEL_LIST_LEN) {
-      del.max_ids = del.tot_ids + 1;
+   if (cnt.count < MAX_DEL_LIST_LEN) {
+      del.max_ids = cnt.count + 1;
    } else {
       del.max_ids = MAX_DEL_LIST_LEN;
    }
@@ -264,6 +253,8 @@ int prune_files(UAContext *ua, CLIENT *client)
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
    /* Now process same set but making a delete list */
+   Mmsg(query, select_job, edit_uint64(now - period, ed1), 
+        edit_int64(cr.ClientId, ed2));
    db_sql_query(ua->db, query, file_delete_handler, (void *)&del);
 
    for (i=0; i < del.num_ids; i++) {
@@ -417,19 +408,21 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    }
 
    /*
-    * OK, now we have the list of JobId's to be pruned, first check
-    * if the Files have been purged, if not, purge (delete) them.
-    * Then delete the Job entry, and finally and JobMedia records.
+    * OK, now we have the list of JobId's to be pruned, send them
+    *   off to be deleted batched 1000 at a time.
     */
-   for (i=0; i < del.num_ids; i++) {
-      /* Don't prune current job */
-      if (ua->jcr->JobId != del.JobId[i]) {
-         if (!del.PurgedFiles[i]) {
-            purge_files_from_job(ua, del.JobId[i]);
+
+   for (i=0; del.num_ids; ) {
+      for (int j=0; j<1000 && del.num_ids; j++) {
+         del.num_ids--;
+         if (ua->jcr->JobId == del.JobId[i]) {
+            continue;
          }
-         purge_job_from_catalog(ua, del.JobId[i]);
+         pm_strcat(query, ",");
+         pm_strcpy(query, edit_int64(del.JobId[i++], ed1));
          del.num_del++;
       }
+      purge_jobs_from_catalog(ua, query);
    }
    bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_del,
       del.num_del==1?_("Job"):_("Jobs"), client->name());
