@@ -32,6 +32,7 @@ _Z24db_create_storage_recordP3JCRP4B_DBP11STORAGE_DBR
 _Z25db_create_jobmedia_recordP3JCRP4B_DBP12JOBMEDIA_DBR
 _Z26db_create_mediatype_recordP3JCRP4B_DBP13MEDIATYPE_DBR
 _Z32db_create_file_attributes_recordP3JCRP4B_DBP8ATTR_DBR
+_Z27db_write_batch_file_recordsP3JCR
 
 ; bdb_delete.c:
 ; sql_delete.c:
@@ -95,6 +96,7 @@ select_restore_del DATA
 select_admin_del DATA
 select_migrate_del DATA
 select_job DATA
+count_select_job DATA
 del_File DATA
 cnt_DelCand DATA
 del_Job DATA

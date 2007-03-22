@@ -145,7 +145,7 @@ _Z10bnet_closeP5BSOCK
 _Z10bnet_fsendP5BSOCKPKcz
 _Z10init_bsockP3JCRiPKcS2_iP8sockaddr
 _Z10term_bsockP5BSOCK
-_Z12bnet_connectP3JCRiiPKcPcS3_ii
+_Z12bnet_connectP3JCRixPKcPcS3_ii
 _Z12is_bnet_stopP5BSOCK
 _Z13bnet_get_peerP5BSOCKPci
 _Z13bnet_strerrorP5BSOCK
@@ -180,6 +180,15 @@ b_regfree
 ; bsnprintf.c:
 _Z10bvsnprintfPciPKcS_
 _Z9bsnprintfPciPKcz
+
+; bsock.c
+_ZN5BSOCK4recvEv
+_ZN5BSOCK4sendEv
+_ZN5BSOCK5closeEv
+_ZN5BSOCK5fsendEPKcz
+_ZN5BSOCK6signalEi
+_ZN5BSOCK7destroyEv
+
 
 ; bsys.c:
 _Z11bmicrosleepll
@@ -263,15 +272,18 @@ _Z25crypto_digest_stream_typei
 _Z12daemon_startv
 
 ; dlist.c:
+_Z15new_dlistStringPKc
+_Z15new_dlistStringPKci
 _ZN5dlist13binary_insertEPvPFiS0_S0_E
 _ZN5dlist13binary_searchEPvPFiS0_S0_E
 _ZN5dlist13insert_beforeEPvS0_
 _ZN5dlist22binary_insert_multipleEPvPFiS0_S0_E
+_ZN5dlist4nextEPv
+_ZN5dlist4prevEPv
 _ZN5dlist6appendEPv
 _ZN5dlist6removeEPv
 _ZN5dlist7destroyEv
 _ZN5dlist7prependEPv
-_ZNK5dlist4nextEPKv
 
 ; edit.c:
 _Z10add_commasPcS_

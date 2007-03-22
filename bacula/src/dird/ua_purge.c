@@ -452,7 +452,6 @@ void purge_job_records_from_catalog(UAContext *ua, JobId_t JobId)
 
 }
 
-
 /*
  * Remove File records for a particular Job.
  */
@@ -474,6 +473,39 @@ void purge_files_from_job(UAContext *ua, JobId_t JobId)
    Mmsg(query, upd_Purged, ed1);
    db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
 }
+
+void purge_jobs_from_catalog(UAContext *ua, char *jobs)
+{
+   POOL_MEM query(PM_MESSAGE);
+
+   /* Delete (or purge) records associated with the job */
+   Mmsg(query, "DELETE FROM File WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete File sql=%s\n", query.c_str());
+
+   Mmsg(query, "DELETE FROM JobMedia WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete JobMedia sql=%s\n", query.c_str());
+
+   Mmsg(query, "DELETE FROM Log WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete Log sql=%s\n", query.c_str());
+
+   /* Now remove the Job record itself */
+   Mmsg(query, "DELETE FROM Job WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+   Dmsg1(050, "Delete Job sql=%s\n", query.c_str());
+
+   /*
+    * Now mark Job as having files purged. This is necessary to
+    * avoid having too many Jobs to process in future prunings. If
+    * we don't do this, the number of JobId's in our in memory list
+    * could grow very large.
+    */
+   Mmsg(query, "UPDATE Job SET PurgedFiles=1 WHERE JobId IN (%s)", jobs);
+   db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL);
+}
+
 
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr )
 {} /* ***FIXME*** implement */
