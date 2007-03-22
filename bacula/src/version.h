@@ -56,7 +56,7 @@
 /* Turn on the following flag to enable batch attribute inserts
  *  in the catalog.  This gives a large speedup.
  */
-#define HAVE_BATCH_FILE_INSERT 1 
+/*  #define HAVE_BATCH_FILE_INSERT 1 */
 
 
 /* Debug flags not normally turned on */
