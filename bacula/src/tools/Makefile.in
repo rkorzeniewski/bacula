@@ -96,6 +96,10 @@ bwild:	../findlib/libfind.a ../lib/libbac.a bwild.o
 	$(CXX) -g $(LDFLAGS) -L. -L../lib -o $@ bwild.o \
 	  $(DLIB) -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
+bbatch: ../lib/libbac.a bbatch.o
+	$(CXX) -g $(LDFLAGS) -L../cats -L. -L../lib -o $@ bbatch.o \
+	  -lsql -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+
 gigaslam.o: gigaslam.c
 	$(CC) -c $<  
 
