@@ -89,4 +89,18 @@ rm -f tmp/build/*.c
 
 check_two_logs
 check_restore_tmp_build_diff
+
+#
+# This script seems to more or less randomly fail, so we
+#  add extra code here to produce a "dump" in the event of
+#  an error.
+#
+if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
+   cat tmp/log1.out
+   echo "  "
+   cat tmp/log2.out
+   echo "  "
+   diff -r tmp/build tmp/bacula-restores${cwd}/tmp/build
+fi
+
 end_test
