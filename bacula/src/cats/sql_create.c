@@ -719,8 +719,8 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
-              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->path, 
-              mdb->fname, ar->attr, digest);
+              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_name2, 
+              mdb->esc_name, ar->attr, digest);
 
    return INSERT_DB(jcr, mdb, mdb->cmd);
 }
