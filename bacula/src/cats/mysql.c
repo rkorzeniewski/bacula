@@ -385,7 +385,7 @@ char *my_mysql_batch_lock_filename_query = "LOCK TABLES Filename write,     "
 
 char *my_mysql_batch_unlock_tables_query = "UNLOCK TABLES";
 
-char *my_mysql_batch_fill_path_query = "INSERT IGNORE INTO Path (Path) "
+char *my_mysql_batch_fill_path_query = "INSERT INTO Path (Path)        "
                                        " SELECT a.Path FROM            " 
                                        "  (SELECT DISTINCT Path        "
                                        "     FROM batch) AS a          " 
@@ -394,7 +394,7 @@ char *my_mysql_batch_fill_path_query = "INSERT IGNORE INTO Path (Path) "
                                        "     FROM Path AS p            "
                                        "    WHERE p.Path = a.Path)     ";     
 
-char *my_mysql_batch_fill_filename_query = "INSERT IGNORE INTO Filename (Name)"
+char *my_mysql_batch_fill_filename_query = "INSERT INTO Filename (Name)       "
                                            "  SELECT a.Name FROM              " 
                                            "   (SELECT DISTINCT Name          "
                                            "      FROM batch) AS a            " 
