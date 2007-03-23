@@ -733,7 +733,7 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
    
-   Dmsg0(50, "sql_batch_end started");
+   Dmsg0(50, "sql_batch_end started\n");
 
    if (mdb) {
       mdb->status = 0;
@@ -748,7 +748,7 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
  */
 bool db_write_batch_file_records(JCR *jcr)
 {
-   Dmsg0(50,"db_create_file_record : no files");
+   Dmsg0(50,"db_create_file_record : no files\n");
 
    if (!jcr->db_batch) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
