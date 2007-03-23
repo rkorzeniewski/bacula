@@ -49,7 +49,7 @@
   find / | while read a; do
    j=$(($j+1))
    echo "$j;$a;xxxLSTATxxxx;xxxxxxxMD5xxxxxx"
-  done
+  done > dat1
  */
 
 #include "bacula.h"
