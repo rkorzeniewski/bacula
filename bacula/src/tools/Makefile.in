@@ -38,7 +38,7 @@ EXTRAOBJS = @OBJLIST@
 DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 
 NODIRTOOLS = bsmtp
-DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild
+DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild bbatch
 TOOLS = $(@DIR_TOOLS@)
 
 INSNODIRTOOLS = bsmtp
