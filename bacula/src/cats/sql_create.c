@@ -873,10 +873,10 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
 
 /*
-   if (jcr->changes > 100000) {
+   if (bdb->changes > 100000) {
       db_write_batch_file_records(jcr);
-      jcr->changes = 0;
-      sql_batch_start(jcr, jcr->db_batch);
+      bdb->changes = 0;
+      sql_batch_start(jcr, bdb);
    }
 */
 
