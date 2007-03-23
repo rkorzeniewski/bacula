@@ -254,6 +254,7 @@ public:
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
+   alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */

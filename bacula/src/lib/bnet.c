@@ -403,7 +403,7 @@ err:
  * Returns: true  on success
  *          false on failure
  */
-bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
+bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
 
@@ -420,11 +420,23 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
       goto err;
    }
 
-   if (!tls_postconnect_verify_host(tls, bsock->host())) {
-      Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), 
-            bsock->host());
-      goto err;
+   /* If there's an Allowed CN verify list, use that to validate the remote
+    * certificate's CN. Otherwise, we use standard host/CN matching. */
+   if (verify_list) {
+      if (!tls_postconnect_verify_cn(tls, verify_list)) {
+         Qmsg1(bsock->jcr, M_FATAL, 0, _("TLS certificate verification failed."
+                                         " Peer certificate did not match a required commonName\n"),
+                                         bsock->host);
+         goto err;
+      }
+   } else {
+      if (!tls_postconnect_verify_host(tls, bsock->host())) {
+         Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), 
+               bsock->host());
+         goto err;
+      }
    }
+
    return true;
 
 err:
@@ -438,7 +450,7 @@ bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
    Jmsg(bsock->jcr(), M_ABORT, 0, _("TLS enabled but not configured.\n"));
    return false;
 }
-bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock)
+bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list, int verify_hostname)
 {
    Jmsg(bsock->jcr(), M_ABORT, 0, _("TLS enable but not configured.\n"));
    return false;

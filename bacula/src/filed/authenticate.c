@@ -263,7 +263,7 @@ int authenticate_storagedaemon(JCR *jcr)
 
    if (have_tls && tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
-      if (!bnet_tls_client(me->tls_ctx, sd)) {
+      if (!bnet_tls_client(me->tls_ctx, sd, NULL)) {
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
          auth_success = false;
          goto auth_fatal;
