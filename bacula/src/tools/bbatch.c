@@ -58,7 +58,7 @@
 #include "cats/cats.h"
  
 /* Forward referenced functions */
-static void do_batch();
+static void *do_batch(void *);
 
 
 /* Local variables */
@@ -68,8 +68,6 @@ static const char *db_name = "bacula";
 static const char *db_user = "bacula";
 static const char *db_password = "";
 static const char *db_host = NULL;
-
-static JCR *bjcr;
 
 char *datafile=NULL;
 
@@ -91,6 +89,9 @@ PROG_COPYRIGHT
    exit(1);
 }
 
+/* number of thread started */
+int nb=0;
+
 int main (int argc, char *argv[])
 {
    int ch;
@@ -98,13 +99,15 @@ int main (int argc, char *argv[])
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
    init_stack_dump();
-
+   
+   char **files = (char **) malloc (10 * sizeof(char *));
+   int i;
    my_name_is(argc, argv, "bbatch");
    init_msg(NULL, NULL);
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "c:d:n:P:Su:vf:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "h:c:d:n:P:Su:vf:w:?")) != -1) {
       switch (ch) {
       case 'd':                    /* debug level */
          debug_level = atoi(optarg);
@@ -137,7 +140,9 @@ int main (int argc, char *argv[])
          break;
 
       case 'f':
-         datafile = optarg;
+	 if (nb < 10 ) {
+	    files[nb++] = optarg;
+	 }
          break;
 
       case '?':
@@ -154,53 +159,55 @@ int main (int argc, char *argv[])
       usage();
    }
 
-   if (!datafile) {
-      Pmsg0(0, _("You must specified a data file\n"));
-      usage();
-   }
-
 #ifdef HAVE_BATCH_FILE_INSERT
    printf("With new Batch mode\n");
 #else
    printf("Without new Batch mode\n");
 #endif
+   i = nb;
+   while (--i >= 0) {
+      pthread_t thid;
+      JCR *bjcr = new_jcr(sizeof(JCR), NULL);
+      bjcr->bsr = NULL;
+      bjcr->VolSessionId = 1;
+      bjcr->VolSessionTime = (uint32_t)time(NULL);
+      bjcr->NumReadVolumes = 0;
+      bjcr->NumWriteVolumes = 0;
+      bjcr->JobId = getpid();
+      bjcr->JobType = JT_CONSOLE;
+      bjcr->JobLevel = L_FULL;
+      bjcr->JobStatus = JS_Running;
+      bjcr->where = bstrdup(files[i]);
+      bjcr->job_name = get_pool_memory(PM_FNAME);
+      pm_strcpy(bjcr->job_name, "Dummy.Job.Name");
+      bjcr->client_name = get_pool_memory(PM_FNAME);
+      pm_strcpy(bjcr->client_name, "Dummy.Client.Name");
+      bstrncpy(bjcr->Job, "bbatch", sizeof(bjcr->Job));
+      bjcr->fileset_name = get_pool_memory(PM_FNAME);
+      pm_strcpy(bjcr->fileset_name, "Dummy.fileset.name");
+      bjcr->fileset_md5 = get_pool_memory(PM_FNAME);
+      pm_strcpy(bjcr->fileset_md5, "Dummy.fileset.md5");
+      
+      if ((db=db_init_database(NULL, db_name, db_user, db_password,
+			       db_host, 0, NULL, 0)) == NULL) {
+	 Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
+      }
+      if (!db_open_database(NULL, db)) {
+	 Emsg0(M_ERROR_TERM, 0, db_strerror(db));
+      }
+      Dmsg0(200, "Database opened\n");
+      if (verbose) {
+	 Pmsg2(000, _("Using Database: %s, User: %s\n"), db_name, db_user);
+      }
+      
+      bjcr->db = db;
 
-   bjcr = new_jcr(sizeof(JCR), NULL);
-   bjcr->bsr = NULL;
-   bjcr->VolSessionId = 1;
-   bjcr->VolSessionTime = (uint32_t)time(NULL);
-   bjcr->NumReadVolumes = 0;
-   bjcr->NumWriteVolumes = 0;
-   bjcr->JobId = getpid();
-   bjcr->JobType = JT_CONSOLE;
-   bjcr->JobLevel = L_FULL;
-   bjcr->JobStatus = JS_Running;
-   bjcr->where = bstrdup("");
-   bjcr->job_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(bjcr->job_name, "Dummy.Job.Name");
-   bjcr->client_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(bjcr->client_name, "Dummy.Client.Name");
-   bstrncpy(bjcr->Job, "bbatch", sizeof(bjcr->Job));
-   bjcr->fileset_name = get_pool_memory(PM_FNAME);
-   pm_strcpy(bjcr->fileset_name, "Dummy.fileset.name");
-   bjcr->fileset_md5 = get_pool_memory(PM_FNAME);
-   pm_strcpy(bjcr->fileset_md5, "Dummy.fileset.md5");
-
-   if ((db=db_init_database(NULL, db_name, db_user, db_password,
-        db_host, 0, NULL, 0)) == NULL) {
-      Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
+      pthread_create(&thid, NULL, do_batch, bjcr);
    }
-   if (!db_open_database(NULL, db)) {
-      Emsg0(M_ERROR_TERM, 0, db_strerror(db));
-   }
-   Dmsg0(200, "Database opened\n");
-   if (verbose) {
-      Pmsg2(000, _("Using Database: %s, User: %s\n"), db_name, db_user);
-   }
 
-   bjcr->db = db;
-
-   do_batch();
+   while (nb > 0) {
+      bmicrosleep(1,0);
+   }
 
    return 0;
 }
@@ -231,18 +238,20 @@ static void fill_attr(ATTR_DBR *ar, char *data)
 	    break;
 	 }
 	 index++;
-	 p++;
+	 b = ++p;
       }
    }
 }
 
-static void do_batch()
+static void *do_batch(void *jcr)
 {
+   JCR *bjcr = (JCR *)jcr;
    char data[1024];
    int lineno = 0;
    struct ATTR_DBR ar;
    memset(&ar, 0, sizeof(ar));
    btime_t begin = get_current_btime();
+   char *datafile = bjcr->where;
 
    FILE *fd = fopen(datafile, "r");
    if (!fd) {
@@ -268,4 +277,7 @@ static void do_batch()
    printf("Insert time = %llims\n", (end - begin) / 10000);
    printf("Create %u files at %.2f/s\n", lineno, 
 	  (lineno / ((float)((end - begin) / 1000000))));
+   nb--;
+   pthread_exit(NULL);
+   return NULL;
 }
