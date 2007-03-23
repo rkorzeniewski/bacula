@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
+    <width>973</width>
     <height>801</height>
    </rect>
   </property>
@@ -25,139 +25,28 @@
      <number>6</number>
     </property>
     <item row="0" column="0" >
-     <widget class="QSplitter" name="splitter" >
-      <property name="orientation" >
-       <enum>Qt::Horizontal</enum>
+     <widget class="QStackedWidget" name="stackedWidget" >
+      <property name="sizePolicy" >
+       <sizepolicy>
+        <hsizetype>7</hsizetype>
+        <vsizetype>7</vsizetype>
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <widget class="QDockWidget" name="dockWidget" >
-       <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>5</hsizetype>
-         <vsizetype>7</vsizetype>
-         <horstretch>0</horstretch>
-         <verstretch>1</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize" >
-        <size>
-         <width>50</width>
-         <height>100</height>
-        </size>
-       </property>
-       <property name="maximumSize" >
-        <size>
-         <width>16777215</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="focusPolicy" >
-        <enum>Qt::StrongFocus</enum>
-       </property>
-       <property name="floating" >
-        <bool>false</bool>
-       </property>
-       <property name="features" >
-        <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
-       </property>
-       <property name="allowedAreas" >
-        <set>Qt::NoDockWidgetArea</set>
-       </property>
-       <property name="windowTitle" >
-        <string>Page Selector</string>
-       </property>
-       <widget class="QWidget" name="dockWidgetContents" >
-        <layout class="QGridLayout" >
-         <property name="margin" >
-          <number>9</number>
-         </property>
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <item row="0" column="0" >
-          <widget class="QTreeWidget" name="treeWidget" >
-           <property name="sizePolicy" >
-            <sizepolicy>
-             <hsizetype>5</hsizetype>
-             <vsizetype>7</vsizetype>
-             <horstretch>1</horstretch>
-             <verstretch>1</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize" >
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize" >
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="sizeIncrement" >
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="focusPolicy" >
-            <enum>Qt::StrongFocus</enum>
-           </property>
-           <property name="toolTip" >
-            <string>Selects right panel</string>
-           </property>
-           <property name="autoFillBackground" >
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-      <widget class="QStackedWidget" name="stackedWidget" >
-       <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>7</hsizetype>
-         <vsizetype>7</vsizetype>
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="sizeIncrement" >
-        <size>
-         <width>1</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="focusPolicy" >
-        <enum>Qt::StrongFocus</enum>
-       </property>
-       <property name="currentIndex" >
-        <number>-1</number>
-       </property>
-      </widget>
+      <property name="sizeIncrement" >
+       <size>
+        <width>1</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="focusPolicy" >
+       <enum>Qt::StrongFocus</enum>
+      </property>
+      <property name="currentIndex" >
+       <number>-1</number>
+      </property>
      </widget>
-    </item>
-    <item row="1" column="0" >
-     <layout class="QHBoxLayout" >
-      <property name="margin" >
-       <number>0</number>
-      </property>
-      <property name="spacing" >
-       <number>6</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label" >
-        <property name="text" >
-         <string>Command:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="lineEdit" />
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>
@@ -166,8 +55,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1041</width>
-     <height>33</height>
+     <width>973</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp" >
@@ -232,6 +121,133 @@
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
+  </widget>
+  <widget class="QDockWidget" name="dockWidget" >
+   <property name="sizePolicy" >
+    <sizepolicy>
+     <hsizetype>5</hsizetype>
+     <vsizetype>7</vsizetype>
+     <horstretch>0</horstretch>
+     <verstretch>1</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize" >
+    <size>
+     <width>50</width>
+     <height>100</height>
+    </size>
+   </property>
+   <property name="maximumSize" >
+    <size>
+     <width>16777215</width>
+     <height>16777215</height>
+    </size>
+   </property>
+   <property name="focusPolicy" >
+    <enum>Qt::StrongFocus</enum>
+   </property>
+   <property name="floating" >
+    <bool>false</bool>
+   </property>
+   <property name="features" >
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
+   </property>
+   <property name="allowedAreas" >
+    <set>Qt::AllDockWidgetAreas</set>
+   </property>
+   <property name="windowTitle" >
+    <string>Page Selector</string>
+   </property>
+   <attribute name="dockWidgetArea" >
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents" >
+    <layout class="QGridLayout" >
+     <property name="margin" >
+      <number>9</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item row="0" column="0" >
+      <widget class="QTreeWidget" name="treeWidget" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>5</hsizetype>
+         <vsizetype>7</vsizetype>
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize" >
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize" >
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="sizeIncrement" >
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="focusPolicy" >
+        <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="toolTip" >
+        <string>Selects right panel</string>
+       </property>
+       <property name="autoFillBackground" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_2" >
+   <property name="allowedAreas" >
+    <set>Qt::BottomDockWidgetArea</set>
+   </property>
+   <attribute name="dockWidgetArea" >
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2" >
+    <layout class="QGridLayout" >
+     <property name="margin" >
+      <number>9</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item row="0" column="0" >
+      <layout class="QHBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label" >
+         <property name="text" >
+          <string>Command:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit" />
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionQuit" >
    <property name="text" >
