@@ -94,7 +94,7 @@ function human_size(val)
    if (!val) {
       return '';
    }
-   var unit = ['b', 'Kb', 'Mb', 'Gb', 'Tb'];
+   var unit = ['B', 'KB, 'MB', 'GB', 'TB'];
    var i=0;
    var format;
    while (val /1024 > 1) {
