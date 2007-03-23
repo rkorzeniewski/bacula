@@ -53,7 +53,7 @@
  */
 
 #include "bacula.h"
-#include "stored.h"
+#include "stored/stored.h"
 #include "findlib/find.h"
 #include "cats/cats.h"
  
@@ -64,14 +64,10 @@ static void do_batch();
 /* Local variables */
 static B_DB *db;
 
-static time_t lasttime = 0;
-
 static const char *db_name = "bacula";
 static const char *db_user = "bacula";
 static const char *db_password = "";
 static const char *db_host = NULL;
-static bool list_records = false;
-static int ignored_msgs = 0;
 
 static JCR *bjcr;
 
@@ -98,7 +94,6 @@ PROG_COPYRIGHT
 int main (int argc, char *argv[])
 {
    int ch;
-   struct stat stat_buf;
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
@@ -270,7 +265,7 @@ static void do_batch()
    
    char ed1[200], ed2[200];
    printf("\rbegin = %s, end = %s\n", edit_int64(begin, ed1),edit_int64(end, ed2));
-   printf("Insert time = %ims\n", (end - begin) / 10000);
-   printf("Create %i files at %.2f/s\n", lineno, 
+   printf("Insert time = %llims\n", (end - begin) / 10000);
+   printf("Create %u files at %.2f/s\n", lineno, 
 	  (lineno / ((float)((end - begin) / 1000000))));
 }
