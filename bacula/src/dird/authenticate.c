@@ -131,7 +131,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    /* Is TLS Enabled? */
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
-      if (!bnet_tls_client(store->tls_ctx, sd)) {
+      if (!bnet_tls_client(store->tls_ctx, sd, NULL)) {
          stop_bsock_timer(tid);
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with SD on \"%s:%d\"\n"),
             sd->host(), sd->port());
@@ -235,7 +235,8 @@ int authenticate_file_daemon(JCR *jcr)
    /* Is TLS Enabled? */
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
-      if (!bnet_tls_client(client->tls_ctx, fd)) {
+      if (!bnet_tls_client(client->tls_ctx, fd, client->tls_allowed_cns)) {
+
          stop_bsock_timer(tid);
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with FD on \"%s:%d\".\n"),
               fd->host(), fd->port());

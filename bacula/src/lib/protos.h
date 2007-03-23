@@ -85,7 +85,8 @@ bool       bnet_set_buffer_size  (BSOCK *bs, uint32_t size, int rw);
 bool       bnet_sig              (BSOCK *bs, int sig);
 bool       bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
-bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock);
+bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock,
+				  alist *verify_list);
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
                utime_t max_retry_time, const char *name, char *host, char *service,
                int port, int verbose);

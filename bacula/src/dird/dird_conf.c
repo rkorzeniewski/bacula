@@ -190,6 +190,7 @@ static RES_ITEM cli_items[] = {
    {"tlscacertificatedir",  store_dir,       ITEM(res_client.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate",       store_dir,       ITEM(res_client.tls_certfile), 0, 0, 0},
    {"tlskey",               store_dir,       ITEM(res_client.tls_keyfile), 0, 0, 0},
+   {"tlsallowedcn",         store_alist_str, ITEM(res_client.tls_allowed_cns), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -1043,6 +1044,9 @@ void free_resource(RES *sres, int type)
       if (res->res_client.tls_keyfile) {
          free(res->res_client.tls_keyfile);
       }
+      if (res->res_client.tls_allowed_cns) {
+         delete res->res_client.tls_allowed_cns;
+      }
       break;
    case R_STORAGE:
       if (res->res_store.address) {
@@ -1306,6 +1310,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
             Emsg1(M_ERROR_TERM, 0, _("Cannot find Client resource %s\n"), res_all.res_client.hdr.name);
          }
          res->res_client.catalog = res_all.res_client.catalog;
+         res->res_client.tls_allowed_cns = res_all.res_client.tls_allowed_cns;
          break;
       case R_SCHEDULE:
          /*

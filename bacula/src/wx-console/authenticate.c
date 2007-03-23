@@ -138,7 +138,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    if (have_tls) {
       if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
          /* Engage TLS! Full Speed Ahead! */
-         if (!bnet_tls_client(tls_ctx, dir)) {
+         if (!bnet_tls_client(tls_ctx, dir, NULL)) {
             csprint(_("TLS negotiation failed\n"));
             goto bail_out;
          }
