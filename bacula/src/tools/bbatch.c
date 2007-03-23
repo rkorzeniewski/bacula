@@ -75,7 +75,10 @@ static void usage()
 {
    fprintf(stderr, _(
 PROG_COPYRIGHT
-"\nVersion: %s (%s)\n\n"
+"\nVersion: %s (%s)\n"
+"Example : bbatch -w /path/to/workdir -h localhost -f dat1 -f dat -f datx\n"
+" will start 3 thread and load dat1, dat and datx in your catalog\n"
+"See bbatch.c to generate datafile\n\n"
 "Usage: bbatch [ options ] -w working/dir -f datafile\n"
 "       -d <nn>           set debug level to nn\n"
 "       -n <name>         specify the database name (default bacula)\n"
