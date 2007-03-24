@@ -38,6 +38,7 @@
 #define _MAINWIN_H_
 
 #include <QtGui>
+#include <QList>
 #include "ui_main.h"
 #include "label/label.h"
 #include "run/run.h"
@@ -84,6 +85,8 @@ private:
    Console *m_console;
    bRestore *m_brestore;
    MediaList *m_medialist;
+   BatStack *m_bstack;
+   QList<BatStack*> m_bstacklist;
    QStringList m_cmd_history;
    int m_cmd_last;
    int m_pages;

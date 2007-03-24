@@ -65,39 +65,56 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 void MainWin::createPages()
 {
    DIRRES *dir;
-
    QTreeWidgetItem *item, *topItem;
+
+   /* Create console tree stacked widget item */
    m_console = new Console(stackedWidget);
-   m_console->AddTostack();
-
-   m_brestore = new bRestore(stackedWidget);
-   m_brestore->AddTostack();
-
-   m_medialist = new MediaList(stackedWidget, m_console);
-   m_medialist->AddTostack();
-
+   /* Console is special needs director*/
    /* Just take the first Director */
    LockRes();
    dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    m_console->setDirRes(dir);
    UnlockRes();
-
+   /* The top tree item representing the director */
    topItem = createTopPage(dir->name(), false);
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
-
+   /* Create Tree Widget Item */
    item = createPage("Console", topItem, true);
+   /* Append to bstacklist */
+   m_bstacklist.append(m_console);
+   /* FIXME Associate tree item with console, may not be needed. */
    m_console->setTreeItem(item);
+   /* Set BatStack m_treeItem */
+   m_console->SetBSTreeWidgetItem(item);
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
 
+   /* Now with the console created, on with the rest, these are easy */
+   /* All should be
+ * 1. create tree widget item
+ * 2. create object passing pointer to tree widget item (modified constructors to pass QTreeWidget pointers)
+ * 3. append to stacklist  */ 
+
+   /* brestore */
    item = createPage("brestore", topItem, true);
+   m_brestore = new bRestore(stackedWidget,item);
+   m_bstacklist.append(m_brestore);
+
+   /* lastly for now, the medialist */
    item = createPage("Storage Tree", topItem, true);
+   m_medialist = new MediaList(stackedWidget, m_console, item);
+   m_bstacklist.append(m_medialist);
+
+   /* Iterate through and add to the stack */
+   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+      (*bstackItem)->AddTostack();
+   }
 
    treeWidget->expandItem(topItem);
-
    stackedWidget->setCurrentIndex(0);
 }
 
+/* FIXME These Two are not needed any more because UserRole is not used. */
 /* Create a root Tree Widget */
 QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
 {
@@ -111,7 +128,7 @@ QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
    return item;
 }
 
-/* Create A Tree Widget Item Representing a Page */
+/* Create A Tree Widget Item which will be associated with a Page in the stacked widget */
 QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent, bool canDisplay)
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
@@ -123,7 +140,6 @@ QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent, bool c
    }
    return item;
 }
-
 
 /*
  * Handle up and down arrow keys for the command line
@@ -218,21 +234,15 @@ void MainWin::readSettings()
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   /* There just has to be a more elegant way of doing this
- * as more and more pages get added, this could get realllly long */
-   int treeindex = item->data(column, Qt::UserRole).toInt();
-   int stackindex=-1;
-   if( treeindex == 0 ) {
-     stackindex=stackedWidget->indexOf( m_console );
-   }
-   if( treeindex == 1 ) {
-     stackindex=stackedWidget->indexOf( m_brestore );
-   }
-   if( treeindex == 2 ) {
-     stackindex=stackedWidget->indexOf( m_medialist );
-   }
-   if( stackindex >= 0 ){
-      stackedWidget->setCurrentIndex(stackindex);
+   /* Iterate through and find the tree widget item clicked */
+   column+=0;
+   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+      if ( item == (*bstackItem)->m_treeItem ) {
+         int stackindex=stackedWidget->indexOf( *bstackItem );
+         if( stackindex >= 0 ){
+            stackedWidget->setCurrentIndex(stackindex);
+         }
+      }
    }
 }
 
@@ -240,17 +250,12 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   /* There just has to be a more elegant way of doing this
- * as more and more pages get added, this could get realllly long */
-   int treeindex = item->data(column, Qt::UserRole).toInt();
-   if( treeindex == 0 ) {
-     m_console->Togglestack();
-   }
-   if( treeindex == 1 ) {
-     m_brestore->Togglestack();
-   }
-   if( treeindex == 2 ) {
-     m_medialist->Togglestack();
+   /* Iterate through and find the tree widget item double clicked */
+   column+=0;
+   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+      if ( item == (*bstackItem)->m_treeItem ) {
+         (*bstackItem)->Togglestack();
+      }
    }
 }
 
