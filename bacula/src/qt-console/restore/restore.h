@@ -38,6 +38,7 @@
 #include "ui_brestore.h"
 #include "ui_restore.h"
 #include "ui_prerestore.h"
+#include "batstack.h"
 
 class Console;
 
@@ -91,7 +92,7 @@ private:
 };
 
 
-class bRestore : public QWidget, public Ui::bRestoreForm
+class bRestore : public BatStack, public Ui::bRestoreForm
 {
    Q_OBJECT 
 

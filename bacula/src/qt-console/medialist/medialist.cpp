@@ -46,13 +46,14 @@
 MediaList::MediaList(QStackedWidget *parent, Console *console)
 {
    setupUi(this);
-   parent->addWidget(this);
-   poollist = new QStringList();
+   m_parent=parent;
+//   AddTostack();
+   m_poollist = new QStringList();
 
    m_treeWidget = treeWidget;   /* our medialist screen */
    m_console = console;
    createConnections();
-   popupmedia="";
+   m_popupmedia="";
 }
 
 void MediaList::populateTree()
@@ -69,13 +70,13 @@ void MediaList::populateTree()
    //topItem->setSizeHint(0,QSize(1050,50));
 
    /* Start with a list of pools */
-   poollist->clear();
+   m_poollist->clear();
    QString *scmd = new QString(".pools\n");
    m_console->write_dir(scmd->toUtf8().data());
    while ((stat=m_console->read()) > 0) {
-      poollist->append(m_console->msg());
+      m_poollist->append(m_console->msg());
    }
-   for ( QStringList::Iterator poolitem = poollist->begin(); poolitem != poollist->end(); ++poolitem ) {
+   for ( QStringList::Iterator poolitem = m_poollist->begin(); poolitem != m_poollist->end(); ++poolitem ) {
       treeitem = new QTreeWidgetItem(topItem);
       m_console->setTreeItem(treeitem);
       poolitem->replace(QRegExp("\n"), "");
@@ -145,8 +146,8 @@ void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
       case 1:
 	 break;
       case 2:
-	 /* Can't figure out how to make a right button do this her Qt::LeftButton, Qt::RightButton, Qt::MidButton */
-	 popupmedia = text;
+	 /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
+	 m_popupmedia = text;
 	 QMenu *popup = new QMenu( m_treeWidget );
 	 connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
 	 connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
@@ -163,12 +164,12 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 
 void MediaList::editMedia()
 {
-   MediaEdit* edit = new MediaEdit(m_console, popupmedia);
+   MediaEdit* edit = new MediaEdit(m_console, m_popupmedia);
    edit->show();
 }
 
 void MediaList::showJobs()
 {
-   JobList* joblist = new JobList(m_console, popupmedia);
+   JobList* joblist = new JobList(m_console, m_popupmedia);
    joblist->show();
 }

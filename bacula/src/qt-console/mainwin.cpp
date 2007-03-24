@@ -68,13 +68,13 @@ void MainWin::createPages()
 
    QTreeWidgetItem *item, *topItem;
    m_console = new Console(stackedWidget);
-   stackedWidget->addWidget(m_console);
+   m_console->AddTostack();
 
-   bRestore *brestore = new bRestore(stackedWidget);
-   stackedWidget->addWidget(brestore);
+   m_brestore = new bRestore(stackedWidget);
+   m_brestore->AddTostack();
 
    m_medialist = new MediaList(stackedWidget, m_console);
-   stackedWidget->addWidget(m_medialist);
+   m_medialist->AddTostack();
 
    /* Just take the first Director */
    LockRes();
@@ -91,13 +91,14 @@ void MainWin::createPages()
    item->setForeground(0, redBrush);
 
    item = createPage("brestore", topItem, true);
-   item = createPage("MediaList", topItem, true);
+   item = createPage("Storage Tree", topItem, true);
 
    treeWidget->expandItem(topItem);
 
    stackedWidget->setCurrentIndex(0);
 }
 
+/* Create a root Tree Widget */
 QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(treeWidget);
@@ -110,6 +111,7 @@ QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
    return item;
 }
 
+/* Create A Tree Widget Item Representing a Page */
 QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent, bool canDisplay)
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
@@ -216,9 +218,21 @@ void MainWin::readSettings()
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   int index = item->data(column, Qt::UserRole).toInt();
-   if (index >= 0) {
-      stackedWidget->setCurrentIndex(index);
+   /* There just has to be a more elegant way of doing this
+ * as more and more pages get added, this could get realllly long */
+   int treeindex = item->data(column, Qt::UserRole).toInt();
+   int stackindex=-1;
+   if( treeindex == 0 ) {
+     stackindex=stackedWidget->indexOf( m_console );
+   }
+   if( treeindex == 1 ) {
+     stackindex=stackedWidget->indexOf( m_brestore );
+   }
+   if( treeindex == 2 ) {
+     stackindex=stackedWidget->indexOf( m_medialist );
+   }
+   if( stackindex >= 0 ){
+      stackedWidget->setCurrentIndex(stackindex);
    }
 }
 
@@ -226,9 +240,17 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   int index = item->data(column, Qt::UserRole).toInt();
-   if (index >= 0) {
-      stackedWidget->setCurrentIndex(index);
+   /* There just has to be a more elegant way of doing this
+ * as more and more pages get added, this could get realllly long */
+   int treeindex = item->data(column, Qt::UserRole).toInt();
+   if( treeindex == 0 ) {
+     m_console->Togglestack();
+   }
+   if( treeindex == 1 ) {
+     m_brestore->Togglestack();
+   }
+   if( treeindex == 2 ) {
+     m_medialist->Togglestack();
    }
 }
 

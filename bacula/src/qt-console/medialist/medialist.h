@@ -37,15 +37,15 @@
 #include "ui_medialist.h"
 #include "console.h"
 #include <qstringlist.h>
+#include "batstack.h"
 
-class MediaList : public QWidget, public Ui::MediaListForm
+class MediaList : public BatStack, public Ui::MediaListForm
 {
    Q_OBJECT 
 
 public:
    MediaList(QStackedWidget *parent,Console *console);
    void populateTree();
-
 
 public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
@@ -59,8 +59,9 @@ private:
 private:
    Console *m_console;
    QTreeWidget *m_treeWidget;
-   QStringList *poollist;
-   QString popupmedia;
+   QStringList *m_poollist;
+   QString m_popupmedia;
+   //QStackedWidget *m_parent;
 };
 
 #endif /* _MEDIALIST_H_ */

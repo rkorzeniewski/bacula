@@ -41,6 +41,7 @@
 Console::Console(QStackedWidget *parent)
 {
    QFont font;
+   m_parent=parent;
    (void)parent;
 
    setupUi(this);
