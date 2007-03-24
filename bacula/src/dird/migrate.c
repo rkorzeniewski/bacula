@@ -385,8 +385,11 @@ bool do_migration(JCR *jcr)
 
    migration_cleanup(jcr, jcr->JobStatus);
    if (mig_jcr) {
+      char jobid[50];
       UAContext *ua = new_ua_context(jcr);
-      purge_job_records_from_catalog(ua, jcr->previous_jr.JobId);
+      edit_uint64(jcr->previous_jr.JobId, jobid);
+      /* Purge all old file records, but leave Job record */
+      purge_files_from_jobs(ua, jobid);
       free_ua_context(ua);
    }
    return true;
@@ -1149,7 +1152,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s at %s\n"
 "  Prev Backup JobId:      %s\n"
 "  New Backup JobId:       %s\n"
 "  Migration JobId:        %s\n"
@@ -1175,8 +1178,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  SD Errors:              %d\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-   VERSION,
-   LSMDATE,
+        my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
         edt, 
         edit_uint64(jcr->previous_jr.JobId, ec6),
         mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",

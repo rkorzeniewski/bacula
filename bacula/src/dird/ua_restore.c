@@ -68,7 +68,7 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
 static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, bool dir);
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
 static int get_date(UAContext *ua, char *date, int date_len);
-static int count_handler(void *ctx, int num_fields, char **row);
+static int restore_count_handler(void *ctx, int num_fields, char **row);
 static bool insert_table_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *table);
 
 /*
@@ -901,7 +901,7 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    if (get_next_jobid_from_list(&p, &JobId) > 0) {
       /* Use first JobId as estimate of the number of files to restore */
       Mmsg(rx->query, uar_count_files, edit_int64(JobId, ed1));
-      if (!db_sql_query(ua->db, rx->query, count_handler, (void *)rx)) {
+      if (!db_sql_query(ua->db, rx->query, restore_count_handler, (void *)rx)) {
          ua->error_msg("%s\n", db_strerror(ua->db));
       }
       if (rx->found) {
@@ -1180,7 +1180,7 @@ int get_next_jobid_from_list(char **p, JobId_t *JobId)
    return 1;
 }
 
-static int count_handler(void *ctx, int num_fields, char **row)
+static int restore_count_handler(void *ctx, int num_fields, char **row)
 {
    RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
    rx->JobId = str_to_int64(row[0]);

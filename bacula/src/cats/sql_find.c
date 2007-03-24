@@ -316,7 +316,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
           edit_int64(mr->PoolId, ed1), mr->MediaType,
           mr->VolStatus, changer, order, item);
    }
-   Dmsg1(100, "fnextvol=%s\n", mdb->cmd);
+   Dmsg1(050, "fnextvol=%s\n", mdb->cmd);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);
       return 0;
@@ -324,6 +324,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 
    numrows = sql_num_rows(mdb);
    if (item > numrows || item < 1) {
+      Dmsg2(050, "item=%d got=%d\n", item, numrows);
       Mmsg2(&mdb->errmsg, _("Request for Volume item %d greater than max %d or less than 1\n"),
          item, numrows);
       db_unlock(mdb);
@@ -338,6 +339,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
     */
    while (item-- > 0) {
       if ((row = sql_fetch_row(mdb)) == NULL) {
+         Dmsg1(050, "Fail fetch item=%d\n", item+1);
          Mmsg1(&mdb->errmsg, _("No Volume record found for item %d.\n"), item);
          sql_free_result(mdb);
          db_unlock(mdb);
@@ -377,6 +379,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    sql_free_result(mdb);
 
    db_unlock(mdb);
+   Dmsg1(050, "Rtn numrows=%d\n", numrows);
    return numrows;
 }
 

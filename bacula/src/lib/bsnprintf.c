@@ -326,6 +326,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             currlen = fmtstr(buffer, currlen, maxlen, strvalue, flags, min, max);
             break;
          case 'p':
+            flags |= DP_F_UNSIGNED;
             strvalue = va_arg(args, char *);
             currlen = fmtint(buffer, currlen, maxlen, (long)strvalue, 16, min, max, flags);
             break;

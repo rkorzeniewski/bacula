@@ -142,7 +142,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
          mr.PoolId = pr.PoolId;
          mr.StorageId = jcr->wstore->StorageId;
          ok = find_next_volume_for_append(jcr, &mr, index, true /*permit create new vol*/);
-         Dmsg3(100, "find_media idx=%d ok=%d vol=%s\n", index, ok, mr.VolumeName);
+         Dmsg3(050, "find_media ok=%d idx=%d vol=%s\n", ok, index, mr.VolumeName);
       }
       /*
        * Send Find Media response to Storage daemon

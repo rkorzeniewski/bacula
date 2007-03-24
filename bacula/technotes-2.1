@@ -2,6 +2,19 @@
 
 General:
 23Mar07
+kes  Write new subroutine is_volume_purged() that explicitly checks
+     if the Volume is purged, and if so marks it as such. This should
+     resolve problems reported about needing to mount twice to recycle
+     volumes.
+kes  Rewrite pruning algorithm to do more work in the SQL engine, and
+     to pass a list of JobIds to be deleted to SQL.  Also, minimize the
+     amount of duplicated code.     
+kes  Do volume pruning only for the Media Type desired (reduces pruning time
+     if multiple Media Types are in the same pool).
+kes  Implement more detailed info in the Job report for the Bacula version
+     and architecture.
+kes  Switch from POOLMEM to POOL_MEM (a real class) in ua_prune.c and
+     ua_purge.c.
 ebl  Add bbatch tool to bench database and insert mode.
      Fix sql quote stuff in batch mode
      Fix sql stuff for mysql

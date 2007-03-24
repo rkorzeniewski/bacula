@@ -1,19 +1,4 @@
 /*
- *
- *   Bacula Director -- backup.c -- responsible for doing backup jobs
- *
- *     Kern Sibbald, March MM
- *
- *  Basic tasks done here:
- *     Open DB and create records for this job.
- *     Open Message Channel with Storage daemon to tell him a job will be starting.
- *     Open connection with File daemon and pass him commands
- *       to do the backup.
- *     When the File daemon finishes the job, update the DB.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -40,6 +25,21 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- backup.c -- responsible for doing backup jobs
+ *
+ *     Kern Sibbald, March MM
+ *
+ *  Basic tasks done here:
+ *     Open DB and create records for this job.
+ *     Open Message Channel with Storage daemon to tell him a job will be starting.
+ *     Open connection with File daemon and pass him commands
+ *       to do the backup.
+ *     When the File daemon finishes the job, update the DB.
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -438,7 +438,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s at %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
@@ -468,8 +468,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        VERSION,
-        LSMDATE,
+        my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
         edt,
         jcr->jr.JobId,
         jcr->jr.Job,

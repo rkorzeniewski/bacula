@@ -1,26 +1,7 @@
 /*
- *   Bacula Director -- restore.c -- responsible for restoring files
- *
- *     Kern Sibbald, November MM
- *
- *    This routine is run as a separate thread.
- *
- * Current implementation is Catalog verification only (i.e. no
- *  verification versus tape).
- *
- *  Basic tasks done here:
- *     Open DB
- *     Open Message Channel with Storage daemon to tell him a job will be starting.
- *     Open connection with File daemon and pass him commands
- *       to do the restore.
- *     Update the DB according to what files where restored????
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,6 +25,25 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Bacula Director -- restore.c -- responsible for restoring files
+ *
+ *     Kern Sibbald, November MM
+ *
+ *    This routine is run as a separate thread.
+ *
+ * Current implementation is Catalog verification only (i.e. no
+ *  verification versus tape).
+ *
+ *  Basic tasks done here:
+ *     Open DB
+ *     Open Message Channel with Storage daemon to tell him a job will be starting.
+ *     Open connection with File daemon and pass him commands
+ *       to do the restore.
+ *     Update the DB according to what files where restored????
+ *
+ *   Version $Id$
+ */
 
 
 #include "bacula.h"
@@ -280,7 +280,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s (%s): %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s at %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  Client:                 %s\n"
@@ -294,8 +294,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        VERSION,
-        LSMDATE,
+        my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
         edt,
         jcr->jr.JobId,
         jcr->jr.Job,

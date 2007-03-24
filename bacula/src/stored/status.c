@@ -366,7 +366,7 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
          }
          if (rdcr && rdcr->device) {
             len = Mmsg(msg, _("Reading: %s %s job %s JobId=%d Volume=\"%s\"\n"
-                            "    pool=\"%s\" device=\"%s\"\n"),
+                            "    pool=\"%s\" device=%s\n"),
                    job_level_to_str(jcr->JobLevel),
                    job_type_to_str(jcr->JobType),
                    JobName,
@@ -379,7 +379,7 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
          }
          if (dcr && dcr->device) {
             len = Mmsg(msg, _("Writing: %s %s job %s JobId=%d Volume=\"%s\"\n"
-                            "    pool=\"%s\" device=\"%s\"\n"),
+                            "    pool=\"%s\" device=%s\n"),
                    job_level_to_str(jcr->JobLevel),
                    job_type_to_str(jcr->JobType),
                    JobName,

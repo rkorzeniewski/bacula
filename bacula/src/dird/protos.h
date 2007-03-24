@@ -44,7 +44,7 @@ extern int authenticate_user_agent(UAContext *ua);
 
 /* autoprune.c */
 extern void do_autoprune(JCR *jcr);
-extern int prune_volumes(JCR *jcr);
+extern bool prune_volumes(JCR *jcr, MEDIA_DBR *mr);
 
 /* autorecycle.c */
 extern bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
@@ -126,6 +126,8 @@ extern void free_rstorage(JCR *jcr);
 extern bool setup_job(JCR *jcr);
 extern void create_clones(JCR *jcr);
 extern bool create_restore_bootstrap_file(JCR *jcr);
+extern void dird_free_jcr(JCR *jcr);
+extern void dird_free_jcr_pointers(JCR *jcr);
 
 /* migration.c */
 extern bool do_migration(JCR *jcr);
@@ -259,15 +261,20 @@ int insert_tree_handler(void *ctx, int num_fields, char **row);
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
 bool prune_volume(UAContext *ua, MEDIA_DBR *mr);
+int job_delete_handler(void *ctx, int num_fields, char **row);
+int del_count_handler(void *ctx, int num_fields, char **row);
+int file_delete_handler(void *ctx, int num_fields, char **row);
+int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del);
 
 /* ua_purge.c */
+bool is_volume_purged(UAContext *ua, MEDIA_DBR *mr);
 bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr);
 void purge_files_from_volume(UAContext *ua, MEDIA_DBR *mr );
-int purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
-void purge_files_from_job(UAContext *ua, JobId_t JobId);
-void purge_job_from_catalog(UAContext *ua, JobId_t JobId);
-void purge_job_records_from_catalog(UAContext *ua, JobId_t JobId);
+bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr);
+void purge_files_from_jobs(UAContext *ua, char *jobs);
 void purge_jobs_from_catalog(UAContext *ua, char *jobs);
+void purge_job_list_from_catalog(UAContext *ua, del_ctx &del);
+void purge_files_from_job_list(UAContext *ua, del_ctx &del);
 
 
 /* ua_run.c */

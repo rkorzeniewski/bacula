@@ -447,7 +447,6 @@ static bool list_nextvol(UAContext *ua, int ndays)
 {
    JOB *job;
    JCR *jcr = ua->jcr;
-   POOL *pool;
    USTORE store;
    RUN *run;
    time_t runtime;
@@ -471,13 +470,12 @@ static bool list_nextvol(UAContext *ua, int ndays)
       }
    }
    for (run=NULL; (run = find_next_run(run, job, runtime, ndays)); ) {
-      pool = run->pool ? run->pool : NULL;
-      if (!complete_jcr_for_job(jcr, job, pool)) {
+      if (!complete_jcr_for_job(jcr, job, run->pool)) {
          return false;
       }
       memset(&pr, 0, sizeof(pr));
       pr.PoolId = jcr->jr.PoolId;
-      if (! db_get_pool_record(ua->jcr, ua->db, &pr)) {
+      if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
          bstrncpy(pr.Name, "*UnknownPool*", sizeof(pr.Name));
       }
       mr.PoolId = jcr->jr.PoolId;
@@ -629,7 +627,7 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
       }
       return false;
    }
-   bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+   bstrncpy(pr.Name, jcr->pool->name(), sizeof(pr.Name));
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
