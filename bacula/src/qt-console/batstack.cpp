@@ -64,3 +64,7 @@ void BatStack::Togglestack()
       AddTostack();
    }
 }
+
+void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem){
+   m_treeItem=treeItem;
+}

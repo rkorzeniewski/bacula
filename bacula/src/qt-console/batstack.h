@@ -34,20 +34,20 @@
  */
 
 #include <QtGui>
+#include <QList>
 
 class BatStack : public QWidget
 {
-//   Q_OBJECT
-
 public:
    void AddTostack();
    void RemoveFromstack();
    void Togglestack();
+   void SetBSTreeWidgetItem(QTreeWidgetItem *treeItem);
    QStackedWidget *m_parent;
-//   BatStack();
+   QTreeWidgetItem *m_treeItem;
 
 private:
    bool m_stacked;
-//   int m_PgSelTreeIndex;
 };
+
 #endif /* _BATSTACK_H_ */

@@ -43,15 +43,16 @@
 #include <QMenu>
 //#include <QSize>
 
-MediaList::MediaList(QStackedWidget *parent, Console *console)
+MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem)
 {
    setupUi(this);
    m_parent=parent;
 //   AddTostack();
    m_poollist = new QStringList();
 
-   m_treeWidget = treeWidget;   /* our medialist screen */
+   m_treeWidget = treeWidget;   /* our Storage Tree Tree Widget */
    m_console = console;
+   m_treeItem = treeItem;
    createConnections();
    m_popupmedia="";
 }
@@ -78,7 +79,7 @@ void MediaList::populateTree()
    }
    for ( QStringList::Iterator poolitem = m_poollist->begin(); poolitem != m_poollist->end(); ++poolitem ) {
       treeitem = new QTreeWidgetItem(topItem);
-      m_console->setTreeItem(treeitem);
+      //m_console->setTreeItem(treeitem);
       poolitem->replace(QRegExp("\n"), "");
       treeitem->setText(0, poolitem->toUtf8().data());
       treeitem->setData(0, Qt::UserRole, 1);

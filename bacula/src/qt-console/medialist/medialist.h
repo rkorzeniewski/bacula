@@ -44,7 +44,7 @@ class MediaList : public BatStack, public Ui::MediaListForm
    Q_OBJECT 
 
 public:
-   MediaList(QStackedWidget *parent,Console *console);
+   MediaList(QStackedWidget *parent,Console *console, QTreeWidgetItem *treeItem);
    void populateTree();
 
 public slots:

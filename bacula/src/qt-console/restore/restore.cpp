@@ -38,7 +38,7 @@
 #include "bat.h"
 #include "restore.h"
 
-restoreDialog::restoreDialog(Console *console)
+restoreDialog::restoreDialog(Console *console )
 {
    QStringList titles;
 
