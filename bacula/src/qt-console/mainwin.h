@@ -82,6 +82,7 @@ private:
 private:
    QString m_UserInput;
    Console *m_console;
+   bRestore *m_brestore;
    MediaList *m_medialist;
    QStringList m_cmd_history;
    int m_cmd_last;

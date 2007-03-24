@@ -37,6 +37,7 @@
 #include "ui_console.h"
 #include "restore.h"
 #include "select.h"
+#include "batstack.h"
 
 #ifndef MAX_NAME_LENGTH
 #define MAX_NAME_LENGTH 128
@@ -64,7 +65,7 @@ class BSOCK;
 class JCR;
 class CONRES;
 
-class Console : public QWidget, public Ui::ConsoleForm
+class Console : public BatStack, public Ui::ConsoleForm
 {
    Q_OBJECT 
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>973</width>
+    <width>882</width>
     <height>801</height>
    </rect>
   </property>
@@ -15,6 +15,15 @@
   </property>
   <property name="windowIcon" >
    <iconset>images/bat.png</iconset>
+  </property>
+  <property name="toolTip" >
+   <string/>
+  </property>
+  <property name="statusTip" >
+   <string>Bacula Administration Tool</string>
+  </property>
+  <property name="whatsThis" >
+   <string>It's a Dock widget to allow page selection</string>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" >
@@ -43,6 +52,12 @@
       <property name="focusPolicy" >
        <enum>Qt::StrongFocus</enum>
       </property>
+      <property name="toolTip" >
+       <string/>
+      </property>
+      <property name="statusTip" >
+       <string/>
+      </property>
       <property name="currentIndex" >
        <number>-1</number>
       </property>
@@ -55,7 +70,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>973</width>
+     <width>882</width>
      <height>28</height>
     </rect>
    </property>
@@ -146,6 +161,12 @@
    <property name="focusPolicy" >
     <enum>Qt::StrongFocus</enum>
    </property>
+   <property name="toolTip" >
+    <string/>
+   </property>
+   <property name="statusTip" >
+    <string/>
+   </property>
    <property name="floating" >
     <bool>false</bool>
    </property>
@@ -201,7 +222,10 @@
         <enum>Qt::StrongFocus</enum>
        </property>
        <property name="toolTip" >
-        <string>Selects right panel</string>
+        <string>Selects panel window</string>
+       </property>
+       <property name="statusTip" >
+        <string>Use items in this tree to select what window is in panel</string>
        </property>
        <property name="autoFillBackground" >
         <bool>true</bool>
@@ -212,8 +236,23 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_2" >
+   <property name="toolTip" >
+    <string>Console Entry</string>
+   </property>
+   <property name="statusTip" >
+    <string>Enter a bacula command</string>
+   </property>
+   <property name="whatsThis" >
+    <string>Cosole Command entry Dock Widget</string>
+   </property>
+   <property name="features" >
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
+   </property>
    <property name="allowedAreas" >
-    <set>Qt::BottomDockWidgetArea</set>
+    <set>Qt::BottomDockWidgetArea|Qt::NoDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle" >
+    <string>Cosole Command Line Entry</string>
    </property>
    <attribute name="dockWidgetArea" >
     <number>8</number>
@@ -242,7 +281,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit" />
+        <widget class="QLineEdit" name="lineEdit" >
+         <property name="statusTip" >
+          <string>Click here to enter command</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

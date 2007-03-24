@@ -1,7 +1,9 @@
+#ifndef _BATSTACK_H_
+#define _BATSTACK_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,22 +27,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
- 
 /*
- *   Version $Id$
+ *   Version $Id: batstack.h 4230 2007-02-21 20:07:37Z kerns $
  *
- *  bRestore Class  (Eric's brestore)
- *
- *   Kern Sibbald, January MMVII
- *
- */ 
+ *   Kern Sibbald, January 2007
+ */
 
-#include "bat.h"
-#include "restore.h"
+#include <QtGui>
 
-bRestore::bRestore(QStackedWidget *parent)
+class BatStack : public QWidget
 {
-   (void)parent;
-   setupUi(this);
-   m_parent=parent;
-}
+//   Q_OBJECT
+
+public:
+   void AddTostack();
+   void RemoveFromstack();
+   void Togglestack();
+   QStackedWidget *m_parent;
+//   BatStack();
+
+private:
+   bool m_stacked;
+//   int m_PgSelTreeIndex;
+};
+#endif /* _BATSTACK_H_ */

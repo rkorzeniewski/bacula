@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,22 +25,42 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
- 
 /*
- *   Version $Id$
+ *   Version $Id: batstack.cpp 4230 2007-02-21 20:07:37Z kerns $
  *
- *  bRestore Class  (Eric's brestore)
- *
- *   Kern Sibbald, January MMVII
- *
- */ 
+ *   Kern Sibbald, January 2007
+ */
 
-#include "bat.h"
-#include "restore.h"
+#include "batstack.h"
 
-bRestore::bRestore(QStackedWidget *parent)
+void BatStack::AddTostack()
 {
-   (void)parent;
-   setupUi(this);
-   m_parent=parent;
+   /* These two lines are for making sure if it is being changed from a window
+ * That it has the proper window flag and parent. */
+   setWindowFlags(Qt::Widget);
+   setParent(m_parent);
+   /* This was being done already */
+   m_parent->addWidget(this);
+   /* Set stacked flag */
+   m_stacked=true;
+}
+
+void BatStack::RemoveFromstack()
+{
+   /* Change from a stacked widget to a normal window */
+   /* FIXME Will need to make it so that window cannot be closed */
+   m_parent->removeWidget(this);
+   setWindowFlags(Qt::Window);
+   showNormal();
+   /* Clear stacked flag */
+   m_stacked=false;
+}
+
+void BatStack::Togglestack()
+{
+   if( m_stacked ){
+      RemoveFromstack();
+   } else {
+      AddTostack();
+   }
 }
