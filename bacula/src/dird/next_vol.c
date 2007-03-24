@@ -1,17 +1,7 @@
 /*
- *
- *   Bacula Director -- next_vol -- handles finding the next
- *    volume for append.  Split out of catreq.c August MMIII
- *    catalog request from the Storage daemon.
-
- *     Kern Sibbald, March MMI
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- next_vol -- handles finding the next
+ *    volume for append.  Split out of catreq.c August MMIII
+ *    catalog request from the Storage daemon.
+
+ *     Kern Sibbald, March MMI
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -48,7 +48,7 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger);
  *   jcr->wstore
  *   jcr->db
  *   jcr->pool
- *   MEDIA_DBR mr (zeroed out)
+ *   MEDIA_DBR mr with PoolId set
  *   create -- whether or not to create a new volume
  */
 int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
@@ -59,7 +59,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
    STORE *store = jcr->wstore;
 
    bstrncpy(mr->MediaType, store->media_type, sizeof(mr->MediaType));
-   Dmsg2(100, "CatReq FindMedia: PoolId=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
+   Dmsg2(150, "find_next_vol_for_append: PoolId=%d, MediaType=%s\n", (int)mr->PoolId, mr->MediaType);
    /*
     * If we are using an Autochanger, restrict Volume
     *   search to the Autochanger on the first pass
@@ -75,15 +75,15 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
        *  1. Look for volume with "Append" status.
        */
       ok = db_find_next_volume(jcr, jcr->db, index, InChanger, mr);
-      Dmsg4(100, "after find_next_vol index=%d ok=%d InChanger=%d Vstat=%s\n",
-            index, ok, InChanger, mr->VolStatus);
 
       if (!ok) {
+         Dmsg4(050, "after find_next_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+               ok, index, InChanger, mr->VolStatus);
          /*
           * 2. Try finding a recycled volume
           */
          ok = find_recycled_volume(jcr, InChanger, mr);
-         Dmsg2(100, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
+         Dmsg2(150, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
          if (!ok) {
             /*
              * 3. Try recycling any purged volume
@@ -93,9 +93,12 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
                /*
                 * 4. Try pruning Volumes
                 */
-               prune_volumes(jcr);
+               Dmsg0(150, "Call prune_volumes\n");
+               prune_volumes(jcr, mr);
                ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
                if (!ok) {
+                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+                        ok, index, InChanger, mr->VolStatus);
                   /*
                    * 5. Try pulling a volume from the Scratch pool
                    */ 
@@ -171,6 +174,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
       break;
    } /* end for loop */
    db_unlock(jcr->db);
+   Dmsg1(150, "return ok=%d find_next_vol\n", ok);
    return ok;
 }
 

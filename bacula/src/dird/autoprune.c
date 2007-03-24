@@ -82,58 +82,76 @@ void do_autoprune(JCR *jcr)
 }
 
 /*
- * Prune all volumes in current Pool. This is called from
+ * Prune at least on Volume in current Pool. This is called from
  *   catreq.c when the Storage daemon is asking for another
  *   volume and no appendable volumes are available.
  *
- *  Return 0: on error
- *         number of Volumes Purged
+ *  Return: false if nothing pruned
+ *          true if pruned, and mr is set to pruned volume
  */
-int prune_volumes(JCR *jcr)
+bool prune_volumes(JCR *jcr, MEDIA_DBR *mr) 
 {
-   int stat = 0;
+   int count;
    int i;
    uint32_t *ids = NULL;
    int num_ids = 0;
-   MEDIA_DBR mr;
+   struct del_ctx del;
    UAContext *ua;
+   bool ok = false;
 
+   Dmsg1(050, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
       Dmsg0(100, "AutoPrune not set in Pool.\n");
       return 0;
    }
-   memset(&mr, 0, sizeof(mr));
+   memset(&del, 0, sizeof(del));
+   del.max_ids = 1000;
+   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
+
    ua = new_ua_context(jcr);
 
    db_lock(jcr->db);
 
    /* Get the List of all media ids in the current Pool */
-   if (!db_get_media_ids(jcr, jcr->db, jcr->jr.PoolId, &num_ids, &ids)) {
+   if (!db_get_media_ids(jcr, jcr->db, mr, &num_ids, &ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
 
    /* Visit each Volume and Prune it */
    for (i=0; i<num_ids; i++) {
-      mr.MediaId = ids[i];
-      if (!db_get_media_record(jcr, jcr->db, &mr)) {
+      MEDIA_DBR lmr;
+      memset(&lmr, 0, sizeof(lmr));
+      lmr.MediaId = ids[i];
+      Dmsg1(150, "Get record MediaId=%d\n", (int)lmr.MediaId);
+      if (!db_get_media_record(jcr, jcr->db, &lmr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
          continue;
       }
       /* Prune only Volumes from current Pool */
-      if (jcr->jr.PoolId != mr.PoolId) {
+      if (mr->PoolId != lmr.PoolId) {
          continue;
       }
       /* Don't prune archived volumes */
-      if (mr.Enabled == 2) {
+      if (lmr.Enabled == 2) {
          continue;
       }
       /* Prune only Volumes with status "Full", or "Used" */
-      if (strcmp(mr.VolStatus, "Full")   == 0 ||
-          strcmp(mr.VolStatus, "Used")   == 0) {
-         Dmsg1(200, "Prune Volume %s\n", mr.VolumeName);
-         stat += prune_volume(ua, &mr);
-         Dmsg1(200, "Num pruned = %d\n", stat);
+      if (strcmp(lmr.VolStatus, "Full")   == 0 ||
+          strcmp(lmr.VolStatus, "Used")   == 0) {
+         Dmsg2(050, "Add prune list MediaId=%d Volume %s\n", (int)lmr.MediaId, lmr.VolumeName);
+         count = get_prune_list_for_volume(ua, &lmr, &del);
+         Dmsg1(050, "Num pruned = %d\n", count);
+         if (count != 0) {
+            purge_job_list_from_catalog(ua, del);
+            del.num_ids = 0;             /* reset count */
+            ok = is_volume_purged(ua, &lmr);
+            if (ok) {
+               Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
+               mr = &lmr;             /* struct copy */
+               break;
+            }
+         }
       }
    }
 
@@ -143,5 +161,8 @@ bail_out:
    if (ids) {
       free(ids);
    }
-   return stat;
+   if (del.JobId) {
+      free(del.JobId);
+   }
+   return ok;
 }

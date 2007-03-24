@@ -1346,15 +1346,13 @@ static void delete_job_id_range(UAContext *ua, char *tok)
 /*
  * do_job_delete now performs the actual delete operation atomically
  */
-
 static void do_job_delete(UAContext *ua, JobId_t JobId)
 {
-   POOL_MEM query(PM_MESSAGE);
    char ed1[50];
 
-   purge_files_from_job(ua, JobId);
-   purge_job_from_catalog(ua, JobId);
-   bsendmsg(ua, _("Job %s and associated records deleted from the catalog.\n"), edit_int64(JobId, ed1));
+   edit_int64(JobId, ed1);
+   purge_jobs_from_catalog(ua, ed1);
+   bsendmsg(ua, _("Job %s and associated records deleted from the catalog.\n"), ed1);
 }
 
 /*
@@ -1690,7 +1688,8 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
 
 static int version_cmd(UAContext *ua, const char *cmd)
 {
-   bsendmsg(ua, _("%s Version: %s (%s)\n"), my_name, VERSION, BDATE);
+   bsendmsg(ua, _("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
+            HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
 

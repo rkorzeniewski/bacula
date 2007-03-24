@@ -122,7 +122,7 @@ bool setup_job(JCR *jcr)
    /*
     * Open database
     */
-   Dmsg0(50, "Open database\n");
+   Dmsg0(150, "Open database\n");
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
                             jcr->catalog->db_password, jcr->catalog->db_address,
                             jcr->catalog->db_port, jcr->catalog->db_socket,
@@ -135,7 +135,7 @@ bool setup_job(JCR *jcr)
       }
       goto bail_out;
    }
-   Dmsg0(50, "DB opened\n");
+   Dmsg0(150, "DB opened\n");
 
    if (!jcr->fname) {
       jcr->fname = get_pool_memory(PM_FNAME);
@@ -537,7 +537,7 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 
    memset(&pr, 0, sizeof(pr));
    bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
-   Dmsg1(010, "get_or_create_pool=%s\n", pool_name);
+   Dmsg1(110, "get_or_create_pool=%s\n", pool_name);
 
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
@@ -1069,7 +1069,7 @@ void copy_wstorage(JCR *jcr, alist *storage, const char *where)
       }
       jcr->wstorage = New(alist(10, not_owned_by_alist));
       foreach_alist(st, storage) {
-         Dmsg1(50, "storage=%s\n", st->name());
+         Dmsg1(100, "wstorage=%s\n", st->name());
          jcr->wstorage->append(st);
       }
       if (!jcr->wstore_source) {

@@ -97,7 +97,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       }
    }
    Dmsg0(100, "db_open first time\n");
-   mdb = (B_DB *) malloc(sizeof(B_DB));
+   mdb = (B_DB *)malloc(sizeof(B_DB));
    memset(mdb, 0, sizeof(B_DB));
    mdb->db_name = bstrdup(db_name);
    mdb->db_user = bstrdup(db_user);
@@ -111,7 +111,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
       mdb->db_socket = bstrdup(db_socket);
    }
    mdb->db_port = db_port;
-   mdb->have_insert_id = TRUE;
+   mdb->have_insert_id = true;
    mdb->errmsg = get_pool_memory(PM_EMSG); /* get error message buffer */
    *mdb->errmsg = 0;
    mdb->cmd = get_pool_memory(PM_EMSG);    /* get command buffer */
@@ -143,7 +143,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
       V(mutex);
       return 1;
    }
-   mdb->connected = FALSE;
+   mdb->connected = false;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
@@ -183,9 +183,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
             mdb->db_password==NULL?"(NULL)":mdb->db_password);
 
    if (mdb->db == NULL) {
-      Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server. \n"
+      Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server.\n"
 "Database=%s User=%s\n"
-"It is probably not running or your password is incorrect.\n"),
+"It MySQL server not running or your password is incorrect.\n"),
          mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;
@@ -200,7 +200,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    my_thread_init();
 #endif
 
-   mdb->connected = TRUE;
+   mdb->connected = true;
    V(mutex);
    return 1;
 }

@@ -43,8 +43,6 @@
 #include "jcr.h"
 #include "bsr.h"
 #include "ua.h"
-#include "protos.h"
-
 #include "jobq.h"
 
 /* Globals that dird.c exports */
@@ -52,6 +50,21 @@ extern DIRRES *director;                     /* Director resource */
 extern int FDConnectTimeout;
 extern int SDConnectTimeout;
 
-/* From job.c */
-void dird_free_jcr(JCR *jcr);
-void dird_free_jcr_pointers(JCR *jcr);
+/* Used in ua_prune.c and ua_purge.c */
+
+struct s_count_ctx {
+   int count;
+};
+
+#define MAX_DEL_LIST_LEN 2000000
+
+struct del_ctx {
+   JobId_t *JobId;                    /* array of JobIds */
+   char *PurgedFiles;                 /* Array of PurgedFile flags */
+   int num_ids;                       /* ids stored */
+   int max_ids;                       /* size of array */
+   int num_del;                       /* number deleted */
+   int tot_ids;                       /* total to process */
+};
+
+#include "protos.h"

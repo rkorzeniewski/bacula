@@ -393,6 +393,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
       ok = complete_jcr_for_job(jcr, sp->job, sp->pool);
+      Dmsg1(250, "Using pool=%s\n", jcr->pool->name());
       if (jcr->db) {
          close_db = true;             /* new db opened, remember to close it */
       }
@@ -400,6 +401,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
          mr.PoolId = jcr->jr.PoolId;
          mr.StorageId = sp->store->StorageId;
          jcr->wstore = sp->store;
+         Dmsg0(250, "call find_next_volume_for_append\n");
          ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
       }
       if (!ok) {
@@ -501,6 +503,7 @@ static void list_scheduled_jobs(UAContext *ua)
          sp->pool = run->pool;
          get_job_storage(&store, job, run);
          sp->store = store.store;
+         Dmsg3(250, "job=%s store=%s MediaType=%s\n", job->name(), sp->store->name(), sp->store->media_type);
          sched.binary_insert_multiple(sp, my_compare);
          num_jobs++;
       }
