@@ -424,9 +424,9 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
     * certificate's CN. Otherwise, we use standard host/CN matching. */
    if (verify_list) {
       if (!tls_postconnect_verify_cn(tls, verify_list)) {
-         Qmsg1(bsock->jcr, M_FATAL, 0, _("TLS certificate verification failed."
+         Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS certificate verification failed."
                                          " Peer certificate did not match a required commonName\n"),
-                                         bsock->host);
+                                         bsock->host());
          goto err;
       }
    } else {
