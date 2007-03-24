@@ -69,7 +69,7 @@ static const char *db_user = "bacula";
 static const char *db_password = "";
 static const char *db_host = NULL;
 
-char *datafile=NULL;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void usage()
 {
@@ -275,12 +275,14 @@ static void *do_batch(void *jcr)
    db_write_batch_file_records(bjcr);
    btime_t end = get_current_btime();
    
+   P(mutex);
    char ed1[200], ed2[200];
    printf("\rbegin = %s, end = %s\n", edit_int64(begin, ed1),edit_int64(end, ed2));
    printf("Insert time = %llims\n", (end - begin) / 10000);
    printf("Create %u files at %.2f/s\n", lineno, 
 	  (lineno / ((float)((end - begin) / 1000000))));
    nb--;
+   V(mutex);
    pthread_exit(NULL);
    return NULL;
 }
