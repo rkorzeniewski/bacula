@@ -252,15 +252,14 @@ static POOLMEM *substitute_prompts(UAContext *ua,
  */
 int sqlquerycmd(UAContext *ua, const char *cmd)
 {
-   POOLMEM *query = get_pool_memory(PM_MESSAGE);
+   POOL_MEM query(PM_MESSAGE);
    int len;
    const char *msg;
 
    if (!open_client_db(ua)) {
-      free_pool_memory(query);
       return 1;
    }
-   *query = 0;
+   *query.c_str() = 0;
 
    bsendmsg(ua, _("Entering SQL query mode.\n"
 "Terminate each query with a semicolon.\n"
@@ -272,22 +271,20 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
       if (len == 0) {
          break;
       }
-      query = check_pool_memory_size(query, len + 1);
-      if (*query != 0) {
+      if (*query.c_str() != 0) {
          pm_strcat(query, " ");
       }
       pm_strcat(query, ua->cmd);
       if (ua->cmd[len-1] == ';') {
          ua->cmd[len-1] = 0;          /* zap ; */
          /* Submit query */
-         db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
-         *query = 0;                  /* start new query */
+         db_list_sql_query(ua->jcr, ua->db, query.c_str(), prtit, ua, 1, HORZ_LIST);
+         *query.c_str() = 0;         /* start new query */
          msg = _("Enter SQL query: ");
       } else {
          msg = _("Add to SQL query: ");
       }
    }
-   free_pool_memory(query);
    bsendmsg(ua, _("End query mode.\n"));
    return 1;
 }
