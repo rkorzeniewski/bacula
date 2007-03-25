@@ -47,21 +47,29 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
 {
    setupUi(this);
    m_parent=parent;
-//   AddTostack();
-   m_poollist = new QStringList();
 
    m_treeWidget = treeWidget;   /* our Storage Tree Tree Widget */
    m_console = console;
    m_treeItem = treeItem;
    createConnections();
-   m_popupmedia="";
    m_populated=false;
+   m_headerlist = new QStringList();
+   m_popupmedia = new QString("");
+   m_poollist = new QStringList();
+   m_cmd = new QString("select m.volumename, m.mediaid, m.mediatype, p.name from media m, pool p ORDER BY p.name");
+}
+
+MediaList::~MediaList()
+{
+   delete m_headerlist;
+   delete m_popupmedia;
+   delete m_poollist;
+   delete m_cmd;
 }
 
 void MediaList::populateTree()
 {
-   int stat;
-   QTreeWidgetItem *mediatreeitem, *treeitem, *topItem;
+   QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
 
    m_treeWidget->clear();
    m_treeWidget->setColumnCount(3);
@@ -73,62 +81,36 @@ void MediaList::populateTree()
 
    /* Start with a list of pools */
    m_poollist->clear();
-   QString *scmd = new QString(".pools\n");
-   m_console->write_dir(scmd->toUtf8().data());
-   while ((stat=m_console->read()) > 0) {
-      m_poollist->append(m_console->msg());
-   }
-   for ( QStringList::Iterator poolitem = m_poollist->begin(); poolitem != m_poollist->end(); ++poolitem ) {
-      treeitem = new QTreeWidgetItem(topItem);
-      //m_console->setTreeItem(treeitem);
-      poolitem->replace(QRegExp("\n"), "");
-      treeitem->setText(0, poolitem->toUtf8().data());
-      treeitem->setData(0, Qt::UserRole, 1);
-      treeitem->setExpanded( true );
-
-      /* iterate through the media in the pool */
-      QString *mcmd = new QString("sqlquery\n");
-      m_console->write_dir(mcmd->toUtf8().data());
-      while ((stat=m_console->read()) > 0) { }
-      QString *mcmd2 = new QString("select m.volumename, m.mediaid, m.mediatype from media m, pool p where p.name = '");
-      mcmd2->append(*poolitem);
-      mcmd2->append("';\n");
-      m_console->write_dir(mcmd2->toUtf8().data());
-      QString *mediaread = new QString();
-      while ((stat=m_console->read()) > 0) {
-	 *mediaread += m_console->msg();
-      }
-      m_console->discardToPrompt();
-      QStringList sqllinelist = mediaread->split("\n");
-      /* a regex todetermine if mediareadline is a line of interest. */
-      QRegExp regex("^\\|.*\\|$");
-      int recordcnter=0;
-      QStringList *headerlist = new QStringList();
-      /* Iterate through lines retuned */
-      for ( QStringList::Iterator mediareadline = sqllinelist.begin(); mediareadline != sqllinelist.end(); ++mediareadline ) {
-	 if ( regex.indexIn(*mediareadline) >= 0 ){
-	    QStringList recorditemlist = mediareadline->split("|");
-	    int recorditemcnter=0;
-	    /* Iterate through items in the record */
-	    for ( QStringList::Iterator mediarecorditem = recorditemlist.begin(); mediarecorditem != recorditemlist.end(); ++mediarecorditem ) {
-	       QString trimmeditem = mediarecorditem->trimmed();
-	       if( trimmeditem != "" ){
-		  if ( recordcnter == 0 ){
-		     headerlist->append(trimmeditem);
-		  } else {
-		     if ( recorditemcnter == 0 ){
-			mediatreeitem = new QTreeWidgetItem(treeitem);
-		     }
-		     mediatreeitem->setData(recorditemcnter, Qt::UserRole, 2);
-		     mediatreeitem->setText(recorditemcnter, trimmeditem.toUtf8().data());
-		  }
-		  recorditemcnter+=1;
+   QStringList *results=m_console->dosql(m_cmd);
+   int recordcounter=0;
+   m_headerlist->append("Volume Name");
+   m_headerlist->append("Media Id");
+   m_headerlist->append("Type");
+   m_treeWidget->setHeaderLabels(*m_headerlist);
+   QString currentpool("");
+   for ( QStringList::Iterator resultline = results->begin(); resultline != results->end(); ++resultline ) {
+      QStringList recorditemlist = resultline->split("\t");
+      int recorditemcnter=0;
+      /* Iterate through items in the record */
+      for ( QStringList::Iterator mediarecorditem = recorditemlist.begin(); mediarecorditem != recorditemlist.end(); ++mediarecorditem ) {
+	 QString trimmeditem = mediarecorditem->trimmed();
+	 if( trimmeditem != "" ){
+	    if ( recorditemcnter == 0 ){
+	       if ( currentpool != trimmeditem.toUtf8().data() ){
+		  currentpool = trimmeditem.toUtf8().data();
+		  pooltreeitem = new QTreeWidgetItem(topItem);
+		  pooltreeitem->setText(0, trimmeditem.toUtf8().data());
+		  pooltreeitem->setData(0, Qt::UserRole, 1);
+		  pooltreeitem->setExpanded( true );
 	       }
+	       mediatreeitem = new QTreeWidgetItem(pooltreeitem);
 	    }
-	    recordcnter+=1;
+	    mediatreeitem->setData(recorditemcnter, Qt::UserRole, 2);
+	    mediatreeitem->setText(recorditemcnter, trimmeditem.toUtf8().data());
+	    recorditemcnter+=1;
 	 }
       }
-      m_treeWidget->setHeaderLabels(*headerlist);
+      recordcounter+=1;
    }
 }
 
@@ -149,7 +131,7 @@ void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
 	 break;
       case 2:
 	 /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
-	 m_popupmedia = text;
+	 *m_popupmedia = text;
 	 QMenu *popup = new QMenu( m_treeWidget );
 	 connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
 	 connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
@@ -166,13 +148,13 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 
 void MediaList::editMedia()
 {
-   MediaEdit* edit = new MediaEdit(m_console, m_popupmedia);
+   MediaEdit* edit = new MediaEdit(m_console, *m_popupmedia);
    edit->show();
 }
 
 void MediaList::showJobs()
 {
-   JobList* joblist = new JobList(m_console, m_popupmedia);
+   JobList* joblist = new JobList(m_console, *m_popupmedia);
    joblist->show();
 }
 

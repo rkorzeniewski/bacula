@@ -583,3 +583,21 @@ void Console::setDirRes(DIRRES *dir)
 { 
    m_dir = dir;
 }
+
+QStringList* Console::dosql(QString* sqlcmd)
+{
+   int stat;
+   QStringList* strlstret = new QStringList;
+
+   *sqlcmd = ".sql \"" + *sqlcmd + "\"";
+
+   write_dir(sqlcmd->toUtf8().data());
+   while ((stat=read()) > 0) {
+      QString line = msg();
+      QRegExp regex("^Using Catalog");
+      if ( regex.indexIn(line) < 0 ){
+	 strlstret->append(line);
+      }
+   }
+   return strlstret;
+}
