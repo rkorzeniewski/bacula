@@ -336,6 +336,9 @@ static int sql_handler(void *ctx, int num_field, char **row)
 
 static bool sql_cmd(UAContext *ua, const char *cmd)
 {
+   if (!open_client_db(ua)) {
+      return true;
+   }
    if (!db_sql_query(ua->db, ua->argk[1], sql_handler, (void *)ua)) {
       bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
       return true;
