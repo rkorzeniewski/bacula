@@ -1,5 +1,7 @@
 bweb (2.0.3-2) stable; urgency=low
 
+  * Add a re-run option in display_job_zoom
+  * Fix fileset option when running a job
   * Add display_log_time option to view timestamp in display_log
   * Add db_size information (for mysql5 and postgresql users)
   * Fix fileset option when running a job
