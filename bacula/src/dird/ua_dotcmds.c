@@ -68,6 +68,7 @@ static bool levelscmd(UAContext *ua, const char *cmd);
 static bool getmsgscmd(UAContext *ua, const char *cmd);
 
 static bool api_cmd(UAContext *ua, const char *cmd);
+static bool sql_cmd(UAContext *ua, const char *cmd);
 static bool dot_quit_cmd(UAContext *ua, const char *cmd);
 static bool dot_help_cmd(UAContext *ua, const char *cmd);
 
@@ -87,6 +88,7 @@ static struct cmdstruct commands[] = {
  { NT_(".msgs"),       msgscmd,        NULL},
  { NT_(".pools"),      poolscmd,       NULL},
  { NT_(".quit"),       dot_quit_cmd,   NULL},
+ { NT_(".sql"),        sql_cmd,        NULL},
  { NT_(".status"),     dot_status_cmd, NULL},
  { NT_(".storage"),    storagecmd,     NULL},
  { NT_(".types"),      typescmd,       NULL} 
@@ -261,13 +263,6 @@ static bool typescmd(UAContext *ua, const char *cmd)
    return true;
 }
 
-static int client_backups_handler(void *ctx, int num_field, char **row)
-{
-   UAContext *ua = (UAContext *)ctx;
-   bsendmsg(ua, "| %s | %s | %s | %s | %s | %s | %s | %s |\n",
-      row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]);
-   return 0;
-}
 
 /*
  * If this command is called, it tells the director that we
@@ -285,6 +280,14 @@ static bool api_cmd(UAContext *ua, const char *cmd)
       ua->api = 1;
    }
    return true;
+}
+
+static int client_backups_handler(void *ctx, int num_field, char **row)
+{
+   UAContext *ua = (UAContext *)ctx;
+   bsendmsg(ua, "| %s | %s | %s | %s | %s | %s | %s | %s |\n",
+      row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]);
+   return 0;
 }
 
 /*
@@ -314,6 +317,32 @@ static bool backupscmd(UAContext *ua, const char *cmd)
    return true;
 }
 
+static int sql_handler(void *ctx, int num_field, char **row)
+{
+   UAContext *ua = (UAContext *)ctx;
+   POOL_MEM rows(PM_MESSAGE);
+
+   for (int i=0; num_field--; i++) {
+      if (i == 0) {
+         pm_strcpy(rows, row[0]);
+      } else {
+         pm_strcat(rows, row[i]);
+      }
+      pm_strcat(rows, "\t");
+   }
+   bsendmsg(ua, rows.c_str());
+   return 0;
+}
+
+static bool sql_cmd(UAContext *ua, const char *cmd)
+{
+   if (!db_sql_query(ua->db, ua->argk[1], sql_handler, (void *)ua)) {
+      bsendmsg(ua, _("Query failed: %s. ERR=%s\n"), ua->cmd, db_strerror(ua->db));
+      return true;
+   }
+   return true;
+}
+      
 
 
 static bool levelscmd(UAContext *ua, const char *cmd)
