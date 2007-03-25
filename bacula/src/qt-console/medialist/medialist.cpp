@@ -178,7 +178,6 @@ void MediaList::showJobs()
 
 void MediaList::PgSeltreeWidgetClicked()
 {
-   printf("PgSeltreeWidgetClicked\n");
    if( ! m_populated ){
       populateTree();
       m_populated=true;
@@ -187,6 +186,5 @@ void MediaList::PgSeltreeWidgetClicked()
 
 void MediaList::PgSeltreeWidgetDoubleClicked()
 {
-   printf("PgSeltreeWidgetDoubleClicked\n");
    populateTree();
 }
