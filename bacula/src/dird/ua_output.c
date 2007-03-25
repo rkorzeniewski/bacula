@@ -481,7 +481,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
       mr.PoolId = jcr->jr.PoolId;
       get_job_storage(&store, job, run);
       mr.StorageId = store.store->StorageId;
-      if (!find_next_volume_for_append(jcr, &mr, 1, false/*no create*/)) {
+      if (!find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_prune)) {
          bsendmsg(ua, _("Could not find next Volume for Job %s (%s, %s).\n"),
             job->hdr.name, pr.Name, level_to_str(run->level));
       } else {
