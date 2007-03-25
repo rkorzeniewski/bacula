@@ -51,7 +51,8 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger);
  *   MEDIA_DBR mr with PoolId set
  *   create -- whether or not to create a new volume
  */
-int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,             
+                                bool create, bool prune)
 {
    int retry = 0;
    bool ok;
@@ -94,7 +95,9 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
                 * 4. Try pruning Volumes
                 */
                Dmsg0(150, "Call prune_volumes\n");
-               prune_volumes(jcr, mr);
+               if (prune) {
+                  prune_volumes(jcr, mr);
+               }
                ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
                if (!ok) {
                   Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
@@ -134,7 +137,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create)
             /* Find oldest volume to recycle */
             ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
             Dmsg1(400, "Find oldest=%d\n", ok);
-            if (ok) {
+            if (ok && prune) {
                UAContext *ua;
                Dmsg0(400, "Try purge.\n");
                /*

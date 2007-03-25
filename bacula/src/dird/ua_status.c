@@ -402,7 +402,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
          mr.StorageId = sp->store->StorageId;
          jcr->wstore = sp->store;
          Dmsg0(250, "call find_next_volume_for_append\n");
-         ok = find_next_volume_for_append(jcr, &mr, 1, false/*no create*/);
+         ok = find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_no_prune);
       }
       if (!ok) {
          bstrncpy(mr.VolumeName, "*unknown*", sizeof(mr.VolumeName));

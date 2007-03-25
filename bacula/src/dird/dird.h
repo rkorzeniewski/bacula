@@ -1,14 +1,7 @@
 /*
- * Includes specific to the Director
- *
- *     Kern Sibbald, December MM
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Includes specific to the Director
+ *
+ *     Kern Sibbald, December MM
+ *
+ *    Version $Id$
+ */
 
 #include "lib/runscript.h"
 #include "dird_conf.h"
@@ -66,5 +66,15 @@ struct del_ctx {
    int num_del;                       /* number deleted */
    int tot_ids;                       /* total to process */
 };
+
+/* Flags for find_next_volume_for_append() */
+enum {
+  fnv_create_vol    = true,
+  fnv_no_create_vol = false,
+  fnv_prune         = true,
+  fnv_no_prune      = false
+};
+
+     
 
 #include "protos.h"

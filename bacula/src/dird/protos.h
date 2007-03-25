@@ -148,7 +148,8 @@ extern int bget_dirmsg(BSOCK *bs);
 extern void wait_for_storage_daemon_termination(JCR *jcr);
 
 /* next_vol.c */
-int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index, bool create);
+int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
+                                bool create, bool purge);
 bool has_volume_expired(JCR *jcr, MEDIA_DBR *mr);
 void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **reason);
 
