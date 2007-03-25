@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>882</width>
-    <height>801</height>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>882</width>
-     <height>28</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp" >
@@ -118,8 +118,8 @@
   <widget class="QToolBar" name="toolBar" >
    <property name="minimumSize" >
     <size>
-     <width>51</width>
-     <height>39</height>
+     <width>50</width>
+     <height>38</height>
     </size>
    </property>
    <property name="toolTip" >
@@ -243,7 +243,7 @@
     <string>Enter a bacula command</string>
    </property>
    <property name="whatsThis" >
-    <string>Cosole Command entry Dock Widget</string>
+    <string>Console Command entry Dock Widget</string>
    </property>
    <property name="features" >
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::NoDockWidgetFeatures</set>
@@ -252,7 +252,7 @@
     <set>Qt::BottomDockWidgetArea|Qt::NoDockWidgetArea|Qt::TopDockWidgetArea</set>
    </property>
    <property name="windowTitle" >
-    <string>Cosole Command Line Entry</string>
+    <string>Console Command Line Entry</string>
    </property>
    <attribute name="dockWidgetArea" >
     <number>8</number>
