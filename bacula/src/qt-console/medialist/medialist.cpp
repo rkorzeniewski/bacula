@@ -56,7 +56,7 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    m_headerlist = new QStringList();
    m_popupmedia = new QString("");
    m_poollist = new QStringList();
-   m_cmd = new QString("select m.volumename, m.mediaid, m.mediatype, p.name from media m, pool p ORDER BY p.name");
+   m_cmd = new QString("select p.name, m.volumename, m.mediaid, m.mediatype from media m, pool p ORDER BY p.name");
 }
 
 MediaList::~MediaList()
@@ -104,9 +104,10 @@ void MediaList::populateTree()
 		  pooltreeitem->setExpanded( true );
 	       }
 	       mediatreeitem = new QTreeWidgetItem(pooltreeitem);
-	    }
-	    mediatreeitem->setData(recorditemcnter, Qt::UserRole, 2);
-	    mediatreeitem->setText(recorditemcnter, trimmeditem.toUtf8().data());
+	    } else {
+	       mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
+	       mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
+            }
 	    recorditemcnter+=1;
 	 }
       }
