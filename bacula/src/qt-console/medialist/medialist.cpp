@@ -55,6 +55,7 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    m_treeItem = treeItem;
    createConnections();
    m_popupmedia="";
+   m_populated=false;
 }
 
 void MediaList::populateTree()
@@ -173,4 +174,19 @@ void MediaList::showJobs()
 {
    JobList* joblist = new JobList(m_console, m_popupmedia);
    joblist->show();
+}
+
+void MediaList::PgSeltreeWidgetClicked()
+{
+   printf("PgSeltreeWidgetClicked\n");
+   if( ! m_populated ){
+      populateTree();
+      m_populated=true;
+   }
+}
+
+void MediaList::PgSeltreeWidgetDoubleClicked()
+{
+   printf("PgSeltreeWidgetDoubleClicked\n");
+   populateTree();
 }

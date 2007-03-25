@@ -46,8 +46,11 @@ public:
    bool isStacked();
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
+   virtual void PgSeltreeWidgetClicked();
+   virtual void PgSeltreeWidgetDoubleClicked();
 
 public slots:
+   /* closeEvent is a virtual function inherited from QWidget */
    virtual void closeEvent(QCloseEvent* event);
 
 private:

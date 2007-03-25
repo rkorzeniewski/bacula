@@ -59,7 +59,6 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    readSettings();
 
    m_console->connect();
-   m_medialist->populateTree();
 }
 
 void MainWin::createPages()
@@ -69,7 +68,7 @@ void MainWin::createPages()
 
    /* Create console tree stacked widget item */
    m_console = new Console(stackedWidget);
-   /* Console is special needs director*/
+   /* Console is special -> needs director*/
    /* Just take the first Director */
    LockRes();
    dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
@@ -92,17 +91,15 @@ void MainWin::createPages()
    /* All should be
  * 1. create tree widget item
  * 2. create object passing pointer to tree widget item (modified constructors to pass QTreeWidget pointers)
- * 3. append to stacklist  */ 
+ * 3. append to stacklist
+ * And it can even be done in one line.
+ * */ 
 
    /* brestore */
-   item = createPage("brestore", topItem);
-   m_brestore = new bRestore(stackedWidget,item);
-   m_bstacklist.append(m_brestore);
+   m_bstacklist.append(new bRestore( stackedWidget, createPage("brestore", topItem) ));
 
    /* lastly for now, the medialist */
-   item = createPage("Storage Tree", topItem );
-   m_medialist = new MediaList(stackedWidget, m_console, item);
-   m_bstacklist.append(m_medialist);
+   m_bstacklist.append(new MediaList(stackedWidget, m_console, createPage("Storage Tree", topItem )));
 
    /* Iterate through and add to the stack */
    for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
@@ -232,6 +229,7 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 	 if( stackindex >= 0 ){
 	    stackedWidget->setCurrentIndex(stackindex);
 	 }
+         (*bstackItem)->PgSeltreeWidgetClicked();
       }
       ++bstackItem;
    }
@@ -256,6 +254,7 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 	 } else {
 	    (*bstackItem)->Togglestack();
 	 }
+         (*bstackItem)->PgSeltreeWidgetDoubleClicked();
       }
       ++bstackItem;
    }

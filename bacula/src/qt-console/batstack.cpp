@@ -87,3 +87,9 @@ void BatStack::closeEvent(QCloseEvent* event){
 
    }*/
 }
+
+void BatStack::PgSeltreeWidgetClicked(){
+}
+
+void BatStack::PgSeltreeWidgetDoubleClicked(){
+}
