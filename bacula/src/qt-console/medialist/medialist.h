@@ -45,7 +45,7 @@ class MediaList : public BatStack, public Ui::MediaListForm
 
 public:
    MediaList(QStackedWidget *parent,Console *console, QTreeWidgetItem *treeItem);
-   void populateTree();
+   ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
 
@@ -62,9 +62,11 @@ private:
    Console *m_console;
    QTreeWidget *m_treeWidget;
    QStringList *m_poollist;
-   QString m_popupmedia;
+   QStringList *m_headerlist;
+   QString *m_popupmedia;
+   QString *m_cmd;
    bool m_populated;
-   //QStackedWidget *m_parent;
+   void populateTree();
 };
 
 #endif /* _MEDIALIST_H_ */
