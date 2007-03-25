@@ -69,6 +69,7 @@ public slots:
    void labelDialogClicked();
    void runDialogClicked();
    void restoreDialogClicked();
+   void pullWindowOut();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -77,15 +78,15 @@ protected:
 private:
    void createConnections(); 
    void createPages();
-   QTreeWidgetItem *createTopPage(char *name, bool canDisplay);
-   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent, bool canDisplay);
+   QTreeWidgetItem *createTopPage(char *name );
+   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent );
 
 private:
    QString m_UserInput;
    Console *m_console;
    bRestore *m_brestore;
    MediaList *m_medialist;
-   BatStack *m_bstack;
+   BatStack *m_bstackpophold;
    QList<BatStack*> m_bstacklist;
    QStringList m_cmd_history;
    int m_cmd_last;
