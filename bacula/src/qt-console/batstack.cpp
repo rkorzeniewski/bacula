@@ -48,7 +48,6 @@ void BatStack::AddTostack()
 void BatStack::RemoveFromstack()
 {
    /* Change from a stacked widget to a normal window */
-   /* FIXME Will need to make it so that window cannot be closed */
    m_parent->removeWidget(this);
    setWindowFlags(Qt::Window);
    showNormal();
@@ -65,6 +64,26 @@ void BatStack::Togglestack()
    }
 }
 
-void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem){
+void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem)
+{
    m_treeItem=treeItem;
+}
+
+bool BatStack::isStacked()
+{
+   return m_stacked;
+}
+
+void BatStack::closeEvent(QCloseEvent* event){
+   /* Avoid a warning */
+   event->type();
+   /* A Widget was closed, lets toggle it back into the window, and set it in front. */
+   AddTostack();
+   /* FIXME Really having problems getting it to the front, toggles back into the stack fine though */
+   /*int stackindex=m_parent->indexOf( this );
+   if( stackindex >= 0 ){
+      show();
+      m_parent->setCurrentIndex(stackindex);
+
+   }*/
 }

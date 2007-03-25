@@ -43,8 +43,12 @@ public:
    void RemoveFromstack();
    void Togglestack();
    void SetBSTreeWidgetItem(QTreeWidgetItem *treeItem);
+   bool isStacked();
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
+
+public slots:
+   virtual void closeEvent(QCloseEvent* event);
 
 private:
    bool m_stacked;

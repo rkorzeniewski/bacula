@@ -36,8 +36,9 @@
 #include <QtGui>
 #include "ui_joblist.h"
 #include "console.h"
+#include "batstack.h"
 
-class JobList : public QWidget, public Ui::JobListForm
+class JobList : public BatStack, public Ui::JobListForm
 {
    Q_OBJECT 
 

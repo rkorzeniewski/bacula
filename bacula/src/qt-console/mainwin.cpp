@@ -76,14 +76,13 @@ void MainWin::createPages()
    m_console->setDirRes(dir);
    UnlockRes();
    /* The top tree item representing the director */
-   topItem = createTopPage(dir->name(), false);
+   topItem = createTopPage(dir->name());
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
    /* Create Tree Widget Item */
-   item = createPage("Console", topItem, true);
+   item = createPage("Console", topItem);
+   m_console->setTreeItem(item);
    /* Append to bstacklist */
    m_bstacklist.append(m_console);
-   /* FIXME Associate tree item with console, may not be needed. */
-   m_console->setTreeItem(item);
    /* Set BatStack m_treeItem */
    m_console->SetBSTreeWidgetItem(item);
    QBrush redBrush(Qt::red);
@@ -96,12 +95,12 @@ void MainWin::createPages()
  * 3. append to stacklist  */ 
 
    /* brestore */
-   item = createPage("brestore", topItem, true);
+   item = createPage("brestore", topItem);
    m_brestore = new bRestore(stackedWidget,item);
    m_bstacklist.append(m_brestore);
 
    /* lastly for now, the medialist */
-   item = createPage("Storage Tree", topItem, true);
+   item = createPage("Storage Tree", topItem );
    m_medialist = new MediaList(stackedWidget, m_console, item);
    m_bstacklist.append(m_medialist);
 
@@ -114,30 +113,19 @@ void MainWin::createPages()
    stackedWidget->setCurrentIndex(0);
 }
 
-/* FIXME These Two are not needed any more because UserRole is not used. */
 /* Create a root Tree Widget */
-QTreeWidgetItem *MainWin::createTopPage(char *name, bool canDisplay)
+QTreeWidgetItem *MainWin::createTopPage(char *name )
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(treeWidget);
    item->setText(0, name);
-   if (canDisplay) {
-      item->setData(0, Qt::UserRole, QVariant(m_pages++));
-   } else {
-      item->setData(0, Qt::UserRole, QVariant(-1));
-   }
    return item;
 }
 
 /* Create A Tree Widget Item which will be associated with a Page in the stacked widget */
-QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent, bool canDisplay)
+QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent)
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(parent);
    item->setText(0, name);
-   if (canDisplay) {
-      item->setData(0, Qt::UserRole, QVariant(m_pages++));
-   } else {
-      item->setData(0, Qt::UserRole, QVariant(-1));
-   }
    return item;
 }
 
@@ -183,11 +171,11 @@ void MainWin::createConnections()
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
 
-   connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
+/*   connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
+           SLOT(treeItemClicked(QTreeWidgetItem *, int)));  Commented out because it was getting to clicked multiple times*/
+   connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
@@ -236,13 +224,16 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    /* Iterate through and find the tree widget item clicked */
    column+=0;
-   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+   QList<BatStack*>::iterator bstackItem;
+   bstackItem = m_bstacklist.begin();
+   while ( bstackItem != m_bstacklist.end() ){
       if ( item == (*bstackItem)->m_treeItem ) {
-         int stackindex=stackedWidget->indexOf( *bstackItem );
-         if( stackindex >= 0 ){
-            stackedWidget->setCurrentIndex(stackindex);
-         }
+	 int stackindex=stackedWidget->indexOf( *bstackItem );
+	 if( stackindex >= 0 ){
+	    stackedWidget->setCurrentIndex(stackindex);
+	 }
       }
+      ++bstackItem;
    }
 }
 
@@ -252,10 +243,21 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
    /* Iterate through and find the tree widget item double clicked */
    column+=0;
-   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+   QList<BatStack*>::iterator bstackItem;
+   bstackItem = m_bstacklist.begin();
+   while ( bstackItem != m_bstacklist.end() ){
       if ( item == (*bstackItem)->m_treeItem ) {
-         (*bstackItem)->Togglestack();
+	 /* This could be a call a virtual function ?? or just popup a popup menu for an action */
+	 if ( (*bstackItem)->isStacked() == true ){
+	    m_bstackpophold=*bstackItem;
+	    QMenu *popup = new QMenu( treeWidget );
+	    connect(popup->addAction("Pull Window Out"), SIGNAL(triggered()), this, SLOT(pullWindowOut()));
+	    popup->exec(QCursor::pos());
+	 } else {
+	    (*bstackItem)->Togglestack();
+	 }
       }
+      ++bstackItem;
    }
 }
 
@@ -322,4 +324,9 @@ void MainWin::set_status_ready()
 void MainWin::set_status(const char *buf)
 {
    statusBar()->showMessage(buf);
+}
+
+void MainWin::pullWindowOut()
+{
+   m_bstackpophold->Togglestack();
 }
