@@ -587,11 +587,13 @@ void Console::setDirRes(DIRRES *dir)
 QStringList* Console::dosql(QString* sqlcmd)
 {
    int stat;
+   /* don't effect the string coming in */
+   QString cmd(*sqlcmd);
    QStringList* strlstret = new QStringList;
 
-   *sqlcmd = ".sql \"" + *sqlcmd + "\"";
+   cmd = ".sql \"" + cmd + "\"";
 
-   write_dir(sqlcmd->toUtf8().data());
+   write_dir(cmd.toUtf8().data());
    while ((stat=read()) > 0) {
       QString line = msg();
       QRegExp regex("^Using Catalog");
