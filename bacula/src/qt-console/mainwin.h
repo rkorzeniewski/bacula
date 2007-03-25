@@ -84,8 +84,8 @@ private:
 private:
    QString m_UserInput;
    Console *m_console;
-   bRestore *m_brestore;
-   MediaList *m_medialist;
+//   bRestore *m_brestore;
+//   MediaList *m_medialist;
    BatStack *m_bstackpophold;
    QList<BatStack*> m_bstacklist;
    QStringList m_cmd_history;
