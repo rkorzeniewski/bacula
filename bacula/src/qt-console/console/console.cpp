@@ -584,12 +584,11 @@ void Console::setDirRes(DIRRES *dir)
    m_dir = dir;
 }
 
-QStringList* Console::dosql(QString* sqlcmd)
+void Console::dosql(QString* sqlcmd, QStringList& strlstret)
 {
    int stat;
    /* don't effect the string coming in */
    QString cmd(*sqlcmd);
-   QStringList* strlstret = new QStringList;
 
    cmd = ".sql \"" + cmd + "\"";
 
@@ -598,8 +597,7 @@ QStringList* Console::dosql(QString* sqlcmd)
       QString line = msg();
       QRegExp regex("^Using Catalog");
       if ( regex.indexIn(line) < 0 ){
-	 strlstret->append(line);
+	 strlstret.append(line);
       }
    }
-   return strlstret;
 }

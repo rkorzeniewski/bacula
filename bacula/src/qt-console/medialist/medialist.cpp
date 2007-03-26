@@ -41,7 +41,6 @@
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
 #include <QMenu>
-//#include <QSize>
 
 MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem)
 {
@@ -77,23 +76,32 @@ void MediaList::populateTree()
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded( true );
-   //topItem->setSizeHint(0,QSize(1050,50));
+#ifdef xxx
+#include <QSize>
+*****    FIXME   *****
+//how to get the size of a column to be larger
+//topItem->setSizeHint(0,QSize(1050,50));
+#endif
 
    /* Start with a list of pools */
    m_poollist->clear();
-   QStringList *results=m_console->dosql(m_cmd);
-   int recordcounter=0;
    m_headerlist->append("Volume Name");
    m_headerlist->append("Media Id");
    m_headerlist->append("Type");
    m_treeWidget->setHeaderLabels(*m_headerlist);
+
    QString currentpool("");
-   for ( QStringList::Iterator resultline = results->begin(); resultline != results->end(); ++resultline ) {
-      QStringList recorditemlist = resultline->split("\t");
+   QString resultline;
+   QStringList results;
+   m_console->dosql(m_cmd,results);
+   int recordcounter=0;
+   foreach( resultline, results ){
+      QStringList recorditemlist = resultline.split("\t");
       int recorditemcnter=0;
       /* Iterate through items in the record */
-      for ( QStringList::Iterator mediarecorditem = recorditemlist.begin(); mediarecorditem != recorditemlist.end(); ++mediarecorditem ) {
-	 QString trimmeditem = mediarecorditem->trimmed();
+      QString mediarecorditem;
+	 foreach( mediarecorditem, recorditemlist ){
+	 QString trimmeditem = mediarecorditem.trimmed();
 	 if( trimmeditem != "" ){
 	    if ( recorditemcnter == 0 ){
 	       if ( currentpool != trimmeditem.toUtf8().data() ){
