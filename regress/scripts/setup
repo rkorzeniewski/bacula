@@ -33,6 +33,10 @@ rm -f Makefile config.cache
 # Run Bacula configuration, make, install
 ./regress-config ${cwd} $2 $3 $4 $5 $6
 check_exit_code
+# Cleanup any win32 build in source
+cd src/win32
+make clean
+cd ../..
 make
 check_exit_code
 make install
