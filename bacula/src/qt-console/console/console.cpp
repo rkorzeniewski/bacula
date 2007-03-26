@@ -138,38 +138,34 @@ void Console::connect()
    discardToPrompt();
 
    beginNewCommand();
-   job_list = get_list(".jobs");
-   client_list = get_list(".clients");
-   fileset_list = get_list(".filesets");
-   messages_list = get_list(".messages");
-   pool_list = get_list(".pools");
-   storage_list = get_list(".storage");
-   type_list = get_list(".types");
-   level_list = get_list(".levels");
+   dir_cmd(".jobs", job_list);
+   dir_cmd(".clients", client_list);
+   dir_cmd(".filesets", fileset_list);  
+   dir_cmd(".messages", messages_list);
+   dir_cmd(".pools", pool_list);
+   dir_cmd(".storage", storage_list);
+   dir_cmd(".types", type_list);
+   dir_cmd(".levels", level_list);
 
    mainWin->set_status(_("Connected"));
    return;
 }
 
-
-/*  
- * Send a command to the director, and read all the resulting
- *  output into a list.
- */
-QStringList Console::get_list(char *cmd)
+bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
-   QStringList list;
    int stat;
 
    notify(false);
    write(cmd);
    while ((stat = read()) > 0) {
       strip_trailing_junk(msg());
-      list << msg();
+      results << msg();
    }
    notify(true);
-   return list;
+   discardToPrompt();
+   return true;              /* ***FIXME*** return any command error */
 }
+
 
 /*  
  * Send a job name to the director, and read all the resulting
@@ -597,7 +593,7 @@ void Console::dosql(QString* sqlcmd, QStringList& strlstret)
       QString line = msg();
       QRegExp regex("^Using Catalog");
       if ( regex.indexIn(line) < 0 ){
-	 strlstret.append(line);
+         strlstret.append(line);
       }
    }
 }
