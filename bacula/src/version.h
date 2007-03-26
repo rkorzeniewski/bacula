@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "2.1.6"
-#define BDATE   "25 March 2007"
-#define LSMDATE "25Mar07"
+#define BDATE   "26 March 2007"
+#define LSMDATE "26Mar07"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2007"       /* year for copyright messages in progs */
@@ -56,7 +56,7 @@
 /* Turn on the following flag to enable batch attribute inserts
  *  in the catalog.  This gives a large speedup.
  */
-/*  #define HAVE_BATCH_FILE_INSERT 1 */
+#define HAVE_BATCH_FILE_INSERT 1
 
 
 /* Debug flags not normally turned on */

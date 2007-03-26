@@ -164,8 +164,8 @@ case $cmd in
 #
 # Increase the sleep time if you have a slow device
 # or remove the sleep and add the following:
-#     wait_for_drive $device
-      sleep 15
+#     sleep 15
+      wait_for_drive $device
       exit $rtn
       ;;
 
