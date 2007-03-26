@@ -184,6 +184,7 @@ void MainWin::createConnections()
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
+   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(pullWindowOutButton()));
 }
 
 /* 
@@ -328,4 +329,19 @@ void MainWin::set_status(const char *buf)
 void MainWin::pullWindowOut()
 {
    m_bstackpophold->Togglestack();
+}
+
+void MainWin::pullWindowOutButton()
+{
+   int curindex = stackedWidget->currentIndex();
+   QList<BatStack*>::iterator bstackItem;
+   bstackItem = m_bstacklist.begin();
+   bool done=false;
+   while ( (bstackItem != m_bstacklist.end()) && not(done) ){
+      if ( curindex == stackedWidget->indexOf( *bstackItem ) ){
+	 (*bstackItem)->Togglestack();
+	 done=true;
+      }
+      ++bstackItem;
+   }
 }

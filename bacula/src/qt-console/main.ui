@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>882</width>
-     <height>24</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp" >
@@ -118,8 +118,8 @@
   <widget class="QToolBar" name="toolBar" >
    <property name="minimumSize" >
     <size>
-     <width>50</width>
-     <height>38</height>
+     <width>51</width>
+     <height>39</height>
     </size>
    </property>
    <property name="toolTip" >
@@ -136,6 +136,7 @@
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
+   <addaction name="actionPullWindowOut" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -443,6 +444,14 @@
   <action name="actionSelectFont" >
    <property name="text" >
     <string>&amp;Select Font ...</string>
+   </property>
+  </action>
+  <action name="actionPullWindowOut" >
+   <property name="icon" >
+    <iconset>images/up.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Pull Window Out</string>
    </property>
   </action>
  </widget>

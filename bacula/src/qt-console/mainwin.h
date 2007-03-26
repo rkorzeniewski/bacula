@@ -70,6 +70,7 @@ public slots:
    void runDialogClicked();
    void restoreDialogClicked();
    void pullWindowOut();
+   void pullWindowOutButton();
 
 protected:
    void closeEvent(QCloseEvent *event);
