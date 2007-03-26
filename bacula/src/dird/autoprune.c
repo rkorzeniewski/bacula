@@ -145,12 +145,12 @@ bool prune_volumes(JCR *jcr, MEDIA_DBR *mr)
          if (count != 0) {
             purge_job_list_from_catalog(ua, del);
             del.num_ids = 0;             /* reset count */
-            ok = is_volume_purged(ua, &lmr);
-            if (ok) {
-               Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
-               mr = &lmr;             /* struct copy */
-               break;
-            }
+         }
+         ok = is_volume_purged(ua, &lmr);
+         if (ok) {
+            Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
+            mr = &lmr;             /* struct copy */
+            break;
          }
       }
    }

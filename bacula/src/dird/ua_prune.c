@@ -384,121 +384,32 @@ bail_out:
 bool prune_volume(UAContext *ua, MEDIA_DBR *mr)
 {
    POOL_MEM query(PM_MESSAGE);
-   struct s_count_ctx cnt;
    struct del_ctx del;
-   int i;          
    bool ok = false;
-   JOB_DBR jr;
-   utime_t now, period;
-   char ed1[50], ed2[50];
+   int count;
 
    if (mr->Enabled == 2) {
       return false;                   /* Cannot prune archived volumes */
    }
 
-   db_lock(ua->db);
-   memset(&jr, 0, sizeof(jr));
    memset(&del, 0, sizeof(del));
-
-   /*
-    * Find out how many Jobs remain on this Volume by
-    *  counting the JobMedia records.
-    */
-   cnt.count = 0;
-   Mmsg(query, cnt_JobMedia, edit_int64(mr->MediaId, ed1));
-   Dmsg1(150, "Query=%s\n", query.c_str());
-   if (!db_sql_query(ua->db, query.c_str(), del_count_handler, (void *)&cnt)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
-      Dmsg0(050, "Count failed\n");
-      goto bail_out;
-   }
-
-   if (cnt.count == 0) {
-      /* Don't mark appendable volume as purged */
-      if (strcmp(mr->VolStatus, "Append") == 0 && verbose) {
-         bsendmsg(ua, _("There are no Jobs associated with Volume \"%s\". Prune not needed.\n"),
-            mr->VolumeName);
-         ok = true;
-         goto bail_out;
-      }
-      /* If volume not already purged, do so */
-      if (strcmp(mr->VolStatus, "Purged") != 0 && verbose) {
-         bsendmsg(ua, _("There are no Jobs associated with Volume \"%s\". Marking it purged.\n"),
-            mr->VolumeName);
-      }
-      ok = mark_media_purged(ua, mr);
-      goto bail_out;
-   }
-
-   if (cnt.count < MAX_DEL_LIST_LEN) {
-      del.max_ids = cnt.count + 1;
-   } else {
-      del.max_ids = MAX_DEL_LIST_LEN;
-   }
-
-   /*
-    * Now get a list of JobIds for Jobs written to this Volume
-    */
+   del.max_ids = 1000;
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
-   /* Use Volume Retention to prune Jobs and their Files */
-   period = mr->VolRetention;
-   now = (utime_t)time(NULL);
-   Mmsg(query, sel_JobMedia, edit_int64(mr->MediaId, ed1), 
-        edit_uint64(now-period, ed2));
-   Dmsg3(250, "Now=%d period=%d now-period=%d\n", (int)now, (int)period,
-      (int)(now-period));
+   db_lock(ua->db);
 
-   Dmsg1(150, "Query=%s\n", query.c_str());
-   if (!db_sql_query(ua->db, query.c_str(), file_delete_handler, (void *)&del)) {
-      if (ua->verbose) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+   /* Prune only Volumes with status "Full", or "Used" */
+   if (strcmp(mr->VolStatus, "Full")   == 0 ||
+       strcmp(mr->VolStatus, "Used")   == 0) {
+      Dmsg2(050, "get prune list MediaId=%d Volume %s\n", (int)mr->MediaId, mr->VolumeName);
+      count = get_prune_list_for_volume(ua, mr, &del);
+      Dmsg1(050, "Num pruned = %d\n", count);
+      if (count != 0) {
+         purge_job_list_from_catalog(ua, del);
       }
-      Dmsg0(050, "Count failed\n");
-      goto bail_out;
+      ok = is_volume_purged(ua, mr);
    }
 
-
-   cnt.count = 0;
-   for (i=0; i < del.num_ids; i++) {
-      if (ua->jcr->JobId == del.JobId[i]) {
-         Dmsg2(250, "skip same job JobId[%d]=%d\n", i, (int)del.JobId[i]);
-         del.JobId[i] = 0;
-         continue;
-      }
-      Dmsg2(250, "accept JobId[%d]=%d\n", i, (int)del.JobId[i]);
-      cnt.count++;
-   }
-   if (cnt.count != 0) {
-      purge_job_list_from_catalog(ua, del);
-   } else {
-      Dmsg0(050, "No jobs to prune.\n");
-      goto bail_out;
-   }
-
-   if (ua->verbose && del.num_del != 0) {
-      bsendmsg(ua, _("Pruned %d %s on Volume \"%s\" from catalog.\n"), del.num_del,
-         del.num_del == 1 ? "Job" : "Jobs", mr->VolumeName);
-   }
-
-   /*
-    * Find out how many Jobs remain on this Volume by
-    *  counting the JobMedia records.
-    */
-   cnt.count = 0;
-   Mmsg(query, cnt_JobMedia, edit_int64(mr->MediaId, ed1));
-   Dmsg1(150, "Query=%s\n", query.c_str());
-   if (!db_sql_query(ua->db, query.c_str(), del_count_handler, (void *)&cnt)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
-      Dmsg0(050, "Count failed\n");
-      goto bail_out;
-   }
-   if (cnt.count == 0) {
-      Dmsg0(200, "Volume is purged.\n");
-      ok = mark_media_purged(ua, mr);
-   }
-
-bail_out:
    db_unlock(ua->db);
    if (del.JobId) {
       free(del.JobId);
