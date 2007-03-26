@@ -7,21 +7,21 @@ if test ! x$AUTOCHANGER = x/dev/null ; then
    mtx -f $AUTOCHANGER load 1 >/dev/null &2>/dev/null
 fi
 cp test.out test1.out
-tests/test0
-tests/backup-bacula-tape
-tests/btape-fill-tape
-tests/fixed-block-size-tape
-tests/four-concurrent-jobs-tape
-tests/four-jobs-tape
-tests/incremental-tape
-tests/relabel-tape
-tests/restore-by-file-tape
-tests/small-file-size-tape
-tests/truncate-bug-tape
-tests/two-pool-tape
-tests/2drive-incremental-2tape
-tests/bscan-tape
-tests/verify-vol-tape
+nice tests/test0
+nice tests/backup-bacula-tape
+nice tests/btape-fill-tape
+nice tests/fixed-block-size-tape
+nice tests/four-concurrent-jobs-tape
+nice tests/four-jobs-tape
+nice tests/incremental-tape
+nice tests/relabel-tape
+nice tests/restore-by-file-tape
+nice tests/small-file-size-tape
+nice tests/truncate-bug-tape
+nice tests/two-pool-tape
+nice tests/2drive-incremental-2tape
+nice tests/bscan-tape
+nice tests/verify-vol-tape
 echo " "
 echo " "
 echo "Test results"
