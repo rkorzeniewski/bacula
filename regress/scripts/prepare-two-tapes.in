@@ -2,13 +2,40 @@
 #
 # Create two blank tapes
 #
+OS=`uname`
+case ${OS} in
+  SunOS)
+    ready="No Additional Sense"
+    ;;
+  FreeBSD)
+    ready="Current Driver State: at rest."
+    ;;
+  *)
+    ready="ONLINE"
+  ;;
+esac
+wait_for_drive() {
+  i=0 
+  while [ $i -le 300 ]; do  # Wait max 300 seconds
+    if mt -f $1 status | grep ${ready}	>/dev/null 2>&1; then
+      break
+    fi
+#   debug "Device $1 - not ready, retrying..."
+    sleep 1
+    i=`expr $i + 1`
+  done
+}
+
+#
 # mt -f @tape_drive@ offline
 @changer_path@ -f @autochanger@ unload
 @changer_path@ -f @autochanger@ load 1
+wait_for_drive @tape_drive@
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof
 @changer_path@ -f @autochanger@ unload
 @changer_path@ -f @autochanger@ load 2
+wait_for_drive @tape_drive@
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof
 #@changer_path@ -f @autochanger@ unload
