@@ -196,6 +196,7 @@ support_smartalloc=yes
 support_readline=yes
 support_conio=yes
 support_gnome=no
+support_bat=no
 support_wx_console=no
 support_tls=no
 support_crypto=no
@@ -247,6 +248,28 @@ if test x$support_gnome = xyes; then
   fi
 fi
 AC_SUBST(GNOME_DIR)
+
+# -------------------------------------------
+# bat (default off)
+# -------------------------------------------
+AC_ARG_ENABLE(bat,
+  [  --enable-bat	enable build of bat Qt4 GUI [disabled]],
+  [if test x$enableval = xyes; then
+    AC_DEFINE(HAVE_BAT, 1, [Set if Bacula bat Qt4 GUI support enabled]) 
+    support_bat=yes
+  fi])
+
+BAT_DIR=
+if test x$support_bat = xyes; then
+  abc=`$PKGCONFIG --atleast-version=4.2 QtGui`
+  pkg=$?
+  if test $pkg = 0; then
+     BAT_DIR=src/qt-console
+  else
+     AC_MSG_ERROR(Unable to find Qt4 installation needed by bat)
+  fi
+fi
+AC_SUBST(BAT_DIR)
 
 
 # -------------------------------------------
@@ -2182,6 +2205,7 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto} 
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
+  enable-bat:		      ${support_bat}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-wx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}

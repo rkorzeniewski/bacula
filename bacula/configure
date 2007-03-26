@@ -754,6 +754,7 @@ GNOMEUI_LIBS
 GNOME_LIBDIR
 GNOME_LIBS
 GNOME_DIR
+BAT_DIR
 WXCONS_CPPFLAGS
 WXCONS_LDFLAGS
 WX_DIR
@@ -1428,6 +1429,7 @@ Optional Features:
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
   --enable-gnome	  enable build of gnome-console GUI disabled
+  --enable-bat	enable build of bat Qt4 GUI disabled
   --enable-wx-console     enable build of wxWidgets console disabled
   --enable-tray-monitor   enable build of Gnome tray monitor (compatible with KDE) disabled
   --enable-smartalloc     enable smartalloc debugging support disabled
@@ -14616,6 +14618,7 @@ support_smartalloc=yes
 support_readline=yes
 support_conio=yes
 support_gnome=no
+support_bat=no
 support_wx_console=no
 support_tls=no
 support_crypto=no
@@ -14664,6 +14667,36 @@ if test x$support_gnome = xyes; then
   else
      { { echo "$as_me:$LINENO: error: Unable to find Gnome 2 installation" >&5
 echo "$as_me: error: Unable to find Gnome 2 installation" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+fi
+
+
+# -------------------------------------------
+# bat (default off)
+# -------------------------------------------
+# Check whether --enable-bat was given.
+if test "${enable_bat+set}" = set; then
+  enableval=$enable_bat; if test x$enableval = xyes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_BAT 1
+_ACEOF
+
+    support_bat=yes
+  fi
+fi
+
+
+BAT_DIR=
+if test x$support_bat = xyes; then
+  abc=`$PKGCONFIG --atleast-version=4.2 QtGui`
+  pkg=$?
+  if test $pkg = 0; then
+     BAT_DIR=src/qt-console
+  else
+     { { echo "$as_me:$LINENO: error: Unable to find Qt4 installation needed by bat" >&5
+echo "$as_me: error: Unable to find Qt4 installation needed by bat" >&2;}
    { (exit 1); exit 1; }; }
   fi
 fi
@@ -34711,6 +34744,7 @@ GNOMEUI_LIBS!$GNOMEUI_LIBS$ac_delim
 GNOME_LIBDIR!$GNOME_LIBDIR$ac_delim
 GNOME_LIBS!$GNOME_LIBS$ac_delim
 GNOME_DIR!$GNOME_DIR$ac_delim
+BAT_DIR!$BAT_DIR$ac_delim
 WXCONS_CPPFLAGS!$WXCONS_CPPFLAGS$ac_delim
 WXCONS_LDFLAGS!$WXCONS_LDFLAGS$ac_delim
 WX_DIR!$WX_DIR$ac_delim
@@ -34745,7 +34779,6 @@ job_email!$job_email$ac_delim
 smtp_host!$smtp_host$ac_delim
 piddir!$piddir$ac_delim
 subsysdir!$subsysdir$ac_delim
-baseport!$baseport$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -34787,6 +34820,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+baseport!$baseport$ac_delim
 dir_port!$dir_port$ac_delim
 fd_port!$fd_port$ac_delim
 sd_port!$sd_port$ac_delim
@@ -34834,7 +34868,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 45; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 46; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -35511,6 +35545,7 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc}
+  enable-bat:		      ${support_bat}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-wx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}
