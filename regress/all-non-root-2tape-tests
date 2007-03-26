@@ -2,9 +2,9 @@
 #
 # Run all tape tests
 #
-tests/test0
-tests/two-volume-tape
-tests/incremental-2tape
+nice tests/test0
+nice tests/two-volume-tape
+nice tests/incremental-2tape
 echo " "
 echo " "
 echo "2 Tape Test results"

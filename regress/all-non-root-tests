@@ -5,53 +5,53 @@
 rm -f test1.out
 tests/test0
 echo " "
-tests/auto-label-test
-#tests/backup-bacula-test
-tests/bextract-test
-tests/bscan-test
-tests/bsr-opt-test
-tests/compressed-test
-tests/compress-encrypt-test
-tests/concurrent-jobs-test
-tests/data-encrypt-test
-tests/encrypt-bug-test
-tests/fifo-test
-tests/backup-bacula-fifo
+nice tests/auto-label-test
+#nice tests/backup-bacula-test
+nice tests/bextract-test
+nice tests/bscan-test
+nice tests/bsr-opt-test
+nice tests/compressed-test
+nice tests/compress-encrypt-test
+nice tests/concurrent-jobs-test
+nice tests/data-encrypt-test
+nice tests/encrypt-bug-test
+nice tests/fifo-test
+nice tests/backup-bacula-fifo
 # The following two can uses *lots* of disk space
 #   so they are normally turned off, but if you have
 #   at least two GB free, you can run them
-#tests/sparse-encrypt-test
-#tests/gigaslam-sparse-test
-tests/differential-test
-tests/four-concurrent-jobs-test
-tests/four-jobs-test
-tests/incremental-test
-tests/query-test
-tests/recycle-test
-tests/restore2-by-file-test
-tests/restore-by-file-test
-tests/restore-disk-seek-test
-tests/six-vol-test
-tests/span-vol-test
-tests/sparse-compressed-test
-tests/sparse-test
-tests/two-jobs-test
-tests/two-vol-test
-tests/verify-vol-test
-tests/weird-files2-test
-tests/weird-files-test
-tests/migration-job-test
-tests/migration-jobspan-test
-tests/migration-volume-test
-tests/migration-time-test
-tests/hardlink-test
+#nice tests/sparse-encrypt-test
+#nice tests/gigaslam-sparse-test
+nice tests/differential-test
+nice tests/four-concurrent-jobs-test
+nice tests/four-jobs-test
+nice tests/incremental-test
+nice tests/query-test
+nice tests/recycle-test
+nice tests/restore2-by-file-test
+nice tests/restore-by-file-test
+nice tests/restore-disk-seek-test
+nice tests/six-vol-test
+nice tests/span-vol-test
+nice tests/sparse-compressed-test
+nice tests/sparse-test
+nice tests/two-jobs-test
+nice tests/two-vol-test
+nice tests/verify-vol-test
+nice tests/weird-files2-test
+nice tests/weird-files-test
+nice tests/migration-job-test
+nice tests/migration-jobspan-test
+nice tests/migration-volume-test
+nice tests/migration-time-test
+nice tests/hardlink-test
 # 
 # The following are Virtual Disk Autochanger tests
-tests/two-pool-test
-tests/two-volume-test
-tests/incremental-2disk
-tests/2drive-incremental-2disk
-tests/scratch-pool-test
+nice tests/two-pool-test
+nice tests/two-volume-test
+nice tests/incremental-2disk
+nice tests/2drive-incremental-2disk
+nice tests/scratch-pool-test
 echo " "
 echo "Test results"
 cat test.out
