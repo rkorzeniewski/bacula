@@ -91,7 +91,7 @@ public:
    void discardToPrompt();
    void setTreeItem(QTreeWidgetItem *item);
    void setDirRes(DIRRES *dir);
-   QStringList* dosql(QString* sqlcmd);
+   void dosql(QString* sqlcmd, QStringList& strlstret);
 
    QStringList job_list;
    QStringList client_list;
