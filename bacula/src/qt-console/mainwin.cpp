@@ -46,6 +46,8 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Select Page");
+   treeWidget->addAction(actionPullWindowOut);
+   treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
    m_pages = 0;
    createPages();
@@ -119,7 +121,7 @@ void MainWin::createPages()
 }
 
 /* Create a root Tree Widget */
-QTreeWidgetItem *MainWin::createTopPage(char *name )
+QTreeWidgetItem *MainWin::createTopPage(char *name)
 {
    QTreeWidgetItem *item = new QTreeWidgetItem(treeWidget);
    item->setText(0, name);
@@ -228,10 +230,12 @@ void MainWin::readSettings()
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   column+=0;
+   (void)column;
+
    /* Use tree item's Qt::UserRole to get treeindex */
    int treeindex = item->data(column, Qt::UserRole).toInt();
-   int stackindex=stackedWidget->indexOf( m_bstacklist[treeindex] );
+   int stackindex=stackedWidget->indexOf(m_bstacklist[treeindex]);
+
    if( stackindex >= 0 ){
       stackedWidget->setCurrentIndex(stackindex);
    }
