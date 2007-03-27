@@ -243,8 +243,6 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
    if( stackindex >= 0 ){
       stackedWidget->setCurrentIndex(stackindex);
    }
-   /* run the virtual function in case this class overrides it */
-   m_bstacklist[treeindex]->PgSeltreeWidgetClicked();
 }
 
 /*
@@ -268,8 +266,6 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
       /* Just pull it back in without prompting */
       m_bstacklist[treeindex]->Togglestack();
    }
-   /* Here is the virtual function so that different classes can do different things */
-   m_bstacklist[treeindex]->PgSeltreeWidgetDoubleClicked();
 }
 
 void MainWin::labelDialogClicked() 

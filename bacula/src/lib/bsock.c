@@ -38,6 +38,10 @@
 #include "jcr.h"
 #include <netdb.h>
 
+#ifndef ENODATA                    /* not defined on BSD systems */
+#define ENODATA EPIPE
+#endif
+
 #ifdef HAVE_WIN32
 #define socketRead(fd, buf, len)  ::recv(fd, buf, len, 0)
 #define socketWrite(fd, buf, len) ::send(fd, buf, len, 0)

@@ -28,7 +28,7 @@
 /*
  *   Version $Id: batstack.cpp 4230 2007-02-21 20:07:37Z kerns $
  *
- *   Kern Sibbald, January 2007
+ *   Dirk Bartley, March 2007
  */
 
 #include "batstack.h"
@@ -36,11 +36,14 @@
 void BatStack::AddTostack()
 {
    /* These two lines are for making sure if it is being changed from a window
- * That it has the proper window flag and parent. */
+    * that it has the proper window flag and parent.
+    */
    setWindowFlags(Qt::Widget);
    setParent(m_parent);
+
    /* This was being done already */
    m_parent->addWidget(this);
+
    /* Set stacked flag */
    m_stacked=true;
 }
@@ -64,36 +67,29 @@ void BatStack::Togglestack()
    }
 }
 
-/* needed this so that the console class could set m_treeItem */
-//void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem)
-//{
-//   m_treeItem=treeItem;
-//}
 
 bool BatStack::isStacked()
 {
    return m_stacked;
 }
 
-void BatStack::closeEvent(QCloseEvent* event){
-   /* Avoid a warning */
-   event->type();
+void BatStack::closeEvent(QCloseEvent* /*event*/)
+{
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
    AddTostack();
-   /* FIXME Really having problems getting it to the front, toggles back into the stack fine though */
-   /*int stackindex=m_parent->indexOf( this );
+
+#ifdef xxx
+   /* FIXME Really having problems getting it to the front, 
+      toggles back into the stack fine though */
+   int stackindex=m_parent->indexOf( this );
    if( stackindex >= 0 ){
       show();
       m_parent->setCurrentIndex(stackindex);
 
-   }*/
+   }
+#endif
 }
 
-void BatStack::PgSeltreeWidgetClicked(){
-}
-
-void BatStack::PgSeltreeWidgetDoubleClicked(){
-}
 
 void BatStack::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
 {
