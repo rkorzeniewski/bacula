@@ -83,7 +83,6 @@ private:
    QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent );
 
 private:
-   QString m_UserInput;
    Console *m_console;
    BatStack *m_bstackpophold;
    QList<BatStack*> m_bstacklist;
