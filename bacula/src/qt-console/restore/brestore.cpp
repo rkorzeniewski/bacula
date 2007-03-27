@@ -38,10 +38,9 @@
 #include "bat.h"
 #include "restore.h"
 
-bRestore::bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem)
+bRestore::bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem, int indexseq)
 {
+   SetPassedValues(parent, treeItem, indexseq );
    (void)parent;
    setupUi(this);
-   m_parent=parent;
-   m_treeItem = treeItem;
 }

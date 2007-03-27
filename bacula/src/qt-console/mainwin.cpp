@@ -79,11 +79,10 @@ void MainWin::createPages()
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
    /* Create Tree Widget Item */
    item = createPage("Console", topItem);
-   m_console->setTreeItem(item);
+   m_console->SetPassedValues(stackedWidget, item, m_pages++ );
    /* Append to bstacklist */
    m_bstacklist.append(m_console);
    /* Set BatStack m_treeItem */
-   m_console->SetBSTreeWidgetItem(item);
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
 
@@ -96,12 +95,13 @@ void MainWin::createPages()
  * */ 
 
    /* brestore */
-   m_bstacklist.append(new bRestore( stackedWidget, createPage("brestore", topItem) ));
+   m_bstacklist.append( new bRestore( stackedWidget, createPage("brestore", topItem), m_pages++ ));
 
    /* lastly for now, the medialist */
-   m_bstacklist.append(new MediaList(stackedWidget, m_console, createPage("Storage Tree", topItem )));
+   m_bstacklist.append( new MediaList(stackedWidget, m_console, createPage("Storage Tree", topItem ), m_pages++));
 
    /* Iterate through and add to the stack */
+   /* foreach will not take a QList of pointers, darn */
    for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
       (*bstackItem)->AddTostack();
    }
@@ -220,20 +220,15 @@ void MainWin::readSettings()
 
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   /* Iterate through and find the tree widget item clicked */
    column+=0;
-   QList<BatStack*>::iterator bstackItem;
-   bstackItem = m_bstacklist.begin();
-   while ( bstackItem != m_bstacklist.end() ){
-      if ( item == (*bstackItem)->m_treeItem ) {
-	 int stackindex=stackedWidget->indexOf( *bstackItem );
-	 if( stackindex >= 0 ){
-	    stackedWidget->setCurrentIndex(stackindex);
-	 }
-         (*bstackItem)->PgSeltreeWidgetClicked();
-      }
-      ++bstackItem;
+   /* Use tree item's Qt::UserRole to get treeindex */
+   int treeindex = item->data(column, Qt::UserRole).toInt();
+   int stackindex=stackedWidget->indexOf( m_bstacklist[treeindex] );
+   if( stackindex >= 0 ){
+      stackedWidget->setCurrentIndex(stackindex);
    }
+   /* run the virtual function in case this class overrides it */
+   m_bstacklist[treeindex]->PgSeltreeWidgetClicked();
 }
 
 /*
@@ -242,23 +237,20 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
    /* Iterate through and find the tree widget item double clicked */
    column+=0;
-   QList<BatStack*>::iterator bstackItem;
-   bstackItem = m_bstacklist.begin();
-   while ( bstackItem != m_bstacklist.end() ){
-      if ( item == (*bstackItem)->m_treeItem ) {
-	 /* This could be a call a virtual function ?? or just popup a popup menu for an action */
-	 if ( (*bstackItem)->isStacked() == true ){
-	    m_bstackpophold=*bstackItem;
-	    QMenu *popup = new QMenu( treeWidget );
-	    connect(popup->addAction("Pull Window Out"), SIGNAL(triggered()), this, SLOT(pullWindowOut()));
-	    popup->exec(QCursor::pos());
-	 } else {
-	    (*bstackItem)->Togglestack();
-	 }
-         (*bstackItem)->PgSeltreeWidgetDoubleClicked();
-      }
-      ++bstackItem;
+   /* Use tree item's Qt::UserRole to get treeindex */
+   int treeindex = item->data(column, Qt::UserRole).toInt();
+   if ( m_bstacklist[treeindex]->isStacked() == true ){
+      m_bstackpophold=m_bstacklist[treeindex];
+      /* Create a popup menu before pulling window out */
+      QMenu *popup = new QMenu( treeWidget );
+      connect(popup->addAction("Pull Window Out"), SIGNAL(triggered()), this, SLOT(pullWindowOut()));
+      popup->exec(QCursor::pos());
+   } else {
+      /* Just pull it back in without prompting */
+      m_bstacklist[treeindex]->Togglestack();
    }
+   /* Here is the virtual function so that different classes can do different things */
+   m_bstacklist[treeindex]->PgSeltreeWidgetDoubleClicked();
 }
 
 void MainWin::labelDialogClicked() 
@@ -334,11 +326,10 @@ void MainWin::pullWindowOut()
 void MainWin::pullWindowOutButton()
 {
    int curindex = stackedWidget->currentIndex();
-   QList<BatStack*>::iterator bstackItem;
-   bstackItem = m_bstacklist.begin();
+   QList<BatStack*>::iterator bstackItem = m_bstacklist.begin();
    bool done=false;
    while ( (bstackItem != m_bstacklist.end()) && not(done) ){
-      if ( curindex == stackedWidget->indexOf( *bstackItem ) ){
+      if ( curindex == stackedWidget->indexOf( *bstackItem )){
 	 (*bstackItem)->Togglestack();
 	 done=true;
       }

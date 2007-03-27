@@ -90,7 +90,6 @@ public:
    void beginNewCommand();
    void displayToPrompt();
    void discardToPrompt();
-   void setTreeItem(QTreeWidgetItem *item);
    void setDirRes(DIRRES *dir);
    void dosql(QString* sqlcmd, QStringList& strlstret);
 

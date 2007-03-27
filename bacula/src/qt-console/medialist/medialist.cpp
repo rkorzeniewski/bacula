@@ -42,14 +42,13 @@
 #include "joblist/joblist.h"
 #include <QMenu>
 
-MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem)
+MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem, int indexseq)
 {
+   SetPassedValues(parent, treeItem, indexseq );
    setupUi(this);
-   m_parent=parent;
 
    m_treeWidget = treeWidget;   /* our Storage Tree Tree Widget */
    m_console = console;
-   m_treeItem = treeItem;
    createConnections();
    m_populated=false;
    m_headerlist = new QStringList();
@@ -85,6 +84,7 @@ void MediaList::populateTree()
 
    /* Start with a list of pools */
    m_poollist->clear();
+   m_headerlist->clear();
    m_headerlist->append("Volume Name");
    m_headerlist->append("Media Id");
    m_headerlist->append("Type");

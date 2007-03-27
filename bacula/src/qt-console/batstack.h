@@ -42,12 +42,13 @@ public:
    void AddTostack();
    void RemoveFromstack();
    void Togglestack();
-   void SetBSTreeWidgetItem(QTreeWidgetItem *treeItem);
+   //void SetBSTreeWidgetItem(QTreeWidgetItem *treeItem);
    bool isStacked();
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
+   void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
