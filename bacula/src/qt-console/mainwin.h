@@ -69,8 +69,8 @@ public slots:
    void labelDialogClicked();
    void runDialogClicked();
    void restoreDialogClicked();
-   void pullWindowOut();
-   void pullWindowOutButton();
+   void floatWindow();
+   void floatWindowButton();
 
 protected:
    void closeEvent(QCloseEvent *event);
