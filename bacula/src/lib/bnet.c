@@ -47,10 +47,6 @@ extern time_t watchdog_time;
 #define   INADDR_NONE    -1
 #endif
 
-#ifndef ENODATA                    /* not defined on BSD systems */
-#define ENODATA EPIPE
-#endif
-
 #ifdef HAVE_WIN32
 #define socketRead(fd, buf, len)  recv(fd, buf, len, 0)
 #define socketWrite(fd, buf, len) send(fd, buf, len, 0)

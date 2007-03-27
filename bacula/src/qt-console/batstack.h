@@ -30,7 +30,7 @@
 /*
  *   Version $Id: batstack.h 4230 2007-02-21 20:07:37Z kerns $
  *
- *   Kern Sibbald, January 2007
+ *   Dirk Bartley, March 2007
  */
 
 #include <QtGui>
@@ -42,12 +42,9 @@ public:
    void AddTostack();
    void RemoveFromstack();
    void Togglestack();
-   //void SetBSTreeWidgetItem(QTreeWidgetItem *treeItem);
    bool isStacked();
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
-   virtual void PgSeltreeWidgetClicked();
-   virtual void PgSeltreeWidgetDoubleClicked();
    void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
 
 public slots:
