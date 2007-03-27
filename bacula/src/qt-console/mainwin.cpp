@@ -178,10 +178,12 @@ void MainWin::createConnections()
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
 
-/*   connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
+#ifdef xxx
+     connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemClicked(QTreeWidgetItem *, int)));  Commented out because it was getting to clicked multiple times*/
+           SLOT(treeItemClicked(QTreeWidgetItem *, int)));  
+#endif
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, 
@@ -194,7 +196,7 @@ void MainWin::createConnections()
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
-   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(pullWindowOutButton()));
+   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(floatWindowButton()));
 }
 
 /* 
@@ -228,10 +230,12 @@ void MainWin::readSettings()
    settings.endGroup();
 }
 
+/*
+ * This subroutine is called with an item in the Page Selection window
+ *   is clicked 
+ */
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
-   (void)column;
-
    /* Use tree item's Qt::UserRole to get treeindex */
    int treeindex = item->data(column, Qt::UserRole).toInt();
    int stackindex=stackedWidget->indexOf(m_bstacklist[treeindex]);
@@ -244,18 +248,21 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 }
 
 /*
+ * This subroutine is called with an item in the Page Selection window
+ *   is double clicked
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   (void)column;
    int treeindex = item->data(column, Qt::UserRole).toInt();
 
    /* Use tree item's Qt::UserRole to get treeindex */
    if ( m_bstacklist[treeindex]->isStacked() == true ){
       m_bstackpophold=m_bstacklist[treeindex];
-      /* Create a popup menu before pulling window out */
+
+      /* Create a popup menu before floating window */
       QMenu *popup = new QMenu( treeWidget );
-      connect(popup->addAction("Pull Window Out"), SIGNAL(triggered()), this, SLOT(pullWindowOut()));
+      connect(popup->addAction("Float Window"), SIGNAL(triggered()), this, 
+              SLOT(floatWindow()));
       popup->exec(QCursor::pos());
    } else {
       /* Just pull it back in without prompting */
@@ -330,12 +337,12 @@ void MainWin::set_status(const char *buf)
    statusBar()->showMessage(buf);
 }
 
-void MainWin::pullWindowOut()
+void MainWin::floatWindow()
 {
    m_bstackpophold->Togglestack();
 }
 
-void MainWin::pullWindowOutButton()
+void MainWin::floatWindowButton()
 {
    int curindex = stackedWidget->currentIndex();
    QList<BatStack*>::iterator bstackItem = m_bstacklist.begin();
