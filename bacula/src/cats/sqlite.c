@@ -70,6 +70,26 @@ db_get_type(void)
 }
 
 /*
+ * When using mult_db_connections = 1, 
+ * sqlite can be BUSY. We just need sleep a little in this case.
+ */
+
+#ifdef HAVE_SQLITE3
+static int my_busy_handler(void *arg, int calls)
+{
+   bmicrosleep(0, 500);
+   return 1;
+}
+#else
+static int my_busy_handler(void *arg, const char* p, int calls)
+{
+   bmicrosleep(0, 500);
+   return 1;
+}
+#endif
+
+
+/*
  * Initialize database data structure. In principal this should
  * never have errors, or it is really fatal.
  */
@@ -189,6 +209,13 @@ db_open_database(JCR *jcr, B_DB *mdb)
       V(mutex);
       return 0;
    }
+
+   /* set busy handler to wait when we use mult_db_connections = 1 */
+#ifdef HAVE_SQLITE3
+   sqlite3_busy_handler(mdb->db, my_busy_handler, NULL);
+#else
+   sqlite_busy_handler(mdb->db, my_busy_handler, NULL);
+#endif
 
    mdb->connected = true;
    V(mutex);
