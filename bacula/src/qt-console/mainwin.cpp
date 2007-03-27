@@ -68,41 +68,49 @@ void MainWin::createPages()
 
    /* Create console tree stacked widget item */
    m_console = new Console(stackedWidget);
+
    /* Console is special -> needs director*/
    /* Just take the first Director */
    LockRes();
    dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
    m_console->setDirRes(dir);
    UnlockRes();
+
    /* The top tree item representing the director */
    topItem = createTopPage(dir->name());
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+
    /* Create Tree Widget Item */
    item = createPage("Console", topItem);
    m_console->SetPassedValues(stackedWidget, item, m_pages++ );
+
    /* Append to bstacklist */
    m_bstacklist.append(m_console);
+
    /* Set BatStack m_treeItem */
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
 
-   /* Now with the console created, on with the rest, these are easy */
-   /* All should be
- * 1. create tree widget item
- * 2. create object passing pointer to tree widget item (modified constructors to pass QTreeWidget pointers)
- * 3. append to stacklist
- * And it can even be done in one line.
- * */ 
+   /*
+    * Now with the console created, on with the rest, these are easy   
+    * All should be
+    * 1. create tree widget item
+    * 2. create object passing pointer to tree widget item (modified constructors to pass QTreeWidget pointers)
+    * 3. append to stacklist
+    * And it can even be done in one line.
+    */
 
    /* brestore */
-   m_bstacklist.append( new bRestore( stackedWidget, createPage("brestore", topItem), m_pages++ ));
+   m_bstacklist.append(new bRestore(stackedWidget, 
+                       createPage("brestore", topItem), m_pages++ ));
 
    /* lastly for now, the medialist */
-   m_bstacklist.append( new MediaList(stackedWidget, m_console, createPage("Storage Tree", topItem ), m_pages++));
+   m_bstacklist.append(new MediaList(stackedWidget, m_console, 
+                       createPage("Storage Tree", topItem ), m_pages++));
 
    /* Iterate through and add to the stack */
-   /* foreach will not take a QList of pointers, darn */
-   for ( QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); bstackItem != m_bstacklist.end(); ++bstackItem ) {
+   for (QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); 
+         bstackItem != m_bstacklist.end(); ++bstackItem ) {
       (*bstackItem)->AddTostack();
    }
 
@@ -235,10 +243,10 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
  */
 void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-   /* Iterate through and find the tree widget item double clicked */
-   column+=0;
-   /* Use tree item's Qt::UserRole to get treeindex */
+   (void)column;
    int treeindex = item->data(column, Qt::UserRole).toInt();
+
+   /* Use tree item's Qt::UserRole to get treeindex */
    if ( m_bstacklist[treeindex]->isStacked() == true ){
       m_bstackpophold=m_bstacklist[treeindex];
       /* Create a popup menu before pulling window out */
@@ -327,11 +335,11 @@ void MainWin::pullWindowOutButton()
 {
    int curindex = stackedWidget->currentIndex();
    QList<BatStack*>::iterator bstackItem = m_bstacklist.begin();
-   bool done=false;
-   while ( (bstackItem != m_bstacklist.end()) && not(done) ){
-      if ( curindex == stackedWidget->indexOf( *bstackItem )){
-	 (*bstackItem)->Togglestack();
-	 done=true;
+   
+   while ((bstackItem != m_bstacklist.end())){
+      if (curindex == stackedWidget->indexOf(*bstackItem)) {
+          (*bstackItem)->Togglestack();
+         break;
       }
       ++bstackItem;
    }
