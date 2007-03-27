@@ -570,11 +570,6 @@ void Console::notify(bool enable)
    m_notifier->setEnabled(enable);   
 }
 
-void Console::setTreeItem(QTreeWidgetItem *item)
-{
-   m_treeItem = item;
-}
-
 void Console::setDirRes(DIRRES *dir) 
 { 
    m_dir = dir;

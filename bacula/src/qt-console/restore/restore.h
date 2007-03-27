@@ -97,7 +97,7 @@ class bRestore : public BatStack, public Ui::bRestoreForm
    Q_OBJECT 
 
 public:
-   bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem);
+   bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem, int indexseq);
 
 public slots:
 

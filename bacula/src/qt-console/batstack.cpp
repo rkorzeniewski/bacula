@@ -64,10 +64,11 @@ void BatStack::Togglestack()
    }
 }
 
-void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem)
-{
-   m_treeItem=treeItem;
-}
+/* needed this so that the console class could set m_treeItem */
+//void BatStack::SetBSTreeWidgetItem(QTreeWidgetItem *treeItem)
+//{
+//   m_treeItem=treeItem;
+//}
 
 bool BatStack::isStacked()
 {
@@ -92,4 +93,11 @@ void BatStack::PgSeltreeWidgetClicked(){
 }
 
 void BatStack::PgSeltreeWidgetDoubleClicked(){
+}
+
+void BatStack::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
+{
+   m_parent = passedStackedWidget;
+   m_treeItem = passedTreeItem;
+   m_treeItem->setData(0, Qt::UserRole, QVariant(indexseq));
 }
