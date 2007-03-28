@@ -36,7 +36,6 @@
  */ 
 
 #include "bat.h"
-#include "medialist/medialist.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -86,8 +85,8 @@ void MainWin::createPages()
    item = createPage("Console", topItem);
    m_console->SetPassedValues(stackedWidget, item, m_pages++ );
 
-   /* Append to bstacklist */
-   m_bstacklist.append(m_console);
+   /* Append to pageslist */
+   m_pageslist.append(m_console);
 
    /* Set BatStack m_treeItem */
    QBrush redBrush(Qt::red);
@@ -103,17 +102,18 @@ void MainWin::createPages()
     */
 
    /* brestore */
-   m_bstacklist.append(new bRestore(stackedWidget, 
-                       createPage("brestore", topItem), m_pages++ ));
+   m_pageslist.append(new bRestore(stackedWidget,
+                      createPage("brestore", topItem), m_pages++ ));
+
 
    /* lastly for now, the medialist */
-   m_bstacklist.append(new MediaList(stackedWidget, m_console, 
+   m_pageslist.append(new MediaList(stackedWidget, m_console, 
                        createPage("Storage Tree", topItem ), m_pages++));
 
    /* Iterate through and add to the stack */
-   for (QList<BatStack*>::iterator bstackItem = m_bstacklist.begin(); 
-         bstackItem != m_bstacklist.end(); ++bstackItem ) {
-      (*bstackItem)->AddTostack();
+   for (QList<Pages*>::iterator pagesItem = m_pageslist.begin(); 
+         pagesItem != m_pageslist.end(); ++pagesItem ) {
+      (*pagesItem)->dockPage();
    }
 
    treeWidget->expandItem(topItem);
@@ -196,7 +196,7 @@ void MainWin::createConnections()
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
-   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(floatWindowButton()));
+   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
 }
 
 /* 
@@ -238,13 +238,13 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    /* Use tree item's Qt::UserRole to get treeindex */
    int treeindex = item->data(column, Qt::UserRole).toInt();
-   int stackindex=stackedWidget->indexOf(m_bstacklist[treeindex]);
+   int stackindex=stackedWidget->indexOf(m_pageslist[treeindex]);
 
    if( stackindex >= 0 ){
       stackedWidget->setCurrentIndex(stackindex);
    }
    /* run the virtual function in case this class overrides it */
-   m_bstacklist[treeindex]->PgSeltreeWidgetClicked();
+   m_pageslist[treeindex]->PgSeltreeWidgetClicked();
 }
 
 /*
@@ -256,20 +256,20 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
    int treeindex = item->data(column, Qt::UserRole).toInt();
 
    /* Use tree item's Qt::UserRole to get treeindex */
-   if ( m_bstacklist[treeindex]->isStacked() == true ){
-      m_bstackpophold=m_bstacklist[treeindex];
+   if (m_pageslist[treeindex]->isDocked()) {
+      m_pagespophold = m_pageslist[treeindex];
 
       /* Create a popup menu before floating window */
       QMenu *popup = new QMenu( treeWidget );
-      connect(popup->addAction("Float Window"), SIGNAL(triggered()), this, 
-              SLOT(floatWindow()));
+      connect(popup->addAction("Undock Window"), SIGNAL(triggered()), this, 
+              SLOT(undockWindow()));
       popup->exec(QCursor::pos());
    } else {
       /* Just pull it back in without prompting */
-      m_bstacklist[treeindex]->Togglestack();
+      m_pageslist[treeindex]->togglePageDocking();
    }
    /* Here is the virtual function so that different classes can do different things */
-   m_bstacklist[treeindex]->PgSeltreeWidgetDoubleClicked();
+   m_pageslist[treeindex]->PgSeltreeWidgetDoubleClicked();
 }
 
 void MainWin::labelDialogClicked() 
@@ -337,21 +337,21 @@ void MainWin::set_status(const char *buf)
    statusBar()->showMessage(buf);
 }
 
-void MainWin::floatWindow()
+void MainWin::undockWindow()
 {
-   m_bstackpophold->Togglestack();
+   m_pagespophold->togglePageDocking();
 }
 
-void MainWin::floatWindowButton()
+void MainWin::undockWindowButton()
 {
    int curindex = stackedWidget->currentIndex();
-   QList<BatStack*>::iterator bstackItem = m_bstacklist.begin();
+   QList<Pages *>::iterator pagesItem = m_pageslist.begin();
    
-   while ((bstackItem != m_bstacklist.end())){
-      if (curindex == stackedWidget->indexOf(*bstackItem)) {
-          (*bstackItem)->Togglestack();
+   while ((pagesItem != m_pageslist.end())){
+      if (curindex == stackedWidget->indexOf(*pagesItem)) {
+          (*pagesItem)->togglePageDocking();
          break;
       }
-      ++bstackItem;
+      ++pagesItem;
    }
 }

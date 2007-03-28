@@ -30,16 +30,15 @@
 /*
  *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
  *
- *   Kern Sibbald, January 2007
+ *   Dirk Bentley, March 2007
  */
 
 #include <QtGui>
 #include "ui_medialist.h"
 #include "console.h"
 #include <qstringlist.h>
-#include "batstack.h"
 
-class MediaList : public BatStack, public Ui::MediaListForm
+class MediaList : public Pages, public Ui::MediaListForm
 {
    Q_OBJECT 
 

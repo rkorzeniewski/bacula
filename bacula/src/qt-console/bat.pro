@@ -48,9 +48,9 @@ SOURCES += run/run.cpp run/runcmd.cpp
 HEADERS += select/select.h
 SOURCES += select/select.cpp
 
-## BatStack 
-HEADERS += batstack.h
-SOURCES += batstack.cpp
+## Pages
+HEADERS += pages.h
+SOURCES += pages.cpp
 
 ## MediaList
 HEADERS += medialist/medialist.h

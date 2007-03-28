@@ -31,16 +31,16 @@
  *
  *  MediaList Class
  *
- *   Kern Sibbald, January MMVI
+ *   Dirk Bartley, March 2007
  *
  */ 
 
 #include <QAbstractEventDispatcher>
+#include <QMenu>
 #include "bat.h"
 #include "medialist.h"
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
-#include <QMenu>
 
 MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem, int indexseq)
 {
@@ -100,24 +100,24 @@ void MediaList::populateTree()
       int recorditemcnter=0;
       /* Iterate through items in the record */
       QString mediarecorditem;
-	 foreach( mediarecorditem, recorditemlist ){
-	 QString trimmeditem = mediarecorditem.trimmed();
-	 if( trimmeditem != "" ){
-	    if ( recorditemcnter == 0 ){
-	       if ( currentpool != trimmeditem.toUtf8().data() ){
-		  currentpool = trimmeditem.toUtf8().data();
-		  pooltreeitem = new QTreeWidgetItem(topItem);
-		  pooltreeitem->setText(0, trimmeditem.toUtf8().data());
-		  pooltreeitem->setData(0, Qt::UserRole, 1);
-		  pooltreeitem->setExpanded( true );
-	       }
-	       mediatreeitem = new QTreeWidgetItem(pooltreeitem);
-	    } else {
-	       mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
-	       mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
+         foreach( mediarecorditem, recorditemlist ){
+         QString trimmeditem = mediarecorditem.trimmed();
+         if( trimmeditem != "" ){
+            if ( recorditemcnter == 0 ){
+               if ( currentpool != trimmeditem.toUtf8().data() ){
+                  currentpool = trimmeditem.toUtf8().data();
+                  pooltreeitem = new QTreeWidgetItem(topItem);
+                  pooltreeitem->setText(0, trimmeditem.toUtf8().data());
+                  pooltreeitem->setData(0, Qt::UserRole, 1);
+                  pooltreeitem->setExpanded( true );
+               }
+               mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+            } else {
+               mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
+               mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
             }
-	    recorditemcnter+=1;
-	 }
+            recorditemcnter+=1;
+         }
       }
       recordcounter+=1;
    }
@@ -126,9 +126,9 @@ void MediaList::populateTree()
 void MediaList::createConnections()
 {
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
-		SLOT(treeItemClicked(QTreeWidgetItem *, int)));
+                SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this,
-		SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
+                SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
 }
 
 void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
@@ -137,14 +137,14 @@ void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
    QString text = item->text(0);
    switch (treedepth){
       case 1:
-	 break;
+         break;
       case 2:
-	 /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
-	 *m_popupmedia = text;
-	 QMenu *popup = new QMenu( m_treeWidget );
-	 connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
-	 connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
-	 popup->exec(QCursor::pos());
+         /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
+         *m_popupmedia = text;
+         QMenu *popup = new QMenu( m_treeWidget );
+         connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
+         connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
+         popup->exec(QCursor::pos());
    }
 }
 

@@ -27,6 +27,11 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Version $Id: batstack.h 4230 2007-02-21 20:07:37Z kerns $
+ *
+ *   Dirk Bartley, March 2007
+ */
 
 #include <QtGui>
 #include "ui_mediaedit.h"

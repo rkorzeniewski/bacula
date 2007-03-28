@@ -31,15 +31,15 @@
  *   Dirk Bartley, March 2007
  */
 
-#include "batstack.h"
+#include "pages.h"
 
 /*
- * AddTostack
- * This function is intended to be called from within the batstack class to pull
+ * dockPage
+ * This function is intended to be called from within the Pages class to pull
  * a window from floating to in the stack widget.
  */
 
-void BatStack::AddTostack()
+void Pages::dockPage()
 {
    /* These two lines are for making sure if it is being changed from a window
     * that it has the proper window flag and parent.
@@ -50,39 +50,39 @@ void BatStack::AddTostack()
    /* This was being done already */
    m_parent->addWidget(this);
 
-   /* Set stacked flag */
-   m_stacked=true;
+   /* Set docked flag */
+   m_docked = true;
 }
 
 /*
- * AddTostack
- * This function is intended to be called from within the batstack class to put
+ * undockPage
+ * This function is intended to be called from within the Pages class to put
  * a window from the stack widget to a floating window.
  */
 
-void BatStack::RemoveFromstack()
+void Pages::undockPage()
 {
    /* Change from a stacked widget to a normal window */
    m_parent->removeWidget(this);
    setWindowFlags(Qt::Window);
    showNormal();
-   /* Clear stacked flag */
-   m_stacked=false;
+   /* Clear docked flag */
+   m_docked = false;
 }
 
 /*
  * This function is intended to be called with the subclasses.  When it is called
- * the specific sublclass does not have to be known to BatStack.  It is called 
+ * the specific sublclass does not have to be known to Pages.  It is called 
  * it will take it from it's current state of floating or stacked and change it
  * to the other.
  */
 
-void BatStack::Togglestack()
+void Pages::togglePageDocking()
 {
-   if( m_stacked ){
-      RemoveFromstack();
+   if (m_docked) {
+      undockPage();
    } else {
-      AddTostack();
+      dockPage();
    }
 }
 
@@ -91,9 +91,9 @@ void BatStack::Togglestack()
  * give any subclasses the ability to find out if it is currently stacked or not.
  */
 
-bool BatStack::isStacked()
+bool Pages::isDocked()
 {
-   return m_stacked;
+   return m_docked;
 }
 
 /*
@@ -104,10 +104,10 @@ bool BatStack::isStacked()
  * treewidgetitem is not the stack item in the front.
  */
 
-void BatStack::closeEvent(QCloseEvent* /*event*/)
+void Pages::closeEvent(QCloseEvent* /*event*/)
 {
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
-   AddTostack();
+   dockPage();
 
 #ifdef xxx
    /* FIXME Really having problems getting it to the front, 
@@ -126,9 +126,12 @@ void BatStack::closeEvent(QCloseEvent* /*event*/)
  * built in virtual function to override if the programmer wants to populate the window
  * when it it is first clicked.
  */
-void BatStack::PgSeltreeWidgetClicked(){
+void Pages::PgSeltreeWidgetClicked()
+{
 }
-void BatStack::PgSeltreeWidgetDoubleClicked(){
+
+void Pages::PgSeltreeWidgetDoubleClicked()
+{
 }
 
 /*
@@ -137,7 +140,7 @@ void BatStack::PgSeltreeWidgetDoubleClicked(){
  * be called from the constructor, like with medialist or after being constructed, like with
  * Console.
  */
-void BatStack::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
+void Pages::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
 {
    m_parent = passedStackedWidget;
    m_treeItem = passedTreeItem;
