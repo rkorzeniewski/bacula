@@ -34,10 +34,10 @@
  */
 
 #include <QtGui>
+#include "pages.h"
 #include "ui_console.h"
 #include "restore.h"
 #include "select.h"
-#include "batstack.h"
 
 #ifndef MAX_NAME_LENGTH
 #define MAX_NAME_LENGTH 128
@@ -65,12 +65,13 @@ class BSOCK;
 class JCR;
 class CONRES;
 
-class Console : public BatStack, public Ui::ConsoleForm
+class Console : public Pages, public Ui::ConsoleForm
 {
    Q_OBJECT 
 
 public:
    Console(QStackedWidget *parent);
+   ~Console();
    void display_text(const char *buf);
    void display_text(const QString buf);
    void display_textf(const char *fmt, ...);

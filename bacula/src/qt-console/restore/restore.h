@@ -35,10 +35,10 @@
  */
 
 #include <QtGui>
+#include "pages.h"
 #include "ui_brestore.h"
 #include "ui_restore.h"
 #include "ui_prerestore.h"
-#include "batstack.h"
 
 class Console;
 
@@ -92,12 +92,13 @@ private:
 };
 
 
-class bRestore : public BatStack, public Ui::bRestoreForm
+class bRestore : public Pages, public Ui::bRestoreForm
 {
    Q_OBJECT 
 
 public:
    bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem, int indexseq);
+   ~bRestore();
 
 public slots:
 

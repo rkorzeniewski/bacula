@@ -39,6 +39,7 @@
 
 #include <QtGui>
 #include <QList>
+#include "pages.h"
 #include "ui_main.h"
 #include "label/label.h"
 #include "run/run.h"
@@ -69,8 +70,8 @@ public slots:
    void labelDialogClicked();
    void runDialogClicked();
    void restoreDialogClicked();
-   void floatWindow();
-   void floatWindowButton();
+   void undockWindow();
+   void undockWindowButton();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -84,9 +85,9 @@ private:
 
 private:
    Console *m_console;
-   BatStack *m_bstackpophold;
-   QList<BatStack*> m_bstacklist;
-   QList<BatStack*> m_bstackindex;
+   Pages *m_pagespophold;
+   QList<Pages*> m_pageslist;
+   QList<Pages*> m_pagesindex;
    QStringList m_cmd_history;
    int m_cmd_last;
    int m_pages;

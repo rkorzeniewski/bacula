@@ -1,5 +1,5 @@
-#ifndef _BATSTACK_H_
-#define _BATSTACK_H_
+#ifndef _PAGES_H_
+#define _PAGES_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -37,7 +37,7 @@
 #include <QList>
 
 /*
- *  The BatStack Class
+ *  The Pages Class
  *
  *  This class is inherited by all widget windows which are on the stack
  *  It is for the purpos of having a conistant set of functions and properties
@@ -50,13 +50,13 @@
  *  populated.
  */
 
-class BatStack : public QWidget
+class Pages : public QWidget
 {
 public:
-   void AddTostack();
-   void RemoveFromstack();
-   void Togglestack();
-   bool isStacked();
+   void dockPage();
+   void undockPage();
+   void togglePageDocking();
+   bool isDocked();
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
    void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
@@ -68,7 +68,7 @@ public slots:
    virtual void closeEvent(QCloseEvent* event);
 
 private:
-   bool m_stacked;
+   bool m_docked;
 };
 
-#endif /* _BATSTACK_H_ */
+#endif /* _PAGES_H_ */

@@ -44,3 +44,7 @@ bRestore::bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem, int indexs
    (void)parent;
    setupUi(this);
 }
+
+bRestore::~bRestore()
+{
+}

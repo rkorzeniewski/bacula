@@ -56,7 +56,10 @@ Console::Console(QStackedWidget *parent)
 // m_timer = new QTimer(this);
 // QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
 // m_timer->start(5000);
+}
 
+Console::~Console()
+{
 }
 
 void Console::poll_messages()
