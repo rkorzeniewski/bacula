@@ -33,6 +33,12 @@
 
 #include "batstack.h"
 
+/*
+ * AddTostack
+ * This function is intended to be called from within the batstack class to pull
+ * a window from floating to in the stack widget.
+ */
+
 void BatStack::AddTostack()
 {
    /* These two lines are for making sure if it is being changed from a window
@@ -48,6 +54,12 @@ void BatStack::AddTostack()
    m_stacked=true;
 }
 
+/*
+ * AddTostack
+ * This function is intended to be called from within the batstack class to put
+ * a window from the stack widget to a floating window.
+ */
+
 void BatStack::RemoveFromstack()
 {
    /* Change from a stacked widget to a normal window */
@@ -58,6 +70,13 @@ void BatStack::RemoveFromstack()
    m_stacked=false;
 }
 
+/*
+ * This function is intended to be called with the subclasses.  When it is called
+ * the specific sublclass does not have to be known to BatStack.  It is called 
+ * it will take it from it's current state of floating or stacked and change it
+ * to the other.
+ */
+
 void BatStack::Togglestack()
 {
    if( m_stacked ){
@@ -67,11 +86,23 @@ void BatStack::Togglestack()
    }
 }
 
+/*
+ * This function is because I wanted for some reason to keep it private but still 
+ * give any subclasses the ability to find out if it is currently stacked or not.
+ */
 
 bool BatStack::isStacked()
 {
    return m_stacked;
 }
+
+/*
+ * When a window is closed, this slot is called.  The idea is to put it back in the
+ * stack here, and it works.  I wanted to get it to the top of the stack so that the
+ * user immediately sees where his window went.  Also, if he floats the window, then
+ * closes it with the tree item highlighted, it may be confusing that the highlighted
+ * treewidgetitem is not the stack item in the front.
+ */
 
 void BatStack::closeEvent(QCloseEvent* /*event*/)
 {
@@ -90,7 +121,22 @@ void BatStack::closeEvent(QCloseEvent* /*event*/)
 #endif
 }
 
+/*
+ * The next two are virtual functions.  The idea here is that each subclass will have the
+ * built in virtual function to override if the programmer wants to populate the window
+ * when it it is first clicked.
+ */
+void BatStack::PgSeltreeWidgetClicked(){
+}
+void BatStack::PgSeltreeWidgetDoubleClicked(){
+}
 
+/*
+ * This function exists because I wanted to have an easy way for new programmers to understand
+ * exactly what values needed to be set in order to behave correctly in the interface.  It can
+ * be called from the constructor, like with medialist or after being constructed, like with
+ * Console.
+ */
 void BatStack::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
 {
    m_parent = passedStackedWidget;

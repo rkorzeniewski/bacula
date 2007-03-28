@@ -36,6 +36,20 @@
 #include <QtGui>
 #include <QList>
 
+/*
+ *  The BatStack Class
+ *
+ *  This class is inherited by all widget windows which are on the stack
+ *  It is for the purpos of having a conistant set of functions and properties
+ *  in all of the subclasses to accomplish tasks such as pulling a window out
+ *  of or into the stack.  It also provides virtual functions placed called
+ *  from in mainwin so that subclasses can contain functions to allow them
+ *  to populate thier screens at the time of first viewing, (when clicked) as
+ *  opposed to  the first creation of the console connection.  After all the 
+ *  console is not actually connected until after the page selector tree has been
+ *  populated.
+ */
+
 class BatStack : public QWidget
 {
 public:
@@ -46,6 +60,8 @@ public:
    QStackedWidget *m_parent;
    QTreeWidgetItem *m_treeItem;
    void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
+   virtual void PgSeltreeWidgetClicked();
+   virtual void PgSeltreeWidgetDoubleClicked();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
