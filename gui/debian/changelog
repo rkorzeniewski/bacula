@@ -1,3 +1,17 @@
+bweb (2.0.3-4) stable; urgency=high
+
+   * fix a important bug about directory displayed 2 times
+   => YOU MUST RESET YOUR brestore_xxx tables
+
+DROP TABLES brestore_missing_path;
+DROP TABLES brestore_pathvisibility;
+DROP TABLES brestore_pathhierarchy;
+DROP TABLES brestore_knownjobid;
+
+   => DONT USE dbcheck to cleanup Path
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Thu,  29 March 2007 01:10:47 +0000
+
 bweb (2.0.3-3) stable; urgency=low
 
   * Fix a quote in bweb.js
