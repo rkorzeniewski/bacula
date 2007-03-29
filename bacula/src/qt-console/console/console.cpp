@@ -154,6 +154,11 @@ void Console::connect()
    return;
 }
 
+bool Console::dir_cmd(QString &cmd, QStringList &results)
+{
+   return dir_cmd(cmd.toUtf8().data(), results);
+}
+
 bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
    int stat;
