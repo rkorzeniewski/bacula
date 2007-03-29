@@ -92,7 +92,6 @@ public:
    void displayToPrompt();
    void discardToPrompt();
    void setDirRes(DIRRES *dir);
-   void dosql(QString* sqlcmd, QStringList& strlstret);
 
    QStringList job_list;
    QStringList client_list;
