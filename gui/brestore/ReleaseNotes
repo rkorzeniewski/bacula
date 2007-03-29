@@ -1,5 +1,14 @@
           Release Notes for brestore 2.0.3
 
+Version 2.0.3-4:
+ - fix a important bug about directory displayed 2 times
+   => YOU MUST RESET YOUR brestore_xxx tables
+
+DROP TABLES brestore_missing_path;
+DROP TABLES brestore_pathvisibility;
+DROP TABLES brestore_pathhierarchy;
+DROP TABLES brestore_knownjobid;
+
 Version 2.0.3-2:
  - fix mysql stuff
 
