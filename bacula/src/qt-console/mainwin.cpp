@@ -88,7 +88,9 @@ void MainWin::createPages()
    /* Append to pageslist */
    m_pageslist.append(m_console);
 
-   /* Set BatStack m_treeItem */
+   /* Set Color of treeWidgetItem for the console
+   * It will be set to gree in the console class if the connection is made.
+   */
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
 

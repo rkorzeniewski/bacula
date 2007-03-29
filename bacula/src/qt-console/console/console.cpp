@@ -577,7 +577,7 @@ void Console::setDirRes(DIRRES *dir)
 { 
    m_dir = dir;
 }
-#ifndef xxx
+#ifdef xxx
 ******FIXME******  Just Delete me
 void Console::dosql(QString* sqlcmd, QStringList& strlstret)
 {
