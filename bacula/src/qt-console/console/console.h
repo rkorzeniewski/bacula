@@ -78,6 +78,7 @@ public:
    void update_cursor(void);
    void write_dir(const char *buf);
    bool dir_cmd(const char *cmd, QStringList &results);
+   bool dir_cmd(QString &cmd, QStringList &results);
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
    bool is_connected() { return m_sock != NULL; };
    const QFont get_font();
