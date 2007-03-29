@@ -54,7 +54,6 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    m_headerlist = new QStringList();
    m_popupmedia = new QString("");
    m_poollist = new QStringList();
-   m_cmd = new QString("select p.name, m.volumename, m.mediaid, m.mediatype from media m, pool p ORDER BY p.name");
 }
 
 MediaList::~MediaList()
@@ -62,7 +61,6 @@ MediaList::~MediaList()
    delete m_headerlist;
    delete m_popupmedia;
    delete m_poollist;
-   delete m_cmd;
 }
 
 void MediaList::populateTree()
@@ -93,33 +91,38 @@ void MediaList::populateTree()
    QString currentpool("");
    QString resultline;
    QStringList results;
-   m_console->dosql(m_cmd,results);
-   int recordcounter=0;
-   foreach( resultline, results ){
-      QStringList recorditemlist = resultline.split("\t");
-      int recorditemcnter=0;
-      /* Iterate through items in the record */
-      QString mediarecorditem;
-         foreach( mediarecorditem, recorditemlist ){
-         QString trimmeditem = mediarecorditem.trimmed();
-         if( trimmeditem != "" ){
-            if ( recorditemcnter == 0 ){
-               if ( currentpool != trimmeditem.toUtf8().data() ){
-                  currentpool = trimmeditem.toUtf8().data();
-                  pooltreeitem = new QTreeWidgetItem(topItem);
-                  pooltreeitem->setText(0, trimmeditem.toUtf8().data());
-                  pooltreeitem->setData(0, Qt::UserRole, 1);
-                  pooltreeitem->setExpanded( true );
+   const char* m_cmd = ".sql \"select p.name, m.volumename, m.mediaid, m.mediatype from media m, pool p ORDER BY p.name\"";
+   if ( m_console->dir_cmd(m_cmd,results)){
+      int recordcounter=0;
+      foreach( resultline, results ){
+         QRegExp regex("^Using Catalog");
+         if ( regex.indexIn(resultline) < 0 ){
+            QStringList recorditemlist = resultline.split("\t");
+            int recorditemcnter=0;
+            /* Iterate through items in the record */
+            QString mediarecorditem;
+               foreach( mediarecorditem, recorditemlist ){
+               QString trimmeditem = mediarecorditem.trimmed();
+               if( trimmeditem != "" ){
+                  if ( recorditemcnter == 0 ){
+                     if ( currentpool != trimmeditem.toUtf8().data() ){
+                        currentpool = trimmeditem.toUtf8().data();
+                        pooltreeitem = new QTreeWidgetItem(topItem);
+                        pooltreeitem->setText(0, trimmeditem.toUtf8().data());
+                        pooltreeitem->setData(0, Qt::UserRole, 1);
+                        pooltreeitem->setExpanded( true );
+                     }
+                     mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+                  } else {
+                     mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
+                     mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
+                  }
+                  recorditemcnter+=1;
                }
-               mediatreeitem = new QTreeWidgetItem(pooltreeitem);
-            } else {
-               mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
-               mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
             }
-            recorditemcnter+=1;
          }
+         recordcounter+=1;
       }
-      recordcounter+=1;
    }
 }
 
