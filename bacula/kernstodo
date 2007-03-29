@@ -43,6 +43,7 @@ Document:
  
 
 Priority:
+- Add Where: client:/.... to restore job report.
 - Ensure that each device in an Autochanger has a different
   Device Index.
 - Add Catalog = to Pool resource so that pools will exist

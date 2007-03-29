@@ -441,16 +441,19 @@ err:
    return false;
 }
 #else
+
 bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    Jmsg(bsock->jcr(), M_ABORT, 0, _("TLS enabled but not configured.\n"));
    return false;
 }
-bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list, int verify_hostname)
+
+bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    Jmsg(bsock->jcr(), M_ABORT, 0, _("TLS enable but not configured.\n"));
    return false;
 }
+
 #endif /* HAVE_TLS */
 
 /*

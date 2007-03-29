@@ -23,6 +23,18 @@
 #   the SCSI control channel is /dev/sg0, and the read/write device
 #   is /dev/nst0.
 #
+#  The commands are:
+#      Command		  Function
+#      unload		  unload a given slot
+#      load		  load a given slot
+#      loaded		  which slot is loaded?
+#      list		  list Volume names (requires barcode reader)
+#      slots		  how many slots total?
+#
+#  Slots are numbered from 1 ...
+#  Drives are numbered from 0 ...
+#
+#
 #  If you need to an offline, refer to the drive as $4
 #    e.g.   mt -f $4 offline
 #
@@ -176,13 +188,14 @@ case $cmd in
 #     ${MTX} -f $ctl inventory
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
-      cat ${TMPFILE} | grep " *Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
-      cat ${TMPFILE} | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" | awk '{printf "%s:%s\n",$7,$10}'
-      rm -f ${TMPFILE} >/dev/null 2>&1
+      cat ${TMPFILE} | grep " Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
 #
 # If you have a VXA PacketLoader and the above does not work, try
 #  turning it off and enabling the following line.
-#     ${MTX} -f $ctl status | grep " *Storage Element [0-9]*:.*Full" | sed "s/*Storage Element //" | sed "s/Full :VolumeTag=//"
+#     cat ${TMPFILE} | grep " *Storage Element [0-9]*:.*Full" | sed "s/ Storage Element //" | sed "s/Full :VolumeTag=//"
+#
+      cat ${TMPFILE} | grep "^Data Transfer Element [0-9]*:Full (Storage Element [0-9]" | awk '{printf "%s:%s\n",$7,$10}'
+      rm -f ${TMPFILE} >/dev/null 2>&1
       exit $rtn
       ;;
 

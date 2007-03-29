@@ -220,7 +220,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
    STORE *store;
    int Slot = 0, InChanger = 0;
 
-   bsendmsg(ua, _(
+   ua->send_msg(_(
 "You probably don't want to be using this command since it\n"
 "creates database records without labeling the Volumes.\n"
 "You probably want to use the \"label\" command.\n\n"));
@@ -240,7 +240,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
       pr.MaxVols, pr.PoolType);
 
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
-      bsendmsg(ua, _("Pool already has maximum volumes=%d\n"), pr.MaxVols);
+      ua->warning_msg(_("Pool already has maximum volumes=%d\n"), pr.MaxVols);
       for (;;) {
          if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
             return 1;
@@ -269,7 +269,7 @@ static int add_cmd(UAContext *ua, const char *cmd)
       }
       num = ua->pint32_val;
       if (num < 0 || num > max) {
-         bsendmsg(ua, _("The number must be between 0 and %d\n"), max);
+         ua->warning_msg(_("The number must be between 0 and %d\n"), max);
          continue;
       }
       break;
@@ -289,11 +289,11 @@ getVolName:
       goto getVolName;
    }
    if (strlen(ua->cmd) >= MAX_NAME_LENGTH-10) {
-      bsendmsg(ua, _("Volume name too long.\n"));
+      ua->warning_msg(_("Volume name too long.\n"));
       goto getVolName;
    }
    if (strlen(ua->cmd) == 0) {
-      bsendmsg(ua, _("Volume name must be at least one character long.\n"));
+      ua->warning_msg(_("Volume name must be at least one character long.\n"));
       goto getVolName;
    }
 
@@ -307,7 +307,7 @@ getVolName:
          }
          startnum = ua->pint32_val;
          if (startnum < 1) {
-            bsendmsg(ua, _("Start number must be greater than zero.\n"));
+            ua->warning_msg(_("Start number must be greater than zero.\n"));
             continue;
          }
          break;
@@ -337,7 +337,7 @@ getVolName:
       mr.Enabled = 1;
       Dmsg1(200, "Create Volume %s\n", mr.VolumeName);
       if (!db_create_media_record(ua->jcr, ua->db, &mr)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+         ua->error_msg("%s", db_strerror(ua->db));
          return 1;
       }
       if (i == startnum) {
@@ -347,10 +347,10 @@ getVolName:
    pr.NumVols += num;
    Dmsg0(200, "Update pool record.\n");
    if (db_update_pool_record(ua->jcr, ua->db, &pr) != 1) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      ua->warning_msg("%s", db_strerror(ua->db));
       return 1;
    }
-   bsendmsg(ua, _("%d Volumes created in pool %s\n"), num, pr.Name);
+   ua->send_msg(_("%d Volumes created in pool %s\n"), num, pr.Name);
 
    return 1;
 }
@@ -397,7 +397,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
          }
          JobId = str_to_int64(ua->argv[i]);
          if (!(jcr=get_jcr_by_id(JobId))) {
-            bsendmsg(ua, _("JobId %s is not running. Use Job name to cancel inactive jobs.\n"),  ua->argv[i]);
+            ua->error_msg(_("JobId %s is not running. Use Job name to cancel inactive jobs.\n"),  ua->argv[i]);
             return 1;
          }
          break;
@@ -406,7 +406,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             break;
          }
          if (!(jcr=get_jcr_by_partial_name(ua->argv[i]))) {
-            bsendmsg(ua, _("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
             jcr = new_jcr(sizeof(JCR), dird_free_jcr);
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
@@ -416,7 +416,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
             break;
          }
          if (!(jcr=get_jcr_by_full_name(ua->argv[i]))) {
-            bsendmsg(ua, _("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
+            ua->warning_msg(_("Warning Job %s is not running. Continuing anyway ...\n"), ua->argv[i]);
             jcr = new_jcr(sizeof(JCR), dird_free_jcr);
             bstrncpy(jcr->Job, ua->argv[i], sizeof(jcr->Job));
          }
@@ -426,7 +426,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
    }
    if (jcr) {
       if (jcr->job && !acl_access_ok(ua, Job_ACL, jcr->job->name())) {
-         bsendmsg(ua, _("Unauthorized command from this console.\n"));
+         ua->error_msg(_("Unauthorized command from this console.\n"));
          return 1;
       }
    } else {
@@ -451,9 +451,9 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
 
       if (njobs == 0) {            /* no authorized */
          if (tjobs == 0) {
-            bsendmsg(ua, _("No Jobs running.\n"));
+            ua->send_msg(_("No Jobs running.\n"));
          } else {
-            bsendmsg(ua, _("None of your jobs are running.\n"));
+            ua->send_msg(_("None of your jobs are running.\n"));
          }
          return 1;
       }
@@ -483,7 +483,7 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
       jcr = get_jcr_by_full_name(JobName);
       if (!jcr) {
-         bsendmsg(ua, _("Job \"%s\" not found.\n"), JobName);
+         ua->warning_msg(_("Job \"%s\" not found.\n"), JobName);
          return 1;
       }
    }
@@ -647,18 +647,18 @@ static int create_cmd(UAContext *ua, const char *cmd)
 
    switch (create_pool(ua->jcr, ua->db, pool, POOL_OP_CREATE)) {
    case 0:
-      bsendmsg(ua, _("Error: Pool %s already exists.\n"
+      ua->error_msg(_("Error: Pool %s already exists.\n"
                "Use update to change it.\n"), pool->name());
       break;
 
    case -1:
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      ua->error_msg("%s", db_strerror(ua->db));
       break;
 
    default:
      break;
    }
-   bsendmsg(ua, _("Pool %s created.\n"), pool->name());
+   ua->send_msg(_("Pool %s created.\n"), pool->name());
    return 1;
 }
 
@@ -675,9 +675,9 @@ static int python_cmd(UAContext *ua, const char *cmd)
       term_python_interpreter();
       init_python_interpreter(director->name(), 
          director->scripts_directory, "DirStartUp");
-      bsendmsg(ua, _("Python interpreter restarted.\n"));
+      ua->send_msg(_("Python interpreter restarted.\n"));
    } else {
-      bsendmsg(ua, _("Nothing done.\n"));
+      ua->warning_msg(_("Nothing done.\n"));
    }
    return 1;
 }
@@ -693,14 +693,14 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    CLIENT *client;
    char buf[1024];
    if (!ua->cons || !acl_access_ok(ua, Client_ACL, ua->cons->name())) {
-      bsendmsg(ua, _("Unauthorized command from this console.\n"));
+      ua->error_msg(_("Unauthorized command from this console.\n"));
       return 1;
    }
    LockRes();
    client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->name());
 
    if (!client) {
-      bsendmsg(ua, _("Client \"%s\" not found.\n"), ua->cons->name());
+      ua->error_msg(_("Client \"%s\" not found.\n"), ua->cons->name());
       goto get_out;
    }
    if (client->address) {
@@ -709,7 +709,7 @@ static int setip_cmd(UAContext *ua, const char *cmd)
    /* MA Bug 6 remove ifdef */
    sockaddr_to_ascii(&(ua->UA_sock->client_addr), buf, sizeof(buf));
    client->address = bstrdup(buf);
-   bsendmsg(ua, _("Client \"%s\" address set to %s\n"),
+   ua->send_msg(_("Client \"%s\" address set to %s\n"),
             client->name(), client->address);
 get_out:
    UnlockRes();
@@ -734,16 +734,16 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
       UnlockRes();
    } 
    if (!job) {
-      bsendmsg(ua, _("Job \"%s\" not found.\n"), ua->argv[i]);
+      ua->error_msg(_("Job \"%s\" not found.\n"), ua->argv[i]);
       return;
    }
 
    if (!acl_access_ok(ua, Job_ACL, job->name())) {
-      bsendmsg(ua, _("Unauthorized command from this console.\n"));
+      ua->error_msg(_("Unauthorized command from this console.\n"));
       return;
    }
    job->enabled = setting;
-   bsendmsg(ua, _("Job \"%s\" %sabled\n"), job->name(), setting?"en":"dis");
+   ua->send_msg(_("Job \"%s\" %sabled\n"), job->name(), setting?"en":"dis");
    return;
 }
 
@@ -770,17 +770,17 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
    pm_strcpy(lstore.store_source, _("unknown source"));
    set_wstorage(jcr, &lstore);
    /* Try connecting for up to 15 seconds */
-   bsendmsg(ua, _("Connecting to Storage daemon %s at %s:%d\n"),
+   ua->send_msg(_("Connecting to Storage daemon %s at %s:%d\n"),
       store->name(), store->address, store->SDport);
    if (!connect_to_storage_daemon(jcr, 1, 15, 0)) {
-      bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+      ua->error_msg(_("Failed to connect to Storage daemon.\n"));
       return;
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = jcr->store_bsock;
    bnet_fsend(sd, "setdebug=%d trace=%d\n", level, trace_flag);
    if (bnet_recv(sd) >= 0) {
-      bsendmsg(ua, "%s", sd->msg);
+      ua->send_msg("%s", sd->msg);
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
@@ -796,17 +796,17 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int tra
 
    ua->jcr->client = client;
    /* Try to connect for 15 seconds */
-   bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
+   ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
       client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
-      bsendmsg(ua, _("Failed to connect to Client.\n"));
+      ua->error_msg(_("Failed to connect to Client.\n"));
       return;
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
    bnet_fsend(fd, "setdebug=%d trace=%d\n", level, trace_flag);
    if (bnet_recv(fd) >= 0) {
-      bsendmsg(ua, "%s", fd->msg);
+      ua->send_msg("%s", fd->msg);
    }
    bnet_sig(fd, BNET_TERMINATE);
    bnet_close(fd);
@@ -1049,7 +1049,7 @@ static int var_cmd(UAContext *ua, const char *cmd)
    }
    Dmsg1(100, "Var=%s:\n", var);
    variable_expansion(ua->jcr, var, &val);
-   bsendmsg(ua, "%s\n", val);
+   ua->send_msg("%s\n", val);
    free_pool_memory(val);
    return 1;
 }
@@ -1076,7 +1076,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
          if (ua->argv[i]) {
             job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
             if (job && !acl_access_ok(ua, Job_ACL, job->name())) {
-               bsendmsg(ua, _("No authorization for Job \"%s\"\n"), job->name());
+               ua->error_msg(_("No authorization for Job \"%s\"\n"), job->name());
                return 1;
             }
             continue;
@@ -1086,7 +1086,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
          if (ua->argv[i]) {
             fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
             if (fileset && !acl_access_ok(ua, FileSet_ACL, fileset->name())) {
-               bsendmsg(ua, _("No authorization for FileSet \"%s\"\n"), fileset->name());
+               ua->error_msg(_("No authorization for FileSet \"%s\"\n"), fileset->name());
                return 1;
             }
             continue;
@@ -1098,7 +1098,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
       if (strcasecmp(ua->argk[i], NT_("level")) == 0) {
          if (!get_level_from_name(ua->jcr, ua->argv[i])) {
-            bsendmsg(ua, _("Level %s not valid.\n"), ua->argv[i]);
+            ua->error_msg(_("Level %s not valid.\n"), ua->argv[i]);
          }
          continue;
       }
@@ -1111,11 +1111,11 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    if (!job) {
       job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
       if (!job) {
-         bsendmsg(ua, _("No job specified.\n"));
+         ua->error_msg(_("No job specified.\n"));
          return 1;
       }
       if (!acl_access_ok(ua, Job_ACL, job->name())) {
-         bsendmsg(ua, _("No authorization for Job \"%s\"\n"), job->name());
+         ua->error_msg(_("No authorization for Job \"%s\"\n"), job->name());
          return 1;
       }
    }
@@ -1147,20 +1147,20 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
    get_level_since_time(ua->jcr, since, sizeof(since));
 
-   bsendmsg(ua, _("Connecting to Client %s at %s:%d\n"),
+   ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
       job->client->name(), job->client->address, job->client->FDport);
    if (!connect_to_file_daemon(jcr, 1, 15, 0)) {
-      bsendmsg(ua, _("Failed to connect to Client.\n"));
+      ua->error_msg(_("Failed to connect to Client.\n"));
       return 1;
    }
 
    if (!send_include_list(jcr)) {
-      bsendmsg(ua, _("Error sending include list.\n"));
+      ua->error_msg(_("Error sending include list.\n"));
       goto bail_out;
    }
 
    if (!send_exclude_list(jcr)) {
-      bsendmsg(ua, _("Error sending exclude list.\n"));
+      ua->error_msg(_("Error sending exclude list.\n"));
       goto bail_out;
    }
 
@@ -1170,7 +1170,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
 
    bnet_fsend(jcr->file_bsock, "estimate listing=%d\n", listing);
    while (bnet_recv(jcr->file_bsock) >= 0) {
-      bsendmsg(ua, "%s", jcr->file_bsock->msg);
+      ua->send_msg("%s", jcr->file_bsock->msg);
    }
 
 bail_out:
@@ -1193,7 +1193,7 @@ static int time_cmd(UAContext *ua, const char *cmd)
    struct tm tm;
    (void)localtime_r(&ttime, &tm);
    strftime(sdt, sizeof(sdt), "%d-%b-%Y %H:%M:%S", &tm);
-   bsendmsg(ua, "%s\n", sdt);
+   ua->send_msg("%s\n", sdt);
    return 1;
 }
 
@@ -1245,7 +1245,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       break;
    }
 
-   bsendmsg(ua, _(
+   ua->warning_msg(_(
 "In general it is not a good idea to delete either a\n"
 "Pool or a Volume since they may contain data.\n\n"));
 
@@ -1260,7 +1260,7 @@ static int delete_cmd(UAContext *ua, const char *cmd)
       delete_job(ua);
       return 1;
    default:
-      bsendmsg(ua, _("Nothing done.\n"));
+      ua->warning_msg(_("Nothing done.\n"));
       break;
    }
    return 1;
@@ -1352,7 +1352,7 @@ static void do_job_delete(UAContext *ua, JobId_t JobId)
 
    edit_int64(JobId, ed1);
    purge_jobs_from_catalog(ua, ed1);
-   bsendmsg(ua, _("Job %s and associated records deleted from the catalog.\n"), ed1);
+   ua->send_msg(_("Job %s and associated records deleted from the catalog.\n"), ed1);
 }
 
 /*
@@ -1365,7 +1365,7 @@ static int delete_volume(UAContext *ua)
    if (!select_media_dbr(ua, &mr)) {
       return 1;
    }
-   bsendmsg(ua, _("\nThis command will delete volume %s\n"
+   ua->warning_msg(_("\nThis command will delete volume %s\n"
       "and all Jobs saved on that volume from the Catalog\n"),
       mr.VolumeName);
 
@@ -1429,7 +1429,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
       store.store->media_type, store.store->dev_name(), drive);
 
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-      bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+      ua->error_msg(_("Failed to connect to Storage daemon.\n"));
       return;
    }
    sd = jcr->store_bsock;
@@ -1441,7 +1441,7 @@ static void do_mount_cmd(UAContext *ua, const char *command)
       bnet_fsend(sd, "%s %s drive=%d", command, dev_name, drive);
    }
    while (bnet_recv(sd) >= 0) {
-      bsendmsg(ua, "%s", sd->msg);
+      ua->send_msg("%s", sd->msg);
    }
    bnet_sig(sd, BNET_TERMINATE);
    bnet_close(sd);
@@ -1496,7 +1496,7 @@ static int use_cmd(UAContext *ua, const char *cmd)
       ua->catalog = catalog;
    }
    if (open_db(ua)) {
-      bsendmsg(ua, _("Using Catalog name=%s DB=%s\n"),
+      ua->send_msg(_("Using Catalog name=%s DB=%s\n"),
          ua->catalog->name(), ua->catalog->db_name);
    }
    return 1;
@@ -1556,7 +1556,7 @@ int wait_cmd(UAContext *ua, const char *cmd)
    uint32_t jobid = 0 ;
 
    if (!open_client_db(ua)) {
-      bsendmsg(ua, _("ERR: Can't open db\n")) ;
+      ua->error_msg(_("ERR: Can't open db\n")) ;
       return 1;
    }
 
@@ -1592,7 +1592,7 @@ int wait_cmd(UAContext *ua, const char *cmd)
    }
 
    if (jobid == 0) {
-      bsendmsg(ua, _("ERR: Job was not found\n"));
+      ua->error_msg(_("ERR: Job was not found\n"));
       return 1 ;
    }
 
@@ -1651,13 +1651,13 @@ int wait_cmd(UAContext *ua, const char *cmd)
       break;
    }
 
-   bsendmsg(ua, "JobId=%i\n", jobid) ;
-   bsendmsg(ua, "JobStatus=%s (%c)\n", 
+   ua->send_msg("JobId=%i\n", jobid) ;
+   ua->send_msg("JobStatus=%s (%c)\n", 
             job_status_to_str(jobstatus), 
             jobstatus) ;
 
-   if (ua->gui) {
-      bsendmsg(ua, "ExitStatus=%i\n", status) ;
+   if (ua->gui || ua->api) {
+      ua->send_msg("ExitStatus=%i\n", status) ;
    }
 
    return 1;
@@ -1668,11 +1668,11 @@ static int help_cmd(UAContext *ua, const char *cmd)
 {
    unsigned int i;
 
-   bsendmsg(ua, _("  Command    Description\n  =======    ===========\n"));
+   ua->send_msg(_("  Command    Description\n  =======    ===========\n"));
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, _("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
+      ua->send_msg(_("  %-10s %s\n"), _(commands[i].key), _(commands[i].help));
    }
-   bsendmsg(ua, _("\nWhen at a prompt, entering a period cancels the command.\n\n"));
+   ua->send_msg(_("\nWhen at a prompt, entering a period cancels the command.\n\n"));
    return 1;
 }
 
@@ -1681,14 +1681,14 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    unsigned int i;
 
    for (i=0; i<comsize; i++) {
-      bsendmsg(ua, "%s %s\n", commands[i].key, _(commands[i].help));
+      ua->send_msg("%s %s\n", commands[i].key, _(commands[i].help));
    }
    return 1;
 }
 
 static int version_cmd(UAContext *ua, const char *cmd)
 {
-   bsendmsg(ua, _("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
+   ua->send_msg(_("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
             HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
@@ -1712,7 +1712,7 @@ bool open_client_db(UAContext *ua)
    i = find_arg_with_value(ua, NT_("catalog"));
    if (i >= 0) {
       if (!acl_access_ok(ua, Catalog_ACL, ua->argv[i])) {
-         bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), ua->argv[i]);
+         ua->error_msg(_("No authorization for Catalog \"%s\"\n"), ua->argv[i]);
          return false;
       }
       catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
@@ -1729,7 +1729,7 @@ bool open_client_db(UAContext *ua)
    i = find_arg_with_value(ua, NT_("client"));
    if (i >= 0) {
       if (!acl_access_ok(ua, Client_ACL, ua->argv[i])) {
-         bsendmsg(ua, _("No authorization for Client \"%s\"\n"), ua->argv[i]);
+         ua->error_msg(_("No authorization for Client \"%s\"\n"), ua->argv[i]);
          return false;
       }
       client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
@@ -1739,7 +1739,7 @@ bool open_client_db(UAContext *ua)
             close_db(ua);
          }
          if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
-            bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), catalog->name());
+            ua->error_msg(_("No authorization for Catalog \"%s\"\n"), catalog->name());
             return false;
          }
          ua->catalog = catalog;
@@ -1751,7 +1751,7 @@ bool open_client_db(UAContext *ua)
    i = find_arg_with_value(ua, NT_("job"));
    if (i >= 0) {
       if (!acl_access_ok(ua, Job_ACL, ua->argv[i])) {
-         bsendmsg(ua, _("No authorization for Job \"%s\"\n"), ua->argv[i]);
+         ua->error_msg(_("No authorization for Job \"%s\"\n"), ua->argv[i]);
          return false;
       }
       job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
@@ -1761,7 +1761,7 @@ bool open_client_db(UAContext *ua)
             close_db(ua);
          }
          if (!acl_access_ok(ua, Catalog_ACL, catalog->name())) {
-            bsendmsg(ua, _("No authorization for Catalog \"%s\"\n"), catalog->name());
+            ua->error_msg(_("No authorization for Catalog \"%s\"\n"), catalog->name());
             return false;
          }
          ua->catalog = catalog;
@@ -1784,7 +1784,7 @@ bool open_db(UAContext *ua)
    if (!ua->catalog) {
       ua->catalog = get_catalog_resource(ua);
       if (!ua->catalog) {
-         bsendmsg(ua, _("Could not find a Catalog resource\n"));
+         ua->error_msg( _("Could not find a Catalog resource\n"));
          return false;
       }
    }
@@ -1797,16 +1797,18 @@ bool open_db(UAContext *ua)
                              ua->catalog->db_port, ua->catalog->db_socket,
                              ua->catalog->mult_db_connections);
    if (!ua->db || !db_open_database(ua->jcr, ua->db)) {
-      bsendmsg(ua, _("Could not open catalog database \"%s\".\n"),
+      ua->error_msg(_("Could not open catalog database \"%s\".\n"),
                  ua->catalog->db_name);
       if (ua->db) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+         ua->error_msg("%s", db_strerror(ua->db));
       }
       close_db(ua);
       return false;
    }
    ua->jcr->db = ua->db;
-   bsendmsg(ua, _("Using Catalog \"%s\"\n"), ua->catalog->name()); 
+   if (!ua->api) {
+      ua->send_msg(_("Using Catalog \"%s\"\n"), ua->catalog->name()); 
+   }
    Dmsg1(150, "DB %s opened\n", ua->catalog->db_name);
    return true;
 }
