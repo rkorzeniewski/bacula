@@ -496,7 +496,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
                  dev->is_dvd()?1:0, newname, dev->print_name());
       break;
    case VOL_NO_MEDIA:
-      bnet_fsend(dir, _("3912 Failed to label Volume: ERR=%s\n"), dev->bstrerror());
+      bnet_fsend(dir, _("3914 Failed to label Volume (no media): ERR=%s\n"), dev->bstrerror());
       break;
    default:
       bnet_fsend(dir, _("3913 Cannot label Volume. "

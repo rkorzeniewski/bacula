@@ -251,8 +251,7 @@ int db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr)
 }
 
 
-int
-db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
+int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
    int stat;
    char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
