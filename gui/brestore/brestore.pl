@@ -1955,8 +1955,6 @@ WHERE Job.JobId = JobMedia.JobId
   AND Path.Path LIKE 
         (SELECT ". $self->dbh_strcat('Path',"'\%'") ." FROM Path 
           WHERE PathId IN ($dirid)
-    UNION 
-         SELECT " . $self->dbh_strcat('Path',"'\%'") ." FROM brestore_missing_path          WHERE PathId IN ($dirid)
         )
   AND File.JobId IN ($inclause) )";
 			push @select_queries,($query);
@@ -2292,11 +2290,9 @@ sub get_pathid
 {
     my ($self, $dir) = @_;
     my $query = 
-	"SELECT PathId FROM Path WHERE Path = ?
-          UNION 
-         SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+	"SELECT PathId FROM Path WHERE Path = ?";
     my $sth = $self->dbh_prepare($query);
-    $sth->execute($dir,$dir);
+    $sth->execute($dir);
     my $result = $sth->fetchall_arrayref();
     $sth->finish();
     
@@ -2352,11 +2348,10 @@ sub get_path
     my ($self, $pathid) = @_;
     $self->debug("Call with pathid = $pathid");
     my $query = 
-	"SELECT Path FROM Path WHERE PathId IN (?)
-          UNION 
-         SELECT Path FROM brestore_missing_path WHERE PathId IN (?)";
+	"SELECT Path FROM Path WHERE PathId IN (?)";
+
     my $sth = $self->dbh_prepare($query);
-    $sth->execute($pathid,$pathid);
+    $sth->execute($pathid);
     my $result = $sth->fetchrow_arrayref();
     $sth->finish();
     return $result->[0];    
@@ -2419,7 +2414,6 @@ sub ls_dirs
     my $dir_filenameid = $result->[0];
      
     # Then we get all the dir entries from File ...
-    # It's ugly because there are records in brestore_missing_path ...
     $query = "
 SELECT PathId, Path, JobId, Lstat FROM (
     
@@ -2440,25 +2434,7 @@ SELECT PathId, Path, JobId, Lstat FROM (
         WHERE File1.FilenameId = $dir_filenameid
         AND File1.JobId IN ($jobclause)) AS listfile1
         ON (listpath1.PathId = listfile1.PathId)
-    UNION
-    SELECT brestore_missing_path1.PathId, brestore_missing_path1.Path,
-           lower(brestore_missing_path1.Path), listfile2.JobId, listfile2.Lstat
-    FROM (
-        SELECT DISTINCT brestore_pathhierarchy2.PathId
-        FROM brestore_pathhierarchy AS brestore_pathhierarchy2
-        JOIN brestore_missing_path AS brestore_missing_path2
-            ON (brestore_pathhierarchy2.PathId = brestore_missing_path2.PathId)
-        JOIN brestore_pathvisibility AS brestore_pathvisibility2
-            ON (brestore_pathhierarchy2.PathId = brestore_pathvisibility2.PathId)
-        WHERE brestore_pathhierarchy2.PPathId = $pathid
-        AND brestore_pathvisibility2.jobid IN ($jobclause)) AS listpath2
-    JOIN brestore_missing_path AS brestore_missing_path1 ON (listpath2.PathId = brestore_missing_path1.PathId)
-    LEFT JOIN (
-        SELECT File2.PathId, File2.JobId, File2.Lstat FROM File AS File2
-        WHERE File2.FilenameId = $dir_filenameid
-        AND File2.JobId IN ($jobclause)) AS listfile2
-        ON (listpath2.PathId = listfile2.PathId)
-     ) AS A ORDER BY 2,3 DESC 
+     ) AS A ORDER BY 2,3 DESC
 ";
     $self->debug($query);
     $sth=$self->dbh_prepare($query);
@@ -2572,8 +2548,6 @@ sub estimate_restore_size
   AND File.JobId = Job.JobId
   AND Path.Path LIKE 
         (SELECT " . $self->dbh_strcat('Path',"'\%'") . " FROM Path WHERE PathId IN ($dir)
-          UNION 
-         SELECT " . $self->dbh_strcat('Path',"'\%'") . " FROM brestore_missing_path WHERE PathId IN ($dir)
         )
   AND File.JobId IN ($inclause)
   ORDER BY Path.Path, File.FilenameId, Job.StartTime DESC";
@@ -2894,12 +2868,11 @@ sub build_path_hierarchy
 sub return_pathid_from_path
 {
     my ($self, $path) = @_;
-    my $query = "SELECT PathId FROM Path WHERE Path = ?
-                 UNION
-                 SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+    my $query = "SELECT PathId FROM Path WHERE Path = ?";
+
     #print STDERR $query,"\n" if $debug;
     my $sth = $self->{conf}->{dbh}->prepare_cached($query);
-    $sth->execute($path,$path);
+    $sth->execute($path);
     my $result =$sth->fetchrow_arrayref();
     $sth->finish();
     if (defined $result)
@@ -2907,7 +2880,7 @@ sub return_pathid_from_path
 	return $result->[0];
 
     } else {
-        # A bit dirty : we insert into path AND missing_path, to be sure
+        # A bit dirty : we insert into path, and we have to be sure
         # we aren't deleted by a purge. We still need to insert into path to get
         # the pathid, because of mysql
         $query = "INSERT INTO Path (Path) VALUES (?)";
@@ -2916,18 +2889,7 @@ sub return_pathid_from_path
 	$sth->execute($path);
 	$sth->finish();
         
-	$query = " INSERT INTO brestore_missing_path (PathId,Path)
-	           SELECT PathId,Path FROM Path WHERE Path = ?";
-	#print STDERR $query,"\n" if $debug;
-	$sth = $self->{conf}->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$sth->finish();
-	$query = " DELETE FROM Path WHERE Path = ?";
-	#print STDERR $query,"\n" if $debug;
-	$sth = $self->{conf}->{dbh}->prepare_cached($query);
-	$sth->execute($path);
-	$sth->finish();
-	$query = "SELECT PathId FROM brestore_missing_path WHERE Path = ?";
+	$query = "SELECT PathId FROM Path WHERE Path = ?";
 	#print STDERR $query,"\n" if $debug;
 	$sth = $self->{conf}->{dbh}->prepare_cached($query);
 	$sth->execute($path);
@@ -2989,24 +2951,6 @@ sub create_brestore_tables
 
 	$req = "CREATE INDEX brestore_pathvisibility_jobid
                           ON brestore_pathvisibility (JobId)";
-	$self->dbh_do($req);
-    }
-    
-    $verif = "SELECT 1 FROM brestore_missing_path LIMIT 1";
-    unless ($self->dbh_do($verif)) {
-    	my $req = "
-    CREATE TABLE brestore_missing_path
-    (
-      PathId int4 NOT NULL,
-      Path text NOT NULL,
-      CONSTRAINT brestore_missing_path_pkey PRIMARY KEY (PathId)
-    )";
-	$self->dbh_do($req);
-
-	my $len = ($self->{conf}->{is_mysql} == 1)?'(255)':'';
-
-	$req = "CREATE INDEX brestore_missing_path_path
-                          ON brestore_missing_path (Path$len)";
 	$self->dbh_do($req);
     }
 }
