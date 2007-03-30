@@ -1,5 +1,8 @@
           Release Notes for bweb 2.0
 
+2007/03/30
+ - disconnect from database before exiting
+
 2007/03/19
  - add a re-run option in display_job_zoom
 
