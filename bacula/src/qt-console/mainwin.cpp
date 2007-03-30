@@ -85,8 +85,8 @@ void MainWin::createPages()
    item = createPage("Console", topItem);
    m_console->SetPassedValues(stackedWidget, item, m_pages );
 
-   /* Append to pageslist */
-   m_pageshash.insert(m_pages, m_console);
+   /* Append to pagelist */
+   m_pagelist.insert(m_pages, m_console);
 
    /* Set Color of treeWidgetItem for the console
    * It will be set to gree in the console class if the connection is made.
@@ -106,18 +106,18 @@ void MainWin::createPages()
    m_pages++;
    item=createPage("brestore", topItem);
    bRestore* brestore=new bRestore(stackedWidget, item, m_pages);
-   m_pageshash.insert(m_pages, brestore);
+   m_pagelist.insert(m_pages, brestore);
 
 
    /* lastly for now, the medialist */
    m_pages++;
-   item=createPage("Storage Tree", topItem );
+   item=createPage("Media", topItem );
    MediaList* medialist=new MediaList(stackedWidget, m_console, item, m_pages);
-   m_pageshash.insert(m_pages, medialist);
+   m_pagelist.insert(m_pages, medialist);
 
    /* Iterate through and add to the stack */
-   foreach (Pages* pagesItem,  m_pageshash)
-      pagesItem->dockPage();
+   foreach (Pages *page,  m_pagelist)
+      page->dockPage();
 
    treeWidget->expandItem(topItem);
    stackedWidget->setCurrentIndex(0);
@@ -241,13 +241,13 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    /* Use tree item's Qt::UserRole to get treeindex */
    int treeindex = item->data(column, Qt::UserRole).toInt();
-   int stackindex=stackedWidget->indexOf(m_pageshash.value(treeindex));
+   int stackindex=stackedWidget->indexOf(m_pagelist.value(treeindex));
 
    if( stackindex >= 0 ){
       stackedWidget->setCurrentIndex(stackindex);
    }
    /* run the virtual function in case this class overrides it */
-   m_pageshash.value(treeindex)->PgSeltreeWidgetClicked();
+   m_pagelist.value(treeindex)->PgSeltreeWidgetClicked();
 }
 
 /*
@@ -259,8 +259,8 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
    int treeindex = item->data(column, Qt::UserRole).toInt();
 
    /* Use tree item's Qt::UserRole to get treeindex */
-   if (m_pageshash.value(treeindex)->isDocked()) {
-      m_pagespophold = m_pageshash.value(treeindex);
+   if (m_pagelist.value(treeindex)->isDocked()) {
+      m_pagespophold = m_pagelist.value(treeindex);
 
       /* Create a popup menu before floating window */
       QMenu *popup = new QMenu( treeWidget );
@@ -269,10 +269,10 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
       popup->exec(QCursor::pos());
    } else {
       /* Just pull it back in without prompting */
-      m_pageshash.value(treeindex)->togglePageDocking();
+      m_pagelist.value(treeindex)->togglePageDocking();
    }
    /* Here is the virtual function so that different classes can do different things */
-   m_pageshash.value(treeindex)->PgSeltreeWidgetDoubleClicked();
+   m_pagelist.value(treeindex)->PgSeltreeWidgetDoubleClicked();
 }
 
 void MainWin::labelDialogClicked() 

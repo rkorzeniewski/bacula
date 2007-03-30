@@ -86,7 +86,7 @@ private:
 private:
    Console *m_console;
    Pages *m_pagespophold;
-   QHash<int,Pages*> m_pageshash;
+   QHash<int,Pages*> m_pagelist;
    QStringList m_cmd_history;
    int m_cmd_last;
    int m_pages;
