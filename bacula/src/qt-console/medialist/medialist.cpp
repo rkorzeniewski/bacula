@@ -70,7 +70,7 @@ void MediaList::populateTree()
       " WHERE m.PoolId=p.PoolId"
       " ORDER BY p.Name";
    QStringList headerlist = (QStringList()
-      << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
+      << "Pool Name" << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
       << "Volume Bytes" << "Volume Files" << "Volume Retention" 
       << "Media Type" << "Last Written");
 
@@ -91,35 +91,38 @@ void MediaList::populateTree()
    m_treeWidget->setHeaderLabels(headerlist);
 
    if (m_console->sql_cmd(query, results)) {
-      int recordcounter = 0;
+      QString field;
+      QStringList fieldlist;
+      QRegExp regex("^Using Catalog");
+
       foreach (resultline, results) {
-         QRegExp regex("^Using Catalog");
+         fieldlist = resultline.split("\t");
          if (regex.indexIn(resultline) < 0) {
-            QStringList recorditemlist = resultline.split("\t");
-            int recorditemcnter = 0;
-            /* Iterate through items in the record */
-            QString mediarecorditem;
-            foreach (mediarecorditem, recorditemlist) {
-               QString trimmeditem = mediarecorditem.trimmed();
-               if (trimmeditem != "") {
-                  if (recorditemcnter == 0) {
-                     if (currentpool != trimmeditem) {
-                        currentpool = trimmeditem;
+            int index = 0;
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               if (field != "") {
+                  /* The first field is the pool name */
+                  if (index == 0) {
+                     /* If new pool name, create new Pool item */
+                     if (currentpool != field) {
+                        currentpool = field;
                         pooltreeitem = new QTreeWidgetItem(topItem);
-                        pooltreeitem->setText(0, trimmeditem);
+                        pooltreeitem->setText(0, field);
                         pooltreeitem->setData(0, Qt::UserRole, 1);
                         pooltreeitem->setExpanded(true);
                      }
                      mediatreeitem = new QTreeWidgetItem(pooltreeitem);
                   } else {
-                     mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
-                     mediatreeitem->setText(recorditemcnter-1, trimmeditem);
+                     /* Put media fields under the pool tree item */
+                     mediatreeitem->setData(index, Qt::UserRole, 2);
+                     mediatreeitem->setText(index, field);
                   }
-                  recorditemcnter++;
                }
+               index++;
             }
          }
-         recordcounter++;
       }
    }
 }
@@ -141,9 +144,9 @@ void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
    case 2:
       /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
       m_popuptext = item->text(0);
-      QMenu *popup = new QMenu( m_treeWidget );
+      QMenu *popup = new QMenu(m_treeWidget);
       connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
-      connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
+      connect(popup->addAction("List Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
       popup->exec(QCursor::pos());
       break;
    }
