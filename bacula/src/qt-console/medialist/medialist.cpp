@@ -90,6 +90,17 @@ void MediaList::populateTree()
 
    m_treeWidget->setHeaderLabels(headerlist);
 
+   /* 
+    * Setup a context menu 
+    */
+   QAction *editAction = new QAction("Edit Properties", m_treeWidget);
+   QAction *listAction = new QAction("List Jobs On Media", m_treeWidget);
+   m_treeWidget->addAction(editAction);
+   m_treeWidget->addAction(listAction);
+   connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
+   connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
+   m_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+
    if (m_console->sql_cmd(query, results)) {
       QString field;
       QStringList fieldlist;
@@ -135,8 +146,9 @@ void MediaList::createConnections()
                 SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
 }
 
-void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
+void MediaList::treeItemClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 {
+#ifdef xxx
    int treedepth = item->data(column, Qt::UserRole).toInt();
    switch (treedepth) {
    case 1:
@@ -150,6 +162,7 @@ void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
       popup->exec(QCursor::pos());
       break;
    }
+#endif
 }
 
 void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
@@ -161,6 +174,7 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 
 void MediaList::editMedia()
 {
+   /* ***FIXME*** make sure a valid tree item is selected -- check currentItem */
    MediaEdit* edit = new MediaEdit(m_console, m_popuptext);
    edit->show();
 }

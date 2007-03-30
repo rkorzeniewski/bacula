@@ -136,7 +136,7 @@
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
-   <addaction name="actionPullWindowOut" />
+   <addaction name="actionUndock" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -446,12 +446,17 @@
     <string>&amp;Select Font ...</string>
    </property>
   </action>
-  <action name="actionPullWindowOut" >
+  <action name="actionUndock" >
    <property name="icon" >
     <iconset>images/up.png</iconset>
    </property>
    <property name="text" >
-    <string>Pull Window Out</string>
+    <string>Undock Window</string>
+   </property>
+  </action>
+  <action name="actionActionMediaPopUp" >
+   <property name="text" >
+    <string>actionMediaPopUp</string>
    </property>
   </action>
  </widget>

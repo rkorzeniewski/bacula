@@ -45,7 +45,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Select Page");
-   treeWidget->addAction(actionPullWindowOut);
+   treeWidget->addAction(actionUndock);
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
    m_pages = 0;
@@ -199,7 +199,7 @@ void MainWin::createConnections()
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
-   connect(actionPullWindowOut, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
+   connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
 }
 
 /* 
