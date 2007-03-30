@@ -235,9 +235,6 @@ int parse_args(POOLMEM *cmd, POOLMEM **args, int *argc,
       p = strchr(argk[i], '=');
       if (p) {
          *p++ = 0;                    /* terminate keyword and point to value */
-         if (strlen(p) > MAX_NAME_LENGTH-1) {
-            p[MAX_NAME_LENGTH-1] = 0; /* truncate to max len */
-         }
       }
       argv[i] = p;                    /* save ptr to value or NULL */
    }
