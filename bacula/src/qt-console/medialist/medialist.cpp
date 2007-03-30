@@ -68,7 +68,7 @@ void MediaList::populateTree()
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
 
    m_treeWidget->clear();
-   m_treeWidget->setColumnCount(3);
+   m_treeWidget->setColumnCount(9);
    topItem = new QTreeWidgetItem(m_treeWidget);
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
@@ -83,15 +83,22 @@ void MediaList::populateTree()
    /* Start with a list of pools */
    m_poollist->clear();
    m_headerlist->clear();
+   //m_headerlist->append("Media Id");
    m_headerlist->append("Volume Name");
    m_headerlist->append("Media Id");
-   m_headerlist->append("Type");
+   m_headerlist->append("Volume Status");
+   m_headerlist->append("Enabled");
+   m_headerlist->append("Volume Bytes");
+   m_headerlist->append("Volume Files");
+   m_headerlist->append("Volume Retention");
+   m_headerlist->append("Media Type");
+   m_headerlist->append("Last Written");
    m_treeWidget->setHeaderLabels(*m_headerlist);
 
    QString currentpool("");
    QString resultline;
    QStringList results;
-   const char* m_cmd = ".sql \"select p.name, m.volumename, m.mediaid, m.mediatype from media m, pool p ORDER BY p.name\"";
+   QString m_cmd(".sql \"select p.name, m.volumename, m.mediaid, m.volstatus, m.enabled, m.volbytes, m.volfiles, m.volretention, m.mediatype, m.lastwritten FROM media m, pool p ORDER BY p.name\"");
    if ( m_console->dir_cmd(m_cmd,results)){
       int recordcounter=0;
       foreach( resultline, results ){
