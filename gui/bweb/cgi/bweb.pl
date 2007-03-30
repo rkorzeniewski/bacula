@@ -382,6 +382,7 @@ if ($action eq 'begin') {		# main display
 
 $bweb->display_end();
 
+$bweb->dbh_disconnect();
 
 __END__
 

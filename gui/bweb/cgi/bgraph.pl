@@ -498,3 +498,4 @@ $limit
     print $obj->plot([$ret->{date}, $ret->{nb}])->png;    
 }
 
+$dbh->disconnect();

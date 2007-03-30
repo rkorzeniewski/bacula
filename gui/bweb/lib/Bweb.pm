@@ -1071,6 +1071,15 @@ our %sql_func = (
 	  },
 	 );
 
+sub dbh_disconnect
+{
+    my ($self) = @_;
+    if ($self->{dbh}) {
+       $self->{dbh}->disconnect();
+       undef self->{dbh};
+    }
+}
+
 sub dbh_selectall_arrayref
 {
     my ($self, $query) = @_;
