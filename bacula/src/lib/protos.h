@@ -86,7 +86,7 @@ bool       bnet_sig              (BSOCK *bs, int sig);
 bool       bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
 bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock,
-				  alist *verify_list);
+                                  alist *verify_list);
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
                utime_t max_retry_time, const char *name, char *host, char *service,
                int port, int verbose);
@@ -223,6 +223,7 @@ void       init_console_msg      (const char *wd);
 void       free_msgs_res         (MSGS *msgs);
 void       dequeue_messages      (JCR *jcr);
 void       set_trace             (int trace_flag);
+void       set_db_type           (const char *name);
 
 /* bnet_server.c */
 void       bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq,
