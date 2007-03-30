@@ -563,6 +563,10 @@ void term_msg()
       fclose(trace_fd);
       trace_fd = NULL;
    }
+   if (catalog_db) {
+      free(catalog_db);
+      catalog_db = NULL;
+   }
    term_last_jobs_list();
 }
 
