@@ -959,5 +959,7 @@ static bool check_catalog()
       }
       db_close_database(NULL, db);
    }
+   /* Set type in global for debugging */
+   set_db_type(db_get_type());
    return OK;
 }

@@ -212,8 +212,8 @@ build_client_only=no
 build_dird=yes
 build_stored=yes
 cats=
-db_name=Internal
-DB_NAME=bdb
+db_type=Internal
+DB_TYPE=bdb
 
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING COMMAND LINE OPTIONS
@@ -432,8 +432,8 @@ AC_ARG_ENABLE(client-only,
    [  --enable-client-only    build client (File daemon) only [disabled]],
    [if test x$enableval = xyes; then
       build_client_only=yes
-      db_name=None
-      DB_NAME=none
+      db_type=None
+      DB_TYPE=none
    fi])
 if test x$build_client_only = xno; then
    ALL_DIRS="subdirs"
@@ -1121,6 +1121,31 @@ AC_SUBST(mon_dir_password)
 AC_SUBST(mon_fd_password)
 AC_SUBST(mon_sd_password)
 
+#
+# Pickup any database name
+#
+db_name=bacula
+AC_ARG_WITH(db_name,
+    [  --with-db-name=DBNAME	       specify database name (default bacula)],
+    [
+	if test "x$withval" != "x" ; then	
+	     db_name=$withval
+	fi
+    ]
+)
+AC_SUBST(db_name)
+
+db_user=bacula
+AC_ARG_WITH(db_user,
+    [  --with-db-user=UNAME	       specify database user (default bacula)],
+    [
+	if test "x$withval" != "x" ; then	
+	     db_user=$withval
+	fi
+    ]
+)
+AC_SUBST(db_user)
+
 
 #
 # Handle users and groups for each daemon
@@ -1222,7 +1247,7 @@ BA_CHECK_SQLITE3_DB
 BA_CHECK_SQLITE_DB
 
 AC_SUBST(cats)
-AC_SUBST(DB_NAME)
+AC_SUBST(DB_TYPE)
 
 AC_DEFINE(PROTOTYPES)
 
@@ -2140,7 +2165,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi 
 
-if test "x${db_name}" = "xInternal" ; then
+if test "x${db_type}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
@@ -2177,8 +2202,10 @@ Configuration on `date`:
   Statically Linked SD:       ${support_static_sd}
   Statically Linked DIR:      ${support_static_dir}
   Statically Linked CONS:     ${support_static_cons}
-  Database type:	      ${db_name}
+  Database type:	      ${db_type}
   Database lib: 	      ${DB_LIBS}
+  Database name:	      ${db_name}
+  Database user:	      ${db_user}
 
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}

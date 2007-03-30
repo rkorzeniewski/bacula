@@ -93,8 +93,8 @@ AC_ARG_WITH(mysql,
     AC_MSG_RESULT(yes)
     db_found=yes
     support_mysql=yes
-    db_name=MySQL
-    DB_NAME=mysql
+    db_type=MySQL
+    DB_TYPE=mysql
 
   else
         AC_MSG_RESULT(no)
@@ -185,8 +185,8 @@ AC_ARG_WITH(embedded-mysql,
     AC_MSG_RESULT(yes)
     db_found=yes
     support_mysql=yes
-    db_name=MySQL
-    DB_NAME=mysql
+    db_type=MySQL
+    DB_TYPE=mysql
 
   else
         AC_MSG_RESULT(no)
@@ -268,8 +268,8 @@ AC_ARG_WITH(sqlite,
      AC_MSG_RESULT(yes)
      db_found=yes
      support_sqlite=yes
-     db_name=SQLite
-     DB_NAME=sqlite
+     db_type=SQLite
+     DB_TYPE=sqlite
 
   else
      AC_MSG_RESULT(no)
@@ -349,8 +349,8 @@ AC_ARG_WITH(sqlite3,
      AC_MSG_RESULT(yes)
      db_found=yes
      support_sqlite3=yes
-     db_name=SQLite3
-     DB_NAME=sqlite3
+     db_type=SQLite3
+     DB_TYPE=sqlite3
 
   else
      AC_MSG_RESULT(no)
@@ -446,8 +446,8 @@ AC_ARG_WITH(postgresql,
       AC_MSG_RESULT(yes)
       db_found=yes
       support_postgresql=yes
-      db_name=PostgreSQL
-      DB_NAME=postgresql
+      db_type=PostgreSQL
+      DB_TYPE=postgresql
   else
       AC_MSG_RESULT(no)
   fi
@@ -470,7 +470,7 @@ dnl# --------------------------------------------------------------------------
 dnl Check for some DBMS backend
 dnl NOTE: we can use only one backend at a time
 db_found=no
-db_name=none
+DB_TYPE=none
 
 if test x$support_mysql = xyes; then
    cats=cats
@@ -516,7 +516,7 @@ AC_ARG_WITH(berkeleydb,
     AC_MSG_RESULT(yes)
     have_db=yes
     support_mysql=yes
-    db_name=BerkelyDB
+    DB_TYPE=BerkelyDB
 
   else
         AC_MSG_RESULT(no)

@@ -799,6 +799,8 @@ sd_password
 mon_dir_password
 mon_fd_password
 mon_sd_password
+db_name
+db_user
 dir_user
 dir_group
 sd_user
@@ -810,7 +812,7 @@ SQL_LFLAGS
 SQL_INCLUDE
 SQL_BINDIR
 cats
-DB_NAME
+DB_TYPE
 GETCONF
 XMKMF
 X_CFLAGS
@@ -1479,6 +1481,8 @@ Optional Packages:
   --with-mon-dir-password=PASSWORD	 specify Director's password used by the monitor
   --with-mon-fd-password=PASSWORD	 specify Client's password used by the monitor
   --with-mon-sd-password=PASSWORD	 specify Storage daemon's password used by the monitor
+  --with-db-name=DBNAME	       specify database name (default bacula)
+  --with-db-user=UNAME	       specify database user (default bacula)
   --with-dir-user=USER		 specify user for Director daemon
   --with-dir-group=GROUP		 specify group for Director daemon
   --with-sd-user=USER		 specify user for Storage daemon
@@ -14634,8 +14638,8 @@ build_client_only=no
 build_dird=yes
 build_stored=yes
 cats=
-db_name=Internal
-DB_NAME=bdb
+db_type=Internal
+DB_TYPE=bdb
 
 
 # -------------------------------------------
@@ -14885,8 +14889,8 @@ fi
 if test "${enable_client_only+set}" = set; then
   enableval=$enable_client_only; if test x$enableval = xyes; then
       build_client_only=yes
-      db_name=None
-      DB_NAME=none
+      db_type=None
+      DB_TYPE=none
    fi
 fi
 
@@ -18539,6 +18543,37 @@ fi
 
 
 
+#
+# Pickup any database name
+#
+db_name=bacula
+
+# Check whether --with-db_name was given.
+if test "${with_db_name+set}" = set; then
+  withval=$with_db_name;
+	if test "x$withval" != "x" ; then
+	     db_name=$withval
+	fi
+
+
+fi
+
+
+
+db_user=bacula
+
+# Check whether --with-db_user was given.
+if test "${with_db_user+set}" = set; then
+  withval=$with_db_user;
+	if test "x$withval" != "x" ; then
+	     db_user=$withval
+	fi
+
+
+fi
+
+
+
 
 #
 # Handle users and groups for each daemon
@@ -18927,8 +18962,8 @@ _ACEOF
 echo "${ECHO_T}yes" >&6; }
       db_found=yes
       support_postgresql=yes
-      db_name=PostgreSQL
-      DB_NAME=postgresql
+      db_type=PostgreSQL
+      DB_TYPE=postgresql
   else
       { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -19053,8 +19088,8 @@ _ACEOF
 echo "${ECHO_T}yes" >&6; }
     db_found=yes
     support_mysql=yes
-    db_name=MySQL
-    DB_NAME=mysql
+    db_type=MySQL
+    DB_TYPE=mysql
 
   else
         { echo "$as_me:$LINENO: result: no" >&5
@@ -19159,8 +19194,8 @@ _ACEOF
 echo "${ECHO_T}yes" >&6; }
     db_found=yes
     support_mysql=yes
-    db_name=MySQL
-    DB_NAME=mysql
+    db_type=MySQL
+    DB_TYPE=mysql
 
   else
         { echo "$as_me:$LINENO: result: no" >&5
@@ -19252,8 +19287,8 @@ _ACEOF
 echo "${ECHO_T}yes" >&6; }
      db_found=yes
      support_sqlite3=yes
-     db_name=SQLite3
-     DB_NAME=sqlite3
+     db_type=SQLite3
+     DB_TYPE=sqlite3
 
   else
      { echo "$as_me:$LINENO: result: no" >&5
@@ -19347,8 +19382,8 @@ _ACEOF
 echo "${ECHO_T}yes" >&6; }
      db_found=yes
      support_sqlite=yes
-     db_name=SQLite
-     DB_NAME=sqlite
+     db_type=SQLite
+     DB_TYPE=sqlite
 
   else
      { echo "$as_me:$LINENO: result: no" >&5
@@ -34830,6 +34865,8 @@ sd_password!$sd_password$ac_delim
 mon_dir_password!$mon_dir_password$ac_delim
 mon_fd_password!$mon_fd_password$ac_delim
 mon_sd_password!$mon_sd_password$ac_delim
+db_name!$db_name$ac_delim
+db_user!$db_user$ac_delim
 dir_user!$dir_user$ac_delim
 dir_group!$dir_group$ac_delim
 sd_user!$sd_user$ac_delim
@@ -34841,7 +34878,7 @@ SQL_LFLAGS!$SQL_LFLAGS$ac_delim
 SQL_INCLUDE!$SQL_INCLUDE$ac_delim
 SQL_BINDIR!$SQL_BINDIR$ac_delim
 cats!$cats$ac_delim
-DB_NAME!$DB_NAME$ac_delim
+DB_TYPE!$DB_TYPE$ac_delim
 GETCONF!$GETCONF$ac_delim
 XMKMF!$XMKMF$ac_delim
 X_CFLAGS!$X_CFLAGS$ac_delim
@@ -34868,7 +34905,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 46; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 48; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -35480,7 +35517,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-if test "x${db_name}" = "xInternal" ; then
+if test "x${db_type}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
@@ -35517,8 +35554,10 @@ Configuration on `date`:
   Statically Linked SD:       ${support_static_sd}
   Statically Linked DIR:      ${support_static_dir}
   Statically Linked CONS:     ${support_static_cons}
-  Database type:	      ${db_name}
+  Database type:	      ${db_type}
   Database lib: 	      ${DB_LIBS}
+  Database name:	      ${db_name}
+  Database user:	      ${db_user}
 
   Job Output Email:	      ${job_email}
   Traceback Email:	      ${dump_email}

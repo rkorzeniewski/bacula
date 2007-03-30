@@ -1,12 +1,4 @@
 /*
- * Bacula message handling routines
- *
- *   Kern Sibbald, April 2000
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -163,11 +155,9 @@ get_db_type(void)
 void
 set_db_type(const char *name)
 {
-   if (catalog_db != NULL)
-   {
+   if (catalog_db != NULL) {
       free(catalog_db);
    }
-
    catalog_db = bstrdup(name);
 }
 
