@@ -347,12 +347,6 @@ void MainWin::undockWindow()
 
 void MainWin::undockWindowButton()
 {
-   int curindex = stackedWidget->currentIndex();
-   
-   foreach (Pages* pagesItem,  m_pageshash){
-      if (curindex == stackedWidget->indexOf(pagesItem)) {
-         pagesItem->togglePageDocking();
-         break;
-      }
-   }
+   Pages* page = (Pages*)stackedWidget->currentWidget();
+   page->togglePageDocking();
 }
