@@ -112,7 +112,7 @@ Job {
   Messages = Standard
   Pool = Default
   # This creates an ASCII copy of the catalog
-  RunBeforeJob = "@sbindir@/make_catalog_backup -u bacula"
+  RunBeforeJob = "@sbindir@/make_catalog_backup -u regress"
   # This deletes the copy of the catalog
   RunAfterJob  = "@sbindir@/delete_catalog_backup"
   Write Bootstrap = "@working_dir@/BackupCatalog.bsr"
@@ -260,7 +260,7 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
-  dbname = bacula; user = bacula; password = ""
+  dbname = regress; user = regress; password = ""
 }
 
 # Reasonable message delivery -- send most everything to email address

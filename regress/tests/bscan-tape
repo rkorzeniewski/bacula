@@ -115,7 +115,7 @@ cd bin
 cd ..
 
 echo "volume=TestVolume001" >tmp/bscan.bsr
-bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
+bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null

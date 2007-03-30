@@ -16,6 +16,8 @@ CFLAGS="-g -O2 -Wall" \
     --with-dump-email=$2 \
     --with-job-email=$2 \
     --with-smtp-host=$5 \
+    --with-db-name=regress \
+    --with-db-user=regress \
     $3 \
     --with-baseport=8101 \
     $4 \
