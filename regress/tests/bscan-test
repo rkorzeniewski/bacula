@@ -53,9 +53,9 @@ stop_bacula
 echo "volume=TestVolume001|TestVolume002" >tmp/bscan.bsr
 
 if test "$debug" -eq 1 ; then
-  bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp
+  bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp
 else
-  bin/bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
+  bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >/dev/null
 fi
 
 cat <<END_OF_DATA >tmp/bconcmds
