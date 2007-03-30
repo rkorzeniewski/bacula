@@ -50,22 +50,29 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    m_treeWidget = treeWidget;   /* our Storage Tree Tree Widget */
    m_console = console;
    createConnections();
-   m_populated=false;
-   m_headerlist = new QStringList();
-   m_popupmedia = new QString("");
-   m_poollist = new QStringList();
+   m_populated = false;
 }
 
 MediaList::~MediaList()
 {
-   delete m_headerlist;
-   delete m_popupmedia;
-   delete m_poollist;
 }
 
 void MediaList::populateTree()
 {
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
+   QString currentpool("");
+   QString resultline;
+   QStringList results;
+   const char *query = 
+      "SELECT p.Name,m.VolumeName,m.MediaId,m.VolStatus,m.Enabled,m.VolBytes,"
+      "m.VolFiles,m.VolRetention,m.MediaType,m.LastWritten"
+      " FROM Media m,Pool p"
+      " WHERE m.PoolId=p.PoolId"
+      " ORDER BY p.Name";
+   QStringList headerlist = (QStringList()
+      << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
+      << "Volume Bytes" << "Volume Files" << "Volume Retention" 
+      << "Media Type" << "Last Written");
 
    m_treeWidget->clear();
    m_treeWidget->setColumnCount(9);
@@ -73,6 +80,7 @@ void MediaList::populateTree()
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded( true );
+
 #ifdef xxx
 #include <QSize>
 *****    FIXME   *****
@@ -80,55 +88,38 @@ void MediaList::populateTree()
 //topItem->setSizeHint(0,QSize(1050,50));
 #endif
 
-   /* Start with a list of pools */
-   m_poollist->clear();
-   m_headerlist->clear();
-   //m_headerlist->append("Media Id");
-   m_headerlist->append("Volume Name");
-   m_headerlist->append("Media Id");
-   m_headerlist->append("Volume Status");
-   m_headerlist->append("Enabled");
-   m_headerlist->append("Volume Bytes");
-   m_headerlist->append("Volume Files");
-   m_headerlist->append("Volume Retention");
-   m_headerlist->append("Media Type");
-   m_headerlist->append("Last Written");
-   m_treeWidget->setHeaderLabels(*m_headerlist);
+   m_treeWidget->setHeaderLabels(headerlist);
 
-   QString currentpool("");
-   QString resultline;
-   QStringList results;
-   QString m_cmd(".sql \"select p.name, m.volumename, m.mediaid, m.volstatus, m.enabled, m.volbytes, m.volfiles, m.volretention, m.mediatype, m.lastwritten FROM media m, pool p ORDER BY p.name\"");
-   if ( m_console->dir_cmd(m_cmd,results)){
-      int recordcounter=0;
-      foreach( resultline, results ){
+   if (m_console->sql_cmd(query, results)) {
+      int recordcounter = 0;
+      foreach (resultline, results) {
          QRegExp regex("^Using Catalog");
-         if ( regex.indexIn(resultline) < 0 ){
+         if (regex.indexIn(resultline) < 0) {
             QStringList recorditemlist = resultline.split("\t");
-            int recorditemcnter=0;
+            int recorditemcnter = 0;
             /* Iterate through items in the record */
             QString mediarecorditem;
-               foreach( mediarecorditem, recorditemlist ){
+            foreach (mediarecorditem, recorditemlist) {
                QString trimmeditem = mediarecorditem.trimmed();
-               if( trimmeditem != "" ){
-                  if ( recorditemcnter == 0 ){
-                     if ( currentpool != trimmeditem.toUtf8().data() ){
-                        currentpool = trimmeditem.toUtf8().data();
+               if (trimmeditem != "") {
+                  if (recorditemcnter == 0) {
+                     if (currentpool != trimmeditem) {
+                        currentpool = trimmeditem;
                         pooltreeitem = new QTreeWidgetItem(topItem);
-                        pooltreeitem->setText(0, trimmeditem.toUtf8().data());
+                        pooltreeitem->setText(0, trimmeditem);
                         pooltreeitem->setData(0, Qt::UserRole, 1);
-                        pooltreeitem->setExpanded( true );
+                        pooltreeitem->setExpanded(true);
                      }
                      mediatreeitem = new QTreeWidgetItem(pooltreeitem);
                   } else {
                      mediatreeitem->setData(recorditemcnter-1, Qt::UserRole, 2);
-                     mediatreeitem->setText(recorditemcnter-1, trimmeditem.toUtf8().data());
+                     mediatreeitem->setText(recorditemcnter-1, trimmeditem);
                   }
-                  recorditemcnter+=1;
+                  recorditemcnter++;
                }
             }
          }
-         recordcounter+=1;
+         recordcounter++;
       }
    }
 }
@@ -144,17 +135,17 @@ void MediaList::createConnections()
 void MediaList::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    int treedepth = item->data(column, Qt::UserRole).toInt();
-   QString text = item->text(0);
-   switch (treedepth){
-      case 1:
-         break;
-      case 2:
-         /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
-         *m_popupmedia = text;
-         QMenu *popup = new QMenu( m_treeWidget );
-         connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
-         connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
-         popup->exec(QCursor::pos());
+   switch (treedepth) {
+   case 1:
+      break;
+   case 2:
+      /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
+      m_popuptext = item->text(0);
+      QMenu *popup = new QMenu( m_treeWidget );
+      connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
+      connect(popup->addAction("Show Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
+      popup->exec(QCursor::pos());
+      break;
    }
 }
 
@@ -167,19 +158,19 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
 
 void MediaList::editMedia()
 {
-   MediaEdit* edit = new MediaEdit(m_console, *m_popupmedia);
+   MediaEdit* edit = new MediaEdit(m_console, m_popuptext);
    edit->show();
 }
 
 void MediaList::showJobs()
 {
-   JobList* joblist = new JobList(m_console, *m_popupmedia);
+   JobList* joblist = new JobList(m_console, m_popuptext);
    joblist->show();
 }
 
 void MediaList::PgSeltreeWidgetClicked()
 {
-   if( ! m_populated ){
+   if(!m_populated) {
       populateTree();
       m_populated=true;
    }

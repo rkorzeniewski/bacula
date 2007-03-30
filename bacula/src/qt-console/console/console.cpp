@@ -159,12 +159,45 @@ bool Console::dir_cmd(QString &cmd, QStringList &results)
    return dir_cmd(cmd.toUtf8().data(), results);
 }
 
+/*
+ * Send a command to the Director, and return the
+ *  results in a QStringList.  
+ */
 bool Console::dir_cmd(const char *cmd, QStringList &results)
 {
    int stat;
 
    notify(false);
    write(cmd);
+   while ((stat = read()) > 0) {
+      strip_trailing_junk(msg());
+      results << msg();
+   }
+   notify(true);
+   discardToPrompt();
+   return true;              /* ***FIXME*** return any command error */
+}
+
+bool Console::sql_cmd(QString &query, QStringList &results)
+{
+   return sql_cmd(query.toUtf8().data(), results);
+}
+
+/*
+ * Send an sql query to the Director, and return the
+ *  results in a QStringList.  
+ */
+bool Console::sql_cmd(const char *query, QStringList &results)
+{
+   int stat;
+   POOL_MEM cmd(PM_MESSAGE);
+
+   notify(false);
+   
+   pm_strcpy(cmd, ".sql query=\"");
+   pm_strcat(cmd, query);
+   pm_strcat(cmd, "\"");
+   write(cmd.c_str());
    while ((stat = read()) > 0) {
       strip_trailing_junk(msg());
       results << msg();
@@ -395,8 +428,7 @@ int Console::write(const QString msg)
 
 int Console::write(const char *msg)
 {
-   m_sock->msglen = strlen(msg);
-   pm_strcpy(&m_sock->msg, msg);
+   m_sock->msglen = pm_strcpy(m_sock->msg, msg);
    m_at_prompt = false;
    if (commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();

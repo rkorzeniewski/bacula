@@ -60,10 +60,7 @@ private:
 private:
    Console *m_console;
    QTreeWidget *m_treeWidget;
-   QStringList *m_poollist;
-   QStringList *m_headerlist;
-   QString *m_popupmedia;
-   QString *m_cmd;
+   QString m_popuptext;
    bool m_populated;
    void populateTree();
 };
