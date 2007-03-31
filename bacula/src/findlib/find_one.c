@@ -181,6 +181,51 @@ static bool volume_has_attrlist(const char *fname)
    return false;
 }
 
+/* check if a file have changed during backup and display an error */
+bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
+{
+   struct stat statp;
+   Dmsg1(500, "has_file_changed fname=%s\n",ff_pkt->fname);
+
+   if (ff_pkt->type != FT_REG) { /* not a regular file */
+      return false;
+   }
+
+   if (lstat(ff_pkt->fname, &statp) != 0) {
+      berrno be;
+      Jmsg(jcr, M_WARNING, 0, 
+	   _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.strerror());
+      return true;
+   }
+
+   if (statp.st_mtime != ff_pkt->statp.st_mtime) {
+      /* TODO: add time of changes */
+      Jmsg(jcr, M_ERROR, 0, _("%s mtime changed during backup.\n"), ff_pkt->fname);
+      return true;
+   }
+
+   if (statp.st_ctime != ff_pkt->statp.st_ctime) {
+      /* TODO: add time of changes */
+      Jmsg(jcr, M_ERROR, 0, _("%s ctime changed during backup.\n"), ff_pkt->fname);
+      return true;
+   }
+  
+   if (statp.st_size != ff_pkt->statp.st_size) {
+      /* TODO: add size change */
+      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
+      return true;
+   }
+
+   if ((statp.st_blksize != ff_pkt->statp.st_blksize) ||
+       (statp.st_blocks  != ff_pkt->statp.st_blocks)) {
+      /* TODO: add size change */
+      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
+      return true;
+   }
+
+   return false;
+}
+
 /*
  * Find a single file.
  * handle_file is the callback for handling the file.

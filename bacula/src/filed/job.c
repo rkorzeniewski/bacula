@@ -1021,6 +1021,9 @@ static void set_options(findFOPTS *fo, const char *opts)
       case 'K':
          fo->flags |= FO_NOATIME;
          break;
+      case 'c':
+         fo->flags |= FO_CHKCHANGES;
+         break;
       default:
          Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
          break;

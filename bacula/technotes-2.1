@@ -1,6 +1,14 @@
               Technical notes on version 2.1
 
 General:
+31Mar07
+ebl  Check size and age of each file after their backup to see if
+     they have changed during backup.
+     It ask to fd to do an extra check (stat(2)) after
+     each file backup. mtime, ctime and size are compared with
+     "before backup" informations. If time or size mismatch, an
+     error will raise.
+     You must upgrade FD to use it.
 30Mar07
 kes  Make database name and user configurable
      --with-db-name=xxx --with-db-user=xxx
