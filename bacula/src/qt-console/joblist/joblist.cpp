@@ -36,14 +36,66 @@
 #include "bat.h"
 #include "joblist.h"
 
+
+/*
+ * Constructor for the class
+ */
 JobList::JobList(Console *console, QString &medianame)
 {
-   printf("Listing Jobs on Media %s\n", medianame.toUtf8().data());
    setupUi(this);
-   m_console = console;
-   tableWidget->clear();
-   tableWidget->setColumnCount(2);
-   tableWidget->setRowCount(5);
-   QTableWidgetItem* item = new QTableWidgetItem(medianame,1);
-   tableWidget->setItem(1, 1, item);
+   /* Store passed variables in member variables */
+   mp_console = console;
+   m_medianame = medianame;
+
+   populateTable();
+}
+
+/*
+ * The Meat of the class.
+ * This function will populate the QTableWidget, mp_tablewidget, with
+ * QTableWidgetItems representing the results of a query for what jobs exist on
+ * the media name passed from the constructor stored in m_medianame.
+ */
+void JobList::populateTable()
+{
+  QStringList results;
+  QString resultline;
+
+  /* Set up query QString and header QStringList */
+  QString query("");
+  query += "SELECT j.jobid,j.name,j.starttime,j.type,j.level,j.jobfiles,"
+           "j.jobstatus"
+           " FROM job j, jobmedia jm, media m"
+           " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid and m.VolumeName='";
+  query += m_medianame + "' ORDER BY j.starttime";
+   QStringList headerlist = (QStringList()
+      << "Job Id" << "Job Name" << "Job Starttime" << "Job Type" << "Job Level"
+      << "Job Files" << "Job Status");
+
+   /* Initialize the QTableWidget */
+   mp_tableWidget->clear();
+   mp_tableWidget->setColumnCount(headerlist.size());
+   mp_tableWidget->setHorizontalHeaderLabels(headerlist);
+
+   if (mp_console->sql_cmd(query, results)) {
+      QTableWidgetItem* p_tableitem;
+      QString field;
+      QStringList fieldlist;
+      mp_tableWidget->setRowCount(results.size());
+
+      int row = 0;
+      /* Iterate through the record returned from the query */
+      foreach (resultline, results) {
+         fieldlist = resultline.split("\t");
+         int column = 0;
+         /* Iterate through fields in the record */
+         foreach (field, fieldlist) {
+            field = field.trimmed();  /* strip leading & trailing spaces */
+            p_tableitem = new QTableWidgetItem(field,1);
+            mp_tableWidget->setItem(row, column, p_tableitem);
+            column++;
+         }
+         row++;
+      }
+   }
 }
