@@ -59,9 +59,8 @@ private:
    void createConnections();
 
 private:
-   Console *m_console;
-   QTreeWidget *m_treeWidget;
-   QString m_popuptext;
+   Console *mp_console;
+   QString m_currentlyselected;
    bool m_populated;
    void populateTree();
 };

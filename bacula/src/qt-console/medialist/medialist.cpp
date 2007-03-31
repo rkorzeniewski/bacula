@@ -47,8 +47,8 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    SetPassedValues(parent, treeItem, indexseq );
    setupUi(this);
 
-   m_treeWidget = treeWidget;   /* our Storage Tree Tree Widget */
-   m_console = console;
+   /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
+   mp_console = console;
    createConnections();
    m_populated = false;
 }
@@ -78,9 +78,9 @@ void MediaList::populateTree()
       << "Volume Bytes" << "Volume Files" << "Volume Retention" 
       << "Media Type" << "Last Written");
 
-   m_treeWidget->clear();
-   m_treeWidget->setColumnCount(9);
-   topItem = new QTreeWidgetItem(m_treeWidget);
+   mp_treeWidget->clear();
+   mp_treeWidget->setColumnCount(9);
+   topItem = new QTreeWidgetItem(mp_treeWidget);
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded( true );
@@ -92,55 +92,52 @@ void MediaList::populateTree()
 //topItem->setSizeHint(0,QSize(1050,50));
 #endif
 
-   m_treeWidget->setHeaderLabels(headerlist);
+   mp_treeWidget->setHeaderLabels(headerlist);
 
    /* 
     * Setup a context menu 
     */
-   QAction *editAction = new QAction("Edit Properties", m_treeWidget);
-   QAction *listAction = new QAction("List Jobs On Media", m_treeWidget);
-   m_treeWidget->addAction(editAction);
-   m_treeWidget->addAction(listAction);
+   QAction *editAction = new QAction("Edit Properties", mp_treeWidget);
+   QAction *listAction = new QAction("List Jobs On Media", mp_treeWidget);
+   mp_treeWidget->addAction(editAction);
+   mp_treeWidget->addAction(listAction);
    connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
    connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
-   m_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   connect(m_treeWidget, SIGNAL(
+   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
 
-   if (m_console->sql_cmd(query, results)) {
+   if (mp_console->sql_cmd(query, results)) {
       QString field;
       QStringList fieldlist;
-      QRegExp regex("^Using Catalog");
 
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
-         if (regex.indexIn(resultline) < 0) {
-            int index = 0;
-            /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
-               field = field.trimmed();  /* strip leading & trailing spaces */
-               if (field != "") {
-                  /* The first field is the pool name */
-                  if (index == 0) {
-                     /* If new pool name, create new Pool item */
-                     if (currentpool != field) {
-                        currentpool = field;
-                        pooltreeitem = new QTreeWidgetItem(topItem);
-                        pooltreeitem->setText(0, field);
-                        pooltreeitem->setData(0, Qt::UserRole, 1);
-                        pooltreeitem->setExpanded(true);
-                     }
-                     mediatreeitem = new QTreeWidgetItem(pooltreeitem);
-                     mediatreeitem->setData(index, Qt::UserRole, 2);
-                  } else {
-                     /* Put media fields under the pool tree item */
-                     mediatreeitem->setData(index, Qt::UserRole, 2);
-                     mediatreeitem->setText(index, field);
+         int index = 0;
+         /* Iterate through fields in the record */
+         foreach (field, fieldlist) {
+            field = field.trimmed();  /* strip leading & trailing spaces */
+            if (field != "") {
+               /* The first field is the pool name */
+               if (index == 0) {
+                  /* If new pool name, create new Pool item */
+                  if (currentpool != field) {
+                     currentpool = field;
+                     pooltreeitem = new QTreeWidgetItem(topItem);
+                     pooltreeitem->setText(0, field);
+                     pooltreeitem->setData(0, Qt::UserRole, 1);
+                     pooltreeitem->setExpanded(true);
                   }
+                  mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+                  mediatreeitem->setData(index, Qt::UserRole, 2);
+               } else {
+                  /* Put media fields under the pool tree item */
+                  mediatreeitem->setData(index, Qt::UserRole, 2);
+                  mediatreeitem->setText(index, field);
                }
-               index++;
             }
+            index++;
          }
       }
    }
@@ -151,9 +148,9 @@ void MediaList::populateTree()
  */
 void MediaList::createConnections()
 {
-   connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
+   connect(mp_treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
                 SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this,
+   connect(mp_treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this,
                 SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
 }
 
@@ -177,8 +174,8 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/
 void MediaList::editMedia()
 {
    /* ***FIXME*** make sure a valid tree item is selected -- check currentItem
- *    ??? Should this be a check in the database for the existence of m_popuptext??*/
-   MediaEdit* edit = new MediaEdit(m_console, m_popuptext);
+ *    ??? Should this be a check in the database for the existence of m_currentlyselected??*/
+   MediaEdit* edit = new MediaEdit(mp_console, m_currentlyselected);
    edit->show();
 }
 
@@ -187,7 +184,7 @@ void MediaList::editMedia()
  */
 void MediaList::showJobs()
 {
-   JobList* joblist = new JobList(m_console, m_popuptext);
+   JobList* joblist = new JobList(mp_console, m_currentlyselected);
    joblist->show();
 }
 
@@ -221,9 +218,9 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
 {
    int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
    if (treedepth == 2){
-      m_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+      mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+      m_currentlyselected=currentwidgetitem->text(1);
    } else {
-      m_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
+      mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
    }
 }
-

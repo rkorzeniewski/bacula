@@ -20,7 +20,7 @@
     <number>6</number>
    </property>
    <item row="0" column="0" >
-    <widget class="QTreeWidget" name="treeWidget" />
+    <widget class="QTreeWidget" name="mp_treeWidget" />
    </item>
   </layout>
  </widget>
