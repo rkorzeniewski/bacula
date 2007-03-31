@@ -310,6 +310,8 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
    char *p;
    char date[MAX_TIME_LENGTH];
    bool have_date = false;
+   /* Include current second if using current time */
+   utime_t now = time(NULL) + 1;
    JobId_t JobId;
    JOB_DBR jr = { (JobId_t)-1 };
    bool done = false;
@@ -378,7 +380,12 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          done = true;
          break;
       case 1:                            /* current */
-         bstrutime(date, sizeof(date), time(NULL));
+         /*
+          * Note, we add one second here just to include any job
+          *  that may have finished within the current second,
+          *  which happens a lot in scripting small jobs.
+          */
+         bstrutime(date, sizeof(date), now);
          have_date = true;
          break;
       case 2:                            /* before */
@@ -398,7 +405,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
             return 0;
          }
          if (!have_date) {
-            bstrutime(date, sizeof(date), time(NULL));
+            bstrutime(date, sizeof(date), now);
          }
          if (!get_client_name(ua, rx)) {
             return 0;
@@ -408,7 +415,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          return 2;
       case 5:                            /* select */
          if (!have_date) {
-            bstrutime(date, sizeof(date), time(NULL));
+            bstrutime(date, sizeof(date), now);
          }
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
@@ -512,7 +519,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          done = false;
          break;
       case 4:                         /* Select the most recent backups */
-         bstrutime(date, sizeof(date), time(NULL));
+         bstrutime(date, sizeof(date), now);
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
          }
@@ -526,7 +533,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          }
          break;
       case 6:                         /* Enter files */
-         bstrutime(date, sizeof(date), time(NULL));
+         bstrutime(date, sizeof(date), now);
          if (!get_client_name(ua, rx)) {
             return 0;
          }
@@ -567,7 +574,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          return 2;
 
       case 8:                         /* Find JobIds for current backup */
-         bstrutime(date, sizeof(date), time(NULL));
+         bstrutime(date, sizeof(date), now);
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
          }
@@ -597,7 +604,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          if (*rx->JobIds == 0 || *rx->JobIds == '.') {
             return 0;                 /* nothing entered, return */
          }
-         bstrutime(date, sizeof(date), time(NULL));
+         bstrutime(date, sizeof(date), now);
          if (!get_client_name(ua, rx)) {
             return 0;
          }
