@@ -20,7 +20,7 @@
     <number>6</number>
    </property>
    <item row="0" column="0" >
-    <widget class="QTableWidget" name="tableWidget" />
+    <widget class="QTableWidget" name="mp_tableWidget" />
    </item>
   </layout>
  </widget>

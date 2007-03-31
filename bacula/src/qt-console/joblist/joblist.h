@@ -47,7 +47,11 @@ public:
 public slots:
 
 private:
-   Console *m_console;
+   void populateTable();
+
+private:
+   Console *mp_console;
+   QString m_medianame;
 };
 
 #endif /* _JOBLIST_H_ */

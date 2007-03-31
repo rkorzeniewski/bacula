@@ -57,12 +57,12 @@ public slots:
 
 private:
    void createConnections();
+   void populateTree();
 
 private:
    Console *mp_console;
    QString m_currentlyselected;
    bool m_populated;
-   void populateTree();
 };
 
 #endif /* _MEDIALIST_H_ */
