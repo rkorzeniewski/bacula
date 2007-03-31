@@ -1152,7 +1152,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s at %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s) %s %s %s at %s\n"
 "  Prev Backup JobId:      %s\n"
 "  New Backup JobId:       %s\n"
 "  Migration JobId:        %s\n"
