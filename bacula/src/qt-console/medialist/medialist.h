@@ -51,6 +51,7 @@ public:
 public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
+   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void editMedia();
    void showJobs();
 

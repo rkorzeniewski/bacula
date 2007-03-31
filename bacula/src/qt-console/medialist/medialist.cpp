@@ -57,6 +57,10 @@ MediaList::~MediaList()
 {
 }
 
+/*
+ * The main meat of the class!!  The function that querries the director and 
+ * creates the widgets with appropriate values.
+ */
 void MediaList::populateTree()
 {
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
@@ -100,6 +104,9 @@ void MediaList::populateTree()
    connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
    connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
    m_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   connect(m_treeWidget, SIGNAL(
+           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
+           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
 
    if (m_console->sql_cmd(query, results)) {
       QString field;
@@ -125,6 +132,7 @@ void MediaList::populateTree()
                         pooltreeitem->setExpanded(true);
                      }
                      mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+                     mediatreeitem->setData(index, Qt::UserRole, 2);
                   } else {
                      /* Put media fields under the pool tree item */
                      mediatreeitem->setData(index, Qt::UserRole, 2);
@@ -138,6 +146,9 @@ void MediaList::populateTree()
    }
 }
 
+/*
+ * Not being used currently,  Should this be kept for possible future use.
+ */
 void MediaList::createConnections()
 {
    connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
@@ -146,45 +157,44 @@ void MediaList::createConnections()
                 SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
 }
 
+/*
+ * Not being used currently,  Should this be kept for possible future use.
+ */
 void MediaList::treeItemClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 {
-#ifdef xxx
-   int treedepth = item->data(column, Qt::UserRole).toInt();
-   switch (treedepth) {
-   case 1:
-      break;
-   case 2:
-      /* Can't figure out how to make a right button do this --- Qt::LeftButton, Qt::RightButton, Qt::MidButton */
-      m_popuptext = item->text(0);
-      QMenu *popup = new QMenu(m_treeWidget);
-      connect(popup->addAction("Edit Properties"), SIGNAL(triggered()), this, SLOT(editMedia()));
-      connect(popup->addAction("List Jobs On Media"), SIGNAL(triggered()), this, SLOT(showJobs()));
-      popup->exec(QCursor::pos());
-      break;
-   }
-#endif
 }
 
-void MediaList::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
+/*
+ * Not being used currently,  Should this be kept for possible future use.
+ */
+void MediaList::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 {
-   int treedepth = item->data(column, Qt::UserRole).toInt();
-   if (treedepth >= 0) {
-   }
 }
 
+/*
+ * Called from the signal of the context sensitive menu!
+ */
 void MediaList::editMedia()
 {
-   /* ***FIXME*** make sure a valid tree item is selected -- check currentItem */
+   /* ***FIXME*** make sure a valid tree item is selected -- check currentItem
+ *    ??? Should this be a check in the database for the existence of m_popuptext??*/
    MediaEdit* edit = new MediaEdit(m_console, m_popuptext);
    edit->show();
 }
 
+/*
+ * Called from the signal of the context sensitive menu!
+ */
 void MediaList::showJobs()
 {
    JobList* joblist = new JobList(m_console, m_popuptext);
    joblist->show();
 }
 
+/*
+ * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
+ * The tree has been populated.
+ */
 void MediaList::PgSeltreeWidgetClicked()
 {
    if(!m_populated) {
@@ -193,7 +203,27 @@ void MediaList::PgSeltreeWidgetClicked()
    }
 }
 
+/*
+ * When the treeWidgetItem in the page selector tree is doubleclicked, Use that
+ * As a signal to repopulate from a query of the database.
+ * Should this be from a context sensitive menu in either or both of the page selector
+ * or This widnow ???
+ */
 void MediaList::PgSeltreeWidgetDoubleClicked()
 {
    populateTree();
 }
+
+/*
+ * Added to set the context menu policy based on currently active treeWidgetItem
+ */
+void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *) /*previouswidgetitem*/
+{
+   int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
+   if (treedepth == 2){
+      m_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   } else {
+      m_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
+   }
+}
+
