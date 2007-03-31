@@ -135,10 +135,26 @@ alist *get_bregexps(const char *where)
 
 bool BREGEXP::extract_regexp(const char *motif)
 {
-   if (!motif || (*motif == '\0')) {
+   if ( !motif ) {
       return false;
    }
+   
    char sep = motif[0];
+
+   if (!(sep == '!' || 
+	 sep == ':' || 
+	 sep == ';' || 
+	 sep == '§' || 
+	 sep == ',' || 
+	 sep == '&' || 
+	 sep == '%' || 
+	 sep == '=' || 
+	 sep == '~' ||
+	 sep == '#'   )) 
+   {
+      return false;
+   }
+
    char *search = (char *) motif + 1;
    char *replace;
    int options = REG_EXTENDED | REG_NEWLINE;
