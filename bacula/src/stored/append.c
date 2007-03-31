@@ -305,11 +305,10 @@ bool do_append_data(JCR *jcr)
          Dmsg0(100, _("Set ok=FALSE after write_block_to_device.\n"));
          ok = false;
       }
+      if (dev->VolCatInfo.VolCatName[0] == 0) {
+         Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
+      }
    }
-   if (dev->VolCatInfo.VolCatName[0] == 0) {
-      Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
-   }
-
 
 
    if (!ok) {

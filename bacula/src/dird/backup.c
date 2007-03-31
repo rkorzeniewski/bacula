@@ -438,7 +438,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 
 // bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s at %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s) %s %s %s at %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  Backup Level:           %s%s\n"
