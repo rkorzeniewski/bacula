@@ -1,5 +1,5 @@
 #!/bin/sh
-/home/kern/bacula/bin/startmysql
+#/home/kern/bacula/bin/startmysql
 nice make setup
 ./starttime
 if [ ! -e bin/tape_options ] ; then
