@@ -43,17 +43,35 @@
 #undef  DEBUG
 #define DEBUG 1
 #define TRACEBACK 1
-#define SMCHECK
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
 #define DEVELOPER 1
 
+/*
+ * SMCHECK does orphaned buffer checking (memory leaks)
+ *  it can always be turned on, but has some minor performance
+ *  penalties.
+ */
+#ifdef DEVELOPER
+#define SMCHECK
+#endif
+
+/*
+ * This should always be on. It enables data encryption code 
+ *  providing it is configured.
+ */
 #define DATA_ENCRYPTION 1
 
+/*
+ * This uses a Bacula specific bsnprintf rather than the sys lib
+ *  version because it is much more secure. It should always be 
+ *  on.
+ */
 #define USE_BSNPRINTF 1
 
-/* Turn on the following flag to enable batch attribute inserts
+/*
+ * Turn on the following flag to enable batch attribute inserts
  *  in the catalog.  This gives a large speedup.
  */
 #define HAVE_BATCH_FILE_INSERT 1
