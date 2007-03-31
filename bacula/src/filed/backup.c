@@ -466,7 +466,13 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       }
 
       stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
+
+      if (ff_pkt->flags & FO_CHKCHANGES) {
+         has_file_changed(jcr, ff_pkt);
+      }
+
       bclose(&ff_pkt->bfd);
+      
       if (!stat) {
          goto bail_out;
       }

@@ -120,6 +120,7 @@ static RES_ITEM options_items[] = {
    {"noatime",         store_opts,    {0},     0, 0, 0},
    {"enhancedwild",    store_opts,    {0},     0, 0, 0},
    {"drivetype",       store_drivetype, {0},     0, 0, 0},
+   {"checkfilechanges",store_opts,    {0},     0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -145,7 +146,8 @@ enum {
    INC_KW_IGNORECASE,
    INC_KW_HFSPLUS,
    INC_KW_NOATIME,
-   INC_KW_ENHANCEDWILD
+   INC_KW_ENHANCEDWILD,
+   INC_KW_CHKCHANGES
 };
 
 /*
@@ -174,6 +176,7 @@ static struct s_kw FS_option_kw[] = {
    {"hfsplussupport", INC_KW_HFSPLUS},
    {"noatime",     INC_KW_NOATIME},
    {"enhancedwild", INC_KW_ENHANCEDWILD},
+   {"checkfilechanges", INC_KW_CHKCHANGES},
    {NULL,          0}
 };
 
@@ -239,6 +242,8 @@ static struct s_fs_opt FS_options[] = {
    {"no",       INC_KW_NOATIME,       "0"},
    {"yes",      INC_KW_ENHANCEDWILD,  "K"},
    {"no",       INC_KW_ENHANCEDWILD,  "0"},
+   {"yes",      INC_KW_CHKCHANGES,    "c"},
+   {"no",       INC_KW_CHKCHANGES,    "0"},
    {NULL,       0,                      0}
 };
 

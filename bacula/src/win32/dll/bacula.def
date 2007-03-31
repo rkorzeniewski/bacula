@@ -80,6 +80,8 @@ _Z22get_win32_drivelettersP6FF_PKTPc
 
 ; find_one.c:
 _Z13find_one_fileP3JCRP6FF_PKTPFiS2_PvbES3_Pcjb
+_Z17has_file_changedP3JCRP6FF_PKT
+
 
 ; fstype.c:
 _Z6fstypePKcPci

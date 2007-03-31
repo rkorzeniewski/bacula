@@ -107,6 +107,7 @@ enum {
 #define FO_ENCRYPT      (1<<21)       /* Encrypt data stream */
 #define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
 #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
+#define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
 
 struct s_included_file {
    struct s_included_file *next;
