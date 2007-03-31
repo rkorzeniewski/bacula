@@ -108,18 +108,6 @@ char *apply_bregexps(const char *fname, alist *bregexps)
    return ret;
 }
 
-char *get_next_bregexp(char *where)
-{
-   char sep;
-   char *after;
-   bool ok=false;
-
-   if (!where && !*where) {
-      return NULL;
-   }
-   
-}
-
 /* return an alist of BREGEXP or return NULL if it's not a 
  * where=!tmp!opt!ig,!temp!opt!i
  */
@@ -342,21 +330,3 @@ void BREGEXP::debug()
    printf("subst=[%s]\n", subst);
    printf("result=%s\n", result?result:"(null)");
 }
-
-#ifdef TEST
-
-int main(int argc, char **argv)
-{
-   BREGEXP *reg;
-   
-   reg = new_bregexp(argv[1]);
-
-   if (reg) {
-      reg->replace(argv[2]);
-      reg->debug();
-      printf("%s => %s\n", argv[1], reg->result);
-   }
-   exit(0);
-}
-
-#endif
