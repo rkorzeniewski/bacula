@@ -47,8 +47,7 @@ BREGEXP *new_bregexp(const char *motif)
    memset(self, 0, sizeof(BREGEXP));
    
    if (!self->extract_regexp(motif)) {
-//      Dmsg0(100, "bregexp: extract_regexp error\n");
-      printf("bregexp: extract_regexp error\n");
+      Dmsg0(100, "bregexp: extract_regexp error\n");
       free_bregexp(self);
       return NULL;
    }
@@ -109,11 +108,46 @@ char *apply_bregexps(const char *fname, alist *bregexps)
    return ret;
 }
 
+char *get_next_bregexp(char *where)
+{
+   char sep;
+   char *after;
+   bool ok=false;
+
+   if (!where && !*where) {
+      return NULL;
+   }
+   
+}
+
+/* return an alist of BREGEXP or return NULL if it's not a 
+ * where=!tmp!opt!ig,!temp!opt!i
+ */
+alist *get_bregexps(const char *where)
+{
+   char *p = (char *)where;
+   alist *list = New(alist(10, not_owned_by_alist));
+   BREGEXP *reg;
+
+   reg = new_bregexp(p);
+
+   while(reg) {
+      p = reg->eor;
+      list->append(reg);
+      reg = new_bregexp(p);
+   }
+
+   if (list->size()) {
+      return list;      
+   } else {
+      delete list;
+      return NULL;
+   }
+}
 
 bool BREGEXP::extract_regexp(const char *motif)
 {
-   
-   if (!motif) {
+   if (!motif || (*motif == '\0')) {
       return false;
    }
    char sep = motif[0];
@@ -127,17 +161,20 @@ bool BREGEXP::extract_regexp(const char *motif)
    char *dest = expr = bstrdup(motif);
 
    while (*search && !ok) {
-      if (*search == '\\' && *dest == sep) {
+      if (search[0] == '\\' && search[1] == sep) {
 	 *dest++ = *++search;       /* we skip separator */ 
-      } else if (*search == sep) {
+
+      } else if (*search == sep) {  /* we found end of expression */
 	 *dest++ = '\0';
 
-	 if (subst) {	/* already have found motif */
+	 if (subst) {	        /* already have found motif */
 	    ok = true;
+
 	 } else {
 	    *dest++ = *++search; /* we skip separator */ 
 	    subst = dest;	 /* get replaced string */
 	 }
+
       } else {
 	 *dest++ = *search++;
       }
@@ -149,13 +186,20 @@ bool BREGEXP::extract_regexp(const char *motif)
       return false;
    }
 
+   ok = false;
    /* find options */
-   while (*search) {
+   while (*search && !ok) {
       if (*search == 'i') {
 	 options |= REG_ICASE;
-      }
-      if (*search == 'g') {
+
+      } else if (*search == 'g') {
 	      /* recherche multiple*/
+
+      } else if (*search == sep) {
+	 /* skip separator */
+
+      } else {			/* end of options */
+	 ok = true;
       }
       search++;
    }
@@ -164,10 +208,11 @@ bool BREGEXP::extract_regexp(const char *motif)
    if (rc != 0) {
       char prbuf[500];
       regerror(rc, &preg, prbuf, sizeof(prbuf));
-      printf("bregexp: compile error: %s\n", prbuf);
-//      Dmsg1(100, "bregexp: compile error: %s\n", prbuf);
+      Dmsg1(100, "bregexp: compile error: %s\n", prbuf);
       return false;
    }
+
+   eor = search;		/* useful to find the next regexp in where */
 
    return true;
 }
@@ -185,7 +230,7 @@ char *BREGEXP::replace(const char *fname)
    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
 
    if (rc < 0) {
-      printf("E: regex mismatch\n");
+      Dmsg0(100, "E: regex mismatch\n");
       return return_fname(fname, flen);
    }
 
@@ -196,7 +241,7 @@ char *BREGEXP::replace(const char *fname)
       edit_subst(fname, &regs);
 
    } else {			/* error in substitution */
-      printf("E: error in substitution\n");
+      Dmsg0(100, "E: error in substitution\n");
       return return_fname(fname, flen);
    }
 
@@ -232,11 +277,12 @@ int BREGEXP::compute_dest_len(const char *fname, struct re_registers *regs)
 	 no = *psubst++ - '0';
 
 	 /* we check if the back reference exists */
+	 /* references can not match if we are using (..)? */
+
 	 if (regs->start[no] >= 0 && regs->end[no] >= 0) { 
 	    len += regs->end[no] - regs->start[no];
-	 } else {
-	    return 0; /* back reference missing */
 	 }
+	 
       } else {
 	 len++;
       }
@@ -272,9 +318,12 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
       if ((*p == '$' || *p == '\\') && ('0' <= *psubst && *psubst <= '9')) {
 	 no = *psubst++ - '0';
 
-	 len = regs->end[no] - regs->start[no];
-	 bstrncpy(result + i, fname + regs->start[no], len + 1);
-	 i += len ;
+	 /* have a back reference ? */
+	 if (regs->start[no] >= 0 && regs->end[no] >= 0) {
+	    len = regs->end[no] - regs->start[no];
+	    bstrncpy(result + i, fname + regs->start[no], len + 1);
+	    i += len ;
+	 }
 
       } else {
 	 result[i++] = *p;

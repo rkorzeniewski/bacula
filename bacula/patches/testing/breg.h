@@ -68,6 +68,7 @@ public:
    POOLMEM *subst;		/* substitution */
    regex_t preg;		/* regex_t result of regcomp() */
    struct re_registers regs;	/* contains match */
+   char *eor;			/* end of regexp in expr */
 
    int *_regs_match;
    
@@ -85,6 +86,11 @@ int run_bregexp(alist *bregexps, const char *fname);
 
 /* free BREGEXP (and all POOLMEM) */
 void free_bregexp(BREGEXP *script);
+
+/* fill an alist with BREGEXP from where */
+alist *get_bregexps(const char *where);
+
+char *apply_bregexps(const char *fname, alist *bregexps);
 
 /* foreach_alist free RUNSCRIPT */
 void free_bregexps(alist *bregexps); /* you have to free alist */
