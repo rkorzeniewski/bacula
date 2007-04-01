@@ -45,7 +45,7 @@ diff -Naur bacula1/src/filed/backup.c bacula2/src/filed/backup.c
        stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
 +
 +      if (ff_pkt->flags & FO_CHKCHANGES) {
-+         file_have_changed(jcr, ff_pkt);
++         has_file_changed(jcr, ff_pkt);
 +      }
 +
        bclose(&ff_pkt->bfd);
@@ -85,10 +85,10 @@ diff -Naur bacula1/src/findlib/find_one.c bacula2/src/findlib/find_one.c
  }
  
 +/* check if a file have changed during backup and display an error */
-+bool file_have_changed(JCR *jcr, FF_PKT *ff_pkt)
++bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
 +{
 +   struct stat statp;
-+   Dmsg1(500, "file_have_changed fname=%s\n",ff_pkt->fname);
++   Dmsg1(500, "has_file_changed fname=%s\n",ff_pkt->fname);
 +
 +   if (ff_pkt->type != FT_REG) { /* not a regular file */
 +      return false;
@@ -97,32 +97,32 @@ diff -Naur bacula1/src/findlib/find_one.c bacula2/src/findlib/find_one.c
 +   if (lstat(ff_pkt->fname, &statp) != 0) {
 +      berrno be;
 +      Jmsg(jcr, M_WARNING, 0, 
-+	   _("Can't check if %s have changed ERR=%s.\n"),ff_pkt->fname,be.strerror());
++	   _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.strerror());
 +      return true;
 +   }
 +
 +   if (statp.st_mtime != ff_pkt->statp.st_mtime) {
 +      /* TODO: add time of changes */
-+      Jmsg(jcr, M_ERROR, 0, _("%s have changed during backup.\n"), ff_pkt->fname);
++      Jmsg(jcr, M_ERROR, 0, _("%s mtime changed during backup.\n"), ff_pkt->fname);
 +      return true;
 +   }
 +
 +   if (statp.st_ctime != ff_pkt->statp.st_ctime) {
 +      /* TODO: add time of changes */
-+      Jmsg(jcr, M_ERROR, 0, _("%s have changed during backup.\n"), ff_pkt->fname);
++      Jmsg(jcr, M_ERROR, 0, _("%s ctime changed during backup.\n"), ff_pkt->fname);
 +      return true;
 +   }
 +  
 +   if (statp.st_size != ff_pkt->statp.st_size) {
 +      /* TODO: add size change */
-+      Jmsg(jcr, M_ERROR, 0, _("%s size have changed during backup.\n"),ff_pkt->fname);
++      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
 +      return true;
 +   }
 +
 +   if ((statp.st_blksize*statp.st_blocks) != 
 +       (ff_pkt->statp.st_blksize*ff_pkt->statp.st_blocks)) {
 +      /* TODO: add size change */
-+      Jmsg(jcr, M_ERROR, 0, _("%s size have changed during backup.\n"),ff_pkt->fname);
++      Jmsg(jcr, M_ERROR, 0, _("%s size changed during backup.\n"),ff_pkt->fname);
 +      return true;
 +   }
 +
@@ -140,7 +140,7 @@ diff -Naur bacula1/src/findlib/protos.h bacula2/src/findlib/protos.h
                 void *pkt, char *p, dev_t parent_device, bool top_level);
  int   term_find_one(FF_PKT *ff);
 -
-+bool  file_have_changed(JCR *jcr, FF_PKT *ff_pkt);
++bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);
  
  /* From get_priv.c */
  int enable_backup_privileges(JCR *jcr, int ignore_errors);
@@ -151,7 +151,7 @@ diff -Naur bacula1/src/win32/dll/bacula.def bacula2/src/win32/dll/bacula.def
 
  ; find_one.c:
  _Z13find_one_fileP3JCRP6FF_PKTPFiS2_PvbES3_Pcjb
-+_Z17file_have_changedP3JCRP6FF_PKT
++_Z17has_file_changedP3JCRP6FF_PKT
 +
 
  ; fstype.c:
