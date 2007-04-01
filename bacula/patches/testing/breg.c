@@ -88,6 +88,8 @@ void free_bregexp(BREGEXP *self)
    free(self);
 }
 
+/* Free a bregexps alist
+ */
 void free_bregexps(alist *bregexps)
 {
    Dmsg0(500, "bregexp: freeing all BREGEXP object\n");
@@ -98,6 +100,8 @@ void free_bregexps(alist *bregexps)
    }
 }
 
+/* Apply all regexps to fname
+ */
 char *apply_bregexps(const char *fname, alist *bregexps)
 {
    BREGEXP *elt;
@@ -105,6 +109,7 @@ char *apply_bregexps(const char *fname, alist *bregexps)
    foreach_alist(elt, bregexps) {
       ret = elt->replace(ret);
    }
+   Dmsg2(500, "bregexp: fname=%s ret=%s\n", fname, ret);
    return ret;
 }
 
@@ -156,7 +161,6 @@ bool BREGEXP::extract_regexp(const char *motif)
    }
 
    char *search = (char *) motif + 1;
-   char *replace;
    int options = REG_EXTENDED | REG_NEWLINE;
    bool ok = false;
    bool found_motif = false;
@@ -234,7 +238,7 @@ char *BREGEXP::replace(const char *fname)
    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
 
    if (rc < 0) {
-      Dmsg0(100, "E: regex mismatch\n");
+      Dmsg0(500, "bregexp: regex mismatch\n");
       return return_fname(fname, flen);
    }
 
@@ -244,8 +248,10 @@ char *BREGEXP::replace(const char *fname)
       result = check_pool_memory_size(result, len);
       edit_subst(fname, &regs);
 
+      Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
+
    } else {			/* error in substitution */
-      Dmsg0(100, "E: error in substitution\n");
+      Dmsg0(100, "bregexp: error in substitution\n");
       return return_fname(fname, flen);
    }
 
