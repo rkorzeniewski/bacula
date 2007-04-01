@@ -215,55 +215,6 @@ void bnet_suppress_error_messages(BSOCK * bsock, bool flag)
    bsock->suppress_error_msgs = flag;
 }
 
-
-/*
- * Transmit spooled data now to a BSOCK
- */
-int bnet_despool_to_bsock(BSOCK * bsock, void update_attr_spool_size(ssize_t size),
-                          ssize_t tsize)
-{
-   int32_t pktsiz;
-   size_t nbytes;
-   ssize_t last = 0, size = 0;
-   int count = 0;
-
-   rewind(bsock->spool_fd);
-   while (fread((char *)&pktsiz, 1, sizeof(int32_t), bsock->spool_fd) ==
-          sizeof(int32_t)) {
-      size += sizeof(int32_t);
-      bsock->msglen = ntohl(pktsiz);
-      if (bsock->msglen > 0) {
-         if (bsock->msglen > (int32_t) sizeof_pool_memory(bsock->msg)) {
-            bsock->msg = realloc_pool_memory(bsock->msg, bsock->msglen + 1);
-         }
-         nbytes = fread(bsock->msg, 1, bsock->msglen, bsock->spool_fd);
-         if (nbytes != (size_t) bsock->msglen) {
-            berrno be;
-            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, bsock->msglen);
-            Qmsg1(bsock->jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
-                  be.strerror());
-            update_attr_spool_size(tsize - last);
-            return 0;
-         }
-         size += nbytes;
-         if ((++count & 0x3F) == 0) {
-            update_attr_spool_size(size - last);
-            last = size;
-         }
-      }
-      bnet_send(bsock);
-   }
-   update_attr_spool_size(tsize - last);
-   if (ferror(bsock->spool_fd)) {
-      berrno be;
-      Qmsg1(bsock->jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
-            be.strerror());
-      return 0;
-   }
-   return 1;
-}
-
-
 /*
  * Send a message over the network. The send consists of
  * two network packets. The first is sends a 32 bit integer containing
@@ -277,82 +228,6 @@ bool bnet_send(BSOCK *bsock)
    return bsock->send();
 }
 
-#ifdef xxx
-bool bnet_send(BSOCK * bsock)
-{
-   int32_t rc;
-   int32_t pktsiz;
-
-   if (bsock->errors || bsock->terminated || bsock->msglen > 1000000) {
-      return false;
-   }
-   pktsiz = htonl((int32_t)bsock->msglen);
-   /* send int32_t containing size of data packet */
-   bsock->timer_start = watchdog_time;  /* start timer */
-   bsock->timed_out = 0;
-   rc = write_nbytes(bsock, (char *)&pktsiz, sizeof(int32_t));
-   bsock->timer_start = 0;         /* clear timer */
-   if (rc != sizeof(int32_t)) {
-      if (bsock->msglen == BNET_TERMINATE) {    /* if we were terminating */
-         bsock->terminated = 1;
-         return false;             /* ignore any errors */
-      }
-      bsock->errors++;
-      if (errno == 0) {
-         bsock->b_errno = EIO;
-      } else {
-         bsock->b_errno = errno;
-      }
-      if (rc < 0) {
-         if (!bsock->suppress_error_msgs && !bsock->timed_out) {
-            Qmsg4(bsock->jcr(), M_ERROR, 0,
-                  _("Write error sending len to %s:%s:%d: ERR=%s\n"), bsock->who,
-                  bsock->host(), bsock->port(), bnet_strerror(bsock));
-         }
-      } else {
-         Qmsg5(bsock->jcr(), M_ERROR, 0,
-               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
-               sizeof(int32_t), bsock->who(),
-               bsock->host(), bsock->port(), rc);
-      }
-      return false;
-   }
-
-   bsock->out_msg_no++;            /* increment message number */
-   if (bsock->msglen <= 0) {       /* length only? */
-      return true;                 /* yes, no data */
-   }
-
-   /* send data packet */
-   bsock->timer_start = watchdog_time;  /* start timer */
-   bsock->timed_out = 0;
-   rc = write_nbytes(bsock, bsock->msg, bsock->msglen);
-   bsock->timer_start = 0;         /* clear timer */
-   if (rc != bsock->msglen) {
-      bsock->errors++;
-      if (errno == 0) {
-         bsock->b_errno = EIO;
-      } else {
-         bsock->b_errno = errno;
-      }
-      if (rc < 0) {
-         if (!bsock->suppress_error_msgs) {
-            Qmsg5(bsock->jcr(), M_ERROR, 0,
-                  _("Write error sending %d bytes to %s:%s:%d: ERR=%s\n"), 
-                  bsock->msglen, bsock->who(),
-                  bsock->host(), bsock->port(), bnet_strerror(bsock));
-         }
-      } else {
-         Qmsg5(bsock->jcr(), M_ERROR, 0,
-               _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
-               bsock->msglen, bsock->who(), bsock->host(), 
-               bsock->port(), rc);
-      }
-      return false;
-   }
-   return true;
-}
-#endif
 
 /*
  * Establish a TLS connection -- server side

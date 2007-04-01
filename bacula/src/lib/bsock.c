@@ -275,6 +275,53 @@ bool BSOCK::signal(int signal)
    return send();
 }
 
+/* 
+ * Despool spooled attributes
+ */
+bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
+{
+   int32_t pktsiz;
+   size_t nbytes;
+   ssize_t last = 0, size = 0;
+   int count = 0;
+
+   rewind(spool_fd);
+   while (fread((char *)&pktsiz, 1, sizeof(int32_t), spool_fd) ==
+          sizeof(int32_t)) {
+      size += sizeof(int32_t);
+      msglen = ntohl(pktsiz);
+      if (msglen > 0) {
+         if (msglen > (int32_t) sizeof_pool_memory(msg)) {
+            msg = realloc_pool_memory(msg, msglen + 1);
+         }
+         nbytes = fread(msg, 1, msglen, spool_fd);
+         if (nbytes != (size_t) msglen) {
+            berrno be;
+            Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, msglen);
+            Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+                  be.strerror());
+            update_attr_spool_size(tsize - last);
+            return false;
+         }
+         size += nbytes;
+         if ((++count & 0x3F) == 0) {
+            update_attr_spool_size(size - last);
+            last = size;
+         }
+      }
+      send();
+   }
+   update_attr_spool_size(tsize - last);
+   if (ferror(spool_fd)) {
+      berrno be;
+      Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+            be.strerror());
+      return false;
+   }
+   return true;
+}
+
+
 void BSOCK::close()
 {
    BSOCK *bsock = this;

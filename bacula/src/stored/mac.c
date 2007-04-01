@@ -164,7 +164,7 @@ ok_out:
       edit_uint64(jcr->JobBytes, ec1));
    Dmsg4(200, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
        
-   bnet_sig(dir, BNET_EOD);           /* send EOD to Director daemon */
+   dir->signal(BNET_EOD);             /* send EOD to Director daemon */
 
    return ok;
 }

@@ -87,6 +87,7 @@ public:
    char *host() { return m_host; };
    int port() { return m_port; };
    JCR *jcr() { return m_jcr; };
+   bool despool(void update_attr_spool_size(ssize_t size), ssize_t tsize);
 };
 
 /* 

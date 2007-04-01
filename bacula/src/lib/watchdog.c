@@ -84,11 +84,11 @@ int start_watchdog(void)
    }
    wd_queue = New(dlist(dummy, &dummy->link));
    wd_inactive = New(dlist(dummy, &dummy->link));
+   wd_is_init = true;
 
    if ((stat = pthread_create(&wd_tid, NULL, watchdog_thread, NULL)) != 0) {
       return stat;
    }
-   wd_is_init = true;
    return 0;
 }
 
