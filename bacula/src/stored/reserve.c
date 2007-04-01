@@ -972,8 +972,10 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
             return 1;
          } else {
             /* Drive Pool not suitable for us */
-            Mmsg(jcr->errmsg, _("3608 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" on drive %s.\n"), 
-                  jcr->JobId, dcr->pool_name, dev->pool_name, dev->print_name());
+            Mmsg(jcr->errmsg, _(
+"3608 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" nreserve=%d on drive %s.\n"), 
+                  jcr->JobId, dcr->pool_name, dev->pool_name,
+                  dev->reserved_device, dev->print_name());
             queue_reserve_message(jcr);
             Dmsg2(110, "failed: busy num_writers=0, reserved, pool=%s wanted=%s\n",
                dev->pool_name, dcr->pool_name);
