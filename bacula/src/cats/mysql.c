@@ -185,7 +185,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to connect to MySQL server.\n"
 "Database=%s User=%s\n"
-"It MySQL server not running or your password is incorrect.\n"),
+"MySQL connect failed either server not running or your authorization is incorrect.\n"),
          mdb->db_name, mdb->db_user);
       V(mutex);
       return 0;

@@ -43,6 +43,15 @@ Document:
  
 
 Priority:
+01-Apr 00:42 rufus-dir: Start Backup JobId 55, Job=kernsave.2007-04-01_00.42.48
+01-Apr 00:42 rufus-sd: Python SD JobStart: JobId=55 Client=Rufus
+01-Apr 00:42 rufus-dir: Created new Volume "Full0001" in catalog.
+01-Apr 00:42 rufus-dir: Using Device "File"
+01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
+01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
+01-Apr 00:42 rufus-sd: Please mount Volume "Full0001" on Storage Device "File" (/tmp) for Job kernsave.2007-04-01_00.42.48
+01-Apr 00:44 rufus-sd: Wrote label to prelabeled Volume "Full0001" on device "File" (/tmp)
+
 - Add Where: client:/.... to restore job report.
 - Ensure that each device in an Autochanger has a different
   Device Index.

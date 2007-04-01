@@ -1152,7 +1152,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
 
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
 
-   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s) %s %s %s at %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+"  Build OS:               %s %s %s\n"
 "  Prev Backup JobId:      %s\n"
 "  New Backup JobId:       %s\n"
 "  Migration JobId:        %s\n"
@@ -1178,8 +1179,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  SD Errors:              %d\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
-        edt, 
+        my_name, VERSION, LSMDATE, edt,
+        HOST_OS, DISTNAME, DISTVER,
         edit_uint64(jcr->previous_jr.JobId, ec6),
         mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",
         edit_uint64(jcr->jr.JobId, ec8),
