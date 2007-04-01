@@ -412,7 +412,8 @@ void verify_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
-      Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s) %s %s %s at %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+"  Build OS:               %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  FileSet:                %s\n"
@@ -428,8 +429,8 @@ void verify_cleanup(JCR *jcr, int TermCode)
 "  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-         my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
-         edt,
+        my_name, VERSION, LSMDATE, edt,
+        HOST_OS, DISTNAME, DISTVER,
          jcr->jr.JobId,
          jcr->jr.Job,
          jcr->fileset->hdr.name,
@@ -446,7 +447,8 @@ void verify_cleanup(JCR *jcr, int TermCode)
          sd_term_msg,
          term_msg);
    } else {
-      Jmsg(jcr, msg_type, 0, _("Bacula %s Version: %s (%s) %s %s %s\n"
+   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+"  Build:                  %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
 "  FileSet:                %s\n"
@@ -460,7 +462,8 @@ void verify_cleanup(JCR *jcr, int TermCode)
 "  Non-fatal FD errors:    %d\n"
 "  FD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-         my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER,
+        my_name, VERSION, BDATE, edt,
+        HOST_OS, DISTNAME, DISTVER,
          edt,
          jcr->jr.JobId,
          jcr->jr.Job,

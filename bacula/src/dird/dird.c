@@ -226,6 +226,12 @@ int main (int argc, char *argv[])
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
+   drop(uid, gid);                    /* reduce privileges if requested */
+
+   if (!check_catalog()) {
+      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
+   }
+
    if (test_config) {
       terminate_dird(0);
    }
@@ -248,11 +254,6 @@ int main (int argc, char *argv[])
    create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
    read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 
-   drop(uid, gid);                    /* reduce privileges if requested */
-
-   if (!check_catalog()) {
-      Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
-   }
 
 #if !defined(HAVE_WIN32)
    signal(SIGHUP, reload_config);
@@ -858,10 +859,13 @@ static bool check_catalog()
                          catalog->db_port, catalog->db_socket,
                          catalog->mult_db_connections);
       if (!db || !db_open_database(NULL, db)) {
+         Pmsg2(000, _("Could not open Catalog \"%s\", database \"%s\".\n"),
+              catalog->name(), catalog->db_name);
          Jmsg(NULL, M_FATAL, 0, _("Could not open Catalog \"%s\", database \"%s\".\n"),
               catalog->name(), catalog->db_name);
          if (db) {
             Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
+            Pmsg1(000, "%s", db_strerror(db));
          }
          OK = false;
          continue;

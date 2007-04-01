@@ -1,14 +1,17 @@
               Technical notes on version 2.1
 
 General:
+01Apr07
+kes  Modify job report to include director name and Build OS.
+kes  Move drop and check_catalog() before fork.
+kes  Add update database scripts (version 9 to 10) to updatedb directory.
 31Mar07
-ebl  Check size and age of each file after their backup to see if
-     they have changed during backup.
-     It ask to fd to do an extra check (stat(2)) after
+ebl  Check size and age of each file after its backup to see if
+     it has changed during backup, if "checkfilechanges" is set.
+     The FD will do an extra check (stat(2)) after
      each file backup. mtime, ctime and size are compared with
-     "before backup" informations. If time or size mismatch, an
-     error will raise.
-     You must upgrade FD to use it.
+     'before backup' information. If time or size mismatch, an
+     error message will be generated. You must upgrade FD to use it.
 30Mar07
 kes  Make database name and user configurable
      --with-db-name=xxx --with-db-user=xxx
