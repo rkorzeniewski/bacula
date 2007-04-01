@@ -1,14 +1,7 @@
 /*
- *  Spooling code
- *
- *      Kern Sibbald, March 2004
- *
- *  Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Spooling code
+ *
+ *      Kern Sibbald, March 2004
+ *
+ *  Version $Id$
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -77,10 +77,9 @@ enum {
 
 void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
-   char *msg, ed1[30], ed2[30];
+   char ed1[30], ed2[30];
+   POOL_MEM msg(PM_MESSAGE);
    int len;
-
-   msg = (char *)get_pool_memory(PM_MESSAGE);
 
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
       len = Mmsg(msg, _("Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"),
@@ -88,7 +87,7 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
          spool_stats.total_data_jobs,
          edit_uint64_with_commas(spool_stats.max_data_size, ed2));
 
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
    }
    if (spool_stats.attr_jobs || spool_stats.max_attr_size) {
       len = Mmsg(msg, _("Attr spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes.\n"),
@@ -96,10 +95,8 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
          spool_stats.total_attr_jobs,
          edit_uint64_with_commas(spool_stats.max_attr_size, ed2));
    
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
    }
-
-   free_pool_memory(msg);
 }
 
 bool begin_data_spool(DCR *dcr)
@@ -615,7 +612,7 @@ bool commit_attribute_spool(JCR *jcr)
       V(mutex);
       Jmsg(jcr, M_INFO, 0, _("Sending spooled attrs to the Director. Despooling %s bytes ...\n"),
             edit_uint64_with_commas(size, ec1));
-      bnet_despool_to_bsock(jcr->dir_bsock, update_attr_spool_size, size);
+      jcr->dir_bsock->despool(update_attr_spool_size, size);
       return close_attr_spool_file(jcr, jcr->dir_bsock);
    }
    return true;
