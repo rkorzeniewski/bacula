@@ -141,7 +141,7 @@ struct B_DB {
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
-   POOLMEM *esc_name2;                /* Escaped path name */
+   POOLMEM *esc_path;                 /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -261,7 +261,7 @@ struct B_DB {
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
-   POOLMEM *esc_name2;                /* Escaped path name */
+   POOLMEM *esc_path;                 /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -364,7 +364,7 @@ struct B_DB {
    POOLMEM *fname;                    /* Filename only */
    POOLMEM *path;                     /* Path only */
    POOLMEM *esc_name;                 /* Escaped file name */
-   POOLMEM *esc_name2;                /* Escaped path name */
+   POOLMEM *esc_path;                 /* Escaped path name */
    int fnl;                           /* file name length */
    int pnl;                           /* path name length */
 };
@@ -465,7 +465,7 @@ struct B_DB {
    POOLMEM *fname;                /* Filename only */
    POOLMEM *path;                 /* Path only */
    POOLMEM *esc_name;             /* Escaped file name */
-   POOLMEM *esc_name2;            /* Escaped path name */
+   POOLMEM *esc_path;             /* Escaped path name */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
 };     

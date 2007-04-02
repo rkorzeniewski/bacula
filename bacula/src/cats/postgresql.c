@@ -124,7 +124,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname          = get_pool_memory(PM_FNAME);
    mdb->path           = get_pool_memory(PM_FNAME);
    mdb->esc_name       = get_pool_memory(PM_FNAME);
-   mdb->esc_name2      = get_pool_memory(PM_FNAME);
+   mdb->esc_path      = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
@@ -229,7 +229,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->fname);
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
-      free_pool_memory(mdb->esc_name2);
+      free_pool_memory(mdb->esc_path);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
@@ -625,8 +625,8 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
    my_postgresql_copy_escape(mdb->esc_name, mdb->fname, mdb->fnl);
 
-   mdb->esc_name2 = check_pool_memory_size(mdb->esc_name2, mdb->pnl*2+1);
-   my_postgresql_copy_escape(mdb->esc_name2, mdb->path, mdb->pnl);
+   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
+   my_postgresql_copy_escape(mdb->esc_path, mdb->path, mdb->pnl);
 
    if (ar->Digest == NULL || ar->Digest[0] == 0) {
       digest = "0";
@@ -635,7 +635,7 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
-	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_name2, 
+	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
 	      mdb->esc_name, ar->attr, digest);
 
    do { 
