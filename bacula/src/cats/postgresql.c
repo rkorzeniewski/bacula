@@ -635,8 +635,8 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
-	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->path, 
-	      mdb->fname, ar->attr, digest);
+	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_name, 
+	      mdb->esc_name2, ar->attr, digest);
 
    do { 
       res = PQputCopyData(mdb->db,
