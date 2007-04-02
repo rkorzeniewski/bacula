@@ -709,8 +709,8 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
    db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
 
-   mdb->esc_name2 = check_pool_memory_size(mdb->esc_name2, mdb->pnl*2+1);
-   db_escape_string(mdb->esc_name2, mdb->path, mdb->pnl);
+   mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
+   db_escape_string(mdb->esc_path, mdb->path, mdb->pnl);
 
    if (ar->Digest == NULL || ar->Digest[0] == 0) {
       digest = "0";
@@ -719,7 +719,7 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
-              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_name2, 
+              ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_path, 
               mdb->esc_name, ar->attr, digest);
 
    return INSERT_DB(jcr, mdb, mdb->cmd);

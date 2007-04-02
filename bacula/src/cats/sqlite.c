@@ -128,7 +128,7 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->fname = get_pool_memory(PM_FNAME);
    mdb->path = get_pool_memory(PM_FNAME);
    mdb->esc_name = get_pool_memory(PM_FNAME);
-   mdb->esc_name2 = get_pool_memory(PM_FNAME);
+   mdb->esc_path = get_pool_memory(PM_FNAME);
    mdb->allow_transactions = mult_db_connections;
    qinsert(&db_list, &mdb->bq);            /* put db in list */
    V(mutex);
@@ -243,7 +243,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
       free_pool_memory(mdb->fname);
       free_pool_memory(mdb->path);
       free_pool_memory(mdb->esc_name);
-      free_pool_memory(mdb->esc_name2);
+      free_pool_memory(mdb->esc_path);
       if (mdb->db_name) {
          free(mdb->db_name);
       }
