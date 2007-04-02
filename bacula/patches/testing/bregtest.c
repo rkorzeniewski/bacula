@@ -135,7 +135,7 @@ int main(int argc, char *const *argv)
 
    while (fgets(data, sizeof(data)-1, fd)) {
       strip_trailing_newline(data);
-      p = apply_bregexps(data, list);
+      apply_bregexps(data, list, &p);
       printf("%s => %s\n", data, p);
    }
    fclose(fd);

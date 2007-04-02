@@ -60,7 +60,9 @@
 class BREGEXP {
 public:
    POOLMEM *result;		/* match result */
-   char *replace(const char *fname);
+   bool success;		/* match is ok */
+
+   char *replace(const char *fname); /* return this.result */
    void debug();
 
    /* private */
@@ -90,7 +92,8 @@ void free_bregexp(BREGEXP *script);
 /* fill an alist with BREGEXP from where */
 alist *get_bregexps(const char *where);
 
-char *apply_bregexps(const char *fname, alist *bregexps);
+/* apply every regexps from the alist */
+bool apply_bregexps(const char *fname, alist *bregexps, char **result);
 
 /* foreach_alist free RUNSCRIPT */
 void free_bregexps(alist *bregexps); /* you have to free alist */

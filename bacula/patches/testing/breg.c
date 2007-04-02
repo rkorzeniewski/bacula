@@ -52,9 +52,6 @@ BREGEXP *new_bregexp(const char *motif)
       return NULL;
    }
 
-   static int _start[RE_NREGS];
-   static int _end[RE_NREGS];
-
    self->result = get_pool_memory(PM_FNAME);
    self->result[0] = '\0';
 
@@ -102,15 +99,20 @@ void free_bregexps(alist *bregexps)
 
 /* Apply all regexps to fname
  */
-char *apply_bregexps(const char *fname, alist *bregexps)
+bool apply_bregexps(const char *fname, alist *bregexps, char **result)
 {
    BREGEXP *elt;
+   bool ok=false;
+
    char *ret = (char *) fname;
    foreach_alist(elt, bregexps) {
       ret = elt->replace(ret);
+      ok = ok || elt->success;
    }
    Dmsg2(500, "bregexp: fname=%s ret=%s\n", fname, ret);
-   return ret;
+
+   *result = ret;
+   return ok;
 }
 
 /* return an alist of BREGEXP or return NULL if it's not a 
@@ -149,7 +151,7 @@ bool BREGEXP::extract_regexp(const char *motif)
    if (!(sep == '!' || 
 	 sep == ':' || 
 	 sep == ';' || 
-	 sep == '§' || 
+	 sep == '|' || 
 	 sep == ',' || 
 	 sep == '&' || 
 	 sep == '%' || 
@@ -163,7 +165,6 @@ bool BREGEXP::extract_regexp(const char *motif)
    char *search = (char *) motif + 1;
    int options = REG_EXTENDED | REG_NEWLINE;
    bool ok = false;
-   bool found_motif = false;
 
    /* extract 1st part */
    char *dest = expr = bstrdup(motif);
@@ -234,6 +235,7 @@ bool BREGEXP::extract_regexp(const char *motif)
 /* return regexp->result */
 char *BREGEXP::replace(const char *fname)
 {
+   success = false;		/* use this.success to known if it's ok */
    int flen = strlen(fname);
    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
 
@@ -247,7 +249,7 @@ char *BREGEXP::replace(const char *fname)
    if (len) {
       result = check_pool_memory_size(result, len);
       edit_subst(fname, &regs);
-
+      success = true;
       Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
 
    } else {			/* error in substitution */
