@@ -218,11 +218,7 @@ sub fv_list_dirs
 
     my $ret = $bweb->dbh_selectall_arrayref("
       SELECT P.PathId,
-             (
-              SELECT Path FROM Path WHERE PathId = P.PathId
-              UNION 
-              SELECT Path FROM brestore_missing_path WHERE PathId = P.PathId
-             ) AS Path
+             ( SELECT Path FROM Path WHERE PathId = P.PathId) AS Path
         FROM (
           SELECT PathId
             FROM brestore_pathvisibility 
@@ -330,11 +326,7 @@ sub fv_get_root_pathid
 {
     my ($path) = @_;
     $path = $bweb->dbh_quote($path);
-    my $ret = $bweb->dbh_selectrow_hashref("
-SELECT PathId FROM Path WHERE Path = $path
-   UNION 
-SELECT PathId FROM brestore_missing_path WHERE PATH = $path
-");
+    my $ret = $bweb->dbh_selectrow_hashref("SELECT PathId FROM Path WHERE Path = $path");
     return $ret->{pathid};
 }
 
