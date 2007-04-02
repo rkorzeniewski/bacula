@@ -1,15 +1,7 @@
 /*
- *
- *  This file contains all the SQL commands issued by the Director
- *
- *     Kern Sibbald, July MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  This file contains all the SQL commands issued by the Director
+ *
+ *     Kern Sibbald, July MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "cats.h"
@@ -246,7 +246,7 @@ const char *select_admin_del =
 const char *select_migrate_del =
    "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
    "FROM Job,DelCandidates "
-   "WHERE (Job.JobId=DelCanditates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
