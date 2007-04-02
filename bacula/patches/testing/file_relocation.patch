@@ -1,0 +1,235 @@
+Index: src/filed/job.c
+===================================================================
+--- src/filed/job.c	(révision 4467)
++++ src/filed/job.c	(copie de travail)
+@@ -37,6 +37,8 @@
+ #include "bacula.h"
+ #include "filed.h"
+ 
++#include "lib/breg.h"
++
+ #if defined(WIN32_VSS)
+ #include "vss.h"
+ 
+@@ -1601,6 +1603,7 @@
+    Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
+    unbash_spaces(where);
+    jcr->where = bstrdup(where);
++   jcr->where_bregexp = get_bregexps(where);
+    free_pool_memory(where);
+    jcr->replace = replace;
+    jcr->prefix_links = prefix_links;
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(révision 4466)
++++ src/jcr.h	(copie de travail)
+@@ -173,6 +173,7 @@
+    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
+    uint32_t ClientId;                 /* Client associated with Job */
+    char *where;                       /* prefix to restore files to */
++   alist *where_bregexp;              /* BREGEXP alist for path manipulation */
+    int cached_pnl;                    /* cached path length */
+    POOLMEM *cached_path;              /* cached path */
+    bool prefix_links;                 /* Prefix links with Where path */
+Index: src/lib/Makefile.in
+===================================================================
+--- src/lib/Makefile.in	(révision 4466)
++++ src/lib/Makefile.in	(copie de travail)
+@@ -32,7 +32,7 @@
+ 	  res.c rwlock.c scan.c serial.c sha1.c \
+ 	  signal.c smartall.c rblist.c tls.c tree.c \
+ 	  util.c var.c watchdog.c workq.c btimers.c \
+-	  address_conf.c pythonlib.c
++	  address_conf.c pythonlib.c breg.c
+ 
+ 
+ LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
+@@ -45,7 +45,7 @@
+ 	  res.o rwlock.o scan.o serial.o sha1.o \
+ 	  signal.o smartall.o rblist.o tls.o tree.o \
+ 	  util.o var.o watchdog.o workq.o btimers.o \
+-	  address_conf.o pythonlib.o
++	  address_conf.o pythonlib.o breg.o
+ 
+ 
+ EXTRAOBJS = @OBJLIST@
+Index: src/lib/attr.c
+===================================================================
+--- src/lib/attr.c	(révision 4466)
++++ src/lib/attr.c	(copie de travail)
+@@ -35,8 +35,8 @@
+ 
+ #include "bacula.h"
+ #include "jcr.h"
++#include "lib/breg.h"
+ 
+-
+ ATTR *new_attr()
+ {
+    ATTR *attr = (ATTR *)malloc(sizeof(ATTR));
+@@ -148,9 +148,30 @@
+     *   every filename if a prefix is supplied.
+     *
+     */
++
+    if (jcr->where[0] == 0) {
+       pm_strcpy(attr->ofname, attr->fname);
+       pm_strcpy(attr->olname, attr->lname);
++
++   } else if (jcr->where_bregexp) { 
++      char *ret;
++      apply_bregexps(attr->fname, jcr->where_bregexp, &ret);
++      pm_strcpy(attr->ofname, ret);
++
++      if (attr->type == FT_LNKSAVED || attr->type == FT_LNK) {
++         /* Always add prefix to hard links (FT_LNKSAVED) and
++          *  on user request to soft links
++          */
++
++	 if ((attr->type == FT_LNKSAVED || jcr->prefix_links)) {
++	    apply_bregexps(attr->lname, jcr->where_bregexp, &ret);
++	    pm_strcpy(attr->olname, ret);
++
++	 } else {
++	    pm_strcpy(attr->olname, attr->lname);
++	 }
++      }
++      
+    } else {
+       const char *fn;
+       int wherelen = strlen(jcr->where);
+Index: src/lib/jcr.c
+===================================================================
+--- src/lib/jcr.c	(révision 4466)
++++ src/lib/jcr.c	(copie de travail)
+@@ -56,6 +56,9 @@
+ /* External variables we reference */
+ extern time_t watchdog_time;
+ 
++/* External referenced functions */
++void free_bregexps(alist *bregexps);
++
+ /* Forward referenced functions */
+ extern "C" void timeout_handler(int sig);
+ static void jcr_timeout_check(watchdog_t *self);
+@@ -381,6 +384,11 @@
+       free(jcr->where);
+       jcr->where = NULL;
+    }
++   if (jcr->where_bregexp) {
++      free_bregexps(jcr->where_bregexp);
++      delete jcr->where_bregexp;
++      jcr->where_bregexp = NULL;
++   }
+    if (jcr->cached_path) {
+       free_pool_memory(jcr->cached_path);
+       jcr->cached_path = NULL;
+Index: patches/testing/breg.c
+===================================================================
+--- patches/testing/breg.c	(révision 4483)
++++ patches/testing/breg.c	(copie de travail)
+@@ -52,9 +52,6 @@
+       return NULL;
+    }
+ 
+-   static int _start[RE_NREGS];
+-   static int _end[RE_NREGS];
+-
+    self->result = get_pool_memory(PM_FNAME);
+    self->result[0] = '\0';
+ 
+@@ -102,15 +99,20 @@
+ 
+ /* Apply all regexps to fname
+  */
+-char *apply_bregexps(const char *fname, alist *bregexps)
++bool apply_bregexps(const char *fname, alist *bregexps, char **result)
+ {
+    BREGEXP *elt;
++   bool ok=false;
++
+    char *ret = (char *) fname;
+    foreach_alist(elt, bregexps) {
+       ret = elt->replace(ret);
++      ok = ok || elt->success;
+    }
+    Dmsg2(500, "bregexp: fname=%s ret=%s\n", fname, ret);
+-   return ret;
++
++   *result = ret;
++   return ok;
+ }
+ 
+ /* return an alist of BREGEXP or return NULL if it's not a 
+@@ -149,7 +151,7 @@
+    if (!(sep == '!' || 
+ 	 sep == ':' || 
+ 	 sep == ';' || 
+-	 sep == '§' || 
++	 sep == '|' || 
+ 	 sep == ',' || 
+ 	 sep == '&' || 
+ 	 sep == '%' || 
+@@ -163,7 +165,6 @@
+    char *search = (char *) motif + 1;
+    int options = REG_EXTENDED | REG_NEWLINE;
+    bool ok = false;
+-   bool found_motif = false;
+ 
+    /* extract 1st part */
+    char *dest = expr = bstrdup(motif);
+@@ -234,6 +235,7 @@
+ /* return regexp->result */
+ char *BREGEXP::replace(const char *fname)
+ {
++   success = false;		/* use this.success to known if it's ok */
+    int flen = strlen(fname);
+    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
+ 
+@@ -247,7 +249,7 @@
+    if (len) {
+       result = check_pool_memory_size(result, len);
+       edit_subst(fname, &regs);
+-
++      success = true;
+       Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
+ 
+    } else {			/* error in substitution */
+Index: patches/testing/bregtest.c
+===================================================================
+--- patches/testing/bregtest.c	(révision 4472)
++++ patches/testing/bregtest.c	(copie de travail)
+@@ -135,7 +135,7 @@
+ 
+    while (fgets(data, sizeof(data)-1, fd)) {
+       strip_trailing_newline(data);
+-      p = apply_bregexps(data, list);
++      apply_bregexps(data, list, &p);
+       printf("%s => %s\n", data, p);
+    }
+    fclose(fd);
+Index: patches/testing/breg.h
+===================================================================
+--- patches/testing/breg.h	(révision 4472)
++++ patches/testing/breg.h	(copie de travail)
+@@ -60,7 +60,9 @@
+ class BREGEXP {
+ public:
+    POOLMEM *result;		/* match result */
+-   char *replace(const char *fname);
++   bool success;		/* match is ok */
++
++   char *replace(const char *fname); /* return this.result */
+    void debug();
+ 
+    /* private */
+@@ -90,7 +92,8 @@
+ /* fill an alist with BREGEXP from where */
+ alist *get_bregexps(const char *where);
+ 
+-char *apply_bregexps(const char *fname, alist *bregexps);
++/* apply every regexps from the alist */
++bool apply_bregexps(const char *fname, alist *bregexps, char **result);
+ 
+ /* foreach_alist free RUNSCRIPT */
+ void free_bregexps(alist *bregexps); /* you have to free alist */
