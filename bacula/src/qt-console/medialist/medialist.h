@@ -63,6 +63,7 @@ private:
    Console *mp_console;
    QString m_currentlyselected;
    bool m_populated;
+   bool m_checkcurwidget;
 };
 
 #endif /* _MEDIALIST_H_ */
