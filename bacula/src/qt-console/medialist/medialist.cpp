@@ -51,6 +51,7 @@ MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *
    mp_console = console;
    createConnections();
    m_populated = false;
+   m_checkcurwidget = true;
 }
 
 MediaList::~MediaList()
@@ -78,7 +79,9 @@ void MediaList::populateTree()
       << "Volume Bytes" << "Volume Files" << "Volume Retention" 
       << "Media Type" << "Last Written");
 
+   m_checkcurwidget = false;
    mp_treeWidget->clear();
+   m_checkcurwidget = true;
    mp_treeWidget->setColumnCount(9);
    topItem = new QTreeWidgetItem(mp_treeWidget);
    topItem->setText(0, "Pools");
@@ -173,8 +176,6 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/
  */
 void MediaList::editMedia()
 {
-   /* ***FIXME*** make sure a valid tree item is selected -- check currentItem
- *    ??? Should this be a check in the database for the existence of m_currentlyselected??*/
    MediaEdit* edit = new MediaEdit(mp_console, m_currentlyselected);
    edit->show();
 }
@@ -213,14 +214,17 @@ void MediaList::PgSeltreeWidgetDoubleClicked()
 
 /*
  * Added to set the context menu policy based on currently active treeWidgetItem
+ * signaled by currentItemChanged
  */
 void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *) /*previouswidgetitem*/
 {
-   int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
-   if (treedepth == 2){
-      mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-      m_currentlyselected=currentwidgetitem->text(1);
-   } else {
-      mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
+   if ( m_checkcurwidget ) {
+      int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
+      if (treedepth == 2){
+         mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+         m_currentlyselected=currentwidgetitem->text(1);
+      } else {
+         mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
+      }
    }
 }
