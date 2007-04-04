@@ -148,7 +148,11 @@ again:
       foreach_dlist(vol, vol_list) {
          if (vol && vol->dev == dcr->dev) {
             vol_list->remove(vol);
-            if (vol->vol_name) {
+            /*
+             * Make sure we don't remove the current volume we are inserting
+             *  because it was probably inserted by another job.
+             */
+            if (vol->vol_name && strcmp(vol->vol_name, VolumeName) != 0) {
                Dmsg1(100, "new_vol free vol=%s\n", vol->vol_name);
                free(vol->vol_name);
             }
@@ -276,8 +280,8 @@ void free_unused_volume(DCR *dcr)
       /*
        * Releease this volume, but only if we inserted it (same dcr) and
        *  it is not attached to a device or the Volume in the device is
-       *  different.
-       * I wonder if this is right, kes ...
+       *  different. Requiring a different name for the Volume in the
+       *  device ensures that we don't free a volume in use.
        */
       if (vol->dcr == dcr && (vol->dev == NULL || 
           strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
