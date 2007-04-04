@@ -393,19 +393,19 @@ char *bregexp_build_where(char *strip_prefix,
 
    *str_tmp = *ret = '\0';
    
-   if (*strip_prefix) {
+   if (strip_prefix) {
       len += bsnprintf(ret, str_size - len, "!%s!!",
 		       bregexp_escape_string(str_tmp, strip_prefix, sep));
    }
 
-   if (*add_suffix) {
+   if (add_suffix) {
       if (len) ret[len++] = ',';
 
       len += bsnprintf(ret + len,  str_size - len, "!([^/])$!$1%s!",
 		       bregexp_escape_string(str_tmp, add_suffix, sep));
    }
 
-   if (*add_prefix) {
+   if (add_prefix) {
       if (len) ret[len++] = ',';
 
       len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
