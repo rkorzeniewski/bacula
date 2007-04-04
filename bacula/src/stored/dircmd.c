@@ -1,25 +1,4 @@
 /*
- *  This file handles accepting Director Commands
- *
- *    Most Director commands are handled here, with the
- *    exception of the Job command command and subsequent
- *    subcommands that are handled
- *    in job.c.
- *
- *    N.B. in this file, in general we must use P(dev->mutex) rather
- *      than lock_device(dev) so that we can examine the blocked
- *      state rather than blocking ourselves because a Job
- *      thread has the device blocked. In some "safe" cases,
- *      we can do things to a blocked device. CAREFUL!!!!
- *
- *    File daemon commands are handled in fdcmd.c
- *
- *     Kern Sibbald, May MMI
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
@@ -506,7 +485,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
 
 bail_out:
    if (!dev->is_open()) {
-      free_volume(dev);
+      dev->clear_volhdr();
    }
    give_back_device_lock(dev, &hold);
    return;

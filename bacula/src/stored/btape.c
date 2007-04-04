@@ -1,22 +1,7 @@
 /*
- *
- *   Bacula Tape manipulation program
- *
- *    Has various tape manipulation commands -- mostly for
- *    use in determining how tapes really work.
- *
- *     Kern Sibbald, April MM
- *
- *   Note, this program reads stored.conf, and will only
- *     talk to devices that are configured.
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,6 +25,21 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Tape manipulation program
+ *
+ *    Has various tape manipulation commands -- mostly for
+ *    use in determining how tapes really work.
+ *
+ *     Kern Sibbald, April MM
+ *
+ *   Note, this program reads stored.conf, and will only
+ *     talk to devices that are configured.
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -355,21 +355,23 @@ static void terminate_btape(int stat)
 static bool open_the_device()
 {
    DEV_BLOCK *block;
+   bool ok = true;
 
    block = new_block(dev);
    lock_device(dev);
    Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
-      unlock_device(dev);
-      free_block(block);
-      return false;
+      ok = false;
+      goto bail_out;
    }
    Pmsg1(000, _("open device %s: OK\n"), dev->print_name());
    dev->set_append();                 /* put volume in append mode */
-   unlock_device(dev);
+
+bail_out:
+   dev->unlock();
    free_block(block);
-   return true;
+   return ok;
 }
 
 
@@ -2383,12 +2385,12 @@ static int flush_block(DEV_BLOCK *block, int dump)
          if (!fixup_device_block_write_error(jcr->dcr)) {
             Pmsg1(000, _("Cannot fixup device error. %s\n"), dev->bstrerror());
             ok = false;
-            unlock_device(dev);
+            dev->unlock();
             return 0;
          }
          BlockNumber = 0;             /* start counting for second tape */
       }
-      unlock_device(dev);
+      dev->unlock();
       return 1;                       /* end of tape reached */
    }
 
@@ -2407,7 +2409,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    last_file = this_file;
    last_block_num = this_block_num;
 
-   unlock_device(dev);
+   dev->unlock();
    return 1;
 }
 

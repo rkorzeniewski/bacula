@@ -99,7 +99,7 @@ bool fixup_device_block_write_error(DCR *dcr)
 
    block_device(dev, BST_DOING_ACQUIRE);
    /* Unlock, but leave BLOCKED */
-   unlock_device(dev);
+   dev->unlock();
 
    bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
    bstrncpy(dev->VolHdr.PrevVolumeName, PrevVolName, sizeof(dev->VolHdr.PrevVolumeName));
@@ -284,7 +284,7 @@ bool first_open_device(DCR *dcr)
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
 
 bail_out:
-   unlock_device(dev);
+   dev->unlock();
    return ok;
 }
 
@@ -316,25 +316,6 @@ bool open_device(DCR *dcr)
    return true;
 }
 
-
-
-#ifdef xxx
-void dev_lock(DEVICE *dev)
-{
-   int errstat;
-   if ((errstat=rwl_writelock(&dev->lock))) {
-      Emsg1(M_ABORT, 0, _("Device write lock failure. ERR=%s\n"), strerror(errstat));
-   }
-}
-
-void dev_unlock(DEVICE *dev)
-{
-   int errstat;
-   if ((errstat=rwl_writeunlock(&dev->lock))) {
-      Emsg1(M_ABORT, 0, _("Device write unlock failure. ERR=%s\n"), strerror(errstat));
-   }
-}
-#endif 
 
 /*
  * When dev_blocked is set, all threads EXCEPT thread with id no_wait_id

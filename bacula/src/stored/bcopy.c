@@ -189,10 +189,10 @@ int main (int argc, char *argv[])
    lock_device(out_dev);
    if (out_dev->open(out_jcr->dcr, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
-      unlock_device(out_dev);
+      out_dev->unlock();
       exit(1);
    }
-   unlock_device(out_dev);
+   out_dev->unlock();
    if (!acquire_device_for_append(out_jcr->dcr)) {
       free_jcr(in_jcr);
       exit(1);

@@ -138,12 +138,18 @@ VOLRES *new_volume(DCR *dcr, const char *VolumeName)
     */
    lock_reservations();
    P(vol_list_lock);
+   /*
+    * First, if this dcr already is attached to any device,
+    *  remove any old volumes attached to this device as they
+    *  are no longer used (there should at max be one).
+    */
    if (dcr->dev) {
 again:
       foreach_dlist(vol, vol_list) {
          if (vol && vol->dev == dcr->dev) {
             vol_list->remove(vol);
             if (vol->vol_name) {
+               Dmsg1(100, "new_vol free vol=%s\n", vol->vol_name);
                free(vol->vol_name);
             }
             free(vol);
@@ -157,20 +163,29 @@ again:
    vol->dev = dcr->dev;
    vol->dcr = dcr;
    Dmsg2(100, "New Vol=%s dev=%s\n", VolumeName, dcr->dev->print_name());
+   /*
+    * Now try to insert the new Volume
+    */
    nvol = (VOLRES *)vol_list->binary_insert(vol, my_compare);
    if (nvol != vol) {
+      Dmsg2(100, "Found vol=%s same dcr=%d\n", nvol->vol_name, dcr==nvol->dcr);
+      /*
+       * At this point, a Volume with this name already is in the
+       *  list, free our temp structure
+       */
       free(vol->vol_name);
       free(vol);
       vol = NULL;
       if (dcr->dev) {
          DEVICE *dev = nvol->dev;
+         /* ***FIXME*** don't we need a mutex here? */
          if (!dev->is_busy()) {
             Dmsg3(100, "Swap vol=%s from dev=%s to %s\n", VolumeName,
                dev->print_name(), dcr->dev->print_name());
             nvol->dev = dcr->dev;
             dev->VolHdr.VolumeName[0] = 0;
          } else {
-            Dmsg3(100, "!!!! could not swap vol=%s from dev=%s to %s\n", VolumeName,
+            Dmsg3(100, "Logic ERROR!!!! could not swap vol=%s from dev=%s to %s\n", VolumeName,
                dev->print_name(), dcr->dev->print_name());
          }
       }
@@ -195,6 +210,7 @@ VOLRES *find_volume(const char *VolumeName)
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
    free(vol.vol_name);
    V(vol_list_lock);
+   Dmsg2(100, "find_vol=%s found=%d\n", VolumeName, fvol!=NULL);
    return fvol;
 }
 
@@ -208,8 +224,12 @@ bool free_volume(DEVICE *dev)
 {
    VOLRES vol, *fvol;
 
-   P(vol_list_lock);
    if (dev->VolHdr.VolumeName[0] == 0) {
+      return false;
+   }
+
+   P(vol_list_lock);
+#ifdef xxx
       Dmsg1(100, "free_volume: no vol on dev %s\n", dev->print_name());
       /*
        * Our device has no VolumeName listed, but
@@ -229,6 +249,7 @@ bool free_volume(DEVICE *dev)
       }
       goto bail_out;
    }
+#endif
    Dmsg1(400, "free_volume %s\n", dev->VolHdr.VolumeName);
    vol.vol_name = bstrdup(dev->VolHdr.VolumeName);
    fvol = (VOLRES *)vol_list->binary_search(&vol, my_compare);
@@ -239,8 +260,8 @@ bool free_volume(DEVICE *dev)
       free(fvol);
    }
    free(vol.vol_name);
-   dev->VolHdr.VolumeName[0] = 0;
-bail_out:
+//   dev->VolHdr.VolumeName[0] = 0;
+//bail_out:
    V(vol_list_lock);
    return fvol != NULL;
 }
@@ -252,6 +273,12 @@ void free_unused_volume(DCR *dcr)
 
    P(vol_list_lock);
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
+      /*
+       * Releease this volume, but only if we inserted it (same dcr) and
+       *  it is not attached to a device or the Volume in the device is
+       *  different.
+       * I wonder if this is right, kes ...
+       */
       if (vol->dcr == dcr && (vol->dev == NULL || 
           strcmp(vol->vol_name, vol->dev->VolHdr.VolumeName) != 0)) {
          vol_list->remove(vol);
