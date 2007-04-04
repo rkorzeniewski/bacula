@@ -1,21 +1,294 @@
+Index: src/dird/ua_restore.c
+===================================================================
+--- src/dird/ua_restore.c	(révision 4466)
++++ src/dird/ua_restore.c	(copie de travail)
+@@ -43,8 +43,8 @@
+ 
+ #include "bacula.h"
+ #include "dird.h"
++#include "lib/breg.h"
+ 
+-
+ /* Imported functions */
+ extern void print_bsr(UAContext *ua, RBSR *bsr);
+ 
+@@ -83,6 +83,9 @@
+    JCR *jcr = ua->jcr;
+    char *escaped_bsr_name = NULL;
+    char *escaped_where_name = NULL;
++   bool where_use_regexp = false;
++   char *strip_prefix, *add_prefix, *add_suffix;
++   strip_prefix = add_prefix = add_suffix = NULL;
+ 
+    memset(&rx, 0, sizeof(rx));
+    rx.path = get_pool_memory(PM_FNAME);
+@@ -94,6 +97,29 @@
+    i = find_arg_with_value(ua, "where");
+    if (i >= 0) {
+       rx.where = ua->argv[i];
++   }
++
++   i = find_arg_with_value(ua, "strip_prefix");
++   if (i >= 0) {
++      strip_prefix = ua->argv[i];
++   }
++
++   i = find_arg_with_value(ua, "add_prefix");
++   if (i >= 0) {
++      add_prefix = ua->argv[i];
++   }
++
++   i = find_arg_with_value(ua, "add_suffix");
++   if (i >= 0) {
++      add_suffix = ua->argv[i];
++   }
++
++   if (strip_prefix || add_suffix || add_prefix) {
++      where_use_regexp = true;
++      rx.where = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
++   }
++
++   if (rx.where) {
+       if (!acl_access_ok(ua, Where_ACL, rx.where)) {
+          ua->error_msg(_("\"where\" specification not authorized.\n"));
+          goto bail_out;
+@@ -195,9 +221,10 @@
+ 
+       Mmsg(ua->cmd,
+           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
+-          " where=\"%s\" files=%d catalog=\"%s\"",
++          " %swhere=\"%s\" files=%d catalog=\"%s\"",
+           job->name(), rx.ClientName, rx.store?rx.store->name():"",
+           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
++	  where_use_regexp ? "r" : "",
+           escaped_where_name ? escaped_where_name : rx.where,
+           rx.selected_files, ua->catalog->name());
+    } else {
+@@ -216,6 +243,10 @@
+    if (escaped_where_name != NULL) {
+       bfree(escaped_where_name);
+    }
++   
++   if (where_use_regexp) {
++      free_pool_memory(rx.where);
++   }
+ 
+    if (find_arg(ua, NT_("yes")) > 0) {
+       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
+@@ -235,6 +266,10 @@
+       bfree(escaped_where_name);
+    }
+ 
++   if (where_use_regexp) {
++      free_pool_memory(rx.where);
++   }
++
+    free_rx(&rx);
+    return 0;
+ 
+Index: src/dird/restore.c
+===================================================================
+--- src/dird/restore.c	(révision 4466)
++++ src/dird/restore.c	(copie de travail)
+@@ -50,8 +50,9 @@
+ #include "dird.h"
+ 
+ /* Commands sent to File daemon */
+-static char restorecmd[]   = "restore replace=%c prelinks=%d where=%s\n";
+-static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
++static char restorecmd[]        = "restore replace=%c prelinks=%d where=%s\n";
++static char restorecmdR[] = "restore replace=%c prelinks=%d rwhere=%s\n";
++static char storaddr[]   = "storage address=%s port=%d ssl=0\n";
+ 
+ /* Responses received from File daemon */
+ static char OKrestore[]   = "2000 OK restore\n";
+@@ -172,7 +173,7 @@
+    }
+ 
+    /* Send restore command */
+-   char replace, *where;
++   char replace, *where, *cmd;
+    char empty = '\0';
+ 
+    if (jcr->replace != 0) {
+@@ -189,9 +190,17 @@
+    } else {
+       where = &empty;                 /* None */
+    }
++   
+    jcr->prefix_links = jcr->job->PrefixLinks;
++
++   if (jcr->where_use_regexp) {
++      cmd = restorecmdR;
++   } else {
++      cmd = restorecmd;
++   }
++
+    bash_spaces(where);
+-   bnet_fsend(fd, restorecmd, replace, jcr->prefix_links, where);
++   bnet_fsend(fd, cmd, replace, jcr->prefix_links, where);
+    unbash_spaces(where);
+ 
+    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
+Index: src/dird/dird_conf.c
+===================================================================
+--- src/dird/dird_conf.c	(révision 4466)
++++ src/dird/dird_conf.c	(copie de travail)
+@@ -268,6 +268,7 @@
+    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
+    /* Root of where to restore files */
+    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
++   {"whereuseregexp", store_bool, ITEM(res_job.where_use_regexp), 0, 0, 0},
+    /* Where to find bootstrap during restore */
+    {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
+    /* Where to write bootstrap file during backup */
+@@ -611,6 +612,9 @@
+       if (res->res_job.RestoreWhere) {
+          sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+       }
++      if (res->res_job.where_use_regexp) {
++         sendit(sock, _("  --> RWhere=%u\n"), res->res_job.where_use_regexp);
++      }
+       if (res->res_job.RestoreBootstrap) {
+          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
+       }
+Index: src/dird/ua_run.c
+===================================================================
+--- src/dird/ua_run.c	(révision 4466)
++++ src/dird/ua_run.c	(copie de travail)
+@@ -71,6 +71,7 @@
+    int Priority = 0;
+    int i, j, opt, files = 0;
+    bool kw_ok;
++   bool where_use_regexp = false;
+    JOB *job = NULL;
+    JOB *verify_job = NULL;
+    JOB *previous_job = NULL;
+@@ -87,7 +88,7 @@
+       "level",                        /* 5 */
+       "storage",                      /* 6 */
+       "sd",                           /* 7 */
+-      "pool",                         /* 8 */
++      "rwhere",                       /* 8 where string as a bregexp */
+       "where",                        /* 9 */
+       "bootstrap",                    /* 10 */
+       "replace",                      /* 11 */
+@@ -101,6 +102,7 @@
+       "cloned",                       /* 19 cloned */
+       "verifylist",                   /* 20 verify output list */
+       "migrationjob",                 /* 21 migration job name */
++      "pool",                         /* 22 */
+       NULL};
+ 
+ #define YES_POS 14
+@@ -188,14 +190,8 @@
+                store_name = ua->argv[i];
+                kw_ok = true;
+                break;
+-            case 8: /* pool */
+-               if (pool_name) {
+-                  ua->send_msg(_("Pool specified twice.\n"));
+-                  return 0;
+-               }
+-               pool_name = ua->argv[i];
+-               kw_ok = true;
+-               break;
++	    case 8:
++	       where_use_regexp = true;
+             case 9: /* where */
+                if (where) {
+                   ua->send_msg(_("Where specified twice.\n"));
+@@ -287,8 +283,15 @@
+                previous_job_name = ua->argv[i];
+                kw_ok = true;
+                break;
++            case 22: /* pool */
++               if (pool_name) {
++                  ua->send_msg(_("Pool specified twice.\n"));
++                  return 0;
++               }
++               pool_name = ua->argv[i];
++               kw_ok = true;
++               break;
+ 
+-
+             default:
+                break;
+             }
+@@ -478,6 +481,7 @@
+          free(jcr->where);
+       }
+       jcr->where = bstrdup(where);
++      jcr->where_use_regexp = where_use_regexp;
+    }
+ 
+    if (when) {
+Index: src/dird/dird_conf.h
+===================================================================
+--- src/dird/dird_conf.h	(révision 4466)
++++ src/dird/dird_conf.h	(copie de travail)
+@@ -356,6 +356,7 @@
+    int   Priority;                    /* Job priority */
+    int   RestoreJobId;                /* What -- JobId to restore */
+    char *RestoreWhere;                /* Where on disk to restore -- directory */
++   bool  where_use_regexp;            /* true if RestoreWhere is a BREGEXP */
+    char *RestoreBootstrap;            /* Bootstrap file */
+    alist *RunScripts;                 /* Run {client} program {after|before} Job */
+    union {
 Index: src/filed/job.c
 ===================================================================
 --- src/filed/job.c	(révision 4467)
 +++ src/filed/job.c	(copie de travail)
-@@ -37,6 +37,8 @@
+@@ -36,6 +36,7 @@
+ 
  #include "bacula.h"
  #include "filed.h"
- 
 +#include "lib/breg.h"
-+
+ 
  #if defined(WIN32_VSS)
  #include "vss.h"
+@@ -115,6 +116,7 @@
+ static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
+ static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
+ static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
++static char restorecmdR[] = "restore replace=%c prelinks=%d rwhere=%s\n";
+ static char verifycmd[]   = "verify level=%30s";
+ static char estimatecmd[] = "estimate listing=%d";
+ static char runbefore[]   = "RunBeforeJob %s";
+@@ -1586,12 +1588,15 @@
+    *where = 0;
  
-@@ -1601,6 +1603,7 @@
+    if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
+-      if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
+-         pm_strcpy(jcr->errmsg, dir->msg);
+-         Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
+-         return 0;
++      if (sscanf(dir->msg, restorecmdR, &replace, &prefix_links, where) != 3){
++	 if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
++	    pm_strcpy(jcr->errmsg, dir->msg);
++	    Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
++	    return 0;
++	 }
++	 *where = 0;
+       }
+-      *where = 0;
++      jcr->where_use_regexp = true;
+    }
+    /* Turn / into nothing */
+    if (IsPathSeparator(where[0]) && where[1] == '\0') {
+@@ -1601,6 +1606,15 @@
     Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
     unbash_spaces(where);
     jcr->where = bstrdup(where);
-+   jcr->where_bregexp = get_bregexps(where);
++
++   if (jcr->where_use_regexp) {
++      jcr->where_bregexp = get_bregexps(jcr->where);
++      if (!jcr->where_bregexp) {
++	 Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), jcr->where);
++	 free_pool_memory(where);
++	 return 0;
++      }
++   }
     free_pool_memory(where);
     jcr->replace = replace;
     jcr->prefix_links = prefix_links;
@@ -23,10 +296,11 @@ Index: src/jcr.h
 ===================================================================
 --- src/jcr.h	(révision 4466)
 +++ src/jcr.h	(copie de travail)
-@@ -173,6 +173,7 @@
+@@ -173,6 +173,8 @@
     MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
     uint32_t ClientId;                 /* Client associated with Job */
     char *where;                       /* prefix to restore files to */
++   bool where_use_regexp;             /* True if where is a bregexp */
 +   alist *where_bregexp;              /* BREGEXP alist for path manipulation */
     int cached_pnl;                    /* cached path length */
     POOLMEM *cached_path;              /* cached path */
@@ -126,110 +400,28 @@ Index: src/lib/jcr.c
        jcr->cached_path = NULL;
 Index: patches/testing/breg.c
 ===================================================================
---- patches/testing/breg.c	(révision 4483)
+--- patches/testing/breg.c	(révision 4510)
 +++ patches/testing/breg.c	(copie de travail)
-@@ -52,9 +52,6 @@
-       return NULL;
+@@ -393,19 +393,19 @@
+ 
+    *str_tmp = *ret = '\0';
+    
+-   if (*strip_prefix) {
++   if (strip_prefix) {
+       len += bsnprintf(ret, str_size - len, "!%s!!",
+ 		       bregexp_escape_string(str_tmp, strip_prefix, sep));
     }
  
--   static int _start[RE_NREGS];
--   static int _end[RE_NREGS];
--
-    self->result = get_pool_memory(PM_FNAME);
-    self->result[0] = '\0';
+-   if (*add_suffix) {
++   if (add_suffix) {
+       if (len) ret[len++] = ',';
  
-@@ -102,15 +99,20 @@
- 
- /* Apply all regexps to fname
-  */
--char *apply_bregexps(const char *fname, alist *bregexps)
-+bool apply_bregexps(const char *fname, alist *bregexps, char **result)
- {
-    BREGEXP *elt;
-+   bool ok=false;
-+
-    char *ret = (char *) fname;
-    foreach_alist(elt, bregexps) {
-       ret = elt->replace(ret);
-+      ok = ok || elt->success;
+       len += bsnprintf(ret + len,  str_size - len, "!([^/])$!$1%s!",
+ 		       bregexp_escape_string(str_tmp, add_suffix, sep));
     }
-    Dmsg2(500, "bregexp: fname=%s ret=%s\n", fname, ret);
--   return ret;
-+
-+   *result = ret;
-+   return ok;
- }
  
- /* return an alist of BREGEXP or return NULL if it's not a 
-@@ -149,7 +151,7 @@
-    if (!(sep == '!' || 
- 	 sep == ':' || 
- 	 sep == ';' || 
--	 sep == '§' || 
-+	 sep == '|' || 
- 	 sep == ',' || 
- 	 sep == '&' || 
- 	 sep == '%' || 
-@@ -163,7 +165,6 @@
-    char *search = (char *) motif + 1;
-    int options = REG_EXTENDED | REG_NEWLINE;
-    bool ok = false;
--   bool found_motif = false;
+-   if (*add_prefix) {
++   if (add_prefix) {
+       if (len) ret[len++] = ',';
  
-    /* extract 1st part */
-    char *dest = expr = bstrdup(motif);
-@@ -234,6 +235,7 @@
- /* return regexp->result */
- char *BREGEXP::replace(const char *fname)
- {
-+   success = false;		/* use this.success to known if it's ok */
-    int flen = strlen(fname);
-    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
- 
-@@ -247,7 +249,7 @@
-    if (len) {
-       result = check_pool_memory_size(result, len);
-       edit_subst(fname, &regs);
--
-+      success = true;
-       Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
- 
-    } else {			/* error in substitution */
-Index: patches/testing/bregtest.c
-===================================================================
---- patches/testing/bregtest.c	(révision 4472)
-+++ patches/testing/bregtest.c	(copie de travail)
-@@ -135,7 +135,7 @@
- 
-    while (fgets(data, sizeof(data)-1, fd)) {
-       strip_trailing_newline(data);
--      p = apply_bregexps(data, list);
-+      apply_bregexps(data, list, &p);
-       printf("%s => %s\n", data, p);
-    }
-    fclose(fd);
-Index: patches/testing/breg.h
-===================================================================
---- patches/testing/breg.h	(révision 4472)
-+++ patches/testing/breg.h	(copie de travail)
-@@ -60,7 +60,9 @@
- class BREGEXP {
- public:
-    POOLMEM *result;		/* match result */
--   char *replace(const char *fname);
-+   bool success;		/* match is ok */
-+
-+   char *replace(const char *fname); /* return this.result */
-    void debug();
- 
-    /* private */
-@@ -90,7 +92,8 @@
- /* fill an alist with BREGEXP from where */
- alist *get_bregexps(const char *where);
- 
--char *apply_bregexps(const char *fname, alist *bregexps);
-+/* apply every regexps from the alist */
-+bool apply_bregexps(const char *fname, alist *bregexps, char **result);
- 
- /* foreach_alist free RUNSCRIPT */
- void free_bregexps(alist *bregexps); /* you have to free alist */
+       len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
