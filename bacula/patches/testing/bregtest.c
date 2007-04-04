@@ -62,6 +62,10 @@ static void usage()
 
 int main(int argc, char *const *argv)
 {
+	printf("%s\n", bregexp_build_where("/tmp", "/opt", ".old"));
+	exit(0);
+
+
    regex_t preg;
    char prbuf[500];
    char *fname = NULL;
