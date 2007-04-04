@@ -579,7 +579,7 @@ void terminate_stored(int sig)
    foreach_res(device, R_DEVICE) {
       Dmsg1(10, "Term device %s\n", device->device_name);
       if (device->dev) {
-         free_volume(device->dev);
+         device->dev->clear_volhdr();
          device->dev->term();
          device->dev = NULL;
       } else {

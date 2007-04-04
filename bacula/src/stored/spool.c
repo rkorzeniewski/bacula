@@ -204,6 +204,10 @@ static bool close_data_spool_file(DCR *dcr)
 
 static const char *spool_name = "*spool*";
 
+/*
+ * NB! This routine locks the device, but if committing will
+ *     not unlock it. If not committing, it will be unlocked.
+ */
 static bool despool_data(DCR *dcr, bool commit)
 {
    DEVICE *rdev;
@@ -215,7 +219,8 @@ static bool despool_data(DCR *dcr, bool commit)
    char ec1[50];
 
    Dmsg0(100, "Despooling data\n");
-   /* Commit means that the job is done, so we commit, otherwise, we
+   /*
+    * Commit means that the job is done, so we commit, otherwise, we
     *  are despooling because of user spool size max or some error  
     *  (e.g. filesystem full).
     */
@@ -325,7 +330,7 @@ static bool despool_data(DCR *dcr, bool commit)
    /* If doing a commit, leave the device locked -- unlocked in release_device() */
    if (!commit) {
       dcr->dev_locked = false;
-      unlock_device(dcr->dev);
+      dcr->dev->unlock();
    }
    return ok;
 }

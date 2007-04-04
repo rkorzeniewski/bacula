@@ -590,8 +590,7 @@ void release_volume(DCR *dcr)
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
    memset(&dcr->VolCatInfo, 0, sizeof(dcr->VolCatInfo));
-   free_volume(dev);
-   memset(&dev->VolHdr, 0, sizeof(dev->VolHdr));
+   dev->clear_volhdr();
    /* Force re-read of label */
    dev->clear_labeled();
    dev->clear_read();

@@ -41,12 +41,6 @@
 
 #undef DCR                            /* used by Bacula */
 
-/* #define NEW_LOCK 1 */
-
-#define new_lock_device(dev)             _new_lock_device(__FILE__, __LINE__, (dev))
-#define new_lock_device_state(dev,state) _new_lock_device(__FILE__, __LINE__, (dev), (state))
-#define new_unlock_device(dev)           _new_unlock_device(__FILE__, __LINE__, (dev))
-
 #define lock_device(d) _lock_device(__FILE__, __LINE__, (d))
 #define unlock_device(d) _unlock_device(__FILE__, __LINE__, (d))
 #define block_device(d, s) _block_device(__FILE__, __LINE__, (d), s)
@@ -369,6 +363,7 @@ public:
    void lock() { P(m_mutex); } 
    void unlock() { V(m_mutex); } 
 
+   void clear_volhdr();          /* in dev.c */
    void block(int why);          /* in dev.c */
    void unblock();               /* in dev.c */
    void close();                 /* in dev.c */

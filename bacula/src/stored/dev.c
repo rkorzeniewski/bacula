@@ -5,7 +5,7 @@
  *              Kern Sibbald, MM
  *
  *     NOTE!!!! None of these routines are reentrant. You must
- *        use lock_device() and unlock_device() at a higher level,
+ *        use lock_device() and dev->unlock() at a higher level,
  *        or use the xxx_device() equivalents.  By moving the
  *        thread synchronization to a higher level, we permit
  *        the higher level routines to "seize" the device and
@@ -1843,6 +1843,17 @@ void DEVICE::clrerror(int func)
 #endif
 }
 
+
+/*
+ * Clear volume header
+ */
+void DEVICE::clear_volhdr()
+{
+   free_volume(this);
+   memset(&VolHdr, 0, sizeof(VolHdr));
+}
+
+
 /*
  * Close the device
  */
@@ -1878,9 +1889,8 @@ void DEVICE::close()
    EndFile = EndBlock = 0;
    openmode = 0;
    Slot = -1;             /* unknown slot */
-   free_volume(this);
+   clear_volhdr();
    memset(&VolCatInfo, 0, sizeof(VolCatInfo));
-   memset(&VolHdr, 0, sizeof(VolHdr));
    if (tid) {
       stop_thread_timer(tid);
       tid = 0;
@@ -2439,8 +2449,7 @@ void set_os_device_parameters(DCR *dcr)
          dev->clrerror(MTSETBSIZ);
       }
    }
-/* Turn this on later when fully tested */
-#if defined(xxxMTIOCSETEOTMODEL) 
+#if defined(MTIOCSETEOTMODEL) 
    uint32_t neof;
    if (dev->has_cap(CAP_TWOEOF)) {
       neof = 2;

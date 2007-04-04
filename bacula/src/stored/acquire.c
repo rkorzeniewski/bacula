@@ -558,7 +558,7 @@ bool release_device(DCR *dcr)
       free_pool_memory(alert);
    }
    dcr->dev_locked = false;              /* set no longer locked */
-   unlock_device(dev);
+   dev->unlock();
    if (jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;
    }
@@ -645,7 +645,7 @@ void detach_dcr_from_dev(DCR *dcr)
          Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
          dev->num_writers = 0;
       }
-      unlock_device(dev);
+      dev->unlock();
    }
 
    /* Detach this dcr only if attached */
