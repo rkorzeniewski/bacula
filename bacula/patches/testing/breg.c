@@ -173,6 +173,9 @@ bool BREGEXP::extract_regexp(const char *motif)
       if (search[0] == '\\' && search[1] == sep) {
 	 *dest++ = *++search;       /* we skip separator */ 
 
+      } else if (search[0] == '\\' && search[1] == '\\') {
+	 *dest++ = *++search;	    /* we skip the second \ */
+
       } else if (*search == sep) {  /* we found end of expression */
 	 *dest++ = '\0';
 
@@ -347,6 +350,71 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
 
    return result;
 }
+
+/* escape sep char and \
+ * dest must be long enough (src*2+1)
+ * return end of the string */
+char *bregexp_escape_string(char *dest, char *src, char sep)
+{
+   char *ret = dest;
+   while (*src)
+   {
+      if (*src == sep) {
+	 *dest++ = '\\';
+      } else if (*src == '\\') {
+	 *dest++ = '\\';
+      }
+      *dest++ = *src++;
+   }
+   *dest = '\0';
+
+   return ret; 
+}
+
+/* build a regexp string with user arguments
+ * don't forget to free ret 
+ */
+char *bregexp_build_where(char *strip_prefix, 
+                          char *add_prefix, 
+                          char *add_suffix)
+{
+   /* strip_prefix = !strip_prefix!!         4 bytes
+    * add_prefix   = !^!add_prefix!          5 bytes
+    * add_suffix   = !([^/])$!$1.add_suffix! 14 bytes
+    */
+   int len=0;
+   char sep = '!';
+   int str_size = (strlen(strip_prefix) + 4 +
+		   strlen(add_prefix)   + 5 +
+		   strlen(add_suffix)   + 14) * 2  + 1;
+
+   POOLMEM *ret = get_memory(str_size);
+   POOLMEM *str_tmp = get_memory(str_size);
+
+   *str_tmp = *ret = '\0';
+   
+   if (*strip_prefix) {
+      len += bsnprintf(ret, str_size - len, "!%s!!",
+		       bregexp_escape_string(str_tmp, strip_prefix, sep));
+   }
+
+   if (*add_suffix) {
+      if (len) ret[len++] = ',';
+
+      len += bsnprintf(ret + len,  str_size - len, "!([^/])$!$1%s!",
+		       bregexp_escape_string(str_tmp, add_suffix, sep));
+   }
+
+   if (*add_prefix) {
+      if (len) ret[len++] = ',';
+
+      len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
+		       bregexp_escape_string(str_tmp, add_prefix, sep));
+   }
+
+   return ret;
+}
+
 
 void BREGEXP::debug()
 {
