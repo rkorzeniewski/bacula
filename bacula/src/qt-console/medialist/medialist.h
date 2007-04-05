@@ -58,6 +58,7 @@ public slots:
 private:
    void createConnections();
    void populateTree();
+   void createContextMenu();
 
 private:
    Console *mp_console;

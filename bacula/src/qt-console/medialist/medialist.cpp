@@ -88,28 +88,7 @@ void MediaList::populateTree()
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded( true );
 
-#ifdef xxx
-#include <QSize>
-*****    FIXME   *****
-//how to get the size of a column to be larger
-//topItem->setSizeHint(0,QSize(1050,50));
-#endif
-
    mp_treeWidget->setHeaderLabels(headerlist);
-
-   /* 
-    * Setup a context menu 
-    */
-   QAction *editAction = new QAction("Edit Properties", mp_treeWidget);
-   QAction *listAction = new QAction("List Jobs On Media", mp_treeWidget);
-   mp_treeWidget->addAction(editAction);
-   mp_treeWidget->addAction(listAction);
-   connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
-   connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
-   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   connect(mp_treeWidget, SIGNAL(
-           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
 
    if (mp_console->sql_cmd(query, results)) {
       QString field;
@@ -197,6 +176,7 @@ void MediaList::PgSeltreeWidgetClicked()
 {
    if(!m_populated) {
       populateTree();
+      createContextMenu();
       m_populated=true;
    }
 }
@@ -227,4 +207,21 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
       }
    }
+}
+
+/* 
+ * Setup a context menu 
+ */
+void MediaList::createContextMenu()
+{
+   QAction *editAction = new QAction("Edit Properties", mp_treeWidget);
+   QAction *listAction = new QAction("List Jobs On Media", mp_treeWidget);
+   mp_treeWidget->addAction(editAction);
+   mp_treeWidget->addAction(listAction);
+   connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
+   connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
+   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   connect(mp_treeWidget, SIGNAL(
+           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
+           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
 }

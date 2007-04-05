@@ -92,6 +92,7 @@ void JobList::populateTable()
          foreach (field, fieldlist) {
             field = field.trimmed();  /* strip leading & trailing spaces */
             p_tableitem = new QTableWidgetItem(field,1);
+            p_tableitem->setFlags(0);
             mp_tableWidget->setItem(row, column, p_tableitem);
             column++;
          }
