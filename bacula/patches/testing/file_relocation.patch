@@ -12,17 +12,18 @@ Index: src/dird/ua_restore.c
  /* Imported functions */
  extern void print_bsr(UAContext *ua, RBSR *bsr);
  
-@@ -83,6 +83,9 @@
+@@ -83,6 +83,10 @@
     JCR *jcr = ua->jcr;
     char *escaped_bsr_name = NULL;
     char *escaped_where_name = NULL;
 +   bool where_use_regexp = false;
++   bool have_to_free_where = false;
 +   char *strip_prefix, *add_prefix, *add_suffix;
 +   strip_prefix = add_prefix = add_suffix = NULL;
  
     memset(&rx, 0, sizeof(rx));
     rx.path = get_pool_memory(PM_FNAME);
-@@ -94,6 +97,29 @@
+@@ -94,6 +98,41 @@
     i = find_arg_with_value(ua, "where");
     if (i >= 0) {
        rx.where = ua->argv[i];
@@ -43,8 +44,20 @@ Index: src/dird/ua_restore.c
 +      add_suffix = ua->argv[i];
 +   }
 +
++   i = find_arg(ua, "where_use_regexp");
++   if (i >= 0) {
++      where_use_regexp = true;
++   }
++
++   i = find_arg_with_value(ua, "rwhere");
++   if (i >= 0) {
++      where_use_regexp = true;
++      rx.where = ua->argv[i];
++   }
++
 +   if (strip_prefix || add_suffix || add_prefix) {
 +      where_use_regexp = true;
++      have_to_free_where = true;
 +      rx.where = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
 +   }
 +
@@ -52,7 +65,7 @@ Index: src/dird/ua_restore.c
        if (!acl_access_ok(ua, Where_ACL, rx.where)) {
           ua->error_msg(_("\"where\" specification not authorized.\n"));
           goto bail_out;
-@@ -195,9 +221,10 @@
+@@ -195,9 +234,10 @@
  
        Mmsg(ua->cmd,
            "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
@@ -64,27 +77,71 @@ Index: src/dird/ua_restore.c
            escaped_where_name ? escaped_where_name : rx.where,
            rx.selected_files, ua->catalog->name());
     } else {
-@@ -216,6 +243,10 @@
+@@ -216,6 +256,10 @@
     if (escaped_where_name != NULL) {
        bfree(escaped_where_name);
     }
 +   
-+   if (where_use_regexp) {
++   if (have_to_free_where) {
 +      free_pool_memory(rx.where);
 +   }
  
     if (find_arg(ua, NT_("yes")) > 0) {
        pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
-@@ -235,6 +266,10 @@
+@@ -235,6 +279,10 @@
        bfree(escaped_where_name);
     }
  
-+   if (where_use_regexp) {
++   if (have_to_free_where) {
 +      free_pool_memory(rx.where);
 +   }
 +
     free_rx(&rx);
     return 0;
+ 
+@@ -331,23 +379,28 @@
+ 
+    const char *kw[] = {
+        /* These keywords are handled in a for loop */
+-      "jobid",     /* 0 */
+-      "current",   /* 1 */
+-      "before",    /* 2 */
+-      "file",      /* 3 */
+-      "directory", /* 4 */
+-      "select",    /* 5 */
+-      "pool",      /* 6 */
+-      "all",       /* 7 */
++      "jobid",       /* 0 */
++      "current",     /* 1 */
++      "before",      /* 2 */
++      "file",        /* 3 */
++      "directory",   /* 4 */
++      "select",      /* 5 */
++      "pool",        /* 6 */
++      "all",         /* 7 */
+ 
+       /* The keyword below are handled by individual arg lookups */
+-      "client",    /* 8 */
+-      "storage",   /* 9 */
+-      "fileset",   /* 10 */
+-      "where",     /* 11 */
+-      "yes",       /* 12 */
+-      "bootstrap", /* 13 */
+-      "done",      /* 14 */
++      "client",       /* 8 */
++      "storage",      /* 9 */
++      "fileset",      /* 10 */
++      "where",        /* 11 */
++      "yes",          /* 12 */
++      "bootstrap",    /* 13 */
++      "done",         /* 14 */
++      "strip_prefix", /* 15 */
++      "add_prefix",   /* 16 */
++      "add_suffix",   /* 17 */
++      "where_use_regexp",/* 18 */
++      "rwhere",       /* 19 like where + where_use_regexp */
+       NULL
+    };
  
 Index: src/dird/restore.c
 ===================================================================
@@ -134,15 +191,26 @@ Index: src/dird/dird_conf.c
 ===================================================================
 --- src/dird/dird_conf.c	(révision 4466)
 +++ src/dird/dird_conf.c	(copie de travail)
-@@ -268,6 +268,7 @@
+@@ -52,6 +52,7 @@
+ 
+ #include "bacula.h"
+ #include "dird.h"
++#include "lib/breg.h"
+ 
+ /* Define the first and last resource ID record
+  * types. Note, these should be unique for each
+@@ -268,6 +269,10 @@
     {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
     /* Root of where to restore files */
     {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
 +   {"whereuseregexp", store_bool, ITEM(res_job.where_use_regexp), 0, 0, 0},
++   {"stripprefix",    store_str,  ITEM(res_job.strip_prefix), 0, 0, 0},
++   {"addprefix",    store_str,  ITEM(res_job.add_prefix), 0, 0, 0},
++   {"addsuffix",    store_str,  ITEM(res_job.add_suffix), 0, 0, 0},
     /* Where to find bootstrap during restore */
     {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
     /* Where to write bootstrap file during backup */
-@@ -611,6 +612,9 @@
+@@ -611,6 +616,9 @@
        if (res->res_job.RestoreWhere) {
           sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
        }
@@ -152,6 +220,42 @@ Index: src/dird/dird_conf.c
        if (res->res_job.RestoreBootstrap) {
           sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
        }
+@@ -1143,6 +1151,15 @@
+       if (res->res_job.RestoreWhere) {
+          free(res->res_job.RestoreWhere);
+       }
++      if (res->res_job.strip_prefix) {
++         free(res->res_job.strip_prefix);
++      }
++      if (res->res_job.add_prefix) {
++         free(res->res_job.add_prefix);
++      }
++      if (res->res_job.add_suffix) {
++         free(res->res_job.add_suffix);
++      }
+       if (res->res_job.RestoreBootstrap) {
+          free(res->res_job.RestoreBootstrap);
+       }
+@@ -1299,6 +1316,19 @@
+          res->res_job.jobdefs    = res_all.res_job.jobdefs;
+          res->res_job.run_cmds   = res_all.res_job.run_cmds;
+          res->res_job.RunScripts = res_all.res_job.RunScripts;
++	 if (res->res_job.strip_prefix ||
++	     res->res_job.add_suffix   ||
++	     res->res_job.add_prefix)
++	 {
++	    if (res->res_job.RestoreWhere) {
++	       free(res->res_job.RestoreWhere);
++	    }
++	    res->res_job.where_use_regexp = true;
++	    res->res_job.RestoreWhere=bregexp_build_where(res->res_job.strip_prefix,
++							  res->res_job.add_prefix,
++							  res->res_job.add_suffix);
++	    /* TODO: test bregexp */
++	 }
+          break;
+       case R_COUNTER:
+          if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
 Index: src/dird/ua_run.c
 ===================================================================
 --- src/dird/ua_run.c	(révision 4466)
@@ -227,10 +331,13 @@ Index: src/dird/dird_conf.h
 ===================================================================
 --- src/dird/dird_conf.h	(révision 4466)
 +++ src/dird/dird_conf.h	(copie de travail)
-@@ -356,6 +356,7 @@
+@@ -356,6 +356,10 @@
     int   Priority;                    /* Job priority */
     int   RestoreJobId;                /* What -- JobId to restore */
     char *RestoreWhere;                /* Where on disk to restore -- directory */
++   char *strip_prefix;                /* remove prefix from filename  */
++   char *add_prefix;                  /* add prefix to filename  */
++   char *add_suffix;                  /* add suffix to filename -- .old */
 +   bool  where_use_regexp;            /* true if RestoreWhere is a BREGEXP */
     char *RestoreBootstrap;            /* Bootstrap file */
     alist *RunScripts;                 /* Run {client} program {after|before} Job */
@@ -398,30 +505,253 @@ Index: src/lib/jcr.c
     if (jcr->cached_path) {
        free_pool_memory(jcr->cached_path);
        jcr->cached_path = NULL;
-Index: patches/testing/breg.c
+Index: patches/testing/file_relocation.patch
 ===================================================================
---- patches/testing/breg.c	(révision 4510)
-+++ patches/testing/breg.c	(copie de travail)
-@@ -393,19 +393,19 @@
- 
-    *str_tmp = *ret = '\0';
-    
--   if (*strip_prefix) {
-+   if (strip_prefix) {
-       len += bsnprintf(ret, str_size - len, "!%s!!",
- 		       bregexp_escape_string(str_tmp, strip_prefix, sep));
-    }
- 
--   if (*add_suffix) {
-+   if (add_suffix) {
-       if (len) ret[len++] = ',';
- 
-       len += bsnprintf(ret + len,  str_size - len, "!([^/])$!$1%s!",
- 		       bregexp_escape_string(str_tmp, add_suffix, sep));
-    }
- 
--   if (*add_prefix) {
-+   if (add_prefix) {
-       if (len) ret[len++] = ',';
- 
-       len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
+--- patches/testing/file_relocation.patch	(révision 4514)
++++ patches/testing/file_relocation.patch	(copie de travail)
+@@ -12,17 +12,18 @@
+  /* Imported functions */
+  extern void print_bsr(UAContext *ua, RBSR *bsr);
+  
+-@@ -83,6 +83,9 @@
++@@ -83,6 +83,10 @@
+     JCR *jcr = ua->jcr;
+     char *escaped_bsr_name = NULL;
+     char *escaped_where_name = NULL;
+ +   bool where_use_regexp = false;
+++   bool have_to_free_where = false;
+ +   char *strip_prefix, *add_prefix, *add_suffix;
+ +   strip_prefix = add_prefix = add_suffix = NULL;
+  
+     memset(&rx, 0, sizeof(rx));
+     rx.path = get_pool_memory(PM_FNAME);
+-@@ -94,6 +97,29 @@
++@@ -94,6 +98,41 @@
+     i = find_arg_with_value(ua, "where");
+     if (i >= 0) {
+        rx.where = ua->argv[i];
+@@ -43,8 +44,20 @@
+ +      add_suffix = ua->argv[i];
+ +   }
+ +
+++   i = find_arg(ua, "where_use_regexp");
+++   if (i >= 0) {
+++      where_use_regexp = true;
+++   }
+++
+++   i = find_arg_with_value(ua, "rwhere");
+++   if (i >= 0) {
+++      where_use_regexp = true;
+++      rx.where = ua->argv[i];
+++   }
+++
+ +   if (strip_prefix || add_suffix || add_prefix) {
+ +      where_use_regexp = true;
+++      have_to_free_where = true;
+ +      rx.where = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
+ +   }
+ +
+@@ -52,7 +65,7 @@
+        if (!acl_access_ok(ua, Where_ACL, rx.where)) {
+           ua->error_msg(_("\"where\" specification not authorized.\n"));
+           goto bail_out;
+-@@ -195,9 +221,10 @@
++@@ -195,9 +234,10 @@
+  
+        Mmsg(ua->cmd,
+            "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
+@@ -64,28 +77,72 @@
+            escaped_where_name ? escaped_where_name : rx.where,
+            rx.selected_files, ua->catalog->name());
+     } else {
+-@@ -216,6 +243,10 @@
++@@ -216,6 +256,10 @@
+     if (escaped_where_name != NULL) {
+        bfree(escaped_where_name);
+     }
+ +   
+-+   if (where_use_regexp) {
+++   if (have_to_free_where) {
+ +      free_pool_memory(rx.where);
+ +   }
+  
+     if (find_arg(ua, NT_("yes")) > 0) {
+        pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
+-@@ -235,6 +266,10 @@
++@@ -235,6 +279,10 @@
+        bfree(escaped_where_name);
+     }
+  
+-+   if (where_use_regexp) {
+++   if (have_to_free_where) {
+ +      free_pool_memory(rx.where);
+ +   }
+ +
+     free_rx(&rx);
+     return 0;
+  
++@@ -331,23 +379,28 @@
++ 
++    const char *kw[] = {
++        /* These keywords are handled in a for loop */
++-      "jobid",     /* 0 */
++-      "current",   /* 1 */
++-      "before",    /* 2 */
++-      "file",      /* 3 */
++-      "directory", /* 4 */
++-      "select",    /* 5 */
++-      "pool",      /* 6 */
++-      "all",       /* 7 */
+++      "jobid",       /* 0 */
+++      "current",     /* 1 */
+++      "before",      /* 2 */
+++      "file",        /* 3 */
+++      "directory",   /* 4 */
+++      "select",      /* 5 */
+++      "pool",        /* 6 */
+++      "all",         /* 7 */
++ 
++       /* The keyword below are handled by individual arg lookups */
++-      "client",    /* 8 */
++-      "storage",   /* 9 */
++-      "fileset",   /* 10 */
++-      "where",     /* 11 */
++-      "yes",       /* 12 */
++-      "bootstrap", /* 13 */
++-      "done",      /* 14 */
+++      "client",       /* 8 */
+++      "storage",      /* 9 */
+++      "fileset",      /* 10 */
+++      "where",        /* 11 */
+++      "yes",          /* 12 */
+++      "bootstrap",    /* 13 */
+++      "done",         /* 14 */
+++      "strip_prefix", /* 15 */
+++      "add_prefix",   /* 16 */
+++      "add_suffix",   /* 17 */
+++      "where_use_regexp",/* 18 */
+++      "rwhere",       /* 19 like where + where_use_regexp */
++       NULL
++    };
++ 
+ Index: src/dird/restore.c
+ ===================================================================
+ --- src/dird/restore.c	(révision 4466)
+@@ -134,15 +191,26 @@
+ ===================================================================
+ --- src/dird/dird_conf.c	(révision 4466)
+ +++ src/dird/dird_conf.c	(copie de travail)
+-@@ -268,6 +268,7 @@
++@@ -52,6 +52,7 @@
++ 
++ #include "bacula.h"
++ #include "dird.h"
+++#include "lib/breg.h"
++ 
++ /* Define the first and last resource ID record
++  * types. Note, these should be unique for each
++@@ -268,6 +269,10 @@
+     {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
+     /* Root of where to restore files */
+     {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
+ +   {"whereuseregexp", store_bool, ITEM(res_job.where_use_regexp), 0, 0, 0},
+++   {"stripprefix",    store_str,  ITEM(res_job.strip_prefix), 0, 0, 0},
+++   {"addprefix",    store_str,  ITEM(res_job.add_prefix), 0, 0, 0},
+++   {"addsuffix",    store_str,  ITEM(res_job.add_suffix), 0, 0, 0},
+     /* Where to find bootstrap during restore */
+     {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
+     /* Where to write bootstrap file during backup */
+-@@ -611,6 +612,9 @@
++@@ -611,6 +616,9 @@
+        if (res->res_job.RestoreWhere) {
+           sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+        }
+@@ -152,6 +220,42 @@
+        if (res->res_job.RestoreBootstrap) {
+           sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
+        }
++@@ -1143,6 +1151,15 @@
++       if (res->res_job.RestoreWhere) {
++          free(res->res_job.RestoreWhere);
++       }
+++      if (res->res_job.strip_prefix) {
+++         free(res->res_job.strip_prefix);
+++      }
+++      if (res->res_job.add_prefix) {
+++         free(res->res_job.add_prefix);
+++      }
+++      if (res->res_job.add_suffix) {
+++         free(res->res_job.add_suffix);
+++      }
++       if (res->res_job.RestoreBootstrap) {
++          free(res->res_job.RestoreBootstrap);
++       }
++@@ -1299,6 +1316,19 @@
++          res->res_job.jobdefs    = res_all.res_job.jobdefs;
++          res->res_job.run_cmds   = res_all.res_job.run_cmds;
++          res->res_job.RunScripts = res_all.res_job.RunScripts;
+++	 if (res->res_job.strip_prefix ||
+++	     res->res_job.add_suffix   ||
+++	     res->res_job.add_prefix)
+++	 {
+++	    if (res->res_job.RestoreWhere) {
+++	       free(res->res_job.RestoreWhere);
+++	    }
+++	    res->res_job.where_use_regexp = true;
+++	    res->res_job.RestoreWhere=bregexp_build_where(res->res_job.strip_prefix,
+++							  res->res_job.add_prefix,
+++							  res->res_job.add_suffix);
+++	    /* TODO: test bregexp */
+++	 }
++          break;
++       case R_COUNTER:
++          if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
+ Index: src/dird/ua_run.c
+ ===================================================================
+ --- src/dird/ua_run.c	(révision 4466)
+@@ -227,10 +331,13 @@
+ ===================================================================
+ --- src/dird/dird_conf.h	(révision 4466)
+ +++ src/dird/dird_conf.h	(copie de travail)
+-@@ -356,6 +356,7 @@
++@@ -356,6 +356,10 @@
+     int   Priority;                    /* Job priority */
+     int   RestoreJobId;                /* What -- JobId to restore */
+     char *RestoreWhere;                /* Where on disk to restore -- directory */
+++   char *strip_prefix;                /* remove prefix from filename  */
+++   char *add_prefix;                  /* add prefix to filename  */
+++   char *add_suffix;                  /* add suffix to filename -- .old */
+ +   bool  where_use_regexp;            /* true if RestoreWhere is a BREGEXP */
+     char *RestoreBootstrap;            /* Bootstrap file */
+     alist *RunScripts;                 /* Run {client} program {after|before} Job */
+@@ -398,30 +505,3 @@
+     if (jcr->cached_path) {
+        free_pool_memory(jcr->cached_path);
+        jcr->cached_path = NULL;
+-Index: patches/testing/breg.c
+-===================================================================
+---- patches/testing/breg.c	(révision 4510)
+-+++ patches/testing/breg.c	(copie de travail)
+-@@ -393,19 +393,19 @@
+- 
+-    *str_tmp = *ret = '\0';
+-    
+--   if (*strip_prefix) {
+-+   if (strip_prefix) {
+-       len += bsnprintf(ret, str_size - len, "!%s!!",
+- 		       bregexp_escape_string(str_tmp, strip_prefix, sep));
+-    }
+- 
+--   if (*add_suffix) {
+-+   if (add_suffix) {
+-       if (len) ret[len++] = ',';
+- 
+-       len += bsnprintf(ret + len,  str_size - len, "!([^/])$!$1%s!",
+- 		       bregexp_escape_string(str_tmp, add_suffix, sep));
+-    }
+- 
+--   if (*add_prefix) {
+-+   if (add_prefix) {
+-       if (len) ret[len++] = ',';
+- 
+-       len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
