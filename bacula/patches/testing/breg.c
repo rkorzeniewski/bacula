@@ -378,15 +378,15 @@ char *bregexp_build_where(char *strip_prefix,
                           char *add_prefix, 
                           char *add_suffix)
 {
-   /* strip_prefix = !strip_prefix!!         4 bytes
+   /* strip_prefix = !strip_prefix!!i        4 bytes
     * add_prefix   = !^!add_prefix!          5 bytes
-    * add_suffix   = !([^/])$!$1.add_suffix! 14 bytes
+    * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
     */
    int len=0;
    char sep = '!';
-   int str_size = (strlen(strip_prefix) + 4 +
-		   strlen(add_prefix)   + 5 +
-		   strlen(add_suffix)   + 14) * 2  + 1;
+   int str_size = (strip_prefix?strlen(strip_prefix)+4:0 +
+		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
+		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
 
    POOLMEM *ret = get_memory(str_size);
    POOLMEM *str_tmp = get_memory(str_size);
@@ -394,7 +394,7 @@ char *bregexp_build_where(char *strip_prefix,
    *str_tmp = *ret = '\0';
    
    if (strip_prefix) {
-      len += bsnprintf(ret, str_size - len, "!%s!!",
+      len += bsnprintf(ret, str_size - len, "!%s!!i",
 		       bregexp_escape_string(str_tmp, strip_prefix, sep));
    }
 
@@ -411,6 +411,8 @@ char *bregexp_build_where(char *strip_prefix,
       len += bsnprintf(ret + len, str_size - len, "!^!%s!", 
 		       bregexp_escape_string(str_tmp, add_prefix, sep));
    }
+
+   free_pool_memory(str_tmp);
 
    return ret;
 }
