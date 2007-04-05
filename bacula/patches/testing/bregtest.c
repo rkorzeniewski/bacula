@@ -62,7 +62,7 @@ static void usage()
 
 int main(int argc, char *const *argv)
 {
-	printf("%s\n", bregexp_build_where("/tmp", "/opt", ".old"));
+	printf("%s\n", bregexp_build_where("/tmp", NULL, ".old"));
 	exit(0);
 
 
