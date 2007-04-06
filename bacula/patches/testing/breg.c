@@ -71,6 +71,10 @@ void free_bregexp(BREGEXP *self)
 {
    Dmsg0(500, "bregexp: freeing BREGEXP object\n");
 
+   if (!self) {
+      return;
+   }
+
    if (self->expr) {
       free(self->expr);
    }
@@ -388,7 +392,7 @@ char *bregexp_build_where(char *strip_prefix,
 		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
 		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
 
-   POOLMEM *ret = get_memory(str_size);
+   char *ret = (char *) malloc(str_size*sizeof(char));
    POOLMEM *str_tmp = get_memory(str_size);
 
    *str_tmp = *ret = '\0';
