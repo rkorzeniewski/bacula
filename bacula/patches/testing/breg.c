@@ -43,7 +43,7 @@
 BREGEXP *new_bregexp(const char *motif)
 {
    Dmsg0(500, "bregexp: creating new bregexp object\n");
-   BREGEXP *self = (BREGEXP *)malloc(sizeof(BREGEXP));
+   BREGEXP *self = (BREGEXP *)bmalloc(sizeof(BREGEXP));
    memset(self, 0, sizeof(BREGEXP));
    
    if (!self->extract_regexp(motif)) {
@@ -57,7 +57,7 @@ BREGEXP *new_bregexp(const char *motif)
 
 #ifdef HAVE_REGEX_H
    /* TODO: que devient cette memoire... */
-   self->_regs_match = (int *) malloc (2*RE_NREGS * sizeof(int));
+   self->_regs_match = (int *) bmalloc (2*RE_NREGS * sizeof(int));
 
    self->regs.num_regs = RE_NREGS;
    self->regs.start = self->_regs_match;
@@ -82,7 +82,7 @@ void free_bregexp(BREGEXP *self)
       free_pool_memory(self->result);
    }
    if (self->_regs_match) {
-      free(self->_regs_match);
+      bfree(self->_regs_match);
    }
 
    regfree(&self->preg);
@@ -392,7 +392,7 @@ char *bregexp_build_where(char *strip_prefix,
 		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
 		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
 
-   char *ret = (char *) malloc(str_size*sizeof(char));
+   char *ret = (char *) bmalloc(str_size*sizeof(char));
    POOLMEM *str_tmp = get_memory(str_size);
 
    *str_tmp = *ret = '\0';
