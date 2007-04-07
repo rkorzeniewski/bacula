@@ -12,18 +12,17 @@ Index: src/dird/ua_restore.c
  /* Imported functions */
  extern void print_bsr(UAContext *ua, RBSR *bsr);
  
-@@ -83,6 +83,10 @@
+@@ -83,6 +83,9 @@
     JCR *jcr = ua->jcr;
     char *escaped_bsr_name = NULL;
     char *escaped_where_name = NULL;
 +   bool where_use_regexp = false;
-+   bool have_to_free_where = false;
-+   char *strip_prefix, *add_prefix, *add_suffix;
-+   strip_prefix = add_prefix = add_suffix = NULL;
++   char *strip_prefix, *add_prefix, *add_suffix, *regexp;
++   strip_prefix = add_prefix = add_suffix = regexp = NULL;
  
     memset(&rx, 0, sizeof(rx));
     rx.path = get_pool_memory(PM_FNAME);
-@@ -94,6 +98,41 @@
+@@ -94,6 +97,45 @@
     i = find_arg_with_value(ua, "where");
     if (i >= 0) {
        rx.where = ua->argv[i];
@@ -56,16 +55,20 @@ Index: src/dird/ua_restore.c
 +   }
 +
 +   if (strip_prefix || add_suffix || add_prefix) {
-+      rx.where = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
++      int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
++      regexp = (char *) bmalloc (len * sizeof(char));
++
++      bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
 +      where_use_regexp = true;
-+      have_to_free_where = true;
++      
++      rx.where = regexp;
 +   }
 +
 +   if (rx.where) {
        if (!acl_access_ok(ua, Where_ACL, rx.where)) {
           ua->error_msg(_("\"where\" specification not authorized.\n"));
           goto bail_out;
-@@ -195,9 +234,10 @@
+@@ -195,9 +237,10 @@
  
        Mmsg(ua->cmd,
            "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
@@ -77,29 +80,29 @@ Index: src/dird/ua_restore.c
            escaped_where_name ? escaped_where_name : rx.where,
            rx.selected_files, ua->catalog->name());
     } else {
-@@ -216,6 +256,10 @@
+@@ -216,6 +259,10 @@
     if (escaped_where_name != NULL) {
        bfree(escaped_where_name);
     }
 +   
-+   if (have_to_free_where) {
-+      free_pool_memory(rx.where);
++   if (regexp) {
++      bfree(regexp);
 +   }
  
     if (find_arg(ua, NT_("yes")) > 0) {
        pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
-@@ -235,6 +279,10 @@
+@@ -235,6 +282,10 @@
        bfree(escaped_where_name);
     }
  
-+   if (have_to_free_where) {
-+      free_pool_memory(rx.where);
++   if (regexp) {
++      bfree(regexp);
 +   }
 +
     free_rx(&rx);
     return 0;
  
-@@ -331,23 +379,28 @@
+@@ -331,23 +382,28 @@
  
     const char *kw[] = {
         /* These keywords are handled in a for loop */
