@@ -118,7 +118,7 @@ void MainWin::createPages()
    m_pagehash.insert(m_pages, medialist);
 
    /* Iterate through and add to the stack */
-   foreach (Pages *page,  m_pagehash)
+   foreach(Pages *page, m_pagehash)
       page->dockPage();
 
    treeWidget->expandItem(topItem);
@@ -219,6 +219,10 @@ void MainWin::closeEvent(QCloseEvent *event)
    m_console->writeSettings();
    m_console->terminate();
    event->accept();
+   foreach(Pages *page, m_pagehash){
+      if( !page->isDocked() )
+         page->close();
+   }
 }
 
 void MainWin::writeSettings()
