@@ -232,9 +232,9 @@ void MediaList::createContextMenu()
 }
 
 /*
- * Virtual function which is called when this page is selected in the page selector tree
+ * Virtual function which is called when this page is visible on the stack
  */
-void MediaList::PgSeltreeWidgetCurrentItem()
+void MediaList::currentStackItem()
 {
    if(!m_populated) {
       populateTree();

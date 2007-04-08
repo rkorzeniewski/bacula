@@ -65,7 +65,7 @@ void Pages::undockPage()
    /* Change from a stacked widget to a normal window */
    m_parent->removeWidget(this);
    setWindowFlags(Qt::Window);
-   showNormal();
+   show();
    /* Clear docked flag */
    m_docked = false;
 }
@@ -99,7 +99,7 @@ bool Pages::isDocked()
 /*
  * When a window is closed, this slot is called.  The idea is to put it back in the
  * stack here, and it works.  I wanted to get it to the top of the stack so that the
- * user immediately sees where his window went.  Also, if he floats the window, then
+ * user immediately sees where his window went.  Also, if he undocks the window, then
  * closes it with the tree item highlighted, it may be confusing that the highlighted
  * treewidgetitem is not the stack item in the front.
  */
@@ -117,21 +117,25 @@ printf("In Pages closeEvent a\n");
    if( stackindex >= 0 ){
 printf("In Pages closeEvent b\n");
       m_parent->setCurrentIndex(0);
-      //m_parent->setCurrentIndex(stackindex);
       m_parent->setCurrentWidget(this);
-      m_parent->update();
+      show();
+      //m_parent->setCurrentIndex(stackindex);
+//      m_parent->setCurrentWidget(this);
+/*      m_parent->update();
       update();
       setUpdatesEnabled(true);
+      setVisible(true);
       m_parent->show();
       show();
-      m_parent->repaint();
+      m_parent->repaint();*/
       repaint();
+      raise();
    }
 #endif
 }
 
 /*
- * The next two are virtual functions.  The idea here is that each subclass will have the
+ * The next three are virtual functions.  The idea here is that each subclass will have the
  * built in virtual function to override if the programmer wants to populate the window
  * when it it is first clicked.
  */
@@ -143,12 +147,15 @@ void Pages::PgSeltreeWidgetDoubleClicked()
 {
 }
 
-void Pages::PgSeltreeWidgetCurrentItem()
+/*
+ *  * Virtual function which is called when this page is visible on the stack
+ */
+void Pages::currentStackItem()
 {
 }
 
 /*
- * This function exists because I wanted to have an easy way for new programmers to understand
+ * This function exists because to have an easy way for programmers adding new features to understand
  * exactly what values needed to be set in order to behave correctly in the interface.  It can
  * be called from the constructor, like with medialist or after being constructed, like with
  * Console.

@@ -63,7 +63,7 @@ public:
    void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
-   virtual void PgSeltreeWidgetCurrentItem();
+   virtual void currentStackItem();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */

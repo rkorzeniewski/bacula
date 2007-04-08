@@ -196,6 +196,8 @@ void MainWin::createConnections()
    connect(treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   connect(stackedWidget, SIGNAL(currentChanged(int)),
+           this, SLOT(stackItemChanged(int)));
 
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
@@ -307,8 +309,6 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
          /* put this page on the top of the stack */
          stackedWidget->setCurrentIndex(stackindex);
       }
-      /* run the virtual function in case this class overrides it */
-      page->PgSeltreeWidgetCurrentItem();
       setContextMenuDockText(page, currentitem);
 
       treeWidget->addAction(actionToggleDock);
@@ -411,6 +411,9 @@ void MainWin::toggleDockContextWindow()
    if( m_pagehash.value(treeindex) ){
       Pages* page = m_pagehash.value(treeindex);
       page->togglePageDocking();
+      if ( page->isDocked() ){
+         stackedWidget->setCurrentWidget(page);
+      }
       /* Toggle the menu item.  The window's dock status has been toggled */
       setContextMenuDockText(page, currentitem);
    }
@@ -452,4 +455,11 @@ void MainWin::setContextMenuDockText( Pages* page, QTreeWidgetItem* item )
    docktext += item->text(0) += " Window";
    
    actionToggleDock->setText(docktext);
+}
+
+void MainWin::stackItemChanged(int)
+{
+   Pages* page = (Pages*)stackedWidget->currentWidget();
+   /* run the virtual function in case this class overrides it */
+   page->currentStackItem();
 }
