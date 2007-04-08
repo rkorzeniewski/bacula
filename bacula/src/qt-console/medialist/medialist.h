@@ -47,6 +47,7 @@ public:
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
+   virtual void PgSeltreeWidgetCurrentItem();
 
 public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
@@ -55,9 +56,11 @@ public slots:
    void editMedia();
    void showJobs();
 
+private slots:
+   void populateTree();
+
 private:
    void createConnections();
-   void populateTree();
    void createContextMenu();
 
 private:

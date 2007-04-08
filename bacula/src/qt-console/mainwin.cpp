@@ -45,7 +45,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Select Page");
-   treeWidget->addAction(actionUndock);
+//   treeWidget->addAction(actionUndock);
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
    m_pages = 0;
@@ -79,6 +79,8 @@ void MainWin::createPages()
 
    /* The top tree item representing the director */
    topItem = createTopPage(dir->name());
+   topItem->setData(0, Qt::UserRole, QVariant(m_pages));
+   m_pages++;
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
 
    /* Create Tree Widget Item */
@@ -86,7 +88,7 @@ void MainWin::createPages()
    m_console->SetPassedValues(stackedWidget, item, m_pages );
 
    /* Append to pagelist */
-   m_pagelist.insert(m_pages, m_console);
+   m_pagehash.insert(m_pages, m_console);
 
    /* Set Color of treeWidgetItem for the console
    * It will be set to gree in the console class if the connection is made.
@@ -106,17 +108,17 @@ void MainWin::createPages()
    m_pages++;
    item=createPage("brestore", topItem);
    bRestore* brestore=new bRestore(stackedWidget, item, m_pages);
-   m_pagelist.insert(m_pages, brestore);
+   m_pagehash.insert(m_pages, brestore);
 
 
    /* lastly for now, the medialist */
    m_pages++;
    item=createPage("Media", topItem );
    MediaList* medialist=new MediaList(stackedWidget, m_console, item, m_pages);
-   m_pagelist.insert(m_pages, medialist);
+   m_pagehash.insert(m_pages, medialist);
 
    /* Iterate through and add to the stack */
-   foreach (Pages *page,  m_pagelist)
+   foreach (Pages *page,  m_pagehash)
       page->dockPage();
 
    treeWidget->expandItem(topItem);
@@ -191,6 +193,9 @@ void MainWin::createConnections()
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
+   connect(treeWidget, SIGNAL(
+           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
+           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
 
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
@@ -200,6 +205,7 @@ void MainWin::createConnections()
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
+   connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
 }
 
 /* 
@@ -241,38 +247,76 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
 {
    /* Use tree item's Qt::UserRole to get treeindex */
    int treeindex = item->data(column, Qt::UserRole).toInt();
-   int stackindex=stackedWidget->indexOf(m_pagelist.value(treeindex));
 
-   if( stackindex >= 0 ){
-      stackedWidget->setCurrentIndex(stackindex);
+   /* Is this one of the first level pages */
+   if( m_pagehash.value(treeindex) ){
+      Pages* page = m_pagehash.value(treeindex);
+      int stackindex=stackedWidget->indexOf(page);
+
+      if( stackindex >= 0 ){
+         stackedWidget->setCurrentIndex(0);
+         stackedWidget->setCurrentWidget(page);
+      }
+      /* run the virtual function in case this class overrides it */
+      if( treeindex > 0 ){
+         page->PgSeltreeWidgetClicked();
+      }
    }
-   /* run the virtual function in case this class overrides it */
-   m_pagelist.value(treeindex)->PgSeltreeWidgetClicked();
 }
 
 /*
  * This subroutine is called with an item in the Page Selection window
  *   is double clicked
  */
-void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int column)
+void MainWin::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 {
-   int treeindex = item->data(column, Qt::UserRole).toInt();
+}
+
+/*
+ * Called with a change of the highlighed tree widget item in the page selector.
+ */
+
+void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
+{
+   int treeindex;
+   /* The Previous item */
+
+   /* Use tree item's Qt::UserRole to get treeindex now for the previousitem */
+   if ( previousitem ){
+      treeindex = previousitem->data(0, Qt::UserRole).toInt();
+      /* Is this one of the first level pages */
+      if( m_pagehash.value(treeindex) ){
+         Pages* page = m_pagehash.value(treeindex);
+         treeWidget->removeAction(actionToggleDock);
+         foreach( QAction* pageaction, page->m_contextActions ){
+            treeWidget->removeAction(pageaction);
+         } 
+      }
+   }
 
    /* Use tree item's Qt::UserRole to get treeindex */
-   if (m_pagelist.value(treeindex)->isDocked()) {
-      m_pagespophold = m_pagelist.value(treeindex);
+   treeindex = currentitem->data(0, Qt::UserRole).toInt();
 
-      /* Create a popup menu before floating window */
-      QMenu *popup = new QMenu( treeWidget );
-      connect(popup->addAction("Undock Window"), SIGNAL(triggered()), this, 
-              SLOT(undockWindow()));
-      popup->exec(QCursor::pos());
-   } else {
-      /* Just pull it back in without prompting */
-      m_pagelist.value(treeindex)->togglePageDocking();
+   /* Is this one of the first level pages */
+   if( m_pagehash.value(treeindex) ){
+      Pages* page = m_pagehash.value(treeindex);
+      int stackindex = stackedWidget->indexOf(page);
+   
+      /* Is this page currently on the stack */
+      if( stackindex >= 0 ){
+         /* put this page on the top of the stack */
+         stackedWidget->setCurrentIndex(stackindex);
+      }
+      /* run the virtual function in case this class overrides it */
+      page->PgSeltreeWidgetCurrentItem();
+      setContextMenuDockText(page, currentitem);
+
+      treeWidget->addAction(actionToggleDock);
+
+      /* Add the actions to the Page Selectors tree widget that are part of the
+       * current items list of desired actions regardless of whether on top of stack*/
+      treeWidget->addActions(page->m_contextActions);
    }
-   /* Here is the virtual function so that different classes can do different things */
-   m_pagelist.value(treeindex)->PgSeltreeWidgetDoubleClicked();
 }
 
 void MainWin::labelDialogClicked() 
@@ -340,13 +384,72 @@ void MainWin::set_status(const char *buf)
    statusBar()->showMessage(buf);
 }
 
-void MainWin::undockWindow()
-{
-   m_pagespophold->togglePageDocking();
-}
-
+/*
+ * Function to respond to the button bar button to undock
+ */
 void MainWin::undockWindowButton()
 {
    Pages* page = (Pages*)stackedWidget->currentWidget();
    page->togglePageDocking();
+   /* The window has been undocked, lets change the context menu */
+   setContextMenuDockText();
+}
+
+/*
+ * Function to respond to action on page selector context menu to toggle the 
+ * dock status of the window associated with the page selectors current
+ * tree widget item.
+ */
+void MainWin::toggleDockContextWindow()
+{
+   QTreeWidgetItem *currentitem = treeWidget->currentItem();
+   
+   /* Use tree item's Qt::UserRole to get treeindex */
+   int treeindex = currentitem->data(0, Qt::UserRole).toInt();
+
+   /* Is this one of the first level pages */
+   if( m_pagehash.value(treeindex) ){
+      Pages* page = m_pagehash.value(treeindex);
+      page->togglePageDocking();
+      /* Toggle the menu item.  The window's dock status has been toggled */
+      setContextMenuDockText(page, currentitem);
+   }
+}
+
+/*
+ * Function to set the text of the toggle dock context menu when page and
+ * widget item are NOT known.  This is an overoaded funciton.
+ * It is called from MainWin::undockWindowButton, it is not intended to change
+ * for the top pages tree widget, it is for the currently active tree widget
+ * item.  Which is why the page is not passed.
+ */
+void MainWin::setContextMenuDockText()
+{
+   QTreeWidgetItem *currentitem = treeWidget->currentItem();
+   
+   /* Use tree item's Qt::UserRole to get treeindex */
+   int treeindex = currentitem->data(0, Qt::UserRole).toInt();
+
+   /* Is this one of the first level pages */
+   if( m_pagehash.value(treeindex) ){
+      Pages* page = m_pagehash.value(treeindex);
+      setContextMenuDockText(page, currentitem);
+   }
+}
+
+/*
+ * Function to set the text of the toggle dock context menu when page and
+ * widget item are known.  This is the more commonly used.
+ */
+void MainWin::setContextMenuDockText( Pages* page, QTreeWidgetItem* item )
+{
+   QString docktext("");
+   if( page->isDocked() ){
+      docktext += "UnDock ";
+   } else {
+      docktext += "ReDock ";
+   }
+   docktext += item->text(0) += " Window";
+   
+   actionToggleDock->setText(docktext);
 }

@@ -113,10 +113,19 @@ void Pages::closeEvent(QCloseEvent* /*event*/)
    /* FIXME Really having problems getting it to the front, 
       toggles back into the stack fine though */
    int stackindex=m_parent->indexOf( this );
+printf("In Pages closeEvent a\n");
    if( stackindex >= 0 ){
+printf("In Pages closeEvent b\n");
+      m_parent->setCurrentIndex(0);
+      //m_parent->setCurrentIndex(stackindex);
+      m_parent->setCurrentWidget(this);
+      m_parent->update();
+      update();
+      setUpdatesEnabled(true);
+      m_parent->show();
       show();
-      m_parent->setCurrentIndex(stackindex);
-
+      m_parent->repaint();
+      repaint();
    }
 #endif
 }
@@ -131,6 +140,10 @@ void Pages::PgSeltreeWidgetClicked()
 }
 
 void Pages::PgSeltreeWidgetDoubleClicked()
+{
+}
+
+void Pages::PgSeltreeWidgetCurrentItem()
 {
 }
 

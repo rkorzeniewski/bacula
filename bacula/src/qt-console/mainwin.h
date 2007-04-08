@@ -70,8 +70,11 @@ public slots:
    void labelDialogClicked();
    void runDialogClicked();
    void restoreDialogClicked();
-   void undockWindow();
    void undockWindowButton();
+   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void toggleDockContextWindow();
+   void setContextMenuDockText();
+   void setContextMenuDockText(Pages *, QTreeWidgetItem *);
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -86,7 +89,7 @@ private:
 private:
    Console *m_console;
    Pages *m_pagespophold;
-   QHash<int,Pages*> m_pagelist;
+   QHash<int,Pages*> m_pagehash;
    QStringList m_cmd_history;
    int m_cmd_last;
    int m_pages;
