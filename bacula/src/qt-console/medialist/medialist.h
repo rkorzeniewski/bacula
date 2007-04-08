@@ -47,7 +47,7 @@ public:
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
-   virtual void PgSeltreeWidgetCurrentItem();
+   virtual void currentStackItem();
 
 public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);

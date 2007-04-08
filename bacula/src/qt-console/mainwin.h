@@ -72,6 +72,7 @@ public slots:
    void restoreDialogClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void stackItemChanged(int);
    void toggleDockContextWindow();
    void setContextMenuDockText();
    void setContextMenuDockText(Pages *, QTreeWidgetItem *);
