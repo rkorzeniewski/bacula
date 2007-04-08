@@ -454,9 +454,12 @@
     <string>Undock Window</string>
    </property>
   </action>
-  <action name="actionActionMediaPopUp" >
+  <action name="actionToggleDock" >
+   <property name="icon" >
+    <iconset>images/unmark.png</iconset>
+   </property>
    <property name="text" >
-    <string>actionMediaPopUp</string>
+    <string>ToggleDock</string>
    </property>
   </action>
  </widget>

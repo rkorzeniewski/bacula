@@ -211,6 +211,8 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
 
 /* 
  * Setup a context menu 
+ * Made separate from populate so that it would not create context menu over and
+ * over as the tree is repopulated.
  */
 void MediaList::createContextMenu()
 {
@@ -224,4 +226,20 @@ void MediaList::createContextMenu()
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   /* connect to the action specific to this pages class */
+   connect(actionRepopulateMediaTree, SIGNAL(triggered()), this,
+                SLOT(populateTree()));
+}
+
+/*
+ * Virtual function which is called when this page is selected in the page selector tree
+ */
+void MediaList::PgSeltreeWidgetCurrentItem()
+{
+   if(!m_populated) {
+      populateTree();
+      m_contextActions.append(actionRepopulateMediaTree);
+      createContextMenu();
+      m_populated=true;
+   }
 }

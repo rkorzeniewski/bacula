@@ -23,6 +23,14 @@
     <widget class="QTreeWidget" name="mp_treeWidget" />
    </item>
   </layout>
+  <action name="actionRepopulateMediaTree" >
+   <property name="icon" >
+    <iconset>../images/run.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Repopulate Media Tree</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
