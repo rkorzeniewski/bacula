@@ -45,7 +45,6 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Select Page");
-//   treeWidget->addAction(actionUndock);
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
    m_pages = 0;
@@ -281,7 +280,6 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 /*
  * Called with a change of the highlighed tree widget item in the page selector.
  */
-
 void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
 {
    int treeindex;
@@ -459,6 +457,26 @@ void MainWin::setContextMenuDockText( Pages* page, QTreeWidgetItem* item )
    docktext += item->text(0) += " Window";
    
    actionToggleDock->setText(docktext);
+   setTreeWidgetItemDockColor(page, item);
+}
+
+/*
+ * Function to set the color of the tree widget item based on whether it is
+ * docked or not.
+ */
+void MainWin::setTreeWidgetItemDockColor( Pages* page, QTreeWidgetItem* item )
+{
+   if( item->text(0) != "Console" ){
+      if( page->isDocked() ){
+      /* Set the brush to blue if undocked */
+         QBrush blackBrush(Qt::black);
+         item->setForeground(0, blackBrush);
+      } else {
+      /* Set the brush back to black if docked */
+         QBrush blueBrush(Qt::blue);
+         item->setForeground(0, blueBrush);
+      }
+   }
 }
 
 void MainWin::stackItemChanged(int)

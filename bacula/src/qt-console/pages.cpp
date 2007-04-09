@@ -32,6 +32,7 @@
  */
 
 #include "pages.h"
+#include "bat.h"
 
 /*
  * dockPage
@@ -108,6 +109,11 @@ void Pages::closeEvent(QCloseEvent* /*event*/)
 {
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
    dockPage();
+   mainWin->setContextMenuDockText();
+//   setTreeWidgetItemDockColor(page, item);
+//   foreach(Pages *page, m_pagehash){
+//      if
+//   }
 
 #ifdef xxx
    /* FIXME Really having problems getting it to the front, 
