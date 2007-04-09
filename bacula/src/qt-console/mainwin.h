@@ -60,7 +60,9 @@ public:
    void writeSettings();
    void readSettings();
    void resetFocus() { lineEdit->setFocus(); };
-
+   void setContextMenuDockText();
+   void setContextMenuDockText(Pages *, QTreeWidgetItem *);
+   void setTreeWidgetItemDockColor(Pages *, QTreeWidgetItem *);
 
 public slots:
    void input_line();
@@ -74,8 +76,6 @@ public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void stackItemChanged(int);
    void toggleDockContextWindow();
-   void setContextMenuDockText();
-   void setContextMenuDockText(Pages *, QTreeWidgetItem *);
 
 protected:
    void closeEvent(QCloseEvent *event);
