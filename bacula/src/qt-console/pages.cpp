@@ -109,11 +109,12 @@ void Pages::closeEvent(QCloseEvent* /*event*/)
 {
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
    dockPage();
+   /* in case the current widget is the one which represents this, lets set the context
+    * menu to undock */
    mainWin->setContextMenuDockText();
-//   setTreeWidgetItemDockColor(page, item);
-//   foreach(Pages *page, m_pagehash){
-//      if
-//   }
+   /* in case the current widget is not the one which represents this, lets set the
+    * color back to black */
+   mainWin->setTreeWidgetItemDockColor(this);
 
 #ifdef xxx
    /* FIXME Really having problems getting it to the front, 

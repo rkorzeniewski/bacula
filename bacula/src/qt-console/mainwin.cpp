@@ -36,6 +36,7 @@
  */ 
 
 #include "bat.h"
+#include "pagehash.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -84,8 +85,7 @@ void MainWin::createPages()
    m_console->setTreeItem(item);
 
    /* Append to pagelist */
-   m_pagehash.insert(item, m_console);
-   m_widgethash.insert(m_console, item);
+   m_treeindex.insert(item, m_console);
 
    /* Set Color of treeWidgetItem for the console
    * It will be set to gree in the console class if the connection is made.
@@ -104,18 +104,16 @@ void MainWin::createPages()
    /* brestore */
    item=createPage("brestore", topItem);
    bRestore* brestore=new bRestore(stackedWidget);
-   m_pagehash.insert(item, brestore);
-   m_widgethash.insert(brestore, item);
+   m_treeindex.insert(item, brestore);
 
 
    /* lastly for now, the medialist */
    item=createPage("Media", topItem );
    MediaList* medialist=new MediaList(stackedWidget, m_console);
-   m_pagehash.insert(item, medialist);
-   m_widgethash.insert(medialist, item);
+   m_treeindex.insert(item, medialist);
 
    /* Iterate through and add to the stack */
-   foreach(Pages *page, m_pagehash)
+   foreach(Pages *page, m_treeindex.m_pagehash)
       page->dockPage();
 
    treeWidget->expandItem(topItem);
@@ -216,7 +214,7 @@ void MainWin::closeEvent(QCloseEvent *event)
    m_console->writeSettings();
    m_console->terminate();
    event->accept();
-   foreach(Pages *page, m_pagehash){
+   foreach(Pages *page, m_treeindex.m_pagehash){
       if( !page->isDocked() )
          page->close();
    }
@@ -249,8 +247,8 @@ void MainWin::readSettings()
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
    /* Is this one of the first level pages */
-   if( m_pagehash.value(item) ){
-      Pages* page = m_pagehash.value(item);
+   if( m_treeindex.value(item) ){
+      Pages* page = m_treeindex.value(item);
       int stackindex=stackedWidget->indexOf(page);
 
       if( stackindex >= 0 ){
@@ -279,8 +277,8 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 
    if ( previousitem ){
       /* Is this one of the first level pages */
-      if( m_pagehash.value(previousitem) ){
-         Pages* page = m_pagehash.value(previousitem);
+      if( m_treeindex.value(previousitem) ){
+         Pages* page = m_treeindex.value(previousitem);
          treeWidget->removeAction(actionToggleDock);
          foreach( QAction* pageaction, page->m_contextActions ){
             treeWidget->removeAction(pageaction);
@@ -289,8 +287,8 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    }
 
    /* Is this one of the first level pages */
-   if( m_pagehash.value(currentitem) ){
-      Pages* page = m_pagehash.value(currentitem);
+   if( m_treeindex.value(currentitem) ){
+      Pages* page = m_treeindex.value(currentitem);
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */
@@ -394,8 +392,8 @@ void MainWin::toggleDockContextWindow()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this one of the first level pages */
-   if( m_pagehash.value(currentitem) ){
-      Pages* page = m_pagehash.value(currentitem);
+   if( m_treeindex.value(currentitem) ){
+      Pages* page = m_treeindex.value(currentitem);
       page->togglePageDocking();
       if ( page->isDocked() ){
          stackedWidget->setCurrentWidget(page);
@@ -417,8 +415,8 @@ void MainWin::setContextMenuDockText()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this one of the first level pages */
-   if( m_pagehash.value(currentitem) ){
-      Pages* page = m_pagehash.value(currentitem);
+   if( m_treeindex.value(currentitem) ){
+      Pages* page = m_treeindex.value(currentitem);
       setContextMenuDockText(page, currentitem);
    }
 }
@@ -427,7 +425,7 @@ void MainWin::setContextMenuDockText()
  * Function to set the text of the toggle dock context menu when page and
  * widget item are known.  This is the more commonly used.
  */
-void MainWin::setContextMenuDockText( Pages* page, QTreeWidgetItem* item )
+void MainWin::setContextMenuDockText(Pages* page, QTreeWidgetItem* item)
 {
    QString docktext("");
    if( page->isDocked() ){
@@ -445,7 +443,7 @@ void MainWin::setContextMenuDockText( Pages* page, QTreeWidgetItem* item )
  * Function to set the color of the tree widget item based on whether it is
  * docked or not.
  */
-void MainWin::setTreeWidgetItemDockColor( Pages* page, QTreeWidgetItem* item )
+void MainWin::setTreeWidgetItemDockColor(Pages* page, QTreeWidgetItem* item)
 {
    if( item->text(0) != "Console" ){
       if( page->isDocked() ){
@@ -460,6 +458,23 @@ void MainWin::setTreeWidgetItemDockColor( Pages* page, QTreeWidgetItem* item )
    }
 }
 
+/*
+ *  Overload of previous function, use treeindex to get item from page
+ *  This is called when an undocked window is closed.
+ */
+void MainWin::setTreeWidgetItemDockColor(Pages* page)
+{
+   QTreeWidgetItem* item = m_treeindex.value(page);
+   if( item ){
+     setTreeWidgetItemDockColor(page, item);
+   }
+}
+
+/*
+ * This function is called when the stack item is changed.  Call
+ * the virtual function here.  Avoids a window being undocked leaving
+ * a window at the top of the stack unpopulated.
+ */
 void MainWin::stackItemChanged(int)
 {
    Pages* page = (Pages*)stackedWidget->currentWidget();

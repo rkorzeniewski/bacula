@@ -45,6 +45,7 @@
 #include "run/run.h"
 #include "restore/restore.h"
 #include "medialist/medialist.h"
+#include "pagehash.h"
 
 class Console;
 
@@ -63,6 +64,7 @@ public:
    void setContextMenuDockText();
    void setContextMenuDockText(Pages *, QTreeWidgetItem *);
    void setTreeWidgetItemDockColor(Pages *, QTreeWidgetItem *);
+   void setTreeWidgetItemDockColor(Pages *);
 
 public slots:
    void input_line();
@@ -90,8 +92,9 @@ private:
 private:
    Console *m_console;
    Pages *m_pagespophold;
-   QHash<QTreeWidgetItem*,Pages*> m_pagehash;
-   QHash<Pages*,QTreeWidgetItem*> m_widgethash;
+   PageHash m_treeindex;
+//   QHash<QTreeWidgetItem*,Pages*> m_pagehash;
+//   QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    QStringList m_cmd_history;
    int m_cmd_last;
 };
