@@ -118,7 +118,7 @@ void Console::connect()
       /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
       QBrush greenBrush(Qt::green);
-      m_treeItem->setForeground(0, greenBrush);
+      m_consoleItem->setForeground(0, greenBrush);
    }
 
    jcr.dir_bsock = m_sock;
@@ -416,7 +416,7 @@ void Console::write_dir(const char *msg)
       mainWin->set_status(" Director not connected. Click on connect button.");
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
       QBrush redBrush(Qt::red);
-      m_treeItem->setForeground(0, redBrush);
+      m_consoleItem->setForeground(0, redBrush);
       m_at_prompt = false;
    }
 }
@@ -570,7 +570,7 @@ int Console::read()
          m_sock = NULL;
          mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
          QBrush redBrush(Qt::red);
-         m_treeItem->setForeground(0, redBrush);
+         m_consoleItem->setForeground(0, redBrush);
          m_notifier->setEnabled(false);
          delete m_notifier;
          m_notifier = NULL;
@@ -610,27 +610,12 @@ void Console::notify(bool enable)
    m_notifier->setEnabled(enable);   
 }
 
+void Console::setTreeItem(QTreeWidgetItem *item)
+{
+   m_consoleItem = item;
+}
+
 void Console::setDirRes(DIRRES *dir) 
 { 
    m_dir = dir;
 }
-#ifdef xxx
-******FIXME******  Just Delete me
-void Console::dosql(QString* sqlcmd, QStringList& strlstret)
-{
-   int stat;
-   /* don't effect the string coming in */
-   QString cmd(*sqlcmd);
-
-   cmd = ".sql \"" + cmd + "\"";
-
-   write_dir(cmd.toUtf8().data());
-   while ((stat=read()) > 0) {
-      QString line = msg();
-      QRegExp regex("^Using Catalog");
-      if ( regex.indexIn(line) < 0 ){
-         strlstret.append(line);
-      }
-   }
-}
-#endif

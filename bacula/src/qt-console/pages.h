@@ -58,9 +58,7 @@ public:
    void togglePageDocking();
    bool isDocked();
    QStackedWidget *m_parent;
-   QTreeWidgetItem *m_treeItem;
    QList<QAction*> m_contextActions;
-   void SetPassedValues(QStackedWidget*, QTreeWidgetItem*, int );
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();

@@ -90,10 +90,10 @@ private:
 private:
    Console *m_console;
    Pages *m_pagespophold;
-   QHash<int,Pages*> m_pagehash;
+   QHash<QTreeWidgetItem*,Pages*> m_pagehash;
+   QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    QStringList m_cmd_history;
    int m_cmd_last;
-   int m_pages;
 };
 
 #endif /* _MAINWIN_H_ */

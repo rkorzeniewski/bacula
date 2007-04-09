@@ -94,6 +94,7 @@ public:
    void beginNewCommand();
    void displayToPrompt();
    void discardToPrompt();
+   void setTreeItem(QTreeWidgetItem *item);
    void setDirRes(DIRRES *dir);
 
    QStringList job_list;
@@ -123,6 +124,7 @@ private:
    bool m_at_prompt;
    QSocketNotifier *m_notifier;
    QTextCursor *m_cursor;
+   QTreeWidgetItem *m_consoleItem;
    bool m_api_set;
    bool m_messages_pending;
    QTimer *m_timer;

@@ -42,13 +42,13 @@
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
 
-MediaList::MediaList(QStackedWidget *parent, Console *console, QTreeWidgetItem *treeItem, int indexseq)
+MediaList::MediaList(QStackedWidget *parent, Console *console)
 {
-   SetPassedValues(parent, treeItem, indexseq );
    setupUi(this);
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    mp_console = console;
+   m_parent = parent;
    createConnections();
    m_populated = false;
    m_checkcurwidget = true;

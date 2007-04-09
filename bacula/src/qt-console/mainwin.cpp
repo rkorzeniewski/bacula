@@ -47,7 +47,6 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    treeWidget->setHeaderLabel("Select Page");
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-   m_pages = 0;
    createPages();
 
    resetFocus();
@@ -78,16 +77,15 @@ void MainWin::createPages()
 
    /* The top tree item representing the director */
    topItem = createTopPage(dir->name());
-   topItem->setData(0, Qt::UserRole, QVariant(m_pages));
-   m_pages++;
    topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
 
    /* Create Tree Widget Item */
    item = createPage("Console", topItem);
-   m_console->SetPassedValues(stackedWidget, item, m_pages );
+   m_console->setTreeItem(item);
 
    /* Append to pagelist */
-   m_pagehash.insert(m_pages, m_console);
+   m_pagehash.insert(item, m_console);
+   m_widgethash.insert(m_console, item);
 
    /* Set Color of treeWidgetItem for the console
    * It will be set to gree in the console class if the connection is made.
@@ -104,17 +102,17 @@ void MainWin::createPages()
     */
 
    /* brestore */
-   m_pages++;
    item=createPage("brestore", topItem);
-   bRestore* brestore=new bRestore(stackedWidget, item, m_pages);
-   m_pagehash.insert(m_pages, brestore);
+   bRestore* brestore=new bRestore(stackedWidget);
+   m_pagehash.insert(item, brestore);
+   m_widgethash.insert(brestore, item);
 
 
    /* lastly for now, the medialist */
-   m_pages++;
    item=createPage("Media", topItem );
-   MediaList* medialist=new MediaList(stackedWidget, m_console, item, m_pages);
-   m_pagehash.insert(m_pages, medialist);
+   MediaList* medialist=new MediaList(stackedWidget, m_console);
+   m_pagehash.insert(item, medialist);
+   m_widgethash.insert(medialist, item);
 
    /* Iterate through and add to the stack */
    foreach(Pages *page, m_pagehash)
@@ -248,14 +246,11 @@ void MainWin::readSettings()
  * This subroutine is called with an item in the Page Selection window
  *   is clicked 
  */
-void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
+void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
-   /* Use tree item's Qt::UserRole to get treeindex */
-   int treeindex = item->data(column, Qt::UserRole).toInt();
-
    /* Is this one of the first level pages */
-   if( m_pagehash.value(treeindex) ){
-      Pages* page = m_pagehash.value(treeindex);
+   if( m_pagehash.value(item) ){
+      Pages* page = m_pagehash.value(item);
       int stackindex=stackedWidget->indexOf(page);
 
       if( stackindex >= 0 ){
@@ -263,9 +258,7 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int column)
          stackedWidget->setCurrentWidget(page);
       }
       /* run the virtual function in case this class overrides it */
-      if( treeindex > 0 ){
-         page->PgSeltreeWidgetClicked();
-      }
+      page->PgSeltreeWidgetClicked();
    }
 }
 
@@ -282,15 +275,12 @@ void MainWin::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
  */
 void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
 {
-   int treeindex;
    /* The Previous item */
 
-   /* Use tree item's Qt::UserRole to get treeindex now for the previousitem */
    if ( previousitem ){
-      treeindex = previousitem->data(0, Qt::UserRole).toInt();
       /* Is this one of the first level pages */
-      if( m_pagehash.value(treeindex) ){
-         Pages* page = m_pagehash.value(treeindex);
+      if( m_pagehash.value(previousitem) ){
+         Pages* page = m_pagehash.value(previousitem);
          treeWidget->removeAction(actionToggleDock);
          foreach( QAction* pageaction, page->m_contextActions ){
             treeWidget->removeAction(pageaction);
@@ -298,12 +288,9 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       }
    }
 
-   /* Use tree item's Qt::UserRole to get treeindex */
-   treeindex = currentitem->data(0, Qt::UserRole).toInt();
-
    /* Is this one of the first level pages */
-   if( m_pagehash.value(treeindex) ){
-      Pages* page = m_pagehash.value(treeindex);
+   if( m_pagehash.value(currentitem) ){
+      Pages* page = m_pagehash.value(currentitem);
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */
@@ -406,12 +393,9 @@ void MainWin::toggleDockContextWindow()
 {
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
-   /* Use tree item's Qt::UserRole to get treeindex */
-   int treeindex = currentitem->data(0, Qt::UserRole).toInt();
-
    /* Is this one of the first level pages */
-   if( m_pagehash.value(treeindex) ){
-      Pages* page = m_pagehash.value(treeindex);
+   if( m_pagehash.value(currentitem) ){
+      Pages* page = m_pagehash.value(currentitem);
       page->togglePageDocking();
       if ( page->isDocked() ){
          stackedWidget->setCurrentWidget(page);
@@ -432,12 +416,9 @@ void MainWin::setContextMenuDockText()
 {
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
-   /* Use tree item's Qt::UserRole to get treeindex */
-   int treeindex = currentitem->data(0, Qt::UserRole).toInt();
-
    /* Is this one of the first level pages */
-   if( m_pagehash.value(treeindex) ){
-      Pages* page = m_pagehash.value(treeindex);
+   if( m_pagehash.value(currentitem) ){
+      Pages* page = m_pagehash.value(currentitem);
       setContextMenuDockText(page, currentitem);
    }
 }

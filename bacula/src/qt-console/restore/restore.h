@@ -97,7 +97,7 @@ class bRestore : public Pages, public Ui::bRestoreForm
    Q_OBJECT 
 
 public:
-   bRestore(QStackedWidget *parent, QTreeWidgetItem *treeItem, int indexseq);
+   bRestore(QStackedWidget *parent);
    ~bRestore();
 
 public slots:
