@@ -43,7 +43,7 @@ class MediaList : public Pages, public Ui::MediaListForm
    Q_OBJECT 
 
 public:
-   MediaList(QStackedWidget *parent,Console *console, QTreeWidgetItem *treeItem, int indexseq);
+   MediaList(QStackedWidget *parent, Console *console);
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();

@@ -159,16 +159,3 @@ void Pages::PgSeltreeWidgetDoubleClicked()
 void Pages::currentStackItem()
 {
 }
-
-/*
- * This function exists because to have an easy way for programmers adding new features to understand
- * exactly what values needed to be set in order to behave correctly in the interface.  It can
- * be called from the constructor, like with medialist or after being constructed, like with
- * Console.
- */
-void Pages::SetPassedValues(QStackedWidget* passedStackedWidget, QTreeWidgetItem* passedTreeItem, int indexseq )
-{
-   m_parent = passedStackedWidget;
-   m_treeItem = passedTreeItem;
-   m_treeItem->setData(0, Qt::UserRole, QVariant(indexseq));
-}
