@@ -46,8 +46,8 @@ class PageHash
 public:
    PageHash();
    void insert(QTreeWidgetItem *, Pages *);
-   Pages* PageHash::value(QTreeWidgetItem *);
-   QTreeWidgetItem* PageHash::value(Pages *);
+   Pages* value(QTreeWidgetItem *);
+   QTreeWidgetItem* value(Pages *);
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
 };
