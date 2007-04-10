@@ -7,7 +7,7 @@
  *
  */
 /*
-   Bacula¬Æ - The Network Backup Solution
+   BaculaÅ¬ÅÆ - The Network Backup Solution
 
    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
 
@@ -28,9 +28,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula¬Æ is a registered trademark of John Walker.
+   BaculaÅ¬ÅÆ is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Z√ºrich,
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÅ√Åºrich,
    Switzerland, email:ftf@fsfeurope.org.
 */
 
@@ -383,10 +383,11 @@ int bregexp_get_build_where_size(char *strip_prefix,
     * add_prefix   = !^!add_prefix!          5 bytes
     * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
     */
-   int str_size = (strip_prefix?strlen(strip_prefix)+4:0 +
-		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
-		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
+   int str_size = ((strip_prefix?strlen(strip_prefix)+4:0) +
+		   (add_prefix?strlen(add_prefix)+5    :0) + /* escape + 3*, + \0 */ 
+		   (add_suffix?strlen(add_suffix)+14   :0) )   * 2     + 3   + 1;
 
+   Dmsg1(1, "bregexp_get_build_where_size = %i\n", str_size);
    return str_size;
 }
 
@@ -432,7 +433,7 @@ char *bregexp_build_where(char *dest, int str_size,
 
    free_pool_memory(str_tmp);
 
-   return ret;
+   return dest;
 }
 
 
