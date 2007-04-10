@@ -1,6 +1,138 @@
+Index: patches/testing/breg.c
+===================================================================
+--- patches/testing/breg.c	(révision 4529)
++++ patches/testing/breg.c	(copie de travail)
+@@ -7,7 +7,7 @@
+  *
+  */
+ /*
+-   BaculaÂ® - The Network Backup Solution
++   BaculaÂ® - The Network Backup Solution
+ 
+    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+ 
+@@ -28,9 +28,9 @@
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301, USA.
+ 
+-   BaculaÂ® is a registered trademark of John Walker.
++   BaculaÂ® is a registered trademark of John Walker.
+    The licensor of Bacula is the Free Software Foundation Europe
+-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
++   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
+    Switzerland, email:ftf@fsfeurope.org.
+ */
+ 
+@@ -383,10 +383,11 @@
+     * add_prefix   = !^!add_prefix!          5 bytes
+     * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
+     */
+-   int str_size = (strip_prefix?strlen(strip_prefix)+4:0 +
+-		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
+-		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
++   int str_size = ((strip_prefix?strlen(strip_prefix)+4:0) +
++		   (add_prefix?strlen(add_prefix)+5    :0) + /* escape + 3*, + \0 */ 
++		   (add_suffix?strlen(add_suffix)+14   :0) )   * 2     + 3   + 1;
+ 
++   Dmsg1(1, "bregexp_get_build_where_size = %i\n", str_size);
+    return str_size;
+ }
+ 
+@@ -432,7 +433,7 @@
+ 
+    free_pool_memory(str_tmp);
+ 
+-   return ret;
++   return dest;
+ }
+ 
+ 
+Index: patches/testing/bregtest.c
+===================================================================
+--- patches/testing/bregtest.c	(révision 4529)
++++ patches/testing/bregtest.c	(copie de travail)
+@@ -5,7 +5,7 @@
+  *
+  */
+ /*
+-   BaculaÂ® - The Network Backup Solution
++   BaculaÂ® - The Network Backup Solution
+ 
+    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+ 
+@@ -26,9 +26,9 @@
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301, USA.
+ 
+-   BaculaÂ® is a registered trademark of John Walker.
++   BaculaÂ® is a registered trademark of John Walker.
+    The licensor of Bacula is the Free Software Foundation Europe
+-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
++   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
+    Switzerland, email:ftf@fsfeurope.org.
+ */
+ 
+@@ -62,8 +62,11 @@
+ 
+ int main(int argc, char *const *argv)
+ {
+-	printf("%s\n", bregexp_build_where("/tmp", NULL, ".old"));
+-	exit(0);
++   char tab[500];
++   int len = bregexp_get_build_where_size("/tmp", "/tmp/toto", ".old");
++   
++   printf("%s\n", bregexp_build_where(tab, len, "/tmp", "/tmp/toto!", ".old"));
++   exit(0);
+ 
+ 
+    regex_t preg;
+Index: patches/testing/breg.h
+===================================================================
+--- patches/testing/breg.h	(révision 4529)
++++ patches/testing/breg.h	(copie de travail)
+@@ -4,7 +4,7 @@
+  * Version $Id$
+  */
+ /*
+-   BaculaÂ® - The Network Backup Solution
++   BaculaÂ® - The Network Backup Solution
+ 
+    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+ 
+@@ -25,9 +25,9 @@
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301, USA.
+ 
+-   BaculaÂ® is a registered trademark of John Walker.
++   BaculaÂ® is a registered trademark of John Walker.
+    The licensor of Bacula is the Free Software Foundation Europe
+-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
++   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
+    Switzerland, email:ftf@fsfeurope.org.
+ */
+ 
+@@ -98,8 +98,16 @@
+ /* foreach_alist free RUNSCRIPT */
+ void free_bregexps(alist *bregexps); /* you have to free alist */
+ 
+-/* get a bregexp string from user arguments */
+-char *bregexp_build_where(char *strip_prefix, 
++/* get regexp size */
++int bregexp_get_build_where_size(char *strip_prefix, 
++				 char *add_prefix, 
++				 char *add_suffix);
++
++/* get a bregexp string from user arguments 
++ * you must allocate it with bregexp_get_build_where_size();
++ */
++char *bregexp_build_where(char *dest, int str_size,
++			  char *strip_prefix, 
+                           char *add_prefix, 
+                           char *add_suffix);
+ 
 Index: src/dird/ua_restore.c
 ===================================================================
---- src/dird/ua_restore.c	(révision 4466)
+--- src/dird/ua_restore.c	(révision 4529)
 +++ src/dird/ua_restore.c	(copie de travail)
 @@ -43,8 +43,8 @@
  
@@ -102,7 +234,7 @@ Index: src/dird/ua_restore.c
     free_rx(&rx);
     return 0;
  
-@@ -331,23 +382,28 @@
+@@ -333,23 +384,28 @@
  
     const char *kw[] = {
         /* These keywords are handled in a for loop */
@@ -148,7 +280,7 @@ Index: src/dird/ua_restore.c
  
 Index: src/dird/restore.c
 ===================================================================
---- src/dird/restore.c	(révision 4466)
+--- src/dird/restore.c	(révision 4529)
 +++ src/dird/restore.c	(copie de travail)
 @@ -50,8 +50,9 @@
  #include "dird.h"
@@ -192,7 +324,7 @@ Index: src/dird/restore.c
     if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 4466)
+--- src/dird/dird_conf.c	(révision 4529)
 +++ src/dird/dird_conf.c	(copie de travail)
 @@ -52,6 +52,7 @@
  
@@ -239,7 +371,7 @@ Index: src/dird/dird_conf.c
        if (res->res_job.RestoreBootstrap) {
           free(res->res_job.RestoreBootstrap);
        }
-@@ -1299,6 +1316,19 @@
+@@ -1299,6 +1316,25 @@
           res->res_job.jobdefs    = res_all.res_job.jobdefs;
           res->res_job.run_cmds   = res_all.res_job.run_cmds;
           res->res_job.RunScripts = res_all.res_job.RunScripts;
@@ -250,10 +382,16 @@ Index: src/dird/dird_conf.c
 +	    if (res->res_job.RestoreWhere) {
 +	       free(res->res_job.RestoreWhere);
 +	    }
++	    int len = bregexp_get_build_where_size(res->res_job.strip_prefix,
++						   res->res_job.add_prefix,
++						   res->res_job.add_suffix);
++	    res->res_job.RestoreWhere = (char *) bmalloc (len * sizeof(char));
++	    bregexp_build_where(res->res_job.RestoreWhere, len,
++				res->res_job.strip_prefix,
++				res->res_job.add_prefix,
++				res->res_job.add_suffix);
 +	    res->res_job.where_use_regexp = true;
-+	    res->res_job.RestoreWhere=bregexp_build_where(res->res_job.strip_prefix,
-+							  res->res_job.add_prefix,
-+							  res->res_job.add_suffix);
++
 +	    /* TODO: test bregexp */
 +	 }
           break;
@@ -261,9 +399,9 @@ Index: src/dird/dird_conf.c
           if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
 Index: src/dird/ua_run.c
 ===================================================================
---- src/dird/ua_run.c	(révision 4466)
+--- src/dird/ua_run.c	(révision 4529)
 +++ src/dird/ua_run.c	(copie de travail)
-@@ -36,13 +36,14 @@
+@@ -36,11 +36,13 @@
  
  #include "bacula.h"
  #include "dird.h"
@@ -275,11 +413,9 @@ Index: src/dird/ua_run.c
     char *jid, const char *replace);
 +static void select_where_regexp(UAContext *ua, JCR *jcr);
  
--
- /* Imported variables */
- extern struct s_kw ReplaceOptions[];
  
-@@ -71,6 +72,7 @@
+ /* Imported variables */
+@@ -71,6 +73,7 @@
     int Priority = 0;
     int i, j, opt, files = 0;
     bool kw_ok;
@@ -287,7 +423,7 @@ Index: src/dird/ua_run.c
     JOB *job = NULL;
     JOB *verify_job = NULL;
     JOB *previous_job = NULL;
-@@ -87,7 +89,7 @@
+@@ -87,7 +90,7 @@
        "level",                        /* 5 */
        "storage",                      /* 6 */
        "sd",                           /* 7 */
@@ -296,7 +432,7 @@ Index: src/dird/ua_run.c
        "where",                        /* 9 */
        "bootstrap",                    /* 10 */
        "replace",                      /* 11 */
-@@ -101,6 +103,7 @@
+@@ -101,6 +104,7 @@
        "cloned",                       /* 19 cloned */
        "verifylist",                   /* 20 verify output list */
        "migrationjob",                 /* 21 migration job name */
@@ -304,7 +440,7 @@ Index: src/dird/ua_run.c
        NULL};
  
  #define YES_POS 14
-@@ -188,14 +191,8 @@
+@@ -188,15 +192,10 @@
                 store_name = ua->argv[i];
                 kw_ok = true;
                 break;
@@ -317,11 +453,13 @@ Index: src/dird/ua_run.c
 -               kw_ok = true;
 -               break;
 +            case 8: /* rwhere */
-+               where_use_regexp = true;
              case 9: /* where */
++	       where_use_regexp = (j == 9)?false:true; /* rwhere or where ? */
++
                 if (where) {
                    ua->send_msg(_("Where specified twice.\n"));
-@@ -287,8 +284,15 @@
+                   return 0;
+@@ -287,8 +286,15 @@
                 previous_job_name = ua->argv[i];
                 kw_ok = true;
                 break;
@@ -338,7 +476,7 @@ Index: src/dird/ua_run.c
              default:
                 break;
              }
-@@ -478,6 +482,7 @@
+@@ -478,6 +484,7 @@
           free(jcr->where);
        }
        jcr->where = bstrdup(where);
@@ -346,7 +484,7 @@ Index: src/dird/ua_run.c
     }
  
     if (when) {
-@@ -595,8 +600,9 @@
+@@ -595,8 +602,9 @@
        } else if (jcr->JobType == JT_RESTORE) {
           add_prompt(ua, _("Bootstrap"));     /* 7 */
           add_prompt(ua, _("Where"));         /* 8 */
@@ -358,7 +496,7 @@ Index: src/dird/ua_run.c
        }
        switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
        case 0:
-@@ -719,8 +725,13 @@
+@@ -719,8 +727,13 @@
              ua->cmd[0] = 0;
           }
           jcr->where = bstrdup(ua->cmd);
@@ -373,7 +511,7 @@ Index: src/dird/ua_run.c
           /* Replace */
           start_prompt(ua, _("Replace:\n"));
           for (i=0; ReplaceOptions[i].name; i++) {
-@@ -731,7 +742,7 @@
+@@ -731,7 +744,7 @@
              jcr->replace = ReplaceOptions[opt].token;
           }
           goto try_again;
@@ -382,7 +520,7 @@ Index: src/dird/ua_run.c
           /* JobId */
           jid = NULL;                  /* force reprompt */
           jcr->RestoreJobId = 0;
-@@ -775,6 +786,127 @@
+@@ -775,6 +788,131 @@
     return 0;                       /* do not run */
  }
  
@@ -405,7 +543,7 @@ Index: src/dird/ua_run.c
 +   case 0:
 +      /* Strip prefix */
 +      if (get_cmd(ua, _("Please enter path prefix to strip: "))) {
-+	 if (strip_prefix) free(strip_prefix);
++	 if (strip_prefix) bfree(strip_prefix);
 +	 strip_prefix = bstrdup(ua->cmd);
 +      }
 +      
@@ -417,21 +555,21 @@ Index: src/dird/ua_run.c
 +	    ua->cmd[0] = 0;
 +	 }
 +
-+	 if (add_prefix) free(add_prefix);
++	 if (add_prefix) bfree(add_prefix);
 +	 add_prefix = bstrdup(ua->cmd);
 +      }
 +      goto try_again_reg;
 +   case 2:
 +      /* Add suffix */
 +      if (get_cmd(ua, _("Please enter file suffix to add: "))) {
-+	 if (add_suffix) free(add_suffix);
++	 if (add_suffix) bfree(add_suffix);
 +	 add_suffix = bstrdup(ua->cmd);
 +      }      
 +      goto try_again_reg;
 +   case 3:
 +      /* Add rwhere */
 +      if (get_cmd(ua, _("Please enter a valid regexp (!from!to!): "))) {
-+	 if (rwhere) free(rwhere);
++	 if (rwhere) bfree(rwhere);
 +	 rwhere = bstrdup(ua->cmd);
 +      }
 +      
@@ -441,18 +579,20 @@ Index: src/dird/ua_run.c
 +      char *result;
 +      char *regexp;
 +      
-+      ua->send_msg(_("rwhere=%s strip_prefix=%s add_prefix=%s add_suffix=%\n"),
-+		   NPRT(rwhere), NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix));
-+
-+
 +      if (rwhere && rwhere[0] != '\0') {
 +	 regs = get_bregexps(rwhere);
++	 ua->send_msg(_("rwhere=%s\n"), NPRT(rwhere));
 +      } else {
-+	 regexp = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
++	 int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
++	 regexp = (char *) bmalloc (len * sizeof(char));
++	 bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
 +	 regs = get_bregexps(regexp);
-+	 free(regexp);
++	 ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"),
++		      NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix), NPRT(regexp));
++	 
++	 bfree(regexp);
 +      }
-+      
++
 +      if (!regs) {
 +	 ua->send_msg(_("Cannot use your regexp\n"));
 +	 goto try_again_reg;
@@ -477,14 +617,16 @@ Index: src/dird/ua_run.c
 +
 +   /* replace the existing where */
 +   if (jcr->where) {
-+      free(jcr->where);
++      bfree(jcr->where);
 +      jcr->where = NULL;
 +   }
 +
 +   if (rwhere) {
 +      jcr->where = bstrdup(rwhere);
 +   } else if (strip_prefix || add_prefix || add_suffix) {
-+      jcr->where = bregexp_build_where(strip_prefix, add_prefix, add_suffix);
++      int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
++      jcr->where = (char *) bmalloc(len*sizeof(char));
++      bregexp_build_where(jcr->where, len, strip_prefix, add_prefix, add_suffix);
 +   }
 +
 +   regs = get_bregexps(jcr->where);
@@ -494,17 +636,17 @@ Index: src/dird/ua_run.c
 +      jcr->where_use_regexp = true;
 +   } else {
 +      if (jcr->where) {
-+	 free(jcr->where);
++	 bfree(jcr->where);
 +	 jcr->where = NULL;
 +      }
 +      ua->send_msg(_("Cannot use your regexp.\n"));
 +   }
 +
 +bail_out_reg:
-+   if (strip_prefix) free(strip_prefix);
-+   if (add_prefix)   free(add_prefix);
-+   if (add_suffix)   free(add_suffix);
-+   if (rwhere)       free(rwhere);
++   if (strip_prefix) bfree(strip_prefix);
++   if (add_prefix)   bfree(add_prefix);
++   if (add_suffix)   bfree(add_suffix);
++   if (rwhere)       bfree(rwhere);
 +}
 +
  static void select_job_level(UAContext *ua, JCR *jcr)
@@ -512,7 +654,7 @@ Index: src/dird/ua_run.c
     if (jcr->JobType == JT_BACKUP) {
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 4466)
+--- src/dird/dird_conf.h	(révision 4529)
 +++ src/dird/dird_conf.h	(copie de travail)
 @@ -356,6 +356,10 @@
     int   Priority;                    /* Job priority */
@@ -527,7 +669,7 @@ Index: src/dird/dird_conf.h
     union {
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 4467)
+--- src/filed/job.c	(révision 4529)
 +++ src/filed/job.c	(copie de travail)
 @@ -36,6 +36,7 @@
  
@@ -584,7 +726,7 @@ Index: src/filed/job.c
     jcr->prefix_links = prefix_links;
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 4466)
+--- src/jcr.h	(révision 4529)
 +++ src/jcr.h	(copie de travail)
 @@ -173,6 +173,8 @@
     MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
@@ -597,7 +739,7 @@ Index: src/jcr.h
     bool prefix_links;                 /* Prefix links with Where path */
 Index: src/lib/Makefile.in
 ===================================================================
---- src/lib/Makefile.in	(révision 4466)
+--- src/lib/Makefile.in	(révision 4529)
 +++ src/lib/Makefile.in	(copie de travail)
 @@ -32,7 +32,7 @@
  	  res.c rwlock.c scan.c serial.c sha1.c \
@@ -619,7 +761,7 @@ Index: src/lib/Makefile.in
  EXTRAOBJS = @OBJLIST@
 Index: src/lib/attr.c
 ===================================================================
---- src/lib/attr.c	(révision 4466)
+--- src/lib/attr.c	(révision 4529)
 +++ src/lib/attr.c	(copie de travail)
 @@ -35,8 +35,8 @@
  
@@ -664,7 +806,7 @@ Index: src/lib/attr.c
        int wherelen = strlen(jcr->where);
 Index: src/lib/jcr.c
 ===================================================================
---- src/lib/jcr.c	(révision 4466)
+--- src/lib/jcr.c	(révision 4529)
 +++ src/lib/jcr.c	(copie de travail)
 @@ -56,6 +56,9 @@
  /* External variables we reference */
