@@ -5,7 +5,7 @@
  *
  */
 /*
-   BaculaÂ® - The Network Backup Solution
+   BaculaÂ® - The Network Backup Solution
 
    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
 
@@ -26,9 +26,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   BaculaÂ® is a registered trademark of John Walker.
+   BaculaÂ® is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
    Switzerland, email:ftf@fsfeurope.org.
 */
 
@@ -62,8 +62,11 @@ static void usage()
 
 int main(int argc, char *const *argv)
 {
-	printf("%s\n", bregexp_build_where("/tmp", NULL, ".old"));
-	exit(0);
+   char tab[500];
+   int len = bregexp_get_build_where_size("/tmp", "/tmp/toto", ".old");
+   
+   printf("%s\n", bregexp_build_where(tab, len, "/tmp", "/tmp/toto!", ".old"));
+   exit(0);
 
 
    regex_t preg;
