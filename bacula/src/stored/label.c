@@ -1,16 +1,7 @@
 /*
- *
- *  label.c  Bacula routines to handle labels
- *
- *   Kern Sibbald, MM
- *
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  label.c  Bacula routines to handle labels
+ *
+ *   Kern Sibbald, MM
+ *
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
@@ -213,7 +213,7 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
-   new_volume(dcr, dev->VolHdr.VolumeName);
+   reserve_volume(dcr, dev->VolHdr.VolumeName);
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
@@ -393,7 +393,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
-   new_volume(dcr, VolName);
+   reserve_volume(dcr, VolName);
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return true;
 

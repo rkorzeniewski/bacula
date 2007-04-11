@@ -1,9 +1,4 @@
 /*
- * Protypes for stored -- Kern Sibbald MM  
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -30,6 +25,11 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Protypes for stored -- Kern Sibbald MM  
+ *
+ *   Version $Id$
+ */
 
 /* From stored.c */
 uint32_t new_VolSessionId();
@@ -135,6 +135,7 @@ void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
 bool     is_device_unmounted(DEVICE *dev);
+uint32_t get_jobid_from_tid();
 
 /* From dircmd.c */
 void     *handle_connection_request(void *arg);
@@ -210,13 +211,14 @@ bool read_records(DCR *dcr,
 /* From reserve.c */
 void    init_reservations_lock();
 void    term_reservations_lock();
-void    lock_reservations();
-void    unlock_reservations();
+void    _lock_reservations();
+void    _unlock_reservations();
 void    release_volume(DCR *dcr);
-VOLRES *new_volume(DCR *dcr, const char *VolumeName);
+VOLRES *reserve_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
 bool    free_volume(DEVICE *dev);
-void    free_unused_volume(DCR *dcr);
+void    unreserve_device(DCR *dcr);
+bool    volume_unused(DCR *dcr);
 void    create_volume_list();
 void    free_volume_list();
 void    list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg);
@@ -225,6 +227,25 @@ void    send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int l
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 int     search_res_for_device(RCTX &rctx);
 void    release_msgs(JCR *jcr);
+
+extern int reservations_lock_count;
+
+#ifdef  SD_DEBUG_LOCK
+#define lock_reservations() \
+         do { Dmsg4(sd_dbglvl, "lock_reservations at %s:%d precnt=%d JobId=%u\n", \
+              __FILE__, __LINE__, \
+              reservations_lock_count, get_jobid_from_tid()); \
+                   _lock_reservations(); } while (0)
+#define unlock_reservations() \
+         do { Dmsg4(sd_dbglvl, "unlock_reservations at %s:%d precnt=%d JobId=%u\n", \
+              __FILE__, __LINE__, \
+              reservations_lock_count, get_jobid_from_tid()); \
+                   _unlock_reservations(); } while (0)
+#else
+#define lock_reservations() _lock_reservations()
+#define unlock_reservations() _unlock_reservations()
+#endif
+
 
 
 /* From spool.c */

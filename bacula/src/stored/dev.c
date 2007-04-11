@@ -1,34 +1,4 @@
 /*
- *
- *   dev.c  -- low level operations on device (storage device)
- *
- *              Kern Sibbald, MM
- *
- *     NOTE!!!! None of these routines are reentrant. You must
- *        use lock_device() and dev->unlock() at a higher level,
- *        or use the xxx_device() equivalents.  By moving the
- *        thread synchronization to a higher level, we permit
- *        the higher level routines to "seize" the device and
- *        to carry out operations without worrying about who
- *        set what lock (i.e. race conditions).
- *
- *     Note, this is the device dependent code, and may have
- *           to be modified for each system, but is meant to
- *           be as "generic" as possible.
- *
- *     The purpose of this code is to develop a SIMPLE Storage
- *     daemon. More complicated coding (double buffering, writer
- *     thread, ...) is left for a later version.
- *
- *     Unfortunately, I have had to add more and more complication
- *     to this code. This was not foreseen as noted above, and as
- *     a consequence has lead to something more contorted than is
- *     really necessary -- KES.  Note, this contortion has been
- *     corrected to a large extent by a rewrite (Apr MMI).
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -55,6 +25,36 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   dev.c  -- low level operations on device (storage device)
+ *
+ *              Kern Sibbald, MM
+ *
+ *     NOTE!!!! None of these routines are reentrant. You must
+ *        use dev->r_dlock() and dev->unlock() at a higher level,
+ *        or use the xxx_device() equivalents.  By moving the
+ *        thread synchronization to a higher level, we permit
+ *        the higher level routines to "seize" the device and
+ *        to carry out operations without worrying about who
+ *        set what lock (i.e. race conditions).
+ *
+ *     Note, this is the device dependent code, and may have
+ *           to be modified for each system, but is meant to
+ *           be as "generic" as possible.
+ *
+ *     The purpose of this code is to develop a SIMPLE Storage
+ *     daemon. More complicated coding (double buffering, writer
+ *     thread, ...) is left for a later version.
+ *
+ *     Unfortunately, I have had to add more and more complication
+ *     to this code. This was not foreseen as noted above, and as
+ *     a consequence has lead to something more contorted than is
+ *     really necessary -- KES.  Note, this contortion has been
+ *     corrected to a large extent by a rewrite (Apr MMI).
+ *
+ *   Version $Id$
+ */
 
 /*
  * Handling I/O errors and end of tape conditions are a bit tricky.
@@ -782,17 +782,20 @@ bool DEVICE::rewind(DCR *dcr)
 
 void DEVICE::block(int why)
 {
-   lock_device(this);
+   r_dlock();              /* need recursive lock to block */
    block_device(this, why);
-   unlock();
+   r_dunlock();
 }
 
-void DEVICE::unblock()
-{  
-   lock();   
+void DEVICE::unblock(bool locked)
+{
+   if (!locked) {
+      dlock();
+   }
    unblock_device(this);
-   unlock();
+   dunlock();
 }
+
 
 const char *DEVICE::print_blocked() const 
 {
@@ -1850,6 +1853,7 @@ void DEVICE::clrerror(int func)
 void DEVICE::clear_volhdr()
 {
    free_volume(this);
+   Dmsg1(100, "Clear volhdr vol=%s\n", VolHdr.VolumeName);
    memset(&VolHdr, 0, sizeof(VolHdr));
 }
 

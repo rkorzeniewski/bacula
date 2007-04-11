@@ -358,7 +358,7 @@ static bool open_the_device()
    bool ok = true;
 
    block = new_block(dev);
-   lock_device(dev);
+   dev->r_dlock();
    Dmsg1(200, "Opening device %s\n", dcr->VolumeName);
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), dev->errmsg);
@@ -369,7 +369,7 @@ static bool open_the_device()
    dev->set_append();                 /* put volume in append mode */
 
 bail_out:
-   dev->unlock();
+   dev->dunlock();
    free_block(block);
    return ok;
 }
@@ -2330,7 +2330,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    DEV_BLOCK *tblock;
    uint32_t this_file, this_block_num;
 
-   lock_device(dev);
+   dev->r_dlock();
    if (!this_block) {
       this_block = new_block(dev);
    }
@@ -2385,12 +2385,12 @@ static int flush_block(DEV_BLOCK *block, int dump)
          if (!fixup_device_block_write_error(jcr->dcr)) {
             Pmsg1(000, _("Cannot fixup device error. %s\n"), dev->bstrerror());
             ok = false;
-            dev->unlock();
+            dev->dunlock();
             return 0;
          }
          BlockNumber = 0;             /* start counting for second tape */
       }
-      dev->unlock();
+      dev->dunlock();
       return 1;                       /* end of tape reached */
    }
 
@@ -2409,7 +2409,7 @@ static int flush_block(DEV_BLOCK *block, int dump)
    last_file = this_file;
    last_block_num = this_block_num;
 
-   dev->unlock();
+   dev->dunlock();
    return 1;
 }
 

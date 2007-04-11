@@ -160,7 +160,7 @@ Device {
 # A DVD device
 #
 #Device {
-#  Name = "DVD-Writer"
+#  Name = "DVD Writer"
 #  Media Type = DVD
 #  Device Type = DVD
 #  Archive Device = /dev/hdc

@@ -1,12 +1,4 @@
 /*
- *  Subroutines to handle Catalog reqests sent to the Director
- *   Reqests/commands from the Director are handled in dircmd.c
- *
- *   Kern Sibbald, December 2000
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Subroutines to handle Catalog reqests sent to the Director
+ *   Reqests/commands from the Director are handled in dircmd.c
+ *
+ *   Kern Sibbald, December 2000
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
@@ -237,8 +237,10 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
 
 /*
  * Get info on the next appendable volume in the Director's database
- * Returns: true  on success
- *          false on failure
+ *
+ * Returns: true  on success dcr->VolumeName is volume
+ *                reserve_volume() called on Volume name
+ *          false on failure dcr->VolumeName[0] == 0
  *
  *          Volume information returned in dcr
  *
@@ -282,7 +284,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     }
     if (found) {
        Dmsg0(400, "dir_find_next_appendable_volume return true\n");
-       new_volume(dcr, dcr->VolumeName);   /* reserve volume */
+       reserve_volume(dcr, dcr->VolumeName);   /* reserve volume */
        V(vol_info_mutex);
        unlock_reservations();
        return true;
@@ -468,9 +470,9 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
          return false;
       }
-      dev->lock();  
+      dev->dlock();  
       got_vol = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
-      dev->unlock();
+      dev->dunlock();
       if (got_vol) {
          return true;
       } else {

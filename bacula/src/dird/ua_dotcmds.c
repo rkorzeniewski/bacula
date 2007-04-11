@@ -162,19 +162,161 @@ static bool getmsgscmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
+#ifdef DEVELOPER
+static void do_storage_die(UAContext *ua, STORE *store)
+{
+   BSOCK *sd;
+   JCR *jcr = ua->jcr;
+   USTORE lstore;
+   
+   lstore.store = store;
+   pm_strcpy(lstore.store_source, _("unknown source"));
+   set_wstorage(jcr, &lstore);
+   /* Try connecting for up to 15 seconds */
+   ua->send_msg(_("Connecting to Storage daemon %s at %s:%d\n"),
+      store->name(), store->address, store->SDport);
+   if (!connect_to_storage_daemon(jcr, 1, 15, 0)) {
+      ua->error_msg(_("Failed to connect to Storage daemon.\n"));
+      return;
+   }
+   Dmsg0(120, _("Connected to storage daemon\n"));
+   sd = jcr->store_bsock;
+   sd->fsend(".die");
+   if (sd->recv() >= 0) {
+      ua->send_msg("%s", sd->msg);
+   }
+   sd->signal(BNET_TERMINATE);
+   sd->close();
+   jcr->store_bsock = NULL;
+   return;
+}
+
+static void do_client_die(UAContext *ua, CLIENT *client)
+{
+   BSOCK *fd;
+
+   /* Connect to File daemon */
+
+   ua->jcr->client = client;
+   /* Try to connect for 15 seconds */
+   ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
+      client->name(), client->address, client->FDport);
+   if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
+      ua->error_msg(_("Failed to connect to Client.\n"));
+      return;
+   }
+   Dmsg0(120, "Connected to file daemon\n");
+   fd = ua->jcr->file_bsock;
+   fd->fsend(".die");
+   if (fd->recv() >= 0) {
+      ua->send_msg("%s", fd->msg);
+   }
+   fd->signal(BNET_TERMINATE);
+   fd->close();
+   ua->jcr->file_bsock = NULL;
+   return;
+}
+
 /*
  * Create segmentation fault
  */
 static bool diecmd(UAContext *ua, const char *cmd)
 {
+   STORE *store;
+   CLIENT *client;
+   int i;
    JCR *jcr = NULL;
    int a;
 
-   ua->send_msg(_("The Director will segment fault.\n"));
-   a = jcr->JobId; /* ref NULL pointer */
-   jcr->JobId = 1000; /* another ref NULL pointer */
+   Dmsg1(120, "diecmd:%s:\n", cmd);
+
+   /* General debug? */
+   for (i=1; i<ua->argc; i++) {
+      if (strcasecmp(ua->argk[i], "dir") == 0 ||
+          strcasecmp(ua->argk[i], "director") == 0) {
+         ua->send_msg(_("The Director will segment fault.\n"));
+         a = jcr->JobId; /* ref NULL pointer */
+         jcr->JobId = 1000; /* another ref NULL pointer */
+         return 1;
+      }
+      if (strcasecmp(ua->argk[i], "client") == 0 ||
+          strcasecmp(ua->argk[i], "fd") == 0) {
+         client = NULL;
+         if (ua->argv[i]) {
+            client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+            if (client) {
+               do_client_die(ua, client);
+               return 1;
+            }
+         }
+         client = select_client_resource(ua);
+         if (client) {
+            do_client_die(ua, client);
+            return 1;
+         }
+      }
+
+      if (strcasecmp(ua->argk[i], NT_("store")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("storage")) == 0 ||
+          strcasecmp(ua->argk[i], NT_("sd")) == 0) {
+         store = NULL;
+         if (ua->argv[i]) {
+            store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
+            if (store) {
+               do_storage_die(ua, store);
+               return 1;
+            }
+         }
+         store = get_storage_resource(ua, false/*no default*/);
+         if (store) {
+            do_storage_die(ua, store);
+            return 1;
+         }
+      }
+   }
+   /*
+    * We didn't find an appropriate keyword above, so
+    * prompt the user.
+    */
+   start_prompt(ua, _("Available daemons are: \n"));
+   add_prompt(ua, _("Director"));
+   add_prompt(ua, _("Storage"));
+   add_prompt(ua, _("Client"));
+   switch(do_prompt(ua, "", _("Select daemon type to make die"), NULL, 0)) {
+   case 0:                         /* Director */
+      ua->send_msg(_("The Director will segment fault.\n"));
+      a = jcr->JobId; /* ref NULL pointer */
+      jcr->JobId = 1000; /* another ref NULL pointer */
+      break;
+   case 1:
+      store = get_storage_resource(ua, false/*no default*/);
+      if (store) {
+         do_storage_die(ua, store);
+      }
+      break;
+   case 2:
+      client = select_client_resource(ua);
+      if (client) {
+         do_client_die(ua, client);
+      }
+      break;
+   default:
+      break;
+   }
    return true;
 }
+
+#else
+
+/*
+ * Dummy routine for non-development version
+ */
+static bool diecmd(UAContext *ua, const char *cmd)
+{
+   return true;
+}
+
+#endif
 
 static bool jobscmd(UAContext *ua, const char *cmd)
 {

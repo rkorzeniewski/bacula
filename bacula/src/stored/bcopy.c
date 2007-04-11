@@ -1,16 +1,7 @@
 /*
- *
- *  Program to copy a Bacula from one volume to another.
- *
- *   Kern E. Sibbald, October 2002
- *
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  Program to copy a Bacula from one volume to another.
+ *
+ *   Kern E. Sibbald, October 2002
+ *
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -186,13 +186,13 @@ int main (int argc, char *argv[])
    }
    Dmsg0(100, "About to acquire device for writing\n");
    /* For we must now acquire the device for writing */
-   lock_device(out_dev);
+   out_dev->r_dlock();
    if (out_dev->open(out_jcr->dcr, OPEN_READ_WRITE) < 0) {
       Emsg1(M_FATAL, 0, _("dev open failed: %s\n"), out_dev->errmsg);
-      out_dev->unlock();
+      out_dev->dunlock();
       exit(1);
    }
-   out_dev->unlock();
+   out_dev->dunlock();
    if (!acquire_device_for_append(out_jcr->dcr)) {
       free_jcr(in_jcr);
       exit(1);

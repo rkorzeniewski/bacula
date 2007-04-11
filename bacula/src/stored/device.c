@@ -39,7 +39,7 @@
  *        Obviously, no zzz_dev() is allowed to call
  *        a www_device() or everything falls apart.
  *
- * Concerning the routines lock_device() and block_device()
+ * Concerning the routines dev->r_lock()() and block_device()
  *  see the end of this module for details.  In general,
  *  blocking a device leaves it in a state where all threads
  *  other than the current thread block when they attempt to
@@ -58,6 +58,13 @@
 
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
+
+#ifdef SD_DEBUG_LOCK
+const int dbglvl = 0;
+#else
+const int dbglvl = 500;
+#endif
+
 
 /* Forward referenced functions */
 
@@ -99,7 +106,7 @@ bool fixup_device_block_write_error(DCR *dcr)
 
    block_device(dev, BST_DOING_ACQUIRE);
    /* Unlock, but leave BLOCKED */
-   dev->unlock();
+   dev->dunlock();
 
    bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
    bstrncpy(dev->VolHdr.PrevVolumeName, PrevVolName, sizeof(dev->VolHdr.PrevVolumeName));
@@ -116,11 +123,11 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!mount_next_write_volume(dcr, 1)) {
       free_block(label_blk);
       dcr->block = block;
-      dev->lock();  
+      dev->dlock();  
       unblock_device(dev);
       return false;                /* device locked */
    }
-   dev->lock();                    /* lock again */
+   dev->dlock();                    /* lock again */
 
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false);        /* send Volume info to Director */
@@ -261,7 +268,7 @@ bool first_open_device(DCR *dcr)
       return false;
    }
 
-   lock_device(dev);
+   dev->r_dlock();
 
    /* Defer opening files */
    if (!dev->is_tape()) {
@@ -284,7 +291,7 @@ bool first_open_device(DCR *dcr)
    Dmsg1(129, "open dev %s OK\n", dev->print_name());
 
 bail_out:
-   dev->unlock();
+   dev->dunlock();
    return ok;
 }
 
@@ -316,28 +323,21 @@ bool open_device(DCR *dcr)
    return true;
 }
 
-
 /*
- * When dev_blocked is set, all threads EXCEPT thread with id no_wait_id
- * must wait. The no_wait_id thread is out obtaining a new volume
- * and preparing the label.
+ * Find which JobId corresponds to the current thread
  */
-void _lock_device(const char *file, int line, DEVICE *dev)
+uint32_t get_jobid_from_tid()
 {
-   int stat;
-   Dmsg3(500, "lock %d from %s:%d\n", dev->blocked(), file, line);
-   dev->lock();   
-   if (dev->blocked() && !pthread_equal(dev->no_wait_id, pthread_self())) {
-      dev->num_waiting++;             /* indicate that I am waiting */
-      while (dev->blocked()) {
-         if ((stat = pthread_cond_wait(&dev->wait, &dev->m_mutex)) != 0) {
-            dev->unlock();
-            Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
-               strerror(stat));
-         }
+   JCR *jcr;
+   uint32_t JobId = 0;
+   foreach_jcr(jcr) {
+      if (pthread_equal(jcr->my_thread_id, pthread_self())) {
+         JobId = (uint32_t)jcr->JobId;
+         break;
       }
-      dev->num_waiting--;             /* no longer waiting */
    }
+   endeach_jcr(jcr);
+   return JobId;
 }
 
 /*
@@ -352,23 +352,91 @@ bool is_device_unmounted(DEVICE *dev)
    return stat;
 }
 
-void _unlock_device(const char *file, int line, DEVICE *dev)
+void DEVICE::_dlock(const char *file, int line)
 {
-   Dmsg2(500, "unlock from %s:%d\n", file, line);
-   dev->unlock();
+   Dmsg4(sd_dbglvl, "dlock from %s:%d precnt=%d JobId=%u\n", file, line,
+         m_count, get_jobid_from_tid()); 
+   /* Note, this *really* should be protected by a mutex, but
+    *  since it is only debug code we don't worry too much.  
+    */
+   if (m_count > 0 && pthread_equal(m_pid, pthread_self())) {
+      Dmsg2(sd_dbglvl, "DEADLOCK !!!!!!!!!! from %s:%d\n", file, line);
+   }
+   P(m_mutex);
+   m_pid = pthread_self();
+   m_count++; 
+}
+
+void DEVICE::_dunlock(const char *file, int line)
+{
+   m_count--; 
+   Dmsg4(sd_dbglvl, "dunlock from %s:%d postcnt=%d JobId=%u\n", file, line,
+         m_count, get_jobid_from_tid()); 
+   V(m_mutex);   
+}
+
+#ifdef SD_DEBUG_LOCK
+void DEVICE::_r_dunlock(const char *file, int line)
+{
+   this->_dunlock(file, line);
+}
+#else
+void DEVICE::r_dunlock()
+{
+   this->dunlock();
+}
+#endif
+
+
+/*
+ * This is a recursive lock that checks if the device is blocked.
+ *
+ * When blocked is set, all threads EXCEPT thread with id no_wait_id
+ * must wait. The no_wait_id thread is out obtaining a new volume
+ * and preparing the label.
+ */
+#ifdef SD_DEBUG_LOCK
+void DEVICE::_r_dlock(const char *file, int line)
+#else
+void DEVICE::r_dlock()
+#endif
+{
+   int stat;
+#ifdef SD_DEBUG_LOCK
+   Dmsg4(dbglvl, "r_dlock blked=%s from %s:%d JobId=%u\n", this->print_blocked(),
+         file, line, get_jobid_from_tid());
+#else
+   Dmsg1dbglvl, "reclock blked=%s\n", this->print_blocked());
+#endif
+   this->dlock();   
+   if (this->blocked() && !pthread_equal(this->no_wait_id, pthread_self())) {
+      this->num_waiting++;             /* indicate that I am waiting */
+      while (this->blocked()) {
+         Dmsg3(dbglvl, "r_dlock blked=%s no_wait=%p me=%p\n", this->print_blocked(),
+               this->no_wait_id, pthread_self());
+         if ((stat = pthread_cond_wait(&this->wait, &m_mutex)) != 0) {
+            berrno be;
+            this->dunlock();
+            Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
+               be.strerror(stat));
+         }
+      }
+      this->num_waiting--;             /* no longer waiting */
+   }
 }
 
 /*
  * Block all other threads from using the device
  *  Device must already be locked.  After this call,
- *  the device is blocked to any thread calling lock_device(),
+ *  the device is blocked to any thread calling dev->r_lock(),
  *  but the device is not locked (i.e. no P on device).  Also,
- *  the current thread can do slip through the lock_device()
+ *  the current thread can do slip through the dev->r_lock()
  *  calls without blocking.
  */
 void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
-   Dmsg3(500, "block set %d from %s:%d\n", state, file, line);
+   Dmsg3(dbglvl, "block set %d from %s:%d\n", state, file, line);
+
    ASSERT(dev->blocked() == BST_NOT_BLOCKED);
    dev->set_blocked(state);           /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
@@ -376,10 +444,12 @@ void _block_device(const char *file, int line, DEVICE *dev, int state)
 
 /*
  * Unblock the device, and wake up anyone who went to sleep.
+ * Enter: device locked
+ * Exit:  device locked
  */
 void _unblock_device(const char *file, int line, DEVICE *dev)
 {
-   Dmsg3(500, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
+   Dmsg3(dbglvl, "unblock %s from %s:%d\n", dev->print_blocked(), file, line);
    ASSERT(dev->blocked());
    dev->set_blocked(BST_NOT_BLOCKED);
    dev->no_wait_id = 0;
@@ -395,15 +465,15 @@ void _unblock_device(const char *file, int line, DEVICE *dev)
 void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state)
 {
 
-   Dmsg3(400, "steal lock. old=%s from %s:%d\n", dev->print_blocked(),
+   Dmsg3(dbglvl, "steal lock. old=%s from %s:%d\n", dev->print_blocked(),
       file, line);
    hold->dev_blocked = dev->blocked();
    hold->dev_prev_blocked = dev->dev_prev_blocked;
    hold->no_wait_id = dev->no_wait_id;
    dev->set_blocked(state);
-   Dmsg1(400, "steal lock. new=%s\n", dev->print_blocked());
+   Dmsg1(dbglvl, "steal lock. new=%s\n", dev->print_blocked());
    dev->no_wait_id = pthread_self();
-   dev->unlock();
+   dev->dunlock();
 }
 
 /*
@@ -412,13 +482,13 @@ void _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *
  */
 void _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold)
 {
-   Dmsg3(400, "return lock. old=%s from %s:%d\n",
+   Dmsg3(dbglvl, "return lock. old=%s from %s:%d\n",
       dev->print_blocked(), file, line);
-   dev->lock();
+   dev->dlock();
    dev->set_blocked(hold->dev_blocked);
    dev->dev_prev_blocked = hold->dev_prev_blocked;
    dev->no_wait_id = hold->no_wait_id;
-   Dmsg1(400, "return lock. new=%s\n", dev->print_blocked());
+   Dmsg1(dbglvl, "return lock. new=%s\n", dev->print_blocked());
    if (dev->num_waiting > 0) {
       pthread_cond_broadcast(&dev->wait); /* wake them up */
    }

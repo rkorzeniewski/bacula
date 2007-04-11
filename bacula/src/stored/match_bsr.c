@@ -1,15 +1,7 @@
 /*
- *   Match Bootstrap Records (used for restores) against
- *     Volume Records
- *
- *     Kern Sibbald, June MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Match Bootstrap Records (used for restores) against
+ *     Volume Records
+ *
+ *     Kern Sibbald, June MMII
+ *
+ *   Version $Id$
+ */
 
 /*
  * ***FIXME***
@@ -60,7 +60,7 @@
 #include "lib/fnmatch.h"
 #endif
 
-const int dbglevel = 10;
+const int dbglevel = 500;
 
 /* Forward references */
 static int match_volume(BSR *bsr, BSR_VOLUME *volume, VOLUME_LABEL *volrec, bool done);

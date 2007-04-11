@@ -34,7 +34,7 @@
  *    in job.c.
  *
  *    N.B. in this file, in general we must use P(dev->mutex) rather
- *      than lock_device(dev) so that we can examine the blocked
+ *      than dev->r_lock() so that we can examine the blocked
  *      state rather than blocking ourselves because a Job
  *      thread has the device blocked. In some "safe" cases,
  *      we can do things to a blocked device. CAREFUL!!!!
@@ -75,6 +75,7 @@ extern bool qstatus_cmd(JCR *jcr);
 
 /* Forward referenced functions */
 static bool label_cmd(JCR *jcr);
+static bool die_cmd(JCR *jcr);
 static bool relabel_cmd(JCR *jcr);
 static bool readlabel_cmd(JCR *jcr);
 static bool release_cmd(JCR *jcr);
@@ -107,6 +108,7 @@ static struct s_cmds cmds[] = {
    {"autochanger", changer_cmd,     0},
    {"bootstrap",   bootstrap_cmd,   0},
    {"cancel",      cancel_cmd,      0},
+   {".die",        die_cmd,         0},
    {"label",       label_cmd,       0},     /* label a tape */
    {"mount",       mount_cmd,       0},
    {"readlabel",   readlabel_cmd,   0},
@@ -168,6 +170,7 @@ void *handle_connection_request(void *arg)
     */
    Dmsg1(110, "Conn: %s", bs->msg);
    if (sscanf(bs->msg, "Hello Start Job %127s", name) == 1) {
+      Dmsg0(110, "Got a FD connection\n");
       handle_filed_connection(bs, name);
       return NULL;
    }
@@ -175,7 +178,7 @@ void *handle_connection_request(void *arg)
    /* 
     * This is a connection from the Director, so setup a JCR 
     */
-   Dmsg0(110, "Start Dir Job\n");
+   Dmsg0(110, "Got a DIR connection\n");
    jcr = new_jcr(sizeof(JCR), stored_free_jcr); /* create Job Control Record */
    jcr->dir_bsock = bs;               /* save Director bsock */
    jcr->dir_bsock->set_jcr(jcr);
@@ -238,6 +241,24 @@ bail_out:
    free_jcr(jcr);
    return NULL;
 }
+
+
+/*
+ * Force SD to die, and hopefully dump itself.  Turned on only
+ *  in development version.
+ */
+static bool die_cmd(JCR *jcr)
+{
+#ifdef DEVELOPER
+   JCR *djcr = NULL;
+   int a;
+   Pmsg0(000, "I have been requested to die ...");
+   a = djcr->JobId;   /* ref NULL pointer */
+#endif
+   return 0;
+}
+
+     
 
 /*
  * Set debug level as requested by the Director
@@ -355,7 +376,7 @@ static bool do_label(JCR *jcr, int relabel)
       dcr = find_device(jcr, dev_name, drive);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             Dmsg1(400, "Can %slabel. Device is not open\n", relabel?"re":"");
             label_volume_if_ok(dcr, oldname, newname, poolname, slot, relabel);
@@ -370,7 +391,7 @@ static bool do_label(JCR *jcr, int relabel)
             Dmsg0(400, "Can relabel. device not used\n");
             label_volume_if_ok(dcr, oldname, newname, poolname, slot, relabel);
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {
@@ -619,7 +640,7 @@ static bool mount_cmd(JCR *jcr)
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          Dmsg1(100, "mount cmd blocked=%d\n", dev->blocked());
          switch (dev->blocked()) {         /* device blocked? */
          case BST_WAITING_FOR_SYSOP:
@@ -726,7 +747,7 @@ static bool mount_cmd(JCR *jcr)
             bnet_fsend(dir, _("3905 Bizarre wait state %d\n"), dev->blocked());
             break;
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {
@@ -755,7 +776,7 @@ static bool unmount_cmd(JCR *jcr)
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             if (!dev->is_busy()) {
                unload_autochanger(dcr, -1);          
@@ -817,7 +838,7 @@ static bool unmount_cmd(JCR *jcr)
                   dev->print_name());
             }
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {
@@ -851,7 +872,7 @@ static bool release_cmd(JCR *jcr)
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             if (!dev->is_busy()) {
                unload_autochanger(dcr, -1);
@@ -890,7 +911,7 @@ static bool release_cmd(JCR *jcr)
             bnet_fsend(dir, _("3022 Device %s released.\n"), 
                dev->print_name());
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {
@@ -942,7 +963,7 @@ static bool changer_cmd(JCR *jcr)
       dcr = find_device(jcr, devname, -1);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->device->changer_res) {
             bnet_fsend(dir, _("3995 Device %s is not an autochanger.\n"), 
                dev->print_name());
@@ -954,7 +975,7 @@ static bool changer_cmd(JCR *jcr)
          } else {                     /* device not being used */
             autochanger_cmd(dcr, dir, cmd);
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {
@@ -986,7 +1007,7 @@ static bool readlabel_cmd(JCR *jcr)
       dcr = find_device(jcr, devname, drive);
       if (dcr) {
          dev = dcr->dev;
-         dev->lock();                 /* Use P to avoid indefinite block */
+         dev->dlock();                 /* Use P to avoid indefinite block */
          if (!dev->is_open()) {
             read_volume_label(jcr, dev, Slot);
             dev->close();
@@ -998,7 +1019,7 @@ static bool readlabel_cmd(JCR *jcr)
          } else {                     /* device not being used */
             read_volume_label(jcr, dev, Slot);
          }
-         dev->unlock();
+         dev->dunlock();
          free_dcr(dcr);
          jcr->dcr = NULL;
       } else {

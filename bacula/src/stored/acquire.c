@@ -130,7 +130,7 @@ bool acquire_device_for_read(DCR *dcr)
       unlock_reservations();
       if (stat == 1) {
          DCR *new_dcr = jcr->read_dcr;
-         dev->unblock();
+         dev->unblock(dev_unlocked);
          detach_dcr_from_dev(dcr);    /* release old device */
          /* Copy important info from the new dcr */
          dev = dcr->dev = new_dcr->dev; 
@@ -281,14 +281,13 @@ default_path:
       dcr->VolumeName, dev->print_name());
 
 get_out:
-   dev->lock();
+   dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unlock();
-   dev->unblock();
+   dev->unblock(dev_locked);
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
 }
@@ -348,7 +347,7 @@ DCR *acquire_device_for_append(DCR *dcr)
             dcr->VolumeName);
          /* Release volume reserved by dir_find_next_appendable_volume() */
          if (dcr->VolumeName[0]) {
-            free_unused_volume(dcr);
+            volume_unused(dcr);
          }
          if (dev->num_writers != 0) {
             Jmsg3(jcr, M_FATAL, 0, _("Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
@@ -431,28 +430,26 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false);        /* send Volume info to Director */
-   dev->lock();
+   dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unlock();
-   dev->unblock();
+   dev->unblock(dev_locked);
    return dcr;
 
 /*
  * Error return
  */
 get_out:
-   dev->lock();
+   dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unlock();
-   dev->unblock();
+   dev->unblock(dev_locked);
    return NULL;
 }
 
@@ -473,7 +470,7 @@ bool release_device(DCR *dcr)
 
    /* lock only if not already locked by this thread */
    if (!dcr->dev_locked) {
-      lock_device(dev);
+      dev->r_dlock();
    }
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");
 
@@ -558,7 +555,7 @@ bool release_device(DCR *dcr)
       free_pool_memory(alert);
    }
    dcr->dev_locked = false;              /* set no longer locked */
-   dev->unlock();
+   dev->dunlock();
    if (jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;
    }
@@ -579,6 +576,7 @@ DCR *new_dcr(JCR *jcr, DEVICE *dev)
    memset(dcr, 0, sizeof(DCR));
    dcr->jcr = jcr;
    if (dev) {
+      dcr->tid = pthread_self();
       dcr->dev = dev;
       dcr->device = dev->device;
       dcr->block = new_block(dev);
@@ -629,24 +627,7 @@ static void attach_dcr_to_dev(DCR *dcr)
 
 void detach_dcr_from_dev(DCR *dcr)
 {
-   DEVICE *dev = dcr->dev;
-
-   if (dcr->reserved_device) {
-      dcr->reserved_device = false;
-      lock_device(dev);
-      dev->reserved_device--;
-      Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
-      /* If we set read mode in reserving, remove it */
-      if (dev->can_read()) {
-         dev->clear_read();
-      }
-      if (dev->num_writers < 0) {
-         Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
-         dev->num_writers = 0;
-      }
-      dev->unlock();
-   }
+   unreserve_device(dcr);
 
    /* Detach this dcr only if attached */
    if (dcr->attached_to_dev) {
@@ -654,7 +635,6 @@ void detach_dcr_from_dev(DCR *dcr)
       dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
    }
-   free_unused_volume(dcr);           /* free unused vols attached to this dcr */
    pthread_cond_broadcast(&dcr->dev->wait_next_vol);
    pthread_cond_broadcast(&wait_device_release);
 }
