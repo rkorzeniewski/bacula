@@ -346,7 +346,7 @@ bool write_block_to_device(DCR *dcr)
    }
 
    if (!dcr->dev_locked) {            /* device already locked? */
-      lock_device(dev);               /* no, lock it */
+      dev->r_dlock();                  /* no, lock it */
    }
 
    /*
@@ -388,7 +388,7 @@ bool write_block_to_device(DCR *dcr)
 
 bail_out:
    if (!dcr->dev_locked) {            /* did we lock dev above? */
-      dev->unlock();                  /* unlock it now */
+      dev->dunlock();                  /* unlock it now */
    }
    return stat;
 }
@@ -896,9 +896,9 @@ bool read_block_from_device(DCR *dcr, bool check_block_numbers)
    bool ok;
    DEVICE *dev = dcr->dev;
    Dmsg0(200, "Enter read_block_from_device\n");
-   lock_device(dev);
+   dev->r_dlock();
    ok = read_block_from_dev(dcr, check_block_numbers);
-   unlock_device(dev);
+   dev->dunlock();
    Dmsg0(200, "Leave read_block_from_device\n");
    return ok;
 }

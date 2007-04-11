@@ -39,10 +39,15 @@
 #ifndef __DEV_H
 #define __DEV_H 1
 
+#ifdef SD_DEBUG_LOCK
+#define r_dlock() _r_dlock(__FILE__, __LINE__);      /* in device.c */
+#define r_dunlock() _r_dunlock(__FILE__, __LINE__);  /* in device.c */
+#define dlock() _dlock(__FILE__, __LINE__);          /* in device.c */
+#define dunlock() _dunlock(__FILE__, __LINE__);     /* in device.c */
+#endif
+
 #undef DCR                            /* used by Bacula */
 
-#define lock_device(d) _lock_device(__FILE__, __LINE__, (d))
-#define unlock_device(d) _unlock_device(__FILE__, __LINE__, (d))
 #define block_device(d, s) _block_device(__FILE__, __LINE__, (d), s)
 #define unblock_device(d) _unblock_device(__FILE__, __LINE__, (d))
 #define steal_device_lock(d, p, s) _steal_device_lock(__FILE__, __LINE__, (d), (p), s)
@@ -190,6 +195,16 @@ typedef struct s_steal_lock {
 class DEVRES;                        /* Device resource defined in stored_conf.h */
 
 class DCR; /* forward reference */
+class VOLRES; /* forward reference */
+
+/*
+ * Used in unblock() call
+ */
+enum {
+   dev_locked = true,
+   dev_unlocked = false
+};
+
 /*
  * Device structure definition. There is one of these for
  *  each physical device. Everything here is "global" to
@@ -199,6 +214,8 @@ class DEVICE {
 private:
    int m_fd;                          /* file descriptor */
    int m_blocked;                     /* set if we must wait (i.e. change tape) */
+   int m_count;                       /* Mutex use count -- DEBUG only */
+   pthread_t m_pid;                   /* Thread that locked -- DEBUG only */
 public:
    dlist *attached_dcrs;              /* attached DCR list */
    pthread_mutex_t m_mutex;           /* access control */
@@ -258,6 +275,7 @@ public:
    
    utime_t  vol_poll_interval;        /* interval between polling Vol mount */
    DEVRES *device;                    /* pointer to Device Resource */
+   VOLRES *vol;                       /* Pointer to Volume reservation item */
    btimer_t *tid;                     /* timer id */
 
    VOLUME_CAT_INFO VolCatInfo;        /* Volume Catalog Information */
@@ -360,12 +378,22 @@ public:
    void clear_freespace_ok() { state &= ~ST_FREESPACE_OK; };
    char *bstrerror(void) { return errmsg; };
    char *print_errmsg() { return errmsg; };
-   void lock() { P(m_mutex); } 
-   void unlock() { V(m_mutex); } 
+
+#ifdef  SD_DEBUG_LOCK
+   void _r_dlock(const char *, int);      /* in device.c */
+   void _r_dunlock(const char *, int);    /* in device.c */
+   void _dlock(const char *, int);        /* in device.c */
+   void _dunlock(const char *, int);      /* in device.c */
+#else
+   void r_dlock();                        /* in device.c */
+   void r_dunlock();                      /* in device.c */
+   void dlock() { P(m_mutex); } 
+   void dunlock() { V(m_mutex); } 
+#endif
 
    void clear_volhdr();          /* in dev.c */
    void block(int why);          /* in dev.c */
-   void unblock();               /* in dev.c */
+   void unblock(bool locked=false); /* in dev.c */
    void close();                 /* in dev.c */
    void close_part(DCR *dcr);    /* in dev.c */
    bool truncate(DCR *dcr);      /* in dev.c */
@@ -411,7 +439,6 @@ private:
    void open_dvd_device(DCR *dcr, int omode);  /* in dev.c */
 };
 
-/* Note, these return int not bool! */
 inline const char *DEVICE::strerror() const { return errmsg; }
 inline const char *DEVICE::archive_name() const { return dev_name; }
 inline const char *DEVICE::print_name() const { return prt_name; }
@@ -431,6 +458,7 @@ public:
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */
    DEV_RECORD *rec;                   /* pointer to record */
+   pthread_t tid;                     /* Thread running this dcr */
    int spool_fd;                      /* fd if spooling */
    bool spool_data;                   /* set to spool data */
    bool spooling;                     /* set when actually spooling */
@@ -470,7 +498,6 @@ public:
    dlink link;
    char *vol_name;
    DEVICE *dev;
-   DCR *dcr;
 };
 
 

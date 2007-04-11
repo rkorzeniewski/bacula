@@ -1,9 +1,4 @@
 /*
- * Storage daemon specific defines and includes
- *
- *  Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
@@ -30,11 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Storage daemon specific defines and includes
+ *
+ *  Version $Id$
+ */
 
 #ifndef __STORED_H_
 #define __STORED_H_
 
 #define STORAGE_DAEMON 1
+
+/* Set to debug mutexes */
+#define SD_DEBUG_LOCK
+const int sd_dbglvl = 100;
 
 #ifdef HAVE_MTIO_H
 #include <mtio.h>

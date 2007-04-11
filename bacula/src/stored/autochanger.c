@@ -264,7 +264,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
    *results.c_str() = 0;
    Dmsg1(100, "Run program=%s\n", changer);
    status = run_program_full_output(changer, timeout, results.c_str());
-   Dmsg3(100, "run_prog: %s stat=%d result=%s\n", changer, status, results.c_str());
+   Dmsg3(100, "run_prog: %s stat=%d result=%s", changer, status, results.c_str());
    if (status == 0) {
       loaded = str_to_int32(results.c_str());
       if (loaded > 0) {
@@ -414,14 +414,14 @@ static bool unload_other_drive(DCR *dcr, int slot)
       }
       break;
    }
-   dev->lock();  
+   dev->dlock();
    if (dev->is_busy()) {
       Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
            dcr->VolumeName, dev->print_name());
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
            dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), slot);
       Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
-      dev->unlock();
+      dev->dunlock();
       return false;
    }
 
@@ -463,7 +463,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
       Dmsg0(100, "Slot unloaded\n");
    }
    unlock_changer(dcr);
-   dev->unlock();
+   dev->dunlock();
    free_pool_memory(changer_cmd);
    return ok;
 }

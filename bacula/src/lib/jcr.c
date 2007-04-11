@@ -1,31 +1,7 @@
 /*
- * Manipulation routines for Job Control Records and
- *  handling of last_jobs_list.
- *
- *  Kern E. Sibbald, December 2000
- *
- *  Version $Id$
- *
- *  These routines are thread safe.
- *
- *  The job list routines were re-written in May 2005 to
- *  eliminate the global lock while traversing the list, and
- *  to use the dlist subroutines.  The locking is now done
- *  on the list each time the list is modified or traversed.
- *  That is it is "micro-locked" rather than globally locked.
- *  The result is that there is one lock/unlock for each entry
- *  in the list while traversing it rather than a single lock
- *  at the beginning of a traversal and one at the end.  This
- *  incurs slightly more overhead, but effectively eliminates 
- *  the possibilty of race conditions.  In addition, with the
- *  exception of the global locking of the list during the
- *  re-reading of the config file, no recursion is needed.
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,6 +25,30 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Manipulation routines for Job Control Records and
+ *  handling of last_jobs_list.
+ *
+ *  Kern E. Sibbald, December 2000
+ *
+ *  Version $Id$
+ *
+ *  These routines are thread safe.
+ *
+ *  The job list routines were re-written in May 2005 to
+ *  eliminate the global lock while traversing the list, and
+ *  to use the dlist subroutines.  The locking is now done
+ *  on the list each time the list is modified or traversed.
+ *  That is it is "micro-locked" rather than globally locked.
+ *  The result is that there is one lock/unlock for each entry
+ *  in the list while traversing it rather than a single lock
+ *  at the beginning of a traversal and one at the end.  This
+ *  incurs slightly more overhead, but effectively eliminates 
+ *  the possibilty of race conditions.  In addition, with the
+ *  exception of the global locking of the list during the
+ *  re-reading of the config file, no recursion is needed.
+ *
+ */
 
 #include "bacula.h"
 #include "jcr.h"

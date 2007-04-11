@@ -234,7 +234,7 @@ static bool despool_data(DCR *dcr, bool commit)
    }
    dcr->despool_wait = true;
    dcr->spooling = false;
-   lock_device(dcr->dev);
+   dcr->dev->r_dlock();
    dcr->despool_wait = false;
    dcr->despooling = true;
    dcr->dev_locked = true;
@@ -330,7 +330,7 @@ static bool despool_data(DCR *dcr, bool commit)
    /* If doing a commit, leave the device locked -- unlocked in release_device() */
    if (!commit) {
       dcr->dev_locked = false;
-      dcr->dev->unlock();
+      dcr->dev->dunlock();
    }
    return ok;
 }

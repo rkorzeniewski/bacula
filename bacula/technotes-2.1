@@ -1,6 +1,17 @@
               Technical notes on version 2.1
 
 General:
+11Apr07
+kes  Add exec external-command [wait-seconds] to bconsole. This
+     executes the external-command.  Note! normally external-command
+     should be enclosed in double quotes.
+kes  Turn the .die command on only if DEVELOPER is defined -- i.e.
+     it should normally be off in a production system.
+10Apr07
+kes  Implement die command for SD so that we can force it to dump.
+kes  Implement SD lock debug code.
+kes  Implement new algorithm for keeping Volume list in SD.  It
+     is now owned by the device.
 04Apr07
 kes  Implement new code for freeing in use volumes that should 
      resolve if not all, some of the problems of multiple drive

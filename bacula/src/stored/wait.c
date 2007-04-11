@@ -61,7 +61,7 @@ int wait_for_sysop(DCR *dcr)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   dev->lock();  
+   dev->dlock();  
    Dmsg1(100, "Enter blocked=%s\n", dev->print_blocked());
    unmounted = is_device_unmounted(dev);
 
@@ -184,7 +184,7 @@ int wait_for_sysop(DCR *dcr)
       Dmsg1(400, "set %s\n", dev->print_blocked());
    }
    Dmsg1(400, "Exit blocked=%s\n", dev->print_blocked());
-   dev->unlock();
+   dev->dunlock();
    return stat;
 }
 

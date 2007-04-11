@@ -102,6 +102,7 @@ static int quitcmd(FILE *input, BSOCK *UA_sock);
 static int echocmd(FILE *input, BSOCK *UA_sock);
 static int timecmd(FILE *input, BSOCK *UA_sock);
 static int sleepcmd(FILE *input, BSOCK *UA_sock);
+static int execcmd(FILE *input, BSOCK *UA_sock);
 
 
 #define CONFIG_FILE "bconsole.conf"   /* default configuration file */
@@ -166,6 +167,7 @@ static struct cmdstruct commands[] = {
  { N_("time"),       timecmd,      _("print current time")},
  { N_("version"),    versioncmd,   _("print Console's version")},
  { N_("echo"),       echocmd,      _("echo command string")},
+ { N_("exec"),       execcmd,      _("execute an external command")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
  { N_("zed_keys"),   zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
              };
@@ -886,15 +888,54 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], mode);
    if (!fd) {
+      berrno be;
       senditf(_("Cannot open file %s for output. ERR=%s\n"),
-         argk[1], strerror(errno));
+         argk[1], be.strerror(errno));
       return 1;
    }
    output = fd;
    return 1;
 }
 
-static int echocmd(FILE *intut, BSOCK *UA_sock)
+/*
+ * exec "some-command" [wait-seconds]
+*/
+static int execcmd(FILE *input, BSOCK *UA_sock)
+{
+   BPIPE *bpipe;
+   char line[5000];
+   int stat;
+   int wait = 0;
+
+   if (argc > 3) {
+      sendit(_("Too many arguments. Enclose command in double quotes.\n"));
+      return 1;
+   }
+   if (argc == 3) {
+      wait = atoi(argk[2]);
+   }
+   bpipe = open_bpipe(argk[1], wait, "r");
+   if (!bpipe) {
+      berrno be;
+      senditf(_("Cannot popen(\"%s\", \"r\"): ERR=%s\n"),
+         argk[1], be.strerror(errno));
+      return 1;
+   }
+  
+   while (fgets(line, sizeof(line), bpipe->rfd)) {
+      senditf("%s", line);
+   }
+   stat = close_bpipe(bpipe);
+   if (stat != 0) {
+      berrno be;
+      be.set_errno(stat);
+     senditf(_("Autochanger error: ERR=%s\n"), be.strerror());
+   }
+   return 1;
+}
+
+
+static int echocmd(FILE *input, BSOCK *UA_sock)
 {
    for (int i=1; i < argc; i++) {
       senditf("%s", argk[i]);

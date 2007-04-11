@@ -145,7 +145,7 @@ int read_ansi_ibm_label(DCR *dcr)
                   *q++ = *p++;
                }
                *q = 0;
-               new_volume(dcr, dev->VolHdr.VolumeName);
+               reserve_volume(dcr, dev->VolHdr.VolumeName);
                Dmsg2(100, "Wanted ANSI Vol %s got %6s\n", VolName, dev->VolHdr.VolumeName);
                Mmsg2(jcr->errmsg, _("Wanted ANSI Volume \"%s\" got \"%s\"\n"), VolName, dev->VolHdr.VolumeName);
                return VOL_NAME_ERROR;
