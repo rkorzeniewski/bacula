@@ -45,7 +45,6 @@
 #include "run/run.h"
 #include "restore/restore.h"
 #include "medialist/medialist.h"
-#include "pagehash.h"
 
 class Console;
 
@@ -65,6 +64,13 @@ public:
    void setContextMenuDockText(Pages *, QTreeWidgetItem *);
    void setTreeWidgetItemDockColor(Pages *, QTreeWidgetItem *);
    void setTreeWidgetItemDockColor(Pages *);
+   void hashInsert(QTreeWidgetItem *, Pages *);
+   Pages* getFromHash(QTreeWidgetItem *);
+   QTreeWidgetItem* getFromHash(Pages *);
+   /* This hash is to get the page when the page selector widget is known */
+   QHash<QTreeWidgetItem*,Pages*> m_pagehash;
+   /* This hash is to get the page selector widget when the page is known */
+   QHash<Pages*,QTreeWidgetItem*> m_widgethash;
 
 public slots:
    void input_line();
@@ -92,9 +98,6 @@ private:
 private:
    Console *m_console;
    Pages *m_pagespophold;
-   PageHash m_treeindex;
-//   QHash<QTreeWidgetItem*,Pages*> m_pagehash;
-//   QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    QStringList m_cmd_history;
    int m_cmd_last;
 };

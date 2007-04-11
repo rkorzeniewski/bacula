@@ -52,10 +52,6 @@ SOURCES += select/select.cpp
 HEADERS += pages.h
 SOURCES += pages.cpp
 
-## PageHash
-HEADERS += pagehash.h
-SOURCES += pagehash.cpp
-
 ## MediaList
 HEADERS += medialist/medialist.h
 SOURCES += medialist/medialist.cpp
