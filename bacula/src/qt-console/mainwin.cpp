@@ -36,7 +36,6 @@
  */ 
 
 #include "bat.h"
-#include "pagehash.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -85,7 +84,7 @@ void MainWin::createPages()
    m_console->setTreeItem(item);
 
    /* Append to pagelist */
-   m_treeindex.insert(item, m_console);
+   hashInsert(item, m_console);
 
    /* Set Color of treeWidgetItem for the console
    * It will be set to gree in the console class if the connection is made.
@@ -104,16 +103,16 @@ void MainWin::createPages()
    /* brestore */
    item=createPage("brestore", topItem);
    bRestore* brestore=new bRestore(stackedWidget);
-   m_treeindex.insert(item, brestore);
+   hashInsert(item, brestore);
 
 
    /* lastly for now, the medialist */
    item=createPage("Media", topItem );
    MediaList* medialist=new MediaList(stackedWidget, m_console);
-   m_treeindex.insert(item, medialist);
+   hashInsert(item, medialist);
 
    /* Iterate through and add to the stack */
-   foreach(Pages *page, m_treeindex.m_pagehash)
+   foreach(Pages *page, m_pagehash)
       page->dockPage();
 
    treeWidget->expandItem(topItem);
@@ -214,7 +213,7 @@ void MainWin::closeEvent(QCloseEvent *event)
    m_console->writeSettings();
    m_console->terminate();
    event->accept();
-   foreach(Pages *page, m_treeindex.m_pagehash){
+   foreach(Pages *page, m_pagehash){
       if( !page->isDocked() )
          page->close();
    }
@@ -247,8 +246,8 @@ void MainWin::readSettings()
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
    /* Is this one of the first level pages */
-   if( m_treeindex.value(item) ){
-      Pages* page = m_treeindex.value(item);
+   if( getFromHash(item) ){
+      Pages* page = getFromHash(item);
       int stackindex=stackedWidget->indexOf(page);
 
       if( stackindex >= 0 ){
@@ -277,8 +276,8 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 
    if ( previousitem ){
       /* Is this one of the first level pages */
-      if( m_treeindex.value(previousitem) ){
-         Pages* page = m_treeindex.value(previousitem);
+      if( getFromHash(previousitem) ){
+         Pages* page = getFromHash(previousitem);
          treeWidget->removeAction(actionToggleDock);
          foreach( QAction* pageaction, page->m_contextActions ){
             treeWidget->removeAction(pageaction);
@@ -287,8 +286,8 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    }
 
    /* Is this one of the first level pages */
-   if( m_treeindex.value(currentitem) ){
-      Pages* page = m_treeindex.value(currentitem);
+   if( getFromHash(currentitem) ){
+      Pages* page = getFromHash(currentitem);
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */
@@ -392,8 +391,8 @@ void MainWin::toggleDockContextWindow()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this one of the first level pages */
-   if( m_treeindex.value(currentitem) ){
-      Pages* page = m_treeindex.value(currentitem);
+   if( getFromHash(currentitem) ){
+      Pages* page = getFromHash(currentitem);
       page->togglePageDocking();
       if ( page->isDocked() ){
          stackedWidget->setCurrentWidget(page);
@@ -415,8 +414,8 @@ void MainWin::setContextMenuDockText()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this one of the first level pages */
-   if( m_treeindex.value(currentitem) ){
-      Pages* page = m_treeindex.value(currentitem);
+   if( getFromHash(currentitem) ){
+      Pages* page = getFromHash(currentitem);
       setContextMenuDockText(page, currentitem);
    }
 }
@@ -464,7 +463,7 @@ void MainWin::setTreeWidgetItemDockColor(Pages* page, QTreeWidgetItem* item)
  */
 void MainWin::setTreeWidgetItemDockColor(Pages* page)
 {
-   QTreeWidgetItem* item = m_treeindex.value(page);
+   QTreeWidgetItem* item = getFromHash(page);
    if( item ){
      setTreeWidgetItemDockColor(page, item);
    }
@@ -480,4 +479,32 @@ void MainWin::stackItemChanged(int)
    Pages* page = (Pages*)stackedWidget->currentWidget();
    /* run the virtual function in case this class overrides it */
    page->currentStackItem();
+}
+
+/*
+ * Function to simplify insertion of QTreeWidgetItem <-> Page association
+ * into a double direction hash.
+ */
+void MainWin::hashInsert(QTreeWidgetItem *item, Pages *page)
+{
+   m_pagehash.insert(item, page);
+   m_widgethash.insert(page, item);
+}
+
+/*
+ * Function to retrieve a Page* when the item in the page selector's tree is
+ * known.
+ */
+Pages* MainWin::getFromHash(QTreeWidgetItem *item)
+{
+   return m_pagehash.value(item);
+}
+
+/*
+ * Function to retrieve the page selectors tree widget item when the page is
+ * known.
+ */
+QTreeWidgetItem* MainWin::getFromHash(Pages *page)
+{
+   return m_widgethash.value(page);
 }

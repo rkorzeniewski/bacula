@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Console</string>
+   <string>Media Tree</string>
   </property>
   <layout class="QGridLayout" >
    <property name="margin" >
