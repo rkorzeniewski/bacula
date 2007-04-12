@@ -202,6 +202,9 @@ static VOLRES *new_vol_item(DCR *dcr, const char *VolumeName)
 static void free_vol_item(VOLRES *vol)
 {
    free(vol->vol_name);
+   if (vol->dev) {
+      vol->dev->vol = NULL;
+   }
    free(vol);
 }
 
@@ -316,16 +319,24 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        */
       Dmsg3(100, "reserve_vol free-tmp vol=%s at %p JobId=%u\n", vol->vol_name,
             vol->vol_name, (int)dcr->jcr->JobId);
+      /*
+       * Clear dev pointer so that free_vol_item() doesn't 
+       *  take away our volume. 
+       */
+      nvol->dev = NULL;                   /* don't zap dev entry */
       free_vol_item(nvol);
 
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
-         if (!dev->is_busy()) {
-            /* OK to move it */
+         if (!vol->dev->is_busy()) {
+            /* OK to move it -- I'm not sure this will work */
             Dmsg3(100, "Swap vol=%s from dev=%s to %s\n", VolumeName,
                dev->print_name(), dev->print_name());
-            vol->dev = dev;
+            vol->dev->vol = NULL;         /* take vol from old drive */
+            vol->dev->VolHdr.VolumeName[0] = 0;
+            vol->dev = dev;               /* point vol at new drive */
+            dev->vol = vol;               /* point dev at vol */
             dev->VolHdr.VolumeName[0] = 0;
          } else {
             vol = NULL;                /* device busy */
