@@ -12,7 +12,7 @@
 TestName="two-pool-test"
 JobName=Two-pool
 . scripts/functions
-set_debug 1
+set_debug 0
 
 . config.out
 cwd=`pwd`
