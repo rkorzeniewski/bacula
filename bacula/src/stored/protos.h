@@ -235,7 +235,10 @@ extern int reservations_lock_count;
          do { Dmsg4(sd_dbglvl, "lock_reservations at %s:%d precnt=%d JobId=%u\n", \
               __FILE__, __LINE__, \
               reservations_lock_count, get_jobid_from_tid()); \
-                   _lock_reservations(); } while (0)
+              _lock_reservations(); \
+              Dmsg1(sd_dbglvl, "lock_reservations: got lock JobId=%u\n", \
+               get_jobid_from_tid()); \
+         } while (0)
 #define unlock_reservations() \
          do { Dmsg4(sd_dbglvl, "unlock_reservations at %s:%d precnt=%d JobId=%u\n", \
               __FILE__, __LINE__, \
