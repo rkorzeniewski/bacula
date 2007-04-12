@@ -46,7 +46,7 @@ void Pages::dockPage()
     * that it has the proper window flag and parent.
     */
    setWindowFlags(Qt::Widget);
-   setParent(m_parent);
+//   setParent(m_parent);
 
    /* This was being done already */
    m_parent->addWidget(this);
@@ -72,10 +72,10 @@ void Pages::undockPage()
 }
 
 /*
- * This function is intended to be called with the subclasses.  When it is called
- * the specific sublclass does not have to be known to Pages.  It is called 
- * it will take it from it's current state of floating or stacked and change it
- * to the other.
+ * This function is intended to be called with the subclasses.  When it is 
+ * called the specific sublclass does not have to be known to Pages.  When it 
+ * is called this function will change the page from it's current state of being
+ * docked or undocked and change it to the other.
  */
 
 void Pages::togglePageDocking()
@@ -105,40 +105,31 @@ bool Pages::isDocked()
  * treewidgetitem is not the stack item in the front.
  */
 
-void Pages::closeEvent(QCloseEvent* /*event*/)
+void Pages::closeEvent(QCloseEvent* event)
 {
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
    dockPage();
-   /* in case the current widget is the one which represents this, lets set the context
-    * menu to undock */
-   mainWin->setContextMenuDockText();
-   /* in case the current widget is not the one which represents this, lets set the
-    * color back to black */
-   mainWin->setTreeWidgetItemDockColor(this);
 
-#ifdef xxx
-   /* FIXME Really having problems getting it to the front, 
-      toggles back into the stack fine though */
-   int stackindex=m_parent->indexOf( this );
-printf("In Pages closeEvent a\n");
-   if( stackindex >= 0 ){
-printf("In Pages closeEvent b\n");
-      m_parent->setCurrentIndex(0);
-      m_parent->setCurrentWidget(this);
-      show();
-      //m_parent->setCurrentIndex(stackindex);
-//      m_parent->setCurrentWidget(this);
-/*      m_parent->update();
-      update();
-      setUpdatesEnabled(true);
-      setVisible(true);
-      m_parent->show();
-      show();
-      m_parent->repaint();*/
-      repaint();
-      raise();
-   }
-#endif
+   /* is the tree widget item for "this" the current widget item */
+   if( mainWin->treeWidget->currentItem() == mainWin->getFromHash(this) )
+      /* in case the current widget is the one which represents this, lets set the context
+       * menu to undock */
+      mainWin->setContextMenuDockText();
+   else
+      /* in case the current widget is not the one which represents this, lets set the
+      * color back to black */
+      mainWin->setTreeWidgetItemDockColor(this);
+
+   /* this fixes my woes of getting the widget to show up on top when closed */
+   event->ignore();
+
+   /* put this widget on the top of the stack widget */
+   m_parent->setCurrentWidget(this);
+
+   /* Set the current tree widget item in the Page Selector window to the item 
+    * which represents "this" */
+   QTreeWidgetItem *item= mainWin->getFromHash(this);
+   mainWin->treeWidget->setCurrentItem(item);
 }
 
 /*
@@ -155,7 +146,9 @@ void Pages::PgSeltreeWidgetDoubleClicked()
 }
 
 /*
- *  * Virtual function which is called when this page is visible on the stack
+ *  Virtual function which is called when this page is visible on the stack.
+ *  This will be overridden by classes that want to populate if they are on the
+ *  top.
  */
 void Pages::currentStackItem()
 {
