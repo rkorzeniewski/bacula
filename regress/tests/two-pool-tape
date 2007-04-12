@@ -10,7 +10,7 @@
 TestName="two-pool-tape"
 JobName=twopooltape
 . scripts/functions
-set_debug 0
+set_debug 1
 
 . config.out
 if test x${AUTOCHANGER} = x/dev/null ; then

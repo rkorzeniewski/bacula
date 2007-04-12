@@ -31,10 +31,11 @@ TestVolume002
 update volume=TestVolume001
 1
 .
-run job=NightlySave level=Full yes
+run job=$JobName level=Full yes
 @sleep 20
 unmount
 unmount
+@#setdebug level=150 storage=DDS-4
 purge volume=TestVolume001
 relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0 pool=Default
 list volumes
