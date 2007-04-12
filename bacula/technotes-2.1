@@ -32,7 +32,7 @@ kes  Move drop and check_catalog() before fork.
 kes  Add update database scripts (version 9 to 10) to updatedb directory.
 31Mar07
 ebl  Check size and age of each file after its backup to see if
-     it has changed during backup, if "checkfilechanges" is set.
+     it has changed during backup, if 'checkfilechanges' is set.
      The FD will do an extra check (stat(2)) after
      each file backup. mtime, ctime and size are compared with
      'before backup' information. If time or size mismatch, an
