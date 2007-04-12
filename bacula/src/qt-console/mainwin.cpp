@@ -116,7 +116,7 @@ void MainWin::createPages()
       page->dockPage();
 
    treeWidget->expandItem(topItem);
-   stackedWidget->setCurrentIndex(0);
+   stackedWidget->setCurrentWidget(m_console);
 }
 
 /* Create a root Tree Widget */
@@ -245,13 +245,12 @@ void MainWin::readSettings()
  */
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
-   /* Is this one of the first level pages */
+   /* Is this a page that has been inserted into the hash  */
    if( getFromHash(item) ){
       Pages* page = getFromHash(item);
       int stackindex=stackedWidget->indexOf(page);
 
       if( stackindex >= 0 ){
-         stackedWidget->setCurrentIndex(0);
          stackedWidget->setCurrentWidget(page);
       }
       /* run the virtual function in case this class overrides it */
@@ -275,7 +274,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    /* The Previous item */
 
    if ( previousitem ){
-      /* Is this one of the first level pages */
+      /* Is this a page that has been inserted into the hash  */
       if( getFromHash(previousitem) ){
          Pages* page = getFromHash(previousitem);
          treeWidget->removeAction(actionToggleDock);
@@ -285,7 +284,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       }
    }
 
-   /* Is this one of the first level pages */
+   /* Is this a page that has been inserted into the hash  */
    if( getFromHash(currentitem) ){
       Pages* page = getFromHash(currentitem);
       int stackindex = stackedWidget->indexOf(page);
@@ -294,6 +293,9 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       if( stackindex >= 0 ){
          /* put this page on the top of the stack */
          stackedWidget->setCurrentIndex(stackindex);
+      } else {
+         /* it is undocked, raise it to the front */
+         page->raise();
       }
       setContextMenuDockText(page, currentitem);
 
@@ -390,7 +392,7 @@ void MainWin::toggleDockContextWindow()
 {
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
-   /* Is this one of the first level pages */
+   /* Is this a page that has been inserted into the hash  */
    if( getFromHash(currentitem) ){
       Pages* page = getFromHash(currentitem);
       page->togglePageDocking();
@@ -413,7 +415,7 @@ void MainWin::setContextMenuDockText()
 {
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
-   /* Is this one of the first level pages */
+   /* Is this a page that has been inserted into the hash  */
    if( getFromHash(currentitem) ){
       Pages* page = getFromHash(currentitem);
       setContextMenuDockText(page, currentitem);
