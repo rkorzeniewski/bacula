@@ -71,7 +71,7 @@ use Gtk2::SimpleList;		# easy wrapper for list views
 use Gtk2::Gdk::Keysyms;		# keyboard code constants
 use Data::Dumper qw/Dumper/;
 my $debug=0;			# can be on brestore.conf
-our ($VERSION) = ('$Revision$' =~ /(\d+\.\d+)/);
+our ($VERSION) = ('$Revision$' =~ /(\d+)/);
 
 package Pref;
 use DBI;
@@ -656,10 +656,87 @@ To follow it, you must use bconsole (or install/configure bweb)");
     }
 }
 
+sub on_use_regexp_toggled
+{
+    my ($self,$widget) = @_;
+    my $act = $widget->get_active();
+
+    foreach my $w ('entry_launch_where') {
+	$self->{glade}->get_widget($w)->set_sensitive(!$act);
+    }
+
+    foreach my $w ('entry_add_prefix', 'entry_strip_prefix', 
+		   'entry_add_suffix','entry_rwhere','chk_use_regexp')
+    {
+	$self->{glade}->get_widget($w)->set_sensitive($act);
+    }
+
+    if ($act) { # if we activate file relocation, we reset use_regexp
+	$self->{glade}->get_widget('entry_rwhere')->set_sensitive(0);
+	$self->{glade}->get_widget('chk_use_regexp')->set_active(0);
+    }
+}
+
+
+sub on_use_rwhere_toggled
+{
+    my ($self,$widget) = @_;
+    my $act = $widget->get_active();
+
+    foreach my $w ('entry_rwhere') {
+	$self->{glade}->get_widget($w)->set_sensitive($act);
+    }
+
+    foreach my $w ('entry_add_prefix', 'entry_strip_prefix', 
+		   'entry_add_suffix')
+    {
+	$self->{glade}->get_widget($w)->set_sensitive(!$act);
+    }
+}
+
 sub on_cancel_resto_clicked
 {
     my ($self) = @_ ;
     $self->{glade}->get_widget('dlg_launch')->destroy();
+}
+
+sub get_where
+{
+    my ($self) = @_ ;
+
+    if ($self->{glade}->get_widget('chk_file_relocation')->get_active()) {
+	# using regexp
+	if ($self->{glade}->get_widget('chk_use_regexp')->get_active()) {
+
+	    return ('rwhere', 
+		    $self->{glade}->get_widget('entry_rwhere')->get_active());
+	}
+	    
+	# using regexp utils
+	my @ret;
+	my ($strip_prefix, $add_prefix, $add_suffix) = 
+	    ($self->{glade}->get_widget('entry_strip_prefix')->get_text(),
+	     $self->{glade}->get_widget('entry_add_prefix')->get_text(),
+	     $self->{glade}->get_widget('entry_add_suffix')->get_text());
+	    
+	if ($strip_prefix) {
+	    push @ret,"!$strip_prefix!!i";
+	}
+	
+	if ($add_prefix) {
+	    push @ret,"!^!$add_prefix!";
+	}
+
+	if ($add_suffix) {
+	    push @ret,"!([^/])$!\$1$add_prefix!";
+	}
+
+	return ('rwhere', join(',', @ret));
+
+    } else { # using where
+	return ('where', 
+		$self->{glade}->get_widget('entry_launch_where')->get_text());
+    }
 }
 
 sub on_submit_resto_clicked
@@ -680,7 +757,8 @@ sub on_submit_resto_clicked
     my $storage = $glade->get_widget('combo_launch_storage')
 	                       ->get_active_text();
 
-    my $where = $glade->get_widget('entry_launch_where')->get_text();
+    my ($where_cmd, $where) = $self->get_where();
+    print "$where_cmd => $where\n";
 
     my $job = $glade->get_widget('combo_launch_job')
 	                       ->get_active_text();
@@ -707,7 +785,7 @@ sub on_submit_resto_clicked
 				       client  => $client,
 				       storage => $storage,
 				       fileset => $fileset,
-				       where   => $where,
+				       $where_cmd => $where,
 				       replace => $replace,
 				       priority=> $prio,
 				       bootstrap => $r);
@@ -2065,7 +2143,7 @@ WHERE Job.JobId = JobMedia.JobId
 	# path, volsessiontime DESC (get the most recent file...)
 	# The array rows look like this :
 	# complete_path,is_dir,fileindex,
-	# ref->(jobid,VolsessionId,VolsessionTime,File,FirstIndex,
+	# ref->(jobid,VolsessionId,VolsessionTime,File,FirstIndex,
 	#       LastIndex,StartBlock-EndBlock,VolIndex,Volumename,MediaType)
 	@temp_list = sort {$a->[0] cmp $b->[0]
                         || $b->[3]->[2] <=> $a->[3]->[2]
@@ -2173,11 +2251,11 @@ WHERE Job.JobId = JobMedia.JobId
 		       or $prev_volfile ne $volfile)
 		{
 			# We have to create a new section in the bsr...
-			#Â We print the previous one ... 
+			#Â We print the previous one ... 
 			# (before that, save the current range ...)
 			if ($first_of_current_range != $prev_fileindex)
 			{
-			 	#Â we are in a range
+			 	#Â we are in a range
 				push @fileindex_ranges,
 				    ("$first_of_current_range-$prev_fileindex");
 			}
@@ -2669,7 +2747,7 @@ sub get_all_file_versions
 	if ($ref->[8])
 	{
 	    # The file has a md5. We compare his md5 to other known md5...
-	    # We take size into account. It may happen that 2 files
+	    # We take size into account. It may happen that 2 files
 	    # have the same md5sum and are different. size is a supplementary
 	    # criterion
             
@@ -2680,7 +2758,7 @@ sub get_all_file_versions
 	    # we never met this one before...
 	    $allready_seen_by_md5{$ref->[8] .'-'. $ref->[6]}=1;
 	}
-	# Even if it has a md5, we should also work with mtimes
+	# Even if it has a md5, we should also work with mtimes
         # We allready have a (better) version
 	next if ( (not $see_all)
 	          and $allready_seen_by_mtime{$ref->[5] .'-'. $ref->[6]}); 
@@ -3126,9 +3204,10 @@ sub run
 				client  => $arg{client},
 				storage => $arg{storage} || '',
 				fileset => $arg{fileset} || '',
-				where   => $arg{where},
-				replace => $arg{replace},
+				where   => $arg{where}   || '',
+				rwhere  => $arg{rwhere}  || '',
 				priority=> $arg{prio}    || '',
+				replace => $arg{replace},
 				action  => 'run',
 				timeout => 10,
 				bootstrap => [$arg{bootstrap}],

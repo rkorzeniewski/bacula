@@ -1076,7 +1076,7 @@ sub dbh_disconnect
     my ($self) = @_;
     if ($self->{dbh}) {
        $self->{dbh}->disconnect();
-       undef self->{dbh};
+       undef $self->{dbh};
     }
 }
 
@@ -1401,6 +1401,7 @@ sub get_form
 		 device => 1,
 		 where  => 1,
 		 );
+    my %opt_r = (rwhere => 1);
 
     my %opt_d = (		# option with date
 		 voluseduration=> 1,
@@ -1441,6 +1442,11 @@ sub get_form
 	} elsif (exists $opt_p{$i}) {
 	    my $value = CGI::param($i) || '';
 	    if ($value =~ /^([\w\d\.\/\s:\@\-]+)$/) {
+		$ret{$i} = $1;
+	    }
+	} elsif (exists $opt_r{$i}) {
+	    my $value = CGI::param($i) || '';
+	    if ($value =~ /^([^'"']+)$/) {
 		$ret{$i} = $1;
 	    }
 	} elsif (exists $opt_d{$i}) {
@@ -2457,7 +2463,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
     $self->display({ email  => $self->{info}->{email_media},
 		     url => $url,
 		     newlocation => $newloc,
-		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
+		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
 		     medias => [ values %$medias ],
 		   },
 		   "change_location.tpl");
