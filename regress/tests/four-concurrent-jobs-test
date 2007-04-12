@@ -25,6 +25,7 @@ TestVolume002
 update Volume=TestVolume001 MaxVolBytes=100000000
 @#50000000
 @#12
+setdebug level=000 Storage=File1
 run job=$JobName level=Full Storage=File1
 yes
 reload
@@ -48,6 +49,7 @@ messages
 reload
 reload
 wait
+status storage=File1
 reload
 messages
 @# 

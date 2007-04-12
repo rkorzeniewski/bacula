@@ -12,7 +12,7 @@
 TestName="two-pool-test"
 JobName=Two-pool
 . scripts/functions
-set_debug 0
+set_debug 1
 
 . config.out
 cwd=`pwd`
@@ -34,6 +34,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
+@#setdebug level=150 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 list volumes
@@ -42,7 +43,7 @@ run job=NightlySave1 level=Full pool=Default yes
 run job=NightlySave1 level=Full pool=Default yes
 run job=NightlySave1 level=Full pool=Default yes
 @# wait between starting jobs
-@sleep 60
+@sleep 30
 @#setdebug level=100 storage=DDS-4
 run job=NightlySave2 level=Full pool=Full yes
 run job=NightlySave2 level=Full pool=Full yes
