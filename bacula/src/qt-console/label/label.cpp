@@ -69,14 +69,8 @@ void labelDialog::accept()
 
 void labelDialog::reject()
 {
-   printf("Rejected\n");
    this->hide();
    m_console->notify(true);
-   /*  believe use of member must occur before delete 
- *  FIXME which do you like better
- *  delete this;
- *    or
- *  close(); */ 
-   close();
+   delete this;
    mainWin->resetFocus();
 }
