@@ -87,7 +87,7 @@ void MainWin::createPages()
    hashInsert(item, m_console);
 
    /* Set Color of treeWidgetItem for the console
-   * It will be set to gree in the console class if the connection is made.
+   * It will be set to green in the console class if the connection is made.
    */
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
