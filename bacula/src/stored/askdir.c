@@ -268,7 +268,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        Dmsg1(100, ">dird: %s", dir->msg);
        bool ok = do_get_volume_info(dcr);
        if (ok) {
-          if (dcr->any_volume || !is_volume_in_use(dcr)) {
+          if (!is_volume_in_use(dcr)) {
              found = true;
              break;
           } else {
@@ -284,11 +284,17 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     }
     if (found) {
        Dmsg0(400, "dir_find_next_appendable_volume return true\n");
-       reserve_volume(dcr, dcr->VolumeName);   /* reserve volume */
+       if (reserve_volume(dcr, dcr->VolumeName) == 0) {
+          Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
+              dcr->dev->print_name());
+          goto bail_out;
+       }
        V(vol_info_mutex);
        unlock_reservations();
        return true;
     }
+
+bail_out:
     dcr->VolumeName[0] = 0;
     V(vol_info_mutex);
     unlock_reservations();

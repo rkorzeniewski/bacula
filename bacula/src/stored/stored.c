@@ -558,6 +558,7 @@ void terminate_stored(int sig)
             /* ***FIXME*** wiffle through all dcrs */
             if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->blocked()) {
                pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+               Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
                pthread_cond_broadcast(&wait_device_release);
             }
             if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->blocked()) {

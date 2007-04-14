@@ -151,7 +151,7 @@ static void debug_list_volumes(const char *imsg, bool do_lock)
    for (vol=(VOLRES *)vol_list->first(); vol; vol=(VOLRES *)vol_list->next(vol)) {
       if (vol->dev == dev) {
          Dmsg0(000, "Two Volumes on same device.\n");
-         ASSERT(1);
+         ASSERT(0);
          dev = vol->dev;
       }
    }
@@ -264,7 +264,7 @@ static void free_vol_item(VOLRES *vol)
 
  *
  *  Return: VOLRES entry on success
- *          NULL error
+ *          NULL volume busy on another drive
  */
 VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 {
@@ -279,7 +279,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
     *  when adding a new volume that no newly scheduled
     *  job can reserve it.
     */
-   lock_reservations();
+// lock_reservations();
    P(vol_list_lock);
    debug_list_volumes("begin reserve_volume", debug_nolock);
    /* 
@@ -331,18 +331,17 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          /* Caller wants to switch Volume to another device */
          if (!vol->dev->is_busy()) {
             /* OK to move it -- I'm not sure this will work */
-            Dmsg3(100, "Swap vol=%s from dev=%s to %s\n", VolumeName,
-               dev->print_name(), dev->print_name());
+            Dmsg3(100, "==== Swap vol=%s from dev=%s to %s\n", VolumeName,
+               vol->dev->print_name(), dev->print_name());
             vol->dev->vol = NULL;         /* take vol from old drive */
             vol->dev->VolHdr.VolumeName[0] = 0;
             vol->dev = dev;               /* point vol at new drive */
             dev->vol = vol;               /* point dev at vol */
             dev->VolHdr.VolumeName[0] = 0;
          } else {
+            Dmsg3(100, "Volume busy could not swap vol=%s from dev=%s to %s\n", VolumeName,
+               vol->dev->print_name(), dev->print_name());
             vol = NULL;                /* device busy */
-            Dmsg3(100, "Logic ERROR!!!! could not swap vol=%s from dev=%s to %s\n", VolumeName,
-               dev->print_name(), dcr->dev->print_name());
-            ASSERT(1);     /* blow up!!! */
          }
       }
    }
@@ -351,7 +350,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 get_out:
    debug_list_volumes("end new volume", debug_nolock);
    V(vol_list_lock);
-   unlock_reservations();
+// unlock_reservations();
    return vol;
 }
 
@@ -942,10 +941,7 @@ static bool reserve_device_for_read(DCR *dcr)
 
    ASSERT(dcr);
 
-   /* Get locks in correct order */
-   unlock_reservations();
    dev->dlock();  
-   lock_reservations();
 
    if (is_device_unmounted(dev)) {             
       Dmsg1(200, "Device %s is BLOCKED due to user unmount.\n", dev->print_name());
@@ -1001,10 +997,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx)
 
    ASSERT(dcr);
 
-   /* Get locks in correct order */
-   unlock_reservations();
    dev->dlock();
-   lock_reservations();
 
    /* If device is being read, we cannot write it */
    if (dev->can_read()) {

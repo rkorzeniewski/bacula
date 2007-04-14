@@ -1,6 +1,15 @@
               Technical notes on version 2.1
 
 General:
+14Apr07
+kes  Simplify locking in the reservations system.
+kes  Add more debug code in reservations.
+kes  Make sure error condition on reserving a volume is handled correctly.
+kes  Correct handling of volume_in_use.
+kes  Correct handling of initializing a device.
+kes  Move handling of broadcasting releasing a device into release_device().
+kes  Correct attaching dcr to dev so that it is only done if device
+     is properly initiated.
 12Apr07
 kes  Locking debug level tweaks in SD.
 kes  Tweak new Volume code.

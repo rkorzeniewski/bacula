@@ -307,10 +307,12 @@ static bool cancel_cmd(JCR *cjcr)
          /* If thread waiting on mount, wake him */
          if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {
             pthread_cond_broadcast(&jcr->dcr->dev->wait_next_vol);
+            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
          }
          if (jcr->read_dcr && jcr->read_dcr->dev && jcr->read_dcr->dev->waiting_for_mount()) {
             pthread_cond_broadcast(&jcr->read_dcr->dev->wait_next_vol);
+            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
          }
          Jmsg(jcr, M_INFO, 0, _("Job %s marked to be canceled.\n"), jcr->Job);
@@ -650,6 +652,7 @@ static bool mount_cmd(JCR *jcr)
             bnet_fsend(dir, "3001 OK mount. Device=%s\n", 
                dev->print_name());
             pthread_cond_broadcast(&dev->wait_next_vol);
+            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)dcr->jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
             break;
 
@@ -689,6 +692,7 @@ static bool mount_cmd(JCR *jcr)
                           dev->print_name());
             }
             pthread_cond_broadcast(&dev->wait_next_vol);
+            Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)dcr->jcr->JobId);
             pthread_cond_broadcast(&wait_device_release);
             break;
 

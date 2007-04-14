@@ -191,7 +191,10 @@ int wait_for_sysop(DCR *dcr)
 
 /*
  * Wait for any device to be released, then we return, so 
- *  higher level code can rescan possible devices.
+ *  higher level code can rescan possible devices.  Since there
+ *  could be a job waiting for a drive to free up, we wait a maximum
+ *  of 1 minute then retry just in case a broadcast was lost, and 
+ *  we return to rescan the devices.
  * 
  * Returns: true  if a device has changed state
  *          false if the total wait time has expired.
@@ -203,7 +206,7 @@ bool wait_for_device(JCR *jcr, bool first)
    struct timespec timeout;
    int stat = 0;
    bool ok = true;
-   const int wait_time = 5 * 60;       /* wait 5 minutes */
+   const int max_wait_time = 1 * 60;       /* wait 1 minute */
 
    Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);
@@ -214,17 +217,17 @@ bool wait_for_device(JCR *jcr, bool first)
 
    gettimeofday(&tv, &tz);
    timeout.tv_nsec = tv.tv_usec * 1000;
-   timeout.tv_sec = tv.tv_sec + wait_time;
+   timeout.tv_sec = tv.tv_sec + max_wait_time;
 
-   Dmsg0(100, "I'm going to wait for a device.\n");
+   Dmsg1(100, "JobId=%u going to wait for a device.\n", (uint32_t)jcr->JobId);
 
    /* Wait required time */
    stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
-   Dmsg1(100, "Wokeup from sleep on device stat=%d\n", stat);
+   Dmsg2(100, "JobId=%u wokeup from sleep on device stat=%d\n", (uint32_t)jcr->JobId, stat);
 
 
    V(device_release_mutex);
-   Dmsg1(100, "Return from wait_device ok=%d\n", ok);
+   Dmsg2(100, "JobId=%u return from wait_device ok=%d\n", (uint32_t)jcr->JobId, ok);
    return ok;
 }
 
