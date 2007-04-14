@@ -12,7 +12,7 @@
 TestName="fast-two-pool-test"
 JobName=Fast-two-pool
 . scripts/functions
-set_debug 1
+set_debug 0
 
 . config.out
 cwd=`pwd`
@@ -34,7 +34,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=150 storage=DDS-4
+@#setdebug level=150 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 list volumes
