@@ -6,7 +6,7 @@ rm -f test1.out
 tests/test0
 echo " "
 nice tests/auto-label-test
-#nice tests/backup-bacula-test
+nice tests/backup-bacula-test
 nice tests/bextract-test
 nice tests/bscan-test
 nice tests/bsr-opt-test
@@ -47,7 +47,8 @@ nice tests/migration-time-test
 nice tests/hardlink-test
 # 
 # The following are Virtual Disk Autochanger tests
-# nice tests/two-pool-test
+nice tests/two-pool-test
+nice tests/fast-two-pool-test
 nice tests/two-volume-test
 nice tests/incremental-2disk
 nice tests/2drive-incremental-2disk
