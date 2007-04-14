@@ -1,0 +1,73 @@
+#!/bin/sh
+#
+# This is Arno's test.  It uses two pools, two tapes, and
+#  an autochanger. Note, the Director has three Pools in its 
+#  conf:  Default, Full, and Inc.  Default is used in the
+#  NightlySave job by default.  What is backed up is what
+#  is in /tmp/file-list, which is by default the Bacula
+#  source code (i.e. the build directory).
+#
+#  Note, we use the virtual disk autochanger.
+#
+TestName="fast-two-pool-test"
+JobName=Fast-two-pool
+. scripts/functions
+set_debug 1
+
+. config.out
+cwd=`pwd`
+scripts/cleanup
+scripts/copy-2disk-confs
+scripts/prepare-two-disks
+ 
+# Make a relatively large backup set 5 x source code directory
+#  Reduced to 1 for portable
+echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >/tmp/file-list
+
+start_test
+
+# Write out bconsole commands to a file
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+@$out tmp/log1.out
+setdebug level=150 storage=DDS-4
+label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
+label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
+list volumes
+@# Start job with Client run before and sleep
+run job=NightlySave1 level=Full pool=Default yes
+run job=NightlySave1 level=Full pool=Default yes
+@# wait between starting jobs
+@sleep 10
+@#setdebug level=100 storage=DDS-4
+run job=NightlySave1 level=Full pool=Full yes
+run job=NightlySave1 level=Full pool=Full yes
+status storage=DDS-4
+messages
+wait
+list volumes
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+# exit
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
