@@ -6,7 +6,7 @@ rm -f test1.out
 tests/test0
 echo " "
 nice tests/auto-label-test
-nice tests/backup-bacula-test
+# nice tests/backup-bacula-test
 nice tests/bextract-test
 nice tests/bscan-test
 nice tests/bsr-opt-test
