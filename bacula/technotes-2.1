@@ -2,6 +2,16 @@
 
 General:
 14Apr07
+kes  Some time in March, a Feature Request with patch from Jorj Bauer
+     <jorj@seas.upenn.edu> was committed by Landon (with my approval).
+     It implements:
+     The ability for the director to validate a Client (FD) CN against
+     an arbitrary set of patterns rather than the hostname, with
+     A new 'TLS Allowed CN' set of directives which are implemented
+     in the Client resource.  Then pattern matching is used in place
+     of hostname matching against the Certificate's CN. As an example, we
+     have certificates which (a) use a local CA, and (b) have a CN of the
+     form client_123.
 kes  Add new/changed entry points to Win32 build
 kes  Create unaccepted-projects for projects that are not accepted.
 kes  Simplify locking in the reservations system.
