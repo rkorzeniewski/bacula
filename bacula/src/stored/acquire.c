@@ -554,6 +554,9 @@ bool release_device(DCR *dcr)
       Dmsg1(400, "alert status=%d\n", status);
       free_pool_memory(alert);
    }
+   pthread_cond_broadcast(&dev->wait_next_vol);
+   Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
+   pthread_cond_broadcast(&wait_device_release);
    dcr->dev_locked = false;              /* set no longer locked */
    dev->dunlock();
    if (jcr->read_dcr == dcr) {
@@ -563,6 +566,8 @@ bool release_device(DCR *dcr)
       jcr->dcr = NULL;
    }
    free_dcr(dcr);
+   Dmsg2(100, "===== Device %s released by JobId=%u\n", dev->print_name(),
+         (uint32_t)jcr->JobId);
    return ok;
 }
 
@@ -572,6 +577,7 @@ bool release_device(DCR *dcr)
  */
 DCR *new_dcr(JCR *jcr, DEVICE *dev)
 {
+   if (jcr) Dmsg2(100, "enter new_dcr JobId=%u dev=%p\n", (uint32_t)jcr->JobId, dev);
    DCR *dcr = (DCR *)malloc(sizeof(DCR));
    memset(dcr, 0, sizeof(DCR));
    dcr->jcr = jcr;
@@ -619,14 +625,17 @@ static void attach_dcr_to_dev(DCR *dcr)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   if (!dcr->attached_to_dev && dev->is_open() && jcr && jcr->JobType != JT_SYSTEM) {
+   if (jcr) Dmsg1(500, "JobId=%u enter attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
+   if (!dcr->attached_to_dev && dev->initiated && jcr && jcr->JobType != JT_SYSTEM) {
       dev->attached_dcrs->append(dcr);  /* attach dcr to device */
       dcr->attached_to_dev = true;
+      Dmsg1(500, "JobId=%u attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
    }
 }
 
 void detach_dcr_from_dev(DCR *dcr)
 {
+   Dmsg1(500, "JobId=%u enter detach_dcr_from_dev\n", (uint32_t)dcr->jcr->JobId);
    unreserve_device(dcr);
 
    /* Detach this dcr only if attached */
@@ -635,8 +644,6 @@ void detach_dcr_from_dev(DCR *dcr)
       dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
    }
-   pthread_cond_broadcast(&dcr->dev->wait_next_vol);
-   pthread_cond_broadcast(&wait_device_release);
 }
 
 /*

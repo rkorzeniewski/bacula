@@ -254,6 +254,7 @@ init_dev(JCR *jcr, DEVRES *device)
    dev->clear_opened();
    dev->attached_dcrs = New(dlist(dcr, &dcr->dev_link));
    Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev->is_tape(), dev->dev_name);
+   dev->initiated = true;
    
    return dev;
 }

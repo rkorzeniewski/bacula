@@ -238,6 +238,7 @@ public:
    int openmode;                      /* parameter passed to open_dev (useful to reopen the device) */
    int dev_type;                      /* device type */
    bool autoselect;                   /* Autoselect in autochanger */
+   bool initiated;                    /* set when init_dev() called */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index (base 0) */
    int32_t  Slot;                     /* Slot currently in drive (base 1) */

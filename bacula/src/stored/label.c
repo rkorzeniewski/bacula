@@ -213,7 +213,12 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
-   reserve_volume(dcr, dev->VolHdr.VolumeName);
+   if (reserve_volume(dcr, dev->VolHdr.VolumeName) == NULL) {
+      Mmsg2(jcr->errmsg, _("Could not reserve volume %s on %s\n"),
+           dev->VolHdr.VolumeName, dev->print_name());
+      stat = VOL_NAME_ERROR;
+      goto bail_out;
+   }
 
    /* Compare Volume Names */
    Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
@@ -393,7 +398,12 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
-   reserve_volume(dcr, VolName);
+   if (reserve_volume(dcr, VolName) == NULL) {
+      Mmsg2(dcr->jcr->errmsg, _("Could not reserve volume %s on %s\n"),
+           dev->VolHdr.VolumeName, dev->print_name());
+      goto bail_out;
+   }
+
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return true;
 
