@@ -80,7 +80,7 @@ _Z22get_win32_drivelettersP6FF_PKTPc
 
 ; find_one.c:
 _Z13find_one_fileP3JCRP6FF_PKTPFiS2_PvbES3_Pcjb
-_Z17has_file_changedP3JCRP6FF_PKT
+_Z16has_file_changedP3JCRP6FF_PKT
 
 
 ; fstype.c:
@@ -153,12 +153,12 @@ _Z13bnet_get_peerP5BSOCKPci
 _Z13bnet_strerrorP5BSOCK
 _Z13is_bnet_errorP5BSOCK
 _Z14bnet_wait_dataP5BSOCKi
-_Z15bnet_tls_clientP11TLS_ContextP5BSOCK
+_Z15bnet_tls_clientP11TLS_ContextP5BSOCKP5alist
 _Z15bnet_tls_serverP11TLS_ContextP5BSOCKP5alist
 _Z17bnet_sig_to_asciiP5BSOCK
 _Z19bnet_wait_data_intrP5BSOCKi
 _Z20bnet_set_buffer_sizeP5BSOCKji
-_Z21bnet_despool_to_bsockP5BSOCKPFvlEl
+; _Z21bnet_despool_to_bsockP5BSOCKPFvlEl
 _Z28bnet_suppress_error_messagesP5BSOCKb
 _Z8bnet_sigP5BSOCKi
 _Z9bnet_recvP5BSOCK
@@ -190,7 +190,7 @@ _ZN5BSOCK5closeEv
 _ZN5BSOCK5fsendEPKcz
 _ZN5BSOCK6signalEi
 _ZN5BSOCK7destroyEv
-
+_ZN5BSOCK7despoolEPFvlEl
 
 ; bsys.c:
 _Z11bmicrosleepll
@@ -390,6 +390,7 @@ _Z8term_msgv
 _Z9close_msgP3JCR
 _Z9get_tracev
 _Z9set_tracei
+_Z11set_db_typePKc
 
 ; openssl.c:
 

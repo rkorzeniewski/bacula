@@ -49,7 +49,7 @@ _Z24db_find_failed_job_sinceP3JCRP4B_DBP7JOB_DBRPcRi
 ; bdb_get.c:
 ; sql_get.c:
 _Z15db_get_pool_idsP3JCRP4B_DBPiPPj
-_Z16db_get_media_idsP3JCRP4B_DBjPiPPj
+_Z16db_get_media_idsP3JCRP4B_DBP9MEDIA_DBRPiPPj
 _Z17db_get_client_idsP3JCRP4B_DBPiPPj
 _Z17db_get_job_recordP3JCRP4B_DBP7JOB_DBR
 _Z18db_get_pool_recordP3JCRP4B_DBP8POOL_DBR
