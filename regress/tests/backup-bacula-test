@@ -18,7 +18,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-label volume=TestVolume001
+label volume=TestVolume001 storage=File pool=Default
 @#setdebug level=100 storage=File
 run job=$JobName yes
 status storage=File
