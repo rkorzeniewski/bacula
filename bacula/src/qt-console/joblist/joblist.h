@@ -36,22 +36,24 @@
 #include <QtGui>
 #include "ui_joblist.h"
 #include "console.h"
+#include "pages.h"
 
-class JobList : public QWidget, public Ui::JobListForm
+class JobList : public Pages, public Ui::JobListForm
 {
    Q_OBJECT 
 
 public:
-   JobList(Console *console, QString &medianame );
+   JobList(QStackedWidget *parent, Console *console, QString &medianame);
+   virtual void PgSeltreeWidgetClicked();
+   virtual void currentStackItem();
 
 public slots:
-
-private:
    void populateTable();
 
 private:
    Console *mp_console;
    QString m_medianame;
+   bool m_populated;
 };
 
 #endif /* _JOBLIST_H_ */

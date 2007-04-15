@@ -41,6 +41,7 @@
 bRestore::bRestore(QStackedWidget *parent)
 {
    m_parent = parent;
+   m_closeable = true;
    (void)parent;
    setupUi(this);
 }

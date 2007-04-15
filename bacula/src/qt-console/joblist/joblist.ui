@@ -23,6 +23,17 @@
     <widget class="QTableWidget" name="mp_tableWidget" />
    </item>
   </layout>
+  <action name="actionRepopulateJobList" >
+   <property name="icon" >
+    <iconset>../images/run.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Repopulate Job List</string>
+   </property>
+   <property name="statusTip" >
+    <string>Requery the director for the list of jobs.</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

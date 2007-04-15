@@ -36,6 +36,7 @@
  */ 
 
 #include "bat.h"
+#include "joblist/joblist.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -63,7 +64,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 void MainWin::createPages()
 {
    DIRRES *dir;
-   QTreeWidgetItem *item, *topItem;
+   QTreeWidgetItem *item;
 
    /* Create console tree stacked widget item */
    m_console = new Console(stackedWidget);
@@ -76,14 +77,14 @@ void MainWin::createPages()
    UnlockRes();
 
    /* The top tree item representing the director */
-   topItem = createTopPage(dir->name());
-   topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+   m_topItem = createTopPage(dir->name());
+   m_topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
 
    /* Create Tree Widget Item */
-   item = createPage("Console", topItem);
+   item = createPage("Console", m_topItem);
    m_console->setTreeItem(item);
 
-   /* Append to pagelist */
+   /* insert the cosole and tree widget item into the hashes */
    hashInsert(item, m_console);
 
    /* Set Color of treeWidgetItem for the console
@@ -91,32 +92,61 @@ void MainWin::createPages()
    */
    QBrush redBrush(Qt::red);
    item->setForeground(0, redBrush);
+   m_console->dockPage();
 
-   /*
-    * Now with the console created, on with the rest, these are easy   
-    * All should be
-    * 1. create tree widget item
-    * 2. create object passing pointer to tree widget item (modified constructors to pass QTreeWidget pointers)
-    * 3. append to stackhash
-    */
+   /* create instances of the rest of the classes that will by default exist
+   * under each director */
+   createPagebrestore();
+   createPagemedialist();
+   QString emptymedia("");
+   createPagejoblist(emptymedia);
 
-   /* brestore */
-   item=createPage("brestore", topItem);
-   bRestore* brestore=new bRestore(stackedWidget);
-   hashInsert(item, brestore);
-
-
-   /* lastly for now, the medialist */
-   item=createPage("Media", topItem );
-   MediaList* medialist=new MediaList(stackedWidget, m_console);
-   hashInsert(item, medialist);
-
-   /* Iterate through and add to the stack */
-   foreach(Pages *page, m_pagehash)
-      page->dockPage();
-
-   treeWidget->expandItem(topItem);
+   treeWidget->expandItem(m_topItem);
    stackedWidget->setCurrentWidget(m_console);
+}
+
+/*
+ * create an instance of the the brestore class on the stack
+ */
+void MainWin::createPagebrestore()
+{
+   QTreeWidgetItem *item=createPage("brestore", m_topItem);
+   bRestore* brestore = new bRestore(stackedWidget);
+   hashInsert(item, brestore);
+   brestore->dockPage();
+}
+
+/*
+ * create an instance of the the medialist class on the stack
+ */
+void MainWin::createPagemedialist()
+{
+   QTreeWidgetItem *item=createPage("Media", m_topItem);
+   MediaList* medialist = new MediaList(stackedWidget, m_console);
+   hashInsert(item, medialist);
+   medialist->dockPage();
+}
+
+/*
+ * create an instance of the the joblist class on the stack
+ */
+void MainWin::createPagejoblist(QString &media)
+{
+   QTreeWidgetItem *item;
+   if (media == "") {
+      item=createPage("All Jobs", m_topItem);
+   } else {
+      QString desc("Jobs on ");
+      desc += media;
+      item=createPage(desc.toUtf8().data(), m_topItem);
+   }
+   JobList* joblist = new JobList(stackedWidget, m_console, media);
+   hashInsert(item, joblist);
+   joblist->dockPage();
+   if (media != "") {
+      stackedWidget->setCurrentWidget(joblist);
+      treeWidget->setCurrentItem(item);
+   }
 }
 
 /* Create a root Tree Widget */
@@ -202,6 +232,7 @@ void MainWin::createConnections()
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
+   connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
 }
 
 /* 
@@ -213,8 +244,8 @@ void MainWin::closeEvent(QCloseEvent *event)
    m_console->writeSettings();
    m_console->terminate();
    event->accept();
-   foreach(Pages *page, m_pagehash){
-      if( !page->isDocked() )
+   foreach(Pages *page, m_pagehash) {
+      if (!page->isDocked())
          page->close();
    }
 }
@@ -246,11 +277,11 @@ void MainWin::readSettings()
 void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 {
    /* Is this a page that has been inserted into the hash  */
-   if( getFromHash(item) ){
+   if (getFromHash(item)) {
       Pages* page = getFromHash(item);
       int stackindex=stackedWidget->indexOf(page);
 
-      if( stackindex >= 0 ){
+      if (stackindex >= 0) {
          stackedWidget->setCurrentWidget(page);
       }
       /* run the virtual function in case this class overrides it */
@@ -262,8 +293,12 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
  * This subroutine is called with an item in the Page Selection window
  *   is double clicked
  */
-void MainWin::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
+/* This could be removed from here and from pages and from medialist
+ * Do you agree dhb */
+void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int /*column*/)
 {
+   Pages* page = getFromHash(item);
+   page->PgSeltreeWidgetDoubleClicked();
 }
 
 /*
@@ -273,24 +308,28 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 {
    /* The Previous item */
 
-   if ( previousitem ){
+   if (previousitem) {
       /* Is this a page that has been inserted into the hash  */
-      if( getFromHash(previousitem) ){
+      if (getFromHash(previousitem)) {
          Pages* page = getFromHash(previousitem);
          treeWidget->removeAction(actionToggleDock);
-         foreach( QAction* pageaction, page->m_contextActions ){
+         /* make sure the close window option is removed */
+         if (page->isCloseable()) {
+            treeWidget->removeAction(actionClosePage);
+         }
+         foreach(QAction* pageaction, page->m_contextActions) {
             treeWidget->removeAction(pageaction);
          } 
       }
    }
 
    /* Is this a page that has been inserted into the hash  */
-   if( getFromHash(currentitem) ){
+   if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */
-      if( stackindex >= 0 ){
+      if (stackindex >= 0) {
          /* put this page on the top of the stack */
          stackedWidget->setCurrentIndex(stackindex);
       } else {
@@ -300,6 +339,10 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       setContextMenuDockText(page, currentitem);
 
       treeWidget->addAction(actionToggleDock);
+      /* if this page is closeable, then add that action */
+      if (page->isCloseable()) {
+         treeWidget->addAction(actionClosePage);
+      }
 
       /* Add the actions to the Page Selectors tree widget that are part of the
        * current items list of desired actions regardless of whether on top of stack*/
@@ -393,10 +436,10 @@ void MainWin::toggleDockContextWindow()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this a page that has been inserted into the hash  */
-   if( getFromHash(currentitem) ){
+   if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
       page->togglePageDocking();
-      if ( page->isDocked() ){
+      if (page->isDocked()) {
          stackedWidget->setCurrentWidget(page);
       }
       /* Toggle the menu item.  The window's dock status has been toggled */
@@ -416,7 +459,7 @@ void MainWin::setContextMenuDockText()
    QTreeWidgetItem *currentitem = treeWidget->currentItem();
    
    /* Is this a page that has been inserted into the hash  */
-   if( getFromHash(currentitem) ){
+   if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
       setContextMenuDockText(page, currentitem);
    }
@@ -429,7 +472,7 @@ void MainWin::setContextMenuDockText()
 void MainWin::setContextMenuDockText(Pages* page, QTreeWidgetItem* item)
 {
    QString docktext("");
-   if( page->isDocked() ){
+   if (page->isDocked()) {
       docktext += "UnDock ";
    } else {
       docktext += "ReDock ";
@@ -446,8 +489,8 @@ void MainWin::setContextMenuDockText(Pages* page, QTreeWidgetItem* item)
  */
 void MainWin::setTreeWidgetItemDockColor(Pages* page, QTreeWidgetItem* item)
 {
-   if( item->text(0) != "Console" ){
-      if( page->isDocked() ){
+   if (item->text(0) != "Console") {
+      if (page->isDocked()) {
       /* Set the brush to blue if undocked */
          QBrush blackBrush(Qt::black);
          item->setForeground(0, blackBrush);
@@ -466,7 +509,7 @@ void MainWin::setTreeWidgetItemDockColor(Pages* page, QTreeWidgetItem* item)
 void MainWin::setTreeWidgetItemDockColor(Pages* page)
 {
    QTreeWidgetItem* item = getFromHash(page);
-   if( item ){
+   if (item) {
      setTreeWidgetItemDockColor(page, item);
    }
 }
@@ -494,6 +537,20 @@ void MainWin::hashInsert(QTreeWidgetItem *item, Pages *page)
 }
 
 /*
+ * Function to simplify removal of QTreeWidgetItem <-> Page association
+ * into a double direction hash.
+ */
+void MainWin::hashRemove(QTreeWidgetItem *item, Pages *page)
+{
+   /* I had all sorts of return status checking code here.  Do we have a log
+    * level capability in bat.  I would have left it in but it used printf's
+    * and it should really be some kind of log level facility ???
+    * ******FIXME********/
+   m_pagehash.remove(item);
+   m_widgethash.remove(page);
+}
+
+/*
  * Function to retrieve a Page* when the item in the page selector's tree is
  * known.
  */
@@ -510,3 +567,21 @@ QTreeWidgetItem* MainWin::getFromHash(Pages *page)
 {
    return m_widgethash.value(page);
 }
+
+/*
+ * Function to respond to action on page selector context menu to close the
+ * current window.
+ */
+void MainWin::closePage()
+{
+   QTreeWidgetItem *currentitem = treeWidget->currentItem();
+   
+   /* Is this a page that has been inserted into the hash  */
+   if (getFromHash(currentitem)) {
+      Pages* page = getFromHash(currentitem);
+      if (page->isCloseable()) {
+         page->closeStackPage();
+      }
+   }
+}
+

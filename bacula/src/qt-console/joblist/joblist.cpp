@@ -40,14 +40,18 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(Console *console, QString &medianame)
+JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame)
 {
    setupUi(this);
    /* Store passed variables in member variables */
    mp_console = console;
+   m_parent = parent;
    m_medianame = medianame;
-
-   populateTable();
+   m_populated = false;
+   m_closeable = false;
+   /* connect to the action specific to this pages class */
+   connect(actionRepopulateJobList, SIGNAL(triggered()), this,
+                SLOT(populateTable()));
 }
 
 /*
@@ -58,16 +62,20 @@ JobList::JobList(Console *console, QString &medianame)
  */
 void JobList::populateTable()
 {
-  QStringList results;
-  QString resultline;
+   QStringList results;
+   QString resultline;
 
-  /* Set up query QString and header QStringList */
-  QString query("");
-  query += "SELECT j.jobid,j.name,j.starttime,j.type,j.level,j.jobfiles,"
+   /* Set up query QString and header QStringList */
+   QString query("");
+   query += "SELECT j.jobid,j.name,j.starttime,j.type,j.level,j.jobfiles,"
            "j.jobstatus"
            " FROM job j, jobmedia jm, media m"
-           " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid and m.VolumeName='";
-  query += m_medianame + "' ORDER BY j.starttime";
+           " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid";
+   if (m_medianame != "") {
+      query += " and m.VolumeName='" + m_medianame + "'";
+      m_closeable=true;
+   }
+   query += " ORDER BY j.starttime";
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Job Starttime" << "Job Type" << "Job Level"
       << "Job Files" << "Job Status");
@@ -98,5 +106,29 @@ void JobList::populateTable()
          }
          row++;
       }
+   }
+}
+
+/*
+ *  * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
+ *  * The tree has been populated.
+ *  */
+void JobList::PgSeltreeWidgetClicked()
+{
+   if (!m_populated) {
+      populateTable();
+      m_populated=true;
+   }
+}
+
+/*
+ *  Virtual function which is called when this page is visible on the stack
+ */
+void JobList::currentStackItem()
+{
+   if (!m_populated) {
+      populateTable();
+      m_contextActions.append(actionRepopulateJobList);
+      m_populated=true;
    }
 }

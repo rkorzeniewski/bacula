@@ -30,6 +30,9 @@
    <property name="text" >
     <string>Repopulate Media Tree</string>
    </property>
+   <property name="statusTip" >
+    <string>Requery the director for the media.</string>
+   </property>
   </action>
  </widget>
  <resources/>
