@@ -69,7 +69,7 @@ void JobList::populateTable()
    /* Set up query QString and header QStringList */
    QString query("");
    query += "SELECT j.Jobid,j.Name,j.Starttime,j.Type,j.Level,j.Jobfiles,"
-           "j.Jobstatus"
+           "j.JobBytes,j.JobStatus"
            " FROM job j, jobmedia jm, media m"
            " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid";
    if (m_medianame != "") {
@@ -79,15 +79,15 @@ void JobList::populateTable()
    query += " ORDER BY j.Starttime";
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Job Starttime" << "Job Type" << "Job Level"
-      << "Job Files" << "Job Status");
+      << "Job Files" << "Job Bytes" << "Job Status");
 
    /* Initialize the QTableWidget */
    mp_tableWidget->clear();
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
-   /* printf("Query cmd : %s\n",query.toUtf8().data());
-    *  This could be a debug message?? */
+    /*  This could be a debug message?? */
+    /* printf("Query cmd : %s\n",query.toUtf8().data()); */
    if (mp_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 
