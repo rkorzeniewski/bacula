@@ -462,6 +462,17 @@
     <string>ToggleDock</string>
    </property>
   </action>
+  <action name="actionClosePage" >
+   <property name="icon" >
+    <iconset>images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Close Page</string>
+   </property>
+   <property name="statusTip" >
+    <string>Close The Current Page</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="main.qrc" />

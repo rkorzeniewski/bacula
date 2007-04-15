@@ -88,13 +88,20 @@ void Pages::togglePageDocking()
 }
 
 /*
- * This function is because I wanted for some reason to keep it private but still 
+ * This function is because I wanted for some reason to keep it protected but still 
  * give any subclasses the ability to find out if it is currently stacked or not.
  */
-
 bool Pages::isDocked()
 {
    return m_docked;
+}
+
+/*
+ * To keep m_closeable protected as well
+ */
+bool Pages::isCloseable()
+{
+   return m_closeable;
 }
 
 /*
@@ -111,7 +118,7 @@ void Pages::closeEvent(QCloseEvent* event)
    dockPage();
 
    /* is the tree widget item for "this" the current widget item */
-   if( mainWin->treeWidget->currentItem() == mainWin->getFromHash(this) )
+   if (mainWin->treeWidget->currentItem() == mainWin->getFromHash(this))
       /* in case the current widget is the one which represents this, lets set the context
        * menu to undock */
       mainWin->setContextMenuDockText();
@@ -152,4 +159,20 @@ void Pages::PgSeltreeWidgetDoubleClicked()
  */
 void Pages::currentStackItem()
 {
+}
+
+/*
+ * Function to close the stacked page and remove the widget from the
+ * Page selector window
+ */
+void Pages::closeStackPage()
+{
+   /* First get the tree widget item and destroy it */
+   QTreeWidgetItem *item=mainWin->getFromHash(this);
+   /* remove the QTreeWidgetItem <-> page from the hash */
+   mainWin->hashRemove(item, this);
+   /* remove the item from the page selector by destroying it */
+   delete item;
+   /* remove this */
+   delete this;
 }

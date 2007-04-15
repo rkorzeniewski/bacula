@@ -57,17 +57,20 @@ public:
    void undockPage();
    void togglePageDocking();
    bool isDocked();
+   bool isCloseable();
    QStackedWidget *m_parent;
    QList<QAction*> m_contextActions;
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();
+   void closeStackPage();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
    virtual void closeEvent(QCloseEvent* event);
 
-private:
+protected:
+   bool m_closeable;
    bool m_docked;
 };
 

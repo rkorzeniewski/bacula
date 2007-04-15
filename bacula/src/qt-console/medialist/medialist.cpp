@@ -52,6 +52,7 @@ MediaList::MediaList(QStackedWidget *parent, Console *console)
    createConnections();
    m_populated = false;
    m_checkcurwidget = true;
+   m_closeable = false;
 }
 
 MediaList::~MediaList()
@@ -164,8 +165,7 @@ void MediaList::editMedia()
  */
 void MediaList::showJobs()
 {
-   JobList* joblist = new JobList(mp_console, m_currentlyselected);
-   joblist->show();
+   mainWin->createPagejoblist(m_currentlyselected);
 }
 
 /*
@@ -198,7 +198,7 @@ void MediaList::PgSeltreeWidgetDoubleClicked()
  */
 void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *) /*previouswidgetitem*/
 {
-   if ( m_checkcurwidget ) {
+   if (m_checkcurwidget) {
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
       if (treedepth == 2){
          mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -238,7 +238,11 @@ void MediaList::currentStackItem()
 {
    if(!m_populated) {
       populateTree();
+      /* add context sensitive menu items specific to this classto the page
+       * selector tree. m_m_contextActions is QList of QActions, so this is 
+       * only done once with the first population. */
       m_contextActions.append(actionRepopulateMediaTree);
+      /* Create the context menu for the medialist tree */
       createContextMenu();
       m_populated=true;
    }

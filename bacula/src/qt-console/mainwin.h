@@ -45,6 +45,7 @@
 #include "run/run.h"
 #include "restore/restore.h"
 #include "medialist/medialist.h"
+#include "joblist/joblist.h"
 
 class Console;
 
@@ -65,12 +66,15 @@ public:
    void setTreeWidgetItemDockColor(Pages *, QTreeWidgetItem *);
    void setTreeWidgetItemDockColor(Pages *);
    void hashInsert(QTreeWidgetItem *, Pages *);
+   void hashRemove(Pages *);
+   void hashRemove(QTreeWidgetItem *, Pages *);
    Pages* getFromHash(QTreeWidgetItem *);
    QTreeWidgetItem* getFromHash(Pages *);
    /* This hash is to get the page when the page selector widget is known */
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
+   void createPagejoblist(QString &);
 
 public slots:
    void input_line();
@@ -84,6 +88,7 @@ public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void stackItemChanged(int);
    void toggleDockContextWindow();
+   void closePage();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -94,6 +99,11 @@ private:
    void createPages();
    QTreeWidgetItem *createTopPage(char *name );
    QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent );
+   void createPagebrestore();
+   void createPagemedialist();
+   /* Temporarily putting this here until we figure out how to handle
+   *  multiple directors. */
+   QTreeWidgetItem *m_topItem;
 
 private:
    Console *m_console;
