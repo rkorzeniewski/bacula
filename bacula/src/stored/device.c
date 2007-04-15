@@ -352,6 +352,7 @@ bool is_device_unmounted(DEVICE *dev)
    return stat;
 }
 
+#ifdef SD_DEBUG_LOCK
 void DEVICE::_dlock(const char *file, int line)
 {
    Dmsg4(sd_dbglvl, "dlock from %s:%d precnt=%d JobId=%u\n", file, line,
@@ -375,16 +376,11 @@ void DEVICE::_dunlock(const char *file, int line)
    V(m_mutex);   
 }
 
-#ifdef SD_DEBUG_LOCK
 void DEVICE::_r_dunlock(const char *file, int line)
 {
    this->_dunlock(file, line);
 }
-#else
-void DEVICE::r_dunlock()
-{
-   this->dunlock();
-}
+
 #endif
 
 
