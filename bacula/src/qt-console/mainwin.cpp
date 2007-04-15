@@ -132,7 +132,9 @@ void MainWin::createPagemedialist()
  */
 void MainWin::createPagejoblist(QString &media)
 {
-   QTreeWidgetItem *item;
+   QTreeWidgetItem *item, *holdItem;
+   /* save current tree widget item in case query produces no results */
+   holdItem = treeWidget->currentItem();
    if (media == "") {
       item=createPage("All Jobs", m_topItem);
    } else {
@@ -143,9 +145,15 @@ void MainWin::createPagejoblist(QString &media)
    JobList* joblist = new JobList(stackedWidget, m_console, media);
    hashInsert(item, joblist);
    joblist->dockPage();
+   /* If this is a query of jobs on a specific media */
    if (media != "") {
       stackedWidget->setCurrentWidget(joblist);
       treeWidget->setCurrentItem(item);
+      /* did query produce results, if not close window and set back to hold */
+      if (joblist->m_resultCount == 0) {
+         joblist->closeStackPage();
+         treeWidget->setCurrentItem(holdItem);
+      }
    }
 }
 
@@ -309,14 +317,12 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    /* The Previous item */
 
    if (previousitem) {
+      /* make sure the close window and toggle dock options are removed */
+      treeWidget->removeAction(actionClosePage);
+      treeWidget->removeAction(actionToggleDock);
       /* Is this a page that has been inserted into the hash  */
       if (getFromHash(previousitem)) {
          Pages* page = getFromHash(previousitem);
-         treeWidget->removeAction(actionToggleDock);
-         /* make sure the close window option is removed */
-         if (page->isCloseable()) {
-            treeWidget->removeAction(actionClosePage);
-         }
          foreach(QAction* pageaction, page->m_contextActions) {
             treeWidget->removeAction(pageaction);
          } 

@@ -46,6 +46,7 @@ public:
    JobList(QStackedWidget *parent, Console *console, QString &medianame);
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
+   int m_resultCount;
 
 public slots:
    void populateTable();

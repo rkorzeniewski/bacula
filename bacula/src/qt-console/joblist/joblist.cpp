@@ -47,6 +47,7 @@ JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame)
    mp_console = console;
    m_parent = parent;
    m_medianame = medianame;
+   m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
    /* connect to the action specific to this pages class */
@@ -67,15 +68,15 @@ void JobList::populateTable()
 
    /* Set up query QString and header QStringList */
    QString query("");
-   query += "SELECT j.jobid,j.name,j.starttime,j.type,j.level,j.jobfiles,"
-           "j.jobstatus"
+   query += "SELECT j.Jobid,j.Name,j.Starttime,j.Type,j.Level,j.Jobfiles,"
+           "j.Jobstatus"
            " FROM job j, jobmedia jm, media m"
            " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid";
    if (m_medianame != "") {
       query += " and m.VolumeName='" + m_medianame + "'";
       m_closeable=true;
    }
-   query += " ORDER BY j.starttime";
+   query += " ORDER BY j.Starttime";
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Job Starttime" << "Job Type" << "Job Level"
       << "Job Files" << "Job Status");
@@ -85,7 +86,11 @@ void JobList::populateTable()
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
+   /* printf("Query cmd : %s\n",query.toUtf8().data());
+    *  This could be a debug message?? */
    if (mp_console->sql_cmd(query, results)) {
+      m_resultCount = results.count();
+
       QTableWidgetItem* p_tableitem;
       QString field;
       QStringList fieldlist;
@@ -106,6 +111,11 @@ void JobList::populateTable()
          }
          row++;
       }
+   } 
+   if ((m_medianame != "") && (m_resultCount == 0)){
+      /* for context sensitive searches, let the user know if there were no results */
+      QMessageBox::warning(this, tr("Bat"), tr("The Jobs query returned no results.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
    }
 }
 
