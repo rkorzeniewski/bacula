@@ -387,7 +387,7 @@ public:
    void _dunlock(const char *, int);      /* in device.c */
 #else
    void r_dlock();                        /* in device.c */
-   void r_dunlock();                      /* in device.c */
+   void r_dunlock() { dunlock(); }
    void dlock() { P(m_mutex); } 
    void dunlock() { V(m_mutex); } 
 #endif
