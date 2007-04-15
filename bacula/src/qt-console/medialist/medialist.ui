@@ -23,15 +23,31 @@
     <widget class="QTreeWidget" name="mp_treeWidget" />
    </item>
   </layout>
-  <action name="actionRepopulateMediaTree" >
+  <action name="actionRefreshMediaList" >
    <property name="icon" >
     <iconset>../images/run.png</iconset>
    </property>
    <property name="text" >
-    <string>Repopulate Media Tree</string>
+    <string>Refresh Media List</string>
    </property>
    <property name="statusTip" >
-    <string>Requery the director for the media.</string>
+    <string>Requery the director for the list of media.</string>
+   </property>
+  </action>
+  <action name="actionEditVolume" >
+   <property name="icon" >
+    <iconset>../images/status.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Edit Volume</string>
+   </property>
+  </action>
+  <action name="actionListJobsOnVolume" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>List Jobs On Volume</string>
    </property>
   </action>
  </widget>

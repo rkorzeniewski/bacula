@@ -71,26 +71,27 @@ void MediaList::populateTree()
    QStringList results;
    const char *query = 
       "SELECT p.Name,m.VolumeName,m.MediaId,m.VolStatus,m.Enabled,m.VolBytes,"
-      "m.VolFiles,m.VolRetention,m.MediaType,m.LastWritten"
+      "m.VolFiles,m.VolJobs,m.VolRetention,m.MediaType,m.LastWritten"
       " FROM Media m,Pool p"
       " WHERE m.PoolId=p.PoolId"
       " ORDER BY p.Name";
    QStringList headerlist = (QStringList()
       << "Pool Name" << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
-      << "Volume Bytes" << "Volume Files" << "Volume Retention" 
+      << "Volume Bytes" << "Volume Files" << "Volume Jobs" << "Volume Retention" 
       << "Media Type" << "Last Written");
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
-   mp_treeWidget->setColumnCount(9);
+   mp_treeWidget->setColumnCount(headerlist.count());
    topItem = new QTreeWidgetItem(mp_treeWidget);
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
-   topItem->setExpanded( true );
+   topItem->setExpanded(true);
 
    mp_treeWidget->setHeaderLabels(headerlist);
 
+   //printf("MediaList query cmd : %s\n",query);
    if (mp_console->sql_cmd(query, results)) {
       QString field;
       QStringList fieldlist;
@@ -196,15 +197,24 @@ void MediaList::PgSeltreeWidgetDoubleClicked()
  * Added to set the context menu policy based on currently active treeWidgetItem
  * signaled by currentItemChanged
  */
-void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *) /*previouswidgetitem*/
+void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *previouswidgetitem )
 {
+   /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
    if (m_checkcurwidget) {
+      /* The Previous item */
+      if (previouswidgetitem) { /* avoid a segfault if first time */
+         int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
+         if (treedepth == 2){
+            mp_treeWidget->removeAction(actionEditVolume);
+            mp_treeWidget->removeAction(actionListJobsOnVolume);
+         }
+      }
+
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
       if (treedepth == 2){
-         mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
          m_currentlyselected=currentwidgetitem->text(1);
-      } else {
-         mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
+         mp_treeWidget->addAction(actionEditVolume);
+         mp_treeWidget->addAction(actionListJobsOnVolume);
       }
    }
 }
@@ -216,18 +226,17 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
  */
 void MediaList::createContextMenu()
 {
-   QAction *editAction = new QAction("Edit Properties", mp_treeWidget);
-   QAction *listAction = new QAction("List Jobs On Media", mp_treeWidget);
-   mp_treeWidget->addAction(editAction);
-   mp_treeWidget->addAction(listAction);
-   connect(editAction, SIGNAL(triggered()), this, SLOT(editMedia()));
-   connect(listAction, SIGNAL(triggered()), this, SLOT(showJobs()));
+   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   /*mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);*/
+   mp_treeWidget->addAction(actionRefreshMediaList);
+   connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editMedia()));
+   connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
    mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    /* connect to the action specific to this pages class */
-   connect(actionRepopulateMediaTree, SIGNAL(triggered()), this,
+   connect(actionRefreshMediaList, SIGNAL(triggered()), this,
                 SLOT(populateTree()));
 }
 
@@ -241,7 +250,7 @@ void MediaList::currentStackItem()
       /* add context sensitive menu items specific to this classto the page
        * selector tree. m_m_contextActions is QList of QActions, so this is 
        * only done once with the first population. */
-      m_contextActions.append(actionRepopulateMediaTree);
+      m_contextActions.append(actionRefreshMediaList);
       /* Create the context menu for the medialist tree */
       createContextMenu();
       m_populated=true;
