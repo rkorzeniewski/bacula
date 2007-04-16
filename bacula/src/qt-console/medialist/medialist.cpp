@@ -166,7 +166,7 @@ void MediaList::editMedia()
  */
 void MediaList::showJobs()
 {
-   mainWin->createPagejoblist(m_currentlyselected);
+   mainWin->createPageJobList(m_currentlyselected);
 }
 
 /*

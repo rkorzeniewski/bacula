@@ -1,5 +1,5 @@
-#ifndef _MEDIALIST_H_
-#define _MEDIALIST_H_
+#ifndef _CLIENTS_H_g
+#define _CLIENTS_H_g
 /*
    Bacula® - The Network Backup Solution
 
@@ -28,39 +28,34 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
+ *   Version $Id: clients.h 4230 2007-02-21 20:07:37Z kerns $
  *
  *   Dirk Bartley, March 2007
  */
 
 #include <QtGui>
-#include "ui_medialist.h"
+#include "ui_clients.h"
 #include "console.h"
-#include <qstringlist.h>
+#include "pages.h"
+//#include <qstringlist.h>
 
-class MediaList : public Pages, public Ui::MediaListForm
+class Clients : public Pages, public Ui::ClientForm
 {
    Q_OBJECT 
 
 public:
-   MediaList(QStackedWidget *parent, Console *console);
-   ~MediaList();
+   Clients(QStackedWidget *parent, Console *console);
+   ~Clients();
    virtual void PgSeltreeWidgetClicked();
-   virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();
 
 public slots:
-   void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
-   void editMedia();
-   void showJobs();
 
 private slots:
    void populateTree();
 
 private:
-   void createConnections();
    void createContextMenu();
 
 private:
@@ -70,4 +65,4 @@ private:
    bool m_checkcurwidget;
 };
 
-#endif /* _MEDIALIST_H_ */
+#endif /* _CLIENTS_H_g */
