@@ -96,10 +96,11 @@ void MainWin::createPages()
 
    /* create instances of the rest of the classes that will by default exist
    * under each director */
-   createPagebrestore();
-   createPagemedialist();
+   createPagebRestore();
+   createPageMediaList();
    QString emptymedia("");
-   createPagejoblist(emptymedia);
+   createPageJobList(emptymedia);
+   createPageClients();
 
    treeWidget->expandItem(m_topItem);
    stackedWidget->setCurrentWidget(m_console);
@@ -108,7 +109,7 @@ void MainWin::createPages()
 /*
  * create an instance of the the brestore class on the stack
  */
-void MainWin::createPagebrestore()
+void MainWin::createPagebRestore()
 {
    QTreeWidgetItem *item=createPage("brestore", m_topItem);
    bRestore* brestore = new bRestore(stackedWidget);
@@ -119,7 +120,7 @@ void MainWin::createPagebrestore()
 /*
  * create an instance of the the medialist class on the stack
  */
-void MainWin::createPagemedialist()
+void MainWin::createPageMediaList()
 {
    QTreeWidgetItem *item=createPage("Media", m_topItem);
    MediaList* medialist = new MediaList(stackedWidget, m_console);
@@ -130,7 +131,7 @@ void MainWin::createPagemedialist()
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPagejoblist(QString &media)
+void MainWin::createPageJobList(QString &media)
 {
    QTreeWidgetItem *item, *holdItem;
    /* save current tree widget item in case query produces no results */
@@ -156,6 +157,18 @@ void MainWin::createPagejoblist(QString &media)
       }
    }
 }
+
+/*
+ * create an instance of the the Clients class on the stack
+ */
+void MainWin::createPageClients()
+{
+   QTreeWidgetItem *item=createPage("Clients", m_topItem);
+   Clients* clients = new Clients(stackedWidget, m_console);
+   hashInsert(item, clients);
+   clients->dockPage();
+}
+
 
 /* Create a root Tree Widget */
 QTreeWidgetItem *MainWin::createTopPage(char *name)

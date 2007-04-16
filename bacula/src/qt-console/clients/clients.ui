@@ -1,16 +1,16 @@
 <ui version="4.0" >
- <class>JobListForm</class>
- <widget class="QWidget" name="JobListForm" >
+ <class>ClientForm</class>
+ <widget class="QWidget" name="ClientForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>621</width>
-    <height>460</height>
+    <width>763</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Form</string>
+   <string>Client Tree</string>
   </property>
   <layout class="QGridLayout" >
    <property name="margin" >
@@ -20,18 +20,18 @@
     <number>6</number>
    </property>
    <item row="0" column="0" >
-    <widget class="QTableWidget" name="mp_tableWidget" />
+    <widget class="QTreeWidget" name="mp_treeWidget" />
    </item>
   </layout>
-  <action name="actionRefreshJobList" >
+  <action name="actionRefreshClients" >
    <property name="icon" >
     <iconset>../images/run.png</iconset>
    </property>
    <property name="text" >
-    <string>Refresh Job List</string>
+    <string>Refresh Client List</string>
    </property>
    <property name="statusTip" >
-    <string>Requery the director for the list of jobs.</string>
+    <string>Requery the director for the list of clients.</string>
    </property>
   </action>
  </widget>

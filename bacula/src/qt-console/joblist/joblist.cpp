@@ -51,7 +51,7 @@ JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame)
    m_populated = false;
    m_closeable = false;
    /* connect to the action specific to this pages class */
-   connect(actionRepopulateJobList, SIGNAL(triggered()), this,
+   connect(actionRefreshJobList, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
 }
 
@@ -138,7 +138,7 @@ void JobList::currentStackItem()
 {
    if (!m_populated) {
       populateTable();
-      m_contextActions.append(actionRepopulateJobList);
+      m_contextActions.append(actionRefreshJobList);
       m_populated=true;
    }
 }

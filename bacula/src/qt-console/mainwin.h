@@ -46,6 +46,7 @@
 #include "restore/restore.h"
 #include "medialist/medialist.h"
 #include "joblist/joblist.h"
+#include "clients/clients.h"
 
 class Console;
 
@@ -74,7 +75,7 @@ public:
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
-   void createPagejoblist(QString &);
+   void createPageJobList(QString &);
 
 public slots:
    void input_line();
@@ -99,8 +100,9 @@ private:
    void createPages();
    QTreeWidgetItem *createTopPage(char *name );
    QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent );
-   void createPagebrestore();
-   void createPagemedialist();
+   void createPagebRestore();
+   void createPageMediaList();
+   void createPageClients();
    /* Temporarily putting this here until we figure out how to handle
    *  multiple directors. */
    QTreeWidgetItem *m_topItem;
