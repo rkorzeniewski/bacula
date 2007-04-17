@@ -40,13 +40,15 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame)
+JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame,
+   QString &clientname)
 {
    setupUi(this);
    /* Store passed variables in member variables */
    mp_console = console;
    m_parent = parent;
    m_medianame = medianame;
+   m_clientname = clientname;
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
@@ -68,26 +70,33 @@ void JobList::populateTable()
 
    /* Set up query QString and header QStringList */
    QString query("");
-   query += "SELECT j.Jobid,j.Name,j.Starttime,j.Type,j.Level,j.Jobfiles,"
-           "j.JobBytes,j.JobStatus"
-           " FROM job j, jobmedia jm, media m"
-           " WHERE jm.jobid=j.jobid and jm.mediaid=m.mediaid";
+   query += "SELECT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
+            " Job.Starttime AS JobStart, Job.Type AS JobType,"
+            " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
+            " Job.JobBytes AS Bytes, Job.JobStatus AS Status"
+            " FROM Job, JobMedia, Media, Client"
+            " WHERE JobMedia.JobId=Job.JobId and JobMedia.MediaId=Media.MediaId"
+            " and Client.ClientId=Job.ClientId";
    if (m_medianame != "") {
-      query += " and m.VolumeName='" + m_medianame + "'";
+      query += " and Media.VolumeName='" + m_medianame + "'";
       m_closeable=true;
    }
-   query += " ORDER BY j.Starttime";
+   if (m_clientname != "") {
+      query += " and Client.Name='" + m_clientname + "'";
+      m_closeable=true;
+   }
+   query += " ORDER BY Job.Starttime";
    QStringList headerlist = (QStringList()
-      << "Job Id" << "Job Name" << "Job Starttime" << "Job Type" << "Job Level"
-      << "Job Files" << "Job Bytes" << "Job Status");
+      << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
+      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  );
 
    /* Initialize the QTableWidget */
    mp_tableWidget->clear();
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
-    /*  This could be a debug message?? */
-    /* printf("Query cmd : %s\n",query.toUtf8().data()); */
+    /*  This could be a user preference debug message?? */
+    printf("Query cmd : %s\n",query.toUtf8().data());
    if (mp_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 
@@ -113,16 +122,18 @@ void JobList::populateTable()
       }
    } 
    if ((m_medianame != "") && (m_resultCount == 0)){
-      /* for context sensitive searches, let the user know if there were no results */
-      QMessageBox::warning(this, tr("Bat"), tr("The Jobs query returned no results.\n"
+      /* for context sensitive searches, let the user know if there were no
+       * results */
+      QMessageBox::warning(this, tr("Bat"),
+          tr("The Jobs query returned no results.\n"
          "Press OK to continue?"), QMessageBox::Ok );
    }
 }
 
 /*
- *  * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
- *  * The tree has been populated.
- *  */
+ * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
+ * The tree has been populated.
+ */
 void JobList::PgSeltreeWidgetClicked()
 {
    if (!m_populated) {
@@ -132,7 +143,8 @@ void JobList::PgSeltreeWidgetClicked()
 }
 
 /*
- *  Virtual function which is called when this page is visible on the stack
+ *  Virtual function override of pages function which is called when this page
+ *  is visible on the stack
  */
 void JobList::currentStackItem()
 {

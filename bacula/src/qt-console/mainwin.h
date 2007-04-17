@@ -75,7 +75,7 @@ public:
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
-   void createPageJobList(QString &);
+   void createPageJobList(QString &, QString &);
 
 public slots:
    void input_line();

@@ -34,6 +34,14 @@
     <string>Requery the director for the list of clients.</string>
    </property>
   </action>
+  <action name="actionListJobsofClient" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>List Jobs of Client</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

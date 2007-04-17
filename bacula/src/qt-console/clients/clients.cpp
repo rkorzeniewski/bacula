@@ -148,7 +148,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
       if (previouswidgetitem) { /* avoid a segfault if first time */
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
          if (treedepth == 1){
-//            mp_treeWidget->removeAction(actionEditVolume);
+            mp_treeWidget->removeAction(actionListJobsofClient);
          }
       }
 
@@ -156,8 +156,8 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
       if (treedepth == 1){
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
-         m_currentlyselected=currentwidgetitem->text(1);
-//         mp_treeWidget->addAction(actionEditVolume);
+         m_currentlyselected=currentwidgetitem->text(0);
+         mp_treeWidget->addAction(actionListJobsofClient);
       }
    }
 }
@@ -177,6 +177,18 @@ void Clients::createContextMenu()
    /* connect to the action specific to this pages class */
    connect(actionRefreshClients, SIGNAL(triggered()), this,
                 SLOT(populateTree()));
+   connect(actionListJobsofClient, SIGNAL(triggered()), this,
+                SLOT(showJobs()));
+}
+
+/*
+ * Function responding to actionListJobsofClient which calls mainwin function
+ * to create a window of a list of jobs of this client.
+ */
+void Clients::showJobs()
+{
+   QString emptymedia("");
+   mainWin->createPageJobList(emptymedia, m_currentlyselected);
 }
 
 /*
