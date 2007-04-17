@@ -54,6 +54,7 @@ public slots:
 
 private slots:
    void populateTree();
+   void showJobs();
 
 private:
    void createContextMenu();

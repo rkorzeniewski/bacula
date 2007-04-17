@@ -166,7 +166,8 @@ void MediaList::editMedia()
  */
 void MediaList::showJobs()
 {
-   mainWin->createPageJobList(m_currentlyselected);
+   QString emptyclient("");
+   mainWin->createPageJobList(m_currentlyselected, emptyclient);
 }
 
 /*

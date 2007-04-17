@@ -98,8 +98,8 @@ void MainWin::createPages()
    * under each director */
    createPagebRestore();
    createPageMediaList();
-   QString emptymedia("");
-   createPageJobList(emptymedia);
+   QString emptymedia(""), emptyclient("");
+   createPageJobList(emptymedia, emptyclient);
    createPageClients();
 
    treeWidget->expandItem(m_topItem);
@@ -131,23 +131,28 @@ void MainWin::createPageMediaList()
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPageJobList(QString &media)
+void MainWin::createPageJobList(QString &media, QString &client)
 {
    QTreeWidgetItem *item, *holdItem;
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
-   if (media == "") {
+   if ((media == "") && (client == "")) {
       item=createPage("All Jobs", m_topItem);
    } else {
-      QString desc("Jobs on ");
-      desc += media;
+      QString desc("Jobs ");
+      if (media != "" ) {
+         desc += "on Volume " + media;
+      }
+      if (client != "" ) {
+         desc += "of Client " + client;
+      }
       item=createPage(desc.toUtf8().data(), m_topItem);
-   }
-   JobList* joblist = new JobList(stackedWidget, m_console, media);
+   } 
+   JobList* joblist = new JobList(stackedWidget, m_console, media, client);
    hashInsert(item, joblist);
    joblist->dockPage();
    /* If this is a query of jobs on a specific media */
-   if (media != "") {
+   if ((media != "") || (client != "")) {
       stackedWidget->setCurrentWidget(joblist);
       treeWidget->setCurrentItem(item);
       /* did query produce results, if not close window and set back to hold */
