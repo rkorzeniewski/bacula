@@ -1,5 +1,5 @@
-#ifndef _CLIENTS_H_g
-#define _CLIENTS_H_g
+#ifndef _CLIENTS_H_
+#define _CLIENTS_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -66,4 +66,4 @@ private:
    bool m_checkcurwidget;
 };
 
-#endif /* _CLIENTS_H_g */
+#endif /* _CLIENTS_H_ */
