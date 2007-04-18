@@ -25,7 +25,6 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
 /* 
  *   Version $Id$
  *
@@ -69,13 +68,16 @@ public:
    void hashInsert(QTreeWidgetItem *, Pages *);
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);
+   QTreeWidgetItem *topItem() { return m_topItem; };
+   Console *console() { return m_console; };
    Pages* getFromHash(QTreeWidgetItem *);
    QTreeWidgetItem* getFromHash(Pages *);
    /* This hash is to get the page when the page selector widget is known */
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
-   void createPageJobList(QString &, QString &);
+   void createPageJobList(QString &, QString &, QTreeWidgetItem *parent, 
+                          Console *console);
 
 public slots:
    void input_line();
@@ -98,17 +100,15 @@ protected:
 private:
    void createConnections(); 
    void createPages();
-   QTreeWidgetItem *createTopPage(char *name );
-   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent );
-   void createPagebRestore();
-   void createPageMediaList();
-   void createPageClients();
-   /* Temporarily putting this here until we figure out how to handle
-   *  multiple directors. */
-   QTreeWidgetItem *m_topItem;
+   QTreeWidgetItem *createTopPage(char *name);
+   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent);
+   void createPagebRestore(QTreeWidgetItem *parent, Console *console);
+   void createPageMediaList(QTreeWidgetItem *parent, Console *console);
+   void createPageClients(QTreeWidgetItem *parent, Console *console);
 
 private:
    Console *m_console;
+   QTreeWidgetItem *m_topItem;
    Pages *m_pagespophold;
    QStringList m_cmd_history;
    int m_cmd_last;
