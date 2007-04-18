@@ -188,7 +188,8 @@ void Clients::createContextMenu()
 void Clients::showJobs()
 {
    QString emptymedia("");
-   mainWin->createPageJobList(emptymedia, m_currentlyselected);
+   mainWin->createPageJobList(emptymedia, m_currentlyselected, 
+               mainWin->topItem(), mainWin->console());
 }
 
 /*

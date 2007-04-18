@@ -167,7 +167,8 @@ void MediaList::editMedia()
 void MediaList::showJobs()
 {
    QString emptyclient("");
-   mainWin->createPageJobList(m_currentlyselected, emptyclient);
+   mainWin->createPageJobList(m_currentlyselected, emptyclient, 
+               mainWin->topItem(), mainWin->console());
 }
 
 /*
@@ -176,7 +177,7 @@ void MediaList::showJobs()
  */
 void MediaList::PgSeltreeWidgetClicked()
 {
-   if(!m_populated) {
+   if (!m_populated) {
       populateTree();
       createContextMenu();
       m_populated=true;

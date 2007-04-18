@@ -64,54 +64,69 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 void MainWin::createPages()
 {
    DIRRES *dir;
-   QTreeWidgetItem *item;
+   QTreeWidgetItem *item, *topItem;
+   Console *console;
 
-   /* Create console tree stacked widget item */
-   m_console = new Console(stackedWidget);
-
-   /* Console is special -> needs director*/
-   /* Just take the first Director */
    LockRes();
-   dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
-   m_console->setDirRes(dir);
+   foreach_res(dir, R_DIRECTOR) {
+
+      /* Create console tree stacked widget item */
+      console = new Console(stackedWidget);
+      console->setDirRes(dir);
+
+      /* The top tree item representing the director */
+      topItem = createTopPage(dir->name());
+      topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+
+      /* Create Tree Widget Item */
+      item = createPage("Console", topItem);
+      console->setTreeItem(item);
+
+      /* insert the cosole and tree widget item into the hashes */
+      hashInsert(item, console);
+
+      /* Set Color of treeWidgetItem for the console
+      * It will be set to green in the console class if the connection is made.
+      */
+      QBrush redBrush(Qt::red);
+      item->setForeground(0, redBrush);
+      console->dockPage();
+
+      /* create instances of the rest of the classes that will by default exist
+      * under each director */
+      createPagebRestore(topItem, console);
+      createPageMediaList(topItem, console);
+      QString emptymedia(""), emptyclient("");
+      createPageJobList(emptymedia, emptyclient, topItem, console);
+      createPageClients(topItem, console);
+
+      treeWidget->expandItem(topItem);
+      stackedWidget->setCurrentWidget(console);
+
+      /*
+       * Set the first console as current console
+       *
+       * ***FIXME**** note, to make this work correctly, we need a 
+       *  list of consoles, so that we can save/restore the settings 
+       *  for all consoles, and we need to figure out some way to
+       *  set the current console and the current topItem (actually Director)
+       *  when a page within a given console is clicked.  We also need
+       *  to redo the connections (signals/slots) that use m_console.
+       */
+      if (!m_console) {
+         m_console = console;
+         m_topItem = topItem;
+      }
+   }
    UnlockRes();
-
-   /* The top tree item representing the director */
-   m_topItem = createTopPage(dir->name());
-   m_topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
-
-   /* Create Tree Widget Item */
-   item = createPage("Console", m_topItem);
-   m_console->setTreeItem(item);
-
-   /* insert the cosole and tree widget item into the hashes */
-   hashInsert(item, m_console);
-
-   /* Set Color of treeWidgetItem for the console
-   * It will be set to green in the console class if the connection is made.
-   */
-   QBrush redBrush(Qt::red);
-   item->setForeground(0, redBrush);
-   m_console->dockPage();
-
-   /* create instances of the rest of the classes that will by default exist
-   * under each director */
-   createPagebRestore();
-   createPageMediaList();
-   QString emptymedia(""), emptyclient("");
-   createPageJobList(emptymedia, emptyclient);
-   createPageClients();
-
-   treeWidget->expandItem(m_topItem);
-   stackedWidget->setCurrentWidget(m_console);
 }
 
 /*
  * create an instance of the the brestore class on the stack
  */
-void MainWin::createPagebRestore()
+void MainWin::createPagebRestore(QTreeWidgetItem *parent, Console * /*console*/)
 {
-   QTreeWidgetItem *item=createPage("brestore", m_topItem);
+   QTreeWidgetItem *item=createPage("brestore", parent);
    bRestore* brestore = new bRestore(stackedWidget);
    hashInsert(item, brestore);
    brestore->dockPage();
@@ -120,10 +135,10 @@ void MainWin::createPagebRestore()
 /*
  * create an instance of the the medialist class on the stack
  */
-void MainWin::createPageMediaList()
+void MainWin::createPageMediaList(QTreeWidgetItem *parent, Console *console)
 {
-   QTreeWidgetItem *item=createPage("Media", m_topItem);
-   MediaList* medialist = new MediaList(stackedWidget, m_console);
+   QTreeWidgetItem *item=createPage("Media", parent);
+   MediaList* medialist = new MediaList(stackedWidget, console);
    hashInsert(item, medialist);
    medialist->dockPage();
 }
@@ -131,13 +146,14 @@ void MainWin::createPageMediaList()
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPageJobList(QString &media, QString &client)
+void MainWin::createPageJobList(QString &media, QString &client, 
+                 QTreeWidgetItem *parent, Console *console)
 {
    QTreeWidgetItem *item, *holdItem;
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
    if ((media == "") && (client == "")) {
-      item=createPage("All Jobs", m_topItem);
+      item = createPage("All Jobs", parent);
    } else {
       QString desc("Jobs ");
       if (media != "" ) {
@@ -146,9 +162,9 @@ void MainWin::createPageJobList(QString &media, QString &client)
       if (client != "" ) {
          desc += "of Client " + client;
       }
-      item=createPage(desc.toUtf8().data(), m_topItem);
+      item = createPage(desc.toUtf8().data(), parent);
    } 
-   JobList* joblist = new JobList(stackedWidget, m_console, media, client);
+   JobList* joblist = new JobList(stackedWidget, console, media, client);
    hashInsert(item, joblist);
    joblist->dockPage();
    /* If this is a query of jobs on a specific media */
@@ -166,10 +182,10 @@ void MainWin::createPageJobList(QString &media, QString &client)
 /*
  * create an instance of the the Clients class on the stack
  */
-void MainWin::createPageClients()
+void MainWin::createPageClients(QTreeWidgetItem *parent, Console *console)
 {
-   QTreeWidgetItem *item=createPage("Clients", m_topItem);
-   Clients* clients = new Clients(stackedWidget, m_console);
+   QTreeWidgetItem *item=createPage("Clients", parent);
+   Clients* clients = new Clients(stackedWidget, console);
    hashInsert(item, clients);
    clients->dockPage();
 }
@@ -608,4 +624,3 @@ void MainWin::closePage()
       }
    }
 }
-
