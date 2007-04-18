@@ -72,7 +72,7 @@ wxbConfigFileEditor::wxbConfigFileEditor(wxWindow* parent, wxString filename):
    
    if (!filen.FileExists()) {
       strbuf << wxT("#\n");
-      strbuf << _("# Bacula wx-console Configuration File\n");
+      strbuf << _("# Bacula bwx-console Configuration File\n");
       strbuf << wxT("#\n");
       strbuf << wxT("\n");
       strbuf << wxT("Director {\n");

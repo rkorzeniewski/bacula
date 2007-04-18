@@ -1,15 +1,7 @@
 /*
- *
- *    Bacula wx-console application
- *
- *    Nicolas Boichat, April 2004
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-20076 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *    Bacula bwx-console application
+ *
+ *    Nicolas Boichat, April 2004
+ *
+ *    Version $Id$
+ */
+
 
 // ============================================================================
 // declarations
@@ -115,12 +116,12 @@ bool MyApp::OnInit()
       }
    }
 
-   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_("Bacula wx-console"),
+   wxbMainFrame *frame = wxbMainFrame::CreateInstance(_("Bacula bwx-console"),
                          wxPoint(posx, posy), wxSize(sizex, sizey));
 
    frame->Show(TRUE);
 
-   frame->Print(wxString::Format(_("Welcome to bacula wx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)), CS_DEBUG);
+   frame->Print(wxString::Format(_("Welcome to bacula bwx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)), CS_DEBUG);
 
    frame->StartConsoleThread(wxT(""));
    

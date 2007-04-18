@@ -27,11 +27,11 @@ CONSOBJS = main.o console_thread.o authenticate.o console_conf.o wxbrestorepanel
 	     wxbmainframe.o wxbtableparser.o wxbtreectrl.o wxblistctrl.o wxbutils.o \
 	     wxbconfigpanel.o wxbconfigfileeditor.o wxbhistorytextctrl.o
 
-win32 = wx-console_private.res
+win32 = bwx-console_private.res
 
 WIN32RES = $(@WIN32@)
 
-macosx = wx-console.app
+macosx = bwx-console.app
 
 MACOSXAPP = $(@MACOSX@)
 
@@ -66,35 +66,35 @@ OPENSSL_LIBS = @OPENSSL_LIBS@
 
 
 #-------------------------------------------------------------------------
-all: Makefile wx-console $(MACOSXAPP)
+all: Makefile bwx-console $(MACOSXAPP)
 	@echo "==== Make of wx-console is good ===="
 	@echo " "
 
 # Mac OS X application bundle
 # See http://216.239.59.104/search?q=cache:a61SGKgoHSQJ:wiki.wxwidgets.org/wiki.pl%3FWxMac_Issues+wxmac+%22application+bundle%22&hl=fr
 
-wx-console.app: wx-console
-	-mkdir wx-console.app	 
-	-mkdir wx-console.app/Contents
-	-mkdir wx-console.app/Contents/MacOS
-	-mkdir wx-console.app/Contents/Resources
-	-mkdir wx-console.app/Contents/Resources/English.lproj
-	echo -n 'APPL????' > wx-console.app/Contents/PkgInfo
-	mv wx-console wx-console.app/Contents/MacOS/wx-console
-	cp wx-console.conf /Library/Preferences/org.bacula.wxconsole.conf
+bwx-console.app: bwx-console
+	-mkdir bwx-console.app	  
+	-mkdir bwx-console.app/Contents
+	-mkdir bwx-console.app/Contents/MacOS
+	-mkdir bwx-console.app/Contents/Resources
+	-mkdir bwx-console.app/Contents/Resources/English.lproj
+	echo -n 'APPL????' > bwx-console.app/Contents/PkgInfo
+	mv bwx-console bwx-console.app/Contents/MacOS/bwx-console
+	cp bwx-console.conf /Library/Preferences/org.bacula.wxconsole.conf
 
-wx-console: $(CONSOBJS) @WIN32@ ../lib/libbac.a
+bwx-console: $(CONSOBJS) @WIN32@ ../lib/libbac.a
 	$(CXX) $(CONSOBJS) $(WIN32RES) -o $@ $(LIBS) -L../lib $(CONS_LDFLAGS) \
  -lbac $(OPENSSL_LIBS)
 
-win32: wx-console_private.res
+win32: bwx-console_private.res
 	
 
-wx-console_private.res: wx-console_private.rc 
-	windres.exe -i wx-console_private.rc -I rc -o wx-console_private.res -O coff 
+bwx-console_private.res: bwx-console_private.rc 
+	windres.exe -i bwx-console_private.rc -I rc -o bwx-console_private.res -O coff 
 
 clean:
-	@$(RMF) $(CONSOBJS) wx-console $(WIN32RES)
+	@$(RMF) $(CONSOBJS) bwx-console $(WIN32RES)
 
 distclean: clean
 	$(RMF) Makefile
@@ -104,8 +104,8 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 install: all
-	$(INSTALL_PROGRAM) wx-console $(DESTDIR)$(sbindir)/wx-console
-	@srcconf=wx-console.conf; \
+	$(INSTALL_PROGRAM) bwx-console $(DESTDIR)$(sbindir)/bwx-console
+	@srcconf=bwx-console.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
 	   destconf=$$srcconf.new; \
 	   echo "  ==> Found existing $$srcconf, installing new conf file as $$destconf"; \
@@ -116,8 +116,8 @@ install: all
 	${INSTALL_CONFIG} $$srcconf ${DESTDIR}${sysconfdir}/$$destconf
 
 uninstall:
-	(cd $(DESTDIR)$(sbindir); $(RMF) wx-console)
-	(cd $(DESTDIR)$(sysconfdir); $(RMF) wx-console.conf wx-console.conf.new)
+	(cd $(DESTDIR)$(sbindir); $(RMF) bwx-console)
+	(cd $(DESTDIR)$(sysconfdir); $(RMF) bwx-console.conf bwx-console.conf.new)
 
 # Semi-automatic generation of dependencies:
 # Use gcc -MM because X11 `makedepend' doesn't work on all systems

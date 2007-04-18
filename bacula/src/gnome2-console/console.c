@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula GNOME Console interface to the Director
- *
- *     Kern Sibbald, March MMII
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula GNOME Console interface to the Director
+ *
+ *     Kern Sibbald, March MMII
+ *
+ *     Version $Id$
+ */
 
 #include "bacula.h"
 #include "console.h"
@@ -93,14 +93,14 @@ static bool quit = false;
 static guint initial;
 static int numdir = 0;
 
-#define CONFIG_FILE "./gnome-console.conf"   /* default configuration file */
+#define CONFIG_FILE "./bgnome-console.conf"   /* default configuration file */
 
 static void usage()
 {
    fprintf(stderr, _(
 PROG_COPYRIGHT
 "\nVersion: %s (%s) %s %s %s\n\n"
-"Usage: gnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
+"Usage: bgnome-console [-s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
 "       -dnn        set debug level to nn\n"
 "       -s          no signals\n"
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
    int no_signals = TRUE;
    int test_config = FALSE;
    int gargc = 1;
-   const char *gargv[2] = {"gnome-console", NULL};
+   const char *gargv[2] = {"bgnome-console", NULL};
    CONFONTRES *con_font;
 
 #ifdef ENABLE_NLS
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 #endif
 
    init_stack_dump();
-   my_name_is(argc, argv, "gnome-console");
+   my_name_is(argc, argv, "bgnome-console");
    init_msg(NULL, NULL);
    working_directory  = "/tmp";
 

@@ -728,7 +728,7 @@ void wxbRestorePanel::CmdStart()
             }
             
             int res = ::wxGetSingleChoiceIndex(message,
-               _("wx-console: unexpected restore question."), n, choices, this);
+               _("bwx-console: unexpected restore question."), n, choices, this);
             if (res == -1) {
                delete promptparser;
                promptparser = wxbUtils::WaitForPrompt(wxT(".\n"), true);
@@ -750,7 +750,7 @@ void wxbRestorePanel::CmdStart()
             delete promptparser;
             
             promptparser = wxbUtils::WaitForPrompt(::wxGetTextFromUser(message,
-               _("wx-console: unexpected restore question."),
+               _("bwx-console: unexpected restore question."),
                wxT(""), this) + wxT("\n"));
          }
       }
@@ -848,8 +848,8 @@ void wxbRestorePanel::CmdStart()
       }
 
       if (scheduledtime.Subtract(currenttime).IsLongerThan(wxTimeSpan::Seconds(150))) {
-         wxbMainFrame::GetInstance()->Print(_("Restore is scheduled in more than two minutes, wx-console will not wait for its completion.\n"), CS_DEBUG);
-         wxbMainFrame::GetInstance()->SetStatusText(_("Restore is scheduled in more than two minutes, wx-console will not wait for its completion."));
+         wxbMainFrame::GetInstance()->Print(_("Restore is scheduled in more than two minutes, bwx-console will not wait for its completion.\n"), CS_DEBUG);
+         wxbMainFrame::GetInstance()->SetStatusText(_("Restore is scheduled in more than two minutes, bwx-console will not wait for its completion."));
          SetStatus(finished);
          return;
       }
@@ -988,8 +988,8 @@ void wxbRestorePanel::CmdStart()
          }
          
          if ((!waitforever) && (sw.Time() > 60000)) {
-            wxbMainFrame::GetInstance()->Print(_("The restore job has not been started within one minute, wx-console will not wait for its completion anymore.\n"), CS_DEBUG);
-            wxbMainFrame::GetInstance()->SetStatusText(_("The restore job has not been started within one minute, wx-console will not wait for its completion anymore."));
+            wxbMainFrame::GetInstance()->Print(_("The restore job has not been started within one minute, bwx-console will not wait for its completion anymore.\n"), CS_DEBUG);
+            wxbMainFrame::GetInstance()->SetStatusText(_("The restore job has not been started within one minute, bwx-console will not wait for its completion anymore."));
             break;
          }
       }

@@ -264,7 +264,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 
    CreateStatusBar(1);
    
-   SetStatusText(wxString::Format(_("Welcome to bacula wx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)));
+   SetStatusText(wxString::Format(_("Welcome to bacula bwx-console %s (%s)!\n"), wxT(VERSION), wxT(BDATE)));
 
    wxPanel* global = new wxPanel(this, -1);
 
@@ -284,7 +284,7 @@ wxbMainFrame::wxbMainFrame(const wxString& title, const wxPoint& pos, const wxSi
 #else 
    consoleCtrl->SetDefaultStyle(wxTextAttr(*wxBLACK, wxNullColour, font));
 #if (wxUSE_UNICODE == 0) && __WXGTK20__
-   Print(_("Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode support when handling non-ASCII filenames: Every non-ASCII character in such filenames will be replaced by an interrogation mark.\nIf this behaviour disturbs you, please build wx-console against a Unicode version of wxWidgets for GTK+ 2.0.\n---\n"), CS_DEBUG);   
+   Print(_("Warning : There is a problem with wxWidgets for GTK+ 2.0 without Unicode support when handling non-ASCII filenames: Every non-ASCII character in such filenames will be replaced by an interrogation mark.\nIf this behaviour disturbs you, please build bwx-console against a Unicode version of wxWidgets for GTK+ 2.0.\n---\n"), CS_DEBUG);   
 #endif
 #endif
 
@@ -373,7 +373,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
       
       if (((wxTheApp->argc % 2) != 1)) {
          Print(_("Error while parsing command line arguments, using defaults.\n"), CS_DEBUG);
-         Print(_("Usage: wx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
+         Print(_("Usage: bwx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
       }
       else {
          for (int c = 1; c < wxTheApp->argc; c += 2) {
@@ -385,14 +385,14 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
             }
             if (wxTheApp->argv[c][0] != '-') {
                Print(_("Error while parsing command line arguments, using defaults.\n"), CS_DEBUG);
-               Print(_("Usage: wx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
+               Print(_("Usage: bwx-console [-c configfile] [-w tmp]\n"), CS_DEBUG);
                break;
             }
          }
       }
       
       if (configfile == wxT("")) {
-         wxConfig::Set(new wxConfig(wxT("wx-console"), wxT("bacula")));
+         wxConfig::Set(new wxConfig(wxT("bwx-console"), wxT("bacula")));
          if (!wxConfig::Get()->Read(wxT("/ConfigFile"), &configfile)) {
 #ifdef HAVE_MACOSX
             wxFileName filename(::wxGetHomeDir());
@@ -403,7 +403,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
             }
             configfile += L"Library/Preferences/org.bacula.wxconsole.conf";
 #else
-            wxFileName filename(::wxGetCwd(), wxT("wx-console.conf"));
+            wxFileName filename(::wxGetCwd(), wxT("bwx-console.conf"));
             filename.MakeAbsolute();
             configfile = filename.GetLongPath();
 #ifdef HAVE_WIN32
@@ -414,7 +414,7 @@ void wxbMainFrame::StartConsoleThread(const wxString& config) {
    
             int answer = wxMessageBox(
                               wxString::Format(_(
-                              "It seems that it is the first time you run wx-console.\nThis file (%s) has been choosen as default configuration file.\nDo you want to edit it? (if you click No you will have to select another file)"),
+                              "It seems that it is the first time you run bwx-console.\nThis file (%s) has been choosen as default configuration file.\nDo you want to edit it? (if you click No you will have to select another file)"),
                               configfile.c_str()),
                               _("First run"),
                               wxYES_NO | wxICON_QUESTION, this);
@@ -514,11 +514,11 @@ void wxbMainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 void wxbMainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
    wxString msg;
-   msg.Printf(_("Welcome to Bacula wx-console.\n"
+   msg.Printf(_("Welcome to Bacula bwx-console.\n"
      "Written by Nicolas Boichat <nicolas@boichat.ch>\n"
      "Copyright (C), 2005-2007 Free Software Foundation Europe, e.V.\n"));
 
-   wxMessageBox(msg, _("About Bacula wx-console"), wxOK | wxICON_INFORMATION, this);
+   wxMessageBox(msg, _("About Bacula bwx-console"), wxOK | wxICON_INFORMATION, this);
 }
 
 void wxbMainFrame::OnChangeConfig(wxCommandEvent& event) {
@@ -705,7 +705,7 @@ void wxbMainFrame::Print(wxString str, int status)
             }
             
             int res = ::wxGetSingleChoiceIndex(message,
-               _("wx-console: unexpected director's question."), n, choices, this);
+               _("bwx-console: unexpected director's question."), n, choices, this);
             if (res == -1) { //Cancel pressed
                Send(wxT(".\n"));
             }
@@ -722,7 +722,7 @@ void wxbMainFrame::Print(wxString str, int status)
          }
          else {
             Send(::wxGetTextFromUser(message,
-               _("wx-console: unexpected director's question."),
+               _("bwx-console: unexpected director's question."),
                wxT(""), this) + wxT("\n"));
          }
       }

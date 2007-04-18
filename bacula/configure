@@ -1430,9 +1430,9 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
-  --enable-gnome	  enable build of gnome-console GUI disabled
+  --enable-gnome	  enable build of bgnome-console GUI disabled
   --enable-bat	enable build of bat Qt4 GUI disabled
-  --enable-wx-console     enable build of wxWidgets console disabled
+  --enable-bwx-console     enable build of wxWidgets console disabled
   --enable-tray-monitor   enable build of Gnome tray monitor (compatible with KDE) disabled
   --enable-smartalloc     enable smartalloc debugging support disabled
   --enable-static-tools   enable static tape tools disabled
@@ -14708,11 +14708,11 @@ fi
 
 
 # -------------------------------------------
-# wx-console (default off)
+# bwx-console (default off)
 # -------------------------------------------
-# Check whether --enable-wx-console was given.
-if test "${enable_wx_console+set}" = set; then
-  enableval=$enable_wx_console; if test x$enableval = xyes; then
+# Check whether --enable-bwx-console was given.
+if test "${enable_bwx_console+set}" = set; then
+  enableval=$enable_bwx_console; if test x$enableval = xyes; then
     support_wx_console=yes
   fi
 fi
@@ -14732,7 +14732,7 @@ if test x$support_wx_console = xyes; then
      WX_DIR=src/wx-console
   else
      echo " "
-     echo "wx-config program not found. wx-console disabled."
+     echo "wx-config program not found. bwx-console disabled."
      echo " "
      support_wx_console=no
   fi
@@ -14875,8 +14875,8 @@ STATIC_GNOME_CONS=
 STATIC_WX_CONS=
 if test x$support_static_cons = xyes; then
    STATIC_CONS="static-bconsole"
-   STATIC_GNOME_CONS="static-gnome-console"
-   STATIC_WX_CONS="static-wx-console"
+   STATIC_GNOME_CONS="static-bgnome-console"
+   STATIC_WX_CONS="static-bwx-console"
 fi
 
 
@@ -33853,7 +33853,7 @@ if test "x${subsysdir}" = "x${sbindir}" ; then
    exit 1
 fi
 
-ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/gnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/dvd-simulator scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/gnome-console.conf src/wx-console/Makefile src/wx-console/wx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile po/Makefile.in $PFILES"
+ac_config_files="$ac_config_files autoconf/Make.common Makefile manpages/Makefile scripts/startmysql scripts/stopmysql scripts/btraceback scripts/startit scripts/stopit scripts/bconsole scripts/gconsole scripts/bacula scripts/bacula-ctl-dir scripts/bacula-ctl-fd scripts/bacula-ctl-sd scripts/devel_bacula scripts/Makefile scripts/logrotate scripts/bacula.desktop.gnome1 scripts/bacula.desktop.gnome2 scripts/bacula.desktop.gnome1.consolehelper scripts/bacula.desktop.gnome2.consolehelper scripts/bacula.desktop.gnome1.xsu scripts/bacula.desktop.gnome2.xsu scripts/bgnome-console.console_apps scripts/mtx-changer scripts/disk-changer scripts/dvd-handler scripts/dvd-simulator scripts/bacula-tray-monitor.desktop scripts/logwatch/Makefile scripts/logwatch/logfile.bacula.conf scripts/wxconsole.console_apps scripts/wxconsole.desktop.consolehelper scripts/wxconsole.desktop.xsu src/Makefile src/host.h src/console/Makefile src/console/bconsole.conf src/gnome2-console/Makefile src/gnome2-console/bgnome-console.conf src/wx-console/Makefile src/wx-console/bwx-console.conf src/tray-monitor/Makefile src/tray-monitor/tray-monitor.conf src/dird/Makefile src/dird/bacula-dir.conf src/lib/Makefile src/stored/Makefile src/stored/bacula-sd.conf src/filed/Makefile src/filed/bacula-fd.conf src/cats/Makefile src/cats/make_catalog_backup src/cats/delete_catalog_backup src/cats/create_postgresql_database src/cats/update_postgresql_tables src/cats/make_postgresql_tables src/cats/grant_postgresql_privileges src/cats/drop_postgresql_tables src/cats/drop_postgresql_database src/cats/create_mysql_database src/cats/update_mysql_tables src/cats/make_mysql_tables src/cats/grant_mysql_privileges src/cats/drop_mysql_tables src/cats/drop_mysql_database src/cats/create_sqlite_database src/cats/update_sqlite_tables src/cats/make_sqlite_tables src/cats/grant_sqlite_privileges src/cats/drop_sqlite_tables src/cats/drop_sqlite_database src/cats/create_sqlite3_database src/cats/update_sqlite3_tables src/cats/make_sqlite3_tables src/cats/grant_sqlite3_privileges src/cats/drop_sqlite3_tables src/cats/drop_sqlite3_database src/cats/sqlite src/cats/mysql src/cats/create_bdb_database src/cats/update_bdb_tables src/cats/make_bdb_tables src/cats/grant_bdb_privileges src/cats/drop_bdb_tables src/cats/drop_bdb_database src/cats/create_bacula_database src/cats/update_bacula_tables src/cats/grant_bacula_privileges src/cats/make_bacula_tables src/cats/drop_bacula_tables src/cats/drop_bacula_database src/findlib/Makefile src/tools/Makefile po/Makefile.in $PFILES"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -34437,7 +34437,7 @@ do
     "scripts/bacula.desktop.gnome2.consolehelper") CONFIG_FILES="$CONFIG_FILES scripts/bacula.desktop.gnome2.consolehelper" ;;
     "scripts/bacula.desktop.gnome1.xsu") CONFIG_FILES="$CONFIG_FILES scripts/bacula.desktop.gnome1.xsu" ;;
     "scripts/bacula.desktop.gnome2.xsu") CONFIG_FILES="$CONFIG_FILES scripts/bacula.desktop.gnome2.xsu" ;;
-    "scripts/gnome-console.console_apps") CONFIG_FILES="$CONFIG_FILES scripts/gnome-console.console_apps" ;;
+    "scripts/bgnome-console.console_apps") CONFIG_FILES="$CONFIG_FILES scripts/bgnome-console.console_apps" ;;
     "scripts/mtx-changer") CONFIG_FILES="$CONFIG_FILES scripts/mtx-changer" ;;
     "scripts/disk-changer") CONFIG_FILES="$CONFIG_FILES scripts/disk-changer" ;;
     "scripts/dvd-handler") CONFIG_FILES="$CONFIG_FILES scripts/dvd-handler" ;;
@@ -34453,9 +34453,9 @@ do
     "src/console/Makefile") CONFIG_FILES="$CONFIG_FILES src/console/Makefile" ;;
     "src/console/bconsole.conf") CONFIG_FILES="$CONFIG_FILES src/console/bconsole.conf" ;;
     "src/gnome2-console/Makefile") CONFIG_FILES="$CONFIG_FILES src/gnome2-console/Makefile" ;;
-    "src/gnome2-console/gnome-console.conf") CONFIG_FILES="$CONFIG_FILES src/gnome2-console/gnome-console.conf" ;;
+    "src/gnome2-console/bgnome-console.conf") CONFIG_FILES="$CONFIG_FILES src/gnome2-console/bgnome-console.conf" ;;
     "src/wx-console/Makefile") CONFIG_FILES="$CONFIG_FILES src/wx-console/Makefile" ;;
-    "src/wx-console/wx-console.conf") CONFIG_FILES="$CONFIG_FILES src/wx-console/wx-console.conf" ;;
+    "src/wx-console/bwx-console.conf") CONFIG_FILES="$CONFIG_FILES src/wx-console/bwx-console.conf" ;;
     "src/tray-monitor/Makefile") CONFIG_FILES="$CONFIG_FILES src/tray-monitor/Makefile" ;;
     "src/tray-monitor/tray-monitor.conf") CONFIG_FILES="$CONFIG_FILES src/tray-monitor/tray-monitor.conf" ;;
     "src/dird/Makefile") CONFIG_FILES="$CONFIG_FILES src/dird/Makefile" ;;
@@ -35586,7 +35586,7 @@ Configuration on `date`:
   enable-smartalloc:	      ${support_smartalloc}
   enable-bat:		      ${support_bat}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
-  enable-wx-console:	      ${support_wx_console} ${wx_version}
+  enable-bwx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}
   client-only:		      ${build_client_only}
   build-dird:		      ${build_dird}

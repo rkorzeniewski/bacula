@@ -172,7 +172,7 @@ void console_thread::InitLib()
    }
    
    init_stack_dump();
-   my_name_is(0, NULL, "wx-console");
+   my_name_is(0, NULL, "bwx-console");
    working_directory = (const char*) console_thread::working_dir.GetData();
    
    inited = true;
@@ -253,7 +253,7 @@ wxString console_thread::LoadConfig(wxString configfile)
    }
 
    term_msg();
-   wxRemoveFile(console_thread::working_dir + wxT("/wx-console.conmsg"));
+   wxRemoveFile(console_thread::working_dir + wxT("/bwx-console.conmsg"));
    init_msg(NULL, NULL);
    
    configloaded = true;
@@ -282,7 +282,7 @@ console_thread::~console_thread() {
 void* console_thread::Entry() {
 #ifndef HAVE_WIN32
    /* It seems we must redefine the locale on each thread on wxGTK. 
-    * On Win32 it makes wx-console crash. */
+    * On Win32 it makes bwx-console crash. */
    wxLocale m_locale;
    m_locale.Init();
    m_locale.AddCatalog(wxT("bacula"));
@@ -454,7 +454,7 @@ void* console_thread::Entry() {
    int stat;
 
    int last_is_eod = 0; /* Last packet received is BNET_EOD */
-   int do_not_forward_eod = 0; /* Last packet received/sent is .messages, so don't forward EOD. (so wx-console don't show the prompt again) */
+   int do_not_forward_eod = 0; /* Last packet received/sent is .messages, so don't forward EOD. (so bwx-console don't show the prompt again) */
 
    /* main loop */
    while(!TestDestroy()) {   /* Tests if thread has been ended */
