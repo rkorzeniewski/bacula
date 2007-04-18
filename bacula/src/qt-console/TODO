@@ -1,0 +1,66 @@
+Broken with multiple directors:
+- If you click on the second director, it will probably open, but
+none of the pages that are defined below it will be able to talk
+to it.  They will most likely talk to the first director.
+
+- Possibly some other things I didn't think of.
+
+Things to do:
+- When any director is clicked, we need to set it as the current
+director and set the current console as well.
+
+- When any console is clicked we need to set it as the current
+console (m_console) and also set its director as the current
+director (m_topItem).  These are in the mainwin class.
+
+- When any page is selected, we must set both the current
+director (m_topItem) and current console (m_console) that this
+page is connected to.
+
+- We currently have a concept of the current or global console
+(and Director), and I think we must keep this because the tool
+bar buttons and menu items can only work with one
+Director/console.
+
+- I think we need to make the current Director more explicit, by
+perhaps highlighting it in the page selector when it is current
+and unhighlighting it when it is not (we could use color as we do
+for the console, though some color blind people may have
+problems.
+
+- We also need a concept of a "local" director/console for each
+page, so the page knows who it is talking to -- this doesn't
+currently exist, so I think we must pass the director and console
+to each page widget constructor.
+
+- We also must somehow make the low level I/O routines know which
+director/console to use.  Currently they always use the single
+global one defined in the mainWin class (if I remember right).
+
+In short, there is a lot of work to be done to make multiple
+simultaneous directors work.
+
+If the above prooves to be too much, we might consider to only
+have a single director at a time, and simply let the user select
+which director he wants to connect to (one at a time, but
+dynamically).  In the end, this may be the best thing to do, so
+any user who wishes to connect to multiple directors would run
+two instances of bat.  I am a bit unsure now, but the above list
+of things to do is much bigger than I thought it was going to be.
+
+Another idea for what you have implemented:
+- I think that the dynamic pages that you create on the fly
+should be nested under the item that creates them more like a
+directory tree.
+
+For example: Jobs on Volume xxx, probably should be shown under
+"All Jobs" (or Media if that is what created it) and "Jobs of
+Client Rufus" probably should be shown under "Clients".  I base
+this on looking at the Select page list after I have brought up 3
+or 4 dynamic pages.  Once there are a good number, I get a bit
+confused where they came from.  This would also permit selecting
+multipe Volumes then displaying multiple pages, one for each
+Volume selected.  If they are nested, then that nested level can
+be expanded or collapsed, which would be pretty cool at keeping
+information, but getting it out of the way, sort of like what
+happens for a directory tree.
