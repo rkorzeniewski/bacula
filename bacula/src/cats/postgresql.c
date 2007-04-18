@@ -1,16 +1,7 @@
 /*
- * Bacula Catalog Database routines specific to PostgreSQL
- *   These are PostgreSQL specific routines
- *
- *    Dan Langille, December 2003
- *    based upon work done by Kern Sibbald, March 2000
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Catalog Database routines specific to PostgreSQL
+ *   These are PostgreSQL specific routines
+ *
+ *    Dan Langille, December 2003
+ *    based upon work done by Kern Sibbald, March 2000
+ *
+ *    Version $Id$
+ */
 
 
 /* The following is necessary so that we do not include
@@ -545,13 +545,13 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
    Dmsg0(500, "my_postgresql_batch_start started\n");
 
    if (my_postgresql_query(mdb,
-			   " CREATE TEMPORARY TABLE batch "
-			   "        (fileindex int,       "
-			   "        jobid int,            "
-			   "        path varchar,         "
-			   "        name varchar,         "
-			   "        lstat varchar,        "
-			   "        md5 varchar)") == 1)
+                           " CREATE TEMPORARY TABLE batch "
+                           "        (fileindex int,       "
+                           "        jobid int,            "
+                           "        path varchar,         "
+                           "        name varchar,         "
+                           "        lstat varchar,        "
+                           "        md5 varchar)") == 1)
    {
       Dmsg0(500, "my_postgresql_batch_start failed\n");
       return 1;
@@ -590,7 +590,7 @@ int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error)
    int count=30;
    Dmsg0(500, "my_postgresql_batch_end started\n");
 
-   if (!mdb) {			/* no files ? */
+   if (!mdb) {                  /* no files ? */
       return 0;
    }
 
@@ -635,13 +635,13 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    }
 
    len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
-	      ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
-	      mdb->esc_name, ar->attr, digest);
+              ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
+              mdb->esc_name, ar->attr, digest);
 
    do { 
       res = PQputCopyData(mdb->db,
-			  mdb->cmd,
-			  len);
+                          mdb->cmd,
+                          len);
    } while (res == 0 && --count > 0);
 
    if (res == 1) {
@@ -676,27 +676,27 @@ char *my_postgresql_copy_escape(char *dest, char *src, size_t len)
    while (len > 0 && *src) {
       switch (*src) {
       case '\n':
-	 c = 'n';
-	 break;
+         c = 'n';
+         break;
       case '\\':
-	 c = '\\';
-	 break;
+         c = '\\';
+         break;
       case '\t':
-	 c = 't';
-	 break;
+         c = 't';
+         break;
       case '\r':
-	 c = 'r';
-	 break;
+         c = 'r';
+         break;
       default:
-	 c = '\0' ;
+         c = '\0' ;
       }
 
       if (c) {
-	 *dest = '\\';
-	 dest++;
-	 *dest = c;
+         *dest = '\\';
+         dest++;
+         *dest = c;
       } else {
-	 *dest = *src;
+         *dest = *src;
       }
 
       len--;
