@@ -1810,14 +1810,10 @@ void DEVICE::clrerror(int func)
    /* On some systems such as NetBSD, this clears all errors */
    get_os_tape_file();
 
-/* Found on Linux */
+/* Found on Solaris */
 #ifdef MTIOCLRERR
 {
-   struct mtop mt_com;
-   mt_com.mt_op = MTIOCLRERR;
-   mt_com.mt_count = 1;
-   /* Clear any error condition on the tape */
-   tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+   tape_ioctl(m_fd, MTIOCLRERR);
    Dmsg0(200, "Did MTIOCLRERR\n");
 }
 #endif
