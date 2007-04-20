@@ -105,6 +105,14 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
    bool runit;
    bool status;
 
+   int when;
+
+   if (strstr(label, "Before")) {
+      when = SCRIPT_Before;
+   } else {
+      when = SCRIPT_After;
+   }
+
    if (runscripts == NULL) {
       Dmsg0(100, "runscript: WARNING RUNSCRIPTS list is NULL\n");
       return 0;
@@ -114,28 +122,33 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       Dmsg2(200, "runscript: try to run %s:%s\n", NPRT(script->target), NPRT(script->command));
       runit=false;
 
-      if ((script->when & SCRIPT_Before) && (jcr->JobStatus == JS_Created)) {
-        Dmsg0(200, "runscript: Run it because SCRIPT_Before\n");
-        runit = true;
+      if ((script->when & SCRIPT_Before) && (when & SCRIPT_Before)) {
+	 if (  (script->on_success && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
+	       ||
+	       (script->on_failure && job_canceled(jcr))
+	    )
+	 {
+	    Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", script->command,
+                                                                                  script->on_success,
+                                                                                  script->on_failure,
+                                                                                  jcr->JobStatus );
+
+	    runit = true;
+	 }
       }
 
-      if ((script->when & SCRIPT_Before) && (jcr->JobStatus == JS_Running)) {
-        Dmsg0(200, "runscript: Run it because SCRIPT_Before\n");
-        runit = true;
-      }
-
-      if (script->when & SCRIPT_After) {
-        if (  (script->on_success && (jcr->JobStatus == JS_Terminated))
-            ||
-              (script->on_failure && job_canceled(jcr))
-           )
-        {
-           Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", script->command,
-                                                                                script->on_success,
-                                                                                script->on_failure,
-                                                                                jcr->JobStatus );
-           runit = true;
-        }
+      if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
+	 if (  (script->on_success && (jcr->JobStatus == JS_Terminated))
+	       ||
+	       (script->on_failure && job_canceled(jcr))
+	    )
+	 {
+	    Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", script->command,
+                                                                                 script->on_success,
+                                                                                 script->on_failure,
+                                                                                 jcr->JobStatus );
+	    runit = true;
+	 }
       }
 
       if (!script->is_local()) {

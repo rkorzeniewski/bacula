@@ -45,7 +45,7 @@
  * script->on_failure = true;
  * script->when = SCRIPT_After;
  * 
- * script->run("Label");
+ * script->run("LabelBefore");	// the label must contain "Before" or "After" special keyword
  * free_runscript(script);
  */
 
@@ -74,7 +74,7 @@ public:
    /* TODO : drop this with bacula 1.42 */
    bool old_proto;              /* used by old 1.3X protocol */
 
-   int run(JCR *job, const char *name="");
+   int run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
    void set_command(const POOLMEM *cmd);
    void set_target(const POOLMEM *client_name);
