@@ -99,6 +99,33 @@ Job {
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
 }
 
+#@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"
+#we dont execute FAILED2 
+#@hostname@-dir: AfterJob: run command "/bin/echo RunAfterFailedJob"
+Job {
+  Name = "RUN_FD_FAILED2"
+  FileSet = FS_TESTJOB  
+  JobDefs = DefaultJob
+  RunScript {
+    Command = "/bin/false RUN_FD_FAILED1"
+    abortjobonerror = yes
+    RunsWhen = Before
+  }
+  RunScript {
+    Command = "/bin/false RUN_FD_FAILED2"
+    abortjobonerror = yes
+    RunsWhen = Before
+  }
+  RunScript {
+    Command = "/bin/false RUN_FD_FAILED3"
+    abortjobonerror = yes
+    RunsOnFailure = yes
+    RunsWhen = Before
+  }
+
+  Run After Failed Job = "/bin/echo RunAfterFailedJob"
+}
+
 #@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"
 #Backup OK -- with warnings
 Job {
@@ -140,13 +167,13 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
-  dbname = bacula; user = bacula; password = ""
+  dbname = regress; user = regress; password = ""
 }
 
 
 Messages {
   Name = Standard
-  stdout = all, !skipped
+  console = all, !skipped, !saved
 }
 
 # Default pool definition
