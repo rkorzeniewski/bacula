@@ -2,27 +2,6 @@ Index: patches/testing/breg.c
 ===================================================================
 --- patches/testing/breg.c	(révision 4529)
 +++ patches/testing/breg.c	(copie de travail)
-@@ -7,7 +7,7 @@
-  *
-  */
- /*
--   BaculaÂ® - The Network Backup Solution
-+   BaculaÂ® - The Network Backup Solution
- 
-    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
- 
-@@ -28,9 +28,9 @@
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301, USA.
- 
--   BaculaÂ® is a registered trademark of John Walker.
-+   BaculaÂ® is a registered trademark of John Walker.
-    The licensor of Bacula is the Free Software Foundation Europe
--   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-    Switzerland, email:ftf@fsfeurope.org.
- */
- 
 @@ -383,10 +383,11 @@
      * add_prefix   = !^!add_prefix!          5 bytes
      * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
@@ -51,27 +30,6 @@ Index: patches/testing/bregtest.c
 ===================================================================
 --- patches/testing/bregtest.c	(révision 4529)
 +++ patches/testing/bregtest.c	(copie de travail)
-@@ -5,7 +5,7 @@
-  *
-  */
- /*
--   BaculaÂ® - The Network Backup Solution
-+   BaculaÂ® - The Network Backup Solution
- 
-    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
- 
-@@ -26,9 +26,9 @@
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301, USA.
- 
--   BaculaÂ® is a registered trademark of John Walker.
-+   BaculaÂ® is a registered trademark of John Walker.
-    The licensor of Bacula is the Free Software Foundation Europe
--   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-    Switzerland, email:ftf@fsfeurope.org.
- */
- 
 @@ -62,8 +62,11 @@
  
  int main(int argc, char *const *argv)
@@ -90,27 +48,6 @@ Index: patches/testing/breg.h
 ===================================================================
 --- patches/testing/breg.h	(révision 4529)
 +++ patches/testing/breg.h	(copie de travail)
-@@ -4,7 +4,7 @@
-  * Version $Id$
-  */
- /*
--   BaculaÂ® - The Network Backup Solution
-+   BaculaÂ® - The Network Backup Solution
- 
-    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
- 
-@@ -25,9 +25,9 @@
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301, USA.
- 
--   BaculaÂ® is a registered trademark of John Walker.
-+   BaculaÂ® is a registered trademark of John Walker.
-    The licensor of Bacula is the Free Software Foundation Europe
--   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 ZÃ¼rich,
-    Switzerland, email:ftf@fsfeurope.org.
- */
- 
 @@ -98,8 +98,16 @@
  /* foreach_alist free RUNSCRIPT */
  void free_bregexps(alist *bregexps); /* you have to free alist */
