@@ -40,13 +40,12 @@
 #include "bat.h"
 #include "clients/clients.h"
 
-Clients::Clients(QStackedWidget *parent, Console *console)
+Clients::Clients()
 {
    setupUi(this);
+   pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
-   mp_console = console;
-   m_parent = parent;
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
@@ -81,7 +80,7 @@ void Clients::populateTree()
    /* This could be a log item */
    //printf("In Clients::populateTree()\n");
 
-   foreach(QString clientName, mp_console->client_list){
+   foreach(QString clientName, m_console->client_list){
       clientItem = new QTreeWidgetItem(topItem);
       clientItem->setText(0, clientName);
       clientItem->setData(0, Qt::UserRole, 1);
@@ -97,8 +96,8 @@ void Clients::populateTree()
 
       QStringList results;
       /* This could be a log item */
-      //printf("Clients query cmd : %s\n",query.toUtf8().data());
-      if (mp_console->sql_cmd(query, results)) {
+      printf("Clients query cmd : %s\n",query.toUtf8().data());
+      if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount == 1){
             QString resultline;
@@ -188,8 +187,7 @@ void Clients::createContextMenu()
 void Clients::showJobs()
 {
    QString emptymedia("");
-   mainWin->createPageJobList(emptymedia, m_currentlyselected, 
-               mainWin->topItem(), mainWin->console());
+   mainWin->createPageJobList(emptymedia, m_currentlyselected);
 }
 
 /*
@@ -208,3 +206,12 @@ void Clients::currentStackItem()
       m_populated=true;
    }
 }
+
+/*
+ * Virtual Function to return the name for the medialist tree widget
+ */
+void Clients::treeWidgetName(QString &name)
+{
+   name = "Clients";
+}
+

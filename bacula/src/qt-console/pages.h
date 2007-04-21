@@ -50,6 +50,8 @@
  *  populated.
  */
 
+class Console;
+
 class Pages : public QWidget
 {
 public:
@@ -64,14 +66,18 @@ public:
    virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();
    void closeStackPage();
+   Console *console() { return m_console; };
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
    virtual void closeEvent(QCloseEvent* event);
 
 protected:
+   void pgInitialize();
    bool m_closeable;
    bool m_docked;
+   virtual void treeWidgetName(QString &);
+   Console *m_console;
 };
 
 #endif /* _PAGES_H_ */

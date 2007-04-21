@@ -176,3 +176,28 @@ void Pages::closeStackPage()
    /* remove this */
    delete this;
 }
+
+/*
+ * Function to set members from the external mainwin
+ */
+void Pages::pgInitialize()
+{
+   m_parent = mainWin->stackedWidget;
+   m_console = mainWin->currentConsole();
+   QTreeWidgetItem *parentTreeWidgetItem = m_console->directorTreeItem();
+
+   QTreeWidgetItem *item = new QTreeWidgetItem(parentTreeWidgetItem);
+   QString name; 
+   treeWidgetName(name);
+   item->setText(0, name);
+   mainWin->hashInsert(item, this);
+}
+
+/*
+ * Virtual Function to return a name
+ * All subclasses should override this function
+ */
+void Pages::treeWidgetName(QString &name)
+{
+   name = "Default Page Name";
+}

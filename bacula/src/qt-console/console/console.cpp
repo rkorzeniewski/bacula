@@ -43,6 +43,7 @@ Console::Console(QStackedWidget *parent)
    QFont font;
    m_parent = parent;
    m_closeable = false;
+   m_console = this;
    (void)parent;
 
    setupUi(this);
@@ -119,7 +120,8 @@ void Console::connect()
       /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
       QBrush greenBrush(Qt::green);
-      m_consoleItem->setForeground(0, greenBrush);
+      QTreeWidgetItem *item = mainWin->getFromHash(this);
+      item->setForeground(0, greenBrush);
    }
 
    jcr.dir_bsock = m_sock;
@@ -417,7 +419,8 @@ void Console::write_dir(const char *msg)
       mainWin->set_status(" Director not connected. Click on connect button.");
       mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
       QBrush redBrush(Qt::red);
-      m_consoleItem->setForeground(0, redBrush);
+      QTreeWidgetItem *item = mainWin->getFromHash(this);
+      item->setForeground(0, redBrush);
       m_at_prompt = false;
    }
 }
@@ -571,7 +574,8 @@ int Console::read()
          m_sock = NULL;
          mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
          QBrush redBrush(Qt::red);
-         m_consoleItem->setForeground(0, redBrush);
+         QTreeWidgetItem *item = mainWin->getFromHash(this);
+         item->setForeground(0, redBrush);
          m_notifier->setEnabled(false);
          delete m_notifier;
          m_notifier = NULL;
@@ -611,9 +615,9 @@ void Console::notify(bool enable)
    m_notifier->setEnabled(enable);   
 }
 
-void Console::setTreeItem(QTreeWidgetItem *item)
+void Console::setDirectorTreeItem(QTreeWidgetItem *item)
 {
-   m_consoleItem = item;
+   m_directorTreeItem = item;
 }
 
 void Console::setDirRes(DIRRES *dir) 

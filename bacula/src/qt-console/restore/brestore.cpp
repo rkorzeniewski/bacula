@@ -38,14 +38,21 @@
 #include "bat.h"
 #include "restore.h"
 
-bRestore::bRestore(QStackedWidget *parent)
+bRestore::bRestore()
 {
-   m_parent = parent;
-   m_closeable = true;
-   (void)parent;
    setupUi(this);
+   pgInitialize();
+   m_closeable = true;
 }
 
 bRestore::~bRestore()
 {
+}
+
+/*
+ * Virtual Function to return the name for the medialist tree widget
+ */
+void bRestore::treeWidgetName(QString &name)
+{
+   name = "bRestore";
 }

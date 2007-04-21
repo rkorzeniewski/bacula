@@ -43,7 +43,7 @@ class MediaList : public Pages, public Ui::MediaListForm
    Q_OBJECT 
 
 public:
-   MediaList(QStackedWidget *parent, Console *console);
+   MediaList();
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void PgSeltreeWidgetDoubleClicked();
@@ -55,6 +55,7 @@ public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void editMedia();
    void showJobs();
+   virtual void treeWidgetName(QString &);
 
 private slots:
    void populateTree();
@@ -64,7 +65,6 @@ private:
    void createContextMenu();
 
 private:
-   Console *mp_console;
    QString m_currentlyselected;
    bool m_populated;
    bool m_checkcurwidget;

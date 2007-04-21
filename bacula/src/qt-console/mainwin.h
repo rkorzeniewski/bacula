@@ -38,10 +38,10 @@
 
 #include <QtGui>
 #include <QList>
-#include "pages.h"
 #include "ui_main.h"
 #include "label/label.h"
 #include "run/run.h"
+#include "pages.h"
 #include "restore/restore.h"
 #include "medialist/medialist.h"
 #include "joblist/joblist.h"
@@ -68,16 +68,17 @@ public:
    void hashInsert(QTreeWidgetItem *, Pages *);
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);
-   QTreeWidgetItem *topItem() { return m_topItem; };
-   Console *console() { return m_console; };
+   QTreeWidgetItem *currentTopItem() { return m_currentConsole->directorTreeItem(); };
+   Console *currentConsole() { return m_currentConsole; };
    Pages* getFromHash(QTreeWidgetItem *);
    QTreeWidgetItem* getFromHash(Pages *);
    /* This hash is to get the page when the page selector widget is known */
    QHash<QTreeWidgetItem*,Pages*> m_pagehash;
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
-   void createPageJobList(QString &, QString &, QTreeWidgetItem *parent, 
-                          Console *console);
+   /* This is a list of consoles */
+   QList<Console*> m_consoleList;
+   void createPageJobList(QString &, QString &);
 
 public slots:
    void input_line();
@@ -102,13 +103,12 @@ private:
    void createPages();
    QTreeWidgetItem *createTopPage(char *name);
    QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent);
-   void createPagebRestore(QTreeWidgetItem *parent, Console *console);
-   void createPageMediaList(QTreeWidgetItem *parent, Console *console);
-   void createPageClients(QTreeWidgetItem *parent, Console *console);
+   void createPagebRestore();
+   void createPageMediaList();
+   void createPageClients();
 
 private:
-   Console *m_console;
-   QTreeWidgetItem *m_topItem;
+   Console *m_currentConsole;
    Pages *m_pagespophold;
    QStringList m_cmd_history;
    int m_cmd_last;
