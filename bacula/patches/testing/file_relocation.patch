@@ -1,87 +1,16 @@
-Index: patches/testing/breg.c
-===================================================================
---- patches/testing/breg.c	(révision 4529)
-+++ patches/testing/breg.c	(copie de travail)
-@@ -383,10 +383,11 @@
-     * add_prefix   = !^!add_prefix!          5 bytes
-     * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
-     */
--   int str_size = (strip_prefix?strlen(strip_prefix)+4:0 +
--		   add_prefix?strlen(add_prefix)+5:0     + /* escape + 3*, + \0 */ 
--		   add_suffix?strlen(add_suffix)+14:0     )     * 2  + 3   + 1;
-+   int str_size = ((strip_prefix?strlen(strip_prefix)+4:0) +
-+		   (add_prefix?strlen(add_prefix)+5    :0) + /* escape + 3*, + \0 */ 
-+		   (add_suffix?strlen(add_suffix)+14   :0) )   * 2     + 3   + 1;
- 
-+   Dmsg1(1, "bregexp_get_build_where_size = %i\n", str_size);
-    return str_size;
- }
- 
-@@ -432,7 +433,7 @@
- 
-    free_pool_memory(str_tmp);
- 
--   return ret;
-+   return dest;
- }
- 
- 
-Index: patches/testing/bregtest.c
-===================================================================
---- patches/testing/bregtest.c	(révision 4529)
-+++ patches/testing/bregtest.c	(copie de travail)
-@@ -62,8 +62,11 @@
- 
- int main(int argc, char *const *argv)
- {
--	printf("%s\n", bregexp_build_where("/tmp", NULL, ".old"));
--	exit(0);
-+   char tab[500];
-+   int len = bregexp_get_build_where_size("/tmp", "/tmp/toto", ".old");
-+   
-+   printf("%s\n", bregexp_build_where(tab, len, "/tmp", "/tmp/toto!", ".old"));
-+   exit(0);
- 
- 
-    regex_t preg;
-Index: patches/testing/breg.h
-===================================================================
---- patches/testing/breg.h	(révision 4529)
-+++ patches/testing/breg.h	(copie de travail)
-@@ -98,8 +98,16 @@
- /* foreach_alist free RUNSCRIPT */
- void free_bregexps(alist *bregexps); /* you have to free alist */
- 
--/* get a bregexp string from user arguments */
--char *bregexp_build_where(char *strip_prefix, 
-+/* get regexp size */
-+int bregexp_get_build_where_size(char *strip_prefix, 
-+				 char *add_prefix, 
-+				 char *add_suffix);
-+
-+/* get a bregexp string from user arguments 
-+ * you must allocate it with bregexp_get_build_where_size();
-+ */
-+char *bregexp_build_where(char *dest, int str_size,
-+			  char *strip_prefix, 
-                           char *add_prefix, 
-                           char *add_suffix);
- 
 Index: src/dird/ua_restore.c
 ===================================================================
---- src/dird/ua_restore.c	(révision 4529)
+--- src/dird/ua_restore.c	(révision 4570)
 +++ src/dird/ua_restore.c	(copie de travail)
-@@ -43,8 +43,8 @@
- 
+@@ -44,7 +44,6 @@
  #include "bacula.h"
  #include "dird.h"
-+#include "lib/breg.h"
  
 -
  /* Imported functions */
  extern void print_bsr(UAContext *ua, RBSR *bsr);
  
-@@ -83,6 +83,9 @@
+@@ -83,6 +82,9 @@
     JCR *jcr = ua->jcr;
     char *escaped_bsr_name = NULL;
     char *escaped_where_name = NULL;
@@ -91,7 +20,7 @@ Index: src/dird/ua_restore.c
  
     memset(&rx, 0, sizeof(rx));
     rx.path = get_pool_memory(PM_FNAME);
-@@ -94,6 +97,45 @@
+@@ -94,6 +96,45 @@
     i = find_arg_with_value(ua, "where");
     if (i >= 0) {
        rx.where = ua->argv[i];
@@ -137,7 +66,7 @@ Index: src/dird/ua_restore.c
        if (!acl_access_ok(ua, Where_ACL, rx.where)) {
           ua->error_msg(_("\"where\" specification not authorized.\n"));
           goto bail_out;
-@@ -195,9 +237,10 @@
+@@ -195,9 +236,10 @@
  
        Mmsg(ua->cmd,
            "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
@@ -149,7 +78,7 @@ Index: src/dird/ua_restore.c
            escaped_where_name ? escaped_where_name : rx.where,
            rx.selected_files, ua->catalog->name());
     } else {
-@@ -216,6 +259,10 @@
+@@ -216,6 +258,10 @@
     if (escaped_where_name != NULL) {
        bfree(escaped_where_name);
     }
@@ -160,7 +89,7 @@ Index: src/dird/ua_restore.c
  
     if (find_arg(ua, NT_("yes")) > 0) {
        pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
-@@ -235,6 +282,10 @@
+@@ -235,6 +281,10 @@
        bfree(escaped_where_name);
     }
  
@@ -171,7 +100,7 @@ Index: src/dird/ua_restore.c
     free_rx(&rx);
     return 0;
  
-@@ -333,23 +384,28 @@
+@@ -333,23 +383,28 @@
  
     const char *kw[] = {
         /* These keywords are handled in a for loop */
@@ -217,7 +146,7 @@ Index: src/dird/ua_restore.c
  
 Index: src/dird/restore.c
 ===================================================================
---- src/dird/restore.c	(révision 4529)
+--- src/dird/restore.c	(révision 4570)
 +++ src/dird/restore.c	(copie de travail)
 @@ -50,8 +50,9 @@
  #include "dird.h"
@@ -259,19 +188,23 @@ Index: src/dird/restore.c
     unbash_spaces(where);
  
     if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
+Index: src/dird/dird.h
+===================================================================
+--- src/dird/dird.h	(révision 4570)
++++ src/dird/dird.h	(copie de travail)
+@@ -34,6 +34,7 @@
+  */
+ 
+ #include "lib/runscript.h"
++#include "lib/breg.h"
+ #include "dird_conf.h"
+ 
+ #define DIRECTOR_DAEMON 1
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 4529)
+--- src/dird/dird_conf.c	(révision 4570)
 +++ src/dird/dird_conf.c	(copie de travail)
-@@ -52,6 +52,7 @@
- 
- #include "bacula.h"
- #include "dird.h"
-+#include "lib/breg.h"
- 
- /* Define the first and last resource ID record
-  * types. Note, these should be unique for each
-@@ -268,6 +269,10 @@
+@@ -268,6 +268,10 @@
     {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
     /* Root of where to restore files */
     {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
@@ -282,7 +215,7 @@ Index: src/dird/dird_conf.c
     /* Where to find bootstrap during restore */
     {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
     /* Where to write bootstrap file during backup */
-@@ -611,6 +616,9 @@
+@@ -611,6 +615,9 @@
        if (res->res_job.RestoreWhere) {
           sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
        }
@@ -292,7 +225,7 @@ Index: src/dird/dird_conf.c
        if (res->res_job.RestoreBootstrap) {
           sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
        }
-@@ -1143,6 +1151,15 @@
+@@ -1143,6 +1150,15 @@
        if (res->res_job.RestoreWhere) {
           free(res->res_job.RestoreWhere);
        }
@@ -308,7 +241,7 @@ Index: src/dird/dird_conf.c
        if (res->res_job.RestoreBootstrap) {
           free(res->res_job.RestoreBootstrap);
        }
-@@ -1299,6 +1316,25 @@
+@@ -1299,6 +1315,25 @@
           res->res_job.jobdefs    = res_all.res_job.jobdefs;
           res->res_job.run_cmds   = res_all.res_job.run_cmds;
           res->res_job.RunScripts = res_all.res_job.RunScripts;
@@ -336,15 +269,9 @@ Index: src/dird/dird_conf.c
           if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
 Index: src/dird/ua_run.c
 ===================================================================
---- src/dird/ua_run.c	(révision 4529)
+--- src/dird/ua_run.c	(révision 4570)
 +++ src/dird/ua_run.c	(copie de travail)
-@@ -36,11 +36,13 @@
- 
- #include "bacula.h"
- #include "dird.h"
-+#include "lib/breg.h"
- 
- /* Forward referenced subroutines */
+@@ -41,6 +41,7 @@
  static void select_job_level(UAContext *ua, JCR *jcr);
  static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *verify_list, 
     char *jid, const char *replace);
@@ -352,7 +279,7 @@ Index: src/dird/ua_run.c
  
  
  /* Imported variables */
-@@ -71,6 +73,7 @@
+@@ -71,6 +72,7 @@
     int Priority = 0;
     int i, j, opt, files = 0;
     bool kw_ok;
@@ -360,7 +287,7 @@ Index: src/dird/ua_run.c
     JOB *job = NULL;
     JOB *verify_job = NULL;
     JOB *previous_job = NULL;
-@@ -87,7 +90,7 @@
+@@ -87,7 +89,7 @@
        "level",                        /* 5 */
        "storage",                      /* 6 */
        "sd",                           /* 7 */
@@ -369,7 +296,7 @@ Index: src/dird/ua_run.c
        "where",                        /* 9 */
        "bootstrap",                    /* 10 */
        "replace",                      /* 11 */
-@@ -101,6 +104,7 @@
+@@ -101,6 +103,7 @@
        "cloned",                       /* 19 cloned */
        "verifylist",                   /* 20 verify output list */
        "migrationjob",                 /* 21 migration job name */
@@ -377,7 +304,7 @@ Index: src/dird/ua_run.c
        NULL};
  
  #define YES_POS 14
-@@ -188,15 +192,10 @@
+@@ -188,15 +191,11 @@
                 store_name = ua->argv[i];
                 kw_ok = true;
                 break;
@@ -391,7 +318,8 @@ Index: src/dird/ua_run.c
 -               break;
 +            case 8: /* rwhere */
              case 9: /* where */
-+	       where_use_regexp = (j == 9)?false:true; /* rwhere or where ? */
++               /* TODO: this is ugly ... */
++               where_use_regexp = (j == 9)?false:true; /* rwhere or where ? */
 +
                 if (where) {
                    ua->send_msg(_("Where specified twice.\n"));
@@ -457,7 +385,7 @@ Index: src/dird/ua_run.c
           /* JobId */
           jid = NULL;                  /* force reprompt */
           jcr->RestoreJobId = 0;
-@@ -775,6 +788,131 @@
+@@ -775,6 +788,134 @@
     return 0;                       /* do not run */
  }
  
@@ -468,6 +396,9 @@ Index: src/dird/ua_run.c
 +   strip_prefix = add_suffix = rwhere = add_prefix = NULL;
 +
 +try_again_reg:
++   ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"),
++		NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix), NPRT(regexp));
++
 +   start_prompt(ua, _("This will replace your current Where value\n"));
 +   add_prompt(ua, _("Strip prefix"));                /* 0 */
 +   add_prompt(ua, _("Add prefix"));                  /* 1 */
@@ -589,9 +520,43 @@ Index: src/dird/ua_run.c
  static void select_job_level(UAContext *ua, JCR *jcr)
  {
     if (jcr->JobType == JT_BACKUP) {
+@@ -938,7 +1079,7 @@
+          ua->send_msg(_("Run Restore job\n"
+                         "JobName:    %s\n"
+                         "Bootstrap:  %s\n"
+-                        "Where:      %s\n"
++                        "%s     %s\n"             /* Where or RWhere */
+                         "Replace:    %s\n"
+                         "FileSet:    %s\n"
+                         "Client:     %s\n"
+@@ -948,6 +1089,7 @@
+                         "Priority:   %d\n"),
+               job->name(),
+               NPRT(jcr->RestoreBootstrap),
++              jcr->where_use_regexp?"RWhere:":"Where: ",
+               jcr->where?jcr->where:NPRT(job->RestoreWhere),
+               replace,
+               jcr->fileset->name(),
+@@ -961,7 +1103,7 @@
+          ua->send_msg(_("Run Restore job\n"
+                        "JobName:    %s\n"
+                        "Bootstrap:  %s\n"
+-                       "Where:      %s\n"
++                       "%s     %s\n"              /* Where or RWhere */
+                        "Replace:    %s\n"
+                        "Client:     %s\n"
+                        "Storage:    %s\n"
+@@ -971,6 +1113,7 @@
+                        "Priority:   %d\n"),
+               job->name(),
+               NPRT(jcr->RestoreBootstrap),
++              jcr->where_use_regexp?"RWhere:":"Where: ",
+               jcr->where?jcr->where:NPRT(job->RestoreWhere),
+               replace,
+               jcr->client->name(),
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 4529)
+--- src/dird/dird_conf.h	(révision 4570)
 +++ src/dird/dird_conf.h	(copie de travail)
 @@ -356,6 +356,10 @@
     int   Priority;                    /* Job priority */
@@ -606,17 +571,9 @@ Index: src/dird/dird_conf.h
     union {
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 4529)
+--- src/filed/job.c	(révision 4570)
 +++ src/filed/job.c	(copie de travail)
-@@ -36,6 +36,7 @@
- 
- #include "bacula.h"
- #include "filed.h"
-+#include "lib/breg.h"
- 
- #if defined(WIN32_VSS)
- #include "vss.h"
-@@ -115,6 +116,7 @@
+@@ -115,6 +115,7 @@
  static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
  static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
  static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
@@ -624,7 +581,7 @@ Index: src/filed/job.c
  static char verifycmd[]   = "verify level=%30s";
  static char estimatecmd[] = "estimate listing=%d";
  static char runbefore[]   = "RunBeforeJob %s";
-@@ -1586,12 +1588,15 @@
+@@ -1586,12 +1587,15 @@
     *where = 0;
  
     if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
@@ -645,7 +602,7 @@ Index: src/filed/job.c
     }
     /* Turn / into nothing */
     if (IsPathSeparator(where[0]) && where[1] == '\0') {
-@@ -1601,6 +1606,15 @@
+@@ -1601,6 +1605,15 @@
     Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
     unbash_spaces(where);
     jcr->where = bstrdup(where);
@@ -661,9 +618,21 @@ Index: src/filed/job.c
     free_pool_memory(where);
     jcr->replace = replace;
     jcr->prefix_links = prefix_links;
+Index: src/filed/filed.h
+===================================================================
+--- src/filed/filed.h	(révision 4570)
++++ src/filed/filed.h	(copie de travail)
+@@ -40,6 +40,7 @@
+ #include "acl.h"
+ #include "protos.h"                   /* file daemon prototypes */
+ #include "lib/runscript.h"
++#include "lib/breg.h"
+ #ifdef HAVE_LIBZ
+ #include <zlib.h>                     /* compression headers */
+ #else
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 4529)
+--- src/jcr.h	(révision 4570)
 +++ src/jcr.h	(copie de travail)
 @@ -173,6 +173,8 @@
     MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
@@ -676,7 +645,7 @@ Index: src/jcr.h
     bool prefix_links;                 /* Prefix links with Where path */
 Index: src/lib/Makefile.in
 ===================================================================
---- src/lib/Makefile.in	(révision 4529)
+--- src/lib/Makefile.in	(révision 4570)
 +++ src/lib/Makefile.in	(copie de travail)
 @@ -32,7 +32,7 @@
  	  res.c rwlock.c scan.c serial.c sha1.c \
@@ -698,7 +667,7 @@ Index: src/lib/Makefile.in
  EXTRAOBJS = @OBJLIST@
 Index: src/lib/attr.c
 ===================================================================
---- src/lib/attr.c	(révision 4529)
+--- src/lib/attr.c	(révision 4570)
 +++ src/lib/attr.c	(copie de travail)
 @@ -35,8 +35,8 @@
  
@@ -743,7 +712,7 @@ Index: src/lib/attr.c
        int wherelen = strlen(jcr->where);
 Index: src/lib/jcr.c
 ===================================================================
---- src/lib/jcr.c	(révision 4529)
+--- src/lib/jcr.c	(révision 4570)
 +++ src/lib/jcr.c	(copie de travail)
 @@ -56,6 +56,9 @@
  /* External variables we reference */
