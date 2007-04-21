@@ -58,22 +58,20 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   bool first = true;
    foreach(Console *console, m_consoleHash){
       console->connect();
-      if (first) {
-         m_currentConsole = console;
-         treeWidget->setCurrentItem(getFromHash(console));
-         first = false;
-      }
    }
+   m_currentConsole = (Console*)getFromHash(m_firstItem);
+   treeWidget->setCurrentItem(getFromHash(m_currentConsole));
+   DIRRES* dirres = m_currentConsole->getDirRes();
+   printf("Setting initial window to %s\n", dirres->name());
 }
 
 void MainWin::createPages()
 {
    DIRRES *dir;
-   QTreeWidgetItem *item, *topItem, *firstItem;
-   firstItem = NULL;
+   QTreeWidgetItem *item, *topItem;
+   m_firstItem = NULL;
 
    LockRes();
    foreach_res(dir, R_DIRECTOR) {
@@ -86,14 +84,15 @@ void MainWin::createPages()
       /* The top tree item representing the director */
       topItem = createTopPage(dir->name());
       topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+      /* Set background to grey for ease of identification of inactive dirfector */
+      QBrush greyBrush(Qt::lightGray);
+      topItem->setBackground(0, greyBrush);
       m_currentConsole->setDirectorTreeItem(topItem);
       m_consoleHash.insert(topItem, m_currentConsole);
 
       /* Create Tree Widget Item */
       item = createPage("Console", topItem);
-      if (!firstItem){
-         firstItem = item;
-      }
+      if (!m_firstItem){ m_firstItem = item; }
 
       /* insert the cosole and tree widget item into the hashes */
       hashInsert(item, m_currentConsole);
@@ -304,71 +303,98 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
  */
 void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
 {
-   Pages* page;
-   Console* console;
+   Pages *previousPage, *nextPage;
+   Console *previousConsole, *nextConsole;
+
+   /* first determine the next item */
+
+   /* knowing the treeWidgetItem, get the page from the hash */
+   nextPage = getFromHash(currentitem);
+   nextConsole = m_consoleHash.value(currentitem);
+   /* Is this a page that has been inserted into the hash  */
+   if (nextPage) {
+      nextConsole = nextPage->console();
+      /* then is it a treeWidgetItem representing a director */
+   } else if (nextConsole) {
+      /* let the next page BE the console */
+      nextPage = nextConsole;
+   } else {
+      printf("Should never get here\n");
+      nextPage = NULL;
+      nextConsole = NULL;
+   }
+          
    /* The Previous item */
 
+   /* this condition prevents a segfault.  The first time there is no previousitem*/
    if (previousitem) {
       /* knowing the treeWidgetItem, get the page from the hash */
-      page = getFromHash(previousitem);
-      console = m_consoleHash.value(previousitem);
-      if (page) {
-         console = page->console();
-      } else if (console) {
-         page = console;
+      previousPage = getFromHash(previousitem);
+      previousConsole = m_consoleHash.value(previousitem);
+      if (previousPage) {
+         previousConsole = previousPage->console();
+      } else if (previousConsole) {
+         previousPage = previousConsole;
       }
-      /* make connections to the current console */
-      disconnect(actionConnect, SIGNAL(triggered()), console, SLOT(connect()));
-      disconnect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
-      disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
-      /* make sure the close window and toggle dock options are removed */
-      treeWidget->removeAction(actionClosePage);
-      treeWidget->removeAction(actionToggleDock);
-      /* Is this a page that has been inserted into the hash  */
-      if (page) {
-         foreach(QAction* pageaction, page->m_contextActions) {
-            treeWidget->removeAction(pageaction);
+      if ((previousPage) || (previousConsole)) {
+         if (nextConsole != previousConsole) {
+            /* remove connections to the current console */
+            disconnect(actionConnect, SIGNAL(triggered()), previousConsole, SLOT(connect()));
+            disconnect(actionStatusDir, SIGNAL(triggered()), previousConsole, SLOT(status_dir()));
+            disconnect(actionSelectFont, SIGNAL(triggered()), previousConsole, SLOT(set_font()));
+            QTreeWidgetItem *dirItem = previousConsole->directorTreeItem();
+            QBrush greyBrush(Qt::lightGray);
+            dirItem->setBackground(0, greyBrush);
+         }
+         /* make sure the close window and toggle dock options are removed */
+         treeWidget->removeAction(actionClosePage);
+         treeWidget->removeAction(actionToggleDock);
+         /* Is this a page that has been inserted into the hash  */
+         if (previousPage) {
+            foreach(QAction* pageaction, previousPage->m_contextActions) {
+               treeWidget->removeAction(pageaction);
+            }
          } 
       }
    }
 
-   /* knowing the treeWidgetItem, get the page from the hash */
-   page = getFromHash(currentitem);
-   console = m_consoleHash.value(currentitem);
-   /* Is this a page that has been inserted into the hash  */
-   if (page) {
-      m_currentConsole = page->console();
-   } else if (console) {
-      m_currentConsole = console;
-      page = console;
-   }
-   if ((page) || (console)) {
-      /* make connections to the current console */
-      connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect()));
-      connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
-      connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
-      /* set the value for the currently active console */
-      int stackindex = stackedWidget->indexOf(page);
+   /* now process the next item */
    
-      /* Is this page currently on the stack */
+   if ((nextPage) || (nextConsole)) {
+      if (nextConsole != previousConsole) {
+         /* make connections to the current console */
+         m_currentConsole = nextConsole;
+         connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect()));
+         connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
+         connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
+         /* Set director's tree widget background to magenta for ease of identification */
+         QTreeWidgetItem *dirItem = m_currentConsole->directorTreeItem();
+         QBrush magentaBrush(Qt::magenta);
+         dirItem->setBackground(0, magentaBrush);
+      }
+      /* set the value for the currently active console */
+      int stackindex = stackedWidget->indexOf(nextPage);
+   
+      /* Is this page currently on the stack or is it undocked */
       if (stackindex >= 0) {
          /* put this page on the top of the stack */
          stackedWidget->setCurrentIndex(stackindex);
       } else {
          /* it is undocked, raise it to the front */
-         page->raise();
+         nextPage->raise();
       }
-      setContextMenuDockText(page, currentitem);
+      /* for the page selectors menu action to dock or undock, set the text */
+      setContextMenuDockText(nextPage, currentitem);
 
       treeWidget->addAction(actionToggleDock);
       /* if this page is closeable, then add that action */
-      if (page->isCloseable()) {
+      if (nextPage->isCloseable()) {
          treeWidget->addAction(actionClosePage);
       }
 
       /* Add the actions to the Page Selectors tree widget that are part of the
        * current items list of desired actions regardless of whether on top of stack*/
-      treeWidget->addActions(page->m_contextActions);
+      treeWidget->addActions(nextPage->m_contextActions);
    }
 }
 

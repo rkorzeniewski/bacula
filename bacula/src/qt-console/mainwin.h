@@ -111,6 +111,7 @@ private:
    Pages *m_pagespophold;
    QStringList m_cmd_history;
    int m_cmd_last;
+   QTreeWidgetItem *m_firstItem;
 };
 
 #endif /* _MAINWIN_H_ */
