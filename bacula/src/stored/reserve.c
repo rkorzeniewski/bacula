@@ -596,7 +596,7 @@ static bool use_storage_cmd(JCR *jcr)
     * Wiffle through them and find one that can do the backup.
     */
    if (ok) {
-      bool first = true;           /* print wait message once */
+      int retries = 0;                /* wait for device retries */
       bool fail = false;
       rctx.notify_dir = true;
       lock_reservations();
@@ -665,12 +665,11 @@ static bool use_storage_cmd(JCR *jcr)
          }
          /* Keep reservations locked *except* during wait_for_device() */
          unlock_reservations();
-         if (!rctx.suitable_device || !wait_for_device(jcr, first)) {
+         if (!rctx.suitable_device || !wait_for_device(jcr, retries)) {
             Dmsg0(100, "Fail. !suitable_device || !wait_for_device\n");
             fail = true;
          }   
          lock_reservations();
-         first = false;
          bnet_sig(dir, BNET_HEARTBEAT);  /* Inform Dir that we are alive */
       }
       unlock_reservations();
