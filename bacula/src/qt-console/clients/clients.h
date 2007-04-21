@@ -44,10 +44,11 @@ class Clients : public Pages, public Ui::ClientForm
    Q_OBJECT 
 
 public:
-   Clients(QStackedWidget *parent, Console *console);
+   Clients();
    ~Clients();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
+   void treeWidgetName(QString &);
 
 public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
@@ -58,9 +59,6 @@ private slots:
 
 private:
    void createContextMenu();
-
-private:
-   Console *mp_console;
    QString m_currentlyselected;
    bool m_populated;
    bool m_checkcurwidget;

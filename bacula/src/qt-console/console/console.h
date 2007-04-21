@@ -94,8 +94,9 @@ public:
    void beginNewCommand();
    void displayToPrompt();
    void discardToPrompt();
-   void setTreeItem(QTreeWidgetItem *item);
+   void setDirectorTreeItem(QTreeWidgetItem *);
    void setDirRes(DIRRES *dir);
+   QTreeWidgetItem *directorTreeItem() { return m_directorTreeItem; };
 
    QStringList job_list;
    QStringList client_list;
@@ -124,7 +125,7 @@ private:
    bool m_at_prompt;
    QSocketNotifier *m_notifier;
    QTextCursor *m_cursor;
-   QTreeWidgetItem *m_consoleItem;
+   QTreeWidgetItem *m_directorTreeItem;
    bool m_api_set;
    bool m_messages_pending;
    QTimer *m_timer;

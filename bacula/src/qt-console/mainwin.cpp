@@ -58,118 +58,91 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   m_console->connect();
+   foreach(Console *console, m_consoleList){
+      console->connect();
+   }
 }
 
 void MainWin::createPages()
 {
    DIRRES *dir;
    QTreeWidgetItem *item, *topItem;
-   Console *console;
 
    LockRes();
    foreach_res(dir, R_DIRECTOR) {
 
       /* Create console tree stacked widget item */
-      console = new Console(stackedWidget);
-      console->setDirRes(dir);
+      m_currentConsole = new Console(stackedWidget);
+      m_consoleList.append(m_currentConsole);
+      m_currentConsole->setDirRes(dir);
 
       /* The top tree item representing the director */
       topItem = createTopPage(dir->name());
       topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+      m_currentConsole->setDirectorTreeItem(topItem);
 
       /* Create Tree Widget Item */
       item = createPage("Console", topItem);
-      console->setTreeItem(item);
 
       /* insert the cosole and tree widget item into the hashes */
-      hashInsert(item, console);
+      hashInsert(item, m_currentConsole);
 
       /* Set Color of treeWidgetItem for the console
       * It will be set to green in the console class if the connection is made.
       */
       QBrush redBrush(Qt::red);
       item->setForeground(0, redBrush);
-      console->dockPage();
+      m_currentConsole->dockPage();
 
       /* create instances of the rest of the classes that will by default exist
       * under each director */
-      createPagebRestore(topItem, console);
-      createPageMediaList(topItem, console);
+      createPagebRestore();
+      createPageMediaList();
       QString emptymedia(""), emptyclient("");
-      createPageJobList(emptymedia, emptyclient, topItem, console);
-      createPageClients(topItem, console);
+      createPageJobList(emptymedia, emptyclient);
+      createPageClients();
 
       treeWidget->expandItem(topItem);
-      stackedWidget->setCurrentWidget(console);
-
-      /*
-       * Set the first console as current console
-       *
-       * ***FIXME**** note, to make this work correctly, we need a 
-       *  list of consoles, so that we can save/restore the settings 
-       *  for all consoles, and we need to figure out some way to
-       *  set the current console and the current topItem (actually Director)
-       *  when a page within a given console is clicked.  We also need
-       *  to redo the connections (signals/slots) that use m_console.
-       */
-      if (!m_console) {
-         m_console = console;
-         m_topItem = topItem;
-      }
+      stackedWidget->setCurrentWidget(m_currentConsole);
    }
    UnlockRes();
+   m_currentConsole = m_consoleList[0];
+   item = getFromHash(m_currentConsole);
+   treeWidget->setCurrentItem(item);
 }
 
 /*
  * create an instance of the the brestore class on the stack
  */
-void MainWin::createPagebRestore(QTreeWidgetItem *parent, Console * /*console*/)
+void MainWin::createPagebRestore()
 {
-   QTreeWidgetItem *item=createPage("brestore", parent);
-   bRestore* brestore = new bRestore(stackedWidget);
-   hashInsert(item, brestore);
+   bRestore* brestore = new bRestore();
    brestore->dockPage();
 }
 
 /*
  * create an instance of the the medialist class on the stack
  */
-void MainWin::createPageMediaList(QTreeWidgetItem *parent, Console *console)
+void MainWin::createPageMediaList()
 {
-   QTreeWidgetItem *item=createPage("Media", parent);
-   MediaList* medialist = new MediaList(stackedWidget, console);
-   hashInsert(item, medialist);
+   MediaList* medialist = new MediaList();
    medialist->dockPage();
 }
 
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPageJobList(QString &media, QString &client, 
-                 QTreeWidgetItem *parent, Console *console)
+void MainWin::createPageJobList(QString &media, QString &client)
 {
    QTreeWidgetItem *item, *holdItem;
+
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
-   if ((media == "") && (client == "")) {
-      item = createPage("All Jobs", parent);
-   } else {
-      QString desc("Jobs ");
-      if (media != "" ) {
-         desc += "on Volume " + media;
-      }
-      if (client != "" ) {
-         desc += "of Client " + client;
-      }
-      item = createPage(desc.toUtf8().data(), parent);
-   } 
-   JobList* joblist = new JobList(stackedWidget, console, media, client);
-   hashInsert(item, joblist);
+   JobList* joblist = new JobList(media, client);
    joblist->dockPage();
    /* If this is a query of jobs on a specific media */
    if ((media != "") || (client != "")) {
-      stackedWidget->setCurrentWidget(joblist);
+      item = getFromHash(joblist);
       treeWidget->setCurrentItem(item);
       /* did query produce results, if not close window and set back to hold */
       if (joblist->m_resultCount == 0) {
@@ -182,11 +155,9 @@ void MainWin::createPageJobList(QString &media, QString &client,
 /*
  * create an instance of the the Clients class on the stack
  */
-void MainWin::createPageClients(QTreeWidgetItem *parent, Console *console)
+void MainWin::createPageClients()
 {
-   QTreeWidgetItem *item=createPage("Clients", parent);
-   Clients* clients = new Clients(stackedWidget, console);
-   hashInsert(item, clients);
+   Clients* clients = new Clients();
    clients->dockPage();
 }
 
@@ -266,9 +237,11 @@ void MainWin::createConnections()
            this, SLOT(stackItemChanged(int)));
 
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
-   connect(actionConnect, SIGNAL(triggered()), m_console, SLOT(connect()));
-   connect(actionStatusDir, SIGNAL(triggered()), m_console, SLOT(status_dir()));
-   connect(actionSelectFont, SIGNAL(triggered()), m_console, SLOT(set_font()));
+   foreach(Console *console, m_consoleList){
+      connect(actionConnect, SIGNAL(triggered()), console, SLOT(connect()));
+      connect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
+      connect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
+   }
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
@@ -283,8 +256,10 @@ void MainWin::createConnections()
 void MainWin::closeEvent(QCloseEvent *event)
 {
    writeSettings();
-   m_console->writeSettings();
-   m_console->terminate();
+   foreach(Console *console, m_consoleList){
+      console->writeSettings();
+      console->terminate();
+   }
    event->accept();
    foreach(Pages *page, m_pagehash) {
       if (!page->isDocked())
@@ -365,7 +340,10 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 
    /* Is this a page that has been inserted into the hash  */
    if (getFromHash(currentitem)) {
+      /* knowing the treeWidgetItem, get the page from the hash */
       Pages* page = getFromHash(currentitem);
+      /* set the value for the currently active console */
+      m_currentConsole = page->console();
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */
@@ -392,20 +370,18 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
 
 void MainWin::labelDialogClicked() 
 {
-   new labelDialog(m_console);
+   new labelDialog(m_currentConsole);
 }
 
 void MainWin::runDialogClicked() 
 {
-   new runDialog(m_console);
+   new runDialog(m_currentConsole);
 }
 
 void MainWin::restoreDialogClicked() 
 {
-   new prerestoreDialog(m_console);
+   new prerestoreDialog(m_currentConsole);
 }
-
-
 
 /*
  * The user just finished typing a line in the command line edit box
@@ -414,9 +390,9 @@ void MainWin::input_line()
 {
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
-   if (m_console->is_connected()) {
-      m_console->display_text(cmdStr + "\n");
-      m_console->write_dir(cmdStr.toUtf8().data());         /* send to dir */
+   if (m_currentConsole->is_connected()) {
+      m_currentConsole->display_text(cmdStr + "\n");
+      m_currentConsole->write_dir(cmdStr.toUtf8().data());         /* send to dir */
    } else {
       set_status("Director not connected. Click on connect button.");
    }

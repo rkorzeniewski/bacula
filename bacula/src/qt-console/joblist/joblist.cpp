@@ -40,15 +40,12 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(QStackedWidget *parent, Console *console, QString &medianame,
-   QString &clientname)
+JobList::JobList(QString &medianame, QString &clientname)
 {
    setupUi(this);
-   /* Store passed variables in member variables */
-   mp_console = console;
-   m_parent = parent;
    m_medianame = medianame;
    m_clientname = clientname;
+   pgInitialize();
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
@@ -97,7 +94,7 @@ void JobList::populateTable()
 
     /*  This could be a user preference debug message?? */
     printf("Query cmd : %s\n",query.toUtf8().data());
-   if (mp_console->sql_cmd(query, results)) {
+   if (m_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 
       QTableWidgetItem* p_tableitem;
@@ -152,5 +149,23 @@ void JobList::currentStackItem()
       populateTable();
       m_contextActions.append(actionRefreshJobList);
       m_populated=true;
+   }
+}
+
+/*
+ * Virtual Function to return the name for the medialist tree widget
+ */
+void JobList::treeWidgetName(QString &desc)
+{
+   if ((m_medianame == "") && (m_clientname == "")) {
+      desc = "All Jobs";
+   } else {
+      desc = "Jobs ";
+      if (m_medianame != "" ) {
+         desc += "on Volume " + m_medianame;
+      }
+      if (m_clientname != "" ) {
+         desc += "of Client " + m_clientname;
+      }
    }
 }

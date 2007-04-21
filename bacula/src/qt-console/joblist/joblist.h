@@ -43,16 +43,16 @@ class JobList : public Pages, public Ui::JobListForm
    Q_OBJECT 
 
 public:
-   JobList(QStackedWidget *parent, Console *console, QString &medianame, QString &clientname);
+   JobList(QString &medianame, QString &clientname);
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    int m_resultCount;
 
 public slots:
    void populateTable();
+   virtual void treeWidgetName(QString &);
 
 private:
-   Console *mp_console;
    QString m_medianame;
    QString m_clientname;
    bool m_populated;

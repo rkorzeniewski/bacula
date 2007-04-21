@@ -42,13 +42,12 @@
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
 
-MediaList::MediaList(QStackedWidget *parent, Console *console)
+MediaList::MediaList()
 {
    setupUi(this);
+   pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
-   mp_console = console;
-   m_parent = parent;
    createConnections();
    m_populated = false;
    m_checkcurwidget = true;
@@ -70,11 +69,12 @@ void MediaList::populateTree()
    QString resultline;
    QStringList results;
    const char *query = 
-      "SELECT p.Name,m.VolumeName,m.MediaId,m.VolStatus,m.Enabled,m.VolBytes,"
-      "m.VolFiles,m.VolJobs,m.VolRetention,m.MediaType,m.LastWritten"
-      " FROM Media m,Pool p"
-      " WHERE m.PoolId=p.PoolId"
-      " ORDER BY p.Name";
+      "SELECT Pool.Name AS Pool, Media.VolumeName AS Media, Media.MediaId AS Id, Media.VolStatus AS VolStatus,"
+      " Media.Enabled AS Enabled, Media.VolBytes AS Bytes, Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
+      " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType, Media.LastWritten AS LastWritten"
+      " FROM Media, Pool"
+      " WHERE Media.PoolId=Pool.PoolId"
+      " ORDER BY Pool";
    QStringList headerlist = (QStringList()
       << "Pool Name" << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
       << "Volume Bytes" << "Volume Files" << "Volume Jobs" << "Volume Retention" 
@@ -91,8 +91,9 @@ void MediaList::populateTree()
 
    mp_treeWidget->setHeaderLabels(headerlist);
 
+   /* FIXME Make this a user configurable loggin action and dont use printf */
    //printf("MediaList query cmd : %s\n",query);
-   if (mp_console->sql_cmd(query, results)) {
+   if (m_console->sql_cmd(query, results)) {
       QString field;
       QStringList fieldlist;
 
@@ -157,7 +158,7 @@ void MediaList::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/
  */
 void MediaList::editMedia()
 {
-   MediaEdit* edit = new MediaEdit(mp_console, m_currentlyselected);
+   MediaEdit* edit = new MediaEdit(m_console, m_currentlyselected);
    edit->show();
 }
 
@@ -167,8 +168,7 @@ void MediaList::editMedia()
 void MediaList::showJobs()
 {
    QString emptyclient("");
-   mainWin->createPageJobList(m_currentlyselected, emptyclient, 
-               mainWin->topItem(), mainWin->console());
+   mainWin->createPageJobList(m_currentlyselected, emptyclient);
 }
 
 /*
@@ -257,4 +257,12 @@ void MediaList::currentStackItem()
       createContextMenu();
       m_populated=true;
    }
+}
+
+/*
+ * Virtual Function to return the name for the medialist tree widget
+ */
+void MediaList::treeWidgetName(QString &name)
+{
+   name = "Media";
 }
