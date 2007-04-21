@@ -63,8 +63,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    treeWidget->setCurrentItem(getFromHash(m_currentConsole));
-   DIRRES* dirres = m_currentConsole->getDirRes();
-   printf("Setting initial window to %s\n", dirres->name());
+   /*
+    *  I'd like to turn this into a debug item
+    *  DIRRES* dirres = m_currentConsole->getDirRes();
+    *  printf("Setting initial window to %s\n", dirres->name());
+    */
 }
 
 void MainWin::createPages()
@@ -109,7 +112,7 @@ void MainWin::createPages()
       createPagebRestore();
       createPageMediaList();
       QString emptymedia(""), emptyclient("");
-      createPageJobList(emptymedia, emptyclient);
+      createPageJobList(emptymedia, emptyclient, NULL);
       createPageClients();
 
       treeWidget->expandItem(topItem);
@@ -139,13 +142,14 @@ void MainWin::createPageMediaList()
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPageJobList(QString &media, QString &client)
+void MainWin::createPageJobList(QString &media, QString &client,
+              QTreeWidgetItem *parentTreeWidgetItem)
 {
    QTreeWidgetItem *item, *holdItem;
 
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
-   JobList* joblist = new JobList(media, client);
+   JobList* joblist = new JobList(media, client, parentTreeWidgetItem);
    joblist->dockPage();
    /* If this is a query of jobs on a specific media */
    if ((media != "") || (client != "")) {

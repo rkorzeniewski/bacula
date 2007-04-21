@@ -41,6 +41,21 @@ Things to do:
 
 - Possibly some other things I didn't think of.
 
+===========================================================
+NOT SURE
+===========================================================
+
+I'm not sure about this one??  Things seem to work and I did not do a
+thing to make it happen:  the "dir" is a member of Console
+
+- We also must somehow make the low level I/O routines know which
+director/console to use.  Currently they always use the single
+global one defined in the mainWin class (if I remember right).
+
+
+============================================================
+DONE:
+============================================================
 Another idea for what you have implemented:
 - I think that the dynamic pages that you create on the fly
 should be nested under the item that creates them more like a
@@ -63,21 +78,6 @@ My original concept was to put these in a tabbed widget.  Your Idea may
 make for a cleaner user experience.  I like it.  It could save the
 effort of getting a tabbed widget to work.
 
-===========================================================
-NOT SURE
-===========================================================
-
-I'm not sure about this one??  Things seem to work and I did not do a
-thing to make it happen:  the "dir" is a member of Console
-
-- We also must somehow make the low level I/O routines know which
-director/console to use.  Currently they always use the single
-global one defined in the mainWin class (if I remember right).
-
-
-============================================================
-DONE:
-============================================================
 
 - I think we need to make the current Director more explicit, by
 perhaps highlighting it in the page selector when it is current

@@ -187,7 +187,8 @@ void Clients::createContextMenu()
 void Clients::showJobs()
 {
    QString emptymedia("");
-   mainWin->createPageJobList(emptymedia, m_currentlyselected);
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   mainWin->createPageJobList(emptymedia, m_currentlyselected, parentItem);
 }
 
 /*

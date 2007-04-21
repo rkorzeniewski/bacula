@@ -159,7 +159,8 @@ void MediaList::editMedia()
 void MediaList::showJobs()
 {
    QString emptyclient("");
-   mainWin->createPageJobList(m_currentlyselected, emptyclient);
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   mainWin->createPageJobList(m_currentlyselected, emptyclient, parentItem);
 }
 
 /*

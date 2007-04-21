@@ -40,12 +40,13 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(QString &medianame, QString &clientname)
+JobList::JobList(QString &medianame, QString &clientname,
+         QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
    m_medianame = medianame;
    m_clientname = clientname;
-   pgInitialize();
+   pgInitialize(parentTreeWidgetItem);
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
