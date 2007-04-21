@@ -37,14 +37,9 @@ Font is being set on a per console basis, should it be.
 Tried to get the settings to write for a second, but not coming up next time
 
 ========================================================
+Things to do:
 
 - Possibly some other things I didn't think of.
-
-- I think we need to make the current Director more explicit, by
-perhaps highlighting it in the page selector when it is current
-and unhighlighting it when it is not (we could use color as we do
-for the console, though some color blind people may have
-problems.
 
 Another idea for what you have implemented:
 - I think that the dynamic pages that you create on the fly
@@ -83,7 +78,13 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
-Things to do:
+
+- I think we need to make the current Director more explicit, by
+perhaps highlighting it in the page selector when it is current
+and unhighlighting it when it is not (we could use color as we do
+for the console, though some color blind people may have
+problems.
+
 - When any director is clicked, we need to set it as the current
 director and set the current console as well.
 
