@@ -174,13 +174,22 @@ void Pages::closeStackPage()
 }
 
 /*
- * Function to set members from the external mainwin
+ * Function to set members from the external mainwin and it's overload being
+ * passed a specific QTreeWidgetItem to be it's parent on the tree
  */
 void Pages::pgInitialize()
 {
+   pgInitialize(NULL);
+}
+
+void Pages::pgInitialize(QTreeWidgetItem *parentTreeWidgetItem)
+{
    m_parent = mainWin->stackedWidget;
    m_console = mainWin->currentConsole();
-   QTreeWidgetItem *parentTreeWidgetItem = m_console->directorTreeItem();
+
+   if (!parentTreeWidgetItem) {
+      parentTreeWidgetItem = m_console->directorTreeItem();
+   }
 
    QTreeWidgetItem *item = new QTreeWidgetItem(parentTreeWidgetItem);
    QString name; 

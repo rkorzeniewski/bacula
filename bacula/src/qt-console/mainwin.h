@@ -78,7 +78,7 @@ public:
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    /* This is a list of consoles */
    QHash<QTreeWidgetItem*,Console*> m_consoleHash;
-   void createPageJobList(QString &, QString &);
+   void createPageJobList(QString &, QString &, QTreeWidgetItem *);
 
 public slots:
    void input_line();
