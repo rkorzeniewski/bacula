@@ -89,14 +89,14 @@ void Clients::populateTree()
       /* Set up query QString and header QStringList */
       QString query("");
       query += "SELECT FileRetention, JobRetention, AutoPrune, ClientId, Uname"
-           " FROM client"
+           " FROM Client"
            " WHERE ";
       query += " Name='" + clientName + "'";
       query += " ORDER BY Name";
 
       QStringList results;
       /* This could be a log item */
-      printf("Clients query cmd : %s\n",query.toUtf8().data());
+      //printf("Clients query cmd : %s\n",query.toUtf8().data());
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount == 1){

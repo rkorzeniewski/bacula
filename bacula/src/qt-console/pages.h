@@ -63,7 +63,6 @@ public:
    QStackedWidget *m_parent;
    QList<QAction*> m_contextActions;
    virtual void PgSeltreeWidgetClicked();
-   virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();
    void closeStackPage();
    Console *console() { return m_console; };

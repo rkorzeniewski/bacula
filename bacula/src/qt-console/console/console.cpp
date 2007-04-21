@@ -53,7 +53,6 @@ Console::Console(QStackedWidget *parent)
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
 
-   readSettings();
    /* Check for messages every 5 seconds */
 // m_timer = new QTimer(this);
 // QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
@@ -310,8 +309,7 @@ void Console::writeSettings()
 {
    QFont font = get_font();
 
-   QSettings settings("bacula.org", "bat");
-   /* ***FIXME*** make console name unique */
+   QSettings settings(m_dir->name(), "bat");
    settings.beginGroup("Console");
    settings.setValue("consoleFont", font.family());
    settings.setValue("consolePointSize", font.pointSize());
@@ -326,7 +324,7 @@ void Console::readSettings()
 { 
    QFont font = get_font();
 
-   QSettings settings("bacula.org", "bat");
+   QSettings settings(m_dir->name(), "bat");
    settings.beginGroup("Console");
    font.setFamily(settings.value("consoleFont", "Courier").value<QString>());
    font.setPointSize(settings.value("consolePointSize", 10).toInt());

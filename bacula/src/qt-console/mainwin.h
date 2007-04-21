@@ -77,14 +77,13 @@ public:
    /* This hash is to get the page selector widget when the page is known */
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    /* This is a list of consoles */
-   QList<Console*> m_consoleList;
+   QHash<QTreeWidgetItem*,Console*> m_consoleHash;
    void createPageJobList(QString &, QString &);
 
 public slots:
    void input_line();
    void about();
    void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
    void labelDialogClicked();
    void runDialogClicked();
    void restoreDialogClicked();

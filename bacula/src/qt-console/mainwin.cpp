@@ -58,31 +58,42 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   foreach(Console *console, m_consoleList){
+   bool first = true;
+   foreach(Console *console, m_consoleHash){
       console->connect();
+      if (first) {
+         m_currentConsole = console;
+         treeWidget->setCurrentItem(getFromHash(console));
+         first = false;
+      }
    }
 }
 
 void MainWin::createPages()
 {
    DIRRES *dir;
-   QTreeWidgetItem *item, *topItem;
+   QTreeWidgetItem *item, *topItem, *firstItem;
+   firstItem = NULL;
 
    LockRes();
    foreach_res(dir, R_DIRECTOR) {
 
       /* Create console tree stacked widget item */
       m_currentConsole = new Console(stackedWidget);
-      m_consoleList.append(m_currentConsole);
       m_currentConsole->setDirRes(dir);
+      m_currentConsole->readSettings();
 
       /* The top tree item representing the director */
       topItem = createTopPage(dir->name());
       topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
       m_currentConsole->setDirectorTreeItem(topItem);
+      m_consoleHash.insert(topItem, m_currentConsole);
 
       /* Create Tree Widget Item */
       item = createPage("Console", topItem);
+      if (!firstItem){
+         firstItem = item;
+      }
 
       /* insert the cosole and tree widget item into the hashes */
       hashInsert(item, m_currentConsole);
@@ -106,9 +117,6 @@ void MainWin::createPages()
       stackedWidget->setCurrentWidget(m_currentConsole);
    }
    UnlockRes();
-   m_currentConsole = m_consoleList[0];
-   item = getFromHash(m_currentConsole);
-   treeWidget->setCurrentItem(item);
 }
 
 /*
@@ -219,29 +227,14 @@ void MainWin::createConnections()
    /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
-
-#ifdef xxx
-     connect(treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemClicked(QTreeWidgetItem *, int)));  
-#endif
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, 
-           SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(stackedWidget, SIGNAL(currentChanged(int)),
            this, SLOT(stackItemChanged(int)));
-
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
-   foreach(Console *console, m_consoleList){
-      connect(actionConnect, SIGNAL(triggered()), console, SLOT(connect()));
-      connect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
-      connect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
-   }
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
@@ -256,7 +249,7 @@ void MainWin::createConnections()
 void MainWin::closeEvent(QCloseEvent *event)
 {
    writeSettings();
-   foreach(Console *console, m_consoleList){
+   foreach(Console *console, m_consoleHash){
       console->writeSettings();
       console->terminate();
    }
@@ -307,43 +300,54 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
 }
 
 /*
- * This subroutine is called with an item in the Page Selection window
- *   is double clicked
- */
-/* This could be removed from here and from pages and from medialist
- * Do you agree dhb */
-void MainWin::treeItemDoubleClicked(QTreeWidgetItem *item, int /*column*/)
-{
-   Pages* page = getFromHash(item);
-   page->PgSeltreeWidgetDoubleClicked();
-}
-
-/*
  * Called with a change of the highlighed tree widget item in the page selector.
  */
 void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
 {
+   Pages* page;
+   Console* console;
    /* The Previous item */
 
    if (previousitem) {
+      /* knowing the treeWidgetItem, get the page from the hash */
+      page = getFromHash(previousitem);
+      console = m_consoleHash.value(previousitem);
+      if (page) {
+         console = page->console();
+      } else if (console) {
+         page = console;
+      }
+      /* make connections to the current console */
+      disconnect(actionConnect, SIGNAL(triggered()), console, SLOT(connect()));
+      disconnect(actionStatusDir, SIGNAL(triggered()), console, SLOT(status_dir()));
+      disconnect(actionSelectFont, SIGNAL(triggered()), console, SLOT(set_font()));
       /* make sure the close window and toggle dock options are removed */
       treeWidget->removeAction(actionClosePage);
       treeWidget->removeAction(actionToggleDock);
       /* Is this a page that has been inserted into the hash  */
-      if (getFromHash(previousitem)) {
-         Pages* page = getFromHash(previousitem);
+      if (page) {
          foreach(QAction* pageaction, page->m_contextActions) {
             treeWidget->removeAction(pageaction);
          } 
       }
    }
 
+   /* knowing the treeWidgetItem, get the page from the hash */
+   page = getFromHash(currentitem);
+   console = m_consoleHash.value(currentitem);
    /* Is this a page that has been inserted into the hash  */
-   if (getFromHash(currentitem)) {
-      /* knowing the treeWidgetItem, get the page from the hash */
-      Pages* page = getFromHash(currentitem);
-      /* set the value for the currently active console */
+   if (page) {
       m_currentConsole = page->console();
+   } else if (console) {
+      m_currentConsole = console;
+      page = console;
+   }
+   if ((page) || (console)) {
+      /* make connections to the current console */
+      connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect()));
+      connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
+      connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
+      /* set the value for the currently active console */
       int stackindex = stackedWidget->indexOf(page);
    
       /* Is this page currently on the stack */

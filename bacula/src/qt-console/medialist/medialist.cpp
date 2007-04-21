@@ -135,21 +135,12 @@ void MediaList::createConnections()
 {
    connect(mp_treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
                 SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-   connect(mp_treeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this,
-                SLOT(treeItemDoubleClicked(QTreeWidgetItem *, int)));
 }
 
 /*
  * Not being used currently,  Should this be kept for possible future use.
  */
 void MediaList::treeItemClicked(QTreeWidgetItem * /*item*/, int /*column*/)
-{
-}
-
-/*
- * Not being used currently,  Should this be kept for possible future use.
- */
-void MediaList::treeItemDoubleClicked(QTreeWidgetItem * /*item*/, int /*column*/)
 {
 }
 
@@ -182,17 +173,6 @@ void MediaList::PgSeltreeWidgetClicked()
       createContextMenu();
       m_populated=true;
    }
-}
-
-/*
- * When the treeWidgetItem in the page selector tree is doubleclicked, Use that
- * As a signal to repopulate from a query of the database.
- * Should this be from a context sensitive menu in either or both of the page selector
- * or This widnow ???
- */
-void MediaList::PgSeltreeWidgetDoubleClicked()
-{
-   populateTree();
 }
 
 /*
