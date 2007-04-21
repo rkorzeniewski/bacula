@@ -375,17 +375,20 @@ char *bregexp_escape_string(char *dest, char *src, char sep)
    return ret; 
 }
 
+static char regexp_sep = '!';
+static char *str_strip_prefix = "!%s!!i";
+static char *str_add_prefix   = "!^!%s!";
+static char *str_add_suffix   = "!([^/])$!$1%s!";
+
 int bregexp_get_build_where_size(char *strip_prefix, 
 				 char *add_prefix, 
 				 char *add_suffix)
 {
-   /* strip_prefix = !strip_prefix!!i        4 bytes
-    * add_prefix   = !^!add_prefix!          5 bytes
-    * add_suffix   = !([^/])$!$1add_suffix! 13 bytes
-    */
-   int str_size = ((strip_prefix?strlen(strip_prefix)+4:0) +
-		   (add_prefix?strlen(add_prefix)+5    :0) + /* escape + 3*, + \0 */ 
-		   (add_suffix?strlen(add_suffix)+14   :0) )   * 2     + 3   + 1;
+   int str_size = ((strip_prefix?strlen(strip_prefix)+strlen(str_strip_prefix):0) +
+		   (add_prefix?strlen(add_prefix)+strlen(str_add_prefix)      :0) +  
+		   (add_suffix?strlen(add_suffix)+strlen(str_add_suffix)      :0) )
+         /* escape + 3*, + \0 */
+	    * 2    + 3   + 1;
 
    Dmsg1(1, "bregexp_get_build_where_size = %i\n", str_size);
    return str_size;
@@ -397,7 +400,7 @@ int bregexp_get_build_where_size(char *strip_prefix,
  * int len = bregexp_get_build_where_size(a,b,c) ;
  * char *dest = (char *) bmalloc (len * sizeof(char));
  * bregexp_build_where(dest, len, a, b, c);
- * free(dest);
+ * bfree(dest);
  * 
  */
 char *bregexp_build_where(char *dest, int str_size,
@@ -406,29 +409,28 @@ char *bregexp_build_where(char *dest, int str_size,
                           char *add_suffix)
 {
    int len=0;
-   char sep = '!';
 
    POOLMEM *str_tmp = get_memory(str_size);
 
    *str_tmp = *dest = '\0';
    
    if (strip_prefix) {
-      len += bsnprintf(dest, str_size - len, "!%s!!i",
-		       bregexp_escape_string(str_tmp, strip_prefix, sep));
+      len += bsnprintf(dest, str_size - len, str_strip_prefix,
+		       bregexp_escape_string(str_tmp, strip_prefix, regexp_sep));
    }
 
    if (add_suffix) {
       if (len) dest[len++] = ',';
 
-      len += bsnprintf(dest + len,  str_size - len, "!([^/])$!$1%s!",
-		       bregexp_escape_string(str_tmp, add_suffix, sep));
+      len += bsnprintf(dest + len,  str_size - len, str_add_suffix,
+		       bregexp_escape_string(str_tmp, add_suffix, regexp_sep));
    }
 
    if (add_prefix) {
       if (len) dest[len++] = ',';
 
-      len += bsnprintf(dest + len, str_size - len, "!^!%s!", 
-		       bregexp_escape_string(str_tmp, add_prefix, sep));
+      len += bsnprintf(dest + len, str_size - len, str_add_prefix, 
+		       bregexp_escape_string(str_tmp, add_prefix, regexp_sep));
    }
 
    free_pool_memory(str_tmp);
@@ -441,5 +443,5 @@ void BREGEXP::debug()
 {
    printf("expr=[%s]\n", expr);
    printf("subst=[%s]\n", subst);
-   printf("result=%s\n", result?result:"(null)");
+   printf("result=%s\n", NPRT(result));
 }
