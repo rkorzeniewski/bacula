@@ -1080,15 +1080,17 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
       }
 
       /* Check for prefer mounted volumes */
-      if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
+//    if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
+      if (rctx.PreferMountedVols && !dev->vol && dev->is_tape()) {
          Mmsg(jcr->errmsg, _("3606 JobId=%u prefers mounted drives, but drive %s has no Volume.\n"), 
             jcr->JobId, dev->print_name());
          queue_reserve_message(jcr);
-         Dmsg1(110, "failed: want mounted -- no vol JobId=%u\n", jcr->JobId);
+         Dmsg1(110, "failed: want mounted -- no vol JobId=%u\n", (uint32_t)jcr->JobId);
          return 0;                 /* No volume mounted */
       }
 
       /* Check for exact Volume name match */
+      /*  ***FIXME***  use dev->vol.VolumeName */
       if (rctx.exact_match && rctx.have_volume &&
           strcmp(dev->VolHdr.VolumeName, rctx.VolumeName) != 0) {
          Mmsg(jcr->errmsg, _("3607 JobId=%u wants Vol=\"%s\" drive has Vol=\"%s\" on drive %s.\n"), 
@@ -1102,6 +1104,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    }
 
    /* Check for unused autochanger drive */
+   /* ***FIXME*** use !dev->is_busy() */
    if (rctx.autochanger_only && dev->num_writers == 0 &&
        dev->VolHdr.VolumeName[0] == 0) {
       /* Device is available but not yet reserved, reserve it for us */
