@@ -321,8 +321,8 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
       goto bail_out;
    }
 
-   if (relabel) {
-      dev->close_part(dcr);              /* make sure closed for rename */
+   if (relabel && !dev->is_tape()) {
+      dev->close_part(dcr);              /* make sure DVD/file closed for rename */
    }
 
    /* Set the new filename for open, ... */

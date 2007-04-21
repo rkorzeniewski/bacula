@@ -2,6 +2,9 @@
 
 General:
 20Apr07
+kes  Don't call close_part in label.c if tape and relabel.
+kes  Don't free volume if busy in close() -- should help with
+     bug 801.
 ebl  Fix #824 RunScript bug (After script could be execute twice)
      Now, Before Script can use RunsOnSuccess and RunsOnFailure options
      By default (like before) RunsOnSuccess=true and RunsOnFailure=false

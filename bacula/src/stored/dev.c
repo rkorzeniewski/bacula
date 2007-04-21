@@ -1849,7 +1849,10 @@ void DEVICE::clrerror(int func)
  */
 void DEVICE::clear_volhdr()
 {
-   free_volume(this);
+   /* If we have an unused volume associated with this drive, free it */
+   if (vol && !is_busy()) {
+      free_volume(this);
+   }
    Dmsg1(100, "Clear volhdr vol=%s\n", VolHdr.VolumeName);
    memset(&VolHdr, 0, sizeof(VolHdr));
 }

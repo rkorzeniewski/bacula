@@ -431,11 +431,10 @@ void DEVICE::r_dlock()
  */
 void _block_device(const char *file, int line, DEVICE *dev, int state)
 {
-   Dmsg3(sd_dbglvl, "block set %d from %s:%d\n", state, file, line);
-
    ASSERT(dev->blocked() == BST_NOT_BLOCKED);
    dev->set_blocked(state);           /* make other threads wait */
    dev->no_wait_id = pthread_self();  /* allow us to continue */
+   Dmsg3(sd_dbglvl, "set blocked=%s from %s:%d\n", dev->print_blocked(), file, line);
 }
 
 /*
