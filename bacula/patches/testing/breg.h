@@ -98,8 +98,16 @@ bool apply_bregexps(const char *fname, alist *bregexps, char **result);
 /* foreach_alist free RUNSCRIPT */
 void free_bregexps(alist *bregexps); /* you have to free alist */
 
-/* get a bregexp string from user arguments */
-char *bregexp_build_where(char *strip_prefix, 
+/* get regexp size */
+int bregexp_get_build_where_size(char *strip_prefix, 
+				 char *add_prefix, 
+				 char *add_suffix);
+
+/* get a bregexp string from user arguments 
+ * you must allocate it with bregexp_get_build_where_size();
+ */
+char *bregexp_build_where(char *dest, int str_size,
+			  char *strip_prefix, 
                           char *add_prefix, 
                           char *add_suffix);
 
