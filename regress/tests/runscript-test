@@ -105,6 +105,7 @@ else
 fi
 
 if grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' tmp/RUN_FD_WARNING.log   &&
+   ! grep -q 'RunAfterFailedJob'                                          tmp/RUN_FD_WARNING.log   &&
    grep -q 'Backup OK -- with warnings'                                   tmp/RUN_FD_WARNING.log
 then
    [ "$debug" = 1 ] && echo RUN_FD_WARNING ok
