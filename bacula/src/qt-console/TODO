@@ -1,5 +1,8 @@
 dhb
 ====================================================
+Must:: get page selector to follow undocked windows.  Otherwise
+current console won't be current.
+
 Low priority item:
 move behavior of:
   MainWin::setContextMenuDockText
@@ -15,9 +18,10 @@ Add class for FileSets
 
 Create list of what does not work.
 
-Ask Kern about bRestore and what to do with it in terms of priorities.
+Ask Kern about bRestore and what to do with it in terms of priorities.  Should
+that be working before an initial release.
 
-Fix bug in myt box not working with .sql query="" command.
+Fix bug in myth box not working with .sql query="" command.
 
 Create documentation for any other developers interested in creating
 new classes to add more pages.  Explain how to use the pages class
@@ -29,14 +33,12 @@ the ability to surf what's on the job.
 Think about good ways to clean up the Console creation part of the
 loop creating pages.
 
-Remove DoubleClicking, not needed any more.
+Font is being set on a per console basis, should it be.
+Tried to get the settings to write for a second, but not coming up next time
+
 ========================================================
 
 - Possibly some other things I didn't think of.
-
-Things to do:
-- When any director is clicked, we need to set it as the current
-director and set the current console as well.
 
 - I think we need to make the current Director more explicit, by
 perhaps highlighting it in the page selector when it is current
@@ -81,6 +83,11 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Things to do:
+- When any director is clicked, we need to set it as the current
+director and set the current console as well.
+
+Remove DoubleClicking, From pages class not needed any more.
 
 Broken with multiple directors:
 - If you click on the second director, it will probably open, but

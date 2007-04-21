@@ -148,10 +148,6 @@ void Pages::PgSeltreeWidgetClicked()
 {
 }
 
-void Pages::PgSeltreeWidgetDoubleClicked()
-{
-}
-
 /*
  *  Virtual function which is called when this page is visible on the stack.
  *  This will be overridden by classes that want to populate if they are on the

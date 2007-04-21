@@ -46,12 +46,10 @@ public:
    MediaList();
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
-   virtual void PgSeltreeWidgetDoubleClicked();
    virtual void currentStackItem();
 
 public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
-   void treeItemDoubleClicked(QTreeWidgetItem *item, int column);
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void editMedia();
    void showJobs();

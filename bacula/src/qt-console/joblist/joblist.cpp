@@ -92,8 +92,8 @@ void JobList::populateTable()
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
-    /*  This could be a user preference debug message?? */
-    printf("Query cmd : %s\n",query.toUtf8().data());
+   /*  This could be a user preference debug message?? */
+   //printf("Query cmd : %s\n",query.toUtf8().data());
    if (m_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 
