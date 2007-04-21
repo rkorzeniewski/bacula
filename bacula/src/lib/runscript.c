@@ -107,7 +107,7 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
 
    int when;
 
-   if (strstr(label, "Before")) {
+   if (strstr(label, NT_("Before"))) {
       when = SCRIPT_Before;
    } else {
       when = SCRIPT_After;
@@ -200,7 +200,7 @@ void RUNSCRIPT::set_command(const POOLMEM *cmd)
 /* set this->target to client_name */
 void RUNSCRIPT::set_target(const POOLMEM *client_name)
 {
-   Dmsg1(500, "runscript: setting target\n", NPRT(client_name));
+   Dmsg1(500, "runscript: setting target = %s\n", NPRT(client_name));
 
    if (!client_name) {
       return;
