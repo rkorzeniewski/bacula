@@ -161,6 +161,7 @@ bool BREGEXP::extract_regexp(const char *motif)
 	 sep == '%' || 
 	 sep == '=' || 
 	 sep == '~' ||
+	 sep == '/' ||
 	 sep == '#'   )) 
    {
       return false;
