@@ -380,7 +380,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    AUTOCHANGER *changer = dcr->dev->device->changer_res;
    DEVRES *device;
    bool found = false;
-   bool first = true;
+   int retries = 0;                /* wait for device retries */
 
    if (!changer) {
       return false;
@@ -408,8 +408,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    }   
    for (int i=0; i < 3; i++) {
       if (dev->is_busy()) {
-         wait_for_device(dcr->jcr, first);
-         first = false;
+         wait_for_device(dcr->jcr, retries);
          continue;
       }
       break;

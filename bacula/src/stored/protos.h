@@ -264,4 +264,4 @@ void    list_spool_stats          (void sendit(const char *msg, int len, void *s
 
 /* From wait.c */
 int wait_for_sysop(DCR *dcr);
-bool wait_for_device(JCR *jcr, bool first);
+bool wait_for_device(JCR *jcr, int &retries);

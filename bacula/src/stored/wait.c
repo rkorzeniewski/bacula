@@ -199,7 +199,7 @@ int wait_for_sysop(DCR *dcr)
  * Returns: true  if a device has changed state
  *          false if the total wait time has expired.
  */
-bool wait_for_device(JCR *jcr, bool first)
+bool wait_for_device(JCR *jcr, int &retries)
 {
    struct timeval tv;
    struct timezone tz;
@@ -207,12 +207,15 @@ bool wait_for_device(JCR *jcr, bool first)
    int stat = 0;
    bool ok = true;
    const int max_wait_time = 1 * 60;       /* wait 1 minute */
+   char ed1[50];
 
    Dmsg0(100, "Enter wait_for_device\n");
    P(device_release_mutex);
 
-   if (first) {
-      Jmsg(jcr, M_MOUNT, 0, _("Job %s waiting to reserve a device.\n"), jcr->Job);
+   if (++retries % 5 == 0) {
+      /* Print message every 5 minutes */
+      Jmsg(jcr, M_MOUNT, 0, _("JobId=%s, Job %s waiting to reserve a device.\n"), 
+         edit_uint64(jcr->JobId, ed1), jcr->Job);
    }
 
    gettimeofday(&tv, &tz);
