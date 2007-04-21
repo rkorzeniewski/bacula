@@ -279,7 +279,6 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
     *  when adding a new volume that no newly scheduled
     *  job can reserve it.
     */
-// lock_reservations();
    P(vol_list_lock);
    debug_list_volumes("begin reserve_volume", debug_nolock);
    /* 
@@ -350,7 +349,6 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 get_out:
    debug_list_volumes("end new volume", debug_nolock);
    V(vol_list_lock);
-// unlock_reservations();
    return vol;
 }
 

@@ -43,6 +43,12 @@ Document:
  
 
 Priority:
+- the director seg faulted when I omitted the pool directive from a 
+job resource.  I was experimenting and thought it redundant that I had 
+specified Pool, Full Backup Pool. and Differential Backup Pool. but 
+apparently not.  This  happened when I removed the pool directive and 
+started the director.
+
 - On restore add Restore Client, Original Client.
 01-Apr 00:42 rufus-dir: Start Backup JobId 55, Job=kernsave.2007-04-01_00.42.48
 01-Apr 00:42 rufus-sd: Python SD JobStart: JobId=55 Client=Rufus
