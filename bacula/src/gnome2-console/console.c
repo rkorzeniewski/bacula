@@ -554,7 +554,7 @@ int connect_to_director(gpointer data)
    }
 
 
-   UA_sock = bnet_connect(NULL, 5, 15, _("Director daemon"), dir->address,
+   UA_sock = bnet_connect(NULL, 5, 15, 0, _("Director daemon"), dir->address,
                           NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       return 0;

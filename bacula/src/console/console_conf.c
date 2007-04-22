@@ -1,28 +1,7 @@
 /*
- *   Main configuration file parser for Bacula User Agent
- *    some parts may be split into separate files such as
- *    the schedule configuration (sch_config.c).
- *
- *   Note, the configuration file parser consists of three parts
- *
- *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
- *
- *   2. The generic config  scanner in lib/parse_config.c and
- *      lib/parse_config.h.
- *      These files contain the parser code, some utility
- *      routines, and the common store routines (name, int,
- *      string).
- *
- *   3. The daemon specific file, which contains the Resource
- *      definitions as well as any specific store routines
- *      for the resource records.
- *
- *     Kern Sibbald, January MM, September MM
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +25,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Main configuration file parser for Bacula User Agent
+ *    some parts may be split into separate files such as
+ *    the schedule configuration (sch_config.c).
+ *
+ *   Note, the configuration file parser consists of three parts
+ *
+ *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
+ *
+ *   2. The generic config  scanner in lib/parse_config.c and
+ *      lib/parse_config.h.
+ *      These files contain the parser code, some utility
+ *      routines, and the common store routines (name, int,
+ *      string).
+ *
+ *   3. The daemon specific file, which contains the Resource
+ *      definitions as well as any specific store routines
+ *      for the resource records.
+ *
+ *     Kern Sibbald, January MM, September MM
+ */
 
 #include "bacula.h"
 #include "console_conf.h"
@@ -95,6 +95,7 @@ static RES_ITEM cons_items[] = {
    {"tlscertificate", store_dir,       ITEM(res_cons.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(res_cons.tls_keyfile), 0, 0, 0},
    {"director",       store_str,       ITEM(res_cons.director), 0, 0, 0},
+   {"heartbeatinterval", store_time, ITEM(res_cons.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -112,6 +113,7 @@ static RES_ITEM dir_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(res_dir.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(res_dir.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
+   {"heartbeatinterval", store_time, ITEM(res_dir.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

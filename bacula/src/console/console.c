@@ -345,6 +345,7 @@ int main(int argc, char *argv[])
    bool no_signals = false;
    bool test_config = false;
    JCR jcr;
+   utime_t heart_beat;
 
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -556,7 +557,14 @@ try_again:
       }
    }
 
-   UA_sock = bnet_connect(NULL, 5, 15, "Director daemon", dir->address,
+   if (dir->heartbeat_interval) {
+      heart_beat = dir->heartbeat_interval;
+   } else if (cons) {
+      heart_beat = cons->heartbeat_interval;
+   } else {
+      heart_beat = 0;
+   }
+   UA_sock = bnet_connect(NULL, 5, 15, heart_beat, "Director daemon", dir->address,
                           NULL, dir->DIRport, 0);
    if (UA_sock == NULL) {
       terminate_console(0);

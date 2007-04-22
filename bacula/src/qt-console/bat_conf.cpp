@@ -88,6 +88,7 @@ static RES_ITEM dir_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(dir_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(dir_res.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(dir_res.tls_keyfile), 0, 0, 0},
+   {"heartbeatinterval", store_time, ITEM(dir_res.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -101,6 +102,7 @@ static RES_ITEM con_items[] = {
    {"tlscacertificatedir", store_dir,  ITEM(con_res.tls_ca_certdir), 0, 0, 0},
    {"tlscertificate", store_dir,       ITEM(con_res.tls_certfile), 0, 0, 0},
    {"tlskey",         store_dir,       ITEM(con_res.tls_keyfile), 0, 0, 0},
+   {"heartbeatinterval", store_time, ITEM(con_res.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

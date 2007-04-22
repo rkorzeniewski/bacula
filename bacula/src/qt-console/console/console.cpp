@@ -85,6 +85,7 @@ void Console::terminate()
 void Console::connect()
 {
    JCR jcr;
+   utime_t heart_beat;
 
    m_textEdit = textEdit;   /* our console screen */
 
@@ -110,7 +111,16 @@ void Console::connect()
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
 
-   m_sock = bnet_connect(NULL, 5, 15, _("Director daemon"), m_dir->address,
+   if (m_dir->heartbeat_interval) {
+      heart_beat = m_dir->heartbeat_interval;
+   } else if (cons) {
+      heart_beat = cons->heartbeat_interval;
+   } else {
+      heart_beat = 0;
+   }        
+
+   m_sock = bnet_connect(NULL, 5, 15, heart_beat,
+                          _("Director daemon"), m_dir->address,
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");

@@ -116,6 +116,7 @@ public:
    uint32_t MaxConcurrentJobs;        /* Max concurrent jobs for whole director */
    utime_t FDConnectTimeout;          /* timeout for connect in seconds */
    utime_t SDConnectTimeout;          /* timeout in seconds */
+   utime_t heartbeat_interval;        /* Interval to send heartbeats */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Server Certificate File */
@@ -245,6 +246,7 @@ public:
    int   FDport;                      /* Where File daemon listens */
    utime_t FileRetention;             /* file retention period in seconds */
    utime_t JobRetention;              /* job retention period in seconds */
+   utime_t heartbeat_interval;        /* Interval to send heartbeats */
    char *address;
    char *password;
    CAT *catalog;                      /* Catalog resource */
@@ -293,6 +295,7 @@ public:
    bool enabled;                      /* Set if device is enabled */
    bool  autochanger;                 /* set if autochanger */
    int64_t StorageId;                 /* Set from Storage DB record */
+   utime_t heartbeat_interval;        /* Interval to send heartbeats */
    int  drives;                       /* number of drives in autochanger */
 
    /* Methods */

@@ -79,9 +79,16 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 {
    BSOCK   *fd;
    char ed1[30];
+   utime_t heart_beat;
+
+   if (jcr->client->heartbeat_interval) {
+      heart_beat = jcr->client->heartbeat_interval;
+   } else {           
+      heart_beat = director->heartbeat_interval;
+   }
 
    if (!jcr->file_bsock) {
-      fd = bnet_connect(jcr, retry_interval, max_retry_time,
+      fd = bnet_connect(jcr, retry_interval, max_retry_time, heart_beat,
            _("File daemon"), jcr->client->address,
            NULL, jcr->client->FDport, verbose);
       if (fd == NULL) {
@@ -556,7 +563,7 @@ int send_runscripts_commands(JCR *jcr)
             }
          }
          /* TODO : we have to play with other client */
-	 /*
+         /*
            else {
            send command to an other client
            }

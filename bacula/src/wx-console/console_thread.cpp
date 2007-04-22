@@ -417,7 +417,7 @@ void* console_thread::Entry() {
    }
 
 
-   UA_sock = bnet_connect(&jcr, 3, 3, wxString(_("Director daemon")).mb_str(*wxConvCurrent),
+   UA_sock = bnet_connect(&jcr, 3, 3, 0, wxString(_("Director daemon")).mb_str(*wxConvCurrent),
       dir->address, NULL, dir->DIRport, 0);
       
    if (UA_sock == NULL) {

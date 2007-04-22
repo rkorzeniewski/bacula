@@ -871,21 +871,21 @@ int docmd(monitoritem* item, const char* command, GSList** list)
          dird = (DIRRES*)item->resource;
          trayMessage(_("Connecting to Director %s:%d\n"), dird->address, dird->DIRport);
          changeStatusMessage(item, _("Connecting to Director %s:%d"), dird->address, dird->DIRport);
-         item->D_sock = bnet_connect(NULL, 0, 0, _("Director daemon"), dird->address, NULL, dird->DIRport, 0);
+         item->D_sock = bnet_connect(NULL, 0, 0, 0, _("Director daemon"), dird->address, NULL, dird->DIRport, 0);
          jcr.dir_bsock = item->D_sock;
          break;
       case R_CLIENT:
          filed = (CLIENT*)item->resource;
          trayMessage(_("Connecting to Client %s:%d\n"), filed->address, filed->FDport);
          changeStatusMessage(item, _("Connecting to Client %s:%d"), filed->address, filed->FDport);
-         item->D_sock = bnet_connect(NULL, 0, 0, _("File daemon"), filed->address, NULL, filed->FDport, 0);
+         item->D_sock = bnet_connect(NULL, 0, 0, 0, _("File daemon"), filed->address, NULL, filed->FDport, 0);
          jcr.file_bsock = item->D_sock;
          break;
       case R_STORAGE:
          stored = (STORE*)item->resource;
          trayMessage(_("Connecting to Storage %s:%d\n"), stored->address, stored->SDport);
          changeStatusMessage(item, _("Connecting to Storage %s:%d"), stored->address, stored->SDport);
-         item->D_sock = bnet_connect(NULL, 0, 0, _("Storage daemon"), stored->address, NULL, stored->SDport, 0);
+         item->D_sock = bnet_connect(NULL, 0, 0, 0, _("Storage daemon"), stored->address, NULL, stored->SDport, 0);
          jcr.store_bsock = item->D_sock;
          break;
       default:
