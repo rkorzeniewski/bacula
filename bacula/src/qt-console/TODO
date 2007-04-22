@@ -51,6 +51,11 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+If the console command line entry docked widget gets the focus, make 
+m_currentConsole the top widget by setting the treewidgetitem selected.
+Did this in MainWin::input_line almost better to let the person see
+whatever they want until they hit enter.
+
 Set Window titles to reflect what director it is.
 
 Must:: get page selector to follow undocked windows.  Otherwise

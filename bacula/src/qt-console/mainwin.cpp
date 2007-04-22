@@ -453,6 +453,9 @@ void MainWin::input_line()
    }
    m_cmd_history.append(cmdStr);
    m_cmd_last = -1;
+   if (treeWidget->currentItem() != getFromHash(m_currentConsole)){
+      treeWidget->setCurrentItem(getFromHash(m_currentConsole));
+   }
 }
 
 
