@@ -1,17 +1,7 @@
 /*
- * Bacula JCR Structure definition for Daemons and the Library
- *  This definition consists of a "Global" definition common
- *  to all daemons and used by the library routines, and a
- *  daemon specific part that is enabled with #defines.
- *
- * Kern Sibbald, Nov MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula JCR Structure definition for Daemons and the Library
+ *  This definition consists of a "Global" definition common
+ *  to all daemons and used by the library routines, and a
+ *  daemon specific part that is enabled with #defines.
+ *
+ * Kern Sibbald, Nov MM
+ *
+ *   Version $Id$
+ */
 
 
 #ifndef __JCR_H_

@@ -1,14 +1,7 @@
 /*
- * Bacula Adminstration Tool (bat) 
- *
- *     Kern Sibbald, March 2002
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Adminstration Tool (bat) 
+ *
+ *     Kern Sibbald, March 2002
+ *
+ *     Version $Id$
+ */
 
 #ifndef _BAT_CONF_H_
 #define _BAT_CONF_H_
@@ -72,6 +72,7 @@ struct DIRRES {
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
+   utime_t heartbeat_interval;        /* Dir heartbeat interval */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 
@@ -96,6 +97,7 @@ struct CONRES {
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
+   utime_t heartbeat_interval;        /* Dir heartbeat interval */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };

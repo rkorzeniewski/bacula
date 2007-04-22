@@ -1,24 +1,7 @@
 /*
- *
- *   Bacula Director -- msgchan.c -- handles the message channel
- *    to the Storage daemon and the File daemon.
- *
- *     Kern Sibbald, August MM
- *
- *    This routine runs as a thread and must be thread reentrant.
- *
- *  Basic tasks done here:
- *    Open a message channel with the Storage daemon
- *      to authenticate ourself and to pass the JobId.
- *    Create a thread to interact with the Storage daemon
- *      who returns a job status and requests Catalog services, etc.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-20076 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,6 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- msgchan.c -- handles the message channel
+ *    to the Storage daemon and the File daemon.
+ *
+ *     Kern Sibbald, August MM
+ *
+ *    This routine runs as a thread and must be thread reentrant.
+ *
+ *  Basic tasks done here:
+ *    Open a message channel with the Storage daemon
+ *      to authenticate ourself and to pass the JobId.
+ *    Create a thread to interact with the Storage daemon
+ *      who returns a job status and requests Catalog services, etc.
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -78,6 +78,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
 {
    BSOCK *sd;
    STORE *store;
+   utime_t heart_beat;    
 
    if (jcr->store_bsock) {
       return true;                    /* already connected */
@@ -90,12 +91,18 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
       store = jcr->rstore;
    }
 
+   if (store->heartbeat_interval) {
+      heart_beat = store->heartbeat_interval;
+   } else {           
+      heart_beat = director->heartbeat_interval;
+   }
+
    /*
     *  Open message channel with the Storage daemon
     */
    Dmsg2(100, "bnet_connect to Storage daemon %s:%d\n", store->address,
       store->SDport);
-   sd = bnet_connect(jcr, retry_interval, max_retry_time,
+   sd = bnet_connect(jcr, retry_interval, max_retry_time, heart_beat,
           _("Storage daemon"), store->address,
           NULL, store->SDport, verbose);
    if (sd == NULL) {

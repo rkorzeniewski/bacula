@@ -555,8 +555,8 @@ dlist *bnet_host2ipaddrs(const char *host, int family, const char **errstr)
  * Returns BSOCK * pointer on success
  *
  */
-static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
-                        int port, int *fatal)
+static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
+                        int port, utime_t heart_beat, int *fatal)
 {
    int sockfd = -1;
    dlist *addr_list;
@@ -604,6 +604,17 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
          Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
                be.strerror());
       }
+#if defined(TCP_KEEPIDLE)
+      if (heart_beat) {
+         int opt = heart_beat
+         if (setsockopt(sockfd, IPPROTO_IP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
+            berrno be;
+            Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+                  be.strerror());
+         }
+      }
+#endif
+
       /* connect to server */
       if (connect(sockfd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) < 0) {
          save_errno = errno;
@@ -638,6 +649,7 @@ static BSOCK *bnet_open(JCR * jcr, const char *name, char *host, char *service,
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
 BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
+                    utime_t heart_beat,
                     const char *name, char *host, char *service, int port,
                     int verbose)
 {
@@ -647,7 +659,7 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
    time_t begin_time = time(NULL);
    time_t now;
 
-   for (i = 0; (bsock = bnet_open(jcr, name, host, service, port, &fatal)) == NULL;
+   for (i = 0; (bsock = bnet_open(jcr, name, host, service, port, heart_beat, &fatal)) == NULL;
         i -= retry_interval) {
       berrno be;
       if (fatal || (jcr && job_canceled(jcr))) {
@@ -747,9 +759,8 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
    uint32_t dbuf_size, start_size;
 #if defined(IP_TOS) && defined(IPTOS_THROUGHPUT)
    int opt;
-
    opt = IPTOS_THROUGHPUT;
-   setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (sockopt_val_t) & opt, sizeof(opt));
+   setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (sockopt_val_t)&opt, sizeof(opt));
 #endif
 
    if (size != 0) {

@@ -1,14 +1,7 @@
 /*
- * Bacula User Agent specific configuration and defines
- *
- *     Kern Sibbald, Sep MM
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula User Agent specific configuration and defines
+ *
+ *     Kern Sibbald, Sep MM
+ *
+ *     Version $Id$
+ */
 
 /*
  * Resource codes -- they must be sequential for indexing
@@ -71,6 +71,7 @@ struct CONRES {
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
    char *director;                    /* bind to director */
+   utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };
@@ -87,6 +88,7 @@ struct DIRRES {
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
+   utime_t heartbeat_interval;        /* Interval to send heartbeats to Dir */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
 };

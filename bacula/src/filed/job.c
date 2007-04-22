@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1265,8 +1265,8 @@ static int storage_cmd(JCR *jcr)
    Dmsg3(110, "Open storage: %s:%d ssl=%d\n", jcr->stored_addr, stored_port, enable_ssl);
    /* Open command communications with Storage daemon */
    /* Try to connect for 1 hour at 10 second intervals */
-   sd = bnet_connect(jcr, 10, (int)me->SDConnectTimeout, _("Storage daemon"),
-                     jcr->stored_addr, NULL, stored_port, 1);
+   sd = bnet_connect(jcr, 10, (int)me->SDConnectTimeout, me->heartbeat_interval,
+                      _("Storage daemon"), jcr->stored_addr, NULL, stored_port, 1);
    if (sd == NULL) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to connect to Storage daemon: %s:%d\n"),
           jcr->stored_addr, stored_port);

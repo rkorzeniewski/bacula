@@ -88,7 +88,8 @@ bool       bnet_tls_server       (TLS_CONTEXT *ctx, BSOCK *bsock,
 bool       bnet_tls_client       (TLS_CONTEXT *ctx, BSOCK *bsock,
                                   alist *verify_list);
 BSOCK *    bnet_connect          (JCR *jcr, int retry_interval,
-               utime_t max_retry_time, const char *name, char *host, char *service,
+               utime_t max_retry_time, utime_t heart_beat, 
+               const char *name, char *host, char *service,
                int port, int verbose);
 void       bnet_close            (BSOCK *bsock);
 BSOCK *    init_bsock            (JCR *jcr, int sockfd, const char *who, const char *ip,

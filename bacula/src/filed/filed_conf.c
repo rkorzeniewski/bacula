@@ -1,30 +1,7 @@
 /*
- *   Main configuration file parser for Bacula File Daemon (Client)
- *    some parts may be split into separate files such as
- *    the schedule configuration (sch_config.c).
- *
- *   Note, the configuration file parser consists of three parts
- *
- *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
- *
- *   2. The generic config  scanner in lib/parse_config.c and
- *      lib/parse_config.h.
- *      These files contain the parser code, some utility
- *      routines, and the common store routines (name, int,
- *      string).
- *
- *   3. The daemon specific file, which contains the Resource
- *      definitions as well as any specific store routines
- *      for the resource records.
- *
- *     Kern Sibbald, September MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -48,6 +25,29 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Main configuration file parser for Bacula File Daemon (Client)
+ *    some parts may be split into separate files such as
+ *    the schedule configuration (sch_config.c).
+ *
+ *   Note, the configuration file parser consists of three parts
+ *
+ *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
+ *
+ *   2. The generic config  scanner in lib/parse_config.c and
+ *      lib/parse_config.h.
+ *      These files contain the parser code, some utility
+ *      routines, and the common store routines (name, int,
+ *      string).
+ *
+ *   3. The daemon specific file, which contains the Resource
+ *      definitions as well as any specific store routines
+ *      for the resource records.
+ *
+ *     Kern Sibbald, September MM
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -98,8 +98,8 @@ static RES_ITEM cli_items[] = {
    {"scriptsdirectory",  store_dir,  ITEM(res_client.scripts_directory),  0, 0, 0},
    {"maximumconcurrentjobs", store_pint,  ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 10},
    {"messages",      store_res, ITEM(res_client.messages), R_MSGS, 0, 0},
-   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"sdconnecttimeout", store_time,ITEM(res_client.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
+   {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"maximumnetworkbuffersize", store_pint, ITEM(res_client.max_network_buffer_size), 0, 0, 0},
 #ifdef DATA_ENCRYPTION
    {"pkisignatures",         store_bool,    ITEM(res_client.pki_sign), 0, ITEM_DEFAULT, 0},
