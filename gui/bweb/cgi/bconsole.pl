@@ -85,7 +85,7 @@ for my $a (@action)
     } elsif ($a eq 'run' and $have_run==0) {
 	$have_run=1;
 
-	my $arg = $bweb->get_form(qw/job client storage fileset rwhere
+	my $arg = $bweb->get_form(qw/job client storage fileset regexwhere
 				     where replace priority/);
 
 	my $bootstrap = CGI::param('bootstrap');
@@ -107,7 +107,7 @@ for my $a (@action)
 				   storage   => $arg->{storage},
 				   fileset   => $arg->{fileset},
 				   where     => $arg->{where},
-				   rwhere    => $arg->{rwhere},
+				   regexwhere => $arg->{regexwhere},
 				   replace   => $arg->{replace},
 				   priority  => $arg->{priority},
 				   bootstrap => $filename);

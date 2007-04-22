@@ -1401,7 +1401,7 @@ sub get_form
 		 device => 1,
 		 where  => 1,
 		 );
-    my %opt_r = (rwhere => 1);
+    my %opt_r = (regexwhere => 1);
 
     my %opt_d = (		# option with date
 		 voluseduration=> 1,

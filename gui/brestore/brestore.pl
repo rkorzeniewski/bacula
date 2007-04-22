@@ -708,7 +708,7 @@ sub get_where
 	# using regexp
 	if ($self->{glade}->get_widget('chk_use_regexp')->get_active()) {
 
-	    return ('rwhere', 
+	    return ('regexwhere', 
 		    $self->{glade}->get_widget('entry_rwhere')->get_active());
 	}
 	    
@@ -731,7 +731,7 @@ sub get_where
 	    push @ret,"!([^/])\$!\$1$add_suffix!";
 	}
 
-	return ('rwhere', join(',', @ret));
+	return ('regexwhere', join(',', @ret));
 
     } else { # using where
 	return ('where', 
@@ -3205,7 +3205,7 @@ sub run
 				storage => $arg{storage} || '',
 				fileset => $arg{fileset} || '',
 				where   => $arg{where}   || '',
-				rwhere  => $arg{rwhere}  || '',
+				regexwhere  => $arg{regexwhere}  || '',
 				priority=> $arg{prio}    || '',
 				replace => $arg{replace},
 				action  => 'run',
