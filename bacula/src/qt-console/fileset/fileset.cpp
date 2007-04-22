@@ -43,12 +43,14 @@
 FileSet::FileSet()
 {
    setupUi(this);
+   m_name = "FileSets";
    pgInitialize();
 
    /* mp_treeWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   setTitle();
 }
 
 FileSet::~FileSet()
@@ -211,12 +213,3 @@ void FileSet::currentStackItem()
       m_populated=true;
    }
 }
-
-/*
- * Virtual Function to return the name for the medialist tree widget
- */
-void FileSet::treeWidgetName(QString &name)
-{
-   name = "FileSet";
-}
-

@@ -40,6 +40,7 @@
 
 bRestore::bRestore()
 {
+   m_name = "bRestore";
    setupUi(this);
    pgInitialize();
    m_closeable = true;
@@ -47,12 +48,4 @@ bRestore::bRestore()
 
 bRestore::~bRestore()
 {
-}
-
-/*
- * Virtual Function to return the name for the medialist tree widget
- */
-void bRestore::treeWidgetName(QString &name)
-{
-   name = "bRestore";
 }

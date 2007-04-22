@@ -204,7 +204,7 @@ void Pages::pgInitialize(QTreeWidgetItem *parentTreeWidgetItem)
  */
 void Pages::treeWidgetName(QString &name)
 {
-   name = "Default Page Name";
+   name = m_name;
 }
 
 /*
@@ -222,11 +222,26 @@ void Pages::consoleCommand(QString &command)
 /*
  * Function for handling undocked windows becoming active.
  * Change the currently selected item in the page selector window to the now
- * active undocked window.
+ * active undocked window.  This will also make the console for the undocked
+ * window m_currentConsole.
  */
 void Pages::changeEvent(QEvent *event)
 {
    if ((event->type() ==  QEvent::ActivationChange) && (isActiveWindow())) {
       mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(this));
    }
+}
+
+/*
+ * Function to simplify getting the name of the class and the director into
+ * the caption or title of the window
+ */
+void Pages::setTitle()
+{
+   QString title, director;
+   treeWidgetName(title);
+   m_console->getDirResName(director);
+   title += " of Director ";
+   title += director;
+   setWindowTitle(title);
 }

@@ -43,12 +43,14 @@
 Clients::Clients()
 {
    setupUi(this);
+   m_name = "Clients";
    pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   setTitle();
 }
 
 Clients::~Clients()
@@ -222,12 +224,3 @@ void Clients::currentStackItem()
       m_populated=true;
    }
 }
-
-/*
- * Virtual Function to return the name for the medialist tree widget
- */
-void Clients::treeWidgetName(QString &name)
-{
-   name = "Clients";
-}
-

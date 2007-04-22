@@ -99,7 +99,6 @@ class bRestore : public Pages, public Ui::bRestoreForm
 public:
    bRestore();
    ~bRestore();
-   virtual void treeWidgetName(QString &);
 
 public slots:
 

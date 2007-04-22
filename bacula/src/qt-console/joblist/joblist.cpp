@@ -44,6 +44,7 @@ JobList::JobList(QString &medianame, QString &clientname,
          QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
+   m_name = "Clients";
    m_medianame = medianame;
    m_clientname = clientname;
    pgInitialize(parentTreeWidgetItem);
@@ -53,6 +54,7 @@ JobList::JobList(QString &medianame, QString &clientname,
    /* connect to the action specific to this pages class */
    connect(actionRefreshJobList, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
+   setTitle();
 }
 
 /*

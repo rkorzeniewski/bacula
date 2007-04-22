@@ -65,7 +65,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    treeWidget->setCurrentItem(getFromHash(m_currentConsole));
-   /*
+   /*  FIXME
     *  I'd like to turn this into a debug item
     *  DIRRES* dirres = m_currentConsole->getDirRes();
     *  printf("Setting initial window to %s\n", dirres->name());

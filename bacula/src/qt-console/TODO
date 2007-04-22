@@ -22,7 +22,7 @@ to surf the filestructure on the job.
 
 LOW priority items:
 
-Get rid of "Warning: name layoutWidget is already used" when make uic's resture.ui
+Get rid of "Warning: name layoutWidget is already used" when make uic's restore.ui
 
 move behavior of:
   MainWin::setContextMenuDockText
@@ -51,6 +51,8 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Set Window titles to reflect what director it is.
+
 Must:: get page selector to follow undocked windows.  Otherwise
 current console won't be current.
 
