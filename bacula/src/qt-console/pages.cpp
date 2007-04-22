@@ -218,3 +218,15 @@ void Pages::consoleCommand(QString &command)
    /* Bring this directors console to the front of the stack */
    mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
 }
+
+/*
+ * Function for handling undocked windows becoming active.
+ * Change the currently selected item in the page selector window to the now
+ * active undocked window.
+ */
+void Pages::changeEvent(QEvent *event)
+{
+   if ((event->type() ==  QEvent::ActivationChange) && (isActiveWindow())) {
+      mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(this));
+   }
+}

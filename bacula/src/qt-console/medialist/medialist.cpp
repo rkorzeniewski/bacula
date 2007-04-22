@@ -48,7 +48,6 @@ MediaList::MediaList()
    pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
-   createConnections();
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
@@ -129,22 +128,6 @@ void MediaList::populateTree()
 }
 
 /*
- * Not being used currently,  Should this be kept for possible future use.
- */
-void MediaList::createConnections()
-{
-   connect(mp_treeWidget, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
-                SLOT(treeItemClicked(QTreeWidgetItem *, int)));
-}
-
-/*
- * Not being used currently,  Should this be kept for possible future use.
- */
-void MediaList::treeItemClicked(QTreeWidgetItem * /*item*/, int /*column*/)
-{
-}
-
-/*
  * Called from the signal of the context sensitive menu!
  */
 void MediaList::editMedia()
@@ -210,11 +193,9 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
 void MediaList::createContextMenu()
 {
    mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   /*mp_treeWidget->setContextMenuPolicy(Qt::NoContextMenu);*/
    mp_treeWidget->addAction(actionRefreshMediaList);
    connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editMedia()));
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
-   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));

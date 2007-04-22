@@ -75,9 +75,10 @@ protected:
    void pgInitialize();
    void pgInitialize(QTreeWidgetItem *);
    void consoleCommand(QString &);
+   virtual void treeWidgetName(QString &);
+   virtual void changeEvent(QEvent *event);
    bool m_closeable;
    bool m_docked;
-   virtual void treeWidgetName(QString &);
    Console *m_console;
 };
 
