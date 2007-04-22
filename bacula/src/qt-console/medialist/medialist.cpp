@@ -127,6 +127,10 @@ void MediaList::populateTree()
          }
       }
    }
+   /* Resize the columns */
+   for(int cnter=0; cnter<headerlist.count(); cnter++) {
+      mp_treeWidget->resizeColumnToContents(cnter);
+   }
 }
 
 /*
