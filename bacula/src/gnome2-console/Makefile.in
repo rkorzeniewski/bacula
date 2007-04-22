@@ -94,6 +94,13 @@ devclean: realclean
 	(cd $(srcdir); $(RMF) Makefile)
 
 install: all
+	@if test -f ${DESTDIR}${sbindir}/gnome-console; then \
+	   echo " "; \
+	   echo "Warning!!!  ${DESTDIR}${sbindir}gnome-console found."; \
+	   echo " gnome-console has been renamed bgnome-console, so gnome-console"; \
+	   echo " is no longer used, and you might want to delete it."; \
+	   echo " "; \
+	fi
 	$(INSTALL_PROGRAM) bgnome-console $(DESTDIR)$(sbindir)/bgnome-console
 	@srcconf=bgnome-console.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \

@@ -585,7 +585,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       if (dev->poll) {
          Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev->print_name());
          Dmsg1(400, "Blocked=%s\n", dev->print_blocked());
-         return true;
+         goto bail_out;
       }
 
       if (stat == W_TIMEOUT) {
@@ -607,6 +607,8 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
       Dmsg1(400, "Someone woke me for device %s\n", dev->print_name());
       break;
    }
+
+bail_out:
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Dmsg0(400, "leave dir_ask_sysop_to_mount_volume\n");

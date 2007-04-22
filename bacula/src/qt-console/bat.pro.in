@@ -1,7 +1,18 @@
 ######################################################################
-# Version $Id$
+# Version $Id: bat.pro 4588 2007-04-22 01:50:10Z bartleyd2 $
 #
+#   !!!!!!! IMPORTANT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+#      Edit only bat.pro.in  -- bat.pro is built by the ./configure program
+#
+#   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#    
 CONFIG += qt debug
+
+bins.path = /$(DESTDIR)@sbindir@
+bins.files = ./bat
+confs.path = /$(DESTDIR)@sysconfdir@
+confs.files = ./bat.conf
 
 TEMPLATE = app
 TARGET = bat
@@ -76,3 +87,6 @@ SOURCES += storage/storage.cpp
 ## Fileset
 HEADERS += fileset/fileset.h
 SOURCES += fileset/fileset.cpp
+
+INSTALLS += bins
+INSTALLS += confs

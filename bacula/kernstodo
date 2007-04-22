@@ -43,6 +43,27 @@ Document:
  
 
 Priority:
+- Look at using posix_fadvise(2) for backups -- see bug #751.
+  Possibly add the code at findlib/bfile.c:795
+
+/* TCP socket options */
+#define TCP_NODELAY             1       /* Turn off Nagle's algorithm. */
+#define TCP_MAXSEG              2       /* Limit MSS */
+#define TCP_CORK                3       /* Never send partially complete segments */
+#define TCP_KEEPIDLE            4       /* Start keeplives after this period */
+#define TCP_KEEPINTVL           5       /* Interval between keepalives */
+#define TCP_KEEPCNT             6       /* Number of keepalives before death */
+#define TCP_SYNCNT              7       /* Number of SYN retransmits */
+#define TCP_LINGER2             8       /* Life time of orphaned FIN-WAIT-2 state */
+#define TCP_DEFER_ACCEPT        9       /* Wake up listener only when data arrive */
+#define TCP_WINDOW_CLAMP        10      /* Bound advertised window */
+#define TCP_INFO                11      /* Information about this connection. */
+#define TCP_QUICKACK            12      /* Block/reenable quick acks */
+#define TCP_CONGESTION          13      /* Congestion control algorithm */
+
+- Fix bnet_connect() code to set a timer and to use time to
+  measure the time.
+
 - the director seg faulted when I omitted the pool directive from a 
 job resource.  I was experimenting and thought it redundant that I had 
 specified Pool, Full Backup Pool. and Differential Backup Pool. but 
@@ -78,14 +99,10 @@ started the director.
    02-Feb 11:00 btape: Fatal Error because: Bacula interrupted by signal 11: Segmentation violation
    Kaboom! btape, btape got signal 11. Attempting traceback.
 
-- Why the heck doesn't bacula drop root priviledges before connecting to
-  the DB?
 - Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
   does the right thing.
 - Why doesn't @"xxx abc" work in a conf file?
 - Figure out some way to "automatically" backup conf changes.
-- Look at using posix_fadvise(2) for backups -- see bug #751.
-  Possibly add the code at findlib/bfile.c:795
 - Add the OS version back to the Win32 client info.
 - Restarted jobs have a NULL in the from field.
 - Modify SD status command to indicate when the SD is writing
@@ -1688,3 +1705,7 @@ Block Position: 0
 
 
 === Done
+- Why the heck doesn't bacula drop root priviledges before connecting to
+  the DB?
+
+

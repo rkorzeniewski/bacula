@@ -1,6 +1,18 @@
               Technical notes on version 2.1
 
 General:
+22Apr07
+kes  Make bat have 'make install' target.
+kes  Warn during install if old gnome-console binary found.
+kes  Warn during install if old wx-console binary found.
+kes  Add -8 option to bsmtp command line to add content type utf-8. 
+     Fixes bug #809. (Character coding problem in bsmtp).
+kes  If < is found in target (from, to, cc) then do not enclose the
+     target in < >  in bsmtp. Fixes bug #772  (malformed address).
+kes  When printing certain items in dbcheck, stop after 300000.
+     Fixes bug #822. (dbcheck loops).
+kes  Incorrect status in Dir after waiting for mount with poll set.
+     Fixes bug #825.
 21Apr07 
 kes  Extend idea of Prefer Mounted Volumes to mean a volume about
      to be mounted.

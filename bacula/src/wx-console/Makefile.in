@@ -104,6 +104,13 @@ Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	  && CONFIG_FILES=$(thisdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 install: all
+	@if test -f ${DESTDIR}${sbindir}/wx-console; then \
+	   echo " "; \
+	   echo "Warning!!!  ${DESTDIR}${sbindir}wx-console found."; \
+	   echo " wx-console has been renamed bwx-console, so wx-console"; \
+	   echo " is no longer used, and you might want to delete it."; \
+	   echo " "; \
+	fi
 	$(INSTALL_PROGRAM) bwx-console $(DESTDIR)$(sbindir)/bwx-console
 	@srcconf=bwx-console.conf; \
 	if  test -f ${DESTDIR}${sysconfdir}/$$srcconf; then \
