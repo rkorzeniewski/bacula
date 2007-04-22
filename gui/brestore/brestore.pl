@@ -728,7 +728,7 @@ sub get_where
 	}
 
 	if ($add_suffix) {
-	    push @ret,"!([^/])$!\$1$add_prefix!";
+	    push @ret,"!([^/])\$!\$1$add_suffix!";
 	}
 
 	return ('rwhere', join(',', @ret));
