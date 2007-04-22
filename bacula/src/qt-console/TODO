@@ -3,18 +3,11 @@ dhb
 Must:: get page selector to follow undocked windows.  Otherwise
 current console won't be current.
 
-Low priority item:
-move behavior of:
-  MainWin::setContextMenuDockText
-  MainWin::setTreeWidgetItemDockColor
-to the pages class
+Figure out how to get tables like Joblist to do the equivalent of double clicking
+on the separating lines between each of the headings.
 
 Add context sensitive options for most commands
-
-Re-add class for storage, I accidentally reverted because I left
-it on my laptop.  This is why I like committing often.
-
-Add class for FileSets
+status dir on page select director item
 
 Create list of what does not work.
 
@@ -27,15 +20,20 @@ Create documentation for any other developers interested in creating
 new classes to add more pages.  Explain how to use the pages class
 and about not populating until the tree widget is clicked etc...
 
-A Tree widget context sensitive from anywhere a job is listed for 
-the ability to surf what's on the job.
+A Tree widget context sensitive menu option and class to jump from known job
+to surf the filestructure on the job.
+
+LOW priority items:
+
+Get rid of "Warning: name layoutWidget is already used" when make uic's resture.ui
+
+move behavior of:
+  MainWin::setContextMenuDockText
+  MainWin::setTreeWidgetItemDockColor
+to the pages class
 
 Think about good ways to clean up the Console creation part of the
 loop creating pages.
-
-Font is being set on a per console basis, should it be.
-Tried to get the settings to write for a second, but not coming up next time
-
 ========================================================
 Things to do:
 
@@ -56,6 +54,13 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+
+Re-add class for storage, I accidentally reverted because I left
+it on my laptop.  This is why I like committing often.
+
+Add class for FileSets
+
+
 Another idea for what you have implemented:
 - I think that the dynamic pages that you create on the fly
 should be nested under the item that creates them more like a

@@ -74,6 +74,7 @@ public slots:
 protected:
    void pgInitialize();
    void pgInitialize(QTreeWidgetItem *);
+   void consoleCommand(QString &);
    bool m_closeable;
    bool m_docked;
    virtual void treeWidgetName(QString &);

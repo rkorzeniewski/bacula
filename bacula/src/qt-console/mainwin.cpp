@@ -37,6 +37,8 @@
 
 #include "bat.h"
 #include "joblist/joblist.h"
+#include "storage/storage.h"
+#include "fileset/fileset.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -114,6 +116,8 @@ void MainWin::createPages()
       QString emptymedia(""), emptyclient("");
       createPageJobList(emptymedia, emptyclient, NULL);
       createPageClients();
+      createPageStorage();
+      createPageFileSet();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
@@ -172,6 +176,23 @@ void MainWin::createPageClients()
    clients->dockPage();
 }
 
+/*
+ * create an instance of the the storage class on the stack
+ */
+void MainWin::createPageStorage()
+{
+   Storage* storage = new Storage();
+   storage->dockPage();
+}
+
+/*
+ * create an instance of the the fileset class on the stack
+ */
+void MainWin::createPageFileSet()
+{
+   FileSet* fileset = new FileSet();
+   fileset->dockPage();
+}
 
 /* Create a root Tree Widget */
 QTreeWidgetItem *MainWin::createTopPage(char *name)

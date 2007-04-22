@@ -206,3 +206,15 @@ void Pages::treeWidgetName(QString &name)
 {
    name = "Default Page Name";
 }
+
+/*
+ * Function to simplify executing a console command and bringing the
+ * console to the front of the stack
+ */
+void Pages::consoleCommand(QString &command)
+{
+   m_console->write_dir(command.toUtf8().data());
+   m_console->displayToPrompt();
+   /* Bring this directors console to the front of the stack */
+   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
+}
