@@ -616,10 +616,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
       if (res->res_job.RestoreWhere) {
-         sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
-      }
-      if (res->res_job.where_use_regexp) {
-         sendit(sock, _("  --> RWhere=%u\n"), res->res_job.where_use_regexp);
+	 if (res->res_job.where_use_regexp) {
+	    sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RestoreWhere));
+	 } else {
+	    sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+	 }
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));

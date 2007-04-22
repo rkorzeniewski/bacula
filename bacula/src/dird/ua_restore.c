@@ -118,7 +118,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       where_use_regexp = true;
    }
 
-   i = find_arg_with_value(ua, "rwhere");
+   i = find_arg_with_value(ua, "regexwhere");
    if (i >= 0) {
       where_use_regexp = true;
       rx.where = ua->argv[i];
@@ -239,7 +239,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
           " %swhere=\"%s\" files=%d catalog=\"%s\"",
           job->name(), rx.ClientName, rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
-          where_use_regexp ? "r" : "",
+          where_use_regexp ? "regex" : "",
           escaped_where_name ? escaped_where_name : rx.where,
           rx.selected_files, ua->catalog->name());
    } else {
@@ -404,7 +404,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "add_prefix",   /* 16 */
       "add_suffix",   /* 17 */
       "where_use_regexp",/* 18 */
-      "rwhere",       /* 19 like where + where_use_regexp */
+      "regexwhere",   /* 19 like where + where_use_regexp */
       NULL
    };
 

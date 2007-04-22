@@ -51,7 +51,7 @@
 
 /* Commands sent to File daemon */
 static char restorecmd[]        = "restore replace=%c prelinks=%d where=%s\n";
-static char restorecmdR[] = "restore replace=%c prelinks=%d rwhere=%s\n";
+static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
 static char storaddr[]   = "storage address=%s port=%d ssl=0\n";
 
 /* Responses received from File daemon */
