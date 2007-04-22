@@ -1,5 +1,5 @@
-#ifndef _CLIENTS_H_
-#define _CLIENTS_H_
+#ifndef _STORAGE_H_
+#define _STORAGE_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -34,18 +34,17 @@
  */
 
 #include <QtGui>
-#include "ui_clients.h"
+#include "ui_storage.h"
 #include "console.h"
 #include "pages.h"
-//#include <qstringlist.h>
 
-class Clients : public Pages, public Ui::ClientForm
+class Storage : public Pages, public Ui::StorageForm
 {
    Q_OBJECT 
 
 public:
-   Clients();
-   ~Clients();
+   Storage();
+   ~Storage();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    void treeWidgetName(QString &);
@@ -55,8 +54,8 @@ public slots:
 
 private slots:
    void populateTree();
-   void showJobs();
-   void consoleStatusClient();
+//   void showJobs();
+   void consoleStatusStorage();
 
 private:
    void createContextMenu();
@@ -65,4 +64,4 @@ private:
    bool m_checkcurwidget;
 };
 
-#endif /* _CLIENTS_H_ */
+#endif /* _STORAGE_H_ */

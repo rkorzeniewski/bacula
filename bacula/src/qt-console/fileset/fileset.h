@@ -1,5 +1,5 @@
-#ifndef _CLIENTS_H_
-#define _CLIENTS_H_
+#ifndef _FILESET_H_
+#define _FILESET_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -34,18 +34,17 @@
  */
 
 #include <QtGui>
-#include "ui_clients.h"
+#include "ui_fileset.h"
 #include "console.h"
 #include "pages.h"
-//#include <qstringlist.h>
 
-class Clients : public Pages, public Ui::ClientForm
+class FileSet : public Pages, public Ui::FileSetForm
 {
    Q_OBJECT 
 
 public:
-   Clients();
-   ~Clients();
+   FileSet();
+   ~FileSet();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    void treeWidgetName(QString &);
@@ -55,8 +54,7 @@ public slots:
 
 private slots:
    void populateTree();
-   void showJobs();
-   void consoleStatusClient();
+   void consoleStatusFileSet();
 
 private:
    void createContextMenu();
@@ -65,4 +63,4 @@ private:
    bool m_checkcurwidget;
 };
 
-#endif /* _CLIENTS_H_ */
+#endif /* _FILESET_H_ */

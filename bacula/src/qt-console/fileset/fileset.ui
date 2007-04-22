@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>ClientForm</class>
- <widget class="QWidget" name="ClientForm" >
+ <class>FileSetForm</class>
+ <widget class="QWidget" name="FileSetForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Client Tree</string>
+   <string>FileSet Tree</string>
   </property>
   <layout class="QGridLayout" >
    <property name="margin" >
@@ -23,31 +23,23 @@
     <widget class="QTreeWidget" name="mp_treeWidget" />
    </item>
   </layout>
-  <action name="actionRefreshClients" >
+  <action name="actionRefreshFileSet" >
    <property name="icon" >
     <iconset>../images/run.png</iconset>
    </property>
    <property name="text" >
-    <string>Refresh Client List</string>
+    <string>Refresh FileSet List</string>
    </property>
    <property name="statusTip" >
-    <string>Requery the director for the list of clients.</string>
+    <string>Requery the director for the list of storage objects.</string>
    </property>
   </action>
-  <action name="actionListJobsofClient" >
-   <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
-   </property>
-   <property name="text" >
-    <string>List Jobs of Client</string>
-   </property>
-  </action>
-  <action name="actionStatusClientInConsole" >
+  <action name="actionStatusFileSetInConsole" >
    <property name="icon" >
     <iconset>../images/status.png</iconset>
    </property>
    <property name="text" >
-    <string>Status Client In Console</string>
+    <string>Status FileSet In Console</string>
    </property>
   </action>
  </widget>

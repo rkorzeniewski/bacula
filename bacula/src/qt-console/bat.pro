@@ -24,7 +24,7 @@ FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui run/runcmd.ui
 FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
-FORMS += clients/clients.ui
+FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
@@ -68,3 +68,11 @@ SOURCES += joblist/joblist.cpp
 ## Clients
 HEADERS += clients/clients.h
 SOURCES += clients/clients.cpp
+
+## Storage
+HEADERS += storage/storage.h
+SOURCES += storage/storage.cpp
+
+## Fileset
+HEADERS += fileset/fileset.h
+SOURCES += fileset/fileset.cpp
