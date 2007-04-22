@@ -47,22 +47,18 @@ public:
    ~MediaList();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
+   virtual void treeWidgetName(QString &);
 
 public slots:
-   void treeItemClicked(QTreeWidgetItem *item, int column);
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
-   void editMedia();
-   void showJobs();
-   virtual void treeWidgetName(QString &);
 
 private slots:
    void populateTree();
+   void showJobs();
+   void editMedia();
 
 private:
-   void createConnections();
    void createContextMenu();
-
-private:
    QString m_currentlyselected;
    bool m_populated;
    bool m_checkcurwidget;

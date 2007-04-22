@@ -48,7 +48,7 @@ public:
    ~Clients();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
-   void treeWidgetName(QString &);
+   virtual void treeWidgetName(QString &);
 
 public slots:
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
