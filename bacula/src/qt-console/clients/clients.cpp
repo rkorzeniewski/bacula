@@ -122,6 +122,10 @@ void Clients::populateTree()
          }
       }
    }
+   /* Resize the columns */
+   for(int cnter=0; cnter<headerlist.size(); cnter++) {
+      mp_treeWidget->resizeColumnToContents(cnter);
+   }
 }
 
 /*

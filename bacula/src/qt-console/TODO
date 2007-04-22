@@ -1,8 +1,5 @@
 dhb
 ====================================================
-Figure out how to get tables like Joblist to do the equivalent of double clicking
-on the separating lines between each of the headings.
-
 Add context sensitive options for most commands
 status dir on page select director item
 
@@ -51,6 +48,10 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Figure out how to get tables like Joblist to do the equivalent of double clicking
+on the separating lines between each of the headings.
+Tried the hard way first.  Oops.
+
 If the console command line entry docked widget gets the focus, make 
 m_currentConsole the top widget by setting the treewidgetitem selected.
 Did this in MainWin::input_line almost better to let the person see
