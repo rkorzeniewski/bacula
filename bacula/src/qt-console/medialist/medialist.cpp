@@ -45,12 +45,14 @@
 MediaList::MediaList()
 {
    setupUi(this);
+   m_name = "Media";
    pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   setTitle();
 }
 
 MediaList::~MediaList()
@@ -219,12 +221,4 @@ void MediaList::currentStackItem()
       createContextMenu();
       m_populated=true;
    }
-}
-
-/*
- * Virtual Function to return the name for the medialist tree widget
- */
-void MediaList::treeWidgetName(QString &name)
-{
-   name = "Media";
 }

@@ -97,7 +97,7 @@ public:
    void setDirectorTreeItem(QTreeWidgetItem *);
    void setDirRes(DIRRES *dir);
    QTreeWidgetItem *directorTreeItem() { return m_directorTreeItem; };
-   DIRRES *getDirRes() { return m_dir; };
+   void getDirResName(QString &);
 
    QStringList job_list;
    QStringList client_list;

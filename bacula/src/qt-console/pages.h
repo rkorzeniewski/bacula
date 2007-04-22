@@ -77,9 +77,11 @@ protected:
    void consoleCommand(QString &);
    virtual void treeWidgetName(QString &);
    virtual void changeEvent(QEvent *event);
+   void setTitle();
    bool m_closeable;
    bool m_docked;
    Console *m_console;
+   QString m_name;
 };
 
 #endif /* _PAGES_H_ */

@@ -43,12 +43,14 @@
 Storage::Storage()
 {
    setupUi(this);
+   m_name = "Storage";
    pgInitialize();
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_storage.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   setTitle();
 }
 
 Storage::~Storage()
@@ -211,12 +213,3 @@ void Storage::currentStackItem()
       m_populated=true;
    }
 }
-
-/*
- * Virtual Function to return the name for the medialist tree widget
- */
-void Storage::treeWidgetName(QString &name)
-{
-   name = "Storage";
-}
-

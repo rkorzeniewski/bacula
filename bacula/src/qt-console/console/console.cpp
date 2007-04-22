@@ -622,3 +622,11 @@ void Console::setDirRes(DIRRES *dir)
 { 
    m_dir = dir;
 }
+
+/*
+ * To have the ability to get the name of the director resource.
+ */
+void Console::getDirResName(QString &name_returned)
+{
+   name_returned = m_dir->name();
+}
