@@ -115,6 +115,7 @@ static char storaddr[]    = "storage address=%s port=%d ssl=%d";
 static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
 static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmd1[] = "restore replace=%c prelinks=%d where=\n";
+static char restorecmdR[] = "restore replace=%c prelinks=%d rwhere=%s\n";
 static char verifycmd[]   = "verify level=%30s";
 static char estimatecmd[] = "estimate listing=%d";
 static char runbefore[]   = "RunBeforeJob %s";
@@ -1586,12 +1587,15 @@ static int restore_cmd(JCR *jcr)
    *where = 0;
 
    if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
-      if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
-         pm_strcpy(jcr->errmsg, dir->msg);
-         Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
-         return 0;
+      if (sscanf(dir->msg, restorecmdR, &replace, &prefix_links, where) != 3){
+         if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
+            pm_strcpy(jcr->errmsg, dir->msg);
+            Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
+            return 0;
+         }
+         *where = 0;
       }
-      *where = 0;
+      jcr->where_use_regexp = true;
    }
    /* Turn / into nothing */
    if (IsPathSeparator(where[0]) && where[1] == '\0') {
@@ -1601,6 +1605,15 @@ static int restore_cmd(JCR *jcr)
    Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
    unbash_spaces(where);
    jcr->where = bstrdup(where);
+
+   if (jcr->where_use_regexp) {
+      jcr->where_bregexp = get_bregexps(jcr->where);
+      if (!jcr->where_bregexp) {
+	 Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), jcr->where);
+	 free_pool_memory(where);
+	 return 0;
+      }
+   }
    free_pool_memory(where);
    jcr->replace = replace;
    jcr->prefix_links = prefix_links;

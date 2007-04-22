@@ -44,7 +44,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-
 /* Imported functions */
 extern void print_bsr(UAContext *ua, RBSR *bsr);
 
@@ -83,6 +82,9 @@ int restore_cmd(UAContext *ua, const char *cmd)
    JCR *jcr = ua->jcr;
    char *escaped_bsr_name = NULL;
    char *escaped_where_name = NULL;
+   bool where_use_regexp = false;
+   char *strip_prefix, *add_prefix, *add_suffix, *regexp;
+   strip_prefix = add_prefix = add_suffix = regexp = NULL;
 
    memset(&rx, 0, sizeof(rx));
    rx.path = get_pool_memory(PM_FNAME);
@@ -94,6 +96,45 @@ int restore_cmd(UAContext *ua, const char *cmd)
    i = find_arg_with_value(ua, "where");
    if (i >= 0) {
       rx.where = ua->argv[i];
+   }
+
+   i = find_arg_with_value(ua, "strip_prefix");
+   if (i >= 0) {
+      strip_prefix = ua->argv[i];
+   }
+
+   i = find_arg_with_value(ua, "add_prefix");
+   if (i >= 0) {
+      add_prefix = ua->argv[i];
+   }
+
+   i = find_arg_with_value(ua, "add_suffix");
+   if (i >= 0) {
+      add_suffix = ua->argv[i];
+   }
+
+   i = find_arg(ua, "where_use_regexp");
+   if (i >= 0) {
+      where_use_regexp = true;
+   }
+
+   i = find_arg_with_value(ua, "rwhere");
+   if (i >= 0) {
+      where_use_regexp = true;
+      rx.where = ua->argv[i];
+   }
+
+   if (strip_prefix || add_suffix || add_prefix) {
+      int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
+      regexp = (char *) bmalloc (len * sizeof(char));
+
+      bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
+      where_use_regexp = true;
+      
+      rx.where = regexp;
+   }
+
+   if (rx.where) {
       if (!acl_access_ok(ua, Where_ACL, rx.where)) {
          ua->error_msg(_("\"where\" specification not authorized.\n"));
          goto bail_out;
@@ -195,9 +236,10 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
-          " where=\"%s\" files=%d catalog=\"%s\"",
+          " %swhere=\"%s\" files=%d catalog=\"%s\"",
           job->name(), rx.ClientName, rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
+          where_use_regexp ? "r" : "",
           escaped_where_name ? escaped_where_name : rx.where,
           rx.selected_files, ua->catalog->name());
    } else {
@@ -216,6 +258,10 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (escaped_where_name != NULL) {
       bfree(escaped_where_name);
    }
+   
+   if (regexp) {
+      bfree(regexp);
+   }
 
    if (find_arg(ua, NT_("yes")) > 0) {
       pm_strcat(ua->cmd, " yes");    /* pass it on to the run command */
@@ -233,6 +279,10 @@ bail_out:
 
    if (escaped_where_name != NULL) {
       bfree(escaped_where_name);
+   }
+
+   if (regexp) {
+      bfree(regexp);
    }
 
    free_rx(&rx);
@@ -333,23 +383,28 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
 
    const char *kw[] = {
        /* These keywords are handled in a for loop */
-      "jobid",     /* 0 */
-      "current",   /* 1 */
-      "before",    /* 2 */
-      "file",      /* 3 */
-      "directory", /* 4 */
-      "select",    /* 5 */
-      "pool",      /* 6 */
-      "all",       /* 7 */
+      "jobid",       /* 0 */
+      "current",     /* 1 */
+      "before",      /* 2 */
+      "file",        /* 3 */
+      "directory",   /* 4 */
+      "select",      /* 5 */
+      "pool",        /* 6 */
+      "all",         /* 7 */
 
       /* The keyword below are handled by individual arg lookups */
-      "client",    /* 8 */
-      "storage",   /* 9 */
-      "fileset",   /* 10 */
-      "where",     /* 11 */
-      "yes",       /* 12 */
-      "bootstrap", /* 13 */
-      "done",      /* 14 */
+      "client",       /* 8 */
+      "storage",      /* 9 */
+      "fileset",      /* 10 */
+      "where",        /* 11 */
+      "yes",          /* 12 */
+      "bootstrap",    /* 13 */
+      "done",         /* 14 */
+      "strip_prefix", /* 15 */
+      "add_prefix",   /* 16 */
+      "add_suffix",   /* 17 */
+      "where_use_regexp",/* 18 */
+      "rwhere",       /* 19 like where + where_use_regexp */
       NULL
    };
 

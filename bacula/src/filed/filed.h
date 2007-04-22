@@ -40,6 +40,7 @@
 #include "acl.h"
 #include "protos.h"                   /* file daemon prototypes */
 #include "lib/runscript.h"
+#include "lib/breg.h"
 #ifdef HAVE_LIBZ
 #include <zlib.h>                     /* compression headers */
 #else

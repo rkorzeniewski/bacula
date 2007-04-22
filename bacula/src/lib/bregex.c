@@ -1459,6 +1459,10 @@ if (translate) \
 int regcomp(regex_t * bufp, const char *regex, int cflags)
 {
    memset(bufp, 0, sizeof(regex_t));
+   bufp->cflags = cflags;
+   if (bufp->cflags & REG_ICASE) {
+      // ICI passer regex en lcase
+   }
    re_compile_pattern(bufp, (unsigned char *)regex);
    if (got_error) {
       return -1;
@@ -1471,6 +1475,7 @@ int regexec(regex_t * preg, const char *string, size_t nmatch,
 {
    int stat;
    int len = strlen(string);
+   // ICI passer string en lcase
    struct re_registers regs;
    stat = re_search(preg, (unsigned char *)string, len, 0, len, &regs);
    /* stat is the start position in the string base 0 where       

@@ -268,6 +268,10 @@ RES_ITEM job_items[] = {
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
+   {"whereuseregexp", store_bool, ITEM(res_job.where_use_regexp), 0, 0, 0},
+   {"stripprefix",    store_str,  ITEM(res_job.strip_prefix), 0, 0, 0},
+   {"addprefix",    store_str,  ITEM(res_job.add_prefix), 0, 0, 0},
+   {"addsuffix",    store_str,  ITEM(res_job.add_suffix), 0, 0, 0},
    /* Where to find bootstrap during restore */
    {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    /* Where to write bootstrap file during backup */
@@ -610,6 +614,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.RestoreWhere) {
          sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+      }
+      if (res->res_job.where_use_regexp) {
+         sendit(sock, _("  --> RWhere=%u\n"), res->res_job.where_use_regexp);
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
@@ -1143,6 +1150,15 @@ void free_resource(RES *sres, int type)
       if (res->res_job.RestoreWhere) {
          free(res->res_job.RestoreWhere);
       }
+      if (res->res_job.strip_prefix) {
+         free(res->res_job.strip_prefix);
+      }
+      if (res->res_job.add_prefix) {
+         free(res->res_job.add_prefix);
+      }
+      if (res->res_job.add_suffix) {
+         free(res->res_job.add_suffix);
+      }
       if (res->res_job.RestoreBootstrap) {
          free(res->res_job.RestoreBootstrap);
       }
@@ -1299,6 +1315,25 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.jobdefs    = res_all.res_job.jobdefs;
          res->res_job.run_cmds   = res_all.res_job.run_cmds;
          res->res_job.RunScripts = res_all.res_job.RunScripts;
+	 if (res->res_job.strip_prefix ||
+	     res->res_job.add_suffix   ||
+	     res->res_job.add_prefix)
+	 {
+	    if (res->res_job.RestoreWhere) {
+	       free(res->res_job.RestoreWhere);
+	    }
+	    int len = bregexp_get_build_where_size(res->res_job.strip_prefix,
+						   res->res_job.add_prefix,
+						   res->res_job.add_suffix);
+	    res->res_job.RestoreWhere = (char *) bmalloc (len * sizeof(char));
+	    bregexp_build_where(res->res_job.RestoreWhere, len,
+				res->res_job.strip_prefix,
+				res->res_job.add_prefix,
+				res->res_job.add_suffix);
+	    res->res_job.where_use_regexp = true;
+
+	    /* TODO: test bregexp */
+	 }
          break;
       case R_COUNTER:
          if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
