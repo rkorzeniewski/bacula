@@ -356,6 +356,10 @@ public:
    int   Priority;                    /* Job priority */
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
+   char *strip_prefix;                /* remove prefix from filename  */
+   char *add_prefix;                  /* add prefix to filename  */
+   char *add_suffix;                  /* add suffix to filename -- .old */
+   bool  where_use_regexp;            /* true if RestoreWhere is a BREGEXP */
    char *RestoreBootstrap;            /* Bootstrap file */
    alist *RunScripts;                 /* Run {client} program {after|before} Job */
    union {

@@ -56,6 +56,9 @@
 /* External variables we reference */
 extern time_t watchdog_time;
 
+/* External referenced functions */
+void free_bregexps(alist *bregexps);
+
 /* Forward referenced functions */
 extern "C" void timeout_handler(int sig);
 static void jcr_timeout_check(watchdog_t *self);
@@ -380,6 +383,11 @@ static void free_common_jcr(JCR *jcr)
    if (jcr->where) {
       free(jcr->where);
       jcr->where = NULL;
+   }
+   if (jcr->where_bregexp) {
+      free_bregexps(jcr->where_bregexp);
+      delete jcr->where_bregexp;
+      jcr->where_bregexp = NULL;
    }
    if (jcr->cached_path) {
       free_pool_memory(jcr->cached_path);

@@ -106,6 +106,8 @@ struct regex_t
    int num_registers;     /* number of registers used */
    unsigned char anchor;           /* anchor: 0=none 1=begline 2=begbuf */
    char *errmsg;
+   int cflags;			   /* compilation flags */
+   POOLMEM *str_lcase;		   /* use to store expression in lcase */
 };        
 
 

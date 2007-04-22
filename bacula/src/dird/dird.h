@@ -34,6 +34,7 @@
  */
 
 #include "lib/runscript.h"
+#include "lib/breg.h"
 #include "dird_conf.h"
 
 #define DIRECTOR_DAEMON 1

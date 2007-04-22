@@ -35,7 +35,7 @@
 
 #include "bacula.h"
 #include "jcr.h"
-
+#include "lib/breg.h"
 
 ATTR *new_attr()
 {
@@ -148,9 +148,30 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
     *   every filename if a prefix is supplied.
     *
     */
+
    if (jcr->where[0] == 0) {
       pm_strcpy(attr->ofname, attr->fname);
       pm_strcpy(attr->olname, attr->lname);
+
+   } else if (jcr->where_bregexp) { 
+      char *ret;
+      apply_bregexps(attr->fname, jcr->where_bregexp, &ret);
+      pm_strcpy(attr->ofname, ret);
+
+      if (attr->type == FT_LNKSAVED || attr->type == FT_LNK) {
+         /* Always add prefix to hard links (FT_LNKSAVED) and
+          *  on user request to soft links
+          */
+
+         if ((attr->type == FT_LNKSAVED || jcr->prefix_links)) {
+            apply_bregexps(attr->lname, jcr->where_bregexp, &ret);
+            pm_strcpy(attr->olname, ret);
+
+         } else {
+            pm_strcpy(attr->olname, attr->lname);
+         }
+      }
+      
    } else {
       const char *fn;
       int wherelen = strlen(jcr->where);

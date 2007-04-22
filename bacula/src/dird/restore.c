@@ -50,8 +50,9 @@
 #include "dird.h"
 
 /* Commands sent to File daemon */
-static char restorecmd[]   = "restore replace=%c prelinks=%d where=%s\n";
-static char storaddr[]     = "storage address=%s port=%d ssl=0\n";
+static char restorecmd[]        = "restore replace=%c prelinks=%d where=%s\n";
+static char restorecmdR[] = "restore replace=%c prelinks=%d rwhere=%s\n";
+static char storaddr[]   = "storage address=%s port=%d ssl=0\n";
 
 /* Responses received from File daemon */
 static char OKrestore[]   = "2000 OK restore\n";
@@ -172,7 +173,7 @@ bool do_restore(JCR *jcr)
    }
 
    /* Send restore command */
-   char replace, *where;
+   char replace, *where, *cmd;
    char empty = '\0';
 
    if (jcr->replace != 0) {
@@ -189,9 +190,17 @@ bool do_restore(JCR *jcr)
    } else {
       where = &empty;                 /* None */
    }
+   
    jcr->prefix_links = jcr->job->PrefixLinks;
+
+   if (jcr->where_use_regexp) {
+      cmd = restorecmdR;
+   } else {
+      cmd = restorecmd;
+   }
+
    bash_spaces(where);
-   bnet_fsend(fd, restorecmd, replace, jcr->prefix_links, where);
+   bnet_fsend(fd, cmd, replace, jcr->prefix_links, where);
    unbash_spaces(where);
 
    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
