@@ -62,25 +62,11 @@ static void usage()
 
 int main(int argc, char *const *argv)
 {
-   char tab[500];
-   int len = bregexp_get_build_where_size("/tmp", "/tmp/toto", ".old");
-   
-   printf("%s\n", bregexp_build_where(tab, len, "/tmp", "/tmp/toto!", ".old"));
-   exit(0);
-
-
-   regex_t preg;
-   char prbuf[500];
    char *fname = NULL;
    char *expr = NULL;
-   int rc, ch;
+   int ch;
    char data[1000];
-   char pat[500];
    FILE *fd;
-   bool match_only = true;
-   int lineno;
-   bool no_linenos = false;
-   
 
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);

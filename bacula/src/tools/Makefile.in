@@ -38,7 +38,7 @@ EXTRAOBJS = @OBJLIST@
 DIRCONFOBJS = ../dird/dird_conf.o ../dird/run_conf.o ../dird/inc_conf.o
 
 NODIRTOOLS = bsmtp
-DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild bbatch
+DIRTOOLS = bsmtp dbcheck drivetype fstype testfind testls bregex bwild bbatch bregtest
 TOOLS = $(@DIR_TOOLS@)
 
 INSNODIRTOOLS = bsmtp
@@ -61,6 +61,9 @@ all: Makefile $(TOOLS) gigaslam
 
 bsmtp:	bsmtp.o ../lib/libbac.a        
 	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+
+bregtest:	bregtest.o ../lib/libbac.a        
+	$(CXX) $(LDFLAGS) -L../lib -o $@ bregtest.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a $(DIRCONFOBJS)
 	$(CXX) $(LDFLAGS) -L../lib -L../cats -o $@ dbcheck.o $(DIRCONFOBJS) -lsql -lbac -lm $(DB_LIBS) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
