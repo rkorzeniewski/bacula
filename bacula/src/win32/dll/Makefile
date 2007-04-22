@@ -53,6 +53,7 @@ LIB_OBJS = \
 	$(OBJDIR)/bnet.o \
 	$(OBJDIR)/bnet_server.o \
 	$(OBJDIR)/bpipe.o \
+	$(OBJDIR)/breg.o \
 	$(OBJDIR)/bregex.o \
 	$(OBJDIR)/bsock.o \
 	$(OBJDIR)/bsnprintf.o \

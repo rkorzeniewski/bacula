@@ -147,7 +147,7 @@ _Z10bnet_closeP5BSOCK
 _Z10bnet_fsendP5BSOCKPKcz
 _Z10init_bsockP3JCRiPKcS2_iP8sockaddr
 _Z10term_bsockP5BSOCK
-_Z12bnet_connectP3JCRixPKcPcS3_ii
+_Z12bnet_connectP3JCRixxPKcPcS3_ii
 _Z12is_bnet_stopP5BSOCK
 _Z13bnet_get_peerP5BSOCKPci
 _Z13bnet_strerrorP5BSOCK
@@ -172,6 +172,16 @@ _Z23bnet_stop_thread_serverP10pthread_t_
 ; bpipe.c:
 _Z11run_programPciS_
 _Z23run_program_full_outputPciS_
+
+; breg.c:
+_Z12get_bregexpsPKc
+_Z19bregexp_build_wherePciS_S_S_
+_Z12free_bregexpP7BREGEXP
+_Z13free_bregexpsP5alist
+_Z11new_bregexpPKc
+_Z14apply_bregexpsPKcP5alistPPc
+_Z21bregexp_escape_stringPcS_c
+_Z28bregexp_get_build_where_sizePcS_S_
 
 ; bregex.c:
 b_regcomp

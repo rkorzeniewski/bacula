@@ -6,7 +6,7 @@
 ;    added a number of elements from Christopher Hull's installer
 ;
 ; D. Scott Barninger Nov 13 2004
-; added configuration editing for bconsole.conf and wx-console.conf
+; added configuration editing for bconsole.conf and bwx-console.conf
 ; better explanation in dialog boxes for editing config files
 ; added Start Menu items
 ; fix uninstall of config files to do all not just bacula-fd.conf
@@ -794,21 +794,21 @@ Section "Graphical Console" SecWxConsole
   File "${SRC_DIR}\wxmsw270_core_gcc_bacula.dll"
 !endif
 
-  File "${SRC_DIR}\wx-console.exe"
+  File "${SRC_DIR}\bwx-console.exe"
 
   ${If} $InstallType = ${MigrateInstall}
-  ${AndIf} ${FileExists} "$OldInstallDir\bin\wx-console.conf"
-    CopyFiles "$OldInstallDir\bin\wx-console.conf" "$APPDATA\Bacula"
+  ${AndIf} ${FileExists} "$OldInstallDir\bin\bwx-console.conf"
+    CopyFiles "$OldInstallDir\bin\bwx-console.conf" "$APPDATA\Bacula"
   ${Else}
-    File "/oname=$PLUGINSDIR\wx-console.conf" "wx-console.conf.in"
+    File "/oname=$PLUGINSDIR\bwx-console.conf" "bwx-console.conf.in"
     StrCpy $0 "$APPDATA\Bacula"
-    StrCpy $1 wx-console.conf
+    StrCpy $1 bwx-console.conf
     Call ConfigEditAndCopy
   ${EndIf}
 
   ; Create Start Menu entry
-  CreateShortCut "$SMPROGRAMS\Bacula\wx-console.lnk" "$INSTDIR\bin\wx-console.exe" '-c "$APPDATA\Bacula\wx-console.conf"' "$INSTDIR\bin\wx-console.exe" 0
-  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Graphical Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\wx-console.conf"'
+  CreateShortCut "$SMPROGRAMS\Bacula\bwx-console.lnk" "$INSTDIR\bin\bwx-console.exe" '-c "$APPDATA\Bacula\bwx-console.conf"' "$INSTDIR\bin\bwx-console.exe" 0
+  CreateShortCut "$SMPROGRAMS\Bacula\Configuration\Edit Graphical Console Configuration.lnk" "write.exe" '"$APPDATA\Bacula\bwx-console.conf"'
 SectionEnd
 
 SectionGroupEnd

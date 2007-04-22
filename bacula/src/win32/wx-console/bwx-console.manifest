@@ -3,9 +3,9 @@
   <assemblyIdentity 
     version="1.0.0.0" 
     processorArchitecture="X86" 
-    name="Bacula.WX-Console" 
+    name="Bacula.BWX-Console" 
     type="win32" /> 
-  <description>Bacula wx Console for Win32</description> 
+  <description>Bacula bwx-console for Win32</description> 
   <dependency> 
     <dependentAssembly> 
       <assemblyIdentity 
