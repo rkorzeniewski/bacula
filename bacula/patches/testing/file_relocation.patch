@@ -1,6 +1,6 @@
 Index: src/dird/ua_restore.c
 ===================================================================
---- src/dird/ua_restore.c	(révision 4570)
+--- src/dird/ua_restore.c	(révision 4588)
 +++ src/dird/ua_restore.c	(copie de travail)
 @@ -44,7 +44,6 @@
  #include "bacula.h"
@@ -146,7 +146,7 @@ Index: src/dird/ua_restore.c
  
 Index: src/dird/restore.c
 ===================================================================
---- src/dird/restore.c	(révision 4570)
+--- src/dird/restore.c	(révision 4588)
 +++ src/dird/restore.c	(copie de travail)
 @@ -50,8 +50,9 @@
  #include "dird.h"
@@ -190,7 +190,7 @@ Index: src/dird/restore.c
     if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
 Index: src/dird/dird.h
 ===================================================================
---- src/dird/dird.h	(révision 4570)
+--- src/dird/dird.h	(révision 4588)
 +++ src/dird/dird.h	(copie de travail)
 @@ -34,6 +34,7 @@
   */
@@ -202,7 +202,7 @@ Index: src/dird/dird.h
  #define DIRECTOR_DAEMON 1
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 4570)
+--- src/dird/dird_conf.c	(révision 4588)
 +++ src/dird/dird_conf.c	(copie de travail)
 @@ -268,6 +268,10 @@
     {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
@@ -269,7 +269,7 @@ Index: src/dird/dird_conf.c
           if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {
 Index: src/dird/ua_run.c
 ===================================================================
---- src/dird/ua_run.c	(révision 4570)
+--- src/dird/ua_run.c	(révision 4588)
 +++ src/dird/ua_run.c	(copie de travail)
 @@ -41,6 +41,7 @@
  static void select_job_level(UAContext *ua, JCR *jcr);
@@ -396,8 +396,8 @@ Index: src/dird/ua_run.c
 +   strip_prefix = add_suffix = rwhere = add_prefix = NULL;
 +
 +try_again_reg:
-+   ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"),
-+		NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix), NPRT(regexp));
++   ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s\n"),
++		NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix));
 +
 +   start_prompt(ua, _("This will replace your current Where value\n"));
 +   add_prompt(ua, _("Strip prefix"));                /* 0 */
@@ -556,7 +556,7 @@ Index: src/dird/ua_run.c
                jcr->client->name(),
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 4570)
+--- src/dird/dird_conf.h	(révision 4588)
 +++ src/dird/dird_conf.h	(copie de travail)
 @@ -356,6 +356,10 @@
     int   Priority;                    /* Job priority */
@@ -571,7 +571,7 @@ Index: src/dird/dird_conf.h
     union {
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 4570)
+--- src/filed/job.c	(révision 4588)
 +++ src/filed/job.c	(copie de travail)
 @@ -115,6 +115,7 @@
  static char sessioncmd[]  = "session %127s %ld %ld %ld %ld %ld %ld\n";
@@ -620,7 +620,7 @@ Index: src/filed/job.c
     jcr->prefix_links = prefix_links;
 Index: src/filed/filed.h
 ===================================================================
---- src/filed/filed.h	(révision 4570)
+--- src/filed/filed.h	(révision 4588)
 +++ src/filed/filed.h	(copie de travail)
 @@ -40,6 +40,7 @@
  #include "acl.h"
@@ -632,7 +632,7 @@ Index: src/filed/filed.h
  #else
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 4570)
+--- src/jcr.h	(révision 4588)
 +++ src/jcr.h	(copie de travail)
 @@ -173,6 +173,8 @@
     MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
@@ -645,7 +645,7 @@ Index: src/jcr.h
     bool prefix_links;                 /* Prefix links with Where path */
 Index: src/lib/Makefile.in
 ===================================================================
---- src/lib/Makefile.in	(révision 4570)
+--- src/lib/Makefile.in	(révision 4588)
 +++ src/lib/Makefile.in	(copie de travail)
 @@ -32,7 +32,7 @@
  	  res.c rwlock.c scan.c serial.c sha1.c \
@@ -667,7 +667,7 @@ Index: src/lib/Makefile.in
  EXTRAOBJS = @OBJLIST@
 Index: src/lib/attr.c
 ===================================================================
---- src/lib/attr.c	(révision 4570)
+--- src/lib/attr.c	(révision 4588)
 +++ src/lib/attr.c	(copie de travail)
 @@ -35,8 +35,8 @@
  
@@ -712,7 +712,7 @@ Index: src/lib/attr.c
        int wherelen = strlen(jcr->where);
 Index: src/lib/jcr.c
 ===================================================================
---- src/lib/jcr.c	(révision 4570)
+--- src/lib/jcr.c	(révision 4588)
 +++ src/lib/jcr.c	(copie de travail)
 @@ -56,6 +56,9 @@
  /* External variables we reference */
