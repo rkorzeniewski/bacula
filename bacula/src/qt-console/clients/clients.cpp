@@ -204,7 +204,7 @@ void Clients::showJobs()
 void Clients::consoleStatusClient()
 {
    QString cmd("status client=");
-   cmd += m_currentlyselected += "\n";
+   cmd += m_currentlyselected;
    consoleCommand(cmd);
 }
 
