@@ -2044,6 +2044,8 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/console/bconsole.conf \
 	   src/gnome2-console/Makefile \
 	   src/gnome2-console/bgnome-console.conf \
+	   src/qt-console/bat.conf \
+	   src/qt-console/bat.pro \
 	   src/wx-console/Makefile \
 	   src/wx-console/bwx-console.conf \
 	   src/tray-monitor/Makefile \

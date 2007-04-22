@@ -1,21 +1,7 @@
 /*
-   Derived from a SMTPclient:
-
-       SMTPclient -- simple SMTP client
-
-       Copyright (C) 1997 Ralf S. Engelschall, All Rights Reserved.
-       rse@engelschall.com
-       www.engelschall.com
-
-   Kern Sibbald, July 2001
-
-   Version $Id$
-
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+   Derived from a SMTPclient:
+
+       SMTPclient -- simple SMTP client
+
+       Copyright (C) 1997 Ralf S. Engelschall, All Rights Reserved.
+       rse@engelschall.com
+       www.engelschall.com
+
+   Kern Sibbald, July 2001
+
+   Version $Id$
+
+ */
 
 
 #include "bacula.h"
@@ -68,6 +68,7 @@ static const char *mailhost = NULL;
 static char *reply_addr = NULL;
 static int mailport = 25;
 static char my_hostname[MAXSTRING];
+static bool content_utf8 = false;
 
 
 /*
@@ -130,6 +131,7 @@ static void usage()
    fprintf(stderr,
 _("\n"
 "Usage: %s [-f from] [-h mailhost] [-s subject] [-c copy] [recipient ...]\n"
+"       -8          set charset utf-8\n"
 "       -c          set the Cc: field\n"
 "       -dnn        set debug level to nn\n"
 "       -f          set the From: field\n"
@@ -172,8 +174,11 @@ int main (int argc, char *argv[])
    my_name_is(argc, argv, "bsmtp");
    maxlines = 0;
 
-   while ((ch = getopt(argc, argv, "c:d:f:h:r:s:l:?")) != -1) {
+   while ((ch = getopt(argc, argv, "8c:d:f:h:r:s:l:?")) != -1) {
       switch (ch) {
+      case '8':
+         content_utf8 = true;
+         break;
       case 'c':
          Dmsg1(20, "cc=%s\n", optarg);
          cc_addr = optarg;
@@ -364,19 +369,33 @@ hp:
 #endif
 
    /*
-    *  Send SMTP headers
+    *  Send SMTP headers.  Note, if any of the strings have a <
+    *   in them already, we do not enclose the string in < >, otherwise
+    *   we do.
     */
    get_response(); /* banner */
    chat("helo %s\r\n", my_hostname);
-   chat("mail from:<%s>\r\n", from_addr);
+   if (strchr(from_addr, '<') == NULL) {
+      chat("mail from:<%s>\r\n", from_addr);
+   } else {
+      chat("mail from:%s\r\n", from_addr);
+   }
 
    for (i = 0; i < argc; i++) {
       Dmsg1(20, "rcpt to: %s\n", argv[i]);
-      chat("rcpt to:<%s>\r\n", argv[i]);
+      if (strchr(from_addr, '<') == NULL) {
+         chat("rcpt to:<%s>\r\n", argv[i]);
+      } else {
+         chat("rcpt to:%s\r\n", argv[i]);
+      }
    }
 
    if (cc_addr) {
-      chat("rcpt to:<%s>\r\n", cc_addr);
+      if (strchr(from_addr, '<') == NULL) {
+         chat("rcpt to:<%s>\r\n", cc_addr);
+      } else {
+         chat("rcpt to:%s\r\n", cc_addr);
+      }
    }
    Dmsg0(20, "Data\n");
    chat("data\r\n");
@@ -432,6 +451,11 @@ hp:
    if (cc_addr) {
       fprintf(sfp, "Cc: %s\r\n", cc_addr);
       Dmsg1(10, "Cc: %s\r\n", cc_addr);
+   }
+
+   if (content_utf8) {
+      fprintf(sfp, "Content-Type: text/plain; charset=UTF-8\r\n");
+      Dmsg0(10, "Content-Type: text/plain; charset=UTF-8\r\n");
    }
 
    /* Add RFC822 date */
