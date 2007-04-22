@@ -245,7 +245,17 @@ char *BREGEXP::replace(const char *fname)
 {
    success = false;		/* use this.success to known if it's ok */
    int flen = strlen(fname);
+#ifndef HAVE_REGEX_H
+   int i;
+   check_pool_memory_size(lcase, flen);
+   for(i=0; fname[i] ; i++) {
+      lcase[i] = tolower(fname[i]);
+   }
+   lcase[i] = '\0';
+   int rc = re_search(&preg, (BREGEX_CAST char*) lcase, flen, 0, flen, &regs);
+#else
    int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
+#endif
 
    if (rc < 0) {
       Dmsg0(500, "bregexp: regex mismatch\n");

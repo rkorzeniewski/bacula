@@ -89,7 +89,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       "level",                        /* 5 */
       "storage",                      /* 6 */
       "sd",                           /* 7 */
-      "rwhere",                       /* 8 where string as a bregexp */
+      "regexwhere",                   /* 8 where string as a bregexp */
       "where",                        /* 9 */
       "bootstrap",                    /* 10 */
       "replace",                      /* 11 */
@@ -191,10 +191,10 @@ int run_cmd(UAContext *ua, const char *cmd)
                store_name = ua->argv[i];
                kw_ok = true;
                break;
-            case 8: /* rwhere */
+            case 8: /* regexwhere */
             case 9: /* where */
                /* TODO: this is ugly ... */
-               where_use_regexp = (j == 9)?false:true; /* rwhere or where ? */
+               where_use_regexp = (j == 9)?false:true;/*regexwhere or where ?*/
 
                if (where) {
                   ua->send_msg(_("Where specified twice.\n"));
@@ -848,7 +848,7 @@ try_again_reg:
       
       if (rwhere && rwhere[0] != '\0') {
 	 regs = get_bregexps(rwhere);
-	 ua->send_msg(_("rwhere=%s\n"), NPRT(rwhere));
+	 ua->send_msg(_("regexwhere=%s\n"), NPRT(rwhere));
       } else {
 	 int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
 	 regexp = (char *) bmalloc (len * sizeof(char));
@@ -1079,7 +1079,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
          ua->send_msg(_("Run Restore job\n"
                         "JobName:    %s\n"
                         "Bootstrap:  %s\n"
-                        "%s     %s\n"             /* Where or RWhere */
+                        "%s %s\n"             /* Where or RegexWhere */
                         "Replace:    %s\n"
                         "FileSet:    %s\n"
                         "Client:     %s\n"
@@ -1089,7 +1089,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
                         "Priority:   %d\n"),
               job->name(),
               NPRT(jcr->RestoreBootstrap),
-              jcr->where_use_regexp?"RWhere:":"Where: ",
+              jcr->where_use_regexp?"RegexWhere:":"Where:     ",
               jcr->where?jcr->where:NPRT(job->RestoreWhere),
               replace,
               jcr->fileset->name(),
@@ -1103,7 +1103,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
          ua->send_msg(_("Run Restore job\n"
                        "JobName:    %s\n"
                        "Bootstrap:  %s\n"
-                       "%s     %s\n"              /* Where or RWhere */
+			"%s %s\n"             /* Where or RegexWhere */
                        "Replace:    %s\n"
                        "Client:     %s\n"
                        "Storage:    %s\n"
@@ -1113,7 +1113,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
                        "Priority:   %d\n"),
               job->name(),
               NPRT(jcr->RestoreBootstrap),
-              jcr->where_use_regexp?"RWhere:":"Where: ",
+              jcr->where_use_regexp?"RegexWhere:":"Where:     ",
               jcr->where?jcr->where:NPRT(job->RestoreWhere),
               replace,
               jcr->client->name(),
