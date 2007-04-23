@@ -107,7 +107,7 @@ struct regex_t
    unsigned char anchor;           /* anchor: 0=none 1=begline 2=begbuf */
    char *errmsg;
    int cflags;			   /* compilation flags */
-   POOLMEM *str_lcase;		   /* use to store expression in lcase */
+   POOLMEM *lcase;		   /* used by REG_ICASE */
 };        
 
 

@@ -68,7 +68,6 @@ public:
    /* private */
    POOLMEM *expr;		/* search epression */
    POOLMEM *subst;		/* substitution */
-   POOLMEM *lcase;		/* fname in lower case when using bregexp.c */
    regex_t preg;		/* regex_t result of regcomp() */
    struct re_registers regs;	/* contains match */
    char *eor;			/* end of regexp in expr */
