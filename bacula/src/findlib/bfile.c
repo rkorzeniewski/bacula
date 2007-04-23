@@ -11,7 +11,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -406,7 +406,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-      // unicode or ansii open for create write
+      // unicode or ascii open for create write
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
@@ -436,7 +436,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-      // unicode or ansii open for open existing write
+      // unicode or ascii open for open existing write
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
@@ -469,7 +469,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
 
-      // unicode or ansii open for open existing read
+      // unicode or ascii open for open existing read
       if (p_CreateFileW && p_MultiByteToWideChar) {   
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
@@ -801,6 +801,13 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    bfd->win32DecompContext.bIsInData = false;
    bfd->win32DecompContext.liNextHeader = 0;
+
+#if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_WILLNEED)
+   if (bfd->fid != -1) {
+      int stat = posix_fadvise(bfd->fid, 0, 0, POSIX_FADV_WILLNEED);
+      Dmsg2(400, "Did posix_fadvise on %s stat=%d\n", fname, stat);
+   }
+#endif
 
    return bfd->fid;
 }
