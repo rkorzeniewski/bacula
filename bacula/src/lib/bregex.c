@@ -30,6 +30,9 @@
  *
  * This file modified to work with Bacula and C++ by
  *    Kern Sibbald, April 2006
+ *
+ * This file modified to work with REG_ICASE and Bacula by
+ *    Eric Bollengier April 2007
  */
 /*
    Bacula® - The Network Backup Solution
@@ -1461,9 +1464,15 @@ int regcomp(regex_t * bufp, const char *regex, int cflags)
    memset(bufp, 0, sizeof(regex_t));
    bufp->cflags = cflags;
    if (bufp->cflags & REG_ICASE) {
-      // ICI passer regex en lcase
+      char *p, *lcase = bstrdup(regex);
+      for( p = lcase; *p ; p++) {
+	 *p = tolower(*p);
+      } 
+      re_compile_pattern(bufp, (unsigned char *)lcase);
+      bfree(lcase);
+   } else {
+      re_compile_pattern(bufp, (unsigned char *)regex);
    }
-   re_compile_pattern(bufp, (unsigned char *)regex);
    if (got_error) {
       return -1;
    }
@@ -1475,7 +1484,6 @@ int regexec(regex_t * preg, const char *string, size_t nmatch,
 {
    int stat;
    int len = strlen(string);
-   // ICI passer string en lcase
    struct re_registers regs;
    stat = re_search(preg, (unsigned char *)string, len, 0, len, &regs);
    /* stat is the start position in the string base 0 where       
@@ -1492,6 +1500,10 @@ size_t regerror(int errcode, regex_t * preg, char *errbuf, size_t errbuf_size)
 
 void regfree(regex_t * preg)
 {
+   if (preg->lcase) {
+      free_pool_memory(preg->lcase);
+      preg->lcase = NULL;
+   }
 }
 
 int re_match(regex_t * bufp, unsigned char *string, int size, int pos,
@@ -1890,7 +1902,7 @@ int re_match(regex_t * bufp, unsigned char *string, int size, int pos,
 #undef PREFETCH
 #undef NEXTCHAR
 
-int re_search(regex_t * bufp, unsigned char *string, int size, int pos,
+int re_search(regex_t * bufp, unsigned char *str, int size, int pos,
               int range, regexp_registers_t regs)
 {
    unsigned char *fastmap;
@@ -1901,6 +1913,21 @@ int re_search(regex_t * bufp, unsigned char *string, int size, int pos,
    int dir;
    int ret;
    unsigned char anchor;
+   unsigned char *string = str;
+
+   if (bufp->cflags & REG_ICASE) { /* we must use string in lowercase */
+      int len = strlen((const char *)str);
+      if (!bufp->lcase) {
+	 bufp->lcase = get_pool_memory(PM_FNAME);
+      }
+      check_pool_memory_size(bufp->lcase, len+1);
+      unsigned char *dst = (unsigned char *)bufp->lcase;
+      while (*string) {
+	 *dst++ = tolower(*string++);
+      }
+      *dst = '\0';
+      string = (unsigned char *)bufp->lcase;
+   }
 
 // assert(size >= 0 && pos >= 0);
 // assert(pos + range >= 0 && pos + range <= size);     /* Bugfix by ylo */
