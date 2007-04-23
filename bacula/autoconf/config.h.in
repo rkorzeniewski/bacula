@@ -500,6 +500,9 @@
 /* Define if OpenSSL library is available */
 #undef HAVE_OPENSSL
 
+/* Define to 1 if you have the `posix_fadvise' function. */
+#undef HAVE_POSIX_FADVISE
+
 /* Define if your printf() function supports format strings with positions. */
 #undef HAVE_POSIX_PRINTF
 
@@ -814,9 +817,9 @@
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
