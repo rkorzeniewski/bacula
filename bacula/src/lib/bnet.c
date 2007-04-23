@@ -689,7 +689,7 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
       }
    }
 
-bail_out;
+bail_out:
    if (tid) {
       stop_thread_timer(tid);
    }
