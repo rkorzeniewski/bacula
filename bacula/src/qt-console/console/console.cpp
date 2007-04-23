@@ -119,7 +119,7 @@ void Console::connect()
       heart_beat = 0;
    }        
 
-   m_sock = bnet_connect(NULL, 5, 15, heart_beat,
+   m_sock = bnet_connect(NULL, 5, /*15,*/ heart_beat,
                           _("Director daemon"), m_dir->address,
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {

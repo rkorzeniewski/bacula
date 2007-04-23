@@ -34,6 +34,62 @@
     <string>Requery the director for the list of jobs.</string>
    </property>
   </action>
+  <action name="actionListJobid" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>ListJobid</string>
+   </property>
+  </action>
+  <action name="actionListFilesOnJob" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>List Files On Job</string>
+   </property>
+  </action>
+  <action name="actionListJobMedia" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>ListJobMedia</string>
+   </property>
+  </action>
+  <action name="actionListVolumes" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>ListVolumes</string>
+   </property>
+  </action>
+  <action name="actionLongListJob" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>LongListJob</string>
+   </property>
+  </action>
+  <action name="actionDeleteJob" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>DeleteJob</string>
+   </property>
+  </action>
+  <action name="actionPurgeFiles" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>PurgeFiles</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

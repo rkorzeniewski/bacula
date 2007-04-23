@@ -40,20 +40,19 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(QString &medianame, QString &clientname,
+JobList::JobList(QString &mediaName, QString &clientname,
          QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
    m_name = "Clients";
-   m_medianame = medianame;
-   m_clientname = clientname;
+   m_mediaName = mediaName;
+   m_clientName = clientname;
    pgInitialize(parentTreeWidgetItem);
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
-   /* connect to the action specific to this pages class */
-   connect(actionRefreshJobList, SIGNAL(triggered()), this,
-                SLOT(populateTable()));
+   m_checkCurrentWidget = true;
+   createConnections();
    setTitle();
 }
 
@@ -61,12 +60,13 @@ JobList::JobList(QString &medianame, QString &clientname,
  * The Meat of the class.
  * This function will populate the QTableWidget, mp_tablewidget, with
  * QTableWidgetItems representing the results of a query for what jobs exist on
- * the media name passed from the constructor stored in m_medianame.
+ * the media name passed from the constructor stored in m_mediaName.
  */
 void JobList::populateTable()
 {
    QStringList results;
    QString resultline;
+   QBrush blackBrush(Qt::black);
 
    /* Set up query QString and header QStringList */
    QString query("");
@@ -77,12 +77,12 @@ void JobList::populateTable()
             " FROM Job, JobMedia, Media, Client"
             " WHERE JobMedia.JobId=Job.JobId and JobMedia.MediaId=Media.MediaId"
             " and Client.ClientId=Job.ClientId";
-   if (m_medianame != "") {
-      query += " and Media.VolumeName='" + m_medianame + "'";
+   if (m_mediaName != "") {
+      query += " and Media.VolumeName='" + m_mediaName + "'";
       m_closeable=true;
    }
-   if (m_clientname != "") {
-      query += " and Client.Name='" + m_clientname + "'";
+   if (m_clientName != "") {
+      query += " and Client.Name='" + m_clientName + "'";
       m_closeable=true;
    }
    query += " ORDER BY Job.Starttime";
@@ -91,7 +91,9 @@ void JobList::populateTable()
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  );
 
    /* Initialize the QTableWidget */
+   m_checkCurrentWidget = false;
    mp_tableWidget->clear();
+   m_checkCurrentWidget = true;
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
@@ -115,6 +117,7 @@ void JobList::populateTable()
             field = field.trimmed();  /* strip leading & trailing spaces */
             p_tableitem = new QTableWidgetItem(field,1);
             p_tableitem->setFlags(0);
+            p_tableitem->setForeground(blackBrush);
             mp_tableWidget->setItem(row, column, p_tableitem);
             column++;
          }
@@ -125,7 +128,7 @@ void JobList::populateTable()
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_tableWidget->resizeColumnToContents(cnter);
    }
-   if ((m_medianame != "") && (m_resultCount == 0)){
+   if ((m_mediaName != "") && (m_resultCount == 0)){
       /* for context sensitive searches, let the user know if there were no
        * results */
       QMessageBox::warning(this, tr("Bat"),
@@ -164,15 +167,123 @@ void JobList::currentStackItem()
  */
 void JobList::treeWidgetName(QString &desc)
 {
-   if ((m_medianame == "") && (m_clientname == "")) {
+   if ((m_mediaName == "") && (m_clientName == "")) {
       desc = "All Jobs";
    } else {
       desc = "Jobs ";
-      if (m_medianame != "" ) {
-         desc += "on Volume " + m_medianame;
+      if (m_mediaName != "" ) {
+         desc += "on Volume " + m_mediaName;
       }
-      if (m_clientname != "" ) {
-         desc += "of Client " + m_clientname;
+      if (m_clientName != "" ) {
+         desc += "of Client " + m_clientName;
       }
    }
+}
+
+/*
+ * This functions much line tableItemChanged for trees like the page selector,
+ * but I will do much less here
+ */
+void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem * /*previousItem*/)
+{
+   if (m_checkCurrentWidget) {
+      int row = currentItem->row();
+      QTableWidgetItem* jobitem = mp_tableWidget->item(row, 0);
+      m_currentJob = jobitem->text();
+   }
+}
+
+/*
+ * Function to create connections for context sensitive menu for this and
+ * the page selector
+ */
+void JobList::createConnections()
+{
+   /* connect to the action specific to this pages class that shows up in the 
+    * page selector tree */
+   connect(actionRefreshJobList, SIGNAL(triggered()), this,
+                SLOT(populateTable()));
+   /* for the tableItemChanged to maintain m_currentJob */
+   connect(mp_tableWidget, SIGNAL(
+           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(tableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+
+   /* Do what is required for the local context sensitive menu */
+
+
+   /* setContextMenuPolicy is required */
+   mp_tableWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+
+   /* Add Actions */
+   mp_tableWidget->addAction(actionRefreshJobList);
+   mp_tableWidget->addAction(actionLongListJob);
+   mp_tableWidget->addAction(actionListJobid);
+   mp_tableWidget->addAction(actionListFilesOnJob);
+   mp_tableWidget->addAction(actionListJobMedia);
+   mp_tableWidget->addAction(actionListVolumes);
+   mp_tableWidget->addAction(actionDeleteJob);
+   mp_tableWidget->addAction(actionPurgeFiles);
+
+   /* Make Connections */
+   connect(actionLongListJob, SIGNAL(triggered()), this,
+                SLOT(consoleLongListJob()));
+   connect(actionListJobid, SIGNAL(triggered()), this,
+                SLOT(consoleListJobid()));
+   connect(actionListFilesOnJob, SIGNAL(triggered()), this,
+                SLOT(consoleListFilesOnJob()));
+   connect(actionListJobMedia, SIGNAL(triggered()), this,
+                SLOT(consoleListJobMedia()));
+   connect(actionListVolumes, SIGNAL(triggered()), this,
+                SLOT(consoleListVolumes()));
+   connect(actionDeleteJob, SIGNAL(triggered()), this,
+                SLOT(consoleDeleteJob()));
+   connect(actionPurgeFiles, SIGNAL(triggered()), this,
+                SLOT(consolePurgeFiles()));
+}
+
+/*
+ * Functions to respond to local context sensitive menu sending console commands
+ * If I could figure out how to make these one function passing a string, Yaaaaaa
+ */
+void JobList::consoleLongListJob()
+{
+   QString cmd("llist jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consoleListJobid()
+{
+   QString cmd("list jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consoleListFilesOnJob()
+{
+   QString cmd("list files jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consoleListJobMedia()
+{
+   QString cmd("list jobmedia jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consoleListVolumes()
+{
+   QString cmd("list volumes jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consoleDeleteJob()
+{
+   QString cmd("delete job jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
+}
+void JobList::consolePurgeFiles()
+{
+   QString cmd("purge files jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
 }
