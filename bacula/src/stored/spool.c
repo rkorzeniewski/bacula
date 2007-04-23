@@ -262,6 +262,10 @@ static bool despool_data(DCR *dcr, bool commit)
    Dmsg1(800, "read/write block size = %d\n", block->buf_len);
    lseek(rdcr->spool_fd, 0, SEEK_SET); /* rewind */
 
+#if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_WILLNEED)
+   posix_fadvise(rdcr->spool_fd, 0, 0, POSIX_FADV_WILLNEED);
+#endif
+
    /* Add run time, to get current wait time */
    time_t despool_start = time(NULL) - jcr->run_time;
 

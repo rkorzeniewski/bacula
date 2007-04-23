@@ -286,6 +286,11 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
    int count = 0;
 
    rewind(spool_fd);
+
+#if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_WILLNEED)
+   posix_fadvise(fileno(spool_fd), 0, 0, POSIX_FADV_WILLNEED);
+#endif
+
    while (fread((char *)&pktsiz, 1, sizeof(int32_t), spool_fd) ==
           sizeof(int32_t)) {
       size += sizeof(int32_t);

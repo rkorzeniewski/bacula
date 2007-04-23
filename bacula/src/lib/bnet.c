@@ -658,12 +658,17 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
    int fatal = 0;
    time_t begin_time = time(NULL);
    time_t now;
+   btimer_t *tid = NULL;
 
+   /* Try to trap out of OS call when time expires */
+   tid = start_thread_timer(pthread_self(), (uint32_t)max_retry_time);
+   
    for (i = 0; (bsock = bnet_open(jcr, name, host, service, port, heart_beat, &fatal)) == NULL;
         i -= retry_interval) {
       berrno be;
       if (fatal || (jcr && job_canceled(jcr))) {
-         return NULL;
+         bsock = NULL;
+         goto bail_out;
       }
       Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
             name, host, port, be.strerror());
@@ -679,8 +684,14 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
       if (begin_time + max_retry_time <= now) {
          Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
                name, host, port, be.strerror());
-         return NULL;
+         bsock = NULL;
+         goto bail_out;
       }
+   }
+
+bail_out;
+   if (tid) {
+      stop_thread_timer(tid);
    }
    return bsock;
 }
@@ -729,10 +740,10 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
       bs->msg = realloc_pool_memory(bs->msg, maxlen + maxlen / 2);
    }
    return bs->send();
-// return bnet_send(bs);
 }
 
-int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen) {
+int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen) 
+{
 #if !defined(HAVE_WIN32)
     if (bs->peer_addr.sin_family == 0) {
         socklen_t salen = sizeof(bs->peer_addr);

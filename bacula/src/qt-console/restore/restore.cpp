@@ -130,6 +130,9 @@ void restoreDialog::fillDirectory()
    }
    fileWidget->clear();
    fileWidget->insertTopLevelItems(0, items);
+   for (int i=0; i<7; i++) {
+      fileWidget->resizeColumnToContents(i);
+   }
 
    free_pool_memory(file);
    free_pool_memory(path);
