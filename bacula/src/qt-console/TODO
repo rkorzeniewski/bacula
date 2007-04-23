@@ -1,7 +1,10 @@
 dhb
 ====================================================
+Must preempt all connections to console with if connected.
+
 Add context sensitive options for most commands
 status dir on page select director item
+All items with jobid= that I thought could work from joblist are done.
 
 Create list of what does not work.
 

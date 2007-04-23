@@ -51,11 +51,24 @@ public:
 public slots:
    void populateTable();
    virtual void treeWidgetName(QString &);
+   void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
+
+private slots:
+   void consoleLongListJob();
+   void consoleListJobid();
+   void consoleListFilesOnJob();
+   void consoleListJobMedia();
+   void consoleListVolumes();
+   void consoleDeleteJob();
+   void consolePurgeFiles();
 
 private:
-   QString m_medianame;
-   QString m_clientname;
+   void createConnections();
+   QString m_mediaName;
+   QString m_clientName;
+   QString m_currentJob;
    bool m_populated;
+   bool m_checkCurrentWidget;
 };
 
 #endif /* _JOBLIST_H_ */
