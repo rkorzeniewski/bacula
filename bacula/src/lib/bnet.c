@@ -609,7 +609,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
          int opt = heart_beat
          if (setsockopt(sockfd, IPPROTO_IP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
             berrno be;
-            Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+            Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPIDLE on socket: %s\n"),
                   be.strerror());
          }
       }
