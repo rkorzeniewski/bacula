@@ -95,7 +95,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       // eliminate invalid windows filename characters from foreign filenames
       char *ch = (char *)attr->ofname;
       if (ch[0] != 0 && ch[1] != 0) {
-         ch+=2;
+         ch += 2;
          while (*ch) {
             switch (*ch) {
             case ':':
@@ -155,6 +155,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
        */
       if (exists && attr->type != FT_RAW && attr->type != FT_FIFO) {
          /* Get rid of old copy */
+         Dmsg1(400, "unlink %s\n", attr->ofname);
          if (unlink(attr->ofname) == -1) {
             berrno be;
             Qmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
@@ -183,7 +184,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          attr->ofname[pnl] = 0;                 /* terminate path */
 
          if (!path_already_seen(jcr, attr->ofname, pnl)) {
-            Dmsg1(100, "Make path %s\n", attr->ofname);
+            Dmsg1(400, "Make path %s\n", attr->ofname);
             /*
              * If we need to make the directory, ensure that it is with
              * execute bit set (i.e. parent_mode), and preserve what already
@@ -228,7 +229,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       case FT_FIFO:                   /* Bacula fifo to save data */
       case FT_SPEC:
          if (S_ISFIFO(attr->statp.st_mode)) {
-            Dmsg1(200, "Restore fifo: %s\n", attr->ofname);
+            Dmsg1(400, "Restore fifo: %s\n", attr->ofname);
             if (mkfifo(attr->ofname, attr->statp.st_mode) != 0 && errno != EEXIST) {
                berrno be;
                Qmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"),
@@ -238,7 +239,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          } else if (S_ISSOCK(attr->statp.st_mode)) {
              Dmsg1(200, "Skipping restore of socket: %s\n", attr->ofname);
          } else {
-            Dmsg1(200, "Restore node: %s\n", attr->ofname);
+            Dmsg1(400, "Restore node: %s\n", attr->ofname);
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
                berrno be;
                Qmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"),
@@ -246,13 +247,19 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                return CF_ERROR;
             }
          }
+         /*
+          * Here we are going to attempt to restore to a FIFO, which
+          *   means that the FIFO must already exist, AND there must
+          *   be some process already attempting to read from the
+          *   FIFO, so we open it write-only. 
+          */
          if (attr->type == FT_RAW || attr->type == FT_FIFO) {
             btimer_t *tid;
-            Dmsg1(200, "FT_RAW|FT_FIFO %s\n", attr->ofname);
+            Dmsg1(400, "FT_RAW|FT_FIFO %s\n", attr->ofname);
             mode =  O_WRONLY | O_BINARY;
             /* Timeout open() in 60 seconds */
             if (attr->type == FT_FIFO) {
-               Dmsg0(200, "Set FIFO timer\n");
+               Dmsg0(400, "Set FIFO timer\n");
                tid = start_thread_timer(pthread_self(), 60);
             } else {
                tid = NULL;
@@ -260,19 +267,20 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             if (is_bopen(bfd)) {
                Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             }
-            Dmsg2(200, "open %s mode=0x%x\n", attr->ofname, mode);
+            Dmsg2(400, "open %s mode=0x%x\n", attr->ofname, mode);
             if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
                berrno be;
                be.set_errno(bfd->berrno);
                Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
                      attr->ofname, be.strerror());
+               Dmsg2(400, "Could not open %s: ERR=%s\n", attr->ofname, be.strerror());
                stop_thread_timer(tid);
                return CF_ERROR;
             }
             stop_thread_timer(tid);
             return CF_EXTRACT;
          }
-         Dmsg1(200, "FT_SPEC %s\n", attr->ofname);
+         Dmsg1(400, "FT_SPEC %s\n", attr->ofname);
          return CF_CREATED;
 
       case FT_LNK:

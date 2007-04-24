@@ -1,6 +1,11 @@
               Technical notes on version 2.1
 
 General:
+24Apr07
+kes  Make pm_strxxx() routines handle input of NULL pointer. This
+     is to protect from NULL pointers returned from SQL databases.
+kes  Correct typo in bacula-sd manpage as pointed out by John Goerzen.
+kes  Add more debug to FIFO code -- fix fifo regression test.
 23Apr07
 kes  Implement posix_fadvise in FD, and for reading spool files in SD.
 kes  Add thread timer to bnet_connect() to break from OS if wait time

@@ -358,9 +358,9 @@ void do_restore(JCR *jcr)
           * Now determine if we are extracting or not.
           */
          jcr->num_files_examined++;
-         Dmsg1(30, "Outfile=%s\n", attr->ofname);
          extract = false;
          stat = create_file(jcr, attr, &bfd, jcr->replace);
+         Dmsg2(30, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
          switch (stat) {
          case CF_ERROR:
          case CF_SKIP:
@@ -376,6 +376,7 @@ void do_restore(JCR *jcr)
             jcr->unlock();
             fileAddr = 0;
             print_ls_output(jcr, attr);
+
 #ifdef HAVE_DARWIN_OS
             /* Only restore the resource fork for regular files */
             from_base64(&rsrc_len, attr->attrEx);
@@ -683,8 +684,8 @@ void do_restore(JCR *jcr)
 
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
-ok_out:
 
+ok_out:
    /* Free Signature & Crypto Data */
    if (sig) {
       crypto_sign_free(sig);
