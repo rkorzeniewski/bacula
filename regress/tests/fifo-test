@@ -13,6 +13,7 @@ scripts/copy-test-confs
 echo "/tmp/bfifo" >/tmp/file-list
 
 rm -f /tmp/bfifo
+mkfifo /tmp/bfifo
 # send a file into the fifo
 file=encrypt-bug.jpg
 cat ${file} >/tmp/bfifo&
@@ -40,7 +41,8 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores select all storage=File1 done
+@#setdebug level=50 client
+restore where=/  select all storage=File1 done
 yes
 wait
 messages
@@ -48,7 +50,7 @@ messages
 quit
 END_OF_DATA
 
-cat </tmp/bfifo >tmp/${file} &
+cat </tmp/bfifo >tmp/${file}&
 
 run_bconsole
 
