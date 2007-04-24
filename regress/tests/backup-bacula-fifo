@@ -9,8 +9,10 @@
 TestName="backup-bacula-fifo"
 JobName=backupfifo
 . scripts/functions
-set_debug 0
+set_debug 1
 
+cwd=`pwd`
+scripts/cleanup
 scripts/copy-fifo-confs
 
 echo "${cwd}/build" >/tmp/file-list
