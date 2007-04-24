@@ -615,12 +615,11 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          sendit(sock, _("  --> "));
          dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
-      if (res->res_job.RestoreWhere) {
-	 if (res->res_job.where_use_regexp) {
-	    sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RestoreWhere));
-	 } else {
-	    sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
-	 }
+      if (res->res_job.RestoreWhere && !res->res_job.RegexWhere) {
+	   sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+      }
+      if (res->res_job.RegexWhere) {
+	   sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
@@ -1323,32 +1322,26 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.run_cmds   = res_all.res_job.run_cmds;
          res->res_job.RunScripts = res_all.res_job.RunScripts;
 
-	 if (res->res_job.strip_prefix ||
-	     res->res_job.add_suffix   ||
-	     res->res_job.add_prefix)
+	 if (!res->res_job.RegexWhere 
+	     &&
+	     (res->res_job.strip_prefix ||
+	      res->res_job.add_suffix   ||
+	      res->res_job.add_prefix))
 	 {
-	    if (res->res_job.RestoreWhere) {
-	       free(res->res_job.RestoreWhere);
-	    }
 	    int len = bregexp_get_build_where_size(res->res_job.strip_prefix,
 						   res->res_job.add_prefix,
 						   res->res_job.add_suffix);
-	    res->res_job.RestoreWhere = (char *) bmalloc (len * sizeof(char));
-	    bregexp_build_where(res->res_job.RestoreWhere, len,
+	    res->res_job.RegexWhere = (char *) bmalloc (len * sizeof(char));
+	    bregexp_build_where(res->res_job.RegexWhere, len,
 				res->res_job.strip_prefix,
 				res->res_job.add_prefix,
 				res->res_job.add_suffix);
-	    res->res_job.where_use_regexp = true;
-
 	    /* TODO: test bregexp */
 	 }
 
-	 if (res->res_job.RegexWhere) {
-	    if (res->res_job.RestoreWhere) {
-	       free(res->res_job.RestoreWhere);
-	    }
-	    res->res_job.RestoreWhere = bstrdup(res->res_job.RegexWhere);
-	    res->res_job.where_use_regexp = true;
+	 if (res->res_job.RegexWhere && res->res_job.RestoreWhere) {
+	    free(res->res_job.RestoreWhere);
+	    res->res_job.RestoreWhere = NULL;
 	 }
 
          break;

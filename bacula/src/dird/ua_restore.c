@@ -82,7 +82,6 @@ int restore_cmd(UAContext *ua, const char *cmd)
    JCR *jcr = ua->jcr;
    char *escaped_bsr_name = NULL;
    char *escaped_where_name = NULL;
-   bool where_use_regexp = false;
    char *strip_prefix, *add_prefix, *add_suffix, *regexp;
    strip_prefix = add_prefix = add_suffix = regexp = NULL;
 
@@ -113,15 +112,9 @@ int restore_cmd(UAContext *ua, const char *cmd)
       add_suffix = ua->argv[i];
    }
 
-   i = find_arg(ua, "where_use_regexp");
-   if (i >= 0) {
-      where_use_regexp = true;
-   }
-
    i = find_arg_with_value(ua, "regexwhere");
    if (i >= 0) {
-      where_use_regexp = true;
-      rx.where = ua->argv[i];
+      rx.RegexWhere = ua->argv[i];
    }
 
    if (strip_prefix || add_suffix || add_prefix) {
@@ -129,9 +122,16 @@ int restore_cmd(UAContext *ua, const char *cmd)
       regexp = (char *) bmalloc (len * sizeof(char));
 
       bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
-      where_use_regexp = true;
-      
-      rx.where = regexp;
+      rx.RegexWhere = regexp;
+   }
+
+   /* TODO: add acl for regexwhere ? */
+
+   if (rx.RegexWhere) {
+      if (!acl_access_ok(ua, Where_ACL, rx.RegexWhere)) {
+         ua->error_msg(_("\"RegexWhere\" specification not authorized.\n"));
+         goto bail_out;
+      }
    }
 
    if (rx.where) {
@@ -225,23 +225,28 @@ int restore_cmd(UAContext *ua, const char *cmd)
    }
 
    escaped_bsr_name = escape_filename(jcr->RestoreBootstrap);
-   escaped_where_name = escape_filename(rx.where);
 
    /* Build run command */
-   if (rx.where) {
-      if (!acl_access_ok(ua, Where_ACL, rx.where)) {
-         ua->error_msg(_("\"where\" specification not authorized.\n"));
-         goto bail_out;
-      }
-
+   if (rx.RegexWhere) {
+      escaped_where_name = escape_filename(rx.RegexWhere);
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
-          " %swhere=\"%s\" files=%d catalog=\"%s\"",
+          " regexwhere=\"%s\" files=%d catalog=\"%s\"",
           job->name(), rx.ClientName, rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
-          where_use_regexp ? "regex" : "",
+          escaped_where_name ? escaped_where_name : rx.RegexWhere,
+          rx.selected_files, ua->catalog->name());
+
+   } else if (rx.where) {
+      escaped_where_name = escape_filename(rx.where);
+      Mmsg(ua->cmd,
+          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
+          " where=\"%s\" files=%d catalog=\"%s\"",
+          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
           escaped_where_name ? escaped_where_name : rx.where,
           rx.selected_files, ua->catalog->name());
+
    } else {
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
@@ -403,8 +408,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "strip_prefix", /* 15 */
       "add_prefix",   /* 16 */
       "add_suffix",   /* 17 */
-      "where_use_regexp",/* 18 */
-      "regexwhere",   /* 19 like where + where_use_regexp */
+      "regexwhere",   /* 18 */
       NULL
    };
 

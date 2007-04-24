@@ -173,7 +173,7 @@ bool do_restore(JCR *jcr)
    }
 
    /* Send restore command */
-   char replace, *where, *cmd;
+   char replace, *where, *cmd=NULL;
    char empty = '\0';
 
    if (jcr->replace != 0) {
@@ -183,21 +183,25 @@ bool do_restore(JCR *jcr)
    } else {
       replace = REPLACE_ALWAYS;       /* always replace */
    }
-   if (jcr->where) {
+   
+   where = &empty;		      /* default */
+
+   if (jcr->RegexWhere) {
+      where = jcr->RegexWhere;             /* override */
+      cmd = restorecmdR;
+   } else if (jcr->job->RegexWhere) {
+      where = jcr->job->RegexWhere; /* no override take from job */
+      cmd = restorecmdR;
+
+   } else if (jcr->where) {
       where = jcr->where;             /* override */
+      cmd = restorecmd;
    } else if (jcr->job->RestoreWhere) {
       where = jcr->job->RestoreWhere; /* no override take from job */
-   } else {
-      where = &empty;                 /* None */
-   }
+      cmd = restorecmd;
+   } 
    
    jcr->prefix_links = jcr->job->PrefixLinks;
-
-   if (jcr->where_use_regexp) {
-      cmd = restorecmdR;
-   } else {
-      cmd = restorecmd;
-   }
 
    bash_spaces(where);
    bnet_fsend(fd, cmd, replace, jcr->prefix_links, where);

@@ -1573,7 +1573,8 @@ static int restore_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd = jcr->store_bsock;
-   POOLMEM *where;
+   POOLMEM *args;
+   bool use_regexwhere=false;
    int prefix_links;
    char replace;
    char ed1[50], ed2[50];
@@ -1583,38 +1584,40 @@ static int restore_cmd(JCR *jcr)
     */
    Dmsg0(150, "restore command\n");
    /* Pickup where string */
-   where = get_memory(dir->msglen+1);
-   *where = 0;
+   args = get_memory(dir->msglen+1);
+   *args = 0;
 
-   if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, where) != 3) {
-      if (sscanf(dir->msg, restorecmdR, &replace, &prefix_links, where) != 3){
+   if (sscanf(dir->msg, restorecmd, &replace, &prefix_links, args) != 3) {
+      if (sscanf(dir->msg, restorecmdR, &replace, &prefix_links, args) != 3){
          if (sscanf(dir->msg, restorecmd1, &replace, &prefix_links) != 2) {
             pm_strcpy(jcr->errmsg, dir->msg);
             Jmsg(jcr, M_FATAL, 0, _("Bad replace command. CMD=%s\n"), jcr->errmsg);
             return 0;
          }
-         *where = 0;
+         *args = 0;
       }
-      jcr->where_use_regexp = true;
+      use_regexwhere = true;
    }
    /* Turn / into nothing */
-   if (IsPathSeparator(where[0]) && where[1] == '\0') {
-      where[0] = '\0';
+   if (IsPathSeparator(args[0]) && args[1] == '\0') {
+      args[0] = '\0';
    }
 
-   Dmsg2(150, "Got replace %c, where=%s\n", replace, where);
-   unbash_spaces(where);
-   jcr->where = bstrdup(where);
+   Dmsg2(150, "Got replace %c, where=%s\n", replace, args);
+   unbash_spaces(args);
 
-   if (jcr->where_use_regexp) {
-      jcr->where_bregexp = get_bregexps(jcr->where);
+   if (use_regexwhere) {
+      jcr->where_bregexp = get_bregexps(args);
       if (!jcr->where_bregexp) {
-	 Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), jcr->where);
-	 free_pool_memory(where);
+	 Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), args);
+	 free_pool_memory(args);
 	 return 0;
       }
+   } else {
+      jcr->where = bstrdup(args);
    }
-   free_pool_memory(where);
+
+   free_pool_memory(args);
    jcr->replace = replace;
    jcr->prefix_links = prefix_links;
 

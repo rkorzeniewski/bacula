@@ -110,6 +110,7 @@ struct RESTORE_CTX {
    int restore_jobs;
    uint32_t selected_files;
    char *where;
+   char *RegexWhere;
    RBSR *bsr;
    POOLMEM *fname;                    /* filename only */
    POOLMEM *path;                     /* path only */

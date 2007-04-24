@@ -149,11 +149,7 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
     *
     */
 
-   if (jcr->where[0] == 0) {
-      pm_strcpy(attr->ofname, attr->fname);
-      pm_strcpy(attr->olname, attr->lname);
-
-   } else if (jcr->where_bregexp) { 
+   if (jcr->where_bregexp) { 
       char *ret;
       apply_bregexps(attr->fname, jcr->where_bregexp, &ret);
       pm_strcpy(attr->ofname, ret);
@@ -172,6 +168,10 @@ void build_attr_output_fnames(JCR *jcr, ATTR *attr)
          }
       }
       
+   } else if (jcr->where[0] == 0) {
+      pm_strcpy(attr->ofname, attr->fname);
+      pm_strcpy(attr->olname, attr->lname);
+
    } else {
       const char *fn;
       int wherelen = strlen(jcr->where);
