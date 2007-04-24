@@ -271,7 +271,7 @@ RES_ITEM job_items[] = {
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
-   {"whereuseregexp", store_bool, ITEM(res_job.where_use_regexp), 0, 0, 0},
+   {"regexwhere",    store_str,   ITEM(res_job.RegexWhere), 0, 0, 0},
    {"stripprefix",    store_str,  ITEM(res_job.strip_prefix), 0, 0, 0},
    {"addprefix",    store_str,  ITEM(res_job.add_prefix), 0, 0, 0},
    {"addsuffix",    store_str,  ITEM(res_job.add_suffix), 0, 0, 0},
@@ -1154,6 +1154,9 @@ void free_resource(RES *sres, int type)
       if (res->res_job.RestoreWhere) {
          free(res->res_job.RestoreWhere);
       }
+      if (res->res_job.RegexWhere) {
+         free(res->res_job.RegexWhere);
+      }
       if (res->res_job.strip_prefix) {
          free(res->res_job.strip_prefix);
       }
@@ -1319,6 +1322,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.jobdefs    = res_all.res_job.jobdefs;
          res->res_job.run_cmds   = res_all.res_job.run_cmds;
          res->res_job.RunScripts = res_all.res_job.RunScripts;
+
 	 if (res->res_job.strip_prefix ||
 	     res->res_job.add_suffix   ||
 	     res->res_job.add_prefix)
@@ -1338,6 +1342,15 @@ void save_resource(int type, RES_ITEM *items, int pass)
 
 	    /* TODO: test bregexp */
 	 }
+
+	 if (res->res_job.RegexWhere) {
+	    if (res->res_job.RestoreWhere) {
+	       free(res->res_job.RestoreWhere);
+	    }
+	    res->res_job.RestoreWhere = bstrdup(res->res_job.RegexWhere);
+	    res->res_job.where_use_regexp = true;
+	 }
+
          break;
       case R_COUNTER:
          if ((res = (URES *)GetResWithName(R_COUNTER, res_all.res_counter.hdr.name)) == NULL) {

@@ -359,6 +359,7 @@ public:
    int   Priority;                    /* Job priority */
    int   RestoreJobId;                /* What -- JobId to restore */
    char *RestoreWhere;                /* Where on disk to restore -- directory */
+   char *RegexWhere;                  /* RegexWhere option */
    char *strip_prefix;                /* remove prefix from filename  */
    char *add_prefix;                  /* add prefix to filename  */
    char *add_suffix;                  /* add suffix to filename -- .old */
