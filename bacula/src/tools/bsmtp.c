@@ -383,7 +383,7 @@ hp:
 
    for (i = 0; i < argc; i++) {
       Dmsg1(20, "rcpt to: %s\n", argv[i]);
-      if (strchr(from_addr, '<') == NULL) {
+      if (strchr(argv[i], '<') == NULL) {
          chat("rcpt to:<%s>\r\n", argv[i]);
       } else {
          chat("rcpt to:%s\r\n", argv[i]);
@@ -391,7 +391,7 @@ hp:
    }
 
    if (cc_addr) {
-      if (strchr(from_addr, '<') == NULL) {
+      if (strchr(cc_addr, '<') == NULL) {
          chat("rcpt to:<%s>\r\n", cc_addr);
       } else {
          chat("rcpt to:%s\r\n", cc_addr);
