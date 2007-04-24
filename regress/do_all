@@ -5,7 +5,8 @@ nice make setup
 if [ ! -e bin/tape_options ] ; then
   touch bin/tape_options
 fi
-nice ./all-tape-and-file-tests
-./endtime
+nice ./all-non-root-tests
+
+nice ./all-non-root-tape-tests
 nice ./all-non-root-2tape-tests
 ./endtime
