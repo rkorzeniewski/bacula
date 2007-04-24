@@ -458,8 +458,11 @@ void print_memory_pool_stats() {}
 int pm_strcat(POOLMEM **pm, const char *str)
 {
    int pmlen = strlen(*pm);
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    *pm = check_pool_memory_size(*pm, pmlen + len);
    memcpy(*pm+pmlen, str, len);
    return pmlen + len - 1;
@@ -468,8 +471,11 @@ int pm_strcat(POOLMEM **pm, const char *str)
 int pm_strcat(POOLMEM *&pm, const char *str)
 {
    int pmlen = strlen(pm);
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    pm = check_pool_memory_size(pm, pmlen + len);
    memcpy(pm+pmlen, str, len);
    return pmlen + len - 1;
@@ -489,8 +495,11 @@ int pm_strcat(POOLMEM *&pm, POOL_MEM &str)
 int pm_strcat(POOL_MEM &pm, const char *str)
 {
    int pmlen = strlen(pm.c_str());
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    pm.check_size(pmlen + len);
    memcpy(pm.c_str()+pmlen, str, len);
    return pmlen + len - 1;
@@ -503,8 +512,11 @@ int pm_strcat(POOL_MEM &pm, const char *str)
  */
 int pm_strcpy(POOLMEM **pm, const char *str)
 {
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    *pm = check_pool_memory_size(*pm, len);
    memcpy(*pm, str, len);
    return len - 1;
@@ -512,8 +524,11 @@ int pm_strcpy(POOLMEM **pm, const char *str)
 
 int pm_strcpy(POOLMEM *&pm, const char *str)
 {
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    pm = check_pool_memory_size(pm, len);
    memcpy(pm, str, len);
    return len - 1;
@@ -531,7 +546,11 @@ int pm_strcpy(POOLMEM *&pm, POOL_MEM &str)
 
 int pm_strcpy(POOL_MEM &pm, const char *str)
 {
-   int len = strlen(str) + 1;
+   int len;
+
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    pm.check_size(len);
    memcpy(pm.c_str(), str, len);
    return len - 1;
@@ -577,8 +596,11 @@ void POOL_MEM::realloc_pm(int32_t size)
 int POOL_MEM::strcat(const char *str)
 {
    int pmlen = strlen(mem);
-   int len = strlen(str) + 1;
+   int len;
 
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    check_size(pmlen + len);
    memcpy(mem+pmlen, str, len);
    return pmlen + len - 1;
@@ -587,7 +609,11 @@ int POOL_MEM::strcat(const char *str)
 
 int POOL_MEM::strcpy(const char *str)
 {
-   int len = strlen(str) + 1;
+   int len;
+
+   if (!str) str = "";
+
+   len = strlen(str) + 1;
    check_size(len);
    memcpy(mem, str, len);
    return len - 1;
