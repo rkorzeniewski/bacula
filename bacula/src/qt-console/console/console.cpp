@@ -366,8 +366,8 @@ const QFont Console::get_font()
 
 void Console::status_dir()
 {
-   write_dir("status dir\n");
-   displayToPrompt();
+   QString cmd("status dir");
+	 consoleCommand(cmd);
 }
 
 /*
