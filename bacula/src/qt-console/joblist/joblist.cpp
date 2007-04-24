@@ -125,9 +125,9 @@ void JobList::populateTable()
       }
    } 
    /* Resize the columns */
-   for(int cnter=0; cnter<headerlist.size(); cnter++) {
-      mp_tableWidget->resizeColumnToContents(cnter);
-   }
+   mp_tableWidget->resizeColumnsToContents();
+   mp_tableWidget->resizeRowsToContents();
+   mp_tableWidget->verticalHeader()->hide();
    if ((m_mediaName != "") && (m_resultCount == 0)){
       /* for context sensitive searches, let the user know if there were no
        * results */
