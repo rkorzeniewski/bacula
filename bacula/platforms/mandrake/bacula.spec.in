@@ -1,5 +1,5 @@
 # Bacula RPM spec file
-# Copyright (C) 2000-2006 Kern Sibbald
+# Copyright (C) 2000-2007 Free Software Foundation Europe, e.V.
 
 # Platform Build Configuration
 
@@ -211,24 +211,24 @@ exit 1
 %endif
 Distribution: %{_dist}
 
-# Should we build gconsole, possible only if gtk= >= 2.4 available.
+# Should we build bgconsole, possible only if gtk= >= 2.4 available.
 # leaving all the BuildRequires and Requires in place below for now.
 
-%define gconsole 1
+%define bgconsole 1
 %if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{su9}
-%define gconsole 0
+%define bgconsole 0
 %endif
 %if %{mdk} && ! %{mdv}
-%define gconsole 0
+%define bgconsole 0
 %endif
 
-# specifically disallow gconsole if desired
-%{?nobuild_gconsole:%define gconsole 0}
+# specifically disallow bgconsole if desired
+%{?nobuild_bgconsole:%define bgconsole 0}
 
-# Should we build wxconsole, only wxWidgets >=2.6 is supported
+# Should we build bwxconsole, only wxWidgets >=2.6 is supported
 # currently only SuSE 10 and FC4/FC5
-%define wxconsole 0
-%{?build_wxconsole:%define wxconsole 1}
+%define bwxconsole 0
+%{?build_bwxconsole:%define bwxconsole 1}
 
 # should we turn on python support
 %define python 0
@@ -248,8 +248,8 @@ Distribution: %{_dist}
 %define mysql5 0
 %define postgresql 0
 %define sqlite 0
-%define gconsole 0
-%define wxconsole 0
+%define bgconsole 0
+%define bwxconsole 0
 %endif
 
 %{expand: %%define gccver %(rpm -q --queryformat %%{version} gcc)}
@@ -263,7 +263,7 @@ BuildRequires: openssl-devel
 BuildRequires: python, python-devel
 %{expand: %%define pyver %(python -c 'import sys;print(sys.version[0:3])')}
 %endif
-%if %{gconsole}
+%if %{bgconsole}
 BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
 %if %{rh7}
@@ -274,7 +274,7 @@ BuildRequires: glibc-devel >= 2.2
 BuildRequires: termcap
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{su9} && %{gconsole}
+%if %{su9} && %{bgconsole}
 BuildRequires: libgnome >= 2.0
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
@@ -291,7 +291,7 @@ BuildRequires: freetype2-devel
 BuildRequires: termcap
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{su10} && %{gconsole}
+%if %{su10} && %{bgconsole}
 BuildRequires: libgnome >= 2.12
 BuildRequires: gtk2-devel >= 2.8
 BuildRequires: libgnomeui-devel >= 2.12
@@ -311,7 +311,7 @@ BuildRequires: libpng-devel
 BuildRequires: termcap
 BuildRequires: glibc-devel >= 2.5
 %endif
-%if %{su102} && %{gconsole}
+%if %{su102} && %{bgconsole}
 BuildRequires: libgnome >= 2.16
 BuildRequires: gtk2-devel >= 2.10
 BuildRequires: libgnomeui-devel >= 2.16
@@ -333,7 +333,7 @@ BuildRequires: libstdc++-static-devel
 BuildRequires: glibc-static-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{mdk} && !%{mdv} && %{gconsole}
+%if %{mdk} && !%{mdv} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui2-devel >= 2.0
 BuildRequires: libORBit2-devel
@@ -344,7 +344,7 @@ BuildRequires: libbonobo-activation-devel
 BuildRequires: libGConf2-devel
 BuildRequires: freetype2-devel
 %endif
-%if %{mdv} && %{gconsole}
+%if %{mdv} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.8
 BuildRequires: libgnomeui2-devel >= 2.10
 BuildRequires: libORBit2-devel
@@ -359,7 +359,7 @@ BuildRequires: freetype2-devel
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{fc3} && %{gconsole}
+%if %{fc3} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.4
 BuildRequires: libgnomeui-devel >= 2.8
 BuildRequires: ORBit2-devel
@@ -374,7 +374,7 @@ BuildRequires: freetype-devel
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if %{fc4} && %{gconsole}
+%if %{fc4} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.6
 BuildRequires: libgnomeui-devel >= 2.10
 BuildRequires: ORBit2-devel
@@ -389,7 +389,7 @@ BuildRequires: freetype-devel
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.4
 %endif
-%if %{fc5} && %{gconsole}
+%if %{fc5} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.8
 BuildRequires: libgnomeui-devel >= 2.14
 BuildRequires: ORBit2-devel
@@ -403,7 +403,7 @@ BuildRequires: freetype-devel
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.5
 %endif
-%if %{fc6} && %{gconsole}
+%if %{fc6} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.10
 BuildRequires: libgnomeui-devel >= 2.16
 BuildRequires: ORBit2-devel
@@ -417,7 +417,7 @@ BuildRequires: freetype-devel
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && %{gconsole}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && %{bgconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
 BuildRequires: ORBit2-devel
@@ -450,7 +450,7 @@ BuildRequires: rh-postgresql-devel >= 7
 BuildRequires: postgresql-devel >= 7
 %endif
 
-%if %{wxconsole}
+%if %{bwxconsole}
 BuildRequires: wxGTK-devel >= 2.6
 %endif
 
@@ -694,14 +694,14 @@ This package installs scripts for updating older versions of the bacula
 database.
 %endif
 
-%if %{gconsole}
-%package gconsole
+%if %{bgconsole}
+%package bgconsole
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Requires: atk, libstdc++, zlib, pango, libxml2, bacula-fd, openssl
 %endif
 
-%if %{gconsole} && %{su9}
+%if %{bgconsole} && %{su9}
 Requires: gtk2 >= 2.0
 Requires: libgnome >= 2.0
 Requires: libgnomeui >= 2.0
@@ -715,7 +715,7 @@ Requires: gconf2
 Requires: linc
 Requires: freetype2
 %endif
-%if %{gconsole} && %{su10}
+%if %{bgconsole} && %{su10}
 Requires: gtk2 >= 2.8
 Requires: libgnome >= 2.12
 Requires: libgnomeui >= 2.12
@@ -732,7 +732,7 @@ Requires: fontconfig >= 2.3
 Requires: gnome-vfs2 >= 2.12
 Requires: libpng
 %endif
-%if %{gconsole} && %{su102}
+%if %{bgconsole} && %{su102}
 Requires: gtk2 >= 2.10
 Requires: libgnome >= 2.16
 Requires: libgnomeui >= 2.16
@@ -749,7 +749,7 @@ Requires: fontconfig >= 2.4
 Requires: gnome-vfs2 >= 2.16
 Requires: libpng
 %endif
-%if %{gconsole} && %{mdk} && !%{mdv}
+%if %{bgconsole} && %{mdk} && !%{mdv}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui2
 Requires: glibc >= 2.3
@@ -760,7 +760,7 @@ Requires: libbonoboui >= 2.0
 Requires: GConf2
 Requires: freetype2
 %endif
-%if %{gconsole} && %{mdv}
+%if %{bgconsole} && %{mdv}
 Requires: gtk2 >= 2.8
 Requires: libgnomeui2
 Requires: glibc >= 2.3
@@ -771,7 +771,7 @@ Requires: libbonoboui >= 2.10
 Requires: GConf2
 Requires: freetype2
 %endif
-%if %{gconsole} && %{fc3}  
+%if %{bgconsole} && %{fc3}  
 Requires: gtk2 >= 2.4
 Requires: libgnomeui >= 2.8
 Requires: glibc >= 2.3
@@ -783,7 +783,7 @@ Requires: bonobo-activation
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && %{fc4}  
+%if %{bgconsole} && %{fc4}  
 Requires: gtk2 >= 2.6
 Requires: libgnomeui >= 2.10
 Requires: glibc >= 2.3
@@ -795,7 +795,7 @@ Requires: bonobo-activation
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && %{fc5}  
+%if %{bgconsole} && %{fc5}  
 Requires: gtk2 >= 2.8
 Requires: libgnomeui >= 2.14
 Requires: glibc >= 2.4
@@ -806,7 +806,7 @@ Requires: libbonoboui >= 2.14
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && %{fc6}  
+%if %{bgconsole} && %{fc6}  
 Requires: gtk2 >= 2.10
 Requires: libgnomeui >= 2.16
 Requires: glibc >= 2.5
@@ -817,7 +817,7 @@ Requires: libbonoboui >= 2.16
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6}
+%if %{bgconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -830,21 +830,21 @@ Requires: GConf2
 Requires: linc
 Requires: freetype
 %endif
-%if %{gconsole} && %{su9}
+%if %{bgconsole} && %{su9}
 Requires: xsu
 %endif
-%if %{gconsole} && %{su10}
+%if %{bgconsole} && %{su10}
 Requires: xsu
 %endif
-%if %{gconsole} && %{su102}
+%if %{bgconsole} && %{su102}
 Requires: xsu
 %endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102}
+%if %{bgconsole} && ! %{su9} && ! %{su10} && ! %{su102}
 Requires: usermode
 %endif
 
-%if %{gconsole}
-%description gconsole
+%if %{bgconsole}
+%description bgconsole
 %{blurb}
 
 %{blurb2}
@@ -859,39 +859,39 @@ This is the Gnome Console package. It is an add-on to the client or
 server packages.
 %endif
 
-%if %{wxconsole}
-%package wxconsole
+%if %{bwxconsole}
+%package bwxconsole
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 Requires: wxGTK >= 2.6, libstdc++, openssl
 %endif
 
-%if %{wxconsole} && %{su10}
+%if %{bwxconsole} && %{su10}
 Requires: gtk2 >= 2.8
 %endif
 
-%if %{wxconsole} && %{su102}
+%if %{bwxconsole} && %{su102}
 Requires: gtk2 >= 2.10
 %endif
 
-%if %{wxconsole} && %{fc3}  
+%if %{bwxconsole} && %{fc3}  
 Requires: gtk2 >= 2.4
 %endif
 
-%if %{wxconsole} && %{fc4}  
+%if %{bwxconsole} && %{fc4}  
 Requires: gtk2 >= 2.6
 %endif
 
-%if %{wxconsole} && %{fc5}  
+%if %{bwxconsole} && %{fc5}  
 Requires: gtk2 >= 2.8
 %endif
 
-%if %{wxconsole} && %{fc6}  
+%if %{bwxconsole} && %{fc6}  
 Requires: gtk2 >= 2.10
 %endif
 
-%if %{wxconsole}
-%description wxconsole
+%if %{bwxconsole}
+%description bwxconsole
 %{blurb}
 
 %{blurb2}
@@ -972,15 +972,15 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
 %configure \
         --prefix=/usr \
         --sbindir=/usr/sbin \
-	--sysconfdir=%{sysconf_dir} \
-	--with-scriptdir=%{script_dir} \
-	--with-working-dir=%{working_dir} \
-	--with-pid-dir=%{pid_dir} \
+        --sysconfdir=%{sysconf_dir} \
+        --with-scriptdir=%{script_dir} \
+        --with-working-dir=%{working_dir} \
+        --with-pid-dir=%{pid_dir} \
         --enable-smartalloc \
         --enable-client-only \
-	%if %{mdk}
-	--disable-nls \
-	%endif
+        %if %{mdk}
+        --disable-nls \
+        %endif
         --enable-static-fd
 
 make
@@ -988,15 +988,15 @@ make
 %configure \
         --prefix=/usr \
         --sbindir=/usr/sbin \
-	--sysconfdir=%{sysconf_dir} \
-	--with-scriptdir=%{script_dir} \
-	--with-working-dir=%{working_dir} \
-	--with-pid-dir=%{pid_dir} \
+        --sysconfdir=%{sysconf_dir} \
+        --with-scriptdir=%{script_dir} \
+        --with-working-dir=%{working_dir} \
+        --with-pid-dir=%{pid_dir} \
         --enable-smartalloc \
-%if %{gconsole}
+%if %{bgconsole}
         --enable-gnome \
 %endif
-%if %{gconsole} && ! %{rh8}
+%if %{bgconsole} && ! %{rh8}
         --enable-tray-monitor \
 %endif
 %if %{mysql}
@@ -1008,16 +1008,16 @@ make
 %if %{postgresql}
         --with-postgresql \
 %endif
-%if %{wxconsole}
-	--enable-wx-console \
+%if %{bwxconsole}
+        --enable-bwx-console \
 %endif
 %if %{python}
-	--with-python \
+        --with-python \
 %endif
 %if %{client_only}
-	--enable-client-only \
+        --enable-client-only \
 %endif
-	--mandir=%{_mandir} \
+        --mandir=%{_mandir} \
         --with-subsys-dir=/var/lock/subsys \
         --with-dir-user=%{director_daemon_user} \
         --with-dir-group=%{daemon_group} \
@@ -1046,12 +1046,12 @@ mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
-%if %{gconsole} || %{wxconsole}
+%if %{bgconsole} || %{bwxconsole}
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 %endif
 
-%if %{gconsole} || %{wxconsole}
+%if %{bgconsole} || %{bwxconsole}
 %define usermode_iftrick 1
 %else
 %define usermode_iftrick 0
@@ -1070,11 +1070,11 @@ mkdir -p $RPM_BUILD_ROOT%{sqlite_bindir}
 make \
         prefix=$RPM_BUILD_ROOT/usr \
         sbindir=$RPM_BUILD_ROOT/usr/sbin \
-	sysconfdir=$RPM_BUILD_ROOT%{sysconf_dir} \
-	scriptdir=$RPM_BUILD_ROOT%{script_dir} \
+        sysconfdir=$RPM_BUILD_ROOT%{sysconf_dir} \
+        scriptdir=$RPM_BUILD_ROOT%{script_dir} \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
-	piddir=$RPM_BUILD_ROOT%{pid_dir} \
-	mandir=$RPM_BUILD_ROOT%{_mandir} \
+        piddir=$RPM_BUILD_ROOT%{pid_dir} \
+        mandir=$RPM_BUILD_ROOT%{_mandir} \
         install
 
 %if ! %{client_only}
@@ -1082,10 +1082,10 @@ cd %{depkgs}
 make \
         prefix=$RPM_BUILD_ROOT/usr \
         sbindir=$RPM_BUILD_ROOT/usr/sbin \
-	sysconfdir=$RPM_BUILD_ROOT%{sysconf_dir} \
-	scriptdir=$RPM_BUILD_ROOT%{script_dir} \
+        sysconfdir=$RPM_BUILD_ROOT%{sysconf_dir} \
+        scriptdir=$RPM_BUILD_ROOT%{script_dir} \
         working_dir=$RPM_BUILD_ROOT%{working_dir} \
-	piddir=$RPM_BUILD_ROOT%{pid_dir} \
+        piddir=$RPM_BUILD_ROOT%{pid_dir} \
         mandir=$RPM_BUILD_ROOT%{_mandir} \
         mtx-install
 cd ${cwd}
@@ -1093,10 +1093,10 @@ cd ${cwd}
 
 # make install in manpages installs _everything_ shotgun style
 # so now delete what we will not be packaging
-%if ! %{wxconsole}
-rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-wxconsole.1.gz
+%if ! %{bwxconsole}
+rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-bwxconsole.1.gz
 %endif
-%if ! %{gconsole}
+%if ! %{bgconsole}
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-console-gnome.1.gz
 rm -f $RPM_BUILD_ROOT%{_mandir}/man1/bacula-tray-monitor.1.gz
 %endif
@@ -1125,9 +1125,9 @@ rm -f $RPM_BUILD_ROOT%{script_dir}/startmysql
 rm -f $RPM_BUILD_ROOT%{script_dir}/stopmysql
 %endif
 
-# fixme - make installs gconsole script for build without gconsole
-%if ! %{gconsole}
-rm -f $RPM_BUILD_ROOT%{script_dir}/gconsole
+# fixme - make installs bgconsole script for build without bgconsole
+%if ! %{bgconsole}
+rm -f $RPM_BUILD_ROOT%{script_dir}/bgconsole
 %endif
 
 rm -f $RPM_BUILD_ROOT/usr/sbin/static-bacula-fd
@@ -1155,54 +1155,54 @@ rm -f $RPM_BUILD_ROOT/etc/init.d/bacula-sd
 %endif
 
 # install the menu stuff
-%if %{gconsole} && %{su9}
+%if %{bgconsole} && %{su9}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
-%if %{gconsole} && %{su10}
+%if %{bgconsole} && %{su10}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
-%if %{gconsole} && %{su102}
+%if %{bgconsole} && %{su102}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.xsu $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
-%if %{wxconsole} && %{su10}
+%if %{bwxconsole} && %{su10}
 cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
+cp -p scripts/bwxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bwxconsole.desktop
 %endif
-%if %{wxconsole} && %{su102}
+%if %{bwxconsole} && %{su102}
 cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
+cp -p scripts/bwxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bwxconsole.desktop
 %endif
 %if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{mdk}
 %define iftrick 1
 %else
 %define iftrick 0
 %endif
-%if %{gconsole} && %{iftrick}
+%if %{bgconsole} && %{iftrick}
 cp -p scripts/bacula.png $RPM_BUILD_ROOT/usr/share/pixmaps/bacula.png
 cp -p scripts/bacula.desktop.gnome2.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bacula.desktop
 cp -p scripts/gnome-console.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/gnome-console
 cp -p scripts/gnome-console.pamd $RPM_BUILD_ROOT/etc/pam.d/gnome-console
 ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/gnome-console
 %endif
-%if %{gconsole} && ! %{rh8}
+%if %{bgconsole} && ! %{rh8}
 cp -p src/tray-monitor/generic.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/bacula-tray-monitor.xpm
 cp -p scripts/bacula-tray-monitor.desktop $RPM_BUILD_ROOT/usr/share/applications/bacula-tray-monitor.desktop
 %endif
-%if %{wxconsole} && %{iftrick}
+%if %{bwxconsole} && %{iftrick}
 cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
-cp -p scripts/wxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
-cp -p scripts/wxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/wxconsole
-cp -p scripts/wxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/wxconsole
-ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/wxconsole
+cp -p scripts/bwxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bwxconsole.desktop
+cp -p scripts/bwxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bwxconsole
+cp -p scripts/bwxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/bwxconsole
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bwxconsole
 %endif
 
 # install sqlite
@@ -1240,9 +1240,9 @@ touch $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/rpm_release
 cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/bacula/bin/bacula-fd
 rm -f src/filed/static-bacula-fd
 
-%if %{wxconsole}
-mv $RPM_BUILD_ROOT/usr/sbin/wx-console $RPM_BUILD_ROOT/usr/sbin/wxconsole
-mv $RPM_BUILD_ROOT%{sysconf_dir}/wx-console.conf $RPM_BUILD_ROOT%{sysconf_dir}/wxconsole.conf
+%if %{bwxconsole}
+mv $RPM_BUILD_ROOT/usr/sbin/bwx-console $RPM_BUILD_ROOT/usr/sbin/bwxconsole
+mv $RPM_BUILD_ROOT%{sysconf_dir}/bwx-console.conf $RPM_BUILD_ROOT%{sysconf_dir}/bwxconsole.conf
 %endif
 
 # now clean up permissions that are left broken by the install
@@ -1250,7 +1250,7 @@ mv $RPM_BUILD_ROOT%{sysconf_dir}/wx-console.conf $RPM_BUILD_ROOT%{sysconf_dir}/w
 chmod o-r $RPM_BUILD_ROOT%{script_dir}/query.sql
 %endif
 chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
-%if %{gconsole} && ! %{rh8}
+%if %{bgconsole} && ! %{rh8}
 chmod 755 $RPM_BUILD_ROOT/usr/sbin/bacula-tray-monitor
 chmod 644 $RPM_BUILD_ROOT%{sysconf_dir}/tray-monitor.conf
 %endif
@@ -1408,7 +1408,7 @@ if [ -n "$DB_VER" ] && [ "$DB_VER" -lt "9" ]; then
         echo "This bacula upgrade will update a bacula database from version 9 to 10."
         echo "You appear to be running database version $DB_VER. You must first update"
         echo "your database to version 9 and then install this upgrade. The alternative"
-	echo "is to use %{script_dir}/drop_%{db_backend}_tables to delete all your your current"
+        echo "is to use %{script_dir}/drop_%{db_backend}_tables to delete all your your current"
         echo "catalog information, then do the upgrade. Information on updating a"
         echo "database older than version 9 can be found in the release notes."
         exit 1
@@ -1422,7 +1422,7 @@ fi
 %if ! %{client_only}
 # check for and copy %{sysconf_dir}/console.conf to bconsole.conf
 if [ -s %{sysconf_dir}/console.conf ];then
-	cp -p %{sysconf_dir}/console.conf %{sysconf_dir}/bconsole.conf
+        cp -p %{sysconf_dir}/console.conf %{sysconf_dir}/bconsole.conf
 fi
 
 # create the daemon users and groups
@@ -1504,11 +1504,11 @@ DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 if [ -z "$DB_VER" ]; then
         echo "Hmm, doesn't look like you have an existing database."
         echo "Granting privileges for MySQL user bacula..."
-	%{script_dir}/grant_mysql_privileges
+        %{script_dir}/grant_mysql_privileges
         echo "Creating MySQL bacula database..."
-	%{script_dir}/create_mysql_database
+        %{script_dir}/create_mysql_database
         echo "Creating bacula tables..."
-	%{script_dir}/make_mysql_tables
+        %{script_dir}/make_mysql_tables
 
 # check to see if we need to upgrade a 1.38 or lower database
 elif [ "$DB_VER" -lt "10" ]; then
@@ -1516,7 +1516,7 @@ elif [ "$DB_VER" -lt "10" ]; then
         echo "Backing up your current database..."
         mysqldump -f --opt bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
         echo "Upgrading bacula database ..."
-	%{script_dir}/update_mysql_tables
+        %{script_dir}/update_mysql_tables
         echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
 
 fi
@@ -1532,16 +1532,16 @@ if [ -s %{working_dir}/bacula.db ]; then
                 echo "Backing up your current database..."
                 echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db | bzip2 > %{working_dir}/bacula_backup.sql.bz2
                 echo "Upgrading bacula database ..."
-		%{script_dir}/update_sqlite_tables
+                %{script_dir}/update_sqlite_tables
                 echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
         fi
 else
         # create the database and tables
         echo "Hmm, doesn't look like you have an existing database."
         echo "Creating SQLite database..."
-	%{script_dir}/create_sqlite_database
+        %{script_dir}/create_sqlite_database
         echo "Creating the SQLite tables..."
-	%{script_dir}/make_sqlite_tables
+        %{script_dir}/make_sqlite_tables
 fi
 %endif
 
@@ -1554,11 +1554,11 @@ DB_VER=`echo 'select * from Version;' | psql bacula 2>/dev/null | tail -3 | head
 if [ -z "$DB_VER" ]; then
         echo "Hmm, doesn't look like you have an existing database."
         echo "Creating PostgreSQL bacula database..."
-	%{script_dir}/create_postgresql_database
+        %{script_dir}/create_postgresql_database
         echo "Creating bacula tables..."
-	%{script_dir}/make_postgresql_tables
+        %{script_dir}/make_postgresql_tables
         echo "Granting privileges for PostgreSQL user bacula..."
-	%{script_dir}/grant_postgresql_privileges
+        %{script_dir}/grant_postgresql_privileges
 
 # check to see if we need to upgrade a 1.38 or lower database
 elif [ "$DB_VER" -lt "10" ]; then
@@ -1566,7 +1566,7 @@ elif [ "$DB_VER" -lt "10" ]; then
         echo "Backing up your current database..."
         pg_dump bacula | bzip2 > %{working_dir}/bacula_backup.sql.bz2
         echo "Upgrading bacula database ..."
-	%{script_dir}/update_postgresql_tables
+        %{script_dir}/update_postgresql_tables
         echo "If bacula works correctly you can remove the backup file %{working_dir}/bacula_backup.sql.bz2"
         
 fi
@@ -1575,7 +1575,7 @@ fi
 %if ! %{client_only}
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
-	cd %{sysconf_dir}
+        cd %{sysconf_dir}
         for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
                         need_password=`grep $string $file 2>/dev/null`
@@ -1682,7 +1682,7 @@ fi
 
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
-	cd %{sysconf_dir}
+        cd %{sysconf_dir}
         for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
                         need_password=`grep $string $file 2>/dev/null`
@@ -1719,19 +1719,19 @@ fi
 echo "The database update scripts were installed to %{script_dir}/updatedb"
 %endif
 
-%if %{gconsole}
-%files gconsole
+%if %{bgconsole}
+%files bgconsole
 %defattr(-,root,root)
-/usr/sbin/gnome-console
+/usr/sbin/bgnome-console
 %attr(-, root, %{daemon_group}) %dir %{script_dir}
-%attr(-, root, %{daemon_group}) %{script_dir}/gconsole
+%attr(-, root, %{daemon_group}) %{script_dir}/bgconsole
 %attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/gnome-console.conf
 /usr/share/pixmaps/bacula.png
 /usr/share/applications/bacula.desktop
 %{_mandir}/man1/bacula-console-gnome.1.%{manpage_ext}
 %endif
 
-%if %{gconsole} && ! %{rh8}
+%if %{bgconsole} && ! %{rh8}
 /usr/sbin/bacula-tray-monitor
 %config(noreplace) %{sysconf_dir}/tray-monitor.conf
 /usr/share/pixmaps/bacula-tray-monitor.xpm
@@ -1739,15 +1739,15 @@ echo "The database update scripts were installed to %{script_dir}/updatedb"
 %{_mandir}/man1/bacula-tray-monitor.1.%{manpage_ext}
 %endif
 
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102}
+%if %{bgconsole} && ! %{su9} && ! %{su10} && ! %{su102}
 # add the console helper files
 %config(noreplace,missingok) /etc/pam.d/gnome-console
 %config(noreplace,missingok) /etc/security/console.apps/gnome-console
 /usr/bin/gnome-console
 %endif
 
-%if %{gconsole}
-%pre gconsole
+%if %{bgconsole}
+%pre bgconsole
 # create the daemon group
 HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
@@ -1756,10 +1756,10 @@ if [ -z "$HAVE_BACULA" ]; then
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 
-%post gconsole
+%post bgconsole
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
-	cd %{sysconf_dir}
+        cd %{sysconf_dir}
         for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
                         need_password=`grep $string $file 2>/dev/null`
@@ -1773,26 +1773,26 @@ if [ -d %{sysconf_dir} ]; then
 fi
 %endif
 
-%if %{wxconsole}
-%files wxconsole
+%if %{bwxconsole}
+%files bwxconsole
 %defattr(-,root,root)
-/usr/sbin/wxconsole
+/usr/sbin/bwxconsole
 %attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
-%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/wxconsole.conf
+%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bwxconsole.conf
 /usr/share/pixmaps/wxwin16x16.xpm
-/usr/share/applications/wxconsole.desktop
-%{_mandir}/man1/bacula-wxconsole.1.%{manpage_ext}
+/usr/share/applications/bwxconsole.desktop
+%{_mandir}/man1/bacula-bwxconsole.1.%{manpage_ext}
 %endif
 
-%if %{wxconsole} && ! %{su9} && ! %{su10} && ! %{su102}
+%if %{bwxconsole} && ! %{su9} && ! %{su10} && ! %{su102}
 # add the console helper files
-%config(noreplace,missingok) /etc/pam.d/wxconsole
-%config(noreplace,missingok) /etc/security/console.apps/wxconsole
-/usr/bin/wxconsole
+%config(noreplace,missingok) /etc/pam.d/bwxconsole
+%config(noreplace,missingok) /etc/security/console.apps/bwxconsole
+/usr/bin/bwxconsole
 %endif
 
-%if %{wxconsole}
-%pre wxconsole
+%if %{bwxconsole}
+%pre bwxconsole
 # create the daemon group
 HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
 if [ -z "$HAVE_BACULA" ]; then
@@ -1801,10 +1801,10 @@ if [ -z "$HAVE_BACULA" ]; then
         echo "See the manual chapter \"Running Bacula\" for details."
 fi
 
-%post wxconsole
+%post bwxconsole
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
-	cd %{sysconf_dir}
+        cd %{sysconf_dir}
         for file in *.conf; do
                 for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
                         need_password=`grep $string $file 2>/dev/null`
