@@ -173,7 +173,7 @@ public:
    MSGS *jcr_msgs;                    /* Copy of message resource -- actually used */
    uint32_t ClientId;                 /* Client associated with Job */
    char *where;                       /* prefix to restore files to */
-   bool where_use_regexp;             /* True if where is a bregexp */
+   char *RegexWhere;                  /* file relocation in restore */
    alist *where_bregexp;              /* BREGEXP alist for path manipulation */
    int cached_pnl;                    /* cached path length */
    POOLMEM *cached_path;              /* cached path */

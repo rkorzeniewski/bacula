@@ -384,6 +384,10 @@ static void free_common_jcr(JCR *jcr)
       free(jcr->where);
       jcr->where = NULL;
    }
+   if (jcr->RegexWhere) {
+      free(jcr->RegexWhere);
+      jcr->RegexWhere = NULL;
+   }
    if (jcr->where_bregexp) {
       free_bregexps(jcr->where_bregexp);
       delete jcr->where_bregexp;
