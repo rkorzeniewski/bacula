@@ -1323,7 +1323,10 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.RunScripts = res_all.res_job.RunScripts;
 
 	 /* TODO: JobDefs where/regexwhere doesn't work well (but this
-	  * is not very useful) */
+	  * is not very useful) 
+	  * We have to set_bit(index, res_all.hdr.item_present);
+	  * or something like that
+	  */
 
          /* we take RegexWhere before all other options */
 	 if (!res->res_job.RegexWhere 
