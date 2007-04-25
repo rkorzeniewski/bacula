@@ -350,7 +350,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
    }
    if (result_handler != NULL) {
       if ((mdb->result = sql_use_result(mdb)) != NULL) {
-         int num_fields = 0;
+         int num_fields = sql_num_fields(mdb);
 
          /* We *must* fetch all rows */
          while ((row = sql_fetch_row(mdb)) != NULL) {
@@ -359,7 +359,6 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
                 *  seen all the data it wants.  However, we
                 *  loop to the end of the data.
                 */
-               num_fields++;
                if (result_handler(ctx, num_fields, row)) {
                   send = false;
                }
