@@ -2,6 +2,7 @@
 
 General:
 25Apr07
+kes  Insure that bat.conf is not overwritten during installation.
 kes  Fix important bug in db_sql_query() in mysql.c.  It was introduced
      while I was implementing migration in March 2006 !
 24Apr07
@@ -109,7 +110,7 @@ kes  Correct migration prune SQL typo that crept in in a
 01Apr07
 kes  Move bnet_despool() into class in bsock.c
 kes  Modify job report to include director name and Build OS.
-kes  Move drop and check_catalog() before fork.
+kes  Move drop root privilege and check_catalog() before fork.
 kes  Add update database scripts (version 9 to 10) to updatedb directory.
 31Mar07
 ebl  Check size and age of each file after its backup to see if

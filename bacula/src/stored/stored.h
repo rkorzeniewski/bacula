@@ -37,7 +37,7 @@
 #define STORAGE_DAEMON 1
 
 /* Set to debug mutexes */
-#define SD_DEBUG_LOCK
+//#define SD_DEBUG_LOCK
 const int sd_dbglvl = 100;
 
 #ifdef HAVE_MTIO_H
