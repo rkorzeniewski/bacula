@@ -1,16 +1,6 @@
-#
-# Default Bacula Director Configuration file
-#
-#  The only thing that MUST be changed is to add one or more
-#   file or directory names in the Include directive of the
-#   FileSet resource.
-#
-#  For Bacula release 1.39.27 (24 October 2006) -- debian testing/unstable
-#
-#  You might also want to change the default email address
-#   from root to your address.  See the "mail" and "operator"
-#   directives in the Messages resource.
-#
+# TODO
+# Orphaned buffer:  localhost-dir     40 bytes buf=80e9a70 allocated at dird_conf.c:1338
+# bacula-dir: dird.c:656 Hey something is wrong. p=0x135174768
 
 Director {                            # define myself
   Name = @hostname@-dir
@@ -24,10 +14,10 @@ Director {                            # define myself
   Messages = Standard
 }
 
-JobDefs {
-  Name = "DefaultJob"
+Job {
+  Name = "backup"
   Type = Backup
-  Level = Incremental
+  Level = Full
   Client = @hostname@-fd 
   FileSet = FS_TESTJOB
   Storage = File
@@ -52,6 +42,7 @@ JobDefs {
   FileSet="FS_TESTJOB"
   Messages = Standard
   Pool = Default
+  Replace = Always
 }
 
 Job {
@@ -65,87 +56,38 @@ Job {
   JobDefs = DefaultRestore
   add prefix = /tmp/bacula-restore
   add suffix = .old
-  strip prefix = /build 
+  strip prefix = /build
 }
 
 Job {
   Name = JobC
-  JobDefs = DefaultRestoreWhere
-}
-
-JobDefs {
-  Name = "DefaultRestoreWhere"
-  Type = Restore
-  Storage = File
-  Client=localhost-fd 
-  FileSet="FS_TESTJOB"
-  Messages = Standard
-  Pool = Default
-  Where = /tmp/bacula-restores
-}
-
-JobDefs {
-  Name = "DefaultRestoreRegexWhere"
-  Type = Restore
-  Storage = File
-  Client=localhost-fd 
-  FileSet="FS_TESTJOB"
-  Messages = Standard
-  Pool = Default
-  RegexWhere = !po$!old.po!
-}
-
-JobDefs {
-  Name = "DefaultRestoreOther"
-  Type = Restore
-  Storage = File
-  Client=localhost-fd 
-  FileSet="FS_TESTJOB"
-  Messages = Standard
-  Pool = Default
-  add suffix = .old 
-}
-
-Job {
-  Name = Job1
-  JobDefs = DefaultRestoreWhere
-  RegexWhere = !po$!old.po!
-}
-
-Job {
-  Name = Job2
-  JobDefs = DefaultRestoreWhere
-  add suffix = .old
-}
-
-Job {
-  Name = Job3
-  JobDefs = DefaultRestoreRegexWhere
-  Where = /tmp/bacula-restore
-}
-
-# TODO
-# Orphaned buffer:  localhost-dir     40 bytes buf=80e9a70 allocated at dird_conf.c:1338
-# bacula-dir: dird.c:656 Hey something is wrong. p=0x135174768
-Job {
-  Name = Job4
-  JobDefs = DefaultRestoreRegexWhere
-  add suffix = .old
-}
-
-Job {
-  Name = Job5
-  JobDefs = DefaultRestoreOther
+  JobDefs = DefaultRestore
   Where = /tmp/bacula-restore
 }
 
 Job {
-  Name = Job6
-  JobDefs = DefaultRestoreOther
-  add suffix = .temp
+  Name = JobD
+  JobDefs = DefaultRestore
+  RegexWhere = "doesnt work"
 }
 
+Job {
+  Name = JobE
+  JobDefs = DefaultRestore
+  RegexWhere = "/BUILD/tmp/i,!po/!!"
+}
 
+Job {
+  Name = JobF
+  JobDefs = DefaultRestore
+  RegexWhere = "/something witch doesn't match/tmp/i"
+}
+
+Job {
+  Name = JobG
+  JobDefs = DefaultRestore
+  Where = /tmp/bacula-restore
+}
 
 
 # Client (File Services) to backup

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Test if Bacula can automatically create a Volume label.
+#  Test RunScript
 #
 
 TestName="runscript-test"
