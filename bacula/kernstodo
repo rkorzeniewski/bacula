@@ -43,7 +43,10 @@ Document:
  
 
 Priority:
-- Implement 4th argument to make_catalog_backup that passes hostname.
+- Please mount volume "xxx" on Storage device ... should also list
+  Pool and MediaType in case user needs to create a new volume.
+- Implement wait_for_sysop() message display in wait_for_device(), which
+now prints warnings too often.
 
 - the director seg faulted when I omitted the pool directive from a 
 job resource.  I was experimenting and thought it redundant that I had 
@@ -95,7 +98,6 @@ started the director.
   does not match -- it may have been updated by another job.
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
-- Test FIFO backup/restore -- make regression
 - Doc items
 - Test Volume compatibility between machine architectures
 - Encryption documentation
@@ -127,8 +129,6 @@ Projects:
   - New/deleted file backup   
   - FD plugins
   - Incremental backup -- rsync, Stow
-
-
 
 
 For next release:
@@ -1690,7 +1690,6 @@ Block Position: 0
   the DB?
 - Look at using posix_fadvise(2) for backups -- see bug #751.
   Possibly add the code at findlib/bfile.c:795
-
 /* TCP socket options */
 #define TCP_NODELAY             1       /* Turn off Nagle's algorithm. */
 #define TCP_MAXSEG              2       /* Limit MSS */
@@ -1705,6 +1704,7 @@ Block Position: 0
 #define TCP_INFO                11      /* Information about this connection. */
 #define TCP_QUICKACK            12      /* Block/reenable quick acks */
 #define TCP_CONGESTION          13      /* Congestion control algorithm */
-
 - Fix bnet_connect() code to set a timer and to use time to
   measure the time.
+- Implement 4th argument to make_catalog_backup that passes hostname.
+- Test FIFO backup/restore -- make regression

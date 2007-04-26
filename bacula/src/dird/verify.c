@@ -462,9 +462,8 @@ void verify_cleanup(JCR *jcr, int TermCode)
 "  Non-fatal FD errors:    %d\n"
 "  FD termination status:  %s\n"
 "  Termination:            %s\n\n"),
-        my_name, VERSION, BDATE, edt,
+        my_name, VERSION, LSMDATE, edt,
         HOST_OS, DISTNAME, DISTVER,
-         edt,
          jcr->jr.JobId,
          jcr->jr.Job,
          jcr->fileset->hdr.name,
