@@ -111,7 +111,7 @@ void MainWin::createPages()
 
       /* create instances of the rest of the classes that will by default exist
       * under each director */
-      createPagebRestore();
+//    createPagebRestore();
       createPageMediaList();
       QString emptymedia(""), emptyclient("");
       createPageJobList(emptymedia, emptyclient, NULL);
