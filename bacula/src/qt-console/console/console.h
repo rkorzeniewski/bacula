@@ -83,6 +83,7 @@ public:
    bool sql_cmd(QString &cmd, QStringList &results);
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
    bool is_connected() { return m_sock != NULL; };
+   bool is_connectedGui();
    const QFont get_font();
    void writeSettings();
    void readSettings();
