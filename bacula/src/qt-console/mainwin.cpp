@@ -344,7 +344,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       /* let the next page BE the console */
       nextPage = nextConsole;
    } else {
-      printf("Should never get here\n");
+      /* Should never get here */
       nextPage = NULL;
       nextConsole = NULL;
    }
@@ -383,7 +383,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       }
    }
 
-   /* now process the next item */
+   /* process the current (next) item */
    
    if ((nextPage) || (nextConsole)) {
       if (nextConsole != previousConsole) {

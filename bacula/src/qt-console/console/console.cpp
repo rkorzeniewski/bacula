@@ -201,6 +201,8 @@ bool Console::sql_cmd(QString &query, QStringList &results)
  */
 bool Console::sql_cmd(const char *query, QStringList &results)
 {
+   if (!is_connectedGui())
+      return false;
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
 
@@ -639,4 +641,18 @@ void Console::setDirRes(DIRRES *dir)
 void Console::getDirResName(QString &name_returned)
 {
    name_returned = m_dir->name();
+}
+
+bool Console::is_connectedGui()
+{
+   if (is_connected()) {
+      return true;
+   } else {
+      QString message("Director ");
+      message += m_dir->name();
+      message += " is curerntly disconnected\n  Please reconnect!!";
+      QMessageBox::warning(this, tr("Bat"),
+         tr(message.toUtf8().data()), QMessageBox::Ok );
+      return false;
+   }
 }

@@ -213,6 +213,8 @@ void Pages::treeWidgetName(QString &name)
  */
 void Pages::consoleCommand(QString &command)
 {
+   if (!m_console->is_connectedGui())
+       return;
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");
    m_console->display_text(command + "    ****\n");
