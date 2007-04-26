@@ -1144,22 +1144,13 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
       Dmsg1(800, "JobId to restore=%d\n", jcr->RestoreJobId);
       if (jcr->RestoreJobId == 0) {
          if (ua->api) ua->signal(BNET_RUN_CMD);   
-         ua->send_msg(_("Run Restore job\n"
-                        "JobName:    %s\n"
-                        "Bootstrap:  %s\n"),
-                      job->name(),
-                      NPRT(jcr->RestoreBootstrap));
-
          /* RegexWhere is take before RestoreWhere */
          if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
-            ua->send_msg(_("RegexWhere: %s\n"),
-                         jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere);
-         } else {
-            ua->send_msg(_("Where:      %s\n"),
-                         jcr->where?jcr->where:NPRT(job->RestoreWhere));
-         }
-
-         ua->send_msg(_("Replace:         %s\n"
+            ua->send_msg(_("Run Restore job\n"
+                        "JobName:        f%s\n"
+                        "Bootstrap:       %s\n"
+                        "RegexWhere:      %s\n"
+                        "Replace:         %s\n"
                         "FileSet:         %s\n"
                         "Backup Client:   %s\n"
                         "Restore Client:  %s\n"
@@ -1167,14 +1158,44 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
                         "When:            %s\n"
                         "Catalog:         %s\n"
                         "Priority:        %d\n"),
-              replace,
-              jcr->fileset->name(),
-              client_name,
-              jcr->client->name(),
-              jcr->rstore->name(),
-              bstrutime(dt, sizeof(dt), jcr->sched_time),
-              jcr->catalog->name(),
-              jcr->JobPriority);
+                 job->name(),
+                 NPRT(jcr->RestoreBootstrap), 
+                 jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere,
+                 replace,
+                 jcr->fileset->name(),
+                 client_name,
+                 jcr->client->name(),
+                 jcr->rstore->name(),
+                 bstrutime(dt, sizeof(dt), jcr->sched_time),
+                 jcr->catalog->name(),
+                 jcr->JobPriority);
+
+         } else {
+            ua->send_msg(_("Run Restore job\n"
+                        "JobName:         %s\n"
+                        "Bootstrap:       %s\n"
+                        "Where:           %s\n"
+                        "Replace:         %s\n"
+                        "FileSet:         %s\n"
+                        "Backup Client:   %s\n"
+                        "Restore Client:  %s\n"
+                        "Storage:         %s\n"
+                        "When:            %s\n"
+                        "Catalog:         %s\n"
+                        "Priority:        %d\n"),
+                 job->name(),
+                 NPRT(jcr->RestoreBootstrap), 
+                 jcr->where?jcr->where:NPRT(job->RestoreWhere), 
+                 replace,
+                 jcr->fileset->name(),
+                 client_name,
+                 jcr->client->name(),
+                 jcr->rstore->name(),
+                 bstrutime(dt, sizeof(dt), jcr->sched_time),
+                 jcr->catalog->name(),
+                 jcr->JobPriority);
+         }
+
       } else {
          if (ua->api) ua->signal(BNET_RUN_CMD);   
          ua->send_msg(_("Run Restore job\n"

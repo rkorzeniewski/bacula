@@ -29,6 +29,10 @@
 /*
  *  Run Command Dialog class
  *
+ *  This is called when a Run Command signal is received from the
+ *    Director. We parse the Director's output and throw up a 
+ *    dialog box.
+ *
  *   Kern Sibbald, March MMVII
  *
  *  $Id: $
@@ -54,7 +58,7 @@ void runCmdDialog::fillRunDialog()
 {
    QString item, val;
    QStringList items;
-   QRegExp rx("^.*:\\s*(\\S.*$)");
+   QRegExp rx("^.*:\\s*(\\S.*$)");   /* Regex to get value */
 
    m_console->read();
    item = m_console->msg();
@@ -76,7 +80,7 @@ void runCmdDialog::fillRunDialog()
          bootstrap->setText(val);
          continue;
       }
-      if (item.startsWith("Client:")) {
+      if (item.startsWith("Backup Client:")) {
          clientCombo->addItem(val);
          continue;
       }
