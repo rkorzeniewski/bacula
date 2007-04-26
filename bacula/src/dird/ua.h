@@ -101,7 +101,8 @@ struct RESTORE_CTX {
    utime_t JobTDate;
    uint32_t TotalFiles;
    JobId_t JobId;
-   char ClientName[MAX_NAME_LENGTH];
+   char ClientName[MAX_NAME_LENGTH];  /* backup client */
+   char RestoreClientName[MAX_NAME_LENGTH];  /* restore client */
    char last_jobid[20];
    POOLMEM *JobIds;                   /* User entered string of JobIds */
    STORE  *store;
