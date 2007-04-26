@@ -1,12 +1,4 @@
 /*
- *
- *   Bacula Director -- Run Command
- *
- *     Kern Sibbald, December MMI
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
@@ -33,14 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- Run Command
+ *
+ *     Kern Sibbald, December MMI
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
 
 /* Forward referenced subroutines */
 static void select_job_level(UAContext *ua, JCR *jcr);
-static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *verify_list, 
-   char *jid, const char *replace);
+static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, 
+                char *verify_list, char *jid, const char *replace,
+                char *client_name);
 static void select_where_regexp(UAContext *ua, JCR *jcr);
 
 
@@ -63,6 +64,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    JCR *jcr;
    char *job_name, *level_name, *jid, *store_name, *pool_name;
    char *where, *fileset_name, *client_name, *bootstrap, *regexwhere;
+   char *restore_client_name;
    const char *replace;
    char *when, *verify_job_name, *catalog_name;
    char *previous_job_name;
@@ -103,6 +105,8 @@ int run_cmd(UAContext *ua, const char *cmd)
       "verifylist",                   /* 20 verify output list */
       "migrationjob",                 /* 21 migration job name */
       "pool",                         /* 22 */
+      "backupclient",                 /* 23 */
+      "restoreclient",                /* 24 */
       NULL};
 
 #define YES_POS 14
@@ -120,6 +124,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    regexwhere = NULL;
    when = NULL;
    client_name = NULL;
+   restore_client_name = NULL;
    fileset_name = NULL;
    bootstrap = NULL;
    replace = NULL;
@@ -196,7 +201,7 @@ int run_cmd(UAContext *ua, const char *cmd)
                   ua->send_msg(_("RegexWhere or Where specified twice.\n"));
                   return 0;
                }
-	       regexwhere = ua->argv[i];
+               regexwhere = ua->argv[i];
                if (!acl_access_ok(ua, Where_ACL, regexwhere)) {
                   ua->send_msg(_("Forbidden \"regexwhere\" specified.\n"));
                   return 0;
@@ -302,7 +307,22 @@ int run_cmd(UAContext *ua, const char *cmd)
                pool_name = ua->argv[i];
                kw_ok = true;
                break;
-
+            case 23: /* backupclient */
+               if (client_name) {
+                  ua->send_msg(_("Client specified twice.\n"));
+                  return 0;
+               }
+               client_name = ua->argv[i];
+               kw_ok = true;
+               break;
+            case 24: /* restoreclient */
+               if (restore_client_name) {
+                  ua->send_msg(_("Restore Client specified twice.\n"));
+                  return 0;
+               }
+               restore_client_name = ua->argv[i];
+               kw_ok = true;
+               break;
             default:
                break;
             }
@@ -429,6 +449,27 @@ int run_cmd(UAContext *ua, const char *cmd)
    }
    Dmsg1(800, "Using client=%s\n", client->name());
 
+   if (restore_client_name) {
+      client = (CLIENT *)GetResWithName(R_CLIENT, restore_client_name);
+      if (!client) {
+         if (*restore_client_name != 0) {
+            ua->warning_msg(_("Restore Client \"%s\" not found.\n"), restore_client_name);
+         }
+         client = select_client_resource(ua);
+      }
+   } else {
+      client = job->client;           /* use default */
+   }
+   if (!client) {
+      return 0;
+   } else if (!acl_access_ok(ua, Client_ACL, client->name())) {
+      ua->error_msg(_("No authorization. Client \"%s\".\n"),
+               client->name());
+      return 0;
+   }
+   Dmsg1(800, "Using restore client=%s\n", client->name());
+
+
    if (fileset_name) {
       fileset = (FILESET *)GetResWithName(R_FILESET, fileset_name);
       if (!fileset) {
@@ -498,7 +539,7 @@ int run_cmd(UAContext *ua, const char *cmd)
       if (jcr->RegexWhere) {
          free(jcr->RegexWhere);
       }
-      jcr->RegexWhere = bstrdup(regexwhere);	   
+      jcr->RegexWhere = bstrdup(regexwhere);       
    }
 
    if (when) {
@@ -584,7 +625,8 @@ try_again:
     * Prompt User to see if all run job parameters are correct, and
     *   allow him to modify them.
     */
-   if (!display_job_parameters(ua, jcr, job, verify_list, jid, replace)) {
+   if (!display_job_parameters(ua, jcr, job, verify_list, jid, replace,
+        client_name)) {
       goto bail_out;
    }
 
@@ -603,7 +645,11 @@ try_again:
       add_prompt(ua, _("Storage"));          /* 1 */
       add_prompt(ua, _("Job"));              /* 2 */
       add_prompt(ua, _("FileSet"));          /* 3 */
-      add_prompt(ua, _("Client"));           /* 4 */
+      if (jcr->JobType == JT_RESTORE) {
+         add_prompt(ua, _("Restore Client"));   /* 4 */
+      } else {
+         add_prompt(ua, _("Client"));        /* 4 */
+      }
       add_prompt(ua, _("When"));             /* 5 */
       add_prompt(ua, _("Priority"));         /* 6 */
       if (jcr->JobType == JT_BACKUP ||
@@ -616,7 +662,7 @@ try_again:
       } else if (jcr->JobType == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 7 */
          add_prompt(ua, _("Where"));         /* 8 */
-         add_prompt(ua, _("File Relocation"));/* 9 */	 
+         add_prompt(ua, _("File Relocation"));/* 9 */    
          add_prompt(ua, _("Replace"));       /* 10 */
          add_prompt(ua, _("JobId"));         /* 11 */
       }
@@ -733,10 +779,10 @@ try_again:
          if (!get_cmd(ua, _("Please enter path prefix for restore (/ for none): "))) {
             break;
          }
-	 if (jcr->RegexWhere) {	/* cannot use regexwhere and where */
-	    free(jcr->RegexWhere);
-	    jcr->RegexWhere = NULL;
-	 }
+         if (jcr->RegexWhere) { /* cannot use regexwhere and where */
+            free(jcr->RegexWhere);
+            jcr->RegexWhere = NULL;
+         }
          if (jcr->where) {
             free(jcr->where);
             jcr->where = NULL;
@@ -747,9 +793,9 @@ try_again:
          jcr->where = bstrdup(ua->cmd);
          goto try_again;
       case 9: 
-	 /* File relocation */
-	 select_where_regexp(ua, jcr);
-	 goto try_again;
+         /* File relocation */
+         select_where_regexp(ua, jcr);
+         goto try_again;
       case 10:
          /* Replace */
          start_prompt(ua, _("Replace:\n"));
@@ -813,7 +859,7 @@ static void select_where_regexp(UAContext *ua, JCR *jcr)
 
 try_again_reg:
    ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s\n"),
-		NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix));
+                NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix));
 
    start_prompt(ua, _("This will replace your current Where value\n"));
    add_prompt(ua, _("Strip prefix"));                /* 0 */
@@ -827,34 +873,34 @@ try_again_reg:
    case 0:
       /* Strip prefix */
       if (get_cmd(ua, _("Please enter path prefix to strip: "))) {
-	 if (strip_prefix) bfree(strip_prefix);
-	 strip_prefix = bstrdup(ua->cmd);
+         if (strip_prefix) bfree(strip_prefix);
+         strip_prefix = bstrdup(ua->cmd);
       }
       
       goto try_again_reg;
    case 1:
       /* Add prefix */
       if (get_cmd(ua, _("Please enter path prefix to add (/ for none): "))) {
-	 if (IsPathSeparator(ua->cmd[0]) && ua->cmd[1] == '\0') {
-	    ua->cmd[0] = 0;
-	 }
+         if (IsPathSeparator(ua->cmd[0]) && ua->cmd[1] == '\0') {
+            ua->cmd[0] = 0;
+         }
 
-	 if (add_prefix) bfree(add_prefix);
-	 add_prefix = bstrdup(ua->cmd);
+         if (add_prefix) bfree(add_prefix);
+         add_prefix = bstrdup(ua->cmd);
       }
       goto try_again_reg;
    case 2:
       /* Add suffix */
       if (get_cmd(ua, _("Please enter file suffix to add: "))) {
-	 if (add_suffix) bfree(add_suffix);
-	 add_suffix = bstrdup(ua->cmd);
+         if (add_suffix) bfree(add_suffix);
+         add_suffix = bstrdup(ua->cmd);
       }      
       goto try_again_reg;
    case 3:
       /* Add rwhere */
       if (get_cmd(ua, _("Please enter a valid regexp (!from!to!): "))) {
-	 if (rwhere) bfree(rwhere);
-	 rwhere = bstrdup(ua->cmd);
+         if (rwhere) bfree(rwhere);
+         rwhere = bstrdup(ua->cmd);
       }
       
       goto try_again_reg;      
@@ -864,27 +910,27 @@ try_again_reg:
       char *regexp;
       
       if (rwhere && rwhere[0] != '\0') {
-	 regs = get_bregexps(rwhere);
-	 ua->send_msg(_("regexwhere=%s\n"), NPRT(rwhere));
+         regs = get_bregexps(rwhere);
+         ua->send_msg(_("regexwhere=%s\n"), NPRT(rwhere));
       } else {
-	 int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
-	 regexp = (char *) bmalloc (len * sizeof(char));
-	 bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
-	 regs = get_bregexps(regexp);
-	 ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"),
-		      NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix), NPRT(regexp));
-	 
-	 bfree(regexp);
+         int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
+         regexp = (char *) bmalloc (len * sizeof(char));
+         bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
+         regs = get_bregexps(regexp);
+         ua->send_msg(_("strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"),
+                      NPRT(strip_prefix), NPRT(add_prefix), NPRT(add_suffix), NPRT(regexp));
+         
+         bfree(regexp);
       }
 
       if (!regs) {
-	 ua->send_msg(_("Cannot use your regexp\n"));
-	 goto try_again_reg;
+         ua->send_msg(_("Cannot use your regexp\n"));
+         goto try_again_reg;
       }
 
       while (get_cmd(ua, _("Please enter filename to test: "))) {
-	 apply_bregexps(ua->cmd, regs, &result);
-	 ua->send_msg(_("%s -> %s\n"), ua->cmd, result);
+         apply_bregexps(ua->cmd, regs, &result);
+         ua->send_msg(_("%s -> %s\n"), ua->cmd, result);
       }
       free_bregexps(regs);
       delete regs;
@@ -925,8 +971,8 @@ try_again_reg:
       delete regs;
    } else {
       if (jcr->RegexWhere) {
-	 bfree(jcr->RegexWhere);
-	 jcr->RegexWhere = NULL;
+         bfree(jcr->RegexWhere);
+         jcr->RegexWhere = NULL;
       }
       ua->send_msg(_("Cannot use your regexp.\n"));
    }
@@ -999,7 +1045,7 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 }
 
 static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *verify_list,
-   char *jid, const char *replace) 
+   char *jid, const char *replace, char *client_name) 
 {
    Dmsg1(800, "JobType=%c\n", jcr->JobType);
    switch (jcr->JobType) {
@@ -1101,27 +1147,29 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
          ua->send_msg(_("Run Restore job\n"
                         "JobName:    %s\n"
                         "Bootstrap:  %s\n"),
-		      job->name(),
-		      NPRT(jcr->RestoreBootstrap));
+                      job->name(),
+                      NPRT(jcr->RestoreBootstrap));
 
-	 /* RegexWhere is take before RestoreWhere */
-	 if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
-	    ua->send_msg(_("RegexWhere: %s\n"),
-			 jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere);
-	 } else {
-	    ua->send_msg(_("Where:      %s\n"),
-			 jcr->where?jcr->where:NPRT(job->RestoreWhere));
-	 }
+         /* RegexWhere is take before RestoreWhere */
+         if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
+            ua->send_msg(_("RegexWhere: %s\n"),
+                         jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere);
+         } else {
+            ua->send_msg(_("Where:      %s\n"),
+                         jcr->where?jcr->where:NPRT(job->RestoreWhere));
+         }
 
-	 ua->send_msg(_("Replace:    %s\n"
-                        "FileSet:    %s\n"
-                        "Client:     %s\n"
-                        "Storage:    %s\n"
-                        "When:       %s\n"
-                        "Catalog:    %s\n"
-                        "Priority:   %d\n"),
+         ua->send_msg(_("Replace:         %s\n"
+                        "FileSet:         %s\n"
+                        "Backup Client:   %s\n"
+                        "Restore Client:  %s\n"
+                        "Storage:         %s\n"
+                        "When:            %s\n"
+                        "Catalog:         %s\n"
+                        "Priority:        %d\n"),
               replace,
               jcr->fileset->name(),
+              client_name,
               jcr->client->name(),
               jcr->rstore->name(),
               bstrutime(dt, sizeof(dt), jcr->sched_time),
@@ -1130,27 +1178,27 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *veri
       } else {
          if (ua->api) ua->signal(BNET_RUN_CMD);   
          ua->send_msg(_("Run Restore job\n"
-			"JobName:    %s\n"
-			"Bootstrap:  %s\n"),
-		      job->name(),
-		      NPRT(jcr->RestoreBootstrap));
-		      
-	 /* RegexWhere is take before RestoreWhere */
-	 if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
-	    ua->send_msg(_("RegexWhere: %s\n"),
-			 jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere);
-	 } else {
-	    ua->send_msg(_("Where:      %s\n"),
-			 jcr->where?jcr->where:NPRT(job->RestoreWhere));
-	 }
+                        "JobName:    %s\n"
+                        "Bootstrap:  %s\n"),
+                      job->name(),
+                      NPRT(jcr->RestoreBootstrap));
+                      
+         /* RegexWhere is take before RestoreWhere */
+         if (jcr->RegexWhere || (job->RegexWhere && !jcr->where)) {
+            ua->send_msg(_("RegexWhere: %s\n"),
+                         jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere);
+         } else {
+            ua->send_msg(_("Where:      %s\n"),
+                         jcr->where?jcr->where:NPRT(job->RestoreWhere));
+         }
 
-	 ua->send_msg(_("Replace:    %s\n"
-			"Client:     %s\n"
-			"Storage:    %s\n"
-			"JobId:      %s\n"
-			"When:       %s\n"
-			"Catalog:    %s\n"
-			"Priority:   %d\n"),
+         ua->send_msg(_("Replace:    %s\n"
+                        "Client:     %s\n"
+                        "Storage:    %s\n"
+                        "JobId:      %s\n"
+                        "When:       %s\n"
+                        "Catalog:    %s\n"
+                        "Priority:   %d\n"),
               replace,
               jcr->client->name(),
               jcr->rstore->name(),

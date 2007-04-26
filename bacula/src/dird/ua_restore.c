@@ -66,6 +66,7 @@ static bool insert_dir_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *di
                                         char *date);
 static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, bool dir);
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx);
+static int get_restore_client_name(UAContext *ua, RESTORE_CTX &rx);
 static int get_date(UAContext *ua, char *date, int date_len);
 static int restore_count_handler(void *ctx, int num_fields, char **row);
 static bool insert_table_into_findex_list(UAContext *ua, RESTORE_CTX *rx, char *table);
@@ -223,6 +224,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       ua->error_msg(_("No Client resource found!\n"));
       goto bail_out;
    }
+   get_restore_client_name(ua, rx);
 
    escaped_bsr_name = escape_filename(jcr->RestoreBootstrap);
 
@@ -230,9 +232,10 @@ int restore_cmd(UAContext *ua, const char *cmd)
    if (rx.RegexWhere) {
       escaped_where_name = escape_filename(rx.RegexWhere);
       Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
-          " regexwhere=\"%s\" files=%d catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
+          " bootstrap=\"%s\" regexwhere=\"%s\" files=%d catalog=\"%s\"",
+          job->name(), rx.ClientName, rx.RestoreClientName, 
+          rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
           escaped_where_name ? escaped_where_name : rx.RegexWhere,
           rx.selected_files, ua->catalog->name());
@@ -240,18 +243,20 @@ int restore_cmd(UAContext *ua, const char *cmd)
    } else if (rx.where) {
       escaped_where_name = escape_filename(rx.where);
       Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
-          " where=\"%s\" files=%d catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
+          " bootstrap=\"%s\" where=\"%s\" files=%d catalog=\"%s\"",
+          job->name(), rx.ClientName, rx.RestoreClientName,
+          rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
           escaped_where_name ? escaped_where_name : rx.where,
           rx.selected_files, ua->catalog->name());
 
    } else {
       Mmsg(ua->cmd,
-          "run job=\"%s\" client=\"%s\" storage=\"%s\" bootstrap=\"%s\""
-          " files=%d catalog=\"%s\"",
-          job->name(), rx.ClientName, rx.store?rx.store->name():"",
+          "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
+          " bootstrap=\"%s\" files=%d catalog=\"%s\"",
+          job->name(), rx.ClientName, rx.RestoreClientName,
+          rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
           rx.selected_files, ua->catalog->name());
    }
@@ -327,6 +332,9 @@ static bool has_value(UAContext *ua, int i)
    return true;
 }
 
+/*
+ * This gets the client name from which the backup was made
+ */
 static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
 {
    /* If no client name specified yet, get it now */
@@ -334,6 +342,9 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
       CLIENT_DBR cr;
       /* try command line argument */
       int i = find_arg_with_value(ua, NT_("client"));
+      if (i < 0) {
+         i = find_arg_with_value(ua, NT_("backupclient"));
+      }
       if (i >= 0) {
          if (!has_value(ua, i)) {
             return 0;
@@ -349,6 +360,27 @@ static int get_client_name(UAContext *ua, RESTORE_CTX *rx)
    }
    return 1;
 }
+
+/*
+ * This is where we pick up a client name to restore to.
+ */
+static int get_restore_client_name(UAContext *ua, RESTORE_CTX &rx)
+{
+   /* Start with same name as backup client */
+   bstrncpy(rx.RestoreClientName, rx.ClientName, sizeof(rx.RestoreClientName));    
+
+   /* try command line argument */
+   int i = find_arg_with_value(ua, NT_("restoreclient"));
+   if (i >= 0) {
+      if (!has_value(ua, i)) {
+         return 0;
+      }
+      bstrncpy(rx.RestoreClientName, ua->argv[i], sizeof(rx.RestoreClientName));
+      return 1;
+   }
+   return 1;
+}
+
 
 
 /*
