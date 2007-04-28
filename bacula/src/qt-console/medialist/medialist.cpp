@@ -70,7 +70,7 @@ void MediaList::populateTree()
    QStringList headerlist = (QStringList()
       << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
       << "Volume Bytes" << "Volume Files" << "Volume Jobs" << "Volume Retention" 
-      << "Media Type" << "Last Written");
+      << "Media Type" << "Slot" << "Last Written");
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
@@ -81,7 +81,7 @@ void MediaList::populateTree()
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded(true);
    
-    mp_treeWidget->setHeaderLabels(headerlist);
+   mp_treeWidget->setHeaderLabels(headerlist);
 
    QString query;
 
@@ -96,11 +96,11 @@ void MediaList::populateTree()
          " Media.Enabled AS Enabled, Media.VolBytes AS Bytes,"
          " Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
          " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType,"
-         " Media.LastWritten AS LastWritten"
+         " Media.Slot AS Slot, Media.LastWritten AS LastWritten"
          " FROM Media, Pool"
          " WHERE Media.PoolId=Pool.PoolId";
       query += " AND Pool.Name='" + pool_listItem + "'";
-      query += " ORDER BY Pool.Name";
+      query += " ORDER BY Media";
    
       /* FIXME Make this a user configurable loggin action and dont use printf */
       //printf("MediaList query cmd : %s\n",query.toUtf8().data());
@@ -140,7 +140,7 @@ void MediaList::populateTree()
 void MediaList::editMedia()
 {
    MediaEdit* edit = new MediaEdit(m_console, m_currentlyselected);
-   edit->show();
+   connect(edit, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
 /*
