@@ -807,9 +807,9 @@ void wxbRestorePanel::CmdStart()
       int j;
             
       for (i = 0; i < dt->GetCount(); i++) {
-         if ((j = (*dt)[i].Find(_("Job started. JobId="))) > -1) {
+         if ((j = (*dt)[i].Find(_("Job queued. JobId="))) > -1) {
             jobid = (*dt)[i].Mid(j+19);
-            wxbMainFrame::GetInstance()->SetStatusText(_("Restore started, jobid=") + jobid);
+            wxbMainFrame::GetInstance()->SetStatusText(_("Restore queued, jobid=") + jobid);
             break;
          }
 
@@ -1888,6 +1888,7 @@ bool wxbRestorePanel::UpdateSecondConfig(wxbDataTokenizer* dt) {
    restorePanel->SetRowString(_("Storage"), (*dt)[i].Mid(10).Trim(false).RemoveLast());
    if ((k = (*dt)[++i].Find(_("When:"))) != 0) return false;
    restorePanel->SetRowString(_("When"), (*dt)[i].Mid(10).Trim(false).RemoveLast());
+   i++;        /* Skip catalog field */
    if ((k = (*dt)[++i].Find(_("Priority:"))) != 0) return false;
    restorePanel->SetRowString(_("Priority"), (*dt)[i].Mid(10).Trim(false).RemoveLast());
    cfgUpdated = 0;
