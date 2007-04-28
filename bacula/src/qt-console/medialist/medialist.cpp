@@ -66,18 +66,9 @@ MediaList::~MediaList()
 void MediaList::populateTree()
 {
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
-   QString currentpool("");
-   QString resultline;
-   QStringList results;
-   const char *query = 
-      "SELECT Pool.Name AS Pool, Media.VolumeName AS Media, Media.MediaId AS Id, Media.VolStatus AS VolStatus,"
-      " Media.Enabled AS Enabled, Media.VolBytes AS Bytes, Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
-      " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType, Media.LastWritten AS LastWritten"
-      " FROM Media, Pool"
-      " WHERE Media.PoolId=Pool.PoolId"
-      " ORDER BY Pool";
+
    QStringList headerlist = (QStringList()
-      << "Pool Name" << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
+      << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
       << "Volume Bytes" << "Volume Files" << "Volume Jobs" << "Volume Retention" 
       << "Media Type" << "Last Written");
 
@@ -89,44 +80,54 @@ void MediaList::populateTree()
    topItem->setText(0, "Pools");
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded(true);
+   
+    mp_treeWidget->setHeaderLabels(headerlist);
 
-   mp_treeWidget->setHeaderLabels(headerlist);
+   QString query;
 
-   /* FIXME Make this a user configurable loggin action and dont use printf */
-   //printf("MediaList query cmd : %s\n",query);
-   if (m_console->sql_cmd(query, results)) {
-      QString field;
-      QStringList fieldlist;
+   foreach (QString pool_listItem, m_console->pool_list) {
+      pooltreeitem = new QTreeWidgetItem(topItem);
+      pooltreeitem->setText(0, pool_listItem);
+      pooltreeitem->setData(0, Qt::UserRole, 1);
+      pooltreeitem->setExpanded(true);
 
-      foreach (resultline, results) {
-         fieldlist = resultline.split("\t");
-         int index = 0;
-         /* Iterate through fields in the record */
-         foreach (field, fieldlist) {
-            field = field.trimmed();  /* strip leading & trailing spaces */
-            if (field != "") {
-               /* The first field is the pool name */
-               if (index == 0) {
-                  /* If new pool name, create new Pool item */
-                  if (currentpool != field) {
-                     currentpool = field;
-                     pooltreeitem = new QTreeWidgetItem(topItem);
-                     pooltreeitem->setText(0, field);
-                     pooltreeitem->setData(0, Qt::UserRole, 1);
-                     pooltreeitem->setExpanded(true);
-                  }
-                  mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+      query =  "SELECT Media.VolumeName AS Media, "
+         " Media.MediaId AS Id, Media.VolStatus AS VolStatus,"
+         " Media.Enabled AS Enabled, Media.VolBytes AS Bytes,"
+         " Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
+         " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType,"
+         " Media.LastWritten AS LastWritten"
+         " FROM Media, Pool"
+         " WHERE Media.PoolId=Pool.PoolId";
+      query += " AND Pool.Name='" + pool_listItem + "'";
+      query += " ORDER BY Pool.Name";
+   
+      /* FIXME Make this a user configurable loggin action and dont use printf */
+      //printf("MediaList query cmd : %s\n",query.toUtf8().data());
+      QStringList results;
+      if (m_console->sql_cmd(query, results)) {
+         QString field;
+         QStringList fieldlist;
+
+         /* Iterate through the lines of results. */
+         foreach (QString resultline, results) {
+            fieldlist = resultline.split("\t");
+            int index = 0;
+            mediatreeitem = new QTreeWidgetItem(pooltreeitem);
+
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               if (field != "") {
                   mediatreeitem->setData(index, Qt::UserRole, 2);
-               } else {
-                  /* Put media fields under the pool tree item */
                   mediatreeitem->setData(index, Qt::UserRole, 2);
                   mediatreeitem->setText(index, field);
                }
-            }
-            index++;
-         }
-      }
-   }
+               index++;
+            } /* foreach field */
+         } /* foreach resultline */
+      } /* if results from query */
+   } /* foreach pool_listItem */
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.count(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
