@@ -55,10 +55,13 @@ private slots:
    void populateTree();
 //   void showJobs();
    void consoleStatusStorage();
+   void consoleLabelStorage();
+   void consoleMountStorage();
+   void consoleUnMountStorage();
 
 private:
    void createContextMenu();
-   QString m_currentlyselected;
+   QString m_currentStorage;
    bool m_populated;
    bool m_checkcurwidget;
 };

@@ -50,6 +50,7 @@ Storage::Storage()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   m_currentStorage = "";
    setTitle();
 }
 
@@ -154,6 +155,9 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
          if (treedepth == 1){
             mp_treeWidget->removeAction(actionStatusStorageInConsole);
+            mp_treeWidget->removeAction(actionLabelStorage);
+            mp_treeWidget->removeAction(actionMountStorage);
+            mp_treeWidget->removeAction(actionUnMountStorage);
          }
       }
 
@@ -161,8 +165,20 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
       if (treedepth == 1){
          /* set a hold variable to the storage name in case the context sensitive
           * menu is used */
-         m_currentlyselected=currentwidgetitem->text(0);
+         m_currentStorage=currentwidgetitem->text(0);
          mp_treeWidget->addAction(actionStatusStorageInConsole);
+         mp_treeWidget->addAction(actionLabelStorage);
+         mp_treeWidget->addAction(actionMountStorage);
+         mp_treeWidget->addAction(actionUnMountStorage);
+         QString text;
+         text = "Status Storage " + m_currentStorage;
+         actionStatusStorageInConsole->setText(text);
+         text = "Label media in Storage " + m_currentStorage;
+         actionLabelStorage->setText(text);
+         text = "Mount media in Storage " + m_currentStorage;
+         actionMountStorage->setText(text);
+         text = "\"UN\" Mount media in Storage " + m_currentStorage;
+         actionUnMountStorage->setText(text);
       }
    }
 }
@@ -184,21 +200,12 @@ void Storage::createContextMenu()
                 SLOT(populateTree()));
    connect(actionStatusStorageInConsole, SIGNAL(triggered()), this,
                 SLOT(consoleStatusStorage()));
-}
-
-/*
- * Function responding to actionListJobsofStorage which calls mainwin function
- * to create a window of a list of jobs of this storage.
- */
-void Storage::consoleStatusStorage()
-{
-   QString cmd("status storage=");
-   cmd += m_currentlyselected;
-   consoleCommand(cmd);
-//   m_console->write_dir(cmd.toUtf8().data());
-//   m_console->displayToPrompt();
-   /* Bring this directors console to the front of the stack */
-//   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
+   connect(actionLabelStorage, SIGNAL(triggered()), this,
+                SLOT(consoleLabelStorage()));
+   connect(actionMountStorage, SIGNAL(triggered()), this,
+                SLOT(consoleMountStorage()));
+   connect(actionUnMountStorage, SIGNAL(triggered()), this,
+                SLOT(consoleUnMountStorage()));
 }
 
 /*
@@ -216,4 +223,31 @@ void Storage::currentStackItem()
       createContextMenu();
       m_populated=true;
    }
+}
+
+/*
+ *  Functions to respond to local context sensitive menu sending console commands
+ *  If I could figure out how to make these one function passing a string, Yaaaaaa
+ */
+void Storage::consoleStatusStorage()
+{
+   QString cmd("status storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+void Storage::consoleLabelStorage()
+{
+   new labelDialog(m_console, m_currentStorage);
+}
+void Storage::consoleMountStorage()
+{
+   QString cmd("mount storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+void Storage::consoleUnMountStorage()
+{
+   QString cmd("umount storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
 }

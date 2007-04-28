@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>763</width>
-    <height>650</height>
+    <width>791</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -40,6 +40,30 @@
    </property>
    <property name="text" >
     <string>Status Storage In Console</string>
+   </property>
+  </action>
+  <action name="actionLabelStorage" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Label Storage</string>
+   </property>
+  </action>
+  <action name="actionMountStorage" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>MountStorage</string>
+   </property>
+  </action>
+  <action name="actionUnMountStorage" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>UnMount Storage</string>
    </property>
   </action>
  </widget>
