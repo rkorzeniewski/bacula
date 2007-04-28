@@ -41,6 +41,7 @@
 /* Forward referenced functions */
 static int update_volume(UAContext *ua);
 static bool update_pool(UAContext *ua);
+static bool update_job(UAContext *ua);
 
 /*
  * Update a Pool Record in the database.
@@ -60,6 +61,7 @@ int update_cmd(UAContext *ua, const char *cmd)
       NT_("volume"), /* 1 */
       NT_("pool"),   /* 2 */
       NT_("slots"),  /* 3 */
+      NT_("jobid"),  /* 4 */
       NULL};
 
    if (!open_client_db(ua)) {
@@ -76,6 +78,9 @@ int update_cmd(UAContext *ua, const char *cmd)
       return 1;
    case 3:
       update_slots(ua);
+      return 1;
+   case 4:
+      update_job(ua);
       return 1;
    default:
       break;
@@ -430,20 +435,20 @@ static int update_volume(UAContext *ua)
    bool done = false;
    int i;
    const char *kw[] = {
-      _("VolStatus"),                /* 0 */
-      _("VolRetention"),             /* 1 */
-      _("VolUse"),                   /* 2 */
-      _("MaxVolJobs"),               /* 3 */
-      _("MaxVolFiles"),              /* 4 */
-      _("MaxVolBytes"),              /* 5 */
-      _("Recycle"),                  /* 6 */
-      _("InChanger"),                /* 7 */
-      _("Slot"),                     /* 8 */
-      _("Pool"),                     /* 9 */
-      _("FromPool"),                 /* 10 */
-      _("AllFromPool"),              /* 11 !!! see below !!! */
-      _("Enabled"),                  /* 12 */
-      _("RecyclePool"),              /* 13 */
+      NT_("VolStatus"),                /* 0 */
+      NT_("VolRetention"),             /* 1 */
+      NT_("VolUse"),                   /* 2 */
+      NT_("MaxVolJobs"),               /* 3 */
+      NT_("MaxVolFiles"),              /* 4 */
+      NT_("MaxVolBytes"),              /* 5 */
+      NT_("Recycle"),                  /* 6 */
+      NT_("InChanger"),                /* 7 */
+      NT_("Slot"),                     /* 8 */
+      NT_("Pool"),                     /* 9 */
+      NT_("FromPool"),                 /* 10 */
+      NT_("AllFromPool"),              /* 11 !!! see below !!! */
+      NT_("Enabled"),                  /* 12 */
+      NT_("RecyclePool"),              /* 13 */
       NULL };
 
 #define AllFromPool 11               /* keep this updated with above */
@@ -756,5 +761,35 @@ static bool update_pool(UAContext *ua)
    db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST);
    free_pool_memory(query);
    bsendmsg(ua, _("Pool DB record updated from resource.\n"));
+   return true;
+}
+
+/*
+ * Update a Job record -- allows you to change the
+ *  date fields in a Job record. This helps when
+ *  providing migration from other vendors.
+ */
+static bool update_job(UAContext *ua)
+{
+   bool done = false;
+   int i;
+   const char *kw[] = {
+      NT_("StartTime"),                   /* 0 */
+      NULL };
+
+
+   for (i=0; kw[i]; i++) {
+      int j;
+      if ((j=find_arg_with_value(ua, kw[i])) > 0) {
+         switch (i) {
+         case 0:
+            break;
+         case 1:
+            break;
+         }
+         done = true;
+      }
+   }
+
    return true;
 }

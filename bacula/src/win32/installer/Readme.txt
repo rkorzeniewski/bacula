@@ -1,3 +1,25 @@
+Bacula - Windows Version Disclaimer
+===================================
+
+Please note, only the Win32 Client (File daemon) is supported.  All the
+other components (Director, Storage daemon, their utilities) are provided
+on an "as is" basis.  Unfortunately, they are neither properly tested,   
+documented, or supported.  This means that we cannot accept bug reports
+against the non-supported components.  For them to be supported, we need
+three things from the Open Source community:
+
+1. Full documentation of the Windows particularities of the Director,
+   the Storage daemon, and their utilities in the Bacula manual.
+
+2. Someone to periodically and on demand run the regressions tests.
+
+3. One or more developers who are willing to accept and correct Windows
+   related bugs as they occur.
+
+4. A certain Win32 community that will respond to user support questions
+   on the bacula-users list.  (This is probably already fullfilled). 
+             
+
 Bacula - Windows Version Notes
 ==============================
 

@@ -35600,7 +35600,12 @@ chmod 755 $c/mysql
 
 chmod 755 src/win32/build-depkgs-mingw32
 
-chmod 755 src/qt-console/install_conf_file
+if test "${support_bat}" = "yes" ; then
+cd src/qt-console
+chmod 755 install_conf_file
+qmake
+fi
+
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
    largefile_support="yes"

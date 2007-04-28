@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     12 November 2006
+                     27 April 2007
 
 Major development:      
 Project                     Developer
@@ -41,6 +41,14 @@ Document:
 - Document more precisely how to use master keys -- especially
   for disaster recovery.
  
+Professional Needs:
+- Migration from other vendors
+  - Date change
+  - Path change
+- Filesystem types
+- Backup conf/exe (all daemons) 
+- Backup up system state
+- Detect state change of system (verify)
 
 Priority:
 - Please mount volume "xxx" on Storage device ... should also list
