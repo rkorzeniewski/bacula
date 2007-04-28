@@ -1,0 +1,290 @@
+#!/bin/sh
+#
+#  Test file relocation feature
+#
+
+TestName="regexwhere-test"
+JobName=backup
+
+. scripts/functions
+set_debug 0
+copy_test_confs
+
+rm -f bin/bacula-dir.conf
+rm -f tmp/RUN*
+rm -f ${cwd}/build/po/*old*
+rm -rf tmp/po
+/bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
+
+echo "${cwd}/build/po" >/tmp/file-list
+
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out tmp/RUN_backup
+messages
+label volume=TestVolume001
+run job=backup yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobA
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+1
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobB
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+2
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobC
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+3
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobD
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+4
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobE
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+5
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobF
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+6
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobG
+restore strip_prefix="${cwd}" add_prefix="/tmp/bacula-restore"
+5
+cd ${cwd}/build/po
+m *.po
+done
+7
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobH
+restore add_suffix=.old
+5
+cd ${cwd}/build/po
+m *.po
+done
+7
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobI
+restore regexwhere="!Po!old!i,!old!po!,!\$!.old!"
+5
+cd ${cwd}/build/po
+m *.po
+done
+7
+yes
+wait
+messages
+@##################################
+@$out tmp/RUN_JobJ
+restore
+5
+cd ${cwd}/build/po
+m *.po
+done
+7
+mod
+@## File Relocation -> add suffix -> test -> accept
+10
+3
+.old
+5
+/etc/passwd
+.
+6
+@## Where 
+m
+9
+/tmp/bacula-restore-it
+m
+@## use add suffix
+10
+3
+.old
+6
+yes
+wait
+messages
+@sleep 1
+quit
+END_OF_DATA
+
+
+bin/bacula start
+cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
+stop_bacula
+
+export dstat=0
+export bstat=0
+export rstat=0
+
+J=JobA
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "${cwd}/build/po/fr.old.po" tmp/RUN_$J 
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobB
+# $cwd begins with /
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "/tmp/bacula-restore${cwd}/po/fr.po.old" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobC
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "/tmp/bacula-restore${cwd}/build/po/fr.po" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobD
+if grep -q "Restore Error"  tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobE
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "${cwd}/tmp/fr.po"  tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobF
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "/tmp/regress/build/po/fr.po" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobG
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "/tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobH
+if grep -q "Restore OK"  tmp/RUN_$J &&
+   grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+J=JobI
+if grep  "Restore OK"  tmp/RUN_$J &&
+   grep  "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+
+J=JobJ
+if grep  "Restore OK"      tmp/RUN_$J &&
+   grep  "/etc/passwd.old" tmp/RUN_$J &&
+   grep  "Where:      /tmp/bacula-restore-it" tmp/RUN_$J &&
+   grep  "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+then
+    [ "$debug" = 1 ] && echo $J ok
+else
+   echo "$J in error"
+   rstat=1
+fi
+
+# test with bregtest
+
+find ${cwd}/build > tmp/list
+sed -e 's/readme/readme/i' -e 's/\([ch]\)$/.old.\1/' tmp/list > /tmp/list.sed
+./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > /tmp/list.bsed
+
+if diff -q tmp/list.bsed tmp/list.sed
+then
+    [ "$debug" = 1 ] && echo bregtest ok
+else
+   echo "bregtest test in error"
+   rstat=1
+
+fi
+
+end_test
