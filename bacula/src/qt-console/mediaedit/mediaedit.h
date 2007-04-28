@@ -37,18 +37,23 @@
 #include "ui_mediaedit.h"
 #include "console.h"
 
-class MediaEdit : public QWidget, public Ui::MediaEdit
+class MediaEdit : public QDialog, public Ui::mediaeditForm
 {
    Q_OBJECT 
 
 public:
-   MediaEdit(Console *console, QString &medianame );
+   MediaEdit(Console *console, QString &mediaId);
 
 public slots:
+   void accept();
+   void reject();
 
 private:
    Console *m_console;
-
+   QString m_mediaName;
+   QString m_pool;
+   QString m_status;
+   int m_slot;
 };
 
 #endif /* _MEDIAEDIT_H_ */
