@@ -39,13 +39,36 @@
 
 labelDialog::labelDialog(Console *console)
 {
+   QString deflt("");
+   showDialog(console, deflt);
+}
+
+/*
+ * An overload of the constructor to have a default storage show in the
+ * combobox on start.  Used from context sensitive in storage class.
+ */
+labelDialog::labelDialog(Console *console, QString &defString)
+{
+   showDialog(console, defString);
+}
+
+/*
+ * moved the constructor code here for the overload.
+ */
+void labelDialog::showDialog(Console *console, QString &defString)
+{
    m_console = console;
    m_console->notify(false);
    setupUi(this);
    storageCombo->addItems(console->storage_list);
+   int index = storageCombo->findText(defString, Qt::MatchExactly);
+   if (index != -1) {
+      storageCombo->setCurrentIndex(index);
+   }
    poolCombo->addItems(console->pool_list);
    this->show();
 }
+
 
 void labelDialog::accept()
 {

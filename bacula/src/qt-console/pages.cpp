@@ -215,14 +215,14 @@ void Pages::consoleCommand(QString &command)
 {
    if (!m_console->is_connectedGui())
        return;
+   /* Bring this directors console to the front of the stack */
+   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");
    m_console->display_text(command + "    ****\n");
    m_console->display_text("Director Response :\n\n");
    m_console->write_dir(command.toUtf8().data());
    m_console->displayToPrompt();
-   /* Bring this directors console to the front of the stack */
-   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
 }
 
 /*

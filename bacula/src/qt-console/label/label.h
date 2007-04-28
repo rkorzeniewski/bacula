@@ -42,6 +42,8 @@ class labelDialog : public QDialog, public Ui::labelForm
 
 public:
    labelDialog(Console *console);
+   labelDialog(Console *console, QString &defString);
+   void showDialog(Console *console, QString &defString);
 
 private slots:
    void accept();
