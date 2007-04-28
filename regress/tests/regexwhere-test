@@ -250,8 +250,8 @@ else
 fi
 
 J=JobI
-if grep  "Restore OK"  tmp/RUN_$J &&
-   grep  "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+if grep  -q "Restore OK"  tmp/RUN_$J &&
+   grep  -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -261,10 +261,10 @@ fi
 
 
 J=JobJ
-if grep  "Restore OK"      tmp/RUN_$J &&
-   grep  "/etc/passwd.old" tmp/RUN_$J &&
-   grep  "Where:      /tmp/bacula-restore-it" tmp/RUN_$J &&
-   grep  "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+if grep -q "Restore OK"      tmp/RUN_$J &&
+   grep -q "/etc/passwd.old" tmp/RUN_$J &&
+   grep -q -e "Where: */tmp/bacula-restore-it" tmp/RUN_$J &&
+   grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -275,8 +275,8 @@ fi
 # test with bregtest
 
 find ${cwd}/build > tmp/list
-sed -e 's/readme/readme/i' -e 's/\([ch]\)$/.old.\1/' tmp/list > /tmp/list.sed
-./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > /tmp/list.bsed
+sed -e 's/readme/readme/i' -e 's/\([ch]\)$/.old.\1/' tmp/list > tmp/list.sed
+./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > tmp/list.bsed
 
 if diff -q tmp/list.bsed tmp/list.sed
 then
