@@ -82,7 +82,7 @@ void Clients::populateTree()
    /* This could be a log item */
    //printf("In Clients::populateTree()\n");
 
-   foreach(QString clientName, m_console->client_list){
+   foreach (QString clientName, m_console->client_list){
       clientItem = new QTreeWidgetItem(topItem);
       clientItem->setText(0, clientName);
       clientItem->setData(0, Qt::UserRole, 1);
