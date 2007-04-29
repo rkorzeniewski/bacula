@@ -6,12 +6,13 @@ Add context sensitive options for most commands
 status dir on page select director item
 All items with jobid= that I thought could work from joblist are done.
 
+relabel storage=DDS3 oldvolume=ddsvol003 volume=dds3vol003 slot=3 pool=dds3_hope
+in label slot spinner, limit the upper to the value of slots for that storage.
+
 Create list of what does not work.
 
 Ask Kern about bRestore and what to do with it in terms of priorities.  Should
 that be working before an initial release.
-
-Fix bug in myth box not working with .sql query="" command.
 
 Create documentation for any other developers interested in creating
 new classes to add more pages.  Explain how to use the pages class
@@ -51,6 +52,9 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Fix bug in myth box not working with .sql query="" command.
+This was a fix in mysql
+
 Figure out how to get tables like Joblist to do the equivalent of double clicking
 on the separating lines between each of the headings.
 Tried the hard way first.  Oops.

@@ -68,8 +68,8 @@ void MediaList::populateTree()
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
 
    QStringList headerlist = (QStringList()
-      << "Volume Name" << "Media Id" << "Volume Status" << "Enabled"
-      << "Volume Bytes" << "Volume Files" << "Volume Jobs" << "Volume Retention" 
+      << "Volume Name" << "Id" << "Status" << "Enabled"
+      << "Bytes" << "Files" << "Jobs" << "Retention" 
       << "Media Type" << "Slot" << "Last Written");
 
    m_checkcurwidget = false;
@@ -137,9 +137,9 @@ void MediaList::populateTree()
 /*
  * Called from the signal of the context sensitive menu!
  */
-void MediaList::editMedia()
+void MediaList::editVolume()
 {
-   MediaEdit* edit = new MediaEdit(m_console, m_currentlyselected);
+   MediaEdit* edit = new MediaEdit(m_console, m_currentVolumeId);
    connect(edit, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
@@ -150,7 +150,7 @@ void MediaList::showJobs()
 {
    QString emptyclient("");
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   mainWin->createPageJobList(m_currentlyselected, emptyclient, parentItem);
+   mainWin->createPageJobList(m_currentVolumeName, emptyclient, parentItem);
 }
 
 /*
@@ -180,14 +180,19 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          if (treedepth == 2){
             mp_treeWidget->removeAction(actionEditVolume);
             mp_treeWidget->removeAction(actionListJobsOnVolume);
+            mp_treeWidget->removeAction(actionDeleteVolume);
+            mp_treeWidget->removeAction(actionPurgeVolume);
          }
       }
 
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
       if (treedepth == 2){
-         m_currentlyselected=currentwidgetitem->text(1);
+         m_currentVolumeName=currentwidgetitem->text(0);
+         m_currentVolumeId=currentwidgetitem->text(1);
          mp_treeWidget->addAction(actionEditVolume);
          mp_treeWidget->addAction(actionListJobsOnVolume);
+         mp_treeWidget->addAction(actionDeleteVolume);
+         mp_treeWidget->addAction(actionPurgeVolume);
       }
    }
 }
@@ -201,8 +206,10 @@ void MediaList::createContextMenu()
 {
    mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
    mp_treeWidget->addAction(actionRefreshMediaList);
-   connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editMedia()));
+   connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editVolume()));
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
+   connect(actionDeleteVolume, SIGNAL(triggered()), this, SLOT(deleteVolume()));
+   connect(actionPurgeVolume, SIGNAL(triggered()), this, SLOT(purgeVolume()));
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
@@ -226,4 +233,23 @@ void MediaList::currentStackItem()
       createContextMenu();
       m_populated=true;
    }
+}
+
+/*
+ * Called from the signal of the context sensitive menu!
+ */
+void MediaList::deleteVolume()
+{
+   QString cmd("delete volume=");
+   cmd += m_currentVolumeName;
+   consoleCommand(cmd);
+}
+/*
+ * Called from the signal of the context sensitive menu!
+ */
+void MediaList::purgeVolume()
+{
+   QString cmd("purge volume=");
+   cmd += m_currentVolumeName;
+   consoleCommand(cmd);
 }

@@ -70,7 +70,7 @@ void JobList::populateTable()
 
    /* Set up query QString and header QStringList */
    QString query("");
-   query += "SELECT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
+   query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes, Job.JobStatus AS Status"

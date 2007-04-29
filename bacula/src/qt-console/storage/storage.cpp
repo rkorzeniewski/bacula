@@ -39,6 +39,7 @@
 #include <QMenu>
 #include "bat.h"
 #include "storage/storage.h"
+#include "mount/mount.h"
 
 Storage::Storage()
 {
@@ -90,12 +91,10 @@ void Storage::populateTree()
       storageItem->setExpanded(true);
 
       /* Set up query QString and header QStringList */
-      QString query("");
-      query += "SELECT Name AS StorageName, StorageId AS ID, AutoChanger"
-           " FROM Storage"
-           " WHERE ";
-      query += " Name='" + storageName + "'";
-      query += " ORDER BY Name";
+      QString query("SELECT StorageId AS ID, AutoChanger AS Changer"
+               " FROM Storage WHERE");
+      query += " Name='" + storageName + "'"
+               " ORDER BY Name";
 
       QStringList results;
       /* This could be a log item */
@@ -165,7 +164,8 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
       if (treedepth == 1){
          /* set a hold variable to the storage name in case the context sensitive
           * menu is used */
-         m_currentStorage=currentwidgetitem->text(0);
+         m_currentStorage = currentwidgetitem->text(0);
+         m_currentAutoChanger = currentwidgetitem->text(2).toInt();
          mp_treeWidget->addAction(actionStatusStorageInConsole);
          mp_treeWidget->addAction(actionLabelStorage);
          mp_treeWidget->addAction(actionMountStorage);
@@ -241,9 +241,16 @@ void Storage::consoleLabelStorage()
 }
 void Storage::consoleMountStorage()
 {
-   QString cmd("mount storage=");
-   cmd += m_currentStorage;
-   consoleCommand(cmd);
+   if (m_currentAutoChanger == 0){
+      /* no autochanger, just execute the command in the console */
+      QString cmd("mount storage=");
+      cmd += m_currentStorage;
+      consoleCommand(cmd);
+   } else {
+      placeConsoleOnTop();
+      /* if this storage is an autochanger, lets ask for the slot */
+      new mountDialog(m_console, m_currentStorage);
+   }
 }
 void Storage::consoleUnMountStorage()
 {

@@ -54,11 +54,14 @@ public slots:
 private slots:
    void populateTree();
    void showJobs();
-   void editMedia();
+   void editVolume();
+   void deleteVolume();
+   void purgeVolume();
 
 private:
    void createContextMenu();
-   QString m_currentlyselected;
+   QString m_currentVolumeName;
+   QString m_currentVolumeId;
    bool m_populated;
    bool m_checkcurwidget;
 };
