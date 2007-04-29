@@ -2039,10 +2039,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/wxconsole.console_apps \
 	   scripts/wxconsole.desktop.consolehelper \
 	   scripts/wxconsole.desktop.xsu \
-           scripts/bat.desktop.in \
-           scripts/bat.desktop.xsu.in \
-           scripts/bat.desktop.consolehelper.in
-           scripts/bat.console_apps.in \
+           scripts/bat.desktop \
+           scripts/bat.desktop.xsu \
+           scripts/bat.desktop.consolehelper \
+           scripts/bat.console_apps \
 	   src/Makefile \
 	   src/host.h \
 	   src/console/Makefile \
