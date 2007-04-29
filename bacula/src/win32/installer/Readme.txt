@@ -46,6 +46,16 @@ The programs and documentation are installed in the directory
 installation.  The configuration and other application data files are in the
 "C:\Documents and Settings\All Users\Application Data\Bacula" directory.
 
+Code Page Problems
+-------------------
+Please note that Bacula expects the contents of the configuration files to be 
+written in UTF-8 format. Some translations of "Application Data" have accented
+characters, and apparently the installer writes this translated data in the
+standard Windows code page coding.  This occurs for the Working Directory, and 
+when it happens the daemon will not start since Bacula cannot find the directory.
+The workaround is to manually edit the appropriate conf file and ensure that it
+is written out in UTF-8 format.
+
 
 Storage and Director Services
 -----------------------------

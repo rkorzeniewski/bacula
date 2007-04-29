@@ -960,7 +960,14 @@ AC_SUBST(piddir)
 # ------------------------------------
 # Where to place subsys "lock file"
 # ------------------------------------
-subsysdir=/var/run/subsys
+ubsysdir=/var/run/subsys
+if test -d /var/run/subsys; then
+   subsysdir=/var/run/subsys
+elif test -d /var/lock/subsys; then
+   subsysdir=/var/lock/subsys
+else
+   subsysdir=/var/run/subsys
+fi
 AC_ARG_WITH(subsys-dir,
     [  --with-subsys-dir=PATH	 specify location of Bacula subsys file],
     [

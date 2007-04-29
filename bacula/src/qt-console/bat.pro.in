@@ -12,7 +12,7 @@ CONFIG += qt debug
 bins.path = /$(DESTDIR)@sbindir@
 bins.files = ./bat
 confs.path = /$(DESTDIR)@sysconfdir@
-confs.files = ./bat.conf
+confs.commands = ./install_conf_file   
 
 TEMPLATE = app
 TARGET = bat
