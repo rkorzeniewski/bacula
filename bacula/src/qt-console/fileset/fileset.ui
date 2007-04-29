@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshFileSet" >
    <property name="icon" >
-    <iconset>../images/run.png</iconset>
+    <iconset>:images/run.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh FileSet List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionStatusFileSetInConsole" >
    <property name="icon" >
-    <iconset>../images/status.png</iconset>
+    <iconset>:images/status.png</iconset>
    </property>
    <property name="text" >
     <string>Status FileSet In Console</string>

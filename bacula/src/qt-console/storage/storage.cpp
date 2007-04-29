@@ -38,8 +38,8 @@
 #include <QAbstractEventDispatcher>
 #include <QMenu>
 #include "bat.h"
-#include "storage/storage.h"
-#include "mount/mount.h"
+#include "storage.h"
+#include "../mount/mount.h"
 
 Storage::Storage()
 {

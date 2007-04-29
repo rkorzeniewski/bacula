@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshMediaList" >
    <property name="icon" >
-    <iconset>../images/run.png</iconset>
+    <iconset>:images/run.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Media List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionEditVolume" >
    <property name="icon" >
-    <iconset>../images/status.png</iconset>
+    <iconset>:images/status.png</iconset>
    </property>
    <property name="text" >
     <string>Edit Volume</string>
@@ -44,7 +44,7 @@
   </action>
   <action name="actionListJobsOnVolume" >
    <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
+    <iconset>:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>List Jobs On Volume</string>
@@ -52,7 +52,7 @@
   </action>
   <action name="actionDeleteVolume" >
    <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
+    <iconset>:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Delete Volume</string>
@@ -60,7 +60,7 @@
   </action>
   <action name="actionPurgeVolume" >
    <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
+    <iconset>:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Purge Volume</string>

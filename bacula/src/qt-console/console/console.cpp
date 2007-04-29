@@ -51,7 +51,7 @@ Console::Console(QStackedWidget *parent)
    m_at_prompt = false;
    m_textEdit = textEdit;   /* our console screen */
    m_cursor = new QTextCursor(m_textEdit->document());
-   mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+   mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
 
    /* Check for messages every 5 seconds */
 // m_timer = new QTimer(this);
@@ -127,7 +127,7 @@ void Console::connect()
       return;
    } else {
       /* Update page selector to green to indicate that Console is connected */
-      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/connected.png")));
+      mainWin->actionConnect->setIcon(QIcon(":images/connected.png"));
       QBrush greenBrush(Qt::green);
       QTreeWidgetItem *item = mainWin->getFromHash(this);
       item->setForeground(0, greenBrush);
@@ -369,7 +369,7 @@ const QFont Console::get_font()
 void Console::status_dir()
 {
    QString cmd("status dir");
-	 consoleCommand(cmd);
+         consoleCommand(cmd);
 }
 
 /*
@@ -427,7 +427,7 @@ void Console::write_dir(const char *msg)
       write(msg);
    } else {
       mainWin->set_status(" Director not connected. Click on connect button.");
-      mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+      mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
       QBrush redBrush(Qt::red);
       QTreeWidgetItem *item = mainWin->getFromHash(this);
       item->setForeground(0, redBrush);
@@ -582,7 +582,7 @@ int Console::read()
       if (is_bnet_stop(m_sock)) {         /* error or term request */
          m_sock->close();
          m_sock = NULL;
-         mainWin->actionConnect->setIcon(QIcon(QString::fromUtf8("images/disconnected.png")));
+         mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
          QBrush redBrush(Qt::red);
          QTreeWidgetItem *item = mainWin->getFromHash(this);
          item->setForeground(0, redBrush);

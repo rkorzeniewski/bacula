@@ -29,7 +29,8 @@ UI_DIR = ui
 
 # Main window
 FORMS += main.ui
-FORMS += label/label.ui mount/mount.ui
+FORMS += label/label.ui 
+FORMS += mount/mount.ui
 FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
 FORMS += run/run.ui run/runcmd.ui

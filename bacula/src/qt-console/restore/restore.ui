@@ -179,7 +179,7 @@
             <string>Up</string>
            </property>
            <property name="icon" >
-            <iconset>../images/up.png</iconset>
+            <iconset>:images/up.png</iconset>
            </property>
           </widget>
          </item>
@@ -213,7 +213,7 @@
             <string>Mark</string>
            </property>
            <property name="icon" >
-            <iconset>../images/mark.png</iconset>
+            <iconset>:images/mark.png</iconset>
            </property>
           </widget>
          </item>
@@ -247,7 +247,7 @@
             <string>Unmark</string>
            </property>
            <property name="icon" >
-            <iconset>../images/unmark.png</iconset>
+            <iconset>:images/unmark.png</iconset>
            </property>
           </widget>
          </item>
@@ -490,7 +490,7 @@
   </layout>
   <action name="actionUp" >
    <property name="icon" >
-    <iconset>../images/up.png</iconset>
+    <iconset>:images/up.png</iconset>
    </property>
    <property name="text" >
     <string>Up</string>
@@ -498,7 +498,7 @@
   </action>
   <action name="actionMark" >
    <property name="icon" >
-    <iconset>../images/mark.png</iconset>
+    <iconset>:images/mark.png</iconset>
    </property>
    <property name="text" >
     <string>Mark</string>
@@ -506,7 +506,7 @@
   </action>
   <action name="actionUnmark" >
    <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
+    <iconset>:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Unmark</string>
