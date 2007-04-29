@@ -271,6 +271,9 @@ BuildRequires: python, python-devel
 %if %{gconsole}
 BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
+%if %{bat}
+BuildRequires: qt-devel >= 4
+%endif
 %if %{rh7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.2
@@ -911,6 +914,52 @@ This is the WXWindows Console package. It is an add-on to the client or
 server packages.
 %endif
 
+%if %{bat}
+%package bat
+Summary: Bacula - The Network Backup Solution
+Group: System Environment/Daemons
+%endif
+
+%if %{bat} && %{su102}
+Requires: openssl
+Requires: glibc >= 2.5
+Requires: fontconfig
+Requires: freetype2
+Requires: libgcc
+Requires: libpng
+Requires: qt >= 4
+Requires: libstdc++
+Requires: zlib
+%endif
+
+%if %{bat} && %{fc6}
+Requires: openssl
+Requires: glibc >= 2.5
+Requires: fontconfig
+Requires: freetype
+Requires: libgcc
+Requires: libpng
+Requires: qt >= 4
+Requires: libstdc++
+Requires: zlib
+%endif
+
+%if %{bat}
+%description bat
+%{blurb}
+
+%{blurb2}
+%{blurb3}
+%{blurb4}
+%{blurb5}
+%{blurb6}
+%{blurb7}
+%{blurb8}
+
+This is the Bacula Administration Tool package. It is an add-on to 
+the client or server packages.
+%endif
+
 %prep
 
 %setup
@@ -1016,6 +1065,9 @@ make
 %if %{wxconsole}
 	--enable-bwx-console \
 %endif
+%if %{bat}
+	--enable-bat \
+%endif
 %if %{python}
 	--with-python \
 %endif
@@ -1051,12 +1103,12 @@ mkdir -p $RPM_BUILD_ROOT/etc/log.d/conf/services
 mkdir -p $RPM_BUILD_ROOT/etc/log.d/scripts/services
 mkdir -p $RPM_BUILD_ROOT%{script_dir}/updatedb
 
-%if %{gconsole} || %{wxconsole}
+%if %{gconsole} || %{wxconsole} || %{bat}
 mkdir -p $RPM_BUILD_ROOT/usr/share/applications
 mkdir -p $RPM_BUILD_ROOT/usr/share/pixmaps
 %endif
 
-%if %{gconsole} || %{wxconsole}
+%if %{gconsole} || %{wxconsole} || %{bat}
 %define usermode_iftrick 1
 %else
 %define usermode_iftrick 0
@@ -1189,6 +1241,10 @@ cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxcon
 cp -p src/wx-console/wxwin16x16.xpm $RPM_BUILD_ROOT/usr/share/pixmaps/wxwin16x16.xpm
 cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxconsole.desktop
 %endif
+%if %{bat} && %{su102}
+cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
+cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
+%endif
 %if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{mdk}
 %define iftrick 1
 %else
@@ -1211,6 +1267,13 @@ cp -p scripts/wxconsole.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applicat
 cp -p scripts/wxconsole.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bwx-console
 cp -p scripts/wxconsole.pamd $RPM_BUILD_ROOT/etc/pam.d/bwx-console
 ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bwx-console
+%endif
+%if %{bat} && %{iftrick}
+cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
+cp -p scripts/bat.desktop.consolehelper $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
+cp -p scripts/bat.console_apps $RPM_BUILD_ROOT/etc/security/console.apps/bat
+cp -p scripts/bat.pamd $RPM_BUILD_ROOT/etc/pam.d/bat
+ln -sf consolehelper $RPM_BUILD_ROOT/usr/bin/bat
 %endif
 
 # install sqlite
@@ -1247,6 +1310,12 @@ cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 touch $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/rpm_release
 cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/bacula/bin/bacula-fd
 rm -f src/filed/static-bacula-fd
+
+# install bat since make doesn't at the moment
+%if %{bat}
+cp -p src/qt-console/bat $RPM_BUILD_ROOT/usr/sbin/bat
+cp -p src/qt-console/bat.conf $RPM_BUILD_ROOT%{sysconf_dir}/bat.conf
+%endif
 
 # now clean up permissions that are left broken by the install
 %if ! %{client_only}
@@ -1805,6 +1874,51 @@ if [ -z "$HAVE_BACULA" ]; then
 fi
 
 %post wxconsole
+# generate passwords if needed
+if [ -d %{sysconf_dir} ]; then
+	cd %{sysconf_dir}
+        for file in *.conf; do
+                for string in XXX_REPLACE_WITH_DIRECTOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_PASSWORD_XXX XXX_REPLACE_WITH_DIRECTOR_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_CLIENT_MONITOR_PASSWORD_XXX XXX_REPLACE_WITH_STORAGE_MONITOR_PASSWORD_XXX; do
+                        need_password=`grep $string $file 2>/dev/null`
+                        if [ -n "$need_password" ]; then
+                                pass=`openssl rand -base64 33`
+                                sed "s-$string-$pass-g" $file > $file.new
+                                cp -f $file.new $file; rm -f $file.new
+                        fi
+                done
+        done
+fi
+%endif
+
+%if %{bat}
+%files bat
+%defattr(-,root,root)
+/usr/sbin/bat
+%attr(-, root, %{daemon_group}) %dir %{sysconf_dir}
+%attr(-, root, %{daemon_group}) %config(noreplace) %{sysconf_dir}/bat.conf
+/usr/share/pixmaps/bat_icon.png
+/usr/share/applications/bat.desktop
+%{_mandir}/man1/bat.1.%{manpage_ext}
+%endif
+
+%if %{bat} && ! %{su9} && ! %{su10} && ! %{su102}
+# add the console helper files
+%config(noreplace,missingok) /etc/pam.d/bat
+%config(noreplace,missingok) /etc/security/console.apps/bat
+/usr/bin/bat
+%endif
+
+%if %{bat}
+%pre bat
+# create the daemon group
+HAVE_BACULA=`grep %{daemon_group} %{group_file} 2>/dev/null`
+if [ -z "$HAVE_BACULA" ]; then
+        %{groupadd} -r %{daemon_group} > /dev/null 2>&1
+        echo "The group %{daemon_group} has been added to %{group_file}."
+        echo "See the manual chapter \"Running Bacula\" for details."
+fi
+
+%post bat
 # generate passwords if needed
 if [ -d %{sysconf_dir} ]; then
 	cd %{sysconf_dir}
