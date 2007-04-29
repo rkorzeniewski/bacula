@@ -403,7 +403,8 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       char ec1[50], ec2[50];
       fsize = blseek(ofd, 0, SEEK_END);
       bclose(ofd);                    /* first close file */
-      if (attr->type == FT_REG && fsize > 0 && fsize != (boffset_t)attr->statp.st_size) {
+      if (attr->type == FT_REG && fsize > 0 && attr->statp.st_size > 0 && 
+                        fsize != (boffset_t)attr->statp.st_size) {
          Jmsg3(jcr, M_ERROR, 0, _("File size of restored file %s not correct. Original %s, restored %s.\n"),
             attr->ofname, edit_uint64(attr->statp.st_size, ec1),
             edit_uint64(fsize, ec2));

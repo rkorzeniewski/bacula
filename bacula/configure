@@ -18358,7 +18358,14 @@ _ACEOF
 # ------------------------------------
 # Where to place subsys "lock file"
 # ------------------------------------
-subsysdir=/var/run/subsys
+ubsysdir=/var/run/subsys
+if test -d /var/run/subsys; then
+   subsysdir=/var/run/subsys
+elif test -d /var/lock/subsys; then
+   subsysdir=/var/lock/subsys
+else
+   subsysdir=/var/run/subsys
+fi
 
 # Check whether --with-subsys-dir was given.
 if test "${with_subsys_dir+set}" = set; then
