@@ -2041,6 +2041,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   scripts/wxconsole.desktop.xsu \
            scripts/bat.desktop.in \
            scripts/bat.desktop.xsu.in \
+           scripts/bat.desktop.consolehelper.in
            scripts/bat.console_apps.in \
 	   src/Makefile \
 	   src/host.h \
