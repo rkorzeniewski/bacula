@@ -66,6 +66,14 @@
     <string>Purge Volume</string>
    </property>
   </action>
+  <action name="actionRelabelVolume" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Relabel Volume</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

@@ -30,6 +30,7 @@ UI_DIR = ui
 # Main window
 FORMS += main.ui
 FORMS += label/label.ui 
+FORMS += relabel/relabel.ui 
 FORMS += mount/mount.ui
 FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
@@ -52,6 +53,10 @@ SOURCES += restore/prerestore.cpp restore/restore.cpp restore/brestore.cpp
 # Label dialog
 HEADERS += label/label.h
 SOURCES += label/label.cpp
+
+# Relabel dialog
+HEADERS += relabel/relabel.h
+SOURCES += relabel/relabel.cpp
 
 # Mount dialog
 HEADERS += mount/mount.h
