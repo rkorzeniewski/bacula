@@ -436,16 +436,6 @@ void do_restore(JCR *jcr)
             continue;
          }
 
-         /* Set up a decryption context */
-         if ((cipher_ctx.cipher = crypto_cipher_new(cs, false, &cipher_ctx.block_size)) == NULL) {
-            Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
-            crypto_session_free(cs);
-            cs = NULL;
-            extract = false;
-            bclose(&bfd);
-            continue;
-         }
-
          break;
 
       case STREAM_FILE_DATA:
@@ -477,12 +467,24 @@ void do_restore(JCR *jcr)
             if (stream == STREAM_ENCRYPTED_FILE_DATA
                   || stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
                   || stream == STREAM_ENCRYPTED_WIN32_DATA
-                  || stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {
+                  || stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {               
+               /* Set up a decryption context */
                if (!cipher_ctx.cipher) {
-                  Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
-                  extract = false;
-                  bclose(&bfd);
-                  continue;
+                  if (!cs) {
+                     Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
+                     extract = false;
+                     bclose(&bfd);
+                     continue;
+                  }
+
+                  if ((cipher_ctx.cipher = crypto_cipher_new(cs, false, &cipher_ctx.block_size)) == NULL) {
+                     Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
+                     crypto_session_free(cs);
+                     cs = NULL;
+                     extract = false;
+                     bclose(&bfd);
+                     continue;
+                  }
                }
                flags |= FO_ENCRYPT;
             }
