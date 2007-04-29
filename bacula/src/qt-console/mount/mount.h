@@ -1,9 +1,7 @@
-#ifndef _STORAGE_H_
-#define _STORAGE_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,44 +25,31 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- *   Version $Id: clients.h 4230 2007-02-21 20:07:37Z kerns $
- *
- *   Dirk Bartley, March 2007
+/* 
+ * Kern Sibbald, February MMVII
  */
 
-#include <QtGui>
-#include "ui_storage.h"
-#include "console.h"
-#include "pages.h"
+#ifndef _MOUNT_H_
+#define _MOUNT_H_
 
-class Storage : public Pages, public Ui::StorageForm
+#include <QtGui>
+#include "ui_mount.h"
+#include "console.h"
+
+class mountDialog : public QDialog, public Ui::mountForm
 {
    Q_OBJECT 
 
 public:
-   Storage();
-   ~Storage();
-   virtual void PgSeltreeWidgetClicked();
-   virtual void currentStackItem();
-
-public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   mountDialog(Console *console, QString &storage);
 
 private slots:
-   void populateTree();
-//   void showJobs();
-   void consoleStatusStorage();
-   void consoleLabelStorage();
-   void consoleMountStorage();
-   void consoleUnMountStorage();
+   void accept();
+   void reject();
 
 private:
-   void createContextMenu();
-   QString m_currentStorage;
-   int m_currentAutoChanger;
-   bool m_populated;
-   bool m_checkcurwidget;
+   Console *m_console;
+   QString m_storageName;
 };
 
-#endif /* _STORAGE_H_ */
+#endif /* _MOUNT_H_ */

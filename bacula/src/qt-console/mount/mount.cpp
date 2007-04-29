@@ -34,58 +34,45 @@
  */ 
 
 #include "bat.h"
-#include "label.h"
+#include "mount/mount.h"
 #include <QMessageBox>
 
-labelDialog::labelDialog(Console *console)
-{
-   QString deflt("");
-   showDialog(console, deflt);
-}
-
 /*
- * An overload of the constructor to have a default storage show in the
- * combobox on start.  Used from context sensitive in storage class.
+ * A constructor 
  */
-labelDialog::labelDialog(Console *console, QString &defString)
-{
-   showDialog(console, defString);
-}
-
-/*
- * moved the constructor code here for the overload.
- */
-void labelDialog::showDialog(Console *console, QString &defString)
+mountDialog::mountDialog(Console *console, QString &storageName)
 {
    m_console = console;
+   m_storageName = storageName;
    m_console->notify(false);
    setupUi(this);
-   storageCombo->addItems(console->storage_list);
-   int index = storageCombo->findText(defString, Qt::MatchExactly);
-   if (index != -1) {
-      storageCombo->setCurrentIndex(index);
-   }
-   poolCombo->addItems(console->pool_list);
    this->show();
+
+   QString labelText("Storage : ");
+   labelText += storageName;
+   storageLabel->setText(labelText);
 }
 
-
-void labelDialog::accept()
+void mountDialog::accept()
 {
    QString scmd;
-   if (volumeName->text().toUtf8().data()[0] == 0) {
-      QMessageBox::warning(this, "No Volume name", "No Volume name given",
+   if (m_storageName == "") {
+      QMessageBox::warning(this, "No Storage name", "No Storage name given",
                            QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
    this->hide();
-   scmd = QString("label volume=\"%1\" pool=\"%2\" storage=\"%3\" slot=%4\n")
-                  .arg(volumeName->text())
-                  .arg(poolCombo->currentText())
-                  .arg(storageCombo->currentText()) 
+   scmd = QString("mount storage=\"%1\" slot=%2")
+                  .arg(m_storageName)
                   .arg(slotSpin->value());
    /* FIXME Make this a user configurable logging action and dont use printf */
    //printf("sending command : %s\n",scmd.toUtf8().data());
+
+   m_console->display_text("Context sensitive command :\n\n");
+   m_console->display_text("****    ");
+   m_console->display_text(scmd + "    ****\n");
+   m_console->display_text("Director Response :\n\n");
+
    m_console->write_dir(scmd.toUtf8().data());
    m_console->displayToPrompt();
    m_console->notify(true);
@@ -93,7 +80,7 @@ void labelDialog::accept()
    mainWin->resetFocus();
 }
 
-void labelDialog::reject()
+void mountDialog::reject()
 {
    this->hide();
    m_console->notify(true);

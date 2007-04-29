@@ -216,7 +216,7 @@ void Pages::consoleCommand(QString &command)
    if (!m_console->is_connectedGui())
        return;
    /* Bring this directors console to the front of the stack */
-   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
+   placeConsoleOnTop();
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");
    m_console->display_text(command + "    ****\n");
@@ -250,4 +250,12 @@ void Pages::setTitle()
    title += " of Director ";
    title += director;
    setWindowTitle(title);
+}
+
+/*
+ * Bring the current directors console window to the top of the stack.
+ */
+void Pages::placeConsoleOnTop()
+{
+   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
 }

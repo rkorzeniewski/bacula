@@ -77,6 +77,7 @@ protected:
    void consoleCommand(QString &);
    virtual void treeWidgetName(QString &);
    virtual void changeEvent(QEvent *event);
+   void placeConsoleOnTop();
    void setTitle();
    bool m_closeable;
    bool m_docked;

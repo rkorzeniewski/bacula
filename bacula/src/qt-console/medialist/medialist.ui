@@ -50,6 +50,22 @@
     <string>List Jobs On Volume</string>
    </property>
   </action>
+  <action name="actionDeleteVolume" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Delete Volume</string>
+   </property>
+  </action>
+  <action name="actionPurgeVolume" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Purge Volume</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
