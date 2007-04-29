@@ -396,6 +396,14 @@ void do_restore(JCR *jcr)
       case STREAM_ENCRYPTED_SESSION_DATA:
          crypto_error_t cryptoerr;
 
+         /* Is this an unexpected session data entry? */
+         if (cs) {
+            Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic session data stream.\n"));
+            extract = false;
+            bclose(&bfd);
+            continue;
+         }
+
          /* Do we have any keys at all? */
          if (!jcr->pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
@@ -590,6 +598,13 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_SIGNED_DIGEST:
+
+         /* Is this an unexpected signature? */
+         if (sig) {
+            Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic signature data stream.\n"));
+            continue;
+         }
+
          /* Save signature. */
          if (extract && (sig = crypto_sign_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
