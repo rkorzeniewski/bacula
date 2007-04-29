@@ -401,6 +401,27 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       goto bail_out;
    }
 
+   /* Set up the encryption context and send the session data to the SD */
+   if (has_file_data && jcr->pki_encrypt) {
+      /* Send our header */
+      Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+
+      /* Grow the bsock buffer to fit our message if necessary */
+      if (sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
+         sd->msg = realloc_pool_memory(sd->msg, jcr->pki_session_encoded_size);
+      }
+
+      /* Copy our message over and send it */
+      memcpy(sd->msg, jcr->pki_session_encoded, jcr->pki_session_encoded_size);
+      sd->msglen = jcr->pki_session_encoded_size;
+      jcr->JobBytes += sd->msglen;
+
+      Dmsg1(100, "Send data len=%d\n", sd->msglen);
+      bnet_send(sd);
+      bnet_sig(sd, BNET_EOD);
+   }
+
    /*
     * Open any file with data that we intend to save, then save it.
     *
@@ -442,27 +463,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       if (tid) {
          stop_thread_timer(tid);
          tid = NULL;
-      }
-
-      /* Set up the encryption context, send the session data to the SD */
-      if (jcr->pki_encrypt) {
-         /* Send our header */
-         Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
-         bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
-
-         /* Grow the bsock buffer to fit our message if necessary */
-         if (sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
-            sd->msg = realloc_pool_memory(sd->msg, jcr->pki_session_encoded_size);
-         }
-
-         /* Copy our message over and send it */
-         memcpy(sd->msg, jcr->pki_session_encoded, jcr->pki_session_encoded_size);
-         sd->msglen = jcr->pki_session_encoded_size;
-         jcr->JobBytes += sd->msglen;
-
-         Dmsg1(100, "Send data len=%d\n", sd->msglen);
-         bnet_send(sd);
-         bnet_sig(sd, BNET_EOD);
       }
 
       stat = send_data(jcr, data_stream, ff_pkt, digest, signing_digest);
