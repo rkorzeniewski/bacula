@@ -41,6 +41,7 @@
 #include "medialist.h"
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
+#include "relabel/relabel.h"
 
 MediaList::MediaList()
 {
@@ -182,6 +183,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
             mp_treeWidget->removeAction(actionListJobsOnVolume);
             mp_treeWidget->removeAction(actionDeleteVolume);
             mp_treeWidget->removeAction(actionPurgeVolume);
+            mp_treeWidget->removeAction(actionRelabelVolume);
          }
       }
 
@@ -193,6 +195,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->addAction(actionListJobsOnVolume);
          mp_treeWidget->addAction(actionDeleteVolume);
          mp_treeWidget->addAction(actionPurgeVolume);
+         mp_treeWidget->addAction(actionRelabelVolume);
       }
    }
 }
@@ -210,6 +213,7 @@ void MediaList::createContextMenu()
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
    connect(actionDeleteVolume, SIGNAL(triggered()), this, SLOT(deleteVolume()));
    connect(actionPurgeVolume, SIGNAL(triggered()), this, SLOT(purgeVolume()));
+   connect(actionRelabelVolume, SIGNAL(triggered()), this, SLOT(relabelVolume()));
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
@@ -252,4 +256,13 @@ void MediaList::purgeVolume()
    QString cmd("purge volume=");
    cmd += m_currentVolumeName;
    consoleCommand(cmd);
+   populateTree();
+}
+/*
+ * Called from the signal of the context sensitive menu!
+ */
+void MediaList::relabelVolume()
+{
+   placeConsoleOnTop();
+   new relabelDialog(m_console, m_currentVolumeName);
 }

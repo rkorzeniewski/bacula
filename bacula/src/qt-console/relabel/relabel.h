@@ -1,9 +1,7 @@
-#ifndef _MEDIALIST_H_
-#define _MEDIALIST_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -27,44 +25,31 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
- *
- *   Dirk Bartley, March 2007
+/* 
+ * Kern Sibbald, February MMVII
  */
 
-#include <QtGui>
-#include "ui_medialist.h"
-#include "console.h"
-#include <qstringlist.h>
+#ifndef _RELABEL_H_
+#define _RELABEL_H_
 
-class MediaList : public Pages, public Ui::MediaListForm
+#include <QtGui>
+#include "ui_relabel.h"
+#include "console.h"
+
+class relabelDialog : public QDialog, public Ui::relabelForm
 {
    Q_OBJECT 
 
 public:
-   MediaList();
-   ~MediaList();
-   virtual void PgSeltreeWidgetClicked();
-   virtual void currentStackItem();
-
-public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   relabelDialog(Console *console, QString &fromVolume);
 
 private slots:
-   void populateTree();
-   void showJobs();
-   void editVolume();
-   void deleteVolume();
-   void purgeVolume();
-   void relabelVolume();
+   void accept();
+   void reject();
 
 private:
-   void createContextMenu();
-   QString m_currentVolumeName;
-   QString m_currentVolumeId;
-   bool m_populated;
-   bool m_checkcurwidget;
+   Console *m_console;
+   QString m_fromVolume;
 };
 
-#endif /* _MEDIALIST_H_ */
+#endif /* _RELABEL_H_ */
