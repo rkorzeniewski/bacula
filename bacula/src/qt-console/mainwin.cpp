@@ -88,7 +88,7 @@ void MainWin::createPages()
 
       /* The top tree item representing the director */
       topItem = createTopPage(dir->name());
-      topItem->setIcon(0, QIcon(QString::fromUtf8("images/server.png")));
+      topItem->setIcon(0, QIcon(":images/server.png"));
       /* Set background to grey for ease of identification of inactive dirfector */
       QBrush greyBrush(Qt::lightGray);
       topItem->setBackground(0, greyBrush);

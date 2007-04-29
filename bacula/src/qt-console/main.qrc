@@ -1,18 +1,28 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+   <file>images/backup.png</file>
+   <file>images/bat_icon.png</file>
+   <file>images/bat.png</file>
+   <file>images/big-server.png</file>
+   <file>images/connected.png</file>
    <file>images/copy.png</file>
    <file>images/cut.png</file>
+   <file>images/disconnected.png</file>
+   <file>images/home.png</file>
+   <file>images/label.png</file>
+   <file>images/mark.png</file>
    <file>images/new.png</file>
+   <file>images/next.png</file>
    <file>images/open.png</file>
    <file>images/paste.png</file>
-   <file>images/save.png</file>
-   <file>images/bat.png</file>
-   <file>images/connected.png</file>
-   <file>images/disconnected.png</file>
-   <file>images/run.png</file>
+   <file>images/print.png</file>
    <file>images/restore.png</file>
+   <file>images/run.png</file>
+   <file>images/save.png</file>
    <file>images/server.png</file>
-   <file>images/label.png</file>
-   <file>images/big-server.png</file>
+   <file>images/status.png</file>
+   <file>images/undo.png</file>
+   <file>images/unmark.png</file>
+   <file>images/up.png</file>
 </qresource>
 </RCC>

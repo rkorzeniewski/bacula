@@ -76,7 +76,7 @@ ${StrTrimNewLines}
 !define      MUI_HEADERIMAGE_BITMAP     "bacula-logo.bmp"
 
 !InsertMacro MUI_PAGE_WELCOME
-;  !InsertMacro MUI_PAGE_LICENSE "..\..\LICENSE"
+!InsertMacro MUI_PAGE_LICENSE "..\..\..\LICENSE"
 Page custom EnterInstallType
 !define      MUI_PAGE_CUSTOMFUNCTION_SHOW PageComponentsShow
 !InsertMacro MUI_PAGE_COMPONENTS
@@ -414,6 +414,7 @@ Section "-Initialize"
   CreateDirectory "$APPDATA\Bacula\Work"
   CreateDirectory "$APPDATA\Bacula\Spool"
 
+  SetOutPath "$INSTDIR"
   File "..\..\..\LICENSE"
   Delete /REBOOTOK "$INSTDIR\bin\License.txt"
 
