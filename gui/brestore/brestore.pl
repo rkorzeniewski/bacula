@@ -404,7 +404,7 @@ sub on_cancelbutton_clicked
 1;
 
 ################################################################
-
+# Display all file revision in a separated window
 package DlgFileVersion;
 
 sub on_versions_close_clicked
@@ -423,15 +423,18 @@ sub fileview_data_get
     my ($self, $widget, $context, $data, $info, $time,$string) = @_;
 
     DlgResto::drag_set_info($widget, 
-			    $self->{cwd},
+			    $self->{pwd},
 			    $data);
 }
 
+#
+# new DlgFileVersion(Bvfs, "client", pathid, fileid, "/path/to/", "filename");
+#
 sub new
 {
-    my ($class, $bvfs, $client, $path, $file, $cwd, $fn) = @_;
+    my ($class, $bvfs, $client, $pathid, $fileid, $path, $fn) = @_;
     my $self = bless {
-	cwd       => $cwd,
+	pwd       => $path,
 	version   => undef, # main window
 	};
 
@@ -442,7 +445,7 @@ sub new
     $glade_box->signal_autoconnect_from_package($self);
 
     $glade_box->get_widget("version_label")
-	->set_markup("<b>File revisions : $client:$cwd$fn</b>");
+	->set_markup("<b>File revisions : $client:$path$fn</b>");
 
     my $widget = $glade_box->get_widget('version_fileview');
     my $fileview = Gtk2::SimpleList->new_from_treeview(
@@ -462,8 +465,8 @@ sub new
 						       );
     DlgResto::init_drag_drop($fileview);
 
-    my @v = $bvfs->get_all_file_versions($path, 
-					 $file,
+    my @v = $bvfs->get_all_file_versions($pathid, 
+					 $fileid,
 					 $client,
 					 1);
     for my $ver (@v) {
@@ -490,6 +493,7 @@ sub on_forward_keypress
 
 1;
 ################################################################
+# Display a warning message
 package DlgWarn;
 
 sub new
@@ -551,9 +555,9 @@ sub new
 
     my $self = bless {
 	bsr_file => $arg{bsr_file}, # /path/to/bsr on director
-	pref     => $arg{pref},	# Pref ref
-	glade => undef,		# GladeXML ref
-	bconsole => undef,	# Bconsole ref
+	pref     => $arg{pref},	    # Pref ref
+	glade    => undef,	    # GladeXML ref
+	bconsole => undef,	    # Bconsole ref
     };
 
     my $console = $self->{bconsole} = get_bconsole($arg{pref});
@@ -962,7 +966,7 @@ sub fill_combo
 # display Mb/Gb/Kb
 sub human
 {
-    my @unit = qw(b Kb Mb Gb Tb);
+    my @unit = qw(B KB MB GB TB);
     my $val = shift;
     my $i=0;
     my $format = '%i %s';
@@ -1043,13 +1047,13 @@ sub new
 	fileattrib => {},	# cache file
 	fileview   => undef,    # fileview widget SimpleList
 	fileinfo   => undef,    # fileinfo widget SimpleList
-	cwd   => '/',
+	cwd => '/',
 	client_combobox => undef, # client_combobox widget
 	restore_backup_combobox => undef, # date combobox widget
 	list_client => undef,   # Gtk2::ListStore
         list_backup => undef,   # Gtk2::ListStore
 	cache_ppathid => {},    #
-	bvfs => undef,
+	bvfs => undef,		# Bfvs object
     };
 
     $self->{bvfs} = new Bvfs(conf => $pref);
@@ -1151,7 +1155,9 @@ sub new
 
     if ($pref->{dbh}) {
 	$self->init_server_backup_combobox();
-	$self->{bvfs}->create_brestore_tables();
+	if ($self->{bvfs}->create_brestore_tables()) {
+	    new DlgWarn("brestore can't find brestore_xxx tables on your database. I will create them.");
+	}
     }
 
     $self->set_status($pref->{error});
@@ -1475,7 +1481,7 @@ sub refresh_fileview
 	$file_count++;
 	# $file = [filenameid,listfiles.id,listfiles.Name,File.LStat,File.JobId]
 	listview_push($fileview,
-		      $bvfs->{cwd},
+		      $bvfs->{cwdid},
 		      $file->[0],
 		      $file->[2],
 		      $file->[4],
@@ -1852,7 +1858,7 @@ sub context_add_to_filelist
     foreach my $i (@sel)
     {
 	my ($pid, $fid, $file, $jobid, $type, undef) = @{$i};
-	$file = $self->{cwd} . '/' . $file;
+	$file = $self->{cwd} . $file;
 	$self->add_selected_file_to_list($pid, $fid, $file, $jobid, $type);
     }
 }
@@ -2382,7 +2388,9 @@ sub update_cache
 {
     my ($self) = @_;
 
-    my $query = "SELECT JobId from Job WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) order by JobId";
+    my $query = "
+  SELECT JobId from Job 
+   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) ORDER BY JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
@@ -2397,28 +2405,30 @@ sub get_root
 sub ch_dir
 {
     my ($self, $pathid) = @_;
-    $self->{cwd} = $pathid;
+    $self->{cwdid} = $pathid;
 }
 
 sub up_dir
 {
     my ($self) = @_ ;
-    my $query = 
-  "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId IN ($self->{cwd}) ";
+    my $query = "
+  SELECT PPathId 
+    FROM brestore_pathhierarchy 
+   WHERE PathId IN ($self->{cwdid}) ";
 
     my $all = $self->dbh_selectall_arrayref($query);
     return unless ($all);	# already at root
 
     my $dir = join(',', map { $_->[0] } @$all);
     if ($dir) {
-	$self->{cwd} = $dir;
+	$self->ch_dir($dir);
     }
 }
 
 sub pwd
 {
     my ($self) = @_;
-    return $self->get_path($self->{cwd});
+    return $self->get_path($self->{cwdid});
 }
 
 sub get_path
@@ -2449,7 +2459,7 @@ sub ls_files
     return undef unless ($self->{curjobids});
 
     my $inclause   = $self->{curjobids};
-    my $inlistpath = $self->{cwd};
+    my $inlistpath = $self->{cwdid};
 
     my $query = 
 "SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
@@ -2479,7 +2489,7 @@ sub ls_dirs
 
     return undef unless ($self->{curjobids});
 
-    my $pathid = $self->{cwd};
+    my $pathid = $self->{cwdid};
     my $jobclause = $self->{curjobids};
 
     # Let's retrieve the list of the visible dirs in this dir ...
@@ -2747,7 +2757,7 @@ sub get_all_file_versions
 	if ($ref->[8])
 	{
 	    # The file has a md5. We compare his md5 to other known md5...
-	    # We take size into account. It may happen that 2 files
+	    # We take size into account. It may happen that 2 files
 	    # have the same md5sum and are different. size is a supplementary
 	    # criterion
             
@@ -2758,7 +2768,7 @@ sub get_all_file_versions
 	    # we never met this one before...
 	    $allready_seen_by_md5{$ref->[8] .'-'. $ref->[6]}=1;
 	}
-	# Even if it has a md5, we should also work with mtimes
+	# Even if it has a md5, we should also work with mtimes
         # We allready have a (better) version
 	next if ( (not $see_all)
 	          and $allready_seen_by_mtime{$ref->[5] .'-'. $ref->[6]}); 
@@ -2981,13 +2991,12 @@ sub return_pathid_from_path
 sub create_brestore_tables
 {
     my ($self) = @_;
-
+    my $ret = 0;
     my $verif = "SELECT 1 FROM brestore_knownjobid LIMIT 1";
 
     unless ($self->dbh_do($verif)) {
-	new DlgWarn("brestore can't find brestore_xxx tables on your database. I will create them.");
+	$ret=1;
 
-	$self->{error} = "Creating internal brestore tables";
 	my $req = "
     CREATE TABLE brestore_knownjobid
     (
@@ -2999,6 +3008,7 @@ sub create_brestore_tables
     
     $verif = "SELECT 1 FROM brestore_pathhierarchy LIMIT 1";
     unless ($self->dbh_do($verif)) {
+	$ret=1;
 	my $req = "
    CREATE TABLE brestore_pathhierarchy
    (
@@ -3016,6 +3026,7 @@ sub create_brestore_tables
     
     $verif = "SELECT 1 FROM brestore_pathvisibility LIMIT 1";
     unless ($self->dbh_do($verif)) {
+	$ret=1;
 	my $req = "
     CREATE TABLE brestore_pathvisibility
     (
@@ -3031,6 +3042,7 @@ sub create_brestore_tables
                           ON brestore_pathvisibility (JobId)";
 	$self->dbh_do($req);
     }
+    return $ret;
 }
 
 # Get metadata
@@ -3256,6 +3268,7 @@ sub list_client
 }
 
 1;
+################################################################
 
 package main;
 
@@ -3284,6 +3297,9 @@ if (! -f $file_conf) {
 if ($batch_mod) {
     my $vfs = new Bvfs(conf => $p);
     if ($p->connect_db()) {
+	if ($vfs->create_brestore_tables()) {
+	    print "Creating brestore tables\n";
+	}
 	$vfs->update_cache();
     }
     exit (0);
@@ -3344,4 +3360,4 @@ my $dirs = $bvfs->ls_dirs();
 $bvfs->ch_dir(123496);
 $dirs = $bvfs->ls_dirs();
 $bvfs->ls_files();
-map { $bvfs->debug($_) } $bvfs->get_all_file_versions($bvfs->{cwd},312433, "exw3srv3", 1);
+map { $bvfs->debug($_) } $bvfs->get_all_file_versions($bvfs->{cwdid},312433, "exw3srv3", 1);
