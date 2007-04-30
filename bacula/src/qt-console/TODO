@@ -1,22 +1,27 @@
 dhb
 ====================================================
-Must preempt all connections to console with if connected.
+Test restore and get anything not working, working.
+
+Create list of what does not work.
+From what I can tell, just the restore window on the left.
+
+Add numerous are you sure dialog boxes.  Like are you sure you want to
+delete/purge that volume.  Show a little of the documentation about what
+the consequences of delete or purging are.
 
 Add context sensitive options for most commands
 status dir on page select director item
 All items with jobid= that I thought could work from joblist are done.
+As well as many more
+update slots scan
 
-Create list of what does not work.
-
-Ask Kern about bRestore and what to do with it in terms of priorities.  Should
-that be working before an initial release.
+preempt all connections to console with 
+if (!is_connectedGui())
+or some other mechanism.  Partially done.
 
 Create documentation for any other developers interested in creating
 new classes to add more pages.  Explain how to use the pages class
 and about not populating until the tree widget is clicked etc...
-
-A Tree widget context sensitive menu option and class to jump from known job
-to surf the filestructure on the job.
 
 LOW priority items:
 
@@ -30,9 +35,33 @@ to the pages class
 Think about good ways to clean up the Console creation part of the
 loop creating pages.
 ========================================================
-Things to do:
+This release or next:
 
-- Possibly some other things I didn't think of.
+A window showing a list of jobs and defaults.  Defaults can be gotten in manner
+similar to what the first restore window does.
+
+A window showing a list of schedule resources. 
+
+Kern discussed windows showing statistics like web based interfaces.
+========================================================
+Future Releases :
+
+The ablility to modify configuration files to create jobs, schedules, filesets
+and any other director resources.
+
+The ablility to modify configuration files to create storage resources.
+
+Add a status dir graphical interface.  It would auto update every ?? seconds
+and have a list of scheduled jobs, and in the que to run jobs that could be
+cancelled graphically.
+
+Add a status client window.  Keep updating showing what file is being
+processed.
+
+A Tree widget context sensitive menu option and class to jump from known job
+to surf the filestructure on the job.
+
+bRestore add code to get working.
 
 ===========================================================
 NOT SURE
@@ -49,6 +78,7 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+
 relabel storage=DDS3 oldvolume=ddsvol003 volume=dds3vol003 slot=3 pool=dds3_hope
 in label slot spinner, limit the upper to the value of slots for that storage.
 
