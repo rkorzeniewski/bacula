@@ -50,9 +50,10 @@ static void usage()
 {
    fprintf(stderr,
 "\n"
-"Usage: bregex [-d debug_level] -f <data-file> -e /test/test2/\n"
+"Usage: bregtest [-d debug_level] [-s] -f <data-file> -e /test/test2/\n"
 "       -f          specify file of data to be matched\n"
 "       -e          specify expression\n"
+"       -s          sed output\n"
 "       -?          print this message.\n"
 "\n");
 
@@ -65,6 +66,7 @@ int main(int argc, char *const *argv)
    char *fname = NULL;
    char *expr = NULL;
    int ch;
+   bool sed=false;
    char data[1000];
    FILE *fd;
 
@@ -72,7 +74,7 @@ int main(int argc, char *const *argv)
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
 
-   while ((ch = getopt(argc, argv, "d:f:e:")) != -1) {
+   while ((ch = getopt(argc, argv, "sd:f:e:")) != -1) {
       switch (ch) {
       case 'd':                       /* set debug level */
          debug_level = atoi(optarg);
@@ -88,6 +90,10 @@ int main(int argc, char *const *argv)
       case 'e':
          expr = optarg;
          break;
+
+      case 's':
+	 sed=true;
+	 break;
 
       case '?':
       default:
@@ -129,7 +135,11 @@ int main(int argc, char *const *argv)
    while (fgets(data, sizeof(data)-1, fd)) {
       strip_trailing_newline(data);
       apply_bregexps(data, list, &p);
-      printf("%s => %s\n", data, p);
+      if (sed) {
+	 printf("%s\n", p);
+      } else {
+	 printf("%s => %s\n", data, p);
+      }
    }
    fclose(fd);
    free_bregexps(list);
