@@ -1,6 +1,8 @@
           Release Notes for brestore 2.0.3
 
 Version 2.0.3-4:
+ - -b console mode can now create brestore table
+ - fix #836
  - add relocation options
  - fix a important bug about directory displayed 2 times
    => YOU MUST RESET YOUR brestore_xxx tables
