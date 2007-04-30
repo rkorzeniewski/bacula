@@ -1,0 +1,92 @@
+add [pool=<pool-name> storage=<storage>  jobid=<JobId>]
+These are done from config files
+
+autodisplay on/off
+could be done in the context of the console
+
+automount on/off
+could be done in the context of the console, because is for after a label
+command as opposed to a property of a storage device
+
+cancel [jobid=<number> job=<job-name> ujobid=<unique-jobid>]
+To be done in the context of a status dir graphical window.
+
+create [pool=<pool-name>]
+Done in a config file
+
+delete [volume=<vol-name> pool=<pool-name> job jobid=<id>]
+not done for pool yet
+
+disable job<job-name>     and     enable job<job-name>
+Could be done in the context of a jobs window which is not yet created
+
+estimate
+Could be a dialog in the context of a jobs window.
+
+help
+could be in the console window
+
+label
+Done by kern before I started
+
+list
+many are done or are reproduced by having windows
+
+llist
+same as list
+
+python
+not needed from bat??
+
+prune files|jobs|volume client=<client-name> volume=<volume-name>
+Should add as a dialog box from both client and medialist
+
+purge files jobid=<jobid>|job=<job-name>|client=<client-name>
+purge jobs client=<client-name> (of all jobs)
+purge volume|volume=<vol-name> (of all jobs)
+  this one is done from media
+
+relabel
+done
+
+release storage=<storage-name>
+Would need to explain what this does in bat with a dialog
+
+reload
+could be done in console or on director's page selector widget
+
+run
+done
+
+setdebug
+I'd say we could choose not to implement this in bat
+
+status
+done, want to implement graphically
+
+unmount storage=<storage-name> [ drive=\lt{}num\gt{} ]
+done
+unmount [ jobid=<id> | job=<job-name> ]
+Mmmmm
+
+update media, volume, pool, slots
+media/volume still has more work, they are the same after all
+
+use
+still need to make decisions about how to handle multiple catalogs
+
+var
+Mmmmmm
+
+version
+could be done in console as long as it is explicite about that it is the version
+of the director
+
+quit
+I'd like to have a disconnect graphical option.
+
+exit
+Not really needed
+
+wait
+Mmmmmmm
