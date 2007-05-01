@@ -82,13 +82,17 @@ private slots:
    void accept();
    void reject();
    void fileDoubleClicked(QTreeWidgetItem *item, int column);
+   void directoryItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void upButtonPushed();
    void unmarkButtonPushed();
    void markButtonPushed();
+   void addDirectory(QString &);
 
 private:
    Console *m_console;
    QString m_cwd;
+   QHash<QString, QTreeWidgetItem *> m_dirPaths;
+   QHash<QTreeWidgetItem *,QString> m_dirTreeItems;
 };
 
 
