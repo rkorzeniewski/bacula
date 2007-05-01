@@ -48,6 +48,9 @@ restoreDialog::restoreDialog(Console *console )
    setupUi(this);
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
+   connect(directoryWidget, SIGNAL(
+           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
+           this, SLOT(directoryItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(upButton, SIGNAL(pressed()), this, SLOT(upButtonPushed()));
    connect(markButton, SIGNAL(pressed()), this, SLOT(markButtonPushed()));
    connect(unmarkButton, SIGNAL(pressed()), this, SLOT(unmarkButtonPushed()));
@@ -76,7 +79,7 @@ void restoreDialog::fillDirectory()
 
    fileWidget->clear();
    m_console->write_dir("dir");
-   QList<QTreeWidgetItem *> items;
+   QList<QTreeWidgetItem *> treeItemList;
    QStringList item;
    while (m_console->read() > 0) {
       char *p = m_console->msg();
@@ -124,18 +127,71 @@ void restoreDialog::fillDirectory()
       split_path_and_filename(p, &path, &pnl, &file, &fnl);
       item.clear();
       item << marked << file << modes << user << group << size << date;
+      if (item[1].endsWith("/")) {
+         addDirectory(item[1]);
+       }
       QTreeWidgetItem *ti = new QTreeWidgetItem((QTreeWidget *)0, item);
       ti->setTextAlignment(5, Qt::AlignRight); /* right align size */
-      items.append(ti);
+      treeItemList.append(ti);
    }
    fileWidget->clear();
-   fileWidget->insertTopLevelItems(0, items);
+   fileWidget->insertTopLevelItems(0, treeItemList);
    for (int i=0; i<7; i++) {
       fileWidget->resizeColumnToContents(i);
    }
 
    free_pool_memory(file);
    free_pool_memory(path);
+}
+
+/*
+ * Function called from fill directory when a directory is found to see if this
+ * directory exists in the directory pane and then add it to the directory pane
+ */
+void restoreDialog::addDirectory(QString &newdir)
+{
+   QString fullpath ;
+
+   /* if this is the base dir, strip off the leading "/" */
+   if (m_cwd == "/"){
+      fullpath = newdir;
+   } else {
+      fullpath = m_cwd + newdir;
+   }
+   /* is it already existent ?? */
+   if (!m_dirPaths.contains(fullpath)) {
+      QTreeWidgetItem *item = NULL;
+      if (m_dirPaths.empty()) {
+         /* this is the base widget */
+         item = new QTreeWidgetItem(directoryWidget);
+         item->setText(0, newdir.toUtf8().data());
+      } else {
+         QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
+         if (parent) {
+            /* new directories to add */
+            item = new QTreeWidgetItem(parent);
+            item->setText(0, newdir.toUtf8().data());
+            directoryWidget->expandItem(parent);
+         }
+      }
+      /* insert into both forward and reverse hash */
+      m_dirPaths.insert(fullpath, item);
+      m_dirTreeItems.insert(item, fullpath);
+   }
+}
+
+/*
+ * Executed when the tree item in the directory pane is changed.  This will
+ * allow us to populate the file pane and make this the cwd.
+ */
+void restoreDialog::directoryItemChanged(QTreeWidgetItem *currentitem,
+                                         QTreeWidgetItem * /*previousitem*/)
+{
+   QString fullpath = m_dirTreeItems.value(currentitem);
+   if (fullpath != ""){
+      cwd(fullpath.toUtf8().data());
+      fillDirectory();
+   }
 }
 
 void restoreDialog::accept()
@@ -182,23 +238,36 @@ void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
     *  the directory -- or nothing if it is not a directory.
     */
    if (item->text(1).endsWith("/")) {
-      cwd(item->text(1).toUtf8().data());
-      fillDirectory();
+      QString fullpath = m_cwd + item->text(1);
+      QTreeWidgetItem *item = m_dirPaths.value(fullpath);
+      if (item) {
+         directoryWidget->setCurrentItem(item);
+      }
    }
 }
 
+/*
+ * If up button pushed, making the parent tree widget current will call fill
+ * directory.
+ */
 void restoreDialog::upButtonPushed()
 {
    cwd("..");
-   fillDirectory();
+   QTreeWidgetItem *item = m_dirPaths.value(m_cwd);
+   if (item) {
+      directoryWidget->setCurrentItem(item);
+   }
 }
 
+/*
+ * Mark selected items
+ */
 void restoreDialog::markButtonPushed()
 {
-   QList<QTreeWidgetItem *> items = fileWidget->selectedItems();
+   QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
    char cmd[1000];
-   foreach (item, items) {
+   foreach (item, treeItemList) {
       bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
       item->setText(0, "*");
       m_console->write_dir(cmd);
@@ -211,12 +280,15 @@ void restoreDialog::markButtonPushed()
    }
 }
 
+/*
+ * Unmark selected items
+ */
 void restoreDialog::unmarkButtonPushed()
 {
-   QList<QTreeWidgetItem *> items = fileWidget->selectedItems();
+   QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
    char cmd[1000];
-   foreach (item, items) {
+   foreach (item, treeItemList) {
       bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
       item->setText(0, " ");
       m_console->write_dir(cmd);

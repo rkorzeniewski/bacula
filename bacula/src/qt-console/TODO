@@ -2,6 +2,10 @@ dhb
 ====================================================
 Test restore and get anything not working, working.
 
+Get restore into stack.
+
+Play with includes to Make these compiles shorter.
+
 Create list of what does not work.
 From what I can tell, just the restore window on the left.
 
