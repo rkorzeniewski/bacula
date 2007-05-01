@@ -133,6 +133,7 @@
    </attribute>
    <addaction name="actionConnect" />
    <addaction name="actionStatusDir" />
+   <addaction name="actionMessages" />
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
@@ -471,6 +472,17 @@
    </property>
    <property name="statusTip" >
     <string>Close The Current Page</string>
+   </property>
+  </action>
+  <action name="actionMessages" >
+   <property name="icon" >
+    <iconset>:images/status.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Messages</string>
+   </property>
+   <property name="statusTip" >
+    <string>Display any messages queued at the director</string>
    </property>
   </action>
  </widget>

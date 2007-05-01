@@ -117,6 +117,7 @@ public slots:
    int write(const char *msg);
    int write(QString msg);
    void status_dir(void);
+   void messages(void);
    void set_font(void);
    void poll_messages(void);
 

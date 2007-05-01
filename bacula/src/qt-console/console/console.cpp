@@ -365,11 +365,22 @@ const QFont Console::get_font()
    return m_textEdit->font();
 }
 
-
+/*
+ * Slot for responding to status dir button on button bar
+ */
 void Console::status_dir()
 {
    QString cmd("status dir");
-         consoleCommand(cmd);
+   consoleCommand(cmd);
+}
+
+/*
+ * Slot for responding to messages button on button bar
+ */
+void Console::messages()
+{
+   QString cmd(".messages");
+   consoleCommand(cmd);
 }
 
 /*

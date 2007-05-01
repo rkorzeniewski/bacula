@@ -366,6 +366,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
             /* remove connections to the current console */
             disconnect(actionConnect, SIGNAL(triggered()), previousConsole, SLOT(connect()));
             disconnect(actionStatusDir, SIGNAL(triggered()), previousConsole, SLOT(status_dir()));
+            disconnect(actionMessages, SIGNAL(triggered()), previousConsole, SLOT(messages()));
             disconnect(actionSelectFont, SIGNAL(triggered()), previousConsole, SLOT(set_font()));
             QTreeWidgetItem *dirItem = previousConsole->directorTreeItem();
             QBrush greyBrush(Qt::lightGray);
@@ -392,6 +393,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
          connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect()));
          connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
          connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
+         connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
          /* Set director's tree widget background to magenta for ease of identification */
          QTreeWidgetItem *dirItem = m_currentConsole->directorTreeItem();
          QBrush magentaBrush(Qt::magenta);
