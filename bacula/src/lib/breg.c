@@ -55,15 +55,6 @@ BREGEXP *new_bregexp(const char *motif)
    self->result = get_pool_memory(PM_FNAME);
    self->result[0] = '\0';
 
-#ifdef HAVE_REGEX_H
-   /* TODO: que devient cette memoire... */
-   self->_regs_match = (int *) bmalloc (2*RE_NREGS * sizeof(int));
-
-   self->regs.num_regs = RE_NREGS;
-   self->regs.start = self->_regs_match;
-   self->regs.end   = self->_regs_match+(RE_NREGS * sizeof(int));
-#endif 
-
    return self;
 }
 
@@ -81,10 +72,6 @@ void free_bregexp(BREGEXP *self)
    if (self->result) {
       free_pool_memory(self->result);
    }
-   if (self->_regs_match) {
-      bfree(self->_regs_match);
-   }
-
    regfree(&self->preg);
    bfree(self);
 }
@@ -234,29 +221,23 @@ bool BREGEXP::extract_regexp(const char *motif)
    return true;
 }
 
-#ifndef HAVE_REGEX_H
- #define BREGEX_CAST unsigned
-#else
- #define BREGEX_CAST const
-#endif
-
 /* return regexp->result */
 char *BREGEXP::replace(const char *fname)
 {
    success = false;		/* use this.success to known if it's ok */
    int flen = strlen(fname);
-   int rc = re_search(&preg, (BREGEX_CAST char*) fname, flen, 0, flen, &regs);
+   int rc = regexec(&preg, fname, RE_NREGS, regs, 0);
 
-   if (rc < 0) {
+   if (rc == REG_NOMATCH) {
       Dmsg0(500, "bregexp: regex mismatch\n");
       return return_fname(fname, flen);
    }
 
-   int len = compute_dest_len(fname, &regs);
+   int len = compute_dest_len(fname, regs);
 
    if (len) {
       result = check_pool_memory_size(result, len);
-      edit_subst(fname, &regs);
+      edit_subst(fname, regs);
       success = true;
       Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
 
@@ -275,7 +256,7 @@ char *BREGEXP::return_fname(const char *fname, int len)
    return result;
 }
 
-int BREGEXP::compute_dest_len(const char *fname, struct re_registers *regs)
+int BREGEXP::compute_dest_len(const char *fname, regmatch_t regs[])
 {
    int len=0;
    char *p;
@@ -287,7 +268,7 @@ int BREGEXP::compute_dest_len(const char *fname, struct re_registers *regs)
    }
 
    /* match failed ? */
-   if (regs->start[0] < 0) {
+   if (regs[0].rm_so < 0) {
       return 0;
    }
 
@@ -299,8 +280,8 @@ int BREGEXP::compute_dest_len(const char *fname, struct re_registers *regs)
 	 /* we check if the back reference exists */
 	 /* references can not match if we are using (..)? */
 
-	 if (regs->start[no] >= 0 && regs->end[no] >= 0) { 
-	    len += regs->end[no] - regs->start[no];
+	 if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) { 
+	    len += regs[no].rm_eo - regs[no].rm_so;
 	 }
 	 
       } else {
@@ -309,13 +290,13 @@ int BREGEXP::compute_dest_len(const char *fname, struct re_registers *regs)
    }
 
    /* $0 is replaced by subst */
-   len -= regs->end[0] - regs->start[0];
+   len -= regs[0].rm_eo - regs[0].rm_so;
    len += strlen(fname) + 1;
 
    return len;
 }
 
-char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
+char *BREGEXP::edit_subst(const char *fname, regmatch_t regs[])
 {
    int i;
    char *p;
@@ -327,7 +308,7 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
     *  on recopie le debut fname -> regs->start[0]
     */
    
-   for (i = 0; i < regs->start[0] ; i++) {
+   for (i = 0; i < regs[0].rm_so ; i++) {
       result[i] = fname[i];
    }
 
@@ -339,9 +320,9 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
 	 no = *psubst++ - '0';
 
 	 /* have a back reference ? */
-	 if (regs->start[no] >= 0 && regs->end[no] >= 0) {
-	    len = regs->end[no] - regs->start[no];
-	    bstrncpy(result + i, fname + regs->start[no], len + 1);
+	 if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) {
+	    len = regs[no].rm_eo - regs[no].rm_so;
+	    bstrncpy(result + i, fname + regs[no].rm_so, len + 1);
 	    i += len ;
 	 }
 
@@ -351,7 +332,7 @@ char *BREGEXP::edit_subst(const char *fname, struct re_registers *regs)
    }
 
    /* we copy what is out of the match */
-   strcpy(result + i, fname + regs->end[0]);
+   strcpy(result + i, fname + regs[0].rm_eo);
 
    return result;
 }
