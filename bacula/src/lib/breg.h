@@ -54,6 +54,8 @@
  * free_bregexp(breg);
  */
 
+#define BREG_NREGS 11
+
 /*
  * Structure for BREGEXP ressource
  */
@@ -69,7 +71,7 @@ public:
    POOLMEM *expr;		/* search epression */
    POOLMEM *subst;		/* substitution */
    regex_t preg;		/* regex_t result of regcomp() */
-   regmatch_t regs[RE_NREGS];   /* contains match */
+   regmatch_t regs[BREG_NREGS]; /* contains match */
    char *eor;			/* end of regexp in expr */
 
    char *return_fname(const char *fname, int len); /* return fname as result */

@@ -226,7 +226,7 @@ char *BREGEXP::replace(const char *fname)
 {
    success = false;		/* use this.success to known if it's ok */
    int flen = strlen(fname);
-   int rc = regexec(&preg, fname, RE_NREGS, regs, 0);
+   int rc = regexec(&preg, fname, BREG_NREGS, regs, 0);
 
    if (rc == REG_NOMATCH) {
       Dmsg0(500, "bregexp: regex mismatch\n");
