@@ -221,7 +221,7 @@ fi
 
 J=JobF
 if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "/tmp/regress/build/po/fr.po" tmp/RUN_$J
+   grep -q "${cwd}/build/po/fr.po" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
