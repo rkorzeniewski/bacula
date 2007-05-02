@@ -1102,7 +1102,7 @@ const char *re_compile_pattern(regex_t * bufp, unsigned char *regex)
    alloc = bufp->allocated;
    if (alloc == 0 || pattern == NULL) {
       alloc = 256;
-      pattern = (unsigned char *)malloc(alloc);
+      bufp->buffer = pattern = (unsigned char *)malloc(alloc);
       if (!pattern)
          goto out_of_memory;
    }
@@ -1520,6 +1520,10 @@ void regfree(regex_t * preg)
    if (preg->lcase) {
       free_pool_memory(preg->lcase);
       preg->lcase = NULL;
+   }
+   if (preg->buffer) {
+      free(preg->buffer);
+      preg->buffer = NULL;
    }
 }
 
