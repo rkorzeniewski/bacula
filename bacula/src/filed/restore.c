@@ -1085,7 +1085,8 @@ again:
    if (!crypto_cipher_finalize(cipher_ctx->cipher, (uint8_t *)&cipher_ctx->buf[cipher_ctx->buf_len],
         &decrypted_len)) {
       /* Writing out the final, buffered block failed. Shouldn't happen. */
-      Jmsg1(jcr, M_FATAL, 0, _("Decryption error for %s\n"), jcr->last_fname);
+      Jmsg3(jcr, M_ERROR, 0, _("Decryption error. buf_len=%d decrypt_len=%d on file %s\n"), 
+            cipher_ctx->buf_len, decrypted_len, jcr->last_fname);
    }
 
    Dmsg2(30, "Flush decrypt len=%d buf_len=%d\n", decrypted_len, cipher_ctx->buf_len);
