@@ -106,7 +106,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
    ua->api = tree->ua->api;           /* keep API flag too */
    BSOCK *user = ua->UA_sock;
 
-   bsendmsg(tree->ua, _(
+   ua->send_msg(_(
       "\nYou are now entering file selection mode where you add (mark) and\n"
       "remove (unmark) files to be restored. No files are initially added, unless\n"
       "you used the \"all\" keyword on the command line.\n"
@@ -117,7 +117,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
     */
    tree->node = (TREE_NODE *)tree->root;
    tree_getpath(tree->node, cwd, sizeof(cwd));
-   bsendmsg(tree->ua, _("cwd is: %s\n"), cwd);
+   ua->send_msg(_("cwd is: %s\n"), cwd);
    for ( ;; ) {
       int found, len, i;
       if (!get_cmd(ua, "$ ")) {
@@ -126,7 +126,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
       if (ua->api) user->signal(BNET_CMD_BEGIN);
       parse_args_only(ua->cmd, &ua->args, &ua->argc, ua->argk, ua->argv, MAX_CMD_ARGS);
       if (ua->argc == 0) {
-         bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
+         ua->warning_msg(_("Invalid command. Enter \"done\" to exit.\n"));
          if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
@@ -141,7 +141,7 @@ bool user_select_files_from_tree(TREE_CTX *tree)
             break;
          }
       if (!found) {
-         bsendmsg(tree->ua, _("Invalid command. Enter \"done\" to exit.\n"));
+         ua->warning_msg(_("Invalid command. Enter \"done\" to exit.\n"));
          if (ua->api) user->signal(BNET_CMD_FAILED);
          continue;
       }
@@ -227,7 +227,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row)
    if (node->inserted) {
       tree->FileCount++;
       if (tree->DeltaCount > 0 && (tree->FileCount-tree->LastCount) > tree->DeltaCount) {
-         bsendmsg(tree->ua, "+");
+         tree->ua->send_msg("+");
          tree->LastCount = tree->FileCount;
       }
    }
