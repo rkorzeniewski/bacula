@@ -464,10 +464,10 @@ void MainWin::input_line()
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
-            tr("<br><h2>bat 0.2, by Kern Sibbald</h2>"
-            "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
-            "<p>The <b>bat</b> is an administrative console"
-               " interface to the Director."));
+      tr("<br><h2>bat 1.0, by Dirk H Bartley and Kern Sibbald</h2>"
+         "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
+         "<p>The <b>bat</b> is an administrative console"
+         " interface to the Director."));
 }
 
 void MainWin::set_statusf(const char *fmt, ...)
