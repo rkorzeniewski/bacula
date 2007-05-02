@@ -69,14 +69,12 @@ public:
    POOLMEM *expr;		/* search epression */
    POOLMEM *subst;		/* substitution */
    regex_t preg;		/* regex_t result of regcomp() */
-   struct re_registers regs;	/* contains match */
+   regmatch_t regs[RE_NREGS];   /* contains match */
    char *eor;			/* end of regexp in expr */
 
-   int *_regs_match;
-   
    char *return_fname(const char *fname, int len); /* return fname as result */
-   char *edit_subst(const char *fname, struct re_registers *regs);
-   int compute_dest_len(const char *fname, struct re_registers *regs);
+   char *edit_subst(const char *fname, regmatch_t regs[]);
+   int compute_dest_len(const char *fname, regmatch_t regs[]);
    bool extract_regexp(const char *motif);
 };
 

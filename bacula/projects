@@ -8,6 +8,7 @@ Items Completed:
 Item:  18   Quick release of FD-SD connection after backup.
 Item:  40   Include JobID in spool file name
 Item:  25   Implement huge exclude list support using dlist   
+Item:  41   Enable to relocate files and directories when restoring
 
 Summary:
 Item:   1   Accurate restoration of renamed/deleted files
@@ -50,7 +51,7 @@ Item:  37   Add an item to the restore option where you can select a pool
 Item:  38   Include timestamp of job launch in "stat clients" output
 Item:  39   Message mailing based on backup types
 Item:  40*  Include JobID in spool file name
-
+Item:  41*  Enable to relocate files and directories when restoring
 
 Item  1:  Accurate restoration of renamed/deleted files
   Date:   28 November 2005
@@ -1130,10 +1131,10 @@ Item 40:  Include JobID in spool file name ****DONE****
           stamp is useful (and should be retained).
 
 ============= New Freature Requests after vote of 26 Jan 2007 ========
-Item  n:  Enable to relocate files and directories when restoring
+Item  41: Enable to relocate files and directories when restoring
   Date:   2007-03-01
   Origin: Eric Bollengier <eric@eb.homelinux.org>
-  Status:
+  Status: Done.
 
   What:   The where= option is not powerful enough. It will be
           a great feature if bacula can restore a file in the
@@ -1157,8 +1158,7 @@ Item  n:  Enable to relocate files and directories when restoring
 
           
   Notes:  I think we can enhance the where= option very easily by
-          allowing regexp expression. (by replacing bregex by libpcre 
-          see http://en.wikipedia.org/wiki/PCRE and http://www.pcre.org/)
+          allowing regexp expression. 
 
           Since, many users think that regexp are not user friendly, i think
           that bat, bconsole or brestore must provide a simple way to
