@@ -28,6 +28,7 @@ _Z8closedirPv
 _Z8pathconfPKci
 _Z8WSA_Initv
 _Z9readdir_rPvP6direntPS1_
+_Z15win32_ftruncateix
 
 ; print.c:
 

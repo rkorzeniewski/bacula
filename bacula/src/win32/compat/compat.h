@@ -1,21 +1,7 @@
-/*                               -*- Mode: C -*-
- * compat.h --
- */
-// Copyright transferred from Raider Solutions, Inc to
-//   Kern Sibbald and John Walker by express permission.
-//
-/*
- * Author          : Christopher S. Hull
- * Created On      : Fri Jan 30 13:00:51 2004
- * Last Modified By: Thorsten Engel
- * Last Modified On: Fri Apr 22 19:30:00 2004
- * Update Count    : 218
- * $Id$
- */
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*                               -*- Mode: C -*-
+ * compat.h --
+ */
+// Copyright transferred from Raider Solutions, Inc to
+//   Kern Sibbald and John Walker by express permission.
+//
+/*
+ * Author          : Christopher S. Hull
+ * Created On      : Fri Jan 30 13:00:51 2004
+ * Last Modified By: Thorsten Engel
+ * Last Modified On: Fri Apr 22 19:30:00 2004
+ * Update Count    : 218
+ * $Id$
+ */
 
 
 #if !defined(__COMPAT_H_)
@@ -365,9 +365,14 @@ inline unsigned long ffs(unsigned long word)
       return 0;
 }
 
-#define ftruncate    _chsize_s
 #else
 #define  ffs   __builtin_ffs
 #endif
+
+
+int win32_ftruncate(int fd, int64_t length);
+
+#undef ftruncate
+#define ftruncate win32_ftruncate
 
 #endif /* __COMPAT_H_ */

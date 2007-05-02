@@ -307,8 +307,7 @@ static bool despool_data(DCR *dcr, bool commit)
       berrno be;
       Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
          be.strerror());
-      Pmsg1(000, _("Bad return from ftruncate. ERR=%s\n"), be.strerror());
-      ok = false;
+      /* Note, try continuing despite ftruncate problem */
    }
 
    P(mutex);
@@ -489,9 +488,9 @@ static bool write_spool_header(DCR *dcr)
 #endif
             if (ftruncate(dcr->spool_fd, pos - stat) != 0) {
                berrno be;
-               Jmsg(dcr->jcr, M_FATAL, 0, _("Ftruncate spool file failed: ERR=%s\n"),
+               Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
                   be.strerror());
-               return false;
+              /* Note, try continuing despite ftruncate problem */
             }
          }
          if (!despool_data(dcr, false)) {
@@ -531,9 +530,9 @@ static bool write_spool_data(DCR *dcr)
 #endif
             if (ftruncate(dcr->spool_fd, pos - stat - sizeof(spool_hdr)) != 0) {
                berrno be;
-               Jmsg(dcr->jcr, M_FATAL, 0, _("Ftruncate spool file failed: ERR=%s\n"),
+               Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
                   be.strerror());
-               return false;
+               /* Note, try continuing despite ftruncate problem */
             }
          }
          if (!despool_data(dcr, false)) {

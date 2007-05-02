@@ -1,13 +1,3 @@
-//                              -*- Mode: C++ -*-
-// compat.cpp -- compatibilty layer to make bacula-fd run
-//               natively under windows
-//
-// Copyright transferred from Raider Solutions, Inc to
-//   Kern Sibbald and John Walker by express permission.
-//
-// Author          : Christopher S. Hull
-// Created On      : Sat Jan 31 15:55:00 2004
-// $Id$
 /*
    Bacula® - The Network Backup Solution
 
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+//                              -*- Mode: C++ -*-
+// compat.cpp -- compatibilty layer to make bacula-fd run
+//               natively under windows
+//
+// Copyright transferred from Raider Solutions, Inc to
+//   Kern Sibbald and John Walker by express permission.
+//
+// Author          : Christopher S. Hull
+// Created On      : Sat Jan 31 15:55:00 2004
+// $Id$
 
 
 #include "bacula.h"
@@ -812,6 +812,25 @@ stat(const char *file, struct stat *sb)
    sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
    sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
+   return 0;
+}
+
+int win32_ftruncate(int fd, int64_t length) 
+{
+   /* Set point we want to truncate file */
+   __int64 pos = _lseeki64(fd, (__int64)length, SEEK_SET);
+
+   if (pos != (__int64)length) {
+      errno = EACCES;         /* truncation failed, get out */
+      return -1;
+   }
+
+   /* Truncate file */
+   if (SetEndOfFile((HANDLE)_get_osfhandle(fd)) == 0) {
+      errno = b_errno_win32;
+      return -1;
+   }
+   errno = 0;
    return 0;
 }
 
