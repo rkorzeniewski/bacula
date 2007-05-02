@@ -1,13 +1,4 @@
 /*
- *  Bacula File Daemon  backup.c  send file attributes and data
- *   to the Storage daemon.
- *
- *    Kern Sibbald, March MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon  backup.c  send file attributes and data
+ *   to the Storage daemon.
+ *
+ *    Kern Sibbald, March MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -159,7 +159,6 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
-//    Jmsg(jcr, M_FATAL, 0, _("Find files error.\n"));
    }
 
    free_pool_memory(jcr->acl_text);
@@ -428,7 +427,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
     * Note, if is_win32_backup, we must open the Directory so that
     * the BackupRead will save its permissions and ownership streams.
     */
-
    if (ff_pkt->type != FT_LNKSAVED && S_ISREG(ff_pkt->statp.st_mode)) {
 #ifdef HAVE_WIN32
       do_read = !is_portable_backup(&ff_pkt->bfd) || ff_pkt->statp.st_size > 0;
@@ -586,7 +584,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       sd->msglen = size;
       bnet_send(sd);
       bnet_sig(sd, BNET_EOD);              /* end of checksum */
-      goto good_rtn;
    }
 
    /* Terminate any digest and send it to Storage daemon and the Director */
