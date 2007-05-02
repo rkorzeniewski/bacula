@@ -10,8 +10,15 @@ set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs
-file="${cwd}/encrypt-bug.jpg"
-echo "${file}" >/tmp/file-list
+echo "${cwd}/encrypt-bug.jpg" >/tmp/file-list
+echo "${cwd}/encrypt-bug.jpg" >${cwd}/tmp/restore-list
+echo "${cwd}/encrypt-bug.txt" >>/tmp/file-list
+echo "${cwd}/encrypt-bug.txt" >>${cwd}/tmp/restore-list
+files="encrypt-bug.jpg encrypt-bug.txt"
+mkdir -p ${cwd}/tmp/build
+for i in ${files}; do
+   cp -p ${cwd}/encrypt-bug.* ${cwd}/tmp/build
+done
 
 change_jobname NightlySave $JobName
 start_test
@@ -51,6 +58,6 @@ du -s tmp/bacula-restores/
 
 
 check_two_logs
-diff ${file} ${cwd}/tmp/bacula-restores/${file} 2>&1 >/dev/null
+diff ${cwd}/tmp/build ${cwd}/tmp/bacula-restores/${cwd} 2>&1 >/dev/null
 dstat=$?
 end_test
