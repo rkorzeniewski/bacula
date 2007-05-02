@@ -153,8 +153,9 @@ int prunecmd(UAContext *ua, const char *cmd)
          return false;
       }
       if (mr.Enabled == 2) {
-         bsendmsg(ua, _("Cannot prune Volume \"%s\" because it is archived.\n"),
+         ua->error_msg(_("Cannot prune Volume \"%s\" because it is archived.\n"),
             mr.VolumeName);
+         return false;
       }
       if (!confirm_retention(ua, &mr.VolRetention, "Volume")) {
          return false;
@@ -207,14 +208,14 @@ int prune_files(UAContext *ua, CLIENT *client)
                (uint32_t)period, query.c_str());
    cnt.count = 0;
    if (!db_sql_query(ua->db, query.c_str(), del_count_handler, (void *)&cnt)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      ua->error_msg("%s", db_strerror(ua->db));
       Dmsg0(050, "Count failed\n");
       goto bail_out;
    }
 
    if (cnt.count == 0) {
       if (ua->verbose) {
-         bsendmsg(ua, _("No Files found to prune.\n"));
+         ua->warning_msg(_("No Files found to prune.\n"));
       }
       goto bail_out;
    }
@@ -236,7 +237,7 @@ int prune_files(UAContext *ua, CLIENT *client)
    purge_files_from_job_list(ua, del);
 
    edit_uint64_with_commas(del.num_del, ed1);
-   bsendmsg(ua, _("Pruned Files from %s Jobs for client %s from catalog.\n"),
+   ua->info_msg(_("Pruned Files from %s Jobs for client %s from catalog.\n"),
       ed1, client->name());
 
 bail_out:
@@ -262,7 +263,7 @@ static bool create_temp_tables(UAContext *ua)
    /* Create temp tables and indicies */
    for (i=0; create_deltabs[i]; i++) {
       if (!db_sql_query(ua->db, create_deltabs[i], NULL, (void *)NULL)) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+         ua->error_msg("%s", db_strerror(ua->db));
          Dmsg0(050, "create DelTables table failed\n");
          return false;
       }
@@ -322,7 +323,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
         edit_int64(cr.ClientId, ed2));
    if (!db_sql_query(ua->db, query.c_str(), NULL, (void *)NULL)) {
       if (ua->verbose) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+         ua->error_msg("%s", db_strerror(ua->db));
       }
       Dmsg0(050, "insert delcand failed\n");
       goto bail_out;
@@ -354,16 +355,16 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
 
    Dmsg1(150, "Query=%s\n", query.c_str());
    if (!db_sql_query(ua->db, query.c_str(), job_delete_handler, (void *)&del)) {
-      bsendmsg(ua, "%s", db_strerror(ua->db));
+      ua->error_msg("%s", db_strerror(ua->db));
    }
 
    purge_job_list_from_catalog(ua, del);
 
    if (del.num_del > 0) {
-      bsendmsg(ua, _("Pruned %d %s for client %s from catalog.\n"), del.num_del,
+      ua->info_msg(_("Pruned %d %s for client %s from catalog.\n"), del.num_del,
          del.num_del==1?_("Job"):_("Jobs"), client->name());
     } else if (ua->verbose) {
-       bsendmsg(ua, _("No Jobs found to prune.\n"));
+       ua->info_msg(_("No Jobs found to prune.\n"));
     }
 
 bail_out:
@@ -448,7 +449,7 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
    Dmsg1(050, "Query=%s\n", query.c_str());
    if (!db_sql_query(ua->db, query.c_str(), file_delete_handler, (void *)del)) {
       if (ua->verbose) {
-         bsendmsg(ua, "%s", db_strerror(ua->db));
+         ua->error_msg("%s", db_strerror(ua->db));
       }
       Dmsg0(050, "Count failed\n");
       goto bail_out;

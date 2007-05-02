@@ -69,7 +69,7 @@ int querycmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
    if ((fd=fopen(query_file, "rb")) == NULL) {
-      bsendmsg(ua, _("Could not open %s: ERR=%s\n"), query_file,
+      ua->error_msg(_("Could not open %s: ERR=%s\n"), query_file,
          strerror(errno));
       goto bail_out;
    }
@@ -95,7 +95,7 @@ int querycmd(UAContext *ua, const char *cmd)
       }
    }
    if (i != item) {
-      bsendmsg(ua, _("Could not find query.\n"));
+      ua->error_msg(_("Could not find query.\n"));
       goto bail_out;
    }
    query[0] = 0;
@@ -113,7 +113,7 @@ int querycmd(UAContext *ua, const char *cmd)
       len = strlen(line);
       if (line[0] == '*') {            /* prompt */
          if (nprompt >= 9) {
-            bsendmsg(ua, _("Too many prompts in query, max is 9.\n"));
+            ua->error_msg(_("Too many prompts in query, max is 9.\n"));
          } else {
             line[len++] = ' ';
             line[len] = 0;
@@ -135,7 +135,7 @@ int querycmd(UAContext *ua, const char *cmd)
          if (query[0] == '!') {
             db_list_sql_query(ua->jcr, ua->db, query+1, prtit, ua, 0, VERT_LIST);
          } else if (!db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST)) {
-            bsendmsg(ua, "%s\n", query);
+            ua->send_msg("%s\n", query);
          }
          query[0] = 0;
       }
@@ -147,7 +147,7 @@ int querycmd(UAContext *ua, const char *cmd)
          if (query[0] == '!') {
             db_list_sql_query(ua->jcr, ua->db, query+1, prtit, ua, 0, VERT_LIST);
          } else if (!db_list_sql_query(ua->jcr, ua->db, query, prtit, ua, 1, HORZ_LIST)) {
-            bsendmsg(ua, "%s\n", query);
+            ua->error_msg("%s\n", query);
          }
    }
 
@@ -216,7 +216,7 @@ static POOLMEM *substitute_prompts(UAContext *ua,
                   *o++ = *p++;
                }
             } else {
-               bsendmsg(ua, _("Warning prompt %d missing.\n"), n+1);
+               ua->error_msg(_("Warning prompt %d missing.\n"), n+1);
             }
             q += 2;
             break;
@@ -261,7 +261,7 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
    }
    *query.c_str() = 0;
 
-   bsendmsg(ua, _("Entering SQL query mode.\n"
+   ua->send_msg(_("Entering SQL query mode.\n"
 "Terminate each query with a semicolon.\n"
 "Terminate query mode with a blank line.\n"));
    msg = _("Enter SQL query: ");
@@ -285,6 +285,6 @@ int sqlquerycmd(UAContext *ua, const char *cmd)
          msg = _("Add to SQL query: ");
       }
    }
-   bsendmsg(ua, _("End query mode.\n"));
+   ua->send_msg(_("End query mode.\n"));
    return 1;
 }

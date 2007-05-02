@@ -143,7 +143,7 @@ int purgecmd(UAContext *ua, const char *cmd)
             purge_jobs_from_volume(ua, &mr);
          }
          *ua->argk[i] = 0;            /* zap keyword already seen */
-         bsendmsg(ua, "\n");
+         ua->send_msg("\n");
       }
       return 1;
    default:

@@ -70,7 +70,7 @@ int autodisplay_cmd(UAContext *ua, const char *cmd)
       ua->auto_display_messages = false;
       break;
    default:
-      bsendmsg(ua, _("ON or OFF keyword missing.\n"));
+      ua->error_msg(_("ON or OFF keyword missing.\n"));
       break;
    }
    return 1;
@@ -94,7 +94,7 @@ int gui_cmd(UAContext *ua, const char *cmd)
       ua->jcr->gui = ua->gui = false;
       break;
    default:
-      bsendmsg(ua, _("ON or OFF keyword missing.\n"));
+      ua->error_msg(_("ON or OFF keyword missing.\n"));
       break;
    }
    return 1;
@@ -182,16 +182,16 @@ int show_cmd(UAContext *ua, const char *cmd)
          }
          break;
       case -2:
-         bsendmsg(ua, _("Keywords for the show command are:\n"));
+         ua->send_msg(_("Keywords for the show command are:\n"));
          for (j=0; reses[j].res_name; j++) {
-            bsendmsg(ua, "%s\n", _(reses[j].res_name));
+            ua->error_msg("%s\n", _(reses[j].res_name));
          }
          goto bail_out;
       case -3:
-         bsendmsg(ua, _("%s resource %s not found.\n"), res_name, ua->argv[i]);
+         ua->error_msg(_("%s resource %s not found.\n"), res_name, ua->argv[i]);
          goto bail_out;
       case 0:
-         bsendmsg(ua, _("Resource %s not found\n"), res_name);
+         ua->error_msg(_("Resource %s not found\n"), res_name);
          goto bail_out;
       default:
          dump_resource(recurse?type:-type, res, bsendmsg, ua);
@@ -259,7 +259,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
    Dmsg1(20, "list: %s\n", cmd);
 
    if (!ua->db) {
-      bsendmsg(ua, _("Hey! DB is NULL\n"));
+      ua->error_msg(_("Hey! DB is NULL\n"));
    }
 
    /* Scan arguments looking for things to do */
@@ -373,7 +373,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             }
             VolumeName = get_pool_memory(PM_FNAME);
             n = db_get_job_volume_names(ua->jcr, ua->db, jobid, &VolumeName);
-            bsendmsg(ua, _("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
+            ua->send_msg(_("Jobid %d used %d Volume(s): %s\n"), jobid, n, VolumeName);
             free_pool_memory(VolumeName);
             done = true;
          }
@@ -391,7 +391,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             for (i=1; i<ua->argc; i++) {
                if (strcasecmp(ua->argk[i], NT_("pool")) == 0) {
                   if (!get_pool_dbr(ua, &pr)) {
-                     bsendmsg(ua, _("No Pool specified.\n"));
+                     ua->error_msg(_("No Pool specified.\n"));
                      return 1;
                   }
                   mr.PoolId = pr.PoolId;
@@ -402,7 +402,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
 
             /* List Volumes in all pools */
             if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
-               bsendmsg(ua, _("Error obtaining pool ids. ERR=%s\n"),
+               ua->error_msg(_("Error obtaining pool ids. ERR=%s\n"),
                         db_strerror(ua->db));
                return 1;
             }
@@ -412,7 +412,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
             for (i=0; i < num_pools; i++) {
                pr.PoolId = ids[i];
                if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
-                  bsendmsg(ua, _("Pool: %s\n"), pr.Name);
+                  ua->send_msg(_("Pool: %s\n"), pr.Name);
                }
                mr.PoolId = ids[i];
                db_list_media_records(ua->jcr, ua->db, &mr, prtit, ua, llist);
@@ -428,7 +428,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
          if (j >= 0) {
             n = atoi(ua->argv[j]);
             if ((n < 0) || (n > 50)) {
-              bsendmsg(ua, _("Ignoring invalid value for days. Max is 50.\n"));
+              ua->warning_msg(_("Ignoring invalid value for days. Max is 50.\n"));
               n = 1;
             }
          }
@@ -437,7 +437,7 @@ static int do_list_cmd(UAContext *ua, const char *cmd, e_list_type llist)
                  || strcasecmp(ua->argk[i], NT_("days")) == 0) {
          /* Ignore it */
       } else {
-         bsendmsg(ua, _("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
+         ua->error_msg(_("Unknown list keyword: %s\n"), NPRT(ua->argk[i]));
       }
    }
    return 1;
@@ -482,10 +482,10 @@ static bool list_nextvol(UAContext *ua, int ndays)
       get_job_storage(&store, job, run);
       mr.StorageId = store.store->StorageId;
       if (!find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_prune)) {
-         bsendmsg(ua, _("Could not find next Volume for Job %s (%s, %s).\n"),
+         ua->error_msg(_("Could not find next Volume for Job %s (%s, %s).\n"),
             job->hdr.name, pr.Name, level_to_str(run->level));
       } else {
-         bsendmsg(ua,
+         ua->send_msg(
             _("The next Volume to be used by Job \"%s\" (%s, %s) will be %s\n"),
             job->hdr.name, pr.Name, level_to_str(run->level), mr.VolumeName);
          found = true;
@@ -496,7 +496,7 @@ static bool list_nextvol(UAContext *ua, int ndays)
       }
    }
    if (!found) {
-      bsendmsg(ua, _("Could not find next Volume for Job %s.\n"),
+      ua->error_msg(_("Could not find next Volume for Job %s.\n"),
          job->hdr.name);
       return false;
    }

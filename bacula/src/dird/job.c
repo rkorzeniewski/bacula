@@ -364,7 +364,7 @@ bool cancel_job(UAContext *ua, JCR *jcr)
    case JS_WaitPriority:
    case JS_WaitMaxJobs:
    case JS_WaitStartTime:
-      bsendmsg(ua, _("JobId %s, Job %s marked to be canceled.\n"),
+      ua->info_msg(_("JobId %s, Job %s marked to be canceled.\n"),
               edit_uint64(jcr->JobId, ed1), jcr->Job);
       jobq_remove(&job_queue, jcr); /* attempt to remove it from queue */
       return true;
@@ -374,14 +374,14 @@ bool cancel_job(UAContext *ua, JCR *jcr)
       if (jcr->file_bsock) {
          ua->jcr->client = jcr->client;
          if (!connect_to_file_daemon(ua->jcr, 10, FDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to File daemon.\n"));
+            ua->error_msg(_("Failed to connect to File daemon.\n"));
             return 0;
          }
          Dmsg0(200, "Connected to file daemon\n");
          fd = ua->jcr->file_bsock;
          bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
          while (bnet_recv(fd) >= 0) {
-            bsendmsg(ua, "%s", fd->msg);
+            ua->send_msg("%s", fd->msg);
          }
          bnet_sig(fd, BNET_TERMINATE);
          bnet_close(fd);
@@ -407,17 +407,17 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          }
 
          if (!connect_to_storage_daemon(ua->jcr, 10, SDConnectTimeout, 1)) {
-            bsendmsg(ua, _("Failed to connect to Storage daemon.\n"));
+            ua->error_msg(_("Failed to connect to Storage daemon.\n"));
             return false;
          }
          Dmsg0(200, "Connected to storage daemon\n");
          sd = ua->jcr->store_bsock;
-         bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
-         while (bnet_recv(sd) >= 0) {
-            bsendmsg(ua, "%s", sd->msg);
+         sd->fsend("cancel Job=%s\n", jcr->Job);
+         while (sd->recv() >= 0) {
+            ua->send_msg("%s", sd->msg);
          }
-         bnet_sig(sd, BNET_TERMINATE);
-         bnet_close(sd);
+         sd->signal(BNET_TERMINATE);
+         sd->close();
          ua->jcr->store_bsock = NULL;
       }
    }
