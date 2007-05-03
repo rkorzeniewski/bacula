@@ -1,7 +1,7 @@
 #
 # Default  Bacula File Daemon Configuration file
 #
-#  For Bacula release 1.33
+#  For Bacula release 2.0
 #
 # There is not much to change here except perhaps the
 # File daemon Name to
@@ -27,6 +27,7 @@ FileDaemon {                          # this is me
   PKI Signatures = Yes
   PKI Encryption = Yes
   PKI Keypair = "@scriptdir@/cryptokeypair.pem"
+  PKI Master Key = "@scriptdir@/master2048.cert"
 }
 
 # Send all messages except skipped files back to Director
