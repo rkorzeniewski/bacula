@@ -645,9 +645,9 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
 {
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
       openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest update failed"));
-      return true;
-   } else { 
       return false;
+   } else { 
+      return true;
    }
 }
 
