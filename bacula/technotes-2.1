@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+03May07
+kes  First cut strip path. The data should be passed to the FD,
+     but nothing is done with it yet.
+kes  Enhance the digest and signature routines in the crypto
+     library to accept a JCR and to use it to print error messages
+     so that they will go in the Job report rather than the daemon's
+     messages.
+kes  Simplify some of the verify signature code.
+kes  Simplify a few of the alternative returns in the signature 
+     code.
 02May07
 ebl  Use only POSIX regex instead of GNU regex in breg.c for
      File relocation. It fix broken freebsd compilation.

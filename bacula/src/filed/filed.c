@@ -1,15 +1,7 @@
 /*
- *  Bacula File Daemon
- *
- *    Kern Sibbald, March MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon
+ *
+ *    Kern Sibbald, March MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -42,7 +42,7 @@ extern void *handle_client_request(void *dir_sock);
 
 /* Forward referenced functions */
 void terminate_filed(int sig);
-static int check_resources();
+static bool check_resources();
 
 /* Exported variables */
 CLIENT *me;                           /* my resource */
@@ -254,7 +254,7 @@ void terminate_filed(int sig)
 * Make a quick check to see that we have all the
 * resources needed.
 */
-static int check_resources()
+static bool check_resources()
 {
    bool OK = true;
    DIRRES *director;

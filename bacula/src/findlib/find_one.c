@@ -1,19 +1,7 @@
 /*
-
-   This file is based on GNU TAR source code. Except for a few key
-   ideas, it has been entirely rewritten for Bacula.
-
-      Kern Sibbald, MM
-
-   Thanks to the TAR programmers.
-
-     Version $Id$
-
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -37,6 +25,18 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+
+   This file was derived from GNU TAR source code. Except for a few key
+   ideas, it has been entirely rewritten for Bacula.
+
+      Kern Sibbald, MM
+
+   Thanks to the TAR programmers.
+
+     Version $Id$
+
+ */
 
 #include "bacula.h"
 #include "find.h"
@@ -194,7 +194,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
    if (lstat(ff_pkt->fname, &statp) != 0) {
       berrno be;
       Jmsg(jcr, M_WARNING, 0, 
-	   _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.strerror());
+           _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.strerror());
       return true;
    }
 

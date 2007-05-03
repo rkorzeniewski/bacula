@@ -1,25 +1,7 @@
 /*
- * crypto.h Encryption support functions
- *
- * Author: Landon Fuller <landonf@opendarwin.org>
- *
- * Version $Id$
- *
- * This file was contributed to the Bacula project by Landon Fuller.
- *
- * Landon Fuller has been granted a perpetual, worldwide, non-exclusive,
- * no-charge, royalty-free, irrevocable copyright * license to reproduce,
- * prepare derivative works of, publicly display, publicly perform,
- * sublicense, and distribute the original work contributed by Landon Fuller
- * to the Bacula project in source or object form.
- *
- * If you wish to license these contributions under an alternate open source
- * license please contact Landon Fuller <landonf@opendarwin.org>.
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -43,6 +25,24 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * crypto.h Encryption support functions
+ *
+ * Author: Landon Fuller <landonf@opendarwin.org>
+ *
+ * Version $Id$
+ *
+ * This file was contributed to the Bacula project by Landon Fuller.
+ *
+ * Landon Fuller has been granted a perpetual, worldwide, non-exclusive,
+ * no-charge, royalty-free, irrevocable copyright * license to reproduce,
+ * prepare derivative works of, publicly display, publicly perform,
+ * sublicense, and distribute the original work contributed by Landon Fuller
+ * to the Bacula project in source or object form.
+ *
+ * If you wish to license these contributions under an alternate open source
+ * license please contact Landon Fuller <landonf@opendarwin.org>.
+ */
 
 #ifndef __CRYPTO_H_
 #define __CRYPTO_H_

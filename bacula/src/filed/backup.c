@@ -337,19 +337,19 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
        * and not used.
        */
       if (ff_pkt->flags & FO_MD5) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_MD5);
          digest_stream = STREAM_MD5_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA1) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA1);
          digest_stream = STREAM_SHA1_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA256) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA256);
          digest_stream = STREAM_SHA256_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA512) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA512);
          digest_stream = STREAM_SHA512_DIGEST;
       }
 
@@ -365,7 +365,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
        */
       // TODO landonf: We should really only calculate the digest once, for both verification and signing.
       if (jcr->pki_sign) {
-         signing_digest = crypto_digest_new(signing_algorithm);
+         signing_digest = crypto_digest_new(jcr, signing_algorithm);
 
          /* Full-stop if a failure occurred initializing the signature digest */
          if (signing_digest == NULL) {
@@ -542,8 +542,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (signing_digest) {
       uint32_t size = 0;
 
-      if ((sig = crypto_sign_new()) == NULL) {
-         Jmsg(jcr, M_FATAL, 0, _("Failed to allocate memory for stream signature.\n"));
+      if ((sig = crypto_sign_new(jcr)) == NULL) {
+         Jmsg(jcr, M_FATAL, 0, _("Failed to allocate memory for crypto signature.\n"));
          goto bail_out;
       }
 

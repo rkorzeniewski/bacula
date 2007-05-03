@@ -1,25 +1,7 @@
 /*
- * openssl.c OpenSSL support functions
- *
- * Author: Landon Fuller <landonf@opendarwin.org>
- *
- * Version $Id$
- *
- * This file was contributed to the Bacula project by Landon Fuller.
- *
- * Landon Fuller has been granted a perpetual, worldwide, non-exclusive,
- * no-charge, royalty-free, irrevocable copyright license to reproduce,
- * prepare derivative works of, publicly display, publicly perform,
- * sublicense, and distribute the original work contributed by Landon Fuller
- * to the Bacula project in source or object form.
- *
- * If you wish to license these contributions under an alternate open source
- * license please contact Landon Fuller <landonf@opendarwin.org>.
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -43,6 +25,24 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * openssl.c OpenSSL support functions
+ *
+ * Author: Landon Fuller <landonf@opendarwin.org>
+ *
+ * Version $Id$
+ *
+ * This file was contributed to the Bacula project by Landon Fuller.
+ *
+ * Landon Fuller has been granted a perpetual, worldwide, non-exclusive,
+ * no-charge, royalty-free, irrevocable copyright license to reproduce,
+ * prepare derivative works of, publicly display, publicly perform,
+ * sublicense, and distribute the original work contributed by Landon Fuller
+ * to the Bacula project in source or object form.
+ *
+ * If you wish to license these contributions under an alternate open source
+ * license please contact Landon Fuller <landonf@opendarwin.org>.
+ */
 
 
 #include "bacula.h"
@@ -58,11 +58,16 @@ struct CRYPTO_dynlock_value {
    pthread_mutex_t mutex;
 };
 
+void openssl_post_errors(int code, const char *errstring)
+{
+   openssl_post_errors(NULL, code, errstring);
+}
+
 
 /*
  * Post all per-thread openssl errors
  */
-void openssl_post_errors(int code, const char *errstring)
+void openssl_post_errors(JCR *jcr, int code, const char *errstring)
 {
    char buf[512];
    unsigned long sslerr;
@@ -71,7 +76,7 @@ void openssl_post_errors(int code, const char *errstring)
    while((sslerr = ERR_get_error()) != 0) {
       /* Acquire the human readable string */
       ERR_error_string_n(sslerr, (char *) &buf, sizeof(buf));
-      Emsg2(M_ERROR, 0, "%s: ERR=%s\n", errstring, buf);
+      Jmsg2(jcr, M_ERROR, 0, "%s: ERR=%s\n", errstring, buf);
    }
 }
 

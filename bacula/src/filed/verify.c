@@ -217,19 +217,19 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
        * and not used.
        */
       if (ff_pkt->flags & FO_MD5) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_MD5);
          digest_stream = STREAM_MD5_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA1) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA1);
          digest_stream = STREAM_SHA1_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA256) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA256);
          digest_stream = STREAM_SHA256_DIGEST;
 
       } else if (ff_pkt->flags & FO_SHA512) {
-         digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
+         digest = crypto_digest_new(jcr, CRYPTO_DIGEST_SHA512);
          digest_stream = STREAM_SHA512_DIGEST;
       }
 
@@ -294,7 +294,7 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
          ff_pkt->ff_errno = errno;
          berrno be;
          be.set_errno(bfd.berrno);
-         Jmsg(jcr, M_NOTSAVED, 1, _("     Cannot open %s: ERR=%s.\n"),
+         Jmsg(jcr, M_ERROR, 1, _("     Cannot open %s: ERR=%s.\n"),
                ff_pkt->fname, be.strerror());
          return 1;
       }
@@ -308,7 +308,7 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
       if (bopen_rsrc(&bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
          ff_pkt->ff_errno = errno;
          berrno be;
-         Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"),
+         Jmsg(jcr, M_ERROR, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"),
                ff_pkt->fname, be.strerror());
          if (is_bopen(&ff_pkt->bfd)) {
             bclose(&ff_pkt->bfd);

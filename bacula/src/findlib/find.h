@@ -1,12 +1,7 @@
 /*
- * File types as returned by find_files()
- *
- *     Kern Sibbald MMI
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,6 +25,11 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * File types as returned by find_files()
+ *
+ *     Kern Sibbald MMI
+ */
 
 #ifndef __FILES_H
 #define __FILES_H
@@ -108,6 +108,7 @@ enum {
 #define FO_NOATIME      (1<<22)       /* Use O_NOATIME to prevent atime change */
 #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
 #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
+#define FO_STRIPPATH    (1<<25)       /* Check for stripping path */
 
 struct s_included_file {
    struct s_included_file *next;
@@ -144,6 +145,7 @@ enum {
 struct findFOPTS {
    uint32_t flags;                    /* options in bits */
    int GZIP_level;                    /* GZIP level */
+   int strip_path;                    /* strip path count */
    char VerifyOpts[MAX_FOPTS];        /* verify options */
    alist regex;                       /* regex string(s) */
    alist regexdir;                    /* regex string(s) for directories */
@@ -216,6 +218,7 @@ struct FF_PKT {
    /* Values set by accept_file while processing Options */
    uint32_t flags;                    /* backup options */
    int GZIP_level;                    /* compression level */
+   int strip_path;                    /* strip path count */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
    alist fstypes;                     /* allowed file system types */

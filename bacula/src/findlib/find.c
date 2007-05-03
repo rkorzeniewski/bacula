@@ -187,6 +187,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool t
             findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
             ff->flags |= fo->flags;
             ff->GZIP_level = fo->GZIP_level;
+            ff->strip_path = fo->strip_path;
             ff->fstypes = fo->fstype;
             ff->drivetypes = fo->drivetype;
             bstrncat(ff->VerifyOpts, fo->VerifyOpts, sizeof(ff->VerifyOpts));

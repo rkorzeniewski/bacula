@@ -67,7 +67,7 @@ typedef struct restore_cipher_ctx {
    int32_t packet_len; /* Total bytes in packet */
 } RESTORE_CIPHER_CTX;
 
-int verify_signature(JCR *jcr, SIGNATURE *sig);
+static bool verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
 bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
@@ -302,14 +302,8 @@ void do_restore(JCR *jcr)
             extract = false;
 
             /* Verify the cryptographic signature, if any */
-            if (jcr->pki_sign) {
-               if (sig) {
-                  // Failure is reported in verify_signature() ...
-                  verify_signature(jcr, sig);
-               } else {
-                  Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
-               }
-            }
+            verify_signature(jcr, sig);
+
             /* Free Signature */
             if (sig) {
                crypto_sign_free(sig);
@@ -604,6 +598,8 @@ void do_restore(JCR *jcr)
          /* Is this an unexpected signature? */
          if (sig) {
             Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic signature data stream.\n"));
+            crypto_sign_free(sig);
+            sig = NULL;
             continue;
          }
 
@@ -651,15 +647,7 @@ void do_restore(JCR *jcr)
             set_attributes(jcr, attr, &bfd);
 
             /* Verify the cryptographic signature if any */
-            if (jcr->pki_sign) {
-               if (sig) {
-                  // Failure is reported in verify_signature() ...
-                  verify_signature(jcr, sig);
-               } else {
-                  Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
-               }
-            }
-
+            verify_signature(jcr, sig);
             extract = false;
          } else if (is_bopen(&bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
@@ -696,14 +684,7 @@ void do_restore(JCR *jcr)
       set_attributes(jcr, attr, &bfd);
 
       /* Verify the cryptographic signature on the last file, if any */
-      if (jcr->pki_sign) {
-         if (sig) {
-            // Failure is reported in verify_signature() ...
-            verify_signature(jcr, sig);
-         } else {
-            Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), jcr->last_fname);
-         }
-      }
+      verify_signature(jcr, sig);
    }
 
    if (is_bopen(&bfd)) {
@@ -815,17 +796,24 @@ static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level)
  * TODO landonf: Implement without using find_one_file and
  * without re-reading the file.
  */
-int verify_signature(JCR *jcr, SIGNATURE *sig)
+static bool verify_signature(JCR *jcr, SIGNATURE *sig)
 {
    X509_KEYPAIR *keypair;
    DIGEST *digest = NULL;
    crypto_error_t err;
    uint64_t saved_bytes;
 
+   if (!jcr->pki_sign) {
+      return true;                    /* no signature OK */
+   }
+   if (!sig) {
+      Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), 
+            jcr->last_fname);
+   }
+
    /* Iterate through the trusted signers */
    foreach_alist(keypair, jcr->pki_signers) {
       err = crypto_sign_get_digest(sig, jcr->pki_keypair, &digest);
-
       switch (err) {
       case CRYPTO_ERROR_NONE:
          /* Signature found, digest allocated */
@@ -835,41 +823,49 @@ int verify_signature(JCR *jcr, SIGNATURE *sig)
          /* Make sure we don't modify JobBytes by saving and restoring it */
          saved_bytes = jcr->JobBytes;                     
          if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Signature validation failed for %s: \n"), jcr->last_fname);
+            Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"), 
+                 jcr->last_fname);
             jcr->JobBytes = saved_bytes;
-            return false;
+            goto bail_out;
          }
          jcr->JobBytes = saved_bytes;
 
          /* Verify the signature */
          if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
             Dmsg1(100, "Bad signature on %s\n", jcr->last_fname);
-            Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
-            crypto_digest_free(digest);
-            return false;
+            Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
+                  jcr->last_fname, crypto_strerror(err));
+            goto bail_out;
          }
 
          /* Valid signature */
          Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
          crypto_digest_free(digest);
+         jcr->digest = NULL;
          return true;
 
       case CRYPTO_ERROR_NOSIGNER:
          /* Signature not found, try again */
+         if (digest) {
+            crypto_digest_free(digest);
+            jcr->digest = NULL;
+         }
          continue;
       default:
          /* Something strange happened (that shouldn't happen!)... */
          Qmsg2(jcr, M_ERROR, 0, _("Signature validation failed for %s: %s\n"), jcr->last_fname, crypto_strerror(err));
-         if (digest) {
-            crypto_digest_free(digest);
-         }
-         return false;
+         goto bail_out;
       }
    }
 
    /* No signer */
    Dmsg1(100, "Could not find a valid public key for signature on %s\n", jcr->last_fname);
-   crypto_digest_free(digest);
+
+bail_out:
+   if (digest) {
+      crypto_digest_free(digest);
+      jcr->digest = NULL;
+   }
    return false;
 }
 
@@ -1071,7 +1067,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags,
                   RESTORE_CIPHER_CTX *cipher_ctx)
 {
-   uint32_t decrypted_len;
+   uint32_t decrypted_len = 0;
    char *wbuf;                        /* write buffer */
    uint32_t wsize;                    /* write size */
    char ec1[50];                      /* Buffer printing huge values */
@@ -1103,16 +1099,6 @@ again:
    wbuf = &cipher_ctx->buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
    cipher_ctx->buf_len -= cipher_ctx->packet_len;
    Dmsg2(30, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
-
-#ifdef xxx
-   Dmsg2(30, "check buf_len=%d pkt_len=%d\n", cipher_ctx->buf_len, cipher_ctx->packet_len);
-   if (second_pass && cipher_ctx->buf_len != cipher_ctx->packet_len) {
-      Jmsg2(jcr, M_FATAL, 0,
-            _("Unexpected number of bytes remaining at end of file, received %u, expected %u\n"),
-            cipher_ctx->packet_len, cipher_ctx->buf_len);
-      return false;
-   }
-#endif
 
    if (flags & FO_SPARSE) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
