@@ -1632,23 +1632,23 @@ crypto_digest_t crypto_digest_stream_type (int stream) {
 const char *crypto_strerror(crypto_error_t error) {
    switch (error) {
    case CRYPTO_ERROR_NONE:
-      return "No error";
+      return _("No error");
    case CRYPTO_ERROR_NOSIGNER:
-      return "Signer not found";
+      return _("Signer not found");
    case CRYPTO_ERROR_NORECIPIENT:
-      return "Recipient not found";
+      return _("Recipient not found");
    case CRYPTO_ERROR_INVALID_DIGEST:
-      return "Unsupported digest algorithm";
+      return _("Unsupported digest algorithm");
    case CRYPTO_ERROR_INVALID_CRYPTO:
-      return "Unsupported encryption algorithm";
+      return _("Unsupported encryption algorithm");
    case CRYPTO_ERROR_BAD_SIGNATURE:
-      return "Signature is invalid";
+      return _("Signature is invalid");
    case CRYPTO_ERROR_DECRYPTION:
-      return "Decryption error";
+      return _("Decryption error");
    case CRYPTO_ERROR_INTERNAL:
       /* This shouldn't happen */
-      return "Internal error";
+      return _("Internal error");
    default:
-      return "Unknown error";
+      return _("Unknown error");
    }
 }
