@@ -121,6 +121,7 @@ static RES_ITEM options_items[] = {
    {"enhancedwild",    store_opts,    {0},     0, 0, 0},
    {"drivetype",       store_drivetype, {0},     0, 0, 0},
    {"checkfilechanges",store_opts,    {0},     0, 0, 0},
+   {"strippath",       store_opts,    {0},     0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -147,7 +148,8 @@ enum {
    INC_KW_HFSPLUS,
    INC_KW_NOATIME,
    INC_KW_ENHANCEDWILD,
-   INC_KW_CHKCHANGES
+   INC_KW_CHKCHANGES,
+   INC_KW_STRIPPATH
 };
 
 /*
@@ -177,6 +179,7 @@ static struct s_kw FS_option_kw[] = {
    {"noatime",     INC_KW_NOATIME},
    {"enhancedwild", INC_KW_ENHANCEDWILD},
    {"checkfilechanges", INC_KW_CHKCHANGES},
+   {"strippath",    INC_KW_STRIPPATH},
    {NULL,          0}
 };
 
@@ -271,7 +274,14 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       bstrncat(opts, lc->str, optlen);
       bstrncat(opts, ":", optlen);         /* terminate it */
       Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
-
+   } else if (keyword == INC_KW_STRIPPATH) { /* another special case */
+      if (!is_an_integer(lc->str)) {
+         scan_err1(lc, _("Expected a strip path integer, got:%s:"), lc->str);
+      }
+      bstrncat(opts, "P", optlen);         /* indicate strip path */
+      bstrncat(opts, lc->str, optlen);
+      bstrncat(opts, ":", optlen);         /* terminate it */
+      Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
    /*
     * Standard keyword options for Include/Exclude
     */

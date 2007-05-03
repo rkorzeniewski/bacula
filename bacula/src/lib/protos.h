@@ -134,11 +134,11 @@ uint32_t bcrc32(uint8_t *buf, int len);
 /* crypto.c */
 int                init_crypto                 (void);
 int                cleanup_crypto              (void);
-DIGEST *           crypto_digest_new           (crypto_digest_t type);
+DIGEST *           crypto_digest_new           (JCR *jcr, crypto_digest_t type);
 bool               crypto_digest_update        (DIGEST *digest, const uint8_t *data, uint32_t length);
 bool               crypto_digest_finalize      (DIGEST *digest, uint8_t *dest, uint32_t *length);
 void               crypto_digest_free          (DIGEST *digest);
-SIGNATURE *        crypto_sign_new             (void);
+SIGNATURE *        crypto_sign_new             (JCR *jcr);
 crypto_error_t     crypto_sign_get_digest      (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest);
 crypto_error_t     crypto_sign_verify          (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest);
 int                crypto_sign_add_signer      (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair);

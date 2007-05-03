@@ -924,6 +924,7 @@ static void set_options(findFOPTS *fo, const char *opts)
 {
    int j;
    const char *p;
+   char strip[100];
 
    for (p=opts; *p; p++) {
       switch (*p) {
@@ -1008,6 +1009,18 @@ static void set_options(findFOPTS *fo, const char *opts)
             }
          }
          fo->VerifyOpts[j] = 0;
+         break;
+      case 'P':                  /* strip path */
+         /* Get integer */
+         for (j=0; *p && *p != ':'; p++) {
+            strip[j] = *p;
+            if (j < (int)sizeof(strip) - 1) {
+               j++;
+            }
+         }
+         strip[j] = 0;
+         fo->strip_path = atoi(strip);
+         fo->flags |= FO_STRIPPATH;
          break;
       case 'w':
          fo->flags |= FO_IF_NEWER;
@@ -1609,9 +1622,9 @@ static int restore_cmd(JCR *jcr)
    if (use_regexwhere) {
       jcr->where_bregexp = get_bregexps(args);
       if (!jcr->where_bregexp) {
-	 Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), args);
-	 free_pool_memory(args);
-	 return 0;
+         Jmsg(jcr, M_FATAL, 0, _("Bad where regexp. where=%s\n"), args);
+         free_pool_memory(args);
+         return 0;
       }
    } else {
       jcr->where = bstrdup(args);

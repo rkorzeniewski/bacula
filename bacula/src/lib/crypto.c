@@ -46,6 +46,7 @@
 
 
 #include "bacula.h"
+#include "jcr.h"
 #include <assert.h>
 
 /*
@@ -273,12 +274,14 @@ struct X509_Keypair {
 /* Message Digest Structure */
 struct Digest {
    crypto_digest_t type;
+   JCR *jcr;
    EVP_MD_CTX ctx;
 };
 
 /* Message Signature Structure */
 struct Signature {
    SignatureData *sigData;
+   JCR *jcr;
 };
 
 /* Encryption Session Data */
@@ -304,7 +307,7 @@ typedef struct PEM_CB_Context {
  * Returns: On success, an ASN1_OCTET_STRING that must be freed via M_ASN1_OCTET_STRING_free().
  *          NULL on failure.
  */
-static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert){
+static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert) {
    X509_EXTENSION *ext;
    X509V3_EXT_METHOD *method;
    ASN1_OCTET_STRING *keyid;
@@ -359,7 +362,7 @@ static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert){
  *  Returns: A pointer to a X509 KEYPAIR object on success.
  *           NULL on failure.
  */
-X509_KEYPAIR *crypto_keypair_new (void) {
+X509_KEYPAIR *crypto_keypair_new(void) {
    X509_KEYPAIR *keypair;
 
    /* Allocate our keypair structure */
@@ -382,7 +385,7 @@ X509_KEYPAIR *crypto_keypair_new (void) {
  * API is available. Instead, the reference count is
  * incremented.
  */
-X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair)
+X509_KEYPAIR *crypto_keypair_dup(X509_KEYPAIR *keypair)
 {
    X509_KEYPAIR *newpair;
 
@@ -424,7 +427,7 @@ X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair)
  *  Returns: true on success
  *           false on failure
  */
-int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file)
+int crypto_keypair_load_cert(X509_KEYPAIR *keypair, const char *file)
 {
    BIO *bio;
    X509 *cert;
@@ -484,7 +487,7 @@ static int crypto_pem_callback_dispatch (char *buf, int size, int rwflag, void *
  * Returns: true if a private key is found
  *          false otherwise
  */
-bool crypto_keypair_has_key (const char *file) {
+bool crypto_keypair_has_key(const char *file) {
    BIO *bio;
    char *name = NULL;
    char *header = NULL;
@@ -532,7 +535,7 @@ bool crypto_keypair_has_key (const char *file) {
  *  Returns: true on success
  *           false on failure
  */
-int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file,
+int crypto_keypair_load_key(X509_KEYPAIR *keypair, const char *file,
                              CRYPTO_PEM_PASSWD_CB *pem_callback,
                              const void *pem_userdata)
 {
@@ -567,7 +570,7 @@ int crypto_keypair_load_key (X509_KEYPAIR *keypair, const char *file,
 /*
  * Free memory associated with a keypair object.
  */
-void crypto_keypair_free (X509_KEYPAIR *keypair)
+void crypto_keypair_free(X509_KEYPAIR *keypair)
 {
    if (keypair->pubkey) {
       EVP_PKEY_free(keypair->pubkey);
@@ -586,13 +589,14 @@ void crypto_keypair_free (X509_KEYPAIR *keypair)
  *  Returns: A pointer to a DIGEST object on success.
  *           NULL on failure.
  */
-DIGEST *crypto_digest_new (crypto_digest_t type)
+DIGEST *crypto_digest_new(JCR *jcr, crypto_digest_t type)
 {
    DIGEST *digest;
    const EVP_MD *md = NULL; /* Quell invalid uninitialized warnings */
 
    digest = (DIGEST *)malloc(sizeof(DIGEST));
    digest->type = type;
+   digest->jcr = jcr;
 
    /* Initialize the OpenSSL message digest context */
    EVP_MD_CTX_init(&digest->ctx);
@@ -614,7 +618,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
       break;
 #endif
    default:
-      Emsg1(M_ERROR, 0, _("Unsupported digest type: %d\n"), type);
+      Jmsg1(jcr, M_ERROR, 0, _("Unsupported digest type: %d\n"), type);
       goto err;
    }
 
@@ -627,7 +631,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
 
 err:
    /* This should not happen, but never say never ... */
-   openssl_post_errors(M_ERROR, _("OpenSSL digest initialization failed"));
+   openssl_post_errors(jcr, M_ERROR, _("OpenSSL digest initialization failed"));
    crypto_digest_free(digest);
    return NULL;
 }
@@ -640,6 +644,7 @@ err:
 bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
 {
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
+      openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest update failed"));
       return true;
    } else { 
       return false;
@@ -653,9 +658,10 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
  * Returns: true on success
  *          false on failure
  */
-bool crypto_digest_finalize (DIGEST *digest, uint8_t *dest, uint32_t *length)
+bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length)
 {
    if (!EVP_DigestFinal(&digest->ctx, dest, (unsigned int *)length)) {
+      openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest finalize failed"));
       return false;
    } else {
       return true;
@@ -665,10 +671,10 @@ bool crypto_digest_finalize (DIGEST *digest, uint8_t *dest, uint32_t *length)
 /*
  * Free memory associated with a digest object.
  */
-void crypto_digest_free (DIGEST *digest)
+void crypto_digest_free(DIGEST *digest)
 {
   EVP_MD_CTX_cleanup(&digest->ctx);
-  free (digest);
+  free(digest);
 }
 
 /*
@@ -676,16 +682,17 @@ void crypto_digest_free (DIGEST *digest)
  *  Returns: A pointer to a SIGNATURE object on success.
  *           NULL on failure.
  */
-SIGNATURE *crypto_sign_new (void)
+SIGNATURE *crypto_sign_new(JCR *jcr)
 {
    SIGNATURE *sig;
 
-   sig = (SIGNATURE *) malloc(sizeof(SIGNATURE));
+   sig = (SIGNATURE *)malloc(sizeof(SIGNATURE));
    if (!sig) {
       return NULL;
    }
 
    sig->sigData = SignatureData_new();
+   sig->jcr = jcr;
 
    if (!sig->sigData) {
       /* Allocation failed in OpenSSL */
@@ -719,17 +726,17 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
          /* Get the digest algorithm and allocate a digest context */
          switch (OBJ_obj2nid(si->digestAlgorithm)) {
          case NID_md5:
-            *digest = crypto_digest_new(CRYPTO_DIGEST_MD5);
+            *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_MD5);
             break;
          case NID_sha1:
-            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA1);
+            *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA1);
             break;
 #ifdef HAVE_SHA2
          case NID_sha256:
-            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA256);
+            *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA256);
             break;
          case NID_sha512:
-            *digest = crypto_digest_new(CRYPTO_DIGEST_SHA512);
+            *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA512);
             break;
 #endif
          default:
@@ -739,11 +746,15 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
 
          /* Shouldn't happen */
          if (*digest == NULL) {
+            openssl_post_errors(sig->jcr, M_ERROR, _("OpenSSL digest_new failed"));
             return CRYPTO_ERROR_INVALID_DIGEST;
          } else {
             return CRYPTO_ERROR_NONE;
          }
+      } else {
+         openssl_post_errors(sig->jcr, M_ERROR, _("OpenSSL sign get digest failed"));
       }
+
    }
 
    return CRYPTO_ERROR_NOSIGNER;
@@ -780,15 +791,16 @@ crypto_error_t crypto_sign_verify(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST 
          if (ok >= 1) {
             return CRYPTO_ERROR_NONE;
          } else if (ok == 0) {
+            openssl_post_errors(sig->jcr, M_ERROR, _("OpenSSL digest Verify final failed"));
             return CRYPTO_ERROR_BAD_SIGNATURE;
          } else if (ok < 0) {
             /* Shouldn't happen */
-            openssl_post_errors(M_ERROR, _("OpenSSL error occurred"));
+            openssl_post_errors(sig->jcr, M_ERROR, _("OpenSSL digest Verify final failed"));
             return CRYPTO_ERROR_INTERNAL;
          }
       }
    }
-
+   Jmsg(sig->jcr, M_ERROR, 0, _("No signers found for crypto verify.\n"));
    /* Signer wasn't found. */
    return CRYPTO_ERROR_NOSIGNER;
 }
@@ -1247,7 +1259,7 @@ void crypto_session_free (CRYPTO_SESSION *cs)
  *  Returns: A pointer to a CIPHER_CONTEXT object on success. The cipher block size is returned in blocksize.
  *           NULL on failure.
  */
-CIPHER_CONTEXT *crypto_cipher_new (CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize)
+CIPHER_CONTEXT *crypto_cipher_new(CRYPTO_SESSION *cs, bool encrypt, uint32_t *blocksize)
 {
    CIPHER_CONTEXT *cipher_ctx;
    const EVP_CIPHER *ec;
@@ -1446,12 +1458,13 @@ struct Digest {
 struct Signature {
 };
 
-DIGEST *crypto_digest_new (crypto_digest_t type)
+DIGEST *crypto_digest_new(JCR *jcr, crypto_digest_t type)
 {
    DIGEST *digest;
 
    digest = (DIGEST *)malloc(sizeof(DIGEST));
    digest->type = type;
+   digest->jcr = jcr;
 
    switch (type) {
    case CRYPTO_DIGEST_MD5:
@@ -1461,7 +1474,7 @@ DIGEST *crypto_digest_new (crypto_digest_t type)
       SHA1Init(&digest->sha1);
       break;
    default:
-      Emsg0(M_ERROR, 0, _("Unsupported digest type specified\n"));
+      Jmsg1(jcr, M_ERROR, 0, _("Unsupported digest type=%d specified\n"), type);
       free(digest);
       return NULL;
    }
@@ -1521,14 +1534,14 @@ bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length)
 
 void crypto_digest_free(DIGEST *digest)
 {
-   free (digest);
+   free(digest);
 }
 
 /* Dummy routines */
 int init_crypto (void) { return 0; }
 int cleanup_crypto (void) { return 0; }
 
-SIGNATURE *crypto_sign_new (void) { return NULL; }
+SIGNATURE *crypto_sign_new(JCR *jcr) { return NULL; }
 
 crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest) { return CRYPTO_ERROR_INTERNAL; }
 crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest) { return CRYPTO_ERROR_INTERNAL; }
@@ -1540,7 +1553,7 @@ SIGNATURE *crypto_sign_decode (const uint8_t *sigData, uint32_t length) { return
 void crypto_sign_free (SIGNATURE *sig) { }
 
 
-X509_KEYPAIR *crypto_keypair_new (void) { return NULL; }
+X509_KEYPAIR *crypto_keypair_new(void) { return NULL; }
 X509_KEYPAIR *crypto_keypair_dup (X509_KEYPAIR *keypair) { return NULL; }
 int crypto_keypair_load_cert (X509_KEYPAIR *keypair, const char *file) { return false; }
 bool crypto_keypair_has_key (const char *file) { return false; }
