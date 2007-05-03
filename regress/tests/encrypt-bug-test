@@ -14,10 +14,12 @@ echo "${cwd}/encrypt-bug.jpg" >/tmp/file-list
 echo "${cwd}/encrypt-bug.jpg" >${cwd}/tmp/restore-list
 echo "${cwd}/encrypt-bug.txt" >>/tmp/file-list
 echo "${cwd}/encrypt-bug.txt" >>${cwd}/tmp/restore-list
-files="encrypt-bug.jpg encrypt-bug.txt"
+echo "${cwd}/encrypt-bug2.txt" >>/tmp/file-list
+echo "${cwd}/encrypt-bug2.txt" >>${cwd}/tmp/restore-list
+files="encrypt-bug.jpg encrypt-bug.txt encrypt-bug2.txt"
 mkdir -p ${cwd}/tmp/build
 for i in ${files}; do
-   cp -p ${cwd}/encrypt-bug.* ${cwd}/tmp/build
+   cp -p ${cwd}/encrypt-bug*.* ${cwd}/tmp/build
 done
 
 change_jobname NightlySave $JobName
