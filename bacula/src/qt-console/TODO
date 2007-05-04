@@ -1,5 +1,9 @@
 dhb
 ====================================================
+Color code Media Red->Error Append->green Full/Used->Yellow
+
+Possilbe: Turn run and label into docked pages. (remove button bar buttons??)
+
 Resolve issue of connection during restore selection.  Could go with preempt
 
 Add option to LIMIT the number of jobs shown in all jobs page for users with
