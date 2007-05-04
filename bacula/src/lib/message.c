@@ -55,7 +55,7 @@ const char *version = VERSION " (" BDATE ")";
 char my_name[30];                     /* daemon name is stored here */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
-int console_msg_pending = 0;
+int console_msg_pending = false;
 char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
@@ -256,7 +256,7 @@ void init_console_msg(const char *wd)
 {
    int fd;
 
-   bsnprintf(con_fname, sizeof(con_fname), "%s/%s.conmsg", wd, my_name);
+   bsnprintf(con_fname, sizeof(con_fname), "%s%c%s.conmsg", wd, PathSeparator, my_name);
    fd = open(con_fname, O_CREAT|O_RDWR|O_BINARY, 0600);
    if (fd == -1) {
       berrno be;
@@ -679,7 +679,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                       (void)fwrite("\n", 2, 1, con_fd);
                    }
                    fflush(con_fd);
-                   console_msg_pending = TRUE;
+                   console_msg_pending = true;
                    Vw(con_lock);
                 }
                 break;

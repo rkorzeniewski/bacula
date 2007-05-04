@@ -76,6 +76,7 @@ void openssl_post_errors(JCR *jcr, int code, const char *errstring)
    while((sslerr = ERR_get_error()) != 0) {
       /* Acquire the human readable string */
       ERR_error_string_n(sslerr, (char *) &buf, sizeof(buf));
+      Dmsg3(100, "jcr=%p %s: ERR=%s\n", jcr, errstring, buf);
       Jmsg2(jcr, M_ERROR, 0, "%s: ERR=%s\n", errstring, buf);
    }
 }

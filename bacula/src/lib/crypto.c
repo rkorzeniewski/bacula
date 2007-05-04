@@ -597,6 +597,7 @@ DIGEST *crypto_digest_new(JCR *jcr, crypto_digest_t type)
    digest = (DIGEST *)malloc(sizeof(DIGEST));
    digest->type = type;
    digest->jcr = jcr;
+   Dmsg1(50, "crypto_digest_new jcr=%p\n", jcr);
 
    /* Initialize the OpenSSL message digest context */
    EVP_MD_CTX_init(&digest->ctx);
@@ -631,6 +632,7 @@ DIGEST *crypto_digest_new(JCR *jcr, crypto_digest_t type)
 
 err:
    /* This should not happen, but never say never ... */
+   Dmsg0(50, "Digest init failed.\n");
    openssl_post_errors(jcr, M_ERROR, _("OpenSSL digest initialization failed"));
    crypto_digest_free(digest);
    return NULL;
@@ -644,6 +646,7 @@ err:
 bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
 {
    if (EVP_DigestUpdate(&digest->ctx, data, length) == 0) {
+      Dmsg0(50, "digest update failed\n");
       openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest update failed"));
       return false;
    } else { 
@@ -661,6 +664,7 @@ bool crypto_digest_update(DIGEST *digest, const uint8_t *data, uint32_t length)
 bool crypto_digest_finalize(DIGEST *digest, uint8_t *dest, uint32_t *length)
 {
    if (!EVP_DigestFinal(&digest->ctx, dest, (unsigned int *)length)) {
+      Dmsg0(50, "digest finalize failed\n");
       openssl_post_errors(digest->jcr, M_ERROR, _("OpenSSL digest finalize failed"));
       return false;
    } else {
@@ -693,6 +697,7 @@ SIGNATURE *crypto_sign_new(JCR *jcr)
 
    sig->sigData = SignatureData_new();
    sig->jcr = jcr;
+   Dmsg1(50, "crypto_sign_new jcr=%p\n", jcr);
 
    if (!sig->sigData) {
       /* Allocation failed in OpenSSL */
@@ -724,6 +729,7 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
       si = sk_SignerInfo_value(signers, i);
       if (M_ASN1_OCTET_STRING_cmp(keypair->keyid, si->subjectKeyIdentifier) == 0) {
          /* Get the digest algorithm and allocate a digest context */
+         Dmsg1(50, "crypto_sign_get_digest jcr=%p\n", sig->jcr);
          switch (OBJ_obj2nid(si->digestAlgorithm)) {
          case NID_md5:
             *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_MD5);
@@ -919,7 +925,7 @@ int crypto_sign_encode(SIGNATURE *sig, uint8_t *dest, uint32_t *length)
 
  */
 
-SIGNATURE *crypto_sign_decode(const uint8_t *sigData, uint32_t length)
+SIGNATURE *crypto_sign_decode(JCR *jcr, const uint8_t *sigData, uint32_t length)
 {
    SIGNATURE *sig;
 #if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
@@ -932,13 +938,14 @@ SIGNATURE *crypto_sign_decode(const uint8_t *sigData, uint32_t length)
    if (!sig) {
       return NULL;
    }
+   sig->jcr = jcr;
 
    /* d2i_SignatureData modifies the supplied pointer */
    sig->sigData  = d2i_SignatureData(NULL, &p, length);
 
    if (!sig->sigData) {
       /* Allocation / Decoding failed in OpenSSL */
-      openssl_post_errors(M_ERROR, _("Signature decoding failed"));
+      openssl_post_errors(jcr, M_ERROR, _("Signature decoding failed"));
       free(sig);
       return NULL;
    }

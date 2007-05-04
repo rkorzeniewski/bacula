@@ -125,7 +125,7 @@ static void *handle_UA_client_request(void *arg)
 
    pthread_detach(pthread_self());
 
-   jcr = new_control_jcr("*Console*", JT_CONSOLE);
+   jcr = new_control_jcr("-Console-", JT_CONSOLE);
 
    ua = new_ua_context(jcr);
    ua->UA_sock = user;

@@ -138,7 +138,7 @@ _Z13bin_to_base64PciS_ii
 
 ; berrno.c:
 _ZN6berrno20format_win32_messageEv
-_ZN6berrno8strerrorEv
+_ZN6berrno9bstrerrorEv
 
 ; bget_msg.c:
 _Z8bget_msgP5BSOCK
@@ -263,7 +263,7 @@ _Z18crypto_digest_nameP6Digest
 _Z18crypto_keypair_dupP12X509_Keypair
 _Z18crypto_keypair_newv
 _Z18crypto_session_new15crypto_cipher_tP5alist
-_Z18crypto_sign_decodePKhj
+_Z18crypto_sign_decodeP3JCRPKhj
 _Z18crypto_sign_encodeP9SignaturePhPj
 _Z18crypto_sign_verifyP9SignatureP12X509_KeypairP6Digest
 _Z19crypto_keypair_freeP12X509_Keypair

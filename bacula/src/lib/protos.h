@@ -74,7 +74,7 @@ void      make_unique_filename   (POOLMEM **name, int Id, char *what);
 long long int strtoll            (const char *ptr, char **endptr, int base);
 #endif
 void      read_state_file(char *dir, const char *progname, int port);
-int       bstrerror(int errnum, char *buf, size_t bufsiz);
+int       b_strerror(int errnum, char *buf, size_t bufsiz);
 char     *escape_filename(const char *file_path);
 
 /* bnet.c */
@@ -143,7 +143,7 @@ crypto_error_t     crypto_sign_get_digest      (SIGNATURE *sig, X509_KEYPAIR *ke
 crypto_error_t     crypto_sign_verify          (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest);
 int                crypto_sign_add_signer      (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair);
 int                crypto_sign_encode          (SIGNATURE *sig, uint8_t *dest, uint32_t *length);
-SIGNATURE *        crypto_sign_decode          (const uint8_t *sigData, uint32_t length);
+SIGNATURE *        crypto_sign_decode          (JCR *jcr, const uint8_t *sigData, uint32_t length);
 void               crypto_sign_free            (SIGNATURE *sig);
 CRYPTO_SESSION *   crypto_session_new          (crypto_cipher_t cipher, alist *pubkeys);
 void               crypto_session_free         (CRYPTO_SESSION *cs);
