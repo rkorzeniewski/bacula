@@ -6,10 +6,10 @@
 # We also use the purge and the relabel commands as
 #   well as a pile of status storage commands.
 #
-TestName="backup-bacula-fifo"
-JobName=backupfifo
+TestName="backup-to-null"
+JobName=backuptonull
 . scripts/functions
-set_debug 1
+set_debug 0
 
 cwd=`pwd`
 scripts/cleanup
