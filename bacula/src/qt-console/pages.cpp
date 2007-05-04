@@ -135,8 +135,7 @@ void Pages::closeEvent(QCloseEvent* event)
 
    /* Set the current tree widget item in the Page Selector window to the item 
     * which represents "this" */
-   QTreeWidgetItem *item= mainWin->getFromHash(this);
-   mainWin->treeWidget->setCurrentItem(item);
+	 setCurrent();
 }
 
 /*
@@ -216,7 +215,7 @@ void Pages::consoleCommand(QString &command)
    if (!m_console->is_connectedGui())
        return;
    /* Bring this directors console to the front of the stack */
-   placeConsoleOnTop();
+   setConsoleCurrent();
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");
    m_console->display_text(command + "    ****\n");
@@ -234,7 +233,7 @@ void Pages::consoleCommand(QString &command)
 void Pages::changeEvent(QEvent *event)
 {
    if ((event->type() ==  QEvent::ActivationChange) && (isActiveWindow())) {
-      mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(this));
+			setCurrent();
    }
 }
 
@@ -255,7 +254,15 @@ void Pages::setTitle()
 /*
  * Bring the current directors console window to the top of the stack.
  */
-void Pages::placeConsoleOnTop()
+void Pages::setConsoleCurrent()
 {
    mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
+}
+
+/*
+ * Bring this window to the top of the stack.
+ */
+void Pages::setCurrent()
+{
+   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(this));
 }

@@ -37,6 +37,9 @@
 #include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "console.h"
+#include "restore.h"
+#include "select.h"
+#include "run/run.h"
 
 Console::Console(QStackedWidget *parent)
 {

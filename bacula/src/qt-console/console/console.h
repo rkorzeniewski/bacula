@@ -36,8 +36,6 @@
 #include <QtGui>
 #include "pages.h"
 #include "ui_console.h"
-#include "restore.h"
-#include "select.h"
 
 #ifndef MAX_NAME_LENGTH
 #define MAX_NAME_LENGTH 128

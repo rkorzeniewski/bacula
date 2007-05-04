@@ -46,21 +46,19 @@ class Console;
  * The pre-restore dialog selects the Job/Client to be restored
  * It really could use considerable enhancement.
  */
-class prerestoreDialog : public QDialog, public Ui::prerestoreForm
+class prerestorePage : public Pages, public Ui::prerestoreForm
 {
    Q_OBJECT 
 
 public:
-   prerestoreDialog(Console *parent);
+   prerestorePage(Console *parent);
 
 private slots:
-   void accept();
-   void reject();
+   void okButtonPushed();
+   void cancelButtonPushed();
    void job_name_change(int index);
 
 private:
-   Console *m_console;
-
 };
 
 /*  
@@ -68,19 +66,19 @@ private:
  * restore tree routines.  It handles putting up a GUI tree
  * representation of the files to be restored.
  */
-class restoreDialog : public QDialog, public Ui::restoreForm
+class restorePage : public Pages, public Ui::restoreForm
 {
    Q_OBJECT 
 
 public:
-   restoreDialog(Console *parent);
+   restorePage(Console *parent);
    void fillDirectory();
    char *get_cwd();
    bool cwd(const char *);
 
 private slots:
-   void accept();
-   void reject();
+   void okButtonPushed();
+   void cancelButtonPushed();
    void fileDoubleClicked(QTreeWidgetItem *item, int column);
    void directoryItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void upButtonPushed();
@@ -89,7 +87,6 @@ private slots:
    void addDirectory(QString &);
 
 private:
-   Console *m_console;
    QString m_cwd;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QHash<QTreeWidgetItem *,QString> m_dirTreeItems;

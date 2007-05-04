@@ -39,15 +39,9 @@
 #include <QtGui>
 #include <QList>
 #include "ui_main.h"
-#include "label/label.h"
-#include "run/run.h"
-#include "pages.h"
-#include "restore/restore.h"
-#include "medialist/medialist.h"
-#include "joblist/joblist.h"
-#include "clients/clients.h"
 
 class Console;
+class Pages;
 
 class MainWin : public QMainWindow, public Ui::MainForm    
 {
@@ -68,8 +62,8 @@ public:
    void hashInsert(QTreeWidgetItem *, Pages *);
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);
-   QTreeWidgetItem *currentTopItem() { return m_currentConsole->directorTreeItem(); };
-   Console *currentConsole() { return m_currentConsole; };
+   Console *currentConsole();
+   QTreeWidgetItem *currentTopItem();
    Pages* getFromHash(QTreeWidgetItem *);
    QTreeWidgetItem* getFromHash(Pages *);
    /* This hash is to get the page when the page selector widget is known */
@@ -86,7 +80,7 @@ public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void labelDialogClicked();
    void runDialogClicked();
-   void restoreDialogClicked();
+   void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void stackItemChanged(int);

@@ -39,6 +39,13 @@
 #include "joblist/joblist.h"
 #include "storage/storage.h"
 #include "fileset/fileset.h"
+#include "label/label.h"
+#include "run/run.h"
+#include "pages.h"
+#include "restore/restore.h"
+#include "medialist/medialist.h"
+#include "joblist/joblist.h"
+#include "clients/clients.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
@@ -64,7 +71,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
       console->connect();
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
-   treeWidget->setCurrentItem(getFromHash(m_currentConsole));
+   m_currentConsole->setCurrent();
    /*  FIXME
     *  I'd like to turn this into a debug item
     *  DIRRES* dirres = m_currentConsole->getDirRes();
@@ -149,7 +156,7 @@ void MainWin::createPageMediaList()
 void MainWin::createPageJobList(QString &media, QString &client,
               QTreeWidgetItem *parentTreeWidgetItem)
 {
-   QTreeWidgetItem *item, *holdItem;
+   QTreeWidgetItem *holdItem;
 
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
@@ -157,8 +164,7 @@ void MainWin::createPageJobList(QString &media, QString &client,
    joblist->dockPage();
    /* If this is a query of jobs on a specific media */
    if ((media != "") || (client != "")) {
-      item = getFromHash(joblist);
-      treeWidget->setCurrentItem(item);
+      joblist->setCurrent();
       /* did query produce results, if not close window and set back to hold */
       if (joblist->m_resultCount == 0) {
          joblist->closeStackPage();
@@ -261,7 +267,7 @@ void MainWin::createConnections()
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
-   connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreDialogClicked()));
+   connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
    connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
@@ -435,9 +441,9 @@ void MainWin::runDialogClicked()
    new runDialog(m_currentConsole);
 }
 
-void MainWin::restoreDialogClicked() 
+void MainWin::restoreButtonClicked() 
 {
-   new prerestoreDialog(m_currentConsole);
+   new prerestorePage(m_currentConsole);
 }
 
 /*
@@ -455,9 +461,8 @@ void MainWin::input_line()
    }
    m_cmd_history.append(cmdStr);
    m_cmd_last = -1;
-   if (treeWidget->currentItem() != getFromHash(m_currentConsole)){
-      treeWidget->setCurrentItem(getFromHash(m_currentConsole));
-   }
+   if (treeWidget->currentItem() != getFromHash(m_currentConsole))
+      m_currentConsole->setCurrent();
 }
 
 
@@ -659,4 +664,15 @@ void MainWin::closePage()
          page->closeStackPage();
       }
    }
+}
+
+/* Quick function to return the current console */
+Console *MainWin::currentConsole()
+{
+   return m_currentConsole;
+}
+/* Quick function to return the tree item for the director */
+QTreeWidgetItem *MainWin::currentTopItem()
+{
+   return m_currentConsole->directorTreeItem();
 }

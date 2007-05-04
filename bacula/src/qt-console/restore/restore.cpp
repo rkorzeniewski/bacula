@@ -38,14 +38,22 @@
 #include "bat.h"
 #include "restore.h"
 
-restoreDialog::restoreDialog(Console *console )
+restorePage::restorePage(Console *console)
 {
    QStringList titles;
 
-   m_console = console;
-   m_console->notify(false);          /* this should already be off */
-
    setupUi(this);
+   QTreeWidgetItem *parent = mainWin->getFromHash(console);
+   if (!parent) {
+      /* Make this a user configurable stdout msg *** FIXME ****/
+      printf("Error retrieving tree widget.");
+      return;
+   }
+   m_name = "Restore";
+   pgInitialize(parent);
+   m_console->notify(false);          /* this should already be off */
+   m_closeable = true;
+
    connect(fileWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), 
            this, SLOT(fileDoubleClicked(QTreeWidgetItem *, int)));
    connect(directoryWidget, SIGNAL(
@@ -54,22 +62,28 @@ restoreDialog::restoreDialog(Console *console )
    connect(upButton, SIGNAL(pressed()), this, SLOT(upButtonPushed()));
    connect(markButton, SIGNAL(pressed()), this, SLOT(markButtonPushed()));
    connect(unmarkButton, SIGNAL(pressed()), this, SLOT(unmarkButtonPushed()));
+   connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
+   connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
    setFont(m_console->get_font());
    m_console->displayToPrompt();
-
 
    titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
    fileWidget->setHeaderLabels(titles);
 
    get_cwd();
+
+   //QString root("");
+   //addDirectory(root);
    fillDirectory();
+   dockPage();
+   setCurrent();
    this->show();
 }
 
 /*
  * Fill the fileWidget box with the contents of the current directory
  */
-void restoreDialog::fillDirectory()
+void restorePage::fillDirectory()
 {
    char modes[20], user[20], group[20], size[20], date[30];
    char marked[10];
@@ -148,23 +162,39 @@ void restoreDialog::fillDirectory()
  * Function called from fill directory when a directory is found to see if this
  * directory exists in the directory pane and then add it to the directory pane
  */
-void restoreDialog::addDirectory(QString &newdir)
+void restorePage::addDirectory(QString &newdirr)
 {
-   QString fullpath ;
+   QString newdir = newdirr;
+   QString fullpath = m_cwd + newdirr;
+   QRegExp regex("^/[a-z]:/$");
+   bool ok=true;
 
-   /* if this is the base dir, strip off the leading "/" */
-   if (m_cwd == "/"){
-      fullpath = newdir;
-   } else {
-      fullpath = m_cwd + newdir;
+   //printf("In addDirectory cwd \"%s\" newdir \"%s\"\n", m_cwd.toUtf8().data(),
+        //newdir.toUtf8().data());
+
+   /* add unix '/' directory first */
+   if (m_dirPaths.empty() && (regex.indexIn(fullpath,0) == -1)) {
+      QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
+      QString text("/");
+      item->setText(0, text.toUtf8().data());
+      //printf("Pre Inserting %s\n",text.toUtf8().data());
+      m_dirPaths.insert(text, item);
+      m_dirTreeItems.insert(item, text);
    }
+
+   if (regex.indexIn(fullpath,0) == 0) {
+      /* this is a windows drive */
+      //printf("Need to do windows c:/\n");
+      fullpath.replace(0,1,"");
+   }
+ 
    /* is it already existent ?? */
    if (!m_dirPaths.contains(fullpath)) {
       QTreeWidgetItem *item = NULL;
       if (m_dirPaths.empty()) {
          /* this is the base widget */
          item = new QTreeWidgetItem(directoryWidget);
-         item->setText(0, newdir.toUtf8().data());
+         item->setText(0, fullpath.toUtf8().data());
       } else {
          QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
          if (parent) {
@@ -172,11 +202,18 @@ void restoreDialog::addDirectory(QString &newdir)
             item = new QTreeWidgetItem(parent);
             item->setText(0, newdir.toUtf8().data());
             directoryWidget->expandItem(parent);
+         } else {
+            ok=false;
+            //printf("In else of if parent cwd \"%s\" newdir \"%s\"\n", 
+               //m_cwd.toUtf8().data() ,newdir.toUtf8().data());
          }
       }
       /* insert into both forward and reverse hash */
-      m_dirPaths.insert(fullpath, item);
-      m_dirTreeItems.insert(item, fullpath);
+      if (ok) {
+         //printf("Inserting %s\n",fullpath.toUtf8().data());
+         m_dirPaths.insert(fullpath, item);
+         m_dirTreeItems.insert(item, fullpath);
+      }
    }
 }
 
@@ -184,7 +221,7 @@ void restoreDialog::addDirectory(QString &newdir)
  * Executed when the tree item in the directory pane is changed.  This will
  * allow us to populate the file pane and make this the cwd.
  */
-void restoreDialog::directoryItemChanged(QTreeWidgetItem *currentitem,
+void restorePage::directoryItemChanged(QTreeWidgetItem *currentitem,
                                          QTreeWidgetItem * /*previousitem*/)
 {
    QString fullpath = m_dirTreeItems.value(currentitem);
@@ -194,27 +231,27 @@ void restoreDialog::directoryItemChanged(QTreeWidgetItem *currentitem,
    }
 }
 
-void restoreDialog::accept()
+void restorePage::okButtonPushed()
 {
    this->hide();
    m_console->write("done");
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }
 
 
-void restoreDialog::reject()
+void restorePage::cancelButtonPushed()
 {
    this->hide();
    m_console->write("quit");
    mainWin->set_status("Canceled");
-   delete this;
+   closeStackPage();
    m_console->notify(true);
    mainWin->resetFocus();
 }
 
-void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
+void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
 {
    char cmd[1000];
    if (column == 0) {                 /* mark/unmark */
@@ -239,9 +276,16 @@ void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
     */
    if (item->text(1).endsWith("/")) {
       QString fullpath = m_cwd + item->text(1);
+      /* check for fullpath = "/c:/" */
+      QRegExp regex("^/[a-z]:/");
+      if (regex.indexIn(fullpath,0) == 0)  /* remove leading '/' */
+         fullpath.replace(0,1,"");
       QTreeWidgetItem *item = m_dirPaths.value(fullpath);
       if (item) {
          directoryWidget->setCurrentItem(item);
+      } else {
+         /* FIXME ***** Create an error log */
+         //printf("DoubleClick else of item column %i fullpath %s\n", column, fullpath.toUtf8().data());
       }
    }
 }
@@ -250,7 +294,7 @@ void restoreDialog::fileDoubleClicked(QTreeWidgetItem *item, int column)
  * If up button pushed, making the parent tree widget current will call fill
  * directory.
  */
-void restoreDialog::upButtonPushed()
+void restorePage::upButtonPushed()
 {
    cwd("..");
    QTreeWidgetItem *item = m_dirPaths.value(m_cwd);
@@ -262,7 +306,7 @@ void restoreDialog::upButtonPushed()
 /*
  * Mark selected items
  */
-void restoreDialog::markButtonPushed()
+void restorePage::markButtonPushed()
 {
    QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
@@ -283,7 +327,7 @@ void restoreDialog::markButtonPushed()
 /*
  * Unmark selected items
  */
-void restoreDialog::unmarkButtonPushed()
+void restorePage::unmarkButtonPushed()
 {
    QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
@@ -304,7 +348,7 @@ void restoreDialog::unmarkButtonPushed()
 /*
  * Change current working directory 
  */
-bool restoreDialog::cwd(const char *dir)
+bool restorePage::cwd(const char *dir)
 {
    int stat;
    char cd_cmd[MAXSTRING];
@@ -328,7 +372,7 @@ bool restoreDialog::cwd(const char *dir)
 /*
  * Return cwd when in tree restore mode 
  */
-char *restoreDialog::get_cwd()
+char *restorePage::get_cwd()
 {
    int stat;
    m_console->write_dir(".pwd");
