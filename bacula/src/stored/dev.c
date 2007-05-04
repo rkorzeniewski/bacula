@@ -2390,6 +2390,10 @@ void set_os_device_parameters(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
 
+   if (strcmp(dev->dev_name, "/dev/null") == 0) {
+      return;                            /* no use trying to set /dev/null */
+   }
+
 #if defined(HAVE_LINUX_OS) || defined(HAVE_WIN32)
    struct mtop mt_com;
 
