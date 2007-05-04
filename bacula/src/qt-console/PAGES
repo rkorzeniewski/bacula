@@ -1,0 +1,21 @@
+Each page should have the following in the constructor 
+/* this is the text identifying the page in the tree widget */
+m_name = "Restore";
+
+/* this sets values for the class based on the extern mainWin-> it sets
+   m_parent (the stacked widget),
+   m_console (from current console)
+   creates the page selector tree widget and sets it's name and inserts
+   itself in the double direction hashes */
+pgInitialize(parentwidgetitem); or
+pgInitialize(); which will have the director as parent in page selector
+
+/* is this window always present or can the user remove it */
+m_closeable = true;
+
+/* put the page in the stack widget */
+dockPage();
+/* bring the page to the top of the widget by "selecting" the tree widget 
+   item in the page selector */
+setCurrent();
+

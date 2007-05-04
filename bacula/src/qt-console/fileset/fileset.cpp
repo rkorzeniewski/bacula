@@ -196,10 +196,6 @@ void FileSet::consoleStatusFileSet()
    QString cmd("status fileset=");
    cmd += m_currentlyselected;
    consoleCommand(cmd);
-//   m_console->write_dir(cmd.toUtf8().data());
-//   m_console->displayToPrompt();
-   /* Bring this directors console to the front of the stack */
-//   mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(m_console));
 }
 
 /*

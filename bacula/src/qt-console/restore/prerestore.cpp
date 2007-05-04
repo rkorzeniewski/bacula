@@ -39,23 +39,39 @@
 #include "restore.h"
 
 
-prerestoreDialog::prerestoreDialog(Console *console)
+prerestorePage::prerestorePage(Console *console)
 {
-   m_console = console;               /* keep compiler quiet */
-   m_console->notify(false);
+   console->notify(false);
+   m_name = "Pre-Restore";
    setupUi(this);
+   QTreeWidgetItem *parent = mainWin->getFromHash(console);
+   if (!parent) {
+      /* ***FIXME*** */
+      printf("Error retrieving tree widget.");
+      return;
+   }
+   pgInitialize(parent);
+   m_closeable = true;
+
    jobCombo->addItems(console->job_list);
    filesetCombo->addItems(console->fileset_list);
    clientCombo->addItems(console->client_list);
    poolCombo->addItems(console->pool_list);
    storageCombo->addItems(console->storage_list);
+   //beforeDateTime->setDate(QDateTime::currentDateTime().toUTC().date());
+   beforeDateTime->setDateTime(QDateTime::currentDateTime());
+   beforeDateTime->setEnabled(false);
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
+   connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
+   connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
 
+   dockPage();
+   setCurrent();
    this->show();
 }
 
-void prerestoreDialog::accept()
+void prerestorePage::okButtonPushed()
 {
    QString cmd;
 
@@ -69,24 +85,26 @@ void prerestoreDialog::accept()
              .arg(poolCombo->currentText())
              .arg(storageCombo->currentText());
 
+   /* ***FIXME*** */
+   printf("preRestore command \"%s\"\n", cmd.toUtf8().data());
    m_console->write(cmd);
    m_console->display_text(cmd);
    /* Note, do not turn notifier back on here ... */
-   new restoreDialog(m_console);
-   delete this;
+   new restorePage(m_console);
+   closeStackPage();
 }
 
 
-void prerestoreDialog::reject()
+void prerestorePage::cancelButtonPushed()
 {
    mainWin->set_status("Canceled");
    this->hide();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
 }
 
 
-void prerestoreDialog::job_name_change(int index)
+void prerestorePage::job_name_change(int index)
 {
    job_defaults job_defs;
 

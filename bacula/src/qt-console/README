@@ -16,7 +16,7 @@ then to execute it
   ./bat
 
 The qmake command needs to be entered only if you add a new file, in
-which case, you should edit bat.pro and add the new filename
+which case, you should edit bat.pro.in and add the new filename
 in the appropriate place.  In running qmake, it will build a new 
 Makefile, and there after, you simply use "make". In fact, providing
 you edit bat.pro, doing a "make" will automatically call qmake to

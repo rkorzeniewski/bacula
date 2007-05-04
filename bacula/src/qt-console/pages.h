@@ -66,6 +66,7 @@ public:
    virtual void currentStackItem();
    void closeStackPage();
    Console *console() { return m_console; };
+   void setCurrent();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
@@ -77,7 +78,7 @@ protected:
    void consoleCommand(QString &);
    virtual void treeWidgetName(QString &);
    virtual void changeEvent(QEvent *event);
-   void placeConsoleOnTop();
+   void setConsoleCurrent();
    void setTitle();
    bool m_closeable;
    bool m_docked;

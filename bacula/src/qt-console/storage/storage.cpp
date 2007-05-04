@@ -39,6 +39,7 @@
 #include <QMenu>
 #include "bat.h"
 #include "storage.h"
+#include "label/label.h"
 #include "../mount/mount.h"
 
 Storage::Storage()
@@ -235,10 +236,14 @@ void Storage::consoleStatusStorage()
    cmd += m_currentStorage;
    consoleCommand(cmd);
 }
+
+/* Label Media populating current storage by default */
 void Storage::consoleLabelStorage()
 {
    new labelDialog(m_console, m_currentStorage);
 }
+
+/* Mount currently selected storage */
 void Storage::consoleMountStorage()
 {
    if (m_currentAutoChanger == 0){
@@ -247,11 +252,13 @@ void Storage::consoleMountStorage()
       cmd += m_currentStorage;
       consoleCommand(cmd);
    } else {
-      placeConsoleOnTop();
+      setConsoleCurrent();
       /* if this storage is an autochanger, lets ask for the slot */
       new mountDialog(m_console, m_currentStorage);
    }
 }
+
+/* Unmount Currently selected storage */
 void Storage::consoleUnMountStorage()
 {
    QString cmd("umount storage=");

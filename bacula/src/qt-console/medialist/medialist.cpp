@@ -263,6 +263,6 @@ void MediaList::purgeVolume()
  */
 void MediaList::relabelVolume()
 {
-   placeConsoleOnTop();
+   setConsoleCurrent();
    new relabelDialog(m_console, m_currentVolumeName);
 }
