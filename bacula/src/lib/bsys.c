@@ -348,7 +348,7 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result)
 #endif /* HAVE_READDIR_R */
 
 
-int bstrerror(int errnum, char *buf, size_t bufsiz)
+int b_strerror(int errnum, char *buf, size_t bufsiz)
 {
     static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
     int stat = 0;

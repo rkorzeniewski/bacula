@@ -285,6 +285,7 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
 {
    BFILE bfd;
 
+   Dmsg0(50, "=== digest_file\n");
    binit(&bfd);
 
    if (ff_pkt->statp.st_size > 0 || ff_pkt->type == FT_RAW
@@ -294,6 +295,7 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
          ff_pkt->ff_errno = errno;
          berrno be;
          be.set_errno(bfd.berrno);
+         Dmsg2(100, "Cannot open %s: ERR=%s\n", ff_pkt->fname, be.strerror());
          Jmsg(jcr, M_ERROR, 1, _("     Cannot open %s: ERR=%s.\n"),
                ff_pkt->fname, be.strerror());
          return 1;
@@ -336,6 +338,7 @@ int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
    char buf[DEFAULT_NETWORK_BUFFER_SIZE];
    int64_t n;
 
+   Dmsg0(50, "=== read_digest\n");
    while ((n=bread(bfd, buf, sizeof(buf))) > 0) {
       crypto_digest_update(digest, (uint8_t *)buf, n);
       jcr->JobBytes += n;
@@ -344,6 +347,7 @@ int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
    if (n < 0) {
       berrno be;
       be.set_errno(bfd->berrno);
+      Dmsg2(100, "Error reading file %s: ERR=%s\n", jcr->last_fname, be.strerror());
       Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"),
             jcr->last_fname, be.strerror());
       jcr->Errors++;

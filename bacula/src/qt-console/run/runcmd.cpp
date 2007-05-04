@@ -64,13 +64,13 @@ void runCmdDialog::fillRunDialog()
    item = m_console->msg();
    items = item.split("\n");
    label->setText(items[0]);
-   Dmsg1(000, "Title=%s\n", items[0].toUtf8().data());
+   Dmsg1(200, "Title=%s\n", items[0].toUtf8().data());
    items.removeFirst();               /* remove title */
    foreach(item, items) {
       rx.indexIn(item);
       val = rx.cap(1);
-      Dmsg1(000, "Item=%s\n", item.toUtf8().data());
-      Dmsg1(000, "Value=%s\n", val.toUtf8().data());
+      Dmsg1(200, "Item=%s\n", item.toUtf8().data());
+      Dmsg1(200, "Value=%s\n", val.toUtf8().data());
 
       if (item.startsWith("JobName:")) {
          jobCombo->addItem(val);

@@ -1,13 +1,7 @@
 /*
- *   Version $Id$
- *
- * Kern Sibbald, July MMIV
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,12 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Version $Id$
+ *
+ * Kern Sibbald, July MMIV
+ *
+ */
 
 /*
  * Extra bits set to interpret errno value differently from errno
  */
 #ifdef HAVE_WIN32
 #define b_errno_win32  (1<<29)        /* user reserved bit */
+#else
+#define b_errno_win32  0              /* On Unix/Linix system */
 #endif
 #define b_errno_exit   (1<<28)        /* child exited, exit code returned */
 #define b_errno_signal (1<<27)        /* child died, signal code returned */
@@ -61,8 +63,10 @@ class berrno : public SMARTALLOC {
 public:
    berrno(int pool=PM_EMSG);
    ~berrno();
-   const char *strerror();
-   const char *strerror(int errnum);
+   const char *strerror() { return bstrerror(); };
+   const char *bstrerror();
+   const char *strerror(int errnum) { return bstrerror(errnum); };
+   const char *bstrerror(int errnum);
    void set_errno(int errnum);
    int code() { return berrno_ & ~(b_errno_exit|b_errno_signal); }
    int code(int stat) { return stat & ~(b_errno_exit|b_errno_signal); }
@@ -83,10 +87,10 @@ inline berrno::~berrno()
    free_pool_memory(buf_);
 }
 
-inline const char *berrno::strerror(int errnum)
+inline const char *berrno::bstrerror(int errnum)
 {
    berrno_ = errnum;
-   return berrno::strerror();
+   return berrno::bstrerror();
 }
 
 

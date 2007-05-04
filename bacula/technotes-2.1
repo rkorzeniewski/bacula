@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+04May07
+kes  Change console Job name from *Console* to -Console- to eliminate
+     Win32 filename problems.  Put Win32 path separator when creating
+     Console file.  This fixes bug #846.
+kes  Change berrno::strerror() to berrno::bstrerror().  Not yet full
+     implemented.
+kes  Pass jcr to crypt_sign_decode because it creates a new SIGNATURE
+     structure.
+kes  Define b_errno_win32 on Linux to be zero so that it can be or'ed in
+     to force Win32 error message.
 03May07
 kes  First cut strip path. The data should be passed to the FD,
      but nothing is done with it yet.

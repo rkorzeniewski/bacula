@@ -1,20 +1,7 @@
 /*
- *  Bacula errno handler
- *
- *    berrno is a simplistic errno handler that works for
- *      Unix, Win32, and Bacula bpipes.
- *
- *    See berrno.h for how to use berrno.
- *
- *   Kern Sibbald, July MMIV
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -38,6 +25,19 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula errno handler
+ *
+ *    berrno is a simplistic errno handler that works for
+ *      Unix, Win32, and Bacula bpipes.
+ *
+ *    See berrno.h for how to use berrno.
+ *
+ *   Kern Sibbald, July MMIV
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 
@@ -47,7 +47,7 @@ extern int num_execvp_errors;
 extern int execvp_errors[];
 #endif
 
-const char *berrno::strerror()
+const char *berrno::bstrerror()
 {
 #ifdef HAVE_WIN32
    if (berrno_ & b_errno_win32) {
@@ -82,7 +82,7 @@ const char *berrno::strerror()
    }
 #endif
    /* Normal errno */
-   if (bstrerror(berrno_, buf_, 1024) < 0) {
+   if (b_strerror(berrno_, buf_, 1024) < 0) {
       return _("Invalid errno. No error message possible.");
    }
    return buf_;

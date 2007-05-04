@@ -604,7 +604,7 @@ void do_restore(JCR *jcr)
          }
 
          /* Save signature. */
-         if (extract && (sig = crypto_sign_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
+         if (extract && (sig = crypto_sign_decode(jcr, (uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
          }
          break;
@@ -786,6 +786,7 @@ static const char *zlib_strerror(int stat)
 static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) 
 {
    JCR *jcr = (JCR *)pkt;
+   Dmsg1(50, "do_file_digest jcr=%p\n", jcr);
    return (digest_file(jcr, ff_pkt, jcr->digest));
 }
 
@@ -816,6 +817,7 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
       err = crypto_sign_get_digest(sig, jcr->pki_keypair, &digest);
       switch (err) {
       case CRYPTO_ERROR_NONE:
+         Dmsg0(50, "== Got digest\n");
          /* Signature found, digest allocated */
          jcr->digest = digest;
 
@@ -832,14 +834,14 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
 
          /* Verify the signature */
          if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
-            Dmsg1(100, "Bad signature on %s\n", jcr->last_fname);
+            Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
             Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
                   jcr->last_fname, crypto_strerror(err));
             goto bail_out;
          }
 
          /* Valid signature */
-         Dmsg1(100, "Signature good on %s\n", jcr->last_fname);
+         Dmsg1(50, "Signature good on %s\n", jcr->last_fname);
          crypto_digest_free(digest);
          jcr->digest = NULL;
          return true;
@@ -859,7 +861,7 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
    }
 
    /* No signer */
-   Dmsg1(100, "Could not find a valid public key for signature on %s\n", jcr->last_fname);
+   Dmsg1(50, "Could not find a valid public key for signature on %s\n", jcr->last_fname);
 
 bail_out:
    if (digest) {

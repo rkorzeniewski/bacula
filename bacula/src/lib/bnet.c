@@ -628,7 +628,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
 
    if (!connected) {
       free_addresses(addr_list);
-      errno = save_errno;
+      errno = save_errno | b_errno_win32;
       return NULL;
    }
    /*
