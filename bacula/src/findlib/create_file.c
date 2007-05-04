@@ -238,6 +238,14 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             }
          } else if (S_ISSOCK(attr->statp.st_mode)) {
              Dmsg1(200, "Skipping restore of socket: %s\n", attr->ofname);
+#ifdef S_IFDOOR     // Solaris high speed RPC mechanism
+         } else if (S_ISDOOR(attr->statp.st_mode)) {
+             Dmsg1(200, "Skipping restore of door file: %s\n", attr->ofname);
+#endif
+#ifdef S_IFPORT     // Solaris event port for handling AIO
+         } else if (S_ISPORT(attr->statp.st_mode)) {
+             Dmsg1(200, "Skipping restore of event port file: %s\n", attr->ofname);
+#endif
          } else {
             Dmsg1(400, "Restore node: %s\n", attr->ofname);
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
