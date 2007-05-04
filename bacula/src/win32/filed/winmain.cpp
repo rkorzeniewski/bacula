@@ -116,8 +116,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    /* Build Unix style argc *argv[] */      
 
    /* Don't NULL command_args[0] !!! */
-   for (i=1;i<MAX_COMMAND_ARGS;i++)
+   for (i=1;i<MAX_COMMAND_ARGS;i++) {
       command_args[i] = NULL;
+   }
 
    char *pszArgs = bstrdup(szCmdLine);
    wordPtr = pszArgs;
@@ -231,7 +232,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
       return 1;
    }
-
    return BaculaAppMain();
 }
 

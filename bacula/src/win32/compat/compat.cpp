@@ -50,8 +50,8 @@
    conversion is called 3 times (lstat, attribs, open),
    by using the cache this is reduced to 1 time */
 
-static POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory (PM_FNAME);
-static POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory (PM_FNAME);
+static POOLMEM *g_pWin32ConvUTF8Cache = get_pool_memory(PM_FNAME);
+static POOLMEM *g_pWin32ConvUCS2Cache = get_pool_memory(PM_FNAME);
 static DWORD g_dwWin32ConvUTF8strlen = 0;
 static pthread_mutex_t Win32Convmutex = PTHREAD_MUTEX_INITIALIZER;
 

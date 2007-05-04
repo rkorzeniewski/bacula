@@ -90,8 +90,8 @@ VSSClient::VSSClient()
     m_bDuringRestore = false;
     m_bBackupIsInitialized = false;
     m_pVssObject = NULL;
-    m_pAlistWriterState = New (alist(10, not_owned_by_alist));
-    m_pAlistWriterInfoText = New (alist(10, owned_by_alist));
+    m_pAlistWriterState = New(alist(10, not_owned_by_alist));
+    m_pAlistWriterInfoText = New(alist(10, owned_by_alist));
     m_uidCurrentSnapshotSet = GUID_NULL;
     memset(m_wszUniqueVolumeName, 0, sizeof(m_wszUniqueVolumeName));
     memset(m_szShadowCopyName, 0, sizeof(m_szShadowCopyName));
@@ -108,8 +108,8 @@ VSSClient::~VSSClient()
    }
 
    DestroyWriterInfo();
-   delete (alist*) m_pAlistWriterState;
-   delete (alist*) m_pAlistWriterInfoText;
+   delete (alist*)m_pAlistWriterState;
+   delete (alist*)m_pAlistWriterInfoText;
 
    // Call CoUninitialize if the CoInitialize was performed successfully
    if (m_bCoInitializeCalled)
