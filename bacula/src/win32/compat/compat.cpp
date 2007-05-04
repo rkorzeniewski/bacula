@@ -1361,15 +1361,16 @@ win32_fputs(const char *string, FILE *stream)
       POOLMEM* pszBuf = get_pool_memory(PM_MESSAGE);
       pszBuf = check_pool_memory_size(pszBuf, dwChars+1);
 
-      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,(LPCWSTR) pwszBuf,-1,pszBuf,dwChars,NULL,NULL);
+      dwChars = p_WideCharToMultiByte(GetConsoleOutputCP(),0,(LPCWSTR)pwszBuf,-1,pszBuf,dwChars,NULL,NULL);
       free_pool_memory(pwszBuf);
 
       if (WriteConsoleA (hOut, pszBuf, dwChars-1, &dwCharsWritten, NULL)) {
          free_pool_memory(pszBuf);
          return dwCharsWritten;
       }
+      free_pool_memory(pszBuf);
    }
-
+   /* Fall back */
    return fputs(string, stream);
 }
 
