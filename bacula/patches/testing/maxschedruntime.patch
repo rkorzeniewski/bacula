@@ -1,0 +1,74 @@
+Index: src/dird/job.c
+===================================================================
+--- src/dird/job.c	(révision 4696)
++++ src/dird/job.c	(copie de travail)
+@@ -43,6 +43,7 @@
+ static void job_monitor_destructor(watchdog_t *self);
+ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr);
+ static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
++static bool job_check_maxschedruntime(JCR *control_jcr, JCR *jcr);
+ 
+ /* Imported subroutines */
+ extern void term_scheduler();
+@@ -459,7 +460,11 @@
+          set_jcr_job_status(jcr, JS_Canceled);
+          Jmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
+          cancel = true;
+-      }
++      /* check MaxSchedRunTime */ 
++      } else if (job_check_maxschedruntime(control_jcr, jcr)) {
++         set_jcr_job_status(jcr, JS_Canceled);
++         Jmsg(jcr, M_FATAL, 0, _("Max sched run time exceeded. Job canceled.\n"));
++         cancel = true;
+ 
+       if (cancel) {
+          Dmsg3(800, "Cancelling JCR %p jobid %d (%s)\n", jcr, jcr->JobId, jcr->Job);
+@@ -527,6 +533,24 @@
+ }
+ 
+ /*
++ * Check if MaxSchedRunTime has expired and if the job can be
++ *   canceled.
++ */
++static bool job_check_maxschedruntime(JCR *control_jcr, JCR *jcr)
++{
++   if (jcr->job->MaxSchedRunTime == 0 || job_canceled(jcr)) {
++      return false;
++   }
++   if ((watchdog_time - jcr->sched_time) < jcr->job->MaxSchedRunTime) {
++      Dmsg3(200, "Job %p (%s) with MaxSchedRunTime %d not expired\n",
++            jcr, jcr->Job, jcr->job->MaxSchedRunTime);
++      return false;
++   }
++
++   return true;
++}
++
++/*
+  * Get or create a Pool record with the given name.
+  * Returns: 0 on error
+  *          poolid if OK
+Index: src/dird/dird_conf.c
+===================================================================
+--- src/dird/dird_conf.c	(révision 4696)
++++ src/dird/dird_conf.c	(copie de travail)
+@@ -281,6 +281,7 @@
+    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
+    {"writeverifylist",store_dir, ITEM(res_job.WriteVerifyList), 0, 0, 0},
+    {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
++   {"maxschedruntime", store_time, ITEM(res_job.MaxSchedRunTime), 0, 0, 0},
+    {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
+    {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxWaitTime), 0, 0, 0},
+    {"incrementalmaxwaittime",  store_time, ITEM(res_job.IncMaxWaitTime), 0, 0, 0},
+Index: src/dird/dird_conf.h
+===================================================================
+--- src/dird/dird_conf.h	(révision 4696)
++++ src/dird/dird_conf.h	(copie de travail)
+@@ -371,6 +371,7 @@
+       char *WriteVerifyList;          /* List of changed files */
+    };
+    int   replace;                     /* How (overwrite, ..) */
++   utime_t MaxSchedRunTime;           /* max run time in seconds from Scheduled time*/
+    utime_t MaxRunTime;                /* max run time in seconds */
+    utime_t MaxWaitTime;               /* max blocking time in seconds */
+    utime_t FullMaxWaitTime;           /* Max Full job wait time */
