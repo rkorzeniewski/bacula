@@ -53,7 +53,6 @@ Storage::Storage()
    m_checkcurwidget = true;
    m_closeable = false;
    m_currentStorage = "";
-   setTitle();
 }
 
 Storage::~Storage()

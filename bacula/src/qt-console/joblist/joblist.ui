@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>621</width>
-    <height>460</height>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -19,13 +19,130 @@
    <property name="spacing" >
     <number>6</number>
    </property>
+   <item row="1" column="0" >
+    <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="limitCheckBox" >
+         <property name="text" >
+          <string>Record Limit</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="limitSpinBox" >
+         <property name="maximum" >
+          <number>10000</number>
+         </property>
+         <property name="minimum" >
+          <number>1</number>
+         </property>
+         <property name="singleStep" >
+          <number>25</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="daysCheckBox" >
+         <property name="text" >
+          <string>Days Limit</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="daysSpinBox" >
+         <property name="singleStep" >
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="clientsLabel" >
+         <property name="text" >
+          <string>Clients</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="clientsComboBox" />
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="volumeLabel" >
+         <property name="text" >
+          <string>Volume</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="volumeComboBox" />
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="refreshButton" >
+       <property name="maximumSize" >
+        <size>
+         <width>65</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text" >
+        <string>Refresh</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="0" column="0" >
     <widget class="QTableWidget" name="mp_tableWidget" />
    </item>
   </layout>
   <action name="actionRefreshJobList" >
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset>../../../../../../../:images/run.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Job List</string>
@@ -36,7 +153,7 @@
   </action>
   <action name="actionListJobid" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobid</string>
@@ -44,7 +161,7 @@
   </action>
   <action name="actionListFilesOnJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>List Files On Job</string>
@@ -52,7 +169,7 @@
   </action>
   <action name="actionListJobMedia" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobMedia</string>
@@ -60,7 +177,7 @@
   </action>
   <action name="actionListVolumes" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListVolumes</string>
@@ -68,7 +185,7 @@
   </action>
   <action name="actionLongListJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>LongListJob</string>
@@ -76,7 +193,7 @@
   </action>
   <action name="actionDeleteJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>DeleteJob</string>
@@ -84,7 +201,7 @@
   </action>
   <action name="actionPurgeFiles" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>PurgeFiles</string>

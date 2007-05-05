@@ -195,6 +195,7 @@ void Pages::pgInitialize(QTreeWidgetItem *parentTreeWidgetItem)
    treeWidgetName(name);
    item->setText(0, name);
    mainWin->hashInsert(item, this);
+   setTitle();
 }
 
 /*

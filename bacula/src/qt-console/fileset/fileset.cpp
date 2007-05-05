@@ -50,7 +50,6 @@ FileSet::FileSet()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
-   setTitle();
 }
 
 FileSet::~FileSet()
