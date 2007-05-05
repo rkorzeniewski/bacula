@@ -6,12 +6,10 @@ Possilbe: Turn run and label into docked pages. (remove button bar buttons??)
 
 Resolve issue of connection during restore selection.  Could go with preempt
 
-Add option to LIMIT the number of jobs shown in all jobs page for users with
-multiple hundreds to thousands of jobs.
-
 Where and bootstrap are confused in runjobs of restore.
 
 User preferences.  With log to stdout options.
+Have settings for defaults of limits on joblist
 
 Test restore and get anything not working, working.
   partially done.
@@ -20,9 +18,6 @@ Get restore into stack.
   Should the jobs dialog be turned into a page as well??
 
 Update README  describe bat.conf.example to bat.conf
-
-Create list of what does not work.
-From what I can tell, just the restore window on the left.
 
 Add numerous are you sure dialog boxes.  Like are you sure you want to
 delete/purge that volume.  Show a little of the documentation about what
@@ -106,9 +101,14 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Create list of what does not work.
+From what I can tell, just the restore window on the left.
+
+Add option to LIMIT the number of jobs shown in all jobs page for users with
+multiple hundreds to thousands of jobs.
+
 Play with includes to Make these compiles shorter.
   moved includes of of includes and into files only console.h should be long
-
 
 relabel storage=DDS3 oldvolume=ddsvol003 volume=dds3vol003 slot=3 pool=dds3_hope
 in label slot spinner, limit the upper to the value of slots for that storage.

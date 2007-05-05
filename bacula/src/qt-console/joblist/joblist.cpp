@@ -53,7 +53,12 @@ JobList::JobList(QString &mediaName, QString &clientname,
    m_closeable = false;
    m_checkCurrentWidget = true;
    createConnections();
-   setTitle();
+
+   /* Set Defaults for check and spin for limits */
+   limitCheckBox->setCheckState(Qt::Checked);
+   limitSpinBox->setValue(150);
+   daysCheckBox->setCheckState(Qt::Unchecked);
+   daysSpinBox->setValue(30);
 }
 
 /*
@@ -68,6 +73,34 @@ void JobList::populateTable()
    QString resultline;
    QBrush blackBrush(Qt::black);
 
+   /* Can't do this in constructor because not neccesarily conected in constructor */
+   if (!m_populated) {
+      clientsComboBox->addItem("");
+      clientsComboBox->addItems(m_console->client_list);
+      int clientIndex = clientsComboBox->findText(m_clientName, Qt::MatchExactly);
+      if (clientIndex != -1)
+         clientsComboBox->setCurrentIndex(clientIndex);
+
+      /* Not m_console->volume_list will query database */
+      QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
+      QStringList results, volumeList;
+      if (m_console->sql_cmd(query, results)) {
+         QString field;
+         QStringList fieldlist;
+         /* Iterate through the lines of results. */
+         foreach (QString resultline, results) {
+            fieldlist = resultline.split("\t");
+            volumeList.append(fieldlist[0]);
+         } /* foreach resultline */
+      } /* if results from query */
+      volumeComboBox->addItem("");
+      volumeComboBox->addItems(volumeList);
+      int volumeIndex = volumeComboBox->findText(m_mediaName, Qt::MatchExactly);
+      if (volumeIndex != -1) {
+         volumeComboBox->setCurrentIndex(volumeIndex);
+      }
+   }
+
    /* Set up query QString and header QStringList */
    QString query("");
    query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
@@ -77,15 +110,34 @@ void JobList::populateTable()
             " FROM Job, JobMedia, Media, Client"
             " WHERE JobMedia.JobId=Job.JobId and JobMedia.MediaId=Media.MediaId"
             " and Client.ClientId=Job.ClientId";
+   int volumeIndex = volumeComboBox->currentIndex();
+   if (volumeIndex != -1)
+      m_mediaName = volumeComboBox->itemText(volumeIndex);
    if (m_mediaName != "") {
-      query += " and Media.VolumeName='" + m_mediaName + "'";
+      query += " AND Media.VolumeName='" + m_mediaName + "'";
       m_closeable=true;
    }
+   int clientIndex = clientsComboBox->currentIndex();
+   if (clientIndex != -1)
+      m_clientName = clientsComboBox->itemText(clientIndex);
    if (m_clientName != "") {
-      query += " and Client.Name='" + m_clientName + "'";
+      query += " AND Client.Name='" + m_clientName + "'";
       m_closeable=true;
    }
-   query += " ORDER BY Job.Starttime";
+   /* If Limit check box For limit by days is checked  */
+   if (daysCheckBox->checkState() == Qt::Checked) {
+      QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
+      QString since = stamp.toString(Qt::ISODate);
+      query += " AND Job.Starttime>'" + since + "'";
+   }
+   /* Descending */
+   query += " ORDER BY Job.Starttime DESC";
+   /* If Limit check box for limit records returned is checked  */
+   if (limitCheckBox->checkState() == Qt::Checked) {
+      QString limit;
+      limit.setNum(limitSpinBox->value());
+      query += " LIMIT " + limit;
+   }
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  );
@@ -203,6 +255,7 @@ void JobList::createConnections()
     * page selector tree */
    connect(actionRefreshJobList, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
+   connect(refreshButton, SIGNAL(pressed()), this, SLOT(populateTable()));
    /* for the tableItemChanged to maintain m_currentJob */
    connect(mp_tableWidget, SIGNAL(
            currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),

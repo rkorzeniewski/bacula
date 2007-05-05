@@ -50,7 +50,6 @@ Clients::Clients()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
-   setTitle();
 }
 
 Clients::~Clients()
