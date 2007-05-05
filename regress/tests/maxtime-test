@@ -60,7 +60,8 @@ else
    rstat=1
 fi
 
-if grep -q -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' tmp/RUN_MAXTIME.log
+if grep -q -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' tmp/RUN_MAXTIME.log &&
+  ! grep -q -e 'NEVER start this' tmp/RUN_MAXTIME.log
 then
     [ "$debug" = 1 ] && echo MAXSTARTDELAY ok
 else

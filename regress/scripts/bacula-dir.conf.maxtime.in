@@ -70,7 +70,7 @@ Job {
   FileSet = FS_TESTJOB
   MaxStartDelay = 30sec
   Pool = PoolA
-  # TODO: il faut un when=
+  Runbeforejob = "/bin/echo NEVER start this"
 }
 
 Job {
