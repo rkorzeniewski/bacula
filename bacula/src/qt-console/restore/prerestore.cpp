@@ -86,7 +86,7 @@ void prerestorePage::okButtonPushed()
              .arg(storageCombo->currentText());
 
    /* ***FIXME*** */
-   printf("preRestore command \"%s\"\n", cmd.toUtf8().data());
+   //printf("preRestore command \"%s\"\n", cmd.toUtf8().data());
    m_console->write(cmd);
    m_console->display_text(cmd);
    /* Note, do not turn notifier back on here ... */
