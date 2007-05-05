@@ -19,7 +19,7 @@ Director {                            # define myself
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
   SubSysDirectory = "@subsysdir@"
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 1
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
   Messages = Standard
 }
@@ -50,7 +50,10 @@ FileSet {
    Options {
      read fifo = yes
    }
+   # wait 60s per fifo
    File=/tmp/fifo
+   File=/tmp/fifo2
+   File=/tmp/fifo3
  }
 }
 
@@ -65,8 +68,9 @@ Job {
   Name = "RUN_MAXSTARTDELAY"
   JobDefs = DefaultJob
   FileSet = FS_TESTJOB
-  MaxStartDelay = 1min
+  MaxStartDelay = 30sec
   Pool = PoolA
+  # TODO: il faut un when=
 }
 
 Job {
