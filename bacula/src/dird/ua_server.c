@@ -69,7 +69,7 @@ void start_UA_server(dlist *addrs)
 
    if ((status=pthread_create(&thid, NULL, connect_thread, (void *)myaddrs)) != 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), be.strerror(status));
+      Emsg1(M_ABORT, 0, _("Cannot create UA thread: %s\n"), be.bstrerror(status));
    }
    started = TRUE;
    return;

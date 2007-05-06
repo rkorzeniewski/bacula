@@ -59,7 +59,7 @@ void init_job_server(int max_workers)
 
    if ((stat = jobq_init(&job_queue, max_workers, job_thread)) != 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), be.strerror(stat));
+      Emsg1(M_ABORT, 0, _("Could not init job queue: ERR=%s\n"), be.bstrerror(stat));
    }
    wd = new_watchdog();
    wd->callback = job_monitor_watchdog;
@@ -91,7 +91,7 @@ JobId_t run_job(JCR *jcr)
       /* Queue the job to be run */
       if ((stat = jobq_add(&job_queue, jcr)) != 0) {
          berrno be;
-         Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), be.strerror(stat));
+         Jmsg(jcr, M_FATAL, 0, _("Could not add job queue: ERR=%s\n"), be.bstrerror(stat));
          return 0;
       }
       return jcr->JobId;
@@ -110,7 +110,7 @@ bool setup_job(JCR *jcr)
    /* Initialize termination condition variable */
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
       berrno be;
-      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.strerror(errstat));
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.bstrerror(errstat));
       goto bail_out;
    }
    jcr->term_wait_inited = true;

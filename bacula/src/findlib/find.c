@@ -1,15 +1,4 @@
 /*
- * Main routine for finding files on a file system.
- *  The heart of the work to find the files on the
- *    system is done in find_one.c. Here we have the
- *    higher level control as well as the matching
- *    routines for the new syntax Options resource.
- *
- *  Kern E. Sibbald, MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -36,6 +25,17 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Main routine for finding files on a file system.
+ *  The heart of the work to find the files on the
+ *    system is done in find_one.c. Here we have the
+ *    higher level control as well as the matching
+ *    routines for the new syntax Options resource.
+ *
+ *  Kern E. Sibbald, MM
+ *
+ *   Version $Id$
+ */
 
 
 #include "bacula.h"
@@ -411,10 +411,16 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
 int
 term_find_files(FF_PKT *ff)
 {
-  int hard_links;
+   int hard_links;
 
-  free_pool_memory(ff->sys_fname);
-  hard_links = term_find_one(ff);
-  free(ff);
-  return hard_links;
+   free_pool_memory(ff->sys_fname);
+   if (ff->fname_save) {
+      free_pool_memory(ff->fname_save);
+   }
+   if (ff->link_save) {
+      free_pool_memory(ff->link_save);
+   }
+   hard_links = term_find_one(ff);
+   free(ff);
+   return hard_links;
 }

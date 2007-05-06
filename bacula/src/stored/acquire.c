@@ -548,7 +548,7 @@ bool release_device(DCR *dcr)
       if (status != 0) {
          berrno be;
          Jmsg(jcr, M_ALERT, 0, _("3997 Bad alert command: %s: ERR=%s.\n"),
-              alert, be.strerror(status));
+              alert, be.bstrerror(status));
       }
 
       Dmsg1(400, "alert status=%d\n", status);

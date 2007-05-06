@@ -609,7 +609,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          if ((errstat = pthread_mutex_init(&res->res_changer.changer_mutex, NULL)) != 0) {
             berrno be;
             Jmsg1(NULL, M_ERROR_TERM, 0, _("Unable to init mutex: ERR=%s\n"), 
-                  be.strerror(errstat));
+                  be.bstrerror(errstat));
          }
          break;
       default:

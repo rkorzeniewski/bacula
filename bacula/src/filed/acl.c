@@ -183,9 +183,9 @@ int bacl_get(JCR *jcr, int acltype)
       }
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_to_text error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_to_text error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       acl_free(acl);
 #ifndef HAVE_OSF1_OS          /* BACL_ENOTSUP not defined for OSF1 */
    } else if (errno == BACL_ENOTSUP) {
@@ -212,7 +212,7 @@ int bacl_set(JCR *jcr, int acltype)
       }
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_delete_def_file error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       return -1;
    }
 
@@ -220,9 +220,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (acl == NULL) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_from_text error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_from_text error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
 
@@ -234,9 +234,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (acl_valid(acl) != 0) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("ac_valid error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_valid error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       acl_free(acl);
       return -1;
    }
@@ -249,9 +249,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (acl_set_file(jcr->last_fname, ostype, acl) != 0 && jcr->last_type != FT_LNK) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl_set_file error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl_set_file error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       acl_free(acl);
       return -1;
    }
@@ -283,9 +283,9 @@ int bacl_get(JCR *jcr, int acltype)
       }
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acltostr error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltostr error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
    return -1;
@@ -300,17 +300,17 @@ int bacl_set(JCR *jcr, int acltype)
    if (n <= 0) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("strtoacl error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
    if (strtoacl(jcr->acl_text, n, NACLENTRIES, acls, ACL_FILEOWNER, ACL_FILEGROUP) != n) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("strtoacl error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "strtoacl error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
    /*
@@ -320,9 +320,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (setacl(jcr->last_fname, n, acls) != 0 && jcr->last_type != FT_LNK) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("setacl error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "setacl error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
    return 0;
@@ -356,9 +356,9 @@ int bacl_get(JCR *jcr, int acltype)
       }
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acltotext error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acltotext error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
    }
    free(acls);
    return -1;
@@ -373,9 +373,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (!acls) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("aclfromtext error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "aclfromtext error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       return -1;
    }
    /*
@@ -385,9 +385,9 @@ int bacl_set(JCR *jcr, int acltype)
    if (acl(jcr->last_fname, SETACL, n, acls) == -1 && jcr->last_type != FT_LNK) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("acl(SETACL) error on file \"%s\": ERR=%s\n"),
-         jcr->last_fname, be.strerror());
+         jcr->last_fname, be.bstrerror());
       Dmsg3(100, "acl(SETACL) error acl=%s file=%s ERR=%s\n",  
-         jcr->acl_text, jcr->last_fname, be.strerror());
+         jcr->acl_text, jcr->last_fname, be.bstrerror());
       actuallyfree(acls);
       return -1;
    }

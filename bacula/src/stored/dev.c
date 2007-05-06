@@ -123,7 +123,7 @@ init_dev(JCR *jcr, DEVRES *device)
       if (stat(device->device_name, &statp) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to stat device %s: ERR=%s\n"), 
-            device->device_name, be.strerror());
+            device->device_name, be.bstrerror());
          return NULL;
       }
       if (S_ISDIR(statp.st_mode)) {
@@ -193,7 +193,7 @@ init_dev(JCR *jcr, DEVRES *device)
          berrno be;
          dev->dev_errno = errno;
          Jmsg2(jcr, M_ERROR_TERM, 0, _("Unable to stat mount point %s: ERR=%s\n"), 
-            device->mount_point, be.strerror());
+            device->mount_point, be.bstrerror());
       }
    }
    if (dev->is_dvd()) {
@@ -221,32 +221,32 @@ init_dev(JCR *jcr, DEVRES *device)
    if ((errstat = pthread_mutex_init(&dev->m_mutex, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_cond_init(&dev->wait_next_vol, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init cond variable: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
    if ((errstat = pthread_mutex_init(&dev->spool_mutex, NULL)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
 #ifdef xxx
    if ((errstat = rwl_init(&dev->lock)) != 0) {
       berrno be;
       dev->dev_errno = errstat;
-      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.strerror(errstat));
+      Mmsg1(dev->errmsg, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(errstat));
       Jmsg0(jcr, M_ERROR_TERM, 0, dev->errmsg);
    }
 #endif
@@ -379,7 +379,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
          berrno be;
          dev_errno = errno;
          Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
-              print_name(), omode, mode, errno, be.strerror());
+              print_name(), omode, mode, errno, be.bstrerror());
       } else {
          /* Tape open, now rewind it */
          Dmsg0(050, "Rewind after open\n");
@@ -392,7 +392,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
             ::close(m_fd);
             clear_opened();
             Dmsg2(100, "Rewind error on %s close: ERR=%s\n", print_name(),
-                  be.strerror(dev_errno));
+                  be.bstrerror(dev_errno));
             /* If we get busy, device is probably rewinding, try again */
             if (dev_errno != EBUSY) {
                break;                    /* error -- no medium */
@@ -405,7 +405,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
                berrno be;
                dev_errno = errno;
                Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
-                     print_name(), omode, mode, errno, be.strerror());
+                     print_name(), omode, mode, errno, be.bstrerror());
                break;
             }
             dev_errno = 0;
@@ -425,7 +425,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    if (!is_open()) {
       berrno be;
       Mmsg2(errmsg, _("Unable to open device %s: ERR=%s\n"),
-            print_name(), be.strerror(dev_errno));
+            print_name(), be.bstrerror(dev_errno));
       Dmsg1(100, "%s", errmsg);
    }
 
@@ -483,7 +483,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       berrno be;
       dev_errno = errno;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
-            be.strerror());
+            be.bstrerror());
       Dmsg1(29, "open failed: %s", errmsg);
       Emsg0(M_FATAL, 0, errmsg);
    } else {
@@ -597,7 +597,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          if (stat(part1_name.c_str(), &statp) < 0) {
             berrno be;
             Mmsg(errmsg, _("Unable to stat DVD part 1 file %s: ERR=%s\n"),
-               part1_name.c_str(), be.strerror());
+               part1_name.c_str(), be.bstrerror());
             Emsg0(M_FATAL, 0, errmsg);
             clear_opened();
             return;
@@ -651,7 +651,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    if ((m_fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
       berrno be;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
-            be.strerror());
+            be.bstrerror());
       // Should this be set if we try the create/open below
       dev_errno = EIO; /* Interpreted as no device present by acquire.c:acquire_device_for_read(). */
       Dmsg1(29, "open failed: %s", errmsg);
@@ -681,7 +681,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
-               be.strerror());
+               be.bstrerror());
          Dmsg1(29, "open failed: %s", errmsg);
          /* Use system close() */
          ::close(m_fd);
@@ -732,7 +732,7 @@ bool DEVICE::rewind(DCR *dcr)
             berrno be;
             clrerror(MTREW);
             if (i == max_rewind_wait) {
-               Dmsg1(200, "Rewind error, %s. retrying ...\n", be.strerror());
+               Dmsg1(200, "Rewind error, %s. retrying ...\n", be.bstrerror());
             }
             /*
              * This is a gross hack, because if the user has the
@@ -764,7 +764,7 @@ bool DEVICE::rewind(DCR *dcr)
             }
 #endif
             Mmsg2(errmsg, _("Rewind error on %s. ERR=%s.\n"),
-               print_name(), be.strerror());
+               print_name(), be.bstrerror());
             return false;
          }
          break;
@@ -774,7 +774,7 @@ bool DEVICE::rewind(DCR *dcr)
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          return false;
       }
    }
@@ -890,7 +890,7 @@ bool DEVICE::eod(DCR *dcr)
       dev_errno = errno;
       berrno be;
       Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
-             print_name(), be.strerror());
+             print_name(), be.bstrerror());
       return false;
    }
 #ifdef MTEOM
@@ -923,10 +923,10 @@ bool DEVICE::eod(DCR *dcr)
       if (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
          berrno be;
          clrerror(mt_com.mt_op);
-         Dmsg1(50, "ioctl error: %s\n", be.strerror());
+         Dmsg1(50, "ioctl error: %s\n", be.bstrerror());
          update_pos(dcr);
          Mmsg2(errmsg, _("ioctl MTEOM error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          return false;
       }
 
@@ -935,7 +935,7 @@ bool DEVICE::eod(DCR *dcr)
          berrno be;
          clrerror(-1);
          Mmsg2(errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          return false;
       }
       Dmsg1(100, "EOD file=%d\n", os_file);
@@ -1025,9 +1025,9 @@ bool DEVICE::update_pos(DCR *dcr)
       if (pos < 0) {
          berrno be;
          dev_errno = errno;
-         Pmsg1(000, _("Seek error: ERR=%s\n"), be.strerror());
+         Pmsg1(000, _("Seek error: ERR=%s\n"), be.bstrerror());
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          ok = false;
       } else {
          file_addr = pos;
@@ -1068,7 +1068,7 @@ uint32_t status_dev(DEVICE *dev)
          berrno be;
          dev->dev_errno = errno;
          Mmsg2(dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
-            dev->print_name(), be.strerror());
+            dev->print_name(), be.bstrerror());
          return 0;
       }
       Pmsg0(-20, _(" Device status:"));
@@ -1182,7 +1182,7 @@ bool load_dev(DEVICE *dev)
    berrno be;
    dev->dev_errno = ENOTTY;           /* function not available */
    Mmsg2(dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-         dev->print_name(), be.strerror());
+         dev->print_name(), be.bstrerror());
    return false;
 #else
 
@@ -1195,7 +1195,7 @@ bool load_dev(DEVICE *dev)
       berrno be;
       dev->dev_errno = errno;
       Mmsg2(dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
-         dev->print_name(), be.strerror());
+         dev->print_name(), be.bstrerror());
       return false;
    }
    return true;
@@ -1226,7 +1226,7 @@ bool DEVICE::offline()
       berrno be;
       dev_errno = errno;
       Mmsg2(errmsg, _("ioctl MTOFFL error on %s. ERR=%s.\n"),
-         print_name(), be.strerror());
+         print_name(), be.bstrerror());
       return false;
    }
    Dmsg1(100, "Offlined device %s\n", print_name());
@@ -1303,7 +1303,7 @@ bool DEVICE::fsf(int num)
          Dmsg0(200, "Set ST_EOT\n");
          clrerror(MTFSF);
          Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          Dmsg1(200, "%s", errmsg);
          return false;
       }
@@ -1347,9 +1347,9 @@ bool DEVICE::fsf(int num)
                set_eot();
                clrerror(-1);
                Dmsg2(100, "Set ST_EOT read errno=%d. ERR=%s\n", dev_errno,
-                  be.strerror());
+                  be.bstrerror());
                Mmsg2(errmsg, _("read error on %s. ERR=%s.\n"),
-                  print_name(), be.strerror());
+                  print_name(), be.bstrerror());
                Dmsg1(100, "%s", errmsg);
                break;
             }
@@ -1378,7 +1378,7 @@ bool DEVICE::fsf(int num)
             Dmsg0(100, "Set ST_EOT\n");
             clrerror(MTFSF);
             Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-               print_name(), be.strerror());
+               print_name(), be.bstrerror());
             Dmsg0(100, "Got < 0 for MTFSF\n");
             Dmsg1(100, "%s", errmsg);
          } else {
@@ -1450,7 +1450,7 @@ bool DEVICE::bsf(int num)
       berrno be;
       clrerror(MTBSF);
       Mmsg2(errmsg, _("ioctl MTBSF error on %s. ERR=%s.\n"),
-         print_name(), be.strerror());
+         print_name(), be.bstrerror());
    }
    return stat == 0;
 }
@@ -1493,7 +1493,7 @@ bool DEVICE::fsr(int num)
       berrno be;
       struct mtget mt_stat;
       clrerror(MTFSR);
-      Dmsg1(100, "FSF fail: ERR=%s\n", be.strerror());
+      Dmsg1(100, "FSF fail: ERR=%s\n", be.bstrerror());
       if (dev_get_os_pos(this, &mt_stat)) {
          Dmsg4(100, "Adjust from %d:%d to %d:%d\n", file,
             block_num, mt_stat.mt_fileno, mt_stat.mt_blkno);
@@ -1507,7 +1507,7 @@ bool DEVICE::fsr(int num)
          }
       }
       Mmsg3(errmsg, _("ioctl MTFSR %d error on %s. ERR=%s.\n"),
-         num, print_name(), be.strerror());
+         num, print_name(), be.bstrerror());
    }
    return stat == 0;
 }
@@ -1549,7 +1549,7 @@ bool DEVICE::bsr(int num)
       berrno be;
       clrerror(MTBSR);
       Mmsg2(errmsg, _("ioctl MTBSR error on %s. ERR=%s.\n"),
-         print_name(), be.strerror());
+         print_name(), be.bstrerror());
    }
    return stat == 0;
 }
@@ -1596,7 +1596,7 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
          return false;
       }
       file = rfile;
@@ -1639,7 +1639,7 @@ bool DEVICE::reposition(DCR *dcr, uint32_t rfile, uint32_t rblock)
             berrno be;
             dev_errno = errno;
             Dmsg2(30, "Failed to find requested block on %s: ERR=%s",
-               print_name(), be.strerror());
+               print_name(), be.bstrerror());
             return false;
          }
          Dmsg2(300, "moving forward wanted_blk=%d at_blk=%d\n", rblock, block_num);
@@ -1692,7 +1692,7 @@ bool DEVICE::weof(int num)
       clrerror(MTWEOF);
       if (stat == -1) {
          Mmsg2(errmsg, _("ioctl MTWEOF error on %s. ERR=%s.\n"),
-            print_name(), be.strerror());
+            print_name(), be.bstrerror());
        }
    }
    return stat == 0;
@@ -1825,7 +1825,7 @@ void DEVICE::clrerror(int func)
    /* Read and clear SCSI error status */
    union mterrstat mt_errstat;
    Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev_errno,
-      be.strerror(dev_errno));
+      be.bstrerror(dev_errno));
    tape_ioctl(m_fd, MTIOCERRSTAT, (char *)&mt_errstat);
 }
 #endif
@@ -1956,7 +1956,7 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
       if (ftruncate(m_fd, 0) != 0) {
          berrno be;
          Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
-               print_name(), be.strerror());
+               print_name(), be.bstrerror());
          return false;
       }
       return true;
@@ -2053,9 +2053,9 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       if (status != 0) {
          berrno be;
          Dmsg5(40, "Device %s cannot be %smounted. stat=%d result=%s ERR=%s\n", print_name(),
-              (mount ? "" : "un"), status, results, be.strerror(status));
+              (mount ? "" : "un"), status, results, be.bstrerror(status));
          Mmsg(errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
-              print_name(), (mount ? "" : "un"), be.strerror(status));
+              print_name(), (mount ? "" : "un"), be.bstrerror(status));
       } else {
          Dmsg4(40, "Device %s cannot be %smounted. stat=%d ERR=%s\n", print_name(),
               (mount ? "" : "un"), status, results);
@@ -2080,7 +2080,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
          berrno be;
          dev_errno = errno;
          Dmsg3(29, "do_mount: failed to open dir %s (dev=%s), ERR=%s\n", 
-               device->mount_point, print_name(), be.strerror());
+               device->mount_point, print_name(), be.bstrerror());
          goto get_out;
       }
       
@@ -2468,7 +2468,7 @@ void set_os_device_parameters(DCR *dcr)
       berrno be;
       dev->dev_errno = errno;         /* save errno */
       Mmsg2(dev->errmsg, _("Unable to set eotmodel on device %s: ERR=%s\n"),
-            dev->print_name(), be.strerror(dev->dev_errno));
+            dev->print_name(), be.bstrerror(dev->dev_errno));
       Jmsg(dcr->jcr, M_FATAL, 0, dev->errmsg);
    }
 #endif

@@ -245,7 +245,7 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    if (!fd) {
       berrno be;
       ua->error_msg(_("Unable to create bootstrap file %s. ERR=%s\n"),
-         fname.c_str(), be.strerror());
+         fname.c_str(), be.bstrerror());
       goto bail_out;
    }
    /* Write them to file */

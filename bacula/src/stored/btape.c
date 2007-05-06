@@ -749,13 +749,13 @@ static int re_read_block_test()
    Pmsg0(0, _("Backspace record OK.\n"));
    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
       berrno be;
-      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.strerror(dev->dev_errno));
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.bstrerror(dev->dev_errno));
       goto bail_out;
    }
    memset(rec->data, 0, rec->data_len);
    if (!read_record_from_block(dcr, block, rec)) {
       berrno be;
-      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.strerror(dev->dev_errno));
+      Pmsg1(0, _("Read block failed! ERR=%s\n"), be.bstrerror(dev->dev_errno));
       goto bail_out;
    }
    for (int i=0; i<len; i++) {
@@ -861,13 +861,13 @@ read_again:
                goto read_again;
             }
          }
-         Pmsg2(0, _("Read block %d failed! ERR=%s\n"), i, be.strerror(dev->dev_errno));
+         Pmsg2(0, _("Read block %d failed! ERR=%s\n"), i, be.bstrerror(dev->dev_errno));
          goto bail_out;
       }
       memset(rec->data, 0, rec->data_len);
       if (!read_record_from_block(dcr, block, rec)) {
          berrno be;
-         Pmsg2(0, _("Read record failed. Block %d! ERR=%s\n"), i, be.strerror(dev->dev_errno));
+         Pmsg2(0, _("Read record failed. Block %d! ERR=%s\n"), i, be.bstrerror(dev->dev_errno));
          goto bail_out;
       }
       p = (int *)rec->data;
@@ -1017,7 +1017,7 @@ read_again:
             }
          }
          Pmsg4(0, _("Read block %d failed! file=%d blk=%d. ERR=%s\n\n"),
-            recno, file, blk, be.strerror(dev->dev_errno));
+            recno, file, blk, be.bstrerror(dev->dev_errno));
          Pmsg0(0, _("This may be because the tape drive block size is not\n"
                     " set to variable blocking as normally used by Bacula.\n"
                     " Please see the Tape Testing chapter in the manual and \n"
@@ -1034,7 +1034,7 @@ read_again:
       memset(rec->data, 0, rec->data_len);
       if (!read_record_from_block(dcr, block, rec)) {
          berrno be;
-         Pmsg1(0, _("Read record failed! ERR=%s\n"), be.strerror(dev->dev_errno));
+         Pmsg1(0, _("Read record failed! ERR=%s\n"), be.bstrerror(dev->dev_errno));
          goto bail_out;
       }
       p = (int *)rec->data;
@@ -1168,7 +1168,7 @@ try_again:
    } else {
       berrno be;
       Pmsg1(-1, _("3991 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3991 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
+      Pmsg2(-1, _("3991 result=\"%s\": ERR=%s\n"), results, be.bstrerror(status));
       goto bail_out;
    }
    if (loaded) {
@@ -1190,7 +1190,7 @@ try_again:
       if (status != 0) {
          berrno be;
          Pmsg1(-1, _("3992 Bad autochanger command: %s\n"), changer);
-         Pmsg2(-1, _("3992 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
+         Pmsg2(-1, _("3992 result=\"%s\": ERR=%s\n"), results, be.bstrerror(status));
       }
    }
 
@@ -1213,7 +1213,7 @@ try_again:
    } else {
       berrno be;
       Pmsg1(-1, _("3993 Bad autochanger command: %s\n"), changer);
-      Pmsg2(-1, _("3993 result=\"%s\": ERR=%s\n"), results, be.strerror(status));
+      Pmsg2(-1, _("3993 result=\"%s\": ERR=%s\n"), results, be.bstrerror(status));
       goto bail_out;
    }
 
@@ -1602,7 +1602,7 @@ static void rrcmd()
    }
    berrno be;
    Pmsg3(0, _("Read of %d bytes gives stat=%d. ERR=%s\n"),
-      len, stat, be.strerror());
+      len, stat, be.bstrerror());
    free(buf);
 }
 
@@ -1635,7 +1635,7 @@ static void scancmd()
          berrno be;
          dev->clrerror(-1);
          Mmsg2(dev->errmsg, _("read error on %s. ERR=%s.\n"),
-            dev->dev_name, be.strerror());
+            dev->dev_name, be.bstrerror());
          Pmsg2(0, _("Bad status from read %d. ERR=%s\n"), stat, dev->bstrerror());
          if (blocks > 0) {
             if (blocks==1) {
@@ -2047,7 +2047,7 @@ static void fillcmd()
    } else {
       berrno be;
       Pmsg2(-1, _("Could not create state file: %s ERR=%s\n"), buf,
-                 be.strerror());
+                 be.bstrerror());
    }
 
    now = time(NULL);
@@ -2104,7 +2104,7 @@ static void unfillcmd()
    } else {
       berrno be;
       Pmsg2(-1, _("\nCould not find the state file: %s ERR=%s\n"
-             "You must redo the fill command.\n"), buf, be.strerror());
+             "You must redo the fill command.\n"), buf, be.bstrerror());
       return;
    }
    do_unfill();
@@ -2518,7 +2518,7 @@ static void rawfill_cmd()
    printf("\n");
    berrno be;
    printf(_("Write failed at block %u. stat=%d ERR=%s\n"), block_num, stat,
-      be.strerror(my_errno));
+      be.bstrerror(my_errno));
    weofcmd();
 }
 

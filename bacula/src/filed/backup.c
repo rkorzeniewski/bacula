@@ -40,6 +40,8 @@
 
 /* Forward referenced functions */
 static int save_file(FF_PKT *ff_pkt, void *pkt, bool top_level);
+static void strip_path(FF_PKT *ff_pkt);
+static void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
 static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
@@ -290,21 +292,21 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    case FT_NOACCESS: {
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname,
-         be.strerror(ff_pkt->ff_errno));
+         be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname,
-         be.strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), 
+           ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
       Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname,
-         be.strerror(ff_pkt->ff_errno));
+         be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
@@ -317,13 +319,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       return 1;
    case FT_NOOPEN: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname,
-         be.strerror(ff_pkt->ff_errno));
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), 
+           ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    default:
-      Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), ff_pkt->type, ff_pkt->fname);
+      Jmsg(jcr, M_NOTSAVED, 0,  _("     Unknown file type %d; not saved: %s\n"), 
+           ff_pkt->type, ff_pkt->fname);
       jcr->Errors++;
       return 1;
    }
@@ -450,7 +453,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          ff_pkt->ff_errno = errno;
          berrno be;
          Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
-              be.strerror());
+              be.bstrerror());
          jcr->Errors++;
          if (tid) {
             stop_thread_timer(tid);
@@ -486,8 +489,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
             ff_pkt->ff_errno = errno;
             berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), ff_pkt->fname,
-                  be.strerror());
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), 
+                 ff_pkt->fname, be.bstrerror());
             jcr->Errors++;
             if (is_bopen(&ff_pkt->bfd)) {
                bclose(&ff_pkt->bfd);
@@ -896,7 +899,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
    if (sd->msglen < 0) {                 /* error */
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Read error on file %s. ERR=%s\n"),
-         ff_pkt->fname, be.strerror(ff_pkt->bfd.berrno));
+         ff_pkt->fname, be.bstrerror(ff_pkt->bfd.berrno));
       if (jcr->Errors++ > 1000) {       /* insanity check */
          Jmsg(jcr, M_FATAL, 0, _("Too many errors.\n"));
       }
@@ -1016,6 +1019,7 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
    return true;
 #endif
 
+   Dmsg1(300, "encode_and_send_attrs fname=%s\n", ff_pkt->fname);
    /* Find what data stream we will use, then encode the attributes */
    if ((data_stream = select_data_stream(ff_pkt)) == STREAM_NONE) {
       /* This should not happen */
@@ -1058,6 +1062,7 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
+   strip_path(ff_pkt);
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
@@ -1071,6 +1076,7 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
       stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
    }
+   unstrip_path(ff_pkt);
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
@@ -1080,4 +1086,88 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
    }
    bnet_sig(sd, BNET_EOD);            /* indicate end of attributes data */
    return true;
+}
+
+/* 
+ * Do in place strip of path
+ */
+static bool do_strip(int count, char *in)
+{
+   char *out = in;
+   int stripped;
+   int numsep = 0;
+
+   /* Copy to first path separator -- Win32 might have c: ... */
+   while (*in && !IsPathSeparator(*in)) {    
+      *out++ = *in++;
+   }
+   *out++ = *in++;
+   numsep++;                     /* one separator seen */
+   for (stripped=0; stripped<count && *in; stripped++) {
+      while (*in && !IsPathSeparator(*in)) {
+         in++;                   /* skip chars */
+      }
+      if (*in) {
+         numsep++;               /* count separators seen */
+         in++;                   /* skip separator */
+      }
+   }
+   /* Copy to end */
+   while (*in) {                /* copy to end */
+      if (IsPathSeparator(*in)) {
+         numsep++;
+      }
+      *out++ = *in++;
+   }
+   *out = 0;
+   Dmsg4(500, "stripped=%d count=%d numsep=%d sep>count=%d\n", 
+         stripped, count, numsep, numsep>count);
+   return stripped==count && numsep>count;
+}
+
+/*
+ * If requested strip leading components of the path
+ */
+static void strip_path(FF_PKT *ff_pkt)
+{
+   if (!(ff_pkt->flags & FO_STRIPPATH) || ff_pkt->strip_path <= 0) {
+      Dmsg1(200, "No strip for %s\n", ff_pkt->fname);
+      return;
+   }
+   if (!ff_pkt->fname_save) {
+     ff_pkt->fname_save = get_pool_memory(PM_FNAME); 
+     ff_pkt->link_save = get_pool_memory(PM_FNAME);
+   }
+   pm_strcpy(ff_pkt->fname_save, ff_pkt->fname);
+
+   /* 
+    * Strip path.  If it doesn't succeed put it back.  If
+    *  it does, and there is a different link string,
+    *  attempt to strip the link. If it fails, but them
+    *  both back.
+    * I.e. if either stripping fails don't strip anything.
+    */
+   if (do_strip(ff_pkt->strip_path, ff_pkt->fname)) {
+      if (ff_pkt->fname != ff_pkt->link) {
+         pm_strcpy(ff_pkt->link_save, ff_pkt->link);
+         if (!do_strip(ff_pkt->strip_path, ff_pkt->link)) {
+            strcpy(ff_pkt->link, ff_pkt->link_save);
+            strcpy(ff_pkt->fname, ff_pkt->fname_save);
+         }
+      }
+   } else {
+      strcpy(ff_pkt->fname, ff_pkt->fname_save);
+   } 
+   Dmsg2(200, "fname=%s stripped=%s\n", ff_pkt->fname_save, ff_pkt->fname);
+}
+
+static void unstrip_path(FF_PKT *ff_pkt)
+{
+   if (!(ff_pkt->flags & FO_STRIPPATH) || ff_pkt->strip_path <= 0) {
+      return;
+   }
+   strcpy(ff_pkt->fname, ff_pkt->fname_save);
+   if (ff_pkt->fname != ff_pkt->link) {
+      strcpy(ff_pkt->link, ff_pkt->link_save);
+   }
 }

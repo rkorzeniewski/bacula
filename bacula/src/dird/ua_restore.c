@@ -813,7 +813,7 @@ static void insert_one_file_or_dir(UAContext *ua, RESTORE_CTX *rx, char *date, b
       if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
          ua->error_msg(_("Cannot open file %s: ERR=%s\n"),
-            p, be.strerror());
+            p, be.bstrerror());
          break;
       }
       while (fgets(file, sizeof(file), ffd)) {

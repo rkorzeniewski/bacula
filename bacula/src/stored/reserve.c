@@ -86,7 +86,7 @@ void init_reservations_lock()
    if ((errstat=rwl_init(&reservation_lock)) != 0) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Unable to initialize reservation lock. ERR=%s\n"),
-            be.strerror(errstat));
+            be.bstrerror(errstat));
    }
 
 }
@@ -106,7 +106,7 @@ void _lock_reservations()
    if ((errstat=rwl_writelock(&reservation_lock)) != 0) {
       berrno be;
       Emsg2(M_ABORT, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 
@@ -117,7 +117,7 @@ void _unlock_reservations()
    if ((errstat=rwl_writeunlock(&reservation_lock)) != 0) {
       berrno be;
       Emsg2(M_ABORT, 0, "rwl_writeunlock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 

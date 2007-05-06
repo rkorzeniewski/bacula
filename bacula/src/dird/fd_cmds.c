@@ -352,7 +352,7 @@ static bool send_fileset(JCR *jcr)
                if (!bpipe) {
                   berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-                     p, be.strerror());
+                     p, be.bstrerror());
                   goto bail_out;
                }
                bstrncpy(buf, "F ", sizeof(buf));
@@ -369,7 +369,7 @@ static bool send_fileset(JCR *jcr)
                if ((stat=close_bpipe(bpipe)) != 0) {
                   berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. ERR=%s\n"),
-                     p, be.strerror(stat));
+                     p, be.bstrerror(stat));
                   goto bail_out;
                }
                break;
@@ -378,7 +378,7 @@ static bool send_fileset(JCR *jcr)
                if ((ffd = fopen(p, "rb")) == NULL) {
                   berrno be;
                   Jmsg(jcr, M_FATAL, 0, _("Cannot open included file: %s. ERR=%s\n"),
-                     p, be.strerror());
+                     p, be.bstrerror());
                   goto bail_out;
                }
                bstrncpy(buf, "F ", sizeof(buf));
@@ -473,7 +473,7 @@ bool send_bootstrap_file(JCR *jcr, BSOCK *sock)
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
-         jcr->RestoreBootstrap, be.strerror());
+         jcr->RestoreBootstrap, be.bstrerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
    }

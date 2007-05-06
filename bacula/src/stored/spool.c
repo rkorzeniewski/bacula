@@ -168,7 +168,7 @@ static bool open_data_spool_file(DCR *dcr)
    } else {
       berrno be;
       Jmsg(dcr->jcr, M_FATAL, 0, _("Open data spool file %s failed: ERR=%s\n"), name,
-           be.strerror());
+           be.bstrerror());
       free_pool_memory(name);
       return false;
    }
@@ -306,7 +306,7 @@ static bool despool_data(DCR *dcr, bool commit)
    if (ftruncate(rdcr->spool_fd, 0) != 0) {
       berrno be;
       Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
-         be.strerror());
+         be.bstrerror());
       /* Note, try continuing despite ftruncate problem */
    }
 
@@ -361,7 +361,7 @@ static int read_block_from_spool_file(DCR *dcr)
       if (stat == -1) {
          berrno be;
          Jmsg(dcr->jcr, M_FATAL, 0, _("Spool header read error. ERR=%s\n"),
-              be.strerror());
+              be.bstrerror());
       } else {
          Pmsg2(000, _("Spool read error. Wanted %u bytes, got %d\n"), rlen, stat);
          Jmsg2(dcr->jcr, M_FATAL, 0, _("Spool header read error. Wanted %u bytes, got %d\n"), rlen, stat);
@@ -476,7 +476,7 @@ static bool write_spool_header(DCR *dcr)
       if (stat == -1) {
          berrno be;
          Jmsg(dcr->jcr, M_FATAL, 0, _("Error writing header to spool file. ERR=%s\n"),
-              be.strerror());
+              be.bstrerror());
       }
       if (stat != (ssize_t)sizeof(hdr)) {
          /* If we wrote something, truncate it, then despool */
@@ -489,7 +489,7 @@ static bool write_spool_header(DCR *dcr)
             if (ftruncate(dcr->spool_fd, pos - stat) != 0) {
                berrno be;
                Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
-                  be.strerror());
+                  be.bstrerror());
               /* Note, try continuing despite ftruncate problem */
             }
          }
@@ -516,7 +516,7 @@ static bool write_spool_data(DCR *dcr)
       if (stat == -1) {
          berrno be;
          Jmsg(dcr->jcr, M_FATAL, 0, _("Error writing data to spool file. ERR=%s\n"),
-              be.strerror());
+              be.bstrerror());
       }
       if (stat != (ssize_t)block->binbuf) {
          /*
@@ -531,7 +531,7 @@ static bool write_spool_data(DCR *dcr)
             if (ftruncate(dcr->spool_fd, pos - stat - sizeof(spool_hdr)) != 0) {
                berrno be;
                Jmsg(dcr->jcr, M_ERROR, 0, _("Ftruncate spool file failed: ERR=%s\n"),
-                  be.strerror());
+                  be.bstrerror());
                /* Note, try continuing despite ftruncate problem */
             }
          }
@@ -602,14 +602,14 @@ bool commit_attribute_spool(JCR *jcr)
       if (fseeko(jcr->dir_bsock->spool_fd, 0, SEEK_END) != 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
-              be.strerror());
+              be.bstrerror());
          goto bail_out;
       }
       size = ftello(jcr->dir_bsock->spool_fd);
       if (size < 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
-              be.strerror());
+              be.bstrerror());
          goto bail_out;
       }
       P(mutex);
@@ -646,7 +646,7 @@ bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
    if (!bs->spool_fd) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name,
-           be.strerror());
+           be.bstrerror());
       free_pool_memory(name);
       return false;
    }

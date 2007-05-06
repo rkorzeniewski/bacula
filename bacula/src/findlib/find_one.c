@@ -84,11 +84,42 @@ static inline int LINKHASH(const struct stat &info)
     return hash & LINK_HASHTABLE_MASK;
 }
 
+/*
+ * Create a new directory Find File packet, but copy
+ *   some of the essential info from the current packet.
+ *   However, be careful to zero out the rest of the 
+ *   packet.
+ */
+static FF_PKT *new_dir_ff_pkt(FF_PKT *ff_pkt)
+{
+   FF_PKT *dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
+   memcpy(dir_ff_pkt, ff_pkt, sizeof(FF_PKT));
+   dir_ff_pkt->fname = bstrdup(ff_pkt->fname);
+   dir_ff_pkt->link = bstrdup(ff_pkt->link);
+   dir_ff_pkt->sys_fname = get_pool_memory(PM_FNAME);
+   dir_ff_pkt->included_files_list = NULL;
+   dir_ff_pkt->excluded_files_list = NULL;
+   dir_ff_pkt->excluded_paths_list = NULL;
+   dir_ff_pkt->linkhash = NULL;
+   dir_ff_pkt->fname_save = NULL;
+   dir_ff_pkt->link_save = NULL;
+   return dir_ff_pkt;
+}
+
+/*
+ * Free the temp directory ff_pkt
+ */
 static void free_dir_ff_pkt(FF_PKT *dir_ff_pkt)
 {
    free(dir_ff_pkt->fname);
    free(dir_ff_pkt->link);
    free_pool_memory(dir_ff_pkt->sys_fname);
+   if (dir_ff_pkt->fname_save) {
+      free_pool_memory(dir_ff_pkt->fname_save);
+   }
+   if (dir_ff_pkt->link_save) {
+      free_pool_memory(dir_ff_pkt->link_save);
+   }
    free(dir_ff_pkt);
 }
 
@@ -332,14 +363,6 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
    }
 #endif
 
-/* ***FIXME*** implement this */
-#if xxxxxxx
-   /* See if we are trying to dump the archive.  */
-   if (ar_dev && ff_pkt->statp.st_dev == ar_dev && ff_pkt->statp.st_ino == ar_ino) {
-       ff_pkt->type = FT_ISARCH;
-       return handle_file(ff_pkt, pkt, top_level);
-   }
-#endif
    ff_pkt->LinkFI = 0;
    /*
     * Handle hard linked files
@@ -515,15 +538,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        *   be reset after all the files have been restored.
        */
       Dmsg1(300, "Create temp ff packet for dir: %s\n", ff_pkt->fname);
-      FF_PKT *dir_ff_pkt = (FF_PKT *)bmalloc(sizeof(FF_PKT));
-      memcpy(dir_ff_pkt, ff_pkt, sizeof(FF_PKT));
-      dir_ff_pkt->fname = bstrdup(ff_pkt->fname);
-      dir_ff_pkt->link = bstrdup(ff_pkt->link);
-      dir_ff_pkt->sys_fname = get_pool_memory(PM_FNAME);
-      dir_ff_pkt->included_files_list = NULL;
-      dir_ff_pkt->excluded_files_list = NULL;
-      dir_ff_pkt->excluded_paths_list = NULL;
-      dir_ff_pkt->linkhash = NULL;
+      FF_PKT *dir_ff_pkt = new_dir_ff_pkt(ff_pkt);
 
       /*
        * Do not descend into subdirectories (recurse) if the
