@@ -234,7 +234,7 @@ void Pages::consoleCommand(QString &command)
 void Pages::changeEvent(QEvent *event)
 {
    if ((event->type() ==  QEvent::ActivationChange) && (isActiveWindow())) {
-			setCurrent();
+      setCurrent();
    }
 }
 
