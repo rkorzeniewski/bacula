@@ -721,7 +721,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
    if (is_bnet_error(fd)) {
       berrno be;
       Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
-                        n, be.strerror());
+                        n, be.bstrerror());
       return false;
    }
 

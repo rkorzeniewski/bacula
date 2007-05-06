@@ -142,7 +142,7 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    if ((lc = lex_open_file(lc, fname, s_err)) == NULL) {
       berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Cannot open bootstrap file %s: %s\n"),
-            fname, be.strerror());
+            fname, be.bstrerror());
    }
    lc->caller_ctx = (void *)jcr;
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {

@@ -145,7 +145,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!write_block_to_dev(dcr)) {
       berrno be;
       Pmsg1(0, _("write_block_to_device Volume label failed. ERR=%s"),
-        be.strerror(dev->dev_errno));
+        be.bstrerror(dev->dev_errno));
       free_block(label_blk);
       dcr->block = block;
       unblock_device(dev);
@@ -181,7 +181,7 @@ bool fixup_device_block_write_error(DCR *dcr)
    if (!write_block_to_dev(dcr)) {
       berrno be;
       Pmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
-        be.strerror(dev->dev_errno));
+        be.bstrerror(dev->dev_errno));
       unblock_device(dev);
       return false;                /* device locked */
    }
@@ -414,7 +414,7 @@ void DEVICE::r_dlock()
             berrno be;
             this->dunlock();
             Emsg1(M_ABORT, 0, _("pthread_cond_wait failure. ERR=%s\n"),
-               be.strerror(stat));
+               be.bstrerror(stat));
          }
       }
       this->num_waiting--;             /* no longer waiting */

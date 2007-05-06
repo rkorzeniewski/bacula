@@ -197,6 +197,8 @@ struct FF_PKT {
    char *fname;                       /* full filename */
    char *link;                        /* link if file linked */
    POOLMEM *sys_fname;                /* system filename */
+   POOLMEM *fname_save;               /* save when stripping path */
+   POOLMEM *link_save;                /* save when stripping path */
    struct stat statp;                 /* stat packet */
    int32_t FileIndex;                 /* FileIndex of this file */
    int32_t LinkFI;                    /* FileIndex of main hard linked file */

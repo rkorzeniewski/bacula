@@ -628,7 +628,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       if (!bpipe) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot run program: %s. ERR=%s\n"),
-            p, be.strerror());
+            p, be.bstrerror());
          free_pool_memory(fn);
          return;
       }
@@ -640,7 +640,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       if ((stat=close_bpipe(bpipe)) != 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Error running program: %s. stat=%d: ERR=%s\n"),
-            p, be.code(stat), be.strerror(stat));
+            p, be.code(stat), be.bstrerror(stat));
          return;
       }
       break;
@@ -650,7 +650,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Cannot open FileSet input file: %s. ERR=%s\n"),
-            p, be.strerror());
+            p, be.bstrerror());
          return;
       }
       while (fgets(buf, sizeof(buf), ffd)) {
@@ -1012,6 +1012,7 @@ static void set_options(findFOPTS *fo, const char *opts)
          break;
       case 'P':                  /* strip path */
          /* Get integer */
+         p++;                    /* skip P */
          for (j=0; *p && *p != ':'; p++) {
             strip[j] = *p;
             if (j < (int)sizeof(strip) - 1) {
@@ -1021,6 +1022,7 @@ static void set_options(findFOPTS *fo, const char *opts)
          strip[j] = 0;
          fo->strip_path = atoi(strip);
          fo->flags |= FO_STRIPPATH;
+         Dmsg2(100, "strip=%s strip_path=%d\n", strip, fo->strip_path);
          break;
       case 'w':
          fo->flags |= FO_IF_NEWER;
@@ -1109,7 +1111,7 @@ static int bootstrap_cmd(JCR *jcr)
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not create bootstrap file %s: ERR=%s\n"),
-         jcr->RestoreBootstrap, be.strerror());
+         jcr->RestoreBootstrap, be.bstrerror());
       /*
        * Suck up what he is sending to us so that he will then
        *   read our error message.
@@ -1406,7 +1408,7 @@ static int backup_cmd(JCR *jcr)
         }
       } else {
          berrno be;
-         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.strerror());
+         Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
       } 
    }
 #endif
@@ -1810,7 +1812,7 @@ static int send_bootstrap_file(JCR *jcr)
    if (!bs) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("Could not open bootstrap file %s: ERR=%s\n"),
-         jcr->RestoreBootstrap, be.strerror());
+         jcr->RestoreBootstrap, be.bstrerror());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       goto bail_out;
    }

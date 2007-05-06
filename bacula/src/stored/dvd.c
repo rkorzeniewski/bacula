@@ -144,7 +144,7 @@ bool DEVICE::update_freespace()
       free_space_errno = EPIPE;
       clear_freespace_ok();         /* no valid freespace */
       Mmsg2(errmsg, _("Cannot run free space command. Results=%s ERR=%s\n"), 
-            results, be.strerror(status));
+            results, be.bstrerror(status));
       
       if (--timeout > 0) {
          Dmsg4(40, "Cannot get free space on device %s. free_space=%s, "
@@ -376,7 +376,7 @@ int dvd_open_next_part(DCR *dcr)
             dev->set_part_spooled(false);
             dev->dev_errno = errno;
             Mmsg2(dev->errmsg, _("open_next_part can't unlink existing part %s, ERR=%s\n"), 
-                   archive_name.c_str(), be.strerror());
+                   archive_name.c_str(), be.bstrerror());
             return -1;
          }
       }
@@ -720,7 +720,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
       berrno be;
       dev->dev_errno = errno;
       Dmsg3(29, "check_can_write_on_non_blank_dvd: failed to open dir %s (dev=%s), ERR=%s\n", 
-            dev->device->mount_point, dev->print_name(), be.strerror());
+            dev->device->mount_point, dev->print_name(), be.bstrerror());
       return false;
    }
    
@@ -747,7 +747,7 @@ bool check_can_write_on_non_blank_dvd(DCR *dcr)
                berrno be;
                dev->dev_errno = errno;
                Dmsg2(29, "check_can_write_on_non_blank_dvd: cannot stat file (file=%s), ERR=%s\n", 
-                  filename.c_str(), be.strerror());
+                  filename.c_str(), be.bstrerror());
                ok = false;
                break;
             }
@@ -796,7 +796,7 @@ int find_num_dvd_parts(DCR *dcr)
          berrno be;
          dev->dev_errno = errno;
          Dmsg3(29, "find_num_dvd_parts: failed to open dir %s (dev=%s), ERR=%s\n", 
-               dev->device->mount_point, dev->print_name(), be.strerror());
+               dev->device->mount_point, dev->print_name(), be.bstrerror());
          goto get_out;
       }
       

@@ -276,7 +276,7 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
       Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
    } else if (keyword == INC_KW_STRIPPATH) { /* another special case */
       if (!is_an_integer(lc->str)) {
-         scan_err1(lc, _("Expected a strip path integer, got:%s:"), lc->str);
+         scan_err1(lc, _("Expected a strip path positive integer, got:%s:"), lc->str);
       }
       bstrncat(opts, "P", optlen);         /* indicate strip path */
       bstrncat(opts, lc->str, optlen);

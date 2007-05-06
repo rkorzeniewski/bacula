@@ -533,7 +533,7 @@ bool write_block_to_dev(DCR *dcr)
       if (retry > 0 && stat == -1 && errno == EBUSY) {
          berrno be;
          Dmsg4(100, "===== write retry=%d stat=%d errno=%d: ERR=%s\n",
-               retry, stat, errno, be.strerror());
+               retry, stat, errno, be.bstrerror());
          bmicrosleep(5, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
@@ -563,7 +563,7 @@ bool write_block_to_dev(DCR *dcr)
          if (dev->dev_errno != ENOSPC) {
             dev->VolCatInfo.VolCatErrors++;
             Jmsg4(jcr, M_ERROR, 0, _("Write error at %u:%u on device %s. ERR=%s.\n"),
-               dev->file, dev->block_num, dev->print_name(), be.strerror());
+               dev->file, dev->block_num, dev->print_name(), be.bstrerror());
          }
       } else {
         dev->dev_errno = ENOSPC;            /* out of space */
@@ -646,20 +646,20 @@ static void reread_last_block(DCR *dcr)
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 
-              be.strerror(dev->dev_errno));
+              be.bstrerror(dev->dev_errno));
       }
       if (ok && dev->has_cap(CAP_TWOEOF) && !dev->bsf(1)) {
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace file at EOT failed. ERR=%s\n"), 
-              be.strerror(dev->dev_errno));
+              be.bstrerror(dev->dev_errno));
       }
       /* Backspace over record */
       if (ok && !dev->bsr(1)) {
          berrno be;
          ok = false;
          Jmsg(jcr, M_ERROR, 0, _("Backspace record at EOT failed. ERR=%s\n"), 
-              be.strerror(dev->dev_errno));
+              be.bstrerror(dev->dev_errno));
          /*
           *  On FreeBSD systems, if the user got here, it is likely that his/her
           *    tape drive is "frozen".  The correct thing to do is a
@@ -971,7 +971,7 @@ reread:
       if ((retry > 0 && stat == -1 && errno == EBUSY)) {
          berrno be;
          Dmsg4(100, "===== read retry=%d stat=%d errno=%d: ERR=%s\n",
-               retry, stat, errno, be.strerror());
+               retry, stat, errno, be.bstrerror());
          bmicrosleep(10, 0);    /* pause a bit if busy or lots of errors */
          dev->clrerror(-1);
       }
@@ -981,10 +981,10 @@ reread:
    if (stat < 0) {
       berrno be;
       dev->clrerror(-1);
-      Dmsg1(200, "Read device got: ERR=%s\n", be.strerror());
+      Dmsg1(200, "Read device got: ERR=%s\n", be.bstrerror());
       block->read_len = 0;
       Mmsg5(dev->errmsg, _("Read error on fd=%d at file:blk %u:%u on device %s. ERR=%s.\n"),
-         dev->fd(), dev->file, dev->block_num, dev->print_name(), be.strerror());
+         dev->fd(), dev->file, dev->block_num, dev->print_name(), be.bstrerror());
       Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       if (dev->at_eof()) {        /* EOF just seen? */
          dev->set_eot();          /* yes, error => EOT */

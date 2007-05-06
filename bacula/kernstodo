@@ -51,6 +51,7 @@ Professional Needs:
 - Detect state change of system (verify)
 
 Priority:
+- When Pool specifies Storage command override does not work.
 - Please mount volume "xxx" on Storage device ... should also list
   Pool and MediaType in case user needs to create a new volume.
 - Implement wait_for_sysop() message display in wait_for_device(), which

@@ -92,9 +92,9 @@ int read_ansi_ibm_label(DCR *dcr)
       if (stat < 0) {
          berrno be;
          dev->clrerror(-1);
-         Dmsg1(100, "Read device got: ERR=%s\n", be.strerror());
+         Dmsg1(100, "Read device got: ERR=%s\n", be.bstrerror());
          Mmsg2(jcr->errmsg, _("Read error on device %s in ANSI label. ERR=%s\n"),
-            dev->dev_name, be.strerror());
+            dev->dev_name, be.bstrerror());
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
          dev->VolCatInfo.VolCatErrors++;
          return VOL_IO_ERROR;
@@ -313,7 +313,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
          if (stat != sizeof(label)) {
             berrno be;
             Jmsg1(jcr, M_FATAL, 0,  _("Could not write ANSI VOL1 label. ERR=%s\n"),
-               be.strerror());
+               be.bstrerror());
             return false;
          }
       }
@@ -351,7 +351,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
             }
             if (dev->dev_errno != ENOSPC) {
                Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
-               be.strerror());
+               be.bstrerror());
                return false;
             }
          } else {
@@ -380,7 +380,7 @@ bool write_ansi_ibm_labels(DCR *dcr, int type, const char *VolName)
             }
             if (dev->dev_errno != ENOSPC) {
                Jmsg1(jcr, M_FATAL, 0, _("Could not write ANSI HDR1 label. ERR=%s\n"),
-               be.strerror());
+               be.bstrerror());
                return false;
             }
             dev->weof(1);

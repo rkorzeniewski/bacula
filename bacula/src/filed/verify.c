@@ -119,21 +119,21 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
    case FT_NOACCESS: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname, be.bstrerror());
       jcr->Errors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not follow link %s: ERR=%s\n"), ff_pkt->fname, be.bstrerror());
       jcr->Errors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname, be.bstrerror());
       jcr->Errors++;
       return 1;
    }
@@ -154,7 +154,7 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
    case FT_NOOPEN: {
       berrno be;
       be.set_errno(ff_pkt->ff_errno);
-      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, be.strerror());
+      Jmsg(jcr, M_NOTSAVED, 1, _("     Could not open directory %s: ERR=%s\n"), ff_pkt->fname, be.bstrerror());
       jcr->Errors++;
       return 1;
    }
@@ -295,9 +295,9 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
          ff_pkt->ff_errno = errno;
          berrno be;
          be.set_errno(bfd.berrno);
-         Dmsg2(100, "Cannot open %s: ERR=%s\n", ff_pkt->fname, be.strerror());
+         Dmsg2(100, "Cannot open %s: ERR=%s\n", ff_pkt->fname, be.bstrerror());
          Jmsg(jcr, M_ERROR, 1, _("     Cannot open %s: ERR=%s.\n"),
-               ff_pkt->fname, be.strerror());
+               ff_pkt->fname, be.bstrerror());
          return 1;
       }
       read_digest(&bfd, digest, jcr);
@@ -311,7 +311,7 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
          ff_pkt->ff_errno = errno;
          berrno be;
          Jmsg(jcr, M_ERROR, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"),
-               ff_pkt->fname, be.strerror());
+               ff_pkt->fname, be.bstrerror());
          if (is_bopen(&ff_pkt->bfd)) {
             bclose(&ff_pkt->bfd);
          }
@@ -347,9 +347,9 @@ int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
    if (n < 0) {
       berrno be;
       be.set_errno(bfd->berrno);
-      Dmsg2(100, "Error reading file %s: ERR=%s\n", jcr->last_fname, be.strerror());
+      Dmsg2(100, "Error reading file %s: ERR=%s\n", jcr->last_fname, be.bstrerror());
       Jmsg(jcr, M_ERROR, 1, _("Error reading file %s: ERR=%s\n"),
-            jcr->last_fname, be.strerror());
+            jcr->last_fname, be.bstrerror());
       jcr->Errors++;
       return -1;
    }

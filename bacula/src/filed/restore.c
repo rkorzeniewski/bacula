@@ -884,7 +884,7 @@ bool sparse_data(JCR *jcr, BFILE *bfd, uint64_t *addr, char **data, uint32_t *le
             berrno be;
             Jmsg3(jcr, M_ERROR, 0, _("Seek to %s error on %s: ERR=%s\n"),
                   edit_uint64(*addr, ec1), jcr->last_fname, 
-                  be.strerror(bfd->berrno));
+                  be.bstrerror(bfd->berrno));
             return false;
          }
       }
@@ -939,13 +939,13 @@ bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win
       if (!processWin32BackupAPIBlock(bfd, data, length)) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Write error in Win32 Block Decomposition on %s: %s\n"), 
-               jcr->last_fname, be.strerror(bfd->berrno));
+               jcr->last_fname, be.bstrerror(bfd->berrno));
          return false;
       }
    } else if (bwrite(bfd, data, length) != (ssize_t)length) {
       berrno be;
       Jmsg2(jcr, M_ERROR, 0, _("Write error on %s: %s\n"), 
-            jcr->last_fname, be.strerror(bfd->berrno));
+            jcr->last_fname, be.bstrerror(bfd->berrno));
       return false;
    }
 

@@ -197,10 +197,10 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
             berrno be;
             be.set_errno(status);
             Dmsg3(100, "load slot %d, drive %d, bad stats=%s.\n", slot, drive,
-               be.strerror());
+               be.bstrerror());
             Jmsg(jcr, M_FATAL, 0, _("3992 Bad autochanger \"load slot %d, drive %d\": "
                  "ERR=%s.\nResults=%s\n"),
-                    slot, drive, be.strerror(), results.c_str());
+                    slot, drive, be.bstrerror(), results.c_str());
             rtn_stat = -1;            /* hard error */
             dev->Slot = -1;           /* mark unknown */
          }
@@ -280,7 +280,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
       berrno be;
       be.set_errno(status);
       Jmsg(jcr, M_INFO, 0, _("3991 Bad autochanger \"loaded? drive %d\" command: "
-           "ERR=%s.\nResults=%s\n"), drive, be.strerror(), results.c_str());
+           "ERR=%s.\nResults=%s\n"), drive, be.bstrerror(), results.c_str());
       loaded = -1;              /* force unload */
    }
    unlock_changer(dcr);
@@ -354,7 +354,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
          be.set_errno(stat);
          Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": "
               "ERR=%s\nResults=%s\n"),
-                 loaded, dev->drive_index, be.strerror(), results.c_str());
+                 loaded, dev->drive_index, be.bstrerror(), results.c_str());
          ok = false;
          dev->Slot = -1;           /* unknown */
       } else {
@@ -451,10 +451,10 @@ static bool unload_other_drive(DCR *dcr, int slot)
       berrno be;
       be.set_errno(stat);
       Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
-              slot, dev->drive_index, be.strerror());
+              slot, dev->drive_index, be.bstrerror());
 
       Dmsg3(100, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
-              slot, dev->drive_index, be.strerror());
+              slot, dev->drive_index, be.bstrerror());
       ok = false;
       dev->Slot = -1;          /* unknown */
    } else {
@@ -540,7 +540,7 @@ bool autochanger_cmd(DCR *dcr, BSOCK *dir, const char *cmd)
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
-      bnet_fsend(dir, _("Autochanger error: ERR=%s\n"), be.strerror());
+      bnet_fsend(dir, _("Autochanger error: ERR=%s\n"), be.bstrerror());
    }
    bnet_sig(dir, BNET_EOD);
    ok = true;

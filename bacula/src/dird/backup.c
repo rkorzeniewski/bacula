@@ -569,7 +569,7 @@ void update_bootstrap_file(JCR *jcr)
       } else {
          berrno be;
          Jmsg(jcr, M_ERROR, 0, _("Could not open WriteBootstrap file:\n"
-              "%s: ERR=%s\n"), fname, be.strerror());
+              "%s: ERR=%s\n"), fname, be.bstrerror());
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
       free_pool_memory(fname);

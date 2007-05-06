@@ -322,7 +322,7 @@ bool start_storage_daemon_message_thread(JCR *jcr)
    Dmsg0(100, "Start SD msg_thread.\n");
    if ((status=pthread_create(&thid, NULL, msg_thread, (void *)jcr)) != 0) {
       berrno be;
-      Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
+      Jmsg1(jcr, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.bstrerror(status));
    }
    /* Wait for thread to start */
    while (jcr->SD_msg_chan == 0) {
@@ -470,7 +470,7 @@ void init_device_resources()
    Dmsg0(100, "Start Device thread.\n");
    if ((status=pthread_create(&thid, NULL, device_thread, NULL)) != 0) {
       berrno be;
-      Jmsg1(NULL, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.strerror(status));
+      Jmsg1(NULL, M_ABORT, 0, _("Cannot create message thread: %s\n"), be.bstrerror(status));
    }
 }
 #endif

@@ -119,7 +119,7 @@ bool do_append_data(JCR *jcr)
    if (!bnet_fsend(fd_sock, OK_data)) {
       berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to FD. ERR=%s\n"),
-            be.strerror(fd_sock->b_errno));
+            be.bstrerror(fd_sock->b_errno));
       ok = false;
    }
 
