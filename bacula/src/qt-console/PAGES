@@ -19,3 +19,20 @@ dockPage();
    item in the page selector */
 setCurrent();
 
+Watch out for console not being connected yet gotchya's.  The console is not yet
+connected when the first base set of widgets are created on the stack.  Use a
+function like populate() to place objects in the window.  Call populate from
+virtual function void ClassName::currentStackItem().  Embed inside condition
+similar to if(!m_populated) {} so as to populate only the first time the page
+comes to the front.
+
+The major features that the pages class provides:
+dockPage, undockPage and togglePageDocking for docking.
+closeEvent to redock an undocked page when it is closed.
+virtual functions PgSeltreeWidgetClicked() and currentStackItem() to give pages
+the opportunity to have behaviours on events
+closeStackPage() to delete both the page object and it's page selector widget.
+consoleCommand(QString &command) to execute a console command
+setTitle() for setting the title of a window that will display when undocked.
+setCurrent() for making the page and tree widget item of an object selected and
+in the front of the stack.

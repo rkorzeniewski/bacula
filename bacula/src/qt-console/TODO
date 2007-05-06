@@ -11,11 +11,8 @@ User preferences.  With log to stdout options.
 Have settings for defaults of limits on joblist
 
 Test restore and get anything not working, working.
+Add inteligence to prerestore.
   partially done.
-
-Get restore into stack.
-  Should the jobs dialog be turned into a page as well??
-Possilbe: Turn run and label into docked pages. (remove button bar buttons??)
 
 Update README  describe bat.conf.example to bat.conf
 
@@ -101,6 +98,10 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Get restore into stack.
+  Should the jobs dialog be turned into a page as well??
+Possilbe: Turn run and label into docked pages. (remove button bar buttons??)
+
 Where and bootstrap are confused in runjobs of restore.
    This was just the labels.
 

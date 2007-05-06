@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>689</width>
-    <height>504</height>
+    <width>796</width>
+    <height>582</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -239,25 +239,9 @@
         <string>Up</string>
        </property>
        <property name="icon" >
-        <iconset>:images/up.png</iconset>
+        <iconset>../../../../../../../:images/up.png</iconset>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType" >
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>16</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="markButton" >
@@ -279,25 +263,9 @@
         <string>Mark</string>
        </property>
        <property name="icon" >
-        <iconset>:images/mark.png</iconset>
+        <iconset>../../../../../../../:images/mark.png</iconset>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer>
-       <property name="orientation" >
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType" >
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" >
-        <size>
-         <width>16</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="unmarkButton" >
@@ -319,7 +287,7 @@
         <string>Unmark</string>
        </property>
        <property name="icon" >
-        <iconset>:images/unmark.png</iconset>
+        <iconset>../../../../../../../:images/unmark.png</iconset>
        </property>
       </widget>
      </item>
