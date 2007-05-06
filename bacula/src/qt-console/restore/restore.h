@@ -55,8 +55,11 @@ private slots:
    void okButtonPushed();
    void cancelButtonPushed();
    void job_name_change(int index);
+   void recentChanged(int);
+   void jobsRadioClicked(bool);
 
 private:
+   QString m_dtformat;
 };
 
 /*  

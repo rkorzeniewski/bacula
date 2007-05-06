@@ -5,12 +5,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>578</width>
-    <height>406</height>
+    <width>589</width>
+    <height>458</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Form</string>
+  </property>
+  <property name="autoFillBackground" >
+   <bool>true</bool>
   </property>
   <layout class="QGridLayout" >
    <property name="margin" >
@@ -19,15 +22,15 @@
    <property name="spacing" >
     <number>6</number>
    </property>
-   <item row="1" column="0" >
+   <item row="0" column="1" >
     <spacer>
      <property name="orientation" >
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeHint" >
       <size>
-       <width>40</width>
-       <height>20</height>
+       <width>20</width>
+       <height>40</height>
       </size>
      </property>
     </spacer>
@@ -45,6 +48,32 @@
      </property>
     </spacer>
    </item>
+   <item row="1" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>93</width>
+       <height>301</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="1" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="1" column="1" >
     <layout class="QGridLayout" >
      <property name="margin" >
@@ -53,10 +82,176 @@
      <property name="spacing" >
       <number>6</number>
      </property>
-     <item row="2" column="1" >
-      <widget class="QComboBox" name="clientCombo" />
+     <item row="10" column="0" >
+      <widget class="QLabel" name="label_6" >
+       <property name="text" >
+        <string>Before:</string>
+       </property>
+       <property name="buddy" >
+        <cstring>beforeDateTime</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1" colspan="2" >
+      <widget class="QComboBox" name="storageCombo" />
+     </item>
+     <item row="7" column="0" >
+      <widget class="QLabel" name="label_4" >
+       <property name="text" >
+        <string>Pool:</string>
+       </property>
+       <property name="buddy" >
+        <cstring>poolCombo</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1" colspan="2" >
+      <widget class="QDateTimeEdit" name="beforeDateTime" >
+       <property name="minimumDate" >
+        <date>
+         <year>2000</year>
+         <month>1</month>
+         <day>1</day>
+        </date>
+       </property>
+       <property name="displayFormat" >
+        <string>yyyy-mm-dd h:mm:ss</string>
+       </property>
+       <property name="calendarPopup" >
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="3" >
+      <widget class="QFrame" name="frame_2" >
+       <property name="frameShape" >
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow" >
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="lineWidth" >
+        <number>0</number>
+       </property>
+       <layout class="QGridLayout" >
+        <property name="margin" >
+         <number>0</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item row="0" column="0" >
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QRadioButton" name="selectJobsRadio" >
+          <property name="text" >
+           <string>Select Jobs</string>
+          </property>
+          <property name="checked" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2" >
+         <widget class="QRadioButton" name="listJobsRadio" >
+          <property name="text" >
+           <string>List Jobs</string>
+          </property>
+          <property name="checked" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3" >
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="2" >
+      <widget class="QLineEdit" name="jobIdEdit" />
+     </item>
+     <item row="6" column="1" colspan="2" >
+      <widget class="QComboBox" name="filesetCombo" />
+     </item>
+     <item row="4" column="0" >
+      <widget class="QLabel" name="label" >
+       <property name="text" >
+        <string>Job:</string>
+       </property>
+       <property name="buddy" >
+        <cstring>jobCombo</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1" colspan="2" >
+      <widget class="QComboBox" name="poolCombo" />
+     </item>
+     <item row="9" column="0" colspan="2" >
+      <widget class="QCheckBox" name="recentCheckBox" >
+       <property name="layoutDirection" >
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text" >
+        <string>Use Most Recent</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="2" >
+      <spacer>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" >
+        <size>
+         <width>221</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="8" column="0" >
+      <widget class="QLabel" name="label_5" >
+       <property name="text" >
+        <string>Storage:</string>
+       </property>
+       <property name="buddy" >
+        <cstring>storageCombo</cstring>
+       </property>
+      </widget>
      </item>
      <item row="3" column="0" >
+      <widget class="QLabel" name="label_7" >
+       <property name="text" >
+        <string>JobIds:</string>
+       </property>
+       <property name="buddy" >
+        <cstring>jobCombo</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" >
       <widget class="QLabel" name="label_3" >
        <property name="text" >
         <string>File Set:</string>
@@ -66,7 +261,25 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0" colspan="2" >
+     <item row="4" column="1" colspan="2" >
+      <widget class="QComboBox" name="jobCombo" >
+       <property name="sizePolicy" >
+        <sizepolicy>
+         <hsizetype>7</hsizetype>
+         <vsizetype>0</vsizetype>
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize" >
+        <size>
+         <width>600</width>
+         <height>600</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0" colspan="3" >
       <layout class="QHBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -103,20 +316,10 @@
        </item>
       </layout>
      </item>
-     <item row="4" column="1" >
-      <widget class="QComboBox" name="poolCombo" />
+     <item row="5" column="1" colspan="2" >
+      <widget class="QComboBox" name="clientCombo" />
      </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_2" >
-       <property name="text" >
-        <string>Client:</string>
-       </property>
-       <property name="buddy" >
-        <cstring>clientCombo</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="2" >
+     <item row="0" column="0" colspan="3" >
       <layout class="QHBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -146,7 +349,7 @@
           </size>
          </property>
          <property name="text" >
-          <string>&lt;h3>Pre - Restore&lt;/h3></string>
+          <string>&lt;h3>Select Jobs&lt;/h3></string>
          </property>
         </widget>
        </item>
@@ -165,114 +368,81 @@
        </item>
       </layout>
      </item>
-     <item row="4" column="0" >
-      <widget class="QLabel" name="label_4" >
-       <property name="text" >
-        <string>Pool:</string>
+     <item row="1" column="0" colspan="3" >
+      <widget class="QFrame" name="frame" >
+       <property name="frameShape" >
+        <enum>QFrame::NoFrame</enum>
        </property>
-       <property name="buddy" >
-        <cstring>poolCombo</cstring>
+       <property name="frameShadow" >
+        <enum>QFrame::Plain</enum>
        </property>
-      </widget>
-     </item>
-     <item row="5" column="1" >
-      <widget class="QComboBox" name="storageCombo" />
-     </item>
-     <item row="3" column="1" >
-      <widget class="QComboBox" name="filesetCombo" />
-     </item>
-     <item row="6" column="0" >
-      <widget class="QLabel" name="label_6" >
-       <property name="text" >
-        <string>Before:</string>
-       </property>
-       <property name="buddy" >
-        <cstring>beforeDateTime</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label" >
-       <property name="text" >
-        <string>Job:</string>
-       </property>
-       <property name="buddy" >
-        <cstring>jobCombo</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1" >
-      <widget class="QDateTimeEdit" name="beforeDateTime" >
-       <property name="minimumDate" >
-        <date>
-         <year>2000</year>
-         <month>1</month>
-         <day>1</day>
-        </date>
-       </property>
-       <property name="displayFormat" >
-        <string>yyyy-mm-dd h:mm:ss</string>
-       </property>
-       <property name="calendarPopup" >
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1" >
-      <widget class="QComboBox" name="jobCombo" >
-       <property name="sizePolicy" >
-        <sizepolicy>
-         <hsizetype>7</hsizetype>
-         <vsizetype>0</vsizetype>
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize" >
-        <size>
-         <width>600</width>
-         <height>600</height>
-        </size>
-       </property>
+       <layout class="QGridLayout" >
+        <property name="margin" >
+         <number>0</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item row="0" column="2" >
+         <widget class="QRadioButton" name="allFilesRadio" >
+          <property name="text" >
+           <string>All Files</string>
+          </property>
+          <property name="checked" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QRadioButton" name="selectFilesRadio" >
+          <property name="text" >
+           <string>Select Files</string>
+          </property>
+          <property name="checked" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3" >
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="0" >
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </widget>
      </item>
      <item row="5" column="0" >
-      <widget class="QLabel" name="label_5" >
+      <widget class="QLabel" name="label_2" >
        <property name="text" >
-        <string>Storage:</string>
+        <string>Client:</string>
        </property>
        <property name="buddy" >
-        <cstring>storageCombo</cstring>
+        <cstring>clientCombo</cstring>
        </property>
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="1" >
-    <spacer>
-     <property name="orientation" >
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" >
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="1" >
-    <spacer>
-     <property name="orientation" >
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" >
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

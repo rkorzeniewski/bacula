@@ -125,16 +125,17 @@ void runCmdPage::okButtonPushed()
    m_console->write_dir("yes");
    m_console->displayToPrompt();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }
 
 
 void runCmdPage::cancelButtonPushed()
 {
+   m_console->displayToPrompt();
    mainWin->set_status(" Canceled");
    this->hide();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }

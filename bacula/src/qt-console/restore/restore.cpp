@@ -237,6 +237,7 @@ void restorePage::cancelButtonPushed()
 {
    this->hide();
    m_console->write("quit");
+   m_console->displayToPrompt();
    mainWin->set_status("Canceled");
    closeStackPage();
    m_console->notify(true);
