@@ -135,7 +135,7 @@ void Pages::closeEvent(QCloseEvent* event)
 
    /* Set the current tree widget item in the Page Selector window to the item 
     * which represents "this" */
-	 setCurrent();
+   setCurrent();
 }
 
 /*

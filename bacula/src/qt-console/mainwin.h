@@ -78,8 +78,8 @@ public slots:
    void input_line();
    void about();
    void treeItemClicked(QTreeWidgetItem *item, int column);
-   void labelDialogClicked();
-   void runDialogClicked();
+   void labelButtonClicked();
+   void runButtonClicked();
    void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);

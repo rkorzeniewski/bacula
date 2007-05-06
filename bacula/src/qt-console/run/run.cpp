@@ -40,27 +40,34 @@
 /*
  * Setup all the combo boxes and display the dialog
  */
-runDialog::runDialog(Console *console)
+runPage::runPage()
 {
    QDateTime dt;
 
-   m_console = console;
-   m_console->notify(false);
+   m_name = "Run";
+   pgInitialize();
    setupUi(this);
+   m_console->notify(false);
+
    m_console->beginNewCommand();
-   jobCombo->addItems(console->job_list);
-   filesetCombo->addItems(console->fileset_list);
-   levelCombo->addItems(console->level_list);
-   clientCombo->addItems(console->client_list);
-   poolCombo->addItems(console->pool_list);
-   storageCombo->addItems(console->storage_list);
+   jobCombo->addItems(m_console->job_list);
+   filesetCombo->addItems(m_console->fileset_list);
+   levelCombo->addItems(m_console->level_list);
+   clientCombo->addItems(m_console->client_list);
+   poolCombo->addItems(m_console->pool_list);
+   storageCombo->addItems(m_console->storage_list);
    dateTimeEdit->setDateTime(dt.currentDateTime());
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
+   connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
+   connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+
+   dockPage();
+   setCurrent();
    this->show();
 }
 
-void runDialog::accept()
+void runPage::okButtonPushed()
 {
    char cmd[1000];
 
@@ -83,17 +90,17 @@ void runDialog::accept()
    m_console->display_text(cmd);
    m_console->displayToPrompt();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }
 
 
-void runDialog::reject()
+void runPage::cancelButtonPushed()
 {
    mainWin->set_status(" Canceled");
    this->hide();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }
 
@@ -102,7 +109,7 @@ void runDialog::reject()
  *  We load the default values for the new job in the
  *  other combo boxes.
  */
-void runDialog::job_name_change(int index)
+void runPage::job_name_change(int index)
 {
    job_defaults job_defs;
 

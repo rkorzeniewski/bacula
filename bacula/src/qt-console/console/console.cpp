@@ -575,7 +575,7 @@ int Console::read()
          new selectDialog(this);    
          break;
       case BNET_RUN_CMD:
-         new runCmdDialog(this);
+         new runCmdPage();
          break;
       case BNET_ERROR_MSG:
          m_sock->recv();              /* get the message */

@@ -40,8 +40,6 @@
 #include "ui_restore.h"
 #include "ui_prerestore.h"
 
-class Console;
-
 /*
  * The pre-restore dialog selects the Job/Client to be restored
  * It really could use considerable enhancement.
@@ -51,7 +49,7 @@ class prerestorePage : public Pages, public Ui::prerestoreForm
    Q_OBJECT 
 
 public:
-   prerestorePage(Console *parent);
+   prerestorePage();
 
 private slots:
    void okButtonPushed();
@@ -71,7 +69,7 @@ class restorePage : public Pages, public Ui::restoreForm
    Q_OBJECT 
 
 public:
-   restorePage(Console *parent);
+   restorePage();
    void fillDirectory();
    char *get_cwd();
    bool cwd(const char *);

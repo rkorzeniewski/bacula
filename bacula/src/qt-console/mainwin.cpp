@@ -265,8 +265,8 @@ void MainWin::createConnections()
    connect(stackedWidget, SIGNAL(currentChanged(int)),
            this, SLOT(stackItemChanged(int)));
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
-   connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelDialogClicked()));
-   connect(actionRun, SIGNAL(triggered()), this,  SLOT(runDialogClicked()));
+   connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
+   connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
@@ -431,19 +431,19 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    }
 }
 
-void MainWin::labelDialogClicked() 
+void MainWin::labelButtonClicked() 
 {
-   new labelDialog(m_currentConsole);
+   new labelPage();
 }
 
-void MainWin::runDialogClicked() 
+void MainWin::runButtonClicked() 
 {
-   new runDialog(m_currentConsole);
+   new runPage();
 }
 
 void MainWin::restoreButtonClicked() 
 {
-   new prerestorePage(m_currentConsole);
+   new prerestorePage();
 }
 
 /*
