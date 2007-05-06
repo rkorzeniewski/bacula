@@ -27,7 +27,7 @@
 */
  
 /*
- *  Label Dialog class
+ *  Label Page class
  *
  *   Kern Sibbald, February MMVII
  *
@@ -37,40 +37,48 @@
 #include "label.h"
 #include <QMessageBox>
 
-labelDialog::labelDialog(Console *console)
+labelPage::labelPage()
 {
    QString deflt("");
-   showDialog(console, deflt);
+   m_closeable = false;
+   showPage(deflt);
 }
 
 /*
  * An overload of the constructor to have a default storage show in the
  * combobox on start.  Used from context sensitive in storage class.
  */
-labelDialog::labelDialog(Console *console, QString &defString)
+labelPage::labelPage(QString &defString)
 {
-   showDialog(console, defString);
+   m_closeable = true;
+   showPage(defString);
 }
 
 /*
  * moved the constructor code here for the overload.
  */
-void labelDialog::showDialog(Console *console, QString &defString)
+void labelPage::showPage(QString &defString)
 {
-   m_console = console;
-   m_console->notify(false);
+   m_name = "Label";
+   pgInitialize();
    setupUi(this);
-   storageCombo->addItems(console->storage_list);
+   m_console->notify(false);
+
+   storageCombo->addItems(m_console->storage_list);
    int index = storageCombo->findText(defString, Qt::MatchExactly);
    if (index != -1) {
       storageCombo->setCurrentIndex(index);
    }
-   poolCombo->addItems(console->pool_list);
+   poolCombo->addItems(m_console->pool_list);
+   connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
+   connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+   dockPage();
+   setCurrent();
    this->show();
 }
 
 
-void labelDialog::accept()
+void labelPage::okButtonPushed()
 {
    QString scmd;
    if (volumeName->text().toUtf8().data()[0] == 0) {
@@ -89,14 +97,14 @@ void labelDialog::accept()
    m_console->write_dir(scmd.toUtf8().data());
    m_console->displayToPrompt();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }
 
-void labelDialog::reject()
+void labelPage::cancelButtonPushed()
 {
    this->hide();
    m_console->notify(true);
-   delete this;
+   closeStackPage();
    mainWin->resetFocus();
 }

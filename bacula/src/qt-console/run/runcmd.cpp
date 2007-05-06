@@ -44,17 +44,24 @@
 /*
  * Setup all the combo boxes and display the dialog
  */
-runCmdDialog::runCmdDialog(Console *console)
+runCmdPage::runCmdPage()
 {
-   m_console = console;
-   m_console->notify(false);
+   m_name = "Restore Run";
+   pgInitialize();
    setupUi(this);
-   fillRunDialog();
-   this->show();
+   m_console->notify(false);
+
+   fill();
    m_console->discardToPrompt();
+
+   connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
+   connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+   dockPage();
+   setCurrent();
+   this->show();
 }
 
-void runCmdDialog::fillRunDialog()
+void runCmdPage::fill()
 {
    QString item, val;
    QStringList items;
@@ -110,7 +117,7 @@ void runCmdDialog::fillRunDialog()
    }
 }
 
-void runCmdDialog::accept()
+void runCmdPage::okButtonPushed()
 {
 
    this->hide();
@@ -123,7 +130,7 @@ void runCmdDialog::accept()
 }
 
 
-void runCmdDialog::reject()
+void runCmdPage::cancelButtonPushed()
 {
    mainWin->set_status(" Canceled");
    this->hide();

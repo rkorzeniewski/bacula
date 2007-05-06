@@ -38,19 +38,13 @@
 #include "bat.h"
 #include "restore.h"
 
-restorePage::restorePage(Console *console)
+restorePage::restorePage()
 {
    QStringList titles;
 
    setupUi(this);
-   QTreeWidgetItem *parent = mainWin->getFromHash(console);
-   if (!parent) {
-      /* Make this a user configurable stdout msg *** FIXME ****/
-      printf("Error retrieving tree widget.");
-      return;
-   }
-   m_name = "Restore";
-   pgInitialize(parent);
+   m_name = "Restore Select";
+   pgInitialize();
    m_console->notify(false);          /* this should already be off */
    m_closeable = true;
 
@@ -72,8 +66,6 @@ restorePage::restorePage(Console *console)
 
    get_cwd();
 
-   //QString root("");
-   //addDirectory(root);
    fillDirectory();
    dockPage();
    setCurrent();

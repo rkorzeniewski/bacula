@@ -35,22 +35,22 @@
 #include <QtGui>
 #include "ui_label.h"
 #include "console.h"
+#include "pages.h"
 
-class labelDialog : public QDialog, public Ui::labelForm
+class labelPage : public Pages, public Ui::labelForm
 {
    Q_OBJECT 
 
 public:
-   labelDialog(Console *console);
-   labelDialog(Console *console, QString &defString);
-   void showDialog(Console *console, QString &defString);
+   labelPage();
+   labelPage(QString &defString);
+   void showPage(QString &defString);
 
 private slots:
-   void accept();
-   void reject();
+   void okButtonPushed();
+   void cancelButtonPushed();
 
 private:
-   Console *m_console;
 };
 
 #endif /* _LABEL_H_ */

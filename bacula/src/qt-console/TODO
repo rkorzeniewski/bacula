@@ -1,5 +1,7 @@
 dhb
 ====================================================
+Test left pane of restore with 2 windows drives in one backup job.
+
 Color code Media Red->Error Append->green Full/Used->Yellow
 
 Resolve issue of connection during restore selection.  Could go with preempt of

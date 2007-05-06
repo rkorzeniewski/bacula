@@ -7,38 +7,34 @@
 #include "ui_runcmd.h"
 #include "console.h"
 
-class runDialog : public QDialog, public Ui::runForm
+class runPage : public Pages, public Ui::runForm
 {
    Q_OBJECT 
 
 public:
-   runDialog(Console *console);
+   runPage();
 
 public slots:
-   void accept();
-   void reject();
+   void okButtonPushed();
+   void cancelButtonPushed();
    void job_name_change(int index);
 
 private:
-   Console *m_console;
-
 };
 
-class runCmdDialog : public QDialog, public Ui::runCmdForm
+class runCmdPage : public Pages, public Ui::runCmdForm
 {
    Q_OBJECT 
 
 public:
-   runCmdDialog(Console *console);
+   runCmdPage();
 
 public slots:
-   void accept();
-   void reject();
+   void okButtonPushed();
+   void cancelButtonPushed();
 
 private:
-   void fillRunDialog();
-
-   Console *m_console;
+   void fill();
 };
 
 

@@ -239,7 +239,7 @@ void Storage::consoleStatusStorage()
 /* Label Media populating current storage by default */
 void Storage::consoleLabelStorage()
 {
-   new labelDialog(m_console, m_currentStorage);
+   new labelPage(m_currentStorage);
 }
 
 /* Mount currently selected storage */

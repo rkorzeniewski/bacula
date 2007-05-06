@@ -39,26 +39,19 @@
 #include "restore.h"
 
 
-prerestorePage::prerestorePage(Console *console)
+prerestorePage::prerestorePage()
 {
-   console->notify(false);
    m_name = "Pre-Restore";
    setupUi(this);
-   QTreeWidgetItem *parent = mainWin->getFromHash(console);
-   if (!parent) {
-      /* ***FIXME*** */
-      printf("Error retrieving tree widget.");
-      return;
-   }
-   pgInitialize(parent);
+   pgInitialize();
+   m_console->notify(false);
    m_closeable = true;
 
-   jobCombo->addItems(console->job_list);
-   filesetCombo->addItems(console->fileset_list);
-   clientCombo->addItems(console->client_list);
-   poolCombo->addItems(console->pool_list);
-   storageCombo->addItems(console->storage_list);
-   //beforeDateTime->setDate(QDateTime::currentDateTime().toUTC().date());
+   jobCombo->addItems(m_console->job_list);
+   filesetCombo->addItems(m_console->fileset_list);
+   clientCombo->addItems(m_console->client_list);
+   poolCombo->addItems(m_console->pool_list);
+   storageCombo->addItems(m_console->storage_list);
    beforeDateTime->setDateTime(QDateTime::currentDateTime());
    beforeDateTime->setEnabled(false);
    job_name_change(0);
@@ -90,7 +83,7 @@ void prerestorePage::okButtonPushed()
    m_console->write(cmd);
    m_console->display_text(cmd);
    /* Note, do not turn notifier back on here ... */
-   new restorePage(m_console);
+   new restorePage();
    closeStackPage();
 }
 
