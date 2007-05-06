@@ -97,6 +97,8 @@ Packager: %{_packager}
 %{?build_fc5:%define fc5 1}
 %define fc6 0
 %{?build_fc6:%define fc6 1}
+%define fc7 0
+%{?build_fc7:%define fc7 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -140,7 +142,7 @@ Packager: %{_packager}
 %{?build_client_only:%define client_only 1}
 
 # test for a platform definition
-%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk}
+%if ! %{rh7} && ! %{rh8} && ! %{rh9} && ! %{fc1} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{fc7} && ! %{wb3} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -188,7 +190,7 @@ exit 1
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc4} || %{fc5} || %{fc6}
+%if %{fc1} || %{fc4} || %{fc5} || %{fc6} || %{fc7}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos4} || %{centos3}
@@ -421,11 +423,25 @@ BuildRequires: libbonoboui-devel >= 2.16
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6}
+%if %{fc7}
+BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.5
+%endif
+%if %{fc7} && %{gconsole}
+BuildRequires: gtk2-devel >= 2.10
+BuildRequires: libgnomeui-devel >= 2.18
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.18
+BuildRequires: libbonoboui-devel >= 2.18
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+%endif
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! &{fc7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && %{gconsole}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{fc7} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
 BuildRequires: ORBit2-devel
@@ -507,7 +523,7 @@ Requires: termcap
 Requires: glibc >= 2.5
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{fc5} && ! %{fc6}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{fc5} && ! %{fc6} && ! %{fc7}
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
@@ -515,7 +531,7 @@ Requires: libtermcap
 Requires: glibc >= 2.4
 Requires: libtermcap
 %endif
-%if %{fc6}
+%if %{fc6} || %fc7}
 Requires: glibc >= 2.5
 Requires: libtermcap
 %endif
@@ -655,7 +671,7 @@ Requires: libtermcap
 Requires: glibc >= 2.4
 Requires: libtermcap
 %endif
-%if %{fc6}
+%if %{fc6} || %{fc7}
 Requires: glibc >= 2.5
 Requires: libtermcap
 %endif
@@ -825,7 +841,18 @@ Requires: libbonoboui >= 2.16
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6}
+%if %{gconsole} && %{fc7}  
+Requires: gtk2 >= 2.10
+Requires: libgnomeui >= 2.18
+Requires: glibc >= 2.5
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.18
+Requires: libbonoboui >= 2.18
+Requires: GConf2
+Requires: freetype
+%endif
+%if %{gconsole} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{fc7}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -898,6 +925,10 @@ Requires: gtk2 >= 2.8
 Requires: gtk2 >= 2.10
 %endif
 
+%if %{wxconsole} && %{fc7}  
+Requires: gtk2 >= 2.10
+%endif
+
 %if %{wxconsole}
 %description wxconsole
 %{blurb}
@@ -920,6 +951,18 @@ Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
 %endif
 
+%if %{bat} && %{su10}
+Requires: openssl
+Requires: glibc >= 2.4
+Requires: fontconfig
+Requires: freetype2
+Requires: libgcc
+Requires: libpng
+Requires: qt >= 4
+Requires: libstdc++
+Requires: zlib
+%endif
+
 %if %{bat} && %{su102}
 Requires: openssl
 Requires: glibc >= 2.5
@@ -932,7 +975,31 @@ Requires: libstdc++
 Requires: zlib
 %endif
 
+%if %{bat} && %{fc5}
+Requires: openssl
+Requires: glibc >= 2.4
+Requires: fontconfig
+Requires: freetype
+Requires: libgcc
+Requires: libpng
+Requires: qt >= 4
+Requires: libstdc++
+Requires: zlib
+%endif
+
 %if %{bat} && %{fc6}
+Requires: openssl
+Requires: glibc >= 2.5
+Requires: fontconfig
+Requires: freetype
+Requires: libgcc
+Requires: libpng
+Requires: qt >= 4
+Requires: libstdc++
+Requires: zlib
+%endif
+
+%if %{bat} && %{fc7}
 Requires: openssl
 Requires: glibc >= 2.5
 Requires: fontconfig
@@ -1245,7 +1312,7 @@ cp -p scripts/wxconsole.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/wxcon
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
 %endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{mdk}
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{mdk}
 %define iftrick 1
 %else
 %define iftrick 0
@@ -1936,6 +2003,8 @@ fi
 %endif
 
 %changelog
+* Sun May 06 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add fc7 build target
 * Sun Apr 29 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 2.1.8
 - gnome-console now bgnome-console
