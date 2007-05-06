@@ -41,6 +41,7 @@
 
 prerestorePage::prerestorePage()
 {
+   m_dtformat = "yyyy-MM-dd HH:MM:ss";
    m_name = "Pre-Restore";
    setupUi(this);
    pgInitialize();
@@ -50,14 +51,24 @@ prerestorePage::prerestorePage()
    jobCombo->addItems(m_console->job_list);
    filesetCombo->addItems(m_console->fileset_list);
    clientCombo->addItems(m_console->client_list);
+   poolCombo->addItem("Any");
    poolCombo->addItems(m_console->pool_list);
    storageCombo->addItems(m_console->storage_list);
+   /* current or before . .  Start out with current checked */
+   recentCheckBox->setCheckState(Qt::Checked);
+   beforeDateTime->setDisplayFormat(m_dtformat);
    beforeDateTime->setDateTime(QDateTime::currentDateTime());
    beforeDateTime->setEnabled(false);
+   selectFilesRadio->setChecked(true);
+   selectJobsRadio->setChecked(true);
+   jobIdEdit->setText("Comma separted list of jobs id's");
+   jobIdEdit->setEnabled(false);
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+   connect(recentCheckBox, SIGNAL(stateChanged(int)), this, SLOT(recentChanged(int)));
+   connect(selectJobsRadio, SIGNAL(toggled(bool)), this, SLOT(jobsRadioClicked(bool)));
 
    dockPage();
    setCurrent();
@@ -69,22 +80,43 @@ void prerestorePage::okButtonPushed()
    QString cmd;
 
    this->hide();
-   
-   cmd = QString(
-         "restore select current fileset=\"%1\" client=\"%2\" pool=\"%3\" "
-             "storage=\"%4\"\n")
-             .arg(filesetCombo->currentText())
-             .arg(clientCombo->currentText())
-             .arg(poolCombo->currentText())
-             .arg(storageCombo->currentText());
+
+   cmd = QString("restore ");
+   if (selectFilesRadio->isChecked()) {
+      cmd += "select ";
+   } else {
+      cmd += "all done ";
+   }
+   cmd += "fileset=\"" + filesetCombo->currentText() + "\" ";
+   if (selectJobsRadio->isChecked()) {
+      cmd += "client=\"" + clientCombo->currentText() + "\" ";
+      if (poolCombo->currentText() != "Any" ){
+         cmd += "pool=\"" + poolCombo->currentText() + "\" ";
+      }
+      cmd += "storage=\"" + storageCombo->currentText() + "\" ";
+      if (recentCheckBox->checkState() == Qt::Checked) {
+         cmd += " current";
+      } else {
+         QDateTime stamp = beforeDateTime->dateTime();
+         QString before = stamp.toString(m_dtformat);
+         cmd += " before=\"" + before + "\"";
+      }
+   } else {
+      cmd += "jobid=\"" + jobIdEdit->text() + "\"";
+   }
 
    /* ***FIXME*** */
-   //printf("preRestore command \"%s\"\n", cmd.toUtf8().data());
-   m_console->write(cmd);
-   m_console->display_text(cmd);
+   //printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
+   consoleCommand(cmd);
    /* Note, do not turn notifier back on here ... */
-   new restorePage();
-   closeStackPage();
+   if (selectFilesRadio->isChecked()) {
+      new restorePage();
+      closeStackPage();
+   } else {
+      m_console->notify(true);
+      closeStackPage();
+      mainWin->resetFocus();
+   }
 }
 
 
@@ -108,5 +140,41 @@ void prerestorePage::job_name_change(int index)
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
       poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
+   }
+}
+
+void prerestorePage::recentChanged(int state)
+{
+   if ((state == Qt::Unchecked) && (selectJobsRadio->isChecked())) {
+      beforeDateTime->setEnabled(true);
+   } else {
+      beforeDateTime->setEnabled(false);
+   }
+}
+
+void prerestorePage::jobsRadioClicked(bool checked)
+{
+   if (checked) {
+      printf("In prerestorePage::jobsRadioClicked checked\n");
+      jobCombo->setEnabled(true);
+//      filesetCombo->setEnabled(true);
+      clientCombo->setEnabled(true);
+      poolCombo->setEnabled(true);
+      storageCombo->setEnabled(true);
+      recentCheckBox->setEnabled(true);
+      if (!recentCheckBox->isChecked()) {
+         beforeDateTime->setEnabled(true);
+      }
+      jobIdEdit->setEnabled(false);
+   } else {
+      printf("In prerestorePage::jobsRadioClicked UNchecked\n");
+      jobCombo->setEnabled(false);
+//      filesetCombo->setEnabled(false);
+      clientCombo->setEnabled(false);
+      poolCombo->setEnabled(false);
+      storageCombo->setEnabled(false);
+      recentCheckBox->setEnabled(false);
+      beforeDateTime->setEnabled(false);
+      jobIdEdit->setEnabled(true);
    }
 }
