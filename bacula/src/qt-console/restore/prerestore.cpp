@@ -42,7 +42,7 @@
 prerestorePage::prerestorePage()
 {
    m_dtformat = "yyyy-MM-dd HH:MM:ss";
-   m_name = "Pre-Restore";
+   m_name = "Restore";
    setupUi(this);
    pgInitialize();
    m_console->notify(false);
@@ -155,7 +155,6 @@ void prerestorePage::recentChanged(int state)
 void prerestorePage::jobsRadioClicked(bool checked)
 {
    if (checked) {
-      printf("In prerestorePage::jobsRadioClicked checked\n");
       jobCombo->setEnabled(true);
 //      filesetCombo->setEnabled(true);
       clientCombo->setEnabled(true);
@@ -167,7 +166,6 @@ void prerestorePage::jobsRadioClicked(bool checked)
       }
       jobIdEdit->setEnabled(false);
    } else {
-      printf("In prerestorePage::jobsRadioClicked UNchecked\n");
       jobCombo->setEnabled(false);
 //      filesetCombo->setEnabled(false);
       clientCombo->setEnabled(false);

@@ -22,59 +22,17 @@ Makefile, and there after, you simply use "make". In fact, providing
 you edit bat.pro, doing a "make" will automatically call qmake to
 rebuild the Makefile.
 
-Development status as of 27 Feb 07.
+From the base bacula directory, make Makefiles will generate bat.pro from
+bat.pro.in, so only edit bat.pro.in.   It will also overwrite the qt-consoles
+bat.conf file.  "make install" will write /etc/bacula/bat.conf.  bat.conf can
+include as many director stanza's as you would like in bat.conf.  You may use 
+this directories bat.conf.example as a template for director stanza's.
 
-Items implemented:
-- Reads a basic bat.conf (same as documented for the gnome-console 
-   except that the Font part is unimplemented).
-- Basic main window structure
-- About dialog
-- Quit menu item
-- Will automatically connnect to the first Director in the
-  conf file. Doesn't know about multiple Directors.
-- The Director name will appear in the Selection tree followed
-  by Console and Restore.  
-- Clicking on Console brings forward the console display screen
-  (default at startup).
-- Clicking on 
-- Clicking on bRestore brings up a brestore page that is not active.
-- The command line is implemented.
-- The status line (below the command line) is implemented.
-- Selection of Font is implemented.
-- The Font and the window size are saved on exit and restored on
-  execution of bat.
-- The Status menu bar icon is implemented.
+Development status as of 05/06/07
 
 Items not implemented:
-- None of the menu items except About, Select Font, and Quit.
 - Nothing on the brestore page
-- The Label menu bar item, prints on the shell window what you entered.
-- The Run menu bar item, prints on the console window what you entered.
-- The Restore menu bar item, brings up dialog, then when OK is
-  clicked, it goes on to the next dialog, which is meant to be
-  a tree view, but for the moment does nothing ...  It is a bit
-  ugly. Cancelling it should get you back to the normal command prompt.
          
-Not working:
-- The left selection window and the right window (where the console
-  is) are dockable windows so should be movable once they are properly
-  clicked.  Well, they sort of move, but then get stuck.  I haven't figured
-  out what is going on, so for the current time, I am implemeting most
-  stuff through dialogs.
-     
-Design/implementation considerations:
-- We need to have multiple Directors
-- Each Director should have its own console
-- The Console class needs to be a list or be attached to the
-  currently active Director.
-- Need icons in front of the Director.
-- The console page should be in a DockWidget so it can be removed
-  from the main window. It is currently in a dock window, but it
-  does not remove properly -- more research needed.
-- Need to figure out a good implementation of adding pages and even
-  having plugins that load as pages.  Currently the page mechanism
-  is a bit kludged.
-
 Design decisions:
 - If possible all code for a particular component will be kept in
   and appropriate subdirectory.
@@ -88,14 +46,70 @@ Design decisions:
   in main.ui.  
 
 Major projects:
-- Implement a restore page that does a directory tree restore selection
-  much like wx-console does.
 - Implement other restore interfaces such as brestore ...
 - Implement a database browser
-- Implement graphical commands that allow updating most aspects of
-  the database (i.e. commands for label, update Volume, ...)
 - Implement a resource (conf file) browser
 - Implement a reports page -- e.g. something similar to bweb
 - Implement Qt plugins to add new functionality to bat
 - Implement a GUI configuration file editor (something like JBacula).
 ...
+
+Partially Done:
+===========================
+- Implement graphical commands that allow updating most aspects of
+  the database (i.e. commands for label, update Volume, ...)
+      still need to be able to edit a pool object
+
+- None of the menu items except About, Select Font, and Quit.
+    Print and save don't do anything, does save need to??
+Done:
+============================
+Design/implementation considerations:
+- Need icons in front of the Director.
+- The console page should be in a DockWidget so it can be removed
+  from the main window. It is currently in a dock window, but it
+  does not remove properly -- more research needed.
+- Need to figure out a good implementation of adding pages and even
+  having plugins that load as pages.  Currently the page mechanism
+  is a bit kludged.
+
+- We need to have multiple Directors
+- Each Director should have its own console
+- The Console class needs to be a list or be attached to the
+  currently active Director.
+- Will automatically connnect to the first Director in the
+  conf file. Doesn't know about multiple Directors.
+
+- The Label menu bar item, prints on the shell window what you entered.
+- The Run menu bar item, prints on the console window what you entered.
+- The Restore menu bar item, brings up dialog, then when OK is
+  clicked, it goes on to the next dialog, which is meant to be
+  a tree view, but for the moment does nothing ...  It is a bit
+  ugly. Cancelling it should get you back to the normal command prompt.
+
+- Implement a restore page that does a directory tree restore selection
+  much like wx-console does.
+
+Not working:
+- The left selection window and the right window (where the console
+  is) are dockable windows so should be movable once they are properly
+  clicked.  Well, they sort of move, but then get stuck.  I haven't figured
+  out what is going on, so for the current time, I am implemeting most
+  stuff through dialogs.
+     
+Items implemented:
+- Reads a basic bat.conf (same as documented for the gnome-console 
+   except that the Font part is unimplemented).
+- Basic main window structure
+- About dialog
+- Quit menu item
+- The Director name will appear in the Selection tree followed
+  by Console and Restore.  
+- Clicking on Console brings forward the console display screen
+  (default at startup).
+- The command line is implemented.
+- The status line (below the command line) is implemented.
+- Selection of Font is implemented.
+- The Font and the window size are saved on exit and restored on
+  execution of bat.
+- The Status menu bar icon is implemented.

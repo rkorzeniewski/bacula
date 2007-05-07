@@ -61,6 +61,7 @@ private slots:
 
 private:
    void createContextMenu();
+   void setStatusColor(QTreeWidgetItem *, QString &, int &);
    QString m_currentVolumeName;
    QString m_currentVolumeId;
    bool m_populated;
