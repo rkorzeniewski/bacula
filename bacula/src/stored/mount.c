@@ -387,7 +387,7 @@ read_volume:
                  " part=%d size=%s\n"), dcr->VolumeName, 
                  dev->part, edit_uint64(dev->VolCatInfo.VolCatBytes,ed1));
          } else {
-            Jmsg(jcr, M_ERROR, 0, _("I cannot write on DVD Volume \"%s\" because: "
+            Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on DVD Volume \"%s\" because: "
                  "The sizes do not match! Volume=%s Catalog=%s\n"),
                  dcr->VolumeName,
                  edit_uint64(dev->part_start + dev->part_size, ed1),
@@ -404,7 +404,7 @@ read_volume:
             Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
                  dcr->VolumeName, dev->get_file());
          } else {
-            Jmsg(jcr, M_ERROR, 0, _("I cannot write on tape Volume \"%s\" because:\n"
+            Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on tape Volume \"%s\" because:\n"
                  "The number of files mismatch! Volume=%u Catalog=%u\n"),
                  dcr->VolumeName, dev->get_file(), dev->VolCatInfo.VolCatFiles);
             mark_volume_in_error(dcr);
@@ -419,7 +419,7 @@ read_volume:
                  " size=%s\n"), dcr->VolumeName, 
                  edit_uint64(dev->VolCatInfo.VolCatBytes, ed1));
          } else {
-            Jmsg(jcr, M_ERROR, 0, _("I cannot write on disk Volume \"%s\" because: "
+            Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on disk Volume \"%s\" because: "
                  "The sizes do not match! Volume=%s Catalog=%s\n"),
                  dcr->VolumeName,
                  edit_uint64(pos, ed1),
@@ -453,9 +453,9 @@ read_volume:
                  dcr->VolumeName, (unsigned int)dev->file_addr);
          }
          else {
-            Jmsg(jcr, M_ERROR, 0, _("I cannot write on Volume \"%s\" because:\n"
+            Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on Volume \"%s\" because:\n"
                                     "The EOD file address is wrong: Volume file address=%u != Catalog Endblock=%u(+1)\n"
-                                    "You probably removed DVD last part in spool directory.\n"),
+                                    "Perhaps You removed the DVD last part in spool directory.\n"),
                  dcr->VolumeName, (unsigned int)dev->file_addr, (unsigned int)dev->VolCatInfo.EndBlock);
             mark_volume_in_error(dcr);
             goto mount_next_vol;

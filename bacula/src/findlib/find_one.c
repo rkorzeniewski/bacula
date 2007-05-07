@@ -225,7 +225,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
    if (lstat(ff_pkt->fname, &statp) != 0) {
       berrno be;
       Jmsg(jcr, M_WARNING, 0, 
-           _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.strerror());
+           _("Cannot stat file %s: ERR=%s\n"),ff_pkt->fname,be.bstrerror());
       return true;
    }
 

@@ -898,7 +898,7 @@ static int do_outputcmd(FILE *input, BSOCK *UA_sock)
    if (!fd) {
       berrno be;
       senditf(_("Cannot open file %s for output. ERR=%s\n"),
-         argk[1], be.strerror(errno));
+         argk[1], be.bstrerror(errno));
       return 1;
    }
    output = fd;
@@ -926,7 +926,7 @@ static int execcmd(FILE *input, BSOCK *UA_sock)
    if (!bpipe) {
       berrno be;
       senditf(_("Cannot popen(\"%s\", \"r\"): ERR=%s\n"),
-         argk[1], be.strerror(errno));
+         argk[1], be.bstrerror(errno));
       return 1;
    }
   
@@ -937,7 +937,7 @@ static int execcmd(FILE *input, BSOCK *UA_sock)
    if (stat != 0) {
       berrno be;
       be.set_errno(stat);
-     senditf(_("Autochanger error: ERR=%s\n"), be.strerror());
+     senditf(_("Autochanger error: ERR=%s\n"), be.bstrerror());
    }
    return 1;
 }

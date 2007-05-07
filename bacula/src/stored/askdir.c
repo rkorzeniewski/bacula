@@ -571,8 +571,16 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
        *   Otherwise skip it.
        */
       if (!dev->poll && (stat == W_TIMEOUT || stat == W_MOUNT)) {
-         Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" on Storage Device %s for Job %s\n"),
-              dcr->VolumeName, dev->print_name(), jcr->Job);
+         Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" or label a new one for:\n"
+              "    Job:          %s\n"
+              "    Storage:      %s\n"
+              "    Media type:   %s\n"
+              "    Pool:         %s\n"),
+              dcr->VolumeName,
+              jcr->Job,
+              dev->print_name(),
+              dcr->media_type,
+              dcr->pool_name);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
                dcr->VolumeName, dev->print_name(), jcr->Job);
       }

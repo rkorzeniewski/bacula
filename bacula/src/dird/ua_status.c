@@ -253,7 +253,7 @@ static void do_all_status(UAContext *ua)
 
 }
 
-static void do_director_status(UAContext *ua)
+void list_dir_status_header(UAContext *ua)
 {
    char dt[MAX_TIME_LENGTH];
    char b1[35], b2[35], b3[35], b4[35];
@@ -273,6 +273,11 @@ static void do_director_status(UAContext *ua)
             edit_uint64_with_commas(sm_max_bytes, b2),
             edit_uint64_with_commas(sm_buffers, b3),
             edit_uint64_with_commas(sm_max_buffers, b4));
+}
+
+static void do_director_status(UAContext *ua)
+{
+   list_dir_status_header(ua);
 
    /*
     * List scheduled Jobs

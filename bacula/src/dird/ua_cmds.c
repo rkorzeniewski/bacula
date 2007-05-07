@@ -47,51 +47,53 @@ extern jobq_t job_queue;              /* job queue */
 
 
 /* Imported functions */
-extern int status_cmd(UAContext *ua, const char *cmd);
-extern int list_cmd(UAContext *ua, const char *cmd);
-extern int llist_cmd(UAContext *ua, const char *cmd);
-extern int show_cmd(UAContext *ua, const char *cmd);
-extern int messagescmd(UAContext *ua, const char *cmd);
 extern int autodisplay_cmd(UAContext *ua, const char *cmd);
 extern int gui_cmd(UAContext *ua, const char *cmd);
-extern int sqlquerycmd(UAContext *ua, const char *cmd);
-extern int querycmd(UAContext *ua, const char *cmd);
-extern int retentioncmd(UAContext *ua, const char *cmd);
+extern int label_cmd(UAContext *ua, const char *cmd);
+extern int list_cmd(UAContext *ua, const char *cmd);
+extern int llist_cmd(UAContext *ua, const char *cmd);
+extern int messagescmd(UAContext *ua, const char *cmd);
 extern int prunecmd(UAContext *ua, const char *cmd);
 extern int purgecmd(UAContext *ua, const char *cmd);
-extern int restore_cmd(UAContext *ua, const char *cmd);
-extern int label_cmd(UAContext *ua, const char *cmd);
+extern int querycmd(UAContext *ua, const char *cmd);
 extern int relabel_cmd(UAContext *ua, const char *cmd);
+extern int restore_cmd(UAContext *ua, const char *cmd);
+extern int retentioncmd(UAContext *ua, const char *cmd);
+extern int show_cmd(UAContext *ua, const char *cmd);
+extern int sqlquerycmd(UAContext *ua, const char *cmd);
+extern int status_cmd(UAContext *ua, const char *cmd);
 extern int update_cmd(UAContext *ua, const char *cmd);
 
 /* Forward referenced functions */
 static int add_cmd(UAContext *ua, const char *cmd);
-static int create_cmd(UAContext *ua, const char *cmd);
+static int automount_cmd(UAContext *ua, const char *cmd);
 static int cancel_cmd(UAContext *ua, const char *cmd);
-static int enable_cmd(UAContext *ua, const char *cmd);
+static int create_cmd(UAContext *ua, const char *cmd);
+static int delete_cmd(UAContext *ua, const char *cmd);
 static int disable_cmd(UAContext *ua, const char *cmd);
-static int setdebug_cmd(UAContext *ua, const char *cmd);
-static int trace_cmd(UAContext *ua, const char *cmd);
-static int var_cmd(UAContext *ua, const char *cmd);
+static int enable_cmd(UAContext *ua, const char *cmd);
 static int estimate_cmd(UAContext *ua, const char *cmd);
 static int help_cmd(UAContext *ua, const char *cmd);
-static int delete_cmd(UAContext *ua, const char *cmd);
-static int use_cmd(UAContext *ua, const char *cmd);
-static int unmount_cmd(UAContext *ua, const char *cmd);
-static int version_cmd(UAContext *ua, const char *cmd);
-static int automount_cmd(UAContext *ua, const char *cmd);
-static int time_cmd(UAContext *ua, const char *cmd);
+static int memory_cmd(UAContext *ua, const char *cmd);
+static int mount_cmd(UAContext *ua, const char *cmd);
+static int python_cmd(UAContext *ua, const char *cmd);
+static int release_cmd(UAContext *ua, const char *cmd);
 static int reload_cmd(UAContext *ua, const char *cmd);
+static int setdebug_cmd(UAContext *ua, const char *cmd);
+static int setip_cmd(UAContext *ua, const char *cmd);
+static int time_cmd(UAContext *ua, const char *cmd);
+static int trace_cmd(UAContext *ua, const char *cmd);
+static int unmount_cmd(UAContext *ua, const char *cmd);
+static int use_cmd(UAContext *ua, const char *cmd);
+static int var_cmd(UAContext *ua, const char *cmd);
+static int version_cmd(UAContext *ua, const char *cmd);
+static int wait_cmd(UAContext *ua, const char *cmd);
+
+static void do_job_delete(UAContext *ua, JobId_t JobId);
+static void delete_job_id_range(UAContext *ua, char *tok);
 static int delete_volume(UAContext *ua);
 static int delete_pool(UAContext *ua);
 static void delete_job(UAContext *ua);
-static int mount_cmd(UAContext *ua, const char *cmd);
-static int release_cmd(UAContext *ua, const char *cmd);
-static int wait_cmd(UAContext *ua, const char *cmd);
-static int setip_cmd(UAContext *ua, const char *cmd);
-static int python_cmd(UAContext *ua, const char *cmd);
-static void do_job_delete(UAContext *ua, JobId_t JobId);
-static void delete_job_id_range(UAContext *ua, char *tok);
 
 int qhelp_cmd(UAContext *ua, const char *cmd);
 int quit_cmd(UAContext *ua, const char *cmd);
@@ -114,6 +116,7 @@ static struct cmdstruct commands[] = {
  { NT_("list"),       list_cmd,      _("list [pools | jobs | jobtotals | media <pool=pool-name> | files <jobid=nn>]; from catalog")},
  { NT_("label"),      label_cmd,     _("label a tape")},
  { NT_("llist"),      llist_cmd,     _("full or long list like list command")},
+ { NT_("memory"),     memory_cmd,    _("print current memory usage")},
  { NT_("messages"),   messagescmd,   _("messages")},
  { NT_("mount"),      mount_cmd,     _("mount <storage-name>")},
  { NT_("prune"),      prunecmd,      _("prune expired records from catalog")},
@@ -1399,6 +1402,12 @@ static int delete_pool(UAContext *ua)
    return 1;
 }
 
+int memory_cmd(UAContext *ua, const char *cmd)
+{
+   list_dir_status_header(ua);
+   sm_dump(false);
+   return 1;
+}
 
 static void do_mount_cmd(UAContext *ua, const char *command)
 {
