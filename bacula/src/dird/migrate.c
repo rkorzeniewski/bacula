@@ -1070,7 +1070,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
       } 
 
       if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
-         Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
+         Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
             db_strerror(jcr->db));
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }

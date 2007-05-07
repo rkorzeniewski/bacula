@@ -25,7 +25,7 @@
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeType" >
-      <enum>QSizePolicy::Maximum</enum>
+      <enum>QSizePolicy::Expanding</enum>
      </property>
      <property name="sizeHint" >
       <size>
@@ -229,7 +229,7 @@ p, li { white-space: pre-wrap; }
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeType" >
-      <enum>QSizePolicy::Maximum</enum>
+      <enum>QSizePolicy::Expanding</enum>
      </property>
      <property name="sizeHint" >
       <size>

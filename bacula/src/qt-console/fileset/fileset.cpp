@@ -64,6 +64,8 @@ void FileSet::populateTree()
 {
    QTreeWidgetItem *filesetItem, *topItem;
 
+
+   Dmsg0(000, "Populate fileset tree called.\n");
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
@@ -81,7 +83,7 @@ void FileSet::populateTree()
    /* This could be a log item */
    //printf("In FileSet::populateTree()\n");
 
-   foreach(QString filesetName, m_console->fileset_list){
+   foreach(QString filesetName, m_console->fileset_list) {
       filesetItem = new QTreeWidgetItem(topItem);
       filesetItem->setText(0, filesetName);
       filesetItem->setData(0, Qt::UserRole, 1);
@@ -134,10 +136,10 @@ void FileSet::populateTree()
  */
 void FileSet::PgSeltreeWidgetClicked()
 {
-   if(!m_populated) {
+   if (!m_populated) {
       populateTree();
       createContextMenu();
-      m_populated=true;
+      m_populated = true;
    }
 }
 
@@ -145,14 +147,15 @@ void FileSet::PgSeltreeWidgetClicked()
  * Added to set the context menu policy based on currently active treeWidgetItem
  * signaled by currentItemChanged
  */
-void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *previouswidgetitem )
+void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem, 
+                              QTreeWidgetItem *previouswidgetitem )
 {
    /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
    if (m_checkcurwidget) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
-         if (treedepth == 1){
+         if (treedepth == 1) {
             mp_treeWidget->removeAction(actionStatusFileSetInConsole);
          }
       }

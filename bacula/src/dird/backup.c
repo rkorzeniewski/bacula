@@ -348,14 +348,14 @@ void backup_cleanup(JCR *jcr, int TermCode)
    update_job_end(jcr, TermCode);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting job record for stats: %s"),
+      Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
          db_strerror(jcr->db));
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
    bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
    if (!db_get_client_record(jcr, jcr->db, &cr)) {
-      Jmsg(jcr, M_WARNING, 0, _("Error getting client record for stats: %s"),
+      Jmsg(jcr, M_WARNING, 0, _("Error getting Client record for Job report: ERR=%s"),
          db_strerror(jcr->db));
    }
 

@@ -254,6 +254,9 @@ int do_keyword_prompt(UAContext *ua, const char *msg, const char **list);
 int confirm_retention(UAContext *ua, utime_t *ret, const char *msg);
 bool get_level_from_name(JCR *jcr, const char *level_name);
 
+/* ua_status.c */
+void list_dir_status_header(UAContext *ua);
+
 /* ua_tree.c */
 bool user_select_files_from_tree(TREE_CTX *tree);
 int insert_tree_handler(void *ctx, int num_fields, char **row);

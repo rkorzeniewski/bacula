@@ -432,20 +432,20 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (lchown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
+            attr->ofname, be.bstrerror());
          ok = false;
       }
    } else {
       if (chown(attr->ofname, attr->statp.st_uid, attr->statp.st_gid) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file owner %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
+            attr->ofname, be.bstrerror());
          ok = false;
       }
       if (chmod(attr->ofname, attr->statp.st_mode) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file modes %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
+            attr->ofname, be.bstrerror());
          ok = false;
       }
 
@@ -455,7 +455,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (utime(attr->ofname, &ut) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file times %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
+            attr->ofname, be.bstrerror());
          ok = false;
       }
 #ifdef HAVE_CHFLAGS
@@ -469,7 +469,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
       if (chflags(attr->ofname, attr->statp.st_flags) < 0) {
          berrno be;
          Jmsg2(jcr, M_ERROR, 0, _("Unable to set file flags %s: ERR=%s\n"),
-            attr->ofname, be.strerror());
+            attr->ofname, be.bstrerror());
          ok = false;
       }
 #endif

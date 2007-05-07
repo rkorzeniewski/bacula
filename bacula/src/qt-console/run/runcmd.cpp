@@ -31,7 +31,9 @@
  *
  *  This is called when a Run Command signal is received from the
  *    Director. We parse the Director's output and throw up a 
- *    dialog box.
+ *    dialog box.  This happens, for example, after the user finishes
+ *    selecting files to be restored. The Director will then submit a
+ *    run command, that causes this page to be popped up.
  *
  *   Kern Sibbald, March MMVII
  *

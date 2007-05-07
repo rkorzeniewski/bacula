@@ -159,7 +159,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          if (unlink(attr->ofname) == -1) {
             berrno be;
             Qmsg(jcr, M_ERROR, 0, _("File %s already exists and could not be replaced. ERR=%s.\n"),
-               attr->ofname, be.strerror());
+               attr->ofname, be.bstrerror());
             /* Continue despite error */
          }
       }
@@ -219,7 +219,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             berrno be;
             be.set_errno(bfd->berrno);
             Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
-                  attr->ofname, be.strerror());
+                  attr->ofname, be.bstrerror());
             return CF_ERROR;
          }
          return CF_EXTRACT;
@@ -233,7 +233,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             if (mkfifo(attr->ofname, attr->statp.st_mode) != 0 && errno != EEXIST) {
                berrno be;
                Qmsg2(jcr, M_ERROR, 0, _("Cannot make fifo %s: ERR=%s\n"),
-                     attr->ofname, be.strerror());
+                     attr->ofname, be.bstrerror());
                return CF_ERROR;
             }
          } else if (S_ISSOCK(attr->statp.st_mode)) {
@@ -251,7 +251,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             if (mknod(attr->ofname, attr->statp.st_mode, attr->statp.st_rdev) != 0 && errno != EEXIST) {
                berrno be;
                Qmsg2(jcr, M_ERROR, 0, _("Cannot make node %s: ERR=%s\n"),
-                     attr->ofname, be.strerror());
+                     attr->ofname, be.bstrerror());
                return CF_ERROR;
             }
          }
@@ -280,8 +280,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                berrno be;
                be.set_errno(bfd->berrno);
                Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
-                     attr->ofname, be.strerror());
-               Dmsg2(400, "Could not open %s: ERR=%s\n", attr->ofname, be.strerror());
+                     attr->ofname, be.bstrerror());
+               Dmsg2(400, "Could not open %s: ERR=%s\n", attr->ofname, be.bstrerror());
                stop_thread_timer(tid);
                return CF_ERROR;
             }
@@ -296,7 +296,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          if (symlink(attr->olname, attr->ofname) != 0 && errno != EEXIST) {
             berrno be;
             Qmsg3(jcr, M_ERROR, 0, _("Could not symlink %s -> %s: ERR=%s\n"),
-                  attr->ofname, attr->olname, be.strerror());
+                  attr->ofname, attr->olname, be.bstrerror());
             return CF_ERROR;
          }
          return CF_CREATED;
@@ -321,26 +321,26 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
                      /* restore original file flags even when linking failed */
                      if (chflags(attr->olname, s.st_flags) < 0) {
                         Qmsg2(jcr, M_ERROR, 0, _("Could not restore file flags for file %s: ERR=%s\n"),
-                              attr->olname, be.strerror());
+                              attr->olname, be.bstrerror());
                      }
 #endif /* HAVE_CHFLAGS */
             Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
-                  attr->ofname, attr->olname, be.strerror());
+                  attr->ofname, attr->olname, be.bstrerror());
             return CF_ERROR;
 #ifdef HAVE_CHFLAGS
                   }
                   /* finally restore original file flags */
                   if (chflags(attr->olname, s.st_flags) < 0) {
                      Qmsg2(jcr, M_ERROR, 0, _("Could not restore file flags for file %s: ERR=%s\n"),
-                            attr->olname, be.strerror());
+                            attr->olname, be.bstrerror());
                   }
                } else {
                  Qmsg2(jcr, M_ERROR, 0, _("Could not reset file flags for file %s: ERR=%s\n"),
-                       attr->olname, be.strerror());
+                       attr->olname, be.bstrerror());
                }
             } else {
               Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
-                    attr->ofname, attr->olname, be.strerror());
+                    attr->ofname, attr->olname, be.bstrerror());
               return CF_ERROR;
             }
 #endif /* HAVE_CHFLAGS */
@@ -377,7 +377,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             }
 #endif
             Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),
-                  attr->ofname, be.strerror());
+                  attr->ofname, be.bstrerror());
             return CF_ERROR;
          }
          return CF_EXTRACT;
