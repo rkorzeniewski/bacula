@@ -71,6 +71,7 @@ void MediaList::populateTree()
       << "Volume Name" << "Id" << "Status" << "Enabled"
       << "Bytes" << "Files" << "Jobs" << "Retention" 
       << "Media Type" << "Slot" << "Last Written");
+   int statusIndex = headerlist.indexOf("Status");
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
@@ -122,6 +123,9 @@ void MediaList::populateTree()
                   mediatreeitem->setData(index, Qt::UserRole, 2);
                   mediatreeitem->setData(index, Qt::UserRole, 2);
                   mediatreeitem->setText(index, field);
+                  if (index == statusIndex) {
+                     setStatusColor(mediatreeitem, field, index);
+                  }
                }
                index++;
             } /* foreach field */
@@ -131,6 +135,17 @@ void MediaList::populateTree()
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.count(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
+   }
+}
+
+void MediaList::setStatusColor(QTreeWidgetItem *item, QString &field, int &index)
+{
+   if (field == "Append" ) {
+      item->setBackground(index, Qt::green);
+   } else if (field == "Error") {
+      item->setBackground(index, Qt::red);
+   } else if ((field == "Used") || ("Full")){
+      item->setBackground(index, Qt::yellow);
    }
 }
 
