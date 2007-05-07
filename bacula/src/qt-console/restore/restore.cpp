@@ -228,6 +228,7 @@ void restorePage::okButtonPushed()
    this->hide();
    m_console->write("done");
    m_console->notify(true);
+   setConsoleCurrent();
    closeStackPage();
    mainWin->resetFocus();
 }
