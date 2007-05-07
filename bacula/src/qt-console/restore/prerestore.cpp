@@ -110,6 +110,7 @@ void prerestorePage::okButtonPushed()
    consoleCommand(cmd);
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
+      setConsoleCurrent();
       new restorePage();
       closeStackPage();
    } else {
