@@ -57,6 +57,37 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+@$out tmp/log1.out
+@#setdebug level=100 storage=File
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out  
+restore where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+#
+# Now do a second backup after making a few changes
+#
+touch ${cwd}/build/src/dird/*.c
+echo "test test" > ${cwd}/build/src/dird/xxx
+#
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
 check_two_logs
 check_restore_diff
 end_test
