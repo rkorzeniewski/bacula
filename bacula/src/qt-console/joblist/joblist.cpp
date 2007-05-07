@@ -220,7 +220,7 @@ void JobList::currentStackItem()
 void JobList::treeWidgetName(QString &desc)
 {
    if ((m_mediaName == "") && (m_clientName == "")) {
-      desc = "All Jobs";
+      desc = "Jobs";
    } else {
       desc = "Jobs ";
       if (m_mediaName != "" ) {

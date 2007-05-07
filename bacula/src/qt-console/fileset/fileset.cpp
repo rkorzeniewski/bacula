@@ -65,7 +65,6 @@ void FileSet::populateTree()
    QTreeWidgetItem *filesetItem, *topItem;
 
 
-   Dmsg0(000, "Populate fileset tree called.\n");
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
