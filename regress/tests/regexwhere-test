@@ -275,7 +275,7 @@ fi
 # test with bregtest
 
 find ${cwd}/build > tmp/list
-sed -e 's/readme/readme/i' -e 's/\([ch]\)$/.old.\1/' tmp/list > tmp/list.sed
+sed -e 's/README/readme/' -e 's/\([ch]\)$/.old.\1/' tmp/list > tmp/list.sed
 ./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > tmp/list.bsed
 
 if diff -q tmp/list.bsed tmp/list.sed
