@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+#  Test RunScript
+#
+
+TestName="bug-fatal-test"
+JobName=backup
+
+. scripts/functions
+set_debug 0
+copy_test_confs
+
+rm -f bin/bacula-dir.conf
+rm -f tmp/RUN*log
+/bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
+
+rm -f /tmp/file-list
+# /tmp/file-list doesn't exists
+# echo "${cwd}/build/po" >/tmp/file-list
+
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+label volume=TestVolume001
+@$out tmp/RUN_BUG_FATAL.log
+run job=BUG_FATAL yes
+wait
+messages
+@sleep 1
+st dir
+quit
+END_OF_DATA
+
+
+bin/bacula start
+cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
+stop_bacula
+
+export dstat=0
+export bstat=0
+export rstat=0
+
+end_test
