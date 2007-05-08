@@ -61,6 +61,7 @@ private slots:
    void consoleListVolumes();
    void consoleDeleteJob();
    void consolePurgeFiles();
+   void preRestoreFromJob();
 
 private:
    void createConnections();

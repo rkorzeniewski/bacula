@@ -35,7 +35,7 @@
 #include <QTableWidgetItem>
 #include "bat.h"
 #include "joblist.h"
-
+#include "restore.h"
 
 /*
  * Constructor for the class
@@ -276,6 +276,7 @@ void JobList::createConnections()
    mp_tableWidget->addAction(actionListVolumes);
    mp_tableWidget->addAction(actionDeleteJob);
    mp_tableWidget->addAction(actionPurgeFiles);
+   mp_tableWidget->addAction(actionRestoreFromJob);
 
    /* Make Connections */
    connect(actionLongListJob, SIGNAL(triggered()), this,
@@ -292,6 +293,8 @@ void JobList::createConnections()
                 SLOT(consoleDeleteJob()));
    connect(actionPurgeFiles, SIGNAL(triggered()), this,
                 SLOT(consolePurgeFiles()));
+   connect(actionRestoreFromJob, SIGNAL(triggered()), this,
+                SLOT(preRestoreFromJob()));
 }
 
 /*
@@ -339,4 +342,12 @@ void JobList::consolePurgeFiles()
    QString cmd("purge files jobid=");
    cmd += m_currentJob;
    consoleCommand(cmd);
+}
+
+/*
+ * Subroutine to call preRestore to restore from a select job
+ */
+void JobList::preRestoreFromJob()
+{
+   new prerestorePage(m_currentJob);
 }
