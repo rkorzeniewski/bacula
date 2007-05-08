@@ -4,6 +4,11 @@ See if there is a solution to images fun with designer other than:
 %s/<iconset>[\.\/]*:images/<iconset>images/g
 %s/<iconset>images/<iconset>..\/images/g
 
+Color code termination code in joblist.  Create class to display messages from
+a specific job.  Want the ability to create an instance of that class from
+joblist.  I also want a table to convert termination code into human readable
+text.
+
 Allow for selecting multiple jobs to restore from in joblist.  Right click
 restore from job works, but not with multiple selected jobs.
 
