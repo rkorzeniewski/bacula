@@ -8,7 +8,7 @@ The major features are:
 - Red/Black restore in memory tree (500 times faster loading).
 - Much faster insertion of attributes (somewhere around 10 times).
 - The Regex Where code to allow easier relocation of restored files.
-- Socket level heartbeat (untested).
+- Socket level heartbeat for all connections (untested).
 - posix_fadvise() use in the FD to improve performance.
 - Simpler locking in the SD in the reservation system.
 - Much improved Volume reservation code that should eliminate most
@@ -16,3 +16,55 @@ The major features are:
 - Detection of file size/date change during backup if enabled.
 - New Recycle Pool feature.
 - Efficient implementation of very large include/exclude lists.
+- Volumes are no longer pruned during 'status dir'
+- Pruning is now more efficient, and if a Volume is purged,
+  during pruning, it is immediately discovered.
+
+Other features or bug fixes:
+- Fixed bugs: 846, 809, 772, 822, 825, 824, 808, 802, 797, 
+  798, 795, 789, 791, 788, 780, 763, 782, 612, 767,
+  775, 621, 772, 764, 766, 621, 761, 755, 750, 741,
+  747, 742, 744, and 743.
+- Only the minumum number of volumes are pruned rather than
+  all volumes in the pool.
+- wx-console renamed to bwx-console
+- gnome-console renamed to bgnome-console
+- Migration preserves original job's FileSetId
+- Spooling implemented for migration jobs.
+- Config files can be read through a pipe, by specifying a leading |
+  in front of the configuration path/filename.
+- New memory command (bconsole) that will print the current Director's
+  memory usage, and a in use buffer dump.
+- Solaris door and event port files are no longer restored.
+- Console name changed from *Console* to -Console- to accomodate Win32
+  filename restrictions.  
+- Corrected Win32 ftruncate bug.
+- Additional version information added to Job reports.
+- New -8 option for bsmtp to specify UTF-8 encoding type.
+- bsmtp will no longer add < > to target (from, to, cc) if there
+  is already a < in the target.
+- Perfer Mounted Volumes extended to mean a volume that is being
+  mounted by another job.
+- Runscript timing set to same as version 1.38.11
+- New TLS Allowed CN directive(s) permitted.
+- New bconsole 'exec' command to run external script/command.
+- Turn on FreeBSD/OpenBSD code to set EOT model on tape.
+- Drop from root done before database is opened.
+- database user and name can be configured with:
+  --with-db-name=name --with-db-user=user
+- turn on wait_for_drive in mtx-changer script.
+- rework how bar codes are handled in mtx-changer script.
+  This appears to have been an unreported bug.
+- Updated nagios plugin supplied by Christian Masopust
+- Better restricted console ACL checking.
+- New Client Connect Wait directive in Storage daemon so that
+  users can configure how long SD waits for FD connection.
+- Bacula will no longer permit pruning of the currently running
+  job (note, if other jobs are running, they may be pruned).
+- Sockets are no longer restored.
+- dbcheck works in 300K chunks so will typically run faster.
+- Include/Exclude lists can now be efficiently handled for quite
+  large sizes -- tens of thousands of entries.
+- Several memory leaks in migration and database usage were fixed.
+
+
