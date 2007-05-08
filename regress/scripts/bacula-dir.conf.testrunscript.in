@@ -140,6 +140,13 @@ Job {
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
 }
 
+Job {
+  Name = BUG_FATAL
+  JobDefs = DefaultJob
+  FileSet = FS_TESTJOB
+}
+
+
 # Client (File Services) to backup
 Client {
   Name = @hostname@-fd
