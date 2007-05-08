@@ -100,9 +100,11 @@ bool do_mac(JCR *jcr)
 
    Dmsg2(200, "===== After acquire pos %u:%u\n", jcr->dcr->dev->file, jcr->dcr->dev->block_num);
      
-
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
+
+   begin_data_spool(jcr->dcr);
+   begin_attribute_spool(jcr);
 
    jcr->dcr->VolFirstIndex = jcr->dcr->VolLastIndex = 0;
    jcr->run_time = time(NULL);
@@ -127,12 +129,24 @@ ok_out:
          Dmsg2(200, "Flush block to device pos %u:%u\n", dev->file, dev->block_num);
       }  
 
+      if (!ok) {
+         discard_data_spool(jcr->dcr);
+      } else {
+         /* Note: if commit is OK, the device will remain locked */
+         commit_data_spool(jcr->dcr);
+      }
 
       if (ok && dev->is_dvd()) {
          ok = dvd_close_job(jcr->dcr);   /* do DVD cleanup if any */
       }
       /* Release the device -- and send final Vol info to DIR */
       release_device(jcr->dcr);
+
+      if (!ok || job_canceled(jcr)) {
+         discard_attribute_spool(jcr);
+      } else {
+         commit_attribute_spool(jcr);
+      }
    }
 
    if (jcr->read_dcr) {
@@ -142,13 +156,6 @@ ok_out:
    }
 
    free_restore_volume_list(jcr);
-
-
-   if (!ok || job_canceled(jcr)) {
-      discard_attribute_spool(jcr);
-   } else {
-      commit_attribute_spool(jcr);
-   }
 
    dir_send_job_status(jcr);          /* update director */
 

@@ -182,6 +182,8 @@ bool do_migration_init(JCR *jcr)
       return false;
    }
 
+   jcr->spool_data = job->spool_data;     /* turn on spooling if requested in job */ 
+
    /* Create a migation jcr */
    mig_jcr = jcr->mig_jcr = new_jcr(sizeof(JCR), dird_free_jcr);
    memcpy(&mig_jcr->previous_jr, &jcr->previous_jr, sizeof(mig_jcr->previous_jr));
@@ -198,9 +200,8 @@ bool do_migration_init(JCR *jcr)
 
    /* Now reset the job record from the previous job */
    memcpy(&mig_jcr->jr, &jcr->previous_jr, sizeof(mig_jcr->jr));
-   /* Update the jr to reflect the new values of PoolId, FileSetId, and JobId. */
+   /* Update the jr to reflect the new values of PoolId and JobId. */
    mig_jcr->jr.PoolId = jcr->jr.PoolId;
-   mig_jcr->jr.FileSetId = jcr->jr.FileSetId;
    mig_jcr->jr.JobId = mig_jcr->JobId;
 
    Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",

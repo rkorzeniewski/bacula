@@ -133,7 +133,12 @@ LEX *lex_close_file(LEX *lf)
    Dmsg1(dbglvl, "Close lex file: %s\n", lf->fname);
 
    of = lf->next;
-   fclose(lf->fd);
+   if (lf->bpipe) {
+      close_bpipe(lf->bpipe);
+      lf->bpipe = NULL;
+   } else {
+      fclose(lf->fd);
+   }
    Dmsg1(dbglvl, "Close cfg file %s\n", lf->fname);
    free(lf->fname);
    if (of) {
@@ -164,10 +169,18 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 {
    LEX *nf;
    FILE *fd;
+   BPIPE *bpipe = NULL;
    char *fname = bstrdup(filename);
 
 
-   if ((fd = fopen(fname, "rb")) == NULL) {
+   if (fname[0] == '|') {
+      if ((bpipe = open_bpipe(fname, 0, "rb")) == NULL) {
+         free(fname);
+         return NULL;
+      }
+      fd = bpipe->rfd;
+   } else if ((fd = fopen(fname, "rb")) == NULL) {
+      free(fname);
       return NULL;
    }
    Dmsg1(400, "Open config file: %s\n", fname);
@@ -188,6 +201,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
       lex_set_default_error_handler(lf);
    }
    lf->fd = fd;
+   lf->bpipe = bpipe;
    lf->fname = fname;
    lf->state = lex_none;
    lf->ch = L_EOL;

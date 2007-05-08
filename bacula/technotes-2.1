@@ -1,6 +1,14 @@
               Technical notes on version 2.1
 
 General:
+08May07
+kes  Merge patch from Sergey Svishchev <svs@ropnet.ru> that preserves 
+     the original jobb's FileSetId.
+kes  Merge patch from Sergey Svishchev <svs@ropnet.ru> that implements
+     spooling in migration jobs.  Not yet tested.
+kes  Merge patch from Jorj Bauer <jorj@seas.upenn.edu> that implements
+     reading conf file from a pipe.  However, do it with open_bpipe()
+     rather than popen.  Not yet tested.
 07May07 
 kes  Fix an ugly bug where the VolCatBytes were getting updated
      during a restore.

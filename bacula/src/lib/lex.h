@@ -1,17 +1,7 @@
 /*
- *   lex.h
- *
- *    Lexical scanning of configuration files, used by parsers.
- *
- *   Kern Sibbald, MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   lex.h
+ *
+ *    Lexical scanning of configuration files, used by parsers.
+ *
+ *   Kern Sibbald, MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #ifndef _LEX_H
 #define _LEX_H
@@ -92,6 +92,8 @@ enum lex_state {
 #define LOPT_NO_IDENT            0x1  /* No Identifiers -- use string */
 #define LOPT_STRING              0x2  /* Force scan for string */
 
+class BPIPE;                          /* forward reference */
+  
 /* Lexical context */
 typedef struct s_lex_context {
    struct s_lex_context *next;        /* pointer to next lexical context */
@@ -114,6 +116,7 @@ typedef struct s_lex_context {
    void (*scan_error)(const char *file, int line, struct s_lex_context *lc, const char *msg, ...);
    int err_type;                      /* message level for scan_error (M_..) */
    void *caller_ctx;                  /* caller private data */
+   BPIPE *bpipe;                      /* set if we are piping */
 } LEX;
 
 typedef void (LEX_ERROR_HANDLER)(const char *file, int line, LEX *lc, const char *msg, ...);
