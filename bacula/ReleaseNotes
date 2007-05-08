@@ -66,5 +66,7 @@ Other features or bug fixes:
 - Include/Exclude lists can now be efficiently handled for quite
   large sizes -- tens of thousands of entries.
 - Several memory leaks in migration and database usage were fixed.
-
-
+- New console keyword restoreclient, which specifies the client to
+  which the restore will be sent. The client keyword specifies 
+  the backup client. The restoreclient keyword is optional if it is
+  not specified, the backup client will also be the restore client.

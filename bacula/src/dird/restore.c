@@ -184,7 +184,7 @@ bool do_restore(JCR *jcr)
       replace = REPLACE_ALWAYS;       /* always replace */
    }
    
-   where = &empty;		      /* default */
+   where = &empty;                    /* default */
 
    if (jcr->RegexWhere) {
       where = jcr->RegexWhere;             /* override */
@@ -297,7 +297,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
 "  Build OS:               %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
-"  Client:                 %s\n"
+"  Restore Client:         %s\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
 "  Files Expected:         %s\n"
@@ -312,7 +312,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
         HOST_OS, DISTNAME, DISTVER,
         jcr->jr.JobId,
         jcr->jr.Job,
-        jcr->client->hdr.name,
+        jcr->client->name(),
         sdt,
         edt,
         edit_uint64_with_commas((uint64_t)jcr->ExpectedFiles, ec1),
