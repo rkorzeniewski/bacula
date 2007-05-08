@@ -50,6 +50,7 @@ class prerestorePage : public Pages, public Ui::prerestoreForm
 
 public:
    prerestorePage();
+   prerestorePage(QString &jobIdString);
 
 private slots:
    void okButtonPushed();
@@ -57,9 +58,14 @@ private slots:
    void job_name_change(int index);
    void recentChanged(int);
    void jobsRadioClicked(bool);
+   void jobIdEditFinished();
 
 private:
+   void jobdefsFromJob(QStringList &, QString);
+   void buildPage();
+   bool checkJobIdList();
    QString m_dtformat;
+   QString m_jobIdListIn;
 };
 
 /*  

@@ -38,8 +38,24 @@
 #include "bat.h"
 #include "restore.h"
 
+/* Constructor to have job id list default in */
+prerestorePage::prerestorePage(QString &jobIdString)
+{
+   m_jobIdListIn = jobIdString;
+   buildPage();
+}
 
+/* Basic Constructor */
 prerestorePage::prerestorePage()
+{
+   m_jobIdListIn = "";
+   buildPage();
+}
+
+/*
+ * This is really the constructor
+ */
+void prerestorePage::buildPage()
 {
    m_dtformat = "yyyy-MM-dd HH:MM:ss";
    m_name = "Restore";
@@ -60,23 +76,44 @@ prerestorePage::prerestorePage()
    beforeDateTime->setDateTime(QDateTime::currentDateTime());
    beforeDateTime->setEnabled(false);
    selectFilesRadio->setChecked(true);
-   selectJobsRadio->setChecked(true);
-   jobIdEdit->setText("Comma separted list of jobs id's");
-   jobIdEdit->setEnabled(false);
+   if (m_jobIdListIn == "") {
+      selectJobsRadio->setChecked(true);
+      jobIdEdit->setText("Comma separted list of jobs id's");
+      jobIdEdit->setEnabled(false);
+   } else {
+      listJobsRadio->setChecked(true);
+      jobIdEdit->setText(m_jobIdListIn);
+      jobsRadioClicked(false);
+      QStringList fieldlist;
+      jobdefsFromJob(fieldlist,m_jobIdListIn);
+      filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
+      clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
+      jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+   }
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
    connect(recentCheckBox, SIGNAL(stateChanged(int)), this, SLOT(recentChanged(int)));
    connect(selectJobsRadio, SIGNAL(toggled(bool)), this, SLOT(jobsRadioClicked(bool)));
+   connect(jobIdEdit, SIGNAL(editingFinished()), this, SLOT(jobIdEditFinished()));
 
    dockPage();
    setCurrent();
    this->show();
 }
 
+
+/*
+ * Check to make sure all is ok then start either the select window or the restore
+ * run window
+ */
 void prerestorePage::okButtonPushed()
 {
+   if (!selectJobsRadio->isChecked()) {
+      if (!checkJobIdList())
+         return;
+   }
    QString cmd;
 
    this->hide();
@@ -88,8 +125,8 @@ void prerestorePage::okButtonPushed()
       cmd += "all done ";
    }
    cmd += "fileset=\"" + filesetCombo->currentText() + "\" ";
+   cmd += "client=\"" + clientCombo->currentText() + "\" ";
    if (selectJobsRadio->isChecked()) {
-      cmd += "client=\"" + clientCombo->currentText() + "\" ";
       if (poolCombo->currentText() != "Any" ){
          cmd += "pool=\"" + poolCombo->currentText() + "\" ";
       }
@@ -121,6 +158,9 @@ void prerestorePage::okButtonPushed()
 }
 
 
+/*
+ * Destroy the instace of the class
+ */
 void prerestorePage::cancelButtonPushed()
 {
    mainWin->set_status("Canceled");
@@ -130,6 +170,9 @@ void prerestorePage::cancelButtonPushed()
 }
 
 
+/*
+ * Handle updating the other widget with job defaults when the job combo is changed.
+ */
 void prerestorePage::job_name_change(int index)
 {
    job_defaults job_defs;
@@ -144,6 +187,10 @@ void prerestorePage::job_name_change(int index)
    }
 }
 
+/*
+ * Handle the change of enabled of input widgets when the recent checkbox state
+ * is changed.
+ */
 void prerestorePage::recentChanged(int state)
 {
    if ((state == Qt::Unchecked) && (selectJobsRadio->isChecked())) {
@@ -153,11 +200,15 @@ void prerestorePage::recentChanged(int state)
    }
 }
 
+/*
+ * Handle the change of enabled of input widgets when the job radio buttons
+ * are changed.
+ */
 void prerestorePage::jobsRadioClicked(bool checked)
 {
    if (checked) {
       jobCombo->setEnabled(true);
-//      filesetCombo->setEnabled(true);
+      filesetCombo->setEnabled(true);
       clientCombo->setEnabled(true);
       poolCombo->setEnabled(true);
       storageCombo->setEnabled(true);
@@ -168,7 +219,7 @@ void prerestorePage::jobsRadioClicked(bool checked)
       jobIdEdit->setEnabled(false);
    } else {
       jobCombo->setEnabled(false);
-//      filesetCombo->setEnabled(false);
+      filesetCombo->setEnabled(false);
       clientCombo->setEnabled(false);
       poolCombo->setEnabled(false);
       storageCombo->setEnabled(false);
@@ -177,3 +228,96 @@ void prerestorePage::jobsRadioClicked(bool checked)
       jobIdEdit->setEnabled(true);
    }
 }
+
+/*
+ * For when jobs list is to be used, return a list which is the needed items from
+ * the job record
+ */
+void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
+{
+   QString job, client, fileset;
+   QString query("");
+   query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client, Fileset.Fileset AS Fileset "
+   " From Job, Client, Fileset"
+   " WHERE Job.FilesetId=FileSet.FilesetId AND Job.ClientId=Client.ClientId"
+   " AND JobId=\'" + jobId + "\'";
+   //printf("query = %s\n", query.toUtf8().data());
+   QStringList results;
+   if (m_console->sql_cmd(query, results)) {
+      QString field;
+
+      /* Iterate through the lines of results, there should only be one. */
+      foreach (QString resultline, results) {
+         fieldlist = resultline.split("\t");
+      } /* foreach resultline */
+   } /* if results from query */
+}
+
+/*
+ * Function to handle when the jobidlist line edit input loses focus or is entered
+ */
+void prerestorePage::jobIdEditFinished()
+{
+   checkJobIdList();
+}
+
+bool prerestorePage::checkJobIdList()
+{
+   /* Need to check and make sure the text is a comma separated list of integers */
+   QString line = jobIdEdit->text();
+   if (line.contains(" ")) {
+      QMessageBox::warning(this, tr("Bat"),
+         tr("There can be no spaces in the text for the joblist.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
+      return false;
+   }
+   //printf("In prerestorePage::jobIdEditFinished %s\n",line.toUtf8().data());
+   QStringList joblist = line.split(",", QString::SkipEmptyParts);
+   bool allintokay = true, alljobok = true, allisjob = true;
+   QString jobName(""), clientName("");
+   foreach (QString job, joblist) {
+      bool intok;
+      job.toInt(&intok, 10);
+      if (intok) {
+         /* are the intergers representing a list of jobs all with the same job
+          * and client */
+         QStringList fields;
+         jobdefsFromJob(fields, job);
+         int count = fields.count();
+         if (count > 0) {
+            if (jobName == "")
+               jobName = fields[0];
+            else if (jobName != fields[0])
+               alljobok = false;
+            if (clientName == "")
+               clientName = fields[1];
+            else if (clientName != fields[1])
+               alljobok = false;
+         } else {
+            allisjob = false;
+         }
+      } else {
+         allintokay = false;
+      }
+   }
+   if (!allintokay){
+      QMessageBox::warning(this, tr("Bat"),
+         tr("The string is not a comma separated list if integers.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
+      return false;
+   }
+   if (!allisjob){
+      QMessageBox::warning(this, tr("Bat"),
+         tr("At least one of the jobs is not a valid job.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
+      return false;
+   }
+   if (!alljobok){
+      QMessageBox::warning(this, tr("Bat"),
+         tr("All jobs in the list must be of the same jobName and same client.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
+      return false;
+   }
+   return true;
+}
+

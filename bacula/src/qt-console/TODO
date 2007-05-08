@@ -1,5 +1,12 @@
 dhb
 ====================================================
+See if there is a solution to images fun with designer other than:
+%s/<iconset>[\.\/]*:images/<iconset>images/g
+%s/<iconset>images/<iconset>..\/images/g
+
+Allow for selecting multiple jobs to restore from in joblist.  Right click
+restore from job works, but not with multiple selected jobs.
+
 Test left pane of restore with 2 windows drives in one backup job.
 
 Resolve issue of connection during restore selection.  Could go with preempt of
@@ -7,10 +14,6 @@ connections.
 
 User preferences.  With log to stdout options.
 Have settings for defaults of limits on joblist
-
-Create the ability to start a restore from joblist.  Right click, select
-"restore from Jobid=xx" create an instance of restore defaulting in the jobid
-or a list of selected jobs.
 
 Add numerous are you sure dialog boxes.  Like are you sure you want to
 delete/purge that volume.  Show a little of the documentation about what
@@ -93,6 +96,10 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Create the ability to start a restore from joblist.  Right click, select
+"restore from Jobid=xx" create an instance of restore defaulting in the jobid
+or a list of selected jobs.
+
 Update README  describe bat.conf.example to bat.conf
 
 Test restore and get anything not working, working.
