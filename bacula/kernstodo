@@ -1,9 +1,6 @@
                     Kern's ToDo List
-                     27 April 2007
+                     08 May 2007
 
-Major development:      
-Project                     Developer
-=======                     =========                         
 
 Document:
 - !!! Cannot restore two jobs a the same time that were
@@ -51,27 +48,10 @@ Professional Needs:
 - Detect state change of system (verify)
 
 Priority:
+- Add TLS to bat
 - When Pool specifies Storage command override does not work.
-- Please mount volume "xxx" on Storage device ... should also list
-  Pool and MediaType in case user needs to create a new volume.
 - Implement wait_for_sysop() message display in wait_for_device(), which
-now prints warnings too often.
-
-- the director seg faulted when I omitted the pool directive from a 
-job resource.  I was experimenting and thought it redundant that I had 
-specified Pool, Full Backup Pool. and Differential Backup Pool. but 
-apparently not.  This  happened when I removed the pool directive and 
-started the director.
-
-- On restore add Restore Client, Original Client.
-01-Apr 00:42 rufus-dir: Start Backup JobId 55, Job=kernsave.2007-04-01_00.42.48
-01-Apr 00:42 rufus-sd: Python SD JobStart: JobId=55 Client=Rufus
-01-Apr 00:42 rufus-dir: Created new Volume "Full0001" in catalog.
-01-Apr 00:42 rufus-dir: Using Device "File"
-01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
-01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
-01-Apr 00:42 rufus-sd: Please mount Volume "Full0001" on Storage Device "File" (/tmp) for Job kernsave.2007-04-01_00.42.48
-01-Apr 00:44 rufus-sd: Wrote label to prelabeled Volume "Full0001" on device "File" (/tmp)
+  now prints warnings too often.
 
 - Add Where: client:/.... to restore job report.
 - Ensure that each device in an Autochanger has a different
@@ -102,7 +82,6 @@ started the director.
   to a DVD (the device is not open -- see bug #732).
 - Look at the possibility of adding "SET NAMES UTF8" for MySQL,
   and possibly changing the blobs into varchar.
-- Check if gnome-console works with TLS.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
 - Look at moving the Storage directive from the Job to the
@@ -1700,20 +1679,25 @@ Block Position: 0
 - Look at using posix_fadvise(2) for backups -- see bug #751.
   Possibly add the code at findlib/bfile.c:795
 /* TCP socket options */
-#define TCP_NODELAY             1       /* Turn off Nagle's algorithm. */
-#define TCP_MAXSEG              2       /* Limit MSS */
-#define TCP_CORK                3       /* Never send partially complete segments */
 #define TCP_KEEPIDLE            4       /* Start keeplives after this period */
-#define TCP_KEEPINTVL           5       /* Interval between keepalives */
-#define TCP_KEEPCNT             6       /* Number of keepalives before death */
-#define TCP_SYNCNT              7       /* Number of SYN retransmits */
-#define TCP_LINGER2             8       /* Life time of orphaned FIN-WAIT-2 state */
-#define TCP_DEFER_ACCEPT        9       /* Wake up listener only when data arrive */
-#define TCP_WINDOW_CLAMP        10      /* Bound advertised window */
-#define TCP_INFO                11      /* Information about this connection. */
-#define TCP_QUICKACK            12      /* Block/reenable quick acks */
-#define TCP_CONGESTION          13      /* Congestion control algorithm */
 - Fix bnet_connect() code to set a timer and to use time to
   measure the time.
 - Implement 4th argument to make_catalog_backup that passes hostname.
 - Test FIFO backup/restore -- make regression
+- Please mount volume "xxx" on Storage device ... should also list
+  Pool and MediaType in case user needs to create a new volume.
+- On restore add Restore Client, Original Client.
+01-Apr 00:42 rufus-dir: Start Backup JobId 55, Job=kernsave.2007-04-01_00.42.48
+01-Apr 00:42 rufus-sd: Python SD JobStart: JobId=55 Client=Rufus
+01-Apr 00:42 rufus-dir: Created new Volume "Full0001" in catalog.
+01-Apr 00:42 rufus-dir: Using Device "File"
+01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
+01-Apr 00:42 rufus-sd: kernsave.2007-04-01_00.42.48 Warning: Device "File" (/tmp) not configured to autolabel Volumes.
+01-Apr 00:42 rufus-sd: Please mount Volume "Full0001" on Storage Device "File" (/tmp) for Job kernsave.2007-04-01_00.42.48
+01-Apr 00:44 rufus-sd: Wrote label to prelabeled Volume "Full0001" on device "File" (/tmp)
+- Check if gnome-console works with TLS.
+- the director seg faulted when I omitted the pool directive from a 
+  job resource.  I was experimenting and thought it redundant that I had 
+  specified Pool, Full Backup Pool. and Differential Backup Pool. but 
+  apparently not.  This  happened when I removed the pool directive and 
+  started the director.

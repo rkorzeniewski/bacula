@@ -725,7 +725,7 @@ static bool check_resources()
       for (i=0; job_items[i].name; i++) {
          if (job_items[i].flags & ITEM_REQUIRED) {
                if (!bit_is_set(i, job->hdr.item_present)) {
-                  Jmsg(NULL, M_FATAL, 0, _("\"%s\" directive in Job \"%s\" resource is required, but not found.\n"),
+                  Jmsg(NULL, M_ERROR_TERM, 0, _("\"%s\" directive in Job \"%s\" resource is required, but not found.\n"),
                     job_items[i].name, job->name());
                   OK = false;
                 }
