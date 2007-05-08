@@ -1294,10 +1294,15 @@ bool DEVICE::fsf(int num)
     *  forward space past the end of the medium.
     */
    if (has_cap(CAP_FSF) && has_cap(CAP_MTIOCGET) && has_cap(CAP_FASTFSF)) {
+      int errno_save;
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
       stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+      errno_save = errno;
       if (stat < 0 || (os_file=get_os_tape_file()) < 0) {
+         if (os_file >= 0) {             /* get_os_tape_file reset errno */
+            errno = errno_save;
+         }
          berrno be;
          set_eot();
          Dmsg0(200, "Set ST_EOT\n");
