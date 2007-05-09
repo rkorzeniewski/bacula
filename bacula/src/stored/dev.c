@@ -1260,7 +1260,7 @@ bool DEVICE::offline_or_rewind()
  */
 bool DEVICE::fsf(int num)
 {
-   int32_t os_file;
+   int32_t os_file = 0;
    struct mtop mt_com;
    int stat = 0;
 
@@ -1294,24 +1294,26 @@ bool DEVICE::fsf(int num)
     *  forward space past the end of the medium.
     */
    if (has_cap(CAP_FSF) && has_cap(CAP_MTIOCGET) && has_cap(CAP_FASTFSF)) {
-      int errno_save;
+      int my_errno = 0;
       mt_com.mt_op = MTFSF;
       mt_com.mt_count = num;
       stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
-      errno_save = errno;
-      if (stat < 0 || (os_file=get_os_tape_file()) < 0) {
-         if (os_file >= 0) {             /* get_os_tape_file reset errno */
-            errno = errno_save;
-         }
+      if (stat < 0) {
+         my_errno = errno;            /* save errno */
+      } else if ((os_file=get_os_tape_file()) < 0) {
+         my_errno = errno;            /* save errno */
+      }
+      if (my_errno != 0) {
          berrno be;
          set_eot();
          Dmsg0(200, "Set ST_EOT\n");
          clrerror(MTFSF);
          Mmsg2(errmsg, _("ioctl MTFSF error on %s. ERR=%s.\n"),
-            print_name(), be.bstrerror());
+            print_name(), be.bstrerror(my_errno));
          Dmsg1(200, "%s", errmsg);
          return false;
       }
+
       Dmsg1(200, "fsf file=%d\n", os_file);
       set_ateof();
       file = os_file;

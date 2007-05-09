@@ -70,3 +70,6 @@ Other features or bug fixes:
   which the restore will be sent. The client keyword specifies 
   the backup client. The restoreclient keyword is optional if it is
   not specified, the backup client will also be the restore client.
+- The disk file size is now checked to ensure that it agrees with the
+  catalog value before Bacula will append to the disk (same as tape
+  and DVD).

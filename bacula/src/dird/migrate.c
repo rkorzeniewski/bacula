@@ -519,14 +519,16 @@ const char *sql_jobids_from_vol =
 
 
 const char *sql_smallest_vol = 
-   "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
+   "SELECT Media.MediaId FROM Media,Pool,JobMedia WHERE"
+   " Media.MediaId in (SELECT DISTINCT MediaId from JobMedia) AND"
+   " Media.VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY VolBytes ASC LIMIT 1";
 
 const char *sql_oldest_vol = 
-   "SELECT MediaId FROM Media,Pool WHERE"
-   " VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
+   "SELECT Media.MediaId FROM Media,Pool,JobMedia WHERE"
+   " Media.MediaId in (SELECT DISTINCT MediaId from JobMedia) AND"
+   " Media.VolStatus in ('Full','Used','Error') AND Media.Enabled=1 AND"
    " Media.PoolId=Pool.PoolId AND Pool.Name='%s'"
    " ORDER BY LastWritten ASC LIMIT 1";
 
@@ -679,8 +681,8 @@ static int get_job_to_migrate(JCR *jcr)
             goto ok_out;
          }
          pool_bytes = ctx.value;
-         Dmsg2(dbglevel, "highbytes=%d pool=%d\n", (int)jcr->rpool->MigrationHighBytes,
-               (int)pool_bytes);
+         Dmsg2(dbglevel, "highbytes=%lld pool=%lld\n", jcr->rpool->MigrationHighBytes,
+               pool_bytes);
          if (pool_bytes < (int64_t)jcr->rpool->MigrationHighBytes) {
             Jmsg(jcr, M_INFO, 0, _("No Volumes found to migrate.\n"));
             goto ok_out;
@@ -858,11 +860,11 @@ static void start_migration_job(JCR *jcr)
         edit_uint64(jcr->MigrateJobId, ed1));
    Dmsg1(dbglevel, "=============== Migration cmd=%s\n", ua->cmd);
    parse_ua_args(ua);                 /* parse command */
-   int stat = run_cmd(ua, ua->cmd);
-   if (stat == 0) {
+   int jobid = run_cmd(ua, ua->cmd);
+   if (jobid == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Could not start migration job.\n"));
    } else {
-      Jmsg(jcr, M_INFO, 0, _("Migration JobId %d started.\n"), stat);
+      Jmsg(jcr, M_INFO, 0, _("Migration JobId %d started.\n"), jobid);
    }
    free_ua_context(ua);
 }
@@ -881,7 +883,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
       goto bail_out;
    }
    if (ids->count == 0) {
-      Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
+      Jmsg(jcr, M_INFO, 0, _("No %s found to migrate.\n"), type);
       ok = true;         /* Not an error */
       goto bail_out;
    } else if (ids->count != 1) {
@@ -889,7 +891,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
          ids->count);
       goto bail_out;
    }
-   Dmsg1(dbglevel, "Smallest Vol Jobids=%s\n", ids->list);
+   Dmsg2(dbglevel, "%s MediaIds=%s\n", type, ids->list);
 
    ok = find_jobids_from_mediaid_list(jcr, ids, type);
 

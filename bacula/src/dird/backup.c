@@ -244,6 +244,10 @@ bool do_backup(JCR *jcr)
 bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
    Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
+   /* Cancel SD */
+   if (jcr->store_bsock) {
+      jcr->store_bsock->fsend("cancel Job=%s\n", jcr->Job);
+   }
    wait_for_storage_daemon_termination(jcr);
    Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
    return false;

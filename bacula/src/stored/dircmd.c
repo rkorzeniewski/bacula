@@ -303,6 +303,9 @@ static bool cancel_cmd(JCR *cjcr)
          jcr->unlock();
          if (jcr->file_bsock) {
             bnet_sig(jcr->file_bsock, BNET_TERMINATE);
+         } else {
+            /* Still waiting for FD to connect, release it */
+            pthread_cond_signal(&jcr->job_start_wait); /* wake waiting job */
          }
          /* If thread waiting on mount, wake him */
          if (jcr->dcr && jcr->dcr->dev && jcr->dcr->dev->waiting_for_mount()) {

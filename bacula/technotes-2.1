@@ -1,6 +1,12 @@
               Technical notes on version 2.1
 
 General:
+09May07 
+kes  When backup fails, cancel SD before waiting for sd termination.
+kes  If SD is waiting for FD to connect during cancel, wake up the 
+     thread.
+kes  Fix fsf code so that errno is correctly reported.
+kes  Apply migration patch (with changes) from Sergey Svishchev <svs@ropnet.ru>
 08May07
 kes  Make lack of Pool directive in Job an ERROR_TERM rather than FATAL
      so that Bacula doesn't later stumble into a seg fault.

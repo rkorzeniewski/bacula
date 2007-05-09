@@ -48,6 +48,7 @@ Professional Needs:
 - Detect state change of system (verify)
 
 Priority:
+- Mention Eric and Marc's work + Marc's doc.
 - Add TLS to bat
 - When Pool specifies Storage command override does not work.
 - Implement wait_for_sysop() message display in wait_for_device(), which
@@ -95,6 +96,20 @@ Priority:
    
 
 Projects:
+- Average tape size from Eric
+    SELECT COALESCE(media_avg_size.volavg,0) * count(Media.MediaId) AS volmax,                                                              GROUP BY Media.MediaType, Media.PoolId, media_avg_size.volavg
+           count(Media.MediaId)  AS volnum,
+           sum(Media.VolBytes)   AS voltotal,
+           Media.PoolId          AS PoolId,
+           Media.MediaType       AS MediaType
+    FROM Media
+    LEFT JOIN (SELECT avg(Media.VolBytes) AS volavg,
+                      Media.MediaType     AS MediaType
+               FROM Media
+              WHERE Media.VolStatus = 'Full'
+              GROUP BY Media.MediaType
+               ) AS media_avg_size ON (Media.MediaType = media_avg_size.MediaType)
+    GROUP BY Media.MediaType, Media.PoolId, media_avg_size.volavg
 - GUI
   - Admin
   - Management reports
