@@ -237,11 +237,11 @@ void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
 {
    QString job, client, fileset;
    QString query("");
-   query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client, Fileset.Fileset AS Fileset "
-   " From Job, Client, Fileset"
-   " WHERE Job.FilesetId=FileSet.FilesetId AND Job.ClientId=Client.ClientId"
+   query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client, FileSet.FileSet AS FileSet "
+   " From Job, Client, FileSet"
+   " WHERE Job.FileSetId=FileSet.FileSetId AND Job.ClientId=Client.ClientId"
    " AND JobId=\'" + jobId + "\'";
-   //printf("query = %s\n", query.toUtf8().data());
+   printf("query = %s\n", query.toUtf8().data());
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
       QString field;
