@@ -333,12 +333,36 @@ void JobList::consoleListVolumes()
 }
 void JobList::consoleDeleteJob()
 {
+   if (QMessageBox::warning(this, tr("Bat"),
+      tr("Are you sure you want to delete??  !!!.\n"
+"This delete command is used to delete a Job record and all associated catalog"
+" records that were created. This command operates only on the Catalog"
+" database and has no effect on the actual data written to a Volume. This"
+" command can be dangerous and we strongly recommend that you do not use"
+" it unless you know what you are doing.  The Job and all its associated"
+" records (File and JobMedia) will be deleted from the catalog."
+      "Press OK to proceed with delete operation.?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
    QString cmd("delete job jobid=");
    cmd += m_currentJob;
    consoleCommand(cmd);
 }
 void JobList::consolePurgeFiles()
 {
+   if (QMessageBox::warning(this, tr("Bat"),
+      tr("Are you sure you want to purge ??  !!!.\n"
+"The Purge command will delete associated Catalog database records from Jobs and"
+" Volumes without considering the retention period. Purge  works only on the"
+" Catalog database and does not affect data written to Volumes. This command can"
+" be dangerous because you can delete catalog records associated with current"
+" backups of files, and we recommend that you do not use it unless you know what"
+" you are doing.\n"
+      "Press OK to proceed with the purge operation?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
    QString cmd("purge files jobid=");
    cmd += m_currentJob;
    consoleCommand(cmd);
