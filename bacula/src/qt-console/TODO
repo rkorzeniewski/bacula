@@ -1,28 +1,21 @@
 dhb
 ====================================================
-See if there is a solution to images fun with designer other than:
-%s/<iconset>[\.\/]*:images/<iconset>images/g
-%s/<iconset>images/<iconset>..\/images/g
-
 Color code termination code in joblist.  Create class to display messages from
 a specific job.  Want the ability to create an instance of that class from
 joblist.  I also want a table to convert termination code into human readable
 text.
 
-Allow for selecting multiple jobs to restore from in joblist.  Right click
-restore from job works, but not with multiple selected jobs.
+move behavior of:
+  MainWin::setContextMenuDockText
+  MainWin::setTreeWidgetItemDockColor
+to the pages class
 
 Test left pane of restore with 2 windows drives in one backup job.
-
-Resolve issue of connection during restore selection.  Could go with preempt of
-connections.
 
 User preferences.  With log to stdout options.
 Have settings for defaults of limits on joblist
 
-Add numerous are you sure dialog boxes.  Like are you sure you want to
-delete/purge that volume.  Show a little of the documentation about what
-the consequences of delete or purging are.
+show purged flag in joblist.  Don't have purge option show if already purged.
 
 Add context sensitive options for most commands
 status dir on page select director item
@@ -31,17 +24,17 @@ As well as many more
 update slots scan
 see COMMANDS file
 
-preempt all connections to console with 
-if (!is_connectedGui())
-or some other mechanism.  Partially done.
+Option in joblist like with restore from jobid but restore populating timestamp
+of the selected job.
 
-Create documentation for any other developers interested in creating
-new classes to add more pages.  Explain how to use the pages class
-and about not populating until the tree widget is clicked etc...
+Resolve issue of connection during restore selection.  Could go with preempt of
+connections.  (Kern is to work on)
 
-LOW priority items:
+Purging not working from console or from context sensitive.  (Kern)
 
-User configuration dialog.  Include options for debugging output to stdout.
+========LOW priority items:
+Allow for selecting multiple jobs to restore from in joblist.  Right click
+restore from job works, but not with multiple selected jobs.
 
 Is there a way to query the director/database for whether a storage is currently
 mounted so I am not presenting both mount and unmount to the user??
@@ -49,12 +42,9 @@ mounted so I am not presenting both mount and unmount to the user??
 Is there a way to identify a slot as having a cleaning tape???
 (Kern says more work needs to be done in bacula with autochangers)
 
-Get rid of "Warning: name layoutWidget is already used" when make uic's restore.ui
-
-move behavior of:
-  MainWin::setContextMenuDockText
-  MainWin::setTreeWidgetItemDockColor
-to the pages class
+See if there is a solution to images fun with designer other than:
+%s/<iconset>[\.\/]*:images/<iconset>images/g
+%s/<iconset>images/<iconset>..\/images/g
 
 Think about good ways to clean up the Console creation part of the
 loop creating pages.
@@ -82,9 +72,6 @@ cancelled graphically.
 Add a status client window.  Keep updating showing what file is being
 processed.
 
-A Tree widget context sensitive menu option and class to jump from known job
-to surf the filestructure on the job.
-
 bRestore add code to get working.
 
 ===========================================================
@@ -101,6 +88,24 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+preempt all connections to console with 
+if (!is_connectedGui())
+or some other mechanism.  May find more as users start finding them.
+
+Create documentation for any other developers interested in creating
+new classes to add more pages.  Explain how to use the pages class
+and about not populating until the tree widget is clicked etc...
+
+Add numerous are you sure dialog boxes.  Like are you sure you want to
+delete/purge that volume.  Show a little of the documentation about what
+the consequences of delete or purging are.
+
+A Tree widget context sensitive menu option and class to jump from known job
+to surf the filestructure on the job.
+  This was future, but it is kind of done with restore from jobid
+
+Get rid of "Warning: name layoutWidget is already used" when make uic's restore.ui
+
 Create the ability to start a restore from joblist.  Right click, select
 "restore from Jobid=xx" create an instance of restore defaulting in the jobid
 or a list of selected jobs.
@@ -213,7 +218,6 @@ dhb:
 m_currentConsole is saved in each page subclass's m_console.  This value
 is set by all but the console class calling Pages::pgInitialie() in it's
 constructor
-
 
 In short, there is a lot of work to be done to make multiple
 simultaneous directors work.
