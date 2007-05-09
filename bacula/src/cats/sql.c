@@ -118,6 +118,8 @@ int
 QueryDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
 {
    int status;
+
+   sql_free_result(mdb);
    if ((status=sql_query(mdb, cmd)) != 0) {
       m_msg(file, line, &mdb->errmsg, _("query %s failed:\n%s\n"), cmd, sql_strerror(mdb));
       j_msg(file, line, jcr, M_FATAL, 0, "%s", mdb->errmsg);

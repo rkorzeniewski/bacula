@@ -38,6 +38,8 @@
 #include "bacula.h"
 #include "dird.h"
 
+extern void *start_sbrk;
+
 static void list_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
 static void list_terminated_jobs(UAContext *ua);
@@ -256,7 +258,7 @@ static void do_all_status(UAContext *ua)
 void list_dir_status_header(UAContext *ua)
 {
    char dt[MAX_TIME_LENGTH];
-   char b1[35], b2[35], b3[35], b4[35];
+   char b1[35], b2[35], b3[35], b4[35], b5[35];
 
    ua->send_msg(_("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
             HOST_OS, DISTNAME, DISTVER);
@@ -268,11 +270,12 @@ void list_dir_status_header(UAContext *ua)
       ua->send_msg(_("Daemon started %s, %d Jobs run since started.\n"),
         dt, num_jobs_run);
    }
-   ua->send_msg(_(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
-            edit_uint64_with_commas(sm_bytes, b1),
-            edit_uint64_with_commas(sm_max_bytes, b2),
-            edit_uint64_with_commas(sm_buffers, b3),
-            edit_uint64_with_commas(sm_max_buffers, b4));
+   ua->send_msg(_(" Heap: sbrk=%s bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+            edit_uint64_with_commas((uint64_t)sbrk(0)-(uint64_t)start_sbrk, b1),
+            edit_uint64_with_commas(sm_bytes, b2),
+            edit_uint64_with_commas(sm_max_bytes, b3),
+            edit_uint64_with_commas(sm_buffers, b4),
+            edit_uint64_with_commas(sm_max_buffers, b5));
 }
 
 static void do_director_status(UAContext *ua)

@@ -374,7 +374,7 @@ struct B_DB {
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   mysql_store_result((x)->db)
 #define sql_use_result(x)     mysql_use_result((x)->db)
-#define sql_free_result(x)    mysql_free_result((x)->result)
+#define sql_free_result(x)    my_mysql_free_result(x)
 #define sql_fetch_row(x)      mysql_fetch_row((x)->result)
 #define sql_query(x, y)       mysql_query((x)->db, (y))
 #define sql_close(x)          mysql_close((x)->db)
@@ -404,6 +404,7 @@ extern char* my_mysql_batch_lock_filename_query;
 extern char* my_mysql_batch_unlock_tables_query;
 extern char* my_mysql_batch_fill_filename_query;
 extern char* my_mysql_batch_fill_path_query;
+extern void  my_mysql_free_result(B_DB *mdb);
 
 #else
 
