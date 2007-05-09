@@ -40,6 +40,7 @@
 /* Exported globals */
 time_t watchdog_time = 0;             /* this has granularity of SLEEP_TIME */
 time_t watchdog_sleep_time = 60;      /* examine things every 60 seconds */
+void *start_sbrk;   
 
 /* Locals */
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -75,6 +76,7 @@ int start_watchdog(void)
    if (wd_is_init) {
       return 0;
    }
+   start_sbrk = sbrk(0);
    Dmsg0(800, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
 

@@ -373,6 +373,14 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 
 }
 
+void my_mysql_free_result(B_DB *mdb)
+{
+   if (mdb->result) {
+      mysql_free_result(mdb->result);
+      mdb->result = NULL;
+   }
+}
+
 char *my_mysql_batch_lock_path_query = "LOCK TABLES Path write,     " 
                                        "            batch write,    " 
                                        "            Path as p write ";
