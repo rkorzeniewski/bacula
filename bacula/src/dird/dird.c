@@ -128,12 +128,12 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
-   start_heap = sbrk(0);
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
 
    init_stack_dump();
+   start_heap = sbrk(0);
    my_name_is(argc, argv, "bacula-dir");
    init_msg(NULL, NULL);              /* initialize message handler */
    init_reload();

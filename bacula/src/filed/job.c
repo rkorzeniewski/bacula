@@ -1212,7 +1212,13 @@ static int level_cmd(JCR *jcr)
       adj = btime_to_utime(bt_adj);
       since_time += adj;              /* adjust for clock difference */
       if (adj != 0) {
-         Jmsg(jcr, M_INFO, 0, _("DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"), adj);
+         int type;
+         if (adj > 600 || adj < -600) {
+            type = M_WARNING;
+         } else {
+            type = M_INFO;
+         }
+         Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"), adj);
       }
       bnet_sig(dir, BNET_EOD);
 

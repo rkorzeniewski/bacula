@@ -67,34 +67,34 @@ extern VSSClient *g_pVSSClient;
 void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    int sec, bps;
-   char *msg, b1[32], b2[32], b3[32], b4[32], b5[5];
+   POOL_MEM msg(PM_MESSAGE);
+   char b1[32], b2[32], b3[32], b4[32], b5[35];
    int len;
    bool found = false;
    JCR *njcr;
    char dt[MAX_TIME_LENGTH];
 
-   msg = (char *)get_pool_memory(PM_MESSAGE);
    len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s %s\n"), 
               my_name, VERSION, BDATE, VSS, HOST_OS, DISTNAME, DISTVER);
-   sendit(msg, len, arg);
+   sendit(msg.c_str(), len, arg);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"),
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
-   sendit(msg, len, arg);
+   sendit(msg.c_str(), len, arg);
 #if defined(HAVE_WIN32)
    if (debug_level > 0) {
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);
       }
       len = Mmsg(msg, "Priv 0x%x\n", privs);
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, "APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n",
                  p_OpenProcessToken?"":"!",
                  p_AdjustTokenPrivileges?"":"!",
                  p_LookupPrivilegeValue?"":"!",
                  p_CreateFileA?"":"!",
                  p_CreateFileW?"":"!");
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, " %sWUL,%sWMKD,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
                  p_wunlink?"":"!",
                  p_wmkdir?"":"!",
@@ -107,7 +107,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
                  p_BackupRead?"":"!",
                  p_BackupWrite?"":"!",
                  p_SetProcessShutdownParameters?"":"!");
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, " %sWC2MB,%sMB2WC,%sFFFA,%sFFFW,%sFNFA,%sFNFW,%sSCDA,%sSCDW,\n",
                  p_WideCharToMultiByte?"":"!",
                  p_MultiByteToWideChar?"":"!",
@@ -117,13 +117,13 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
                  p_FindNextFileW?"":"!",
                  p_SetCurrentDirectoryA?"":"!",
                  p_SetCurrentDirectoryW?"":"!");
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, " %sGCDA,%sGCDW,%sGVPNW,%sGVNFVMPW\n",  
                  p_GetCurrentDirectoryA?"":"!",
                  p_GetCurrentDirectoryW?"":"!",
                  p_GetVolumePathNameW?"":"!",
                  p_GetVolumeNameForVolumeMountPointW?"":"!");
-     sendit(msg, len, arg);
+     sendit(msg.c_str(), len, arg);
    }
 #endif
    len = Mmsg(msg, _(" Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -132,17 +132,17 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
          edit_uint64_with_commas(sm_max_bytes, b3),
          edit_uint64_with_commas(sm_buffers, b4),
          edit_uint64_with_commas(sm_max_buffers, b5));
-   sendit(msg, len, arg);
+   sendit(msg.c_str(), len, arg);
    len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
          sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());
-   sendit(msg, len, arg);
+   sendit(msg.c_str(), len, arg);
 
    /*
     * List running jobs
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
    len = Mmsg(msg, _("\nRunning Jobs:\n"));
-   sendit(msg, len, arg);
+   sendit(msg.c_str(), len, arg);
    char *vss = "";
 #ifdef WIN32_VSS
    if (g_pVSSClient && g_pVSSClient->IsInitialized()) {
@@ -156,11 +156,11 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
       } else {
          len = Mmsg(msg, _("JobId %d Job %s is running.\n"),
                     njcr->JobId, njcr->Job);
-         sendit(msg, len, arg);
+         sendit(msg.c_str(), len, arg);
          len = Mmsg(msg, _("    %s%s Job started: %s\n"),
                     vss, job_type_to_str(njcr->JobType), dt);
       }
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       if (njcr->JobId == 0) {
          continue;
       }
@@ -173,38 +173,36 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
            edit_uint64_with_commas(njcr->JobFiles, b1),
            edit_uint64_with_commas(njcr->JobBytes, b2),
            edit_uint64_with_commas(bps, b3));
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, _("    Files Examined=%s\n"),
            edit_uint64_with_commas(njcr->num_files_examined, b1));
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
       if (njcr->JobFiles > 0) {
          njcr->lock();
          len = Mmsg(msg, _("    Processing file: %s\n"), njcr->last_fname);
          njcr->unlock();
-         sendit(msg, len, arg);
+         sendit(msg.c_str(), len, arg);
       }
 
       found = true;
       if (njcr->store_bsock) {
          len = Mmsg(msg, "    SDReadSeqNo=%" lld " fd=%d\n",
              njcr->store_bsock->read_seqno, njcr->store_bsock->fd);
-         sendit(msg, len, arg);
+         sendit(msg.c_str(), len, arg);
       } else {
          len = Mmsg(msg, _("    SDSocket closed.\n"));
-         sendit(msg, len, arg);
+         sendit(msg.c_str(), len, arg);
       }
    }
    endeach_jcr(njcr);
 
    if (!found) {
       len = Mmsg(msg, _("No Jobs running.\n"));
-      sendit(msg, len, arg);
+      sendit(msg.c_str(), len, arg);
    }
    sendit(_("====\n"), 5, arg);
 
    list_terminated_jobs(sendit, arg);
-
-   free_pool_memory(msg);
 }
 
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg)
