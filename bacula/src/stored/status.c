@@ -69,11 +69,12 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    AUTOCHANGER *changer;
    DEVICE *dev;
    char dt[MAX_TIME_LENGTH];
-   char *msg, b1[35], b2[35], b3[35], b4[35], b5[35];
+   char b1[35], b2[35], b3[35], b4[35], b5[35];
+   POOLMEM *msg;
    int bpb;
    int len;
 
-   msg = (char *)get_pool_memory(PM_MESSAGE);
+   msg = get_pool_memory(PM_MESSAGE);
 
    len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s\n"), 
               my_name, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);

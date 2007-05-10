@@ -9,7 +9,10 @@ use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons.
 
 The major features are:
-- First cut of bat (Bacula Administration Tool)
+- First cut of bat (Bacula Administration Tool).  Note to build
+  bat you must explicitly enable it on the ./configure line, you
+  must have the Qt4 libraries loaded, and qmake and the other Qt4
+  tools must be available.
 - Red/Black restore in memory tree (500 times faster loading).
 - Much faster insertion of attributes (somewhere around 10 times).
 - The Regex Where code to allow easier relocation of restored files.
