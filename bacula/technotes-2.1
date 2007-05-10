@@ -1,6 +1,13 @@
               Technical notes on version 2.1
 
 General:
+10May07
+kes  Implement heap size display in status for all daemons.
+kes  Attempt to fix MySQL db open memory loss (not successfull).
+kes  Don't set SIGKILL and SIGSTOP neither can be trapped.
+kes  Eliminate memory loss in MySQL (possibly other SQLs) during
+     Query. This looks like a MySQL but but by doing extra releases,
+     the memory goes away.  This should fix bug #847.
 09May07 
 kes  When backup fails, cancel SD before waiting for sd termination.
 kes  If SD is waiting for FD to connect during cancel, wake up the 

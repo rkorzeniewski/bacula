@@ -610,9 +610,12 @@ bool complete_jcr_for_job(JCR *jcr, JOB *job, POOL *pool)
       jcr->pool = pool;               /* override */
    }
    if (jcr->db) {
+      Dmsg0(100, "complete_jcr close db\n");
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
    }
+
+   Dmsg0(100, "complete_jcr open db\n");
    jcr->db = jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
                       jcr->catalog->db_password, jcr->catalog->db_address,
                       jcr->catalog->db_port, jcr->catalog->db_socket,

@@ -43,6 +43,7 @@
 extern BSOCK *filed_chan;
 extern int r_first, r_last;
 extern struct s_res resources[];
+extern void *start_heap;
 
 /* Static variables */
 static char qstatus[] = ".status %127s\n";
@@ -68,7 +69,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    AUTOCHANGER *changer;
    DEVICE *dev;
    char dt[MAX_TIME_LENGTH];
-   char *msg, b1[35], b2[35], b3[35], b4[35];
+   char *msg, b1[35], b2[35], b3[35], b4[35], b5[35];
    int bpb;
    int len;
 
@@ -85,11 +86,12 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
    sendit(msg, len, arg);
 
-   len = Mmsg(msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
-         edit_uint64_with_commas(sm_bytes, b1),
-         edit_uint64_with_commas(sm_max_bytes, b2),
-         edit_uint64_with_commas(sm_buffers, b3),
-         edit_uint64_with_commas(sm_max_buffers, b4));
+   len = Mmsg(msg, _(" Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+         edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
+         edit_uint64_with_commas(sm_bytes, b2),
+         edit_uint64_with_commas(sm_max_bytes, b3),
+         edit_uint64_with_commas(sm_buffers, b4),
+         edit_uint64_with_commas(sm_max_buffers, b5));
    sendit(msg, len, arg);
 
    /*

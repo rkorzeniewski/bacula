@@ -203,7 +203,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
       free(db_name);
       V(mutex);
       return 0;
-   }
+   }       
+   mdb->connected = true;
    free(db_name);
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
@@ -217,7 +218,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
    sqlite_busy_handler(mdb->db, my_busy_handler, NULL);
 #endif
 
-   mdb->connected = true;
    V(mutex);
    return 1;
 }
@@ -230,6 +230,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    }
    db_end_transaction(jcr, mdb);
    P(mutex);
+   sql_free_result(mdb);
    mdb->ref_count--;
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);

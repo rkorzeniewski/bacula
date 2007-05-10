@@ -1,12 +1,4 @@
 /*
- *
- *   Bacula Director Job processing routines
- *
- *     Kern Sibbald, October MM
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director Job processing routines
+ *
+ *     Kern Sibbald, October MM
+ *
+ *    Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -122,7 +122,7 @@ bool setup_job(JCR *jcr)
    /*
     * Open database
     */
-   Dmsg0(150, "Open database\n");
+   Dmsg0(100, "Open database\n");
    jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
                             jcr->catalog->db_password, jcr->catalog->db_address,
                             jcr->catalog->db_port, jcr->catalog->db_socket,
@@ -132,6 +132,7 @@ bool setup_job(JCR *jcr)
                  jcr->catalog->db_name);
       if (jcr->db) {
          Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+         db_close_database(jcr, jcr->db);
       }
       goto bail_out;
    }

@@ -805,7 +805,7 @@ bool db_write_batch_file_records(JCR *jcr)
        "  FROM batch                                                      "
        "    JOIN Path ON (batch.Path = Path.Path)                         "
        "    JOIN Filename ON (batch.Name = Filename.Name)                 ",
-		     NULL,NULL))
+                     NULL,NULL))
    {
       Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
       return false;
@@ -831,6 +831,7 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
    if (!jcr->db_batch) {
+      Dmsg2(100, "Opendb attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
       jcr->db_batch = db_init_database(jcr, 
                                       mdb->db_name, 
                                       mdb->db_user,
@@ -851,11 +852,12 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       
       if (!sql_batch_start(jcr, jcr->db_batch)) {
          Jmsg(jcr, M_FATAL, 0, 
-	      "Can't start batch mode %s", db_strerror(jcr->db_batch));
+              "Can't start batch mode %s", db_strerror(jcr->db_batch));
          return false;
       }
+      Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
+            jcr->db_batch->connected, jcr->db_batch->db);
    }
-
    B_DB *bdb = jcr->db_batch;
 
    /*

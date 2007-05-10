@@ -377,7 +377,6 @@ struct B_DB {
 #define sql_free_result(x)    my_mysql_free_result(x)
 #define sql_fetch_row(x)      mysql_fetch_row((x)->result)
 #define sql_query(x, y)       mysql_query((x)->db, (y))
-#define sql_close(x)          mysql_close((x)->db)
 #define sql_strerror(x)       mysql_error((x)->db)
 #define sql_num_rows(x)       mysql_num_rows((x)->result)
 #define sql_data_seek(x, i)   mysql_data_seek((x)->result, (i))

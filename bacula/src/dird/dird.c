@@ -69,6 +69,7 @@ DIRRES *director;                     /* Director resource */
 int FDConnectTimeout;
 int SDConnectTimeout;
 char *configfile = NULL;
+void *start_heap;
 
 /* Globals Imported */
 extern int r_first, r_last;           /* first and last resources */
@@ -127,6 +128,7 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
+   start_heap = sbrk(0);
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
@@ -866,6 +868,7 @@ static bool check_catalog()
          if (db) {
             Jmsg(NULL, M_FATAL, 0, _("%s"), db_strerror(db));
             Pmsg1(000, "%s", db_strerror(db));
+            db_close_database(NULL, db);
          }
          OK = false;
          continue;

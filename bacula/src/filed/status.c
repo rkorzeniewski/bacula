@@ -1,15 +1,7 @@
 /*
- *  Bacula File Daemon Status routines
- *
- *    Kern Sibbald, August MMI
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,9 +25,19 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon Status routines
+ *
+ *    Kern Sibbald, August MMI
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
+
+extern void *start_heap;
 
 /* Forward referenced functions */
 static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
@@ -65,7 +67,7 @@ extern VSSClient *g_pVSSClient;
 void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
    int sec, bps;
-   char *msg, b1[32], b2[32], b3[32], b4[32];
+   char *msg, b1[32], b2[32], b3[32], b4[32], b5[5];
    int len;
    bool found = false;
    JCR *njcr;
@@ -124,11 +126,12 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
      sendit(msg, len, arg);
    }
 #endif
-   len = Mmsg(msg, _(" Heap: bytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
-         edit_uint64_with_commas(sm_bytes, b1),
-         edit_uint64_with_commas(sm_max_bytes, b2),
-         edit_uint64_with_commas(sm_buffers, b3),
-         edit_uint64_with_commas(sm_max_buffers, b4));
+   len = Mmsg(msg, _(" Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
+         edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
+         edit_uint64_with_commas(sm_bytes, b2),
+         edit_uint64_with_commas(sm_max_bytes, b3),
+         edit_uint64_with_commas(sm_buffers, b4),
+         edit_uint64_with_commas(sm_max_buffers, b5));
    sendit(msg, len, arg);
    len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
          sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());

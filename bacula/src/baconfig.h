@@ -83,6 +83,8 @@ void InitWinAPIWrapper();
 
 #define  OSDependentInit()    InitWinAPIWrapper()
 
+#define sbrk(x)  0
+
 
 #if defined(BUILDING_DLL)
 #  define DLL_IMP_EXP   _declspec(dllexport)

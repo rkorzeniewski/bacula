@@ -1800,7 +1800,7 @@ bool open_db(UAContext *ua)
 
    ua->jcr->catalog = ua->catalog;
 
-   Dmsg0(150, "Open database\n");
+   Dmsg0(100, "UA Open database\n");
    ua->db = db_init_database(ua->jcr, ua->catalog->db_name, ua->catalog->db_user,
                              ua->catalog->db_password, ua->catalog->db_address,
                              ua->catalog->db_port, ua->catalog->db_socket,
