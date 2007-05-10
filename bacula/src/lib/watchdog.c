@@ -1,15 +1,7 @@
 /*
- * Bacula thread watchdog routine. General routine that 
- *  allows setting a watchdog timer with a callback that is
- *  called when the timer goes off.
- *
- *  Kern Sibbald, January MMII
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula thread watchdog routine. General routine that 
+ *  allows setting a watchdog timer with a callback that is
+ *  called when the timer goes off.
+ *
+ *  Kern Sibbald, January MMII
+ *
+ */
 
 #include "bacula.h"
 #include "jcr.h"
@@ -40,7 +40,6 @@
 /* Exported globals */
 time_t watchdog_time = 0;             /* this has granularity of SLEEP_TIME */
 time_t watchdog_sleep_time = 60;      /* examine things every 60 seconds */
-void *start_sbrk;   
 
 /* Locals */
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -76,7 +75,6 @@ int start_watchdog(void)
    if (wd_is_init) {
       return 0;
    }
-   start_sbrk = sbrk(0);
    Dmsg0(800, "Initialising NicB-hacked watchdog thread\n");
    watchdog_time = time(NULL);
 
@@ -103,6 +101,7 @@ static void ping_watchdog()
    P(timer_mutex);
    pthread_cond_signal(&timer);
    V(timer_mutex);
+   bmicrosleep(0, 100);
 }
 
 /*
@@ -121,9 +120,8 @@ int stop_watchdog(void)
    }
 
    quit = true;                       /* notify watchdog thread to stop */
-   wd_is_init = false;
-
    ping_watchdog();
+
    stat = pthread_join(wd_tid, NULL);
 
    while (!wd_queue->empty()) {
@@ -150,6 +148,7 @@ int stop_watchdog(void)
    delete wd_inactive;
    wd_inactive = NULL;
    rwl_destroy(&lock);
+   wd_is_init = false;
 
    return stat;
 }

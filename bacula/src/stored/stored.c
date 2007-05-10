@@ -61,6 +61,7 @@ STORES *me = NULL;                    /* our Global resource */
 bool forge_on = false;                /* proceed inspite of I/O errors */
 pthread_mutex_t device_release_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t wait_device_release = PTHREAD_COND_INITIALIZER;
+void *start_heap;
 
 
 static uint32_t VolSessionId = 0;
@@ -112,6 +113,7 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
+   start_heap = sbrk(0);
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");

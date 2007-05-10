@@ -47,6 +47,7 @@ static bool check_resources();
 /* Exported variables */
 CLIENT *me;                           /* my resource */
 bool no_signals = false;
+void *start_heap;
 
 
 #define CONFIG_FILE "bacula-fd.conf" /* default config file */
@@ -93,6 +94,7 @@ int main (int argc, char *argv[])
    char *uid = NULL;
    char *gid = NULL;
 
+   start_heap = sbrk(0);
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");

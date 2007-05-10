@@ -92,6 +92,8 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
             Dmsg2(100, "DB REopen %d %s\n", mdb->ref_count, db_name);
             mdb->ref_count++;
             V(mutex);
+            Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", mdb->ref_count,
+                  mdb->connected, mdb->db);
             return mdb;                  /* already open */
          }
       }
@@ -123,6 +125,8 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
    mdb->esc_name = get_pool_memory(PM_FNAME);
    mdb->esc_path = get_pool_memory(PM_FNAME);
    qinsert(&db_list, &mdb->bq);            /* put db in list */
+   Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", mdb->ref_count,
+         mdb->connected, mdb->db);
    V(mutex);
    return mdb;
 }
@@ -143,7 +147,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
       V(mutex);
       return 1;
    }
-   mdb->connected = false;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
@@ -153,8 +156,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
    }
 
    /* connect to the database */
-#ifdef HAVE_EMBEDDED_MYSQL
-   mysql_server_init(0, NULL, NULL);
+#ifdef xHAVE_EMBEDDED_MYSQL
+// mysql_server_init(0, NULL, NULL);
 #endif
    mysql_init(&(mdb->mysql));
    Dmsg0(50, "mysql_init done\n");
@@ -191,6 +194,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
+   mdb->connected = true;
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
@@ -199,8 +203,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
 #ifdef HAVE_THREAD_SAFE_MYSQL
    my_thread_init();
 #endif
+   Dmsg3(100, "opendb ref=%d connected=%d db=%p\n", mdb->ref_count,
+         mdb->connected, mdb->db);
 
-   mdb->connected = true;
    V(mutex);
    return 1;
 }
@@ -213,16 +218,20 @@ db_close_database(JCR *jcr, B_DB *mdb)
    }
    db_end_transaction(jcr, mdb);
    P(mutex);
+   sql_free_result(mdb);
    mdb->ref_count--;
 #if defined(HAVE_THREAD_SAFE_MYSQL)
    my_thread_end();
 #endif
+   Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", mdb->ref_count,
+         mdb->connected, mdb->db);
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {
-         sql_close(mdb);
-#ifdef HAVE_EMBEDDED_MYSQL
-         mysql_server_end();
+         Dmsg1(100, "close db=%p\n", mdb->db);
+         mysql_close(&(mdb->mysql));
+#ifdef xHAVE_EMBEDDED_MYSQL
+//       mysql_server_end();
 #endif
       }
       rwl_destroy(&mdb->lock);

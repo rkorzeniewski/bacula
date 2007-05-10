@@ -196,6 +196,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
+   mdb->connected = true;
+
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
@@ -203,7 +205,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
 
    sql_query(mdb, "SET datestyle TO 'ISO, YMD'");
 
-   mdb->connected = true;
    V(mutex);
    return 1;
 }
@@ -216,6 +217,7 @@ db_close_database(JCR *jcr, B_DB *mdb)
    }
    db_end_transaction(jcr, mdb);
    P(mutex);
+   sql_free_result(mdb);
    mdb->ref_count--;
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
@@ -468,7 +470,7 @@ int my_postgresql_query(B_DB *mdb, const char *query) {
    return mdb->status;
 }
 
-void my_postgresql_free_result (B_DB *mdb)
+void my_postgresql_free_result(B_DB *mdb)
 {
    if (mdb->result) {
       PQclear(mdb->result);

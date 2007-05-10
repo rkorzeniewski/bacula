@@ -305,7 +305,7 @@ void init_signals(void terminate(int sig))
 #endif
    sigaction(SIGBUS,    &sighandle, NULL);
    sigaction(SIGFPE,    &sighandle, NULL);
-   sigaction(SIGKILL,   &sighandle, NULL);
+/* sigaction(SIGKILL,   &sighandle, NULL);  cannot be trapped */
    sigaction(SIGUSR1,   &sighandle, NULL);
    sigaction(SIGSEGV,   &sighandle, NULL);
    sigaction(SIGUSR2,   &sighandle, NULL);
@@ -314,7 +314,7 @@ void init_signals(void terminate(int sig))
 #ifdef SIGSTKFLT
    sigaction(SIGSTKFLT, &sighandle, NULL);
 #endif
-   sigaction(SIGSTOP,   &sighandle, NULL);
+/* sigaction(SIGSTOP,   &sighandle, NULL); cannot be trapped */
    sigaction(SIGTSTP,   &sighandle, NULL);
    sigaction(SIGTTIN,   &sighandle, NULL);
    sigaction(SIGTTOU,   &sighandle, NULL);
