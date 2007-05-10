@@ -748,12 +748,12 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
  */
 bool db_write_batch_file_records(JCR *jcr)
 {
-   Dmsg1(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
-
    if (!jcr->db_batch) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
       return true;
    }
+
+   Dmsg1(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
 
    if (!sql_batch_end(jcr, jcr->db_batch, NULL)) {
       Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
