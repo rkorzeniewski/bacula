@@ -748,7 +748,7 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
  */
 bool db_write_batch_file_records(JCR *jcr)
 {
-   Dmsg0(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
+   Dmsg1(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
 
    if (!jcr->db_batch) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
