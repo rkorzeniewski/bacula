@@ -1558,7 +1558,7 @@ crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST
 int crypto_sign_add_signer (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair) { return false; }
 int crypto_sign_encode (SIGNATURE *sig, uint8_t *dest, uint32_t *length) { return false; }
 
-SIGNATURE *crypto_sign_decode (const uint8_t *sigData, uint32_t length) { return NULL; }
+SIGNATURE *crypto_sign_decode (JCR *jcr, const uint8_t *sigData, uint32_t length) { return NULL; }
 void crypto_sign_free (SIGNATURE *sig) { }
 
 
