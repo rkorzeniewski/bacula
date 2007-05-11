@@ -3,6 +3,10 @@
 # This is the configuration script for regression testing
 #
 
+if test "x${CONFIG_SHELL}" != "x"; then
+    CONFIG_SHELL=/bin/sh
+fi
+
 CFLAGS="-g -O2 -Wall" \
  ./configure \
     --sbindir=$1/bin \
