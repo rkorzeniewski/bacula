@@ -39,6 +39,7 @@ nice tests/sparse-compressed-test
 nice tests/sparse-test
 nice tests/two-jobs-test
 nice tests/two-vol-test
+nice tests/verify-cat-test
 nice tests/verify-vol-test
 nice tests/weird-files2-test
 nice tests/weird-files-test
