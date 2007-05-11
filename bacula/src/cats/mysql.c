@@ -159,7 +159,8 @@ db_open_database(JCR *jcr, B_DB *mdb)
 #ifdef xHAVE_EMBEDDED_MYSQL
 // mysql_server_init(0, NULL, NULL);
 #endif
-   mysql_init(&(mdb->mysql));
+   mysql_init(&mdb->mysql);
+
    Dmsg0(50, "mysql_init done\n");
    /* If connection fails, try at 5 sec intervals for 30 seconds. */
    for (int retry=0; retry < 6; retry++) {
@@ -200,9 +201,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
-#ifdef HAVE_THREAD_SAFE_MYSQL
-   my_thread_init();
-#endif
    Dmsg3(100, "opendb ref=%d connected=%d db=%p\n", mdb->ref_count,
          mdb->connected, mdb->db);
 
@@ -220,16 +218,14 @@ db_close_database(JCR *jcr, B_DB *mdb)
    P(mutex);
    sql_free_result(mdb);
    mdb->ref_count--;
-#if defined(HAVE_THREAD_SAFE_MYSQL)
-   my_thread_end();
-#endif
    Dmsg3(100, "closedb ref=%d connected=%d db=%p\n", mdb->ref_count,
          mdb->connected, mdb->db);
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
-      if (mdb->connected && mdb->db) {
+      if (mdb->connected) {
          Dmsg1(100, "close db=%p\n", mdb->db);
-         mysql_close(&(mdb->mysql));
+         mysql_close(&mdb->mysql);
+
 #ifdef xHAVE_EMBEDDED_MYSQL
 //       mysql_server_end();
 #endif

@@ -802,13 +802,13 @@ void dird_free_jcr(JCR *jcr)
       pthread_cond_destroy(&jcr->term_wait);
       jcr->term_wait_inited = false;
    }
+   if (jcr->db_batch && jcr->db_batch != jcr->db) {
+      db_close_database(jcr, jcr->db_batch);
+   }
+   jcr->db_batch = NULL;
    if (jcr->db) {
       db_close_database(jcr, jcr->db);
       jcr->db = NULL;
-   }
-   if (jcr->db_batch) {
-      db_close_database(jcr, jcr->db_batch);
-      jcr->db_batch = NULL;
    }
    if (jcr->stime) {
       Dmsg0(200, "Free JCR stime\n");

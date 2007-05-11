@@ -1455,6 +1455,7 @@ int cleanup_crypto (void)
 /* Message Digest Structure */
 struct Digest {
    crypto_digest_t type;
+   JCR *jcr;
    union {
       SHA1Context sha1;
       MD5Context md5;
@@ -1463,6 +1464,7 @@ struct Digest {
 
 /* Dummy Signature Structure */
 struct Signature {
+   JCR *jcr;
 };
 
 DIGEST *crypto_digest_new(JCR *jcr, crypto_digest_t type)
