@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Run a simple Verify InitCatalog, then Verify Catalog
+#
+TestName="verify-cat-test"
+JobName=VerifyCatalog
+. scripts/functions
+set_debug 1
+
+cwd=`pwd`
+scripts/cleanup
+scripts/copy-test-confs
+echo "${cwd}/build" >/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@$out tmp/log1.out
+run job=VerifyVolume level=InitCatalog yes
+wait
+@# 
+@# now do a verify Catalog
+@#
+@$out ${cwd}/tmp/original
+run job=VerifyVolume level=Catalog yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula
+
+sleep 2
+check_for_zombie_jobs storage=File 
+stop_bacula
+
+grep "^  Termination: *Verify OK" tmp/log1.out 2>&1 >/dev/null
+bstat=$?
+grep "^  Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
+rstat=$?
+dstat=0
+end_test
