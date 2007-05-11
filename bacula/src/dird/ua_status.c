@@ -598,7 +598,11 @@ static void list_running_jobs(UAContext *ua)
          break;
       case JS_WaitFD:
          emsg = (char *) get_pool_memory(PM_FNAME);
-         Mmsg(emsg, _("is waiting on Client %s"), jcr->client->name());
+         if (!jcr->client) {
+            Mmsg(emsg, _("is waiting on Client"));
+         } else {
+            Mmsg(emsg, _("is waiting on Client %s"), jcr->client->name());
+         }
          pool_mem = true;
          msg = emsg;
          break;
@@ -606,8 +610,10 @@ static void list_running_jobs(UAContext *ua)
          emsg = (char *) get_pool_memory(PM_FNAME);
          if (jcr->wstore) {
             Mmsg(emsg, _("is waiting on Storage %s"), jcr->wstore->name());
-         } else {
+         } else if (jcr->rstore) {
             Mmsg(emsg, _("is waiting on Storage %s"), jcr->rstore->name());
+         } else {
+            Mmsg(emsg, _("is waiting on Storage"));
          }
          pool_mem = true;
          msg = emsg;
@@ -632,7 +638,7 @@ static void list_running_jobs(UAContext *ua)
          break;
 
       default:
-         emsg = (char *) get_pool_memory(PM_FNAME);
+         emsg = (char *)get_pool_memory(PM_FNAME);
          Mmsg(emsg, _("is in unknown state %c"), jcr->JobStatus);
          pool_mem = true;
          msg = emsg;
@@ -661,8 +667,12 @@ static void list_running_jobs(UAContext *ua)
             emsg = (char *)get_pool_memory(PM_FNAME);
             pool_mem = true;
          }
-         Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
-              jcr->client->name(), jcr->wstore->name());
+         if (!jcr->client || !jcr->wstore) {
+            Mmsg(emsg, _("is waiting for Client to connect to Storage daemon"));
+         } else {
+            Mmsg(emsg, _("is waiting for Client %s to connect to Storage %s"),
+                 jcr->client->name(), jcr->wstore->name());
+        }
          msg = emsg;
          break;
       }
