@@ -327,8 +327,14 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             break;
          case 'p':
             flags |= DP_F_UNSIGNED;
-            strvalue = va_arg(args, char *);
-            currlen = fmtint(buffer, currlen, maxlen, (long)strvalue, 16, min, max, flags);
+            if (sizeof(char *) == 4) {
+               value = va_arg(args, uint32_t);
+            } else if (sizeof(char *) == 8) {
+               value = va_arg(args, uint64_t);
+            } else {
+               value = (uint64_t)va_arg(args, char *);
+            }
+            currlen = fmtint(buffer, currlen, maxlen, value, 16, min, max, flags);
             break;
          case 'n':
             if (cflags == DP_C_INT16) {
