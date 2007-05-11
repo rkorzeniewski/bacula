@@ -51,6 +51,7 @@
 typedef struct X509_Keypair X509_KEYPAIR;
 
 /* Opaque Message Digest Structure */
+/* Digest is defined (twice) in crypto.c */
 typedef struct Digest DIGEST;
 
 /* Opaque Message Signature Structure */
