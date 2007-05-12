@@ -62,6 +62,7 @@ private slots:
    void consoleDeleteJob();
    void consolePurgeFiles();
    void preRestoreFromJob();
+   void preRestoreFromTime();
 
 private:
    void createConnections();

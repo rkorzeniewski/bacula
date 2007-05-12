@@ -46,13 +46,15 @@ void Pages::dockPage()
     * that it has the proper window flag and parent.
     */
    setWindowFlags(Qt::Widget);
-//   setParent(m_parent);
 
    /* This was being done already */
    m_parent->addWidget(this);
 
    /* Set docked flag */
    m_docked = true;
+   mainWin->stackedWidget->setCurrentWidget(this);
+   /* lets set the page selectors action for docking or undocking */
+   setContextMenuDockText();
 }
 
 /*
@@ -69,6 +71,8 @@ void Pages::undockPage()
    show();
    /* Clear docked flag */
    m_docked = false;
+   /* The window has been undocked, lets change the context menu */
+   setContextMenuDockText();
 }
 
 /*
@@ -117,24 +121,12 @@ void Pages::closeEvent(QCloseEvent* event)
    /* A Widget was closed, lets toggle it back into the window, and set it in front. */
    dockPage();
 
-   /* is the tree widget item for "this" the current widget item */
-   if (mainWin->treeWidget->currentItem() == mainWin->getFromHash(this))
-      /* in case the current widget is the one which represents this, lets set the context
-       * menu to undock */
-      mainWin->setContextMenuDockText();
-   else
-      /* in case the current widget is not the one which represents this, lets set the
-      * color back to black */
-      mainWin->setTreeWidgetItemDockColor(this);
-
    /* this fixes my woes of getting the widget to show up on top when closed */
    event->ignore();
 
-   /* put this widget on the top of the stack widget */
-   m_parent->setCurrentWidget(this);
-
    /* Set the current tree widget item in the Page Selector window to the item 
-    * which represents "this" */
+    * which represents "this" 
+    * Which will also bring "this" to the top of the stacked widget */
    setCurrent();
 }
 
@@ -220,7 +212,11 @@ void Pages::consoleCommand(QString &command)
 #ifdef xxdebugcode
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");
-   m_console->display_text(command + "    ****\n");
+#endif
+   m_console->display_text(command);
+   m_console->display_text("\n");
+#ifdef xxdebugcode
+   m_console->display_text("    ****\n");
    m_console->display_text("Director Response :\n\n");
 #endif
    m_console->write_dir(command.toUtf8().data());
@@ -268,4 +264,45 @@ void Pages::setConsoleCurrent()
 void Pages::setCurrent()
 {
    mainWin->treeWidget->setCurrentItem(mainWin->getFromHash(this));
+}
+
+/*
+ * Function to set the text of the toggle dock context menu when page and
+ * widget item are NOT known.  
+ */
+void Pages::setContextMenuDockText()
+{
+   QTreeWidgetItem *item = mainWin->getFromHash(this);
+   QString docktext("");
+   if (isDocked()) {
+       docktext += "UnDock ";
+   } else {
+       docktext += "ReDock ";
+   }
+   docktext += item->text(0) += " Window";
+      
+   mainWin->actionToggleDock->setText(docktext);
+   setTreeWidgetItemDockColor();
+}
+
+/*
+ * Function to set the color of the tree widget item based on whether it is
+ * docked or not.
+ */
+void Pages::setTreeWidgetItemDockColor()
+{
+   QTreeWidgetItem* item = mainWin->getFromHash(this);
+   if (item) {
+      if (item->text(0) != "Console") {
+         if (isDocked()) {
+         /* Set the brush to blue if undocked */
+            QBrush blackBrush(Qt::black);
+            item->setForeground(0, blackBrush);
+         } else {
+         /* Set the brush back to black if docked */
+            QBrush blueBrush(Qt::blue);
+            item->setForeground(0, blueBrush);
+         }
+      }
+   }
 }

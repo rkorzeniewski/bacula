@@ -55,10 +55,6 @@ public:
    void writeSettings();
    void readSettings();
    void resetFocus() { lineEdit->setFocus(); };
-   void setContextMenuDockText();
-   void setContextMenuDockText(Pages *, QTreeWidgetItem *);
-   void setTreeWidgetItemDockColor(Pages *, QTreeWidgetItem *);
-   void setTreeWidgetItemDockColor(Pages *);
    void hashInsert(QTreeWidgetItem *, Pages *);
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);

@@ -99,6 +99,14 @@ void JobList::populateTable()
       if (volumeIndex != -1) {
          volumeComboBox->setCurrentIndex(volumeIndex);
       }
+      jobComboBox->addItem("Any");
+      jobComboBox->addItems(m_console->job_list);
+      levelComboBox->addItem("Any");
+      levelComboBox->addItems( QStringList() << "F" << "D" << "I");
+      statusComboBox->addItem("Any");
+      statusComboBox->addItems( QStringList() << "T");
+      purgedComboBox->addItem("Any");
+      purgedComboBox->addItems( QStringList() << "0" << "1");
    }
 
    /* Set up query QString and header QStringList */
@@ -106,7 +114,8 @@ void JobList::populateTable()
    query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
-            " Job.JobBytes AS Bytes, Job.JobStatus AS Status"
+            " Job.JobBytes AS Bytes, Job.JobStatus AS Status,"
+            " Job.PurgedFiles AS Purged"
             " FROM Job, JobMedia, Media, Client"
             " WHERE JobMedia.JobId=Job.JobId and JobMedia.MediaId=Media.MediaId"
             " and Client.ClientId=Job.ClientId";
@@ -124,6 +133,22 @@ void JobList::populateTable()
       query += " AND Client.Name='" + m_clientName + "'";
       m_closeable=true;
    }
+   int jobIndex = jobComboBox->currentIndex();
+   if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != "Any")) {
+      query += " AND Job.Name='" + jobComboBox->itemText(jobIndex) + "'";
+   }
+   int levelIndex = levelComboBox->currentIndex();
+   if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != "Any")) {
+      query += " AND Job.Level='" + levelComboBox->itemText(levelIndex) + "'";
+   }
+   int statusIndex = statusComboBox->currentIndex();
+   if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != "Any")) {
+      query += " AND Job.JobStatus='" + statusComboBox->itemText(statusIndex) + "'";
+   }
+   int purgedIndex = purgedComboBox->currentIndex();
+   if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != "Any")) {
+      query += " AND Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'";
+   }
    /* If Limit check box For limit by days is checked  */
    if (daysCheckBox->checkState() == Qt::Checked) {
       QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
@@ -140,7 +165,7 @@ void JobList::populateTable()
    }
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
-      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  );
+      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" );
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -277,6 +302,7 @@ void JobList::createConnections()
    mp_tableWidget->addAction(actionDeleteJob);
    mp_tableWidget->addAction(actionPurgeFiles);
    mp_tableWidget->addAction(actionRestoreFromJob);
+   mp_tableWidget->addAction(actionRestoreFromTime);
 
    /* Make Connections */
    connect(actionLongListJob, SIGNAL(triggered()), this,
@@ -295,6 +321,8 @@ void JobList::createConnections()
                 SLOT(consolePurgeFiles()));
    connect(actionRestoreFromJob, SIGNAL(triggered()), this,
                 SLOT(preRestoreFromJob()));
+   connect(actionRestoreFromTime, SIGNAL(triggered()), this,
+                SLOT(preRestoreFromTime()));
 }
 
 /*
@@ -373,5 +401,13 @@ void JobList::consolePurgeFiles()
  */
 void JobList::preRestoreFromJob()
 {
-   new prerestorePage(m_currentJob);
+   new prerestorePage(m_currentJob, R_JOBIDLIST);
+}
+
+/*
+ * Subroutine to call preRestore to restore from a select job
+ */
+void JobList::preRestoreFromTime()
+{
+   new prerestorePage(m_currentJob, R_JOBDATETIME);
 }

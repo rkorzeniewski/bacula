@@ -39,16 +39,18 @@
 #include "restore.h"
 
 /* Constructor to have job id list default in */
-prerestorePage::prerestorePage(QString &jobIdString)
+prerestorePage::prerestorePage(QString &data, unsigned int datatype)
 {
-   m_jobIdListIn = jobIdString;
+   m_dataIn = data;
+   m_dataInType = datatype;
    buildPage();
 }
 
 /* Basic Constructor */
 prerestorePage::prerestorePage()
 {
-   m_jobIdListIn = "";
+   m_dataIn = "";
+   m_dataInType = R_NONE;
    buildPage();
 }
 
@@ -57,7 +59,7 @@ prerestorePage::prerestorePage()
  */
 void prerestorePage::buildPage()
 {
-   m_dtformat = "yyyy-MM-dd HH:MM:ss";
+   m_dtformat = "yyyy-MM-dd HH:mm:ss";
    m_name = "Restore";
    setupUi(this);
    pgInitialize();
@@ -76,19 +78,31 @@ void prerestorePage::buildPage()
    beforeDateTime->setDateTime(QDateTime::currentDateTime());
    beforeDateTime->setEnabled(false);
    selectFilesRadio->setChecked(true);
-   if (m_jobIdListIn == "") {
+   if (m_dataInType == R_NONE) {
       selectJobsRadio->setChecked(true);
       jobIdEdit->setText("Comma separted list of jobs id's");
       jobIdEdit->setEnabled(false);
-   } else {
+   } else if (m_dataInType == R_JOBIDLIST) {
       listJobsRadio->setChecked(true);
-      jobIdEdit->setText(m_jobIdListIn);
+      jobIdEdit->setText(m_dataIn);
       jobsRadioClicked(false);
       QStringList fieldlist;
-      jobdefsFromJob(fieldlist,m_jobIdListIn);
+      jobdefsFromJob(fieldlist,m_dataIn);
       filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
       jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+   } else if (m_dataInType == R_JOBDATETIME) {
+      selectJobsRadio->setChecked(true);
+      jobIdEdit->setText("Comma separted list of jobs id's");
+      jobIdEdit->setEnabled(false);
+      recentCheckBox->setCheckState(Qt::Unchecked);
+      jobsRadioClicked(true);
+      QStringList fieldlist;
+      jobdefsFromJob(fieldlist,m_dataIn);
+      filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
+      clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
+      jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+      beforeDateTime->setDateTime(QDateTime::fromString(fieldlist[3], m_dtformat));
    }
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
@@ -143,7 +157,7 @@ void prerestorePage::okButtonPushed()
    }
 
    /* ***FIXME*** */
-   //printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
+   printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
    consoleCommand(cmd);
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
@@ -237,7 +251,8 @@ void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
 {
    QString job, client, fileset;
    QString query("");
-   query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client, FileSet.FileSet AS FileSet "
+   query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client,"
+   " FileSet.FileSet AS FileSet, Job.Starttime AS JobStart"
    " From Job, Client, FileSet"
    " WHERE Job.FileSetId=FileSet.FileSetId AND Job.ClientId=Client.ClientId"
    " AND JobId=\'" + jobId + "\'";
@@ -271,7 +286,6 @@ bool prerestorePage::checkJobIdList()
          "Press OK to continue?"), QMessageBox::Ok );
       return false;
    }
-   //printf("In prerestorePage::jobIdEditFinished %s\n",line.toUtf8().data());
    QStringList joblist = line.split(",", QString::SkipEmptyParts);
    bool allintokay = true, alljobok = true, allisjob = true;
    QString jobName(""), clientName("");

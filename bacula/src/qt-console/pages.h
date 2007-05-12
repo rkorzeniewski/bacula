@@ -67,6 +67,8 @@ public:
    void closeStackPage();
    Console *console() { return m_console; };
    void setCurrent();
+   void setContextMenuDockText();
+   void setTreeWidgetItemDockColor();
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
