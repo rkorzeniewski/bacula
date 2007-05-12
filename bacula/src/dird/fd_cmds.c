@@ -601,6 +601,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    jcr->jr.FirstIndex = 1;
    memset(&ar, 0, sizeof(ar));
    jcr->FileIndex = 0;
+   jcr->cached_attribute = false;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and digest */
@@ -610,7 +611,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
     * really fatal problems, or the number of errors is too
     * large.
     */
-      long file_index;
+      unsigned long file_index;
       int stream, len;
       char *attr, *p, *fn;
       char Opts_Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
@@ -637,7 +638,40 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       *fn = *p++;                     /* term filename and point to attribs */
       attr = p;
 
+
+      /*
+       * First, get STREAM_UNIX_ATTRIBUTES and fill ATTR_DBR structure
+       * Next, we CAN have a CRYPTO_DIGEST, so we fill ATTR_DBR with it (or not)
+       * When we get a new STREAM_UNIX_ATTRIBUTES, we known that we can add file to the catalog
+       * At the end, we have to add the last file
+       */
+
+      if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
+         if (jcr->FileIndex != file_index) {
+            Jmsg3(jcr, M_ERROR, 0, _("%s index %d not same as attributes %d\n"),
+                  stream_to_ascii(stream), file_index, jcr->FileIndex);
+            set_jcr_job_status(jcr, JS_Error);
+            continue;
+         }
+         db_escape_string(digest, Opts_Digest, strlen(Opts_Digest));
+         Dmsg2(120, "DigestLen=%d Digest=%s\n", strlen(digest), digest);
+         ar.Digest = digest;
+         ar.DigestType = crypto_digest_stream_type(stream) ;
+      }
+
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
+         /* commit previous stream */
+         if (jcr->cached_attribute) {
+            if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
+               Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+               set_jcr_job_status(jcr, JS_Error);
+            }
+            jcr->cached_attribute = false;
+         }
+      }
+      
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
+         jcr->cached_attribute = true;
          jcr->JobFiles++;
          jcr->FileIndex = file_index;
          ar.attr = attr;
@@ -654,31 +688,21 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 
          Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(120, "dird<filed: attr=%s\n", attr);
+      } 
 
-         if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
-            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-            set_jcr_job_status(jcr, JS_Error);
-            continue;
-         }
-         jcr->FileId = ar.FileId;
-      } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
-         if (jcr->FileIndex != (uint32_t)file_index) {
-            Jmsg3(jcr, M_ERROR, 0, _("%s index %d not same as attributes %d\n"),
-               stream_to_ascii(stream), file_index, jcr->FileIndex);
-            set_jcr_job_status(jcr, JS_Error);
-            continue;
-         }
-         db_escape_string(digest, Opts_Digest, strlen(Opts_Digest));
-         Dmsg2(120, "DigestLen=%d Digest=%s\n", strlen(digest), digest);
-         if (!db_add_digest_to_file_record(jcr, jcr->db, jcr->FileId, digest,
-                   crypto_digest_stream_type(stream))) {
-            Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-            set_jcr_job_status(jcr, JS_Error);
-         }
-      }
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
       jcr->jr.LastIndex = file_index;
    }
+
+   /* insert the last file */
+   if (jcr->cached_attribute) {
+      if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
+         Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
+         set_jcr_job_status(jcr, JS_Error);
+      }
+      jcr->cached_attribute = false;
+   }
+
    if (is_bnet_error(fd)) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),
                         bnet_strerror(fd));
