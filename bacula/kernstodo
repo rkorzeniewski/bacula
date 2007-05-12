@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     08 May 2007
+                     12 May 2007
 
 
 Document:
@@ -48,13 +48,13 @@ Professional Needs:
 - Detect state change of system (verify)
 
 Priority:
+- Implement update jobid=
 - Mention Eric and Marc's work + Marc's doc.
 - Add TLS to bat
 - When Pool specifies Storage command override does not work.
 - Implement wait_for_sysop() message display in wait_for_device(), which
   now prints warnings too often.
 
-- Add Where: client:/.... to restore job report.
 - Ensure that each device in an Autochanger has a different
   Device Index.
 - Add Catalog = to Pool resource so that pools will exist
@@ -1716,3 +1716,5 @@ Block Position: 0
   specified Pool, Full Backup Pool. and Differential Backup Pool. but 
   apparently not.  This  happened when I removed the pool directive and 
   started the director.
+- Add Where: client:/.... to restore job report.
+
