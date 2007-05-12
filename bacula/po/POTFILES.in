@@ -109,7 +109,6 @@
 ./src/lib/bsys.c
 ./src/lib/btime.c
 ./src/lib/btimers.c
-./src/lib/btree.c
 ./src/lib/cram-md5.c
 ./src/lib/crc32.c
 ./src/lib/crypto.c
@@ -130,6 +129,7 @@
 ./src/lib/parse_conf.c
 ./src/lib/pythonlib.c
 ./src/lib/queue.c
+./src/lib/rblist.c
 ./src/lib/res.c
 ./src/lib/runscript.c
 ./src/lib/rwlock.c
@@ -244,7 +244,6 @@
 ./src/lib/bsock.h
 ./src/lib/btime.h
 ./src/lib/btimers.h
-./src/lib/btree.h
 ./src/lib/crypto.h
 ./src/lib/dlist.h
 ./src/lib/enh_fnmatch.h
@@ -260,6 +259,7 @@
 ./src/lib/parse_conf.h
 ./src/lib/protos.h
 ./src/lib/queue.h
+./src/lib/rblist.h
 ./src/lib/runscript.h
 ./src/lib/rwlock.h
 ./src/lib/serial.h
