@@ -5,12 +5,15 @@
 TestName="verify-cat-test"
 JobName=VerifyCatalog
 . scripts/functions
-set_debug 1
+set_debug 0
 
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build" >/tmp/file-list
+#echo "${cwd}/do_all" >/tmp/file-list
+#echo "${cwd}/do_all_tapes" >>/tmp/file-list
+#echo "${cwd}/do_file" >>/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
@@ -21,6 +24,7 @@ messages
 @$out tmp/log1.out
 run job=VerifyVolume level=InitCatalog yes
 wait
+messages
 @# 
 @# now do a verify Catalog
 @#
