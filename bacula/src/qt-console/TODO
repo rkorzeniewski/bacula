@@ -5,11 +5,6 @@ a specific job.  Want the ability to create an instance of that class from
 joblist.  I also want a table to convert termination code into human readable
 text.
 
-move behavior of:
-  MainWin::setContextMenuDockText
-  MainWin::setTreeWidgetItemDockColor
-to the pages class
-
 Test left pane of restore with 2 windows drives in one backup job.
 
 User preferences.  With log to stdout options.
@@ -88,6 +83,11 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+move behavior of:
+  MainWin::setContextMenuDockText
+  MainWin::setTreeWidgetItemDockColor
+to the pages class
+
 preempt all connections to console with 
 if (!is_connectedGui())
 or some other mechanism.  May find more as users start finding them.

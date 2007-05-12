@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>621</width>
-    <height>500</height>
+    <width>547</width>
+    <height>361</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -19,13 +19,16 @@
    <property name="spacing" >
     <number>6</number>
    </property>
+   <item row="0" column="0" >
+    <widget class="QTableWidget" name="mp_tableWidget" />
+   </item>
    <item row="1" column="0" >
     <layout class="QHBoxLayout" >
      <property name="margin" >
       <number>0</number>
      </property>
      <property name="spacing" >
-      <number>6</number>
+      <number>0</number>
      </property>
      <item>
       <layout class="QVBoxLayout" >
@@ -36,68 +39,58 @@
         <number>6</number>
        </property>
        <item>
-        <widget class="QCheckBox" name="limitCheckBox" >
-         <property name="text" >
-          <string>Record Limit</string>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
          </property>
-        </widget>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="limitCheckBox" >
+           <property name="text" >
+            <string>Record Limit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="limitSpinBox" >
+           <property name="maximum" >
+            <number>10000</number>
+           </property>
+           <property name="minimum" >
+            <number>1</number>
+           </property>
+           <property name="singleStep" >
+            <number>25</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QSpinBox" name="limitSpinBox" >
-         <property name="maximum" >
-          <number>10000</number>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
          </property>
-         <property name="minimum" >
-          <number>1</number>
+         <property name="spacing" >
+          <number>6</number>
          </property>
-         <property name="singleStep" >
-          <number>25</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QCheckBox" name="daysCheckBox" >
-         <property name="text" >
-          <string>Days Limit</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="daysSpinBox" >
-         <property name="singleStep" >
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="clientsLabel" >
-         <property name="text" >
-          <string>Clients</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="clientsComboBox" />
+         <item>
+          <widget class="QCheckBox" name="daysCheckBox" >
+           <property name="text" >
+            <string>Days Limit</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="daysSpinBox" >
+           <property name="singleStep" >
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
@@ -110,14 +103,144 @@
         <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="volumeLabel" >
-         <property name="text" >
-          <string>Volume</string>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
          </property>
-        </widget>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="clientsLabel" >
+           <property name="text" >
+            <string>Clients</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="clientsComboBox" />
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QComboBox" name="volumeComboBox" />
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="volumeLabel" >
+           <property name="text" >
+            <string>Volume</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="volumeComboBox" />
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="jobLabel" >
+           <property name="text" >
+            <string>Job</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="jobComboBox" />
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="levelLabel" >
+           <property name="text" >
+            <string>Level</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="levelComboBox" />
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="statusLabel" >
+           <property name="text" >
+            <string>Status</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="statusComboBox" />
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="purgedLabel" >
+           <property name="text" >
+            <string>Purged</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="purgedComboBox" />
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
@@ -135,9 +258,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="0" >
-    <widget class="QTableWidget" name="mp_tableWidget" />
    </item>
   </layout>
   <action name="actionRefreshJobList" >
@@ -213,6 +333,14 @@
    </property>
    <property name="text" >
     <string>Restore From Job</string>
+   </property>
+  </action>
+  <action name="actionRestoreFromTime" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Restore From Time</string>
    </property>
   </action>
  </widget>

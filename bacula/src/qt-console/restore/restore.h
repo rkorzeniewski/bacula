@@ -40,6 +40,12 @@
 #include "ui_restore.h"
 #include "ui_prerestore.h"
 
+enum {
+   R_NONE,
+   R_JOBIDLIST,
+   R_JOBDATETIME
+};
+
 /*
  * The pre-restore dialog selects the Job/Client to be restored
  * It really could use considerable enhancement.
@@ -50,7 +56,7 @@ class prerestorePage : public Pages, public Ui::prerestoreForm
 
 public:
    prerestorePage();
-   prerestorePage(QString &jobIdString);
+   prerestorePage(QString &data, unsigned int);
 
 private slots:
    void okButtonPushed();
@@ -65,7 +71,8 @@ private:
    void buildPage();
    bool checkJobIdList();
    QString m_dtformat;
-   QString m_jobIdListIn;
+   QString m_dataIn;
+   unsigned int m_dataInType;
 };
 
 /*  

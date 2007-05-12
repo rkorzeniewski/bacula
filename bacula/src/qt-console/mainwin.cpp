@@ -417,7 +417,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
          nextPage->raise();
       }
       /* for the page selectors menu action to dock or undock, set the text */
-      setContextMenuDockText(nextPage, currentitem);
+      nextPage->setContextMenuDockText();
 
       treeWidget->addAction(actionToggleDock);
       /* if this page is closeable, then add that action */
@@ -503,8 +503,6 @@ void MainWin::undockWindowButton()
 {
    Pages* page = (Pages*)stackedWidget->currentWidget();
    page->togglePageDocking();
-   /* The window has been undocked, lets change the context menu */
-   setContextMenuDockText();
 }
 
 /*
@@ -520,78 +518,6 @@ void MainWin::toggleDockContextWindow()
    if (getFromHash(currentitem)) {
       Pages* page = getFromHash(currentitem);
       page->togglePageDocking();
-      if (page->isDocked()) {
-         stackedWidget->setCurrentWidget(page);
-      }
-      /* Toggle the menu item.  The window's dock status has been toggled */
-      setContextMenuDockText(page, currentitem);
-   }
-}
-
-/*
- * Function to set the text of the toggle dock context menu when page and
- * widget item are NOT known.  This is an overoaded funciton.
- * It is called from MainWin::undockWindowButton, it is not intended to change
- * for the top pages tree widget, it is for the currently active tree widget
- * item.  Which is why the page is not passed.
- */
-void MainWin::setContextMenuDockText()
-{
-   QTreeWidgetItem *currentitem = treeWidget->currentItem();
-   
-   /* Is this a page that has been inserted into the hash  */
-   if (getFromHash(currentitem)) {
-      Pages* page = getFromHash(currentitem);
-      setContextMenuDockText(page, currentitem);
-   }
-}
-
-/*
- * Function to set the text of the toggle dock context menu when page and
- * widget item are known.  This is the more commonly used.
- */
-void MainWin::setContextMenuDockText(Pages* page, QTreeWidgetItem* item)
-{
-   QString docktext("");
-   if (page->isDocked()) {
-      docktext += "UnDock ";
-   } else {
-      docktext += "ReDock ";
-   }
-   docktext += item->text(0) += " Window";
-   
-   actionToggleDock->setText(docktext);
-   setTreeWidgetItemDockColor(page, item);
-}
-
-/*
- * Function to set the color of the tree widget item based on whether it is
- * docked or not.
- */
-void MainWin::setTreeWidgetItemDockColor(Pages* page, QTreeWidgetItem* item)
-{
-   if (item->text(0) != "Console") {
-      if (page->isDocked()) {
-      /* Set the brush to blue if undocked */
-         QBrush blackBrush(Qt::black);
-         item->setForeground(0, blackBrush);
-      } else {
-      /* Set the brush back to black if docked */
-         QBrush blueBrush(Qt::blue);
-         item->setForeground(0, blueBrush);
-      }
-   }
-}
-
-/*
- *  Overload of previous function, use treeindex to get item from page
- *  This is called when an undocked window is closed.
- */
-void MainWin::setTreeWidgetItemDockColor(Pages* page)
-{
-   QTreeWidgetItem* item = getFromHash(page);
-   if (item) {
-     setTreeWidgetItemDockColor(page, item);
    }
 }
 
