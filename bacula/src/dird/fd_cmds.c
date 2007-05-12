@@ -623,6 +623,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       /* Start transaction allocates jcr->attr and jcr->ar if needed */
       db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
       p = fd->msg;
+      /* The following three fields were sscanf'ed above so skip them */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);             /* skip Stream */
@@ -665,6 +666,12 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          Dmsg2(dbglvl, "dird<filed: stream=%d %s\n", stream, jcr->fname);
          Dmsg1(dbglvl, "dird<filed: attr=%s\n", attr);
          jcr->FileId = ar->FileId;
+      /*
+       * First, get STREAM_UNIX_ATTRIBUTES and fill ATTR_DBR structure
+       * Next, we CAN have a CRYPTO_DIGEST, so we fill ATTR_DBR with it (or not)
+       * When we get a new STREAM_UNIX_ATTRIBUTES, we known that we can add file to the catalog
+       * At the end, we have to add the last file
+       */
       } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
          if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg3(jcr, M_ERROR, 0, _("%s index %d not same as attributes %d\n"),
