@@ -44,6 +44,8 @@
 #include "dird.h"
 #include "findlib/find.h"
 
+const int dbglvl = 400;
+
 /* Commands sent to File daemon */
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
@@ -595,23 +597,17 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 {
    BSOCK   *fd;
    int n = 0;
-   ATTR_DBR ar;
+   ATTR_DBR *ar = NULL;
 
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
    memset(&ar, 0, sizeof(ar));
    jcr->FileIndex = 0;
-   jcr->cached_attribute = false;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and digest */
    while (!fd->errors && (n = bget_dirmsg(fd)) > 0) {
-
-   /*****FIXME****** improve error handling to stop only on
-    * really fatal problems, or the number of errors is too
-    * large.
-    */
-      unsigned long file_index;
+      uint32_t file_index;
       int stream, len;
       char *attr, *p, *fn;
       char Opts_Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
@@ -624,89 +620,82 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          return 0;
       }
+      /* Start transaction allocates jcr->attr and jcr->ar if needed */
+      db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
       p = fd->msg;
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
       skip_nonspaces(&p);             /* skip Stream */
       skip_spaces(&p);
-      skip_nonspaces(&p);             /* skip Opts_SHA1 */
+      skip_nonspaces(&p);             /* skip Opts_Digest */
       p++;                            /* skip space */
-      fn = jcr->fname;
-      while (*p != 0) {
-         *fn++ = *p++;                /* copy filename */
-      }
-      *fn = *p++;                     /* term filename and point to attribs */
-      attr = p;
+      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
+         if (jcr->cached_attribute) {
+            Dmsg2(dbglvl, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+            if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+               Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+            }
+         }
+         /* Any cached attr is flushed so we can reuse jcr->attr and jcr->ar */
+         fn = jcr->fname;
+         while (*p != 0) {
+            *fn++ = *p++;                /* copy filename */
+         }
+         *fn = *p++;                     /* term filename and point to attribs */
+         attr = p;
+         ar = jcr->ar;
+         len = strlen(attr);
+         jcr->attr = check_pool_memory_size(jcr->attr, len);
+         memcpy(jcr->attr, attr, len);
+         jcr->JobFiles++;
+         jcr->FileIndex = file_index;
+         ar->attr = attr;
+         ar->fname = jcr->fname;
+         ar->FileIndex = file_index;
+         ar->Stream = stream;
+         ar->link = NULL;
+         ar->JobId = jcr->JobId;
+         ar->ClientId = jcr->ClientId;
+         ar->PathId = 0;
+         ar->FilenameId = 0;
+         ar->Digest = NULL;
+         ar->DigestType = CRYPTO_DIGEST_NONE;
+         jcr->cached_attribute = true;
 
-
-      /*
-       * First, get STREAM_UNIX_ATTRIBUTES and fill ATTR_DBR structure
-       * Next, we CAN have a CRYPTO_DIGEST, so we fill ATTR_DBR with it (or not)
-       * When we get a new STREAM_UNIX_ATTRIBUTES, we known that we can add file to the catalog
-       * At the end, we have to add the last file
-       */
-
-      if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
-         if (jcr->FileIndex != file_index) {
+         Dmsg2(dbglvl, "dird<filed: stream=%d %s\n", stream, jcr->fname);
+         Dmsg1(dbglvl, "dird<filed: attr=%s\n", attr);
+         jcr->FileId = ar->FileId;
+      } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
+         if (jcr->FileIndex != (uint32_t)file_index) {
             Jmsg3(jcr, M_ERROR, 0, _("%s index %d not same as attributes %d\n"),
-                  stream_to_ascii(stream), file_index, jcr->FileIndex);
-            set_jcr_job_status(jcr, JS_Error);
+               stream_to_ascii(stream), file_index, jcr->FileIndex);
             continue;
          }
          db_escape_string(digest, Opts_Digest, strlen(Opts_Digest));
-         Dmsg2(120, "DigestLen=%d Digest=%s\n", strlen(digest), digest);
-         ar.Digest = digest;
-         ar.DigestType = crypto_digest_stream_type(stream) ;
-      }
-
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
-         /* commit previous stream */
+         ar->Digest = digest;
+         ar->DigestType = crypto_digest_stream_type(stream);
+         Dmsg3(dbglvl, "DigestLen=%d Digest=%s type=%d\n", strlen(digest), digest,
+               ar->DigestType);
          if (jcr->cached_attribute) {
-            if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
-               Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-               set_jcr_job_status(jcr, JS_Error);
+            Dmsg2(dbglvl, "Cached attr with digest. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+            if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+               Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
             }
-            jcr->cached_attribute = false;
+            jcr->cached_attribute = false; 
+         } else {
+            if (!db_add_digest_to_file_record(jcr, jcr->db, ar->FileId, 
+                 ar->Digest, ar->DigestType)) {
+               Jmsg(jcr, M_ERROR, 0, _("Catalog error updating file digest. %s"),
+                  db_strerror(jcr->db));
+            }
          }
       }
-      
-      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
-         jcr->cached_attribute = true;
-         jcr->JobFiles++;
-         jcr->FileIndex = file_index;
-         ar.attr = attr;
-         ar.fname = jcr->fname;
-         ar.FileIndex = file_index;
-         ar.Stream = stream;
-         ar.link = NULL;
-         ar.JobId = jcr->JobId;
-         ar.ClientId = jcr->ClientId;
-         ar.PathId = 0;
-         ar.FilenameId = 0;
-         ar.Digest = NULL;
-         ar.DigestType = CRYPTO_DIGEST_NONE;
-
-         Dmsg2(111, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-         Dmsg1(120, "dird<filed: attr=%s\n", attr);
-      } 
-
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
       jcr->jr.LastIndex = file_index;
    }
-
-   /* insert the last file */
-   if (jcr->cached_attribute) {
-      if (!db_create_file_attributes_record(jcr, jcr->db, &ar)) {
-         Jmsg1(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-         set_jcr_job_status(jcr, JS_Error);
-      }
-      jcr->cached_attribute = false;
-   }
-
    if (is_bnet_error(fd)) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),
                         bnet_strerror(fd));
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 
