@@ -322,6 +322,8 @@ bool do_verify(JCR *jcr)
       jcr->sd_msg_thread_done = true;   /* no SD msg thread, so it is done */
       jcr->SDJobStatus = JS_Terminated;
       get_attributes_and_put_in_catalog(jcr);
+      db_end_transaction(jcr, jcr->db);   /* terminate any open transaction */
+      db_write_batch_file_records(jcr);
       break;
 
    default:
