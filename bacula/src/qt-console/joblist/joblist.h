@@ -71,6 +71,7 @@ private:
    QString m_currentJob;
    bool m_populated;
    bool m_checkCurrentWidget;
+   int m_purgedIndex;
 };
 
 #endif /* _JOBLIST_H_ */
