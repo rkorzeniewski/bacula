@@ -407,7 +407,7 @@ bool purge_jobs_from_volume(UAContext *ua, MEDIA_DBR *mr)
       ua->error_msg(_("\nVolume \"%s\" has VolStatus \"%s\" and cannot be purged.\n"
                      "The VolStatus must be: Append, Full, Used, or Error to be purged.\n"),
                      mr->VolumeName, mr->VolStatus);
-      goto bail_out;
+      return 0;
    }
 
    memset(&jr, 0, sizeof(jr));
