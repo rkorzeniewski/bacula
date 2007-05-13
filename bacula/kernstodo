@@ -48,6 +48,10 @@ Professional Needs:
 - Detect state change of system (verify)
 
 Priority:
+- How does restore JobId=nnn work? (Dirk)
+- What does: restore select fileset="TestSet" client="workplay-fd" pool="Default"
+> storage="File2"  before="2007-02-05 23:05:04" do?  (Dirk)
+
 - Implement update jobid=
 - Mention Eric and Marc's work + Marc's doc.
 - Add TLS to bat
@@ -1717,4 +1721,3 @@ Block Position: 0
   apparently not.  This  happened when I removed the pool directive and 
   started the director.
 - Add Where: client:/.... to restore job report.
-
