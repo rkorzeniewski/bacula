@@ -601,7 +601,6 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
 
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
-   memset(&ar, 0, sizeof(ar));
    jcr->FileIndex = 0;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
@@ -622,6 +621,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       }
       /* Start transaction allocates jcr->attr and jcr->ar if needed */
       db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
+      ar = jcr->ar;
       p = fd->msg;
       /* The following three fields were sscanf'ed above so skip them */
       skip_nonspaces(&p);             /* skip FileIndex */
@@ -644,7 +644,6 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          }
          *fn = *p++;                     /* term filename and point to attribs */
          attr = p;
-         ar = jcr->ar;
          len = strlen(attr);
          jcr->attr = check_pool_memory_size(jcr->attr, len);
          memcpy(jcr->attr, attr, len);
