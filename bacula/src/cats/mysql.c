@@ -259,6 +259,19 @@ db_close_database(JCR *jcr, B_DB *mdb)
 }
 
 /*
+ * This call is needed because the message channel thread
+ *  opens a database on behalf of a jcr that was created in
+ *  a different thread. MySQL then allocates thread specific
+ *  data, which is NOT freed when the original jcr thread
+ *  closes the database.  Thus the msgchan must call here
+ *  to cleanup any thread specific data that it created.
+ */
+void db_thread_cleanup()
+{ 
+   my_thread_end();
+}
+
+/*
  * Return the next unique index (auto-increment) for
  * the given table.  Return NULL on error.
  *
