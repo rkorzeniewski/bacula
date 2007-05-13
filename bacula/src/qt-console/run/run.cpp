@@ -73,16 +73,15 @@ void runPage::okButtonPushed()
 
    this->hide();
    
+   // ***FIXME**  add date/time from dateTimeEdit.
    bsnprintf(cmd, sizeof(cmd),
              "run job=\"%s\" fileset=\"%s\" level=%s client=\"%s\" pool=\"%s\" "
-             "when=\"%s\" storage=\"%s\" priority=\"%d\" yes\n",
+             "storage=\"%s\" priority=\"%d\" yes\n",
              jobCombo->currentText().toUtf8().data(),
              filesetCombo->currentText().toUtf8().data(),
              levelCombo->currentText().toUtf8().data(),
              clientCombo->currentText().toUtf8().data(),
              poolCombo->currentText().toUtf8().data(),
-//           dateTimeEdit->textFromDateTime(dateTimeEdit->dateTime()).toUtf8().data(),
-             "",
              storageCombo->currentText().toUtf8().data(),
              prioritySpin->value());
 
