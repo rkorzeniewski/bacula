@@ -1,9 +1,11 @@
 dhb
 ====================================================
-Color code termination code in joblist.  Create class to display messages from
-a specific job.  Want the ability to create an instance of that class from
-joblist.  I also want a table to convert termination code into human readable
-text.
+Create class to display messages from a specific job.  Want the ability to
+create an instance of that class from joblist.
+
+Need to figure out the functionality and inteligence that the last restore
+window should have and give it to it.  Right now it shows drop downs with no
+options.
 
 Test left pane of restore with 2 windows drives in one backup job.
 
@@ -81,6 +83,9 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Color code termination code in joblist.  I also want a table to convert
+termination code into human readable text.
+
 show purged flag in joblist.  Don't have purge option show if already purged.
 
 move behavior of:
