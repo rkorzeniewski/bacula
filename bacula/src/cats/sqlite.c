@@ -387,6 +387,7 @@ int my_sqlite_query(B_DB *mdb, const char *cmd)
 {
    int stat;
 
+   my_sqlite_free_table(mdb);
    if (mdb->sqlite_errmsg) {
 #ifdef HAVE_SQLITE3
       sqlite3_free(mdb->sqlite_errmsg);
@@ -422,7 +423,10 @@ void my_sqlite_free_table(B_DB *mdb)
       free(mdb->fields);
       mdb->fields_defined = false;
    }
-   sqlite_free_table(mdb->result);
+   if (mdb->result) {
+      sqlite_free_table(mdb->result);
+      mdb->result = NULL;
+   }
    mdb->nrow = mdb->ncolumn = 0;
 }
 
