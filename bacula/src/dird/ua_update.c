@@ -743,7 +743,7 @@ static bool update_pool(UAContext *ua)
    }
 
    memset(&pr, 0, sizeof(pr));
-   bstrncpy(pr.Name, pool->hdr.name, sizeof(pr.Name));
+   bstrncpy(pr.Name, pool->name(), sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
       return false;
    }
@@ -771,25 +771,87 @@ static bool update_pool(UAContext *ua)
  */
 static bool update_job(UAContext *ua)
 {
-   bool done = false;
    int i;
+   char ed1[50], ed2[50];
+   POOL_MEM cmd(PM_MESSAGE);
+   JOB_DBR jr;
+   CLIENT_DBR cr;
+   utime_t StartTime;
+   char *client_name = NULL;
+   char *start_time = NULL;
    const char *kw[] = {
-      NT_("StartTime"),                   /* 0 */
+      NT_("starttime"),                   /* 0 */
+      NT_("client"),                      /* 1 */
       NULL };
 
+   Dmsg1(200, "cmd=%s\n", ua->cmd);
+   i = find_arg_with_value(ua, NT_("jobid"));
+   if (i < 0) {
+      ua->error_msg(_("Expect JobId keyword, not found.\n"));
+      return false;
+   }
+   memset(&jr, 0, sizeof(jr));
+   memset(&cr, 0, sizeof(cr));
+   jr.JobId = str_to_int64(ua->argv[i]);
+   if (!db_get_job_record(ua->jcr, ua->db, &jr)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+      return false;
+   }
 
    for (i=0; kw[i]; i++) {
       int j;
-      if ((j=find_arg_with_value(ua, kw[i])) > 0) {
+      if ((j=find_arg_with_value(ua, kw[i])) >= 0) {
          switch (i) {
-         case 0:
+         case 0:                         /* start time */
+            start_time = ua->argv[j];
             break;
-         case 1:
+         case 1:                         /* Client name */
+            client_name = ua->argv[j];
             break;
          }
-         done = true;
       }
    }
+   if (!client_name && !start_time) {
+      ua->error_msg(_("Neither Client nor StartTime specified.\n"));
+      return 0;
+   }
+   if (client_name) {
+      if (!get_client_dbr(ua, &cr)) {
+         return false;
+      }
+      jr.ClientId = cr.ClientId;
+   }
+   if (start_time) {
+      utime_t delta_start;
 
+      StartTime = str_to_utime(start_time);
+      if (StartTime == 0) {
+         ua->error_msg(_("Improper date format: %s\n"), ua->argv[i]);
+         return false;
+      }
+      delta_start = StartTime - jr.StartTime;
+      Dmsg3(200, "ST=%d jr.ST=%d delta=%d\n", (time_t)StartTime, 
+            (time_t)jr.StartTime, (time_t)delta_start);
+      jr.StartTime = (time_t)StartTime;
+      jr.SchedTime += (time_t)delta_start;
+      jr.EndTime += (time_t)delta_start;
+      jr.JobTDate += delta_start;
+      /* Convert to DB times */
+      bstrutime(jr.cStartTime, sizeof(jr.cStartTime), jr.StartTime);
+      bstrutime(jr.cSchedTime, sizeof(jr.cSchedTime), jr.SchedTime);
+      bstrutime(jr.cEndTime, sizeof(jr.cEndTime), jr.EndTime);
+   }
+   Mmsg(cmd, "UPDATE Job SET ClientId=%s,StartTime='%s',SchedTime='%s',"
+             "EndTime='%s',JobTDate=%s WHERE JobId=%s", 
+             edit_int64(jr.ClientId, ed1), 
+             jr.cStartTime,
+             jr.cSchedTime,
+             jr.cEndTime,
+             edit_uint64(jr.JobTDate, ed1), 
+             edit_int64(jr.JobId, ed2));
+   if (!db_sql_query(ua->db, cmd.c_str(), NULL, NULL)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+      return false;
+   }
    return true;
 }

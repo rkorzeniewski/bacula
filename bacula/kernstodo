@@ -46,6 +46,9 @@ Professional Needs:
 - Backup conf/exe (all daemons) 
 - Backup up system state
 - Detect state change of system (verify)
+- Synthetic Full, Diff, Inc (Virtual, Reconstructed)
+- SD to SD
+- Modules for Databases, Exchange, ...
 
 Priority:
 - How does restore JobId=nnn work? (Dirk)

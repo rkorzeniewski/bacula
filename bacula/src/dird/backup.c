@@ -357,7 +357,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
 
-   bstrncpy(cr.Name, jcr->client->hdr.name, sizeof(cr.Name));
+   bstrncpy(cr.Name, jcr->client->name(), sizeof(cr.Name));
    if (!db_get_client_record(jcr, jcr->db, &cr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Client record for Job report: ERR=%s"),
          db_strerror(jcr->db));

@@ -352,7 +352,7 @@ CLIENT *get_client_resource(UAContext *ua)
  *   returns: 0 on error
  *            1 on success and fills in CLIENT_DBR
  */
-int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
+bool get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 {
    int i;
 
@@ -389,7 +389,7 @@ int get_client_dbr(UAContext *ua, CLIENT_DBR *cr)
  *  Returns 1 on success
  *          0 on failure
  */
-int select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
+bool select_client_dbr(UAContext *ua, CLIENT_DBR *cr)
 {
    CLIENT_DBR ocr;
    char name[MAX_NAME_LENGTH];

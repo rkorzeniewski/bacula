@@ -480,7 +480,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          have_date = true;
          break;
       case 2:                            /* before */
-         if (!has_value(ua, i)) {
+         if (have_date || !has_value(ua, i)) {
             return 0;
          }
          if (str_to_utime(ua->argv[i]) == 0) {
@@ -610,21 +610,27 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          done = false;
          break;
       case 4:                         /* Select the most recent backups */
-         bstrutime(date, sizeof(date), now);
+         if (!have_date) {
+            bstrutime(date, sizeof(date), now);
+         }
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
          }
          break;
       case 5:                         /* select backup at specified time */
-         if (!get_date(ua, date, sizeof(date))) {
-            return 0;
+         if (!have_date) {
+            if (!get_date(ua, date, sizeof(date))) {
+               return 0;
+            }
          }
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
          }
          break;
       case 6:                         /* Enter files */
-         bstrutime(date, sizeof(date), now);
+         if (!have_date) {
+            bstrutime(date, sizeof(date), now);
+         }
          if (!get_client_name(ua, rx)) {
             return 0;
          }
@@ -643,8 +649,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          }
          return 2;
        case 7:                        /* enter files backed up before specified time */
-         if (!get_date(ua, date, sizeof(date))) {
-            return 0;
+         if (!have_date) {
+            if (!get_date(ua, date, sizeof(date))) {
+               return 0;
+            }
          }
          if (!get_client_name(ua, rx)) {
             return 0;
@@ -665,7 +673,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          return 2;
 
       case 8:                         /* Find JobIds for current backup */
-         bstrutime(date, sizeof(date), now);
+         if (!have_date) {
+            bstrutime(date, sizeof(date), now);
+         }
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
          }
@@ -673,8 +683,10 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          break;
 
       case 9:                         /* Find JobIds for give date */
-         if (!get_date(ua, date, sizeof(date))) {
-            return 0;
+         if (!have_date) {
+            if (!get_date(ua, date, sizeof(date))) {
+               return 0;
+            }
          }
          if (!select_backups_before_date(ua, rx, date)) {
             return 0;
@@ -695,7 +707,9 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
          if (*rx->JobIds == 0 || *rx->JobIds == '.') {
             return 0;                 /* nothing entered, return */
          }
-         bstrutime(date, sizeof(date), now);
+         if (!have_date) {
+            bstrutime(date, sizeof(date), now);
+         }
          if (!get_client_name(ua, rx)) {
             return 0;
          }
@@ -1106,7 +1120,6 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
    char pool_select[MAX_NAME_LENGTH];
    int i;
 
-
    /* Create temp tables */
    db_sql_query(ua->db, uar_del_temp, NULL, NULL);
    db_sql_query(ua->db, uar_del_temp1, NULL, NULL);
@@ -1187,6 +1200,7 @@ static bool select_backups_before_date(UAContext *ua, RESTORE_CTX *rx, char *dat
       ua->error_msg("%s\n", db_strerror(ua->db));
       goto bail_out;
    }
+
    /* Note, this is needed because I don't seem to get the callback
     * from the call just above.
     */
