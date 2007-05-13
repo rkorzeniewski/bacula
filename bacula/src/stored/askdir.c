@@ -487,12 +487,12 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
 "Job %s waiting. Cannot find any appendable volumes.\n"
 "Please use the \"label\"  command to create a new Volume for:\n"
 "    Storage:      %s\n"
-"    Media type:   %s\n"
-"    Pool:         %s\n"),
+"    Pool:         %s\n"
+"    Media type:   %s\n"),
                jcr->Job,
                dev->print_name(),
-               dcr->media_type,
-               dcr->pool_name);
+               dcr->pool_name,
+               dcr->media_type);
          }
       }
 
@@ -574,13 +574,13 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
          Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" or label a new one for:\n"
               "    Job:          %s\n"
               "    Storage:      %s\n"
-              "    Media type:   %s\n"
-              "    Pool:         %s\n"),
+              "    Pool:         %s\n"
+              "    Media type:   %s\n"),
               dcr->VolumeName,
               jcr->Job,
               dev->print_name(),
-              dcr->media_type,
-              dcr->pool_name);
+              dcr->pool_name,
+              dcr->media_type);
          Dmsg3(400, "Mount \"%s\" on device \"%s\" for Job %s\n",
                dcr->VolumeName, dev->print_name(), jcr->Job);
       }

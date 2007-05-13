@@ -537,6 +537,7 @@ void terminate_stored(int sig)
       exit(1);
    }
    in_here = true;
+   stop_watchdog();
 
    if (sig == SIGTERM) {              /* normal shutdown request? */
       /*
@@ -601,7 +602,6 @@ void terminate_stored(int sig)
    }
    term_reservations_lock();
    term_msg();
-   stop_watchdog();
    cleanup_crypto();
    free_volume_list();
    close_memory_pool();

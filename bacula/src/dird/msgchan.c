@@ -132,7 +132,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
       return false;
    }
    sd = jcr->store_bsock;
-   pm_strcpy(device_name, dev->hdr.name);
+   pm_strcpy(device_name, dev->name());
    bash_spaces(device_name);
    bnet_fsend(sd, query_device, device_name.c_str());
    Dmsg1(100, ">stored: %s\n", sd->msg);
@@ -163,11 +163,11 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    /*
     * Now send JobId and permissions, and get back the authorization key.
     */
-   pm_strcpy(job_name, jcr->job->hdr.name);
+   pm_strcpy(job_name, jcr->job->name());
    bash_spaces(job_name);
-   pm_strcpy(client_name, jcr->client->hdr.name);
+   pm_strcpy(client_name, jcr->client->name());
    bash_spaces(client_name);
-   pm_strcpy(fileset_name, jcr->fileset->hdr.name);
+   pm_strcpy(fileset_name, jcr->fileset->name());
    bash_spaces(fileset_name);
    if (jcr->fileset->MD5[0] == 0) {
       bstrncpy(jcr->fileset->MD5, "**Dummy**", sizeof(jcr->fileset->MD5));
@@ -238,7 +238,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          DEVICE *dev;
          /* Loop over alternative storage Devices until one is OK */
          foreach_alist(dev, storage->device) {
-            pm_strcpy(device_name, dev->hdr.name);
+            pm_strcpy(device_name, dev->name());
             bash_spaces(device_name);
             bnet_fsend(sd, use_device, device_name.c_str());
             Dmsg1(100, ">stored: %s", sd->msg);
@@ -273,7 +273,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          DEVICE *dev;
          /* Loop over alternative storage Devices until one is OK */
          foreach_alist(dev, storage->device) {
-            pm_strcpy(device_name, dev->hdr.name);
+            pm_strcpy(device_name, dev->name());
             bash_spaces(device_name);
             bnet_fsend(sd, use_device, device_name.c_str());
             Dmsg1(100, ">stored: %s", sd->msg);
@@ -443,9 +443,9 @@ extern "C" void *device_thread(void *arg)
       LockRes();
       foreach_res(dev, R_DEVICE) {
          if (!update_device_res(jcr, dev)) {
-            Dmsg1(900, "Error updating device=%s\n", dev->hdr.name);
+            Dmsg1(900, "Error updating device=%s\n", dev->name());
          } else {
-            Dmsg1(900, "Updated Device=%s\n", dev->hdr.name);
+            Dmsg1(900, "Updated Device=%s\n", dev->name());
          }
       }
       UnlockRes();

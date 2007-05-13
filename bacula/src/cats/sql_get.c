@@ -274,12 +274,14 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    if (jr->JobId == 0) {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
+"SchedTime,RealEndTime "
 "FROM Job WHERE Job='%s'", jr->Job);
     } else {
       Mmsg(mdb->cmd, "SELECT VolSessionId,VolSessionTime,"
 "PoolId,StartTime,EndTime,JobFiles,JobBytes,JobTDate,Job,JobStatus,"
-"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId "
+"Type,Level,ClientId,Name,PriorJobId,RealEndTime,JobId,FileSetId,"
+"SchedTime,RealEndTime "
 "FROM Job WHERE JobId=%s", 
           edit_int64(jr->JobId, ed1));
     }
@@ -315,6 +317,12 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       jr->JobId = str_to_int64(row[16]);
    }
    jr->FileSetId = str_to_int64(row[17]);
+   bstrncpy(jr->cSchedTime, row[3]!=NULL?row[18]:"", sizeof(jr->cSchedTime));
+   bstrncpy(jr->cRealEndTime, row[3]!=NULL?row[19]:"", sizeof(jr->cRealEndTime));
+   jr->StartTime = str_to_utime(jr->cStartTime);
+   jr->SchedTime = str_to_utime(jr->cSchedTime);
+   jr->EndTime = str_to_utime(jr->cEndTime);
+   jr->RealEndTime = str_to_utime(jr->cRealEndTime);
    sql_free_result(mdb);
 
    db_unlock(mdb);

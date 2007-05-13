@@ -125,6 +125,7 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
             break;
          }
+         Dmsg1(100, "Cmd: %s\n", cmd);
          ua->gui = true;
          if (ua->api) user->signal(BNET_CMD_BEGIN);
          ok = (*commands[i].func)(ua, cmd);   /* go execute command */
