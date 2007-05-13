@@ -111,15 +111,26 @@ void JobList::populateTable()
 
    /* Set up query QString and header QStringList */
    QString query("");
-   query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
+   /*
+    *  ***FIXME***
+    * NB temporarily remove Media and JobMedia, because one cannot include
+    *  those items if one wants to list all jobs.  Some jobs never write
+    *  to Volumes.  To correct this one needs two different SELECT statements
+    *  depending on the filter.
+    * Also, note that DISTINCT doesn't work as one intuitively think it
+    *  will on PostgreSQL.  I believe the use here was incorrect so I
+    *  removed it -- at least temporarily.
+    * This comment should be removed when fixed.
+    */
+   query += "SELECT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes,"
             " Job.JobStatus AS Status, Status.JobStatusLong AS Status,"
             " Job.PurgedFiles AS Purged"
-            " FROM Job, JobMedia, Media, Client, Status"
-            " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
-            " AND Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
+            " FROM Job,Client,Status"
+            " WHERE Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
+#ifdef xxx
    int volumeIndex = volumeComboBox->currentIndex();
    if (volumeIndex != -1)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
@@ -127,6 +138,7 @@ void JobList::populateTable()
       query += " AND Media.VolumeName='" + m_mediaName + "'";
       m_closeable=true;
    }
+#endif
    int clientIndex = clientsComboBox->currentIndex();
    if (clientIndex != -1)
       m_clientName = clientsComboBox->itemText(clientIndex);
