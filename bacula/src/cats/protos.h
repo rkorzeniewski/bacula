@@ -1,14 +1,7 @@
 /*
- *
- *  Database routines that are exported by the cats library for
- *    use elsewhere in Bacula (mainly the Director).
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  Database routines that are exported by the cats library for
+ *    use elsewhere in Bacula (mainly the Director).
+ *
+ *    Version $Id$
+ */
 
 #ifndef __SQL_PROTOS_H
 #define __SQL_PROTOS_H
@@ -53,7 +53,7 @@ int  db_sql_query(B_DB *mdb, const char *cmd, DB_RESULT_HANDLER *result_handler,
 void db_start_transaction(JCR *jcr, B_DB *mdb);
 void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
-
+void db_thread_cleanup();
 
 /* create.c */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);

@@ -253,6 +253,9 @@ db_close_database(JCR *jcr, B_DB *mdb)
    V(mutex);
 }
 
+void db_thread_cleanup()
+{ }
+
 /*
  * Return the next unique index (auto-increment) for
  * the given table.  Return 0 on error.

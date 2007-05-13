@@ -289,6 +289,9 @@ void db_close_database(JCR *jcr, B_DB *mdb)
    V(mutex);
 }
 
+void db_thread_cleanup()
+{ }
+
 
 void db_escape_string(char *snew, char *old, int len)
 {
