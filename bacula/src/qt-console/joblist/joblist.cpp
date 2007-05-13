@@ -114,11 +114,12 @@ void JobList::populateTable()
    query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
-            " Job.JobBytes AS Bytes, Job.JobStatus AS Status,"
+            " Job.JobBytes AS Bytes,"
+            " Job.JobStatus AS Status, Status.JobStatusLong AS Status,"
             " Job.PurgedFiles AS Purged"
-            " FROM Job, JobMedia, Media, Client"
-            " WHERE JobMedia.JobId=Job.JobId and JobMedia.MediaId=Media.MediaId"
-            " and Client.ClientId=Job.ClientId";
+            " FROM Job, JobMedia, Media, Client, Status"
+            " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
+            " AND Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
    int volumeIndex = volumeComboBox->currentIndex();
    if (volumeIndex != -1)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
@@ -167,6 +168,7 @@ void JobList::populateTable()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" );
    m_purgedIndex = headerlist.indexOf("Purged");
+   statusIndex = headerlist.indexOf("Job Status");
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -190,14 +192,23 @@ void JobList::populateTable()
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
          int column = 0;
+         bool statusIndexDone = false;
+         QString statusCode("");
          /* Iterate through fields in the record */
          foreach (field, fieldlist) {
             field = field.trimmed();  /* strip leading & trailing spaces */
-            p_tableitem = new QTableWidgetItem(field,1);
-            p_tableitem->setFlags(0);
-            p_tableitem->setForeground(blackBrush);
-            mp_tableWidget->setItem(row, column, p_tableitem);
-            column++;
+            if ((column == statusIndex) && (!statusIndexDone)){
+               statusIndexDone = true;
+               statusCode = field;
+            } else {
+               p_tableitem = new QTableWidgetItem(field,1);
+               p_tableitem->setFlags(0);
+               p_tableitem->setForeground(blackBrush);
+               mp_tableWidget->setItem(row, column, p_tableitem);
+               if (column == statusIndex)
+                  setStatusColor(p_tableitem, statusCode);
+               column++;
+            }
          }
          row++;
       }
@@ -212,6 +223,20 @@ void JobList::populateTable()
       QMessageBox::warning(this, tr("Bat"),
           tr("The Jobs query returned no results.\n"
          "Press OK to continue?"), QMessageBox::Ok );
+   }
+}
+
+void JobList::setStatusColor(QTableWidgetItem *item, QString &field)
+{
+   QString greenchars("TCR");
+   QString redchars("BEf");
+   QString yellowchars("eDAFSMmsjdctp");
+   if (greenchars.contains(field, Qt::CaseSensitive)) {
+      item->setBackground(Qt::green);
+   } else if (redchars.contains(field, Qt::CaseSensitive)) {
+      item->setBackground(Qt::red);
+   } else if (yellowchars.contains(field, Qt::CaseSensitive)){ 
+      item->setBackground(Qt::yellow);
    }
 }
 

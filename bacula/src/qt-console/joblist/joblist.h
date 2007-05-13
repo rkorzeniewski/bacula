@@ -66,6 +66,7 @@ private slots:
 
 private:
    void createConnections();
+   void setStatusColor(QTableWidgetItem *item, QString &field);
    QString m_mediaName;
    QString m_clientName;
    QString m_currentJob;
