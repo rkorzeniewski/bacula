@@ -1,5 +1,5 @@
-#ifndef _JOBLIST_H_
-#define _JOBLIST_H_
+#ifndef _JOBLOG_H_
+#define _JOBLOG_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -28,52 +28,33 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id: joblist.h 4230 2007-02-21 20:07:37Z kerns $
+ *   Version $Id: medialist.h 4230 2007-02-21 20:07:37Z kerns $
  *
  *   Dirk Bartley, March 2007
  */
 
 #include <QtGui>
-#include "ui_joblist.h"
+#include "ui_joblog.h"
 #include "console.h"
-#include "pages.h"
 
-class JobList : public Pages, public Ui::JobListForm
+class JobLog : public Pages, public Ui::JobLogForm
 {
    Q_OBJECT 
 
 public:
-   JobList(QString &medianame, QString &clientname, QTreeWidgetItem *);
-   virtual void PgSeltreeWidgetClicked();
-   virtual void currentStackItem();
-   int m_resultCount;
+   JobLog(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem);
 
 public slots:
-   void populateTable();
-   virtual void treeWidgetName(QString &);
-   void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
 
 private slots:
-   void consoleLongListJob();
-   void consoleListJobid();
-   void consoleListFilesOnJob();
-   void consoleListJobMedia();
-   void consoleListVolumes();
-   void consoleDeleteJob();
-   void consolePurgeFiles();
-   void preRestoreFromJob();
-   void preRestoreFromTime();
-   void showLogForJob();
 
 private:
-   void createConnections();
-   void setStatusColor(QTableWidgetItem *item, QString &field);
-   QString m_mediaName;
-   QString m_clientName;
-   QString m_currentJob;
-   bool m_populated;
-   bool m_checkCurrentWidget;
-   int m_purgedIndex;
+   void display_text(const char *buf);
+   void display_text(const QString buf);
+   void populateText();
+   void getFont();
+   QTextCursor *m_cursor;
+   QString m_jobId;
 };
 
-#endif /* _JOBLIST_H_ */
+#endif /* _JOBLOG_H_ */

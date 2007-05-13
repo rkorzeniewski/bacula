@@ -1,11 +1,13 @@
 dhb
 ====================================================
-Create class to display messages from a specific job.  Want the ability to
-create an instance of that class from joblist.
+Get status codes in dropdown for joblist select.
 
 Need to figure out the functionality and inteligence that the last restore
 window should have and give it to it.  Right now it shows drop downs with no
 options.
+
+See if it would be possible to have user provided console text show up in a
+color
 
 Test left pane of restore with 2 windows drives in one backup job.
 
@@ -83,6 +85,9 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Create class to display messages from a specific job.  Want the ability to
+create an instance of that class from joblist.
+
 Color code termination code in joblist.  I also want a table to convert
 termination code into human readable text.
 

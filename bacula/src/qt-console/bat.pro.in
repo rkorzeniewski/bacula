@@ -38,6 +38,7 @@ FORMS += run/run.ui run/runcmd.ui
 FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
+FORMS += joblog/joblog.ui
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
@@ -97,6 +98,10 @@ SOURCES += storage/storage.cpp
 ## Fileset
 HEADERS += fileset/fileset.h
 SOURCES += fileset/fileset.cpp
+
+## Fileset
+HEADERS += joblog/joblog.h
+SOURCES += joblog/joblog.cpp
 
 INSTALLS += bins
 INSTALLS += confs
