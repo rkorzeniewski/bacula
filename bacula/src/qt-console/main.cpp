@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 #endif
 
    init_stack_dump();
-   my_name_is(argc, argv, "gnome-console");
+   my_name_is(argc, argv, "bat");
    init_msg(NULL, NULL);
    working_directory  = "/tmp";
 

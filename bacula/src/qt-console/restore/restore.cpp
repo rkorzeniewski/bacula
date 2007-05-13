@@ -375,9 +375,8 @@ char *restorePage::get_cwd()
       m_cwd = m_console->msg();
       Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
-      Dmsg1(000, "stat=%d\n", stat);
+      Dmsg1(000, "Something went wrong read stat=%d\n", stat);
       QMessageBox::critical(this, "Error", ".pwd command failed", QMessageBox::Ok);
-      Dmsg1(000, "stat=%d\n", stat);
    }
    m_console->discardToPrompt(); 
    return m_cwd.toUtf8().data();

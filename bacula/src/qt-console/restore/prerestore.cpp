@@ -133,11 +133,6 @@ void prerestorePage::okButtonPushed()
    this->hide();
 
    cmd = QString("restore ");
-   if (selectFilesRadio->isChecked()) {
-      cmd += "select ";
-   } else {
-      cmd += "all done ";
-   }
    cmd += "fileset=\"" + filesetCombo->currentText() + "\" ";
    cmd += "client=\"" + clientCombo->currentText() + "\" ";
    if (selectJobsRadio->isChecked()) {
@@ -154,6 +149,11 @@ void prerestorePage::okButtonPushed()
       }
    } else {
       cmd += "jobid=\"" + jobIdEdit->text() + "\"";
+   }
+   if (selectFilesRadio->isChecked()) {
+      cmd += " select";
+   } else {
+      cmd += " all done";
    }
 
    /* ***FIXME*** */
@@ -334,4 +334,3 @@ bool prerestorePage::checkJobIdList()
    }
    return true;
 }
-
