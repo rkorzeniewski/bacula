@@ -343,6 +343,14 @@
     <string>Restore From Time</string>
    </property>
   </action>
+  <action name="actionShowLogForJob" >
+   <property name="icon" >
+    <iconset>../images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Show Log for Job</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

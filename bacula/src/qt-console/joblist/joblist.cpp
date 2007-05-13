@@ -36,6 +36,7 @@
 #include "bat.h"
 #include "joblist.h"
 #include "restore.h"
+#include "joblog/joblog.h"
 
 /*
  * Constructor for the class
@@ -339,6 +340,7 @@ void JobList::createConnections()
    mp_tableWidget->addAction(actionPurgeFiles);
    mp_tableWidget->addAction(actionRestoreFromJob);
    mp_tableWidget->addAction(actionRestoreFromTime);
+   mp_tableWidget->addAction(actionShowLogForJob);
 
    /* Make Connections */
    connect(actionLongListJob, SIGNAL(triggered()), this,
@@ -359,6 +361,8 @@ void JobList::createConnections()
                 SLOT(preRestoreFromJob()));
    connect(actionRestoreFromTime, SIGNAL(triggered()), this,
                 SLOT(preRestoreFromTime()));
+   connect(actionShowLogForJob, SIGNAL(triggered()), this,
+                SLOT(showLogForJob()));
 }
 
 /*
@@ -446,4 +450,13 @@ void JobList::preRestoreFromJob()
 void JobList::preRestoreFromTime()
 {
    new prerestorePage(m_currentJob, R_JOBDATETIME);
+}
+
+/*
+ * Subroutine to call class to show the log in the database from that job
+ */
+void JobList::showLogForJob()
+{
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+   new JobLog(m_currentJob, pageSelectorTreeWidgetItem);
 }
