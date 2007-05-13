@@ -51,6 +51,7 @@ JobList::JobList(QString &mediaName, QString &clientname,
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
+   if ((m_mediaName != "") || (m_clientName != "")) { m_closeable=true; }
    m_checkCurrentWidget = true;
    createConnections();
 
@@ -109,42 +110,31 @@ void JobList::populateTable()
       purgedComboBox->addItems( QStringList() << "0" << "1");
    }
 
-   /* Set up query QString and header QStringList */
+   /* Set up query */
    QString query("");
-   /*
-    *  ***FIXME***
-    * NB temporarily remove Media and JobMedia, because one cannot include
-    *  those items if one wants to list all jobs.  Some jobs never write
-    *  to Volumes.  To correct this one needs two different SELECT statements
-    *  depending on the filter.
-    * Also, note that DISTINCT doesn't work as one intuitively think it
-    *  will on PostgreSQL.  I believe the use here was incorrect so I
-    *  removed it -- at least temporarily.
-    * This comment should be removed when fixed.
-    */
+   int volumeIndex = volumeComboBox->currentIndex();
+   if (volumeIndex != -1)
+      m_mediaName = volumeComboBox->itemText(volumeIndex);
    query += "SELECT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes,"
             " Job.JobStatus AS Status, Status.JobStatusLong AS Status,"
             " Job.PurgedFiles AS Purged"
-            " FROM Job,Client,Status"
-            " WHERE Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
-#ifdef xxx
-   int volumeIndex = volumeComboBox->currentIndex();
-   if (volumeIndex != -1)
-      m_mediaName = volumeComboBox->itemText(volumeIndex);
+            " FROM Job,Client,Status";
    if (m_mediaName != "") {
-      query += " AND Media.VolumeName='" + m_mediaName + "'";
-      m_closeable=true;
+      query += ",JobMedia,Media";
    }
-#endif
+   query += " WHERE Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
+   if (m_mediaName != "") {
+      query += " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
+               " AND Media.VolumeName='" + m_mediaName + "'";
+   }
    int clientIndex = clientsComboBox->currentIndex();
    if (clientIndex != -1)
       m_clientName = clientsComboBox->itemText(clientIndex);
    if (m_clientName != "") {
       query += " AND Client.Name='" + m_clientName + "'";
-      m_closeable=true;
    }
    int jobIndex = jobComboBox->currentIndex();
    if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != "Any")) {
@@ -169,13 +159,15 @@ void JobList::populateTable()
       query += " AND Job.Starttime>'" + since + "'";
    }
    /* Descending */
-   query += " ORDER BY Job.Starttime DESC";
+   query += " ORDER BY Job.Starttime DESC, Job.JobId DESC";
    /* If Limit check box for limit records returned is checked  */
    if (limitCheckBox->checkState() == Qt::Checked) {
       QString limit;
       limit.setNum(limitSpinBox->value());
       query += " LIMIT " + limit;
    }
+
+   /* Set up the Header for the table */
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" );
@@ -258,8 +250,8 @@ void JobList::setStatusColor(QTableWidgetItem *item, QString &field)
  */
 void JobList::PgSeltreeWidgetClicked()
 {
+   populateTable();
    if (!m_populated) {
-      populateTable();
       m_populated=true;
    }
 }
