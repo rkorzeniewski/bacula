@@ -475,7 +475,11 @@ __MINGW_IMPORT long     _dstbias;
    size_t length = strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S", &tm);
    sprintf(&buf[length], " %+2.2ld%2.2u", -tzoffset / 60, abs(tzoffset) % 60);
 #else
-   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z", &tm);
+#ifdef HAVE_SUN_OS 
+   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S (%Z)", &tm);
+#else
+   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z (%Z)", &tm);
+#endif
 #endif
    fprintf(sfp, "Date: %s\r\n", buf);
    Dmsg1(10, "Date: %s\r\n", buf);
