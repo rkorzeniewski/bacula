@@ -27,7 +27,7 @@
 */
  
 /*
- *   Version $Id: medialist.cpp 4230 2007-02-21 20:07:37Z kerns $
+ *   Version $Id: joblog.cpp 4230 2007-02-21 20:07:37Z kerns $
  *
  *  JobLog Class
  *
@@ -69,15 +69,15 @@ void JobLog::getFont()
    textEdit->setFont(font);
 }
 
+/*
+ * Populate the text in the window
+ */
 void JobLog::populateText()
 {
    QString heading("<A href=\"#top\">Log records for job ");
    heading += m_jobId + "</A>\n";
    textEdit->insertHtml(heading);
    
-/*   display_text("<A href=\"#top\">Log records for job ");
-   display_text(m_jobId);
-   display_text("</A>\n");*/
    QString query("");
    query = "SELECT Time, LogText FROM Log WHERE JobId='" + m_jobId + "'";
 
@@ -85,6 +85,7 @@ void JobLog::populateText()
    if (m_console->sql_cmd(query, results)) {
       QString field;
       QStringList fieldlist;
+      int resultcount = 0;
 
       /* Iterate through the lines of results. */
       foreach (QString resultline, results) {
@@ -97,13 +98,22 @@ void JobLog::populateText()
             if (column <= 1) display_text("\n");
             column += 1;
          } /* foreach field */
+         resultcount += 1;
       } /* foreach resultline */
+      if (resultcount == 0) {
+         /* show a message about configuration item */
+         printf("go here\n");
+         QMessageBox::warning(this, tr("Bat"),
+            tr("There were no results ??  !!!.\n"
+"It is possible you may need to add \"catalog = all\" to the Messages stanza"
+" for this job.\n"), QMessageBox::Ok);
+      }
    } /* if results from query */
    textEdit->scrollToAnchor("top");
 }
 
 /*
- * Put text into the joblog window
+ * Put text into the joblog window with an overload
  */
 void JobLog::display_text(const QString buf)
 {
