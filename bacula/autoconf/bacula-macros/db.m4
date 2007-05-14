@@ -12,7 +12,8 @@ AC_ARG_WITH(mysql,
         if test "$withval" = "yes"; then
            if test -f /usr/local/mysql/include/mysql/mysql.h; then
                    MYSQL_INCDIR=/usr/local/mysql/include/mysql
-                   if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a; then
+                   if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/local/mysql/lib64/mysql
                    else
                            MYSQL_LIBDIR=/usr/local/mysql/lib/mysql
@@ -20,15 +21,20 @@ AC_ARG_WITH(mysql,
                    MYSQL_BINDIR=/usr/local/mysql/bin
            elif test -f /usr/include/mysql/mysql.h; then
                    MYSQL_INCDIR=/usr/include/mysql
-                   if test -f /usr/lib64/mysql/libmysqlclient_r.a; then
+                   if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
                            MYSQL_LIBDIR=/usr/lib64/mysql
-                   else
+                   elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                          -o -f /usr/lib/mysql/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/lib/mysql
+                   else
+                           MYSQL_LIBDIR=/usr/lib
                    fi
                    MYSQL_BINDIR=/usr/bin
            elif test -f /usr/include/mysql.h; then
                    MYSQL_INCDIR=/usr/include
-                   if test -f /usr/lib64/libmysqlclient_r.a; then
+                   if test -f /usr/lib64/libmysqlclient_r.a \
+                        -o -f /usr/lib64/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/lib64
                    else
                            MYSQL_LIBDIR=/usr/lib
@@ -36,7 +42,8 @@ AC_ARG_WITH(mysql,
                    MYSQL_BINDIR=/usr/bin
            elif test -f /usr/local/include/mysql/mysql.h; then
                    MYSQL_INCDIR=/usr/local/include/mysql
-                   if test -f /usr/local/lib64/mysql/libmysqlclient_r.a; then
+                   if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                        -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/local/lib64/mysql
                    else
                            MYSQL_LIBDIR=/usr/local/lib/mysql
@@ -44,7 +51,8 @@ AC_ARG_WITH(mysql,
                    MYSQL_BINDIR=/usr/local/bin
            elif test -f /usr/local/include/mysql.h; then
                    MYSQL_INCDIR=/usr/local/include
-                   if test -f /usr/local/lib64/libmysqlclient_r.a; then
+                   if test -f /usr/local/lib64/libmysqlclient_r.a \
+                        -o -f /usr/local/lib64/libmysqlclient_r.so; then
                            MYSQL_LIBDIR=/usr/local/lib64
                    else
                            MYSQL_LIBDIR=/usr/local/lib
@@ -57,7 +65,8 @@ AC_ARG_WITH(mysql,
         else
            if test -f $withval/include/mysql/mysql.h; then
               MYSQL_INCDIR=$withval/include/mysql
-              if test -f $withval/lib64/mysql/libmysqlclient_r.a; then
+              if test -f $withval/lib64/mysql/libmysqlclient_r.a \
+                   -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
                  MYSQL_LIBDIR=$withval/lib64/mysql
               else
                  MYSQL_LIBDIR=$withval/lib/mysql
@@ -69,7 +78,8 @@ AC_ARG_WITH(mysql,
               MYSQL_BINDIR=$withval/bin
            elif test -f $withval/include/mysql.h; then
               MYSQL_INCDIR=$withval/include
-              if test -f "$withval/lib64/libmysqlclient_r.a"; then
+              if test -f $withval/lib64/libmysqlclient_r.a \
+                   -o -f $withval/lib64/libmysqlclient_r.so; then
                  MYSQL_LIBDIR=$withval/lib64
               else
                  MYSQL_LIBDIR=$withval/lib
@@ -81,11 +91,8 @@ AC_ARG_WITH(mysql,
            fi
         fi
     SQL_INCLUDE=-I$MYSQL_INCDIR
-    if test -f "$MYSQL_LIBDIR/libmysqlclient_r.a"; then
-       SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
-       AC_DEFINE(HAVE_THREAD_SAFE_MYSQL)
-    fi
-    if test -f "$MYSQL_LIBDIR/libmysqlclient_r.so"; then
+    if test -f $MYSQL_LIBDIR/libmysqlclient_r.a \
+         -o -f $MYSQL_LIBDIR/libmysqlclient_r.so; then
        SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqlclient_r -lz"
        AC_DEFINE(HAVE_THREAD_SAFE_MYSQL)
     fi

@@ -2,6 +2,10 @@
 
 General:
 14May07 
+kes  Do better checking for the MySQL 64 bit libraries looking for both
+     .a and .so libraries.
+kes  Add a kludge for Ubuntu's non-standard locations for MySQL -- allow
+     /usr/include/mysql/mysql.h AND /usr/lib/... rather than /usr/lib/mysql/...
 kes  Require the thread safe version of MySQL during configure. Thanks
      to Andre Noll for pointing this out.
 kes  Ensure that calls to find_jobids_from_mediaid_list() check count before
