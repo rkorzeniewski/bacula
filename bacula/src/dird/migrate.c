@@ -722,6 +722,9 @@ static int get_job_to_migrate(JCR *jcr)
             if (!find_jobids_from_mediaid_list(jcr, &mid, "Volumes")) {
                continue;
             }
+            if (mid.count == 0) {
+               continue;                  /* nothing returned */
+            }
             if (i != 0) {
                pm_strcat(jids.list, ",");
             }
@@ -887,8 +890,7 @@ static bool find_mediaid_then_jobids(JCR *jcr, idpkt *ids, const char *query1,
       ok = true;         /* Not an error */
       goto bail_out;
    } else if (ids->count != 1) {
-      Jmsg(jcr, M_FATAL, 0, _("SQL error. Expected 1 MediaId got %d\n"), 
-         ids->count);
+      Jmsg(jcr, M_FATAL, 0, _("SQL error. Expected 1 MediaId got %d\n"), ids->count);
       goto bail_out;
    }
    Dmsg2(dbglevel, "%s MediaIds=%s\n", type, ids->list);
@@ -899,6 +901,12 @@ bail_out:
    return ok;
 }
 
+/* 
+ * This routine returns:
+ *    false       if an error occurred
+ *    true        otherwise
+ *    ids.count   number of jobids found (may be zero)
+ */       
 static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type) 
 {
    bool ok = false;
@@ -914,6 +922,7 @@ static bool find_jobids_from_mediaid_list(JCR *jcr, idpkt *ids, const char *type
       Jmsg(jcr, M_INFO, 0, _("No %ss found to migrate.\n"), type);
    }
    ok = true;
+
 bail_out:
    return ok;
 }
