@@ -413,6 +413,12 @@ void Console::display_text(const char *buf)
    m_cursor->insertText(buf);
 }
 
+void Console::display_html(const QString buf)
+{
+   m_cursor->movePosition(QTextCursor::End);
+   m_cursor->insertHtml(buf);
+}
+
 /* Position cursor to end of screen */
 void Console::update_cursor()
 {
