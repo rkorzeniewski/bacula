@@ -132,14 +132,14 @@ void prerestorePage::okButtonPushed()
 
    this->hide();
 
-   cmd = QString("restore ");
-   cmd += "fileset=\"" + filesetCombo->currentText() + "\" ";
-   cmd += "client=\"" + clientCombo->currentText() + "\" ";
+   cmd = QString("restore");
+   cmd += " fileset=\"" + filesetCombo->currentText() + "\"";
+   cmd += " client=\"" + clientCombo->currentText() + "\"";
    if (selectJobsRadio->isChecked()) {
       if (poolCombo->currentText() != "Any" ){
-         cmd += "pool=\"" + poolCombo->currentText() + "\" ";
+         cmd += " pool=\"" + poolCombo->currentText() + "\"";
       }
-      cmd += "storage=\"" + storageCombo->currentText() + "\" ";
+      cmd += " storage=\"" + storageCombo->currentText() + "\"";
       if (recentCheckBox->checkState() == Qt::Checked) {
          cmd += " current";
       } else {
@@ -252,7 +252,7 @@ void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
    QString job, client, fileset;
    QString query("");
    query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client,"
-   " FileSet.FileSet AS FileSet, Job.Starttime AS JobStart"
+   " FileSet.FileSet AS FileSet, Job.EndTime AS JobEnd"
    " From Job, Client, FileSet"
    " WHERE Job.FileSetId=FileSet.FileSetId AND Job.ClientId=Client.ClientId"
    " AND JobId=\'" + jobId + "\'";
