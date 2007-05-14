@@ -77,7 +77,7 @@ void JobList::populateTable()
 
    /* Can't do this in constructor because not neccesarily conected in constructor */
    if (!m_populated) {
-      clientsComboBox->addItem("");
+      clientsComboBox->addItem("Any");
       clientsComboBox->addItems(m_console->client_list);
       int clientIndex = clientsComboBox->findText(m_clientName, Qt::MatchExactly);
       if (clientIndex != -1)
@@ -95,7 +95,7 @@ void JobList::populateTable()
             volumeList.append(fieldlist[0]);
          } /* foreach resultline */
       } /* if results from query */
-      volumeComboBox->addItem("");
+      volumeComboBox->addItem("Any");
       volumeComboBox->addItems(volumeList);
       int volumeIndex = volumeComboBox->findText(m_mediaName, Qt::MatchExactly);
       if (volumeIndex != -1) {
@@ -105,10 +105,21 @@ void JobList::populateTable()
       jobComboBox->addItems(m_console->job_list);
       levelComboBox->addItem("Any");
       levelComboBox->addItems( QStringList() << "F" << "D" << "I");
-      statusComboBox->addItem("Any");
-      statusComboBox->addItems( QStringList() << "T");
       purgedComboBox->addItem("Any");
       purgedComboBox->addItems( QStringList() << "0" << "1");
+      statusComboBox->addItem("Any");
+      QString statusQuery("SELECT JobStatusLong FROM Status");
+      QStringList statusResults, statusLongList;
+      if (m_console->sql_cmd(statusQuery, statusResults)) {
+         QString field;
+         QStringList fieldlist;
+         /* Iterate through the lines of results. */
+         foreach (QString resultline, statusResults) {
+            fieldlist = resultline.split("\t");
+            statusLongList.append(fieldlist[0]);
+         } /* foreach resultline */
+      } /* if results from statusquery */
+      statusComboBox->addItems(statusLongList);
    }
 
    /* Set up query */
@@ -120,21 +131,21 @@ void JobList::populateTable()
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes,"
-            " Job.JobStatus AS Status, Status.JobStatusLong AS Status,"
+            " Job.JobStatus AS Status, Status.JobStatusLong AS StatusLong,"
             " Job.PurgedFiles AS Purged"
             " FROM Job,Client,Status";
-   if (m_mediaName != "") {
+   if (m_mediaName != "Any") {
       query += ",JobMedia,Media";
    }
    query += " WHERE Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
-   if (m_mediaName != "") {
+   if (m_mediaName != "Any") {
       query += " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
                " AND Media.VolumeName='" + m_mediaName + "'";
    }
    int clientIndex = clientsComboBox->currentIndex();
    if (clientIndex != -1)
       m_clientName = clientsComboBox->itemText(clientIndex);
-   if (m_clientName != "") {
+   if (m_clientName != "Any") {
       query += " AND Client.Name='" + m_clientName + "'";
    }
    int jobIndex = jobComboBox->currentIndex();
@@ -147,7 +158,7 @@ void JobList::populateTable()
    }
    int statusIndex = statusComboBox->currentIndex();
    if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != "Any")) {
-      query += " AND Job.JobStatus='" + statusComboBox->itemText(statusIndex) + "'";
+      query += " AND Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'";
    }
    int purgedIndex = purgedComboBox->currentIndex();
    if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != "Any")) {
@@ -222,7 +233,7 @@ void JobList::populateTable()
    mp_tableWidget->resizeColumnsToContents();
    mp_tableWidget->resizeRowsToContents();
    mp_tableWidget->verticalHeader()->hide();
-   if ((m_mediaName != "") && (m_resultCount == 0)){
+   if ((m_mediaName != "Any") && (m_resultCount == 0)){
       /* for context sensitive searches, let the user know if there were no
        * results */
       QMessageBox::warning(this, tr("Bat"),
