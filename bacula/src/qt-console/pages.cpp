@@ -209,16 +209,10 @@ void Pages::consoleCommand(QString &command)
        return;
    /* Bring this directors console to the front of the stack */
    setConsoleCurrent();
-#ifdef xxdebugcode
-   m_console->display_text("Context sensitive command :\n\n");
-   m_console->display_text("****    ");
-#endif
-   m_console->display_text(command);
+   QString displayhtml("<font color=\"blue\">");
+   displayhtml += command + "</font>\n";
+   m_console->display_html(displayhtml);
    m_console->display_text("\n");
-#ifdef xxdebugcode
-   m_console->display_text("    ****\n");
-   m_console->display_text("Director Response :\n\n");
-#endif
    m_console->write_dir(command.toUtf8().data());
    m_console->displayToPrompt();
 }

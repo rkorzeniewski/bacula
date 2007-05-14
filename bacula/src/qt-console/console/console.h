@@ -73,6 +73,7 @@ public:
    void display_text(const char *buf);
    void display_text(const QString buf);
    void display_textf(const char *fmt, ...);
+   void display_html(const QString buf);
    void update_cursor(void);
    void write_dir(const char *buf);
    bool dir_cmd(const char *cmd, QStringList &results);
