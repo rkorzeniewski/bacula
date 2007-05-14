@@ -148,10 +148,11 @@ void prerestorePage::okButtonPushed()
          cmd += " before=\"" + before + "\"";
       }
    } else {
-      cmd += "jobid=\"" + jobIdEdit->text() + "\"";
+      cmd += " jobid=\"" + jobIdEdit->text() + "\"";
    }
    if (selectFilesRadio->isChecked()) {
-      cmd += " select";
+      if (!listJobsRadio->isChecked())
+         cmd += " select";
    } else {
       cmd += " all done";
    }
