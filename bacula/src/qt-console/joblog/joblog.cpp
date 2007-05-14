@@ -102,7 +102,6 @@ void JobLog::populateText()
       } /* foreach resultline */
       if (resultcount == 0) {
          /* show a message about configuration item */
-         printf("go here\n");
          QMessageBox::warning(this, tr("Bat"),
             tr("There were no results ??  !!!.\n"
 "It is possible you may need to add \"catalog = all\" to the Messages stanza"

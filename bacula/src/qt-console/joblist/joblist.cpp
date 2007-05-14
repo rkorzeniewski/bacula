@@ -127,7 +127,7 @@ void JobList::populateTable()
    int volumeIndex = volumeComboBox->currentIndex();
    if (volumeIndex != -1)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
-   query += "SELECT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
+   query += "SELECT DISTINCT Job.Jobid AS Id, Job.Name AS JobName, Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes,"
