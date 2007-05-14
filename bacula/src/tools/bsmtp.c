@@ -145,6 +145,43 @@ _("\n"
    exit(1);
 }
 
+static void get_date_string(char *buf, int buf_len)
+{
+   time_t now = time(NULL);
+   struct tm tm;
+   char tzbuf[MAXSTRING];
+
+   /* Add RFC822 date */
+   (void)localtime_r(&now, &tm);
+
+#if defined(HAVE_WIN32)
+#if defined(HAVE_MINGW)
+__MINGW_IMPORT long     _dstbias;
+#endif
+   long tzoffset = 0;
+
+   _tzset();
+
+   tzoffset = _timezone;
+   tzoffset += _dstbias;
+   tzoffset /= 60;
+
+   size_t length = strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
+   sprintf(&buf[length], " %+2.2ld%2.2u", -tzoffset / 60, abs(tzoffset) % 60);
+#else
+   strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
+   tzset();
+   timezone /= 60;                  /* timezone offset in mins */
+   if (tm.tm_isdst == 1) {
+      timezone -= 60;              /* adjust for daylight savings */
+   }
+   sprintf(tzbuf, " %+2.2ld%2.2u", -timezone / 60, abs(timezone) % 60);
+   strcat(buf, tzbuf);              /* add +0100 */
+   strftime(tzbuf, sizeof(tzbuf), " (%Z)", &tm);
+   strcat(buf, tzbuf);              /* add (CEST) */
+#endif
+}
+
 
 /*********************************************************************
  *
@@ -164,8 +201,6 @@ int main (int argc, char *argv[])
     struct passwd *pwd;
 #endif
     char *cp, *p;
-    time_t now = time(NULL);
-    struct tm tm;
     
    setlocale(LC_ALL, "en_US");
    bindtextdomain("bacula", LOCALEDIR);
@@ -458,29 +493,7 @@ hp:
       Dmsg0(10, "Content-Type: text/plain; charset=UTF-8\r\n");
    }
 
-   /* Add RFC822 date */
-   (void)localtime_r(&now, &tm);
-#if defined(HAVE_WIN32)
-#if defined(HAVE_MINGW)
-__MINGW_IMPORT long     _dstbias;
-#endif
-   long tzoffset = 0;
-
-   _tzset();
-
-   tzoffset = _timezone;
-   tzoffset += _dstbias;
-   tzoffset /= 60;
-
-   size_t length = strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S", &tm);
-   sprintf(&buf[length], " %+2.2ld%2.2u", -tzoffset / 60, abs(tzoffset) % 60);
-#else
-#ifdef HAVE_SUN_OS 
-   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S (%Z)", &tm);
-#else
-   strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %z (%Z)", &tm);
-#endif
-#endif
+   get_date_string(buf, sizeof(buf));
    fprintf(sfp, "Date: %s\r\n", buf);
    Dmsg1(10, "Date: %s\r\n", buf);
 
