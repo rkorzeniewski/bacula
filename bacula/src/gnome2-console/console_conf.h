@@ -79,7 +79,6 @@ struct DIRRES {
 struct CONFONTRES {
    RES   hdr;
    char *fontface;                    /* Console Font specification */
-   int require_ssl;                   /* Require SSL on all connections */
 };
 
 struct CONRES {

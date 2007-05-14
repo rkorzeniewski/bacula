@@ -108,7 +108,6 @@ static RES_ITEM con_font_items[] = {
    {"name",        store_name,     ITEM(con_font.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
    {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
-   {"requiressl",  store_bit,    ITEM(con_font.require_ssl), 1, ITEM_DEFAULT, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

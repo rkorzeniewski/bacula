@@ -101,6 +101,8 @@ static GtkWidget *timeoutspinner;
 char** xpm_generic_var;
 static gboolean blinkstate = TRUE;
 
+PangoFontDescription *font_desc = NULL;
+
 #define CONFIG_FILE "./tray-monitor.conf"   /* default configuration file */
 
 static void usage()
@@ -188,6 +190,7 @@ int main(int argc, char *argv[])
    DIRRES* dird;
    CLIENT* filed;
    STORE* stored;
+   CONFONTRES *con_font;
 
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -412,7 +415,36 @@ int main(int argc, char *argv[])
 
    gtk_text_buffer_set_text(buffer, "", -1);
 
-   PangoFontDescription *font_desc = pango_font_description_from_string ("Fixed 10");
+  /*
+   * Gtk2/pango have different font names. Gnome2 comes with "Monospace 10"
+   */
+
+   LockRes();
+   foreach_res(con_font, R_CONSOLE_FONT) {
+       if (!con_font->fontface) {
+          Dmsg1(400, "No fontface for %s\n", con_font->hdr.name);
+          continue;
+       }
+       Dmsg1(100, "Now loading: %s\n",con_font->fontface);
+       font_desc = pango_font_description_from_string(con_font->fontface);
+       if (font_desc == NULL) {
+           Dmsg2(400, "Load of requested ConsoleFont \"%s\" (%s) failed!\n",
+                  con_font->hdr.name, con_font->fontface);
+       } else {
+           Dmsg2(400, "ConsoleFont \"%s\" (%s) loaded.\n",
+                  con_font->hdr.name, con_font->fontface);
+           break;
+       }
+   }
+   UnlockRes();
+
+   if (!font_desc) {
+      font_desc = pango_font_description_from_string("Monospace 10");
+   }
+   if (!font_desc) {
+      font_desc = pango_font_description_from_string("monospace");
+   }
+
    gtk_widget_modify_font(textview, font_desc);
    pango_font_description_free(font_desc);
 

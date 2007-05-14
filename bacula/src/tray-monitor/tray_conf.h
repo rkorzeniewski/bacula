@@ -45,8 +45,9 @@ enum rescode {
    R_DIRECTOR,
    R_CLIENT,
    R_STORAGE,
+   R_CONSOLE_FONT,
    R_FIRST = R_MONITOR,
-   R_LAST  = R_STORAGE                /* keep this updated */
+   R_LAST  = R_CONSOLE_FONT                /* keep this updated */
 };
 
 
@@ -110,7 +111,10 @@ struct STORE {
    int enable_ssl;                    /* Use SSL */
 };
 
-
+struct CONFONTRES {
+   RES   hdr;
+   char *fontface;                    /* Console Font specification */
+};
 
 /* Define the Union of all the above
  * resource structure definitions.
@@ -120,5 +124,6 @@ union URES {
    DIRRES     res_dir;
    CLIENT     res_client;
    STORE      res_store;
+   CONFONTRES con_font;
    RES        hdr;
 };

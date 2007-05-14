@@ -132,6 +132,13 @@ static RES_ITEM store_items[] = {
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
+static RES_ITEM con_font_items[] = {
+   {"name",        store_name,     ITEM(con_font.hdr.name), 0, ITEM_REQUIRED, 0},
+   {"description", store_str,      ITEM(con_font.hdr.desc), 0, 0, 0},
+   {"font",        store_str,      ITEM(con_font.fontface), 0, 0, 0},
+   {NULL, NULL, {0}, 0, 0, 0}
+};
+
 /*
 * This is the master resource definition.
 * It must have one item for each of the resources.
@@ -146,6 +153,7 @@ RES_TABLE resources[] = {
    {"director",     dir_items,    R_DIRECTOR},
    {"client",       cli_items,    R_CLIENT},
    {"storage",      store_items,  R_STORAGE},
+   {"consolefont",   con_font_items, R_CONSOLE_FONT},
    {NULL,           NULL,         0}
 };
 
@@ -173,15 +181,19 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       break;
    case R_DIRECTOR:
       sendit(sock, _("Director: name=%s address=%s FDport=%d\n"),
-   res->res_dir.hdr.name, res->res_dir.address, res->res_dir.DIRport);
+             res->res_dir.hdr.name, res->res_dir.address, res->res_dir.DIRport);
       break;
    case R_CLIENT:
       sendit(sock, _("Client: name=%s address=%s FDport=%d\n"),
-   res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
+             res->res_client.hdr.name, res->res_client.address, res->res_client.FDport);
       break;
    case R_STORAGE:
       sendit(sock, _("Storage: name=%s address=%s SDport=%d\n"),
-   res->res_store.hdr.name, res->res_store.address, res->res_store.SDport);
+             res->res_store.hdr.name, res->res_store.address, res->res_store.SDport);
+      break;
+   case R_CONSOLE_FONT:
+      sendit(sock, _("ConsoleFont: name=%s font face=%s\n"),
+             reshdr->name, NPRT(res->con_font.fontface));
       break;
    default:
       sendit(sock, _("Unknown resource type %d in dump_resource.\n"), type);
@@ -234,6 +246,11 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_store.password) {
    free(res->res_store.password);
+      }
+      break;
+   case R_CONSOLE_FONT:
+      if (res->con_font.fontface) {
+         free(res->con_font.fontface);
       }
       break;
    default:
@@ -290,6 +307,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
       case R_CLIENT:
       case R_STORAGE:
       case R_DIRECTOR:
+      case R_CONSOLE_FONT:
          break;
       default:
          Emsg1(M_ERROR, 0, _("Unknown resource type %d in save_resource.\n"), type);
@@ -325,6 +343,9 @@ void save_resource(int type, RES_ITEM *items, int pass)
       break;
    case R_STORAGE:
       size = sizeof(STORE);
+      break;
+   case R_CONSOLE_FONT:
+      size = sizeof(CONFONTRES);
       break;
    default:
       printf(_("Unknown resource type %d in save_resource.\n"), type);
