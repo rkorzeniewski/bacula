@@ -151,6 +151,8 @@ static void get_date_string(char *buf, int buf_len)
    struct tm tm;
    char tzbuf[MAXSTRING];
    long my_timezone;
+   struct timeval tv;
+   struct timezone tz;
 
    /* Add RFC822 date */
    (void)localtime_r(&now, &tm);
@@ -165,11 +167,8 @@ __MINGW_IMPORT long     _dstbias;
    my_timezone /= 60;
 
 #else
-   tzset();
-   my_timezone = timezone / 60;     /* timezone offset in mins */
-   if (tm.tm_isdst == 1) {
-      my_timezone -= 60;            /* adjust for daylight savings */
-   }
+   gettimeofday(&tv, &tz);
+   my_timezone = tz.tz_minuteswest; /* timezone offset in mins */
 #endif
    strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
    sprintf(tzbuf, " %+2.2ld%2.2u", -my_timezone / 60, abs(my_timezone) % 60);
