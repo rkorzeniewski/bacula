@@ -82,6 +82,7 @@ public slots:
    void stackItemChanged(int);
    void toggleDockContextWindow();
    void closePage();
+   void setPreferences();
 
 protected:
    void closeEvent(QCloseEvent *event);
@@ -104,6 +105,20 @@ private:
    QStringList m_cmd_history;
    int m_cmd_last;
    QTreeWidgetItem *m_firstItem;
+};
+
+#include "ui_prefs.h"
+
+class prefsDialog : public QDialog, public Ui::PrefsForm
+{
+   Q_OBJECT
+
+public:
+   prefsDialog();
+
+private slots:
+   void accept();
+   void reject();
 };
 
 #endif /* _MAINWIN_H_ */

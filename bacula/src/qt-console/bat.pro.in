@@ -28,7 +28,8 @@ OBJECTS_DIR = obj
 UI_DIR = ui
 
 # Main window
-FORMS += main.ui
+FORMS += main.ui 
+FORMS += prefs.ui
 FORMS += label/label.ui 
 FORMS += relabel/relabel.ui 
 FORMS += mount/mount.ui
@@ -99,7 +100,7 @@ SOURCES += storage/storage.cpp
 HEADERS += fileset/fileset.h
 SOURCES += fileset/fileset.cpp
 
-## Fileset
+## Job log
 HEADERS += joblog/joblog.h
 SOURCES += joblog/joblog.cpp
 

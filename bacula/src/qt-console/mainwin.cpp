@@ -47,6 +47,8 @@
 #include "joblist/joblist.h"
 #include "clients/clients.h"
 
+extern bool commDebug;
+
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
 
@@ -271,6 +273,7 @@ void MainWin::createConnections()
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
    connect(actionClosePage, SIGNAL(triggered()), this,  SLOT(closePage()));
+   connect(actionPreferences, SIGNAL(triggered()), this,  SLOT(setPreferences()));
 }
 
 /* 
@@ -601,4 +604,30 @@ Console *MainWin::currentConsole()
 QTreeWidgetItem *MainWin::currentTopItem()
 {
    return m_currentConsole->directorTreeItem();
+}
+
+/* Preferences menu item clicked */
+void MainWin::setPreferences()
+{
+   prefsDialog prefs;
+   prefs.checkBox->setCheckState(commDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.exec();
+}
+
+/* Preferences dialog */
+prefsDialog::prefsDialog()
+{
+   setupUi(this);
+}
+
+void prefsDialog::accept()
+{
+   this->hide();
+   commDebug = this->checkBox->checkState() == Qt::Checked;
+}
+
+void prefsDialog::reject()
+{
+   this->hide();
+   mainWin->set_status("Canceled");
 }
