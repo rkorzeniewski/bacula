@@ -1,7 +1,60 @@
               Technical notes on version 2.1
 
 General:
-
+15May07
+kes  Fixed bug #856 autochanger documentation.
+kes  Rework bsmtp date editing for Win32. This fixes bug #854.
+kes  Add new cats entry point so Win32 builds.
+14May07 
+kes  Attempt to fix bsmtp date editing on OSes without %z editing. 
+kes  Do better checking for the MySQL 64 bit libraries looking for both
+     .a and .so libraries.
+kes  Add a kludge for Ubuntu's non-standard locations for MySQL -- allow
+     /usr/include/mysql/mysql.h AND /usr/lib/... rather than /usr/lib/mysql/...
+kes  Require the thread safe version of MySQL during configure. Thanks
+     to Andre Noll for pointing this out.
+kes  Ensure that calls to find_jobids_from_mediaid_list() check count before
+     continuing in migration code.
+kes  Apply implementation of tray-monitor font derived from gnome-console
+     submitted by Andreas Piesk <a.piesk@gmx.net>
+13May07
+kes  Eliminate important memory loss in SQLite
+kes  Fixed the batch insert MySQL thread specific data that was not
+     being freed. See cats/mysql.c:db_thread_cleanup().
+kes  Fix restore before command.
+kes  Convert old hdr.name to name() in a few places.
+kes  Implement update jobid command.
+kes  Return all time_t dates in db_get_job_record()
+kes  Stop watchdog in SD earlier.
+kes  Put Pool just after Storage in please mount message.
+kes  Fix pointer usage bugs in Verify InitCatalog pointed out by
+     Eric.
+12May07
+kes  Update the po files.
+kes  Fix Verify InitCatalog by making it cache attributes.
+11May07
+kes  Change name bacula-bat to bat for man 1 page to correspond to
+     Makefile.
+kes  Check for client and store NULL pointers in status command.  This
+     fixes bug #845.
+kes  Fix non-ssl build so that it works (add JCR *jcr to crypto structures).
+kes  Fix sign extended editing of %p.
+kes  Clean out a little old #ifdefing in cats/mysql.c
+10May07
+kes  If time diff between DIR and FD is more than 600 seconds convert
+     INFO message to WARNING.
+kes  Implement heap size display in status for all daemons.
+kes  Attempt to fix MySQL db open memory loss (not successfull).
+kes  Don't set SIGKILL and SIGSTOP neither can be trapped.
+kes  Eliminate memory loss in MySQL (possibly other SQLs) during
+     Query. This looks like a MySQL but but by doing extra releases,
+     the memory goes away.  This should fix bug #847.
+09May07 
+kes  When backup fails, cancel SD before waiting for sd termination.
+kes  If SD is waiting for FD to connect during cancel, wake up the 
+     thread.
+kes  Fix fsf code so that errno is correctly reported.
+kes  Apply migration patch (with changes) from Sergey Svishchev <svs@ropnet.ru>
 08May07
 kes  Merge patch from Sergey Svishchev <svs@ropnet.ru> that preserves 
      the original jobb's FileSetId.
@@ -512,4 +565,3 @@ kes  Add code to indicate when the SD is spooling, spool wait, and
      despooling as requested by Alan Brown.
 
 Version 2.0.0 released: 4 January 2007
-
