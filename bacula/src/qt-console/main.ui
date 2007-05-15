@@ -80,12 +80,6 @@
     </property>
     <addaction name="actionAbout_bat" />
    </widget>
-   <widget class="QMenu" name="menuSettings" >
-    <property name="title" >
-     <string>Settings</string>
-    </property>
-    <addaction name="actionSelectFont" />
-   </widget>
    <widget class="QMenu" name="menuEdit" >
     <property name="title" >
      <string>&amp;Edit</string>
@@ -101,6 +95,13 @@
     <addaction name="actionPrint" />
     <addaction name="actionSave" />
     <addaction name="actionQuit" />
+   </widget>
+   <widget class="QMenu" name="menuSettings" >
+    <property name="title" >
+     <string>Settings</string>
+    </property>
+    <addaction name="actionPreferences" />
+    <addaction name="actionSelectFont" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -483,6 +484,17 @@
    </property>
    <property name="statusTip" >
     <string>Display any messages queued at the director</string>
+   </property>
+  </action>
+  <action name="actionPreferences" >
+   <property name="text" >
+    <string>&amp;Preferences ...</string>
+   </property>
+   <property name="iconText" >
+    <string>Set Preferences</string>
+   </property>
+   <property name="toolTip" >
+    <string>Set Preferences</string>
    </property>
   </action>
  </widget>
