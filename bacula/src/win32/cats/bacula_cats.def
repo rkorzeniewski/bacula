@@ -11,6 +11,7 @@ _Z16db_escape_stringPcS_i
 _Z16db_init_databaseP3JCRPKcS2_S2_S2_iS2_i
 _Z16db_open_databaseP3JCRP4B_DB
 _Z17db_close_databaseP3JCRP4B_DB
+_Z17db_thread_cleanupv
 
 ; sql.c:
 _Z10_db_unlockPKciP4B_DB
