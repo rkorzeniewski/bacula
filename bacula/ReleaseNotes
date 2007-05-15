@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 2.2.0
+          Release Notes for Bacula 2.1.8
 
-  Bacula code: Total files = 438 Total lines = 154,329 (*.h *.c *.in)
+  Bacula code: Total files = 458 Total lines = 170,197 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
@@ -29,10 +29,10 @@ The major features are:
   during pruning, it is immediately discovered.
 
 Other features or bug fixes:
-- Fixed bugs: 846, 809, 772, 822, 825, 824, 808, 802, 797, 
-  798, 795, 789, 791, 788, 780, 763, 782, 612, 767,
-  775, 621, 772, 764, 766, 621, 761, 755, 750, 741,
-  747, 742, 744, and 743.
+- Fixed bugs: 856, 854, 845, 847, 846, 809, 772, 
+  822, 825, 824, 808, 802, 797, 798, 795, 789, 791, 
+  788, 780, 763, 782, 612, 767, 775, 621, 772, 764, 
+  766, 621, 761, 755, 750, 741, 747, 742, 744, and 743.
 - Only the minumum number of volumes are pruned rather than
   all volumes in the pool.
 - wx-console renamed to bwx-console
