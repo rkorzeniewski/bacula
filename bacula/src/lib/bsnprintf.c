@@ -332,7 +332,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
             } else if (sizeof(char *) == 8) {
                value = va_arg(args, uint64_t);
             } else {
-               value = (uint64_t)va_arg(args, char *);
+               value = 0;             /* we have a problem */
             }
             currlen = fmtint(buffer, currlen, maxlen, value, 16, min, max, flags);
             break;

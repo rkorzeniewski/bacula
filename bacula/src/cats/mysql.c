@@ -268,7 +268,9 @@ db_close_database(JCR *jcr, B_DB *mdb)
  */
 void db_thread_cleanup()
 { 
+#ifndef HAVE_WIN32
    my_thread_end();
+#endif
 }
 
 /*

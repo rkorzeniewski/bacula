@@ -150,6 +150,7 @@ static void get_date_string(char *buf, int buf_len)
    time_t now = time(NULL);
    struct tm tm;
    char tzbuf[MAXSTRING];
+   long my_timezone;
 
    /* Add RFC822 date */
    (void)localtime_r(&now, &tm);
@@ -158,28 +159,23 @@ static void get_date_string(char *buf, int buf_len)
 #if defined(HAVE_MINGW)
 __MINGW_IMPORT long     _dstbias;
 #endif
-   long tzoffset = 0;
-
    _tzset();
+   my_timezone = _timezone;
+   my_timezone += _dstbias;
+   my_timezone /= 60;
 
-   tzoffset = _timezone;
-   tzoffset += _dstbias;
-   tzoffset /= 60;
-
-   size_t length = strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
-   sprintf(&buf[length], " %+2.2ld%2.2u", -tzoffset / 60, abs(tzoffset) % 60);
 #else
-   strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
    tzset();
-   timezone /= 60;                  /* timezone offset in mins */
+   my_timezone = timezone / 60;     /* timezone offset in mins */
    if (tm.tm_isdst == 1) {
-      timezone -= 60;              /* adjust for daylight savings */
+      my_timezone -= 60;            /* adjust for daylight savings */
    }
-   sprintf(tzbuf, " %+2.2ld%2.2u", -timezone / 60, abs(timezone) % 60);
+#endif
+   strftime(buf, buf_len, "%a, %d %b %Y %H:%M:%S", &tm);
+   sprintf(tzbuf, " %+2.2ld%2.2u", -my_timezone / 60, abs(my_timezone) % 60);
    strcat(buf, tzbuf);              /* add +0100 */
    strftime(tzbuf, sizeof(tzbuf), " (%Z)", &tm);
    strcat(buf, tzbuf);              /* add (CEST) */
-#endif
 }
 
 
