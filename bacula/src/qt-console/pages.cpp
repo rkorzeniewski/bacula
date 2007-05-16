@@ -205,8 +205,9 @@ void Pages::treeWidgetName(QString &name)
  */
 void Pages::consoleCommand(QString &command)
 {
-   if (!m_console->is_connectedGui())
+   if (!m_console->is_connectedGui()) {
        return;
+   }
    /* Bring this directors console to the front of the stack */
    setConsoleCurrent();
    QString displayhtml("<font color=\"blue\">");

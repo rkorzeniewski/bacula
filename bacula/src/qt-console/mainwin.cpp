@@ -47,8 +47,6 @@
 #include "joblist/joblist.h"
 #include "clients/clients.h"
 
-extern bool commDebug;
-
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
 
@@ -610,7 +608,8 @@ QTreeWidgetItem *MainWin::currentTopItem()
 void MainWin::setPreferences()
 {
    prefsDialog prefs;
-   prefs.checkBox->setCheckState(commDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.commDebug->setCheckState(g_commDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.displayAll->setCheckState(g_displayAll ? Qt::Checked : Qt::Unchecked);
    prefs.exec();
 }
 
@@ -623,7 +622,8 @@ prefsDialog::prefsDialog()
 void prefsDialog::accept()
 {
    this->hide();
-   commDebug = this->checkBox->checkState() == Qt::Checked;
+   g_commDebug = this->commDebug->checkState() == Qt::Checked;
+   g_displayAll = this->displayAll->checkState() == Qt::Checked;
 }
 
 void prefsDialog::reject()

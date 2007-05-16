@@ -125,6 +125,7 @@ private:
    DIRRES *m_dir;
    BSOCK *m_sock;   
    bool m_at_prompt;
+   bool m_at_main_prompt;
    QSocketNotifier *m_notifier;
    QTextCursor *m_cursor;
    QTreeWidgetItem *m_directorTreeItem;

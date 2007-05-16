@@ -52,14 +52,15 @@ Console::Console(QStackedWidget *parent)
    setupUi(this);
    m_sock = NULL;
    m_at_prompt = false;
+   m_at_main_prompt = false;
    m_textEdit = textEdit;   /* our console screen */
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
 
    /* Check for messages every 5 seconds */
-// m_timer = new QTimer(this);
-// QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-// m_timer->start(5000);
+   m_timer = new QTimer(this);
+   QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
+   m_timer->start(5000);
 }
 
 Console::~Console()
@@ -69,6 +70,10 @@ Console::~Console()
 void Console::poll_messages()
 {
    m_messages_pending = true;
+   if (m_at_main_prompt) {
+      write(".messages");
+      displayToPrompt();
+   }
 }
 
 /* Terminate any open socket */
@@ -78,7 +83,7 @@ void Console::terminate()
       m_sock->close();
       m_sock = NULL;
    }
-// m_timer->stop();
+   m_timer->stop();
 }
 
 /*
@@ -185,6 +190,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
    notify(false);
    write(cmd);
    while ((stat = read()) > 0) {
+      if (g_displayAll) display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -216,6 +222,7 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    pm_strcat(cmd, "\"");
    write(cmd.c_str());
    while ((stat = read()) > 0) {
+      if (g_displayAll) display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -240,6 +247,7 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
    scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
    write(scmd);
    while ((stat = read()) > 0) {
+      if (g_displayAll) display_text(msg());
       def = strchr(msg(), '=');
       if (!def) {
          continue;
@@ -452,6 +460,7 @@ void Console::write_dir(const char *msg)
       QTreeWidgetItem *item = mainWin->getFromHash(this);
       item->setForeground(0, redBrush);
       m_at_prompt = false;
+      m_at_main_prompt = false;
    }
 }
 
@@ -464,7 +473,8 @@ int Console::write(const char *msg)
 {
    m_sock->msglen = pm_strcpy(m_sock->msg, msg);
    m_at_prompt = false;
-   if (commDebug) Pmsg1(000, "send: %s\n", msg);
+   m_at_main_prompt = false;
+   if (g_commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();
 }
 
@@ -475,12 +485,15 @@ void Console::beginNewCommand()
 {
    write(".\n");
    while (read() > 0) {
+      if (g_displayAll) display_text(msg());
    }
    write(".\n");
    while (read() > 0) {
+      if (g_displayAll) display_text(msg());
    }
    write(".\n");
    while (read() > 0) {
+      if (g_displayAll) display_text(msg());
    }
    display_text("\n");
 }
@@ -488,23 +501,25 @@ void Console::beginNewCommand()
 void Console::displayToPrompt()
 { 
    int stat;
-   if (commDebug) Pmsg0(000, "DisplaytoPrompt\n");
+   if (g_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
          display_text(msg());
       }
    }
-   if (commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
+   if (g_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
 }
 
 void Console::discardToPrompt()
 { 
    int stat;
-   if (commDebug) Pmsg0(000, "discardToPrompt\n");
+   if (g_commDebug) Pmsg0(000, "discardToPrompt\n");
    while (!m_at_prompt) {
-      stat = read();
+      if ((stat=read()) > 0) {
+         if (g_displayAll) display_text(msg());
+      }
    }
-   if (commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
+   if (g_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
 }
 
 
@@ -531,45 +546,52 @@ int Console::read()
          if (m_at_prompt) {
             display_text("\n");
             m_at_prompt = false;
+            m_at_main_prompt = false;
          }
-         if (commDebug) Pmsg1(000, "got: %s", m_sock->msg);
+         if (g_commDebug) Pmsg1(000, "got: %s", m_sock->msg);
       }
       switch (m_sock->msglen) {
-      case BNET_SERVER_READY:
-         if (m_api_set && m_messages_pending) {
-            write_dir(".messages");
-            m_messages_pending = false;
-         }
-         m_at_prompt = true;
-         continue;
       case BNET_MSGS_PENDING:
-         if (commDebug) Pmsg0(000, "MSGS PENDING\n");
-         m_messages_pending = true;
+         if (g_commDebug) Pmsg0(000, "MSGS PENDING\n");
+         write_dir(".messages");
+         displayToPrompt();
+         m_messages_pending = false;
          continue;
       case BNET_CMD_OK:
-         if (commDebug) Pmsg0(000, "CMD OK\n");
+         if (g_commDebug) Pmsg0(000, "CMD OK\n");
          m_at_prompt = false;
+         m_at_main_prompt = false;
          continue;
       case BNET_CMD_BEGIN:
-         if (commDebug) Pmsg0(000, "CMD BEGIN\n");
+         if (g_commDebug) Pmsg0(000, "CMD BEGIN\n");
          m_at_prompt = false;
+         m_at_main_prompt = false;
          continue;
-      case BNET_PROMPT:
-         if (commDebug) Pmsg0(000, "PROMPT\n");
+      case BNET_MAIN_PROMPT:
+         if (g_commDebug) Pmsg0(000, "PROMPT\n");
          m_at_prompt = true;
+         m_at_main_prompt = true;
+         mainWin->set_status(_("At prompt waiting for input ..."));
+         update_cursor();
+         QApplication::restoreOverrideCursor();
+         break;
+      case BNET_PROMPT:
+         if (g_commDebug) Pmsg0(000, "PROMPT\n");
+         m_at_prompt = true;
+         m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
          update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
-         if (commDebug) Pmsg0(000, "CMD FAIL\n");
+         if (g_commDebug) Pmsg0(000, "CMD FAIL\n");
          mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
          update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       /* We should not get this one */
       case BNET_EOD:
-         if (commDebug) Pmsg0(000, "EOD\n");
+         if (g_commDebug) Pmsg0(000, "EOD\n");
          mainWin->set_status_ready();
          update_cursor();
          QApplication::restoreOverrideCursor();
@@ -624,7 +646,7 @@ void Console::read_dir(int fd)
    int stat;
    (void)fd;
 
-   if (commDebug) Pmsg0(000, "read_dir\n");
+   if (g_commDebug) Pmsg0(000, "read_dir\n");
    while ((stat = read()) >= 0) {
       display_text(msg());
    }

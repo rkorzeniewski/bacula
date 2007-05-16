@@ -38,9 +38,15 @@
 #include <QApplication>
 #include "bat.h"
 
-bool commDebug = false;
 MainWin *mainWin;
 QApplication *app;
+
+/*
+ * ***FIXME*** move the following two into the MainWin class or
+ *   the Console class.
+ */
+bool g_commDebug = false;
+bool g_displayAll = false;
 
 
 /* Forward referenced functions */
@@ -55,7 +61,6 @@ static char *configfile = NULL;
 
 int main(int argc, char *argv[])
 {
-
    int ch;
    bool no_signals = true;
    bool test_config = false;

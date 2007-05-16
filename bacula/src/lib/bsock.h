@@ -103,7 +103,7 @@ enum {
    BNET_POLL           = -5,          /* Poll request, I'm hanging on a read */
    BNET_HEARTBEAT      = -6,          /* Heartbeat Response requested */
    BNET_HB_RESPONSE    = -7,          /* Only response permited to HB */
-   BNET_PROMPT         = -8,          /* Prompt for UA */
+   BNET_PROMPT         = -8,          /* Prompt for subcommand */
    BNET_BTIME          = -9,          /* Send UTC btime */
    BNET_BREAK          = -10,         /* Stop current command -- ctl-c */
    BNET_START_SELECT   = -11,         /* Start of a selection list */
@@ -113,7 +113,7 @@ enum {
    BNET_CMD_OK         = -15,         /* Command succeeded */
    BNET_CMD_BEGIN      = -16,         /* Start command execution */
    BNET_MSGS_PENDING   = -17,         /* Messages pending */
-   BNET_SERVER_READY   = -18,         /* Server ready and waiting */
+   BNET_MAIN_PROMPT    = -18,         /* Server ready and waiting */
    BNET_SELECT_INPUT   = -19,         /* Return selection input */
    BNET_WARNING_MSG    = -20,         /* Warning message */
    BNET_ERROR_MSG      = -21,         /* Error message -- command failed */
