@@ -594,3 +594,10 @@ public:
    char wom[nbytes_for_bits(5)];      /* week of month */
    char woy[nbytes_for_bits(54)];     /* week of year */
 };
+
+#define GetPoolResWithName(x) ((POOL *)GetResWithName(R_POOL, (x)))
+#define GetStoreResWithName(x) ((STORE *)GetResWithName(R_STORAGE, (x)))
+#define GetClientResWithName(x) ((CLIENT *)GetResWithName(R_CLIENT, (x)))
+#define GetJobResWithName(x) ((JOB *)GetResWithName(R_JOB, (x)))
+#define GetFileSetResWithName(x) ((FILESET *)GetResWithName(R_FILESET, (x)))
+#define GetCatalogResWithName(x) ((CAT *)GetResWithName(R_CATALOG, (x)))
