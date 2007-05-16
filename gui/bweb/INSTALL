@@ -68,6 +68,7 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
 
  - perl modules
     - DBI (with mysql or postgresql support DBD::Pg and DBD::mysql)
+          (SQLite is not supported)
     - GD::Graph
     - GD
     - HTML::Template
