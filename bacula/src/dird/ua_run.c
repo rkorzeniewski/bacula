@@ -897,6 +897,17 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
 
 #define YES_POS 14
 
+   rc.catalog_name = NULL;
+   rc.job_name = NULL;
+   rc.pool_name = NULL;
+   rc.store_name = NULL;
+   rc.client_name = NULL;
+   rc.restore_client_name = NULL;
+   rc.fileset_name = NULL;
+   rc.verify_job_name = NULL;
+   rc.previous_job_name = NULL;
+
+
    for (i=1; i<ua->argc; i++) {
       Dmsg2(800, "Doing arg %d = %s\n", i, ua->argk[i]);
       kw_ok = false;
@@ -906,12 +917,12 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
             /* Note, yes and run have no value, so do not fail */
             if (!ua->argv[i] && j != YES_POS /*yes*/) {
                ua->send_msg(_("Value missing for keyword %s\n"), ua->argk[i]);
-               return 1;
+               return true;
             }
             Dmsg1(800, "Got keyword=%s\n", NPRT(kw[j]));
             switch (j) {
             case 0: /* job */
-               if (rc.job_name && !rc.mod) {
+               if (rc.job_name) {
                   ua->send_msg(_("Job name specified twice.\n"));
                   return false;
                }
@@ -928,7 +939,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                break;
             case 2: /* client */
             case 3: /* fd */
-               if (rc.client_name && !rc.mod) {
+               if (rc.client_name) {
                   ua->send_msg(_("Client specified twice.\n"));
                   return false;
                }
@@ -936,7 +947,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 4: /* fileset */
-               if (rc.fileset_name && !rc.mod) {
+               if (rc.fileset_name) {
                   ua->send_msg(_("FileSet specified twice.\n"));
                   return false;
                }
@@ -944,7 +955,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 5: /* level */
-               if (rc.level_name && !rc.mod) {
+               if (rc.level_name) {
                   ua->send_msg(_("Level specified twice.\n"));
                   return false;
                }
@@ -953,7 +964,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                break;
             case 6: /* storage */
             case 7: /* sd */
-               if (rc.store_name && !rc.mod) {
+               if (rc.store_name) {
                   ua->send_msg(_("Storage specified twice.\n"));
                   return false;
                }
@@ -1024,7 +1035,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 15: /* Verify Job */
-               if (rc.verify_job_name && !rc.mod) {
+               if (rc.verify_job_name) {
                   ua->send_msg(_("Verify Job specified twice.\n"));
                   return false;
                }
@@ -1056,7 +1067,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 21: /* Migration Job */
-               if (rc.previous_job_name && !rc.mod) {
+               if (rc.previous_job_name) {
                   ua->send_msg(_("Migration Job specified twice.\n"));
                   return false;
                }
@@ -1064,7 +1075,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 22: /* pool */
-               if (rc.pool_name && !rc.mod) {
+               if (rc.pool_name) {
                   ua->send_msg(_("Pool specified twice.\n"));
                   return false;
                }
@@ -1072,7 +1083,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                kw_ok = true;
                break;
             case 23: /* backupclient */
-               if (rc.client_name && !rc.mod) {
+               if (rc.client_name) {
                   ua->send_msg(_("Client specified twice.\n"));
                   return 0;
                }
@@ -1113,7 +1124,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
              
    Dmsg0(800, "Done scan.\n");
 
-   if (rc.catalog_name != NULL) {
+   if (rc.catalog_name) {
        rc.catalog = GetCatalogResWithName(rc.catalog_name);
        if (rc.catalog == NULL) {
             ua->error_msg(_("Catalog \"%s\" not found\n"), rc.catalog_name);
@@ -1137,7 +1148,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       } else {
          Dmsg1(800, "Found job=%s\n", rc.job_name);
       }
-   } else {
+   } else if (!rc.job) {
       ua->send_msg(_("A job name must be specified.\n"));
       rc.job = select_job_resource(ua);
    }
@@ -1156,7 +1167,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          }
          rc.pool = select_pool_resource(ua);
       }
-   } else {
+   } else if (!rc.pool) {
       rc.pool = rc.job->pool;             /* use default */
    }
    if (!rc.pool) {
@@ -1177,7 +1188,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          rc.store->store = select_storage_resource(ua);
          pm_strcpy(rc.store->store_source, _("user selection"));
       }
-   } else {
+   } else if (!rc.store->store) {
       get_job_storage(rc.store, rc.job, NULL);      /* use default */
    }
    if (!rc.store->store) {
@@ -1198,7 +1209,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          }
          rc.client = select_client_resource(ua);
       }
-   } else {
+   } else if (!rc.client) {
       rc.client = rc.job->client;           /* use default */
    }
    if (!rc.client) {
@@ -1218,7 +1229,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          }
          rc.client = select_client_resource(ua);
       }
-   } else {
+   } else if (!rc.client) {
       rc.client = rc.job->client;           /* use default */
    }
    if (!rc.client) {
@@ -1237,7 +1248,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          ua->send_msg(_("FileSet \"%s\" not found.\n"), rc.fileset_name);
          rc.fileset = select_fileset_resource(ua);
       }
-   } else {
+   } else if (!rc.fileset) {
       rc.fileset = rc.job->fileset;           /* use default */
    }
    if (!rc.fileset) {
@@ -1254,7 +1265,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
          ua->send_msg(_("Verify Job \"%s\" not found.\n"), rc.verify_job_name);
          rc.verify_job = select_job_resource(ua);
       }
-   } else {
+   } else if (!rc.verify_job) {
       rc.verify_job = rc.job->verify_job;
    }
 
