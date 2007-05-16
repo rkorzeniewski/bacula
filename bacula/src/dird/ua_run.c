@@ -90,7 +90,7 @@ extern struct s_kw ReplaceOptions[];
  */
 int run_cmd(UAContext *ua, const char *cmd)
 {
-   JCR *jcr;
+   JCR *jcr = NULL;
    run_ctx rc;
    int i, opt;
 
@@ -102,14 +102,22 @@ int run_cmd(UAContext *ua, const char *cmd)
       return 0;
    }
 
+   if (find_arg(ua, NT_("fdcalled")) > 0) {
+      jcr->file_bsock = dup_bsock(ua->UA_sock);
+      ua->quit = true;
+   }
+
+try_again:
    /*
     * Create JCR to run job.  NOTE!!! after this point, free_jcr()
     *  before returning.
     */
-   jcr = new_jcr(sizeof(JCR), dird_free_jcr);
-   set_jcr_defaults(jcr, rc.job);
-   jcr->unlink_bsr = ua->jcr->unlink_bsr;    /* copy unlink flag from caller */
-   ua->jcr->unlink_bsr = false;
+   if (!jcr) {
+      jcr = new_jcr(sizeof(JCR), dird_free_jcr);
+      set_jcr_defaults(jcr, rc.job);
+      jcr->unlink_bsr = ua->jcr->unlink_bsr;    /* copy unlink flag from caller */
+      ua->jcr->unlink_bsr = false;
+   }
 
    jcr->verify_job = rc.verify_job;
    jcr->previous_job = rc.previous_job;
@@ -119,7 +127,7 @@ int run_cmd(UAContext *ua, const char *cmd)
    pm_strcpy(jcr->client_name, rc.client->name());
    jcr->fileset = rc.fileset;
    jcr->ExpectedFiles = rc.files;
-   if (rc.catalog != NULL) {
+   if (rc.catalog) {
       jcr->catalog = rc.catalog;
    }
    if (rc.where) {
@@ -127,6 +135,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          free(jcr->where);
       }
       jcr->where = bstrdup(rc.where);
+      rc.where = NULL;
    }
 
    if (rc.regexwhere) {
@@ -134,6 +143,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          free(jcr->RegexWhere);
       }
       jcr->RegexWhere = bstrdup(rc.regexwhere);       
+      rc.regexwhere = NULL;
    }
 
    if (rc.when) {
@@ -142,6 +152,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          ua->send_msg(_("Invalid time, using current time.\n"));
          jcr->sched_time = time(NULL);
       }
+      rc.when = NULL;
    }
 
    if (rc.bootstrap) {
@@ -149,6 +160,7 @@ int run_cmd(UAContext *ua, const char *cmd)
          free(jcr->RestoreBootstrap);
       }
       jcr->RestoreBootstrap = bstrdup(rc.bootstrap);
+      rc.bootstrap = NULL;
    }
 
    if (rc.replace) {
@@ -167,9 +179,11 @@ int run_cmd(UAContext *ua, const char *cmd)
    } else {
       jcr->replace = REPLACE_ALWAYS;
    }
+   rc.replace = NULL;
 
    if (rc.Priority) {
       jcr->JobPriority = rc.Priority;
+      rc.Priority = 0;
    }
 
    if (rc.since) {
@@ -177,16 +191,15 @@ int run_cmd(UAContext *ua, const char *cmd)
          jcr->stime = get_pool_memory(PM_MESSAGE);
       }
       pm_strcpy(jcr->stime, rc.since);
+      rc.since = NULL;
    }
 
-   jcr->cloned = rc.cloned;
-
-   if (find_arg(ua, NT_("fdcalled")) > 0) {
-      jcr->file_bsock = dup_bsock(ua->UA_sock);
-      ua->quit = true;
+   if (rc.cloned) {
+      jcr->cloned = rc.cloned;
+      rc.cloned = false;
    }
 
-try_again:
+
    /* If pool changed, update migration write storage */
    if (jcr->JobType == JT_MIGRATE) {
       if (!set_migration_wstorage(jcr, rc.pool)) {
