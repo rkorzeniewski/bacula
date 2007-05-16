@@ -136,7 +136,7 @@ static void *handle_UA_client_request(void *arg)
    }
 
    while (!ua->quit) {
-      if (ua->api) user->signal(BNET_PROMPT);
+      if (ua->api) user->signal(BNET_MAIN_PROMPT);
       stat = user->recv();
       if (stat >= 0) {
          pm_strcpy(ua->cmd, ua->UA_sock->msg);
