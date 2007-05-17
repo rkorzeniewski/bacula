@@ -63,7 +63,8 @@ private slots:
    void cancelButtonPushed();
    void job_name_change(int index);
    void recentChanged(int);
-   void jobsRadioClicked(bool);
+   void jobRadioClicked(bool);
+   void jobidsRadioClicked(bool);
    void jobIdEditFinished();
 
 private:
