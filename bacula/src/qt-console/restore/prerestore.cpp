@@ -79,24 +79,27 @@ void prerestorePage::buildPage()
    beforeDateTime->setEnabled(false);
    selectFilesRadio->setChecked(true);
    if (m_dataInType == R_NONE) {
-      selectJobsRadio->setChecked(true);
+      selectJobRadio->setChecked(true);
+      selectJobIdsRadio->setChecked(false);
       jobIdEdit->setText("Comma separted list of jobs id's");
       jobIdEdit->setEnabled(false);
    } else if (m_dataInType == R_JOBIDLIST) {
-      listJobsRadio->setChecked(true);
+      selectJobIdsRadio->setChecked(true);
+      selectJobRadio->setChecked(false);
       jobIdEdit->setText(m_dataIn);
-      jobsRadioClicked(false);
+      jobRadioClicked(false);
       QStringList fieldlist;
       jobdefsFromJob(fieldlist,m_dataIn);
       filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
       jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
    } else if (m_dataInType == R_JOBDATETIME) {
-      selectJobsRadio->setChecked(true);
+      selectJobRadio->setChecked(true);
+      selectJobIdsRadio->setChecked(false);
       jobIdEdit->setText("Comma separted list of jobs id's");
       jobIdEdit->setEnabled(false);
       recentCheckBox->setCheckState(Qt::Unchecked);
-      jobsRadioClicked(true);
+      jobRadioClicked(true);
       QStringList fieldlist;
       jobdefsFromJob(fieldlist,m_dataIn);
       filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
@@ -109,7 +112,8 @@ void prerestorePage::buildPage()
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
    connect(recentCheckBox, SIGNAL(stateChanged(int)), this, SLOT(recentChanged(int)));
-   connect(selectJobsRadio, SIGNAL(toggled(bool)), this, SLOT(jobsRadioClicked(bool)));
+   connect(selectJobRadio, SIGNAL(clicked(bool)), this, SLOT(jobRadioClicked(bool)));
+   connect(selectJobIdsRadio, SIGNAL(clicked(bool)), this, SLOT(jobidsRadioClicked(bool)));
    connect(jobIdEdit, SIGNAL(editingFinished()), this, SLOT(jobIdEditFinished()));
 
    dockPage();
@@ -124,7 +128,7 @@ void prerestorePage::buildPage()
  */
 void prerestorePage::okButtonPushed()
 {
-   if (!selectJobsRadio->isChecked()) {
+   if (!selectJobRadio->isChecked()) {
       if (!checkJobIdList())
          return;
    }
@@ -135,7 +139,7 @@ void prerestorePage::okButtonPushed()
    cmd = QString("restore");
    cmd += " fileset=\"" + filesetCombo->currentText() + "\"";
    cmd += " client=\"" + clientCombo->currentText() + "\"";
-   if (selectJobsRadio->isChecked()) {
+   if (selectJobRadio->isChecked()) {
       if (poolCombo->currentText() != "Any" ){
          cmd += " pool=\"" + poolCombo->currentText() + "\"";
       }
@@ -151,7 +155,7 @@ void prerestorePage::okButtonPushed()
       cmd += " jobid=\"" + jobIdEdit->text() + "\"";
    }
    if (selectFilesRadio->isChecked()) {
-      if (!listJobsRadio->isChecked())
+      if (!selectJobIdsRadio->isChecked())
          cmd += " select";
    } else {
       cmd += " all done";
@@ -208,41 +212,13 @@ void prerestorePage::job_name_change(int index)
  */
 void prerestorePage::recentChanged(int state)
 {
-   if ((state == Qt::Unchecked) && (selectJobsRadio->isChecked())) {
+   if ((state == Qt::Unchecked) && (selectJobRadio->isChecked())) {
       beforeDateTime->setEnabled(true);
    } else {
       beforeDateTime->setEnabled(false);
    }
 }
 
-/*
- * Handle the change of enabled of input widgets when the job radio buttons
- * are changed.
- */
-void prerestorePage::jobsRadioClicked(bool checked)
-{
-   if (checked) {
-      jobCombo->setEnabled(true);
-      filesetCombo->setEnabled(true);
-      clientCombo->setEnabled(true);
-      poolCombo->setEnabled(true);
-      storageCombo->setEnabled(true);
-      recentCheckBox->setEnabled(true);
-      if (!recentCheckBox->isChecked()) {
-         beforeDateTime->setEnabled(true);
-      }
-      jobIdEdit->setEnabled(false);
-   } else {
-      jobCombo->setEnabled(false);
-      filesetCombo->setEnabled(false);
-      clientCombo->setEnabled(false);
-      poolCombo->setEnabled(false);
-      storageCombo->setEnabled(false);
-      recentCheckBox->setEnabled(false);
-      beforeDateTime->setEnabled(false);
-      jobIdEdit->setEnabled(true);
-   }
-}
 
 /*
  * For when jobs list is to be used, return a list which is the needed items from
@@ -334,4 +310,70 @@ bool prerestorePage::checkJobIdList()
       return false;
    }
    return true;
+}
+
+/*
+ * Handle the change of enabled of input widgets when the job radio buttons
+ * are changed.
+ */
+void prerestorePage::jobRadioClicked(bool checked)
+{
+   if (checked) {
+      jobCombo->setEnabled(true);
+      filesetCombo->setEnabled(true);
+      clientCombo->setEnabled(true);
+      poolCombo->setEnabled(true);
+      storageCombo->setEnabled(true);
+      recentCheckBox->setEnabled(true);
+      if (!recentCheckBox->isChecked()) {
+         beforeDateTime->setEnabled(true);
+      }
+      jobIdEdit->setEnabled(false);
+      selectJobRadio->setChecked(true);
+      selectJobIdsRadio->setChecked(false);
+   } else {
+      jobCombo->setEnabled(false);
+      filesetCombo->setEnabled(false);
+      clientCombo->setEnabled(false);
+      poolCombo->setEnabled(false);
+      storageCombo->setEnabled(false);
+      recentCheckBox->setEnabled(false);
+      beforeDateTime->setEnabled(false);
+      jobIdEdit->setEnabled(true);
+      selectJobRadio->setChecked(false);
+      selectJobIdsRadio->setChecked(true);
+   }
+   Dmsg2(200, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
+         selectJobIdsRadio->isChecked());
+}
+
+void prerestorePage::jobidsRadioClicked(bool checked)
+{
+   if (checked) {
+      jobCombo->setEnabled(false);
+      filesetCombo->setEnabled(false);
+      clientCombo->setEnabled(false);
+      poolCombo->setEnabled(false);
+      storageCombo->setEnabled(false);
+      recentCheckBox->setEnabled(false);
+      beforeDateTime->setEnabled(false);
+      jobIdEdit->setEnabled(true);
+      selectJobRadio->setChecked(false);
+      selectJobIdsRadio->setChecked(true);
+   } else {
+      jobCombo->setEnabled(true);
+      filesetCombo->setEnabled(true);
+      clientCombo->setEnabled(true);
+      poolCombo->setEnabled(true);
+      storageCombo->setEnabled(true);
+      recentCheckBox->setEnabled(true);
+      if (!recentCheckBox->isChecked()) {
+         beforeDateTime->setEnabled(true);
+      }
+      jobIdEdit->setEnabled(false);
+      selectJobRadio->setChecked(true);
+      selectJobIdsRadio->setChecked(false);
+   }
+   Dmsg2(200, "jobRadio=%d jobidsRadio=%d\n", selectJobRadio->isChecked(), 
+         selectJobIdsRadio->isChecked());
 }
