@@ -146,7 +146,7 @@ void runCmdPage::okButtonPushed()
    cmd += " bootstrap=\"" + bootstrap->text() + "\"";
    cmd += " where=\"" + where->text() + "\"";
    QString pri;
-   QTextStream(&pri) << "priority=\"" << prioritySpin->value() << "\"";
+   QTextStream(&pri) << " priority=\"" << prioritySpin->value() << "\"";
    cmd += pri;
    cmd += " yes\n";
    
