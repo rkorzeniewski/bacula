@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-05-15 15:50+0200\n"
+"POT-Creation-Date: 2007-05-17 15:29+0200\n"
 "PO-Revision-Date: 2007-05-05 20:09+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
@@ -1333,7 +1333,7 @@ msgid "%s: name=%s JobType=%d level=%s Priority=%d Enabled=%d\n"
 msgstr ""
 
 #: src/dird/dird_conf.c:594 src/dird/ua_cmds.c:478 src/dird/ua_prune.c:365
-#: src/dird/ua_run.c:646 src/dird/ua_select.c:263 src/dird/ua_select.c:286
+#: src/dird/ua_run.c:267 src/dird/ua_select.c:263 src/dird/ua_select.c:286
 msgid "Job"
 msgstr "Job"
 
@@ -1988,7 +1988,7 @@ msgstr ""
 msgid "Run storage override"
 msgstr ""
 
-#: src/dird/job.c:981 src/dird/ua_run.c:423
+#: src/dird/job.c:981 src/dird/ua_run.c:1212
 msgid "No storage specified.\n"
 msgstr "Pas de storage sélectionné.\n"
 
@@ -3044,7 +3044,7 @@ msgstr ""
 msgid "Nothing done.\n"
 msgstr "Rien de fait.\n"
 
-#: src/dird/ua_cmds.c:706 src/dird/ua_run.c:436
+#: src/dird/ua_cmds.c:706 src/dird/ua_run.c:1225
 #, c-format
 msgid "Client \"%s\" not found.\n"
 msgstr "le client « %s » est introuvable.\n"
@@ -3090,7 +3090,7 @@ msgstr "Les démons disponibles sont :\n"
 msgid "Director"
 msgstr "Director"
 
-#: src/dird/ua_cmds.c:989 src/dird/ua_dotcmds.c:284 src/dird/ua_run.c:645
+#: src/dird/ua_cmds.c:989 src/dird/ua_dotcmds.c:284 src/dird/ua_run.c:266
 #: src/dird/ua_select.c:168 src/wx-console/wxbrestorepanel.cpp:338
 #: src/wx-console/wxbrestorepanel.cpp:354
 #: src/wx-console/wxbrestorepanel.cpp:478
@@ -3103,7 +3103,7 @@ msgstr "Director"
 msgid "Storage"
 msgstr "Stockage"
 
-#: src/dird/ua_cmds.c:990 src/dird/ua_dotcmds.c:285 src/dird/ua_run.c:651
+#: src/dird/ua_cmds.c:990 src/dird/ua_dotcmds.c:285 src/dird/ua_run.c:272
 #: src/dird/ua_select.c:311 src/dird/ua_select.c:420
 #: src/wx-console/wxbrestorepanel.cpp:335
 #: src/wx-console/wxbrestorepanel.cpp:353
@@ -3139,7 +3139,7 @@ msgstr ""
 msgid "No authorization for FileSet \"%s\"\n"
 msgstr "Pas d'enregistrement trouvé en base pour : %s\n"
 
-#: src/dird/ua_cmds.c:1104 src/dird/ua_run.c:610
+#: src/dird/ua_cmds.c:1104 src/dird/ua_run.c:218
 #, c-format
 msgid "Level %s not valid.\n"
 msgstr "Le type %s est invalide.\n"
@@ -3301,7 +3301,7 @@ msgstr "Saisissez le slot"
 msgid "Expected a positive integer, got: %s\n"
 msgstr "Attendait un entier positif, pas : %s\n"
 
-#: src/dird/ua_input.c:123 src/dird/ua_run.c:826 src/dird/ua_update.c:245
+#: src/dird/ua_input.c:123 src/dird/ua_run.c:447 src/dird/ua_update.c:245
 #: src/dird/ua_update.c:265 src/dird/ua_update.c:610
 #: src/stored/parse_bsr.c:779 src/tools/dbcheck.c:1202
 msgid "yes"
@@ -3349,7 +3349,7 @@ msgstr "Les valeurs doivent être supérieurs à zéro.\n"
 msgid "Slot too large.\n"
 msgstr "Slot trop grand.\n"
 
-#: src/dird/ua_label.c:184 src/dird/ua_label.c:349 src/dird/ua_run.c:411
+#: src/dird/ua_label.c:184 src/dird/ua_label.c:349 src/dird/ua_run.c:1200
 msgid "command line"
 msgstr ""
 
@@ -4104,7 +4104,7 @@ msgstr ""
 msgid "The defined FileSet resources are:\n"
 msgstr "Les FileSet définis sont :\n"
 
-#: src/dird/ua_restore.c:1161 src/dird/ua_run.c:647 src/dird/ua_select.c:191
+#: src/dird/ua_restore.c:1161 src/dird/ua_run.c:268 src/dird/ua_select.c:191
 msgid "FileSet"
 msgstr "FileSet"
 
@@ -4164,217 +4164,49 @@ msgid ""
 "MediaType \"%s\", needed by the Jobs you selected.\n"
 msgstr ""
 
-#: src/dird/ua_run.c:144
-#, c-format
-msgid "Value missing for keyword %s\n"
-msgstr ""
-
-#: src/dird/ua_run.c:151
-msgid "Job name specified twice.\n"
-msgstr "Le job est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:159
-msgid "JobId specified twice.\n"
-msgstr "Le JobId est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:168 src/dird/ua_run.c:312
-msgid "Client specified twice.\n"
-msgstr "Le client est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:176
-msgid "FileSet specified twice.\n"
-msgstr "Le FileSet est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:184
-msgid "Level specified twice.\n"
-msgstr "Le type (Level) est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:193
-msgid "Storage specified twice.\n"
-msgstr "Le Storage est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:201
-msgid "RegexWhere or Where specified twice.\n"
-msgstr "RegexWhere ou Where est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:206
-#, fuzzy
-msgid "Forbidden \"regexwhere\" specified.\n"
-msgstr "La destination (Where) est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:213
-msgid "Where or RegexWhere specified twice.\n"
-msgstr "RegexWhere ou Where est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:218
-#, fuzzy
-msgid "Forbidden \"where\" specified.\n"
-msgstr "La destination (Where) est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:225
-msgid "Bootstrap specified twice.\n"
-msgstr "Le bootstrap est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:233
-msgid "Replace specified twice.\n"
-msgstr "L'option d'écrasement (Replace) est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:241
-msgid "When specified twice.\n"
-msgstr "La planification (When) est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:249
-msgid "Priority specified twice.\n"
-msgstr "La priorité (Priority) est déjà spécifiée.\n"
-
-#: src/dird/ua_run.c:254
-msgid "Priority must be positive nonzero setting it to 10.\n"
-msgstr ""
-"La priorité doit être supérieure à zéro. Utilisation d'une priorité de 10.\n"
-
-#: src/dird/ua_run.c:264
-msgid "Verify Job specified twice.\n"
-msgstr ""
-
-#: src/dird/ua_run.c:296
-msgid "Migration Job specified twice.\n"
-msgstr ""
-
-#: src/dird/ua_run.c:304
-msgid "Pool specified twice.\n"
-msgstr "Le pool est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:320
-#, fuzzy
-msgid "Restore Client specified twice.\n"
-msgstr "Le client est déjà spécifié.\n"
-
-#: src/dird/ua_run.c:344
-#, c-format
-msgid "Invalid keyword: %s\n"
-msgstr "Argument invalide : %s\n"
-
-#: src/dird/ua_run.c:356
-#, c-format
-msgid "Catalog \"%s\" not found\n"
-msgstr "Le catalogue « %s » est introuvable\n"
-
-#: src/dird/ua_run.c:360
-#, c-format
-msgid "No authorization. Catalog \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:371
-#, c-format
-msgid "Job \"%s\" not found\n"
-msgstr "Le job « %s » est introuvable\n"
-
-#: src/dird/ua_run.c:378
-msgid "A job name must be specified.\n"
-msgstr "Un nom de Job doit être spécifié.\n"
-
-#: src/dird/ua_run.c:384
-#, c-format
-msgid "No authorization. Job \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:393
-#, c-format
-msgid "Pool \"%s\" not found.\n"
-msgstr "Le pool  « %s » est introuvable.\n"
-
-#: src/dird/ua_run.c:403
-#, c-format
-msgid "No authorization. Pool \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:414
-#, c-format
-msgid "Storage \"%s\" not found.\n"
-msgstr "Le Storage « %s » est introuvable.\n"
-
-#: src/dird/ua_run.c:417 src/dird/ua_run.c:678
-msgid "user selection"
-msgstr ""
-
-#: src/dird/ua_run.c:426
-#, c-format
-msgid "No authorization. Storage \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:446 src/dird/ua_run.c:466
-#, c-format
-msgid "No authorization. Client \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:456
-#, fuzzy, c-format
-msgid "Restore Client \"%s\" not found.\n"
-msgstr "le client « %s » est introuvable.\n"
-
-#: src/dird/ua_run.c:476
-#, c-format
-msgid "FileSet \"%s\" not found.\n"
-msgstr "Le FileSet « %s » est introuvable.\n"
-
-#: src/dird/ua_run.c:485
-#, c-format
-msgid "No authorization. FileSet \"%s\".\n"
-msgstr ""
-
-#: src/dird/ua_run.c:493
-#, c-format
-msgid "Verify Job \"%s\" not found.\n"
-msgstr ""
-
-#: src/dird/ua_run.c:503
-#, c-format
-msgid "Migration Job \"%s\" not found.\n"
-msgstr ""
-
-#: src/dird/ua_run.c:548 src/dird/ua_run.c:718
+#: src/dird/ua_run.c:152 src/dird/ua_run.c:339
 msgid "Invalid time, using current time.\n"
 msgstr ""
 
-#: src/dird/ua_run.c:568
+#: src/dird/ua_run.c:174
 #, c-format
 msgid "Invalid replace option: %s\n"
 msgstr "Option d'écrasement (Replace) invalide : %s\n"
 
-#: src/dird/ua_run.c:633
+#: src/dird/ua_run.c:243
 msgid "OK to run? (yes/mod/no): "
 msgstr "OK pour le lancement ? (oui/mod/non) : "
 
-#: src/dird/ua_run.c:640 src/dird/ua_select.c:63
+#: src/dird/ua_run.c:261 src/dird/ua_select.c:63
 msgid "mod"
 msgstr "mod"
 
-#: src/dird/ua_run.c:643 src/dird/ua_update.c:519
+#: src/dird/ua_run.c:264 src/dird/ua_update.c:519
 msgid "Parameters to modify:\n"
 msgstr "Paramètre à modifier :\n"
 
-#: src/dird/ua_run.c:644
+#: src/dird/ua_run.c:265
 msgid "Level"
 msgstr "Type"
 
-#: src/dird/ua_run.c:649
+#: src/dird/ua_run.c:270
 #, fuzzy
 msgid "Restore Client"
 msgstr "Restauration annulée"
 
-#: src/dird/ua_run.c:653 src/wx-console/wxbrestorepanel.cpp:355
+#: src/dird/ua_run.c:274 src/wx-console/wxbrestorepanel.cpp:355
 #: src/wx-console/wxbrestorepanel.cpp:843
 #: src/wx-console/wxbrestorepanel.cpp:1890
 msgid "When"
 msgstr "Quand"
 
-#: src/dird/ua_run.c:654 src/wx-console/wxbrestorepanel.cpp:356
+#: src/dird/ua_run.c:275 src/wx-console/wxbrestorepanel.cpp:356
 #: src/wx-console/wxbrestorepanel.cpp:1116
 #: src/wx-console/wxbrestorepanel.cpp:1893
 msgid "Priority"
 msgstr "Priorité"
 
-#: src/dird/ua_run.c:658 src/dird/ua_select.c:506 src/dird/ua_select.c:596
+#: src/dird/ua_run.c:279 src/dird/ua_select.c:506 src/dird/ua_select.c:596
 #: src/dird/ua_update.c:530 src/wx-console/wxbrestorepanel.cpp:337
 #: src/wx-console/wxbrestorepanel.cpp:526
 #: src/wx-console/wxbrestorepanel.cpp:536
@@ -4382,26 +4214,26 @@ msgstr "Priorité"
 msgid "Pool"
 msgstr "Pool"
 
-#: src/dird/ua_run.c:660
+#: src/dird/ua_run.c:281
 msgid "Verify Job"
 msgstr "Job de vérification"
 
-#: src/dird/ua_run.c:663 src/wx-console/wxbrestorepanel.cpp:348
+#: src/dird/ua_run.c:284 src/wx-console/wxbrestorepanel.cpp:348
 #: src/wx-console/wxbrestorepanel.cpp:1871
 msgid "Bootstrap"
 msgstr "Bootstrap"
 
-#: src/dird/ua_run.c:664 src/wx-console/wxbrestorepanel.cpp:349
+#: src/dird/ua_run.c:285 src/wx-console/wxbrestorepanel.cpp:349
 #: src/wx-console/wxbrestorepanel.cpp:1092
 #: src/wx-console/wxbrestorepanel.cpp:1873
 msgid "Where"
 msgstr "Destination"
 
-#: src/dird/ua_run.c:665
+#: src/dird/ua_run.c:286
 msgid "File Relocation"
 msgstr ""
 
-#: src/dird/ua_run.c:666 src/wx-console/wxbrestorepanel.cpp:351
+#: src/dird/ua_run.c:287 src/wx-console/wxbrestorepanel.cpp:351
 #: src/wx-console/wxbrestorepanel.cpp:1100
 #: src/wx-console/wxbrestorepanel.cpp:1877
 #: src/wx-console/wxbrestorepanel.cpp:1878
@@ -4411,205 +4243,209 @@ msgstr ""
 msgid "Replace"
 msgstr "Écrasement"
 
-#: src/dird/ua_run.c:667
+#: src/dird/ua_run.c:288
 msgid "JobId"
 msgstr "JobId"
 
-#: src/dird/ua_run.c:669 src/dird/ua_run.c:872 src/dird/ua_update.c:536
+#: src/dird/ua_run.c:290 src/dird/ua_run.c:488 src/dird/ua_update.c:536
 msgid "Select parameter to modify"
 msgstr "Sélectionnez le paramètre à modifier"
 
-#: src/dird/ua_run.c:710
+#: src/dird/ua_run.c:299 src/dird/ua_run.c:1206
+msgid "user selection"
+msgstr ""
+
+#: src/dird/ua_run.c:331
 msgid ""
 "Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now): "
 msgstr ""
 "Saisissez la date de lancement (YYYY-MM-DD HH:MM:SS) (ou maintenant) : "
 
-#: src/dird/ua_run.c:725
+#: src/dird/ua_run.c:346
 msgid "Enter new Priority: "
 msgstr "Saisissez la nouvelle priorité : "
 
-#: src/dird/ua_run.c:729
+#: src/dird/ua_run.c:350
 msgid "Priority must be a positive integer.\n"
 msgstr "La priorité doit être un entier positif.\n"
 
-#: src/dird/ua_run.c:749
+#: src/dird/ua_run.c:370
 msgid "Please enter the Bootstrap file name: "
 msgstr "Saisissez le nom du fichier Bootstrap : "
 
 # Impossible d'ouvrir %s : ERR=%s
-#: src/dird/ua_run.c:760
+#: src/dird/ua_run.c:381
 #, c-format
 msgid "Warning cannot open %s: ERR=%s\n"
 msgstr "Impossible d'ouvrir %s : ERR=%s\n"
 
-#: src/dird/ua_run.c:779
+#: src/dird/ua_run.c:400
 msgid "Please enter path prefix for restore (/ for none): "
 msgstr "Saisissez le chemin (prefix) pour la restauration (/ pour aucun) : "
 
-#: src/dird/ua_run.c:801
+#: src/dird/ua_run.c:422
 msgid "Replace:\n"
 msgstr "Écrasement :\n"
 
-#: src/dird/ua_run.c:805
+#: src/dird/ua_run.c:426
 msgid "Select replace option"
 msgstr "Saisissez l'option d'écrasement"
 
-#: src/dird/ua_run.c:815
+#: src/dird/ua_run.c:436
 msgid ""
 "You must set the bootstrap file to NULL to be able to specify a JobId.\n"
 msgstr ""
 "Vous ne devez pas spécifié de fichier bootstrap pour pouvoir utiliser un "
 "JobId.\n"
 
-#: src/dird/ua_run.c:840
+#: src/dird/ua_run.c:456
 msgid "Job failed.\n"
 msgstr "Job échoué.\n"
 
-#: src/dird/ua_run.c:843
+#: src/dird/ua_run.c:459
 #, c-format
 msgid "Job queued. JobId=%s\n"
 msgstr "Job mis en queue. JobId=%s\n"
 
-#: src/dird/ua_run.c:849
+#: src/dird/ua_run.c:465
 msgid "Job not run.\n"
 msgstr "Job non lancé.\n"
 
-#: src/dird/ua_run.c:861
+#: src/dird/ua_run.c:477
 #, c-format
 msgid "strip_prefix=%s add_prefix=%s add_suffix=%s\n"
 msgstr ""
 
-#: src/dird/ua_run.c:864
+#: src/dird/ua_run.c:480
 msgid "This will replace your current Where value\n"
 msgstr ""
 
-#: src/dird/ua_run.c:865
+#: src/dird/ua_run.c:481
 msgid "Strip prefix"
 msgstr ""
 
-#: src/dird/ua_run.c:866
+#: src/dird/ua_run.c:482
 msgid "Add prefix"
 msgstr ""
 
-#: src/dird/ua_run.c:867
+#: src/dird/ua_run.c:483
 msgid "Add file suffix"
 msgstr ""
 
-#: src/dird/ua_run.c:868
+#: src/dird/ua_run.c:484
 msgid "Enter a regexp"
 msgstr ""
 
-#: src/dird/ua_run.c:869
+#: src/dird/ua_run.c:485
 msgid "Test filename manipulation"
 msgstr ""
 
-#: src/dird/ua_run.c:870
+#: src/dird/ua_run.c:486
 msgid "Use this ?"
 msgstr ""
 
-#: src/dird/ua_run.c:875
+#: src/dird/ua_run.c:491
 msgid "Please enter path prefix to strip: "
 msgstr "Saisissez le début du chemin (prefix) à enlever : "
 
-#: src/dird/ua_run.c:883
+#: src/dird/ua_run.c:499
 msgid "Please enter path prefix to add (/ for none): "
 msgstr "Saisissez le chemin (prefix) à ajouter (/ pour aucun) : "
 
-#: src/dird/ua_run.c:894
+#: src/dird/ua_run.c:510
 msgid "Please enter file suffix to add: "
 msgstr "Saisissez une extention à ajouter aux fichiers : "
 
-#: src/dird/ua_run.c:901
+#: src/dird/ua_run.c:517
 msgid "Please enter a valid regexp (!from!to!): "
 msgstr "Saisissez une regexp valide (!rechercher!remplacer!) : "
 
-#: src/dird/ua_run.c:914
+#: src/dird/ua_run.c:530
 #, c-format
 msgid "regexwhere=%s\n"
 msgstr ""
 
-#: src/dird/ua_run.c:920
+#: src/dird/ua_run.c:536
 #, c-format
 msgid "strip_prefix=%s add_prefix=%s add_suffix=%s result=%s\n"
 msgstr ""
 
-#: src/dird/ua_run.c:927
+#: src/dird/ua_run.c:543
 msgid "Cannot use your regexp\n"
 msgstr "Impossible d'utiliser votre regexp\n"
 
-#: src/dird/ua_run.c:931
+#: src/dird/ua_run.c:547
 msgid "Please enter filename to test: "
 msgstr "Saisissez un nom de fichier à tester : "
 
-#: src/dird/ua_run.c:933
+#: src/dird/ua_run.c:549
 #, c-format
 msgid "%s -> %s\n"
 msgstr "%s -> %s\n"
 
-#: src/dird/ua_run.c:977
+#: src/dird/ua_run.c:593
 msgid "Cannot use your regexp.\n"
 msgstr "Impossible d'utiliser votre regexp.\n"
 
-#: src/dird/ua_run.c:990 src/dird/ua_run.c:1016
+#: src/dird/ua_run.c:606 src/dird/ua_run.c:632
 msgid "Levels:\n"
 msgstr "Types :\n"
 
-#: src/dird/ua_run.c:991 src/filed/status.c:372 src/lib/util.c:329
+#: src/dird/ua_run.c:607 src/filed/status.c:372 src/lib/util.c:329
 #: src/stored/status.c:540
 msgid "Base"
 msgstr "Base"
 
-#: src/dird/ua_run.c:992 src/filed/status.c:374 src/lib/util.c:331
+#: src/dird/ua_run.c:608 src/filed/status.c:374 src/lib/util.c:331
 #: src/stored/status.c:542
 msgid "Full"
 msgstr "Full"
 
-#: src/dird/ua_run.c:993 src/filed/status.c:377 src/lib/util.c:334
+#: src/dird/ua_run.c:609 src/filed/status.c:377 src/lib/util.c:334
 #: src/stored/status.c:545
 msgid "Incremental"
 msgstr "Incrémental"
 
-#: src/dird/ua_run.c:994 src/filed/status.c:380 src/lib/util.c:337
+#: src/dird/ua_run.c:610 src/filed/status.c:380 src/lib/util.c:337
 #: src/stored/status.c:548
 msgid "Differential"
 msgstr "Différentiel"
 
-#: src/dird/ua_run.c:995 src/filed/status.c:383 src/lib/util.c:340
+#: src/dird/ua_run.c:611 src/filed/status.c:383 src/lib/util.c:340
 #: src/stored/status.c:551
 msgid "Since"
 msgstr "Depuis"
 
-#: src/dird/ua_run.c:996 src/dird/ua_run.c:1022
+#: src/dird/ua_run.c:612 src/dird/ua_run.c:638
 msgid "Select level"
 msgstr "Saisissez le type"
 
-#: src/dird/ua_run.c:1017
+#: src/dird/ua_run.c:633
 msgid "Initialize Catalog"
 msgstr "Initialisez le catalogue"
 
-#: src/dird/ua_run.c:1018 src/filed/status.c:386 src/lib/util.c:343
+#: src/dird/ua_run.c:634 src/filed/status.c:386 src/lib/util.c:343
 #: src/stored/status.c:554
 msgid "Verify Catalog"
 msgstr ""
 
-#: src/dird/ua_run.c:1019 src/lib/util.c:349
+#: src/dird/ua_run.c:635 src/lib/util.c:349
 msgid "Verify Volume to Catalog"
 msgstr ""
 
-#: src/dird/ua_run.c:1020 src/lib/util.c:352
+#: src/dird/ua_run.c:636 src/lib/util.c:352
 msgid "Verify Disk to Catalog"
 msgstr ""
 
-#: src/dird/ua_run.c:1021
+#: src/dird/ua_run.c:637
 msgid "Verify Volume Data (not yet implemented)"
 msgstr "Vérification des données sur le volume (pas encore implémenté)"
 
-#: src/dird/ua_run.c:1042
+#: src/dird/ua_run.c:658
 msgid "Level not appropriate for this Job. Cannot be changed.\n"
 msgstr ""
 
-#: src/dird/ua_run.c:1056
+#: src/dird/ua_run.c:672
 #, c-format
 msgid ""
 "Run %s job\n"
@@ -4628,11 +4464,11 @@ msgstr ""
 "Quand    : %s\n"
 "Priorité : %d\n"
 
-#: src/dird/ua_run.c:1063 src/lib/util.c:296
+#: src/dird/ua_run.c:679 src/lib/util.c:296
 msgid "Admin"
 msgstr "Admin"
 
-#: src/dird/ua_run.c:1076
+#: src/dird/ua_run.c:692
 #, c-format
 msgid ""
 "Run %s job\n"
@@ -4655,11 +4491,11 @@ msgstr ""
 "Quand    : %s\n"
 "Priorité : %d\n"
 
-#: src/dird/ua_run.c:1085 src/lib/util.c:287
+#: src/dird/ua_run.c:701 src/lib/util.c:287
 msgid "Backup"
 msgstr "Backup"
 
-#: src/dird/ua_run.c:1108
+#: src/dird/ua_run.c:724
 #, c-format
 msgid ""
 "Run %s job\n"
@@ -4686,15 +4522,15 @@ msgstr ""
 "Quand      : %s\n"
 "Priorité   : %d\n"
 
-#: src/dird/ua_run.c:1119 src/lib/util.c:290
+#: src/dird/ua_run.c:735 src/lib/util.c:290
 msgid "Verify"
 msgstr "Vérifier"
 
-#: src/dird/ua_run.c:1137
+#: src/dird/ua_run.c:753
 msgid "Please enter a JobId for restore: "
 msgstr "Saisissez le JobId pour la restauration : "
 
-#: src/dird/ua_run.c:1149
+#: src/dird/ua_run.c:765
 #, fuzzy, c-format
 msgid ""
 "Run Restore job\n"
@@ -4723,7 +4559,7 @@ msgstr ""
 "Catalogue :       %s\n"
 "Priorité :        %d\n"
 
-#: src/dird/ua_run.c:1174
+#: src/dird/ua_run.c:790
 #, c-format
 msgid ""
 "Run Restore job\n"
@@ -4752,7 +4588,7 @@ msgstr ""
 "Catalogue :      %s\n"
 "Priorité :       %d\n"
 
-#: src/dird/ua_run.c:1201
+#: src/dird/ua_run.c:817
 #, c-format
 msgid ""
 "Run Restore job\n"
@@ -4763,17 +4599,17 @@ msgstr ""
 "JobName :    %s\n"
 "Bootstrap :  %s\n"
 
-#: src/dird/ua_run.c:1209
+#: src/dird/ua_run.c:825
 #, c-format
 msgid "RegexWhere: %s\n"
 msgstr ""
 
-#: src/dird/ua_run.c:1212
+#: src/dird/ua_run.c:828
 #, c-format
 msgid "Where:      %s\n"
 msgstr "Where :     %s\n"
 
-#: src/dird/ua_run.c:1216
+#: src/dird/ua_run.c:832
 #, c-format
 msgid ""
 "Replace:    %s\n"
@@ -4792,7 +4628,7 @@ msgstr ""
 "Catalogue   : %s\n"
 "Priorité    : %d\n"
 
-#: src/dird/ua_run.c:1235
+#: src/dird/ua_run.c:851
 #, fuzzy, c-format
 msgid ""
 "Run Migration job\n"
@@ -4820,10 +4656,174 @@ msgstr ""
 "Catalogue   : %s\n"
 "Priorité    : %d\n"
 
-#: src/dird/ua_run.c:1260
+#: src/dird/ua_run.c:876
 #, c-format
 msgid "Unknown Job Type=%d\n"
 msgstr "Job du Type=%d inconnu\n"
+
+#: src/dird/ua_run.c:936
+#, c-format
+msgid "Value missing for keyword %s\n"
+msgstr ""
+
+#: src/dird/ua_run.c:943
+msgid "Job name specified twice.\n"
+msgstr "Le job est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:951
+msgid "JobId specified twice.\n"
+msgstr "Le JobId est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:960 src/dird/ua_run.c:1104
+msgid "Client specified twice.\n"
+msgstr "Le client est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:968
+msgid "FileSet specified twice.\n"
+msgstr "Le FileSet est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:976
+msgid "Level specified twice.\n"
+msgstr "Le type (Level) est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:985
+msgid "Storage specified twice.\n"
+msgstr "Le Storage est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:993
+msgid "RegexWhere or Where specified twice.\n"
+msgstr "RegexWhere ou Where est déjà spécifiée.\n"
+
+#: src/dird/ua_run.c:998
+#, fuzzy
+msgid "No authorization for \"regexwhere\" specification.\n"
+msgstr "La destination (Where) est déjà spécifiée.\n"
+
+#: src/dird/ua_run.c:1005
+msgid "Where or RegexWhere specified twice.\n"
+msgstr "RegexWhere ou Where est déjà spécifiée.\n"
+
+#: src/dird/ua_run.c:1010
+#, fuzzy
+msgid "No authoriztion for \"where\" specification.\n"
+msgstr "Pas d'enregistrement trouvé en base pour : %s\n"
+
+#: src/dird/ua_run.c:1017
+msgid "Bootstrap specified twice.\n"
+msgstr "Le bootstrap est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:1025
+msgid "Replace specified twice.\n"
+msgstr "L'option d'écrasement (Replace) est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:1033
+msgid "When specified twice.\n"
+msgstr "La planification (When) est déjà spécifiée.\n"
+
+#: src/dird/ua_run.c:1041
+msgid "Priority specified twice.\n"
+msgstr "La priorité (Priority) est déjà spécifiée.\n"
+
+#: src/dird/ua_run.c:1046
+msgid "Priority must be positive nonzero setting it to 10.\n"
+msgstr ""
+"La priorité doit être supérieure à zéro. Utilisation d'une priorité de 10.\n"
+
+#: src/dird/ua_run.c:1056
+msgid "Verify Job specified twice.\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1088
+msgid "Migration Job specified twice.\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1096
+msgid "Pool specified twice.\n"
+msgstr "Le pool est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:1112
+#, fuzzy
+msgid "Restore Client specified twice.\n"
+msgstr "Le client est déjà spécifié.\n"
+
+#: src/dird/ua_run.c:1136
+#, c-format
+msgid "Invalid keyword: %s\n"
+msgstr "Argument invalide : %s\n"
+
+#: src/dird/ua_run.c:1147
+#, c-format
+msgid "Catalog \"%s\" not found\n"
+msgstr "Le catalogue « %s » est introuvable\n"
+
+#: src/dird/ua_run.c:1151
+#, c-format
+msgid "No authorization. Catalog \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1162
+#, c-format
+msgid "Job \"%s\" not found\n"
+msgstr "Le job « %s » est introuvable\n"
+
+#: src/dird/ua_run.c:1169
+msgid "A job name must be specified.\n"
+msgstr "Un nom de Job doit être spécifié.\n"
+
+#: src/dird/ua_run.c:1175
+#, c-format
+msgid "No authorization. Job \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1183
+#, c-format
+msgid "Pool \"%s\" not found.\n"
+msgstr "Le pool  « %s » est introuvable.\n"
+
+#: src/dird/ua_run.c:1193
+#, c-format
+msgid "No authorization. Pool \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1203
+#, c-format
+msgid "Storage \"%s\" not found.\n"
+msgstr "Le Storage « %s » est introuvable.\n"
+
+#: src/dird/ua_run.c:1215
+#, c-format
+msgid "No authorization. Storage \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1235 src/dird/ua_run.c:1255
+#, c-format
+msgid "No authorization. Client \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1245
+#, fuzzy, c-format
+msgid "Restore Client \"%s\" not found.\n"
+msgstr "le client « %s » est introuvable.\n"
+
+#: src/dird/ua_run.c:1265
+#, c-format
+msgid "FileSet \"%s\" not found.\n"
+msgstr "Le FileSet « %s » est introuvable.\n"
+
+#: src/dird/ua_run.c:1274
+#, c-format
+msgid "No authorization. FileSet \"%s\".\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1282
+#, c-format
+msgid "Verify Job \"%s\" not found.\n"
+msgstr ""
+
+#: src/dird/ua_run.c:1292
+#, c-format
+msgid "Migration Job \"%s\" not found.\n"
+msgstr ""
 
 #: src/dird/ua_select.c:55
 #, c-format
@@ -14572,56 +14572,56 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:264
+#: src/tools/bsmtp.c:263
 msgid "Fatal error: no recipient given.\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:295
+#: src/tools/bsmtp.c:294
 #, c-format
 msgid "Fatal gethostname error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:299
+#: src/tools/bsmtp.c:298
 #, c-format
 msgid "Fatal gethostbyname for myself failed \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:335
+#: src/tools/bsmtp.c:334
 #, c-format
 msgid "Error unknown mail host \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:338
+#: src/tools/bsmtp.c:337
 msgid "Retrying connection using \"localhost\".\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:346
+#: src/tools/bsmtp.c:345
 #, c-format
 msgid "Fatal error: Unknown address family for smtp host: %d\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:355 src/tools/bsmtp.c:360
+#: src/tools/bsmtp.c:354 src/tools/bsmtp.c:359
 #, c-format
 msgid "Fatal socket error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:365
+#: src/tools/bsmtp.c:364
 #, c-format
 msgid "Fatal connect error to %s: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:373
+#: src/tools/bsmtp.c:372
 #, fuzzy, c-format
 msgid "Fatal _open_osfhandle error: ERR=%s\n"
 msgstr "erreur de fermeture : ERR=%s\n"
 
-#: src/tools/bsmtp.c:380 src/tools/bsmtp.c:384 src/tools/bsmtp.c:393
-#: src/tools/bsmtp.c:397
+#: src/tools/bsmtp.c:379 src/tools/bsmtp.c:383 src/tools/bsmtp.c:392
+#: src/tools/bsmtp.c:396
 #, c-format
 msgid "Fatal fdopen error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:389
+#: src/tools/bsmtp.c:388
 #, c-format
 msgid "Fatal dup error: ERR=%s\n"
 msgstr ""
@@ -16711,6 +16711,10 @@ msgstr "FileSet"
 #, fuzzy
 msgid "Restoring..."
 msgstr "string"
+
+#, fuzzy
+#~ msgid "Forbidden \"where\" specified.\n"
+#~ msgstr "La destination (Where) est déjà spécifiée.\n"
 
 #~ msgid "  --> MaxRunTime=%u\n"
 #~ msgstr "  --> MaxRunTime=%u\n"
