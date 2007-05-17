@@ -9,21 +9,39 @@ use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons.  However, bat works only with
 a 2.1.8 Director.
 
-The major features are:
+Areas requiring caution or testing:
+- You must have Qt4 loaded to build bat
+- You must have the thread safe version of MySQL client libraries loaded
+  to build with MySQL enabled.
+- The Volume management in the Storage daemon is extensively rewritten.
+  It appears to function much better, but is largely untested under
+  severe stress conditions (multiple drive autochangers, ...).
+- Volumes are pruned only when absolutely necessary -- this may cause
+  your database to grow.
+- Socket level heartbeat is untested.
+- Solaris door and even port files are no longer restored (equivalent
+    to what we do with sockets).
+- Solaris is untested
+- Win32 servers are untested, and very likely not to work.
+
+The major new features are:
+- Much faster insertion of attributes (somewhere around 10 times),
+  many thanks to Eric Bollengier and Marc Cousin. 
 - First cut of bat (Bacula Administration Tool).  Note to build
   bat you must explicitly enable it on the ./configure line, you
   must have the Qt4 libraries loaded, and qmake and the other Qt4
-  tools must be available.
+  tools must be available. bat is ALPHA software. A large part
+  of the work was done by Dirk Bartley.
 - Red/Black restore in memory tree (500 times faster loading).
-- Much faster insertion of attributes (somewhere around 10 times).
-- The Regex Where code to allow easier relocation of restored files.
+- The Regex Where code to allow easier relocation of restored files 
+  thanks to Eric.
 - Socket level heartbeat for all connections (untested).
 - posix_fadvise() use in the FD to improve performance.
 - Simpler locking in the SD in the reservation system.
 - Much improved Volume reservation code that should eliminate most
   conflicts experienced in multiple drive autochangers.
 - Detection of file size/date change during backup if enabled.
-- New Recycle Pool feature.
+- New Recycle Pool feature -- thanks to Eric.
 - Efficient implementation of very large include/exclude lists.
 - Volumes are no longer pruned during 'status dir'
 - Pruning is now more efficient, and if a Volume is purged,
