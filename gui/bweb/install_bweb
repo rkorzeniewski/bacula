@@ -42,7 +42,7 @@ fi
 # Normally you should not need to change the following
 #
 # first, copy the bweb perl library into your PERL5 INC path
-sed -i "s!/etc/bacula!${CONF_DIR}!" lib/Bweb.conf
+sed -i "s!/etc/bacula!${CONF_DIR}!" lib/Bweb.pm
 perl Makefile.PL
 make install
 
