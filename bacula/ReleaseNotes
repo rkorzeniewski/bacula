@@ -6,7 +6,8 @@
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
-not have to upgrade all your File daemons.
+not have to upgrade all your File daemons.  However, bat works only with
+a 2.1.8 Director.
 
 The major features are:
 - First cut of bat (Bacula Administration Tool).  Note to build
