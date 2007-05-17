@@ -48,6 +48,7 @@
  */
 runCmdPage::runCmdPage()
 {
+   m_dtformat = "yyyy-MM-dd HH:mm:ss";
    m_name = "Restore Run";
    pgInitialize();
    setupUi(this);
@@ -61,6 +62,7 @@ runCmdPage::runCmdPage()
    dockPage();
    setCurrent();
    this->show();
+
 }
 
 void runCmdPage::fill()
@@ -68,6 +70,12 @@ void runCmdPage::fill()
    QString item, val;
    QStringList items;
    QRegExp rx("^.*:\\s*(\\S.*$)");   /* Regex to get value */
+
+   clientCombo->addItems(m_console->client_list);
+   filesetCombo->addItems(m_console->fileset_list);
+   replaceCombo->addItems(QStringList() << "never" << "always" << "ifnewer" << "ifolder");
+   storageCombo->addItems(m_console->storage_list);
+   dateTimeEdit->setDisplayFormat(m_dtformat);
 
    m_console->read();
    item = m_console->msg();
@@ -90,11 +98,11 @@ void runCmdPage::fill()
          continue;
       }
       if (item.startsWith("Backup Client:")) {
-         clientCombo->addItem(val);
+         clientCombo->setCurrentIndex(clientCombo->findText(val, Qt::MatchExactly));
          continue;
       }
       if (item.startsWith("Storage:")) {
-         storageCombo->addItem(val);
+         storageCombo->setCurrentIndex(storageCombo->findText(val, Qt::MatchExactly));
          continue;
       }
       if (item.startsWith("Where:")) {
@@ -102,18 +110,26 @@ void runCmdPage::fill()
          continue;
       }
       if (item.startsWith("When:")) {
+         dateTimeEdit->setDateTime(QDateTime::fromString(val,m_dtformat));
          continue;
       }
       if (item.startsWith("Catalog:")) {
          catalogCombo->addItem(val);
          continue;
       }
-      if (item.startsWith("Fileset:")) {
-         filesetCombo->addItem(val);
+      if (item.startsWith("FileSet:")) {
+         filesetCombo->setCurrentIndex(filesetCombo->findText(val, Qt::MatchExactly));
          continue;
       }
       if (item.startsWith("Priority:")) {
-//       prioritySpin->setValue(atoi(val));
+         bool okay;
+         int pri = val.toInt(&okay, 10);
+         if (okay) 
+            prioritySpin->setValue(pri);
+         continue;
+      }
+      if (item.startsWith("Replace:")) {
+         replaceCombo->setCurrentIndex(replaceCombo->findText(val, Qt::MatchExactly));
          continue;
       }
    }
@@ -121,14 +137,22 @@ void runCmdPage::fill()
 
 void runCmdPage::okButtonPushed()
 {
-
-   this->hide();
+   QString cmd(".mod");
+   cmd += " restoreclient=\"" + clientCombo->currentText() + "\"";
+   cmd += " fileset=\"" + filesetCombo->currentText() + "\"";
+   cmd += " storage=\"" + storageCombo->currentText() + "\"";
+   cmd += " replace=\"" + replaceCombo->currentText() + "\"";
+   cmd += " when=\"" + dateTimeEdit->dateTime().toString(m_dtformat) + "\"";
+   cmd += " bootstrap=\"" + bootstrap->text() + "\"";
+   cmd += " where=\"" + where->text() + "\"";
+   QString pri;
+   QTextStream(&pri) << "priority=\"" << prioritySpin->value() << "\"";
+   cmd += pri;
+   cmd += " yes\n";
    
-   m_console->write_dir("yes");
-   m_console->displayToPrompt();
+   consoleCommand(cmd);
    m_console->notify(true);
    closeStackPage();
-   mainWin->resetFocus();
 }
 
 

@@ -35,6 +35,7 @@ public slots:
 
 private:
    void fill();
+   QString m_dtformat;
 };
 
 
