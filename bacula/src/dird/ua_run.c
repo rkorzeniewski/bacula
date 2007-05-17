@@ -211,16 +211,19 @@ try_again:
       if (ReplaceOptions[i].token == jcr->replace) {
          rc.replace = ReplaceOptions[i].name;
       }
+      rc.replace = NULL;
    }
    if (rc.level_name) {
       if (!get_level_from_name(jcr, rc.level_name)) {
          ua->send_msg(_("Level %s not valid.\n"), rc.level_name);
          goto bail_out;
       }
+      rc.level_name = NULL;
    }
    if (rc.jid) {
       /* Note, this is also MigrateJobId */
       jcr->RestoreJobId = str_to_int64(rc.jid);
+      rc.jid = 0;
    }
 
    /* Run without prompting? */
