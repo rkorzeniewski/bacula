@@ -1,6 +1,6 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Prochains jobs </h1>
+  <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>Prochains jobs </TMPL_IF></h1>
  </div>
  <div class='bodydiv'>
     <form action='?' method='GET'>
