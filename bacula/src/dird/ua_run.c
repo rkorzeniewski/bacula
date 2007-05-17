@@ -244,7 +244,8 @@ try_again:
       goto bail_out;
    }
 
-   if (ua->cmd[0] == '.' && strncasecmp(ua->cmd, ".mod ", 5) == 0) {
+   if (strncasecmp(ua->cmd, ".mod ", 5) == 0 || 
+       (strncasecmp(ua->cmd, "mod ", 4) == 0 && strlen(ua->cmd) > 6)) {
       Dmsg1(000, "got: %s\n", ua->cmd);
       parse_ua_args(ua);
       rc.mod = true;
