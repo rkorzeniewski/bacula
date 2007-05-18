@@ -48,8 +48,10 @@ MediaEdit::MediaEdit(Console *console, QString &mediaId)
    m_status = "";
    m_slot = 0;
 
-
    setupUi(this);
+
+   if (!m_console->preventInUseConnect())
+       return;
 
    /* The media's pool */
    poolCombo->addItems(console->pool_list);

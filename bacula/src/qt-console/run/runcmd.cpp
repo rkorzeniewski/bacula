@@ -150,7 +150,15 @@ void runCmdPage::okButtonPushed()
    cmd += pri;
    cmd += " yes\n";
    
-   consoleCommand(cmd);
+   setConsoleCurrent();
+   QString displayhtml("<font color=\"blue\">");
+   displayhtml += cmd + "</font>\n";
+   m_console->display_html(displayhtml);
+   m_console->display_text("\n");
+   m_console->write_dir(cmd.toUtf8().data());
+   m_console->displayToPrompt();
+//   consoleCommand(cmd); ***FIXME set back to consoleCommand when connection issue is resolved
+
    m_console->notify(true);
    closeStackPage();
 }

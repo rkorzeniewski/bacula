@@ -26,7 +26,7 @@ Purging not working from console or from context sensitive.  (Kern)
 Human readable in joblist for purged, joblevel and job type.
 
 Possibly a stack of past screens so that when you open a window from another,
-closing would brint the previous one back.
+closing would bring the previous one back.
 
 Is there a way to query the director/database for whether a storage is currently
 mounted so I am not presenting both mount and unmount to the user??
