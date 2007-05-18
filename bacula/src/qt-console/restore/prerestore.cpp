@@ -92,10 +92,11 @@ void prerestorePage::buildPage()
       jobIdEdit->setText(m_dataIn);
       jobRadioClicked(false);
       QStringList fieldlist;
-      jobdefsFromJob(fieldlist,m_dataIn);
-      filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
-      clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
-      jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+      if (jobdefsFromJob(fieldlist, m_dataIn) == 1) {
+         filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
+         clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
+         jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+      }
    } else if (m_dataInType == R_JOBDATETIME) {
       selectJobRadio->setChecked(true);
       selectJobIdsRadio->setChecked(false);
@@ -104,11 +105,12 @@ void prerestorePage::buildPage()
       recentCheckBox->setCheckState(Qt::Unchecked);
       jobRadioClicked(true);
       QStringList fieldlist;
-      jobdefsFromJob(fieldlist,m_dataIn);
-      filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
-      clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
-      jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
-      beforeDateTime->setDateTime(QDateTime::fromString(fieldlist[3], m_dtformat));
+      if (jobdefsFromJob(fieldlist, m_dataIn) == 1) {
+         filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
+         clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
+         jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
+         beforeDateTime->setDateTime(QDateTime::fromString(fieldlist[3], m_dtformat));
+     }
    }
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
@@ -165,7 +167,7 @@ void prerestorePage::okButtonPushed()
    }
 
    /* ***FIXME*** */
-   printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
+   //printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
    consoleCommand(cmd);
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
@@ -227,16 +229,17 @@ void prerestorePage::recentChanged(int state)
  * For when jobs list is to be used, return a list which is the needed items from
  * the job record
  */
-void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
+int prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString &jobId)
 {
    QString job, client, fileset;
    QString query("");
    query = "SELECT DISTINCT Job.Name AS JobName, Client.Name AS Client,"
-   " FileSet.FileSet AS FileSet, Job.EndTime AS JobEnd"
+   " FileSet.FileSet AS FileSet, Job.EndTime AS JobEnd,"
+   " Job.Type AS JobType"
    " From Job, Client, FileSet"
    " WHERE Job.FileSetId=FileSet.FileSetId AND Job.ClientId=Client.ClientId"
    " AND JobId=\'" + jobId + "\'";
-   //printf("query = %s\n", query.toUtf8().data());
+   printf("query = %s\n", query.toUtf8().data());
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
       QString field;
@@ -246,6 +249,7 @@ void prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString jobId)
          fieldlist = resultline.split("\t");
       } /* foreach resultline */
    } /* if results from query */
+   return results.count();
 }
 
 /*
@@ -276,9 +280,7 @@ bool prerestorePage::checkJobIdList()
          /* are the intergers representing a list of jobs all with the same job
           * and client */
          QStringList fields;
-         jobdefsFromJob(fields, job);
-         int count = fields.count();
-         if (count > 0) {
+         if (jobdefsFromJob(fields, job) == 1) {
             if (jobName == "")
                jobName = fields[0];
             else if (jobName != fields[0])
@@ -302,7 +304,7 @@ bool prerestorePage::checkJobIdList()
    }
    if (!allisjob){
       QMessageBox::warning(this, tr("Bat"),
-         tr("At least one of the jobs is not a valid job.\n"
+         tr("At least one of the jobs is not a valid job of type \"Backup\".\n"
          "Press OK to continue?"), QMessageBox::Ok );
       return false;
    }

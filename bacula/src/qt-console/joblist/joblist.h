@@ -74,6 +74,7 @@ private:
    bool m_populated;
    bool m_checkCurrentWidget;
    int m_purgedIndex;
+   int m_typeIndex;
 };
 
 #endif /* _JOBLIST_H_ */
