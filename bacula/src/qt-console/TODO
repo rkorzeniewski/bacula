@@ -22,8 +22,6 @@ of the selected job.
 Resolve issue of connection during restore selection.  Could go with preempt of
 connections.  (Kern is to work on)
 
-Purging not working from console or from context sensitive.  (Kern)
-
 ========LOW priority items:
 Human readable in joblist for purged, joblevel and job type.
 
@@ -82,6 +80,9 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Purging not working from console or from context sensitive.
+   This was a confusion with the restore command.  Now resolved.
+
 Can produce a segfault by attempting to restore from a restore job.  In
 pre-restore, prevent a job in the list from being a restore job.
 
