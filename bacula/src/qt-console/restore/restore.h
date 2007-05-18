@@ -68,7 +68,7 @@ private slots:
    void jobIdEditFinished();
 
 private:
-   void jobdefsFromJob(QStringList &, QString);
+   int jobdefsFromJob(QStringList &, QString &);
    void buildPage();
    bool checkJobIdList();
    QString m_dtformat;

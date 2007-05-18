@@ -187,6 +187,7 @@ void JobList::populateTable()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" );
    m_purgedIndex = headerlist.indexOf("Purged");
+   m_typeIndex = headerlist.indexOf("Job Type");
    statusIndex = headerlist.indexOf("Job Status");
 
    /* Initialize the QTableWidget */
@@ -317,6 +318,14 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       mp_tableWidget->removeAction(actionPurgeFiles);
       if (purged == "0") {
          mp_tableWidget->addAction(actionPurgeFiles);
+      }
+      jobitem = mp_tableWidget->item(row, m_typeIndex);
+      QString status = jobitem->text();
+      mp_tableWidget->removeAction(actionRestoreFromJob);
+      mp_tableWidget->removeAction(actionRestoreFromTime);
+      if (status == "B") {
+         mp_tableWidget->addAction(actionRestoreFromJob);
+         mp_tableWidget->addAction(actionRestoreFromTime);
       }
    }
 }
