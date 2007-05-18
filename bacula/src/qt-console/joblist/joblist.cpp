@@ -75,6 +75,9 @@ void JobList::populateTable()
    QString resultline;
    QBrush blackBrush(Qt::black);
 
+   if (!m_console->preventInUseConnect())
+       return;
+
    /* Can't do this in constructor because not neccesarily conected in constructor */
    if (!m_populated) {
       clientsComboBox->addItem("Any");

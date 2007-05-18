@@ -64,6 +64,8 @@ void FileSet::populateTree()
 {
    QTreeWidgetItem *filesetItem, *topItem;
 
+   if (!m_console->preventInUseConnect())
+       return;
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();

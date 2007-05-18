@@ -66,6 +66,9 @@ void prerestorePage::buildPage()
    m_console->notify(false);
    m_closeable = true;
 
+   if (!m_console->preventInUseConnect())
+       return;
+
    jobCombo->addItems(m_console->job_list);
    filesetCombo->addItems(m_console->fileset_list);
    clientCombo->addItems(m_console->client_list);

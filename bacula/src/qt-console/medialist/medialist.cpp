@@ -67,6 +67,9 @@ void MediaList::populateTree()
 {
    QTreeWidgetItem *mediatreeitem, *pooltreeitem, *topItem;
 
+   if (!m_console->preventInUseConnect())
+       return;
+
    QStringList headerlist = (QStringList()
       << "Volume Name" << "Id" << "Status" << "Enabled"
       << "Bytes" << "Files" << "Jobs" << "Retention" 

@@ -77,6 +77,9 @@ void JobLog::populateText()
    QString heading("<A href=\"#top\">Log records for job ");
    heading += m_jobId + "</A>\n";
    textEdit->insertHtml(heading);
+
+   if (!m_console->preventInUseConnect())
+       return;
    
    QString query("");
    query = "SELECT Time, LogText FROM Log WHERE JobId='" + m_jobId + "'";

@@ -64,6 +64,8 @@ void Clients::populateTree()
 {
    QTreeWidgetItem *clientItem, *topItem;
 
+   if (!m_console->preventInUseConnect())
+      return;
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;

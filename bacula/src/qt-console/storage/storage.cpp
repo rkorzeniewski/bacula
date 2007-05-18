@@ -67,6 +67,9 @@ void Storage::populateTree()
 {
    QTreeWidgetItem *storageItem, *topItem;
 
+   if (!m_console->preventInUseConnect())
+       return;
+
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
