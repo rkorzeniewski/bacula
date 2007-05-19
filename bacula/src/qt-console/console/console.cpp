@@ -479,28 +479,25 @@ int Console::write(const char *msg)
 }
 
 /*
- * Get to main command prompt 
+ * Get to main command prompt -- i.e. abort any subcommand
  */
 void Console::beginNewCommand()
 {
-   write(".\n");
-   while (read() > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
-   }
-   write(".\n");
-   while (read() > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
-   }
-   write(".\n");
-   while (read() > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
+   for (int i=0; i < 3; i++) {
+      write(".\n");
+      while (read() > 0) {
+         if (mainWin->m_displayAll) display_text(msg());
+      }
+      if (m_at_main_prompt) {
+         break;
+      }
    }
    display_text("\n");
 }
 
 void Console::displayToPrompt()
 { 
-   int stat;
+   int stat = 0;
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
@@ -512,7 +509,7 @@ void Console::displayToPrompt()
 
 void Console::discardToPrompt()
 { 
-   int stat;
+   int stat = 0;
    if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
@@ -568,7 +565,7 @@ int Console::read()
          m_at_main_prompt = false;
          continue;
       case BNET_MAIN_PROMPT:
-         if (mainWin->m_commDebug) Pmsg0(000, "PROMPT\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "MAIN PROMPT\n");
          m_at_prompt = true;
          m_at_main_prompt = true;
          mainWin->set_status(_("At prompt waiting for input ..."));
@@ -584,7 +581,7 @@ int Console::read()
          QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
-         if (mainWin->m_commDebug) Pmsg0(000, "CMD FAIL\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
          mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
          update_cursor();
          QApplication::restoreOverrideCursor();
@@ -600,28 +597,34 @@ int Console::read()
          }
          continue;
       case BNET_START_SELECT:
+         if (mainWin->m_commDebug) Pmsg0(000, "START SELECT\n");
          new selectDialog(this);    
          break;
       case BNET_RUN_CMD:
+         if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
          new runCmdPage();
          break;
       case BNET_ERROR_MSG:
+         if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
          m_sock->recv();              /* get the message */
          display_text(msg());
          QMessageBox::critical(this, "Error", msg(), QMessageBox::Ok);
          break;
       case BNET_WARNING_MSG:
+         if (mainWin->m_commDebug) Pmsg0(000, "WARNING MSG\n");
          m_sock->recv();              /* get the message */
          display_text(msg());
          QMessageBox::critical(this, "Warning", msg(), QMessageBox::Ok);
          break;
       case BNET_INFO_MSG:
+         if (mainWin->m_commDebug) Pmsg0(000, "INFO MSG\n");
          m_sock->recv();              /* get the message */
          display_text(msg());
          mainWin->set_status(msg());
          break;
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
+         if (mainWin->m_commDebug) Pmsg0(000, "BNET STOP\n");
          m_sock->close();
          m_sock = NULL;
          mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
@@ -641,13 +644,10 @@ int Console::read()
 }
 
 /* Called by signal when the Director has output for us */
-void Console::read_dir(int fd)
+void Console::read_dir(int /* fd */)
 {
-   int stat;
-   (void)fd;
-
    if (mainWin->m_commDebug) Pmsg0(000, "read_dir\n");
-   while ((stat = read()) >= 0) {
+   while (read() >= 0) {
       display_text(msg());
    }
 }
