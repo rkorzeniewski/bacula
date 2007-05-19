@@ -1,6 +1,9 @@
               Technical notes on version 2.1
 
 General:
+18May07
+kes  Cleanup incorrect email addresses in bsmtp.
+kes  Make bat display initial messages rather than discard them.
 16May07
 kes  First cut of adding .mod to the run command.    
 kes  Implement auto display of messages in bat.
