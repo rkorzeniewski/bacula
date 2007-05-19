@@ -111,6 +111,8 @@ void JobList::populateTable()
       purgedComboBox->addItem("Any");
       purgedComboBox->addItems( QStringList() << "0" << "1");
       statusComboBox->addItem("Any");
+      fileSetComboBox->addItem("Any");
+      fileSetComboBox->addItems(m_console->fileset_list);
       QString statusQuery("SELECT JobStatusLong FROM Status");
       QStringList statusResults, statusLongList;
       if (m_console->sql_cmd(statusQuery, statusResults)) {
@@ -135,43 +137,57 @@ void JobList::populateTable()
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
             " Job.JobBytes AS Bytes,"
             " Job.JobStatus AS Status, Status.JobStatusLong AS StatusLong,"
-            " Job.PurgedFiles AS Purged"
-            " FROM Job,Client,Status";
+            " Job.PurgedFiles AS Purged, FileSet.FileSet"
+            " FROM Job"
+            " LEFT OUTER JOIN Client ON (Client.ClientId=Job.ClientId)"
+            " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId)"
+            " LEFT OUTER JOIN Status ON (Job.JobStatus=Status.JobStatus)"
+            " LEFT OUTER JOIN JobMedia ON (JobMedia.JobId=Job.JobId)"
+            " LEFT OUTER JOIN Media ON (JobMedia.MediaId=Media.MediaId)";
+   QStringList conditions;
    if (m_mediaName != "Any") {
-      query += ",JobMedia,Media";
-   }
-   query += " WHERE Client.ClientId=Job.ClientId AND Job.JobStatus=Status.JobStatus";
-   if (m_mediaName != "Any") {
-      query += " AND JobMedia.JobId=Job.JobId AND JobMedia.MediaId=Media.MediaId"
-               " AND Media.VolumeName='" + m_mediaName + "'";
+      conditions.append("Media.VolumeName='" + m_mediaName + "'");
    }
    int clientIndex = clientsComboBox->currentIndex();
    if (clientIndex != -1)
       m_clientName = clientsComboBox->itemText(clientIndex);
    if (m_clientName != "Any") {
-      query += " AND Client.Name='" + m_clientName + "'";
+      conditions.append("Client.Name='" + m_clientName + "'");
    }
    int jobIndex = jobComboBox->currentIndex();
    if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != "Any")) {
-      query += " AND Job.Name='" + jobComboBox->itemText(jobIndex) + "'";
+      conditions.append("Job.Name='" + jobComboBox->itemText(jobIndex) + "'");
    }
    int levelIndex = levelComboBox->currentIndex();
    if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != "Any")) {
-      query += " AND Job.Level='" + levelComboBox->itemText(levelIndex) + "'";
+      conditions.append("Job.Level='" + levelComboBox->itemText(levelIndex) + "'");
    }
    int statusIndex = statusComboBox->currentIndex();
    if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != "Any")) {
-      query += " AND Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'";
+      conditions.append("Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'");
    }
    int purgedIndex = purgedComboBox->currentIndex();
    if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != "Any")) {
-      query += " AND Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'";
+      conditions.append("Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'");
+   }
+   int fileSetIndex = fileSetComboBox->currentIndex();
+   if ((fileSetIndex != -1) && (fileSetComboBox->itemText(fileSetIndex) != "Any")) {
+      conditions.append("FileSet.FileSet='" + fileSetComboBox->itemText(fileSetIndex) + "'");
    }
    /* If Limit check box For limit by days is checked  */
    if (daysCheckBox->checkState() == Qt::Checked) {
       QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
       QString since = stamp.toString(Qt::ISODate);
-      query += " AND Job.Starttime>'" + since + "'";
+      conditions.append("Job.Starttime>'" + since + "'");
+   }
+   bool first = true;
+   foreach (QString condition, conditions) {
+      if (first) {
+         query += " WHERE " + condition;
+         first = false;
+      } else {
+         query += " AND " + condition;
+      }
    }
    /* Descending */
    query += " ORDER BY Job.Starttime DESC, Job.JobId DESC";
@@ -185,7 +201,7 @@ void JobList::populateTable()
    /* Set up the Header for the table */
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
-      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" );
+      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" << "File Set" );
    m_purgedIndex = headerlist.indexOf("Purged");
    m_typeIndex = headerlist.indexOf("Job Type");
    statusIndex = headerlist.indexOf("Job Status");
@@ -198,7 +214,7 @@ void JobList::populateTable()
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
    /*  This could be a user preference debug message?? */
-   //printf("Query cmd : %s\n",query.toUtf8().data());
+   printf("Query cmd : %s\n",query.toUtf8().data());
    if (m_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 
@@ -266,8 +282,8 @@ void JobList::setStatusColor(QTableWidgetItem *item, QString &field)
  */
 void JobList::PgSeltreeWidgetClicked()
 {
-   populateTable();
    if (!m_populated) {
+      populateTable();
       m_populated=true;
    }
 }
@@ -278,8 +294,8 @@ void JobList::PgSeltreeWidgetClicked()
  */
 void JobList::currentStackItem()
 {
+   populateTable();
    if (!m_populated) {
-      populateTable();
       m_contextActions.append(actionRefreshJobList);
       m_populated=true;
    }
