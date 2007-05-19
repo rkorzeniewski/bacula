@@ -4,9 +4,9 @@ Bacula - Windows Version Disclaimer
 Please note, only the Win32 Client (File daemon) is supported.  All the
 other components (Director, Storage daemon, their utilities) are provided
 on an "as is" basis.  Unfortunately, they are neither properly tested,   
-documented, or supported.  This means that we cannot accept bug reports
-against the non-supported components.  For them to be supported, we need
-three things from the Open Source community:
+documented, or supported.  This means that we cannot ensure that bug reports
+against the non-supported components will be fixed.  For them to be supported, 
+we need three things from the Open Source community:
 
 1. Full documentation of the Windows particularities of the Director,
    the Storage daemon, and their utilities in the Bacula manual.
@@ -55,6 +55,10 @@ standard Windows code page coding.  This occurs for the Working Directory, and
 when it happens the daemon will not start since Bacula cannot find the directory.
 The workaround is to manually edit the appropriate conf file and ensure that it
 is written out in UTF-8 format.
+
+The conf files can be edited with any UTF-8 compatible editor, or on most 
+modern Win32 machines, you can edit them with notepad, then choose UTF-8
+output encoding before saving them.
 
 
 Storage and Director Services
