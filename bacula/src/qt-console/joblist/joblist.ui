@@ -133,7 +133,7 @@
          <item>
           <widget class="QSpinBox" name="daysSpinBox" >
            <property name="singleStep" >
-            <number>10</number>
+            <number>7</number>
            </property>
           </widget>
          </item>
@@ -324,7 +324,7 @@
   </layout>
   <action name="actionRefreshJobList" >
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset>../../../../../../../:images/run.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Job List</string>
@@ -335,7 +335,7 @@
   </action>
   <action name="actionListJobid" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobid</string>
@@ -343,7 +343,7 @@
   </action>
   <action name="actionListFilesOnJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>List Files On Job</string>
@@ -351,7 +351,7 @@
   </action>
   <action name="actionListJobMedia" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobMedia</string>
@@ -359,7 +359,7 @@
   </action>
   <action name="actionListVolumes" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>ListVolumes</string>
@@ -367,7 +367,7 @@
   </action>
   <action name="actionLongListJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>LongListJob</string>
@@ -375,7 +375,7 @@
   </action>
   <action name="actionDeleteJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>DeleteJob</string>
@@ -383,7 +383,7 @@
   </action>
   <action name="actionPurgeFiles" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>PurgeFiles</string>
@@ -391,7 +391,7 @@
   </action>
   <action name="actionRestoreFromJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Restore From Job</string>
@@ -399,7 +399,7 @@
   </action>
   <action name="actionRestoreFromTime" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Restore From Time</string>
@@ -407,7 +407,7 @@
   </action>
   <action name="actionShowLogForJob" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset>../../../../../../../:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Show Log for Job</string>

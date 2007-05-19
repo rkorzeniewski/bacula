@@ -52,6 +52,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
+   readPreferences();
    treeWidget->clear();
    treeWidget->setColumnCount(1);
    treeWidget->setHeaderLabel("Select Page");
@@ -72,11 +73,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);
    m_currentConsole->setCurrent();
-   /*  FIXME
-    *  I'd like to turn this into a debug item
-    *  DIRRES* dirres = m_currentConsole->getDirRes();
-    *  printf("Setting initial window to %s\n", dirres->name());
-    */
+   if (m_miscDebug) {
+      QString directoryResourceName;
+      m_currentConsole->getDirResName(directoryResourceName);
+      Pmsg1(000, "Setting initial window to %s\n", directoryResourceName.toUtf8().data());
+   }
 }
 
 void MainWin::createPages()
@@ -608,8 +609,15 @@ QTreeWidgetItem *MainWin::currentTopItem()
 void MainWin::setPreferences()
 {
    prefsDialog prefs;
-   prefs.commDebug->setCheckState(g_commDebug ? Qt::Checked : Qt::Unchecked);
-   prefs.displayAll->setCheckState(g_displayAll ? Qt::Checked : Qt::Unchecked);
+   prefs.commDebug->setCheckState(m_commDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.displayAll->setCheckState(m_displayAll ? Qt::Checked : Qt::Unchecked);
+   prefs.sqlDebug->setCheckState(m_sqlDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.commandDebug->setCheckState(m_commandDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.miscDebug->setCheckState(m_miscDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.recordLimit->setCheckState(m_recordLimitCheck ? Qt::Checked : Qt::Unchecked);
+   prefs.recordSpinBox->setValue(m_recordLimitVal);
+   prefs.daysLimit->setCheckState(m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
+   prefs.daysSpinBox->setValue(m_daysLimitVal);
    prefs.exec();
 }
 
@@ -622,12 +630,48 @@ prefsDialog::prefsDialog()
 void prefsDialog::accept()
 {
    this->hide();
-   g_commDebug = this->commDebug->checkState() == Qt::Checked;
-   g_displayAll = this->displayAll->checkState() == Qt::Checked;
+   mainWin->m_commDebug = this->commDebug->checkState() == Qt::Checked;
+   mainWin->m_displayAll = this->displayAll->checkState() == Qt::Checked;
+   mainWin->m_sqlDebug = this->sqlDebug->checkState() == Qt::Checked;
+   mainWin->m_commandDebug = this->commandDebug->checkState() == Qt::Checked;
+   mainWin->m_miscDebug = this->miscDebug->checkState() == Qt::Checked;
+   mainWin->m_recordLimitCheck = this->recordLimit->checkState() == Qt::Checked;
+   mainWin->m_recordLimitVal = this->recordSpinBox->value();
+   mainWin->m_daysLimitCheck = this->daysLimit->checkState() == Qt::Checked;
+   mainWin->m_daysLimitVal = this->daysSpinBox->value();
+   QSettings settings("www.bacula.org", "bat");
+   settings.beginGroup("Messages");
+   settings.setValue("commDebug", mainWin->m_commDebug);
+   settings.setValue("displayAll", mainWin->m_displayAll);
+   settings.setValue("sqlDebug", mainWin->m_sqlDebug);
+   settings.setValue("commandDebug", mainWin->m_commandDebug);
+   settings.setValue("miscDebug", mainWin->m_miscDebug);
+   settings.setValue("recordLimitCheck", mainWin->m_recordLimitCheck);
+   settings.setValue("recordLimitVal", mainWin->m_recordLimitVal);
+   settings.setValue("daysLimitCheck", mainWin->m_daysLimitCheck);
+   settings.setValue("daysLimitVal", mainWin->m_daysLimitVal);
+   settings.endGroup();
 }
 
 void prefsDialog::reject()
 {
    this->hide();
    mainWin->set_status("Canceled");
+}
+
+/* read preferences for the prefences dialog box */
+void MainWin::readPreferences()
+{
+   QSettings settings("www.bacula.org", "bat");
+   settings.beginGroup("Messages");
+   m_commDebug = settings.value("commDebug", false).toBool();
+   m_displayAll = settings.value("displayAll", false).toBool();
+   m_sqlDebug = settings.value("sqlDebug", false).toBool();
+   m_commandDebug = settings.value("commandDebug", false).toBool();
+   m_miscDebug = settings.value("miscDebug", false).toBool();
+   m_recordLimitCheck = settings.value("recordLimitCheck", true).toBool();
+   m_recordLimitVal = settings.value("recordLimitVal", 150).toInt();
+   m_daysLimitCheck = settings.value("daysLimitCheck", false).toBool();
+   m_daysLimitVal = settings.value("daysLimitVal", 28).toInt();
+   settings.endGroup();
 }

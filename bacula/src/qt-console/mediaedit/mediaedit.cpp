@@ -78,8 +78,9 @@ MediaEdit::MediaEdit(Console *console, QString &mediaId)
    query += " AND Media.MediaId='" + mediaId + "'";
    query += " ORDER BY Pool.Name";
 
-   /* FIXME Make this a user configurable logging action and dont use printf */
-   //printf("MediaList query cmd : %s\n",query.toUtf8().data());
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "MediaList query cmd : %s\n",query.toUtf8().data());
+   }
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
       QString field;
@@ -157,8 +158,9 @@ void MediaEdit::accept()
        docmd = true;
    }
    if (docmd) {
-      /* FIXME Make this a user configurable logging action and dont use printf */
-      //printf("sending command : %s\n",scmd.toUtf8().data());
+      if (mainWin->m_commandDebug) {
+         Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
+      }
       m_console->write_dir(scmd.toUtf8().data());
       m_console->displayToPrompt();
       m_console->notify(true);

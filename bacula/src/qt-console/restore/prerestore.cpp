@@ -166,8 +166,9 @@ void prerestorePage::okButtonPushed()
       cmd += " all done";
    }
 
-   /* ***FIXME*** */
-   //printf("preRestore command \'%s\'\n", cmd.toUtf8().data());
+   if (mainWin->m_commandDebug) {
+      Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
+   }
    consoleCommand(cmd);
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
@@ -239,7 +240,7 @@ int prerestorePage::jobdefsFromJob(QStringList &fieldlist, QString &jobId)
    " From Job, Client, FileSet"
    " WHERE Job.FileSetId=FileSet.FileSetId AND Job.ClientId=Client.ClientId"
    " AND JobId=\'" + jobId + "\'";
-   //printf("query = %s\n", query.toUtf8().data());
+   if (mainWin->m_sqlDebug) { Pmsg1(000, "query = %s\n", query.toUtf8().data()); }
    QStringList results;
    if (m_console->sql_cmd(query, results)) {
       QString field;

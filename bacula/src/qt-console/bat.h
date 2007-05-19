@@ -46,8 +46,6 @@ using namespace qstd;
 
 extern MainWin *mainWin;
 extern QApplication *app;
-extern bool g_commDebug;
-extern bool g_displayAll;
 
 int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);
 

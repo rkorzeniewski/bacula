@@ -80,8 +80,6 @@ void Clients::populateTree()
 
    mp_treeWidget->setColumnCount(headerlist.count());
    mp_treeWidget->setHeaderLabels(headerlist);
-   /* This could be a log item */
-   //printf("In Clients::populateTree()\n");
 
    foreach (QString clientName, m_console->client_list){
       clientItem = new QTreeWidgetItem(topItem);
@@ -99,7 +97,9 @@ void Clients::populateTree()
 
       QStringList results;
       /* This could be a log item */
-      //printf("Clients query cmd : %s\n",query.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Clients query cmd : %s\n",query.toUtf8().data());
+      }
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount == 1){

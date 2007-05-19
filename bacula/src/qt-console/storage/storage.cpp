@@ -84,8 +84,6 @@ void Storage::populateTree()
 
    mp_treeWidget->setColumnCount(headerlist.count());
    mp_treeWidget->setHeaderLabels(headerlist);
-   /* This could be a log item */
-   //printf("In Storage::populateTree()\n");
 
    foreach(QString storageName, m_console->storage_list){
       storageItem = new QTreeWidgetItem(topItem);
@@ -101,7 +99,9 @@ void Storage::populateTree()
 
       QStringList results;
       /* This could be a log item */
-      //printf("Storage query cmd : %s\n",query.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Storage query cmd : %s\n",query.toUtf8().data());
+      }
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount == 1){
