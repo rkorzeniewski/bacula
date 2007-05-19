@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: branch 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-05-17 15:29+0200\n"
+"POT-Creation-Date: 2007-05-19 10:33+0200\n"
 "PO-Revision-Date: 2006-04-13 08:14+0200\n"
 "Last-Translator:  <kern@sibbald.com>\n"
 "Language-Team: Spanish\n"
@@ -13832,17 +13832,17 @@ msgstr ""
 msgid "Could not open data file: %s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:93
+#: src/tools/bsmtp.c:117
 #, c-format
 msgid "Fatal malformed reply from %s: %s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:101
+#: src/tools/bsmtp.c:125
 #, c-format
 msgid "Fatal fgets error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:132
+#: src/tools/bsmtp.c:156
 #, c-format
 msgid ""
 "\n"
@@ -13860,56 +13860,56 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:263
+#: src/tools/bsmtp.c:287
 msgid "Fatal error: no recipient given.\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:294
+#: src/tools/bsmtp.c:318
 #, c-format
 msgid "Fatal gethostname error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:298
+#: src/tools/bsmtp.c:322
 #, c-format
 msgid "Fatal gethostbyname for myself failed \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:334
+#: src/tools/bsmtp.c:358
 #, c-format
 msgid "Error unknown mail host \"%s\": ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:337
+#: src/tools/bsmtp.c:361
 msgid "Retrying connection using \"localhost\".\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:345
+#: src/tools/bsmtp.c:369
 #, c-format
 msgid "Fatal error: Unknown address family for smtp host: %d\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:354 src/tools/bsmtp.c:359
+#: src/tools/bsmtp.c:378 src/tools/bsmtp.c:383
 #, c-format
 msgid "Fatal socket error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:364
+#: src/tools/bsmtp.c:388
 #, c-format
 msgid "Fatal connect error to %s: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:372
+#: src/tools/bsmtp.c:396
 #, c-format
 msgid "Fatal _open_osfhandle error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:379 src/tools/bsmtp.c:383 src/tools/bsmtp.c:392
-#: src/tools/bsmtp.c:396
+#: src/tools/bsmtp.c:403 src/tools/bsmtp.c:407 src/tools/bsmtp.c:416
+#: src/tools/bsmtp.c:420
 #, c-format
 msgid "Fatal fdopen error: ERR=%s\n"
 msgstr ""
 
-#: src/tools/bsmtp.c:388
+#: src/tools/bsmtp.c:412
 #, c-format
 msgid "Fatal dup error: ERR=%s\n"
 msgstr ""
