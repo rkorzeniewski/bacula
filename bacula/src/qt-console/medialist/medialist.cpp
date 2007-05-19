@@ -106,8 +106,9 @@ void MediaList::populateTree()
       query += " AND Pool.Name='" + pool_listItem + "'";
       query += " ORDER BY Media";
    
-      /* FIXME Make this a user configurable loggin action and dont use printf */
-      //printf("MediaList query cmd : %s\n",query.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "MediaList query cmd : %s\n",query.toUtf8().data());
+      }
       QStringList results;
       if (m_console->sql_cmd(query, results)) {
          QString field;

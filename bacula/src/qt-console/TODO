@@ -1,15 +1,10 @@
 dhb
 ====================================================
-Further testing of restore with .mod
-
-User preferences.  With log to stdout options.
-Have settings for defaults of limits on joblist
-
-Add fileset to joblist.
-
 joblist cancel a running job.
 
 Set default for replace in run restore job to "always"??????
+
+Fixes to final restore widgets.
 
 Add context sensitive options for most commands
 status dir on page select director item
@@ -18,13 +13,7 @@ As well as many more
 update slots scan
 see COMMANDS file
 
-Option in joblist like with restore from jobid but restore populating timestamp
-of the selected job.
-
 Get the 5 second bring to bottom of console to stop
-
-Resolve issue of connection during restore selection.  Could go with preempt of
-connections.  (Kern is to work on)
 
 ========LOW priority items:
 Human readable in joblist for purged, joblevel and job type.
@@ -86,6 +75,20 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Option in joblist like with restore from jobid but restore populating timestamp
+of the selected job.
+
+User preferences.  With log to stdout options.
+Have settings for defaults of limits on joblist
+
+Resolve issue of connection during restore selection.  Could go with preempt of
+connections.  Temporary resolution is in.  (Kern is to work on)
+
+Further testing of restore with .mod
+   Tested a few things, not all.
+
+Add fileset to joblist.
+
 Test left pane of restore with 2 windows drives in one backup job.
    Yup, id didn't work, now it does.
 

@@ -81,8 +81,6 @@ void FileSet::populateTree()
 
    mp_treeWidget->setColumnCount(headerlist.count());
    mp_treeWidget->setHeaderLabels(headerlist);
-   /* This could be a log item */
-   //printf("In FileSet::populateTree()\n");
 
    foreach(QString filesetName, m_console->fileset_list) {
       filesetItem = new QTreeWidgetItem(topItem);
@@ -99,8 +97,9 @@ void FileSet::populateTree()
       query += " ORDER BY FileSet";
 
       QStringList results;
-      /* This could be a log item */
-      //printf("FileSet query cmd : %s\n",query.toUtf8().data());
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "FileSet query cmd : %s\n",query.toUtf8().data());
+      }
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount == 1){

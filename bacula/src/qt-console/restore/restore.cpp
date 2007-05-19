@@ -162,22 +162,30 @@ void restorePage::addDirectory(QString &newdirr)
    bool ok = true;
    bool windrive = false;
 
-   //printf("In addDirectory cwd \"%s\" newdir \"%s\"\n", m_cwd.toUtf8().data(),
-        //newdir.toUtf8().data());
+   if (mainWin->m_miscDebug) {
+      QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
+                    .arg(m_cwd)
+                    .arg(newdir);
+      Pmsg0(000, msg.toUtf8().data());
+   }
 
    /* add unix '/' directory first */
    if (m_dirPaths.empty() && (regex.indexIn(fullpath,0) == -1)) {
       QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
       QString text("/");
       item->setText(0, text.toUtf8().data());
-      //printf("Pre Inserting %s\n",text.toUtf8().data());
+      if (mainWin->m_miscDebug) {
+         Pmsg1(000, "Pre Inserting %s\n",text.toUtf8().data());
+      }
       m_dirPaths.insert(text, item);
       m_dirTreeItems.insert(item, text);
    }
 
    if (regex.indexIn(fullpath,0) == 0) {
       /* this is a windows drive */
-      //printf("Need to do windows \"letter\":/\n");
+      if (mainWin->m_miscDebug) {
+         printf("Need to do windows \"letter\":/\n");
+      }
       fullpath.replace(0,1,"");
       windrive = true;
    }
@@ -198,13 +206,19 @@ void restorePage::addDirectory(QString &newdirr)
             directoryWidget->expandItem(parent);
          } else {
             ok = false;
-            //printf("In else of if parent cwd \"%s\" newdir \"%s\"\n", 
-               //m_cwd.toUtf8().data() ,newdir.toUtf8().data());
+            if (mainWin->m_miscDebug) {
+               QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
+                    .arg(m_cwd)
+                    .arg(newdir);
+               Pmsg0(000, msg.toUtf8().data());
+            }
          }
       }
       /* insert into both forward and reverse hash */
       if (ok) {
-         //printf("Inserting %s\n",fullpath.toUtf8().data());
+         if (mainWin->m_miscDebug) {
+            Pmsg1(000, "Inserting %s\n",fullpath.toUtf8().data());
+         }
          m_dirPaths.insert(fullpath, item);
          m_dirTreeItems.insert(item, fullpath);
       }
@@ -280,8 +294,10 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
       if (item) {
          directoryWidget->setCurrentItem(item);
       } else {
-         /* FIXME ***** Create an error log */
-         //printf("DoubleClick else of item column %i fullpath %s\n", column, fullpath.toUtf8().data());
+         QString msg = QString("DoubleClick else of item column %1 fullpath %2\n")
+              .arg(column,10)
+              .arg(fullpath);
+         Pmsg0(000, msg.toUtf8().data());
       }
    }
 }

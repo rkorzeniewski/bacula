@@ -69,6 +69,16 @@ public:
    /* This is a list of consoles */
    QHash<QTreeWidgetItem*,Console*> m_consoleHash;
    void createPageJobList(QString &, QString &, QTreeWidgetItem *);
+   bool m_commDebug;
+   bool m_displayAll;
+   bool m_sqlDebug;
+   bool m_commandDebug;
+   bool m_miscDebug;
+   bool m_recordLimitCheck;
+   int m_recordLimitVal;
+   bool m_daysLimitCheck;
+   int m_daysLimitVal;
+
 
 public slots:
    void input_line();
@@ -83,6 +93,7 @@ public slots:
    void toggleDockContextWindow();
    void closePage();
    void setPreferences();
+   void readPreferences();
 
 protected:
    void closeEvent(QCloseEvent *event);

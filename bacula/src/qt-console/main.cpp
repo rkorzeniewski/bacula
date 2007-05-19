@@ -41,14 +41,6 @@
 MainWin *mainWin;
 QApplication *app;
 
-/*
- * ***FIXME*** move the following two into the MainWin class or
- *   the Console class.
- */
-bool g_commDebug = false;
-bool g_displayAll = false;
-
-
 /* Forward referenced functions */
 void terminate_console(int sig);                                
 static void usage();

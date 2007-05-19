@@ -57,10 +57,10 @@ JobList::JobList(QString &mediaName, QString &clientname,
    createConnections();
 
    /* Set Defaults for check and spin for limits */
-   limitCheckBox->setCheckState(Qt::Checked);
-   limitSpinBox->setValue(150);
-   daysCheckBox->setCheckState(Qt::Unchecked);
-   daysSpinBox->setValue(30);
+   limitCheckBox->setCheckState(mainWin->m_recordLimitCheck ? Qt::Checked : Qt::Unchecked);
+   limitSpinBox->setValue(mainWin->m_recordLimitVal);
+   daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
+   daysSpinBox->setValue(mainWin->m_daysLimitVal);
 }
 
 /*
@@ -86,8 +86,10 @@ void JobList::populateTable()
       if (clientIndex != -1)
          clientsComboBox->setCurrentIndex(clientIndex);
 
-      /* Not m_console->volume_list will query database */
       QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+      }
       QStringList results, volumeList;
       if (m_console->sql_cmd(query, results)) {
          QString field;
@@ -114,6 +116,9 @@ void JobList::populateTable()
       fileSetComboBox->addItem("Any");
       fileSetComboBox->addItems(m_console->fileset_list);
       QString statusQuery("SELECT JobStatusLong FROM Status");
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+      }
       QStringList statusResults, statusLongList;
       if (m_console->sql_cmd(statusQuery, statusResults)) {
          QString field;
@@ -213,8 +218,9 @@ void JobList::populateTable()
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
 
-   /*  This could be a user preference debug message?? */
-   printf("Query cmd : %s\n",query.toUtf8().data());
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+   }
    if (m_console->sql_cmd(query, results)) {
       m_resultCount = results.count();
 

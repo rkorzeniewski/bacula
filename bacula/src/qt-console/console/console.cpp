@@ -190,7 +190,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
    notify(false);
    write(cmd);
    while ((stat = read()) > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -222,7 +222,7 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    pm_strcat(cmd, "\"");
    write(cmd.c_str());
    while ((stat = read()) > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -247,7 +247,7 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
    scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
    write(scmd);
    while ((stat = read()) > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
       def = strchr(msg(), '=');
       if (!def) {
          continue;
@@ -474,7 +474,7 @@ int Console::write(const char *msg)
    m_sock->msglen = pm_strcpy(m_sock->msg, msg);
    m_at_prompt = false;
    m_at_main_prompt = false;
-   if (g_commDebug) Pmsg1(000, "send: %s\n", msg);
+   if (mainWin->m_commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();
 }
 
@@ -485,15 +485,15 @@ void Console::beginNewCommand()
 {
    write(".\n");
    while (read() > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
    }
    write(".\n");
    while (read() > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
    }
    write(".\n");
    while (read() > 0) {
-      if (g_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) display_text(msg());
    }
    display_text("\n");
 }
@@ -501,25 +501,25 @@ void Console::beginNewCommand()
 void Console::displayToPrompt()
 { 
    int stat;
-   if (g_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
+   if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
          display_text(msg());
       }
    }
-   if (g_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
+   if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
 }
 
 void Console::discardToPrompt()
 { 
    int stat;
-   if (g_commDebug) Pmsg0(000, "discardToPrompt\n");
+   if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-         if (g_displayAll) display_text(msg());
+         if (mainWin->m_displayAll) display_text(msg());
       }
    }
-   if (g_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
+   if (mainWin->m_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
 }
 
 
@@ -548,27 +548,27 @@ int Console::read()
             m_at_prompt = false;
             m_at_main_prompt = false;
          }
-         if (g_commDebug) Pmsg1(000, "got: %s", m_sock->msg);
+         if (mainWin->m_commDebug) Pmsg1(000, "got: %s", m_sock->msg);
       }
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING:
-         if (g_commDebug) Pmsg0(000, "MSGS PENDING\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
          write_dir(".messages");
          displayToPrompt();
          m_messages_pending = false;
          continue;
       case BNET_CMD_OK:
-         if (g_commDebug) Pmsg0(000, "CMD OK\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
          continue;
       case BNET_CMD_BEGIN:
-         if (g_commDebug) Pmsg0(000, "CMD BEGIN\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "CMD BEGIN\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
          continue;
       case BNET_MAIN_PROMPT:
-         if (g_commDebug) Pmsg0(000, "PROMPT\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "PROMPT\n");
          m_at_prompt = true;
          m_at_main_prompt = true;
          mainWin->set_status(_("At prompt waiting for input ..."));
@@ -576,7 +576,7 @@ int Console::read()
          QApplication::restoreOverrideCursor();
          break;
       case BNET_PROMPT:
-         if (g_commDebug) Pmsg0(000, "PROMPT\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "PROMPT\n");
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
@@ -584,14 +584,14 @@ int Console::read()
          QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
-         if (g_commDebug) Pmsg0(000, "CMD FAIL\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "CMD FAIL\n");
          mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
          update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       /* We should not get this one */
       case BNET_EOD:
-         if (g_commDebug) Pmsg0(000, "EOD\n");
+         if (mainWin->m_commDebug) Pmsg0(000, "EOD\n");
          mainWin->set_status_ready();
          update_cursor();
          QApplication::restoreOverrideCursor();
@@ -646,7 +646,7 @@ void Console::read_dir(int fd)
    int stat;
    (void)fd;
 
-   if (g_commDebug) Pmsg0(000, "read_dir\n");
+   if (mainWin->m_commDebug) Pmsg0(000, "read_dir\n");
    while ((stat = read()) >= 0) {
       display_text(msg());
    }

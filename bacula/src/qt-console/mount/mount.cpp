@@ -65,8 +65,9 @@ void mountDialog::accept()
    scmd = QString("mount storage=\"%1\" slot=%2")
                   .arg(m_storageName)
                   .arg(slotSpin->value());
-   /* FIXME Make this a user configurable logging action and dont use printf */
-   //printf("sending command : %s\n",scmd.toUtf8().data());
+   if (mainWin->m_commandDebug) {
+      Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
+   }
 
    m_console->display_text("Context sensitive command :\n\n");
    m_console->display_text("****    ");

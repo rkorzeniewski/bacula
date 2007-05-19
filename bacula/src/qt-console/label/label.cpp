@@ -92,8 +92,9 @@ void labelPage::okButtonPushed()
                   .arg(poolCombo->currentText())
                   .arg(storageCombo->currentText()) 
                   .arg(slotSpin->value());
-   /* FIXME Make this a user configurable logging action and dont use printf */
-   //printf("sending command : %s\n",scmd.toUtf8().data());
+   if (mainWin->m_commandDebug) {
+      Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
+   }
    m_console->write_dir(scmd.toUtf8().data());
    m_console->displayToPrompt();
    m_console->notify(true);
