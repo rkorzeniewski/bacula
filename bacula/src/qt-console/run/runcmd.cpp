@@ -167,6 +167,8 @@ void runCmdPage::okButtonPushed()
 void runCmdPage::cancelButtonPushed()
 {
    m_console->displayToPrompt();
+   m_console->write_dir(".");
+   m_console->displayToPrompt();
    mainWin->set_status(" Canceled");
    this->hide();
    m_console->notify(true);

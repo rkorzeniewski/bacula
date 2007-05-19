@@ -159,7 +159,8 @@ void restorePage::addDirectory(QString &newdirr)
    QString newdir = newdirr;
    QString fullpath = m_cwd + newdirr;
    QRegExp regex("^/[a-z]:/$");
-   bool ok=true;
+   bool ok = true;
+   bool windrive = false;
 
    //printf("In addDirectory cwd \"%s\" newdir \"%s\"\n", m_cwd.toUtf8().data(),
         //newdir.toUtf8().data());
@@ -176,14 +177,15 @@ void restorePage::addDirectory(QString &newdirr)
 
    if (regex.indexIn(fullpath,0) == 0) {
       /* this is a windows drive */
-      //printf("Need to do windows c:/\n");
+      //printf("Need to do windows \"letter\":/\n");
       fullpath.replace(0,1,"");
+      windrive = true;
    }
  
    /* is it already existent ?? */
    if (!m_dirPaths.contains(fullpath)) {
       QTreeWidgetItem *item = NULL;
-      if (m_dirPaths.empty()) {
+      if (windrive) {
          /* this is the base widget */
          item = new QTreeWidgetItem(directoryWidget);
          item->setText(0, fullpath.toUtf8().data());
@@ -195,7 +197,7 @@ void restorePage::addDirectory(QString &newdirr)
             item->setText(0, newdir.toUtf8().data());
             directoryWidget->expandItem(parent);
          } else {
-            ok=false;
+            ok = false;
             //printf("In else of if parent cwd \"%s\" newdir \"%s\"\n", 
                //m_cwd.toUtf8().data() ,newdir.toUtf8().data());
          }
