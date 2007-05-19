@@ -248,7 +248,7 @@ void MediaList::currentStackItem()
    if(!m_populated) {
       populateTree();
       /* add context sensitive menu items specific to this classto the page
-       * selector tree. m_m_contextActions is QList of QActions, so this is 
+       * selector tree. m_contextActions is QList of QActions, so this is 
        * only done once with the first population. */
       m_contextActions.append(actionRefreshMediaList);
       /* Create the context menu for the medialist tree */
