@@ -7,7 +7,7 @@
 %define _version @VERSION@
 %define _release 1
 %define depkgs_version 04Jan07
-%define _rescuever 2.0.0
+%define _rescuever 2.1.10
 %define docs_version @VERSION@
 
 # any patches for this release
@@ -437,7 +437,7 @@ BuildRequires: libbonoboui-devel >= 2.18
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! &{fc7}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{mdk} && ! %{fc3} && ! %{fc4} && ! %{fc5} && ! %{fc6} && ! %{fc7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
@@ -531,7 +531,7 @@ Requires: libtermcap
 Requires: glibc >= 2.4
 Requires: libtermcap
 %endif
-%if %{fc6} || %fc7}
+%if %{fc6} || %{fc7}
 Requires: glibc >= 2.5
 Requires: libtermcap
 %endif
