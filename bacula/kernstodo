@@ -49,8 +49,10 @@ Professional Needs:
 - Synthetic Full, Diff, Inc (Virtual, Reconstructed)
 - SD to SD
 - Modules for Databases, Exchange, ...
+- Novell NSS backup http://www.novell.com/coolsolutions/tools/18952.html
 
 Priority:
+- Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
 - How does restore JobId=nnn work? (Dirk)
 - What does: restore select fileset="TestSet" client="workplay-fd" pool="Default"
 > storage="File2"  before="2007-02-05 23:05:04" do?  (Dirk)

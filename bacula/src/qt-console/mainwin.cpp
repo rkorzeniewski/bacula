@@ -67,7 +67,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    readSettings();
 
-   foreach(Console *console, m_consoleHash){
+   foreach(Console *console, m_consoleHash) {
       console->connect();
    }
    m_currentConsole = (Console*)getFromHash(m_firstItem);

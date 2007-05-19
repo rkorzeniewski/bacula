@@ -158,7 +158,7 @@ void Console::connect()
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
    write(".api 1");
-   discardToPrompt();
+   displayToPrompt();
 
    beginNewCommand();
    dir_cmd(".jobs", job_list);

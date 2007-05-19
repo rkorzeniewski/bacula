@@ -70,13 +70,37 @@ static int mailport = 25;
 static char my_hostname[MAXSTRING];
 static bool content_utf8 = false;
 
+/* 
+ * Take input that may have names and other stuff and strip
+ *  it down to the mail box address ... i.e. what is enclosed
+ *  in < >.  Otherwise add < >.
+ */
+static char *cleanup_addr(char *addr, char *buf, int buf_len)
+{
+   char *p, *q;
+
+   if ((p = strchr(from_addr, '<')) == NULL) {
+      snprintf(buf, buf_len, "<%s>", addr);
+   } else {
+      /* Copy <addr> */
+      for (q=buf; *p && *p!='>'; ) {
+         *q++ = *p++;
+      }
+      if (*p) {
+         *q++ = *p;
+      }
+      *q = 0;
+  }
+  Dmsg2(100, "cleanup in=%s out=%s\n", addr, buf);
+  return buf;    
+}
 
 /*
  *  examine message from server
  */
 static void get_response(void)
 {
-    char buf[MAXSTRING];
+    char buf[1000];
 
     Dmsg0(50, "Calling fgets on read socket rfp.\n");
     buf[3] = 0;
@@ -184,7 +208,7 @@ __MINGW_IMPORT long     _dstbias;
  */
 int main (int argc, char *argv[])
 {
-    char buf[MAXSTRING];
+    char buf[1000];
     struct sockaddr_in sin;
     struct hostent *hp;
     int i, ch;
@@ -405,27 +429,15 @@ hp:
     */
    get_response(); /* banner */
    chat("helo %s\r\n", my_hostname);
-   if (strchr(from_addr, '<') == NULL) {
-      chat("mail from:<%s>\r\n", from_addr);
-   } else {
-      chat("mail from:%s\r\n", from_addr);
-   }
-
+   chat("mail from:%s\r\n", cleanup_addr(from_addr, buf, sizeof(buf)));
+   
    for (i = 0; i < argc; i++) {
       Dmsg1(20, "rcpt to: %s\n", argv[i]);
-      if (strchr(argv[i], '<') == NULL) {
-         chat("rcpt to:<%s>\r\n", argv[i]);
-      } else {
-         chat("rcpt to:%s\r\n", argv[i]);
-      }
+      chat("rcpt to:%s\r\n", cleanup_addr(argv[i], buf, sizeof(buf)));
    }
 
    if (cc_addr) {
-      if (strchr(cc_addr, '<') == NULL) {
-         chat("rcpt to:<%s>\r\n", cc_addr);
-      } else {
-         chat("rcpt to:%s\r\n", cc_addr);
-      }
+      chat("rcpt to:%s\r\n", cleanup_addr(cc_addr, buf, sizeof(buf)));
    }
    Dmsg0(20, "Data\n");
    chat("data\r\n");
