@@ -114,10 +114,10 @@ void FileSet::populateTree()
                /* Iterate through fields in the record */
                foreach (field, fieldlist) {
                   field = field.trimmed();  /* strip leading & trailing spaces */
-                  filesetItem->setData(index+1, Qt::UserRole, 1);
+                  filesetItem->setData(index, Qt::UserRole, 1);
                   /* Put media fields under the pool tree item */
-                  filesetItem->setData(index+1, Qt::UserRole, 1);
-                  filesetItem->setText(index+1, field);
+                  filesetItem->setData(index, Qt::UserRole, 1);
+                  filesetItem->setText(index, field);
                   index++;
                }
             }
