@@ -97,7 +97,7 @@ void MainWin::createPages()
       /* The top tree item representing the director */
       topItem = createTopPage(dir->name());
       topItem->setIcon(0, QIcon(":images/server.png"));
-      /* Set background to grey for ease of identification of inactive dirfector */
+      /* Set background to grey for ease of identification of inactive Director */
       QBrush greyBrush(Qt::lightGray);
       topItem->setBackground(0, greyBrush);
       m_currentConsole->setDirectorTreeItem(topItem);
@@ -117,15 +117,17 @@ void MainWin::createPages()
       item->setForeground(0, redBrush);
       m_currentConsole->dockPage();
 
-      /* create instances of the rest of the classes that will by default exist
-      * under each director */
+      /*
+       * Create instances in alphabetic order of the rest 
+       *  of the classes that will by default exist under each Director.  
+       */
 //    createPagebRestore();
-      createPageMediaList();
+      createPageClients();
+      createPageFileSet();
       QString emptymedia(""), emptyclient("");
       createPageJobList(emptymedia, emptyclient, NULL);
-      createPageClients();
+      createPageMediaList();
       createPageStorage();
-      createPageFileSet();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
