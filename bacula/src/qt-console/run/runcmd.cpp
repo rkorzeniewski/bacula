@@ -48,7 +48,6 @@
  */
 runCmdPage::runCmdPage()
 {
-   m_dtformat = "yyyy-MM-dd HH:mm:ss";
    m_name = "Restore Run";
    pgInitialize();
    setupUi(this);
@@ -76,7 +75,7 @@ void runCmdPage::fill()
    replaceCombo->addItems(QStringList() << "never" << "always" << "ifnewer" << "ifolder");
    replaceCombo->setCurrentIndex(replaceCombo->findText("never", Qt::MatchExactly));
    storageCombo->addItems(m_console->storage_list);
-   dateTimeEdit->setDisplayFormat(m_dtformat);
+   dateTimeEdit->setDisplayFormat(mainWin->m_dtformat);
 
    m_console->read();
    item = m_console->msg();
@@ -111,7 +110,7 @@ void runCmdPage::fill()
          continue;
       }
       if (item.startsWith("When:")) {
-         dateTimeEdit->setDateTime(QDateTime::fromString(val,m_dtformat));
+         dateTimeEdit->setDateTime(QDateTime::fromString(val,mainWin->m_dtformat));
          continue;
       }
       if (item.startsWith("Catalog:")) {
@@ -145,7 +144,7 @@ void runCmdPage::okButtonPushed()
    cmd += " fileset=\"" + filesetCombo->currentText() + "\"";
    cmd += " storage=\"" + storageCombo->currentText() + "\"";
    cmd += " replace=\"" + replaceCombo->currentText() + "\"";
-   cmd += " when=\"" + dateTimeEdit->dateTime().toString(m_dtformat) + "\"";
+   cmd += " when=\"" + dateTimeEdit->dateTime().toString(mainWin->m_dtformat) + "\"";
    cmd += " bootstrap=\"" + bootstrap->text() + "\"";
    cmd += " where=\"" + where->text() + "\"";
    QString pri;

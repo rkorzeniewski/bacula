@@ -59,7 +59,6 @@ prerestorePage::prerestorePage()
  */
 void prerestorePage::buildPage()
 {
-   m_dtformat = "yyyy-MM-dd HH:mm:ss";
    m_name = "Restore";
    setupUi(this);
    pgInitialize();
@@ -77,7 +76,7 @@ void prerestorePage::buildPage()
    storageCombo->addItems(m_console->storage_list);
    /* current or before . .  Start out with current checked */
    recentCheckBox->setCheckState(Qt::Checked);
-   beforeDateTime->setDisplayFormat(m_dtformat);
+   beforeDateTime->setDisplayFormat(mainWin->m_dtformat);
    beforeDateTime->setDateTime(QDateTime::currentDateTime());
    beforeDateTime->setEnabled(false);
    selectFilesRadio->setChecked(true);
@@ -109,7 +108,7 @@ void prerestorePage::buildPage()
          filesetCombo->setCurrentIndex(filesetCombo->findText(fieldlist[2], Qt::MatchExactly));
          clientCombo->setCurrentIndex(clientCombo->findText(fieldlist[1], Qt::MatchExactly));
          jobCombo->setCurrentIndex(jobCombo->findText(fieldlist[0], Qt::MatchExactly));
-         beforeDateTime->setDateTime(QDateTime::fromString(fieldlist[3], m_dtformat));
+         beforeDateTime->setDateTime(QDateTime::fromString(fieldlist[3], mainWin->m_dtformat));
      }
    }
    job_name_change(0);
@@ -153,7 +152,7 @@ void prerestorePage::okButtonPushed()
          cmd += " current";
       } else {
          QDateTime stamp = beforeDateTime->dateTime();
-         QString before = stamp.toString(m_dtformat);
+         QString before = stamp.toString(mainWin->m_dtformat);
          cmd += " before=\"" + before + "\"";
       }
    } else {
