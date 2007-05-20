@@ -78,6 +78,7 @@ public:
    int m_recordLimitVal;
    bool m_daysLimitCheck;
    int m_daysLimitVal;
+   QString m_dtformat;
 
 
 public slots:

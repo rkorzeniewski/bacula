@@ -56,7 +56,13 @@ runPage::runPage()
    clientCombo->addItems(m_console->client_list);
    poolCombo->addItems(m_console->pool_list);
    storageCombo->addItems(m_console->storage_list);
+   dateTimeEdit->setDisplayFormat(mainWin->m_dtformat);
    dateTimeEdit->setDateTime(dt.currentDateTime());
+   /*printf("listing messages resources");  ***FIME ***
+   foreach(QString mes, m_console->messages_list) {
+      printf("%s\n", mes.toUtf8().data());
+   }*/
+   messagesCombo->addItems(m_console->messages_list);
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
@@ -69,23 +75,28 @@ runPage::runPage()
 
 void runPage::okButtonPushed()
 {
-   char cmd[1000];
-
    this->hide();
-   
-   // ***FIXME**  add date/time from dateTimeEdit.
-   bsnprintf(cmd, sizeof(cmd),
-             "run job=\"%s\" fileset=\"%s\" level=%s client=\"%s\" pool=\"%s\" "
-             "storage=\"%s\" priority=\"%d\" yes\n",
-             jobCombo->currentText().toUtf8().data(),
-             filesetCombo->currentText().toUtf8().data(),
-             levelCombo->currentText().toUtf8().data(),
-             clientCombo->currentText().toUtf8().data(),
-             poolCombo->currentText().toUtf8().data(),
-             storageCombo->currentText().toUtf8().data(),
-             prioritySpin->value());
+   QString cmd;
+   QTextStream(&cmd) << "run" << 
+      " job=\"" << jobCombo->currentText() << "\"" <<
+      " fileset=\"" << filesetCombo->currentText() << "\"" <<
+      " level=\"" << levelCombo->currentText() << "\"" <<
+      " client=\"" << clientCombo->currentText() << "\"" <<
+      " pool=\"" << poolCombo->currentText() << "\"" <<
+      " storage=\"" << storageCombo->currentText() << "\"" <<
+      " priority=\"" << prioritySpin->value() << "\""
+      " when=\"" << dateTimeEdit->dateTime().toString(mainWin->m_dtformat) << "\"";
+   if (bootstrap->text() != "") {
+      cmd += " bootstrap=\"" + bootstrap->text() + "\""; 
+   }
+   cmd += " yes";
+//  messagesCombo->currentText().toUtf8().data(); FIXME messages not working
 
-   m_console->write_dir(cmd);
+   if (mainWin->m_commandDebug) {
+      Pmsg1(000, "command : %s\n", cmd.toUtf8().data());
+   }
+
+   m_console->write_dir(cmd.toUtf8().data());
    m_console->display_text(cmd);
    m_console->displayToPrompt();
    m_console->notify(true);
@@ -120,7 +131,6 @@ void runPage::job_name_change(int index)
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
       poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
-      typeCombo->clear();
-      typeCombo->addItem(job_defs.type);
+      messagesCombo->setCurrentIndex(messagesCombo->findText(job_defs.messages_name, Qt::MatchExactly));
    }
 }
