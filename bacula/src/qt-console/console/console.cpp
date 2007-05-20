@@ -410,21 +410,21 @@ void Console::display_textf(const char *fmt, ...)
 
 void Console::display_text(const QString buf)
 {
-   m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
+   update_cursor();
 }
 
 
 void Console::display_text(const char *buf)
 {
-   m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertText(buf);
+   update_cursor();
 }
 
 void Console::display_html(const QString buf)
 {
-   m_cursor->movePosition(QTextCursor::End);
    m_cursor->insertHtml(buf);
+   update_cursor();
 }
 
 /* Position cursor to end of screen */
@@ -569,7 +569,6 @@ int Console::read()
          m_at_prompt = true;
          m_at_main_prompt = true;
          mainWin->set_status(_("At prompt waiting for input ..."));
-         update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       case BNET_PROMPT:
@@ -577,20 +576,17 @@ int Console::read()
          m_at_prompt = true;
          m_at_main_prompt = false;
          mainWin->set_status(_("At prompt waiting for input ..."));
-         update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
          mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
-         update_cursor();
          QApplication::restoreOverrideCursor();
          break;
       /* We should not get this one */
       case BNET_EOD:
          if (mainWin->m_commDebug) Pmsg0(000, "EOD\n");
          mainWin->set_status_ready();
-         update_cursor();
          QApplication::restoreOverrideCursor();
          if (!m_api_set) {
             break;
