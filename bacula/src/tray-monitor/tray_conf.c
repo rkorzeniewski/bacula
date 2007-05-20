@@ -1,30 +1,7 @@
 /*
-*   Main configuration file parser for Bacula Tray Monitor.
-*
-*   Adapted from dird_conf.c
-*
-*   Note, the configuration file parser consists of three parts
-*
-*   1. The generic lexical scanner in lib/lex.c and lib/lex.h
-*
-*   2. The generic config  scanner in lib/parse_config.c and
-*       lib/parse_config.h.
-*       These files contain the parser code, some utility
-*       routines, and the common store routines (name, int,
-*       string).
-*
-*   3. The daemon specific file, which contains the Resource
-*       definitions as well as any specific store routines
-*       for the resource records.
-*
-*     Nicolas Boichat, August MMIV
-*
-*     Version $Id$
-*/
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,6 +24,29 @@
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+*   Main configuration file parser for Bacula Tray Monitor.
+*
+*   Adapted from dird_conf.c
+*
+*   Note, the configuration file parser consists of three parts
+*
+*   1. The generic lexical scanner in lib/lex.c and lib/lex.h
+*
+*   2. The generic config  scanner in lib/parse_config.c and
+*       lib/parse_config.h.
+*       These files contain the parser code, some utility
+*       routines, and the common store routines (name, int,
+*       string).
+*
+*   3. The daemon specific file, which contains the Resource
+*       definitions as well as any specific store routines
+*       for the resource records.
+*
+*     Nicolas Boichat, August MMIV
+*
+*     Version $Id$
 */
 
 #include "bacula.h"
@@ -174,10 +174,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
    }
    switch (type) {
    case R_MONITOR:
-      sendit(sock, _("Monitor: name=%s FDtimeout=%s SDtimeout=%s\n"),
-   reshdr->name,
-   edit_uint64(res->res_monitor.FDConnectTimeout, ed1),
-   edit_uint64(res->res_monitor.SDConnectTimeout, ed2));
+      sendit(sock, _("Monitor: name=%s FDtimeout=%s SDtimeout=%s\n"), 
+             reshdr->name,
+             edit_uint64(res->res_monitor.FDConnectTimeout, ed1),
+             edit_uint64(res->res_monitor.SDConnectTimeout, ed2));
       break;
    case R_DIRECTOR:
       sendit(sock, _("Director: name=%s address=%s FDport=%d\n"),
@@ -234,18 +234,18 @@ void free_resource(RES *sres, int type)
       break;
    case R_CLIENT:
       if (res->res_client.address) {
-   free(res->res_client.address);
+         free(res->res_client.address);
       }
       if (res->res_client.password) {
-   free(res->res_client.password);
+         free(res->res_client.password);
       }
       break;
    case R_STORAGE:
       if (res->res_store.address) {
-   free(res->res_store.address);
+         free(res->res_store.address);
       }
       if (res->res_store.password) {
-   free(res->res_store.password);
+         free(res->res_store.password);
       }
       break;
    case R_CONSOLE_FONT:
@@ -256,6 +256,7 @@ void free_resource(RES *sres, int type)
    default:
       printf(_("Unknown resource type %d in free_resource.\n"), type);
    }
+
    /* Common stuff again -- free the resource, recurse to next one */
    if (res) {
       free(res);
