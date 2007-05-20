@@ -79,8 +79,8 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
    nleft = nbytes;
    while (nleft > 0) {
       errno = 0;
-      nread = socketRead(bsock->fd, ptr, nleft);
-      if (bsock->timed_out || bsock->terminated) {
+      nread = socketRead(bsock->m_fd, ptr, nleft);
+      if (bsock->is_timed_out() || bsock->is_terminated()) {
          return nread;
       }
       if (nread == -1) {
@@ -110,8 +110,8 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nwritten;
 
-   if (bsock->spool) {
-      nwritten = fwrite(ptr, 1, nbytes, bsock->spool_fd);
+   if (bsock->m_spool) {
+      nwritten = fwrite(ptr, 1, nbytes, bsock->m_spool_fd);
       if (nwritten != nbytes) {
          berrno be;
          bsock->b_errno = errno;
@@ -135,8 +135,8 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
    while (nleft > 0) {
       do {
          errno = 0;
-         nwritten = socketWrite(bsock->fd, ptr, nleft);
-         if (bsock->timed_out || bsock->terminated) {
+         nwritten = socketWrite(bsock->m_fd, ptr, nleft);
+         if (bsock->is_timed_out() || bsock->is_terminated()) {
             return nwritten;
          }
       } while (nwritten == -1 && errno == EINTR);
@@ -150,10 +150,10 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
          struct timeval tv;
 
          FD_ZERO(&fdset);
-         FD_SET((unsigned)bsock->fd, &fdset);
+         FD_SET((unsigned)bsock->m_fd, &fdset);
          tv.tv_sec = 10;
          tv.tv_usec = 0;
-         select(bsock->fd + 1, NULL, &fdset, NULL, &tv);
+         select(bsock->m_fd + 1, NULL, &fdset, NULL, &tv);
          continue;
       }
       if (nwritten <= 0) {
@@ -194,7 +194,7 @@ int32_t bnet_recv(BSOCK * bsock)
  */
 bool is_bnet_stop(BSOCK * bsock)
 {
-   return bsock->errors || bsock->terminated;
+   return bsock->errors || bsock->is_terminated();
 }
 
 /*
@@ -212,7 +212,7 @@ int is_bnet_error(BSOCK * bsock)
  */
 void bnet_suppress_error_messages(BSOCK * bsock, bool flag)
 {
-   bsock->suppress_error_msgs = flag;
+   bsock->m_suppress_error_msgs = flag;
 }
 
 /*
@@ -239,7 +239,7 @@ bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
    
-   tls = new_tls_connection(ctx, bsock->fd);
+   tls = new_tls_connection(ctx, bsock->m_fd);
    if (!tls) {
       Qmsg0(bsock->jcr(), M_FATAL, 0, _("TLS connection initialization failed.\n"));
       return false;
@@ -278,7 +278,7 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
 
-   tls  = new_tls_connection(ctx, bsock->fd);
+   tls  = new_tls_connection(ctx, bsock->m_fd);
    if (!tls) {
       Qmsg0(bsock->jcr(), M_FATAL, 0, _("TLS connection initialization failed.\n"));
       return false;
@@ -345,11 +345,11 @@ int bnet_wait_data(BSOCK * bsock, int sec)
    struct timeval tv;
 
    FD_ZERO(&fdset);
-   FD_SET((unsigned)bsock->fd, &fdset);
+   FD_SET((unsigned)bsock->m_fd, &fdset);
    for (;;) {
       tv.tv_sec = sec;
       tv.tv_usec = 0;
-      switch (select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
+      switch (select(bsock->m_fd + 1, &fdset, NULL, NULL, &tv)) {
       case 0:                      /* timeout */
          bsock->b_errno = 0;
          return 0;
@@ -375,10 +375,10 @@ int bnet_wait_data_intr(BSOCK * bsock, int sec)
    struct timeval tv;
 
    FD_ZERO(&fdset);
-   FD_SET((unsigned)bsock->fd, &fdset);
+   FD_SET((unsigned)bsock->m_fd, &fdset);
    tv.tv_sec = sec;
    tv.tv_usec = 0;
-   switch (select(bsock->fd + 1, &fdset, NULL, NULL, &tv)) {
+   switch (select(bsock->m_fd + 1, &fdset, NULL, NULL, &tv)) {
    case 0:                      /* timeout */
       bsock->b_errno = 0;
       return 0;
@@ -723,7 +723,7 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
    va_list arg_ptr;
    int maxlen;
 
-   if (bs->errors || bs->terminated) {
+   if (bs->errors || bs->is_terminated()) {
       return false;
    }
    /* This probably won't work, but we vsnprintf, then if we
@@ -746,20 +746,9 @@ bool bnet_fsend(BSOCK * bs, const char *fmt, ...)
 
 int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen) 
 {
-#if !defined(HAVE_WIN32)
-    if (bs->peer_addr.sin_family == 0) {
-        socklen_t salen = sizeof(bs->peer_addr);
-        int rval = (getpeername)(bs->fd, (struct sockaddr *)&bs->peer_addr, &salen);
-        if (rval < 0) return rval;
-    }
-    if (!inet_ntop(bs->peer_addr.sin_family, &bs->peer_addr.sin_addr, buf, buflen))
-        return -1;
-
-    return 0;
-#else
-    return -1;
-#endif
+   return bs->get_peer(buf, buflen);  
 }
+
 /*
  * Set the network buffer size, suggested size is in size.
  *  Actual size obtained is returned in bs->msglen
@@ -769,136 +758,25 @@ int bnet_get_peer(BSOCK *bs, char *buf, socklen_t buflen)
  */
 bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
 {
-   uint32_t dbuf_size, start_size;
-#if defined(IP_TOS) && defined(IPTOS_THROUGHPUT)
-   int opt;
-   opt = IPTOS_THROUGHPUT;
-   setsockopt(bs->fd, IPPROTO_IP, IP_TOS, (sockopt_val_t)&opt, sizeof(opt));
-#endif
-
-   if (size != 0) {
-      dbuf_size = size;
-   } else {
-      dbuf_size = DEFAULT_NETWORK_BUFFER_SIZE;
-   }
-   start_size = dbuf_size;
-   if ((bs->msg = realloc_pool_memory(bs->msg, dbuf_size + 100)) == NULL) {
-      Qmsg0(bs->jcr(), M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
-      return false;
-   }
-   if (rw & BNET_SETBUF_READ) {
-      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
-              SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
-         berrno be;
-         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
-         dbuf_size -= TAPE_BSIZE;
-      }
-      Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
-      if (dbuf_size != start_size) {
-         Qmsg1(bs->jcr(), M_WARNING, 0,
-               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
-      }
-      if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(bs->jcr(), M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
-               dbuf_size);
-      }
-   }
-   if (size != 0) {
-      dbuf_size = size;
-   } else {
-      dbuf_size = DEFAULT_NETWORK_BUFFER_SIZE;
-   }
-   start_size = dbuf_size;
-   if (rw & BNET_SETBUF_WRITE) {
-      while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
-              SO_SNDBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
-         berrno be;
-         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
-         dbuf_size -= TAPE_BSIZE;
-      }
-      Dmsg1(900, "set network buffer size=%d\n", dbuf_size);
-      if (dbuf_size != start_size) {
-         Qmsg1(bs->jcr(), M_WARNING, 0,
-               _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
-      }
-      if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(bs->jcr(), M_ABORT, 0,
-               _("Network buffer size %d not multiple of tape block size.\n"),
-               dbuf_size);
-      }
-   }
-
-   bs->msglen = dbuf_size;
-   return true;
+   return bs->set_buffer_size(size, rw);
 }
 
 /*
  * Set socket non-blocking
  * Returns previous socket flag
  */
-int bnet_set_nonblocking (BSOCK *bsock) {
-#ifndef HAVE_WIN32
-   int oflags;
-
-   /* Get current flags */
-   if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
-      berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
-   }
-
-   /* Set O_NONBLOCK flag */
-   if ((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
-      berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
-   }
-
-   bsock->blocking = 0;
-   return oflags;
-#else
-   int flags;
-   u_long ioctlArg = 1;
-
-   flags = bsock->blocking;
-   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
-   bsock->blocking = 0;
-
-   return flags;
-#endif
+int bnet_set_nonblocking(BSOCK *bsock) 
+{
+   return bsock->set_nonblocking();
 }
 
 /*
  * Set socket blocking
  * Returns previous socket flags
  */
-int bnet_set_blocking (BSOCK *bsock) 
+int bnet_set_blocking(BSOCK *bsock) 
 {
-#ifndef HAVE_WIN32
-   int oflags;
-   /* Get current flags */
-   if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
-      berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
-   }
-
-   /* Set O_NONBLOCK flag */
-   if ((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
-      berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
-   }
-
-   bsock->blocking = 1;
-   return oflags;
-#else
-   int flags;
-   u_long ioctlArg = 0;
-
-   flags = bsock->blocking;
-   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
-   bsock->blocking = 1;
-
-   return flags;
-#endif
+   return bsock->set_blocking();
 }
 
 /*
@@ -906,19 +784,7 @@ int bnet_set_blocking (BSOCK *bsock)
  */
 void bnet_restore_blocking (BSOCK *bsock, int flags) 
 {
-#ifndef HAVE_WIN32
-   if ((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
-      berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
-   }
-
-   bsock->blocking = (flags & O_NONBLOCK);
-#else
-   u_long ioctlArg = flags;
-
-   ioctlsocket(bsock->fd, FIONBIO, &ioctlArg);
-   bsock->blocking = 1;
-#endif
+   bsock->restore_blocking(flags);
 }
 
 
@@ -974,10 +840,10 @@ BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int 
    Dmsg3(100, "who=%s host=%s port=%d\n", who, host, port);
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memset(bsock, 0, sizeof(BSOCK));
-   bsock->fd = sockfd;
+   bsock->m_fd = sockfd;
    bsock->tls = NULL;
    bsock->errors = 0;
-   bsock->blocking = 1;
+   bsock->m_blocking = 1;
    bsock->msg = get_pool_memory(PM_MESSAGE);
    bsock->errmsg = get_pool_memory(PM_MESSAGE);
    bsock->set_who(bstrdup(who));
@@ -1006,7 +872,7 @@ BSOCK *dup_bsock(BSOCK * osock)
    if (osock->host()) {
       bsock->set_host(bstrdup(osock->host()));
    }
-   bsock->duped = true;
+   bsock->m_duped = true;
    return bsock;
 }
 

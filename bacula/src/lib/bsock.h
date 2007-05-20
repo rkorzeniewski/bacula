@@ -26,7 +26,9 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Bacula Sock Structure definition
+ * Bacula Sock Class definition
+ *   Note, the old non-class code is in bnet.c, and the
+ *   new class code associated with this file is in bsock.c
  *
  * Kern Sibbald, May MM
  *
@@ -52,23 +54,23 @@ public:
    uint64_t read_seqno;               /* read sequence number */
    uint32_t in_msg_no;                /* input message number */
    uint32_t out_msg_no;               /* output message number */
-   int fd;                            /* socket file descriptor */
+   int m_fd;                          /* socket file descriptor */
    TLS_CONNECTION *tls;               /* associated tls connection */
    int32_t msglen;                    /* message length */
    int b_errno;                       /* bsock errno */
-   int blocking;                      /* blocking state (0 = nonblocking, 1 = blocking) */
+   int m_blocking;                    /* blocking state (0 = nonblocking, 1 = blocking) */
    volatile int errors;               /* incremented for each error on socket */
-   volatile bool suppress_error_msgs: 1; /* set to suppress error messages */
-   volatile bool timed_out: 1;        /* timed out in read/write */
-   volatile bool terminated: 1;       /* set when BNET_TERMINATE arrives */
-   bool duped: 1;                     /* set if duped BSOCK */
-   bool spool: 1;                     /* set for spooling */
+   volatile bool m_suppress_error_msgs: 1; /* set to suppress error messages */
+   volatile bool m_timed_out: 1;      /* timed out in read/write */
+   volatile bool m_terminated: 1;     /* set when BNET_TERMINATE arrives */
+   bool m_duped: 1;                   /* set if duped BSOCK */
+   bool m_spool: 1;                   /* set for spooling */
    volatile time_t timer_start;       /* time started read/write */
    volatile time_t timeout;           /* timeout BSOCK after this interval */
    POOLMEM *msg;                      /* message pool buffer */
    POOLMEM *errmsg;                   /* edited error message */
    RES *res;                          /* Resource to which we are connected */
-   FILE *spool_fd;                    /* spooling file */
+   FILE *m_spool_fd;                  /* spooling file */
    struct sockaddr client_addr;       /* client's IP address */
    struct sockaddr_in peer_addr;      /* peer's IP address */
 
@@ -79,6 +81,15 @@ public:
    bool signal(int signal);
    void close();                      /* close connection and destroy packet */
    void destroy();                    /* destroy socket packet */
+   const char *bstrerror();           /* last error on socket */
+   int get_peer(char *buf, socklen_t buflen);
+   bool despool(void update_attr_spool_size(ssize_t size), ssize_t tsize);
+   bool set_buffer_size(uint32_t size, int rw);
+   int set_nonblocking();
+   int set_blocking();
+   void restore_blocking(int flags);
+
+   /* Inline functions */
    void set_jcr(JCR *jcr) { m_jcr = jcr; };
    void set_who(char *who) { m_who = who; };
    void set_host(char *host) { m_host = host; };
@@ -87,13 +98,15 @@ public:
    char *host() { return m_host; };
    int port() { return m_port; };
    JCR *jcr() { return m_jcr; };
-   bool despool(void update_attr_spool_size(ssize_t size), ssize_t tsize);
+   bool is_terminated() { return m_terminated; };
+   bool is_timed_out() { return m_timed_out; };
+   void set_terminated() { m_terminated = true; };
 };
 
 /* 
  *  Signal definitions for use in bnet_sig()   
  *  Note! These must be negative.  There are signals that are generated
- *   by the software ...
+ *   by the bsock software not by the OS ...
  */
 enum {
    BNET_EOD            = -1,          /* End of data stream, new data may follow */

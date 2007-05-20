@@ -554,7 +554,7 @@ static bool write_spool_data(DCR *dcr)
 
 bool are_attributes_spooled(JCR *jcr)
 {
-   return jcr->spool_attributes && jcr->dir_bsock->spool_fd;
+   return jcr->spool_attributes && jcr->dir_bsock->m_spool_fd;
 }
 
 /*
@@ -599,13 +599,13 @@ bool commit_attribute_spool(JCR *jcr)
    char ec1[30];
 
    if (are_attributes_spooled(jcr)) {
-      if (fseeko(jcr->dir_bsock->spool_fd, 0, SEEK_END) != 0) {
+      if (fseeko(jcr->dir_bsock->m_spool_fd, 0, SEEK_END) != 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
               be.bstrerror());
          goto bail_out;
       }
-      size = ftello(jcr->dir_bsock->spool_fd);
+      size = ftello(jcr->dir_bsock->m_spool_fd);
       if (size < 0) {
          berrno be;
          Jmsg(jcr, M_FATAL, 0, _("Fseek on attributes file failed: ERR=%s\n"),
@@ -641,9 +641,9 @@ bool open_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
 
-   make_unique_spool_filename(jcr, &name, bs->fd);
-   bs->spool_fd = fopen(name, "w+b");
-   if (!bs->spool_fd) {
+   make_unique_spool_filename(jcr, &name, bs->m_fd);
+   bs->m_spool_fd = fopen(name, "w+b");
+   if (!bs->m_spool_fd) {
       berrno be;
       Jmsg(jcr, M_FATAL, 0, _("fopen attr spool file %s failed: ERR=%s\n"), name,
            be.bstrerror());
@@ -661,7 +661,7 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
    POOLMEM *name;
 
-   if (!bs->spool_fd) {
+   if (!bs->m_spool_fd) {
       return true;
    }
    name = get_pool_memory(PM_MESSAGE);
@@ -669,11 +669,11 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
    spool_stats.attr_jobs--;
    spool_stats.total_attr_jobs++;
    V(mutex);
-   make_unique_spool_filename(jcr, &name, bs->fd);
-   fclose(bs->spool_fd);
+   make_unique_spool_filename(jcr, &name, bs->m_fd);
+   fclose(bs->m_spool_fd);
    unlink(name);
    free_pool_memory(name);
-   bs->spool_fd = NULL;
-   bs->spool = false;
+   bs->m_spool_fd = NULL;
+   bs->m_spool = false;
    return true;
 }

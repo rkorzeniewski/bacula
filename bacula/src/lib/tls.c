@@ -443,14 +443,14 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
 
    /* Zero the fdset, we'll set our fd prior to each invocation of select() */
    FD_ZERO(&fdset);
-   fdmax = bsock->fd + 1;
+   fdmax = bsock->m_fd + 1;
 
    /* Ensure that socket is non-blocking */
    flags = bnet_set_nonblocking(bsock);
 
    /* start timer */
    bsock->timer_start = watchdog_time;
-   bsock->timed_out = 0;
+   bsock->m_timed_out = 0;
 
    for (;;) { 
       if (server) {
@@ -471,7 +471,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          goto cleanup;
       case SSL_ERROR_WANT_READ:
          /* If we timeout of a select, this will be unset */
-         FD_SET((unsigned) bsock->fd, &fdset);
+         FD_SET((unsigned) bsock->m_fd, &fdset);
          /* Set our timeout */
          tv.tv_sec = 10;
          tv.tv_usec = 0;
@@ -480,7 +480,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          break;
       case SSL_ERROR_WANT_WRITE:
          /* If we timeout of a select, this will be unset */
-         FD_SET((unsigned) bsock->fd, &fdset);
+         FD_SET((unsigned) bsock->m_fd, &fdset);
          /* Set our timeout */
          tv.tv_sec = 10;
          tv.tv_usec = 0;
@@ -494,7 +494,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          goto cleanup;
       }
 
-      if (bsock->timed_out) {
+      if (bsock->is_timed_out()) {
          goto cleanup;
       }
    }
@@ -557,7 +557,7 @@ void tls_bsock_shutdown (BSOCK *bsock)
    int flags;
 
    /* Set socket blocking for shutdown */
-   flags = bnet_set_blocking(bsock);
+   flags = bsock->set_blocking();
 
    err = SSL_shutdown(bsock->tls->openssl);
 
@@ -575,7 +575,7 @@ void tls_bsock_shutdown (BSOCK *bsock)
    }
 
    /* Restore saved flags */
-   bnet_restore_blocking(bsock, flags);
+   bsock->restore_blocking(flags);
 }
 
 /* Does all the manual labor for tls_bsock_readn() and tls_bsock_writen() */
@@ -590,14 +590,14 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
 
    /* Zero the fdset, we'll set our fd prior to each invocation of select() */
    FD_ZERO(&fdset);
-   fdmax = bsock->fd + 1;
+   fdmax = bsock->m_fd + 1;
 
    /* Ensure that socket is non-blocking */
-   flags = bnet_set_nonblocking(bsock);
+   flags = bsock->set_nonblocking();
 
    /* start timer */
    bsock->timer_start = watchdog_time;
-   bsock->timed_out = 0;
+   bsock->m_timed_out = 0;
 
    nleft = nbytes;
 
@@ -623,7 +623,7 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          goto cleanup;
       case SSL_ERROR_WANT_READ:
          /* If we timeout of a select, this will be unset */
-         FD_SET((unsigned) bsock->fd, &fdset);
+         FD_SET((unsigned) bsock->m_fd, &fdset);
          tv.tv_sec = 10;
          tv.tv_usec = 0;
          /* Block until we can read */
@@ -631,7 +631,7 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          break;
       case SSL_ERROR_WANT_WRITE:
          /* If we timeout of a select, this will be unset */
-         FD_SET((unsigned) bsock->fd, &fdset);
+         FD_SET((unsigned) bsock->m_fd, &fdset);
          tv.tv_sec = 10;
          tv.tv_usec = 0;
          /* Block until we can write */
@@ -649,14 +649,14 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
       }
 
       /* Timeout/Termination, let's take what we can get */
-      if (bsock->timed_out || bsock->terminated) {
+      if (bsock->is_timed_out() || bsock->is_terminated()) {
          goto cleanup;
       }
    }
 
 cleanup:
    /* Restore saved flags */
-   bnet_restore_blocking(bsock, flags);
+   bsock->restore_blocking(flags);
 
    /* Clear timer */
    bsock->timer_start = 0;

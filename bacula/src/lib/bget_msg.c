@@ -57,7 +57,7 @@ int bget_msg(BSOCK *sock)
 {
    int n;
    for ( ;; ) {
-      n = bnet_recv(sock);
+      n = sock->recv();
       if (n >= 0) {                  /* normal return */
          return n;
       }
@@ -72,22 +72,22 @@ int bget_msg(BSOCK *sock)
          return n;
       case BNET_EOD_POLL:
          Dmsg0(msglvl, "Got BNET_EOD_POLL\n");
-         if (sock->terminated) {
-            bnet_fsend(sock, TERM_msg);
+         if (sock->is_terminated()) {
+            sock->fsend(TERM_msg);
          } else {
-            bnet_fsend(sock, OK_msg); /* send response */
+            sock->fsend(OK_msg); /* send response */
          }
          return n;                 /* end of data */
       case BNET_TERMINATE:
          Dmsg0(msglvl, "Got BNET_TERMINATE\n");
-         sock->terminated = 1;
+         sock->set_terminated();
          return n;
       case BNET_POLL:
          Dmsg0(msglvl, "Got BNET_POLL\n");
-         if (sock->terminated) {
-            bnet_fsend(sock, TERM_msg);
+         if (sock->is_terminated()) {
+            sock->fsend(TERM_msg);
          } else {
-            bnet_fsend(sock, OK_msg); /* send response */
+            sock->fsend(OK_msg); /* send response */
          }
          break;
       case BNET_HEARTBEAT:
@@ -96,8 +96,8 @@ int bget_msg(BSOCK *sock)
       case BNET_STATUS:
          /* *****FIXME***** Implement BNET_STATUS */
          Dmsg0(msglvl, "Got BNET_STATUS\n");
-         bnet_fsend(sock, _("Status OK\n"));
-         bnet_sig(sock, BNET_EOD);
+         sock->fsend(_("Status OK\n"));
+         sock->signal(BNET_EOD);
          break;
       default:
          Emsg1(M_ERROR, 0, _("bget_msg: unknown signal %d\n"), sock->msglen);

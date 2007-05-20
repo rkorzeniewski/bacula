@@ -106,7 +106,7 @@ int bget_dirmsg(BSOCK *bs)
    char *msg;
 
    for (;;) {
-      n = bnet_recv(bs);
+      n = bs->recv();
       Dmsg2(900, "bget_dirmsg %d: %s", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
@@ -118,13 +118,13 @@ int bget_dirmsg(BSOCK *bs)
          case BNET_EOD:            /* end of data */
             return n;
          case BNET_EOD_POLL:
-            bnet_fsend(bs, OK_msg);/* send response */
+            bs->fsend(OK_msg);/* send response */
             return n;              /* end of data */
          case BNET_TERMINATE:
-            bs->terminated = 1;
+            bs->m_terminated = 1;
             return n;
          case BNET_POLL:
-            bnet_fsend(bs, OK_msg); /* send response */
+            bs->fsend(OK_msg); /* send response */
             break;
          case BNET_HEARTBEAT:
 //          encode_time(time(NULL), Job);
@@ -134,12 +134,12 @@ int bget_dirmsg(BSOCK *bs)
             break;
          case BNET_STATUS:
             /* *****FIXME***** Implement more completely */
-            bnet_fsend(bs, "Status OK\n");
-            bnet_sig(bs, BNET_EOD);
+            bs->fsend("Status OK\n");
+            bs->signal(BNET_EOD);
             break;
          case BNET_BTIME:             /* send Bacula time */
             char ed1[50];
-            bnet_fsend(bs, "btime %s\n", edit_uint64(get_current_btime(),ed1));
+            bs->fsend("btime %s\n", edit_uint64(get_current_btime(),ed1));
             break;
          default:
             Emsg1(M_WARNING, 0, _("bget_dirmsg: unknown bnet signal %d\n"), bs->msglen);

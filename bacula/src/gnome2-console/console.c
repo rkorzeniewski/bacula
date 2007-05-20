@@ -626,10 +626,10 @@ void read_director(gpointer data, gint fd, GdkInputCondition condition)
 {
    int stat;
 
-   if (!UA_sock || UA_sock->fd != fd) {
+   if (!UA_sock || UA_sock->m_fd != fd) {
       return;
    }
-   stat = bnet_recv(UA_sock);
+   stat = UA_sock->recv();
    if (stat >= 0) {
       if (at_prompt) {
          set_text("\n", 1);
@@ -661,7 +661,7 @@ void start_director_reader(gpointer data)
    if (director_reader_running || !UA_sock) {
       return;
    }
-   tag = gdk_input_add(UA_sock->fd, GDK_INPUT_READ, read_director, NULL);
+   tag = gdk_input_add(UA_sock->m_fd, GDK_INPUT_READ, read_director, NULL);
    director_reader_running = true;
 }
 

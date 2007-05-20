@@ -70,7 +70,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    set_jcr_job_status(jcr, JS_Running);
 
-   Dmsg1(300, "bfiled: opened data connection %d to stored\n", sd->fd);
+   Dmsg1(300, "bfiled: opened data connection %d to stored\n", sd->m_fd);
 
    LockRes();
    CLIENT *client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
