@@ -71,7 +71,6 @@ private:
    int jobdefsFromJob(QStringList &, QString &);
    void buildPage();
    bool checkJobIdList();
-   QString m_dtformat;
    QString m_dataIn;
    unsigned int m_dataInType;
 };

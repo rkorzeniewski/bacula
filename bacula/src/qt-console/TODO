@@ -2,9 +2,8 @@ dhb
 ====================================================
 joblist cancel a running job.
 
-Set default for replace in run restore job to "always"??????
-
 Fixes to final restore widgets.
+   all but messages done.
 
 Add context sensitive options for most commands
 status dir on page select director item
@@ -41,6 +40,8 @@ similar to what the first restore window does.
 
 A window showing a list of schedule resources. 
 
+A list of message resources??
+
 Kern discussed windows showing statistics like web based interfaces.
 ========================================================
 Future Releases :
@@ -75,6 +76,8 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Set default for replace in run restore job to "always"??????
+
 Option in joblist like with restore from jobid but restore populating timestamp
 of the selected job.
 
