@@ -164,7 +164,7 @@ void Console::connect()
    dir_cmd(".jobs", job_list);
    dir_cmd(".clients", client_list);
    dir_cmd(".filesets", fileset_list);  
-   dir_cmd(".messages", messages_list);
+   dir_cmd(".msgs", messages_list);
    dir_cmd(".pools", pool_list);
    dir_cmd(".storage", storage_list);
    dir_cmd(".types", type_list);
