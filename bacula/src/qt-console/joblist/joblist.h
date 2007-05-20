@@ -64,6 +64,7 @@ private slots:
    void preRestoreFromJob();
    void preRestoreFromTime();
    void showLogForJob();
+   void consoleCancelJob();
 
 private:
    void createConnections();
@@ -75,6 +76,7 @@ private:
    bool m_checkCurrentWidget;
    int m_purgedIndex;
    int m_typeIndex;
+   int m_statusIndex;
 };
 
 #endif /* _JOBLIST_H_ */
