@@ -63,6 +63,7 @@ runPage::runPage()
       printf("%s\n", mes.toUtf8().data());
    }*/
    messagesCombo->addItems(m_console->messages_list);
+   messagesCombo->setEnabled(false);
    job_name_change(0);
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
@@ -86,19 +87,21 @@ void runPage::okButtonPushed()
       " storage=\"" << storageCombo->currentText() << "\"" <<
       " priority=\"" << prioritySpin->value() << "\""
       " when=\"" << dateTimeEdit->dateTime().toString(mainWin->m_dtformat) << "\"";
+#ifdef xxx
+      " messages=\"" << messagesCombo->currentText() << "\"";
+     /* FIXME when there is an option to modify the messages resoruce associated
+      * with a  job */
+#endif
    if (bootstrap->text() != "") {
       cmd += " bootstrap=\"" + bootstrap->text() + "\""; 
    }
    cmd += " yes";
-//  messagesCombo->currentText().toUtf8().data(); FIXME messages not working
 
    if (mainWin->m_commandDebug) {
       Pmsg1(000, "command : %s\n", cmd.toUtf8().data());
    }
 
-   m_console->write_dir(cmd.toUtf8().data());
-   m_console->display_text(cmd);
-   m_console->displayToPrompt();
+   consoleCommand(cmd);
    m_console->notify(true);
    closeStackPage();
    mainWin->resetFocus();
