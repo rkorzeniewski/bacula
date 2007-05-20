@@ -304,7 +304,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
             berrno be;
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, msglen);
             Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
-                  be.strerror());
+                  be.bstrerror());
             update_attr_spool_size(tsize - last);
             return false;
          }
@@ -320,7 +320,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
    if (ferror(spool_fd)) {
       berrno be;
       Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
-            be.strerror());
+            be.bstrerror());
       return false;
    }
    return true;

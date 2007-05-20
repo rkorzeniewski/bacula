@@ -1,22 +1,7 @@
 /*
- *  Signal handlers for Bacula daemons
- *
- *   Kern Sibbald, April 2000
- *
- *   Version $Id$
- *
- * Note, we probably should do a core dump for the serious
- * signals such as SIGBUS, SIGPFE, ...
- * Also, for SIGHUP and SIGUSR1, we should re-read the
- * configuration file.  However, since this is a "general"
- * routine, we leave it to the individual daemons to
- * tweek their signals after calling this routine.
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,6 +25,21 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Signal handlers for Bacula daemons
+ *
+ *   Kern Sibbald, April 2000
+ *
+ *   Version $Id$
+ *
+ * Note, we probably should do a core dump for the serious
+ * signals such as SIGBUS, SIGPFE, ...
+ * Also, for SIGHUP and SIGUSR1, we should re-read the
+ * configuration file.  However, since this is a "general"
+ * routine, we leave it to the individual daemons to
+ * tweek their signals after calling this routine.
+ *
+ */
 
 #ifndef HAVE_WIN32
 #include "bacula.h"
@@ -130,7 +130,7 @@ extern "C" void signal_handler(int sig)
       }
       if (chdir(working_directory) != 0) {  /* dump in working directory */
          berrno be;
-         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  be.strerror());
+         Pmsg2(000, "chdir to %s failed. ERR=%s\n", working_directory,  be.bstrerror());
          strcpy((char *)working_directory, "/tmp/");
       }
       unlink("./core");               /* get rid of any old core file */

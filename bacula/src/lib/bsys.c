@@ -86,7 +86,7 @@ int bmicrosleep(time_t sec, long usec)
    if (stat != 0) {
       berrno be;
       Dmsg2(200, "pthread_cond_timedwait stat=%d ERR=%s\n", stat,
-         be.strerror(stat));
+         be.bstrerror(stat));
    }
    V(timer_mutex);
    return stat;
@@ -200,7 +200,7 @@ void *bmalloc(size_t size)
 #endif
   if (buf == NULL) {
      berrno be;
-     Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
+     Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.bstrerror());
   }
   return buf;
 }
@@ -217,7 +217,7 @@ void *b_malloc(const char *file, int line, size_t size)
 #endif
   if (buf == NULL) {
      berrno be;
-     e_msg(file, line, M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
+     e_msg(file, line, M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.bstrerror());
   }
   return buf;
 }
@@ -237,7 +237,7 @@ void *brealloc (void *buf, size_t size)
    buf = realloc(buf, size);
    if (buf == NULL) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.bstrerror());
    }
    return buf;
 }
@@ -250,7 +250,7 @@ void *bcalloc (size_t size1, size_t size2)
    buf = calloc(size1, size2);
    if (buf == NULL) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.strerror());
+      Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.bstrerror());
    }
    return buf;
 }
@@ -380,7 +380,7 @@ void _p(char *file, int line, pthread_mutex_t *m)
       if ((errstat=pthread_mutex_lock(m))) {
          berrno be;
          e_msg(file, line, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-               be.strerror(errstat));
+               be.bstrerror(errstat));
       } else {
          e_msg(file, line, M_ERROR, 0, _("Possible mutex deadlock resolved.\n"));
       }
@@ -396,12 +396,12 @@ void _v(char *file, int line, pthread_mutex_t *m)
    if ((errstat=pthread_mutex_trylock(m)) == 0) {
       berrno be;
       e_msg(file, line, M_ERROR, 0, _("Mutex unlock not locked. ERR=%s\n"),
-           be.strerror(errstat));
+           be.bstrerror(errstat));
     }
     if ((errstat=pthread_mutex_unlock(m))) {
        berrno be;
        e_msg(file, line, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-              be.strerror(errstat));
+              be.bstrerror(errstat));
     }
 }
 
@@ -413,7 +413,7 @@ void _p(pthread_mutex_t *m)
    if ((errstat=pthread_mutex_lock(m))) {
       berrno be;
       e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex lock failure. ERR=%s\n"),
-            be.strerror(errstat));
+            be.bstrerror(errstat));
    }
 }
 
@@ -423,7 +423,7 @@ void _v(pthread_mutex_t *m)
    if ((errstat=pthread_mutex_unlock(m))) {
       berrno be;
       e_msg(__FILE__, __LINE__, M_ABORT, 0, _("Mutex unlock failure. ERR=%s\n"),
-            be.strerror(errstat));
+            be.bstrerror(errstat));
    }
 }
 
@@ -596,13 +596,13 @@ void write_state_file(char *dir, const char *progname, int port)
    unlink(fname);
    if ((sfd = open(fname, O_CREAT|O_WRONLY|O_BINARY, 0640)) < 0) {
       berrno be;
-      Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, be.strerror());
-      Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, be.strerror());
+      Dmsg2(000, "Could not create state file. %s ERR=%s\n", fname, be.bstrerror());
+      Emsg2(M_ERROR, 0, _("Could not create state file. %s ERR=%s\n"), fname, be.bstrerror());
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
       berrno be;
-      Dmsg1(000, "Write hdr error: ERR=%s\n", be.strerror());
+      Dmsg1(000, "Write hdr error: ERR=%s\n", be.bstrerror());
       goto bail_out;
    }
 // Dmsg1(010, "Wrote header of %d bytes\n", sizeof(state_hdr));
@@ -611,12 +611,12 @@ void write_state_file(char *dir, const char *progname, int port)
 // Dmsg1(010, "write last job end = %d\n", (int)state_hdr.reserved[0]);
    if (lseek(sfd, 0, SEEK_SET) < 0) {
       berrno be;
-      Dmsg1(000, "lseek error: ERR=%s\n", be.strerror());
+      Dmsg1(000, "lseek error: ERR=%s\n", be.bstrerror());
       goto bail_out;
    }
    if (write(sfd, &state_hdr, sizeof(state_hdr)) != sizeof(state_hdr)) {
       berrno be;
-      Pmsg1(000, _("Write final hdr error: ERR=%s\n"), be.strerror());
+      Pmsg1(000, _("Write final hdr error: ERR=%s\n"), be.bstrerror());
       goto bail_out;
    }
    ok = true;
@@ -653,13 +653,13 @@ void drop(char *uname, char *gname)
       if ((passw = getpwnam(uname)) == NULL) {
          berrno be;
          Emsg2(M_ERROR_TERM, 0, _("Could not find userid=%s: ERR=%s\n"), uname,
-            be.strerror());
+            be.bstrerror());
       }
    } else {
       if ((passw = getpwuid(getuid())) == NULL) {
          berrno be;
          Emsg1(M_ERROR_TERM, 0, _("Could not find password entry. ERR=%s\n"),
-            be.strerror());
+            be.bstrerror());
       } else {
          uname = passw->pw_name;
       }
@@ -672,7 +672,7 @@ void drop(char *uname, char *gname)
       if ((group = getgrnam(gname)) == NULL) {
          berrno be;
          Emsg2(M_ERROR_TERM, 0, _("Could not find group=%s: ERR=%s\n"), gname,
-            be.strerror());
+            be.bstrerror());
       }
       gid = group->gr_gid;
    }
@@ -680,17 +680,17 @@ void drop(char *uname, char *gname)
       berrno be;
       if (gname) {
          Emsg3(M_ERROR_TERM, 0, _("Could not initgroups for group=%s, userid=%s: ERR=%s\n"),         
-            gname, username, be.strerror());
+            gname, username, be.bstrerror());
       } else {
          Emsg2(M_ERROR_TERM, 0, _("Could not initgroups for userid=%s: ERR=%s\n"),         
-            username, be.strerror());
+            username, be.bstrerror());
       }
    }
    if (gname) {
       if (setgid(gid)) {
          berrno be;
          Emsg2(M_ERROR_TERM, 0, _("Could not set group=%s: ERR=%s\n"), gname,
-            be.strerror());
+            be.bstrerror());
       }
    }
    if (setuid(uid)) {

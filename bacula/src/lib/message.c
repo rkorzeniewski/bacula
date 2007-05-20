@@ -261,7 +261,7 @@ void init_console_msg(const char *wd)
    if (fd == -1) {
       berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Could not open console message file %s: ERR=%s\n"),
-          con_fname, be.strerror());
+          con_fname, be.bstrerror());
    }
    if (lseek(fd, 0, SEEK_END) > 0) {
       console_msg_pending = 1;
@@ -271,12 +271,12 @@ void init_console_msg(const char *wd)
    if (!con_fd) {
       berrno be;
       Emsg2(M_ERROR, 0, _("Could not open console message file %s: ERR=%s\n"),
-          con_fname, be.strerror());
+          con_fname, be.bstrerror());
    }
    if (rwl_init(&con_lock) != 0) {
       berrno be;
       Emsg1(M_ERROR_TERM, 0, _("Could not get con mutex: ERR=%s\n"),
-         be.strerror());
+         be.bstrerror());
    }
 }
 
@@ -380,7 +380,7 @@ static BPIPE *open_mail_pipe(JCR *jcr, POOLMEM *&cmd, DEST *d)
    if (!(bpipe = open_bpipe(cmd, 120, "rw"))) {
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("open mail pipe %s failed: ERR=%s\n"),
-         cmd, be.strerror());
+         cmd, be.bstrerror());
    }
 
    /* If we had to use sendmail, add subject */
@@ -457,7 +457,7 @@ void close_msg(JCR *jcr)
             }
             if (!close_wpipe(bpipe)) {       /* close write pipe sending mail */
                berrno be;
-               Pmsg1(000, _("close error: ERR=%s\n"), be.strerror());
+               Pmsg1(000, _("close error: ERR=%s\n"), be.bstrerror());
             }
 
             /*
@@ -479,7 +479,7 @@ void close_msg(JCR *jcr)
                Dmsg1(850, "Calling emsg. CMD=%s\n", cmd);
                Jmsg2(jcr, M_ERROR, 0, _("Mail program terminated in error.\n"
                                         "CMD=%s\n"
-                                        "ERR=%s\n"), cmd, be.strerror());
+                                        "ERR=%s\n"), cmd, be.bstrerror());
             }
             free_memory(line);
 rem_temp_file:
@@ -577,7 +577,7 @@ static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
       berrno be;
       d->fd = stdout;
       Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
-            be.strerror());
+            be.bstrerror());
       d->fd = NULL;
       return false;
    }
@@ -704,7 +704,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                       be.set_errno(stat);
                       Qmsg2(jcr, M_ERROR, 0, _("Operator mail program terminated in error.\n"
                             "CMD=%s\n"
-                            "ERR=%s\n"), mcmd, be.strerror());
+                            "ERR=%s\n"), mcmd, be.bstrerror());
                    }
                 }
                 free_pool_memory(mcmd);
@@ -721,7 +721,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                       berrno be;
                       d->fd = stdout;
                       Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), name,
-                            be.strerror());
+                            be.bstrerror());
                       d->fd = NULL;
                       free_pool_memory(name);
                       break;

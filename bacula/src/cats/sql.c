@@ -266,7 +266,7 @@ void _db_lock(const char *file, int line, B_DB *mdb)
    if ((errstat=rwl_writelock(&mdb->lock)) != 0) {
       berrno be;
       e_msg(file, line, M_FATAL, 0, "rwl_writelock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 
@@ -281,7 +281,7 @@ void _db_unlock(const char *file, int line, B_DB *mdb)
    if ((errstat=rwl_writeunlock(&mdb->lock)) != 0) {
       berrno be;
       e_msg(file, line, M_FATAL, 0, "rwl_writeunlock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 

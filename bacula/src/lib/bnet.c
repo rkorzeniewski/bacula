@@ -116,7 +116,7 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
          berrno be;
          bsock->b_errno = errno;
          Qmsg1(bsock->jcr(), M_FATAL, 0, _("Attr spool write error. ERR=%s\n"),
-               be.strerror());
+               be.bstrerror());
          Dmsg2(400, "nwritten=%d nbytes=%d.\n", nwritten, nbytes);
          errno = bsock->b_errno;
          return -1;
@@ -419,7 +419,7 @@ static const char *gethost_strerror()
    berrno be;
    switch (h_errno) {
    case NETDB_INTERNAL:
-      msg = be.strerror();
+      msg = be.bstrerror();
       break;
    case NETDB_SUCCESS:
       msg = _("No problem.");
@@ -593,7 +593,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
          save_errno = errno;
          *fatal = 1;
          Pmsg3(000, _("Socket open error. proto=%d port=%d. ERR=%s\n"),
-            ipaddr->get_family(), ipaddr->get_port_host_order(), be.strerror());
+            ipaddr->get_family(), ipaddr->get_port_host_order(), be.bstrerror());
          continue;
       }
       /*
@@ -602,7 +602,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
       if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
          berrno be;
          Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
-               be.strerror());
+               be.bstrerror());
       }
 #if defined(TCP_KEEPIDLE)
       if (heart_beat) {
@@ -610,7 +610,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
          if (setsockopt(sockfd, IPPROTO_IP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
             berrno be;
             Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPIDLE on socket: %s\n"),
-                  be.strerror());
+                  be.bstrerror());
          }
       }
 #endif
@@ -638,7 +638,7 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
    if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
       berrno be;
       Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
-            be.strerror());
+            be.bstrerror());
    }
    BSOCK* ret =  init_bsock(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
    free_addresses(addr_list);
@@ -661,7 +661,9 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
    btimer_t *tid = NULL;
 
    /* Try to trap out of OS call when time expires */
-   tid = start_thread_timer(pthread_self(), (uint32_t)max_retry_time);
+   if (max_retry_time) {
+      tid = start_thread_timer(pthread_self(), (uint32_t)max_retry_time);
+   }
    
    for (i = 0; (bsock = bnet_open(jcr, name, host, service, port, heart_beat, &fatal)) == NULL;
         i -= retry_interval) {
@@ -671,19 +673,19 @@ BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
          goto bail_out;
       }
       Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
-            name, host, port, be.strerror());
+            name, host, port, be.bstrerror());
       if (i < 0) {
          i = 60 * 5;               /* complain again in 5 minutes */
          if (verbose)
             Qmsg4(jcr, M_WARNING, 0, _(
                "Could not connect to %s on %s:%d. ERR=%s\n"
-               "Retrying ...\n"), name, host, port, be.strerror());
+               "Retrying ...\n"), name, host, port, be.bstrerror());
       }
       bmicrosleep(retry_interval, 0);
       now = time(NULL);
       if (begin_time + max_retry_time <= now) {
          Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
-               name, host, port, be.strerror());
+               name, host, port, be.bstrerror());
          bsock = NULL;
          goto bail_out;
       }
@@ -707,7 +709,7 @@ const char *bnet_strerror(BSOCK * bsock)
    if (bsock->errmsg == NULL) {
       bsock->errmsg = get_pool_memory(PM_MESSAGE);
    }
-   pm_strcpy(bsock->errmsg, be.strerror(bsock->b_errno));
+   pm_strcpy(bsock->errmsg, be.bstrerror(bsock->b_errno));
    return bsock->errmsg;
 }
 
@@ -788,7 +790,7 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
               SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
          berrno be;
-         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
          dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
@@ -812,7 +814,7 @@ bool bnet_set_buffer_size(BSOCK * bs, uint32_t size, int rw)
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(bs->fd, SOL_SOCKET,
               SO_SNDBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
          berrno be;
-         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.strerror());
+         Qmsg1(bs->jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
          dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(900, "set network buffer size=%d\n", dbuf_size);
@@ -842,13 +844,13 @@ int bnet_set_nonblocking (BSOCK *bsock) {
    /* Get current flags */
    if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(bsock->fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    bsock->blocking = 0;
@@ -876,13 +878,13 @@ int bnet_set_blocking (BSOCK *bsock)
    /* Get current flags */
    if ((oflags = fcntl(bsock->fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(bsock->fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    bsock->blocking = 1;
@@ -907,7 +909,7 @@ void bnet_restore_blocking (BSOCK *bsock, int flags)
 #ifndef HAVE_WIN32
    if ((fcntl(bsock->fd, F_SETFL, flags)) < 0) {
       berrno be;
-      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.strerror());
+      Jmsg1(bsock->jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    bsock->blocking = (flags & O_NONBLOCK);

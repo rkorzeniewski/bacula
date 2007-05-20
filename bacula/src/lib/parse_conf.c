@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-20076 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -196,8 +196,9 @@ void init_resource(int type, RES_ITEM *items, int pass)
    int errstat;
 
    if (first && (errstat=rwl_init(&res_lock)) != 0) {
+      berrno be;
       Emsg1(M_ABORT, 0, _("Unable to initialize resource lock. ERR=%s\n"),
-            strerror(errstat));
+            be.bstrerror(errstat));
    }
    first = false;
 
@@ -816,7 +817,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
          bstrncpy(lc->str, cf, sizeof(lc->str));
          lc->fname = lc->str;
          scan_err2(lc, _("Cannot open config file \"%s\": %s\n"),
-            lc->str, be.strerror());
+            lc->str, be.bstrerror());
          free(lc);
          return 0;
       }

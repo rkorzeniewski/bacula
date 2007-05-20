@@ -1,10 +1,4 @@
 /*
- * Directory tree build/traverse routines
- *
- *    Kern Sibbald, June MMII
- *
-*/
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
@@ -30,6 +24,12 @@
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ * Directory tree build/traverse routines
+ *
+ *    Kern Sibbald, June MMII
+ *
 */
 
 
@@ -485,7 +485,8 @@ void FillDirectoryTree(char *path, TREE_ROOT *root, TREE_NODE *parent)
       bstrncpy(file, dir->d_name, sizeof(file));
       snprintf(pathbuf, MAXPATHLEN-1, "%s/%s", path, file);
       if (lstat(pathbuf, &statbuf) < 0) {
-         printf("lstat() failed. ERR=%s\n", strerror(errno));
+         berrno be;
+         printf("lstat() failed. ERR=%s\n", be.bstrerror(errno));
          continue;
       }
 //      printf("got file=%s, pathbuf=%s\n", file, pathbuf);

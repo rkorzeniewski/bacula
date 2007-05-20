@@ -142,7 +142,8 @@ bool read_last_jobs_list(int fd, uint64_t addr)
    }
    for ( ; num; num--) {
       if (read(fd, &job, sizeof(job)) != sizeof(job)) {
-         Dmsg1(000, "Read job entry. ERR=%s\n", strerror(errno));
+         berrno be;
+         Pmsg1(000, "Read job entry. ERR=%s\n", be.bstrerror());
          return false;
       }
       if (job.JobId > 0) {
@@ -175,12 +176,14 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
       /* First record is number of entires */
       num = last_jobs->size();
       if (write(fd, &num, sizeof(num)) != sizeof(num)) {
-         Dmsg1(000, "Error writing num_items: ERR=%s\n", strerror(errno));
+         berrno be;
+         Pmsg1(000, "Error writing num_items: ERR=%s\n", be.bstrerror());
          return 0;
       }
       foreach_dlist(je, last_jobs) {
          if (write(fd, je, sizeof(struct s_last_job)) != sizeof(struct s_last_job)) {
-            Dmsg1(000, "Error writing job: ERR=%s\n", strerror(errno));
+            berrno be;
+            Pmsg1(000, "Error writing job: ERR=%s\n", be.bstrerror());
             return 0;
          }
       }
@@ -576,8 +579,7 @@ static void lock_jcr_chain()
 #endif
 {
 #ifdef TRACE_JCR_CHAIN
-   Dmsg3(3400, "Lock jcr chain %d from %s:%d\n", ++lock_count,
-      fname, line);
+   Dmsg3(3400, "Lock jcr chain %d from %s:%d\n", ++lock_count, fname, line);
 #endif
    P(jcr_lock);
 }
@@ -592,8 +594,7 @@ static void unlock_jcr_chain()
 #endif
 {
 #ifdef TRACE_JCR_CHAIN
-   Dmsg3(3400, "Unlock jcr chain %d from %s:%d\n", lock_count--,
-      fname, line);
+   Dmsg3(3400, "Unlock jcr chain %d from %s:%d\n", lock_count--, fname, line);
 #endif
    V(jcr_lock);
 }
@@ -622,8 +623,7 @@ JCR *jcr_walk_start()
    jcr = (JCR *)jcrs->first();
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(3400, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, 
-            jcr->JobId, jcr->use_count());
+      Dmsg3(3400, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    return jcr;
@@ -640,8 +640,7 @@ JCR *jcr_walk_next(JCR *prev_jcr)
    jcr = (JCR *)jcrs->next(prev_jcr);
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(3400, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, 
-         jcr->JobId, jcr->use_count());
+      Dmsg3(3400, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    if (prev_jcr) {

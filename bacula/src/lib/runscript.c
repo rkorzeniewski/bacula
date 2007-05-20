@@ -1,15 +1,7 @@
 /*
- * Manipulation routines for RunScript list
- *
- *  Eric Bollengier, May 2006
- *
- *  Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Manipulation routines for RunScript list
+ *
+ *  Eric Bollengier, May 2006
+ *
+ *  Version $Id$
+ *
+ */
 
 
 #include "bacula.h"
@@ -123,32 +123,32 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       runit=false;
 
       if ((script->when & SCRIPT_Before) && (when & SCRIPT_Before)) {
-	 if (  (script->on_success && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
-	       ||
-	       (script->on_failure && job_canceled(jcr))
-	    )
-	 {
-	    Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", script->command,
+         if (  (script->on_success && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
+               ||
+               (script->on_failure && job_canceled(jcr))
+            )
+         {
+            Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", script->command,
                                                                                   script->on_success,
                                                                                   script->on_failure,
                                                                                   jcr->JobStatus );
 
-	    runit = true;
-	 }
+            runit = true;
+         }
       }
 
       if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
-	 if (  (script->on_success && (jcr->JobStatus == JS_Terminated))
-	       ||
-	       (script->on_failure && job_canceled(jcr))
-	    )
-	 {
-	    Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", script->command,
+         if (  (script->on_success && (jcr->JobStatus == JS_Terminated))
+               ||
+               (script->on_failure && job_canceled(jcr))
+            )
+         {
+            Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", script->command,
                                                                                  script->on_success,
                                                                                  script->on_failure,
                                                                                  jcr->JobStatus );
-	    runit = true;
-	 }
+            runit = true;
+         }
       }
 
       if (!script->is_local()) {
@@ -230,7 +230,7 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
    if (bpipe == NULL) {
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Runscript: %s could not execute. ERR=%s\n"), name,
-         be.strerror());
+         be.bstrerror());
       return false;
    }
    while (fgets(line, sizeof(line), bpipe->rfd)) {
@@ -244,7 +244,7 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
    if (status != 0) {
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Runscript: %s returned non-zero status=%d. ERR=%s\n"), name,
-         be.code(status), be.strerror(status));
+         be.code(status), be.bstrerror(status));
       return false;
    }
    return true;

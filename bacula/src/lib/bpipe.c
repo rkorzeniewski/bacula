@@ -222,9 +222,10 @@ int close_bpipe(BPIPE *bpipe)
          wpid = waitpid(bpipe->worker_pid, &chldstatus, wait_option);
       } while (wpid == -1 && (errno == EINTR || errno == EAGAIN));
       if (wpid == bpipe->worker_pid || wpid == -1) {
+         berrno be;
          stat = errno;
          Dmsg3(800, "Got break wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
-            wpid==-1?strerror(errno):"none");
+            wpid==-1?be.bstrerror():"none");
          break;
       }
       Dmsg3(800, "Got wpid=%d status=%d ERR=%s\n", wpid, chldstatus,
@@ -347,7 +348,8 @@ int run_program(char *prog, int wait, POOLMEM *results)
          stat1 = ferror(bpipe->rfd);
       }
       if (stat1 < 0) {
-         Dmsg2(150, "Run program fgets stat=%d ERR=%s\n", stat1, strerror(errno));
+         berrno be;
+         Dmsg2(150, "Run program fgets stat=%d ERR=%s\n", stat1, be.bstrerror(errno));
       } else if (stat1 != 0) {
          Dmsg1(150, "Run program fgets stat=%d\n", stat1);
          if (bpipe->timer_id) {
@@ -429,7 +431,7 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
       }
       if (stat1 < 0) {
          berrno be;
-         Dmsg2(200, "Run program fgets stat=%d ERR=%s\n", stat1, be.strerror());
+         Dmsg2(200, "Run program fgets stat=%d ERR=%s\n", stat1, be.bstrerror());
          break;
       } else if (stat1 != 0) {
          Dmsg1(900, "Run program fgets stat=%d\n", stat1);

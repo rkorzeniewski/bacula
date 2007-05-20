@@ -1,21 +1,7 @@
 /*
- * Bacula Thread Read/Write locking code. It permits
- *  multiple readers but only one writer.  Note, however,
- *  that the writer thread is permitted to make multiple
- *  nested write lock calls.
- *
- *  Kern Sibbald, January MMI
- *
- *   Version $Id$
- *
- *  This code adapted from "Programming with POSIX Threads", by
- *    David R. Butenhof
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Thread Read/Write locking code. It permits
+ *  multiple readers but only one writer.  Note, however,
+ *  that the writer thread is permitted to make multiple
+ *  nested write lock calls.
+ *
+ *  Kern Sibbald, January MMI
+ *
+ *   Version $Id$
+ *
+ *  This code adapted from "Programming with POSIX Threads", by
+ *    David R. Butenhof
+ *
+ */
 
 #include "bacula.h"
 
@@ -363,14 +363,16 @@ void *thread_routine(void *arg)
       if ((iteration % self->interval) == 0) {
          status = rwl_writelock(&data[element].lock);
          if (status != 0) {
-            Emsg1(M_ABORT, 0, _("Write lock failed. ERR=%s\n"), strerror(status));
+            berrno be;
+            Emsg1(M_ABORT, 0, _("Write lock failed. ERR=%s\n"), be.bstrerror(status));
          }
          data[element].data = self->thread_num;
          data[element].writes++;
          self->writes++;
          status = rwl_writeunlock(&data[element].lock);
          if (status != 0) {
-            Emsg1(M_ABORT, 0, _("Write unlock failed. ERR=%s\n"), strerror(status));
+            berrno be;
+            Emsg1(M_ABORT, 0, _("Write unlock failed. ERR=%s\n"), be.bstrerror(status));
          }
       } else {
          /*
@@ -380,14 +382,16 @@ void *thread_routine(void *arg)
           */
           status = rwl_readlock(&data[element].lock);
           if (status != 0) {
-             Emsg1(M_ABORT, 0, _("Read lock failed. ERR=%s\n"), strerror(status));
+             berrno be;
+             Emsg1(M_ABORT, 0, _("Read lock failed. ERR=%s\n"), be.bstrerror(status));
           }
           self->reads++;
           if (data[element].data == self->thread_num)
              repeats++;
           status = rwl_readunlock(&data[element].lock);
           if (status != 0) {
-             Emsg1(M_ABORT, 0, _("Read unlock failed. ERR=%s\n"), strerror(status));
+             berrno be;
+             Emsg1(M_ABORT, 0, _("Read unlock failed. ERR=%s\n"), be.bstrerror(status));
           }
       }
       element++;
@@ -428,7 +432,8 @@ int main (int argc, char *argv[])
         data[data_count].writes = 0;
         status = rwl_init (&data[data_count].lock);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, _("Init rwlock failed. ERR=%s\n"), strerror(status));
+           berrno be;
+           Emsg1(M_ABORT, 0, _("Init rwlock failed. ERR=%s\n"), be.bstrerror(status));
         }
     }
 
@@ -443,7 +448,8 @@ int main (int argc, char *argv[])
         status = pthread_create (&threads[count].thread_id,
             NULL, thread_routine, (void*)&threads[count]);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, _("Create thread failed. ERR=%s\n"), strerror(status));
+           berrno be;
+           Emsg1(M_ABORT, 0, _("Create thread failed. ERR=%s\n"), be.bstrerror(status));
         }
     }
 
@@ -454,7 +460,8 @@ int main (int argc, char *argv[])
     for (count = 0; count < THREADS; count++) {
         status = pthread_join (threads[count].thread_id, NULL);
         if (status != 0) {
-           Emsg1(M_ABORT, 0, _("Join thread failed. ERR=%s\n"), strerror(status));
+           berrno be;
+           Emsg1(M_ABORT, 0, _("Join thread failed. ERR=%s\n"), be.bstrerror(status));
         }
         thread_writes += threads[count].writes;
         printf (_("%02d: interval %d, writes %d, reads %d\n"),

@@ -1,15 +1,7 @@
 /*
- *
- *   Bacula Gnome Tray Monitor
- *
- *     Nicolas Boichat, August MMIV
- *
- *     Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Gnome Tray Monitor
+ *
+ *     Nicolas Boichat, August MMIV
+ *
+ *     Version $Id$
+ */
+
 
 #include "bacula.h"
 #include "tray-monitor.h"
@@ -207,7 +208,7 @@ int main(int argc, char *argv[])
    sigfillset(&sigignore.sa_mask);
    sigaction(SIGPIPE, &sigignore, NULL);
 
-   gtk_init (&argc, &argv);
+   gtk_init(&argc, &argv);
 
    while ((ch = getopt(argc, argv, "bc:d:th?f:s:")) != -1) {
       switch (ch) {
@@ -258,7 +259,7 @@ int main(int argc, char *argv[])
 
    if (nitems != 1) {
       Emsg2(M_ERROR_TERM, 0,
-         _("Error: %d Monitor resource defined in %s. You must define one and only one Monitor resource.\n"), nitems, configfile);
+         _("Error: %d Monitor resources defined in %s. You must define one and only one Monitor resource.\n"), nitems, configfile);
    }
 
    nitems = 0;
@@ -289,7 +290,7 @@ int main(int argc, char *argv[])
    UnlockRes();
 
    if (nitems == 0) {
-      Emsg1(M_ERROR_TERM, 0, _("No Client, Storage nor Director resource defined in %s\n"
+      Emsg1(M_ERROR_TERM, 0, _("No Client, Storage or Director resource defined in %s\n"
 "Without that I don't how to get status from the File, Storage or Director Daemon :-(\n"), configfile);
    }
 

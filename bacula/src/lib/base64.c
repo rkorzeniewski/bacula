@@ -247,7 +247,8 @@ int main(int argc, char *argv[])
    for (i=0; my_glob.gl_pathv[i]; i++) {
       fname = my_glob.gl_pathv[i];
       if (lstat(fname, &statp) < 0) {
-         printf("Cannot stat %s: %s\n", fname, strerror(errno));
+         berrno be;
+         printf("Cannot stat %s: %s\n", fname, be.bstrerror(errno));
          continue;
       }
       encode_stat(where, &statp);
