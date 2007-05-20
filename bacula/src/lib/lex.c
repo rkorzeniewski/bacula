@@ -556,7 +556,7 @@ lex_get_token(LEX *lf, int expect)
             if (lf == NULL) {
                berrno be;
                scan_err2(lfori, _("Cannot open included config file %s: %s\n"),
-                  lfori->str, be.strerror());
+                  lfori->str, be.bstrerror());
                return T_ERROR;
             }
             break;

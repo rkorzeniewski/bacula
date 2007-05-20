@@ -1,16 +1,7 @@
 /*
- *
- * Bacula common code library interface to Python
- *
- * Kern Sibbald, November MMIV
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ * Bacula common code library interface to Python
+ *
+ * Kern Sibbald, November MMIV
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "jcr.h"
@@ -327,7 +327,7 @@ static void init_python_lock()
    if ((errstat=rwl_init(&python_rwlock)) != 0) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Unable to initialize the Python lock. ERR=%s\n"),
-            be.strerror(errstat));
+            be.bstrerror(errstat));
    }
 
 }
@@ -344,7 +344,7 @@ void lock_python()
    if ((errstat=rwl_writelock(&python_rwlock)) != 0) {
       berrno be;
       Emsg2(M_ABORT, 0, "Python rwl_writelock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 
@@ -354,7 +354,7 @@ void unlock_python()
    if ((errstat=rwl_writeunlock(&python_rwlock)) != 0) {
       berrno be;
       Emsg2(M_ABORT, 0, "Python rwl_writeunlock failure. stat=%d: ERR=%s\n",
-           errstat, be.strerror(errstat));
+           errstat, be.bstrerror(errstat));
    }
 }
 

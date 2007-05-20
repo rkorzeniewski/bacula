@@ -1,21 +1,7 @@
 /*
- *  daemon.c by Kern Sibbald
- *
- *   Version $Id$
- *
- *   this code is inspired by the Prentice Hall book
- *   "Unix Network Programming" by W. Richard Stevens
- *   and later updated from his book "Advanced Programming
- *   in the UNIX Environment"
- *
- * Initialize a daemon process completely detaching us from
- * any terminal processes.
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  daemon.c by Kern Sibbald
+ *
+ *   Version $Id$
+ *
+ *   this code is inspired by the Prentice Hall book
+ *   "Unix Network Programming" by W. Richard Stevens
+ *   and later updated from his book "Advanced Programming
+ *   in the UNIX Environment"
+ *
+ * Initialize a daemon process completely detaching us from
+ * any terminal processes.
+ *
+ */
 
 
 #include "bacula.h"
@@ -63,7 +63,7 @@ daemon_start()
    Dmsg0(900, "Enter daemon_start\n");
    if ( (cpid = fork() ) < 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Cannot fork to become daemon: %s\n"), be.strerror());
+      Emsg1(M_ABORT, 0, _("Cannot fork to become daemon: %s\n"), be.bstrerror());
    } else if (cpid > 0) {
       exit(0);              /* parent exits */
    }

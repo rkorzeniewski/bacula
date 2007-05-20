@@ -79,8 +79,9 @@ int start_watchdog(void)
    watchdog_time = time(NULL);
 
    if ((errstat=rwl_init(&lock)) != 0) {
+      berrno be;
       Emsg1(M_ABORT, 0, _("Unable to initialize watchdog lock. ERR=%s\n"),
-            strerror(errstat));
+            be.bstrerror(errstat));
    }
    wd_queue = New(dlist(dummy, &dummy->link));
    wd_inactive = New(dlist(dummy, &dummy->link));
@@ -320,8 +321,9 @@ static void wd_lock()
 {
    int errstat;
    if ((errstat=rwl_writelock(&lock)) != 0) {
+      berrno be;
       Emsg1(M_ABORT, 0, _("rwl_writelock failure. ERR=%s\n"),
-           strerror(errstat));
+           be.bstrerror(errstat));
    }
 }
 
@@ -334,7 +336,8 @@ static void wd_unlock()
 {
    int errstat;
    if ((errstat=rwl_writeunlock(&lock)) != 0) {
+      berrno be;
       Emsg1(M_ABORT, 0, _("rwl_writeunlock failure. ERR=%s\n"),
-           strerror(errstat));
+           be.bstrerror(errstat));
    }
 }

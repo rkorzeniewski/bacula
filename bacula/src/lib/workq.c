@@ -15,12 +15,14 @@
  *
  *  Initialize queue
  *  if ((stat = workq_init(&job_wq, max_workers, job_thread)) != 0) {
- *     Emsg1(M_ABORT, 0, "Could not init job work queue: ERR=%s\n", strerror(errno));
+ *     berrno be;
+ *     Emsg1(M_ABORT, 0, "Could not init job work queue: ERR=%s\n", be.bstrerror(errno));
  *   }
  *
  *  Add an item to the queue
  *  if ((stat = workq_add(&job_wq, (void *)jcr)) != 0) {
- *      Emsg1(M_ABORT, 0, "Could not add job to work queue: ERR=%s\n", strerror(errno));
+ *      berrno be;
+ *      Emsg1(M_ABORT, 0, "Could not add job to work queue: ERR=%s\n", be.bstrerror(errno));
  *   }
  *
  *  Terminate the queue

@@ -103,7 +103,8 @@ static struct CRYPTO_dynlock_value *openssl_create_dynamic_mutex (const char *fi
    dynlock = (struct CRYPTO_dynlock_value *) malloc(sizeof(struct CRYPTO_dynlock_value));
 
    if ((stat = pthread_mutex_init(&dynlock->mutex, NULL)) != 0) {
-      Emsg1(M_ABORT, 0, _("Unable to init mutex: ERR=%s\n"), strerror(stat));
+      berrno be;
+      Emsg1(M_ABORT, 0, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(stat));
    }
 
    return dynlock;
@@ -123,7 +124,8 @@ static void openssl_destroy_dynamic_mutex (struct CRYPTO_dynlock_value *dynlock,
    int stat;
 
    if ((stat = pthread_mutex_destroy(&dynlock->mutex)) != 0) {
-      Emsg1(M_ABORT, 0, _("Unable to destroy mutex: ERR=%s\n"), strerror(stat));
+      berrno be;
+      Emsg1(M_ABORT, 0, _("Unable to destroy mutex: ERR=%s\n"), be.bstrerror(stat));
    }
 
    free(dynlock);
@@ -160,7 +162,8 @@ int openssl_init_threads (void)
    mutexes = (pthread_mutex_t *) malloc(numlocks * sizeof(pthread_mutex_t));
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_init(&mutexes[i], NULL)) != 0) {
-         Emsg1(M_ERROR, 0, _("Unable to init mutex: ERR=%s\n"), strerror(stat));
+         berrno be;
+         Emsg1(M_ERROR, 0, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(stat));
          return stat;
       }
    }
@@ -179,7 +182,7 @@ int openssl_init_threads (void)
 /*
  * Clean up OpenSSL threading support
  */
-void openssl_cleanup_threads (void)
+void openssl_cleanup_threads(void)
 {
    int i, numlocks;
    int stat;
@@ -191,8 +194,9 @@ void openssl_cleanup_threads (void)
    numlocks = CRYPTO_num_locks();
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_destroy(&mutexes[i])) != 0) {
+         berrno be;
          /* We don't halt execution, reporting the error should be sufficient */
-         Emsg1(M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), strerror(stat));
+         Emsg1(M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), be.bstrerror(stat));
       }
    }
 
