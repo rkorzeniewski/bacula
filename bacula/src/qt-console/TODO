@@ -7,8 +7,6 @@ As well as many more
 update slots scan
 see COMMANDS file
 
-Get the 5 second bring to bottom of console to stop
-
 ========LOW priority items:
 Human readable in joblist for purged, joblevel and job type.
 
@@ -71,6 +69,8 @@ global one defined in the mainWin class (if I remember right).
 ============================================================
 DONE:
 ============================================================
+Get the 5 second bring to bottom of console to stop
+
 joblist cancel a running job.
 
 Fixes to final restore widgets.
