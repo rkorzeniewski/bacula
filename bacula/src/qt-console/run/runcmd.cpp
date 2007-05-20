@@ -74,6 +74,7 @@ void runCmdPage::fill()
    clientCombo->addItems(m_console->client_list);
    filesetCombo->addItems(m_console->fileset_list);
    replaceCombo->addItems(QStringList() << "never" << "always" << "ifnewer" << "ifolder");
+   replaceCombo->setCurrentIndex(replaceCombo->findText("never", Qt::MatchExactly));
    storageCombo->addItems(m_console->storage_list);
    dateTimeEdit->setDisplayFormat(m_dtformat);
 
@@ -129,7 +130,9 @@ void runCmdPage::fill()
          continue;
       }
       if (item.startsWith("Replace:")) {
-         replaceCombo->setCurrentIndex(replaceCombo->findText(val, Qt::MatchExactly));
+         int replaceIndex = replaceCombo->findText(val, Qt::MatchExactly);
+         if (replaceIndex >= 0)
+            replaceCombo->setCurrentIndex(replaceIndex);
          continue;
       }
    }

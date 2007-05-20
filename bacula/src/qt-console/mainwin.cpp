@@ -49,7 +49,7 @@
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
-
+   m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
    readPreferences();
