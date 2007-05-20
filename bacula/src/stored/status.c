@@ -412,7 +412,7 @@ static void list_running_jobs(void sendit(const char *msg, int len, void *sarg),
             len = Mmsg(msg, _("    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n"),
                edit_uint64_with_commas(jcr->file_bsock->read_seqno, b1),
                jcr->file_bsock->in_msg_no, jcr->file_bsock->out_msg_no,
-               jcr->file_bsock->fd);
+               jcr->file_bsock->m_fd);
             sendit(msg, len, arg);
          } else {
             len = Mmsg(msg, _("    FDSocket closed\n"));

@@ -409,8 +409,8 @@ void wait_for_storage_daemon_termination(JCR *jcr)
       V(mutex);
       if (job_canceled(jcr)) {
          if (jcr->SD_msg_chan) {
-            jcr->store_bsock->timed_out = 1;
-            jcr->store_bsock->terminated = 1;
+            jcr->store_bsock->m_timed_out = 1;
+            jcr->store_bsock->m_terminated = 1;
             Dmsg2(400, "kill jobid=%d use=%d\n", (int)jcr->JobId, jcr->use_count());
             pthread_kill(jcr->SD_msg_chan, TIMEOUT_SIGNAL);
          }

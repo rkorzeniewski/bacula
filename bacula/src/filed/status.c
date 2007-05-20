@@ -187,7 +187,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
       found = true;
       if (njcr->store_bsock) {
          len = Mmsg(msg, "    SDReadSeqNo=%" lld " fd=%d\n",
-             njcr->store_bsock->read_seqno, njcr->store_bsock->fd);
+             njcr->store_bsock->read_seqno, njcr->store_bsock->m_fd);
          sendit(msg.c_str(), len, arg);
       } else {
          len = Mmsg(msg, _("    SDSocket closed.\n"));

@@ -240,16 +240,16 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
       if (!jcr->no_attributes) {
          if (are_attributes_spooled(jcr)) {
-            jcr->dir_bsock->spool = true;
+            jcr->dir_bsock->m_spool = true;
          }
          Dmsg0(850, "Send attributes to dir.\n");
          if (!dir_update_file_attributes(jcr->dcr, rec)) {
-            jcr->dir_bsock->spool = false;
+            jcr->dir_bsock->m_spool = false;
             Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
                bnet_strerror(jcr->dir_bsock));
             return false;
          }
-         jcr->dir_bsock->spool = false;
+         jcr->dir_bsock->m_spool = false;
       }
    }
 

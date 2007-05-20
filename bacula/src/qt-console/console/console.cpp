@@ -154,7 +154,7 @@ void Console::connect()
    mainWin->set_status(_("Initializing ..."));
 
    /* Set up input notifier */
-   m_notifier = new QSocketNotifier(m_sock->fd, QSocketNotifier::Read, 0);
+   m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
    write(".api 1");

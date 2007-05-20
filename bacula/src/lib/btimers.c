@@ -225,7 +225,7 @@ static void callback_thread_timer(watchdog_t *self)
       wid->type == TYPE_BSOCK ? "bsock" : "thread", wid->tid, time(NULL));
 
    if (wid->type == TYPE_BSOCK && wid->bsock) {
-      wid->bsock->timed_out = true;
+      wid->bsock->m_timed_out = true;
    }
    pthread_kill(wid->tid, TIMEOUT_SIGNAL);
 }

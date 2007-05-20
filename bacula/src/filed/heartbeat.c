@@ -129,12 +129,12 @@ void stop_heartbeat_monitor(JCR *jcr)
    }
 
    if (jcr->hb_bsock) {
-      jcr->hb_bsock->timed_out = 1;   /* set timed_out to terminate read */
-      jcr->hb_bsock->terminated = 1;  /* set to terminate read */
+      jcr->hb_bsock->m_timed_out = true;    /* set timed_out to terminate read */
+      jcr->hb_bsock->m_terminated = true;   /* set to terminate read */
    }
    if (jcr->hb_dir_bsock) {
-      jcr->hb_dir_bsock->timed_out = 1;   /* set timed_out to terminate read */
-      jcr->hb_dir_bsock->terminated = 1;  /* set to terminate read */
+      jcr->hb_dir_bsock->m_timed_out = true;  /* set timed_out to terminate read */
+      jcr->hb_dir_bsock->m_terminated = true; /* set to terminate read */
    }
    Dmsg0(100, "Send kill to heartbeat id\n");
    pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
