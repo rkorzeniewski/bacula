@@ -209,7 +209,7 @@ void JobList::populateTable()
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" << "File Set" );
    m_purgedIndex = headerlist.indexOf("Purged");
    m_typeIndex = headerlist.indexOf("Job Type");
-   statusIndex = headerlist.indexOf("Job Status");
+   m_statusIndex = headerlist.indexOf("Job Status");
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -234,20 +234,20 @@ void JobList::populateTable()
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
          int column = 0;
-         bool statusIndexDone = false;
+         bool m_statusIndexDone = false;
          QString statusCode("");
          /* Iterate through fields in the record */
          foreach (field, fieldlist) {
             field = field.trimmed();  /* strip leading & trailing spaces */
-            if ((column == statusIndex) && (!statusIndexDone)){
-               statusIndexDone = true;
+            if ((column == m_statusIndex) && (!m_statusIndexDone)){
+               m_statusIndexDone = true;
                statusCode = field;
             } else {
                p_tableitem = new QTableWidgetItem(field,1);
                p_tableitem->setFlags(0);
                p_tableitem->setForeground(blackBrush);
                mp_tableWidget->setItem(row, column, p_tableitem);
-               if (column == statusIndex)
+               if (column == m_statusIndex)
                   setStatusColor(p_tableitem, statusCode);
                column++;
             }
@@ -335,19 +335,29 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       int row = currentItem->row();
       QTableWidgetItem* jobitem = mp_tableWidget->item(row, 0);
       m_currentJob = jobitem->text();
+
+      /* include purged action or not */
       jobitem = mp_tableWidget->item(row, m_purgedIndex);
       QString purged = jobitem->text();
       mp_tableWidget->removeAction(actionPurgeFiles);
       if (purged == "0") {
          mp_tableWidget->addAction(actionPurgeFiles);
       }
+      /* include restore from time and job action or not */
       jobitem = mp_tableWidget->item(row, m_typeIndex);
-      QString status = jobitem->text();
+      QString type = jobitem->text();
       mp_tableWidget->removeAction(actionRestoreFromJob);
       mp_tableWidget->removeAction(actionRestoreFromTime);
-      if (status == "B") {
+      if (type == "B") {
          mp_tableWidget->addAction(actionRestoreFromJob);
          mp_tableWidget->addAction(actionRestoreFromTime);
+      }
+      /* include cancel action or not */
+      jobitem = mp_tableWidget->item(row, m_statusIndex);
+      QString status = jobitem->text();
+      mp_tableWidget->removeAction(actionCancelJob);
+      if (status == "Running") {
+         mp_tableWidget->addAction(actionCancelJob);
       }
    }
 }
@@ -408,6 +418,8 @@ void JobList::createConnections()
                 SLOT(preRestoreFromTime()));
    connect(actionShowLogForJob, SIGNAL(triggered()), this,
                 SLOT(showLogForJob()));
+   connect(actionCancelJob, SIGNAL(triggered()), this,
+                SLOT(consoleCancelJob()));
 }
 
 /*
@@ -504,4 +516,14 @@ void JobList::showLogForJob()
 {
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new JobLog(m_currentJob, pageSelectorTreeWidgetItem);
+}
+
+/*
+ * Cancel a running job
+ */
+void JobList::consoleCancelJob()
+{
+   QString cmd("cancel jobid=");
+   cmd += m_currentJob;
+   consoleCommand(cmd);
 }
