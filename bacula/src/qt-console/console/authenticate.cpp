@@ -60,6 +60,7 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    int compatible = true;
    char bashed_name[MAX_NAME_LENGTH];
    char *password;
+   TLS_CONTEXT *tls_ctx = NULL;
 
    /*
     * Send my name to the Director then do authentication
@@ -68,36 +69,79 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       bstrncpy(bashed_name, cons->hdr.name, sizeof(bashed_name));
       bash_spaces(bashed_name);
       password = cons->password;
+      /* TLS Requirement */
+      if (cons->tls_enable) {
+         if (cons->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
+      }
+
+      tls_ctx = cons->tls_ctx;
    } else {
       bstrncpy(bashed_name, "*UserAgent*", sizeof(bashed_name));
       password = director->password;
+      /* TLS Requirement */
+      if (director->tls_enable) {
+         if (director->tls_require) {
+            tls_local_need = BNET_TLS_REQUIRED;
+         } else {
+            tls_local_need = BNET_TLS_OK;
+         }
+      }
+
+      tls_ctx = director->tls_ctx;
    }
-   /* Timeout Hello after 5 mins */
-   btimer_t *tid = start_bsock_timer(dir, 60 * 5);
-   bnet_fsend(dir, hello, bashed_name);
+   /* Timeout Hello after 30 secs */
+   btimer_t *tid = start_bsock_timer(dir, 30);
+   dir->fsend(hello, bashed_name);
 
    /* respond to Dir challenge */
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
        /* Now challenge dir */
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
-      stop_bsock_timer(tid);
       printf(_("%s: Director authorization problem.\n"), my_name);
       display_text(_("Director authorization problem.\n"));    
-      display_text(_(
-       "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
-      return false;
+      goto bail_out;
+   }
+
+   /* Verify that the remote host is willing to meet our TLS requirements */
+   if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      display_text(_("Authorization problem:"
+             " Remote server did not advertise required TLS support.\n"));
+      goto bail_out;
+   }
+
+   /* Verify that we are willing to meet the remote host's requirements */
+   if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
+      display_text(_("Authorization problem:"
+                     " Remote server requires TLS.\n"));
+      goto bail_out;
+   }
+
+   /* Is TLS Enabled? */
+   if (have_tls) {
+      if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+         /* Engage TLS! Full Speed Ahead! */
+         if (!bnet_tls_client(tls_ctx, dir, NULL)) {
+            display_text(_("TLS negotiation failed\n"));
+            goto bail_out;
+         }
+      }
    }
 
    Dmsg1(6, ">dird: %s", dir->msg);
-   if (bnet_recv(dir) <= 0) {
+   if (dir->recv() <= 0) {
       stop_bsock_timer(tid);
       display_textf(_("Bad response to Hello command: ERR=%s\n"),
-         bnet_strerror(dir));
+         dir->bstrerror());
       printf(_("%s: Bad response to Hello command: ERR=%s\n"),
-         my_name, bnet_strerror(dir));
+         my_name, dir->bstrerror());
       display_text(_("The Director is probably not running.\n"));
       return false;
    }
+
   stop_bsock_timer(tid);
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
@@ -107,4 +151,12 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       display_text(dir->msg);
    }
    return true;
+
+bail_out:
+   stop_bsock_timer(tid);
+   display_text(_("Director authorization problem.\n"
+             "Most likely the passwords do not agree.\n"
+             "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"
+             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
+   return false;
 }

@@ -41,6 +41,9 @@
 #include "select.h"
 #include "run/run.h"
 
+static int tls_pem_callback(char *buf, int size, const void *userdata);
+
+
 Console::Console(QStackedWidget *parent)
 {
    QFont font;
@@ -118,6 +121,48 @@ void Console::connect()
    /* If cons==NULL, default console will be used */
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
    UnlockRes();
+
+   char buf[1024];
+   /* Initialize Console TLS context */
+   if (cons && (cons->tls_enable || cons->tls_require)) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer   
+       */
+      cons->tls_ctx = new_tls_context(cons->tls_ca_certfile,
+         cons->tls_ca_certdir, cons->tls_certfile,
+         cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!cons->tls_ctx) {
+         display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
+            m_dir->hdr.name);
+         return;
+      }
+   }
+
+   /* Initialize Director TLS context */
+   if (m_dir->tls_enable || m_dir->tls_require) {
+      /* Generate passphrase prompt */
+      bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", 
+                m_dir->hdr.name);
+
+      /* Initialize TLS context:
+       * Args: CA certfile, CA certdir, Certfile, Keyfile,
+       * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
+      m_dir->tls_ctx = new_tls_context(m_dir->tls_ca_certfile,
+                          m_dir->tls_ca_certdir, m_dir->tls_certfile,
+                          m_dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
+
+      if (!m_dir->tls_ctx) {
+         display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
+            m_dir->hdr.name);
+         mainWin->set_status("Connection failed");
+         return;
+      }
+   }
 
    if (m_dir->heartbeat_interval) {
       heart_beat = m_dir->heartbeat_interval;
@@ -726,4 +771,34 @@ bool Console::preventInUseConnect()
    } else {
       return true;
    }
+}
+
+/*
+ * Call-back for reading a passphrase for an encrypted PEM file
+ * This function uses getpass(), 
+ *  which uses a static buffer and is NOT thread-safe.
+ */
+static int tls_pem_callback(char *buf, int size, const void *userdata)
+{
+#ifdef HAVE_TLS
+   const char *prompt = (const char *)userdata;
+# if defined(HAVE_WIN32)
+   sendit(prompt);
+   if (win32_cgets(buf, size) == NULL) {
+      buf[0] = 0;
+      return 0;
+   } else {
+      return strlen(buf);
+   }
+# else
+   char *passwd;
+
+   passwd = getpass(prompt);
+   bstrncpy(buf, passwd, size);
+   return strlen(buf);
+# endif
+#else
+   buf[0] = 0;
+   return 0;
+#endif
 }
