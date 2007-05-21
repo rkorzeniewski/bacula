@@ -97,6 +97,7 @@ void Console::connect()
 {
    JCR jcr;
    utime_t heart_beat;
+   char buf[1024];
 
    m_textEdit = textEdit;   /* our console screen */
 
@@ -122,7 +123,6 @@ void Console::connect()
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
    UnlockRes();
 
-   char buf[1024];
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
@@ -189,9 +189,12 @@ void Console::connect()
 
    jcr.dir_bsock = m_sock;
 
-   if (!authenticate_director(&jcr, m_dir, cons)) {
-      display_text(m_sock->msg);
+   if (!authenticate_director(&jcr, m_dir, cons, buf, sizeof(buf))) {
+      display_text(buf);
       return;
+   }
+   if (buf[0]) {
+      display_text(buf);
    }
 
    /* Give GUI a chance */
@@ -758,7 +761,7 @@ bool Console::preventInUseConnect()
       message += m_dir->name();
       message += " is curerntly busy\n  Please complete restore or other "
 " operation !!  This is a limitation that will be resolved before a beta"
-" release.  This is currently an alpa release.";
+" release.  This is currently an alpha release.";
       QMessageBox::warning(this, tr("Bat"),
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
