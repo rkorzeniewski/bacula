@@ -108,6 +108,7 @@ public:
    char *host() { return m_host; };
    int port() { return m_port; };
    JCR *jcr() { return m_jcr; };
+   JCR *get_jcr() { return m_jcr; };
    bool is_terminated() { return m_terminated; };
    bool is_timed_out() { return m_timed_out; };
    void set_terminated() { m_terminated = true; };

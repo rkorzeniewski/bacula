@@ -119,14 +119,15 @@ void Console::connect()
    
    LockRes();
    /* If cons==NULL, default console will be used */
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, (RES *)NULL);
+   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
    UnlockRes();
 
    char buf[1024];
    /* Initialize Console TLS context */
    if (cons && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
-      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", cons->hdr.name);
+      bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", 
+                cons->name());
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -138,7 +139,7 @@ void Console::connect()
 
       if (!cons->tls_ctx) {
          display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
-            m_dir->hdr.name);
+            m_dir->name());
          return;
       }
    }
@@ -147,7 +148,7 @@ void Console::connect()
    if (m_dir->tls_enable || m_dir->tls_require) {
       /* Generate passphrase prompt */
       bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", 
-                m_dir->hdr.name);
+                m_dir->name());
 
       /* Initialize TLS context:
        * Args: CA certfile, CA certdir, Certfile, Keyfile,
@@ -158,7 +159,7 @@ void Console::connect()
 
       if (!m_dir->tls_ctx) {
          display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
-            m_dir->hdr.name);
+            m_dir->name());
          mainWin->set_status("Connection failed");
          return;
       }

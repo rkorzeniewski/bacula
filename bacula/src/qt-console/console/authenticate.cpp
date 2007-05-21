@@ -101,22 +101,25 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
        /* Now challenge dir */
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
-      printf(_("%s: Director authorization problem.\n"), my_name);
-      display_text(_("Director authorization problem.\n"));    
+      display_textf(_("Director authorization problem at \"%s:%d\"\n"),
+         dir->host(), dir->port());
       goto bail_out;
    }
 
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
-      display_text(_("Authorization problem:"
-             " Remote server did not advertise required TLS support.\n"));
+      display_textf(_("Authorization problem:"
+             " Remote server at \"%s:%d\" did not advertise required TLS support.\n"),
+             dir->host(), dir->port());
       goto bail_out;
    }
 
    /* Verify that we are willing to meet the remote host's requirements */
    if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
-      display_text(_("Authorization problem:"
-                     " Remote server requires TLS.\n"));
+      display_textf(_("Authorization problem with Director at \"%s:%d\":"
+                     " Remote server requires TLS.\n"),
+                     dir->host(), dir->port());
+
       goto bail_out;
    }
 
@@ -125,7 +128,8 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
       if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
          /* Engage TLS! Full Speed Ahead! */
          if (!bnet_tls_client(tls_ctx, dir, NULL)) {
-            display_text(_("TLS negotiation failed\n"));
+            display_textf(_("TLS negotiation failed with Director at \"%s:%d\"\n"),
+               dir->host(), dir->port());
             goto bail_out;
          }
       }
@@ -134,18 +138,17 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    Dmsg1(6, ">dird: %s", dir->msg);
    if (dir->recv() <= 0) {
       stop_bsock_timer(tid);
-      display_textf(_("Bad response to Hello command: ERR=%s\n"),
-         dir->bstrerror());
-      printf(_("%s: Bad response to Hello command: ERR=%s\n"),
-         my_name, dir->bstrerror());
-      display_text(_("The Director is probably not running.\n"));
+      display_textf(_("Bad response to Hello command: ERR=%s\n"
+                      "The Director at \"%s:%d\" is probably not running.\n"),
+                    dir->bstrerror(), dir->host(), dir->port());
       return false;
    }
 
   stop_bsock_timer(tid);
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
-      display_text(_("Director rejected Hello command\n"));    
+      display_textf(_("Director at \"%s:%d\" rejected Hello command\n"),
+         dir->host(), dir->port());
       return false;
    } else {
       display_text(dir->msg);
@@ -154,9 +157,10 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
 
 bail_out:
    stop_bsock_timer(tid);
-   display_text(_("Director authorization problem.\n"
+   display_textf(_("Authorization problem with Director at \"%s:%d\"\n"
              "Most likely the passwords do not agree.\n"
              "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"
-             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"));
+             "Please see http://www.bacula.org/rel-manual/faq.html#AuthorizationErrors for help.\n"), 
+             dir->host(), dir->port());
    return false;
 }

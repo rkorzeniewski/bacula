@@ -490,7 +490,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
          if (nbytes != (size_t) msglen) {
             berrno be;
             Dmsg2(400, "nbytes=%d msglen=%d\n", nbytes, msglen);
-            Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+            Qmsg1(get_jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
                   be.bstrerror());
             update_attr_spool_size(tsize - last);
             return false;
@@ -506,7 +506,7 @@ bool BSOCK::despool(void update_attr_spool_size(ssize_t size), ssize_t tsize)
    update_attr_spool_size(tsize - last);
    if (ferror(m_spool_fd)) {
       berrno be;
-      Qmsg1(jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
+      Qmsg1(get_jcr(), M_FATAL, 0, _("fread attr spool error. ERR=%s\n"),
             be.bstrerror());
       return false;
    }
@@ -567,23 +567,23 @@ bool BSOCK::set_buffer_size(uint32_t size, int rw)
    }
    start_size = dbuf_size;
    if ((msg = realloc_pool_memory(msg, dbuf_size + 100)) == NULL) {
-      Qmsg0(jcr(), M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
+      Qmsg0(get_jcr(), M_FATAL, 0, _("Could not malloc BSOCK data buffer\n"));
       return false;
    }
    if (rw & BNET_SETBUF_READ) {
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(m_fd, SOL_SOCKET,
               SO_RCVBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
          berrno be;
-         Qmsg1(jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
+         Qmsg1(get_jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
          dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(200, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
-         Qmsg1(jcr(), M_WARNING, 0,
+         Qmsg1(get_jcr(), M_WARNING, 0,
                _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(jcr(), M_ABORT, 0,
+         Qmsg1(get_jcr(), M_ABORT, 0,
                _("Network buffer size %d not multiple of tape block size.\n"),
                dbuf_size);
       }
@@ -598,16 +598,16 @@ bool BSOCK::set_buffer_size(uint32_t size, int rw)
       while ((dbuf_size > TAPE_BSIZE) && (setsockopt(m_fd, SOL_SOCKET,
               SO_SNDBUF, (sockopt_val_t) & dbuf_size, sizeof(dbuf_size)) < 0)) {
          berrno be;
-         Qmsg1(jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
+         Qmsg1(get_jcr(), M_ERROR, 0, _("sockopt error: %s\n"), be.bstrerror());
          dbuf_size -= TAPE_BSIZE;
       }
       Dmsg1(900, "set network buffer size=%d\n", dbuf_size);
       if (dbuf_size != start_size) {
-         Qmsg1(jcr(), M_WARNING, 0,
+         Qmsg1(get_jcr(), M_WARNING, 0,
                _("Warning network buffer = %d bytes not max size.\n"), dbuf_size);
       }
       if (dbuf_size % TAPE_BSIZE != 0) {
-         Qmsg1(jcr(), M_ABORT, 0,
+         Qmsg1(get_jcr(), M_ABORT, 0,
                _("Network buffer size %d not multiple of tape block size.\n"),
                dbuf_size);
       }
@@ -629,13 +629,13 @@ int BSOCK::set_nonblocking()
    /* Get current flags */
    if ((oflags = fcntl(m_fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
+      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(m_fd, F_SETFL, oflags|O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = 0;
@@ -663,13 +663,13 @@ int BSOCK::set_blocking()
    /* Get current flags */
    if ((oflags = fcntl(m_fd, F_GETFL, 0)) < 0) {
       berrno be;
-      Jmsg1(jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
+      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_GETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    /* Set O_NONBLOCK flag */
    if ((fcntl(m_fd, F_SETFL, oflags & ~O_NONBLOCK)) < 0) {
       berrno be;
-      Jmsg1(jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = 1;
@@ -694,7 +694,7 @@ void BSOCK::restore_blocking (int flags)
 #ifndef HAVE_WIN32
    if ((fcntl(m_fd, F_SETFL, flags)) < 0) {
       berrno be;
-      Jmsg1(jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
+      Jmsg1(get_jcr(), M_ABORT, 0, _("fcntl F_SETFL error. ERR=%s\n"), be.bstrerror());
    }
 
    m_blocking = (flags & O_NONBLOCK) ? true : false;

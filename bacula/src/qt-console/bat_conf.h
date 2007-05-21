@@ -61,7 +61,8 @@ enum {
 
 
 /* Definition of the contents of each Resource */
-struct DIRRES {
+class DIRRES {
+public:
    RES   hdr;
    int   DIRport;                     /* UA server port */
    char *address;                     /* UA server address */
@@ -82,13 +83,14 @@ struct DIRRES {
 
 inline char *DIRRES::name() const { return hdr.name; }
 
+
 struct CONFONTRES {
    RES   hdr;
    char *fontface;                    /* Console Font specification */
-   int require_ssl;                   /* Require SSL on all connections */
 };
 
-struct CONRES {
+class CONRES {
+public:
    RES   hdr;
    char *password;                    /* UA server password */
    int tls_enable;                    /* Enable TLS on all connections */
@@ -97,10 +99,15 @@ struct CONRES {
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
-   utime_t heartbeat_interval;        /* Dir heartbeat interval */
+   utime_t heartbeat_interval;        /* Cons heartbeat interval */
 
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+
+   /* Methods */
+   char *name() const;
 };
+
+inline char *CONRES::name() const { return hdr.name; }
 
 
 /* Define the Union of all the above
@@ -114,5 +121,9 @@ union u_res {
 };
 
 typedef union u_res URES;
+
+#define GetConsoleResWithName(x) ((CONRES *)GetResWithName(R_CONSOLE, (x)))
+#define GetDirResWithName(x) ((DIRRES *)GetResWithName(R_DIRECTOR, (x)))
+
 
 #endif /* _BAT_CONF_H_ */
