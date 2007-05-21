@@ -8,6 +8,9 @@ update slots scan
 see COMMANDS file
 
 ========LOW priority items:
+Use settings object to size the restore window.  Similar to the saving of the
+state of the main window.
+
 Human readable in joblist for purged, joblevel and job type.
 
 Possibly a stack of past screens so that when you open a window from another,
