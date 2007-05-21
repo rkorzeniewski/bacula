@@ -80,7 +80,8 @@ public:
    bool dir_cmd(QString &cmd, QStringList &results);
    bool sql_cmd(const char *cmd, QStringList &results);
    bool sql_cmd(QString &cmd, QStringList &results);
-   bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
+   bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons, 
+          char *buf, int buflen);
    bool is_connected() { return m_sock != NULL; };
    bool is_connectedGui();
    bool preventInUseConnect();
