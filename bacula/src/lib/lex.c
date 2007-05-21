@@ -291,6 +291,8 @@ static const char *lex_state_to_str(int state)
    case lex_identifier:    return _("identifier");
    case lex_string:        return _("string");
    case lex_quoted_string: return _("quoted_string");
+   case lex_utf8_bom:      return _("UTF-8 Byte Order Mark");
+   case lex_utf16_le_bom:  return _("UTF-16le Byte Order Mark");
    default:                return "??????";
    }
 }
@@ -318,6 +320,8 @@ const char *lex_tok_to_str(int token)
    case T_EOF:             return "T_EOF";
    case T_COMMA:           return "T_COMMA";
    case T_EOL:             return "T_EOL";
+   case T_UTF8_BOM:        return "T_UTF8_BOM";
+   case T_UTF16_BOM:       return "T_UTF16_BOM";
    default:                return "??????";
    }
 }
@@ -350,7 +354,13 @@ lex_get_token(LEX *lf, int expect)
    int ch;
    int token = T_NONE;
    bool esc_next = false;
-   int unicode_count = 0;
+   /* Unicode files, especially on Win32, may begin with a "Byte Order Mark"
+      to indicate which transmission format the file is in. The codepoint for
+      this mark is U+FEFF and is represented as the octets EF-BB-BF in UTF-8
+      and as FF-FE in UTF-16le(little endian) and  FE-FF in UTF-16(big endian).
+      We use a distinct state for UTF-8 and UTF-16le, and use bom_bytes_seen
+      to tell which byte we are expecting. */
+   int bom_bytes_seen = 0;
 
    Dmsg0(dbglvl, "enter lex_get_token\n");
    while (token == T_NONE) {
@@ -422,15 +432,25 @@ lex_get_token(LEX *lf, int expect)
             lf->state = lex_include;
             begin_str(lf, 0);
             break;
-         case 0xEF:
+         case 0xEF: /* probably a UTF-8 BOM */
+         case 0xFF: /* probably a UTF-16le BOM */
+         case 0xFE: /* probably a UTF-16be BOM (error)*/
             if (lf->line_no != 1 || lf->col_no != 1)
             {
                lf->state = lex_string;
                begin_str(lf, ch);
-               break;
+            } else {
+               bom_bytes_seen = 1;
+               if (ch == 0xEF) {
+                  lf->state = lex_utf8_bom;
+               } else if (ch == 0xFF) {
+                  lf->state = lex_utf16_le_bom;
+               } else {
+                  scan_err0(lf, _("This config file appears to be in an "
+                     "unsupported Unicode format (UTF-16be). Please resave as UTF-8\n"));
+                  return T_ERROR;
+               }
             }
-            lf->state = lex_unicode_mark;
-            unicode_count = 1;
             break;
          default:
             lf->state = lex_string;
@@ -550,7 +570,7 @@ lex_get_token(LEX *lf, int expect)
              ch == ';' || ch == ','   || ch == '"' || ch == '#') {
             /* Keep the original LEX so we can print an error if the included file can't be opened. */
             LEX* lfori = lf;
-            
+
             lf->state = lex_none;
             lf = lex_open_file(lf, lf->str, lf->scan_error);
             if (lf == NULL) {
@@ -563,26 +583,29 @@ lex_get_token(LEX *lf, int expect)
          }
          add_str(lf, ch);
          break;
-      case lex_unicode_mark:
-         if (ch == L_EOF) {
-            token = T_ERROR;
-            break;
-         }
-         unicode_count++;
-         if (unicode_count == 2) {
-            if (ch != 0xBB) {
-               token = T_ERROR;
-               break;
-            }
-         } else if (unicode_count == 3) {
-            if (ch != 0xBF) {
-               token = T_ERROR;
-               break;
-            }
-            token = T_UNICODE_MARK;
+      case lex_utf8_bom:
+         /* we only end up in this state if we have read an 0xEF 
+            as the first byte of the file, indicating we are probably
+            reading a UTF-8 file */
+         if (ch == 0xBB && bom_bytes_seen == 1) {
+            bom_bytes_seen++;
+         } else if (ch == 0xBF && bom_bytes_seen == 2) {
+            token = T_UTF8_BOM;
             lf->state = lex_none;
-            break;
-         }
+         } else {
+            token = T_ERROR;
+	 }
+         break;
+      case lex_utf16_le_bom:
+         /* we only end up in this state if we have read an 0xFF 
+            as the first byte of the file -- indicating that we are
+            probably dealing with an Intel based (little endian) UTF-16 file*/
+	 if (ch == 0xFE) {
+	    token = T_UTF16_BOM;
+	    lf->state = lex_none;
+	 } else {
+	    token = T_ERROR;
+	 }
          break;
       }
       Dmsg4(dbglvl, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),

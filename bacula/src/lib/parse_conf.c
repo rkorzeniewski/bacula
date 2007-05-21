@@ -828,15 +828,17 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
          case p_none:
             if (token == T_EOL) {
                break;
-            }
-            if (token == T_UNICODE_MARK) {
+            } else if (token == T_UTF8_BOM) {
+               /* We can assume the file is UTF-8 as we have seen a UTF-8 BOM */
                break;
-            }
-            if (token != T_IDENTIFIER) {
+            } else if (token == T_UTF16_BOM) {
+               scan_err0(lc, _("Currently we cannot handle UTF-16 source files. Please convert to UTF-16\n"));
+               return 0;
+            } else if (token != T_IDENTIFIER) {
                scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
                return 0;
             }
-            for (i=0; resources[i].name; i++)
+            for (i=0; resources[i].name; i++) {
                if (strcasecmp(resources[i].name, lc->str) == 0) {
                   state = p_resource;
                   items = resources[i].items;
@@ -844,6 +846,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
                   init_resource(res_type, items, pass);
                   break;
                }
+            }
             if (state == p_none) {
                scan_err1(lc, _("expected resource name, got: %s"), lc->str);
                return 0;
