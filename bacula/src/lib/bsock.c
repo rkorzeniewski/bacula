@@ -52,6 +52,193 @@
 #define socketClose(fd)           ::close(fd)
 #endif
 
+BSOCK::BSOCK()
+{
+   memset(this, 0, sizeof(BSOCK));
+}
+
+BSOCK::~BSOCK() 
+{
+   destroy();
+}
+
+/*
+ * Try to connect to host for max_retry_time at retry_time intervals.
+ */
+bool BSOCK::connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
+                    utime_t heart_beat,
+                    const char *name, char *host, char *service, int port,
+                    int verbose)
+{
+   bool ok = false;
+   int i;
+   int fatal = 0;
+   time_t begin_time = time(NULL);
+   time_t now;
+   btimer_t *tid = NULL;
+
+   /* Try to trap out of OS call when time expires */
+   if (max_retry_time) {
+      tid = start_thread_timer(pthread_self(), (uint32_t)max_retry_time);
+   }
+   
+   for (i = 0; !open(jcr, name, host, service, port, heart_beat, &fatal);
+        i -= retry_interval) {
+      berrno be;
+      if (fatal || (jcr && job_canceled(jcr))) {
+         goto bail_out;
+      }
+      Dmsg4(100, "Unable to connect to %s on %s:%d. ERR=%s\n",
+            name, host, port, be.bstrerror());
+      if (i < 0) {
+         i = 60 * 5;               /* complain again in 5 minutes */
+         if (verbose)
+            Qmsg4(jcr, M_WARNING, 0, _(
+               "Could not connect to %s on %s:%d. ERR=%s\n"
+               "Retrying ...\n"), name, host, port, be.bstrerror());
+      }
+      bmicrosleep(retry_interval, 0);
+      now = time(NULL);
+      if (begin_time + max_retry_time <= now) {
+         Qmsg4(jcr, M_FATAL, 0, _("Unable to connect to %s on %s:%d. ERR=%s\n"),
+               name, host, port, be.bstrerror());
+         goto bail_out;
+      }
+   }
+   ok = true;
+
+bail_out:
+   if (tid) {
+      stop_thread_timer(tid);
+   }
+   return ok;
+}
+
+
+/* Initialize internal socket structure.
+ *  This probably should be done in net_open
+ */
+void BSOCK::init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
+            struct sockaddr *lclient_addr)
+{
+   Dmsg3(100, "who=%s host=%s port=%d\n", who, host, port);
+   m_fd = sockfd;
+   tls = NULL;
+   errors = 0;
+   m_blocking = 1;
+   msg = get_pool_memory(PM_MESSAGE);
+   errmsg = get_pool_memory(PM_MESSAGE);
+   set_who(bstrdup(who));
+   set_host(bstrdup(host));
+   set_port(port);
+   memset(&peer_addr, 0, sizeof(peer_addr));
+   memcpy(&client_addr, lclient_addr, sizeof(client_addr));
+   /*
+    * ****FIXME**** reduce this to a few hours once
+    *   heartbeats are implemented
+    */
+   timeout = 60 * 60 * 6 * 24;   /* 6 days timeout */
+   set_jcr(jcr);
+}
+
+/*
+ * Open a TCP connection to the UPS network server
+ * Returns NULL
+ * Returns BSOCK * pointer on success
+ *
+ */
+bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
+            int port, utime_t heart_beat, int *fatal)
+{
+   int sockfd = -1;
+   dlist *addr_list;
+   IPADDR *ipaddr;
+   bool connected = false;
+   int turnon = 1;
+   const char *errstr;
+   int save_errno = 0;
+
+   /*
+    * Fill in the structure serv_addr with the address of
+    * the server that we want to connect with.
+    */
+   if ((addr_list = bnet_host2ipaddrs(host, 0, &errstr)) == NULL) {
+      /* Note errstr is not malloc'ed */
+      Qmsg2(jcr, M_ERROR, 0, _("gethostbyname() for host \"%s\" failed: ERR=%s\n"),
+            host, errstr);
+      Dmsg2(100, "bnet_host2ipaddrs() for host %s failed: ERR=%s\n",
+            host, errstr);
+      *fatal = 1;
+      return false;
+   }
+
+   foreach_dlist(ipaddr, addr_list) {
+      ipaddr->set_port_net(htons(port));
+      char allbuf[256 * 10];
+      char curbuf[256];
+      Dmsg2(100, "Current %sAll %s\n",
+                   ipaddr->build_address_str(curbuf, sizeof(curbuf)),
+                   build_addresses_str(addr_list, allbuf, sizeof(allbuf)));
+      /* Open a TCP socket */
+      if ((sockfd = socket(ipaddr->get_family(), SOCK_STREAM, 0)) < 0) {
+         berrno be;
+         save_errno = errno;
+         *fatal = 1;
+         Pmsg3(000, _("Socket open error. proto=%d port=%d. ERR=%s\n"),
+            ipaddr->get_family(), ipaddr->get_port_host_order(), be.bstrerror());
+         continue;
+      }
+      /*
+       * Keep socket from timing out from inactivity
+       */
+      if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
+         berrno be;
+         Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+               be.bstrerror());
+      }
+#if defined(TCP_KEEPIDLE)
+      if (heart_beat) {
+         int opt = heart_beat
+         if (setsockopt(sockfd, IPPROTO_IP, TCP_KEEPIDLE, (sockopt_val_t)&opt, sizeof(opt)) < 0) {
+            berrno be;
+            Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPIDLE on socket: %s\n"),
+                  be.bstrerror());
+         }
+      }
+#endif
+
+      /* connect to server */
+      if (::connect(sockfd, ipaddr->get_sockaddr(), ipaddr->get_sockaddr_len()) < 0) {
+         save_errno = errno;
+         socketClose(sockfd);
+         continue;
+      }
+      *fatal = 0;
+      connected = true;
+      break;
+   }
+
+   if (!connected) {
+      free_addresses(addr_list);
+      errno = save_errno | b_errno_win32;
+      return false;
+   }
+   /*
+    * Keep socket from timing out from inactivity
+    *   Do this a second time out of paranoia
+    */
+   if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_val_t)&turnon, sizeof(turnon)) < 0) {
+      berrno be;
+      Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
+            be.bstrerror());
+   }
+   init(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
+   free_addresses(addr_list);
+   return true;
+}
+
+
+
 /*
  * Send a message over the network. The send consists of
  * two network packets. The first is sends a 32 bit integer containing
@@ -541,7 +728,7 @@ void BSOCK::close()
          }
          socketClose(bsock->m_fd);      /* normal close */
       }
-      destroy();                      /* free the packet */
+      bsock->destroy();                 /* free the packet */
    }
    return;
 }

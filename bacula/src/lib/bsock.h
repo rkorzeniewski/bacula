@@ -49,6 +49,11 @@ private:
    char *m_who;                       /* Name of daemon to which we are talking */
    char *m_host;                      /* Host name/IP */
    int m_port;                        /* desired port */
+
+   void init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
+               struct sockaddr *lclient_addr);
+   bool open(JCR *jcr, const char *name, char *host, char *service,
+               int port, utime_t heart_beat, int *fatal);
    
 public:
    uint64_t read_seqno;               /* read sequence number */
@@ -75,6 +80,11 @@ public:
    struct sockaddr_in peer_addr;      /* peer's IP address */
 
    /* methods -- in bsock.c */
+   BSOCK();
+   ~BSOCK();
+   bool connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
+                utime_t heart_beat, const char *name, char *host, 
+                char *service, int port, int verbose);
    int32_t recv();
    bool send();
    bool fsend(const char*, ...);
