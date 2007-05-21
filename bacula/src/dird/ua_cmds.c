@@ -700,7 +700,7 @@ static int setip_cmd(UAContext *ua, const char *cmd)
       return 1;
    }
    LockRes();
-   client = (CLIENT *)GetResWithName(R_CLIENT, ua->cons->name());
+   client = GetClientResWithName(ua->cons->name());
 
    if (!client) {
       ua->error_msg(_("Client \"%s\" not found.\n"), ua->cons->name());
@@ -733,7 +733,7 @@ static void do_en_disable_cmd(UAContext *ua, bool setting)
       }
    } else {
       LockRes();
-      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      job = GetJobResWithName(ua->argv[i]);
       UnlockRes();
    } 
    if (!job) {
@@ -949,7 +949,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
           strcasecmp(ua->argk[i], "fd") == 0) {
          client = NULL;
          if (ua->argv[i]) {
-            client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+            client = GetClientResWithName(ua->argv[i]);
             if (client) {
                do_client_setdebug(ua, client, level, trace_flag);
                return 1;
@@ -967,7 +967,7 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
           strcasecmp(ua->argk[i], NT_("sd")) == 0) {
          store = NULL;
          if (ua->argv[i]) {
-            store = (STORE *)GetResWithName(R_STORAGE, ua->argv[i]);
+            store = GetStoreResWithName(ua->argv[i]);
             if (store) {
                do_storage_setdebug(ua, store, level, trace_flag);
                return 1;
@@ -1071,13 +1071,13 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       if (strcasecmp(ua->argk[i], NT_("client")) == 0 ||
           strcasecmp(ua->argk[i], NT_("fd")) == 0) {
          if (ua->argv[i]) {
-            client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+            client = GetClientResWithName(ua->argv[i]);
             continue;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (ua->argv[i]) {
-            job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+            job = GetJobResWithName(ua->argv[i]);
             if (job && !acl_access_ok(ua, Job_ACL, job->name())) {
                ua->error_msg(_("No authorization for Job \"%s\"\n"), job->name());
                return 1;
@@ -1087,7 +1087,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
       if (strcasecmp(ua->argk[i], NT_("fileset")) == 0) {
          if (ua->argv[i]) {
-            fileset = (FILESET *)GetResWithName(R_FILESET, ua->argv[i]);
+            fileset = GetFileSetResWithName(ua->argv[i]);
             if (fileset && !acl_access_ok(ua, FileSet_ACL, fileset->name())) {
                ua->error_msg(_("No authorization for FileSet \"%s\"\n"), fileset->name());
                return 1;
@@ -1112,7 +1112,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
    }
    if (!job) {
-      job = (JOB *)GetResWithName(R_JOB, ua->argk[1]);
+      job = GetJobResWithName(ua->argk[1]);
       if (!job) {
          ua->error_msg(_("No job specified.\n"));
          return 1;
@@ -1724,7 +1724,7 @@ bool open_client_db(UAContext *ua)
          ua->error_msg(_("No authorization for Catalog \"%s\"\n"), ua->argv[i]);
          return false;
       }
-      catalog = (CAT *)GetResWithName(R_CATALOG, ua->argv[i]);
+      catalog = GetCatalogResWithName(ua->argv[i]);
       if (catalog) {
          if (ua->catalog && ua->catalog != catalog) {
             close_db(ua);
@@ -1741,7 +1741,7 @@ bool open_client_db(UAContext *ua)
          ua->error_msg(_("No authorization for Client \"%s\"\n"), ua->argv[i]);
          return false;
       }
-      client = (CLIENT *)GetResWithName(R_CLIENT, ua->argv[i]);
+      client = GetClientResWithName(ua->argv[i]);
       if (client) {
          catalog = client->catalog;
          if (ua->catalog && ua->catalog != catalog) {
@@ -1763,7 +1763,7 @@ bool open_client_db(UAContext *ua)
          ua->error_msg(_("No authorization for Job \"%s\"\n"), ua->argv[i]);
          return false;
       }
-      job = (JOB *)GetResWithName(R_JOB, ua->argv[i]);
+      job = GetJobResWithName(ua->argv[i]);
       if (job) {
          catalog = job->client->catalog;
          if (ua->catalog && ua->catalog != catalog) {

@@ -1,19 +1,7 @@
 /*
- *
- *   Bacula Director -- authorize.c -- handles authorization of
- *     Storage and File daemons.
- *
- *     Kern Sibbald, May MMI
- *
- *    This routine runs as a thread and must be thread reentrant.
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -37,6 +25,18 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- authorize.c -- handles authorization of
+ *     Storage and File daemons.
+ *
+ *     Kern Sibbald, May MMI
+ *
+ *    This routine runs as a thread and must be thread reentrant.
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -75,7 +75,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
    bash_spaces(dirname);
    /* Timeout Hello after 1 min */
    btimer_t *tid = start_bsock_timer(sd, AUTH_TIMEOUT);
-   if (!bnet_fsend(sd, hello, dirname)) {
+   if (!sd->fsend(hello, dirname)) {
       stop_bsock_timer(tid);
       Dmsg1(50, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
       Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to Storage daemon. ERR=%s\n"), bnet_strerror(sd));
@@ -105,7 +105,7 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and Storage daemon passwords or names not the same.\n"));
       Jmsg2(jcr, M_FATAL, 0,
-            _("Director unable to authenticate with Storage daemon on \"%s:%d\". Possible causes:\n"
+            _("Director unable to authenticate with Storage daemon at \"%s:%d\". Possible causes:\n"
             "Passwords or names not the same or\n"
             "Maximum Concurrent Jobs exceeded on the SD or\n"
             "SD networking messed up (restart daemon).\n"
@@ -133,24 +133,24 @@ bool authenticate_storage_daemon(JCR *jcr, STORE *store)
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(store->tls_ctx, sd, NULL)) {
          stop_bsock_timer(tid);
-         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with SD on \"%s:%d\"\n"),
+         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with SD at \"%s:%d\"\n"),
             sd->host(), sd->port());
          return 0;
       }
    }
 
    Dmsg1(116, ">stored: %s", sd->msg);
-   if (bnet_recv(sd) <= 0) {
+   if (sd->recv() <= 0) {
       stop_bsock_timer(tid);
       Jmsg3(jcr, M_FATAL, 0, _("bdird<stored: \"%s:%s\" bad response to Hello command: ERR=%s\n"),
-         sd->who(), sd->host(), bnet_strerror(sd));
+         sd->who(), sd->host(), sd->bstrerror());
       return 0;
    }
    Dmsg1(110, "<stored: %s", sd->msg);
    stop_bsock_timer(tid);
    if (strncmp(sd->msg, OKhello, sizeof(OKhello)) != 0) {
       Dmsg0(50, _("Storage daemon rejected Hello command\n"));
-      Jmsg2(jcr, M_FATAL, 0, _("Storage daemon on \"%s:%d\" rejected Hello command\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("Storage daemon at \"%s:%d\" rejected Hello command\n"),
          sd->host(), sd->port());
       return 0;
    }
@@ -175,12 +175,12 @@ int authenticate_file_daemon(JCR *jcr)
     */
    bstrncpy(dirname, director->hdr.name, sizeof(dirname));
    bash_spaces(dirname);
-   /* Timeout Hello after 10 mins */
+   /* Timeout Hello after 1 min */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
-   if (!bnet_fsend(fd, hello, dirname)) {
+   if (!fd->fsend(hello, dirname)) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon on \"%s:%d\". ERR=%s\n"), 
-           fd->host(), fd->port(), bnet_strerror(fd));
+      Jmsg(jcr, M_FATAL, 0, _("Error sending Hello to File daemon at \"%s:%d\". ERR=%s\n"), 
+           fd->host(), fd->port(), fd->bstrerror());
       return 0;
    }
    Dmsg1(50, "Sent: %s", fd->msg);
@@ -207,7 +207,7 @@ int authenticate_file_daemon(JCR *jcr)
       stop_bsock_timer(tid);
       Dmsg0(50, _("Director and File daemon passwords or names not the same.\n"));
       Jmsg(jcr, M_FATAL, 0,
-            _("Unable to authenticate with File daemon on \"%s:%d\". Possible causes:\n"
+            _("Unable to authenticate with File daemon at \"%s:%d\". Possible causes:\n"
             "Passwords or names not the same or\n"
             "Maximum Concurrent Jobs exceeded on the FD or\n"
             "FD networking messed up (restart daemon).\n"
@@ -227,7 +227,7 @@ int authenticate_file_daemon(JCR *jcr)
    /* Verify that we are willing to meet the remote host's requirements */
    if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       stop_bsock_timer(tid);
-      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: FD on \"%s:%d\" requires TLS.\n"),
+      Jmsg(jcr, M_FATAL, 0, _("Authorization problem: FD at \"%s:%d\" requires TLS.\n"),
            fd->host(), fd->port());
       return 0;
    }
@@ -238,26 +238,26 @@ int authenticate_file_daemon(JCR *jcr)
       if (!bnet_tls_client(client->tls_ctx, fd, client->tls_allowed_cns)) {
 
          stop_bsock_timer(tid);
-         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with FD on \"%s:%d\".\n"),
+         Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with FD at \"%s:%d\".\n"),
               fd->host(), fd->port());
          return 0;
       }
    }
 
    Dmsg1(116, ">filed: %s", fd->msg);
-   if (bnet_recv(fd) <= 0) {
+   if (fd->recv() <= 0) {
       stop_bsock_timer(tid);
       Dmsg1(50, _("Bad response from File daemon to Hello command: ERR=%s\n"),
          bnet_strerror(fd));
-      Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon on \"%s:%d\" to Hello command: ERR=%s\n"),
-         fd->host(), fd->port(), bnet_strerror(fd));
+      Jmsg(jcr, M_FATAL, 0, _("Bad response from File daemon at \"%s:%d\" to Hello command: ERR=%s\n"),
+         fd->host(), fd->port(), fd->bstrerror());
       return 0;
    }
    Dmsg1(110, "<stored: %s", fd->msg);
    stop_bsock_timer(tid);
    if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
       Dmsg0(50, _("File daemon rejected Hello command\n"));
-      Jmsg(jcr, M_FATAL, 0, _("File daemon on \"%s:%d\" rejected Hello command\n"),
+      Jmsg(jcr, M_FATAL, 0, _("File daemon at \"%s:%d\" rejected Hello command\n"),
            fd->host(), fd->port());
       return 0;
    }
@@ -279,9 +279,6 @@ int authenticate_user_agent(UAContext *uac)
    TLS_CONTEXT *tls_ctx = NULL;
    alist *verify_list = NULL;
  
-
-//  Emsg4(M_INFO, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who(),
-//          ua->host(), ua->port(), ua->msglen);
    if (ua->msglen < 16 || ua->msglen >= MAX_NAME_LENGTH + 15) {
       Emsg4(M_ERROR, 0, _("UA Hello from %s:%s:%d is invalid. Len=%d\n"), ua->who(),
             ua->host(), ua->port(), ua->msglen);
@@ -378,12 +375,12 @@ int authenticate_user_agent(UAContext *uac)
 /* Authorization Completed */
 auth_done:
    if (!auth_success) {
-      bnet_fsend(ua, "%s", _(Dir_sorry));
+      ua->fsend("%s", _(Dir_sorry));
       Emsg4(M_ERROR, 0, _("Unable to authenticate console \"%s\" at %s:%s:%d.\n"),
             name, ua->who(), ua->host(), ua->port());
       sleep(5);
       return 0;
    }
-   bnet_fsend(ua, _("1000 OK: %s Version: %s (%s)\n"), my_name, VERSION, BDATE);
+   ua->fsend(_("1000 OK: %s Version: %s (%s)\n"), my_name, VERSION, BDATE);
    return 1;
 }
