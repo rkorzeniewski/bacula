@@ -59,7 +59,8 @@
 #define T_COMMA                       111
 #define T_EOL                         112
 #define T_ERROR                       200
-#define T_UNICODE_MARK                201
+#define T_UTF8_BOM                    201 /* File starts with a UTF-8 BOM*/
+#define T_UTF16_BOM                   202 /* File starts with a UTF-16LE BOM*/
 
 /*
  * The following will be returned only if
@@ -85,7 +86,8 @@ enum lex_state {
    lex_string,
    lex_quoted_string,
    lex_include,
-   lex_unicode_mark
+   lex_utf8_bom,      /* we are parsing out a utf8 byte order mark */ 
+   lex_utf16_le_bom   /* we are parsing out a utf-16 (little endian) byte order mark */
 };
 
 /* Lex scan options */
