@@ -645,6 +645,24 @@ static BSOCK *bnet_open(JCR *jcr, const char *name, char *host, char *service,
    return ret;
 }
 
+
+#ifdef xxx
+BSOCK *bnet_connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
+                    utime_t heart_beat,
+                    const char *name, char *host, char *service, int port,
+                    int verbose)
+{
+   BSOCK *bsock = new BSOCK();
+   if (!bsock->connect(jcr, retry_interval, max_retry_time, heart_beat,
+                       name, host, service, port, verbose)) {
+       delete bsock;
+       bsock = NULL;
+   }
+   return bsock;
+}
+#endif
+
+
 /*
  * Try to connect to host for max_retry_time at retry_time intervals.
  */
