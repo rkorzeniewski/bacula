@@ -102,7 +102,7 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
    
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(dir, 60 * 5);
-   bnet_fsend(dir, hello, bashed_name);
+   dir->fsend(hello, bashed_name);
 
    if (!cram_md5_respond(dir, password, &tls_remote_need, &compatible) ||
        !cram_md5_challenge(dir, password, tls_local_need, compatible)) {
@@ -139,9 +139,9 @@ int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons)
     * be dropped here if an invalid client certificate was presented
     */
    Dmsg1(6, ">dird: %s", dir->msg);
-   if (bnet_recv(dir) <= 0) {
+   if (dir->recv() <= 0) {
       senditf(_("Bad response to Hello command: ERR=%s\n"),
-         bnet_strerror(dir));
+         dir->bstrerror());
       goto bail_out;
    }
 
