@@ -589,6 +589,7 @@ int send_runscripts_commands(JCR *jcr)
 }
 
 
+
 /*
  * Read the attributes from the File daemon for
  * a Verify job and store them in the catalog.
@@ -602,13 +603,16 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
    jcr->FileIndex = 0;
+   /* Start transaction allocates jcr->attr and jcr->ar if needed */
+   db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
+   ar = jcr->ar;
 
    Dmsg0(120, "bdird: waiting to receive file attributes\n");
    /* Pickup file attributes and digest */
    while (!fd->errors && (n = bget_dirmsg(fd)) > 0) {
       uint32_t file_index;
       int stream, len;
-      char *attr, *p, *fn;
+      char *p, *fn;
       char Opts_Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
       char digest[CRYPTO_DIGEST_MAX_SIZE];
 
@@ -619,9 +623,6 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          set_jcr_job_status(jcr, JS_ErrorTerminated);
          return 0;
       }
-      /* Start transaction allocates jcr->attr and jcr->ar if needed */
-      db_start_transaction(jcr, jcr->db);     /* start transaction if not already open */
-      ar = jcr->ar;
       p = fd->msg;
       /* The following three fields were sscanf'ed above so skip them */
       skip_nonspaces(&p);             /* skip FileIndex */
@@ -632,7 +633,8 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       p++;                            /* skip space */
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
          if (jcr->cached_attribute) {
-            Dmsg2(dbglvl, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+            Dmsg3(dbglvl, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname,
+               ar->attr);
             if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
                Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
             }
@@ -642,14 +644,11 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          while (*p != 0) {
             *fn++ = *p++;                /* copy filename */
          }
-         *fn = *p++;                     /* term filename and point to attribs */
-         attr = p;
-         len = strlen(attr);
-         jcr->attr = check_pool_memory_size(jcr->attr, len);
-         memcpy(jcr->attr, attr, len);
+         *fn = *p++;                     /* term filename and point p to attribs */
+         pm_strcpy(jcr->attr, p);        /* save attributes */
          jcr->JobFiles++;
          jcr->FileIndex = file_index;
-         ar->attr = attr;
+         ar->attr = jcr->attr;
          ar->fname = jcr->fname;
          ar->FileIndex = file_index;
          ar->Stream = stream;
@@ -663,7 +662,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          jcr->cached_attribute = true;
 
          Dmsg2(dbglvl, "dird<filed: stream=%d %s\n", stream, jcr->fname);
-         Dmsg1(dbglvl, "dird<filed: attr=%s\n", attr);
+         Dmsg1(dbglvl, "dird<filed: attr=%s\n", ar->attr);
          jcr->FileId = ar->FileId;
       /*
        * First, get STREAM_UNIX_ATTRIBUTES and fill ATTR_DBR structure
@@ -682,19 +681,6 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          ar->DigestType = crypto_digest_stream_type(stream);
          Dmsg3(dbglvl, "DigestLen=%d Digest=%s type=%d\n", strlen(digest), digest,
                ar->DigestType);
-         if (jcr->cached_attribute) {
-            Dmsg2(dbglvl, "Cached attr with digest. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-            if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
-               Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
-            }
-            jcr->cached_attribute = false; 
-         } else {
-            if (!db_add_digest_to_file_record(jcr, jcr->db, ar->FileId, 
-                 ar->Digest, ar->DigestType)) {
-               Jmsg(jcr, M_ERROR, 0, _("Catalog error updating file digest. %s"),
-                  db_strerror(jcr->db));
-            }
-         }
       }
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
       jcr->jr.LastIndex = file_index;
@@ -704,7 +690,14 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
                         bnet_strerror(fd));
       return 0;
    }
-
+   if (jcr->cached_attribute) {
+      Dmsg3(dbglvl, "Cached attr with digest. Stream=%d fname=%s attr=%s\n", ar->Stream,            
+         ar->fname, ar->attr);
+      if (!db_create_file_attributes_record(jcr, jcr->db, ar)) {
+         Jmsg1(jcr, M_FATAL, 0, _("Attribute create error. %s"), db_strerror(jcr->db));
+      }
+      jcr->cached_attribute = false; 
+   }
    set_jcr_job_status(jcr, JS_Terminated);
    return 1;
 }
