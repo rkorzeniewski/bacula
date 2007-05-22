@@ -59,10 +59,7 @@ Console::Console(QStackedWidget *parent)
    m_cursor = new QTextCursor(m_textEdit->document());
    mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
 
-   /* Check for messages every 5 seconds */
-   m_timer = new QTimer(this);
-   QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-   startTimer();
+   m_timer = NULL;
 }
 
 Console::~Console()
@@ -71,9 +68,21 @@ Console::~Console()
 
 void Console::startTimer()
 {
+   m_timer = new QTimer(this);
+   QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
    m_timer->start(mainWin->m_checkMessagesInterval*1000);
 }
 
+void Console::stopTimer()
+{
+   if (m_timer) {
+      QWidget::disconnect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
+      m_timer->stop();
+      delete m_timer;
+      m_timer = NULL;
+   }
+}
+      
 void Console::poll_messages()
 {
    m_messages_pending = true;
@@ -89,8 +98,8 @@ void Console::terminate()
    if (m_sock) {
       m_sock->close();
       m_sock = NULL;
+      stopTimer();
    }
-   m_timer->stop();
 }
 
 /*
@@ -224,6 +233,7 @@ void Console::connect()
    dir_cmd(".levels", level_list);
 
    mainWin->set_status(_("Connected"));
+   startTimer();
    return;
 }
 
@@ -524,11 +534,15 @@ int Console::write(const QString msg)
 
 int Console::write(const char *msg)
 {
+   if (!m_sock) {
+      return -1;
+   }
    m_sock->msglen = pm_strcpy(m_sock->msg, msg);
    m_at_prompt = false;
    m_at_main_prompt = false;
    if (mainWin->m_commDebug) Pmsg1(000, "send: %s\n", msg);
    return m_sock->send();
+
 }
 
 /*
@@ -676,6 +690,7 @@ int Console::read()
          if (mainWin->m_commDebug) Pmsg0(000, "BNET STOP\n");
          m_sock->close();
          m_sock = NULL;
+         stopTimer();
          mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
          QBrush redBrush(Qt::red);
          QTreeWidgetItem *item = mainWin->getFromHash(this);
