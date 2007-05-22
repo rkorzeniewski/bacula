@@ -44,7 +44,7 @@
 #include "dird.h"
 #include "findlib/find.h"
 
-const int dbglvl = 000;
+const int dbglvl = 400;
 
 /* Commands sent to File daemon */
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
