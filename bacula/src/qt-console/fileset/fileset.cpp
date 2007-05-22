@@ -73,7 +73,7 @@ void FileSet::populateTree()
    mp_treeWidget->clear();
    m_checkcurwidget = true;
 
-   QStringList headerlist = (QStringList() << "FileSet Name" << "FileSet Id"
+   QStringList headerlist = (QStringList() << "  FileSet Name  " << "FileSet Id"
        << "Create Time");
 
    topItem = new QTreeWidgetItem(mp_treeWidget);
