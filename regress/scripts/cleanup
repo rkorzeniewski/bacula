@@ -4,14 +4,11 @@
 #
 rm -rf /tmp/FileVolume* tmp/FileVolume*  
 rm -rf /tmp/TestVolume001 /tmp/bacula-restores /tmp/Small*
-rm -rf tmp/original tmp/bacula-restores tmp/Small* tmp/TestVolume*
-rm -rf tmp/restored tmp/largefile tmp/bscan.bsr tmp/log*.out
 rm -rf /tmp/sed_tmp /tmp/file-list
-rm -rf tmp/build tmp/restore-list tmp/restore2-list
-rm -rf tmp/fd.out tmp/dir.out tmp/sd.out tmp/*.jpg
+rm -rf tmp/*
 rm -rf working/log tmp/TEST-*
 rm -rf working/*.bsr
-rm -rf tmp/disk-changer /tmp/disk-changer
+rm -rf /tmp/disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
 bin/bacula stop 2>&1 >/dev/null
