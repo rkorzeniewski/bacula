@@ -67,8 +67,8 @@ public:
    int   DIRport;                     /* UA server port */
    char *address;                     /* UA server address */
    char *password;                    /* UA server password */
-   int tls_enable;                    /* Enable TLS */
-   int tls_require;                   /* Require TLS */
+   bool tls_enable;                   /* Enable TLS */
+   bool tls_require;                  /* Require TLS */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */
@@ -93,8 +93,8 @@ class CONRES {
 public:
    RES   hdr;
    char *password;                    /* UA server password */
-   int tls_enable;                    /* Enable TLS on all connections */
-   int tls_require;                   /* Require TLS on all connections */
+   bool tls_enable;                   /* Enable TLS on all connections */
+   bool tls_require;                  /* Require TLS on all connections */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */

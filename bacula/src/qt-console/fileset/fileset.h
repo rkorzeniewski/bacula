@@ -45,6 +45,8 @@ class FileSet : public Pages, public Ui::FileSetForm
 public:
    FileSet();
    ~FileSet();
+   void writeSettings();
+   void readSettings();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
 

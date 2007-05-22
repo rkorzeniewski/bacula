@@ -123,9 +123,11 @@ public slots:
    void set_font(void);
    void poll_messages(void);
 
+public:
+   DIRRES *m_dir;                  /* so various pages can reference it */
+
 private:
    QTextEdit *m_textEdit;
-   DIRRES *m_dir;
    BSOCK *m_sock;   
    bool m_at_prompt;
    bool m_at_main_prompt;

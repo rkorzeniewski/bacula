@@ -216,3 +216,25 @@ void FileSet::currentStackItem()
       m_populated=true;
    }
 }
+
+/*
+ * Save user settings associated with this page
+ */
+void FileSet::writeSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("FileSet");
+   settings.setValue("geometry", saveGeometry());
+   settings.endGroup();
+}
+
+/*
+ * Read and restore user settings associated with this page
+ */
+void FileSet::readSettings()
+{ 
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("FileSet");
+   restoreGeometry(settings.value("geometry").toByteArray());
+   settings.endGroup();
+}

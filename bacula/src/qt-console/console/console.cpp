@@ -128,8 +128,8 @@ void Console::connect()
    CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
    UnlockRes();
 
-   /* Initialize Console TLS context */
-   if (cons && (cons->tls_enable || cons->tls_require)) {
+   /* Initialize Console TLS context once */
+   if (cons && !cons->tls_ctx && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
       bsnprintf(buf, sizeof(buf), "Passphrase for Console \"%s\" TLS private key: ", 
                 cons->name());
@@ -149,8 +149,8 @@ void Console::connect()
       }
    }
 
-   /* Initialize Director TLS context */
-   if (m_dir->tls_enable || m_dir->tls_require) {
+   /* Initialize Director TLS context once */
+   if (!m_dir->tls_ctx && (m_dir->tls_enable || m_dir->tls_require)) {
       /* Generate passphrase prompt */
       bsnprintf(buf, sizeof(buf), "Passphrase for Director \"%s\" TLS private key: ", 
                 m_dir->name());
@@ -622,7 +622,7 @@ int Console::read()
          if (mainWin->m_commDebug) Pmsg0(000, "MAIN PROMPT\n");
          m_at_prompt = true;
          m_at_main_prompt = true;
-         mainWin->set_status(_("At prompt waiting for input ..."));
+         mainWin->set_status(_("At main prompt waiting for input ..."));
          QApplication::restoreOverrideCursor();
          break;
       case BNET_PROMPT:
@@ -634,7 +634,7 @@ int Console::read()
          break;
       case BNET_CMD_FAILED:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD FAILED\n");
-         mainWin->set_status(_("Command failed. At prompt waiting for input ..."));
+         mainWin->set_status(_("Command failed."));
          QApplication::restoreOverrideCursor();
          break;
       /* We should not get this one */

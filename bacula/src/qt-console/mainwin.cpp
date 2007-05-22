@@ -301,6 +301,7 @@ void MainWin::writeSettings()
    settings.beginGroup("MainWin");
    settings.setValue("winSize", size());
    settings.setValue("winPos", pos());
+   settings.setValue("state", saveState());
    settings.endGroup();
 }
 
@@ -311,6 +312,7 @@ void MainWin::readSettings()
    settings.beginGroup("MainWin");
    resize(settings.value("winSize", QSize(1041, 801)).toSize());
    move(settings.value("winPos", QPoint(200, 150)).toPoint());
+   restoreState(settings.value("state").toByteArray());
    settings.endGroup();
 }
 
