@@ -295,6 +295,14 @@ int main (int argc, char *argv[])
    return 0;
 }
 
+/*
+ * This allows the message handler to operate on the database
+ *   by using a pointer to this function. The pointer is
+ *   needed because the other daemons do not have access
+ *   to the database.  If the pointer is
+ *   not defined (other daemons), then writing the database
+ *   is disabled. 
+ */
 static void dir_sql_query(JCR *jcr, const char *cmd)
 {
    if (!jcr || !jcr->db) {

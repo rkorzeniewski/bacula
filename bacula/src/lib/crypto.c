@@ -1597,7 +1597,8 @@ int crypto_default_pem_callback(char *buf, int size, const void *userdata)
  * Returns the ASCII name of the digest type.
  * Returns: ASCII name of digest type.
  */
-const char *crypto_digest_name (DIGEST *digest) {
+const char *crypto_digest_name(DIGEST *digest) 
+{
    switch (digest->type) {
    case CRYPTO_DIGEST_MD5:
       return "MD5";
@@ -1619,7 +1620,8 @@ const char *crypto_digest_name (DIGEST *digest) {
  * Given a stream type, returns the associated
  * crypto_digest_t value.
  */
-crypto_digest_t crypto_digest_stream_type (int stream) {
+crypto_digest_t crypto_digest_stream_type(int stream)
+{
    switch (stream) {
    case STREAM_MD5_DIGEST:
       return CRYPTO_DIGEST_MD5;
