@@ -620,6 +620,8 @@ void MainWin::setPreferences()
    prefs.recordSpinBox->setValue(m_recordLimitVal);
    prefs.daysLimit->setCheckState(m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
    prefs.daysSpinBox->setValue(m_daysLimitVal);
+   prefs.checkMessages->setCheckState(m_checkMessages ? Qt::Checked : Qt::Unchecked);
+   prefs.checkMessagesSpin->setValue(m_checkMessagesInterval);
    prefs.exec();
 }
 
@@ -641,18 +643,29 @@ void prefsDialog::accept()
    mainWin->m_recordLimitVal = this->recordSpinBox->value();
    mainWin->m_daysLimitCheck = this->daysLimit->checkState() == Qt::Checked;
    mainWin->m_daysLimitVal = this->daysSpinBox->value();
+   mainWin->m_checkMessages = this->checkMessages->checkState() == Qt::Checked;
+   mainWin->m_checkMessagesInterval = this->checkMessagesSpin->value();
    QSettings settings("www.bacula.org", "bat");
-   settings.beginGroup("Messages");
+   settings.beginGroup("Debug");
    settings.setValue("commDebug", mainWin->m_commDebug);
    settings.setValue("displayAll", mainWin->m_displayAll);
    settings.setValue("sqlDebug", mainWin->m_sqlDebug);
    settings.setValue("commandDebug", mainWin->m_commandDebug);
    settings.setValue("miscDebug", mainWin->m_miscDebug);
+   settings.endGroup();
+   settings.beginGroup("JobList");
    settings.setValue("recordLimitCheck", mainWin->m_recordLimitCheck);
    settings.setValue("recordLimitVal", mainWin->m_recordLimitVal);
    settings.setValue("daysLimitCheck", mainWin->m_daysLimitCheck);
    settings.setValue("daysLimitVal", mainWin->m_daysLimitVal);
    settings.endGroup();
+   settings.beginGroup("Messages");
+   settings.setValue("checkMessages", mainWin->m_checkMessages);
+   settings.setValue("checkMessagesInterval", mainWin->m_checkMessagesInterval);
+   settings.endGroup();
+   foreach(Console *console, mainWin->m_consoleHash) {
+      console->startTimer();
+   }
 }
 
 void prefsDialog::reject()
@@ -665,15 +678,21 @@ void prefsDialog::reject()
 void MainWin::readPreferences()
 {
    QSettings settings("www.bacula.org", "bat");
-   settings.beginGroup("Messages");
+   settings.beginGroup("Debug");
    m_commDebug = settings.value("commDebug", false).toBool();
    m_displayAll = settings.value("displayAll", false).toBool();
    m_sqlDebug = settings.value("sqlDebug", false).toBool();
    m_commandDebug = settings.value("commandDebug", false).toBool();
    m_miscDebug = settings.value("miscDebug", false).toBool();
+   settings.endGroup();
+   settings.beginGroup("JobList");
    m_recordLimitCheck = settings.value("recordLimitCheck", true).toBool();
    m_recordLimitVal = settings.value("recordLimitVal", 150).toInt();
    m_daysLimitCheck = settings.value("daysLimitCheck", false).toBool();
    m_daysLimitVal = settings.value("daysLimitVal", 28).toInt();
+   settings.endGroup();
+   settings.beginGroup("Messages");
+   m_checkMessages = settings.value("checkMessages", false).toBool();
+   m_checkMessagesInterval = settings.value("checkMessagesInterval", 28).toInt();
    settings.endGroup();
 }

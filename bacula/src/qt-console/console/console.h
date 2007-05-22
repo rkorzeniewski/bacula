@@ -100,6 +100,7 @@ public:
    void setDirRes(DIRRES *dir);
    QTreeWidgetItem *directorTreeItem() { return m_directorTreeItem; };
    void getDirResName(QString &);
+   void startTimer();
 
    QStringList job_list;
    QStringList client_list;

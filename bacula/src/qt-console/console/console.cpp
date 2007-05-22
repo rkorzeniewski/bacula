@@ -63,17 +63,22 @@ Console::Console(QStackedWidget *parent)
    /* Check for messages every 5 seconds */
    m_timer = new QTimer(this);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
-   m_timer->start(5000);
+   startTimer();
 }
 
 Console::~Console()
 {
 }
 
+void Console::startTimer()
+{
+   m_timer->start(mainWin->m_checkMessagesInterval*1000);
+}
+
 void Console::poll_messages()
 {
    m_messages_pending = true;
-   if (m_at_main_prompt) {
+   if ((m_at_main_prompt) && (mainWin->m_checkMessages)){
       write(".messages");
       displayToPrompt();
    }

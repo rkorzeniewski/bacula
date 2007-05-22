@@ -69,6 +69,8 @@ public:
    /* This is a list of consoles */
    QHash<QTreeWidgetItem*,Console*> m_consoleHash;
    void createPageJobList(QString &, QString &, QTreeWidgetItem *);
+   QString m_dtformat;
+   /* Begin Preferences variables */
    bool m_commDebug;
    bool m_displayAll;
    bool m_sqlDebug;
@@ -78,8 +80,8 @@ public:
    int m_recordLimitVal;
    bool m_daysLimitCheck;
    int m_daysLimitVal;
-   QString m_dtformat;
-
+   bool m_checkMessages;
+   int m_checkMessagesInterval;
 
 public slots:
    void input_line();
