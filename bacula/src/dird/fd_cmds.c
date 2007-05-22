@@ -44,7 +44,7 @@
 #include "dird.h"
 #include "findlib/find.h"
 
-const int dbglvl = 400;
+const int dbglvl = 000;
 
 /* Commands sent to File daemon */
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
@@ -599,6 +599,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    BSOCK   *fd;
    int n = 0;
    ATTR_DBR *ar = NULL;
+   char digest[CRYPTO_DIGEST_MAX_SIZE];
 
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
@@ -613,11 +614,10 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       uint32_t file_index;
       int stream, len;
       char *p, *fn;
-      char Opts_Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
-      char digest[CRYPTO_DIGEST_MAX_SIZE];
+      char Digest[MAXSTRING];      /* either Verify opts or MD5/SHA1 digest */
 
       jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Opts_Digest)) != 3) {
+      if ((len = sscanf(fd->msg, "%ld %d %s", &file_index, &stream, Digest)) != 3) {
          Jmsg(jcr, M_FATAL, 0, _("<filed: bad attributes, expected 3 fields got %d\n"
 "msglen=%d msg=%s\n"), len, fd->msglen, fd->msg);
          set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -677,11 +677,11 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
                stream_to_ascii(stream), file_index, jcr->FileIndex);
             continue;
          }
-         db_escape_string(digest, Opts_Digest, strlen(Opts_Digest));
+         db_escape_string(digest, Digest, strlen(Digest));
          ar->Digest = digest;
          ar->DigestType = crypto_digest_stream_type(stream);
-         Dmsg3(dbglvl, "DigestLen=%d Digest=%s type=%d\n", strlen(digest), digest,
-               ar->DigestType);
+         Dmsg4(dbglvl, "stream=%d DigestLen=%d Digest=%s type=%d\n", stream,
+               strlen(digest), digest, ar->DigestType);
       }
       jcr->jr.JobFiles = jcr->JobFiles = file_index;
       jcr->jr.LastIndex = file_index;
