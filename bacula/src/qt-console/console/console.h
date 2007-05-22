@@ -101,6 +101,7 @@ public:
    QTreeWidgetItem *directorTreeItem() { return m_directorTreeItem; };
    void getDirResName(QString &);
    void startTimer();
+   void stopTimer();
 
    QStringList job_list;
    QStringList client_list;
