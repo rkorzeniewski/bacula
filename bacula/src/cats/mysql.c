@@ -299,7 +299,7 @@ db_escape_string(char *snew, char *old, int len)
 {
    mysql_escape_string(snew, old, len);
 
-#ifdef DO_IT_MYSELF
+#ifdef xDO_IT_MYSELF
 
 /* Should use mysql_real_escape_string ! */
 unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length);
