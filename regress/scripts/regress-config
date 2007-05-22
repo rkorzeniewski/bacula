@@ -7,7 +7,18 @@ if test "x${CONFIG_SHELL}" != "x"; then
     CONFIG_SHELL=/bin/sh
 fi
 
-CFLAGS="-g -O2 -Wall" \
+# Handle Solaris compiler (possibly some others) 
+VERSION="`cc --version | head -1 | awk '{ print $2 }' 2> /dev/null`"
+
+if [ -n "${VERSION}" -a "${VERSION}" = "(GCC)" ]; then
+  OPTIMIZE="-O2"
+  WARNINGS="-Wall"
+else
+  OPTIMIZE="-O"
+  WARNINGS="-v"
+fi
+
+CFLAGS="-g ${OPTIMIZE} ${WARNINGS}" \
  ./configure \
     --sbindir=$1/bin \
     --sysconfdir=$1/bin \
