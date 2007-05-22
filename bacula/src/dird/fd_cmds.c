@@ -599,7 +599,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    BSOCK   *fd;
    int n = 0;
    ATTR_DBR *ar = NULL;
-   char digest[CRYPTO_DIGEST_MAX_SIZE];
+   char digest[MAXSTRING];
 
    fd = jcr->file_bsock;
    jcr->jr.FirstIndex = 1;
@@ -677,9 +677,9 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
                stream_to_ascii(stream), file_index, jcr->FileIndex);
             continue;
          }
-         db_escape_string(digest, Digest, strlen(Digest));
          ar->Digest = digest;
          ar->DigestType = crypto_digest_stream_type(stream);
+         db_escape_string(digest, Digest, strlen(Digest));
          Dmsg4(dbglvl, "stream=%d DigestLen=%d Digest=%s type=%d\n", stream,
                strlen(digest), digest, ar->DigestType);
       }
@@ -688,7 +688,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
    }
    if (is_bnet_error(fd)) {
       Jmsg1(jcr, M_FATAL, 0, _("<filed: Network error getting attributes. ERR=%s\n"),
-                        bnet_strerror(fd));
+            fd->bstrerror());
       return 0;
    }
    if (jcr->cached_attribute) {
