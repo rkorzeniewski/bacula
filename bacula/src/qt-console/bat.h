@@ -34,6 +34,8 @@
  *   Kern Sibbald, January 2007
  */
 
+#include <QtGui>
+#include <QtCore>
 #include "mainwin.h"
 #include "config.h"
 #include "bacula.h"

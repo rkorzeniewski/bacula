@@ -23,6 +23,8 @@ Areas requiring caution or testing:
     to what we do with sockets).
 - Solaris is untested
 - Win32 servers are untested, and very likely not to work.
+- SQLite is no longer supported for Solaris -- it fails too often with
+  bus errors.     
 
 The major new features are:
 - Much faster insertion of attributes (somewhere around 10 times),

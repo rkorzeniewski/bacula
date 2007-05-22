@@ -224,6 +224,7 @@ void       free_msgs_res         (MSGS *msgs);
 void       dequeue_messages      (JCR *jcr);
 void       set_trace             (int trace_flag);
 void       set_db_type           (const char *name);
+void       register_message_callback(void msg_callback(int type, char *msg));
 
 /* bnet_server.c */
 void       bnet_thread_server(dlist *addr, int max_clients, workq_t *client_wq,

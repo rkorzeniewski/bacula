@@ -58,6 +58,12 @@ struct CRYPTO_dynlock_value {
    pthread_mutex_t mutex;
 };
 
+/*
+ * ***FIXME*** this is a sort of dummy to avoid having to
+ *   change all the existing code to pass either a jcr or
+ *   a NULL.  Passing a NULL causes the messages to be
+ *   printed by the daemon -- not very good :-(
+ */
 void openssl_post_errors(int code, const char *errstring)
 {
    openssl_post_errors(NULL, code, errstring);
@@ -75,7 +81,7 @@ void openssl_post_errors(JCR *jcr, int code, const char *errstring)
    /* Pop errors off of the per-thread queue */
    while((sslerr = ERR_get_error()) != 0) {
       /* Acquire the human readable string */
-      ERR_error_string_n(sslerr, (char *) &buf, sizeof(buf));
+      ERR_error_string_n(sslerr, buf, sizeof(buf));
       Dmsg3(100, "jcr=%p %s: ERR=%s\n", jcr, errstring, buf);
       Jmsg2(jcr, M_ERROR, 0, "%s: ERR=%s\n", errstring, buf);
    }
@@ -86,10 +92,10 @@ void openssl_post_errors(JCR *jcr, int code, const char *errstring)
  *  Returns: thread ID
  *
  */
-static unsigned long get_openssl_thread_id (void)
+static unsigned long get_openssl_thread_id(void)
 {
    /* Comparison without use of pthread_equal() is mandated by the OpenSSL API */
-   return ((unsigned long) pthread_self());
+   return ((unsigned long)pthread_self());
 }
 
 /*
@@ -100,7 +106,7 @@ static struct CRYPTO_dynlock_value *openssl_create_dynamic_mutex (const char *fi
    struct CRYPTO_dynlock_value *dynlock;
    int stat;
 
-   dynlock = (struct CRYPTO_dynlock_value *) malloc(sizeof(struct CRYPTO_dynlock_value));
+   dynlock = (struct CRYPTO_dynlock_value *)malloc(sizeof(struct CRYPTO_dynlock_value));
 
    if ((stat = pthread_mutex_init(&dynlock->mutex, NULL)) != 0) {
       berrno be;
@@ -110,7 +116,7 @@ static struct CRYPTO_dynlock_value *openssl_create_dynamic_mutex (const char *fi
    return dynlock;
 }
 
-static void openssl_update_dynamic_mutex (int mode, struct CRYPTO_dynlock_value *dynlock, const char *file, int line)
+static void openssl_update_dynamic_mutex(int mode, struct CRYPTO_dynlock_value *dynlock, const char *file, int line)
 {
    if (mode & CRYPTO_LOCK) {
       P(dynlock->mutex);
@@ -119,7 +125,7 @@ static void openssl_update_dynamic_mutex (int mode, struct CRYPTO_dynlock_value 
    }
 }
 
-static void openssl_destroy_dynamic_mutex (struct CRYPTO_dynlock_value *dynlock, const char *file, int line)
+static void openssl_destroy_dynamic_mutex(struct CRYPTO_dynlock_value *dynlock, const char *file, int line)
 {
    int stat;
 
