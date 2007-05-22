@@ -50,10 +50,12 @@ FileSet::FileSet()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   readSettings();
 }
 
 FileSet::~FileSet()
 {
+   writeSettings();
 }
 
 /*
@@ -124,7 +126,7 @@ void FileSet::populateTree()
       }
    }
    /* Resize the columns */
-   for(int cnter=1; cnter<headerlist.size(); cnter++) {
+   for (int cnter=1; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
 

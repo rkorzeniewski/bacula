@@ -45,8 +45,6 @@ class FileSet : public Pages, public Ui::FileSetForm
 public:
    FileSet();
    ~FileSet();
-   void writeSettings();
-   void readSettings();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
 
@@ -58,6 +56,8 @@ private slots:
    void consoleStatusFileSet();
 
 private:
+   void writeSettings();
+   void readSettings();
    void createContextMenu();
    QString m_currentlyselected;
    bool m_populated;
