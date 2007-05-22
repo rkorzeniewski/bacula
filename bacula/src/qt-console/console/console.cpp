@@ -34,7 +34,7 @@
  *
  */ 
 
-#include <QAbstractEventDispatcher>
+//#include <QAbstractEventDispatcher>
 #include "bat.h"
 #include "console.h"
 #include "restore.h"
@@ -50,7 +50,6 @@ Console::Console(QStackedWidget *parent)
    m_parent = parent;
    m_closeable = false;
    m_console = this;
-   (void)parent;
 
    setupUi(this);
    m_sock = NULL;

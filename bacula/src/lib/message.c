@@ -61,6 +61,7 @@ FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
 static char *catalog_db = NULL;       /* database type */
+static void (*message_callback)(int type, char *msg) = NULL;
 
 const char *host_os = HOST_OS;
 const char *distname = DISTNAME;
@@ -83,6 +84,11 @@ static bool trace = false;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
 
+void register_message_callback(void msg_callback(int type, char *msg))
+{
+   message_callback = msg_callback;
+}
+
 
 /*
  * Set daemon name. Also, find canonical execution
@@ -94,7 +100,6 @@ static MSGS *daemon_msgs;              /* global messages */
  *  Resource record. On the second call, generally,
  *  argv is NULL to avoid doing the path code twice.
  */
-#define BTRACE_EXTRA 20
 void my_name_is(int argc, char *argv[], const char *name)
 {
    char *l, *p, *q;
@@ -618,11 +623,18 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
        dt[dtlen] = 0;
     }
 
+    /* If the program registered a callback, send it there */
+    if (message_callback) {
+       message_callback(type, msg);
+       return;
+    }
+
     if (type == M_ABORT || type == M_ERROR_TERM) {
        fputs(dt, stdout);
        fputs(msg, stdout);         /* print this here to INSURE that it is printed */
        fflush(stdout);
     }
+
 
     /* Now figure out where to send the message */
     msgs = NULL;

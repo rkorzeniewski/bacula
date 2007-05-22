@@ -65,6 +65,8 @@ struct TLS_Context {
    SSL_CTX *openssl;
    CRYPTO_PEM_PASSWD_CB *pem_callback;
    const void *pem_userdata;
+   bool tls_enable;
+   bool tls_require;
 };
 
 struct TLS_Connection {
@@ -78,7 +80,6 @@ struct TLS_Connection {
  */
 static int openssl_verify_peer(int ok, X509_STORE_CTX *store)
 {
-
    if (!ok) {
       X509 *cert = X509_STORE_CTX_get_current_cert(store);
       int depth = X509_STORE_CTX_get_error_depth(store);
@@ -120,7 +121,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
    BIO *bio;
    DH *dh;
 
-   ctx = (TLS_CONTEXT *) malloc(sizeof(TLS_CONTEXT));
+   ctx = (TLS_CONTEXT *)malloc(sizeof(TLS_CONTEXT));
 
    /* Allocate our OpenSSL TLSv1 Context */
    ctx->openssl = SSL_CTX_new(TLSv1_method());
@@ -204,10 +205,10 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
 
    /* Verify Peer Certificate */
    if (verify_peer) {
-           /* SSL_VERIFY_FAIL_IF_NO_PEER_CERT has no effect in client mode */
-           SSL_CTX_set_verify(ctx->openssl,
-                              SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-                              openssl_verify_peer);
+      /* SSL_VERIFY_FAIL_IF_NO_PEER_CERT has no effect in client mode */
+      SSL_CTX_set_verify(ctx->openssl,
+                         SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                         openssl_verify_peer);
    }
 
    return ctx;
@@ -380,7 +381,7 @@ success:
  * Returns: Pointer to TLS_CONNECTION instance on success
  *          NULL on failure;
  */
-TLS_CONNECTION *new_tls_connection (TLS_CONTEXT *ctx, int fd)
+TLS_CONNECTION *new_tls_connection(TLS_CONTEXT *ctx, int fd)
 {
    BIO *bio;
 
@@ -397,7 +398,7 @@ TLS_CONNECTION *new_tls_connection (TLS_CONTEXT *ctx, int fd)
    BIO_set_fd(bio, fd, BIO_NOCLOSE);
 
    /* Allocate our new tls connection */
-   TLS_CONNECTION *tls = (TLS_CONNECTION *) malloc(sizeof(TLS_CONNECTION));
+   TLS_CONNECTION *tls = (TLS_CONNECTION *)malloc(sizeof(TLS_CONNECTION));
 
    /* Create the SSL object and attach the socket BIO */
    if ((tls->openssl = SSL_new(ctx->openssl)) == NULL) {
@@ -425,7 +426,7 @@ err:
 /*
  * Free TLS_CONNECTION instance
  */
-void free_tls_connection (TLS_CONNECTION *tls)
+void free_tls_connection(TLS_CONNECTION *tls)
 {
    SSL_free(tls->openssl);
    free(tls);
@@ -533,7 +534,7 @@ bool tls_bsock_accept(BSOCK *bsock)
 /*
  * Shutdown TLS_CONNECTION instance
  */
-void tls_bsock_shutdown (BSOCK *bsock)
+void tls_bsock_shutdown(BSOCK *bsock)
 {
    /*
     * SSL_shutdown must be called twice to fully complete the process -

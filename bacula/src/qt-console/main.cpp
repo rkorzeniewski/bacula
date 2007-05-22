@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
    sigignore.sa_handler = SIG_IGN;
    sigfillset(&sigignore.sa_mask);
    sigaction(SIGPIPE, &sigignore, NULL);
+   sigaction(SIGUSR2, &sigignore, NULL);
+
 
    while ((ch = getopt(argc, argv, "bc:d:r:st?")) != -1) {
       switch (ch) {

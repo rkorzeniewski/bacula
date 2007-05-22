@@ -47,11 +47,20 @@
 #include "joblist/joblist.h"
 #include "clients/clients.h"
 
+/* 
+ * Daemon message callback
+ */
+void message_callback(int /* type */, char *msg)
+{
+   QMessageBox::warning(mainWin, "Bat", msg, QMessageBox::Ok);
+}
+
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
    m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
+   register_message_callback(message_callback);
    readPreferences();
    treeWidget->clear();
    treeWidget->setColumnCount(1);
