@@ -96,9 +96,9 @@ void Console::poll_messages()
 void Console::terminate()
 {
    if (m_sock) {
+      stopTimer();
       m_sock->close();
       m_sock = NULL;
-      stopTimer();
    }
 }
 
@@ -688,9 +688,9 @@ int Console::read()
       }
       if (is_bnet_stop(m_sock)) {         /* error or term request */
          if (mainWin->m_commDebug) Pmsg0(000, "BNET STOP\n");
+         stopTimer();
          m_sock->close();
          m_sock = NULL;
-         stopTimer();
          mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
          QBrush redBrush(Qt::red);
          QTreeWidgetItem *item = mainWin->getFromHash(this);
@@ -803,6 +803,8 @@ bool Console::preventInUseConnect()
  */
 static int tls_pem_callback(char *buf, int size, const void *userdata)
 {
+   (void)size;
+   (void)userdata;
 #ifdef HAVE_TLS
    const char *prompt = (const char *)userdata;
 # if defined(HAVE_WIN32)
