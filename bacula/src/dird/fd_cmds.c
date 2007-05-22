@@ -631,6 +631,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
       skip_spaces(&p);
       skip_nonspaces(&p);             /* skip Opts_Digest */
       p++;                            /* skip space */
+      Dmsg1(dbglvl, "Stream=%d\n", stream);
       if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
          if (jcr->cached_attribute) {
             Dmsg3(dbglvl, "Cached attr. Stream=%d fname=%s\n", ar->Stream, ar->fname,
