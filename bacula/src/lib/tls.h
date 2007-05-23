@@ -1,28 +1,7 @@
 /*
- * tls.h TLS support functions
- *
- * Author: Landon Fuller <landonf@threerings.net>
- *
- * Version $Id$
- *
- * This file was contributed to the Bacula project by Landon Fuller
- * and Three Rings Design, Inc.
- *
- * Three Rings Design, Inc. has been granted a perpetual, worldwide,
- * non-exclusive, no-charge, royalty-free, irrevocable copyright
- * license to reproduce, prepare derivative works of, publicly
- * display, publicly perform, sublicense, and distribute the original
- * work contributed by Three Rings Design, Inc. and its employees to
- * the Bacula project in source or object form.
- *
- * If you wish to license contributions from Three Rings Design, Inc,
- * under an alternate open source license please contact
- * Landon Fuller <landonf@threerings.net>.
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +25,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * tls.h TLS support functions
+ *
+ * Author: Landon Fuller <landonf@threerings.net>
+ *
+ * Version $Id$
+ *
+ * This file was contributed to the Bacula project by Landon Fuller
+ * and Three Rings Design, Inc.
+ *
+ * Three Rings Design, Inc. has been granted a perpetual, worldwide,
+ * non-exclusive, no-charge, royalty-free, irrevocable copyright
+ * license to reproduce, prepare derivative works of, publicly
+ * display, publicly perform, sublicense, and distribute the original
+ * work contributed by Three Rings Design, Inc. and its employees to
+ * the Bacula project in source or object form.
+ *
+ * If you wish to license contributions from Three Rings Design, Inc,
+ * under an alternate open source license please contact
+ * Landon Fuller <landonf@threerings.net>.
+ */
 
 #ifndef __TLS_H_
 #define __TLS_H_

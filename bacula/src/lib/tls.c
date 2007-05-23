@@ -693,4 +693,16 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
 }
 void free_tls_context(TLS_CONTEXT *ctx) { }
 
+void tls_bsock_shutdown(BSOCK *bsock) { }
+
+void free_tls_connection(TLS_CONNECTION *tls)
+{
+   if (tls) {
+      if (tls->openssl) {
+         SSL_free(tls->openssl);
+      }
+      free(tls);
+   }
+}
+
 #endif /* HAVE_TLS */
