@@ -19,15 +19,35 @@ closing would bring the previous one back.
 Is there a way to query the director/database for whether a storage is currently
 mounted so I am not presenting both mount and unmount to the user??
 
+   Yes, but it requires being able to directly connect to the SD (at least
+   for the moment).
+  
+
 Is there a way to identify a slot as having a cleaning tape???
 (Kern says more work needs to be done in bacula with autochangers)
+  
+    Yes, there is a cleaning prefix for Volume labels defined in 
+    the DIR (not currently available to bat). Typically it is CLNxxx
+    and by looking at the database, you can see these cleaning
+    volumes.
 
 See if there is a solution to images fun with designer other than:
 %s/<iconset>[\.\/]*:images/<iconset>images/g
 %s/<iconset>images/<iconset>..\/images/g
 
+    Images that are in the binary are referenced with :/images/... 
+    This is a Qt convention.  If the image is in a file, it
+    can be referenced directly, but for the most part, I prefer
+    images in the binary (not lost, not accidently deleted, no 
+    installation problems, ...
+
 Think about good ways to clean up the Console creation part of the
 loop creating pages.
+
+    I don't think it is bad as it is.   There is, however, a construct
+    called a Factory that could more or less automate this in one
+    big for loop.
+
 ========================================================
 This release or next:
 
@@ -39,6 +59,9 @@ A window showing a list of schedule resources.
 A list of message resources??
 
 Kern discussed windows showing statistics like web based interfaces.
+
+    I think the above is very important.
+
 ========================================================
 Future Releases :
 
@@ -68,6 +91,9 @@ thing to make it happen:  the "dir" is a member of Console
 - We also must somehow make the low level I/O routines know which
 director/console to use.  Currently they always use the single
 global one defined in the mainWin class (if I remember right).
+
+   I'm working on this (kes).  It is not so simple, but moving forward
+   gradually ...
 
 ============================================================
 DONE:
