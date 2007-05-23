@@ -30,7 +30,7 @@
  *
  *  by Kern Sibbald
  *
- *   Version $Id: bnet.c 3670 2006-11-21 16:13:58Z kerns $
+ *   Version $Id: $
  */
 
 
@@ -52,18 +52,43 @@
 #define socketClose(fd)           ::close(fd)
 #endif
 
-BSOCK::BSOCK()
+/*
+ * This is a non-class BSOCK "constructor"  because we want to 
+ *   call the Bacula smartalloc routines instead of new.
+ */
+BSOCK *new_bsock()
 {
-   memset(this, 0, sizeof(BSOCK));
+   BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
+   bsock->init();
+   return bsock;
 }
 
-BSOCK::~BSOCK() 
+void BSOCK::init()
+{
+   memset(this, 0, sizeof(BSOCK));
+   m_blocking = 1;
+   msg = get_pool_memory(PM_MESSAGE);
+   errmsg = get_pool_memory(PM_MESSAGE);
+   /*
+    * ****FIXME**** reduce this to a few hours once
+    *   heartbeats are implemented
+    */
+   timeout = 60 * 60 * 6 * 24;   /* 6 days timeout */
+}
+
+/*
+ * This is our "class destructor" that ensures that we use
+ *   smartalloc rather than the system free().
+ */
+void BSOCK::free_bsock()
 {
    destroy();
 }
 
 /*
  * Try to connect to host for max_retry_time at retry_time intervals.
+ *   Note, you must have called the constructor prior to calling
+ *   this routine.
  */
 bool BSOCK::connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
                     utime_t heart_beat,
@@ -115,34 +140,23 @@ bail_out:
 }
 
 
-/* Initialize internal socket structure.
- *  This probably should be done in net_open
+/*       
+ * Finish initialization of the pocket structure.
  */
-void BSOCK::init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
+void BSOCK::fin_init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
             struct sockaddr *lclient_addr)
 {
    Dmsg3(100, "who=%s host=%s port=%d\n", who, host, port);
    m_fd = sockfd;
-   tls = NULL;
-   errors = 0;
-   m_blocking = 1;
-   msg = get_pool_memory(PM_MESSAGE);
-   errmsg = get_pool_memory(PM_MESSAGE);
    set_who(bstrdup(who));
    set_host(bstrdup(host));
    set_port(port);
-   memset(&peer_addr, 0, sizeof(peer_addr));
    memcpy(&client_addr, lclient_addr, sizeof(client_addr));
-   /*
-    * ****FIXME**** reduce this to a few hours once
-    *   heartbeats are implemented
-    */
-   timeout = 60 * 60 * 6 * 24;   /* 6 days timeout */
    set_jcr(jcr);
 }
 
 /*
- * Open a TCP connection to the UPS network server
+ * Open a TCP connection to the server
  * Returns NULL
  * Returns BSOCK * pointer on success
  *
@@ -232,7 +246,7 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
       Qmsg1(jcr, M_WARNING, 0, _("Cannot set SO_KEEPALIVE on socket: %s\n"),
             be.bstrerror());
    }
-   init(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
+   fin_init(jcr, sockfd, name, host, port, ipaddr->get_sockaddr());
    free_addresses(addr_list);
    return true;
 }
@@ -289,7 +303,7 @@ bool BSOCK::send()
             Qmsg5(m_jcr, M_ERROR, 0,
                   _("Write error sending %d bytes to %s:%s:%d: ERR=%s\n"), 
                   msglen, m_who,
-                  m_host, m_port, bnet_strerror(this));
+                  m_host, m_port, this->bstrerror());
          }
       } else {
          Qmsg5(m_jcr, M_ERROR, 0,
@@ -427,7 +441,7 @@ int32_t BSOCK::recv()
       }
       errors++;
       Qmsg4(m_jcr, M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"),
-            m_who, m_host, m_port, bnet_strerror(this));
+            m_who, m_host, m_port, this->bstrerror());
       return BNET_ERROR;
    }
    timer_start = 0;         /* clear timer */
@@ -706,7 +720,70 @@ void BSOCK::restore_blocking (int flags)
 #endif
 }
 
+/*
+ * Wait for a specified time for data to appear on
+ * the BSOCK connection.
+ *
+ *   Returns: 1 if data available
+ *            0 if timeout
+ *           -1 if error
+ */
+int BSOCK::wait_data(int sec)
+{
+   fd_set fdset;
+   struct timeval tv;
 
+   FD_ZERO(&fdset);
+   FD_SET((unsigned)m_fd, &fdset);
+   for (;;) {
+      tv.tv_sec = sec;
+      tv.tv_usec = 0;
+      switch (select(m_fd + 1, &fdset, NULL, NULL, &tv)) {
+      case 0:                      /* timeout */
+         b_errno = 0;
+         return 0;
+      case -1:
+         b_errno = errno;
+         if (errno == EINTR) {
+            continue;
+         }
+         return -1;                /* error return */
+      default:
+         b_errno = 0;
+         return 1;
+      }
+   }
+}
+
+/*
+ * As above, but returns on interrupt
+ */
+int BSOCK::wait_data_intr(int sec)
+{
+   fd_set fdset;
+   struct timeval tv;
+
+   FD_ZERO(&fdset);
+   FD_SET((unsigned)m_fd, &fdset);
+   tv.tv_sec = sec;
+   tv.tv_usec = 0;
+   switch (select(m_fd + 1, &fdset, NULL, NULL, &tv)) {
+   case 0:                      /* timeout */
+      b_errno = 0;
+      return 0;
+   case -1:
+      b_errno = errno;
+      return -1;                /* error return */
+   default:
+      b_errno = 0;
+   }
+   return 1;
+}
+
+/*
+ * Note, this routine closes and destroys all the sockets
+ *  that are open including the duped ones.
+ */
 void BSOCK::close()
 {
    BSOCK *bsock = this;
@@ -715,20 +792,18 @@ void BSOCK::close()
    for (; bsock; bsock = next) {
       next = bsock->m_next;           /* get possible pointer to next before destoryed */
       if (!bsock->m_duped) {
-#ifdef HAVE_TLS
          /* Shutdown tls cleanly. */
          if (bsock->tls) {
             tls_bsock_shutdown(bsock);
             free_tls_connection(bsock->tls);
             bsock->tls = NULL;
          }
-#endif /* HAVE_TLS */
          if (bsock->is_timed_out()) {
             shutdown(bsock->m_fd, 2);   /* discard any pending I/O */
          }
          socketClose(bsock->m_fd);      /* normal close */
       }
-      bsock->destroy();                 /* free the packet */
+      bsock->destroy();
    }
    return;
 }

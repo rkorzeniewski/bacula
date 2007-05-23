@@ -1,6 +1,14 @@
               Technical notes on version 2.1
 
 General:
+23May07
+kes  Reduce bat connect timeout from 30 to 15 seconds.
+kes  More restructuring and implementing BSOCK class in place of
+     old bnet.c code.
+kes  Remove a few unnecessary malloc() tests in crypto code.
+kes  Turn off crypto calls for > 128 bits in crypto.c if HAVE_SHA2
+     not defined. Bug reported by Allan Black <Allan.Black@btconnect.com>
+kes  Remove duplicate HAVE_CRYPTO definition in config.h.in
 22May07
 kes  Fix Verify InitCatalog mysql_escape_string() trashing memory.
      Make buffer bigger.

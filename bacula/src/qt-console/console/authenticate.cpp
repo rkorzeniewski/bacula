@@ -79,7 +79,6 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
             tls_local_need = BNET_TLS_OK;
          }
       }
-
       tls_ctx = cons->tls_ctx;
    } else {
       bstrncpy(bashed_name, "*UserAgent*", sizeof(bashed_name));
@@ -95,8 +94,8 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
 
       tls_ctx = director->tls_ctx;
    }
-   /* Timeout Hello after 30 secs */
-   btimer_t *tid = start_bsock_timer(dir, 30);
+   /* Timeout Hello after 15 secs */
+   btimer_t *tid = start_bsock_timer(dir, 15);
    dir->fsend(hello, bashed_name);
 
    /* respond to Dir challenge */

@@ -362,14 +362,12 @@ static ASN1_OCTET_STRING *openssl_cert_keyid(X509 *cert) {
  *  Returns: A pointer to a X509 KEYPAIR object on success.
  *           NULL on failure.
  */
-X509_KEYPAIR *crypto_keypair_new(void) {
+X509_KEYPAIR *crypto_keypair_new(void) 
+{
    X509_KEYPAIR *keypair;
 
    /* Allocate our keypair structure */
-   keypair = (X509_KEYPAIR *) malloc(sizeof(X509_KEYPAIR));
-   if (!keypair) {
-      return NULL;
-   }
+   keypair = (X509_KEYPAIR *)malloc(sizeof(X509_KEYPAIR));
 
    /* Initialize our keypair structure */
    keypair->keyid = NULL;
@@ -966,6 +964,8 @@ void crypto_sign_free(SIGNATURE *sig)
  * Create a new encryption session.
  *  Returns: A pointer to a CRYPTO_SESSION object on success.
  *           NULL on failure.
+ *
+ *  Note! Bacula malloc() fails if out of memory.
  */
 CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
 {
@@ -976,10 +976,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
    int iv_len;
 
    /* Allocate our session description structures */
-   cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
-   if (!cs) {
-      return NULL;
-   }
+   cs = (CRYPTO_SESSION *)malloc(sizeof(CRYPTO_SESSION));
 
    /* Initialize required fields */
    cs->session_key = NULL;
@@ -1005,6 +1002,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_128_cbc);
       ec = EVP_aes_128_cbc();
       break;
+#ifdef HAVE_SHA2
    case CRYPTO_CIPHER_AES_192_CBC:
       /* AES 192 bit CBC */
       cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_192_cbc);
@@ -1015,6 +1013,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_aes_256_cbc);
       ec = EVP_aes_256_cbc();
       break;
+#endif
    case CRYPTO_CIPHER_BLOWFISH_CBC:
       /* Blowfish CBC */
       cs->cryptoData->contentEncryptionAlgorithm = OBJ_nid2obj(NID_bf_cbc);
@@ -1037,12 +1036,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
 
    /* Generate an IV if possible */
    if ((iv_len = EVP_CIPHER_iv_length(ec))) {
-      iv = (unsigned char *) malloc(iv_len);
-      if (!iv) {
-         /* Malloc failure */
-         crypto_session_free(cs);
-         return NULL;
-      }
+      iv = (unsigned char *)malloc(iv_len);
 
       /* Generate random IV */
       if (RAND_bytes(iv, iv_len) <= 0) {
@@ -1090,12 +1084,7 @@ CRYPTO_SESSION *crypto_session_new (crypto_cipher_t cipher, alist *pubkeys)
       ri->keyEncryptionAlgorithm = OBJ_nid2obj(NID_rsaEncryption);
 
       /* Encrypt the session key */
-      ekey = (unsigned char *) malloc(EVP_PKEY_size(keypair->pubkey));
-      if (!ekey) {
-         RecipientInfo_free(ri);
-         crypto_session_free(cs);
-         return NULL;
-      }
+      ekey = (unsigned char *)malloc(EVP_PKEY_size(keypair->pubkey));
 
       if ((ekey_len = EVP_PKEY_encrypt(ekey, cs->session_key, cs->session_key_len, keypair->pubkey)) <= 0) {
          /* OpenSSL failure */
@@ -1170,10 +1159,7 @@ crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist
       return CRYPTO_ERROR_NORECIPIENT;
    }
 
-   cs = (CRYPTO_SESSION *) malloc(sizeof(CRYPTO_SESSION));
-   if (!cs) {
-      return CRYPTO_ERROR_INTERNAL;
-   }
+   cs = (CRYPTO_SESSION *)malloc(sizeof(CRYPTO_SESSION));
 
    /* Initialize required fields */
    cs->session_key = NULL;
@@ -1222,7 +1208,7 @@ crypto_error_t crypto_session_decode(const uint8_t *data, uint32_t length, alist
 
             /* Decrypt the session key */
             /* Allocate sufficient space for the largest possible decrypted data */
-            cs->session_key = (unsigned char *) malloc(EVP_PKEY_size(keypair->privkey));
+            cs->session_key = (unsigned char *)malloc(EVP_PKEY_size(keypair->privkey));
             cs->session_key_len = EVP_PKEY_decrypt(cs->session_key, M_ASN1_STRING_data(ri->encryptedKey),
                                   M_ASN1_STRING_length(ri->encryptedKey), keypair->privkey);
 
@@ -1250,7 +1236,7 @@ err:
 /*
  * Free memory associated with a crypto session object.
  */
-void crypto_session_free (CRYPTO_SESSION *cs)
+void crypto_session_free(CRYPTO_SESSION *cs)
 {
    if (cs->cryptoData) {
       CryptoData_free(cs->cryptoData);
@@ -1271,10 +1257,7 @@ CIPHER_CONTEXT *crypto_cipher_new(CRYPTO_SESSION *cs, bool encrypt, uint32_t *bl
    CIPHER_CONTEXT *cipher_ctx;
    const EVP_CIPHER *ec;
 
-   cipher_ctx = (CIPHER_CONTEXT *) malloc(sizeof(CIPHER_CONTEXT));
-   if (!cipher_ctx) {
-      return NULL;
-   }
+   cipher_ctx = (CIPHER_CONTEXT *)malloc(sizeof(CIPHER_CONTEXT));
 
    /*
     * Acquire a cipher instance for the given ASN.1 cipher NID
