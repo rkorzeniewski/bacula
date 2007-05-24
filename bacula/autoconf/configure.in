@@ -830,6 +830,16 @@ if test "x$with_openssl_directory" != "x"; then
 		[ ac_cv_openssl_sha2="no" ]
 	)
 
+	# Solaris disables greater than 128+ bit encryption in their OpenSSL
+	# implementation, presumably for export reasons. If 192bit AES
+	# is available, we assume that we're running with a 'non-export'
+	# openssl library.
+	AC_TRY_LINK([ #include <openssl/evp.h> ],
+		[ EVP_aes_192_cbc(); ],
+		[ ac_cv_openssl_export="no" ],
+		[ ac_cv_openssl_export="yes" ]
+	)
+
 	LIBS="${saved_LIBS}"
 	CFLAGS="${saved_CFLAGS}"
 
@@ -841,6 +851,10 @@ if test "x$with_openssl_directory" != "x"; then
 
 	if test "$ac_cv_openssl_sha2" = "yes"; then
 		AC_DEFINE(HAVE_SHA2, 1, [Define if the SHA-2 family of digest algorithms is available])
+	fi
+
+	if test "$ac_cv_openssl_export" = "yes"; then
+		AC_DEFINE(HAVE_OPENSSL_EXPORT_LIBRARY, 1, [Define if the OpenSSL library is export-contrained to 128bit ciphers])
 	fi
 else
 	support_tls="no"

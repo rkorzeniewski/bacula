@@ -229,6 +229,9 @@
 /* Define if OPENSSL is available */
 #undef HAVE_OPENSSL
 
+/* Define if the OpenSSL library is export-constrained to 128bit ciphers */
+#undef HAVE_OPENSSL_EXPORT_LIBRARY
+
 /* Define if comm encryption should be enabled */
 #undef HAVE_TLS
 
