@@ -153,7 +153,7 @@ int main (int argc, char *argv[])
          if (debug_level <= 0) {
             debug_level = 1;
          }
-         Dmsg1(0, "Debug level = %d\n", debug_level);
+         Dmsg1(10, "Debug level = %d\n", debug_level);
          break;
 
       case 'f':                    /* run in foreground */

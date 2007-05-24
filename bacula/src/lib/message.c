@@ -49,7 +49,7 @@ sql_escape p_sql_escape = NULL;
  */
 const char *working_directory = NULL;       /* working directory path stored here */
 int verbose = 0;                      /* increase User messages */
-int debug_level = 0;                  /* debug level */
+int debug_level = 1;                  /* debug level */
 time_t daemon_start_time = 0;         /* Daemon start time */
 const char *version = VERSION " (" BDATE ")";
 char my_name[30];                     /* daemon name is stored here */

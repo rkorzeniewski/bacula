@@ -296,7 +296,7 @@ void init_signals(void terminate(int sig))
    sigaction(SIGQUIT,   &sighandle, NULL);
    sigaction(SIGILL,    &sighandle, NULL);
    sigaction(SIGTRAP,   &sighandle, NULL);
-/* sigaction(SIGABRT,   &sighandle, NULL);   */
+   sigaction(SIGABRT,   &sighandle, NULL);
 #ifdef SIGEMT
    sigaction(SIGEMT,    &sighandle, NULL);
 #endif

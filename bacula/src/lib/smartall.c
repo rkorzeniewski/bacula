@@ -1,23 +1,4 @@
 /*
-
-                         S M A R T A L L O C
-                        Smart Memory Allocator
-
-        Evolved   over   several  years,  starting  with  the  initial
-        SMARTALLOC code for AutoSketch in 1986, guided  by  the  Blind
-        Watchbreaker,  John  Walker.  Isolated in this general-purpose
-        form in  September  of  1989.   Updated  with  be  more  POSIX
-        compliant  and  to  include Web-friendly HTML documentation in
-        October  of  1998  by  the  same  culprit.    For   additional
-        information and the current version visit the Web page:
-
-                  http://www.fourmilab.ch/smartall/
-
-
-         Version $Id$
-
-*/
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -43,6 +24,25 @@
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+
+                         S M A R T A L L O C
+                        Smart Memory Allocator
+
+        Evolved   over   several  years,  starting  with  the  initial
+        SMARTALLOC code for AutoSketch in 1986, guided  by  the  Blind
+        Watchbreaker,  John  Walker.  Isolated in this general-purpose
+        form in  September  of  1989.   Updated  with  be  more  POSIX
+        compliant  and  to  include Web-friendly HTML documentation in
+        October  of  1998  by  the  same  culprit.    For   additional
+        information and the current version visit the Web page:
+
+                  http://www.fourmilab.ch/smartall/
+
+
+         Version $Id$
+
 */
 
 #include "bacula.h"
@@ -178,7 +178,7 @@ void sm_free(const char *file, int line, void *fp)
    }
 
    cp -= HEAD_SIZE;
-   qp = (struct b_queue *) cp;
+   qp = (struct b_queue *)cp;
    struct abufhead *head = (struct abufhead *)cp;
 
    P(mutex);
@@ -425,10 +425,10 @@ void sm_dump(bool bufdump)
 /*  SM_CHECK --  Check the buffers and dump if any damage exists. */
 void sm_check(const char *fname, int lineno, bool bufdump)
 {
-        if (!sm_check_rtn(fname, lineno, bufdump)) {
-           Emsg2(M_ABORT, 0, _("Damaged buffer found. Called from %s:%d\n"),
-              fname, lineno);
-        }
+   if (!sm_check_rtn(fname, lineno, bufdump)) {
+      Emsg2(M_ABORT, 0, _("Damaged buffer found. Called from %s:%d\n"),
+            fname, lineno);
+   }
 }
 
 #undef sm_check_rtn
@@ -518,9 +518,9 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
                    that all the other safeguards still apply to  buffers
                    allocated  when  sm_static(1)  mode is in effect.  */
 
-void sm_static(int mode)
+void sm_static(bool mode)
 {
-   bufimode = (bool) (mode != 0);
+   bufimode = mode;
 }
 
 /*
