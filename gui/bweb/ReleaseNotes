@@ -1,4 +1,7 @@
-          Release Notes for bweb 2.0
+          Release Notes for bweb 2.2
+
+2007/05/23
+ - put Bconsole error to stderr (error.log)
 
 2007/03/30
  - disconnect from database before exiting
