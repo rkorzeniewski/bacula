@@ -93,7 +93,7 @@ extern brwlock_t res_lock;            /* resource lock */
 /* Forward referenced subroutines */
 static void scan_types(LEX *lc, MSGS *msg, int dest, char *where, char *cmd);
 static const char *get_default_configdir();
-static bool find_config_file(const char *config_file, char *full_path);
+static bool find_config_file(const char *config_file, char *full_path, int max_path);
 
 /* Common Resource definitions */
 
@@ -791,9 +791,9 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
    RES_ITEM *items = NULL;
    int level = 0;
 
-   char *full_path = (char *)alloca(MAX_PATH);
+   char *full_path = (char *)alloca(MAX_PATH + 1);
 
-   if (find_config_file(cf, full_path)) {
+   if (find_config_file(cf, full_path, MAX_PATH +1)) {
       cf = full_path;
    }
 
@@ -832,7 +832,8 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
                /* We can assume the file is UTF-8 as we have seen a UTF-8 BOM */
                break;
             } else if (token == T_UTF16_BOM) {
-               scan_err0(lc, _("Currently we cannot handle UTF-16 source files. Please convert to UTF-16\n"));
+               scan_err0(lc, _("Currently we cannot handle UTF-16 source files. "
+                   "Please convert the conf file to UTF-8\n"));
                return 0;
             } else if (token != T_IDENTIFIER) {
                scan_err1(lc, _("Expected a Resource name identifier, got: %s"), lc->str);
@@ -957,7 +958,7 @@ const char *get_default_configdir()
 }
 
 bool
-find_config_file(const char *config_file, char *full_path)
+find_config_file(const char *config_file, char *full_path, int max_path)
 {
    if (first_path_separator(config_file) != NULL) {
       return false;
@@ -970,10 +971,10 @@ find_config_file(const char *config_file, char *full_path)
    }
 
    const char *config_dir = get_default_configdir();
-   size_t dir_length = strlen(config_dir);
-   size_t file_length = strlen(config_file);
+   int dir_length = strlen(config_dir);
+   int file_length = strlen(config_file);
 
-   if ((dir_length + 1 + file_length + 1) > MAX_PATH) {
+   if ((dir_length + 1 + file_length + 1) > max_path) {
       return false;
    }
 

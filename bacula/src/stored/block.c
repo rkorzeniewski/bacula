@@ -440,7 +440,7 @@ bool write_block_to_dev(DCR *dcr)
    if (wlen != block->buf_len) {
       uint32_t blen;                  /* current buffer length */
 
-      Dmsg2(200, "binbuf=%d buf_len=%d\n", block->binbuf, block->buf_len);
+      Dmsg2(250, "binbuf=%d buf_len=%d\n", block->binbuf, block->buf_len);
       blen = wlen;
 
       /* Adjust write size to min/max for tapes only */
@@ -895,11 +895,11 @@ bool read_block_from_device(DCR *dcr, bool check_block_numbers)
 {
    bool ok;
    DEVICE *dev = dcr->dev;
-   Dmsg0(200, "Enter read_block_from_device\n");
+   Dmsg0(250, "Enter read_block_from_device\n");
    dev->r_dlock();
    ok = read_block_from_dev(dcr, check_block_numbers);
    dev->dunlock();
-   Dmsg0(200, "Leave read_block_from_device\n");
+   Dmsg0(250, "Leave read_block_from_device\n");
    return ok;
 }
 
@@ -924,7 +924,7 @@ bool read_block_from_dev(DCR *dcr, bool check_block_numbers)
       return false;
    }
    looping = 0;
-   Dmsg1(200, "Full read in read_block_from_device() len=%d\n",
+   Dmsg1(250, "Full read in read_block_from_device() len=%d\n",
          block->buf_len);
 reread:
    if (looping > 1) {
@@ -981,7 +981,7 @@ reread:
    if (stat < 0) {
       berrno be;
       dev->clrerror(-1);
-      Dmsg1(200, "Read device got: ERR=%s\n", be.bstrerror());
+      Dmsg1(250, "Read device got: ERR=%s\n", be.bstrerror());
       block->read_len = 0;
       Mmsg5(dev->errmsg, _("Read error on fd=%d at file:blk %u:%u on device %s. ERR=%s.\n"),
          dev->fd(), dev->file, dev->block_num, dev->print_name(), be.bstrerror());
@@ -991,7 +991,7 @@ reread:
       }
       return false;
    }
-   Dmsg3(200, "Read device got %d bytes at %u:%u\n", stat,
+   Dmsg3(250, "Read device got %d bytes at %u:%u\n", stat,
       dev->file, dev->block_num);
    if (stat == 0) {             /* Got EOF ! */
       dev->block_num = 0;
@@ -1040,14 +1040,14 @@ reread:
       Pmsg1(000, "%s", dev->errmsg);
       /* Attempt to reposition to re-read the block */
       if (dev->is_tape()) {
-         Dmsg0(200, "BSR for reread; block too big for buffer.\n");
+         Dmsg0(250, "BSR for reread; block too big for buffer.\n");
          if (!dev->bsr(1)) {
             Jmsg(jcr, M_ERROR, 0, "%s", dev->bstrerror());
             block->read_len = 0;
             return false;
          }
       } else {
-         Dmsg0(200, "Seek to beginning of block for reread.\n");
+         Dmsg0(250, "Seek to beginning of block for reread.\n");
          boffset_t pos = dev->lseek(dcr, (boffset_t)0, SEEK_CUR); /* get curr pos */
          pos -= block->read_len;
          dev->lseek(dcr, pos, SEEK_SET);
@@ -1112,20 +1112,20 @@ reread:
     *   lseek(). One to get the position, then the second to do an
     *   absolute positioning -- so much for efficiency.  KES Sep 02.
     */
-   Dmsg0(200, "At end of read block\n");
+   Dmsg0(250, "At end of read block\n");
    if (block->read_len > block->block_len && !dev->is_tape()) {
       char ed1[50];
       boffset_t pos = dev->lseek(dcr, (boffset_t)0, SEEK_CUR); /* get curr pos */
-      Dmsg1(200, "Current lseek pos=%s\n", edit_int64(pos, ed1));
+      Dmsg1(250, "Current lseek pos=%s\n", edit_int64(pos, ed1));
       pos -= (block->read_len - block->block_len);
       dev->lseek(dcr, pos, SEEK_SET);
-      Dmsg3(200, "Did lseek pos=%s blk_size=%d rdlen=%d\n", 
+      Dmsg3(250, "Did lseek pos=%s blk_size=%d rdlen=%d\n", 
          edit_int64(pos, ed1), block->block_len,
             block->read_len);
       dev->file_addr = pos;
       dev->file_size = pos;
    }
-   Dmsg2(200, "Exit read_block read_len=%d block_len=%d\n",
+   Dmsg2(250, "Exit read_block read_len=%d block_len=%d\n",
       block->read_len, block->block_len);
    block->block_read = true;
    return true;
