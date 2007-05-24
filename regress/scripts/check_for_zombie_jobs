@@ -49,3 +49,11 @@ if [ $? = 0 ] ; then
   echo " "
 fi
 
+grep "glibc detected" tmp/log*.out 2>&1 >/dev/null
+if [ $? = 0 ] ; then
+  echo " "
+  echo "  !!!! glibc detected Error in log output !!!!"
+  echo "  !!!! glibc detected Error in log output !!!!" >>test.out
+  echo " "
+fi
+
