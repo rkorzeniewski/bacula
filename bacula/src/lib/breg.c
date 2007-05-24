@@ -140,16 +140,16 @@ bool BREGEXP::extract_regexp(const char *motif)
    char sep = motif[0];
 
    if (!(sep == '!' || 
-	 sep == ':' || 
-	 sep == ';' || 
-	 sep == '|' || 
-	 sep == ',' || 
-	 sep == '&' || 
-	 sep == '%' || 
-	 sep == '=' || 
-	 sep == '~' ||
-	 sep == '/' ||
-	 sep == '#'   )) 
+         sep == ':' || 
+         sep == ';' || 
+         sep == '|' || 
+         sep == ',' || 
+         sep == '&' || 
+         sep == '%' || 
+         sep == '=' || 
+         sep == '~' ||
+         sep == '/' ||
+         sep == '#'   )) 
    {
       return false;
    }
@@ -163,27 +163,27 @@ bool BREGEXP::extract_regexp(const char *motif)
 
    while (*search && !ok) {
       if (search[0] == '\\' && search[1] == sep) {
-	 *dest++ = *++search;       /* we skip separator */ 
+         *dest++ = *++search;       /* we skip separator */ 
 
       } else if (search[0] == '\\' && search[1] == '\\') {
-	 *dest++ = *++search;	    /* we skip the second \ */
+         *dest++ = *++search;       /* we skip the second \ */
 
       } else if (*search == sep) {  /* we found end of expression */
-	 *dest++ = '\0';
+         *dest++ = '\0';
 
-	 if (subst) {	        /* already have found motif */
-	    ok = true;
+         if (subst) {           /* already have found motif */
+            ok = true;
 
-	 } else {
-	    *dest++ = *++search; /* we skip separator */ 
-	    subst = dest;	 /* get replaced string */
-	 }
+         } else {
+            *dest++ = *++search; /* we skip separator */ 
+            subst = dest;        /* get replaced string */
+         }
 
       } else {
-	 *dest++ = *search++;
+         *dest++ = *search++;
       }
    }
-   *dest = '\0';		/* in case of */
+   *dest = '\0';                /* in case of */
    
    if (!ok || !subst) {
       /* bad regexp */
@@ -194,16 +194,16 @@ bool BREGEXP::extract_regexp(const char *motif)
    /* find options */
    while (*search && !ok) {
       if (*search == 'i') {
-	 options |= REG_ICASE;
+         options |= REG_ICASE;
 
       } else if (*search == 'g') {
-	      /* recherche multiple*/
+              /* recherche multiple*/
 
       } else if (*search == sep) {
-	 /* skip separator */
+         /* skip separator */
 
-      } else {			/* end of options */
-	 ok = true;
+      } else {                  /* end of options */
+         ok = true;
       }
       search++;
    }
@@ -216,7 +216,7 @@ bool BREGEXP::extract_regexp(const char *motif)
       return false;
    }
 
-   eor = search;		/* useful to find the next regexp in where */
+   eor = search;                /* useful to find the next regexp in where */
 
    return true;
 }
@@ -224,7 +224,7 @@ bool BREGEXP::extract_regexp(const char *motif)
 /* return regexp->result */
 char *BREGEXP::replace(const char *fname)
 {
-   success = false;		/* use this.success to known if it's ok */
+   success = false;             /* use this.success to known if it's ok */
    int flen = strlen(fname);
    int rc = regexec(&preg, fname, BREG_NREGS, regs, 0);
 
@@ -241,7 +241,7 @@ char *BREGEXP::replace(const char *fname)
       success = true;
       Dmsg2(500, "bregexp: len = %i, result_len = %i\n", len, strlen(result));
 
-   } else {			/* error in substitution */
+   } else {                     /* error in substitution */
       Dmsg0(100, "bregexp: error in substitution\n");
       return return_fname(fname, flen);
    }
@@ -275,17 +275,17 @@ int BREGEXP::compute_dest_len(const char *fname, regmatch_t regs[])
    for (p = psubst++; *p ; p = psubst++) {
       /* match $1 \1 back references */
       if ((*p == '$' || *p == '\\') && ('0' <= *psubst && *psubst <= '9')) {
-	 no = *psubst++ - '0';
+         no = *psubst++ - '0';
 
-	 /* we check if the back reference exists */
-	 /* references can not match if we are using (..)? */
+         /* we check if the back reference exists */
+         /* references can not match if we are using (..)? */
 
-	 if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) { 
-	    len += regs[no].rm_eo - regs[no].rm_so;
-	 }
-	 
+         if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) { 
+            len += regs[no].rm_eo - regs[no].rm_so;
+         }
+         
       } else {
-	 len++;
+         len++;
       }
    }
 
@@ -317,17 +317,17 @@ char *BREGEXP::edit_subst(const char *fname, regmatch_t regs[])
    for (p = psubst++; *p ; p = psubst++) {
       /* match $1 \1 back references */
       if ((*p == '$' || *p == '\\') && ('0' <= *psubst && *psubst <= '9')) {
-	 no = *psubst++ - '0';
+         no = *psubst++ - '0';
 
-	 /* have a back reference ? */
-	 if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) {
-	    len = regs[no].rm_eo - regs[no].rm_so;
-	    bstrncpy(result + i, fname + regs[no].rm_so, len + 1);
-	    i += len ;
-	 }
+         /* have a back reference ? */
+         if (regs[no].rm_so >= 0 && regs[no].rm_eo >= 0) {
+            len = regs[no].rm_eo - regs[no].rm_so;
+            bstrncpy(result + i, fname + regs[no].rm_so, len + 1);
+            i += len ;
+         }
 
       } else {
-	 result[i++] = *p;
+         result[i++] = *p;
       }
    }
 
@@ -346,9 +346,9 @@ char *bregexp_escape_string(char *dest, char *src, char sep)
    while (*src)
    {
       if (*src == sep) {
-	 *dest++ = '\\';
+         *dest++ = '\\';
       } else if (*src == '\\') {
-	 *dest++ = '\\';
+         *dest++ = '\\';
       }
       *dest++ = *src++;
    }
@@ -363,16 +363,16 @@ static char *str_add_prefix   = "!^!%s!";
 static char *str_add_suffix   = "!([^/])$!$1%s!";
 
 int bregexp_get_build_where_size(char *strip_prefix, 
-				 char *add_prefix, 
-				 char *add_suffix)
+                                 char *add_prefix, 
+                                 char *add_suffix)
 {
    int str_size = ((strip_prefix?strlen(strip_prefix)+strlen(str_strip_prefix):0) +
-		   (add_prefix?strlen(add_prefix)+strlen(str_add_prefix)      :0) +  
-		   (add_suffix?strlen(add_suffix)+strlen(str_add_suffix)      :0) )
+                   (add_prefix?strlen(add_prefix)+strlen(str_add_prefix)      :0) +  
+                   (add_suffix?strlen(add_suffix)+strlen(str_add_suffix)      :0) )
          /* escape + 3*, + \0 */
-	    * 2    + 3   + 1;
+            * 2    + 3   + 1;
 
-   Dmsg1(1, "bregexp_get_build_where_size = %i\n", str_size);
+   Dmsg1(200, "bregexp_get_build_where_size = %i\n", str_size);
    return str_size;
 }
 
@@ -386,7 +386,7 @@ int bregexp_get_build_where_size(char *strip_prefix,
  * 
  */
 char *bregexp_build_where(char *dest, int str_size,
-			  char *strip_prefix, 
+                          char *strip_prefix, 
                           char *add_prefix, 
                           char *add_suffix)
 {
@@ -398,21 +398,21 @@ char *bregexp_build_where(char *dest, int str_size,
    
    if (strip_prefix) {
       len += bsnprintf(dest, str_size - len, str_strip_prefix,
-		       bregexp_escape_string(str_tmp, strip_prefix, regexp_sep));
+                       bregexp_escape_string(str_tmp, strip_prefix, regexp_sep));
    }
 
    if (add_suffix) {
       if (len) dest[len++] = ',';
 
       len += bsnprintf(dest + len,  str_size - len, str_add_suffix,
-		       bregexp_escape_string(str_tmp, add_suffix, regexp_sep));
+                       bregexp_escape_string(str_tmp, add_suffix, regexp_sep));
    }
 
    if (add_prefix) {
       if (len) dest[len++] = ',';
 
       len += bsnprintf(dest + len, str_size - len, str_add_prefix, 
-		       bregexp_escape_string(str_tmp, add_prefix, regexp_sep));
+                       bregexp_escape_string(str_tmp, add_prefix, regexp_sep));
    }
 
    free_pool_memory(str_tmp);
