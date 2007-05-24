@@ -126,9 +126,7 @@ sub error
 {
     my ($self, $error) = @_;
     $self->{error} = $!;
-    if ($self->{debug}) {
-	print "E: bconsole (", $self->{pref}->{bconsole}, ") $!\n";
-    }
+    print STDERR "E: bconsole (", $self->{pref}->{bconsole}, ") $!\n";
     return 0;
 }
 
