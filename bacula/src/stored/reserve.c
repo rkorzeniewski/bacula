@@ -258,10 +258,7 @@ static void free_vol_item(VOLRES *vol)
  *  conditions of the drive.  The key is that the drive must "own" the Volume.  
  *  The old code has the job (dcr) owning the volume (more or less).  The job is 
  *  to change the insertion and removal of the volumes from the list to be based 
- *  on the drive rather than the job.  The new logic described above needs to be 
- *  reviewed a couple more times for completeness and correctness.  Then I can 
- *  program it.
-
+ *  on the drive rather than the job.  
  *
  *  Return: VOLRES entry on success
  *          NULL volume busy on another drive
