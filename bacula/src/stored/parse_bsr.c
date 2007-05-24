@@ -138,7 +138,7 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    BSR *root_bsr = new_bsr();
    BSR *bsr = root_bsr;
 
-   Dmsg1(200, "Enter parse_bsf %s\n", fname);
+   Dmsg1(300, "Enter parse_bsf %s\n", fname);
    if ((lc = lex_open_file(lc, fname, s_err)) == NULL) {
       berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Cannot open bootstrap file %s: %s\n"),
@@ -146,20 +146,20 @@ BSR *parse_bsr(JCR *jcr, char *fname)
    }
    lc->caller_ctx = (void *)jcr;
    while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
-      Dmsg1(200, "parse got token=%s\n", lex_tok_to_str(token));
+      Dmsg1(300, "parse got token=%s\n", lex_tok_to_str(token));
       if (token == T_EOL) {
          continue;
       }
       for (i=0; items[i].name; i++) {
          if (strcasecmp(items[i].name, lc->str) == 0) {
             token = lex_get_token(lc, T_ALL);
-            Dmsg1 (200, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
+            Dmsg1 (300, "in T_IDENT got token=%s\n", lex_tok_to_str(token));
             if (token != T_EQUALS) {
                scan_err1(lc, "expected an equals, got: %s", lc->str);
                bsr = NULL;
                break;
             }
-            Dmsg1(200, "calling handler for %s\n", items[i].name);
+            Dmsg1(300, "calling handler for %s\n", items[i].name);
             /* Call item handler */
             bsr = items[i].handler(lc, bsr);
             i = -1;
@@ -167,7 +167,7 @@ BSR *parse_bsr(JCR *jcr, char *fname)
          }
       }
       if (i >= 0) {
-         Dmsg1(200, "Keyword = %s\n", lc->str);
+         Dmsg1(300, "Keyword = %s\n", lc->str);
          scan_err1(lc, "Keyword %s not found", lc->str);
          bsr = NULL;
          break;
@@ -177,7 +177,7 @@ BSR *parse_bsr(JCR *jcr, char *fname)
       }
    }
    lc = lex_close_file(lc);
-   Dmsg0(200, "Leave parse_bsf()\n");
+   Dmsg0(300, "Leave parse_bsf()\n");
    if (!bsr) {
       free_bsr(root_bsr);
       root_bsr = NULL;
