@@ -24,5 +24,7 @@
    <file>images/undo.png</file>
    <file>images/unmark.png</file>
    <file>images/up.png</file>
+   <file>images/check.png</file>
+   <file>images/unchecked.png</file>
 </qresource>
 </RCC>

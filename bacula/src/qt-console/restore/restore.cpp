@@ -132,12 +132,17 @@ void restorePage::fillDirectory()
       }
       split_path_and_filename(p, &path, &pnl, &file, &fnl);
       item.clear();
-      item << marked << file << modes << user << group << size << date;
+      item << "" << file << modes << user << group << size << date;
       if (item[1].endsWith("/")) {
          addDirectory(item[1]);
-       }
+      }
       QTreeWidgetItem *ti = new QTreeWidgetItem((QTreeWidget *)0, item);
       ti->setTextAlignment(5, Qt::AlignRight); /* right align size */
+      if (strcmp(marked, "*") == 0) {
+         ti->setIcon(0,QIcon(QString::fromUtf8(":images/check.png")));
+      } else {
+         ti->setIcon(0,QIcon(QString::fromUtf8(":images/unchecked.png")));
+      }
       treeItemList.append(ti);
    }
    fileWidget->clear();
@@ -267,10 +272,10 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
    if (column == 0) {                 /* mark/unmark */
       if (item->text(0) == "*") {
          bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
-         item->setText(0, " ");
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
       } else {
          bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
-         item->setText(0, "*");
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
       }
       m_console->write_dir(cmd);
       if (m_console->read() > 0) {
@@ -325,7 +330,7 @@ void restorePage::markButtonPushed()
    char cmd[1000];
    foreach (item, treeItemList) {
       bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
-      item->setText(0, "*");
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
       m_console->write_dir(cmd);
       if (m_console->read() > 0) {
          strip_trailing_junk(m_console->msg());
@@ -346,7 +351,7 @@ void restorePage::unmarkButtonPushed()
    char cmd[1000];
    foreach (item, treeItemList) {
       bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
-      item->setText(0, " ");
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
       m_console->write_dir(cmd);
       if (m_console->read() > 0) {
          strip_trailing_junk(m_console->msg());
