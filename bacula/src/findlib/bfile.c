@@ -49,6 +49,11 @@ ssize_t (*python_write)(BFILE *bfd, void *buf, size_t count) = NULL;
 #include <sys/paths.h>
 #endif
 
+#if !defined(HAVE_FDATASYNC)
+#define fdatasync(fd)
+#endif
+
+
 /* ===============================================================
  *
  *            U N I X   AND   W I N D O W S
@@ -796,6 +801,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       }
    }
    bfd->berrno = errno;
+   bfd->m_flags = flags;
    Dmsg1(400, "Open file %d\n", bfd->fid);
    errno = bfd->berrno;
 
@@ -803,7 +809,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    bfd->win32DecompContext.liNextHeader = 0;
 
 #if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_WILLNEED)
-   if (bfd->fid != -1) {
+   if (bfd->fid != -1 && flags & O_RDONLY) {
       int stat = posix_fadvise(bfd->fid, 0, 0, POSIX_FADV_WILLNEED);
       Dmsg2(400, "Did posix_fadvise on %s stat=%d\n", fname, stat);
    }
@@ -842,6 +848,13 @@ int bclose(BFILE *bfd)
    if (bfd->fid == -1) {
       return 0;
    }
+#if defined(HAVE_POSIX_FADVISE) && defined(POSIX_FADV_DONTNEED)
+   if (bfd->m_flags & O_RDONLY) {
+      fdatasync(bfd->fid);            /* sync the file */
+      /* Tell OS we don't need it any more */
+      posix_fadvise(bfd->fid, 0, 0, POSIX_FADV_DONTNEED);
+   }
+#endif
 
    /* Close normal file */
    stat = close(bfd->fid);

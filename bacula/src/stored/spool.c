@@ -81,6 +81,8 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
    POOL_MEM msg(PM_MESSAGE);
    int len;
 
+   len = Mmsg(msg, _("Spooling statistics:\n"));
+
    if (spool_stats.data_jobs || spool_stats.max_data_size) {
       len = Mmsg(msg, _("Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"),
          spool_stats.data_jobs, edit_uint64_with_commas(spool_stats.data_size, ed1),
@@ -97,6 +99,8 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
    
       sendit(msg.c_str(), len, arg);
    }
+   len = Mmsg(msg, "====\n");
+   sendit(msg.c_str(), len, arg);
 }
 
 bool begin_data_spool(DCR *dcr)

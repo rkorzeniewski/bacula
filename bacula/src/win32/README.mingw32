@@ -130,6 +130,18 @@ the variable declaration in the header file.  All exported variables
 must be declared in a header file and MUST NOT be declared in a
 source file referencing the variable.
 
+Exporting functions is now more or less automated.  If you find that
+a function name has been added, changed, or an argument modified,    
+simply do the following:
+
+   cd .../bacula/src/win32/dll 
+   make                  (to build the .o files, note the link will fail)
+   ./make_def >bacula.def
+
+This should rebuild the bacula.def file.
+
+===== manual changing of bacula.def no longer necessary =====
+If you want to do it manually, please see below:
 Exporting a function requires a bit more work.  You must determine the
 C++ mangled name of the new function.
 
@@ -146,6 +158,7 @@ the new function.  Remove the leading underscore and place the result
 in the file
 
    .../bacula/src/win32/dll/bacula.def
+=== end manual changing of bacula.def ==========
 
 If you add a new file, you will need to specify its name in
 
@@ -172,6 +185,19 @@ exported.
 New data variables are exported by placing their name in the file
 .../bacula/src/win32/cats/bacula_cats.def.
 
+As with the bacula.def file above, this is now more or less automated.
+When the link dies, simply do the following:
+
+   cd .../bacula/src/win32/cats
+   make                  (to build the .o files, note the link will fail)
+   ./make_def >bacula_cats.def
+
+This should rebuild the bacula_cats.def file. Note, if you have
+changed any data entry points, you will need to modify the make_def
+script -- it should be rather obvious.
+
+
+===== manual changing of bacula_cats.def no longer necessary =====
 Exporting a function requires a bit more work.  You must determine the
 C++ mangled name of the new function.
 
@@ -186,6 +212,7 @@ Replace <file> with the base part of the name of the source code file
 which contains the new function.  Replace <symbol> with the name of
 the new function.  Remove the leading underscore and place the result
 in the .../bacula/src/win32/cats/bacula_cats.def file.
+=== end manual changing of bacula_cats.def ==========
 
 
 Structure of the MinGW32 build environment

@@ -1,14 +1,7 @@
 /*
- *  Bacula low level File I/O routines.  This routine simulates
- *    open(), read(), write(), and close(), but using native routines.
- *    I.e. on Windows, we use Windows APIs.
- *
- *     Kern Sibbald May MMIII
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula low level File I/O routines.  This routine simulates
+ *    open(), read(), write(), and close(), but using native routines.
+ *    I.e. on Windows, we use Windows APIs.
+ *
+ *     Kern Sibbald May MMIII
+ */
 
 #ifndef __BFILE_H
 #define __BFILE_H
@@ -119,6 +119,7 @@ HANDLE bget_handle(BFILE *bfd);
 /* Basic Unix low level I/O file packet */
 struct BFILE {
    int fid;                           /* file id on Unix */
+   int m_flags;                       /* open flags */
    int berrno;
    char *prog;                        /* reader/writer program if any */
    JCR *jcr;                          /* jcr for editing job codes */
