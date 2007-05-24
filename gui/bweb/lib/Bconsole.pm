@@ -105,8 +105,7 @@ sub expect_it
 {
     my ($self, @what) = @_;
     unless ($self->{bconsole}->expect($self->{timeout}, @what)) {
-	$self->{error} = $!;
-	return 0;
+	return $self->error($self->{bconsole}->error());
     }
     return 1;
 }
@@ -125,8 +124,10 @@ sub log_stdout
 sub error
 {
     my ($self, $error) = @_;
-    $self->{error} = $!;
-    print STDERR "E: bconsole (", $self->{pref}->{bconsole}, ") $!\n";
+    $self->{error} = $error;
+    if ($error) {
+	print STDERR "E: bconsole (", $self->{pref}->{bconsole}, ") $! $error\n";
+    }
     return 0;
 }
 
@@ -163,7 +164,7 @@ sub connect
 	}
 
 	unless ($ret) {
-	    return $self->error($ret);
+	    return $self->error($self->{bconsole}->error());
 	}
 	
 	# TODO : we must verify that expect return the good value

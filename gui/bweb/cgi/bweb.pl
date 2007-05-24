@@ -118,7 +118,8 @@ if ($action eq 'begin') {		# main display
     $bweb->display($fields, "display_form_media.tpl");
 
     print "</td><td valign='top'>";
-    $bweb->display_media();
+    $bweb->display_media(offset => $arg->{offset},
+			 limit => $arg->{limit});
     print "</td></tr></table></div>";
 
 } elsif ($action eq 'medias') {

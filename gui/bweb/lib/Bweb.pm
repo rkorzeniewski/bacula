@@ -2035,8 +2035,9 @@ WHERE Job.JobId = $jobid
 
 sub display_media
 {
-    my ($self) = @_ ;
+    my ($self, %arg) = @_ ;
 
+    my ($limit, $label) = $self->get_limit(%arg);    
     my ($where, %elt) = $self->get_param('pools',
 					 'mediatypes',
 					 'volstatus',
@@ -2076,6 +2077,7 @@ LEFT JOIN (SELECT avg(Media.VolBytes) AS size,
 
 WHERE Media.PoolId=Pool.PoolId
 $where
+$limit
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
