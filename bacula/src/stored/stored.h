@@ -38,7 +38,7 @@
 
 /* Set to debug mutexes */
 //#define SD_DEBUG_LOCK
-const int sd_dbglvl = 100;
+const int sd_dbglvl = 300;
 
 #ifdef HAVE_MTIO_H
 #include <mtio.h>
