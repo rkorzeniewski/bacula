@@ -3,7 +3,7 @@
   <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>Prochains jobs </TMPL_IF></h1>
  </div>
  <div class='bodydiv'>
-    <form action='?' method='GET'>
+    <form action='<TMPL_VAR cginame>?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
      <label>
      <input type="image" name='action' value='run_job_mod'
