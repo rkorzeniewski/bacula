@@ -2,6 +2,13 @@
 
 General:
 24May07
+kes  Add code to tell the OS that we no longer need a cached
+     file that we were reading. In findlib/bfile.c.  Also,
+     only cache files that we are reading.
+kes  Tweak to bsmtp to eliminate compiler warnings on Win32.
+kes  Implement script to automatically generate cats and dll .def
+     files for Win32 dll.
+kes  Update README.mingw32 to include new .def file generation.
 kes  Correct typo in UTF-8 error message as reported by:
      jhernandez <julianhernandez@gmail.com>
 kes  Add additional sm_check() code on debug level 1.

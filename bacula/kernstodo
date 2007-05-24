@@ -83,6 +83,14 @@ Priority:
    02-Feb 11:00 btape: Fatal Error because: Bacula interrupted by signal 11: Segmentation violation
    Kaboom! btape, btape got signal 11. Attempting traceback.
 
+- Encryption -- email from Landon
+   > The backup encryption algorithm is currently not configurable, and is  
+   > set to AES_128_CBC in src/filed/backup.c. The encryption code  
+   > supports a number of different ciphers (as well as adding arbitrary  
+   > new ones) -- only a small bit of code would be required to map a  
+   > configuration string value to a CRYPTO_CIPHER_* value, if anyone is  
+   > interested in implementing this functionality.
+
 - Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
   does the right thing.
 - Why doesn't @"xxx abc" work in a conf file?
