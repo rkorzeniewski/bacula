@@ -165,9 +165,13 @@ bin/bacula start
 cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
 stop_bacula
 
-export dstat=0
-export bstat=0
-export rstat=0
+
+dstat=0
+bstat=0
+rstat=0
+export dstat
+export bstat
+export rstat
 
 J=JobA
 if grep -q "Restore OK"  tmp/RUN_$J &&
