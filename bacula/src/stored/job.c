@@ -150,6 +150,7 @@ bool run_cmd(JCR *jcr)
    struct timespec timeout;
    int errstat;
 
+   Dsm_check(1);
    Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
@@ -382,5 +383,6 @@ void stored_free_jcr(JCR *jcr)
       delete jcr->write_store;
       jcr->write_store = NULL;
    }
+   Dsm_check(1);
    return;
 }

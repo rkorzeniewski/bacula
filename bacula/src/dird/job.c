@@ -213,6 +213,7 @@ bool setup_job(JCR *jcr)
    }
 
    generate_job_event(jcr, "JobInit");
+   Dsm_check(1);
    return true;
 
 bail_out:
@@ -238,7 +239,7 @@ static void *job_thread(void *arg)
 
    jcr->my_thread_id = pthread_self();
    pthread_detach(jcr->my_thread_id);
-   sm_check(__FILE__, __LINE__, true);
+   Dsm_check(1);
 
    Dmsg0(200, "=====Start Job=========\n");
    set_jcr_job_status(jcr, JS_Running);   /* this will be set only if no error */
@@ -440,6 +441,7 @@ static void job_monitor_watchdog(watchdog_t *self)
 
    control_jcr = (JCR *)self->data;
 
+   Dsm_check(1);
    Dmsg1(800, "job_monitor_watchdog %p called\n", self);
 
    foreach_jcr(jcr) {

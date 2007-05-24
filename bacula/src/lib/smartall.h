@@ -1,11 +1,4 @@
 /*
-
-        Definitions for the smart memory allocator
-
-     Version $Id$
-
-*/
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+
+        Definitions for the smart memory allocator
+
+     Version $Id$
+
+*/
 
 extern uint64_t DLL_IMP_EXP sm_max_bytes;
 extern uint64_t DLL_IMP_EXP sm_bytes;
@@ -56,9 +56,11 @@ extern void actuallyfree(void *cp),
 extern void sm_new_owner(const char *fname, int lineno, char *buf);
 
 #ifdef SMCHECK
+#define Dsm_check(lvl) if ((lvl)<=debug_level) sm_check(__FILE__, __LINE__, true)
 extern void sm_check(const char *fname, int lineno, bool bufdump);
 extern int sm_check_rtn(const char *fname, int lineno, bool bufdump);
 #else
+#define Dsm_check(lvl, f, l, fl)
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
 #endif

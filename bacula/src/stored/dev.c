@@ -2007,7 +2007,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    char *icmd;
    int status, timeout;
    
-   sm_check(__FILE__, __LINE__, false);
+   Dsm_check(1);
    if (mount) {
       if (is_mounted()) {
          Dmsg0(200, "======= mount=1\n");
@@ -2128,9 +2128,9 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       }
 get_out:
       set_mounted(false);
-      sm_check(__FILE__, __LINE__, false);
       free_pool_memory(results);
       Dmsg0(200, "============ mount=0\n");
+      Dsm_check(1);
       return false;
    }
    
