@@ -290,13 +290,13 @@ bool             tls_postconnect_verify_host  (TLS_CONNECTION *tls,
 bool             tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
                                                alist *verify_list);
 TLS_CONNECTION   *new_tls_connection     (TLS_CONTEXT *ctx, int fd);
-void             free_tls_connection     (TLS_CONNECTION *tls);
-bool             tls_bsock_connect       (BSOCK *bsock);
 bool             tls_bsock_accept        (BSOCK *bsock);
-void             tls_bsock_shutdown      (BSOCK *bsock);
 int              tls_bsock_writen        (BSOCK *bsock, char *ptr, int32_t nbytes);
 int              tls_bsock_readn         (BSOCK *bsock, char *ptr, int32_t nbytes);
 #endif /* HAVE_TLS */
+bool             tls_bsock_connect       (BSOCK *bsock);
+void             tls_bsock_shutdown      (BSOCK *bsock);
+void             free_tls_connection     (TLS_CONNECTION *tls);
 bool             get_tls_require         (TLS_CONTEXT *ctx);
 bool             get_tls_enable          (TLS_CONTEXT *ctx);
 
