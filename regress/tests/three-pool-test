@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory. Create three
+#   tapes, each in a different pool, then run two jobs both of which
+#   want the tape that is not loaded.  Note, they both have     
+#   prefers non-mounted tapes.  This should expose bug #801
+#
+# This script uses the virtual disk autochanger and two drives
+#
+. config.out
+TestName="three-pool-disk"
+JobName="threepooldisk"
+. scripts/functions
+
+set_debug 1
+cwd=`pwd`
+
+scripts/cleanup
+scripts/copy-2disk-drive-confs
+scripts/prepare-two-disks
+
+echo "${cwd}/build" >/tmp/file-list
+change_jobname NightlySave $JobName
+start_test
+
+# Turn off Prefer Mounted Volumes so we use 2 drives
+outf="tmp/sed_tmp"
+echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+# Comment the next line out to write everything to one drive
+#  otherwise, it writes the two jobs to different drives
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+@$out tmp/log1.out
+@#setdebug level=150 storage=DDS-4
+label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
+label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Full    drive=0
+label storage=DDS-4 volume=TestVolume003 slot=3 Pool=Inc     drive=1
+status storage=DDS-4
+run job=$JobName level=Full Pool=Default yes
+run job=$JobName level=Full Pool=Default yes
+run job=$JobName level=Full Pool=Default yes
+run job=$JobName level=Full Pool=Default yes
+run job=$JobName level=Full Pool=Default yes
+@sleep 10
+status storage=DDS-4
+list volumes
+wait
+list volumes
+list jobs
+status storage=DDS-4
+messages
+quit
+END_OF_DATA
+
+# exit
+
+run_bacula
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+check_two_logs
+check_restore_tmp_build_diff
+
+end_test
