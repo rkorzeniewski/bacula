@@ -1,13 +1,7 @@
 /*
- * Process and thread timer routines, built on top of watchdogs.
- *
- *    Nic Bellamy <nic@bellamy.co.nz>, October 2003.
- *
-*/
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,14 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Process and thread timer routines, built on top of watchdogs.
+ *
+ *    Nic Bellamy <nic@bellamy.co.nz>, October 2003.
+ *
+*/
 
-typedef struct s_btimer_t {
+#ifndef __BTIMERS_H_
+#define __BTIMERS_H_
+
+struct btimer_t {
    watchdog_t *wd;                    /* Parent watchdog */
    int type;
    bool killed;
    pid_t pid;                         /* process id if TYPE_CHILD */
    pthread_t tid;                     /* thread id if TYPE_PTHREAD */
    BSOCK *bsock;                      /* Pointer to BSOCK */
-} btimer_t;
+};
 
-/* EOF */
+#endif /* __BTIMERS_H_ */

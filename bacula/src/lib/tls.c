@@ -102,7 +102,7 @@ static int openssl_verify_peer(int ok, X509_STORE_CTX *store)
 /* Dispatch user PEM encryption callbacks */
 static int tls_pem_callback_dispatch (char *buf, int size, int rwflag, void *userdata)
 {
-   TLS_CONTEXT *ctx = (TLS_CONTEXT *) userdata;
+   TLS_CONTEXT *ctx = (TLS_CONTEXT *)userdata;
    return (ctx->pem_callback(buf, size, ctx->pem_userdata));
 }
 
@@ -230,6 +230,17 @@ void free_tls_context(TLS_CONTEXT *ctx)
    SSL_CTX_free(ctx->openssl);
    free(ctx);
 }
+
+bool get_tls_require(TLS_CONTEXT *ctx) 
+{
+   return ctx->tls_require;
+}
+
+bool get_tls_enable(TLS_CONTEXT *ctx) 
+{
+   return ctx->tls_enable;
+}
+
 
 /*
  * Verifies a list of common names against the certificate
@@ -368,7 +379,6 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
       }
    }
 
-
 success:
    X509_free(cert);
 
@@ -412,7 +422,7 @@ TLS_CONNECTION *new_tls_connection(TLS_CONTEXT *ctx, int fd)
    /* Non-blocking partial writes */
    SSL_set_mode(tls->openssl, SSL_MODE_ENABLE_PARTIAL_WRITE|SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
-   return (tls);
+   return tls;
 
 err:
    /* Clean up */
@@ -703,6 +713,15 @@ void free_tls_connection(TLS_CONNECTION *tls)
       }
       free(tls);
    }
+}
+bool get_tls_require(TLS_CONTEXT *ctx) 
+{
+   return false;
+}
+
+bool get_tls_enable(TLS_CONTEXT *ctx) 
+{
+   return false;
 }
 
 #endif /* HAVE_TLS */

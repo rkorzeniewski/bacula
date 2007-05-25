@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+25May07
+kes  Ensure that when labelling a tape with Slot=0 that InChanger
+     is not set.
+kes  Use DISTINCT to make MySQL and PostgreSQL uar_list_temp query        
+     the same.
+kes  Add StartTime to final uar_sel_jobid_temp query so that we can
+     add DISTINCT (required by PostgreSQL).
+kes  Implement BSOCK authenticate_director() method. Eventually will
+     authenicate all daemons.
+kes  Move several more functions into the BSOCK class.
 24May07
 kes  Add code to tell the OS that we no longer need a cached
      file that we were reading. In findlib/bfile.c.  Also,

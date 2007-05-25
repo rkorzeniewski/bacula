@@ -1,16 +1,7 @@
 /*
- *
- *   Bacula Director -- Automatic Pruning
- *      Applies retention periods
- *
- *     Kern Sibbald, May MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- Automatic Pruning
+ *      Applies retention periods
+ *
+ *     Kern Sibbald, May MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -57,7 +57,6 @@ void do_autoprune(JCR *jcr)
    }
 
    ua = new_ua_context(jcr);
-
    client = jcr->client;
 
    if (jcr->job->PruneJobs || jcr->client->AutoPrune) {
@@ -76,7 +75,6 @@ void do_autoprune(JCR *jcr)
    if (pruned) {
       Jmsg(jcr, M_INFO, 0, _("End auto prune.\n\n"));
    }
-
    free_ua_context(ua);
    return;
 }

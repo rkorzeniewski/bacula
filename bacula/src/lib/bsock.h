@@ -41,6 +41,14 @@
  *   Version $Id$
  */
 
+#ifndef __BSOCK_H_
+#define __BSOCK_H_
+
+struct btimer_t;                      /* forward reference */
+class BSOCK;
+btimer_t *start_bsock_timer(BSOCK *bs, uint32_t wait);
+void stop_bsock_timer(btimer_t *wid);
+
 
 class BSOCK {
 private:
@@ -49,6 +57,7 @@ private:
    char *m_who;                       /* Name of daemon to which we are talking */
    char *m_host;                      /* Host name/IP */
    int m_port;                        /* desired port */
+   btimer_t *m_tid;                   /* timer id */
 
    void fin_init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
                struct sockaddr *lclient_addr);
@@ -100,6 +109,8 @@ public:
    void restore_blocking(int flags);
    int wait_data(int sec);
    int wait_data_intr(int sec);
+   bool authenticate_director(const char *name, const char *password,
+                  TLS_CONTEXT *tls_ctx, char *msg, int msglen);
 
    /* Inline functions */
    void set_jcr(JCR *jcr) { m_jcr = jcr; };
@@ -114,6 +125,8 @@ public:
    bool is_terminated() { return m_terminated; };
    bool is_timed_out() { return m_timed_out; };
    void set_terminated() { m_terminated = true; };
+   void start_timer(int sec) { m_tid = start_bsock_timer(this, sec); };
+   void stop_timer() { stop_bsock_timer(m_tid); };
 };
 
 /* 
@@ -175,3 +188,5 @@ int32_t read_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);
 int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes);
 
 BSOCK *new_bsock();
+
+#endif /* __BSOCK_H_ */

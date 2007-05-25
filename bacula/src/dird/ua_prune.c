@@ -297,7 +297,7 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    memset(&cr, 0, sizeof(cr));
    memset(&del, 0, sizeof(del));
 
-   bstrncpy(cr.Name, client->hdr.name, sizeof(cr.Name));
+   bstrncpy(cr.Name, client->name(), sizeof(cr.Name));
    if (!db_create_client_record(ua->jcr, ua->db, &cr)) {
       db_unlock(ua->db);
       return 0;
