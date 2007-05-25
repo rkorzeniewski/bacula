@@ -705,15 +705,8 @@ void free_tls_context(TLS_CONTEXT *ctx) { }
 
 void tls_bsock_shutdown(BSOCK *bsock) { }
 
-void free_tls_connection(TLS_CONNECTION *tls)
-{
-   if (tls) {
-      if (tls->openssl) {
-         SSL_free(tls->openssl);
-      }
-      free(tls);
-   }
-}
+void free_tls_connection(TLS_CONNECTION *tls) { }
+
 bool get_tls_require(TLS_CONTEXT *ctx) 
 {
    return false;
