@@ -123,8 +123,8 @@ int              close_wpipe(BPIPE *bpipe);
 int              close_bpipe(BPIPE *bpipe);
 
 /* cram-md5.c */
-bool cram_md5_respond(BSOCK *bs, char *password, int *tls_remote_need, int *compatible);
-bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compatible);
+bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int *compatible);
+bool cram_md5_challenge(BSOCK *bs, const char *password, int tls_local_need, int compatible);
 void hmac_md5(uint8_t* text, int text_len, uint8_t* key, int key_len, uint8_t *hmac);
 
 /* crc32.c */
@@ -297,6 +297,8 @@ void             tls_bsock_shutdown      (BSOCK *bsock);
 int              tls_bsock_writen        (BSOCK *bsock, char *ptr, int32_t nbytes);
 int              tls_bsock_readn         (BSOCK *bsock, char *ptr, int32_t nbytes);
 #endif /* HAVE_TLS */
+bool             get_tls_require         (TLS_CONTEXT *ctx);
+bool             get_tls_enable          (TLS_CONTEXT *ctx);
 
 
 /* util.c */

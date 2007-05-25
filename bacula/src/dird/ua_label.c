@@ -249,7 +249,7 @@ void update_slots(UAContext *ua)
       db_make_inchanger_unique(ua->jcr, ua->db, &mr);
       db_unlock(ua->db);
       if (!vl->VolName) {
-         Dmsg1(000, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
+         Dmsg1(100, "No VolName for Slot=%d setting InChanger to zero.\n", vl->Slot);
          ua->info_msg(_("No VolName for Slot=%d InChanger set to zero.\n"), vl->Slot);
          continue;
       }
@@ -417,13 +417,19 @@ checkName:
    i = find_arg_with_value(ua, "slot");
    if (i >= 0) {
       mr.Slot = atoi(ua->argv[i]);
-      mr.InChanger = 1;               /* assumed if we are labeling it */
+      if (mr.Slot < 0) {
+         mr.Slot = 0;
+      }
+      mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
    } else if (store.store->autochanger) {
       if (!get_pint(ua, _("Enter slot (0 or Enter for none): "))) {
          return 1;
       }
       mr.Slot = ua->pint32_val;
-      mr.InChanger = 1;               /* assumed if we are labeling it */
+      if (mr.Slot < 0) {
+         mr.Slot = 0;
+      }
+      mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
    }
    mr.StorageId = store.store->StorageId;
 
@@ -553,7 +559,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
              ua->warning_msg(_("Media record for Slot %d Volume \"%s\" already exists.\n"),
                 vl->Slot, mr.VolumeName);
              mr.Slot = vl->Slot;
-             mr.InChanger = 1;
+             mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
              mr.StorageId = store->StorageId;
              if (!db_update_media_record(ua->jcr, ua->db, &mr)) {
                 ua->error_msg(_("Error setting InChanger: ERR=%s"), db_strerror(ua->db));
@@ -562,7 +568,7 @@ static void label_from_barcodes(UAContext *ua, int drive)
           }
           media_record_exists = true;
       }
-      mr.InChanger = 1;
+      mr.InChanger = mr.Slot > 0;  /* if slot give assume in changer */
       mr.StorageId = store->StorageId;
       /*
        * Deal with creating cleaning tape here. Normal tapes created in
@@ -711,7 +717,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
    if (ok) {
       if (media_record_exists) {      /* we update it */
          mr->VolBytes = VolBytes;
-         mr->InChanger = 1;
+         mr->InChanger = mr->Slot > 0;  /* if slot give assume in changer */
          mr->StorageId = ua->jcr->wstore->StorageId;
          if (!db_update_media_record(ua->jcr, ua->db, mr)) {
              ua->error_msg("%s", db_strerror(ua->db));
@@ -720,7 +726,7 @@ static bool send_label_request(UAContext *ua, MEDIA_DBR *mr, MEDIA_DBR *omr,
       } else {                        /* create the media record */
          set_pool_dbr_defaults_in_media_dbr(mr, pr);
          mr->VolBytes = VolBytes;
-         mr->InChanger = 1;
+         mr->InChanger = mr->Slot > 0;  /* if slot give assume in changer */
          mr->StorageId = ua->jcr->wstore->StorageId;
          mr->Enabled = 1;
          if (db_create_media_record(ua->jcr, ua->db, mr)) {

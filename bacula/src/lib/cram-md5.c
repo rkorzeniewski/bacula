@@ -46,7 +46,7 @@
  *   Returns: false if authentication failed
  *            true if OK
  */
-bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compatible)
+bool cram_md5_challenge(BSOCK *bs, const char *password, int tls_local_need, int compatible)
 {
    struct timeval t1;
    struct timeval t2;
@@ -113,7 +113,7 @@ bool cram_md5_challenge(BSOCK *bs, char *password, int tls_local_need, int compa
 }
 
 /* Respond to challenge from other end */
-bool cram_md5_respond(BSOCK *bs, char *password, int *tls_remote_need, int *compatible)
+bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int *compatible)
 {
    char chal[MAXSTRING];
    uint8_t hmac[20];

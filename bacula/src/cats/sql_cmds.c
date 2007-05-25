@@ -33,6 +33,13 @@
  *
  *   Version $Id$
  */
+/*
+ * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
+ *  for example, the following is illegal in PostgreSQL:
+ *  SELECT DISTINCT JobId FROM temp ORDER BY StartTime ASC;
+ *  because all the ORDER BY expressions must appear in the SELECT list!
+ */
+
 
 #include "bacula.h"
 #include "cats.h"
@@ -398,23 +405,14 @@ const char *uar_inc =
    "AND FileSet.FileSet='%s' "
    "%s";
 
-#ifdef HAVE_POSTGRESQL
-/* Note, the PostgreSQL will have a much uglier looking
- * list since it cannot do GROUP BY of different values.
- */
 const char *uar_list_temp =
-   "SELECT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName,StartFile"
+   "SELECT DISTINCT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName"
    " FROM temp"
-   " ORDER BY StartTime,StartFile ASC";
-#else
-const char *uar_list_temp =
-   "SELECT JobId,Level,JobFiles,JobBytes,StartTime,VolumeName,StartFile"
-   " FROM temp"
-   " GROUP BY JobId ORDER BY StartTime,StartFile ASC";
-#endif
+   " ORDER BY StartTime ASC";
 
 
-const char *uar_sel_jobid_temp = "SELECT JobId FROM temp ORDER BY StartTime ASC";
+const char *uar_sel_jobid_temp = 
+   "SELECT DISTINCT JobId,StartTime FROM temp ORDER BY StartTime ASC";
 
 const char *uar_sel_all_temp1 = "SELECT * FROM temp1";
 
