@@ -95,7 +95,7 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
       tls_ctx = director->tls_ctx;
    }
    /* Timeout Hello after 15 secs */
-   btimer_t *tid = start_bsock_timer(dir, 15);
+   dir->start_timer(15);
    dir->fsend(hello, bashed_name);
 
    /* respond to Dir challenge */
@@ -138,14 +138,14 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
 
    Dmsg1(6, ">dird: %s", dir->msg);
    if (dir->recv() <= 0) {
-      stop_bsock_timer(tid);
+      dir->stop_timer();
       bsnprintf(msg, msglen, _("Bad response to Hello command: ERR=%s\n"
                       "The Director at \"%s:%d\" is probably not running.\n"),
                     dir->bstrerror(), dir->host(), dir->port());
       return false;
    }
 
-  stop_bsock_timer(tid);
+   dir->stop_timer();
    Dmsg1(10, "<dird: %s", dir->msg);
    if (strncmp(dir->msg, OKhello, sizeof(OKhello)-1) != 0) {
       bsnprintf(msg, msglen, _("Director at \"%s:%d\" rejected Hello command\n"),
@@ -157,7 +157,7 @@ bool Console::authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons,
    return true;
 
 bail_out:
-   stop_bsock_timer(tid);
+   dir->stop_timer();
    bsnprintf(msg, msglen, _("Authorization problem with Director at \"%s:%d\"\n"
              "Most likely the passwords do not agree.\n"
              "If you are using TLS, there may have been a certificate validation error during the TLS handshake.\n"

@@ -40,6 +40,7 @@ FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui
+FORMS += help/help.ui
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
@@ -103,6 +104,10 @@ SOURCES += fileset/fileset.cpp
 ## Job log
 HEADERS += joblog/joblog.h
 SOURCES += joblog/joblog.cpp
+
+# Help dialog
+HEADERS += help/help.h
+SOURCES += help/help.cpp
 
 INSTALLS += bins
 INSTALLS += confs

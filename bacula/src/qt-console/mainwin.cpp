@@ -46,6 +46,7 @@
 #include "medialist/medialist.h"
 #include "joblist/joblist.h"
 #include "clients/clients.h"
+#include "help/help.h"
 
 /* 
  * Daemon message callback
@@ -269,6 +270,7 @@ void MainWin::createConnections()
    /* Connect signals to slots */
    connect(lineEdit, SIGNAL(returnPressed()), this, SLOT(input_line()));
    connect(actionAbout_bat, SIGNAL(triggered()), this, SLOT(about()));
+   connect(actionBat_Help, SIGNAL(triggered()), this, SLOT(help()));
    connect(treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, 
            SLOT(treeItemClicked(QTreeWidgetItem *, int)));
    connect(treeWidget, SIGNAL(
@@ -488,6 +490,11 @@ void MainWin::about()
          "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
          "<p>The <b>bat</b> is an administrative console"
          " interface to the Director."));
+}
+
+void MainWin::help()
+{
+   Help::showFile("index.html");
 }
 
 void MainWin::set_statusf(const char *fmt, ...)
