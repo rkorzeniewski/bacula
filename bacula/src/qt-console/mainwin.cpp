@@ -494,7 +494,7 @@ void MainWin::about()
 
 void MainWin::help()
 {
-   Help::showFile("index.html");
+   Help::displayFile("index.html");
 }
 
 void MainWin::set_statusf(const char *fmt, ...)
