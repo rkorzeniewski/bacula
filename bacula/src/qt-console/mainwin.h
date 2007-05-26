@@ -86,6 +86,7 @@ public:
 public slots:
    void input_line();
    void about();
+   void help();
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void labelButtonClicked();
    void runButtonClicked();
