@@ -106,3 +106,5 @@ SOURCES += joblog/joblog.cpp
 
 INSTALLS += bins
 INSTALLS += confs
+
+QMAKE_EXTRA_TARGETS += depend
