@@ -123,8 +123,8 @@ int main (int argc, char *argv[])
 {
    int ch;
    JCR *jcr;
-   int no_signals = FALSE;
-   int test_config = FALSE;
+   bool no_signals = false;
+   bool test_config = false;
    char *uid = NULL;
    char *gid = NULL;
 
@@ -174,11 +174,11 @@ int main (int argc, char *argv[])
          break;
 
       case 's':                    /* turn off signals */
-         no_signals = TRUE;
+         no_signals = true;
          break;
 
       case 't':                    /* test config */
-         test_config = TRUE;
+         test_config = true;
          break;
 
       case 'u':                    /* set uid */
@@ -468,7 +468,7 @@ void reload_config(int sig)
    ok = parse_config(configfile, 0, M_ERROR);  /* no exit on error */
 
    Dmsg0(100, "Reloaded config file\n");
-   if (!ok || !check_resources()) {
+   if (!ok || !check_resources() || !check_catalog()) {
       rtable = find_free_reload_table_entry();    /* save new, bad table */
       if (rtable < 0) {
          Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
