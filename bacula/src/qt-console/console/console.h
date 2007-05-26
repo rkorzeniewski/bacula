@@ -114,7 +114,7 @@ public:
 
 
 public slots:
-   void connect();                     
+   void connect_dir();                     
    void read_dir(int fd);
    int read(void);
    int write(const char *msg);

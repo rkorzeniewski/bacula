@@ -103,10 +103,9 @@ void Console::terminate()
 }
 
 /*
- * Connect to Director. If there are more than one, put up
- * a modal dialog so that the user chooses one.
+ * Connect to Director. 
  */
-void Console::connect()
+void Console::connect_dir()
 {
    JCR jcr;
    utime_t heart_beat;
@@ -233,7 +232,7 @@ void Console::connect()
    dir_cmd(".levels", level_list);
 
    mainWin->set_status(_("Connected"));
-   startTimer();
+   startTimer();                      /* start message timer */
    return;
 }
 
