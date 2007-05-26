@@ -272,10 +272,12 @@ bool Console::sql_cmd(QString &query, QStringList &results)
  */
 bool Console::sql_cmd(const char *query, QStringList &results)
 {
-   if (!is_connectedGui())
-      return false;
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
+
+   if (!is_connectedGui()) {
+      return false;
+   }
 
    notify(false);
    
@@ -365,18 +367,6 @@ bool Console::get_job_defaults(struct job_defaults &job_defs)
          continue;
       }
    }
-
-#ifdef xxx
-   bsnprintf(cmd, sizeof(cmd), "job=%s pool=%s client=%s storage=%s where=%s\n"
-      "level=%s type=%s fileset=%s catalog=%s enabled=%d\n",
-      job_defs.job_name.toUtf8().data(), job_defs.pool_name.toUtf8().data(), 
-      job_defs.client_name.toUtf8().data(), 
-      job_defs.pool_name.toUtf8().data(), job_defs.messages_name.toUtf8().data(), 
-      job_defs.store_name.toUtf8().data(),
-      job_defs.where.toUtf8().data(), job_defs.level.toUtf8().data(), 
-      job_defs.type.toUtf8().data(), job_defs.fileset_name.toUtf8().data(),
-      job_defs.catalog_name.toUtf8().data(), job_defs.enabled);
-#endif
 
    notify(true);
    return true;
@@ -755,7 +745,7 @@ bool Console::is_connectedGui()
    } else {
       QString message("Director ");
       message += " is curerntly disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, tr("Bat"),
+      QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
    }
@@ -771,23 +761,23 @@ bool Console::preventInUseConnect()
       QString message("Director ");
       message += m_dir->name();
       message += " is curerntly disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, tr("Bat"),
+      QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
    } else if (!m_at_main_prompt){
       QString message("Director ");
       message += m_dir->name();
       message += " is curerntly busy\n  Please complete restore or other "
-" operation !!  This is a limitation that will be resolved before a beta"
-" release.  This is currently an alpha release.";
-      QMessageBox::warning(this, tr("Bat"),
+                 " operation !!  This is a limitation that will be resolved before a beta"
+                 " release.  This is currently an alpha release.";
+      QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
    } else if (!m_at_prompt){
       QString message("Director ");
       message += m_dir->name();
       message += " is curerntly not at a prompt\n  Please try again!!";
-      QMessageBox::warning(this, tr("Bat"),
+      QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
    } else {
