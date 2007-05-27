@@ -365,7 +365,7 @@ void actuallyfree(void *cp)
  *  N.B. DO NOT USE any Bacula print routines (Dmsg, Jmsg, Emsg, ...)
  *    as they have all been shut down at this point.
  */
-void sm_dump(bool bufdump)
+void sm_dump(bool bufdump, bool in_use) 
 {
    struct abufhead *ap;
 
@@ -381,7 +381,7 @@ void sm_dump(bool bufdump)
          fprintf(stderr, _(
             "\nOrphaned buffers exist.  Dump terminated following\n"
             "  discovery of bad links in chain of orphaned buffers.\n"
-            "  Buffer address with bad links: %lx\n"), (long) ap);
+            "  Buffer address with bad links: %p\n"), ap);
          break;
       }
 
@@ -391,7 +391,8 @@ void sm_dump(bool bufdump)
          char *cp = ((char *)ap) + HEAD_SIZE;
 
          bsnprintf(errmsg, sizeof(errmsg),
-           _("Orphaned buffer:  %s %6u bytes buf=%p allocated at %s:%d\n"),
+           _("%s buffer:  %s %6u bytes buf=%p allocated at %s:%d\n"),
+            in_use?"In use":"Orphaned",
             my_name, memsize, cp, ap->abfname, ap->ablineno
          );
          fprintf(stderr, "%s", errmsg);
@@ -468,7 +469,7 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
             fprintf(stderr, _("  discovery of data overrun.\n"));
          }
 
-         fprintf(stderr, _("  Buffer address: %lx\n"), (long) ap);
+         fprintf(stderr, _("  Buffer address: %p\n"), ap);
 
          if (ap->abfname != NULL) {
             unsigned memsize = ap->ablen - (HEAD_SIZE + 1);

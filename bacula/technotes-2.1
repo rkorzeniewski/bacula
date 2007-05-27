@@ -2,6 +2,10 @@
 
 General:
 27May07
+kes  Add < > around %r in from field on mail command of bacula-dir.conf.in
+     so that bsmtp will create a correct email address (mailbox only).
+kes  Modify 'memory' command so that the buffers are listed as 'In use'
+     to avoid confusion with Orphaned buffers.
 kes  I reworked the OpenSSL include/lib flags to be handled in     
      the standard Bacula way, which should fix bug #863 concerning
      non-standard OpenSSL libraries.
