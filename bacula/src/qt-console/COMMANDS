@@ -1,6 +1,3 @@
-add [pool=<pool-name> storage=<storage>  jobid=<JobId>]
-These are done from config files
-
 autodisplay on/off
 could be done in the context of the console
 
@@ -11,11 +8,7 @@ command as opposed to a property of a storage device
 cancel [jobid=<number> job=<job-name> ujobid=<unique-jobid>]
 To be done in the context of a status dir graphical window.
 
-create [pool=<pool-name>]
-Done in a config file
-
-delete [volume=<vol-name> pool=<pool-name> job jobid=<id>]
-not done for pool yet
+delete pool=<pool-name>
 
 disable job<job-name>     and     enable job<job-name>
 Could be done in the context of a jobs window which is not yet created
@@ -25,9 +18,6 @@ Could be a dialog in the context of a jobs window.
 
 help
 could be in the console window
-
-label
-Done by kern before I started
 
 list
 many are done or are reproduced by having windows
@@ -45,9 +35,6 @@ purge files jobid=<jobid>|job=<job-name>|client=<client-name>
 purge jobs client=<client-name> (of all jobs)
 purge volume|volume=<vol-name> (of all jobs)
   this one is done from media
-
-relabel
-done
 
 release storage=<storage-name>
 Would need to explain what this does in bat with a dialog
@@ -90,3 +77,23 @@ Not really needed
 
 wait
 Mmmmmmm
+
+CONFIG FILE
+===========================
+add [pool=<pool-name> storage=<storage>  jobid=<JobId>]
+These are done from config files
+
+create [pool=<pool-name>]
+Done in a config file
+
+
+DONE
+===========================
+
+label
+Done by kern before I started
+
+delete [volume=<vol-name> job jobid=<id>]
+
+relabel
+done

@@ -45,6 +45,8 @@ FileSet::FileSet()
    setupUi(this);
    m_name = "FileSets";
    pgInitialize();
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/system-file-manager.png")));
 
    /* mp_treeWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
    m_populated = false;
