@@ -140,6 +140,7 @@
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
    <addaction name="actionUndock" />
+   <addaction name="actionEstimate" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -428,6 +429,26 @@
    </property>
    <property name="statusTip" >
     <string>Run a Job</string>
+   </property>
+  </action>
+  <action name="actionEstimate" >
+   <property name="checked" >
+    <bool>false</bool>
+   </property>
+   <property name="icon" >
+    <iconset>:images/run.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Estimate Job</string>
+   </property>
+   <property name="iconText" >
+    <string>Estimate Job</string>
+   </property>
+   <property name="toolTip" >
+    <string>Estimate Job</string>
+   </property>
+   <property name="statusTip" >
+    <string>Estimate a Job</string>
    </property>
   </action>
   <action name="actionStatusDir" >

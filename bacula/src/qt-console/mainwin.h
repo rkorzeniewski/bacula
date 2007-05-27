@@ -90,6 +90,7 @@ public slots:
    void treeItemClicked(QTreeWidgetItem *item, int column);
    void labelButtonClicked();
    void runButtonClicked();
+   void estimateButtonClicked();
    void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);

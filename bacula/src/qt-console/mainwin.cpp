@@ -282,6 +282,7 @@ void MainWin::createConnections()
    connect(actionQuit, SIGNAL(triggered()), app, SLOT(closeAllWindows()));
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
+   connect(actionEstimate, SIGNAL(triggered()), this,  SLOT(estimateButtonClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
@@ -457,6 +458,11 @@ void MainWin::labelButtonClicked()
 void MainWin::runButtonClicked() 
 {
    new runPage();
+}
+
+void MainWin::estimateButtonClicked() 
+{
+   new estimatePage();
 }
 
 void MainWin::restoreButtonClicked() 

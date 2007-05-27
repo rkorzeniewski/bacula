@@ -77,6 +77,24 @@
     </widget>
    </item>
   </layout>
+  <action name="actionStatusDir" >
+   <property name="icon" >
+    <iconset>../images/status.png</iconset>
+   </property>
+   <property name="text" >
+    <string>StatusDir</string>
+   </property>
+  </action>
+  <action name="actionConsoleHelp" >
+   <property name="text" >
+    <string>ConsoleHelp</string>
+   </property>
+  </action>
+  <action name="actionRequestMessages" >
+   <property name="text" >
+    <string>Request Messages</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

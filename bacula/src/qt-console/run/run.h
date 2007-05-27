@@ -5,6 +5,7 @@
 #include <QtGui>
 #include "ui_run.h"
 #include "ui_runcmd.h"
+#include "ui_estimate.h"
 #include "console.h"
 
 class runPage : public Pages, public Ui::runForm
@@ -37,5 +38,19 @@ private:
    void fill();
 };
 
+class estimatePage : public Pages, public Ui::estimateForm
+{
+   Q_OBJECT 
+
+public:
+   estimatePage();
+
+public slots:
+   void okButtonPushed();
+   void cancelButtonPushed();
+   void job_name_change(int index);
+
+private:
+};
 
 #endif /* _RUN_H_ */
