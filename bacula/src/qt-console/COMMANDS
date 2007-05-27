@@ -1,23 +1,16 @@
-autodisplay on/off
-could be done in the context of the console
-
-automount on/off
-could be done in the context of the console, because is for after a label
-command as opposed to a property of a storage device
-
 cancel [jobid=<number> job=<job-name> ujobid=<unique-jobid>]
 To be done in the context of a status dir graphical window.
+Also in a "job resources window for job-name".
 
 delete pool=<pool-name>
+   should ask if this would have bad effects if say media existed in the pool
+   the pool existed in the configuration file.
 
 disable job<job-name>     and     enable job<job-name>
-Could be done in the context of a jobs window which is not yet created
+Could be done in the context of a jobs resource window which is not yet created
 
 estimate
 Could be a dialog in the context of a jobs window.
-
-help
-could be in the console window
 
 list
 many are done or are reproduced by having windows
@@ -25,16 +18,8 @@ many are done or are reproduced by having windows
 llist
 same as list
 
-python
-not needed from bat??
-
 prune files|jobs|volume client=<client-name> volume=<volume-name>
 Should add as a dialog box from both client and medialist
-
-purge files jobid=<jobid>|job=<job-name>|client=<client-name>
-purge jobs client=<client-name> (of all jobs)
-purge volume|volume=<vol-name> (of all jobs)
-  this one is done from media
 
 release storage=<storage-name>
 Would need to explain what this does in bat with a dialog
@@ -86,14 +71,32 @@ These are done from config files
 create [pool=<pool-name>]
 Done in a config file
 
+CHOOSE NOT TO (for now at least)
+===========================
+autodisplay on/off
+could be done in the context of the console
+   This may interfere with our connection issues
+   Also, there is a configurable qt timer to automatically ask for messages
+
+python
+not needed from bat??
 
 DONE
 ===========================
+automount on/off
+Added buttons to the label dialog box to execute automount command
+
+delete [volume=<vol-name> job jobid=<id>]
+
+help
+could be in the console window
 
 label
 Done by kern before I started
 
-delete [volume=<vol-name> job jobid=<id>]
+purge files jobid=<jobid>|job=<job-name>|client=<client-name>
+purge volume|volume=<vol-name> (of all jobs)
+purge jobs client=<client-name> (of all jobs)
 
 relabel
 done

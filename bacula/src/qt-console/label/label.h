@@ -49,6 +49,8 @@ public:
 private slots:
    void okButtonPushed();
    void cancelButtonPushed();
+   void automountOnButtonPushed();
+   void automountOffButtonPushed();
 
 private:
 };

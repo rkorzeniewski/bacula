@@ -158,6 +158,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          if (treedepth == 1){
             mp_treeWidget->removeAction(actionListJobsofClient);
             mp_treeWidget->removeAction(actionStatusClientInConsole);
+            mp_treeWidget->removeAction(actionPurgeJobs);
          }
       }
 
@@ -168,6 +169,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          m_currentlyselected=currentwidgetitem->text(0);
          mp_treeWidget->addAction(actionListJobsofClient);
          mp_treeWidget->addAction(actionStatusClientInConsole);
+         mp_treeWidget->addAction(actionPurgeJobs);
       }
    }
 }
@@ -191,6 +193,8 @@ void Clients::createContextMenu()
                 SLOT(showJobs()));
    connect(actionStatusClientInConsole, SIGNAL(triggered()), this,
                 SLOT(consoleStatusClient()));
+   connect(actionPurgeJobs, SIGNAL(triggered()), this,
+                SLOT(consolePurgeJobs()));
 }
 
 /*
@@ -231,3 +235,28 @@ void Clients::currentStackItem()
       m_populated=true;
    }
 }
+
+/*
+ * Function responding to actionPurgeJobs 
+ */
+void Clients::consolePurgeJobs()
+{
+   if (QMessageBox::warning(this, tr("Bat"),
+      tr("Are you sure you want to purge ??  !!!.\n"
+"The Purge command will delete associated Catalog database records from Jobs and"
+" Volumes without considering the retention period. Purge  works only on the"
+" Catalog database and does not affect data written to Volumes. This command can"
+" be dangerous because you can delete catalog records associated with current"
+" backups of files, and we recommend that you do not use it unless you know what"
+" you are doing.\n\n"
+" Is there any way I can get you to Click cancel here.  You really don't want to do"
+" this\n\n"
+      "Press OK to proceed with the purge operation?"),
+      QMessageBox::Ok | QMessageBox::Cancel)
+      == QMessageBox::Cancel) { return; }
+
+   QString cmd("purge jobs client=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+

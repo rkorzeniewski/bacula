@@ -72,6 +72,8 @@ void labelPage::showPage(QString &defString)
    poolCombo->addItems(m_console->pool_list);
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+   connect(automountOnButton, SIGNAL(pressed()), this, SLOT(automountOnButtonPushed()));
+   connect(automountOffButton, SIGNAL(pressed()), this, SLOT(automountOffButtonPushed()));
    dockPage();
    setCurrent();
    this->show();
@@ -108,4 +110,18 @@ void labelPage::cancelButtonPushed()
    m_console->notify(true);
    closeStackPage();
    mainWin->resetFocus();
+}
+
+/* turn automount on */
+void labelPage::automountOnButtonPushed()
+{
+   QString cmd("automount on");
+   consoleCommand(cmd);
+}
+
+/* turn automount off */
+void labelPage::automountOffButtonPushed()
+{
+   QString cmd("automount off");
+   consoleCommand(cmd);
 }

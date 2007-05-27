@@ -35,7 +35,7 @@ FORMS += relabel/relabel.ui
 FORMS += mount/mount.ui
 FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
-FORMS += run/run.ui run/runcmd.ui
+FORMS += run/run.ui run/runcmd.ui run/estimate.ui
 FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
@@ -67,7 +67,7 @@ SOURCES += mount/mount.cpp
 
 # Run dialog
 HEADERS += run/run.h
-SOURCES += run/run.cpp run/runcmd.cpp
+SOURCES += run/run.cpp run/runcmd.cpp run/estimate.cpp
 
 # Select dialog
 HEADERS += select/select.h

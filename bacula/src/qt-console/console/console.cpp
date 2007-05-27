@@ -60,6 +60,12 @@ Console::Console(QStackedWidget *parent)
    mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
 
    m_timer = NULL;
+   m_contextActions.append(actionStatusDir);
+   m_contextActions.append(actionConsoleHelp);
+   m_contextActions.append(actionRequestMessages);
+   connect(actionStatusDir, SIGNAL(triggered()), this, SLOT(status_dir()));
+   connect(actionConsoleHelp, SIGNAL(triggered()), this, SLOT(consoleHelp()));
+   connect(actionRequestMessages, SIGNAL(triggered()), this, SLOT(messages()));
 }
 
 Console::~Console()
@@ -815,4 +821,11 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
    buf[0] = 0;
    return 0;
 #endif
+}
+
+/* Slot for responding to page selectors status help command */
+void Console::consoleHelp()
+{
+   QString cmd("help");
+   consoleCommand(cmd);
 }
