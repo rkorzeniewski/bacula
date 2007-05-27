@@ -29,7 +29,10 @@ echo "s%@tape_drive1@%${5}%g" >>${out}
 echo "s%@smtp_host@%${6}%g" >>${out}
 echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
 
-echo "AUTOCHANGER=\"${3}\"" >config.out
+echo "# "                    >config.out
+echo "# Autochanger conf"   >>config.out
+echo "# "                   >>config.out
+echo "AUTOCHANGER=\"${3}\"" >>config.out
 echo "TAPE_DRIVE1=\"${5}\"" >>config.out
 
 
