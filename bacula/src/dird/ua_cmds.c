@@ -1405,7 +1405,7 @@ static int delete_pool(UAContext *ua)
 int memory_cmd(UAContext *ua, const char *cmd)
 {
    list_dir_status_header(ua);
-   sm_dump(false);
+   sm_dump(false, true);
    return 1;
 }
 

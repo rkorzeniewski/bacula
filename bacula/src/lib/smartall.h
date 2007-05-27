@@ -52,7 +52,7 @@ extern void *sm_malloc(const char *fname, int lineno, unsigned int nbytes),
             *actuallyrealloc(void *ptr, unsigned int size);
 extern void sm_free(const char *fname, int lineno, void *fp);
 extern void actuallyfree(void *cp),
-            sm_dump(bool bufdump), sm_static(int mode);
+            sm_dump(bool bufdump, bool in_use=false), sm_static(int mode);
 extern void sm_new_owner(const char *fname, int lineno, char *buf);
 
 #ifdef SMCHECK

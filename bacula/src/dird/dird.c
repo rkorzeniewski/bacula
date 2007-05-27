@@ -504,7 +504,7 @@ void reload_config(int sig)
    set_working_directory(director->working_directory);
    FDConnectTimeout = director->FDConnectTimeout;
    SDConnectTimeout = director->SDConnectTimeout;
-   Dmsg0(0, "Director's configuration file reread.\n");
+   Dmsg0(10, "Director's configuration file reread.\n");
 
    /* Now release saved resources, if no jobs using the resources */
    if (njobs == 0) {
