@@ -388,7 +388,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       if ((previousPage) || (previousConsole)) {
          if (nextConsole != previousConsole) {
             /* remove connections to the current console */
-            disconnect(actionConnect, SIGNAL(triggered()), previousConsole, SLOT(connect()));
+            disconnect(actionConnect, SIGNAL(triggered()), previousConsole, SLOT(connect_dir()));
             disconnect(actionStatusDir, SIGNAL(triggered()), previousConsole, SLOT(status_dir()));
             disconnect(actionMessages, SIGNAL(triggered()), previousConsole, SLOT(messages()));
             disconnect(actionSelectFont, SIGNAL(triggered()), previousConsole, SLOT(set_font()));
@@ -414,7 +414,7 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       if (nextConsole != previousConsole) {
          /* make connections to the current console */
          m_currentConsole = nextConsole;
-         connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect()));
+         connect(actionConnect, SIGNAL(triggered()), m_currentConsole, SLOT(connect_dir()));
          connect(actionSelectFont, SIGNAL(triggered()), m_currentConsole, SLOT(set_font()));
          connect(actionStatusDir, SIGNAL(triggered()), m_currentConsole, SLOT(status_dir()));
          connect(actionMessages, SIGNAL(triggered()), m_currentConsole, SLOT(messages()));
