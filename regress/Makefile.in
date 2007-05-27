@@ -26,10 +26,12 @@ setup: bacula sed
 #
 bacula: all
 	@rm -rf bin build weird-files tmp
-	(if test x`uname` = xLinux -o x`uname` = xFreeBSD ; then \
-	   tar xfz weird-files.tar.gz ;\
-	 fi)
-	rm -rf tmp working
+	@rm -f w.tar.gz w.tar
+	@cp weird-files.tar.gz w.tar.gz
+	@-gunzip w.tar.gz
+	@-tar xf w.tar
+	@rm -f w.tar.gz w.tar
+	@rm -rf tmp working
 	mkdir tmp working
 	echo "Doing: scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${OPENSSL}"
 	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${SMTP_HOST} ${OPENSSL}
