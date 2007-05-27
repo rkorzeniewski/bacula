@@ -27,9 +27,6 @@ dummy:
 
 GETTEXT_LIBS = @LIBINTL@
 
-OPENSSL_INC = @OPENSSL_INC@
-OPENSSL_LIBS = @OPENSSL_LIBS@
-
 FINDOBJS = testfind.o ../dird/dird_conf.o ../dird/inc_conf.o ../dird/run_conf.o
 
 # these are the objects that are changed by the .configure process
@@ -62,7 +59,7 @@ all: Makefile $(TOOLS) gigaslam
 bsmtp:	bsmtp.o ../lib/libbac.a        
 	$(CXX) $(LDFLAGS) -L../lib -o $@ bsmtp.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
-bregtest:	bregtest.o ../lib/libbac.a        
+bregtest:	bregtest.o ../lib/libbac.a	  
 	$(CXX) $(LDFLAGS) -L../lib -o $@ bregtest.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 dbcheck: dbcheck.o ../lib/libbac.a ../cats/libsql.a $(DIRCONFOBJS)
@@ -152,7 +149,7 @@ depend:
 	@$(MV) Makefile Makefile.bak
 	@$(SED) "/^# DO NOT DELETE:/,$$ d" Makefile.bak > Makefile
 	@$(ECHO) "# DO NOT DELETE: nice dependency list follows" >> Makefile
-	@$(CXX) -S -M $(CPPFLAGS) $(PYTHON_INC) $(OPENSSL_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
+	@$(CXX) -S -M $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(SQL_INC) *.c >> Makefile
 	@if test -f Makefile ; then \
 	    $(RMF) Makefile.bak; \
 	else \
