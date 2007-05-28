@@ -79,28 +79,39 @@
   </layout>
   <action name="actionStatusDir" >
    <property name="icon" >
-    <iconset>../images/status.png</iconset>
+    <iconset resource="../main.qrc" >:/images/status.png</iconset>
    </property>
    <property name="text" >
     <string>StatusDir</string>
    </property>
   </action>
   <action name="actionConsoleHelp" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+   </property>
    <property name="text" >
     <string>Console Help</string>
    </property>
   </action>
   <action name="actionRequestMessages" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+   </property>
    <property name="text" >
     <string>Request Messages</string>
    </property>
   </action>
   <action name="actionConsoleReload" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+   </property>
    <property name="text" >
     <string>Reload bacula-dir.conf</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../main.qrc" />
+ </resources>
  <connections/>
 </ui>

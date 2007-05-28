@@ -47,6 +47,8 @@ runPage::runPage()
    m_name = "Run";
    pgInitialize();
    setupUi(this);
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
    m_console->notify(false);
 
    m_console->beginNewCommand();

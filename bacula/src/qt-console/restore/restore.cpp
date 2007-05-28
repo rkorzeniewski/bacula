@@ -45,6 +45,9 @@ restorePage::restorePage()
    setupUi(this);
    m_name = "Restore Select";
    pgInitialize();
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
+
    m_console->notify(false);          /* this should already be off */
    m_closeable = true;
 

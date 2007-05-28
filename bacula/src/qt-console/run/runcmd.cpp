@@ -51,6 +51,8 @@ runCmdPage::runCmdPage()
    m_name = "Restore Run";
    pgInitialize();
    setupUi(this);
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
    m_console->notify(false);
 
    fill();
