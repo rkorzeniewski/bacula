@@ -81,7 +81,11 @@
          </widget>
         </item>
         <item row="1" column="0" >
-         <widget class="QSpinBox" name="checkMessagesSpin" />
+         <widget class="QSpinBox" name="checkMessagesSpin" >
+          <property name="maximum" >
+           <number>3600</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -168,6 +172,37 @@
          </layout>
         </item>
        </layout>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_4" >
+      <attribute name="title" >
+       <string>Misc</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox_4" >
+       <property name="geometry" >
+        <rect>
+         <x>30</x>
+         <y>50</y>
+         <width>201</width>
+         <height>81</height>
+        </rect>
+       </property>
+       <property name="title" >
+        <string>Context Sensitive List Commands</string>
+       </property>
+       <widget class="QCheckBox" name="executeLongCheckBox" >
+        <property name="geometry" >
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>161</width>
+          <height>19</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Execute Long List</string>
+        </property>
+       </widget>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_3" >

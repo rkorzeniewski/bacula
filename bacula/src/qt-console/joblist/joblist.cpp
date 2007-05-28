@@ -305,7 +305,6 @@ void JobList::currentStackItem()
 {
    populateTable();
    if (!m_populated) {
-      m_contextActions.append(actionRefreshJobList);
       m_populated=true;
    }
 }
@@ -389,7 +388,6 @@ void JobList::createConnections()
 
    /* Add Actions */
    mp_tableWidget->addAction(actionRefreshJobList);
-   mp_tableWidget->addAction(actionLongListJob);
    mp_tableWidget->addAction(actionListJobid);
    mp_tableWidget->addAction(actionListFilesOnJob);
    mp_tableWidget->addAction(actionListJobMedia);
@@ -401,8 +399,6 @@ void JobList::createConnections()
    mp_tableWidget->addAction(actionShowLogForJob);
 
    /* Make Connections */
-   connect(actionLongListJob, SIGNAL(triggered()), this,
-                SLOT(consoleLongListJob()));
    connect(actionListJobid, SIGNAL(triggered()), this,
                 SLOT(consoleListJobid()));
    connect(actionListFilesOnJob, SIGNAL(triggered()), this,
@@ -423,40 +419,50 @@ void JobList::createConnections()
                 SLOT(showLogForJob()));
    connect(actionCancelJob, SIGNAL(triggered()), this,
                 SLOT(consoleCancelJob()));
+   connect(actionListJobTotals, SIGNAL(triggered()), this,
+                SLOT(consoleListJobTotals()));
+
+   m_contextActions.append(actionRefreshJobList);
+   m_contextActions.append(actionListJobTotals);
 }
 
 /*
  * Functions to respond to local context sensitive menu sending console commands
  * If I could figure out how to make these one function passing a string, Yaaaaaa
  */
-void JobList::consoleLongListJob()
-{
-   QString cmd("llist jobid=");
-   cmd += m_currentJob;
-   consoleCommand(cmd);
-}
 void JobList::consoleListJobid()
 {
    QString cmd("list jobid=");
    cmd += m_currentJob;
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 void JobList::consoleListFilesOnJob()
 {
    QString cmd("list files jobid=");
    cmd += m_currentJob;
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 void JobList::consoleListJobMedia()
 {
    QString cmd("list jobmedia jobid=");
    cmd += m_currentJob;
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 void JobList::consoleListVolumes()
 {
    QString cmd("list volumes jobid=");
    cmd += m_currentJob;
+   if (mainWin->m_longList) { cmd.prepend("l"); }
+   consoleCommand(cmd);
+}
+void JobList::consoleListJobTotals()
+{
+   QString cmd("list jobtotals");
+   cmd += m_currentJob;
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 void JobList::consoleDeleteJob()

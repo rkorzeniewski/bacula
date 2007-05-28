@@ -69,6 +69,7 @@ public:
    void setCurrent();
    void setContextMenuDockText();
    void setTreeWidgetItemDockColor();
+   void consoleCommand(QString &);
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */
@@ -77,7 +78,6 @@ public slots:
 protected:
    void pgInitialize();
    void pgInitialize(QTreeWidgetItem *);
-   void consoleCommand(QString &);
    virtual void treeWidgetName(QString &);
    virtual void changeEvent(QEvent *event);
    void setConsoleCurrent();

@@ -63,8 +63,10 @@ Console::Console(QStackedWidget *parent)
    m_contextActions.append(actionStatusDir);
    m_contextActions.append(actionConsoleHelp);
    m_contextActions.append(actionRequestMessages);
+   m_contextActions.append(actionConsoleReload);
    connect(actionStatusDir, SIGNAL(triggered()), this, SLOT(status_dir()));
    connect(actionConsoleHelp, SIGNAL(triggered()), this, SLOT(consoleHelp()));
+   connect(actionConsoleReload, SIGNAL(triggered()), this, SLOT(consoleReload()));
    connect(actionRequestMessages, SIGNAL(triggered()), this, SLOT(messages()));
 }
 
@@ -827,5 +829,12 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 void Console::consoleHelp()
 {
    QString cmd("help");
+   consoleCommand(cmd);
+}
+
+/* Slot for responding to page selectors reload bacula-dir.conf */
+void Console::consoleReload()
+{
+   QString cmd("reload");
    consoleCommand(cmd);
 }

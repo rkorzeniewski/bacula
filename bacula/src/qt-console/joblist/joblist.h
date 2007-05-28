@@ -54,11 +54,11 @@ public slots:
    void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
 
 private slots:
-   void consoleLongListJob();
    void consoleListJobid();
    void consoleListFilesOnJob();
    void consoleListJobMedia();
    void consoleListVolumes();
+   void consoleListJobTotals();
    void consoleDeleteJob();
    void consolePurgeFiles();
    void preRestoreFromJob();

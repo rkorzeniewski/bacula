@@ -87,12 +87,17 @@
   </action>
   <action name="actionConsoleHelp" >
    <property name="text" >
-    <string>ConsoleHelp</string>
+    <string>Console Help</string>
    </property>
   </action>
   <action name="actionRequestMessages" >
    <property name="text" >
     <string>Request Messages</string>
+   </property>
+  </action>
+  <action name="actionConsoleReload" >
+   <property name="text" >
+    <string>Reload bacula-dir.conf</string>
    </property>
   </action>
  </widget>

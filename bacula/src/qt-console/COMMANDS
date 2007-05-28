@@ -1,4 +1,4 @@
-cancel [jobid=<number> job=<job-name> ujobid=<unique-jobid>]
+cancel [job=<job-name> ujobid=<unique-jobid>]
 To be done in the context of a status dir graphical window.
 Also in a "job resources window for job-name".
 
@@ -9,23 +9,20 @@ delete pool=<pool-name>
 disable job<job-name>     and     enable job<job-name>
 Could be done in the context of a jobs resource window which is not yet created
 
-estimate
-Could be a dialog in the context of a jobs window.
-
 list
-many are done or are reproduced by having windows
-
-llist
-same as list
+   list ujobid<unique job name> (list job with unique name)
+   list files job=<job-name>
+  do this as a context option on page selector on joblist
+   list volumes job=<job-name>
+   list nextvolume job=<job-name>
+   list nextvol job=<job-name>
+   list nextvol job=<job-name> days=nnn
 
 prune files|jobs|volume client=<client-name> volume=<volume-name>
-Should add as a dialog box from both client and medialist
+could add as a dialog box from both client and medialist
 
 release storage=<storage-name>
 Would need to explain what this does in bat with a dialog
-
-reload
-could be done in console or on director's page selector widget
 
 run
 done
@@ -86,10 +83,34 @@ DONE
 automount on/off
 Added buttons to the label dialog box to execute automount command
 
+cancel jobid=<number>
+
 delete [volume=<vol-name> job jobid=<id>]
 
+estimate
+Could be a dialog in the context of a jobs window.
+
+list
+   list jobid=<id>           (list jobid id)
+   list files jobid=<id>
+   list jobmedia jobid=<id>
+   list volumes jobid=<id>
+   list jobtotals (from page selector on joblist widget)
+   The next few are accomplishable graphically with joblist class
+     list jobs
+     list job=<job-name>   (list all jobs with "job-name")
+     list jobname=<job-name>  (same as above)
+     list jobmedia
+     list jobmedia job=<job-name>
+   The next few are accomplishable graphically with the medialist class
+     list volumes
+     list volumes pool=<pool-name>
+     list volume=<volume-name>  
+     list pools
+   Accomplishable with the clients class graphically
+     list clients
 help
-could be in the console window
+  context sensitive from page selector console
 
 label
 Done by kern before I started
@@ -100,3 +121,6 @@ purge jobs client=<client-name> (of all jobs)
 
 relabel
 done
+
+reload
+could be done in console or on director's page selector widget

@@ -82,6 +82,7 @@ public:
    int m_daysLimitVal;
    bool m_checkMessages;
    int m_checkMessagesInterval;
+   bool m_longList;
 
 public slots:
    void input_line();
