@@ -6,6 +6,7 @@
 #include "ui_run.h"
 #include "ui_runcmd.h"
 #include "ui_estimate.h"
+#include "ui_prune.h"
 #include "console.h"
 
 class runPage : public Pages, public Ui::runForm
@@ -49,6 +50,23 @@ public slots:
    void okButtonPushed();
    void cancelButtonPushed();
    void job_name_change(int index);
+
+private:
+};
+
+class prunePage : public Pages, public Ui::pruneForm
+{
+   Q_OBJECT 
+
+public:
+   prunePage(const QString &volume, const QString &client);
+
+public slots:
+   void okButtonPushed();
+   void cancelButtonPushed();
+   void checkStateChanged();
+   void volumeChanged();
+   void clientChanged();
 
 private:
 };

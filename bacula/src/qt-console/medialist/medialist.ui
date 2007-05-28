@@ -58,6 +58,14 @@
     <string>Delete Volume</string>
    </property>
   </action>
+  <action name="actionPruneVolume" >
+   <property name="icon" >
+    <iconset>:images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Prune Volume</string>
+   </property>
+  </action>
   <action name="actionPurgeVolume" >
    <property name="icon" >
     <iconset>:images/unmark.png</iconset>
@@ -68,7 +76,7 @@
   </action>
   <action name="actionRelabelVolume" >
    <property name="icon" >
-    <iconset>../images/unmark.png</iconset>
+    <iconset>:images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Relabel Volume</string>

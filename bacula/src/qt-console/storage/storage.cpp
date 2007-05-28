@@ -55,6 +55,9 @@ Storage::Storage()
    m_checkcurwidget = true;
    m_closeable = false;
    m_currentStorage = "";
+   /* add context sensitive menu items specific to this classto the page
+    * selector tree. m_contextActions is QList of QActions */
+   m_contextActions.append(actionRefreshStorage);
 }
 
 Storage::~Storage()
@@ -220,10 +223,6 @@ void Storage::currentStackItem()
 {
    if(!m_populated) {
       populateTree();
-      /* add context sensitive menu items specific to this classto the page
-       * selector tree. m_contextActions is QList of QActions, so this is 
-       * only done once with the first population. */
-      m_contextActions.append(actionRefreshStorage);
       /* Create the context menu for the storage tree */
       createContextMenu();
       m_populated=true;

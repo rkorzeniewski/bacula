@@ -53,6 +53,9 @@ FileSet::FileSet()
    m_checkcurwidget = true;
    m_closeable = false;
    readSettings();
+   /* add context sensitive menu items specific to this classto the page
+    * selector tree. m_contextActions is QList of QActions */
+   m_contextActions.append(actionRefreshFileSet);
 }
 
 FileSet::~FileSet()
@@ -211,10 +214,6 @@ void FileSet::currentStackItem()
 {
    if(!m_populated) {
       populateTree();
-      /* add context sensitive menu items specific to this classto the page
-       * selector tree. m_contextActions is QList of QActions, so this is 
-       * only done once with the first population. */
-      m_contextActions.append(actionRefreshFileSet);
       /* Create the context menu for the fileset tree */
       createContextMenu();
       m_populated=true;

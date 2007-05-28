@@ -37,7 +37,6 @@
 #include "ui_clients.h"
 #include "console.h"
 #include "pages.h"
-//#include <qstringlist.h>
 
 class Clients : public Pages, public Ui::ClientForm
 {
@@ -57,6 +56,7 @@ private slots:
    void showJobs();
    void consoleStatusClient();
    void consolePurgeJobs();
+   void prune();
 
 private:
    void createContextMenu();
