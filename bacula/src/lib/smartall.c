@@ -91,6 +91,7 @@ struct abufhead {
    unsigned ablen;             /* Buffer length in bytes */
    const char *abfname;        /* File name pointer */
    sm_ushort ablineno;         /* Line number of allocation */
+   bool abin_use;              /* set when malloced and cleared when free */
 };
 
 static struct b_queue abqueue = {    /* Allocated buffer queue */
@@ -128,7 +129,8 @@ static void *smalloc(const char *fname, int lineno, unsigned int nbytes)
       qinsert(&abqueue, (struct b_queue *) buf);
       head->ablen = nbytes;
       head->abfname = bufimode ? NULL : fname;
-      head->ablineno = (sm_ushort) lineno;
+      head->ablineno = (sm_ushort)lineno;
+      head->abin_use = true;
       /* Emplace end-clobber detector at end of buffer */
       buf[nbytes - 1] = (uint8_t)((((long) buf) & 0xFF) ^ 0xC5);
       buf += HEAD_SIZE;  /* Increment to user data start */
@@ -160,6 +162,7 @@ void sm_new_owner(const char *fname, int lineno, char *buf)
    buf -= HEAD_SIZE;  /* Decrement to header */
    ((struct abufhead *)buf)->abfname = bufimode ? NULL : fname;
    ((struct abufhead *)buf)->ablineno = (sm_ushort) lineno;
+   ((struct abufhead *)buf)->abin_use = true;
    return;
 }
 
@@ -185,6 +188,12 @@ void sm_free(const char *file, int line, void *fp)
    Dmsg4(1150, "sm_free %d at %x from %s:%d\n",
          head->ablen, fp,
          head->abfname, head->ablineno);
+
+   if (!head->abin_use) {
+      V(mutex);
+      Emsg2(M_ABORT, 0, _("double free from %s:%d\n"), file, line);
+   }
+   head->abin_use = false;
 
    /* The following assertions will catch virtually every release
       of an address which isn't an allocated buffer. */
@@ -217,9 +226,13 @@ void sm_free(const char *file, int line, void *fp)
       "designer  garbage"  (Duff  Kurland's  phrase) of alternating
       bits.  This is intended to ruin the day for any miscreant who
       attempts to access data through a pointer into storage that's
-      been previously released. */
+      been previously released.
 
-   memset(cp, 0xAA, (int) head->ablen);
+      Modified, kes May, 2007 to not zap the header. This allows us
+      to check the in_use bit and detect doubly freed buffers.
+   */
+
+   memset(cp+HEAD_SIZE, 0xAA, (int)(head->ablen - HEAD_SIZE));
 
    free(cp);
 }
@@ -282,14 +295,12 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
    /*  If  the  old  block  pointer  is  NULL, treat realloc() as a
       malloc().  SVID is silent  on  this,  but  many  C  libraries
       permit this.  */
-
    if (ptr == NULL) {
       return sm_malloc(fname, lineno, size);
    }
 
    /* If the old and new sizes are the same, be a nice guy and just
       return the buffer passed in.  */
-
    cp -= HEAD_SIZE;
    struct abufhead *head = (struct abufhead *)cp;
    osize = head->ablen - (HEAD_SIZE + 1);
@@ -306,7 +317,7 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
 // sm_bytes -= head->ablen;
 
    if ((buf = smalloc(fname, lineno, size)) != NULL) {
-      memcpy(buf, ptr, (int) sm_min(size, osize));
+      memcpy(buf, ptr, (int)sm_min(size, osize));
       /* If the new buffer is larger than the old, fill the balance
          of it with "designer garbage". */
       if (size > osize) {
@@ -314,7 +325,6 @@ void *sm_realloc(const char *fname, int lineno, void *ptr, unsigned int size)
       }
 
       /* All done.  Free and dechain the original buffer. */
-
       sm_free(__FILE__, __LINE__, ptr);
    }
    Dmsg4(150, _("sm_realloc %d at %x from %s:%d\n"), size, buf, fname, lineno);

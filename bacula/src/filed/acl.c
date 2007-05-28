@@ -1,4 +1,31 @@
 /*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation plus additions
+   that are listed in the file LICENSE.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+
+   Bacula® is a registered trademark of John Walker.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
  * Functions to handle ACL for bacula.
  *
  * We handle two different typers of ACLs: access and default ACLS.
@@ -28,33 +55,6 @@
  *
  *   Version $Id$
  */
-/*
-   Bacula® - The Network Backup Solution
-
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
-
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation plus additions
-   that are listed in the file LICENSE.
-
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula® is a registered trademark of John Walker.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
-*/
 
 
 #ifndef TEST_PROGRAM
@@ -71,8 +71,8 @@
  */
 #if !defined(HAVE_ACL)              /* ACL support is required, of course */ \
    || !( defined(HAVE_AIX_OS)       /* man page -- may need flags         */ \
-      || defined(HAVE_FREEBSD_OS)   /* tested   -- compile wihtout flags  */ \
-      || defined(HAVE_DARWIN_OS)    /* tested   -- compile wihtout flags  */ \
+      || defined(HAVE_FREEBSD_OS)   /* tested   -- compile without flags  */ \
+      || defined(HAVE_DARWIN_OS)    /* tested   -- compile without flags  */ \
       || defined(HAVE_IRIX_OS)      /* man page -- compile without flags  */ \
       || defined(HAVE_OSF1_OS)      /* man page -- may need -lpacl        */ \
       || defined(HAVE_LINUX_OS)     /* tested   -- compile with -lacl     */ \
@@ -88,6 +88,7 @@
  *    with what we have and give all ACL streams a new number/type.
  */
 #endif
+
 #if !defined(HAVE_ACL) \
    || !( defined(HAVE_LINUX_OS) \
       || defined(HAVE_FREEBSD_OS) \
