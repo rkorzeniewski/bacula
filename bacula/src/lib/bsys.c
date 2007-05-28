@@ -234,7 +234,11 @@ void bfree(void *buf)
 
 void *brealloc (void *buf, size_t size)
 {
+#ifdef SMARTALOC
+   buf = sm_realloc(__FILE__, __LINE__, buf, size);
+#else
    buf = realloc(buf, size);
+#endif
    if (buf == NULL) {
       berrno be;
       Emsg1(M_ABORT, 0, _("Out of memory: ERR=%s\n"), be.bstrerror());
@@ -243,7 +247,7 @@ void *brealloc (void *buf, size_t size)
 }
 
 
-void *bcalloc (size_t size1, size_t size2)
+void *bcalloc(size_t size1, size_t size2)
 {
   void *buf;
 

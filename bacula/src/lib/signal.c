@@ -301,7 +301,7 @@ void init_signals(void terminate(int sig))
    sigaction(SIGEMT,    &sighandle, NULL);
 #endif
 #ifdef SIGIOT
-/* sigaction(SIGIOT,    &sighandle, NULL);  used by debugger */
+   sigaction(SIGIOT,    &sighandle, NULL);                     
 #endif
    sigaction(SIGBUS,    &sighandle, NULL);
    sigaction(SIGFPE,    &sighandle, NULL);

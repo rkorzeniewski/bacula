@@ -39,6 +39,9 @@
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/attr.h>
+const bool have_darwin_os = true;
+#else
+const bool have_darwin_os = false;
 #endif
 
 #if defined(HAVE_CRYPTO)
@@ -47,16 +50,14 @@ const bool have_crypto = true;
 const bool have_crypto = false;
 #endif
 
+#if defined(HAVE_ACL)
+const bool have_acl = true;
+#else
+const bool have_acl = false;
+#endif
+
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
-
-/* Forward referenced functions */
-#if   defined(HAVE_LIBZ)
-static const char *zlib_strerror(int stat);
-const bool have_libz = true;
-#else
-const bool have_libz = false;
-#endif
 
 typedef struct restore_cipher_ctx {
    CIPHER_CONTEXT *cipher;
@@ -67,12 +68,47 @@ typedef struct restore_cipher_ctx {
    int32_t packet_len; /* Total bytes in packet */
 } RESTORE_CIPHER_CTX;
 
+struct r_ctx {
+   JCR *jcr;
+   int32_t stream;
+   int32_t prev_stream;
+   BFILE bfd;                          /* File content */
+   uint64_t fileAddr;                  /* file write address */
+   uint32_t size;                      /* Size of file */
+   int flags;                          /* Options for extract_data() */
+   BFILE forkbfd;                       /* Alternative data stream */
+   uint64_t fork_addr;                  /* Write address for alternative stream */
+   intmax_t fork_size;                  /* Size of alternate stream */
+   int fork_flags;                      /* Options for extract_data() */
+
+   SIGNATURE *sig;                     /* Cryptographic signature (if any) for file */
+   CRYPTO_SESSION *cs;                 /* Cryptographic session data (if any) for file */
+   RESTORE_CIPHER_CTX cipher_ctx;     /* Cryptographic restore context (if any) for file */
+   RESTORE_CIPHER_CTX fork_cipher_ctx; /* Cryptographic restore context (if any) for alternative stream */
+};
+
+
+/* Forward referenced functions */
+#if   defined(HAVE_LIBZ)
+static const char *zlib_strerror(int stat);
+const bool have_libz = true;
+#else
+const bool have_libz = false;
+#endif
+
+static void deallocate_cipher(r_ctx &rctx);
+static void deallocate_fork_cipher(r_ctx &rctx);
+static void free_signature(r_ctx &rctx);
+static void free_session(r_ctx &rctx);
+
+
+
 static bool verify_signature(JCR *jcr, SIGNATURE *sig);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
-      uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
-bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
+                     uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
+bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, 
+                  RESTORE_CIPHER_CTX *cipher_ctx);
 
-#define RETRY 10                      /* retry wait time */
 
 /*
  * Close a bfd check that we are at the expected file offset.
@@ -94,6 +130,7 @@ int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
    return 0;
 }
 
+
 /*
  * Restore the requested files.
  *
@@ -101,26 +138,18 @@ int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
 void do_restore(JCR *jcr)
 {
    BSOCK *sd;
-   int32_t stream = 0;
-   int32_t prev_stream;
    uint32_t VolSessionId, VolSessionTime;
    bool extract = false;
    int32_t file_index;
    char ec1[50];                       /* Buffer printing huge values */
-   BFILE bfd;                          /* File content */
-   uint64_t fileAddr = 0;              /* file write address */
-   uint32_t size;                      /* Size of file */
-   BFILE altbfd;                       /* Alternative data stream */
-   uint64_t alt_addr = 0;              /* Write address for alternative stream */
-   intmax_t alt_size = 0;              /* Size of alternate stream */
-   SIGNATURE *sig = NULL;              /* Cryptographic signature (if any) for file */
-   CRYPTO_SESSION *cs = NULL;          /* Cryptographic session data (if any) for file */
-   RESTORE_CIPHER_CTX cipher_ctx;     /* Cryptographic restore context (if any) for file */
-   RESTORE_CIPHER_CTX alt_cipher_ctx; /* Cryptographic restore context (if any) for alternative stream */
-   int flags = 0;                      /* Options for extract_data() */
-   int alt_flags = 0;                  /* Options for extract_data() */
+   uint32_t buf_size;                  /* client buffer size */
    int stat;
    ATTR *attr;
+   intmax_t rsrc_len = 0;             /* Original length of resource fork */
+   r_ctx rctx;
+
+   memset(&rctx, 0, sizeof(rctx));
+   rctx.jcr = jcr;
 
    /* The following variables keep track of "known unknowns" */
    int non_support_data = 0;
@@ -129,16 +158,15 @@ void do_restore(JCR *jcr)
    int non_support_finfo = 0;
    int non_support_acl = 0;
    int non_support_progname = 0;
+   int non_support_crypto = 0;
 
-   /* Finally, set up for special configurations */
 #ifdef HAVE_DARWIN_OS
-   intmax_t rsrc_len = 0;             /* Original length of resource fork */
    struct attrlist attrList;
-
    memset(&attrList, 0, sizeof(attrList));
    attrList.bitmapcount = ATTR_BIT_MAP_COUNT;
    attrList.commonattr = ATTR_CMN_FNDRINFO;
 #endif
+
 
    sd = jcr->store_bsock;
    set_jcr_job_status(jcr, JS_Running);
@@ -146,7 +174,6 @@ void do_restore(JCR *jcr)
    LockRes();
    CLIENT *client = (CLIENT *)GetNextRes(R_CLIENT, NULL);
    UnlockRes();
-   uint32_t buf_size;
    if (client) {
       buf_size = client->max_network_buffer_size;
    } else {
@@ -158,29 +185,7 @@ void do_restore(JCR *jcr)
    }
    jcr->buf_size = sd->msglen;
 
-#ifdef stbernard_implemented
-/  #if defined(HAVE_WIN32)
-   bool        bResumeOfmOnExit = FALSE;
-   if (isOpenFileManagerRunning()) {
-       if ( pauseOpenFileManager() ) {
-          Jmsg(jcr, M_INFO, 0, _("Open File Manager paused\n") );
-          bResumeOfmOnExit = TRUE;
-       }
-       else {
-          Jmsg(jcr, M_ERROR, 0, _("FAILED to pause Open File Manager\n") );
-       }
-   }
-   {
-       char username[UNLEN+1];
-       DWORD usize = sizeof(username);
-       int privs = enable_backup_privileges(NULL, 1);
-       if (GetUserName(username, &usize)) {
-          Jmsg2(jcr, M_INFO, 0, _("Running as '%s'. Privmask=%#08x\n"), username,
-       } else {
-          Jmsg(jcr, M_WARNING, 0, _("Failed to retrieve current UserName\n"));
-       }
-   }
-#endif
+   /* St Bernard code goes here if implemented */
 
    if (have_libz) {
       uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
@@ -188,19 +193,11 @@ void do_restore(JCR *jcr)
       jcr->compress_buf_size = compress_buf_size;
    }
 
-   cipher_ctx.cipher = NULL;
-   alt_cipher_ctx.cipher = NULL;
    if (have_crypto) {
-      cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
-      cipher_ctx.buf_len = 0;
-      cipher_ctx.packet_len = 0;
-
-      alt_cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
-      alt_cipher_ctx.buf_len = 0;
-      alt_cipher_ctx.packet_len = 0;
-   } else {
-      cipher_ctx.buf = NULL;
-      alt_cipher_ctx.buf = NULL;
+      rctx.cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+      if (have_darwin_os) {
+         rctx.fork_cipher_ctx.buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+      }
    }
    
    /*
@@ -222,59 +219,56 @@ void do_restore(JCR *jcr)
     *   1. bfd for file data.
     *      This fd is opened for non empty files when an attribute stream is
     *      encountered and closed when we find the next attribute stream.
-    *   2. alt_bfd for alternate data streams
+    *   2. fork_bfd for alternate data streams
     *      This fd is opened every time we encounter a new alternate data
     *      stream for the current file. When we find any other stream, we
     *      close it again.
-    *      The expected size of the stream, alt_len, should be set when
+    *      The expected size of the stream, fork_len, should be set when
     *      opening the fd.
     */
-   binit(&bfd);
-   binit(&altbfd);
+   binit(&rctx.bfd);
+   binit(&rctx.forkbfd);
    attr = new_attr();
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
       /* Remember previous stream type */
-      prev_stream = stream;
+      rctx.prev_stream = rctx.stream;
 
       /* First we expect a Stream Record Header */
       if (sscanf(sd->msg, rec_header, &VolSessionId, &VolSessionTime, &file_index,
-          &stream, &size) != 5) {
+          &rctx.stream, &rctx.size) != 5) {
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
       Dmsg4(30, "Got hdr: Files=%d FilInx=%d Stream=%d, %s.\n", 
-            jcr->JobFiles, file_index, stream, stream_to_ascii(stream));
+            jcr->JobFiles, file_index, rctx.stream, stream_to_ascii(rctx.stream));
 
       /* * Now we expect the Stream Data */
       if (bget_msg(sd) < 0) {
          Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
          goto bail_out;
       }
-      if (size != (uint32_t)sd->msglen) {
-         Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), sd->msglen, size);
+      if (rctx.size != (uint32_t)sd->msglen) {
+         Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), 
+               sd->msglen, rctx.size);
          goto bail_out;
       }
-      Dmsg3(30, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(stream), 
+      Dmsg3(30, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream), 
             sd->msglen, extract);
 
       /* If we change streams, close and reset alternate data streams */
-      if (prev_stream != stream) {
-         if (is_bopen(&altbfd)) {
-            if (alt_cipher_ctx.cipher) {
-               flush_cipher(jcr, &altbfd, &alt_addr, alt_flags, &alt_cipher_ctx);
-               crypto_cipher_free(alt_cipher_ctx.cipher);
-               alt_cipher_ctx.cipher = NULL;
-            }
-            bclose_chksize(jcr, &altbfd, alt_size);
+      if (rctx.prev_stream != rctx.stream) {
+         if (is_bopen(&rctx.forkbfd)) {
+            deallocate_fork_cipher(rctx);
+            bclose_chksize(jcr, &rctx.forkbfd, rctx.fork_size);
          }
-         alt_size = -1; /* Use an impossible value and set a proper one below */
-         alt_addr = 0;
+         rctx.fork_size = -1; /* Use an impossible value and set a proper one below */
+         rctx.fork_addr = 0;
       }
 
       /* File Attributes stream */
-      switch (stream) {
+      switch (rctx.stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
          /*
@@ -282,48 +276,35 @@ void do_restore(JCR *jcr)
           * close the output file and validate the signature.
           */
          if (extract) {
-            if (size > 0 && !is_bopen(&bfd)) {
+            if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
             }
-            /* Flush and deallocate previous stream's cipher context */
-            if (cipher_ctx.cipher && prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
-               flush_cipher(jcr, &bfd, &fileAddr, flags, &cipher_ctx);
-               crypto_cipher_free(cipher_ctx.cipher);
-               cipher_ctx.cipher = NULL;
+
+            if (rctx.prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
+               deallocate_cipher(rctx);
+               deallocate_fork_cipher(rctx);
             }
 
-            /* Flush and deallocate previous stream's alt cipher context */
-            if (alt_cipher_ctx.cipher && prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
-               flush_cipher(jcr, &altbfd, &alt_addr, alt_flags, &alt_cipher_ctx);
-               crypto_cipher_free(alt_cipher_ctx.cipher);
-               alt_cipher_ctx.cipher = NULL;
-            }
-            set_attributes(jcr, attr, &bfd);
+            set_attributes(jcr, attr, &rctx.bfd);
             extract = false;
 
             /* Verify the cryptographic signature, if any */
-            verify_signature(jcr, sig);
+            verify_signature(jcr, rctx.sig);
 
             /* Free Signature */
-            if (sig) {
-               crypto_sign_free(sig);
-               sig = NULL;
-            }
-            if (cs) {
-               crypto_session_free(cs);
-               cs = NULL;
-            }
+            free_signature(rctx);
+            free_session(rctx);
             jcr->ff->flags = 0;
             Dmsg0(30, "Stop extracting.\n");
-         } else if (is_bopen(&bfd)) {
+         } else if (is_bopen(&rctx.bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
-            bclose(&bfd);
+            bclose(&rctx.bfd);
          }
 
          /*
-          * Unpack and do sanity check fo attributes.
+          * Unpack attributes and do sanity check them
           */
-         if (!unpack_attributes_record(jcr, stream, sd->msg, attr)) {
+         if (!unpack_attributes_record(jcr, rctx.stream, sd->msg, attr)) {
             goto bail_out;
          }
          if (file_index != attr->file_index) {
@@ -353,7 +334,7 @@ void do_restore(JCR *jcr)
           */
          jcr->num_files_examined++;
          extract = false;
-         stat = create_file(jcr, attr, &bfd, jcr->replace);
+         stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
          Dmsg2(30, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
          switch (stat) {
          case CF_ERROR:
@@ -368,19 +349,19 @@ void do_restore(JCR *jcr)
             jcr->last_type = attr->type;
             jcr->JobFiles++;
             jcr->unlock();
-            fileAddr = 0;
+            rctx.fileAddr = 0;
             print_ls_output(jcr, attr);
 
-#ifdef HAVE_DARWIN_OS
-            /* Only restore the resource fork for regular files */
-            from_base64(&rsrc_len, attr->attrEx);
-            if (attr->type == FT_REG && rsrc_len > 0) {
-               extract = true;
+            if (have_darwin_os) {
+               /* Only restore the resource fork for regular files */
+               from_base64(&rsrc_len, attr->attrEx);
+               if (attr->type == FT_REG && rsrc_len > 0) {
+                  extract = true;
+               }
             }
-#endif
             if (!extract) {
                /* set attributes now because file will not be extracted */
-               set_attributes(jcr, attr, &bfd);
+               set_attributes(jcr, attr, &rctx.bfd);
             }
             break;
          }
@@ -391,10 +372,10 @@ void do_restore(JCR *jcr)
          crypto_error_t cryptoerr;
 
          /* Is this an unexpected session data entry? */
-         if (cs) {
+         if (rctx.cs) {
             Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic session data stream.\n"));
             extract = false;
-            bclose(&bfd);
+            bclose(&rctx.bfd);
             continue;
          }
 
@@ -402,12 +383,13 @@ void do_restore(JCR *jcr)
          if (!jcr->pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
             extract = false;
-            bclose(&bfd);
+            bclose(&rctx.bfd);
             break;
          }
 
          /* Decode and save session keys. */
-         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, jcr->pki_recipients, &cs);
+         cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, 
+                        jcr->pki_recipients, &rctx.cs);
          switch(cryptoerr) {
          case CRYPTO_ERROR_NONE:
             /* Success */
@@ -426,7 +408,7 @@ void do_restore(JCR *jcr)
 
          if (cryptoerr != CRYPTO_ERROR_NONE) {
             extract = false;
-            bclose(&bfd);
+            bclose(&rctx.bfd);
             continue;
          }
 
@@ -443,55 +425,59 @@ void do_restore(JCR *jcr)
       case STREAM_ENCRYPTED_FILE_GZIP_DATA:
       case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
          /* Force an expected, consistent stream type here */
-         if (extract && (prev_stream == stream || prev_stream == STREAM_UNIX_ATTRIBUTES
-                  || prev_stream == STREAM_UNIX_ATTRIBUTES_EX
-                  || prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
-            flags = 0;
+         if (extract && (rctx.prev_stream == rctx.stream 
+                         || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES
+                         || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES_EX
+                         || rctx.prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
+            rctx.flags = 0;
 
-            if (stream == STREAM_SPARSE_DATA || stream == STREAM_SPARSE_GZIP_DATA) {
-               flags |= FO_SPARSE;
+            if (rctx.stream == STREAM_SPARSE_DATA || 
+                rctx.stream == STREAM_SPARSE_GZIP_DATA) {
+               rctx.flags |= FO_SPARSE;
             }
 
-            if (stream == STREAM_GZIP_DATA || stream == STREAM_SPARSE_GZIP_DATA
-                  || stream == STREAM_WIN32_GZIP_DATA || stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
-                  || stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {
-               flags |= FO_GZIP;
+            if (rctx.stream == STREAM_GZIP_DATA 
+                  || rctx.stream == STREAM_SPARSE_GZIP_DATA
+                  || rctx.stream == STREAM_WIN32_GZIP_DATA
+                  || rctx.stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
+                  || rctx.stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {
+               rctx.flags |= FO_GZIP;
             }
 
-            if (stream == STREAM_ENCRYPTED_FILE_DATA
-                  || stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
-                  || stream == STREAM_ENCRYPTED_WIN32_DATA
-                  || stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {               
+            if (rctx.stream == STREAM_ENCRYPTED_FILE_DATA
+                  || rctx.stream == STREAM_ENCRYPTED_FILE_GZIP_DATA
+                  || rctx.stream == STREAM_ENCRYPTED_WIN32_DATA
+                  || rctx.stream == STREAM_ENCRYPTED_WIN32_GZIP_DATA) {               
                /* Set up a decryption context */
-               if (!cipher_ctx.cipher) {
-                  if (!cs) {
+               if (!rctx.cipher_ctx.cipher) {
+                  if (!rctx.cs) {
                      Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
                      extract = false;
-                     bclose(&bfd);
+                     bclose(&rctx.bfd);
                      continue;
                   }
 
-                  if ((cipher_ctx.cipher = crypto_cipher_new(cs, false, &cipher_ctx.block_size)) == NULL) {
+                  if ((rctx.cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, 
+                           &rctx.cipher_ctx.block_size)) == NULL) {
                      Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
-                     crypto_session_free(cs);
-                     cs = NULL;
+                     free_session(rctx);
                      extract = false;
-                     bclose(&bfd);
+                     bclose(&rctx.bfd);
                      continue;
                   }
                }
-               flags |= FO_ENCRYPT;
+               rctx.flags |= FO_ENCRYPT;
             }
 
-            if (is_win32_stream(stream) && !have_win32_api()) {
-               set_portable_backup(&bfd);
-               flags |= FO_WIN32DECOMP;    /* "decompose" BackupWrite data */
+            if (is_win32_stream(rctx.stream) && !have_win32_api()) {
+               set_portable_backup(&rctx.bfd);
+               rctx.flags |= FO_WIN32DECOMP;    /* "decompose" BackupWrite data */
             }
 
-            if (extract_data(jcr, &bfd, sd->msg, sd->msglen, &fileAddr, flags,
-                             &cipher_ctx) < 0) {
+            if (extract_data(jcr, &rctx.bfd, sd->msg, sd->msglen, &rctx.fileAddr, 
+                             rctx.flags, &rctx.cipher_ctx) < 0) {
                extract = false;
-               bclose(&bfd);
+               bclose(&rctx.bfd);
                continue;
             }
          }
@@ -502,27 +488,26 @@ void do_restore(JCR *jcr)
       case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       case STREAM_MACOS_FORK_DATA:
 #ifdef HAVE_DARWIN_OS
-         alt_flags = 0;
+         fork_flags = 0;
          jcr->ff->flags |= FO_HFSPLUS;
 
          if (stream == STREAM_ENCRYPTED_MACOS_FORK_DATA) {
-            alt_flags |= FO_ENCRYPT;
+            fork_flags |= FO_ENCRYPT;
 
             /* Set up a decryption context */
-            if (extract && !alt_cipher_ctx.cipher) {
+            if (extract && !rctx.fork_cipher_ctx.cipher) {
                if (!cs) {
                   Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
                   extract = false;
-                  bclose(&bfd);
+                  bclose(&rctx.bfd);
                   continue;
                }
 
-               if ((alt_cipher_ctx.cipher = crypto_cipher_new(cs, false, &alt_cipher_ctx.block_size)) == NULL) {
+               if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
                   Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
-                  crypto_session_free(cs);
-                  cs = NULL;
+                  free_session(rctx);
                   extract = false;
-                  bclose(&bfd);
+                  bclose(&rctx.bfd);
                   continue;
                }
             }
@@ -530,20 +515,20 @@ void do_restore(JCR *jcr)
 
          if (extract) {
             if (prev_stream != stream) {
-               if (bopen_rsrc(&altbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
+               if (bopen_rsrc(&forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
                   Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
                   extract = false;
                   continue;
                }
 
-               alt_size = rsrc_len;
+               fork_size = rsrc_len;
                Dmsg0(30, "Restoring resource fork\n");
             }
 
-            if (extract_data(jcr, &altbfd, sd->msg, sd->msglen, &alt_addr, alt_flags, 
-                             &alt_cipher_ctx) < 0) {
+            if (extract_data(jcr, &forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, fork_flags, 
+                             &rctxfork_cipher_ctx) < 0) {
                extract = false;
-               bclose(&altbfd);
+               bclose(&forkbfd);
                continue;
             }
          }
@@ -570,41 +555,38 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
-#ifdef HAVE_ACL
-         pm_strcpy(jcr->acl_text, sd->msg);
-         Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
-         if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
+         if (have_acl) {
+            pm_strcpy(jcr->acl_text, sd->msg);
+            Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
+            if (bacl_set(jcr, BACL_TYPE_ACCESS) != 0) {
                Qmsg1(jcr, M_WARNING, 0, _("Can't restore ACL of %s\n"), jcr->last_fname);
+            }
+         } else {
+            non_support_acl++;
          }
-#else 
-         non_support_acl++;
-#endif
          break;
 
       case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
-#ifdef HAVE_ACL
-         pm_strcpy(jcr->acl_text, sd->msg);
-         Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
-         if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
+         if (have_acl) {
+            pm_strcpy(jcr->acl_text, sd->msg);
+            Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
+            if (bacl_set(jcr, BACL_TYPE_DEFAULT) != 0) {
                Qmsg1(jcr, M_WARNING, 0, _("Can't restore default ACL of %s\n"), jcr->last_fname);
+            }
+         } else {
+            non_support_acl++;
          }
-#else 
-         non_support_acl++;
-#endif
          break;
 
       case STREAM_SIGNED_DIGEST:
-
          /* Is this an unexpected signature? */
-         if (sig) {
+         if (rctx.sig) {
             Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic signature data stream.\n"));
-            crypto_sign_free(sig);
-            sig = NULL;
+            free_signature(rctx);
             continue;
          }
-
          /* Save signature. */
-         if (extract && (sig = crypto_sign_decode(jcr, (uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
+         if (extract && (rctx.sig = crypto_sign_decode(jcr, (uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
          }
          break;
@@ -626,35 +608,26 @@ void do_restore(JCR *jcr)
       default:
          /* If extracting, wierd stream (not 1 or 2), close output file anyway */
          if (extract) {
-            Dmsg1(30, "Found wierd stream %d\n", stream);
-            if (size > 0 && !is_bopen(&bfd)) {
+            Dmsg1(30, "Found wierd stream %d\n", rctx.stream);
+            if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
             }
             /* Flush and deallocate cipher context */
-            if (cipher_ctx.cipher) {
-               flush_cipher(jcr, &bfd, &fileAddr, flags, &cipher_ctx);
-               crypto_cipher_free(cipher_ctx.cipher);
-               cipher_ctx.cipher = NULL;
-            }
+            deallocate_cipher(rctx);
+            deallocate_fork_cipher(rctx);
 
-            /* Flush and deallocate alt cipher context */
-            if (alt_cipher_ctx.cipher) {
-               flush_cipher(jcr, &altbfd, &alt_addr, alt_flags, &alt_cipher_ctx);
-               crypto_cipher_free(alt_cipher_ctx.cipher);
-               alt_cipher_ctx.cipher = NULL;
-            }
-
-            set_attributes(jcr, attr, &bfd);
+            set_attributes(jcr, attr, &rctx.bfd);
 
             /* Verify the cryptographic signature if any */
-            verify_signature(jcr, sig);
+            verify_signature(jcr, rctx.sig);
             extract = false;
-         } else if (is_bopen(&bfd)) {
+         } else if (is_bopen(&rctx.bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
-            bclose(&bfd);
+            bclose(&rctx.bfd);
          }
-         Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"), stream);
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", stream,sd->msg);
+         Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
+              rctx.stream);
+         Dmsg2(0, "None of above!!! stream=%d data=%s\n", rctx.stream,sd->msg);
          break;
       } /* end switch(stream) */
 
@@ -663,32 +636,22 @@ void do_restore(JCR *jcr)
    /* If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file.
     */
-   if (is_bopen(&altbfd)) {
-      bclose_chksize(jcr, &altbfd, alt_size);
+   if (is_bopen(&rctx.forkbfd)) {
+      bclose_chksize(jcr, &rctx.forkbfd, rctx.fork_size);
    }
    if (extract) {
       /* Flush and deallocate cipher context */
-      if (cipher_ctx.cipher) {
-         flush_cipher(jcr, &bfd, &fileAddr, flags, &cipher_ctx);
-         crypto_cipher_free(cipher_ctx.cipher);
-         cipher_ctx.cipher = NULL;
-      }
+      deallocate_cipher(rctx);
+      deallocate_fork_cipher(rctx);
 
-      /* Flush and deallocate alt cipher context */
-      if (alt_cipher_ctx.cipher) {
-         flush_cipher(jcr, &altbfd, &alt_addr, alt_flags, &alt_cipher_ctx);
-         crypto_cipher_free(alt_cipher_ctx.cipher);
-         alt_cipher_ctx.cipher = NULL;
-      }
-
-      set_attributes(jcr, attr, &bfd);
+      set_attributes(jcr, attr, &rctx.bfd);
 
       /* Verify the cryptographic signature on the last file, if any */
-      verify_signature(jcr, sig);
+      verify_signature(jcr, rctx.sig);
    }
 
-   if (is_bopen(&bfd)) {
-      bclose(&bfd);
+   if (is_bopen(&rctx.bfd)) {
+      bclose(&rctx.bfd);
    }
 
    set_jcr_job_status(jcr, JS_Terminated);
@@ -699,33 +662,27 @@ bail_out:
 
 ok_out:
    /* Free Signature & Crypto Data */
-   if (sig) {
-      crypto_sign_free(sig);
-      sig = NULL;
-   }
-   if (cs) {
-      crypto_session_free(cs);
-      cs = NULL;
-   }
+   free_signature(rctx);
+   free_session(rctx);
 
    /* Free file cipher restore context */
-   if (cipher_ctx.cipher) {
-      crypto_cipher_free(cipher_ctx.cipher);
-      cipher_ctx.cipher = NULL;
+   if (rctx.cipher_ctx.cipher) {
+      crypto_cipher_free(rctx.cipher_ctx.cipher);
+      rctx.cipher_ctx.cipher = NULL;
    }
-   if (cipher_ctx.buf) {
-      free_pool_memory(cipher_ctx.buf);
-      cipher_ctx.buf = NULL;
+   if (rctx.cipher_ctx.buf) {
+      free_pool_memory(rctx.cipher_ctx.buf);
+      rctx.cipher_ctx.buf = NULL;
    }
 
    /* Free alternate stream cipher restore context */
-   if (alt_cipher_ctx.cipher) {
-      crypto_cipher_free(alt_cipher_ctx.cipher);
-      alt_cipher_ctx.cipher = NULL;
+   if (rctx.fork_cipher_ctx.cipher) {
+      crypto_cipher_free(rctx.fork_cipher_ctx.cipher);
+      rctx.fork_cipher_ctx.cipher = NULL;
    }
-   if (alt_cipher_ctx.buf) {
-      free_pool_memory(alt_cipher_ctx.buf);
-      alt_cipher_ctx.buf = NULL;
+   if (rctx.fork_cipher_ctx.buf) {
+      free_pool_memory(rctx.fork_cipher_ctx.buf);
+      rctx.fork_cipher_ctx.buf = NULL;
    }
 
    if (jcr->compress_buf) {
@@ -733,8 +690,8 @@ ok_out:
       jcr->compress_buf = NULL;
       jcr->compress_buf_size = 0;
    }
-   bclose(&altbfd);
-   bclose(&bfd);
+   bclose(&rctx.forkbfd);
+   bclose(&rctx.bfd);
    free_attr(attr);
    free_pool_memory(jcr->acl_text);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
@@ -751,6 +708,9 @@ ok_out:
    }
    if (non_support_acl) {
       Jmsg(jcr, M_INFO, 0, _("%d non-supported acl streams ignored.\n"), non_support_acl);
+   }
+   if (non_support_crypto) {
+      Jmsg(jcr, M_INFO, 0, _("%d non-supported crypto streams ignored.\n"), non_support_acl);
    }
 
 }
@@ -1142,3 +1102,66 @@ again:
 
    return true;
 }
+
+static void deallocate_cipher(r_ctx &rctx)
+{
+   /* Flush and deallocate previous stream's cipher context */
+   if (rctx.cipher_ctx.cipher) {
+      flush_cipher(rctx.jcr, &rctx.bfd, &rctx.fileAddr, rctx.flags, &rctx.cipher_ctx);
+      crypto_cipher_free(rctx.cipher_ctx.cipher);
+      rctx.cipher_ctx.cipher = NULL;
+   }
+}
+
+static void deallocate_fork_cipher(r_ctx &rctx)
+{
+
+   /* Flush and deallocate previous stream's fork cipher context */
+   if (rctx.fork_cipher_ctx.cipher) {
+      flush_cipher(rctx.jcr, &rctx.forkbfd, &rctx.fork_addr, rctx.fork_flags, &rctx.fork_cipher_ctx);
+      crypto_cipher_free(rctx.fork_cipher_ctx.cipher);
+      rctx.fork_cipher_ctx.cipher = NULL;
+   }
+}
+
+static void free_signature(r_ctx &rctx)
+{
+   if (rctx.sig) {
+      crypto_sign_free(rctx.sig);
+      rctx.sig = NULL;
+   }
+}
+
+static void free_session(r_ctx &rctx)
+{
+   if (rctx.cs) {
+      crypto_session_free(rctx.cs);
+      rctx.cs = NULL;
+   }
+}
+
+
+/* This code if implemented goes above */
+#ifdef stbernard_implemented
+/  #if defined(HAVE_WIN32)
+   bool        bResumeOfmOnExit = FALSE;
+   if (isOpenFileManagerRunning()) {
+       if ( pauseOpenFileManager() ) {
+          Jmsg(jcr, M_INFO, 0, _("Open File Manager paused\n") );
+          bResumeOfmOnExit = TRUE;
+       }
+       else {
+          Jmsg(jcr, M_ERROR, 0, _("FAILED to pause Open File Manager\n") );
+       }
+   }
+   {
+       char username[UNLEN+1];
+       DWORD usize = sizeof(username);
+       int privs = enable_backup_privileges(NULL, 1);
+       if (GetUserName(username, &usize)) {
+          Jmsg2(jcr, M_INFO, 0, _("Running as '%s'. Privmask=%#08x\n"), username,
+       } else {
+          Jmsg(jcr, M_WARNING, 0, _("Failed to retrieve current UserName\n"));
+       }
+   }
+#endif

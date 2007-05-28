@@ -94,12 +94,19 @@ char *bstrftime_nc(char *dt, int maxlen, utime_t tim)
 {
    time_t ttime = (time_t)tim;
    struct tm tm;
+   char *p, *q;
 
    /* ***FIXME**** the format and localtime_r() should be user configurable */
    (void)localtime_r(&ttime, &tm);
    /* NOTE! since the compiler complains about %y, I use %y and cut the century */
    strftime(dt, maxlen, "%d-%b-%Y %H:%M", &tm);
-   strcpy(dt+7, dt+9);             /* overlay the century */
+   /* overlay the century */
+   p = dt+7;
+   q = dt+9;
+   while (*q) {
+      *p++ = *q++;
+   }
+   *p = 0;
    return dt;
 }
 
