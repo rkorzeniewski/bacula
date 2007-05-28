@@ -47,7 +47,7 @@ Clients::Clients()
    m_name = "Clients";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/network-server.png")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/network-server.svg")));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;

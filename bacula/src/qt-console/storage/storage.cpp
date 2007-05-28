@@ -48,7 +48,7 @@ Storage::Storage()
    m_name = "Storage";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.png")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.svg")));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_storage.h */
    m_populated = false;

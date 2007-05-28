@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshMediaList" >
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
    </property>
    <property name="text" >
     <string>Refresh Media List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionEditVolume" >
    <property name="icon" >
-    <iconset>:images/status.png</iconset>
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
    </property>
    <property name="text" >
     <string>Edit Volume</string>
@@ -44,7 +44,7 @@
   </action>
   <action name="actionListJobsOnVolume" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
    </property>
    <property name="text" >
     <string>List Jobs On Volume</string>
@@ -52,7 +52,7 @@
   </action>
   <action name="actionDeleteVolume" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="../main.qrc" >:/images/edit-delete.svg</iconset>
    </property>
    <property name="text" >
     <string>Delete Volume</string>
@@ -60,7 +60,7 @@
   </action>
   <action name="actionPruneVolume" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="../main.qrc" >:/images/edit-cut.png</iconset>
    </property>
    <property name="text" >
     <string>Prune Volume</string>
@@ -68,7 +68,7 @@
   </action>
   <action name="actionPurgeVolume" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="../main.qrc" >:/images/weather-severe-alert.svg</iconset>
    </property>
    <property name="text" >
     <string>Purge Volume</string>
@@ -76,13 +76,15 @@
   </action>
   <action name="actionRelabelVolume" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="../main.qrc" >:/images/label.png</iconset>
    </property>
    <property name="text" >
     <string>Relabel Volume</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../main.qrc" />
+ </resources>
  <connections/>
 </ui>

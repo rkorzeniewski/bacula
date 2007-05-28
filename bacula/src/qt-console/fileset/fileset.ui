@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshFileSet" >
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset>:images/view-refresh.svg</iconset>
    </property>
    <property name="text" >
     <string>Refresh FileSet List</string>

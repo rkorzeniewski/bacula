@@ -64,6 +64,8 @@ void prerestorePage::buildPage()
    pgInitialize();
    m_console->notify(false);
    m_closeable = true;
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
 
    if (!m_console->preventInUseConnect())
        return;

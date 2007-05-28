@@ -14,7 +14,7 @@
    <string>bat - Bacula Admin Tool</string>
   </property>
   <property name="windowIcon" >
-   <iconset>:images/bat.png</iconset>
+   <iconset resource="main.qrc" >:/images/bat.png</iconset>
   </property>
   <property name="toolTip" >
    <string/>
@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>882</width>
-     <height>28</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEdit" >
@@ -307,7 +307,7 @@
   </action>
   <action name="actionAbout_bat" >
    <property name="icon" >
-    <iconset>:images/bat.png</iconset>
+    <iconset resource="main.qrc" >:/images/bat.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;About bat</string>
@@ -315,7 +315,7 @@
   </action>
   <action name="actionCopy" >
    <property name="icon" >
-    <iconset>:images/copy.png</iconset>
+    <iconset resource="main.qrc" >:/images/copy.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Copy</string>
@@ -323,7 +323,7 @@
   </action>
   <action name="actionCut" >
    <property name="icon" >
-    <iconset>:images/cut.png</iconset>
+    <iconset resource="main.qrc" >:/images/cut.png</iconset>
    </property>
    <property name="text" >
     <string>Cu&amp;t</string>
@@ -331,7 +331,7 @@
   </action>
   <action name="actionNew" >
    <property name="icon" >
-    <iconset>:images/new.png</iconset>
+    <iconset resource="main.qrc" >:/images/new.png</iconset>
    </property>
    <property name="text" >
     <string>new</string>
@@ -339,7 +339,7 @@
   </action>
   <action name="actionOpen" >
    <property name="icon" >
-    <iconset>:images/open.png</iconset>
+    <iconset resource="main.qrc" >:/images/open.png</iconset>
    </property>
    <property name="text" >
     <string>open</string>
@@ -347,7 +347,7 @@
   </action>
   <action name="actionPaste" >
    <property name="icon" >
-    <iconset>:images/paste.png</iconset>
+    <iconset resource="main.qrc" >:/images/paste.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Paste</string>
@@ -355,7 +355,7 @@
   </action>
   <action name="actionPrint" >
    <property name="icon" >
-    <iconset>:images/print.png</iconset>
+    <iconset resource="main.qrc" >:/images/print.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Print</string>
@@ -366,7 +366,7 @@
   </action>
   <action name="actionSave" >
    <property name="icon" >
-    <iconset>:images/save.png</iconset>
+    <iconset resource="main.qrc" >:/images/save.png</iconset>
    </property>
    <property name="text" >
     <string>&amp;Save</string>
@@ -377,7 +377,7 @@
   </action>
   <action name="actionConnect" >
    <property name="icon" >
-    <iconset>:images/disconnected.png</iconset>
+    <iconset resource="main.qrc" >:/images/disconnected.png</iconset>
    </property>
    <property name="text" >
     <string>Connect</string>
@@ -388,7 +388,7 @@
   </action>
   <action name="actionLabel" >
    <property name="icon" >
-    <iconset>:images/label.png</iconset>
+    <iconset resource="main.qrc" >:/images/label.png</iconset>
    </property>
    <property name="text" >
     <string>Label</string>
@@ -402,7 +402,7 @@
   </action>
   <action name="actionRestore" >
    <property name="icon" >
-    <iconset>:images/restore.png</iconset>
+    <iconset resource="main.qrc" >:/images/restore.png</iconset>
    </property>
    <property name="text" >
     <string>Restore</string>
@@ -416,7 +416,7 @@
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset resource="main.qrc" >:/images/emblem-system.svg</iconset>
    </property>
    <property name="text" >
     <string>Run Job</string>
@@ -436,7 +436,7 @@
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset>:images/run.png</iconset>
+    <iconset resource="main.qrc" >:/images/estimate-job.svg</iconset>
    </property>
    <property name="text" >
     <string>Estimate Job</string>
@@ -453,7 +453,7 @@
   </action>
   <action name="actionStatusDir" >
    <property name="icon" >
-    <iconset>:images/status.png</iconset>
+    <iconset resource="main.qrc" >:/images/status.png</iconset>
    </property>
    <property name="text" >
     <string>StatusDir</string>
@@ -472,7 +472,7 @@
   </action>
   <action name="actionUndock" >
    <property name="icon" >
-    <iconset>:images/up.png</iconset>
+    <iconset resource="main.qrc" >:/images/up.png</iconset>
    </property>
    <property name="text" >
     <string>Undock Window</string>
@@ -480,7 +480,7 @@
   </action>
   <action name="actionToggleDock" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="main.qrc" >:/images/up.png</iconset>
    </property>
    <property name="text" >
     <string>ToggleDock</string>
@@ -488,7 +488,7 @@
   </action>
   <action name="actionClosePage" >
    <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
+    <iconset resource="main.qrc" >:/images/unmark.png</iconset>
    </property>
    <property name="text" >
     <string>Close Page</string>
@@ -499,7 +499,7 @@
   </action>
   <action name="actionMessages" >
    <property name="icon" >
-    <iconset>:images/status.png</iconset>
+    <iconset resource="main.qrc" >:/images/mail-message-new.svg</iconset>
    </property>
    <property name="text" >
     <string>Messages</string>
@@ -520,6 +520,9 @@
    </property>
   </action>
   <action name="actionBat_Help" >
+   <property name="icon" >
+    <iconset resource="main.qrc" >:/images/help-browser.svg</iconset>
+   </property>
    <property name="text" >
     <string>bat &amp;Help</string>
    </property>

@@ -58,6 +58,8 @@ estimatePage::estimatePage()
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(job_name_change(int)));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/estimate-job.svg")));
 
    dockPage();
    setCurrent();
