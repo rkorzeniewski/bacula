@@ -142,9 +142,11 @@ void restorePage::fillDirectory()
       QTreeWidgetItem *ti = new QTreeWidgetItem((QTreeWidget *)0, item);
       ti->setTextAlignment(5, Qt::AlignRight); /* right align size */
       if (strcmp(marked, "*") == 0) {
-         ti->setIcon(0,QIcon(QString::fromUtf8(":images/check.png")));
+         ti->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
+         ti->setData(0, Qt::UserRole, true);
       } else {
-         ti->setIcon(0,QIcon(QString::fromUtf8(":images/unchecked.png")));
+         ti->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
+         ti->setData(0, Qt::UserRole, false);
       }
       treeItemList.append(ti);
    }
@@ -180,6 +182,8 @@ void restorePage::addDirectory(QString &newdirr)
    /* add unix '/' directory first */
    if (m_dirPaths.empty() && (regex.indexIn(fullpath,0) == -1)) {
       QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
+      item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
+      
       QString text("/");
       item->setText(0, text.toUtf8().data());
       if (mainWin->m_miscDebug) {
@@ -192,7 +196,7 @@ void restorePage::addDirectory(QString &newdirr)
    if (regex.indexIn(fullpath,0) == 0) {
       /* this is a windows drive */
       if (mainWin->m_miscDebug) {
-         printf("Need to do windows \"letter\":/\n");
+         Pmsg0(000, "Need to do windows \"letter\":/\n");
       }
       fullpath.replace(0,1,"");
       windrive = true;
@@ -205,12 +209,14 @@ void restorePage::addDirectory(QString &newdirr)
          /* this is the base widget */
          item = new QTreeWidgetItem(directoryWidget);
          item->setText(0, fullpath.toUtf8().data());
+         item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
       } else {
          QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
          if (parent) {
             /* new directories to add */
             item = new QTreeWidgetItem(parent);
             item->setText(0, newdir.toUtf8().data());
+            item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
             directoryWidget->expandItem(parent);
          } else {
             ok = false;
@@ -273,12 +279,14 @@ void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
 {
    char cmd[1000];
    if (column == 0) {                 /* mark/unmark */
-      if (item->text(0) == "*") {
+      if (item->data(0, Qt::UserRole).toBool()) {
          bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
          item->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
+         item->setData(0, Qt::UserRole, false);
       } else {
          bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
          item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
+         item->setData(0, Qt::UserRole, true);
       }
       m_console->write_dir(cmd);
       if (m_console->read() > 0) {
