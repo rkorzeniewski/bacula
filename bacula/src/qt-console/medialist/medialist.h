@@ -57,6 +57,7 @@ private slots:
    void editVolume();
    void deleteVolume();
    void purgeVolume();
+   void pruneVolume();
    void relabelVolume();
 
 private:

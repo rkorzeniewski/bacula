@@ -42,6 +42,7 @@
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
 #include "relabel/relabel.h"
+#include "run/run.h"
 
 MediaList::MediaList()
 {
@@ -55,6 +56,9 @@ MediaList::MediaList()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   /* add context sensitive menu items specific to this classto the page
+    * selector tree. m_contextActions is QList of QActions */
+   m_contextActions.append(actionRefreshMediaList);
 }
 
 MediaList::~MediaList()
@@ -202,6 +206,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
             mp_treeWidget->removeAction(actionEditVolume);
             mp_treeWidget->removeAction(actionListJobsOnVolume);
             mp_treeWidget->removeAction(actionDeleteVolume);
+            mp_treeWidget->removeAction(actionPruneVolume);
             mp_treeWidget->removeAction(actionPurgeVolume);
             mp_treeWidget->removeAction(actionRelabelVolume);
          }
@@ -214,6 +219,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->addAction(actionEditVolume);
          mp_treeWidget->addAction(actionListJobsOnVolume);
          mp_treeWidget->addAction(actionDeleteVolume);
+         mp_treeWidget->addAction(actionPruneVolume);
          mp_treeWidget->addAction(actionPurgeVolume);
          mp_treeWidget->addAction(actionRelabelVolume);
       }
@@ -233,6 +239,7 @@ void MediaList::createContextMenu()
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
    connect(actionDeleteVolume, SIGNAL(triggered()), this, SLOT(deleteVolume()));
    connect(actionPurgeVolume, SIGNAL(triggered()), this, SLOT(purgeVolume()));
+   connect(actionPruneVolume, SIGNAL(triggered()), this, SLOT(pruneVolume()));
    connect(actionRelabelVolume, SIGNAL(triggered()), this, SLOT(relabelVolume()));
    connect(mp_treeWidget, SIGNAL(
            currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
@@ -249,10 +256,6 @@ void MediaList::currentStackItem()
 {
    if(!m_populated) {
       populateTree();
-      /* add context sensitive menu items specific to this classto the page
-       * selector tree. m_contextActions is QList of QActions, so this is 
-       * only done once with the first population. */
-      m_contextActions.append(actionRefreshMediaList);
       /* Create the context menu for the medialist tree */
       createContextMenu();
       m_populated=true;
@@ -260,7 +263,7 @@ void MediaList::currentStackItem()
 }
 
 /*
- * Called from the signal of the context sensitive menu!
+ * Called from the signal of the context sensitive menu to delete a volume!
  */
 void MediaList::deleteVolume()
 {
@@ -280,8 +283,9 @@ void MediaList::deleteVolume()
    cmd += m_currentVolumeName;
    consoleCommand(cmd);
 }
+
 /*
- * Called from the signal of the context sensitive menu!
+ * Called from the signal of the context sensitive menu to purge!
  */
 void MediaList::purgeVolume()
 {
@@ -302,8 +306,17 @@ void MediaList::purgeVolume()
    consoleCommand(cmd);
    populateTree();
 }
+
 /*
- * Called from the signal of the context sensitive menu!
+ * Called from the signal of the context sensitive menu to prune!
+ */
+void MediaList::pruneVolume()
+{
+   new prunePage(m_currentVolumeName, "");
+}
+
+/*
+ * Called from the signal of the context sensitive menu to relabel!
  */
 void MediaList::relabelVolume()
 {

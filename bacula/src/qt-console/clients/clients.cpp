@@ -39,6 +39,7 @@
 #include <QMenu>
 #include "bat.h"
 #include "clients/clients.h"
+#include "run/run.h"
 
 Clients::Clients()
 {
@@ -52,6 +53,9 @@ Clients::Clients()
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
+   /* add context sensitive menu items specific to this classto the page
+    * selector tree. m_contextActions is QList of QActions */
+   m_contextActions.append(actionRefreshClients);
 }
 
 Clients::~Clients()
@@ -159,6 +163,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
             mp_treeWidget->removeAction(actionListJobsofClient);
             mp_treeWidget->removeAction(actionStatusClientInConsole);
             mp_treeWidget->removeAction(actionPurgeJobs);
+            mp_treeWidget->removeAction(actionPrune);
          }
       }
 
@@ -170,6 +175,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          mp_treeWidget->addAction(actionListJobsofClient);
          mp_treeWidget->addAction(actionStatusClientInConsole);
          mp_treeWidget->addAction(actionPurgeJobs);
+         mp_treeWidget->addAction(actionPrune);
       }
    }
 }
@@ -195,6 +201,8 @@ void Clients::createContextMenu()
                 SLOT(consoleStatusClient()));
    connect(actionPurgeJobs, SIGNAL(triggered()), this,
                 SLOT(consolePurgeJobs()));
+   connect(actionPrune, SIGNAL(triggered()), this,
+                SLOT(prune()));
 }
 
 /*
@@ -226,10 +234,6 @@ void Clients::currentStackItem()
 {
    if(!m_populated) {
       populateTree();
-      /* add context sensitive menu items specific to this classto the page
-       * selector tree. m_contextActions is QList of QActions, so this is 
-       * only done once with the first population. */
-      m_contextActions.append(actionRefreshClients);
       /* Create the context menu for the client tree */
       createContextMenu();
       m_populated=true;
@@ -258,5 +262,13 @@ void Clients::consolePurgeJobs()
    QString cmd("purge jobs client=");
    cmd += m_currentlyselected;
    consoleCommand(cmd);
+}
+
+/*
+ * Function responding to actionPrune
+ */
+void Clients::prune()
+{
+   new prunePage("", m_currentlyselected);
 }
 
