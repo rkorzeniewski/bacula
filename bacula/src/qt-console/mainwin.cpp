@@ -478,8 +478,7 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_currentConsole->is_connected()) {
-      m_currentConsole->display_text(cmdStr + "\n");
-      m_currentConsole->write_dir(cmdStr.toUtf8().data());         /* send to dir */
+      m_currentConsole->consoleCommand(cmdStr);
    } else {
       set_status("Director not connected. Click on connect button.");
    }
@@ -647,6 +646,8 @@ void MainWin::setPreferences()
    prefs.daysSpinBox->setValue(m_daysLimitVal);
    prefs.checkMessages->setCheckState(m_checkMessages ? Qt::Checked : Qt::Unchecked);
    prefs.checkMessagesSpin->setValue(m_checkMessagesInterval);
+   prefs.executeLongCheckBox->setCheckState(m_longList ? Qt::Checked : Qt::Unchecked);
+
    prefs.exec();
 }
 
@@ -670,6 +671,7 @@ void prefsDialog::accept()
    mainWin->m_daysLimitVal = this->daysSpinBox->value();
    mainWin->m_checkMessages = this->checkMessages->checkState() == Qt::Checked;
    mainWin->m_checkMessagesInterval = this->checkMessagesSpin->value();
+   mainWin->m_longList = this->executeLongCheckBox->checkState() == Qt::Checked;
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
    settings.setValue("commDebug", mainWin->m_commDebug);
@@ -687,6 +689,9 @@ void prefsDialog::accept()
    settings.beginGroup("Messages");
    settings.setValue("checkMessages", mainWin->m_checkMessages);
    settings.setValue("checkMessagesInterval", mainWin->m_checkMessagesInterval);
+   settings.endGroup();
+   settings.beginGroup("Misc");
+   settings.setValue("longList", mainWin->m_longList);
    settings.endGroup();
    foreach(Console *console, mainWin->m_consoleHash) {
       console->startTimer();
@@ -719,5 +724,8 @@ void MainWin::readPreferences()
    settings.beginGroup("Messages");
    m_checkMessages = settings.value("checkMessages", false).toBool();
    m_checkMessagesInterval = settings.value("checkMessagesInterval", 28).toInt();
+   settings.endGroup();
+   settings.beginGroup("Misc");
+   m_longList = settings.value("longList", false).toBool();
    settings.endGroup();
 }

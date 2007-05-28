@@ -365,14 +365,6 @@
     <string>ListVolumes</string>
    </property>
   </action>
-  <action name="actionLongListJob" >
-   <property name="icon" >
-    <iconset>:images/unmark.png</iconset>
-   </property>
-   <property name="text" >
-    <string>LongListJob</string>
-   </property>
-  </action>
   <action name="actionDeleteJob" >
    <property name="icon" >
     <iconset>:images/unmark.png</iconset>
@@ -419,6 +411,14 @@
    </property>
    <property name="text" >
     <string>Cancel Currently Running Job</string>
+   </property>
+  </action>
+  <action name="actionListJobTotals" >
+   <property name="icon" >
+    <iconset>:images/unmark.png</iconset>
+   </property>
+   <property name="text" >
+    <string>List Job Totals in Console</string>
    </property>
   </action>
  </widget>

@@ -124,6 +124,7 @@ public slots:
    void set_font(void);
    void poll_messages(void);
    void consoleHelp();
+   void consoleReload();
 
 public:
    DIRRES *m_dir;                  /* so various pages can reference it */
