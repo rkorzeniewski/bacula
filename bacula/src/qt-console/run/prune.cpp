@@ -70,12 +70,7 @@ prunePage::prunePage(const QString &volume, const QString &client)
    clientCombo->addItems(m_console->client_list);
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
-   filesCheckBox->setCheckState(Qt::Checked);
-   jobsCheckBox->setCheckState(Qt::Checked);
-   volumeCheckBox->setCheckState(Qt::Checked);
-   connect(filesCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkStateChanged()));
-   connect(jobsCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkStateChanged()));
-   connect(volumeCheckBox, SIGNAL(stateChanged(int)), this, SLOT(checkStateChanged()));
+   filesRadioButton->setChecked(true);
    if (clientCombo->findText(client, Qt::MatchExactly) != -1)
       clientCombo->setCurrentIndex(clientCombo->findText(client, Qt::MatchExactly));
    else
@@ -96,13 +91,13 @@ void prunePage::okButtonPushed()
 {
    this->hide();
    QString cmd("prune");
-   if (filesCheckBox->checkState() == Qt::Checked) {
+   if (filesRadioButton->isChecked()) {
       cmd += " files";
    }
-   if (jobsCheckBox->checkState() == Qt::Checked) {
+   if (jobsRadioButton->isChecked()) {
       cmd += " jobs";
    }
-   if (filesCheckBox->checkState() == Qt::Checked) {
+   if (filesRadioButton->isChecked()) {
       cmd += " volume";
    }
    if (volumeCombo->currentText() != "Any") {
@@ -131,15 +126,6 @@ void prunePage::cancelButtonPushed()
    m_console->notify(true);
    closeStackPage();
    mainWin->resetFocus();
-}
-
-void prunePage::checkStateChanged()
-{
-   if ((filesCheckBox->checkState() == Qt::Unchecked) &&
-       (jobsCheckBox->checkState() == Qt::Unchecked) &&
-       (volumeCheckBox->checkState() == Qt::Unchecked)) {
-      filesCheckBox->setCheckState(Qt::Checked);
-   }
 }
 
 void prunePage::volumeChanged()

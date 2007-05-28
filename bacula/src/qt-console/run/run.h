@@ -64,7 +64,6 @@ public:
 public slots:
    void okButtonPushed();
    void cancelButtonPushed();
-   void checkStateChanged();
    void volumeChanged();
    void clientChanged();
 
