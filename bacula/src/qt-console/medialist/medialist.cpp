@@ -77,9 +77,10 @@ void MediaList::populateTree()
        return;
 
    QStringList headerlist = (QStringList()
-      << "Volume Name" << "Id" << "Status" << "Enabled"
-      << "Bytes" << "Files" << "Jobs" << "Retention" 
-      << "Media Type" << "Slot" << "Last Written");
+      << "Volume Name" << "Id" << "Status" << "Enabled" << "Bytes" << "Files"
+      << "Jobs" << "Retention" << "Media Type" << "Slot" << "Use Duration"
+      << "Max Jobs" << "Max Files" << "Max Bytes" << "Recycle" << "Enabled"
+      << "RecyclePool" << "Last Written");
    int statusIndex = headerlist.indexOf("Status");
 
    m_checkcurwidget = false;
@@ -106,10 +107,16 @@ void MediaList::populateTree()
          " Media.Enabled AS Enabled, Media.VolBytes AS Bytes,"
          " Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
          " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType,"
-         " Media.Slot AS Slot, Media.LastWritten AS LastWritten"
-         " FROM Media, Pool"
-         " WHERE Media.PoolId=Pool.PoolId";
-      query += " AND Pool.Name='" + pool_listItem + "'";
+         " Media.Slot AS Slot, Media.VolUseDuration AS UseDuration,"
+         " Media.MaxVolJobs AS MaxJobs, Media.MaxVolFiles AS MaxFiles,"
+         " Media.MaxVolBytes AS MaxBytes, Media.Recycle AS Recycle,"
+         " Media.Enabled AS enabled, Pol.Name AS RecyclePool,"
+         " Media.LastWritten AS LastWritten"
+         " FROM Media"
+         " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+         " LEFT OUTER JOIN Pool AS pol ON (Media.recyclepoolid=Pol.PoolId)"
+         " WHERE";
+      query += " Pool.Name='" + pool_listItem + "'";
       query += " ORDER BY Media";
    
       if (mainWin->m_sqlDebug) {

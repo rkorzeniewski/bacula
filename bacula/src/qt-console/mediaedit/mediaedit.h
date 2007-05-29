@@ -64,6 +64,12 @@ private:
    int m_slot;
    int m_retention;
    int m_useDuration;
+   int m_maxVolJobs;
+   int m_maxVolFiles;
+   int m_maxVolBytes;
+   bool m_recycle;
+   bool m_enabled;
+   QString m_recyclePool;
 };
 
 #endif /* _MEDIAEDIT_H_ */
