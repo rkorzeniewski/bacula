@@ -27,8 +27,9 @@ I'd say we could choose not to implement this in bat
 unmount [ jobid=<id> | job=<job-name> ]
 Mmmmm
 
-update media, volume, pool, slots
-media/volume still has more work, they are the same after all
+update 
+  /* Attempted, having problems */
+  Volume from Pool All Volumes from Pool
 
 use
 still need to make decisions about how to handle multiple catalogs
@@ -120,3 +121,6 @@ reload
 status
 
 unmount storage=<storage-name> [ drive=\lt{}num\gt{} ]
+
+update volume (via mediaedit)
+  "update slots" "update slots scan" (context of storage)

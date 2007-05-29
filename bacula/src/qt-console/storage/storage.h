@@ -53,11 +53,12 @@ public slots:
 
 private slots:
    void populateTree();
-//   void showJobs();
    void consoleStatusStorage();
    void consoleLabelStorage();
    void consoleMountStorage();
    void consoleUnMountStorage();
+   void consoleUpdateSlots();
+   void consoleUpdateSlotsScan();
 
 private:
    void createContextMenu();

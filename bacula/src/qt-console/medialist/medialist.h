@@ -59,6 +59,7 @@ private slots:
    void purgeVolume();
    void pruneVolume();
    void relabelVolume();
+   void allVolumesFromPool();
 
 private:
    void createContextMenu();

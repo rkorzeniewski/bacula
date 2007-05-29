@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>636</width>
-    <height>357</height>
+    <width>490</width>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -80,6 +80,23 @@
    </property>
    <property name="text" >
     <string>Relabel Volume</string>
+   </property>
+  </action>
+  <action name="actionAllVolumesFromPool" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
+   </property>
+   <property name="text" >
+    <string>Update all Volumes From Pool</string>
+   </property>
+   <property name="iconText" >
+    <string>Update all Volumes From Pool</string>
+   </property>
+   <property name="toolTip" >
+    <string>Update all Volumes From Pool</string>
+   </property>
+   <property name="statusTip" >
+    <string>Update all Volumes From Pool</string>
    </property>
   </action>
  </widget>

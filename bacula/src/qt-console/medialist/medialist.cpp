@@ -208,20 +208,18 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
    if (m_checkcurwidget) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
-         if (treedepth == 2){
-            mp_treeWidget->removeAction(actionEditVolume);
-            mp_treeWidget->removeAction(actionListJobsOnVolume);
-            mp_treeWidget->removeAction(actionDeleteVolume);
-            mp_treeWidget->removeAction(actionPruneVolume);
-            mp_treeWidget->removeAction(actionPurgeVolume);
-            mp_treeWidget->removeAction(actionRelabelVolume);
-         }
+         mp_treeWidget->removeAction(actionEditVolume);
+         mp_treeWidget->removeAction(actionListJobsOnVolume);
+         mp_treeWidget->removeAction(actionDeleteVolume);
+         mp_treeWidget->removeAction(actionPruneVolume);
+         mp_treeWidget->removeAction(actionPurgeVolume);
+          mp_treeWidget->removeAction(actionRelabelVolume);
+         mp_treeWidget->removeAction(actionAllVolumesFromPool);
       }
 
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
+      m_currentVolumeName=currentwidgetitem->text(0);
       if (treedepth == 2){
-         m_currentVolumeName=currentwidgetitem->text(0);
          m_currentVolumeId=currentwidgetitem->text(1);
          mp_treeWidget->addAction(actionEditVolume);
          mp_treeWidget->addAction(actionListJobsOnVolume);
@@ -229,6 +227,12 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->addAction(actionPruneVolume);
          mp_treeWidget->addAction(actionPurgeVolume);
          mp_treeWidget->addAction(actionRelabelVolume);
+      } else if (treedepth == 1) {
+/*  *******FIXME******
+ *  I can't seem to get "All volumes from pool" or "Volume from pool" to work
+ *  in one sentence command.   Works when you do it one step at a time vi console
+         mp_treeWidget->addAction(actionAllVolumesFromPool);
+*/
       }
    }
 }
@@ -254,6 +258,7 @@ void MediaList::createContextMenu()
    /* connect to the action specific to this pages class */
    connect(actionRefreshMediaList, SIGNAL(triggered()), this,
                 SLOT(populateTree()));
+   connect(actionAllVolumesFromPool, SIGNAL(triggered()), this, SLOT(allVolumesFromPool()));
 }
 
 /*
@@ -329,4 +334,15 @@ void MediaList::relabelVolume()
 {
    setConsoleCurrent();
    new relabelDialog(m_console, m_currentVolumeName);
+}
+
+/*
+ * Called from the signal of the context sensitive menu to purge!
+ */
+void MediaList::allVolumesFromPool()
+{
+   QString cmd("update pool=");
+   cmd += m_currentVolumeName + " All Volumes From Pool";
+   consoleCommand(cmd);
+   populateTree();
 }

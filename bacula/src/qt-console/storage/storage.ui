@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
-    <height>644</height>
+    <width>468</width>
+    <height>311</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -41,12 +41,18 @@
    <property name="text" >
     <string>Status Storage In Console</string>
    </property>
+   <property name="statusTip" >
+    <string>Status Storage In Console</string>
+   </property>
   </action>
   <action name="actionLabelStorage" >
    <property name="icon" >
     <iconset resource="../main.qrc" >:/images/label.png</iconset>
    </property>
    <property name="text" >
+    <string>Label Storage</string>
+   </property>
+   <property name="statusTip" >
     <string>Label Storage</string>
    </property>
   </action>
@@ -57,6 +63,9 @@
    <property name="text" >
     <string>MountStorage</string>
    </property>
+   <property name="statusTip" >
+    <string>MountStorage</string>
+   </property>
   </action>
   <action name="actionUnMountStorage" >
    <property name="icon" >
@@ -64,6 +73,31 @@
    </property>
    <property name="text" >
     <string>UnMount Storage</string>
+   </property>
+   <property name="statusTip" >
+    <string>UnMount Storage</string>
+   </property>
+  </action>
+  <action name="actionUpdateSlots" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/package-x-generic.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Update Slots</string>
+   </property>
+   <property name="statusTip" >
+    <string>Update Slots</string>
+   </property>
+  </action>
+  <action name="actionUpdateSlotsScan" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/package-x-generic.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Update Slots Scan</string>
+   </property>
+   <property name="statusTip" >
+    <string>Update Slots Scan</string>
    </property>
   </action>
  </widget>
