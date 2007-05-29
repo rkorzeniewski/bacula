@@ -61,6 +61,7 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    connect(useDurationRadio, SIGNAL(pressed()), this, SLOT(useDurationRadioPressed()));
 
    m_pool = "";
+   m_recyclePool = "";
    m_status = "";
    m_slot = 0;
 
@@ -77,10 +78,14 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    /* Set up the query for the default values */
    QStringList FieldList = (QStringList()
       << "Media.VolumeName" << "Pool.Name" << "Media.VolStatus" << "Media.Slot"
-      << "Media.VolRetention" << "Media.VolUseDuration");
+      << "Media.VolRetention" << "Media.VolUseDuration" << "Media.MaxVolJobs"
+      << "Media.MaxVolFiles" << "Media.MaxVolBytes" << "Media.Recycle" << "Media.Enabled"
+      << "Pol.Name");
    QStringList AsList = (QStringList()
       << "VolumeName" << "PoolName" << "Status" << "Slot"
-      << "Retention" << "UseDuration");
+      << "Retention" << "UseDuration" << "MaxJobs"
+      << "MaxFiles" << "MaxBytes" << "Recycle" << "Enabled"
+      << "RecyclePool");
    int i = 0;
    QString query("SELECT ");
    foreach (QString field, FieldList) {
@@ -90,9 +95,11 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
       query += field + " AS " + AsList[i];
       i += 1;
    }
-   query += " FROM Media, Pool WHERE Media.PoolId=Pool.PoolId";
-   query += " AND Media.MediaId='" + mediaId + "'";
-   query += " ORDER BY Pool.Name";
+   query += " FROM Media"
+            " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+            " LEFT OUTER JOIN Pool AS pol ON (Media.recyclepoolid=Pol.PoolId)"
+            " WHERE Media.MediaId='" + mediaId + "'"
+            " ORDER BY Pool.Name";
 
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "MediaList query cmd : %s\n",query.toUtf8().data());
@@ -122,11 +129,28 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
                m_slot = field.toInt(&ok, 10);
                if (!ok){ m_slot = 0; }
             } else if (i == 4) {
-               m_retention = field.toLong(&ok, 10);
+               m_retention = field.toInt(&ok, 10);
                if (!ok){ m_retention = 0; }
             } else if (i == 5) {
-               m_useDuration = field.toLong(&ok, 10);
+               m_useDuration = field.toInt(&ok, 10);
                if (!ok){ m_useDuration = 0; }
+            } else if (i == 6) {
+               m_maxVolJobs = field.toInt(&ok, 10);
+               if (!ok){ m_maxVolJobs = 0; }
+            } else if (i == 7) {
+               m_maxVolFiles = field.toInt(&ok, 10);
+               if (!ok){ m_maxVolFiles = 0; }
+            } else if (i == 8) {
+               m_maxVolBytes = field.toInt(&ok, 10);
+               if (!ok){ m_maxVolBytes = 0; }
+            } else if (i == 9) {
+               if (field == "1") m_recycle = true;
+               else m_recycle = false;
+            } else if (i == 10) {
+               if (field == "1") m_enabled = true;
+               else m_enabled = false;
+            } else if (i == 11) {
+               m_recyclePool = field;
             }
             i++;
          } /* foreach field */
@@ -149,8 +173,25 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
       slotSpin->setValue(m_slot);
       retentionSpin->setValue(m_retention);
       useDurationSpin->setValue(m_useDuration);
-
-      this->show();
+      setSpins(retentionSpin->value());
+      retentionRadio->setChecked(true);
+      maxJobsSpin->setValue(m_maxVolJobs);
+      maxFilesSpin->setValue(m_maxVolFiles);
+      maxBytesSpin->setValue(m_maxVolBytes);
+      if (m_recycle) recycleCheck->setCheckState(Qt::Checked);
+      else recycleCheck->setCheckState(Qt::Unchecked);
+      if (m_enabled) enabledCheck->setCheckState(Qt::Checked);
+      else enabledCheck->setCheckState(Qt::Unchecked);
+      /* default for recycle pool */
+      recyclePoolCombo->addItems(m_console->pool_list);
+      index = recyclePoolCombo->findText(m_recyclePool, Qt::MatchExactly);
+      if (index == -1) {
+         recyclePoolCombo->insertItem(0, "");
+         index = recyclePoolCombo->findText(m_recyclePool, Qt::MatchExactly);
+      }
+      if (index != -1) {
+         recyclePoolCombo->setCurrentIndex(index);
+      }
    } else {
       QMessageBox::warning(this, "No Volume name", "No Volume name given",
                            QMessageBox::Ok, QMessageBox::Ok);
@@ -163,33 +204,62 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
  */
 void MediaEdit::okButtonPushed()
 {
-//update volume=xxx slots MaxVolJobs=nnn MaxVolBytes=nnn Recycle=yes|no
-//         enabled=n recyclepool=zzz
-// done pool=yyy volstatus=xxx slot=nnn VolUse=ddd VolRetention=ddd
    QString scmd;
    this->hide();
    bool docmd = false;
    scmd = QString("update volume=\"%1\"")
                   .arg(m_mediaName);
    if (m_pool != poolCombo->currentText()) {
-       scmd += " pool=\"" + poolCombo->currentText() + "\"";
-       docmd = true;
+      scmd += " pool=\"" + poolCombo->currentText() + "\"";
+      docmd = true;
    }
    if (m_status != statusCombo->currentText()) {
-       scmd += " volstatus=\"" + statusCombo->currentText() + "\"";
-       docmd = true;
+      scmd += " volstatus=\"" + statusCombo->currentText() + "\"";
+      docmd = true;
    }
    if (m_slot != slotSpin->value()) {
-       scmd += " slot=" + QString().setNum(slotSpin->value());
-       docmd = true;
+      scmd += " slot=" + QString().setNum(slotSpin->value());
+      docmd = true;
    }
    if (m_retention != retentionSpin->value()) {
-       scmd += " VolRetention=" + QString().setNum(retentionSpin->value());
-       docmd = true;
+      scmd += " VolRetention=" + QString().setNum(retentionSpin->value());
+      docmd = true;
    }
    if (m_useDuration != useDurationSpin->value()) {
-       scmd += " VolUse=" + QString().setNum(useDurationSpin->value());
-       docmd = true;
+      scmd += " VolUse=" + QString().setNum(useDurationSpin->value());
+      docmd = true;
+   }
+   if (m_maxVolJobs != maxJobsSpin->value()) {
+      scmd += " MaxVolJobs=" + QString().setNum(maxJobsSpin->value());
+      docmd = true;
+   }
+   if (m_maxVolFiles != maxFilesSpin->value()) {
+      scmd += " MaxVolFiles=" + QString().setNum(maxFilesSpin->value());
+      docmd = true;
+   }
+   if (m_maxVolBytes != maxBytesSpin->value()) {
+      scmd += " MaxVolBytes=" + QString().setNum(maxBytesSpin->value());
+      docmd = true;
+   }
+   if ((m_recycle) && (recycleCheck->checkState() == Qt::Unchecked)) {
+      scmd += " Recycle=no";
+      docmd = true;
+   }
+   if ((!m_recycle) && (recycleCheck->checkState() == Qt::Checked)) {
+      scmd += " Recycle=yes";
+      docmd = true;
+   }
+   if ((m_enabled) && (enabledCheck->checkState() == Qt::Unchecked)) {
+      scmd += " enabled=no";
+      docmd = true;
+   }
+   if ((!m_enabled) && (enabledCheck->checkState() == Qt::Checked)) {
+      scmd += " enabled=yes";
+      docmd = true;
+   }
+   if (m_recyclePool != recyclePoolCombo->currentText()) {
+      scmd += " recyclepool=\"" + recyclePoolCombo->currentText() + "\"";
+      docmd = true;
    }
    if (docmd) {
       if (mainWin->m_commandDebug) {
