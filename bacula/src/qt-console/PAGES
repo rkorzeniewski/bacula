@@ -38,7 +38,7 @@ setCurrent() for making the page and tree widget item of an object selected and
 in the front of the stack.
 
 Closing
-Use the function closeDockPage() to close from within the class.  Otherwise, if
+Use the function closeStackPage() to close from within the class.  Otherwise, if
 there are pointers which need to be deleted, use a destructor.  The m_closeable
 page member will determine whether the option to close will appear in context
 menu of page selector.

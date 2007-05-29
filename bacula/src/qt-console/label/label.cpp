@@ -63,6 +63,8 @@ void labelPage::showPage(QString &defString)
    pgInitialize();
    setupUi(this);
    m_console->notify(false);
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/label.png")));
 
    storageCombo->addItems(m_console->storage_list);
    int index = storageCombo->findText(defString, Qt::MatchExactly);

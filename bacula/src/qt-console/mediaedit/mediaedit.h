@@ -36,24 +36,34 @@
 #include <QtGui>
 #include "ui_mediaedit.h"
 #include "console.h"
+#include "pages.h"
 
-class MediaEdit : public QDialog, public Ui::mediaeditForm
+class MediaEdit : public Pages, public Ui::mediaEditForm
 {
    Q_OBJECT 
 
 public:
-   MediaEdit(Console *console, QString &mediaId);
+   MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId);
 
-public slots:
-   void accept();
-   void reject();
+private slots:
+   void okButtonPushed();
+   void cancelButtonPushed();
+   void retentionChanged();
+   void durationChanged();
+   void useDurationChanged();
+   void setSpins(int value);
+   void retentionRadioPressed();
+   void useDurationRadioPressed();
 
 private:
-   Console *m_console;
+   void connectSpins();
+   void disconnectSpins();
    QString m_mediaName;
    QString m_pool;
    QString m_status;
    int m_slot;
+   int m_retention;
+   int m_useDuration;
 };
 
 #endif /* _MEDIAEDIT_H_ */

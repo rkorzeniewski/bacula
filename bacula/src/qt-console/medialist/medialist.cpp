@@ -164,7 +164,7 @@ void MediaList::setStatusColor(QTreeWidgetItem *item, QString &field, int &index
  */
 void MediaList::editVolume()
 {
-   MediaEdit* edit = new MediaEdit(m_console, m_currentVolumeId);
+   MediaEdit* edit = new MediaEdit(mainWin->getFromHash(this), m_currentVolumeId);
    connect(edit, SIGNAL(destroyed()), this, SLOT(populateTree()));
 }
 
