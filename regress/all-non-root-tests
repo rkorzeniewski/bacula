@@ -56,6 +56,7 @@ nice tests/two-volume-test
 nice tests/incremental-2disk
 nice tests/2drive-incremental-2disk
 nice tests/scratch-pool-test
+nice tests/2drive-concurrent-test
 echo " "
 echo "Test results"
 cat test.out
