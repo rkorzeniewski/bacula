@@ -1,12 +1,7 @@
 /*
- * Resource codes -- they must be sequential for indexing
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,6 +25,11 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Resource codes -- they must be sequential for indexing
+ *
+ *   Version $Id$
+ */
 
 enum {
    R_DIRECTOR = 3001,

@@ -135,9 +135,14 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
       dev = device->dev;
       if (dev && dev->is_open()) {
          if (dev->is_labeled()) {
-            len = Mmsg(msg, _("Device %s is mounted with Volume=\"%s\" Pool=\"%s\"\n"),
-               dev->print_name(), dev->VolHdr.VolumeName, 
-               dev->pool_name[0]?dev->pool_name:"*unknown*");
+            len = Mmsg(msg, _("Device %s is mounted with:\n"
+                              "    Volume:      %s\n"
+                              "    Pool:        %s\n"
+                              "    Media type:  %s\n"),
+               dev->print_name(), 
+               dev->VolHdr.VolumeName, 
+               dev->pool_name[0]?dev->pool_name:"*unknown*",
+               dev->device->media_type);
             sendit(msg, len, arg);
          } else {
             len = Mmsg(msg, _("Device %s open but no Bacula volume is currently mounted.\n"), 
@@ -236,11 +241,22 @@ static void send_blocked_status(DEVICE *dev, void sendit(const char *msg, int le
 
          if (dcrs != NULL) {
             DCR *dcr;
-
             for (dcr = (DCR *)dcrs->first(); dcr != NULL; dcr = (DCR *)dcrs->next(dcr)) {
                if (dcr->jcr->JobStatus == JS_WaitMount) {
-                  len = Mmsg(msg, _("    Device is BLOCKED waiting for mount of volume \"%s\".\n"),
-                     dcr->VolumeName);
+                  len = Mmsg(msg, _("    Device is BLOCKED waiting for mount of volume \"%s\",\n"
+                                    "       Pool:        %s\n"
+                                    "       Media type:  %s\n"),
+                             dcr->VolumeName,
+                             dcr->pool_name,
+                             dcr->media_type);
+                  sendit(msg, len, arg);
+                  found_jcr = true;
+               } else if (dcr->jcr->JobStatus == JS_WaitMedia) {
+                  len = Mmsg(msg, _("    Device is BLOCKED waiting to create a volume for:\n"
+                                    "       Pool:        %s\n"
+                                    "       Media type:  %s\n"),
+                             dcr->pool_name,
+                             dcr->media_type);
                   sendit(msg, len, arg);
                   found_jcr = true;
                }

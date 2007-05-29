@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     12 May 2007
+                     29 May 2007
 
 
 Document:
@@ -51,7 +51,11 @@ Professional Needs:
 - Modules for Databases, Exchange, ...
 - Novell NSS backup http://www.novell.com/coolsolutions/tools/18952.html
 - Compliance norms that compare restored code hash code.
-
+- When glibc crash, get address with
+    info symbol 0x809780c
+- How to sync remote offices.
+- Exchange backup:
+  http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
 - Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
@@ -195,6 +199,26 @@ Low priority:
 - Article: http://www.osreviews.net/reviews/admin/bacula
 - Article: http://www.debianhelp.co.uk/baculaweb.htm
 - Article: 
+- Wikis mentioning Bacula
+  http://wiki.finkproject.org/index.php/Admin:Backups
+  http://wiki.linuxquestions.org/wiki/Bacula
+  http://www.openpkg.org/product/packages/?package=bacula
+  http://www.iterating.com/products/Bacula
+  http://net-snmp.sourceforge.net/wiki/index.php/Net-snmp_extensions
+  http://www.section6.net/wiki/index.php/Using_Bacula_for_Tape_Backups
+  http://bacula.darwinports.com/
+  http://wiki.mandriva.com/en/Releases/Corporate/Server_4/Notes#Bacula
+  http://en.wikipedia.org/wiki/Bacula
+
+- Bacula Wikis
+  http://www.devco.net/pubwiki/Bacula/
+  http://paramount.ind.wpi.edu/wiki/doku.php
+  http://gentoo-wiki.com/HOWTO_Backup
+  http://www.georglutz.de/wiki/Bacula
+  http://www.clarkconnect.com/wiki/index.php?title=Modules_-_LAN_Backup/Recovery
+  http://linuxwiki.de/Bacula   (in German)
+
+- Possibly allow SD to spool even if a tape is not mounted.
 - It appears to me that you have run into some sort of race
   condition where two threads want to use the same Volume and they
   were both given access.  Normally that is no problem.  However,
