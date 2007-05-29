@@ -18,23 +18,12 @@ list
    list nextvol job=<job-name>
    list nextvol job=<job-name> days=nnn
 
-prune files|jobs|volume client=<client-name> volume=<volume-name>
-could add as a dialog box from both client and medialist
-
 release storage=<storage-name>
 Would need to explain what this does in bat with a dialog
-
-run
-done
 
 setdebug
 I'd say we could choose not to implement this in bat
 
-status
-done, want to implement graphically
-
-unmount storage=<storage-name> [ drive=\lt{}num\gt{} ]
-done
 unmount [ jobid=<id> | job=<job-name> ]
 Mmmmm
 
@@ -115,12 +104,19 @@ help
 label
 Done by kern before I started
 
+prune files|jobs|volume client=<client-name> volume=<volume-name>
+could add as a dialog box from both client and medialist
+
 purge files jobid=<jobid>|job=<job-name>|client=<client-name>
 purge volume|volume=<vol-name> (of all jobs)
 purge jobs client=<client-name> (of all jobs)
 
 relabel
-done
+
+run
 
 reload
-could be done in console or on director's page selector widget
+
+status
+
+unmount storage=<storage-name> [ drive=\lt{}num\gt{} ]

@@ -82,14 +82,6 @@
     <addaction name="actionCut" />
     <addaction name="actionPaste" />
    </widget>
-   <widget class="QMenu" name="menuFile" >
-    <property name="title" >
-     <string>&amp;File</string>
-    </property>
-    <addaction name="actionPrint" />
-    <addaction name="actionSave" />
-    <addaction name="actionQuit" />
-   </widget>
    <widget class="QMenu" name="menuSettings" >
     <property name="title" >
      <string>Settings</string>
@@ -103,6 +95,14 @@
     </property>
     <addaction name="actionBat_Help" />
     <addaction name="actionAbout_bat" />
+   </widget>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionPrint" />
+    <addaction name="actionSave" />
+    <addaction name="actionQuit" />
    </widget>
    <addaction name="menuFile" />
    <addaction name="menuEdit" />
@@ -456,13 +456,19 @@
     <iconset resource="main.qrc" >:/images/status.png</iconset>
    </property>
    <property name="text" >
-    <string>StatusDir</string>
+    <string comment="Query status of director" >Status Dir</string>
+   </property>
+   <property name="iconText" >
+    <string>Status Dir</string>
    </property>
    <property name="toolTip" >
-    <string>status dir</string>
+    <string>Query status of director</string>
    </property>
    <property name="statusTip" >
-    <string>Status of Director</string>
+    <string>Query status of director</string>
+   </property>
+   <property name="autoRepeat" >
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionSelectFont" >
@@ -477,6 +483,9 @@
    <property name="text" >
     <string>Undock Window</string>
    </property>
+   <property name="statusTip" >
+    <string>Undock Current Window</string>
+   </property>
   </action>
   <action name="actionToggleDock" >
    <property name="icon" >
@@ -484,6 +493,12 @@
    </property>
    <property name="text" >
     <string>ToggleDock</string>
+   </property>
+   <property name="toolTip" >
+    <string>Toggle Dock Status</string>
+   </property>
+   <property name="statusTip" >
+    <string>Toggle Dock Status</string>
    </property>
   </action>
   <action name="actionClosePage" >
@@ -506,6 +521,9 @@
    </property>
    <property name="statusTip" >
     <string>Display any messages queued at the director</string>
+   </property>
+   <property name="autoRepeat" >
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionPreferences" >
