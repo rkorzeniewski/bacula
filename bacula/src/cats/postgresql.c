@@ -445,8 +445,9 @@ int my_postgresql_query(B_DB *mdb, const char *query) {
    mdb->row_number   = -1;
    mdb->field_number = -1;
 
-   if (mdb->result != NULL) {
+   if (mdb->result) {
       PQclear(mdb->result);  /* hmm, someone forgot to free?? */
+      mdb->result = NULL;
    }
 
    Dmsg1(500, "my_postgresql_query starts with '%s'\n", query);
@@ -459,7 +460,7 @@ int my_postgresql_query(B_DB *mdb, const char *query) {
       mdb->num_fields = (int) PQnfields(mdb->result);
       Dmsg1(500, "we have %d fields\n", mdb->num_fields);
 
-      mdb->num_rows   = PQntuples(mdb->result);
+      mdb->num_rows = PQntuples(mdb->result);
       Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
       mdb->status = 0;
