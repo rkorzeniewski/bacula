@@ -48,7 +48,7 @@ Storage::Storage()
    m_name = "Storage";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.svg")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.png")));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_storage.h */
    m_populated = false;
@@ -165,6 +165,8 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
             mp_treeWidget->removeAction(actionLabelStorage);
             mp_treeWidget->removeAction(actionMountStorage);
             mp_treeWidget->removeAction(actionUnMountStorage);
+            mp_treeWidget->removeAction(actionUpdateSlots);
+            mp_treeWidget->removeAction(actionUpdateSlotsScan);
          }
       }
 
@@ -179,14 +181,22 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          mp_treeWidget->addAction(actionMountStorage);
          mp_treeWidget->addAction(actionUnMountStorage);
          QString text;
-         text = "Status Storage " + m_currentStorage;
+         text = "Status Storage \"" + m_currentStorage + "\"";
          actionStatusStorageInConsole->setText(text);
-         text = "Label media in Storage " + m_currentStorage;
+         text = "Label media in Storage \"" + m_currentStorage + "\"";
          actionLabelStorage->setText(text);
-         text = "Mount media in Storage " + m_currentStorage;
+         text = "Mount media in Storage \"" + m_currentStorage + "\"";
          actionMountStorage->setText(text);
-         text = "\"UN\" Mount media in Storage " + m_currentStorage;
+         text = "\"UN\" Mount media in Storage \"" + m_currentStorage + "\"";
          actionUnMountStorage->setText(text);
+         if (m_currentAutoChanger != 0) {
+            mp_treeWidget->addAction(actionUpdateSlots);
+            mp_treeWidget->addAction(actionUpdateSlotsScan);
+            text = "Barcode Scan media in Storage \"" + m_currentStorage + "\"";
+            actionUpdateSlots->setText(text);
+            text = "Mount and read scan media in Storage \"" + m_currentStorage + "\"";
+            actionUpdateSlotsScan->setText(text);
+         }
       }
    }
 }
@@ -214,6 +224,10 @@ void Storage::createContextMenu()
                 SLOT(consoleMountStorage()));
    connect(actionUnMountStorage, SIGNAL(triggered()), this,
                 SLOT(consoleUnMountStorage()));
+   connect(actionUpdateSlots, SIGNAL(triggered()), this,
+                SLOT(consoleUpdateSlots()));
+   connect(actionUpdateSlotsScan, SIGNAL(triggered()), this,
+                SLOT(consoleUpdateSlotsScan()));
 }
 
 /*
@@ -265,6 +279,22 @@ void Storage::consoleMountStorage()
 void Storage::consoleUnMountStorage()
 {
    QString cmd("umount storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+
+/* Update Slots */
+void Storage::consoleUpdateSlots()
+{
+   QString cmd("update slots storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+
+/* Update Slots Scan*/
+void Storage::consoleUpdateSlotsScan()
+{
+   QString cmd("update slots scan storage=");
    cmd += m_currentStorage;
    consoleCommand(cmd);
 }
