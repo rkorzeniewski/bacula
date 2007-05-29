@@ -112,11 +112,11 @@ int wait_for_sysop(DCR *dcr)
          if (now - last_heartbeat >= me->heartbeat_interval) {
             /* send heartbeats */
             if (jcr->file_bsock) {
-               bnet_sig(jcr->file_bsock, BNET_HEARTBEAT);
+               jcr->file_bsock->signal(BNET_HEARTBEAT);
                Dmsg0(400, "Send heartbeat to FD.\n");
             }
             if (jcr->dir_bsock) {
-               bnet_sig(jcr->dir_bsock, BNET_HEARTBEAT);
+               jcr->dir_bsock->signal(BNET_HEARTBEAT);
             }
             last_heartbeat = now;
          }
