@@ -101,7 +101,7 @@ int read_dev_volume_label(DCR *dcr)
          stat = VOL_NAME_ERROR;
          goto bail_out;
       }
-      Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
+      Dmsg0(130, "Leave read_volume_label() VOL_OK\n");
       return VOL_OK;       /* label already read */
    }
 
@@ -113,7 +113,7 @@ int read_dev_volume_label(DCR *dcr)
    if (!dev->rewind(dcr)) {
       Mmsg(jcr->errmsg, _("Couldn't rewind device %s: ERR=%s\n"), 
          dev->print_name(), dev->print_errmsg());
-      Dmsg1(30, "return VOL_NO_MEDIA: %s", jcr->errmsg);
+      Dmsg1(130, "return VOL_NO_MEDIA: %s", jcr->errmsg);
       return VOL_NO_MEDIA;
    }
    bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
@@ -147,23 +147,23 @@ int read_dev_volume_label(DCR *dcr)
    record = new_record();
    empty_block(block);
 
-   Dmsg0(90, "Big if statement in read_volume_label\n");
+   Dmsg0(130, "Big if statement in read_volume_label\n");
    if (!read_block_from_dev(dcr, NO_BLOCK_NUMBER_CHECK)) {
       Mmsg(jcr->errmsg, _("Requested Volume \"%s\" on %s is not a Bacula "
            "labeled Volume, because: ERR=%s"), NPRT(VolName), 
            dev->print_name(), dev->print_errmsg());
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
    } else if (!read_record_from_block(dcr, block, record)) {
       Mmsg(jcr->errmsg, _("Could not read Volume label from block.\n"));
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
    } else if (!unser_volume_label(dev, record)) {
       Mmsg(jcr->errmsg, _("Could not unserialize Volume label: ERR=%s\n"),
          dev->print_errmsg());
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
    } else if (strcmp(dev->VolHdr.Id, BaculaId) != 0 &&
               strcmp(dev->VolHdr.Id, OldBaculaId) != 0) {
       Mmsg(jcr->errmsg, _("Volume Header Id bad: %s\n"), dev->VolHdr.Id);
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
    } else {
       ok = true;
    }
@@ -192,7 +192,7 @@ int read_dev_volume_label(DCR *dcr)
        dev->VolHdr.VerNum != OldCompatibleBaculaTapeVersion2) {
       Mmsg(jcr->errmsg, _("Volume on %s has wrong Bacula version. Wanted %d got %d\n"),
          dev->print_name(), BaculaTapeVersion, dev->VolHdr.VerNum);
-      Dmsg1(30, "VOL_VERSION_ERROR: %s", jcr->errmsg);
+      Dmsg1(130, "VOL_VERSION_ERROR: %s", jcr->errmsg);
       stat = VOL_VERSION_ERROR;
       goto bail_out;
    }
@@ -203,7 +203,7 @@ int read_dev_volume_label(DCR *dcr)
    if (dev->VolHdr.LabelType != PRE_LABEL && dev->VolHdr.LabelType != VOL_LABEL) {
       Mmsg(jcr->errmsg, _("Volume on %s has bad Bacula label type: %x\n"),
           dev->print_name(), dev->VolHdr.LabelType);
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
       if (!dev->poll && jcr->label_errors++ > 100) {
          Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
       }
@@ -221,11 +221,11 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    /* Compare Volume Names */
-   Dmsg2(30, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
+   Dmsg2(130, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
    if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolumeName, VolName) != 0) {
       Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
            dev->print_name(), VolName, dev->VolHdr.VolumeName);
-      Dmsg1(30, "%s", jcr->errmsg);
+      Dmsg1(130, "%s", jcr->errmsg);
       /*
        * Cancel Job if too many label errors
        *  => we are in a loop
@@ -237,12 +237,12 @@ int read_dev_volume_label(DCR *dcr)
       stat = VOL_NAME_ERROR;
       goto bail_out;
    }
-   Dmsg1(30, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
+   Dmsg1(130, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
 
    if (debug_level >= 10) {
       dump_volume_label(dev);
    }
-   Dmsg0(30, "Leave read_volume_label() VOL_OK\n");
+   Dmsg0(130, "Leave read_volume_label() VOL_OK\n");
    /* If we are a streaming device, we only get one chance to read */
    if (!dev->has_cap(CAP_STREAM)) {
       dev->rewind(dcr);
@@ -277,7 +277,7 @@ bool write_volume_label_to_block(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEV_BLOCK *block = dcr->block;
 
-   Dmsg0(20, "write Label in write_volume_label_to_block()\n");
+   Dmsg0(130, "write Label in write_volume_label_to_block()\n");
    memset(&rec, 0, sizeof(rec));
    rec.data = get_memory(SER_LENGTH_Volume_Label);
    empty_block(block);                /* Volume label always at beginning */
@@ -291,7 +291,7 @@ bool write_volume_label_to_block(DCR *dcr)
          dev->print_name());
       return false;
    } else {
-      Dmsg1(90, "Wrote label of %d bytes to block\n", rec.data_len);
+      Dmsg1(130, "Wrote label of %d bytes to block\n", rec.data_len);
    }
    free_pool_memory(rec.data);
    return true;
@@ -313,7 +313,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    DEVICE *dev = dcr->dev;
 
 
-   Dmsg0(99, "write_volume_label()\n");
+   Dmsg0(150, "write_volume_label()\n");
    empty_block(dcr->block);
 
    /* If relabeling, truncate the device */
@@ -338,7 +338,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    Dmsg1(150, "Label type=%d\n", dev->label_type);
    if (!dev->rewind(dcr)) {
       dev->clear_volhdr();
-      Dmsg2(30, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), dev->print_errmsg());
+      Dmsg2(130, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), dev->print_errmsg());
       if (!forge_on) {
          goto bail_out;
       }
@@ -367,15 +367,15 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    /* Temporarily mark in append state to enable writing */
    dev->set_append();
    if (!write_record_to_block(dcr->block, dcr->rec)) {
-      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
+      Dmsg2(130, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
       goto bail_out;
    } else {
-      Dmsg2(30, "Wrote label of %d bytes to %s\n", dcr->rec->data_len, dev->print_name());
+      Dmsg2(130, "Wrote label of %d bytes to %s\n", dcr->rec->data_len, dev->print_name());
    }
 
-   Dmsg0(99, "Call write_block_to_dev()\n");
+   Dmsg0(130, "Call write_block_to_dev()\n");
    if (!write_block_to_dev(dcr)) {
-      Dmsg2(30, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
+      Dmsg2(130, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
       goto bail_out;
    }
 
@@ -383,12 +383,12 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (dev->is_dvd() && dvdnow) {
       Dmsg1(150, "New VolName=%s\n", dev->VolCatInfo.VolCatName);
       if (!dvd_write_part(dcr)) {
-         Dmsg2(30, "Bad DVD write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
+         Dmsg2(130, "Bad DVD write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
          goto bail_out;
       }
    }
 
-   Dmsg0(99, " Wrote block to device\n");
+   Dmsg0(130, " Wrote block to device\n");
 
    if (dev->weof(1)) {
       dev->set_labeled();
@@ -593,7 +593,7 @@ void create_volume_label(DEVICE *dev, const char *VolName,
 {
    DEVRES *device = (DEVRES *)dev->device;
 
-   Dmsg0(90, "Start create_volume_label()\n");
+   Dmsg0(130, "Start create_volume_label()\n");
 
    ASSERT(dev != NULL);
 
@@ -695,7 +695,7 @@ bool write_session_label(DCR *dcr, int label)
    char buf1[100], buf2[100];
 
    rec = new_record();
-   Dmsg1(90, "session_label record=%x\n", rec);
+   Dmsg1(130, "session_label record=%x\n", rec);
    switch (label) {
    case SOS_LABEL:
       if (dev->is_tape()) {
@@ -732,7 +732,7 @@ bool write_session_label(DCR *dcr, int label)
    if (!can_write_record_to_block(block, rec)) {
       Dmsg0(150, "Cannot write session label to block.\n");
       if (!write_block_to_device(dcr)) {
-         Dmsg0(90, "Got session label write_block_to_dev error.\n");
+         Dmsg0(130, "Got session label write_block_to_dev error.\n");
          /* ****FIXME***** errno is not set here */
          Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"),
                            dev_vol_name(dev), strerror(errno));
@@ -747,14 +747,14 @@ bool write_session_label(DCR *dcr, int label)
       return false;
    }
 
-   Dmsg6(50, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
+   Dmsg6(150, "Write sesson_label record JobId=%d FI=%s SessId=%d Strm=%s len=%d "
              "remainder=%d\n", jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
       rec->remainder);
 
    free_record(rec);
-   Dmsg2(50, "Leave write_session_label Block=%ud File=%ud\n",
+   Dmsg2(150, "Leave write_session_label Block=%ud File=%ud\n",
       dev->get_block(), dev->get_file());
    return true;
 }

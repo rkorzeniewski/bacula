@@ -471,7 +471,7 @@ bool write_block_to_dev(DCR *dcr)
    if (hit_max1 || hit_max2) {
       char ed1[50];
       uint64_t max_cap;
-      Dmsg0(10, "==== Output bytes Triggered medium max capacity.\n");
+      Dmsg0(100, "==== Output bytes Triggered medium max capacity.\n");
       if (hit_max1) {
          max_cap = dev->max_volume_size;
       } else {
@@ -859,7 +859,7 @@ static bool do_dvd_size_checks(DCR *dcr)
    
    if (!dev->is_freespace_ok()) { /* Error while getting free space */
       char ed1[50], ed2[50];
-      Dmsg1(10, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
+      Dmsg1(100, "Cannot get free space on the device ERR=%s.\n", dev->errmsg);
       Jmsg(jcr, M_FATAL, 0, _("End of Volume \"%s\" at %u:%u on device %s "
          "(part_size=%s, free_space=%s, free_space_errno=%d, errmsg=%s).\n"),
            dev->VolCatInfo.VolCatName,
@@ -872,7 +872,7 @@ static bool do_dvd_size_checks(DCR *dcr)
    
    if ((dev->is_freespace_ok() && (dev->part_size + block->binbuf) >= dev->free_space)) {
       char ed1[50], ed2[50];
-      Dmsg0(10, "==== Just enough free space on the device to write the current part...\n");
+      Dmsg0(100, "==== Just enough free space on the device to write the current part...\n");
       Jmsg(jcr, M_INFO, 0, _("End of Volume \"%s\" at %u:%u on device %s "
          "(part_size=%s, free_space=%s, free_space_errno=%d).\n"),
             dev->VolCatInfo.VolCatName,
