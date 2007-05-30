@@ -97,7 +97,7 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    }
    query += " FROM Media"
             " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
-            " LEFT OUTER JOIN Pool AS pol ON (Media.recyclepoolid=Pol.PoolId)"
+            " LEFT OUTER JOIN Pool AS Pol ON (Media.recyclepoolid=Pol.PoolId)"
             " WHERE Media.MediaId='" + mediaId + "'"
             " ORDER BY Pool.Name";
 
@@ -300,7 +300,7 @@ void MediaEdit::useDurationChanged()
 void MediaEdit::setSpins(int value)
 {
    int years, days, hours, minutes, seconds, left;
-	
+        
    years = abs(value / 31536000);
    left = value - years * 31536000;
    days = abs(left / 86400);
