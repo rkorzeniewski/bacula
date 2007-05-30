@@ -167,6 +167,7 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
             mp_treeWidget->removeAction(actionUnMountStorage);
             mp_treeWidget->removeAction(actionUpdateSlots);
             mp_treeWidget->removeAction(actionUpdateSlotsScan);
+            mp_treeWidget->removeAction(actionRelease);
          }
       }
 
@@ -180,6 +181,7 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          mp_treeWidget->addAction(actionLabelStorage);
          mp_treeWidget->addAction(actionMountStorage);
          mp_treeWidget->addAction(actionUnMountStorage);
+         mp_treeWidget->addAction(actionRelease);
          QString text;
          text = "Status Storage \"" + m_currentStorage + "\"";
          actionStatusStorageInConsole->setText(text);
@@ -189,6 +191,8 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          actionMountStorage->setText(text);
          text = "\"UN\" Mount media in Storage \"" + m_currentStorage + "\"";
          actionUnMountStorage->setText(text);
+         text = "Release media in Storage \"" + m_currentStorage + "\"";
+         actionRelease->setText(text);
          if (m_currentAutoChanger != 0) {
             mp_treeWidget->addAction(actionUpdateSlots);
             mp_treeWidget->addAction(actionUpdateSlotsScan);
@@ -228,6 +232,8 @@ void Storage::createContextMenu()
                 SLOT(consoleUpdateSlots()));
    connect(actionUpdateSlotsScan, SIGNAL(triggered()), this,
                 SLOT(consoleUpdateSlotsScan()));
+   connect(actionRelease, SIGNAL(triggered()), this,
+                SLOT(consoleRelease()));
 }
 
 /*
@@ -295,6 +301,14 @@ void Storage::consoleUpdateSlots()
 void Storage::consoleUpdateSlotsScan()
 {
    QString cmd("update slots scan storage=");
+   cmd += m_currentStorage;
+   consoleCommand(cmd);
+}
+
+/* Release a tape in the drive */
+void Storage::consoleRelease()
+{
+   QString cmd("release storage=");
    cmd += m_currentStorage;
    consoleCommand(cmd);
 }

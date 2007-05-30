@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>468</width>
-    <height>311</height>
+    <width>431</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -98,6 +98,14 @@
    </property>
    <property name="statusTip" >
     <string>Update Slots Scan</string>
+   </property>
+  </action>
+  <action name="actionRelease" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/cartridge.svg</iconset>
+   </property>
+   <property name="text" >
+    <string>Release</string>
    </property>
   </action>
  </widget>

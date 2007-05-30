@@ -18,37 +18,12 @@ list
    list nextvol job=<job-name>
    list nextvol job=<job-name> days=nnn
 
-release storage=<storage-name>
-Would need to explain what this does in bat with a dialog
-
-setdebug
-I'd say we could choose not to implement this in bat
-
 unmount [ jobid=<id> | job=<job-name> ]
 Mmmmm
 
 update 
   /* Attempted, having problems */
   Volume from Pool All Volumes from Pool
-
-use
-still need to make decisions about how to handle multiple catalogs
-
-var
-Mmmmmm
-
-version
-could be done in console as long as it is explicite about that it is the version
-of the director
-
-quit
-I'd like to have a disconnect graphical option.
-
-exit
-Not really needed
-
-wait
-Mmmmmmm
 
 CONFIG FILE
 ===========================
@@ -67,6 +42,28 @@ could be done in the context of the console
 
 python
 not needed from bat??
+
+setdebug
+I'd say we could choose not to implement this in bat
+
+quit
+I'd like to have a disconnect graphical option.
+
+exit
+Not really needed
+
+use
+still need to make decisions about how to handle multiple catalogs
+
+version
+could be done in console as long as it is explicite about that it is the version
+of the director
+
+var
+Mmmmmm
+
+wait
+Mmmmmmm
 
 DONE
 ===========================
@@ -113,6 +110,9 @@ purge volume|volume=<vol-name> (of all jobs)
 purge jobs client=<client-name> (of all jobs)
 
 relabel
+
+release storage=<storage-name>
+Would need to explain what this does in bat with a dialog
 
 run
 

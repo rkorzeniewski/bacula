@@ -59,6 +59,7 @@ private slots:
    void consoleUnMountStorage();
    void consoleUpdateSlots();
    void consoleUpdateSlotsScan();
+   void consoleRelease();
 
 private:
    void createContextMenu();
