@@ -416,7 +416,7 @@
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="main.qrc" >:/images/emblem-system.svg</iconset>
+    <iconset resource="main.qrc" >:/images/run.png</iconset>
    </property>
    <property name="text" >
     <string>Run Job</string>

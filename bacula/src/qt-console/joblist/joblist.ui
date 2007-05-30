@@ -402,7 +402,7 @@
   </action>
   <action name="actionShowLogForJob" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/status.png</iconset>
+    <iconset resource="../main.qrc" >:/images/joblog.png</iconset>
    </property>
    <property name="text" >
     <string>Show Log for Job</string>

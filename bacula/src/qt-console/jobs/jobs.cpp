@@ -46,7 +46,7 @@ Jobs::Jobs()
    m_name = "Jobs";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/run.png")));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;
@@ -257,7 +257,6 @@ void Jobs::consoleCancel()
 
 void Jobs::listJobs()
 {
-   printf("In Jobs::listJobs\n");
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
    mainWin->createPageJobList("", "", m_currentlyselected, parentItem);
 }
