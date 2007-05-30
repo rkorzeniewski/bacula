@@ -110,11 +110,6 @@ private:
    void createPages();
    QTreeWidgetItem *createTopPage(char *name);
    QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent);
-   void createPagebRestore();
-   void createPageMediaList();
-   void createPageClients();
-   void createPageStorage();
-   void createPageFileSet();
 
 private:
    Console *m_currentConsole;

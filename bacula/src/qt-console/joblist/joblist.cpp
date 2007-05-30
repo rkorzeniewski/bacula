@@ -45,7 +45,7 @@ JobList::JobList(QString &mediaName, QString &clientname,
          QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
-   m_name = "Clients";
+   m_name = ""; /* treeWidgetName has a virtual override in this class */
    m_mediaName = mediaName;
    m_clientName = clientname;
    pgInitialize(parentTreeWidgetItem);
@@ -64,6 +64,7 @@ JobList::JobList(QString &mediaName, QString &clientname,
    limitSpinBox->setValue(mainWin->m_recordLimitVal);
    daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
+   dockPage();
 }
 
 /*
@@ -315,11 +316,11 @@ void JobList::currentStackItem()
 void JobList::treeWidgetName(QString &desc)
 {
    if ((m_mediaName == "") && (m_clientName == "")) {
-      desc = "Jobs";
+      desc = "JobList";
    } else {
-      desc = "Jobs ";
+      desc = "JobList ";
       if (m_mediaName != "" ) {
-         desc += "on Volume " + m_mediaName;
+         desc += "of Volume " + m_mediaName;
       }
       if (m_clientName != "" ) {
          desc += "of Client " + m_clientName;

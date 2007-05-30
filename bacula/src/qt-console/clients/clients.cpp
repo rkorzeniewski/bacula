@@ -56,6 +56,8 @@ Clients::Clients()
    /* add context sensitive menu items specific to this classto the page
     * selector tree. m_contextActions is QList of QActions */
    m_contextActions.append(actionRefreshClients);
+   createContextMenu();
+   dockPage();
 }
 
 Clients::~Clients()
@@ -143,7 +145,6 @@ void Clients::PgSeltreeWidgetClicked()
 {
    if(!m_populated) {
       populateTree();
-      createContextMenu();
       m_populated=true;
    }
 }
@@ -235,7 +236,6 @@ void Clients::currentStackItem()
    if(!m_populated) {
       populateTree();
       /* Create the context menu for the client tree */
-      createContextMenu();
       m_populated=true;
    }
 }
