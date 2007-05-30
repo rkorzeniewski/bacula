@@ -1,7 +1,9 @@
+#ifndef _JOBS_H_
+#define _JOBS_H_
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -25,28 +27,38 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
- 
 /*
- *   Version $Id$
+ *   Version $Id: jobs.h 4923 2007-05-28 11:51:53Z bartleyd2 $
  *
- *  bRestore Class  (Eric's brestore)
- *
- *   Kern Sibbald, January MMVII
- *
- */ 
+ *   Dirk Bartley, March 2007
+ */
 
-#include "bat.h"
-#include "restore.h"
+#include <QtGui>
+#include "ui_jobs.h"
+#include "console.h"
+#include "pages.h"
 
-bRestore::bRestore()
+class Jobs : public Pages, public Ui::jobsForm
 {
-   m_name = "bRestore";
-   setupUi(this);
-   pgInitialize();
-   m_closeable = true;
-   dockPage();
-}
+   Q_OBJECT 
 
-bRestore::~bRestore()
-{
-}
+public:
+   Jobs();
+   ~Jobs();
+   virtual void PgSeltreeWidgetClicked();
+   virtual void currentStackItem();
+
+public slots:
+   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+
+private slots:
+   void populateTree();
+
+private:
+   void createContextMenu();
+   QString m_currentlyselected;
+   bool m_populated;
+   bool m_checkcurwidget;
+};
+
+#endif /* _JOBS_H_ */

@@ -299,10 +299,12 @@ void MediaEdit::useDurationChanged()
  */
 void MediaEdit::setSpins(int value)
 {
-   int years, days, hours, minutes, seconds, left;
+   int years, months, days, hours, minutes, seconds, left;
         
    years = abs(value / 31536000);
    left = value - years * 31536000;
+   months = abs(left / 2592000);
+   left = left - months * 2592000;
    days = abs(left / 86400);
    left = left - days * 86400;
    hours = abs(left / 3600);
@@ -311,6 +313,7 @@ void MediaEdit::setSpins(int value)
    seconds = left - minutes * 60;
    disconnectSpins();
    yearsSpin->setValue(years);
+   monthsSpin->setValue(months);
    daysSpin->setValue(days);
    hoursSpin->setValue(hours);
    minutesSpin->setValue(minutes);
@@ -337,7 +340,11 @@ void MediaEdit::durationChanged()
       daysSpin->setValue(daysSpin->value()-1);
    }
    if (daysSpin->value() == -1) {
-      daysSpin->setValue(364);
+      daysSpin->setValue(29);
+      monthsSpin->setValue(monthsSpin->value()-1);
+   }
+   if (monthsSpin->value() == -1) {
+      monthsSpin->setValue(11);
       yearsSpin->setValue(yearsSpin->value()-1);
    }
    if (yearsSpin->value() == -1) {
@@ -356,8 +363,12 @@ void MediaEdit::durationChanged()
       hoursSpin->setValue(0);
       daysSpin->setValue(daysSpin->value()+1);
    }
-   if (daysSpin->value() == 365) {
+   if (daysSpin->value() == 30) {
       daysSpin->setValue(0);
+      monthsSpin->setValue(monthsSpin->value()+1);
+   }
+   if (monthsSpin->value() == 12) {
+      monthsSpin->setValue(0);
       yearsSpin->setValue(yearsSpin->value()+1);
    }
    connectSpins();
@@ -365,6 +376,7 @@ void MediaEdit::durationChanged()
       int retention;
       retention = secondsSpin->value() + minutesSpin->value() * 60 + 
          hoursSpin->value() * 3600 + daysSpin->value() * 86400 +
+         monthsSpin->value() * 2592000 +
          yearsSpin->value() * 31536000;
       disconnect(retentionSpin, SIGNAL(valueChanged(int)), this, SLOT(retentionChanged()));
       retentionSpin->setValue(retention);
@@ -374,6 +386,7 @@ void MediaEdit::durationChanged()
       int useDuration;
       useDuration = secondsSpin->value() + minutesSpin->value() * 60 + 
          hoursSpin->value() * 3600 + daysSpin->value() * 86400 +
+         monthsSpin->value() * 2592000 +
          yearsSpin->value() * 31536000;
       disconnect(useDurationSpin, SIGNAL(valueChanged(int)), this, SLOT(useDurationChanged()));
       useDurationSpin->setValue(useDuration);
@@ -388,6 +401,7 @@ void MediaEdit::connectSpins()
    connect(minutesSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    connect(hoursSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    connect(daysSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
+   connect(monthsSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    connect(yearsSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
 }
 
@@ -398,6 +412,7 @@ void MediaEdit::disconnectSpins()
    disconnect(minutesSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    disconnect(hoursSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    disconnect(daysSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
+   disconnect(monthsSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
    disconnect(yearsSpin, SIGNAL(valueChanged(int)), this, SLOT(durationChanged()));
 }
 

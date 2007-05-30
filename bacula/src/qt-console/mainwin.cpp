@@ -47,6 +47,7 @@
 #include "joblist/joblist.h"
 #include "clients/clients.h"
 #include "help/help.h"
+#include "jobs/jobs.h"
 
 /* 
  * Daemon message callback
@@ -132,36 +133,19 @@ void MainWin::createPages()
        * Create instances in alphabetic order of the rest 
        *  of the classes that will by default exist under each Director.  
        */
-//    createPagebRestore();
-      createPageClients();
-      createPageFileSet();
+//    new new bRestore();
+      new Clients();
+      new FileSet();
+      new Jobs();
       QString emptymedia(""), emptyclient("");
       createPageJobList(emptymedia, emptyclient, NULL);
-      createPageMediaList();
-      createPageStorage();
+      new MediaList();
+      new Storage();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
    }
    UnlockRes();
-}
-
-/*
- * create an instance of the the brestore class on the stack
- */
-void MainWin::createPagebRestore()
-{
-   bRestore* brestore = new bRestore();
-   brestore->dockPage();
-}
-
-/*
- * create an instance of the the medialist class on the stack
- */
-void MainWin::createPageMediaList()
-{
-   MediaList* medialist = new MediaList();
-   medialist->dockPage();
 }
 
 /*
@@ -175,7 +159,6 @@ void MainWin::createPageJobList(QString &media, QString &client,
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
    JobList* joblist = new JobList(media, client, parentTreeWidgetItem);
-   joblist->dockPage();
    /* If this is a query of jobs on a specific media */
    if ((media != "") || (client != "")) {
       joblist->setCurrent();
@@ -185,33 +168,6 @@ void MainWin::createPageJobList(QString &media, QString &client,
          treeWidget->setCurrentItem(holdItem);
       }
    }
-}
-
-/*
- * create an instance of the the Clients class on the stack
- */
-void MainWin::createPageClients()
-{
-   Clients* clients = new Clients();
-   clients->dockPage();
-}
-
-/*
- * create an instance of the the storage class on the stack
- */
-void MainWin::createPageStorage()
-{
-   Storage* storage = new Storage();
-   storage->dockPage();
-}
-
-/*
- * create an instance of the the fileset class on the stack
- */
-void MainWin::createPageFileSet()
-{
-   FileSet* fileset = new FileSet();
-   fileset->dockPage();
 }
 
 /* Create a root Tree Widget */

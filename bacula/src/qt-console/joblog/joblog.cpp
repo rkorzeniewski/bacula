@@ -44,6 +44,8 @@ JobLog::JobLog(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
    m_name = "JobLog";
    m_closeable = true;
    pgInitialize(parentTreeWidgetItem);
+   QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
    m_cursor = new QTextCursor(textEdit->document());
 
    m_jobId = jobId;

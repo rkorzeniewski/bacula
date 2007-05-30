@@ -59,6 +59,7 @@ MediaList::MediaList()
    /* add context sensitive menu items specific to this classto the page
     * selector tree. m_contextActions is QList of QActions */
    m_contextActions.append(actionRefreshMediaList);
+   dockPage();
 }
 
 MediaList::~MediaList()
