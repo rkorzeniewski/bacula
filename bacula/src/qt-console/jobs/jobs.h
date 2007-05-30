@@ -53,6 +53,13 @@ public slots:
 
 private slots:
    void populateTree();
+   void consoleListFiles();
+   void consoleListVolume();
+   void consoleListNextVolume();
+   void consoleEnable();
+   void consoleDisable();
+   void consoleCancel();
+   void listJobs();
 
 private:
    void createContextMenu();

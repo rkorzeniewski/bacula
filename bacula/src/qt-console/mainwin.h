@@ -68,7 +68,7 @@ public:
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    /* This is a list of consoles */
    QHash<QTreeWidgetItem*,Console*> m_consoleHash;
-   void createPageJobList(QString &, QString &, QTreeWidgetItem *);
+   void createPageJobList(const QString &, const QString &, QTreeWidgetItem *);
    QString m_dtformat;
    /* Begin Preferences variables */
    bool m_commDebug;
@@ -108,8 +108,6 @@ protected:
 private:
    void createConnections(); 
    void createPages();
-   QTreeWidgetItem *createTopPage(char *name);
-   QTreeWidgetItem *createPage(char *name, QTreeWidgetItem *parent);
 
 private:
    Console *m_currentConsole;
