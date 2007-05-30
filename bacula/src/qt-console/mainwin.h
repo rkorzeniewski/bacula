@@ -68,7 +68,8 @@ public:
    QHash<Pages*,QTreeWidgetItem*> m_widgethash;
    /* This is a list of consoles */
    QHash<QTreeWidgetItem*,Console*> m_consoleHash;
-   void createPageJobList(const QString &, const QString &, QTreeWidgetItem *);
+   void createPageJobList(const QString &, const QString &,
+            const QString &, QTreeWidgetItem *);
    QString m_dtformat;
    /* Begin Preferences variables */
    bool m_commDebug;

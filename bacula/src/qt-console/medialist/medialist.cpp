@@ -182,7 +182,7 @@ void MediaList::editVolume()
 void MediaList::showJobs()
 {
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   mainWin->createPageJobList(m_currentVolumeName, "", parentItem);
+   mainWin->createPageJobList(m_currentVolumeName, "", "", parentItem);
 }
 
 /*

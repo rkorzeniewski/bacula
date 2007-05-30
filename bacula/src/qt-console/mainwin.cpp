@@ -139,7 +139,7 @@ void MainWin::createPages()
       new Clients();
       new FileSet();
       new Jobs();
-      createPageJobList("", "", NULL);
+      createPageJobList("", "", "", NULL);
       new MediaList();
       new Storage();
 
@@ -153,15 +153,15 @@ void MainWin::createPages()
  * create an instance of the the joblist class on the stack
  */
 void MainWin::createPageJobList(const QString &media, const QString &client,
-              QTreeWidgetItem *parentTreeWidgetItem)
+              const QString &job, QTreeWidgetItem *parentTreeWidgetItem)
 {
    QTreeWidgetItem *holdItem;
 
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
-   JobList* joblist = new JobList(media, client, parentTreeWidgetItem);
+   JobList* joblist = new JobList(media, client, job, parentTreeWidgetItem);
    /* If this is a query of jobs on a specific media */
-   if ((media != "") || (client != "")) {
+   if ((media != "") || (client != "") || (job != "")) {
       joblist->setCurrent();
       /* did query produce results, if not close window and set back to hold */
       if (joblist->m_resultCount == 0) {
