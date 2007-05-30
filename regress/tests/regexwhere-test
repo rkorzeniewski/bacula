@@ -7,7 +7,7 @@ TestName="regexwhere-test"
 JobName=backup
 
 . scripts/functions
-set_debug 0
+
 copy_test_confs
 
 rm -f bin/bacula-dir.conf

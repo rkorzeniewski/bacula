@@ -6,7 +6,6 @@
 TestName="sparse-compressed-test"
 JobName=Sparse-conpressed
 . scripts/functions
-set_debug 0
 
 cwd=`pwd`
 scripts/cleanup

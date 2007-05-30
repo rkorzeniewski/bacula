@@ -7,9 +7,7 @@
 TestName="restore-by-file-test"
 JobName=restorebyfile
 . scripts/functions
-set_debug 0
 
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/tmp/build" >/tmp/file-list

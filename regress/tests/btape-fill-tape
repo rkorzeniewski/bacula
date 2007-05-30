@@ -5,7 +5,6 @@
 TestName="btape-fill-tape"
 JobName=filltape
 . scripts/functions
-set_debug 0
 
 copy_tape_confs
 

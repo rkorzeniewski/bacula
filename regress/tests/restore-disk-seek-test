@@ -9,7 +9,6 @@
 TestName="restore-disk-seek-test"
 JobName=restore-disk-seek
 . scripts/functions
-set_debug 0
 
 scripts/cleanup
 scripts/copy-test-confs

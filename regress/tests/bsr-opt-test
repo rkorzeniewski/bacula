@@ -9,7 +9,6 @@
 TestName="bsr-opt-test"
 JobName=bsr-opt
 . scripts/functions
-set_debug 0
 
 scripts/cleanup
 scripts/copy-test-confs

@@ -8,7 +8,6 @@
 TestName="migration-volume-test"
 JobName=MigVolBackup
 . scripts/functions
-set_debug 0 
 
 . config.out
 

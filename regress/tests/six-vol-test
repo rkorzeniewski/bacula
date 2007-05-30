@@ -6,7 +6,6 @@
 TestName="six-vol-test"
 JobName=SixVol
 . scripts/functions
-set_debug 0
 
 if test ! -c /dev/urandom ; then
    echo "No random device. Test skipped.\n"

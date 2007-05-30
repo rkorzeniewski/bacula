@@ -9,7 +9,6 @@
 TestName="restore-by-file-tape"
 JobName=restorebyfile
 . scripts/functions
-set_debug 0
 copy_tape_confs
 
 echo "${cwd}/build" >/tmp/file-list

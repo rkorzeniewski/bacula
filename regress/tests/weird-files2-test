@@ -6,7 +6,6 @@
 TestName="weird-files2-test"
 JobName=weird-files2
 . scripts/functions
-set_debug 0
 
 if test ! -d weird-files ; then
    echo " "

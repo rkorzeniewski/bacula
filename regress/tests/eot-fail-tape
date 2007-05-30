@@ -6,7 +6,6 @@
 TestName="eot-fail-tape"
 JobName=eotfailtape
 . scripts/functions
-set_debug 0
 
 scripts/cleanup-tape
 scripts/copy-tape-confs

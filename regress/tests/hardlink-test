@@ -6,7 +6,6 @@
 TestName="hardlink-test"
 JobName=hardlink
 . scripts/functions
-set_debug 0
 
 if test ! -d weird-files ; then
    echo " "

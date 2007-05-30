@@ -7,7 +7,6 @@
 TestName="query-test"
 JobName=query
 . scripts/functions
-set_debug 0
 
 scripts/cleanup
 scripts/copy-test-confs

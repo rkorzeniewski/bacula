@@ -6,7 +6,6 @@
 TestName="verify-vol-tape"
 JobName=VerifyVol
 . scripts/functions
-set_debug 0
 
 copy_tape_confs
 

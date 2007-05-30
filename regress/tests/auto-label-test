@@ -6,7 +6,7 @@
 TestName="auto-label-test"
 JobName=AutoLabel
 . scripts/functions
-set_debug 0
+
 copy_test_confs
 
 echo "${cwd}/build" >/tmp/file-list

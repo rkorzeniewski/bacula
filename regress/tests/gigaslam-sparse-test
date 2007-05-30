@@ -6,9 +6,7 @@
 TestName="gigaslam-sparse-test"
 JobName=SparseTest
 . scripts/functions
-set_debug 0
 
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build" >/tmp/file-list
