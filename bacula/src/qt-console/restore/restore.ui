@@ -239,7 +239,7 @@
         <string>Up</string>
        </property>
        <property name="icon" >
-        <iconset>:images/up.png</iconset>
+        <iconset resource="../main.qrc" >:/images/up.png</iconset>
        </property>
       </widget>
      </item>
@@ -263,7 +263,7 @@
         <string>Mark</string>
        </property>
        <property name="icon" >
-        <iconset>:images/mark.png</iconset>
+        <iconset resource="../main.qrc" >:/images/check.png</iconset>
        </property>
       </widget>
      </item>
@@ -287,7 +287,7 @@
         <string>Unmark</string>
        </property>
        <property name="icon" >
-        <iconset>:images/unmark.png</iconset>
+        <iconset resource="../main.qrc" >:/images/unchecked.png</iconset>
        </property>
       </widget>
      </item>
@@ -438,7 +438,25 @@
     </layout>
    </item>
   </layout>
+  <action name="actionMark" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/check.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Mark</string>
+   </property>
+  </action>
+  <action name="actionUnMark" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/unchecked.png</iconset>
+   </property>
+   <property name="text" >
+    <string>UnMark</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../main.qrc" />
+ </resources>
  <connections/>
 </ui>

@@ -61,6 +61,13 @@ restorePage::restorePage()
    connect(unmarkButton, SIGNAL(pressed()), this, SLOT(unmarkButtonPushed()));
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
+
+   fileWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   fileWidget->addAction(actionMark);
+   fileWidget->addAction(actionUnMark);
+   connect(actionMark, SIGNAL(triggered()), this, SLOT(markButtonPushed()));
+   connect(actionUnMark, SIGNAL(triggered()), this, SLOT(unmarkButtonPushed()));
+
    setFont(m_console->get_font());
    m_console->displayToPrompt();
 
