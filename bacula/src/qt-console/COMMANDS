@@ -1,21 +1,11 @@
-cancel [job=<job-name> ujobid=<unique-jobid>]
-To be done in the context of a status dir graphical window.
-Also in a "job resources window for job-name".
+cancel ujobid=<unique-jobid>
 
 delete pool=<pool-name>
    should ask if this would have bad effects if say media existed in the pool
    the pool existed in the configuration file.
 
-disable job<job-name>     and     enable job<job-name>
-Could be done in the context of a jobs resource window which is not yet created
-
 list
    list ujobid<unique job name> (list job with unique name)
-   list files job=<job-name>
-  do this as a context option on page selector on joblist
-   list volumes job=<job-name>
-   list nextvolume job=<job-name>
-   list nextvol job=<job-name>
    list nextvol job=<job-name> days=nnn
 
 unmount [ jobid=<id> | job=<job-name> ]
@@ -70,9 +60,12 @@ DONE
 automount on/off
 Added buttons to the label dialog box to execute automount command
 
-cancel jobid=<number>
+cancel jobid=<number> job=<job-name>
 
 delete [volume=<vol-name> job jobid=<id>]
+
+disable job<job-name>     and     enable job<job-name>
+Could be done in the context of a jobs resource window which is not yet created
 
 estimate
 Could be a dialog in the context of a jobs window.
@@ -96,6 +89,12 @@ list
      list pools
    Accomplishable with the clients class graphically
      list clients
+   list files job=<job-name>
+  do this as a context option on page selector on joblist
+   list volumes job=<job-name>
+   list nextvolume job=<job-name>
+   list nextvol job=<job-name>
+
 help
   context sensitive from page selector console
 

@@ -43,7 +43,7 @@ class JobList : public Pages, public Ui::JobListForm
    Q_OBJECT 
 
 public:
-   JobList(QString &medianame, QString &clientname, QTreeWidgetItem *);
+   JobList(const QString &medianame, const QString &clientname, QTreeWidgetItem *);
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    int m_resultCount;

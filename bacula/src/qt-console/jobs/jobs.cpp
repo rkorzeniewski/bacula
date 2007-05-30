@@ -95,19 +95,7 @@ void Jobs::populateTree()
 
       for (int i=0; i<headerlist.count(); i++)
          jobsItem->setData(i, Qt::UserRole, 1);
-/*struct job_defaults {
-   QString job_name;
-   QString pool_name;
-   QString messages_name;
-   QString client_name;
-   QString store_name;
-   QString where;
-   QString level;
-   QString type;
-   QString fileset_name;
-   QString catalog_name;
-   bool enabled;
-};*/
+
       job_defaults job_defs;
       job_defs.job_name = jobName;
       if (m_console->get_job_defaults(job_defs)) {
@@ -127,7 +115,6 @@ void Jobs::populateTree()
             jobsItem->setText(col++, "No");
          }
       }
-
    }
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
@@ -159,7 +146,13 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
       if (previouswidgetitem) { /* avoid a segfault if first time */
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
          if (treedepth == 1){
-            //mp_treeWidget->removeAction(actionListJobsofClient);
+            mp_treeWidget->removeAction(actionConsoleListFiles);
+            mp_treeWidget->removeAction(actionConsoleListVolumes);
+            mp_treeWidget->removeAction(actionConsoleListNextVolume);
+            mp_treeWidget->removeAction(actionConsoleEnableJob);
+            mp_treeWidget->removeAction(actionConsoleDisableJob);
+            mp_treeWidget->removeAction(actionConsoleCancel);
+            mp_treeWidget->removeAction(actionJobListQuery);
          }
       }
 
@@ -168,7 +161,13 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
          m_currentlyselected=currentwidgetitem->text(0);
-         //mp_treeWidget->addAction(actionListJobsofClient);
+         mp_treeWidget->addAction(actionConsoleListFiles);
+         mp_treeWidget->addAction(actionConsoleListVolumes);
+         mp_treeWidget->addAction(actionConsoleListNextVolume);
+         mp_treeWidget->addAction(actionConsoleEnableJob);
+         mp_treeWidget->addAction(actionConsoleDisableJob);
+         mp_treeWidget->addAction(actionConsoleCancel);
+         mp_treeWidget->addAction(actionJobListQuery);
       }
    }
 }
@@ -188,6 +187,13 @@ void Jobs::createContextMenu()
    /* connect to the action specific to this pages class */
    connect(actionRefreshJobs, SIGNAL(triggered()), this,
                 SLOT(populateTree()));
+   connect(actionConsoleListFiles, SIGNAL(triggered()), this, SLOT(consoleListFiles()));
+   connect(actionConsoleListVolumes, SIGNAL(triggered()), this, SLOT(consoleListVolume()));
+   connect(actionConsoleListNextVolume, SIGNAL(triggered()), this, SLOT(consoleListNextVolume()));
+   connect(actionConsoleEnableJob, SIGNAL(triggered()), this, SLOT(consoleEnable()));
+   connect(actionConsoleDisableJob, SIGNAL(triggered()), this, SLOT(consoleDisable()));
+   connect(actionConsoleCancel, SIGNAL(triggered()), this, SLOT(consoleCancel()));
+   connect(actionJobListQuery, SIGNAL(triggered()), this, SLOT(listJobs()));
 }
 
 /*
@@ -195,9 +201,61 @@ void Jobs::createContextMenu()
  */
 void Jobs::currentStackItem()
 {
+   populateTree();
    if(!m_populated) {
-      populateTree();
       /* Create the context menu for the client tree */
       m_populated=true;
    }
+}
+
+/*
+ * The following functions are slots responding to users clicking on the context
+ * sensitive menu
+ */
+
+void Jobs::consoleListFiles()
+{
+   QString cmd("list files job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::consoleListVolume()
+{
+   QString cmd("list volumes job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::consoleListNextVolume()
+{
+   QString cmd("list nextvolume job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::consoleEnable()
+{
+   QString cmd("enable job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::consoleDisable()
+{
+   QString cmd("disable job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::consoleCancel()
+{
+   QString cmd("cancel job=");
+   cmd += m_currentlyselected;
+   consoleCommand(cmd);
+}
+
+void Jobs::listJobs()
+{
+   printf("In Jobs::listJobs\n");
 }

@@ -41,7 +41,7 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(QString &mediaName, QString &clientname,
+JobList::JobList(const QString &mediaName, const QString &clientname,
          QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);

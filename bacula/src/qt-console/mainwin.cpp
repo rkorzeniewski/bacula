@@ -106,7 +106,8 @@ void MainWin::createPages()
       m_currentConsole->readSettings();
 
       /* The top tree item representing the director */
-      topItem = createTopPage(dir->name());
+      topItem = new QTreeWidgetItem(treeWidget);
+      topItem->setText(0, dir->name());
       topItem->setIcon(0, QIcon(":images/server.png"));
       /* Set background to grey for ease of identification of inactive Director */
       QBrush greyBrush(Qt::lightGray);
@@ -115,7 +116,8 @@ void MainWin::createPages()
       m_consoleHash.insert(topItem, m_currentConsole);
 
       /* Create Tree Widget Item */
-      item = createPage("Console", topItem);
+      item = new QTreeWidgetItem(topItem);
+      item->setText(0, "Console");
       if (!m_firstItem){ m_firstItem = item; }
       item->setIcon(0,QIcon(QString::fromUtf8(":images/utilities-terminal.svg")));
 
@@ -137,8 +139,7 @@ void MainWin::createPages()
       new Clients();
       new FileSet();
       new Jobs();
-      QString emptymedia(""), emptyclient("");
-      createPageJobList(emptymedia, emptyclient, NULL);
+      createPageJobList("", "", NULL);
       new MediaList();
       new Storage();
 
@@ -151,7 +152,7 @@ void MainWin::createPages()
 /*
  * create an instance of the the joblist class on the stack
  */
-void MainWin::createPageJobList(QString &media, QString &client,
+void MainWin::createPageJobList(const QString &media, const QString &client,
               QTreeWidgetItem *parentTreeWidgetItem)
 {
    QTreeWidgetItem *holdItem;
@@ -168,22 +169,6 @@ void MainWin::createPageJobList(QString &media, QString &client,
          treeWidget->setCurrentItem(holdItem);
       }
    }
-}
-
-/* Create a root Tree Widget */
-QTreeWidgetItem *MainWin::createTopPage(char *name)
-{
-   QTreeWidgetItem *item = new QTreeWidgetItem(treeWidget);
-   item->setText(0, name);
-   return item;
-}
-
-/* Create A Tree Widget Item which will be associated with a Page in the stacked widget */
-QTreeWidgetItem *MainWin::createPage(char *name, QTreeWidgetItem *parent)
-{
-   QTreeWidgetItem *item = new QTreeWidgetItem(parent);
-   item->setText(0, name);
-   return item;
 }
 
 /*

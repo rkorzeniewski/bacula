@@ -181,9 +181,8 @@ void MediaList::editVolume()
  */
 void MediaList::showJobs()
 {
-   QString emptyclient("");
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   mainWin->createPageJobList(m_currentVolumeName, emptyclient, parentItem);
+   mainWin->createPageJobList(m_currentVolumeName, "", parentItem);
 }
 
 /*
