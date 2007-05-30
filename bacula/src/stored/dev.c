@@ -253,7 +253,7 @@ init_dev(JCR *jcr, DEVRES *device)
 
    dev->clear_opened();
    dev->attached_dcrs = New(dlist(dcr, &dcr->dev_link));
-   Dmsg2(29, "init_dev: tape=%d dev_name=%s\n", dev->is_tape(), dev->dev_name);
+   Dmsg2(100, "init_dev: tape=%d dev_name=%s\n", dev->is_tape(), dev->dev_name);
    dev->initiated = true;
    
    return dev;
@@ -294,7 +294,7 @@ DEVICE::open(DCR *dcr, int omode)
       bstrncpy(VolCatInfo.VolCatName, dcr->VolumeName, sizeof(VolCatInfo.VolCatName));
    }
 
-   Dmsg4(29, "open dev: type=%d dev_name=%s vol=%s mode=%s\n", dev_type,
+   Dmsg4(100, "open dev: type=%d dev_name=%s vol=%s mode=%s\n", dev_type,
          print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
    Slot = -1;          /* unknown slot */
@@ -345,7 +345,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
 #endif
 
 
-   Dmsg0(29, "Open dev: device is tape\n");
+   Dmsg0(100, "Open dev: device is tape\n");
 
    get_autochanger_loaded_slot(dcr);
 
@@ -378,11 +378,11 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       if (m_fd < 0) {
          berrno be;
          dev_errno = errno;
-         Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
+         Dmsg5(100, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
               print_name(), omode, mode, errno, be.bstrerror());
       } else {
          /* Tape open, now rewind it */
-         Dmsg0(050, "Rewind after open\n");
+         Dmsg0(100, "Rewind after open\n");
          mt_com.mt_op = MTREW;
          mt_com.mt_count = 1;
          /* rewind only if dev is a tape */
@@ -404,7 +404,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
             if (m_fd < 0) {
                berrno be;
                dev_errno = errno;
-               Dmsg5(050, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
+               Dmsg5(100, "Open error on %s omode=%d mode=%x errno=%d: ERR=%s\n", 
                      print_name(), omode, mode, errno, be.bstrerror());
                break;
             }
@@ -434,7 +434,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
       stop_thread_timer(tid);
       tid = 0;
    }
-   Dmsg1(29, "open dev: tape %d opened\n", m_fd);
+   Dmsg1(100, "open dev: tape %d opened\n", m_fd);
 }
 
 
@@ -476,7 +476,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
    openmode = omode;
    set_mode(omode);
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "open disk: mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
+   Dmsg3(100, "open disk: mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
          archive_name.c_str(), mode);
    /* Use system open() */
    if ((m_fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
@@ -484,14 +484,14 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       dev_errno = errno;
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.bstrerror());
-      Dmsg1(29, "open failed: %s", errmsg);
+      Dmsg1(100, "open failed: %s", errmsg);
       Emsg0(M_FATAL, 0, errmsg);
    } else {
       dev_errno = 0;
       file = 0;
       file_addr = 0;
    }
-   Dmsg4(29, "open dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", 
+   Dmsg4(100, "open dev: disk fd=%d opened, part=%d/%d, part_size=%u\n", 
       m_fd, part, num_dvd_parts, part_size);
 }
 
@@ -509,7 +509,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    /*
     * Handle opening of DVD Volume
     */     
-   Dmsg2(29, "Enter: open_dvd_dev: DVD vol=%s mode=%s\n", 
+   Dmsg2(100, "Enter: open_dvd_dev: DVD vol=%s mode=%s\n", 
          &dcr->VolCatInfo, mode_to_str(omode));
 
    /*
@@ -546,7 +546,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
     * If we are not trying to access the last part, set mode to 
     *   OPEN_READ_ONLY as writing would be an error.
     */
-   Dmsg2(29, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
+   Dmsg2(100, "open DVD part=%d num_dvd_parts=%d\n", part, num_dvd_parts);
    /* Now find the name of the part that we want to access */
    if (part <= num_dvd_parts) {
       omode = OPEN_READ_ONLY;
@@ -622,7 +622,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             return;
          }
          if (have_media()) {
-            Dmsg1(29, "Could not mount device %s, this is not a problem (num_dvd_parts == 0), and have media.\n", print_name());
+            Dmsg1(100, "Could not mount device %s, this is not a problem (num_dvd_parts == 0), and have media.\n", print_name());
          } else {
             Mmsg(errmsg, _("There is no valid DVD in device %s.\n"), print_name());
             Emsg0(M_FATAL, 0, errmsg);
@@ -637,7 +637,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
       }
    }
    
-   Dmsg5(29, "open dev: DVD dev=%s mode=%s part=%d npart=%d volcatnparts=%d\n", 
+   Dmsg5(100, "open dev: DVD dev=%s mode=%s part=%d npart=%d volcatnparts=%d\n", 
       archive_name.c_str(), mode_to_str(omode),
       part, num_dvd_parts, dcr->VolCatInfo.VolCatParts);
    openmode = omode;
@@ -645,7 +645,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
    
 
    /* If creating file, give 0640 permissions */
-   Dmsg3(29, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
+   Dmsg3(100, "mode=%s open(%s, 0x%x, 0640)\n", mode_to_str(omode), 
          archive_name.c_str(), mode);
    /* Use system open() */
    if ((m_fd = ::open(archive_name.c_str(), mode, 0640)) < 0) {
@@ -654,7 +654,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
             be.bstrerror());
       // Should this be set if we try the create/open below
       dev_errno = EIO; /* Interpreted as no device present by acquire.c:acquire_device_for_read(). */
-      Dmsg1(29, "open failed: %s", errmsg);
+      Dmsg1(100, "open failed: %s", errmsg);
       
       /* Previous open failed. See if we can recover */
       if ((omode == OPEN_READ_ONLY || omode == OPEN_READ_WRITE) &&
@@ -664,7 +664,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
           * level software thinks that we are extending a pre-existing
           * media. Reads for READ_ONLY will report immediately an EOF 
           * Sometimes it is better to finish with an EOF than with an error. */
-         Dmsg1(29, "Creating last part on spool: %s\n", archive_name.c_str());
+         Dmsg1(100, "Creating last part on spool: %s\n", archive_name.c_str());
          omode = CREATE_READ_WRITE;
          set_mode(CREATE_READ_WRITE);
          m_fd = ::open(archive_name.c_str(), mode, 0640);
@@ -682,7 +682,7 @@ void DEVICE::open_dvd_device(DCR *dcr, int omode)
          dev_errno = errno;
          Mmsg2(errmsg, _("Could not fstat: %s, ERR=%s\n"), archive_name.c_str(), 
                be.bstrerror());
-         Dmsg1(29, "open failed: %s", errmsg);
+         Dmsg1(100, "open failed: %s", errmsg);
          /* Use system close() */
          ::close(m_fd);
          clear_opened();
@@ -868,7 +868,7 @@ bool DEVICE::eod(DCR *dcr)
    return fsf(VolCatInfo.VolCatFiles);
 #endif
 
-   Dmsg0(29, "eod\n");
+   Dmsg0(100, "eod\n");
    if (at_eot()) {
       return true;
    }
@@ -1444,7 +1444,7 @@ bool DEVICE::bsf(int num)
       return false;
    }
 
-   Dmsg0(29, "bsf\n");
+   Dmsg0(100, "bsf\n");
    clear_eot();
    clear_eof();
    file -= num;
@@ -1489,7 +1489,7 @@ bool DEVICE::fsr(int num)
       return false;
    }
 
-   Dmsg1(29, "fsr %d\n", num);
+   Dmsg1(100, "fsr %d\n", num);
    mt_com.mt_op = MTFSR;
    mt_com.mt_count = num;
    stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
@@ -1545,7 +1545,7 @@ bool DEVICE::bsr(int num)
       return false;
    }
 
-   Dmsg0(29, "bsr_dev\n");
+   Dmsg0(100, "bsr_dev\n");
    block_num -= num;
    clear_eof();
    clear_eot();
@@ -1992,7 +1992,7 @@ bool DEVICE::mount(int timeout)
  */
 bool DEVICE::unmount(int timeout) 
 {
-   Dmsg0(90, "Enter unmount\n");
+   Dmsg0(100, "Enter unmount\n");
    if (is_mounted()) {
       return do_mount(0, timeout);
    }
@@ -2037,7 +2037,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
    results[0] = 0;
 
    /* If busy retry each second */
-   Dmsg1(20, "do_mount run_prog=%s\n", ocmd.c_str());
+   Dmsg1(100, "do_mount run_prog=%s\n", ocmd.c_str());
    while ((status = run_program_full_output(ocmd.c_str(), 
                        max_open_wait/2, results)) != 0) {
       /* Doesn't work with internationalization (This is not a problem) */
@@ -2059,12 +2059,12 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       }
       if (status != 0) {
          berrno be;
-         Dmsg5(40, "Device %s cannot be %smounted. stat=%d result=%s ERR=%s\n", print_name(),
+         Dmsg5(100, "Device %s cannot be %smounted. stat=%d result=%s ERR=%s\n", print_name(),
               (mount ? "" : "un"), status, results, be.bstrerror(status));
          Mmsg(errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
               print_name(), (mount ? "" : "un"), be.bstrerror(status));
       } else {
-         Dmsg4(40, "Device %s cannot be %smounted. stat=%d ERR=%s\n", print_name(),
+         Dmsg4(100, "Device %s cannot be %smounted. stat=%d ERR=%s\n", print_name(),
               (mount ? "" : "un"), status, results);
          Mmsg(errmsg, _("Device %s cannot be %smounted. ERR=%s\n"), 
               print_name(), (mount ? "" : "un"), results);
@@ -2086,7 +2086,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       if (!(dp = opendir(device->mount_point))) {
          berrno be;
          dev_errno = errno;
-         Dmsg3(29, "do_mount: failed to open dir %s (dev=%s), ERR=%s\n", 
+         Dmsg3(100, "do_mount: failed to open dir %s (dev=%s), ERR=%s\n", 
                device->mount_point, print_name(), be.bstrerror());
          goto get_out;
       }
@@ -2110,7 +2110,7 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       free(entry);
       closedir(dp);
       
-      Dmsg1(29, "do_mount: got %d files in the mount point (not counting ., .. and .keep)\n", count);
+      Dmsg1(100, "do_mount: got %d files in the mount point (not counting ., .. and .keep)\n", count);
       
       if (count > 0) {
          /* If we got more than ., .. and .keep */
@@ -2404,13 +2404,13 @@ void set_os_device_parameters(DCR *dcr)
 #if defined(HAVE_LINUX_OS) || defined(HAVE_WIN32)
    struct mtop mt_com;
 
-   Dmsg0(050, "In set_os_device_parameters\n");
+   Dmsg0(100, "In set_os_device_parameters\n");
 #if defined(MTSETBLK) 
    if (dev->min_block_size == dev->max_block_size &&
        dev->min_block_size == 0) {    /* variable block mode */
       mt_com.mt_op = MTSETBLK;
       mt_com.mt_count = 0;
-      Dmsg0(050, "Set block size to zero\n");
+      Dmsg0(100, "Set block size to zero\n");
       if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
          dev->clrerror(MTSETBLK);
       }
@@ -2426,7 +2426,7 @@ void set_os_device_parameters(DCR *dcr)
       if (dev->has_cap(CAP_EOM)) {
          mt_com.mt_count |= MT_ST_FAST_MTEOM;
       }
-      Dmsg0(050, "MTSETDRVBUFFER\n");
+      Dmsg0(100, "MTSETDRVBUFFER\n");
       if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
          dev->clrerror(MTSETDRVBUFFER);
       }
@@ -2498,7 +2498,7 @@ void set_os_device_parameters(DCR *dcr)
 
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat)
 {
-   Dmsg0(050, "dev_get_os_pos\n");
+   Dmsg0(100, "dev_get_os_pos\n");
    return dev->has_cap(CAP_MTIOCGET) && 
           tape_ioctl(dev->fd(), MTIOCGET, (char *)mt_stat) == 0 &&
           mt_stat->mt_fileno >= 0;
