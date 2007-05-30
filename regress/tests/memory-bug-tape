@@ -8,7 +8,6 @@
 TestName="four-concurrent-jobs-tape"
 JobName=FourConcurrentJobs
 . scripts/functions
-set_debug 0
 
 scripts/cleanup-tape
 scripts/copy-tape-confs

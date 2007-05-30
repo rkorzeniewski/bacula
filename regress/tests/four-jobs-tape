@@ -7,7 +7,6 @@
 TestName="four-jobs-tape"
 JobName=fourjobstape
 . scripts/functions
-set_debug 0
 
 scripts/cleanup-tape
 scripts/copy-tape-confs

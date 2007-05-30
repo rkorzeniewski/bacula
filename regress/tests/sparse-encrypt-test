@@ -5,7 +5,6 @@
 TestName="sparse-encrypt-test"
 JobName=Crypto
 . scripts/functions
-set_debug 0
 
 scripts/cleanup
 scripts/copy-crypto-confs

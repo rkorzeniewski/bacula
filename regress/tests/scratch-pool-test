@@ -14,7 +14,6 @@
 TestName="scratch-pool-test"
 JobName=scratch-pool
 . scripts/functions
-set_debug 0
 
 . config.out
 if test x${AUTOCHANGER} = x/dev/null ; then

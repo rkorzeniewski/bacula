@@ -8,7 +8,6 @@
 TestName="two-volume-tape"
 JobName=twovoltape
 . scripts/functions
-set_debug 0
 
 . config.out
 if test x${AUTOCHANGER} = x/dev/null ; then

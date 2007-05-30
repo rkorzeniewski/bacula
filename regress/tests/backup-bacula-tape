@@ -9,7 +9,6 @@
 TestName="backup-bacula-tape"
 JobName=backuptape
 . scripts/functions
-set_debug 0
 
 scripts/copy-tape-confs
 scripts/cleanup-tape

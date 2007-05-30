@@ -5,9 +5,7 @@
 TestName="fifo-test"
 JobName=FIFOTest
 . scripts/functions
-set_debug 0
 
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "/tmp/bfifo" >/tmp/file-list

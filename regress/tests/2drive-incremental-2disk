@@ -9,9 +9,6 @@
 TestName="2drive-incremental-2disk"
 JobName="2drive2disk"
 . scripts/functions
-set_debug 0
-
-cwd=`pwd`
 
 scripts/cleanup
 scripts/copy-2disk-drive-confs

@@ -10,7 +10,6 @@
 TestName="two-volume-test"
 JobName=TwoVolume
 . scripts/functions
-set_debug 0
 . config.out
 
 cwd=`pwd`

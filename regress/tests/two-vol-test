@@ -6,7 +6,6 @@
 TestName="two-vol-test"
 JobName=TwoVol
 . scripts/functions
-set_debug 0
 
 cwd=`pwd`
 scripts/cleanup

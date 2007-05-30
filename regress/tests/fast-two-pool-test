@@ -12,10 +12,8 @@
 TestName="fast-two-pool-test"
 JobName=Fast-two-pool
 . scripts/functions
-set_debug 0
 
 . config.out
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs
 scripts/prepare-two-disks

@@ -5,7 +5,6 @@
 TestName="eighty-simultaneous-jobs-tape"
 JobName=EightySimultaneousJobs
 . scripts/functions
-set_debug 0
 
 scripts/cleanup-tape
 scripts/copy-tape-confs

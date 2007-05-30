@@ -25,7 +25,9 @@ run_bacula()
 {
    debug_wait
    if test "$debug" -eq 1 ; then
-     bin/bacula start
+     bin/bacula-ctl-sd start
+     bin/bacula-ctl-fd start
+     bin/bacula-ctl-dir start
      cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
    else
      bin/bacula start 2>&1 >/dev/null

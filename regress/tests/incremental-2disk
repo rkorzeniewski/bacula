@@ -8,7 +8,6 @@
 TestName="incremental-2disk"
 JobName=Inc2disk
 . scripts/functions
-set_debug 0
 
 . config.out
 

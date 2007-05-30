@@ -5,7 +5,6 @@
 TestName="verify-cat-test"
 JobName=VerifyCatalog
 . scripts/functions
-set_debug 0
 
 cwd=`pwd`
 scripts/cleanup

@@ -12,9 +12,6 @@ TestName="three-pool-disk"
 JobName="threepooldisk"
 . scripts/functions
 
-set_debug 1
-cwd=`pwd`
-
 scripts/cleanup
 scripts/copy-2disk-drive-confs
 scripts/prepare-two-disks

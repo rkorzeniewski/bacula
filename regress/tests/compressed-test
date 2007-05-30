@@ -6,7 +6,6 @@
 TestName="compressed-test"
 JobName=compressed
 . scripts/functions
-set_debug 0
 
 scripts/cleanup
 scripts/copy-test-confs

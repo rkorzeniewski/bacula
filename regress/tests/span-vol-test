@@ -8,9 +8,7 @@
 TestName="span-vol-test"
 JobName=SpanVol
 . scripts/functions
-set_debug 0
 
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build" >/tmp/file-list

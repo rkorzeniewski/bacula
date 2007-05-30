@@ -9,9 +9,7 @@
 TestName="backup-to-null"
 JobName=backuptonull
 . scripts/functions
-set_debug 0
 
-cwd=`pwd`
 scripts/cleanup
 scripts/copy-fifo-confs
 

@@ -13,9 +13,6 @@ fi
 TestName="2drive-incremental-2tape"
 JobName="2drive2tape"
 . scripts/functions
-set_debug 0
-
-cwd=`pwd`
 
 scripts/copy-2drive-confs
 scripts/cleanup-2drive
