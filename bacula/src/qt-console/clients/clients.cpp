@@ -213,7 +213,7 @@ void Clients::createContextMenu()
 void Clients::showJobs()
 {
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
-   mainWin->createPageJobList("", m_currentlyselected, parentItem);
+   mainWin->createPageJobList("", m_currentlyselected, "", parentItem);
 }
 
 /*

@@ -43,7 +43,8 @@ class JobList : public Pages, public Ui::JobListForm
    Q_OBJECT 
 
 public:
-   JobList(const QString &medianame, const QString &clientname, QTreeWidgetItem *);
+   JobList(const QString &medianame, const QString &clientname, 
+           const QString &jobname, QTreeWidgetItem *);
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    int m_resultCount;
@@ -71,6 +72,7 @@ private:
    void setStatusColor(QTableWidgetItem *item, QString &field);
    QString m_mediaName;
    QString m_clientName;
+   QString m_jobName;
    QString m_currentJob;
    bool m_populated;
    bool m_checkCurrentWidget;

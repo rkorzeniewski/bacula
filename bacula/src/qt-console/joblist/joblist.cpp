@@ -41,13 +41,14 @@
 /*
  * Constructor for the class
  */
-JobList::JobList(const QString &mediaName, const QString &clientname,
-         QTreeWidgetItem *parentTreeWidgetItem)
+JobList::JobList(const QString &mediaName, const QString &clientName,
+          const QString &jobName, QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
    m_name = ""; /* treeWidgetName has a virtual override in this class */
    m_mediaName = mediaName;
-   m_clientName = clientname;
+   m_clientName = clientName;
+   m_jobName = jobName;
    pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
@@ -55,7 +56,8 @@ JobList::JobList(const QString &mediaName, const QString &clientname,
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
-   if ((m_mediaName != "") || (m_clientName != "")) { m_closeable=true; }
+   if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != ""))
+      m_closeable=true;
    m_checkCurrentWidget = true;
    createConnections();
 
@@ -112,6 +114,10 @@ void JobList::populateTable()
       }
       jobComboBox->addItem("Any");
       jobComboBox->addItems(m_console->job_list);
+      int jobIndex = jobComboBox->findText(m_jobName, Qt::MatchExactly);
+      if (jobIndex != -1) {
+         jobComboBox->setCurrentIndex(jobIndex);
+      }
       levelComboBox->addItem("Any");
       levelComboBox->addItems( QStringList() << "F" << "D" << "I");
       purgedComboBox->addItem("Any");
@@ -164,6 +170,8 @@ void JobList::populateTable()
       conditions.append("Client.Name='" + m_clientName + "'");
    }
    int jobIndex = jobComboBox->currentIndex();
+   if (jobIndex != -1)
+      m_jobName = jobComboBox->itemText(jobIndex);
    if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != "Any")) {
       conditions.append("Job.Name='" + jobComboBox->itemText(jobIndex) + "'");
    }
@@ -315,7 +323,7 @@ void JobList::currentStackItem()
  */
 void JobList::treeWidgetName(QString &desc)
 {
-   if ((m_mediaName == "") && (m_clientName == "")) {
+   if ((m_mediaName == "") && (m_clientName == "") &&  (m_jobName == "")) {
       desc = "JobList";
    } else {
       desc = "JobList ";
@@ -324,6 +332,9 @@ void JobList::treeWidgetName(QString &desc)
       }
       if (m_clientName != "" ) {
          desc += "of Client " + m_clientName;
+      }
+      if (m_jobName != "" ) {
+         desc += "of Job " + m_jobName;
       }
    }
 }

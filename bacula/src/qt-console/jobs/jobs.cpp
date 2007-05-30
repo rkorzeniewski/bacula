@@ -258,4 +258,6 @@ void Jobs::consoleCancel()
 void Jobs::listJobs()
 {
    printf("In Jobs::listJobs\n");
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   mainWin->createPageJobList("", "", m_currentlyselected, parentItem);
 }
