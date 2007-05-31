@@ -44,7 +44,7 @@ class JobList : public Pages, public Ui::JobListForm
 
 public:
    JobList(const QString &medianame, const QString &clientname, 
-           const QString &jobname, QTreeWidgetItem *);
+           const QString &jobname, const QString &filesetname, QTreeWidgetItem *);
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    int m_resultCount;
@@ -73,6 +73,7 @@ private:
    QString m_mediaName;
    QString m_clientName;
    QString m_jobName;
+   QString m_filesetName;
    QString m_currentJob;
    bool m_populated;
    bool m_checkCurrentWidget;

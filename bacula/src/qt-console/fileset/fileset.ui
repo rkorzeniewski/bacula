@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>763</width>
-    <height>650</height>
+    <width>318</width>
+    <height>246</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshFileSet" >
    <property name="icon" >
-    <iconset>:images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
    </property>
    <property name="text" >
     <string>Refresh FileSet List</string>
@@ -36,13 +36,23 @@
   </action>
   <action name="actionStatusFileSetInConsole" >
    <property name="icon" >
-    <iconset>:images/status.png</iconset>
+    <iconset resource="../main.qrc" >:/images/status.png</iconset>
    </property>
    <property name="text" >
     <string>Status FileSet In Console</string>
    </property>
   </action>
+  <action name="actionShowJobs" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
+   </property>
+   <property name="text" >
+    <string>ShowJobs</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../main.qrc" />
+ </resources>
  <connections/>
 </ui>
