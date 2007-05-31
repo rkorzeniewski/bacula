@@ -33,7 +33,7 @@
     <h2>Pool</h2>
     <select name='pool' class='formulaire'>
       <option id='pool_all' value=''>All</option>
-<TMPL_LOOP NAME=db_pools>
+<TMPL_LOOP db_pools>
       <option id='pool_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
     </select>
@@ -52,7 +52,7 @@
  <tr>
   <td valign='bottom'> 
     <h2>Number of items</h2>
-    <input type='text' name='limit' value='<TMPL_VAR NAME=limit>' 
+    <input type='text' name='limit' value='<TMPL_VAR limit>' 
 	class='formulaire' size='4'>
   </td>
 </tr>
@@ -70,7 +70,7 @@
   <td valign='top'> 
     <h2>Clients</h2>
     <select name='client' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_clients>
+<TMPL_LOOP db_clients>
       <option id='client_<TMPL_VAR clientname>'><TMPL_VAR clientname></option>
 </TMPL_LOOP>
     </select>
@@ -81,8 +81,8 @@
   <td valign='top'> 
     <h2>File Set</h2>
     <select name='fileset' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_filesets>
-      <option id='client_<TMPL_VAR fileset>'><TMPL_VAR NAME=fileset></option>
+<TMPL_LOOP db_filesets>
+      <option id='client_<TMPL_VAR fileset>'><TMPL_VAR fileset></option>
 </TMPL_LOOP>
     </select>
   </td>
