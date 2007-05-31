@@ -2688,6 +2688,10 @@ sub display_group_stats
 
     my $carg = $self->get_form(qw/qclient_group/);
 
+    unless ($carg->{qclient_group}) {
+ 	return $self->error("Can't get group");
+    }
+
     my ($limit, $label) = $self->get_limit(%arg);
 
     my $query = "
