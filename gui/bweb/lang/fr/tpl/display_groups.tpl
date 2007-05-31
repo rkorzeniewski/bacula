@@ -7,7 +7,7 @@
     <table id='id<TMPL_VAR ID>'></table>
     <input type="image" name='action' value='groups_add' title='Ajouter' src='/bweb/add.png'>&nbsp;
     <input type="image" name='action' value='groups_del' 
-     onclick="return confirm('Vous voulez vraiment supprimer ce groupe ?');" 
+     onclick="return confirm('Voulez vous vraiment supprimer ce groupe ?');" 
      title='Supprimer' src='/bweb/remove.png'>&nbsp;
     <input type="image" name='action' value='groups_edit' title='Modifier' src='/bweb/edit.png'>&nbsp;
 
