@@ -76,10 +76,16 @@ restorePage::restorePage()
 
    get_cwd();
 
+   readSettings();
    fillDirectory();
    dockPage();
    setCurrent();
    this->show();
+}
+
+restorePage::~restorePage()
+{
+   writeSettings();
 }
 
 /*
@@ -421,4 +427,26 @@ char *restorePage::get_cwd()
    }
    m_console->discardToPrompt(); 
    return m_cwd.toUtf8().data();
+}
+
+/*
+ * Save user settings associated with this page
+ */
+void restorePage::writeSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("RestorePage");
+   settings.setValue("splitterSizes", splitter->saveState());
+   settings.endGroup();
+}
+
+/*
+ * Read and restore user settings associated with this page
+ */
+void restorePage::readSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("RestorePage");
+   splitter->restoreState(settings.value("splitterSizes").toByteArray());
+   settings.endGroup();
 }
