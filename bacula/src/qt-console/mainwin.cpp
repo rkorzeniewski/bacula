@@ -135,11 +135,11 @@ void MainWin::createPages()
        * Create instances in alphabetic order of the rest 
        *  of the classes that will by default exist under each Director.  
        */
-//    new new bRestore();
+//      new bRestore();
       new Clients();
       new FileSet();
       new Jobs();
-      createPageJobList("", "", "", NULL);
+      createPageJobList("", "", "", "", NULL);
       new MediaList();
       new Storage();
 
@@ -153,15 +153,15 @@ void MainWin::createPages()
  * create an instance of the the joblist class on the stack
  */
 void MainWin::createPageJobList(const QString &media, const QString &client,
-              const QString &job, QTreeWidgetItem *parentTreeWidgetItem)
+              const QString &job, const QString &fileset, QTreeWidgetItem *parentTreeWidgetItem)
 {
    QTreeWidgetItem *holdItem;
 
    /* save current tree widget item in case query produces no results */
    holdItem = treeWidget->currentItem();
-   JobList* joblist = new JobList(media, client, job, parentTreeWidgetItem);
+   JobList* joblist = new JobList(media, client, job, fileset, parentTreeWidgetItem);
    /* If this is a query of jobs on a specific media */
-   if ((media != "") || (client != "") || (job != "")) {
+   if ((media != "") || (client != "") || (job != "") || (fileset != "")) {
       joblist->setCurrent();
       /* did query produce results, if not close window and set back to hold */
       if (joblist->m_resultCount == 0) {

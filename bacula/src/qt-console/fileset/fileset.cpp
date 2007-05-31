@@ -165,6 +165,7 @@ void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem,
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
          if (treedepth == 1) {
             mp_treeWidget->removeAction(actionStatusFileSetInConsole);
+            mp_treeWidget->removeAction(actionShowJobs);
          }
       }
 
@@ -174,6 +175,7 @@ void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem,
           * menu is used */
          m_currentlyselected=currentwidgetitem->text(0);
          mp_treeWidget->addAction(actionStatusFileSetInConsole);
+         mp_treeWidget->addAction(actionShowJobs);
       }
    }
 }
@@ -195,6 +197,8 @@ void FileSet::createContextMenu()
                 SLOT(populateTree()));
    connect(actionStatusFileSetInConsole, SIGNAL(triggered()), this,
                 SLOT(consoleStatusFileSet()));
+   connect(actionShowJobs, SIGNAL(triggered()), this,
+                SLOT(showJobs()));
 }
 
 /*
@@ -241,4 +245,13 @@ void FileSet::readSettings()
    settings.beginGroup("FileSet");
    restoreGeometry(settings.value("geometry").toByteArray());
    settings.endGroup();
+}
+
+/*
+ * Create a JobList object pre-populating a fileset
+ */
+void FileSet::showJobs()
+{
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   mainWin->createPageJobList("", "", "", m_currentlyselected, parentItem);
 }

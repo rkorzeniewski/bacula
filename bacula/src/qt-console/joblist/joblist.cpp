@@ -42,13 +42,15 @@
  * Constructor for the class
  */
 JobList::JobList(const QString &mediaName, const QString &clientName,
-          const QString &jobName, QTreeWidgetItem *parentTreeWidgetItem)
+          const QString &jobName, const QString &filesetName, QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
    m_name = ""; /* treeWidgetName has a virtual override in this class */
    m_mediaName = mediaName;
    m_clientName = clientName;
    m_jobName = jobName;
+   m_filesetName = filesetName;
+   m_filesetName = filesetName;
    pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
@@ -56,7 +58,7 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    m_resultCount = 0;
    m_populated = false;
    m_closeable = false;
-   if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != ""))
+   if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != "") || (m_filesetName != ""))
       m_closeable=true;
    m_checkCurrentWidget = true;
    createConnections();
@@ -125,6 +127,10 @@ void JobList::populateTable()
       statusComboBox->addItem("Any");
       fileSetComboBox->addItem("Any");
       fileSetComboBox->addItems(m_console->fileset_list);
+      int filesetIndex = fileSetComboBox->findText(m_filesetName, Qt::MatchExactly);
+      if (filesetIndex != -1) {
+         fileSetComboBox->setCurrentIndex(filesetIndex);
+      }
       QString statusQuery("SELECT JobStatusLong FROM Status");
       if (mainWin->m_sqlDebug) {
          Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
@@ -188,6 +194,8 @@ void JobList::populateTable()
       conditions.append("Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'");
    }
    int fileSetIndex = fileSetComboBox->currentIndex();
+   if (fileSetIndex != -1)
+      m_filesetName = fileSetComboBox->itemText(fileSetIndex);
    if ((fileSetIndex != -1) && (fileSetComboBox->itemText(fileSetIndex) != "Any")) {
       conditions.append("FileSet.FileSet='" + fileSetComboBox->itemText(fileSetIndex) + "'");
    }
@@ -323,7 +331,7 @@ void JobList::currentStackItem()
  */
 void JobList::treeWidgetName(QString &desc)
 {
-   if ((m_mediaName == "") && (m_clientName == "") &&  (m_jobName == "")) {
+   if ((m_mediaName == "") && (m_clientName == "") && (m_jobName == "") && (m_filesetName == "")) {
       desc = "JobList";
    } else {
       desc = "JobList ";
@@ -335,6 +343,9 @@ void JobList::treeWidgetName(QString &desc)
       }
       if (m_jobName != "" ) {
          desc += "of Job " + m_jobName;
+      }
+      if (m_filesetName != "" ) {
+         desc += "of fileset " + m_filesetName;
       }
    }
 }

@@ -54,6 +54,7 @@ public slots:
 private slots:
    void populateTree();
    void consoleStatusFileSet();
+   void showJobs();
 
 private:
    void writeSettings();
