@@ -11,8 +11,11 @@
      title='Supprimer' src='/bweb/remove.png'>&nbsp;
     <input type="image" name='action' value='groups_edit' title='Modify' src='/bweb/edit.png'>&nbsp;
 
-    <input type="image" name='action' value='groups' title='View'
-     src='/bweb/zoom.png'>
+    <input type="image" name='action' value='client' title='View members'
+     src='/bweb/zoom.png'>&nbsp;
+    <input type="image" name='action' value='job' title='View jobs'
+     src='/bweb/zoom.png'>&nbsp;
+    <input type="image" name='action' value='group_stats' title='Statistics' src='/bweb/chart.png'>&nbsp;
    </form>
  </div>
 
@@ -23,15 +26,15 @@ var header = new Array("Name","Selection");
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP groups>
+<TMPL_LOOP db_client_groups>
 
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
 chkbox.name  = 'client_group';
-chkbox.value = '<TMPL_VAR client_group>';
+chkbox.value = '<TMPL_VAR name>';
 
 data.push( new Array(
-"<TMPL_VAR client_group>",
+"<TMPL_VAR name>",
 chkbox
  )
 );

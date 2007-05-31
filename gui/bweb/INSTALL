@@ -16,6 +16,7 @@ Bweb works well with 1.39 release or later.
 10) accessing to bweb
 11) setting mysql read-only account
 12) get more statistics
+13) use groups with bweb
 
 ################ FILE COPY #####################################
  # you must get bweb svn files
@@ -100,11 +101,11 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
 
  That should show you if any of the pre-requisites are missing.
  On SuSE 10.2, I was able to load all the appropriate modules via rpms,
-  with the exception of Expect and Time::ParseDate, which I loaded manually
-  using perl.
+ with the exception of Expect and Time::ParseDate, which I loaded manually
+ using perl.
 
-  If you experience problems, always consult the Apache error_log
-  file.
+ If you experience problems, always consult the Apache error_log
+ file.
 
 ################ APACHE CONFIGURATION ##########################
 
@@ -261,8 +262,8 @@ chown www-data /var/spool/bweb
 You have to remove "<!-- Remove this to activate bfileview" and "-->" from
 tpl/display_job_zoom.tpl.
 
-You must use brestore.pl -b to initialize the database, and
-you can use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
+You MUST use brestore.pl -b to initialize the database, and
+you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 
 At this time, it's a good idea to schedule brestore.pl -b after your 
 BackupCatalog job.
@@ -316,6 +317,11 @@ CREATE TABLE job_old (LIKE Job);
 And run this on crontab when you want :
 INSERT INTO job_old 
   (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
+
+################ USE GROUPS WITH BWEB ##########################
+
+It works with postgresql and mysql5 (4 not tested).
+To enable group, load bweb/script/bweb_group.sql into your catalog
 
 ################################################################
 

@@ -65,7 +65,7 @@ my $legend = CGI::param('legend') || 'on' ;
 $legend = ($legend eq 'on')?1:0;
 
 my $arg = $bweb->get_form(qw/width height limit offset age where jobid
-			     jfilesets level status jjobnames jclients/);
+			     jfilesets level status jjobnames jclients jclient_groups/);
 
 my ($limitq, $label) = $bweb->get_limit(age   => $arg->{age},
 					limit => $arg->{limit},
@@ -100,6 +100,14 @@ if ($arg->{jclients}) {
     $clientq = " AND Client.Name IN ($arg->{jclients}) ";
 } else {
     $arg->{jclients} = 'all';	# skip warning
+}
+
+my $groupf='';			# from clause
+my $groupq='';			# whre clause
+if ($arg->{jclient_groups}) {
+    $groupf = " JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
+                JOIN client_group USING (client_group_id)";
+    $groupq = " AND client_group_name IN ($arg->{jclient_groups}) ";
 }
 
 my $gtype = CGI::param('gtype') || 'bars';
@@ -197,7 +205,7 @@ SELECT
        Client.Name                      AS clientname,
        $jobt.Name                       AS jobname,
        $jobt.JobBytes                   AS jobbytes
-FROM $jobt, Client, FileSet
+FROM $jobt, FileSet, Client $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -206,6 +214,7 @@ WHERE $jobt.ClientId = Client.ClientId
   $filesetq
   $levelq
   $jobnameq
+  $groupq
 $limitq
 ";
 
@@ -234,7 +243,7 @@ SELECT
        Client.Name                      AS clientname,
        $jobt.Name                       AS jobname,
        $jobt.JobFiles                   AS jobfiles
-FROM $jobt, Client, FileSet
+FROM $jobt, FileSet, Client $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -243,6 +252,7 @@ WHERE $jobt.ClientId = Client.ClientId
   $filesetq
   $levelq
   $jobnameq
+  $groupq
 $limitq
 ";
 
@@ -275,7 +285,7 @@ SELECT UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
        Job.Name                         AS jobname,
        base64_decode_lstat(8,LStat)     AS lstat
 
-FROM Job, Client, FileSet, Filename, Path, File
+FROM Job, FileSet, Filename, Path, File, Client
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId
   AND Job.Type = 'B'
@@ -372,7 +382,7 @@ SELECT
                         - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) + 0.01) 
          AS rate
 
-FROM $jobt, Client, FileSet
+FROM $jobt, FileSet, Client $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -381,6 +391,7 @@ WHERE $jobt.ClientId = Client.ClientId
   $filesetq
   $levelq
   $jobnameq
+  $groupq
 $limitq
 ";
 
@@ -413,7 +424,7 @@ SELECT
   $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                              - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
          AS duration
-FROM $jobt, Client, FileSet
+FROM $jobt, FileSet, Client $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -422,6 +433,7 @@ WHERE $jobt.ClientId = Client.ClientId
   $filesetq
   $levelq
   $jobnameq
+  $groupq
 $limitq
 ";
 
@@ -472,7 +484,7 @@ $limitq
 SELECT
      " . ($per_t?"":"UNIX_TIMESTAMP") . "($stime) AS A,
      $t(JobBytes)                  AS nb
-FROM $jobt, Client, FileSet
+FROM $jobt, FileSet, Client $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -481,6 +493,7 @@ WHERE $jobt.ClientId = Client.ClientId
   $filesetq
   $levelq
   $jobnameq
+  $groupq
 $limit
 ";
 

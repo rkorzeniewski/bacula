@@ -1,5 +1,8 @@
           Release Notes for bweb 2.2
 
+2007/05/31
+ - add group management (see INSTALL to enable it)
+
 2007/05/23
  - put Bconsole error to stderr (error.log)
 

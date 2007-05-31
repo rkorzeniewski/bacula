@@ -1,13 +1,13 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Client : <TMPL_VAR NAME=clientname> (<TMPL_VAR NAME=label>)</h1>
+  <h1 class='newstitle'> Client : <TMPL_VAR clientname> (<TMPL_VAR label>)</h1>
  </div>
  <div class='bodydiv'>
-<form action='?'
-     <table id='id<TMPL_VAR NAME=ID>'></table>
-     <img src="bgraph.pl?client=<TMPL_VAR NAME=clientname>;graph=job_duration;age=2592000;width=420;height=200" alt='Not enough data' > &nbsp;
-     <img src="bgraph.pl?client=<TMPL_VAR NAME=clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
-     <img src="bgraph.pl?client=<TMPL_VAR NAME=clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
+<form action='?'>
+     <table id='id<TMPL_VAR ID>'></table>
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_duration;age=2592000;width=420;height=200" alt='Not enough data' > &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
 <!--	<div class="otherboxtitle">
           Actions &nbsp;
         </div>
@@ -28,17 +28,17 @@ var header = new Array("Name", "Nb Jobs", "Nb Bytes", "Nb Files", "Nb Errors");
 var data = new Array();
 
 data.push( 
-  new Array( "<TMPL_VAR NAME=clientname>", 
-	     "<TMPL_VAR NAME=nb_jobs>",
-	     human_size(<TMPL_VAR NAME=nb_bytes>),
-	     "<TMPL_VAR NAME=nb_files>",
-	     "<TMPL_VAR NAME=nb_err>"
+  new Array( "<TMPL_VAR clientname>", 
+	     "<TMPL_VAR nb_jobs>",
+	     human_size(<TMPL_VAR nb_bytes>),
+	     "<TMPL_VAR nb_files>",
+	     "<TMPL_VAR nb_err>"
              )
 ) ; 
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,

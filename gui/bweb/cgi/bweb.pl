@@ -296,8 +296,9 @@ if ($action eq 'begin') {		# main display
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/status level db_clients db_filesets
 				    limit age offset qclients qfilesets
-#				    db_client_groups qclient_groups
-				    jobtype qpools db_pools/);
+				    jobtype qpools db_pools
+				    db_client_groups qclient_groups/); # drop this to hide 
+
     $bweb->display($fields, "display_form_job.tpl");
 
     print "</td><td valign='top'>";
@@ -313,6 +314,10 @@ if ($action eq 'begin') {		# main display
 					age => $arg->{age});
 	}
     }
+
+} elsif ($action eq 'group_stats') {
+
+    $bweb->display_group_stats(age => $arg->{age});
 
 } elsif ($action eq 'running') {
     $bweb->display_running_jobs(1);

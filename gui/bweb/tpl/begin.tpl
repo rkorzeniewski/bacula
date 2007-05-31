@@ -20,7 +20,12 @@ if (navigator.appName == 'Konqueror') {
 
 <ul id="menu">
  <li><a href="bweb.pl?">Main</a> </li>
- <li><a href="bweb.pl?action=client">Clients</a></li>
+ <li><a href="bweb.pl?action=client">Clients</a>
+     <ul>
+       <li><a href="bweb.pl?action=client">Clients</a> </li>
+       <li><a href="bweb.pl?action=groups">Groups</a> </li>
+     </ul>
+ </li>
  <li><a href="bweb.pl?action=run_job">Jobs</a>
    <ul> 
      <li><a href="bweb.pl?action=run_job">Defined Jobs</a>

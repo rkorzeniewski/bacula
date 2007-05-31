@@ -11,8 +11,8 @@
     <select name='level' class='formulaire'>
       <option id='level_Any' value='Any'>Tous</option>
       <option id='level_F' value='F'>Full</option>
-      <option id='level_D' value='D'>Différentielle</option>
-      <option id='level_I' value='I'>Incrémentale</option>
+      <option id='level_D' value='D'>Diff&eacute;rentielle</option>
+      <option id='level_I' value='I'>Incr&eacute;mentale</option>
     </select>     
   </td>
 </tr>
@@ -24,7 +24,7 @@
       <option id='status_T'   value='T'>Ok</option>
       <option id='status_W'   value='W'>Warning</option>
       <option id='status_f'   value='f'>Erreur</option>
-      <option id='status_A'   value='A'>Annulé</option>
+      <option id='status_A'   value='A'>Annul&eacute;</option>
     </select>     
   </td>
 </tr>
@@ -41,7 +41,7 @@
 </tr>
 <tr>
   <td valign='top'>
-    <h2>Période</h2>
+    <h2>P&eacute;riode</h2>
     <select name='age' class='formulaire'>
       <option id='age_86400'   value='86400'>Hier</option>
       <option id='age_604800'   value='604800'>Cette semaine</option>
@@ -52,7 +52,7 @@
  </tr>
  <tr>
   <td valign='bottom'> 
-    <h2>Nombre d'éléments</h2>
+    <h2>Nombre d'&eacute;l&eacute;ments</h2>
     <input type='text' name='limit' value='<TMPL_VAR limit>' 
 	class='formulaire' size='4'>
   </td>

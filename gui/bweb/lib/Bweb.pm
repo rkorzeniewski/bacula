@@ -1257,12 +1257,16 @@ sub display_clients
     my ($self) = @_;
 
     my $where='';
-    my $arg = $self->get_form("client", "qre_client");
+    my $arg = $self->get_form("client", "qre_client", "jclient_groups");
 
     if ($arg->{qre_client}) {
 	$where = "WHERE Name $self->{sql}->{MATCH} $arg->{qre_client} ";
     } elsif ($arg->{client}) {
 	$where = "WHERE Name = '$arg->{client}' ";
+    } elsif ($arg->{jclient_groups}) {
+	$where = "JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
+                  JOIN client_group USING (client_group_id)
+                  WHERE client_group_name IN ($arg->{jclient_groups})";
     }
 
     my $query = "
@@ -2496,17 +2500,16 @@ sub display_groups
 {
     my ($self) = @_;
 
-    my $query = "
-SELECT client_group_name AS client_group 
-FROM client_group ORDER BY client_group_name;
-";
+    my $arg = $self->get_form(qw/db_client_groups/) ;
 
-    my $groups = $self->dbh_selectall_hashref($query, 'client_group');
+    if ($self->{dbh}->errstr) {
+	return $self->error("Can't use groups with bweb, read INSTALL to enable them");
+    }
 
-    $self->debug($groups);
+    $self->debug($arg);
 
     $self->display({ ID => $cur_id++,
-		     groups => [ values %$groups ] },
+		     %$arg},
 		   "display_groups.tpl");
 }
 
@@ -2652,6 +2655,7 @@ sub display_client_stats
     my ($self, %arg) = @_ ;
 
     my $client = $self->dbh_quote($arg{clientname});
+
     my ($limit, $label) = $self->get_limit(%arg);
 
     my $query = "
@@ -2661,7 +2665,7 @@ SELECT
     sum(Job.JobErrors)   AS nb_err,
     sum(Job.JobFiles)    AS nb_files,
     Client.Name          AS clientname
-FROM Job INNER JOIN Client USING (ClientId)
+FROM Job JOIN Client USING (ClientId)
 WHERE 
     Client.Name = $client
     $limit 
@@ -2672,6 +2676,41 @@ GROUP BY Client.Name
 
     $row->{ID} = $cur_id++;
     $row->{label} = $label;
+    $row->{grapharg} = "client";
+
+    $self->display($row, "display_client_stats.tpl");
+}
+
+
+sub display_group_stats
+{
+    my ($self, %arg) = @_ ;
+
+    my $carg = $self->get_form(qw/qclient_group/);
+
+    my ($limit, $label) = $self->get_limit(%arg);
+
+    my $query = "
+SELECT 
+    count(Job.JobId)     AS nb_jobs,
+    sum(Job.JobBytes)    AS nb_bytes,
+    sum(Job.JobErrors)   AS nb_err,
+    sum(Job.JobFiles)    AS nb_files,
+    client_group.client_group_name  AS clientname
+FROM Job JOIN Client USING (ClientId) 
+         JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
+         JOIN client_group USING (client_group_id)
+WHERE 
+    client_group.client_group_name = $carg->{qclient_group}
+    $limit 
+GROUP BY client_group.client_group_name
+";
+
+    my $row = $self->dbh_selectrow_hashref($query);
+
+    $row->{ID} = $cur_id++;
+    $row->{label} = $label;
+    $row->{grapharg} = "client_group";
 
     $self->display($row, "display_client_stats.tpl");
 }
@@ -2684,7 +2723,7 @@ sub display_pool
     my $whereW = '';
 
     my $arg = $self->get_form('jmediatypes', 'qmediatypes');
-    if ($arg->{jmediatypes}) {
+    if ($arg->{jmediatypes}) { 
 	$whereW = "WHERE MediaType IN ($arg->{jmediatypes}) ";
 	$whereA = "AND   MediaType IN ($arg->{jmediatypes}) ";
     }
