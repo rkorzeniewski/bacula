@@ -115,10 +115,29 @@ conf files, and you do not need a new copy of the source, you can simply do:
    make sed
 
 Debugging failed tests:
-The simplest thing to do is to edit tests/xxxx where xxxx is the name of
-the test, and change the line "set_debug 0" to "set_debug 1".  If the test has
-not been updated to have the debug variable, please notify Kern, and I
-will be happy to fix it -- I am upgrading them one at a time.
+Prior versions required editing the tests/xxxx and changing a debug flag.
+However, that has been replaced by two environment variables:
+
+   REGRESS_DEBUG
+   REGRESS_WAIT
+
+If you define REGRESS_DEBUG, e.g.
+
+   REGRESS_DEBUG=1
+   export REGRESS_DEBUG
+
+then run a test, it will display the job and debug output.
+
+If you define REGRESS_WAIT, the script will stop and request:
+
+Start Bacula under debugger and enter anything when ready ...
+
+At this point, you can start any of the daemons under the debugger,
+then answer the message by entering any character.  The script will         
+then continue. For any daemon or daemons that you have manually started,
+you will see an error message when the script attempts to run a second
+copy, but those messages can be ignored.  This makes it reasonably easy
+to run any component or components under the debugger if necessary.
 
 Also, if you run from time to time on a computer that is not connected
 to the network, please be sure that "hostname" is set to "localhost",
