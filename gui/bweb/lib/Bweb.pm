@@ -4,7 +4,7 @@ use strict;
 =head1 LICENSE
 
    Bweb - A Bacula web interface
-   Bacula® - The Network Backup Solution
+   BaculaÂ® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
 
@@ -27,7 +27,7 @@ use strict;
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   BaculaÂ® is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -134,7 +134,7 @@ sub error
 
 =head2 EXAMPLE
 
-    $ref = { name => 'me', age => 26 };
+    $ref = { name => 'me', age => 26Â };
     $self->display($ref, "people.tpl");
 
 =cut
@@ -1424,7 +1424,7 @@ sub get_form
 	    if ($value =~ /^([\w\d\.\-\s]+)$/) {
 		$ret{$i} = $1;
 	    }
-	} elsif ($i =~ /^j(\w+)s$/) { # quote join args
+	} elsif ($i =~ /^j(\w+)s$/) { # quote join args "'arg1', 'arg2'"
 	    my @value = grep { ! /^\s*$/ } CGI::param($1) ;
 	    if (@value) {
 		$ret{$i} = $self->dbh_join(@value) ;
@@ -1475,7 +1475,7 @@ sub get_form
     if ($what{db_clients}) {
 	my $query = "
 SELECT Client.Name as clientname
-FROM Client
+  FROM Client
 ";
 
 	my $clients = $self->dbh_selectall_hashref($query, 'clientname');
@@ -1483,10 +1483,21 @@ FROM Client
 			      values %$clients] ;
     }
 
+    if ($what{db_client_groups}) {
+	my $query = "
+SELECT client_group_name AS name 
+  FROM client_group
+";
+
+	my $grps = $self->dbh_selectall_hashref($query, 'name');
+	$ret{db_client_groups} = [sort {$a->{name} cmp $b->{name} } 
+				  values %$grps] ;
+    }
+
     if ($what{db_mediatypes}) {
 	my $query = "
 SELECT MediaType as mediatype
-FROM MediaType
+  FROM MediaType
 ";
 
 	my $medias = $self->dbh_selectall_hashref($query, 'mediatype');
@@ -1496,7 +1507,8 @@ FROM MediaType
 
     if ($what{db_locations}) {
 	my $query = "
-SELECT Location as location, Cost as cost FROM Location
+SELECT Location as location, Cost as cost 
+  FROM Location
 ";
 	my $loc = $self->dbh_selectall_hashref($query, 'location');
 	$ret{db_locations} = [ sort { $a->{location} 
@@ -1515,7 +1527,7 @@ SELECT Location as location, Cost as cost FROM Location
     if ($what{db_filesets}) {
 	my $query = "
 SELECT FileSet.FileSet AS fileset 
-FROM FileSet
+  FROM FileSet
 ";
 
 	my $filesets = $self->dbh_selectall_hashref($query, 'fileset');
@@ -1527,7 +1539,7 @@ FROM FileSet
     if ($what{db_jobnames}) {
 	my $query = "
 SELECT DISTINCT Job.Name AS jobname 
-FROM Job
+  FROM Job
 ";
 
 	my $jobnames = $self->dbh_selectall_hashref($query, 'jobname');
@@ -1539,7 +1551,7 @@ FROM Job
     if ($what{db_devices}) {
 	my $query = "
 SELECT Device.Name AS name
-FROM Device
+  FROM Device
 ";
 
 	my $devices = $self->dbh_selectall_hashref($query, 'name');
@@ -1814,6 +1826,15 @@ sub get_param
 	}
     }
 
+    if ($elt{client_groups}) {
+	my @clients = grep { ! /^\s*$/ } CGI::param('client_group');
+	if (@clients) {
+	    $ret{client_groups} = \@clients;
+	    my $str = $self->dbh_join(@clients);
+	    $limit .= "AND client_group_name IN ($str) ";
+	}
+    }
+
     if ($elt{filesets}) {
 	my @filesets = grep { ! /^\s*$/ } CGI::param('fileset');
 	if (@filesets) {
@@ -1939,12 +1960,21 @@ sub display_job
 
     my ($limit, $label) = $self->get_limit(%arg);
     my ($where, undef) = $self->get_param('clients',
+					  'client_groups',
 					  'level',
 					  'filesets',
 					  'jobtype',
 					  'pools',
 					  'jobid',
 					  'status');
+
+    my $cgq = '';
+    if (CGI::param('client_group')) {
+	$cgq = "
+LEFT JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
+LEFT JOIN client_group USING (client_group_id)
+";
+    }
 
     my $query="
 SELECT  Job.JobId       AS jobid,
@@ -1967,6 +1997,7 @@ SELECT  Job.JobId       AS jobid,
  FROM Client, 
       Job LEFT JOIN Pool     ON (Job.PoolId    = Pool.PoolId)
           LEFT JOIN FileSet  ON (Job.FileSetId = FileSet.FileSetId)
+          $cgq
  WHERE Client.ClientId=Job.ClientId
    AND Job.JobStatus != 'R'
  $where
@@ -2237,7 +2268,7 @@ WHERE Location.Location = $arg->{qlocation}
 
     $self->dbh_do($query);
 
-    $self->display_location();
+    $self->location_display();
 }
 
 sub location_del
@@ -2267,7 +2298,7 @@ DELETE FROM Location WHERE Location = $arg->{qlocation} LIMIT 1
 
     $self->dbh_do($query);
 
-    $self->display_location();
+    $self->location_display();
 }
 
 
@@ -2294,10 +2325,10 @@ INSERT INTO Location (Location, Cost, Enabled)
 
     $self->dbh_do($query);
 
-    $self->display_location();
+    $self->location_display();
 }
 
-sub display_location
+sub location_display
 {
     my ($self) = @_ ;
 
@@ -2336,6 +2367,150 @@ sub update_location
 		   },
 		   "update_location.tpl");
 }
+
+###########################################################
+
+sub groups_edit
+{
+    my ($self) = @_;
+
+    my $grp = $self->get_form(qw/qclient_group db_clients/);
+    $self->debug($grp);
+
+    unless ($grp->{qclient_group}) {
+ 	return $self->error("Can't get group");
+    }
+
+    my $query = "
+SELECT Name AS name 
+  FROM Client JOIN client_group_member using (clientid)
+              JOIN client_group using (client_group_id)
+WHERE client_group_name = $grp->{qclient_group}
+";
+
+    my $row = $self->dbh_selectall_hashref($query, "name");
+    $self->debug($row);
+    $self->display({ ID => $cur_id++,
+		     client_group => $grp->{qclient_group},
+		     %$grp,
+		     client_group_member => [ values %$row]}, 
+		   "groups_edit.tpl");
+}
+
+sub groups_save
+{
+    my ($self) = @_;
+
+    my $arg = $self->get_form(qw/qclient_group jclients qnewgroup/);
+    unless ($arg->{qclient_group}) {
+	return $self->error("Can't get groups");
+    }
+    
+    $self->{dbh}->begin_work();
+
+    my $query = "
+DELETE FROM client_group_member 
+      WHERE client_group_id IN 
+           (SELECT client_group_id 
+              FROM client_group 
+             WHERE client_group_name = $arg->{qclient_group})
+";
+    $self->dbh_do($query);
+
+    $query = "
+    INSERT INTO client_group_member (clientid, client_group_id) 
+       (SELECT  Clientid, 
+                (SELECT client_group_id 
+                   FROM client_group 
+                  WHERE client_group_name = $arg->{qclient_group})
+          FROM Client WHERE Name IN ($arg->{jclients})
+       )
+";
+    $self->dbh_do($query);
+
+    if ($arg->{qclient_group} ne $arg->{qnewgroup}) {
+	$query = "
+UPDATE client_group 
+   SET client_group_name = $arg->{qnewgroup}
+ WHERE client_group_name = $arg->{qclient_group}
+";
+
+	$self->dbh_do($query);
+    }
+
+    $self->{dbh}->commit() or $self->error($self->{dbh}->errstr);
+
+    $self->display_groups();
+}
+
+sub groups_del
+{
+    my ($self) = @_;
+    my $arg = $self->get_form(qw/qclient_group/);
+
+    unless ($arg->{qclient_group}) {
+	return $self->error("Can't get groups");
+    }
+
+    $self->{dbh}->begin_work();
+
+    my $query = "
+DELETE FROM client_group_member 
+      WHERE client_group_id IN 
+           (SELECT client_group_id 
+              FROM client_group 
+             WHERE client_group_name = $arg->{qclient_group});
+
+DELETE FROM client_group
+      WHERE client_group_name = $arg->{qclient_group};
+";
+    $self->dbh_do($query);
+
+    $self->{dbh}->commit();
+    
+    $self->display_groups();
+}
+
+
+sub groups_add
+{
+    my ($self) = @_;
+    my $arg = $self->get_form(qw/qclient_group/) ;
+
+    unless ($arg->{qclient_group}) {
+	$self->display({}, "groups_add.tpl");
+	return 1;
+    }
+
+    my $query = "
+INSERT INTO client_group (client_group_name) 
+VALUES ($arg->{qclient_group})
+";
+
+    $self->dbh_do($query);
+
+    $self->display_groups();
+}
+
+sub display_groups
+{
+    my ($self) = @_;
+
+    my $query = "
+SELECT client_group_name AS client_group 
+FROM client_group ORDER BY client_group_name;
+";
+
+    my $groups = $self->dbh_selectall_hashref($query, 'client_group');
+
+    $self->debug($groups);
+
+    $self->display({ ID => $cur_id++,
+		     groups => [ values %$groups ] },
+		   "display_groups.tpl");
+}
+
+###########################################################
 
 sub get_media_max_size
 {
@@ -2429,7 +2604,7 @@ sub save_location
     $self->display_media();
 }
 
-sub change_location
+sub location_change
 {
     my ($self) = @_ ;
 
@@ -2465,7 +2640,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
     $self->display({ email  => $self->{info}->{email_media},
 		     url => $url,
 		     newlocation => $newloc,
-		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
+		     # [ { volumename => 'vol1' }, { volumename => 'vol2'ÂÂÂ },..]
 		     medias => [ values %$medias ],
 		   },
 		   "change_location.tpl");

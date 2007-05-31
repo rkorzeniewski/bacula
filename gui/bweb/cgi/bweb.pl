@@ -4,7 +4,7 @@ use strict ;
 =head1 LICENSE
 
    Bweb - A Bacula web interface
-   Bacula® - The Network Backup Solution
+   BaculaÂ® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
 
@@ -27,7 +27,7 @@ use strict ;
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   BaculaÂ® is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -235,10 +235,10 @@ if ($action eq 'begin') {		# main display
     $bweb->move_email();
 
 } elsif ($action eq 'change_location') {
-    $bweb->change_location();
+    $bweb->location_change();
 
 } elsif ($action eq 'location') {
-    $bweb->display_location();
+    $bweb->location_display();
 
 } elsif ($action eq 'about') {
     $bweb->display($bweb, 'about.tpl');
@@ -276,11 +276,27 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'disable_job') {
     $bweb->enable_disable_job(0);
 
+} elsif ($action eq 'groups') {
+    $bweb->display_groups();
+
+} elsif ($action eq 'groups_edit') {
+    $bweb->groups_edit();
+
+} elsif ($action eq 'groups_save') {
+    $bweb->groups_save();
+
+} elsif ($action eq 'groups_add') {
+    $bweb->groups_add();
+
+} elsif ($action eq 'groups_del') {
+    $bweb->groups_del();
+
 } elsif ($action eq 'job') {
 
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/status level db_clients db_filesets
 				    limit age offset qclients qfilesets
+#				    db_client_groups qclient_groups
 				    jobtype qpools db_pools/);
     $bweb->display($fields, "display_form_job.tpl");
 
