@@ -1,10 +1,11 @@
 bweb (2.2.0-1) stable; urgency=low
 
-  * -b console mode can now create brestore table
+  * brestore -b console mode can now create brestore table
   * fix #836
   * add relocation options to brestore
+  * add group management to bweb (see INSTALL to enable it)
 
- -- Eric Bollengier <eric@eb.homelinux.org>  Wed,  23 May 2007 01:10:47 +0000
+ -- Eric Bollengier <eric@eb.homelinux.org>  Thu,  30 May 2007 15:15:47 +0000
 
 bweb (2.0.3-4) stable; urgency=low
 
