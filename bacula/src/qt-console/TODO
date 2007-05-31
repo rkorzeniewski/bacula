@@ -1,48 +1,12 @@
 dhb
 ====================================================
-Add context sensitive options for most commands
-see COMMANDS file
+can "schedule" be a member of job_defs and populated??
 
 ========LOW priority items:
-Use settings object to size the restore window.  Similar to the saving of the
-state of the main window.
-
 Human readable in joblist for purged, joblevel and job type.
 
 Possibly a stack of past screens so that when you open a window from another,
 closing would bring the previous one back.
-
-Is there a way to query the director/database for whether a storage is currently
-mounted so I am not presenting both mount and unmount to the user??
-
-   Yes, but it requires being able to directly connect to the SD (at least
-   for the moment).
-  
-
-Is there a way to identify a slot as having a cleaning tape???
-(Kern says more work needs to be done in bacula with autochangers)
-  
-    Yes, there is a cleaning prefix for Volume labels defined in 
-    the DIR (not currently available to bat). Typically it is CLNxxx
-    and by looking at the database, you can see these cleaning
-    volumes.
-
-See if there is a solution to images fun with designer other than:
-%s/<iconset>[\.\/]*:images/<iconset>images/g
-%s/<iconset>images/<iconset>..\/images/g
-
-    Images that are in the binary are referenced with :/images/... 
-    This is a Qt convention.  If the image is in a file, it
-    can be referenced directly, but for the most part, I prefer
-    images in the binary (not lost, not accidently deleted, no 
-    installation problems, ...
-
-Think about good ways to clean up the Console creation part of the
-loop creating pages.
-
-    I don't think it is bad as it is.   There is, however, a construct
-    called a Factory that could more or less automate this in one
-    big for loop.
 
 ========================================================
 This release or next:
@@ -74,6 +38,17 @@ bRestore add code to get working.
 
 May be in brestore, find a file by name, find a directory by name
 
+Is there a way to query the director/database for whether a storage is currently
+mounted so I am not presenting both mount and unmount to the user??
+   Yes, but it requires being able to directly connect to the SD (at least
+   for the moment).
+
+Is there a way to identify a slot as having a cleaning tape???
+(Kern says more work needs to be done in bacula with autochangers)
+    Yes, there is a cleaning prefix for Volume labels defined in 
+    the DIR (not currently available to bat). Typically it is CLNxxx
+    and by looking at the database, you can see these cleaning
+    volumes.
 ===========================================================
 NOT SURE
 ===========================================================
@@ -92,8 +67,34 @@ Create edit pool interface.
    This is done from config file
 
 ============================================================
+CALLING GOOD:
+============================================================
+See if there is a solution to images fun with designer other than:
+%s/<iconset>[\.\/]*:images/<iconset>images/g
+%s/<iconset>images/<iconset>..\/images/g
+    Images that are in the binary are referenced with :/images/... 
+    This is a Qt convention.  If the image is in a file, it
+    can be referenced directly, but for the most part, I prefer
+    images in the binary (not lost, not accidently deleted, no 
+    installation problems, ...
+        Utilizing designer to select the main.qrc resource file seems to do the
+        job.  Designer then puts the : in front of images and work.
+
+Think about good ways to clean up the Console creation part of the
+loop creating pages.
+    I don't think it is bad as it is.   There is, however, a construct
+    called a Factory that could more or less automate this in one
+    big for loop.
+        Probably not neccesary for the time being.
+============================================================
 DONE:
 ============================================================
+Use settings object to size the restore window.  Similar to the saving of the
+state of the main window.
+
+Add context sensitive options for most commands
+see COMMANDS file
+
 A window showing a list of jobs and defaults.  Defaults can be gotten in manner
 similar to what the first restore window does.
 

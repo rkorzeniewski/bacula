@@ -86,6 +86,7 @@ class restorePage : public Pages, public Ui::restoreForm
 
 public:
    restorePage();
+   ~restorePage();
    void fillDirectory();
    char *get_cwd();
    bool cwd(const char *);
@@ -101,6 +102,8 @@ private slots:
    void addDirectory(QString &);
 
 private:
+   void writeSettings();
+   void readSettings();
    QString m_cwd;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QHash<QTreeWidgetItem *,QString> m_dirTreeItems;
