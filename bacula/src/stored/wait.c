@@ -228,7 +228,6 @@ bool wait_for_device(JCR *jcr, int &retries)
    stat = pthread_cond_timedwait(&wait_device_release, &device_release_mutex, &timeout);
    Dmsg2(100, "JobId=%u wokeup from sleep on device stat=%d\n", (uint32_t)jcr->JobId, stat);
 
-
    V(device_release_mutex);
    Dmsg2(100, "JobId=%u return from wait_device ok=%d\n", (uint32_t)jcr->JobId, ok);
    return ok;

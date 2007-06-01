@@ -98,13 +98,16 @@ bool acquire_device_for_read(DCR *dcr)
     *  device that was used to write the orginal volume.  If
     *  found, we switch to using that device.
     */
-   Dmsg2(100, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
+   Dmsg2(50, "MediaType dcr=%s dev=%s\n", dcr->media_type, dev->device->media_type);
    if (dcr->media_type[0] && strcmp(dcr->media_type, dev->device->media_type) != 0) {
       RCTX rctx;
       DIRSTORE *store;
       int stat;
       DCR *dcr_save = jcr->dcr;
 
+      Jmsg3(jcr, M_INFO, 0, _("Changing device. Want Media Type=\"%s\" have=\"%s\"\n"
+                              "  device=%s\n"), 
+            dcr->media_type, dev->device->media_type, dev->print_name());
       lock_reservations();
       jcr->dcr = NULL;
       memset(&rctx, 0, sizeof(RCTX));

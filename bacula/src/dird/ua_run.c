@@ -211,7 +211,6 @@ try_again:
       if (ReplaceOptions[i].token == jcr->replace) {
          rc.replace = ReplaceOptions[i].name;
       }
-      rc.replace = NULL;
    }
    if (rc.level_name) {
       if (!get_level_from_name(jcr, rc.level_name)) {

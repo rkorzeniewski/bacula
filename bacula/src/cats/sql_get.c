@@ -306,9 +306,9 @@ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
    jr->JobBytes = str_to_int64(row[6]);
    jr->JobTDate = str_to_int64(row[7]);
    bstrncpy(jr->Job, row[8]!=NULL?row[8]:"", sizeof(jr->Job));
-   jr->JobStatus = (int)*row[9];
-   jr->JobType = (int)*row[10];
-   jr->JobLevel = (int)*row[11];
+   jr->JobStatus = row[9]!=NULL?(int)*row[9]:JS_FatalError;
+   jr->JobType = row[10]!=NULL?(int)*row[10]:JT_BACKUP;
+   jr->JobLevel = row[11]!=NULL?(int)*row[11]:L_NONE;
    jr->ClientId = str_to_uint64(row[12]!=NULL?row[12]:(char *)"");
    bstrncpy(jr->Name, row[13]!=NULL?row[13]:"", sizeof(jr->Name));
    jr->PriorJobId = str_to_uint64(row[14]!=NULL?row[14]:(char *)"");

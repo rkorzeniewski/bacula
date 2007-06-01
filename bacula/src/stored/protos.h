@@ -135,7 +135,7 @@ void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
 bool     is_device_unmounted(DEVICE *dev);
-uint32_t get_jobid_from_tid();
+uint32_t get_jobid_from_tid(pthread_t tid);
 
 /* From dircmd.c */
 void     *handle_connection_request(void *arg);
@@ -213,6 +213,8 @@ void    init_reservations_lock();
 void    term_reservations_lock();
 void    _lock_reservations();
 void    _unlock_reservations();
+void    _lock_volumes();
+void    _unlock_volumes();
 void    release_volume(DCR *dcr);
 VOLRES *reserve_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
@@ -229,24 +231,46 @@ int     search_res_for_device(RCTX &rctx);
 void    release_msgs(JCR *jcr);
 
 extern int reservations_lock_count;
+extern int vol_list_lock_count;
 
 #ifdef  SD_DEBUG_LOCK
+
 #define lock_reservations() \
          do { Dmsg4(sd_dbglvl, "lock_reservations at %s:%d precnt=%d JobId=%u\n", \
               __FILE__, __LINE__, \
-              reservations_lock_count, get_jobid_from_tid()); \
+              reservations_lock_count, get_jobid_from_tid(pthread_self())); \
               _lock_reservations(); \
               Dmsg1(sd_dbglvl, "lock_reservations: got lock JobId=%u\n", \
-               get_jobid_from_tid()); \
+               get_jobid_from_tid(pthread_self())); \
          } while (0)
 #define unlock_reservations() \
          do { Dmsg4(sd_dbglvl, "unlock_reservations at %s:%d precnt=%d JobId=%u\n", \
               __FILE__, __LINE__, \
-              reservations_lock_count, get_jobid_from_tid()); \
+              reservations_lock_count, get_jobid_from_tid(pthread_self())); \
                    _unlock_reservations(); } while (0)
+
+#define lock_volumes() \
+         do { Dmsg4(sd_dbglvl, "lock_volumes at %s:%d precnt=%d JobId=%u\n", \
+              __FILE__, __LINE__, \
+              vol_list_lock_count, get_jobid_from_tid(pthread_self())); \
+              _lock_volumes(); \
+              Dmsg1(sd_dbglvl, "lock_volumes: got lock JobId=%u\n", \
+               get_jobid_from_tid(pthread_self())); \
+         } while (0)
+
+#define unlock_volumes() \
+         do { Dmsg4(sd_dbglvl, "unlock_volumes at %s:%d precnt=%d JobId=%u\n", \
+              __FILE__, __LINE__, \
+              vol_list_lock_count, get_jobid_from_tid(pthread_self())); \
+                   _unlock_volumes(); } while (0)
+
 #else
+
 #define lock_reservations() _lock_reservations()
 #define unlock_reservations() _unlock_reservations()
+#define lock_volumes() _lock_volumes()
+#define unlock_volumes() _unlock_volumes()
+
 #endif
 
 
