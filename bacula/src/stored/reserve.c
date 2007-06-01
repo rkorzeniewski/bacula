@@ -441,13 +441,13 @@ bool volume_unused(DCR *dcr)
 
    if (dev->vol == NULL) {
       Dmsg2(dbglvl, "JobId=%u vol_unused: no vol on %s\n", (int)dcr->jcr->JobId, dev->print_name());
-      debug_list_volumes("null return unreserve_volume");
+      debug_list_volumes("null vol cannot unreserve_volume");
       return false;
    }
 
    if (dev->is_busy()) {
       Dmsg2(dbglvl, "JobId=%u vol_unused: no vol on %s\n", (int)dcr->jcr->JobId, dev->print_name());
-      debug_list_volumes("dev busy return unreserve_volume");
+      debug_list_volumes("dev busy cannot unreserve_volume");
       return false;
    }
 
@@ -881,7 +881,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
          rctx.device_name = device_name;
          stat = search_res_for_device(rctx); 
          if (stat == 1) {             /* found available device */
-            Dmsg2(dbglvl, "JobId=%u Suitable device found=%s\n", (int)rctx.jcr->JobId, 
+            Dmsg2(dbglvl, "JobId=%u available device found=%s\n", (int)rctx.jcr->JobId, 
                   device_name);
             ok = true;
             break;
@@ -1029,7 +1029,18 @@ static int reserve_device(RCTX &rctx)
             Dmsg1(dbglvl, "JobId=%u No next volume found\n", (int)rctx.jcr->JobId);
             rctx.have_volume = false;
             rctx.VolumeName[0] = 0;
-        }
+            /*
+             * If there is at least one volume that is valid and in use,
+             *   but we get here, check if we are running with prefers
+             *   non-mounted drives.  In that case, we have selected a
+             *   non-used drive and our one and only volume is mounted
+             *   elsewhere, so we bail out and retry using that drive.
+             */
+            if (dcr->volume_in_use && !rctx.PreferMountedVols) {
+               rctx.PreferMountedVols = true;
+               goto bail_out;
+            }
+         }
       }
       ok = reserve_device_for_append(dcr, rctx);
       if (ok) {
@@ -1050,13 +1061,10 @@ static int reserve_device(RCTX &rctx)
       }
    }
    if (!ok) {
-      rctx.have_volume = false;
-      free_dcr(dcr);
-      Dmsg1(dbglvl, "JobId=%u Not OK.\n", (int)rctx.jcr->JobId);
-      return 0;
+      goto bail_out;
    }
-   POOL_MEM dev_name;
    if (rctx.notify_dir) {
+      POOL_MEM dev_name;
       BSOCK *dir = rctx.jcr->dir_bsock;
       pm_strcpy(dev_name, rctx.device->hdr.name);
       bash_spaces(dev_name);
@@ -1066,6 +1074,12 @@ static int reserve_device(RCTX &rctx)
       ok = true;
    }
    return ok ? 1 : -1;
+
+bail_out:
+   rctx.have_volume = false;
+   free_dcr(dcr);
+   Dmsg1(dbglvl, "JobId=%u Not OK.\n", (int)rctx.jcr->JobId);
+   return 0;
 }
 
 /*

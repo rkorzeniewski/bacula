@@ -173,7 +173,7 @@ static bool do_get_volume_info(DCR *dcr)
     int n;
     int32_t InChanger;
 
-    if (bnet_recv(dir) <= 0) {
+    if (dir->recv() <= 0) {
        Dmsg0(200, "getvolname error bnet_recv\n");
        Mmsg(jcr->errmsg, _("Network error on bnet_recv in req_vol_info.\n"));
        return false;
@@ -224,7 +224,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     P(vol_info_mutex);
     bstrncpy(dcr->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
     bash_spaces(dcr->VolCatInfo.VolCatName);
-    bnet_fsend(dir, Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
+    dir->fsend(Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
     Dmsg1(100, ">dird: %s", dir->msg);
     unbash_spaces(dcr->VolCatInfo.VolCatName);
@@ -241,6 +241,8 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
  * Returns: true  on success dcr->VolumeName is volume
  *                reserve_volume() called on Volume name
  *          false on failure dcr->VolumeName[0] == 0
+ *                also sets dcr->volume_in_use if at least one 
+ *                in use volume was found.
  *
  *          Volume information returned in dcr
  *
@@ -259,10 +261,11 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      */
     lock_reservations();
     P(vol_info_mutex);
+    dcr->volume_in_use = false;
     for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
-       bnet_fsend(dir, Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
+       dir->fsend(Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
        unbash_spaces(dcr->media_type);
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird: %s", dir->msg);
@@ -273,6 +276,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
              break;
           } else {
              Dmsg1(100, "Volume %s is in use.\n", dcr->VolumeName);
+             dcr->volume_in_use = true;
              continue;
           }
        } else {
