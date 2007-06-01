@@ -1,6 +1,89 @@
               Technical notes on version 2.1
 
 General:
+01Jun07
+kes  Fix a Bacula PostgreSQL bug dereferencing a NULL pointer      
+     returned from a query.
+kes  Make volume lock recursive.
+kes  Implement an additional volume reservation algorithm that
+     starts by considering all reserved volumes then uses the
+     old brute force algorithm of searching the resources to
+     find a suitable device.
+kes  Add new reservations debug code and refine the old code.
+kes  Update the win32/dll/bacula.defs file.
+29May07
+kes  Tweak reservations algorithm to permit a few more cases, i.e.
+     volume reserved, but on different drive, ...
+kes  Enhance SD status to include Pool and Media Type for drive in a
+     more readable format (a bit longer). 
+kes  Fix PostgreSQL double free.
+28May07
+kes  Minor refactoring of restore decryption code.
+kes  Add code to smartall.c to detect double free of a buffer.
+27May07
+kes  Add < > around %r in from field on mail command of bacula-dir.conf.in
+     so that bsmtp will create a correct email address (mailbox only).
+kes  Modify 'memory' command so that the buffers are listed as 'In use'
+     to avoid confusion with Orphaned buffers.
+kes  I reworked the OpenSSL include/lib flags to be handled in     
+     the standard Bacula way, which should fix bug #863 concerning
+     non-standard OpenSSL libraries.
+26May07
+kes  Implement Help Browser window for bat.
+kes  Fix reload bug that reset StorageId to zero.
+25May07
+kes  Fix TLS #ifdefing when TLS turned off.
+kes  Ensure that when labelling a tape with Slot=0 that InChanger
+     is not set.
+kes  Use DISTINCT to make MySQL and PostgreSQL uar_list_temp query        
+     the same.
+kes  Add StartTime to final uar_sel_jobid_temp query so that we can
+     add DISTINCT (required by PostgreSQL).
+kes  Implement BSOCK authenticate_director() method. Eventually will
+     authenicate all daemons.
+kes  Move several more functions into the BSOCK class.
+24May07
+kes  Add code to tell the OS that we no longer need a cached
+     file that we were reading. In findlib/bfile.c.  Also,
+     only cache files that we are reading. Thanks to
+     Tobias Oetiker <tobi@oetiker.ch> for the idea.
+kes  Tweak to bsmtp to eliminate compiler warnings on Win32.
+kes  Implement script to automatically generate cats and dll .def
+     files for Win32 dll.
+kes  Update README.mingw32 to include new .def file generation.
+kes  Correct typo in UTF-8 error message as reported by:
+     jhernandez <julianhernandez@gmail.com>
+kes  Add additional sm_check() code on debug level 1.
+kes  Set default debug level to 1.
+kes  Trap SIGABRT in attempt to get traceback.
+23May07
+kes  Reduce bat connect timeout from 30 to 15 seconds.
+kes  More restructuring and implementing BSOCK class in place of
+     old bnet.c code.
+kes  Remove a few unnecessary malloc() tests in crypto code.
+kes  Turn off crypto calls for > 128 bits in crypto.c if HAVE_SHA2
+     not defined. Bug reported by Allan Black <Allan.Black@btconnect.com>
+kes  Remove duplicate HAVE_CRYPTO definition in config.h.in
+22May07
+kes  Fix Verify InitCatalog mysql_escape_string() trashing memory.
+     Make buffer bigger.
+kes  Fix Verify InitCatalog. The attributes were not pointing to the
+     correct saved location.
+kes  Implement message callback so that GUI is sure to get all
+     daemon messages. Currently displayed in a dialog in bat.
+kes  Ignore SIGUSR2 (Bacula timer) in bat.
+kes  Apply regress patch from bug #859 to allow regress to work 
+     with Solaris compiler.
+21May07
+kes  Begin adding TLS support to bat.
+kes  Apply UTF-8/16 patch from Yves Orton <demerphq@gmail.com> to
+     clean up lex.c and make it more readable.
+20May07
+kes  Move more bnet functions into the BSOCK class.
+kes  Fix tray-monitor by not requiring a timer interval in bnet_connect()
+kes  Complete change of berrno strerror() method to bstrerror() 
+
+Release: 2.1.10 beta
 18May07
 kes  Cleanup incorrect email addresses in bsmtp.
 kes  Make bat display initial messages rather than discard them.

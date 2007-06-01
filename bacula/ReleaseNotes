@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 2.1.10
+          Release Notes for Bacula 2.1.12
 
   Bacula code: Total files = 458 Total lines = 170,197 (*.h *.c *.in)
 
@@ -7,7 +7,22 @@ This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons.  However, bat works only with
-a 2.1.8 Director.
+a 2.1.8 Director or greater.
+
+Changes since Beta release 2.1.10
+- Lots of new bat functionality !!!!!!
+- Additional drive reservation algorithm that should solve a lot of
+  the problems experienced with multiple drive autochangers.
+- Reload was broken in 2.1.10 -- now fixed.
+- Storage daemon status command enhanced to more clearly show Volume,
+  pool and media type when a job is waiting.
+- Made bsmtp work with more strict SMTP servers.
+- Detect doubly freed buffers in smartall.c
+- Reduce the impact of a backup on the FD's memory usage (OS file
+  caching). This works only on POSIX compliant systems. This allows
+  users to work with less interference on a Client machine during a
+  backup.
+- bat should now handle non-English characters.
 
 Areas requiring caution or testing:
 - You must have Qt4 Version 4.2 or greater loaded to build bat
