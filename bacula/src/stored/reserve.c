@@ -469,7 +469,7 @@ bool free_volume(DEVICE *dev)
    vol = dev->vol;
    dev->vol = NULL;
    vol_list->remove(vol);
-   Dmsg2(dbglvl, "free_volume %s at %p dev=%s\n", vol->vol_name, dev->print_name());
+   Dmsg2(dbglvl, "free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
    free_vol_item(vol);
    debug_list_volumes("free_volume");
    unlock_volumes();
