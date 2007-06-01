@@ -51,6 +51,17 @@ Device {
 # Maximum File Size = 1000000
 }
 
+Device {
+  Name = FileStorage
+  Media Type = FileMedia
+  Archive Device = @tmpdir@
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+}
+
 
 # 
 # Send all messages to the Director, 

@@ -114,7 +114,7 @@ end_test()
    if [ $dstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
       echo " "
       echo " "
-      echo "  !!!!! $TestName Bacula source failed!!! !!!!! "
+      echo "  !!!!! $TestName failed!!! !!!!! "
       echo "  !!!!! $TestName failed!!! !!!!! " >>test.out
       if [ $bstat != 0 -o $rstat != 0 ] ; then
          echo "  !!!!! Bad Job termination status     !!!!! "
@@ -125,7 +125,7 @@ end_test()
       fi
       echo " "
    else
-      echo "  ===== $TestName Bacula source OK `date +%R:%S` ===== "
+      echo "  ===== $TestName OK `date +%R:%S` ===== "
       echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
       if test "$debug" -eq 0 ; then
          scripts/cleanup

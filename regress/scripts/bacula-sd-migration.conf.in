@@ -41,7 +41,7 @@ Autochanger {
 Device {
   Name = Drive-0                   # 
   Device Type = File
-  Media Type = DiskChanger
+  Media Type = DiskChangerMedia
   Archive Device = @disk_drive@/drive0
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes

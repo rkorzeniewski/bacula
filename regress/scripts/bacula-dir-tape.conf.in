@@ -158,6 +158,19 @@ Storage {
 }
 
 
+# Definition of File storage device
+Storage {
+  Name = File
+  Address = @hostname@                # N.B. Use a fully qualified name here
+  SDPort = 8103
+  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
+  Device = FileStorage                # must be same as Device in Storage daemon
+  Media Type = FileMedia              # must be same as MediaType in Storage daemon
+  Maximum Concurrent Jobs = 4
+}
+
+
+
 # Generic catalog service
 Catalog {
   Name = MyCatalog

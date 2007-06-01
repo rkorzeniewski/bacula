@@ -154,7 +154,7 @@ Storage {
   SDPort = 8103
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DiskChanger                      # must be same as Device in Storage daemon
-  Media Type = DiskChanger                  # must be same as MediaType in Storage daemon
+  Media Type = DiskChangerMedia             # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 4
   Autochanger = yes
 }
