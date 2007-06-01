@@ -2,7 +2,8 @@
 
 General:
 01Jun07
-kes  Fix PostgreSQL seg fault. 
+kes  Fix a Bacula PostgreSQL bug dereferencing a NULL pointer      
+     returned from a query.
 kes  Make volume lock recursive.
 kes  Implement an additional volume reservation algorithm that
      starts by considering all reserved volumes then uses the
@@ -81,6 +82,7 @@ kes  Apply UTF-8/16 patch from Yves Orton <demerphq@gmail.com> to
 kes  Move more bnet functions into the BSOCK class.
 kes  Fix tray-monitor by not requiring a timer interval in bnet_connect()
 kes  Complete change of berrno strerror() method to bstrerror() 
+
 Release: 2.1.10 beta
 18May07
 kes  Cleanup incorrect email addresses in bsmtp.
