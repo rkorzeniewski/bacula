@@ -285,6 +285,7 @@ _ZN5BSOCK14wait_data_intrEi
 _ZN5BSOCK15set_buffer_sizeEji
 _ZN5BSOCK15set_nonblockingEv
 _ZN5BSOCK16restore_blockingEi
+_ZN5BSOCK21authenticate_directorEPKcS1_P11TLS_ContextPci
 _ZN5BSOCK4initEv
 _ZN5BSOCK4recvEv
 _ZN5BSOCK4sendEv
@@ -348,16 +349,16 @@ _Z9tm_decodeP9date_timeP2tm
 _Z9tm_encodeP9date_timeP2tm
  
 ; btimers.o
-_Z16stop_bsock_timerP10s_btimer_t
-_Z16stop_child_timerP10s_btimer_t
+_Z16stop_bsock_timerP8btimer_t
+_Z16stop_child_timerP8btimer_t
 _Z17start_bsock_timerP5BSOCKj
 _Z17start_child_timerij
-_Z17stop_thread_timerP10s_btimer_t
+_Z17stop_thread_timerP8btimer_t
 _Z18start_thread_timerP10pthread_t_j
  
 ; cram-md5.o
-_Z16cram_md5_respondP5BSOCKPcPiS2_
-_Z18cram_md5_challengeP5BSOCKPcii
+_Z16cram_md5_respondP5BSOCKPKcPiS3_
+_Z18cram_md5_challengeP5BSOCKPKcii
  
 ; crc32.o
 _Z6bcrc32Phi
@@ -637,7 +638,7 @@ _Z12sm_new_ownerPKciPc
 _Z14actuallycallocjj
 _Z14actuallymallocj
 _Z15actuallyreallocPvj
-_Z7sm_dumpb
+_Z7sm_dumpbb
 _Z7sm_freePKciPv
 _Z8sm_checkPKcib
 _Z9sm_callocPKcijj
@@ -645,6 +646,8 @@ _Z9sm_mallocPKcij
 _Z9sm_staticb
  
 ; tls.o
+_Z14get_tls_enableP11TLS_Context
+_Z15get_tls_requireP11TLS_Context
 _Z15new_tls_contextPKcS0_S0_S0_PFiPciPKvES3_S0_b
 _Z15tls_bsock_readnP5BSOCKPci
 _Z16free_tls_contextP11TLS_Context

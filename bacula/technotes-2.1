@@ -1,6 +1,15 @@
               Technical notes on version 2.1
 
 General:
+01Jun07
+kes  Fix PostgreSQL seg fault. 
+kes  Make volume lock recursive.
+kes  Implement an additional volume reservation algorithm that
+     starts by considering all reserved volumes then uses the
+     old brute force algorithm of searching the resources to
+     find a suitable device.
+kes  Add new reservations debug code and refine the old code.
+kes  Update the win32/dll/bacula.defs file.
 29May07
 kes  Tweak reservations algorithm to permit a few more cases, i.e.
      volume reserved, but on different drive, ...
