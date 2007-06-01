@@ -380,10 +380,9 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
       nextPage->setContextMenuDockText();
 
       treeWidget->addAction(actionToggleDock);
-      /* if this page is closeable, then add that action */
-      if (nextPage->isCloseable()) {
+      /* if this page is closeable, and it has no childern, then add that action */
+      if ((nextPage->isCloseable()) && (currentitem->child(0) == NULL))
          treeWidget->addAction(actionClosePage);
-      }
 
       /* Add the actions to the Page Selectors tree widget that are part of the
        * current items list of desired actions regardless of whether on top of stack*/
