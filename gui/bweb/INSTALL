@@ -321,7 +321,8 @@ INSERT INTO job_old
 ################ USE GROUPS WITH BWEB ##########################
 
 It works with postgresql and mysql5 (4 not tested).
-To enable group, load bweb/script/bweb_group.sql into your catalog
+With mysql, load bweb/script/bweb-mysql.sql into your catalog
+For postgresql, it will be done with bweb/script/bweb-postgresql.sql (already done)
 
 ################################################################
 
