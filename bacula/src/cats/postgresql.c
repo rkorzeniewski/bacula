@@ -437,8 +437,14 @@ void my_postgresql_field_seek(B_DB *mdb, int field)
 /*
  * Note, if this routine returns 1 (failure), Bacula expects
  *  that no result has been stored.
+ * This is where QUERY_DB comes with Postgresql.
+ *
+ *  Returns:  0  on success
+ *            1  on failure
+ *
  */
-int my_postgresql_query(B_DB *mdb, const char *query) {
+int my_postgresql_query(B_DB *mdb, const char *query)
+{
    Dmsg0(500, "my_postgresql_query started\n");
    // We are starting a new query.  reset everything.
    mdb->num_rows     = -1;
@@ -451,26 +457,42 @@ int my_postgresql_query(B_DB *mdb, const char *query) {
    }
 
    Dmsg1(500, "my_postgresql_query starts with '%s'\n", query);
-   mdb->result = PQexec(mdb->db, query);
+
+   for (int i=0; i < 10; i++) {
+      mdb->result = PQexec(mdb->db, query);
+      if (mdb->result) {
+         break;
+      }
+      bmicrosleep(5, 0);
+   }
+   if (!mdb->result) {
+      goto bail_out;
+   }
+
    mdb->status = PQresultStatus(mdb->result);
    if (mdb->status == PGRES_TUPLES_OK || mdb->status == PGRES_COMMAND_OK) {
       Dmsg1(500, "we have a result\n", query);
 
       // how many fields in the set?
-      mdb->num_fields = (int) PQnfields(mdb->result);
+      mdb->num_fields = (int)PQnfields(mdb->result);
       Dmsg1(500, "we have %d fields\n", mdb->num_fields);
 
       mdb->num_rows = PQntuples(mdb->result);
       Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
-      mdb->status = 0;
+      mdb->status = 0;                  /* succeed */
    } else {
-      Dmsg1(500, "we failed\n", query);
-      mdb->status = 1;
+      goto bail_out;
    }
 
    Dmsg0(500, "my_postgresql_query finishing\n");
+   return mdb->status;
 
+bail_out:
+   Dmsg1(500, "we failed\n", query);
+   PQclear(mdb->result);
+   mdb->result = NULL;
+   mdb->status = 1;                   /* failed */
    return mdb->status;
 }
 
