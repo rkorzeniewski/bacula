@@ -233,7 +233,7 @@ Distribution: %{_dist}
 %{?build_wxconsole:%define wxconsole 1}
 
 # Should we build bat
-# requires QT4
+# requires >= Qt-4.2
 %define bat 0
 %{?build_bat:%define bat 1}
 
@@ -274,7 +274,7 @@ BuildRequires: python, python-devel
 BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
 %if %{bat}
-BuildRequires: qt-devel >= 4
+BuildRequires: qt-devel >= 4.2
 %endif
 %if %{rh7}
 BuildRequires: libtermcap-devel
@@ -958,7 +958,7 @@ Requires: fontconfig
 Requires: freetype2
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4
+Requires: qt >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -970,7 +970,7 @@ Requires: fontconfig
 Requires: freetype2
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4
+Requires: qt >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -982,7 +982,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4
+Requires: qt >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -994,7 +994,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4
+Requires: qt >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -1006,7 +1006,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4
+Requires: qt >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -2003,6 +2003,8 @@ fi
 %endif
 
 %changelog
+* Sat Jun 02 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- upgrade Qt requirement for bat to 4.2
 * Sun May 06 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add fc7 build target
 * Sun Apr 29 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
