@@ -341,16 +341,15 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
 
    Dmsg0(500, "my_postgresql_fetch_row start\n");
 
-   if (mdb->row_number == -1 || mdb->row == NULL) {
+   if (!mdb->row || mdb->row_size < mdb->num_fields) {
       Dmsg1(500, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
 
-      if (mdb->row != NULL) {
+      if (mdb->row) {
          Dmsg0(500, "my_postgresql_fetch_row freeing space\n");
          free(mdb->row);
-         mdb->row = NULL;
       }
-
       mdb->row = (POSTGRESQL_ROW) malloc(sizeof(char *) * mdb->num_fields);
+      mdb->row_size = mdb->num_fields;
 
       // now reset the row_number now that we have the space allocated
       mdb->row_number = 0;
@@ -406,9 +405,14 @@ POSTGRESQL_FIELD * my_postgresql_fetch_field(B_DB *mdb)
    int     i;
 
    Dmsg0(500, "my_postgresql_fetch_field starts\n");
-   if (mdb->fields == NULL) {
+
+   if (!mdb->fields || mdb->fields_size < mdb->num_fields) {
+      if (mdb->fields) {
+         free(mdb->fields);
+      }
       Dmsg1(500, "allocating space for %d fields\n", mdb->num_fields);
       mdb->fields = (POSTGRESQL_FIELD *)malloc(sizeof(POSTGRESQL_FIELD) * mdb->num_fields);
+      mdb->fields_size = mdb->num_fields;
 
       for (i = 0; i < mdb->num_fields; i++) {
          Dmsg1(500, "filling field %d\n", i);

@@ -442,9 +442,11 @@ struct B_DB {
    POSTGRESQL_ROW row;
    POSTGRESQL_FIELD *fields;
    int num_rows;
+   int row_size;                  /* size of malloced rows */
    int num_fields;
-   int row_number;            /* what row number did we get via my_postgresql_data_seek? */
-   int field_number;          /* what field number did we get via my_postgresql_field_seek? */
+   int fields_size;               /* size of malloced fields */
+   int row_number;                /* row number from my_postgresql_data_seek */
+   int field_number;              /* field number from my_postgresql_field_seek */
    int ref_count;
    char *db_name;
    char *db_user;

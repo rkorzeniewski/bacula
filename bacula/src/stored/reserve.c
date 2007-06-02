@@ -1242,7 +1242,6 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
       }
 
       /* Check for prefer mounted volumes */
-//    if (rctx.PreferMountedVols && !dev->VolHdr.VolumeName[0] && dev->is_tape()) {
       if (rctx.PreferMountedVols && !dev->vol && dev->is_tape()) {
          Mmsg(jcr->errmsg, _("3606 JobId=%u prefers mounted drives, but drive %s has no Volume.\n"), 
             jcr->JobId, dev->print_name());
@@ -1271,7 +1270,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
                jcr->JobId, rctx.VolumeName, dev->VolHdr.VolumeName, 
                dev->print_name());
             queue_reserve_message(jcr);
-            Dmsg4(dbglvl, "JobId=%u failed: dev have=%s resvol=%s want=%s\n",
+            Dmsg4(dbglvl, "JobId=%u not OK: dev have=%s resvol=%s want=%s\n",
                   (int)jcr->JobId, dev->VolHdr.VolumeName, 
                   dev->vol?dev->vol->vol_name:"*none*", rctx.VolumeName);
             return 0;
