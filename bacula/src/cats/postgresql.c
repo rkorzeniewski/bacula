@@ -473,7 +473,7 @@ int my_postgresql_query(B_DB *mdb, const char *query)
       bmicrosleep(5, 0);
    }
    if (!mdb->result) {
-      Dmsg1(000, "Query failed: %s\n", query);
+      Dmsg1(50, "Query failed: %s\n", query);
       goto bail_out;
    }
 
@@ -490,7 +490,7 @@ int my_postgresql_query(B_DB *mdb, const char *query)
 
       mdb->status = 0;                  /* succeed */
    } else {
-      Dmsg1(000, "Result status failed: %s\n", query);
+      Dmsg1(50, "Result status failed: %s\n", query);
       goto bail_out;
    }
 
@@ -567,7 +567,7 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
       bmicrosleep(5, 0);
    }
    if (!result) {
-      Dmsg1(000, "Query failed: %s\n", query);
+      Dmsg1(50, "Query failed: %s\n", query);
       goto bail_out;
    }
 
@@ -578,7 +578,7 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
       id = atoi(PQgetvalue(result, 0, 0));
       Dmsg2(500, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
    } else {
-      Dmsg1(000, "Result status failed: %s\n", query);
+      Dmsg1(50, "Result status failed: %s\n", query);
       Mmsg1(&mdb->errmsg, _("error fetching currval: %s\n"), PQerrorMessage(mdb->db));
    }
 
@@ -624,7 +624,7 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
       bmicrosleep(5, 0);
    }
    if (!mdb->result) {
-      Dmsg1(000, "Query failed: %s\n", query);
+      Dmsg1(50, "Query failed: %s\n", query);
       goto bail_out;
    }
 
@@ -635,7 +635,7 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
       mdb->num_rows   = 0;
       mdb->status = 1;
    } else {
-      Dmsg1(000, "Result status failed: %s\n", query);
+      Dmsg1(50, "Result status failed: %s\n", query);
       goto bail_out;
    }
 
