@@ -143,6 +143,12 @@ db_open_database(JCR *jcr, B_DB *mdb)
    int errstat;
    char buf[10], *port;
 
+#ifdef xxx
+   if (!PQisthreadsafe()) {
+      Jmsg(jcr, M_ABORT, 0, _("PostgreSQL configuration problem. "          
+           "PostgreSQL library is not thread safe. Connot continue.\n"));
+   }
+#endif
    P(mutex);
    if (mdb->connected) {
       V(mutex);
@@ -151,8 +157,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mdb->connected = false;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
+      berrno be;
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
-            strerror(errstat));
+            be.bstrerror(errstat));
       V(mutex);
       return 0;
    }
@@ -466,6 +473,7 @@ int my_postgresql_query(B_DB *mdb, const char *query)
       bmicrosleep(5, 0);
    }
    if (!mdb->result) {
+      Dmsg1(000, "Query failed: %s\n", query);
       goto bail_out;
    }
 
@@ -482,6 +490,7 @@ int my_postgresql_query(B_DB *mdb, const char *query)
 
       mdb->status = 0;                  /* succeed */
    } else {
+      Dmsg1(000, "Result status failed: %s\n", query);
       goto bail_out;
    }
 
@@ -549,9 +558,18 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
    bstrncat(sequence, "_seq", sizeof(sequence));
    bsnprintf(query, sizeof(query), "SELECT currval('%s')", sequence);
 
-// Mmsg(query, "SELECT currval('%s')", sequence);
    Dmsg1(500, "my_postgresql_currval invoked with '%s'\n", query);
-   result = PQexec(mdb->db, query);
+   for (int i=0; i < 10; i++) {
+      result = PQexec(mdb->db, query);
+      if (result) {
+         break;
+      }
+      bmicrosleep(5, 0);
+   }
+   if (!result) {
+      Dmsg1(000, "Query failed: %s\n", query);
+      goto bail_out;
+   }
 
    Dmsg0(500, "exec done");
 
@@ -560,9 +578,11 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
       id = atoi(PQgetvalue(result, 0, 0));
       Dmsg2(500, "got value '%s' which became %d\n", PQgetvalue(result, 0, 0), id);
    } else {
+      Dmsg1(000, "Result status failed: %s\n", query);
       Mmsg1(&mdb->errmsg, _("error fetching currval: %s\n"), PQerrorMessage(mdb->db));
    }
 
+bail_out:
    PQclear(result);
 
    return id;
@@ -570,6 +590,8 @@ int my_postgresql_currval(B_DB *mdb, char *table_name)
 
 int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
 {
+   char *query = "COPY batch FROM STDIN";
+
    Dmsg0(500, "my_postgresql_batch_start started\n");
 
    if (my_postgresql_query(mdb,
@@ -594,7 +616,18 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
       my_postgresql_free_result(mdb);
    }
 
-   mdb->result = PQexec(mdb->db, "COPY batch FROM STDIN");
+   for (int i=0; i < 10; i++) {
+      mdb->result = PQexec(mdb->db, query);
+      if (mdb->result) {
+         break;
+      }
+      bmicrosleep(5, 0);
+   }
+   if (!mdb->result) {
+      Dmsg1(000, "Query failed: %s\n", query);
+      goto bail_out;
+   }
+
    mdb->status = PQresultStatus(mdb->result);
    if (mdb->status == PGRES_COPY_IN) {
       // how many fields in the set?
@@ -602,12 +635,18 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
       mdb->num_rows   = 0;
       mdb->status = 1;
    } else {
-      Dmsg0(500, "we failed\n");
-      mdb->status = 0;
+      Dmsg1(000, "Result status failed: %s\n", query);
+      goto bail_out;
    }
 
    Dmsg0(500, "my_postgresql_batch_start finishing\n");
 
+   return mdb->status;
+
+bail_out:
+   mdb->status = 0;
+   PQclear(mdb->result);
+   mdb->result = NULL;
    return mdb->status;
 }
 
