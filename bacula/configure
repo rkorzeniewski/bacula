@@ -1449,6 +1449,7 @@ Optional Features:
 
   --disable-readline      disable readline support disable
 
+	--enable-batch-insert	    enable the DB batch insert code disabled
   --disable-largefile     omit support for large files
 
 Optional Packages:
@@ -18743,9 +18744,6 @@ fi
 
 
 
-
-
-
 #
 # allow setting default executable permissions
 #
@@ -18767,6 +18765,7 @@ fi
 # ------------------------------------------------
 # Bacula check for various SQL database engines
 # ------------------------------------------------
+SQL_LIB=
 
 db_found=no
 { echo "$as_me:$LINENO: checking for PostgreSQL support" >&5
@@ -19034,6 +19033,8 @@ fi
       SQL_INCLUDE=-I$POSTGRESQL_INCDIR
       SQL_LFLAGS=$POSTGRESQL_LFLAGS
       SQL_BINDIR=$POSTGRESQL_BINDIR
+      SQL_LIB=$POSTGRESQL_LIBDIR/libpq.a
+
       cat >>confdefs.h <<\_ACEOF
 #define HAVE_POSTGRESQL 1
 _ACEOF
@@ -19168,6 +19169,7 @@ _ACEOF
 
     fi
     SQL_BINDIR=$MYSQL_BINDIR
+    SQL_LIB=$MYSQL_LIBDIR/libmysqlclient_r.a
 
     cat >>confdefs.h <<\_ACEOF
 #define HAVE_MYSQL 1
@@ -19270,6 +19272,7 @@ echo "$as_me: error: Invalid MySQL directory $withval - unable to find mysql.h u
     SQL_INCLUDE=-I$MYSQL_INCDIR
     SQL_LFLAGS="-L$MYSQL_LIBDIR -lmysqld -lz -lm -lcrypt"
     SQL_BINDIR=$MYSQL_BINDIR
+    SQL_LIB=$MYSQL_LIBDIR/libmysqld.a
 
     cat >>confdefs.h <<\_ACEOF
 #define HAVE_MYSQL 1
@@ -19367,6 +19370,7 @@ echo "$as_me: error: Invalid SQLite3 directory $withval - unable to find sqlite3
      SQL_INCLUDE=-I$SQLITE_INCDIR
      SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite3"
      SQL_BINDIR=$SQLITE_BINDIR
+     SQL_LIB=$SQLITE_LIBDIR/libsqlite3.a
 
      cat >>confdefs.h <<\_ACEOF
 #define HAVE_SQLITE3 1
@@ -19462,6 +19466,7 @@ echo "$as_me: error: Invalid SQLite directory $withval - unable to find sqlite.h
      SQL_INCLUDE=-I$SQLITE_INCDIR
      SQL_LFLAGS="-L$SQLITE_LIBDIR -lsqlite"
      SQL_BINDIR=$SQLITE_BINDIR
+     SQL_LIB=$SQLITE_LIBDIR/libsqlite.a
 
      cat >>confdefs.h <<\_ACEOF
 #define HAVE_SQLITE 1
@@ -19491,6 +19496,33 @@ fi
 
 
 
+
+
+
+
+# -------------------------------------------
+# enable batch attribute DB insert (default on)
+# -------------------------------------------
+support_batch_insert=no
+A=`nm $SQL_LIB | grep pthread_mutex_lock`
+pkg=$?
+if test $pkg = 0; then
+   support_batch_insert=yes
+   # Check whether --enable-batch-insert was given.
+if test "${enable_batch_insert+set}" = set; then
+  enableval=$enable_batch_insert; if test x$enableval = xno; then
+       support_batch_insert=no
+      else
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_BATCH_INSERT 1
+_ACEOF
+
+       support_batch_insert=yes
+     fi
+fi
+
+fi
 
 
 
@@ -35916,6 +35948,7 @@ Configuration on `date`:
   build-stored: 	      ${build_stored}
   ACL support:		      ${have_acl}
   Python support:	      ${support_python} ${PYTHON_LIBS}
+  Batch insert enabled:       ${support_batch_insert}
 
   " > config.out
 

@@ -353,8 +353,8 @@ INSERT INTO Status (JobStatus,JobStatusLong) VALUES
 INSERT INTO Version (VersionId) VALUES (10);
 
 
-PRAGMA default_synchronous = OFF;
-PRAGMA default_cache_size = 10000;
+PRAGMA default_cache_size = 100000;
+PRAGMA synchronous = NORMAL;
 
 END-OF-DATA
 
