@@ -187,8 +187,8 @@ UpdateDB(const char *file, int line, JCR *jcr, B_DB *mdb, char *cmd)
    mdb->num_rows = sql_affected_rows(mdb);
    if (mdb->num_rows < 1) {
       char ed1[30];
-      m_msg(file, line, &mdb->errmsg, _("Update problem: affected_rows=%s\n"),
-         edit_uint64(mdb->num_rows, ed1));
+      m_msg(file, line, &mdb->errmsg, _("Update failed: affected_rows=%s for %s\n"),
+         edit_uint64(mdb->num_rows, ed1), cmd);
       if (verbose) {
 //       j_msg(file, line, jcr, M_INFO, 0, "%s\n", cmd);
       }

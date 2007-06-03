@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "2.1.11"
-#define BDATE   "02 June 2007"
-#define LSMDATE "02Jun07"
+#define BDATE   "04 June 2007"
+#define LSMDATE "04Jun07"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2007"       /* year for copyright messages in progs */
@@ -57,6 +57,16 @@
 #define SMCHECK
 #endif
 
+/* 
+ * for fastest speed but you must have a UPS to avoid unwanted shutdowns
+ */
+#define SQLITE3_INIT_QUERY "PRAGMA synchronous = OFF"
+
+/*
+ * for more safety, but is 30 times slower than above
+ */
+//#define SQLITE3_INIT_QUERY "PRAGMA synchronous = NORMAL"
+
 /*
  * This should always be on. It enables data encryption code 
  *  providing it is configured.
@@ -69,13 +79,6 @@
  *  on.
  */
 #define USE_BSNPRINTF 1
-
-/*
- * Turn on the following flag to enable batch attribute inserts
- *  in the catalog.  This gives a large speedup.
- */
-#define HAVE_BATCH_FILE_INSERT 1
-
 
 /* Debug flags not normally turned on */
 

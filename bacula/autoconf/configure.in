@@ -1231,9 +1231,6 @@ AC_ARG_WITH(fd_group,
     ]
 )
 
-
-
-
 AC_SUBST(dir_user)
 AC_SUBST(dir_group)
 AC_SUBST(sd_user)
@@ -1259,6 +1256,7 @@ AC_SUBST(SBINPERM)
 # ------------------------------------------------
 # Bacula check for various SQL database engines
 # ------------------------------------------------
+SQL_LIB=
 BA_CHECK_POSTGRESQL_DB
 
 BA_CHECK_MYSQL_DB
@@ -1269,6 +1267,27 @@ BA_CHECK_SQLITE_DB
 
 AC_SUBST(cats)
 AC_SUBST(DB_TYPE)
+
+# -------------------------------------------
+# enable batch attribute DB insert (default on)
+# -------------------------------------------
+support_batch_insert=no
+A=`nm $SQL_LIB | grep pthread_mutex_lock`
+pkg=$?
+if test $pkg = 0; then
+   support_batch_insert=yes
+   AC_ARG_ENABLE(batch-insert,
+     [	--enable-batch-insert	    enable the DB batch insert code [disabled]],
+     [if test x$enableval = xno; then
+       support_batch_insert=no
+      else
+       AC_DEFINE(HAVE_BATCH_INSERT, 1, [Set if DB batch insert code enabled]) 
+       support_batch_insert=yes
+     fi])
+fi
+							  
+
+
 
 AC_DEFINE(PROTOTYPES)
 
@@ -2278,6 +2297,7 @@ Configuration on `date`:
   build-stored: 	      ${build_stored}
   ACL support:		      ${have_acl}
   Python support:	      ${support_python} ${PYTHON_LIBS}
+  Batch insert enabled:       ${support_batch_insert}
 
   " > config.out
 

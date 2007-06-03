@@ -229,9 +229,6 @@
 /* Define if OPENSSL is available */
 #undef HAVE_OPENSSL
 
-/* Define if the OpenSSL library is export-constrained to 128bit ciphers */
-#undef HAVE_OPENSSL_EXPORT_LIBRARY
-
 /* Define if comm encryption should be enabled */
 #undef HAVE_TLS
 
@@ -281,6 +278,9 @@
 
 /* Set if Bacula bat Qt4 GUI support enabled */
 #undef HAVE_BAT
+
+/* Set if DB batch insert code enabled */
+#undef HAVE_BATCH_INSERT
 
 /* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
@@ -505,6 +505,9 @@
 
 /* Define if OpenSSL library is available */
 #undef HAVE_OPENSSL
+
+/* Define if the OpenSSL library is export-contrained to 128bit ciphers */
+#undef HAVE_OPENSSL_EXPORT_LIBRARY
 
 /* Define to 1 if you have the `posix_fadvise' function. */
 #undef HAVE_POSIX_FADVISE

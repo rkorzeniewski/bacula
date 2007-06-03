@@ -1,6 +1,10 @@
               Technical notes on version 2.1
 
 General:
+03Jun07
+kes  Implement --with-batch-insert in configure and detection of thread
+     safe libraries.  It is on by default, but turned off if no thread
+     safe library (e.g. SQLite 2) is available.
 02Jun07
 kes  Fix Bacula PostgreSQL buffer overruns.
 kes  Do better checking for NULL results returned from PostgreSQL;

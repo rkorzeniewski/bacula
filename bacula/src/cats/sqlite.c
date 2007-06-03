@@ -187,6 +187,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
    } else {
       mdb->sqlite_errmsg = NULL;
    }
+#ifdef SQLITE3_INIT_QUERY
+   db_sql_query(mdb, SQLITE3_INIT_QUERY, NULL, NULL);
+#endif
 
 #else
    mdb->db = sqlite_open(
@@ -254,7 +257,11 @@ db_close_database(JCR *jcr, B_DB *mdb)
 }
 
 void db_thread_cleanup()
-{ }
+{
+#ifdef HAVE_SQLITE3
+   sqlite3_thread_cleanup();
+#endif
+}
 
 /*
  * Return the next unique index (auto-increment) for
@@ -262,37 +269,6 @@ void db_thread_cleanup()
  */
 int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
 {
-#ifdef xxxx
-   SQL_ROW row;
-
-   db_lock(mdb);
-
-   Mmsg(mdb->cmd,
-"SELECT id FROM NextId WHERE TableName=\"%s\"", table);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg(mdb->errmsg, _("next_index query error: ERR=%s\n"), sql_strerror(mdb));
-      db_unlock(mdb);
-      return 0;
-   }
-   if ((row = sql_fetch_row(mdb)) == NULL) {
-      Mmsg(mdb->errmsg, _("Error fetching index: ERR=%s\n"), sql_strerror(mdb));
-      db_unlock(mdb);
-      return 0;
-   }
-   bstrncpy(index, row[0], 28);
-   sql_free_result(mdb);
-
-   Mmsg(mdb->cmd,
-"UPDATE NextId SET id=id+1 WHERE TableName=\"%s\"", table);
-   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
-      Mmsg(mdb->errmsg, _("next_index update error: ERR=%s\n"), sql_strerror(mdb));
-      db_unlock(mdb);
-      return 0;
-   }
-   sql_free_result(mdb);
-
-   db_unlock(mdb);
-#endif
    strcpy(index, "NULL");
    return 1;
 }
