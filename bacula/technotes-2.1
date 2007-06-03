@@ -2,6 +2,9 @@
 
 General:
 03Jun07
+kes  Implement SQLITE3_INIT_QUERY in version.h that can do an initial
+     query for SQLite3. Use it to set PRAGMA synchronous = OFF. This
+     makes SQLit3 run 30 times faster, though a bit less safe.
 kes  Implement --with-batch-insert in configure and detection of thread
      safe libraries.  It is on by default, but turned off if no thread
      safe library (e.g. SQLite 2) is available.
