@@ -52,8 +52,11 @@ restoreTree::restoreTree()
 
    readSettings();
    dockPage();
-   m_winregex.setPattern("^/[a-z]:/$");
+   m_winRegExpDrive.setPattern("^[a-z]:/$");
+   m_winRegExpPath.setPattern("^[a-z]:/");
    m_slashregex.setPattern("/");
+   m_debugCnt = 0;
+   m_debugTrap = true;
 }
 
 restoreTree::~restoreTree()
@@ -91,8 +94,6 @@ void restoreTree::setupPage()
 void restoreTree::populateDirectoryTree()
 {
    m_slashTrap = false;
-   m_winTrap = false;
-   m_isWin = false;
    m_dirPaths.clear();
    directoryTree->clear();
    fileTable->clear();
@@ -122,6 +123,7 @@ void restoreTree::populateDirectoryTree()
          Pmsg1(000, "Done with query %i directories\n", directories.count());
       }
       foreach(QString directory, directories) {
+         m_debugCnt += 1;
          parseDirectory(directory);
       }
    }
@@ -133,11 +135,14 @@ void restoreTree::populateDirectoryTree()
  */
 void restoreTree::parseDirectory(QString &dir_in)
 {
+   if (m_debugCnt > 2)
+      m_debugTrap = false;
    /* Clean up the directory string remove some funny char after last '/' */
    QRegExp rgx("[^/]$");
    int lastslash = rgx.indexIn(dir_in);
    dir_in.replace(lastslash, dir_in.length()-lastslash, "");
-   if (mainWin->m_miscDebug) Pmsg1(000, "parsing %s\n", dir_in.toUtf8().data());
+   if ((mainWin->m_miscDebug) && (m_debugTrap))
+      Pmsg1(000, "parsing %s\n", dir_in.toUtf8().data());
 
    /* split and add if not in yet */
    QString direct, path;
@@ -151,13 +156,18 @@ void restoreTree::parseDirectory(QString &dir_in)
       direct = path = dir_in;
       path.replace(index+1,dir_in.length()-index-1,"");
       direct.replace(0,index+1,"");
-/*      if (mainWin->m_miscDebug)
-         printf("length = %i index = %i Adding %s %s\n",
-            dir_in.length(), index,
-            path.toUtf8().data(), direct.toUtf8().data()); */
+      if ((mainWin->m_miscDebug) && (m_debugTrap)) {
+         QString msg = QString("length = \"%1\" index = \"%2\" Adding \"%3\" \"%4\"\n")
+                    .arg(dir_in.length())
+                    .arg(index)
+                    .arg(path)
+                    .arg(direct);
+         Pmsg0(000, msg.toUtf8().data());
+      }
       if (addDirectory(path, direct)) done = true;
       else {
-         if (mainWin->m_miscDebug) Pmsg0(000, "Saving for later\n");
+         if ((mainWin->m_miscDebug) && (m_debugTrap))
+            Pmsg0(000, "Saving for later\n");
          pathAfter.prepend(path);
          dirAfter.prepend(direct);
       }
@@ -165,10 +175,10 @@ void restoreTree::parseDirectory(QString &dir_in)
    }
    for (int k=0; k<pathAfter.count(); k++) {
       if (addDirectory(pathAfter[k], dirAfter[k]))
-         if (mainWin->m_miscDebug)
+         if ((mainWin->m_miscDebug) && (m_debugTrap))
             Pmsg2(000, "Adding After %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
       else
-         if (mainWin->m_miscDebug)
+         if ((mainWin->m_miscDebug) && (m_debugTrap))
             Pmsg2(000, "Error Adding %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
    }
 }
@@ -182,9 +192,8 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
    QString newdir = newdirr;
    QString fullpath = m_cwd + newdirr;
    bool ok = true, added = false;
-   bool windrive = false;
 
-   if (mainWin->m_miscDebug) {
+   if ((mainWin->m_miscDebug) && (m_debugTrap)) {
       QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
                     .arg(m_cwd)
                     .arg(newdir);
@@ -193,64 +202,53 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
 
    if (!m_slashTrap) {
       /* add unix '/' directory first */
-      if (m_dirPaths.empty() && (m_winregex.indexIn(fullpath,0) == -1)) {
+      if (m_dirPaths.empty() && (m_winRegExpPath.indexIn(fullpath,0) == -1)) {
          m_slashTrap = true;
          QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-         item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
-         
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          QString text("/");
          item->setText(0, text.toUtf8().data());
          item->setData(0, Qt::UserRole, QVariant(text));
-         if (mainWin->m_miscDebug) {
+         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
             Pmsg1(000, "Pre Inserting %s\n",text.toUtf8().data());
          }
          m_dirPaths.insert(text, item);
       }
-   }
-
-   if (!m_winTrap) {
-      m_winTrap = true;
-      if (m_winregex.indexIn(fullpath,0) == 0) {
-         m_isWin = true;
-         /* this is a windows drive */
-         if (mainWin->m_miscDebug) {
-            Pmsg0(000, "Need to do windows \"letter\":/\n");
+      /* no need to check for windows drive if unix */
+      if (m_winRegExpDrive.indexIn(m_cwd, 0) == 0) {
+         /* this is a windows drive add the base widget */
+         QTreeWidgetItem *item = item = new QTreeWidgetItem(directoryTree);
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
+         item->setText(0, m_cwd);
+         item->setData(0, Qt::UserRole, QVariant(fullpath));
+         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
+            Pmsg0(000, "Added Base \"letter\":/\n");
          }
+         m_dirPaths.insert(m_cwd, item);
       }
-   }
-   if (m_isWin) {
-      fullpath.replace(0,1,"");
-      windrive = true;
    }
  
    /* is it already existent ?? */
    if (!m_dirPaths.contains(fullpath)) {
       QTreeWidgetItem *item = NULL;
-      if (windrive) {
-         /* this is the base widget */
-         item = new QTreeWidgetItem(directoryTree);
-         item->setText(0, fullpath.toUtf8().data());
+      QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
+      if (parent) {
+         /* new directories to add */
+         item = new QTreeWidgetItem(parent);
+         item->setText(0, newdir.toUtf8().data());
          item->setData(0, Qt::UserRole, QVariant(fullpath));
       } else {
-         QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
-         if (parent) {
-            /* new directories to add */
-            item = new QTreeWidgetItem(parent);
-            item->setText(0, newdir.toUtf8().data());
-            item->setData(0, Qt::UserRole, QVariant(fullpath));
-         } else {
-            ok = false;
-            if (mainWin->m_miscDebug) {
-               QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
-                    .arg(m_cwd)
-                    .arg(newdir);
-               Pmsg0(000, msg.toUtf8().data());
-            }
+         ok = false;
+         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
+            QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
+                 .arg(m_cwd)
+                 .arg(newdir);
+            Pmsg0(000, msg.toUtf8().data());
          }
       }
       /* insert into hash */
       if (ok) {
-         if (mainWin->m_miscDebug) {
+         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
             Pmsg1(000, "Inserting %s\n",fullpath.toUtf8().data());
          }
          m_dirPaths.insert(fullpath, item);
