@@ -4,5 +4,6 @@
 #
 ./all-non-root-tests
 ./all-root-tests
+cat build/config.out
 cat test.out
 scripts/cleanup

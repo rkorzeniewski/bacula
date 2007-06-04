@@ -8,5 +8,6 @@ nice tests/incremental-2tape
 echo " "
 echo " "
 echo "2 Tape Test results"
+cat build/config.out
 cat test.out
 scripts/cleanup

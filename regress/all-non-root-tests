@@ -61,5 +61,6 @@ nice tests/incremental-2media
 nice tests/three-pool-test
 echo " "
 echo "Test results"
+cat build/config.out
 cat test.out
 scripts/cleanup
