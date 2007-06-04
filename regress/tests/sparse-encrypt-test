@@ -18,6 +18,7 @@ if [ $? != 0 ]; then
 fi
 cd ${cwd}
 
+change_jobname SparseTest $JobName
 start_test
 
 cat <<END_OF_DATA >tmp/bconcmds
