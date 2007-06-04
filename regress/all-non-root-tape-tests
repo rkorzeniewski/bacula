@@ -25,5 +25,6 @@ nice tests/verify-vol-tape
 echo " "
 echo " "
 echo "Test results"
+cat build/config.out
 cat test.out
 scripts/cleanup
