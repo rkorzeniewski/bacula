@@ -307,13 +307,13 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
    QString directory = item->data(0,Qt::UserRole).toString();
    directoryLabel->setText("Present Working Directory : " + directory);
    QString cmd =
-      "SELECT DISTINCT FileName.Name"
-      " FROM File LEFT OUTER JOIN Filename on (FileName.FileNameId=File.FileNameId)"
+      "SELECT DISTINCT Filename.Name"
+      " FROM File LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
       " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
       " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)";
-   cmd += " WHERE Path.Path='" + directory + "' AND FileName.Name!='' AND " + m_condition;
+   cmd += " WHERE Path.Path='" + directory + "' AND Filename.Name!='' AND " + m_condition;
 
    QStringList headerlist = (QStringList() << "File Name");
    fileTable->clear();
@@ -374,12 +374,12 @@ void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetI
    QString cmd = 
       "SELECT File.FileId, Job.JobId, Job.EndTime, File.Md5 "
       " FROM File"
-      " LEFT OUTER JOIN Filename on (FileName.FileNameId=File.FileNameId)"
+      " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
       " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
       " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)";
-   cmd += " WHERE FileName.Name='" + file + "' AND Path.Path='" + directory + "' AND " + m_condition;
+   cmd += " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "' AND " + m_condition;
 
    QStringList headerlist = (QStringList() << "File Id" << "Job Id" << "End Time" << "Md5");
    versionTable->clear();
