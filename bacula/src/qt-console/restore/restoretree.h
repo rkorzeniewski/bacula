@@ -65,15 +65,16 @@ private:
    void writeSettings();
    void readSettings();
    bool m_populated;
-   QRegExp m_winregex;
+   QRegExp m_winRegExpDrive;
+   QRegExp m_winRegExpPath;
    QRegExp m_slashregex;
    bool m_slashTrap;
-   bool m_winTrap;
-   bool m_isWin;
    //QString m_jobCondition;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QString m_condition;
    int m_resultCount;
+   int m_debugCnt;
+   bool m_debugTrap;
 };
 
 #endif /* _RESTORETREE_H_ */
