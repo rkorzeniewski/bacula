@@ -46,6 +46,7 @@
 #include "medialist/medialist.h"
 #include "joblist/joblist.h"
 #include "clients/clients.h"
+#include "restore/restoretree.h"
 #include "help/help.h"
 #include "jobs/jobs.h"
 
@@ -142,6 +143,7 @@ void MainWin::createPages()
       createPageJobList("", "", "", "", NULL);
       new MediaList();
       new Storage();
+      new restoreTree();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
@@ -224,6 +226,7 @@ void MainWin::createConnections()
    connect(actionLabel, SIGNAL(triggered()), this,  SLOT(labelButtonClicked()));
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
    connect(actionEstimate, SIGNAL(triggered()), this,  SLOT(estimateButtonClicked()));
+   connect(actionBrowse, SIGNAL(triggered()), this,  SLOT(browseButtonClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
@@ -403,6 +406,11 @@ void MainWin::runButtonClicked()
 void MainWin::estimateButtonClicked() 
 {
    new estimatePage();
+}
+
+void MainWin::browseButtonClicked() 
+{
+   new restoreTree();
 }
 
 void MainWin::restoreButtonClicked() 

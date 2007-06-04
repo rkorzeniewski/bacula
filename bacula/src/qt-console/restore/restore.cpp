@@ -268,6 +268,7 @@ void restorePage::directoryItemChanged(QTreeWidgetItem *currentitem,
 
 void restorePage::okButtonPushed()
 {
+   printf("In restorePage::okButtonPushed\n");
    this->hide();
    m_console->write("done");
    m_console->notify(true);
