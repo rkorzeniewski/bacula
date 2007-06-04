@@ -35,6 +35,7 @@ FORMS += relabel/relabel.ui
 FORMS += mount/mount.ui
 FORMS += console/console.ui
 FORMS += restore/restore.ui restore/prerestore.ui restore/brestore.ui
+FORMS += restore/restoretree.ui
 FORMS += run/run.ui run/runcmd.ui run/estimate.ui run/prune.ui
 FORMS += select/select.ui
 FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
@@ -108,6 +109,11 @@ SOURCES += joblog/joblog.cpp
 ## Jobs
 HEADERS += jobs/jobs.h
 SOURCES += jobs/jobs.cpp
+
+## RestoreTree
+HEADERS += restore/restoretree.h
+SOURCES += restore/restoretree.cpp
+
 
 # Help dialog
 HEADERS += help/help.h

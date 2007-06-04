@@ -141,6 +141,7 @@
    <addaction name="actionRun" />
    <addaction name="actionUndock" />
    <addaction name="actionEstimate" />
+   <addaction name="actionBrowse" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -543,6 +544,14 @@
    </property>
    <property name="text" >
     <string>bat &amp;Help</string>
+   </property>
+  </action>
+  <action name="actionBrowse" >
+   <property name="icon" >
+    <iconset resource="main.qrc" >:/images/browse.png</iconset>
+   </property>
+   <property name="text" >
+    <string>Browse</string>
    </property>
   </action>
  </widget>

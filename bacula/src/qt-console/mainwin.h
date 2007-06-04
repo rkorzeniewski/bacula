@@ -93,6 +93,7 @@ public slots:
    void labelButtonClicked();
    void runButtonClicked();
    void estimateButtonClicked();
+   void browseButtonClicked();
    void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
@@ -108,6 +109,7 @@ protected:
 
 private:
    void createConnections(); 
+   void connectConsole();
    void createPages();
 
 private:
