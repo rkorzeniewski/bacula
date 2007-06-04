@@ -453,7 +453,7 @@ int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS 
                Mmsg(mdb->cmd, "SELECT Name from Storage WHERE StorageId=%s",
                   edit_int64(SId[i], ed1));
                if (QUERY_DB(jcr, mdb, mdb->cmd)) {
-                  if ((row = sql_fetch_row(mdb)) != NULL) {
+                  if ((row = sql_fetch_row(mdb)) && row[0]) {
                      bstrncpy(Vols[i].Storage, row[0], MAX_NAME_LENGTH);
                   }
                }

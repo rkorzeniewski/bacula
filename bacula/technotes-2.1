@@ -1,6 +1,8 @@
               Technical notes on version 2.1
 
 General:
+04Jun07
+kes  Fix a seg fault in the PostgreSQL driver dereferencing a NULL pointer.
 03Jun07
 kes  Implement SQLITE3_INIT_QUERY in version.h that can do an initial
      query for SQLite3. Use it to set PRAGMA synchronous = OFF. This
