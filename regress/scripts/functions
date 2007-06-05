@@ -119,9 +119,11 @@ end_test()
       if [ $bstat != 0 -o $rstat != 0 ] ; then
          echo "  !!!!! Bad Job termination status     !!!!! "
          echo "  !!!!! Bad Job termination status     !!!!! " >>test.out
+         echo "        bstat=$bstat rstat=$rstat dstat=$dstat"
       else
          echo "  !!!!! Restored files differ          !!!!! "
          echo "  !!!!! Restored files differ          !!!!! " >>test.out
+         echo "        bstat=$bstat rstat=$rstat dstat=$dstat"
       fi
       echo " "
    else

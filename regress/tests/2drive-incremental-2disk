@@ -96,7 +96,8 @@ stop_bacula
 
 check_two_logs
 # The restore should read from TestVolume002, which was on drive 1
-grep tmp/log2.out TestVolume002
+grep TestVolume002 tmp/log2.out >/dev/null 2>&1
+# Note rstat may already be set, so we don't just store into it
 if [ $? != 0 ] ; then
    rstat=$?
 fi
