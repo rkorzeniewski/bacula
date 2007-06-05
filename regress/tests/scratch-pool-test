@@ -15,7 +15,6 @@ TestName="scratch-pool-test"
 JobName=scratch-pool
 . scripts/functions
 
-. config.out
 if test x${AUTOCHANGER} = x/dev/null ; then
    echo "two-volume-test skipped. No autochanger."
    exit

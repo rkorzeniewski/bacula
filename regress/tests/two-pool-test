@@ -13,7 +13,6 @@ TestName="two-pool-test"
 JobName=Two-pool
 . scripts/functions
 
-. config.out
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs

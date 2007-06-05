@@ -9,7 +9,6 @@ TestName="migration-job-test"
 JobName=MigrationJobSave
 . scripts/functions
 
-. config.out
 
 scripts/cleanup
 scripts/copy-migration-confs

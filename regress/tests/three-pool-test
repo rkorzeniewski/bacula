@@ -7,7 +7,6 @@
 #
 # This script uses the virtual disk autochanger and two drives
 #
-. config.out
 TestName="three-pool-disk"
 JobName="threepooldisk"
 . scripts/functions

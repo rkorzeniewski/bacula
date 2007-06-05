@@ -9,7 +9,6 @@ TestName="migration-volume-test"
 JobName=MigVolBackup
 . scripts/functions
 
-. config.out
 
 scripts/cleanup
 scripts/copy-migration-confs
