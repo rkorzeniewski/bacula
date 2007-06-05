@@ -10,7 +10,6 @@ TestName="incremental-2media"
 JobName=Inc2media
 . scripts/functions
 
-. config.out
 
 scripts/cleanup
 scripts/copy-2disk-confs

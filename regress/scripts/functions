@@ -160,3 +160,6 @@ if test "x${REGRESS_DEBUG}" = "x1"; then
 else
    set_debug 0
 fi
+
+# Source the second drive variables
+. ${cwd}/config.out

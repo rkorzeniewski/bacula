@@ -9,7 +9,6 @@ TestName="two-volume-tape"
 JobName=twovoltape
 . scripts/functions
 
-. config.out
 if test x${AUTOCHANGER} = x/dev/null ; then
    echo "two-volume-tape test skipped. No autochanger."
    exit

@@ -13,7 +13,6 @@ TestName="fast-two-pool-test"
 JobName=Fast-two-pool
 . scripts/functions
 
-. config.out
 scripts/cleanup
 scripts/copy-2disk-confs
 scripts/prepare-two-disks

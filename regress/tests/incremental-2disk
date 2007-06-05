@@ -9,7 +9,6 @@ TestName="incremental-2disk"
 JobName=Inc2disk
 . scripts/functions
 
-. config.out
 
 stop_bacula
 cd bin

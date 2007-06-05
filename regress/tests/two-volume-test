@@ -10,7 +10,6 @@
 TestName="two-volume-test"
 JobName=TwoVolume
 . scripts/functions
-. config.out
 
 cwd=`pwd`
 scripts/cleanup
