@@ -52,7 +52,7 @@ export dstat=0
 export bstat=0
 export rstat=0
 
-if grep -q -e 'RUN_MAXWAITTIME.* Fatal error: Max wait time exceeded. Job canceled.' tmp/RUN_MAXTIME.log
+if grep -e 'RUN_MAXWAITTIME.* Fatal error: Max wait time exceeded. Job canceled.' tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXWAITTIME ok
 else
@@ -60,8 +60,8 @@ else
    rstat=1
 fi
 
-if grep -q -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' tmp/RUN_MAXTIME.log &&
-  ! grep -q -e 'NEVER start this' tmp/RUN_MAXTIME.log
+if grep -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' tmp/RUN_MAXTIME.log &&
+  ! grep -e 'NEVER start this' tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXSTARTDELAY ok
 else
@@ -69,7 +69,7 @@ else
    rstat=1
 fi
 
-if grep -q -e 'RUN_MAXRUNTIME.* Fatal error: Max run time exceeded. Job canceled.' tmp/RUN_MAXTIME.log
+if grep -e 'RUN_MAXRUNTIME.* Fatal error: Max run time exceeded. Job canceled.' tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXRUNTIME ok
 else

@@ -283,7 +283,7 @@ find ${cwd}/build > tmp/list
 sed -e 's/[Rr][Ee][Aa][Dd][Mm][Ee]/readme/' -e 's/\([ch]\)$/.old.\1/' tmp/list > tmp/list.sed
 ./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > tmp/list.bsed
 
-if diff -q tmp/list.bsed tmp/list.sed
+if diff tmp/list.bsed tmp/list.sed >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo bregtest ok
 else
