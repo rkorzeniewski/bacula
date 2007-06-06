@@ -1,6 +1,20 @@
               Technical notes on version 2.1
 
 General:
+04Jun07
+kes  Fix a seg fault in the PostgreSQL driver dereferencing a NULL pointer.
+03Jun07
+kes  Implement SQLITE3_INIT_QUERY in version.h that can do an initial
+     query for SQLite3. Use it to set PRAGMA synchronous = OFF. This
+     makes SQLit3 run 30 times faster, though a bit less safe.
+kes  Implement --with-batch-insert in configure and detection of thread
+     safe libraries.  It is on by default, but turned off if no thread
+     safe library (e.g. SQLite 2) is available.
+02Jun07
+kes  Fix Bacula PostgreSQL buffer overruns.
+kes  Do better checking for NULL results returned from PostgreSQL;
+     implement retry for failed queries; clear results buffer after
+     failed query. Hopefully this will correct the PostgreSQL failures.
 01Jun07
 kes  Implement algorithm to handle only one appendable volume with
      Prefer Mounted Volumes = no.
