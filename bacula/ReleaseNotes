@@ -23,6 +23,13 @@ Changes since Beta release 2.1.10
   users to work with less interference on a Client machine during a
   backup.
 - bat should now handle non-English characters.
+- ./configure now permits --enable-batch-insert (as well as --disable...).
+  This feature is enabled by default if your SQL libraries are thread
+  safe.
+- The default setting for SQLite3 is now 'PRAGMA synchronous=OFF'.
+  This makes it run 30 times faster, but increases the possiblity
+  of a corrupted database if your server shuts down unexpectedly.
+  The default behavior can be changed in src/version.h
 
 Areas requiring caution or testing:
 - You must have Qt4 Version 4.2 or greater loaded to build bat
@@ -30,13 +37,12 @@ Areas requiring caution or testing:
   to build with MySQL enabled.
 - The Volume management in the Storage daemon is extensively rewritten.
   It appears to function much better, but is largely untested under
-  severe stress conditions (multiple drive autochangers, ...).
+  severe production stress conditions (multiple drive autochangers, ...).
 - Volumes are pruned only when absolutely necessary -- this may cause
-  your database to grow.
+  your database to grow compared to prior Bacula version.
 - Socket level heartbeat is untested.
 - Solaris door and even port files are no longer restored (equivalent
     to what we do with sockets).
-- Solaris is untested
 - Win32 servers are untested, and very likely not to work.
 - SQLite is no longer supported for Solaris -- it fails too often with
   bus errors.     
