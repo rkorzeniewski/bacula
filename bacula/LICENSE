@@ -19,10 +19,17 @@ What follows is information from the authors of the code:
 
 Linking: 
 Bacula may be linked with any libraries permitted under the GPL.
-However, it does use the OpenSSL libraries which are, unfortunately,
-not compatible with GPL v2. To the best of our knowledge these
-libaries are not distributed with Bacula code because they are
-shared objects, and as such there is no conflict with the GPL.
+However, if configured with encryption Bacula does use the
+OpenSSL libraries which are, unfortunately, not compatible with
+GPL v2.  To the best of our knowledge these libaries are not
+distributed with Bacula code because they are shared objects, and
+as such there is no conflict with the GPL according what I (Kern)
+understand in talking to FSFE. If you take a more severe stance
+on this issue, and you are going to distribute Bacula, then
+simply do not use the --with-openssl when building your package,
+and no use of OpenSSL even through dynamic linking will be
+included.
+             
 
 IP rights:
 Recipient understands that although each Contributor grants the
