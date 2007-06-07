@@ -230,6 +230,15 @@ void Console::connect_dir()
    displayToPrompt();
 
    beginNewCommand();
+   job_list.clear();
+   client_list.clear();
+   fileset_list.clear();
+   fileset_list.clear();
+   messages_list.clear();
+   pool_list.clear();
+   storage_list.clear();
+   type_list.clear();
+   level_list.clear();
    dir_cmd(".jobs", job_list);
    dir_cmd(".clients", client_list);
    dir_cmd(".filesets", fileset_list);  
