@@ -1,12 +1,7 @@
 /*
- * Bacula RUNSCRIPT Structure definition for FileDaemon and Director
- * Eric Bollengier May 2006
- * Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,7 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
-
+/*
+ * Bacula RUNSCRIPT Structure definition for FileDaemon and Director
+ * Eric Bollengier May 2006
+ * Version $Id$
+ */
+ 
 
 #ifndef __RUNSCRIPT_H_
 #define __RUNSCRIPT_H_ 1
@@ -45,7 +45,7 @@
  * script->on_failure = true;
  * script->when = SCRIPT_After;
  * 
- * script->run("LabelBefore");	// the label must contain "Before" or "After" special keyword
+ * script->run("LabelBefore");  // the label must contain "Before" or "After" special keyword
  * free_runscript(script);
  */
 
@@ -66,11 +66,11 @@ class RUNSCRIPT {
 public:
    POOLMEM *command;            /* command string */
    POOLMEM *target;             /* host target */
+   int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
    char level;                  /* Base|Full|Incr...|All (NYI) */
    bool on_success;             /* executre command on job success (After) */
    bool on_failure;             /* executre command on job failure (After) */
    bool abort_on_error;         /* abort job on error (Before) */
-   int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
    /* TODO : drop this with bacula 1.42 */
    bool old_proto;              /* used by old 1.3X protocol */
 

@@ -38,7 +38,7 @@
 #include "select.h"
 
 /*
- * Setup all the combo boxes and display the dialog
+ * Read the items for the selection
  */
 selectDialog::selectDialog(Console *console) 
 {
@@ -50,6 +50,7 @@ selectDialog::selectDialog(Console *console)
    m_console = console;
    setupUi(this);
    connect(listBox, SIGNAL(currentRowChanged(int)), this, SLOT(index_change(int)));
+   setAttribute(Qt::WA_DeleteOnClose);
    m_console->read();                 /* get title */
    labelWidget->setText(m_console->msg());
    while ((stat=m_console->read()) > 0) {
@@ -57,10 +58,7 @@ selectDialog::selectDialog(Console *console)
       item->setText(m_console->msg());
       listBox->insertItem(row++, item);
    }
-// Dmsg1(000, "Stat=%d\n", stat);
-   m_console->read();                 /* get prompt signal */
-   m_console->read();                 /* get prompt */
-// Dmsg1(000, "Prompt=%s", m_console->msg());
+   m_console->displayToPrompt();
    this->show();
 }
 
@@ -69,21 +67,23 @@ void selectDialog::accept()
    char cmd[100];
 
    this->hide();
-   
    bsnprintf(cmd, sizeof(cmd), "%d", m_index+1);
    m_console->write_dir(cmd);
    m_console->displayToPrompt();
-   delete this;
+   this->close();
    mainWin->resetFocus();
+   m_console->displayToPrompt();
+
 }
 
 
 void selectDialog::reject()
 {
-   mainWin->set_status(" Canceled");
    this->hide();
-   delete this;
+   mainWin->set_status(" Canceled");
+   this->close();
    mainWin->resetFocus();
+   m_console->beginNewCommand();
 }
 
 /*
@@ -93,6 +93,5 @@ void selectDialog::reject()
  */
 void selectDialog::index_change(int index)
 {
-// Dmsg1(000, "Index=%d\n", index);
    m_index = index;
 }

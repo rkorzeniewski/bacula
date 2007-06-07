@@ -49,7 +49,9 @@
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef HAVE_LIBWRAP
-#include "tcpd.h"
+extern "C" {
+#include <tcpd.h>
+}
 int allow_severity = LOG_NOTICE;
 int deny_severity = LOG_WARNING;
 #endif

@@ -91,7 +91,7 @@ extern "C" void signal_handler(int sig)
    if (sig == SIGTERM) {
 //    Emsg1(M_TERM, -1, "Shutting down Bacula service: %s ...\n", my_name);
    } else {
-      Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, sig_names[sig]);
+      Emsg2(M_FATAL, -1, _("Bacula interrupted by signal %d: %s\n"), sig, get_signal_name(sig));
    }
 
 #ifdef TRACEBACK
@@ -104,8 +104,8 @@ extern "C" void signal_handler(int sig)
       pid_t pid;
       int exelen = strlen(exepath);
 
-      fprintf(stderr, _("Kaboom! %s, %s got signal %d. Attempting traceback.\n"),
-              exename, my_name, sig);
+      fprintf(stderr, _("Kaboom! %s, %s got signal %d - %s. Attempting traceback.\n"),
+              exename, my_name, sig, get_signal_name(sig));
       fprintf(stderr, _("Kaboom! exepath=%s\n"), exepath);
 
       if (exelen + 12 > (int)sizeof(btpath)) {
@@ -149,7 +149,8 @@ extern "C" void signal_handler(int sig)
          argv[3] = (char *)NULL;
          fprintf(stderr, _("Calling: %s %s %s\n"), btpath, exepath, pid_buf);
          if (execv(btpath, argv) != 0) {
-            printf(_("execv: %s failed: ERR=%s\n"), btpath, strerror(errno));
+            berrno be;
+            printf(_("execv: %s failed: ERR=%s\n"), btpath, be.bstrerror());
          }
          exit(-1);
       default:                        /* parent */

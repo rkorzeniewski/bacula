@@ -548,7 +548,7 @@ int Console::write(const char *msg)
 void Console::beginNewCommand()
 {
    for (int i=0; i < 3; i++) {
-      write(".\n");
+      write(".");
       while (read() > 0) {
          if (mainWin->m_displayAll) display_text(msg());
       }
@@ -622,11 +622,13 @@ int Console::read()
          if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
+         mainWin->set_status(_("Command completed ..."));
          continue;
       case BNET_CMD_BEGIN:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD BEGIN\n");
          m_at_prompt = false;
          m_at_main_prompt = false;
+         mainWin->set_status(_("Processing command ..."));
          continue;
       case BNET_MAIN_PROMPT:
          if (mainWin->m_commDebug) Pmsg0(000, "MAIN PROMPT\n");
@@ -752,7 +754,7 @@ bool Console::is_connectedGui()
       return true;
    } else {
       QString message("Director ");
-      message += " is curerntly disconnected\n  Please reconnect!!";
+      message += " is currently disconnected\n  Please reconnect!!";
       QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
@@ -768,14 +770,14 @@ bool Console::preventInUseConnect()
    if (!is_connected()) {
       QString message("Director ");
       message += m_dir->name();
-      message += " is curerntly disconnected\n  Please reconnect!!";
+      message += " is currently disconnected\n  Please reconnect!!";
       QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
    } else if (!m_at_main_prompt){
       QString message("Director ");
       message += m_dir->name();
-      message += " is curerntly busy\n  Please complete restore or other "
+      message += " is currently busy\n  Please complete restore or other "
                  " operation !!  This is a limitation that will be resolved before a beta"
                  " release.  This is currently an alpha release.";
       QMessageBox::warning(this, "Bat",
@@ -784,7 +786,7 @@ bool Console::preventInUseConnect()
    } else if (!m_at_prompt){
       QString message("Director ");
       message += m_dir->name();
-      message += " is curerntly not at a prompt\n  Please try again!!";
+      message += " is currently not at a prompt\n  Please try again!!";
       QMessageBox::warning(this, "Bat",
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;

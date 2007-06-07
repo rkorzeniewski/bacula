@@ -66,7 +66,7 @@ struct CRYPTO_dynlock_value {
  */
 void openssl_post_errors(int code, const char *errstring)
 {
-   openssl_post_errors(NULL, code, errstring);
+   openssl_post_errors(get_jcr_from_tid(), code, errstring);
 }
 
 
@@ -95,6 +95,11 @@ void openssl_post_errors(JCR *jcr, int code, const char *errstring)
 static unsigned long get_openssl_thread_id(void)
 {
    /* Comparison without use of pthread_equal() is mandated by the OpenSSL API */
+   /*
+    * Note that this creates problems with the new Win32 pthreads
+    *   emulation code, which defines pthread_t as a structure. For
+    *   this reason, we continue to use a very old implementation.
+    */
    return ((unsigned long)pthread_self());
 }
 
@@ -110,7 +115,8 @@ static struct CRYPTO_dynlock_value *openssl_create_dynamic_mutex (const char *fi
 
    if ((stat = pthread_mutex_init(&dynlock->mutex, NULL)) != 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(stat));
+      Jmsg1(get_jcr_from_tid(), M_ABORT, 0, _("Unable to init mutex: ERR=%s\n"), 
+            be.bstrerror(stat));
    }
 
    return dynlock;
@@ -131,7 +137,8 @@ static void openssl_destroy_dynamic_mutex(struct CRYPTO_dynlock_value *dynlock, 
 
    if ((stat = pthread_mutex_destroy(&dynlock->mutex)) != 0) {
       berrno be;
-      Emsg1(M_ABORT, 0, _("Unable to destroy mutex: ERR=%s\n"), be.bstrerror(stat));
+      Jmsg1(get_jcr_from_tid(), M_ABORT, 0, _("Unable to destroy mutex: ERR=%s\n"), 
+            be.bstrerror(stat));
    }
 
    free(dynlock);
@@ -169,7 +176,8 @@ int openssl_init_threads (void)
    for (i = 0; i < numlocks; i++) {
       if ((stat = pthread_mutex_init(&mutexes[i], NULL)) != 0) {
          berrno be;
-         Emsg1(M_ERROR, 0, _("Unable to init mutex: ERR=%s\n"), be.bstrerror(stat));
+         Jmsg1(get_jcr_from_tid(), M_ERROR, 0, _("Unable to init mutex: ERR=%s\n"), 
+               be.bstrerror(stat));
          return stat;
       }
    }
@@ -202,7 +210,8 @@ void openssl_cleanup_threads(void)
       if ((stat = pthread_mutex_destroy(&mutexes[i])) != 0) {
          berrno be;
          /* We don't halt execution, reporting the error should be sufficient */
-         Emsg1(M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), be.bstrerror(stat));
+         Jmsg1(get_jcr_from_tid(), M_ERROR, 0, _("Unable to destroy mutex: ERR=%s\n"), 
+               be.bstrerror(stat));
       }
    }
 

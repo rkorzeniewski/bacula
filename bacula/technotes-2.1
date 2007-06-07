@@ -1,6 +1,21 @@
               Technical notes on version 2.1
 
 General:
+07Jun07
+kes  Fix sscanf problems reported by Peter Buschman that caused
+     a bus error on Solaris.
+kes  Rework (simplify) the select prompt in bat.
+kes  Move get_jobid_from_tid() into lib and create a 
+     get_jcr_from_tid().
+kes  Use get_jcr_from_tid() to conver all tls Emsg() to Jmsg().  This
+     should definitely fix the problem of lost error messages in the
+     encryption code.
+kes  Remove over zellous addition of FSFE copyright in a few eggxxx files.
+kes  Eliminate tcpd.h from the project. Enclose the #include from the
+     library with extern C ...
+kes  Add print of signal name when a signal is trapped.
+
+Release: 2.1.12 beta
 04Jun07
 kes  Fix a seg fault in the PostgreSQL driver dereferencing a NULL pointer.
 03Jun07

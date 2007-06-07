@@ -1,11 +1,4 @@
 /*
- *   util.c  miscellaneous utility subroutines for Bacula
- *
- *    Kern Sibbald, MM
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   util.c  miscellaneous utility subroutines for Bacula
+ *
+ *    Kern Sibbald, MM
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "jcr.h"

@@ -90,7 +90,7 @@ static int openssl_verify_peer(int ok, X509_STORE_CTX *store)
       X509_NAME_oneline(X509_get_issuer_name(cert), issuer, 256);
       X509_NAME_oneline(X509_get_subject_name(cert), subject, 256);
 
-      Emsg5(M_ERROR, 0, _("Error with certificate at depth: %d, issuer = %s,"
+      Jmsg5(get_jcr_from_tid(), M_ERROR, 0, _("Error with certificate at depth: %d, issuer = %s,"
                           " subject = %s, ERR=%d:%s\n"), depth, issuer,
                           subject, err, X509_verify_cert_error_string(err));
 
@@ -153,7 +153,7 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
       }
    } else if (verify_peer) {
       /* At least one CA is required for peer verification */
-      Emsg0(M_ERROR, 0, _("Either a certificate file or a directory must be"
+      Jmsg0(get_jcr_from_tid(), M_ERROR, 0, _("Either a certificate file or a directory must be"
                          " specified as a verification store\n"));
       goto err;
    }
@@ -199,7 +199,8 @@ TLS_CONTEXT *new_tls_context(const char *ca_certfile, const char *ca_certdir,
    }
 
    if (SSL_CTX_set_cipher_list(ctx->openssl, TLS_DEFAULT_CIPHERS) != 1) {
-      Emsg0(M_ERROR, 0, _("Error setting cipher list, no valid ciphers available\n"));
+      Jmsg0(get_jcr_from_tid(), M_ERROR, 0,
+             _("Error setting cipher list, no valid ciphers available\n"));
       goto err;
    }
 
@@ -258,7 +259,7 @@ bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
 
    /* Check if peer provided a certificate */
    if (!(cert = SSL_get_peer_certificate(ssl))) {
-      Emsg0(M_ERROR, 0, _("Peer failed to present a TLS certificate\n"));
+      Jmsg0(get_jcr_from_tid(), M_ERROR, 0, _("Peer failed to present a TLS certificate\n"));
       return false;
    }
 
@@ -300,7 +301,8 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
 
    /* Check if peer provided a certificate */
    if (!(cert = SSL_get_peer_certificate(ssl))) {
-      Emsg1(M_ERROR, 0, _("Peer %s failed to present a TLS certificate\n"), host);
+      Jmsg1(get_jcr_from_tid(), M_ERROR, 0, 
+            _("Peer %s failed to present a TLS certificate\n"), host);
       return false;
    }
 
