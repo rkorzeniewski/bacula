@@ -5,13 +5,15 @@
 #
 # This script uses the autochanger and two tapes
 #
+TestName="2drive-incremental-2tape"
+JobName="2drive2tape"
+. scripts/functions
+
 if test x${TAPE_DRIVE1} = x/dev/null ; then
    echo "Skipping 2drive-incremenatal-2tape test. No second drive."
    exit
 fi
-TestName="2drive-incremental-2tape"
-JobName="2drive2tape"
-. scripts/functions
+
 
 scripts/copy-2drive-confs
 scripts/cleanup-2drive
