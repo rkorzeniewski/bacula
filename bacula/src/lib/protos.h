@@ -198,6 +198,10 @@ void unlock_jobs();
 JCR *jcr_walk_start();
 JCR *jcr_walk_next(JCR *prev_jcr);
 void jcr_walk_end(JCR *jcr);
+uint32_t get_jobid_from_tid(pthread_t tid);
+uint32_t get_jobid_from_tid();             
+JCR *get_jcr_from_tid(pthread_t tid);
+JCR *get_jcr_from_tid();
 
 
 /* lex.c */

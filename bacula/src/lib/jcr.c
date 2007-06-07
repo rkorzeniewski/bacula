@@ -451,6 +451,52 @@ void free_jcr(JCR *jcr)
    garbage_collect_memory_pool();
    Dmsg0(3400, "Exit free_jcr\n");
 }
+ 
+/*
+ * Find which JobId corresponds to the current thread
+ */
+uint32_t get_jobid_from_tid()                              
+{
+   return get_jobid_from_tid(pthread_self());
+}
+
+uint32_t get_jobid_from_tid(pthread_t tid)
+{
+   JCR *jcr;
+   uint32_t JobId = 0;
+   foreach_jcr(jcr) {
+      if (pthread_equal(jcr->my_thread_id, tid)) {
+         JobId = (uint32_t)jcr->JobId;
+         break;
+      }
+   }
+   endeach_jcr(jcr);
+   return JobId;
+}
+
+/*
+ * Find the jcr that corresponds to the current thread
+ */
+JCR *get_jcr_from_tid()                              
+{
+   return get_jcr_from_tid(pthread_self());
+}
+
+JCR *get_jcr_from_tid(pthread_t tid)
+{
+   JCR *jcr;
+   JCR *rtn_jcr = NULL;
+
+   foreach_jcr(jcr) {
+      if (pthread_equal(jcr->my_thread_id, tid)) {
+         rtn_jcr = jcr;
+         break;
+      }
+   }
+   endeach_jcr(jcr);
+   return rtn_jcr;
+}
+
 
 
 /*

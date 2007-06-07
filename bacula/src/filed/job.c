@@ -120,7 +120,7 @@ static char verifycmd[]   = "verify level=%30s";
 static char estimatecmd[] = "estimate listing=%d";
 static char runbefore[]   = "RunBeforeJob %s";
 static char runafter[]    = "RunAfterJob %s";
-static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s";
+static char runscript[]   = "Run OnSuccess=%d OnFailure=%d AbortOnError=%d When=%d Command=%s";
 
 /* Responses sent to Director */
 static char errmsg[]      = "2999 Invalid command\n";
@@ -530,13 +530,15 @@ static int runscript_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *msg = get_memory(dir->msglen+1);
+   int on_success, on_failure, abort_on_error;
 
    RUNSCRIPT *cmd = new_runscript() ;
 
    Dmsg1(100, "runscript_cmd: '%s'\n", dir->msg);
-   if (sscanf(dir->msg, runscript, &cmd->on_success, 
-                                  &cmd->on_failure,
-                                  &cmd->abort_on_error,
+   /* Note, we cannot sscanf into bools */
+   if (sscanf(dir->msg, runscript, &on_success, 
+                                  &on_failure,
+                                  &abort_on_error,
                                   &cmd->when,
                                   msg) != 5) {
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -546,6 +548,9 @@ static int runscript_cmd(JCR *jcr)
       free_memory(msg);
       return 0;
    }
+   cmd->on_success = on_success;
+   cmd->on_failure = on_failure;
+   cmd->abort_on_error = abort_on_error;
    unbash_spaces(msg);
 
    cmd->set_command(msg);

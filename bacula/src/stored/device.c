@@ -323,22 +323,6 @@ bool open_device(DCR *dcr)
    return true;
 }
 
-/*
- * Find which JobId corresponds to the current thread
- */
-uint32_t get_jobid_from_tid(pthread_t tid)
-{
-   JCR *jcr;
-   uint32_t JobId = 0;
-   foreach_jcr(jcr) {
-      if (pthread_equal(jcr->my_thread_id, tid)) {
-         JobId = (uint32_t)jcr->JobId;
-         break;
-      }
-   }
-   endeach_jcr(jcr);
-   return JobId;
-}
 
 /*
  * Check if the device is blocked or not
@@ -356,14 +340,14 @@ bool is_device_unmounted(DEVICE *dev)
 void DEVICE::_dlock(const char *file, int line)
 {
    Dmsg4(sd_dbglvl, "dlock from %s:%d precnt=%d JobId=%u\n", file, line,
-         m_count, get_jobid_from_tid(pthread_self())); 
+         m_count, get_jobid_from_tid()); 
    /* Note, this *really* should be protected by a mutex, but
     *  since it is only debug code we don't worry too much.  
     */
    if (m_count > 0 && pthread_equal(m_pid, pthread_self())) {
       Dmsg5(sd_dbglvl, "Possible DEADLOCK!! lock held by JobId=%u from %s:%d m_count=%d JobId=%u\n", 
             get_jobid_from_tid(m_pid),
-            file, line, m_count, get_jobid_from_tid(pthread_self()));
+            file, line, m_count, get_jobid_from_tid());
    }
    P(m_mutex);
    m_pid = pthread_self();
@@ -374,7 +358,7 @@ void DEVICE::_dunlock(const char *file, int line)
 {
    m_count--; 
    Dmsg4(sd_dbglvl+1, "dunlock from %s:%d postcnt=%d JobId=%u\n", file, line,
-         m_count, get_jobid_from_tid(pthread_self())); 
+         m_count, get_jobid_from_tid()); 
    V(m_mutex);   
 }
 
@@ -402,7 +386,7 @@ void DEVICE::r_dlock()
    int stat;
 #ifdef SD_DEBUG_LOCK
    Dmsg4(sd_dbglvl+1, "r_dlock blked=%s from %s:%d JobId=%u\n", this->print_blocked(),
-         file, line, get_jobid_from_tid(pthread_self()));
+         file, line, get_jobid_from_tid());
 #else
    Dmsg1(sd_dbglvl, "reclock blked=%s\n", this->print_blocked());
 #endif
