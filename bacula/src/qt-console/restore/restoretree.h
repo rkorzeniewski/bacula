@@ -59,6 +59,7 @@ private slots:
 
 private:
    void populateDirectoryTree();
+   void populateJobTable();
    void parseDirectory(QString &dir_in);
    bool addDirectory(QString &, QString &);
    void setupPage();
@@ -72,7 +73,8 @@ private:
    //QString m_jobCondition;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QString m_condition;
-   int m_resultCount;
+   QString m_jobQuery;
+   QString m_jobQueryPart;
    int m_debugCnt;
    bool m_debugTrap;
 };

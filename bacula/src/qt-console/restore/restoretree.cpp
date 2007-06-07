@@ -97,13 +97,15 @@ void restoreTree::populateDirectoryTree()
    m_dirPaths.clear();
    directoryTree->clear();
    fileTable->clear();
+   fileTable->setRowCount(0);
+   fileTable->setColumnCount(0);
    versionTable->clear();
-   QString cmd =
-      "SELECT DISTINCT Path.Path FROM Path"
-      " LEFT OUTER JOIN File ON (File.PathId=Path.PathId)"
-      " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
-      " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
-      " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId) WHERE";
+   versionTable->setRowCount(0);
+   versionTable->setColumnCount(0);
+   jobTable->clear();
+   jobTable->setRowCount(0);
+   jobTable->setColumnCount(0);
+
    m_condition = " Job.name = '" + jobCombo->itemText(jobCombo->currentIndex()) + "'";
    int clientIndex = clientCombo->currentIndex();
    if ((clientIndex >= 0) && (clientCombo->itemText(clientIndex) != "Any")) {
@@ -113,7 +115,25 @@ void restoreTree::populateDirectoryTree()
    if ((fileSetIndex >= 0) && (fileSetCombo->itemText(fileSetIndex) != "Any")) {
       m_condition.append(" AND FileSet.FileSet='" + fileSetCombo->itemText(fileSetIndex) + "'");
    }
-   cmd += m_condition;
+   m_jobQueryPart =
+      " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
+      " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
+      " WHERE" + m_condition +
+      " AND Job.purgedfiles=0";
+   m_jobQuery =
+      "SELECT Job.Jobid"
+      " From Job" + m_jobQueryPart;
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",m_jobQuery.toUtf8().data());
+   }
+   populateJobTable();
+
+   QString cmd =
+      "SELECT DISTINCT Path.Path"
+      " FROM Path"
+      " LEFT OUTER JOIN File ON (File.PathId=Path.PathId)"
+      " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+      " WHERE Job.Jobid IN (" + m_jobQuery + ")";
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n",cmd.toUtf8().data());
    }
@@ -306,12 +326,13 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
    directoryLabel->setText("Present Working Directory : " + directory);
    QString cmd =
       "SELECT DISTINCT Filename.Name"
-      " FROM File LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+      " FROM File "
+      " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
-      " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
-      " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)";
-   cmd += " WHERE Path.Path='" + directory + "' AND Filename.Name!='' AND " + m_condition;
+      " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
+      " AND Job.Jobid IN (" + m_jobQuery + ")";
+ 
 
    QStringList headerlist = (QStringList() << "File Name");
    fileTable->clear();
@@ -327,7 +348,6 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
    }
    QStringList results;
    if (m_console->sql_cmd(cmd, results)) {
-      m_resultCount = results.count();
    
       QTableWidgetItem* tableItem;
       QString field;
@@ -375,9 +395,8 @@ void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetI
       " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
-      " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
-      " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)";
-   cmd += " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "' AND " + m_condition;
+      " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "'"
+      " AND Job.Jobid IN (" + m_jobQuery + ")";
 
    QStringList headerlist = (QStringList() << "File Id" << "Job Id" << "End Time" << "Md5");
    versionTable->clear();
@@ -389,7 +408,6 @@ void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetI
    }
    QStringList results;
    if (m_console->sql_cmd(cmd, results)) {
-      m_resultCount = results.count();
    
       QTableWidgetItem* tableItem;
       QString field;
@@ -455,4 +473,52 @@ void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
       QTreeWidgetItem *child = item->child(i);
       child->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
    }
+}
+
+void restoreTree::populateJobTable()
+{
+   QBrush blackBrush(Qt::black);
+   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Type");
+   jobTable->clear();
+   jobTable->setColumnCount(headerlist.size());
+   jobTable->setHorizontalHeaderLabels(headerlist);
+   QString jobQuery =
+      "SELECT Job.Jobid AS Id, Job.Endtime AS EndTime, Job.Level AS Level"
+      " FROM Job" + m_jobQueryPart +
+      " ORDER BY Job.Endtime DESC";
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",jobQuery.toUtf8().data());
+   }
+
+   QStringList results;
+   if (m_console->sql_cmd(jobQuery, results)) {
+   
+      QTableWidgetItem* tableItem;
+      QString field;
+      QStringList fieldlist;
+      jobTable->setRowCount(results.size());
+
+      int row = 0;
+      /* Iterate through the record returned from the query */
+      foreach (QString resultline, results) {
+         fieldlist = resultline.split("\t");
+         int column = 0;
+         /* remove directory */
+         if (fieldlist[0].trimmed() != "") {
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               tableItem = new QTableWidgetItem(field,1);
+               tableItem->setFlags(0);
+               tableItem->setForeground(blackBrush);
+               jobTable->setItem(row, column, tableItem);
+               column++;
+            }
+            row++;
+         }
+      }
+   }
+   jobTable->resizeColumnsToContents();
+   jobTable->resizeRowsToContents();
+   jobTable->verticalHeader()->hide();
 }
