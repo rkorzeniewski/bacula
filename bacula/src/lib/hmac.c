@@ -17,7 +17,7 @@
    This program is Free Software; you can redistribute it and/or
    modify it under the terms of version two of the GNU Lesser General 
    Public License as published by the Free Software Foundation plus 
-   additions that are listed in the file LICENSE.
+   additions in the file LICENSE.
 
    This program is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
