@@ -211,14 +211,6 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          foreach(QAction* mediaAction, mp_treeWidget->actions()) {
             mp_treeWidget->removeAction(mediaAction);
          }
-         /*mp_treeWidget->removeAction(actionEditVolume);
-         mp_treeWidget->removeAction(actionListJobsOnVolume);
-         mp_treeWidget->removeAction(actionDeleteVolume);
-         mp_treeWidget->removeAction(actionPruneVolume);
-         mp_treeWidget->removeAction(actionPurgeVolume);
-         mp_treeWidget->removeAction(actionRelabelVolume);
-         mp_treeWidget->removeAction(actionAllVolumesFromPool);
-         mp_treeWidget->removeAction(actionVolumeFromPool);*/
       }
 
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
