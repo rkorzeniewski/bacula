@@ -99,6 +99,14 @@
     <string>Update all Volumes From Pool</string>
    </property>
   </action>
+  <action name="actionVolumeFromPool" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
+   </property>
+   <property name="text" >
+    <string>Volume From Pool</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../main.qrc" />
