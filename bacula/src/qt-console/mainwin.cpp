@@ -300,6 +300,11 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    Pages *previousPage, *nextPage;
    Console *previousConsole, *nextConsole;
 
+   /* remove all actions before adding actions appropriate for new page */
+   foreach(QAction* pageAction, treeWidget->actions()) {
+      treeWidget->removeAction(pageAction);
+   }
+
    /* first determine the next item */
 
    /* knowing the treeWidgetItem, get the page from the hash */
@@ -341,15 +346,6 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
             QBrush greyBrush(Qt::lightGray);
             dirItem->setBackground(0, greyBrush);
          }
-         /* make sure the close window and toggle dock options are removed */
-         treeWidget->removeAction(actionClosePage);
-         treeWidget->removeAction(actionToggleDock);
-         /* Is this a page that has been inserted into the hash  */
-         if (previousPage) {
-            foreach(QAction* pageaction, previousPage->m_contextActions) {
-               treeWidget->removeAction(pageaction);
-            }
-         } 
       }
    }
 
