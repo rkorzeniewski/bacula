@@ -213,8 +213,9 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->removeAction(actionDeleteVolume);
          mp_treeWidget->removeAction(actionPruneVolume);
          mp_treeWidget->removeAction(actionPurgeVolume);
-          mp_treeWidget->removeAction(actionRelabelVolume);
+         mp_treeWidget->removeAction(actionRelabelVolume);
          mp_treeWidget->removeAction(actionAllVolumesFromPool);
+         mp_treeWidget->removeAction(actionVolumeFromPool);
       }
 
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
@@ -227,6 +228,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->addAction(actionPruneVolume);
          mp_treeWidget->addAction(actionPurgeVolume);
          mp_treeWidget->addAction(actionRelabelVolume);
+         mp_treeWidget->addAction(actionVolumeFromPool);
       } else if (treedepth == 1) {
 /*  *******FIXME******
  *  I can't seem to get "All volumes from pool" or "Volume from pool" to work
@@ -259,6 +261,7 @@ void MediaList::createContextMenu()
    connect(actionRefreshMediaList, SIGNAL(triggered()), this,
                 SLOT(populateTree()));
    connect(actionAllVolumesFromPool, SIGNAL(triggered()), this, SLOT(allVolumesFromPool()));
+   connect(actionVolumeFromPool, SIGNAL(triggered()), this, SLOT(volumeFromPool()));
 }
 
 /*
@@ -343,6 +346,20 @@ void MediaList::allVolumesFromPool()
 {
    QString cmd("update pool=");
    cmd += m_currentVolumeName + " All Volumes From Pool";
+   consoleCommand(cmd);
+   populateTree();
+}
+
+/*
+ * Called from the signal of the context sensitive menu to purge!
+ */
+void MediaList::volumeFromPool()
+{
+   QTreeWidgetItem *currentItem = mp_treeWidget->currentItem();
+   QTreeWidgetItem *parent = currentItem->parent();
+   QString pool = parent->text(0);
+   QString cmd;
+   cmd = "update volume=" + m_currentVolumeName + " frompool=" + pool;
    consoleCommand(cmd);
    populateTree();
 }
