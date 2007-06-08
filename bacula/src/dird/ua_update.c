@@ -386,13 +386,15 @@ static void update_vol_from_pool(UAContext *ua, MEDIA_DBR *mr)
  * Refresh the Volume information from the Pool record
  *   for all Volumes
  */
-static void update_all_vols_from_pool(UAContext *ua)
+static void update_all_vols_from_pool(UAContext *ua, const char *pool_name) 
 {
    POOL_DBR pr;
    MEDIA_DBR mr;
 
    memset(&pr, 0, sizeof(pr));
    memset(&mr, 0, sizeof(mr));
+
+   bstrncpy(pr.Name, pool_name, sizeof(pr.Name));
    if (!get_pool_dbr(ua, &pr)) {
       return;
    }
@@ -401,7 +403,8 @@ static void update_all_vols_from_pool(UAContext *ua)
    if (!db_update_media_defaults(ua->jcr, ua->db, &mr)) {
       ua->error_msg(_("Error updating Volume records: ERR=%s"), db_strerror(ua->db));
    } else {
-      ua->info_msg(_("All Volume defaults updated from Pool record.\n"));
+      ua->info_msg(_("All Volume defaults updated from \"%s\" Pool record.\n"),
+         pr.Name);
    }
 }
 
@@ -429,6 +432,7 @@ static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
 static int update_volume(UAContext *ua)
 {
    MEDIA_DBR mr;
+   POOL *pool;
    POOL_DBR pr;
    POOLMEM *query;
    char ed1[130];
@@ -502,7 +506,7 @@ static int update_volume(UAContext *ua)
             update_vol_from_pool(ua, &mr);
             return 1;
          case 11:
-            update_all_vols_from_pool(ua);
+            update_all_vols_from_pool(ua, ua->argv[j]);
             return 1;
          case 12:
             update_volenabled(ua, ua->argv[j], &mr);
@@ -684,7 +688,10 @@ static int update_volume(UAContext *ua)
          update_vol_from_pool(ua, &mr);
          return 1;
       case 12:
-         update_all_vols_from_pool(ua);
+         pool = select_pool_resource(ua);
+         if (pool) {
+            update_all_vols_from_pool(ua, pool->name());
+         }
          return 1;
 
       case 13:
