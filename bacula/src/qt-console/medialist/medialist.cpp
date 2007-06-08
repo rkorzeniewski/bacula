@@ -208,18 +208,22 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
    if (m_checkcurwidget) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         mp_treeWidget->removeAction(actionEditVolume);
+         foreach(QAction* mediaAction, mp_treeWidget->actions()) {
+            mp_treeWidget->removeAction(mediaAction);
+         }
+         /*mp_treeWidget->removeAction(actionEditVolume);
          mp_treeWidget->removeAction(actionListJobsOnVolume);
          mp_treeWidget->removeAction(actionDeleteVolume);
          mp_treeWidget->removeAction(actionPruneVolume);
          mp_treeWidget->removeAction(actionPurgeVolume);
          mp_treeWidget->removeAction(actionRelabelVolume);
          mp_treeWidget->removeAction(actionAllVolumesFromPool);
-         mp_treeWidget->removeAction(actionVolumeFromPool);
+         mp_treeWidget->removeAction(actionVolumeFromPool);*/
       }
 
       int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
       m_currentVolumeName=currentwidgetitem->text(0);
+      mp_treeWidget->addAction(actionRefreshMediaList);
       if (treedepth == 2){
          m_currentVolumeId=currentwidgetitem->text(1);
          mp_treeWidget->addAction(actionEditVolume);
@@ -230,11 +234,7 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
          mp_treeWidget->addAction(actionRelabelVolume);
          mp_treeWidget->addAction(actionVolumeFromPool);
       } else if (treedepth == 1) {
-/*  *******FIXME******
- *  I can't seem to get "All volumes from pool" or "Volume from pool" to work
- *  in one sentence command.   Works when you do it one step at a time vi console
          mp_treeWidget->addAction(actionAllVolumesFromPool);
-*/
       }
    }
 }
@@ -247,7 +247,6 @@ void MediaList::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetI
 void MediaList::createContextMenu()
 {
    mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   mp_treeWidget->addAction(actionRefreshMediaList);
    connect(actionEditVolume, SIGNAL(triggered()), this, SLOT(editVolume()));
    connect(actionListJobsOnVolume, SIGNAL(triggered()), this, SLOT(showJobs()));
    connect(actionDeleteVolume, SIGNAL(triggered()), this, SLOT(deleteVolume()));
@@ -344,8 +343,7 @@ void MediaList::relabelVolume()
  */
 void MediaList::allVolumesFromPool()
 {
-   QString cmd("update pool=");
-   cmd += m_currentVolumeName + " All Volumes From Pool";
+   QString cmd = "update volume AllFromPool=" + m_currentVolumeName;
    consoleCommand(cmd);
    populateTree();
 }
