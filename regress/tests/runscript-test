@@ -61,10 +61,15 @@ export dstat
 export bstat
 export rstat
 
-if grep -q 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"'          tmp/RUN_ALL_OK.log   &&
-   grep -q 'fd: ClientRunBeforeJob: ClientRunBeforeJob'                    tmp/RUN_ALL_OK.log   &&
-   grep -q 'fd: ClientAfterJob: run command "/bin/echo ClientRunAfterJob'  tmp/RUN_ALL_OK.log   &&
-   grep -q 'dir: AfterJob: run command "/bin/echo RunAfterJob'             tmp/RUN_ALL_OK.log
+grep 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"' tmp/RUN_ALL_OK.log >/dev/null 2>&1 
+a=$?
+grep 'fd: ClientRunBeforeJob: ClientRunBeforeJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+b=$?
+grep 'fd: ClientAfterJob: run command "/bin/echo ClientRunAfterJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+c=$?
+grep 'dir: AfterJob: run command "/bin/echo RunAfterJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+d=$?
+if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_ALL_OK ok
 else
@@ -72,9 +77,11 @@ else
    rstat=1
 fi
 
-if grep -q 'dir: BeforeJob: run command "/bin/false RUN_DIR_FAILED"' tmp/RUN_DIR_FAILED.log   &&
-   grep -q 'dir: AfterJob: RunAfterFailedJob'                        tmp/RUN_DIR_FAILED.log   &&
-   true #   grep -q 'Backup OK -- with warnings'                              tmp/RUN_DIR_FAILED.log
+grep 'dir: BeforeJob: run command "/bin/false RUN_DIR_FAILED"' tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+a=$?
+grep 'dir: AfterJob: RunAfterFailedJob' tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+b=$?
+if [ $a = 0 -a $b = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_DIR_FAILED ok
 else
@@ -82,10 +89,15 @@ else
    rstat=1
 fi
 
-if grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"'  tmp/RUN_FD_FAILED.log   &&
-   grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"'  tmp/RUN_FD_FAILED.log   &&
-   grep -q 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"'      tmp/RUN_FD_FAILED.log   &&
-   grep -q '*** Backup Error ***'                                          tmp/RUN_FD_FAILED.log
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+a=$?
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+b=$?
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+c=$?
+grep '*** Backup Error ***' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+d=$?
+if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
 else
@@ -93,12 +105,17 @@ else
    rstat=1
 fi
 
-if grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"'   tmp/RUN_FD_FAILED2.log &&
-   ! grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED2.log &&
-   grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"'   tmp/RUN_FD_FAILED2.log &&
-   grep -q 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"'       tmp/RUN_FD_FAILED2.log &&
-   grep -q '*** Backup Error ***'                                           tmp/RUN_FD_FAILED2.log
-
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+a=$?
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+b=$?
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+c=$?
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+d=$?
+grep  '*** Backup Error ***' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+e=$?
+if [ $a = 0 -a $b != 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
 else
@@ -106,9 +123,13 @@ else
    rstat=1
 fi
 
-if grep -q 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' tmp/RUN_FD_WARNING.log   &&
-   ! grep -q 'RunAfterFailedJob'                                          tmp/RUN_FD_WARNING.log   &&
-   grep -q 'Backup OK -- with warnings'                                   tmp/RUN_FD_WARNING.log
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+a=$?
+grep 'RunAfterFailedJob' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+b=$?
+grep 'Backup OK -- with warnings' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+c=$?
+if [ $a = 0 -a $b != 0 -a $c = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_WARNING ok
 else
