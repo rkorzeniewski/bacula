@@ -463,13 +463,18 @@ try_again:
       LockRes();
       numdir = 0;
       foreach_res(dir, R_DIRECTOR) {
-         senditf( _("%d  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, dir->address,
+         senditf( _("%2d:  %s at %s:%d\n"), 1+numdir++, dir->hdr.name, dir->address,
             dir->DIRport);
       }
       UnlockRes();
-      if (get_cmd(stdin, _("Select Director: "), UA_sock, 600) < 0) {
+      if (get_cmd(stdin, _("Select Director by entering a number: "), UA_sock, 600) < 0) {
          (void)WSACleanup();               /* Cleanup Windows sockets */
          return 1;
+      }
+      if (!is_a_number(UA_sock->msg)) {
+         senditf(_("%s is not a number. You must enter a number between 1 and %d\n"), 
+                 UA_sock->msg, numdir);
+         goto try_again;
       }
       item = atoi(UA_sock->msg);
       if (item < 0 || item > numdir) {

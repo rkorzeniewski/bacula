@@ -801,6 +801,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
        *   we can take note and act accordingly (probably redo the 
        *   search at least a few times).
        */
+      Dmsg1(dbglvl, "JobId=%u duplicate vol list\n", (int)rctx.jcr->JobId);
       temp_vol_list = New(dlist(vol, &vol->link));
       foreach_dlist(vol, vol_list) {
          VOLRES *nvol;
@@ -862,9 +863,12 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       vol_list = temp_vol_list;
       free_volume_list();                  /* release temp_vol_list */
       vol_list = save_vol_list;
+      Dmsg1(dbglvl, "JobId=%u deleted temp vol list\n", (int)rctx.jcr->JobId);
       unlock_volumes();
    }
    if (ok) {
+      Dmsg2(dbglvl, "JobId=%u got vol %s in reserved volums list\n", (int)rctx.jcr->JobId,
+            rctx.VolumeName);
       return true;
    }
 
@@ -979,7 +983,7 @@ static int reserve_device(RCTX &rctx)
    const int name_len = MAX_NAME_LENGTH;
 
    /* Make sure MediaType is OK */
-   Dmsg3(dbglvl, "JobId=%u MediaType device=%s request=%s\n",
+   Dmsg3(dbglvl, "JobId=%u chk MediaType device=%s request=%s\n",
          (int)rctx.jcr->JobId,
          rctx.device->media_type, rctx.store->media_type);
    if (strcmp(rctx.device->media_type, rctx.store->media_type) != 0) {
