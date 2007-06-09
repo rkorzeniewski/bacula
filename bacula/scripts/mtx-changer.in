@@ -124,7 +124,7 @@ check_parm_count() {
     pCountNeed=$2
     if test $pCount -lt $pCountNeed; then
 	echo "usage: mtx-changer ctl-device command [slot archive-device drive-index]"
-	echo "	Insufficient number of arguments arguments given."
+	echo "	Insufficient number of arguments given."
 	if test $pCount -lt 2; then
 	    echo "  Mimimum usage is first two arguments ..."
 	else
