@@ -223,6 +223,7 @@ int tm_woy(time_t stime)
    tm_yday = tm.tm_yday;
    tm.tm_mon = 0;
    tm.tm_mday = 4;
+   tm.tm_isdst = 0;                   /* 4 Jan is not DST */ 
    time4 = mktime(&tm);
    (void)localtime_r(&time4, &tm);
    fty = 1 - tm.tm_wday;

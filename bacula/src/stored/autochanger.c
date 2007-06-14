@@ -360,6 +360,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
       } else {
          dev->Slot = 0;            /* nothing loaded */
       }
+      free_volume(dev);            /* Free any volume associated with this drive */
       free_pool_memory(changer);
       unlock_changer(dcr);
    }
@@ -461,6 +462,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
       dev->Slot = 0;           /* nothing loaded */
       Dmsg0(100, "Slot unloaded\n");
    }
+   free_volume(dev);               /* Free any volume associated with this drive */
    unlock_changer(dcr);
    dev->dunlock();
    free_pool_memory(changer_cmd);
