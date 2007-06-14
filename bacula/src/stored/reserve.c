@@ -207,8 +207,12 @@ void list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg)
 
    lock_volumes();
    foreach_dlist(vol, vol_list) {
-      if (vol->dev) {
-         len = Mmsg(msg, "%s on device %s\n", vol->vol_name, vol->dev->print_name());
+      DEVICE *dev = vol->dev;
+      if (dev) {
+         len = Mmsg(msg, "%s on device %s\n", vol->vol_name, dev->print_name());
+         sendit(msg.c_str(), len, arg);
+         len = Mmsg(msg, "    Reader=%d writers=%d reserved=%d\n", dev->can_read()?1:0,
+            dev->num_writers, dev->reserved_device);
          sendit(msg.c_str(), len, arg);
       } else {
          len = Mmsg(msg, "%s no dev\n", vol->vol_name);
@@ -453,7 +457,17 @@ bool volume_unused(DCR *dcr)
       return false;
    }
 
-   return free_volume(dev);
+   /*  
+    * If this is a tape, we do not free the volume, rather we wait
+    *  until the autoloader unloads it, or until another tape is
+    *  explicitly read in this drive. This allows the SD to remember
+    *  where the tapes are or last were.
+    */
+   if (dev->is_tape()) {
+      return true;
+   } else {
+      return free_volume(dev);
+   }
 }
 
 /*

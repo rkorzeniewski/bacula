@@ -71,7 +71,6 @@ void htable::hash_index(char *key)
    /* Multiply by large prime number, take top bits, mask for remainder */
    index = ((hash * 1103515249) >> rshift) & mask;
    Dmsg2(100, "Leave hash_index hash=0x%x index=%d\n", hash, index);
-   return;
 }
 
 htable::htable(void *item, void *link, int tsize)
