@@ -1,6 +1,16 @@
               Technical notes on version 2.1
 
 General:
+Release: 2.1.14 beta
+14Jun07
+kes  Do not free a volume on a tape drive until another volume is
+     mounted and read, or the autochanger unloads the volume.
+     This should help the SD re-use volumes that are already mounted,
+     and should fix bug #886.
+kes  Apply patch from user brettedgar that allows gnome2-console include
+     the OpenSSL libraries, and hence work with SSL.  Fixes bug #885.
+kes  Apply patch from Lucien Weller that fixes day of week calculation
+     because of DST flag problem. Fixes bug #887.
 10Jun08
 kes  Move find_next_appendable_volume() to after acquiring a valid device
      in reserve.c.  This fixes bug #864 -- confirmed by reporter.
