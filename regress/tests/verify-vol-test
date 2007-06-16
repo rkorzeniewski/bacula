@@ -28,6 +28,7 @@ messages
 @# now do a verify volume
 @#
 @$out ${cwd}/tmp/original
+setdebug level=12 dir
 run job=VerifyVolume
 yes
 wait
