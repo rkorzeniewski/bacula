@@ -1551,7 +1551,10 @@ int cleanup_crypto (void) { return 0; }
 
 SIGNATURE *crypto_sign_new(JCR *jcr) { return NULL; }
 
-crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest) { return CRYPTO_ERROR_INTERNAL; }
+crypto_error_t crypto_sign_get_digest (SIGNATURE *sig, X509_KEYPAIR *keypair, 
+                                       crypto_digest_t &type, DIGEST **digest) 
+   { return CRYPTO_ERROR_INTERNAL; }
+
 crypto_error_t crypto_sign_verify (SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST *digest) { return CRYPTO_ERROR_INTERNAL; }
 
 int crypto_sign_add_signer (SIGNATURE *sig, DIGEST *digest, X509_KEYPAIR *keypair) { return false; }

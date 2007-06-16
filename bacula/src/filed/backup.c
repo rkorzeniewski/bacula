@@ -592,7 +592,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       sd->fsend("%ld %d 0", jcr->JobFiles, digest_stream);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
-      size = sizeof(CRYPTO_DIGEST_MAX_SIZE);
+      size = CRYPTO_DIGEST_MAX_SIZE;
+
       /* Grow the bsock buffer to fit our message if necessary */
       if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
