@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-06-16 11:09+0200\n"
+"POT-Creation-Date: 2007-06-16 16:54+0200\n"
 "PO-Revision-Date: 2005-08-11 14:05+0200\n"
 "Last-Translator:  <bacula-devel@lists.sourceforge.net\n"
 "Language-Team: German <bacula-devel@lists.sourceforge.net>\n"
@@ -6144,63 +6144,63 @@ msgstr ""
 msgid "An error occurred while signing the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:602
+#: src/filed/backup.c:603
 msgid "An error occurred finalizing signing the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:689
+#: src/filed/backup.c:690
 #, c-format
 msgid "Compression deflateParams error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:701
+#: src/filed/backup.c:702
 msgid "Encrypting sparse data not supported.\n"
 msgstr ""
 
-#: src/filed/backup.c:708
+#: src/filed/backup.c:709
 msgid "Failed to initialize encryption context.\n"
 msgstr ""
 
-#: src/filed/backup.c:731 src/filed/backup.c:887 src/filed/backup.c:922
-#: src/filed/backup.c:933 src/filed/backup.c:979 src/filed/backup.c:992
-#: src/filed/backup.c:1000 src/filed/backup.c:1046 src/filed/backup.c:1082
+#: src/filed/backup.c:732 src/filed/backup.c:888 src/filed/backup.c:923
+#: src/filed/backup.c:934 src/filed/backup.c:980 src/filed/backup.c:993
+#: src/filed/backup.c:1001 src/filed/backup.c:1047 src/filed/backup.c:1083
 #, c-format
 msgid "Network send error to SD. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:810
+#: src/filed/backup.c:811
 #, c-format
 msgid "Compression deflate error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:817
+#: src/filed/backup.c:818
 #, c-format
 msgid "Compression deflateReset error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:860 src/filed/backup.c:876
+#: src/filed/backup.c:861 src/filed/backup.c:877
 msgid "Encryption error\n"
 msgstr ""
 
-#: src/filed/backup.c:900
+#: src/filed/backup.c:901
 #, c-format
 msgid "Read error on file %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:903
+#: src/filed/backup.c:904
 msgid "Too many errors.\n"
 msgstr ""
 
-#: src/filed/backup.c:913
+#: src/filed/backup.c:914
 msgid "Encryption padding error\n"
 msgstr ""
 
-#: src/filed/backup.c:970
+#: src/filed/backup.c:971
 #, c-format
 msgid "Error reading ACL of %s\n"
 msgstr ""
 
-#: src/filed/backup.c:1025
+#: src/filed/backup.c:1026
 msgid "Invalid file flags, no supported data stream type.\n"
 msgstr ""
 
@@ -8106,39 +8106,39 @@ msgstr ""
 msgid "SHA1Update() returned an error: %d\n"
 msgstr ""
 
-#: src/lib/crypto.c:1645
+#: src/lib/crypto.c:1648
 msgid "No error"
 msgstr ""
 
-#: src/lib/crypto.c:1647
+#: src/lib/crypto.c:1650
 msgid "Signer not found"
 msgstr ""
 
-#: src/lib/crypto.c:1649
+#: src/lib/crypto.c:1652
 msgid "Recipient not found"
 msgstr ""
 
-#: src/lib/crypto.c:1651
+#: src/lib/crypto.c:1654
 msgid "Unsupported digest algorithm"
 msgstr ""
 
-#: src/lib/crypto.c:1653
+#: src/lib/crypto.c:1656
 msgid "Unsupported encryption algorithm"
 msgstr ""
 
-#: src/lib/crypto.c:1655
+#: src/lib/crypto.c:1658
 msgid "Signature is invalid"
 msgstr ""
 
-#: src/lib/crypto.c:1657
+#: src/lib/crypto.c:1660
 msgid "Decryption error"
 msgstr ""
 
-#: src/lib/crypto.c:1660
+#: src/lib/crypto.c:1663
 msgid "Internal error"
 msgstr ""
 
-#: src/lib/crypto.c:1662
+#: src/lib/crypto.c:1665
 msgid "Unknown error"
 msgstr ""
 
