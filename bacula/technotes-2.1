@@ -1,6 +1,18 @@
               Technical notes on version 2.1
 
 General:
+16Jun07
+kes  Remove a few malloc()s from the encryption code.
+kes  Use the class calls to bsock in filed/backup.c and restore.c in
+     place of the old bnet_xxx code.
+kes  Implement code that does an on the fly calculation of the  
+     signing digest during restore of encrypted files.  It makes
+     a best guess at the algorithm, and if it is not correct, will
+     then revert to the old code which reads the file after it is
+     restored.
+kes  Implement at least one missing crypto stream in stream_to_ascii()
+kes  Apply patch from William <chowmeined@gmail.com> that fixes bug
+     #877 where a reload with bad syntax causes Dir to exit.
 14Jun07
 kes  Do not free a volume on a tape drive until another volume is
      mounted and read, or the autochanger unloads the volume.

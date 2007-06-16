@@ -132,9 +132,6 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
       /* Allocate buffer */
       jcr->pki_session_encoded = (uint8_t *)malloc(size);
-      if (!jcr->pki_session_encoded) {
-         return 0;
-      }
 
       /* Encode session data */
       if (crypto_session_encode(jcr->pki_session, jcr->pki_session_encoded, &size) == false) {
@@ -167,7 +164,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    stop_heartbeat_monitor(jcr);
 
-   bnet_sig(sd, BNET_EOD);            /* end of sending data */
+   sd->signal(BNET_EOD);            /* end of sending data */
 
    if (jcr->big_buf) {
       free(jcr->big_buf);
@@ -194,6 +191,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    }
    if (jcr->pki_session_encoded) {
       free(jcr->pki_session_encoded);
+      jcr->pki_session_encoded = NULL;
    }
 
    Dmsg1(100, "end blast_data ok=%d\n", ok);
@@ -219,7 +217,6 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    DIGEST *signing_digest = NULL;
    int digest_stream = STREAM_NONE;
    SIGNATURE *sig = NULL;
-   uint8_t *buf = NULL;
    bool has_file_data = false;
    // TODO landonf: Allow the user to specify the digest algorithm
 #ifdef HAVE_SHA2
@@ -337,7 +334,14 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (has_file_data) {
       /*
        * Setup for digest handling. If this fails, the digest will be set to NULL
-       * and not used.
+       * and not used. Note, the digest (file hash) can be any one of the four
+       * algorithms below.
+       *
+       * The signing digest is a single algorithm depending on
+       * whether or not we have SHA2.              
+       *   ****FIXME****  the signing algoritm should really be
+       *   determined a different way!!!!!!  What happens if
+       *   sha2 was available during backup but not restore?
        */
       if (ff_pkt->flags & FO_MD5) {
          digest = crypto_digest_new(jcr, CRYPTO_DIGEST_MD5);
@@ -407,7 +411,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (has_file_data && jcr->pki_encrypt) {
       /* Send our header */
       Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
-      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
 
       /* Grow the bsock buffer to fit our message if necessary */
       if (sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
@@ -420,8 +424,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       jcr->JobBytes += sd->msglen;
 
       Dmsg1(100, "Send data len=%d\n", sd->msglen);
-      bnet_send(sd);
-      bnet_sig(sd, BNET_EOD);
+      sd->send();
+      sd->signal(BNET_EOD);
    }
 
    /*
@@ -513,7 +517,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       }
 
       Dmsg1(300, "Saving Finder Info for \"%s\"\n", ff_pkt->fname);
-      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
+      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_HFSPLUS_ATTRIBUTES);
       Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
       memcpy(sd->msg, ff_pkt->hfsinfo.fndrinfo, 32);
       sd->msglen = 32;
@@ -523,8 +527,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       if (signing_digest) {
          crypto_digest_update(signing_digest, (uint8_t *)sd->msg, sd->msglen);
       }
-      bnet_send(sd);
-      bnet_sig(sd, BNET_EOD);
+      sd->send();
+      sd->signal(BNET_EOD);
    }
 #endif
 
@@ -550,60 +554,58 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          goto bail_out;
       }
 
-      if (crypto_sign_add_signer(sig, signing_digest, jcr->pki_keypair) == false) {
+      if (!crypto_sign_add_signer(sig, signing_digest, jcr->pki_keypair)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
          goto bail_out;
       }
 
       /* Get signature size */
-      if (crypto_sign_encode(sig, NULL, &size) == false) {
+      if (!crypto_sign_encode(sig, NULL, &size)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
          goto bail_out;
       }
-
-      /* Allocate signature data buffer */
-      buf = (uint8_t *)malloc(size);
-      if (!buf) {
-         goto bail_out;
-      }
-
-      /* Encode signature data */
-      if (crypto_sign_encode(sig, buf, &size) == false) {
-         Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
-         goto bail_out;
-      }
-
-      /* Send our header */
-      bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, STREAM_SIGNED_DIGEST);
-      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
       /* Grow the bsock buffer to fit our message if necessary */
       if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
          sd->msg = realloc_pool_memory(sd->msg, size);
       }
 
-      /* Copy our message over and send it */
-      memcpy(sd->msg, buf, size);
+      /* Send our header */
+      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_SIGNED_DIGEST);
+      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
+
+      /* Encode signature data */
+      if (!crypto_sign_encode(sig, (uint8_t *)sd->msg, &size)) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
+         goto bail_out;
+      }
+
       sd->msglen = size;
-      bnet_send(sd);
-      bnet_sig(sd, BNET_EOD);              /* end of checksum */
+      sd->send();
+      sd->signal(BNET_EOD);              /* end of checksum */
    }
 
    /* Terminate any digest and send it to Storage daemon and the Director */
    if (digest) {
-      uint8_t md[CRYPTO_DIGEST_MAX_SIZE];
       uint32_t size;
 
-      size = sizeof(md);
+      sd->fsend("%ld %d 0", jcr->JobFiles, digest_stream);
+      Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
 
-      if (crypto_digest_finalize(digest, md, &size)) {
-         bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, digest_stream);
-         Dmsg1(300, "bfiled>stored:header %s\n", sd->msg);
-         memcpy(sd->msg, md, size);
-         sd->msglen = size;
-         bnet_send(sd);
-         bnet_sig(sd, BNET_EOD);              /* end of checksum */
+      size = sizeof(CRYPTO_DIGEST_MAX_SIZE);
+      /* Grow the bsock buffer to fit our message if necessary */
+      if (sizeof_pool_memory(sd->msg) < (int32_t)size) {
+         sd->msg = realloc_pool_memory(sd->msg, size);
       }
+
+      if (!crypto_digest_finalize(digest, (uint8_t *)sd->msg, &size)) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occurred finalizing signing the stream.\n"));
+         goto bail_out;
+      }
+
+      sd->msglen = size;
+      sd->send();
+      sd->signal(BNET_EOD);              /* end of checksum */
    }
 
 good_rtn:
@@ -618,9 +620,6 @@ bail_out:
    }
    if (sig) {
       crypto_sign_free(sig);        
-   }
-   if (buf) {
-      free(buf);
    }
    return rtnstat;
 }
@@ -728,9 +727,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
     * Send Data header to Storage daemon
     *    <file-index> <stream> <info>
     */
-   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
+   if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       goto err;
    }
    Dmsg1(300, ">stored: datahdr %s\n", sd->msg);
@@ -884,9 +883,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          sd->msglen += SPARSE_FADDR_SIZE; /* include fileAddr in size */
       }
       sd->msg = wbuf;              /* set correct write buffer */
-      if (!bnet_send(sd)) {
+      if (!sd->send()) {
          Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-               bnet_strerror(sd));
+               sd->bstrerror());
          goto err;
       }
       Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
@@ -919,9 +918,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       if (encrypted_len > 0) {
          sd->msglen = encrypted_len;      /* set encrypted length */
          sd->msg = jcr->crypto_buf;       /* set correct write buffer */
-         if (!bnet_send(sd)) {
+         if (!sd->send()) {
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-                  bnet_strerror(sd));
+                  sd->bstrerror());
             goto err;
          }
          Dmsg1(130, "Send data to SD len=%d\n", sd->msglen);
@@ -930,9 +929,9 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       }
    }
 
-   if (!bnet_sig(sd, BNET_EOD)) {        /* indicate end of file data */
+   if (!sd->signal(BNET_EOD)) {        /* indicate end of file data */
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       goto err;
    }
 
@@ -976,9 +975,9 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
    }
 
    /* Send header */
-   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, stream)) {
+   if (!sd->fsend("%ld %d 0", jcr->JobFiles, stream)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       return false;
    }
 
@@ -987,19 +986,19 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
    msgsave = sd->msg;
    sd->msg = jcr->acl_text;
    sd->msglen = len + 1;
-   if (!bnet_send(sd)) {
+   if (!sd->send()) {
       sd->msg = msgsave;
       sd->msglen = 0;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       return false;
    }
 
    jcr->JobBytes += sd->msglen;
    sd->msg = msgsave;
-   if (!bnet_sig(sd, BNET_EOD)) {
+   if (!sd->signal(BNET_EOD)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       return false;
    }
 
@@ -1043,9 +1042,9 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
     * Send Attributes header to Storage daemon
     *    <file-index> <stream> <info>
     */
-   if (!bnet_fsend(sd, "%ld %d 0", jcr->JobFiles, attr_stream)) {
+   if (!sd->fsend("%ld %d 0", jcr->JobFiles, attr_stream)) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       return false;
    }
    Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
@@ -1065,15 +1064,15 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
    strip_path(ff_pkt);
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
+      stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
                attribsEx, 0);
    } else if (ff_pkt->type == FT_DIREND) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
+      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);
    } else {
-      stat = bnet_fsend(sd, "%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
+      stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
    }
    unstrip_path(ff_pkt);
@@ -1081,10 +1080,10 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-            bnet_strerror(sd));
+            sd->bstrerror());
       return false;
    }
-   bnet_sig(sd, BNET_EOD);            /* indicate end of attributes data */
+   sd->signal(BNET_EOD);            /* indicate end of attributes data */
    return true;
 }
 

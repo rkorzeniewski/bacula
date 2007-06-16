@@ -78,34 +78,38 @@ const char *stream_to_ascii(int stream)
    static char buf[20];
 
    switch (stream) {
-   case STREAM_GZIP_DATA:
-      return _("GZIP data");
-   case STREAM_SPARSE_GZIP_DATA:
-      return _("GZIP sparse data");
-   case STREAM_WIN32_DATA:
-      return _("Win32 data");
-   case STREAM_WIN32_GZIP_DATA:
-      return _("Win32 GZIP data");
    case STREAM_UNIX_ATTRIBUTES:
-      return _("File attributes");
+      return _("Unix attributes");
    case STREAM_FILE_DATA:
       return _("File data");
    case STREAM_MD5_DIGEST:
       return _("MD5 digest");
+   case STREAM_GZIP_DATA:
+      return _("GZIP data");
    case STREAM_UNIX_ATTRIBUTES_EX:
       return _("Extended attributes");
    case STREAM_SPARSE_DATA:
       return _("Sparse data");
+   case STREAM_SPARSE_GZIP_DATA:
+      return _("GZIP sparse data");
    case STREAM_PROGRAM_NAMES:
       return _("Program names");
    case STREAM_PROGRAM_DATA:
       return _("Program data");
    case STREAM_SHA1_DIGEST:
       return _("SHA1 digest");
+   case STREAM_WIN32_DATA:
+      return _("Win32 data");
+   case STREAM_WIN32_GZIP_DATA:
+      return _("Win32 GZIP data");
    case STREAM_MACOS_FORK_DATA:
-      return _("HFS+ resource fork");
+      return _("MacOS Fork data");
    case STREAM_HFSPLUS_ATTRIBUTES:
-      return _("HFS+ Finder Info");
+      return _("HFS+ attribs");
+   case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
+      return _("Standard Unix ACL attribs");
+   case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
+      return _("Default Unix ACL attribs");
    case STREAM_SHA256_DIGEST:
       return _("SHA256 digest");
    case STREAM_SHA512_DIGEST:
@@ -114,14 +118,16 @@ const char *stream_to_ascii(int stream)
       return _("Signed digest");
    case STREAM_ENCRYPTED_FILE_DATA:
       return _("Encrypted File data");
-   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
-      return _("Encrypted GZIP data");
    case STREAM_ENCRYPTED_WIN32_DATA:
       return _("Encrypted Win32 data");
+   case STREAM_ENCRYPTED_SESSION_DATA:
+      return _("Encrypted session data");
+   case STREAM_ENCRYPTED_FILE_GZIP_DATA:
+      return _("Encrypted GZIP data");
    case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
       return _("Encrypted Win32 GZIP data");
    case STREAM_ENCRYPTED_MACOS_FORK_DATA:
-      return _("Encrypted HFS+ resource fork");
+      return _("Encrypted MacOS fork data");
    default:
       sprintf(buf, "%d", stream);
       return (const char *)buf;

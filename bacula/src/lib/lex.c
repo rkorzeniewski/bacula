@@ -190,6 +190,11 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
       memset(lf, 0, sizeof(LEX));
       lf->next = nf;                  /* if have lf, push it behind new one */
       lf->options = nf->options;      /* preserve user options */
+      /*
+       * preserve err_type to prevent bacula exiting on 'reload' 
+       * if config is invalid. Fixes bug #877         
+       */
+      lf->err_type = nf->err_type;    
    } else {
       lf = nf;                        /* start new packet */
       memset(lf, 0, sizeof(LEX));
@@ -594,18 +599,18 @@ lex_get_token(LEX *lf, int expect)
             lf->state = lex_none;
          } else {
             token = T_ERROR;
-	 }
+         }
          break;
       case lex_utf16_le_bom:
          /* we only end up in this state if we have read an 0xFF 
             as the first byte of the file -- indicating that we are
             probably dealing with an Intel based (little endian) UTF-16 file*/
-	 if (ch == 0xFE) {
-	    token = T_UTF16_BOM;
-	    lf->state = lex_none;
-	 } else {
-	    token = T_ERROR;
-	 }
+         if (ch == 0xFE) {
+            token = T_UTF16_BOM;
+            lf->state = lex_none;
+         } else {
+            token = T_ERROR;
+         }
          break;
       }
       Dmsg4(dbglvl, "ch=%d state=%s token=%s %c\n", ch, lex_state_to_str(lf->state),

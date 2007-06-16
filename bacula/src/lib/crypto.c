@@ -713,11 +713,13 @@ SIGNATURE *crypto_sign_new(JCR *jcr)
 
 /*
  * For a given public key, find the associated SignatureInfo record
- * and create a digest context for signature validation
+ *   and create a digest context for signature validation
+ *
  * Returns: CRYPTO_ERROR_NONE on success, with the newly allocated DIGEST in digest.
  *          A crypto_error_t value on failure.
  */
-crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIGEST **digest)
+crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, 
+                                      crypto_digest_t &type, DIGEST **digest)
 {
    STACK_OF(SignerInfo) *signers;
    SignerInfo *si;
@@ -732,20 +734,29 @@ crypto_error_t crypto_sign_get_digest(SIGNATURE *sig, X509_KEYPAIR *keypair, DIG
          Dmsg1(50, "crypto_sign_get_digest jcr=%p\n", sig->jcr);
          switch (OBJ_obj2nid(si->digestAlgorithm)) {
          case NID_md5:
+            Dmsg0(100, "sign digest algorithm is MD5\n");
+            type = CRYPTO_DIGEST_MD5;
             *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_MD5);
             break;
          case NID_sha1:
+            Dmsg0(100, "sign digest algorithm is SHA1\n");
+            type = CRYPTO_DIGEST_SHA1;
             *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA1);
             break;
 #ifdef HAVE_SHA2
          case NID_sha256:
+            Dmsg0(100, "sign digest algorithm is SHA256\n");
+            type = CRYPTO_DIGEST_SHA256;
             *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA256);
             break;
          case NID_sha512:
+            Dmsg0(100, "sign digest algorithm is SHA512\n");
+            type = CRYPTO_DIGEST_SHA512;
             *digest = crypto_digest_new(sig->jcr, CRYPTO_DIGEST_SHA512);
             break;
 #endif
          default:
+            type = CRYPTO_DIGEST_NONE;
             *digest = NULL;
             return CRYPTO_ERROR_INVALID_DIGEST;
          }

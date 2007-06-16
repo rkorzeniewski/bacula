@@ -694,7 +694,7 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
          Dmsg2(400, "stream=Digest inx=%d Digest=%s\n", file_index, Opts_Digest);
          /*
-          * When ever we get a digest is MUST have been
+          * When ever we get a digest it MUST have been
           * preceded by an attributes record, which sets attr_file_index
           */
          if (jcr->FileIndex != (uint32_t)file_index) {

@@ -56,6 +56,13 @@ const bool have_acl = true;
 const bool have_acl = false;
 #endif
 
+#ifdef HAVE_SHA2
+   const bool have_sha2 = true;
+#else
+   const bool have_sha2 = false;
+#endif
+
+
 /* Data received from Storage Daemon */
 static char rec_header[] = "rechdr %ld %ld %ld %ld %ld";
 
@@ -83,7 +90,7 @@ struct r_ctx {
 
    SIGNATURE *sig;                     /* Cryptographic signature (if any) for file */
    CRYPTO_SESSION *cs;                 /* Cryptographic session data (if any) for file */
-   RESTORE_CIPHER_CTX cipher_ctx;     /* Cryptographic restore context (if any) for file */
+   RESTORE_CIPHER_CTX cipher_ctx;      /* Cryptographic restore context (if any) for file */
    RESTORE_CIPHER_CTX fork_cipher_ctx; /* Cryptographic restore context (if any) for alternative stream */
 };
 
@@ -147,7 +154,9 @@ void do_restore(JCR *jcr)
    ATTR *attr;
    intmax_t rsrc_len = 0;             /* Original length of resource fork */
    r_ctx rctx;
-
+   /* ***FIXME*** make configurable */
+   crypto_digest_t signing_algorithm = have_sha2 ? 
+                                       CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
    memset(&rctx, 0, sizeof(rctx));
    rctx.jcr = jcr;
 
@@ -185,7 +194,7 @@ void do_restore(JCR *jcr)
    }
    jcr->buf_size = sd->msglen;
 
-   /* St Bernard code goes here if implemented */
+   /* St Bernard code goes here if implemented -- see end of file */
 
    if (have_libz) {
       uint32_t compress_buf_size = jcr->buf_size + 12 + ((jcr->buf_size+999) / 1000) + 100;
@@ -204,15 +213,15 @@ void do_restore(JCR *jcr)
     * Get a record from the Storage daemon. We are guaranteed to
     *   receive records in the following order:
     *   1. Stream record header
-    *   2. Stream data
+    *   2. Stream data (one or more of the following in the order given)
     *        a. Attributes (Unix or Win32)
     *        b. Possibly stream encryption session data (e.g., symmetric session key)
-    *    or  c. File data for the file
-    *    or  d. Alternate data stream (e.g. Resource Fork)
-    *    or  e. Finder info
-    *    or  f. ACLs
-    *    or  g. Possibly a cryptographic signature
-    *    or  h. Possibly MD5 or SHA1 record
+    *        c. File data for the file
+    *        d. Alternate data stream (e.g. Resource Fork)
+    *        e. Finder info
+    *        f. ACLs
+    *        g. Possibly a cryptographic signature
+    *        h. Possibly MD5 or SHA1 record
     *   3. Repeat step 1
     *
     * NOTE: We keep track of two bacula file descriptors:
@@ -225,11 +234,15 @@ void do_restore(JCR *jcr)
     *      close it again.
     *      The expected size of the stream, fork_len, should be set when
     *      opening the fd.
+    *   3. Not all the stream data records are required -- e.g. if there
+    *      is no fork, there is no alternate data stream, no ACL, ...
     */
    binit(&rctx.bfd);
    binit(&rctx.forkbfd);
    attr = new_attr();
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
+
+   
 
    while (bget_msg(sd) >= 0 && !job_canceled(jcr)) {
       /* Remember previous stream type */
@@ -246,7 +259,7 @@ void do_restore(JCR *jcr)
 
       /* * Now we expect the Stream Data */
       if (bget_msg(sd) < 0) {
-         Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), bnet_strerror(sd));
+         Jmsg1(jcr, M_FATAL, 0, _("Data record error. ERR=%s\n"), sd->bstrerror());
          goto bail_out;
       }
       if (rctx.size != (uint32_t)sd->msglen) {
@@ -382,6 +395,17 @@ void do_restore(JCR *jcr)
          /* Do we have any keys at all? */
          if (!jcr->pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
+            extract = false;
+            bclose(&rctx.bfd);
+            break;
+         }
+
+         if (jcr->digest) {
+            crypto_digest_free(jcr->digest);
+         }  
+         jcr->digest = crypto_digest_new(jcr, signing_algorithm);
+         if (!jcr->digest) {
+            Jmsg0(jcr, M_FATAL, 0, _("Could not create digest.\n"));
             extract = false;
             bclose(&rctx.bfd);
             break;
@@ -664,6 +688,10 @@ ok_out:
    /* Free Signature & Crypto Data */
    free_signature(rctx);
    free_session(rctx);
+   if (jcr->digest) {
+      crypto_digest_free(jcr->digest);
+      jcr->digest = NULL;
+   }
 
    /* Free file cipher restore context */
    if (rctx.cipher_ctx.cipher) {
@@ -763,6 +791,10 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
    DIGEST *digest = NULL;
    crypto_error_t err;
    uint64_t saved_bytes;
+   crypto_digest_t signing_algorithm = have_sha2 ? 
+                                       CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
+   crypto_digest_t algorithm;
+
 
    if (!jcr->pki_sign) {
       return true;                    /* no signature OK */
@@ -774,43 +806,67 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
 
    /* Iterate through the trusted signers */
    foreach_alist(keypair, jcr->pki_signers) {
-      err = crypto_sign_get_digest(sig, jcr->pki_keypair, &digest);
+      err = crypto_sign_get_digest(sig, jcr->pki_keypair, algorithm, &digest);
       switch (err) {
       case CRYPTO_ERROR_NONE:
          Dmsg0(50, "== Got digest\n");
-         /* Signature found, digest allocated */
-         jcr->digest = digest;
-
-         /* Checksum the entire file */
-         /* Make sure we don't modify JobBytes by saving and restoring it */
-         saved_bytes = jcr->JobBytes;                     
-         if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
-            Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"), 
-                 jcr->last_fname);
-            jcr->JobBytes = saved_bytes;
-            goto bail_out;
+         /*
+          * We computed jcr->digest using signing_algorithm while writing
+          * the file. If it is not the same as the algorithm used for 
+          * this file, punt by releasing the computed algorithm and 
+          * computing by re-reading the file.
+          */
+         if (algorithm != signing_algorithm) {
+            if (jcr->digest) {
+               crypto_digest_free(jcr->digest);
+               jcr->digest = NULL;
+            }  
          }
-         jcr->JobBytes = saved_bytes;
+         if (jcr->digest) {
+             /* Use digest computed while writing the file to verify the signature */
+            if ((err = crypto_sign_verify(sig, keypair, jcr->digest)) != CRYPTO_ERROR_NONE) {
+               Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
+               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
+                     jcr->last_fname, crypto_strerror(err));
+               goto bail_out;
+            }
+         } else {   
+            /* Signature found, digest allocated.  Old method, 
+             * re-read the file and compute the digest
+             */
+            jcr->digest = digest;
 
-         /* Verify the signature */
-         if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
-            Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
-            Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
-                  jcr->last_fname, crypto_strerror(err));
-            goto bail_out;
+            /* Checksum the entire file */
+            /* Make sure we don't modify JobBytes by saving and restoring it */
+            saved_bytes = jcr->JobBytes;                     
+            if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
+               Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"), 
+                    jcr->last_fname);
+               jcr->JobBytes = saved_bytes;
+               goto bail_out;
+            }
+            jcr->JobBytes = saved_bytes;
+
+            /* Verify the signature */
+            if ((err = crypto_sign_verify(sig, keypair, digest)) != CRYPTO_ERROR_NONE) {
+               Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
+               Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
+                     jcr->last_fname, crypto_strerror(err));
+               goto bail_out;
+            }
+            jcr->digest = NULL;
          }
 
          /* Valid signature */
          Dmsg1(50, "Signature good on %s\n", jcr->last_fname);
          crypto_digest_free(digest);
-         jcr->digest = NULL;
          return true;
 
       case CRYPTO_ERROR_NOSIGNER:
          /* Signature not found, try again */
          if (digest) {
             crypto_digest_free(digest);
-            jcr->digest = NULL;
+            digest = NULL;
          }
          continue;
       default:
@@ -826,7 +882,6 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
 bail_out:
    if (digest) {
       crypto_digest_free(digest);
-      jcr->digest = NULL;
    }
    return false;
 }
@@ -895,6 +950,9 @@ static void unser_crypto_packet_len(RESTORE_CIPHER_CTX *ctx)
 
 bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win32_decomp)
 {
+   if (jcr->digest) {
+      crypto_digest_update(jcr->digest, (uint8_t *)data, length);
+   }
    if (win32_decomp) {
       if (!processWin32BackupAPIBlock(bfd, data, length)) {
          berrno be;
