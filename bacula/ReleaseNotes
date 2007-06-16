@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 2.1.14
+          Release Notes for Bacula 2.1.16
 
   Bacula code: Total files = 458 Total lines = 170,197 (*.h *.c *.in)
 
@@ -10,7 +10,11 @@ not have to upgrade all your File daemons.  However, bat works only with
 a 2.1.8 Director or greater.
 
 Changes since Beta release 2.1.12
-- Fixed bugs #864, 872, 874, 882, 882
+- Version 2.1.14 not released.
+- Possible solution to Win32 encryption restore signature errors.
+- Reload with syntax errors in @include now works.
+- Gnome console builds with encryption.
+- Fixed bugs #864, 872, 874, 882, 882, 877, 886, 885.
 - License is now GPL v2 without modifications, fix a few copyright
   mistakes made when adding FSFE copyright notice.
 - Fix update all from pool to pass pool name.
