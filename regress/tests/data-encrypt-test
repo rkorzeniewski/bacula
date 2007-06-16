@@ -48,7 +48,6 @@ stop_bacula
 du -s build
 du -s tmp/bacula-restores/
 
-
 check_two_logs
 check_restore_diff
 end_test
