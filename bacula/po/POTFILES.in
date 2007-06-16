@@ -265,7 +265,6 @@
 ./src/lib/serial.h
 ./src/lib/sha1.h
 ./src/lib/smartall.h
-./src/lib/tcpd.h
 ./src/lib/tls.h
 ./src/lib/tree.h
 ./src/lib/var.h

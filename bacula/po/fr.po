@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-06-06 15:29+0200\n"
+"POT-Creation-Date: 2007-06-16 11:09+0200\n"
 "PO-Revision-Date: 2007-05-05 20:09+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
@@ -559,7 +559,7 @@ msgstr ""
 msgid "Unable to open Database=%s. ERR=%s\n"
 msgstr ""
 
-#: src/cats/sqlite.c:205 src/lib/bnet_server.c:389
+#: src/cats/sqlite.c:205 src/lib/bnet_server.c:391
 msgid "unknown"
 msgstr "inconnu"
 
@@ -1139,7 +1139,7 @@ msgid "Only one Director resource permitted in %s\n"
 msgstr ""
 
 #: src/dird/dird.c:563 src/dird/dird.c:764 src/dird/dird.c:816
-#: src/dird/dird.c:920 src/console/console.c:652 src/console/console.c:681
+#: src/dird/dird.c:920 src/console/console.c:657 src/console/console.c:686
 #: src/filed/filed.c:288 src/filed/filed.c:446
 #: src/gnome2-console/console.c:153 src/gnome2-console/console.c:182
 #: src/stored/stored.c:332 src/wx-console/console_thread.cpp:114
@@ -1738,7 +1738,7 @@ msgstr "Le job précédent était en erreur. Passage au type %s.\n"
 msgid "Unimplemented backup level %d %c\n"
 msgstr ""
 
-#: src/dird/fd_cmds.c:356 src/filed/job.c:631
+#: src/dird/fd_cmds.c:356 src/filed/job.c:636
 #, c-format
 msgid "Cannot run program: %s. ERR=%s\n"
 msgstr "Impossible de lancer la commande : %s. ERR=%s\n"
@@ -1757,7 +1757,7 @@ msgstr "Erreur dans l'exécution de la commande : %s. ERR=%s\n"
 msgid "Cannot open included file: %s. ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier inclus : %s. ERR=%s\n"
 
-#: src/dird/fd_cmds.c:477 src/filed/job.c:1821
+#: src/dird/fd_cmds.c:477 src/filed/job.c:1826
 #, c-format
 msgid "Could not open bootstrap file %s: ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier bootstrap %s : ERR=%s\n"
@@ -2327,7 +2327,7 @@ msgstr ""
 msgid "Storage from Pool's NextPool resource"
 msgstr "Sélectionnez le Pool"
 
-#: src/dird/msgchan.c:106 src/filed/job.c:1291
+#: src/dird/msgchan.c:106 src/filed/job.c:1296
 #: src/tray-monitor/tray-monitor.c:921
 msgid "Storage daemon"
 msgstr ""
@@ -3293,13 +3293,13 @@ msgid "Expected a positive integer, got: %s\n"
 msgstr "Attendait un entier positif, pas : %s\n"
 
 #: src/dird/ua_input.c:123 src/dird/ua_run.c:446 src/dird/ua_update.c:245
-#: src/dird/ua_update.c:265 src/dird/ua_update.c:610
+#: src/dird/ua_update.c:265 src/dird/ua_update.c:614
 #: src/stored/parse_bsr.c:779 src/tools/dbcheck.c:1202
 msgid "yes"
 msgstr "oui"
 
 #: src/dird/ua_input.c:127 src/dird/ua_update.c:245 src/dird/ua_update.c:265
-#: src/dird/ua_update.c:610 src/stored/parse_bsr.c:779
+#: src/dird/ua_update.c:614 src/stored/parse_bsr.c:779
 msgid "no"
 msgstr "non"
 
@@ -3869,7 +3869,7 @@ msgstr "Annulé"
 msgid "Unknown keyword: %s\n"
 msgstr "Mot clef inconnu : %s\n"
 
-#: src/dird/ua_restore.c:487 src/dird/ua_update.c:829
+#: src/dird/ua_restore.c:487 src/dird/ua_update.c:836
 #, c-format
 msgid "Improper date format: %s\n"
 msgstr "Format de date invalide : %s\n"
@@ -4172,7 +4172,7 @@ msgstr "OK pour le lancement ? (oui/mod/non) : "
 msgid "mod"
 msgstr "mod"
 
-#: src/dird/ua_run.c:263 src/dird/ua_update.c:519
+#: src/dird/ua_run.c:263 src/dird/ua_update.c:523
 msgid "Parameters to modify:\n"
 msgstr "Paramètre à modifier :\n"
 
@@ -4198,7 +4198,7 @@ msgid "Priority"
 msgstr "Priorité"
 
 #: src/dird/ua_run.c:278 src/dird/ua_select.c:506 src/dird/ua_select.c:596
-#: src/dird/ua_update.c:530 src/wx-console/wxbrestorepanel.cpp:337
+#: src/dird/ua_update.c:534 src/wx-console/wxbrestorepanel.cpp:337
 #: src/wx-console/wxbrestorepanel.cpp:526
 #: src/wx-console/wxbrestorepanel.cpp:536
 #: src/wx-console/wxbrestorepanel.cpp:1806
@@ -4238,7 +4238,7 @@ msgstr "Écrasement"
 msgid "JobId"
 msgstr "JobId"
 
-#: src/dird/ua_run.c:289 src/dird/ua_run.c:487 src/dird/ua_update.c:536
+#: src/dird/ua_run.c:289 src/dird/ua_run.c:487 src/dird/ua_update.c:540
 msgid "Select parameter to modify"
 msgstr "Sélectionnez le paramètre à modifier"
 
@@ -5592,7 +5592,7 @@ msgstr ""
 msgid "Invalid slot, it must be between 0 and MaxVols=%d\n"
 msgstr "Slot invalide, il doit être compris entre 0 et MaxVols=%d\n"
 
-#: src/dird/ua_update.c:291 src/dird/ua_update.c:636
+#: src/dird/ua_update.c:291 src/dird/ua_update.c:640
 #, c-format
 msgid "Error updating media record Slot: ERR=%s"
 msgstr ""
@@ -5622,181 +5622,182 @@ msgstr ""
 msgid "Volume defaults updated from \"%s\" Pool record.\n"
 msgstr ""
 
-#: src/dird/ua_update.c:402
+#: src/dird/ua_update.c:404
 #, c-format
 msgid "Error updating Volume records: ERR=%s"
 msgstr ""
 
-#: src/dird/ua_update.c:404
-msgid "All Volume defaults updated from Pool record.\n"
+#: src/dird/ua_update.c:406
+#, c-format
+msgid "All Volume defaults updated from \"%s\" Pool record.\n"
 msgstr ""
 
-#: src/dird/ua_update.c:415
+#: src/dird/ua_update.c:418
 #, fuzzy, c-format
 msgid "Error updating media record Enabled: ERR=%s"
 msgstr "Impossible de mettre à jour les informations du Volume : ERR=%s"
 
-#: src/dird/ua_update.c:417
+#: src/dird/ua_update.c:420
 #, fuzzy, c-format
 msgid "New Enabled is: %d\n"
 msgstr "Le nouveau flag Enabled est : %d\n"
 
-#: src/dird/ua_update.c:520
+#: src/dird/ua_update.c:524
 msgid "Volume Status"
 msgstr "Statut d'un volume"
 
-#: src/dird/ua_update.c:521
+#: src/dird/ua_update.c:525
 msgid "Volume Retention Period"
 msgstr "Période de rétention d'un volume"
 
-#: src/dird/ua_update.c:522
+#: src/dird/ua_update.c:526
 msgid "Volume Use Duration"
 msgstr "Durée d'utilisation d'un volume"
 
-#: src/dird/ua_update.c:523
+#: src/dird/ua_update.c:527
 msgid "Maximum Volume Jobs"
 msgstr "Nombre maximum de job sur un volume"
 
-#: src/dird/ua_update.c:524
+#: src/dird/ua_update.c:528
 msgid "Maximum Volume Files"
 msgstr "Nombre maximum de fichier sur un volume"
 
-#: src/dird/ua_update.c:525
+#: src/dird/ua_update.c:529
 msgid "Maximum Volume Bytes"
 msgstr "Taille maximum d'un volume"
 
-#: src/dird/ua_update.c:526
+#: src/dird/ua_update.c:530
 msgid "Recycle Flag"
 msgstr "Flag de recyclage"
 
-#: src/dird/ua_update.c:527
+#: src/dird/ua_update.c:531
 msgid "Slot"
 msgstr ""
 
-#: src/dird/ua_update.c:528
+#: src/dird/ua_update.c:532
 msgid "InChanger Flag"
 msgstr "Flag InChanger"
 
-#: src/dird/ua_update.c:529
+#: src/dird/ua_update.c:533
 msgid "Volume Files"
 msgstr "Fichiers du Volume"
 
-#: src/dird/ua_update.c:531
+#: src/dird/ua_update.c:535
 msgid "Volume from Pool"
 msgstr ""
 
-#: src/dird/ua_update.c:532
+#: src/dird/ua_update.c:536
 msgid "All Volumes from Pool"
 msgstr ""
 
-#: src/dird/ua_update.c:533
+#: src/dird/ua_update.c:537
 msgid "Enabled"
 msgstr ""
 
-#: src/dird/ua_update.c:534
+#: src/dird/ua_update.c:538
 msgid "RecyclePool"
 msgstr "RecyclePool"
 
-#: src/dird/ua_update.c:535
+#: src/dird/ua_update.c:539
 msgid "Done"
 msgstr "Fin"
 
-#: src/dird/ua_update.c:543
+#: src/dird/ua_update.c:547
 #, c-format
 msgid "Updating Volume \"%s\"\n"
 msgstr "Mise à jour du Volume « %s »\n"
 
-#: src/dird/ua_update.c:548
+#: src/dird/ua_update.c:552
 #, c-format
 msgid "Current Volume status is: %s\n"
 msgstr "Le statut actuel du volume (Volume status) est : %s\n"
 
-#: src/dird/ua_update.c:549
+#: src/dird/ua_update.c:553
 msgid "Possible Values are:\n"
 msgstr "Les valeurs possibles sont :\n"
 
-#: src/dird/ua_update.c:560
+#: src/dird/ua_update.c:564
 msgid "Choose new Volume Status"
 msgstr "Saisissez le nouveau statut du volume (Volume Status)"
 
-#: src/dird/ua_update.c:566
+#: src/dird/ua_update.c:570
 #, c-format
 msgid "Current retention period is: %s\n"
 msgstr "La période de rétention actuelle est : %s\n"
 
-#: src/dird/ua_update.c:568
+#: src/dird/ua_update.c:572
 msgid "Enter Volume Retention period: "
 msgstr "Saisissez la période de rétention du volume : "
 
-#: src/dird/ua_update.c:575
+#: src/dird/ua_update.c:579
 #, c-format
 msgid "Current use duration is: %s\n"
 msgstr "La durée d'utilisation actuelle est : %s\n"
 
-#: src/dird/ua_update.c:577
+#: src/dird/ua_update.c:581
 msgid "Enter Volume Use Duration: "
 msgstr "Saisissez la durée d'utilisation du volume : "
 
-#: src/dird/ua_update.c:584
+#: src/dird/ua_update.c:588
 #, c-format
 msgid "Current max jobs is: %u\n"
 msgstr "Le nombre maximum de Job actuel est : %u\n"
 
-#: src/dird/ua_update.c:585
+#: src/dird/ua_update.c:589
 msgid "Enter new Maximum Jobs: "
 msgstr "Saisissez la valeur du nombre maximum de Job : "
 
-#: src/dird/ua_update.c:592
+#: src/dird/ua_update.c:596
 #, c-format
 msgid "Current max files is: %u\n"
 msgstr "Le nombre maximum de fichier actuel est : %u\n"
 
-#: src/dird/ua_update.c:593
+#: src/dird/ua_update.c:597
 msgid "Enter new Maximum Files: "
 msgstr "Saisissez la valeur du nombre maximum de fichier (Maximum Files) : "
 
-#: src/dird/ua_update.c:600
+#: src/dird/ua_update.c:604
 #, c-format
 msgid "Current value is: %s\n"
 msgstr "La valeur actuelle est : %s\n"
 
-#: src/dird/ua_update.c:601
+#: src/dird/ua_update.c:605
 msgid "Enter new Maximum Bytes: "
 msgstr "Saisissez la nouvelle taille maximum (octets) : "
 
-#: src/dird/ua_update.c:609
+#: src/dird/ua_update.c:613
 #, c-format
 msgid "Current recycle flag is: %s\n"
 msgstr "Le flag de recyclage courant est : %s\n"
 
-#: src/dird/ua_update.c:611
+#: src/dird/ua_update.c:615
 msgid "Enter new Recycle status: "
 msgstr ""
 
-#: src/dird/ua_update.c:618
+#: src/dird/ua_update.c:622
 #, c-format
 msgid "Current Slot is: %d\n"
 msgstr "Le slot courant est : %d\n"
 
-#: src/dird/ua_update.c:619
+#: src/dird/ua_update.c:623
 msgid "Enter new Slot: "
 msgstr "Saisissez le nouveau slot : "
 
-#: src/dird/ua_update.c:626
+#: src/dird/ua_update.c:630
 #, c-format
 msgid "Current InChanger flag is: %d\n"
 msgstr "Le flag InChanger courant est : %d\n"
 
-#: src/dird/ua_update.c:627
+#: src/dird/ua_update.c:631
 msgid "Set InChanger flag? yes/no: "
 msgstr "Positionner le flag InChanger ? oui/non : "
 
-#: src/dird/ua_update.c:638
+#: src/dird/ua_update.c:642
 #, c-format
 msgid "New InChanger flag is: %d\n"
 msgstr "Le nouveau flag InChanger est : %d\n"
 
-#: src/dird/ua_update.c:645
+#: src/dird/ua_update.c:649
 msgid ""
 "Warning changing Volume Files can result\n"
 "in loss of data on your Volume\n"
@@ -5806,80 +5807,80 @@ msgstr ""
 "vous faire perdre des données du Volume\n"
 "\n"
 
-#: src/dird/ua_update.c:647
+#: src/dird/ua_update.c:651
 #, c-format
 msgid "Current Volume Files is: %u\n"
 msgstr "Le nombre courant de fichier sur le Volume est : %u\n"
 
-#: src/dird/ua_update.c:648
+#: src/dird/ua_update.c:652
 msgid "Enter new number of Files for Volume: "
 msgstr "Saisissez le nouveau nombre de fichiers du Volume : "
 
-#: src/dird/ua_update.c:653
+#: src/dird/ua_update.c:657
 msgid "Normally, you should only increase Volume Files by one!\n"
 msgstr ""
 "Logiquement, vous devez augmenter le nombre de fichier du Volume d'un !\n"
 
-#: src/dird/ua_update.c:654
+#: src/dird/ua_update.c:658
 msgid "Continue? (yes/no): "
 msgstr "Continuez ? (oui/non) : "
 
-#: src/dird/ua_update.c:664
+#: src/dird/ua_update.c:668
 #, c-format
 msgid "New Volume Files is: %u\n"
 msgstr "Le nouveau nombre de fichier du Volume est : %u\n"
 
-#: src/dird/ua_update.c:676
+#: src/dird/ua_update.c:680
 #, c-format
 msgid "Current Pool is: %s\n"
 msgstr "Le pool courant est : %s\n"
 
-#: src/dird/ua_update.c:677
+#: src/dird/ua_update.c:681
 msgid "Enter new Pool name: "
 msgstr "Saisissez le nouveau nom pour ce pool : "
 
-#: src/dird/ua_update.c:691
+#: src/dird/ua_update.c:698
 #, c-format
 msgid "Current Enabled is: %d\n"
 msgstr "La valeur actuelle de Enabled est : %d\n"
 
-#: src/dird/ua_update.c:692
+#: src/dird/ua_update.c:699
 msgid "Enter new Enabled: "
 msgstr "Saisissez la nouvelle valeur pour Enabled : "
 
-#: src/dird/ua_update.c:711
+#: src/dird/ua_update.c:718
 #, c-format
 msgid "Current RecyclePool is: %s\n"
 msgstr "Le RecyclePool courant est : %s\n"
 
-#: src/dird/ua_update.c:713
+#: src/dird/ua_update.c:720
 msgid "No current RecyclePool\n"
 msgstr "Pas de RecyclePool courant\n"
 
-#: src/dird/ua_update.c:715
+#: src/dird/ua_update.c:722
 msgid "Enter new RecyclePool name: "
 msgstr "Saisissez le nouveau RecyclePool : "
 
-#: src/dird/ua_update.c:722
+#: src/dird/ua_update.c:729
 msgid "Selection terminated.\n"
 msgstr "Sélection terminée.\n"
 
-#: src/dird/ua_update.c:756
+#: src/dird/ua_update.c:763
 #, c-format
 msgid "db_update_pool_record returned %d. ERR=%s\n"
 msgstr "db_update_pool_record a retourné %d. ERR=%s\n"
 
-#: src/dird/ua_update.c:763
+#: src/dird/ua_update.c:770
 msgid "Pool DB record updated from resource.\n"
 msgstr ""
 "Les paramètres du Pool en base ont été mis à jour depuis la configuration.\n"
 
-#: src/dird/ua_update.c:790
+#: src/dird/ua_update.c:797
 #, fuzzy
 msgid "Expect JobId keyword, not found.\n"
 msgstr "%s ressource %s introuvable.\n"
 
-#: src/dird/ua_update.c:815
+#: src/dird/ua_update.c:822
 #, fuzzy
 msgid "Neither Client nor StartTime specified.\n"
 msgstr "Pas de storage sélectionné.\n"
@@ -6208,47 +6209,52 @@ msgstr ""
 
 #: src/console/console.c:466
 #, c-format
-msgid "%d  %s at %s:%d\n"
+msgid "%2d:  %s at %s:%d\n"
 msgstr ""
 
 #: src/console/console.c:470
-msgid "Select Director: "
+msgid "Select Director by entering a number: "
 msgstr ""
 
-#: src/console/console.c:476
+#: src/console/console.c:475
+#, fuzzy, c-format
+msgid "%s is not a number. You must enter a number between 1 and %d\n"
+msgstr "Vous devez saisir un nombre entre 1 et %d\n"
+
+#: src/console/console.c:481
 #, c-format
 msgid "You must enter a number between 1 and %d\n"
 msgstr "Vous devez saisir un nombre entre 1 et %d\n"
 
-#: src/console/console.c:516 src/tray-monitor/tray-monitor.c:905
+#: src/console/console.c:521 src/tray-monitor/tray-monitor.c:905
 #, c-format
 msgid "Connecting to Director %s:%d\n"
 msgstr "Connexion au Director %s:%d\n"
 
-#: src/console/console.c:533 src/gnome2-console/console.c:526
+#: src/console/console.c:538 src/gnome2-console/console.c:526
 #: src/wx-console/console_thread.cpp:391
 #, c-format
 msgid "Failed to initialize TLS context for Console \"%s\".\n"
 msgstr "Impossible d'initialiser le contexte TLS pour la Console « %s ».\n"
 
-#: src/console/console.c:553 src/gnome2-console/console.c:548
+#: src/console/console.c:558 src/gnome2-console/console.c:548
 #: src/wx-console/console_thread.cpp:412
 #, c-format
 msgid "Failed to initialize TLS context for Director \"%s\".\n"
 msgstr "Impossible d'initialiser le contexte TLS pour le Director « %s ».\n"
 
-#: src/console/console.c:583
+#: src/console/console.c:588
 msgid "Enter a period to cancel a command.\n"
 msgstr "Tapez un point (.) pour annuler une commande.\n"
 
-#: src/console/console.c:659 src/gnome2-console/console.c:160
+#: src/console/console.c:664 src/gnome2-console/console.c:160
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
 "Director \"%s\" in %s. At least one CA certificate store is required.\n"
 msgstr ""
 
-#: src/console/console.c:668 src/gnome2-console/console.c:169
+#: src/console/console.c:673 src/gnome2-console/console.c:169
 #, c-format
 msgid ""
 "No Director resource defined in %s\n"
@@ -6257,47 +6263,47 @@ msgstr ""
 "Pas de director défini pour %s\n"
 "Sans cette définition, il n'est pas possible de se connecter à celui-ci.\n"
 
-#: src/console/console.c:688 src/gnome2-console/console.c:189
+#: src/console/console.c:693 src/gnome2-console/console.c:189
 #, c-format
 msgid ""
 "Neither \"TLS CA Certificate\" or \"TLS CA Certificate Dir\" are defined for "
 "Console \"%s\" in %s.\n"
 msgstr ""
 
-#: src/console/console.c:844
+#: src/console/console.c:849
 msgid "Too many arguments on input command.\n"
 msgstr "Trop d'arguments sur la commande.\n"
 
-#: src/console/console.c:848
+#: src/console/console.c:853
 msgid "First argument to input command must be a filename.\n"
 msgstr "Le premier argument de la commande doit être un fichier.\n"
 
-#: src/console/console.c:853
+#: src/console/console.c:858
 #, c-format
 msgid "Cannot open file %s for input. ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier %s pour lecture. ERR=%s\n"
 
-#: src/console/console.c:883
+#: src/console/console.c:888
 msgid "Too many arguments on output/tee command.\n"
 msgstr ""
 
-#: src/console/console.c:900
+#: src/console/console.c:905
 #, c-format
 msgid "Cannot open file %s for output. ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier %s pour la sortie. ERR=%s\n"
 
-#: src/console/console.c:919
+#: src/console/console.c:924
 msgid "Too many arguments. Enclose command in double quotes.\n"
 msgstr ""
 "Trop d'arguments sur la commande. Essayez d'utiliser des « \" » autour des "
 "commandes\n"
 
-#: src/console/console.c:928
+#: src/console/console.c:933
 #, fuzzy, c-format
 msgid "Cannot popen(\"%s\", \"r\"): ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier %s : ERR=%s\n"
 
-#: src/console/console.c:940 src/stored/autochanger.c:543
+#: src/console/console.c:945 src/stored/autochanger.c:545
 #, c-format
 msgid "Autochanger error: ERR=%s\n"
 msgstr "Erreur sur l'autochangeur : ERR=%s\n"
@@ -6439,153 +6445,157 @@ msgstr ""
 msgid "Cannot set buffer size FD->SD.\n"
 msgstr ""
 
-#: src/filed/backup.c:129 src/filed/backup.c:141
+#: src/filed/backup.c:129 src/filed/backup.c:138
 msgid "An error occurred while encrypting the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:258
+#: src/filed/backup.c:255
 #, c-format
 msgid "     Recursion turned off. Will not descend from %s into %s\n"
 msgstr ""
 
-#: src/filed/backup.c:265
+#: src/filed/backup.c:262
 #, c-format
 msgid "     %s is a different filesystem. Will not descend from %s into %s\n"
 msgstr ""
 
-#: src/filed/backup.c:271
+#: src/filed/backup.c:268
 #, c-format
 msgid "     Disallowed filesystem. Will not descend from %s into %s\n"
 msgstr ""
 
-#: src/filed/backup.c:276
+#: src/filed/backup.c:273
 #, c-format
 msgid "     Disallowed drive type. Will not descend into %s\n"
 msgstr ""
 
-#: src/filed/backup.c:294 src/filed/verify.c:122
+#: src/filed/backup.c:291 src/filed/verify.c:122
 #, c-format
 msgid "     Could not access %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:301 src/filed/verify.c:129
+#: src/filed/backup.c:298 src/filed/verify.c:129
 #, c-format
 msgid "     Could not follow link %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:308 src/filed/verify.c:136
+#: src/filed/backup.c:305 src/filed/verify.c:136
 #, c-format
 msgid "     Could not stat %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:315 src/filed/verify.c:142
+#: src/filed/backup.c:312 src/filed/verify.c:142
 #, c-format
 msgid "     Unchanged file skipped: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:318
+#: src/filed/backup.c:315
 #, c-format
 msgid "     Archive file not saved: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:322 src/filed/verify.c:157
+#: src/filed/backup.c:319 src/filed/verify.c:157
 #, c-format
 msgid "     Could not open directory %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:328
+#: src/filed/backup.c:325
 #, c-format
 msgid "     Unknown file type %d; not saved: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:361 src/filed/verify.c:238
+#: src/filed/backup.c:365 src/filed/verify.c:238
 #, c-format
 msgid "%s digest initialization failed\n"
 msgstr ""
 
-#: src/filed/backup.c:375
+#: src/filed/backup.c:379
 #, c-format
 msgid "%s signature digest initialization failed\n"
 msgstr ""
 
-#: src/filed/backup.c:395
+#: src/filed/backup.c:399
 #, c-format
 msgid "Python reader program \"%s\" not found.\n"
 msgstr ""
 
-#: src/filed/backup.c:455 src/filed/verify.c:299
+#: src/filed/backup.c:459 src/filed/verify.c:299
 #, c-format
 msgid "     Cannot open %s: ERR=%s.\n"
 msgstr ""
 
-#: src/filed/backup.c:492 src/filed/verify.c:313
+#: src/filed/backup.c:496 src/filed/verify.c:313
 #, c-format
 msgid "     Cannot open resource fork for %s: ERR=%s.\n"
 msgstr ""
 
-#: src/filed/backup.c:549
+#: src/filed/backup.c:553
 #, fuzzy
 msgid "Failed to allocate memory for crypto signature.\n"
 msgstr "Impossible de se connecter au Director\n"
 
-#: src/filed/backup.c:554 src/filed/backup.c:560 src/filed/backup.c:572
+#: src/filed/backup.c:558 src/filed/backup.c:564 src/filed/backup.c:579
 msgid "An error occurred while signing the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:690
+#: src/filed/backup.c:602
+msgid "An error occurred finalizing signing the stream.\n"
+msgstr ""
+
+#: src/filed/backup.c:689
 #, c-format
 msgid "Compression deflateParams error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:702
+#: src/filed/backup.c:701
 msgid "Encrypting sparse data not supported.\n"
 msgstr ""
 
-#: src/filed/backup.c:709
+#: src/filed/backup.c:708
 #, fuzzy
 msgid "Failed to initialize encryption context.\n"
 msgstr "Impossible d'initialiser le contexte TLS pour la Console « %s ».\n"
 
-#: src/filed/backup.c:732 src/filed/backup.c:888 src/filed/backup.c:923
-#: src/filed/backup.c:934 src/filed/backup.c:980 src/filed/backup.c:993
-#: src/filed/backup.c:1001 src/filed/backup.c:1047 src/filed/backup.c:1083
+#: src/filed/backup.c:731 src/filed/backup.c:887 src/filed/backup.c:922
+#: src/filed/backup.c:933 src/filed/backup.c:979 src/filed/backup.c:992
+#: src/filed/backup.c:1000 src/filed/backup.c:1046 src/filed/backup.c:1082
 #, c-format
 msgid "Network send error to SD. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:811
+#: src/filed/backup.c:810
 #, c-format
 msgid "Compression deflate error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:818
+#: src/filed/backup.c:817
 #, c-format
 msgid "Compression deflateReset error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:861 src/filed/backup.c:877
+#: src/filed/backup.c:860 src/filed/backup.c:876
 msgid "Encryption error\n"
 msgstr ""
 
-#: src/filed/backup.c:901
+#: src/filed/backup.c:900
 #, c-format
 msgid "Read error on file %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:904
+#: src/filed/backup.c:903
 msgid "Too many errors.\n"
 msgstr ""
 
-#: src/filed/backup.c:914
+#: src/filed/backup.c:913
 msgid "Encryption padding error\n"
 msgstr ""
 
-#: src/filed/backup.c:971
+#: src/filed/backup.c:970
 #, c-format
 msgid "Error reading ACL of %s\n"
 msgstr ""
 
-#: src/filed/backup.c:1026
+#: src/filed/backup.c:1025
 msgid "Invalid file flags, no supported data stream type.\n"
 msgstr ""
 
@@ -6747,104 +6757,104 @@ msgstr ""
 msgid "2905 Bad RunAfterJob command.\n"
 msgstr ""
 
-#: src/filed/job.c:543
+#: src/filed/job.c:545
 #, c-format
 msgid "Bad RunScript command: %s\n"
 msgstr "Erreur dans la commande RunScript : %s\n"
 
-#: src/filed/job.c:544
+#: src/filed/job.c:546
 msgid "2905 Bad RunScript command.\n"
 msgstr "2905 Erreur sur la commande RunScript.\n"
 
-#: src/filed/job.c:643
+#: src/filed/job.c:648
 #, c-format
 msgid "Error running program: %s. stat=%d: ERR=%s\n"
 msgstr "Erreur dans l'exécution de la commande : %s. stat=%d: ERR=%s\n"
 
-#: src/filed/job.c:653
+#: src/filed/job.c:658
 #, c-format
 msgid "Cannot open FileSet input file: %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:749
+#: src/filed/job.c:754
 #, c-format
 msgid "REGEX %s compile error. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:811
+#: src/filed/job.c:816
 #, c-format
 msgid "Invalid FileSet command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1045 src/findlib/match.c:199 src/tools/testfind.c:635
+#: src/filed/job.c:1050 src/findlib/match.c:199 src/tools/testfind.c:635
 #, c-format
 msgid "Unknown include/exclude option: %c\n"
 msgstr ""
 
-#: src/filed/job.c:1114 src/stored/fd_cmds.c:355
+#: src/filed/job.c:1119 src/stored/fd_cmds.c:355
 #, c-format
 msgid "Could not create bootstrap file %s: ERR=%s\n"
 msgstr "Impossible de créer le fichier bootstrap %s : ERR=%s\n"
 
-#: src/filed/job.c:1222
+#: src/filed/job.c:1227
 #, c-format
 msgid "DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"
 msgstr ""
 "L'horloge du client et du director ont %d secondes d'écart, le client s'est "
 "ajusté automatiquement.\n"
 
-#: src/filed/job.c:1230
+#: src/filed/job.c:1235
 #, c-format
 msgid "Unknown backup level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1242
+#: src/filed/job.c:1247
 #, c-format
 msgid "Bad level command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1263
+#: src/filed/job.c:1268
 #, c-format
 msgid "Bad session command: %s"
 msgstr ""
 
-#: src/filed/job.c:1284
+#: src/filed/job.c:1289
 #, c-format
 msgid "Bad storage command: %s"
 msgstr ""
 
-#: src/filed/job.c:1293
+#: src/filed/job.c:1298
 #, c-format
 msgid "Failed to connect to Storage daemon: %s:%d\n"
 msgstr ""
 
-#: src/filed/job.c:1305
+#: src/filed/job.c:1310
 msgid "Failed to authenticate Storage daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1343
+#: src/filed/job.c:1348
 msgid "Cannot contact Storage daemon\n"
 msgstr "Impossible de se connecter au démon Storage\n"
 
-#: src/filed/job.c:1361
+#: src/filed/job.c:1366
 #, c-format
 msgid "Bad response to append open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1366
+#: src/filed/job.c:1371
 msgid "Bad response from stored to open command\n"
 msgstr ""
 
-#: src/filed/job.c:1393
+#: src/filed/job.c:1398
 #, c-format
 msgid "Generate VSS snapshots. Driver=\"%s\", Drive(s)=\"%s\"\n"
 msgstr "Création des snapshot VSS. Driver=« %s », Lecteur(s)=« %s »\n"
 
-#: src/filed/job.c:1395
+#: src/filed/job.c:1400
 msgid "Generate VSS snapshots failed.\n"
 msgstr "Erreur durant la création des snapshots VSS.\n"
 
-#: src/filed/job.c:1402
+#: src/filed/job.c:1407
 #, c-format
 msgid ""
 "Generate VSS snapshot of drive \"%c:\\\" failed. VSS support is disabled on "
@@ -6853,73 +6863,73 @@ msgstr ""
 "Erreur lors de la création du snapshot VSS du lecteur « %c:\\\\ ». Le VSS "
 "est désactivé sur ce lecteur.\n"
 
-#: src/filed/job.c:1409
+#: src/filed/job.c:1414
 #, c-format
 msgid "VSS Writer (PrepareForBackup): %s\n"
 msgstr ""
 
-#: src/filed/job.c:1414
+#: src/filed/job.c:1419
 msgid "No drive letters found for generating VSS snapshots.\n"
 msgstr ""
 
-#: src/filed/job.c:1418
+#: src/filed/job.c:1423
 #, c-format
 msgid "VSS was not initialized properly. VSS support is disabled. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1468
+#: src/filed/job.c:1473
 msgid "Append Close with SD failed.\n"
 msgstr ""
 
-#: src/filed/job.c:1472
+#: src/filed/job.c:1477
 #, c-format
 msgid "Bad status %d returned from Storage Daemon.\n"
 msgstr ""
 
-#: src/filed/job.c:1490
+#: src/filed/job.c:1495
 #, c-format
 msgid "VSS Writer (BackupComplete): %s\n"
 msgstr ""
 
-#: src/filed/job.c:1518
+#: src/filed/job.c:1523
 #, c-format
 msgid "2994 Bad verify command: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1533 src/filed/job.c:1572
+#: src/filed/job.c:1538 src/filed/job.c:1577
 #, c-format
 msgid "2994 Bad verify level: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1616
+#: src/filed/job.c:1621
 #, c-format
 msgid "Bad replace command. CMD=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1634
+#: src/filed/job.c:1639
 #, c-format
 msgid "Bad where regexp. where=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1708
+#: src/filed/job.c:1713
 msgid "Improper calling sequence.\n"
 msgstr ""
 
-#: src/filed/job.c:1728
+#: src/filed/job.c:1733
 #, c-format
 msgid "Bad response to SD read open: %s\n"
 msgstr ""
 
-#: src/filed/job.c:1733
+#: src/filed/job.c:1738
 msgid "Bad response from stored to read open command\n"
 msgstr ""
 
-#: src/filed/job.c:1797
+#: src/filed/job.c:1802
 #, c-format
 msgid "Comm error with SD. bad response to %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/job.c:1800
+#: src/filed/job.c:1805
 #, c-format
 msgid "Bad response to %s command. Wanted %s, got %s\n"
 msgstr ""
@@ -6934,245 +6944,250 @@ msgstr ""
 msgid "Cannot find attribute %s"
 msgstr ""
 
-#: src/filed/restore.c:125
+#: src/filed/restore.c:132
 #, c-format
 msgid "Size of data or stream of %s not correct. Original %s, restored %s.\n"
 msgstr ""
 
-#: src/filed/restore.c:241 src/filed/verify_vol.c:99
+#: src/filed/restore.c:254 src/filed/verify_vol.c:99
 #, c-format
 msgid "Record header scan error: %s\n"
 msgstr ""
 
-#: src/filed/restore.c:249 src/filed/verify_vol.c:108
+#: src/filed/restore.c:262 src/filed/verify_vol.c:108
 #, c-format
 msgid "Data record error. ERR=%s\n"
 msgstr ""
 
-#: src/filed/restore.c:253 src/filed/verify_vol.c:112
+#: src/filed/restore.c:266 src/filed/verify_vol.c:112
 #, c-format
 msgid "Actual data size %d not same as header %d\n"
 msgstr ""
 
-#: src/filed/restore.c:280 src/filed/restore.c:613
+#: src/filed/restore.c:293 src/filed/restore.c:637
 msgid "Logic error: output file should be open\n"
 msgstr ""
 
-#: src/filed/restore.c:300 src/filed/restore.c:625
+#: src/filed/restore.c:313 src/filed/restore.c:649
 msgid "Logic error: output file should not be open\n"
 msgstr ""
 
-#: src/filed/restore.c:311 src/filed/verify_vol.c:151
+#: src/filed/restore.c:324 src/filed/verify_vol.c:151
 #: src/stored/bextract.c:302 src/stored/bls.c:383 src/stored/bscan.c:662
 #, c-format
 msgid "Record header file index %ld not equal record index %ld\n"
 msgstr ""
 
-#: src/filed/restore.c:324 src/stored/bextract.c:311
+#: src/filed/restore.c:337 src/stored/bextract.c:311
 #, c-format
 msgid "%s stream not supported on this Client.\n"
 msgstr ""
 
-#: src/filed/restore.c:376
+#: src/filed/restore.c:389
 msgid "Unexpected cryptographic session data stream.\n"
 msgstr ""
 
-#: src/filed/restore.c:384
+#: src/filed/restore.c:397
 msgid ""
 "No private decryption keys have been defined to decrypt encrypted backup "
 "data.\n"
 msgstr ""
 
-#: src/filed/restore.c:398
+#: src/filed/restore.c:408
+#, fuzzy
+msgid "Could not create digest.\n"
+msgstr "Impossible de créer la structure BSOCK cliente.\n"
+
+#: src/filed/restore.c:422
 msgid "Missing private key required to decrypt encrypted backup data.\n"
 msgstr ""
 
-#: src/filed/restore.c:401
+#: src/filed/restore.c:425
 #, fuzzy
 msgid "Decrypt of the session key failed.\n"
 msgstr "Impossible de décrypter la clef de session"
 
-#: src/filed/restore.c:405
+#: src/filed/restore.c:429
 #, c-format
 msgid "An error occurred while decoding encrypted session data stream: %s\n"
 msgstr ""
 
-#: src/filed/restore.c:454 src/filed/restore.c:500
+#: src/filed/restore.c:478 src/filed/restore.c:524
 #, c-format
 msgid "Missing encryption session data stream for %s\n"
 msgstr ""
 
-#: src/filed/restore.c:462 src/filed/restore.c:507
+#: src/filed/restore.c:486 src/filed/restore.c:531
 #, c-format
 msgid "Failed to initialize decryption context for %s\n"
 msgstr ""
 
-#: src/filed/restore.c:519
+#: src/filed/restore.c:543
 #, c-format
 msgid "     Cannot open resource fork for %s.\n"
 msgstr ""
 
-#: src/filed/restore.c:545
+#: src/filed/restore.c:569
 #, c-format
 msgid "     Invalid length of Finder Info (got %d, not 32)\n"
 msgstr ""
 
-#: src/filed/restore.c:549
+#: src/filed/restore.c:573
 #, c-format
 msgid "     Could not set Finder Info on %s\n"
 msgstr ""
 
-#: src/filed/restore.c:562
+#: src/filed/restore.c:586
 #, c-format
 msgid "Can't restore ACL of %s\n"
 msgstr ""
 
-#: src/filed/restore.c:574
+#: src/filed/restore.c:598
 #, c-format
 msgid "Can't restore default ACL of %s\n"
 msgstr ""
 
-#: src/filed/restore.c:584
+#: src/filed/restore.c:608
 msgid "Unexpected cryptographic signature data stream.\n"
 msgstr ""
 
-#: src/filed/restore.c:590
+#: src/filed/restore.c:614
 #, c-format
 msgid "Failed to decode message signature for %s\n"
 msgstr ""
 
-#: src/filed/restore.c:628 src/stored/bextract.c:469
+#: src/filed/restore.c:652 src/stored/bextract.c:469
 #, c-format
 msgid "Unknown stream=%d ignored. This shouldn't happen!\n"
 msgstr ""
 
-#: src/filed/restore.c:700
+#: src/filed/restore.c:728
 #, c-format
 msgid ""
 "%d non-supported data streams and %d non-supported attrib streams ignored.\n"
 msgstr ""
 
-#: src/filed/restore.c:704
+#: src/filed/restore.c:732
 #, c-format
 msgid "%d non-supported resource fork streams ignored.\n"
 msgstr ""
 
-#: src/filed/restore.c:707
+#: src/filed/restore.c:735
 #, c-format
 msgid "%d non-supported Finder Info streams ignored.\n"
 msgstr ""
 
-#: src/filed/restore.c:710
+#: src/filed/restore.c:738
 #, c-format
 msgid "%d non-supported acl streams ignored.\n"
 msgstr ""
 
-#: src/filed/restore.c:713
+#: src/filed/restore.c:741
 #, fuzzy, c-format
 msgid "%d non-supported crypto streams ignored.\n"
 msgstr "contentEncryptionAlgorithm non supporté : %d\n"
 
-#: src/filed/restore.c:725
+#: src/filed/restore.c:753
 msgid "None"
 msgstr ""
 
-#: src/filed/restore.c:729
+#: src/filed/restore.c:757
 msgid "Zlib errno"
 msgstr ""
 
-#: src/filed/restore.c:731
+#: src/filed/restore.c:759
 msgid "Zlib stream error"
 msgstr ""
 
-#: src/filed/restore.c:733
+#: src/filed/restore.c:761
 msgid "Zlib data error"
 msgstr ""
 
-#: src/filed/restore.c:735
+#: src/filed/restore.c:763
 msgid "Zlib memory error"
 msgstr ""
 
-#: src/filed/restore.c:737
+#: src/filed/restore.c:765
 msgid "Zlib buffer error"
 msgstr ""
 
-#: src/filed/restore.c:739
+#: src/filed/restore.c:767
 msgid "Zlib version error"
 msgstr ""
 
-#: src/filed/restore.c:741 src/lib/util.c:591 src/lib/util.c:601
+#: src/filed/restore.c:769 src/lib/util.c:591 src/lib/util.c:601
 #: src/lib/util.c:609 src/lib/util.c:616 src/lib/util.c:623 src/lib/util.c:637
 #: src/lib/util.c:647 src/lib/util.c:654 src/lib/util.c:665
 msgid "*none*"
 msgstr ""
 
-#: src/filed/restore.c:771
+#: src/filed/restore.c:803
 #, c-format
 msgid "Missing cryptographic signature for %s\n"
 msgstr ""
 
-#: src/filed/restore.c:788
-#, fuzzy, c-format
-msgid "Digest one file failed for file: %s\n"
-msgstr "Impossible de créer le fichier bootstrap %s : ERR=%s\n"
-
-#: src/filed/restore.c:798
+#: src/filed/restore.c:829 src/filed/restore.c:853
 #, fuzzy, c-format
 msgid "Signature validation failed for file %s: ERR=%s\n"
 msgstr "Impossible de créer le fichier bootstrap %s : ERR=%s\n"
 
-#: src/filed/restore.c:818
+#: src/filed/restore.c:843
+#, fuzzy, c-format
+msgid "Digest one file failed for file: %s\n"
+msgstr "Impossible de créer le fichier bootstrap %s : ERR=%s\n"
+
+#: src/filed/restore.c:874
 #, c-format
 msgid "Signature validation failed for %s: %s\n"
 msgstr ""
 
-#: src/filed/restore.c:845 src/stored/bextract.c:400
+#: src/filed/restore.c:900 src/stored/bextract.c:400
 #, c-format
 msgid "Seek to %s error on %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/restore.c:872
+#: src/filed/restore.c:927
 #, c-format
 msgid "Uncompression error on file %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/restore.c:881 src/stored/bextract.c:434
+#: src/filed/restore.c:936 src/stored/bextract.c:434
 msgid "GZIP data stream found, but GZIP not configured!\n"
 msgstr ""
 
-#: src/filed/restore.c:901
+#: src/filed/restore.c:959
 #, c-format
 msgid "Write error in Win32 Block Decomposition on %s: %s\n"
 msgstr ""
 
-#: src/filed/restore.c:907 src/stored/bextract.c:372 src/stored/bextract.c:422
+#: src/filed/restore.c:965 src/stored/bextract.c:372 src/stored/bextract.c:422
 #, c-format
 msgid "Write error on %s: %s\n"
 msgstr ""
 
-#: src/filed/restore.c:956
+#: src/filed/restore.c:1014
 msgid "Decryption error\n"
 msgstr ""
 
-#: src/filed/restore.c:1046
+#: src/filed/restore.c:1104
 #, c-format
 msgid "Decryption error. buf_len=%d decrypt_len=%d on file %s\n"
 msgstr ""
 
-#: src/filed/restore.c:1150
+#: src/filed/restore.c:1208
 msgid "Open File Manager paused\n"
 msgstr ""
 
-#: src/filed/restore.c:1154
+#: src/filed/restore.c:1212
 msgid "FAILED to pause Open File Manager\n"
 msgstr ""
 
-#: src/filed/restore.c:1162
+#: src/filed/restore.c:1220
 #, c-format
 msgid "Running as '%s'. Privmask=%#08x\n"
 msgstr ""
 
-#: src/filed/restore.c:1164
+#: src/filed/restore.c:1222
 msgid "Failed to retrieve current UserName\n"
 msgstr ""
 
@@ -7359,91 +7374,103 @@ msgid "Error in %s: ERR=%s\n"
 msgstr ""
 
 #: src/findlib/bfile.c:82
-msgid "GZIP data"
+msgid "Unix attributes"
 msgstr ""
 
 #: src/findlib/bfile.c:84
-msgid "GZIP sparse data"
-msgstr ""
-
-#: src/findlib/bfile.c:86
-msgid "Win32 data"
-msgstr ""
-
-#: src/findlib/bfile.c:88
-msgid "Win32 GZIP data"
-msgstr ""
-
-#: src/findlib/bfile.c:90
-msgid "File attributes"
-msgstr ""
-
-#: src/findlib/bfile.c:92
 msgid "File data"
 msgstr ""
 
-#: src/findlib/bfile.c:94
+#: src/findlib/bfile.c:86
 msgid "MD5 digest"
 msgstr ""
 
-#: src/findlib/bfile.c:96
+#: src/findlib/bfile.c:88
+msgid "GZIP data"
+msgstr ""
+
+#: src/findlib/bfile.c:90
 msgid "Extended attributes"
 msgstr ""
 
-#: src/findlib/bfile.c:98
+#: src/findlib/bfile.c:92
 msgid "Sparse data"
 msgstr ""
 
-#: src/findlib/bfile.c:100
+#: src/findlib/bfile.c:94
+msgid "GZIP sparse data"
+msgstr ""
+
+#: src/findlib/bfile.c:96
 msgid "Program names"
 msgstr ""
 
-#: src/findlib/bfile.c:102
+#: src/findlib/bfile.c:98
 msgid "Program data"
 msgstr ""
 
-#: src/findlib/bfile.c:104
+#: src/findlib/bfile.c:100
 msgid "SHA1 digest"
 msgstr ""
 
+#: src/findlib/bfile.c:102
+msgid "Win32 data"
+msgstr ""
+
+#: src/findlib/bfile.c:104
+msgid "Win32 GZIP data"
+msgstr ""
+
 #: src/findlib/bfile.c:106
-msgid "HFS+ resource fork"
+msgid "MacOS Fork data"
 msgstr ""
 
 #: src/findlib/bfile.c:108
-msgid "HFS+ Finder Info"
+msgid "HFS+ attribs"
 msgstr ""
 
 #: src/findlib/bfile.c:110
-msgid "SHA256 digest"
+msgid "Standard Unix ACL attribs"
 msgstr ""
 
 #: src/findlib/bfile.c:112
-msgid "SHA512 digest"
+msgid "Default Unix ACL attribs"
 msgstr ""
 
 #: src/findlib/bfile.c:114
-msgid "Signed digest"
+msgid "SHA256 digest"
 msgstr ""
 
 #: src/findlib/bfile.c:116
-msgid "Encrypted File data"
+msgid "SHA512 digest"
 msgstr ""
 
 #: src/findlib/bfile.c:118
-msgid "Encrypted GZIP data"
+msgid "Signed digest"
 msgstr ""
 
 #: src/findlib/bfile.c:120
-msgid "Encrypted Win32 data"
+msgid "Encrypted File data"
 msgstr ""
 
 #: src/findlib/bfile.c:122
-msgid "Encrypted Win32 GZIP data"
+msgid "Encrypted Win32 data"
 msgstr ""
 
 #: src/findlib/bfile.c:124
-msgid "Encrypted HFS+ resource fork"
+msgid "Encrypted session data"
+msgstr ""
+
+#: src/findlib/bfile.c:126
+msgid "Encrypted GZIP data"
+msgstr ""
+
+#: src/findlib/bfile.c:128
+msgid "Encrypted Win32 GZIP data"
+msgstr ""
+
+#: src/findlib/bfile.c:130
+msgid "Encrypted MacOS fork data"
 msgstr ""
 
 #: src/findlib/create_file.c:122
@@ -8238,79 +8265,79 @@ msgstr "Erreur inconnue."
 msgid "Unknown sig %d"
 msgstr "sig inconnu %d"
 
-#: src/lib/bnet_server.c:109
+#: src/lib/bnet_server.c:111
 #, c-format
 msgid "Cannot open stream socket. ERR=%s. Current %s All %s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:122 src/lib/bnet_server.c:273
+#: src/lib/bnet_server.c:124 src/lib/bnet_server.c:275
 #, c-format
 msgid "Cannot set SO_REUSEADDR on socket: %s\n"
 msgstr "Impossible de positionner l'option SO_REUSEADDR sur la socket : %s\n"
 
-#: src/lib/bnet_server.c:131
+#: src/lib/bnet_server.c:133
 #, c-format
 msgid "Cannot bind port %d: ERR=%s: Retrying ...\n"
 msgstr "Impossible de s'attacher au port %d : ERR=%s : Réessaie...\n"
 
-#: src/lib/bnet_server.c:136
+#: src/lib/bnet_server.c:138
 #, c-format
 msgid "Cannot bind port %d: ERR=%s.\n"
 msgstr "Impossible de s'attacher au port %d : ERR=%s.\n"
 
-#: src/lib/bnet_server.c:147
+#: src/lib/bnet_server.c:149
 #, c-format
 msgid "Could not init client queue: ERR=%s\n"
 msgstr "Impossible d'initialiser la queue cliente : ERR=%s\n"
 
-#: src/lib/bnet_server.c:170 src/lib/bnet_server.c:336
+#: src/lib/bnet_server.c:172 src/lib/bnet_server.c:338
 #, c-format
 msgid "Error in select: %s\n"
 msgstr "Erreur sur le select : %s\n"
 
-#: src/lib/bnet_server.c:191 src/lib/bnet_server.c:355
+#: src/lib/bnet_server.c:193 src/lib/bnet_server.c:357
 #, c-format
 msgid "Connection from %s:%d refused by hosts.access\n"
 msgstr "Connexion depuis %s:%d refusée par hosts.access\n"
 
-#: src/lib/bnet_server.c:206 src/lib/bnet_server.c:368
+#: src/lib/bnet_server.c:208 src/lib/bnet_server.c:370
 #, c-format
 msgid "Cannot set SO_KEEPALIVE on socket: %s\n"
 msgstr "Impossible de positionner SO_KEEPALIVE sur la socket : %s\n"
 
-#: src/lib/bnet_server.c:217
+#: src/lib/bnet_server.c:219
 msgid "Could not create client BSOCK.\n"
 msgstr "Impossible de créer la structure BSOCK cliente.\n"
 
-#: src/lib/bnet_server.c:224
+#: src/lib/bnet_server.c:226
 #, c-format
 msgid "Could not add job to client queue: ERR=%s\n"
 msgstr "Impossible d'ajouter le job à la queue cliente : ERR=%s\n"
 
-#: src/lib/bnet_server.c:235
+#: src/lib/bnet_server.c:237
 #, c-format
 msgid "Could not destroy client queue: ERR=%s\n"
 msgstr "Impossible de détruire la queue cliente : ERR=%s\n"
 
-#: src/lib/bnet_server.c:263
+#: src/lib/bnet_server.c:265
 #, c-format
 msgid "Cannot open stream socket: %s\n"
 msgstr ""
 
-#: src/lib/bnet_server.c:293
+#: src/lib/bnet_server.c:295
 #, c-format
 msgid "Cannot bind port %d: ERR=%s: retrying ...\n"
 msgstr "Impossible de s'attacher au port %d : ERR=%s : Réessaie...\n"
 
-#: src/lib/bnet_server.c:299
+#: src/lib/bnet_server.c:301
 msgid "Server socket"
 msgstr "Socket serveur"
 
-#: src/lib/bnet_server.c:299 src/lib/bnet_server.c:396
+#: src/lib/bnet_server.c:301 src/lib/bnet_server.c:398
 msgid "client"
 msgstr "client"
 
-#: src/lib/bnet_server.c:384
+#: src/lib/bnet_server.c:386
 #, c-format
 msgid "Socket accept error for %s. ERR=%s\n"
 msgstr ""
@@ -8444,166 +8471,166 @@ msgstr "Impossible de lire le certificat à partir du fichier"
 msgid "Unable to extract public key from certificate"
 msgstr "Impossible d'extraire la clef publique à partir du certificat"
 
-#: src/lib/crypto.c:454
+#: src/lib/crypto.c:455
 msgid ""
 "Provided certificate does not include the required subjectKeyIdentifier "
 "extension."
 msgstr ""
 "Le certificat fournis n'inclus pas l'extension subjectKeyIdentifier requise"
 
-#: src/lib/crypto.c:460
+#: src/lib/crypto.c:462
 #, c-format
 msgid "Unsupported key type provided: %d\n"
 msgstr "Type de clef fourni non supporté : %d\n"
 
-#: src/lib/crypto.c:497 src/lib/crypto.c:545
+#: src/lib/crypto.c:499 src/lib/crypto.c:547
 msgid "Unable to open private key file"
 msgstr "Impossible d'ouvrir le fichier de clef privée"
 
-#: src/lib/crypto.c:527 src/lib/crypto.c:561
+#: src/lib/crypto.c:529 src/lib/crypto.c:563
 msgid "Unable to read private key from file"
 msgstr "Impossible de lire la clef privée à partir du fichier"
 
-#: src/lib/crypto.c:620
+#: src/lib/crypto.c:622
 #, c-format
 msgid "Unsupported digest type: %d\n"
 msgstr "Le digest spécifié n'est pas supporté : %d\n"
 
-#: src/lib/crypto.c:634
+#: src/lib/crypto.c:636
 msgid "OpenSSL digest initialization failed"
 msgstr ""
 
-#: src/lib/crypto.c:648
+#: src/lib/crypto.c:650
 msgid "OpenSSL digest update failed"
 msgstr ""
 
-#: src/lib/crypto.c:666
+#: src/lib/crypto.c:668
 #, fuzzy
 msgid "OpenSSL digest finalize failed"
 msgstr "Initialisation du contexte clef/IV du cipher OpenSSL à échoué"
 
-#: src/lib/crypto.c:753
+#: src/lib/crypto.c:766
 msgid "OpenSSL digest_new failed"
 msgstr ""
 
-#: src/lib/crypto.c:759
+#: src/lib/crypto.c:772
 msgid "OpenSSL sign get digest failed"
 msgstr ""
 
-#: src/lib/crypto.c:798 src/lib/crypto.c:802
+#: src/lib/crypto.c:811 src/lib/crypto.c:815
 #, fuzzy
 msgid "OpenSSL digest Verify final failed"
 msgstr "Initialisation du contexte clef/IV du cipher OpenSSL à échoué"
 
-#: src/lib/crypto.c:807
+#: src/lib/crypto.c:820
 #, fuzzy
 msgid "No signers found for crypto verify.\n"
 msgstr "Aucun volume trouvé pour la restauration.\n"
 
-#: src/lib/crypto.c:868
+#: src/lib/crypto.c:881
 msgid "Signature creation failed"
 msgstr "La création de la signature a échouée"
 
-#: src/lib/crypto.c:946
+#: src/lib/crypto.c:959
 msgid "Signature decoding failed"
 msgstr "Le décodage de la signature a échoué"
 
-#: src/lib/crypto.c:1023
+#: src/lib/crypto.c:1036
 msgid "Unsupported cipher type specified\n"
 msgstr "Le cipher spécifié est non supporté\n"
 
-#: src/lib/crypto.c:1172
+#: src/lib/crypto.c:1185
 msgid "CryptoData decoding failed"
 msgstr "Le décodage du CryptoData a échoué"
 
-#: src/lib/crypto.c:1216
+#: src/lib/crypto.c:1229
 msgid "Failure decrypting the session key"
 msgstr "Impossible de décrypter la clef de session"
 
-#: src/lib/crypto.c:1266
+#: src/lib/crypto.c:1280
 #, c-format
 msgid "Unsupported contentEncryptionAlgorithm: %d\n"
 msgstr "contentEncryptionAlgorithm non supporté : %d\n"
 
-#: src/lib/crypto.c:1276 src/lib/crypto.c:1282
+#: src/lib/crypto.c:1290 src/lib/crypto.c:1296
 msgid "OpenSSL cipher context initialization failed"
 msgstr "Initialisation du contexte clef/IV du cipher OpenSSL à échoué"
 
-#: src/lib/crypto.c:1289
+#: src/lib/crypto.c:1303
 msgid "Encryption session provided an invalid symmetric key"
 msgstr ""
 
-#: src/lib/crypto.c:1295
+#: src/lib/crypto.c:1309
 msgid "Encryption session provided an invalid IV"
 msgstr ""
 
-#: src/lib/crypto.c:1301
+#: src/lib/crypto.c:1315
 msgid "OpenSSL cipher context key/IV initialization failed"
 msgstr ""
 
-#: src/lib/crypto.c:1369
+#: src/lib/crypto.c:1385
 #, c-format
 msgid "Unable to init OpenSSL threading: ERR=%s\n"
 msgstr "Impossible d'initialiser le thread OpenSSL : ERR=%s\n"
 
-#: src/lib/crypto.c:1382
+#: src/lib/crypto.c:1398
 msgid "Failed to seed OpenSSL PRNG\n"
 msgstr ""
 
-#: src/lib/crypto.c:1408
+#: src/lib/crypto.c:1424
 msgid "Failed to save OpenSSL PRNG\n"
 msgstr "Impossible de sauvegarder le PRNG OpenSSL\n"
 
-#: src/lib/crypto.c:1469
+#: src/lib/crypto.c:1485
 #, fuzzy, c-format
 msgid "Unsupported digest type=%d specified\n"
 msgstr "Le cipher spécifié est non supporté\n"
 
-#: src/lib/crypto.c:1489
+#: src/lib/crypto.c:1505
 #, c-format
 msgid "SHA1Update() returned an error: %d\n"
 msgstr ""
 
-#: src/lib/crypto.c:1629
+#: src/lib/crypto.c:1645
 #, fuzzy
 msgid "No error"
 msgstr "BUS error"
 
-#: src/lib/crypto.c:1631
+#: src/lib/crypto.c:1647
 #, fuzzy
 msgid "Signer not found"
 msgstr "Le Storage « %s » est introuvable.\n"
 
-#: src/lib/crypto.c:1633
+#: src/lib/crypto.c:1649
 #, fuzzy
 msgid "Recipient not found"
 msgstr "Ressource %s introuvable\n"
 
-#: src/lib/crypto.c:1635
+#: src/lib/crypto.c:1651
 #, fuzzy
 msgid "Unsupported digest algorithm"
 msgstr "Le digest spécifié n'est pas supporté : %d\n"
 
-#: src/lib/crypto.c:1637
+#: src/lib/crypto.c:1653
 #, fuzzy
 msgid "Unsupported encryption algorithm"
 msgstr "contentEncryptionAlgorithm non supporté : %d\n"
 
-#: src/lib/crypto.c:1639
+#: src/lib/crypto.c:1655
 #, fuzzy
 msgid "Signature is invalid"
 msgstr "La création de la signature a échouée"
 
-#: src/lib/crypto.c:1641
+#: src/lib/crypto.c:1657
 msgid "Decryption error"
 msgstr ""
 
-#: src/lib/crypto.c:1644
+#: src/lib/crypto.c:1660
 #, fuzzy
 msgid "Internal error"
 msgstr "Erreur non fatale"
 
-#: src/lib/crypto.c:1646
+#: src/lib/crypto.c:1662
 #, fuzzy
 msgid "Unknown error"
 msgstr "Erreur inconnue."
@@ -8631,7 +8658,7 @@ msgstr "NULL jcr.\n"
 msgid "JCR use_count=%d JobId=%d\n"
 msgstr "JCR use_count=%d JobId=%d\n"
 
-#: src/lib/jcr.c:704
+#: src/lib/jcr.c:750
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Storage "
@@ -8640,7 +8667,7 @@ msgstr ""
 "Le watchdog a envoyé un signal après %d secs au thread bloqué en écoute du "
 "SD.\n"
 
-#: src/lib/jcr.c:716
+#: src/lib/jcr.c:762
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"
@@ -8648,7 +8675,7 @@ msgstr ""
 "Le watchdog a envoyé un signal après %d secs au thread bloqué en écoute du "
 "FD.\n"
 
-#: src/lib/jcr.c:728
+#: src/lib/jcr.c:774
 #, c-format
 msgid ""
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"
@@ -8683,89 +8710,89 @@ msgstr "Erreur de config : %s\n"
 msgid "Close of NULL file\n"
 msgstr ""
 
-#: src/lib/lex.c:221
+#: src/lib/lex.c:226
 msgid "get_char: called after EOF\n"
 msgstr "get_char : appelé après EOF\n"
 
-#: src/lib/lex.c:263
+#: src/lib/lex.c:268
 #, c-format
 msgid "Config token too long, file: %s, line %d, begins at line %d\n"
 msgstr "Config token trop long, fichier : %s, ligne %d, débutant ligne %d\n"
 
-#: src/lib/lex.c:287
+#: src/lib/lex.c:292
 msgid "none"
 msgstr "none"
 
-#: src/lib/lex.c:288
+#: src/lib/lex.c:293
 msgid "comment"
 msgstr "comment"
 
-#: src/lib/lex.c:289
+#: src/lib/lex.c:294
 msgid "number"
 msgstr "number"
 
-#: src/lib/lex.c:290
+#: src/lib/lex.c:295
 msgid "ip_addr"
 msgstr "ip_addr"
 
 # identifiant
-#: src/lib/lex.c:291
+#: src/lib/lex.c:296
 msgid "identifier"
 msgstr "identifier"
 
-#: src/lib/lex.c:292
+#: src/lib/lex.c:297
 msgid "string"
 msgstr "string"
 
-#: src/lib/lex.c:293
+#: src/lib/lex.c:298
 msgid "quoted_string"
 msgstr "quoted_string"
 
-#: src/lib/lex.c:294
+#: src/lib/lex.c:299
 msgid "UTF-8 Byte Order Mark"
 msgstr ""
 
-#: src/lib/lex.c:295
+#: src/lib/lex.c:300
 msgid "UTF-16le Byte Order Mark"
 msgstr ""
 
-#: src/lib/lex.c:333 src/lib/lex.c:339
+#: src/lib/lex.c:338 src/lib/lex.c:344
 #, c-format
 msgid "expected a positive integer number, got: %s"
 msgstr "attendait un nombre entier positif, pas : %s"
 
-#: src/lib/lex.c:449
+#: src/lib/lex.c:454
 msgid ""
 "This config file appears to be in an unsupported Unicode format (UTF-16be). "
 "Please resave as UTF-8\n"
 msgstr ""
 
-#: src/lib/lex.c:578
+#: src/lib/lex.c:583
 #, c-format
 msgid "Cannot open included config file %s: %s\n"
 msgstr "Impossible d'ouvrir le fichier de configuration inclus %s : %s\n"
 
-#: src/lib/lex.c:637
+#: src/lib/lex.c:642
 #, c-format
 msgid "expected an integer or a range, got %s: %s"
 msgstr "attendait un entier ou bien un intervalle, pas %s : %s"
 
-#: src/lib/lex.c:651 src/lib/lex.c:659 src/lib/lex.c:670 src/lib/lex.c:678
+#: src/lib/lex.c:656 src/lib/lex.c:664 src/lib/lex.c:675 src/lib/lex.c:683
 #, c-format
 msgid "expected an integer number, got %s: %s"
 msgstr "attendait un nombre entier, pas %s : %s"
 
-#: src/lib/lex.c:688
+#: src/lib/lex.c:693
 #, c-format
 msgid "expected a name, got %s: %s"
 msgstr "attendait un nom, pas %s : %s"
 
-#: src/lib/lex.c:692
+#: src/lib/lex.c:697
 #, c-format
 msgid "name %s length %d too long, max is %d\n"
 msgstr "la longueur du nom %s (%d) est trop grande, le max est %d\n"
 
-#: src/lib/lex.c:700
+#: src/lib/lex.c:705
 #, c-format
 msgid "expected a string, got %s: %s"
 msgstr "attendait une chaîne, pas %s : %s"
@@ -8909,13 +8936,13 @@ msgstr "%s : %s Attention : "
 msgid "%s: %s Security violation: "
 msgstr ""
 
-#: src/lib/openssl.c:113 src/lib/openssl.c:172 src/stored/dev.c:224
+#: src/lib/openssl.c:118 src/lib/openssl.c:179 src/stored/dev.c:224
 #: src/stored/dev.c:242 src/stored/dev.c:249 src/stored/stored_conf.c:611
 #, c-format
 msgid "Unable to init mutex: ERR=%s\n"
 msgstr "Impossible d'initialiser le muxtex : ERR=%s\n"
 
-#: src/lib/openssl.c:134 src/lib/openssl.c:205
+#: src/lib/openssl.c:140 src/lib/openssl.c:213
 #, c-format
 msgid "Unable to destroy mutex: ERR=%s\n"
 msgstr "Impossible de détruire le mutex : ERR=%s\n"
@@ -9208,8 +9235,8 @@ msgid "Bacula interrupted by signal %d: %s\n"
 msgstr "Bacula a reçu le signal %d : %s\n"
 
 #: src/lib/signal.c:107
-#, c-format
-msgid "Kaboom! %s, %s got signal %d. Attempting traceback.\n"
+#, fuzzy, c-format
+msgid "Kaboom! %s, %s got signal %d - %s. Attempting traceback.\n"
 msgstr "Kaboom ! %s, %s a reçu le signal %d. Tentative de dump des traces.\n"
 
 #: src/lib/signal.c:109
@@ -9227,179 +9254,179 @@ msgstr "Fork en erreur : ERR=%s\n"
 msgid "Calling: %s %s %s\n"
 msgstr "Exécution : %s %s %s\n"
 
-#: src/lib/signal.c:152
+#: src/lib/signal.c:153
 #, c-format
 msgid "execv: %s failed: ERR=%s\n"
 msgstr "execv : %s en échec : ERR=%s\n"
 
-#: src/lib/signal.c:167
+#: src/lib/signal.c:168
 #, c-format
 msgid "Traceback complete, attempting cleanup ...\n"
 msgstr ""
 
-#: src/lib/signal.c:175
+#: src/lib/signal.c:176
 #, c-format
 msgid "It looks like the traceback worked ...\n"
 msgstr ""
 
-#: src/lib/signal.c:204
+#: src/lib/signal.c:205
 #, c-format
 msgid "BA_NSIG too small (%d) should be (%d)\n"
 msgstr "BA_NSIG trop petit (%d) devrait être (%d)\n"
 
-#: src/lib/signal.c:210
+#: src/lib/signal.c:211
 msgid "UNKNOWN SIGNAL"
 msgstr "SIGNAL INCONNU"
 
-#: src/lib/signal.c:211
+#: src/lib/signal.c:212
 msgid "Hangup"
 msgstr "Hangup"
 
-#: src/lib/signal.c:212
+#: src/lib/signal.c:213
 msgid "Interrupt"
 msgstr ""
 
-#: src/lib/signal.c:213
+#: src/lib/signal.c:214
 msgid "Quit"
 msgstr "Quit"
 
-#: src/lib/signal.c:214
+#: src/lib/signal.c:215
 msgid "Illegal instruction"
 msgstr ""
 
-#: src/lib/signal.c:215
+#: src/lib/signal.c:216
 msgid "Trace/Breakpoint trap"
 msgstr ""
 
-#: src/lib/signal.c:216
+#: src/lib/signal.c:217
 msgid "Abort"
 msgstr "Abort"
 
-#: src/lib/signal.c:218
+#: src/lib/signal.c:219
 msgid "EMT instruction (Emulation Trap)"
 msgstr ""
 
-#: src/lib/signal.c:221
+#: src/lib/signal.c:222
 msgid "IOT trap"
 msgstr "IOT trap"
 
-#: src/lib/signal.c:223
+#: src/lib/signal.c:224
 msgid "BUS error"
 msgstr "BUS error"
 
-#: src/lib/signal.c:224
+#: src/lib/signal.c:225
 msgid "Floating-point exception"
 msgstr ""
 
-#: src/lib/signal.c:225
+#: src/lib/signal.c:226
 msgid "Kill, unblockable"
 msgstr ""
 
-#: src/lib/signal.c:226
+#: src/lib/signal.c:227
 msgid "User-defined signal 1"
 msgstr ""
 
-#: src/lib/signal.c:227
+#: src/lib/signal.c:228
 msgid "Segmentation violation"
 msgstr "Erreur de segmentation"
 
-#: src/lib/signal.c:228
+#: src/lib/signal.c:229
 msgid "User-defined signal 2"
 msgstr ""
 
-#: src/lib/signal.c:229
+#: src/lib/signal.c:230
 msgid "Broken pipe"
 msgstr "Tube brisé"
 
-#: src/lib/signal.c:230
+#: src/lib/signal.c:231
 msgid "Alarm clock"
 msgstr "Alarm clock"
 
-#: src/lib/signal.c:231
+#: src/lib/signal.c:232
 msgid "Termination"
 msgstr ""
 
-#: src/lib/signal.c:233
+#: src/lib/signal.c:234
 msgid "Stack fault"
 msgstr ""
 
-#: src/lib/signal.c:235
+#: src/lib/signal.c:236
 msgid "Child status has changed"
 msgstr ""
 
-#: src/lib/signal.c:236
+#: src/lib/signal.c:237
 msgid "Continue"
 msgstr "Continue"
 
-#: src/lib/signal.c:237
+#: src/lib/signal.c:238
 msgid "Stop, unblockable"
 msgstr ""
 
-#: src/lib/signal.c:238
+#: src/lib/signal.c:239
 msgid "Keyboard stop"
 msgstr ""
 
-#: src/lib/signal.c:239
+#: src/lib/signal.c:240
 msgid "Background read from tty"
 msgstr ""
 
-#: src/lib/signal.c:240
+#: src/lib/signal.c:241
 msgid "Background write to tty"
 msgstr ""
 
-#: src/lib/signal.c:241
+#: src/lib/signal.c:242
 msgid "Urgent condition on socket"
 msgstr ""
 
-#: src/lib/signal.c:242
+#: src/lib/signal.c:243
 msgid "CPU limit exceeded"
 msgstr ""
 
-#: src/lib/signal.c:243
+#: src/lib/signal.c:244
 msgid "File size limit exceeded"
 msgstr ""
 
-#: src/lib/signal.c:244
+#: src/lib/signal.c:245
 msgid "Virtual alarm clock"
 msgstr ""
 
-#: src/lib/signal.c:245
+#: src/lib/signal.c:246
 msgid "Profiling alarm clock"
 msgstr ""
 
-#: src/lib/signal.c:246
+#: src/lib/signal.c:247
 msgid "Window size change"
 msgstr ""
 
-#: src/lib/signal.c:247
+#: src/lib/signal.c:248
 msgid "I/O now possible"
 msgstr ""
 
-#: src/lib/signal.c:249
+#: src/lib/signal.c:250
 msgid "Power failure restart"
 msgstr ""
 
-#: src/lib/signal.c:252
+#: src/lib/signal.c:253
 msgid "No runnable lwp"
 msgstr ""
 
-#: src/lib/signal.c:255
+#: src/lib/signal.c:256
 msgid "SIGLWP special signal used by thread library"
 msgstr ""
 
-#: src/lib/signal.c:258
+#: src/lib/signal.c:259
 msgid "Checkpoint Freeze"
 msgstr ""
 
-#: src/lib/signal.c:261
+#: src/lib/signal.c:262
 msgid "Checkpoint Thaw"
 msgstr ""
 
-#: src/lib/signal.c:264
+#: src/lib/signal.c:265
 msgid "Thread Cancellation"
 msgstr ""
 
-#: src/lib/signal.c:267
+#: src/lib/signal.c:268
 msgid "Resource Lost (e.g. record-lock lost)"
 msgstr ""
 
@@ -9537,36 +9564,36 @@ msgstr "Impossible de charger les paramètres DH à partir du fichier spécifié"
 msgid "Failed to set TLS Diffie-Hellman parameters"
 msgstr "Impossible de positionner les paramètres TLS Diffie-Hellman"
 
-#: src/lib/tls.c:202
+#: src/lib/tls.c:203
 msgid "Error setting cipher list, no valid ciphers available\n"
 msgstr ""
 
-#: src/lib/tls.c:261
+#: src/lib/tls.c:262
 msgid "Peer failed to present a TLS certificate\n"
 msgstr ""
 
-#: src/lib/tls.c:303
+#: src/lib/tls.c:305
 #, c-format
 msgid "Peer %s failed to present a TLS certificate\n"
 msgstr ""
 
-#: src/lib/tls.c:405
+#: src/lib/tls.c:407
 msgid "Error creating file descriptor-based BIO"
 msgstr ""
 
-#: src/lib/tls.c:416
+#: src/lib/tls.c:418
 msgid "Error creating new SSL object"
 msgstr "Erreur pendant la création d'un nouvel objet SSL"
 
-#: src/lib/tls.c:480 src/lib/tls.c:503
+#: src/lib/tls.c:482 src/lib/tls.c:505
 msgid "Connect failure"
 msgstr "Erreur de connexion"
 
-#: src/lib/tls.c:580 src/lib/tls.c:584
+#: src/lib/tls.c:582 src/lib/tls.c:586
 msgid "TLS shutdown failure."
 msgstr ""
 
-#: src/lib/tls.c:633 src/lib/tls.c:653
+#: src/lib/tls.c:635 src/lib/tls.c:655
 msgid "TLS read/write failure."
 msgstr ""
 
@@ -10352,7 +10379,7 @@ msgstr ""
 "3991 Erreur sur l'autochangeur « loaded drive %d » : ERR=%s.\n"
 "Resultat=%s\n"
 
-#: src/stored/autochanger.c:341 src/stored/autochanger.c:431
+#: src/stored/autochanger.c:341 src/stored/autochanger.c:432
 #, c-format
 msgid "3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"
 msgstr ""
@@ -10367,28 +10394,28 @@ msgstr ""
 "3995 Erreur sur l'autochangeur « unload slot %d, drive %d » : ERR=%s.\n"
 "Resultat=%s\n"
 
-#: src/stored/autochanger.c:418
+#: src/stored/autochanger.c:419
 #, c-format
 msgid "Volume \"%s\" is in use by device %s\n"
 msgstr "Le volume « %s » est utilisé par le device %s\n"
 
-#: src/stored/autochanger.c:453
+#: src/stored/autochanger.c:454
 #, c-format
 msgid "3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"
 msgstr ""
 "3995 Erreur sur l'autochangeur « unload slot %d, drive %d » : ERR=%s.\n"
 
-#: src/stored/autochanger.c:492
+#: src/stored/autochanger.c:494
 #, c-format
 msgid "3993 Device %s not an autochanger device.\n"
 msgstr "3993 Le Device %s n'est pas un autochangeur.\n"
 
-#: src/stored/autochanger.c:513
+#: src/stored/autochanger.c:515
 #, c-format
 msgid "3306 Issuing autochanger \"%s\" command.\n"
 msgstr "3306 Envoi de la commande « %s » à l'autochangeur.\n"
 
-#: src/stored/autochanger.c:516
+#: src/stored/autochanger.c:518
 msgid "3996 Open bpipe failed.\n"
 msgstr ""
 
@@ -12906,17 +12933,17 @@ msgstr ""
 msgid "I/O function \"%s\" not supported on this device.\n"
 msgstr ""
 
-#: src/stored/dev.c:1965
+#: src/stored/dev.c:1961
 #, c-format
 msgid "Unable to truncate device %s. ERR=%s\n"
 msgstr ""
 
-#: src/stored/dev.c:2064 src/stored/dev.c:2069
+#: src/stored/dev.c:2060 src/stored/dev.c:2065
 #, c-format
 msgid "Device %s cannot be %smounted. ERR=%s\n"
 msgstr "Le Device %s ne peut pas être %smounted. ERR=%s\n"
 
-#: src/stored/dev.c:2477
+#: src/stored/dev.c:2473
 #, fuzzy, c-format
 msgid "Unable to set eotmodel on device %s: ERR=%s\n"
 msgstr "3910 Impossible d'ouvrir le device %s : ERR=%s\n"
@@ -12946,7 +12973,7 @@ msgstr ""
 msgid "Unable to open archive %s: ERR=%s\n"
 msgstr ""
 
-#: src/stored/device.c:418
+#: src/stored/device.c:402
 #, c-format
 msgid "pthread_cond_wait failure. ERR=%s\n"
 msgstr ""
@@ -13044,14 +13071,14 @@ msgstr ""
 "3902 Impossible de monté le volume dans le storage device %s car :\n"
 "%s"
 
-#: src/stored/dircmd.c:572 src/stored/reserve.c:999
+#: src/stored/dircmd.c:572 src/stored/reserve.c:1019
 #, c-format
 msgid ""
 "\n"
 "     Device \"%s\" requested by DIR could not be opened or does not exist.\n"
 msgstr ""
 
-#: src/stored/dircmd.c:594 src/stored/reserve.c:995
+#: src/stored/dircmd.c:594 src/stored/reserve.c:1015
 #, c-format
 msgid ""
 "\n"
@@ -13921,27 +13948,27 @@ msgstr ""
 msgid "Sanity check failed. maxlen=%d datalen=%d. Block discarded.\n"
 msgstr ""
 
-#: src/stored/reserve.c:90
+#: src/stored/reserve.c:92
 #, fuzzy, c-format
 msgid "Unable to initialize reservation lock. ERR=%s\n"
 msgstr "Impossible d'initialiser le verrou sur la base. ERR=%s\n"
 
-#: src/stored/reserve.c:96
+#: src/stored/reserve.c:98
 #, fuzzy, c-format
 msgid "Unable to initialize volume list lock. ERR=%s\n"
 msgstr "Impossible d'initialiser le verrou sur la base. ERR=%s\n"
 
-#: src/stored/reserve.c:423
+#: src/stored/reserve.c:429
 #, c-format
 msgid "Hey! num_writers=%d!!!!\n"
 msgstr ""
 
-#: src/stored/reserve.c:733 src/stored/reserve.c:744
+#: src/stored/reserve.c:749 src/stored/reserve.c:760
 #, c-format
 msgid "Failed command: %s\n"
 msgstr "Erreur sur la commande : %s\n"
 
-#: src/stored/reserve.c:734
+#: src/stored/reserve.c:750
 #, c-format
 msgid ""
 "\n"
@@ -13949,53 +13976,53 @@ msgid ""
 "Device resources.\n"
 msgstr ""
 
-#: src/stored/reserve.c:1011
+#: src/stored/reserve.c:1031
 #, c-format
 msgid "3926 Could not get dcr for device: %s\n"
 msgstr ""
 
-#: src/stored/reserve.c:1104
+#: src/stored/reserve.c:1126
 #, c-format
 msgid "3601 JobId=%u device %s is BLOCKED due to user unmount.\n"
 msgstr ""
 "3601 JobId=%u device %s est BLOQUÉ car il a été demonté par l'utilisateur.\n"
 
-#: src/stored/reserve.c:1114
+#: src/stored/reserve.c:1136
 #, c-format
 msgid "3602 JobId=%u device %s is busy (already reading/writing).\n"
 msgstr "3602 JobId=%u device %s est occupé (à lire ou écrire).\n"
 
-#: src/stored/reserve.c:1161
+#: src/stored/reserve.c:1183
 #, c-format
 msgid "3603 JobId=%u device %s is busy reading.\n"
 msgstr "3603 JobId=%u device %s est occupé en lecture.\n"
 
-#: src/stored/reserve.c:1170
+#: src/stored/reserve.c:1192
 #, c-format
 msgid "3604 JobId=%u device %s is BLOCKED due to user unmount.\n"
 msgstr ""
 "3604 JobId=%u device %s est bloqué car il a été démonté par l'utilisateur "
 "(unmount).\n"
 
-#: src/stored/reserve.c:1238
+#: src/stored/reserve.c:1260
 #, c-format
 msgid "3605 JobId=%u wants free drive but device %s is busy.\n"
 msgstr ""
 "3605 JobId=%u voulait libérer le lecteur, mais le device %s est occupé.\n"
 
-#: src/stored/reserve.c:1246
+#: src/stored/reserve.c:1268
 #, c-format
 msgid "3606 JobId=%u prefers mounted drives, but drive %s has no Volume.\n"
 msgstr "3606 JobId=%u voulait un lecteur monté, mais le lecteur %s est vide.\n"
 
-#: src/stored/reserve.c:1269
+#: src/stored/reserve.c:1291
 #, c-format
 msgid "3607 JobId=%u wants Vol=\"%s\" drive has Vol=\"%s\" on drive %s.\n"
 msgstr ""
 "3607 JobId=%u voulait Vol=« %s », c'est le Vol=« %s » qui est dans le drive %"
 "s.\n"
 
-#: src/stored/reserve.c:1311
+#: src/stored/reserve.c:1333
 #, fuzzy, c-format
 msgid ""
 "3608 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" nreserve=%d on drive %"
@@ -14004,26 +14031,26 @@ msgstr ""
 "3608 JobId=%u voulait le Pool=« %s », mais c'est le Pool=« %s » qui est dans "
 "le drive %s.\n"
 
-#: src/stored/reserve.c:1356
+#: src/stored/reserve.c:1377
 #, c-format
 msgid "3609 JobId=%u wants Pool=\"%s\" but has Pool=\"%s\" on drive %s.\n"
 msgstr ""
 
-#: src/stored/reserve.c:1364
+#: src/stored/reserve.c:1385
 #, c-format
 msgid "Logic error!!!! JobId=%u Should not get here.\n"
 msgstr ""
 
-#: src/stored/reserve.c:1365
+#: src/stored/reserve.c:1386
 #, c-format
 msgid "3910 JobId=%u Logic error!!!! drive %s Should not get here.\n"
 msgstr ""
 
-#: src/stored/reserve.c:1368
+#: src/stored/reserve.c:1389
 msgid "Logic error!!!! Should not get here.\n"
 msgstr ""
 
-#: src/stored/reserve.c:1371
+#: src/stored/reserve.c:1392
 #, c-format
 msgid "3911 JobId=%u failed reserve drive %s.\n"
 msgstr ""
