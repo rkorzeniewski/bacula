@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
-MUID=`/usr/bin/id -u`
+MUID=`/usr/bin/id | awk -F= '{print $2}' | awk -F\( '{print $1}'`
 if [ $MUID != 0 ] ; then
    echo " "
    echo "You must be root to run this test."
@@ -62,7 +62,7 @@ sort <1 >restored
 rm -f 1
 #
 cd ${cwd}
-diff tmp/original tmp/restored 2>&1 1>/dev/nul
+diff tmp/original tmp/restored 2>&1 1>/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "
