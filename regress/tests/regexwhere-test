@@ -9,7 +9,7 @@ JobName=backup
 . scripts/functions
 
 scripts/cleanup
-scripts/copy_test_confs
+scripts/copy-test-confs
 
 /bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
 
