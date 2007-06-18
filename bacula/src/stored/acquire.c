@@ -125,24 +125,24 @@ bool acquire_device_for_read(DCR *dcr)
       rctx.store = store;
       
       /*
-       * Note, if search_for_device() succeeds, we get a new_dcr,
+       * Note, if search_for_device() succeeds, we get a new dcr,
        *  which we do not use except for the dev info.
        */
       stat = search_res_for_device(rctx);
       release_msgs(jcr);              /* release queued messages */
       unlock_reservations();
       if (stat == 1) {
-         DCR *new_dcr = jcr->read_dcr;
+         DCR *ndcr = jcr->read_dcr;
          dev->unblock(dev_unlocked);
          detach_dcr_from_dev(dcr);    /* release old device */
          /* Copy important info from the new dcr */
-         dev = dcr->dev = new_dcr->dev; 
+         dev = dcr->dev = ndcr->dev; 
          jcr->read_dcr = dcr; 
-         dcr->device = new_dcr->device;
+         dcr->device = ndcr->device;
          dcr->max_job_spool_size = dcr->device->max_job_spool_size;
          attach_dcr_to_dev(dcr);
-         new_dcr->VolumeName[0] = 0;
-         free_dcr(new_dcr);
+         ndcr->VolumeName[0] = 0;
+         free_dcr(ndcr);
          dev->block(BST_DOING_ACQUIRE); 
          Jmsg(jcr, M_INFO, 0, _("Media Type change.  New device %s chosen.\n"),
             dev->print_name());
@@ -577,23 +577,43 @@ bool release_device(DCR *dcr)
 /*
  * Create a new Device Control Record and attach
  *   it to the device (if this is a real job).
+ * Note, this has been updated so that it can be called first 
+ *   without a DEVICE, then a second or third time with a DEVICE,
+ *   and each time, it should cleanup and point to the new device.
+ *   This should facilitate switching devices.
+ * Note, each dcr must point to the controlling job (jcr).  However,
+ *   a job can have multiple dcrs, so we must not store in the jcr's
+ *   structure as previously. The higher level routine must store
+ *   this dcr in the right place
+ *
  */
-DCR *new_dcr(JCR *jcr, DEVICE *dev)
+DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
 {
-   if (jcr) Dmsg2(100, "enter new_dcr JobId=%u dev=%p\n", (uint32_t)jcr->JobId, dev);
-   DCR *dcr = (DCR *)malloc(sizeof(DCR));
-   memset(dcr, 0, sizeof(DCR));
-   dcr->jcr = jcr;
-   if (dev) {
+   if (!dcr) {
+      dcr = (DCR *)malloc(sizeof(DCR));
+      memset(dcr, 0, sizeof(DCR));
       dcr->tid = pthread_self();
-      dcr->dev = dev;
-      dcr->device = dev->device;
+      dcr->spool_fd = -1;
+   }
+   dcr->jcr = jcr;                 /* point back to jcr */
+   /* Set device information, possibly change device */
+   if (dev) {
+      if (dcr->block) {
+         free_block(dcr->block);
+      }
       dcr->block = new_block(dev);
+      if (dcr->rec) {
+         free_record(dcr->rec);
+      }
       dcr->rec = new_record();
+      if (dcr->attached_to_dev) {
+         detach_dcr_from_dev(dcr);
+      }
       dcr->max_job_spool_size = dev->device->max_job_spool_size;
+      dcr->device = dev->device;
+      dcr->dev = dev;
       attach_dcr_to_dev(dcr);
    }
-   dcr->spool_fd = -1;
    return dcr;
 }
 
@@ -639,10 +659,10 @@ static void attach_dcr_to_dev(DCR *dcr)
 void detach_dcr_from_dev(DCR *dcr)
 {
    Dmsg1(500, "JobId=%u enter detach_dcr_from_dev\n", (uint32_t)dcr->jcr->JobId);
-   unreserve_device(dcr);
 
    /* Detach this dcr only if attached */
-   if (dcr->attached_to_dev) {
+   if (dcr->attached_to_dev && dcr->dev) {
+      unreserve_device(dcr);
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
       dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
@@ -657,9 +677,7 @@ void free_dcr(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
 
-   if (dcr->dev) {
-      detach_dcr_from_dev(dcr);
-   }
+   detach_dcr_from_dev(dcr);
 
    if (dcr->block) {
       free_block(dcr->block);

@@ -511,6 +511,8 @@ bail_out:
 
 void my_postgresql_free_result(B_DB *mdb)
 {
+   
+   db_lock(mdb);
    if (mdb->result) {
       PQclear(mdb->result);
       mdb->result = NULL;
@@ -525,6 +527,7 @@ void my_postgresql_free_result(B_DB *mdb)
       free(mdb->fields);
       mdb->fields = NULL;
    }
+   db_unlock(mdb);
 }
 
 int my_postgresql_currval(B_DB *mdb, char *table_name)

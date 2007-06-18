@@ -473,6 +473,10 @@ static bool list_nextvol(UAContext *ua, int ndays)
       if (!complete_jcr_for_job(jcr, job, run->pool)) {
          return false;
       }
+      if (!jcr->jr.PoolId) {
+         ua->error_msg(_("Could not Pool Job %s\n"), job->name());
+         continue;
+      }
       memset(&pr, 0, sizeof(pr));
       pr.PoolId = jcr->jr.PoolId;
       if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
@@ -482,12 +486,12 @@ static bool list_nextvol(UAContext *ua, int ndays)
       get_job_storage(&store, job, run);
       mr.StorageId = store.store->StorageId;
       if (!find_next_volume_for_append(jcr, &mr, 1, fnv_no_create_vol, fnv_prune)) {
-         ua->error_msg(_("Could not find next Volume for Job %s (%s, %s).\n"),
-            job->hdr.name, pr.Name, level_to_str(run->level));
+         ua->error_msg(_("Could not find next Volume for Job %s (Pool=%s, Level=%s).\n"),
+            job->name(), pr.Name, level_to_str(run->level));
       } else {
          ua->send_msg(
-            _("The next Volume to be used by Job \"%s\" (%s, %s) will be %s\n"),
-            job->hdr.name, pr.Name, level_to_str(run->level), mr.VolumeName);
+            _("The next Volume to be used by Job \"%s\" (Pool=%s, Level=%s) will be %s\n"),
+            job->name(), pr.Name, level_to_str(run->level), mr.VolumeName);
          found = true;
       }
       if (jcr->db && jcr->db != ua->db) {

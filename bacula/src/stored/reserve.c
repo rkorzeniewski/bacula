@@ -463,7 +463,7 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
-   if (dev->is_tape()) {
+   if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {
       return free_volume(dev);
@@ -511,7 +511,13 @@ void free_volume_list()
    }
    lock_volumes();
    foreach_dlist(vol, vol_list) {
-      Dmsg3(dbglvl, "jid=%u Unreleased Volume=%s dev=%p\n", jid(), vol->vol_name, vol->dev);
+      if (vol->dev) {
+         Dmsg3(dbglvl, "jid=%u free vol_list Volume=%s dev=%s\n", jid(),
+               vol->vol_name, vol->dev->print_name());
+      } else {
+         Dmsg3(dbglvl, "jid=%u free vol_list Volume=%s dev=%p\n", jid(), 
+               vol->vol_name, vol->dev);
+      }
       free(vol->vol_name);
       vol->vol_name = NULL;
    }
@@ -634,6 +640,13 @@ static bool use_storage_cmd(JCR *jcr)
    }
 
    init_jcr_device_wait_timers(jcr);
+   jcr->dcr = new_dcr(jcr, NULL, NULL);         /* get a dcr */
+   if (!jcr->dcr) {
+      BSOCK *dir = jcr->dir_bsock;
+      dir->fsend(_("3939 Could not get dcr\n"));
+      Dmsg1(dbglvl, ">dird: %s", dir->msg);
+      ok = false;
+   }
    /*                    
     * At this point, we have a list of all the Director's Storage
     *  resources indicated for this Job, which include Pool, PoolType,
@@ -648,6 +661,7 @@ static bool use_storage_cmd(JCR *jcr)
       int repeat = 0;
       bool fail = false;
       rctx.notify_dir = true;
+
       lock_reservations();
       for ( ; !fail && !job_canceled(jcr); ) {
          while ((msg = (char *)msgs->pop())) {
@@ -658,7 +672,11 @@ static bool use_storage_cmd(JCR *jcr)
          rctx.VolumeName[0] = 0;
          rctx.any_drive = false;
          if (!jcr->PreferMountedVols) {
-            /* Look for unused drives in autochangers */
+            /*
+             * Here we try to find a drive that is not used.
+             * This will maximize the use of available drives.
+             *
+             */
             rctx.num_writers = 20000000;   /* start with impossible number */
             rctx.low_use_drive = NULL;
             rctx.PreferMountedVols = false;                
@@ -688,7 +706,11 @@ static bool use_storage_cmd(JCR *jcr)
                break;
             }
          }
-         /* Look for an exact match all drives */
+         /*
+          * Now we look for a drive that may or may not be in
+          *  use.
+          */
+         /* Look for an exact Volume match all drives */
          rctx.PreferMountedVols = true;
          rctx.exact_match = true;
          rctx.autochanger_only = false;
@@ -784,6 +806,39 @@ void release_msgs(JCR *jcr)
 }
 
 /*
+ * Walk through the autochanger resources and check if
+ *  the volume is in one of them.
+ * 
+ * Returns:  true  if volume is in device
+ *           false otherwise
+ */
+static bool is_vol_in_autochanger(RCTX &rctx, VOLRES *vol)
+{
+   AUTOCHANGER *changer;
+   Dmsg2(dbglvl, "jid=%u search changers for %s\n", (int)rctx.jcr->JobId, 
+         rctx.device_name);
+   foreach_res(changer, R_AUTOCHANGER) {
+      Dmsg2(dbglvl, "jid=%u Try match changer res=%s\n", 
+            (int)rctx.jcr->JobId, changer->hdr.name);
+      /* Find resource, and make sure we were able to open it */
+      if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
+         DEVRES *device;
+         /* Try each device in this AutoChanger */
+         foreach_alist(device, changer->device) {
+            Dmsg2(dbglvl, "jid=%u Try changer device %s\n", 
+                  (int)rctx.jcr->JobId, device->hdr.name);
+            if (device->dev == vol->dev) {
+               Dmsg2(dbglvl, "jid=%u Found changer device %s\n",
+                     (int)rctx.jcr->JobId, device->hdr.name);
+               return true;
+            }
+         }
+      }
+   }
+   return false;
+}
+
+/*
  * Search for a device suitable for this job.
  */
 bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
@@ -792,6 +847,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    DIRSTORE *store;
    char *device_name;
    alist *dirstore;
+   DCR *dcr = jcr->dcr;
 
    if (rctx.append) {
       dirstore = jcr->write_store;
@@ -803,6 +859,12 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
       rctx.autochanger_only);
 
+   /* 
+    * If the appropriate conditions of this if are met, namely that
+    *  we are appending and the user wants mounted drive (or we
+    *  force try a mounted drive because they are all busy), we
+    *  start by looking at all the Volumes in the volume list.
+    */
    if (!vol_list->empty() && rctx.append && rctx.PreferMountedVols) {
       dlist *temp_vol_list, *save_vol_list;
       VOLRES *vol = NULL;
@@ -836,19 +898,37 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       unlock_volumes();
 
       /* Look through reserved volumes for one we can use */
+      Dmsg1(dbglvl, "jid=%u look for vol in vol list\n", (int)rctx.jcr->JobId);
       foreach_dlist(vol, temp_vol_list) {
          if (!vol->dev) {
+            Dmsg2(dbglvl, "jid=%u vol=%s no dev\n", (int)rctx.jcr->JobId, vol->vol_name);
             continue;
          }
+         /* Check with Director if this Volume is OK */
+         bstrncpy(dcr->VolumeName, vol->vol_name, sizeof(dcr->VolumeName));
+         if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
+            continue;
+         }
+
+         Dmsg2(dbglvl, "jid=%u vol=%s\n", (int)rctx.jcr->JobId, vol->vol_name);
          foreach_alist(store, dirstore) {
+            int stat;
             rctx.store = store;
             foreach_alist(device_name, store->device) {
-               int stat;
-               if (strcmp(device_name, vol->dev->device->hdr.name) != 0) {
-                  continue;
-               }
+               /* Found a device, try to use it */
                rctx.device_name = device_name;
                rctx.device = vol->dev->device;
+
+               if (!vol->dev->is_autochanger()) {
+                  if (!is_vol_in_autochanger(rctx, vol)) {
+                     continue;
+                  }
+               } else if (strcmp(device_name, vol->dev->device->hdr.name) != 0) {
+                  Dmsg3(dbglvl, "jid=%u device=%s not suitable want %s\n", (int)rctx.jcr->JobId, 
+                        vol->dev->device->hdr.name, device_name);
+                  continue;
+               }
+
                bstrncpy(rctx.VolumeName, vol->vol_name, sizeof(rctx.VolumeName));
                rctx.have_volume = true;
                /* Try reserving this device and volume */
@@ -874,6 +954,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
             }
          }
       } /* end for loop over reserved volumes */
+
       lock_volumes();
       save_vol_list = vol_list;
       vol_list = temp_vol_list;
@@ -1025,7 +1106,7 @@ static int reserve_device(RCTX &rctx)
 
    rctx.suitable_device = true;
    Dmsg2(dbglvl, "jid=%u try reserve %s\n", rctx.jcr->JobId, rctx.device->hdr.name);
-   dcr = new_dcr(rctx.jcr, rctx.device->dev);
+   rctx.jcr->dcr = dcr = new_dcr(rctx.jcr, rctx.jcr->dcr, rctx.device->dev);
    if (!dcr) {
       BSOCK *dir = rctx.jcr->dir_bsock;
       dir->fsend(_("3926 Could not get dcr for device: %s\n"), rctx.device_name);
@@ -1099,7 +1180,7 @@ static int reserve_device(RCTX &rctx)
 
 bail_out:
    rctx.have_volume = false;
-   free_dcr(dcr);
+// free_dcr(dcr);
    Dmsg1(dbglvl, "jid=%u Not OK.\n", (int)rctx.jcr->JobId);
    return 0;
 }

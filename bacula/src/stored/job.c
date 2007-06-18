@@ -356,6 +356,10 @@ void stored_free_jcr(JCR *jcr)
    }
    jcr->dcrs = NULL;
 
+   /* Avoid a double free */
+   if (jcr->dcr == jcr->read_dcr) {
+      jcr->read_dcr = NULL;
+   }
    if (jcr->dcr) {
       free_dcr(jcr->dcr);
       jcr->dcr = NULL;
