@@ -38,6 +38,20 @@ Download and build the cross compiler tools
 Download and build the 3rd party dependencies
         ./build-depkgs-mingw32
 
+Note, that during the build process you will see a moderate amount of
+output. If something fails, it is probably because you don't have one
+of the build dependencies (hopefully all mentioned above) loaded on your  
+system. To find out what is going wrong, do the following:
+
+  cd .../depkgs-mingw32/src/<package-name>
+   
+where <package-name> is where the package is unpacked and built. Normally
+it is relatively obvious when looking at the src directory.             
+
+In that directory, you should find a make.log, which has the full details
+of the compiles, links, and installs done for that package.
+
+
 You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
 can only be downloaded and installed on a Windows system.  You can find it on
 Microsoft's web-site at:
