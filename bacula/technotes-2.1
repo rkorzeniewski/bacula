@@ -1,6 +1,28 @@
               Technical notes on version 2.1
 
 General:
+18Jun08
+kes  Add some additional locking in the cats directory in subroutines
+     that modify packet variables called from batch insert.
+kes  Rework how dcrs are allocated. new_dcr() can now be called
+     with an existing pointer, and it will simply clean it up.
+     This allows the reservation system to test various different
+     devices, and will permit easy device changes.
+kes  A bunch of changes all over to handle new new_dcr() calling
+     sequence.
+kes  Work more on the Volume management in the SD. Remember Volumes
+     for tape drives and for autochangers (even virtual disk changers).
+kes  When looking at the Volume list to reserve a drive, handle 
+     autochanger names correctly by interating through the changer 
+     devices.  Also call the Director to see if a Volume is suitable
+     for the current job.
+kes  Fix some bugs in bscan. Make sure all media records are written.
+     Make sure that valid JobMedia records are written for disk files.
+     Previously they were completely wrong.
+kes  Move source tar files for depkgs-mingw32 to www.bacula.org so
+     that the URLs don't change and so that the developers will all
+     work off the same copy. Rebuild from scrach.
+kes  Upgrade Win32 SQLite3 from 3.3.8 to 3.3.17.
 Release: 2.1.18 beta
 16Jun07
 kes  Fix seg fault in FD from incorrect digest size. 

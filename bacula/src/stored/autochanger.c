@@ -251,7 +251,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
       return dev->Slot;
    }
    /* Virtual disk autochanger */
-   if (dcr->device->changer_command[0] ==0) {
+   if (dcr->device->changer_command[0] == 0) {
       return 1;
    }
 

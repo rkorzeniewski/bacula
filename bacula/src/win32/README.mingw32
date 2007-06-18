@@ -51,6 +51,12 @@ it is relatively obvious when looking at the src directory.
 In that directory, you should find a make.log, which has the full details
 of the compiles, links, and installs done for that package.
 
+Note, if you are building on a 64 bit machine, please know that
+the build for the depkgs-mingw32/scons puts the python scons libraries
+in depkgs-mingw32/scons/lib64 but when running scons it looks for the
+libs in depkgs-mingw32/scons/lib. So adding symlink from
+depkgs-mingw32/scons/lib64 to depkgs-mingw32/scons/lib will fix the
+problem.
 
 You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
 can only be downloaded and installed on a Windows system.  You can find it on

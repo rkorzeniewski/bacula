@@ -686,7 +686,10 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  */
 bool my_batch_start(JCR *jcr, B_DB *mdb)
 {
-   return db_sql_query(mdb,
+   bool ok;
+
+   db_lock(mdb);
+   ok =  db_sql_query(mdb,
              " CREATE TEMPORARY TABLE batch "
              "        (fileindex integer,   "
              "        jobid integer,        "
@@ -694,6 +697,8 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
              "        name blob,            "
              "        lstat tinyblob,       "
              "        md5 tinyblob)         ",NULL, NULL);
+   db_unlock(mdb);
+   return ok;
 }
 
 /* 
