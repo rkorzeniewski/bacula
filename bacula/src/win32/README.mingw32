@@ -48,12 +48,16 @@ If that link doesn't work then go to http://www.microsoft.com and search for
 
         "download volume shadow copy service sdk"
 
+we are currently using version 7.2 released 8/3/2005.
+
 Normally the files will be installed in:
 
         c:\Program Files\Microsoft\VSSSDK72
 
 You only need to copy everything under the c:\Program Files\Microsoft\VSSSDK72\inc
-directory into .../depkgs-mingw32/vss/inc.
+directory into .../depkgs-mingw32/vss/inc.  In doing so, please ensure that
+the case in maintained on the directory and filenames -- some contain uppercase 
+characters !!!
 
 The above only needs to be done once unless we change the cross-tools
 or the dependencies versions.  In general, you can run the script multiple

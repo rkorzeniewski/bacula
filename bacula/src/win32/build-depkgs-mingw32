@@ -63,6 +63,7 @@ export PATH=${BIN_DIR}:${PATH}
 
 OLD_IFS=${IFS};IFS="|";
 while read package url dir mkd; do
+        echo "Got package ${package}"
         case ${package} in
         \#*) ;;
         *) eval "URL_${package}=${url};DIR_${package}=${dir};MKD_${package}=${mkd}";;
@@ -75,6 +76,7 @@ get_source()
         URL=$1
         SRC_DIR=$2
         MAKE_DIR=$3
+        echo "Processing ${URL}"
         ARCHIVE=`basename ${URL}`
         
         case ${ARCHIVE} in
@@ -486,10 +488,10 @@ process_dvd_rw_tools()
                 >patch.log
                 do_patch dvd+rw-tools.patch
         fi
-        echo Building dvd+rw-tools
+        echo "Building dvd+rw-tools"
         m4 -DOS=XMINGW32 Makefile.m4 | make -f - dvd+rw-tools >make.log 2>&1
-        echo Installing dvd+rw-tools
-        m4 -DOS=XMINGW32 Makefile.m4 | make -f - prefix=${DEPPKG_DIR} install >>make.log 2>&1
+        echo "Installing dvd+rw-tools"
+        m4 -DOS=XMINGW32 Makefile.m4 | make -f - prefix=${DEPPKG_DIR} manprefix=${DEPPKG_DIR} install >>make.log 2>&1
 }
 
 process_qt4()
@@ -517,7 +519,7 @@ then
         process_cmd_utils
         process_mkisofs
         process_dvd_rw_tools
-        process_qt4
+#       process_qt4
 else
         for dependency in "$@"
         do
