@@ -143,3 +143,31 @@ Also, if you run from time to time on a computer that is not connected
 to the network, please be sure that "hostname" is set to "localhost",
 otherwise, your tests may fail because the hostname used by Bacula's
 ./configure cannot be properly resolved.
+
+Anyway, you can debug where it is happening in the source code using the 
+following example.  For example, here I get the following backtrace:
+
+======= Backtrace: =========
+/lib/libc.so.6[0xb7b9d6e1]
+/lib/libc.so.6(cfree+0x89)[0xb7b9ed79]
+/home/kern/bacula/regress/bin/bacula-fd[0x8082ae5]
+/home/kern/bacula/regress/bin/bacula-fd[0x8082d58]
+/home/kern/bacula/regress/bin/bacula-fd[0x80838ac]
+/home/kern/bacula/regress/bin/bacula-fd[0x807aa3f]
+/home/kern/bacula/regress/bin/bacula-fd[0x807ac29]
+/home/kern/bacula/regress/bin/bacula-fd[0x804d188]
+/lib/libc.so.6(__libc_start_main+0xdc)[0xb7b4ef9c]
+/home/kern/bacula/regress/bin/bacula-fd[0x804cd21]
+
+Now to convert this into something more meaningful, kill off any hung Bacula 
+processes.  Note the one that was running -- above you see that it was 
+bacula-fd, then bring the same binary up in the debugger.  Then start at the 
+first bacula-fd line, and feed the hex number to gdb as follows:
+
+info symbol 0x8082ae5
+free_addresses(dlist*) + 53 in section .text
+
+info symbol 0x8082d58
+add_address(dlist**, IPADDR::i_type, unsigned short, int, char const*, char 
+const*, char**) + 568 in section .text
+
