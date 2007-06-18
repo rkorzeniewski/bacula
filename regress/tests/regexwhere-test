@@ -8,12 +8,9 @@ JobName=backup
 
 . scripts/functions
 
-copy_test_confs
+scripts/cleanup
+scripts/copy_test_confs
 
-rm -f bin/bacula-dir.conf
-rm -f tmp/RUN*
-rm -f ${cwd}/build/po/*old*
-rm -rf tmp/po
 /bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
 
 echo "${cwd}/build/po" >/tmp/file-list
@@ -160,9 +157,8 @@ messages
 quit
 END_OF_DATA
 
+run_bacula
 
-bin/bacula start
-cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
 stop_bacula
 
 
