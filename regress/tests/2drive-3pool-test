@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Run a simple backup of the Bacula build directory. Create three
-#   tapes, each in a different pool, then run two jobs both of which
-#   want the tape that is not loaded.  Note, they both have     
-#   prefers non-mounted tapes.  This should expose bug #801
+#   tapes, each in a different pool, then run some jobs asking for the
+#   volume on drive three.  It should find it without moving the 
+#   volume.
 #
 # This script uses the virtual disk autochanger and two drives
 #
-TestName="three-pool-disk"
-JobName="threepooldisk"
+TestName="2drive-3pool-disk"
+JobName="2dr3pooldisk"
 . scripts/functions
 
 scripts/cleanup
@@ -20,27 +20,27 @@ change_jobname NightlySave $JobName
 start_test
 
 # Turn off Prefer Mounted Volumes so we use 2 drives
-outf="tmp/sed_tmp"
-echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
-cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+# outf="tmp/sed_tmp"
+#  echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
+# cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 # Comment the next line out to write everything to one drive
 #  otherwise, it writes the two jobs to different drives
-sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+# sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 # Write out bconsole commands
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=200 storage=DDS-4
-setdebug level=200 client 
+setdebug level=51 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Full    drive=0
-label storage=DDS-4 volume=TestVolume003 slot=3 Pool=Inc     drive=1
+label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Full    drive=1
+@#label storage=DDS-4 volume=TestVolume003 slot=3 Pool=Inc     drive=2
 status storage=DDS-4
+@#run job=$JobName level=Full Pool=Inc yes
+run job=$JobName level=Full Pool=Full yes
 run job=$JobName level=Full Pool=Default yes
-run job=$JobName level=Full Pool=Default yes
-run job=$JobName level=Full Pool=Default yes
+setdebug level=200 storage=DDS-4
 run job=$JobName level=Full Pool=Default yes
 run job=$JobName level=Full Pool=Default yes
 @sleep 10
