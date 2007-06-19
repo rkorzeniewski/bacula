@@ -254,7 +254,6 @@ db_close_database(JCR *jcr, B_DB *mdb)
       if (mdb->db_socket) {
          free(mdb->db_socket);
       }
-      my_postgresql_free_result(mdb);
       free(mdb);
    }
    V(mutex);
@@ -619,9 +618,7 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
    mdb->row_number   = -1;
    mdb->field_number = -1;
 
-   if (mdb->result != NULL) {
-      my_postgresql_free_result(mdb);
-   }
+   my_postgresql_free_result(mdb);
 
    for (int i=0; i < 10; i++) {
       mdb->result = PQexec(mdb->db, query);
