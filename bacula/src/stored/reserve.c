@@ -814,30 +814,16 @@ void release_msgs(JCR *jcr)
  */
 static bool is_vol_in_autochanger(RCTX &rctx, VOLRES *vol)
 {
-   AUTOCHANGER *changer;
+   AUTOCHANGER *changer = vol->dev->device->changer_res;
 
-   return false;
-
-   Dmsg2(dbglvl, "jid=%u search changers for %s\n", (int)rctx.jcr->JobId, 
-         rctx.device_name);
-   foreach_res(changer, R_AUTOCHANGER) {
-      Dmsg3(dbglvl, "jid=%u Try match changer res=%s device=%s\n", 
-            (int)rctx.jcr->JobId, changer->hdr.name, rctx.device_name);
-      /* Find resource, and make sure we were able to open it */
-      if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
-         DEVRES *device;
-         /* Try each device in this AutoChanger */
-         foreach_alist(device, changer->device) {
-            if (device->dev == vol->dev) {
-               Dmsg2(dbglvl, "jid=%u Found changer device %s\n",
-                     (int)rctx.jcr->JobId, device->hdr.name);
-               return true;
-            }
-            Dmsg2(dbglvl, "jid=%u Incorrect changer device %s\n", 
-                  (int)rctx.jcr->JobId, device->hdr.name);
-         }
-      }
-   }
+   /* Find resource, and make sure we were able to open it */
+   if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
+      Dmsg2(dbglvl, "jid=%u Found changer device %s\n",
+                     (int)rctx.jcr->JobId, vol->dev->device->hdr.name);
+      return true;
+   }  
+   Dmsg2(dbglvl, "jid=%u Incorrect changer device %s\n", 
+                  (int)rctx.jcr->JobId, changer->hdr.name);
    return false;
 }
 
@@ -913,7 +899,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
             continue;
          }
 
-         Dmsg2(dbglvl, "jid=%u vol=%s\n", (int)rctx.jcr->JobId, vol->vol_name);
+         Dmsg2(dbglvl, "jid=%u vol=%s OK for this job\n", (int)rctx.jcr->JobId, vol->vol_name);
          foreach_alist(store, dirstore) {
             int stat;
             rctx.store = store;
@@ -958,6 +944,9 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
                break;
             }
          }
+         if (ok) {
+            break;
+         }
       } /* end for loop over reserved volumes */
 
       lock_volumes();
@@ -969,7 +958,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       unlock_volumes();
    }
    if (ok) {
-      Dmsg2(dbglvl, "jid=%u got vol %s in reserved volums list\n", (int)rctx.jcr->JobId,
+      Dmsg2(dbglvl, "jid=%u got vol %s from in-use vols list\n", (int)rctx.jcr->JobId,
             rctx.VolumeName);
       return true;
    }

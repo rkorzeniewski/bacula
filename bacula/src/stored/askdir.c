@@ -179,7 +179,7 @@ static bool do_get_volume_info(DCR *dcr)
        return false;
     }
     memset(&vol, 0, sizeof(vol));
-    Dmsg1(100, "<dird %s", dir->msg);
+    Dmsg1(100, "<dird %s\n", dir->msg);
     n = sscanf(dir->msg, OK_media, vol.VolCatName,
                &vol.VolCatJobs, &vol.VolCatFiles,
                &vol.VolCatBlocks, &vol.VolCatBytes,
@@ -191,7 +191,7 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
                &vol.LabelType, &vol.VolMediaId);
     if (n != 22) {
-       Dmsg2(100, "Bad response from Dir fields=%d: %s", n, dir->msg);
+       Dmsg3(100, "Bad response from Dir fields=%d, len=%d: %s", n, dir->msglen, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
@@ -226,7 +226,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     bash_spaces(dcr->VolCatInfo.VolCatName);
     dir->fsend(Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
-    Dmsg1(100, ">dird: %s", dir->msg);
+    Dmsg1(100, ">dird: %s\n", dir->msg);
     unbash_spaces(dcr->VolCatInfo.VolCatName);
     bool ok = do_get_volume_info(dcr);
     V(vol_info_mutex);
