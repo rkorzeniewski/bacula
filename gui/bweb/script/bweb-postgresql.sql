@@ -1,3 +1,7 @@
+-- --------------------------------------------------
+-- Upgrade from 2.0
+-- --------------------------------------------------
+
 BEGIN;
 -- Manage Client groups in bweb
 -- Works with postgresql and mysql5 
@@ -21,6 +25,10 @@ CREATE TABLE client_group_member
 CREATE INDEX client_group_member_idx on client_group_member (client_group_id);
 
 COMMIT;
+
+-- --------------------------------------------------
+-- End of upgrade from 2.0
+-- --------------------------------------------------
 
 --   -- creer un nouveau group
 --   
