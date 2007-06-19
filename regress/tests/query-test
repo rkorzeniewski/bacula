@@ -35,6 +35,7 @@ END_OF_DATA
 
 run_bacula
 check_for_zombie_jobs storage=File
+stop_bacula
 
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
@@ -53,6 +54,7 @@ END_OF_DATA
 
 run_bacula
 check_for_zombie_jobs storage=File
+stop_bacula
 
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 cat <<END_OF_DATA >tmp/bconcmds
