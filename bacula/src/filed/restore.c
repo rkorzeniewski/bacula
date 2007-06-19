@@ -83,10 +83,11 @@ struct r_ctx {
    uint64_t fileAddr;                  /* file write address */
    uint32_t size;                      /* Size of file */
    int flags;                          /* Options for extract_data() */
-   BFILE forkbfd;                       /* Alternative data stream */
-   uint64_t fork_addr;                  /* Write address for alternative stream */
-   intmax_t fork_size;                  /* Size of alternate stream */
-   int fork_flags;                      /* Options for extract_data() */
+   BFILE forkbfd;                      /* Alternative data stream */
+   uint64_t fork_addr;                 /* Write address for alternative stream */
+   intmax_t fork_size;                 /* Size of alternate stream */
+   int fork_flags;                     /* Options for extract_data() */
+   int32_t type;                       /* file type FT_ */
 
    SIGNATURE *sig;                     /* Cryptographic signature (if any) for file */
    CRYPTO_SESSION *cs;                 /* Cryptographic session data (if any) for file */
@@ -110,7 +111,7 @@ static void free_session(r_ctx &rctx);
 
 
 
-static bool verify_signature(JCR *jcr, SIGNATURE *sig);
+static bool verify_signature(JCR *jcr, r_ctx &rctx);
 int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
                      uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
 bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, 
@@ -302,7 +303,8 @@ void do_restore(JCR *jcr)
             extract = false;
 
             /* Verify the cryptographic signature, if any */
-            verify_signature(jcr, rctx.sig);
+            rctx.type = attr->type;
+            verify_signature(jcr, rctx);
 
             /* Free Signature */
             free_signature(rctx);
@@ -643,7 +645,8 @@ void do_restore(JCR *jcr)
             set_attributes(jcr, attr, &rctx.bfd);
 
             /* Verify the cryptographic signature if any */
-            verify_signature(jcr, rctx.sig);
+            rctx.type = attr->type;
+            verify_signature(jcr, rctx);
             extract = false;
          } else if (is_bopen(&rctx.bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
@@ -671,7 +674,8 @@ void do_restore(JCR *jcr)
       set_attributes(jcr, attr, &rctx.bfd);
 
       /* Verify the cryptographic signature on the last file, if any */
-      verify_signature(jcr, rctx.sig);
+      rctx.type = attr->type;
+      verify_signature(jcr, rctx);
    }
 
    if (is_bopen(&rctx.bfd)) {
@@ -785,7 +789,7 @@ static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level)
  * TODO landonf: Implement without using find_one_file and
  * without re-reading the file.
  */
-static bool verify_signature(JCR *jcr, SIGNATURE *sig)
+static bool verify_signature(JCR *jcr, r_ctx &rctx)
 {
    X509_KEYPAIR *keypair;
    DIGEST *digest = NULL;
@@ -794,14 +798,19 @@ static bool verify_signature(JCR *jcr, SIGNATURE *sig)
    crypto_digest_t signing_algorithm = have_sha2 ? 
                                        CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
    crypto_digest_t algorithm;
+   SIGNATURE *sig = rctx.sig;
 
 
    if (!jcr->pki_sign) {
       return true;                    /* no signature OK */
    }
    if (!sig) {
-      Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), 
-            jcr->last_fname);
+      if (rctx.type == FT_REGE || rctx.type == FT_REG || rctx.type == FT_RAW) { 
+         Jmsg1(jcr, M_ERROR, 0, _("Missing cryptographic signature for %s\n"), 
+               jcr->last_fname);
+         goto bail_out;
+      }
+      return true;
    }
 
    /* Iterate through the trusted signers */
