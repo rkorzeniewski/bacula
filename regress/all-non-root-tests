@@ -59,6 +59,7 @@ nice tests/scratch-pool-test
 nice tests/2drive-concurrent-test
 nice tests/incremental-2media
 nice tests/three-pool-test
+nice tests/2drive-3pool-test
 echo " "
 echo "Test results"
 cat build/config.out
