@@ -815,6 +815,9 @@ void release_msgs(JCR *jcr)
 static bool is_vol_in_autochanger(RCTX &rctx, VOLRES *vol)
 {
    AUTOCHANGER *changer;
+
+   return false;
+
    Dmsg2(dbglvl, "jid=%u search changers for %s\n", (int)rctx.jcr->JobId, 
          rctx.device_name);
    foreach_res(changer, R_AUTOCHANGER) {
