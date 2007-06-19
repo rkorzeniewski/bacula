@@ -1,7 +1,14 @@
               Technical notes on version 2.1
 
 General:
-18Jun08
+19Jun07
+kes  Fix bad return in FD when encryption signature not found.
+     Probably caused a crash.
+kes  Inhibit missing encryption signature error messages for 
+     file types where no signature computed.
+kes  Correct inverted check on autochanger in reservation system.
+kes  Tweak debug code in autochanger reservation.
+18Jun07
 kes  Add some additional locking in the cats directory in subroutines
      that modify packet variables called from batch insert.
 kes  Rework how dcrs are allocated. new_dcr() can now be called
