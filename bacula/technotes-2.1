@@ -1,10 +1,15 @@
               Technical notes on version 2.1
 
 General:
-19Jun07
-kes  Simplify search of autochanger for in-use Volume.
-kes  Fix exit condition of check for in-use volume.
-kes  Remove inappropriate my_postgresql_free_result() in db_close()
+20Jun07
+kes  Fixed bug #886 (multidrive autochanger: SD doesn't use drive with
+     loaded tape but uses first drive).
+kes  Fixed bug #807 Restore encrypted backup failed on Windows 2003
+     This was indeed a Win32 issue.
+19Jun07 
+kes  Simplify search of autochanger for in-use Volume.  
+kes  Fix exit condition of check for in-use volume.  kes Remove
+     inappropriate my_postgresql_free_result() in db_close()
      routine.
 kes  Fix bad return in FD when encryption signature not found.
      Probably caused a crash.
@@ -34,6 +39,7 @@ kes  Move source tar files for depkgs-mingw32 to www.bacula.org so
      that the URLs don't change and so that the developers will all
      work off the same copy. Rebuild from scrach.
 kes  Upgrade Win32 SQLite3 from 3.3.8 to 3.3.17.
+
 Release: 2.1.18 beta
 16Jun07
 kes  Fix seg fault in FD from incorrect digest size. 

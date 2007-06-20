@@ -58,6 +58,7 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- Make restore use the in-use volume reservation algorithm.
 - Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
 - Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
 - How does restore JobId=nnn work? (Dirk)
