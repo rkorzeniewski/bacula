@@ -1,11 +1,4 @@
 /*
- * Windows APIs that are different for each system.
- *   We use pointers to the entry points so that a
- *   single binary will run on all Windows systems.
- *
- *     Kern Sibbald MMIII
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
@@ -32,12 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Windows APIs that are different for each system.
+ *   We use pointers to the entry points so that a
+ *   single binary will run on all Windows systems.
+ *
+ *     Kern Sibbald MMIII
+ */
 
 #include "bacula.h"
 
 // init with win9x, but maybe set to NT in InitWinAPI
 DWORD g_platform_id = VER_PLATFORM_WIN32_WINDOWS;
 DWORD g_MinorVersion = 0;
+DWORD g_MajorVersion = 0;
 
 /* API Pointers */
 
@@ -95,10 +96,10 @@ InitWinAPIWrapper()
    // Get the current OS version
    if (!GetVersionEx(&osversioninfo)) {
       g_platform_id = 0;
-      g_MinorVersion = 0;
    } else {
       g_platform_id = osversioninfo.dwPlatformId;
       g_MinorVersion = osversioninfo.dwMinorVersion;
+      g_MajorVersion = osversioninfo.dwMajorVersion;
    }
 
    HMODULE hLib = LoadLibraryA("KERNEL32.DLL");

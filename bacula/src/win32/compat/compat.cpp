@@ -1508,7 +1508,7 @@ winver::winver(void)
                                    osvinfo.dwMajorVersion,
                                    osvinfo.dwMinorVersion);
         snprintf(WIN_RAWVERSION, sizeof(WIN_RAWVERSION), "Windows %#08x", ver);
-         switch (ver)
+        switch (ver)
         {
         case MS_WINDOWS_95: (version =  "Windows 95"); break;
         case MS_WINDOWS_98: (version =  "Windows 98"); break;

@@ -1217,7 +1217,8 @@ static int level_cmd(JCR *jcr)
       Dmsg2(100, "rt=%s adj=%s\n", edit_uint64(rt, ed1), edit_uint64(bt_adj, ed2));
       adj = btime_to_utime(bt_adj);
       since_time += adj;              /* adjust for clock difference */
-      if (adj != 0) {
+      /* Don't notify if time within 3 seconds */
+      if (adj > 3 || adj < -3) {
          int type;
          if (adj > 600 || adj < -600) {
             type = M_WARNING;

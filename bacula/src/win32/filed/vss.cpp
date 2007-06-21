@@ -9,7 +9,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,26 +46,40 @@
 
 VSSClient *g_pVSSClient;
 
+// {b5946137-7b9f-4925-af80-51abd60b20d5}
+
+static const GUID VSS_SWPRV_ProviderID =
+   { 0xb5946137, 0x7b9f, 0x4925, { 0xaf, 0x80, 0x51, 0xab, 0xd6, 0x0b, 0x20, 0xd5 } };
+
+
 void 
 VSSCleanup()
 {
-   if (g_pVSSClient)
+   if (g_pVSSClient) {
       delete (g_pVSSClient);
+   }
 }
 
-void
-VSSInit()
+void VSSInit()
 {
    /* decide which vss class to initialize */
-   switch (g_MinorVersion) {
+   if (g_MajorVersion == 5) {
+      switch (g_MinorVersion) {
       case 1: 
          g_pVSSClient = new VSSClientXP();
          atexit(VSSCleanup);
-         break;
+         return;
       case 2: 
          g_pVSSClient = new VSSClient2003();
          atexit(VSSCleanup);
-         break;
+         return;
+      }
+   /* Vista or Longhorn */
+   } else if (g_MajorVersion == 6 && g_MinorVersion == 0) {
+      /* Probably will not work */
+      g_pVSSClient = new VSSClientVista();
+      atexit(VSSCleanup);
+      return;
    }
 }
 
