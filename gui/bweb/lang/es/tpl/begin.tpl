@@ -29,6 +29,7 @@ if (navigator.appName == 'Konqueror') {
  <li><a href="bweb.pl?action=run_job">Jobs</a>
    <ul> 
      <li><a href="bweb.pl?action=run_job">Jobs Definidos</a>
+     <li><a href="bweb.pl?action=job_group">Jobs by group</a>
      <li><a href="bweb.pl?action=job">Últimos Jobs</a> </li>
      <li><a href="bweb.pl?action=running">Jobs en Ejecución</a>
      <li><a href="bweb.pl?action=next_job">Próximos Jobs</a> </li>
