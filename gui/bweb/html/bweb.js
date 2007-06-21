@@ -232,7 +232,7 @@ function percent_usage(value, parent)
        return;
    }
 
-   if (value >= 101) {
+   if (value >= 500) {
       return;
    } else if (value <= 0.001) {
       type = "Empty";
