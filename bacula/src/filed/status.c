@@ -86,7 +86,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);
       }
-      len = Mmsg(msg, "Priv 0x%x\n", privs);
+      len = Mmsg(msg, "VSS=%s Priv 0x%x\n", g_pVSSClient?"yes":"no", privs);
       sendit(msg.c_str(), len, arg);
       len = Mmsg(msg, "APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n",
                  p_OpenProcessToken?"":"!",
