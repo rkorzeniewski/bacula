@@ -13,8 +13,8 @@ if [ "$1" = "configure" ] ; then
 
  chmod 755 /etc/bacula
 
- chown www-data:root /etc/bacula/bweb.conf
- chmod 600 /etc/bacula/bweb.conf
+ chown www-data:bacula /etc/bacula/bweb.conf
+ chmod 640 /etc/bacula/bweb.conf
 
  chown www-data:root /var/spool/bweb
  chmod 700 /var/spool/bweb
