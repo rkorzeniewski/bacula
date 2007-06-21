@@ -31,7 +31,7 @@ a.href='?action=job;client_group=<TMPL_VAR client_group_name>;age=' + age;
 
 img = document.createElement("IMG");
 
-if ("<TMPL_VAR nbjoberr>") {
+if (<TMPL_VAR nbjoberr>) {
   jobstatus='f';
 
 } else {

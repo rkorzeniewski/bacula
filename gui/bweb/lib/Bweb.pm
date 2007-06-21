@@ -2081,11 +2081,11 @@ sub display_job_group
     my $query = 
 "
 SELECT client_group_name AS client_group_name,
-       jobok.jobfiles  + joberr.jobfiles  AS jobfiles,
-       jobok.jobbytes  + joberr.jobbytes  AS jobbytes,
-       jobok.joberrors + joberr.joberrors AS joberrors,
-       jobok.nbjobs  AS nbjobok,
-       joberr.nbjobs AS nbjoberr
+       COALESCE(jobok.jobfiles,0)  + COALESCE(joberr.jobfiles,0)  AS jobfiles,
+       COALESCE(jobok.jobbytes,0)  + COALESCE(joberr.jobbytes,0)  AS jobbytes,
+       COALESCE(jobok.joberrors,0) + COALESCE(joberr.joberrors,0) AS joberrors,
+       COALESCE(jobok.nbjobs,0)  AS nbjobok,
+       COALESCE(joberr.nbjobs,0) AS nbjoberr
 
 FROM (
     SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
@@ -2115,7 +2115,7 @@ FROM (
 
     my $all = $self->dbh_selectall_hashref($query, 'client_group_name');
 
-    my $rep = { groups => [ values %$all ], age => $arg{age} };
+    my $rep = { groups => [ values %$all ], age => $arg{age}, filter => $label };
                 
     $self->debug($rep);
     $self->display($rep, "display_job_group.tpl");
