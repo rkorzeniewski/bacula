@@ -2068,6 +2068,59 @@ WHERE Job.JobId = $jobid
     $self->display($row, "display_job_zoom.tpl");
 }
 
+sub display_job_group
+{
+    my ($self, %arg) = @_;
+
+    my ($limit, $label) = $self->get_limit(groupby => 'client_group_name',  %arg);
+
+    my ($where, undef) = $self->get_param('client_groups',
+					  'level',
+					  'pools');
+    
+    my $query = 
+"
+SELECT client_group_name AS client_group_name,
+       jobok.jobfiles  + joberr.jobfiles  AS jobfiles,
+       jobok.jobbytes  + joberr.jobbytes  AS jobbytes,
+       jobok.joberrors + joberr.joberrors AS joberrors,
+       jobok.nbjobs  AS nbjobok,
+       joberr.nbjobs AS nbjoberr
+
+FROM (
+    SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
+           SUM(JobFiles) AS jobfiles, SUM(JobBytes) AS jobbytes, 
+           SUM(JobErrors) AS joberrors
+    FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
+             JOIN client_group USING (client_group_id)
+    
+    WHERE JobStatus = 'T'
+    $where
+    $limit
+) AS jobok LEFT JOIN
+
+(
+    SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
+           SUM(JobFiles) AS jobfiles, SUM(JobBytes) AS jobbytes, 
+           SUM(JobErrors) AS joberrors
+    FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
+             JOIN client_group USING (client_group_id)
+    
+    WHERE JobStatus IN ('f','E', 'A')
+    $where
+    $limit
+) AS joberr USING (client_group_name)
+
+    ";
+
+    my $all = $self->dbh_selectall_hashref($query, 'client_group_name');
+
+    my $rep = { groups => [ values %$all ], age => $arg{age} };
+                
+    $self->debug($rep);
+    $self->display($rep, "display_job_group.tpl");
+}
+
 sub display_media
 {
     my ($self, %arg) = @_ ;

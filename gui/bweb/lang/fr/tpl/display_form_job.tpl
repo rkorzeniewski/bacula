@@ -16,6 +16,7 @@
     </select>     
   </td>
 </tr>
+<TMPL_UNLESS hide_status>
 <tr>
  <td valign='top'>
     <h2>Statut</h2>
@@ -28,6 +29,8 @@
     </select>     
   </td>
 </tr>
+</TMPL_UNLESS>
+<TMPL_IF db_pools>
 <tr>
  <td valign='top'>
     <h2>Pool</h2>
@@ -39,6 +42,7 @@
     </select>
   </td>
 </tr>
+</TMPL_IF>
 <tr>
   <td valign='top'>
     <h2>P&eacute;riode</h2>
@@ -57,6 +61,7 @@
 	class='formulaire' size='4'>
   </td>
 </tr>
+<TMPL_UNLESS hide_type>
 <tr>
   <td valign='top'> 
     <h2>Type</h2>
@@ -67,6 +72,7 @@
     </select>
   </td>
 </tr>
+</TMPL_UNLESS>
 <TMPL_IF db_clients>
 <tr>
   <td valign='top'> 
@@ -92,7 +98,9 @@
 </tr>
 </TMPL_IF>
 </table>
-  <input type="image" name='action' value='job' src='/bweb/update.png'>
+  <input type="image" name='action'
+         value='<TMPL_IF action><TMPL_VAR action><TMPL_ELSE>job</TMPL_IF>'
+         src='/bweb/update.png'>
 
 </form>
 </div>

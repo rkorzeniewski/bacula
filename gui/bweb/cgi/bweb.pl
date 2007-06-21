@@ -306,6 +306,22 @@ if ($action eq 'begin') {		# main display
 		       offset => $arg->{offset},
 		       limit => $arg->{limit});
     print "</td></tr></table></div>";
+} elsif ($action eq 'job_group') {
+
+    print "<div><table border='0'><tr><td valign='top'>\n";
+    my $fields = $bweb->get_form(qw/limit level age 
+                                    db_client_groups qclient_groups/); # drop this to hide 
+
+    $fields->{hide_status} = 1;
+    $fields->{hide_type} = 1;
+    $fields->{action} = 'job_group';
+
+    $bweb->display($fields, "display_form_job.tpl");
+
+    print "</td><td valign='top'>";
+    $bweb->display_job_group(age => $arg->{age},  # last 7 days
+			     limit => $arg->{limit});
+    print "</td></tr></table></div>";
 } elsif ($action eq 'client_stats') {
 
     foreach my $client (CGI::param('client')) {
