@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory with TLS
+#   communications code enabled then restore it.
+#
+TestName="tls-test"
+JobName=tls
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-tls-confs
+echo "${cwd}/build" >/tmp/file-list
+
+change_jobname CompressedTest $JobName
+start_test
+      
+cat <<END_OF_DATA >tmp/bconcmds
+@output
+messages
+@$out tmp/log1.out
+status all
+status all
+messages
+label storage=File volume=TestVolume001 pool=Default
+run job=$JobName storage=File yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=File
+unmark *
+mark *
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
