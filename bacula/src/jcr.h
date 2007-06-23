@@ -283,8 +283,8 @@ public:
    uint32_t StartBlock;
    uint32_t EndBlock;
    pthread_t heartbeat_id;            /* id of heartbeat thread */
-   volatile BSOCK *hb_bsock;          /* duped SD socket */
-   volatile BSOCK *hb_dir_bsock;      /* duped DIR socket */
+   BSOCK *hb_bsock;                   /* duped SD socket */
+   BSOCK *hb_dir_bsock;               /* duped DIR socket */
    alist *RunScripts;                 /* Commands to run before and after job */
    bool pki_sign;                     /* Enable PKI Signatures? */
    bool pki_encrypt;                  /* Enable PKI Encryption? */

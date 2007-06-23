@@ -110,7 +110,7 @@ int32_t write_nbytes(BSOCK * bsock, char *ptr, int32_t nbytes)
 {
    int32_t nleft, nwritten;
 
-   if (bsock->m_spool) {
+   if (bsock->is_spooling()) {
       nwritten = fwrite(ptr, 1, nbytes, bsock->m_spool_fd);
       if (nwritten != nbytes) {
          berrno be;
@@ -698,7 +698,7 @@ BSOCK *dup_bsock(BSOCK * osock)
    if (osock->host()) {
       bsock->set_host(bstrdup(osock->host()));
    }
-   bsock->m_duped = true;
+   bsock->set_duped();
    return bsock;
 }
 

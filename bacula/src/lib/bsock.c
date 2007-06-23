@@ -287,7 +287,7 @@ bool BSOCK::send()
 
    /* send data packet */
    timer_start = watchdog_time;  /* start timer */
-   m_timed_out = 0;
+   clear_timed_out();
    /* Full I/O done in one write */
    rc = write_nbytes(this, (char *)hdr, pktsiz);
    timer_start = 0;         /* clear timer */
@@ -376,7 +376,7 @@ int32_t BSOCK::recv()
 
    read_seqno++;            /* bump sequence number */
    timer_start = watchdog_time;  /* set start wait time */
-   m_timed_out = 0;
+   clear_timed_out();
    /* get data size -- in int32_t */
    if ((nbytes = read_nbytes(this, (char *)&pktsiz, sizeof(int32_t))) <= 0) {
       timer_start = 0;      /* clear timer */
@@ -430,7 +430,7 @@ int32_t BSOCK::recv()
    }
 
    timer_start = watchdog_time;  /* set start wait time */
-   m_timed_out = 0;
+   clear_timed_out();
    /* now read the actual data */
    if ((nbytes = read_nbytes(this, msg, pktsiz)) <= 0) {
       timer_start = 0;      /* clear timer */

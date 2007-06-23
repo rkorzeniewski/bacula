@@ -236,17 +236,17 @@ bool do_append_data(JCR *jcr)
              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
             if (!jcr->no_attributes) {
                if (are_attributes_spooled(jcr)) {
-                  jcr->dir_bsock->m_spool = true;
+                  jcr->dir_bsock->set_spooling();
                }
                Dmsg0(850, "Send attributes to dir.\n");
                if (!dir_update_file_attributes(dcr, &rec)) {
-                  jcr->dir_bsock->m_spool = false;
+                  jcr->dir_bsock->clear_spooling();
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
                      bnet_strerror(jcr->dir_bsock));
                   ok = false;
                   break;
                }
-               jcr->dir_bsock->m_spool = false;
+               jcr->dir_bsock->clear_spooling();
             }
          }
          Dmsg0(650, "Enter bnet_get\n");

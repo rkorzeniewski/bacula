@@ -121,7 +121,7 @@ int bget_dirmsg(BSOCK *bs)
             bs->fsend(OK_msg);/* send response */
             return n;              /* end of data */
          case BNET_TERMINATE:
-            bs->m_terminated = 1;
+            bs->set_terminated();
             return n;
          case BNET_POLL:
             bs->fsend(OK_msg); /* send response */
