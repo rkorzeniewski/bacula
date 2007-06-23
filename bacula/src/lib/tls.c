@@ -462,7 +462,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
 
    /* start timer */
    bsock->timer_start = watchdog_time;
-   bsock->set_timed_out(false);
+   bsock->clear_timed_out();
 
    for (;;) { 
       if (server) {
@@ -609,7 +609,7 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
 
    /* start timer */
    bsock->timer_start = watchdog_time;
-   bsock->set_timed_out(false);
+   bsock->clear_timed_out();
 
    nleft = nbytes;
 
