@@ -63,6 +63,10 @@ sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive
 sed -f ${out} ${cwd}/scripts/prepare-two-tapes.in >${cwd}/scripts/prepare-two-tapes
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.testrunscript.in >${cwd}/scripts/bacula-dir.conf.testrunscript
 
+sed -f ${out} ${cwd}/scripts/tls-bacula-fd.conf.in >${cwd}/scripts/tls-bacula-fd.conf
+sed -f ${out} ${cwd}/scripts/tls-bacula-sd.conf.in >${cwd}/scripts/tls-bacula-sd.conf
+sed -f ${out} ${cwd}/scripts/tls-bacula-dir.conf.in >${cwd}/scripts/tls-bacula-dir.conf
+
 cp ${cwd}/bin/bacula-sd.conf /tmp/bac$$
 sed s%/tmp%${cwd}/tmp%g /tmp/bac$$ >${cwd}/bin/bacula-sd.conf
 chmod 777 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes
