@@ -373,8 +373,8 @@ static int cancel_cmd(JCR *jcr)
          bnet_fsend(dir, _("2901 Job %s not found.\n"), Job);
       } else {
          if (cjcr->store_bsock) {
-            cjcr->store_bsock->m_timed_out = 1;
-            cjcr->store_bsock->m_terminated = 1;
+            cjcr->store_bsock->set_timed_out();
+            cjcr->store_bsock->set_terminated();
             pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
          }
          set_jcr_job_status(cjcr, JS_Canceled);

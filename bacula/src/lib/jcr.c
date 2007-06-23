@@ -745,7 +745,7 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->m_timed_out = true;
+            fd->set_timed_out();
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
                  watchdog_time - timer_start);
@@ -757,7 +757,7 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->m_timed_out = true;
+            fd->set_timed_out();
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
                  watchdog_time - timer_start);
@@ -769,7 +769,7 @@ static void jcr_timeout_check(watchdog_t *self)
          timer_start = fd->timer_start;
          if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
             fd->timer_start = 0;      /* turn off timer */
-            fd->m_timed_out = true;
+            fd->set_timed_out();
             Jmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
                  watchdog_time - timer_start);

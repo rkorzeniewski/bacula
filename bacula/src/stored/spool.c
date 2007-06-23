@@ -677,6 +677,6 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
    unlink(name);
    free_pool_memory(name);
    bs->m_spool_fd = NULL;
-   bs->m_spool = false;
+   bs->clear_spooling();
    return true;
 }

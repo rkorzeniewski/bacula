@@ -555,7 +555,7 @@ void terminate_stored(int sig)
          set_jcr_job_status(jcr, JS_Canceled);
          fd = jcr->file_bsock;
          if (fd) {
-            fd->m_timed_out = true;
+            fd->set_timed_out();
             Dmsg1(100, "term_stored killing JobId=%d\n", jcr->JobId);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
             /* ***FIXME*** wiffle through all dcrs */

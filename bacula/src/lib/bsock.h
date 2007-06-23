@@ -58,6 +58,10 @@ private:
    char *m_host;                      /* Host name/IP */
    int m_port;                        /* desired port */
    btimer_t *m_tid;                   /* timer id */
+   volatile bool m_timed_out: 1;      /* timed out in read/write */
+   volatile bool m_terminated: 1;     /* set when BNET_TERMINATE arrives */
+   bool m_duped: 1;                   /* set if duped BSOCK */
+   bool m_spool: 1;                   /* set for spooling */
 
    void fin_init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
                struct sockaddr *lclient_addr);
@@ -75,10 +79,6 @@ public:
    int m_blocking;                    /* blocking state (0 = nonblocking, 1 = blocking) */
    volatile int errors;               /* incremented for each error on socket */
    volatile bool m_suppress_error_msgs: 1; /* set to suppress error messages */
-   volatile bool m_timed_out: 1;      /* timed out in read/write */
-   volatile bool m_terminated: 1;     /* set when BNET_TERMINATE arrives */
-   bool m_duped: 1;                   /* set if duped BSOCK */
-   bool m_spool: 1;                   /* set for spooling */
    volatile time_t timer_start;       /* time started read/write */
    volatile time_t timeout;           /* timeout BSOCK after this interval */
    POOLMEM *msg;                      /* message pool buffer */
@@ -122,8 +122,15 @@ public:
    int port() { return m_port; };
    JCR *jcr() { return m_jcr; };
    JCR *get_jcr() { return m_jcr; };
+   bool is_spooling() { return m_spool; };
+   bool is_duped() { return m_duped; };
    bool is_terminated() { return m_terminated; };
    bool is_timed_out() { return m_timed_out; };
+   void set_spooling() { m_spool = true; };
+   void clear_spooling() { m_spool = false; };
+   void set_duped() { m_duped = true; };
+   void set_timed_out() { m_timed_out = true; };
+   void clear_timed_out() { m_timed_out = false; };
    void set_terminated() { m_terminated = true; };
    void start_timer(int sec) { m_tid = start_bsock_timer(this, sec); };
    void stop_timer() { stop_bsock_timer(m_tid); };
