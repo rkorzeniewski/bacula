@@ -799,7 +799,7 @@ void BSOCK::close()
             bsock->tls = NULL;
          }
          if (bsock->is_timed_out()) {
-            shutdown(bsock->m_fd, 2);   /* discard any pending I/O */
+            shutdown(bsock->m_fd, SHUT_RDWR);   /* discard any pending I/O */
          }
          socketClose(bsock->m_fd);      /* normal close */
       }
