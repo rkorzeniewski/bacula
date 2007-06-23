@@ -784,6 +784,10 @@ int BSOCK::wait_data_intr(int sec)
  * Note, this routine closes and destroys all the sockets
  *  that are open including the duped ones.
  */
+#ifndef SHUT_RDWR
+#define SHUT_RDWR 2
+#endif
+
 void BSOCK::close()
 {
    BSOCK *bsock = this;
