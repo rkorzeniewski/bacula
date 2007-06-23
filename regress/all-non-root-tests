@@ -48,6 +48,7 @@ nice tests/migration-jobspan-test
 nice tests/migration-volume-test
 nice tests/migration-time-test
 nice tests/hardlink-test
+nice tests/tls-test
 # 
 # The following are Virtual Disk Autochanger tests
 nice tests/two-pool-test
