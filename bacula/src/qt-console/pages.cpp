@@ -207,9 +207,20 @@ void Pages::consoleCommand(QString &command)
 {
    /*if (!m_console->is_connectedGui())
        return;*/
-   if (!m_console->preventInUseConnect())
+   if (!m_console->preventInUseConnect()) {
        return;
-   /* Bring this directors console to the front of the stack */
+   }
+   consoleInput(command);
+}
+
+/*
+ * Function to simplify executing a console command, but does not
+ *  check for the connection in use.  We need this so that we can
+ *  *always* enter command from the command line.
+ */
+void Pages::consoleInput(QString &command)
+{
+   /* Bring this director's console to the front of the stack */
    setConsoleCurrent();
    QString displayhtml("<font color=\"blue\">");
    displayhtml += command + "</font>\n";
