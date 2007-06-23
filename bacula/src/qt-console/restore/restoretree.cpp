@@ -237,7 +237,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       /* no need to check for windows drive if unix */
       if (m_winRegExpDrive.indexIn(m_cwd, 0) == 0) {
          /* this is a windows drive add the base widget */
-         QTreeWidgetItem *item = item = new QTreeWidgetItem(directoryTree);
+         QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
          item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          item->setText(0, m_cwd);
          item->setData(0, Qt::UserRole, QVariant(fullpath));

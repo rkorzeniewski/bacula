@@ -422,7 +422,8 @@ void MainWin::input_line()
    QString cmdStr = lineEdit->text();    /* Get the text */
    lineEdit->clear();                    /* clear the lineEdit box */
    if (m_currentConsole->is_connected()) {
-      m_currentConsole->consoleCommand(cmdStr);
+      /* Use consoleInput to allow typing anything */
+      m_currentConsole->consoleInput(cmdStr);
    } else {
       set_status("Director not connected. Click on connect button.");
    }
