@@ -1,7 +1,16 @@
               Technical notes on version 2.1
 
 General:
+Release 2.1.22 beta Win32 binaries only:
 24Jun07
+kes  Implement Windows reparse points -- similar to directories, but
+     we do not descend into it. This is a first cut. They seem to 
+     be backed up, but restore is not yet tested.
+kes  Remove restore_blocking in tls code when shutting a socket to leave
+     it in blocking mode. Hopefully this will fix the encryption bug  
+     reported by Frank Sweetser.
+kes  When opening a file for backup, tell the OS that we are going to
+     read it sequentially -- optimization.
 kes  Change variable names in authenticate_director() to not conflict
      with member names in bat. Caused great confusion with compiler,
      but no warnings.
@@ -17,9 +26,9 @@ kes  Add Swedish sv.po file
 21Jun07
 kes  Don't print clock skew message in FD if less than 3 seconds diff.
 kes  Add a bit of VSS info to status client.
-kes  Make a gross first cut of Vista VSS, using Win2003 code.
+kes  Implement a first cut of Vista VSS, using Win2003 code.
 
-Release: 2.1.18 beta
+Release: 2.1.20 beta
 20Jun07
 kes  Fixed bug #886 (multidrive autochanger: SD doesn't use drive with
      loaded tape but uses first drive).

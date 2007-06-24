@@ -174,8 +174,9 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
            edit_uint64_with_commas(njcr->JobBytes, b2),
            edit_uint64_with_commas(bps, b3));
       sendit(msg.c_str(), len, arg);
-      len = Mmsg(msg, _("    Files Examined=%s\n"),
-           edit_uint64_with_commas(njcr->num_files_examined, b1));
+      len = Mmsg(msg, _("    Files Examined=%s Errors=%d\n"),
+           edit_uint64_with_commas(njcr->num_files_examined, b1),
+           njcr->JobErrors);
       sendit(msg.c_str(), len, arg);
       if (njcr->JobFiles > 0) {
          njcr->lock();

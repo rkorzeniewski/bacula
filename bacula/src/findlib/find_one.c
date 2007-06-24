@@ -511,6 +511,10 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       } else {
          ff_pkt->type = FT_DIRBEGIN;
       }
+      /* We have set st_rdev to 1 if it is a reparse point, otherwise 0 */
+      if (have_win32_api() && ff_pkt->statp.st_rdev) {
+         ff_pkt->type = FT_REPARSE;
+      }
       /*
        * Note, we return the directory to the calling program (handle_file)
        * when we first see the directory (FT_DIRBEGIN.
@@ -520,7 +524,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * in the directory is seen (i.e. the FT_DIREND).
        */
       rtn_stat = handle_file(ff_pkt, pkt, top_level);
-      if (rtn_stat < 1) {             /* ignore or error status */
+      if (rtn_stat < 1 || ff_pkt->type == FT_REPARSE) {   /* ignore or error status */
          free(link);
          return rtn_stat;
       }

@@ -376,6 +376,7 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
    case FT_INVALIDFS:
    case FT_INVALIDDT:
    case FT_NOOPEN:
+   case FT_REPARSE:
 //    return ff->callback(ff, hpkt, top_level);
 
    /* These items can be filtered */
