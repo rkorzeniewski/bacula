@@ -802,7 +802,7 @@ void BSOCK::close()
             free_tls_connection(bsock->tls);
             bsock->tls = NULL;
          }
-         if (bsock->is_timed_out() || bsock->is_terminated()) {
+         if (bsock->is_timed_out()) {
             shutdown(bsock->m_fd, SHUT_RDWR);   /* discard any pending I/O */
          }
          socketClose(bsock->m_fd);      /* normal close */

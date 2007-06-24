@@ -1,14 +1,4 @@
 /*
- *  Bacula low level File I/O routines.  This routine simulates
- *    open(), read(), write(), and close(), but using native routines.
- *    I.e. on Windows, we use Windows APIs.
- *
- *    Kern Sibbald, April MMIII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula low level File I/O routines.  This routine simulates
+ *    open(), read(), write(), and close(), but using native routines.
+ *    I.e. on Windows, we use Windows APIs.
+ *
+ *    Kern Sibbald, April MMIII
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "find.h"
@@ -417,8 +417,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwflags = 0;
       }
 
-      // unicode or ascii open for create write
       if (p_CreateFileW && p_MultiByteToWideChar) {   
+         // unicode open for create write
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -427,6 +427,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 dwflags,                 /* Flags and attributes */
                 NULL);                   /* TemplateFile */
       } else {
+         // ascii open
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -441,14 +442,14 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
          dwaccess = GENERIC_WRITE|WRITE_OWNER|WRITE_DAC;
-         dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS;                          
       } else {
          dwaccess = GENERIC_WRITE;
          dwflags = 0;
       }
 
-      // unicode or ascii open for open existing write
       if (p_CreateFileW && p_MultiByteToWideChar) {   
+         // unicode open for open existing write
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -457,6 +458,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 dwflags,                 /* Flags and attributes */
                 NULL);                   /* TemplateFile */
       } else {
+         // ascii open
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 0,                       /* Shared mode */
@@ -472,7 +474,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    } else {                           /* Read */
       if (bfd->use_backup_api) {
          dwaccess = GENERIC_READ|READ_CONTROL|ACCESS_SYSTEM_SECURITY;
-         dwflags = FILE_FLAG_BACKUP_SEMANTICS;
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_SEQUENTIAL_SCAN |
+                   FILE_FLAG_OPEN_REPARSE_POINT;
          dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE;
       } else {
          dwaccess = GENERIC_READ;
@@ -480,8 +483,8 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          dwshare = FILE_SHARE_READ|FILE_SHARE_WRITE;
       }
 
-      // unicode or ascii open for open existing read
       if (p_CreateFileW && p_MultiByteToWideChar) {   
+         // unicode open for open existing read
          bfd->fh = p_CreateFileW((LPCWSTR)win32_fname_wchar,
                 dwaccess,                /* Requested access */
                 dwshare,                 /* Share modes */
@@ -490,6 +493,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
                 dwflags,                 /* Flags and attributes */
                 NULL);                   /* TemplateFile */
       } else {
+         // ascii open 
          bfd->fh = p_CreateFileA(win32_fname,
                 dwaccess,                /* Requested access */
                 dwshare,                 /* Share modes */

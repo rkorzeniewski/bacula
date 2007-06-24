@@ -569,7 +569,7 @@ void tls_bsock_shutdown(BSOCK *bsock)
    int flags;
 
    /* Set socket blocking for shutdown */
-   flags = bsock->set_blocking();
+   bsock->set_blocking();
 
    err = SSL_shutdown(bsock->tls->openssl);
 
@@ -585,9 +585,6 @@ void tls_bsock_shutdown(BSOCK *bsock)
       openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
       break;
    }
-
-   /* Restore saved flags */
-   bsock->restore_blocking(flags);
 }
 
 /* Does all the manual labor for tls_bsock_readn() and tls_bsock_writen() */

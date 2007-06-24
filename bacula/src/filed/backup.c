@@ -273,6 +273,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       Jmsg(jcr, M_INFO, 1, _("     Disallowed drive type. Will not descend into %s\n"),
            ff_pkt->fname);
       break;
+   case FT_REPARSE:
    case FT_DIREND:
       Dmsg1(130, "FT_DIREND: %s\n", ff_pkt->link);
       break;
@@ -441,6 +442,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       do_read = ff_pkt->statp.st_size > 0;
 #endif
    } else if (ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
+              ff_pkt->type == FT_REPARSE ||
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
       do_read = true;
    }
@@ -453,6 +455,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          tid = NULL;
       }
       int noatime = ff_pkt->flags & FO_NOATIME ? O_NOATIME : 0;
+      ff_pkt->bfd.reparse_point = ff_pkt->type == FT_REPARSE;
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY | noatime, 0) < 0) {
          ff_pkt->ff_errno = errno;
          berrno be;
@@ -1068,7 +1071,7 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
       stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, ff_pkt->link, 0,
                attribsEx, 0);
-   } else if (ff_pkt->type == FT_DIREND) {
+   } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE) {
       /* Here link is the canonical filename (i.e. with trailing slash) */
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->link, 0, attribs, 0, 0, attribsEx, 0);

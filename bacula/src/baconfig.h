@@ -267,12 +267,13 @@ void InitWinAPIWrapper();
 #define FT_NOOPEN    15               /* Could not open directory */
 #define FT_RAW       16               /* Raw block device */
 #define FT_FIFO      17               /* Raw fifo device */
-/* This directory packet is sent to the FD file processing routine so
+/* The DIRBEGIN packet is sent to the FD file processing routine so
  * that it can filter packets, but otherwise, it is not used
  * or saved */
 #define FT_DIRBEGIN  18               /* Directory at beginning (not saved) */
 #define FT_INVALIDFS 19               /* File system not allowed for */
 #define FT_INVALIDDT 20               /* Drive type not allowed for */
+#define FT_REPARSE   21               /* Win NTFS reparse point */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */

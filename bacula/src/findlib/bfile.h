@@ -103,6 +103,7 @@ struct BFILE {
    Python_IO pio;                     /* Python I/O routines */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
+   bool reparse_point;                /* set if reparse point */ 
 };
 
 HANDLE bget_handle(BFILE *bfd);
@@ -126,6 +127,7 @@ struct BFILE {
    Python_IO pio;                     /* Python I/O routines */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
+   bool reparse_point;                /* not used in Unix */
 };
 
 #endif

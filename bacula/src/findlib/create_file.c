@@ -78,6 +78,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    bool exists = false;
    struct stat mstatp;
 
+   bfd->reparse_point = false;
    if (is_win32_stream(attr->data_stream)) {
       set_win32_backup(bfd);
    } else {
@@ -350,6 +351,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 #endif
       } /* End inner switch */
 
+   case FT_REPARSE:
+      bfd->reparse_point = true;
+      /* Fall through wanted */
    case FT_DIRBEGIN:
    case FT_DIREND:
       Dmsg2(200, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
