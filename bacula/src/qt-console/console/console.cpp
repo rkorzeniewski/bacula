@@ -115,22 +115,23 @@ void Console::terminate()
  */
 void Console::connect_dir()
 {
-   JCR jcr;
+   JCR *jcr = new JCR;
    utime_t heart_beat;
    char buf[1024];
+   CONRES *cons;
 
    m_textEdit = textEdit;   /* our console screen */
 
    if (!m_dir) {          
       mainWin->set_status("No Director found.");
-      return;
+      goto bail_out;
    }
    if (m_sock) {
       mainWin->set_status("Already connected.");
-      return;
+      goto bail_out;
    }
 
-   memset(&jcr, 0, sizeof(jcr));
+   memset(jcr, 0, sizeof(JCR));
 
    mainWin->set_statusf(_("Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
    display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
@@ -140,7 +141,7 @@ void Console::connect_dir()
    
    LockRes();
    /* If cons==NULL, default console will be used */
-   CONRES *cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
+   cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
    UnlockRes();
 
    /* Initialize Console TLS context once */
@@ -160,7 +161,7 @@ void Console::connect_dir()
       if (!cons->tls_ctx) {
          display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
             m_dir->name());
-         return;
+         goto bail_out;
       }
    }
 
@@ -181,7 +182,7 @@ void Console::connect_dir()
          display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
             m_dir->name());
          mainWin->set_status("Connection failed");
-         return;
+         goto bail_out;
       }
    }
 
@@ -198,7 +199,7 @@ void Console::connect_dir()
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");
-      return;
+      goto bail_out;
    } else {
       /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(":images/connected.png"));
@@ -207,11 +208,11 @@ void Console::connect_dir()
       item->setForeground(0, greenBrush);
    }
 
-   jcr.dir_bsock = m_sock;
+   jcr->dir_bsock = m_sock;
 
-   if (!authenticate_director(&jcr, m_dir, cons, buf, sizeof(buf))) {
+   if (!authenticate_director(jcr, m_dir, cons, buf, sizeof(buf))) {
       display_text(buf);
-      return;
+      goto bail_out;
    }
    if (buf[0]) {
       display_text(buf);
@@ -250,6 +251,9 @@ void Console::connect_dir()
 
    mainWin->set_status(_("Connected"));
    startTimer();                      /* start message timer */
+
+bail_out:
+   delete jcr;
    return;
 }
 
