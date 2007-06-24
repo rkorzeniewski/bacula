@@ -611,14 +611,15 @@ int Console::read()
             m_messages_pending = false;
          }
       }
+      m_sock->msg[0] = 0;
       stat = m_sock->recv();
       if (stat >= 0) {
+         if (mainWin->m_commDebug) Pmsg1(000, "got: %s\n", m_sock->msg);
          if (m_at_prompt) {
             display_text("\n");
             m_at_prompt = false;
             m_at_main_prompt = false;
          }
-         if (mainWin->m_commDebug) Pmsg1(000, "got: %s", m_sock->msg);
       }
       switch (m_sock->msglen) {
       case BNET_MSGS_PENDING:
