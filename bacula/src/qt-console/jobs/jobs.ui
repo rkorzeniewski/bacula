@@ -147,6 +147,14 @@
     <string>Cancel Job Command</string>
    </property>
   </action>
+  <action name="actionRunJob" >
+   <property name="icon" >
+    <iconset resource="../main.qrc" >:/images/run.png</iconset>
+   </property>
+   <property name="text" >
+    <string>RunJob</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../main.qrc" />

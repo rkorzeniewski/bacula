@@ -66,6 +66,7 @@ private slots:
    void preRestoreFromTime();
    void showLogForJob();
    void consoleCancelJob();
+   void graphTable();
 
 private:
    void createConnections();
@@ -80,6 +81,9 @@ private:
    int m_purgedIndex;
    int m_typeIndex;
    int m_statusIndex;
+   int m_startIndex;
+   int m_bytesIndex;
+   int m_filesIndex;
 };
 
 #endif /* _JOBLIST_H_ */

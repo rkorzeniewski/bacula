@@ -139,9 +139,10 @@
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
    <addaction name="actionRun" />
-   <addaction name="actionUndock" />
    <addaction name="actionEstimate" />
    <addaction name="actionBrowse" />
+   <addaction name="actionJobPlot" />
+   <addaction name="actionUndock" />
   </widget>
   <widget class="QDockWidget" name="dockWidget" >
    <property name="sizePolicy" >
@@ -552,6 +553,14 @@
    </property>
    <property name="text" >
     <string>Browse</string>
+   </property>
+  </action>
+  <action name="actionJobPlot" >
+   <property name="icon" >
+    <iconset resource="main.qrc" >:/images/graph1.png</iconset>
+   </property>
+   <property name="text" >
+    <string>JobPlot</string>
    </property>
   </action>
  </widget>

@@ -49,6 +49,7 @@
 #include "restore/restoretree.h"
 #include "help/help.h"
 #include "jobs/jobs.h"
+#include "jobgraphs/jobplot.h"
 
 /* 
  * Daemon message callback
@@ -60,6 +61,7 @@ void message_callback(int /* type */, char *msg)
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 {
+   m_isClosing = false;
    m_dtformat = "yyyy-MM-dd HH:mm:ss";
    mainWin = this;
    setupUi(this);                     /* Setup UI defined by main.ui (designer) */
@@ -144,6 +146,9 @@ void MainWin::createPages()
       new MediaList();
       new Storage();
       new restoreTree();
+      JobPlotPass pass;
+      pass.use = false;
+      new JobPlot(NULL, pass);
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
@@ -227,6 +232,7 @@ void MainWin::createConnections()
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
    connect(actionEstimate, SIGNAL(triggered()), this,  SLOT(estimateButtonClicked()));
    connect(actionBrowse, SIGNAL(triggered()), this,  SLOT(browseButtonClicked()));
+   connect(actionJobPlot, SIGNAL(triggered()), this,  SLOT(jobPlotButtonClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
    connect(actionToggleDock, SIGNAL(triggered()), this,  SLOT(toggleDockContextWindow()));
@@ -239,16 +245,22 @@ void MainWin::createConnections()
  */
 void MainWin::closeEvent(QCloseEvent *event)
 {
+   m_isClosing = true;
    writeSettings();
+   /* close all non console pages, this will call settings in destructors */
+   foreach(Pages *page, m_pagehash) {
+      if (page !=  page->console()) {
+         page->console()->setCurrent();
+         page->closeStackPage();
+      }
+   }
+   /* close the console pages and terminate connection */
    foreach(Console *console, m_consoleHash){
       console->writeSettings();
       console->terminate();
+      console->closeStackPage();
    }
    event->accept();
-   foreach(Pages *page, m_pagehash) {
-      if (!page->isDocked())
-         page->close();
-   }
 }
 
 void MainWin::writeSettings()
@@ -297,6 +309,8 @@ void MainWin::treeItemClicked(QTreeWidgetItem *item, int /*column*/)
  */
 void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *previousitem)
 {
+   if (m_isClosing) return; /* if closing the application, do nothing here */
+
    Pages *previousPage, *nextPage;
    Console *previousConsole, *nextConsole;
 
@@ -396,7 +410,7 @@ void MainWin::labelButtonClicked()
 
 void MainWin::runButtonClicked() 
 {
-   new runPage();
+   new runPage("");
 }
 
 void MainWin::estimateButtonClicked() 
@@ -412,6 +426,13 @@ void MainWin::browseButtonClicked()
 void MainWin::restoreButtonClicked() 
 {
    new prerestorePage();
+}
+
+void MainWin::jobPlotButtonClicked()
+{
+   JobPlotPass pass;
+   pass.use = false;
+   new JobPlot(NULL, pass);
 }
 
 /*
@@ -501,6 +522,7 @@ void MainWin::toggleDockContextWindow()
  */
 void MainWin::stackItemChanged(int)
 {
+   if (m_isClosing) return; /* if closing the application, do nothing here */
    Pages* page = (Pages*)stackedWidget->currentWidget();
    /* run the virtual function in case this class overrides it */
    page->currentStackItem();

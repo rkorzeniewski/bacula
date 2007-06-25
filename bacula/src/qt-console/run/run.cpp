@@ -40,7 +40,7 @@
 /*
  * Setup all the combo boxes and display the dialog
  */
-runPage::runPage()
+runPage::runPage(const QString &defJob)
 {
    QDateTime dt;
 
@@ -74,6 +74,8 @@ runPage::runPage()
    dockPage();
    setCurrent();
    this->show();
+   if (defJob != "")
+      jobCombo->setCurrentIndex(jobCombo->findText(defJob, Qt::MatchExactly));
 }
 
 void runPage::okButtonPushed()

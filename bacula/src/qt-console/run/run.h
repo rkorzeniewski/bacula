@@ -14,7 +14,7 @@ class runPage : public Pages, public Ui::runForm
    Q_OBJECT 
 
 public:
-   runPage();
+   runPage(const QString &defJob);
 
 public slots:
    void okButtonPushed();

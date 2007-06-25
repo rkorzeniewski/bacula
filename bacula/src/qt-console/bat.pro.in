@@ -18,10 +18,11 @@ TEMPLATE = app
 TARGET = bat
 DEPENDPATH += .
 INCLUDEPATH += . ./console ./restore ./select
-INCLUDEPATH += ..
-LIBS        += -L../lib
+INCLUDEPATH += .. ./qwt/include
+LIBS        += -L../lib            
 LIBS        += -lbac
 LIBS        += -lssl -lcrypto
+LIBS        += -L./qwt/lib -lqwt
 RESOURCES = main.qrc
 MOC_DIR = moc
 OBJECTS_DIR = obj
@@ -42,6 +43,7 @@ FORMS += medialist/medialist.ui mediaedit/mediaedit.ui joblist/joblist.ui
 FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui jobs/jobs.ui
 FORMS += help/help.ui
+FORMS += jobgraphs/jobplotcontrols.ui
 
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h
 SOURCES += main.cpp bat_conf.cpp mainwin.cpp qstd.cpp
@@ -114,6 +116,9 @@ SOURCES += jobs/jobs.cpp
 HEADERS += restore/restoretree.h
 SOURCES += restore/restoretree.cpp
 
+## Job Step Graphs
+HEADERS += jobgraphs/jobplot.h
+SOURCES += jobgraphs/jobplot.cpp
 
 # Help dialog
 HEADERS += help/help.h

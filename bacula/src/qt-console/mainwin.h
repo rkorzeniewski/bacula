@@ -94,6 +94,7 @@ public slots:
    void runButtonClicked();
    void estimateButtonClicked();
    void browseButtonClicked();
+   void jobPlotButtonClicked();
    void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
@@ -118,6 +119,7 @@ private:
    QStringList m_cmd_history;
    int m_cmd_last;
    QTreeWidgetItem *m_firstItem;
+   bool m_isClosing;
 };
 
 #include "ui_prefs.h"
