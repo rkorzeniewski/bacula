@@ -11,6 +11,19 @@ start_test()
    echo " "
 }
 
+require_root()
+{
+MUID=`/usr/bin/id | awk -F= '{print $2}' | awk -F\( '{print $1}'`
+if [ $MUID != 0 ] ; then
+   echo " "
+   echo "You must be root to run this test."
+   echo "  ===== !!!! $TestName not run at `date +%R:%S` ==="
+   echo "  ===== !!!! $TestName not run at `date +%R:%S` !!!! ===== " >>test.out
+   echo " "
+   exit 1
+fi
+
+
 set_debug()
 {
    debug=$1

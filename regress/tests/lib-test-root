@@ -3,28 +3,19 @@
 # Run a simple backup of the Bacula build directory
 #   then restore it.
 #
-MUID=`/usr/bin/id | awk -F= '{print $2}' | awk -F\( '{print $1}'`
-if [ $MUID != 0 ] ; then
-   echo " "
-   echo "You must be root to run this test."
-   echo "  ===== !!!! lib-test-root not run !!!! ===== "
-   echo "  ===== !!!! lib-test-root not run !!!! ===== " >>test.out
-   echo " "
-   exit 1
-fi
-cwd=`pwd`
+TestName="lib-test-root"
+. scripts/functions
+
+require_root
+
+
 scripts/cleanup
 scripts/copy-test-confs
 echo "/lib" >/tmp/file-list
 
-echo " "
-echo " "
-echo " === Starting /lib save/restore test ==="
-echo " "
-echo " "
+start_test
 
-bin/bacula start 2>&1 >/dev/null
-bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
+cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @output tmp/log1.out
@@ -48,7 +39,13 @@ messages
 @output
 quit
 END_OF_DATA
-bin/bacula stop 2>&1 >/dev/null
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+# more cleanup to be done below
+
 cd /
 ${cwd}/bin/testls -e ${cwd}/scripts/exclude-lib-test lib >${cwd}/tmp/original
 cd ${cwd}/tmp/bacula-restores
