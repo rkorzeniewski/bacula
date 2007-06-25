@@ -1,12 +1,3 @@
 #!/bin/sh
-#/home/kern/bacula/bin/startmysql
 nice make setup
-./starttime
-if [ ! -e bin/tape_options ] ; then
-  touch bin/tape_options
-fi
-nice ./all-non-root-tests
-
-nice ./all-non-root-tape-tests
-nice ./all-non-root-2tape-tests
-./endtime
+./do_all_tests
