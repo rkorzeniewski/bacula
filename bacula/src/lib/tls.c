@@ -558,7 +558,6 @@ void tls_bsock_shutdown(BSOCK *bsock)
     * we can avoid the ugly for()/switch()/select() loop.
     */
    int err;
-   int flags;
 
    /* Set socket blocking for shutdown */
    bsock->set_blocking();
