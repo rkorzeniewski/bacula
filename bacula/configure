@@ -19513,18 +19513,19 @@ if test "${enable_batch_insert+set}" = set; then
   enableval=$enable_batch_insert; if test x$enableval = xno; then
        support_batch_insert=no
       else
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_BATCH_INSERT 1
-_ACEOF
-
        support_batch_insert=yes
      fi
 fi
 
 fi
 
+if test $support_batch_insert = yes ; then
 
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_BATCH_FILE_INSERT 1
+_ACEOF
+
+fi
 
 
 cat >>confdefs.h <<\_ACEOF
