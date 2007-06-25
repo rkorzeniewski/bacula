@@ -1281,12 +1281,13 @@ if test $pkg = 0; then
      [if test x$enableval = xno; then
        support_batch_insert=no
       else
-       AC_DEFINE(HAVE_BATCH_INSERT, 1, [Set if DB batch insert code enabled]) 
        support_batch_insert=yes
      fi])
 fi
 							  
-
+if test $support_batch_insert = yes ; then
+   AC_DEFINE(HAVE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
+fi
 
 
 AC_DEFINE(PROTOTYPES)

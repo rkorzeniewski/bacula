@@ -280,7 +280,7 @@
 #undef HAVE_BAT
 
 /* Set if DB batch insert code enabled */
-#undef HAVE_BATCH_INSERT
+#undef HAVE_BATCH_FILE_INSERT
 
 /* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
