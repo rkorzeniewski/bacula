@@ -37,6 +37,7 @@
 #include "joblist.h"
 #include "restore.h"
 #include "joblog/joblog.h"
+#include "jobgraphs/jobplot.h"
 
 /*
  * Constructor for the class
@@ -88,26 +89,14 @@ void JobList::populateTable()
 
    /* Can't do this in constructor because not neccesarily conected in constructor */
    if (!m_populated) {
-      clientsComboBox->addItem("Any");
-      clientsComboBox->addItems(m_console->client_list);
-      int clientIndex = clientsComboBox->findText(m_clientName, Qt::MatchExactly);
+      clientComboBox->addItem("Any");
+      clientComboBox->addItems(m_console->client_list);
+      int clientIndex = clientComboBox->findText(m_clientName, Qt::MatchExactly);
       if (clientIndex != -1)
-         clientsComboBox->setCurrentIndex(clientIndex);
+         clientComboBox->setCurrentIndex(clientIndex);
 
-      QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
-      if (mainWin->m_sqlDebug) {
-         Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
-      }
-      QStringList results, volumeList;
-      if (m_console->sql_cmd(query, results)) {
-         QString field;
-         QStringList fieldlist;
-         /* Iterate through the lines of results. */
-         foreach (QString resultline, results) {
-            fieldlist = resultline.split("\t");
-            volumeList.append(fieldlist[0]);
-         } /* foreach resultline */
-      } /* if results from query */
+      QStringList volumeList;
+      m_console->getVolumeList(volumeList);
       volumeComboBox->addItem("Any");
       volumeComboBox->addItems(volumeList);
       int volumeIndex = volumeComboBox->findText(m_mediaName, Qt::MatchExactly);
@@ -124,27 +113,15 @@ void JobList::populateTable()
       levelComboBox->addItems( QStringList() << "F" << "D" << "I");
       purgedComboBox->addItem("Any");
       purgedComboBox->addItems( QStringList() << "0" << "1");
-      statusComboBox->addItem("Any");
       fileSetComboBox->addItem("Any");
       fileSetComboBox->addItems(m_console->fileset_list);
       int filesetIndex = fileSetComboBox->findText(m_filesetName, Qt::MatchExactly);
       if (filesetIndex != -1) {
          fileSetComboBox->setCurrentIndex(filesetIndex);
       }
-      QString statusQuery("SELECT JobStatusLong FROM Status");
-      if (mainWin->m_sqlDebug) {
-         Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
-      }
-      QStringList statusResults, statusLongList;
-      if (m_console->sql_cmd(statusQuery, statusResults)) {
-         QString field;
-         QStringList fieldlist;
-         /* Iterate through the lines of results. */
-         foreach (QString resultline, statusResults) {
-            fieldlist = resultline.split("\t");
-            statusLongList.append(fieldlist[0]);
-         } /* foreach resultline */
-      } /* if results from statusquery */
+      QStringList statusLongList;
+      m_console->getStatusList(statusLongList);
+      statusComboBox->addItem("Any");
       statusComboBox->addItems(statusLongList);
    }
 
@@ -169,9 +146,9 @@ void JobList::populateTable()
    if (m_mediaName != "Any") {
       conditions.append("Media.VolumeName='" + m_mediaName + "'");
    }
-   int clientIndex = clientsComboBox->currentIndex();
+   int clientIndex = clientComboBox->currentIndex();
    if (clientIndex != -1)
-      m_clientName = clientsComboBox->itemText(clientIndex);
+      m_clientName = clientComboBox->itemText(clientIndex);
    if (m_clientName != "Any") {
       conditions.append("Client.Name='" + m_clientName + "'");
    }
@@ -230,6 +207,9 @@ void JobList::populateTable()
    m_purgedIndex = headerlist.indexOf("Purged");
    m_typeIndex = headerlist.indexOf("Job Type");
    m_statusIndex = headerlist.indexOf("Job Status");
+   m_startIndex = headerlist.indexOf("Job Starttime");
+   m_filesIndex = headerlist.indexOf("Job Files");
+   m_bytesIndex = headerlist.indexOf("Job Bytes");
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -398,6 +378,7 @@ void JobList::createConnections()
    connect(actionRefreshJobList, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(populateTable()));
+   connect(graphButton, SIGNAL(pressed()), this, SLOT(graphTable()));
    /* for the tableItemChanged to maintain m_currentJob */
    connect(mp_tableWidget, SIGNAL(
            currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
@@ -558,4 +539,26 @@ void JobList::consoleCancelJob()
    QString cmd("cancel jobid=");
    cmd += m_currentJob;
    consoleCommand(cmd);
+}
+
+/*
+ * Graph this table
+ */
+void JobList::graphTable()
+{
+   JobPlotPass pass;
+   pass.recordLimitCheck = limitCheckBox->checkState();
+   pass.daysLimitCheck = daysCheckBox->checkState();
+   pass.recordLimitSpin = limitSpinBox->value();
+   pass.daysLimitSpin = daysSpinBox->value();
+   pass.jobCombo = jobComboBox->currentText();
+   pass.clientCombo = clientComboBox->currentText();
+   pass.volumeCombo = volumeComboBox->currentText();
+   pass.fileSetCombo = fileSetComboBox->currentText();
+   pass.purgedCombo = purgedComboBox->currentText();
+   pass.levelCombo = levelComboBox->currentText();
+   pass.statusCombo = statusComboBox->currentText();
+   pass.use = true;
+   QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+   new JobPlot(pageSelectorTreeWidgetItem, pass);
 }

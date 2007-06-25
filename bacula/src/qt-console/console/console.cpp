@@ -857,3 +857,41 @@ void Console::consoleReload()
    QString cmd("reload");
    consoleCommand(cmd);
 }
+
+/* Function to get a list of volumes */
+void Console::getVolumeList(QStringList &volumeList)
+{
+   QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+   }
+   QStringList results;
+   if (sql_cmd(query, results)) {
+      QString field;
+      QStringList fieldlist;
+      /* Iterate through the lines of results. */
+      foreach (QString resultline, results) {
+         fieldlist = resultline.split("\t");
+         volumeList.append(fieldlist[0]);
+      } /* foreach resultline */
+   } /* if results from query */
+}
+
+/* Function to get a list of volumes */
+void Console::getStatusList(QStringList &statusLongList)
+{
+   QString statusQuery("SELECT JobStatusLong FROM Status");
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",statusQuery.toUtf8().data());
+   }
+   QStringList statusResults;
+   if (sql_cmd(statusQuery, statusResults)) {
+      QString field;
+      QStringList fieldlist;
+      /* Iterate through the lines of results. */
+      foreach (QString resultline, statusResults) {
+         fieldlist = resultline.split("\t");
+         statusLongList.append(fieldlist[0]);
+      } /* foreach resultline */
+   } /* if results from statusquery */
+}

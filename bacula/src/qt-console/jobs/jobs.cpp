@@ -35,10 +35,9 @@
  *
  */ 
 
-//#include <QAbstractEventDispatcher>
-//#include <QMenu>
 #include "bat.h"
 #include "jobs/jobs.h"
+#include "run/run.h"
 
 Jobs::Jobs()
 {
@@ -80,6 +79,7 @@ void Jobs::populateTree()
       << "Client" << "Storage" << "Where" << "Level" << "Type" << "FileSet" 
       << "Catalog" << "Enabled");
 
+   m_typeIndex = headerlist.indexOf("Type");
    topItem = new QTreeWidgetItem(mp_treeWidget);
    topItem->setText(0, "Jobs");
    topItem->setData(0, Qt::UserRole, 0);
@@ -144,15 +144,8 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
    if (m_checkcurwidget) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
-         if (treedepth == 1){
-            mp_treeWidget->removeAction(actionConsoleListFiles);
-            mp_treeWidget->removeAction(actionConsoleListVolumes);
-            mp_treeWidget->removeAction(actionConsoleListNextVolume);
-            mp_treeWidget->removeAction(actionConsoleEnableJob);
-            mp_treeWidget->removeAction(actionConsoleDisableJob);
-            mp_treeWidget->removeAction(actionConsoleCancel);
-            mp_treeWidget->removeAction(actionJobListQuery);
+         foreach(QAction* jobAction, mp_treeWidget->actions()) {
+            mp_treeWidget->removeAction(jobAction);
          }
       }
 
@@ -168,6 +161,8 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
          mp_treeWidget->addAction(actionConsoleDisableJob);
          mp_treeWidget->addAction(actionConsoleCancel);
          mp_treeWidget->addAction(actionJobListQuery);
+         if (currentwidgetitem->text(m_typeIndex) == "Backup")
+            mp_treeWidget->addAction(actionRunJob);
       }
    }
 }
@@ -194,6 +189,7 @@ void Jobs::createContextMenu()
    connect(actionConsoleDisableJob, SIGNAL(triggered()), this, SLOT(consoleDisable()));
    connect(actionConsoleCancel, SIGNAL(triggered()), this, SLOT(consoleCancel()));
    connect(actionJobListQuery, SIGNAL(triggered()), this, SLOT(listJobs()));
+   connect(actionRunJob, SIGNAL(triggered()), this, SLOT(runJob()));
 }
 
 /*
@@ -259,4 +255,13 @@ void Jobs::listJobs()
 {
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
    mainWin->createPageJobList("", "", m_currentlyselected, "", parentItem);
+}
+
+/*
+ * Open a new job run page with the currentley selected "Backup" job 
+ * defaulted In
+ */
+void Jobs::runJob()
+{
+   new runPage(m_currentlyselected);
 }

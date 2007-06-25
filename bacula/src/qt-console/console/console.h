@@ -102,6 +102,8 @@ public:
    void getDirResName(QString &);
    void startTimer();
    void stopTimer();
+   void getVolumeList(QStringList &);
+   void getStatusList(QStringList &);
 
    QStringList job_list;
    QStringList client_list;

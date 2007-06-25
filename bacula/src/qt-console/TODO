@@ -11,9 +11,9 @@ closing would bring the previous one back.
 ========================================================
 This release or next:
 
-A window showing a list of schedule resources. 
+A page showing a list of schedule resources. 
 
-A list of message resources??
+A page list of message resources??
 
 Kern discussed windows showing statistics like web based interfaces.
 
@@ -34,9 +34,14 @@ cancelled graphically.
 Add a status client window.  Keep updating showing what file is being
 processed.
 
+Documentation, Documentation, Documentaion.  Help.  Add help documentation.
+Have context sensitve help.
+
 bRestore add code to get working.
 
 May be in brestore, find a file by name, find a directory by name
+
+Interfaces to commands like bextract, bscan, bcopy, btape?????
 
 Is there a way to query the director/database for whether a storage is currently
 mounted so I am not presenting both mount and unmount to the user??

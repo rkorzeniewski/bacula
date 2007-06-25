@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>607</width>
-    <height>390</height>
+    <width>545</width>
+    <height>276</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -27,7 +27,75 @@
      <property name="spacing" >
       <number>6</number>
      </property>
-     <item rowspan="2" row="0" column="1" >
+     <item row="1" column="4" >
+      <layout class="QGridLayout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+       <property name="spacing" >
+        <number>6</number>
+       </property>
+       <item row="0" column="0" >
+        <layout class="QGridLayout" >
+         <property name="margin" >
+          <number>0</number>
+         </property>
+         <property name="spacing" >
+          <number>3</number>
+         </property>
+         <item row="0" column="0" >
+          <widget class="QPushButton" name="refreshButton" >
+           <property name="maximumSize" >
+            <size>
+             <width>65</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text" >
+            <string>Refresh</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" >
+          <widget class="QPushButton" name="graphButton" >
+           <property name="maximumSize" >
+            <size>
+             <width>65</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text" >
+            <string>Graph</string>
+           </property>
+           <property name="icon" >
+            <iconset resource="../main.qrc" >:/images/graph1.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="1" >
+        <spacer>
+         <property name="orientation" >
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType" >
+          <enum>QSizePolicy::Ignored</enum>
+         </property>
+         <property name="sizeHint" >
+          <size>
+           <width>16</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item rowspan="2" row="0" column="3" >
       <layout class="QVBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -44,14 +112,14 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="clientsLabel" >
+          <widget class="QLabel" name="statusLabel" >
            <property name="text" >
-            <string>Clients</string>
+            <string>Status</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="clientsComboBox" />
+          <widget class="QComboBox" name="statusComboBox" />
          </item>
         </layout>
        </item>
@@ -64,14 +132,14 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="volumeLabel" >
+          <widget class="QLabel" name="purgedLabel" >
            <property name="text" >
-            <string>Volume</string>
+            <string>Purged</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="volumeComboBox" />
+          <widget class="QComboBox" name="purgedComboBox" />
          </item>
         </layout>
        </item>
@@ -151,6 +219,12 @@
        </property>
        <item>
         <widget class="QLabel" name="fileSetLabel" >
+         <property name="maximumSize" >
+          <size>
+           <width>16777215</width>
+           <height>20</height>
+          </size>
+         </property>
          <property name="text" >
           <string>FileSet</string>
          </property>
@@ -161,7 +235,7 @@
        </item>
       </layout>
      </item>
-     <item rowspan="2" row="0" column="3" >
+     <item rowspan="2" row="0" column="1" >
       <layout class="QVBoxLayout" >
        <property name="margin" >
         <number>0</number>
@@ -178,14 +252,14 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="statusLabel" >
+          <widget class="QLabel" name="clientsLabel" >
            <property name="text" >
-            <string>Status</string>
+            <string>Clients</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="statusComboBox" />
+          <widget class="QComboBox" name="clientComboBox" />
          </item>
         </layout>
        </item>
@@ -198,14 +272,14 @@
           <number>6</number>
          </property>
          <item>
-          <widget class="QLabel" name="purgedLabel" >
+          <widget class="QLabel" name="volumeLabel" >
            <property name="text" >
-            <string>Purged</string>
+            <string>Volume</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="purgedComboBox" />
+          <widget class="QComboBox" name="volumeComboBox" />
          </item>
         </layout>
        </item>
@@ -258,64 +332,6 @@
           <widget class="QComboBox" name="levelComboBox" />
          </item>
         </layout>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="4" >
-      <layout class="QGridLayout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
-       <property name="spacing" >
-        <number>6</number>
-       </property>
-       <item row="0" column="0" >
-        <widget class="QPushButton" name="refreshButton" >
-         <property name="maximumSize" >
-          <size>
-           <width>65</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text" >
-          <string>Refresh</string>
-         </property>
-         <property name="icon" >
-          <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" >
-        <spacer>
-         <property name="orientation" >
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType" >
-          <enum>QSizePolicy::Ignored</enum>
-         </property>
-         <property name="sizeHint" >
-          <size>
-           <width>16</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0" >
-        <spacer>
-         <property name="orientation" >
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType" >
-          <enum>QSizePolicy::Ignored</enum>
-         </property>
-         <property name="sizeHint" >
-          <size>
-           <width>20</width>
-           <height>16</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </item>

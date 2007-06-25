@@ -6,6 +6,17 @@ development.  If you want to help, please contact Kern directly.
 If you want to build it, you need Qt4 loaded and setup as your
 default Qt or with the appropriate Qt Environment variables set.
 
+6/24/07
+There is now one dependancy, it is qwt.  It compiles just fine with
+either qwt-5.0.2 or qwt-5.0.1.  If you run the command 
+
+  ./build-depkgs-qt-console
+
+It should download and run the appropriate commands to build and install qwt
+for you.  The script will download the package into a subdirectory named     
+depkgs. Then it will configure, make and install qwt.  The installation will
+go into a subdirectory named qwt in the main qt-console directory.
+
 To build bat, you simply enter:
 
   qmake
@@ -35,7 +46,7 @@ Items not implemented:
          
 Design decisions:
 - If possible all code for a particular component will be kept in
-  and appropriate subdirectory.
+  an appropriate subdirectory.
 - All private class variables are named "m_xxx" this makes it very
   clear if one is referencing a class variable or a local.
 - All signal/slots are connected by explict code (most all are
