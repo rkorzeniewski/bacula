@@ -442,7 +442,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    } else if (flags & O_WRONLY) {     /* Open existing for write */
       if (bfd->use_backup_api) {
          dwaccess = GENERIC_WRITE|WRITE_OWNER|WRITE_DAC;
-         dwflags = FILE_FLAG_BACKUP_SEMANTICS;                          
+         dwflags = FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT;
       } else {
          dwaccess = GENERIC_WRITE;
          dwflags = 0;

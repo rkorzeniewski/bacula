@@ -119,6 +119,8 @@ void Console::connect_dir()
    utime_t heart_beat;
    char buf[1024];
    CONRES *cons;
+      
+   buf[0] = 0;
 
    m_textEdit = textEdit;   /* our console screen */
 
@@ -214,6 +216,7 @@ void Console::connect_dir()
       display_text(buf);
       goto bail_out;
    }
+
    if (buf[0]) {
       display_text(buf);
    }

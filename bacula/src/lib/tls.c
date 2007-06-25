@@ -552,14 +552,6 @@ void tls_bsock_shutdown(BSOCK *bsock)
     * The first time to initiate the shutdown handshake, and the second to
     * receive the peer's reply.
     *
-    * However, it is valid to close the SSL connection after the initial
-    * shutdown notification is sent to the peer, without waiting for the
-    * peer's reply, as long as you do not plan to re-use that particular
-    * SSL connection object.
-    *
-    * Because we do not re-use SSL connection objects, I do not bother
-    * calling SSL_shutdown a second time.
-    *
     * In addition, if the underlying socket is blocking, SSL_shutdown()
     * will not return until the current stage of the shutdown process has
     * completed or an error has occured. By setting the socket blocking
@@ -572,6 +564,10 @@ void tls_bsock_shutdown(BSOCK *bsock)
    bsock->set_blocking();
 
    err = SSL_shutdown(bsock->tls->openssl);
+   if (err = 0) {
+      /* Complete shutdown */
+      err = SSL_shutdown(bsock->tls->openssl);
+   }
 
    switch (SSL_get_error(bsock->tls->openssl, err)) {
    case SSL_ERROR_NONE:
@@ -581,7 +577,7 @@ void tls_bsock_shutdown(BSOCK *bsock)
       openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
       break;
    default:
-      /* Socket Error Occured */
+      /* Socket Error Occurred */
       openssl_post_errors(M_ERROR, _("TLS shutdown failure."));
       break;
    }
