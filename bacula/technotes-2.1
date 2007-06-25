@@ -1,7 +1,15 @@
               Technical notes on version 2.1
 
 General:
-Release 2.1.22 beta Win32 binaries only:
+
+Release 2.1.22 beta
+25Jun07
+kes  Return correct string from authenticate.cpp in bat when connecting
+     to Dir.
+kes  Apply patch suggested by Frank Sweetser to fix bug #888 --     
+     spurious line drops when using TLS.  
+kes  Do not file reparse points when restoring a file that already
+     exists -- Win32.
 24Jun07
 kes  Implement Windows reparse points -- similar to directories, but
      we do not descend into it. This is a first cut. They seem to 
