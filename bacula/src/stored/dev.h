@@ -393,8 +393,8 @@ public:
 #endif
 
    void clear_volhdr();          /* in dev.c */
-   void block(int why);          /* in dev.c */
-   void unblock(bool locked=false); /* in dev.c */
+   void block(int why);          /* in locks.c */
+   void unblock(bool locked=false); /* in locks.c */
    void close();                 /* in dev.c */
    void close_part(DCR *dcr);    /* in dev.c */
    bool truncate(DCR *dcr);      /* in dev.c */

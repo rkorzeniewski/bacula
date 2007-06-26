@@ -126,12 +126,6 @@ void    dvd_remove_empty_part(DCR *dcr);
 bool     open_device(DCR *dcr);
 bool     first_open_device(DCR *dcr);
 bool     fixup_device_block_write_error(DCR *dcr);
-void     _lock_device(const char *file, int line, DEVICE *dev);
-void     _unlock_device(const char *file, int line, DEVICE *dev);
-void     _block_device(const char *file, int line, DEVICE *dev, int state);
-void     _unblock_device(const char *file, int line, DEVICE *dev);
-void     _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
-void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
 void     set_new_volume_parameters(DCR *dcr);
 void     set_new_file_parameters(DCR *dcr);
 bool     is_device_unmounted(DEVICE *dev);
@@ -169,6 +163,15 @@ void     dump_volume_label(DEVICE *dev);
 void     dump_label_record(DEVICE *dev, DEV_RECORD *rec, int verbose);
 bool     unser_volume_label(DEVICE *dev, DEV_RECORD *rec);
 bool     unser_session_label(SESSION_LABEL *label, DEV_RECORD *rec);
+
+/* From locks.c */
+void     _lock_device(const char *file, int line, DEVICE *dev);
+void     _unlock_device(const char *file, int line, DEVICE *dev);
+void     _block_device(const char *file, int line, DEVICE *dev, int state);
+void     _unblock_device(const char *file, int line, DEVICE *dev);
+void     _steal_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold, int state);
+void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_lock_t *hold);
+
 
 /* From match_bsr.c */
 int      match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
