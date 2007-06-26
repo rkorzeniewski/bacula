@@ -58,6 +58,9 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- Performance: multiple spool files for a single job.
+- Performance: despool attributes when despooling data (problem
+  multiplexing Dir connection).
 - Make restore use the in-use volume reservation algorithm.
 - Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
 - Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
