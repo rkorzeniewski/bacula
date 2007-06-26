@@ -788,22 +788,6 @@ static bool use_storage_cmd(JCR *jcr)
    return ok;
 }
 
-void release_msgs(JCR *jcr)
-{
-   alist *msgs = jcr->reserve_msgs;
-   char *msg;
-
-   if (!msgs) {
-      return;
-   }
-   lock_reservations();
-   while ((msg = (char *)msgs->pop())) {
-      free(msg);
-   }
-   delete msgs;
-   jcr->reserve_msgs = NULL;
-   unlock_reservations();
-}
 
 /*
  * Walk through the autochanger resources and check if
@@ -1471,17 +1455,23 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    return 0;
 }
 
+
+
+
 /*
- * search_lock is already set on entering this routine 
+ * Queue a reservation error or failure message for this jcr
  */
 static void queue_reserve_message(JCR *jcr)
 {
    int i;   
-   alist *msgs = jcr->reserve_msgs;
+   alist *msgs;
    char *msg;
 
+   jcr->lock();
+
+   msgs = jcr->reserve_msgs;
    if (!msgs) {
-      return;
+      goto bail_out;
    }
    /*
     * Look for duplicate message.  If found, do
@@ -1490,7 +1480,7 @@ static void queue_reserve_message(JCR *jcr)
    for (i=msgs->size()-1; i >= 0; i--) {
       msg = (char *)msgs->get(i);
       if (!msg) {
-         return;
+         goto bail_out;
       }
       /* Comparison based on 4 digit message number */
       if (strncmp(msg, jcr->errmsg, 4) == 0) {
@@ -1499,6 +1489,9 @@ static void queue_reserve_message(JCR *jcr)
    }      
    /* Message unique, so insert it */
    jcr->reserve_msgs->push(bstrdup(jcr->errmsg));
+
+bail_out:
+   jcr->unlock();
 }
 
 /*
@@ -1510,7 +1503,7 @@ void send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len,
    alist *msgs;
    char *msg;
 
-   lock_reservations();
+   jcr->lock();
    msgs = jcr->reserve_msgs;
    if (!msgs || msgs->size() == 0) {
       goto bail_out;
@@ -1526,5 +1519,25 @@ void send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len,
    }
 
 bail_out:
-   unlock_reservations();
+   jcr->unlock();
+}
+
+void release_msgs(JCR *jcr)
+{
+   alist *msgs;
+   char *msg;
+
+   jcr->lock();
+   msgs = jcr->reserve_msgs;
+   if (!msgs) {
+      goto bail_out;
+   }
+   while ((msg = (char *)msgs->pop())) {
+      free(msg);
+   }
+   delete msgs;
+   jcr->reserve_msgs = NULL;
+
+bail_out:
+   jcr->unlock();
 }
