@@ -65,7 +65,7 @@ echo "in get_source URL is $URL SRC_DIR is $SRC_DIR MAKE_DIR is $MAKE_DIR ARCHIV
    *)              echo "Unsupported archive type - $ARCHIVE"; exit 1;;
    esac
    
-// cd ${DEPPKG_DIR}/src
+#  cd ${DEPPKG_DIR}/src
    
    if [ ! -e "${ARCHIVE}" ]
    then 
