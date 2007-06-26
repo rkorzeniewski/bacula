@@ -781,44 +781,6 @@ bool DEVICE::rewind(DCR *dcr)
    return true;
 }
 
-void DEVICE::block(int why)
-{
-   r_dlock();              /* need recursive lock to block */
-   block_device(this, why);
-   r_dunlock();
-}
-
-void DEVICE::unblock(bool locked)
-{
-   if (!locked) {
-      dlock();
-   }
-   unblock_device(this);
-   dunlock();
-}
-
-
-const char *DEVICE::print_blocked() const 
-{
-   switch (m_blocked) {
-   case BST_NOT_BLOCKED:
-      return "BST_NOT_BLOCKED";
-   case BST_UNMOUNTED:
-      return "BST_UNMOUNTED";
-   case BST_WAITING_FOR_SYSOP:
-      return "BST_WAITING_FOR_SYSOP";
-   case BST_DOING_ACQUIRE:
-      return "BST_DOING_ACQUIRE";
-   case BST_WRITING_LABEL:
-      return "BST_WRITING_LABEL";
-   case BST_UNMOUNTED_WAITING_FOR_SYSOP:
-      return "BST_UNMOUNTED_WAITING_FOR_SYSOP";
-   case BST_MOUNT:
-      return "BST_MOUNT";
-   default:
-      return _("unknown blocked code");
-   }
-}
 
 /*
  * Called to indicate that we have just read an
