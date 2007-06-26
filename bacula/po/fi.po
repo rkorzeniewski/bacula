@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: branch 2.0\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-06-22 19:23+0200\n"
+"POT-Creation-Date: 2007-06-26 12:01+0200\n"
 "PO-Revision-Date: 2007-02-03 19:16+0100\n"
 "Last-Translator: Kern Sibbald <kern@sibbald.com>\n"
 "Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
@@ -2830,7 +2830,7 @@ msgstr ""
 msgid "Unauthorized command from this console.\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:457 src/filed/status.c:200 src/stored/status.c:443
+#: src/dird/ua_cmds.c:457 src/filed/status.c:201 src/stored/status.c:443
 msgid "No Jobs running.\n"
 msgstr ""
 
@@ -3531,8 +3531,8 @@ msgstr ""
 msgid "Cannot purge Volume with VolStatus=%s\n"
 msgstr ""
 
-#: src/dird/ua_query.c:72 src/findlib/create_file.c:282
-#: src/findlib/create_file.c:379
+#: src/dird/ua_query.c:72 src/findlib/create_file.c:283
+#: src/findlib/create_file.c:383
 #, c-format
 msgid "Could not open %s: ERR=%s\n"
 msgstr ""
@@ -3671,7 +3671,7 @@ msgstr ""
 msgid "Enter a list of directories to restore for found JobIds"
 msgstr ""
 
-#: src/dird/ua_restore.c:418 src/dird/ua_status.c:760 src/filed/status.c:255
+#: src/dird/ua_restore.c:418 src/dird/ua_status.c:760 src/filed/status.c:256
 #: src/stored/status.c:517 src/wx-console/wxbconfigpanel.cpp:212
 msgid "Cancel"
 msgstr ""
@@ -4159,27 +4159,27 @@ msgstr ""
 msgid "Levels:\n"
 msgstr ""
 
-#: src/dird/ua_run.c:606 src/filed/status.c:372 src/lib/util.c:329
+#: src/dird/ua_run.c:606 src/filed/status.c:373 src/lib/util.c:329
 #: src/stored/status.c:556
 msgid "Base"
 msgstr ""
 
-#: src/dird/ua_run.c:607 src/filed/status.c:374 src/lib/util.c:331
+#: src/dird/ua_run.c:607 src/filed/status.c:375 src/lib/util.c:331
 #: src/stored/status.c:558
 msgid "Full"
 msgstr ""
 
-#: src/dird/ua_run.c:608 src/filed/status.c:377 src/lib/util.c:334
+#: src/dird/ua_run.c:608 src/filed/status.c:378 src/lib/util.c:334
 #: src/stored/status.c:561
 msgid "Incremental"
 msgstr ""
 
-#: src/dird/ua_run.c:609 src/filed/status.c:380 src/lib/util.c:337
+#: src/dird/ua_run.c:609 src/filed/status.c:381 src/lib/util.c:337
 #: src/stored/status.c:564
 msgid "Differential"
 msgstr ""
 
-#: src/dird/ua_run.c:610 src/filed/status.c:383 src/lib/util.c:340
+#: src/dird/ua_run.c:610 src/filed/status.c:384 src/lib/util.c:340
 #: src/stored/status.c:567
 msgid "Since"
 msgstr ""
@@ -4192,7 +4192,7 @@ msgstr ""
 msgid "Initialize Catalog"
 msgstr ""
 
-#: src/dird/ua_run.c:633 src/filed/status.c:386 src/lib/util.c:343
+#: src/dird/ua_run.c:633 src/filed/status.c:387 src/lib/util.c:343
 #: src/stored/status.c:570
 msgid "Verify Catalog"
 msgstr ""
@@ -4777,7 +4777,7 @@ msgid " Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"
 msgstr ""
 
 #: src/dird/ua_status.c:299 src/dird/ua_status.c:526 src/dird/ua_status.c:702
-#: src/filed/status.c:203 src/filed/status.c:219 src/filed/status.c:281
+#: src/filed/status.c:204 src/filed/status.c:220 src/filed/status.c:282
 msgid "====\n"
 msgstr ""
 
@@ -4845,7 +4845,7 @@ msgstr ""
 msgid " JobId Level   Name                       Status\n"
 msgstr ""
 
-#: src/dird/ua_status.c:565 src/filed/status.c:225
+#: src/dird/ua_status.c:565 src/filed/status.c:226
 msgid "======================================================================\n"
 msgstr ""
 
@@ -4958,13 +4958,13 @@ msgstr ""
 msgid "No Terminated Jobs.\n"
 msgstr ""
 
-#: src/dird/ua_status.c:717 src/filed/status.c:215 src/stored/status.c:478
+#: src/dird/ua_status.c:717 src/filed/status.c:216 src/stored/status.c:478
 msgid ""
 "\n"
 "Terminated Jobs:\n"
 msgstr ""
 
-#: src/dird/ua_status.c:718 src/filed/status.c:223 src/stored/status.c:485
+#: src/dird/ua_status.c:718 src/filed/status.c:224 src/stored/status.c:485
 msgid " JobId  Level    Files      Bytes   Status   Finished        Name \n"
 msgstr ""
 
@@ -4972,31 +4972,31 @@ msgstr ""
 msgid "====================================================================\n"
 msgstr ""
 
-#: src/dird/ua_status.c:750 src/filed/status.c:245 src/lib/util.c:179
+#: src/dird/ua_status.c:750 src/filed/status.c:246 src/lib/util.c:179
 #: src/stored/status.c:507
 msgid "Created"
 msgstr ""
 
-#: src/dird/ua_status.c:754 src/filed/status.c:249 src/lib/util.c:192
+#: src/dird/ua_status.c:754 src/filed/status.c:250 src/lib/util.c:192
 #: src/lib/util.c:259 src/stored/status.c:511
 msgid "Error"
 msgstr ""
 
-#: src/dird/ua_status.c:757 src/filed/status.c:252 src/stored/status.c:514
+#: src/dird/ua_status.c:757 src/filed/status.c:253 src/stored/status.c:514
 msgid "Diffs"
 msgstr ""
 
-#: src/dird/ua_status.c:763 src/filed/status.c:258 src/lib/util.c:188
+#: src/dird/ua_status.c:763 src/filed/status.c:259 src/lib/util.c:188
 #: src/lib/util.c:255 src/stored/btape.c:1189 src/stored/status.c:520
 #: src/wx-console/wxbconfigpanel.cpp:201
 msgid "OK"
 msgstr ""
 
-#: src/dird/ua_status.c:766 src/filed/status.c:261 src/stored/status.c:523
+#: src/dird/ua_status.c:766 src/filed/status.c:262 src/stored/status.c:523
 msgid "Other"
 msgstr ""
 
-#: src/dird/ua_status.c:769 src/filed/status.c:272 src/stored/status.c:534
+#: src/dird/ua_status.c:769 src/filed/status.c:273 src/stored/status.c:534
 #, c-format
 msgid "%6d  %-6s %8s %10s  %-7s  %-8s %s\n"
 msgstr ""
@@ -6081,131 +6081,131 @@ msgstr ""
 msgid "     Disallowed drive type. Will not descend into %s\n"
 msgstr ""
 
-#: src/filed/backup.c:291 src/filed/verify.c:122
+#: src/filed/backup.c:292 src/filed/verify.c:123
 #, c-format
 msgid "     Could not access %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:298 src/filed/verify.c:129
+#: src/filed/backup.c:299 src/filed/verify.c:130
 #, c-format
 msgid "     Could not follow link %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:305 src/filed/verify.c:136
+#: src/filed/backup.c:306 src/filed/verify.c:137
 #, c-format
 msgid "     Could not stat %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:312 src/filed/verify.c:142
+#: src/filed/backup.c:313 src/filed/verify.c:143
 #, c-format
 msgid "     Unchanged file skipped: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:315
+#: src/filed/backup.c:316
 #, c-format
 msgid "     Archive file not saved: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:319 src/filed/verify.c:157
+#: src/filed/backup.c:320 src/filed/verify.c:158
 #, c-format
 msgid "     Could not open directory %s: ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:325
+#: src/filed/backup.c:326
 #, c-format
 msgid "     Unknown file type %d; not saved: %s\n"
 msgstr ""
 
-#: src/filed/backup.c:365 src/filed/verify.c:238
+#: src/filed/backup.c:366 src/filed/verify.c:239
 #, c-format
 msgid "%s digest initialization failed\n"
 msgstr ""
 
-#: src/filed/backup.c:379
+#: src/filed/backup.c:380
 #, c-format
 msgid "%s signature digest initialization failed\n"
 msgstr ""
 
-#: src/filed/backup.c:399
+#: src/filed/backup.c:400
 #, c-format
 msgid "Python reader program \"%s\" not found.\n"
 msgstr ""
 
-#: src/filed/backup.c:459 src/filed/verify.c:299
+#: src/filed/backup.c:462 src/filed/verify.c:300
 #, c-format
 msgid "     Cannot open %s: ERR=%s.\n"
 msgstr ""
 
-#: src/filed/backup.c:496 src/filed/verify.c:313
+#: src/filed/backup.c:499 src/filed/verify.c:314
 #, c-format
 msgid "     Cannot open resource fork for %s: ERR=%s.\n"
 msgstr ""
 
-#: src/filed/backup.c:553
+#: src/filed/backup.c:556
 msgid "Failed to allocate memory for crypto signature.\n"
 msgstr ""
 
-#: src/filed/backup.c:558 src/filed/backup.c:564 src/filed/backup.c:579
+#: src/filed/backup.c:561 src/filed/backup.c:567 src/filed/backup.c:582
 msgid "An error occurred while signing the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:603
+#: src/filed/backup.c:606
 msgid "An error occurred finalizing signing the stream.\n"
 msgstr ""
 
-#: src/filed/backup.c:690
+#: src/filed/backup.c:693
 #, c-format
 msgid "Compression deflateParams error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:702
+#: src/filed/backup.c:705
 msgid "Encrypting sparse data not supported.\n"
 msgstr ""
 
-#: src/filed/backup.c:709
+#: src/filed/backup.c:712
 msgid "Failed to initialize encryption context.\n"
 msgstr ""
 
-#: src/filed/backup.c:732 src/filed/backup.c:888 src/filed/backup.c:923
-#: src/filed/backup.c:934 src/filed/backup.c:980 src/filed/backup.c:993
-#: src/filed/backup.c:1001 src/filed/backup.c:1047 src/filed/backup.c:1083
+#: src/filed/backup.c:735 src/filed/backup.c:891 src/filed/backup.c:926
+#: src/filed/backup.c:937 src/filed/backup.c:983 src/filed/backup.c:996
+#: src/filed/backup.c:1004 src/filed/backup.c:1050 src/filed/backup.c:1086
 #, c-format
 msgid "Network send error to SD. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:811
+#: src/filed/backup.c:814
 #, c-format
 msgid "Compression deflate error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:818
+#: src/filed/backup.c:821
 #, c-format
 msgid "Compression deflateReset error: %d\n"
 msgstr ""
 
-#: src/filed/backup.c:861 src/filed/backup.c:877
+#: src/filed/backup.c:864 src/filed/backup.c:880
 msgid "Encryption error\n"
 msgstr ""
 
-#: src/filed/backup.c:901
+#: src/filed/backup.c:904
 #, c-format
 msgid "Read error on file %s. ERR=%s\n"
 msgstr ""
 
-#: src/filed/backup.c:904
+#: src/filed/backup.c:907
 msgid "Too many errors.\n"
 msgstr ""
 
-#: src/filed/backup.c:914
+#: src/filed/backup.c:917
 msgid "Encryption padding error\n"
 msgstr ""
 
-#: src/filed/backup.c:971
+#: src/filed/backup.c:974
 #, c-format
 msgid "Error reading ACL of %s\n"
 msgstr ""
 
-#: src/filed/backup.c:1026
+#: src/filed/backup.c:1029
 msgid "Invalid file flags, no supported data stream type.\n"
 msgstr ""
 
@@ -6816,69 +6816,69 @@ msgstr ""
 
 #: src/filed/status.c:177
 #, c-format
-msgid "    Files Examined=%s\n"
+msgid "    Files Examined=%s Errors=%d\n"
 msgstr ""
 
-#: src/filed/status.c:182
+#: src/filed/status.c:183
 #, c-format
 msgid "    Processing file: %s\n"
 msgstr ""
 
-#: src/filed/status.c:193
+#: src/filed/status.c:194
 msgid "    SDSocket closed.\n"
 msgstr ""
 
-#: src/filed/status.c:327 src/filed/status.c:351 src/stored/status.c:632
+#: src/filed/status.c:328 src/filed/status.c:352 src/stored/status.c:632
 #: src/stored/status.c:655
 #, c-format
 msgid "Bad .status command: %s\n"
 msgstr ""
 
-#: src/filed/status.c:328
+#: src/filed/status.c:329
 msgid "2900 Bad .status command, missing argument.\n"
 msgstr ""
 
-#: src/filed/status.c:352
+#: src/filed/status.c:353
 msgid "2900 Bad .status command, wrong argument.\n"
 msgstr ""
 
-#: src/filed/status.c:389 src/stored/status.c:573
+#: src/filed/status.c:390 src/stored/status.c:573
 msgid "Init Catalog"
 msgstr ""
 
-#: src/filed/status.c:392 src/stored/status.c:576
+#: src/filed/status.c:393 src/stored/status.c:576
 msgid "Volume to Catalog"
 msgstr ""
 
-#: src/filed/status.c:395 src/stored/status.c:579
+#: src/filed/status.c:396 src/stored/status.c:579
 msgid "Disk to Catalog"
 msgstr ""
 
-#: src/filed/status.c:398 src/stored/status.c:582
+#: src/filed/status.c:399 src/stored/status.c:582
 msgid "Data"
 msgstr ""
 
-#: src/filed/status.c:404 src/lib/util.c:361 src/stored/status.c:588
+#: src/filed/status.c:405 src/lib/util.c:361 src/stored/status.c:588
 msgid "Unknown Job Level"
 msgstr ""
 
-#: src/filed/status.c:420
+#: src/filed/status.c:421
 msgid "Bacula Client: Idle"
 msgstr ""
 
-#: src/filed/status.c:431
+#: src/filed/status.c:432
 msgid "Bacula Client: Running"
 msgstr ""
 
-#: src/filed/status.c:445
+#: src/filed/status.c:446
 msgid "Bacula Client: Last Job Canceled"
 msgstr ""
 
-#: src/filed/status.c:449
+#: src/filed/status.c:450
 msgid "Bacula Client: Last Job Failed"
 msgstr ""
 
-#: src/filed/status.c:453
+#: src/filed/status.c:454
 msgid "Bacula Client: Last Job had Warnings"
 msgstr ""
 
@@ -6887,32 +6887,32 @@ msgstr ""
 msgid "Cannot malloc %d network read buffer\n"
 msgstr ""
 
-#: src/filed/verify.c:145
+#: src/filed/verify.c:146
 #, c-format
 msgid "     Archive file skipped: %s\n"
 msgstr ""
 
-#: src/filed/verify.c:148
+#: src/filed/verify.c:149
 #, c-format
 msgid "     Recursion turned off. Directory skipped: %s\n"
 msgstr ""
 
-#: src/filed/verify.c:152
+#: src/filed/verify.c:153
 #, c-format
 msgid "     File system change prohibited. Directory skipped: %s\n"
 msgstr ""
 
-#: src/filed/verify.c:162
+#: src/filed/verify.c:163
 #, c-format
 msgid "     Unknown file type %d: %s\n"
 msgstr ""
 
-#: src/filed/verify.c:205 src/filed/verify_vol.c:209
+#: src/filed/verify.c:206 src/filed/verify_vol.c:209
 #, c-format
 msgid "Network error in send to Director: ERR=%s\n"
 msgstr ""
 
-#: src/filed/verify.c:351
+#: src/filed/verify.c:352
 #, c-format
 msgid "Error reading file %s: ERR=%s\n"
 msgstr ""
@@ -7061,78 +7061,78 @@ msgstr ""
 msgid "Encrypted MacOS fork data"
 msgstr ""
 
-#: src/findlib/create_file.c:122
+#: src/findlib/create_file.c:123
 #, c-format
 msgid "File skipped. Not newer: %s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:129
+#: src/findlib/create_file.c:130
 #, c-format
 msgid "File skipped. Not older: %s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:135
+#: src/findlib/create_file.c:136
 #, c-format
 msgid "File skipped. Already exists: %s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:161
+#: src/findlib/create_file.c:162
 #, c-format
 msgid "File %s already exists and could not be replaced. ERR=%s.\n"
 msgstr ""
 
-#: src/findlib/create_file.c:213 src/findlib/create_file.c:276
-#: src/findlib/create_file.c:366
+#: src/findlib/create_file.c:214 src/findlib/create_file.c:277
+#: src/findlib/create_file.c:370
 #, c-format
 msgid "bpkt already open fid=%d\n"
 msgstr ""
 
-#: src/findlib/create_file.c:221
+#: src/findlib/create_file.c:222
 #, c-format
 msgid "Could not create %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:235
+#: src/findlib/create_file.c:236
 #, c-format
 msgid "Cannot make fifo %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:253
+#: src/findlib/create_file.c:254
 #, c-format
 msgid "Cannot make node %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:298
+#: src/findlib/create_file.c:299
 #, c-format
 msgid "Could not symlink %s -> %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:323 src/findlib/create_file.c:334
+#: src/findlib/create_file.c:324 src/findlib/create_file.c:335
 #, c-format
 msgid "Could not restore file flags for file %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:327 src/findlib/create_file.c:342
+#: src/findlib/create_file.c:328 src/findlib/create_file.c:343
 #, c-format
 msgid "Could not hard link %s -> %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:338
+#: src/findlib/create_file.c:339
 #, c-format
 msgid "Could not reset file flags for file %s: ERR=%s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:398
+#: src/findlib/create_file.c:402
 #, c-format
 msgid "Original file %s not saved: type=%d\n"
 msgstr ""
 
-#: src/findlib/create_file.c:401
+#: src/findlib/create_file.c:405
 #, c-format
 msgid "Unknown file type %d; not restored: %s\n"
 msgstr ""
 
-#: src/findlib/create_file.c:445
+#: src/findlib/create_file.c:449
 #, c-format
 msgid "Zero length filename: %s\n"
 msgstr ""
@@ -9081,15 +9081,15 @@ msgstr ""
 msgid "Error creating new SSL object"
 msgstr ""
 
-#: src/lib/tls.c:482 src/lib/tls.c:505
+#: src/lib/tls.c:481 src/lib/tls.c:504
 msgid "Connect failure"
 msgstr ""
 
-#: src/lib/tls.c:582 src/lib/tls.c:586
+#: src/lib/tls.c:576 src/lib/tls.c:580
 msgid "TLS shutdown failure."
 msgstr ""
 
-#: src/lib/tls.c:635 src/lib/tls.c:655
+#: src/lib/tls.c:639
 msgid "TLS read/write failure."
 msgstr ""
 
