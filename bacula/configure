@@ -35838,7 +35838,14 @@ chmod 755 src/win32/build-depkgs-mingw32
 
 if test "${support_bat}" = "yes" ; then
   cd src/qt-console
-  chmod 755 install_conf_file
+  a=`pwd`
+  chmod 755 install_conf_file build-depkgs-qt-console
+  echo " "
+  echo "Downloading, building, and installing the qwt graphics library"
+  echo " The install will be to directory ${a}/qwt ..."
+  echo " "
+  ./build-depkgs-qt-console
+  echo "Creating bat Makefile"
   qmake
 fi
 

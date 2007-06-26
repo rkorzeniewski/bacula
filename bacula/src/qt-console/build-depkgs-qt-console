@@ -65,7 +65,7 @@ echo "in get_source URL is $URL SRC_DIR is $SRC_DIR MAKE_DIR is $MAKE_DIR ARCHIV
    *)              echo "Unsupported archive type - $ARCHIVE"; exit 1;;
    esac
    
-   cd ${DEPPKG_DIR}/src
+// cd ${DEPPKG_DIR}/src
    
    if [ ! -e "${ARCHIVE}" ]
    then 
@@ -142,18 +142,15 @@ do_make()
 process_qwt()
 {
    get_source "${URL_QWT}" "${DIR_QWT}" "${MKD_QWT}"
-   echo "Building qwt"
-   echo "${DEPPKG_DIR}"
-   pwd
-   > make.log
+   echo "Building qwt graphics library. This takes some time ..."
    echo "unix {" >${TOP_DIR}/depkgs/qwt-5.0.2/qwtconfig.pri                    
    echo " INSTALLBASE = ${TOP_DIR}/qwt" >>${TOP_DIR}/depkgs/qwt-5.0.2/qwtconfig.pri
    echo "}" >>${TOP_DIR}/depkgs/qwt-5.0.2/qwtconfig.pri
    cat ${TOP_DIR}/qwtconfig.pri >>${TOP_DIR}/depkgs/qwt-5.0.2/qwtconfig.pri
-   qmake 
-   do_make Makefile
-   echo "Installing" 
-   do_make Makefile install
+   qmake >make.log
+   do_make Makefile >>make.log
+   do_make Makefile install >>make.log
+   echo "In case of problems see: `pwd`/make.log"
 }
 
 if [ "$#" -eq 0 ]
