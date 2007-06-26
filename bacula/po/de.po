@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: de\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-06-25 20:35+0200\n"
+"POT-Creation-Date: 2007-06-26 12:01+0200\n"
 "PO-Revision-Date: 2007-06-25 20:38+0200\n"
 "Last-Translator: Philipp Storz <philipp.storz@dass-it.de>\n"
 "Language-Team: \n"
@@ -395,7 +395,8 @@ msgstr "Keinen Job gefunden für: %s\n"
 #: src/cats/sql_find.c:328
 #, c-format
 msgid "Request for Volume item %d greater than max %d or less than 1\n"
-msgstr "Anforderung von \"Volume item\" %d größer als Max %d oder weniger als 1\n"
+msgstr ""
+"Anforderung von \"Volume item\" %d größer als Max %d oder weniger als 1\n"
 
 #: src/cats/sql_find.c:343
 #, fuzzy, c-format
@@ -667,7 +668,8 @@ msgstr "TLS Aushandlung fehlgeschlagen mit SD an \"%s:%d\"\n"
 #: src/dird/authenticate.c:145
 #, c-format
 msgid "bdird<stored: \"%s:%s\" bad response to Hello command: ERR=%s\n"
-msgstr "bdird<stored: \"%s:%s\" fehlerhafte Antwort auf \"Hello\" Kommando: ERR=%s\n"
+msgstr ""
+"bdird<stored: \"%s:%s\" fehlerhafte Antwort auf \"Hello\" Kommando: ERR=%s\n"
 
 #: src/dird/authenticate.c:152 src/tray-monitor/authenticate.c:152
 msgid "Storage daemon rejected Hello command\n"
@@ -681,7 +683,8 @@ msgstr "Storage daemon an \"%s:%d\" hat Hello commando abgewiesen.\n"
 #: src/dird/authenticate.c:182
 #, fuzzy, c-format
 msgid "Error sending Hello to File daemon at \"%s:%d\". ERR=%s\n"
-msgstr "Fehler beim senden des Kommandos Hello an File daemon auf \"%s:%d\". ERR=%s\n"
+msgstr ""
+"Fehler beim senden des Kommandos Hello an File daemon auf \"%s:%d\". ERR=%s\n"
 
 #: src/dird/authenticate.c:208
 msgid "Director and File daemon passwords or names not the same.\n"
@@ -706,7 +709,8 @@ msgstr ""
 
 #: src/dird/authenticate.c:222
 #, c-format
-msgid "Authorization problem: FD \"%s:%s\" did not advertise required TLS support.\n"
+msgid ""
+"Authorization problem: FD \"%s:%s\" did not advertise required TLS support.\n"
 msgstr ""
 "Authorisationsproblem: FD \"%s:%s\" hat erforderliche TLS Unterstützung "
 "nicht angeboten.\n"
@@ -729,7 +733,8 @@ msgstr "Fehlerhafte Antwort von  File daemon auf Hello Kommando: ERR=%s\n"
 #: src/dird/authenticate.c:252
 #, fuzzy, c-format
 msgid "Bad response from File daemon at \"%s:%d\" to Hello command: ERR=%s\n"
-msgstr "Fehlerhafte Antwort von File daemon an \"%s:%d\" auf Hello Kommando: ERR=%s\n"
+msgstr ""
+"Fehlerhafte Antwort von File daemon an \"%s:%d\" auf Hello Kommando: ERR=%s\n"
 
 #: src/dird/authenticate.c:259 src/tray-monitor/authenticate.c:198
 msgid "File daemon rejected Hello command\n"
@@ -1024,7 +1029,8 @@ msgstr "1991 Catalog Anfrage für vol=%s fehlgeschlagen: %s"
 
 #: src/dird/catreq.c:259
 #, c-format
-msgid "Volume Files at %u being set to %u for Volume \"%s\". This is incorrect.\n"
+msgid ""
+"Volume Files at %u being set to %u for Volume \"%s\". This is incorrect.\n"
 msgstr ""
 "Volume Files bei %u werden auf %u für Volumen \"%s\" gesetzt. Dies ist nicht "
 "Korrekt.\n"
@@ -1247,7 +1253,8 @@ msgstr ""
 #: src/dird/dird.c:800 src/dird/dird.c:840 src/filed/filed.c:312
 #, c-format
 msgid "Failed to initialize TLS context for File daemon \"%s\" in %s.\n"
-msgstr "Konnte TLS context für File daemon \"%s\" in %s nicht initialisieren.\n"
+msgstr ""
+"Konnte TLS context für File daemon \"%s\" in %s nicht initialisieren.\n"
 
 #: src/dird/dird.c:823
 #, c-format
@@ -1685,7 +1692,8 @@ msgstr "Erwartet: %s, erhalten: %s"
 #: src/dird/dird_conf.c:1683 src/lib/parse_conf.c:482
 #, c-format
 msgid "Could not find config Resource %s referenced on line %d : %s\n"
-msgstr "Konnte config Resource %s , referenziert in Zeile %d : %s nicht finden\n"
+msgstr ""
+"Konnte config Resource %s , referenziert in Zeile %d : %s nicht finden\n"
 
 #: src/dird/dird_conf.c:1810 src/dird/inc_conf.c:645
 #, c-format
@@ -1780,7 +1788,8 @@ msgstr " (erweitert von %s)"
 #: src/dird/fd_cmds.c:192
 #, c-format
 msgid "Prior failed job found in catalog. Upgrading to %s.\n"
-msgstr "Vorheriger fehlgeschlagener job in catalog gefunden. Erweitere auf %s.\n"
+msgstr ""
+"Vorheriger fehlgeschlagener job in catalog gefunden. Erweitere auf %s.\n"
 
 #: src/dird/fd_cmds.c:253
 #, c-format
@@ -2434,7 +2443,8 @@ msgstr "Neues Volume \"%s\" in catalog erzeugt.\n"
 #: src/dird/newvol.c:131
 #, c-format
 msgid "Wanted to create Volume \"%s\", but it already exists. Trying again.\n"
-msgstr "Wollte Volume \"%s\"erzeugen, aber , but it already exists. Trying again.\n"
+msgstr ""
+"Wollte Volume \"%s\"erzeugen, aber , but it already exists. Trying again.\n"
 
 #: src/dird/newvol.c:140
 msgid "Too many failures. Giving up creating Volume name.\n"
@@ -2506,8 +2516,8 @@ msgid ""
 "but should be Append, Purged or Recycle (recycling of the current volume "
 "failed)"
 msgstr ""
-"aber sollte Append, Purged oder Recycle (das Recycling des des aktuellen Volumens "
-"ist fehlgeschlagen)"
+"aber sollte Append, Purged oder Recycle (das Recycling des des aktuellen "
+"Volumens ist fehlgeschlagen)"
 
 #: src/dird/next_vol.c:322
 msgid ""
@@ -3606,7 +3616,8 @@ msgstr ""
 
 #: src/dird/ua_output.c:493
 #, c-format
-msgid "The next Volume to be used by Job \"%s\" (Pool=%s, Level=%s) will be %s\n"
+msgid ""
+"The next Volume to be used by Job \"%s\" (Pool=%s, Level=%s) will be %s\n"
 msgstr ""
 
 #: src/dird/ua_output.c:503
@@ -3705,7 +3716,8 @@ msgstr ""
 
 #: src/dird/ua_purge.c:481
 #, c-format
-msgid "There are no more Jobs associated with Volume \"%s\". Marking it purged.\n"
+msgid ""
+"There are no more Jobs associated with Volume \"%s\". Marking it purged.\n"
 msgstr ""
 
 #: src/dird/ua_purge.c:522
@@ -4228,7 +4240,8 @@ msgid "user selection"
 msgstr ""
 
 #: src/dird/ua_run.c:330
-msgid "Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now): "
+msgid ""
+"Please enter desired start time as YYYY-MM-DD HH:MM:SS (return for now): "
 msgstr ""
 
 #: src/dird/ua_run.c:345
@@ -4261,7 +4274,8 @@ msgid "Select replace option"
 msgstr ""
 
 #: src/dird/ua_run.c:435
-msgid "You must set the bootstrap file to NULL to be able to specify a JobId.\n"
+msgid ""
+"You must set the bootstrap file to NULL to be able to specify a JobId.\n"
 msgstr ""
 
 #: src/dird/ua_run.c:455
@@ -5006,7 +5020,8 @@ msgid ""
 msgstr ""
 
 #: src/dird/ua_status.c:376
-msgid "Level          Type     Pri  Scheduled          Name               Volume\n"
+msgid ""
+"Level          Type     Pri  Scheduled          Name               Volume\n"
 msgstr ""
 
 #: src/dird/ua_status.c:377
@@ -6897,7 +6912,8 @@ msgstr ""
 
 #: src/filed/restore.c:732
 #, c-format
-msgid "%d non-supported data streams and %d non-supported attrib streams ignored.\n"
+msgid ""
+"%d non-supported data streams and %d non-supported attrib streams ignored.\n"
 msgstr ""
 
 #: src/filed/restore.c:736
@@ -8443,12 +8459,14 @@ msgstr ""
 
 #: src/lib/jcr.c:762
 #, c-format
-msgid "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"
+msgid ""
+"Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"
 msgstr ""
 
 #: src/lib/jcr.c:774
 #, c-format
-msgid "Watchdog sending kill after %d secs to thread stalled reading Director.\n"
+msgid ""
+"Watchdog sending kill after %d secs to thread stalled reading Director.\n"
 msgstr ""
 
 #: src/lib/lex.c:93 src/wx-console/console_thread.cpp:208
@@ -9284,7 +9302,8 @@ msgstr ""
 
 #: src/lib/tls.c:93
 #, c-format
-msgid "Error with certificate at depth: %d, issuer = %s, subject = %s, ERR=%d:%s\n"
+msgid ""
+"Error with certificate at depth: %d, issuer = %s, subject = %s, ERR=%d:%s\n"
 msgstr ""
 
 #: src/lib/tls.c:130
@@ -9765,7 +9784,8 @@ msgstr ""
 msgid ""
 "Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s"
 "\" .\n"
-msgstr "Wollte Volume \"%s\"erzeugen, aber , but it already exists. Trying again.\n"
+msgstr ""
+"Wollte Volume \"%s\"erzeugen, aber , but it already exists. Trying again.\n"
 
 #: src/stored/acquire.c:375
 #, c-format
@@ -9776,7 +9796,8 @@ msgstr ""
 
 #: src/stored/acquire.c:400
 #, c-format
-msgid "Invalid tape position on volume \"%s\" on device %s. Expected %d, got %d\n"
+msgid ""
+"Invalid tape position on volume \"%s\" on device %s. Expected %d, got %d\n"
 msgstr ""
 
 #: src/stored/acquire.c:420
@@ -9921,7 +9942,8 @@ msgstr ""
 
 #: src/stored/append.c:279
 #, c-format
-msgid "Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
+msgid ""
+"Job write elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
 msgstr ""
 
 #: src/stored/append.c:292 src/stored/btape.c:2013
@@ -10055,7 +10077,8 @@ msgstr ""
 
 #: src/stored/autochanger.c:85
 #, c-format
-msgid "Media Type not the same for all devices in changer %s. Cannot continue.\n"
+msgid ""
+"Media Type not the same for all devices in changer %s. Cannot continue.\n"
 msgstr ""
 
 #: src/stored/autochanger.c:149
@@ -10476,7 +10499,8 @@ msgstr ""
 
 #: src/stored/block.c:1071
 #, c-format
-msgid "Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"
+msgid ""
+"Volume data error at %u:%u! Short block of %d bytes on device %s discarded.\n"
 msgstr ""
 
 #: src/stored/bls.c:78
@@ -12328,7 +12352,8 @@ msgid "Unable to stat mount point %s: ERR=%s\n"
 msgstr ""
 
 #: src/stored/dev.c:201
-msgid "Mount and unmount commands must defined for a device which requires mount.\n"
+msgid ""
+"Mount and unmount commands must defined for a device which requires mount.\n"
 msgstr ""
 
 #: src/stored/dev.c:204
@@ -12858,7 +12883,8 @@ msgstr ""
 
 #: src/stored/dircmd.c:1094
 #, c-format
-msgid "3932 Device %s is BLOCKED. user unmounted during wait for media/mount.\n"
+msgid ""
+"3932 Device %s is BLOCKED. user unmounted during wait for media/mount.\n"
 msgstr ""
 
 #: src/stored/dircmd.c:1098
@@ -12981,7 +13007,8 @@ msgstr ""
 
 #: src/stored/label.c:152
 #, c-format
-msgid "Requested Volume \"%s\" on %s is not a Bacula labeled Volume, because: ERR=%s"
+msgid ""
+"Requested Volume \"%s\" on %s is not a Bacula labeled Volume, because: ERR=%s"
 msgstr ""
 
 #: src/stored/label.c:157
@@ -13657,7 +13684,8 @@ msgstr ""
 
 #: src/stored/spool.c:87
 #, c-format
-msgid "Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"
+msgid ""
+"Data spooling: %u active jobs, %s bytes; %u total jobs, %s max bytes/job.\n"
 msgstr ""
 
 #: src/stored/spool.c:95
@@ -13691,7 +13719,8 @@ msgstr ""
 
 #: src/stored/spool.c:302
 #, c-format
-msgid "Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
+msgid ""
+"Despooling elapsed time = %02d:%02d:%02d, Transfer rate = %s bytes/second\n"
 msgstr ""
 
 #: src/stored/spool.c:311 src/stored/spool.c:494 src/stored/spool.c:536
@@ -14106,7 +14135,8 @@ msgstr ""
 
 #: src/stored/stored_conf.c:669
 #, c-format
-msgid "Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"
+msgid ""
+"Attempt to define second \"%s\" resource named \"%s\" is not permitted.\n"
 msgstr ""
 
 #: src/stored/wait.c:127
@@ -15224,7 +15254,8 @@ msgid "The Bacula Director service could not be found"
 msgstr ""
 
 #: src/win32/dird/winservice.cpp:331
-msgid "The SCM could not be contacted - the Bacula Director service was not removed"
+msgid ""
+"The SCM could not be contacted - the Bacula Director service was not removed"
 msgstr ""
 
 #: src/win32/dird/winservice.cpp:393 src/win32/filed/winservice.cpp:604
@@ -15370,7 +15401,8 @@ msgid "The Bacula file service could not be found"
 msgstr ""
 
 #: src/win32/filed/winservice.cpp:540
-msgid "The SCM could not be contacted - the Bacula file service was not removed"
+msgid ""
+"The SCM could not be contacted - the Bacula file service was not removed"
 msgstr ""
 
 #: src/win32/stored/baculasd/winservice.cpp:85
@@ -15420,7 +15452,8 @@ msgid "The Bacula Storage service could not be found"
 msgstr ""
 
 #: src/win32/stored/baculasd/winservice.cpp:381
-msgid "The SCM could not be contacted - the Bacula Storage service was not removed"
+msgid ""
+"The SCM could not be contacted - the Bacula Storage service was not removed"
 msgstr ""
 
 #: src/wx-console/console_thread.cpp:121
@@ -15607,7 +15640,8 @@ msgid "&Help"
 msgstr ""
 
 #: src/wx-console/wxbmainframe.cpp:283
-msgid "Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"
+msgid ""
+"Warning : Unicode is disabled because you are using wxWidgets for GTK+ 1.2.\n"
 msgstr ""
 
 #: src/wx-console/wxbmainframe.cpp:287
@@ -16129,4 +16163,3 @@ msgstr ""
 #: src/wx-console/wxbrestorepanel.cpp:2000
 msgid "Restoring..."
 msgstr "Wiederherstellung läuft..."
-
