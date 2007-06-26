@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 2.1.20
+          Release Notes for Bacula 2.1.22
 
   Bacula code: Total files = 458 Total lines = 198,659 (*.h *.c *.in)
 
@@ -8,6 +8,19 @@ but they should be compatible with all 2.0.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons.  However, bat works only with
 a 2.1.8 Director or greater.
+
+!!!!!!!!!!!!!!!!!!!!!!! Please Note !!!!!!!!!!!!!!!!!!!!!!!!!!!
+Restore on Win32, and in particular on Vista is untested. Please
+test before relying on it.  It should backup and restore reparse
+points.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Changes since Beta release 2.1.20
+- New graphs in bat
+- Due to a typo, I had inadvertantly turned off batch insert mode.  
+  It is now re-enabled
+- Possible fix for bug #888 (dropped comm lines using TLS).
+- Test version of Win32 binaries for Vista.
 
 Changes since Beta release 2.1.18
 - Fixed bug #886 (multidrive autochanger: SD doesn't use drive with
