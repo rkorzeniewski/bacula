@@ -201,9 +201,9 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 
 #ifdef xxx
    if (debug_level > 10) {
-      bnet_fsend(user, _("====\n\n"));
+      user->fsend(_("====\n\n"));
       dump_resource(R_DEVICE, resources[R_DEVICE-r_first].res_head, sendit, user);
-      bnet_fsend(user, _("====\n\n"));
+      user->fsend(_("====\n\n"));
    }
 #endif
 
@@ -594,13 +594,13 @@ static const char *level_to_str(int level)
 /*
  * Send to Director
  */
-static void bsock_sendit(const char *msg, int len, void *arg)
+static void dir_sendit(const char *msg, int len, void *arg)
 {
    BSOCK *user = (BSOCK *)arg;
 
    memcpy(user->msg, msg, len+1);
    user->msglen = len+1;
-   bnet_send(user);
+   user->send();
 }
 
 /*
@@ -610,10 +610,10 @@ bool status_cmd(JCR *jcr)
 {
    BSOCK *user = jcr->dir_bsock;
 
-   bnet_fsend(user, "\n");
-   output_status(bsock_sendit, (void *)user);
+   user->fsend("\n");
+   output_status(dir_sendit, (void *)user);
 
-   bnet_sig(user, BNET_EOD);
+   user->signal(BNET_EOD);
    return 1;
 }
 
@@ -630,34 +630,34 @@ bool qstatus_cmd(JCR *jcr)
    if (sscanf(dir->msg, qstatus, time.c_str()) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("3900 Bad .status command, missing argument.\n"));
-      bnet_sig(dir, BNET_EOD);
+      dir->fsend(_("3900 Bad .status command, missing argument.\n"));
+      dir->signal(BNET_EOD);
       return false;
    }
    unbash_spaces(time);
 
    if (strcmp(time.c_str(), "current") == 0) {
-      bnet_fsend(dir, OKqstatus, time.c_str());
+      dir->fsend(OKqstatus, time.c_str());
       foreach_jcr(njcr) {
          if (njcr->JobId != 0) {
-            bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+            dir->fsend(DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
          }
       }
       endeach_jcr(njcr);
    } else if (strcmp(time.c_str(), "last") == 0) {
-      bnet_fsend(dir, OKqstatus, time.c_str());
+      dir->fsend(OKqstatus, time.c_str());
       if ((last_jobs) && (last_jobs->size() > 0)) {
          job = (s_last_job*)last_jobs->last();
-         bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+         dir->fsend(DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    } else {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("3900 Bad .status command, wrong argument.\n"));
-      bnet_sig(dir, BNET_EOD);
+      dir->fsend(_("3900 Bad .status command, wrong argument.\n"));
+      dir->signal(BNET_EOD);
       return false;
    }
-   bnet_sig(dir, BNET_EOD);
+   dir->signal(BNET_EOD);
    return true;
 }
 
