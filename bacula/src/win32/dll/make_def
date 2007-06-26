@@ -3,6 +3,8 @@
 #  Make the stupid bacula.def file so that we don't have to do it
 #    manually
 #
+#  Kern Sibbald, June 2007
+#
  
 echo "LIBRARY bacula.dll"
 echo "EXPORTS"
