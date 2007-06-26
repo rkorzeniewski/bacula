@@ -25,40 +25,40 @@ SDOBJS =  stored.o ansi_label.o \
 	  askdir.o authenticate.o \
 	  block.o butil.o dev.o \
 	  device.o dircmd.o dvd.o ebcdic.o fd_cmds.o job.o \
-	  label.o locks.o mac.o match_bsr.o mount.o parse_bsr.o \
+	  label.o lock.o mac.o match_bsr.o mount.o parse_bsr.o \
 	  pythonsd.o read.o read_record.o record.o \
 	  reserve.o scan.o \
 	  spool.o status.o stored_conf.o wait.o
 
 # btape
 TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
-	   locks.o ansi_label.o dvd.o ebcdic.o \
+	   lock.o ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o read_record.o \
 	   reserve.o \
 	   stored_conf.o match_bsr.o parse_bsr.o scan.o spool.o wait.o
 
 # bls
 BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
-	  ansi_label.o dvd.o ebcdic.o locks.o \
+	  ansi_label.o dvd.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
 	  read_record.o reserve.o scan.o stored_conf.o spool.o wait.o
 
 # bextract
 BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
-	   ansi_label.o dvd.o ebcdic.o locks.o \
+	   ansi_label.o dvd.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
 	   pythonsd.o read_record.o reserve.o \
 	   scan.o stored_conf.o spool.o wait.o
 
 # bscan
 SCNOBJS = bscan.o block.o device.o dev.o label.o \
-	  ansi_label.o dvd.o ebcdic.o locks.o \
+	  ansi_label.o dvd.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	  butil.o read_record.o scan.o reserve.o stored_conf.o spool.o wait.o
 
 # bcopy
 COPYOBJS = bcopy.o block.o device.o dev.o label.o \
-	   ansi_label.o dvd.o ebcdic.o locks.o \
+	   ansi_label.o dvd.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	   butil.o read_record.o reserve.o \
 	   scan.o stored_conf.o spool.o wait.o
