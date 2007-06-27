@@ -1,6 +1,6 @@
 Index: src/dird/msgchan.c
 ===================================================================
---- src/dird/msgchan.c	(revision 5107)
+--- src/dird/msgchan.c	(revision 5108)
 +++ src/dird/msgchan.c	(working copy)
 @@ -51,7 +51,7 @@
  /* Commands sent to Storage daemon */
@@ -34,7 +34,7 @@ Index: src/dird/msgchan.c
         Dmsg1(100, "<stored: %s", sd->msg);
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(revision 5107)
+--- src/dird/job.c	(revision 5108)
 +++ src/dird/job.c	(working copy)
 @@ -927,6 +927,7 @@
     jcr->fileset = job->fileset;
@@ -46,7 +46,7 @@ Index: src/dird/job.c
        free(jcr->RestoreBootstrap);
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(revision 5107)
+--- src/dird/dird_conf.c	(revision 5108)
 +++ src/dird/dird_conf.c	(working copy)
 @@ -295,6 +295,7 @@
     {"enabled",     store_bool, ITEM(res_job.enabled), 0, ITEM_DEFAULT, true},
@@ -56,9 +56,19 @@ Index: src/dird/dird_conf.c
     {"rerunfailedlevels",   store_bool, ITEM(res_job.rerun_failed_levels), 0, ITEM_DEFAULT, false},
     {"prefermountedvolumes", store_bool, ITEM(res_job.PreferMountedVolumes), 0, ITEM_DEFAULT, true},
     {"runbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
+@@ -600,6 +601,9 @@
+          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
+          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
+          res->res_job.spool_data, res->res_job.write_part_after_job);
++      if (res->res_job.spool_size) {
++         sendit(sock, _("     SpoolSize=%s\n"),	edit_uint64(res->res_job.spool_size, ed1));
++      }
+       if (res->res_job.JobType == JT_MIGRATE) {
+          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
+       }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(revision 5107)
+--- src/dird/dird_conf.h	(revision 5108)
 +++ src/dird/dird_conf.h	(working copy)
 @@ -380,6 +380,7 @@
     utime_t RescheduleInterval;        /* Reschedule interval */
@@ -70,7 +80,7 @@ Index: src/dird/dird_conf.h
     bool PrefixLinks;                  /* prefix soft links with Where path */
 Index: src/stored/job.c
 ===================================================================
---- src/stored/job.c	(revision 5107)
+--- src/stored/job.c	(revision 5108)
 +++ src/stored/job.c	(working copy)
 @@ -49,7 +49,7 @@
  /* Requests from the Director daemon */
@@ -111,7 +121,7 @@ Index: src/stored/job.c
     pm_strcpy(jcr->fileset_md5, fileset_md5);
 Index: src/stored/acquire.c
 ===================================================================
---- src/stored/acquire.c	(revision 5107)
+--- src/stored/acquire.c	(revision 5108)
 +++ src/stored/acquire.c	(working copy)
 @@ -609,7 +609,12 @@
        if (dcr->attached_to_dev) {
@@ -129,7 +139,7 @@ Index: src/stored/acquire.c
        attach_dcr_to_dev(dcr);
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(revision 5107)
+--- src/jcr.h	(revision 5108)
 +++ src/jcr.h	(working copy)
 @@ -246,6 +246,7 @@
     int replace;                       /* Replace option */
@@ -147,3 +157,81 @@ Index: src/jcr.h
     int CurVol;                        /* Current Volume count */
     DIRRES* director;                  /* Director resource */
     alist *write_store;                /* list of write storage devices sent by DIR */ 
+Index: patches/testing/spoolsize_per_job.patch
+===================================================================
+--- patches/testing/spoolsize_per_job.patch	(revision 5108)
++++ patches/testing/spoolsize_per_job.patch	(working copy)
+@@ -1,6 +1,6 @@
+ Index: src/dird/msgchan.c
+ ===================================================================
+---- src/dird/msgchan.c	(revision 5107)
++--- src/dird/msgchan.c	(revision 5108)
+ +++ src/dird/msgchan.c	(working copy)
+ @@ -51,7 +51,7 @@
+  /* Commands sent to Storage daemon */
+@@ -34,7 +34,7 @@
+         Dmsg1(100, "<stored: %s", sd->msg);
+ Index: src/dird/job.c
+ ===================================================================
+---- src/dird/job.c	(revision 5107)
++--- src/dird/job.c	(revision 5108)
+ +++ src/dird/job.c	(working copy)
+ @@ -927,6 +927,7 @@
+     jcr->fileset = job->fileset;
+@@ -46,7 +46,7 @@
+        free(jcr->RestoreBootstrap);
+ Index: src/dird/dird_conf.c
+ ===================================================================
+---- src/dird/dird_conf.c	(revision 5107)
++--- src/dird/dird_conf.c	(revision 5108)
+ +++ src/dird/dird_conf.c	(working copy)
+ @@ -295,6 +295,7 @@
+     {"enabled",     store_bool, ITEM(res_job.enabled), 0, ITEM_DEFAULT, true},
+@@ -56,9 +56,19 @@
+     {"rerunfailedlevels",   store_bool, ITEM(res_job.rerun_failed_levels), 0, ITEM_DEFAULT, false},
+     {"prefermountedvolumes", store_bool, ITEM(res_job.PreferMountedVolumes), 0, ITEM_DEFAULT, true},
+     {"runbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
++@@ -600,6 +601,9 @@
++          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
++          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
++          res->res_job.spool_data, res->res_job.write_part_after_job);
+++      if (res->res_job.spool_size) {
+++         sendit(sock, _("     SpoolSize=%s\n"),	edit_uint64(res->res_job.spool_size, ed1));
+++      }
++       if (res->res_job.JobType == JT_MIGRATE) {
++          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
++       }
+ Index: src/dird/dird_conf.h
+ ===================================================================
+---- src/dird/dird_conf.h	(revision 5107)
++--- src/dird/dird_conf.h	(revision 5108)
+ +++ src/dird/dird_conf.h	(working copy)
+ @@ -380,6 +380,7 @@
+     utime_t RescheduleInterval;        /* Reschedule interval */
+@@ -70,7 +80,7 @@
+     bool PrefixLinks;                  /* prefix soft links with Where path */
+ Index: src/stored/job.c
+ ===================================================================
+---- src/stored/job.c	(revision 5107)
++--- src/stored/job.c	(revision 5108)
+ +++ src/stored/job.c	(working copy)
+ @@ -49,7 +49,7 @@
+  /* Requests from the Director daemon */
+@@ -111,7 +121,7 @@
+     pm_strcpy(jcr->fileset_md5, fileset_md5);
+ Index: src/stored/acquire.c
+ ===================================================================
+---- src/stored/acquire.c	(revision 5107)
++--- src/stored/acquire.c	(revision 5108)
+ +++ src/stored/acquire.c	(working copy)
+ @@ -609,7 +609,12 @@
+        if (dcr->attached_to_dev) {
+@@ -129,7 +139,7 @@
+        attach_dcr_to_dev(dcr);
+ Index: src/jcr.h
+ ===================================================================
+---- src/jcr.h	(revision 5107)
++--- src/jcr.h	(revision 5108)
+ +++ src/jcr.h	(working copy)
+ @@ -246,6 +246,7 @@
+     int replace;                       /* Replace option */
