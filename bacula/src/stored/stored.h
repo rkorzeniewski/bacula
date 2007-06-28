@@ -51,6 +51,7 @@ const int sd_dbglvl = 300;
 #   endif
 # endif
 #endif
+#include "lock.h"
 #include "block.h"
 #include "record.h"
 #include "dev.h"

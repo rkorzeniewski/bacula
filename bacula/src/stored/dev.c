@@ -47,12 +47,6 @@
  *     daemon. More complicated coding (double buffering, writer
  *     thread, ...) is left for a later version.
  *
- *     Unfortunately, I have had to add more and more complication
- *     to this code. This was not foreseen as noted above, and as
- *     a consequence has lead to something more contorted than is
- *     really necessary -- KES.  Note, this contortion has been
- *     corrected to a large extent by a rewrite (Apr MMI).
- *
  *   Version $Id$
  */
 

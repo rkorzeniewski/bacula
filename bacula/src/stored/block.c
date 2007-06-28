@@ -1,14 +1,4 @@
 /*
- *
- *   block.c -- tape block handling functions
- *
- *              Kern Sibbald, March MMI
- *                 added BB02 format October MMII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   block.c -- tape block handling functions
+ *
+ *              Kern Sibbald, March MMI
+ *                 added BB02 format October MMII
+ *
+ *   Version $Id$
+ *
+ */
 
 
 #include "bacula.h"

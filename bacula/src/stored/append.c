@@ -1,10 +1,4 @@
 /*
- * Append code for Storage daemon
- *  Kern Sibbald, May MM
- *
- *  Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -31,6 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Append code for Storage daemon
+ *  Kern Sibbald, May MM
+ *
+ *  Version $Id$
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -76,7 +76,7 @@ bool do_append_data(JCR *jcr)
 
    ds = fd_sock;
 
-   if (!bnet_set_buffer_size(ds, dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
+   if (!ds->set_buffer_size(dcr->device->max_network_buffer_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg0(jcr, M_FATAL, 0, _("Unable to set network buffer size.\n"));
       return false;
@@ -116,7 +116,7 @@ bool do_append_data(JCR *jcr)
    }
 
    /* Tell File daemon to send data */
-   if (!bnet_fsend(fd_sock, OK_data)) {
+   if (!fd_sock->fsend(OK_data)) {
       berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to FD. ERR=%s\n"),
             be.bstrerror(fd_sock->b_errno));
@@ -156,7 +156,7 @@ bool do_append_data(JCR *jcr)
             break;                    /* end of data */
          }
          Jmsg1(jcr, M_FATAL, 0, _("Error reading data header from FD. ERR=%s\n"),
-               bnet_strerror(ds));
+               ds->bstrerror());
          ok = false;
          break;
       }
@@ -242,7 +242,7 @@ bool do_append_data(JCR *jcr)
                if (!dir_update_file_attributes(dcr, &rec)) {
                   jcr->dir_bsock->clear_spooling();
                   Jmsg(jcr, M_FATAL, 0, _("Error updating file attributes. ERR=%s\n"),
-                     bnet_strerror(jcr->dir_bsock));
+                     jcr->dir_bsock->bstrerror());
                   ok = false;
                   break;
                }
@@ -254,9 +254,9 @@ bool do_append_data(JCR *jcr)
       Dmsg1(650, "End read loop with FD. Stat=%d\n", n);
 
       if (is_bnet_error(ds)) {
-         Dmsg1(350, "Network read error from FD. ERR=%s\n", bnet_strerror(ds));
+         Dmsg1(350, "Network read error from FD. ERR=%s\n", ds->bstrerror());
          Jmsg1(jcr, M_FATAL, 0, _("Network error on data channel. ERR=%s\n"),
-               bnet_strerror(ds));
+               ds->bstrerror());
          ok = false;
          break;
       }
@@ -266,7 +266,7 @@ bool do_append_data(JCR *jcr)
    set_jcr_job_status(jcr, ok?JS_Terminated:JS_ErrorTerminated);
 
    /* Terminate connection with FD */
-   bnet_fsend(ds, OK_append);
+   ds->fsend(OK_append);
    do_fd_commands(jcr);               /* finish dialog with FD */
 
 

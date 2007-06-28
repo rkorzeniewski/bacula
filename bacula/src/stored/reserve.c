@@ -54,6 +54,7 @@ static bool reserve_device_for_read(DCR *dcr);
 static bool reserve_device_for_append(DCR *dcr, RCTX &rctx);
 static bool use_storage_cmd(JCR *jcr);
 static void queue_reserve_message(JCR *jcr);
+static void pop_reserve_messages(JCR *jcr);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -573,8 +574,6 @@ static bool use_storage_cmd(JCR *jcr)
    int Copy, Stripe;
    DIRSTORE *store;
    RCTX rctx;
-   char *msg;
-   alist *msgs;
    alist *dirstore;
 
    memset(&rctx, 0, sizeof(RCTX));
@@ -584,7 +583,7 @@ static bool use_storage_cmd(JCR *jcr)
     *   use_device for each device that it wants to use.
     */
    dirstore = New(alist(10, not_owned_by_alist));
-   msgs = jcr->reserve_msgs = New(alist(10, not_owned_by_alist));  
+   jcr->reserve_msgs = New(alist(10, not_owned_by_alist));  
    do {
       Dmsg2(dbglvl, "jid=%u <dird: %s", jid(), dir->msg);
       ok = sscanf(dir->msg, use_storage, store_name.c_str(), 
@@ -664,9 +663,7 @@ static bool use_storage_cmd(JCR *jcr)
 
       lock_reservations();
       for ( ; !fail && !job_canceled(jcr); ) {
-         while ((msg = (char *)msgs->pop())) {
-            free(msg);
-         }
+         pop_reserve_messages(jcr);
          rctx.suitable_device = false;
          rctx.have_volume = false;
          rctx.VolumeName[0] = 0;
@@ -784,7 +781,7 @@ static bool use_storage_cmd(JCR *jcr)
       Dmsg2(dbglvl, "jid=%u >dird: %s", jid(), dir->msg);
    }
 
-   release_msgs(jcr);
+   release_reserve_messages(jcr);
    return ok;
 }
 
@@ -1522,7 +1519,10 @@ bail_out:
    jcr->unlock();
 }
 
-void release_msgs(JCR *jcr)
+/*
+ * Pop and release any reservations messages
+ */
+static void pop_reserve_messages(JCR *jcr)
 {
    alist *msgs;
    char *msg;
@@ -1535,7 +1535,21 @@ void release_msgs(JCR *jcr)
    while ((msg = (char *)msgs->pop())) {
       free(msg);
    }
-   delete msgs;
+bail_out:
+   jcr->unlock();
+}
+
+/*
+ * Also called from acquire.c 
+ */
+void release_reserve_messages(JCR *jcr)
+{
+   pop_reserve_messages(jcr);
+   jcr->lock();
+   if (!jcr->reserve_msgs) {
+      goto bail_out;
+   }
+   delete jcr->reserve_msgs;
    jcr->reserve_msgs = NULL;
 
 bail_out:

@@ -755,7 +755,7 @@ bool write_session_label(DCR *dcr, int label)
 
    free_record(rec);
    Dmsg2(150, "Leave write_session_label Block=%ud File=%ud\n",
-      dev->get_block(), dev->get_file());
+      dev->get_block_num(), dev->get_file());
    return true;
 }
 

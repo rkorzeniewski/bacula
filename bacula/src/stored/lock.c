@@ -43,14 +43,107 @@ const int dbglvl = 500;
 #endif
 
 
-void DEVICE::block(int why)
+/*
+ *
+ * The Storage daemon has three locking concepts that must be
+ *   understood:
+ *
+ *  1. dblock    blocking the device, which means that the device
+ *               is "marked" in use.  When setting and removing the
+                 block, the device is locked, but after dblock is
+                 called the device is unlocked.
+ *  2. dlock()   simple mutex that locks the device structure. A dlock
+ *               can be acquired while a device is blocked if it is not
+ *               locked.      
+ *  3. r_dlock   "recursive" dlock, when means that a dlock (mutex)
+ *               will be acquired on the device if it is not blocked
+ *               by some other thread. If the device was blocked by
+ *               the current thread, it will acquire the lock.
+ *               If some other thread has set a block on the device,
+ *               this call will wait until the device is unblocked.
+ *
+ *  A lock is normally set when modifying the device structure.
+ *  A r_lock is normally acquired when you want to block the device
+ *    i.e. it will wait until the device is not blocked.
+ *  A block is normally set during long operations like writing to
+ *    the device.
+ *  If you are writing the device, you will normally block and 
+ *    lock it.
+ *  A lock cannot be violated. No other thread can touch the
+ *    device while a lock is set.  
+ *  When a block is set, every thread accept the thread that set
+ *    the block will block if r_dlock is called.
+ *  A device can be blocked for multiple reasons, labeling, writing,
+ *    acquiring (opening) the device, waiting for the operator, unmounted,
+ *    ...
+ *  Under certain conditions the block that is set on a device can be    
+ *    stolen and the device can be used by another thread. For example,
+ *    a device is blocked because it is waiting for the operator to  
+ *    mount a tape.  The operator can then unmount the device, and label
+ *    a tape, re-mount it, give back the block, and the job will continue.
+ *
+ *
+ * Functions:
+ *
+ *   DEVICE::dlock()   does P(m_mutex)     (in dev.h)
+ *   DEVICE::dunlock() does V(m_mutex)
+ *
+ *   DEVICE::dblock(why)  does 
+ *                    r_dlock();         (recursive device lock)
+ *                    block_device(this, why) 
+ *                    r_dunlock()
+ *
+ *   DEVICE::dunblock does
+ *                    dlock()
+ *                    unblock_device()
+ *                    dunlock()
+ *
+ *   DEVICE::r_dlock() does recursive locking
+ *                    dlock()
+ *                    if blocked and not same thread that locked
+ *                       pthread_cond_wait
+ *                    leaves device locked 
+ *
+ *   DEVICE::r_dunlock()
+ *                    same as dunlock();
+ *
+ *   block_device() does  (must be locked and not blocked at entry)  
+ *                    set blocked status
+ *                    set our pid
+ *
+ *   unblock_device() does (must be blocked at entry)
+ *                        (locked on entry)
+ *                        (locked on exit)
+ *                    set unblocked status
+ *                    clear pid
+ *                    if waiting threads
+ *                       pthread_cond_broadcast
+ *
+ *   steal_device_lock() does (must be locked and blocked at entry)
+ *                    save status
+ *                    set new blocked status
+ *                    set new pid
+ *                    unlock()
+ *
+ *   give_back_device_lock() does (must be blocked but not locked)
+ *                    dlock()
+ *                    reset blocked status
+ *                    save previous blocked
+ *                    reset pid
+ *                    if waiting threads
+ *                       pthread_cond_broadcast
+ *
+ */
+
+
+void DEVICE::dblock(int why)
 {
    r_dlock();              /* need recursive lock to block */
    block_device(this, why);
    r_dunlock();
 }
 
-void DEVICE::unblock(bool locked)
+void DEVICE::dunblock(bool locked)
 {
    if (!locked) {
       dlock();
@@ -103,17 +196,14 @@ void DEVICE::_r_dunlock(const char *file, int line)
  */
 #ifdef SD_DEBUG_LOCK
 void DEVICE::_r_dlock(const char *file, int line)
-#else
-void DEVICE::r_dlock()
-#endif
 {
-   int stat;
-#ifdef SD_DEBUG_LOCK
    Dmsg4(sd_dbglvl+1, "r_dlock blked=%s from %s:%d JobId=%u\n", this->print_blocked(),
          file, line, get_jobid_from_tid());
 #else
-   Dmsg1(sd_dbglvl, "reclock blked=%s\n", this->print_blocked());
+void DEVICE::r_dlock()
+{
 #endif
+   int stat;
    this->dlock();   
    if (this->blocked() && !pthread_equal(this->no_wait_id, pthread_self())) {
       this->num_waiting++;             /* indicate that I am waiting */
@@ -216,6 +306,8 @@ const char *DEVICE::print_blocked() const
       return "BST_UNMOUNTED_WAITING_FOR_SYSOP";
    case BST_MOUNT:
       return "BST_MOUNT";
+   case BST_DESPOOLING:
+      return "BST_DESPOOLING";
    default:
       return _("unknown blocked code");
    }
@@ -233,4 +325,3 @@ bool is_device_unmounted(DEVICE *dev)
           (blocked == BST_UNMOUNTED_WAITING_FOR_SYSOP);
    return stat;
 }
-
