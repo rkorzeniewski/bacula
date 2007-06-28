@@ -1484,7 +1484,7 @@ static void queue_reserve_message(JCR *jcr)
       }
       /* Comparison based on 4 digit message number */
       if (strncmp(msg, jcr->errmsg, 4) == 0) {
-         return;
+         goto bail_out;
       }
    }      
    /* Message unique, so insert it */
