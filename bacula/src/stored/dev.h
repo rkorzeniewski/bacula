@@ -39,19 +39,7 @@
 #ifndef __DEV_H
 #define __DEV_H 1
 
-#ifdef SD_DEBUG_LOCK
-#define r_dlock() _r_dlock(__FILE__, __LINE__);      /* in device.c */
-#define r_dunlock() _r_dunlock(__FILE__, __LINE__);  /* in device.c */
-#define dlock() _dlock(__FILE__, __LINE__);          /* in device.c */
-#define dunlock() _dunlock(__FILE__, __LINE__);     /* in device.c */
-#endif
-
 #undef DCR                            /* used by Bacula */
-
-#define block_device(d, s) _block_device(__FILE__, __LINE__, (d), s)
-#define unblock_device(d) _unblock_device(__FILE__, __LINE__, (d))
-#define steal_device_lock(d, p, s) _steal_device_lock(__FILE__, __LINE__, (d), (p), s)
-#define give_back_device_lock(d, p) _give_back_device_lock(__FILE__, __LINE__, (d), (p))
 
 /* Return values from wait_for_sysop() */
 enum {
@@ -143,16 +131,6 @@ enum {
 #define ST_PART_SPOOLED    (1<<18)    /* spooling part */
 #define ST_FREESPACE_OK    (1<<19)    /* Have valid freespace for DVD */
 
-/* m_blocked states (mutually exclusive) */
-enum {
-   BST_NOT_BLOCKED = 0,               /* not blocked */
-   BST_UNMOUNTED,                     /* User unmounted device */
-   BST_WAITING_FOR_SYSOP,             /* Waiting for operator to mount tape */
-   BST_DOING_ACQUIRE,                 /* Opening/validating/moving tape */
-   BST_WRITING_LABEL,                 /* Labeling a tape */
-   BST_UNMOUNTED_WAITING_FOR_SYSOP,   /* User unmounted during wait for op */
-   BST_MOUNT                          /* Mount request */
-};
 
 /* Volume Catalog Information structure definition */
 struct VOLUME_CAT_INFO {
@@ -186,24 +164,11 @@ struct VOLUME_CAT_INFO {
 };
 
 
-typedef struct s_steal_lock {
-   pthread_t  no_wait_id;             /* id of no wait thread */
-   int        dev_blocked;            /* state */
-   int        dev_prev_blocked;       /* previous blocked state */
-} bsteal_lock_t;
-
 class DEVRES;                        /* Device resource defined in stored_conf.h */
 
 class DCR; /* forward reference */
 class VOLRES; /* forward reference */
 
-/*
- * Used in unblock() call
- */
-enum {
-   dev_locked = true,
-   dev_unlocked = false
-};
 
 /*
  * Device structure definition. There is one of these for
@@ -227,10 +192,6 @@ public:
    int num_waiting;                   /* number of threads waiting */
    int num_writers;                   /* number of writing threads */
    int reserved_device;               /* number of device reservations */
-
-   /* New access control in process of being implemented */
-// brwlock_t xlock;                   /* New mutual exclusion lock */
-
    int capabilities;                  /* capabilities mask */
    int state;                         /* state mask */
    int dev_errno;                     /* Our own errno */
@@ -380,21 +341,8 @@ public:
    char *bstrerror(void) { return errmsg; };
    char *print_errmsg() { return errmsg; };
 
-#ifdef  SD_DEBUG_LOCK
-   void _r_dlock(const char *, int);      /* in device.c */
-   void _r_dunlock(const char *, int);    /* in device.c */
-   void _dlock(const char *, int);        /* in device.c */
-   void _dunlock(const char *, int);      /* in device.c */
-#else
-   void r_dlock();                        /* in device.c */
-   void r_dunlock() { dunlock(); }
-   void dlock() { P(m_mutex); } 
-   void dunlock() { V(m_mutex); } 
-#endif
 
    void clear_volhdr();          /* in dev.c */
-   void block(int why);          /* in locks.c */
-   void unblock(bool locked=false); /* in locks.c */
    void close();                 /* in dev.c */
    void close_part(DCR *dcr);    /* in dev.c */
    bool truncate(DCR *dcr);      /* in dev.c */
@@ -424,13 +372,30 @@ public:
    bool update_pos(DCR *dcr);    /* in dev.c */
    bool update_freespace();      /* in dvd.c */
 
-   void set_blocked(int block) { m_blocked = block; };
-   int  blocked() const { return m_blocked; };
    uint32_t get_file() const { return file; };
-   uint32_t get_block() const { return block_num; };
-   const char *print_blocked() const; /* in dev.c */
-   bool is_blocked() const { return m_blocked != BST_NOT_BLOCKED; };
+   uint32_t get_block_num() const { return block_num; };
    int fd() const { return m_fd; };
+
+   /* 
+    * Locking and blocking calls
+    */
+#ifdef  SD_DEBUG_LOCK
+   void _r_dlock(const char *, int);      /* in lock.c */
+   void _r_dunlock(const char *, int);    /* in lock.c */
+   void _dlock(const char *, int);        /* in lock.c */
+   void _dunlock(const char *, int);      /* in lock.c */
+#else
+   void r_dlock();                        /* in lock.c */
+   void r_dunlock() { dunlock(); }
+   void dlock() { P(m_mutex); } 
+   void dunlock() { V(m_mutex); } 
+#endif
+   void dblock(int why);                  /* in lock.c */
+   void dunblock(bool locked=false);      /* in lock.c */
+   void set_blocked(int block) { m_blocked = block; };
+   int blocked() const { return m_blocked; };
+   bool is_blocked() const { return m_blocked != BST_NOT_BLOCKED; };
+   const char *print_blocked() const;     /* in dev.c */
 
 private:
    bool do_mount(int mount, int timeout);      /* in dev.c */

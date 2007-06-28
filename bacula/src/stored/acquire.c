@@ -63,7 +63,7 @@ bool acquire_device_for_read(DCR *dcr)
    int retry = 0;
    
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
-   dev->block(BST_DOING_ACQUIRE);
+   dev->dblock(BST_DOING_ACQUIRE);
 
    if (dev->num_writers > 0) {
       Jmsg2(jcr, M_FATAL, 0, _("Acquire read: num_writers=%d not zero. Job %d canceled.\n"), 
@@ -129,11 +129,11 @@ bool acquire_device_for_read(DCR *dcr)
        *  which we do not use except for the dev info.
        */
       stat = search_res_for_device(rctx);
-      release_msgs(jcr);              /* release queued messages */
+      release_reserve_messages(jcr);         /* release queued messages */
       unlock_reservations();
       if (stat == 1) {
          DCR *ndcr = jcr->read_dcr;
-         dev->unblock(dev_unlocked);
+         dev->dunblock(dev_unlocked);
          detach_dcr_from_dev(dcr);    /* release old device */
          /* Copy important info from the new dcr */
          dev = dcr->dev = ndcr->dev; 
@@ -143,7 +143,7 @@ bool acquire_device_for_read(DCR *dcr)
          attach_dcr_to_dev(dcr);
          ndcr->VolumeName[0] = 0;
          free_dcr(ndcr);
-         dev->block(BST_DOING_ACQUIRE); 
+         dev->dblock(BST_DOING_ACQUIRE); 
          Jmsg(jcr, M_INFO, 0, _("Media Type change.  New device %s chosen.\n"),
             dev->print_name());
          bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
@@ -290,7 +290,7 @@ get_out:
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unblock(dev_locked);
+   dev->dunblock(dev_locked);
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
 }
@@ -315,7 +315,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    init_device_wait_timers(dcr);
 
-   dev->block(BST_DOING_ACQUIRE);
+   dev->dblock(BST_DOING_ACQUIRE);
    Dmsg1(190, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
 
@@ -439,7 +439,7 @@ DCR *acquire_device_for_append(DCR *dcr)
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unblock(dev_locked);
+   dev->dunblock(dev_locked);
    return dcr;
 
 /*
@@ -452,7 +452,7 @@ get_out:
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->unblock(dev_locked);
+   dev->dunblock(dev_locked);
    return NULL;
 }
 
@@ -560,7 +560,6 @@ bool release_device(DCR *dcr)
    pthread_cond_broadcast(&dev->wait_next_vol);
    Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
    pthread_cond_broadcast(&wait_device_release);
-   dcr->dev_locked = false;              /* set no longer locked */
    dev->dunlock();
    if (jcr->read_dcr == dcr) {
       jcr->read_dcr = NULL;

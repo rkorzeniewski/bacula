@@ -230,7 +230,7 @@ bool    is_volume_in_use(DCR *dcr);
 void    send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int len, void *sarg), void *arg);
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 int     search_res_for_device(RCTX &rctx);
-void    release_msgs(JCR *jcr);
+void    release_reserve_messages(JCR *jcr);
 
 extern int reservations_lock_count;
 extern int vol_list_lock_count;
