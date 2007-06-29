@@ -17,7 +17,7 @@
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nombre","Reciclado","Retención","Use Duration",
+var header = new Array("Nombre","Media Type","Reciclado","Retención","Use Duration",
                        "Máx Jobs/Volumen","Máx Archivos/Volumen", 
                        "Máx Tamaño/Volumen","Nb volumes", "Estado Volumen", "Uso", "Selección");
 
@@ -46,10 +46,16 @@ chkbox.type  = 'radio';
 chkbox.value = '<TMPL_VAR Name>';
 chkbox.name  = 'pool';
 
+chkbox = document.createElement('INPUT');
+chkbox.type  = 'radio';
+chkbox.value = '<TMPL_VAR mediatype>';
+chkbox.name  = 'mediatype';
+
 img2 = percent_usage(<TMPL_VAR poolusage>);
 
 data.push( new Array(
 "<TMPL_VAR Name>",
+"<TMPL_VAR mediatype>",
 "<TMPL_VAR Recycle>",
 human_sec(<TMPL_VAR VolRetention>),
 human_sec(<TMPL_VAR VolUseDuration>),

@@ -1050,6 +1050,7 @@ our %sql_func = (
 	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
 	      STARTTIME_PMONTH => " date_part('month', Job.StartTime) ",
 	      DB_SIZE => " SELECT pg_database_size(current_database()) ",
+	      CAT_POOL_TYPE => " MediaType || '_' || Pool.Name ",
 	  },
 	  mysql => {
 	      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
@@ -1068,6 +1069,7 @@ our %sql_func = (
 	      DB_SIZE => " SELECT 0 ",
 	      # works only with mysql 5
 	      # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
+	      CAT_POOL_TYPE => " CONCAT(MediaType,'_',Pool.Name) ",
 	  },
 	 );
 
@@ -2798,7 +2800,9 @@ SELECT subq.volmax        AS volmax,
        Pool.MaxVolJobs    AS maxvoljobs,
        Pool.MaxVolFiles   AS maxvolfiles,
        Pool.MaxVolBytes   AS maxvolbytes,
-       subq.PoolId        AS PoolId
+       subq.PoolId        AS PoolId,
+       subq.MediaType     AS mediatype,
+       $self->{sql}->{CAT_POOL_TYPE}  AS uniq
 FROM
   (
     SELECT COALESCE(media_avg_size.volavg,0) * count(Media.MediaId) AS volmax,
@@ -2819,7 +2823,7 @@ LEFT JOIN Pool ON (Pool.PoolId = subq.PoolId)
 $whereW
 ";
 
-    my $all = $self->dbh_selectall_hashref($query, 'name') ;
+    my $all = $self->dbh_selectall_hashref($query, 'uniq') ;
 
     $query = "
 SELECT Pool.Name AS name,
@@ -2845,7 +2849,8 @@ GROUP BY Pool.Name;
 	$query = "
   SELECT VolStatus AS volstatus, count(MediaId) AS nb
     FROM Media 
-   WHERE PoolId=$p->{poolid} 
+   WHERE PoolId=$p->{poolid}
+     AND Media.MediaType = '$p->{mediatype}'
          $whereA
 GROUP BY VolStatus
 ";
