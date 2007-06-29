@@ -430,7 +430,7 @@ public:
    bool spooling;                     /* set when actually spooling */
    bool despooling;                   /* set when despooling */
    bool despool_wait;                 /* waiting for despooling */
-   bool dev_locked;                   /* set if dev already locked */
+   bool m_dev_locked;                 /* set if dev already locked */
    bool NewVol;                       /* set if new Volume mounted */
    bool WroteVol;                     /* set if Volume written */
    bool NewFile;                      /* set when EOF written */
@@ -455,6 +455,13 @@ public:
    int Copy;                          /* identical copy number */
    int Stripe;                        /* RAIT stripe */
    VOLUME_CAT_INFO VolCatInfo;        /* Catalog info for desired volume */
+
+   /* Methods */
+   bool is_dev_locked() { return m_dev_locked; }
+   void dlock() { dev->dlock(); m_dev_locked = true; }
+   void dunlock() { dev->dunlock(); m_dev_locked = false;}
+   void dblock(int why) { dev->dblock(why); }
+
 };
 
 /*

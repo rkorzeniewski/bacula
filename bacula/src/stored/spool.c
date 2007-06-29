@@ -238,10 +238,14 @@ static bool despool_data(DCR *dcr, bool commit)
    }
    dcr->despool_wait = true;
    dcr->spooling = false;
-   dcr->dev->r_dlock();
+   /*
+    * We work with device blocked, but not locked so that
+    *  other threads -- e.g. reservations can lock the device
+    *  structure.
+    */
+   dcr->dblock(BST_DESPOOLING);
    dcr->despool_wait = false;
    dcr->despooling = true;
-   dcr->dev_locked = true;
 
    /*
     * This is really quite kludgy and should be fixed some time.
@@ -333,10 +337,16 @@ static bool despool_data(DCR *dcr, bool commit)
    free(rdev);
    dcr->spooling = true;           /* turn on spooling again */
    dcr->despooling = false;
+   /* 
+    * We are done, so unblock the device, but if we have done a 
+    *  commit, leave it locked so that the job cleanup does not
+    *  need to wait to release the device (no re-acquire of the lock).
+    */
+   dcr->dlock();
+   unblock_device(dcr->dev);
    /* If doing a commit, leave the device locked -- unlocked in release_device() */
    if (!commit) {
-      dcr->dev_locked = false;
-      dcr->dev->dunlock();
+      dcr->dunlock();
    }
    return ok;
 }
