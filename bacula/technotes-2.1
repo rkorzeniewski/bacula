@@ -1,7 +1,18 @@
               Technical notes on version 2.1
 
 General:
-
+29Jun07
+kes  Implement new BST_DESPOOLING blocked state. Change from locking
+     during despooling in SD to blocking. This means that other threads
+     can work with the device structure, in particular the reservations
+     system while despooling.
+28Jun07
+kes  Fix return in reservation message queue that missed clearing
+     the jcr lock (implemented 26Jun07 below).
+kes  Rename a number of dev methods to make locking function names
+     a bit clearer.
+kes  Document locking in lock.c. Move lock structures to new file
+     lock.h.
 26Jun07
 kes  Move reservations message lock to lock jcr only this
      fixes bug #861.

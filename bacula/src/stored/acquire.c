@@ -133,7 +133,7 @@ bool acquire_device_for_read(DCR *dcr)
       unlock_reservations();
       if (stat == 1) {
          DCR *ndcr = jcr->read_dcr;
-         dev->dunblock(dev_unlocked);
+         dev->dunblock(DEV_UNLOCKED);
          detach_dcr_from_dev(dcr);    /* release old device */
          /* Copy important info from the new dcr */
          dev = dcr->dev = ndcr->dev; 
@@ -290,7 +290,7 @@ get_out:
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->dunblock(dev_locked);
+   dev->dunblock(DEV_LOCKED);
    Dmsg1(50, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
 }
@@ -439,7 +439,7 @@ DCR *acquire_device_for_append(DCR *dcr)
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->dunblock(dev_locked);
+   dev->dunblock(DEV_LOCKED);
    return dcr;
 
 /*
@@ -452,7 +452,7 @@ get_out:
       Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->dunblock(dev_locked);
+   dev->dunblock(DEV_LOCKED);
    return NULL;
 }
 
@@ -472,7 +472,7 @@ bool release_device(DCR *dcr)
    bool ok = true;
 
    /* lock only if not already locked by this thread */
-   if (!dcr->dev_locked) {
+   if (!dcr->is_dev_locked()) {
       dev->r_dlock();
    }
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");

@@ -72,8 +72,8 @@ typedef struct s_steal_lock {
  * Used in unblock() call
  */
 enum {
-   dev_locked = true,
-   dev_unlocked = false
+   DEV_LOCKED = true,
+   DEV_UNLOCKED = false
 };
 
 #endif

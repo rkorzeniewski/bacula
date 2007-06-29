@@ -92,13 +92,22 @@ bool fixup_device_block_write_error(DCR *dcr)
    char dt[MAX_TIME_LENGTH];
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
+   int blocked = dev->blocked();         /* save any previous blocked status */
+   bool ok = false;
 
    wait_time = time(NULL);
 
    Dmsg0(100, "Enter fixup_device_block_write_error\n");
 
+   /*
+    * If we are blocked at entry, unblock it, and set our own block status
+    */
+   if (blocked != BST_NOT_BLOCKED) {
+      unblock_device(dev);
+   }
    block_device(dev, BST_DOING_ACQUIRE);
-   /* Unlock, but leave BLOCKED */
+
+   /* Continue unlocked, but leave BLOCKED */
    dev->dunlock();
 
    bstrncpy(PrevVolName, dev->VolCatInfo.VolCatName, sizeof(PrevVolName));
@@ -117,8 +126,7 @@ bool fixup_device_block_write_error(DCR *dcr)
       free_block(label_blk);
       dcr->block = block;
       dev->dlock();  
-      unblock_device(dev);
-      return false;                /* device locked */
+      goto bail_out;
    }
    dev->dlock();                    /* lock again */
 
@@ -141,8 +149,7 @@ bool fixup_device_block_write_error(DCR *dcr)
         be.bstrerror(dev->dev_errno));
       free_block(label_blk);
       dcr->block = block;
-      unblock_device(dev);
-      return false;                /* device locked */
+      goto bail_out;
    }
    free_block(label_blk);
    dcr->block = block;
@@ -175,12 +182,21 @@ bool fixup_device_block_write_error(DCR *dcr)
       berrno be;
       Pmsg1(0, _("write_block_to_device overflow block failed. ERR=%s"),
         be.bstrerror(dev->dev_errno));
-      unblock_device(dev);
-      return false;                /* device locked */
+      goto bail_out;
    }
+   ok = true;
 
+bail_out:
+   /*
+    * At this point, the device is locked and blocked.
+    * Unblock the device, restore any entry blocked condition, then
+    *   return leaving the device locked (as it was on entry).
+    */
    unblock_device(dev);
-   return true;                             /* device locked */
+   if (blocked != BST_NOT_BLOCKED) {
+      block_device(dev, blocked);
+   }
+   return ok;                               /* device locked */
 }
 
 /*
