@@ -1,6 +1,10 @@
               Technical notes on version 2.1
 
 General:
+30Jun07
+kes  Integrate patch from Sergey Svishchev <svs@ropnet.ru> that fixes 
+     bug in migration code where a job that spanned two volumes
+     was migrated twice.
 29Jun07
 kes  Implement new BST_DESPOOLING blocked state. Change from locking
      during despooling in SD to blocking. This means that other threads
