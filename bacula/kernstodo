@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                     087 June 2007
+                      29 June 2007
 
 
 Document:
@@ -58,6 +58,7 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- No where in restore causes kaboom.
 - Performance: multiple spool files for a single job.
 - Performance: despool attributes when despooling data (problem
   multiplexing Dir connection).

@@ -596,7 +596,7 @@ static int get_job_to_migrate(JCR *jcr)
    char ed1[30], ed2[30];
    POOL_MEM query(PM_MESSAGE);
    JobId_t JobId;
-   DBId_t  MediaId = 0;
+   DBId_t DBId = 0;
    int stat;
    char *p;
    idpkt ids, mid, jids;
@@ -703,36 +703,29 @@ static int get_job_to_migrate(JCR *jcr)
          }
          Dmsg2(dbglevel, "Pool Occupancy ids=%d MediaIds=%s\n", ids.count, ids.list);
 
-         /*
-          * Now loop over MediaIds getting more JobIds to migrate until
-          *  we reduce the pool occupancy below the low water mark.
-          */
+         if (!find_jobids_from_mediaid_list(jcr, &ids, "Volumes")) {
+            goto bail_out;
+         }
+         /* ids == list of jobs  */
          p = ids.list;
          for (int i=0; i < (int)ids.count; i++) {
-            stat = get_next_dbid_from_list(&p, &MediaId);
-            Dmsg2(dbglevel, "get_next_dbid stat=%d MediaId=%u\n", stat, MediaId);
+            stat = get_next_dbid_from_list(&p, &DBId);
+            Dmsg2(dbglevel, "get_next_dbid stat=%d JobId=%u\n", stat, (uint32_t)DBId);
             if (stat < 0) {
-               Jmsg(jcr, M_FATAL, 0, _("Invalid MediaId found.\n"));
+               Jmsg(jcr, M_FATAL, 0, _("Invalid JobId found.\n"));
                goto bail_out;
             } else if (stat == 0) {
                break;
             }
+
             mid.count = 1;
-            Mmsg(mid.list, "%s", edit_int64(MediaId, ed1));
-            if (!find_jobids_from_mediaid_list(jcr, &mid, "Volumes")) {
-               continue;
-            }
-            if (mid.count == 0) {
-               continue;                  /* nothing returned */
-            }
-            if (i != 0) {
+            Mmsg(mid.list, "%s", edit_int64(DBId, ed1));
+            if (jids.count > 0) {
                pm_strcat(jids.list, ",");
             }
             pm_strcat(jids.list, mid.list);
             jids.count += mid.count;
 
-            /* Now get the count of bytes added */
-            ctx.count = 0;
             /* Find count of bytes from Jobs */
             Mmsg(query, sql_job_bytes, mid.list);
             Dmsg1(dbglevel, "Jobbytes query: %s\n", query.c_str());
@@ -749,7 +742,6 @@ static int get_job_to_migrate(JCR *jcr)
                Dmsg0(dbglevel, "We should be done.\n");
                break;
             }
-
          }
          /* Transfer jids to ids, where the jobs list is expected */
          ids.count = jids.count;
