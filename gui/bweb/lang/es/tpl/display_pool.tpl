@@ -6,9 +6,7 @@
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
     <input type="image" type='submit' name='action' value='media' title='Mostrar contenido' src='/bweb/zoom.png'>
-<TMPL_LOOP MediaType>
-    <input type='hidden' name='mediatype' value=<TMPL_VAR name>>
-</TMPL_LOOP>
+    <input id="mediatype" type='hidden' name='mediatype' value="">
    </form>
    <br/>
    Nota: Para modificar las propiedades de un pool, se debe editar la configuración de Bacula
@@ -45,11 +43,7 @@ chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
 chkbox.value = '<TMPL_VAR Name>';
 chkbox.name  = 'pool';
-
-chkbox = document.createElement('INPUT');
-chkbox.type  = 'radio';
-chkbox.value = '<TMPL_VAR mediatype>';
-chkbox.name  = 'mediatype';
+chkbox.setAttribute('onclick','document.getElementById("mediatype").value="<TMPL_VAR mediatype>";');
 
 img2 = percent_usage(<TMPL_VAR poolusage>);
 
