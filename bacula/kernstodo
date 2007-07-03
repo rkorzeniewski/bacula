@@ -58,6 +58,7 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- Use E'xxx' to escape PostgreSQL strings.
 - No where in restore causes kaboom.
 - Performance: multiple spool files for a single job.
 - Performance: despool attributes when despooling data (problem
