@@ -394,7 +394,7 @@ bool prune_volume(UAContext *ua, MEDIA_DBR *mr)
    }
 
    memset(&del, 0, sizeof(del));
-   del.max_ids = 1000;
+   del.max_ids = 10000;
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
    db_lock(ua->db);

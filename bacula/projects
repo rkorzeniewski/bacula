@@ -1,18 +1,23 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 14 April 2007
+                    Status updated 7 July 2007
                    After re-ordering in vote priority
 
 Items Completed:
+Item:   2   Implement a Bacula GUI/management tool.
 Item:  18   Quick release of FD-SD connection after backup.
-Item:  40   Include JobID in spool file name
+Item:  23   Implement from-client and to-client on restore command line.
 Item:  25   Implement huge exclude list support using dlist   
 Item:  41   Enable to relocate files and directories when restoring
+Item:  42   Batch attribute inserts (ten times faster)
+Item:  43   More concurrency in SD using micro-locking
+Item:  44   Performance enhancements (POSIX/Win32 OS file access hints).
+Item:  40   Include JobID in spool file name
 
 Summary:
 Item:   1   Accurate restoration of renamed/deleted files
-Item:   2   Implement a Bacula GUI/management tool.
+Item:   2*  Implement a Bacula GUI/management tool.
 Item:   3   Allow FD to initiate a backup
 Item:   4   Merge multiple backups (Synthetic Backup or Consolidation).
 Item:   5   Deletion of Disk-Based Bacula Volumes
@@ -33,7 +38,7 @@ Item:  19   Implement a Python interface to the Bacula catalog.
 Item:  20   Archive data
 Item:  21   Split documentation
 Item:  22   Implement support for stacking arbitrary stream filters, sinks.
-Item:  23   Implement from-client and to-client on restore command line.
+Item:  23*  Implement from-client and to-client on restore command line.
 Item:  24   Add an override in Schedule for Pools based on backup types.
 Item:  25*  Implement huge exclude list support using hashing.
 Item:  26   Implement more Python events in Bacula.
@@ -52,6 +57,9 @@ Item:  38   Include timestamp of job launch in "stat clients" output
 Item:  39   Message mailing based on backup types
 Item:  40*  Include JobID in spool file name
 Item:  41*  Enable to relocate files and directories when restoring
+Item:  42*  Batch attribute inserts (ten times faster)
+Item:  43*  More concurrency in SD using micro-locking
+Item:  44*  Performance enhancements (POSIX/Win32 OS file access hints).
 
 Item  1:  Accurate restoration of renamed/deleted files
   Date:   28 November 2005

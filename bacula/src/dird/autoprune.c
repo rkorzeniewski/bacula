@@ -80,8 +80,8 @@ void do_autoprune(JCR *jcr)
 }
 
 /*
- * Prune at least on Volume in current Pool. This is called from
- *   catreq.c when the Storage daemon is asking for another
+ * Prune at least one Volume in current Pool. This is called from
+ *   catreq.c => next_vol.c when the Storage daemon is asking for another
  *   volume and no appendable volumes are available.
  *
  *  Return: false if nothing pruned
@@ -103,7 +103,7 @@ bool prune_volumes(JCR *jcr, MEDIA_DBR *mr)
       return 0;
    }
    memset(&del, 0, sizeof(del));
-   del.max_ids = 1000;
+   del.max_ids = 10000;
    del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
 
    ua = new_ua_context(jcr);

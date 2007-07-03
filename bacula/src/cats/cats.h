@@ -587,16 +587,48 @@ struct B_DB {
 
 #endif /*  __SQL_C */
 
+/* ==============================================================   
+ *
+ *  What follows are definitions that are used "globally" for all 
+ *   the different SQL engines and both inside and external to the
+ *   cats directory.
+ */
+
 extern uint32_t bacula_db_version;
 
-/* ***FIXME*** FileId_t should *really* be uint64_t
- *  but at the current time, this breaks MySQL.
+/*
+ * These are the sizes of the current definitions of database
+ *  Ids.  In general, FileId_t can be set to uint64_t and it
+ *  *should* work.  Users have reported back that it does work
+ *  for PostgreSQL.  For the other types, all places in Bacula
+ *  have been converted, but no one has actually tested it.
+ * In principle, the only field that really should need to be
+ *  64 bits is the FileId_t
  */
 typedef uint32_t FileId_t;
 typedef uint32_t DBId_t;              /* general DB id type */
 typedef uint32_t JobId_t;
 
 #define faddr_t long
+
+/*
+ * Structure used when calling db_get_query_ids()
+ *  allows the subroutine to return a list of ids.
+ */
+class dbid_list : public SMARTALLOC {
+public:
+   DBId_t *DBId;                      /* array of DBIds */
+   char *PurgedFiles;                 /* Array of PurgedFile flags */
+   int num_ids;                       /* num of ids actually stored */
+   int max_ids;                       /* size of id array */
+   int num_seen;                      /* number of ids processed */
+   int tot_ids;                       /* total to process */
+
+   dbid_list();                       /* in sql.c */
+   ~dbid_list();                      /* in sql.c */
+};
+
+
 
 
 /* Job information passed to create job record and update

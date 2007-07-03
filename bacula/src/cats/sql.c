@@ -52,6 +52,21 @@ uint32_t bacula_db_version = 0;
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);
 
+dbid_list::dbid_list() 
+{
+   memset(this, 0, sizeof(dbid_list));
+   max_ids = 1000;
+   DBId = (DBId_t *)malloc(max_ids * sizeof(DBId_t));
+   num_ids = num_seen = tot_ids = 0;
+   PurgedFiles = NULL;
+}
+
+dbid_list::~dbid_list() 
+{ 
+   free(DBId);
+}
+
+
 /*
  * Called here to retrieve an integer from the database
  */
