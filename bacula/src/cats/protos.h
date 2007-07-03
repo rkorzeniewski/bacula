@@ -55,7 +55,7 @@ void db_end_transaction(JCR *jcr, B_DB *mdb);
 int db_int64_handler(void *ctx, int num_fields, char **row);
 void db_thread_cleanup();
 
-/* create.c */
+/* sql_create.c */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 bool db_create_job_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int db_create_media_record(JCR *jcr, B_DB *db, MEDIA_DBR *media_dbr);
@@ -72,17 +72,17 @@ bool my_batch_start(JCR *jcr, B_DB *mdb);
 bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error);
 bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 
-/* delete.c */
+/* sql_delete.c */
 int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
 int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
 
-/* find.c */
+/* sql_find.c */
 bool db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
 bool db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
 int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
 bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
 
-/* get.c */
+/* sql_get.c */
 bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
@@ -98,9 +98,10 @@ bool db_get_media_ids(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr, int *num_ids, uint32_t
 int db_get_job_volume_parameters(JCR *jcr, B_DB *mdb, JobId_t JobId, VOL_PARAMS **VolParams);
 int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
 int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
+bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
 
 
-/* list.c */
+/* sql_list.c */
 enum e_list_type {
    HORZ_LIST,
    VERT_LIST
@@ -114,7 +115,7 @@ void db_list_jobmedia_records(JCR *jcr, B_DB *mdb, JobId_t JobId, DB_LIST_HANDLE
 int  db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *sendit, void *ctx, int verbose, e_list_type type);
 void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
 
-/* update.c */
+/* sql_update.c */
 bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);

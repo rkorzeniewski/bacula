@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 2.1.22
+          Release Notes for Bacula 2.1.24
 
-  Bacula code: Total files = 458 Total lines = 198,659 (*.h *.c *.in)
+  Bacula code: Total files = 516 Total lines = 244,807 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
@@ -14,6 +14,17 @@ Restore on Win32, and in particular on Vista is untested. Please
 test before relying on it.  It should backup and restore reparse
 points.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Changes since Beta release 2.1.22
+- Different locking in reservations and despooling systems,
+  which means more micro-locking and less macro-locking, which
+  should give a lot more concurrency at the expense of slightly
+  (<0.1%) more overhead due to more locking/unlocking, but     
+  concurrent jobs should run much faster.
+- Patch from Sergey Svishchev <svs@ropnet.ru> that fixes bug in
+  migration code where a job that spanned two volumes was
+  migrated twice.
+
 
 Changes since Beta release 2.1.20
 - New graphs in bat

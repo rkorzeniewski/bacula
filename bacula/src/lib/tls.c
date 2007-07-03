@@ -563,7 +563,7 @@ void tls_bsock_shutdown(BSOCK *bsock)
    bsock->set_blocking();
 
    err = SSL_shutdown(bsock->tls->openssl);
-   if (err = 0) {
+   if (err == 0) {
       /* Complete shutdown */
       err = SSL_shutdown(bsock->tls->openssl);
    }

@@ -519,7 +519,7 @@ then
         process_cmd_utils
         process_mkisofs
         process_dvd_rw_tools
-#       process_qt4
+        process_qt4
 else
         for dependency in "$@"
         do

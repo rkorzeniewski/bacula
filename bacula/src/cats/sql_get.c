@@ -861,6 +861,45 @@ bool db_get_media_ids(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr, int *num_ids, uint32_t
 }
 
 
+/*
+ * This function returns a list of all the DBIds that are returned
+ *   for the query.
+ *
+ *  Returns false: on failure
+ *          true:  on success
+ */
+bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids)
+{
+   SQL_ROW row;
+   int i = 0;
+   bool ok = false;
+
+   db_lock(mdb);
+   ids.num_ids = 0;
+   if (QUERY_DB(jcr, mdb, query.c_str())) {
+      ids.num_ids = sql_num_rows(mdb);
+      if (ids.num_ids > 0) {
+         if (ids.max_ids < ids.num_ids) {
+            free(ids.DBId);
+            ids.DBId = (DBId_t *)malloc(ids.num_ids * sizeof(DBId_t));
+         }
+         while ((row = sql_fetch_row(mdb)) != NULL) {
+            ids.DBId[i++] = str_to_uint64(row[0]);
+         }
+      }
+      sql_free_result(mdb);
+      ok = true;
+   } else {
+      Mmsg(mdb->errmsg, _("query dbids failed: ERR=%s\n"), sql_strerror(mdb));
+      Jmsg(jcr, M_ERROR, 0, "%s", mdb->errmsg);
+      ok = false;
+   }
+   db_unlock(mdb);
+   return ok;
+}
+
+
+
 /* Get Media Record
  *
  * Returns: false: on failure
