@@ -25,7 +25,6 @@ Changes since Beta release 2.1.22
   migration code where a job that spanned two volumes was
   migrated twice.
 
-
 Changes since Beta release 2.1.20
 - New graphs in bat
 - Due to a typo, I had inadvertantly turned off batch insert mode.  

@@ -1,6 +1,12 @@
               Technical notes on version 2.1
 
 General:
+07Jul07
+kes  Rework prune_volumes() code to take account of InChanger flag,
+     and to handle recycling volumes going to the Scratch pool and
+     current pool because the RecyclePool directive.
+kes  Implement a better and more efficient db_get_query_dbids() to
+     handle creating and passing back a list of DBIds.
 03Jul07
 kes  Start work on new more efficient DBId subroutine. First use
      will be for recycling volume to Scratch inchanger.

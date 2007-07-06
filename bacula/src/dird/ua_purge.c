@@ -532,7 +532,7 @@ bool mark_media_purged(UAContext *ua, MEDIA_DBR *mr)
       }
       /* Send message to Job report, if it is a *real* job */           
       if (jcr && jcr->JobId > 0) {
-         Jmsg1(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
+         Jmsg(jcr, M_INFO, 0, _("All records pruned from Volume \"%s\"; marking it \"Purged\"\n"),
             mr->VolumeName); 
       }
       return true;

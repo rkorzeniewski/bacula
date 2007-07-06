@@ -44,7 +44,7 @@ extern int authenticate_user_agent(UAContext *ua);
 
 /* autoprune.c */
 extern void do_autoprune(JCR *jcr);
-extern bool prune_volumes(JCR *jcr, MEDIA_DBR *mr);
+extern bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
 
 /* autorecycle.c */
 extern bool recycle_oldest_purged_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
