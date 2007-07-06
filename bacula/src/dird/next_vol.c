@@ -96,7 +96,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                 */
                Dmsg0(150, "Call prune_volumes\n");
                if (prune) {
-                  prune_volumes(jcr, mr);
+                  prune_volumes(jcr, InChanger, mr);
                }
                ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
                if (!ok) {
@@ -406,14 +406,17 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
          memcpy(mr, &smr, sizeof(MEDIA_DBR));
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-         /* set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
-          * we could have Recycled media */
+         /*
+          * set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
+          * we could have Recycled media,  
+          */
          bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
          if (!db_update_media_record(jcr, jcr->db, mr)) {
             Jmsg(jcr, M_WARNING, 0, _("Unable to update Volume record: ERR=%s"), 
                  db_strerror(jcr->db));
-            ok = false;
+            goto bail_out;
          }
+         ok = true;
       }
    }
 bail_out:

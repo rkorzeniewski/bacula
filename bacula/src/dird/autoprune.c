@@ -87,47 +87,82 @@ void do_autoprune(JCR *jcr)
  *  Return: false if nothing pruned
  *          true if pruned, and mr is set to pruned volume
  */
-bool prune_volumes(JCR *jcr, MEDIA_DBR *mr) 
+bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr) 
 {
    int count;
    int i;
-   uint32_t *ids = NULL;
-   int num_ids = 0;
-   struct del_ctx del;
+   dbid_list ids;
+   struct del_ctx prune_list;
+   POOL_MEM query(PM_MESSAGE);
    UAContext *ua;
    bool ok = false;
+   char ed1[50], ed2[100], ed3[50];
+   POOL_DBR spr;
 
    Dmsg1(050, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
    if (!jcr->job->PruneVolumes && !jcr->pool->AutoPrune) {
       Dmsg0(100, "AutoPrune not set in Pool.\n");
       return 0;
    }
-   memset(&del, 0, sizeof(del));
-   del.max_ids = 10000;
-   del.JobId = (JobId_t *)malloc(sizeof(JobId_t) * del.max_ids);
+
+   memset(&prune_list, 0, sizeof(prune_list));
+   prune_list.max_ids = 10000;
+   prune_list.JobId = (JobId_t *)malloc(sizeof(JobId_t) * prune_list.max_ids);
 
    ua = new_ua_context(jcr);
 
    db_lock(jcr->db);
 
-   /* Get the List of all media ids in the current Pool */
-   if (!db_get_media_ids(jcr, jcr->db, mr, &num_ids, &ids)) {
+   /* Edit PoolId */
+   edit_int64(mr->PoolId, ed1);
+   /*
+    * Get Pool record for Scratch Pool
+    */
+   memset(&spr, 0, sizeof(spr));
+   bstrncpy(spr.Name, "Scratch", sizeof(spr.Name));
+   if (db_get_pool_record(jcr, jcr->db, &spr)) {
+      edit_int64(spr.PoolId, ed2);
+      bstrncat(ed2, ",", sizeof(ed2));
+   } else {
+      ed2[0] = 0;
+   }
+   /*
+    * ed2 ends up with scratch poolid and current poolid or
+    *   just current poolid if there is no scratch pool 
+    */
+   bstrncat(ed2, ed1, sizeof(ed2));
+
+   /*
+    * Get the List of all media ids in the current Pool or whose
+    *  RecyclePoolId is the current pool or the scratch pool
+    */
+   const char *select = "SELECT DISTINCT MediaId,LastWritten FROM Media WHERE "
+        "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' %s"
+        "ORDER BY LastWritten ASC,MediaId";
+
+   if (InChanger) {
+      char changer[100];
+      /* Ensure it is in this autochanger */
+      bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s ",
+         edit_int64(mr->StorageId, ed3));
+      Mmsg(query, select, ed1, ed2, mr->MediaType, changer);
+   } else {
+      Mmsg(query, select, ed1, ed2, mr->MediaType, "");
+   }
+
+   if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
 
-   /* Visit each Volume and Prune it */
-   for (i=0; i<num_ids; i++) {
+   /* Visit each Volume and Prune it until we find one that is purged */
+   for (i=0; i<ids.num_ids; i++) {
       MEDIA_DBR lmr;
       memset(&lmr, 0, sizeof(lmr));
-      lmr.MediaId = ids[i];
+      lmr.MediaId = ids.DBId[i];
       Dmsg1(150, "Get record MediaId=%d\n", (int)lmr.MediaId);
       if (!db_get_media_record(jcr, jcr->db, &lmr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
-         continue;
-      }
-      /* Prune only Volumes from current Pool */
-      if (mr->PoolId != lmr.PoolId) {
          continue;
       }
       /* Don't prune archived volumes */
@@ -138,14 +173,18 @@ bool prune_volumes(JCR *jcr, MEDIA_DBR *mr)
       if (strcmp(lmr.VolStatus, "Full")   == 0 ||
           strcmp(lmr.VolStatus, "Used")   == 0) {
          Dmsg2(050, "Add prune list MediaId=%d Volume %s\n", (int)lmr.MediaId, lmr.VolumeName);
-         count = get_prune_list_for_volume(ua, &lmr, &del);
+         count = get_prune_list_for_volume(ua, &lmr, &prune_list);
          Dmsg1(050, "Num pruned = %d\n", count);
          if (count != 0) {
-            purge_job_list_from_catalog(ua, del);
-            del.num_ids = 0;             /* reset count */
+            purge_job_list_from_catalog(ua, prune_list);
+            prune_list.num_ids = 0;             /* reset count */
          }
          ok = is_volume_purged(ua, &lmr);
-         if (ok) {
+         /*
+          * If purged and not moved to another Pool, 
+          *   then we stop pruning and take this volume.
+          */
+         if (ok && lmr.PoolId == mr->PoolId) {
             Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
             mr = &lmr;             /* struct copy */
             break;
@@ -156,11 +195,8 @@ bool prune_volumes(JCR *jcr, MEDIA_DBR *mr)
 bail_out:
    db_unlock(jcr->db);
    free_ua_context(ua);
-   if (ids) {
-      free(ids);
-   }
-   if (del.JobId) {
-      free(del.JobId);
+   if (prune_list.JobId) {
+      free(prune_list.JobId);
    }
    return ok;
 }

@@ -1695,12 +1695,32 @@ int qhelp_cmd(UAContext *ua, const char *cmd)
    return 1;
 }
 
+#if 1 
 static int version_cmd(UAContext *ua, const char *cmd)
 {
    ua->send_msg(_("%s Version: %s (%s) %s %s %s\n"), my_name, VERSION, BDATE,
             HOST_OS, DISTNAME, DISTVER);
    return 1;
 }
+#else
+/*
+ *  Test code -- turned on only for debug testing 
+ */
+static int version_cmd(UAContext *ua, const char *cmd)
+{
+   dbid_list ids;
+   POOL_MEM query(PM_MESSAGE);
+   open_db(ua);
+   Mmsg(query, "select MediaId from Media,Pool where Pool.PoolId=Media.PoolId and Pool.Name='Full'");
+   db_get_query_dbids(ua->jcr, ua->db, query, ids);
+   ua->send_msg("num_ids=%d max_ids=%d tot_ids=%d\n", ids.num_ids, ids.max_ids, ids.tot_ids);
+   for (int i=0; i < ids.num_ids; i++) {
+      ua->send_msg("id=%d\n", ids.DBId[i]);
+   }
+   close_db(ua);
+   return 1;
+}
+#endif
 
 /* 
  * This call explicitly checks for a catalog=xxx and
