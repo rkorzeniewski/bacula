@@ -126,6 +126,7 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    } else {
       ed2[0] = 0;
    }
+   Dmsg1(050, "Scratch pool=%s\n", ed2);
    /*
     * ed2 ends up with scratch poolid and current poolid or
     *   just current poolid if there is no scratch pool 
@@ -150,17 +151,20 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
       Mmsg(query, select, ed1, ed2, mr->MediaType, "");
    }
 
+   Dmsg1(050, "query=%s\n", query.c_str());
    if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
       goto bail_out;
    }
+
+   Dmsg1(050, "num_ids=%d\n", ids.num_ids);
 
    /* Visit each Volume and Prune it until we find one that is purged */
    for (i=0; i<ids.num_ids; i++) {
       MEDIA_DBR lmr;
       memset(&lmr, 0, sizeof(lmr));
       lmr.MediaId = ids.DBId[i];
-      Dmsg1(150, "Get record MediaId=%d\n", (int)lmr.MediaId);
+      Dmsg1(050, "Get record MediaId=%d\n", (int)lmr.MediaId);
       if (!db_get_media_record(jcr, jcr->db, &lmr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(jcr->db));
          continue;
@@ -189,6 +193,8 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             mr = &lmr;             /* struct copy */
             break;
          }
+      } else {
+         Dmsg2(050, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
       }
    }
 
