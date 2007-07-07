@@ -298,7 +298,7 @@ static void update_volslot(UAContext *ua, char *val, MEDIA_DBR *mr)
 void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
 {
    POOL_DBR pr;
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50], ed2[50];
 
    memset(&pr, 0, sizeof(pr));
@@ -309,12 +309,10 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
    mr->PoolId = pr.PoolId;            /* set new PoolId */
    /*
     */
-   query = get_pool_memory(PM_MESSAGE);
    db_lock(ua->db);
    Mmsg(query, "UPDATE Media SET PoolId=%s WHERE MediaId=%s",
-      edit_int64(mr->PoolId, ed1),
-      edit_int64(mr->MediaId, ed2));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      edit_int64(mr->PoolId, ed1), edit_int64(mr->MediaId, ed2));
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       ua->error_msg("%s", db_strerror(ua->db));
    } else {
       ua->info_msg(_("New Pool is: %s\n"), pr.Name);
@@ -328,14 +326,13 @@ void update_vol_pool(UAContext *ua, char *val, MEDIA_DBR *mr, POOL_DBR *opr)
       }
    }
    db_unlock(ua->db);
-   free_pool_memory(query);
 }
 
 /* Modify the RecyclePool of a Volume */
 void update_vol_recyclepool(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
-   POOLMEM *query;
+   POOL_MEM query(PM_MESSAGE);
    char ed1[50], ed2[50];
 
    memset(&pr, 0, sizeof(pr));
@@ -346,18 +343,15 @@ void update_vol_recyclepool(UAContext *ua, char *val, MEDIA_DBR *mr)
    /* pool = select_pool_resource(ua);  */
    mr->RecyclePoolId = pr.PoolId;            /* get the PoolId */
 
-   query = get_pool_memory(PM_MESSAGE);
    db_lock(ua->db);
    Mmsg(query, "UPDATE Media SET RecyclePoolId=%s WHERE MediaId=%s",
-      edit_int64(mr->RecyclePoolId, ed1),
-      edit_int64(mr->MediaId, ed2));
-   if (!db_sql_query(ua->db, query, NULL, NULL)) {
+      edit_int64(mr->RecyclePoolId, ed1), edit_int64(mr->MediaId, ed2));
+   if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       ua->error_msg("%s", db_strerror(ua->db));
    } else {
       ua->info_msg(_("New RecyclePool is: %s\n"), pr.Name);
    }
    db_unlock(ua->db);
-   free_pool_memory(query);
 }
 
 /*
