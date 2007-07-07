@@ -94,8 +94,8 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                /*
                 * 4. Try pruning Volumes
                 */
-               Dmsg0(150, "Call prune_volumes\n");
                if (prune) {
+                  Dmsg0(150, "Call prune_volumes\n");
                   prune_volumes(jcr, InChanger, mr);
                }
                ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
@@ -401,9 +401,15 @@ static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
           }
          Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
               smr.VolumeName);
-         /* Set new Pool Id in smr record, then copy it to mr */
-         smr.PoolId = mr->PoolId;
-         memcpy(mr, &smr, sizeof(MEDIA_DBR));
+         /*
+          * Get *full* media record to return as db_find_next_volume does
+          *   not return everything .
+          */
+         if (!db_get_media_record(jcr, jcr->db, mr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Unable to get Volume record: ERR=%s"),
+               db_strerror(jcr->db));
+            goto bail_out;
+         }
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
          /*
