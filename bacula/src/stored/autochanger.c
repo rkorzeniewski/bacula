@@ -146,13 +146,17 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
 
    changer = get_pool_memory(PM_FNAME);
    if (slot <= 0) {
-      Jmsg(jcr, M_INFO, 0, _("Invalid slot=%d defined in catalog. Manual load my be required.\n"), slot);
+      Jmsg(jcr, M_INFO, 0, _("Invalid slot=%d defined in catalog for Volume \"%s\" "
+           "on %s. Manual load my be required.\n"), slot, dcr->VolCatInfo.VolCatName,
+           dev->print_name());
       rtn_stat = 0;
    } else if (!dcr->device->changer_name) {
-      Jmsg(jcr, M_INFO, 0, _("No \"Changer Device\" manual load of Volume may be required.\n"));
+      Jmsg(jcr, M_INFO, 0, _("No \"Changer Device\" for %s. Manual load of Volume may be required.\n"),
+           dev->print_name());
       rtn_stat = 0;
   } else if (!dcr->device->changer_command) {
-      Jmsg(jcr, M_INFO, 0, _("No \"Changer Command\" manual load of Volume may be requird.\n"));
+      Jmsg(jcr, M_INFO, 0, _("No \"Changer Command\" for %s. Manual load of Volume may be requird.\n"),
+           dev->print_name());
       rtn_stat = 0;
   } else {
       /* Attempt to load the Volume */
