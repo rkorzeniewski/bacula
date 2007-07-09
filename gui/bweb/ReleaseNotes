@@ -1,5 +1,9 @@
           Release Notes for bweb 2.2
 
+2007/07/09
+ - Tweak Job per group summary view
+ - Fix Kb, Gb, Tb unit
+
 2007/07/03
  - Add MediaType to Pool view
 
