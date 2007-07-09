@@ -1,5 +1,6 @@
 bweb (2.2.0-1) stable; urgency=low
 
+  * Fix Kb, Gb, Tb unit
   * brestore -b console mode can now create brestore table
   * fix #836
   * add relocation options to brestore
