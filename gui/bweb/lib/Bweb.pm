@@ -1377,6 +1377,7 @@ sub get_form
 		 maxvoljobs  => 0,
 		 maxvolbytes => 0,
 		 maxvolfiles => 0,
+		 pathid => 1,
 		 );
 
     my %opt_ss =(		# string with space
@@ -2087,19 +2088,24 @@ SELECT client_group_name AS client_group_name,
        COALESCE(jobok.jobbytes,0)  + COALESCE(joberr.jobbytes,0)  AS jobbytes,
        COALESCE(jobok.joberrors,0) + COALESCE(joberr.joberrors,0) AS joberrors,
        COALESCE(jobok.nbjobs,0)  AS nbjobok,
-       COALESCE(joberr.nbjobs,0) AS nbjoberr
+       COALESCE(joberr.nbjobs,0) AS nbjoberr,
+       COALESCE(jobok.duration, '0:0:0') AS duration
 
-FROM (
+FROM client_group LEFT JOIN (
     SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
            SUM(JobFiles) AS jobfiles, SUM(JobBytes) AS jobbytes, 
-           SUM(JobErrors) AS joberrors
+           SUM(JobErrors) AS joberrors,
+           SUM($self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
+                              - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)))
+                        AS duration
+
     FROM Job JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
              JOIN client_group USING (client_group_id)
     
     WHERE JobStatus = 'T'
     $where
     $limit
-) AS jobok LEFT JOIN
+) AS jobok USING (client_group_name) LEFT JOIN
 
 (
     SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
