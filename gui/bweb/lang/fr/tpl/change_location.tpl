@@ -24,8 +24,10 @@ Média :
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-Quand cela sera terminé, pouvez vouscliquer sur le lien ci-dessous pour mettre à jour la localisation ?
-(Vous pouvez utiliser ce lien : <TMPL_VAR url>).
+Quand cela sera terminé, pouvez vous cliquer sur le lien ci-dessous pour mettre à jour la localisation ?
+(Vous pouvez utiliser ce lien : 
+<TMPL_VAR url>
+).
 
 Merci
 </textarea>
