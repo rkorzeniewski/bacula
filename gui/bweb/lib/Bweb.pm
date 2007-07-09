@@ -1137,7 +1137,7 @@ sub dbh_selectrow_hashref
 # display Mb/Gb/Kb
 sub human_size
 {
-    my @unit = qw(b Kb Mb Gb Tb);
+    my @unit = qw(B KB MB GB TB);
     my $val = shift || 0;
     my $i=0;
     my $format = '%i %s';
