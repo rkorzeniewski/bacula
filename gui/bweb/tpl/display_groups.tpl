@@ -17,6 +17,11 @@
      src='/bweb/zoom.png'>&nbsp;
     <input type="image" name='action' value='group_stats' title='Statistics' src='/bweb/chart.png'>&nbsp;
    </form>
+   <form action='?' method='get'>
+    <input type='hidden' name='action' value='client'>
+    <input type="image" name='notingroup' value='yes' title='View non-members'
+     src='/bweb/zoom.png'>&nbsp;
+   </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">

@@ -1259,7 +1259,7 @@ sub display_clients
     my ($self) = @_;
 
     my $where='';
-    my $arg = $self->get_form("client", "qre_client", "jclient_groups");
+    my $arg = $self->get_form("client", "qre_client", "jclient_groups", "qnotingroup");
 
     if ($arg->{qre_client}) {
 	$where = "WHERE Name $self->{sql}->{MATCH} $arg->{qre_client} ";
@@ -1269,6 +1269,14 @@ sub display_clients
 	$where = "JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
                   JOIN client_group USING (client_group_id)
                   WHERE client_group_name IN ($arg->{jclient_groups})";
+    } elsif ($arg->{qnotingroup}) {
+	$where =   "
+  WHERE NOT EXISTS
+   (SELECT 1 FROM client_group_member
+     WHERE Client.ClientId = client_group_member.ClientId
+   )
+";
+   
     }
 
     my $query = "
