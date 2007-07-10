@@ -279,7 +279,7 @@ bool prerestorePage::checkJobIdList()
       bool intok;
       job.toInt(&intok, 10);
       if (intok) {
-         /* are the intergers representing a list of jobs all with the same job
+         /* are the integers representing a list of jobs all with the same job
           * and client */
          QStringList fields;
          if (jobdefsFromJob(fields, job) == 1) {
