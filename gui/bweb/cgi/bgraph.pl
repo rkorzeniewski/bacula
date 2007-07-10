@@ -462,6 +462,7 @@ $limitq
 					   limit => $arg->{limit},
 					   offset=> $arg->{offset},
 					   groupby => "A",
+					   order => "A",
 					   );
     my @arg;			# arg for plotting
 
@@ -506,6 +507,7 @@ $limit
 			);
 
     my $all = $dbh->selectall_arrayref($query) ;
+    print STDERR Data::Dumper::Dumper($all);
     my ($ret) = make_tab_sum($all);
 
     print $obj->plot([$ret->{date}, $ret->{nb}])->png;    
