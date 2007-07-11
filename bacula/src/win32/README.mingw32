@@ -212,8 +212,9 @@ New data variables are exported by placing their name in the file
 As with the bacula.def file above, this is now more or less automated.
 When the link dies, simply do the following:
 
-   cd .../bacula/src/win32/cats
+   cd .../bacula/src/win32
    make                  (to build the .o files, note the link will fail)
+   cd cats
    ./make_def >bacula_cats.def
 
 This should rebuild the bacula_cats.def file. Note, if you have
