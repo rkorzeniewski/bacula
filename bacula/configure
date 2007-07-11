@@ -755,6 +755,8 @@ GNOME_LIBDIR
 GNOME_LIBS
 GNOME_DIR
 BAT_DIR
+QWT_INC
+QWT_LDFLAGS
 WXCONS_CPPFLAGS
 WXCONS_LDFLAGS
 WX_DIR
@@ -1461,6 +1463,7 @@ Optional Packages:
   --with-libintl-prefix[=DIR]  search for libintl in DIR/include and DIR/lib
   --without-libintl-prefix     don't search for libintl in includedir and libdir
   --with-included-gettext use the GNU gettext library included here
+ --with-qwt[=DIR]		  specify qwt library directory
  --with-readline[=DIR]	       specify readline library directory
 
   --with-python[=DIR]	Include Python support.  DIR is the Python base
@@ -14705,6 +14708,38 @@ echo "$as_me: error: Unable to find Qt4 installation needed by bat" >&2;}
    { (exit 1); exit 1; }; }
   fi
 fi
+
+#
+#  If bat is enabled, we need the qwt library
+got_qwt=no
+if test x$support_bat = xyes; then
+
+# Check whether --with-qwt was given.
+if test "${with_qwt+set}" = set; then
+  withval=$with_qwt;
+	case "$with_qwt" in
+	no) : ;;
+	yes|*)
+	  if test -f ${with_qwt}/include/qwt.h; then
+	     QWT_INC="${with_qwt}/include"
+	     QWT_LDFLAGS="-L${with_qwt}/lib"
+	  else
+	     echo " "
+	     echo "qwt.h not found. bat turned off ..."
+	     echo " "
+	     BAT_DIR=
+	     support_bat=no
+	  fi
+	  ;;
+	esac
+
+
+fi
+
+fi
+
+
+
 
 
 
@@ -35129,6 +35164,8 @@ GNOME_LIBDIR!$GNOME_LIBDIR$ac_delim
 GNOME_LIBS!$GNOME_LIBS$ac_delim
 GNOME_DIR!$GNOME_DIR$ac_delim
 BAT_DIR!$BAT_DIR$ac_delim
+QWT_INC!$QWT_INC$ac_delim
+QWT_LDFLAGS!$QWT_LDFLAGS$ac_delim
 WXCONS_CPPFLAGS!$WXCONS_CPPFLAGS$ac_delim
 WXCONS_LDFLAGS!$WXCONS_LDFLAGS$ac_delim
 WX_DIR!$WX_DIR$ac_delim
@@ -35161,8 +35198,6 @@ scriptdir!$scriptdir$ac_delim
 dump_email!$dump_email$ac_delim
 job_email!$job_email$ac_delim
 smtp_host!$smtp_host$ac_delim
-piddir!$piddir$ac_delim
-subsysdir!$subsysdir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -35204,6 +35239,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+piddir!$piddir$ac_delim
+subsysdir!$subsysdir$ac_delim
 baseport!$baseport$ac_delim
 dir_port!$dir_port$ac_delim
 fd_port!$fd_port$ac_delim
@@ -35254,7 +35291,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 48; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 50; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -35840,11 +35877,6 @@ if test "${support_bat}" = "yes" ; then
   cd src/qt-console
   a=`pwd`
   chmod 755 install_conf_file build-depkgs-qt-console
-  echo " "
-  echo "Downloading, building, and installing the qwt graphics library"
-  echo " The install will be to directory ${a}/qwt ..."
-  echo " "
-  ./build-depkgs-qt-console
   echo "Creating bat Makefile"
   qmake
 fi

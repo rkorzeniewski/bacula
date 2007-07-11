@@ -492,7 +492,8 @@ int db_get_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
    return stat;
 }
 
-
+bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids)
+{ return false; }
 
 int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
 { return 0; }

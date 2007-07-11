@@ -269,7 +269,36 @@ if test x$support_bat = xyes; then
      AC_MSG_ERROR(Unable to find Qt4 installation needed by bat)
   fi
 fi
+
+# 
+#  If bat is enabled, we need the qwt library
+got_qwt=no
+if test x$support_bat = xyes; then
+   AC_ARG_WITH(qwt,
+     [ --with-qwt@<:@=DIR@:>@		  specify qwt library directory],
+     [
+	case "$with_qwt" in
+	no) : ;;
+	yes|*)
+	  if test -f ${with_qwt}/include/qwt.h; then
+	     QWT_INC="${with_qwt}/include"
+	     QWT_LDFLAGS="-L${with_qwt}/lib"
+	  else
+	     echo " "
+	     echo "qwt.h not found. bat turned off ..."
+	     echo " "
+	     BAT_DIR=
+	     support_bat=no
+	  fi
+	  ;;
+	esac
+     ]	 
+   )
+fi
+
 AC_SUBST(BAT_DIR)
+AC_SUBST(QWT_INC)
+AC_SUBST(QWT_LDFLAGS)
 
 
 # -------------------------------------------
@@ -2189,11 +2218,6 @@ if test "${support_bat}" = "yes" ; then
   cd src/qt-console
   a=`pwd`
   chmod 755 install_conf_file build-depkgs-qt-console
-  echo " "
-  echo "Downloading, building, and installing the qwt graphics library"
-  echo " The install will be to directory ${a}/qwt ..."
-  echo " "
-  ./build-depkgs-qt-console
   echo "Creating bat Makefile"	
   qmake
 fi
