@@ -66,17 +66,10 @@ Priority:
 - Make restore use the in-use volume reservation algorithm.
 - Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
 - Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
-- How does restore JobId=nnn work? (Dirk)
-- What does: restore select fileset="TestSet" client="workplay-fd" pool="Default"
-> storage="File2"  before="2007-02-05 23:05:04" do?  (Dirk)
-
-- Implement update jobid=
-- Mention Eric and Marc's work + Marc's doc.
-- Add TLS to bat
+- Add TLS to bat (should be done).
 - When Pool specifies Storage command override does not work.
 - Implement wait_for_sysop() message display in wait_for_device(), which
   now prints warnings too often.
-
 - Ensure that each device in an Autochanger has a different
   Device Index.
 - Add Catalog = to Pool resource so that pools will exist
@@ -103,8 +96,6 @@ Priority:
    > configuration string value to a CRYPTO_CIPHER_* value, if anyone is  
    > interested in implementing this functionality.
 
-- Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
-  does the right thing.
 - Why doesn't @"xxx abc" work in a conf file?
 - Figure out some way to "automatically" backup conf changes.
 - Add the OS version back to the Win32 client info.
@@ -121,7 +112,6 @@ Priority:
 - Test Volume compatibility between machine architectures
 - Encryption documentation
 - Wrong jobbytes with query 12 (todo)
-- bacula-1.38.2-ssl.patch
 - Bare-metal recovery Windows (todo)
    
 
@@ -147,13 +137,11 @@ Projects:
   - Look at Webmin
      http://www.orangecrate.com/modules.php?name=News&file=article&sid=501
 - Performance
-  - FD-SD quick disconnect
   - Despool attributes in separate thread
   - Database speedups
   - Embedded MySQL
   - Check why restore repeatedly sends Rechdrs between
     each data chunk -- according to James Harper 9Jan07.
-  - Building the in memory restore tree is slow.
 - Features
   - Better scheduling  
   - Full at least once a month, ...
@@ -1767,3 +1755,8 @@ Block Position: 0
   apparently not.  This  happened when I removed the pool directive and 
   started the director.
 - Add Where: client:/.... to restore job report.
+- Ensure that moving a purged Volume in ua_purge.c to the RecyclePool
+  does the right thing.
+- FD-SD quick disconnect
+- Building the in memory restore tree is slow.
+
