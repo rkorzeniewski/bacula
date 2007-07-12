@@ -514,22 +514,22 @@ void do_restore(JCR *jcr)
       case STREAM_ENCRYPTED_MACOS_FORK_DATA:
       case STREAM_MACOS_FORK_DATA:
 #ifdef HAVE_DARWIN_OS
-         fork_flags = 0;
+         rctx.fork_flags = 0;
          jcr->ff->flags |= FO_HFSPLUS;
 
-         if (stream == STREAM_ENCRYPTED_MACOS_FORK_DATA) {
-            fork_flags |= FO_ENCRYPT;
+         if (rctx.stream == STREAM_ENCRYPTED_MACOS_FORK_DATA) {
+            rctx.fork_flags |= FO_ENCRYPT;
 
             /* Set up a decryption context */
             if (extract && !rctx.fork_cipher_ctx.cipher) {
-               if (!cs) {
+               if (!rctx.cs) {
                   Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
                   extract = false;
                   bclose(&rctx.bfd);
                   continue;
                }
 
-               if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
+               if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
                   Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
                   free_session(rctx);
                   extract = false;
@@ -540,21 +540,21 @@ void do_restore(JCR *jcr)
          }
 
          if (extract) {
-            if (prev_stream != stream) {
-               if (bopen_rsrc(&forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
+            if (rctx.prev_stream != rctx.stream) {
+               if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
                   Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
                   extract = false;
                   continue;
                }
 
-               fork_size = rsrc_len;
+               rctx.fork_size = rsrc_len;
                Dmsg0(30, "Restoring resource fork\n");
             }
 
-            if (extract_data(jcr, &forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, fork_flags, 
-                             &rctxfork_cipher_ctx) < 0) {
+            if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags, 
+                             &rctx.rctxfork_cipher_ctx) < 0) {
                extract = false;
-               bclose(&forkbfd);
+               bclose(&rctx.forkbfd);
                continue;
             }
          }
