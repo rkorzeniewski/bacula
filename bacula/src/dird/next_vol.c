@@ -39,9 +39,6 @@
 #include "bacula.h"
 #include "dird.h"
 
-static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger);
-
-
 /*
  *  Items needed:
  *   mr.PoolId must be set
@@ -105,7 +102,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                   /*
                    * 5. Try pulling a volume from the Scratch pool
                    */ 
-                  ok = get_scratch_volume(jcr, mr, InChanger);
+                  ok = get_scratch_volume(jcr, InChanger, mr);
                }
                /*
                 * If we are using an Autochanger and have not found
@@ -328,7 +325,7 @@ void check_if_volume_valid_or_recyclable(JCR *jcr, MEDIA_DBR *mr, const char **r
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static bool get_scratch_volume(JCR *jcr, MEDIA_DBR *mr, bool InChanger)
+bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
    MEDIA_DBR smr;
    POOL_DBR spr, pr;

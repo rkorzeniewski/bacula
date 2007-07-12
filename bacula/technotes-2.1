@@ -1,6 +1,13 @@
               Technical notes on version 2.1
 
 General:
+12Jul07
+kes  Make arguments to get_scratch_volume() in same order as other
+     such calls.
+kes  Rework the prune_volumes() subroutine so that after purging and
+     no volume found in desired pool, it will check for a scratch 
+     volume. This prevents recycling the whole scratch pool.
+kes  Add code to status storage to print boffset_t (largefile support).
 11Jul07
 kes  Move qwt (Graphics libarary for Qt4) to depkgs.
 kes  You now need a --with-qwt=<dir> to be able to build bat.
@@ -16,6 +23,8 @@ kes  Rework prune_volumes() code to take account of InChanger flag,
      current pool because the RecyclePool directive.
 kes  Implement a better and more efficient db_get_query_dbids() to
      handle creating and passing back a list of DBIds.
+
+Release 2.1.24 beta
 03Jul07
 kes  Start work on new more efficient DBId subroutine. First use
      will be for recycling volume to Scratch inchanger.

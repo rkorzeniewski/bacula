@@ -1,7 +1,7 @@
 
-          Release Notes for Bacula 2.1.24
+          Release Notes for Bacula 2.1.26
 
-  Bacula code: Total files = 516 Total lines = 244,807 (*.h *.c *.in)
+  Bacula code: Total files = 516 Total lines = 244,888 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
@@ -14,6 +14,17 @@ Restore on Win32, and in particular on Vista is untested. Please
 test before relying on it.  It should backup and restore reparse
 points.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Changes since Beta release 2.1.24
+- Add qwt graphics library (for Qt4) needed to build bat to the
+  depkgs-11Jul07.tar.gz package
+- You now need a --with-qwt=<dir> to be able to build bat.
+- Keep prune_volumes() from pruning the whole Scratch pool.
+- More debug output in status storage.
+- Correct moving a Scratch volume from pool to pool (some
+  critical columns were lost).
+- New more efficient db_get_query_dbids() -- not yet implemented
+  everywhere, but currently used in volume pruning.
 
 Changes since Beta release 2.1.22
 - Different locking in reservations and despooling systems,

@@ -1,6 +1,29 @@
               Technical notes on version 2.1
 
 General:
+12Jul07
+kes  Make arguments to get_scratch_volume() in same order as other
+     such calls.
+kes  Rework the prune_volumes() subroutine so that after purging and
+     no volume found in desired pool, it will check for a scratch 
+     volume. This prevents recycling the whole scratch pool.
+kes  Add code to status storage to print boffset_t (largefile support).
+11Jul07
+kes  Move qwt (Graphics libarary for Qt4) to depkgs.
+kes  You now need a --with-qwt=<dir> to be able to build bat.
+kes  Update src/win32/cats/bacula_cats.def to include the new       
+     db_get_query_dbids() call on Win32.
+07Jul07
+kes  Correct a problem when selecting a scratch volume and moving
+     it to another pool that lost some columns.
+kes  Tweak some code in ua_update.c to use POOL_MEM instead of POOLMEM.
+kes  Enhance Autochanger error messages to include Volume and device name.
+kes  Rework prune_volumes() code to take account of InChanger flag,
+     and to handle recycling volumes going to the Scratch pool and
+     current pool because the RecyclePool directive.
+kes  Implement a better and more efficient db_get_query_dbids() to
+     handle creating and passing back a list of DBIds.
+
 Release 2.1.24 beta
 03Jul07
 kes  Start work on new more efficient DBId subroutine. First use
