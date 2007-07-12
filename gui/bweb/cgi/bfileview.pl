@@ -49,9 +49,10 @@ $conf->load();
 my $bweb = new Bweb(info => $conf);
 $bweb->connect_db();
 
-my $arg = $bweb->get_form('where', 'jobid');
+my $arg = $bweb->get_form('where', 'jobid', 'pathid');
 my $where = $arg->{where};
 my $jobid = $arg->{jobid};
+my $pathid = $arg->{pathid};
 my $jobid_url = "jobid=$jobid";
 my $opt_level = 2 ;
 my $max_file = 20;
@@ -74,7 +75,7 @@ print CGI::header('text/html');
 $bweb->display_begin();
 $bweb->display_job_zoom($jobid);
 
-unless ($where and $jobid) {
+unless (($where or $pathid) and $jobid) {
     $bweb->error("Can't get where or jobid");
     exit 0;
 }
@@ -91,7 +92,7 @@ if (-f "$base_fich/$md5_rep.png" and -f "$base_fich/$md5_rep.tpl")
     $bweb->display_end();
     exit 0;
 }
- 
+
 my $attribs = fv_get_file_attribute($jobid, $where);
 if ($attribs->{found}) {
     $bweb->display($attribs, 'fv_file_attribs.tpl');
@@ -103,7 +104,14 @@ if ($where !~ m!/$!) {
     $where = $where . "/" ;
 }
 
-my $root = fv_get_root_pathid($where);
+my $root;
+
+if ($pathid and $where) {
+    $root = $pathid;
+} else {
+    $root = fv_get_root_pathid($where);
+}
+
 if (!$root) {
     $bweb->error("Can't find $where in catalog");
     $bweb->display_end();
@@ -115,7 +123,7 @@ my $total = fv_compute_size($jobid, $root);
 my $url_action = "bfileview.pl?opt_level=$opt_level" ;
 my $top = new CCircle(
 		      display_other => 1,
-		      base_url => "$url_action;$jobid_url;where=$where",
+		      base_url => "$url_action;pathid=$root;$jobid_url;where=$where",
 		      ) ;
 
 fv_display_rep($top, $total, $root, $opt_level) ;
@@ -168,9 +176,13 @@ sub fv_display_rep
 				       . sprintf(' %.0f%% ', $per)
 				       . Bweb::human_size($size)
 				      ) ;
-	
-	if ($chld and $level > 0) {
-	    fv_display_rep($chld, $size, $dir->[0], $level - 1) ;
+
+	if ($chld) {		# use pathid instead of where (for accents)
+	    $chld->{base_url} =~ s/pathid=$rep;/pathid=$dir->[0];/;
+	    
+	    if ($level > 0) {
+		fv_display_rep($chld, $size, $dir->[0], $level - 1) ;
+	    }
 	}
     }
 
