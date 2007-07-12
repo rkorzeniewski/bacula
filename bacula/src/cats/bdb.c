@@ -72,6 +72,20 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 #define DB_CLIENT_FILENAME   "client.db"
 #define DB_FILESET_FILENAME  "fileset.db"
 
+dbid_list::dbid_list() 
+{
+   memset(this, 0, sizeof(dbid_list));
+   max_ids = 1000;
+   DBId = (DBId_t *)malloc(max_ids * sizeof(DBId_t));
+   num_ids = num_seen = tot_ids = 0;
+   PurgedFiles = NULL;
+}
+
+dbid_list::~dbid_list() 
+{ 
+   free(DBId);
+}
+
 static POOLMEM *make_filename(B_DB *mdb, char *name)
 {
    char sep;
