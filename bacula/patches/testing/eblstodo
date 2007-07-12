@@ -1,0 +1,51 @@
+Idees
+------
+
+Cryptage :
+ - Pouvoir configurer les algos de cryptage
+ - Pouvoir choisir de crypter dans le fileset
+ - Pouvoir choisir de forcer le cryptage dans la definition
+   du client.
+
+
+Sauvegarde des postes nomades :
+ - Le client doit pouvoir initier les sauvegardes
+ - Au niveau firewall, il ne doit y avoir que 1 connexion (1)
+		    
+		    
+		    	    +---------+	  +---------------+
+		    	    |         |	  |               |
+		    	    |         |	  |    DIRECTOR   |
++------------+	   1	    |         |	  |               |
+|            +------------->|         |	  |               |
+|    FD      |		    |  PROXY  |	  +---------------+
+|            |		    |         |	  +---------------+
++------------+		    |         |	  |               |
+			    |         |	  |    STORAGE    |
+			    |         |	  |               |
+			    |         |	  |               |
+			    +---------+	  +---------------+
+
+Bconsole :
+ - Ajouter l'historique dans la bconsole
+
+
+Gestion des stats :
+ - Ajouter la gestion des stats dans le client et le sd
+   - Ajouter un M_STATS dans la gestion des messages
+   - générer un format simple UNIXSTAMP|label|unit|value
+   - possibilité d'ajouter ça dans la base de donnée ou dans rrd
+
+
+TODO
+----
+
+bweb :
+
+ - Adapter bfileview pour utiliser le PathId a la place du
+   nom des fichiers.
+
+
+bacula :
+
+ - Utiliser la lib pcre
