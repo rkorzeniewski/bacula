@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bacula 1.38\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-07-03 14:36+0200\n"
+"POT-Creation-Date: 2007-07-12 11:13+0200\n"
 "PO-Revision-Date: 2007-05-05 20:09+0200\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: French <bacula-devel-fr@lists.sourceforge.net>\n"
@@ -2386,104 +2386,109 @@ msgstr "Impossible de créer le volume « %s » car il existe déjà.\n"
 msgid "Too many failures. Giving up creating Volume name.\n"
 msgstr "Trop d'erreurs. Abandon de la création du volume.\n"
 
-#: src/dird/next_vol.c:148
+#: src/dird/next_vol.c:145
 #, c-format
 msgid "Purging oldest volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:154
+#: src/dird/next_vol.c:151
 #, c-format
 msgid "Pruning oldest volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:173
+#: src/dird/next_vol.c:170
 msgid "We seem to be looping trying to find the next volume. I give up.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:199
+#: src/dird/next_vol.c:196
 #, c-format
 msgid "Max Volume bytes exceeded. Marking Volume \"%s\" as Full.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:206
+#: src/dird/next_vol.c:203
 #, c-format
 msgid "Volume used once. Marking Volume \"%s\" as Used.\n"
 msgstr "Volume utilisé une fois. Marquage du volume « %s » comme Used.\n"
 
-#: src/dird/next_vol.c:213
+#: src/dird/next_vol.c:210
 #, c-format
 msgid "Max Volume jobs exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:220
+#: src/dird/next_vol.c:217
 #, c-format
 msgid "Max Volume files exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 "Nombre de fichier maximum atteind. Marquage du volume « %s » comme Used.\n"
 
-#: src/dird/next_vol.c:230
+#: src/dird/next_vol.c:227
 #, c-format
 msgid "Max configured use duration exceeded. Marking Volume \"%s\" as Used.\n"
 msgstr ""
 
-#: src/dird/next_vol.c:240
+#: src/dird/next_vol.c:237
 #, c-format
 msgid "Catalog error updating volume \"%s\". ERR=%s"
 msgstr ""
 
-#: src/dird/next_vol.c:261
+#: src/dird/next_vol.c:258
 msgid "volume has expired"
 msgstr "le volume a expiré"
 
-#: src/dird/next_vol.c:279 src/dird/next_vol.c:315
+#: src/dird/next_vol.c:276 src/dird/next_vol.c:312
 #, c-format
 msgid "Recycled current volume \"%s\"\n"
 msgstr ""
 
-#: src/dird/next_vol.c:284
+#: src/dird/next_vol.c:281
 msgid "and recycling of current volume failed"
 msgstr ""
 
-#: src/dird/next_vol.c:290
+#: src/dird/next_vol.c:287
 msgid "but should be Append, Purged or Recycle"
 msgstr "mais doit être Append, Purged ou bien Recycle"
 
-#: src/dird/next_vol.c:318
+#: src/dird/next_vol.c:315
 msgid ""
 "but should be Append, Purged or Recycle (recycling of the current volume "
 "failed)"
 msgstr ""
 
-#: src/dird/next_vol.c:322
+#: src/dird/next_vol.c:319
 msgid ""
 "but should be Append, Purged or Recycle (cannot automatically recycle "
 "current volume, as it still contains unpruned data or the Volume Retention "
 "time has not expired.)"
 msgstr ""
 
-#: src/dird/next_vol.c:380
+#: src/dird/next_vol.c:377
 #, c-format
 msgid "Unable to get Pool record: ERR=%s"
 msgstr ""
 
-#: src/dird/next_vol.c:385
+#: src/dird/next_vol.c:382
 #, c-format
 msgid "Unable add Scratch Volume, Pool \"%s\" full MaxVols=%d\n"
 msgstr ""
 "Impossible d'ajouter un volume du Scratch, le Pool « %s » est plein. MaxVols="
 "%d\n"
 
-#: src/dird/next_vol.c:398
+#: src/dird/next_vol.c:395
 #, c-format
 msgid "Failed to move Scratch Volume. ERR=%s\n"
 msgstr "Impossible de déplacer un Volume du Scratch. ERR=%s\n"
 
-#: src/dird/next_vol.c:402
+#: src/dird/next_vol.c:399
 #, c-format
 msgid "Using Volume \"%s\" from 'Scratch' pool.\n"
 msgstr "Utilisation du Volume « %s » du pool « Scratch ».\n"
 
-#: src/dird/next_vol.c:413
+#: src/dird/next_vol.c:406
+#, fuzzy, c-format
+msgid "Unable to get Volume record: ERR=%s"
+msgstr "Impossible de mettre à jour les informations du Volume : ERR=%s"
+
+#: src/dird/next_vol.c:418
 #, c-format
 msgid "Unable to update Volume record: ERR=%s"
 msgstr "Impossible de mettre à jour les informations du Volume : ERR=%s"
@@ -2520,7 +2525,7 @@ msgstr ""
 msgid "Bad JobLevel string"
 msgstr ""
 
-#: src/dird/recycle.c:111
+#: src/dird/recycle.c:112
 #, c-format
 msgid "Recycled volume \"%s\"\n"
 msgstr "Volume recyclé « %s »\n"
@@ -2976,7 +2981,7 @@ msgstr "Attention le Job %s n'est pas en cours. Continuons quand même...\n"
 msgid "Unauthorized command from this console.\n"
 msgstr "Commande interdite depuis cette console.\n"
 
-#: src/dird/ua_cmds.c:457 src/filed/status.c:201 src/stored/status.c:443
+#: src/dird/ua_cmds.c:457 src/filed/status.c:201 src/stored/status.c:447
 msgid "No Jobs running.\n"
 msgstr "Pas de job en cours.\n"
 
@@ -3120,7 +3125,7 @@ msgstr ""
 msgid "Select daemon type to set debug level"
 msgstr "Sélectionnez le composant a mettre à jour"
 
-#: src/dird/ua_cmds.c:1082 src/dird/ua_cmds.c:1121 src/dird/ua_cmds.c:1763
+#: src/dird/ua_cmds.c:1082 src/dird/ua_cmds.c:1121 src/dird/ua_cmds.c:1783
 #, c-format
 msgid "No authorization for Job \"%s\"\n"
 msgstr ""
@@ -3226,31 +3231,31 @@ msgstr ""
 "\n"
 "Sur une question, tapez un point (.) pour annuler la commande en cours.\n"
 
-#: src/dird/ua_cmds.c:1700 src/dird/ua_status.c:263 src/stored/status.c:79
+#: src/dird/ua_cmds.c:1701 src/dird/ua_status.c:263 src/stored/status.c:79
 #, c-format
 msgid "%s Version: %s (%s) %s %s %s\n"
 msgstr "%s Version : %s (%s) %s %s %s\n"
 
-#: src/dird/ua_cmds.c:1724 src/dird/ua_cmds.c:1751 src/dird/ua_cmds.c:1773
+#: src/dird/ua_cmds.c:1744 src/dird/ua_cmds.c:1771 src/dird/ua_cmds.c:1793
 #, c-format
 msgid "No authorization for Catalog \"%s\"\n"
 msgstr ""
 
-#: src/dird/ua_cmds.c:1741
+#: src/dird/ua_cmds.c:1761
 #, fuzzy, c-format
 msgid "No authorization for Client \"%s\"\n"
 msgstr "Pas d'enregistrement trouvé en base pour : %s\n"
 
-#: src/dird/ua_cmds.c:1796 src/dird/ua_select.c:221
+#: src/dird/ua_cmds.c:1816 src/dird/ua_select.c:221
 msgid "Could not find a Catalog resource\n"
 msgstr "Impossible de trouver un Catalogue\n"
 
-#: src/dird/ua_cmds.c:1809
+#: src/dird/ua_cmds.c:1829
 #, c-format
 msgid "Could not open catalog database \"%s\".\n"
 msgstr "Impossible d'ouvrir le catalogue « %s ».\n"
 
-#: src/dird/ua_cmds.c:1819
+#: src/dird/ua_cmds.c:1839
 #, c-format
 msgid "Using Catalog \"%s\"\n"
 msgstr "Utilisation du Catalogue « %s »\n"
@@ -3293,13 +3298,13 @@ msgid "Expected a positive integer, got: %s\n"
 msgstr "Attendait un entier positif, pas : %s\n"
 
 #: src/dird/ua_input.c:123 src/dird/ua_run.c:446 src/dird/ua_update.c:245
-#: src/dird/ua_update.c:265 src/dird/ua_update.c:614
+#: src/dird/ua_update.c:265 src/dird/ua_update.c:608
 #: src/stored/parse_bsr.c:779 src/tools/dbcheck.c:1202
 msgid "yes"
 msgstr "oui"
 
 #: src/dird/ua_input.c:127 src/dird/ua_update.c:245 src/dird/ua_update.c:265
-#: src/dird/ua_update.c:614 src/stored/parse_bsr.c:779
+#: src/dird/ua_update.c:608 src/stored/parse_bsr.c:779
 msgid "no"
 msgstr "non"
 
@@ -3866,7 +3871,7 @@ msgid "Enter a list of directories to restore for found JobIds"
 msgstr "Saisir la liste des répertoires à restaurer (pour un JobId)"
 
 #: src/dird/ua_restore.c:418 src/dird/ua_status.c:760 src/filed/status.c:256
-#: src/stored/status.c:517 src/wx-console/wxbconfigpanel.cpp:212
+#: src/stored/status.c:521 src/wx-console/wxbconfigpanel.cpp:212
 msgid "Cancel"
 msgstr "Annulé"
 
@@ -3875,7 +3880,7 @@ msgstr "Annulé"
 msgid "Unknown keyword: %s\n"
 msgstr "Mot clef inconnu : %s\n"
 
-#: src/dird/ua_restore.c:487 src/dird/ua_update.c:836
+#: src/dird/ua_restore.c:487 src/dird/ua_update.c:830
 #, c-format
 msgid "Improper date format: %s\n"
 msgstr "Format de date invalide : %s\n"
@@ -4178,7 +4183,7 @@ msgstr "OK pour le lancement ? (oui/mod/non) : "
 msgid "mod"
 msgstr "mod"
 
-#: src/dird/ua_run.c:263 src/dird/ua_update.c:523
+#: src/dird/ua_run.c:263 src/dird/ua_update.c:517
 msgid "Parameters to modify:\n"
 msgstr "Paramètre à modifier :\n"
 
@@ -4204,7 +4209,7 @@ msgid "Priority"
 msgstr "Priorité"
 
 #: src/dird/ua_run.c:278 src/dird/ua_select.c:506 src/dird/ua_select.c:596
-#: src/dird/ua_update.c:534 src/wx-console/wxbrestorepanel.cpp:337
+#: src/dird/ua_update.c:528 src/wx-console/wxbrestorepanel.cpp:337
 #: src/wx-console/wxbrestorepanel.cpp:526
 #: src/wx-console/wxbrestorepanel.cpp:536
 #: src/wx-console/wxbrestorepanel.cpp:1806
@@ -4244,7 +4249,7 @@ msgstr "Écrasement"
 msgid "JobId"
 msgstr "JobId"
 
-#: src/dird/ua_run.c:289 src/dird/ua_run.c:487 src/dird/ua_update.c:540
+#: src/dird/ua_run.c:289 src/dird/ua_run.c:487 src/dird/ua_update.c:534
 msgid "Select parameter to modify"
 msgstr "Sélectionnez le paramètre à modifier"
 
@@ -4389,27 +4394,27 @@ msgid "Levels:\n"
 msgstr "Types :\n"
 
 #: src/dird/ua_run.c:606 src/filed/status.c:373 src/lib/util.c:329
-#: src/stored/status.c:556
+#: src/stored/status.c:560
 msgid "Base"
 msgstr "Base"
 
 #: src/dird/ua_run.c:607 src/filed/status.c:375 src/lib/util.c:331
-#: src/stored/status.c:558
+#: src/stored/status.c:562
 msgid "Full"
 msgstr "Full"
 
 #: src/dird/ua_run.c:608 src/filed/status.c:378 src/lib/util.c:334
-#: src/stored/status.c:561
+#: src/stored/status.c:565
 msgid "Incremental"
 msgstr "Incrémental"
 
 #: src/dird/ua_run.c:609 src/filed/status.c:381 src/lib/util.c:337
-#: src/stored/status.c:564
+#: src/stored/status.c:568
 msgid "Differential"
 msgstr "Différentiel"
 
 #: src/dird/ua_run.c:610 src/filed/status.c:384 src/lib/util.c:340
-#: src/stored/status.c:567
+#: src/stored/status.c:571
 msgid "Since"
 msgstr "Depuis"
 
@@ -4422,7 +4427,7 @@ msgid "Initialize Catalog"
 msgstr "Initialisez le catalogue"
 
 #: src/dird/ua_run.c:633 src/filed/status.c:387 src/lib/util.c:343
-#: src/stored/status.c:570
+#: src/stored/status.c:574
 msgid "Verify Catalog"
 msgstr ""
 
@@ -5140,7 +5145,7 @@ msgstr "%-14s %-8s %3d  %-18s %-18s %s\n"
 msgid "No Scheduled Jobs.\n"
 msgstr "Pas de job programmé.\n"
 
-#: src/dird/ua_status.c:541 src/filed/status.c:144 src/stored/status.c:366
+#: src/dird/ua_status.c:541 src/filed/status.c:144 src/stored/status.c:370
 msgid ""
 "\n"
 "Running Jobs:\n"
@@ -5281,7 +5286,7 @@ msgstr "%6d %-6s  %-20s %s\n"
 msgid "No Terminated Jobs.\n"
 msgstr "Pas de job terminé.\n"
 
-#: src/dird/ua_status.c:717 src/filed/status.c:216 src/stored/status.c:478
+#: src/dird/ua_status.c:717 src/filed/status.c:216 src/stored/status.c:482
 msgid ""
 "\n"
 "Terminated Jobs:\n"
@@ -5289,7 +5294,7 @@ msgstr ""
 "\n"
 "Job terminés :\n"
 
-#: src/dird/ua_status.c:718 src/filed/status.c:224 src/stored/status.c:485
+#: src/dird/ua_status.c:718 src/filed/status.c:224 src/stored/status.c:489
 msgid " JobId  Level    Files      Bytes   Status   Finished        Name \n"
 msgstr " JobId  Type     Fichiers   Octets   Statut  Terminé         Nom\n"
 
@@ -5298,30 +5303,30 @@ msgid "====================================================================\n"
 msgstr "=====================================================================\n"
 
 #: src/dird/ua_status.c:750 src/filed/status.c:246 src/lib/util.c:179
-#: src/stored/status.c:507
+#: src/stored/status.c:511
 msgid "Created"
 msgstr "Crée"
 
 #: src/dird/ua_status.c:754 src/filed/status.c:250 src/lib/util.c:192
-#: src/lib/util.c:259 src/stored/status.c:511
+#: src/lib/util.c:259 src/stored/status.c:515
 msgid "Error"
 msgstr "Erreur"
 
-#: src/dird/ua_status.c:757 src/filed/status.c:253 src/stored/status.c:514
+#: src/dird/ua_status.c:757 src/filed/status.c:253 src/stored/status.c:518
 msgid "Diffs"
 msgstr ""
 
 #: src/dird/ua_status.c:763 src/filed/status.c:259 src/lib/util.c:188
-#: src/lib/util.c:255 src/stored/btape.c:1189 src/stored/status.c:520
+#: src/lib/util.c:255 src/stored/btape.c:1189 src/stored/status.c:524
 #: src/wx-console/wxbconfigpanel.cpp:201
 msgid "OK"
 msgstr "OK"
 
-#: src/dird/ua_status.c:766 src/filed/status.c:262 src/stored/status.c:523
+#: src/dird/ua_status.c:766 src/filed/status.c:262 src/stored/status.c:527
 msgid "Other"
 msgstr "Autre"
 
-#: src/dird/ua_status.c:769 src/filed/status.c:273 src/stored/status.c:534
+#: src/dird/ua_status.c:769 src/filed/status.c:273 src/stored/status.c:538
 #, c-format
 msgid "%6d  %-6s %8s %10s  %-7s  %-8s %s\n"
 msgstr "%6d  %-6s %8s %10s %-7s  %-8s %s\n"
@@ -5598,7 +5603,7 @@ msgstr ""
 msgid "Invalid slot, it must be between 0 and MaxVols=%d\n"
 msgstr "Slot invalide, il doit être compris entre 0 et MaxVols=%d\n"
 
-#: src/dird/ua_update.c:291 src/dird/ua_update.c:640
+#: src/dird/ua_update.c:291 src/dird/ua_update.c:634
 #, c-format
 msgid "Error updating media record Slot: ERR=%s"
 msgstr ""
@@ -5608,202 +5613,202 @@ msgstr ""
 msgid "New Slot is: %d\n"
 msgstr "Le nouveau slot est : %d\n"
 
-#: src/dird/ua_update.c:320
+#: src/dird/ua_update.c:318
 #, c-format
 msgid "New Pool is: %s\n"
 msgstr "Le nouveau pool est : %s\n"
 
-#: src/dird/ua_update.c:357
+#: src/dird/ua_update.c:352
 #, c-format
 msgid "New RecyclePool is: %s\n"
 msgstr "Le nouveau RecyclePool est : %s\n"
 
-#: src/dird/ua_update.c:378
+#: src/dird/ua_update.c:372
 #, c-format
 msgid "Error updating Volume record: ERR=%s"
 msgstr ""
 
-#: src/dird/ua_update.c:380
+#: src/dird/ua_update.c:374
 #, c-format
 msgid "Volume defaults updated from \"%s\" Pool record.\n"
 msgstr ""
 
-#: src/dird/ua_update.c:404
+#: src/dird/ua_update.c:398
 #, c-format
 msgid "Error updating Volume records: ERR=%s"
 msgstr ""
 
-#: src/dird/ua_update.c:406
+#: src/dird/ua_update.c:400
 #, c-format
 msgid "All Volume defaults updated from \"%s\" Pool record.\n"
 msgstr ""
 
-#: src/dird/ua_update.c:418
+#: src/dird/ua_update.c:412
 #, fuzzy, c-format
 msgid "Error updating media record Enabled: ERR=%s"
 msgstr "Impossible de mettre à jour les informations du Volume : ERR=%s"
 
-#: src/dird/ua_update.c:420
+#: src/dird/ua_update.c:414
 #, fuzzy, c-format
 msgid "New Enabled is: %d\n"
 msgstr "Le nouveau flag Enabled est : %d\n"
 
-#: src/dird/ua_update.c:524
+#: src/dird/ua_update.c:518
 msgid "Volume Status"
 msgstr "Statut d'un volume"
 
-#: src/dird/ua_update.c:525
+#: src/dird/ua_update.c:519
 msgid "Volume Retention Period"
 msgstr "Période de rétention d'un volume"
 
-#: src/dird/ua_update.c:526
+#: src/dird/ua_update.c:520
 msgid "Volume Use Duration"
 msgstr "Durée d'utilisation d'un volume"
 
-#: src/dird/ua_update.c:527
+#: src/dird/ua_update.c:521
 msgid "Maximum Volume Jobs"
 msgstr "Nombre maximum de job sur un volume"
 
-#: src/dird/ua_update.c:528
+#: src/dird/ua_update.c:522
 msgid "Maximum Volume Files"
 msgstr "Nombre maximum de fichier sur un volume"
 
-#: src/dird/ua_update.c:529
+#: src/dird/ua_update.c:523
 msgid "Maximum Volume Bytes"
 msgstr "Taille maximum d'un volume"
 
-#: src/dird/ua_update.c:530
+#: src/dird/ua_update.c:524
 msgid "Recycle Flag"
 msgstr "Flag de recyclage"
 
-#: src/dird/ua_update.c:531
+#: src/dird/ua_update.c:525
 msgid "Slot"
 msgstr ""
 
-#: src/dird/ua_update.c:532
+#: src/dird/ua_update.c:526
 msgid "InChanger Flag"
 msgstr "Flag InChanger"
 
-#: src/dird/ua_update.c:533
+#: src/dird/ua_update.c:527
 msgid "Volume Files"
 msgstr "Fichiers du Volume"
 
-#: src/dird/ua_update.c:535
+#: src/dird/ua_update.c:529
 msgid "Volume from Pool"
 msgstr ""
 
-#: src/dird/ua_update.c:536
+#: src/dird/ua_update.c:530
 msgid "All Volumes from Pool"
 msgstr ""
 
-#: src/dird/ua_update.c:537
+#: src/dird/ua_update.c:531
 msgid "Enabled"
 msgstr ""
 
-#: src/dird/ua_update.c:538
+#: src/dird/ua_update.c:532
 msgid "RecyclePool"
 msgstr "RecyclePool"
 
-#: src/dird/ua_update.c:539
+#: src/dird/ua_update.c:533
 msgid "Done"
 msgstr "Fin"
 
-#: src/dird/ua_update.c:547
+#: src/dird/ua_update.c:541
 #, c-format
 msgid "Updating Volume \"%s\"\n"
 msgstr "Mise à jour du Volume « %s »\n"
 
-#: src/dird/ua_update.c:552
+#: src/dird/ua_update.c:546
 #, c-format
 msgid "Current Volume status is: %s\n"
 msgstr "Le statut actuel du volume (Volume status) est : %s\n"
 
-#: src/dird/ua_update.c:553
+#: src/dird/ua_update.c:547
 msgid "Possible Values are:\n"
 msgstr "Les valeurs possibles sont :\n"
 
-#: src/dird/ua_update.c:564
+#: src/dird/ua_update.c:558
 msgid "Choose new Volume Status"
 msgstr "Saisissez le nouveau statut du volume (Volume Status)"
 
-#: src/dird/ua_update.c:570
+#: src/dird/ua_update.c:564
 #, c-format
 msgid "Current retention period is: %s\n"
 msgstr "La période de rétention actuelle est : %s\n"
 
-#: src/dird/ua_update.c:572
+#: src/dird/ua_update.c:566
 msgid "Enter Volume Retention period: "
 msgstr "Saisissez la période de rétention du volume : "
 
-#: src/dird/ua_update.c:579
+#: src/dird/ua_update.c:573
 #, c-format
 msgid "Current use duration is: %s\n"
 msgstr "La durée d'utilisation actuelle est : %s\n"
 
-#: src/dird/ua_update.c:581
+#: src/dird/ua_update.c:575
 msgid "Enter Volume Use Duration: "
 msgstr "Saisissez la durée d'utilisation du volume : "
 
-#: src/dird/ua_update.c:588
+#: src/dird/ua_update.c:582
 #, c-format
 msgid "Current max jobs is: %u\n"
 msgstr "Le nombre maximum de Job actuel est : %u\n"
 
-#: src/dird/ua_update.c:589
+#: src/dird/ua_update.c:583
 msgid "Enter new Maximum Jobs: "
 msgstr "Saisissez la valeur du nombre maximum de Job : "
 
-#: src/dird/ua_update.c:596
+#: src/dird/ua_update.c:590
 #, c-format
 msgid "Current max files is: %u\n"
 msgstr "Le nombre maximum de fichier actuel est : %u\n"
 
-#: src/dird/ua_update.c:597
+#: src/dird/ua_update.c:591
 msgid "Enter new Maximum Files: "
 msgstr "Saisissez la valeur du nombre maximum de fichier (Maximum Files) : "
 
-#: src/dird/ua_update.c:604
+#: src/dird/ua_update.c:598
 #, c-format
 msgid "Current value is: %s\n"
 msgstr "La valeur actuelle est : %s\n"
 
-#: src/dird/ua_update.c:605
+#: src/dird/ua_update.c:599
 msgid "Enter new Maximum Bytes: "
 msgstr "Saisissez la nouvelle taille maximum (octets) : "
 
-#: src/dird/ua_update.c:613
+#: src/dird/ua_update.c:607
 #, c-format
 msgid "Current recycle flag is: %s\n"
 msgstr "Le flag de recyclage courant est : %s\n"
 
-#: src/dird/ua_update.c:615
+#: src/dird/ua_update.c:609
 msgid "Enter new Recycle status: "
 msgstr ""
 
-#: src/dird/ua_update.c:622
+#: src/dird/ua_update.c:616
 #, c-format
 msgid "Current Slot is: %d\n"
 msgstr "Le slot courant est : %d\n"
 
-#: src/dird/ua_update.c:623
+#: src/dird/ua_update.c:617
 msgid "Enter new Slot: "
 msgstr "Saisissez le nouveau slot : "
 
-#: src/dird/ua_update.c:630
+#: src/dird/ua_update.c:624
 #, c-format
 msgid "Current InChanger flag is: %d\n"
 msgstr "Le flag InChanger courant est : %d\n"
 
-#: src/dird/ua_update.c:631
+#: src/dird/ua_update.c:625
 msgid "Set InChanger flag? yes/no: "
 msgstr "Positionner le flag InChanger ? oui/non : "
 
-#: src/dird/ua_update.c:642
+#: src/dird/ua_update.c:636
 #, c-format
 msgid "New InChanger flag is: %d\n"
 msgstr "Le nouveau flag InChanger est : %d\n"
 
-#: src/dird/ua_update.c:649
+#: src/dird/ua_update.c:643
 msgid ""
 "Warning changing Volume Files can result\n"
 "in loss of data on your Volume\n"
@@ -5813,80 +5818,80 @@ msgstr ""
 "vous faire perdre des données du Volume\n"
 "\n"
 
-#: src/dird/ua_update.c:651
+#: src/dird/ua_update.c:645
 #, c-format
 msgid "Current Volume Files is: %u\n"
 msgstr "Le nombre courant de fichier sur le Volume est : %u\n"
 
-#: src/dird/ua_update.c:652
+#: src/dird/ua_update.c:646
 msgid "Enter new number of Files for Volume: "
 msgstr "Saisissez le nouveau nombre de fichiers du Volume : "
 
-#: src/dird/ua_update.c:657
+#: src/dird/ua_update.c:651
 msgid "Normally, you should only increase Volume Files by one!\n"
 msgstr ""
 "Logiquement, vous devez augmenter le nombre de fichier du Volume d'un !\n"
 
-#: src/dird/ua_update.c:658
+#: src/dird/ua_update.c:652
 msgid "Continue? (yes/no): "
 msgstr "Continuez ? (oui/non) : "
 
-#: src/dird/ua_update.c:668
+#: src/dird/ua_update.c:662
 #, c-format
 msgid "New Volume Files is: %u\n"
 msgstr "Le nouveau nombre de fichier du Volume est : %u\n"
 
-#: src/dird/ua_update.c:680
+#: src/dird/ua_update.c:674
 #, c-format
 msgid "Current Pool is: %s\n"
 msgstr "Le pool courant est : %s\n"
 
-#: src/dird/ua_update.c:681
+#: src/dird/ua_update.c:675
 msgid "Enter new Pool name: "
 msgstr "Saisissez le nouveau nom pour ce pool : "
 
-#: src/dird/ua_update.c:698
+#: src/dird/ua_update.c:692
 #, c-format
 msgid "Current Enabled is: %d\n"
 msgstr "La valeur actuelle de Enabled est : %d\n"
 
-#: src/dird/ua_update.c:699
+#: src/dird/ua_update.c:693
 msgid "Enter new Enabled: "
 msgstr "Saisissez la nouvelle valeur pour Enabled : "
 
-#: src/dird/ua_update.c:718
+#: src/dird/ua_update.c:712
 #, c-format
 msgid "Current RecyclePool is: %s\n"
 msgstr "Le RecyclePool courant est : %s\n"
 
-#: src/dird/ua_update.c:720
+#: src/dird/ua_update.c:714
 msgid "No current RecyclePool\n"
 msgstr "Pas de RecyclePool courant\n"
 
-#: src/dird/ua_update.c:722
+#: src/dird/ua_update.c:716
 msgid "Enter new RecyclePool name: "
 msgstr "Saisissez le nouveau RecyclePool : "
 
-#: src/dird/ua_update.c:729
+#: src/dird/ua_update.c:723
 msgid "Selection terminated.\n"
 msgstr "Sélection terminée.\n"
 
-#: src/dird/ua_update.c:763
+#: src/dird/ua_update.c:757
 #, c-format
 msgid "db_update_pool_record returned %d. ERR=%s\n"
 msgstr "db_update_pool_record a retourné %d. ERR=%s\n"
 
-#: src/dird/ua_update.c:770
+#: src/dird/ua_update.c:764
 msgid "Pool DB record updated from resource.\n"
 msgstr ""
 "Les paramètres du Pool en base ont été mis à jour depuis la configuration.\n"
 
-#: src/dird/ua_update.c:797
+#: src/dird/ua_update.c:791
 #, fuzzy
 msgid "Expect JobId keyword, not found.\n"
 msgstr "%s ressource %s introuvable.\n"
 
-#: src/dird/ua_update.c:822
+#: src/dird/ua_update.c:816
 #, fuzzy
 msgid "Neither Client nor StartTime specified.\n"
 msgstr "Pas de storage sélectionné.\n"
@@ -6309,7 +6314,7 @@ msgstr ""
 msgid "Cannot popen(\"%s\", \"r\"): ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier %s : ERR=%s\n"
 
-#: src/console/console.c:945 src/stored/autochanger.c:545
+#: src/console/console.c:945 src/stored/autochanger.c:549
 #, c-format
 msgid "Autochanger error: ERR=%s\n"
 msgstr "Erreur sur l'autochangeur : ERR=%s\n"
@@ -7227,7 +7232,7 @@ msgstr ""
 msgid "    %s%s Job started: %s\n"
 msgstr ""
 
-#: src/filed/status.c:172 src/stored/status.c:420
+#: src/filed/status.c:172 src/stored/status.c:424
 #, c-format
 msgid "    Files=%s Bytes=%s Bytes/sec=%s\n"
 msgstr ""
@@ -7246,8 +7251,8 @@ msgstr ""
 msgid "    SDSocket closed.\n"
 msgstr ""
 
-#: src/filed/status.c:328 src/filed/status.c:352 src/stored/status.c:632
-#: src/stored/status.c:655
+#: src/filed/status.c:328 src/filed/status.c:352 src/stored/status.c:636
+#: src/stored/status.c:659
 #, c-format
 msgid "Bad .status command: %s\n"
 msgstr ""
@@ -7260,23 +7265,23 @@ msgstr ""
 msgid "2900 Bad .status command, wrong argument.\n"
 msgstr ""
 
-#: src/filed/status.c:390 src/stored/status.c:573
+#: src/filed/status.c:390 src/stored/status.c:577
 msgid "Init Catalog"
 msgstr ""
 
-#: src/filed/status.c:393 src/stored/status.c:576
+#: src/filed/status.c:393 src/stored/status.c:580
 msgid "Volume to Catalog"
 msgstr ""
 
-#: src/filed/status.c:396 src/stored/status.c:579
+#: src/filed/status.c:396 src/stored/status.c:583
 msgid "Disk to Catalog"
 msgstr ""
 
-#: src/filed/status.c:399 src/stored/status.c:582
+#: src/filed/status.c:399 src/stored/status.c:586
 msgid "Data"
 msgstr ""
 
-#: src/filed/status.c:405 src/lib/util.c:361 src/stored/status.c:588
+#: src/filed/status.c:405 src/lib/util.c:361 src/stored/status.c:592
 msgid "Unknown Job Level"
 msgstr ""
 
@@ -10326,29 +10331,33 @@ msgstr ""
 
 #: src/stored/autochanger.c:149
 #, c-format
-msgid "Invalid slot=%d defined in catalog. Manual load my be required.\n"
+msgid ""
+"Invalid slot=%d defined in catalog for Volume \"%s\" on %s. Manual load my "
+"be required.\n"
 msgstr ""
 
-#: src/stored/autochanger.c:152
-msgid "No \"Changer Device\" manual load of Volume may be required.\n"
+#: src/stored/autochanger.c:154
+#, c-format
+msgid "No \"Changer Device\" for %s. Manual load of Volume may be required.\n"
 msgstr ""
 
-#: src/stored/autochanger.c:155
-msgid "No \"Changer Command\" manual load of Volume may be requird.\n"
+#: src/stored/autochanger.c:158
+#, c-format
+msgid "No \"Changer Command\" for %s. Manual load of Volume may be requird.\n"
 msgstr ""
 
-#: src/stored/autochanger.c:184
+#: src/stored/autochanger.c:188
 #, c-format
 msgid "3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"
 msgstr ""
 "3304 Envoi de la commande « load slot %d, drive %d » à l'autochangeur.\n"
 
-#: src/stored/autochanger.c:192
+#: src/stored/autochanger.c:196
 #, c-format
 msgid "3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"
 msgstr "3305 Autochangeur « load slot %d, drive %d », le résultat est OK.\n"
 
-#: src/stored/autochanger.c:201
+#: src/stored/autochanger.c:205
 #, c-format
 msgid ""
 "3992 Bad autochanger \"load slot %d, drive %d\": ERR=%s.\n"
@@ -10357,26 +10366,26 @@ msgstr ""
 "3992 Erreur sur l'autochangeur « load slot %d, drive %d » : ERR=%s.\n"
 "Resultat=%s\n"
 
-#: src/stored/autochanger.c:247
+#: src/stored/autochanger.c:251
 msgid "3992 Missing Changer command.\n"
 msgstr ""
 
-#: src/stored/autochanger.c:261
+#: src/stored/autochanger.c:265
 #, c-format
 msgid "3301 Issuing autochanger \"loaded? drive %d\" command.\n"
 msgstr "3301 Envoi de la commande « loaded? drive %d » à l'autochangeur.\n"
 
-#: src/stored/autochanger.c:271
+#: src/stored/autochanger.c:275
 #, c-format
 msgid "3302 Autochanger \"loaded? drive %d\", result is Slot %d.\n"
 msgstr "3302 Autochangeur « loaded drive %d », le resultat est Slot %d.\n"
 
-#: src/stored/autochanger.c:275
+#: src/stored/autochanger.c:279
 #, c-format
 msgid "3302 Autochanger \"loaded? drive %d\", result: nothing loaded.\n"
 msgstr "3302 Autochangeur « loaded drive %d », résultat : lecteur vide.\n"
 
-#: src/stored/autochanger.c:282
+#: src/stored/autochanger.c:286
 #, c-format
 msgid ""
 "3991 Bad autochanger \"loaded? drive %d\" command: ERR=%s.\n"
@@ -10385,13 +10394,13 @@ msgstr ""
 "3991 Erreur sur l'autochangeur « loaded drive %d » : ERR=%s.\n"
 "Resultat=%s\n"
 
-#: src/stored/autochanger.c:341 src/stored/autochanger.c:432
+#: src/stored/autochanger.c:345 src/stored/autochanger.c:436
 #, c-format
 msgid "3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"
 msgstr ""
 "3307 Envoi de la commande « unload slot %d, drive %d » à l'autochangeur.\n"
 
-#: src/stored/autochanger.c:355
+#: src/stored/autochanger.c:359
 #, c-format
 msgid ""
 "3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s\n"
@@ -10400,28 +10409,28 @@ msgstr ""
 "3995 Erreur sur l'autochangeur « unload slot %d, drive %d » : ERR=%s.\n"
 "Resultat=%s\n"
 
-#: src/stored/autochanger.c:419
+#: src/stored/autochanger.c:423
 #, c-format
 msgid "Volume \"%s\" is in use by device %s\n"
 msgstr "Le volume « %s » est utilisé par le device %s\n"
 
-#: src/stored/autochanger.c:454
+#: src/stored/autochanger.c:458
 #, c-format
 msgid "3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"
 msgstr ""
 "3995 Erreur sur l'autochangeur « unload slot %d, drive %d » : ERR=%s.\n"
 
-#: src/stored/autochanger.c:494
+#: src/stored/autochanger.c:498
 #, c-format
 msgid "3993 Device %s not an autochanger device.\n"
 msgstr "3993 Le Device %s n'est pas un autochangeur.\n"
 
-#: src/stored/autochanger.c:515
+#: src/stored/autochanger.c:519
 #, c-format
 msgid "3306 Issuing autochanger \"%s\" command.\n"
 msgstr "3306 Envoi de la commande « %s » à l'autochangeur.\n"
 
-#: src/stored/autochanger.c:518
+#: src/stored/autochanger.c:522
 msgid "3996 Open bpipe failed.\n"
 msgstr ""
 
@@ -11430,7 +11439,7 @@ msgstr ""
 msgid "Backspaced %d record%s.\n"
 msgstr ""
 
-#: src/stored/btape.c:580 src/stored/status.c:298
+#: src/stored/btape.c:580 src/stored/status.c:302
 #, c-format
 msgid "Configured device capabilities:\n"
 msgstr ""
@@ -11440,7 +11449,7 @@ msgstr ""
 msgid "Device status:\n"
 msgstr ""
 
-#: src/stored/btape.c:612 src/stored/status.c:337
+#: src/stored/btape.c:612 src/stored/status.c:341
 #, c-format
 msgid "Device parameters:\n"
 msgstr ""
@@ -14190,7 +14199,7 @@ msgstr ""
 msgid "fopen attr spool file %s failed: ERR=%s\n"
 msgstr "Impossible d'ouvrir le fichier de spool des attributs %s : ERR=%s\n"
 
-#: src/stored/status.c:116
+#: src/stored/status.c:120
 msgid ""
 "\n"
 "Device status:\n"
@@ -14198,12 +14207,12 @@ msgstr ""
 "\n"
 "Statut du Device :\n"
 
-#: src/stored/status.c:120
+#: src/stored/status.c:124
 #, c-format
 msgid "Autochanger \"%s\" with devices:\n"
 msgstr "Autochangeur « %s » avec les Devices :\n"
 
-#: src/stored/status.c:138
+#: src/stored/status.c:142
 #, fuzzy, c-format
 msgid ""
 "Device %s is mounted with:\n"
@@ -14217,41 +14226,41 @@ msgstr ""
 "    Type du Media : %s\n"
 "    Pool :          %s\n"
 
-#: src/stored/status.c:148
+#: src/stored/status.c:152
 #, c-format
 msgid "Device %s open but no Bacula volume is currently mounted.\n"
 msgstr "Le Device %s est ouvert, mais il n'y a pas de Volume Bacula monté.\n"
 
-#: src/stored/status.c:159
+#: src/stored/status.c:163
 #, c-format
 msgid "    Total Bytes=%s Blocks=%s Bytes/block=%s\n"
 msgstr "    Total Octets=%s Blocs=%s Octets/Bloc=%s\n"
 
-#: src/stored/status.c:174
+#: src/stored/status.c:178
 #, c-format
 msgid "    Total Bytes Read=%s Blocks Read=%s Bytes/block=%s\n"
 msgstr "    Total des Octets lu=%s Blocs lu=%s Octets/Bloc=%s\n"
 
-#: src/stored/status.c:180
+#: src/stored/status.c:184
 #, c-format
 msgid "    Positioned at File=%s Block=%s\n"
 msgstr "    Positionné sur Fichier=%s Bloc=%s\n"
 
-#: src/stored/status.c:187
+#: src/stored/status.c:191
 #, c-format
 msgid "Device %s is not open.\n"
 msgstr "Le Device %s n'est pas ouvert.\n"
 
-#: src/stored/status.c:191
+#: src/stored/status.c:195
 #, c-format
 msgid "Device \"%s\" is not open or does not exist.\n"
 msgstr "Le Device « %s » n'est pas ouvert ou il n'existe pas.\n"
 
-#: src/stored/status.c:197
+#: src/stored/status.c:201
 msgid "In Use Volume status:\n"
 msgstr "Volume en cours d'utilisation :\n"
 
-#: src/stored/status.c:204 src/stored/status.c:206
+#: src/stored/status.c:208 src/stored/status.c:210
 msgid ""
 "====\n"
 "\n"
@@ -14259,23 +14268,23 @@ msgstr ""
 "====\n"
 "\n"
 
-#: src/stored/status.c:223
+#: src/stored/status.c:227
 msgid ""
 "No DEVICE structure.\n"
 "\n"
 msgstr ""
 
-#: src/stored/status.c:230
+#: src/stored/status.c:234
 msgid "    Device is BLOCKED. User unmounted.\n"
 msgstr "    Le Device est BLOQUÉ. Démonté par l'utilisateur.\n"
 
-#: src/stored/status.c:234
+#: src/stored/status.c:238
 msgid "    Device is BLOCKED. User unmounted during wait for media/mount.\n"
 msgstr ""
 "    Le Device est BLOQUÉ. Démonté par l'utilisateur à cause d'un chargement "
 "de média.\n"
 
-#: src/stored/status.c:246
+#: src/stored/status.c:250
 #, fuzzy, c-format
 msgid ""
 "    Device is BLOCKED waiting for mount of volume \"%s\",\n"
@@ -14283,7 +14292,7 @@ msgid ""
 "       Media type:  %s\n"
 msgstr "    Le Device est BLOQUÉ en attente du montage du volume « %s ».\n"
 
-#: src/stored/status.c:255
+#: src/stored/status.c:259
 #, c-format
 msgid ""
 "    Device is BLOCKED waiting to create a volume for:\n"
@@ -14291,65 +14300,65 @@ msgid ""
 "       Media type:  %s\n"
 msgstr ""
 
-#: src/stored/status.c:267
+#: src/stored/status.c:271
 msgid "    Device is BLOCKED waiting for media.\n"
 msgstr "    Le Device est BLOQUÉ en attente d'un média.\n"
 
-#: src/stored/status.c:273
+#: src/stored/status.c:277
 msgid "    Device is being initialized.\n"
 msgstr "    Le Device est en cours d'initialisation.\n"
 
-#: src/stored/status.c:277
+#: src/stored/status.c:281
 msgid "    Device is blocked labeling a Volume.\n"
 msgstr "    Le Device est occupé à labéliser un Volume.\n"
 
-#: src/stored/status.c:286
+#: src/stored/status.c:290
 #, c-format
 msgid "    Slot %d is loaded in drive %d.\n"
 msgstr "    Le slot %d est chargé dans le lecteur %d.\n"
 
-#: src/stored/status.c:290
+#: src/stored/status.c:294
 #, c-format
 msgid "    Drive %d is not loaded.\n"
 msgstr "    Le lecteur %d n'est pas chargé.\n"
 
-#: src/stored/status.c:293
+#: src/stored/status.c:297
 #, c-format
 msgid "    Drive %d status unknown.\n"
 msgstr "    Le statut du lecteur %d est inconnu.\n"
 
-#: src/stored/status.c:316
+#: src/stored/status.c:320
 msgid "Device state:\n"
 msgstr ""
 
-#: src/stored/status.c:334
+#: src/stored/status.c:338
 #, c-format
 msgid ""
 "num_writers=%d block=%d\n"
 "\n"
 msgstr ""
 
-#: src/stored/status.c:340
+#: src/stored/status.c:344
 #, c-format
 msgid "Archive name: %s Device name: %s\n"
 msgstr ""
 
-#: src/stored/status.c:344
+#: src/stored/status.c:348
 #, c-format
 msgid "File=%u block=%u\n"
 msgstr "Fichier=%u bloc=%u\n"
 
-#: src/stored/status.c:347
+#: src/stored/status.c:351
 #, c-format
 msgid "Min block=%u Max block=%u\n"
 msgstr "Min bloc=%u Max bloc=%u\n"
 
-#: src/stored/status.c:371
+#: src/stored/status.c:375
 #, c-format
 msgid "%s Job %s waiting for Client connection.\n"
 msgstr "%s Job %s est en attente de la connexion du Client.\n"
 
-#: src/stored/status.c:387
+#: src/stored/status.c:391
 #, fuzzy, c-format
 msgid ""
 "Reading: %s %s job %s JobId=%d Volume=\"%s\"\n"
@@ -14358,7 +14367,7 @@ msgstr ""
 "Lecture : %s %s job %s JobId=%d Volume=« %s »\n"
 "   pool=« %s » device=« %s »\n"
 
-#: src/stored/status.c:400
+#: src/stored/status.c:404
 #, fuzzy, c-format
 msgid ""
 "Writing: %s %s job %s JobId=%d Volume=\"%s\"\n"
@@ -14367,21 +14376,21 @@ msgstr ""
 "Ecriture : %s %s job %s JobId=%d Volume=« %s »\n"
 "   pool=« %s » device=« %s »\n"
 
-#: src/stored/status.c:411
+#: src/stored/status.c:415
 #, c-format
 msgid "    spooling=%d despooling=%d despool_wait=%d\n"
 msgstr ""
 
-#: src/stored/status.c:428
+#: src/stored/status.c:432
 #, c-format
 msgid "    FDReadSeqNo=%s in_msg=%u out_msg=%d fd=%d\n"
 msgstr ""
 
-#: src/stored/status.c:434
+#: src/stored/status.c:438
 msgid "    FDSocket closed\n"
 msgstr ""
 
-#: src/stored/status.c:456
+#: src/stored/status.c:460
 msgid ""
 "\n"
 "Jobs waiting to reserve a drive:\n"
@@ -14389,35 +14398,35 @@ msgstr ""
 "\n"
 "Jobs en attente de réservation de lecteur :\n"
 
-#: src/stored/status.c:487
+#: src/stored/status.c:491
 msgid "===================================================================\n"
 msgstr "===================================================================\n"
 
-#: src/stored/status.c:633
+#: src/stored/status.c:637
 msgid "3900 Bad .status command, missing argument.\n"
 msgstr ""
 
-#: src/stored/status.c:656
+#: src/stored/status.c:660
 msgid "3900 Bad .status command, wrong argument.\n"
 msgstr ""
 
-#: src/stored/status.c:670
+#: src/stored/status.c:674
 msgid "Bacula Storage: Idle"
 msgstr "Bacula Storage : En attente"
 
-#: src/stored/status.c:681
+#: src/stored/status.c:685
 msgid "Bacula Storage: Running"
 msgstr "Bacula Storage : En cours"
 
-#: src/stored/status.c:695
+#: src/stored/status.c:699
 msgid "Bacula Storage: Last Job Canceled"
 msgstr "Bacula Storage : Dernier Job annulé"
 
-#: src/stored/status.c:699
+#: src/stored/status.c:703
 msgid "Bacula Storage: Last Job Failed"
 msgstr "Bacula Storage : Dernier Job en erreur"
 
-#: src/stored/status.c:703
+#: src/stored/status.c:707
 msgid "Bacula Storage: Last Job had Warnings"
 msgstr "Bacula Storage : Le dernier Job avait des erreurs"
 
