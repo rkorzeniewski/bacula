@@ -94,6 +94,10 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
          edit_uint64_with_commas(sm_buffers, b4),
          edit_uint64_with_commas(sm_max_buffers, b5));
    sendit(msg, len, arg);
+   len = Mmsg(msg, "Sizes: boffset_t=%d size_t=%d int32_t=%d int64_t=%d\n", 
+         (int)sizeof(boffset_t), (int)sizeof(size_t), (int)sizeof(int32_t),
+         (int)sizeof(int64_t));
+   sendit(msg, len, arg);
 
    /*
     * List running jobs

@@ -190,9 +190,17 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
           */
          if (ok && lmr.PoolId == mr->PoolId) {
             Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
-            mr = &lmr;             /* struct copy */
-            break;
+            mr = &lmr;                    /* struct copy */
+            break;                        /* got a volume */
          }
+         /*
+          * We purged something but did not get a volume in the current pool.
+          *  It must be a scratch volume, so try to get it.
+          */
+         if (ok && get_scratch_volume(jcr, InChanger, mr)) {
+            break;                       /* got a volume */
+         }
+         ok = false;                     /* clear OK, in case we fall out */
       } else {
          Dmsg2(050, "Nothing pruned MediaId=%d Volume=%s\n", (int)lmr.MediaId, lmr.VolumeName);
       }
