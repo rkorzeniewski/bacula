@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: branch 2.0\n"
 "Report-Msgid-Bugs-To: bacula-devel@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-07-12 11:13+0200\n"
+"POT-Creation-Date: 2007-07-12 12:33+0200\n"
 "PO-Revision-Date: 2007-02-03 19:16+0100\n"
 "Last-Translator: Kern Sibbald <kern@sibbald.com>\n"
 "Language-Team: Finnish <translation-team-fi@lists.sourceforge.net>\n"
@@ -16,35 +16,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/cats/bdb.c:147
+#: src/cats/bdb.c:161
 msgid "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
 msgstr ""
 
-#: src/cats/bdb.c:148
+#: src/cats/bdb.c:162
 msgid "WARNING!!!! The Internal Database is NOT OPERATIONAL!\n"
 msgstr ""
 
-#: src/cats/bdb.c:149
+#: src/cats/bdb.c:163
 msgid "You should use SQLite, PostgreSQL, or MySQL\n"
 msgstr ""
 
-#: src/cats/bdb.c:171 src/cats/mysql.c:152 src/cats/postgresql.c:161
+#: src/cats/bdb.c:185 src/cats/mysql.c:152 src/cats/postgresql.c:161
 #: src/cats/sqlite.c:160
 #, c-format
 msgid "Unable to initialize DB lock. ERR=%s\n"
 msgstr ""
 
-#: src/cats/bdb.c:181
+#: src/cats/bdb.c:195
 #, c-format
 msgid "Unable to open Catalog DB control file %s: ERR=%s\n"
 msgstr ""
 
-#: src/cats/bdb.c:236
+#: src/cats/bdb.c:250
 #, c-format
 msgid "Error reading catalog DB control file. ERR=%s\n"
 msgstr ""
 
-#: src/cats/bdb.c:239
+#: src/cats/bdb.c:253
 #, c-format
 msgid ""
 "Error, catalog DB control file wrong version. Wanted %d, got %d\n"
@@ -7878,105 +7878,105 @@ msgstr ""
 msgid "Program killed by Bacula watchdog (timeout)\n"
 msgstr ""
 
-#: src/lib/bsys.c:203 src/lib/bsys.c:220 src/lib/bsys.c:244 src/lib/bsys.c:257
+#: src/lib/bsys.c:208 src/lib/bsys.c:225 src/lib/bsys.c:249 src/lib/bsys.c:262
 #, c-format
 msgid "Out of memory: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:299
+#: src/lib/bsys.c:304
 msgid "Buffer overflow.\n"
 msgstr ""
 
-#: src/lib/bsys.c:365
+#: src/lib/bsys.c:370
 msgid "Bad errno"
 msgstr ""
 
-#: src/lib/bsys.c:382
+#: src/lib/bsys.c:387
 msgid "Possible mutex deadlock.\n"
 msgstr ""
 
-#: src/lib/bsys.c:386 src/lib/bsys.c:419
+#: src/lib/bsys.c:391 src/lib/bsys.c:424
 #, c-format
 msgid "Mutex lock failure. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:389
+#: src/lib/bsys.c:394
 msgid "Possible mutex deadlock resolved.\n"
 msgstr ""
 
-#: src/lib/bsys.c:402
+#: src/lib/bsys.c:407
 #, c-format
 msgid "Mutex unlock not locked. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:407 src/lib/bsys.c:429
+#: src/lib/bsys.c:412 src/lib/bsys.c:434
 #, c-format
 msgid "Mutex unlock failure. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:443
+#: src/lib/bsys.c:448
 #, c-format
 msgid "Memset for %d bytes at %s:%d\n"
 msgstr ""
 
-#: src/lib/bsys.c:472
+#: src/lib/bsys.c:477
 #, c-format
 msgid "Cannot open pid file. %s ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:486
+#: src/lib/bsys.c:491
 #, c-format
 msgid ""
 "%s is already running. pid=%d\n"
 "Check file %s\n"
 msgstr ""
 
-#: src/lib/bsys.c:499
+#: src/lib/bsys.c:504
 #, c-format
 msgid "Could not open pid file. %s ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:604
+#: src/lib/bsys.c:609
 #, c-format
 msgid "Could not create state file. %s ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:623
+#: src/lib/bsys.c:628
 #, c-format
 msgid "Write final hdr error: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:659
+#: src/lib/bsys.c:664
 #, c-format
 msgid "Could not find userid=%s: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:665
+#: src/lib/bsys.c:670
 #, c-format
 msgid "Could not find password entry. ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:678
+#: src/lib/bsys.c:683
 #, c-format
 msgid "Could not find group=%s: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:686
+#: src/lib/bsys.c:691
 #, c-format
 msgid "Could not initgroups for group=%s, userid=%s: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:689
+#: src/lib/bsys.c:694
 #, c-format
 msgid "Could not initgroups for userid=%s: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:696
+#: src/lib/bsys.c:701
 #, c-format
 msgid "Could not set group=%s: ERR=%s\n"
 msgstr ""
 
-#: src/lib/bsys.c:702
+#: src/lib/bsys.c:707
 #, c-format
 msgid "Could not set specified userid: %s\n"
 msgstr ""
