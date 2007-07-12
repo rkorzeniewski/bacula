@@ -43,6 +43,11 @@
 #include <grp.h>
 #endif
 
+#ifdef HAVE_AIX_OS
+extern "C" int initgroups(char *,int);
+#endif
+
+
 static pthread_mutex_t timer_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t timer = PTHREAD_COND_INITIALIZER;
 

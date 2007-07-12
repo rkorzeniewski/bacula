@@ -69,6 +69,9 @@ extern "C" char *tgetstr (const char*, char**);
 extern "C" char *tgoto (const char *, int, int);
 #elif HAVE_HPUX_OS
 #include <term.h>
+#elif HAVE_AIX_OS 
+#include <curses.h>
+#include <term.h>
 #elif defined (__digital__) && defined (__unix__)
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);
@@ -82,7 +85,7 @@ extern "C" char *tgoto (const char *, int, int);
 
 
 /* From termios library */
-#ifdef HAVE_HPUX_OS
+#if defined(HAVE_HPUX_OS) || defined(HAVE_AIX_OS)
 static char *BC;
 static char *UP;
 #else
