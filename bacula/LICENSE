@@ -127,6 +127,12 @@ Certain parts of the Bacula software are licensed by their
 copyright holder(s) under the GPL. These software files are
 clearly marked as such.
 
+Bacula can be enabled with data encryption and/or communications
+encryption. If this is the case, you will be including OpenSSL code that
+that contains cryptographic software written by Eric Young
+(eay@cryptsoft.com) and also software written by Tim Hudson
+(tjh@cryptsoft.com).
+
 There are parts of Bacula that are licensed under the LGPL so
 that they may be used in proprietary code to interface with
 Bacula.
