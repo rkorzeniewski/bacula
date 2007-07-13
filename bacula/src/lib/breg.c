@@ -7,7 +7,7 @@
  *
  */
 /*
-   BaculaÂ® - The Network Backup Solution
+   BaculaÂ® - The Network Backup Solution
 
    Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
 
