@@ -1,10 +1,4 @@
 /*
- * Directory tree build/traverse routines
- *
- *    Kern Sibbald, June MMII
- *
-*/
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
@@ -30,6 +24,12 @@
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ * Directory tree build/traverse routines
+ *
+ *    Kern Sibbald, June MMII
+ *
 */
 
 struct s_mem {
