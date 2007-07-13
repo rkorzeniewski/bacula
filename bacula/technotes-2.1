@@ -2,6 +2,17 @@
 
 General:
 13Jul07
+kes  Disable posting the WM_CLOSE message in KillRunningCopy of the 
+     Win32 FD.  This should fix bug #893.
+kes  Remove an unnecessary beep in Win32 init code.
+kes  Update copyright dates in Win32 executable about boxes.
+kes  Replace the FSF copyrighted getopt.c and getopt.h in the Win32
+     code with a BSD getopt.c and getopt.h.
+kes  Remove sched.h from the Win32 compat directory -- not used.
+kes  Remove the Exit menu item from the Win32 tray monitor. If you really
+     need to shut it down, do it through the services panel or the command
+     line.
+kes  Remove some inappropriate Bacula FSFE copyrights.
 ebl  Tweak status client=xxx to be more easy to parse (more like in 2.0.x)
 kes  Fix regress config non-portable test as pointed out by
      Florian Heigl <florian.heigl@gmail.com>

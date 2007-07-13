@@ -1,12 +1,7 @@
 /*
-   This file was inspired by the VNC Win32 code by ATT
-
-   Kern E. Sibbald, 2000
-*/
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,9 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+   This file was inspired by the VNC Win32 code by ATT
+
+   Kern E. Sibbald, 2000
+*/
 
 
-/* Object implementing the About dialog for Bacula */
+/* Header for the About dialog for Bacula */
 
 class bacAbout;
 
@@ -51,7 +51,6 @@ public:
 
    void Show(BOOL show);
 
-   /* Object local storage */
    bool visible;
 };
 

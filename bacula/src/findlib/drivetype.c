@@ -1,14 +1,7 @@
 /*
- *  Implement routines to determine drive type (Windows specific).
- *
- *   Written by Robert Nelson, June 2006
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Implement routines to determine drive type (Windows specific).
+ *
+ *   Written by Robert Nelson, June 2006
+ *
+ *   Version $Id$
+ */
 
 #ifndef TEST_PROGRAM
 
