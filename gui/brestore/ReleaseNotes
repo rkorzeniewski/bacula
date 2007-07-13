@@ -1,4 +1,7 @@
-          Release Notes for brestore 2.0.3
+          Release Notes for brestore 2.2.0
+
+Version 2.2.0:
+ - -b now clean brestore internal tables
 
 Version 2.0.3-4:
  - -b console mode can now create brestore table

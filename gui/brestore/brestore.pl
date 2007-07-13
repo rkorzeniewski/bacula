@@ -2388,12 +2388,33 @@ sub update_cache
 {
     my ($self) = @_;
 
+    $self->{conf}->{dbh}->begin_work();
+
     my $query = "
   SELECT JobId from Job 
    WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) ORDER BY JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
+
+    print STDERR "Cleaning path visibility\n";
+    
+    my $nb = $self->dbh_do("
+  DELETE FROM brestore_pathvisibility
+      WHERE NOT EXISTS 
+   (SELECT 1 FROM Job WHERE JobId=brestore_pathvisibility.JobId)");
+
+    print STDERR "$nb rows affected\n";
+    print STDERR "Cleaning known jobid\n";
+
+    $nb = $self->dbh_do("
+  DELETE FROM brestore_knownjobid
+      WHERE NOT EXISTS 
+   (SELECT 1 FROM Job WHERE JobId=brestore_knownjobid.JobId)");
+
+    print STDERR "$nb rows affected\n";
+
+    $self->{conf}->{dbh}->commit();
 }
 
 sub get_root
