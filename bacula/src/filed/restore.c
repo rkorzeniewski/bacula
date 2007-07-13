@@ -552,7 +552,7 @@ void do_restore(JCR *jcr)
             }
 
             if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags, 
-                             &rctx.rctxfork_cipher_ctx) < 0) {
+                             &rctx.fork_cipher_ctx) < 0) {
                extract = false;
                bclose(&rctx.forkbfd);
                continue;
