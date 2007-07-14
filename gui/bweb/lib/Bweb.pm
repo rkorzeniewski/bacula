@@ -1385,7 +1385,8 @@ sub get_form
 		 maxvoljobs  => 0,
 		 maxvolbytes => 0,
 		 maxvolfiles => 0,
-		 pathid => 1,
+		 filenameid => 0,
+		 pathid => 0,
 		 );
 
     my %opt_ss =(		# string with space

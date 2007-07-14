@@ -49,10 +49,11 @@ $conf->load();
 my $bweb = new Bweb(info => $conf);
 $bweb->connect_db();
 
-my $arg = $bweb->get_form('where', 'jobid', 'pathid');
+my $arg = $bweb->get_form('where', 'jobid', 'pathid', 'filenameid');
 my $where = $arg->{where};
 my $jobid = $arg->{jobid};
 my $pathid = $arg->{pathid};
+my $fnid = $arg->{filenameid};
 my $jobid_url = "jobid=$jobid";
 my $opt_level = 2 ;
 my $max_file = 20;
@@ -93,6 +94,16 @@ if (-f "$base_fich/$md5_rep.png" and -f "$base_fich/$md5_rep.tpl")
     exit 0;
 }
 
+if ($fnid and $pathid)
+{
+    my $attribs = fv_get_file_attribute_from_id($jobid, $pathid, $fnid);
+    if ($attribs->{found}) {
+	$bweb->display($attribs, 'fv_file_attribs.tpl');
+	$bweb->display_end();
+	exit 0;
+    }
+}
+
 my $attribs = fv_get_file_attribute($jobid, $where);
 if ($attribs->{found}) {
     $bweb->display($attribs, 'fv_file_attribs.tpl');
@@ -106,8 +117,9 @@ if ($where !~ m!/$!) {
 
 my $root;
 
-if ($pathid and $where) {
+if ($pathid) {
     $root = $pathid;
+    $where = fv_get_root_path($pathid);
 } else {
     $root = fv_get_root_pathid($where);
 }
@@ -170,6 +182,10 @@ sub fv_display_rep
 	$sum += $size;
 
 	my $per = $size * 100 / $max;
+	# can't use pathname when using utf or accent
+	# a bit ugly
+	$ccircle->{base_url} =~ s/pathid=\d+;/pathid=$dir->[0];/;
+
 	my $chld = $ccircle->add_part($per, 
 				      basename($dir->[1]) . '/',
 				      basename($dir->[1]) 
@@ -177,18 +193,15 @@ sub fv_display_rep
 				       . Bweb::human_size($size)
 				      ) ;
 
-	if ($chld) {		# use pathid instead of where (for accents)
-	    $chld->{base_url} =~ s/pathid=$rep;/pathid=$dir->[0];/;
-	    
-	    if ($level > 0) {
-		fv_display_rep($chld, $size, $dir->[0], $level - 1) ;
-	    }
+	if ($chld && $level > 0) {
+	    fv_display_rep($chld, $size, $dir->[0], $level - 1) ;
 	}
     }
 
-    # 0: name, 1: size
+    # 0: name, 1: size, 2: filenameid
     my $files = fv_get_big_files($jobid, $rep, 3*100/$max, $max_file/($level+1));
     foreach my $f (@{$files}) {
+	$ccircle->{base_url} =~ s/pathid=\d+;(filenameid=\d+;)?/pathid=$rep;filenameid=$f->[2];/;
 	$ccircle->add_part($f->[1] * 100 / $max, 
 			   $f->[0],
 			   $f->[0] . "\n" . Bweb::human_size($f->[1]));
@@ -273,6 +286,34 @@ sub fv_get_file_attribute
     return $attr;
 }
 
+
+sub fv_get_file_attribute_from_id
+{
+    my ($jobid, $pathid, $filenameid) = @_;
+    
+    my $attr = $bweb->dbh_selectrow_hashref("
+ SELECT 1    AS found,
+        MD5  AS md5,
+        base64_decode_lstat(8,  LStat) AS size,
+        base64_decode_lstat(11, LStat) AS atime,
+        base64_decode_lstat(12, LStat) AS mtime,
+        base64_decode_lstat(13, LStat) AS ctime,
+        Path.Path ||  Filename.Name AS filename
+
+   FROM File INNER JOIN Filename USING (FilenameId)
+             INNER JOIN Path     USING (PathId)
+  WHERE FilenameId  = $filenameid
+   AND  PathId  = $pathid
+   AND  JobId = $jobid
+");
+
+    $attr->{size} = Bweb::human_size($attr->{size});
+    foreach my $d (qw/atime ctime mtime/) {
+	$attr->{$d} = strftime('%F %H:%M', localtime($attr->{$d}));
+    }
+    return $attr;
+}
+
 sub fv_get_size
 {
     my ($jobid, $rep) = @_;
@@ -306,7 +347,7 @@ sub fv_get_big_files
     my ($jobid, $rep, $min, $limit) = @_;
 
     my $ret = $bweb->dbh_selectall_arrayref("
-   SELECT Name, size
+   SELECT Name AS name, size, FilenameId AS filenameid
    FROM (
          SELECT FilenameId,base64_decode_lstat(8,LStat) AS size
            FROM File
@@ -341,6 +382,14 @@ sub fv_get_root_pathid
     my $ret = $bweb->dbh_selectrow_hashref("SELECT PathId FROM Path WHERE Path = $path");
     return $ret->{pathid};
 }
+
+sub fv_get_root_path
+{
+    my ($pathid) = @_;
+    my $ret = $bweb->dbh_selectrow_hashref("SELECT Path FROM Path WHERE PathId = $pathid");
+    return $ret->{path};
+}
+
 
 __END__
 
