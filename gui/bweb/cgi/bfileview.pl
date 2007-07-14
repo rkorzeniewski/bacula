@@ -50,7 +50,7 @@ my $bweb = new Bweb(info => $conf);
 $bweb->connect_db();
 
 my $arg = $bweb->get_form('where', 'jobid', 'pathid', 'filenameid');
-my $where = $arg->{where};
+my $where = $arg->{where} || '/';
 my $jobid = $arg->{jobid};
 my $pathid = $arg->{pathid};
 my $fnid = $arg->{filenameid};
@@ -63,7 +63,7 @@ my $md5_rep = md5_hex("$where:$jobid") ;
 my $base_url = '/bweb/fv' ;
 my $base_fich = $conf->{fv_write_path};
 
-if ($where and $jobid and $batch eq 'batch') {
+if ($jobid and $batch eq 'batch') {
     my $root = fv_get_root_pathid($where);
     if ($root) {
 	fv_compute_size($jobid, $root);
@@ -76,7 +76,7 @@ print CGI::header('text/html');
 $bweb->display_begin();
 $bweb->display_job_zoom($jobid);
 
-unless (($where or $pathid) and $jobid) {
+unless ($jobid) {
     $bweb->error("Can't get where or jobid");
     exit 0;
 }
