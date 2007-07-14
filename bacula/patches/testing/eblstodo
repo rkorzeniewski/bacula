@@ -44,7 +44,7 @@ bweb :
 
  - Adapter bfileview pour utiliser le PathId a la place du
    nom des fichiers.
-
+ - Ajouter un mode qui compte le nombre de fichier sous bfileview
 
 bacula :
 
