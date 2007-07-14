@@ -2014,7 +2014,7 @@ SELECT  Job.JobId       AS jobid,
           LEFT JOIN FileSet  ON (Job.FileSetId = FileSet.FileSetId)
           $cgq
  WHERE Client.ClientId=Job.ClientId
-   AND Job.JobStatus != 'R'
+   AND Job.JobStatus NOT IN ('R', 'C')
  $where
  $limit
 ";
