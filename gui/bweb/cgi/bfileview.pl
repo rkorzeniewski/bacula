@@ -94,6 +94,8 @@ if (-f "$base_fich/$md5_rep.png" and -f "$base_fich/$md5_rep.tpl")
     exit 0;
 }
 
+
+# if it's a file, display it
 if ($fnid and $pathid)
 {
     my $attribs = fv_get_file_attribute_from_id($jobid, $pathid, $fnid);
@@ -102,17 +104,15 @@ if ($fnid and $pathid)
 	$bweb->display_end();
 	exit 0;
     }
-}
 
-my $attribs = fv_get_file_attribute($jobid, $where);
-if ($attribs->{found}) {
-    $bweb->display($attribs, 'fv_file_attribs.tpl');
-    $bweb->display_end();
-    exit 0;
-}
+} else {
 
-if ($where !~ m!/$!) {
-    $where = $where . "/" ;
+    my $attribs = fv_get_file_attribute($jobid, $where);
+    if ($attribs->{found}) {
+	$bweb->display($attribs, 'fv_file_attribs.tpl');
+	$bweb->display_end();
+	exit 0;
+    }
 }
 
 my $root;
@@ -120,7 +120,12 @@ my $root;
 if ($pathid) {
     $root = $pathid;
     $where = fv_get_root_path($pathid);
+
 } else {
+    if ($where !~ m!/$!) {
+	$where = $where . "/" ;
+    }
+    
     $root = fv_get_root_pathid($where);
 }
 
@@ -198,14 +203,14 @@ sub fv_display_rep
 	}
     }
 
-    # 0: name, 1: size, 2: filenameid
+    # 0: filenameid, 1: filename, 2: size
     my $files = fv_get_big_files($jobid, $rep, 3*100/$max, $max_file/($level+1));
     foreach my $f (@{$files}) {
-	$ccircle->{base_url} =~ s/pathid=\d+;(filenameid=\d+;)?/pathid=$rep;filenameid=$f->[2];/;
-	$ccircle->add_part($f->[1] * 100 / $max, 
-			   $f->[0],
-			   $f->[0] . "\n" . Bweb::human_size($f->[1]));
-	$sum += $f->[1];
+	$ccircle->{base_url} =~ s/pathid=\d+;(filenameid=\d+;)?/pathid=$rep;filenameid=$f->[0];/;
+	$ccircle->add_part($f->[2] * 100 / $max, 
+			   $f->[1],
+			   $f->[1] . "\n" . Bweb::human_size($f->[2]));
+	$sum += $f->[2];
     }
 
     if ($sum < $max) {
