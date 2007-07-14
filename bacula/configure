@@ -14712,23 +14712,22 @@ fi
 #
 #  If bat is enabled, we need the qwt library
 got_qwt=no
+QWT_INC=
+QWT_LDFLAGS=
 if test x$support_bat = xyes; then
+   { echo "$as_me:$LINENO: checking for qwt support" >&5
+echo $ECHO_N "checking for qwt support... $ECHO_C" >&6; }
 
 # Check whether --with-qwt was given.
 if test "${with_qwt+set}" = set; then
   withval=$with_qwt;
 	case "$with_qwt" in
-	no) : ;;
+	no)
+	  ;;
 	yes|*)
 	  if test -f ${with_qwt}/include/qwt.h; then
 	     QWT_INC="${with_qwt}/include"
 	     QWT_LDFLAGS="-L${with_qwt}/lib"
-	  else
-	     echo " "
-	     echo "qwt.h not found. bat turned off ..."
-	     echo " "
-	     BAT_DIR=
-	     support_bat=no
 	  fi
 	  ;;
 	esac
@@ -14736,6 +14735,37 @@ if test "${with_qwt+set}" = set; then
 
 fi
 
+#
+# Search in standard places, or --with-qwt not specified
+#
+   if test x$QWT_INC = x; then
+      for root in /usr /usr/local; do
+	 for ver in qwt qwt5; do
+	    if test -f ${root}/include/${ver}/qwt.h; then
+	       QWT_INC="${root}/include/${ver}"
+	       if test -d ${root}/lib64/; then
+		  QWT_LDFLAGS="-L${root}/lib64"
+	       else
+		  QWT_LDFLAGS="-L${root}/lib"
+	       fi
+	       got_qwt=yes
+	       break;
+	    fi
+	 done
+      done
+   fi
+   if test x$QWT_INC = x; then
+      { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+      { { echo "$as_me:$LINENO: error: Unable to find qwt package needed by bat" >&5
+echo "$as_me: error: Unable to find qwt package needed by bat" >&2;}
+   { (exit 1); exit 1; }; }
+      BAT_DIR=
+      support_bat=no
+   else
+      { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+   fi
 fi
 
 
@@ -35979,7 +36009,7 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc}
-  enable-bat:		      ${support_bat}
+  bat support:		      ${support_bat} ${QWT_LDFLAGS}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-bwx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}
