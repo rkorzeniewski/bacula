@@ -273,27 +273,52 @@ fi
 # 
 #  If bat is enabled, we need the qwt library
 got_qwt=no
+QWT_INC=
+QWT_LDFLAGS=
 if test x$support_bat = xyes; then
+   AC_MSG_CHECKING(for qwt support)
    AC_ARG_WITH(qwt,
      [ --with-qwt@<:@=DIR@:>@		  specify qwt library directory],
      [
 	case "$with_qwt" in
-	no) : ;;
+	no)
+	  ;;
 	yes|*)
 	  if test -f ${with_qwt}/include/qwt.h; then
 	     QWT_INC="${with_qwt}/include"
 	     QWT_LDFLAGS="-L${with_qwt}/lib"
-	  else
-	     echo " "
-	     echo "qwt.h not found. bat turned off ..."
-	     echo " "
-	     BAT_DIR=
-	     support_bat=no
 	  fi
 	  ;;
 	esac
      ]	 
    )
+#
+# Search in standard places, or --with-qwt not specified
+#
+   if test x$QWT_INC = x; then
+      for root in /usr /usr/local; do
+	 for ver in qwt qwt5; do
+	    if test -f ${root}/include/${ver}/qwt.h; then
+	       QWT_INC="${root}/include/${ver}"
+	       if test -d ${root}/lib64/; then
+		  QWT_LDFLAGS="-L${root}/lib64"
+	       else
+		  QWT_LDFLAGS="-L${root}/lib"
+	       fi
+	       got_qwt=yes
+	       break;
+	    fi
+	 done
+      done
+   fi
+   if test x$QWT_INC = x; then
+      AC_MSG_RESULT(no)
+      AC_MSG_ERROR(Unable to find qwt package needed by bat)
+      BAT_DIR=
+      support_bat=no
+   else
+      AC_MSG_RESULT(yes)
+   fi
 fi
 
 AC_SUBST(BAT_DIR)
@@ -2320,7 +2345,7 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto} 
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
-  enable-bat:		      ${support_bat}
+  bat support:		      ${support_bat} ${QWT_LDFLAGS}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-bwx-console:	      ${support_wx_console} ${wx_version}
   enable-tray-monitor:	      ${support_tray_monitor}
