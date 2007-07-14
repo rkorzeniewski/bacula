@@ -6,8 +6,8 @@
 # basic defines for every build
 %define _version @VERSION@
 %define _release 1
-%define depkgs_version 04Jan07
-%define _rescuever 2.1.10
+%define depkgs_version 11Jul07
+%define _rescuever @VERSION@
 %define docs_version @VERSION@
 
 # any patches for this release
@@ -1049,6 +1049,9 @@ make sqlite
 %if ! %{client_only}
 make mtx
 %endif
+%if %{bat}
+make qwt
+%endif
 cd ${cwd}
 
 # patches for the bundled sqlite scripts
@@ -1134,6 +1137,7 @@ make
 %endif
 %if %{bat}
 	--enable-bat \
+	--with-qwt=${cwd}/%{depkgs}/qwt \
 %endif
 %if %{python}
 	--with-python \
@@ -2003,6 +2007,8 @@ fi
 %endif
 
 %changelog
+* Sat Jul 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 2.1.26 add make of qwt in depkgs for bat
 * Sat Jun 02 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - upgrade Qt requirement for bat to 4.2
 * Sun May 06 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
