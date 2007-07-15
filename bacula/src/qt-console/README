@@ -39,6 +39,10 @@ bat.conf file.  "make install" will write /etc/bacula/bat.conf.  bat.conf can
 include as many director stanza's as you would like in bat.conf.  You may use 
 this directories bat.conf.example as a template for director stanza's.
 
+Win32 mingw infos for QT4 :
+ - http://silmor.de/29
+ - http://doc.qtfr.org/post/2007/04/10/Cross-Compilation-Native-dapplication-Qt-depuis-Linux
+
 Development status as of 05/06/07
 
 Items not implemented:
