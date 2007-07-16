@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                      29 June 2007
+                       16 July 2007
 
 
 Document:
@@ -58,6 +58,8 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- Remove all install temp files in Win32 PLUGINSDIR.
+- Audit retention periods to make sure everything is 64 bit.
 - Use E'xxx' to escape PostgreSQL strings.
 - No where in restore causes kaboom.
 - Performance: multiple spool files for a single job.
@@ -1759,4 +1761,3 @@ Block Position: 0
   does the right thing.
 - FD-SD quick disconnect
 - Building the in memory restore tree is slow.
-
