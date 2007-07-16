@@ -735,7 +735,7 @@ static bool mount_cmd(JCR *jcr)
                                     "If this is not a blank tape, try unmounting and remounting the Volume.\n"),
                              dev->print_name());
                }
-            } else if (dev->is_dvd()) {
+            } else if (dev->is_unmountable()) {
                if (dev->mount(1)) {
                   bnet_fsend(dir, _("3002 Device %s is mounted.\n"), 
                      dev->print_name());
@@ -785,7 +785,7 @@ static bool unmount_cmd(JCR *jcr)
             if (!dev->is_busy()) {
                unload_autochanger(dcr, -1);          
             }
-            if (dev->is_dvd()) {
+            if (dev->is_unmountable()) {
                if (dev->unmount(0)) {
                   bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 
                      dev->print_name());
@@ -804,7 +804,7 @@ static bool unmount_cmd(JCR *jcr)
                /* ***FIXME**** what is this ????  */
                dev->close();
             }
-            if (dev->is_dvd() && !dev->unmount(0)) {
+            if (dev->is_unmountable() && !dev->unmount(0)) {
                bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
             } else {
                dev->set_blocked(BST_UNMOUNTED_WAITING_FOR_SYSOP);
@@ -835,7 +835,7 @@ static bool unmount_cmd(JCR *jcr)
             if (!unload_autochanger(dcr, -1)) {
                dev->close();
             }
-            if (dev->is_dvd() && !dev->unmount(0)) {
+            if (dev->is_unmountable() && !dev->unmount(0)) {
                bnet_fsend(dir, _("3907 %s"), dev->bstrerror());
             } else {
                bnet_fsend(dir, _("3002 Device %s unmounted.\n"), 

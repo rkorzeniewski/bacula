@@ -944,13 +944,25 @@ Section "Uninstall"
 
   ; Check for existing installation
   MessageBox MB_YESNO|MB_ICONQUESTION \
-  "Would you like to delete the current configuration files and the working state file?" IDNO +7
+  "Would you like to delete the current configuration files and the working state file?" IDNO NoDel
     Delete /REBOOTOK "$APPDATA\Bacula\*"
     Delete /REBOOTOK "$APPDATA\Bacula\Work\*"
     Delete /REBOOTOK "$APPDATA\Bacula\Spool\*"
+    Delete /REBOOTOK "$PLUGINSDIR\bacula-*.conf"
+    Delete /REBOOTOK "$PLUGINSDIR\*console.conf"
+    Delete /REBOOTOK "$PLUGINSDIR\*conf.in"
+    Delete /REBOOTOK "$PLUGINSDIR\openssl.exe"
+    Delete /REBOOTOK "$PLUGINSDIR\libeay32.dll"
+    Delete /REBOOTOK "$PLUGINSDIR\ssleay32.dll"
+    Delete /REBOOTOK "$PLUGINSDIR\sed.exe"    
+    Delete /REBOOTOK "$PLUGINSDIR\pw.txt"     
+    Delete /REBOOTOK "$PLUGINSDIR\*.sed" 
+    Delete /REBOOTOK "$PLUGINSDIR\*.cmd"    
+    Delete /REBOOTOK "$PLUGINSDIR\*.sql"    
     RMDir "$APPDATA\Bacula\Work"
     RMDir "$APPDATA\Bacula\Spool"
     RMDir "$APPDATA\Bacula"
+NoDel:
 
   ; remove directories used
   RMDir "$INSTDIR\bin"
