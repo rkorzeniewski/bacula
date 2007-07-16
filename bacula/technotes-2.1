@@ -1,6 +1,12 @@
               Technical notes on version 2.1
 
 General:
+16Jul07
+kes  When applying a storage override, release all previous storage
+     definitions rather than just prepending the new storage.
+     This should prevent a good deal of confusion.
+14Jul07
+kes  Implement ./configure search for qwt libraries.
 13Jul07
 kes  Disable posting the WM_CLOSE message in KillRunningCopy of the 
      Win32 FD.  This should fix bug #893.

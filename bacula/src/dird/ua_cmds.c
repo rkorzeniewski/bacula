@@ -1424,10 +1424,10 @@ static void do_mount_cmd(UAContext *ua, const char *command)
    Dmsg2(120, "%s: %s\n", command, ua->UA_sock->msg);
 
    store.store = get_storage_resource(ua, true/*arg is storage*/);
-   pm_strcpy(store.store_source, _("unknown source"));
    if (!store.store) {
       return;
    }
+   pm_strcpy(store.store_source, _("unknown source"));
    set_wstorage(jcr, &store);
    drive = get_storage_drive(ua, store.store);
    if (strcmp(command, "mount") == 0) {
