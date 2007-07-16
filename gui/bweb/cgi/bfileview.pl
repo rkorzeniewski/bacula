@@ -59,7 +59,7 @@ my $opt_level = 2 ;
 my $max_file = 20;
 my $batch = CGI::param("mode") || '';
 
-my $md5_rep = md5_hex("$where:$jobid") ;
+my $md5_rep = md5_hex("$where:$jobid:$pathid:$fnid") ;
 my $base_url = '/bweb/fv' ;
 my $base_fich = $conf->{fv_write_path};
 
@@ -140,7 +140,7 @@ my $total = fv_compute_size($jobid, $root);
 my $url_action = "bfileview.pl?opt_level=$opt_level" ;
 my $top = new CCircle(
 		      display_other => 1,
-		      base_url => "$url_action;pathid=$root;$jobid_url;where=$where",
+		      base_url => "$url_action;pathid=$root;$jobid_url;here=$where",
 		      ) ;
 
 fv_display_rep($top, $total, $root, $opt_level) ;
@@ -206,7 +206,8 @@ sub fv_display_rep
     # 0: filenameid, 1: filename, 2: size
     my $files = fv_get_big_files($jobid, $rep, 3*100/$max, $max_file/($level+1));
     foreach my $f (@{$files}) {
-	$ccircle->{base_url} =~ s/pathid=\d+;(filenameid=\d+;)?/pathid=$rep;filenameid=$f->[0];/;
+	$ccircle->{base_url} =~ s/pathid=\d+;(filenameid=\d+)?/pathid=$rep;filenameid=$f->[0];/;
+
 	$ccircle->add_part($f->[2] * 100 / $max, 
 			   $f->[1],
 			   $f->[1] . "\n" . Bweb::human_size($f->[2]));
@@ -352,9 +353,9 @@ sub fv_get_big_files
     my ($jobid, $rep, $min, $limit) = @_;
 
     my $ret = $bweb->dbh_selectall_arrayref("
-   SELECT Name AS name, size, FilenameId AS filenameid
+   SELECT FilenameId AS filenameid, Name AS name, size
    FROM (
-         SELECT FilenameId,base64_decode_lstat(8,LStat) AS size
+         SELECT FilenameId, base64_decode_lstat(8,LStat) AS size
            FROM File
           WHERE PathId  = $rep
             AND JobId = $jobid
