@@ -976,7 +976,7 @@ void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 }
 
 
-/* Set storage override */
+/* Set storage override.  Releases any previous storage definition */
 void set_rwstorage(JCR *jcr, USTORE *store)
 {
    if (!store) {
@@ -1026,13 +1026,16 @@ void copy_rstorage(JCR *jcr, alist *storage, const char *where)
 }
 
 
-/* Set storage override */
+/* Set storage override.  Remove all previous storage */
 void set_rstorage(JCR *jcr, USTORE *store)
 {
    STORE *storage;
 
    if (!store->store) {
       return;
+   }
+   if (jcr->rstorage) {
+      free_rstorage(jcr);
    }
    if (!jcr->rstorage) {
       jcr->rstorage = New(alist(10, not_owned_by_alist));
@@ -1087,13 +1090,16 @@ void copy_wstorage(JCR *jcr, alist *storage, const char *where)
 }
 
 
-/* Set storage override */
+/* Set storage override. Remove all previous storage */
 void set_wstorage(JCR *jcr, USTORE *store)
 {
    STORE *storage;
 
    if (!store->store) {
       return;
+   }
+   if (jcr->wstorage) {
+      free_wstorage(jcr);
    }
    if (!jcr->wstorage) {
       jcr->wstorage = New(alist(10, not_owned_by_alist));
