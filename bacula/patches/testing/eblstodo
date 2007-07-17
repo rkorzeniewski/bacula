@@ -49,3 +49,4 @@ bweb :
 bacula :
 
  - Utiliser la lib pcre
+ - Rendre les scripts bacula-ctl-xxx LSB
