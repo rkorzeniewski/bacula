@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 2.1.26
+          Release Notes for Bacula 2.1.28
 
   Bacula code: Total files = 516 Total lines = 244,888 (*.h *.c *.in)
 
@@ -14,6 +14,18 @@ Restore on Win32, and in particular on Vista is untested. Please
 test before relying on it.  It should backup and restore reparse
 points.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Changes since Beta release 2.1.26
+- Several bug fixes #842, 893, and some unreported bugs.
+- Storage overrides delete all previous storage definitions instead
+  of prepending.
+- One should be able to mount and unmount removable devices if the
+  Device resource has Removeable Media set and the mount and unmount
+  directives are defined.
+- ./configure will do a better job of searching for qwt libraries.
+- The Win32 version can no longer be shutdown from the tray monitor.
+  Use the command line or the Services panne.
+- Make Mac OS X compile work.
 
 Changes since Beta release 2.1.24
 - Add qwt graphics library (for Qt4) needed to build bat to the

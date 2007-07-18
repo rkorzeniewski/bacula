@@ -373,46 +373,45 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
          memset(&pr, 0, sizeof(pr));
          bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
 
-	 if (!db_get_pool_record(jcr, jcr->db, &pr)) {
-	    Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
-		 db_strerror(jcr->db));
-	    goto bail_out;
-	 }
-	 
-	 if (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
-	    Jmsg(jcr, M_WARNING, 0, _("Unable add Scratch Volume, Pool \"%s\" full MaxVols=%d\n"),
-		 jcr->pool->hdr.name, pr.MaxVols);
-	    goto bail_out;
-	 }
-	 /* OK, now move Scratch Volume */
+         if (!db_get_pool_record(jcr, jcr->db, &pr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
+                 db_strerror(jcr->db));
+            goto bail_out;
+         }
+         
+         if (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
+            Jmsg(jcr, M_WARNING, 0, _("Unable add Scratch Volume, Pool \"%s\" full MaxVols=%d\n"),
+                 jcr->pool->hdr.name, pr.MaxVols);
+            goto bail_out;
+         }
 
-	 /*
-	  * Get *full* media record to return as db_find_next_volume does
-	  *   not return everything .
-	  */
-	 mr->MediaId = smr.MediaId;
-	 if (!db_get_media_record(jcr, jcr->db, mr)) {
-	    Jmsg(jcr, M_WARNING, 0, _("Unable to get Volume record: ERR=%s"),
-		 db_strerror(jcr->db));
-	    goto bail_out;
-	 }
-	 /* Set default parameters from current pool */
-	 set_pool_dbr_defaults_in_media_dbr(mr, &pr);
-	 /*
-	  * set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
-	  * we could have Recycled media,  
-	  */
-	 bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
-	 if (!db_update_media_record(jcr, jcr->db, mr)) {
-	    Jmsg(jcr, M_WARNING, 0, _("Failed to move Scratch Volume. ERR=%s\n"),
-		 db_strerror(jcr->db));
-	    goto bail_out;
-	 }
+         /*
+          * Get *full* media record to return as db_find_next_volume does
+          *   not return everything .
+          */
+         mr->MediaId = smr.MediaId;
+         if (!db_get_media_record(jcr, jcr->db, mr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Unable to get Volume record: ERR=%s"),
+                 db_strerror(jcr->db));
+            goto bail_out;
+         }
+         /* Set default parameters from current pool */
+         set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+         /*
+          * set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
+          * we could have Recycled media,  
+          */
+         bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
+         if (!db_update_media_record(jcr, jcr->db, mr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Failed to move Scratch Volume. ERR=%s\n"),
+                 db_strerror(jcr->db));
+            goto bail_out;
+         }
 
-	 Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
-	      mr->VolumeName);
-	 
-	 ok = true;
+         Jmsg(jcr, M_INFO, 0, _("Using Volume \"%s\" from 'Scratch' pool.\n"), 
+              mr->VolumeName);
+         
+         ok = true;
       }
    }
 bail_out:
