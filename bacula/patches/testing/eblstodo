@@ -45,6 +45,12 @@ bweb :
  - Adapter bfileview pour utiliser le PathId a la place du
    nom des fichiers.
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
+ - Integrer brestore en mode javascript
+   o ajouter une api 
+       .ls_dir(jobid,pathid)
+       .ls_file(jobid,pathid)
+       .get_pathid(jobid,"/")
+       .genbsr (fileid, fileid, fileid, fileid, fileid...)
 
 bacula :
 
