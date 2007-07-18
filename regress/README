@@ -139,6 +139,40 @@ you will see an error message when the script attempts to run a second
 copy, but those messages can be ignored.  This makes it reasonably easy
 to run any component or components under the debugger if necessary.
 
+Explicit example:
+
+In shell window 1.
+
+cd regress
+export REGRESS_DEBUG=1
+export REGRESS_WAIT=1
+tests/name-of-script-test
+(wait until it tells you to start the debugger)
+
+In shell window 2
+
+cd regress/bin
+gdb bacula-xx    (where xx is the component you want to debug).
+(possibly set a break point -- normally not)
+run -s -f
+(wait for the output to stop)
+
+In shell window 1
+(enter any character or simply a return)
+(ignore the error message it prints complaining that the daemon
+you are debugging is already running, which is in fact the case).
+
+
+That is all there is to it.  The debugger window will get some
+output and will stop waiting for input if anything goes wrong
+like a seg fault.  At that point, you can enter commands.
+
+The procedure avoids modifying the test scripts and trying to
+find pids and the such.  If you want less debug output when
+debugging, don't set REGRESS_DEBUG=1.
+
+===
+
 Also, if you run from time to time on a computer that is not connected
 to the network, please be sure that "hostname" is set to "localhost",
 otherwise, your tests may fail because the hostname used by Bacula's
@@ -170,4 +204,3 @@ free_addresses(dlist*) + 53 in section .text
 info symbol 0x8082d58
 add_address(dlist**, IPADDR::i_type, unsigned short, int, char const*, char 
 const*, char**) + 568 in section .text
-
