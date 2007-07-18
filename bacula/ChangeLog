@@ -1,6 +1,47 @@
               Technical notes on version 2.1
 
 General:
+Release 2.1.28 beta
+18Jul08
+kes  Update Release notes 
+17Jul07
+ebl  fix a bug in get_scratch_volume() report by Andreas Helmcke
+     Warning, in previous beta version, all media get from scratch keep their
+     old retention.
+16Jul07
+kes  Tweaked Win32 installer to remove temp conf files at uninstall time.
+     This should fix bug #842. Made a note to look at removing the temp
+     files at the end of the install.
+kes  Add ability to mount and unmount a file device providing it is
+     marked as being removable and has the appropriate mount and unmount
+     commands defined in the Device resource. This fixes bug #830.
+kes  When applying a storage override, release all previous storage
+     definitions rather than just prepending the new storage.
+     This should prevent a good deal of confusion.
+14Jul07
+kes  Implement ./configure search for qwt libraries.
+13Jul07
+kes  Disable posting the WM_CLOSE message in KillRunningCopy of the 
+     Win32 FD.  This should fix bug #893.
+kes  Remove an unnecessary beep in Win32 init code.
+kes  Update copyright dates in Win32 executable about boxes.
+kes  Replace the FSF copyrighted getopt.c and getopt.h in the Win32
+     code with a BSD getopt.c and getopt.h.
+kes  Remove sched.h from the Win32 compat directory -- not used.
+kes  Remove the Exit menu item from the Win32 tray monitor. If you really
+     need to shut it down, do it through the services panel or the command
+     line.
+kes  Remove some inappropriate Bacula FSFE copyrights.
+ebl  Tweak status client=xxx to be more easy to parse (more like in 2.0.x)
+kes  Fix regress config non-portable test as pointed out by
+     Florian Heigl <florian.heigl@gmail.com>
+kes  Fix PSCMD for HP-UX in configure.in to have proper syntax.
+     as pointed out by Florian Heigl <florian.heigl@gmail.com>
+12Jul07
+kes  Fix missing rctx. prefixes on the Darwin code in src/filed/restore.c
+     Reported by Frank Sweetser.
+
+Release 2.1.26 beta
 12Jul07
 kes  Fix client-only build.
 kes  Integrate client-only fixes for bsys (initgroups) and conio from
