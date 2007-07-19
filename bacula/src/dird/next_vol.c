@@ -327,7 +327,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
 {
-   MEDIA_DBR smr;
+   MEDIA_DBR smr;                        /* for searching scratch pool */
    POOL_DBR spr, pr;
    bool ok = false;
    bool found = false;
@@ -371,7 +371,7 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
           * that we can add a Volume.
           */
          memset(&pr, 0, sizeof(pr));
-         bstrncpy(pr.Name, jcr->pool->hdr.name, sizeof(pr.Name));
+         bstrncpy(pr.Name, jcr->pool->name(), sizeof(pr.Name));
 
          if (!db_get_pool_record(jcr, jcr->db, &pr)) {
             Jmsg(jcr, M_WARNING, 0, _("Unable to get Pool record: ERR=%s"), 
@@ -379,9 +379,10 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             goto bail_out;
          }
          
+         /* Make sure there is room for another volume */
          if (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
             Jmsg(jcr, M_WARNING, 0, _("Unable add Scratch Volume, Pool \"%s\" full MaxVols=%d\n"),
-                 jcr->pool->hdr.name, pr.MaxVols);
+                 jcr->pool->name(), pr.MaxVols);
             goto bail_out;
          }
 
@@ -397,11 +398,15 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
          }
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
+
          /*
           * set_pool_dbr_defaults_in_media_dbr set VolStatus to Append,
-          * we could have Recycled media,  
+          *   we could have Recycled media, also, we retain the old
+          *   RecyclePoolId.
           */
          bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
+         mr.RecyclePoolId = smr.RecyclePoolId;
+
          if (!db_update_media_record(jcr, jcr->db, mr)) {
             Jmsg(jcr, M_WARNING, 0, _("Failed to move Scratch Volume. ERR=%s\n"),
                  db_strerror(jcr->db));
