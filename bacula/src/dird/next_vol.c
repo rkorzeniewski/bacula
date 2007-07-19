@@ -405,7 +405,7 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
           *   RecyclePoolId.
           */
          bstrncpy(mr->VolStatus, smr.VolStatus, sizeof(smr.VolStatus));
-         mr.RecyclePoolId = smr.RecyclePoolId;
+         mr->RecyclePoolId = smr.RecyclePoolId;
 
          if (!db_update_media_record(jcr, jcr->db, mr)) {
             Jmsg(jcr, M_WARNING, 0, _("Failed to move Scratch Volume. ERR=%s\n"),
