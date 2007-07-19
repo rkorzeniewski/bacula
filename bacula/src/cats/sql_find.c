@@ -280,14 +280,16 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    if (item == -1) {       /* find oldest volume */
       /* Find oldest volume */
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
-          "LabelType,VolReadTime,VolWriteTime "
-          "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus IN ('Full',"
-          "'Recycle','Purged','Used','Append') AND Enabled=1 "
-          "ORDER BY LastWritten LIMIT 1", 
-          edit_int64(mr->PoolId, ed1), mr->MediaType);
+         "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+         "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
+         "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
+         "Enabled,LocationId,RecycleCount,InitialWrite,"
+         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime "
+         "FROM Media WHERE PoolId=%s AND MediaType='%s' AND VolStatus IN ('Full',"
+         "'Recycle','Purged','Used','Append') AND Enabled=1 "
+         "ORDER BY LastWritten LIMIT 1", 
+         edit_int64(mr->PoolId, ed1), mr->MediaType);
      item = 1;
    } else {
       char changer[100];
@@ -305,16 +307,18 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
          order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
       }
       Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolJobs,VolFiles,VolBlocks,"
-          "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
-          "VolRetention,VolUseDuration,MaxVolJobs,MaxVolFiles,Recycle,Slot,"
-          "FirstWritten,LastWritten,VolStatus,InChanger,VolParts,"
-          "LabelType,VolReadTime,VolWriteTime "
-          "FROM Media WHERE PoolId=%s AND MediaType='%s' AND Enabled=1 "
-          "AND VolStatus='%s' "
-          "%s "
-          "%s LIMIT %d",
-          edit_int64(mr->PoolId, ed1), mr->MediaType,
-          mr->VolStatus, changer, order, item);
+         "VolBytes,VolMounts,VolErrors,VolWrites,MaxVolBytes,VolCapacityBytes,"
+         "MediaType,VolStatus,PoolId,VolRetention,VolUseDuration,MaxVolJobs,"
+         "MaxVolFiles,Recycle,Slot,FirstWritten,LastWritten,InChanger,"
+         "EndFile,EndBlock,VolParts,LabelType,LabelDate,StorageId,"
+         "Enabled,LocationId,RecycleCount,InitialWrite,"
+         "ScratchPoolId,RecyclePoolId,VolReadTime,VolWriteTime "
+         "FROM Media WHERE PoolId=%s AND MediaType='%s' AND Enabled=1 "
+         "AND VolStatus='%s' "
+         "%s "
+         "%s LIMIT %d",
+         edit_int64(mr->PoolId, ed1), mr->MediaType,
+         mr->VolStatus, changer, order, item);
    }
    Dmsg1(050, "fnextvol=%s\n", mdb->cmd);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
@@ -349,7 +353,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
 
    /* Return fields in Media Record */
    mr->MediaId = str_to_int64(row[0]);
-   bstrncpy(mr->VolumeName, row[1], sizeof(mr->VolumeName));
+   bstrncpy(mr->VolumeName, row[1]!=NULL?row[1]:"", sizeof(mr->VolumeName));
    mr->VolJobs = str_to_int64(row[2]);
    mr->VolFiles = str_to_int64(row[3]);
    mr->VolBlocks = str_to_int64(row[4]);
@@ -359,23 +363,37 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
    mr->VolWrites = str_to_int64(row[8]);
    mr->MaxVolBytes = str_to_uint64(row[9]);
    mr->VolCapacityBytes = str_to_uint64(row[10]);
-   mr->VolRetention = str_to_uint64(row[11]);
-   mr->VolUseDuration = str_to_uint64(row[12]);
-   mr->MaxVolJobs = str_to_int64(row[13]);
-   mr->MaxVolFiles = str_to_int64(row[14]);
-   mr->Recycle = str_to_int64(row[15]);
-   mr->Slot = str_to_int64(row[16]);
-   bstrncpy(mr->cFirstWritten, row[17]!=NULL?row[17]:"", sizeof(mr->cFirstWritten));
+   bstrncpy(mr->MediaType, row[11]!=NULL?row[11]:"", sizeof(mr->MediaType));
+   bstrncpy(mr->VolStatus, row[12]!=NULL?row[12]:"", sizeof(mr->VolStatus));
+   mr->PoolId = str_to_int64(row[13]);
+   mr->VolRetention = str_to_uint64(row[14]);
+   mr->VolUseDuration = str_to_uint64(row[15]);
+   mr->MaxVolJobs = str_to_int64(row[16]);
+   mr->MaxVolFiles = str_to_int64(row[17]);
+   mr->Recycle = str_to_int64(row[18]);
+   mr->Slot = str_to_int64(row[19]);
+   bstrncpy(mr->cFirstWritten, row[20]!=NULL?row[20]:"", sizeof(mr->cFirstWritten));
    mr->FirstWritten = (time_t)str_to_utime(mr->cFirstWritten);
-   bstrncpy(mr->cLastWritten, row[18]!=NULL?row[18]:"", sizeof(mr->cLastWritten));
+   bstrncpy(mr->cLastWritten, row[21]!=NULL?row[21]:"", sizeof(mr->cLastWritten));
    mr->LastWritten = (time_t)str_to_utime(mr->cLastWritten);
-   bstrncpy(mr->VolStatus, row[19], sizeof(mr->VolStatus));
-   mr->InChanger = str_to_int64(row[20]);
-   mr->VolParts = str_to_int64(row[21]);
-   mr->LabelType = str_to_int64(row[22]);
-   mr->VolReadTime = str_to_int64(row[23]);
-   mr->VolWriteTime = str_to_int64(row[24]);
-   mr->Enabled = 1;   /* ensured via query */
+   mr->InChanger = str_to_uint64(row[22]);
+   mr->EndFile = str_to_uint64(row[23]);
+   mr->EndBlock = str_to_uint64(row[24]);
+   mr->VolParts = str_to_int64(row[25]);
+   mr->LabelType = str_to_int64(row[26]);
+   bstrncpy(mr->cLabelDate, row[27]!=NULL?row[27]:"", sizeof(mr->cLabelDate));
+   mr->LabelDate = (time_t)str_to_utime(mr->cLabelDate);
+   mr->StorageId = str_to_int64(row[28]);
+   mr->Enabled = str_to_int64(row[29]);
+   mr->LocationId = str_to_int64(row[30]);
+   mr->RecycleCount = str_to_int64(row[31]);
+   bstrncpy(mr->cInitialWrite, row[32]!=NULL?row[32]:"", sizeof(mr->cInitialWrite));
+   mr->InitialWrite = (time_t)str_to_utime(mr->cInitialWrite);
+   mr->ScratchPoolId = str_to_int64(row[33]);
+   mr->RecyclePoolId = str_to_int64(row[34]);
+   mr->VolReadTime = str_to_int64(row[35]);
+   mr->VolWriteTime = str_to_int64(row[36]);
+
    sql_free_result(mdb);
 
    db_unlock(mdb);

@@ -386,17 +386,7 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             goto bail_out;
          }
 
-         /*
-          * Get *full* media record to return as db_find_next_volume does
-          *   not return everything .
-          */
-         mr->MediaId = smr.MediaId;
-         if (!db_get_media_record(jcr, jcr->db, mr)) {
-            Jmsg(jcr, M_WARNING, 0, _("Unable to get Volume record: ERR=%s"),
-                 db_strerror(jcr->db));
-            goto bail_out;
-         }
-         smr.RecyclePoolId = mr->RecyclePoolId;
+         memcpy(mr, &smr, sizeof(MEDIA_DBR)); 
 
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
