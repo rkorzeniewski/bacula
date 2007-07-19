@@ -51,7 +51,7 @@ nice tests/hardlink-test
 nice tests/tls-test
 # 
 # The following are Virtual Disk Autochanger tests
-nice tests/three-pool-recycle-test
+#nice tests/three-pool-recycle-test
 nice tests/two-pool-test
 nice tests/fast-two-pool-test
 nice tests/two-volume-test
