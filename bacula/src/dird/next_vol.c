@@ -396,6 +396,8 @@ bool get_scratch_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
                  db_strerror(jcr->db));
             goto bail_out;
          }
+         smr.RecyclePoolId = mr->RecyclePoolId;
+
          /* Set default parameters from current pool */
          set_pool_dbr_defaults_in_media_dbr(mr, &pr);
 
