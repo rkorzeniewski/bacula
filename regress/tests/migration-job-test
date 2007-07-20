@@ -29,7 +29,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output
 messages
 @$out tmp/log1.out
-setdebug level=100 storage=File
+@#setdebug level=100 storage=File
 label storage=File volume=FileVolume001 Pool=Default
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
@@ -49,6 +49,16 @@ messages
 list jobs 
 list volumes
 wait
+@#
+@# Now do another backup, but level Incremental
+@#
+run job=$JobName level=Incremental yes
+wait
+messages
+@#
+@# This final job that runs should be Incremental and
+@# not upgraded to full.
+list jobs
 @# 
 @# now do a restore
 @#
