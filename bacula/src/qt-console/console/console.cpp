@@ -629,11 +629,14 @@ int Console::read()
          }
       }
       switch (m_sock->msglen) {
-      case BNET_MSGS_PENDING:
-         if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
-         write_dir(".messages");
-         displayToPrompt();
-         m_messages_pending = false;
+      case BNET_MSGS_PENDING :
+         if (m_notifier->isEnabled()) {
+            if (mainWin->m_commDebug) Pmsg0(000, "MSGS PENDING\n");
+            write_dir(".messages");
+            displayToPrompt();
+            m_messages_pending = false;
+         }
+         m_messages_pending = true;
          continue;
       case BNET_CMD_OK:
          if (mainWin->m_commDebug) Pmsg0(000, "CMD OK\n");
