@@ -99,7 +99,8 @@ JobPlot::JobPlot(QTreeWidgetItem *parentTreeWidgetItem, JobPlotPass &passVals)
  */
 JobPlot::~JobPlot()
 {
-   writeSettings();
+   if (m_drawn)
+      writeSettings();
    m_pjd.clear();
 }
 
@@ -113,7 +114,6 @@ void JobPlot::currentStackItem()
       reGraph();
       m_drawn=true;
    }
-
 }
 
 /*
