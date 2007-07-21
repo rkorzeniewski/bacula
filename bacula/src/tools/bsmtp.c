@@ -289,9 +289,6 @@ int main (int argc, char *argv[])
       exit(1);
    }
 
-#if defined(HAVE_WIN32)
-   _setmode(0, _O_BINARY);
-#endif
 
    /*
     *  Determine SMTP server
@@ -307,6 +304,7 @@ int main (int argc, char *argv[])
 #if defined(HAVE_WIN32)
    WSADATA  wsaData;
 
+   _setmode(0, _O_BINARY);
    WSAStartup(MAKEWORD(2,2), &wsaData);
 #endif
 
