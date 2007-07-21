@@ -52,7 +52,7 @@ INSTOOLS = $(INS@DIR_TOOLS@)
 	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 #-------------------------------------------------------------------------
-all: Makefile $(TOOLS) gigaslam
+all: Makefile $(TOOLS) gigaslam grow
 	@echo "==== Make of tools is good ===="
 	@echo " "
 
@@ -106,6 +106,8 @@ gigaslam.o: gigaslam.c
 gigaslam: gigaslam.o
 	$(CC) -o $@ gigaslam.o
 
+grow: grow.o ../lib/libbac.a
+	$(CXX) $(LDFLAGS) -L../lib -o $@ grow.o -lbac -lm $(DLIB) $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
 	cd $(topdir) \
