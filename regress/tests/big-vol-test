@@ -35,17 +35,11 @@ check_for_zombie_jobs storage=File
 #
 cd ${cwd}/tmp
 # make 1 GB file
-${cwd}/build/src/tools/gigaslam
+${cwd}/build/src/tools/grow TestVolume001 5200000000
 if [ $? != 0 ]; then
-   echo "Execute of ${cwd}/build/src/tools/gigaslam failed."
-   rm -f gigaslam.gif
+   echo "Execute of ${cwd}/build/src/tools/grow failed."
    exit 1
 fi
-cat gigaslam.gif >>TestVolume001
-cat gigaslam.gif >>TestVolume001
-cat gigaslam.gif >>TestVolume001
-cat gigaslam.gif >>TestVolume001
-cat gigaslam.gif >>TestVolume001
 size=`ls -l TestVolume001 | cut -f 5 -d ' '`
 ls -l TestVolume001
 cd ${cwd}
@@ -84,5 +78,4 @@ check_two_logs
 check_restore_diff
 end_test
 # Get rid of big files
-rm -f ${cwd}/tmp/gigaslam.gif
 rm -f ${cwd}/tmp/TestVolume001
