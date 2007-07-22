@@ -8,6 +8,7 @@ echo " "
 nice tests/auto-label-test
 nice tests/backup-bacula-test
 nice tests/bextract-test
+nice tests/big-vol-test
 nice tests/bscan-test
 nice tests/bsr-opt-test
 nice tests/compressed-test
