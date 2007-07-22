@@ -530,13 +530,11 @@ int send_runscripts_commands(JCR *jcr)
    Dmsg0(120, "bdird: sending runscripts to fd\n");
    
    foreach_alist(cmd, jcr->job->RunScripts) {
-      
       if (cmd->can_run_at_level(jcr->JobLevel) && cmd->target) {
-
          ehost = edit_job_codes(jcr, ehost, cmd->target, "");
          Dmsg2(200, "bdird: runscript %s -> %s\n", cmd->target, ehost);
 
-         if (strcmp(ehost, jcr->client->hdr.name) == 0) {
+         if (strcmp(ehost, jcr->client->name()) == 0) {
             pm_strcpy(msg, cmd->command);
             bash_spaces(msg);
 
@@ -554,14 +552,11 @@ int send_runscripts_commands(JCR *jcr)
                                          msg);
 
                result = response(jcr, fd, OKRunScript, "RunScript", DISPLAY_ERROR);
-               launch_before_cmd=true;
+               launch_before_cmd = true;
             }
             
             if (!result) {
-               set_jcr_job_status(jcr, JS_ErrorTerminated);
-               free_pool_memory(msg);
-               free_pool_memory(ehost);
-               return 0;
+               goto bail_out;
             }
          }
          /* TODO : we have to play with other client */
@@ -577,15 +572,18 @@ int send_runscripts_commands(JCR *jcr)
    if (launch_before_cmd) {
       bnet_fsend(fd, runbeforenow);
       if (!response(jcr, fd, OKRunBeforeNow, "RunBeforeNow", DISPLAY_ERROR)) {
-        set_jcr_job_status(jcr, JS_ErrorTerminated);
-        free_pool_memory(msg);
-        free_pool_memory(ehost);
-        return 0;
+        goto bail_out;
       }
    }
    free_pool_memory(msg);
    free_pool_memory(ehost);
    return 1;
+
+bail_out:
+   free_pool_memory(msg);
+   free_pool_memory(ehost);
+   return 0;
+    
 }
 
 
