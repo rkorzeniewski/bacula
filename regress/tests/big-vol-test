@@ -42,6 +42,7 @@ if [ $? != 0 ]; then
 fi
 size=`ls -l TestVolume001 | cut -f 5 -d ' '`
 cd ${cwd}
+
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
