@@ -49,9 +49,8 @@ st dir
 quit
 END_OF_DATA
 
-
-bin/bacula start
-cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
+run_bacula
+check_for_zombie_jobs storage=File
 stop_bacula
 
 dstat=0
