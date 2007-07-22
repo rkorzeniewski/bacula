@@ -63,7 +63,7 @@ void RUNSCRIPT::reset_default(bool free_strings)
    command = NULL;
    on_success = true;
    on_failure = false;
-   abort_on_error = true;
+   fail_on_error = true;
    when = SCRIPT_Never;
    old_proto = false;        /* TODO: drop this with bacula 1.42 */
 }
@@ -103,7 +103,7 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
    
    RUNSCRIPT *script;
    bool runit;
-   bool status;
+   bool ok;
 
    int when;
 
@@ -120,33 +120,29 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
 
    foreach_alist(script, runscripts) {
       Dmsg2(200, "runscript: try to run %s:%s\n", NPRT(script->target), NPRT(script->command));
-      runit=false;
+      runit = false;
 
       if ((script->when & SCRIPT_Before) && (when & SCRIPT_Before)) {
-         if (  (script->on_success && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
-               ||
-               (script->on_failure && job_canceled(jcr))
+         if ((script->on_success 
+            && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
+            || (script->on_failure && job_canceled(jcr))
             )
          {
-            Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", script->command,
-                                                                                  script->on_success,
-                                                                                  script->on_failure,
-                                                                                  jcr->JobStatus );
-
+            Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", 
+                  script->command, script->on_success, script->on_failure,
+                  jcr->JobStatus );
             runit = true;
          }
       }
 
       if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
-         if (  (script->on_success && (jcr->JobStatus == JS_Terminated))
-               ||
-               (script->on_failure && job_canceled(jcr))
+         if ((script->on_success && (jcr->JobStatus == JS_Terminated))
+             || (script->on_failure && job_canceled(jcr))
             )
          {
-            Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", script->command,
-                                                                                 script->on_success,
-                                                                                 script->on_failure,
-                                                                                 jcr->JobStatus );
+            Dmsg4(200, "runscript: Run it because SCRIPT_After (%s,%i,%i,%c)\n", 
+                  script->command, script->on_success, script->on_failure,
+                  jcr->JobStatus );
             runit = true;
          }
       }
@@ -157,14 +153,10 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
 
       /* we execute it */
       if (runit) {
-        status = script->run(jcr, label);
+        ok = script->run(jcr, label);
 
         /* cancel running job properly */
-        if (   script->abort_on_error 
-            && (status == false) 
-            && (jcr->JobStatus == JS_Created || jcr->JobStatus == JS_Running)
-           )
-        {
+        if (script->fail_on_error && !ok) {
            set_jcr_job_status(jcr, JS_ErrorTerminated);
         }
       }
@@ -268,6 +260,6 @@ void RUNSCRIPT::debug()
    Dmsg1(200,  _("  --> Target=%s\n"),  NPRT(target));
    Dmsg1(200,  _("  --> RunOnSuccess=%u\n"),  on_success);
    Dmsg1(200,  _("  --> RunOnFailure=%u\n"),  on_failure);
-   Dmsg1(200,  _("  --> AbortJobOnError=%u\n"),  abort_on_error);
+   Dmsg1(200,  _("  --> FailJobOnError=%u\n"),  fail_on_error);
    Dmsg1(200,  _("  --> RunWhen=%u\n"),  when);
 }

@@ -530,7 +530,7 @@ static int runscript_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    POOLMEM *msg = get_memory(dir->msglen+1);
-   int on_success, on_failure, abort_on_error;
+   int on_success, on_failure, fail_on_error;
 
    RUNSCRIPT *cmd = new_runscript() ;
 
@@ -538,7 +538,7 @@ static int runscript_cmd(JCR *jcr)
    /* Note, we cannot sscanf into bools */
    if (sscanf(dir->msg, runscript, &on_success, 
                                   &on_failure,
-                                  &abort_on_error,
+                                  &fail_on_error,
                                   &cmd->when,
                                   msg) != 5) {
       pm_strcpy(jcr->errmsg, dir->msg);
@@ -550,7 +550,7 @@ static int runscript_cmd(JCR *jcr)
    }
    cmd->on_success = on_success;
    cmd->on_failure = on_failure;
-   cmd->abort_on_error = abort_on_error;
+   cmd->fail_on_error = fail_on_error;
    unbash_spaces(msg);
 
    cmd->set_command(msg);
