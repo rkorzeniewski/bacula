@@ -103,7 +103,6 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
    
    RUNSCRIPT *script;
    bool runit;
-   bool ok;
 
    int when;
 
@@ -148,17 +147,12 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
       }
 
       if (!script->is_local()) {
-         runit=false;
+         runit = false;
       }
 
       /* we execute it */
       if (runit) {
-        ok = script->run(jcr, label);
-
-        /* cancel running job properly */
-        if (script->fail_on_error && !ok) {
-           set_jcr_job_status(jcr, JS_ErrorTerminated);
-        }
+         script->run(jcr, label);
       }
    }
    return 1;
@@ -205,7 +199,7 @@ void RUNSCRIPT::set_target(const POOLMEM *client_name)
    pm_strcpy(target, client_name);
 }
 
-int RUNSCRIPT::run(JCR *jcr, const char *name)
+bool RUNSCRIPT::run(JCR *jcr, const char *name)
 {
    Dmsg0(200, "runscript: running a RUNSCRIPT object\n");
    POOLMEM *ecmd = get_pool_memory(PM_FNAME);
@@ -223,7 +217,7 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Runscript: %s could not execute. ERR=%s\n"), name,
          be.bstrerror());
-      return false;
+      goto bail_out;
    }
    while (fgets(line, sizeof(line), bpipe->rfd)) {
       int len = strlen(line);
@@ -237,9 +231,16 @@ int RUNSCRIPT::run(JCR *jcr, const char *name)
       berrno be;
       Jmsg(jcr, M_ERROR, 0, _("Runscript: %s returned non-zero status=%d. ERR=%s\n"), name,
          be.code(status), be.bstrerror(status));
-      return false;
+      goto bail_out;
    }
    return true;
+
+bail_out:
+     /* cancel running job properly */
+     if (fail_on_error) {
+        set_jcr_job_status(jcr, JS_ErrorTerminated);
+     }
+     return false;
 }
 
 void free_runscripts(alist *runscripts)
