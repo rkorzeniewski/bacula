@@ -568,7 +568,7 @@ int send_runscripts_commands(JCR *jcr)
       }        
    } 
 
-   /* We tell to the FD that i can execute commands (ie ClientRunBeforeJob) */
+   /* Tell the FD to execute the ClientRunBeforeJob */
    if (launch_before_cmd) {
       bnet_fsend(fd, runbeforenow);
       if (!response(jcr, fd, OKRunBeforeNow, "RunBeforeNow", DISPLAY_ERROR)) {
