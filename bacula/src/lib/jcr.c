@@ -599,16 +599,28 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
     * For a set of errors, ... keep the current status
     *   so it isn't lost. For all others, set it.
     */
+   Dmsg2(100, "OnEntry JobStatus=%c set=%c\n", jcr->JobStatus, JobStatus);
    switch (jcr->JobStatus) {
    case JS_ErrorTerminated:
-   case JS_Error:
    case JS_FatalError:
-   case JS_Differences:
    case JS_Canceled:
       break;
+   case JS_Error:
+   case JS_Differences:
+      switch (JobStatus) {
+      case JS_ErrorTerminated:
+      case JS_FatalError:
+      case JS_Canceled:
+         /* Override more minor status */
+         jcr->JobStatus = JobStatus;
+         break;
+      default:
+         break;
+      }
    default:
       jcr->JobStatus = JobStatus;
    }
+   Dmsg2(100, "OnExit JobStatus=%c set=%c\n", jcr->JobStatus, JobStatus);
 }
 
 #ifdef TRACE_JCR_CHAIN
