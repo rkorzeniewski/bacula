@@ -427,7 +427,7 @@ void JobPlot::addCurve()
  */
 void JobPlot::setPlotType(QString currentText)
 {
-   QwtPlotCurve::CurveStyle style;
+   QwtPlotCurve::CurveStyle style = QwtPlotCurve::NoCurve;
    if (currentText == "Fitted") {
       style = QwtPlotCurve::Lines;
       m_fileCurve->setCurveAttribute(QwtPlotCurve::Fitted);

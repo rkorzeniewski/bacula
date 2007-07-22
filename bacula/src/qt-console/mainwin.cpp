@@ -312,7 +312,8 @@ void MainWin::treeItemChanged(QTreeWidgetItem *currentitem, QTreeWidgetItem *pre
    if (m_isClosing) return; /* if closing the application, do nothing here */
 
    Pages *previousPage, *nextPage;
-   Console *previousConsole, *nextConsole;
+   Console *previousConsole = NULL;
+   Console *nextConsole;
 
    /* remove all actions before adding actions appropriate for new page */
    foreach(QAction* pageAction, treeWidget->actions()) {
