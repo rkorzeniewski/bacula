@@ -549,7 +549,7 @@ int send_runscripts_commands(JCR *jcr)
             } else {
                bnet_fsend(fd, runscript, cmd->on_success, 
                                          cmd->on_failure,
-                                         cmd->abort_on_error,
+                                         cmd->fail_on_error,
                                          cmd->when,
                                          msg);
 

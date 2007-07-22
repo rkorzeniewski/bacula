@@ -68,9 +68,9 @@ public:
    POOLMEM *target;             /* host target */
    int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
    char level;                  /* Base|Full|Incr...|All (NYI) */
-   bool on_success;             /* executre command on job success (After) */
-   bool on_failure;             /* executre command on job failure (After) */
-   bool abort_on_error;         /* abort job on error (Before) */
+   bool on_success;             /* execute command on job success (After) */
+   bool on_failure;             /* execute command on job failure (After) */
+   bool fail_on_error;         /* abort job on error (Before) */
    /* TODO : drop this with bacula 1.42 */
    bool old_proto;              /* used by old 1.3X protocol */
 

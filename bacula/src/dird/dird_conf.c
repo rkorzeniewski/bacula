@@ -616,10 +616,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          dump_resource(-R_SCHEDULE, (RES *)res->res_job.schedule, sendit, sock);
       }
       if (res->res_job.RestoreWhere && !res->res_job.RegexWhere) {
-	   sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
+           sendit(sock, _("  --> Where=%s\n"), NPRT(res->res_job.RestoreWhere));
       }
       if (res->res_job.RegexWhere) {
-	   sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
+           sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
@@ -642,7 +642,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
            sendit(sock, _("  --> Target=%s\n"),  NPRT(script->target));
            sendit(sock, _("  --> RunOnSuccess=%u\n"),  script->on_success);
            sendit(sock, _("  --> RunOnFailure=%u\n"),  script->on_failure);
-           sendit(sock, _("  --> AbortJobOnError=%u\n"),  script->abort_on_error);
+           sendit(sock, _("  --> FailJobOnError=%u\n"),  script->fail_on_error);
            sendit(sock, _("  --> RunWhen=%u\n"),  script->when);
         }
       }
@@ -1322,34 +1322,34 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_job.run_cmds   = res_all.res_job.run_cmds;
          res->res_job.RunScripts = res_all.res_job.RunScripts;
 
-	 /* TODO: JobDefs where/regexwhere doesn't work well (but this
-	  * is not very useful) 
-	  * We have to set_bit(index, res_all.hdr.item_present);
-	  * or something like that
-	  */
+         /* TODO: JobDefs where/regexwhere doesn't work well (but this
+          * is not very useful) 
+          * We have to set_bit(index, res_all.hdr.item_present);
+          * or something like that
+          */
 
          /* we take RegexWhere before all other options */
-	 if (!res->res_job.RegexWhere 
-	     &&
-	     (res->res_job.strip_prefix ||
-	      res->res_job.add_suffix   ||
-	      res->res_job.add_prefix))
-	 {
-	    int len = bregexp_get_build_where_size(res->res_job.strip_prefix,
-						   res->res_job.add_prefix,
-						   res->res_job.add_suffix);
-	    res->res_job.RegexWhere = (char *) bmalloc (len * sizeof(char));
-	    bregexp_build_where(res->res_job.RegexWhere, len,
-				res->res_job.strip_prefix,
-				res->res_job.add_prefix,
-				res->res_job.add_suffix);
-	    /* TODO: test bregexp */
-	 }
+         if (!res->res_job.RegexWhere 
+             &&
+             (res->res_job.strip_prefix ||
+              res->res_job.add_suffix   ||
+              res->res_job.add_prefix))
+         {
+            int len = bregexp_get_build_where_size(res->res_job.strip_prefix,
+                                                   res->res_job.add_prefix,
+                                                   res->res_job.add_suffix);
+            res->res_job.RegexWhere = (char *) bmalloc (len * sizeof(char));
+            bregexp_build_where(res->res_job.RegexWhere, len,
+                                res->res_job.strip_prefix,
+                                res->res_job.add_prefix,
+                                res->res_job.add_suffix);
+            /* TODO: test bregexp */
+         }
 
-	 if (res->res_job.RegexWhere && res->res_job.RestoreWhere) {
-	    free(res->res_job.RestoreWhere);
-	    res->res_job.RestoreWhere = NULL;
-	 }
+         if (res->res_job.RegexWhere && res->res_job.RestoreWhere) {
+            free(res->res_job.RestoreWhere);
+            res->res_job.RestoreWhere = NULL;
+         }
 
          break;
       case R_COUNTER:
@@ -1717,7 +1717,7 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
       if (strcmp(item->name, "runbeforejob") == 0) {
          script->when = SCRIPT_Before;
-         script->abort_on_error = true;
+         script->fail_on_error = true;
          script->set_target("");
 
       } else if (strcmp(item->name, "runafterjob") == 0) {
@@ -1737,7 +1737,7 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
          script->old_proto = true;
          script->when = SCRIPT_Before;
          script->set_target("%c");
-         script->abort_on_error = true;
+         script->fail_on_error = true;
 
       } else if (strcmp(item->name, "runafterfailedjob") == 0) {
          script->when = SCRIPT_After;
@@ -1782,7 +1782,8 @@ static RES_ITEM runscript_items[] = {
  {"target",         store_runscript_target,{(char **)&res_runscript},          0,  0, 0}, 
  {"runsonsuccess",  store_runscript_bool, {(char **)&res_runscript.on_success},0,  0, 0},
  {"runsonfailure",  store_runscript_bool, {(char **)&res_runscript.on_failure},0,  0, 0},
- {"abortjobonerror",store_runscript_bool, {(char **)&res_runscript.abort_on_error},0, 0, 0},
+ {"failjobonerror",store_runscript_bool, {(char **)&res_runscript.fail_on_error},0, 0, 0},
+ {"abortjobonerror",store_runscript_bool, {(char **)&res_runscript.fail_on_error},0, 0, 0},
  {"runswhen",       store_runscript_when, {(char **)&res_runscript.when},      0,  0, 0},
  {"runsonclient",   store_runscript_target,{(char **)&res_runscript},          0,  0, 0}, /* TODO */
  {NULL, NULL, {0}, 0, 0, 0}
@@ -1802,7 +1803,7 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
 
-   res_runscript.reset_default();      /* setting on_success, on_failure, abort_on_error */
+   res_runscript.reset_default();      /* setting on_success, on_failure, fail_on_error */
    
    token = lex_get_token(lc, T_SKIP_EOL);
    
