@@ -97,6 +97,16 @@ Job {
   }
 
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
+  RunScript {
+    Command = "/bin/echo touching /tmp/RUN_FD_FAILED"
+    RunsWhen = after
+    RunsOnFailure = yes
+  }
+  RunScript {
+    Command = "/bin/touch /tmp/RUN_FD_FAILED"
+    RunsWhen = after
+    RunsOnFailure = yes
+  }
 }
 
 #@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"
