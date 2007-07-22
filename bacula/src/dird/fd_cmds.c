@@ -580,10 +580,10 @@ int send_runscripts_commands(JCR *jcr)
    return 1;
 
 bail_out:
+   Jmsg(jcr, M_FATAL, 0, _("Client \"%s\" RunScript failed.\n"), ehost);
    free_pool_memory(msg);
    free_pool_memory(ehost);
    return 0;
-    
 }
 
 
