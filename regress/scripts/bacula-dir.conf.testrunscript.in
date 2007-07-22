@@ -87,12 +87,12 @@ Job {
   JobDefs = DefaultJob
   RunScript {
     Command = "/bin/false RUN_FD_FAILED1"
-    abortjobonerror = no
+    failjobonerror = no
     RunsWhen = Before
   }
   RunScript {
     Command = "/bin/false RUN_FD_FAILED2"
-    abortjobonerror = yes
+    failjobonerror = yes
     RunsWhen = Before
   }
 
@@ -108,17 +108,17 @@ Job {
   JobDefs = DefaultJob
   RunScript {
     Command = "/bin/false RUN_FD_FAILED1"
-    abortjobonerror = yes
+    failjobonerror = yes
     RunsWhen = Before
   }
   RunScript {
     Command = "/bin/false RUN_FD_FAILED2"
-    abortjobonerror = yes
+    failjobonerror = yes
     RunsWhen = Before
   }
   RunScript {
     Command = "/bin/false RUN_FD_FAILED3"
-    abortjobonerror = yes
+    failjobonerror = yes
     RunsOnFailure = yes
     RunsWhen = Before
   }
@@ -134,7 +134,7 @@ Job {
   JobDefs = DefaultJob
   RunScript {
     Command = "/bin/false RUN_FD_WARNING"
-    abortjobonerror = no
+    failjobonerror = no
     RunsWhen = Before
   }
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
