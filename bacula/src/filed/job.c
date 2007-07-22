@@ -492,9 +492,13 @@ static int runbeforenow_cmd(JCR *jcr)
 
    run_scripts(jcr, jcr->RunScripts, "ClientBeforeJob");
    if (job_canceled(jcr)) {
-      return  bnet_fsend(dir, _("2905 Bad RunBeforeNow command.\n"));
+      bnet_fsend(dir, _("2905 Bad RunBeforeNow command.\n"));
+      Dmsg0(100, "Back from run_scripts ClientBeforeJob now: FAILED\n");
+      return 0;
    } else {
-      return  bnet_fsend(dir, OKRunBeforeNow);
+      bnet_fsend(dir, OKRunBeforeNow);
+      Dmsg0(100, "Back from run_scripts ClientBeforeJob now: OK\n");
+      return 1;
    }
 }
 

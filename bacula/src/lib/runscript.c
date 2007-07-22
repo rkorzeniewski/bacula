@@ -233,14 +233,16 @@ bool RUNSCRIPT::run(JCR *jcr, const char *name)
          be.code(status), be.bstrerror(status));
       goto bail_out;
    }
+   Dmsg0(100, "runscript OK\n");
    return true;
 
 bail_out:
-     /* cancel running job properly */
-     if (fail_on_error) {
-        set_jcr_job_status(jcr, JS_ErrorTerminated);
-     }
-     return false;
+   /* cancel running job properly */
+   if (fail_on_error) {
+      set_jcr_job_status(jcr, JS_ErrorTerminated);
+   }
+   Dmsg1(100, "runscript failed. fail_on_error=%d\n", fail_on_error);
+   return false;
 }
 
 void free_runscripts(alist *runscripts)
