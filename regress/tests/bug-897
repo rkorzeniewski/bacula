@@ -11,9 +11,21 @@ copy_test_confs
 
 rm -f bin/bacula-dir.conf
 rm -f tmp/RUN*log
+rm -f ${cwd}/tmp/fifo
+rm -f /tmp/RUN_BUG_897
+rm -f /tmp/RUN_FD_FAILED
+
 /bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
 
 echo "${cwd}/build/po" >/tmp/file-list
+echo "${cwd}/tmp/fifo" >> /tmp/file-list
+mkfifo "${cwd}/tmp/fifo"
+
+# use this to be able to cancel a running job
+(
+  cat > ${cwd}/tmp/fifo < /dev/zero
+  cat > ${cwd}/tmp/fifo < /dev/zero
+) &
 
 start_test
 
@@ -21,13 +33,16 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 label volume=TestVolume001
-@$out tmp/RUN_FD_WARNING.log
-run job=RUN_FD_WARNING yes
+@$out tmp/RUN_FD_FAILED.log
+run job=RUN_FD_FAILED yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_FD_FAILED.log
-run job=RUN_FD_FAILED yes
+@$out tmp/RUN_BUG_897.log
+run job=BUG_897 yes
+@sleep 2
+cancel
+yes
 wait
 messages
 st dir
@@ -62,5 +77,28 @@ else
    echo "RUN_FD_FAILED in error"
    rstat=1
 fi
+if test -f /tmp/RUN_FD_FAILED
+then
+    echo "The /tmp/RUN_FD_FAILED have been created, but nothing could be found"
+    echo "in the log"
+fi
+
+
+grep 'touching' tmp/RUN_BUG_897.log >/dev/null 2>&1
+d=$?
+if [ $d = 0 ]
+then
+   [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
+else
+   echo "RUN_BUG_897 in error"
+   rstat=1
+fi
+if test -f /tmp/RUN_BUG_897
+then
+    echo "The /tmp/RUN_BUG_897 have been created, but nothing could be found"
+    echo "in the log"
+fi
+
+
 
 end_test
