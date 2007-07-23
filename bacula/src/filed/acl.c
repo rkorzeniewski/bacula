@@ -161,7 +161,7 @@ int bacl_set(JCR *jcr, int acltype)
 #endif
 #ifdef BACL_ALTERNATE_TEXT
 #include <acl/libacl.h>
-#define acl_to_text(acl,len)     ((len), acl_to_any_text((acl), NULL, ',', BACL_ALTERNATE_TEXT))
+#define acl_to_text(acl,len)     (acl_to_any_text((acl), NULL, ',', BACL_ALTERNATE_TEXT))
 #endif
 #endif
 
