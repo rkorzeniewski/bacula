@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+#  Test bug 897
+#
+
+TestName="bug-897"
+JobName=backup
+
+. scripts/functions
+copy_test_confs
+
+rm -f bin/bacula-dir.conf
+rm -f tmp/RUN*log
+/bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
+
+echo "${cwd}/build/po" >/tmp/file-list
+
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@$out /dev/null
+messages
+label volume=TestVolume001
+@$out tmp/RUN_FD_WARNING.log
+run job=RUN_FD_WARNING yes
+wait
+messages
+@sleep 1
+@$out tmp/RUN_FD_FAILED.log
+run job=RUN_FD_FAILED yes
+wait
+messages
+st dir
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+dstat=0
+bstat=0
+rstat=0
+export dstat
+export bstat
+export rstat
+
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+a=$?
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+b=$?
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+c=$?
+grep 'touching' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+d=$?
+grep '*** Backup Error ***' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+e=$?
+if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
+then
+   [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
+else
+   echo "RUN_FD_FAILED in error"
+   rstat=1
+fi
+
+end_test
