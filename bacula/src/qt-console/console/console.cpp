@@ -682,6 +682,10 @@ int Console::read()
          if (mainWin->m_commDebug) Pmsg0(000, "START SELECT\n");
          new selectDialog(this);    
          break;
+      case BNET_YESNO:
+         if (mainWin->m_commDebug) Pmsg0(000, "YESNO\n");
+         new yesnoPopUp(this);
+         break;
       case BNET_RUN_CMD:
          if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
          new runCmdPage();

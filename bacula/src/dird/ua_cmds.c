@@ -478,9 +478,18 @@ static int cancel_cmd(UAContext *ua, const char *cmd)
       if (do_prompt(ua, _("Job"),  _("Choose Job to cancel"), buf, sizeof(buf)) < 0) {
          return 1;
       }
-      if (njobs == 1) {
-         if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
+      if (ua->api && njobs == 1) {
+         char nbuf[1000];
+         bsnprintf(nbuf, sizeof(nbuf), _("Cancel: %s\n\n%s"), buf,  
+                   _("Confirm cancel?"));
+         if (!get_yesno(ua, nbuf) || ua->pint32_val == 0) {
             return 1;
+         }
+      } else {
+         if (njobs == 1) {
+            if (!get_yesno(ua, _("Confirm cancel (yes/no): ")) || ua->pint32_val == 0) {
+               return 1;
+            }
          }
       }
       sscanf(buf, "JobId=%d Job=%127s", &njobs, JobName);
@@ -1364,6 +1373,7 @@ static void do_job_delete(UAContext *ua, JobId_t JobId)
 static int delete_volume(UAContext *ua)
 {
    MEDIA_DBR mr;
+   char buf[1000];
 
    if (!select_media_dbr(ua, &mr)) {
       return 1;
@@ -1372,7 +1382,9 @@ static int delete_volume(UAContext *ua)
       "and all Jobs saved on that volume from the Catalog\n"),
       mr.VolumeName);
 
-   if (!get_yesno(ua, _("Are you sure you want to delete this Volume? (yes/no): "))) {
+   bsnprintf(buf, sizeof(buf), _("Are you sure you want to delete Volume \"%s\"? (yes/no): "),
+      mr.VolumeName);
+   if (!get_yesno(ua, buf)) {
       return 1;
    }
    if (ua->pint32_val) {
@@ -1387,13 +1399,16 @@ static int delete_volume(UAContext *ua)
 static int delete_pool(UAContext *ua)
 {
    POOL_DBR  pr;
+   char buf[200];
 
    memset(&pr, 0, sizeof(pr));
 
    if (!get_pool_dbr(ua, &pr)) {
       return 1;
    }
-   if (!get_yesno(ua, _("Are you sure you want to delete this Pool? (yes/no): "))) {
+   bsnprintf(buf, sizeof(buf), _("Are you sure you want to delete Pool \"%s\"? (yes/no): "),
+      pr.Name);
+   if (!get_yesno(ua, buf)) {
       return 1;
    }
    if (ua->pint32_val) {

@@ -95,3 +95,31 @@ void selectDialog::index_change(int index)
 {
    m_index = index;
 }
+
+/*
+ * Handle yesno PopUp when Bacula asks a yes/no question.
+ */
+/*
+ * Read the items for the selection
+ */
+yesnoPopUp::yesnoPopUp(Console *console) 
+{
+   QMessageBox msgBox;
+
+   setAttribute(Qt::WA_DeleteOnClose);
+   console->read();                 /* get yesno question */
+   msgBox.setWindowTitle("Bat Question");
+   msgBox.setText(console->msg());
+   msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+   console->displayToPrompt();
+   switch (msgBox.exec()) {
+   case QMessageBox::Yes:
+      console->write_dir("yes");
+      break;
+   case QMessageBox::No:
+      console->write_dir("no");
+      break;
+   }
+   console->displayToPrompt();
+   mainWin->resetFocus();
+}

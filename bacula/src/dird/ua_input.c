@@ -147,6 +147,7 @@ bool get_yesno(UAContext *ua, const char *prompt)
    int ret;
    ua->pint32_val = 0;
    for (;;) {
+      if (ua->api) ua->UA_sock->signal(BNET_YESNO);
       if (!get_cmd(ua, prompt)) {
          return false;
       }

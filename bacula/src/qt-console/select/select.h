@@ -24,4 +24,14 @@ private:
 
 };
 
+class yesnoPopUp : public QDialog
+{
+   Q_OBJECT 
+
+public:
+   yesnoPopUp(Console *console);
+
+};
+
+
 #endif /* _SELECT_H_ */
