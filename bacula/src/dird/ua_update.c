@@ -429,6 +429,7 @@ static int update_volume(UAContext *ua)
    POOL *pool;
    POOL_DBR pr;
    POOLMEM *query;
+   char buf[1000];
    char ed1[130];
    bool done = false;
    int i;
@@ -622,7 +623,9 @@ static int update_volume(UAContext *ua)
          
       case 8:                         /* InChanger */
          ua->info_msg(_("Current InChanger flag is: %d\n"), mr.InChanger);
-         if (!get_yesno(ua, _("Set InChanger flag? yes/no: "))) {
+         bsnprintf(buf, sizeof(buf), _("Set InChanger flag for Volume \"%s\": yes/no: "),
+            mr.VolumeName);
+         if (!get_yesno(ua, buf)) {
             return 0;
          }
          mr.InChanger = ua->pint32_val;
@@ -649,7 +652,7 @@ static int update_volume(UAContext *ua)
          VolFiles = ua->pint32_val;
          if (VolFiles != (int)(mr.VolFiles + 1)) {
             ua->warning_msg(_("Normally, you should only increase Volume Files by one!\n"));
-            if (!get_yesno(ua, _("Continue? (yes/no): ")) || ua->pint32_val == 0) {
+            if (!get_yesno(ua, _("Increase Volume Files? (yes/no): ")) || ua->pint32_val == 0) {
                break;
             }
          }

@@ -126,6 +126,8 @@ public:
    bool is_duped() { return m_duped; };
    bool is_terminated() { return m_terminated; };
    bool is_timed_out() { return m_timed_out; };
+   bool is_stop() { return errors || is_terminated(); }
+   bool is_error() { errno = b_errno; return errors; }
    void set_spooling() { m_spool = true; };
    void clear_spooling() { m_spool = false; };
    void set_duped() { m_duped = true; };
@@ -164,7 +166,8 @@ enum {
    BNET_WARNING_MSG    = -20,         /* Warning message */
    BNET_ERROR_MSG      = -21,         /* Error message -- command failed */
    BNET_INFO_MSG       = -22,         /* Info message -- status line */
-   BNET_RUN_CMD        = -23          /* Run command follows */
+   BNET_RUN_CMD        = -23,         /* Run command follows */
+   BNET_YESNO          = -24          /* Request yes no response */
 };
 
 #define BNET_SETBUF_READ  1           /* Arg for bnet_set_buffer_size */

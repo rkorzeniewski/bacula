@@ -293,7 +293,7 @@ int wait_for_job_termination(JCR *jcr)
 
    if (is_bnet_error(fd)) {
       Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-          job_type_to_str(jcr->JobType), bnet_strerror(fd));
+          job_type_to_str(jcr->JobType), fd->bstrerror());
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
 

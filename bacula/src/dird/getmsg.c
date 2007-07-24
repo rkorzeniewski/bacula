@@ -1,29 +1,7 @@
 /*
- *
- *   Bacula Director -- routines to receive network data and
- *    handle network signals. These routines handle the connections
- *    to the Storage daemon and the File daemon.
- *
- *     Kern Sibbald, August MM
- *
- *    This routine runs as a thread and must be thread reentrant.
- *
- *  Basic tasks done here:
- *    Handle  network signals (signals).
- *       Signals always have return status 0 from bnet_recv() and
- *       a zero or negative message length.
- *    Pass appropriate messages back to the caller (responses).
- *       Responses always have a digit as the first character.
- *    Handle requests for message and catalog services (requests).
- *       Requests are any message that does not begin with a digit.
- *       In affect, they are commands.
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,6 +25,28 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- routines to receive network data and
+ *    handle network signals. These routines handle the connections
+ *    to the Storage daemon and the File daemon.
+ *
+ *     Kern Sibbald, August MM
+ *
+ *    This routine runs as a thread and must be thread reentrant.
+ *
+ *  Basic tasks done here:
+ *    Handle  network signals (signals).
+ *       Signals always have return status 0 from bnet_recv() and
+ *       a zero or negative message length.
+ *    Pass appropriate messages back to the caller (responses).
+ *       Responses always have a digit as the first character.
+ *    Handle requests for message and catalog services (requests).
+ *       Requests are any message that does not begin with a digit.
+ *       In affect, they are commands.
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -107,7 +107,7 @@ int bget_dirmsg(BSOCK *bs)
 
    for (;;) {
       n = bs->recv();
-      Dmsg2(900, "bget_dirmsg %d: %s", n, bs->msg);
+      Dmsg2(100, "bget_dirmsg %d: %s", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
          return n;                    /* error or terminate */
