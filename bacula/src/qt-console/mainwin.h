@@ -84,6 +84,18 @@ public:
    bool m_checkMessages;
    int m_checkMessagesInterval;
    bool m_longList;
+   bool m_rtPopDirDebug;
+   bool m_rtDirCurICDebug;
+   bool m_rtDirICDebug;
+   bool m_rtFileTabICDebug;
+   bool m_rtVerTabICDebug;
+   bool m_rtUpdateFTDebug;
+   bool m_rtUpdateVTDebug;
+   bool m_rtChecksDebug;
+   bool m_rtIconStateDebug;
+   bool m_rtRestore1Debug;
+   bool m_rtRestore2Debug;
+   bool m_rtRestore3Debug;
 
 public slots:
    void input_line();

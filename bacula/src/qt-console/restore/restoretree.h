@@ -38,6 +38,7 @@
 #include "pages.h"
 #include "ui_restoretree.h"
 
+
 /*  
  * A restore tree to view files in the catalog
  */
@@ -49,13 +50,25 @@ public:
    restoreTree();
    ~restoreTree();
    virtual void currentStackItem();
+   enum folderCheckState
+   {
+      FolderUnchecked = 0,
+      FolderGreenChecked = 1,
+      FolderWhiteChecked = 2,
+      FolderBothChecked = 3
+   };
 
 private slots:
    void refreshButtonPushed();
+   void testButtonPushed();
    void jobComboChanged(int);
-   void directoryItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
-   void fileItemChanged(QTableWidgetItem *,QTableWidgetItem *);
+   void directoryCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void fileCurrentItemChanged(QTableWidgetItem *,QTableWidgetItem *);
    void directoryItemExpanded(QTreeWidgetItem *);
+   void setCheckofChildren(QTreeWidgetItem *item, Qt::CheckState);
+   void directoryItemChanged(QTreeWidgetItem *, int);
+   void fileTableItemChanged(QTableWidgetItem *);
+   void versionTableItemChanged(QTableWidgetItem *);
 
 private:
    void populateDirectoryTree();
@@ -65,18 +78,40 @@ private:
    void setupPage();
    void writeSettings();
    void readSettings();
+   void fileExceptionInsert(QString &, QString &, Qt::CheckState);
+   void fileExceptionRemove(QString &, QString &);
+   void directoryTreeDisconnectedSet(QTreeWidgetItem *, Qt::CheckState);
+   void fileTableDisconnectedSet(QTableWidgetItem *, Qt::CheckState, bool color);
+   void versionTableDisconnectedSet(QTableWidgetItem *, Qt::CheckState);
+   void updateFileTableChecks();
+   void updateVersionTableChecks();
+   void directoryIconStateInsert(QString &, Qt::CheckState);
+   void directoryIconStateRemove();
+   void directorySetIcon(int operation, int change, QString &, QTreeWidgetItem* item);
+   void fullPathtoSubPaths(QStringList &, QString &);
+   int mostRecentVersionfromFullPath(QString &);
+
    bool m_populated;
    QRegExp m_winRegExpDrive;
    QRegExp m_winRegExpPath;
    QRegExp m_slashregex;
    bool m_slashTrap;
-   //QString m_jobCondition;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
    QString m_condition;
    QString m_jobQuery;
    QString m_jobQueryPart;
+   QString m_prevJobCombo;
+   QString m_prevClientCombo;
+   QString m_prevFileSetCombo;
+   QString m_JobsCheckedList;
    int m_debugCnt;
    bool m_debugTrap;
+   QList<Qt::CheckState> m_fileCheckStateList;
+   QList<Qt::CheckState> m_versionCheckStateList;
+   QHash<QString, Qt::CheckState> m_fileExceptionHash;
+   QMultiHash<QString, QString> m_fileExceptionMulti;
+   QHash<QString, int> m_versionExceptionHash;
+   QHash<QString, int> m_directoryIconStateHash;
 };
 
 #endif /* _RESTORETREE_H_ */

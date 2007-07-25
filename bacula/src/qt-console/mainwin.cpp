@@ -615,7 +615,18 @@ void MainWin::setPreferences()
    prefs.checkMessages->setCheckState(m_checkMessages ? Qt::Checked : Qt::Unchecked);
    prefs.checkMessagesSpin->setValue(m_checkMessagesInterval);
    prefs.executeLongCheckBox->setCheckState(m_longList ? Qt::Checked : Qt::Unchecked);
-
+   prefs.rtPopDirCheckBox->setCheckState(m_rtPopDirDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtDirCurICCheckBox->setCheckState(m_rtDirCurICDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtDirICCheckBox->setCheckState(m_rtDirICDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtFileTabICCheckBox->setCheckState(m_rtFileTabICDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtVerTabICCheckBox->setCheckState(m_rtVerTabICDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtUpdateFTCheckBox->setCheckState(m_rtUpdateFTDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtUpdateVTCheckBox->setCheckState(m_rtUpdateVTDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtChecksCheckBox->setCheckState(m_rtChecksDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtIconStateCheckBox->setCheckState(m_rtIconStateDebug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtRestore1CheckBox->setCheckState(m_rtRestore1Debug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtRestore2CheckBox->setCheckState(m_rtRestore2Debug ? Qt::Checked : Qt::Unchecked);
+   prefs.rtRestore3CheckBox->setCheckState(m_rtRestore3Debug ? Qt::Checked : Qt::Unchecked);
    prefs.exec();
 }
 
@@ -640,6 +651,20 @@ void prefsDialog::accept()
    mainWin->m_checkMessages = this->checkMessages->checkState() == Qt::Checked;
    mainWin->m_checkMessagesInterval = this->checkMessagesSpin->value();
    mainWin->m_longList = this->executeLongCheckBox->checkState() == Qt::Checked;
+
+   mainWin->m_rtPopDirDebug = this->rtPopDirCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtDirCurICDebug = this->rtDirCurICCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtDirICDebug = this->rtDirICCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtFileTabICDebug = this->rtFileTabICCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtVerTabICDebug = this->rtVerTabICCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtUpdateFTDebug = this->rtUpdateFTCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtUpdateVTDebug = this->rtUpdateVTCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtChecksDebug = this->rtChecksCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtIconStateDebug = this->rtIconStateCheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtRestore1Debug = this->rtRestore1CheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtRestore2Debug = this->rtRestore2CheckBox->checkState() == Qt::Checked;
+   mainWin->m_rtRestore3Debug = this->rtRestore3CheckBox->checkState() == Qt::Checked;
+
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
    settings.setValue("commDebug", mainWin->m_commDebug);
@@ -660,6 +685,20 @@ void prefsDialog::accept()
    settings.endGroup();
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
+   settings.endGroup();
+   settings.beginGroup("RestoreTree");
+   settings.setValue("rtPopDirDebug", mainWin->m_rtPopDirDebug);
+   settings.setValue("rtDirCurICDebug", mainWin->m_rtDirCurICDebug);
+   settings.setValue("rtDirCurICRetDebug", mainWin->m_rtDirICDebug);
+   settings.setValue("rtFileTabICDebug", mainWin->m_rtFileTabICDebug);
+   settings.setValue("rtVerTabICDebug", mainWin->m_rtVerTabICDebug);
+   settings.setValue("rtUpdateFTDebug", mainWin->m_rtUpdateFTDebug);
+   settings.setValue("rtUpdateVTDebug", mainWin->m_rtUpdateVTDebug);
+   settings.setValue("rtChecksDebug", mainWin->m_rtChecksDebug);
+   settings.setValue("rtIconStateDebug", mainWin->m_rtIconStateDebug);
+   settings.setValue("rtRestore1Debug", mainWin->m_rtRestore1Debug);
+   settings.setValue("rtRestore2Debug", mainWin->m_rtRestore2Debug);
+   settings.setValue("rtRestore3Debug", mainWin->m_rtRestore3Debug);
    settings.endGroup();
    foreach(Console *console, mainWin->m_consoleHash) {
       console->startTimer();
@@ -695,5 +734,19 @@ void MainWin::readPreferences()
    settings.endGroup();
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
+   settings.endGroup();
+   settings.beginGroup("RestoreTree");
+   m_rtPopDirDebug = settings.value("rtPopDirDebug", false).toBool();
+   m_rtDirCurICDebug = settings.value("rtDirCurICDebug", false).toBool();
+   m_rtDirICDebug = settings.value("rtDirCurICRetDebug", false).toBool();
+   m_rtFileTabICDebug = settings.value("rtFileTabICDebug", false).toBool();
+   m_rtVerTabICDebug = settings.value("rtVerTabICDebug", false).toBool();
+   m_rtUpdateFTDebug = settings.value("rtUpdateFTDebug", false).toBool();
+   m_rtUpdateVTDebug = settings.value("rtUpdateVTDebug", false).toBool();
+   m_rtChecksDebug = settings.value("rtChecksDebug", false).toBool();
+   m_rtIconStateDebug = settings.value("rtIconStateDebug", false).toBool();
+   m_rtRestore1Debug = settings.value("rtRestore1Debug", false).toBool();
+   m_rtRestore2Debug = settings.value("rtRestore2Debug", false).toBool();
+   m_rtRestore3Debug = settings.value("rtRestore3Debug", false).toBool();
    settings.endGroup();
 }
