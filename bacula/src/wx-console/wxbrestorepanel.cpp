@@ -80,6 +80,7 @@ Select parameter to modify (1-11):
 #include "unmarked.xpm"
 #include "marked.xpm"
 #include "partmarked.xpm"
+#include <wx/imaglist.h>
 #include <wx/listimpl.cpp>
 
 /* A macro named Yield is defined under MinGW */

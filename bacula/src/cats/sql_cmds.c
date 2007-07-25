@@ -493,4 +493,4 @@ const char *uar_jobid_fileindex_from_dir =
  
 /* Query to get list of files from table -- presuably built by an external program */
 const char *uar_jobid_fileindex_from_table = 
-   "SELECT JobId, FileIndex from %s";
+   "SELECT JobId,FileIndex from %s";
