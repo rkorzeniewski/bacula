@@ -45,7 +45,7 @@ restoreTree::restoreTree()
    m_name = "Version Browser";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/browse.png")));
+   thisitem->setIcon(0, QIcon(QString::fromUtf8(":images/browse.png")));
 
    m_closeable = true;
    m_populated = false;
@@ -70,21 +70,25 @@ restoreTree::~restoreTree()
 void restoreTree::setupPage()
 {
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(refreshButtonPushed()));
+   connect(testButton, SIGNAL(pressed()), this, SLOT(testButtonPushed()));
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(jobComboChanged(int)));
    connect(directoryTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(directoryItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
-   connect(fileTable, SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
-           this, SLOT(fileItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+           this, SLOT(directoryCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(directoryTree, SIGNAL(itemExpanded(QTreeWidgetItem *)),
            this, SLOT(directoryItemExpanded(QTreeWidgetItem *)));
+   connect(directoryTree, SIGNAL(itemChanged(QTreeWidgetItem *, int)),
+           this, SLOT(directoryItemChanged(QTreeWidgetItem *, int)));
+   connect(fileTable, SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(fileCurrentItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
 
-   QStringList titles;
-   titles << "Directories";
+   QStringList titles = QStringList() << "Directories";
    directoryTree->setHeaderLabels(titles);
    clientCombo->addItems(m_console->client_list);
    fileSetCombo->addItem("Any");
    fileSetCombo->addItems(m_console->fileset_list);
    jobCombo->addItems(m_console->job_list);
+
+   directoryTree->setContextMenuPolicy(Qt::ActionsContextMenu);
 }
 
 /*
@@ -102,31 +106,60 @@ void restoreTree::populateDirectoryTree()
    versionTable->clear();
    versionTable->setRowCount(0);
    versionTable->setColumnCount(0);
-   jobTable->clear();
-   jobTable->setRowCount(0);
-   jobTable->setColumnCount(0);
+   m_fileExceptionHash.clear();
+   m_fileExceptionMulti.clear();
+   m_versionExceptionHash.clear();
+   m_directoryIconStateHash.clear();
 
-   m_condition = " Job.name = '" + jobCombo->itemText(jobCombo->currentIndex()) + "'";
+   
    int clientIndex = clientCombo->currentIndex();
-   if ((clientIndex >= 0) && (clientCombo->itemText(clientIndex) != "Any")) {
-      m_condition.append(" AND Client.Name='" + clientCombo->itemText(clientIndex) + "'");
-   }
    int fileSetIndex = fileSetCombo->currentIndex();
-   if ((fileSetIndex >= 0) && (fileSetCombo->itemText(fileSetIndex) != "Any")) {
-      m_condition.append(" AND FileSet.FileSet='" + fileSetCombo->itemText(fileSetIndex) + "'");
+   QString jobComboText = jobCombo->itemText(jobCombo->currentIndex());
+   QString clientComboText = clientCombo->itemText(clientIndex);
+   QString fileSetComboText = fileSetCombo->itemText(fileSetIndex);
+   if ((m_prevJobCombo != jobComboText) || (m_prevClientCombo != clientComboText) || (m_prevFileSetCombo != fileSetComboText)) {
+      m_prevJobCombo =  jobComboText;
+      m_prevClientCombo = clientComboText;
+      m_prevFileSetCombo = fileSetComboText;
+      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
+
+      m_condition = " Job.name = '" + jobCombo->itemText(jobCombo->currentIndex()) + "'";
+      if ((clientIndex >= 0) && (clientCombo->itemText(clientIndex) != "Any")) {
+         m_condition.append(" AND Client.Name='" + clientCombo->itemText(clientIndex) + "'");
+      }
+      if ((fileSetIndex >= 0) && (fileSetCombo->itemText(fileSetIndex) != "Any")) {
+         m_condition.append(" AND FileSet.FileSet='" + fileSetCombo->itemText(fileSetIndex) + "'");
+      }
+      m_jobQueryPart =
+         " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
+         " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
+         " WHERE" + m_condition +
+         " AND Job.purgedfiles=0";
+      m_jobQuery =
+         "SELECT Job.Jobid"
+         " From Job" + m_jobQueryPart;
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n", m_jobQuery.toUtf8().data());
+      }
+      populateJobTable();
+   } else {
+      m_JobsCheckedList = "";
+      bool first = true;
+      /* Update the items in the version table */
+      int cnt = jobTable->rowCount();
+      for (int row=0; row<cnt; row++) {
+         QTableWidgetItem* jobItem = jobTable->item(row, 0);
+         if (jobItem->checkState() == Qt::Checked) {
+            if (!first)
+               m_JobsCheckedList += ",";
+            m_JobsCheckedList += jobItem->text();
+            first = false;
+            jobItem->setBackground(Qt::green);
+         } else
+            jobItem->setBackground(Qt::gray);
+      }
+      m_jobQuery = m_JobsCheckedList;
    }
-   m_jobQueryPart =
-      " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
-      " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
-      " WHERE" + m_condition +
-      " AND Job.purgedfiles=0";
-   m_jobQuery =
-      "SELECT Job.Jobid"
-      " From Job" + m_jobQueryPart;
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",m_jobQuery.toUtf8().data());
-   }
-   populateJobTable();
 
    QString cmd =
       "SELECT DISTINCT Path.Path"
@@ -135,7 +168,7 @@ void restoreTree::populateDirectoryTree()
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Job.Jobid IN (" + m_jobQuery + ")";
    if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",cmd.toUtf8().data());
+      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
    QStringList directories;
    if (m_console->sql_cmd(cmd, directories)) {
@@ -155,6 +188,8 @@ void restoreTree::populateDirectoryTree()
  */
 void restoreTree::parseDirectory(QString &dir_in)
 {
+   /* m_debugTrap is to only print debugs for a few occurances of calling parseDirectory
+    * instead of printing out what could potentially a whole bunch */
    if (m_debugCnt > 2)
       m_debugTrap = false;
    /* Clean up the directory string remove some funny char after last '/' */
@@ -174,14 +209,11 @@ void restoreTree::parseDirectory(QString &dir_in)
     * / and etc/ .  That should succeed, then add the ones that failed in reverse */
    while (((index = m_slashregex.lastIndexIn(dir_in, -2)) != -1) && (!done)) {
       direct = path = dir_in;
-      path.replace(index+1,dir_in.length()-index-1,"");
-      direct.replace(0,index+1,"");
+      path.replace(index+1, dir_in.length()-index-1,"");
+      direct.replace(0, index+1, "");
       if ((mainWin->m_miscDebug) && (m_debugTrap)) {
          QString msg = QString("length = \"%1\" index = \"%2\" Adding \"%3\" \"%4\"\n")
-                    .arg(dir_in.length())
-                    .arg(index)
-                    .arg(path)
-                    .arg(direct);
+                    .arg(dir_in.length()).arg(index).arg(path).arg(direct);
          Pmsg0(000, msg.toUtf8().data());
       }
       if (addDirectory(path, direct)) done = true;
@@ -193,6 +225,7 @@ void restoreTree::parseDirectory(QString &dir_in)
       }
       dir_in = path;
    }
+
    for (int k=0; k<pathAfter.count(); k++) {
       if (addDirectory(pathAfter[k], dirAfter[k]))
          if ((mainWin->m_miscDebug) && (m_debugTrap))
@@ -210,7 +243,7 @@ void restoreTree::parseDirectory(QString &dir_in)
 bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
 {
    QString newdir = newdirr;
-   QString fullpath = m_cwd + newdirr;
+   QString fullPath = m_cwd + newdirr;
    bool ok = true, added = false;
 
    if ((mainWin->m_miscDebug) && (m_debugTrap)) {
@@ -222,15 +255,16 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
 
    if (!m_slashTrap) {
       /* add unix '/' directory first */
-      if (m_dirPaths.empty() && (m_winRegExpPath.indexIn(fullpath,0) == -1)) {
+      if (m_dirPaths.empty() && (m_winRegExpPath.indexIn(fullPath, 0) == -1)) {
          m_slashTrap = true;
          QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          QString text("/");
          item->setText(0, text.toUtf8().data());
          item->setData(0, Qt::UserRole, QVariant(text));
+         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg1(000, "Pre Inserting %s\n",text.toUtf8().data());
+            Pmsg1(000, "Pre Inserting %s\n", text.toUtf8().data());
          }
          m_dirPaths.insert(text, item);
       }
@@ -238,9 +272,10 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       if (m_winRegExpDrive.indexIn(m_cwd, 0) == 0) {
          /* this is a windows drive add the base widget */
          QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          item->setText(0, m_cwd);
-         item->setData(0, Qt::UserRole, QVariant(fullpath));
+         item->setData(0, Qt::UserRole, QVariant(fullPath));
+         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
+         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
             Pmsg0(000, "Added Base \"letter\":/\n");
          }
@@ -249,14 +284,18 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
    }
  
    /* is it already existent ?? */
-   if (!m_dirPaths.contains(fullpath)) {
+   if (!m_dirPaths.contains(fullPath)) {
       QTreeWidgetItem *item = NULL;
       QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
       if (parent) {
          /* new directories to add */
          item = new QTreeWidgetItem(parent);
          item->setText(0, newdir.toUtf8().data());
-         item->setData(0, Qt::UserRole, QVariant(fullpath));
+         item->setData(0, Qt::UserRole, QVariant(fullPath));
+         item->setCheckState(0, Qt::Unchecked);
+         /* Store the current state of the check status in column 1, which at
+          * this point has no text*/
+         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
       } else {
          ok = false;
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
@@ -269,9 +308,9 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       /* insert into hash */
       if (ok) {
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg1(000, "Inserting %s\n",fullpath.toUtf8().data());
+            Pmsg1(000, "Inserting %s\n", fullPath.toUtf8().data());
          }
-         m_dirPaths.insert(fullpath, item);
+         m_dirPaths.insert(fullPath, item);
          added = true;
       }
    }
@@ -317,12 +356,16 @@ void restoreTree::jobComboChanged(int)
 /*
  * Function to populate the file list table
  */
-void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
+void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
 {
    if (item == NULL)
       return;
+
+   m_fileCheckStateList.clear();
+   disconnect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
    QBrush blackBrush(Qt::black);
-   QString directory = item->data(0,Qt::UserRole).toString();
+   QString directory = item->data(0, Qt::UserRole).toString();
    directoryLabel->setText("Present Working Directory : " + directory);
    QString cmd =
       "SELECT DISTINCT Filename.Name"
@@ -333,18 +376,18 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
       " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
       " AND Job.Jobid IN (" + m_jobQuery + ")";
  
-
    QStringList headerlist = (QStringList() << "File Name");
    fileTable->clear();
    /* Also clear the version table here */
    versionTable->clear();
+   versionFileLabel->setText("");
    versionTable->setRowCount(0);
    versionTable->setColumnCount(0);
    fileTable->setColumnCount(headerlist.size());
    fileTable->setHorizontalHeaderLabels(headerlist);
 
    if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",cmd.toUtf8().data());
+      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
    QStringList results;
    if (m_console->sql_cmd(cmd, results)) {
@@ -362,11 +405,20 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
          fieldlist = resultline.split("\t");
          foreach (field, fieldlist) {
             field = field.trimmed();  /* strip leading & trailing spaces */
-            tableItem = new QTableWidgetItem(field,1);
-            tableItem->setFlags(0);
+            tableItem = new QTableWidgetItem(field, 1);
+            /* Possible flags are Qt::ItemFlags flag = Qt::ItemIsSelectable | Qt::ItemIsEditablex
+             *  | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable 
+             *  | Qt::ItemIsEnabled | Qt::ItemIsTristate; */
             tableItem->setForeground(blackBrush);
-            tableItem->setData(Qt::UserRole,QVariant(directory));
-            fileTable->setItem(row, column, tableItem);
+            /* Just in case a column ever gets added */
+            if (column == 0) {
+               Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+               tableItem->setFlags(flag);
+               tableItem->setData(Qt::UserRole, QVariant(directory));
+               fileTable->setItem(row, column, tableItem);
+               m_fileCheckStateList.append(Qt::Unchecked);
+               tableItem->setCheckState(Qt::Unchecked);
+            }
             column++;
          }
          row++;
@@ -376,35 +428,46 @@ void restoreTree::directoryItemChanged(QTreeWidgetItem *item, QTreeWidgetItem *)
    fileTable->resizeColumnsToContents();
    fileTable->resizeRowsToContents();
    fileTable->verticalHeader()->hide();
+   connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
+   if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "will update file table checks\n");
+   updateFileTableChecks();
 }
 
 /*
  * Function to populate the version table
  */
-void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetItem *)
+void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetItem *)
 {
    if (fileTableItem == NULL)
       return;
+
+   m_versionCheckStateList.clear();
+   disconnect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
+
    QString file = fileTableItem->text();
+   versionFileLabel->setText(file);
    QString directory = fileTableItem->data(Qt::UserRole).toString();
 
    QBrush blackBrush(Qt::black);
    QString cmd = 
-      "SELECT File.FileId, Job.JobId, Job.EndTime, File.Md5 "
+      "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5"
       " FROM File"
       " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "'"
-      " AND Job.Jobid IN (" + m_jobQuery + ")";
+      " AND Job.Jobid IN (" + m_jobQuery + ")"
+      " ORDER BY Job.EndTime DESC";
 
-   QStringList headerlist = (QStringList() << "File Id" << "Job Id" << "End Time" << "Md5");
+   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5");
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
 
    if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",cmd.toUtf8().data());
+      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
    QStringList results;
    if (m_console->sql_cmd(cmd, results)) {
@@ -424,11 +487,18 @@ void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetI
             /* Iterate through fields in the record */
             foreach (field, fieldlist) {
                field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field,1);
+               tableItem = new QTableWidgetItem(field, 1);
                tableItem->setFlags(0);
                tableItem->setForeground(blackBrush);
-               tableItem->setData(Qt::UserRole,QVariant(directory));
+               tableItem->setData(Qt::UserRole, QVariant(directory));
                versionTable->setItem(row, column, tableItem);
+
+               if (column == 0) {
+                  Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                  tableItem->setFlags(flag);
+                  m_versionCheckStateList.append(Qt::Unchecked);
+                  tableItem->setCheckState(Qt::Unchecked);
+               }
                column++;
             }
             row++;
@@ -438,6 +508,9 @@ void restoreTree::fileItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetI
    versionTable->resizeColumnsToContents();
    versionTable->resizeRowsToContents();
    versionTable->verticalHeader()->hide();
+   connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
+   updateVersionTableChecks();
 }
 
 /*
@@ -464,17 +537,23 @@ void restoreTree::readSettings()
 
 /*
  * This is a funcion to accomplish the one thing I struggled to figure out what
- * was taking so long.  It add the icons, but after the tree is made.
+ * was taking so long.  It add the icons, but after the tree is made.  Seemed to
+ * work fast after changing from svg to png file for graphic.
  */
 void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
 {
    int childCount = item->childCount();
    for (int i=0; i<childCount; i++) {
       QTreeWidgetItem *child = item->child(i);
-      child->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
+      if (child->icon(0).isNull())
+         child->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
    }
 }
 
+/*
+ * I wanted a table to show what jobs meet the criterion and are being used to
+ * populate the directory tree and file and version tables.
+ */
 void restoreTree::populateJobTable()
 {
    QBrush blackBrush(Qt::black);
@@ -483,11 +562,11 @@ void restoreTree::populateJobTable()
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
    QString jobQuery =
-      "SELECT Job.Jobid AS Id, Job.Endtime AS EndTime, Job.Level AS Level"
+      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level"
       " FROM Job" + m_jobQueryPart +
-      " ORDER BY Job.Endtime DESC";
+      " ORDER BY Job.EndTime DESC";
    if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",jobQuery.toUtf8().data());
+      Pmsg1(000, "Query cmd : %s\n", jobQuery.toUtf8().data());
    }
 
    QStringList results;
@@ -508,10 +587,16 @@ void restoreTree::populateJobTable()
             /* Iterate through fields in the record */
             foreach (field, fieldlist) {
                field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field,1);
+               tableItem = new QTableWidgetItem(field, 1);
                tableItem->setFlags(0);
                tableItem->setForeground(blackBrush);
                jobTable->setItem(row, column, tableItem);
+               if (column == 0) {
+                  Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                  tableItem->setFlags(flag);
+                  tableItem->setCheckState(Qt::Checked);
+                  tableItem->setBackground(Qt::green);
+               }
                column++;
             }
             row++;
@@ -521,4 +606,818 @@ void restoreTree::populateJobTable()
    jobTable->resizeColumnsToContents();
    jobTable->resizeRowsToContents();
    jobTable->verticalHeader()->hide();
+}
+
+/*
+ * When a directory item is "changed" check the state of the checkable item
+ * to see if it is different than what it was which is stored in Qt::UserRole
+ * of the 2nd column, column 1, of the tree widget.
+ */
+void restoreTree::directoryItemChanged(QTreeWidgetItem *item, int /*column*/)
+{
+   Qt::CheckState prevState = (Qt::CheckState)item->data(1, Qt::UserRole).toInt();
+   Qt::CheckState curState = item->checkState(0);
+   QTreeWidgetItem* parent = item->parent();
+   Qt::CheckState parState;
+   if (parent) parState = parent->checkState(0);
+   else parState = (Qt::CheckState)3;
+   if (mainWin->m_rtDirICDebug) {
+      QString msg = QString("directory item OBJECT has changed prev=%1 cur=%2 par=%3 dir=%4\n")
+         .arg(prevState).arg(curState).arg(parState).arg(item->text(0));
+      Pmsg1(000, "%s", msg.toUtf8().data()); }
+   /* I only care when the check state changes */
+   if (prevState == curState) {
+      if (mainWin->m_rtDirICDebug) Pmsg0(000, "Returning Early\n");
+      return;
+   }
+
+   if ((prevState == Qt::Unchecked) && (curState == Qt::Checked) && (parState != Qt::Unchecked)) {
+      if (mainWin->m_rtDirICDebug) Pmsg0(000, "Disconnected Setting to Qt::PartiallyChecked\n");
+      directoryTreeDisconnectedSet(item, Qt::PartiallyChecked);
+      curState = Qt::PartiallyChecked;
+   }
+   if ((prevState == Qt::PartiallyChecked) && (curState == Qt::Checked)) {
+      if (mainWin->m_rtDirICDebug) Pmsg0(000, "Disconnected Setting to Qt::Unchecked\n");
+      directoryTreeDisconnectedSet(item, Qt::Unchecked);
+      curState = Qt::Unchecked;
+   }
+   if (mainWin->m_rtDirICDebug) {
+      QString msg = QString("directory item CHECKSTATE has changed prev=%1 cur=%2 par=%3 dir=%4\n")
+         .arg(prevState).arg(curState).arg(parState).arg(item->text(0));
+      Pmsg1(000, "%s", msg.toUtf8().data()); }
+
+   item->setData(1, Qt::UserRole, QVariant(curState));
+   Qt::CheckState childState = curState;
+   if (childState == Qt::Checked)
+      childState = Qt::PartiallyChecked;
+   setCheckofChildren(item, childState);
+
+   /* Remove items from the exception lists.  The multi exception list is my index
+    * of what exceptions can be removed when the directory is known*/
+   QString directory = item->data(0, Qt::UserRole).toString();
+   QStringList fullPathList = m_fileExceptionMulti.values(directory);
+   int fullPathListCount = fullPathList.count();
+   if ((mainWin->m_rtDirICDebug) && fullPathListCount) Pmsg2(000, "Will attempt to remove file exceptions for %s count %i\n", directory.toUtf8().data(), fullPathListCount);
+   foreach (QString fullPath, fullPathList) {
+      /* If there is no value in the hash for the key fullPath a value of 3 will be returned
+       * which will match no Qt::xxx values */
+      Qt::CheckState hashState = m_fileExceptionHash.value(fullPath, (Qt::CheckState)3);
+      if (mainWin->m_rtDirICDebug) Pmsg2(000, "hashState=%i childState=%i\n", hashState, childState);
+      if (hashState == Qt::Unchecked) {
+         fileExceptionRemove(fullPath, directory);
+         m_versionExceptionHash.remove(fullPath);
+         if (mainWin->m_rtDirICDebug) Pmsg0(000, "Attempted Removal A\n");
+      }
+      if (hashState == Qt::Checked) {
+         fileExceptionRemove(fullPath, directory);
+         m_versionExceptionHash.remove(fullPath);
+         if (mainWin->m_rtDirICDebug) Pmsg0(000, "Attempted Removal B\n");
+      }
+   }
+
+   if (item == directoryTree->currentItem()) {
+      if (mainWin->m_rtDirICDebug) Pmsg0(000, "Will attempt to update File Table Checks\n");
+      updateFileTableChecks();
+      versionTable->clear();
+      versionTable->setRowCount(0);
+      versionTable->setColumnCount(0);
+   }
+   if (mainWin->m_rtDirICDebug) Pmsg0(000, "Returning At End\n");
+}
+
+/*
+ * When a directory item check state is changed, this function iterates through
+ * all subdirectories and sets all to the passed state, which is either partially
+ * checked or unchecked.
+ */
+void restoreTree::setCheckofChildren(QTreeWidgetItem *item, Qt::CheckState state)
+{
+   int childCount;
+   childCount = item->childCount();
+   for (int i=0; i<childCount; i++) {
+      QTreeWidgetItem *child = item->child(i);
+      child->setData(1, Qt::UserRole, QVariant(state));
+      child->setCheckState(0, state);
+      setCheckofChildren(child, state);
+   }
+}
+
+/*
+ * When a File Table Item is "changed" check to see if the state of the checkable
+ * item has changed which is stored in m_fileCheckStateList
+ * If changed store in a hash m_fileExceptionHash that whether this file should be
+ * restored or not.
+ * Called as a slot, connected after populated (after directory current changed called)
+ */
+void restoreTree::fileTableItemChanged(QTableWidgetItem *item)
+{
+   /* get the previous and current check states */
+   int row = fileTable->row(item);
+   Qt::CheckState prevState;
+   /* prevent a segfault */
+   prevState = m_fileCheckStateList[row];
+   Qt::CheckState curState = item->checkState();
+
+   /* deterimine the default state from the state of the directory */
+   QTreeWidgetItem *dirTreeItem = directoryTree->currentItem();
+   Qt::CheckState dirState = (Qt::CheckState)dirTreeItem->data(1, Qt::UserRole).toInt();
+   Qt::CheckState defState = Qt::PartiallyChecked;
+   if (dirState == Qt::Unchecked) defState = Qt::Unchecked;
+
+   /* determine if it is already in the m_fileExceptionHash */
+   QString directory = directoryTree->currentItem()->data(0, Qt::UserRole).toString();
+   QString file = item->text();
+   QString fullPath = directory + file;
+   Qt::CheckState hashState = m_fileExceptionHash.value(fullPath, (Qt::CheckState)3);
+   int verJobNum = m_versionExceptionHash.value(fullPath, 0);
+
+   if (mainWin->m_rtFileTabICDebug) {
+      QString msg = QString("filerow=%1 prev=%2 cur=%3 def=%4 hash=%5 dir=%6 verJobNum=%7\n")
+         .arg(row).arg(prevState).arg(curState).arg(defState).arg(hashState).arg(dirState).arg(verJobNum);
+      Pmsg1(000, "%s", msg.toUtf8().data()); }
+
+   /* Remove the hash if currently checked previously unchecked and directory is checked or partial */
+   if ((prevState == Qt::Checked) && (curState == Qt::Unchecked) && (dirState == Qt::Unchecked)) {
+      /* it can behave as defaulted so current of unchecked is fine */
+      if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "Will fileExceptionRemove and m_versionExceptionHash.remove here\n");
+      fileExceptionRemove(fullPath, directory);
+      m_versionExceptionHash.remove(fullPath);
+   } else if ((prevState == Qt::PartiallyChecked) && (curState == Qt::Checked) && (dirState != Qt::Unchecked) && (verJobNum == 0)) {
+      if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "Will fileExceptionInsert here\n");
+      fileExceptionInsert(fullPath, directory, Qt::Unchecked);
+   } else if ((prevState == Qt::Unchecked) && (curState == Qt::Checked) && (dirState != Qt::Unchecked) && (verJobNum == 0) && (defState == Qt::PartiallyChecked)) {
+      /* filerow=2 prev=0 cur=2 def=1 hash=0 dir=2 verJobNum=0 */
+      if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "Will fileExceptionRemove here\n");
+      fileExceptionRemove(fullPath, directory);
+   } else if ((prevState == Qt::Checked) && (curState == Qt::Unchecked) && (defState == Qt::PartiallyChecked) && (verJobNum != 0) && (hashState == Qt::Checked)) {
+      /* Check dir, check version, attempt uncheck in file
+       * filerow=4 prev=2 cur=0 def=1 hash=2 dir=2 verJobNum=53 */
+      if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "Will fileExceptionRemove and m_versionExceptionHash.remove here\n");
+      fileExceptionRemove(fullPath, directory);
+      m_versionExceptionHash.remove(fullPath);
+   } else if ((prevState == Qt::Unchecked) && (curState == Qt::Checked) && (dirState != Qt::Unchecked) && (verJobNum == 0)) {
+      /* filerow=0 prev=0 cur=2 def=1 hash=0 dirState=2 verJobNum */
+      if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "Will Not remove here\n");
+   } else if (prevState != curState) {
+      if (mainWin->m_rtFileTabICDebug) Pmsg2(000, "  THE STATE OF THE Check has changed, Setting StateList[%i] to %i\n", row, curState);
+      /* A user did not set the check state to Partially checked, ignore if so */
+      if (curState != Qt::PartiallyChecked) {
+         if ((defState == Qt::Unchecked) && (prevState == Qt::PartiallyChecked) && (curState == Qt::Unchecked)) {
+            if (mainWin->m_rtFileTabICDebug) Pmsg0(000, "  got here\n");
+         } else {
+            if (mainWin->m_rtFileTabICDebug) Pmsg2(000, "  Inserting into m_fileExceptionHash %s, %i\n", fullPath.toUtf8().data(), curState);
+            fileExceptionInsert(fullPath, directory, curState);
+         }
+      } else {
+         if (mainWin->m_rtFileTabICDebug) Pmsg1(000, "Removing version hash for %s\n", fullPath.toUtf8().data());
+         /* programattically been changed back to a default state of Qt::PartiallyChecked remove the version hash here */
+         m_versionExceptionHash.remove(fullPath);
+      }
+   }
+
+   updateFileTableChecks();
+   updateVersionTableChecks();
+}
+
+/*
+ * function to insert keys and values to both m_fileExceptionHash and m_fileExceptionMulti
+ */
+void restoreTree::fileExceptionInsert(QString &fullPath, QString &direcotry, Qt::CheckState state)
+{
+   m_fileExceptionHash.insert(fullPath, state);
+   m_fileExceptionMulti.insert(direcotry, fullPath);
+   directoryIconStateInsert(fullPath, state);
+}
+
+/*
+ * function to remove keys from both m_fileExceptionHash and m_fileExceptionMulti
+ */
+void restoreTree::fileExceptionRemove(QString &fullPath, QString &directory)
+{
+   m_fileExceptionHash.remove(fullPath);
+   /* pull the list of values in the multi */
+   QStringList fullPathList = m_fileExceptionMulti.values(directory);
+   /* get the index of the fullpath to remove */
+   int index = fullPathList.indexOf(fullPath);
+   if (index != -1) {
+      /* remove the desired item in the list */
+      fullPathList.removeAt(index);
+      /* remove the entire list from the multi */
+      m_fileExceptionMulti.remove(directory);
+      /* readd the remaining */
+      foreach (QString fp, fullPathList) {
+         m_fileExceptionMulti.insert(directory, fp);
+      }
+   }
+   directoryIconStateRemove();
+}
+
+/*
+ * Overloaded function to be called from the slot and from other places to set the state
+ * of the check marks in the version table
+ */
+void restoreTree::versionTableItemChanged(QTableWidgetItem *item)
+{
+   /* get the previous and current check states */
+   int row = versionTable->row(item);
+   QTableWidgetItem *colZeroItem = versionTable->item(row, 0);
+   Qt::CheckState prevState = m_versionCheckStateList[row];
+   Qt::CheckState curState = (Qt::CheckState)colZeroItem->checkState();
+   m_versionCheckStateList[row] = curState;
+
+   /* deterimine the default state from the state of the file */
+   QTableWidgetItem *fileTableItem = fileTable->currentItem();
+   Qt::CheckState fileState = (Qt::CheckState)fileTableItem->checkState();
+
+   /* determine the default state */
+   Qt::CheckState defState;
+   if (row == 0) {
+      defState = Qt::PartiallyChecked;
+      if (fileState == Qt::Unchecked)
+         defState = Qt::Unchecked;
+   }
+   else
+      defState = Qt::Unchecked;
+
+   /* determine if it is already in the versionExceptionHash */
+   QString directory = directoryTree->currentItem()->data(0, Qt::UserRole).toString();
+   Qt::CheckState dirState = directoryTree->currentItem()->checkState(0);
+   QString file = fileTableItem->text();
+   QString fullPath = directory + file;
+   int thisJobNum = colZeroItem->text().toInt();
+   int hashJobNum = m_versionExceptionHash.value(fullPath, 0);
+
+   if (mainWin->m_rtVerTabICDebug) {
+      QString msg = QString("versrow=%1 prev=%2 cur=%3 def=%4 dir=%5 hashJobNum=%6 thisJobNum=%7 filestate=%8 fec=%9 vec=%10\n")
+         .arg(row).arg(prevState).arg(curState).arg(defState).arg(dirState).arg(hashJobNum).arg(thisJobNum).arg(fileState)
+         .arg(m_fileExceptionHash.count()).arg(m_versionExceptionHash.count());
+      Pmsg1(000, "%s", msg.toUtf8().data()); }
+   /* if changed from partially checked to checked, make it unchecked */
+   if ((curState == Qt::Checked) && (row == 0) && (fileState == Qt::Unchecked)) {
+      if (mainWin->m_rtVerTabICDebug) Pmsg0(000, "Setting to Qt::Checked\n");
+      fileTableItem->setCheckState(Qt::Checked);
+   } else if ((prevState == Qt::PartiallyChecked) && (curState == Qt::Checked) && (row == 0) && (fileState == Qt::Checked) && (dirState == Qt::Unchecked)) {
+      //versrow=0 prev=1 cur=2 def=1 dir=0 hashJobNum=0 thisJobNum=64 filestate=2 fec=1 vec=0
+      if (mainWin->m_rtVerTabICDebug) Pmsg1(000, "fileExceptionRemove %s, %i\n", fullPath.toUtf8().data());
+      fileExceptionRemove(fullPath, directory);
+   } else if ((curState == Qt::Checked) && (row == 0) && (hashJobNum != 0) && (dirState != Qt::Unchecked)) {
+      //versrow=0 prev=0 cur=2 def=1 dir=2 hashJobNum=53 thisJobNum=64 filestate=2 fec=1 vec=1
+      if (mainWin->m_rtVerTabICDebug) Pmsg1(000, "m_versionExceptionHash.remove %s\n", fullPath.toUtf8().data());
+      m_versionExceptionHash.remove(fullPath);
+      fileExceptionRemove(fullPath, directory);
+   } else if ((curState == Qt::Checked) && (row == 0)) {
+      if (mainWin->m_rtVerTabICDebug) Pmsg1(000, "m_versionExceptionHash.remove %s\n", fullPath.toUtf8().data());
+      m_versionExceptionHash.remove(fullPath);
+   } else if (prevState != curState) {
+      if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "  THE STATE OF THE version Check has changed, Setting StateList[%i] to %i\n", row, curState);
+      if ((curState == Qt::Checked) || (curState == Qt::PartiallyChecked) && (row != 0)) {
+         if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "Inserting into m_versionExceptionHash %s, %i\n", fullPath.toUtf8().data(), thisJobNum);
+         m_versionExceptionHash.insert(fullPath, thisJobNum);
+         if (fileState != Qt::Checked) {
+            if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "Inserting into m_fileExceptionHash %s, %i\n", fullPath.toUtf8().data(), curState);
+            fileExceptionInsert(fullPath, directory, curState);
+         }
+      } else {
+         if (mainWin->m_rtVerTabICDebug) Pmsg0(000, "got here\n");
+      }
+   } else {
+     if (mainWin->m_rtVerTabICDebug) Pmsg0(000, "no conditions met\n");
+   }
+
+   updateFileTableChecks();
+   updateVersionTableChecks();
+}
+
+/*
+ * Simple function to set the check state in the file table by disconnecting the
+ * signal/slot the setting then reconnecting the signal/slot
+ */
+void restoreTree::fileTableDisconnectedSet(QTableWidgetItem *item, Qt::CheckState state, bool color)
+{
+   disconnect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
+   item->setCheckState(state);
+   if (color) item->setBackground(Qt::yellow);
+   else item->setBackground(Qt::white);
+   connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
+}
+
+/*
+ * Simple function to set the check state in the version table by disconnecting the
+ * signal/slot the setting then reconnecting the signal/slot
+ */
+void restoreTree::versionTableDisconnectedSet(QTableWidgetItem *item, Qt::CheckState state)
+{
+   disconnect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
+   item->setCheckState(state);
+   connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
+}
+
+/*
+ * Simple function to set the check state in the directory tree by disconnecting the
+ * signal/slot the setting then reconnecting the signal/slot
+ */
+void restoreTree::directoryTreeDisconnectedSet(QTreeWidgetItem *item, Qt::CheckState state)
+{
+   disconnect(directoryTree, SIGNAL(itemChanged(QTreeWidgetItem *, int)),
+           this, SLOT(directoryItemChanged(QTreeWidgetItem *, int)));
+   item->setCheckState(0, state);
+   connect(directoryTree, SIGNAL(itemChanged(QTreeWidgetItem *, int)),
+           this, SLOT(directoryItemChanged(QTreeWidgetItem *, int)));
+}
+
+/*
+ * Simplify the updating of the check state in the File table by iterating through
+ * each item in the file table to determine it's appropriate state.
+ * !! Will probably want to concoct a way to do this without iterating for the possibility
+ * of the very large directories.
+ */
+void restoreTree::updateFileTableChecks()
+{
+   /* deterimine the default state from the state of the directory */
+   QTreeWidgetItem *dirTreeItem = directoryTree->currentItem();
+   Qt::CheckState dirState = dirTreeItem->checkState(0);
+
+   QString dirName = dirTreeItem->data(0, Qt::UserRole).toString();
+
+   /* Update the items in the version table */
+   int rcnt = fileTable->rowCount();
+   for (int row=0; row<rcnt; row++) {
+      QTableWidgetItem* item = fileTable->item(row, 0);
+
+      Qt::CheckState curState = item->checkState();
+      Qt::CheckState newState = Qt::PartiallyChecked;
+      if (dirState == Qt::Unchecked) newState = Qt::Unchecked;
+
+      /* determine if it is already in the m_fileExceptionHash */
+      QString file = item->text();
+      QString fullPath = dirName + file;
+      Qt::CheckState hashState = m_fileExceptionHash.value(fullPath, (Qt::CheckState)3);
+      int hashJobNum = m_versionExceptionHash.value(fullPath, 0);
+
+      if (hashState != 3) newState = hashState;
+
+      if (mainWin->m_rtUpdateFTDebug) {
+         QString msg = QString("file row=%1 cur=%2 hash=%3 new=%4 dirState=%5\n")
+            .arg(row).arg(curState).arg(hashState).arg(newState).arg(dirState);
+         Pmsg1(000, "%s", msg.toUtf8().data());
+      }
+
+      bool docolor = false;
+      if (hashJobNum != 0) docolor = true;
+      bool isyellow = item->background().color() == QColor(Qt::yellow);
+      if ((newState != curState) || (hashState == 3) || ((isyellow && !docolor) || (!isyellow && docolor)))
+         fileTableDisconnectedSet(item, newState, docolor);
+      m_fileCheckStateList[row] = newState;
+   }
+}
+
+/*
+ * Simplify the updating of the check state in the Version table by iterating through
+ * each item in the file table to determine it's appropriate state.
+ */
+void restoreTree::updateVersionTableChecks()
+{
+   /* deterimine the default state from the state of the directory */
+   QTreeWidgetItem *dirTreeItem = directoryTree->currentItem();
+   Qt::CheckState dirState = dirTreeItem->checkState(0);
+   QString dirName = dirTreeItem->data(0, Qt::UserRole).toString();
+
+   /* deterimine the default state from the state of the file */
+   QTableWidgetItem *fileTableItem = fileTable->item(fileTable->currentRow(), 0);
+   Qt::CheckState fileState = fileTableItem->checkState();
+   QString file = fileTableItem->text();
+   QString fullPath = dirName + file;
+   int hashJobNum = m_versionExceptionHash.value(fullPath, 0);
+
+   /* Update the items in the version table */
+   int cnt = versionTable->rowCount();
+   for (int row=0; row<cnt; row++) {
+      QTableWidgetItem* item = versionTable->item(row, 0);
+
+      Qt::CheckState curState = item->checkState();
+      Qt::CheckState newState = Qt::Unchecked;
+
+      if ((row == 0) && (fileState != Qt::Unchecked) && (hashJobNum == 0))
+         newState = Qt::PartiallyChecked;
+      /* determine if it is already in the versionExceptionHash */
+      if (hashJobNum) {
+         int thisJobNum = item->text().toInt();
+         if (thisJobNum == hashJobNum)
+            newState = Qt::Checked;
+      }
+      if (mainWin->m_rtChecksDebug) {
+         QString msg = QString("ver row=%1 cur=%2 hashJobNum=%3 new=%4 dirState=%5\n")
+            .arg(row).arg(curState).arg(hashJobNum).arg(newState).arg(dirState);
+         Pmsg1(000, "%s", msg.toUtf8().data());
+      }
+      if (newState != curState)
+         versionTableDisconnectedSet(item, newState);
+      m_versionCheckStateList[row] = newState;
+   }
+}
+
+/*
+ * Quick subroutine to "return via subPaths" a list of subpaths when passed a fullPath
+ */
+void restoreTree::fullPathtoSubPaths(QStringList &subPaths, QString &fullPath_in)
+{
+   int index;
+   bool done = false;
+   QString fullPath = fullPath_in;
+   QString direct, path;
+   while (((index = m_slashregex.lastIndexIn(fullPath, -2)) != -1) && (!done)) {
+      direct = path = fullPath;
+      path.replace(index+1, fullPath.length()-index-1, "");
+      direct.replace(0, index+1, "");
+      if (false) {
+         QString msg = QString("length = \"%1\" index = \"%2\" Considering \"%3\" \"%4\"\n")
+                    .arg(fullPath.length()).arg(index).arg(path).arg(direct);
+         Pmsg0(000, msg.toUtf8().data());
+      }
+      fullPath = path;
+      subPaths.append(fullPath);
+   }
+}
+
+/*
+ * A Function to set the icon state and insert a record into
+ * m_directoryIconStateHash when an exception is added by the user
+ */
+void restoreTree::directoryIconStateInsert(QString &fullPath, Qt::CheckState excpState)
+{
+   QStringList paths;
+   fullPathtoSubPaths(paths, fullPath);
+   /* an exception that causes the item in the file table to be "Checked" has occured */
+   if (excpState == Qt::Checked) {
+      bool foundAsUnChecked = false;
+      QTreeWidgetItem *firstItem = m_dirPaths.value(paths[0]);
+      if (firstItem) {
+         if (firstItem->checkState(0) == Qt::Unchecked)
+            foundAsUnChecked = true;
+      }
+      if (foundAsUnChecked) {
+          /* as long as directory item is Unchecked, set icon state to "green check" */
+         bool done = false;
+         QListIterator<QString> siter(paths);
+         while (siter.hasNext() && !done) {
+            QString path = siter.next();
+            QTreeWidgetItem *item = m_dirPaths.value(path);
+            if (item) {
+               if (item->checkState(0) != Qt::Unchecked)
+                  done = true;
+               else {
+                  directorySetIcon(1, FolderGreenChecked, path, item);
+                  if (mainWin->m_rtIconStateDebug) Pmsg1(000, "In restoreTree::directoryIconStateInsert inserting %s\n", path.toUtf8().data());
+               }
+            }
+         }
+      } else {
+         /* if it is partially checked or fully checked insert green Check until a unchecked is found in the path */
+         if (mainWin->m_rtIconStateDebug) Pmsg1(000, "In restoreTree::directoryIconStateInsert Aqua %s\n", paths[0].toUtf8().data());
+         bool done = false;
+         QListIterator<QString> siter(paths);
+         while (siter.hasNext() && !done) {
+            QString path = siter.next();
+            QTreeWidgetItem *item = m_dirPaths.value(path);
+            if (item) {  /* if the directory item is checked, set icon state to unchecked "green check" */
+               if (item->checkState(0) == Qt::Checked)
+                  done = true;
+               directorySetIcon(1, FolderGreenChecked, path, item);
+               if (mainWin->m_rtIconStateDebug) Pmsg1(000, "In restoreTree::directoryIconStateInsert boogie %s\n", path.toUtf8().data());
+            }
+         }
+      }
+   }
+   /* an exception that causes the item in the file table to be "Unchecked" has occured */
+   if (excpState == Qt::Unchecked) {
+      bool done = false;
+      QListIterator<QString> siter(paths);
+      while (siter.hasNext() && !done) {
+         QString path = siter.next();
+         QTreeWidgetItem *item = m_dirPaths.value(path);
+         if (item) {  /* if the directory item is checked, set icon state to unchecked "white check" */
+            if (item->checkState(0) == Qt::Checked)
+               done = true;
+            directorySetIcon(1, FolderWhiteChecked, path, item);
+            if (mainWin->m_rtIconStateDebug) Pmsg1(000, "In restoreTree::directoryIconStateInsert boogie %s\n", path.toUtf8().data());
+         }
+      }
+   }
+}
+
+/*
+ * A function to set the icon state back to "folder" and to remove a record from
+ * m_directoryIconStateHash when an exception is removed by a user.
+ */
+void restoreTree::directoryIconStateRemove()
+{
+   QHash<QString, int> shouldBeIconStateHash;
+   /* First determine all paths with icons that should be checked with m_fileExceptionHash */
+   /* Use iterator tera to iterate through m_fileExceptionHash */
+   QHashIterator<QString, Qt::CheckState> tera(m_fileExceptionHash);
+   while (tera.hasNext()) {
+      tera.next();
+      if (mainWin->m_rtIconStateDebug) Pmsg2(000, "Alpha Key %s value %i\n", tera.key().toUtf8().data(), tera.value());
+
+      QString keyPath = tera.key();
+      Qt::CheckState state = tera.value();
+
+      QStringList paths;
+      fullPathtoSubPaths(paths, keyPath);
+      /* if the state of the item in m_fileExceptionHash is checked 
+       * each of the subpaths should be "Checked Green" */
+      if (state == Qt::Checked) {
+
+         bool foundAsUnChecked = false;
+         QTreeWidgetItem *firstItem = m_dirPaths.value(paths[0]);
+         if (firstItem) {
+            if (firstItem->checkState(0) == Qt::Unchecked)
+               foundAsUnChecked = true;
+         }
+         if (foundAsUnChecked) {
+            /* The right most directory is Unchecked, iterate leftwards
+             * as long as directory item is Unchecked, set icon state to "green check" */
+            bool done = false;
+            QListIterator<QString> siter(paths);
+            while (siter.hasNext() && !done) {
+               QString path = siter.next();
+               QTreeWidgetItem *item = m_dirPaths.value(path);
+               if (item) {
+                  if (item->checkState(0) != Qt::Unchecked)
+                     done = true;
+                  else {
+                     shouldBeIconStateHash.insert(path, FolderGreenChecked);
+                     if (mainWin->m_rtIconStateDebug) Pmsg1(000, "In restoreTree::directoryIconStateInsert inserting %s\n", path.toUtf8().data());
+                  }
+               }
+            }
+         }
+         else {
+            /* The right most directory is Unchecked, iterate leftwards
+             * until directory item is Checked, set icon state to "green check" */
+            bool done = false;
+            QListIterator<QString> siter(paths);
+            while (siter.hasNext() && !done) {
+               QString path = siter.next();
+               QTreeWidgetItem *item = m_dirPaths.value(path);
+               if (item) {
+                  if (item->checkState(0) == Qt::Checked)
+                     done = true;
+                  shouldBeIconStateHash.insert(path, FolderGreenChecked);
+               }
+            }
+         }
+      }
+      /* if the state of the item in m_fileExceptionHash is UNChecked
+       * each of the subpaths should be "Checked white" until the tree item
+       * which represents that path is Qt::Checked */
+      if (state == Qt::Unchecked) {
+         bool done = false;
+         QListIterator<QString> siter(paths);
+         while (siter.hasNext() && !done) {
+            QString path = siter.next();
+            QTreeWidgetItem *item = m_dirPaths.value(path);
+            if (item) {
+               if (item->checkState(0) == Qt::Checked)
+                  done = true;
+               shouldBeIconStateHash.insert(path, FolderWhiteChecked);
+            }
+         }
+      }
+   }
+   /* now iterate through m_directoryIconStateHash which are the items that are checked
+    * and remove all of those that are not in shouldBeIconStateHash */
+   QHashIterator<QString, int> iter(m_directoryIconStateHash);
+   while (iter.hasNext()) {
+      iter.next();
+      if (mainWin->m_rtIconStateDebug) Pmsg2(000, "Beta Key %s value %i\n", iter.key().toUtf8().data(), iter.value());
+
+      QString keyPath = iter.key();
+      if (shouldBeIconStateHash.value(keyPath)) {
+         if (mainWin->m_rtIconStateDebug) Pmsg1(000, "WAS found in shouldBeStateHash %s\n", keyPath.toUtf8().data());
+         //newval = m_directoryIconStateHash.value(path, FolderUnchecked) & (~change);
+         int newval = shouldBeIconStateHash.value(keyPath);
+         newval = ~newval;
+         newval = newval & FolderBothChecked;
+         QTreeWidgetItem *item = m_dirPaths.value(keyPath);
+         if (item)
+            directorySetIcon(0, newval, keyPath, item);
+      } else {
+         if (mainWin->m_rtIconStateDebug) Pmsg1(000, "NOT found in shouldBeStateHash %s\n", keyPath.toUtf8().data());
+         QTreeWidgetItem *item = m_dirPaths.value(keyPath);
+         if (item)
+            directorySetIcon(0, FolderBothChecked, keyPath, item);
+            //item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
+            //m_directoryIconStateHash.remove(keyPath);
+      }
+   }
+}
+
+void restoreTree::directorySetIcon(int operation, int change, QString &path, QTreeWidgetItem* item) {
+   int newval;
+   /* we are adding a check type white or green */
+   if (operation > 0) {
+      /* get the old val and "bitwise OR" with the change */
+      newval = m_directoryIconStateHash.value(path, FolderUnchecked) | change;
+      if (mainWin->m_rtIconStateDebug) Pmsg2(000, "Inserting into m_directoryIconStateHash path=%s newval=%i\n", path.toUtf8().data(), newval);
+      m_directoryIconStateHash.insert(path, newval);
+   } else {
+   /* we are removing a check type white or green */
+      newval = m_directoryIconStateHash.value(path, FolderUnchecked) & (~change);
+      if (newval == 0) {
+         if (mainWin->m_rtIconStateDebug) Pmsg2(000, "Removing from m_directoryIconStateHash path=%s newval=%i\n", path.toUtf8().data(), newval);
+         m_directoryIconStateHash.remove(path);
+      }
+      else {
+         if (mainWin->m_rtIconStateDebug) Pmsg2(000, "Inserting into m_directoryIconStateHash path=%s newval=%i\n", path.toUtf8().data(), newval);
+         m_directoryIconStateHash.insert(path, newval);
+      }
+   }
+   if (newval == FolderUnchecked)
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
+   else if (newval == FolderGreenChecked)
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/folderchecked.png")));
+   else if (newval == FolderWhiteChecked)
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/folderunchecked.png")));
+   else if (newval == FolderBothChecked)
+      item->setIcon(0, QIcon(QString::fromUtf8(":images/folderbothchecked.png")));
+}
+
+/*
+ * Test Button
+ */
+void restoreTree::testButtonPushed()
+{
+   QMultiHash<int, QString> versionFilesMulti;
+   QHash <QString, bool> fullPathDone;
+   if ((mainWin->m_rtRestore1Debug) || (mainWin->m_rtRestore2Debug) || (mainWin->m_rtRestore3Debug))
+      Pmsg0(000, "In restoreTree::testButtonPushed\n");
+   /* Use a tree widget item iterator filtering for Checked Items */
+   QTreeWidgetItemIterator diter(directoryTree, QTreeWidgetItemIterator::Checked);
+   while (*diter) {
+      QString directory = (*diter)->data(0, Qt::UserRole).toString();
+      if (mainWin->m_rtRestore1Debug)
+      Pmsg1(000, "Directory Checked=\"%s\"\n", directory.toUtf8().data());
+      /* With a checked directory, query for the files in the directory */
+      QString cmd =
+         "SELECT DISTINCT Filename.Name, MAX(Job.JobId)"
+         " FROM File "
+         " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+         " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
+         " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
+         " AND Job.Jobid IN (" + m_jobQuery + ")"
+         " GROUP BY Filename.Name";
+ 
+      if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      QStringList results;
+      if (m_console->sql_cmd(cmd, results)) {
+      
+         QStringList fieldlist;
+   
+         int row = 0;
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            /* Iterate through fields in the record */
+            int column = 0;
+            QString fullPath = "";
+            Qt::CheckState fileExcpState = (Qt::CheckState)4;
+            fieldlist = resultline.split("\t");
+            int version = 0;
+            foreach (QString field, fieldlist) {
+               if (column == 0) {
+                  fullPath = directory + field;
+               }
+               if (column == 1) {
+                  version = field.toInt();
+               }
+               column++;
+            }
+            fileExcpState = m_fileExceptionHash.value(fullPath, (Qt::CheckState)3);
+            
+            int excpVersion = m_versionExceptionHash.value(fullPath, 0);
+            if (fileExcpState != Qt::Unchecked) {
+               QString debugtext;
+               if (excpVersion != 0) {
+                  debugtext = QString("*E* version=%1").arg(excpVersion);
+                  version = excpVersion;
+               } else
+                  debugtext = QString("___ version=%1").arg(version);
+               if (mainWin->m_rtRestore1Debug)
+                  Pmsg2(000, "Restoring %s File %s\n", debugtext.toUtf8().data(), fullPath.toUtf8().data());
+               fullPathDone.insert(fullPath, 1);
+               versionFilesMulti.insert(version, fullPath);
+            }
+            row++;
+         }
+      }
+      ++diter;
+   } /* while (*diter) */
+
+   /* There may be some exceptions not accounted for yet with fullPathDone */
+   QHashIterator<QString, Qt::CheckState> ftera(m_fileExceptionHash);
+   while (ftera.hasNext()) {
+      ftera.next();
+      QString fullPath = ftera.key();
+      Qt::CheckState state = ftera.value();
+      if (state != 0) {
+         /* now we don't want the ones already done */
+         if (fullPathDone.value(fullPath, 0) == 0) {
+            int version = m_versionExceptionHash.value(fullPath, 0);
+            QString debugtext = "";
+            if (version != 0)
+               debugtext = QString("E1* version=%1").arg(version);
+            else {
+               version = mostRecentVersionfromFullPath(fullPath);
+               if (version)
+                  debugtext = QString("E2* version=%1").arg(version);
+               else
+                  debugtext = QString("Error det vers").arg(version);
+            }
+            if (mainWin->m_rtRestore1Debug)
+               Pmsg2(000, "Restoring %s file %s\n", debugtext.toUtf8().data(), fullPath.toUtf8().data());
+            versionFilesMulti.insert(version, fullPath);
+         } /* if fullPathDone.value(fullPath, 0) == 0 */
+      } /* if state != 0 */
+   } /* while ftera.hasNext */
+
+   /* now for the final spit out of the versions and lists of files for each version */
+   QHash<int, int> doneKeys;
+   QHashIterator<int, QString> miter(versionFilesMulti);
+   while (miter.hasNext()) {
+      miter.next();
+      int fversion = miter.key();
+      /* did not succeed in getting an iterator to work as expected on versionFilesMulti so use doneKeys */
+      if (doneKeys.value(fversion, 0) == 0) {
+         if (mainWin->m_rtRestore2Debug) Pmsg1(000, "Version->%i\n", fversion);
+         QStringList fullPathList = versionFilesMulti.values(fversion);
+         /* create the command to perform the restore */
+         QString cmd = QString("restore");
+         cmd += " client=\"" + m_prevClientCombo + "\""
+                " jobid=\"" + QString("%1").arg(fversion) + "\" yes";
+         foreach(QString ffullPath, fullPathList) {
+            if (mainWin->m_rtRestore2Debug) Pmsg1(000, "  file->%s\n", ffullPath.toUtf8().data());
+            cmd += " file=\"" + ffullPath + "\"";
+         }
+         cmd += " yes";
+         if (mainWin->m_commandDebug)
+            Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
+         consoleCommand(cmd);
+         mainWin->resetFocus();
+         doneKeys.insert(fversion,1);
+      }
+   }
+}
+
+int restoreTree::mostRecentVersionfromFullPath(QString &fullPath)
+{
+   int qversion = 0;
+   QString directory, fileName;
+   int index = m_slashregex.lastIndexIn(fullPath, -2);
+   if (index != -1) {
+      directory = fileName = fullPath;
+      directory.replace(index+1, fullPath.length()-index-1, "");
+      fileName.replace(0, index+1, "");
+      if (false) {
+         QString msg = QString("length = \"%1\" index = \"%2\" Considering \"%3\" \"%4\"\n")
+                    .arg(fullPath.length()).arg(index).arg(fileName).arg(directory);
+         Pmsg0(000, msg.toUtf8().data());
+      }
+      /* so now we need the latest version from the database */
+      QString cmd =
+         "SELECT MAX(Job.JobId)"
+         " FROM File "
+         " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+         " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
+         " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
+         " AND Job.Jobid IN (" + m_jobQuery + ")"
+         " AND Filename.Name='" + fileName + "'"
+         " GROUP BY Filename.Name";
+ 
+      if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      QStringList results;
+      if (m_console->sql_cmd(cmd, results)) {
+         QStringList fieldlist;
+         int row = 0;
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            /* Iterate through fields in the record */
+            int column = 0;
+            fieldlist = resultline.split("\t");
+            foreach (QString field, fieldlist) {
+               if (column == 0) {
+                  qversion = field.toInt();
+               }
+               column++;
+            }
+            row++;
+         }
+      }
+   } /* if (index != -1) */
+   return qversion;
 }
