@@ -1307,6 +1307,8 @@ static int restore_count_handler(void *ctx, int num_fields, char **row)
 static int jobid_fileindex_handler(void *ctx, int num_fields, char **row)
 {
    RESTORE_CTX *rx = (RESTORE_CTX *)ctx;
+
+   Dmsg2(200, "JobId=%s FileIndex=%s\n", row[0], row[1]);
    rx->JobId = str_to_int64(row[0]);
    add_findex(rx->bsr, rx->JobId, str_to_int64(row[1]));
    rx->found = true;
