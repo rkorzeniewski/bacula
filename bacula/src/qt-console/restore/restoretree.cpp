@@ -142,23 +142,9 @@ void restoreTree::populateDirectoryTree()
          Pmsg1(000, "Query cmd : %s\n", m_jobQuery.toUtf8().data());
       }
       populateJobTable();
+      setJobsCheckedList();
    } else {
-      m_JobsCheckedList = "";
-      bool first = true;
-      /* Update the items in the version table */
-      int cnt = jobTable->rowCount();
-      for (int row=0; row<cnt; row++) {
-         QTableWidgetItem* jobItem = jobTable->item(row, 0);
-         if (jobItem->checkState() == Qt::Checked) {
-            if (!first)
-               m_JobsCheckedList += ",";
-            m_JobsCheckedList += jobItem->text();
-            first = false;
-            jobItem->setBackground(Qt::green);
-         } else
-            jobItem->setBackground(Qt::gray);
-      }
-      m_jobQuery = m_JobsCheckedList;
+      setJobsCheckedList();
    }
 
    QString cmd =
@@ -180,6 +166,30 @@ void restoreTree::populateDirectoryTree()
          parseDirectory(directory);
       }
    }
+}
+
+/*
+ *  Function to set m_jobQuery from the jobs that are checked in the table
+ *  of jobs
+ */     
+void restoreTree::setJobsCheckedList()
+{
+   m_JobsCheckedList = "";
+   bool first = true;
+   /* Update the items in the version table */
+   int cnt = jobTable->rowCount();
+   for (int row=0; row<cnt; row++) {
+      QTableWidgetItem* jobItem = jobTable->item(row, 0);
+      if (jobItem->checkState() == Qt::Checked) {
+         if (!first)
+            m_JobsCheckedList += ",";
+         m_JobsCheckedList += jobItem->text();
+         first = false;
+         jobItem->setBackground(Qt::green);
+      } else
+         jobItem->setBackground(Qt::gray);
+   }
+   m_jobQuery = m_JobsCheckedList;
 }
 
 /*
@@ -452,7 +462,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
 
    QBrush blackBrush(Qt::black);
    QString cmd = 
-      "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5"
+      "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
       " FROM File"
       " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
@@ -461,7 +471,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
       " AND Job.Jobid IN (" + m_jobQuery + ")"
       " ORDER BY Job.EndTime DESC";
 
-   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5");
+   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5" << "FileId");
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
@@ -1254,6 +1264,7 @@ void restoreTree::testButtonPushed()
 {
    QMultiHash<int, QString> versionFilesMulti;
    QHash <QString, bool> fullPathDone;
+   QHash <QString, int> fileIdHash;
    if ((mainWin->m_rtRestore1Debug) || (mainWin->m_rtRestore2Debug) || (mainWin->m_rtRestore3Debug))
       Pmsg0(000, "In restoreTree::testButtonPushed\n");
    /* Use a tree widget item iterator filtering for Checked Items */
@@ -1263,16 +1274,28 @@ void restoreTree::testButtonPushed()
       if (mainWin->m_rtRestore1Debug)
       Pmsg1(000, "Directory Checked=\"%s\"\n", directory.toUtf8().data());
       /* With a checked directory, query for the files in the directory */
+
       QString cmd =
-         "SELECT DISTINCT Filename.Name, MAX(Job.JobId)"
-         " FROM File "
-         " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-         " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-         " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
-         " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-         " AND Job.Jobid IN (" + m_jobQuery + ")"
-         " GROUP BY Filename.Name";
- 
+         "SELECT t1.Filename AS Filename, t1.JobId AS JobId, File.Fileid AS Fileid"
+         " FROM"
+         " ( SELECT Filename.Name AS Filename, MAX(Job.JobId) AS JobId"
+           " FROM File"
+             " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+             " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
+             " LEFT OUTER JOIN Job ON (Job.JobId=File.JobId)"
+           " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
+           "  AND Job.Jobid IN (" + m_jobQuery + ")"
+           " GROUP BY Filename.Name"
+         ") t1, File "
+           " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+           " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
+           " LEFT OUTER JOIN Job ON (Job.JobId=File.JobId)"
+         " WHERE"
+           " Path.Path='/etc/bacula/'"
+           " AND Filename.Name=t1.Filename"
+           " AND Job.Jobid=t1.JobId"
+         " ORDER BY Filename";
+
       if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       QStringList results;
       if (m_console->sql_cmd(cmd, results)) {
@@ -1288,12 +1311,16 @@ void restoreTree::testButtonPushed()
             Qt::CheckState fileExcpState = (Qt::CheckState)4;
             fieldlist = resultline.split("\t");
             int version = 0;
+            int fileId = 0;
             foreach (QString field, fieldlist) {
                if (column == 0) {
                   fullPath = directory + field;
                }
                if (column == 1) {
                   version = field.toInt();
+               }
+               if (column == 2) {
+                  fileId = field.toInt();
                }
                column++;
             }
@@ -1305,11 +1332,13 @@ void restoreTree::testButtonPushed()
                if (excpVersion != 0) {
                   debugtext = QString("*E* version=%1").arg(excpVersion);
                   version = excpVersion;
+                  fileId = queryFileId(fullPath, excpVersion);
                } else
                   debugtext = QString("___ version=%1").arg(version);
                if (mainWin->m_rtRestore1Debug)
                   Pmsg2(000, "Restoring %s File %s\n", debugtext.toUtf8().data(), fullPath.toUtf8().data());
                fullPathDone.insert(fullPath, 1);
+               fileIdHash.insert(fullPath, fileId);
                versionFilesMulti.insert(version, fullPath);
             }
             row++;
@@ -1328,19 +1357,23 @@ void restoreTree::testButtonPushed()
          /* now we don't want the ones already done */
          if (fullPathDone.value(fullPath, 0) == 0) {
             int version = m_versionExceptionHash.value(fullPath, 0);
+            int fileId = 0;
             QString debugtext = "";
-            if (version != 0)
-               debugtext = QString("E1* version=%1").arg(version);
-            else {
+            if (version != 0) {
+               fileId = queryFileId(fullPath, version);
+               debugtext = QString("E1* version=%1 fileid=%2").arg(version).arg(fileId);
+            } else {
                version = mostRecentVersionfromFullPath(fullPath);
-               if (version)
-                  debugtext = QString("E2* version=%1").arg(version);
-               else
+               if (version) {
+                  fileId = queryFileId(fullPath, version);
+                  debugtext = QString("E2* version=%1 fileid=%2").arg(version).arg(fileId);
+               } else
                   debugtext = QString("Error det vers").arg(version);
             }
             if (mainWin->m_rtRestore1Debug)
                Pmsg2(000, "Restoring %s file %s\n", debugtext.toUtf8().data(), fullPath.toUtf8().data());
             versionFilesMulti.insert(version, fullPath);
+            fileIdHash.insert(fullPath, fileId);
          } /* if fullPathDone.value(fullPath, 0) == 0 */
       } /* if state != 0 */
    } /* while ftera.hasNext */
@@ -1353,20 +1386,60 @@ void restoreTree::testButtonPushed()
       int fversion = miter.key();
       /* did not succeed in getting an iterator to work as expected on versionFilesMulti so use doneKeys */
       if (doneKeys.value(fversion, 0) == 0) {
+         QString tempTable = "restoretest" + QString("%1").arg(fversion);
+         //if (mainWin->m_sqlDebug)
+         QString sqlcmd = "CREATE TEMPORARY TABLE " + tempTable + " (JobId INTEGER, FileIndex INTEGER)";
+         QStringList results;
+         Pmsg1(000, "Query cmd : %s\n", sqlcmd.toUtf8().data());
+         /*if (m_console->sql_cmd(sqlcmd, results)) {
+            QStringList fieldlist;
+            int row = 0;
+            foreach (QString resultline, results) {
+               int column = 0;
+               fieldlist = resultline.split("\t");
+               foreach (QString field, fieldlist) {
+                  if (column == 0) {
+                     Pmsg1(000, "Returned from create table command %s\n", field.toUtf8().data());
+                  }
+                  column++;
+               }
+               row++;
+            }
+         }*/
+
          if (mainWin->m_rtRestore2Debug) Pmsg1(000, "Version->%i\n", fversion);
          QStringList fullPathList = versionFilesMulti.values(fversion);
          /* create the command to perform the restore */
+         foreach(QString ffullPath, fullPathList) {
+            int fileId = fileIdHash.value(ffullPath);
+            if (mainWin->m_rtRestore2Debug) Pmsg2(000, "  file->%s id %i\n", ffullPath.toUtf8().data(), fileId);
+            //cmd += " file=\"" + ffullPath + "\"";
+            sqlcmd = "INSERT INTO " + tempTable + " (JobId, FileIndex) VALUES (" + QString("%1").arg(fversion) + "," + QString("%1").arg(fileId) + ")";
+            results.clear();
+            Pmsg1(000, "Query cmd : %s\n", sqlcmd.toUtf8().data());
+            /*if (m_console->sql_cmd(sqlcmd, results)) {
+               QStringList fieldlist;
+               int row = 0;
+               foreach (QString resultline, results) {
+                  int column = 0;
+                  fieldlist = resultline.split("\t");
+                  foreach (QString field, fieldlist) {
+                     if (column == 0) {
+                        Pmsg1(000, "Returned from create table command %s\n", field.toUtf8().data());
+                     }
+                     column++;
+                  }
+                  row++;
+               }
+            }*/
+         }
          QString cmd = QString("restore");
          cmd += " client=\"" + m_prevClientCombo + "\""
-                " jobid=\"" + QString("%1").arg(fversion) + "\" yes";
-         foreach(QString ffullPath, fullPathList) {
-            if (mainWin->m_rtRestore2Debug) Pmsg1(000, "  file->%s\n", ffullPath.toUtf8().data());
-            cmd += " file=\"" + ffullPath + "\"";
-         }
-         cmd += " yes";
+                " jobid=\"" + QString("%1").arg(fversion) + "\""
+                " file=\"?" + tempTable + "\" yes";
          if (mainWin->m_commandDebug)
             Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
-         consoleCommand(cmd);
+         //consoleCommand(cmd);
          mainWin->resetFocus();
          doneKeys.insert(fversion,1);
       }
@@ -1420,4 +1493,56 @@ int restoreTree::mostRecentVersionfromFullPath(QString &fullPath)
       }
    } /* if (index != -1) */
    return qversion;
+}
+
+
+int restoreTree::queryFileId(QString &fullPath, int jobId)
+{
+   int qfileId = 0;
+   QString directory, fileName;
+   int index = m_slashregex.lastIndexIn(fullPath, -2);
+   if (index != -1) {
+      directory = fileName = fullPath;
+      directory.replace(index+1, fullPath.length()-index-1, "");
+      fileName.replace(0, index+1, "");
+      if (false) {
+         QString msg = QString("length = \"%1\" index = \"%2\" Considering \"%3\" \"%4\"\n")
+                    .arg(fullPath.length()).arg(index).arg(fileName).arg(directory);
+         Pmsg0(000, msg.toUtf8().data());
+      }
+      /* so now we need the latest version from the database */
+      QString cmd =
+         "SELECT"
+          " File.Fileid"
+         " FROM File"
+          " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+          " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
+          " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE"
+          " Path.Path='" + directory + "'"
+          " AND Filename.Name='" + fileName + "'"
+          " AND Job.Jobid='" + QString("%1").arg(jobId) + "'"
+         " GROUP BY File.Fileid";
+ 
+      if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      QStringList results;
+      if (m_console->sql_cmd(cmd, results)) {
+         QStringList fieldlist;
+         int row = 0;
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            /* Iterate through fields in the record */
+            int column = 0;
+            fieldlist = resultline.split("\t");
+            foreach (QString field, fieldlist) {
+               if (column == 0) {
+                  qfileId = field.toInt();
+               }
+               column++;
+            }
+            row++;
+         }
+      }
+   } /* if (index != -1) */
+   return qfileId;
 }

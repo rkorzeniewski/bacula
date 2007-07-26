@@ -90,6 +90,8 @@ private:
    void directorySetIcon(int operation, int change, QString &, QTreeWidgetItem* item);
    void fullPathtoSubPaths(QStringList &, QString &);
    int mostRecentVersionfromFullPath(QString &);
+   void setJobsCheckedList();
+   int queryFileId(QString &fullPath, int jobID);
 
    bool m_populated;
    QRegExp m_winRegExpDrive;
