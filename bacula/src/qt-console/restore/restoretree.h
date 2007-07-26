@@ -91,7 +91,7 @@ private:
    void fullPathtoSubPaths(QStringList &, QString &);
    int mostRecentVersionfromFullPath(QString &);
    void setJobsCheckedList();
-   int queryFileId(QString &fullPath, int jobID);
+   int queryFileIndex(QString &fullPath, int jobID);
 
    bool m_populated;
    QRegExp m_winRegExpDrive;
