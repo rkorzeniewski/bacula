@@ -1,4 +1,6 @@
           Release Notes for bweb 2.2
+2007/07/26
+ - Make search case insensitive with postgresql 
 
 2007/07/09
  - Tweak Job per group summary view
