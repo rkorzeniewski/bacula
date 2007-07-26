@@ -148,11 +148,12 @@ void restoreTree::populateDirectoryTree()
    }
 
    QString cmd =
-      "SELECT DISTINCT Path.Path"
+      "SELECT DISTINCT Path.Path AS Path"
       " FROM Path"
       " LEFT OUTER JOIN File ON (File.PathId=Path.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
-      " WHERE Job.Jobid IN (" + m_jobQuery + ")";
+      " WHERE Job.Jobid IN (" + m_jobQuery + ")"
+      " ORDER BY Path";
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
@@ -1394,7 +1395,7 @@ void restoreTree::testButtonPushed()
             QString sqlcmd = "CREATE TEMPORARY TABLE " + tempTable + " (JobId INTEGER, FileIndex INTEGER)";
             QStringList results;
             Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
-            /*if (m_console->sql_cmd(sqlcmd, results)) {
+            if (m_console->sql_cmd(sqlcmd, results)) {
                QStringList fieldlist;
                int row = 0;
                foreach (QString resultline, results) {
@@ -1408,7 +1409,7 @@ void restoreTree::testButtonPushed()
                   }
                   row++;
                }
-            }*/
+            }
          }
 
          if (mainWin->m_rtRestore2Debug) Pmsg1(000, "Version->%i\n", fversion);
@@ -1423,7 +1424,7 @@ void restoreTree::testButtonPushed()
 //            Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
             /* use printf for the moment to make pasting into psql easier. */
             printf("%s ;\n", sqlcmd.toUtf8().data());
-            /*if (m_console->sql_cmd(sqlcmd, results)) {
+            if (m_console->sql_cmd(sqlcmd, results)) {
                QStringList fieldlist;
                int row = 0;
                foreach (QString resultline, results) {
@@ -1437,7 +1438,7 @@ void restoreTree::testButtonPushed()
                   }
                   row++;
                }
-            }*/
+            }
          } /* foreach fullPathList */
          doneKeys.insert(fversion,1);
          jobList.append(fversion);
@@ -1458,7 +1459,7 @@ void restoreTree::testButtonPushed()
              " file=\"?" + tempTable + "\" yes";
       if (mainWin->m_commandDebug)
          Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
-      //consoleCommand(cmd);
+      consoleCommand(cmd);
       mainWin->resetFocus();
    }
 }
