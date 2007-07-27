@@ -60,7 +60,7 @@ public:
 
 private slots:
    void refreshButtonPushed();
-   void testButtonPushed();
+   void restoreButtonPushed();
    void jobComboChanged(int);
    void directoryCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
    void fileCurrentItemChanged(QTableWidgetItem *,QTableWidgetItem *);
