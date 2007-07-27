@@ -72,6 +72,7 @@ void restoreTreeRunPage::fill()
 {
    QDateTime dt;
    clientCombo->addItems(m_console->client_list);
+   clientCombo->setCurrentIndex(clientCombo->findText(m_client, Qt::MatchExactly));
    replaceCombo->addItems(QStringList() << "never" << "always" << "ifnewer" << "ifolder");
    replaceCombo->setCurrentIndex(replaceCombo->findText("never", Qt::MatchExactly));
    dateTimeEdit->setDisplayFormat(mainWin->m_dtformat);
@@ -89,9 +90,11 @@ void restoreTreeRunPage::okButtonPushed()
    }
    jobOption += "\"";
    QString cmd = QString("restore");
-   cmd += " client=\"" + m_client + "\""
-          + jobOption + 
-          " file=\"?" + m_tempTable + "\" yes";
+   cmd += jobOption + 
+          " file=\"?" + m_tempTable + "\" yes"
+          " replace=\"" + replaceCombo->currentText() + "\""
+          " when=\"" + dateTimeEdit->dateTime().toString(mainWin->m_dtformat) + "\""
+          " restoreclient=\"" + clientCombo->currentText() + "\"";
    if (mainWin->m_commandDebug)
       Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
    consoleCommand(cmd);
@@ -99,9 +102,6 @@ void restoreTreeRunPage::okButtonPushed()
    closeStackPage();
 
 /*   QString cmd(".mod");
-   cmd += " restoreclient=\"" + clientCombo->currentText() + "\"";
-   cmd += " replace=\"" + replaceCombo->currentText() + "\"";
-   cmd += " when=\"" + dateTimeEdit->dateTime().toString(mainWin->m_dtformat) + "\"";
    cmd += " bootstrap=\"" + bootstrap->text() + "\"";
    cmd += " where=\"" + where->text() + "\"";
    QString pri;
