@@ -71,7 +71,7 @@ restoreTree::~restoreTree()
 void restoreTree::setupPage()
 {
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(refreshButtonPushed()));
-   connect(testButton, SIGNAL(pressed()), this, SLOT(testButtonPushed()));
+   connect(restoreButton, SIGNAL(pressed()), this, SLOT(restoreButtonPushed()));
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(jobComboChanged(int)));
    connect(directoryTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(directoryCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
@@ -1262,13 +1262,13 @@ void restoreTree::directorySetIcon(int operation, int change, QString &path, QTr
 /*
  * Test Button
  */
-void restoreTree::testButtonPushed()
+void restoreTree::restoreButtonPushed()
 {
    QMultiHash<int, QString> versionFilesMulti;
    QHash <QString, bool> fullPathDone;
    QHash <QString, int> fileIndexHash;
    if ((mainWin->m_rtRestore1Debug) || (mainWin->m_rtRestore2Debug) || (mainWin->m_rtRestore3Debug))
-      Pmsg0(000, "In restoreTree::testButtonPushed\n");
+      Pmsg0(000, "In restoreTree::restoreButtonPushed\n");
    /* Use a tree widget item iterator filtering for Checked Items */
    QTreeWidgetItemIterator diter(directoryTree, QTreeWidgetItemIterator::Checked);
    while (*diter) {
