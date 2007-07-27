@@ -38,6 +38,7 @@
 #include "bat.h"
 #include "restoretree.h"
 #include "pages.h"
+#include "restoretreerun.h"
 
 restoreTree::restoreTree()
 {
@@ -1422,22 +1423,8 @@ void restoreTree::testButtonPushed()
       } /*  if (doneKeys.value(fversion, 0) == 0) */
    } /* while (vFMiter.hasNext()) */
    if (tempTable != "") {
-      QString jobOption = " jobid=\"";
-      bool first = true;
-      foreach (int job, jobList) {
-         if (first) first = false;
-         else jobOption += ",";
-         jobOption += QString("%1").arg(job);
-      }
-      jobOption += "\"";
-      QString cmd = QString("restore");
-      cmd += " client=\"" + m_prevClientCombo + "\""
-             + jobOption +
-             " file=\"?" + tempTable + "\" yes";
-      if (mainWin->m_commandDebug)
-         Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
-      consoleCommand(cmd);
-      mainWin->resetFocus();
+      QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
+      new restoreTreeRunPage(tempTable, m_prevClientCombo, jobList, pageSelectorTreeWidgetItem);
    }
 }
 
