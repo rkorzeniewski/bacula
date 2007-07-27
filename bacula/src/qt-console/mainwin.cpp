@@ -248,10 +248,15 @@ void MainWin::closeEvent(QCloseEvent *event)
    m_isClosing = true;
    writeSettings();
    /* close all non console pages, this will call settings in destructors */
-   foreach(Pages *page, m_pagehash) {
-      if (page !=  page->console()) {
-         page->console()->setCurrent();
-         page->closeStackPage();
+   while (m_consoleHash.count() < m_pagehash.count()) {
+      foreach(Pages *page, m_pagehash) {
+         if (page !=  page->console()) {
+            QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(page);
+            if (pageSelectorTreeWidgetItem->childCount() == 0) {
+               page->console()->setCurrent();
+               page->closeStackPage();
+            }
+         }
       }
    }
    /* close the console pages and terminate connection */
