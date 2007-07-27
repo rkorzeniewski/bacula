@@ -380,13 +380,14 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
    QString directory = item->data(0, Qt::UserRole).toString();
    directoryLabel->setText("Present Working Directory : " + directory);
    QString cmd =
-      "SELECT DISTINCT Filename.Name"
+      "SELECT DISTINCT Filename.Name AS FileName"
       " FROM File "
       " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
       " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
       " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-      " AND Job.Jobid IN (" + m_jobQuery + ")";
+      " AND Job.Jobid IN (" + m_jobQuery + ")"
+      " ORDER BY FileName";
  
    QStringList headerlist = (QStringList() << "File Name");
    fileTable->clear();
