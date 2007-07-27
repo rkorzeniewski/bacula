@@ -1390,26 +1390,18 @@ void restoreTree::testButtonPushed()
       /* did not succeed in getting an iterator to work as expected on versionFilesMulti so use doneKeys */
       if (doneKeys.value(fversion, 0) == 0) {
          if (tempTable == "") {
-            tempTable = "restoretest" + QString("%1").arg(fversion);
-            //if (mainWin->m_sqlDebug)
+            QSettings settings("www.bacula.org", "bat");
+            settings.beginGroup("Restore");
+            int counter = settings.value("Counter", 1).toInt();
+            settings.setValue("Counter", counter+1);
+            settings.endGroup();
+            tempTable = "restore_" + QString("%1").arg(qrand()) + "_" + QString("%1").arg(counter);
             QString sqlcmd = "CREATE TEMPORARY TABLE " + tempTable + " (JobId INTEGER, FileIndex INTEGER)";
+            if (mainWin->m_sqlDebug)
+               Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
             QStringList results;
-            Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
-            if (m_console->sql_cmd(sqlcmd, results)) {
-               QStringList fieldlist;
-               int row = 0;
-               foreach (QString resultline, results) {
-                  int column = 0;
-                  fieldlist = resultline.split("\t");
-                  foreach (QString field, fieldlist) {
-                     if (column == 0) {
-                        Pmsg1(000, "Returned from CREATE TABLE command %s\n", field.toUtf8().data());
-                     }
-                     column++;
-                  }
-                  row++;
-               }
-            }
+            if (!m_console->sql_cmd(sqlcmd, results))
+               Pmsg1(000, "CREATE TABLE FAILED!!!! %s\n", sqlcmd.toUtf8().data());
          }
 
          if (mainWin->m_rtRestore2Debug) Pmsg1(000, "Version->%i\n", fversion);
@@ -1418,27 +1410,12 @@ void restoreTree::testButtonPushed()
          foreach(QString ffullPath, fullPathList) {
             int fileIndex = fileIndexHash.value(ffullPath);
             if (mainWin->m_rtRestore2Debug) Pmsg2(000, "  file->%s id %i\n", ffullPath.toUtf8().data(), fileIndex);
-            //cmd += " file=\"" + ffullPath + "\"";
             QString sqlcmd = "INSERT INTO " + tempTable + " (JobId, FileIndex) VALUES (" + QString("%1").arg(fversion) + ", " + QString("%1").arg(fileIndex) + ")";
+            if (mainWin->m_sqlDebug)
+               Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
             QStringList results;
-//            Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
-            /* use printf for the moment to make pasting into psql easier. */
-            printf("%s ;\n", sqlcmd.toUtf8().data());
-            if (m_console->sql_cmd(sqlcmd, results)) {
-               QStringList fieldlist;
-               int row = 0;
-               foreach (QString resultline, results) {
-                  int column = 0;
-                  fieldlist = resultline.split("\t");
-                  foreach (QString field, fieldlist) {
-                     if (column == 0) {
-                        Pmsg1(000, "Returned from INSERT INTO command %s\n", field.toUtf8().data());
-                     }
-                     column++;
-                  }
-                  row++;
-               }
-            }
+            if (!m_console->sql_cmd(sqlcmd, results))
+               Pmsg1(000, "INSERT INTO FAILED!!!! %s\n", sqlcmd.toUtf8().data());
          } /* foreach fullPathList */
          doneKeys.insert(fversion,1);
          jobList.append(fversion);
