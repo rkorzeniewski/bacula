@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
-    <height>313</height>
+    <width>440</width>
+    <height>327</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -95,6 +95,14 @@
    </item>
    <item row="0" column="0" >
     <widget class="QSplitter" name="splitter" >
+     <property name="sizePolicy" >
+      <sizepolicy>
+       <hsizetype>7</hsizetype>
+       <vsizetype>7</vsizetype>
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="orientation" >
       <enum>Qt::Horizontal</enum>
      </property>
