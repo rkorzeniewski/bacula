@@ -147,8 +147,8 @@ void restoreTree::populateDirectoryTree()
          m_condition.append(" AND FileSet.FileSet='" + fileSetCombo->itemText(fileSetIndex) + "'");
       }
       m_jobQueryPart =
-         " LEFT OUTER JOIN Client ON (Job.ClientId=Client.ClientId)"
-         " LEFT OUTER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
+         " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
+         " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
          " WHERE" + m_condition +
          " AND Job.purgedfiles=0";
       m_jobQuery =
@@ -166,8 +166,8 @@ void restoreTree::populateDirectoryTree()
    QString cmd =
       "SELECT DISTINCT Path.Path AS Path"
       " FROM Path"
-      " LEFT OUTER JOIN File ON (File.PathId=Path.PathId)"
-      " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+      " INNER JOIN File ON (File.PathId=Path.PathId)"
+      " INNER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Job.Jobid IN (" + m_jobQuery + ")"
       " ORDER BY Path";
    if (mainWin->m_sqlDebug) {
@@ -408,9 +408,9 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
    QString cmd =
       "SELECT DISTINCT Filename.Name AS FileName"
       " FROM File "
-      " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-      " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-      " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+      " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+      " INNER JOIN Path ON (Path.PathId=File.PathId)"
+      " INNER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
       " AND Job.Jobid IN (" + m_jobQuery + ")"
       " ORDER BY FileName";
@@ -493,9 +493,9 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
    QString cmd = 
       "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
       " FROM File"
-      " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-      " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-      " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+      " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+      " INNER JOIN Path ON (Path.PathId=File.PathId)"
+      " INNER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "'"
       " AND Job.Jobid IN (" + m_jobQuery + ")"
       " ORDER BY Job.EndTime DESC";
@@ -1331,16 +1331,16 @@ void restoreTree::restoreButtonPushed()
          " FROM"
          " ( SELECT Filename.Name AS Filename, MAX(Job.JobId) AS JobId"
            " FROM File"
-             " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-             " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-             " LEFT OUTER JOIN Job ON (Job.JobId=File.JobId)"
+             " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+             " INNER JOIN Path ON (Path.PathId=File.PathId)"
+             " INNER JOIN Job ON (Job.JobId=File.JobId)"
            " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
            "  AND Job.Jobid IN (" + m_jobQuery + ")"
            " GROUP BY Filename.Name"
          ") t1, File "
-           " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-           " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-           " LEFT OUTER JOIN Job ON (Job.JobId=File.JobId)"
+           " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+           " INNER JOIN Path ON (Path.PathId=File.PathId)"
+           " INNER JOIN Job ON (Job.JobId=File.JobId)"
          " WHERE"
            " Path.Path='" + directory + "'"
            " AND Filename.Name=t1.Filename"
@@ -1531,9 +1531,9 @@ int restoreTree::mostRecentVersionfromFullPath(QString &fullPath)
       QString cmd =
          "SELECT MAX(Job.JobId)"
          " FROM File "
-         " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-         " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-         " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+         " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+         " INNER JOIN Path ON (Path.PathId=File.PathId)"
+         " INNER JOIN Job ON (File.JobId=Job.JobId)"
          " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
          " AND Job.Jobid IN (" + m_jobQuery + ")"
          " AND Filename.Name='" + fileName + "'"
@@ -1582,9 +1582,9 @@ int restoreTree::queryFileIndex(QString &fullPath, int jobId)
          "SELECT"
           " File.FileIndex"
          " FROM File"
-          " LEFT OUTER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-          " LEFT OUTER JOIN Path ON (Path.PathId=File.PathId)"
-          " LEFT OUTER JOIN Job ON (File.JobId=Job.JobId)"
+          " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+          " INNER JOIN Path ON (Path.PathId=File.PathId)"
+          " INNER JOIN Job ON (File.JobId=Job.JobId)"
          " WHERE"
           " Path.Path='" + directory + "'"
           " AND Filename.Name='" + fileName + "'"
