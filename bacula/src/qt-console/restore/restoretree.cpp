@@ -116,11 +116,21 @@ void restoreTree::populateDirectoryTree()
    m_versionExceptionHash.clear();
    m_directoryIconStateHash.clear();
 
+   int clientIndex = clientCombo->currentIndex();
+   int fileSetIndex = fileSetCombo->currentIndex();
+   QString jobComboText = jobCombo->itemText(jobCombo->currentIndex());
+   QString clientComboText = clientCombo->itemText(clientIndex);
+   QString fileSetComboText = fileSetCombo->itemText(fileSetIndex);
+   bool dropdownChanged = (m_prevJobCombo != jobComboText) || (m_prevClientCombo != clientComboText) || (m_prevFileSetCombo != fileSetComboText);
+   int taskcount = 2, ontask = 1;
+   if (dropdownChanged) taskcount += 1;
+//   QString taskCountString = QString("%1").arg(taskcount);
+   
    /* Set progress bars and repaint */
    prBar1->setVisible(true);
-   prBar1->setRange(0,2);
+   prBar1->setRange(0,taskcount);
    prBar1->setValue(0);
-   prLabel1->setText("Task 1 of 2");
+   prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
    prLabel1->setVisible(true);
    prBar2->setVisible(true);
    prBar2->setRange(0,0);
@@ -128,12 +138,7 @@ void restoreTree::populateDirectoryTree()
    prLabel2->setVisible(true);
    repaint();
 
-   int clientIndex = clientCombo->currentIndex();
-   int fileSetIndex = fileSetCombo->currentIndex();
-   QString jobComboText = jobCombo->itemText(jobCombo->currentIndex());
-   QString clientComboText = clientCombo->itemText(clientIndex);
-   QString fileSetComboText = fileSetCombo->itemText(fileSetIndex);
-   if ((m_prevJobCombo != jobComboText) || (m_prevClientCombo != clientComboText) || (m_prevFileSetCombo != fileSetComboText)) {
+   if (dropdownChanged) {
       m_prevJobCombo =  jobComboText;
       m_prevClientCombo = clientComboText;
       m_prevFileSetCombo = fileSetComboText;
@@ -157,6 +162,12 @@ void restoreTree::populateDirectoryTree()
       if (mainWin->m_sqlDebug) {
          Pmsg1(000, "Query cmd : %s\n", m_jobQuery.toUtf8().data());
       }
+      prBar1->setValue(ontask++);
+      prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+      prBar2->setValue(0);
+      prBar2->setRange(0,0);
+      prLabel2->setText("Querying Jobs");
+      repaint();
       populateJobTable();
       setJobsCheckedList();
    } else {
@@ -173,16 +184,16 @@ void restoreTree::populateDirectoryTree()
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
-   prBar1->setValue(1);
-   prLabel1->setText("Task 2 of 2");
+   prBar1->setValue(ontask++);
+   prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+   prBar2->setValue(0);
+   prLabel2->setText("Processing Directories");
    QStringList directories;
    if (m_console->sql_cmd(cmd, directories)) {
       if (mainWin->m_miscDebug) {
          Pmsg1(000, "Done with query %i directories\n", directories.count());
       }
-      prBar2->setValue(0);
       prBar2->setRange(0,directories.count());
-      prLabel2->setText("Processing Directories");
       repaint();
       foreach(QString directory, directories) {
          m_debugCnt += 1;
