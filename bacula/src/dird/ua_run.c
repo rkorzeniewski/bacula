@@ -1209,7 +1209,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
    }
    if (!rc.store->store) {
       ua->error_msg(_("No storage specified.\n"));
-      return true;
+      return false;
    } else if (!acl_access_ok(ua, Storage_ACL, rc.store->store->name())) {
       ua->error_msg(_("No authorization. Storage \"%s\".\n"),
                rc.store->store->name());
