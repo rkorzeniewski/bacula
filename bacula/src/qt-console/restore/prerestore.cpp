@@ -27,7 +27,7 @@
 */
  
 /*
- *   Version $Id: restore.cpp 4307 2007-03-04 10:24:39Z kerns $
+ *   Version $Id$
  *
  *  preRestore -> dialog put up to determine the restore type
  *
