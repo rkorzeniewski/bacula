@@ -22,16 +22,20 @@
 ; add pdf manual and menu shortcut
 ;
 ; Robert Nelson May 15 2006
-; Pretty much rewritten
+; Added server installs and implemented Microsoft install locations
 ; Use LogicLib.nsh
 ; Added Bacula-SD and Bacula-DIR
 ; Replaced ParameterGiven with standard GetOptions
-
+;
+; Version $Id$
 ;
 ; Command line options:
 ;
 ; /service    - 
 ; /start
+;
+; netsh firewall add portopening protocol=tcp port=9102 name="Bacula-FD"
+
 
 !define PRODUCT "Bacula"
 
