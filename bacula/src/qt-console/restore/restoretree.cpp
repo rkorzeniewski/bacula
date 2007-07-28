@@ -38,7 +38,6 @@
 #include "bat.h"
 #include "restoretree.h"
 #include "pages.h"
-#include "restoretreerun.h"
 
 restoreTree::restoreTree()
 {
@@ -58,6 +57,11 @@ restoreTree::restoreTree()
    m_slashregex.setPattern("/");
    m_debugCnt = 0;
    m_debugTrap = true;
+   /* progress widgets */
+   prBar1->setVisible(false);
+   prBar2->setVisible(false);
+   prLabel1->setVisible(false);
+   prLabel2->setVisible(false);
 }
 
 restoreTree::~restoreTree()
@@ -112,7 +116,18 @@ void restoreTree::populateDirectoryTree()
    m_versionExceptionHash.clear();
    m_directoryIconStateHash.clear();
 
-   
+   /* Set progress bars and repaint */
+   prBar1->setVisible(true);
+   prBar1->setRange(0,2);
+   prBar1->setValue(0);
+   prLabel1->setText("Task 1 of 2");
+   prLabel1->setVisible(true);
+   prBar2->setVisible(true);
+   prBar2->setRange(0,0);
+   prLabel2->setText("Querying Database");
+   prLabel2->setVisible(true);
+   repaint();
+
    int clientIndex = clientCombo->currentIndex();
    int fileSetIndex = fileSetCombo->currentIndex();
    QString jobComboText = jobCombo->itemText(jobCombo->currentIndex());
@@ -158,16 +173,27 @@ void restoreTree::populateDirectoryTree()
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
    }
+   prBar1->setValue(1);
+   prLabel1->setText("Task 2 of 2");
    QStringList directories;
    if (m_console->sql_cmd(cmd, directories)) {
       if (mainWin->m_miscDebug) {
          Pmsg1(000, "Done with query %i directories\n", directories.count());
       }
+      prBar2->setValue(0);
+      prBar2->setRange(0,directories.count());
+      prLabel2->setText("Processing Directories");
+      repaint();
       foreach(QString directory, directories) {
          m_debugCnt += 1;
+         prBar2->setValue(m_debugCnt);
          parseDirectory(directory);
       }
    }
+   prBar1->setVisible(false);
+   prBar2->setVisible(false);
+   prLabel1->setVisible(false);
+   prLabel2->setVisible(false);
 }
 
 /*
@@ -1265,11 +1291,33 @@ void restoreTree::directorySetIcon(int operation, int change, QString &path, QTr
  */
 void restoreTree::restoreButtonPushed()
 {
+   /* Set progress bars and repaint */
+   prLabel1->setVisible(true);
+   prLabel1->setText("Task 1 of 3");
+   prLabel2->setVisible(true);
+   prLabel2->setText("Processing Checked directories");
+   prBar1->setVisible(true);
+   prBar1->setRange(0, 3);
+   prBar1->setValue(0);
+   prBar2->setVisible(true);
+   prBar2->setRange(0, 0);
+   repaint();
    QMultiHash<int, QString> versionFilesMulti;
+   int vFMCounter = 0;
    QHash <QString, bool> fullPathDone;
    QHash <QString, int> fileIndexHash;
    if ((mainWin->m_rtRestore1Debug) || (mainWin->m_rtRestore2Debug) || (mainWin->m_rtRestore3Debug))
       Pmsg0(000, "In restoreTree::restoreButtonPushed\n");
+   /* Use a tree widget item iterator to count directories for the progress bar */
+   QTreeWidgetItemIterator diterc(directoryTree, QTreeWidgetItemIterator::Checked);
+   int ditcount = 0;
+   while (*diterc) {
+      ditcount += 1;
+      ++diterc;
+   } /* while (*diterc) */
+   prBar2->setRange(0, ditcount);
+   prBar2->setValue(0);
+   ditcount = 0;
    /* Use a tree widget item iterator filtering for Checked Items */
    QTreeWidgetItemIterator diter(directoryTree, QTreeWidgetItemIterator::Checked);
    while (*diter) {
@@ -1302,7 +1350,6 @@ void restoreTree::restoreButtonPushed()
       if (mainWin->m_sqlDebug) Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       QStringList results;
       if (m_console->sql_cmd(cmd, results)) {
-      
          QStringList fieldlist;
    
          int row = 0;
@@ -1343,12 +1390,20 @@ void restoreTree::restoreButtonPushed()
                fullPathDone.insert(fullPath, 1);
                fileIndexHash.insert(fullPath, fileIndex);
                versionFilesMulti.insert(version, fullPath);
+               vFMCounter += 1;
             }
             row++;
          }
       }
+      ditcount += 1;
+      prBar2->setValue(ditcount);
       ++diter;
    } /* while (*diter) */
+   prBar1->setValue(1);
+   prLabel1->setText("Task 2 of 3");
+   prLabel2->setText("Processing Exceptions");
+   prBar2->setRange(0, 0);
+   repaint();
 
    /* There may be some exceptions not accounted for yet with fullPathDone */
    QHashIterator<QString, Qt::CheckState> ftera(m_fileExceptionHash);
@@ -1376,10 +1431,19 @@ void restoreTree::restoreButtonPushed()
             if (mainWin->m_rtRestore1Debug)
                Pmsg2(000, "Restoring %s file %s\n", debugtext.toUtf8().data(), fullPath.toUtf8().data());
             versionFilesMulti.insert(version, fullPath);
+            vFMCounter += 1;
             fileIndexHash.insert(fullPath, fileIndex);
          } /* if fullPathDone.value(fullPath, 0) == 0 */
       } /* if state != 0 */
    } /* while ftera.hasNext */
+   /* The progress bars for the next step */
+   prBar1->setValue(2);
+   prLabel1->setText("Task 3 of 3");
+   prLabel2->setText("Filling Database Table");
+   prBar2->setRange(0, vFMCounter);
+   vFMCounter = 0;
+   prBar2->setValue(vFMCounter);
+   repaint();
 
    /* now for the final spit out of the versions and lists of files for each version */
    QHash<int, int> doneKeys;
@@ -1413,20 +1477,40 @@ void restoreTree::restoreButtonPushed()
             int fileIndex = fileIndexHash.value(ffullPath);
             if (mainWin->m_rtRestore2Debug) Pmsg2(000, "  file->%s id %i\n", ffullPath.toUtf8().data(), fileIndex);
             QString sqlcmd = "INSERT INTO " + tempTable + " (JobId, FileIndex) VALUES (" + QString("%1").arg(fversion) + ", " + QString("%1").arg(fileIndex) + ")";
-            if (mainWin->m_sqlDebug)
-               Pmsg1(000, "Query cmd : %s ;\n", sqlcmd.toUtf8().data());
+            if (mainWin->m_rtRestore3Debug)
+               Pmsg1(000, "Insert cmd : %s\n", sqlcmd.toUtf8().data());
             QStringList results;
             if (!m_console->sql_cmd(sqlcmd, results))
                Pmsg1(000, "INSERT INTO FAILED!!!! %s\n", sqlcmd.toUtf8().data());
+            prBar2->setValue(++vFMCounter);
          } /* foreach fullPathList */
          doneKeys.insert(fversion,1);
          jobList.append(fversion);
       } /*  if (doneKeys.value(fversion, 0) == 0) */
    } /* while (vFMiter.hasNext()) */
    if (tempTable != "") {
-      QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
-      new restoreTreeRunPage(tempTable, m_prevClientCombo, jobList, pageSelectorTreeWidgetItem);
+      /* a table was made, lets run the job */
+      QString jobOption = " jobid=\"";
+      bool first = true;
+      /* create a list of jobs comma separated */
+      foreach (int job, jobList) {
+         if (first) first = false;
+         else jobOption += ",";
+         jobOption += QString("%1").arg(job);
+      }
+      jobOption += "\"";
+      QString cmd = QString("restore");
+      cmd += jobOption +
+             " file=\"?" + tempTable + "\" done";
+      if (mainWin->m_commandDebug)
+         Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
+      consoleCommand(cmd);
    }
+   /* turn off the progress widgets */
+   prBar1->setVisible(false);
+   prBar2->setVisible(false);
+   prLabel1->setVisible(false);
+   prLabel2->setVisible(false);
 }
 
 int restoreTree::mostRecentVersionfromFullPath(QString &fullPath)
