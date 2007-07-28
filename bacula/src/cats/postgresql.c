@@ -341,14 +341,16 @@ POSTGRESQL_ROW my_postgresql_fetch_row(B_DB *mdb)
    Dmsg0(500, "my_postgresql_fetch_row start\n");
 
    if (!mdb->row || mdb->row_size < mdb->num_fields) {
+      int num_fields = mdb->num_fields;
       Dmsg1(500, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
 
       if (mdb->row) {
          Dmsg0(500, "my_postgresql_fetch_row freeing space\n");
          free(mdb->row);
       }
-      mdb->row = (POSTGRESQL_ROW) malloc(sizeof(char *) * mdb->num_fields);
-      mdb->row_size = mdb->num_fields;
+      num_fields += 20;                  /* add a bit extra */
+      mdb->row = (POSTGRESQL_ROW)malloc(sizeof(char *) * num_fields);
+      mdb->row_size = num_fields;
 
       // now reset the row_number now that we have the space allocated
       mdb->row_number = 0;
