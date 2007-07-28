@@ -474,7 +474,9 @@ void create_pid_file(char *dir, const char *progname, int port)
       if ((pidfd = open(fname, O_RDONLY|O_BINARY, 0)) < 0 ||
            read(pidfd, &pidbuf, sizeof(pidbuf)) < 0 ||
            sscanf(pidbuf, "%d", &oldpid) != 1) {
-         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, strerror(errno));
+         berrno be;
+         Emsg2(M_ERROR_TERM, 0, _("Cannot open pid file. %s ERR=%s\n"), fname, 
+               be.bstrerror());
       }
       /* Some OSes (IRIX) don't bother to clean out the old pid files after a crash, and
        * since they use a deterministic algorithm for assigning PIDs, we can have
@@ -501,7 +503,9 @@ void create_pid_file(char *dir, const char *progname, int port)
       close(pidfd);
       del_pid_file_ok = TRUE;         /* we created it so we can delete it */
    } else {
-      Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname, strerror(errno));
+      berrno be;
+      Emsg2(M_ERROR_TERM, 0, _("Could not open pid file. %s ERR=%s\n"), fname, 
+            be.bstrerror());
    }
    free_pool_memory(fname);
 #endif
@@ -557,13 +561,15 @@ void read_state_file(char *dir, const char *progname, int port)
    /* If file exists, see what we have */
 // Dmsg1(10, "O_BINARY=%d\n", O_BINARY);
    if ((sfd = open(fname, O_RDONLY|O_BINARY)) < 0) {
+      berrno be;
       Dmsg3(010, "Could not open state file. sfd=%d size=%d: ERR=%s\n",
-                    sfd, sizeof(hdr), strerror(errno));
+                    sfd, sizeof(hdr), be.bstrerror());
       goto bail_out;
    }
    if ((stat=read(sfd, &hdr, hdr_size)) != hdr_size) {
+      berrno be;
       Dmsg4(010, "Could not read state file. sfd=%d stat=%d size=%d: ERR=%s\n",
-                    sfd, (int)stat, hdr_size, strerror(errno));
+                    sfd, (int)stat, hdr_size, be.bstrerror());
       goto bail_out;
    }
    if (hdr.version != state_hdr.version) {
