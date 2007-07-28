@@ -27,7 +27,7 @@
 */
  
 /*
- *   Version $Id: restore.cpp 4945 2007-05-31 01:24:28Z bartleyd2 $
+ *   Version $Id$
  *
  *  Restore Class 
  *

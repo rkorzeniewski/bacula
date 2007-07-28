@@ -31,7 +31,7 @@
  *
  *   Kern Sibbald, March MMVII
  *
- *  $Id: $
+ *  $Id$
  */ 
 
 #include "bat.h"

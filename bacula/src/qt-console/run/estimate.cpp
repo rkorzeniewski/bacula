@@ -31,7 +31,7 @@
  *
  *   Kern Sibbald, February MMVII
  *
- *  $Id: estimate.cpp 4856 2007-05-20 15:28:43Z bartleyd2 $
+ *  $Id$
  */ 
 
 #include "bat.h"

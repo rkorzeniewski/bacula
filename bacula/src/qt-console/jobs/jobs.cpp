@@ -27,7 +27,7 @@
 */
  
 /*
- *   Version $Id: client.cpp 4230 2007-02-21 20:07:37Z kerns $
+ *   Version $Id$
  *
  *  Jobs Class
  *
