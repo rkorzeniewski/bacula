@@ -60,3 +60,6 @@ bacula :
  - Utiliser la lib pcre
  - Rendre les scripts bacula-ctl-xxx LSB
  - Pouvoir utiliser les uid numeriques dans le backup des acl
+ - Avoir un script qui dump la configuration pour faire
+   des bug reports
+
