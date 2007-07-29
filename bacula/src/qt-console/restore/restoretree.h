@@ -69,6 +69,7 @@ private slots:
    void directoryItemChanged(QTreeWidgetItem *, int);
    void fileTableItemChanged(QTableWidgetItem *);
    void versionTableItemChanged(QTableWidgetItem *);
+   void updateRefresh();
 
 private:
    void populateDirectoryTree();
@@ -94,6 +95,7 @@ private:
    int queryFileIndex(QString &fullPath, int jobID);
 
    bool m_populated;
+   bool m_dropdownChanged;
    QRegExp m_winRegExpDrive;
    QRegExp m_winRegExpPath;
    QRegExp m_slashregex;
@@ -104,6 +106,10 @@ private:
    QString m_prevJobCombo;
    QString m_prevClientCombo;
    QString m_prevFileSetCombo;
+   int m_prevLimitSpinBox;
+   int m_prevDaysSpinBox;
+   Qt::CheckState m_prevLimitCheckState;
+   Qt::CheckState m_prevDaysCheckState;
    QString m_JobsCheckedList;
    int m_debugCnt;
    bool m_debugTrap;

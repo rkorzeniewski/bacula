@@ -99,6 +99,13 @@ void restoreTree::setupPage()
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(refreshButtonPushed()));
    connect(restoreButton, SIGNAL(pressed()), this, SLOT(restoreButtonPushed()));
    connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(jobComboChanged(int)));
+   connect(jobCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRefresh()));
+   connect(clientCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRefresh()));
+   connect(fileSetCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateRefresh()));
+   connect(limitCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateRefresh()));
+   connect(daysCheckBox, SIGNAL(stateChanged(int)), this, SLOT(updateRefresh()));
+   connect(daysSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateRefresh()));
+   connect(limitSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateRefresh()));
    connect(directoryTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
            this, SLOT(directoryCurrentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
    connect(directoryTree, SIGNAL(itemExpanded(QTreeWidgetItem *)),
@@ -117,6 +124,26 @@ void restoreTree::setupPage()
    jobCombo->addItems(m_console->job_list);
 
    directoryTree->setContextMenuPolicy(Qt::ActionsContextMenu);
+}
+
+void restoreTree::updateRefresh()
+{
+   if (mainWin->m_rtPopDirDebug) Pmsg2(000, "testing prev=\"%s\" current=\"%s\"\n", m_prevJobCombo.toUtf8().data(), jobCombo->currentText().toUtf8().data());
+   m_dropdownChanged = (m_prevJobCombo != jobCombo->currentText())
+                       || (m_prevClientCombo != clientCombo->currentText())
+                       || (m_prevFileSetCombo != fileSetCombo->currentText()
+                       || (m_prevLimitSpinBox != limitSpinBox->value())
+                       || (m_prevDaysSpinBox != daysSpinBox->value())
+                       || (m_prevLimitCheckState != limitCheckBox->checkState())
+                       || (m_prevDaysCheckState != daysCheckBox->checkState())
+   );
+   if (m_dropdownChanged) {
+      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "In restoreTree::updateRefresh Is CHANGED\n");
+      refreshLabel->setText("Refresh From Re-Select");
+   } else {
+      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "In restoreTree::updateRefresh Is not Changed\n");
+      refreshLabel->setText("Refresh From JobChecks");
+   }
 }
 
 /*
@@ -142,11 +169,9 @@ void restoreTree::populateDirectoryTree()
    QString jobComboText = jobCombo->currentText();
    QString clientComboText = clientCombo->currentText();
    QString fileSetComboText = fileSetCombo->currentText();
-   if (mainWin->m_rtPopDirDebug) Pmsg2(000, "testing prev=\"%s\" current=\"%s\"\n", m_prevJobCombo.toUtf8().data(), jobComboText.toUtf8().data());
-   bool dropdownChanged = (m_prevJobCombo != jobComboText) || (m_prevClientCombo != clientComboText) || (m_prevFileSetCombo != fileSetComboText);
+   updateRefresh();
    int taskcount = 2, ontask = 1;
-   if (dropdownChanged) taskcount += 1;
-//   QString taskCountString = QString("%1").arg(taskcount);
+   if (m_dropdownChanged) taskcount += 1;
    
    /* Set progress bars and repaint */
    prBar1->setVisible(true);
@@ -160,10 +185,15 @@ void restoreTree::populateDirectoryTree()
    prLabel2->setVisible(true);
    repaint();
 
-   if (dropdownChanged) {
+   if (m_dropdownChanged) {
       m_prevJobCombo =  jobComboText;
       m_prevClientCombo = clientComboText;
       m_prevFileSetCombo = fileSetComboText;
+      m_prevLimitSpinBox = limitSpinBox->value();
+      m_prevDaysSpinBox = daysSpinBox->value();
+      m_prevLimitCheckState = limitCheckBox->checkState();
+      m_prevDaysCheckState = daysCheckBox->checkState();
+      updateRefresh();
       if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
 
       QString condition = " Client.Name='" + clientCombo->itemText(clientCombo->currentIndex()) + "'";
@@ -206,6 +236,7 @@ void restoreTree::populateDirectoryTree()
       populateJobTable();
       setJobsCheckedList();
    } else {
+      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating from checks in Job Table\n");
       setJobsCheckedList();
    }
 

@@ -154,52 +154,69 @@
   <widget class="QWidget" native="1" name="widget" >
    <property name="geometry" >
     <rect>
-     <x>10</x>
-     <y>57</y>
-     <width>791</width>
+     <x>20</x>
+     <y>23</y>
+     <width>661</width>
      <height>79</height>
     </rect>
    </property>
    <property name="maximumSize" >
     <size>
-     <width>950</width>
-     <height>16777215</height>
+     <width>900</width>
+     <height>79</height>
     </size>
    </property>
    <layout class="QGridLayout" >
     <property name="margin" >
-     <number>0</number>
+     <number>6</number>
     </property>
     <property name="spacing" >
-     <number>6</number>
+     <number>0</number>
     </property>
     <item row="1" column="0" >
      <layout class="QHBoxLayout" >
       <property name="margin" >
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
-       <number>9</number>
+       <number>6</number>
       </property>
       <item>
-       <widget class="QPushButton" name="refreshButton" >
-        <property name="text" >
-         <string>Refresh</string>
+       <layout class="QGridLayout" >
+        <property name="margin" >
+         <number>0</number>
         </property>
-        <property name="icon" >
-         <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+        <property name="spacing" >
+         <number>6</number>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="restoreButton" >
-        <property name="text" >
-         <string>Restore</string>
-        </property>
-        <property name="icon" >
-         <iconset resource="../main.qrc" >:/images/restore.png</iconset>
-        </property>
-       </widget>
+        <item row="0" column="0" >
+         <widget class="QPushButton" name="refreshButton" >
+          <property name="text" >
+           <string>Refresh</string>
+          </property>
+          <property name="icon" >
+           <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2" >
+         <widget class="QLabel" name="refreshLabel" >
+          <property name="text" >
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" >
+         <widget class="QPushButton" name="restoreButton" >
+          <property name="text" >
+           <string>Restore</string>
+          </property>
+          <property name="icon" >
+           <iconset resource="../main.qrc" >:/images/restore.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QVBoxLayout" >
