@@ -103,13 +103,15 @@ bool acquire_device_for_read(DCR *dcr)
       RCTX rctx;
       DIRSTORE *store;
       int stat;
-      DCR *dcr_save = jcr->dcr;
 
       Jmsg3(jcr, M_INFO, 0, _("Changing device. Want Media Type=\"%s\" have=\"%s\"\n"
                               "  device=%s\n"), 
             dcr->media_type, dev->device->media_type, dev->print_name());
+
+      dev->dunblock(DEV_UNLOCKED);
+      detach_dcr_from_dev(dcr);    /* release old device */
+
       lock_reservations();
-      jcr->dcr = NULL;
       memset(&rctx, 0, sizeof(RCTX));
       rctx.jcr = jcr;
       jcr->reserve_msgs = New(alist(10, not_owned_by_alist));
@@ -132,17 +134,7 @@ bool acquire_device_for_read(DCR *dcr)
       release_reserve_messages(jcr);         /* release queued messages */
       unlock_reservations();
       if (stat == 1) {
-         DCR *ndcr = jcr->read_dcr;
-         dev->dunblock(DEV_UNLOCKED);
-         detach_dcr_from_dev(dcr);    /* release old device */
-         /* Copy important info from the new dcr */
-         dev = dcr->dev = ndcr->dev; 
-         jcr->read_dcr = dcr; 
-         dcr->device = ndcr->device;
-         dcr->max_job_spool_size = dcr->device->max_job_spool_size;
-         attach_dcr_to_dev(dcr);
-         ndcr->VolumeName[0] = 0;
-         free_dcr(ndcr);
+         dcr->VolumeName[0] = 0;
          dev->dblock(BST_DOING_ACQUIRE); 
          Jmsg(jcr, M_INFO, 0, _("Media Type change.  New device %s chosen.\n"),
             dev->print_name());
@@ -157,10 +149,8 @@ bool acquire_device_for_read(DCR *dcr)
          /* error */
          Jmsg1(jcr, M_FATAL, 0, _("No suitable device found to read Volume \"%s\"\n"),
             vol->VolumeName);
-         jcr->dcr = dcr_save;
          goto get_out;
       }
-      jcr->dcr = dcr_save;
    }
 
 
@@ -620,6 +610,9 @@ DCR *new_dcr(JCR *jcr, DCR *dcr, DEVICE *dev)
  * Search the dcrs list for the given dcr. If it is found,
  *  as it should be, then remove it. Also zap the jcr pointer
  *  to the dcr if it is the same one.
+ *
+ * Note, this code will be turned on when we can write to multiple
+ *  dcrs at the same time.
  */
 #ifdef needed
 static void remove_dcr_from_dcrs(DCR *dcr)
@@ -657,14 +650,17 @@ static void attach_dcr_to_dev(DCR *dcr)
 
 void detach_dcr_from_dev(DCR *dcr)
 {
+   DEVICE *dev = dcr->dev;
    Dmsg1(500, "JobId=%u enter detach_dcr_from_dev\n", (uint32_t)dcr->jcr->JobId);
 
    /* Detach this dcr only if attached */
-   if (dcr->attached_to_dev && dcr->dev) {
+   if (dcr->attached_to_dev && dev) {
+      dev->dlock();
       unreserve_device(dcr);
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
       dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */
+      dev->dunlock();
    }
 }
 
