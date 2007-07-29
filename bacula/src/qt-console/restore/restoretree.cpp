@@ -57,11 +57,33 @@ restoreTree::restoreTree()
    m_slashregex.setPattern("/");
    m_debugCnt = 0;
    m_debugTrap = true;
+
+   QGridLayout *m_gridLayout = new QGridLayout(this);
+   m_gridLayout->setSpacing(6);
+   m_gridLayout->setMargin(9);
+   m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
+
+   QSplitter *splitter_2 = new QSplitter(Qt::Vertical, this);
+   QScrollArea *area = new QScrollArea();
+   area->setObjectName(QString::fromUtf8("area"));
+   area->setWidget(widget);
+   area->setWidgetResizable(true);
+   splitter_2->addWidget(splitter);
+   splitter_2->addWidget(area);
+
+   m_gridLayout->addWidget(splitter_2, 0, 0, 1, 1);
+
    /* progress widgets */
    prBar1->setVisible(false);
    prBar2->setVisible(false);
    prLabel1->setVisible(false);
    prLabel2->setVisible(false);
+
+   /* Set Defaults for check and spin for limits */
+   limitCheckBox->setCheckState(mainWin->m_recordLimitCheck ? Qt::Checked : Qt::Unchecked);
+   limitSpinBox->setValue(mainWin->m_recordLimitVal);
+   daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
+   daysSpinBox->setValue(mainWin->m_daysLimitVal);
 }
 
 restoreTree::~restoreTree()
@@ -91,6 +113,7 @@ void restoreTree::setupPage()
    clientCombo->addItems(m_console->client_list);
    fileSetCombo->addItem("Any");
    fileSetCombo->addItems(m_console->fileset_list);
+   jobCombo->addItem("Any");
    jobCombo->addItems(m_console->job_list);
 
    directoryTree->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -116,11 +139,10 @@ void restoreTree::populateDirectoryTree()
    m_versionExceptionHash.clear();
    m_directoryIconStateHash.clear();
 
-   int clientIndex = clientCombo->currentIndex();
-   int fileSetIndex = fileSetCombo->currentIndex();
-   QString jobComboText = jobCombo->itemText(jobCombo->currentIndex());
-   QString clientComboText = clientCombo->itemText(clientIndex);
-   QString fileSetComboText = fileSetCombo->itemText(fileSetIndex);
+   QString jobComboText = jobCombo->currentText();
+   QString clientComboText = clientCombo->currentText();
+   QString fileSetComboText = fileSetCombo->currentText();
+   if (mainWin->m_rtPopDirDebug) Pmsg2(000, "testing prev=\"%s\" current=\"%s\"\n", m_prevJobCombo.toUtf8().data(), jobComboText.toUtf8().data());
    bool dropdownChanged = (m_prevJobCombo != jobComboText) || (m_prevClientCombo != clientComboText) || (m_prevFileSetCombo != fileSetComboText);
    int taskcount = 2, ontask = 1;
    if (dropdownChanged) taskcount += 1;
@@ -144,21 +166,34 @@ void restoreTree::populateDirectoryTree()
       m_prevFileSetCombo = fileSetComboText;
       if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
 
-      m_condition = " Job.name = '" + jobCombo->itemText(jobCombo->currentIndex()) + "'";
-      if ((clientIndex >= 0) && (clientCombo->itemText(clientIndex) != "Any")) {
-         m_condition.append(" AND Client.Name='" + clientCombo->itemText(clientIndex) + "'");
+      QString condition = " Client.Name='" + clientCombo->itemText(clientCombo->currentIndex()) + "'";
+      if ((jobCombo->currentIndex() >= 0) && (jobComboText != "Any")) {
+         condition.append(" AND Job.name = '" + jobComboText + "'");
       }
-      if ((fileSetIndex >= 0) && (fileSetCombo->itemText(fileSetIndex) != "Any")) {
-         m_condition.append(" AND FileSet.FileSet='" + fileSetCombo->itemText(fileSetIndex) + "'");
+      if ((fileSetCombo->currentIndex() >= 0) && (fileSetComboText != "Any")) {
+         condition.append(" AND FileSet.FileSet='" + fileSetComboText + "'");
+      }
+      /* If Limit check box For limit by days is checked  */
+      if (daysCheckBox->checkState() == Qt::Checked) {
+         QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
+         QString since = stamp.toString(Qt::ISODate);
+         condition.append(" AND Job.Starttime>'" + since + "'");
       }
       m_jobQueryPart =
          " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
          " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
-         " WHERE" + m_condition +
+         " WHERE" + condition +
          " AND Job.purgedfiles=0";
       m_jobQuery =
          "SELECT Job.Jobid"
          " From Job" + m_jobQueryPart;
+      /* If Limit check box for limit records returned is checked  */
+      if (limitCheckBox->checkState() == Qt::Checked) {
+         QString limit;
+         limit.setNum(limitSpinBox->value());
+         m_jobQuery += " LIMIT " + limit;
+      }
+
       if (mainWin->m_sqlDebug) {
          Pmsg1(000, "Query cmd : %s\n", m_jobQuery.toUtf8().data());
       }
@@ -392,6 +427,10 @@ void restoreTree::refreshButtonPushed()
  */
 void restoreTree::jobComboChanged(int)
 {
+   if (jobCombo->currentText() == "Any") {
+      fileSetCombo->setCurrentIndex(fileSetCombo->findText("Any", Qt::MatchExactly));
+      return;
+   }
    job_defaults job_defs;
 
    (void)index;
@@ -615,6 +654,12 @@ void restoreTree::populateJobTable()
       "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level"
       " FROM Job" + m_jobQueryPart +
       " ORDER BY Job.EndTime DESC";
+   /* If Limit check box for limit records returned is checked  */
+   if (limitCheckBox->checkState() == Qt::Checked) {
+      QString limit;
+      limit.setNum(limitSpinBox->value());
+      jobQuery += " LIMIT " + limit;
+   }
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n", jobQuery.toUtf8().data());
    }
