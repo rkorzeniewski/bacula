@@ -416,7 +416,6 @@ VOLRES *find_volume(DCR *dcr)
 void unreserve_device(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   dev->dlock();
    if (dcr->reserved_device) {
       dcr->reserved_device = false;
       dev->reserved_device--;
@@ -433,7 +432,6 @@ void unreserve_device(DCR *dcr)
    }
 
    volume_unused(dcr);
-   dev->dunlock();
 }
 
 /*  
