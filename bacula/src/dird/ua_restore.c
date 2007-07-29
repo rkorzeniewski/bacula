@@ -120,7 +120,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
 
    if (strip_prefix || add_suffix || add_prefix) {
       int len = bregexp_get_build_where_size(strip_prefix, add_prefix, add_suffix);
-      regexp = (char *) bmalloc (len * sizeof(char));
+      regexp = (char *)bmalloc(len * sizeof(char));
 
       bregexp_build_where(regexp, len, strip_prefix, add_prefix, add_suffix);
       rx.RegexWhere = regexp;
@@ -441,6 +441,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "add_prefix",   /* 16 */
       "add_suffix",   /* 17 */
       "regexwhere",   /* 18 */
+      "clientrestore", /* 19 */
       NULL
    };
 
