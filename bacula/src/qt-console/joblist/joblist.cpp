@@ -70,6 +70,21 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
    dockPage();
+
+   QGridLayout *m_gridLayout = new QGridLayout(this);
+   m_gridLayout->setSpacing(6);
+   m_gridLayout->setMargin(9);
+   m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
+
+   QSplitter *splitter_2 = new QSplitter(Qt::Vertical, this);
+   QScrollArea *area = new QScrollArea();
+   area->setObjectName(QString::fromUtf8("area"));
+   area->setWidget(frame);
+   area->setWidgetResizable(true);
+   splitter_2->addWidget(mp_tableWidget);
+   splitter_2->addWidget(area);
+
+   m_gridLayout->addWidget(splitter_2, 0, 0, 1, 1);
 }
 
 /*
