@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshClients" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Client List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionListJobsofClient" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/emblem-system.png</iconset>
    </property>
    <property name="text" >
     <string>List Jobs of Client</string>
@@ -58,7 +58,7 @@
   </action>
   <action name="actionPurgeJobs" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/weather-severe-alert.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/weather-severe-alert.png</iconset>
    </property>
    <property name="text" >
     <string>Purge Jobs</string>

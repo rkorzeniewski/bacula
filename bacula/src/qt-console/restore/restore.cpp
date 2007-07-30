@@ -195,7 +195,7 @@ void restorePage::addDirectory(QString &newdirr)
    /* add unix '/' directory first */
    if (m_dirPaths.empty() && (regex.indexIn(fullpath,0) == -1)) {
       QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
-      item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
+      item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
       
       QString text("/");
       item->setText(0, text.toUtf8().data());
@@ -222,14 +222,14 @@ void restorePage::addDirectory(QString &newdirr)
          /* this is the base widget */
          item = new QTreeWidgetItem(directoryWidget);
          item->setText(0, fullpath.toUtf8().data());
-         item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
+         item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
       } else {
          QTreeWidgetItem *parent = m_dirPaths.value(m_cwd);
          if (parent) {
             /* new directories to add */
             item = new QTreeWidgetItem(parent);
             item->setText(0, newdir.toUtf8().data());
-            item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.svg")));
+            item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
             directoryWidget->expandItem(parent);
          } else {
             ok = false;

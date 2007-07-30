@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshJobs" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Jobs List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionConsoleListFiles" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>List Files Command</string>
@@ -53,7 +53,7 @@
   </action>
   <action name="actionConsoleListVolumes" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>List Volumes Command</string>
@@ -70,7 +70,7 @@
   </action>
   <action name="actionConsoleListNextVolume" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>List Next Volume Command</string>
@@ -87,7 +87,7 @@
   </action>
   <action name="actionConsoleEnableJob" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Enable Job Command</string>
@@ -104,7 +104,7 @@
   </action>
   <action name="actionConsoleDisableJob" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Disable Job Command</string>
@@ -121,7 +121,7 @@
   </action>
   <action name="actionJobListQuery" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/emblem-system.png</iconset>
    </property>
    <property name="text" >
     <string>Open JobList on Job</string>
@@ -138,7 +138,7 @@
   </action>
   <action name="actionConsoleCancel" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Cancel Job Command</string>

@@ -87,7 +87,7 @@
   </action>
   <action name="actionConsoleHelp" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Console Help</string>
@@ -95,7 +95,7 @@
   </action>
   <action name="actionRequestMessages" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Request Messages</string>
@@ -103,7 +103,7 @@
   </action>
   <action name="actionConsoleReload" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>Reload bacula-dir.conf</string>

@@ -657,7 +657,7 @@ void restoreTree::readSettings()
 /*
  * This is a funcion to accomplish the one thing I struggled to figure out what
  * was taking so long.  It add the icons, but after the tree is made.  Seemed to
- * work fast after changing from svg to png file for graphic.
+ * work fast after changing from png to png file for graphic.
  */
 void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
 {

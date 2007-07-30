@@ -147,7 +147,7 @@
         <string>Refresh</string>
        </property>
        <property name="icon" >
-        <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+        <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
        </property>
       </widget>
      </item>

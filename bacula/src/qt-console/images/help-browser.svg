@@ -13,10 +13,12 @@
    height="48.000000px"
    id="svg6361"
    sodipodi:version="0.32"
-   inkscape:version="0.43+devel"
-   sodipodi:docbase="/home/tigert/cvs/freedesktop.org/tango-icon-theme/scalable/apps"
+   inkscape:version="0.43"
+   sodipodi:docbase="/home/dbartley/src/bacula/src/qt-console/images"
    sodipodi:docname="help-browser.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:export-filename="/home/dbartley/src/bacula/src/qt-console/images/help-browser.png"
+   inkscape:export-xdpi="30"
+   inkscape:export-ydpi="30">
   <defs
      id="defs3">
     <linearGradient

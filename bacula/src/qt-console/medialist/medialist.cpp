@@ -50,7 +50,7 @@ MediaList::MediaList()
    m_name = "Media";
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge.svg")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge.png")));
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    m_populated = false;
