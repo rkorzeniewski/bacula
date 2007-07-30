@@ -224,9 +224,8 @@ void restoreTree::populateDirectoryTree()
          m_jobQuery += " LIMIT " + limit;
       }
 
-      if (mainWin->m_sqlDebug) {
-         Pmsg1(000, "Query cmd : %s\n", m_jobQuery.toUtf8().data());
-      }
+      if (mainWin->m_rtPopDirDebug)
+         Pmsg1(000, "m_jobQuery : %s\n", m_jobQuery.toUtf8().data());
       prBar1->setValue(ontask++);
       prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
@@ -691,9 +690,8 @@ void restoreTree::populateJobTable()
       limit.setNum(limitSpinBox->value());
       jobQuery += " LIMIT " + limit;
    }
-   if (mainWin->m_sqlDebug) {
+   if (mainWin->m_sqlDebug)
       Pmsg1(000, "Query cmd : %s\n", jobQuery.toUtf8().data());
-   }
 
    QStringList results;
    if (m_console->sql_cmd(jobQuery, results)) {
@@ -1588,6 +1586,7 @@ void restoreTree::restoreButtonPushed()
       jobOption += "\"";
       QString cmd = QString("restore");
       cmd += jobOption +
+             " client=\"" + m_prevClientCombo + "\"" +
              " file=\"?" + tempTable + "\" done";
       if (mainWin->m_commandDebug)
          Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
