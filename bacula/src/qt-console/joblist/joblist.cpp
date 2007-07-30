@@ -54,7 +54,7 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    m_filesetName = filesetName;
    pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.svg")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.png")));
 
    m_resultCount = 0;
    m_populated = false;

@@ -5,30 +5,30 @@
         <file>images/bat_icon.png</file>
         <file>images/big-server.png</file>
         <file>images/browse.png</file>
-        <file>images/cartridge-edit.svg</file>
-        <file>images/cartridge.svg</file>
+        <file>images/cartridge-edit.png</file>
+        <file>images/cartridge.png</file>
         <file>images/check.png</file>
         <file>images/connected.png</file>
         <file>images/copy.png</file>
         <file>images/cut.png</file>
         <file>images/disconnected.png</file>
         <file>images/edit-cut.png</file>
-        <file>images/edit-delete.svg</file>
-        <file>images/emblem-system.svg</file>
-        <file>images/estimate-job.svg</file>
+        <file>images/edit-delete.png</file>
+        <file>images/emblem-system.png</file>
+        <file>images/estimate-job.png</file>
         <file>images/folder.png</file>
-        <file>images/folder.svg</file>
+        <file>images/folder.png</file>
         <file>images/folderchecked.png</file>
         <file>images/folderunchecked.png</file>
         <file>images/folderbothchecked.png</file>
         <file>images/graph1.png</file>
-        <file>images/help-browser.svg</file>
+        <file>images/help-browser.png</file>
         <file>images/home.png</file>
         <file>images/joblog.png</file>
         <file>images/label.png</file>
-        <file>images/mail-message-new.svg</file>
+        <file>images/mail-message-new.png</file>
         <file>images/mark.png</file>
-        <file>images/network-server.svg</file>
+        <file>images/network-server.png</file>
         <file>images/new.png</file>
         <file>images/next.png</file>
         <file>images/open.png</file>
@@ -39,13 +39,13 @@
         <file>images/run.png</file>
         <file>images/save.png</file>
         <file>images/status.png</file>
-        <file>images/system-file-manager.svg</file>
+        <file>images/system-file-manager.png</file>
         <file>images/unchecked.png</file>
         <file>images/undo.png</file>
         <file>images/unmark.png</file>
         <file>images/up.png</file>
-        <file>images/utilities-terminal.svg</file>
-        <file>images/view-refresh.svg</file>
-        <file>images/weather-severe-alert.svg</file>
+        <file>images/utilities-terminal.png</file>
+        <file>images/view-refresh.png</file>
+        <file>images/weather-severe-alert.png</file>
     </qresource>
 </RCC>

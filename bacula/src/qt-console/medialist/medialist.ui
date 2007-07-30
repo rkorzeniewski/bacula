@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshMediaList" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Media List</string>
@@ -36,7 +36,7 @@
   </action>
   <action name="actionEditVolume" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.png</iconset>
    </property>
    <property name="text" >
     <string>Edit Volume</string>
@@ -44,7 +44,7 @@
   </action>
   <action name="actionListJobsOnVolume" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/emblem-system.png</iconset>
    </property>
    <property name="text" >
     <string>List Jobs On Volume</string>
@@ -52,7 +52,7 @@
   </action>
   <action name="actionDeleteVolume" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/edit-delete.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/edit-delete.png</iconset>
    </property>
    <property name="text" >
     <string>Delete Volume</string>
@@ -68,7 +68,7 @@
   </action>
   <action name="actionPurgeVolume" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/weather-severe-alert.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/weather-severe-alert.png</iconset>
    </property>
    <property name="text" >
     <string>Purge Volume</string>
@@ -84,7 +84,7 @@
   </action>
   <action name="actionAllVolumesFromPool" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.png</iconset>
    </property>
    <property name="text" >
     <string>Update all Volumes From Pool</string>
@@ -101,7 +101,7 @@
   </action>
   <action name="actionVolumeFromPool" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/cartridge-edit.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/cartridge-edit.png</iconset>
    </property>
    <property name="text" >
     <string>Volume From Pool</string>

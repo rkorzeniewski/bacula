@@ -438,7 +438,7 @@
     <bool>false</bool>
    </property>
    <property name="icon" >
-    <iconset resource="main.qrc" >:/images/estimate-job.svg</iconset>
+    <iconset resource="main.qrc" >:/images/estimate-job.png</iconset>
    </property>
    <property name="text" >
     <string>Estimate Job</string>
@@ -516,7 +516,7 @@
   </action>
   <action name="actionMessages" >
    <property name="icon" >
-    <iconset resource="main.qrc" >:/images/mail-message-new.svg</iconset>
+    <iconset resource="main.qrc" >:/images/mail-message-new.png</iconset>
    </property>
    <property name="text" >
     <string>Messages</string>
@@ -541,7 +541,7 @@
   </action>
   <action name="actionBat_Help" >
    <property name="icon" >
-    <iconset resource="main.qrc" >:/images/help-browser.svg</iconset>
+    <iconset resource="main.qrc" >:/images/help-browser.png</iconset>
    </property>
    <property name="text" >
     <string>bat &amp;Help</string>

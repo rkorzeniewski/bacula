@@ -318,7 +318,7 @@
            <string>Refresh</string>
           </property>
           <property name="icon" >
-           <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+           <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
           </property>
          </widget>
         </item>
@@ -362,7 +362,7 @@
   </widget>
   <action name="actionRefreshJobList" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh Job List</string>
@@ -373,7 +373,7 @@
   </action>
   <action name="actionListJobid" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobid</string>
@@ -381,7 +381,7 @@
   </action>
   <action name="actionListFilesOnJob" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>List Files On Job</string>
@@ -389,7 +389,7 @@
   </action>
   <action name="actionListJobMedia" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>ListJobMedia</string>
@@ -397,7 +397,7 @@
   </action>
   <action name="actionListVolumes" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>ListVolumes</string>
@@ -405,7 +405,7 @@
   </action>
   <action name="actionDeleteJob" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/weather-severe-alert.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/weather-severe-alert.png</iconset>
    </property>
    <property name="text" >
     <string>DeleteJob</string>
@@ -413,7 +413,7 @@
   </action>
   <action name="actionPurgeFiles" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/weather-severe-alert.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/weather-severe-alert.png</iconset>
    </property>
    <property name="text" >
     <string>PurgeFiles</string>
@@ -453,7 +453,7 @@
   </action>
   <action name="actionListJobTotals" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/utilities-terminal.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/utilities-terminal.png</iconset>
    </property>
    <property name="text" >
     <string>List Job Totals in Console</string>

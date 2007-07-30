@@ -25,7 +25,7 @@
   </layout>
   <action name="actionRefreshFileSet" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/view-refresh.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
    </property>
    <property name="text" >
     <string>Refresh FileSet List</string>
@@ -44,7 +44,7 @@
   </action>
   <action name="actionShowJobs" >
    <property name="icon" >
-    <iconset resource="../main.qrc" >:/images/emblem-system.svg</iconset>
+    <iconset resource="../main.qrc" >:/images/emblem-system.png</iconset>
    </property>
    <property name="text" >
     <string>ShowJobs</string>

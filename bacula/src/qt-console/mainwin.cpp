@@ -122,7 +122,7 @@ void MainWin::createPages()
       item = new QTreeWidgetItem(topItem);
       item->setText(0, "Console");
       if (!m_firstItem){ m_firstItem = item; }
-      item->setIcon(0,QIcon(QString::fromUtf8(":images/utilities-terminal.svg")));
+      item->setIcon(0,QIcon(QString::fromUtf8(":images/utilities-terminal.png")));
 
       /* insert the cosole and tree widget item into the hashes */
       hashInsert(item, m_currentConsole);
