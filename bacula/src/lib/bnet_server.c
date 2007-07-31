@@ -96,8 +96,7 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
    Dmsg1(100, "Addresses %s\n", build_addresses_str(addrs, allbuf, sizeof(allbuf)));
 
    foreach_dlist(p, addrs) {
-      /* Allocate on stack frame -- no need to free */
-      fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
+      fd_ptr = (s_sockfd *)malloc(sizeof(s_sockfd));
       fd_ptr->port = p->get_port_net_order();
       /*
        * Open a TCP socket

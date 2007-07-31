@@ -35905,10 +35905,10 @@ chmod 755 src/win32/build-depkgs-mingw32
 
 if test "${support_bat}" = "yes" ; then
   cd src/qt-console
-  a=`pwd`
   chmod 755 install_conf_file build-depkgs-qt-console
   echo "Creating bat Makefile"
   qmake
+  cd ${BUILD_DIR}
 fi
 
 
