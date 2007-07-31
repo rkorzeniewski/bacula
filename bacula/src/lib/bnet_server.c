@@ -96,7 +96,8 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
    Dmsg1(100, "Addresses %s\n", build_addresses_str(addrs, allbuf, sizeof(allbuf)));
 
    foreach_dlist(p, addrs) {
-      fd_ptr = (s_sockfd *)malloc(sizeof(s_sockfd));
+      /* Allocate on stack from -- no need to free */
+      fd_ptr = (s_sockfd *)alloca(sizeof(s_sockfd));
       fd_ptr->port = p->get_port_net_order();
       /*
        * Open a TCP socket
@@ -162,10 +163,6 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
          if (errno == EINTR) {
             continue;
          }
-         /* Error, get out */
-         foreach_dlist(fd_ptr, &sockfds) {
-            close(fd_ptr->fd);
-         }
          Emsg1(M_FATAL, 0, _("Error in select: %s\n"), be.bstrerror());
          break;
       }
@@ -225,6 +222,12 @@ bnet_thread_server(dlist *addrs, int max_clients, workq_t *client_wq,
             }
          }
       }
+   }
+
+   /* Cleanup open files and pointers to them */
+   while ((fd_ptr = (s_sockfd *)sockfds.first())) {
+      close(fd_ptr->fd);
+      sockfds.remove(fd_ptr);     /* don't free() item it is on stack */
    }
 
    /* Stop work queue thread */
