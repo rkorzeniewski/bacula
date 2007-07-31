@@ -474,7 +474,7 @@ static int sql_handler(void *ctx, int num_field, char **row)
       }
       pm_strcat(rows, "\t");
    }
-   ua->send_msg(rows.c_str());
+   ua->send_msg("%s", rows.c_str());
    return 0;
 }
 
