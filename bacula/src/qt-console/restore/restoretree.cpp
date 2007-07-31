@@ -214,18 +214,6 @@ void restoreTree::populateDirectoryTree()
          " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
          " WHERE" + condition +
          " AND Job.purgedfiles=0";
-      m_jobQuery =
-         "SELECT Job.Jobid"
-         " From Job" + m_jobQueryPart;
-      /* If Limit check box for limit records returned is checked  */
-      if (limitCheckBox->checkState() == Qt::Checked) {
-         QString limit;
-         limit.setNum(limitSpinBox->value());
-         m_jobQuery += " LIMIT " + limit;
-      }
-
-      if (mainWin->m_rtPopDirDebug)
-         Pmsg1(000, "m_jobQuery : %s\n", m_jobQuery.toUtf8().data());
       prBar1->setValue(ontask++);
       prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
@@ -239,32 +227,39 @@ void restoreTree::populateDirectoryTree()
       setJobsCheckedList();
    }
 
-   QString cmd =
-      "SELECT DISTINCT Path.Path AS Path"
-      " FROM Path"
-      " INNER JOIN File ON (File.PathId=Path.PathId)"
-      " INNER JOIN Job ON (File.JobId=Job.JobId)"
-      " WHERE Job.Jobid IN (" + m_jobQuery + ")"
-      " ORDER BY Path";
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
-   }
-   prBar1->setValue(ontask++);
-   prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
-   prBar2->setValue(0);
-   prLabel2->setText("Processing Directories");
-   QStringList directories;
-   if (m_console->sql_cmd(cmd, directories)) {
-      if (mainWin->m_miscDebug) {
-         Pmsg1(000, "Done with query %i directories\n", directories.count());
+   if (m_checkedJobs != "") {
+      QString cmd =
+         "SELECT DISTINCT Path.Path AS Path"
+         " FROM Path"
+         " INNER JOIN File ON (File.PathId=Path.PathId)"
+         " INNER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE Job.Jobid IN (" + m_checkedJobs + ")"
+         " ORDER BY Path";
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       }
-      prBar2->setRange(0,directories.count());
-      repaint();
-      foreach(QString directory, directories) {
-         m_debugCnt += 1;
-         prBar2->setValue(m_debugCnt);
-         parseDirectory(directory);
+      prBar1->setValue(ontask++);
+      prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+      prBar2->setValue(0);
+      prLabel2->setText("Processing Directories");
+      QStringList directories;
+      if (m_console->sql_cmd(cmd, directories)) {
+         if (mainWin->m_miscDebug) {
+            Pmsg1(000, "Done with query %i directories\n", directories.count());
+         }
+         prBar2->setRange(0,directories.count());
+         repaint();
+         foreach(QString directory, directories) {
+            m_debugCnt += 1;
+            prBar2->setValue(m_debugCnt);
+            parseDirectory(directory);
+         }
       }
+   } else {
+     QMessageBox::warning(this, tr("Bat"),
+        tr("No jobs were selected in the job query !!!.\n"
+      "Press OK to continue?"),
+      QMessageBox::Ok );
    }
    prBar1->setVisible(false);
    prBar2->setVisible(false);
@@ -273,7 +268,7 @@ void restoreTree::populateDirectoryTree()
 }
 
 /*
- *  Function to set m_jobQuery from the jobs that are checked in the table
+ *  Function to set m_checkedJobs from the jobs that are checked in the table
  *  of jobs
  */     
 void restoreTree::setJobsCheckedList()
@@ -293,7 +288,7 @@ void restoreTree::setJobsCheckedList()
       } else
          jobItem->setBackground(Qt::gray);
    }
-   m_jobQuery = m_JobsCheckedList;
+   m_checkedJobs = m_JobsCheckedList;
 }
 
 /*
@@ -492,7 +487,7 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
       " INNER JOIN Path ON (Path.PathId=File.PathId)"
       " INNER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-      " AND Job.Jobid IN (" + m_jobQuery + ")"
+      " AND Job.Jobid IN (" + m_checkedJobs + ")"
       " ORDER BY FileName";
  
    QStringList headerlist = (QStringList() << "File Name");
@@ -577,7 +572,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
       " INNER JOIN Path ON (Path.PathId=File.PathId)"
       " INNER JOIN Job ON (File.JobId=Job.JobId)"
       " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "'"
-      " AND Job.Jobid IN (" + m_jobQuery + ")"
+      " AND Job.Jobid IN (" + m_checkedJobs + ")"
       " ORDER BY Job.EndTime DESC";
 
    QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5" << "FileId");
@@ -1420,7 +1415,7 @@ void restoreTree::restoreButtonPushed()
              " INNER JOIN Path ON (Path.PathId=File.PathId)"
              " INNER JOIN Job ON (Job.JobId=File.JobId)"
            " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-           "  AND Job.Jobid IN (" + m_jobQuery + ")"
+           "  AND Job.Jobid IN (" + m_checkedJobs + ")"
            " GROUP BY Filename.Name"
          ") t1, File "
            " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
@@ -1621,7 +1616,7 @@ int restoreTree::mostRecentVersionfromFullPath(QString &fullPath)
          " INNER JOIN Path ON (Path.PathId=File.PathId)"
          " INNER JOIN Job ON (File.JobId=Job.JobId)"
          " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-         " AND Job.Jobid IN (" + m_jobQuery + ")"
+         " AND Job.Jobid IN (" + m_checkedJobs + ")"
          " AND Filename.Name='" + fileName + "'"
          " GROUP BY Filename.Name";
  

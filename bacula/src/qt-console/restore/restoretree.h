@@ -101,7 +101,7 @@ private:
    QRegExp m_slashregex;
    bool m_slashTrap;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
-   QString m_jobQuery;
+   QString m_checkedJobs;
    QString m_jobQueryPart;
    QString m_prevJobCombo;
    QString m_prevClientCombo;
