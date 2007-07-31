@@ -133,9 +133,9 @@ bool acquire_device_for_read(DCR *dcr)
       stat = search_res_for_device(rctx);
       release_reserve_messages(jcr);         /* release queued messages */
       unlock_reservations();
+      dev->dblock(BST_DOING_ACQUIRE); 
       if (stat == 1) {
          dcr->VolumeName[0] = 0;
-         dev->dblock(BST_DOING_ACQUIRE); 
          Jmsg(jcr, M_INFO, 0, _("Media Type change.  New device %s chosen.\n"),
             dev->print_name());
          bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));

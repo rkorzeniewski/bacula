@@ -78,6 +78,7 @@ inline berrno::berrno(int pool)
 #ifdef HAVE_WIN32
    format_win32_message();
 #endif
+   errno = m_berrno;
 }
 
 inline berrno::~berrno()
