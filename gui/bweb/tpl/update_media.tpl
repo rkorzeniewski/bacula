@@ -27,6 +27,7 @@
 	   <option value='Full'>Full</option>
            <option value='Read-Only'>Read-Only</option>
            <option value='Used'>Used</option>
+	   <option value='Recycle'>Recycle</option>
            </select>
         </td>
     </tr>

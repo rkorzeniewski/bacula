@@ -36,6 +36,7 @@
       <option id='volstatus_Error'  value='Error'>Error</option>
       <option id='volstatus_Used'   value='Used'>Usada</option>
       <option id='volstatus_Purged' value='Purged'>Purgada</option>
+      <option id='volstatus_Recycle' value='Recycle'>Recycle</option>
     </select>     
   </td>
 </tr>

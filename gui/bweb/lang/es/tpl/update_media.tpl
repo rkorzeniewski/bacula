@@ -27,6 +27,7 @@
 	   <option value='Full'>Lleno</option>
            <option value='Read-Only'>Lectura</option>
            <option value='Used'>Usado</option>
+	   <option value='Recycle'>Recycle</option>
            </select>
         </td>
     </tr>
