@@ -29,6 +29,16 @@ The extracted doc directory name will be bacula-docs-version where version
 is the version number.  The directory must be renamed to docs (ie remove
 the leading bacula- and the -version portion of the name).
 
+Note, a number of packages must be installed to build the cross-tools
+and the depkgs files.  Most are rather standard such as gcc, g++,
+make, ...  However a few that you may not have are:
+
+  texinfo
+  flex
+  bison
+  m4
+  ...
+
 Once the source is on your system, change to the win32 directory
         cd .../bacula/src/win32
 
