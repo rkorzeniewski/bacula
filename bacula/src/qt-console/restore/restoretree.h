@@ -70,6 +70,7 @@ private slots:
    void fileTableItemChanged(QTableWidgetItem *);
    void versionTableItemChanged(QTableWidgetItem *);
    void updateRefresh();
+   void jobTableCellClicked(int, int);
 
 private:
    void populateDirectoryTree();

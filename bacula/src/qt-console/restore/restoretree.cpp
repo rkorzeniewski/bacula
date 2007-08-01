@@ -114,6 +114,8 @@ void restoreTree::setupPage()
            this, SLOT(directoryItemChanged(QTreeWidgetItem *, int)));
    connect(fileTable, SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
            this, SLOT(fileCurrentItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+   connect(jobTable, SIGNAL(cellClicked(int, int)),
+           this, SLOT(jobTableCellClicked(int, int)));
 
    QStringList titles = QStringList() << "Directories";
    directoryTree->setHeaderLabels(titles);
@@ -209,6 +211,7 @@ void restoreTree::populateDirectoryTree()
          QString since = stamp.toString(Qt::ISODate);
          condition.append(" AND Job.Starttime>'" + since + "'");
       }
+      /* INNER JOIN FileSet eliminates all restore jobs */
       m_jobQueryPart =
          " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
          " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
@@ -379,16 +382,18 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       }
       /* no need to check for windows drive if unix */
       if (m_winRegExpDrive.indexIn(m_cwd, 0) == 0) {
-         /* this is a windows drive add the base widget */
-         QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
-         item->setText(0, m_cwd);
-         item->setData(0, Qt::UserRole, QVariant(fullPath));
-         item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
-         item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
-         if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            Pmsg0(000, "Added Base \"letter\":/\n");
+         if (!m_dirPaths.contains(m_cwd)) {
+            /* this is a windows drive add the base widget */
+            QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
+            item->setText(0, m_cwd);
+            item->setData(0, Qt::UserRole, QVariant(fullPath));
+            item->setData(1, Qt::UserRole, QVariant(Qt::Unchecked));
+            item->setIcon(0, QIcon(QString::fromUtf8(":images/folder.png")));
+            if ((mainWin->m_miscDebug) && (m_debugTrap)) {
+               Pmsg0(000, "Added Base \"letter\":/\n");
+            }
+            m_dirPaths.insert(m_cwd, item);
          }
-         m_dirPaths.insert(m_cwd, item);
       }
    }
  
@@ -671,12 +676,12 @@ void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
 void restoreTree::populateJobTable()
 {
    QBrush blackBrush(Qt::black);
-   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Type");
+   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << "Name" << "TU" << "TD");
    jobTable->clear();
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
    QString jobQuery =
-      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level"
+      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level, Job.Name AS JobName"
       " FROM Job" + m_jobQueryPart +
       " ORDER BY Job.EndTime DESC";
    /* If Limit check box for limit records returned is checked  */
@@ -706,18 +711,29 @@ void restoreTree::populateJobTable()
             /* Iterate through fields in the record */
             foreach (field, fieldlist) {
                field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field, 1);
-               tableItem->setFlags(0);
-               tableItem->setForeground(blackBrush);
-               jobTable->setItem(row, column, tableItem);
-               if (column == 0) {
-                  Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
-                  tableItem->setFlags(flag);
-                  tableItem->setCheckState(Qt::Checked);
-                  tableItem->setBackground(Qt::green);
+               if (field != "") {
+                  tableItem = new QTableWidgetItem(field, 1);
+                  tableItem->setFlags(0);
+                  tableItem->setForeground(blackBrush);
+                  jobTable->setItem(row, column, tableItem);
+                  if (column == 0) {
+                     Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                     tableItem->setFlags(flag);
+                     tableItem->setCheckState(Qt::Checked);
+                     tableItem->setBackground(Qt::green);
+                  }
+                  column++;
                }
-               column++;
             }
+            tableItem = new QTableWidgetItem(QIcon(QString::fromUtf8(":images/go-up.png")), "", 1);
+            tableItem->setFlags(0);
+            tableItem->setForeground(blackBrush);
+            jobTable->setItem(row, column, tableItem);
+            column++;
+            tableItem = new QTableWidgetItem(QIcon(QString::fromUtf8(":images/go-down.png")), "", 1);
+            tableItem->setFlags(0);
+            tableItem->setForeground(blackBrush);
+            jobTable->setItem(row, column, tableItem);
             row++;
          }
       }
@@ -725,6 +741,32 @@ void restoreTree::populateJobTable()
    jobTable->resizeColumnsToContents();
    jobTable->resizeRowsToContents();
    jobTable->verticalHeader()->hide();
+}
+
+void restoreTree::jobTableCellClicked(int row, int column)
+{
+   if (column == 4){
+      int cnt;
+      for (cnt=0; cnt<row+1; cnt++) {
+         QTableWidgetItem *item = jobTable->item(cnt, 0);
+         Qt::CheckState state = item->checkState();
+         if (state == Qt::Checked)
+            item->setCheckState(Qt::Unchecked);
+         else if (state == Qt::Unchecked)
+            item->setCheckState(Qt::Checked);
+      }
+   }
+   if (column == 5){
+      int cnt, max = jobTable->rowCount();
+      for (cnt=row; cnt<max; cnt++) {
+         QTableWidgetItem *item = jobTable->item(cnt, 0);
+         Qt::CheckState state = item->checkState();
+         if (state == Qt::Checked)
+            item->setCheckState(Qt::Unchecked);
+         else if (state == Qt::Unchecked)
+            item->setCheckState(Qt::Checked);
+      }
+   }
 }
 
 /*
