@@ -39,6 +39,7 @@ wait
 messages
 @sleep 1
 @$out tmp/RUN_BUG_897.log
+setdebug level=200 client
 run job=BUG_897 yes
 @sleep 2
 cancel

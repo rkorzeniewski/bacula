@@ -40,7 +40,7 @@ if [ $? != 0 ]; then
    echo "Execute of ${cwd}/build/src/tools/grow failed."
    exit 1
 fi
-size=`ls -l TestVolume001 | cut -f 5 -d ' '`
+size=5200000000
 cd ${cwd}
 
 cat <<END_OF_DATA >tmp/bconcmds
