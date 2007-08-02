@@ -102,15 +102,9 @@ private:
    QRegExp m_slashregex;
    bool m_slashTrap;
    QHash<QString, QTreeWidgetItem *> m_dirPaths;
-   QString m_checkedJobs;
-   QString m_jobQueryPart;
-   QString m_prevJobCombo;
-   QString m_prevClientCombo;
-   QString m_prevFileSetCombo;
-   int m_prevLimitSpinBox;
-   int m_prevDaysSpinBox;
-   Qt::CheckState m_prevLimitCheckState;
-   Qt::CheckState m_prevDaysCheckState;
+   QString m_checkedJobs, m_prevJobCombo, m_prevClientCombo, m_prevFileSetCombo;
+   int m_prevLimitSpinBox, m_prevDaysSpinBox;
+   Qt::CheckState m_prevLimitCheckState, m_prevDaysCheckState;
    QString m_JobsCheckedList;
    int m_debugCnt;
    bool m_debugTrap;
@@ -120,6 +114,7 @@ private:
    QMultiHash<QString, QString> m_fileExceptionMulti;
    QHash<QString, int> m_versionExceptionHash;
    QHash<QString, int> m_directoryIconStateHash;
+   int m_toggleUpIndex, m_toggleDownIndex;
 };
 
 #endif /* _RESTORETREE_H_ */
