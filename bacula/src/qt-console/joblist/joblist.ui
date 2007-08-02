@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>739</width>
-    <height>512</height>
+    <height>790</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -27,14 +27,14 @@
     <rect>
      <x>30</x>
      <y>170</y>
-     <width>521</width>
-     <height>143</height>
+     <width>533</width>
+     <height>172</height>
     </rect>
    </property>
    <property name="maximumSize" >
     <size>
      <width>900</width>
-     <height>143</height>
+     <height>172</height>
     </size>
    </property>
    <property name="frameShape" >
@@ -50,133 +50,139 @@
     <property name="spacing" >
      <number>6</number>
     </property>
-    <item rowspan="2" row="0" column="2" >
-     <layout class="QVBoxLayout" >
-      <property name="margin" >
-       <number>3</number>
-      </property>
-      <property name="spacing" >
-       <number>6</number>
-      </property>
-      <item>
-       <layout class="QVBoxLayout" >
-        <property name="margin" >
-         <number>3</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="jobLabel" >
-          <property name="text" >
-           <string>Job</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="jobComboBox" />
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" >
-        <property name="margin" >
-         <number>3</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="levelLabel" >
-          <property name="text" >
-           <string>Level</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="levelComboBox" />
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-    <item rowspan="2" row="0" column="1" >
-     <layout class="QVBoxLayout" >
-      <property name="margin" >
-       <number>3</number>
-      </property>
-      <property name="spacing" >
-       <number>6</number>
-      </property>
-      <item>
-       <layout class="QVBoxLayout" >
-        <property name="margin" >
-         <number>3</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="clientsLabel" >
-          <property name="text" >
-           <string>Clients</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="clientComboBox" />
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" >
-        <property name="margin" >
-         <number>3</number>
-        </property>
-        <property name="spacing" >
-         <number>6</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="volumeLabel" >
-          <property name="text" >
-           <string>Volume</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="volumeComboBox" />
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
     <item row="0" column="4" >
-     <layout class="QVBoxLayout" >
+     <layout class="QGridLayout" >
       <property name="margin" >
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="spacing" >
        <number>6</number>
       </property>
-      <item>
-       <widget class="QLabel" name="fileSetLabel" >
-        <property name="maximumSize" >
+      <item row="1" column="1" >
+       <spacer>
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType" >
+         <enum>QSizePolicy::Ignored</enum>
+        </property>
+        <property name="sizeHint" >
          <size>
-          <width>16777215</width>
-          <height>20</height>
+          <width>16</width>
+          <height>75</height>
          </size>
         </property>
-        <property name="text" >
-         <string>FileSet</string>
-        </property>
-       </widget>
+       </spacer>
       </item>
-      <item>
-       <widget class="QComboBox" name="fileSetComboBox" />
+      <item row="1" column="0" >
+       <layout class="QGridLayout" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>3</number>
+        </property>
+        <item row="0" column="0" >
+         <widget class="QPushButton" name="refreshButton" >
+          <property name="text" >
+           <string>Refresh</string>
+          </property>
+          <property name="icon" >
+           <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" >
+         <widget class="QPushButton" name="graphButton" >
+          <property name="text" >
+           <string>Graph</string>
+          </property>
+          <property name="icon" >
+           <iconset resource="../main.qrc" >:/images/graph1.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="0" column="0" colspan="2" >
+       <layout class="QVBoxLayout" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="fileSetLabel" >
+          <property name="maximumSize" >
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="text" >
+           <string>FileSet</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="fileSetComboBox" />
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
-    <item rowspan="2" row="0" column="0" >
+    <item row="0" column="3" >
+     <layout class="QVBoxLayout" >
+      <property name="margin" >
+       <number>3</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <item>
+       <layout class="QVBoxLayout" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="statusLabel" >
+          <property name="text" >
+           <string>Status</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="statusComboBox" />
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" >
+        <property name="margin" >
+         <number>3</number>
+        </property>
+        <property name="spacing" >
+         <number>6</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="purgedLabel" >
+          <property name="text" >
+           <string>Purged</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="purgedComboBox" />
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="0" >
      <layout class="QVBoxLayout" >
       <property name="margin" >
        <number>3</number>
@@ -240,7 +246,7 @@
       </item>
      </layout>
     </item>
-    <item rowspan="2" row="0" column="3" >
+    <item row="0" column="1" >
      <layout class="QVBoxLayout" >
       <property name="margin" >
        <number>3</number>
@@ -257,14 +263,14 @@
          <number>6</number>
         </property>
         <item>
-         <widget class="QLabel" name="statusLabel" >
+         <widget class="QLabel" name="clientsLabel" >
           <property name="text" >
-           <string>Status</string>
+           <string>Clients</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="statusComboBox" />
+         <widget class="QComboBox" name="clientComboBox" />
         </item>
        </layout>
       </item>
@@ -277,84 +283,66 @@
          <number>6</number>
         </property>
         <item>
-         <widget class="QLabel" name="purgedLabel" >
+         <widget class="QLabel" name="volumeLabel" >
           <property name="text" >
-           <string>Purged</string>
+           <string>Volume</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="purgedComboBox" />
+         <widget class="QComboBox" name="volumeComboBox" />
         </item>
        </layout>
       </item>
      </layout>
     </item>
-    <item row="1" column="4" >
-     <layout class="QGridLayout" >
+    <item row="0" column="2" >
+     <layout class="QVBoxLayout" >
       <property name="margin" >
        <number>3</number>
       </property>
       <property name="spacing" >
        <number>6</number>
       </property>
-      <item row="0" column="0" >
-       <layout class="QGridLayout" >
+      <item>
+       <layout class="QVBoxLayout" >
         <property name="margin" >
          <number>3</number>
         </property>
         <property name="spacing" >
-         <number>3</number>
+         <number>6</number>
         </property>
-        <item row="0" column="0" >
-         <widget class="QPushButton" name="refreshButton" >
-          <property name="maximumSize" >
-           <size>
-            <width>65</width>
-            <height>20</height>
-           </size>
-          </property>
+        <item>
+         <widget class="QLabel" name="jobLabel" >
           <property name="text" >
-           <string>Refresh</string>
-          </property>
-          <property name="icon" >
-           <iconset resource="../main.qrc" >:/images/view-refresh.png</iconset>
+           <string>Job</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" >
-         <widget class="QPushButton" name="graphButton" >
-          <property name="maximumSize" >
-           <size>
-            <width>65</width>
-            <height>20</height>
-           </size>
-          </property>
-          <property name="text" >
-           <string>Graph</string>
-          </property>
-          <property name="icon" >
-           <iconset resource="../main.qrc" >:/images/graph1.png</iconset>
-          </property>
-         </widget>
+        <item>
+         <widget class="QComboBox" name="jobComboBox" />
         </item>
        </layout>
       </item>
-      <item row="0" column="1" >
-       <spacer>
-        <property name="orientation" >
-         <enum>Qt::Horizontal</enum>
+      <item>
+       <layout class="QVBoxLayout" >
+        <property name="margin" >
+         <number>3</number>
         </property>
-        <property name="sizeType" >
-         <enum>QSizePolicy::Ignored</enum>
+        <property name="spacing" >
+         <number>6</number>
         </property>
-        <property name="sizeHint" >
-         <size>
-          <width>16</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+        <item>
+         <widget class="QLabel" name="levelLabel" >
+          <property name="text" >
+           <string>Level</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="levelComboBox" />
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
