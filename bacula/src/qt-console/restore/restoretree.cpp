@@ -168,9 +168,6 @@ void restoreTree::populateDirectoryTree()
    m_versionExceptionHash.clear();
    m_directoryIconStateHash.clear();
 
-   QString jobComboText = jobCombo->currentText();
-   QString clientComboText = clientCombo->currentText();
-   QString fileSetComboText = fileSetCombo->currentText();
    updateRefresh();
    int taskcount = 2, ontask = 1;
    if (m_dropdownChanged) taskcount += 1;
@@ -188,35 +185,14 @@ void restoreTree::populateDirectoryTree()
    repaint();
 
    if (m_dropdownChanged) {
-      m_prevJobCombo =  jobComboText;
-      m_prevClientCombo = clientComboText;
-      m_prevFileSetCombo = fileSetComboText;
+      m_prevJobCombo = jobCombo->currentText();
+      m_prevClientCombo = clientCombo->currentText();
+      m_prevFileSetCombo = fileSetCombo->currentText();
       m_prevLimitSpinBox = limitSpinBox->value();
       m_prevDaysSpinBox = daysSpinBox->value();
       m_prevLimitCheckState = limitCheckBox->checkState();
       m_prevDaysCheckState = daysCheckBox->checkState();
       updateRefresh();
-      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
-
-      QString condition = " Client.Name='" + clientCombo->itemText(clientCombo->currentIndex()) + "'";
-      if ((jobCombo->currentIndex() >= 0) && (jobComboText != "Any")) {
-         condition.append(" AND Job.name = '" + jobComboText + "'");
-      }
-      if ((fileSetCombo->currentIndex() >= 0) && (fileSetComboText != "Any")) {
-         condition.append(" AND FileSet.FileSet='" + fileSetComboText + "'");
-      }
-      /* If Limit check box For limit by days is checked  */
-      if (daysCheckBox->checkState() == Qt::Checked) {
-         QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
-         QString since = stamp.toString(Qt::ISODate);
-         condition.append(" AND Job.Starttime>'" + since + "'");
-      }
-      /* INNER JOIN FileSet eliminates all restore jobs */
-      m_jobQueryPart =
-         " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
-         " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
-         " WHERE" + condition +
-         " AND Job.purgedfiles=0";
       prBar1->setValue(ontask++);
       prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
@@ -288,8 +264,12 @@ void restoreTree::setJobsCheckedList()
          m_JobsCheckedList += jobItem->text();
          first = false;
          jobItem->setBackground(Qt::green);
-      } else
-         jobItem->setBackground(Qt::gray);
+      } else {
+         if (jobItem->flags())
+            jobItem->setBackground(Qt::gray);
+         else
+            jobItem->setBackground(Qt::darkYellow);
+      }
    }
    m_checkedJobs = m_JobsCheckedList;
 }
@@ -676,14 +656,37 @@ void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
 void restoreTree::populateJobTable()
 {
    QBrush blackBrush(Qt::black);
-   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << "Name" << "TU" << "TD");
+
+   if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
+   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << "Name" << "Purged" << "TU" << "TD");
+   m_toggleUpIndex = headerlist.indexOf("TU");
+   m_toggleDownIndex = headerlist.indexOf("TD");
+   int purgedIndex = headerlist.indexOf("Purged");
    jobTable->clear();
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
    QString jobQuery =
-      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level, Job.Name AS JobName"
-      " FROM Job" + m_jobQueryPart +
-      " ORDER BY Job.EndTime DESC";
+      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level, Job.Name AS JobName, Job.purgedfiles AS Purged"
+      " FROM Job"
+      /* INNER JOIN FileSet eliminates all restore jobs */
+      " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"
+      " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
+      " WHERE"
+      " Client.Name='" + clientCombo->currentText() + "'";
+   if ((jobCombo->currentIndex() >= 0) && (jobCombo->currentText() != "Any")) {
+      jobQuery += " AND Job.name = '" + jobCombo->currentText() + "'";
+   }
+   if ((fileSetCombo->currentIndex() >= 0) && (fileSetCombo->currentText() != "Any")) {
+      jobQuery += " AND FileSet.FileSet='" + fileSetCombo->currentText() + "'";
+   }
+   /* If Limit check box For limit by days is checked  */
+   if (daysCheckBox->checkState() == Qt::Checked) {
+      QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
+      QString since = stamp.toString(Qt::ISODate);
+      jobQuery += " AND Job.Starttime>'" + since + "'";
+   }
+   //jobQuery += " AND Job.purgedfiles=0";
+   jobQuery += " ORDER BY Job.EndTime DESC";
    /* If Limit check box for limit records returned is checked  */
    if (limitCheckBox->checkState() == Qt::Checked) {
       QString limit;
@@ -717,10 +720,17 @@ void restoreTree::populateJobTable()
                   tableItem->setForeground(blackBrush);
                   jobTable->setItem(row, column, tableItem);
                   if (column == 0) {
-                     Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
-                     tableItem->setFlags(flag);
-                     tableItem->setCheckState(Qt::Checked);
-                     tableItem->setBackground(Qt::green);
+                     bool ok;
+                     int purged = fieldlist[purgedIndex].toInt(&ok, 10); 
+                     if (!((ok) && (purged == 1))) {
+                        Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                        tableItem->setFlags(flag);
+                        tableItem->setCheckState(Qt::Checked);
+                        tableItem->setBackground(Qt::green);
+                     } else {
+                        tableItem->setFlags(0);
+                        tableItem->setCheckState(Qt::Unchecked);
+                     }
                   }
                   column++;
                }
@@ -741,30 +751,35 @@ void restoreTree::populateJobTable()
    jobTable->resizeColumnsToContents();
    jobTable->resizeRowsToContents();
    jobTable->verticalHeader()->hide();
+   jobTable->hideColumn(purgedIndex);
 }
 
 void restoreTree::jobTableCellClicked(int row, int column)
 {
-   if (column == 4){
+   if (column == m_toggleUpIndex){
       int cnt;
       for (cnt=0; cnt<row+1; cnt++) {
          QTableWidgetItem *item = jobTable->item(cnt, 0);
-         Qt::CheckState state = item->checkState();
-         if (state == Qt::Checked)
-            item->setCheckState(Qt::Unchecked);
-         else if (state == Qt::Unchecked)
-            item->setCheckState(Qt::Checked);
+         if (item->flags()) {
+            Qt::CheckState state = item->checkState();
+            if (state == Qt::Checked)
+               item->setCheckState(Qt::Unchecked);
+            else if (state == Qt::Unchecked)
+               item->setCheckState(Qt::Checked);
+         }
       }
    }
-   if (column == 5){
+   if (column == m_toggleDownIndex){
       int cnt, max = jobTable->rowCount();
       for (cnt=row; cnt<max; cnt++) {
          QTableWidgetItem *item = jobTable->item(cnt, 0);
-         Qt::CheckState state = item->checkState();
-         if (state == Qt::Checked)
-            item->setCheckState(Qt::Unchecked);
-         else if (state == Qt::Unchecked)
-            item->setCheckState(Qt::Checked);
+         if (item->flags()) {
+            Qt::CheckState state = item->checkState();
+            if (state == Qt::Checked)
+               item->setCheckState(Qt::Unchecked);
+            else if (state == Qt::Unchecked)
+               item->setCheckState(Qt::Checked);
+         }
       }
    }
 }
