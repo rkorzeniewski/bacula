@@ -433,7 +433,7 @@ static int match_client(BSR *bsr, BSR_CLIENT *client, SESSION_LABEL *sessrec, bo
    if (!client) {
       return 1;                       /* no specification matches all */
    }
-   if (fnmatch(client->ClientName, sessrec->ClientName, 0) == 0) {
+   if (strcmp(client->ClientName, sessrec->ClientName) == 0) {
       return 1;
    }
    if (client->next) {
@@ -447,7 +447,7 @@ static int match_job(BSR *bsr, BSR_JOB *job, SESSION_LABEL *sessrec, bool done)
    if (!job) {
       return 1;                       /* no specification matches all */
    }
-   if (fnmatch(job->Job, sessrec->Job, 0) == 0) {
+   if (strcmp(job->Job, sessrec->Job) == 0) {
       return 1;
    }
    if (job->next) {

@@ -796,7 +796,7 @@ static bool is_vol_in_autochanger(RCTX &rctx, VOLRES *vol)
    AUTOCHANGER *changer = vol->dev->device->changer_res;
 
    /* Find resource, and make sure we were able to open it */
-   if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
+   if (strcmp(rctx.device_name, changer->hdr.name) == 0) {
       Dmsg2(dbglvl, "jid=%u Found changer device %s\n",
                      (int)rctx.jcr->JobId, vol->dev->device->hdr.name);
       return true;
@@ -988,7 +988,7 @@ int search_res_for_device(RCTX &rctx)
    foreach_res(changer, R_AUTOCHANGER) {
       Dmsg2(dbglvl, "jid=%u Try match changer res=%s\n", (int)rctx.jcr->JobId, changer->hdr.name);
       /* Find resource, and make sure we were able to open it */
-      if (fnmatch(rctx.device_name, changer->hdr.name, 0) == 0) {
+      if (strcmp(rctx.device_name, changer->hdr.name) == 0) {
          /* Try each device in this AutoChanger */
          foreach_alist(rctx.device, changer->device) {
             Dmsg2(dbglvl, "jid=%u Try changer device %s\n", (int)rctx.jcr->JobId, 
@@ -1017,7 +1017,7 @@ int search_res_for_device(RCTX &rctx)
       foreach_res(rctx.device, R_DEVICE) {
          Dmsg2(dbglvl, "jid=%u Try match res=%s\n", (int)rctx.jcr->JobId, rctx.device->hdr.name);
          /* Find resource, and make sure we were able to open it */
-         if (fnmatch(rctx.device_name, rctx.device->hdr.name, 0) == 0) {
+         if (strcmp(rctx.device_name, rctx.device->hdr.name) == 0) {
             stat = reserve_device(rctx);
             if (stat != 1) {             /* try another device */
                continue;

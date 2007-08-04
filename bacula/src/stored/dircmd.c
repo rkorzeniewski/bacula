@@ -563,7 +563,7 @@ static DCR *find_device(JCR *jcr, POOL_MEM &devname, int drive)
    unbash_spaces(devname);
    foreach_res(device, R_DEVICE) {
       /* Find resource, and make sure we were able to open it */
-      if (fnmatch(device->hdr.name, devname.c_str(), 0) == 0) {
+      if (strcmp(device->hdr.name, devname.c_str()) == 0) {
          if (!device->dev) {
             device->dev = init_dev(jcr, device);
          }
@@ -581,7 +581,7 @@ static DCR *find_device(JCR *jcr, POOL_MEM &devname, int drive)
    if (!found) {
       foreach_res(changer, R_AUTOCHANGER) {
          /* Find resource, and make sure we were able to open it */
-         if (fnmatch(devname.c_str(), changer->hdr.name, 0) == 0) {
+         if (strcmp(devname.c_str(), changer->hdr.name) == 0) {
             /* Try each device in this AutoChanger */
             foreach_alist(device, changer->device) {
                Dmsg1(100, "Try changer device %s\n", device->hdr.name);

@@ -265,7 +265,7 @@ bool query_cmd(JCR *jcr)
       unbash_spaces(dev_name);
       foreach_res(device, R_DEVICE) {
          /* Find resource, and make sure we were able to open it */
-         if (fnmatch(dev_name.c_str(), device->hdr.name, 0) == 0) {
+         if (strcmp(dev_name.c_str(), device->hdr.name) == 0) {
             if (!device->dev) {
                device->dev = init_dev(jcr, device);
             }
@@ -283,7 +283,7 @@ bool query_cmd(JCR *jcr)
       }
       foreach_res(changer, R_AUTOCHANGER) {
          /* Find resource, and make sure we were able to open it */
-         if (fnmatch(dev_name.c_str(), changer->hdr.name, 0) == 0) {
+         if (strcmp(dev_name.c_str(), changer->hdr.name) == 0) {
             if (!changer->device || changer->device->size() == 0) {
                continue;              /* no devices */
             }
