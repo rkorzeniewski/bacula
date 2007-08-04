@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+<TITLE>Bat User's Guide</TITLE>
+<META NAME="description" CONTENT="Bat User's Guide">
+<META NAME="keywords" CONTENT="bacula">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+</HEAD>
+
+<BODY>
+<h1 align="center">Bat User's Guide</h1>
+<br>
+
+<h4>The Jobs Interface</h4>
+
+<p>The Jobs interface will show the list of job resources.  The data displayed
+for each job in this list are the defaults for the resource as defined in
+the bacula-dir configuration file.  These defaults are the values that will be
+used when a job is run because it was scheduled to.  They are also the values 
+that will be filled in by default if the job is run manually.
+
+<p>The context sensitive list that pops up when a job is right clicked will
+include a number of commands as well as 2 to open up other interfaces.
+
+<p>The user can run a list files command in the console that will display a
+list of job id's that have been run and some associated data.  This is similar
+output to what can be seen in the joblist interface.
+
+<p>The console command list volumes can be run to output a list of volumes that
+have this jobs files stored on it.
+
+<p>The list nextvolume console command will tell the user the next volume that
+will be asked for when this job is run.  It will also show a list of past jobs.
+
+<p>There are options to run commands to enable or disable the job as scheduled.
+If disabled, the job will be re-enabled when the director daemon is restarted.
+
+<p>The cancel job command will cancel any running job id's with this job
+definition.
+
+<p>The open joblist option will create a new JobList interface and pre-populate
+the job dropdown list selecting only jobid's run with this jobs resource.
+
+<p>The run job option will open up the run job interface prepopulating the job
+dropdown box with the selected job.
+
+</BODY>
+</HTML>

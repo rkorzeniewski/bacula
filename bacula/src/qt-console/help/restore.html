@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+<TITLE>Bat User's Guide</TITLE>
+<META NAME="description" CONTENT="Bat User's Guide">
+<META NAME="keywords" CONTENT="bacula">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+</HEAD>
+
+<BODY>
+<h1 align="center">Bat User's Guide</h1>
+<br>
+
+<h4>The Two Restore Interfaces</h4>
+
+<p>Both restore interfaces will select jobs to restore from, give the user the
+opportunity to select files and directories and then run the restore job.
+
+<p>The first or Standard restore is intended as a high performance restore.  It
+is more of a server side interaction to perform the steps.  The Opening interface
+will allow the user to choose selection criterion to determine the job set used.
+The second interface will allow the user to browse the file structure and choose
+the files and directories to restore.  The third will run the job.
+
+<p>The second restore option is the Version Browser.  It is a chatty interface
+which will perform many sql queries of the server.  It is NOT intended to perfrom
+major large sized restores.  It is intended to allow the user to search for 
+specific files and see the different versions of those files that are available
+in the catalog to restore.  Selecting jobs is done with 3 drop downs in the
+lower splitter pane.  The top splitter pane has a vertical splitter with 4
+widgets.  One for viewing and further subselecting of jobs, one for viewing the
+directory tree, one for viewing the list of files in a selected directory and
+one for viewing a list of different versions of the selected files that have
+records in the catalog.  The user can select a directory which will select all
+the files and subdirectories.  The user can unselect a file in a selected 
+directory and also select a file in an unselected directory.  Lastly the user
+can choose to restore a specific version of a file and override the default which
+is to restore the most recent version. 
+
+</BODY>
+</HTML>
