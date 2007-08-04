@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+<TITLE>Bat User's Guide</TITLE>
+<META NAME="description" CONTENT="Bat User's Guide">
+<META NAME="keywords" CONTENT="bacula">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+</HEAD>
+
+<BODY>
+<h1 align="center">Bat User's Guide</h1>
+<br>
+
+<h4>The Media Interface</h4>
+
+<p>The Media interface will display a tree structure of pools, and under each
+pool branch, will be items representing the volumes in the pool.  The display
+will show data that are the values in the database for each volume.  With this
+interface, the user can manage tape volumes and file volumes.
+
+<p>The context sensitive menu will allow the user to open up other interfaces
+and to perform commands in the console that may be run with the desired media
+having been identified.  These commands include deleting the volume, purging
+the jobs and files backed up on the volume from the catalog, and pruning the 
+jobs and files on the catalog that meet the selection criterion configured in
+bacula-dir.conf.  There is also a command to reset the parameters on the volumes
+based on the parameters of the pool resource.
+
+<p>Other interfaces can be opened up from the context sensitive menu.  You can open
+up a Job List interface with the media drop down widget preselecting the jobs
+that have been written to the selected volume.  The user can open up the relabel
+dialog box.  The user can also open up the Edit a Volume interface which will
+allow the user to modify all user editable data items for the volume.
+
+</BODY>
+</HTML>
