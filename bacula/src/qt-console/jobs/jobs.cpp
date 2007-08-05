@@ -211,43 +211,37 @@ void Jobs::currentStackItem()
 
 void Jobs::consoleListFiles()
 {
-   QString cmd("list files job=");
-   cmd += m_currentlyselected;
+   QString cmd = "list files job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
 void Jobs::consoleListVolume()
 {
-   QString cmd("list volumes job=");
-   cmd += m_currentlyselected;
+   QString cmd = "list volumes job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
 void Jobs::consoleListNextVolume()
 {
-   QString cmd("list nextvolume job=");
-   cmd += m_currentlyselected;
+   QString cmd = "list nextvolume job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
 void Jobs::consoleEnable()
 {
-   QString cmd("enable job=");
-   cmd += m_currentlyselected;
+   QString cmd = "enable job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
 void Jobs::consoleDisable()
 {
-   QString cmd("disable job=");
-   cmd += m_currentlyselected;
+   QString cmd = "disable job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
 void Jobs::consoleCancel()
 {
-   QString cmd("cancel job=");
-   cmd += m_currentlyselected;
+   QString cmd = "cancel job=\"" + m_currentlyselected + "\"";
    consoleCommand(cmd);
 }
 
