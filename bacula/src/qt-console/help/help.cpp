@@ -47,6 +47,7 @@ Help::Help(const QString &path, const QString &file, QWidget *parent) :
 
    textBrowser->setSearchPaths(QStringList() << path << ":/images");
    textBrowser->setSource(file);
+   //textBrowser->setCurrentFont(mainWin->m_consoleHash.values()[0]->get_font());
 
    connect(textBrowser, SIGNAL(sourceChanged(const QUrl &)), this, SLOT(updateTitle()));
    connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
