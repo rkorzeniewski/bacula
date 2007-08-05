@@ -50,12 +50,16 @@ settings of the widgets in the Job List window.
 right clicks on the job table.
 
 <p>Listing console commands can be run to list the jobid, list the files on that jobid,
-list the jobmedia for that jobid, and list the volumes used for that jobid.
+list the jobmedia for that jobid, and list the volumes used for that jobid.  There is
+a preferences item to determine whether a long list or a short list command will be run.
+It can be found from the menu by following settings - preferences then the miscelaneous
+tab.
 
 <p>Dangerous commands of delete and purge will be preceeded by an are you sure dialog
 box.
 
-<p>An interace to view the logs that have been stored in the database for the jobid.
+<p>An interace to view the logs that have been stored in the database for the jobid 
+can be viewed by using the show log for job option.
 If the database does not have a log, an interface explaining the modification that
 should be made to the bacula-dir.conf file will come up.  The change is to add
 catalog = all to the messages stanza of the messages resourse that this job uses.
