@@ -143,12 +143,12 @@ void MainWin::createPages()
       new FileSet();
       new Jobs();
       createPageJobList("", "", "", "", NULL);
-      new MediaList();
-      new Storage();
-      new restoreTree();
       JobPlotPass pass;
       pass.use = false;
       new JobPlot(NULL, pass);
+      new MediaList();
+      new Storage();
+      new restoreTree();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
