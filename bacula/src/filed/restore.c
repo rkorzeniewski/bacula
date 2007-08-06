@@ -654,7 +654,7 @@ void do_restore(JCR *jcr)
          }
          Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
               rctx.stream);
-         Dmsg2(0, "None of above!!! stream=%d data=%s\n", rctx.stream,sd->msg);
+         Dmsg2(0, "Unknown stream=%d data=%s\n", rctx.stream, sd->msg);
          break;
       } /* end switch(stream) */
 
