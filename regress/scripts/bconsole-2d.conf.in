@@ -1,0 +1,10 @@
+#
+# Bacula User Agent (or Console) Configuration File
+#
+
+Director {
+  Name = @hostname@-dir
+  DIRport = 8101
+  address = @hostname@
+  Password = "dir-pw"
+}
