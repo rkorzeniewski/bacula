@@ -45,6 +45,7 @@ class JobList : public Pages, public Ui::JobListForm
 public:
    JobList(const QString &medianame, const QString &clientname, 
            const QString &jobname, const QString &filesetname, QTreeWidgetItem *);
+   ~JobList();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
    int m_resultCount;
@@ -71,6 +72,9 @@ private slots:
 private:
    void createConnections();
    void setStatusColor(QTableWidgetItem *item, QString &field);
+   void writeSettings();
+   void readSettings();
+   QSplitter *splitter;
    QString m_mediaName;
    QString m_clientName;
    QString m_jobName;

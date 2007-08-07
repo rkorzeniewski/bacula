@@ -50,7 +50,6 @@ restoreTree::restoreTree()
    m_closeable = true;
    m_populated = false;
 
-   readSettings();
    dockPage();
    m_winRegExpDrive.setPattern("^[a-z]:/$");
    m_winRegExpPath.setPattern("^[a-z]:/");
@@ -63,7 +62,7 @@ restoreTree::restoreTree()
    m_gridLayout->setMargin(9);
    m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
 
-   QSplitter *splitter_2 = new QSplitter(Qt::Vertical, this);
+   splitter_2 = new QSplitter(Qt::Vertical, this);
    QScrollArea *area = new QScrollArea();
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(widget);
@@ -84,6 +83,7 @@ restoreTree::restoreTree()
    limitSpinBox->setValue(mainWin->m_recordLimitVal);
    daysCheckBox->setCheckState(mainWin->m_daysLimitCheck ? Qt::Checked : Qt::Unchecked);
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
+   readSettings();
 }
 
 restoreTree::~restoreTree()
@@ -620,6 +620,7 @@ void restoreTree::writeSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("RestoreTree");
    settings.setValue("splitterSizes", splitter->saveState());
+   settings.setValue("splitter_2Sizes", splitter_2->saveState());
    settings.endGroup();
 }
 
@@ -631,6 +632,7 @@ void restoreTree::readSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup("RestoreTree");
    splitter->restoreState(settings.value("splitterSizes").toByteArray());
+   splitter_2->restoreState(settings.value("splitter_2Sizes").toByteArray());
    settings.endGroup();
 }
 
