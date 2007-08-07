@@ -470,7 +470,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
          jcr->jr.Job,
          jcr->fileset->hdr.name,
          level_to_str(jcr->JobLevel),
-         jcr->client->hdr.name,
+         jcr->client->name(),
          jcr->previous_jr.JobId,
          Name,
          sdt,
@@ -761,8 +761,8 @@ static int missing_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
    if (!jcr->fn_printed) {
-      Jmsg(jcr, M_INFO, 0, "\n");
-      Jmsg(jcr, M_INFO, 0, _("The following files are in the Catalog but not on disk:\n"));
+      Jmsg(jcr, M_INFO, 0, _("\nThe following files are in the Catalog but not on %s:\n"),
+       jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ? "the Volume(s)" : "disk");
       jcr->fn_printed = true;
    }
    Jmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
@@ -777,6 +777,6 @@ static void prt_fname(JCR *jcr)
 {
    if (!jcr->fn_printed) {
       Jmsg(jcr, M_INFO, 0, _("File: %s\n"), jcr->fname);
-      jcr->fn_printed = TRUE;
+      jcr->fn_printed = true;
    }
 }

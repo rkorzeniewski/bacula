@@ -2,6 +2,11 @@
 
 General:
 07Aug07 
+kes  Modify the Verify output to specify if files are missing on    
+     the Volume(s) or disk.  Fixes confusion in bug #916.
+kes  When more than one Volume is read in a migration job, the last
+     Volume bytes reported are from the last read volume rather than
+     the last written volume. Fixed. This fixes bug #910.
 kes  Fix display of Recycle flag after update volume=foo recycle=yes.
      It previously printed New Recyle flag is: no. This fixes bug
      #917.
