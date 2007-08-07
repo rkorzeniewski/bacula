@@ -242,7 +242,7 @@ static void update_volrecycle(UAContext *ua, char *val, MEDIA_DBR *mr)
       ua->error_msg("%s", db_strerror(ua->db));
    } else {
       ua->info_msg(_("New Recycle flag is: %s\n"),
-         mr->Recycle==1?_("yes"):_("no"));
+         recycle==1?_("yes"):_("no"));
    }
 }
 
@@ -262,7 +262,7 @@ static void update_volinchanger(UAContext *ua, char *val, MEDIA_DBR *mr)
       ua->error_msg("%s", db_strerror(ua->db));
    } else {
       ua->info_msg(_("New InChanger flag is: %s\n"),
-         mr->InChanger==1?_("yes"):_("no"));
+         InChanger==1?_("yes"):_("no"));
    }
 }
 
