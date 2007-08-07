@@ -1079,12 +1079,6 @@ void migration_cleanup(JCR *jcr, int TermCode)
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
 
-      bstrncpy(mr.VolumeName, jcr->VolumeName, sizeof(mr.VolumeName));
-      if (!db_get_media_record(jcr, jcr->db, &mr)) {
-         Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
-            mr.VolumeName, db_strerror(jcr->db));
-         set_jcr_job_status(jcr, JS_ErrorTerminated);
-      }
 
       update_bootstrap_file(mig_jcr);
 
@@ -1100,6 +1094,20 @@ void migration_cleanup(JCR *jcr, int TermCode)
          }
          mig_jcr->VolumeName[0] = 0;         /* none */
       }
+
+      if (mig_jcr->VolumeName[0]) {
+         /* Find last volume name. Multiple vols are separated by | */
+         char *p = strrchr(mig_jcr->VolumeName, '|');
+         if (!p) {
+            p = mig_jcr->VolumeName;
+         }
+         bstrncpy(mr.VolumeName, p, sizeof(mr.VolumeName));
+         if (!db_get_media_record(jcr, jcr->db, &mr)) {
+            Jmsg(jcr, M_WARNING, 0, _("Error getting Media record for Volume \"%s\": ERR=%s"),
+               mr.VolumeName, db_strerror(jcr->db));
+         }
+      }
+
       switch (jcr->JobStatus) {
       case JS_Terminated:
          if (jcr->Errors || jcr->SDErrors) {
