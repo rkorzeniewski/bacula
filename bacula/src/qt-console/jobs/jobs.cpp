@@ -212,18 +212,21 @@ void Jobs::currentStackItem()
 void Jobs::consoleListFiles()
 {
    QString cmd = "list files job=\"" + m_currentlyselected + "\"";
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 
 void Jobs::consoleListVolume()
 {
    QString cmd = "list volumes job=\"" + m_currentlyselected + "\"";
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 
 void Jobs::consoleListNextVolume()
 {
    QString cmd = "list nextvolume job=\"" + m_currentlyselected + "\"";
+   if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
 
