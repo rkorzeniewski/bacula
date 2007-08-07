@@ -16,8 +16,8 @@
 <h4>The JobList Interface</h4>
 <font size=+1>
 
-<p>The JobList interface will display a table of job id's which are instances of
-a job being run.  The table will display data for each job stored in the
+<p>The JobList interface displays a table of jobid's which are instances of
+a job having been run.  The table displays data for each job stored in the
 daemons sql backend.  The table currently includes the job name, the client name,
 the job type, the job level, the number of files, the number of bytes, the status,
 and a flag for the jobs files that have been purged or not, and the jobs
@@ -48,7 +48,7 @@ drop downs and limiting controls in the JobPlot window default to the current
 settings of the controls in the JobList interface.
 
 <p>There are many options in the context sensitive popup that appear when the user
-right clicks on the job table.
+right clicks on an item in the job table.
 
 <p>Listing console commands can be run to list the jobid, list the files on that jobid,
 list the jobmedia for that jobid, and list the volumes used for that jobid.  There is
@@ -62,15 +62,15 @@ box.
 <p>An interface to view the logs that have been stored in the database for the jobid 
 can be viewed by using the show log for job option.
 If the database does not have a log, an popup explaining the modification that
-should be made to the bacula-dir.conf file appears.  The change is to add
-catalog = all to the messages stanza of the messages resource that this job uses.
+may be made to the bacula-dir.conf file appears.  The change is to add
+"catalog = all" to the messages stanza of the messages resource that this job uses.
 
 <p>Restore from job opens up the Select Jobs interface.  It opens prepopulated
 with the correct data to open up a standard restore interface displaying the
 filestructure backed up when the job ran.  It displays only the files from this job
 if you don't change the controls in the "Select jobs interface"
 
-<p>Restore from time populateis the Select Jobs interface with the endtime of the job
+<p>Restore from time populates the Select Jobs interface with the endtime of the job
 populated in the Before Time entry box.  This causes the daemon to use the Before
 Time to select the appropriate job id's for the restore.  This contains the most recent
 full backup, the most recent differential backup done since the most recent full, and 

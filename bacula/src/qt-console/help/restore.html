@@ -16,25 +16,25 @@
 
 <h2>The Two Restore Interfaces</h2>
 
-<p>Both restore interfaces accomplish the same 3 steps in different ways.
-Those steps are to select jobs to restore from, give the user the
-opportunity to select files and directories, then indicate details of
-the host and path to restore to and run the job.
+<p>Both interfaces accomplish the same three steps.
+The steps are to select jobs to restore from, give the user the
+opportunity to select files/directories, then indicate details such as
+the host and path to restore to and trigger the job to run.
 
 <h2>The Standard Restore Interface</h2>
 
 <p>Start the standard restore procedure by pressing the restore button
 in the task bar.  There are also two options in the joblist context sensitive 
-menu to start a restore.  They are restore from time or restore from job.
+menu to start a restore.  They are Restore From Time or Restore From Job.
 
-<p>This interface is intended as a high performance restore option.
+<p>This restore method is intended as a high performance option.
 It is a server side process.  These interfaces assist the user in utilizing the
 text based restore capabilities of the standard console.  It interprets the text
 to display the information in a way that simplifies the restore procedure.
 
 <p>The Opening interface allows the user to choose selection criterion to
 inform the server how to determine the set of backup job ids to use in the
-restore.  This best possible set is be the most recent full backup, the most
+restore.  This best possible set is he most recent full backup, the most
 recent differential backup done since the most recent full, and all the
 incremental backups done since the most recent full or differential.  Then the
 server uses this set of jobs to create a file structure that is the
@@ -46,9 +46,9 @@ of the connection to the server and does not allow any other communication to
 the server by any other interface.
 
 <p>The second interface allows the user to browse this file structure and
-choose the files and directories to restore.  This is be done in an explorer
+choose the files and directories to restore.  This is done in an explorer
 type interface with a directory tree on the left.  In the right pane of a
-splitter is be a table showing a list of files and directories that are the
+splitter is a table showing a list of files and directories that are the
 contents of the directory selected in the left pane.  The user can mark and
 unmark either with the buttons on the top or by double clicking on the check
 mark icon to toggle whether an item is selected or not.  Double clicking an
@@ -66,7 +66,7 @@ limitations as the standard restore during the file and directory selection
 process.  The user can have an unlimited number of selection windows open at a
 time for viewing the cataloged jobs, directories, files and versions.
 
-<p>This restore interface is <b>NOT</b> intended to preform major restores of directory
+<p>This restore interface is <b>NOT</b> intended to perform major restores of directory
 structures with large numbers of directories and files.  It should work, however
 it is a chatty interface.  This is due to the number of sql queries made of the server
 which is proportional to the number of files and directories selected plus the number of
@@ -75,13 +75,13 @@ specific files and choose between the different versions of those files that
 are available in the catalog to restore.
 
 <p>The interface contains a horizontal splitter.  The bottom pane contains
-some controlling widgets for the interface.
-The top pane contains a vertical splitter with 4 widgets for viewing the 
-cataloged information.  The left widget is for viewing and further sub selecting
+some controls for the interface.
+The top portion contains a vertical splitter with 4 panes for viewing the 
+cataloged information.  The left pane is for viewing and further sub selecting
 of jobs.  The second pane is for viewing the directory tree.  The third is for
 viewing a list of files in a directory that has been selected.  Then
-lastly the fourth widget is for viewing a table of versions of a single file
-that has been selected from the file widget.
+lastly the fourth pane is for viewing a table of versions of a single file
+that has been selected from the file table.
 
 <p>The version browser accomplishes the three restore steps differently.
 

@@ -21,20 +21,21 @@ pool branch, are items representing the volumes in the pool.  The display
 shows data that are the values in the database for each volume.  With this
 interface, the user can manage tape volumes and file volumes.
 
-<p>The context sensitive menu allows the user to open up other interfaces
-and to perform commands in the console that may be run with the desired media
-having been identified.  These commands include deleting the volume, purging
-the jobs and files backed up on the volume from the catalog, and pruning the 
-jobs and files on the catalog that meet the selection criterion configured in
+<p>When the user right clicks on a volume item, a context sensitve menu appears
+that shows the actions that can be performed on this volume.  This menu allows
+the user to open up other interfaces and to perform commands in the console.
+There are command options that modify the catalog.  These commands include
+deleting the volume, purging the jobs/files which have been written to the volume, and pruning the 
+jobs/files that meet the pruning criterion configured in
 bacula-dir.conf.  There is also a command to reset the parameters on the volumes
 based on the parameters of the pool resource.
 
-<p>Other interfaces can be opened up from the context sensitive menu.  The user
-may open up a JobList interface.  This interface is opened with the media
-drop down control preselected  This shows jobs that have been written to the
-volume.  The user can open up the Relabel a Volume dialog box.  The user can also open
+<p>Other interfaces can be opened up from the context sensitive menu.
+The user can open up the Relabel a Volume dialog box.  The user can also open
 up the Edit a Volume interface which allows the user to modify all user
-editable data items for the volume.
+editable data items for the volume.  Another interface that may be opened is
+the JobList.  When created the media drop down control is preselected to the
+volume.  It lists jobs which have been written to the volume.
 
 </BODY>
 </HTML>
