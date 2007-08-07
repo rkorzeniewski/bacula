@@ -95,6 +95,7 @@ private:
    void setJobsCheckedList();
    int queryFileIndex(QString &fullPath, int jobID);
 
+   QSplitter *splitter_2;
    bool m_populated;
    bool m_dropdownChanged;
    QRegExp m_winRegExpDrive;

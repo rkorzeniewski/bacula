@@ -76,15 +76,24 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    m_gridLayout->setMargin(9);
    m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
 
-   QSplitter *splitter_2 = new QSplitter(Qt::Vertical, this);
+   splitter = new QSplitter(Qt::Vertical, this);
    QScrollArea *area = new QScrollArea();
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(frame);
    area->setWidgetResizable(true);
-   splitter_2->addWidget(mp_tableWidget);
-   splitter_2->addWidget(area);
+   splitter->addWidget(mp_tableWidget);
+   splitter->addWidget(area);
 
-   m_gridLayout->addWidget(splitter_2, 0, 0, 1, 1);
+   m_gridLayout->addWidget(splitter, 0, 0, 1, 1);
+   readSettings();
+}
+
+/*
+ * Write the splitter settings in the destructor
+ */
+JobList::~JobList()
+{
+   writeSettings();
 }
 
 /*
@@ -576,4 +585,25 @@ void JobList::graphTable()
    pass.use = true;
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new JobPlot(pageSelectorTreeWidgetItem, pass);
+}
+/*
+ * Save user settings associated with this page
+ */
+void JobList::writeSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("JobListPage");
+   settings.setValue("splitterSizes", splitter->saveState());
+   settings.endGroup();
+}
+
+/*
+ * Read and restore user settings associated with this page
+ */
+void JobList::readSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("JobListPage");
+   splitter->restoreState(settings.value("splitterSizes").toByteArray());
+   settings.endGroup();
 }
