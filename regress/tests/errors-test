@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+#  Test errors
+#
+
+TestName="errors-test"
+JobName=backup
+
+. scripts/functions
+copy_test_confs
+set_debug 0
+
+rm -f tmp/*.log
+/bin/cp -f scripts/bacula-dir.conf.errors bin/bacula-dir.conf
+
+echo "${cwd}/build/po" >/tmp/file-list
+
+start_test
+
+cat <<END_OF_DATA >tmp/bconcmds
+@output /dev/null
+messages
+label volume=TestVolume001
+@output tmp/LOCAL_INC_ERROR.log
+run job=LOCAL_INC_ERROR yes
+wait
+messages
+@output tmp/REMOTE_INC_ERROR.log
+run job=REMOTE_INC_ERROR yes
+wait
+messages
+@output tmp/LOCAL_EXCL_ERROR.log
+run job=LOCAL_EXCL_ERROR yes
+wait
+messages
+@$out tmp/REMOTE_EXCL_ERROR.log
+run job=REMOTE_EXCL_ERROR yes
+wait
+messages
+st dir
+quit
+END_OF_DATA
+
+run_bacula
+touch tmp/log1.out
+check_for_zombie_jobs storage=File
+#stop_bacula
+
+dstat=0
+bstat=0
+rstat=0
+export dstat
+export bstat
+export rstat
+
+
+#end_test
