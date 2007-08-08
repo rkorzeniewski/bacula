@@ -29,19 +29,11 @@ JobDefs {
   Type = Backup
   Level = Incremental
   Client = @hostname@-fd 
-  FileSet = FS_TESTJOB
   Storage = File
   Messages = Standard
   Pool = Default
   Priority = 10
   Maximum Concurrent Jobs = 16
-}
-
-FileSet {
- Name = FS_LOCAL_INC_ERROR
- Include {
-   File=</tmp/path/to/nowhere
- }
 }
 
 Job {
@@ -73,6 +65,11 @@ Job {
 
 FileSet {
  Name = FS_LOCAL_INC_ERROR
+ Include { File=</tmp/path/to/nowhere }
+}
+
+FileSet {
+ Name = FS_LOCAL_EXCL_ERROR
  Include { File=</tmp/file-list }
  Exclude {
    File=</tmp/path/to/nowhere
