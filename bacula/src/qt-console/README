@@ -16,7 +16,7 @@ download area.
 Building and running bat is done much like bconsole, the gnome console,
 or the wxWidgets console.  You add the appropriate options to your   
 ./configure, then simply do a make.  Please see the Installation chapter
-of the manual for mor details.
+of the manual for more details.
 
 
 Win32 mingw infos for QT4 :
@@ -33,7 +33,7 @@ Design decisions:
   an appropriate subdirectory.
 - All private class variables are named "m_xxx" this makes it very
   clear if one is referencing a class variable or a local.
-- All signal/slots are connected by explict code (most all are
+- All signal/slots are connected by explicit code (most all are
   done in the MainWin constructor), rather than using designer.      
 - Each page has a separate designer .ui file in a subdirectory.
 - All windows are created with designer and have
@@ -72,7 +72,7 @@ Design/implementation considerations:
 - Each Director should have its own console
 - The Console class needs to be a list or be attached to the
   currently active Director.
-- Will automatically connnect to the first Director in the
+- Will automatically connect to the first Director in the
   conf file. Doesn't know about multiple Directors.
 
 - The Label menu bar item, prints on the shell window what you entered.
@@ -80,7 +80,7 @@ Design/implementation considerations:
 - The Restore menu bar item, brings up dialog, then when OK is
   clicked, it goes on to the next dialog, which is meant to be
   a tree view, but for the moment does nothing ...  It is a bit
-  ugly. Cancelling it should get you back to the normal command prompt.
+  ugly. Canceling it should get you back to the normal command prompt.
 
 - Implement a restore page that does a directory tree restore selection
   much like wx-console does.
@@ -89,7 +89,7 @@ Not working:
 - The left selection window and the right window (where the console
   is) are dockable windows so should be movable once they are properly
   clicked.  Well, they sort of move, but then get stuck.  I haven't figured
-  out what is going on, so for the current time, I am implemeting most
+  out what is going on, so for the current time, I am implementing most
   stuff through dialogs.
      
 Items implemented:
