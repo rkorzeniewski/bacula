@@ -74,7 +74,9 @@ private:
    void setStatusColor(QTableWidgetItem *item, QString &field);
    void writeSettings();
    void readSettings();
-   QSplitter *splitter;
+   QSplitter *m_splitter;
+   QString m_groupText;
+   QString m_splitText;
    QString m_mediaName;
    QString m_clientName;
    QString m_jobName;

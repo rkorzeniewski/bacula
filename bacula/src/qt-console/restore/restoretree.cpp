@@ -57,20 +57,20 @@ restoreTree::restoreTree()
    m_debugCnt = 0;
    m_debugTrap = true;
 
-   QGridLayout *m_gridLayout = new QGridLayout(this);
-   m_gridLayout->setSpacing(6);
-   m_gridLayout->setMargin(9);
-   m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
+   QGridLayout *gridLayout = new QGridLayout(this);
+   gridLayout->setSpacing(6);
+   gridLayout->setMargin(9);
+   gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
 
-   splitter_2 = new QSplitter(Qt::Vertical, this);
+   m_splitter = new QSplitter(Qt::Vertical, this);
    QScrollArea *area = new QScrollArea();
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(widget);
    area->setWidgetResizable(true);
-   splitter_2->addWidget(splitter);
-   splitter_2->addWidget(area);
+   m_splitter->addWidget(splitter);
+   m_splitter->addWidget(area);
 
-   m_gridLayout->addWidget(splitter_2, 0, 0, 1, 1);
+   gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
 
    /* progress widgets */
    prBar1->setVisible(false);
@@ -618,9 +618,8 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
 void restoreTree::writeSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
-   settings.beginGroup("RestoreTree");
-   settings.setValue("splitterSizes", splitter->saveState());
-   settings.setValue("splitter_2Sizes", splitter_2->saveState());
+   settings.beginGroup(m_groupText);
+   settings.setValue(m_splitText, m_splitter->saveState());
    settings.endGroup();
 }
 
@@ -629,10 +628,11 @@ void restoreTree::writeSettings()
  */
 void restoreTree::readSettings()
 {
+   m_groupText = "RestoreTreePage";
+   m_splitText = "splitterSizes_1";
    QSettings settings(m_console->m_dir->name(), "bat");
-   settings.beginGroup("RestoreTree");
-   splitter->restoreState(settings.value("splitterSizes").toByteArray());
-   splitter_2->restoreState(settings.value("splitter_2Sizes").toByteArray());
+   settings.beginGroup(m_groupText);
+   m_splitter->restoreState(settings.value(m_splitText).toByteArray());
    settings.endGroup();
 }
 
