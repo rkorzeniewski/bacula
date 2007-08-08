@@ -44,7 +44,7 @@ END_OF_DATA
 run_bacula
 touch tmp/log1.out
 check_for_zombie_jobs storage=File
-#stop_bacula
+stop_bacula
 
 dstat=0
 bstat=0
@@ -54,4 +54,4 @@ export bstat
 export rstat
 
 
-#end_test
+end_test
