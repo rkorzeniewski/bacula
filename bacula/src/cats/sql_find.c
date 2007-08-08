@@ -300,7 +300,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
       } else {
          changer[0] = 0;
       }
-      if (strcmp(mr->VolStatus, "Recycled") == 0 ||
+      if (strcmp(mr->VolStatus, "Recycle") == 0 ||
           strcmp(mr->VolStatus, "Purged") == 0) {
          order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
       } else {
