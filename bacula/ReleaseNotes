@@ -1,22 +1,72 @@
 
-          Release Notes for Bacula 2.1.28
+          Release Notes for Bacula 2.2.0 
 
-  Bacula code: Total files = 516 Total lines = 244,888 (*.h *.c *.in)
+  Bacula code: Total files = 520 Total lines = 195,550 (*.h *.c *.in)
 
 This Director and Storage daemon must be upgraded at the same time,
 but they should be compatible with all 2.0.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
-not have to upgrade all your File daemons.  However, bat works only with
-a 2.1.8 Director or greater.
+not have to upgrade all your File daemons when you upgrade. There is
+no database upgrade needed from version 2.0.x to 2.2.0.
 
-!!!!!!!!!!!!!!!!!!!!!!! Please Note !!!!!!!!!!!!!!!!!!!!!!!!!!!
-Restore on Win32, and in particular on Vista is untested. Please
-test before relying on it.  It should backup and restore reparse
-points.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Areas requiring caution or testing:
+- You must have the thread safe version of MySQL client libraries loaded
+  to build with MySQL enabled.
+- Volumes are pruned only when absolutely necessary -- this may cause
+  your database to grow compared to prior Bacula versions.
+- Solaris door and even port files are no longer restored (equivalent
+    to what we do with sockets).
+- SQLite is no longer supported for Solaris -- it fails too often with
+  bus errors.  SQLite3 should work on Solaris.
+- The default setting for SQLite3 is now 'PRAGMA synchronous=OFF'.
+  This makes it run 30 times faster, but increases the possiblity
+  of a corrupted database if your server shuts down unexpectedly.
+  The default behavior can be changed in src/version.h
+- Restore on Win32, and in particular on Vista is untested. Please
+  test before relying on it.  It should backup and restore reparse
+  points.
+- Win32 servers are untested, and very likely not to work.
 
-Changes since Beta release 2.1.26
-- Several bug fixes #842, 893, and some unreported bugs.
+The major new features are:
+- Much faster insertion of attributes (somewhere around 10 times),
+  many thanks to Eric Bollengier and Marc Cousin. 
+- First release of bat (Bacula Administration Tool).  Note to build
+  bat you must explicitly enable it on the ./configure line, you
+  must have the Qt4 version 4.2 or later libraries loaded, the qwt
+  (Qt Graphics) package loaded, and qmake and the other Qt4 tools 
+  must be available. Most of the implementation was done by Dirk Bartley.
+- Red/Black restore in memory tree (500 times faster loading).
+- The Regex Where code to allow easier relocation of restored files 
+  thanks to Eric.
+- Socket level heartbeat for all connections (untested).
+- posix_fadvise() use in the FD to improve performance reduces
+  swapping due to opening/reading lots of files. Win32 equivalent
+  implemented.
+- Much improved Volume reservation code that should eliminate most
+  conflicts experienced in multiple drive autochangers.
+- Simpler locking in the SD in the reservation system.
+- Detection of file size/date change during backup if enabled.
+- New Recycle Pool feature -- thanks to Eric.
+- Efficient implementation of very large include/exclude lists.
+- Volumes are no longer pruned during 'status dir'
+- Pruning is now more efficient, and if a Volume is purged,
+  during pruning, it is immediately discovered.
+- License is now GPL v2 without modifications, fix a few copyright
+  mistakes made when adding FSFE copyright notice.
+
+Other features or bug fixes:
+- Fixed bugs: 916, 910, 917, 914, 906, 907, 
+  842, 830, 893, 861, 888, 886, 807, 877, 872
+  885, 887, 864, 874, 882, 881, 863, 859, 
+  856, 854, 845, 847, 846, 809, 772, 
+  822, 825, 824, 808, 802, 797, 798, 795, 789, 791, 
+  788, 780, 763, 782, 612, 767, 775, 621, 772, 764, 
+  766, 621, 761, 755, 750, 741, 747, 742, 744, and 743.
+- Configure bat with --enable-bat. Define qwt libraries with
+  --with-qwt=<dir>. See Installation chapter of manual for details.
+- Create a depkgs-qt package that has both Qt4 and qwt, which are
+  needed to build bat. Most modern Linux systems will have both
+  these packages in the distro.
 - Storage overrides delete all previous storage definitions instead
   of prepending.
 - One should be able to mount and unmount removable devices if the
@@ -25,149 +75,47 @@ Changes since Beta release 2.1.26
 - ./configure will do a better job of searching for qwt libraries.
 - The Win32 version can no longer be shutdown from the tray monitor.
   Use the command line or the Services panne.
-- Make Mac OS X compile work.
-
-Changes since Beta release 2.1.24
-- Add qwt graphics library (for Qt4) needed to build bat to the
-  depkgs-11Jul07.tar.gz package
-- You now need a --with-qwt=<dir> to be able to build bat.
 - Keep prune_volumes() from pruning the whole Scratch pool.
 - More debug output in status storage.
 - Correct moving a Scratch volume from pool to pool (some
   critical columns were lost).
-- New more efficient db_get_query_dbids() -- not yet implemented
-  everywhere, but currently used in volume pruning.
-
-Changes since Beta release 2.1.22
 - Different locking in reservations and despooling systems,
   which means more micro-locking and less macro-locking, which
   should give a lot more concurrency at the expense of slightly
   (<0.1%) more overhead due to more locking/unlocking, but     
   concurrent jobs should run much faster.
-- Patch from Sergey Svishchev <svs@ropnet.ru> that fixes bug in
-  migration code where a job that spanned two volumes was
-  migrated twice.
-
-Changes since Beta release 2.1.20
-- New graphs in bat
-- Due to a typo, I had inadvertantly turned off batch insert mode.  
-  It is now re-enabled
-- Possible fix for bug #888 (dropped comm lines using TLS).
-- Test version of Win32 binaries for Vista.
-
-Changes since Beta release 2.1.18
-- Fixed bug #886 (multidrive autochanger: SD doesn't use drive with
-  loaded tape but uses first drive).
-- Fixed bug #807 Restore encrypted backup failed on Windows 2003
-  This was indeed a Win32 issue.
-
-Changes since Beta release 2.1.12
-- Version 2.1.14 not released.
-- Possible solution to Win32 encryption restore signature errors.
-- Reload with syntax errors in @include now works.
-- Gnome console builds with encryption.
-- Fixed bugs #864, 872, 874, 882, 882, 877, 886, 885.
-- License is now GPL v2 without modifications, fix a few copyright
-  mistakes made when adding FSFE copyright notice.
-- Fix update all from pool to pass pool name.
-- Correct reservation system bug that invalidated Volumes by
-  calling find_next_appendable volume before acquiring a device.
-
-Changes since Beta release 2.1.10
-- Lots of new bat functionality !!!!!!
 - Additional drive reservation algorithm that should solve a lot of
   the problems experienced with multiple drive autochangers.
-- Reload was broken in 2.1.10 -- now fixed.
 - Storage daemon status command enhanced to more clearly show Volume,
   pool and media type when a job is waiting.
 - Made bsmtp work with more strict SMTP servers.
 - Detect doubly freed buffers in smartall.c
-- Reduce the impact of a backup on the FD's memory usage (OS file
-  caching). This works only on POSIX compliant systems. This allows
-  users to work with less interference on a Client machine during a
-  backup.
-- bat should now handle non-English characters.
-- ./configure now permits --enable-batch-insert (as well as --disable...).
-  This feature is enabled by default if your SQL libraries are thread
-  safe.
-- The default setting for SQLite3 is now 'PRAGMA synchronous=OFF'.
-  This makes it run 30 times faster, but increases the possiblity
-  of a corrupted database if your server shuts down unexpectedly.
-  The default behavior can be changed in src/version.h
-
-Areas requiring caution or testing:
-- You must have Qt4 Version 4.2 or greater loaded to build bat
-- You must have the thread safe version of MySQL client libraries loaded
-  to build with MySQL enabled.
-- The Volume management in the Storage daemon is extensively rewritten.
-  It appears to function much better, but is largely untested under
-  severe production stress conditions (multiple drive autochangers, ...).
-- Volumes are pruned only when absolutely necessary -- this may cause
-  your database to grow compared to prior Bacula version.
-- Socket level heartbeat is untested.
-- Solaris door and even port files are no longer restored (equivalent
-    to what we do with sockets).
-- Win32 servers are untested, and very likely not to work.
-- SQLite is no longer supported for Solaris -- it fails too often with
-  bus errors.     
-
-The major new features are:
-- Much faster insertion of attributes (somewhere around 10 times),
-  many thanks to Eric Bollengier and Marc Cousin. 
-- First cut of bat (Bacula Administration Tool).  Note to build
-  bat you must explicitly enable it on the ./configure line, you
-  must have the Qt4 version 4.2 or later libraries loaded, and
-  qmake and the other Qt4 tools must be available.  bat is ALPHA
-  software.  A large part of the work was done by Dirk Bartley.
-- Red/Black restore in memory tree (500 times faster loading).
-- The Regex Where code to allow easier relocation of restored files 
-  thanks to Eric.
-- Socket level heartbeat for all connections (untested).
-- posix_fadvise() use in the FD to improve performance.
-- Simpler locking in the SD in the reservation system.
-- Much improved Volume reservation code that should eliminate most
-  conflicts experienced in multiple drive autochangers.
-- Detection of file size/date change during backup if enabled.
-- New Recycle Pool feature -- thanks to Eric.
-- Efficient implementation of very large include/exclude lists.
-- Volumes are no longer pruned during 'status dir'
-- Pruning is now more efficient, and if a Volume is purged,
-  during pruning, it is immediately discovered.
-
-Other features or bug fixes:
-- Fixed bugs: 856, 854, 845, 847, 846, 809, 772, 
-  822, 825, 824, 808, 802, 797, 798, 795, 789, 791, 
-  788, 780, 763, 782, 612, 767, 775, 621, 772, 764, 
-  766, 621, 761, 755, 750, 741, 747, 742, 744, and 743.
-- Only the minumum number of volumes are pruned rather than
-  all volumes in the pool.
-- wx-console renamed to bwx-console
-- gnome-console renamed to bgnome-console
+- wx-console renamed to bwx-console (Fedora request)
+- gnome-console renamed to bgnome-console (Fedora request)
 - Migration preserves original job's FileSetId
 - Spooling implemented for migration jobs.
 - Config files can be read through a pipe, by specifying a leading |
   in front of the configuration path/filename.
 - New memory command (bconsole) that will print the current Director's
-  memory usage, and a in use buffer dump.
-- Solaris door and event port files are no longer restored.
+  memory usage, and an in use buffer dump.
 - Console name changed from *Console* to -Console- to accomodate Win32
   filename restrictions.  
-- Corrected Win32 ftruncate bug.
+- Corrected the Win32 ftruncate bug.
 - Additional version information added to Job reports.
 - New -8 option for bsmtp to specify UTF-8 encoding type.
 - bsmtp will no longer add < > to target (from, to, cc) if there
   is already a < in the target.
-- Perfer Mounted Volumes extended to mean a volume that is being
+- Prefer Mounted Volumes extended to mean a volume that is being
   mounted by another job.
 - Runscript timing set to same as version 1.38.11
 - New TLS Allowed CN directive(s) permitted.
 - New bconsole 'exec' command to run external script/command.
 - Turn on FreeBSD/OpenBSD code to set EOT model on tape.
 - Drop from root done before database is opened.
-- database user and name can be configured with:
+- Database user and name can be configured with:
   --with-db-name=name --with-db-user=user
-- turn on wait_for_drive in mtx-changer script.
-- rework how bar codes are handled in mtx-changer script.
+- Turn on wait_for_drive in mtx-changer script.
+- Rework how bar codes are handled in mtx-changer script.
   This appears to have been an unreported bug.
 - Updated nagios plugin supplied by Christian Masopust
 - Better restricted console ACL checking.

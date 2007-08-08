@@ -1,6 +1,73 @@
               Technical notes on version 2.1
 
 General:
+08Aug07
+kes  Update bat README file.
+kes  Apply patch from Allan Black <Allan.Black@btconnect.com> that     
+     corrects a typo in the Recycle status check in db_find_next_volume().
+     This will probably fix a number of annoying problems with multiple
+     Recycled volumes.
+kes  Modify most of dird/msgchan.c to use bsock class calls rather than
+     bnet calls -- no functionality change.
+07Aug07 
+kes  Modify the Verify output to specify if files are missing on    
+     the Volume(s) or disk.  Fixes confusion in bug #916.
+kes  When more than one Volume is read in a migration job, the last
+     Volume bytes reported are from the last read volume rather than
+     the last written volume. Fixed. This fixes bug #910.
+kes  Fix display of Recycle flag after update volume=foo recycle=yes.
+     It previously printed New Recyle flag is: no. This fixes bug
+     #917.
+06Aug07
+kes  Correct seg fault when switching tape drives during restore.
+kes  Commit uid_gid_name.c (replacement for idcache.c), but will not
+     be used until after 2.2.0 release.
+04Aug07
+kes  Remove fnmatch() in SD that permitted wild card specifications.
+     This fixes bug #914.
+31Jul07
+kes  Fix %g in filename returned by SQL for browse tree reported by
+     Dirk.
+kes  Fix configure so that it puts config.out in the cwd rather than
+     in src/qt-console
+kes  Attempt to fix the locking problem reported by Eric in bug #906.
+kes  Make berrno class to leave errno unchanged after constructor call.
+kes  Make bnet_server use the heap rather than the stack to allocate
+     its socket fd pointers to avoid a crash at termination. Problem
+     reported by Ryan Novosielski and bugs pointed out by Martin Simmons.
+30Jul07 
+kes  Create new depkgs and depkgs-qt separating the qwt out of depkgs
+     and putting it in depkgs-qt along with Qt4.3.
+29Jul07
+kes  Rework code in acquire.c that switches drives for reading when
+     the Media Type does not match. This should fix bug #906
+28Jul07
+ebl  Fix a director segfault during job setup #907
+kes  Correct seg fault in postgresql when first operation returns no
+     rows.  Fixes Dirks File browser problem seg fault with bat.
+25Jul07
+kes  Apply patch from Felix Schwarz <Felix.Schwarz@web.de> that allows
+     building wxconsole on Fedora 7 with wxWidgets 2.8 (it works with
+     2.6 as well).
+24Jul07 
+kes  Implement PopUp YES/NO dialog for bat.
+23Jul07
+ebl  Fix a compilation bug when using #define BACL_WANT_NUMERIC_IDS
+22Jul07
+kes  Correct RunScript to terminate job in FD on failure.
+kes  Change abort_on_error and AbortJobOnError to fail_on_error
+     and FailJobOnError in RunScripts.
+kes  Minor tweaks of code formating in RunScripts, principally to
+     avoid depassing 80 columns.
+21Jul07
+kes  Eliminate one #ifdef Win32 in bsmtp
+kes  Implement grow tool to grow a file for testing very large databases.
+kes  Add big-vol-test to test Bacula seeking with > 5GB.
+Release 2.1.28 beta
+19Jul07
+kes  Modify find_next_volume() to return all values in Media record.
+kes  Ensure that we keep Recycle Pool when moving Scratch volumes.
+
 Release 2.1.28 beta
 18Jul08
 kes  Update Release notes 
