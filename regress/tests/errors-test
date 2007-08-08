@@ -37,6 +37,18 @@ messages
 run job=REMOTE_EXCL_ERROR yes
 wait
 messages
+@$out tmp/REMOTE_RUNSCRIPT_ERROR.log
+run job=REMOTE_RUNSCRIPT_ERROR yes
+wait
+messages
+@$out tmp/LOCAL_RUNSCRIPT_ERROR.log
+run job=LOCAL_RUNSCRIPT_ERROR yes
+wait
+messages
+@$out tmp/CLIENT_CONNECT_TIMEOUT.log
+run job=CLIENT_CONNECT_TIMEOUT yes
+wait
+messages
 st dir
 quit
 END_OF_DATA
@@ -44,7 +56,7 @@ END_OF_DATA
 run_bacula
 touch tmp/log1.out
 check_for_zombie_jobs storage=File
-stop_bacula
+#stop_bacula
 
 dstat=0
 bstat=0
@@ -54,4 +66,4 @@ export bstat
 export rstat
 
 
-end_test
+#end_test
