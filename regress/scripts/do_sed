@@ -37,6 +37,7 @@ echo "TAPE_DRIVE1=\"${5}\"" >>config.out
 
 
 # process .in files with sed script
+sed -f ${out} ${cwd}/scripts/bacula-dir.conf.errors.in >${cwd}/scripts/bacula-dir.conf.errors
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.regexwhere.in >${cwd}/scripts/bacula-dir.conf.regexwhere
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.maxtime.in >${cwd}/scripts/bacula-dir.conf.maxtime
