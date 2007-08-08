@@ -7,8 +7,9 @@ TestName="errors-test"
 JobName=backup
 
 . scripts/functions
+
+scripts/cleanup
 copy_test_confs
-set_debug 0
 
 rm -f tmp/*.log
 /bin/cp -f scripts/bacula-dir.conf.errors bin/bacula-dir.conf
@@ -20,8 +21,8 @@ start_test
 cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
-label volume=TestVolume001
 @output tmp/LOCAL_INC_ERROR.log
+label volume=TestVolume001
 run job=LOCAL_INC_ERROR yes
 wait
 messages
@@ -49,7 +50,8 @@ messages
 run job=CLIENT_CONNECT_TIMEOUT yes
 wait
 messages
-st dir
+status dir
+status storage=File
 quit
 END_OF_DATA
 
