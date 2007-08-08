@@ -71,25 +71,25 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    daysSpinBox->setValue(mainWin->m_daysLimitVal);
    dockPage();
 
-   QGridLayout *m_gridLayout = new QGridLayout(this);
-   m_gridLayout->setSpacing(6);
-   m_gridLayout->setMargin(9);
-   m_gridLayout->setObjectName(QString::fromUtf8("m_gridLayout"));
+   QGridLayout *gridLayout = new QGridLayout(this);
+   gridLayout->setSpacing(6);
+   gridLayout->setMargin(9);
+   gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
 
-   splitter = new QSplitter(Qt::Vertical, this);
+   m_splitter = new QSplitter(Qt::Vertical, this);
    QScrollArea *area = new QScrollArea();
    area->setObjectName(QString::fromUtf8("area"));
    area->setWidget(frame);
    area->setWidgetResizable(true);
-   splitter->addWidget(mp_tableWidget);
-   splitter->addWidget(area);
+   m_splitter->addWidget(mp_tableWidget);
+   m_splitter->addWidget(area);
 
-   m_gridLayout->addWidget(splitter, 0, 0, 1, 1);
+   gridLayout->addWidget(m_splitter, 0, 0, 1, 1);
    readSettings();
 }
 
 /*
- * Write the splitter settings in the destructor
+ * Write the m_splitter settings in the destructor
  */
 JobList::~JobList()
 {
@@ -592,8 +592,8 @@ void JobList::graphTable()
 void JobList::writeSettings()
 {
    QSettings settings(m_console->m_dir->name(), "bat");
-   settings.beginGroup("JobListPage");
-   settings.setValue("splitterSizes", splitter->saveState());
+   settings.beginGroup(m_groupText);
+   settings.setValue(m_splitText, m_splitter->saveState());
    settings.endGroup();
 }
 
@@ -602,8 +602,10 @@ void JobList::writeSettings()
  */
 void JobList::readSettings()
 {
+   m_groupText = "JobListPage";
+   m_splitText = "splitterSizes_1";
    QSettings settings(m_console->m_dir->name(), "bat");
-   settings.beginGroup("JobListPage");
-   splitter->restoreState(settings.value("splitterSizes").toByteArray());
+   settings.beginGroup(m_groupText);
+   m_splitter->restoreState(settings.value(m_splitText).toByteArray());
    settings.endGroup();
 }
