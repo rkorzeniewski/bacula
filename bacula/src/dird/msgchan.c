@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-20076 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -112,7 +112,7 @@ bool connect_to_storage_daemon(JCR *jcr, int retry_interval,
    jcr->store_bsock = sd;
 
    if (!authenticate_storage_daemon(jcr, store)) {
-      bnet_close(sd);
+      sd->close();
       jcr->store_bsock = NULL;
       return false;
    }
@@ -134,7 +134,7 @@ bool update_device_res(JCR *jcr, DEVICE *dev)
    sd = jcr->store_bsock;
    pm_strcpy(device_name, dev->name());
    bash_spaces(device_name);
-   bnet_fsend(sd, query_device, device_name.c_str());
+   sd->fsend(query_device, device_name.c_str());
    Dmsg1(100, ">stored: %s\n", sd->msg);
    /* The data is returned through Device_update */
    if (bget_dirmsg(sd) <= 0) {
@@ -178,16 +178,16 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
     *  for the same jobid.
     */
    if (jcr->reschedule_count) {
-      bnet_fsend(sd, "cancel Job=%s\n", jcr->Job);
-      while (bnet_recv(sd) >= 0)
+      sd->fsend("cancel Job=%s\n", jcr->Job);
+      while (sd->recv() >= 0)
          { }
    } 
-   bnet_fsend(sd, jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, 
-              job_name.c_str(), client_name.c_str(), 
-              jcr->JobType, jcr->JobLevel,
-              fileset_name.c_str(), !jcr->pool->catalog_files,
-              jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
-              jcr->write_part_after_job, jcr->job->PreferMountedVolumes);
+   sd->fsend(jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, 
+             job_name.c_str(), client_name.c_str(), 
+             jcr->JobType, jcr->JobLevel,
+             fileset_name.c_str(), !jcr->pool->catalog_files,
+             jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
+             jcr->write_part_after_job, jcr->job->PreferMountedVolumes);
    Dmsg1(100, ">stored: %s\n", sd->msg);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(100, "<stored: %s", sd->msg);
@@ -202,7 +202,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
        }
    } else {
       Jmsg(jcr, M_FATAL, 0, _("<stored: bad response to Job command: %s\n"),
-         bnet_strerror(sd));
+         sd->bstrerror());
       return 0;
    }
 
@@ -232,20 +232,20 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);
-         bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
-                    pool_name.c_str(), pool_type.c_str(), 0, copy, stripe);
+         sd->fsend(use_storage, store_name.c_str(), media_type.c_str(), 
+                   pool_name.c_str(), pool_type.c_str(), 0, copy, stripe);
          Dmsg1(100, "rstore >stored: %s", sd->msg);
          DEVICE *dev;
          /* Loop over alternative storage Devices until one is OK */
          foreach_alist(dev, storage->device) {
             pm_strcpy(device_name, dev->name());
             bash_spaces(device_name);
-            bnet_fsend(sd, use_device, device_name.c_str());
+            sd->fsend(use_device, device_name.c_str());
             Dmsg1(100, ">stored: %s", sd->msg);
          }
-         bnet_sig(sd, BNET_EOD);            /* end of Devices */
+         sd->signal(BNET_EOD);           /* end of Devices */
       }
-      bnet_sig(sd, BNET_EOD);            /* end of Storages */
+      sd->signal(BNET_EOD);              /* end of Storages */
       if (bget_dirmsg(sd) > 0) {
          Dmsg1(100, "<stored: %s", sd->msg);
          /* ****FIXME**** save actual device name */
@@ -266,8 +266,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);
-         bnet_fsend(sd, use_storage, store_name.c_str(), media_type.c_str(), 
-                    pool_name.c_str(), pool_type.c_str(), 1, copy, stripe);
+         sd->fsend(use_storage, store_name.c_str(), media_type.c_str(), 
+                   pool_name.c_str(), pool_type.c_str(), 1, copy, stripe);
 
          Dmsg1(100, "wstore >stored: %s", sd->msg);
          DEVICE *dev;
@@ -275,12 +275,12 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
          foreach_alist(dev, storage->device) {
             pm_strcpy(device_name, dev->name());
             bash_spaces(device_name);
-            bnet_fsend(sd, use_device, device_name.c_str());
+            sd->fsend(use_device, device_name.c_str());
             Dmsg1(100, ">stored: %s", sd->msg);
          }
-         bnet_sig(sd, BNET_EOD);            /* end of Devices */
+         sd->signal(BNET_EOD);           /* end of Devices */
       }
-      bnet_sig(sd, BNET_EOD);            /* end of Storages */
+      sd->signal(BNET_EOD);              /* end of Storages */
       if (bget_dirmsg(sd) > 0) {
          Dmsg1(100, "<stored: %s", sd->msg);
          /* ****FIXME**** save actual device name */

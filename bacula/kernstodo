@@ -58,6 +58,7 @@ Professional Needs:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
 
 Priority:
+- Implement SDErrors (must return from SD)
 - Implement USB keyboard support in rescue CD.
 - Remove all install temp files in Win32 PLUGINSDIR.
 - Audit retention periods to make sure everything is 64 bit.
