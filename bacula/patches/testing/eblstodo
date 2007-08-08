@@ -12,23 +12,41 @@ Sauvegarde des postes nomades :
  - Le client doit pouvoir initier les sauvegardes
  - Au niveau firewall, il ne doit y avoir que 1 connexion (1)
 		    
-		    
-		    	    +---------+	  +---------------+
-		    	    |         |	  |               |
-		    	    |         |	  |    DIRECTOR   |
-+------------+	   1	    |         |	  |               |
-|            +------------->|         |	  |               |
-|    FD      |		    |  PROXY  |	  +---------------+
-|            |		    |         |	  +---------------+
-+------------+		    |         |	  |               |
-			    |         |	  |    STORAGE    |
-			    |         |	  |               |
-			    |         |	  |               |
-			    +---------+	  +---------------+
+					      
+	     Localhost 	   |   	       	      
+	      	       	   |   +-------+ (4) +---------------+
+	    	       	   |   |       |<----|               |
++--------+  (5)	 +-------+ |   |       |     |   DIRECTOR    |
+|        |<------+       | |   |       |---->|               |
+|   FD 	 |     	 | PROXY | |   | PROXY | (3) +-------+-------+
+|        +------->       <-+--->       |      	     |
++--------+  (6)  +-^-----+ (2) |       |     +-------v-------+
+    	          /-\ 	   |   |       | (7) |               |
+    	           |   	   |   |       +----->   STORAGE     |
+    	           |       |   |       |     |               |
+  Initiate backup  |       |   +-------+     +---------------+
+     --------------+ 	   |   		      	      
+       	   (1)	        Network       		      	      
+       	       	     	       		      	      
+    			       		      
+(1) & (2) BEGIN Backup	       
+(3) Bconsole like - Run command
+(4) & (5) DIR -> (PROX <-> PROX) -> FD connection (fileset, storage..)
+(6) & (7) FD -> (PROX <-> PROX) -> SD
+
+
 
 Bconsole :
  - Ajouter l'historique dans la bconsole
+ - Ajouter une commande pour bloquer un drive
 
+Sauvegarde SAN :
+ - Avoir un SD sur chaque FD
+ - Avoir une serie de script qui :
+   * bascule le lecteur en local
+   * lance le SD
+   * le script de mtx doit faire ses demandes au director sur
+     un autochanger commun
 
 Gestion des stats :
  - Ajouter la gestion des stats dans le client et le sd
@@ -59,7 +77,9 @@ bacula :
    o pb execution de commande
  - Utiliser la lib pcre
  - Rendre les scripts bacula-ctl-xxx LSB
- - Pouvoir utiliser les uid numeriques dans le backup des acl
+ x Pouvoir utiliser les uid numeriques dans le backup des acl
  - Avoir un script qui dump la configuration pour faire
    des bug reports
+ - modifier l'organisation de la table version (pour pouvoir ajouter
+   les versions de bweb par exemple)
 
