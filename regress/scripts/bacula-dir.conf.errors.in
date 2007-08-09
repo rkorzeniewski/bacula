@@ -22,14 +22,15 @@ Director {                            # define myself
   Maximum Concurrent Jobs = 4
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
   Messages = Standard
-  fdconnecttimeout = 10
+  fdconnecttimeout = 20
+  sdconnecttimeout = 20
 }
 
 JobDefs {
   Name = "DefaultJob"
   Type = Backup
   Level = Incremental
-  Client = @hostname@-fd 
+  client=@hostname@-fd 
   Storage = File
   Messages = Standard
   Pool = Default
@@ -38,9 +39,9 @@ JobDefs {
 }
 
 Job {
-  Name = "LOCAL_INC_ERROR"
+  Name = "LOCAL_INC_ERR"
   JobDefs = DefaultJob
-  FileSet = FS_LOCAL_INC_ERROR
+  FileSet = FS_LOCAL_INC_ERR
   RunBeforeJob = "/bin/echo RunBeforeJob"
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
@@ -55,16 +56,16 @@ FileSet {
 }
 
 FileSet {
- Name = FS_REMOTE_INC_ERROR
+ Name = FS_REMOTE_INC_ERR
  Include {
    File="\</tmp/path/to/nowhere"
  }
 }
 
 Job {
-  Name = "REMOTE_INC_ERROR"
+  Name = "REMOTE_INC_ERR"
   JobDefs = DefaultJob
-  FileSet = FS_REMOTE_INC_ERROR
+  FileSet = FS_REMOTE_INC_ERR
   RunBeforeJob = "/bin/echo RunBeforeJob"
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
@@ -72,12 +73,12 @@ Job {
 }
 
 FileSet {
- Name = FS_LOCAL_INC_ERROR
+ Name = FS_LOCAL_INC_ERR
  Include { File=</tmp/path/to/nowhere }
 }
 
 FileSet {
- Name = FS_LOCAL_EXCL_ERROR
+ Name = FS_LOCAL_EXCL_ERR
  Include { File=</tmp/file-list }
  Exclude {
    File=</tmp/path/to/nowhere
@@ -85,9 +86,9 @@ FileSet {
 }
 
 Job {
-  Name = "LOCAL_EXCL_ERROR"
+  Name = "LOCAL_EXCL_ERR"
   JobDefs = DefaultJob
-  FileSet = FS_LOCAL_EXCL_ERROR
+  FileSet = FS_LOCAL_EXCL_ERR
   RunBeforeJob = "/bin/echo RunBeforeJob"
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
@@ -96,7 +97,7 @@ Job {
 
 
 FileSet {
- Name = FS_REMOTE_EXCL_ERROR
+ Name = FS_REMOTE_EXCL_ERR
  Include { File=</tmp/file-list }
  Exclude {
    File="\</tmp/path/to/nowhere"
@@ -104,16 +105,16 @@ FileSet {
 }
 
 Job {
-  Name = "REMOTE_EXCL_ERROR"
+  Name = "REMOTE_EXCL_ERR"
   JobDefs = DefaultJob
-  FileSet = FS_REMOTE_EXCL_ERROR
+  FileSet = FS_REMOTE_EXCL_ERR
   RunBeforeJob = "/bin/echo RunBeforeJob"
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
   ClientRunAfterJob = "/bin/echo ClientRunAfterJob"
 }
 Job {
-  Name = "REMOTE_RUNSCRIPT_ERROR"
+  Name = "REMOTE_RUNSCRIPT_ERR"
   JobDefs = DefaultJob
   FileSet = FS_TEST
   RunBeforeJob = "/bin/echo RunBeforeJob"
@@ -122,7 +123,7 @@ Job {
   ClientRunAfterJob = "/bin/echo ClientRunAfterJob"
 }
 Job {
-  Name = "LOCAL_RUNSCRIPT_ERROR"
+  Name = "LOCAL_RUNSCRIPT_ERR"
   JobDefs = DefaultJob
   FileSet = FS_TEST
   RunBeforeJob = "/bin/false"
@@ -135,6 +136,17 @@ Job {
   JobDefs = DefaultJob
   Client = @hostname@2-fd
   FileSet = FS_TEST
+  RunBeforeJob = "/bin/echo RunBeforeJob"
+  ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
+  Run After Job = "/bin/echo RunAfterJob"
+  ClientRunAfterJob = "/bin/echo ClientRunAfterJob"
+}
+Job {
+  Name = "SD_CONNECT_TIMEOUT"
+  JobDefs = DefaultJob
+  Client = @hostname@-fd
+  FileSet = FS_TEST
+  Storage = File2
   RunBeforeJob = "/bin/echo RunBeforeJob"
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
@@ -175,6 +187,17 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
   Media Type = File
+  Maximum Concurrent Jobs = 4
+}
+
+# Definiton of file storage device not responding
+Storage {
+  Name = File2
+  Address = @hostname@                # N.B. Use a fully qualified name here
+  SDPort = 7103
+  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
+  Device = FileStorage
+  Media Type = File2
   Maximum Concurrent Jobs = 4
 }
 
