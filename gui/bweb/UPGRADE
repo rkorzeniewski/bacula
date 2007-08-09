@@ -1,0 +1,10 @@
+          Upgrade notes for Bweb
+
+Upgrade from 2.0.X to 2.2.Y
+---------------------------
+
+ - Add group tables to your catalog
+   mysql) 
+	load the bweb-mysql.sql file
+   postgresql)
+        load the bweb/script/upgrade-2.0_2.2_postgresql.sql
