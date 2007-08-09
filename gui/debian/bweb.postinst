@@ -35,6 +35,9 @@ if [ "$1" = "configure" ] ; then
  echo "by your www-data. You meed to use :"
  echo "chmod 644 /etc/bacula/bconsole.conf"
  echo "chmod 755 /usr/bin/bconsole"
+ echo
+ echo "If you are upgrading from a previous version, read /usr/share/doc/bweb/UPGRADE notes"
+ echo
  
 fi
 
