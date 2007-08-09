@@ -441,7 +441,7 @@ static int user_select_jobids_or_files(UAContext *ua, RESTORE_CTX *rx)
       "add_prefix",   /* 16 */
       "add_suffix",   /* 17 */
       "regexwhere",   /* 18 */
-      "clientrestore", /* 19 */
+      "restoreclient", /* 19 */
       NULL
    };
 
