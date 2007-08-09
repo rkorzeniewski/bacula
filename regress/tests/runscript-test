@@ -11,6 +11,9 @@ copy_test_confs
 
 rm -f bin/bacula-dir.conf
 rm -f tmp/RUN*log
+rm -f tmp/RUN_FD_FAILED
+
+touch tmp/log1.out
 /bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
 
 echo "${cwd}/build/po" >/tmp/file-list
@@ -94,7 +97,8 @@ grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_F
 b=$?
 grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
-grep 'touching' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+#grep 'touching' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+test -f tmp/RUN_FD_FAILED
 d=$?
 grep '*** Backup Error ***' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 e=$?
