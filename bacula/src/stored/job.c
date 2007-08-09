@@ -177,7 +177,7 @@ bool run_cmd(JCR *jcr)
     *  expires.
     */
    P(mutex);
-   for ( ;!job_canceled(jcr); ) {
+   for ( ; !job_canceled(jcr); ) {
       errstat = pthread_cond_timedwait(&jcr->job_start_wait, &mutex, &timeout);
       if (errstat == 0 || errstat == ETIMEDOUT) {
          break;
