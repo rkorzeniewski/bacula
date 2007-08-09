@@ -1028,7 +1028,7 @@ AC_SUBST(piddir)
 # ------------------------------------
 # Where to place subsys "lock file"
 # ------------------------------------
-ubsysdir=/var/run/subsys
+subsysdir=/var/run/subsys
 if test -d /var/run/subsys; then
    subsysdir=/var/run/subsys
 elif test -d /var/lock/subsys; then
