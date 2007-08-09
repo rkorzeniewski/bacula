@@ -84,7 +84,7 @@ stop_bacula()
 
 check_for_zombie_jobs()
 {
-   scripts/check_for_zombie_jobs $1
+   scripts/check_for_zombie_jobs $*
 }
 
 change_jobname()
