@@ -248,7 +248,6 @@
 ./src/lib/dlist.h
 ./src/lib/enh_fnmatch.h
 ./src/lib/fnmatch.h
-./src/lib/getopt.h
 ./src/lib/htable.h
 ./src/lib/lex.h
 ./src/lib/lib.h
@@ -303,7 +302,6 @@
 ./src/win32/compat/mswinver.h
 ./src/win32/compat/netdb.h
 ./src/win32/compat/pwd.h
-./src/win32/compat/sched.h
 ./src/win32/compat/stdint.h
 ./src/win32/compat/strings.h
 ./src/win32/compat/syslog.h
