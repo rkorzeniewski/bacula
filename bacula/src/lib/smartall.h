@@ -60,7 +60,7 @@ extern void sm_new_owner(const char *fname, int lineno, char *buf);
 extern void sm_check(const char *fname, int lineno, bool bufdump);
 extern int sm_check_rtn(const char *fname, int lineno, bool bufdump);
 #else
-#define Dsm_check(lvl, f, l, fl)
+#define Dsm_check(lvl)
 #define sm_check(f, l, fl)
 #define sm_check_rtn(f, l, fl) 1
 #endif
