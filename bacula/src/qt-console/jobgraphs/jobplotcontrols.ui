@@ -85,7 +85,7 @@
        <item>
         <widget class="QCheckBox" name="byteCheck" >
          <property name="text" >
-          <string>By te Data</string>
+          <string>Byte Data</string>
          </property>
         </widget>
        </item>
