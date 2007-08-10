@@ -2,12 +2,9 @@
 #
 # Run all tape tests
 #
-nice tests/test0
+echo "Start two tape tests"
+echo "Start two tape tests" >>test.out
 nice tests/two-volume-tape
 nice tests/incremental-2tape
-echo " "
-echo " "
-echo "2 Tape Test results"
-cat build/config.out
-cat test.out
-scripts/cleanup
+echo "End two tape tests"
+echo "End two tape tests" >>test.out

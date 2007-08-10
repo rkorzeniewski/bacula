@@ -3,5 +3,4 @@
 # Run all tests
 #
 ./all-non-root-tests
-./endtime
 ./all-non-root-tape-tests
