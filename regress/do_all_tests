@@ -3,8 +3,18 @@
 if [ ! -f bin/tape_options ] ; then
   touch bin/tape_options
 fi
+echo " " >test.out
+cat build/config.out >>test.out
+echo " " >>test.out
+echo "Test results" >>test.out
+echo " " >>test.out
+./starttime
 nice ./all-non-root-tests
-
 nice ./all-non-root-tape-tests
 nice ./all-non-root-2tape-tests
+echo " "
+echo "End do_all tests"
+echo "End do_all tests" >>test.out
+scripts/cleanup
+cat test.out
 ./endtime

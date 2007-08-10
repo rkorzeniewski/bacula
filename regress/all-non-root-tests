@@ -2,9 +2,10 @@
 #
 # Run all tests
 #
-rm -f test1.out
-tests/test0
 echo " "
+echo " " >>test.out
+echo "Start non-root disk tests"
+echo "Start non-root disk tests" >>test.out
 nice tests/auto-label-test
 nice tests/backup-bacula-test
 nice tests/bextract-test
@@ -50,8 +51,15 @@ nice tests/migration-volume-test
 nice tests/migration-time-test
 nice tests/hardlink-test
 nice tests/tls-test
+echo "End non-root disk tests"
+echo "End non-root disk tests" >>test.out
+
 # 
 # The following are Virtual Disk Autochanger tests
+echo " "
+echo " " >>test.out
+echo "Start non-root virtual disk autochanger tests"
+echo "Start non-root virtual disk autochangertests" >>test.out
 #nice tests/three-pool-recycle-test
 nice tests/two-pool-test
 nice tests/fast-two-pool-test
@@ -63,8 +71,5 @@ nice tests/2drive-concurrent-test
 nice tests/incremental-2media
 nice tests/three-pool-test
 nice tests/2drive-3pool-test
-echo " "
-echo "Test results"
-cat build/config.out
-cat test.out
-scripts/cleanup
+echo "End non-root virtual disk autochanger tests"
+echo "End non-root virtual disk autochangertests" >>test.out

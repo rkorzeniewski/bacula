@@ -6,8 +6,10 @@
 if test ! x$AUTOCHANGER = x/dev/null ; then
    mtx -f $AUTOCHANGER load 1 >/dev/null &2>/dev/null
 fi
-cp test.out test1.out
-nice tests/test0
+echo " "
+echo " " >>test.out
+echo "Start all non-root tape tests"
+echo "Start all non-root tape tests" >>test.out
 nice tests/backup-bacula-tape
 nice tests/btape-fill-tape
 nice tests/fixed-block-size-tape
@@ -22,9 +24,5 @@ nice tests/two-pool-tape
 nice tests/2drive-incremental-2tape
 nice tests/bscan-tape
 nice tests/verify-vol-tape
-echo " "
-echo " "
-echo "Test results"
-cat build/config.out
-cat test.out
-scripts/cleanup
+echo "End all non-root tape tests"
+echo "End all non-root tape tests" >>test.out

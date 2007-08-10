@@ -2,11 +2,13 @@
 #
 # Run all root tests
 #
-rm -f test.out
+echo " "
+echo " " >>test.out
+echo "Start root tests"
+echo "Start root tests" >>test.out
 tests/dev-test-root
 tests/etc-test-root
 tests/lib-test-root
 tests/usr-tape-root
-cat build/config.out
-cat test.out
-scripts/cleanup
+echo "End root tests"
+echo "End root tests" >>test.out
