@@ -3,7 +3,7 @@
  */
 
 #undef  VERSION
-#define VERSION "2.1.30"
+#define VERSION "2.2.0"
 #define BDATE   "08 August 2007"
 #define LSMDATE "08Aug07"
 
@@ -46,7 +46,7 @@
 #define TRACE_FILE 1
 
 /* If this is set stdout will not be closed on startup */
-#define DEVELOPER 1
+/* #define DEVELOPER 1 */
 
 /*
  * SMCHECK does orphaned buffer checking (memory leaks)
