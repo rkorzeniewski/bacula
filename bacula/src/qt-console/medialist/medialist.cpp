@@ -115,7 +115,7 @@ void MediaList::populateTree()
          " Media.LastWritten AS LastWritten"
          " FROM Media"
          " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
-         " LEFT OUTER JOIN Pool AS Pol ON (Media.recyclepoolid=Pol.PoolId)"
+         " LEFT OUTER JOIN Pool AS Pol ON (Media.RecyclePoolId=Pol.PoolId)"
          " WHERE";
       query += " Pool.Name='" + pool_listItem + "'";
       query += " ORDER BY Media";
