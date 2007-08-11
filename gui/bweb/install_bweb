@@ -115,12 +115,17 @@ fi
 install -m 644 -o root -g root  html/*.{js,png,css,gif,ico,html} ${WEB_DIR}/bweb
 
 echo " "
-echo "Please edit /etc/bweb.conf and ensure that all the paths to"
+echo "Please edit ${CONF_DIR}/bweb.conf and ensure that all the paths to"
 echo "  the various programs and files such as bconsole, bconsole.conf"
 echo "  are correct, and that the DBI driver is correct (default mysql)"
 echo "  and has the right password for your DB"
 echo " "
- 
-
+echo "You have to load sql scripts (in bweb/script) to your database with"
+echo "  something like :"
+echo "   root# mysql bacula < script/bweb-mysql.sql"
+echo "  or"
+echo "   postgres# echo 'CREATE PROCEDURAL LANGUAGE plpgsql;' | psql bacula"
+echo "   postgres# psql -U bacula -P passwd < script/bweb/bweb-postgresql.sql"
+echo " "
 
 # done !
