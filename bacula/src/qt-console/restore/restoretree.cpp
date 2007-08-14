@@ -169,7 +169,7 @@ void restoreTree::populateDirectoryTree()
    m_directoryIconStateHash.clear();
 
    updateRefresh();
-   int taskcount = 2, ontask = 1;
+   int taskcount = 3, ontask = 1;
    if (m_dropdownChanged) taskcount += 1;
    
    /* Set progress bars and repaint */
@@ -208,7 +208,7 @@ void restoreTree::populateDirectoryTree()
 
    if (m_checkedJobs != "") {
       QString cmd =
-         "SELECT DISTINCT Path.Path AS Path"
+         "SELECT DISTINCT Path.Path AS Path, Path.PathId AS PathId"
          " FROM Path"
          " INNER JOIN File ON (File.PathId=Path.PathId)"
          " INNER JOIN Job ON (File.JobId=Job.JobId)"
@@ -220,18 +220,40 @@ void restoreTree::populateDirectoryTree()
       prBar1->setValue(ontask++);
       prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
-      prLabel2->setText("Processing Directories");
-      QStringList directories;
-      if (m_console->sql_cmd(cmd, directories)) {
-         if (mainWin->m_miscDebug) {
-            Pmsg1(000, "Done with query %i directories\n", directories.count());
+      prBar2->setRange(0,0);
+      prLabel2->setText("Querying for Directories");
+      repaint();
+      QStringList results;
+      m_directoryPathIdHash.clear();
+      bool querydone = false;
+      if (m_console->sql_cmd(cmd, results)) {
+         if (!querydone) {
+            querydone = true;
+            prLabel2->setText("Processing Directories");
+            prBar2->setRange(0,results.count());
+            repaint();
          }
-         prBar2->setRange(0,directories.count());
-         repaint();
-         foreach(QString directory, directories) {
+         if (mainWin->m_miscDebug)
+            Pmsg1(000, "Done with query %i results\n", results.count());
+         QStringList fieldlist;
+         foreach(QString resultline, results) {
             m_debugCnt += 1;
             prBar2->setValue(m_debugCnt);
-            parseDirectory(directory);
+            fieldlist = resultline.split("\t");
+            int fieldcnt = 0;
+            QString field;
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               if (fieldcnt == 0 ) {
+                  parseDirectory(field);
+               } else if (fieldcnt == 1) {
+                  bool ok;
+                  int pathid = field.toInt(&ok, 10);
+                  if (ok)
+                     m_directoryPathIdHash.insert(fieldlist[0], pathid);
+               }
+               fieldcnt += 1;
+            }
          }
       }
    } else {
@@ -287,7 +309,8 @@ void restoreTree::parseDirectory(QString &dir_in)
    /* Clean up the directory string remove some funny char after last '/' */
    QRegExp rgx("[^/]$");
    int lastslash = rgx.indexIn(dir_in);
-   dir_in.replace(lastslash, dir_in.length()-lastslash, "");
+   if (lastslash != -1)
+      dir_in.replace(lastslash, dir_in.length()-lastslash, "");
    if ((mainWin->m_miscDebug) && (m_debugTrap))
       Pmsg1(000, "parsing %s\n", dir_in.toUtf8().data());
 
@@ -420,7 +443,7 @@ void restoreTree::currentStackItem()
       if (!m_console->preventInUseConnect())
          return;
       setupPage();
-      m_populated=true;
+      m_populated = true;
    }
 }
 
@@ -459,87 +482,105 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
    if (item == NULL)
       return;
 
-   m_fileCheckStateList.clear();
-   disconnect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
-           this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
-   QBrush blackBrush(Qt::black);
-   QString directory = item->data(0, Qt::UserRole).toString();
-   directoryLabel->setText("Present Working Directory : " + directory);
-   QString cmd =
-      "SELECT DISTINCT Filename.Name AS FileName"
-      " FROM File "
-      " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-      " INNER JOIN Path ON (Path.PathId=File.PathId)"
-      " INNER JOIN Job ON (File.JobId=Job.JobId)"
-      " WHERE Path.Path='" + directory + "' AND Filename.Name!=''"
-      " AND Job.Jobid IN (" + m_checkedJobs + ")"
-      " ORDER BY FileName";
- 
-   QStringList headerlist = (QStringList() << "File Name");
    fileTable->clear();
    /* Also clear the version table here */
    versionTable->clear();
    versionFileLabel->setText("");
    versionTable->setRowCount(0);
    versionTable->setColumnCount(0);
+
+   QStringList headerlist = (QStringList() << "File Name" << "File Id");
    fileTable->setColumnCount(headerlist.size());
    fileTable->setHorizontalHeaderLabels(headerlist);
-
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
-   }
-   QStringList results;
-   if (m_console->sql_cmd(cmd, results)) {
+   fileTable->setRowCount(0);
    
-      QTableWidgetItem* tableItem;
-      QString field;
-      QStringList fieldlist;
-      fileTable->setRowCount(results.size());
-
-      int row = 0;
-      /* Iterate through the record returned from the query */
-      foreach (QString resultline, results) {
-         /* Iterate through fields in the record */
-         int column = 0;
-         fieldlist = resultline.split("\t");
-         foreach (field, fieldlist) {
-            field = field.trimmed();  /* strip leading & trailing spaces */
-            tableItem = new QTableWidgetItem(field, 1);
-            /* Possible flags are Qt::ItemFlags flag = Qt::ItemIsSelectable | Qt::ItemIsEditablex
-             *  | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable 
-             *  | Qt::ItemIsEnabled | Qt::ItemIsTristate; */
-            tableItem->setForeground(blackBrush);
-            /* Just in case a column ever gets added */
-            if (column == 0) {
-               Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
-               tableItem->setFlags(flag);
-               tableItem->setData(Qt::UserRole, QVariant(directory));
-               fileTable->setItem(row, column, tableItem);
-               m_fileCheckStateList.append(Qt::Unchecked);
-               tableItem->setCheckState(Qt::Unchecked);
-            }
-            column++;
-         }
-         row++;
-      }
-      fileTable->setRowCount(row);
-   }
-   fileTable->resizeColumnsToContents();
-   fileTable->resizeRowsToContents();
-   fileTable->verticalHeader()->hide();
-   connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+   m_fileCheckStateList.clear();
+   disconnect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
            this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
-   if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "will update file table checks\n");
-   updateFileTableChecks();
+   QBrush blackBrush(Qt::black);
+   QString directory = item->data(0, Qt::UserRole).toString();
+   directoryLabel->setText("Present Working Directory : " + directory);
+   int pathid = m_directoryPathIdHash.value(directory, 0);
+   if (pathid) {
+      QString cmd =
+         "SELECT DISTINCT Filename.Name AS FileName, File.FileId AS FileId"
+         " FROM File "
+         " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+         " INNER JOIN Path ON (Path.PathId=File.PathId)"
+         " INNER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE Path.PathId=" + QString("%1").arg(pathid) + " AND Filename.Name!=''"
+         " AND Job.Jobid IN (" + m_checkedJobs + ")"
+         " ORDER BY FileName";
+
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      }
+      QStringList results;
+      if (m_console->sql_cmd(cmd, results)) {
+      
+         QTableWidgetItem* tableItem;
+         QString field;
+         QStringList fieldlist;
+         fileTable->setRowCount(results.size());
+   
+         int row = 0;
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            /* Iterate through fields in the record */
+            int column = 0;
+            fieldlist = resultline.split("\t");
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               tableItem = new QTableWidgetItem(field, 1);
+               /* Possible flags are Qt::ItemFlags flag = Qt::ItemIsSelectable | Qt::ItemIsEditablex
+                *  | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable 
+                *  | Qt::ItemIsEnabled | Qt::ItemIsTristate; */
+               tableItem->setForeground(blackBrush);
+               /* Just in case a column ever gets added */
+               if (column == 0) {
+                  Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                  tableItem->setFlags(flag);
+                  tableItem->setData(Qt::UserRole, QVariant(directory));
+                  fileTable->setItem(row, column, tableItem);
+                  m_fileCheckStateList.append(Qt::Unchecked);
+                  tableItem->setCheckState(Qt::Unchecked);
+               } else if (column == 1) {
+                  Qt::ItemFlags flag = Qt::ItemIsEnabled;
+                  tableItem->setFlags(flag);
+                  bool ok;
+                  int fileid = field.toInt(&ok, 10);
+                  if (!ok) fileid = -1;
+                  tableItem->setData(Qt::UserRole, QVariant(fileid));
+                  fileTable->setItem(row, column, tableItem);
+               }
+               column++;
+            }
+            row++;
+         }
+         fileTable->setRowCount(row);
+      }
+      fileTable->resizeColumnsToContents();
+      fileTable->resizeRowsToContents();
+      fileTable->verticalHeader()->hide();
+      connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+              this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
+      if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "will update file table checks\n");
+      updateFileTableChecks();
+   } else if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "did not perform query, pathid not found\n");
 }
 
 /*
  * Function to populate the version table
  */
-void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTableWidgetItem *)
+void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem, QTableWidgetItem *)
 {
-   if (fileTableItem == NULL)
+   if (currentFileTableItem == NULL)
       return;
+
+   int currentRow = fileTable->row(currentFileTableItem);
+   QTableWidgetItem *fileTableItem = fileTable->item(currentRow, 0);
+   QTableWidgetItem *fileIdTableItem = fileTable->item(currentRow, 1);
+   int fileId = fileIdTableItem->data(Qt::UserRole).toInt();
 
    m_versionCheckStateList.clear();
    disconnect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
@@ -550,66 +591,73 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *fileTableItem, QTable
    QString directory = fileTableItem->data(Qt::UserRole).toString();
 
    QBrush blackBrush(Qt::black);
-   QString cmd = 
-      "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
-      " FROM File"
-      " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
-      " INNER JOIN Path ON (Path.PathId=File.PathId)"
-      " INNER JOIN Job ON (File.JobId=Job.JobId)"
-      " WHERE Filename.Name='" + file + "' AND Path.Path='" + directory + "'"
-      " AND Job.Jobid IN (" + m_checkedJobs + ")"
-      " ORDER BY Job.EndTime DESC";
 
    QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5" << "FileId");
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
-
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
-   }
-   QStringList results;
-   if (m_console->sql_cmd(cmd, results)) {
+   versionTable->setRowCount(0);
    
-      QTableWidgetItem* tableItem;
-      QString field;
-      QStringList fieldlist;
-      versionTable->setRowCount(results.size());
-
-      int row = 0;
-      /* Iterate through the record returned from the query */
-      foreach (QString resultline, results) {
-         fieldlist = resultline.split("\t");
-         int column = 0;
-         /* remove directory */
-         if (fieldlist[0].trimmed() != "") {
-            /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
-               field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field, 1);
-               tableItem->setFlags(0);
-               tableItem->setForeground(blackBrush);
-               tableItem->setData(Qt::UserRole, QVariant(directory));
-               versionTable->setItem(row, column, tableItem);
-
-               if (column == 0) {
-                  Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
-                  tableItem->setFlags(flag);
-                  m_versionCheckStateList.append(Qt::Unchecked);
-                  tableItem->setCheckState(Qt::Unchecked);
+   int pathid = m_directoryPathIdHash.value(directory, -1);
+   if ((pathid != -1) && (fileId != -1)) {
+      QString cmd = 
+         "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
+         " FROM File"
+         " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
+         " INNER JOIN Path ON (Path.PathId=File.PathId)"
+         " INNER JOIN Job ON (File.JobId=Job.JobId)"
+         " WHERE Path.PathId=" + QString("%1").arg(pathid) +
+         //" AND Filename.Name='" + file + "'"
+         " AND File.FileId=" + QString("%1").arg(fileId) +
+         " AND Job.Jobid IN (" + m_checkedJobs + ")"
+         " ORDER BY Job.EndTime DESC";
+   
+      if (mainWin->m_sqlDebug) {
+         Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
+      }
+      QStringList results;
+      if (m_console->sql_cmd(cmd, results)) {
+      
+         QTableWidgetItem* tableItem;
+         QString field;
+         QStringList fieldlist;
+         versionTable->setRowCount(results.size());
+   
+         int row = 0;
+         /* Iterate through the record returned from the query */
+         foreach (QString resultline, results) {
+            fieldlist = resultline.split("\t");
+            int column = 0;
+            /* remove directory */
+            if (fieldlist[0].trimmed() != "") {
+               /* Iterate through fields in the record */
+               foreach (field, fieldlist) {
+                  field = field.trimmed();  /* strip leading & trailing spaces */
+                  tableItem = new QTableWidgetItem(field, 1);
+                  tableItem->setFlags(0);
+                  tableItem->setForeground(blackBrush);
+                  tableItem->setData(Qt::UserRole, QVariant(directory));
+                  versionTable->setItem(row, column, tableItem);
+   
+                  if (column == 0) {
+                     Qt::ItemFlags flag = Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsTristate;
+                     tableItem->setFlags(flag);
+                     m_versionCheckStateList.append(Qt::Unchecked);
+                     tableItem->setCheckState(Qt::Unchecked);
+                  }
+                  column++;
                }
-               column++;
+               row++;
             }
-            row++;
          }
       }
+      versionTable->resizeColumnsToContents();
+      versionTable->resizeRowsToContents();
+      versionTable->verticalHeader()->hide();
+      connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+              this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
+      updateVersionTableChecks();
    }
-   versionTable->resizeColumnsToContents();
-   versionTable->resizeRowsToContents();
-   versionTable->verticalHeader()->hide();
-   connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
-           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
-   updateVersionTableChecks();
 }
 
 /*
