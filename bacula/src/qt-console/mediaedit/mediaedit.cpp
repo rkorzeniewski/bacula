@@ -72,7 +72,7 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    poolCombo->addItems(m_console->pool_list);
 
    /* The media's Status */
-   QStringList statusList = (QStringList() << "Full" << "Used" << "Append" << "Error" << "Purged" << "Recycled" << "Read-Only" << "Cleaning");
+   QStringList statusList = (QStringList() << "Full" << "Used" << "Append" << "Error" << "Purged" << "Recycle" << "Read-Only" << "Cleaning");
    statusCombo->addItems(statusList);
 
    /* Set up the query for the default values */
