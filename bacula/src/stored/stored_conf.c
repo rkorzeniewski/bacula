@@ -75,7 +75,7 @@ static RES_ITEM store_items[] = {
    {"piddirectory",          store_dir,  ITEM(res_store.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory",       store_dir,  ITEM(res_store.subsys_directory), 0, 0, 0},
    {"scriptsdirectory",      store_dir,  ITEM(res_store.scripts_directory), 0, 0, 0},
-   {"maximumconcurrentjobs", store_pint, ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 10},
+   {"maximumconcurrentjobs", store_pint, ITEM(res_store.max_concurrent_jobs), 0, ITEM_DEFAULT, 20},
    {"heartbeatinterval",     store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"tlsenable",             store_bit,     ITEM(res_store.tls_enable), 1, 0, 0},
    {"tlsrequire",            store_bit,     ITEM(res_store.tls_require), 1, 0, 0},

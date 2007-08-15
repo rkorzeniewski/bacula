@@ -1,12 +1,7 @@
 /*
-   This file is patterned after the VNC Win32 code by ATT
-  
-   Kern E. Sibbald, 2000
-*/
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,61 +25,57 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ * Kern Sibbald, August 2007
+ *
+ * Version $Id$
+ *
+*/
 
 #include "bacula.h"
-#include "winbacula.h"
-#include "winabout.h"
-#include "winres.h"
+#include "win32.h"
 
-bacAbout::bacAbout()
-{
-   visible = false;
-}
-
-bacAbout::~bacAbout() { };
-
-void bacAbout::Show(BOOL show)
-{
-   if (show && !visible) {
-      DialogBoxParam(hAppInstance, MAKEINTRESOURCE(IDD_ABOUT), NULL,
-         (DLGPROC)DialogProc, (LONG)this);
-   }
-}
-
-
-BOOL CALLBACK
-bacAbout::DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+static BOOL CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    /* Get the dialog class pointer from USERDATA */
-   bacAbout *_this;
+   aboutDialog *about;
 
    switch (uMsg) {
    case WM_INITDIALOG:
       /* save the dialog class pointer */
       SetWindowLong(hwnd, GWL_USERDATA, lParam);
-      _this = (bacAbout *)lParam;
+      about = (aboutDialog *)lParam;
 
       /* Show the dialog */
       SetForegroundWindow(hwnd);
-      _this->visible = true;
-      return TRUE;
+      about->m_visible = true;
+      return true;
 
    case WM_COMMAND:
       switch (LOWORD(wParam)) {
       case IDCANCEL:
       case IDOK:
-         EndDialog(hwnd, TRUE);
-         _this = (bacAbout *)GetWindowLong(hwnd, GWL_USERDATA);
-         _this->visible = false;
-         return TRUE;
+         EndDialog(hwnd, true);
+         about = (aboutDialog *)GetWindowLong(hwnd, GWL_USERDATA);
+         about->m_visible = false;
+         return true;
       }
       break;
 
    case WM_DESTROY:
-      EndDialog(hwnd, FALSE);
-      _this = (bacAbout *)GetWindowLong(hwnd, GWL_USERDATA);
-      _this->visible = false;
-      return TRUE;
+      EndDialog(hwnd, false);
+      about = (aboutDialog *)GetWindowLong(hwnd, GWL_USERDATA);
+      about->m_visible = false;
+      return true;
    }
-   return 0;
+   return false;
+}
+
+void aboutDialog::show(bool show)
+{
+   if (show && !m_visible) {
+      DialogBoxParam(appInstance, MAKEINTRESOURCE(IDD_ABOUT), NULL,
+         (DLGPROC)DialogProc, (LONG)this);
+   }
 }

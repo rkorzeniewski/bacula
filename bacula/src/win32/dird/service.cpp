@@ -1,14 +1,14 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
    This program is Free Software; you can redistribute it and/or
    modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation and included
-   in the file LICENSE.
+   License as published by the Free Software Foundation, which is 
+   listed in the file LICENSE.
 
    This program is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,32 +26,11 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Bacula Status Dialog header file
+ * Kern Sibbald, August 2007
+ *
+ * Version $Id$
  *
  */
 
-#ifndef _WINSTAT_H_
-#define _WINSTAT_H_
-
-class bacStatus
-{
-public:
-   bacStatus();
-   ~bacStatus();
-
-   /* The Windows callback routine */
-   static BOOL CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-   static void DisplayString(const char *msg, int len, void *context);
-
-   void UpdateDisplay();
-
-   void Show(BOOL show);
-
-   void ResizeChildren(HWND hDlg, WORD wWidth, WORD wHeight);
-
-private:
-   BOOL m_bVisible;
-   HWND m_hTextDisplay;
-};
-
-#endif
+#include "who.h"
+#include "../libwin32/service.cpp"
