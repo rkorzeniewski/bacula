@@ -500,10 +500,10 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
    QBrush blackBrush(Qt::black);
    QString directory = item->data(0, Qt::UserRole).toString();
    directoryLabel->setText("Present Working Directory : " + directory);
-   int pathid = m_directoryPathIdHash.value(directory, 0);
-   if (pathid) {
+   int pathid = m_directoryPathIdHash.value(directory, -1);
+   if (pathid != -1) {
       QString cmd =
-         "SELECT DISTINCT Filename.Name AS FileName, File.FileId AS FileId"
+         "SELECT DISTINCT Filename.Name AS FileName, Filename.FilenameId AS FilenameId"
          " FROM File "
          " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
          " INNER JOIN Path ON (Path.PathId=File.PathId)"
@@ -548,9 +548,9 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
                   Qt::ItemFlags flag = Qt::ItemIsEnabled;
                   tableItem->setFlags(flag);
                   bool ok;
-                  int fileid = field.toInt(&ok, 10);
-                  if (!ok) fileid = -1;
-                  tableItem->setData(Qt::UserRole, QVariant(fileid));
+                  int filenameid = field.toInt(&ok, 10);
+                  if (!ok) filenameid = -1;
+                  tableItem->setData(Qt::UserRole, QVariant(filenameid));
                   fileTable->setItem(row, column, tableItem);
                }
                column++;
@@ -562,11 +562,12 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
       fileTable->resizeColumnsToContents();
       fileTable->resizeRowsToContents();
       fileTable->verticalHeader()->hide();
-      connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
-              this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
       if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "will update file table checks\n");
       updateFileTableChecks();
-   } else if (mainWin->m_rtDirCurICDebug) Pmsg0(000, "did not perform query, pathid not found\n");
+   } else if (mainWin->m_sqlDebug)
+      Pmsg1(000, "did not perform query, pathid=%i not found\n", pathid);
+   connect(fileTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+          this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
 }
 
 /*
@@ -579,8 +580,8 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
 
    int currentRow = fileTable->row(currentFileTableItem);
    QTableWidgetItem *fileTableItem = fileTable->item(currentRow, 0);
-   QTableWidgetItem *fileIdTableItem = fileTable->item(currentRow, 1);
-   int fileId = fileIdTableItem->data(Qt::UserRole).toInt();
+   QTableWidgetItem *fileNameIdTableItem = fileTable->item(currentRow, 1);
+   int fileNameId = fileNameIdTableItem->data(Qt::UserRole).toInt();
 
    m_versionCheckStateList.clear();
    disconnect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
@@ -599,7 +600,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
    versionTable->setRowCount(0);
    
    int pathid = m_directoryPathIdHash.value(directory, -1);
-   if ((pathid != -1) && (fileId != -1)) {
+   if ((pathid != -1) && (fileNameId != -1)) {
       QString cmd = 
          "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
          " FROM File"
@@ -608,13 +609,12 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
          " INNER JOIN Job ON (File.JobId=Job.JobId)"
          " WHERE Path.PathId=" + QString("%1").arg(pathid) +
          //" AND Filename.Name='" + file + "'"
-         " AND File.FileId=" + QString("%1").arg(fileId) +
+         " AND Filename.FilenameId=" + QString("%1").arg(fileNameId) +
          " AND Job.Jobid IN (" + m_checkedJobs + ")"
          " ORDER BY Job.EndTime DESC";
    
-      if (mainWin->m_sqlDebug) {
+      if (mainWin->m_sqlDebug)
          Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
-      }
       QStringList results;
       if (m_console->sql_cmd(cmd, results)) {
       
@@ -654,10 +654,13 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
       versionTable->resizeColumnsToContents();
       versionTable->resizeRowsToContents();
       versionTable->verticalHeader()->hide();
-      connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
-              this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
       updateVersionTableChecks();
+   } else {
+      if (mainWin->m_sqlDebug)
+         Pmsg2(000, "not querying : pathid=%i fileNameId=%i\n", pathid, fileNameId);
    }
+   connect(versionTable, SIGNAL(itemChanged(QTableWidgetItem *)),
+           this, SLOT(versionTableItemChanged(QTableWidgetItem *)));
 }
 
 /*
