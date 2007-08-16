@@ -31990,7 +31990,7 @@ echo "$as_me: executing $ac_dest commands" >&6;}
         ;;
       esac
     done ;;
-    default ) (echo "Doing make of dependencies"; ${MAKE:-make} depend;)
+    default )
  ;;
   esac
 done
@@ -32026,6 +32026,17 @@ if test "$no_create" != yes; then
 fi
 
 
+if test "${support_bat}" = "yes" ; then
+  cd src/qt-console
+  chmod 755 install_conf_file build-depkgs-qt-console
+  echo "Creating bat Makefile"
+  qmake
+  cd ${BUILD_DIR}
+fi
+
+echo "Doing make of dependencies"
+${MAKE:-make} depend
+
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
@@ -32058,13 +32069,6 @@ chmod 755 $c/mysql
 
 chmod 755 src/win32/build-depkgs-mingw32
 
-if test "${support_bat}" = "yes" ; then
-  cd src/qt-console
-  chmod 755 install_conf_file build-depkgs-qt-console
-  echo "Creating bat Makefile"
-  qmake
-  cd ${BUILD_DIR}
-fi
 
 
 if test "x$ac_cv_sys_largefile_CFLAGS" != "xno" ; then
