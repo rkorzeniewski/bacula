@@ -228,6 +228,15 @@ int main (int argc, char *argv[])
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Please correct configuration file: %s\n"), configfile);
    }
 
+   if (background) {
+      daemon_start();
+      init_stack_dump();              /* grab new pid */
+   }
+
+   /* Create pid must come after we are a daemon -- so we have our final pid */
+   create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+   read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
+
    drop(uid, gid);                    /* reduce privileges if requested */
 
    if (!check_catalog()) {
@@ -246,15 +255,6 @@ int main (int argc, char *argv[])
 
    FDConnectTimeout = (int)director->FDConnectTimeout;
    SDConnectTimeout = (int)director->SDConnectTimeout;
-
-   if (background) {
-      daemon_start();
-      init_stack_dump();              /* grab new pid */
-   }
-
-   /* Create pid must come after we are a daemon -- so we have our final pid */
-   create_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
-   read_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
 
 
 #if !defined(HAVE_WIN32)
