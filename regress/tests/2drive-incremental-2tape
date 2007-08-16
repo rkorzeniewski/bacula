@@ -10,7 +10,7 @@ JobName="2drive2tape"
 . scripts/functions
 
 if test x${TAPE_DRIVE1} = x/dev/null ; then
-   echo "Skipping 2drive-incremenatal-2tape test. No second drive."
+   echo "Skipping 2drive-incremental-2tape test. No second drive."
    exit
 fi
 
