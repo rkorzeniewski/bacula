@@ -1,7 +1,31 @@
-              Technical notes on version 2.2
+              Technical notes on version 2.3
 
 General:
+17Aug07
+kes  Tweak LICENSE file to mention BSD code.
+kes  Fix bat.pro.in so that it includes the OpenSSL libraries only
+     if specified on the ./configure.
+kes  Add first (not yet tested) cut of bcomm to the qt-console directory.
+     This class is intended to allow us to open a second bsock to the
+     Director while in the restore subdialog.  
+16Aug07
+kes  Fix configure to create bat Makefile before creating dependencies.
+kes  Eliminate the egg files from the tray-monitor. Use gtk calls.
+kes  Add a tooltip to the tray monitor.
+dvl  Set the Director's PID file before dropping privs. This fixes
+     bug #923.
+15Aug07
+kes  Update AUTHORs file
+kes  Increase the default max concurrent jobs to 20 in FD and SD to
+     correspond with the default .conf files.
+kes  Rewrite the Win32 service routines.  This eliminates the 3 copies
+     some different, of the same file created by RN when porting the 
+     Win32 SD and Dir.
+kes  Rearrange some of the Win32 directories and the placement of the files
+     in them.
+kes  Set DEVELOPER flag in version.h
 
+========================================================================
 Release Version 2.2.0
 09Aug07
 kes  Apply a second doc patch from Marc.
