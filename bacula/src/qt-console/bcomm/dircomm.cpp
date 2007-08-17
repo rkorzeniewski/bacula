@@ -28,9 +28,9 @@
 /*
  *   Version $Id$
  *
- *  Console Class
+ *  Bacula Communications class that is at a higher level than BSOCK
  *
- *   Kern Sibbald, January MMVII
+ *   Kern Sibbald, May MMVII
  *
  */ 
 
@@ -39,48 +39,35 @@
 #include "restore.h"
 #include "select.h"
 #include "run/run.h"
+#include "dircomm.h"
 
 static int tls_pem_callback(char *buf, int size, const void *userdata);
 
 
-Console::Console(QStackedWidget *parent)
+DirComm::DirComm(Console *console)
 {
-   QFont font;
-   m_parent = parent;
-   m_closeable = false;
-   m_console = this;
-
-   setupUi(this);
+   m_console = console;
    m_sock = NULL;
    m_at_prompt = false;
    m_at_main_prompt = false;
-   m_textEdit = textEdit;   /* our console screen */
-   m_cursor = new QTextCursor(m_textEdit->document());
-   mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
-
    m_timer = NULL;
-   m_contextActions.append(actionStatusDir);
-   m_contextActions.append(actionConsoleHelp);
-   m_contextActions.append(actionRequestMessages);
-   m_contextActions.append(actionConsoleReload);
-   connect(actionStatusDir, SIGNAL(triggered()), this, SLOT(status_dir()));
-   connect(actionConsoleHelp, SIGNAL(triggered()), this, SLOT(consoleHelp()));
-   connect(actionConsoleReload, SIGNAL(triggered()), this, SLOT(consoleReload()));
-   connect(actionRequestMessages, SIGNAL(triggered()), this, SLOT(messages()));
 }
 
-Console::~Console()
+DirComm::~DirComm()
 {
+   if (m_timer) {
+      stopTimer();
+   }
 }
 
-void Console::startTimer()
+void DirComm::startTimer()
 {
-   m_timer = new QTimer(this);
+   m_timer = new QTimer(m_console);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
    m_timer->start(mainWin->m_checkMessagesInterval*1000);
 }
 
-void Console::stopTimer()
+void DirComm::stopTimer()
 {
    if (m_timer) {
       QWidget::disconnect(m_timer, SIGNAL(timeout()), this, SLOT(poll_messages()));
@@ -90,7 +77,7 @@ void Console::stopTimer()
    }
 }
       
-void Console::poll_messages()
+void DirComm::poll_messages()
 {
    m_messages_pending = true;
    if ((m_at_main_prompt) && (mainWin->m_checkMessages)){
@@ -100,7 +87,7 @@ void Console::poll_messages()
 }
 
 /* Terminate any open socket */
-void Console::terminate()
+void DirComm::terminate()
 {
    if (m_sock) {
       stopTimer();
@@ -112,39 +99,30 @@ void Console::terminate()
 /*
  * Connect to Director. 
  */
-void Console::connect_dir()
+void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
 {
-   JCR *jcr = new JCR;
+   JCR jcr;
    utime_t heart_beat;
    char buf[1024];
-   CONRES *cons;
-      
-   buf[0] = 0;
 
-   m_textEdit = textEdit;   /* our console screen */
-
+   m_dir = dir;
    if (!m_dir) {          
       mainWin->set_status("No Director found.");
-      goto bail_out;
+      return;
    }
    if (m_sock) {
       mainWin->set_status("Already connected.");
-      goto bail_out;
+      return;
    }
 
-   memset(jcr, 0, sizeof(JCR));
+   memset(&jcr, 0, sizeof(jcr));
 
    mainWin->set_statusf(_("Connecting to Director %s:%d"), m_dir->address, m_dir->DIRport);
-   display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
+   m_console->display_textf(_("Connecting to Director %s:%d\n\n"), m_dir->address, m_dir->DIRport);
 
    /* Give GUI a chance */
    app->processEvents();
    
-   LockRes();
-   /* If cons==NULL, default console will be used */
-   cons = (CONRES *)GetNextRes(R_CONSOLE, NULL);
-   UnlockRes();
-
    /* Initialize Console TLS context once */
    if (cons && !cons->tls_ctx && (cons->tls_enable || cons->tls_require)) {
       /* Generate passphrase prompt */
@@ -160,9 +138,9 @@ void Console::connect_dir()
          cons->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!cons->tls_ctx) {
-         display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
+         m_console->display_textf(_("Failed to initialize TLS context for Console \"%s\".\n"),
             m_dir->name());
-         goto bail_out;
+         return;
       }
    }
 
@@ -180,10 +158,10 @@ void Console::connect_dir()
                           m_dir->tls_keyfile, tls_pem_callback, &buf, NULL, true);
 
       if (!m_dir->tls_ctx) {
-         display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
+         m_console->display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
             m_dir->name());
          mainWin->set_status("Connection failed");
-         goto bail_out;
+         return;
       }
    }
 
@@ -200,7 +178,7 @@ void Console::connect_dir()
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {
       mainWin->set_status("Connection failed");
-      goto bail_out;
+      return;
    } else {
       /* Update page selector to green to indicate that Console is connected */
       mainWin->actionConnect->setIcon(QIcon(":images/connected.png"));
@@ -209,15 +187,14 @@ void Console::connect_dir()
       item->setForeground(0, greenBrush);
    }
 
-   jcr->dir_bsock = m_sock;
+   jcr.dir_bsock = m_sock;
 
-   if (!authenticate_director(jcr, m_dir, cons, buf, sizeof(buf))) {
-      display_text(buf);
-      goto bail_out;
+   if (!authenticate_director(&jcr, m_dir, cons, buf, sizeof(buf))) {
+      m_console->display_text(buf);
+      return;
    }
-
    if (buf[0]) {
-      display_text(buf);
+      m_console->display_text(buf);
    }
 
    /* Give GUI a chance */
@@ -229,37 +206,12 @@ void Console::connect_dir()
    m_notifier = new QSocketNotifier(m_sock->m_fd, QSocketNotifier::Read, 0);
    QObject::connect(m_notifier, SIGNAL(activated(int)), this, SLOT(read_dir(int)));
 
-   write(".api 1");
-   displayToPrompt();
-
-   beginNewCommand();
-   job_list.clear();
-   client_list.clear();
-   fileset_list.clear();
-   fileset_list.clear();
-   messages_list.clear();
-   pool_list.clear();
-   storage_list.clear();
-   type_list.clear();
-   level_list.clear();
-   dir_cmd(".jobs", job_list);
-   dir_cmd(".clients", client_list);
-   dir_cmd(".filesets", fileset_list);  
-   dir_cmd(".msgs", messages_list);
-   dir_cmd(".pools", pool_list);
-   dir_cmd(".storage", storage_list);
-   dir_cmd(".types", type_list);
-   dir_cmd(".levels", level_list);
-
    mainWin->set_status(_("Connected"));
    startTimer();                      /* start message timer */
-
-bail_out:
-   delete jcr;
    return;
 }
 
-bool Console::dir_cmd(QString &cmd, QStringList &results)
+bool DirComm::dir_cmd(QString &cmd, QStringList &results)
 {
    return dir_cmd(cmd.toUtf8().data(), results);
 }
@@ -268,14 +220,14 @@ bool Console::dir_cmd(QString &cmd, QStringList &results)
  * Send a command to the Director, and return the
  *  results in a QStringList.  
  */
-bool Console::dir_cmd(const char *cmd, QStringList &results)
+bool DirComm::dir_cmd(const char *cmd, QStringList &results)
 {
    int stat;
 
    notify(false);
    write(cmd);
    while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) m_console->display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -284,7 +236,7 @@ bool Console::dir_cmd(const char *cmd, QStringList &results)
    return true;              /* ***FIXME*** return any command error */
 }
 
-bool Console::sql_cmd(QString &query, QStringList &results)
+bool DirComm::sql_cmd(QString &query, QStringList &results)
 {
    return sql_cmd(query.toUtf8().data(), results);
 }
@@ -293,7 +245,7 @@ bool Console::sql_cmd(QString &query, QStringList &results)
  * Send an sql query to the Director, and return the
  *  results in a QStringList.  
  */
-bool Console::sql_cmd(const char *query, QStringList &results)
+bool DirComm::sql_cmd(const char *query, QStringList &results)
 {
    int stat;
    POOL_MEM cmd(PM_MESSAGE);
@@ -309,7 +261,7 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    pm_strcat(cmd, "\"");
    write(cmd.c_str());
    while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) m_console->display_text(msg());
       strip_trailing_junk(msg());
       results << msg();
    }
@@ -318,202 +270,10 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    return true;              /* ***FIXME*** return any command error */
 }
 
-
-/*  
- * Send a job name to the director, and read all the resulting
- *  defaults. 
- */
-bool Console::get_job_defaults(struct job_defaults &job_defs)
-{
-   QString scmd;
-   int stat;
-   char *def;
-
-   notify(false);
-   beginNewCommand();
-   scmd = QString(".defaults job=\"%1\"").arg(job_defs.job_name);
-   write(scmd);
-   while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
-      def = strchr(msg(), '=');
-      if (!def) {
-         continue;
-      }
-      /* Pointer to default value */
-      *def++ = 0;
-      strip_trailing_junk(def);
-
-      if (strcmp(msg(), "job") == 0) {
-         if (strcmp(def, job_defs.job_name.toUtf8().data()) != 0) {
-            goto bail_out;
-         }
-         continue;
-      }
-      if (strcmp(msg(), "pool") == 0) {
-         job_defs.pool_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "messages") == 0) {
-         job_defs.messages_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "client") == 0) {
-         job_defs.client_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "storage") == 0) {
-         job_defs.store_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "where") == 0) {
-         job_defs.where = def;
-         continue;
-      }
-      if (strcmp(msg(), "level") == 0) {
-         job_defs.level = def;
-         continue;
-      }
-      if (strcmp(msg(), "type") == 0) {
-         job_defs.type = def;
-         continue;
-      }
-      if (strcmp(msg(), "fileset") == 0) {
-         job_defs.fileset_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "catalog") == 0) {
-         job_defs.catalog_name = def;
-         continue;
-      }
-      if (strcmp(msg(), "enabled") == 0) {
-         job_defs.enabled = *def == '1' ? true : false;
-         continue;
-      }
-   }
-
-   notify(true);
-   return true;
-
-bail_out:
-   notify(true);
-   return false;
-}
-
-
-/*
- * Save user settings associated with this console
- */
-void Console::writeSettings()
-{
-   QFont font = get_font();
-
-   QSettings settings(m_dir->name(), "bat");
-   settings.beginGroup("Console");
-   settings.setValue("consoleFont", font.family());
-   settings.setValue("consolePointSize", font.pointSize());
-   settings.setValue("consoleFixedPitch", font.fixedPitch());
-   settings.endGroup();
-}
-
-/*
- * Read and restore user settings associated with this console
- */
-void Console::readSettings()
-{ 
-   QFont font = get_font();
-
-   QSettings settings(m_dir->name(), "bat");
-   settings.beginGroup("Console");
-   font.setFamily(settings.value("consoleFont", "Courier").value<QString>());
-   font.setPointSize(settings.value("consolePointSize", 10).toInt());
-   font.setFixedPitch(settings.value("consoleFixedPitch", true).toBool());
-   settings.endGroup();
-   m_textEdit->setFont(font);
-}
-
-/*
- * Set the console textEdit font
- */
-void Console::set_font()
-{
-   bool ok;
-   QFont font = QFontDialog::getFont(&ok, QFont(m_textEdit->font()), this);
-   if (ok) {
-      m_textEdit->setFont(font);
-   }
-}
-
-/*
- * Get the console text edit font
- */
-const QFont Console::get_font()
-{
-   return m_textEdit->font();
-}
-
-/*
- * Slot for responding to status dir button on button bar
- */
-void Console::status_dir()
-{
-   QString cmd("status dir");
-   consoleCommand(cmd);
-}
-
-/*
- * Slot for responding to messages button on button bar
- */
-void Console::messages()
-{
-   QString cmd(".messages");
-   consoleCommand(cmd);
-}
-
-/*
- * Put text into the console window
- */
-void Console::display_textf(const char *fmt, ...)
-{
-   va_list arg_ptr;
-   char buf[1000];
-   int len;
-   va_start(arg_ptr, fmt);
-   len = bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
-   va_end(arg_ptr);
-   display_text(buf);
-}
-
-void Console::display_text(const QString buf)
-{
-   m_cursor->insertText(buf);
-   update_cursor();
-}
-
-
-void Console::display_text(const char *buf)
-{
-   m_cursor->insertText(buf);
-   update_cursor();
-}
-
-void Console::display_html(const QString buf)
-{
-   m_cursor->insertHtml(buf);
-   update_cursor();
-}
-
-/* Position cursor to end of screen */
-void Console::update_cursor()
-{
-   QApplication::restoreOverrideCursor();
-   m_textEdit->moveCursor(QTextCursor::End);
-   m_textEdit->ensureCursorVisible();
-}
-
 /* 
  * This should be moved into a bSocket class 
  */
-char *Console::msg()
+char *DirComm::msg()
 {
    if (m_sock) {
       return m_sock->msg;
@@ -522,7 +282,7 @@ char *Console::msg()
 }
 
 /* Send a command to the Director */
-void Console::write_dir(const char *msg)
+void DirComm::write_dir(const char *msg)
 {
    if (m_sock) {
       mainWin->set_status(_("Processing command ..."));
@@ -539,12 +299,12 @@ void Console::write_dir(const char *msg)
    }
 }
 
-int Console::write(const QString msg)
+int DirComm::write(const QString msg)
 {
    return write(msg.toUtf8().data());
 }
 
-int Console::write(const char *msg)
+int DirComm::write(const char *msg)
 {
    if (!m_sock) {
       return -1;
@@ -558,41 +318,41 @@ int Console::write(const char *msg)
 }
 
 /*
- * Get to main command prompt -- i.e. abort any subcommand
+ * Get to main command prompt -- i.e. abort any suDirCommand
  */
-void Console::beginNewCommand()
+void DirComm::beginNewCommand()
 {
    for (int i=0; i < 3; i++) {
-      write(".");
+      write(".\n");
       while (read() > 0) {
-         if (mainWin->m_displayAll) display_text(msg());
+         if (mainWin->m_displayAll) m_console->display_text(msg());
       }
       if (m_at_main_prompt) {
          break;
       }
    }
-   display_text("\n");
+   m_console->display_text("\n");
 }
 
-void Console::displayToPrompt()
+void DirComm::displayToPrompt()
 { 
    int stat = 0;
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-         display_text(msg());
+         m_console->display_text(msg());
       }
    }
    if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
 }
 
-void Console::discardToPrompt()
+void DirComm::discardToPrompt()
 { 
    int stat = 0;
    if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-         if (mainWin->m_displayAll) display_text(msg());
+         if (mainWin->m_displayAll) m_console->display_text(msg());
       }
    }
    if (mainWin->m_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
@@ -602,7 +362,7 @@ void Console::discardToPrompt()
 /* 
  * Blocking read from director
  */
-int Console::read()
+int DirComm::read()
 {
    int stat = 0;
    while (m_sock) {
@@ -622,7 +382,7 @@ int Console::read()
       if (stat >= 0) {
          if (mainWin->m_commDebug) Pmsg1(000, "got: %s\n", m_sock->msg);
          if (m_at_prompt) {
-            display_text("\n");
+            m_console->display_text("\n");
             m_at_prompt = false;
             m_at_main_prompt = false;
          }
@@ -679,11 +439,11 @@ int Console::read()
          continue;
       case BNET_START_SELECT:
          if (mainWin->m_commDebug) Pmsg0(000, "START SELECT\n");
-         new selectDialog(this);    
+         new selectDialog(m_console);
          break;
       case BNET_YESNO:
          if (mainWin->m_commDebug) Pmsg0(000, "YESNO\n");
-         new yesnoPopUp(this);
+         new yesnoPopUp(m_console);
          break;
       case BNET_RUN_CMD:
          if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
@@ -692,19 +452,19 @@ int Console::read()
       case BNET_ERROR_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
          m_sock->recv();              /* get the message */
-         display_text(msg());
+         m_console->display_text(msg());
          QMessageBox::critical(this, "Error", msg(), QMessageBox::Ok);
          break;
       case BNET_WARNING_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "WARNING MSG\n");
          m_sock->recv();              /* get the message */
-         display_text(msg());
+         m_console->display_text(msg());
          QMessageBox::critical(this, "Warning", msg(), QMessageBox::Ok);
          break;
       case BNET_INFO_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "INFO MSG\n");
          m_sock->recv();              /* get the message */
-         display_text(msg());
+         m_console->display_text(msg());
          mainWin->set_status(msg());
          break;
       }
@@ -730,11 +490,11 @@ int Console::read()
 }
 
 /* Called by signal when the Director has output for us */
-void Console::read_dir(int /* fd */)
+void DirComm::read_dir(int /* fd */)
 {
    if (mainWin->m_commDebug) Pmsg0(000, "read_dir\n");
    while (read() >= 0) {
-      display_text(msg());
+      m_console->display_text(msg());
    }
 }
 
@@ -748,73 +508,21 @@ void Console::read_dir(int /* fd */)
  * from the Directory, so we set notify to off.
  *    m_console->notifiy(false);
  */
-void Console::notify(bool enable) 
+void DirComm::notify(bool enable) 
 { 
    m_notifier->setEnabled(enable);   
 }
 
-void Console::setDirectorTreeItem(QTreeWidgetItem *item)
-{
-   m_directorTreeItem = item;
-}
-
-void Console::setDirRes(DIRRES *dir) 
-{ 
-   m_dir = dir;
-}
-
-/*
- * To have the ability to get the name of the director resource.
- */
-void Console::getDirResName(QString &name_returned)
-{
-   name_returned = m_dir->name();
-}
-
-bool Console::is_connectedGui()
+bool DirComm::is_connectedGui()
 {
    if (is_connected()) {
       return true;
    } else {
       QString message("Director ");
-      message += " is currently disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, "Bat",
+      message += " is curerntly disconnected\n  Please reconnect!!";
+      QMessageBox::warning(this, tr("Bat"),
          tr(message.toUtf8().data()), QMessageBox::Ok );
       return false;
-   }
-}
-
-/*
- * A temporary function to prevent connecting to the director if the director
- * is busy with a restore.
- */
-bool Console::preventInUseConnect()
-{
-   if (!is_connected()) {
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
-      return false;
-   } else if (!m_at_main_prompt){
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently busy\n  Please complete restore or other "
-                 " operation !!  This is a limitation that will be resolved before a beta"
-                 " release.  This is currently an alpha release.";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
-      return false;
-   } else if (!m_at_prompt){
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently not at a prompt\n  Please try again!!";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
-      return false;
-   } else {
-      return true;
    }
 }
 
@@ -848,56 +556,4 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
    buf[0] = 0;
    return 0;
 #endif
-}
-
-/* Slot for responding to page selectors status help command */
-void Console::consoleHelp()
-{
-   QString cmd("help");
-   consoleCommand(cmd);
-}
-
-/* Slot for responding to page selectors reload bacula-dir.conf */
-void Console::consoleReload()
-{
-   QString cmd("reload");
-   consoleCommand(cmd);
-}
-
-/* Function to get a list of volumes */
-void Console::getVolumeList(QStringList &volumeList)
-{
-   QString query("SELECT VolumeName AS Media FROM Media ORDER BY Media");
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
-   }
-   QStringList results;
-   if (sql_cmd(query, results)) {
-      QString field;
-      QStringList fieldlist;
-      /* Iterate through the lines of results. */
-      foreach (QString resultline, results) {
-         fieldlist = resultline.split("\t");
-         volumeList.append(fieldlist[0]);
-      } /* foreach resultline */
-   } /* if results from query */
-}
-
-/* Function to get a list of volumes */
-void Console::getStatusList(QStringList &statusLongList)
-{
-   QString statusQuery("SELECT JobStatusLong FROM Status");
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",statusQuery.toUtf8().data());
-   }
-   QStringList statusResults;
-   if (sql_cmd(statusQuery, statusResults)) {
-      QString field;
-      QStringList fieldlist;
-      /* Iterate through the lines of results. */
-      foreach (QString resultline, statusResults) {
-         fieldlist = resultline.split("\t");
-         statusLongList.append(fieldlist[0]);
-      } /* foreach resultline */
-   } /* if results from statusquery */
 }
