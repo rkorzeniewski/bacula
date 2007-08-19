@@ -223,7 +223,8 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 int lex_get_char(LEX *lf)
 {
    if (lf->ch == L_EOF) {
-      Emsg0(M_ABORT, 0, _("get_char: called after EOF\n"));
+      Emsg0(M_ABORT, 0, _("get_char: called after EOF."
+         " You may have a open double quote without the closing double quote.\n"));
    }
    if (lf->ch == L_EOL) {
       if (bfgets(lf->line, MAXSTRING, lf->fd) == NULL) {
