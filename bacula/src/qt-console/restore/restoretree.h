@@ -118,7 +118,7 @@ private:
    QHash<QString, int> m_versionExceptionHash;
    QHash<QString, int> m_directoryIconStateHash;
    QHash<QString, int> m_directoryPathIdHash;
-   int m_toggleUpIndex, m_toggleDownIndex;
+   int m_toggleUpIndex, m_toggleDownIndex, m_nullFileNameId;
 };
 
 #endif /* _RESTORETREE_H_ */
