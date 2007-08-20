@@ -1,3 +1,9 @@
+bweb (2.2.0-2) stable; urgency=low
+
+  * fix Media.LocationId update during label barcodes 
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Mon,  20 Aug 2007 15:15:47 +0000
+
 bweb (2.2.0-1) stable; urgency=low
 
   * Make search case insensitive with postgresql
