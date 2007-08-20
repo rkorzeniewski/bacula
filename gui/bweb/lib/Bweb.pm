@@ -3360,20 +3360,6 @@ sub label_barcodes
 	$t += 60*scalar( @{ $arg->{slots} }) ;
     }
 
-    $self->dbh_do("
-  UPDATE Media 
-       SET LocationId =   (SELECT LocationId 
-                             FROM Location 
-                            WHERE Location = '$arg->{ach}'),
-
-           RecyclePoolId = (SELECT PoolId 
-                             FROM Pool
-                            WHERE Name = 'Scratch')
-
-     WHERE (LocationId = 0 OR LocationId IS NULL)
-       $slots_sql
-");
-
     my $b = new Bconsole(pref => $self->{info}, timeout => $t,log_stdout => 1);
     print "<h1>This command can take long time, be patient...</h1>";
     print "<pre>" ;
@@ -3383,6 +3369,17 @@ sub label_barcodes
 		       slots => $slots) ;
     $b->close();
     print "</pre>";
+
+    $self->dbh_do("
+  UPDATE Media 
+       SET LocationId =   (SELECT LocationId 
+                             FROM Location 
+                            WHERE Location = '$arg->{ach}')
+
+     WHERE (LocationId = 0 OR LocationId IS NULL)
+       $slots_sql
+");
+
 }
 
 sub purge
