@@ -304,8 +304,6 @@ GRANT INSERT,UPDATE,DELETE ON bacula.Location
   TO 'bweb'@'%' IDENTIFIED BY 'password';
 GRANT INSERT,UPDATE,DELETE ON bacula.LocationLog 
   TO 'bweb'@'%' IDENTIFIED BY 'password';
-GRANT UPDATE (LocationId,Comment,RecyclePoolId) ON bacula.Media 
-  TO 'bweb'@'%'  IDENTIFIED BY 'password';
 
 ################ GET MORE STATISTICS ###########################
 

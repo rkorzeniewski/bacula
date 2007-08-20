@@ -3217,6 +3217,10 @@ sub do_update_media
 	$update .= " maxvolbytes=$arg->{maxvolbytes} " ;
     }    
 
+    if (defined $arg->{poolrecycle}) {
+	$update .= " recyclepool=\"$arg->{poolrecycle}\" " ;
+    }        
+    
     my $b = $self->get_bconsole();
 
     $self->display({
@@ -3233,9 +3237,6 @@ sub do_update_media
     if ($loc) {
 	$loc = $self->dbh_quote($loc); # is checked by db
 	push @q, "LocationId=(SELECT LocationId FROM Location WHERE Location=$loc)";
-    }
-    if ($arg->{poolrecycle}) {
-	push @q, "RecyclePoolId=(SELECT PoolId FROM Pool WHERE Name='$arg->{poolrecycle}')";
     }
     if (!$arg->{qcomment}) {
 	$arg->{qcomment} = "''";
