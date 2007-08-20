@@ -1,5 +1,9 @@
           Release Notes for brestore 2.2.0
 
+Version 2.2.0-2:
+ - cleanup brestore
+ - update brestore_xxx only when job is in (T, f, A)
+
 Version 2.2.0:
  - -b now clean brestore internal tables
 

@@ -2392,7 +2392,7 @@ sub update_cache
 
     my $query = "
   SELECT JobId from Job 
-   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) ORDER BY JobId";
+   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) AND JobStatus IN ('T', 'f', 'A') ORDER BY JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
@@ -2876,32 +2876,6 @@ sub update_brestore_table
 	# Job's done
 	$query = "INSERT INTO brestore_knownjobid (JobId) VALUES ($job)";
 	$self->dbh_do($query);
-    }
-}
-
-sub cleanup_brestore_table
-{
-    my ($self) = @_;
-
-    my $query = "SELECT JobId from brestore_knownjobid";
-    my @jobs = @{$self->dbh_selectall_arrayref($query)};
-
-    foreach my $jobentry (@jobs)
-    {
-	my $job = $jobentry->[0];
-	$query = "SELECT FileId from File WHERE JobId = $job LIMIT 1";
-	my $result = $self->dbh_selectall_arrayref($query);
-	if (scalar(@{$result}))
-	{
-	    # There are still files for this jobid
-	    print STDERR "$job still exists. Not cleaning...\n";
-
-	} else {
-		$query = "DELETE FROM brestore_pathvisibility WHERE JobId = $job";
-		$self->dbh_do($query);
-		$query = "DELETE FROM brestore_knownjobid WHERE JobId = $job";
-		$self->dbh_do($query);
-	}
     }
 }
 
