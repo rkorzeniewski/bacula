@@ -120,7 +120,7 @@ PROG_COPYRIGHT
 "       -m                update media info in database\n"
 "       -n <name>         specify the database name (default bacula)\n"
 "       -u <user>         specify database user name (default bacula)\n"
-"       -P <password      specify database password (default none)\n"
+"       -P <password>     specify database password (default none)\n"
 "       -h <host>         specify database host (default NULL)\n"
 "       -p                proceed inspite of I/O errors\n"
 "       -r                list records\n"
