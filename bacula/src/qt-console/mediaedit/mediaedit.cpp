@@ -96,10 +96,9 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
       i += 1;
    }
    query += " FROM Media"
-            " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+            " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
             " LEFT OUTER JOIN Pool AS Pol ON (Media.recyclepoolid=Pol.PoolId)"
-            " WHERE Media.MediaId='" + mediaId + "'"
-            " ORDER BY Pool.Name";
+            " WHERE Media.MediaId='" + mediaId + "'";
 
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "MediaList query cmd : %s\n",query.toUtf8().data());
