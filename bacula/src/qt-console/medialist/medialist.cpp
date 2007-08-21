@@ -114,7 +114,7 @@ void MediaList::populateTree()
          " Media.Enabled AS enabled, Pol.Name AS RecyclePool,"
          " Media.LastWritten AS LastWritten"
          " FROM Media"
-         " LEFT OUTER JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+         " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
          " LEFT OUTER JOIN Pool AS Pol ON (Media.RecyclePoolId=Pol.PoolId)"
          " WHERE";
       query += " Pool.Name='" + pool_listItem + "'";
