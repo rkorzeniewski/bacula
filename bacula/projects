@@ -260,8 +260,54 @@ Item  8:  Implement Copy pools
   Notes:  I would commit some of my developers' time if we can agree
           on the design and behavior. 
 
-  Notes:  I get the idea, but would like more details on the precise
-          syntax of the necessary directives and what they would do.
+  Notes:  Additional notes from David:
+          I think there's two areas where new configuration would be needed. 
+
+          1) Identify a "SD mux" SD (specify it in the config just like a normal
+          SD. The SD configuration would need something like a "Daemon Type =
+          Normal/Mux" keyword to identify it as a multiplexor. (The director code
+          would need modification to add the ability to do the multiple session
+          setup, but the impact of the change would be new code that was invoked
+          only when a SDmux is needed).
+
+          2) Additional keywords in the Pool definition to identify the need to
+          create copies. Each pool would acquire a Copypool= attribute (may be
+          repeated to generate more than one copy. 3 is about the practical limit,
+          but no point in hardcoding that). 
+
+          Example:
+          Pool {
+            Name = Primary
+            Pool Type = Backup
+            Copypool = Copy1
+            Copypool = OffsiteCopy2
+          }
+
+          where Copy1 and OffsiteCopy2 are valid pools.
+
+          In terms of function (shorthand):
+          Backup job X is defined normally, specifying pool Primary as the pool to
+          use. Job gets scheduled, and Bacula starts scheduling resources.
+          Scheduler looks at pool definition for Primary, sees that there are a
+          non-zero number of copypool keywords. The director then connects to an
+          available SDmux, passes it the pool ids for Primary, Copy1, and
+          OffsiteCopy2 and waits. SDmux then goes out and reserves devices and
+          volumes in the normal SDs that serve Primary, Copy1 and OffsiteCopy2.
+          When all are ready, the SDmux signals ready back to the director, and
+          the FD is given the address of the SDmux as the SD to communicate with.
+          Backup proceeds normally, with the SDmux duplicating blocks to each
+          connected normal SD, and returning ready when all defined copies have
+          been written. At EOJ, FD shuts down connection with SDmux, which closes
+          down the normal SD connections and goes back to an idle state. 
+          SDmux does not update database; normal SDs do (noting that file is
+          present on each volume it has been written to). 
+
+          On restore, director looks for the volume containing the file in pool
+          Primary first, then Copy1, then OffsiteCopy2. If the volume holding the
+          file in pool Primary is missing or busy (being written in another job,
+          etc), or one of the volumes from the copypool list that have the file in
+          question is already mounted and ready for some reason, use it to do the
+          restore, else mount one of the copypool volumes and proceed.
 
 
 Item  9:  Scheduling syntax that permits more flexibility and options
