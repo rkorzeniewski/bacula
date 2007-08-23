@@ -725,11 +725,12 @@ void bmsg(UAContext *ua, const char *fmt, va_list arg_ptr)
 {
    BSOCK *bs = ua->UA_sock;
    int maxlen, len;
-   POOLMEM *msg;
+   POOLMEM *msg = NULL;
 
    if (bs) {
       msg = bs->msg;
-   } else {
+   }
+   if (!msg) {
       msg = get_pool_memory(PM_EMSG);
    }
 
@@ -785,8 +786,9 @@ void UAContext::error_msg(const char *fmt, ...)
 {
    BSOCK *bs = UA_sock;
    va_list arg_ptr;
-   va_start(arg_ptr, fmt);
+
    if (bs && api) bs->signal(BNET_ERROR_MSG);
+   va_start(arg_ptr, fmt);
    bmsg(this, fmt, arg_ptr);
    va_end(arg_ptr);
 }
@@ -800,8 +802,9 @@ void UAContext::warning_msg(const char *fmt, ...)
 {
    BSOCK *bs = UA_sock;
    va_list arg_ptr;
-   va_start(arg_ptr, fmt);
+
    if (bs && api) bs->signal(BNET_WARNING_MSG);
+   va_start(arg_ptr, fmt);
    bmsg(this, fmt, arg_ptr);
    va_end(arg_ptr);
 }
@@ -814,8 +817,9 @@ void UAContext::info_msg(const char *fmt, ...)
 {
    BSOCK *bs = UA_sock;
    va_list arg_ptr;
-   va_start(arg_ptr, fmt);
+
    if (bs && api) bs->signal(BNET_INFO_MSG);
+   va_start(arg_ptr, fmt);
    bmsg(this, fmt, arg_ptr);
    va_end(arg_ptr);
 }
