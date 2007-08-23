@@ -1,6 +1,14 @@
               Technical notes on version 2.3
 
 General:
+23Aug07
+kes  Fix (hopefully) bug #930 by doing a db_escape_string() on file  
+     and directory names during restore of single file/directories.
+kes  Add sanity checks to .sql command when string is empty. Hopefully
+     that will resolve Dirks Director crash.
+22Aug07 
+kes  Apply patch submitted by Martin Simmons that corrects a seg fault
+     in the bsmtp chat subroutine when debug is >= 10.
 21Aug07
 kes  Fix Director crash when running bat SQL queries.
 kes  Add David's notes on Item 8: Copy pools.

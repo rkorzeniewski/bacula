@@ -136,11 +136,13 @@ static void chat(const char *fmt, ...)
 
     va_start(ap, fmt);
     vfprintf(sfp, fmt, ap);
+    va_end(ap);
     if (debug_level >= 10) {
        fprintf(stdout, "%s --> ", my_hostname);
+       va_start(ap, fmt);
        vfprintf(stdout, fmt, ap);
+       va_end(ap);
     }
-    va_end(ap);
 
     fflush(sfp);
     if (debug_level >= 10) {
