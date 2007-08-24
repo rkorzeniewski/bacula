@@ -399,7 +399,7 @@ static bool read_close_session(JCR *jcr)
       return false;
    }
    /* Send final statistics to File daemon */
-   bnet_fsend(fd, OK_close);
+   bnet_fsend(fd, OK_close, jcr->JobStatus);
    Dmsg1(160, ">filed: %s\n", fd->msg);
 
    bnet_sig(fd, BNET_EOD);          /* send EOD to File daemon */
