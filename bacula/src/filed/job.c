@@ -1229,7 +1229,7 @@ static int level_cmd(JCR *jcr)
          } else {
             type = M_INFO;
          }
-         Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %d seconds, FD automatically adjusting.\n"), adj);
+         Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %d seconds, FD automatically compensating.\n"), adj);
       }
       bnet_sig(dir, BNET_EOD);
 
