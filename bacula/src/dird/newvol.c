@@ -120,7 +120,7 @@ static bool create_simple_name(JCR *jcr, MEDIA_DBR *mr, POOL_DBR *pr)
    /* See if volume already exists */
    mr->VolumeName[0] = 0;
    bstrncpy(name, pr->LabelFormat, sizeof(name));
-   for (int i=pr->NumVols+1; i<(int)pr->NumVols+11; i++) {
+   for (int i=pr->NumVols+1; i<(int)pr->NumVols+100; i++) {
       MEDIA_DBR tmr;
       memset(&tmr, 0, sizeof(tmr));
       sprintf(num, "%04d", i);
