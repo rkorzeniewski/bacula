@@ -1,6 +1,12 @@
               Technical notes on version 2.3
 
 General:
+29Aug07
+kes  Fix bug 921 by increasing the number of tries to create a new volume
+     from 11 to 100.
+kes  Rework bmsg in ua_output to use va_copy() so that bvsnprintf()
+     can be called multiple times.  Implement a version for machines
+     without va_copy() that gets a big buffer.
 25Aug07
 kes  Integrate more portable zone offset code into bsmtp.c
      Submitted by Attila Fülöp.
