@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "2.3.1"
-#define BDATE   "24 August 2007"
-#define LSMDATE "24Aug07"
+#define BDATE   "29 August 2007"
+#define LSMDATE "29Aug07"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2007 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2007"       /* year for copyright messages in progs */

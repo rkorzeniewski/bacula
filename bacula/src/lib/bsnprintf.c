@@ -16,7 +16,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,6 +45,7 @@
 
 #include "bacula.h"
 #define FP_OUTPUT 1 /* Bacula uses floating point */
+
 /* Define the following if you want all the features of
  *  normal printf, but with all the security problems.
  *  For Bacula we turn this off, and it silently ignores

@@ -38,6 +38,8 @@
 
 /* Bacula common configuration defines */
 
+#define HAVE_VA_COPY
+
 #undef  TRUE
 #undef  FALSE
 #define TRUE  1
@@ -627,13 +629,11 @@ extern int thr_setconcurrency(int);
 #endif
 
 #if defined(HAVE_DARWIN_OS) || defined(HAVE_OSF1_OS)
+#undef HAVE_VA_COPY
 /* Apparently someone forgot to wrap getdomainname as a C function */
 extern "C" int getdomainname(char *name, int len);
 #endif
 
-#ifdef HAVE_OSF1_OS
-extern "C" int mknod ( const char *path, int mode, dev_t device );
-#endif
 
 
 #if defined(HAVE_WIN32)
@@ -661,6 +661,7 @@ inline const char *first_path_separator(const char *path) { return strchr(path, 
 
 #ifdef HAVE_HPUX_OS
 # undef h_errno
+#undef HAVE_VA_COPY
 extern int h_errno;
 /* the {get,set}domainname() functions exist in HPUX's libc.
  * the configure script detects that correctly.
@@ -673,9 +674,10 @@ extern "C" int setdomainname(char *name, int namelen);
 
 
 #ifdef HAVE_OSF1_OS
-#undef HAVE_CHFLAGS  /* chflags is incorrectly detected */
+#undef HAVE_VA_COPY
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
+extern "C" int mknod ( const char *path, int mode, dev_t device );
 #endif
 
 
