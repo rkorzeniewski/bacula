@@ -379,7 +379,7 @@ if test x$support_tray_monitor = xyes; then
      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
      pkg=$?
      if test $pkg = 0; then
-     AC_DEFINE(HAVE_GTK_2_4)
+	AC_DEFINE(HAVE_GTK_2_4, 1, [Set if you have GTK 4.2 or greater loaded])
      fi
   fi
 fi
@@ -395,7 +395,7 @@ AC_ARG_ENABLE(smartalloc,
   fi])
 
 if test x$support_smartalloc = xyes; then
-   AC_DEFINE(SMARTALLOC)
+   AC_DEFINE(SMARTALLOC, 1, [Set if you want Smartalloc enabled])
 fi
 
 # -------------------------------------------
@@ -641,7 +641,7 @@ if test x$support_readline = xyes; then
 	     with_readline="/usr/include/readline" 
 	  fi
 	  AC_CHECK_HEADER(${with_readline}/readline.h, 
-	     [ AC_DEFINE(HAVE_READLINE) 
+	     [ AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
 	       CONS_LIBS="-lreadline -lhistory -ltermcap"
 	       got_readline="yes"   
 	     ],
@@ -655,14 +655,14 @@ if test x$support_readline = xyes; then
      ],[
        # check for standard readline library
        AC_CHECK_HEADER(/usr/include/readline/readline.h, 
-	 [ AC_DEFINE(HAVE_READLINE)
+	 [ AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
 	   got_readline="yes"
 	   CONS_INC="-I/usr/include/readline"
 	   CONS_LIBS="-lreadline -ltermcap"
 	 ], [
 	   # Did not find standard library, so try Bacula's default
 	    AC_CHECK_HEADER(${TOP_DIR}/depkgs/readline/readline.h, 
-	      [ AC_DEFINE(HAVE_READLINE) 
+	      [ AC_DEFINE(HAVE_READLINE, 1, [Set to enable readline support])
 		 got_readline="yes"   
 		 CONS_INC="-I${TOP_DIR}/depkgs/readline"
 		 CONS_LIBS="-lreadline -lhistory -ltermcap"
@@ -816,7 +816,7 @@ AC_ARG_WITH(tcp-wrappers,
 	  [ hosts_access(req); ],
 	  [
 	    AC_MSG_RESULT(yes)
-	    AC_DEFINE(HAVE_LIBWRAP)
+	    AC_DEFINE(HAVE_LIBWRAP, 1, [Set to enable libwraper support])
 	    TCPW_MSG="yes" 
 	    LIBS="$saved_LIBS"
 	    WRAPLIBS="-lwrap"
@@ -832,7 +832,7 @@ AC_ARG_WITH(tcp-wrappers,
 	      [ hosts_access(req); ],
 	      [
 		 AC_MSG_RESULT(yes)
-		 AC_DEFINE(HAVE_LIBWRAP)
+		 AC_DEFINE(HAVE_LIBWRAP, 1, [Set to enable libwraper support])
 		 TCPW_MSG="yes" 
 		 LIBS="$saved_LIBS"
 		 WRAPLIBS="-lwrap"
@@ -1417,7 +1417,7 @@ AC_CACHE_CHECK(for utime.h, ba_cv_header_utime_h,
 #include <sys/types.h>
 #include <utime.h>], [struct utimbuf foo],
   ba_cv_header_utime_h=yes, ba_cv_header_utime_h=no)])
-test $ba_cv_header_utime_h = yes && AC_DEFINE(HAVE_UTIME_H)
+test $ba_cv_header_utime_h = yes && AC_DEFINE(HAVE_UTIME_H, 1, [Set if utime.h exists])
 
 dnl# --------------------------------------------------------------------------
 dnl# Check for socklen_t
@@ -1719,6 +1719,17 @@ AC_CHECK_FUNCS(fdatasync)
 AC_CHECK_FUNCS(chflags) 
 
 AC_CHECK_FUNCS(snprintf vsnprintf gethostid fseeko)
+
+AC_CACHE_CHECK(for va_copy, ba_cv_va_copy,
+  [AC_TRY_LINK([
+#include <stdarg.h>
+void use_va_copy(va_list args){va_list args2; va_copy(args2,args); va_end(args2);}
+void call_use_va_copy(int junk,...){va_list args; va_start(args,junk); use_va_copy(args); va_end(args);}
+],
+  [call_use_va_copy(1,2,3)],
+  ba_cv_va_copy=yes, ba_cv_va_copy=no)])
+test $ba_cv_va_copy = yes && AC_DEFINE(HAVE_VA_COPY, 1, [Set if va_copy exists])
+
 
 dnl# --------------------------------------------------------------------------
 dnl# CHECKING FOR THREAD SAFE FUNCTIONS
