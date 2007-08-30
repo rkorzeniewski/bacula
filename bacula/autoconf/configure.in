@@ -20,7 +20,6 @@ dnl search for true and false programs.
 AC_PATH_PROGS(TRUEPRG, true, :)
 AC_PATH_PROGS(FALSEPRG, false, :)
 
-#AC_CANONICAL_HOST
 
 dnl bacula version
 VERSION=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
@@ -98,6 +97,7 @@ fi
 THE_AWK=$AWK
 AC_PATH_PROG(AWK, $THE_AWK, $THE_AWK)
 
+
 test -n "$ARFLAG" || ARFLAGS="cr"
 AC_SUBST(ARFLAGS)
 
@@ -171,12 +171,6 @@ if test x$mandir = x'${prefix}/man' ; then
 fi
 
 		      
-# ------------------------------------------------------------------
-# All list of languages for which a translation exist. Each
-#  language is separated by a space.
-# ------------------------------------------------------------------
-ALL_LINGUAS=""
-
 AC_PATH_PROGS(MSGFMT, msgfmt, no)
 if test "$MSGFMT" = "no"
 then
