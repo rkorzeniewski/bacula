@@ -3,6 +3,8 @@
 General:
 Release Version 2.2.1
 30Aug07
+kes  Update POTFILES.in
+kes  Cleanup a few underquoted AC_DEFUNs in configure
 kes  Apply patch from Martin Simmons that adds a test for va_copy to
      ./configure
 29Aug07
