@@ -1,0 +1,42 @@
+  Re: [Bacula-devel] Win32 Regression Scripts
+From: "Michael Short" <michael@securenets.us>  (Securenets.us)
+  To: bacula-devel@lists.sourceforge.net
+Date: 30 August 2007 04:09:00
+   
+
+Hey guys, I've made a bit of progress on the win32 regression scripts.
+
+In order to use the win32 bacula regression scripts, it is important to have
+some unix tools (mainly sed). To make things simple, I downloaded UnxUtils
+from http://sourceforge.net/projects/unxutils
+
+Extract this somewhere on your hdd ( I extracted to C:\unxutils ) and add
+the usr\local\wbin path from wherever you extracted the utils ( for me it
+was C:\unxutils\usr\local\wbin ) to your {$PATH} on your windows box. If you
+also want to make use of the shell (from unxutils) you may want to add the
+./bin directory as well (or just copy the sh.exe file to usr\local\wbin).
+
+Now that you have a working toolset (with sed) we can continue setting up
+regression tools. Compile the Ming32 version of bacula (from linux) and then
+copy the entire source directory of bacula (with binaries) to somewhere on
+your windows hdd (say... C:\bacula :P).
+
+Copy a version of the regression scripts ( from regress/win32 ) to your
+windows hdd (hmm... C:\regress ). Edit the prototype.conf file and set your
+bacula source directory ( C:/bacula ) and your e-mail address (!!). Run
+"config prototype.conf" from within the regression directory to configure
+the regression scripts.
+
+Edit regress\scripts\install_bacula.cmd and replace "COPY bin\sqlite.dll
+bin\bacula_cats.dll > nul" and replace "cats_sqlite.dll" with
+"cats_sqlite3.dll". ( FixMe )
+
+>From the regress directory, run "make setup" and the script should copy the
+binaries from the bacula sources and create a local bacula testing platform.
+-----------
+
+At this point all three of the bacula daemons fail miserably mentioning
+something about bacula.dll. I will try figuring out what else is wrong
+because when I installed the same build of bacula with the installer the
+system ran fine. I'm guessing there are some outdated test configurations
+and filenames causing bacula to go on the fritz.

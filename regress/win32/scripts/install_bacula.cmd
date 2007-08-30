@@ -22,7 +22,7 @@ COPY build\src\win32\installer\%1\*.manifest bin >nul
 COPY build\src\win32\%1\*.pdb bin >nul
 COPY build\src\win32\installer\%1\query.sql bin >nul
 
-COPY bin\cats_sqlite.dll bin\bacula_cats.dll >nul
+COPY bin\cats_sqlite3.dll bin\bacula_cats3.dll >nul
 
 FOR /f %%i IN ( 'cmd /c openssl.exe rand -base64 33 2^>nul' ) DO SET CLIENT_PASSWORD=%%i
 FOR /f %%i IN ( 'cmd /c openssl.exe rand -base64 33 2^>nul' ) DO SET STORAGE_PASSWORD=%%i
