@@ -12932,7 +12932,8 @@ if test x$support_tray_monitor = xyes; then
      abc=`$PKGCONFIG --atleast-version=2.4 gtk+-2.0`
      pkg=$?
      if test $pkg = 0; then
-     cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK_2_4 1
 _ACEOF
 
@@ -12953,7 +12954,8 @@ if test "${enable_smartalloc+set}" = set; then
 fi;
 
 if test x$support_smartalloc = xyes; then
-   cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define SMARTALLOC 1
 _ACEOF
 
@@ -13961,7 +13963,8 @@ echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
 
 fi
 if test `eval echo '${'$as_ac_Header'}'` = yes; then
-   cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
@@ -14121,7 +14124,8 @@ echo "${ECHO_T}$ac_cv_header__usr_include_readline_readline_h" >&6
 
 fi
 if test $ac_cv_header__usr_include_readline_readline_h = yes; then
-   cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
@@ -14271,7 +14275,8 @@ echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
 
 fi
 if test `eval echo '${'$as_ac_Header'}'` = yes; then
-   cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_READLINE 1
 _ACEOF
 
@@ -15870,7 +15875,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
 
 	    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-	    cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBWRAP 1
 _ACEOF
 
@@ -15929,7 +15935,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
 
 		 echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		 cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBWRAP 1
 _ACEOF
 
@@ -21015,7 +21022,8 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 echo "$as_me:$LINENO: result: $ba_cv_header_utime_h" >&5
 echo "${ECHO_T}$ba_cv_header_utime_h" >&6
-test $ba_cv_header_utime_h = yes && cat >>confdefs.h <<\_ACEOF
+test $ba_cv_header_utime_h = yes &&
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_UTIME_H 1
 _ACEOF
 
@@ -27078,6 +27086,71 @@ _ACEOF
 
 fi
 done
+
+
+echo "$as_me:$LINENO: checking for va_copy" >&5
+echo $ECHO_N "checking for va_copy... $ECHO_C" >&6
+if test "${ba_cv_va_copy+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdarg.h>
+void use_va_copy(va_list args){va_list args2; va_copy(args2,args); va_end(args2);}
+void call_use_va_copy(int junk,...){va_list args; va_start(args,junk); use_va_copy(args); va_end(args);}
+
+int
+main ()
+{
+call_use_va_copy(1,2,3)
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ba_cv_va_copy=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ba_cv_va_copy=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ba_cv_va_copy" >&5
+echo "${ECHO_T}$ba_cv_va_copy" >&6
+test $ba_cv_va_copy = yes &&
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_VA_COPY 1
+_ACEOF
+
 
 
 
