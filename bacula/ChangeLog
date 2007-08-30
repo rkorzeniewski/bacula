@@ -1,6 +1,69 @@
-              Technical notes on version 2.1
+              Technical notes on version 2.2.x
 
 General:
+Release Version 2.2.1
+30Aug07
+kes  Apply patch from Martin Simmons that adds a test for va_copy to
+     ./configure
+29Aug07
+kes  Fix bug 921 by increasing the number of tries to create a new volume
+     from 11 to 100.
+kes  Rework bmsg in ua_output to use va_copy() so that bvsnprintf()
+     can be called multiple times.  Implement a version for machines
+     without va_copy() that gets a big buffer.
+25Aug07
+kes  Integrate more portable zone offset code into bsmtp.c
+     Submitted by Attila Fülöp.
+24Aug07
+kes  Fix bad SD->FD return status reported by 
+     (James Harper) <james.harper@bendigoit.com.au>
+ebl  Fix a bug in read_close_session which return random status
+     thanks to James Harper
+23Aug07
+kes  Fix (hopefully) bug #930 by doing a db_escape_string() on file  
+     and directory names during restore of single file/directories.
+kes  Add sanity checks to .sql command when string is empty. Hopefully
+     that will resolve Dirks Director crash.
+22Aug07 
+kes  Apply patch submitted by Martin Simmons that corrects a seg fault
+     in the bsmtp chat subroutine when debug is >= 10.
+21Aug07
+kes  Fix Director crash when running bat SQL queries.
+kes  Add David's notes on Item 8: Copy pools.
+18Aug07
+kes  Rework projects file to be current and ready for a vote.
+kes  Enhance lex scanner error message.
+17Aug07
+kes  Tweak LICENSE file to mention BSD code.
+kes  Fix bat.pro.in so that it includes the OpenSSL libraries only
+     if specified on the ./configure.
+kes  Add first (not yet tested) cut of bcomm to the qt-console directory.
+     This class is intended to allow us to open a second bsock to the
+     Director while in the restore subdialog.  
+16Aug07
+kes  Fix configure to create bat Makefile before creating dependencies.
+kes  Eliminate the egg files from the tray-monitor. Use gtk calls.
+kes  Add a tooltip to the tray monitor.
+dvl  Set the Director's PID file before dropping privs. This fixes
+     bug #923.
+15Aug07
+kes  Update AUTHORs file
+kes  Increase the default max concurrent jobs to 20 in FD and SD to
+     correspond with the default .conf files.
+kes  Rewrite the Win32 service routines.  This eliminates the 3 copies
+     some different, of the same file created by RN when porting the 
+     Win32 SD and Dir.
+kes  Rearrange some of the Win32 directories and the placement of the files
+     in them.
+kes  Set DEVELOPER flag in version.h
+
+========================================================================
+Release Version 2.2.0
+09Aug07
+kes  Apply a second doc patch from Marc.
+kes  Apply a doc patch from Marc Schiffbauer <marc@schiffbauer.net> that
+     improves the tips section that discusses how to setup multiple
+     simultaneous jobs.
 08Aug07
 kes  Update bat README file.
 kes  Apply patch from Allan Black <Allan.Black@btconnect.com> that     

@@ -1,5 +1,5 @@
 
-          Release Notes for Bacula 2.2.0 
+          Release Notes for Bacula 2.2.1 
 
   Bacula code: Total files = 520 Total lines = 195,550 (*.h *.c *.in)
   82 new files, 41,221 new lines of code, 208,380 lines of change from 2.0.3
@@ -9,6 +9,18 @@ but they should be compatible with all 2.0.x File daemons, unless you
 use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons when you upgrade. There is
 no database upgrade needed from version 2.0.x to 2.2.0.
+
+Version 2.2.1 is mainly a minor bug fix release to version 2.2.0,
+  the main changes since 2.2.0 are:
+- Fixed bugs #921, 930, and 923.
+- More portable timezone offset in bsmtp thaks to Attila Fülöp.
+- Fix several bat issues.                           
+- Use GTK+ calls instead of egg files in tray-monitor.
+- Win32 service routines rewritten
+- Updated projects file
+Please see the ChangeLog for details.
+
+Notes on 2.2.0 release follow:
 
 Areas requiring caution or testing:
 - You must have the thread safe version of MySQL client libraries loaded
