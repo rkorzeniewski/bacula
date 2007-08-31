@@ -10,7 +10,7 @@
 /build/platforms/Makefile.in
 /build/platforms/redhat/Makefile.in
 /build/scripts/Makefile.in
-/build/src/win32/filed/winservice.cpp
+/build/src/win32/filed/service.cpp
 /build/src/filed/restore.c
 /build/autoconf/configure.in
 /build/examples/afs-bacula
