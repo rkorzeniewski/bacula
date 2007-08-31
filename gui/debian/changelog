@@ -1,9 +1,10 @@
-bweb (2.2.0-2) stable; urgency=low
+bweb (2.2.1-1) stable; urgency=low
   
-  * WARNING: 2.2.0-2 version don't support bacula 2.0.X anymore
+  * WARNING: 2.2.1-1 version don't support bacula 2.0.X anymore
+    we use update recyclepool= instead of SQL query in media update
+
   * cleanup brestore
   * update brestore_xxx only when job is in (T, f, A)
-  * use update recyclepool= instead of SQL query 
   * fix Media.LocationId update during label barcodes 
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Mon,  20 Aug 2007 15:15:47 +0000
