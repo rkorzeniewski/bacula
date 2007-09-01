@@ -25,7 +25,7 @@
 
 #include "bacula.h"
 #include "jcr.h"
-#include "save-cwd.h"
+#include "savecwd.h"
 
 
 #if !defined(S_ISDIR) && defined(S_IFDIR)
@@ -65,20 +65,6 @@
 #define quote(path) path
 
 extern void strip_trailing_slashes();
-
-static int
-cleanup(struct saved_cwd *cwd)
-{
-   if (cwd->do_chdir) {
-      int _fail = restore_cwd(cwd, NULL, NULL);
-      free_cwd(cwd);
-      if (_fail) {
-         return 1;
-      }
-   }
-   return 0;
-}
-
 
 /* Attempt to create directory DIR (aka DIRPATH) with the specified MODE.
    If CREATED_DIR_P is non-NULL, set *CREATED_DIR_P to non-zero if this
@@ -187,7 +173,7 @@ make_path(
         struct ptr_list *next;
       };
       struct ptr_list *p, *leading_dirs = NULL;
-      struct saved_cwd cwd;
+      saveCWD cwd;
       char *basename_dir;
       char *dirpath;
 
@@ -215,7 +201,6 @@ make_path(
 #if defined(HAVE_WIN32)
       /* chdir can fail if permissions are sufficiently restricted since I don't think
          backup/restore security rights affect ChangeWorkingDirectory */
-      cwd.do_chdir = 0;
 
       /* Validate drive letter */
       if (dirpath[1] == ':') {
@@ -241,7 +226,7 @@ make_path(
 #else
       /* If we can record the current working directory, we may be able
          to do the chdir optimization.  */
-      cwd.do_chdir = !save_cwd(&cwd);
+      cwd.save(jcr);
 
       slash = dirpath;
 #endif
@@ -249,8 +234,8 @@ make_path(
       /* If we've saved the cwd and DIRPATH is an absolute pathname,
          we must chdir to `/' in order to enable the chdir optimization.
          So if chdir ("/") fails, turn off the optimization.  */
-      if (cwd.do_chdir && isAbsolute(dirpath) && (chdir("/") < 0)) {
-         cwd.do_chdir = 0;
+      if (cwd.is_saved() && isAbsolute(dirpath) && (chdir("/") < 0)) {
+         cwd.release();
       }
 
       /* Skip over leading slashes.  */
@@ -270,7 +255,7 @@ make_path(
 
           /* If we're *not* doing chdir before each mkdir, then we have to refer
              to the target using the full (multi-component) directory name.  */
-          if (!cwd.do_chdir) {
+          if (!cwd.is_saved()) {
              basename_dir = dirpath;
           }
 
@@ -278,7 +263,7 @@ make_path(
           fail = make_dir(jcr, basename_dir, dirpath, tmp_mode, &newly_created_dir);
           if (fail) {
               umask(oldmask);
-              cleanup(&cwd);
+              cwd.restore(jcr);
               return 1;
           }
 
@@ -312,12 +297,13 @@ make_path(
              then we can use chdir to change into each directory before
              creating an entry in that directory.  This avoids making
              stat and mkdir process O(n^2) file name components.  */
-          if (cwd.do_chdir && chdir(basename_dir) < 0) {
+          if (cwd.is_saved() && chdir(basename_dir) < 0) {
               berrno be;
               Jmsg(jcr, M_ERROR, 0, _("Cannot chdir to directory, %s: ERR=%s\n"),
                      quote(dirpath), be.bstrerror());
               umask(oldmask);
-              cleanup(&cwd);
+
+              cwd.restore(jcr);
               return 1;
           }
 
@@ -329,7 +315,7 @@ make_path(
             slash++;
       } /* end while (1) */
 
-      if (!cwd.do_chdir) {
+      if (!cwd.is_saved()) {
          basename_dir = dirpath;
       }
 
@@ -339,7 +325,7 @@ make_path(
       Dmsg1(300, "Create final component. mode=%o\n", mode);
       if (make_dir(jcr, basename_dir, dirpath, mode, NULL)) {
           umask(oldmask);
-          cleanup(&cwd);
+          cwd.restore(jcr);
           return 1;
       }
 
@@ -373,7 +359,7 @@ make_path(
              quote(dirpath), be.bstrerror());
       }
 
-     if (cleanup(&cwd)) {
+     if (!cwd.restore(jcr)) {
         return 1;
      }
 

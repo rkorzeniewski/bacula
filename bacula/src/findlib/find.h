@@ -63,8 +63,6 @@ struct utimbuf {
 #include <regex.h>
 #endif
 
-#include "save-cwd.h"
-
 #ifndef HAVE_READDIR_R
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif

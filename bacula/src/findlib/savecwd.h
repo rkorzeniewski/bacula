@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -26,20 +26,27 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+/*
+ *  Kern Sibbald, August MMVII
+ *
+ *  Version $Id$
+ */
 
-#ifndef SAVE_CWD_H
-# define SAVE_CWD_H 1
+#ifndef _SAVECWD_H
+#define _SAVECWD_H 1
 
-struct saved_cwd
-  {
-    int do_chdir;
-    int desc;
-    char *name;
-  };
+class saveCWD {
+   bool m_saved;                   /* set if we should do chdir i.e. save_cwd worked */
+   int m_fd;                       /* fd of current dir before chdir */
+   char *m_cwd;                    /* cwd before chdir if fd fchdir() works */
 
-int save_cwd(struct saved_cwd *cwd);
-int restore_cwd(const struct saved_cwd *cwd, const char *dest,
-                         const char *from);
-void free_cwd(struct saved_cwd *cwd);
+public:
+   saveCWD() { m_saved=false; m_fd=-1; m_cwd=NULL; };
+   ~saveCWD() { release(); };
+   bool save(JCR *jcr);
+   bool restore(JCR *jcr);
+   void release();
+   bool is_saved() { return m_saved; };
+};
 
-#endif
+#endif /* _SAVECWD_H */
