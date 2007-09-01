@@ -7,6 +7,13 @@ Cryptage :
  - Pouvoir choisir de forcer le cryptage dans la definition
    du client.
 
+Lister les fichiers sur le client :
+ - Avoir un mode comme restore
+ - Avoir une api list files client=xxx where=yyy
+  Dans la filed/job.c:handle_client_request, ajouter une commande
+  dans struct s_cmds cmds; et si possible utiliser le code de finlib
+ - A voir, pourquoi ne pas utiliser mark/unmark comme dans une resto
+   pour construire un fileset ?
 
 Sauvegarde des postes nomades :
  - Le client doit pouvoir initier les sauvegardes
@@ -84,4 +91,4 @@ bacula :
    des bug reports
  - modifier l'organisation de la table version (pour pouvoir ajouter
    les versions de bweb par exemple)
-
+ - utiliser la meme fonction pour read_close_session et append_close_session
