@@ -56,6 +56,16 @@ Professional Needs:
 - How to sync remote offices.
 - Exchange backup:
   http://www.microsoft.com/technet/itshowcase/content/exchbkup.mspx
+- David's priorities
+   Copypools
+   Extract capability (#25)
+   Continued enhancement of bweb
+   Threshold triggered migration jobs (not currently in list, but will be
+    needed ASAP)
+   Client triggered backups
+   Complete rework of the scheduling system (not in list)
+   Performance and usage instrumentation (not in list)
+   See email of 21Aug2007 for details.
 
 Priority:
 - Implement SDErrors (must return from SD)

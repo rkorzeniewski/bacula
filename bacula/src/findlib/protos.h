@@ -72,9 +72,9 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors);
 
 
 /* from makepath.c */
-int make_path(JCR *jcr, const char *argpath, int mode,
-           int parent_mode, uid_t owner, gid_t group,
-           int preserve_existing, char *verbose_fmt_string);
+int makepath(JCR *jcr, const char *path, mode_t mode,
+           mode_t parent_mode, uid_t owner, gid_t group,
+           int keep_dir_modes);
 
 /* from fstype.c */
 bool fstype(const char *fname, char *fs, int fslen);

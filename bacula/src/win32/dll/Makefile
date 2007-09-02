@@ -39,9 +39,8 @@ FIND_OBJS = \
 	$(OBJDIR)/find.o \
 	$(OBJDIR)/find_one.o \
 	$(OBJDIR)/fstype.o \
-	$(OBJDIR)/makepath.o \
-	$(OBJDIR)/match.o \
-	$(OBJDIR)/save-cwd.o
+	$(OBJDIR)/mkpath.o \
+	$(OBJDIR)/match.o
 
 LIB_OBJS = \
 	$(OBJDIR)/address_conf.o \
