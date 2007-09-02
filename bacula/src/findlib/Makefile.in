@@ -23,10 +23,10 @@ dummy:
 
 #
 LIBSRCS = find.c match.c find_one.c attribs.c create_file.c \
-	  bfile.c drivetype.c enable_priv.c fstype.c makepath.c \
+	  bfile.c drivetype.c enable_priv.c fstype.c mkpath.c \
 	  savecwd.c
 LIBOBJS = find.o match.o find_one.o attribs.o create_file.o \
-	  bfile.o drivetype.o enable_priv.o fstype.o makepath.o \
+	  bfile.o drivetype.o enable_priv.o fstype.o mkpath.o \
 	  savecwd.o
 
 .SUFFIXES:	.c .o

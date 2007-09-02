@@ -71,7 +71,7 @@ static int path_already_seen(JCR *jcr, char *path, int pnl);
  */
 int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 {
-   int new_mode, parent_mode, mode;
+   mode_t new_mode, parent_mode, mode;
    uid_t uid;
    gid_t gid;
    int pnl;
@@ -191,7 +191,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
              * execute bit set (i.e. parent_mode), and preserve what already
              * exists. Normally, this should do nothing.
              */
-            if (make_path(jcr, attr->ofname, parent_mode, parent_mode, uid, gid, 1, NULL) != 0) {
+            if (!makepath(jcr, attr->ofname, parent_mode, parent_mode, uid, gid, 1)) {
                Dmsg1(10, "Could not make path. %s\n", attr->ofname);
                attr->ofname[pnl] = savechr;     /* restore full name */
                return CF_ERROR;
@@ -357,7 +357,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    case FT_DIRBEGIN:
    case FT_DIREND:
       Dmsg2(200, "Make dir mode=%o dir=%s\n", new_mode, attr->ofname);
-      if (make_path(jcr, attr->ofname, new_mode, parent_mode, uid, gid, 0, NULL) != 0) {
+      if (!makepath(jcr, attr->ofname, new_mode, parent_mode, uid, gid, 0)) {
          return CF_ERROR;
       }
       /*
