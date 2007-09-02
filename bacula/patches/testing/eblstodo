@@ -66,7 +66,6 @@ TODO
 ----
 
 bweb :
-
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
  - Ajouter la liste des medias qui vont expirer ?
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
@@ -76,9 +75,15 @@ bweb :
        .ls_file(jobid,pathid)
        .get_pathid(jobid,"/")
        .genbsr (fileid, fileid, fileid, fileid, fileid...)
+           -> on peut utiliser une table dans la base pour faire ca
+              cf bat
+
+manuel :
+ - Avoir la version 2.0 et la version 2.2 en ligne (pour que les utilisateurs
+   ne se trompent pas dans les versions)
+ - Supprimer les (need bacula >= 1.xx) (dans la derniere version)
 
 bacula :
-
  - Faire un test de non regression avec pleins d'erreur
    o pb inclusion (distante, locale)
    o pb exclusion (distante, locale)
@@ -92,3 +97,4 @@ bacula :
  - modifier l'organisation de la table version (pour pouvoir ajouter
    les versions de bweb par exemple)
  - utiliser la meme fonction pour read_close_session et append_close_session
+
