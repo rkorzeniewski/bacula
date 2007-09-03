@@ -81,7 +81,7 @@ int fnmatch(const char *pattern, const char *string, int flags)
       case '?':
          if (*string == EOS)
             return (FNM_NOMATCH);
-         if (*string == '/' && ISSET(flags, FNM_PATHNAME))
+         if (IsPathSeparator(*string) && ISSET(flags, FNM_PATHNAME))
             return (FNM_NOMATCH);
          if (*string == '.' && ISSET(flags, FNM_PERIOD) &&
              (string == stringstart ||
@@ -92,22 +92,25 @@ int fnmatch(const char *pattern, const char *string, int flags)
       case '*':
          c = *pattern;
          /* Collapse multiple stars. */
-         while (c == '*')
+         while (c == '*') {
             c = *++pattern;
+         }
 
          if (*string == '.' && ISSET(flags, FNM_PERIOD) &&
              (string == stringstart ||
-              (ISSET(flags, FNM_PATHNAME) && IsPathSeparator(*(string - 1)))))
+              (ISSET(flags, FNM_PATHNAME) && IsPathSeparator(*(string - 1))))) {
             return (FNM_NOMATCH);
+         }
 
          /* Optimize for pattern with * at end or before /. */
          if (c == EOS) {
-            if (ISSET(flags, FNM_PATHNAME))
+            if (ISSET(flags, FNM_PATHNAME)) {
                return (ISSET(flags, FNM_LEADING_DIR) ||
                        strchr(string, '/') == NULL ? 0 : FNM_NOMATCH);
-            else
+            } else {
                return (0);
-         } else if (c == '/' && ISSET(flags, FNM_PATHNAME)) {
+            }
+         } else if (IsPathSeparator(c) && ISSET(flags, FNM_PATHNAME)) {
             if ((string = strchr(string, '/')) == NULL)
                return (FNM_NOMATCH);
             break;
@@ -115,10 +118,12 @@ int fnmatch(const char *pattern, const char *string, int flags)
 
          /* General case, use recursion. */
          while ((test = *string) != EOS) {
-            if (!fnmatch(pattern, string, flags & ~FNM_PERIOD))
+            if (!fnmatch(pattern, string, flags & ~FNM_PERIOD)) {
                return (0);
-            if (test == '/' && ISSET(flags, FNM_PATHNAME))
+            }
+            if (test == '/' && ISSET(flags, FNM_PATHNAME)) {
                break;
+            }
             ++string;
          }
          return (FNM_NOMATCH);
@@ -144,6 +149,7 @@ int fnmatch(const char *pattern, const char *string, int flags)
          }
          ++string;
          break;
+
       case '\\':
          if (!ISSET(flags, FNM_NOESCAPE)) {
             if ((c = *pattern++) == EOS) {
@@ -153,7 +159,7 @@ int fnmatch(const char *pattern, const char *string, int flags)
          }
          /* FALLTHROUGH */
       default:
-       normal:
+normal:
          if (FOLD(c) != FOLD(*string)) {
             return (FNM_NOMATCH);
          }
@@ -230,18 +236,18 @@ struct test {
  *  me know.
  */
 static struct test tests[] = {
-/*1*/  {"x", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"x", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-/*5*/  {"*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"*", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"*x", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"*x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"*x", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-/*10*/ {"x*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"x*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"x*", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+/*1*/  {"x", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"x", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"x", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"*", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+/*5*/  {"*", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"*", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"*x", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"*x", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"*x", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+/*10*/ {"x*", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"x*", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
+       {"x*", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
        {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},
        {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0},
 /*15*/ {"[A-[]", "A", 0, 0},
@@ -255,31 +261,31 @@ static struct test tests[] = {
        { "*LIB*", "lib", FNM_PERIOD, FNM_NOMATCH },
        { "*LIB*", "lib", FNM_CASEFOLD, 0},
 /*25*/ { "a[/]b", "a/b", 0, 0},
-       { "a[/]b", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "a[/]b", "a/b", FNM_PATHNAME, FNM_NOMATCH },
        { "[a-z]/[a-z]", "a/b", 0, 0 },
-       { "a/b", "*", FNM_FILE_NAME, FNM_NOMATCH },
-       { "*", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
-       { "*[/]b", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "a/b", "*", FNM_PATHNAME, FNM_NOMATCH },
+       { "*", "a/b", FNM_PATHNAME, FNM_NOMATCH },
+       { "*[/]b", "a/b", FNM_PATHNAME, FNM_NOMATCH },
 /*30*/ { "\\[/b", "[/b", 0, 0 },
        { "?\?/b", "aa/b", 0, 0 },
        { "???b", "aa/b", 0, 0 },
-       { "???b", "aa/b", FNM_FILE_NAME, FNM_NOMATCH },
-       { "?a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*35*/ { "a/?b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "*a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "a/*b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "[.]a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "a/[.]b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*40*/ { "*/?", "a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "?/*", "a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { ".*/?", ".a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "*/.?", "a/.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "*/*", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*45*/ { "*[.]/b", "a./b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "a?b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "a*b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-       { "a[.]b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
-/*49*/ { "*a*", "a/b", FNM_FILE_NAME|FNM_LEADING_DIR, 0 },
+       { "???b", "aa/b", FNM_PATHNAME, FNM_NOMATCH },
+       { "?a/b", ".a/b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+/*35*/ { "a/?b", "a/.b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+       { "*a/b", ".a/b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/*b", "a/.b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+       { "[.]a/b", ".a/b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/[.]b", "a/.b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+/*40*/ { "*/?", "a/b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "?/*", "a/b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { ".*/?", ".a/b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "*/.?", "a/.b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "*/*", "a/.b", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH },
+/*45*/ { "*[.]/b", "a./b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "a?b", "a.b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "a*b", "a.b", FNM_PATHNAME|FNM_PERIOD, 0 },
+       { "a[.]b", "a.b", FNM_PATHNAME|FNM_PERIOD, 0 },
+/*49*/ { "*a*", "a/b", FNM_PATHNAME|FNM_LEADING_DIR, 0 },
 #ifdef FULL_TEST
        /* This test takes a *long* time */
        {"a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*",
