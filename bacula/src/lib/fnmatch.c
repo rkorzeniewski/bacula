@@ -248,7 +248,7 @@ static struct test tests[] = {
 /*10*/ {"x*", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
-       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},
+       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},  /* ??? */
        {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0},
 /*15*/ {"[A-[]", "A", 0, 0},
        {"[A-[]", "a", 0, FNM_NOMATCH},
