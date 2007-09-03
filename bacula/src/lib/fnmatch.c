@@ -248,7 +248,7 @@ static struct test tests[] = {
 /*10*/ {"x*", "x", FNM_PATHNAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y", FNM_PATHNAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y/z", FNM_PATHNAME | FNM_LEADING_DIR, 0},
-       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},  /* ??? */
+       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},
        {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0},
 /*15*/ {"[A-[]", "A", 0, 0},
        {"[A-[]", "a", 0, FNM_NOMATCH},
@@ -286,6 +286,7 @@ static struct test tests[] = {
        { "a*b", "a.b", FNM_PATHNAME|FNM_PERIOD, 0 },
        { "a[.]b", "a.b", FNM_PATHNAME|FNM_PERIOD, 0 },
 /*49*/ { "*a*", "a/b", FNM_PATHNAME|FNM_LEADING_DIR, 0 },
+       { "[/b", "[/b", 0, 0},
 #ifdef FULL_TEST
        /* This test takes a *long* time */
        {"a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*",
