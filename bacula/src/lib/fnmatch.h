@@ -40,6 +40,7 @@
 #undef  FNM_PERIOD
 
 #define FNM_NOMATCH     1       /* Match failed. */
+#define FNM_MATCH       0       /* Match succeeded */
 
 #define FNM_PATHNAME    0x01    /* Slash must be matched by slash. */
 #define FNM_NOESCAPE    0x02    /* Disable backslash escaping. */

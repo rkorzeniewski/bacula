@@ -39,9 +39,15 @@
 
 /* Version: $Id$ */
 
+/* Define SYS to use the system fnmatch() rather than ours */
+/* #define SYS 1 */
 
 #include "bacula.h"
+#ifdef SYS
+#include <fnmatch.h>
+#else
 #include "fnmatch.h"
+#endif
 
 #undef  EOS
 #define EOS     '\0'
@@ -55,7 +61,11 @@
 
 static int rangematch(const char *, char, int, char **);
 
+#ifdef SYS 
+int xfnmatch(const char *pattern, const char *string, int flags)
+#else
 int fnmatch(const char *pattern, const char *string, int flags)
+#endif
 {
    const char *stringstart;
    char *newp;
@@ -203,3 +213,93 @@ static int rangematch(const char *pattern, char test, int flags,
    *newp = (char *) pattern;
    return (ok == negate ? RANGE_NOMATCH : RANGE_MATCH);
 }
+
+#ifdef TEST_PROGRAM
+struct test {
+   const char *pattern;
+   const char *string;
+   const int options;
+   const int result; 
+};
+
+static struct test tests[] = {
+/*1*/  {"x", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0}, 
+       {"x", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+/*5*/  {"*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"*", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"*x", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"*x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"*x", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+/*10*/ {"x*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"x*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"x*", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
+       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},   /* ??? */
+       {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0}, 
+/*15*/ {"[A-[]", "A", 0, 0},
+       {"[A-[]", "a", 0, FNM_NOMATCH},
+       {"[a-{]", "A", 0, FNM_NOMATCH},
+       {"[a-{]", "a", 0, 0},
+       {"[A-[]", "A", FNM_CASEFOLD, FNM_NOMATCH},
+/*20*/ {"[A-[]", "a", FNM_CASEFOLD, FNM_NOMATCH},
+       {"[a-{]", "A", FNM_CASEFOLD, 0},
+       {"[a-{]", "a", FNM_CASEFOLD, 0},
+       { "lib", "*LIB*", FNM_PERIOD, FNM_NOMATCH },
+       { "lib", "*LIB*", FNM_CASEFOLD, 0},              /* ??? */
+/*25*/ { "a/b", "a[/]b", 0, 0},                         /* ??? */
+       { "a/b", "a[/]b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "a/b", "[a-z]/[a-z]", 0, 0 },                  /* ??? */
+       { "a/b", "*", FNM_FILE_NAME, FNM_NOMATCH },
+       { "a/b", "*[/]b", FNM_FILE_NAME, FNM_NOMATCH },
+/*30*/ { "[/b", "\\[/b", 0, 0 },                       /* ??? */
+       { "aa/b", "?\?/b", 0, 0 },                      /* ??? */
+       { "aa/b", "???b", 0, 0 },                       /* ??? */
+       { "aa/b", "???b", FNM_FILE_NAME, FNM_NOMATCH },
+       { ".a/b", "?a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*35*/ { "a/.b", "a/?b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { ".a/b", "*a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/.b", "a/*b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { ".a/b", "[.]a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/.b", "a/[.]b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*40*/ { "a/b", "*/?", FNM_FILE_NAME|FNM_PERIOD, 0 },   /* ??? */
+       { "a/b", "?/*", FNM_FILE_NAME|FNM_PERIOD, 0 },   /* ??? */
+       { ".a/b", ".*/?", FNM_FILE_NAME|FNM_PERIOD, 0 }, /* ??? */
+       { "a/.b", "*/.?", FNM_FILE_NAME|FNM_PERIOD, 0 }, /* ??? */
+       { "a/.b", "*/*", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*45*/ { "a./b", "*[.]/b", FNM_FILE_NAME|FNM_PERIOD, 0 },  /* ??? */
+       { "a.b", "a?b", FNM_FILE_NAME|FNM_PERIOD, 0 },      /* ??? */
+       { "a.b", "a*b", FNM_FILE_NAME|FNM_PERIOD, 0 },      /* ??? */
+       { "a.b", "a[.]b", FNM_FILE_NAME|FNM_PERIOD, 0 },    /* ??? */
+/*49*/ { "a/b", "*a*", FNM_FILE_NAME|FNM_LEADING_DIR, 0 }, /* ??? */
+#ifdef FULL_TEST
+       /* This test takes a *long* time */
+       {"a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*",
+          "aaaabbbbccccddddeeeeffffgggghhhhiiiijjjjkkkkllllmmmm"
+          "nnnnooooppppqqqqrrrrssssttttuuuuvvvvwwwwxxxxyyyy", 0, FNM_NOMATCH},
+#endif
+
+       /* Keep dummy last to avoid compiler warnings */
+       {"dummy", "dummy", 0, 0}
+
+};
+
+#define ntests ((int)(sizeof(tests)/sizeof(struct test)))
+
+int main()
+{
+   bool fail = false;
+   for (int i=0; i<ntests; i++) {
+      if (fnmatch(tests[i].pattern, tests[i].string, tests[i].options) != tests[i].result) {
+         printf("Test %d failed: pat=%s str=%s expect=%s got=%s\n",
+            i+1, tests[i].pattern, tests[i].string, 
+            tests[i].result==0?"matches":"no match",
+            tests[i].result==0?"no match":"matches");
+         fail = true;
+      } else {
+         printf("Test %d succeeded\n", i+1);
+      }
+   }
+   return fail;
+}
+#endif /* TEST_PROGRAM */
