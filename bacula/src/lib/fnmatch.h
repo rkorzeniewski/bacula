@@ -1,9 +1,8 @@
-/*	$OpenBSD: fnmatch.h,v 1.8 2005/12/13 00:35:22 millert Exp $	*/
-/*	$NetBSD: fnmatch.h,v 1.5 1994/10/26 00:55:53 cgd Exp $	*/
+/*      $OpenBSD: fnmatch.h,v 1.8 2005/12/13 00:35:22 millert Exp $     */
 
 /*-
  * Copyright (c) 1992, 1993
- *	The Regents of the University of California.  All rights reserved.
+ *      The Regents of the University of California.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,29 +28,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	@(#)fnmatch.h	8.1 (Berkeley) 6/2/93
+ *      @(#)fnmatch.h   8.1 (Berkeley) 6/2/93
  */
+/* Version: $Id$ */
 
-#ifndef	_FNMATCH_H_
-#define	_FNMATCH_H_
+#ifndef _FNMATCH_H_
+#define _FNMATCH_H_
 
-#include <sys/cdefs.h>
+#undef  FNM_PATHNAME
+#undef  FNM_NOESCAPE
+#undef  FNM_PERIOD
 
-#define	FNM_NOMATCH	1	/* Match failed. */
-#define	FNM_NOSYS	2	/* Function not supported (unused). */
+#define FNM_NOMATCH     1       /* Match failed. */
 
-#define	FNM_NOESCAPE	0x01	/* Disable backslash escaping. */
-#define	FNM_PATHNAME	0x02	/* Slash must be matched by slash. */
-#define	FNM_PERIOD	0x04	/* Period must be matched by period. */
-#if __BSD_VISIBLE
-#define	FNM_LEADING_DIR	0x08	/* Ignore /<tail> after Imatch. */
-#define	FNM_CASEFOLD	0x10	/* Case insensitive search. */
-#define	FNM_IGNORECASE	FNM_CASEFOLD
-#define	FNM_FILE_NAME	FNM_PATHNAME
-#endif
+#define FNM_PATHNAME    0x01    /* Slash must be matched by slash. */
+#define FNM_NOESCAPE    0x02    /* Disable backslash escaping. */
+#define FNM_PERIOD      0x04    /* Period must be matched by period. */
+#define FNM_LEADING_DIR 0x08    /* Ignore /<tail> after Imatch. */
+#define FNM_CASEFOLD    0x10    /* Case insensitive search. */
 
-__BEGIN_DECLS
-int	 fnmatch(const char *, const char *, int);
-__END_DECLS
+#define FNM_IGNORECASE  FNM_CASEFOLD
+#define FNM_FILE_NAME   FNM_PATHNAME
 
-#endif /* !_FNMATCH_H_ */
+extern "C" int fnmatch(const char *, const char *, int);
+
+#endif                          /* !_FNMATCH_H_ */
