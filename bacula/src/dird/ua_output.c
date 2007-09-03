@@ -769,7 +769,7 @@ void bmsg(UAContext *ua, const char *fmt, va_list arg_ptr)
       msg = bs->msg;
    }
    if (!msg) {
-      msg = get_pool_memory(5000);
+      msg = get_memory(5000);
    }
 
    maxlen = sizeof_pool_memory(msg) - 1;
