@@ -222,9 +222,16 @@ struct test {
    const int result; 
 };
 
+/*
+ * Note, some of these tests were duplicated from a patch file I found
+ *  in an email, so I am unsure what the license is.  Since this code is
+ *  never turned on in any release, it probably doesn't matter at all.
+ * If by some chance someone finds this to be a problem please let
+ *  me know.
+ */
 static struct test tests[] = {
 /*1*/  {"x", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0}, 
+       {"x", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
        {"x", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
        {"*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
 /*5*/  {"*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
@@ -235,8 +242,8 @@ static struct test tests[] = {
 /*10*/ {"x*", "x", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
        {"x*", "x/y/z", FNM_FILE_NAME | FNM_LEADING_DIR, 0},
-       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},   /* ??? */
-       {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0}, 
+       {"a*b/*", "abbb/.x", FNM_PATHNAME|FNM_PERIOD, FNM_NOMATCH},
+       {"a*b/*", "abbb/xy", FNM_PATHNAME|FNM_PERIOD, 0},
 /*15*/ {"[A-[]", "A", 0, 0},
        {"[A-[]", "a", 0, FNM_NOMATCH},
        {"[a-{]", "A", 0, FNM_NOMATCH},
@@ -245,33 +252,34 @@ static struct test tests[] = {
 /*20*/ {"[A-[]", "a", FNM_CASEFOLD, FNM_NOMATCH},
        {"[a-{]", "A", FNM_CASEFOLD, 0},
        {"[a-{]", "a", FNM_CASEFOLD, 0},
-       { "lib", "*LIB*", FNM_PERIOD, FNM_NOMATCH },
-       { "lib", "*LIB*", FNM_CASEFOLD, 0},              /* ??? */
-/*25*/ { "a/b", "a[/]b", 0, 0},                         /* ??? */
-       { "a/b", "a[/]b", FNM_FILE_NAME, FNM_NOMATCH },
-       { "a/b", "[a-z]/[a-z]", 0, 0 },                  /* ??? */
+       { "*LIB*", "lib", FNM_PERIOD, FNM_NOMATCH },
+       { "*LIB*", "lib", FNM_CASEFOLD, 0},
+/*25*/ { "a[/]b", "a/b", 0, 0},
+       { "a[/]b", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "[a-z]/[a-z]", "a/b", 0, 0 },
        { "a/b", "*", FNM_FILE_NAME, FNM_NOMATCH },
-       { "a/b", "*[/]b", FNM_FILE_NAME, FNM_NOMATCH },
-/*30*/ { "[/b", "\\[/b", 0, 0 },                       /* ??? */
-       { "aa/b", "?\?/b", 0, 0 },                      /* ??? */
-       { "aa/b", "???b", 0, 0 },                       /* ??? */
-       { "aa/b", "???b", FNM_FILE_NAME, FNM_NOMATCH },
-       { ".a/b", "?a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*35*/ { "a/.b", "a/?b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { ".a/b", "*a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "a/.b", "a/*b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { ".a/b", "[.]a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-       { "a/.b", "a/[.]b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*40*/ { "a/b", "*/?", FNM_FILE_NAME|FNM_PERIOD, 0 },   /* ??? */
-       { "a/b", "?/*", FNM_FILE_NAME|FNM_PERIOD, 0 },   /* ??? */
-       { ".a/b", ".*/?", FNM_FILE_NAME|FNM_PERIOD, 0 }, /* ??? */
-       { "a/.b", "*/.?", FNM_FILE_NAME|FNM_PERIOD, 0 }, /* ??? */
-       { "a/.b", "*/*", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
-/*45*/ { "a./b", "*[.]/b", FNM_FILE_NAME|FNM_PERIOD, 0 },  /* ??? */
-       { "a.b", "a?b", FNM_FILE_NAME|FNM_PERIOD, 0 },      /* ??? */
-       { "a.b", "a*b", FNM_FILE_NAME|FNM_PERIOD, 0 },      /* ??? */
-       { "a.b", "a[.]b", FNM_FILE_NAME|FNM_PERIOD, 0 },    /* ??? */
-/*49*/ { "a/b", "*a*", FNM_FILE_NAME|FNM_LEADING_DIR, 0 }, /* ??? */
+       { "*", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "*[/]b", "a/b", FNM_FILE_NAME, FNM_NOMATCH },
+/*30*/ { "\\[/b", "[/b", 0, 0 },
+       { "?\?/b", "aa/b", 0, 0 },
+       { "???b", "aa/b", 0, 0 },
+       { "???b", "aa/b", FNM_FILE_NAME, FNM_NOMATCH },
+       { "?a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*35*/ { "a/?b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "*a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/*b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "[.]a/b", ".a/b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+       { "a/[.]b", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*40*/ { "*/?", "a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "?/*", "a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { ".*/?", ".a/b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "*/.?", "a/.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "*/*", "a/.b", FNM_FILE_NAME|FNM_PERIOD, FNM_NOMATCH },
+/*45*/ { "*[.]/b", "a./b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "a?b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "a*b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+       { "a[.]b", "a.b", FNM_FILE_NAME|FNM_PERIOD, 0 },
+/*49*/ { "*a*", "a/b", FNM_FILE_NAME|FNM_LEADING_DIR, 0 },
 #ifdef FULL_TEST
        /* This test takes a *long* time */
        {"a*b*c*d*e*f*g*h*i*j*k*l*m*n*o*p*q*r*s*t*u*v*w*x*y*z*",
