@@ -1332,7 +1332,16 @@ if test $pkg = 0; then
        support_batch_insert=yes
      fi])
 fi
-							  
+	
+# Check if postgresql support batch mode	
+if test x$DB_TYPE = xpostgresql; then
+   A=`nm $SQL_LIB | grep PQputCopyData`
+   pkg=$?
+   if test $pkg != 0; then
+      support_batch_insert=no
+   fi
+fi
+
 if test $support_batch_insert = yes ; then
    AC_DEFINE(HAVE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
 fi
