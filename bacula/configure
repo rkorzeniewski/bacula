@@ -17503,6 +17503,15 @@ if test "${enable_batch_insert+set}" = set; then
 fi;
 fi
 
+# Check if postgresql support batch mode
+if test x$DB_TYPE = xpostgresql; then
+   A=`nm $SQL_LIB | grep PQputCopyData`
+   pkg=$?
+   if test $pkg != 0; then
+      support_batch_insert=no
+   fi
+fi
+
 if test $support_batch_insert = yes ; then
 
 cat >>confdefs.h <<\_ACEOF
