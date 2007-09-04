@@ -51,8 +51,8 @@ restoreTree::restoreTree()
    m_populated = false;
 
    dockPage();
-   m_winRegExpDrive.setPattern("^[a-z]:/$");
-   m_winRegExpPath.setPattern("^[a-z]:/");
+   m_winRegExpDrive.setPattern("^[a-zA-Z]:/$");
+   m_winRegExpPath.setPattern("^[a-zA-Z]:/");
    m_slashregex.setPattern("/");
    m_debugCnt = 0;
    m_debugTrap = true;
