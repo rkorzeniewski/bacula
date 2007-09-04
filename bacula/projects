@@ -679,7 +679,7 @@ Item 19:  Automatic disabling of devices
 Item 20:  An option to operate on all pools with update vol parameters
   Origin: Dmitriy Pinchukov <absh@bossdev.kiev.ua>
    Date:  16 August 2006
-  Status:
+  Status: Patch made by  Nigel Stepp
 
    What:  When I do update -> Volume parameters -> All Volumes
           from Pool, then I have to select pools one by one.  I'd like
