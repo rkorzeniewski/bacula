@@ -69,6 +69,42 @@ bweb :
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
  - Ajouter la liste des medias qui vont expirer ?
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
+ - Ajouter une gestion des utilisateurs avec des roles
+   o Liste des roles possibles
+     * view_stats
+     * configure
+     * run_job
+     * run_restore
+     * view_history
+     * view_log
+     * view_media
+     * view_pool
+     * update_media
+     * view_autochanger
+     * update_autochanger
+     * cancel_job
+
+   o Avoir des profiles ayant certains roles
+     * admin (all)
+     * customer (view_stats, view_history, view_log)
+     * production (all - configure)
+     ...
+
+   o Pour faire la difference entre les groupes de la vue et
+     les groupes d'acl, il faut ajouter un champs dans la table
+     client_group (visible bool).
+
+   o Ajout de 4 tables dans le catalogue
+       - bweb_user (userid, username, passwd) passwd with apache ?
+       - bweb_role (roleid, rolename)
+       - bweb_role_member (roleid, userid)
+
+       - bweb_client_group_acl (client_group_id, userid)
+     
+
+     Ou bien on ajoute seulement les roles dans une structure perl
+     que l'on stocke dans le fichier de configuration
+
  - Integrer brestore en mode javascript
    o ajouter une api 
        .ls_dir(jobid,pathid)
