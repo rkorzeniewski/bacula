@@ -44,7 +44,7 @@ Sauvegarde des postes nomades :
 
 
 Bconsole :
- - Ajouter l'historique dans la bconsole
+ p Ajouter l'historique dans la bconsole
  - Ajouter une commande pour bloquer un drive
 
 Sauvegarde SAN :
@@ -130,7 +130,7 @@ bacula :
  x Pouvoir utiliser les uid numeriques dans le backup des acl
  - Avoir un script qui dump la configuration pour faire
    des bug reports
- - modifier l'organisation de la table version (pour pouvoir ajouter
+ p modifier l'organisation de la table version (pour pouvoir ajouter
    les versions de bweb par exemple)
  - utiliser la meme fonction pour read_close_session et append_close_session
 
