@@ -490,17 +490,11 @@ static int lsmarkcmd(UAContext *ua, TREE_CTX *tree)
    return 1;
 }
 
-
-
-extern char *getuser(uid_t uid, char *name, int len);
-extern char *getgroup(gid_t gid, char *name, int len);
-
 /*
  * This is actually the long form used for "dir"
  */
-static void ls_output(char *buf, const char *fname, const char *tag, 
+static void ls_output(guid_list *guid, char *buf, const char *fname, const char *tag, 
                       struct stat *statp, bool dot_cmd) 
-                    
 {
    char *p;
    const char *f;
@@ -514,8 +508,9 @@ static void ls_output(char *buf, const char *fname, const char *tag,
       *p++ = ',';
       n = sprintf(p, "%d,", (uint32_t)statp->st_nlink);
       p += n;
-      n = sprintf(p, "%s,%s,", getuser(statp->st_uid, en1, sizeof(en1)),
-                  getgroup(statp->st_gid, en2, sizeof(en2)));
+      n = sprintf(p, "%s,%s,", 
+                  guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
+                  guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
       n = sprintf(p, "%s,", edit_uint64(statp->st_size, ec1));
       p += n;
@@ -526,8 +521,9 @@ static void ls_output(char *buf, const char *fname, const char *tag,
    } else {
       n = sprintf(p, "  %2d ", (uint32_t)statp->st_nlink);
       p += n;
-      n = sprintf(p, "%-8.8s %-8.8s", getuser(statp->st_uid, en1, sizeof(en1)),
-                  getgroup(statp->st_gid, en2, sizeof(en2)));
+      n = sprintf(p, "%-8.8s %-8.8s", 
+                  guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
+                  guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
       n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
       p += n;
@@ -557,12 +553,14 @@ static int do_dircmd(UAContext *ua, TREE_CTX *tree, bool dot_cmd)
    struct stat statp;
    char buf[1100];
    char cwd[1100], *pcwd;
+   guid_list *guid;
 
    if (!tree_node_has_child(tree->node)) {
       ua->send_msg(_("Node %s has no children.\n"), tree->node->fname);
       return 1;
    }
 
+   guid = new_guid_list();
    foreach_child(node, tree->node) {
       const char *tag;
       if (ua->argc == 1 || fnmatch(ua->argk[1], node->fname, 0) == 0) {
@@ -600,10 +598,11 @@ static int do_dircmd(UAContext *ua, TREE_CTX *tree, bool dot_cmd)
             /* Something went wrong getting attributes -- print name */
             memset(&statp, 0, sizeof(statp));
          }
-         ls_output(buf, cwd, tag, &statp, dot_cmd);
+         ls_output(guid, buf, cwd, tag, &statp, dot_cmd);
          ua->send_msg("%s\n", buf);
       }
    }
+   free_guid_list(guid);
    return 1;
 }
 

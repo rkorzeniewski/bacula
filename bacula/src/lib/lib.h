@@ -67,5 +67,6 @@
 #include "attr.h"
 #include "var.h"
 #include "address_conf.h"
+#include "guid_to_name.h"
 
 #include "protos.h"
