@@ -216,7 +216,8 @@ static bool accept_file(FF_PKT *ff)
    int (*match_func)(const char *pattern, const char *string, int flags);
 
    if (ff->flags & FO_ENHANCEDWILD) {
-      match_func = enh_fnmatch;
+//    match_func = enh_fnmatch;
+      match_func = fnmatch;
       if ((basename = last_path_separator(ff->fname)) != NULL)
          basename++;
       else
