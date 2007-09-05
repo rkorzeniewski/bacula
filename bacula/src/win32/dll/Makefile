@@ -65,8 +65,8 @@ LIB_OBJS = \
 	$(OBJDIR)/daemon.o \
 	$(OBJDIR)/dlist.o \
 	$(OBJDIR)/edit.o \
-	$(OBJDIR)/enh_fnmatch.o \
 	$(OBJDIR)/fnmatch.o \
+	$(OBJDIR)/guid_to_name.o \
 	$(OBJDIR)/hmac.o \
 	$(OBJDIR)/htable.o \
 	$(OBJDIR)/idcache.o \

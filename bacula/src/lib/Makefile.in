@@ -23,7 +23,7 @@ LIBSRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  bnet.c bnet_server.c runscript.c \
 	  bsock.c bpipe.c bsnprintf.c btime.c \
 	  cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
-	  hmac.c idcache.c jcr.c lex.c alist.c dlist.c \
+	  guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
 	  md5.c message.c mem_pool.c openssl.c parse_conf.c \
 	  queue.c bregex.c \
 	  res.c rwlock.c scan.c serial.c sha1.c \
@@ -35,8 +35,8 @@ LIBSRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  bnet.o bnet_server.o runscript.o \
 	  bsock.o bpipe.o bsnprintf.o btime.o \
-	  cram-md5.o crc32.o crypto.o daemon.o edit.o enh_fnmatch.o fnmatch.o \
-	  hmac.o idcache.o jcr.o lex.o alist.o dlist.o \
+	  cram-md5.o crc32.o crypto.o daemon.o edit.o fnmatch.o \
+	  guid_to_name.o hmac.o jcr.o lex.o alist.o dlist.o \
 	  md5.o message.o mem_pool.o openssl.o parse_conf.o \
 	  queue.o bregex.o \
 	  res.o rwlock.o scan.o serial.o sha1.o \

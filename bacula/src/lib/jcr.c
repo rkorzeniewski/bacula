@@ -401,8 +401,10 @@ static void free_common_jcr(JCR *jcr)
       jcr->cached_path = NULL;
       jcr->cached_pnl = 0;
    }
-   free_getuser_cache();
-   free_getgroup_cache();
+   if (jcr->id_list) {
+      free_guid_list(jcr->id_list);
+      jcr->id_list = NULL;
+   }
    free(jcr);
 }
 

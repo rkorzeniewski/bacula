@@ -240,12 +240,6 @@ int              net_connect             (int port);
 BSOCK *          bnet_bind               (int port);
 BSOCK *          bnet_accept             (BSOCK *bsock, char *who);
 
-/* idcache.c */
-char *getuser(uid_t uid);
-void free_getuser_cache();
-char *getgroup (gid_t gid);
-void free_getgroup_cache();
-
 /* python.c */
 typedef int (EVENT_HANDLER)(JCR *jcr, const char *event);
 void init_python_interpreter(const char *progname, const char *scripts,
