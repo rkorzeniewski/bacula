@@ -5,6 +5,7 @@
 #
 # This script uses the autochanger and two tapes
 #
+. scripts/functions
 if test x${AUTOCHANGER} = x/dev/null ; then
    echo "incremental-2tape test skipped. No autochanger."
    exit
