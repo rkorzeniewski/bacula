@@ -1,18 +1,13 @@
 #
 # Makefile for Bacula regression testing
 #
-#  Note, Makefile is built from Makefile.in, which you should not really 
-#    need to change, by envoking:
+# Before running, you must create a file named config containing
+#   the configuration parameters.  Create it by doing:
+# 
+#  cp prototype.conf config
 #
-#  ./config <user's configuration>
-# e.g.
-#
-#  ./config kern.conf
-#
-#
-
-# suck in user's configuration
-@CONFIG@
+# Then edit config and set the value for what are appropriate for you.
+#		 
 
 first_rule: all
 
@@ -33,12 +28,12 @@ bacula: all
 	@rm -f w.tar.gz w.tar
 	@rm -rf tmp working
 	mkdir tmp working
-	echo "Doing: scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${OPENSSL}"
-	scripts/setup ${BACULA_SOURCE} ${EMAIL} ${WHICHDB} ${TCPWRAPPERS} ${SMTP_HOST} ${OPENSSL}
+	echo "Doing: scripts/setup"
+	scripts/setup
 
 sed:
-	echo "Doing: scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH} ${TAPE_DRIVE1} ${SMTP_HOST}"
-	scripts/do_sed ${EMAIL} ${TAPE_DRIVE} ${AUTOCHANGER} ${AUTOCHANGER_PATH} ${TAPE_DRIVE1} ${SMTP_HOST}
+	echo "Doing: scripts/do_sed"
+	scripts/do_sed
 
 # Run all non-root userid tests
 test: 

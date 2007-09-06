@@ -177,6 +177,5 @@ else
    set_debug 0
 fi
 
-# Source the second drive variables
-touch ${cwd}/config.out
-. ${cwd}/config.out
+# Source the configuration variables
+. ${cwd}/config

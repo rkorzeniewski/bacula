@@ -1,39 +1,24 @@
 #!/bin/sh
 #
-if test $# != 6 ; then
-   echo "First arg must be email name"
-   echo "  and the second must be a tape drive"
-   echo "  and the third must be a tape control name or /dev/null"
-   echo "  and the fourth must be the full path to the mtx program"
-   echo "  and the fifth must be tape drive 1 or /dev/null"
-   echo "  and the sixth must be the smtp or email host"
-   exit 1
-fi
 cwd=`pwd`
+. ${cwd}/config
 mkdir -p ${cwd}/bin
 out="/tmp/sed_tmp"
-HOST="localhost"
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
 echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
 echo "s%@working_dir@%${cwd}/working%g" >>${out}
 echo "s%@piddir@%${cwd}/working%g" >>${out}
 echo "s%@subsysdir@%${cwd}/working%g" >>${out}
-echo "s%@job_email@%${1}%g" >>${out}
-echo "s%@tape_drive@%${2}%g" >>${out}
-echo "s%@autochanger@%${3}%g" >>${out}
+echo "s%@job_email@%${EMAIL}%g" >>${out}
+echo "s%@tape_drive@%${TAPE_DRIVE}%g" >>${out}
+echo "s%@autochanger@%${AUTOCHANGER}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
 echo "s%@hostname@%${HOST}%g" >>${out}
-echo "s%@changer_path@%${4}%g" >>${out}
-echo "s%@tape_drive1@%${5}%g" >>${out}
-echo "s%@smtp_host@%${6}%g" >>${out}
+echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
+echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
+echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
 echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
-
-echo "# "                    >config.out
-echo "# Autochanger conf"   >>config.out
-echo "# "                   >>config.out
-echo "AUTOCHANGER=\"${3}\"" >>config.out
-echo "TAPE_DRIVE1=\"${5}\"" >>config.out
 
 
 # process .in files with sed script
@@ -79,7 +64,7 @@ sed s%/tmp%${cwd}/tmp%g /tmp/bac$$ >${cwd}/bin/bacula-sd.conf
 chmod 777 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes
 rm -f /tmp/bac$$
 cp ${cwd}/bin/mtx-changer /tmp/bac$$
-sed "s%^MTX.*$%MTX=${4}%g" /tmp/bac$$ >${cwd}/bin/mtx-changer
+sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" /tmp/bac$$ >${cwd}/bin/mtx-changer
 chmod 777 ${cwd}/bin/mtx-changer
 
 # get proper SD tape definitions

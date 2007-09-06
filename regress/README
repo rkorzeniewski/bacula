@@ -13,13 +13,12 @@ system uses MySQL, you can use SQLite here.
 
 
 To set it up, create your personal configuration file, by
-copying prototype.conf to xxx.conf or simply editing prototype.conf
-directly.
+copying prototype.conf to config or simply editing prototype.conf
+directly then copying it to the file config.
 
-Then edit your conf file and define appropriate values
-for the variables that are in that file.  If you want to see
-a real example, look at kern.conf, but please don't use my
-email address!
+You must end up with a file named config in the main regress 
+directory that has all the specifications that correspond to
+your system.
 
 If you are using SQLite, make sure that depkgs is pre-built if it
 isn't already: (cd your-depkgs; make sqlite).
@@ -38,7 +37,6 @@ SQLite as the database, while my production uses MySQL.
 
 Then do:
 
-   ./config xxx.conf
    make setup
 
 You run the above one time.  This will build a Makefile from
