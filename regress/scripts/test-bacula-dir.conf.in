@@ -5,7 +5,7 @@
 #   file or directory names in the Include directive of the
 #   FileSet resource.
 #
-#  For Bacula release 1.33 
+#  For Bacula release 2.2.2
 #
 #  You might also want to change the default email address
 #   from root to your address.  See the "mail" and "operator"
