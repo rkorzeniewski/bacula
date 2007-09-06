@@ -19,11 +19,20 @@ echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
 echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
 echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
 echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
-
+echo "s%@hostname1@%${hostname1}%g" >>${out}
+echo "s%@hostname2@%${hostname2}%g" >>${out}
+echo "s%@hostname3@%${hostname3}%g" >>${out}
+echo "s%@hostname1_files@%${hostname1_files}%g" >>${out}
+echo "s%@hostname2_files@%${hostname2_files}%g" >>${out}
+echo "s%@hostname3_files@%${hostname3_files}%g" >>${out}
+echo "s%@hostname1_password@%${hostname1_password}%g" >>${out}
+echo "s%@hostname2_password@%${hostname2_password}%g" >>${out}
+echo "s%@hostname3_password@%${hostname3_password}%g" >>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.errors.in >${cwd}/scripts/bacula-dir.conf.errors
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
+sed -f ${out} ${cwd}/scripts/multihost-bacula-dir.conf.in >${cwd}/scripts/multihost-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.regexwhere.in >${cwd}/scripts/bacula-dir.conf.regexwhere
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.maxtime.in >${cwd}/scripts/bacula-dir.conf.maxtime
 sed -f ${out} ${cwd}/scripts/new-test-bacula-dir.conf.in >${cwd}/scripts/new-test-bacula-dir.conf
