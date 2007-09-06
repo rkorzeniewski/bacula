@@ -3,39 +3,26 @@
 # This is the configuration script for regression testing
 #
 
-if test "x${CONFIG_SHELL}" != "x"; then
-    CONFIG_SHELL=/bin/sh
-fi
+. ${1}/config
 
-# Handle Solaris compiler (possibly some others) 
-VERSION="`cc --version | head -1 | awk '{ print $2 }' 2> /dev/null`"
-
-if [ -n "${VERSION}" -a "${VERSION}" = "(GCC)" ]; then
-  OPTIMIZE="-O2"
-  WARNINGS="-Wall"
-else
-  OPTIMIZE="-O"
-  WARNINGS="-v"
-fi
-
-CFLAGS="-g ${OPTIMIZE} ${WARNINGS}" \
+CFLAGS="-g -O2 -Wall" \
  ./configure \
-    --sbindir=$1/bin \
-    --sysconfdir=$1/bin \
-    --mandir=$1/bin \
-    --with-pid-dir=$1/working \
-    --with-subsys-dir=$1/working \
+    --sbindir=${1}/bin \
+    --sysconfdir=${1}/bin \
+    --mandir=${1}/bin \
+    --with-pid-dir=${1}/working \
+    --with-subsys-dir=${1}/working \
     --enable-smartalloc \
     --disable-readline \
-    --with-working-dir=$1/working \
-    --with-dump-email=$2 \
-    --with-job-email=$2 \
-    --with-smtp-host=$5 \
+    --with-working-dir=${1}/working \
+    --with-dump-email=${EMAIL} \
+    --with-job-email=${EMAIL} \
+    --with-smtp-host=${SMTP_HOST} \
     --with-db-name=regress \
     --with-db-user=regress \
-    $3 \
-    --with-baseport=8101 \
-    $4 \
-    $6
+    ${OPENSSL} \
+    ${TCPWRAPPERS} \
+    ${WHICHDB} \
+    --with-baseport=8101
 
 exit 0
