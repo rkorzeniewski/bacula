@@ -4,6 +4,7 @@
 #   then restore it.
 #
 cwd=`pwd`
+. scripts/functions
 bin/bacula stop 2>&1 >/dev/null
 cd bin
 ./drop_bacula_tables >/dev/null 2>&1

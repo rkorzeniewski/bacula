@@ -4,6 +4,7 @@
 #   then restore it.
 #
 cwd=`pwd`
+. scripts/functions
 scripts/copy-tape-confs
 scripts/cleanup-tape
 echo "/usr" >/tmp/file-list
