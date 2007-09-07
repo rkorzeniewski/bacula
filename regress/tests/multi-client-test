@@ -31,7 +31,7 @@ label storage=File1
 TestVolume001
 label storage=File1
 TestVolume002
-update Volume=TestVolume001 MaxVolBytes=500000000
+update Volume=TestVolume001 MaxVolBytes=900000000
 @#50000000
 @#12
 @#setdebug level=51 Storage=File1
@@ -77,10 +77,13 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=File1
 stop_bacula
 
 check_two_logs
-diff -r ${hostname_files} ${cwd}/tmp/bacula-restores/${hostname_files} 2>&1 >/dev/null
+if test "$debug" -eq 1 ; then
+   diff -r ${hostname_files} ${cwd}/tmp/bacula-restores/${hostname_files}                
+else
+   diff -r ${hostname_files} ${cwd}/tmp/bacula-restores/${hostname_files} 2>&1 >/dev/null
+fi
 dstat=$?
 end_test
