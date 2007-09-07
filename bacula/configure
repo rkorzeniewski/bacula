@@ -12836,7 +12836,7 @@ fi;
 #
    if test x$QWT_INC = x; then
       for root in /usr /usr/local; do
-	 for ver in qwt qwt5; do
+	 for ver in qwt qwt5 qwt-qt4; do
 	    if test -f ${root}/include/${ver}/qwt.h; then
 	       QWT_INC="${root}/include/${ver}"
 	       if test -d ${root}/lib64/; then
