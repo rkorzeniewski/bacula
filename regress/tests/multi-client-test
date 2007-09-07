@@ -20,6 +20,13 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out   tmp/log1.out
+@# Make sure we can contact all clients
+setdebug level=100 dir
+status client=${HOST}-fd
+status client=${hostname1}-fd
+status client=${hostname2}-fd
+status client=${hostname3}-fd
+setdebug level=1 dir
 label storage=File1
 TestVolume001
 label storage=File1
@@ -62,7 +69,7 @@ messages
 @# now do a restore
 @#
 @$out   tmp/log2.out
-restore where=${cwd}/tmp/bacula-restores client=${hostname} select storage=File1
+restore where=${cwd}/tmp/bacula-restores client=${hostname}-fd select storage=File1
 unmark *
 mark *
 done
