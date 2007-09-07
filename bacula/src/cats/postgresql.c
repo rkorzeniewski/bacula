@@ -596,6 +596,8 @@ bail_out:
    return id;
 }
 
+#ifdef HAVE_BATCH_FILE_INSERT
+
 int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
 {
    char *query = "COPY batch FROM STDIN";
@@ -733,6 +735,8 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    return mdb->status;
 }
+
+#endif /* HAVE_BATCH_FILE_INSERT */
 
 /*
  * Escape strings so that PostgreSQL is happy on COPY
