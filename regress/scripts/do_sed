@@ -19,10 +19,12 @@ echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
 echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
 echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
 echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
+echo "s%@hostname@%${hostname}%g" >>${out}
 echo "s%@hostname1@%${hostname1}%g" >>${out}
 echo "s%@hostname2@%${hostname2}%g" >>${out}
 echo "s%@hostname3@%${hostname3}%g" >>${out}
 echo "s%@hostname1_files@%${hostname1_files}%g" >>${out}
+echo "s%@hostname_files@%${hostname_files}%g" >>${out}
 echo "s%@hostname2_files@%${hostname2_files}%g" >>${out}
 echo "s%@hostname3_files@%${hostname3_files}%g" >>${out}
 echo "s%@hostname1_password@%${hostname1_password}%g" >>${out}
