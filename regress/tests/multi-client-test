@@ -31,35 +31,29 @@ label storage=File1
 TestVolume001
 label storage=File1
 TestVolume002
-update Volume=TestVolume001 MaxVolBytes=200000000
+update Volume=TestVolume001 MaxVolBytes=500000000
 @#50000000
 @#12
 @#setdebug level=51 Storage=File1
 status storage=File1
-llist volume=TestVolume001
-llist volume=TestVolume002
-run job=${hostname1} level=Full Storage=File1
-yes
-llist volume=TestVolume001
-llist volume=TestVolume002
-run job=${hostname2} level=Full Storage=File1
-yes
-reload
-llist volume=TestVolume001
-llist volume=TestVolume002
-run job=${hostname3} level=Full Storage=File1
-yes
-llist volume=TestVolume001
-llist volume=TestVolume002
+@#llist volume=TestVolume001
+@#llist volume=TestVolume002
+run job=${hostname1} level=Full Storage=File1 yes
+@#llist volume=TestVolume001
+@#llist volume=TestVolume002
+run job=${hostname2} level=Full Storage=File1 yes
+@#llist volume=TestVolume001
+@#llist volume=TestVolume002
+run job=${hostname3} level=Full Storage=File1 yes
+@#llist volume=TestVolume001
+@#llist volume=TestVolume002
 status storage=File1
-run job=$JobName level=Full Storage=File1
-yes
-status storage=File1
+run job=$JobName level=Full Storage=File1 yes
 @sleep 2
 status dir
 status storage=File1
-llist volume=TestVolume001
-llist volume=TestVolume002
+@#llist volume=TestVolume001
+@#llist volume=TestVolume002
 @sleep 5
 messages
 wait
@@ -75,10 +69,10 @@ mark *
 done
 yes
 wait
-reload
-reload
 messages
 @output
+status dir
+status storage=File1
 quit
 END_OF_DATA
 
@@ -87,5 +81,6 @@ check_for_zombie_jobs storage=File1
 stop_bacula
 
 check_two_logs
-check_restore_diff
+diff -r ${hostname_files} ${cwd}/tmp/bacula-restores/${hostname_files} 2>&1 >/dev/null
+dstat=$?
 end_test

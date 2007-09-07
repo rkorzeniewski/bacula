@@ -172,7 +172,7 @@ Job {
 FileSet {
   Name = "Full Set"
   Include  { Options { signature=MD5 }
-    File = </tmp/file-list
+    File = @hostname_files@
   }
 }
 
@@ -280,7 +280,6 @@ Client {
   FDPort = 9102
   Catalog = MyCatalog
   Password = "@hostname2_password@"          # password for FileDaemon
-  Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
