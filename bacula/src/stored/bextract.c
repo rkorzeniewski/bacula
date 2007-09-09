@@ -245,7 +245,7 @@ static void do_extract(char *devname)
 
    free(jcr->where);
    jcr->where = bstrdup(where);
-   attr = new_attr();
+   attr = new_attr(jcr);
 
    compress_buf = get_memory(compress_buf_size);
 

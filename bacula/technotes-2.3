@@ -1,12 +1,16 @@
               Technical notes on version 2.3
 
 General:
+08Sep07
+kes  Suppress chown and chmod error messages if the FD is not running
+     as root.
 07Sep07
 kes  Apply Martin Simmons patch that should turn off the new API usage
      when batch insert is turned off allowing building on older
      PostgreSQLs.
 kes  Add ./configure search in qwt-qt4 for qwt package
 05Sep07
+kes  Bacula is now free of 3rd party GPL copyrighted code!
 kes  Remove idcache.c 
 kes  Add guid_to_name.c/h which replace idcache.
 kes  Remove enh_fnmatch.c.  Make code that references it use fnmatch.c

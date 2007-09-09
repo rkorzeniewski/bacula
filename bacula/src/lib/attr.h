@@ -33,6 +33,9 @@
  *   Version $Id$
  */
 
+#ifndef __ATTR_H_
+#define __ATTR_H_ 1
+
 
 struct ATTR {
    int32_t stream;                    /* attribute stream id */
@@ -40,6 +43,7 @@ struct ATTR {
    int32_t type;                      /* file type FT */
    int32_t file_index;                /* file index */
    int32_t LinkFI;                    /* file index to data if hard link */
+   uid_t uid;                         /* userid */
    struct stat statp;                 /* decoded stat packet */
    POOLMEM *attrEx;                   /* extended attributes if any */
    POOLMEM *ofname;                   /* output filename */
@@ -52,4 +56,7 @@ struct ATTR {
    char *attr;                        /* attributes position */
    char *fname;                       /* filename */
    char *lname;                       /* link name if any */
+   JCR *jcr;                          /* jcr pointer */
 };
+
+#endif /* __ATTR_H_ */

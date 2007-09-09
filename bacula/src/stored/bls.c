@@ -227,7 +227,7 @@ int main (int argc, char *argv[])
       }
       dcr = jcr->dcr;
       rec = new_record();
-      attr = new_attr();
+      attr = new_attr(jcr);
       /*
        * Assume that we have already read the volume label.
        * If on second or subsequent volume, adjust buffer pointer

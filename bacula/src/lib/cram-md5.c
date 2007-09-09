@@ -128,7 +128,7 @@ bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int
       bmicrosleep(5, 0);
       return false;
    }
-   Dmsg1(100, "cram-get: %s", bs->msg);
+   Dmsg1(100, "cram-get received: %s", bs->msg);
    if (sscanf(bs->msg, "auth cram-md5c %s ssl=%d", chal, tls_remote_need) == 2) {
       *compatible = true;
    } else if (sscanf(bs->msg, "auth cram-md5 %s ssl=%d", chal, tls_remote_need) != 2) {
@@ -156,7 +156,7 @@ bool cram_md5_respond(BSOCK *bs, const char *password, int *tls_remote_need, int
    if (strcmp(bs->msg, "1000 OK auth\n") == 0) {
       return true;
    }
-   Dmsg1(50, "Bad auth response: %s\n", bs->msg);
+   Dmsg1(50, "Received bad response: %s\n", bs->msg);
    bmicrosleep(5, 0);
    return false;
 }

@@ -161,7 +161,7 @@ char *guid_list::gid_to_name(gid_t gid, char *name, int maxlen)
    sitem.gid = gid;
    char buf[50];
 
-   item = (guitem *)uid_list->binary_search(&sitem, gid_compare);
+   item = (guitem *)gid_list->binary_search(&sitem, gid_compare);
    if (!item) {
       item = (guitem *)malloc(sizeof(guitem));
       item->gid = gid;
