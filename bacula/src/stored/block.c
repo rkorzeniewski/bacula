@@ -611,6 +611,7 @@ bool write_block_to_dev(DCR *dcr)
       dev->block_num = dcr->EndBlock;
       dev->file = dcr->EndFile;
    }
+   dcr->VolMediaId = dev->VolCatInfo.VolMediaId;
    if (dcr->VolFirstIndex == 0 && block->FirstIndex > 0) {
       dcr->VolFirstIndex = block->FirstIndex;
    }
@@ -1098,6 +1099,7 @@ reread:
       dev->block_num = dcr->EndBlock;
       dev->file = dcr->EndFile;
    }
+   dcr->VolMediaId = dev->VolCatInfo.VolMediaId;
    dev->file_addr += block->read_len;
    dev->file_size += block->read_len;
 

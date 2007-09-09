@@ -398,7 +398,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
       dcr->StartFile, dcr->EndFile,
       dcr->StartBlock, dcr->EndBlock, 
       dcr->Copy, dcr->Stripe, 
-      edit_uint64(dcr->dev->VolCatInfo.VolMediaId, ed1));
+      edit_uint64(dcr->VolMediaId, ed1));
     Dmsg1(100, ">dird: %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
