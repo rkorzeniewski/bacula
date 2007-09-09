@@ -1,18 +1,4 @@
 /*
- * This file handles commands from the File daemon.
- *
- *  Kern Sibbald, MM
- *
- * We get here because the Director has initiated a Job with
- *  the Storage daemon, then done the same with the File daemon,
- *  then when the Storage daemon receives a proper connection from
- *  the File daemon, control is passed here to handle the
- *  subsequent File daemon commands.
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
@@ -39,6 +25,20 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * This file handles commands from the File daemon.
+ *
+ *  Kern Sibbald, MM
+ *
+ * We get here because the Director has initiated a Job with
+ *  the Storage daemon, then done the same with the File daemon,
+ *  then when the Storage daemon receives a proper connection from
+ *  the File daemon, control is passed here to handle the
+ *  subsequent File daemon commands.
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"

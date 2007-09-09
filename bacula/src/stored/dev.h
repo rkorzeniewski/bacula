@@ -447,6 +447,7 @@ public:
    uint32_t StartFile;                /* Start write file */
    uint32_t StartBlock;               /* Start write block */
    uint32_t EndBlock;                 /* Ending block written */
+   int64_t  VolMediaId;               /* MediaId */
    int64_t job_spool_size;            /* Current job spool size */
    int64_t max_job_spool_size;        /* Max job spool size */
    char VolumeName[MAX_NAME_LENGTH];  /* Volume name */

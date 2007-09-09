@@ -326,6 +326,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
       mdcr->StartFile = dcr->StartFile;
       mdcr->EndBlock = dcr->EndBlock;
       mdcr->EndFile = dcr->EndFile;
+      mdcr->VolMediaId = dcr->VolMediaId;
       mjcr->read_dcr->VolLastIndex = dcr->VolLastIndex;
       if (!create_jobmedia_record(db, mjcr)) {
          Pmsg2(000, _("Could not create JobMedia record for Volume=%s Job=%s\n"),
@@ -476,6 +477,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             dcr->VolFirstIndex = dcr->FileIndex = 0;
             dcr->StartBlock = dcr->EndBlock = 0;
             dcr->StartFile = dcr->EndFile = 0;
+            dcr->VolMediaId = 0;
          }
 
          Pmsg1(000, _("VOL_LABEL: OK for Volume: %s\n"), mr.VolumeName);
@@ -1177,6 +1179,7 @@ static int create_jobmedia_record(B_DB *db, JCR *mjcr)
 
    dcr->EndBlock = dev->EndBlock;
    dcr->EndFile  = dev->EndFile;
+   dcr->VolMediaId = dev->VolCatInfo.VolMediaId;
 
    memset(&jmr, 0, sizeof(jmr));
    jmr.JobId = mjcr->JobId;
