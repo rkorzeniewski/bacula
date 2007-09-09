@@ -240,7 +240,7 @@ void do_restore(JCR *jcr)
     */
    binit(&rctx.bfd);
    binit(&rctx.forkbfd);
-   attr = new_attr();
+   attr = new_attr(jcr);
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    

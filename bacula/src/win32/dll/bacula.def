@@ -192,7 +192,7 @@ _ZN5alist9grow_listEv
 _Z15print_ls_outputP3JCRP4ATTR
 _Z24build_attr_output_fnamesP3JCRP4ATTR
 _Z24unpack_attributes_recordP3JCRiPcP4ATTR
-_Z8new_attrv
+_Z8new_attrP3JCR
 _Z9free_attrP4ATTR
  
 ; base64.o
@@ -451,12 +451,12 @@ _Z23edit_uint64_with_suffixyPc
  
 ; fnmatch.o
 fnmatch
- 
-; idcache.o
-_Z18free_getuser_cachev
-_Z19free_getgroup_cachev
-_Z7getuserjPci
-_Z8getgroupjPci
+
+; guid_to_name.o
+_ZN9guid_list11uid_to_nameEjPci
+_ZN9guid_list11gid_to_nameEjPci
+_Z14free_guid_listP9guid_list
+_Z13new_guid_listv
  
 ; jcr.o
 _Z10b_free_jcrPKciP3JCR

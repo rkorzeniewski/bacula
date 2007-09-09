@@ -45,11 +45,11 @@ static bool makedir(JCR *jcr, char *path, mode_t mode, int *created)
       berrno be;
       *created = false;
       if (stat(path, &statp) != 0) {
-         Jmsg(jcr, M_ERROR, 0, _("Cannot create directory %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Cannot create directory %s: ERR=%s\n"),
               path, be.bstrerror());
          return false;
       } else if (!S_ISDIR(statp.st_mode)) {
-         Jmsg(jcr, M_ERROR, 0, _("%s exists but is not a directory.\n"), path);
+         Jmsg1(jcr, M_ERROR, 0, _("%s exists but is not a directory.\n"), path);
          return false;
       }
       return true;                 /* directory exists */
@@ -58,20 +58,20 @@ static bool makedir(JCR *jcr, char *path, mode_t mode, int *created)
    return true;
 }
 
-static void set_own_mod(JCR *jcr, char *path, uid_t owner, gid_t group, mode_t mode)
+static void set_own_mod(ATTR *attr, char *path, uid_t owner, gid_t group, mode_t mode)
 {
-   if (chown(path, owner, group) != 0
+   if (chown(path, owner, group) != 0 && attr->uid == 0
 #ifdef AFS
         && errno != EPERM
 #endif
    ) {
       berrno be;
-      Jmsg(jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
+      Jmsg2(attr->jcr, M_WARNING, 0, _("Cannot change owner and/or group of %s: ERR=%s\n"),
            path, be.bstrerror());
    }
-   if (chmod(path, mode) != 0) {
+   if (chmod(path, mode) != 0 && attr->uid == 0) {
       berrno be;
-      Jmsg(jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
+      Jmsg2(attr->jcr, M_WARNING, 0, _("Cannot change permissions of %s: ERR=%s\n"),
            path, be.bstrerror());
    }
 }
@@ -86,7 +86,7 @@ static void set_own_mod(JCR *jcr, char *path, uid_t owner, gid_t group, mode_t m
  *
  * keep_dir_modes if set means don't change mode bits if dir exists
  */
-bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
+bool makepath(ATTR *attr, const char *apath, mode_t mode, mode_t parent_mode,
             uid_t owner, gid_t group, int keep_dir_modes)
 {
    struct stat statp;
@@ -100,17 +100,18 @@ bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
    int ndir = 0;
    int i = 0;
    int max_dirs = (int)sizeof(new_dir);
+   JCR *jcr = attr->jcr;
 
    if (stat(path, &statp) == 0) {     /* Does dir exist? */
       if (!S_ISDIR(statp.st_mode)) {
-         Jmsg(jcr, M_ERROR, 0, _("%s exists but is not a directory.\n"), path);
+         Jmsg1(jcr, M_ERROR, 0, _("%s exists but is not a directory.\n"), path);
          return false;
       }
       /* Full path exists */
       if (keep_dir_modes) {
          return true;
       }
-      set_own_mod(jcr, path, owner, group, mode);
+      set_own_mod(attr, path, owner, group, mode);
       return true;
    }
    omask = umask(0);
@@ -140,7 +141,7 @@ bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
       UINT drive_type = GetDriveType(drive);
 
       if (drive_type == DRIVE_UNKNOWN || drive_type == DRIVE_NO_ROOT_DIR) {
-         Jmsg(jcr, M_ERROR, 0, _("%c: is not a valid drive.\n"), path[0]);
+         Jmsg1(jcr, M_ERROR, 0, _("%c: is not a valid drive.\n"), path[0]);
          goto bail_out;
       }
 
@@ -184,7 +185,7 @@ bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
       new_dir[ndir++] = created;
    }
    if (ndir >= max_dirs) {
-      Jmsg(jcr, M_WARNING, 0, _("Too many subdirectories. Some permissions not reset.\n"));
+      Jmsg0(jcr, M_WARNING, 0, _("Too many subdirectories. Some permissions not reset.\n"));
    }
 
    /* Now set the proper owner and modes */
@@ -206,7 +207,7 @@ bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
       save_p = *p;
       *p = 0;
       if (i < ndir && new_dir[i++] && !keep_dir_modes) {
-         set_own_mod(jcr, path, owner, group, parent_mode);
+         set_own_mod(attr, path, owner, group, parent_mode);
       }
       *p = save_p;
       while (IsPathSeparator(*p)) {
@@ -216,7 +217,7 @@ bool makepath(JCR *jcr, const char *apath, mode_t mode, mode_t parent_mode,
 
    /* Set for final component */
    if (i < ndir && new_dir[i++]) {
-      set_own_mod(jcr, path, owner, group, mode);
+      set_own_mod(attr, path, owner, group, mode);
    }
 
    ok = true;

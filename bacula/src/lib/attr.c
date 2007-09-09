@@ -38,13 +38,15 @@
 #include "jcr.h"
 #include "lib/breg.h"
 
-ATTR *new_attr()
+ATTR *new_attr(JCR *jcr)
 {
    ATTR *attr = (ATTR *)malloc(sizeof(ATTR));
    memset(attr, 0, sizeof(ATTR));
    attr->ofname = get_pool_memory(PM_FNAME);
    attr->olname = get_pool_memory(PM_FNAME);
    attr->attrEx = get_pool_memory(PM_FNAME);
+   attr->jcr = jcr;
+   attr->uid = getuid();
    return attr;
 }
 

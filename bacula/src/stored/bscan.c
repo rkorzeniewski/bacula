@@ -354,7 +354,7 @@ static bool bscan_mount_next_read_volume(DCR *dcr)
 
 static void do_scan()
 {
-   attr = new_attr();
+   attr = new_attr(bjcr);
 
    memset(&ar, 0, sizeof(ar));
    memset(&pr, 0, sizeof(pr));
