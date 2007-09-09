@@ -21,7 +21,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out   tmp/log1.out
 @# Make sure we can contact all clients
-setdebug level=100 dir
+@#setdebug level=100 dir
 status client=${HOST}-fd
 status client=${hostname1}-fd
 status client=${hostname2}-fd
@@ -32,28 +32,17 @@ TestVolume001
 label storage=File1
 TestVolume002
 update Volume=TestVolume001 MaxVolBytes=900000000
-@#50000000
-@#12
-@#setdebug level=51 Storage=File1
 status storage=File1
 @#llist volume=TestVolume001
 @#llist volume=TestVolume002
 run job=${hostname1} level=Full Storage=File1 yes
-@#llist volume=TestVolume001
-@#llist volume=TestVolume002
 run job=${hostname2} level=Full Storage=File1 yes
-@#llist volume=TestVolume001
-@#llist volume=TestVolume002
-run job=${hostname3} level=Full Storage=File1 yes
-@#llist volume=TestVolume001
-@#llist volume=TestVolume002
+@# run job=${hostname3} level=Full Storage=File1 yes
 status storage=File1
 run job=$JobName level=Full Storage=File1 yes
 @sleep 2
 status dir
 status storage=File1
-@#llist volume=TestVolume001
-@#llist volume=TestVolume002
 @sleep 5
 messages
 wait
