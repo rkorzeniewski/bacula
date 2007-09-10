@@ -488,7 +488,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          tv.tv_sec = 10;
          tv.tv_usec = 0;
          /* Block until we can read */
-         select(fdmax, &fdset, NULL, &fdset, &tv);
+         select(fdmax, &fdset, NULL, NULL, &tv);
          break;
       case SSL_ERROR_WANT_WRITE:
          /* If we timeout of a select, this will be unset */
@@ -497,7 +497,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          tv.tv_sec = 10;
          tv.tv_usec = 0;
          /* Block until we can write */
-         select(fdmax, NULL, &fdset, &fdset, &tv);
+         select(fdmax, NULL, &fdset, NULL, &tv);
          break;
       default:
          /* Socket Error Occured */
@@ -628,7 +628,7 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          tv.tv_sec = 10;
          tv.tv_usec = 0;
          /* Block until we can read or write */
-         select(fdmax, NULL, &fdset, &fdset, &tv);
+         select(fdmax, NULL, &fdset, NULL, &tv);
          break;
 
       case SSL_ERROR_ZERO_RETURN:
