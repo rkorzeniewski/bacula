@@ -196,7 +196,7 @@ exit 1
 %{?build_x86_64:%define x86_64 1}
 
 # check what distribution we are
-%if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4} || %rhel5}
+%if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4} || %{rhel5}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
 %if %{fc1} || %{fc4} || %{fc5} || %{fc6} || %{fc7}
