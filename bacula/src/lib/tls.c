@@ -622,12 +622,20 @@ static inline int openssl_bsock_readwrite(BSOCK *bsock, char *ptr, int nbytes, b
          break;
 
       case SSL_ERROR_WANT_READ:
+         /* If we timeout on a select, this will be unset */
+         FD_SET((unsigned)bsock->m_fd, &fdset);
+         tv.tv_sec = 10;
+         tv.tv_usec = 0;
+         /* Block until we can read */
+         select(fdmax, &fdset, NULL, NULL, &tv);
+         break;
+
       case SSL_ERROR_WANT_WRITE:
          /* If we timeout on a select, this will be unset */
          FD_SET((unsigned)bsock->m_fd, &fdset);
          tv.tv_sec = 10;
          tv.tv_usec = 0;
-         /* Block until we can read or write */
+         /* Block until we can write */
          select(fdmax, NULL, &fdset, NULL, &tv);
          break;
 
