@@ -3069,7 +3069,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			      <child>
 				<widget class="GtkLabel" id="label57">
 				  <property name="visible">True</property>
-				  <property name="label" translatable="yes">Ajouter un suffix :</property>
+				  <property name="label" translatable="yes">Ajouter un suffixe :</property>
 				  <property name="use_underline">False</property>
 				  <property name="use_markup">False</property>
 				  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -3194,7 +3194,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			      <child>
 				<widget class="GtkLabel" id="label56">
 				  <property name="visible">True</property>
-				  <property name="label" translatable="yes">Supprimer un prefix :</property>
+				  <property name="label" translatable="yes">Supprimer un prefixe :</property>
 				  <property name="use_underline">False</property>
 				  <property name="use_markup">False</property>
 				  <property name="justify">GTK_JUSTIFY_LEFT</property>
@@ -3223,7 +3223,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 				<widget class="GtkEntry" id="entry_add_prefix">
 				  <property name="visible">True</property>
 				  <property name="sensitive">False</property>
-				  <property name="tooltip" translatable="yes">Ajouter un prefix au path destination (/etc -&gt; /tmp/etc)</property>
+				  <property name="tooltip" translatable="yes">Ajouter un prefixe au path destination (/etc -&gt; /tmp/etc)</property>
 				  <property name="can_focus">True</property>
 				  <property name="editable">True</property>
 				  <property name="visibility">True</property>
@@ -3245,7 +3245,7 @@ http://user:pass@director/cgi-bin/bweb/bconsole.pl</property>
 			      <child>
 				<widget class="GtkLabel" id="label58">
 				  <property name="visible">True</property>
-				  <property name="label" translatable="yes">Ajouter un prefix :</property>
+				  <property name="label" translatable="yes">Ajouter un prefixe :</property>
 				  <property name="use_underline">False</property>
 				  <property name="use_markup">False</property>
 				  <property name="justify">GTK_JUSTIFY_LEFT</property>
