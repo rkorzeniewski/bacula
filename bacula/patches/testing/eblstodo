@@ -124,6 +124,7 @@ bacula :
    o pb inclusion (distante, locale)
    o pb exclusion (distante, locale)
    o pb execution de commande
+   o pb de config avec test du -t des differents daemon
  - Utiliser PQescapeStringConn a la place de PQescapeString
  - Utiliser la lib pcre
  - Rendre les scripts bacula-ctl-xxx LSB
