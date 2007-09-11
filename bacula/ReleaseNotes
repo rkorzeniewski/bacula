@@ -10,6 +10,22 @@ use some of the new features that affect the FD.  In other words, you should
 not have to upgrade all your File daemons when you upgrade. There is
 no database upgrade needed from version 2.0.x to 2.2.0.
 
+Version 2.2.3 is a critical bug fix release to version 2.2.2
+- Fix bug #935, and possibly also bug #903 where files were not
+  restored. MediaId was not properly set in JobMedia record after 
+  a Volume change. This bug is known to affect all versions from 
+  2.0.0 on, and probably versions prior to that.  A detailed analysis
+  of the bug can be found at:
+    
+      http://www.bacula.org/downloads/bug-395.txt
+      
+- Add ./configure search in qwt-qt4 for qwt package
+- Apply Martin Simmons patch that should turn off the new API usage
+  when batch insert is turned off allowing building on older
+  PostgreSQLs.
+- Note, you need GTK >= 2.10 to be able to link the Tray Monitor 
+  program.
+
 Version 2.2.2 is a bug fix release to 2.2.1
 - Detect if new PosgreSQL batch insert API is present.
 - Correct incorrect mempool call causing Director crash.

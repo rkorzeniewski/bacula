@@ -180,6 +180,7 @@ Projects:
 
 
 For next release:
+- Try to fix bscan not working with multiple DVD volumes bug #912.
 - Look at mondo/mindi
 - Don't restore Solaris Door files:
    #define   S_IFDOOR   in st_mode.
