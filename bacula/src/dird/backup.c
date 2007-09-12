@@ -165,6 +165,7 @@ bool do_backup(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
+      cancel_storage_daemon_job(jcr);
       goto bail_out;
    }
 

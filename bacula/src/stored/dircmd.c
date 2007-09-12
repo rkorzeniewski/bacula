@@ -294,13 +294,11 @@ static bool cancel_cmd(JCR *cjcr)
       if (!(jcr=get_jcr_by_full_name(Job))) {
          bnet_fsend(dir, _("3904 Job %s not found.\n"), Job);
       } else {
-         jcr->lock();
          oldStatus = jcr->JobStatus;
          set_jcr_job_status(jcr, JS_Canceled);
          if (!jcr->authenticated && oldStatus == JS_WaitFD) {
             pthread_cond_signal(&jcr->job_start_wait); /* wake waiting thread */
          }
-         jcr->unlock();
          if (jcr->file_bsock) {
             bnet_sig(jcr->file_bsock, BNET_TERMINATE);
          } else {
