@@ -295,62 +295,9 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  *         the escaped output.
  */
 void
-db_escape_string(char *snew, char *old, int len)
+db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len)
 {
-   mysql_escape_string(snew, old, len);
-
-#ifdef xDO_IT_MYSELF
-
-/* Should use mysql_real_escape_string ! */
-unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length);
-
-   char *n, *o;
-
-   n = snew;
-   o = old;
-   while (len--) {
-      switch (*o) {
-      case 0:
-         *n++= '\\';
-         *n++= '0';
-         o++;
-         break;
-      case '\n':
-         *n++= '\\';
-         *n++= 'n';
-         o++;
-         break;
-      case '\r':
-         *n++= '\\';
-         *n++= 'r';
-         o++;
-         break;
-      case '\\':
-         *n++= '\\';
-         *n++= '\\';
-         o++;
-         break;
-      case '\'':
-         *n++= '\\';
-         *n++= '\'';
-         o++;
-         break;
-      case '"':
-         *n++= '\\';
-         *n++= '"';
-         o++;
-         break;
-      case '\032':
-         *n++= '\\';
-         *n++= 'Z';
-         o++;
-         break;
-      default:
-         *n++= *o++;
-      }
-   }
-   *n = 0;
-#endif
+   mysql_real_escape_string(jcr->db, snew, old, len);
 }
 
 /*

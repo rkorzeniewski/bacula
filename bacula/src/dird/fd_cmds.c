@@ -677,7 +677,7 @@ int get_attributes_and_put_in_catalog(JCR *jcr)
          }
          ar->Digest = digest;
          ar->DigestType = crypto_digest_stream_type(stream);
-         db_escape_string(digest, Digest, strlen(Digest));
+         db_escape_string(jcr, jcr->db, digest, Digest, strlen(Digest));
          Dmsg4(dbglvl, "stream=%d DigestLen=%d Digest=%s type=%d\n", stream,
                strlen(digest), digest, ar->DigestType);
       }

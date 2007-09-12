@@ -611,7 +611,7 @@ static void eliminate_duplicate_filenames()
       /* Loop through list of duplicate names */
       for (int i=0; i<name_list.num_ids; i++) {
          /* Get all the Ids of each name */
-         db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
+         db_escape_string(NULL, db, esc_name, name_list.name[i], strlen(name_list.name[i]));
          bsnprintf(buf, sizeof(buf), "SELECT FilenameId FROM Filename WHERE Name='%s'", esc_name);
          if (verbose > 1) {
             printf("%s\n", buf);
@@ -669,7 +669,7 @@ static void eliminate_duplicate_paths()
       /* Loop through list of duplicate names */
       for (int i=0; i<name_list.num_ids; i++) {
          /* Get all the Ids of each name */
-         db_escape_string(esc_name, name_list.name[i], strlen(name_list.name[i]));
+         db_escape_string(NULL, db, esc_name, name_list.name[i], strlen(name_list.name[i]));
          bsnprintf(buf, sizeof(buf), "SELECT PathId FROM Path WHERE Path='%s'", esc_name);
          if (verbose > 1) {
             printf("%s\n", buf);
@@ -1103,7 +1103,7 @@ static void repair_bad_filenames()
             esc_name[1] = 0;
          } else {
             name[len-1] = 0;
-            db_escape_string(esc_name, name, len);
+            db_escape_string(NULL, db, esc_name, name, len);
          }
          bsnprintf(buf, sizeof(buf),
             "UPDATE Filename SET Name='%s' WHERE FilenameId=%s",
@@ -1162,7 +1162,7 @@ static void repair_bad_paths()
          }
          /* Add trailing slash */
          len = pm_strcat(&name, "/");
-         db_escape_string(esc_name, name, len);
+         db_escape_string(NULL, db, esc_name, name, len);
          bsnprintf(buf, sizeof(buf), "UPDATE Path SET Path='%s' WHERE PathId=%s",
             esc_name, edit_int64(id_list.Id[i], ed1));
          if (verbose > 1) {

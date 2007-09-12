@@ -712,10 +712,10 @@ bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    char ed1[50];
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
-   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
 
    mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
-   db_escape_string(mdb->esc_path, mdb->path, mdb->pnl);
+   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
 
    if (ar->Digest == NULL || ar->Digest[0] == 0) {
       digest = "0";
@@ -994,7 +994,7 @@ static int db_create_path_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    int stat;
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->pnl+2);
-   db_escape_string(mdb->esc_name, mdb->path, mdb->pnl);
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->path, mdb->pnl);
 
    if (mdb->cached_path_id != 0 && mdb->cached_path_len == mdb->pnl &&
        strcmp(mdb->cached_path, mdb->path) == 0) {
@@ -1064,8 +1064,8 @@ static int db_create_filename_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    SQL_ROW row;
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
-   db_escape_string(mdb->esc_name, mdb->fname, mdb->fnl);
-
+   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+   
    Mmsg(mdb->cmd, "SELECT FilenameId FROM Filename WHERE Name='%s'", mdb->esc_name);
 
    if (QUERY_DB(jcr, mdb, mdb->cmd)) {
