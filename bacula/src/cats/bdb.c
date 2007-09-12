@@ -307,7 +307,7 @@ void db_thread_cleanup()
 { }
 
 
-void db_escape_string(char *snew, char *old, int len)
+void db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len)
 {
    memset(snew, 0, len);
    bstrncpy(snew, old, len);

@@ -282,7 +282,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  *         the escaped output.
  */
 void
-db_escape_string(char *snew, char *old, int len)
+db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len)
 {
    char *n, *o;
 
