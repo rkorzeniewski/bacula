@@ -135,6 +135,7 @@ bool do_restore(JCR *jcr)
     */
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
+      cancel_storage_daemon_job(jcr);
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }

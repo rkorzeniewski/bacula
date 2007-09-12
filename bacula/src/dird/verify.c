@@ -211,6 +211,7 @@ bool do_verify(JCR *jcr)
     */
    set_jcr_job_status(jcr, JS_Blocked);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
+      cancel_storage_daemon_job(jcr);
       return false;
    }
 

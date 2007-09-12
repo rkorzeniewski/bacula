@@ -128,6 +128,7 @@ extern void create_clones(JCR *jcr);
 extern bool create_restore_bootstrap_file(JCR *jcr);
 extern void dird_free_jcr(JCR *jcr);
 extern void dird_free_jcr_pointers(JCR *jcr);
+extern void cancel_storage_daemon_job(JCR *jcr);
 
 /* migration.c */
 extern bool do_migration(JCR *jcr);
