@@ -1098,8 +1098,10 @@ void migration_cleanup(JCR *jcr, int TermCode)
       if (mig_jcr->VolumeName[0]) {
          /* Find last volume name. Multiple vols are separated by | */
          char *p = strrchr(mig_jcr->VolumeName, '|');
-         if (!p) {
-            p = mig_jcr->VolumeName;
+         if (p) {
+            p++;                         /* skip | */
+         } else {
+            p = mig_jcr->VolumeName;     /* no |, take full name */
          }
          bstrncpy(mr.VolumeName, p, sizeof(mr.VolumeName));
          if (!db_get_media_record(jcr, jcr->db, &mr)) {
