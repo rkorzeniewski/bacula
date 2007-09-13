@@ -165,7 +165,6 @@ bool do_backup(JCR *jcr)
 
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      cancel_storage_daemon_job(jcr);
       goto bail_out;
    }
 
@@ -246,9 +245,7 @@ bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
    Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
    /* Cancel SD */
-   if (jcr->store_bsock) {
-      jcr->store_bsock->fsend("cancel Job=%s\n", jcr->Job);
-   }
+   cancel_storage_daemon_job(jcr);
    wait_for_storage_daemon_termination(jcr);
    Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
    return false;
@@ -297,6 +294,11 @@ int wait_for_job_termination(JCR *jcr)
           job_type_to_str(jcr->JobType), fd->bstrerror());
    }
    bnet_sig(fd, BNET_TERMINATE);   /* tell Client we are terminating */
+
+   /* Force cancel in SD if failing */
+   if (job_canceled(jcr) || !fd_ok) {
+      cancel_storage_daemon_job(jcr);
+   }
 
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);

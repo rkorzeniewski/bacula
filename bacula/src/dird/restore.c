@@ -135,7 +135,6 @@ bool do_restore(JCR *jcr)
     */
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      cancel_storage_daemon_job(jcr);
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
@@ -246,6 +245,10 @@ void restore_cleanup(JCR *jcr, int TermCode)
       unlink(jcr->RestoreBootstrap);
       jcr->unlink_bsr = false;
    }
+
+   if (job_canceled(jcr)) {
+      cancel_storage_daemon_job(jcr);
+   }  
 
    switch (TermCode) {
    case JS_Terminated:
