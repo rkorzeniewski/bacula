@@ -319,6 +319,7 @@ void terminate_dird(int sig)
    static bool already_here = false;
 
    if (already_here) {                /* avoid recursive temination problems */
+      bmicrosleep(2, 0);              /* yield */
       exit(1);
    }
    already_here = true;
@@ -326,7 +327,6 @@ void terminate_dird(int sig)
    generate_daemon_event(NULL, "Exit");
    write_state_file(director->working_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
    delete_pid_file(director->pid_directory, "bacula-dir", get_first_port_host_order(director->DIRaddrs));
-// signal(SIGCHLD, SIG_IGN);          /* don't worry about children now */
    term_scheduler();
    term_job_server();
    if (runjob) {

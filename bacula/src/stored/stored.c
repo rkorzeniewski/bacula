@@ -534,6 +534,7 @@ void terminate_stored(int sig)
    JCR *jcr;
 
    if (in_here) {                     /* prevent loops */
+      bmicrosleep(2, 0);              /* yield */
       exit(1);
    }
    in_here = true;

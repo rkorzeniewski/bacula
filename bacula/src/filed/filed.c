@@ -235,6 +235,7 @@ void terminate_filed(int sig)
    static bool already_here = false;
 
    if (already_here) {
+      bmicrosleep(2, 0);              /* yield */
       exit(1);                        /* prevent loops */
    }
    already_here = true;
