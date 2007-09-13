@@ -38,7 +38,7 @@ JobDefs {
   Name = "DefaultRestore"
   Type = Restore
   Storage = File
-  Client=localhost-fd 
+  Client=@hostname@-fd
   FileSet="FS_TESTJOB"
   Messages = Standard
   Pool = Default
