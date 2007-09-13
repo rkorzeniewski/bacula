@@ -292,7 +292,14 @@ get_out:
       Dmsg2(50, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
-   dev->dunblock(DEV_LOCKED);
+   /* 
+    * Normally we are blocked, but in at least one error case above 
+    *   we are not blocked because we unsuccessfully tried changing
+    *   devices.  
+    */
+   if (dev->is_blocked()) {
+      dev->dunblock(DEV_LOCKED);
+   }
    Dmsg1(950, "jcr->dcr=%p\n", jcr->dcr);
    return ok;
 }
