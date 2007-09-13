@@ -39,9 +39,9 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-setdebug level=100 dir
-setdebug level=0 storage=DDS-4
-setdebug level=0 dir
+setdebug level=3 dir
+setdebug level=3 storage=DDS-4
+setdebug level=3 client
 label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
 status storage=DDS-4
