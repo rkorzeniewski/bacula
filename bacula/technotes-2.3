@@ -2,6 +2,9 @@
 
 General:
 13Sep07
+kes  Fix seg fault in error exit of acquire_for_read after unsuccessfully
+     trying to switch drives by checking for blocking before unblocking.
+     Fixes bug #906.
 kes  Cancel storage daemon in all cases where FD reports error. This
      should fix virtually all cases of bug #920.
 kes  Fix db_escape_string() for MySQL which did not compile.
