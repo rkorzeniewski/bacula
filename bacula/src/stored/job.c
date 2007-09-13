@@ -91,7 +91,7 @@ bool job_cmd(JCR *jcr)
               &write_part_after_job, &PreferMountedVols);
    if (stat != 13) {
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, BAD_job, stat, jcr->errmsg);
+      dir->fsend(BAD_job, stat, jcr->errmsg);
       Dmsg1(100, ">dird: %s", dir->msg);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return false;
@@ -135,7 +135,10 @@ bool job_cmd(JCR *jcr)
     * Pass back an authorization key for the File daemon
     */
    make_session_key(auth_key, NULL, 1);
-   bnet_fsend(dir, OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
+   dir->fsend(OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
+   if (debug_level == 3) {
+      Dmsg1(000, ">dird: %s", dir->msg);
+   }
    Dmsg1(100, ">dird: %s", dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
    memset(auth_key, 0, sizeof(auth_key));
@@ -185,6 +188,9 @@ bool run_cmd(JCR *jcr)
    }
    V(mutex);
 
+   if (debug_level == 3) {
+      Dmsg0(000, "Zap sd_auth_key\n");
+   }
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
    if (jcr->authenticated && !job_canceled(jcr)) {
@@ -274,9 +280,9 @@ bool query_cmd(JCR *jcr)
             }  
             ok = dir_update_device(jcr, device->dev);
             if (ok) {
-               ok = bnet_fsend(dir, OK_query);
+               ok = dir->fsend(OK_query);
             } else {
-               bnet_fsend(dir, NO_query);
+               dir->fsend(NO_query);
             }
             return ok;
          }
@@ -289,9 +295,9 @@ bool query_cmd(JCR *jcr)
             }
             ok = dir_update_changer(jcr, changer);
             if (ok) {
-               ok = bnet_fsend(dir, OK_query);
+               ok = dir->fsend(OK_query);
             } else {
-               bnet_fsend(dir, NO_query);
+               dir->fsend(NO_query);
             }
             return ok;
          }
@@ -299,12 +305,12 @@ bool query_cmd(JCR *jcr)
       /* If we get here, the device/autochanger was not found */
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, NO_device, dev_name.c_str());
+      dir->fsend(NO_device, dev_name.c_str());
       Dmsg1(100, ">dird: %s\n", dir->msg);
    } else {
       unbash_spaces(dir->msg);
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, BAD_query, jcr->errmsg);
+      dir->fsend(BAD_query, jcr->errmsg);
       Dmsg1(100, ">dird: %s\n", dir->msg);
    }
 
@@ -322,7 +328,7 @@ void stored_free_jcr(JCR *jcr)
 {
    Dmsg1(900, "stored_free_jcr JobId=%u\n", jcr->JobId);
    if (jcr->file_bsock) {
-      bnet_close(jcr->file_bsock);
+      jcr->file_bsock->close();
       jcr->file_bsock = NULL;
    }
    if (jcr->job_name) {
