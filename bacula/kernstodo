@@ -68,8 +68,14 @@ Professional Needs:
    See email of 21Aug2007 for details.
 
 Priority:
+- KIWI
+- Implement wait on multiple objects
+   - Multiple max times
+   - pthread signal
+   - socket input ready
 - Implement SDErrors (must return from SD)
 - Implement USB keyboard support in rescue CD.
+- Implement continue spooling while despooling.
 - Remove all install temp files in Win32 PLUGINSDIR.
 - Audit retention periods to make sure everything is 64 bit.
 - Use E'xxx' to escape PostgreSQL strings.

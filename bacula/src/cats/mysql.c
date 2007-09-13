@@ -295,9 +295,9 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  *         the escaped output.
  */
 void
-db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len)
+db_escape_string(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
 {
-   mysql_real_escape_string(jcr->db, snew, old, len);
+   mysql_real_escape_string(mdb->db, snew, old, len);
 }
 
 /*
