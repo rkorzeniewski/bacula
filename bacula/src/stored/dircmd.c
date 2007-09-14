@@ -152,16 +152,17 @@ void *handle_connection_request(void *arg)
 
    if (bs->recv() <= 0) {
       Emsg0(M_ERROR, 0, _("Connection request failed.\n"));
-      bnet_close(bs);
+      bs->close();
       return NULL;
    }
 
    /*
     * Do a sanity check on the message received
     */
-   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)-25) {
+   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)+100) {
+      Dmsg1(000, "<filed: %s", bs->msg);
       Emsg1(M_ERROR, 0, _("Invalid connection. Len=%d\n"), bs->msglen);
-      bnet_close(bs);
+      bs->close();
       return NULL;
    }
    /*
@@ -169,6 +170,9 @@ void *handle_connection_request(void *arg)
     *   call FD handler.
     */
    Dmsg1(110, "Conn: %s", bs->msg);
+   if (debug_level == 3) {
+      Dmsg1(000, "<filed: %s", bs->msg);
+   }
    if (sscanf(bs->msg, "Hello Start Job %127s", name) == 1) {
       Dmsg0(110, "Got a FD connection\n");
       handle_filed_connection(bs, name);
@@ -216,7 +220,7 @@ void *handle_connection_request(void *arg)
         if (strncmp(cmds[i].cmd, bs->msg, strlen(cmds[i].cmd)) == 0) {
            if ((!cmds[i].monitoraccess) && (jcr->director->monitor)) {
               Dmsg1(100, "Command \"%s\" is invalid.\n", cmds[i].cmd);
-              bnet_fsend(bs, invalid_cmd);
+              bs->fsend(invalid_cmd);
               bs->signal(BNET_EOD);
               break;
            }
@@ -230,14 +234,14 @@ void *handle_connection_request(void *arg)
         }
       }
       if (!found) {                   /* command not found */
-        bnet_fsend(bs, derrmsg);
+        bs->fsend(derrmsg);
         break;
       }
    }
 bail_out:
    generate_daemon_event(jcr, "JobEnd");
    dequeue_messages(jcr);             /* send any queued messages */
-   bnet_sig(bs, BNET_TERMINATE);
+   bs->signal(BNET_TERMINATE);
    free_jcr(jcr);
    return NULL;
 }
