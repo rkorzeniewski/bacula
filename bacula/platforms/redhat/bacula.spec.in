@@ -224,10 +224,11 @@ Distribution: %{_dist}
 
 # Should we build gconsole, possible only if gtk= >= 2.4 available.
 # leaving all the BuildRequires and Requires in place below for now.
-# su10 and fc4 now nobuild, tray monitor fails to build as of 2.2.1 release
+# su10, fc3 and fc4 now nobuild, tray monitor fails to build as of 2.2.1 
+# release as it needs 2.10
 
 %define gconsole 1
-%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc4} || %{su9} || %{su10}
+%if %{rh7} || %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{su9} || %{su10}
 %define gconsole 0
 %endif
 %if %{mdk} && ! %{mdv}
@@ -2020,6 +2021,9 @@ fi
 %endif
 
 %changelog
+* Fri Sep 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 2.2.4 release
+- turn off gconsole build for fc3, tray monitor fails to build
 * Sat Sep 08 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add --disable-batch-insert for older platforms
 - add build targets for rhel5 and clones
