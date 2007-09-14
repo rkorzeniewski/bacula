@@ -201,7 +201,7 @@ bool run_cmd(JCR *jcr)
 }
 
 /*
- * After receiving a connection (in job.c) if it is
+ * After receiving a connection (in dircmd.c) if it is
  *   from the File daemon, this routine is called.
  */
 void handle_filed_connection(BSOCK *fd, char *job_name)
@@ -210,7 +210,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    bmicrosleep(0, 50000);             /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
-      Jmsg1(NULL, M_FATAL, 0, _("Job name not found: %s\n"), job_name);
+      Jmsg1(NULL, M_FATAL, 0, _("FD connect failed: Job name not found: %s\n"), job_name);
       Dmsg1(100, "Job name not found: %s\n", job_name);
       return;
    }
@@ -222,7 +222,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 
    if (jcr->authenticated) {
       Jmsg2(jcr, M_FATAL, 0, _("Hey!!!! JobId %u Job %s already authenticated.\n"),
-         jcr->JobId, jcr->Job);
+         (uint32_t)jcr->JobId, jcr->Job);
       free_jcr(jcr);
       return;
    }
@@ -230,6 +230,9 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    /*
     * Authenticate the File daemon
     */
+   if (debug_level == 3) {
+      Dmsg1(000, "sd_auth_key=%s\n", jcr->sd_auth_key);
+   }
    if (jcr->authenticated || !authenticate_filed(jcr)) {
       Dmsg1(100, "Authentication failed Job %s\n", jcr->Job);
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
