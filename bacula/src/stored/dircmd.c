@@ -148,7 +148,7 @@ void *handle_connection_request(void *arg)
    int i;
    bool found, quit;
    int bnet_stat = 0;
-   char name[MAX_NAME_LENGTH];
+   char name[500];
 
    if (bs->recv() <= 0) {
       Emsg0(M_ERROR, 0, _("Connection request failed.\n"));
@@ -159,7 +159,7 @@ void *handle_connection_request(void *arg)
    /*
     * Do a sanity check on the message received
     */
-   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)+100) {
+   if (bs->msglen < 25 || bs->msglen > (int)sizeof(name)) {
       Dmsg1(000, "<filed: %s", bs->msg);
       Emsg1(M_ERROR, 0, _("Invalid connection. Len=%d\n"), bs->msglen);
       bs->close();
