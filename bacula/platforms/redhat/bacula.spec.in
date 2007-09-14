@@ -6,7 +6,7 @@
 # basic defines for every build
 %define _version @VERSION@
 %define _release 1
-%define depkgs_version 11Jul07
+%define depkgs_version 09Sep07
 %define _rescuever @VERSION@
 %define docs_version @VERSION@
 
@@ -1773,10 +1773,13 @@ fi
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/mtx
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/scsitape
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/tapeinfo
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/nsmhack
+%attr(-, root, %{storage_daemon_group}) /usr/sbin/scsieject
 %{_mandir}/man1/loaderinfo.1.%{manpage_ext}
 %{_mandir}/man1/mtx.1.%{manpage_ext}
 %{_mandir}/man1/scsitape.1.%{manpage_ext}
 %{_mandir}/man1/tapeinfo.1.%{manpage_ext}
+%{_mandir}/man1/scsieject.1.%{manpage_ext}
 %endif
 
 %files client
@@ -2024,6 +2027,7 @@ fi
 * Fri Sep 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 2.2.4 release
 - turn off gconsole build for fc3, tray monitor fails to build
+- C
 * Sat Sep 08 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add --disable-batch-insert for older platforms
 - add build targets for rhel5 and clones
