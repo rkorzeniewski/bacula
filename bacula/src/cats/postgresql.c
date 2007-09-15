@@ -211,6 +211,12 @@ db_open_database(JCR *jcr, B_DB *mdb)
    }
 
    sql_query(mdb, "SET datestyle TO 'ISO, YMD'");
+   
+   /* tell PostgreSQL we are using standard conforming strings
+      and avoid warnings such as:
+       WARNING:  nonstandard use of \\ in a string literal
+   */
+   sql_query(mdb, "set standard_conforming_strings=on");
 
    V(mutex);
    return 1;
