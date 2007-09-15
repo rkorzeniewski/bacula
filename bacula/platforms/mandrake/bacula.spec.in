@@ -2027,7 +2027,7 @@ fi
 * Fri Sep 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 2.2.4 release
 - turn off gconsole build for fc3, tray monitor fails to build
-- C
+- add new files for mtx package (09Sep07 depkgs update)
 * Sat Sep 08 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add --disable-batch-insert for older platforms
 - add build targets for rhel5 and clones
