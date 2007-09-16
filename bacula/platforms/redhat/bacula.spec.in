@@ -1155,9 +1155,9 @@ make
 %endif
 %if %{client_only}
 	--enable-client-only \
+%endif
 %if %{rh7} || %{rh8} || %{rh9} || %{fc1} || %{fc3} || %{wb3} 
 	--disable-batch-insert \
-%endif
 %endif
 	--mandir=%{_mandir} \
         --with-subsys-dir=/var/lock/subsys \
@@ -2024,6 +2024,8 @@ fi
 %endif
 
 %changelog
+* Sun Sep 16 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix disable-batch-insert
 * Fri Sep 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - 2.2.4 release
 - turn off gconsole build for fc3, tray monitor fails to build
