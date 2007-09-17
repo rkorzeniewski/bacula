@@ -658,7 +658,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
                    
                    int len = strlen(msg) + 1;
                    esc_msg = check_pool_memory_size(esc_msg, len*2+1);
-                   p_sql_escape(esc_msg, msg, len);
+                   p_sql_escape(jcr, jcr->db, esc_msg, msg, len);
 
                    bstrutime(dt, sizeof(dt), mtime);
                    Mmsg(cmd, "INSERT INTO Log (JobId, Time, LogText) VALUES (%s,'%s','%s')",

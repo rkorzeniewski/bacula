@@ -689,6 +689,13 @@ int Console::read()
          if (mainWin->m_commDebug) Pmsg0(000, "RUN CMD\n");
          new runCmdPage();
          break;
+      case BNET_START_RTREE:
+         if (mainWin->m_commDebug) Pmsg0(000, "START RTREE CMD\n");
+         new restorePage();
+         break;
+      case BNET_END_RTREE:
+         if (mainWin->m_commDebug) Pmsg0(000, "END RTREE CMD\n");
+         break;
       case BNET_ERROR_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
          m_sock->recv();              /* get the message */

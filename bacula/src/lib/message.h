@@ -146,8 +146,9 @@ void Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...);
 bool get_trace(void);
 
+struct B_DB;
 typedef void (*sql_query)(JCR *jcr, const char *cmd);
-typedef void (*sql_escape)(char *snew, char *old, int len);
+typedef void (*sql_escape)(JCR *jcr, B_DB* db, char *snew, char *old, int len);
 
 extern DLL_IMP_EXP sql_query     p_sql_query;
 extern DLL_IMP_EXP sql_escape    p_sql_escape;
