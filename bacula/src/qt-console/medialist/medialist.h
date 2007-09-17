@@ -60,6 +60,7 @@ private slots:
    void pruneVolume();
    void relabelVolume();
    void allVolumesFromPool();
+   void allVolumes();
    void volumeFromPool();
 
 private:

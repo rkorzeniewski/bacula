@@ -402,6 +402,42 @@ static void update_all_vols_from_pool(UAContext *ua, const char *pool_name)
    }
 }
 
+static void update_all_vols(UAContext *ua)
+{
+   int i, num_pools;
+   uint32_t *ids;
+   POOL_DBR pr;
+   MEDIA_DBR mr;
+
+   memset(&pr, 0, sizeof(pr));
+   memset(&mr, 0, sizeof(mr));
+   
+   if (!db_get_pool_ids(ua->jcr, ua->db, &num_pools, &ids)) {
+      ua->error_msg(_("Error obtaining pool ids. ERR=%s\n"), db_strerror(ua->db));
+      return;
+   }
+
+   for (i=0; i<num_pools; i++) {
+      pr.PoolId = ids[i];
+      if (!db_get_pool_record(ua->jcr, ua->db, &pr)) { /* ***FIXME*** use acl? */
+         ua->warning_msg(_("Updating all pools, but skipped PoolId=%d. ERR=%s\n"), db_strerror(ua->db));
+         continue;
+      }
+
+      set_pool_dbr_defaults_in_media_dbr(&mr, &pr);
+      mr.PoolId = pr.PoolId;
+
+      if (!db_update_media_defaults(ua->jcr, ua->db, &mr)) {
+         ua->error_msg(_("Error updating Volume records: ERR=%s"), db_strerror(ua->db));
+      } else {
+         ua->info_msg(_("All Volume defaults updated from \"%s\" Pool record.\n"),
+            pr.Name);
+      }
+   }
+
+   free(ids);
+}
+
 static void update_volenabled(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    mr->Enabled = get_enabled(ua, val);
@@ -455,6 +491,7 @@ static int update_volume(UAContext *ua)
    for (i=0; kw[i]; i++) {
       int j;
       POOL_DBR pr;
+
       if ((j=find_arg_with_value(ua, kw[i])) > 0) {
          /* If all from pool don't select a media record */
          if (i != AllFromPool && !select_media_dbr(ua, &mr)) {
@@ -514,6 +551,12 @@ static int update_volume(UAContext *ua)
       }
    }
 
+   /* Allow user to simply update all volumes */
+   if (find_arg(ua, NT_("fromallpools")) > 0) {
+      update_all_vols(ua);
+      return 1;
+   }
+
    for ( ; !done; ) {
       start_prompt(ua, _("Parameters to modify:\n"));
       add_prompt(ua, _("Volume Status"));              /* 0 */
@@ -529,13 +572,15 @@ static int update_volume(UAContext *ua)
       add_prompt(ua, _("Pool"));                       /* 10 */
       add_prompt(ua, _("Volume from Pool"));           /* 11 */
       add_prompt(ua, _("All Volumes from Pool"));      /* 12 */
-      add_prompt(ua, _("Enabled")),                    /* 13 */
-      add_prompt(ua, _("RecyclePool")),                /* 14 */
-      add_prompt(ua, _("Done"));                       /* 15 */
+      add_prompt(ua, _("All Volumes from all Pools")); /* 13 */
+      add_prompt(ua, _("Enabled")),                    /* 14 */
+      add_prompt(ua, _("RecyclePool")),                /* 15 */
+      add_prompt(ua, _("Done"));                       /* 16 */
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
 
-      /* For All Volumes from Pool and Done, we don't need a Volume record */
-      if (i != 12 && i != 15) {
+      /* For All Volumes, All Volumes from Pool, and Done, we don't need
+	   * a Volume record */
+      if ( i != 12 && i != 13 && i != 16) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;
          }
@@ -692,6 +737,10 @@ static int update_volume(UAContext *ua)
          return 1;
 
       case 13:
+         update_all_vols(ua);
+         return 1;
+
+      case 14:
          ua->info_msg(_("Current Enabled is: %d\n"), mr.Enabled);
          if (!get_cmd(ua, _("Enter new Enabled: "))) {
             return 0;
@@ -708,7 +757,7 @@ static int update_volume(UAContext *ua)
          update_volenabled(ua, ua->cmd, &mr);
          break;
 
-      case 14:
+      case 15:
          memset(&pr, 0, sizeof(POOL_DBR));
          pr.PoolId = mr.RecyclePoolId;
          if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
