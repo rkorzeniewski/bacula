@@ -343,7 +343,7 @@ void MediaList::allVolumesFromPool()
 
 void MediaList::allVolumes()
 {
-   QString cmd = "update volume allvolume";
+   QString cmd = "update volume allfrompools";
    consoleCommand(cmd);
    populateTree();
 }
