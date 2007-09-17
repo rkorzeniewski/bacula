@@ -58,7 +58,7 @@ Index: src/dird/ua_update.c
     }
  
 +   /* Allow user to simply update all volumes */
-+   if (find_arg(ua, NT_("allvolume")) > 0) {
++   if (find_arg(ua, NT_("fromallpools")) > 0) {
 +      update_all_vols(ua);
 +      return 1;
 +   }
@@ -73,7 +73,7 @@ Index: src/dird/ua_update.c
 -      add_prompt(ua, _("Enabled")),                    /* 13 */
 -      add_prompt(ua, _("RecyclePool")),                /* 14 */
 -      add_prompt(ua, _("Done"));                       /* 15 */
-+      add_prompt(ua, _("Volumes from all Pools"));     /* 13 */
++      add_prompt(ua, _("All Volumes from all Pools")); /* 13 */
 +      add_prompt(ua, _("Enabled")),                    /* 14 */
 +      add_prompt(ua, _("RecyclePool")),                /* 15 */
 +      add_prompt(ua, _("Done"));                       /* 16 */
@@ -132,16 +132,16 @@ Index: src/qt-console/medialist/medialist.ui
 +    <iconset resource="../main.qrc" >:/images/cartridge-edit.png</iconset>
 +   </property>
 +   <property name="text" >
-+    <string>Update all Volumes from Pool</string>
++    <string>Update all Volumes from all Pools</string>
 +   </property>
 +   <property name="iconText" >
-+    <string>Update all Volumes from Pool</string>
++    <string>Update all Volumes from all Pools</string>
 +   </property>
 +   <property name="toolTip" >
-+    <string>Update all Volumes from Pool</string>
++    <string>Update all Volumes from all Pools</string>
 +   </property>
 +   <property name="statusTip" >
-+    <string>Update all Volumes from Pool</string>
++    <string>Update all Volumes from all Pools</string>
 +   </property>
 +  </action>
    <action name="actionVolumeFromPool" >
