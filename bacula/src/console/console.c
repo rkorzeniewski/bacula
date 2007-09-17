@@ -333,6 +333,171 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 #endif
 }
 
+#ifdef HAVE_READLINE
+#define READLINE_LIBRARY 1
+#undef free
+#include "readline.h"
+#include "history.h"
+
+int
+get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
+{
+   char *line;
+
+   rl_catch_signals = 0;              /* do it ourselves */
+   line = readline((char *)prompt);   /* cast needed for old readlines */
+
+   if (!line) {
+      exit(1);
+   }
+   strip_trailing_junk(line);
+   sock->msglen = pm_strcpy(&sock->msg, line);
+   if (sock->msglen) {
+      add_history(sock->msg);
+   }
+   free(line);
+   return 1;
+}
+
+#else /* no readline, do it ourselves */
+
+#if !defined(HAVE_WIN32)
+static bool bisatty(int fd)
+{
+   if (no_conio) {
+      return false;
+   }
+   return isatty(fd);
+}
+#endif
+
+/*
+ *   Returns: 1 if data available
+ *            0 if timeout
+ *           -1 if error
+ */
+static int
+wait_for_data(int fd, int sec)
+{
+#if defined(HAVE_WIN32)
+   return 1;
+#else
+   fd_set fdset;
+   struct timeval tv;
+
+   tv.tv_sec = sec;
+   tv.tv_usec = 0;
+   for ( ;; ) {
+      FD_ZERO(&fdset);
+      FD_SET((unsigned)fd, &fdset);
+      switch(select(fd + 1, &fdset, NULL, NULL, &tv)) {
+      case 0:                         /* timeout */
+         return 0;
+      case -1:
+         if (errno == EINTR || errno == EAGAIN) {
+            continue;
+         }
+         return -1;                  /* error return */
+      default:
+         return 1;
+      }
+   }
+#endif
+}
+
+/*
+ * Get next input command from terminal.
+ *
+ *   Returns: 1 if got input
+ *            0 if timeout
+ *           -1 if EOF or error
+ */
+int
+get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
+{
+   int len;
+   if (!stop) {
+      if (output == stdout || teeout) {
+         sendit(prompt);
+      }
+   }
+again:
+   switch (wait_for_data(fileno(input), sec)) {
+   case 0:
+      return 0;                    /* timeout */
+   case -1:
+      return -1;                   /* error */
+   default:
+      len = sizeof_pool_memory(sock->msg) - 1;
+      if (stop) {
+         sleep(1);
+         goto again;
+      }
+#ifdef HAVE_CONIO
+      if (bisatty(fileno(input))) {
+         input_line(sock->msg, len);
+         break;
+      }
+#endif
+#ifdef HAVE_WIN32 /* use special console for input on win32 */
+      if (input == stdin) {
+         if (win32_cgets(sock->msg, len) == NULL) {
+            return -1;
+         }
+      }
+      else
+#endif
+      if (fgets(sock->msg, len, input) == NULL) {
+         return -1;
+
+      }
+      break;
+   }
+   if (usrbrk()) {
+      clrbrk();
+   }
+   strip_trailing_junk(sock->msg);
+   sock->msglen = strlen(sock->msg);
+   return 1;
+}
+
+#endif /* ! HAVE_READLINE */
+
+
+static int console_update_history(const char *histfile)
+{
+   int ret=0;
+
+#ifdef HAVE_READLINE
+/* first, try to truncate the history file, and if it
+ * fail, the file is probably not present, and we
+ * can use write_history to create it
+ */
+
+   if (history_truncate_file(histfile, 100) == 0) {
+      ret = append_history(history_length, histfile);
+   } else {
+      ret = write_history(histfile);
+   }
+
+#endif
+
+   return ret;
+}
+
+static int console_init_history(const char *histfile)
+{
+   int ret=0;
+
+#ifdef HAVE_READLINE
+
+   using_history();
+   ret = read_history(histfile);
+
+#endif
+
+   return ret;
+}
 
 /*********************************************************************
  *
@@ -587,6 +752,9 @@ try_again:
 
    sendit(_("Enter a period to cancel a command.\n"));
 
+   /* Read/Update history file if HOME exists */
+   POOL_MEM history_file;
+
    /* Run commands in ~/.bconsolerc if any */
    char *env = getenv("HOME");
    if (env) {
@@ -598,6 +766,10 @@ try_again:
          read_and_process_input(fd, UA_sock);
          fclose(fd);
       }
+
+      pm_strcpy(history_file, env);
+      pm_strcat(history_file, "/.bconsole_history");
+      console_init_history(history_file.c_str());
    }
 
    read_and_process_input(stdin, UA_sock);
@@ -607,10 +779,13 @@ try_again:
       UA_sock->close();
    }
 
+   if (env) {
+      console_update_history(history_file.c_str());
+   }
+
    terminate_console(0);
    return 0;
 }
-
 
 /* Cleanup and then exit */
 static void terminate_console(int sig)
@@ -701,138 +876,6 @@ static int check_resources()
 
    return OK;
 }
-
-
-#ifdef HAVE_READLINE
-#define READLINE_LIBRARY 1
-#undef free
-#include "readline.h"
-#include "history.h"
-
-
-int
-get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
-{
-   char *line;
-
-   rl_catch_signals = 0;              /* do it ourselves */
-   line = readline((char *)prompt);   /* cast needed for old readlines */
-
-   if (!line) {
-      exit(1);
-   }
-   strip_trailing_junk(line);
-   sock->msglen = pm_strcpy(&sock->msg, line);
-   if (sock->msglen) {
-      add_history(sock->msg);
-   }
-   free(line);
-   return 1;
-}
-
-#else /* no readline, do it ourselves */
-
-#if !defined(HAVE_WIN32)
-static bool bisatty(int fd)
-{
-   if (no_conio) {
-      return false;
-   }
-   return isatty(fd);
-}
-#endif
-
-/*
- *   Returns: 1 if data available
- *            0 if timeout
- *           -1 if error
- */
-static int
-wait_for_data(int fd, int sec)
-{
-#if defined(HAVE_WIN32)
-   return 1;
-#else
-   fd_set fdset;
-   struct timeval tv;
-
-   tv.tv_sec = sec;
-   tv.tv_usec = 0;
-   for ( ;; ) {
-      FD_ZERO(&fdset);
-      FD_SET((unsigned)fd, &fdset);
-      switch(select(fd + 1, &fdset, NULL, NULL, &tv)) {
-      case 0:                         /* timeout */
-         return 0;
-      case -1:
-         if (errno == EINTR || errno == EAGAIN) {
-            continue;
-         }
-         return -1;                  /* error return */
-      default:
-         return 1;
-      }
-   }
-#endif
-}
-
-/*
- * Get next input command from terminal.
- *
- *   Returns: 1 if got input
- *            0 if timeout
- *           -1 if EOF or error
- */
-int
-get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
-{
-   int len;
-   if (!stop) {
-      if (output == stdout || teeout) {
-         sendit(prompt);
-      }
-   }
-again:
-   switch (wait_for_data(fileno(input), sec)) {
-   case 0:
-      return 0;                    /* timeout */
-   case -1:
-      return -1;                   /* error */
-   default:
-      len = sizeof_pool_memory(sock->msg) - 1;
-      if (stop) {
-         sleep(1);
-         goto again;
-      }
-#ifdef HAVE_CONIO
-      if (bisatty(fileno(input))) {
-         input_line(sock->msg, len);
-         break;
-      }
-#endif
-#ifdef HAVE_WIN32 /* use special console for input on win32 */
-      if (input == stdin) {
-         if (win32_cgets(sock->msg, len) == NULL) {
-            return -1;
-         }
-      }
-      else
-#endif
-      if (fgets(sock->msg, len, input) == NULL) {
-         return -1;
-
-      }
-      break;
-   }
-   if (usrbrk()) {
-      clrbrk();
-   }
-   strip_trailing_junk(sock->msg);
-   sock->msglen = strlen(sock->msg);
-   return 1;
-}
-
-#endif /* end non-readline code */
 
 static int versioncmd(FILE *input, BSOCK *UA_sock)
 {
