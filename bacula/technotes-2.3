@@ -2,15 +2,18 @@
 
 General:
 17Sep07
+kes  Modify new volume algorithm to use max MediaId for generating next
+     volume number rather than the count of Volumes. This should essentially
+     eliminate the failure rate if some volumes were deleted. Bug #921.
 kes  Begin implemention of Optimize Job Scheduling.
 kes  Implement restore callback that Dirk and I agreed on for bat 
-     restore. This fixes bug #928.
+     restore. This fixes bug #928. Restore of backup of zero files fails.
 kes  Fix SQL Catalog logging which broke with new db_escape_string 
      calling sequence.
 14Sep07
 kes  Fix bacula_cats.def for new db_escape_string().
 kes  Increase size of name string when FD making connection to SD.
-     May fix bug #953.
+     May fix bug #953. FD->SD connection failure.
 13Sep07
 kes  Add code to help Dan debug 2drive-incremental-2disk test.
 kes  Add code to try to fix bug #908.
