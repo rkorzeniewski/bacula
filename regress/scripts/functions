@@ -109,6 +109,10 @@ check_two_logs()
    bstat=$?
    grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
    rstat=$?
+   grep "^  Termination: *Restore OK -- warning file count mismatch" tmp/log2.out 2>&1 >/dev/null
+   if test $? -eq 0; then
+      rstat = 2
+   fi
 }
 
 check_restore_diff()
