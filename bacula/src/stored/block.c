@@ -273,6 +273,7 @@ static bool unser_block_header(JCR *jcr, DEVICE *dev, DEV_BLOCK *block)
       dev->dev_errno = EIO;
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Wanted ID: \"%s\", got \"%s\". Buffer discarded.\n"),
           dev->file, dev->block_num, BLKHDR2_ID, Id);
+      Dmsg1(50, "%s", dev->errmsg);
       if (block->read_errors == 0 || verbose >= 2) {
          Jmsg(jcr, M_ERROR, 0, "%s", dev->errmsg);
       }
@@ -1008,8 +1009,19 @@ reread:
       dev->set_ateof();
       return false;             /* return eof */
    }
+
    /* Continue here for successful read */
+
    block->read_len = stat;      /* save length read */
+   if (dev->at_eof() && block->read_len == 80 && 
+        (dcr->VolCatInfo.LabelType != B_BACULA_LABEL ||
+         dcr->device->label_type != B_BACULA_LABEL)) {
+      /* ***FIXME*** should check label */
+      Dmsg2(100, "Ignore 80 byte ANSI label at %u:%u\n", dev->file, dev->block_num);
+      dev->clear_eof();
+      goto reread;             /* skip ANSI/IBM label */
+   }
+                                          
    if (block->read_len < BLKHDR2_LENGTH) {
       dev->dev_errno = EIO;
       Mmsg4(dev->errmsg, _("Volume data error at %u:%u! Very short block of %d bytes on device %s discarded.\n"),
