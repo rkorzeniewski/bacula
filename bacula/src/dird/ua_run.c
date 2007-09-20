@@ -933,7 +933,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
             /* Note, yes and run have no value, so do not fail */
             if (!ua->argv[i] && j != YES_POS /*yes*/) {
                ua->send_msg(_("Value missing for keyword %s\n"), ua->argk[i]);
-               return true;
+               return false;
             }
             Dmsg1(800, "Got keyword=%s\n", NPRT(kw[j]));
             switch (j) {
