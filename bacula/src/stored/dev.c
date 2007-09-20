@@ -109,6 +109,7 @@ init_dev(JCR *jcr, DEVRES *device)
    int errstat;
    DCR *dcr = NULL;
    DEVICE *dev;
+   uint32_t max_bs;
 
 
    /* If no device type specified, try to guess */
@@ -199,7 +200,17 @@ init_dev(JCR *jcr, DEVRES *device)
       }
    }
 
-   if (dev->max_block_size > 1000000) {
+   /* Sanity check */
+   if (dev->max_block_size == 0) {
+      max_bs = DEFAULT_BLOCK_SIZE;
+   } else {
+      max_bs = dev->max_block_size;
+   }
+   if (dev->min_block_size > max_bs) {
+      Jmsg(jcr, M_ERROR_TERM, 0, _("Min block size > max on device %s\n"), 
+           dev->print_name());
+   }
+   if (dev->max_block_size > 4096000) {
       Jmsg3(jcr, M_ERROR, 0, _("Block size %u on device %s is too large, using default %u\n"),
          dev->max_block_size, dev->print_name(), DEFAULT_BLOCK_SIZE);
       dev->max_block_size = 0;
