@@ -1,0 +1,36 @@
+ 
+ This patch fixes bug #954.
+ WEOF on non-appendable error when trying to label a tape with ANSI labels turned on.
+
+ Apply it to version 2.2.4 (possibly earlier versions with):
+
+ cd <bacula-source>
+ patch -p0 <2.2.4-verify.patch
+ ./configure (your options)
+ make
+ ...
+ make install
+
+Index: src/stored/label.c
+===================================================================
+--- src/stored/label.c	(revision 5602)
++++ src/stored/label.c	(working copy)
+@@ -344,6 +344,9 @@
+       }
+    }
+ 
++   /* Temporarily mark in append state to enable writing */
++   dev->set_append();
++
+    /* Create PRE_LABEL or VOL_LABEL if DVD */
+    create_volume_label(dev, VolName, PoolName, dvdnow);
+ 
+@@ -364,8 +367,6 @@
+    create_volume_label_record(dcr, dcr->rec);
+    dcr->rec->Stream = 0;
+ 
+-   /* Temporarily mark in append state to enable writing */
+-   dev->set_append();
+    if (!write_record_to_block(dcr->block, dcr->rec)) {
+       Dmsg2(130, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
+       goto bail_out;
