@@ -68,6 +68,7 @@ Professional Needs:
    See email of 21Aug2007 for details.
 
 Priority:
+- Erabt if min_block_size > max_block_size
 - KIWI
 - Implement wait on multiple objects
    - Multiple max times

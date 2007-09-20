@@ -332,13 +332,9 @@ bool do_verify(JCR *jcr)
    }
 
    stat = wait_for_job_termination(jcr);
-   if (stat == JS_Terminated) {
-      verify_cleanup(jcr, stat);
-      return true;
-   }
+   verify_cleanup(jcr, stat);
 
 bail_out:
-   verify_cleanup(jcr, JS_ErrorTerminated);
    return false;
 }
 
@@ -750,7 +746,9 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
       stat = JS_Differences;
    }
    free_pool_memory(fname);
-   set_jcr_job_status(jcr, stat);
+   if (!job_canceled(jcr)) {
+      jcr->JobStatus = stat;
+   }
    return stat == JS_Terminated;
 }
 

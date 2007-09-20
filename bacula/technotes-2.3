@@ -1,8 +1,12 @@
               Technical notes on version 2.3
 
 General:
-20Sep07
-ebl  Fix #955 bug which was introduce with regexwhere relocation.
+0Sep07
+kes  Apply 2.2.4-poll-mount fix, that resolves bug #908 where a tape
+     is not properly mounted (recognized) during a poll.
+kes  Apply 2.2.4-verify patch that resolves bug #958.  A Verify catalog
+     Job that has differences reports Verify OK.
+ebl  Fixes #955 bug seg fault in Dir introduced  with regexwhere relocation.
 17Sep07
 ebl  Add an option to operate on all pools with update vol parameters.
      This complete the project 20. Patch from Nigel Stepp.
