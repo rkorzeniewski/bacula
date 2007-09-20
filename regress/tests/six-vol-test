@@ -14,6 +14,7 @@ fi
 
 scripts/cleanup
 scripts/copy-testa-confs
+/bin/cp -f scripts/testb-bacula-dir.conf bin/bacula-dir.conf
 echo "${cwd}/tmp/largefile" >/tmp/file-list
 # Create 56MB file with random data
 echo "Creating a 56MB file with random data ..."
@@ -27,6 +28,10 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
+run job=$JobName storage=File yes
+run job=$JobName storage=File yes
+run job=$JobName storage=File yes
+run job=$JobName storage=File yes
 run job=$JobName storage=File yes
 wait
 list volumes
