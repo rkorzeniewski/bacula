@@ -1013,7 +1013,7 @@ reread:
    /* Continue here for successful read */
 
    block->read_len = stat;      /* save length read */
-   if (dev->at_eof() && block->read_len == 80 && 
+   if (block->read_len == 80 && 
         (dcr->VolCatInfo.LabelType != B_BACULA_LABEL ||
          dcr->device->label_type != B_BACULA_LABEL)) {
       /* ***FIXME*** should check label */
