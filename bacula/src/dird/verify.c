@@ -333,6 +333,7 @@ bool do_verify(JCR *jcr)
 
    stat = wait_for_job_termination(jcr);
    verify_cleanup(jcr, stat);
+   return true;
 
 bail_out:
    return false;
@@ -417,7 +418,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    if (jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG) {
       jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
-   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+      Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
 "  Build OS:               %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
@@ -452,7 +453,7 @@ void verify_cleanup(JCR *jcr, int TermCode)
          sd_term_msg,
          term_msg);
    } else {
-   Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
+      Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
 "  Build:                  %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
