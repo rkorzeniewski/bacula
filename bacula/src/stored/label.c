@@ -119,7 +119,6 @@ int read_dev_volume_label(DCR *dcr)
    bstrncpy(dev->VolHdr.Id, "**error**", sizeof(dev->VolHdr.Id));
 
   /* Read ANSI/IBM label if so requested */
-  
   want_ansi_label = dcr->VolCatInfo.LabelType != B_BACULA_LABEL ||
                     dcr->device->label_type != B_BACULA_LABEL;
   if (want_ansi_label || dev->has_cap(CAP_CHECKLABELS)) {
