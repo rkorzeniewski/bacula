@@ -111,7 +111,7 @@ check_two_logs()
    rstat=$?
    grep "^  Termination: *Restore OK -- warning file count mismatch" tmp/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
-      rstat = 2
+      rstat=2
    fi
 }
 
