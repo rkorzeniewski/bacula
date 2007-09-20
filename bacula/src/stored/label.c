@@ -344,6 +344,9 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
       }
    }
 
+   /* Temporarily mark in append state to enable writing */
+   dev->set_append();
+
    /* Create PRE_LABEL or VOL_LABEL if DVD */
    create_volume_label(dev, VolName, PoolName, dvdnow);
 
@@ -364,8 +367,6 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    create_volume_label_record(dcr, dcr->rec);
    dcr->rec->Stream = 0;
 
-   /* Temporarily mark in append state to enable writing */
-   dev->set_append();
    if (!write_record_to_block(dcr->block, dcr->rec)) {
       Dmsg2(130, "Bad Label write on %s: ERR=%s\n", dev->print_name(), dev->print_errmsg());
       goto bail_out;

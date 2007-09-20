@@ -1,7 +1,10 @@
               Technical notes on version 2.3
 
 General:
-0Sep07
+20Sep07
+kes  Fix ANSI tape labeling.  This fixes bug #954.
+kes  Increase the max block size to 4MB fixes bug #957.
+kes  ERABT if user sets min block size > max block size.  Fixes bug #956.
 kes  Apply 2.2.4-poll-mount fix, that resolves bug #908 where a tape
      is not properly mounted (recognized) during a poll.
 kes  Apply 2.2.4-verify patch that resolves bug #958.  A Verify catalog
