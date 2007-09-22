@@ -52,6 +52,7 @@ public:
 
    bool m_visible;
    bool m_installed;
+   UINT m_tbcreated_msg;
 
    aboutDialog m_about;
    statusDialog m_status;
