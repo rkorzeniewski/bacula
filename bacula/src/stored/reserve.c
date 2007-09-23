@@ -1135,6 +1135,17 @@ static int reserve_device(RCTX &rctx)
                }
                goto bail_out;
             }
+            /*
+             * Note. Under some circumstances, the Director can hand us
+             *  a Volume name that is no the same as the one on the current
+             *  drive, and in that case, the call above to find the next
+             *  volume will fail because in attempting to reserve the Volume
+             *  the code will realize that we already have a tape mounted,
+             *  and it will fail.  This *should* only happen if there are 
+             *  writers, thus the following test.  In that case, we simply
+             *  bail out, and continue waiting, rather than plunging on
+             *  and hoping that the operator can resolve the problem. 
+             */
             if (dcr->dev->num_writers != 0) {
                if (dcr->VolumeName[0]) {
                   volume_unused(dcr);
