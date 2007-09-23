@@ -37,6 +37,7 @@ nice tests/restore-disk-seek-test
 #nice tests/runscript-test
 nice tests/six-vol-test
 nice tests/span-vol-test
+nice tests/maxvol-test
 nice tests/sparse-compressed-test
 nice tests/sparse-test
 nice tests/two-jobs-test
