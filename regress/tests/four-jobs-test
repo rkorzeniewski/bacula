@@ -43,8 +43,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out  tmp/log1.out
-run job=$JobName
-yes
+run job=$JobName yes
 wait
 messages
 quit
@@ -63,7 +62,6 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
 messages
@@ -83,7 +81,6 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @output tmp/log1.out
-label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
 messages
