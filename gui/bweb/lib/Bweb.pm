@@ -1134,6 +1134,23 @@ sub dbh_selectrow_hashref
     return $self->{dbh}->selectrow_hashref($query) ;
 }
 
+sub dbh_strcat
+{
+    my ($self, @what) = @_;
+    if ($self->{conf}->{connection_string} =~ /dbi:mysql/i) {
+	return 'CONCAT(' . join(',', @what) . ')' ;
+    } else {
+	return join(' || ', @what);
+    }
+}
+
+sub dbh_prepare
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{dbh}->prepare($query);    
+}
+
 # display Mb/Gb/Kb
 sub human_size
 {
@@ -1221,14 +1238,14 @@ sub connect_db
 sub new
 {
     my ($class, %arg) = @_;
-    my $self = bless { 
+    my $self = bless ({ 
 	dbh => undef,		# connect_db();
 	info => {
 	    dbi   => '', # DBI:Pg:database=bacula;host=127.0.0.1
 	    user  => 'bacula',
 	    password => 'test', 
 	},
-    } ;
+    },$class) ;
 
     map { $self->{lc($_)} = $arg{$_} } keys %arg ;
 
