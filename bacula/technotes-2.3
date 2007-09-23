@@ -1,6 +1,14 @@
               Technical notes on version 2.3
 
 General:
+23Sep07 
+kes  Rework the reservation system to take into account that the Director
+     might give us a Volume that is different from the current one being
+     used, and to ensure that we don't exceed Maximum Volume Jobs.
+     This fixes (mostly) bug #947 '  Maximum Volume Jobs = 1 produces 
+     fatal error with multiple jobs running'
+kes  Add more debug code in reservation system.
+kes  Implement maxvol-test to check bug #947.
 22Sep07 
 kes  Add code to handle tray monitor separated from Win32 FD.
 kes  Fix display of Win32 tray monitor after reboot. Fixes bug #952.

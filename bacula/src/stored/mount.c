@@ -588,6 +588,7 @@ void release_volume(DCR *dcr)
    /*
     * First erase all memory of the current volume
     */
+   free_volume(dev);
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));

@@ -445,7 +445,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
-      Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
+      Dmsg3(100, "jid=%u Dec reserve=%d dev=%s\n", (uint32_t)jcr->JobId,
+            dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
    dev->dunblock(DEV_LOCKED);
@@ -458,7 +459,8 @@ get_out:
    dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
-      Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
+      Dmsg3(100, "jid=%u Dec reserve=%d dev=%s\n", (uint32_t)jcr->JobId, 
+            dev->reserved_device, dev->print_name());
       dcr->reserved_device = false;
    }
    dev->dunblock(DEV_LOCKED);
