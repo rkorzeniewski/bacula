@@ -137,9 +137,9 @@ bool job_cmd(JCR *jcr)
    make_session_key(auth_key, NULL, 1);
    dir->fsend(OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    if (debug_level == 3) {
-      Dmsg1(000, ">dird: %s", dir->msg);
+      Dmsg2(000, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
    }
-   Dmsg1(100, ">dird: %s", dir->msg);
+   Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
    jcr->sd_auth_key = bstrdup(auth_key);
    memset(auth_key, 0, sizeof(auth_key));
    generate_daemon_event(jcr, "JobStart");
@@ -189,7 +189,7 @@ bool run_cmd(JCR *jcr)
    V(mutex);
 
    if (debug_level == 3) {
-      Dmsg0(000, "Zap sd_auth_key\n");
+      Dmsg1(000, "jid=%u Zap sd_auth_key\n", (uint32_t)jcr->JobId);
    }
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
@@ -231,14 +231,14 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
     * Authenticate the File daemon
     */
    if (debug_level == 3) {
-      Dmsg1(000, "sd_auth_key=%s\n", jcr->sd_auth_key);
+      Dmsg2(000, "jid=%u sd_auth_key=%s\n", (uint32_t)jcr->JobId, jcr->sd_auth_key);
    }
    if (jcr->authenticated || !authenticate_filed(jcr)) {
       Dmsg1(100, "Authentication failed Job %s\n", jcr->Job);
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
    } else {
       jcr->authenticated = true;
-      Dmsg1(110, "OK Authentication Job %s\n", jcr->Job);
+      Dmsg2(110, "OK Authentication jid=%u Job %s\n", (uint32_t)jcr->JobId, jcr->Job);
    }
 
    if (!jcr->authenticated) {

@@ -88,6 +88,15 @@ const int dbglvl = 500;
  *   DEVICE::dlock()   does P(m_mutex)     (in dev.h)
  *   DEVICE::dunlock() does V(m_mutex)
  *
+ *   DEVICE::r_dlock() does recursive locking
+ *                    dlock()
+ *                    if blocked and not same thread that locked
+ *                       pthread_cond_wait
+ *                    leaves device locked 
+ *
+ *   DEVICE::r_dunlock()
+ *                    same as dunlock();
+ *
  *   DEVICE::dblock(why)  does 
  *                    r_dlock();         (recursive device lock)
  *                    block_device(this, why) 
@@ -97,15 +106,6 @@ const int dbglvl = 500;
  *                    dlock()
  *                    unblock_device()
  *                    dunlock()
- *
- *   DEVICE::r_dlock() does recursive locking
- *                    dlock()
- *                    if blocked and not same thread that locked
- *                       pthread_cond_wait
- *                    leaves device locked 
- *
- *   DEVICE::r_dunlock()
- *                    same as dunlock();
  *
  *   block_device() does  (must be locked and not blocked at entry)  
  *                    set blocked status
