@@ -668,6 +668,8 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  *  };
  */
 
+#ifdef HAVE_BATCH_FILE_INSERT
+
 /*  All sql_batch_* functions are used to do bulk batch insert in File/Filename/Path
  *  tables. This code can be activated by adding "#define HAVE_BATCH_FILE_INSERT 1"
  *  in baconfig.h
@@ -746,7 +748,6 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
    return true;
 }
 
-#ifdef HAVE_BATCH_FILE_INSERT
 /* 
  * Returns 1 if OK
  *         0 if failed

@@ -799,6 +799,7 @@ char *my_postgresql_copy_escape(char *dest, char *src, size_t len)
    return dest;
 }
 
+#ifdef HAVE_BATCH_FILE_INSERT
 char *my_pg_batch_lock_path_query = "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE";
 
 
@@ -817,4 +818,6 @@ char *my_pg_batch_fill_filename_query = "INSERT INTO Filename (Name)        "
                                         "    (SELECT DISTINCT Name FROM batch) as a "
                                         "    WHERE NOT EXISTS               "
                                         "      (SELECT Name FROM Filename WHERE Name = a.Name)";
+#endif /* HAVE_BATCH_FILE_INSERT */
+
 #endif /* HAVE_POSTGRESQL */

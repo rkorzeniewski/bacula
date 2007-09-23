@@ -350,6 +350,7 @@ void my_mysql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
+#ifdef HAVE_BATCH_FILE_INSERT
 char *my_mysql_batch_lock_path_query = "LOCK TABLES Path write,     " 
                                        "            batch write,    " 
                                        "            Path as p write ";
@@ -378,5 +379,6 @@ char *my_mysql_batch_fill_filename_query = "INSERT INTO Filename (Name)       "
                                            "   (SELECT Name                   "
                                            "      FROM Filename AS f          "
                                            "      WHERE f.Name = a.Name)      ";
+#endif /* HAVE_BATCH_FILE_INSERT */
 
 #endif /* HAVE_MYSQL */
