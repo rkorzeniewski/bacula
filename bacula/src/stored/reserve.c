@@ -329,12 +329,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        *  because it was probably inserted by another job.
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
+         Dmsg2(dbglvl, "jid=%u OK, vol=%s on device.\n", (int)dcr->jcr->JobId, VolumeName);
          goto get_out;                  /* Volume already on this device */
       } else {
-         if (dev->is_busy() && dev->VolHdr.VolumeName[0]) {
-            vol = NULL;
-            goto get_out;
-         }
          Dmsg3(dbglvl, "jid=%u reserve_vol free vol=%s at %p\n", 
                (int)dcr->jcr->JobId, vol->vol_name, vol->vol_name);
          debug_list_volumes("reserve_vol free");

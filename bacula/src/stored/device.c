@@ -122,7 +122,8 @@ bool fixup_device_block_write_error(DCR *dcr)
         edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
         bstrftime(dt, sizeof(dt), time(NULL)));
 
-   if (!mount_next_write_volume(dcr, 1)) {
+   /* Called with find=true, release=true */
+   if (!mount_next_write_volume(dcr, true, true)) {
       free_block(label_blk);
       dcr->block = block;
       dev->dlock();  

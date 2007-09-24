@@ -60,7 +60,7 @@ enum {
  *  impossible to get the requested Volume.
  *
  */
-bool mount_next_write_volume(DCR *dcr, bool release)
+bool mount_next_write_volume(DCR *dcr, bool find, bool release)
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
@@ -108,12 +108,16 @@ mount_next_vol:
     *    in dcr->VolCatInfo
     */
    Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
-   while (!dir_find_next_appendable_volume(dcr)) {
-       Dmsg0(200, "not dir_find_next\n");
-       if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
-         return false;
+   if (find) {
+      while (!dir_find_next_appendable_volume(dcr)) {
+         Dmsg0(200, "not dir_find_next\n");
+         if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
+            return false;
+          }
+          Dmsg0(200, "Again dir_find_next_append...\n");
        }
-       Dmsg0(200, "Again dir_find_next_append...\n");
+   } else {
+      find = true;                   /* set true for next pass if any */
    }
    if (job_canceled(jcr)) {
       return false;
@@ -144,7 +148,7 @@ mount_next_vol:
     * If we autochanged to correct Volume or (we have not just
     *   released the Volume AND we can automount) we go ahead
     *   and read the label. If there is no tape in the drive,
-    *   we will err, recurse and ask the operator the next time.
+    *   we will fail, recurse and ask the operator the next time.
     */
    if (!release && dev->is_tape() && dev->has_cap(CAP_AUTOMOUNT)) {
       Dmsg0(150, "(1)Ask=0\n");

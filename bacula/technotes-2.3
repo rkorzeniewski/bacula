@@ -1,6 +1,11 @@
               Technical notes on version 2.3
 
 General:
+24Sep07 
+kes  Back out one small change to the reservation system (reserving a volume).
+kes  Rework how a Volume is mounted. It is now much more intelligent and
+     will always attempt to use any mounted volume if possible and reduces
+     calls to the Director asking about volumes.
 23Sep07 
 kes  Turn off some code when batch insert not enabled.
 kes  Edit FD name in connect error messages.
