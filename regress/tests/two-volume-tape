@@ -38,14 +38,15 @@ label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
 update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default drive=0
 sql
 select * from Storage;
-select VolumeName,InChanger,StorageId from Media;
+select VolumeName,InChanger,Slot,StorageId from Media;
 
 @#setdebug level=1000 client 
+@#setdebug level=250 storage=DDS-4
 run job=$JobName yes
 wait
 sql
 select * from Storage;
-select VolumeName,InChanger,StorageId from Media;
+select VolumeName,InChanger,Slot,StorageId from Media;
 
 messages
 quit
