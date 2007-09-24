@@ -25,7 +25,7 @@ done
 cd ${cwd}/tmp/build
 ls >../1
 cd ..
-sed s%\^%${cwd}/tmp/build/% 1 >restore-list
+sed s%\^%${cwd}/tmp/build/% 1 | sort | uniq >restore-list
 #
 # At this point restore-list contains the list
 #  of files we will restore

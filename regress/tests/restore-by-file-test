@@ -16,7 +16,7 @@ cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp/build
 ls >../1
 cd ..
-sed s%\^%${cwd}/tmp/build/% 1 >restore-list
+sed s%\^%${cwd}/tmp/build/% 1 | sort | uniq >restore-list
 rm -f 1
 cd ${cwd}
 
