@@ -692,13 +692,13 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
 
    db_lock(mdb);
    ok =  db_sql_query(mdb,
-             " CREATE TEMPORARY TABLE batch "
-             "        (fileindex integer,   "
-             "        jobid integer,        "
-             "        path blob,            "
-             "        name blob,            "
-             "        lstat tinyblob,       "
-             "        md5 tinyblob)         ",NULL, NULL);
+             "CREATE TEMPORARY TABLE batch ("
+                "FileIndex integer,"
+                "JobId integer,"
+                "Path blob,"
+                "Name blob,"
+                "LStat tinyblob,"
+                "MD5 tinyblob)",NULL, NULL);
    db_unlock(mdb);
    return ok;
 }
@@ -805,12 +805,12 @@ bool db_write_batch_file_records(JCR *jcr)
    }
    
    if (!db_sql_query(jcr->db_batch, 
-       " INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5)"
-       "  SELECT batch.FileIndex, batch.JobId, Path.PathId,               " 
-       "         Filename.FilenameId,batch.LStat, batch.MD5               "
-       "  FROM batch                                                      "
-       "    JOIN Path ON (batch.Path = Path.Path)                         "
-       "    JOIN Filename ON (batch.Name = Filename.Name)                 ",
+       "INSERT INTO File (FileIndex, JobId, PathId, FilenameId, LStat, MD5)"
+         "SELECT batch.FileIndex, batch.JobId, Path.PathId, "
+                "Filename.FilenameId,batch.LStat, batch.MD5 "
+           "FROM batch "
+           "JOIN Path ON (batch.Path = Path.Path) "
+           "JOIN Filename ON (batch.Name = Filename.Name)",
                      NULL,NULL))
    {
       Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
