@@ -254,7 +254,9 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     BSOCK *dir = jcr->dir_bsock;
     bool found = false;
 
-    Dmsg0(200, "dir_find_next_appendable_volume\n");
+    Dmsg2(200, "dir_find_next_appendable_volume: reserved=%d Vol=%s\n", 
+       dcr->reserved_device, dcr->VolumeName);
+
     /*
      * Try the twenty oldest or most available volumes.  Note,
      *   the most available could already be mounted on another

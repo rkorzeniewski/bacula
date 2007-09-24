@@ -38,6 +38,7 @@
 
 /* Forward referenced functions */
 static void attach_dcr_to_dev(DCR *dcr);
+static bool is_suitable_volume_mounted(DCR *dcr);
 
 
 /*********************************************************************
@@ -316,9 +317,9 @@ get_out:
  */
 DCR *acquire_device_for_append(DCR *dcr)
 {
-   bool release = false;
-   bool recycle = false;
    bool do_mount = false;
+   bool release = false;
+   bool find;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -337,6 +338,11 @@ DCR *acquire_device_for_append(DCR *dcr)
       goto get_out;
    }
 
+   /*
+    * find defines whether or not mount_next_write_volume should
+    *   as the Director again about what Volume to use.
+    */
+   find = is_suitable_volume_mounted(dcr);
    if (dev->can_append()) {
       Dmsg0(190, "device already in append.\n");
       /*
@@ -351,21 +357,20 @@ DCR *acquire_device_for_append(DCR *dcr)
        *  dcr->VolumeName is what we pass into the routines, or
        *    get back from the subroutines.
        */
-      bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
-      if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE) &&
+      if (!find &&
           !(dir_find_next_appendable_volume(dcr) &&
             strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
          Dmsg2(190, "Wrong tape mounted: %s. wants:%s\n", dev->VolHdr.VolumeName,
             dcr->VolumeName);
-         /* Release volume reserved by dir_find_next_appendable_volume() */
-         if (dcr->VolumeName[0]) {
-            volume_unused(dcr);
-         }
          if (dev->num_writers != 0) {
             Jmsg3(jcr, M_FATAL, 0, _("Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
             Dmsg3(200, "Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n",  
                  dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
+            /* Release volume reserved by dir_find_next_appendable_volume() */
+            if (dcr->VolumeName[0]) {
+               volume_unused(dcr);
+            }
             goto get_out;
          }
          /* Wrong tape mounted, release it, then fall through to get correct one */
@@ -378,9 +383,9 @@ DCR *acquire_device_for_append(DCR *dcr)
           *   we do not need to do mount_next_write_volume(), unless
           *   we need to recycle the tape.
           */
-          recycle = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
-          Dmsg1(190, "Correct tape mounted. recycle=%d\n", recycle);
-          if (recycle && dev->num_writers != 0) {
+          do_mount = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
+          Dmsg1(190, "Correct tape mounted. recycle=%d\n", do_mount);
+          if (do_mount && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
                   " on device %s because it is in use by another job.\n"),
                   dev->VolHdr.VolumeName, dev->print_name());
@@ -420,9 +425,9 @@ DCR *acquire_device_for_append(DCR *dcr)
       do_mount = true;
    }
 
-   if (do_mount || recycle) {
+   if (do_mount) {
       Dmsg0(190, "Do mount_next_write_vol\n");
-      bool mounted = mount_next_write_volume(dcr, release);
+      bool mounted = mount_next_write_volume(dcr, find, release);
       if (!mounted) {
          if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
@@ -467,6 +472,18 @@ get_out:
    return NULL;
 }
 
+
+static bool is_suitable_volume_mounted(DCR *dcr)
+{
+   DEVICE *dev = dcr->dev;
+
+   /* Volume mounted? */
+   if (dev->VolHdr.VolumeName[0] == 0) {
+      return false;                      /* no */
+   }
+   bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
+   return dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE);
+}
 
 /*
  * This job is done, so release the device. From a Unix standpoint,
