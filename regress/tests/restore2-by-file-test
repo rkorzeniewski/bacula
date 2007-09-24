@@ -9,7 +9,7 @@ JobName=restore2byfile
 copy_test_confs
 
 echo "${cwd}/build" >/tmp/file-list
-sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
+sed s%\^%${cwd}% ${cwd}/scripts/flist | sort | uniq >${cwd}/tmp/restore2-list
 
 change_jobname CompressedTest $JobName
 start_test
