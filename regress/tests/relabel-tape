@@ -31,7 +31,7 @@ update volume=TestVolume001
 1
 .
 run job=$JobName level=Full yes
-@sleep 20
+wait
 unmount storage=DDS-4
 unmount storage=DDS-4
 @#setdebug level=150 storage=DDS-4
