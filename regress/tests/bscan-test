@@ -22,9 +22,9 @@ cat <<END_OF_DATA >tmp/bconcmds
 messages
 @$out tmp/log1.out
 label storage=File1
-TestVolume001
-label storage=File1
 TestVolume002
+label storage=File1
+TestVolume001
 update Volume=TestVolume001 MaxVolBytes=3000000
 run job=$JobName storage=File1
 yes
@@ -57,7 +57,11 @@ stop_bacula
 echo "volume=TestVolume001" >tmp/bscan.bsr
 echo "volume=TestVolume002" >>tmp/bscan.bsr
 
-bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >tmp/log3.out
+if test "$debug" -eq 1 ; then
+  bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp                   
+else
+  bin/bscan -w working -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf ${cwd}/tmp 2>&1 >tmp/log3.out
+fi
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
