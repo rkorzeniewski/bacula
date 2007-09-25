@@ -342,7 +342,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     * find defines whether or not mount_next_write_volume should
     *   as the Director again about what Volume to use.
     */
-   find = is_suitable_volume_mounted(dcr);
+   find = !is_suitable_volume_mounted(dcr);
    if (dev->can_append()) {
       Dmsg0(190, "device already in append.\n");
       /*
@@ -374,7 +374,8 @@ DCR *acquire_device_for_append(DCR *dcr)
             goto get_out;
          }
          /* Wrong tape mounted, release it, then fall through to get correct one */
-         Dmsg0(190, "Wrong tape mounted, release and try mount.\n");
+         Dmsg1(190, "jid=%u Wrong tape mounted, release and try mount.\n",
+               (uint32_t)jcr->JobId);
          release = true;
          do_mount = true;
       } else {
@@ -384,7 +385,8 @@ DCR *acquire_device_for_append(DCR *dcr)
           *   we need to recycle the tape.
           */
           do_mount = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
-          Dmsg1(190, "Correct tape mounted. recycle=%d\n", do_mount);
+          Dmsg2(190, "jid=%u Correct tape mounted. recycle=%d\n", 
+                (uint32_t)jcr->JobId, do_mount);
           if (do_mount && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
                   " on device %s because it is in use by another job.\n"),
@@ -420,21 +422,23 @@ DCR *acquire_device_for_append(DCR *dcr)
       }
    } else {
       /* Not already in append mode, so mount the device */
-      Dmsg0(190, "Not in append mode, try mount.\n");
+      Dmsg2(190, "jid=%u Not in append mode, try mount find=%d\n", 
+            (uint32_t)jcr->JobId, find);
+
       ASSERT(dev->num_writers == 0);
       do_mount = true;
    }
 
    if (do_mount) {
-      Dmsg0(190, "Do mount_next_write_vol\n");
+      Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
       bool mounted = mount_next_write_volume(dcr, find, release);
       if (!mounted) {
          if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */
             Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
                dev->print_name());
-            Dmsg1(200, "Could not ready device %s for append.\n", 
-               dev->print_name());
+            Dmsg2(200, "jid=%u Could not ready device %s for append.\n", 
+               (uint32_t)jcr->JobId, dev->print_name());
          }
          goto get_out;
       }
