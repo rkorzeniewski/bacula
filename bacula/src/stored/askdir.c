@@ -98,7 +98,7 @@ bool dir_update_device(JCR *jcr, DEVICE *dev)
    } else {
       pm_strcpy(ChangerName, "*");
    }
-   ok =dir->fsend(Device_update, 
+   ok = dir->fsend(Device_update, 
       jcr->Job,
       dev_name.c_str(),
       dev->can_append()!=0,
