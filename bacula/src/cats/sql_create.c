@@ -846,19 +846,21 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
                                       mdb->db_port,
                                       mdb->db_socket,
                                       1 /* multi_db = true */);
+      if (!jcr->db_batch) {
+         Jmsg1(jcr, M_FATAL, 0, _("Could not init batch database: \"%s\".\n"),
+               jcr->db->db_name);
+         return false;
+      }
 
-      if (!jcr->db_batch || !db_open_database(jcr, jcr->db_batch)) {
-         Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
-              jcr->db->db_name);
-         if (jcr->db_batch) {
-            Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db_batch));
-         }
+      if (!db_open_database(jcr, jcr->db_batch)) {
+         Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\": ERR=%s.\n"),
+              jcr->db->db_name, db_strerror(jcr->db_batch));
          return false;
       }      
       
       if (!sql_batch_start(jcr, jcr->db_batch)) {
          Jmsg(jcr, M_FATAL, 0, 
-              "Can't start batch mode %s", db_strerror(jcr->db_batch));
+              "Can't start batch mode: ERR=%s", db_strerror(jcr->db_batch));
          return false;
       }
       Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
