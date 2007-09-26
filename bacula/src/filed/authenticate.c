@@ -1,15 +1,7 @@
 /*
- * Authenticate Director who is attempting to connect.
- *
- *   Kern Sibbald, October 2000
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,14 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Authenticate Director who is attempting to connect.
+ *
+ *   Kern Sibbald, October 2000
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -234,12 +234,12 @@ int authenticate_storagedaemon(JCR *jcr)
       goto auth_fatal;
    }
    if (!auth_success) {
-      Dmsg1(50, "cram_respond failed for %s\n", sd->who());
+      Dmsg1(3, "cram_respond failed for %s\n", sd->who());
    } else {
       /* Now challenge him */
       auth_success = cram_md5_challenge(sd, jcr->sd_auth_key, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(50, "cram_challenge failed for %s\n", sd->who());
+         Dmsg1(3, "cram_challenge failed for %s\n", sd->who());
       }
    }
 
@@ -271,6 +271,9 @@ int authenticate_storagedaemon(JCR *jcr)
          auth_success = false;
          goto auth_fatal;
       }
+   }
+   if (debug_level == 3) {
+      Dmsg0(000, "FD->SD Auth OK\n");
    }
 
 auth_fatal:
