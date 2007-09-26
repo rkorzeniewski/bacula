@@ -98,7 +98,7 @@ bool dir_update_device(JCR *jcr, DEVICE *dev)
    } else {
       pm_strcpy(ChangerName, "*");
    }
-   ok =bnet_fsend(dir, Device_update, 
+   ok =dir->fsend(Device_update, 
       jcr->Job,
       dev_name.c_str(),
       dev->can_append()!=0,
@@ -125,7 +125,7 @@ bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
    pm_strcpy(MediaType, device->media_type);
    bash_spaces(MediaType);
    /* This is mostly to indicate that we are here */
-   ok = bnet_fsend(dir, Device_update,
+   ok = dir->fsend(Device_update,
       jcr->Job,
       dev_name.c_str(),         /* Changer name */
       0, 0, 0,                  /* append, read, num_writers */
@@ -347,7 +347,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    pm_strcpy(VolumeName, vol->VolCatName);
    bash_spaces(VolumeName);
    InChanger = vol->InChanger;
-   bnet_fsend(dir, Update_media, jcr->Job,
+   dir->fsend(Update_media, jcr->Job,
       VolumeName.c_str(), vol->VolCatJobs, vol->VolCatFiles,
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
@@ -396,7 +396,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
    }
 
    dcr->WroteVol = false;
-   bnet_fsend(dir, Create_job_media, jcr->Job,
+   dir->fsend(Create_job_media, jcr->Job,
       dcr->VolFirstIndex, dcr->VolLastIndex,
       dcr->StartFile, dcr->EndFile,
       dcr->StartBlock, dcr->EndBlock, 
