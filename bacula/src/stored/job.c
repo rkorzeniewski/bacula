@@ -73,6 +73,7 @@ bool job_cmd(JCR *jcr)
 {
    int JobId;
    char auth_key[100];
+   char seed[100];
    BSOCK *dir = jcr->dir_bsock;
    POOL_MEM job_name, client_name, job, fileset_name, fileset_md5;
    int JobType, level, spool_attributes, no_attributes, spool_data;
@@ -134,7 +135,8 @@ bool job_cmd(JCR *jcr)
    /*
     * Pass back an authorization key for the File daemon
     */
-   make_session_key(auth_key, NULL, 1);
+   bsnprintf(seed, sizeof(seed), "%p", jcr);
+   make_session_key(auth_key, seed, 1);
    dir->fsend(OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    if (debug_level == 3) {
       Dmsg2(000, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
