@@ -17,6 +17,7 @@ Bweb works well with 1.39 release or later.
 11) setting mysql read-only account
 12) get more statistics
 13) use groups with bweb
+14) setup restoration in bweb (not yet working)
 
 ################ FILE COPY #####################################
  # you must get bweb svn files
@@ -321,6 +322,25 @@ INSERT INTO job_old
 It works with postgresql and mysql5 (4 not tested).
 With mysql, load bweb/script/bweb-mysql.sql into your catalog
 For postgresql, it will be done with bweb/script/bweb-postgresql.sql (already done)
+
+################ MADE RESTORATION WITH BWEB ####################
+
+Warning, this function is not for production use at this time !
+It will do some basics things on a working bweb/brestore setup.
+
+1) Go to http://extjs.com and download their toolkit (last 1.X release)
+2) Install files in /bweb/ext web root 
+ example on debian : 
+  root@localhost:~# mv ext-1.1.1 /usr/share/bweb/html/ext
+
+3) Make sure that brestore cache tables are updated with brestore.pl
+  bacula@localhost:~$ brestore.pl -b
+
+4) Enable bresto.pl cgi. 
+  edit the bweb/cgi/bresto.pl script and change $bresto_enable=0; to $bresto_enable=1;
+  on the top of the file.
+
+4) Go on http://you-director/bweb/bresto.html
 
 ################################################################
 
