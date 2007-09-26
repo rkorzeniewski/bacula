@@ -450,7 +450,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (do_read) {
       btimer_t *tid;
       if (ff_pkt->type == FT_FIFO) {
-         tid = start_thread_timer(pthread_self(), 60);
+         tid = start_thread_timer(jcr, pthread_self(), 60);
       } else {
          tid = NULL;
       }

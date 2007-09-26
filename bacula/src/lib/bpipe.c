@@ -163,7 +163,7 @@ BPIPE *open_bpipe(char *prog, int wait, const char *mode)
    bpipe->worker_stime = time(NULL);
    bpipe->wait = wait;
    if (wait > 0) {
-      bpipe->timer_id = start_child_timer(bpipe->worker_pid, wait);
+      bpipe->timer_id = start_child_timer(NULL, bpipe->worker_pid, wait);
    }
    return bpipe;
 }

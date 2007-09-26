@@ -53,7 +53,7 @@ static void destructor_child_timer(watchdog_t *self);
  *  Returns: btimer_t *(pointer to btimer_t struct) on success
  *           NULL on failure
  */
-btimer_t *start_child_timer(pid_t pid, uint32_t wait)
+btimer_t *start_child_timer(JCR *jcr, pid_t pid, uint32_t wait)
 {
    btimer_t *wid;
 
@@ -64,6 +64,7 @@ btimer_t *start_child_timer(pid_t pid, uint32_t wait)
    wid->type = TYPE_CHILD;
    wid->pid = pid;
    wid->killed = false;
+   wid->jcr = jcr;
 
    wid->wd->callback = callback_child_timer;
    wid->wd->one_shot = false;
@@ -124,6 +125,7 @@ static void callback_child_timer(watchdog_t *self)
        */
       self->one_shot = true;
    }
+   Jmsg(wid->jcr, M_INFO, 0, _("Child timer expired. Child process killed.\n"));
 }
 
 /*
@@ -132,7 +134,7 @@ static void callback_child_timer(watchdog_t *self)
  *  Returns: btimer_t *(pointer to btimer_t struct) on success
  *           NULL on failure
  */
-btimer_t *start_thread_timer(pthread_t tid, uint32_t wait)
+btimer_t *start_thread_timer(JCR *jcr, pthread_t tid, uint32_t wait)
 {
    btimer_t *wid;
    wid = btimer_start_common(wait);
@@ -142,6 +144,7 @@ btimer_t *start_thread_timer(pthread_t tid, uint32_t wait)
    }
    wid->type = TYPE_PTHREAD;
    wid->tid = tid;
+   wid->jcr = jcr;
 
    wid->wd->callback = callback_thread_timer;
    wid->wd->one_shot = true;
@@ -169,6 +172,7 @@ btimer_t *start_bsock_timer(BSOCK *bsock, uint32_t wait)
    wid->type = TYPE_BSOCK;
    wid->tid = pthread_self();
    wid->bsock = bsock;
+   wid->jcr = bsock->jcr(); 
 
    wid->wd->callback = callback_thread_timer;
    wid->wd->one_shot = true;
@@ -228,6 +232,7 @@ static void callback_thread_timer(watchdog_t *self)
       wid->bsock->set_timed_out();
    }
    pthread_kill(wid->tid, TIMEOUT_SIGNAL);
+   Jmsg(wid->jcr, M_INFO, 0, _("Thread timer expired. Thread interrupted.\n"));
 }
 
 static btimer_t *btimer_start_common(uint32_t wait)
