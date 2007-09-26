@@ -3300,7 +3300,7 @@ if ($batch_mod) {
     exit (0);
 }
 
-$glade_file = $p->{glade_file};
+$glade_file = $p->{glade_file} || $glade_file;
 
 foreach my $path ('','.','/usr/share/brestore','/usr/local/share/brestore') {
     if (-f "$path/$glade_file") {
