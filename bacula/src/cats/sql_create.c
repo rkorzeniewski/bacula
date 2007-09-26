@@ -688,10 +688,12 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  */
 bool my_batch_start(JCR *jcr, B_DB *mdb)
 {
-   bool ok;
+   bool ok = false;
+   int retry = 0;
 
-   db_lock(mdb);
-   ok =  db_sql_query(mdb,
+   while (!ok && retry++ < 10) {
+      db_lock(mdb);
+      ok =  db_sql_query(mdb,
              "CREATE TEMPORARY TABLE batch ("
                 "FileIndex integer,"
                 "JobId integer,"
@@ -699,7 +701,11 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
                 "Name blob,"
                 "LStat tinyblob,"
                 "MD5 tinyblob)",NULL, NULL);
-   db_unlock(mdb);
+      db_unlock(mdb);
+      if (!ok) {
+         bmicrosleep(1, 0);
+      }
+   }
    return ok;
 }
 
@@ -833,12 +839,14 @@ bool db_write_batch_file_records(JCR *jcr)
  */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
+   int retry = 0;
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
    if (!jcr->db_batch) {
       Dmsg2(100, "Opendb attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-      jcr->db_batch = db_init_database(jcr, 
+      while (!jcr->db_batch && retry++ < 10) {
+         jcr->db_batch = db_init_database(jcr, 
                                       mdb->db_name, 
                                       mdb->db_user,
                                       mdb->db_password, 
@@ -846,6 +854,10 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
                                       mdb->db_port,
                                       mdb->db_socket,
                                       1 /* multi_db = true */);
+         if (!jcr->db_batch) {
+            bmicrosleep(1, 0);
+         }
+      }
       if (!jcr->db_batch) {
          Mmsg1(&mdb->errmsg, _("Could not init batch database: \"%s\".\n"),
                         jcr->db->db_name);
