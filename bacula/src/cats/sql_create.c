@@ -688,12 +688,10 @@ bool db_create_fileset_record(JCR *jcr, B_DB *mdb, FILESET_DBR *fsr)
  */
 bool my_batch_start(JCR *jcr, B_DB *mdb)
 {
-   bool ok = false;
-   int retry = 0;
+   bool ok;
 
-   while (!ok && retry++ < 10) {
-      db_lock(mdb);
-      ok =  db_sql_query(mdb,
+   db_lock(mdb);
+   ok =  db_sql_query(mdb,
              "CREATE TEMPORARY TABLE batch ("
                 "FileIndex integer,"
                 "JobId integer,"
@@ -701,11 +699,7 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
                 "Name blob,"
                 "LStat tinyblob,"
                 "MD5 tinyblob)",NULL, NULL);
-      db_unlock(mdb);
-      if (!ok) {
-         bmicrosleep(1, 0);
-      }
-   }
+   db_unlock(mdb);
    return ok;
 }
 
@@ -845,8 +839,7 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
    if (!jcr->db_batch) {
       Dmsg2(100, "Opendb attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-      while (!jcr->db_batch && retry++ < 10) {
-         jcr->db_batch = db_init_database(jcr, 
+      jcr->db_batch = db_init_database(jcr, 
                                       mdb->db_name, 
                                       mdb->db_user,
                                       mdb->db_password, 
@@ -854,10 +847,6 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
                                       mdb->db_port,
                                       mdb->db_socket,
                                       1 /* multi_db = true */);
-         if (!jcr->db_batch) {
-            bmicrosleep(1, 0);
-         }
-      }
       if (!jcr->db_batch) {
          Mmsg1(&mdb->errmsg, _("Could not init batch database: \"%s\".\n"),
                         jcr->db->db_name);
@@ -866,7 +855,7 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       }
 
       if (!db_open_database(jcr, jcr->db_batch)) {
-         Mmsg2(&mdb->errmsg,  _("Could not open database \"%s\": ERR=%s.\n"),
+         Mmsg2(&mdb->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
               jcr->db->db_name, db_strerror(jcr->db_batch));
          Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
