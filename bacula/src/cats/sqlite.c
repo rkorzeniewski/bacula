@@ -148,6 +148,7 @@ db_open_database(JCR *jcr, B_DB *mdb)
    int len;
    struct stat statbuf;
    int errstat;
+   int retry = 0;
 
    P(mutex);
    if (mdb->connected) {
@@ -178,28 +179,28 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
+   for (mdb->db=NULL; !mdb->db && retry++ < 10; ) {
 #ifdef HAVE_SQLITE3
-   int stat = sqlite3_open(db_name, &mdb->db);
-   if (stat != SQLITE_OK) {
-      mdb->sqlite_errmsg = (char *)sqlite3_errmsg(mdb->db); 
-      sqlite3_close(mdb->db);
-      mdb->db = NULL;
-   } else {
-      mdb->sqlite_errmsg = NULL;
-   }
-#ifdef SQLITE3_INIT_QUERY
-   db_sql_query(mdb, SQLITE3_INIT_QUERY, NULL, NULL);
-#endif
-
+      int stat = sqlite3_open(db_name, &mdb->db);
+      if (stat != SQLITE_OK) {
+         mdb->sqlite_errmsg = (char *)sqlite3_errmsg(mdb->db); 
+         sqlite3_close(mdb->db);
+         mdb->db = NULL;
+      } else {
+         mdb->sqlite_errmsg = NULL;
+      }
 #else
-   mdb->db = sqlite_open(
-        db_name,                      /* database name */
-        644,                          /* mode */
-        &mdb->sqlite_errmsg);         /* error message */
+      mdb->db = sqlite_open(
+           db_name,                      /* database name */
+           644,                          /* mode */
+           &mdb->sqlite_errmsg);         /* error message */
 #endif
 
-   Dmsg0(300, "sqlite_open\n");
-
+      Dmsg0(300, "sqlite_open\n");
+      if (!mdb->db) {
+         bmicrosleep(1, 0);
+      }
+   }
    if (mdb->db == NULL) {
       Mmsg2(&mdb->errmsg, _("Unable to open Database=%s. ERR=%s\n"),
          db_name, mdb->sqlite_errmsg ? mdb->sqlite_errmsg : _("unknown"));
@@ -209,6 +210,11 @@ db_open_database(JCR *jcr, B_DB *mdb)
    }       
    mdb->connected = true;
    free(db_name);
+
+#if  defined(HAVE_SQLITE3) && defined(SQLITE3_INIT_QUERY)
+   db_sql_query(mdb, SQLITE3_INIT_QUERY, NULL, NULL);
+#endif
+
    if (!check_tables_version(jcr, mdb)) {
       V(mutex);
       return 0;
