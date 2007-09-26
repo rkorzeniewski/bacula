@@ -849,7 +849,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     if (level <= debug_level) {
 #ifdef FULL_LOCATION
        if (details) {
-          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d jid=%u", 
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d jid=%u ", 
                 my_name, get_basename(file), line, get_jobid_from_tid());
        } else {
           len = 0;

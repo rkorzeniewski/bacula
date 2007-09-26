@@ -363,7 +363,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    errno = 0;
    if (is_fifo() && timeout) {
       /* Set open timer */
-      tid = start_thread_timer(pthread_self(), timeout);
+      tid = start_thread_timer(dcr->jcr, pthread_self(), timeout);
    }
    Dmsg2(100, "Try open %s mode=%s\n", print_name(), mode_to_str(omode));
 #if defined(HAVE_WIN32)

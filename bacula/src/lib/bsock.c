@@ -104,7 +104,7 @@ bool BSOCK::connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
 
    /* Try to trap out of OS call when time expires */
    if (max_retry_time) {
-      tid = start_thread_timer(pthread_self(), (uint32_t)max_retry_time);
+      tid = start_thread_timer(jcr, pthread_self(), (uint32_t)max_retry_time);
    }
    
    for (i = 0; !open(jcr, name, host, service, port, heart_beat, &fatal);
