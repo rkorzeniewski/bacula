@@ -795,7 +795,7 @@ bool db_write_batch_file_records(JCR *jcr)
    
    if (!db_sql_query(jcr->db_batch,sql_batch_fill_filename_query, NULL,NULL)) {
       Jmsg(jcr,M_FATAL,0,"Can't fill Filename table %s\n",jcr->db_batch->errmsg);
-      QUERY_DB(jcr, jcr->db_batch, sql_batch_unlock_tables_query);
+      db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query, NULL, NULL);
       return false;            
    }
 

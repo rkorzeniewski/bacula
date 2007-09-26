@@ -211,6 +211,13 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mdb->connected = true;
    free(db_name);
 
+   /* set busy handler to wait when we use mult_db_connections = 1 */
+#ifdef HAVE_SQLITE3
+   sqlite3_busy_handler(mdb->db, my_busy_handler, NULL);
+#else
+   sqlite_busy_handler(mdb->db, my_busy_handler, NULL);
+#endif
+
 #if  defined(HAVE_SQLITE3) && defined(SQLITE3_INIT_QUERY)
    db_sql_query(mdb, SQLITE3_INIT_QUERY, NULL, NULL);
 #endif
@@ -220,12 +227,6 @@ db_open_database(JCR *jcr, B_DB *mdb)
       return 0;
    }
 
-   /* set busy handler to wait when we use mult_db_connections = 1 */
-#ifdef HAVE_SQLITE3
-   sqlite3_busy_handler(mdb->db, my_busy_handler, NULL);
-#else
-   sqlite_busy_handler(mdb->db, my_busy_handler, NULL);
-#endif
 
    V(mutex);
    return 1;

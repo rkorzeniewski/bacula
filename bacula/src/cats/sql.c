@@ -115,7 +115,6 @@ bool check_tables_version(JCR *jcr, B_DB *mdb)
 
    bacula_db_version = 0;
    if (!db_sql_query(mdb, query, int_handler, (void *)&bacula_db_version)) {
-      Mmsg(mdb->errmsg, "Database not created or server not running.\n");
       Jmsg(jcr, M_FATAL, 0, "%s", mdb->errmsg);
       return false;
    }
