@@ -107,7 +107,7 @@ check_two_logs()
 {
    grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
    bstat=$?
-   grep "^  Termination: *Backup Error" tmp/log1.out 2>&1 >/dev/null
+   grep "^  Termination: .*Backup Error" tmp/log1.out 2>&1 >/dev/null
    if test $? -eq 0; then
       bstat=2
    fi
@@ -117,7 +117,7 @@ check_two_logs()
    if test $? -eq 0; then
       rstat=2
    fi
-   grep "^  Termination: *Verify Differences" tmp/log2.out 2>&1 >/dev/null
+   grep "^  Termination: .*Verify Differences" tmp/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
       rstat=3
    fi
