@@ -135,7 +135,7 @@ bool job_cmd(JCR *jcr)
    /*
     * Pass back an authorization key for the File daemon
     */
-   bsnprintf(seed, sizeof(seed), "%p", jcr);
+   bsnprintf(seed, sizeof(seed), "%p%d", jcr, JobId);
    make_session_key(auth_key, seed, 1);
    dir->fsend(OKjob, jcr->VolSessionId, jcr->VolSessionTime, auth_key);
    if (debug_level == 3) {
