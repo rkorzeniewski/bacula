@@ -358,7 +358,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    POOLMEM *omsg;
 
    Dsm_check(1);
-   if (!jcr->pool->catalog_files) {
+   if (job_canceled(jcr) || !jcr->pool->catalog_files) {
       goto bail_out;                  /* user disabled cataloging */
    }
    if (!jcr->db) {
