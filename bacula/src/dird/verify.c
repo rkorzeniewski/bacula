@@ -193,7 +193,7 @@ bool do_verify(JCR *jcr)
       if (!start_storage_daemon_job(jcr, jcr->rstorage, NULL)) {
          return false;
       }
-      if (!bnet_fsend(jcr->store_bsock, "run")) {
+      if (!jcr->store_bsock->fsend("run")) {
          return false;
       }
       /*

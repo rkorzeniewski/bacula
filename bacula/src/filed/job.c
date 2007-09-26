@@ -1316,7 +1316,7 @@ static int storage_cmd(JCR *jcr)
 
    jcr->store_bsock = sd;
 
-   bnet_fsend(sd, "Hello Start Job %s\n", jcr->Job);
+   sd->fsend("Hello Start Job %s\n", jcr->Job);
    if (!authenticate_storagedaemon(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Failed to authenticate Storage daemon.\n"));
       return 0;
@@ -1324,7 +1324,7 @@ static int storage_cmd(JCR *jcr)
    Dmsg0(110, "Authenticated with SD.\n");
 
    /* Send OK to Director */
-   return bnet_fsend(dir, OKstore);
+   return dir->fsend(OKstore);
 }
 
 
