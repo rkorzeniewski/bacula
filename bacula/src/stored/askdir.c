@@ -406,7 +406,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: ERR=%s\n"),
-           bnet_strerror(dir));
+           dir->bstrerror());
       return false;
    }
    Dmsg2(100, "<dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
@@ -432,9 +432,10 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    return true;
 #endif
 
-   dir->msglen = sprintf(dir->msg, FileAttributes, jcr->Job);
-   dir->msg = check_pool_memory_size(dir->msg, dir->msglen +
-                sizeof(DEV_RECORD) + rec->data_len);
+   dir->msg = check_pool_memory_size(dir->msg, sizeof(FileAttributes) +
+                MAX_NAME_LENGTH + sizeof(DEV_RECORD) + rec->data_len + 1);
+   dir->msglen = bsnprintf(dir->msg, sizeof(FileAttributes) +
+                MAX_NAME_LENGTH + 1, FileAttributes, jcr->Job);
    ser_begin(dir->msg + dir->msglen, 0);
    ser_uint32(rec->VolSessionId);
    ser_uint32(rec->VolSessionTime);
@@ -444,7 +445,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    ser_bytes(rec->data, rec->data_len);
    dir->msglen = ser_length(dir->msg);
    Dmsg2(1800, ">dird jid=%u: %s\n", (uint32_t)jcr->JobId, dir->msg);    /* Attributes */
-   return bnet_send(dir);
+   return dir->send();
 }
 
 
