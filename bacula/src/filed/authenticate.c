@@ -37,6 +37,8 @@
 #include "bacula.h"
 #include "filed.h"
 
+const int dbglvl = 3;
+
 static char OK_hello[]  = "2000 OK Hello\n";
 static char Dir_sorry[] = "2999 No go\n";
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -56,12 +58,12 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
    btimer_t *tid = NULL;
 
    if (rcode != R_DIRECTOR) {
-      Dmsg1(50, "I only authenticate directors, not %d\n", rcode);
+      Dmsg1(dbglvl, "I only authenticate directors, not %d\n", rcode);
       Emsg1(M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
       goto auth_fatal;
    }
    if (bs->msglen < 25 || bs->msglen > 500) {
-      Dmsg2(50, "Bad Hello command from Director at %s. Len=%d.\n",
+      Dmsg2(dbglvl, "Bad Hello command from Director at %s. Len=%d.\n",
             bs->who(), bs->msglen);
       char addr[64];
       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
@@ -75,7 +77,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       char addr[64];
       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
       bs->msg[100] = 0;
-      Dmsg2(50, "Bad Hello command from Director at %s: %s\n",
+      Dmsg2(dbglvl, "Bad Hello command from Director at %s: %s\n",
             bs->who(), bs->msg);
       Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
             who, bs->msg);
@@ -121,12 +123,12 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       if (!auth_success) {
           char addr[64];
           char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-          Dmsg1(50, "cram_get_auth failed for %s\n", who);
+          Dmsg1(dbglvl, "cram_get_auth failed for %s\n", who);
       }
    } else {
        char addr[64];
        char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-       Dmsg1(50, "cram_auth failed for %s\n", who);
+       Dmsg1(dbglvl, "cram_auth failed for %s\n", who);
    }
    if (!auth_success) {
        Emsg1(M_FATAL, 0, _("Incorrect password given by Director at %s.\n"),
@@ -234,12 +236,12 @@ int authenticate_storagedaemon(JCR *jcr)
       goto auth_fatal;
    }
    if (!auth_success) {
-      Dmsg1(3, "cram_respond failed for %s\n", sd->who());
+      Dmsg1(dbglvl, "cram_respond failed for %s\n", sd->who());
    } else {
       /* Now challenge him */
       auth_success = cram_md5_challenge(sd, jcr->sd_auth_key, tls_local_need, compatible);
       if (!auth_success) {
-         Dmsg1(3, "cram_challenge failed for %s\n", sd->who());
+         Dmsg1(dbglvl, "cram_challenge failed for %s\n", sd->who());
       }
    }
 
