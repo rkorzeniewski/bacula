@@ -177,13 +177,13 @@ int authenticate_director(JCR *jcr)
    BSOCK *dir = jcr->dir_bsock;
 
    if (!authenticate(R_DIRECTOR, dir, jcr)) {
-      bnet_fsend(dir, "%s", Dir_sorry);
+      dir->fsend("%s", Dir_sorry);
       Dmsg1(dbglvl, "Unable to authenticate Director at %s.\n", dir->who());
       Emsg1(M_ERROR, 0, _("Unable to authenticate Director at %s.\n"), dir->who());
       bmicrosleep(5, 0);
       return 0;
    }
-   return bnet_fsend(dir, "%s", OK_hello);
+   return dir->fsend("%s", OK_hello);
 }
 
 int authenticate_filed(JCR *jcr)
