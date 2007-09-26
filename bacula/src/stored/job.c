@@ -174,8 +174,14 @@ bool run_cmd(JCR *jcr)
    timeout.tv_nsec = tv.tv_usec * 1000;
    timeout.tv_sec = tv.tv_sec + me->client_wait;
 
-   Dmsg2(100, "%s waiting %d sec for FD to contact SD\n", 
-        jcr->Job, (int)me->client_wait);
+   if (debug_level == 3) {
+      Dmsg3(000, "%s waiting %d sec for FD to contact SD key=%s\n",
+            jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
+   } else {
+      Dmsg3(100, "%s waiting %d sec for FD to contact SD key=%s\n",
+            jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
+   }
+
    /*
     * Wait for the File daemon to contact us to start the Job,
     *  when he does, we will be released, unless the 30 minutes
@@ -191,7 +197,7 @@ bool run_cmd(JCR *jcr)
    V(mutex);
 
    if (debug_level == 3) {
-      Dmsg1(000, "jid=%u Zap sd_auth_key\n", (uint32_t)jcr->JobId);
+      Dmsg0(000, "Zap sd_auth_key\n");
    }
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
 
@@ -213,7 +219,7 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
    bmicrosleep(0, 50000);             /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("FD connect failed: Job name not found: %s\n"), job_name);
-      Dmsg1(100, "Job name not found: %s\n", job_name);
+      Dmsg1(3, "**** Job \"%s\" not found", job_name);
       return;
    }
 
@@ -239,7 +245,8 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
       Dmsg1(100, "Authentication failed Job %s\n", jcr->Job);
       Jmsg(jcr, M_FATAL, 0, _("Unable to authenticate File daemon\n"));
       if (debug_level == 3) {
-         Dmsg1(000, "Authentication failed Job %s\n", jcr->Job);
+         Dmsg2(000, "**** Authentication failed jid=%u key=%s\n",
+            (uint32_t)jcr->JobId, jcr->sd_auth_key);
       }
    } else {
       jcr->authenticated = true;
