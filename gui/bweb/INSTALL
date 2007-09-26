@@ -329,6 +329,7 @@ Warning, this function is not for production use at this time !
 It will do some basics things on a working bweb/brestore setup.
 
 1) Go to http://extjs.com and download their toolkit (last 1.X release)
+
 2) Install files in /bweb/ext web root 
  example on debian : 
   root@localhost:~# mv ext-1.1.1 /usr/share/bweb/html/ext
@@ -340,7 +341,11 @@ It will do some basics things on a working bweb/brestore setup.
   edit the bweb/cgi/bresto.pl script and change $bresto_enable=0; to $bresto_enable=1;
   on the top of the file.
 
-4) Go on http://you-director/bweb/bresto.html
+5) Use the last Bweb.pm
+  If you are trying bresto in a working bweb/brestore setup, you must make sure that you use 
+  the last Bweb.pm SVN version.
+
+6) Go on http://you-director/bweb/bresto.html
 
 ################################################################
 
