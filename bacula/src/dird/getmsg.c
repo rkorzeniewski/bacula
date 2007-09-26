@@ -213,7 +213,7 @@ int bget_dirmsg(BSOCK *bs)
          free_jcr(jcr);
          continue;
       }
-      if (bs->msg[0] == 'U') {        /* Catalog update */
+      if (bs->msg[0] == 'U') {        /* SD sending attributes */
          Dmsg2(900, "Catalog upd jcr 0x%x: %s", jcr, bs->msg);
          catalog_update(jcr, bs);
          Dmsg1(900, "Calling freejcr 0x%x\n", jcr);

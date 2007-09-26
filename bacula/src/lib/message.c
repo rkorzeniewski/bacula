@@ -1084,7 +1084,7 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
        dir->msglen = bvsnprintf(dir->msg, sizeof_pool_memory(dir->msg),
                                 fmt, arg_ptr);
        va_end(arg_ptr);
-       bnet_send(jcr->dir_bsock);
+       jcr->dir_bsock->send();
        return;
     }
 
