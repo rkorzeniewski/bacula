@@ -38,7 +38,7 @@
 #include "bacula.h"
 #include "stored.h"
 
-const int dbglvl = 3;
+const int dbglvl = 50;
 
 static char Dir_sorry[] = "3999 No go\n";
 static char OK_hello[]  = "3000 OK Hello\n";
@@ -211,9 +211,6 @@ int authenticate_filed(JCR *jcr)
    /* Timeout Hello after 5 mins */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);
    /* Challenge FD */
-   if (debug_level == 3) {
-      Pmsg1(000, "sd_auth_key=%s\n", jcr->sd_auth_key);
-   }
    auth_success = cram_md5_challenge(fd, jcr->sd_auth_key, tls_local_need, compatible);
    if (auth_success) {
        /* Respond to his challenge */

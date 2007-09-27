@@ -46,7 +46,7 @@ public:
    char *when, *verify_job_name, *catalog_name;
    char *previous_job_name;
    char *since;
-   char *verify_list;
+   const char *verify_list;
    JOB *job;
    JOB *verify_job;
    JOB *previous_job;
@@ -69,7 +69,7 @@ public:
 /* Forward referenced subroutines */
 static void select_job_level(UAContext *ua, JCR *jcr);
 static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, 
-                char *verify_list, char *jid, const char *replace,
+                const char *verify_list, char *jid, const char *replace,
                 char *client_name);
 static void select_where_regexp(UAContext *ua, JCR *jcr);
 static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc);
@@ -659,7 +659,7 @@ static void select_job_level(UAContext *ua, JCR *jcr)
    return;
 }
 
-static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, char *verify_list,
+static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char *verify_list,
    char *jid, const char *replace, char *client_name) 
 {
    Dmsg1(800, "JobType=%c\n", jcr->JobType);

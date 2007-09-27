@@ -37,7 +37,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-const int dbglvl = 3;
+const int dbglvl = 50;
 
 static char OK_hello[]  = "2000 OK Hello\n";
 static char Dir_sorry[] = "2999 No go\n";
@@ -227,9 +227,6 @@ int authenticate_storagedaemon(JCR *jcr)
    }
 
    /* Respond to SD challenge */
-   if (debug_level == 3) {
-      Dmsg1(000, "sd_auth_key=%s\n", jcr->sd_auth_key);
-   }
    auth_success = cram_md5_respond(sd, jcr->sd_auth_key, &tls_remote_need, &compatible);
    if (job_canceled(jcr)) {
       auth_success = false;     /* force quick exit */
@@ -274,16 +271,10 @@ int authenticate_storagedaemon(JCR *jcr)
          goto auth_fatal;
       }
    }
-   if (debug_level == 3) {
-      Dmsg0(000, "FD->SD Auth OK\n");
-   }
 
 auth_fatal:
    /* Destroy session key */
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
-   if (debug_level == 3) {
-      Dmsg0(000, "zap sd_auth_key\n");
-   }
    stop_bsock_timer(tid);
    /* Single thread all failures to avoid DOS */
    if (!auth_success) {
