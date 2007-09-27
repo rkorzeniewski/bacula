@@ -117,9 +117,6 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
     */
    fd->fsend(jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, jcr->VolSessionId,
       jcr->VolSessionTime, jcr->sd_auth_key);
-   if (debug_level == 3) {
-      Dmsg1(000, ">filed: %s", fd->msg);
-   }
    if (strcmp(jcr->sd_auth_key, "dummy") != 0) {
       memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
    }
