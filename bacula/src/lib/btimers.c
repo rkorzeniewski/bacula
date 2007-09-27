@@ -231,8 +231,6 @@ static void callback_thread_timer(watchdog_t *self)
    if (wid->type == TYPE_BSOCK && wid->bsock) {
       wid->bsock->set_timed_out();
    }
-   Jmsg(wid->jcr, M_INFO, 0, _("Thread timer expired. Thread for JobId=%u interrupted.\n"),
-        get_jobid_from_tid(wid->tid));
    pthread_kill(wid->tid, TIMEOUT_SIGNAL);
 }
 
