@@ -53,6 +53,8 @@
 #include "bacula.h"
 #include "jcr.h"
 
+const int dbglvl = 3400;
+
 /* External variables we reference */
 extern time_t watchdog_time;
 
@@ -240,7 +242,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    MQUEUE_ITEM *item = NULL;
    struct sigaction sigtimer;
 
-   Dmsg0(3400, "Enter new_jcr\n");
+   Dmsg0(dbglvl, "Enter new_jcr\n");
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
    jcr->my_thread_id = pthread_self();
@@ -292,12 +294,12 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
  */
 static void remove_jcr(JCR *jcr)
 {
-   Dmsg0(3400, "Enter remove_jcr\n");
+   Dmsg0(dbglvl, "Enter remove_jcr\n");
    if (!jcr) {
       Emsg0(M_ABORT, 0, _("NULL jcr.\n"));
    }
    jcrs->remove(jcr);
-   Dmsg0(3400, "Leave remove_jcr\n");
+   Dmsg0(dbglvl, "Leave remove_jcr\n");
 }
 
 /*
@@ -414,14 +416,14 @@ static void free_common_jcr(JCR *jcr)
 #ifdef DEBUG
 void b_free_jcr(const char *file, int line, JCR *jcr)
 {
-   Dmsg3(3400, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
+   Dmsg3(dbglvl, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
 
 #else
 
 void free_jcr(JCR *jcr)
 {
 
-   Dmsg2(3400, "Enter free_jcr 0x%x job=%d\n", jcr, jcr->JobId);
+   Dmsg2(dbglvl, "Enter free_jcr 0x%x job=%d\n", jcr, jcr->JobId);
 
 #endif
 
@@ -432,10 +434,10 @@ void free_jcr(JCR *jcr)
       Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
          jcr->use_count(), jcr->JobId);
    }
-   Dmsg3(3400, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count(), jcr->JobId);
+   Dmsg3(dbglvl, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count(), jcr->JobId);
    if (jcr->use_count() > 0) {          /* if in use */
       unlock_jcr_chain();
-      Dmsg3(3400, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
+      Dmsg3(dbglvl, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
       return;
    }
 
@@ -444,14 +446,14 @@ void free_jcr(JCR *jcr)
 
    job_end_pop(jcr);                  /* pop and call hooked routines */
 
-   Dmsg1(3400, "End job=%d\n", jcr->JobId);
+   Dmsg1(dbglvl, "End job=%d\n", jcr->JobId);
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
    free_common_jcr(jcr);
    close_msg(NULL);                   /* flush any daemon messages */
    garbage_collect_memory_pool();
-   Dmsg0(3400, "Exit free_jcr\n");
+   Dmsg0(dbglvl, "Exit free_jcr\n");
 }
  
 /*
@@ -513,7 +515,7 @@ JCR *get_jcr_by_id(uint32_t JobId)
    foreach_jcr(jcr) {
       if (jcr->JobId == JobId) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
@@ -534,7 +536,7 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
       if (jcr->VolSessionId == SessionId &&
           jcr->VolSessionTime == SessionTime) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
@@ -562,7 +564,7 @@ JCR *get_jcr_by_partial_name(char *Job)
    foreach_jcr(jcr) {
       if (strncmp(Job, jcr->Job, len) == 0) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
@@ -587,7 +589,7 @@ JCR *get_jcr_by_full_name(char *Job)
    foreach_jcr(jcr) {
       if (strcmp(jcr->Job, Job) == 0) {
          jcr->inc_use_count();
-         Dmsg2(3400, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
          break;
       }
    }
@@ -640,7 +642,7 @@ static void lock_jcr_chain()
 #endif
 {
 #ifdef TRACE_JCR_CHAIN
-   Dmsg3(3400, "Lock jcr chain %d from %s:%d\n", ++lock_count, fname, line);
+   Dmsg3(dbglvl, "Lock jcr chain %d from %s:%d\n", ++lock_count, fname, line);
 #endif
    P(jcr_lock);
 }
@@ -655,7 +657,7 @@ static void unlock_jcr_chain()
 #endif
 {
 #ifdef TRACE_JCR_CHAIN
-   Dmsg3(3400, "Unlock jcr chain %d from %s:%d\n", lock_count--, fname, line);
+   Dmsg3(dbglvl, "Unlock jcr chain %d from %s:%d\n", lock_count--, fname, line);
 #endif
    V(jcr_lock);
 }
@@ -684,7 +686,7 @@ JCR *jcr_walk_start()
    jcr = (JCR *)jcrs->first();
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(3400, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
+      Dmsg3(dbglvl, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    return jcr;
@@ -701,7 +703,7 @@ JCR *jcr_walk_next(JCR *prev_jcr)
    jcr = (JCR *)jcrs->next(prev_jcr);
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(3400, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
+      Dmsg3(dbglvl, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
    }
    unlock_jcr_chain();
    if (prev_jcr) {
@@ -745,13 +747,13 @@ static void jcr_timeout_check(watchdog_t *self)
    BSOCK *fd;
    time_t timer_start;
 
-   Dmsg0(3400, "Start JCR timeout checks\n");
+   Dmsg0(dbglvl, "Start JCR timeout checks\n");
 
    /* Walk through all JCRs checking if any one is
     * blocked for more than specified max time.
     */
    foreach_jcr(jcr) {
-      Dmsg2(3400, "jcr_timeout_check JobId=%u jcr=0x%x\n", jcr->JobId, jcr);
+      Dmsg2(dbglvl, "jcr_timeout_check JobId=%u jcr=0x%x\n", jcr->JobId, jcr);
       if (jcr->JobId == 0) {
          continue;
       }
@@ -794,7 +796,7 @@ static void jcr_timeout_check(watchdog_t *self)
    }
    endeach_jcr(jcr);
 
-   Dmsg0(3400, "Finished JCR timeout checks\n");
+   Dmsg0(dbglvl, "Finished JCR timeout checks\n");
 }
 
 /*

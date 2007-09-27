@@ -37,7 +37,7 @@
 
 #include "bacula.h"
 
-const int dbglvl = 3;
+const int dbglvl = 50;
 
 /* Authorize other end
  * Codes that tls_local_need and tls_remote_need can take:
