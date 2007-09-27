@@ -191,9 +191,6 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    Dmsg1(100, ">stored: %s\n", sd->msg);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(100, "<stored: %s", sd->msg);
-       if (debug_level == 3) {
-          Dmsg1(000, "<stored: %s", sd->msg);
-       }
        if (sscanf(sd->msg, OKjob, &jcr->VolSessionId,
                   &jcr->VolSessionTime, &auth_key) != 3) {
           Dmsg1(100, "BadJob=%s\n", sd->msg);
