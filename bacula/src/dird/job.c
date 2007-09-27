@@ -1212,7 +1212,7 @@ bool create_restore_bootstrap_file(JCR *jcr)
    UAContext *ua;
    memset(&rx, 0, sizeof(rx));
    rx.bsr = new_bsr();
-   rx.JobIds = "";                       
+   rx.JobIds = (char *)"";                       
    rx.bsr->JobId = jcr->previous_jr.JobId;
    ua = new_ua_context(jcr);
    complete_bsr(ua, rx.bsr);

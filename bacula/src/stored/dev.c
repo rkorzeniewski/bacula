@@ -2468,7 +2468,7 @@ static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat)
           mt_stat->mt_fileno >= 0;
 }
 
-static char *modes[] = {
+static const char *modes[] = {
    "CREATE_READ_WRITE",
    "OPEN_READ_WRITE",
    "OPEN_READ_ONLY",
