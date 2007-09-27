@@ -89,7 +89,7 @@
 /* Forward referenced functions */
 void set_os_device_parameters(DCR *dcr);   
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
-static char *mode_to_str(int mode);
+static const char *mode_to_str(int mode);
 
 /*
  * Allocate and initialize the DEVICE structure
@@ -2476,7 +2476,7 @@ static const char *modes[] = {
 };
 
 
-static char *mode_to_str(int mode)  
+static const char *mode_to_str(int mode)  
 {
    static char buf[100];
    if (mode < 1 || mode > 4) {

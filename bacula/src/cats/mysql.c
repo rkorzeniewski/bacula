@@ -351,34 +351,26 @@ void my_mysql_free_result(B_DB *mdb)
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-char *my_mysql_batch_lock_path_query = "LOCK TABLES Path write," 
-                                                   "batch write," 
-                                                   "Path as p write";
+const char *my_mysql_batch_lock_path_query = 
+   "LOCK TABLES Path write, batch write, Path as p write";
 
 
-char *my_mysql_batch_lock_filename_query = "LOCK TABLES Filename write,"
-                                                       "batch write,"
-                                                       "Filename as f write";
+const char *my_mysql_batch_lock_filename_query = 
+   "LOCK TABLES Filename write, batch write, Filename as f write";
 
-char *my_mysql_batch_unlock_tables_query = "UNLOCK TABLES";
+const char *my_mysql_batch_unlock_tables_query = "UNLOCK TABLES";
 
-char *my_mysql_batch_fill_path_query = "INSERT INTO Path (Path) "
-                                         "SELECT a.Path FROM " 
-                                          "(SELECT DISTINCT Path "
-                                             "FROM batch) AS a " 
-                                            "WHERE NOT EXISTS "
-                                               "(SELECT Path "
-                                                  "FROM Path AS p "
-                                                 "WHERE p.Path = a.Path)";     
+const char *my_mysql_batch_fill_path_query = 
+   "INSERT INTO Path (Path) "
+    "SELECT a.Path FROM " 
+     "(SELECT DISTINCT Path FROM batch) AS a WHERE NOT EXISTS "
+     "(SELECT Path FROM Path AS p WHERE p.Path = a.Path)";     
 
-char *my_mysql_batch_fill_filename_query = "INSERT INTO Filename (Name) "
-                                              "SELECT a.Name FROM " 
-                                                "(SELECT DISTINCT Name "
-                                                   "FROM batch) AS a " 
-                                                  "WHERE NOT EXISTS "
-                                                     "(SELECT Name "
-                                                        "FROM Filename AS f "
-                                                        "WHERE f.Name = a.Name)";
+const char *my_mysql_batch_fill_filename_query = 
+   "INSERT INTO Filename (Name) "
+    "SELECT a.Name FROM " 
+     "(SELECT DISTINCT Name FROM batch) AS a WHERE NOT EXISTS "
+     "(SELECT Name FROM Filename AS f WHERE f.Name = a.Name)";
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 #endif /* HAVE_MYSQL */

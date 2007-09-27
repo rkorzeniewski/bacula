@@ -143,7 +143,7 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    Dmsg0(1000, "Begin status jcr loop.\n");
    len = Mmsg(msg, _("\nRunning Jobs:\n"));
    sendit(msg.c_str(), len, arg);
-   char *vss = "";
+   const char *vss = "";
 #ifdef WIN32_VSS
    if (g_pVSSClient && g_pVSSClient->IsInitialized()) {
       vss = "VSS ";

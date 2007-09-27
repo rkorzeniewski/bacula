@@ -87,7 +87,7 @@ void b_UnlockRes(const char *file, int line)
  * Return resource of type rcode that matches name
  */
 RES *
-GetResWithName(int rcode, char *name)
+GetResWithName(int rcode, const char *name)
 {
    RES *res;
    int rindex = rcode - r_first;

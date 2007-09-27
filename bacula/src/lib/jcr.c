@@ -416,14 +416,15 @@ static void free_common_jcr(JCR *jcr)
 #ifdef DEBUG
 void b_free_jcr(const char *file, int line, JCR *jcr)
 {
-   Dmsg3(dbglvl, "Enter free_jcr 0x%x from %s:%d\n", jcr, file, line);
+   Dmsg3(dbglvl, "Enter free_jcr jid=%u from %s:%d\n", jcr->JobId, file, line);
 
 #else
 
 void free_jcr(JCR *jcr)
 {
 
-   Dmsg2(dbglvl, "Enter free_jcr 0x%x job=%d\n", jcr, jcr->JobId);
+   Dmsg3(dbglvl, "Enter free_jcr jid=%u use_count=%d Job=%s\n", 
+         jcr->JobId, jcr->use_count(), jcr->Job);
 
 #endif
 
@@ -434,13 +435,18 @@ void free_jcr(JCR *jcr)
       Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
          jcr->use_count(), jcr->JobId);
    }
-   Dmsg3(dbglvl, "Dec free_jcr 0x%x use_count=%d jobid=%d\n", jcr, jcr->use_count(), jcr->JobId);
+   if (jcr->JobId > 0) {
+      Dmsg3(dbglvl, "Dec free_jcr jid=%u use_count=%d Job=%s\n", 
+         jcr->JobId, jcr->use_count(), jcr->Job);
+   }
    if (jcr->use_count() > 0) {          /* if in use */
       unlock_jcr_chain();
-      Dmsg3(dbglvl, "free_jcr 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
       return;
    }
-
+   if (jcr->JobId > 0) {
+      Dmsg3(dbglvl, "remove jcr jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
+   }
    remove_jcr(jcr);                   /* remove Jcr from chain */
    unlock_jcr_chain();
 
@@ -515,7 +521,8 @@ JCR *get_jcr_by_id(uint32_t JobId)
    foreach_jcr(jcr) {
       if (jcr->JobId == JobId) {
          jcr->inc_use_count();
-         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
    }
@@ -536,7 +543,8 @@ JCR *get_jcr_by_session(uint32_t SessionId, uint32_t SessionTime)
       if (jcr->VolSessionId == SessionId &&
           jcr->VolSessionTime == SessionTime) {
          jcr->inc_use_count();
-         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
    }
@@ -564,7 +572,8 @@ JCR *get_jcr_by_partial_name(char *Job)
    foreach_jcr(jcr) {
       if (strncmp(Job, jcr->Job, len) == 0) {
          jcr->inc_use_count();
-         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
    }
@@ -589,7 +598,8 @@ JCR *get_jcr_by_full_name(char *Job)
    foreach_jcr(jcr) {
       if (strcmp(jcr->Job, Job) == 0) {
          jcr->inc_use_count();
-         Dmsg2(dbglvl, "Inc get_jcr 0x%x use_count=%d\n", jcr, jcr->use_count());
+         Dmsg3(dbglvl, "Inc get_jcr jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
          break;
       }
    }
@@ -686,7 +696,10 @@ JCR *jcr_walk_start()
    jcr = (JCR *)jcrs->first();
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(dbglvl, "Inc jcr_walk_start 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
+      if (jcr->JobId > 0) {
+         Dmsg3(dbglvl, "Inc walk_start jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
+      }
    }
    unlock_jcr_chain();
    return jcr;
@@ -703,7 +716,10 @@ JCR *jcr_walk_next(JCR *prev_jcr)
    jcr = (JCR *)jcrs->next(prev_jcr);
    if (jcr) {
       jcr->inc_use_count();
-      Dmsg3(dbglvl, "Inc jcr_walk_next 0x%x job=%d use_count=%d\n", jcr, jcr->JobId, jcr->use_count());
+      if (jcr->JobId > 0) {
+         Dmsg3(dbglvl, "Inc walk_next jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
+      }
    }
    unlock_jcr_chain();
    if (prev_jcr) {
@@ -718,6 +734,10 @@ JCR *jcr_walk_next(JCR *prev_jcr)
 void jcr_walk_end(JCR *jcr)
 {
    if (jcr) {
+      if (jcr->JobId > 0) {
+         Dmsg3(dbglvl, "Free walk_end jid=%u use_count=%d Job=%s\n", 
+            jcr->JobId, jcr->use_count(), jcr->Job);
+      }
       free_jcr(jcr);
    }
 }

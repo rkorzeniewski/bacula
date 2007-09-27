@@ -134,7 +134,7 @@ RES   **new_res_head();
 
 
 /* Resource routines */
-RES *GetResWithName(int rcode, char *name);
+RES *GetResWithName(int rcode, const char *name);
 RES *GetNextRes(int rcode, RES *res);
 void b_LockRes(const char *file, int line);
 void b_UnlockRes(const char *file, int line);

@@ -710,7 +710,7 @@ bool my_batch_start(JCR *jcr, B_DB *mdb)
 bool my_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    size_t len;
-   char *digest;
+   const char *digest;
    char ed1[50];
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
@@ -833,7 +833,6 @@ bool db_write_batch_file_records(JCR *jcr)
  */
 bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
-   int retry = 0;
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 

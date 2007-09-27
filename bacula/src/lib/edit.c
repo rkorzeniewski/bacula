@@ -120,7 +120,7 @@ char *edit_uint64_with_suffix(uint64_t val, char *buf)
 {
   int commas = 0;
   char *c, mbuf[50];
-  char *suffix[] =
+  const char *suffix[] =
     { "", "K", "M", "G", "T", "P", "E", "Z", "Y", "FIX ME" };
   int suffixes = sizeof(suffix) / sizeof(*suffix);
 
