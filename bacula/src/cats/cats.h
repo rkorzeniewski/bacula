@@ -402,7 +402,7 @@ extern const char* my_mysql_batch_lock_path_query;
 extern const char* my_mysql_batch_lock_filename_query;
 extern const char* my_mysql_batch_unlock_tables_query;
 extern const char* my_mysql_batch_fill_filename_query;
-extern constchar* my_mysql_batch_fill_path_query;
+extern const char* my_mysql_batch_fill_path_query;
 extern void  my_mysql_free_result(B_DB *mdb);
 
 #else
