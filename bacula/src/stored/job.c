@@ -171,13 +171,8 @@ bool run_cmd(JCR *jcr)
    timeout.tv_nsec = tv.tv_usec * 1000;
    timeout.tv_sec = tv.tv_sec + me->client_wait;
 
-   if (debug_level == 3) {
-      Dmsg3(000, "%s waiting %d sec for FD to contact SD key=%s\n",
-            jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
-   } else {
-      Dmsg3(100, "%s waiting %d sec for FD to contact SD key=%s\n",
-            jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
-   }
+   Dmsg3(050, "%s waiting %d sec for FD to contact SD key=%s\n",
+         jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
 
    /*
     * Wait for the File daemon to contact us to start the Job,

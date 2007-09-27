@@ -4,7 +4,7 @@ General:
 27Sep07 
 kes  Fix FD->SD authorization failure, which was due to spurious
      wakeups from a pthread_cond_timedwait().  Simply check the
-     predicate before continuing.
+     predicate before continuing.  This fixes bug #953
 kes  Add const char where needed (more to do). Remove temp debug code.
 26Sep07
 kes  Setup SQLite busy handler before doing queries.
