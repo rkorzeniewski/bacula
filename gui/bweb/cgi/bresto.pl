@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-my $bresto_enable = 0;
+my $bresto_enable = 1;
 die "bresto is not enabled" if (not $bresto_enable);
 
 =head1 LICENSE
@@ -47,7 +47,7 @@ use base qw/Bweb/;
 
 sub get_root
 {
-    my ($self, $dir) = @_;
+    my ($self) = @_;
     return $self->get_pathid('');
 }
 
@@ -224,6 +224,75 @@ SELECT PathId, Path, JobId, Lstat FROM (
     }
     $self->debug(\@return_list);
     return \@return_list;    
+}
+
+# TODO : we want be able to restore files from a bad ended backup
+# we have JobStatus IN ('T', 'A', 'E') and we must 
+
+# Data acces subs from here. Interaction with SGBD and caching
+
+# This sub retrieves the list of jobs corresponding to the jobs selected in the
+# GUI and stores them in @CurrentJobIds.
+# date must be quoted
+sub set_job_ids_for_date
+{
+    my ($self, $client, $date)=@_;
+
+    if (!$client or !$date) {
+	return ();
+    }
+    	
+    # The algorithm : for a client, we get all the backups for each
+    # fileset, in reverse order Then, for each fileset, we store the 'good'
+    # incrementals and differentials until we have found a full so it goes
+    # like this : store all incrementals until we have found a differential
+    # or a full, then find the full #
+
+    my $query = "SELECT JobId, FileSet, Level, JobStatus
+		FROM Job, Client, FileSet
+		WHERE Job.ClientId = Client.ClientId
+		AND FileSet.FileSetId = Job.FileSetId
+		AND EndTime <= $date
+		AND Client.Name = '$client'
+		AND Type IN ('B')
+		AND JobStatus IN ('T')
+		ORDER BY FileSet, JobTDate DESC";
+    
+    my @CurrentJobIds;
+    my $result = $self->dbh_selectall_arrayref($query);
+    my %progress;
+    foreach my $refrow (@$result)
+    {
+	my $jobid = $refrow->[0];
+	my $fileset = $refrow->[1];
+	my $level = $refrow->[2];
+		
+	defined $progress{$fileset} or $progress{$fileset}='U'; # U for unknown
+		
+	next if $progress{$fileset} eq 'F'; # It's over for this fileset...
+		
+	if ($level eq 'I')
+	{
+	    next unless ($progress{$fileset} eq 'U' or $progress{$fileset} eq 'I');
+	    push @CurrentJobIds,($jobid);
+	}
+	elsif ($level eq 'D')
+	{
+	    next if $progress{$fileset} eq 'D'; # We allready have a differential
+	    push @CurrentJobIds,($jobid);
+	}
+	elsif ($level eq 'F')
+	{
+	    push @CurrentJobIds,($jobid);
+	}
+
+	my $status = $refrow->[3] ;
+	if ($status eq 'T') {	           # good end of job
+	    $progress{$fileset} = $level;
+	}
+    }
+
+    return @CurrentJobIds;
 }
 
 
@@ -443,14 +512,19 @@ $bvfs->connect_db();
 
 my $action = CGI::param('action') || '';
 
-my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid',
+my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid', 'qdate',
 			   'limit', 'offset', 'client');
 
 my @jobid = grep { /^\d+$/ } CGI::param('jobid');
 
+if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
+    @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});    
+print join(",", $args->{qdate}, $args->{client}, @jobid), "\n";
+
+}
+
 $bvfs->set_curjobids(@jobid);
 $bvfs->set_limits($args->{limit}, $args->{offset});
-#$bvfs->{debug}=1;
 
 print CGI::header('application/x-javascript');
 
@@ -480,15 +554,19 @@ if ($action eq 'list_client') {
     print "[";
 
     print join(',', map {
-      "[$_->[4], '$_->[0] $_->[1] $_->[2] ($_->[3])']"
+      "[$_->[4], '$_->[0]', '$_->[0] $_->[1] $_->[2] ($_->[3])']"
       } @$result);
 
     print "]\n";
 }
 
-my $pathid = CGI::param('node') || 0;
+my $pathid = CGI::param('node') || '';
+my $path = CGI::param('path');
+
 if ($pathid =~ /^(\d+)$/) {
     $pathid = $1;
+} elsif ($path) {
+    $pathid = $bvfs->get_pathid($path);
 } else {
     $pathid = $bvfs->get_root();
 }

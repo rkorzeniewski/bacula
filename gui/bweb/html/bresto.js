@@ -79,17 +79,17 @@ function ext_init()
 //    root.expand();
 
     tree.on('click', function(e) { 
-	file_store.removeAll();
+        file_store.removeAll();
         file_store.load({params:{action: 'list_files',
-			         jobid:Ext.brestore.jobid, 
+                                 jobid:Ext.brestore.jobid, 
                                  node:e.id}
                        });
-	return true;
+        return true;
     });
 
     tree.on('beforeload', function(e) {
-	file_store.removeAll();
-	return true;
+        file_store.removeAll();
+        return true;
     });
 
 
@@ -98,11 +98,11 @@ function ext_init()
   var file_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
-	    method: 'GET',
+            method: 'GET',
             params:{action: 'list_files', offset:0, limit:50 }
         }),
 
-	reader: new Ext.data.ArrayReader({
+        reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
    {name: 'fileid'    },
    {name: 'filenameid'},
@@ -122,22 +122,22 @@ function ext_init()
         },{
            header:    "Size",
            dataIndex: 'size',
-	   renderer:  human_size,
+           renderer:  human_size,
            width:     50
         },{
            header:    "Date",
            dataIndex: 'mtime',
            width:     50
         },{
-	   dataIndex: 'pathid',
-	   hidden: true
+           dataIndex: 'pathid',
+           hidden: true
         },{
-	   dataIndex: 'filenameid',
-	   hidden: true
+           dataIndex: 'filenameid',
+           hidden: true
         },{
-	   dataIndex: 'fileid',
-	   hidden: true
-	}
+           dataIndex: 'fileid',
+           hidden: true
+        }
         ]);
 
     // by default columns are sortable
@@ -159,32 +159,28 @@ function ext_init()
     // when we reload the view,
     // we clear the file version box
     file_store.on('beforeload', function(e) {
-	file_versions_store.removeAll();
-	return true;
+        file_versions_store.removeAll();
+        return true;
     });
 
     files_grid.selModel.on('rowselect', function(e,i,r) { 
-	Ext.brestore.filename = r.json[3];
-	file_versions_store.load({params:{action: 'list_versions',
+        Ext.brestore.filename = r.json[3];
+        file_versions_store.load({params:{action: 'list_versions',
                                           client: Ext.brestore.client,
-					  pathid: r.json[2],
-					  filenameid: r.json[1]
+                                          pathid: r.json[2],
+                                          filenameid: r.json[1]
                                          }
                                  });
-	return true;
+        return true;
     });
     files_grid.render();
 
 //////////////////////////////////////////////////////////////:
 
   var file_selection_store = new Ext.data.Store({
-        proxy: new Ext.data.HttpProxy({
-            url: '/cgi-bin/bweb/bresto.pl',
-	    method: 'GET',
-            params:{offset:0, limit:50 }
-        }),
+        proxy: new Ext.data.MemoryProxy(),
 
-	reader: new Ext.data.ArrayReader({
+        reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
    {name: 'jobid'     },
    {name: 'fileid'    },
@@ -198,29 +194,29 @@ function ext_init()
    var file_selection_cm = new Ext.grid.ColumnModel([{
            id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
            dataIndex: 'name',
-	   hidden: true
+           hidden: true
         },{
            header:    "JobId",
            dataIndex: 'jobid'
         },{
            header:    "Size",
            dataIndex: 'size',
-	   renderer:  human_size,
+           renderer:  human_size,
            width:     50
         },{
            header:    "Date",
            dataIndex: 'mtime',
            width:     50
         },{
-	   dataIndex: 'pathid',
-	   hidden: true
+           dataIndex: 'pathid',
+           hidden: true
         },{
-	   dataIndex: 'filenameid',
-	   hidden: true
+           dataIndex: 'filenameid',
+           hidden: true
         },{
-	   dataIndex: 'fileid',
-	   hidden: true
-	}
+           dataIndex: 'fileid',
+           hidden: true
+        }
         ]);
 
 
@@ -229,37 +225,67 @@ function ext_init()
         cm: file_selection_cm,
         ds: file_selection_store,
         ddGroup : 'TreeDD',
-        enableDragDrop: true,
-	enableDrop: true,
+        enableDrag: false,
+        enableDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
         loadMask: true,
         enableColLock:false
         
     });
 
+    var file_selection_record = Ext.data.Record.create(
+      {name: 'jobid'},
+      {name: 'fileid'},
+      {name: 'filenameid'},
+      {name: 'pathid'},
+      {name: 'size'},
+      {name: 'mtime'}
+    );
+// data.selections[0].json[]
+// data.node.id
 // http://extjs.com/forum/showthread.php?t=12582&highlight=drag+drop
-//    var ddrow = new Ext.dd.DropTarget(grid.container, {
-//    	ddGroup : 'TreeDD',
-//    	copy:false,
-//    	notifyDrop : function(dd, e, data){
-//    		var sm=grid.getSelectionModel();
-//    		var rows=sm.getSelections();
-//    		var cindex=dd.getDragData(e).rowIndex;
-//    		for(i = 0; i < rows.length; i++) {
-//    			rowData=ds.getById(rows[i].id);
-//    			if(!this.copy) 
-//    				ds.remove(ds.getById(rows[i].id));
-//    			ds.insert(cindex,rowData);
-//    		};
-//    	}
-//    });
+    var ddrow = new Ext.dd.DropTarget(file_selection_grid.container, {
+        ddGroup : 'TreeDD',
+        copy:false,
+        notifyDrop : function(dd, e, data){
+//		if (data.selections) {
+//			alert("grid");
+//		}
+//
+//		if (data.node) {
+//			alert("tree");
+//		}
+//
+		file_selection_store.add(
+                 new file_selection_record({
+			jobid:1,
+			fileid:1,
+			filenameid:1,
+			pathid:1,
+			size:1,
+			mtime:'2007-01-01 01:00:00'
+		 })
+		);
+
+		return true;
+//              var sm=grid.getSelectionModel();
+//              var rows=sm.getSelections();
+//              var cindex=dd.getDragData(e).rowIndex;
+//              for(i = 0; i < rows.length; i++) {
+//                      rowData=ds.getById(rows[i].id);
+//                      if(!this.copy) 
+//                              ds.remove(ds.getById(rows[i].id));
+//                      ds.insert(cindex,rowData);
+//              };
+        }
+    });
 
 
    file_selection_grid.on('enddrag', function(dd,e) { 
-	alert(e) ; return true;
+        alert(e) ; return true;
     });
    file_selection_grid.on('notifyDrop', function(dd,e) { 
-	alert(e) ; return true;
+        alert(e) ; return true;
     });
    file_selection_grid.render();
 
@@ -268,11 +294,11 @@ function ext_init()
   var file_versions_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
-	    method: 'GET',
+            method: 'GET',
             params:{offset:0, limit:50 }
         }),
 
-	reader: new Ext.data.ArrayReader({
+        reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
    {name: 'fileid'    },
    {name: 'filenameid'},
@@ -289,11 +315,11 @@ function ext_init()
    var file_versions_cm = new Ext.grid.ColumnModel([{
            id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
            dataIndex: 'name',
-	   hidden: true
+           hidden: true
         },{
            header:    "InChanger",
            dataIndex: 'inchanger',
-	   renderer:  rd_vol_is_online
+           renderer:  rd_vol_is_online
         },{
            header:    "Volume",
            dataIndex: 'volume'
@@ -303,7 +329,7 @@ function ext_init()
         },{
            header:    "Size",
            dataIndex: 'size',
-	   renderer:  human_size,
+           renderer:  human_size,
            width:     50
         },{
            header:    "Date",
@@ -314,15 +340,15 @@ function ext_init()
            dataIndex: 'md5',
            width:     50
         },{
-	   dataIndex: 'pathid',
-	   hidden: true
+           dataIndex: 'pathid',
+           hidden: true
         },{
-	   dataIndex: 'filenameid',
-	   hidden: true
+           dataIndex: 'filenameid',
+           hidden: true
         },{
-	   dataIndex: 'fileid',
-	   hidden: true
-	}
+           dataIndex: 'fileid',
+           hidden: true
+        }
    ]);
 
     // by default columns are sortable
@@ -342,7 +368,7 @@ function ext_init()
     });
 
     file_versions_grid.on('rowdblclick', function(e) { 
-	alert(e) ; file_versions_store.removeAll(); return true;
+        alert(e) ; file_versions_store.removeAll(); return true;
     });
     file_versions_grid.render();
 
@@ -352,18 +378,18 @@ function ext_init()
     var client_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
-	    method: 'GET',
+            method: 'GET',
             params:{action:'list_client'}
         }),
 
-	reader: new Ext.data.ArrayReader({
+        reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
-	   {name: 'name' }
+           {name: 'name' }
         ]))
     });
 
     var client_combo = new Ext.form.ComboBox({
-	fieldLabel: 'Clients',
+        fieldLabel: 'Clients',
         store: client_store,
         displayField:'name',
         typeAhead: true,
@@ -371,14 +397,15 @@ function ext_init()
         triggerAction: 'all',
         emptyText:'Select a client...',
         selectOnFocus:true,
-	forceSelection: true,
+        forceSelection: true,
         width:135
     });
 
     client_combo.on('valid', function(e) { 
-	Ext.brestore.client = e.getValue();
-	job_store.load( {params:{action: 'list_job',client:Ext.brestore.client}});
-	return true;
+        Ext.brestore.client = e.getValue();
+        job_store.load( {params:{action: 'list_job',
+                                 client:Ext.brestore.client}});
+        return true;
     });
 
 //////////////////////////////////////////////////////////////:
@@ -386,19 +413,20 @@ function ext_init()
     var job_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
-	    method: 'GET',
+            method: 'GET',
             params:{offset:0, limit:50 }
         }),
 
-	reader: new Ext.data.ArrayReader({
+        reader: new Ext.data.ArrayReader({
         }, Ext.data.Record.create([
-	   {name: 'jobid' },
-	   {name: 'jobname' }
+           {name: 'jobid' },
+           {name: 'date'  },
+           {name: 'jobname' }
         ]))
     });
 
     var job_combo = new Ext.form.ComboBox({
-	fieldLabel: 'Jobs',
+        fieldLabel: 'Jobs',
         store: job_store,
         displayField:'jobname',
         typeAhead: true,
@@ -406,15 +434,16 @@ function ext_init()
         triggerAction: 'all',
         emptyText:'Select a job...',
         selectOnFocus:true,
-	forceSelection: true,
+        forceSelection: true,
         width:300
     });
 
     job_combo.on('select', function(e,c) {
-	Ext.brestore.jobid = c.json[0];
-
-	tree_loader.baseParams = { action:'list_dirs',
-				   jobid:Ext.brestore.jobid };
+        // TODO: choose between date and jobid here (with a toolbar bp ?)
+        Ext.brestore.jobid = c.json[0];
+        root.setText("Root");
+        tree_loader.baseParams = { action:'list_dirs',
+                                   jobid:Ext.brestore.jobid };
         root.reload();
     });
 
@@ -451,23 +480,32 @@ function ext_init()
         tooltip:'Remove the selected item'
     });
 
-    var tb = new Ext.Toolbar('div-toolbar', [
-	client_combo,
-	job_combo,
-    	'-',
-	{
-                id: 'tb_home',
-//    		icon: '/bweb/up.gif',
-    		text: 'Change location',
-    		cls:'x-btn-text-icon',
-    		handler: function() { alert('do chdir') }
-	},
-	new Ext.form.TextField({
+    var where_field = new Ext.form.TextField({
             fieldLabel: 'Location',
             name: 'where',
             width:175,
             allowBlank:false
-        })
+    });
+
+    var tb = new Ext.Toolbar('div-toolbar', [
+        client_combo,
+        job_combo,
+        '-',
+        {
+          id: 'tb_home',
+//        icon: '/bweb/up.gif',
+          text: 'Change location',
+          cls:'x-btn-text-icon',
+          handler: function() { 
+                var where = where_field.getValue();
+                root.setText(where);
+                tree_loader.baseParams = { action:'list_dirs',
+                                           jobid:Ext.brestore.jobid,
+                                           path: where };
+                root.reload();
+          }
+        },
+        where_field
     ]);
 
 ////////////////////////////////////////////////////////////////
@@ -486,9 +524,9 @@ function ext_init()
             split: true, initialSize: 300
         },
         center: {
-	    initialSize: 600
+            initialSize: 600
         }        
-	
+        
     });
 
 layout.beginUpdate();
@@ -509,7 +547,7 @@ layout.beginUpdate();
   layout.add('center', new Ext.ContentPanel('div-files', {
       autoScroll:true,autoCreate:true,fitToFrame: true
   }));
-layout.endUpdate();	
+layout.endUpdate();     
 
 
 ////////////////////////////////////////////////////////////////
