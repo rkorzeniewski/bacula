@@ -456,15 +456,18 @@ SQL_FIELD *my_sqlite_fetch_field(B_DB *mdb)
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-char *my_sqlite_batch_lock_query = "BEGIN";
-char *my_sqlite_batch_unlock_query = "COMMIT";
-char *my_sqlite_batch_fill_path_query = "INSERT INTO Path (Path)          " 
-                                        " SELECT DISTINCT Path FROM batch "
-                                        " EXCEPT SELECT Path FROM Path    ";
+const char *my_sqlite_batch_lock_query = "BEGIN";
+const char *my_sqlite_batch_unlock_query = "COMMIT";
 
-char *my_sqlite_batch_fill_filename_query = "INSERT INTO Filename (Name)       " 
-                                            " SELECT DISTINCT Name FROM batch  "
-                                            " EXCEPT SELECT Name FROM Filename ";
+const char *my_sqlite_batch_fill_path_query = 
+   "INSERT INTO Path (Path)" 
+   " SELECT DISTINCT Path FROM batch"
+   " EXCEPT SELECT Path FROM Path";
+
+const char *my_sqlite_batch_fill_filename_query = 
+   "INSERT INTO Filename (Name)"
+   " SELECT DISTINCT Name FROM batch "
+   " EXCEPT SELECT Name FROM Filename";
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 

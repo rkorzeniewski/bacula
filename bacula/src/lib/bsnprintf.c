@@ -63,7 +63,7 @@
 
 int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args);
 static int32_t fmtstr(char *buffer, int32_t currlen, int32_t maxlen,
-                   char *value, int flags, int min, int max);
+                   const char *value, int flags, int min, int max);
 static int32_t fmtint(char *buffer, int32_t currlen, int32_t maxlen,
                    int64_t value, int base, int min, int max, int flags);
 
@@ -396,7 +396,7 @@ int bvsnprintf(char *buffer, int32_t maxlen, const char *format, va_list args)
 }
 
 static int32_t fmtstr(char *buffer, int32_t currlen, int32_t maxlen,
-                   char *value, int flags, int min, int max)
+                   const char *value, int flags, int min, int max)
 {
    int padlen, strln;              /* amount to pad */
    int cnt = 0;

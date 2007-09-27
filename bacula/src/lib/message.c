@@ -600,7 +600,7 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
     int len, dtlen;
     MSGS *msgs;
     BPIPE *bpipe;
-    char *mode;
+    const char *mode;
 
     Dmsg2(850, "Enter dispatch_msg type=%d msg=%s", type, msg);
 
