@@ -251,7 +251,7 @@ _Z12get_bregexpsPKc
 _Z13free_bregexpsP5alist
 _Z14apply_bregexpsPKcP5alistPPc
 _Z19bregexp_build_wherePciS_S_S_
-_Z21bregexp_escape_stringPcS_c
+_Z21bregexp_escape_stringPcPKcc
 _Z28bregexp_get_build_where_sizePcS_S_
 _ZN7BREGEXP10edit_substEPKcP12b_regmatch_t
 _ZN7BREGEXP12return_fnameEPKci
@@ -352,10 +352,10 @@ _Z9tm_encodeP9date_timeP2tm
 _Z16stop_bsock_timerP8btimer_t
 _Z16stop_child_timerP8btimer_t
 _Z17start_bsock_timerP5BSOCKj
-_Z17start_child_timerij
+_Z17start_child_timerP3JCRij
 _Z17stop_thread_timerP8btimer_t
-_Z18start_thread_timerP10pthread_t_j
- 
+_Z18start_thread_timerP3JCRP10pthread_t_j
+
 ; cram-md5.o
 _Z16cram_md5_respondP5BSOCKPKcPiS3_
 _Z18cram_md5_challengeP5BSOCKPKcii

@@ -23,9 +23,6 @@ _ZN9dbid_listD1Ev
 _ZN9dbid_listD2Ev
  
 ; sql_create.o
-_Z12my_batch_endP3JCRP4B_DBPKc
-_Z14my_batch_startP3JCRP4B_DB
-_Z15my_batch_insertP3JCRP4B_DBP8ATTR_DBR
 _Z20db_create_job_recordP3JCRP4B_DBP7JOB_DBR
 _Z21db_create_pool_recordP3JCRP4B_DBP8POOL_DBR
 _Z22db_create_media_recordP3JCRP4B_DBP9MEDIA_DBR
