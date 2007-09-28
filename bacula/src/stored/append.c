@@ -287,7 +287,7 @@ bool do_append_data(JCR *jcr)
     * Check if we can still write. This may not be the case
     *  if we are at the end of the tape or we got a fatal I/O error.
     */
-   if (dev->can_write()) {
+   if (ok || dev->can_write()) {
       if (!write_session_label(dcr, EOS_LABEL)) {
          Jmsg1(jcr, M_FATAL, 0, _("Error writting end session label. ERR=%s\n"),
                dev->bstrerror());
