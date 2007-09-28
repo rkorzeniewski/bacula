@@ -182,7 +182,7 @@ BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
 bool     is_this_bsr_done(BSR *bsr, DEV_RECORD *rec);
 
 /* From mount.c */
-bool     mount_next_write_volume(DCR *dcr, bool find, bool release);
+bool     mount_next_write_volume(DCR *dcr, bool have_vol, bool release);
 bool     mount_next_read_volume(DCR *dcr);
 void     mark_volume_in_error(DCR *dcr);
 
