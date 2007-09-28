@@ -576,9 +576,12 @@ bool write_block_to_dev(DCR *dcr)
             dev->VolCatInfo.VolCatName,
             dev->file, dev->block_num, dev->print_name(), wlen, stat);
       }
-      Dmsg7(100, "=== Write error. fd=%d size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n",
-         dev->fd(), wlen, stat, dev->block_num, block->BlockNumber, 
-         dev->dev_errno, strerror(dev->dev_errno));
+      if (debug_level >= 100) {
+         berrno be;
+         Dmsg7(100, "=== Write error. fd=%d size=%u rtn=%d dev_blk=%d blk_blk=%d errno=%d: ERR=%s\n",
+            dev->fd(), wlen, stat, dev->block_num, block->BlockNumber, 
+            dev->dev_errno, be.bstrerror(dev->dev_errno));
+      }
 
       ok = terminate_writing_volume(dcr);
       if (!ok && !forge_on) {
@@ -767,9 +770,10 @@ static bool terminate_writing_volume(DCR *dcr)
       /* This may not be fatal since we already wrote an EOF */
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
    }
+
 bail_out:
    dev->set_ateot();                  /* no more writing this tape */
-   Dmsg1(100, "Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
+   Dmsg1(50, "*** Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
    return ok;
 }
 

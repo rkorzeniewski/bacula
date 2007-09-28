@@ -898,8 +898,9 @@ static int inputcmd(FILE *input, BSOCK *UA_sock)
    }
    fd = fopen(argk[1], "rb");
    if (!fd) {
+      berrno be;
       senditf(_("Cannot open file %s for input. ERR=%s\n"),
-         argk[1], strerror(errno));
+         argk[1], be.bstrerror());
       return 1;
    }
    read_and_process_input(fd, UA_sock);

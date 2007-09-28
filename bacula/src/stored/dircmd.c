@@ -190,7 +190,8 @@ void *handle_connection_request(void *arg)
    /* Initialize FD start condition variable */
    int errstat = pthread_cond_init(&jcr->job_start_wait, NULL);
    if (errstat != 0) {
-      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), strerror(errstat));
+      berrno be;
+      Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.bstrerror(errstat));
       goto bail_out;
    }
 
@@ -457,7 +458,7 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    bstrncpy(dcr->VolCatInfo.VolCatName, volname, sizeof(dcr->VolCatInfo.VolCatName));
    if (dev->open(dcr, mode) < 0) {
       dir->fsend(_("3910 Unable to open device %s: ERR=%s\n"),
-         dev->print_name(), dev->strerror());
+         dev->print_name(), dev->bstrerror());
       goto bail_out;      
    }
 
