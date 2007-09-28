@@ -376,8 +376,9 @@ try_again:
             jcr->RestoreBootstrap = bstrdup(ua->cmd);
             fd = fopen(jcr->RestoreBootstrap, "rb");
             if (!fd) {
+               berrno be;
                ua->send_msg(_("Warning cannot open %s: ERR=%s\n"),
-                  jcr->RestoreBootstrap, strerror(errno));
+                  jcr->RestoreBootstrap, be.bstrerror());
                free(jcr->RestoreBootstrap);
                jcr->RestoreBootstrap = NULL;
             } else {

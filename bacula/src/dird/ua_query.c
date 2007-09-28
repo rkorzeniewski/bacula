@@ -69,8 +69,9 @@ int querycmd(UAContext *ua, const char *cmd)
       goto bail_out;
    }
    if ((fd=fopen(query_file, "rb")) == NULL) {
+      berrno be;
       ua->error_msg(_("Could not open %s: ERR=%s\n"), query_file,
-         strerror(errno));
+         be.bstrerror());
       goto bail_out;
    }
 

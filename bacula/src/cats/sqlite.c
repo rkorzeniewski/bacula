@@ -158,8 +158,9 @@ db_open_database(JCR *jcr, B_DB *mdb)
    mdb->connected = FALSE;
 
    if ((errstat=rwl_init(&mdb->lock)) != 0) {
+      berrno be;
       Mmsg1(&mdb->errmsg, _("Unable to initialize DB lock. ERR=%s\n"),
-            strerror(errstat));
+            be.bstrerror(errstat));
       V(mutex);
       return 0;
    }

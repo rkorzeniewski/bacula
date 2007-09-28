@@ -733,16 +733,11 @@ bool write_session_label(DCR *dcr, int label)
       Dmsg0(150, "Cannot write session label to block.\n");
       if (!write_block_to_device(dcr)) {
          Dmsg0(130, "Got session label write_block_to_dev error.\n");
-         /* ****FIXME***** errno is not set here */
-         Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"),
-                           dev_vol_name(dev), strerror(errno));
          free_record(rec);
          return false;
       }
    }
    if (!write_record_to_block(block, rec)) {
-      Jmsg(jcr, M_FATAL, 0, _("Error writing Session label to %s: %s\n"),
-                        dev_vol_name(dev), strerror(errno));
       free_record(rec);
       return false;
    }
