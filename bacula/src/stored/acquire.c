@@ -319,7 +319,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 {
    bool do_mount = false;
    bool release = false;
-   bool find;
+   bool have_vol;
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
@@ -342,7 +342,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     * find defines whether or not mount_next_write_volume should
     *   as the Director again about what Volume to use.
     */
-   find = !is_suitable_volume_mounted(dcr);
+   have_vol = is_suitable_volume_mounted(dcr);
    if (dev->can_append()) {
       Dmsg0(190, "device already in append.\n");
       /*
@@ -357,7 +357,7 @@ DCR *acquire_device_for_append(DCR *dcr)
        *  dcr->VolumeName is what we pass into the routines, or
        *    get back from the subroutines.
        */
-      if (!find &&
+      if (!have_vol &&
           !(dir_find_next_appendable_volume(dcr) &&
             strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
          Dmsg2(190, "Wrong tape mounted: %s. wants:%s\n", dev->VolHdr.VolumeName,
@@ -422,16 +422,16 @@ DCR *acquire_device_for_append(DCR *dcr)
       }
    } else {
       /* Not already in append mode, so mount the device */
-      Dmsg2(190, "jid=%u Not in append mode, try mount find=%d\n", 
-            (uint32_t)jcr->JobId, find);
+      Dmsg2(190, "jid=%u Not in append mode, try mount have_vol=%d\n", 
+            (uint32_t)jcr->JobId, have_vol);
 
       ASSERT(dev->num_writers == 0);
       do_mount = true;
    }
 
-   if (do_mount) {
+   if (do_mount || !have_vol) {
       Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
-      bool mounted = mount_next_write_volume(dcr, find, release);
+      bool mounted = mount_next_write_volume(dcr, have_vol, release);
       if (!mounted) {
          if (!job_canceled(jcr)) {
             /* Reduce "noise" -- don't print if job canceled */

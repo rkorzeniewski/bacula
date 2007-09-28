@@ -1,6 +1,11 @@
               Technical notes on version 2.3
 
 General:
+28Sep07
+kes  More tweaks to the mount volume routines to get everything
+     right. Changed variable name from find to have_vol, which is
+     much easier to understand.
+kes  Enhance btimer debug code.
 27Sep07 
 kes  Fix FD->SD authorization failure, which was due to spurious
      wakeups from a pthread_cond_timedwait().  Simply check the

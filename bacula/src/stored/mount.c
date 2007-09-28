@@ -60,7 +60,7 @@ enum {
  *  impossible to get the requested Volume.
  *
  */
-bool mount_next_write_volume(DCR *dcr, bool find, bool release)
+bool mount_next_write_volume(DCR *dcr, bool have_vol, bool release)
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
@@ -108,7 +108,7 @@ mount_next_vol:
     *    in dcr->VolCatInfo
     */
    Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
-   if (find) {
+   if (!have_vol) {
       while (!dir_find_next_appendable_volume(dcr)) {
          Dmsg0(200, "not dir_find_next\n");
          if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
@@ -117,7 +117,7 @@ mount_next_vol:
           Dmsg0(200, "Again dir_find_next_append...\n");
        }
    } else {
-      find = true;                   /* set true for next pass if any */
+      have_vol = false;               /* set false for next pass if any */
    }
    if (job_canceled(jcr)) {
       return false;
