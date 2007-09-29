@@ -30,6 +30,7 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
+@#setdebug level=50 storage=File
 run job=$JobName storage=File yes
 run job=$JobName storage=File yes
 run job=$JobName storage=File yes
@@ -42,6 +43,11 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
+sql
+select * from JobMedia where JobId=4;
+select * from JobMedia where JobId=5;
+
+@#setdebug level=50 storage=File
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *
