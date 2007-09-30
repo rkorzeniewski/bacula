@@ -490,7 +490,7 @@ void DEVICE::open_file_device(DCR *dcr, int omode)
       Mmsg2(errmsg, _("Could not open: %s, ERR=%s\n"), archive_name.c_str(), 
             be.bstrerror());
       Dmsg1(100, "open failed: %s", errmsg);
-      Emsg0(M_FATAL, 0, errmsg);
+      Jmsg1(NULL, M_WARNING, 0, "%s", errmsg);
    } else {
       dev_errno = 0;
       file = 0;

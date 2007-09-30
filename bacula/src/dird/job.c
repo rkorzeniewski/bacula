@@ -237,8 +237,7 @@ static void *job_thread(void *arg)
 {
    JCR *jcr = (JCR *)arg;
 
-   jcr->my_thread_id = pthread_self();
-   pthread_detach(jcr->my_thread_id);
+   pthread_detach(pthread_self());
    Dsm_check(1);
 
    Dmsg0(200, "=====Start Job=========\n");
