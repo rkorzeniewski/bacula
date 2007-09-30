@@ -49,7 +49,7 @@ extern bool do_mac(JCR *jcr);
 /* Requests from the Director daemon */
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
-      "SpoolData=%d SpoolSize=%s WritePartAfterJob=%d PreferMountedVols=%d\n";
+      "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s\n";
 
 
 /* Responses sent to Director daemon */
@@ -89,8 +89,8 @@ bool job_cmd(JCR *jcr)
    stat = sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
               client_name.c_str(),
               &JobType, &level, fileset_name.c_str(), &no_attributes,
-              &spool_attributes, fileset_md5.c_str(), &spool_data, spool_size,
-              &write_part_after_job, &PreferMountedVols);
+              &spool_attributes, fileset_md5.c_str(), &spool_data,
+              &write_part_after_job, &PreferMountedVols, spool_size);
    if (stat != 14) {
       pm_strcpy(jcr->errmsg, dir->msg);
       dir->fsend(BAD_job, stat, jcr->errmsg);
