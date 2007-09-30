@@ -976,6 +976,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->fileset = job->fileset;
    jcr->messages = job->messages;
    jcr->spool_data = job->spool_data;
+   jcr->spool_size = job->spool_size;
    jcr->write_part_after_job = job->write_part_after_job;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
