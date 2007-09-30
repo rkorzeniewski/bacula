@@ -121,6 +121,212 @@ sub set_limits
     $self->{offset} = $offset || 0;
 }
 
+sub update_cache
+{
+    my ($self) = @_;
+
+    $self->{dbh}->begin_work();
+
+    my $query = "
+  SELECT JobId from Job 
+   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) AND JobStatus IN ('T', 'f', 'A') ORDER BY JobId";
+    my $jobs = $self->dbh_selectall_arrayref($query);
+
+    $self->update_brestore_table(map { $_->[0] } @$jobs);
+
+    print STDERR "Cleaning path visibility\n";
+    
+    my $nb = $self->dbh_do("
+  DELETE FROM brestore_pathvisibility
+      WHERE NOT EXISTS 
+   (SELECT 1 FROM Job WHERE JobId=brestore_pathvisibility.JobId)");
+
+    print STDERR "$nb rows affected\n";
+    print STDERR "Cleaning known jobid\n";
+
+    $nb = $self->dbh_do("
+  DELETE FROM brestore_knownjobid
+      WHERE NOT EXISTS 
+   (SELECT 1 FROM Job WHERE JobId=brestore_knownjobid.JobId)");
+
+    print STDERR "$nb rows affected\n";
+
+    $self->{dbh}->commit();
+}
+
+sub update_brestore_table
+{
+    my ($self, @jobs) = @_;
+
+    $self->debug(\@jobs);
+
+    foreach my $job (sort {$a <=> $b} @jobs)
+    {
+	my $query = "SELECT 1 FROM brestore_knownjobid WHERE JobId = $job";
+	my $retour = $self->dbh_selectrow_arrayref($query);
+	next if ($retour and ($retour->[0] == 1)); # We have allready done this one ...
+
+	print STDERR "Inserting path records for JobId $job\n";
+	$query = "INSERT INTO brestore_pathvisibility (PathId, JobId) 
+                   (SELECT DISTINCT PathId, JobId FROM File WHERE JobId = $job)";
+
+	$self->dbh_do($query);
+
+	# Now we have to do the directory recursion stuff to determine missing visibility
+	# We try to avoid recursion, to be as fast as possible
+	# We also only work on not allready hierarchised directories...
+
+	print STDERR "Creating missing recursion paths for $job\n";
+
+	$query = "SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility 
+		  JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId)
+		  LEFT JOIN brestore_pathhierarchy ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId)
+		  WHERE brestore_pathvisibility.JobId = $job
+		  AND brestore_pathhierarchy.PathId IS NULL
+		  ORDER BY Path";
+
+	my $sth = $self->dbh_prepare($query);
+	$sth->execute();
+	my $pathid; my $path;
+	$sth->bind_columns(\$pathid,\$path);
+	
+	while ($sth->fetch)
+	{
+	    $self->build_path_hierarchy($path,$pathid);
+	}
+	$sth->finish();
+
+	# Great. We have calculated all dependancies. We can use them to add the missing pathids ...
+	# This query gives all parent pathids for a given jobid that aren't stored.
+	# It has to be called until no record is updated ...
+	$query = "
+	INSERT INTO brestore_pathvisibility (PathId, JobId) (
+	SELECT a.PathId,$job
+	FROM
+		(SELECT DISTINCT h.PPathId AS PathId
+		FROM brestore_pathhierarchy AS h
+		JOIN  brestore_pathvisibility AS p ON (h.PathId=p.PathId)
+		WHERE p.JobId=$job) AS a
+		LEFT JOIN
+		(SELECT PathId
+		FROM brestore_pathvisibility
+		WHERE JobId=$job) AS b
+		ON (a.PathId = b.PathId)
+	WHERE b.PathId IS NULL)";
+
+        my $rows_affected;
+	while (($rows_affected = $self->dbh_do($query)) and ($rows_affected !~ /^0/))
+	{
+	    print STDERR "Recursively adding $rows_affected records from $job\n";
+	}
+	# Job's done
+	$query = "INSERT INTO brestore_knownjobid (JobId) VALUES ($job)";
+	$self->dbh_do($query);
+    }
+}
+
+sub parent_dir
+{
+    my ($path) = @_;
+    # Root Unix case :
+    if ($path eq '/')
+    {
+        return '';
+    }
+    # Root Windows case :
+    if ($path =~ /^[a-z]+:\/$/i)
+    {
+	return '';
+    }
+    # Split
+    my @tmp = split('/',$path);
+    # We remove the last ...
+    pop @tmp;
+    my $tmp = join ('/',@tmp) . '/';
+    return $tmp;
+}
+
+sub build_path_hierarchy
+{
+    my ($self, $path,$pathid)=@_;
+    # Does the ppathid exist for this ? we use a memory cache...
+    # In order to avoid the full loop, we consider that if a dir is allready in the
+    # brestore_pathhierarchy table, then there is no need to calculate all the hierarchy
+    while ($path ne '')
+    {
+	if (! $self->{cache_ppathid}->{$pathid})
+	{
+	    my $query = "SELECT PPathId FROM brestore_pathhierarchy WHERE PathId = ?";
+	    my $sth2 = $self->{dbh}->prepare_cached($query);
+	    $sth2->execute($pathid);
+	    # Do we have a result ?
+	    if (my $refrow = $sth2->fetchrow_arrayref)
+	    {
+		$self->{cache_ppathid}->{$pathid}=$refrow->[0];
+		$sth2->finish();
+		# This dir was in the db ...
+		# It means we can leave, the tree has allready been built for
+		# this dir
+		return 1;
+	    } else {
+		$sth2->finish();
+		# We have to create the record ...
+		# What's the current p_path ?
+		my $ppath = parent_dir($path);
+		my $ppathid = $self->return_pathid_from_path($ppath);
+		$self->{cache_ppathid}->{$pathid}= $ppathid;
+		
+		$query = "INSERT INTO brestore_pathhierarchy (pathid, ppathid) VALUES (?,?)";
+		$sth2 = $self->{dbh}->prepare_cached($query);
+		$sth2->execute($pathid,$ppathid);
+		$sth2->finish();
+		$path = $ppath;
+		$pathid = $ppathid;
+	    }
+	} else {
+	   # It's allready in the cache.
+	   # We can leave, no time to waste here, all the parent dirs have allready
+	   # been done
+	   return 1;
+	}
+    }
+    return 1;
+}
+
+sub return_pathid_from_path
+{
+    my ($self, $path) = @_;
+    my $query = "SELECT PathId FROM Path WHERE Path = ?";
+
+    #print STDERR $query,"\n" if $debug;
+    my $sth = $self->{dbh}->prepare_cached($query);
+    $sth->execute($path);
+    my $result =$sth->fetchrow_arrayref();
+    $sth->finish();
+    if (defined $result)
+    {
+	return $result->[0];
+
+    } else {
+        # A bit dirty : we insert into path, and we have to be sure
+        # we aren't deleted by a purge. We still need to insert into path to get
+        # the pathid, because of mysql
+        $query = "INSERT INTO Path (Path) VALUES (?)";
+        #print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$sth->finish();
+        
+	$query = "SELECT PathId FROM Path WHERE Path = ?";
+	#print STDERR $query,"\n" if $debug;
+	$sth = $self->{dbh}->prepare_cached($query);
+	$sth->execute($path);
+	$result = $sth->fetchrow_arrayref();
+	$sth->finish();
+	return $result->[0];
+    }
+}
+
 sub ls_files
 {
     my ($self) = @_;
@@ -295,6 +501,12 @@ sub set_job_ids_for_date
     return @CurrentJobIds;
 }
 
+sub dbh_selectrow_arrayref
+{
+    my ($self, $query) = @_;
+    $self->debug($query, up => 1);
+    return $self->{dbh}->selectrow_arrayref($query);
+}
 
 # Returns list of versions of a file that could be restored
 # returns an array of 
@@ -524,6 +736,8 @@ print join(",", $args->{qdate}, $args->{client}, @jobid), "\n";
 }
 
 $bvfs->set_curjobids(@jobid);
+
+
 $bvfs->set_limits($args->{limit}, $args->{offset});
 
 print CGI::header('application/x-javascript');
@@ -558,6 +772,10 @@ if ($action eq 'list_client') {
       } @$result);
 
     print "]\n";
+}
+
+if (CGI::param('init')) {
+    $bvfs->update_brestore_table(@jobid);
 }
 
 my $pathid = CGI::param('node') || '';

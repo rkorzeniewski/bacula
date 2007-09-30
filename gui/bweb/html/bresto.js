@@ -48,6 +48,25 @@ Ext.namespace('Ext.brestore');
 
 Ext.brestore.jobid=0;
 Ext.brestore.client='';
+Ext.brestore.path='';
+Ext.brestore.root_path='';
+
+
+function get_node_path(node)
+{
+   var temp='';
+   for (var p = node; p; p = p.parentNode) {
+       if (p.parentNode) {
+          if (p.text == '/') {
+             temp = p.text + temp;
+          } else {
+          temp = p.text + '/' + temp;
+          }
+       }
+   }
+   return Ext.brestore.root_path + temp;
+}
+
 
 function ext_init()
 {
@@ -68,7 +87,7 @@ function ext_init()
 
     // set the root node
     var root = new Ext.tree.AsyncTreeNode({
-        text: 'Root',
+        text: 'Select a job',
         draggable:false,
         id:'source'
     });
@@ -78,11 +97,13 @@ function ext_init()
     tree.render();
 //    root.expand();
 
-    tree.on('click', function(e) { 
+    tree.on('click', function(node, event) { 
+        Ext.brestore.path = get_node_path(node);
+
         file_store.removeAll();
         file_store.load({params:{action: 'list_files',
                                  jobid:Ext.brestore.jobid, 
-                                 node:e.id}
+                                 node:node.id}
                        });
         return true;
     });
@@ -117,7 +138,7 @@ function ext_init()
            id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
            header:    'File',
            dataIndex: 'name',
-           width:     250,
+           width:     100,
            css:       'white-space:normal;'
         },{
            header:    "Size",
@@ -127,7 +148,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-           width:     50
+           width:     100
         },{
            dataIndex: 'pathid',
            hidden: true
@@ -163,6 +184,7 @@ function ext_init()
         return true;
     });
 
+    // TODO: selection only when using dblclick
     files_grid.selModel.on('rowselect', function(e,i,r) { 
         Ext.brestore.filename = r.json[3];
         file_versions_store.load({params:{action: 'list_versions',
@@ -186,6 +208,7 @@ function ext_init()
    {name: 'fileid'    },
    {name: 'filenameid'},
    {name: 'pathid'    },
+   {name: 'name'      },
    {name: 'size',     type: 'int'  },
    {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
         ]))
@@ -193,10 +216,12 @@ function ext_init()
 
    var file_selection_cm = new Ext.grid.ColumnModel([{
            id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
+           header:    "Name",
            dataIndex: 'name',
-           hidden: true
+           width:     250
         },{
            header:    "JobId",
+           width:     50,
            dataIndex: 'jobid'
         },{
            header:    "Size",
@@ -206,7 +231,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-           width:     50
+           width:     100
         },{
            dataIndex: 'pathid',
            hidden: true
@@ -248,35 +273,63 @@ function ext_init()
         ddGroup : 'TreeDD',
         copy:false,
         notifyDrop : function(dd, e, data){
-//		if (data.selections) {
-//			alert("grid");
-//		}
-//
-//		if (data.node) {
-//			alert("tree");
-//		}
-//
-		file_selection_store.add(
-                 new file_selection_record({
-			jobid:1,
-			fileid:1,
-			filenameid:1,
-			pathid:1,
-			size:1,
-			mtime:'2007-01-01 01:00:00'
-		 })
-		);
+           var r;
+           //TODO: gerer la multi-selection
+           if (data.selections) {
+             if (data.grid.id == 'div-files') {
+                 for(var i=0;i<data.selections.length;i++) {
+                    r = new file_selection_record({
+                      jobid:     Ext.brestore.jobid,
+                      fileid:    data.selections[i].json[0],
+                      filenameid:data.selections[i].json[1],
+                      pathid:    data.selections[i].json[2],
+                      name: Ext.brestore.path + data.selections[i].json[3],
+                      size:      data.selections[i].json[4],
+                      mtime:     data.selections[i].json[5]
+                    });
+                    file_selection_store.add(r)
+                 }
+             }
 
-		return true;
-//              var sm=grid.getSelectionModel();
-//              var rows=sm.getSelections();
-//              var cindex=dd.getDragData(e).rowIndex;
-//              for(i = 0; i < rows.length; i++) {
-//                      rowData=ds.getById(rows[i].id);
-//                      if(!this.copy) 
-//                              ds.remove(ds.getById(rows[i].id));
-//                      ds.insert(cindex,rowData);
-//              };
+             if (data.grid.id == 'div-file-versions') {
+                    r = new file_selection_record({
+                      jobid:     data.selections[0].json[3],
+                      fileid:    data.selections[0].json[0],
+                      filenameid:data.selections[0].json[1],
+                      pathid:    data.selections[0].json[2],
+                      name: Ext.brestore.path + Ext.brestore.filename,
+                      size:      data.selections[0].json[7],
+                      mtime:     data.selections[0].json[8]     
+                    });
+                    file_selection_store.add(r)
+             }
+           }
+  
+           if (data.node) {
+              var path= get_node_path(data.node);
+              r = new file_selection_record({
+                      jobid:     Ext.brestore.jobid,
+                      fileid:    0,
+                      filenameid:0,
+                      pathid:    data.node.id,
+                      name:      path,
+                      size:      4096,
+                      mtime:     0
+              });
+              file_selection_store.add(r)
+           }
+  
+           return true;
+
+//         var sm=grid.getSelectionModel();
+//         var rows=sm.getSelections();
+//         var cindex=dd.getDragData(e).rowIndex;
+//         for(i = 0; i < rows.length; i++) {
+//                 rowData=ds.getById(rows[i].id);
+//                 if(!this.copy) 
+//                         ds.remove(ds.getById(rows[i].id));
+//                 ds.insert(cindex,rowData);
+//         };
         }
     });
 
@@ -319,12 +372,14 @@ function ext_init()
         },{
            header:    "InChanger",
            dataIndex: 'inchanger',
+           width:     60,
            renderer:  rd_vol_is_online
         },{
            header:    "Volume",
            dataIndex: 'volume'
         },{
            header:    "JobId",
+           width:     50,
            dataIndex: 'jobid'
         },{
            header:    "Size",
@@ -334,11 +389,11 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-           width:     50
+           width:     100
         },{
            header:    "MD5",
            dataIndex: 'md5',
-           width:     50
+           width:     160
         },{
            dataIndex: 'pathid',
            hidden: true
@@ -441,8 +496,10 @@ function ext_init()
     job_combo.on('select', function(e,c) {
         // TODO: choose between date and jobid here (with a toolbar bp ?)
         Ext.brestore.jobid = c.json[0];
+        Ext.brestore.root_path='';
         root.setText("Root");
         tree_loader.baseParams = { action:'list_dirs',
+                                   init:1,
                                    jobid:Ext.brestore.jobid };
         root.reload();
     });
@@ -498,6 +555,7 @@ function ext_init()
           cls:'x-btn-text-icon',
           handler: function() { 
                 var where = where_field.getValue();
+                Ext.brestore.root_path=where;
                 root.setText(where);
                 tree_loader.baseParams = { action:'list_dirs',
                                            jobid:Ext.brestore.jobid,
@@ -518,13 +576,13 @@ function ext_init()
             split: true, initialSize: 300
         },
         east: {
-            split: true, initialSize: 500
+            split: true, initialSize: 550
         },
         west: {
             split: true, initialSize: 300
         },
         center: {
-            initialSize: 600
+            initialSize: 450
         }        
         
     });
