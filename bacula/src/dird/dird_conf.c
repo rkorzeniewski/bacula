@@ -296,6 +296,7 @@ RES_ITEM job_items[] = {
    {"optimizejobscheduling",store_bool, ITEM(res_job.OptimizeJobScheduling), 0, ITEM_DEFAULT, false},
    {"spoolattributes",store_bool, ITEM(res_job.SpoolAttributes), 0, ITEM_DEFAULT, false},
    {"spooldata",   store_bool, ITEM(res_job.spool_data), 0, ITEM_DEFAULT, false},
+   {"spoolsize",   store_size, ITEM(res_job.spool_size), 0, 0, 0},
    {"rerunfailedlevels",   store_bool, ITEM(res_job.rerun_failed_levels), 0, ITEM_DEFAULT, false},
    {"prefermountedvolumes", store_bool, ITEM(res_job.PreferMountedVolumes), 0, ITEM_DEFAULT, true},
    {"runbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
@@ -607,6 +608,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          res->res_job.RescheduleOnError, res->res_job.RescheduleTimes,
          edit_uint64_with_commas(res->res_job.RescheduleInterval, ed1),
          res->res_job.spool_data, res->res_job.write_part_after_job);
+      if (res->res_job.spool_size) {
+         sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
+      }
       if (res->res_job.JobType == JT_MIGRATE) {
          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
       }
