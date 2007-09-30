@@ -56,7 +56,7 @@ quit
 END_OF_SCRIPT
 
 run_bacula
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=File || exit 1
 stop_bacula
 
 check_two_logs
