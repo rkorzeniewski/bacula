@@ -11,9 +11,14 @@ rm -rf working/*.bsr
 rm -rf /tmp/disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
-bin/bacula stop 2>&1 >/dev/null
-cd bin
-./drop_bacula_tables >/dev/null 2>&1
-./make_bacula_tables >/dev/null 2>&1
-./grant_bacula_privileges >/dev/null 2>&1
-cd ..
+
+# bin directory does not always exist
+if [ -d bin ]
+then
+  bin/bacula stop 2>&1 >/dev/null
+  cd bin
+  ./drop_bacula_tables      >/dev/null 2>&1
+  ./make_bacula_tables      >/dev/null 2>&1
+  ./grant_bacula_privileges >/dev/null 2>&1
+  cd ..
+fi
