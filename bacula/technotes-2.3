@@ -2,16 +2,23 @@
 
 General:
 30Sep07
+kes  Save jcr in thread specific data (tsd) for each thread.
+kes  Make Dmsg() print JobId as -%u.
+kes  Make Jmsg, Emsg, and others automatically pickup the jobid
+     for the thread if it exists.
+kes  Remove old reservation debug jid code.
+kes  Remove get_jcr_from_tid() from OpenSSL and tls code.
 ebl  Add an option that permit to specify spool size in job
      definition. (Applying patches/testing/spoolsize_per_job.patch).
      You must upgrade SD and DIR at the same time.
 28Sep07
 kes  Fix race condition that drops final block written to volume.
      This happens in rare cases with multiple simultaneous jobs 
-     when the Volume fills.
+     when the Volume fills.  This fixes bug #964.  May be related
+     to bug #935 and possibly #903.
 kes  Eliminate more strerror() and replace with bstrerror().
-kes  Remove BSD getopt and replace with unrestricted IBM version
-kes  Fix Win32 build.
+kes  Remove BSD getopt and replace with unrestricted IBM version.
+kes  Fix Win32 build for changed calling sequences.
 kes  More tweaks to the mount volume routines to get everything
      right. Changed variable name from find to have_vol, which is
      much easier to understand.
@@ -19,29 +26,32 @@ kes  Enhance btimer debug code.
 27Sep07 
 kes  Fix FD->SD authorization failure, which was due to spurious
      wakeups from a pthread_cond_timedwait().  Simply check the
-     predicate before continuing.  This fixes bug #953
+     predicate before continuing.  This fixes bug #953.
 kes  Add const char where needed (more to do). Remove temp debug code.
 26Sep07
-kes  Setup SQLite busy handler before doing queries.
+kes  Setup SQLite busy handler before doing queries. Fixes bug #967.
 kes  Don't overwrite error message in check_tables_version.
+     Fixes bug #966.
 kes  Unlock batch insert tables with same calls used elsewhere.
 kes  Allow starting 59 jobs a second.
 kes  Make SD session key more random.
-kes  Add retry for SQLite opening db if it fails. 
+kes  Add retry for SQLite opening db if it fails. Probably helps
+     for bug #967.
 kes  Suppress extra error messages during batch insert failure.
+     Fixes bug #966.
 kes  Add jcr to timer packets so if killed message can be sent to job.
 kes  Add JobId to all Dmsg() output.
 kes  Put some FD auth code on dbglvl rather than fixed.
 kes  Return insert attributes error message in db msg buffer to avoid
-     false error messages.
-kes  Separate batch init error messages.
+     false error messages. Helps fix bug #966.
+kes  Separate batch init error messages. Probably helps fix bug #966.
 kes  Make SD code that contructs attribute insert check string lengths
      more carefully.
 kes  If Dir gets an error during inserting attributes, cancel SD.  
      This reduces unnecessary error messages.
 24Sep07 
 kes  Correct search boolean for getting Volume info
-ebl  Cleanup batch code.
+ebl  Cleanup batch code. Probably fixes bug #965.
 kes  Back out one small change to the reservation system (reserving a volume).
 kes  Rework how a Volume is mounted. It is now much more intelligent and
      will always attempt to use any mounted volume if possible and reduces
@@ -84,6 +94,8 @@ kes  Implement restore callback that Dirk and I agreed on for bat
      restore. This fixes bug #928. Restore of backup of zero files fails.
 kes  Fix SQL Catalog logging which broke with new db_escape_string 
      calling sequence.
+
+Release Version 2.2.4
 14Sep07
 kes  Fix bacula_cats.def for new db_escape_string().
 kes  Increase size of name string when FD making connection to SD.

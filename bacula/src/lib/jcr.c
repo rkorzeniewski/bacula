@@ -55,6 +55,14 @@
 
 const int dbglvl = 3400;
 
+/*
+ * Setting a NULL in tsd doesn't clear the tsd but instead tells
+ *   pthreads not to call the tsd destructor. Consequently, we 
+ *   define this *invalid* jcr address and stuff it in the tsd
+ *   when the jcr is no longer valid.
+ */
+#define INVALID_JCR ((JCR *)(-1))
+
 /* External variables we reference */
 extern time_t watchdog_time;
 
@@ -85,6 +93,10 @@ static pthread_mutex_t jcr_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t job_start_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_mutex_t last_jobs_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static pthread_key_t jcr_key;         /* Pointer to jcr for each thread */
+
+pthread_once_t key_once = PTHREAD_ONCE_INIT; 
 
 
 void lock_jobs()
@@ -230,6 +242,16 @@ static void job_end_pop(JCR *jcr)
    }
 }
 
+void create_jcr_key()
+{
+   int status = pthread_key_create(&jcr_key, NULL);
+   if (status != 0) {
+      berrno be;
+      Jmsg1(NULL, M_ABORT, 0, _("pthread key create failed: ERR=%s\n"),
+            be.bstrerror(status));
+   }
+}
+
 /*
  * Create a Job Control Record and link it into JCR chain
  * Returns newly allocated JCR
@@ -241,8 +263,14 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    JCR *jcr;
    MQUEUE_ITEM *item = NULL;
    struct sigaction sigtimer;
+   int status;
 
    Dmsg0(dbglvl, "Enter new_jcr\n");
+   status = pthread_once(&key_once, create_jcr_key);
+   if (status != 0) {
+      berrno be;
+      Jmsg1(NULL, M_ABORT, 0, _("pthread_once failed. ERR=%s\n"), be.bstrerror(status));
+   }
    jcr = (JCR *)malloc(size);
    memset(jcr, 0, size);
    jcr->my_thread_id = pthread_self();
@@ -262,7 +290,7 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    jcr->JobType = JT_SYSTEM;          /* internal job until defined */
    jcr->JobLevel = L_NONE;
    set_jcr_job_status(jcr, JS_Created);       /* ready to run */
-
+   set_jcr_in_tsd(jcr);
    sigtimer.sa_flags = 0;
    sigtimer.sa_handler = timeout_handler;
    sigfillset(&sigtimer.sa_mask);
@@ -407,6 +435,8 @@ static void free_common_jcr(JCR *jcr)
       free_guid_list(jcr->id_list);
       jcr->id_list = NULL;
    }
+   /* Invalidate the tsd jcr data */
+   set_jcr_in_tsd(INVALID_JCR);
    free(jcr);
 }
 
@@ -461,53 +491,42 @@ void free_jcr(JCR *jcr)
    garbage_collect_memory_pool();
    Dmsg0(dbglvl, "Exit free_jcr\n");
 }
+
+void set_jcr_in_tsd(JCR *jcr)
+{
+   int status = pthread_setspecific(jcr_key, (void *)jcr);
+   if (status != 0) {
+      berrno be;
+      Jmsg1(jcr, M_ABORT, 0, _("pthread_setspecific failed: ERR=%s\n"), be.bstrerror(status));
+   }
+}
+
+JCR *get_jcr_from_tsd()
+{
+   JCR *jcr = (JCR *)pthread_getspecific(jcr_key);
+// printf("get_jcr_from_tsd: jcr=%p\n", jcr);
+   /* set any INVALID_JCR to NULL which the rest of Bacula understands */
+   if (jcr == INVALID_JCR) {
+      jcr = NULL;
+   }
+   return jcr;
+}
+
  
 /*
  * Find which JobId corresponds to the current thread
  */
-uint32_t get_jobid_from_tid()                              
-{
-   return get_jobid_from_tid(pthread_self());
-}
-
-uint32_t get_jobid_from_tid(pthread_t tid)
+uint32_t get_jobid_from_tsd()
 {
    JCR *jcr;
    uint32_t JobId = 0;
-   foreach_jcr(jcr) {
-      if (pthread_equal(jcr->my_thread_id, tid)) {
-         JobId = (uint32_t)jcr->JobId;
-         break;
-      }
+   jcr = get_jcr_from_tsd();
+// printf("get_jobid_from_tsr: jcr=%p\n", jcr);
+   if (jcr) {
+      JobId = (uint32_t)jcr->JobId;
    }
-   endeach_jcr(jcr);
    return JobId;
 }
-
-/*
- * Find the jcr that corresponds to the current thread
- */
-JCR *get_jcr_from_tid()                              
-{
-   return get_jcr_from_tid(pthread_self());
-}
-
-JCR *get_jcr_from_tid(pthread_t tid)
-{
-   JCR *jcr;
-   JCR *rtn_jcr = NULL;
-
-   foreach_jcr(jcr) {
-      if (pthread_equal(jcr->my_thread_id, tid)) {
-         rtn_jcr = jcr;
-         break;
-      }
-   }
-   endeach_jcr(jcr);
-   return rtn_jcr;
-}
-
-
 
 /*
  * Given a JobId, find the JCR

@@ -364,6 +364,7 @@ extern "C" void *msg_thread(void *arg)
    int stat;
 
    pthread_detach(pthread_self());
+   set_jcr_in_tsd(jcr);
    jcr->SD_msg_chan = pthread_self();
    pthread_cleanup_push(msg_thread_cleanup, arg);
    sd = jcr->store_bsock;

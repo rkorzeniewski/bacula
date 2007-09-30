@@ -1,23 +1,4 @@
 /*
- * Bacula job queue routines.
- *
- *  This code consists of three queues, the waiting_jobs
- *  queue, where jobs are initially queued, the ready_jobs
- *  queue, where jobs are placed when all the resources are
- *  allocated and they can immediately be run, and the
- *  running queue where jobs are placed when they are
- *  running.
- *
- *  Kern Sibbald, July MMIII
- *
- *   Version $Id$
- *
- *  This code was adapted from the Bacula workq, which was
- *    adapted from "Programming with POSIX Threads", by
- *    David R. Butenhof
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
@@ -44,6 +25,25 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula job queue routines.
+ *
+ *  This code consists of three queues, the waiting_jobs
+ *  queue, where jobs are initially queued, the ready_jobs
+ *  queue, where jobs are placed when all the resources are
+ *  allocated and they can immediately be run, and the
+ *  running queue where jobs are placed when they are
+ *  running.
+ *
+ *  Kern Sibbald, July MMIII
+ *
+ *   Version $Id$
+ *
+ *  This code was adapted from the Bacula workq, which was
+ *    adapted from "Programming with POSIX Threads", by
+ *    David R. Butenhof
+ *
+ */
 
 #include "bacula.h"
 #include "dird.h"
@@ -453,6 +453,7 @@ void *jobq_server(void *arg)
             }
          }
          jq->running_jobs->append(je);
+         set_jcr_in_tsd(jcr);
          Dmsg1(2300, "Took jobid=%d from ready and appended to run\n", jcr->JobId);
 
          /* Release job queue lock */

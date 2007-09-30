@@ -60,19 +60,6 @@ char con_fname[500];                  /* Console filename */
 FILE *con_fd = NULL;                  /* Console file descriptor */
 brwlock_t con_lock;                   /* Console lock structure */
 
-static char *catalog_db = NULL;       /* database type */
-static void (*message_callback)(int type, char *msg) = NULL;
-
-const char *host_os = HOST_OS;
-const char *distname = DISTNAME;
-const char *distver = DISTVER;
-static FILE *trace_fd = NULL;
-#if defined(HAVE_WIN32)
-static bool trace = true;
-#else
-static bool trace = false;
-#endif
-
 /* Forward referenced functions */
 
 /* Imported functions */
@@ -83,6 +70,20 @@ static bool trace = false;
 /* Used to allow only one thread close the daemon messages at a time */
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static MSGS *daemon_msgs;              /* global messages */
+static char *catalog_db = NULL;       /* database type */
+static void (*message_callback)(int type, char *msg) = NULL;
+static FILE *trace_fd = NULL;
+#if defined(HAVE_WIN32)
+static bool trace = true;
+#else
+static bool trace = false;
+#endif
+
+/* Constants */
+const char *host_os = HOST_OS;
+const char *distname = DISTNAME;
+const char *distver = DISTVER;
+
 
 void register_message_callback(void msg_callback(int type, char *msg))
 {
@@ -581,8 +582,7 @@ static bool open_dest_file(JCR *jcr, DEST *d, const char *mode)
    if (!d->fd) {
       berrno be;
       d->fd = stdout;
-      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where,
-            be.bstrerror());
+      Qmsg2(jcr, M_ERROR, 0, _("fopen %s failed: ERR=%s\n"), d->where, be.bstrerror());
       d->fd = NULL;
       return false;
    }
@@ -638,6 +638,9 @@ void dispatch_message(JCR *jcr, int type, time_t mtime, char *msg)
 
     /* Now figure out where to send the message */
     msgs = NULL;
+    if (!jcr) {
+       jcr = get_jcr_from_tsd();
+    }
     if (jcr) {
        msgs = jcr->jcr_msgs;
     }
@@ -849,8 +852,8 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     if (level <= debug_level) {
 #ifdef FULL_LOCATION
        if (details) {
-          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d jid=%u ", 
-                my_name, get_basename(file), line, get_jobid_from_tid());
+          len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ", 
+                my_name, get_basename(file), line, get_jobid_from_tsd());
        } else {
           len = 0;
        }
@@ -1091,6 +1094,9 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
 
     msgs = NULL;
     job = NULL;
+    if (!jcr) {
+       jcr = get_jcr_from_tsd();
+    }
     if (jcr) {
        msgs = jcr->jcr_msgs;
        job = jcr->Job;
@@ -1328,10 +1334,13 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
    item->type = type;
    item->mtime = time(NULL);
    strcpy(item->msg, pool_buf);
+   if (!jcr) {
+      jcr = get_jcr_from_tsd();
+   }
    /* If no jcr or dequeuing send to daemon to avoid recursion */
    if (!jcr || jcr->dequeuing) {
       /* jcr==NULL => daemon message, safe to send now */
-      Jmsg(NULL, item->type, item->mtime, "%s", item->msg);
+      Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
       free(item);
    } else {
       /* Queue message for later sending */
