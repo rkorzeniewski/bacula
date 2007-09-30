@@ -51,7 +51,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Commands sent to Storage daemon */
 static char jobcmd[]     = "JobId=%s job=%s job_name=%s client_name=%s "
    "type=%d level=%d FileSet=%s NoAttr=%d SpoolAttr=%d FileSetMD5=%s "
-   "SpoolData=%d SpoolSize=%s WritePartAfterJob=%d PreferMountedVols=%d\n";
+   "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s\n";
 static char use_storage[] = "use storage=%s media_type=%s pool_name=%s "
    "pool_type=%s append=%d copy=%d stripe=%d\n";
 static char use_device[] = "use device=%s\n";
@@ -187,8 +187,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
              jcr->JobType, jcr->JobLevel,
              fileset_name.c_str(), !jcr->pool->catalog_files,
              jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
-             edit_int64(jcr->spool_size, ed2), jcr->write_part_after_job,
-             jcr->job->PreferMountedVolumes);
+             jcr->write_part_after_job, jcr->job->PreferMountedVolumes,
+             edit_int64(jcr->spool_size, ed2));
    Dmsg1(100, ">stored: %s\n", sd->msg);
    if (bget_dirmsg(sd) > 0) {
        Dmsg1(100, "<stored: %s", sd->msg);
