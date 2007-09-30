@@ -22,12 +22,14 @@ status $1
 @output
 quit
 END_OF_DATA
+
 grep "No Jobs running." tmp/dir.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
   echo " "
   echo "  !!!! Zombie Jobs in Director !!!!"
   echo "  !!!! Zombie Jobs in Director !!!!" >>test.out
   echo " "
+  exit 1
 fi
 grep "No Jobs running." tmp/fd.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
@@ -35,6 +37,7 @@ if [ $? != 0 ] ; then
   echo "  !!!! Zombie Jobs in File daemon !!!!"
   echo "  !!!! Zombie Jobs in File daemon !!!!" >>test.out
   echo " "
+  exit 1
 fi
 grep "No Jobs running." tmp/sd.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
@@ -42,6 +45,7 @@ if [ $? != 0 ] ; then
   echo "  !!!! Zombie Jobs in Storage daemon !!!!"
   echo "  !!!! Zombie Jobs in Storage daemon !!!!" >>test.out
   echo " "
+  exit 1
 fi
 grep "ERROR" tmp/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
@@ -49,6 +53,7 @@ if [ $? = 0 ] ; then
   echo "  !!!! ERROR in log output !!!!"
   echo "  !!!! ERROR in log output !!!!" >>test.out
   echo " "
+  exit 1
 fi
 grep "Fatal Error" tmp/log*.out 2>&1 >/dev/null
 if [ $? = 0 ] ; then
@@ -56,6 +61,7 @@ if [ $? = 0 ] ; then
   echo "  !!!! Fatal Error in log output !!!!"
   echo "  !!!! Fatal Error in log output !!!!" >>test.out
   echo " "
+  exit 1
 fi
 
 grep "glibc detected" tmp/log*.out 2>&1 >/dev/null
@@ -64,5 +70,5 @@ if [ $? = 0 ] ; then
   echo "  !!!! glibc detected Error in log output !!!!"
   echo "  !!!! glibc detected Error in log output !!!!" >>test.out
   echo " "
+  exit 1
 fi
-
