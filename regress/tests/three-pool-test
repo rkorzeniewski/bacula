@@ -15,12 +15,12 @@ scripts/cleanup
 scripts/copy-2disk-drive-confs
 scripts/prepare-two-disks
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 change_jobname NightlySave $JobName
 start_test
 
 # Turn off Prefer Mounted Volumes so we use 2 drives
-outf="tmp/sed_tmp"
+outf="${cwd}/tmp/sed_tmp"
 echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 # Comment the next line out to write everything to one drive
@@ -28,10 +28,10 @@ cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
 # Write out bconsole commands
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=200 storage=DDS-4
 @#setdebug level=200 client 
 label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
@@ -57,13 +57,13 @@ END_OF_DATA
 # exit
 
 run_bacula
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait

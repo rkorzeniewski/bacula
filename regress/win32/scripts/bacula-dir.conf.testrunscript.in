@@ -40,7 +40,7 @@ JobDefs {
 FileSet {
  Name = FS_TESTJOB
  Include {
-   File=</tmp/file-list
+   File=<@tmpdir@/file-list
  }
 }
 

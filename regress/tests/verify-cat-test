@@ -9,10 +9,10 @@ JobName=VerifyCatalog
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
-#echo "${cwd}/do_all" >/tmp/file-list
-#echo "${cwd}/do_all_tapes" >>/tmp/file-list
-#echo "${cwd}/do_file" >>/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
+#echo "${cwd}/do_all" >${cwd}/tmp/file-list
+#echo "${cwd}/do_all_tapes" >>${cwd}/tmp/file-list
+#echo "${cwd}/do_file" >>${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test

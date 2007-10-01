@@ -11,19 +11,19 @@ JobName=backup
 copy_test_confs
 
 rm -f bin/bacula-dir.conf
-rm -f tmp/RUN*log
+rm -f ${cwd}/tmp/RUN*log
 /bin/cp -f scripts/bacula-dir.conf.maxtime bin/bacula-dir.conf
 WHEN=$(date '+%Y-%m-%d %H:%M:%S')
 
-echo "${cwd}/build/po" >/tmp/file-list
+echo "${cwd}/build/po" >${cwd}/tmp/file-list
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 label volume=TestVolume001 pool=PoolA
-@$out tmp/RUN_MAXTIME.log
+@$out ${cwd}/tmp/RUN_MAXTIME.log
 @# no media => have to wait
 run job=RUN_MAXWAITTIME pool=Default yes
 @sleep 2
@@ -38,21 +38,21 @@ st dir
 quit
 END_OF_DATA
 
-(mkfifo /tmp/fifo 
- mkfifo /tmp/fifo2
- mkfifo /tmp/fifo3) 2> /dev/null
+(mkfifo ${cwd}/tmp/fifo 
+ mkfifo ${cwd}/tmp/fifo2
+ mkfifo ${cwd}/tmp/fifo3) 2> /dev/null
 
 bin/bacula start
-cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
+cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
 stop_bacula
 
-rm /tmp/fifo /tmp/fifo2 /tmp/fifo3
+rm ${cwd}/tmp/fifo ${cwd}/tmp/fifo2 ${cwd}/tmp/fifo3
 
 export dstat=0
 export bstat=0
 export rstat=0
 
-if grep -e 'RUN_MAXWAITTIME.* Fatal error: Max wait time exceeded. Job canceled.' tmp/RUN_MAXTIME.log >/dev/null 2>&1
+if grep -e 'RUN_MAXWAITTIME.* Fatal error: Max wait time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXWAITTIME ok
 else
@@ -60,8 +60,8 @@ else
    rstat=1
 fi
 
-if grep -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' tmp/RUN_MAXTIME.log &&
-  ! grep -e 'NEVER start this' tmp/RUN_MAXTIME.log >/dev/null 2>&1
+if grep -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' ${cwd}/tmp/RUN_MAXTIME.log &&
+  ! grep -e 'NEVER start this' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXSTARTDELAY ok
 else
@@ -69,7 +69,7 @@ else
    rstat=1
 fi
 
-if grep -e 'RUN_MAXRUNTIME.* Fatal error: Max run time exceeded. Job canceled.' tmp/RUN_MAXTIME.log >/dev/null 2>&1
+if grep -e 'RUN_MAXRUNTIME.* Fatal error: Max run time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
 then
     [ "$debug" = 1 ] && echo MAXRUNTIME ok
 else

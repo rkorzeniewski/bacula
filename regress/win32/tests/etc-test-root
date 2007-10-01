@@ -20,7 +20,7 @@ echo " "
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "/etc" >/tmp/file-list
+echo "/etc" >${cwd}/tmp/file-list
 
 bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA

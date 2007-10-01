@@ -4,7 +4,7 @@
 #  an autochanger. Note, the Director has three Pools in its 
 #  conf:  Default, Full, and Inc.  Default is used in the
 #  NightlySave job by default.  What is backed up is what
-#  is in /tmp/file-list, which is by default the Bacula
+#  is in ${cwd}/tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
 TestName="two-pool-tape"
@@ -25,11 +25,11 @@ scripts/prepare-two-tapes
 echo "Done prepare two tapes"
  
 # Make a relatively large backup set 5 x source code directory
-echo "${cwd}/build" >/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
-echo "${cwd}/build" >>/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
+echo "${cwd}/build" >>${cwd}/tmp/file-list
 
 start_test
 

@@ -13,7 +13,7 @@ cd ..
 
 scripts/cleanup-tape
 scripts/copy-tape-confs
-echo "/lib" >/tmp/file-list
+echo "/lib" >${cwd}/tmp/file-list
 echo " "
 echo " "
 echo " === Starting lib-tape-root test ==="

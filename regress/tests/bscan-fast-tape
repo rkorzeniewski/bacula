@@ -11,7 +11,7 @@ JobName=bscantape
 
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 # sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf

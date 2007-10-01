@@ -49,7 +49,7 @@ root_test:
 
 clean:
 	scripts/cleanup
-	rm -f /tmp/file-list
+	rm -f tmp/file-list
 	rm -fr tmp/* working/*
 	rm -f test.out
 	rm -f diff
@@ -60,7 +60,6 @@ clean:
 reset:
 	chown -R ${USER}:${USER} . tmp working
 	scripts/cleanup
-	rm -f /tmp/file-list tmp/file-list
 	rm -f tmp/* working/*
 
 distclean: clean

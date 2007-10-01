@@ -11,7 +11,7 @@ set_debug 0
 scripts/cleanup-tape
 scripts/copy-tape-confs
  
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 out="tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${out}

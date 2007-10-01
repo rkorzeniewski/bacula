@@ -10,7 +10,7 @@ JobName=VerifyVol
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test

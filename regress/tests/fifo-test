@@ -8,20 +8,20 @@ JobName=FIFOTest
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "/tmp/bfifo" >/tmp/file-list
+echo "${cwd}/tmp/bfifo" >${cwd}/tmp/file-list
 
-rm -f /tmp/bfifo
-mkfifo /tmp/bfifo
+rm -f ${cwd}/tmp/bfifo
+mkfifo ${cwd}/tmp/bfifo
 # send a file into the fifo
 file=encrypt-bug.jpg
-cat ${file} >/tmp/bfifo&
+cat ${file} >${cwd}/tmp/bfifo&
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
 run job=$JobName storage=File1 yes
 wait
@@ -32,13 +32,13 @@ END_OF_DATA
 
 run_bacula
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 @#setdebug level=50 client
 restore where=/  select all storage=File1 done
 yes
@@ -48,7 +48,7 @@ messages
 quit
 END_OF_DATA
 
-cat </tmp/bfifo >tmp/${file}&
+cat <${cwd}/tmp/bfifo >${cwd}/tmp/${file}&
 
 run_bconsole
 
@@ -56,6 +56,6 @@ check_for_zombie_jobs storage=File1
 stop_bacula
 
 check_two_logs
-diff ${file} tmp/${file}
+diff ${file} ${cwd}/tmp/${file}
 dstat=$?
 end_test

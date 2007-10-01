@@ -10,7 +10,7 @@ JobName=fixedblocksize
 
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 echo "s%# Maximum Block Size%  Maximum Block Size%" >${cwd}/tmp/2
@@ -29,10 +29,10 @@ change_jobname NightlySave $JobName
 start_test
 
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 setdebug level=51 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
@@ -41,7 +41,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
 unmark *
 mark *

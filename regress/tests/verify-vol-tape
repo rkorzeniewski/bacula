@@ -9,7 +9,7 @@ JobName=VerifyVol
 
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test

@@ -14,7 +14,7 @@ set_debug 0
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test

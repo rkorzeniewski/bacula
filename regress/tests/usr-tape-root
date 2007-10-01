@@ -7,7 +7,7 @@ cwd=`pwd`
 . scripts/functions
 scripts/copy-tape-confs
 scripts/cleanup-tape
-echo "/usr" >/tmp/file-list
+echo "/usr" >${cwd}/tmp/file-list
 
 echo " "
 echo " "

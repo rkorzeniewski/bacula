@@ -11,7 +11,7 @@ JobName=maxvol
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 cp -f ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed "s%# Maximum Volume Jobs%  Maximum Volume Jobs%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
@@ -20,10 +20,10 @@ sed "s%# Maximum Volume Jobs%  Maximum Volume Jobs%" ${cwd}/tmp/1 >${cwd}/bin/ba
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out   tmp/log1.out
+@$out   ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 label storage=File1 volume=TestVolume003
@@ -41,7 +41,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out   tmp/log2.out
+@$out   ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 mark *

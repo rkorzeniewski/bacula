@@ -15,7 +15,7 @@ fi
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "/dev" >/tmp/file-list
+echo "/dev" >${cwd}/tmp/file-list
 
 echo " "
 echo " "

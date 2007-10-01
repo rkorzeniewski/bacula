@@ -18,7 +18,7 @@ scripts/cleanup
 scripts/copy-test-confs
 rm -rf weird-files2
 cp -Rp weird-files weird-files2
-echo "${cwd}/weird-files2" >/tmp/file-list
+echo "${cwd}/weird-files2" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test

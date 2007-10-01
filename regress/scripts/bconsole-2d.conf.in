@@ -4,7 +4,7 @@
 
 Director {
   Name = @hostname@-dir
-  DIRport = 8101
+  DIRPort = @dirport@
   address = @hostname@
   Password = "dir-pw"
 }

@@ -9,7 +9,7 @@ JobName=IncTape
 
 copy_tape_confs
 
-echo "${cwd}/tmp/build" >/tmp/file-list
+echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then
    mkdir ${cwd}/tmp/build
 fi
@@ -22,10 +22,10 @@ cd ${cwd}
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out   tmp/log1.out
+@$out   ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
 wait
@@ -39,17 +39,17 @@ check_for_zombie_jobs storage=DDS-4
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out   tmp/log1.out
+@$out   ${cwd}/tmp/log1.out
 run level=Incremental job=$JobName yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@$out   tmp/log2.out
+@$out   ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=DDS-4
 7
 <${cwd}/tmp/restore-list
@@ -68,7 +68,7 @@ stop_bacula
 #
 # Delete .c files because we will only restored the txt files
 #
-rm -f tmp/build/*.c
+rm -f ${cwd}/tmp/build/*.c
 
 check_two_logs
 check_restore_tmp_build_diff

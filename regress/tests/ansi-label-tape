@@ -16,16 +16,16 @@ scripts/copy-tape-confs
 /bin/cp -f scripts/ansi-sd-tape.conf bin/bacula-sd.conf
 scripts/cleanup-tape
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
 
 # Write out bconsole commands
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=200 storage=DDS-4
 label storage=DDS-4 volume=Vol001 slot=0 pool=Default
 purge volume=Vol001
@@ -40,7 +40,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
@@ -58,10 +58,10 @@ stop_bacula
 touch ${cwd}/build/src/dird/*.c
 echo "test test" > ${cwd}/build/src/dird/xxx
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 list volumes
 @#setdebug level=300 storage=DDS-4
 run job=$JobName yes
@@ -71,7 +71,7 @@ messages
 @# 
 @# now do a second restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 list volumes
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes

@@ -9,7 +9,7 @@ JobName=tls
 
 scripts/cleanup
 scripts/copy-tls-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname CompressedTest $JobName
 start_test

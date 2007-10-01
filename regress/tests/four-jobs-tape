@@ -10,18 +10,18 @@ JobName=fourjobstape
 
 scripts/cleanup-tape
 scripts/copy-tape-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 estimate job=$JobName listing
 estimate job=$JobName listing
 estimate job=$JobName listing
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=$JobName yes
 wait
@@ -30,10 +30,10 @@ quit
 END_OF_DATA
 if test "$debug" -eq 1 ; then
   bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
 else
   bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
 
 scripts/check_for_zombie_jobs storage=DDS-4
@@ -45,10 +45,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a second job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run job=$JobName level=Incremental yes
 wait
 messages
@@ -56,10 +56,10 @@ quit
 END_OF_DATA
 if test "$debug" -eq 1 ; then
   bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
 else
   bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
 
 scripts/check_for_zombie_jobs storage=DDS-4
@@ -69,10 +69,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a third job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run job=$JobName level=Incremental yes
 wait
 messages
@@ -80,10 +80,10 @@ quit
 END_OF_DATA
 if test "$debug" -eq 1 ; then
   bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
 else
   bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
 
 scripts/check_for_zombie_jobs storage=DDS-4
@@ -93,10 +93,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a fourth job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run job=$JobName level=Incremental yes
 wait
 messages
@@ -104,10 +104,10 @@ quit
 END_OF_DATA
 if test "$debug" -eq 1 ; then
   bin/bacula start
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
 else
   bin/bacula start 2>&1 >/dev/null
-  cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+  cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
 fi
 
 scripts/check_for_zombie_jobs storage=DDS-4
@@ -115,7 +115,7 @@ echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
@@ -123,7 +123,7 @@ wait
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 @#
 @# now unmount the tape and start two restores
 @#  at the same time

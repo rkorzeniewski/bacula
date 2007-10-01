@@ -10,7 +10,7 @@ set_debug 0
 
 copy_tape_confs
 
-echo "${cwd}/tmp/build" >/tmp/file-list
+echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then
    mkdir ${cwd}/tmp/build
 fi

@@ -14,7 +14,7 @@
 
 Director {                            # define myself
   Name = localhost-dir
-  DIRport = 8101                # where we listen for UA connections
+  DIRPort = @dirport@                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
@@ -25,7 +25,7 @@ Director {                            # define myself
 
 #
 # Define the main nightly save backup job
-#   By default, this job will back up to disk in /tmp
+#   By default, this job will back up to disk in @tmpdir@
 Job {
   Name = "NightlySave"
   Type = Backup
@@ -49,7 +49,7 @@ Job {
   Storage = DDS-4
   Messages = Standard
   Pool = Default
-  Where = /tmp/bacula-restores
+  Where = @tmpdir@/bacula-restores
 }
 
 
@@ -92,7 +92,7 @@ Client {
 Client {
   Name = localhost-fd
   Address = localhost
-  FDPort = 8102
+  FDPort = @fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"
   File Retention = 30d                # 30 days
@@ -106,7 +106,7 @@ Client {
 Storage {
   Name = DDS-4
   Address = 192.168.68.112            # N.B. Use a fully qualified name here
-  SDPort = 8103
+  SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon

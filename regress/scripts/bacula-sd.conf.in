@@ -12,7 +12,7 @@
 
 Storage {                             # definition of myself
   Name = rufus-sd
-  SDPort = 8103                  # Director's port      
+  SDPort = @sdport@                  # Director's port      
   WorkingDirectory = "/home/kern/bacula/regress/working"
   Pid Directory = "/home/kern/bacula/regress/working"
 }

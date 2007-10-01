@@ -10,41 +10,41 @@ JobName=backup
 copy_test_confs
 
 rm -f bin/bacula-dir.conf
-rm -f tmp/RUN*log
-rm -f tmp/RUN_FD_FAILED
+rm -f ${cwd}/tmp/RUN*log
+rm -f ${cwd}/tmp/RUN_FD_FAILED
 
-touch tmp/log1.out
+touch ${cwd}/tmp/log1.out
 /bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
 
-echo "${cwd}/build/po" >/tmp/file-list
+echo "${cwd}/build/po" >${cwd}/tmp/file-list
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 label volume=TestVolume001
-@$out tmp/RUN_FD_WARNING.log
+@$out ${cwd}/tmp/RUN_FD_WARNING.log
 run job=RUN_FD_WARNING yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_ALL_OK.log
+@$out ${cwd}/tmp/RUN_ALL_OK.log
 run job=RUN_ALL_OK yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_FD_FAILED.log
+@$out ${cwd}/tmp/RUN_FD_FAILED.log
 run job=RUN_FD_FAILED yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_DIR_FAILED.log
+@$out ${cwd}/tmp/RUN_DIR_FAILED.log
 run job=RUN_DIR_FAILED yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_FD_FAILED2.log
+@$out ${cwd}/tmp/RUN_FD_FAILED2.log
 run job=RUN_FD_FAILED2 yes
 wait
 messages
@@ -63,13 +63,13 @@ export dstat
 export bstat
 export rstat
 
-grep 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"' tmp/RUN_ALL_OK.log >/dev/null 2>&1 
+grep 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1 
 a=$?
-grep 'fd: ClientRunBeforeJob: ClientRunBeforeJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'fd: ClientRunBeforeJob: ClientRunBeforeJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 b=$?
-grep 'fd: ClientAfterJob: run command "/bin/echo ClientRunAfterJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'fd: ClientAfterJob: run command "/bin/echo ClientRunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 c=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterJob' tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'dir: AfterJob: run command "/bin/echo RunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 d=$?
 if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 ]
 then
@@ -79,9 +79,9 @@ else
    rstat=1
 fi
 
-grep 'dir: BeforeJob: run command "/bin/false RUN_DIR_FAILED"' tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+grep 'dir: BeforeJob: run command "/bin/false RUN_DIR_FAILED"' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
 a=$?
-grep 'dir: AfterJob: RunAfterFailedJob' tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+grep 'dir: AfterJob: RunAfterFailedJob' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
 b=$?
 if [ $a = 0 -a $b = 0 ]
 then
@@ -91,16 +91,16 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 a=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 b=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
-#grep 'touching' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
-test -f tmp/RUN_FD_FAILED
+#grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+test -f ${cwd}/tmp/RUN_FD_FAILED
 d=$?
-grep '*** Backup Error ***' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 e=$?
 if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
 then
@@ -110,15 +110,15 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 a=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 b=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 c=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 d=$?
-grep  '*** Backup Error ***' tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep  '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 e=$?
 if [ $a = 0 -a $b != 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
 then
@@ -128,11 +128,11 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
 a=$?
-grep 'RunAfterFailedJob' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+grep 'RunAfterFailedJob' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
 b=$?
-grep 'Backup OK -- with warnings' tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+grep 'Backup OK -- with warnings' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
 c=$?
 if [ $a = 0 -a $b != 0 -a $c = 0 ]
 then

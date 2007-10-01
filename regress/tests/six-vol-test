@@ -17,7 +17,7 @@ scripts/copy-testa-confs
 # copy special conf file
 /bin/cp -f scripts/testb-bacula-dir.conf bin/bacula-dir.conf
 
-echo "${cwd}/tmp/largefile" >/tmp/file-list
+echo "${cwd}/tmp/largefile" >${cwd}/tmp/file-list
 # Create 56MB file with random data
 echo "Creating a 56MB file with random data ..."
 dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
@@ -26,10 +26,10 @@ echo "largefile created"
 change_jobname MultiVol $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=50 storage=File
 run job=$JobName storage=File yes
 run job=$JobName storage=File yes
@@ -42,7 +42,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 sql
 select * from JobMedia where JobId=4;
 select * from JobMedia where JobId=5;
@@ -64,6 +64,6 @@ check_for_zombie_jobs storage=File
 stop_bacula
 
 check_two_logs
-diff tmp/largefile  tmp/bacula-restores${cwd}/tmp/largefile 2>&1 >/dev/null
+diff ${cwd}/tmp/largefile  ${cwd}/tmp/bacula-restores${cwd}/tmp/largefile 2>&1 >/dev/null
 dstat=$?
 end_test

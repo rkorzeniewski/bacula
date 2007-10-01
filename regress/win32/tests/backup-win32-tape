@@ -12,7 +12,7 @@ set_debug 0
 scripts/cleanup-tape
 scripts/copy-win32-confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname $JobName
 start_test

@@ -23,8 +23,8 @@ change_jobname NightlySave $JobName
 #  that are only saved once.  In 1.33, Bacula now deals
 #  with this situation.
 #
-echo "${cwd}/weird-files" >/tmp/file-list
-echo "${cwd}/weird-files" >>/tmp/file-list
+echo "${cwd}/weird-files" >${cwd}/tmp/file-list
+echo "${cwd}/weird-files" >>${cwd}/tmp/file-list
 
 # Create a Unix domain socket (sock-file)
 cd weird-files

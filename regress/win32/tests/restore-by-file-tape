@@ -12,7 +12,7 @@ JobName=restorebyfile
 set_debug 0
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 sed s%\^%${cwd}% ${cwd}/scripts/flist >${cwd}/tmp/restore2-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1

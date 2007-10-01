@@ -15,7 +15,7 @@ JobName=MigrationJobSpanSave
 scripts/cleanup
 scripts/copy-migration-confs
 scripts/prepare-two-disks
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
@@ -30,10 +30,10 @@ start_test
 #              Pool Full    uses Storage=DiskChanger
 
 # Write out bconsole commands
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=10 dir
 @#setdebug level=100 storage=File
 label storage=File volume=FileVolume001 Pool=Default
@@ -60,7 +60,7 @@ wait
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
 unmark *
 mark *

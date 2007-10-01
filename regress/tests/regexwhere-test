@@ -13,7 +13,7 @@ scripts/copy-test-confs
 
 /bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
 
-echo "${cwd}/build/po" >/tmp/file-list
+echo "${cwd}/build/po" >tmp/file-list
 
 start_test
 
@@ -143,7 +143,7 @@ mod
 @## Where 
 m
 9
-/tmp/bacula-restore-it
+tmp/bacula-restore-it
 m
 @## use add suffix
 10
@@ -182,7 +182,7 @@ fi
 J=JobB
 # $cwd begins with /
 if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "/tmp/bacula-restore${cwd}/po/fr.po.old" tmp/RUN_$J
+   grep -q "tmp/bacula-restore${cwd}/po/fr.po.old" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -192,7 +192,7 @@ fi
 
 J=JobC
 if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "/tmp/bacula-restore${cwd}/build/po/fr.po" tmp/RUN_$J
+   grep -q "tmp/bacula-restore${cwd}/build/po/fr.po" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -231,7 +231,7 @@ fi
 
 J=JobG
 if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "/tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J
+   grep -q "tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -263,7 +263,7 @@ fi
 J=JobJ
 if grep -q "Restore OK"      tmp/RUN_$J &&
    grep -q "/etc/passwd.old" tmp/RUN_$J &&
-   grep -q -e "Where: */tmp/bacula-restore-it" tmp/RUN_$J &&
+   grep -q -e "Where: *tmp/bacula-restore-it" tmp/RUN_$J &&
    grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
 then
     [ "$debug" = 1 ] && echo $J ok

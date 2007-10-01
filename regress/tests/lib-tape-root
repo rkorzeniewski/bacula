@@ -14,7 +14,7 @@ cd ..
 
 scripts/cleanup-tape
 scripts/copy-tape-confs
-echo "/lib" >/tmp/file-list
+echo "/lib" >${cwd}/tmp/file-list
 echo " "
 echo " "
 echo " === Starting lib-tape-root test ==="
@@ -24,7 +24,7 @@ bin/bacula start 2>&1 >/dev/null
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA
 @output /dev/null
 messages
-@output tmp/log1.out
+@output ${cwd}/tmp/log1.out
 label storage=DDS-4 Volume=TestVolume001 slot=0
 run job=NightlySave yes
 wait
@@ -32,7 +32,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@output ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -54,7 +54,7 @@ sort <1 >restored
 rm -f 1
 #
 cd ${cwd}
-diff tmp/original tmp/restored 2>&1 1>/dev/nul
+diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 1>/dev/nul
 if [ $? != 0 ] ; then
    echo " "
    echo " "

@@ -11,16 +11,16 @@ JobName=backupwintape
 scripts/cleanup-tape
 scripts/copy-win32-confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname $JobName
 start_test
 
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=NightlySave yes
 @sleep 10
@@ -32,7 +32,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$outt tmp/log2.out
+@$outt ${cwd}/tmp/log2.out
 @#restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 @#yes
 @#wait

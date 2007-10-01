@@ -3,7 +3,7 @@ REM This is Arno's test.  It uses two pools, two tapes, and
 REM  an autochanger. Note, the Director has three Pools in its 
 REM  conf:  Default, Full, and Inc.  Default is used in the
 REM  NightlySave job by default.  What is backed up is what
-REM  is in /tmp/file-list, which is by default the Bacula
+REM  is in ${cwd}/tmp/file-list, which is by default the Bacula
 REM  source code (i.e. the build directory).
 REM
 REM  Note, we use the virtual disk autochanger.

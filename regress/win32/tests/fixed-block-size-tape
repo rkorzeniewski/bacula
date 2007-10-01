@@ -11,7 +11,7 @@ set_debug 0
 
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 echo "s%# Maximum Block Size%  Maximum Block Size%" >${cwd}/tmp/2

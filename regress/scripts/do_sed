@@ -3,7 +3,13 @@
 cwd=`pwd`
 . ${cwd}/config
 mkdir -p ${cwd}/bin
-out="/tmp/sed_tmp"
+out="${cwd}/tmp/sed_tmp"
+
+# set the ports used by these tests
+dirport=${BASEPORT}
+fdport=`expr ${BASEPORT} '+' 1`
+sdport=`expr ${BASEPORT} '+' 2`
+
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
 echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
@@ -30,6 +36,9 @@ echo "s%@hostname3_files@%${hostname3_files}%g" >>${out}
 echo "s%@hostname1_password@%${hostname1_password}%g" >>${out}
 echo "s%@hostname2_password@%${hostname2_password}%g" >>${out}
 echo "s%@hostname3_password@%${hostname3_password}%g" >>${out}
+echo "s%@dirport@%${dirport}%g" >>${out}
+echo "s%@sdport@%${sdport}%g" >>${out}
+echo "s%@fdport@%${fdport}%g" >>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.errors.in >${cwd}/scripts/bacula-dir.conf.errors
@@ -72,12 +81,12 @@ sed -f ${out} ${cwd}/scripts/bacula-dir-2d.conf.in >${cwd}/scripts/bacula-dir-2d
 sed -f ${out} ${cwd}/scripts/bconsole-2d.conf.in >${cwd}/scripts/bconsole-2d.conf
 
 
-cp ${cwd}/bin/bacula-sd.conf /tmp/bac$$
-sed s%/tmp%${cwd}/tmp%g /tmp/bac$$ >${cwd}/bin/bacula-sd.conf
+cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/bac$$
+sed s%/tmp%${cwd}/tmp%g ${cwd}/tmp/bac$$ >${cwd}/bin/bacula-sd.conf
 chmod 777 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes
-rm -f /tmp/bac$$
-cp ${cwd}/bin/mtx-changer /tmp/bac$$
-sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" /tmp/bac$$ >${cwd}/bin/mtx-changer
+rm -f ${cwd}/tmp/bac$$
+cp ${cwd}/bin/mtx-changer ${cwd}/tmp/bac$$
+sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-changer
 chmod 777 ${cwd}/bin/mtx-changer
 
 # get proper SD tape definitions
@@ -87,4 +96,4 @@ if test x`uname` = xFreeBSD ; then
 fi
 
 rm -f ${out}
-rm -f /tmp/bac$$
+rm -f ${cwd}/tmp/bac$$
