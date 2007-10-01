@@ -46,10 +46,14 @@ function rd_file_or_dir(val)
 
 Ext.namespace('Ext.brestore');
 
-Ext.brestore.jobid=0;
-Ext.brestore.client='';
-Ext.brestore.path='';
-Ext.brestore.root_path='';
+Ext.brestore.jobid=0;            // selected jobid
+Ext.brestore.jobdate='';         // selected date
+Ext.brestore.client='';          // selected client
+Ext.brestore.path='';            // current path (without user location)
+Ext.brestore.root_path='';       // user location
+
+Ext.brestore.option_vosb = false;
+Ext.brestore.option_vafv = false;
 
 
 function get_node_path(node)
@@ -68,12 +72,25 @@ function get_node_path(node)
 }
 
 
+function init_params(baseParams)
+{
+   baseParams['client']= Ext.brestore.client;
+
+   if (Ext.brestore.option_vosb) {	   
+      baseParams['jobid'] = Ext.brestore.jobid;
+   } else {
+      baseParams['date'] = Ext.brestore.jobdate;
+   }
+   return baseParams;
+}
+
+
 function ext_init()
 {
 //////////////////////////////////////////////////////////////:
     var Tree = Ext.tree;
     var tree_loader = new Ext.tree.TreeLoader({
-            baseParams:{}, //action:'list_dirs', pathid:103, jobid:9 },
+            baseParams:{}, 
             dataUrl:'/cgi-bin/bweb/bresto.pl'
         });
 
@@ -101,9 +118,9 @@ function ext_init()
         Ext.brestore.path = get_node_path(node);
 
         file_store.removeAll();
-        file_store.load({params:{action: 'list_files',
-                                 jobid:Ext.brestore.jobid, 
-                                 node:node.id}
+	file_versions_store.removeAll();
+        file_store.load({params:init_params({action: 'list_files',
+                                             node:node.id})
                        });
         return true;
     });
@@ -120,7 +137,7 @@ function ext_init()
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
             method: 'GET',
-            params:{action: 'list_files', offset:0, limit:50 }
+            params:{}
         }),
 
         reader: new Ext.data.ArrayReader({
@@ -187,11 +204,11 @@ function ext_init()
     // TODO: selection only when using dblclick
     files_grid.selModel.on('rowselect', function(e,i,r) { 
         Ext.brestore.filename = r.json[3];
-        file_versions_store.load({params:{action: 'list_versions',
-                                          client: Ext.brestore.client,
-                                          pathid: r.json[2],
-                                          filenameid: r.json[1]
-                                         }
+        file_versions_store.load({params:init_params({action: 'list_versions',
+						     vafv: Ext.brestore.option_vafv,
+  	                                             pathid: r.json[2],
+	                                             filenameid: r.json[1]
+                                                     })
                                  });
         return true;
     });
@@ -320,18 +337,7 @@ function ext_init()
            }
   
            return true;
-
-//         var sm=grid.getSelectionModel();
-//         var rows=sm.getSelections();
-//         var cindex=dd.getDragData(e).rowIndex;
-//         for(i = 0; i < rows.length; i++) {
-//                 rowData=ds.getById(rows[i].id);
-//                 if(!this.copy) 
-//                         ds.remove(ds.getById(rows[i].id));
-//                 ds.insert(cindex,rowData);
-//         };
-        }
-    });
+    }});
 
 
    file_selection_grid.on('enddrag', function(dd,e) { 
@@ -490,20 +496,48 @@ function ext_init()
         emptyText:'Select a job...',
         selectOnFocus:true,
         forceSelection: true,
-        width:300
+        width:350
     });
 
     job_combo.on('select', function(e,c) {
         // TODO: choose between date and jobid here (with a toolbar bp ?)
         Ext.brestore.jobid = c.json[0];
+	Ext.brestore.jobdate = c.json[1];
         Ext.brestore.root_path='';
         root.setText("Root");
-        tree_loader.baseParams = { action:'list_dirs',
-                                   init:1,
-                                   jobid:Ext.brestore.jobid };
+        tree_loader.baseParams = init_params({init:1, action: 'list_dirs'});
         root.reload();
     });
 
+////////////////////////////////////////////////////////////////
+
+    function sel_option(item, check)
+    {
+	if (item.id == 'id_vosb') {
+	   Ext.brestore.option_vosb = check;
+	}
+	if (item.id == 'id_vafv') {
+	   Ext.brestore.option_vafv = check;
+	}
+    }
+
+    var menu = new Ext.menu.Menu({
+        id: 'div-main-menu',
+        items: [ 
+	   new Ext.menu.CheckItem({
+	        id: 'id_vosb',
+                text: 'View only selected backup',
+                checked: Ext.brestore.option_vosb,
+                checkHandler: sel_option
+            }),
+	   new Ext.menu.CheckItem({
+	        id: 'id_vafv',
+                text: 'View all file versions',
+                checked: Ext.brestore.option_vafv,
+                checkHandler: sel_option
+            })
+        ]
+    });
 ////////////////////////////////////////////////////////////////:
 
     // create the primary toolbar
@@ -545,7 +579,7 @@ function ext_init()
     });
 
     var tb = new Ext.Toolbar('div-toolbar', [
-        client_combo,
+	client_combo,
         job_combo,
         '-',
         {
@@ -557,13 +591,17 @@ function ext_init()
                 var where = where_field.getValue();
                 Ext.brestore.root_path=where;
                 root.setText(where);
-                tree_loader.baseParams = { action:'list_dirs',
-                                           jobid:Ext.brestore.jobid,
-                                           path: where };
+                tree_loader.baseParams = init_params({ action:'list_dirs', path: where });
                 root.reload();
           }
         },
-        where_field
+        where_field,
+        '-',
+        {
+            cls: 'x-btn-text-icon bmenu', // icon and text class
+            text:'Options',
+            menu: menu  // assign menu by instance
+        }
     ]);
 
 ////////////////////////////////////////////////////////////////
@@ -592,7 +630,7 @@ layout.beginUpdate();
       fitToFrame: true, autoCreate:true,closable: false 
   }));
   layout.add('south', new Ext.ContentPanel('div-file-selection', {
-      toolbar: tb2,resizeEl:'div-container',
+      toolbar: tb2,resizeEl:'div-file-selection',
       fitToFrame: true, autoCreate:true,closable: false
   }));
   layout.add('east', new Ext.ContentPanel('div-file-versions', {

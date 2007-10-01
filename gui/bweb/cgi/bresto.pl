@@ -731,12 +731,9 @@ my @jobid = grep { /^\d+$/ } CGI::param('jobid');
 
 if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
     @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});    
-print join(",", $args->{qdate}, $args->{client}, @jobid), "\n";
-
 }
 
 $bvfs->set_curjobids(@jobid);
-
 
 $bvfs->set_limits($args->{limit}, $args->{offset});
 
@@ -816,10 +813,13 @@ if ($action eq 'list_files') {
 
 } elsif ($action eq 'list_versions') {
 
+    my $vafv = CGI::param('vafv') || 'false'; # view all file versions
+    $vafv = ($vafv eq 'false')?0:1;
+
     print "[";
     #   0       1       2        3   4       5      6           7      8
     #($pathid,$fileid,$jobid, $fid, $mtime, $size, $inchanger, $md5, $volname);
-    my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, 1);
+    my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, $vafv);
     print join(',', 
 	       map { "[ $_->[3], $_->[1], $_->[0], $_->[2], '$_->[8]', $_->[6], '$_->[7]', $_->[5], $_->[4] ]" }
 	       @$files);
