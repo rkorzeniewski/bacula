@@ -16,7 +16,7 @@ scripts/cleanup
 scripts/copy-2disk-confs
 scripts/prepare-two-disks
  
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 outf="tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}

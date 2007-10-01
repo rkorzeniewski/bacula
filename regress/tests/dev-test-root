@@ -11,14 +11,14 @@ require_root
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "/dev" >/tmp/file-list
+echo "/dev" >${cwd}/tmp/file-list
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@output ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=NightlySave yes
 wait
@@ -26,7 +26,7 @@ messages
 @# 
 @# now do a restore
 @#
-@output tmp/log2.out
+@output ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -65,7 +65,7 @@ sed -f sed.scr 1 | sort >restored
 rm -f sed.scr
 #
 cd ${cwd}
-diff tmp/original tmp/restored 2>&1 1>/dev/null
+diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 1>/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "

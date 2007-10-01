@@ -9,15 +9,15 @@ JobName=compressed
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname CompressedTest $JobName
 start_test
       
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 status all
 status all
 messages
@@ -28,7 +28,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *
@@ -46,7 +46,7 @@ stop_bacula
 
 check_two_logs
 check_restore_diff
-grep " Software Compression" tmp/log1.out | grep "%" 2>&1 1>/dev/null
+grep " Software Compression" ${cwd}/tmp/log1.out | grep "%" 2>&1 1>/dev/null
 if [ $? != 0 ] ; then
    echo "  !!!!! No compression !!!!!"
    bstat=1

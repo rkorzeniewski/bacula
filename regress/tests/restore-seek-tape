@@ -11,7 +11,7 @@ JobName=restore-tape-seek
 . scripts/functions
 
 copy_tape_confs
-echo "${cwd}/tmp/build" >/tmp/file-list
+echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 rm -rf ${cwd}/tmp/build
 mkdir ${cwd}/tmp/build
 # Copy only the .c files (to be restored)
@@ -47,10 +47,10 @@ sed "s%# Maximum File Size = 1000000%  Maximum File Size = 10KB%" ${cwd}/tmp/1 >
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 pool=Default
 run job=$JobName yes
 wait
@@ -58,7 +58,7 @@ messages
 @#
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 setdebug level=30 fd
 setdebug level=10 storage=DDS-4
 sql

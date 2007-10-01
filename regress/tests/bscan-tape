@@ -11,10 +11,10 @@ JobName=bscantape
 
 copy_tape_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >tmp/file-list
 
-cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-sed "s%# Maximum File Size%  Maximum File Size%" ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+cp ${cwd}/bin/bacula-sd.conf tmp/1
+sed "s%# Maximum File Size%  Maximum File Size%" tmp/1 >${cwd}/bin/bacula-sd.conf
 
 change_jobname NightlySave $JobName
 start_test
@@ -127,7 +127,7 @@ messages
 @# 
 @# now do a restore
 @#
-restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+restore where=tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages

@@ -11,15 +11,15 @@ JobName=Recycle
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 label storage=File1 volume=TestVolume003
@@ -58,7 +58,7 @@ list volumes
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 mark *

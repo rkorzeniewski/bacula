@@ -13,7 +13,7 @@
 
 Director {                            # define myself
   Name = @hostname@-dir
-  DIRport = 8101                # where we listen for UA connections
+  DIRPort = @dirport@                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
@@ -24,7 +24,7 @@ Director {                            # define myself
 
 #
 # Define the main nightly save backup job
-#   By default, this job will back up to disk in /tmp
+#   By default, this job will back up to disk in @tmpdir@
 Job {
   Name = "NightlySave"
   Type = Backup
@@ -48,7 +48,7 @@ Job {
   Storage = DDS-4
   Messages = Standard
   Pool = Default
-  Where = /tmp/bacula-restores
+  Where = @tmpdir@/bacula-restores
 }
 
 
@@ -56,7 +56,7 @@ Job {
 FileSet {
   Name = "Full Set"
   Include { Options { signature=MD5 }
-    File =  </tmp/file-list
+    File =  <@tmpdir@/file-list
   }
 }
 
@@ -76,7 +76,7 @@ Schedule {
 Client {
   Name = @hostname@-fd
   Address = @hostname@
-  FDPort = 8102
+  FDPort = @fdport@
   Catalog = MyCatalog
   Password = "client-pw"
   File Retention = 30d                # 30 days
@@ -89,7 +89,7 @@ Client {
 Storage {
   Name = DDS-4
   Address = @hostname@               # N.B. Use a fully qualified name here
-  SDPort = 8103
+  SDPort = @sdport@
   Password = "storage-pw"
   Device = DDS-4                      # must be same as Device in Storage daemon
   Media Type = DDS-4                  # must be same as MediaType in Storage daemon
@@ -102,7 +102,7 @@ Storage {
 Storage {
   Name = DLT80
   Address = @hostname@               # N.B. Use a fully qualified name here
-  SDPort = 8103
+  SDPort = @sdport@
   Password = "storage-pw"
   Device = DLT80                      # must be same as Device in Storage daemon
   Media Type = DLT8000                # must be same as MediaType in Storage daemon

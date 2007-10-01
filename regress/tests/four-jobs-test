@@ -10,18 +10,18 @@ JobName=SpanVol
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 estimate job=$JobName listing
 estimate job=$JobName listing
 estimate job=$JobName listing
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
@@ -39,10 +39,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a second job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out  tmp/log1.out
+@$out  ${cwd}/tmp/log1.out
 run job=$JobName yes
 wait
 messages
@@ -58,10 +58,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a third job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@output ${cwd}/tmp/log1.out
 run job=$JobName yes
 wait
 messages
@@ -77,10 +77,10 @@ touch ${cwd}/build/src/lib/*.c ${cwd}/build/src/lib/*.o
 #
 # run a fourth job
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@output tmp/log1.out
+@output ${cwd}/tmp/log1.out
 run job=$JobName yes
 wait
 messages
@@ -94,7 +94,7 @@ echo "Backup 4 done"
 # 
 # now do several restores to ensure we cleanup between jobs
 #
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
@@ -102,7 +102,7 @@ wait
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *

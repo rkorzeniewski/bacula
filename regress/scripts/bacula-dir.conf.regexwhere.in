@@ -4,7 +4,7 @@
 
 Director {                            # define myself
   Name = @hostname@-dir
-  DIRport = 8101                # where we listen for UA connections
+  DIRPort = @dirport@                # where we listen for UA connections
   QueryFile = "@scriptdir@/query.sql"
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
@@ -30,7 +30,7 @@ Job {
 FileSet {
  Name = FS_TESTJOB
  Include {
-   File=</tmp/file-list
+   File=<@tmpdir@/file-list
  }
 }
 
@@ -54,7 +54,7 @@ Job {
 Job {
   Name = JobB
   JobDefs = DefaultRestore
-  add prefix = /tmp/bacula-restore
+  add prefix = @tmpdir@/bacula-restore
   add suffix = .old
   strip prefix = /build
 }
@@ -62,7 +62,7 @@ Job {
 Job {
   Name = JobC
   JobDefs = DefaultRestore
-  Where = /tmp/bacula-restore
+  Where = @tmpdir@/bacula-restore
 }
 
 Job {
@@ -86,7 +86,7 @@ Job {
 Job {
   Name = JobG
   JobDefs = DefaultRestore
-  Where = /tmp/bacula-restore
+  Where = @tmpdir@/bacula-restore
 }
 
 
@@ -94,7 +94,7 @@ Job {
 Client {
   Name = @hostname@-fd
   Address = @hostname@
-  FDPort = 8102
+  FDPort = @fdport@
   Catalog = MyCatalog
   Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
   File Retention = 30d                # 30 days
@@ -107,7 +107,7 @@ Client {
 Storage {
   Name = File
   Address = @hostname@                # N.B. Use a fully qualified name here
-  SDPort = 8103
+  SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = FileStorage
   Media Type = File

@@ -18,7 +18,7 @@ scripts/cleanup
 scripts/copy-2tape-confs
 scripts/prepare-two-tapes
  
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 outf="tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}

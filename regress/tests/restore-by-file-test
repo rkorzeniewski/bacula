@@ -10,7 +10,7 @@ JobName=restorebyfile
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/tmp/build" >/tmp/file-list
+echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 mkdir ${cwd}/tmp/build
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp/build
@@ -23,10 +23,10 @@ cd ${cwd}
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
@@ -34,7 +34,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File
 7
 <${cwd}/tmp/restore-list

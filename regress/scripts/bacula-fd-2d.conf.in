@@ -20,7 +20,7 @@ Director {
 #
 FileDaemon {                          # this is me
   Name = @hostname@-fd
-  FDport = 8102                  # where we listen for the director
+  FDPort = @fdport@                  # where we listen for the director
   WorkingDirectory = @working_dir@
   Pid Directory = @piddir@
   Maximum Concurrent Jobs = 20

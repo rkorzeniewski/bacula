@@ -23,15 +23,15 @@ change_jobname NightlySave $JobName
 #  that are only saved once.  In 1.33, Bacula now deals
 #  with this situation.
 #
-echo "${cwd}/weird-files" >/tmp/file-list
-echo "${cwd}/weird-files" >>/tmp/file-list
+echo "${cwd}/weird-files" >${cwd}/tmp/file-list
+echo "${cwd}/weird-files" >>${cwd}/tmp/file-list
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File
 TestVolume001
 run job=$JobName    
@@ -41,7 +41,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 cd ${cwd}/weird-files/subdir

@@ -24,9 +24,9 @@ scripts/cleanup
 scripts/copy-2disk-confs
 scripts/prepare-two-disks
  
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
-outf="tmp/sed_tmp"
+outf="${cwd}/tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
@@ -35,10 +35,10 @@ change_jobname NightlySave $JobName
 start_test
 
 # Write out bconsole commands
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Scratch drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Scratch drive=0
 update Volume=TestVolume001 MaxVolBytes=2000000 pool=Scratch drive=0
@@ -54,7 +54,7 @@ llist volume=TestVolume001
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait

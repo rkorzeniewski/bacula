@@ -9,7 +9,7 @@ JobName=differential
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/tmp/build" >/tmp/file-list
+echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 mkdir ${cwd}/tmp/build
 cp -p ${cwd}/build/src/dird/*.c ${cwd}/tmp/build
 cd ${cwd}/tmp
@@ -20,10 +20,10 @@ cd ${cwd}
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume002
 label storage=File volume=TestVolume001
 run job=$JobName yes
@@ -38,10 +38,10 @@ scripts/check_for_zombie_jobs storage=File
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @# Force differential on the second Volume
 update volume=TestVolume002 VolStatus=Used
 run level=differential job=$JobName yes
@@ -55,17 +55,17 @@ run_bconsole
 scripts/check_for_zombie_jobs storage=File
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 run level=incremental job=$JobName yes
 wait
 messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File file=<${cwd}/tmp/restore-list
 yes
 wait
@@ -82,6 +82,6 @@ check_two_logs
 #
 # Delete .c files because we will only restore the txt files
 #
-rm -f tmp/build/*.c
+rm -f ${cwd}/tmp/build/*.c
 check_restore_tmp_build_diff
 end_test

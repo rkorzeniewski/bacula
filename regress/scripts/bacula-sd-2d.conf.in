@@ -9,7 +9,7 @@
 
 Storage {                             # definition of myself
   Name = @hostname@-sd
-  SDPort = 8103                  # Director's port      
+  SDPort = @sdport@                  # Director's port      
   WorkingDirectory = "@working_dir@"
   Pid Directory = "@piddir@"
   Subsys Directory = "@subsysdir@"

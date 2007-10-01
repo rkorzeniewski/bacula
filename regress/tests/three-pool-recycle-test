@@ -4,7 +4,7 @@
 #  an autochanger. Note, the Director has four Pools in its 
 #  conf:  Default, Full, Inc, and Scratch.  Default is used in the
 #  NightlySave job by default.  What is backed up is what
-#  is in /tmp/file-list, which is by default the Bacula
+#  is in ${cwd}/tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
 #  Note, we use the virtual disk autochanger.
@@ -22,15 +22,15 @@ scripts/prepare-two-disks
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed "s%Client Run Before Job%#Client Run Before Job%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 start_test
 
 # Write out bconsole commands to a file
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=150 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
 label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
@@ -88,7 +88,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait

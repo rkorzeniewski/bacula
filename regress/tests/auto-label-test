@@ -9,7 +9,7 @@ JobName=AutoLabel
 
 copy_test_confs
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
@@ -17,10 +17,10 @@ sed "s%# Label Format%  Label Format%" ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_SCRIPT >tmp/bconcmds
+cat <<END_OF_SCRIPT >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 status all
 status all
 list pools
@@ -34,7 +34,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *

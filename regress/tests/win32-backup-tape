@@ -11,7 +11,7 @@ JobName=win32tape
 scripts/copy-win32-confs
 scripts/cleanup-tape
 
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname $JobName
 start_test
@@ -32,7 +32,7 @@ messages
 @# now do a restore
 @#
 @$out tmp/log2.out
-restore where=c:/tmp/bacula-restores select all storage=DDS-4 done
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
 messages

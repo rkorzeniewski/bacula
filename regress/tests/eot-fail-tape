@@ -10,9 +10,9 @@ JobName=eotfailtape
 scripts/cleanup-tape
 scripts/copy-tape-confs
  
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
-out="tmp/sed_tmp"
+out="${cwd}/tmp/sed_tmp"
 echo "s%# Maximum File Size%  Maximum File Size%g" >${out}
 cp -f ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
 sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
@@ -20,10 +20,10 @@ sed -f ${out} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 change_jobname $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 update Volume=TestVolume001 MaxVolBytes=3000000
 run job=$JobName yes
@@ -32,7 +32,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait

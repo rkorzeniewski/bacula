@@ -9,14 +9,14 @@ JobName=CompressedTest
 
 scripts/cleanup
 scripts/copy-crypto-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 setdebug level=10 fd
 run job=$JobName yes
@@ -26,7 +26,7 @@ list volumes
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 @# setdebug level=0 fd
 restore where=${cwd}/tmp/bacula-restores storage=File
 5

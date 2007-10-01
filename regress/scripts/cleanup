@@ -2,13 +2,14 @@
 #
 # Cleanup left over files -- both before and after test run
 #
-rm -rf /tmp/FileVolume* tmp/FileVolume*  
-rm -rf /tmp/TestVolume001 /tmp/bacula-restores /tmp/Small*
-rm -rf /tmp/sed_tmp /tmp/file-list
+cwd=`pwd`
+rm -rf ${cwd}/tmp/FileVolume*
+rm -rf ${cwd}/tmp/TestVolume001 ${cwd}/tmp/bacula-restores ${cwd}/tmp/Small*
+rm -rf ${cwd}/tmp/sed_tmp ${cwd}/tmp/file-list
 rm -rf tmp/*
 rm -rf working/log tmp/TEST-*
 rm -rf working/*.bsr
-rm -rf /tmp/disk-changer
+rm -rf ${cwd}/tmp/disk-changer
 find . -name "gigaslam.gif" -exec rm -f {} \;
 
 

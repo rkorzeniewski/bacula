@@ -10,15 +10,16 @@ JobName=bigvol
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+cwd=`pwd`
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname CompressedTest $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 @#setdebug level=100 storage=File
 label storage=File volume=TestVolume001
 run job=$JobName yes
@@ -43,10 +44,10 @@ if [ $? != 0 ]; then
 fi
 cd ${cwd}
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 sql
 UPDATE Media SET Volbytes=${size} WHERE VolumeName='TestVolume001';
 
@@ -61,7 +62,7 @@ messages
 sql
 SELECT * FROM JobMedia;
 
-@output tmp/log2.out
+@output ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores storage=File select all done
 yes
 wait

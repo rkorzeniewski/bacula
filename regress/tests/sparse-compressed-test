@@ -10,14 +10,14 @@ JobName=Sparse-conpressed
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 start_test
 
-cat >tmp/bconcmds <<END_OF_DATA
+cat >${cwd}/tmp/bconcmds <<END_OF_DATA
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=SparseCompressedTest yes
 wait
@@ -25,7 +25,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out   
+@$out ${cwd}/tmp/log2.out   
 restore where=${cwd}/tmp/bacula-restores select all storage=File done
 yes
 wait

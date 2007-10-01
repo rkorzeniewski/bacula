@@ -9,7 +9,7 @@ JobName=SparseTest
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 cd ${cwd}/build/src/tools
 ./gigaslam
 if [ $? != 0 ]; then
@@ -21,10 +21,10 @@ cd ${cwd}
 
 start_test
 
-cat >tmp/bconcmds <<END_OF_DATA
+cat >${cwd}/tmp/bconcmds <<END_OF_DATA
 @output /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001
 run job=$JobName yes
 wait
@@ -33,7 +33,7 @@ list volumes
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File
 unmark *
 mark *

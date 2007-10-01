@@ -12,15 +12,15 @@ JobName=bsr-opt
 
 scripts/cleanup
 scripts/copy-test-confs
-echo "${cwd}/build" >/tmp/file-list
+echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
-@$out tmp/log1.out
+@$out ${cwd}/tmp/log1.out
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 update Volume=TestVolume001 MaxVolBytes=3000000
@@ -30,7 +30,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 cd ${cwd}/build/src/cats
@@ -56,7 +56,7 @@ grep TestVolume002 working/restore.bsr 2>&1 >/dev/null
 bsrstat=$?
 check_two_logs
 
-diff -r build/src/cats  tmp/bacula-restores${cwd}/build/src/cats 2>&1 >/dev/null
+diff -r build/src/cats  ${cwd}/tmp/bacula-restores${cwd}/build/src/cats 2>&1 >/dev/null
 if [ $? != 0 -o $bsrstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
    echo " "
    echo " "

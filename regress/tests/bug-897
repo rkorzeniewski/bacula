@@ -10,15 +10,15 @@ JobName=backup
 copy_test_confs
 
 rm -f bin/bacula-dir.conf
-rm -f tmp/RUN*log
+rm -f ${cwd}/tmp/RUN*log
 rm -f ${cwd}/tmp/fifo
-rm -f /tmp/RUN_BUG_897
-rm -f /tmp/RUN_FD_FAILED
+rm -f ${cwd}/tmp/RUN_BUG_897
+rm -f ${cwd}/tmp/RUN_FD_FAILED
 
 /bin/cp -f scripts/bacula-dir.conf.testrunscript bin/bacula-dir.conf
 
-echo "${cwd}/build/po" >/tmp/file-list
-echo "${cwd}/tmp/fifo" >> /tmp/file-list
+echo "${cwd}/build/po" >${cwd}/tmp/file-list
+echo "${cwd}/tmp/fifo" >> ${cwd}/tmp/file-list
 mkfifo "${cwd}/tmp/fifo"
 
 # use this to be able to cancel a running job
@@ -29,16 +29,16 @@ mkfifo "${cwd}/tmp/fifo"
 
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
 messages
 label volume=TestVolume001
-@$out tmp/RUN_FD_FAILED.log
+@$out ${cwd}/tmp/RUN_FD_FAILED.log
 run job=RUN_FD_FAILED yes
 wait
 messages
 @sleep 1
-@$out tmp/RUN_BUG_897.log
+@$out ${cwd}/tmp/RUN_BUG_897.log
 setdebug level=200 client
 run job=BUG_897 yes
 @sleep 2
@@ -61,15 +61,15 @@ export dstat
 export bstat
 export rstat
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 a=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 b=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
-grep 'touching' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 d=$?
-grep '*** Backup Error ***' tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 e=$?
 if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
 then
@@ -78,14 +78,14 @@ else
    echo "RUN_FD_FAILED in error"
    rstat=1
 fi
-if test -f /tmp/RUN_FD_FAILED
+if test -f ${cwd}/tmp/RUN_FD_FAILED
 then
-    echo "The /tmp/RUN_FD_FAILED have been created, but nothing could be found"
+    echo "The ${cwd}/tmp/RUN_FD_FAILED have been created, but nothing could be found"
     echo "in the log"
 fi
 
 
-grep 'touching' tmp/RUN_BUG_897.log >/dev/null 2>&1
+grep 'touching' ${cwd}/tmp/RUN_BUG_897.log >/dev/null 2>&1
 d=$?
 if [ $d = 0 ]
 then
@@ -94,9 +94,9 @@ else
    echo "RUN_BUG_897 in error"
    rstat=1
 fi
-if test -f /tmp/RUN_BUG_897
+if test -f ${cwd}/tmp/RUN_BUG_897
 then
-    echo "The /tmp/RUN_BUG_897 have been created, but nothing could be found"
+    echo "The ${cwd}/tmp/RUN_BUG_897 have been created, but nothing could be found"
     echo "in the log"
 fi
 

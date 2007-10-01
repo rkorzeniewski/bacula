@@ -12,7 +12,7 @@ scripts/cleanup-tape
 change_jobname $JobName
 start_test
 
-bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >tmp/log1.out
+bin/btape -c bin/bacula-sd.conf DDS-4 <<END_OF_DATA 2>&1 >${cwd}/tmp/log1.out
 fill
 s
 
@@ -20,7 +20,7 @@ quit
 END_OF_DATA
 
 
-grep "^The last block on the tape matches\. Test succeeded\." tmp/log1.out 2>&1 >/dev/null
+grep "^The last block on the tape matches\. Test succeeded\." ${cwd}/tmp/log1.out 2>&1 >/dev/null
 if [ $? != 0 ] ; then
    echo " "
    echo " "

@@ -16,10 +16,10 @@ scripts/copy-test-confs
 change_jobname NightlySave $JobName
 start_test
 
-cat <<END_OF_DATA >tmp/bconcmds
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
-@$out   tmp/log1.out
+@$out   ${cwd}/tmp/log1.out
 @# Make sure we can contact all clients
 @#setdebug level=100 dir
 status client=${HOST}-fd
@@ -51,7 +51,7 @@ messages
 @# 
 @# now do a restore
 @#
-@$out   tmp/log2.out
+@$out   ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores client=${hostname}-fd select storage=File1
 unmark *
 mark *
