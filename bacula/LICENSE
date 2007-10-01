@@ -106,18 +106,42 @@ so themselves.  Our intention is to respect as closely as possible Open
 Source practices while maintaining full respect for proprietary and
 copyrighted code.
 
-
-Other Licenses:
-Certain parts of the Bacula software are licensed by their
-copyright holder(s) under the BSD license or an IBM license.
-These software files are clearly marked as such. The Bacula authors
-have no copyright or other claim over that software.
+GPLv2 or later license:
+ src/tools/bsmtp.c
+    Copyright (C) 1997 Ralf S. Engelschall, All Rights Reserved.
+  (note, bsmtp.c does not use OpenSSL)
 
 BSD License notice for inclusion with the binary:
  src/lib/fnmatch.c
    * Copyright (c) 1989, 1993, 1994
    *      The Regents of the University of California.  All rights reserved.
+ src/lib/fnmatch.h
+   * Copyright (c) 1992, 1993
+   *      The Regents of the University of California.  All rights reserved.
 
+Permissive licenses:
+ src/lib/var.c/h
+   **  OSSP var - Variable Expansion
+   **  Copyright (c) 2001-2002 Ralf S. Engelschall <rse@engelschall.com>
+   **  Copyright (c) 2001-2002 The OSSP Project (http://www.ossp.org/)
+   **  Copyright (c) 2001-2002 Cable & Wireless Deutschland (http://www.cw.com/de/)
+
+ src/lib/bsnprintf.c
+   * Copyright Patrick Powell 1995
+
+ src/bregex.c/h
+   * Copyright (c) 1991 Tatu Ylonen, Espoo, Finland
+
+ src/lib/sha1.c/h
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+ src/win32/compat/getopt.c
+   "... licensed under IBM copyrights to use the IBM-provided source code 
+   in any way he or she deems fit ..."
+
+ src/win32/compat/sys/mtio.h (LGPL)
+   Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+   
 
 Bacula can be enabled with data encryption and/or communications
 encryption. If this is the case, you will be including OpenSSL code that
