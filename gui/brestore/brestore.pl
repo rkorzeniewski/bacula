@@ -3275,13 +3275,18 @@ sub HELP_MESSAGE
     exit 1;
 }
 
-my $file_conf = "$ENV{HOME}/.brestore.conf" ;
+my $file_conf = (exists $ENV{HOME})? "$ENV{HOME}/.brestore.conf" : undef ;
 my $batch_mod;
 
 GetOptions("conf=s"   => \$file_conf,
 	   "batch"    => \$batch_mod,
 	   "debug"    => \$debug,
 	   "help"     => \&HELP_MESSAGE) ;
+
+if (! defined $file_conf) {
+    print STDERR "Could not detect default config and no config file specified\n";
+    HELP_MESSAGE();
+}
 
 my $p = new Pref($file_conf);
 

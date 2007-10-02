@@ -1,5 +1,8 @@
           Release Notes for brestore 2.2.0
 
+Version 2.2.5-1:
+ - Fix warning, thanks to Tuomas Jormola
+
 Version 2.2.0-2:
  - cleanup brestore
  - update brestore_xxx only when job is in (T, f, A)
