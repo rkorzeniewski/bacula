@@ -80,6 +80,9 @@ sed -f ${out} ${cwd}/scripts/bacula-sd-2d.conf.in >${cwd}/scripts/bacula-sd-2d.c
 sed -f ${out} ${cwd}/scripts/bacula-dir-2d.conf.in >${cwd}/scripts/bacula-dir-2d.conf
 sed -f ${out} ${cwd}/scripts/bconsole-2d.conf.in >${cwd}/scripts/bconsole-2d.conf
 
+# These files have no fancy sed stuff, so we just copy them over
+cp scripts/win32-bacula-sd-tape.conf.in scripts/win32-bacula-sd-tape.conf
+cp scripts/win32-bacula-fd.conf.in      scripts/win32-bacula-fd.conf
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/bac$$
 sed s%/tmp%${cwd}/tmp%g ${cwd}/tmp/bac$$ >${cwd}/bin/bacula-sd.conf
