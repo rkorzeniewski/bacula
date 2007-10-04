@@ -424,6 +424,7 @@ try_again:
          }
          opt = do_prompt(ua, "", _("Select replace option"), NULL, 0);
          if (opt >=  0) {
+            rc.replace = ReplaceOptions[opt].name;
             jcr->replace = ReplaceOptions[opt].token;
          }
          goto try_again;
