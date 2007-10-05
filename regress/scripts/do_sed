@@ -6,6 +6,7 @@ mkdir -p ${cwd}/bin
 out="${cwd}/tmp/sed_tmp"
 
 # set the ports used by these tests
+BASEPORT?=8101
 dirport=${BASEPORT}
 fdport=`expr ${BASEPORT} '+' 1`
 sdport=`expr ${BASEPORT} '+' 2`
