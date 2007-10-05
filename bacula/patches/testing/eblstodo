@@ -67,7 +67,7 @@ TODO
 
 bweb :
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
- - Ajouter la liste des medias qui vont expirer ?
+ - Ajouter la liste des medias qui vont/ont expirer et les pruner
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
  - Ajouter une gestion des utilisateurs avec des roles
    o Liste des roles possibles
