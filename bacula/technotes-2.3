@@ -1,10 +1,15 @@
               Technical notes on version 2.3
 
 General:
+05Oct07
+kes  Fix listing performance problems in bat. Pointed out by 
+     Chris Howells.
+kes  Remove old debug code.
+kes  Fix bat code that tests for Win32. This should fix bug #968
+kes  Query 5 list wrong Vol after migration. This fixes bug #960
 04Oct07
-ebl  Fix #969 where user can't change Replace option in
-     restore menu.
-30Sep07
+ebl  Fix #969 where user can't change Replace option in restore menu.
+5ASep07
 kes  Save jcr in thread specific data (tsd) for each thread.
 kes  Make Dmsg() print JobId as -%u.
 kes  Make Jmsg, Emsg, and others automatically pickup the jobid
@@ -57,7 +62,7 @@ kes  If Dir gets an error during inserting attributes, cancel SD.
      This reduces unnecessary error messages.
 24Sep07 
 kes  Correct search boolean for getting Volume info
-ebl  Cleanup batch code. Probably fixes bug #965.
+ebl  Cleanup batch insert code. Probably fixes bug #965.
 kes  Back out one small change to the reservation system (reserving a volume).
 kes  Rework how a Volume is mounted. It is now much more intelligent and
      will always attempt to use any mounted volume if possible and reduces

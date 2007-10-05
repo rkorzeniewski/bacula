@@ -34,6 +34,15 @@
 #include "pages.h"
 #include "bat.h"
 
+/* A global function */
+bool isWin32Path(QString &fullPath) 
+{
+   char *buf = fullPath.left(2).toUtf8().data();
+
+   return buf[1] == ':' && B_ISALPHA(buf[0]);
+}
+
+
 /*
  * dockPage
  * This function is intended to be called from within the Pages class to pull

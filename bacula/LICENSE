@@ -10,21 +10,19 @@ The name Bacula is a registered trademark.
 ===================================
 
 License:
-For the most part, Bacula is licensed under the GPL version 2
-this code is listed under Copyright Free Software Foundation
-Europe e.V. What follows are the addition(s) to the GPL version
-2 license, for code that is copyrighted as noted above.
+For the most part, Bacula is licensed under the GPL version 2 this
+code is listed under Copyright Free Software Foundation Europe e.V.
+What follows is the addition(s) to the GPL version 2 license, that
+applys to code that is copyrighted by the Free Software Foundation
+Europe e.V.
 
 Linking: 
 As a special exception to the GPLv2, the Bacula Project gives
 permission to link the code of its release of Bacula with the OpenSSL
 project's "OpenSSL" library (or with modified versions of it that use
 the same license as the "OpenSSL" library), and distribute the linked
-executables. You must obey the GNU General Public License in all
-respects for all of the code used other than "OpenSSL". If you modify
-a particular file, you may extend this exception to your version of the file,
-but you are not obligated to do so. If you do not wish this exception
-to apply to your code, clearly indicate so in the file.
+executables.  You must obey the GNU General Public License in all
+respects for all of the code used other than "OpenSSL".
              
 ===================================
 

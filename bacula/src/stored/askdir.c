@@ -179,7 +179,7 @@ static bool do_get_volume_info(DCR *dcr)
        return false;
     }
     memset(&vol, 0, sizeof(vol));
-    Dmsg2(100, "<dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+    Dmsg1(100, "<dird %s", dir->msg);
     n = sscanf(dir->msg, OK_media, vol.VolCatName,
                &vol.VolCatJobs, &vol.VolCatFiles,
                &vol.VolCatBlocks, &vol.VolCatBytes,
@@ -191,8 +191,8 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
                &vol.LabelType, &vol.VolMediaId);
     if (n != 22) {
-       Dmsg4(100, "Bad response from Dir jid=%u fields=%d, len=%d: %s", 
-             (uint32_t)jcr->JobId, n, dir->msglen, dir->msg);
+       Dmsg3(100, "Bad response from Dir fields=%d, len=%d: %s", 
+             n, dir->msglen, dir->msg);
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
@@ -201,8 +201,8 @@ static bool do_get_volume_info(DCR *dcr)
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
     dcr->VolCatInfo = vol;            /* structure assignment */
 
-    Dmsg3(100, "do_reqest_vol_info return true jid=%u slot=%d Volume=%s\n",
-          (uint32_t)jcr->JobId, vol.Slot, vol.VolCatName);
+    Dmsg2(100, "do_reqest_vol_info return true slot=%d Volume=%s\n",
+          vol.Slot, vol.VolCatName);
     return true;
 }
 
@@ -227,7 +227,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
     bash_spaces(dcr->VolCatInfo.VolCatName);
     dir->fsend(Get_Vol_Info, jcr->Job, dcr->VolCatInfo.VolCatName,
        writing==GET_VOL_INFO_FOR_WRITE?1:0);
-    Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+    Dmsg1(100, ">dird %s", dir->msg);
     unbash_spaces(dcr->VolCatInfo.VolCatName);
     bool ok = do_get_volume_info(dcr);
     V(vol_info_mutex);
@@ -271,14 +271,14 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        dir->fsend(Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
        unbash_spaces(dcr->media_type);
        unbash_spaces(dcr->pool_name);
-       Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+       Dmsg1(100, ">dird %s", dir->msg);
        bool ok = do_get_volume_info(dcr);
        if (ok) {
           if (!is_volume_in_use(dcr)) {
              found = true;
              break;
           } else {
-             Dmsg2(100, "jid=%u Volume %s is in use.\n", (uint32_t)jcr->JobId, dcr->VolumeName);
+             Dmsg1(100, "Volume %s is in use.\n", dcr->VolumeName);
              dcr->volume_in_use = true;
              continue;
           }
@@ -358,7 +358,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       edit_int64(vol->VolWriteTime, ed4),
       edit_uint64(vol->VolFirstWritten, ed5),
       vol->VolCatParts);
-    Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+    Dmsg1(100, ">dird %s", dir->msg);
 
    /* Do not lock device here because it may be locked from label */
    if (!do_get_volume_info(dcr)) {
@@ -367,7 +367,7 @@ bool dir_update_volume_info(DCR *dcr, bool label)
          vol->VolCatName, jcr->errmsg);
       goto bail_out;
    }
-   Dmsg2(420, "get_volume_info() jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+   Dmsg1(420, "get_volume_info() %s", dir->msg);
    /* Update dev Volume info in case something changed (e.g. expired) */
    dev->VolCatInfo = dcr->VolCatInfo;
    ok = true;
@@ -402,14 +402,14 @@ bool dir_create_jobmedia_record(DCR *dcr)
       dcr->StartBlock, dcr->EndBlock, 
       dcr->Copy, dcr->Stripe, 
       edit_uint64(dcr->VolMediaId, ed1));
-    Dmsg2(100, ">dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+    Dmsg1(100, ">dird %s", dir->msg);
    if (bnet_recv(dir) <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: ERR=%s\n"),
            dir->bstrerror());
       return false;
    }
-   Dmsg2(100, "<dird jid=%u: %s", (uint32_t)jcr->JobId, dir->msg);
+   Dmsg1(100, "<dird %s", dir->msg);
    if (strcmp(dir->msg, OK_create) != 0) {
       Dmsg1(130, "Bad response from Dir: %s\n", dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: %s\n"), dir->msg);
@@ -444,7 +444,7 @@ bool dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec)
    ser_uint32(rec->data_len);
    ser_bytes(rec->data, rec->data_len);
    dir->msglen = ser_length(dir->msg);
-   Dmsg2(1800, ">dird jid=%u: %s\n", (uint32_t)jcr->JobId, dir->msg);    /* Attributes */
+   Dmsg1(1800, ">dird %s\n", dir->msg);    /* Attributes */
    return dir->send();
 }
 

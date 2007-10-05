@@ -210,11 +210,11 @@ void list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg)
       if (dev) {
          len = Mmsg(msg, "%s on device %s\n", vol->vol_name, dev->print_name());
          sendit(msg.c_str(), len, arg);
-         len = Mmsg(msg, "    Reader=%d writers=%d reserved=%d\n", dev->can_read()?1:0,
-            dev->num_writers, dev->reserved_device);
+         len = Mmsg(msg, "    Reader=%d writers=%d reserved=%d released=%d\n", 
+            dev->can_read()?1:0, dev->num_writers, dev->reserved_device, vol->released);
          sendit(msg.c_str(), len, arg);
       } else {
-         len = Mmsg(msg, "%s no dev\n", vol->vol_name);
+         len = Mmsg(msg, "%s no device. released=%d\n", vol->vol_name, vol->released);
          sendit(msg.c_str(), len, arg);
       }
    }
@@ -377,12 +377,16 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             Dmsg3(dbglvl, "Volume busy could not swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             vol = NULL;                /* device busy */
+            goto get_out;
          }
       }
    }
    dev->vol = vol;
 
 get_out:
+   if (vol) {
+      vol->released = false;
+   }
    debug_list_volumes("end new volume");
    unlock_volumes();
    return vol;
@@ -461,6 +465,7 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
+   dev->vol->released = true;
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {
@@ -512,7 +517,7 @@ void free_volume_list()
       if (vol->dev) {
          Dmsg2(dbglvl, "free vol_list Volume=%s dev=%s\n", vol->vol_name, vol->dev->print_name());
       } else {
-         Dmsg2(dbglvl, "free vol_list Volume=%s dev=%p\n", vol->vol_name, vol->dev);
+         Dmsg1(dbglvl, "free vol_list Volume=%s No dev\n", vol->vol_name);
       }
       free(vol->vol_name);
       vol->vol_name = NULL;

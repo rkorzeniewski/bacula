@@ -473,8 +473,9 @@ public:
 class VOLRES { 
 public:
    dlink link;
-   char *vol_name;
-   DEVICE *dev;
+   char *vol_name;                    /* Volume name */
+   DEVICE *dev;                       /* Pointer to device to which we are attached */
+   bool released;                     /* set when the Volume can be released */
 };
 
 

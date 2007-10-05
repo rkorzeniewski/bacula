@@ -437,9 +437,6 @@ static int job_cmd(JCR *jcr)
    POOLMEM *sd_auth_key;
 
    sd_auth_key = get_memory(dir->msglen);
-   if (debug_level == 3) {
-      Dmsg1(000, "<dird: %s", dir->msg);
-   }
    if (sscanf(dir->msg, jobcmd,  &jcr->JobId, jcr->Job,
               &jcr->VolSessionId, &jcr->VolSessionTime,
               sd_auth_key) != 5) {
@@ -450,9 +447,6 @@ static int job_cmd(JCR *jcr)
       return 0;
    }
    jcr->sd_auth_key = bstrdup(sd_auth_key);
-   if (debug_level == 3) {
-      Dmsg1(000, "sd_auth_key=%s\n", jcr->sd_auth_key);
-   }
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    return dir->fsend(OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);

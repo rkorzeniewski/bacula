@@ -107,7 +107,7 @@ static char *cleanup_addr(char *addr, char *buf, int buf_len)
 {
    char *p, *q;
 
-   if ((p = strchr(from_addr, '<')) == NULL) {
+   if ((p = strchr(addr, '<')) == NULL) {
       snprintf(buf, buf_len, "<%s>", addr);
    } else {
       /* Copy <addr> */
