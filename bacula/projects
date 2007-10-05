@@ -38,7 +38,7 @@ Item 25:  Archival (removal) of User Files to Tape
 Item  1:  Accurate restoration of renamed/deleted files
   Date:   28 November 2005
   Origin: Martin Simmons (martin at lispworks dot com)
-  Status: Robert Nelson will implement this
+  Status: 
 
   What:   When restoring a fileset for a specified date (including "most
           recent"), Bacula should give you exactly the files and directories

@@ -48,5 +48,6 @@ extern MainWin *mainWin;
 extern QApplication *app;
 
 int bvsnprintf(char *str, int32_t size, const char *format, va_list ap);
+bool isWin32Path(QString &fullPath);
 
 #endif /* _BAT_H_ */
