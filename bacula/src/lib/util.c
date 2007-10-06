@@ -230,6 +230,12 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
    case JS_WaitPriority:
       jobstat = _("Waiting on Priority");
       break;
+   case JS_AttrDespooling:
+      jobstat = _("SD despooling Attributes");
+      break;
+   case JS_AttrInserting:
+      jobstat = _("Dir inserting Attributes");
+      break;
 
    default:
       if (JobStatus == 0) {

@@ -754,21 +754,27 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
  */
 bool db_write_batch_file_records(JCR *jcr)
 {
+   int JobStatus = jcr->JobStatus;
+
    if (!jcr->db_batch) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
       return true;
    }
+   if (job_canceled(jcr)) {
+      return false;
+   }
 
    Dmsg1(50,"db_create_file_record changes=%u\n",jcr->db_batch->changes);
 
+   jcr->JobStatus = JS_AttrInserting;
    if (!sql_batch_end(jcr, jcr->db_batch, NULL)) {
       Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
       return false;
    }
-
    if (job_canceled(jcr)) {
       return false;
    }
+
 
    /* we have to lock tables */
    if (!db_sql_query(jcr->db_batch, sql_batch_lock_path_query, NULL, NULL)) {
@@ -819,6 +825,7 @@ bool db_write_batch_file_records(JCR *jcr)
 
    db_sql_query(jcr->db_batch, "DROP TABLE batch", NULL,NULL);
 
+   jcr->JobStatus = JobStatus;         /* reset entry status */
    return true;
 }
 
