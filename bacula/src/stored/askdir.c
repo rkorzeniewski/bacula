@@ -148,7 +148,7 @@ bool dir_update_changer(JCR *jcr, AUTOCHANGER *changer)
  */
 bool dir_send_job_status(JCR *jcr)
 {
-   return bnet_fsend(jcr->dir_bsock, Job_status, jcr->Job, jcr->JobStatus);
+   return jcr->dir_bsock->fsend(Job_status, jcr->Job, jcr->JobStatus);
 }
 
 /*

@@ -87,6 +87,8 @@
 #define JS_WaitMaxJobs           'd'  /* Waiting for maximum jobs */
 #define JS_WaitStartTime         't'  /* Waiting for start time */
 #define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
+#define JS_AttrDespooling        'a'  /* SD despooling attributes */
+#define JS_AttrInserting         'i'  /* Doing batch insert file records */
 
 /* Migration selection types */
 enum {
