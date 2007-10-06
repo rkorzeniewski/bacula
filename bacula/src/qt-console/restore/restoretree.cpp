@@ -391,7 +391,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
 
    if (!m_slashTrap) {
       /* add unix '/' directory first */
-      if (m_dirPaths.empty() && isWin32Path(fullPath)) {
+      if (m_dirPaths.empty() && !isWin32Path(fullPath)) {
          m_slashTrap = true;
          QTreeWidgetItem *item = new QTreeWidgetItem(directoryTree);
          QString text("/");
