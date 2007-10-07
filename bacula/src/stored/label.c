@@ -716,7 +716,7 @@ bool write_session_label(DCR *dcr, int label)
       }
       break;
    default:
-      Jmsg1(jcr, M_ABORT, 0, _("Bad session label = %d\n"), label);
+      Jmsg1(jcr, M_ABORT, 0, _("Bad Volume session label = %d\n"), label);
       break;
    }
    create_session_label(dcr, rec, label);

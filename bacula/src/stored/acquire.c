@@ -360,22 +360,8 @@ DCR *acquire_device_for_append(DCR *dcr)
       if (!have_vol &&
           !(dir_find_next_appendable_volume(dcr) &&
             strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
-         Dmsg2(190, "Wrong tape mounted: %s. wants:%s\n", dev->VolHdr.VolumeName,
-            dcr->VolumeName);
-         if (dev->num_writers != 0) {
-            Jmsg3(jcr, M_FATAL, 0, _("Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n"), 
-                 dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
-            Dmsg3(200, "Wanted to append to Volume \"%s\", but device %s is busy writing on \"%s\" .\n",  
-                 dcr->VolumeName, dev->print_name(), dev->VolHdr.VolumeName);
-            /* Release volume reserved by dir_find_next_appendable_volume() */
-            if (dcr->VolumeName[0]) {
-               volume_unused(dcr);
-            }
-            goto get_out;
-         }
          /* Wrong tape mounted, release it, then fall through to get correct one */
-         Dmsg1(190, "jid=%u Wrong tape mounted, release and try mount.\n",
-               (uint32_t)jcr->JobId);
+         Dmsg0(50, "Wrong tape mounted, release and try mount.\n");
          release = true;
          do_mount = true;
       } else {
