@@ -1073,7 +1073,7 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
     va_list   arg_ptr;
     int len;
     MSGS *msgs;
-    const char *job;
+    uint32_t JobId = 0;
 
 
     Dmsg1(850, "Enter Jmsg type=%d\n", type);
@@ -1093,19 +1093,15 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
     }
 
     msgs = NULL;
-    job = NULL;
     if (!jcr) {
        jcr = get_jcr_from_tsd();
     }
     if (jcr) {
        msgs = jcr->jcr_msgs;
-       job = jcr->Job;
+       JobId = jcr->JobId;
     }
     if (!msgs) {
        msgs = daemon_msgs;            /* if no jcr, we use daemon handler */
-    }
-    if (!job) {
-       job = "";                      /* Set null job name if none */
     }
 
     /*
@@ -1124,25 +1120,26 @@ Jmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
        len = bsnprintf(rbuf, sizeof(rbuf), _("%s ERROR TERMINATION\n"), my_name);
        break;
     case M_FATAL:
-       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Fatal error: "), my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Fatal error: "), my_name, JobId);
        if (jcr) {
           set_jcr_job_status(jcr, JS_FatalError);
        }
        break;
     case M_ERROR:
-       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Error: "), my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Error: "), my_name, JobId);
        if (jcr) {
           jcr->Errors++;
        }
        break;
     case M_WARNING:
-       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Warning: "), my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Warning: "), my_name, JobId);
        break;
     case M_SECURITY:
-       len = bsnprintf(rbuf, sizeof(rbuf), _("%s: %s Security violation: "), my_name, job);
+       len = bsnprintf(rbuf, sizeof(rbuf), _("%s JobId %u: Security violation: "), 
+               my_name, JobId);
        break;
     default:
-       len = bsnprintf(rbuf, sizeof(rbuf), "%s: ", my_name);
+       len = bsnprintf(rbuf, sizeof(rbuf), "%s JobId %u: ", my_name, JobId);
        break;
     }
 

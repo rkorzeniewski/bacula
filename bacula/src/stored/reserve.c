@@ -330,8 +330,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          Dmsg1(dbglvl, "OK, vol=%s on device.\n", VolumeName);
          goto get_out;                  /* Volume already on this device */
       } else {
-         Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", 
-               vol->vol_name, vol->vol_name);
+         Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          debug_list_volumes("reserve_vol free");
          vol_list->remove(vol);
          free_vol_item(vol);
@@ -1282,7 +1281,7 @@ static int is_pool_ok(DCR *dcr)
       /* Drive Pool not suitable for us */
       Mmsg(jcr->errmsg, _(
 "3608 JobId=%u wants Pool=\"%s\" but have Pool=\"%s\" nreserve=%d on drive %s.\n"), 
-            jcr->JobId, dcr->pool_name, dev->pool_name,
+            (uint32_t)jcr->JobId, dcr->pool_name, dev->pool_name,
             dev->reserved_device, dev->print_name());
       queue_reserve_message(jcr);
       Dmsg2(dbglvl, "failed: busy num_writers=0, reserved, pool=%s wanted=%s\n",
@@ -1325,6 +1324,11 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
          rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
          rctx.autochanger_only, rctx.any_drive);
+
+   /* Check for max jobs on this Volume */
+   if (!is_max_jobs_ok(dcr)) {
+      return 0;
+   }
 
    /* setting any_drive overrides PreferMountedVols flag */
    if (!rctx.any_drive) {
@@ -1411,9 +1415,6 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
    if (dev->num_writers == 0) {
       /* Now check if there are any reservations on the drive */
       if (dev->reserved_device) {           
-         if (!is_max_jobs_ok(dcr)) {
-            return 0;
-         }
          return is_pool_ok(dcr);
       } else if (dev->can_append()) {
          if (is_pool_ok(dcr)) {
@@ -1436,9 +1437,6 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
     *  available if pool is the same).
     */
    if (dev->can_append() || dev->num_writers > 0) {
-      if (!is_max_jobs_ok(dcr)) {
-         return 0;
-      }
       return is_pool_ok(dcr);
    } else {
       Pmsg1(000, _("Logic error!!!! JobId=%u Should not get here.\n"), (int)jcr->JobId);
