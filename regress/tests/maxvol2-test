@@ -5,8 +5,8 @@
 #   volumes to be recycled, and cycling through the volumes
 #   twice. Tests maxvoljobs and volretention.
 #
-TestName="recycle-test"
-JobName=Recycle
+TestName="maxvol2-test"
+JobName=Maxvol2
 . scripts/functions
 
 scripts/cleanup
@@ -24,19 +24,13 @@ label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 label storage=File1 volume=TestVolume003
 update Volume=TestVolume001 volretention=10s
-update Volume=TestVolume001 maxvolbytes=200000000
+update Volume=TestVolume001 maxvoljobs=1
 update Volume=TestVolume002 volretention=10s
-update Volume=TestVolume002 maxvolbytes=200000000
+update Volume=TestVolume002 maxvoljobs=1
 update Volume=TestVolume003 volretention=10s
-update Volume=TestVolume003 maxvolbytes=200000000
+update Volume=TestVolume003 maxvoljobs=1
 list volumes
-@#setdebug level=100 storage=File1
-run job=$JobName storage=File1 level=full yes
-run job=$JobName storage=File1 level=full yes
-run job=$JobName storage=File1 level=full yes
-wait
-messages
-list volumes
+setdebug level=50 storage=File1
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
@@ -46,12 +40,22 @@ list volumes
 @sleep 10
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
+wait
+messages
+list volumes
+@sleep 10
+run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 wait
 messages
 list volumes
 @sleep 10
 run job=$JobName storage=File1 level=full yes
+run job=$JobName storage=File1 level=full yes
+wait
+messages
+list volumes
+@sleep 10
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 wait
