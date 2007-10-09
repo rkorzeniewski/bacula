@@ -61,6 +61,58 @@ Gestion des stats :
    - générer un format simple UNIXSTAMP|label|unit|value
    - possibilité d'ajouter ça dans la base de donnée ou dans rrd
 
+API :
+
+ - apr (apache portable runtime) pour les exemples de chargement
+   de module dynamique (win32, linux, etc...)
+   http://svn.apache.org/viewvc/apr/apr/trunk/dso/
+
+ - exemple apache
+   http://modules.apache.org/doc/API.html
+
+ - comment charger les librairies dependantes d'un hook
+ ex: ACL  -> -lacl
+     GZIP -> -lgz
+
+ - nommer les hook (a la place d'une structure de pointeur)
+ ex:
+	"action", mod_action_handler
+
+ - interface
+   - opendir
+   - readdir
+   - closedir
+   - mkdir
+   - stat
+   - open
+   - close
+   - read
+   - write
+   - seek
+   - get_perm
+   - set_perm
+   - configuration... (ajout automatique avant de charger le fichier de conf)
+   - init
+   - destroy
+
+   - version
+   - name
+
+ - exemple de hook/module
+   - cryptage ?
+   - checksum (MD5/SHA1)
+   - ACL/droits
+   - compression (LZO, GZIP, BZIP)
+
+ - initialiser le jcr avec seulement les hooks utiles
+
+ - configuration 
+   - declarer les modules utiles
+   - les options doivent utiliser le nom du module
+ ex:
+      GZIP level = 2
+      ACL use uid = yes
+      etc...
 
 TODO
 ----
@@ -125,7 +177,7 @@ bacula :
    o pb exclusion (distante, locale)
    o pb execution de commande
    o pb de config avec test du -t des differents daemon
- - Utiliser PQescapeStringConn a la place de PQescapeString
+ x Utiliser PQescapeStringConn a la place de PQescapeString
  - Utiliser la lib pcre
  - Rendre les scripts bacula-ctl-xxx LSB
  x Pouvoir utiliser les uid numeriques dans le backup des acl
