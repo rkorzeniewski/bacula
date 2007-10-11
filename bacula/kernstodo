@@ -66,6 +66,7 @@ Professional Needs:
    Complete rework of the scheduling system (not in list)
    Performance and usage instrumentation (not in list)
    See email of 21Aug2007 for details.
+- Implement Diff,Inc Retention Periods
 
 Priority:
 - Erabt if min_block_size > max_block_size
