@@ -1,5 +1,9 @@
           Release Notes for brestore 2.2.0
 
+Version 2.2.5-2:
+ - Use 2 transactions in brestore.pl -b
+   (you can use Ctrl-C in cleanup)
+
 Version 2.2.5-1:
  - Fix warning, thanks to Tuomas Jormola
 

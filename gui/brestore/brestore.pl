@@ -2397,6 +2397,9 @@ sub update_cache
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
 
+    $self->{conf}->{dbh}->commit();
+    $self->{conf}->{dbh}->begin_work();
+
     print STDERR "Cleaning path visibility\n";
     
     my $nb = $self->dbh_do("
