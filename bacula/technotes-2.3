@@ -1,6 +1,21 @@
               Technical notes on version 2.3
 
 General:
+16Oct07
+kes  Add PATH command to SunOS part of mtx-changer.in so that sed and
+     awk are on the path.  
+kes  Redirect stderror to stdin on mt status command in mtx-changer.in
+     since the status is returned on stderr on Solaris.              
+kes  Activate Close button on tray-monitor window. This fixes
+     bug #986.
+kes  Check for NULL item in parse_conf.c before calling it.  In the
+     case of Device, there is no item and this caused a seg fault when
+     Device appears in the conf file.
+kes  Add a #define __CONFIG_H when including config.h in bacula.h. This
+     avoids pulling in config.h multiple times in some new code.
+12Oct07
+kes  Fix spurious warning message printed when creating a volume with
+     a LabelFormat. This fixes bug #976.
 07Oct07
 kes  Make maxvol-test and new more strict maxvol2-test work. 
 kes  Print JobId in all Jmsg() job output.

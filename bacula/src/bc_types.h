@@ -1,25 +1,7 @@
 /*
-    Define integer types for Bacula -- Kern Sibbald
-
-    Integer types.  These types should be be used in all
-    contexts in which the length of an integer stored on
-    removable media must be known regardless of the
-    architecture of the platform.
-
-    Bacula types are:
-
-    int8_t,  int16_t,  int32_t,  int64_t
-    uint8_t, uint16_t, uint32_t, uint64_t
-
-    Also, we define types such as file address lengths.
-
-    Version $Id$
-
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -43,6 +25,24 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+    Define integer types for Bacula -- Kern Sibbald
+
+    Integer types.  These types should be be used in all
+    contexts in which the length of an integer stored on
+    removable media must be known regardless of the
+    architecture of the platform.
+
+    Bacula types are:
+
+    int8_t,  int16_t,  int32_t,  int64_t
+    uint8_t, uint16_t, uint32_t, uint64_t
+
+    Also, we define types such as file address lengths.
+
+    Version $Id$
+
+ */
 
 
 #ifndef __bc_types_INCLUDED
