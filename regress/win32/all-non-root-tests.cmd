@@ -40,6 +40,8 @@ REM The following are Virtual Disk Autochanger tests
 CALL tests\two-pool-test
 CALL tests\two-volume-test
 CALL tests\incremental-2disk
+CALL tests\2drive-3pool-test.cmd
+CALL tests\2drive-concurrent-test.cmd
 CALL tests\2drive-incremental-2disk
 CALL tests\scratch-pool-test
 ECHO.

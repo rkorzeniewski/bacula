@@ -11,7 +11,7 @@ SET JobName=restore-disk-seek
 CALL scripts\functions set_debug 1
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/tmp/build >\tmp\file-list
+ECHO %CD:\=/%/tmp/build >tmp\file-list
 
 IF EXIST tmp\build RD /s /q  tmp\build
 MKDIR tmp\build

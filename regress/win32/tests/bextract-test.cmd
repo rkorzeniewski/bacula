@@ -9,7 +9,7 @@ SET JobName=bextract
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test
@@ -20,7 +20,7 @@ CALL scripts\functions run_bacula
 CALL scripts\functions check_for_zombie_jobs storage=File1
 CALL scripts\functions stop_bacula
 
-MKDIR %CD%\tmp\bacula-restores
+MKDIR tmp\bacula-restores
 bin\bextract -b working/restore.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp %CD:\=/%/tmp/bacula-restores 2>&1 >nul
 SET rstat=%ERRORLEVEL%
 grep "^  Termination: *Backup OK" tmp\log1.out 2>&1 >nul

@@ -52,7 +52,7 @@ GOTO %routine%
 
 :run_bscan
    IF %debug% EQU 1 (
-      bin\bscan %1 %2 %3 %4 %5 %6 %7 %8 %9 | tools\tee tmp\log.out
+      bin\bscan %1 %2 %3 %4 %5 %6 %7 %8 %9 | tee tmp\log.out
    ) ELSE (
       bin\bscan %1 %2 %3 %4 %5 %6 %7 %8 %9 >nul 2>&1
    )
@@ -76,24 +76,24 @@ GOTO %routine%
    )
    IF EXIST bin\1 DEL /f bin\1
    REN bin\bacula-dir.conf 1
-   bin\sed -e "s;%oldname%;%newname%;g" bin\1 >bin\bacula-dir.conf
+   sed -e "s;%oldname%;%newname%;g" bin\1 >bin\bacula-dir.conf
 REM  ECHO Job %oldname% changed to %newname%
    GOTO :EOF
 
 :check_two_logs
-   tools\grep "^  Termination: *Backup OK" tmp\log1.out >nul 2>&1
+   grep "^  Termination: *Backup OK" tmp\log1.out >nul 2>&1
    SET bstat=%ERRORLEVEL%
-   tools\grep "^  Termination: *Restore OK" tmp\log2.out >nul 2>&1
+   grep "^  Termination: *Restore OK" tmp\log2.out >nul 2>&1
    SET rstat=%ERRORLEVEL%
    GOTO :EOF
 
 :check_restore_diff
-   tools\diff -r build tmp\bacula-restores\%CD::=%\build >nul 2>&1
+   diff -r build tmp\bacula-restores\%CD::=%\build >nul 2>&1
    SET dstat=%ERRORLEVEL%
    GOTO :EOF
 
 :check_restore_tmp_build_diff
-   tools\diff -r tmp\build tmp\bacula-restores\%CD::=%\tmp\build >nul 2>&1
+   diff -r tmp\build tmp\bacula-restores\%CD::=%\tmp\build >nul 2>&1
    SET dstat=%ERRORLEVEL%
    GOTO :EOF
 

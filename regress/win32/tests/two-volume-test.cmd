@@ -15,7 +15,7 @@ CALL scripts\cleanup
 CALL scripts\copy-2disk-confs >nul 2>&1
 CALL scripts\prepare-two-disks
  
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 COPY bin\bacula-sd.conf tmp\1
 sed -e "s;# Maximum File Size;  Maximum File Size;g" tmp\1 >bin\bacula-sd.conf

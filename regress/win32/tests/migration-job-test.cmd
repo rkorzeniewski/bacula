@@ -14,7 +14,7 @@ CALL config_out
 CALL scripts\cleanup
 CALL scripts\copy-migration-confs
 CALL scripts\prepare-two-disks
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test

@@ -9,8 +9,8 @@ SET JobName=restore2byfile
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
-sed -e "s;^;%CD:\=/%;" scripts/flist >tmp\restore2-list
+ECHO %CD:\=/%/build >tmp\file-list
+sed -e "s;^;%CD:\=/%;" scripts\flist >tmp\restore2-list
 
 CALL scripts\functions change_jobname CompressedTest %JobName%
 CALL scripts\functions start_test

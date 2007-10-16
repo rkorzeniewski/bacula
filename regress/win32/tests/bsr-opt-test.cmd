@@ -11,7 +11,7 @@ SET JobName=bsr-opt
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test

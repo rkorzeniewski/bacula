@@ -216,7 +216,7 @@ Pool {
   Storage = File
   Migration High Bytes = 40M
   Migration Low Bytes = 20M
-  Migration Time = 60
+  Migration Time = 1
 }
 
 Pool {

@@ -21,7 +21,7 @@ CALL grant_bacula_privileges >nul 2>&1
 
 CALL scripts\copy-2tape-confs
 CALL scripts\cleanup-2tape
-ECHO %CD:\=/%/tmp/build >\tmp\file-list
+ECHO %CD:\=/%/tmp/build >tmp\file-list
 IF NOT EXIST tmp\build MKDIR tmp\build
 COPY build\src\dird\*.c tmp\build
 ECHO %CD:\=/%/tmp/build/ficheriro1.txt>tmp\restore-list

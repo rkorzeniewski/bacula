@@ -25,7 +25,7 @@ Director {                            # define myself
 
 #
 # Define the main nightly save backup job
-#   By default, this job will back up to disk in /tmp
+#   By default, this job will back up to disk in @tmpdir@
 Job {
   Name = "NightlySave"
   Type = Backup
@@ -49,7 +49,7 @@ Job {
   Storage = DDS-4
   Messages = Standard
   Pool = Default
-  Where = /tmp/bacula-restores
+  Where = @tmpdir@/bacula-restores
 }
 
 

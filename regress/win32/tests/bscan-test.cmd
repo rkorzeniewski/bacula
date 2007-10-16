@@ -11,7 +11,7 @@ SET JobName=bscan
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test
@@ -25,7 +25,7 @@ CALL scripts\functions stop_bacula
 ECHO volume=TestVolume001^|TestVolume002 >tmp\bscan.bsr
 
 IF %debug% EQU 1 (
-   bin\bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp | tools\tee tmp\log.out
+   bin\bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp | tee tmp\log.out
 ) ELSE (
    bin\bscan -w working -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf %CD:\=/%/tmp >nul 2>&1
 )

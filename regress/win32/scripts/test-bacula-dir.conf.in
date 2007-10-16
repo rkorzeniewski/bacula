@@ -26,7 +26,7 @@ Director {                            # define myself
 
 #
 # Define the main nightly save backup job
-#   By default, this job will back up to disk in /tmp
+#   By default, this job will back up to disk in @tmpdir@
 Job {
   Name = "NightlySave"
   Type = Backup
@@ -127,7 +127,7 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
-  Where = /tmp/bacula-restores
+  Where = @tmpdir@/bacula-restores
 }
 
 
@@ -135,14 +135,14 @@ Job {
 FileSet {
   Name = "Full Set"
   Include  { Options { signature=MD5 }
-    File = </tmp/file-list
+    File = <@tmpdir@/file-list
   }
 }
 
 FileSet {
   Name = "SparseSet"
   Include { Options { signature=MD5; sparse=yes }
-    File=</tmp/file-list
+    File=<@tmpdir@/file-list
   }
 }
 
@@ -150,7 +150,7 @@ FileSet {
   Name = "CompressedSet"
   Include {
     Options { signature=MD5; compression=GZIP }
-    File =</tmp/file-list
+    File =<@tmpdir@/file-list
   }
 }
 
@@ -160,7 +160,7 @@ FileSet {
     Options {
       signature=MD5; compression=GZIP
     }
-    File= </tmp/file-list
+    File= <@tmpdir@/file-list
   }
 }
 

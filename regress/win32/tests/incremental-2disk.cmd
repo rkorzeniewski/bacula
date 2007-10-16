@@ -20,7 +20,7 @@ CALL bin\grant_bacula_privileges >nul 2>&1
 CALL scripts\copy-2disk-confs >nul 2>&1
 CALL scripts\prepare-two-disks
 
-ECHO %CD:\=/%/tmp/build >\tmp\file-list
+ECHO %CD:\=/%/tmp/build >tmp\file-list
 IF NOT EXIST tmp\build MKDIR tmp\build
 
 COPY build\src\dird\*.c tmp\build >nul 2>&1

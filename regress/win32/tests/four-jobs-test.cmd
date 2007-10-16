@@ -9,7 +9,7 @@ SET JobName=SpanVol
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >${cwd}/tmp/file-list
+ECHO %CD:\=/%/build >tmp/file-list
 
 CALL scripts\functions change_jobname CompressedTest %JobName%
 CALL scripts\functions start_test
@@ -22,8 +22,8 @@ CALL scripts\functions check_for_zombie_jobs storage=File
 ECHO Backup 1 done
 
 REM make some files for the incremental to pick up
-tools\touch %CD:\=/%/build/src/dird/*.c
-tools\touch %CD:\=/%/build/src/lib/*.c
+touch %CD:\=/%/build/src/dird/*.c
+touch %CD:\=/%/build/src/lib/*.c
    
 REM
 REM run a second job
@@ -35,8 +35,8 @@ CALL scripts\functions check_for_zombie_jobs storage=File
 
 ECHO Backup 2 done
 
-tools\touch %CD:\=/%/build/src/dird/*.c
-tools\touch %CD:\=/%/build/src/lib/*.c
+touch %CD:\=/%/build/src/dird/*.c
+touch %CD:\=/%/build/src/lib/*.c
 
 REM
 REM run a third job
@@ -49,7 +49,7 @@ CALL scripts\functions check_for_zombie_jobs storage=File
 ECHO Backup 3 done
 
 REM make some files for the incremental to pick up
-tools\touch %CD:\=/%/build/src/lib/*.c
+touch %CD:\=/%/build/src/lib/*.c
 
 REM
 REM run a fourth job

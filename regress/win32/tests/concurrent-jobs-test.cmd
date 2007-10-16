@@ -8,15 +8,15 @@ SET JobName=concurrent-jobs
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/tmp/largefile >\tmp\file-list
+ECHO %CD:\=/%/tmp/largefile >tmp\file-list
 ECHO Creating a 50MB file with bacula-dir data ...
-tools\dd if=bin/bacula-dir.exe of=%CD:\=/%/tmp/1 bs=1024 count=512 >nul 2>&1
-COPY /b %CD%\tmp\1+%CD%\tmp\1+%CD%\tmp\1+%CD%\tmp\1 %CD%\tmp\2 >nul 2>&1
-DEL %CD%\tmp\1
-COPY /b %CD%\tmp\2+%CD%\tmp\2+%CD%\tmp\2+%CD%\tmp\2+%CD%\tmp\2 %CD%\tmp\3 >nul 2>&1
-DEL %CD%\tmp\2
-COPY /b %CD%\tmp\3+%CD%\tmp\3+%CD%\tmp\3+%CD%\tmp\3+%CD%\tmp\3 %CD%\tmp\largefile >nul 2>&1
-DEL %CD%\tmp\3
+dd if=bin/bacula-dir.exe of=%CD:\=/%/tmp/1 bs=1024 count=512 >nul 2>&1
+COPY /b tmp\1+tmp\1+tmp\1+tmp\1 tmp\2 >nul 2>&1
+DEL tmp\1
+COPY /b tmp\2+tmp\2+tmp\2+tmp\2+tmp\2 tmp\3 >nul 2>&1
+DEL tmp\2
+COPY /b tmp\3+tmp\3+tmp\3+tmp\3+tmp\3 tmp\largefile >nul 2>&1
+DEL tmp\3
 
 ECHO largefile created
 

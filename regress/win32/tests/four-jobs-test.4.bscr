@@ -1,7 +1,6 @@
 @output nul
 messages
 @output tmp/log1.out
-label storage=File volume=TestVolume001
 run job=@JobName@ yes
 wait
 messages

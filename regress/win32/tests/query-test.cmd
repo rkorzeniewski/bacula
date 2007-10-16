@@ -9,7 +9,7 @@ SET JobName=query
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/tmp/build >\tmp\file-list
+ECHO %CD:\=/%/tmp/build >tmp\file-list
 MKDIR tmp\build
 COPY build\src\dird\*.c tmp\build >nul 2>&1
 ECHO %CD:\=/%/tmp/build/ficheriro1.txt>tmp\restore-list

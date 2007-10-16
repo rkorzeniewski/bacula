@@ -17,7 +17,7 @@ CALL scripts\prepare-two-disks
 CALL scripts\functions change_jobname localhost-fd %JobName%
 CALL scripts\functions start_test
 
-ECHO %CD:\=/%/tmp/build >\tmp\file-list
+ECHO %CD:\=/%/tmp/build >tmp\file-list
 IF NOT EXIST tmp\build MKDIR tmp\build
 COPY build\src\dird\*.c tmp\build >nul 2>&1
 

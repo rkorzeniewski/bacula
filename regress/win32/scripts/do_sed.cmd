@@ -41,33 +41,33 @@ ECHO SET AUTOCHANGER_PATH=%5 >>config_out.cmd
 ECHO SET TAPE_DRIVE1=%6 >>config_out.cmd
 
 REM process .in files with sed script
-sed -f %out% %CD%\scripts\test-bacula-dir.conf.in >%CD%\scripts\test-bacula-dir.conf
-sed -f %out% %CD%\scripts\new-test-bacula-dir.conf.in >%CD%\scripts\new-test-bacula-dir.conf
-sed -f %out% %CD%\scripts\testa-bacula-dir.conf.in >%CD%\scripts\testa-bacula-dir.conf
-sed -f %out% %CD%\scripts\test-bacula-fd.conf.in >%CD%\scripts\test-bacula-fd.conf
-sed -f %out% %CD%\scripts\test-bacula-sd.conf.in >%CD%\scripts\test-bacula-sd.conf
-sed -f %out% %CD%\scripts\test-console.conf.in >%CD%\scripts\test-console.conf
-sed -f %out% %CD%\scripts\crypto-bacula-fd.conf.in >%CD%\scripts\crypto-bacula-fd.conf
-sed -f %out% %CD%\scripts\bacula-dir-tape.conf.in >%CD%\scripts\bacula-dir-tape.conf
-sed -f %out% %CD%\scripts\bacula-dir-migration.conf.in >%CD%\scripts\bacula-dir-migration.conf
-sed -f %out% %CD%\scripts\win32-bacula-dir-tape.conf.in >%CD%\scripts\win32-bacula-dir-tape.conf
-sed -f %out% %CD%\scripts\bacula-sd-tape.conf.in >%CD%\scripts\bacula-sd-tape.conf
-sed -f %out% %CD%\scripts\bacula-sd-2tape.conf.in >%CD%\scripts\bacula-sd-2tape.conf
-sed -f %out% %CD%\scripts\bacula-sd-migration.conf.in >%CD%\scripts\bacula-sd-migration.conf
-sed -f %out% %CD%\scripts\bacula-sd-2disk.conf.in >%CD%\scripts\bacula-sd-2disk.conf
-sed -f %out% %CD%\scripts\bacula-sd-2drive.conf.in >%CD%\scripts\bacula-sd-2drive.conf
-sed -f %out% %CD%\scripts\bacula-sd-2disk-drive.conf.in >%CD%\scripts\bacula-sd-2disk-drive.conf
-sed -f %out% %CD%\scripts\cleanup-tape.cmd.in >%CD%\scripts\cleanup-tape.cmd
-sed -f %out% %CD%\scripts\cleanup-2tape.cmd.in >%CD%\scripts\cleanup-2tape.cmd
-sed -f %out% %CD%\scripts\cleanup-2drive.cmd.in >%CD%\scripts\cleanup-2drive.cmd
-sed -f %out% %CD%\scripts\prepare-two-tapes.cmd.in >%CD%\scripts\prepare-two-tapes.cmd
-sed -f %out% %CD%\scripts\bacula-dir.conf.testrunscript.in >%CD%\scripts\bacula-dir.conf.testrunscript
+sed -f %out% scripts\test-bacula-dir.conf.in >scripts\test-bacula-dir.conf
+sed -f %out% scripts\new-test-bacula-dir.conf.in >scripts\new-test-bacula-dir.conf
+sed -f %out% scripts\testa-bacula-dir.conf.in >scripts\testa-bacula-dir.conf
+sed -f %out% scripts\test-bacula-fd.conf.in >scripts\test-bacula-fd.conf
+sed -f %out% scripts\test-bacula-sd.conf.in >scripts\test-bacula-sd.conf
+sed -f %out% scripts\test-console.conf.in >scripts\test-console.conf
+sed -f %out% scripts\crypto-bacula-fd.conf.in >scripts\crypto-bacula-fd.conf
+sed -f %out% scripts\bacula-dir-tape.conf.in >scripts\bacula-dir-tape.conf
+sed -f %out% scripts\bacula-dir-migration.conf.in >scripts\bacula-dir-migration.conf
+sed -f %out% scripts\win32-bacula-dir-tape.conf.in >scripts\win32-bacula-dir-tape.conf
+sed -f %out% scripts\bacula-sd-tape.conf.in >scripts\bacula-sd-tape.conf
+sed -f %out% scripts\bacula-sd-2tape.conf.in >scripts\bacula-sd-2tape.conf
+sed -f %out% scripts\bacula-sd-migration.conf.in >scripts\bacula-sd-migration.conf
+sed -f %out% scripts\bacula-sd-2disk.conf.in >scripts\bacula-sd-2disk.conf
+sed -f %out% scripts\bacula-sd-2drive.conf.in >scripts\bacula-sd-2drive.conf
+sed -f %out% scripts\bacula-sd-2disk-drive.conf.in >scripts\bacula-sd-2disk-drive.conf
+sed -f %out% scripts\cleanup-tape.cmd.in >scripts\cleanup-tape.cmd
+sed -f %out% scripts\cleanup-2tape.cmd.in >scripts\cleanup-2tape.cmd
+sed -f %out% scripts\cleanup-2drive.cmd.in >scripts\cleanup-2drive.cmd
+sed -f %out% scripts\prepare-two-tapes.cmd.in >scripts\prepare-two-tapes.cmd
+sed -f %out% scripts\bacula-dir.conf.testrunscript.in >scripts\bacula-dir.conf.testrunscript
 
-COPY %CD%\bin\bacula-sd.conf tmp\bacula-sd.tmp >nul
-sed -e "s;C:\\Temp;%CD:\=/%/tmp;g" tmp\bacula-sd.tmp >%CD%\bin\bacula-sd.conf
+COPY bin\bacula-sd.conf tmp\bacula-sd.tmp >nul
+sed -e "s;C:\\Temp;%CD:\=/%/tmp;g" tmp\bacula-sd.tmp >bin\bacula-sd.conf
 
 REM get proper SD tape definitions
-COPY %CD%\scripts\win32_tape_options %CD%\bin\tape_options >nul
+COPY scripts\win32_tape_options bin\tape_options >nul
 
 DEL %out%
 DEL tmp\*.tmp

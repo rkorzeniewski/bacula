@@ -39,20 +39,18 @@ run job=$JobName level=Full yes
 run job=$JobName level=Full yes
 wait
 update volume=FileVolume001 VolStatus=Used
-sql
-update Job SET RealEndTime='2004-01-01 12:01:01' WHERE JobId IN (2,3);
-
 llist jobid=2,3
 list jobs
 list volumes
+@#setdebug level=20 dir
 @# should migrate only jobid=2 and 3
 run job=migrate-time yes
 wait
 messages
 wait
-purge volume=FileVolume001
 list jobs
 list volumes
+purge volume=FileVolume001
 @# 
 @# now do a restore
 @#

@@ -55,7 +55,7 @@ REM  C:\Temp\bacula\slot3, ...) this script will create a C:\Temp\bacula\loadedn
 REM  file to keep track of what Slot is loaded. You should not change this file.
 REM
 
-SET dbgfile=%CD%\disk-changer.log
+SET dbgfile=disk-changer.log
 
 REM to turn on logging, uncomment the following line
 IF NOT EXIST %dbgfile% COPY nul %dbgfile% >nul

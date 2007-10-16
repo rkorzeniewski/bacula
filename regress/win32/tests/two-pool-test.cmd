@@ -21,7 +21,7 @@ CALL scripts\prepare-two-disks
  
 REM Make a relatively large backup set 5 x source code directory
 REM  Reduced to 1 for portable
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions start_test
 

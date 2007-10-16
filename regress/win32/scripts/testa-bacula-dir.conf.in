@@ -54,7 +54,7 @@ Job {
   Storage = File
   Messages = Standard
   Pool = Default
-  Where = /tmp/bacula-restores
+  Where = @tmpdir@/bacula-restores
 }
 
 
@@ -62,7 +62,7 @@ Job {
 FileSet {
   Name = "Full Set"
   Include { Options { signature=SHA1 }
-    File =</tmp/file-list
+    File =<@tmpdir@/file-list
   }
 }
 

@@ -8,7 +8,7 @@ SET JobName=Two-Jobs
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 CALL scripts\functions change_jobname CompressedTest %JobName%
 CALL scripts\functions start_test
@@ -19,7 +19,7 @@ CALL scripts\functions run_bacula
 CALL scripts\functions check_for_zombie_jobs storage=File 
 
 ECHO Backup 1 done
-tools\touch build\src\dird\*.c
+touch build\src\dird\*.c
 
 REM
 REM run a second job

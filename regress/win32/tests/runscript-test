@@ -20,6 +20,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 label volume=TestVolume001
+1
 @#setdebug level=100 storage=File
 @output ${cwd}/tmp/log.RUN2.out
 run job=RUN_FD_WARNING yes

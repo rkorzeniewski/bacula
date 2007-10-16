@@ -8,7 +8,7 @@ SET JobName=AutoLabel
 CALL scripts\functions set_debug 0
 CALL scripts\functions copy_test_confs
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 COPY bin\bacula-dir.conf tmp\1
 sed -e "s;# Label Format;  Label Format;" tmp\1 >bin\bacula-dir.conf

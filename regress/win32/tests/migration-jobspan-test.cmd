@@ -17,10 +17,10 @@ CALL scripts\cleanup
 CALL scripts\copy-migration-confs
 CALL scripts\prepare-two-disks
 
-ECHO %CD:\=/%/build >\tmp\file-list
+ECHO %CD:\=/%/build >tmp\file-list
 
 COPY bin\bacula-sd.conf tmp\1
-sed "s;# Maximum File Size;  Maximum File Size;" %CD%\tmp\1 >%CD%\bin\bacula-sd.conf
+sed "s;# Maximum File Size;  Maximum File Size;" tmp\1 >bin\bacula-sd.conf
 
 CALL scripts\functions change_jobname NightlySave %JobName%
 CALL scripts\functions start_test

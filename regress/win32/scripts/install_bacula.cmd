@@ -22,7 +22,7 @@ COPY build\src\win32\installer\%1\*.manifest bin >nul
 COPY build\src\win32\%1\*.pdb bin >nul
 COPY build\src\win32\installer\%1\query.sql bin >nul
 
-COPY bin\cats_sqlite3.dll bin\bacula_cats3.dll >nul
+COPY bin\cats_sqlite3.dll bin\bacula_cats.dll >nul
 
 FOR /f %%i IN ( 'cmd /c openssl.exe rand -base64 33 2^>nul' ) DO SET CLIENT_PASSWORD=%%i
 FOR /f %%i IN ( 'cmd /c openssl.exe rand -base64 33 2^>nul' ) DO SET STORAGE_PASSWORD=%%i
@@ -64,13 +64,13 @@ ECHO s;@tape_drive1@;%7;g >>install.sed
 FOR %%i in ( %CATS% ) DO (
    SET NAME=%%i
    SET TARGET=bin\!NAME:sqlite3=bacula!
-   tools\sed -f install.sed build\src\win32\installer\%1\!NAME! > !TARGET!
+   sed -f install.sed build\src\win32\installer\%1\!NAME! > !TARGET!
 )
 
-FOR %%i in ( %CONFS% ) DO tools\sed -f install.sed build\src\win32\installer\%%i > bin\%%~ni
+FOR %%i in ( %CONFS% ) DO sed -f install.sed build\src\win32\installer\%%i > bin\%%~ni
 
-tools\sed -f install.sed build\src\win32\installer\%1\make_sqlite3_tables.sql > bin\make_sqlite3_tables.sql
-tools\sed -f install.sed build\src\win32\installer\%1\mtx-changer.cmd > bin\mtx-changer.cmd
+sed -f install.sed build\src\win32\installer\%1\make_sqlite3_tables.sql > bin\make_sqlite3_tables.sql
+sed -f install.sed build\src\win32\installer\%1\mtx-changer.cmd > bin\mtx-changer.cmd
 
 CALL scripts\bacula uninstall
 CALL scripts\bacula install %CD%\bin
