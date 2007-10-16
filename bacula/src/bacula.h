@@ -48,6 +48,7 @@
 #else
 #include "config.h"
 #endif
+#define __CONFIG_H
 
 
 #define _REENTRANT    1

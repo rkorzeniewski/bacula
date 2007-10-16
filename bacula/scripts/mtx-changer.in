@@ -57,6 +57,8 @@ OS=`uname`
 case ${OS} in
   SunOS)
     ready="No Additional Sense"
+    # Sun sed/awk etc are not sufficient, working versions are in /usr/xpg4/bin
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sfw/bin:/usr/xpg4/bin:/usr/bin"
     ;;
   FreeBSD)
     ready="Current Driver State: at rest."
@@ -108,7 +110,7 @@ make_temp_file() {
 wait_for_drive() {
   i=0 
   while [ $i -le 300 ]; do  # Wait max 300 seconds
-    if mt -f $1 status | grep "${ready}" >/dev/null 2>&1; then
+    if mt -f $1 status 2>&1 | grep "${ready}" >/dev/null 2>&1; then
       break
     fi
     debug "Device $1 - not ready, retrying..."

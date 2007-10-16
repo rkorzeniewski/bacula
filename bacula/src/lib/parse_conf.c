@@ -823,7 +823,8 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
       }
       lex_set_error_handler_error_type(lc, err_type) ;
       while ((token=lex_get_token(lc, T_ALL)) != T_EOF) {
-         Dmsg1(900, "parse got token=%s\n", lex_tok_to_str(token));
+         Dmsg3(900, "parse state=%d pass=%d got token=%s\n", state, pass,
+              lex_tok_to_str(token));
          switch (state) {
          case p_none:
             if (token == T_EOL) {
@@ -841,8 +842,11 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
             }
             for (i=0; resources[i].name; i++) {
                if (strcasecmp(resources[i].name, lc->str) == 0) {
-                  state = p_resource;
                   items = resources[i].items;
+                  if (!items) {
+                     break;
+                  }
+                  state = p_resource;
                   res_type = resources[i].rcode;
                   init_resource(res_type, items, pass);
                   break;
