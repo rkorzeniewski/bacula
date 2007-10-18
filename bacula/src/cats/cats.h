@@ -498,7 +498,7 @@ extern const char* my_pg_batch_fill_path_query;
 #define sql_fetch_row(x)      my_postgresql_fetch_row(x)
 #define sql_query(x, y)       my_postgresql_query((x), (y))
 #define sql_close(x)          PQfinish((x)->db)
-#define sql_strerror(x)       PQresultErrorMessage((x)->result)
+#define sql_strerror(x)       PQerrorMessage((x)->db)
 #define sql_num_rows(x)       ((unsigned) PQntuples((x)->result))
 #define sql_data_seek(x, i)   my_postgresql_data_seek((x), (i))
 #define sql_affected_rows(x)  ((unsigned) atoi(PQcmdTuples((x)->result)))
