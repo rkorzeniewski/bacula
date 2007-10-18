@@ -666,6 +666,7 @@ int my_postgresql_batch_start(JCR *jcr, B_DB *mdb)
    return mdb->status;
 
 bail_out:
+   Mmsg1(&mdb->errmsg, _("error starting batch mode: %s"), PQerrorMessage(mdb->db));
    mdb->status = 0;
    PQclear(mdb->result);
    mdb->result = NULL;
@@ -695,7 +696,7 @@ int my_postgresql_batch_end(JCR *jcr, B_DB *mdb, const char *error)
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
       mdb->status = 0;
-      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
+      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
    }
    
    Dmsg0(500, "my_postgresql_batch_end finishing\n");
@@ -742,7 +743,7 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    if (res <= 0) {
       Dmsg0(500, "we failed\n");
       mdb->status = 0;
-      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s\n"), PQerrorMessage(mdb->db));
+      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
    }
 
    Dmsg0(500, "my_postgresql_batch_insert finishing\n");
