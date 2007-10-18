@@ -181,8 +181,8 @@ Device {
 #  MountCommand = "/bin/mount -t iso9660 -o ro %a %m";
 #  UnmountCommand = "/bin/umount %m";
 #  SpoolDirectory = /tmp/backup;
-#  WritePartCommand = "/etc/bacula/dvd-handler %a write %e %v"
-#  FreeSpaceCommand = "/etc/bacula/dvd-handler %a free"
+#  WritePartCommand = "@scriptdir@/dvd-handler %a write %e %v"
+#  FreeSpaceCommand = "@scriptdir@/dvd-handler %a free"
 #}
 
 #
