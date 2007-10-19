@@ -449,8 +449,11 @@ try_again:
       Dmsg1(800, "Calling run_job job=%x\n", jcr->job);
 
 start_job:
-      Dmsg1(100, "Using pool %s\n", jcr->pool->name());
+      Dmsg3(000, "JobId=%u using pool %s priority=%d\n", (int)jcr->JobId, 
+            jcr->pool->name(), jcr->JobPriority);
       JobId = run_job(jcr);
+      Dmsg4(000, "JobId=%u NewJobId=%d using pool %s priority=%d\n", (int)jcr->JobId, 
+            JobId, jcr->pool->name(), jcr->JobPriority);
       free_jcr(jcr);                  /* release jcr */
       if (JobId == 0) {
          ua->error_msg(_("Job failed.\n"));

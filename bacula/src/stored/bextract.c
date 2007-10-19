@@ -79,7 +79,8 @@ PROG_COPYRIGHT
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a configuration file\n"
-"       -d <nn>         set debug level to nn\n"
+"       -d <nn>         set debug level to <nn>\n"
+"       -dt             print timestamp in debug output\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
 "       -p              proceed inspite of I/O errors\n"
@@ -126,9 +127,14 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+         }
          break;
 
       case 'e':                    /* exclude list */

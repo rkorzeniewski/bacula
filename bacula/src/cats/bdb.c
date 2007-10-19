@@ -318,9 +318,9 @@ char *db_strerror(B_DB *mdb)
    return mdb->errmsg;
 }
 
-int db_sql_query(B_DB *mdb, char const *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+bool db_sql_query(B_DB *mdb, char const *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
-   return 1;
+   return true;
 }
 
 /*

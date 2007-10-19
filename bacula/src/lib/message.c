@@ -50,6 +50,7 @@ sql_escape p_sql_escape = NULL;
 const char *working_directory = NULL;       /* working directory path stored here */
 int verbose = 0;                      /* increase User messages */
 int debug_level = 1;                  /* debug level */
+bool dbg_timestamp = false;           /* print timestamp in debug output */
 time_t daemon_start_time = 0;         /* Daemon start time */
 const char *version = VERSION " (" BDATE ")";
 char my_name[30];                     /* daemon name is stored here */
@@ -843,6 +844,7 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     int       len;
     va_list   arg_ptr;
     bool      details = true;
+    time_t    mtime;
 
     if (level < 0) {
        details = false;
@@ -850,6 +852,15 @@ d_msg(const char *file, int line, int level, const char *fmt,...)
     }
 
     if (level <= debug_level) {
+       if (dbg_timestamp) {
+          mtime = time(NULL);
+          bstrftimes(buf, sizeof(buf), mtime);
+          len = strlen(buf);
+          buf[len++] = ' ';
+          buf[len] = 0;
+          fputs(buf, stdout);
+       }
+    
 #ifdef FULL_LOCATION
        if (details) {
           len = bsnprintf(buf, sizeof(buf), "%s: %s:%d-%u ", 
@@ -1335,7 +1346,7 @@ void Qmsg(JCR *jcr, int type, time_t mtime, const char *fmt,...)
       jcr = get_jcr_from_tsd();
    }
    /* If no jcr or dequeuing send to daemon to avoid recursion */
-   if (!jcr || jcr->dequeuing) {
+   if ((jcr && !jcr->msg_queue) || !jcr || jcr->dequeuing) {
       /* jcr==NULL => daemon message, safe to send now */
       Jmsg(jcr, item->type, item->mtime, "%s", item->msg);
       free(item);

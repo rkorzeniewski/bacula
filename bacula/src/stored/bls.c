@@ -79,7 +79,8 @@ PROG_COPYRIGHT
 "Usage: bls [options] <device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
 "       -c <file>       specify a config file\n"
-"       -d <level>      specify debug level\n"
+"       -d <nn>         set debug level to <nn>\n"
+"       -dt             print timestamp in debug output\n"
 "       -e <file>       exclude list\n"
 "       -i <file>       include list\n"
 "       -j              list jobs\n"
@@ -130,9 +131,14 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+         }
          break;
 
       case 'e':                    /* exclude list */

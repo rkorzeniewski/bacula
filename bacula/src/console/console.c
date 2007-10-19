@@ -114,7 +114,8 @@ PROG_COPYRIGHT
 "\nVersion: " VERSION " (" BDATE ") %s %s %s\n\n"
 "Usage: bconsole [-s] [-c config_file] [-d debug_level]\n"
 "       -c <file>   set configuration file to file\n"
-"       -dnn        set debug level to nn\n"
+"       -d <nn>     set debug level to <nn>\n"
+"       -dt         print timestamp in debug output\n"
 "       -n          no conio\n"
 "       -s          no signals\n"
 "       -t          test - read configuration and exit\n"
@@ -532,9 +533,13 @@ int main(int argc, char *argv[])
          break;
 
       case 'd':
-         debug_level = atoi(optarg);
-         if (debug_level <= 0) {
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
          }
          break;
 

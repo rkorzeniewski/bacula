@@ -107,7 +107,7 @@ int bget_dirmsg(BSOCK *bs)
 
    for (;;) {
       n = bs->recv();
-      Dmsg2(100, "bget_dirmsg %d: %s", n, bs->msg);
+      Dmsg2(100, "bget_dirmsg %d: %s\n", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
          return n;                    /* error or terminate */

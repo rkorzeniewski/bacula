@@ -1,10 +1,19 @@
               Technical notes on version 2.3
 
 General:
+19Oct07
+kes  Make explicit exception to GPL in LICENSE to permit linking
+     the Win32 FD with Microsoft VSS code.
+kes  Apply the Solaris package patch from 
+     Masopust, Christian <christian.masopust@siemens.com>
+kes  Apply the patch to optionally add a timestamp in the debug output
+     submitted by Mariusz Czulada <manieq@wp.eu>.
 18Oct07
 ebl  Use PQerrorMessage instead of PQresultErrorMessage in postgresql
-     backend (sql_strerror). Fixe bug #989
+     backend (sql_strerror). Fixes bug #989
 16Oct07
+kes  Apply Michael Short's <mdshort@gmail.com> Win32 regress patch.
+     It applied with no problems.
 kes  Add PATH command to SunOS part of mtx-changer.in so that sed and
      awk are on the path.  
 kes  Redirect stderror to stdin on mt status command in mtx-changer.in
@@ -167,10 +176,10 @@ kes  Note, you need GTK >= 2.10 to be able to link the Tray Monitor
      program.
 kes  Move patches into patches directory.
 11Sep07 
-ebl  Fix bug #946 about "bacula-dir -t" which doesn't works
+ebl  Fix bug #946 about 'bacula-dir -t' which doesn't works
      as expected.
 09Sep07 
-ebl  Using "m" in bconsole will show messages like before,
+ebl  Using 'm' in bconsole will show messages like before,
      and not memory usage.
 kes  Fix bug #935, and probably also bug #903 where files were not
      restored. MediaId was not properly set in JobMedia record after

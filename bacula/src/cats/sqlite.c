@@ -338,7 +338,7 @@ static int sqlite_result(void *arh_data, int num_fields, char **rows, char **col
  * Submit a general SQL command (cmd), and for each row returned,
  *  the sqlite_handler is called with the ctx.
  */
-int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    struct rh_data rh_data;
    int stat;
@@ -358,10 +358,10 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
    if (stat != 0) {
       Mmsg(mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
       db_unlock(mdb);
-      return 0;
+      return false;
    }
    db_unlock(mdb);
-   return 1;
+   return true;
 }
 
 /*

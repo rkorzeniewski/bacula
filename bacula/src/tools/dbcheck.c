@@ -105,7 +105,8 @@ static void usage()
 "       -b              batch mode\n"
 "       -C              catalog name in the director conf file\n"
 "       -c              director conf filename\n"
-"       -dnn            set debug level to nn\n"
+"       -d <nn>         set debug level to <nn>\n"
+"       -dt             print timestamp in debug output\n"
 "       -f              fix inconsistencies\n"
 "       -v              verbose\n"
 "       -?              print this message\n\n");
@@ -145,9 +146,14 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+         }
          break;
 
       case 'f':                    /* fix inconsistencies */

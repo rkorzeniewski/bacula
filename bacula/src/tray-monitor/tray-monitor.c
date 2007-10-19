@@ -112,7 +112,8 @@ PROG_COPYRIGHT
 "\nVersion: %s (%s) %s %s %s\n\n"
 "Usage: tray-monitor [-c config_file] [-d debug_level]\n"
 "       -c <file>     set configuration file to file\n"
-"       -dnn          set debug level to nn\n"
+"       -d <nn>       set debug level to <nn>\n"
+"       -dt           print timestamp in debug output\n"
 "       -t            test - read configuration and exit\n"
 "       -?            print this message.\n"
 "\n"), 2004, VERSION, BDATE, HOST_OS, DISTNAME, DISTVER);
@@ -219,9 +220,13 @@ int main(int argc, char *argv[])
          break;
 
       case 'd':
-         debug_level = atoi(optarg);
-         if (debug_level <= 0) {
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
          }
          break;
 

@@ -54,6 +54,8 @@ static void usage()
 "       -f          specify file of data to be matched\n"
 "       -e          specify expression\n"
 "       -s          sed output\n"
+"       -d <nn>     set debug level to <nn>\n"
+"       -dt         print timestamp in debug output\n"
 "       -?          print this message.\n"
 "\n");
 
@@ -77,9 +79,13 @@ int main(int argc, char *const *argv)
    while ((ch = getopt(argc, argv, "sd:f:e:")) != -1) {
       switch (ch) {
       case 'd':                       /* set debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0) {
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
          }
          break;
 

@@ -69,6 +69,19 @@ Professional Needs:
 - Implement Diff,Inc Retention Periods
 
 Priority:
+- Encrypt sd_auth_key = s with director's key = d
+   k[i] = s[i] + (d[i] & 0xF)) & 0xFF + 'A'  skip -
+  Decrypt key = k with director's key
+   x  = k[i] - (d[i] & 0xF))
+   if (x < 0) {
+      x = k[i] - (d[i] & 0xF) + 16
+   }
+   s[i] = x + 'A';
+- finish implementation of fdcalled -- see ua_run.c:105
+- Fix problem in postgresql.c in my_postgresql_query, where the
+  generation of the error message doesn't differentiate result==NULL
+  and a bad status from that result.  Not only that, the result is
+  cleared on a bail_out without having generated the error message.
 - Erabt if min_block_size > max_block_size
 - KIWI
 - Implement wait on multiple objects

@@ -23,6 +23,14 @@ project's "OpenSSL" library (or with modified versions of it that use
 the same license as the "OpenSSL" library), and distribute the linked
 executables.  You must obey the GNU General Public License in all
 respects for all of the code used other than "OpenSSL".
+
+As a special exception to the GPLv2, the Bacula Project gives
+permission to link the code of its release of the Bacula Win32 File
+daemon with the Microsoft supplied Volume Shadow Copy (VSS) libraries
+and distribute the linked executables.  You must obey the GNU General
+Public License in all respects for all of the code used other than for
+the Microsoft VSS code, where you must obey their license terms.
+
              
 ===================================
 
