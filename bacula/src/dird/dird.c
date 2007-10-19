@@ -94,7 +94,8 @@ PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
 "Usage: dird [-f -s] [-c config_file] [-d debug_level] [config_file]\n"
 "       -c <file>   set configuration file to file\n"
-"       -dnn        set debug level to nn\n"
+"       -d <nn>     set debug level to <nn>\n"
+"       -dt         print timestamp in debug output\n"
 "       -f          run in foreground (for debugging)\n"
 "       -g          groupid\n"
 "       -r <job>    run <job> now\n"
@@ -149,9 +150,13 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* set debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0) {
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
          }
          Dmsg1(10, "Debug level = %d\n", debug_level);
          break;

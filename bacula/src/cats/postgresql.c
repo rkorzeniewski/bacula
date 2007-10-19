@@ -307,7 +307,7 @@ db_escape_string(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
  * Submit a general SQL command (cmd), and for each row returned,
  *  the sqlite_handler is called with the ctx.
  */
-int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
+bool db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler, void *ctx)
 {
    SQL_ROW row;
 
@@ -318,7 +318,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
       Mmsg(mdb->errmsg, _("Query failed: %s: ERR=%s\n"), query, sql_strerror(mdb));
       db_unlock(mdb);
       Dmsg0(500, "db_sql_query failed\n");
-      return 0;
+      return false;
    }
    Dmsg0(500, "db_sql_query succeeded. checking handler\n");
 
@@ -342,7 +342,7 @@ int db_sql_query(B_DB *mdb, const char *query, DB_RESULT_HANDLER *result_handler
 
    Dmsg0(500, "db_sql_query finished\n");
 
-   return 1;
+   return true;
 }
 
 

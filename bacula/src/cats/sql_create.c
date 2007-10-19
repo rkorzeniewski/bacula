@@ -768,7 +768,7 @@ bool db_write_batch_file_records(JCR *jcr)
 
    jcr->JobStatus = JS_AttrInserting;
    if (!sql_batch_end(jcr, jcr->db_batch, NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Bad batch end %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Batch end %s\n", jcr->db_batch->errmsg);
       return false;
    }
    if (job_canceled(jcr)) {
@@ -778,35 +778,35 @@ bool db_write_batch_file_records(JCR *jcr)
 
    /* we have to lock tables */
    if (!db_sql_query(jcr->db_batch, sql_batch_lock_path_query, NULL, NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Can't lock Path table %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Lock Path table %s\n", jcr->db_batch->errmsg);
       return false;
    }
 
    if (!db_sql_query(jcr->db_batch, sql_batch_fill_path_query, NULL, NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Can't fill Path table %s\n",jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Fill Path table %s\n",jcr->db_batch->errmsg);
       db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query, NULL, NULL);
       return false;
    }
    
    if (!db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query,NULL,NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Can't unlock Path table %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Unlock Path table %s\n", jcr->db_batch->errmsg);
       return false;      
    }
 
    /* we have to lock tables */
    if (!db_sql_query(jcr->db_batch,sql_batch_lock_filename_query,NULL, NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Can't lock Filename table %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Lock Filename table %s\n", jcr->db_batch->errmsg);
       return false;
    }
    
    if (!db_sql_query(jcr->db_batch,sql_batch_fill_filename_query, NULL,NULL)) {
-      Jmsg(jcr,M_FATAL,0,"Can't fill Filename table %s\n",jcr->db_batch->errmsg);
+      Jmsg1(jcr,M_FATAL,0,"Fill Filename table %s\n",jcr->db_batch->errmsg);
       db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query, NULL, NULL);
       return false;            
    }
 
    if (!db_sql_query(jcr->db_batch, sql_batch_unlock_tables_query,NULL,NULL)) {
-      Jmsg(jcr, M_FATAL, 0, "Can't unlock Filename table %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Unlock Filename table %s\n", jcr->db_batch->errmsg);
       return false;
    }
    
@@ -819,7 +819,7 @@ bool db_write_batch_file_records(JCR *jcr)
            "JOIN Filename ON (batch.Name = Filename.Name)",
                      NULL,NULL))
    {
-      Jmsg(jcr, M_FATAL, 0, "Can't fill File table %s\n", jcr->db_batch->errmsg);
+      Jmsg1(jcr, M_FATAL, 0, "Fill File table %s\n", jcr->db_batch->errmsg);
       return false;
    }
 

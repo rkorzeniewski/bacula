@@ -220,9 +220,13 @@ int main(int margc, char *margv[])
          break;
 
       case 'd':                    /* set debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0) {
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
          }
          break;
 
@@ -2598,7 +2602,8 @@ PROG_COPYRIGHT
 "Usage: btape <options> <device_name>\n"
 "       -b <file>   specify bootstrap file\n"
 "       -c <file>   set configuration file to file\n"
-"       -d <nn>     set debug level to nn\n"
+"       -d <nn>     set debug level to <nn>\n"
+"       -dt         print timestamp in debug output\n"
 "       -p          proceed inspite of I/O errors\n"
 "       -s          turn off signals\n"
 "       -v          be verbose\n"

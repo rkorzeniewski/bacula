@@ -73,7 +73,8 @@ PROG_COPYRIGHT
 "Usage: bcopy [-d debug_level] <input-archive> <output-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
-"       -d <nn>           set debug level to nn\n"
+"       -d <nn>           set debug level to <nn>\n"
+"       -dt               print timestamp in debug output\n"
 "       -i                specify input Volume names (separated by |)\n"
 "       -o                specify output Volume names (separated by |)\n"
 "       -p                proceed inspite of errors\n"
@@ -112,9 +113,14 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+         }
          break;
 
       case 'i':                    /* input Volume name */

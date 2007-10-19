@@ -116,7 +116,8 @@ PROG_COPYRIGHT
 "Usage: bscan [ options ] <bacula-archive>\n"
 "       -b bootstrap      specify a bootstrap file\n"
 "       -c <file>         specify configuration file\n"
-"       -d <nn>           set debug level to nn\n"
+"       -d <nn>           set debug level to <nn>\n"
+"       -dt               print timestamp in debug output\n"
 "       -m                update media info in database\n"
 "       -n <name>         specify the database name (default bacula)\n"
 "       -u <user>         specify database user name (default bacula)\n"
@@ -166,9 +167,14 @@ int main (int argc, char *argv[])
          break;
 
       case 'd':                    /* debug level */
-         debug_level = atoi(optarg);
-         if (debug_level <= 0)
-            debug_level = 1;
+         if (*optarg == 't') {
+            dbg_timestamp = true;
+         } else {
+            debug_level = atoi(optarg);
+            if (debug_level <= 0) {
+               debug_level = 1;
+            }
+         }
          break;
 
       case 'h':
