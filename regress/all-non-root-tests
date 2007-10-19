@@ -61,7 +61,7 @@ echo "End non-root disk tests" >>test.out
 echo " "
 echo " " >>test.out
 echo "Start non-root virtual disk autochanger tests"
-echo "Start non-root virtual disk autochangertests" >>test.out
+echo "Start non-root virtual disk autochanger tests" >>test.out
 #nice tests/three-pool-recycle-test
 nice tests/two-pool-test
 nice tests/fast-two-pool-test
@@ -74,4 +74,4 @@ nice tests/incremental-2media
 nice tests/three-pool-test
 nice tests/2drive-3pool-test
 echo "End non-root virtual disk autochanger tests"
-echo "End non-root virtual disk autochangertests" >>test.out
+echo "End non-root virtual disk autochanger tests" >>test.out

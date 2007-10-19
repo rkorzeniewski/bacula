@@ -1,11 +1,9 @@
 REM
 REM Run all tape tests
 REM
-CALL tests\test0
+ECHO Start two tape tests
+ECHO Start two tape tests >>test.out
 CALL tests\two-volume-tape
 CALL tests\incremental-2tape
-ECHO.
-ECHO.
-echo 2 Tape Test results
-TYPE test.out
-CALL scripts\cleanup
+ECHO End two tape tests
+ECHO End two tape tests >>test.out

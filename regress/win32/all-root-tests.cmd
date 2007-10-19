@@ -1,10 +1,13 @@
 REM
 REM Run all root tests
 REM
-DEL test.out
+ECHO.
+ECHO. >>test.out
+ECHO Start root tests
+ECHO Start root tests >>test.out
 CALL tests\dev-test-root
 CALL tests\etc-test-root
 CALL tests\lib-test-root
 CALL tests\usr-tape-root
-TYPE test.out
-CALL scripts\cleanup
+ECHO End root tests
+ECHO End root tests >>test.out

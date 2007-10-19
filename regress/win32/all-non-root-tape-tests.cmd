@@ -3,8 +3,11 @@ REM Run all tape tests
 REM
 CALL config_var
 IF NOT "%AUTOCHANGER%" == "nul" mtx -f %AUTOCHANGER% load 1 >nul 2>&1
-COPY test.out test1.out
-CALL tests\test0
+ECHO.
+ECHO. >>test.out
+ECHO Start all non-root tape tests
+ECHO Start all non-root tape tests >>test.out
+REM CALL tests\ansi-label-tape
 CALL tests\backup-bacula-tape
 CALL tests\btape-fill-tape
 CALL tests\fixed-block-size-tape
@@ -19,8 +22,5 @@ CALL tests\two-pool-tape
 CALL tests\2drive-incremental-2tape
 CALL tests\bscan-tape
 CALL tests\verify-vol-tape
-ECHO.
-ECHO.
-ECHO Test results
-TYPE test.out
-CALL scripts\cleanup
+ECHO End all non-root tape tests
+ECHO End all non-root tape tests >>test.out
