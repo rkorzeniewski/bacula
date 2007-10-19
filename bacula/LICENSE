@@ -13,7 +13,7 @@ License:
 For the most part, Bacula is licensed under the GPL version 2 this
 code is listed under Copyright Free Software Foundation Europe e.V.
 What follows is the addition(s) to the GPL version 2 license, that
-applys to code that is copyrighted by the Free Software Foundation
+applies to code that is copyrighted by the Free Software Foundation
 Europe e.V.
 
 Linking: 
@@ -31,6 +31,13 @@ and distribute the linked executables.  You must obey the GNU General
 Public License in all respects for all of the code used other than for
 the Microsoft VSS code, where you must obey their license terms.
 
+The Bacula Project gives permission for plugins with GPLv2 compatible
+licenses to be loaded and distributed with the Bacula executables as
+long as the combined work is distributed under the terms listed in the 
+Bacula LICENSE file.  A full list of GPLv2 compatible licenses can be
+found at: http://www.fsf.org/licensing/licenses/.  If you wish to load
+or distribute plugins with different licensing terms please contact
+the Bacula Project at: license@bacula.org
              
 ===================================
 
