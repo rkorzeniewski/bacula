@@ -93,7 +93,6 @@ const char *select_job =
 /* Delete temp tables and indexes  */
 const char *drop_deltabs[] = {
    "DROP TABLE DelCandidates",
-   "DROP INDEX DelInx1",
    NULL};
 
 
