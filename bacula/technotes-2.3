@@ -1,6 +1,10 @@
               Technical notes on version 2.3
 
 General:
+22Oct07
+kes  Add a security warning to src/cats/make_catalog_backup.in indicating
+     that passing the password via the command line (arg 3) is insecure.
+     This responds to bug #990 (it doesn't fix it).
 19Oct07
 kes  Set default debug_level to zero. This corrects bugs #991 and #993. 
 kes  Fix a crash in bat when it cannot connect to the Director for example
