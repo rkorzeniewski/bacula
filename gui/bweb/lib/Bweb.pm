@@ -1049,6 +1049,7 @@ our %sql_func = (
 	      STARTTIME_PHOUR=> " date_part('hour', Job.StartTime) ",
 	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
 	      STARTTIME_PMONTH => " date_part('month', Job.StartTime) ",
+	      STARTTIME_PWEEK => " date_part('week', Job.StartTime) ",
 	      DB_SIZE => " SELECT pg_database_size(current_database()) ",
 	      CAT_POOL_TYPE => " MediaType || '_' || Pool.Name ",
 	  },
@@ -1065,6 +1066,7 @@ our %sql_func = (
 	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
 	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
 	      STARTTIME_PMONTH => " DATE_FORMAT(StartTime, '%m') ",
+	      STARTTIME_PWEEK => " DATE_FORMAT(StartTime, '%v') ",
 	      # with mysql < 5, you have to play with the ugly SHOW command
 	      DB_SIZE => " SELECT 0 ",
 	      # works only with mysql 5
