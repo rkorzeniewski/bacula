@@ -362,7 +362,10 @@ INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('t', 'Waiting on start time');
 INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('p', 'Waiting on higher priority jobs');
-
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('a', 'SD despooling attributes');
+INSERT INTO Status (JobStatus,JobStatusLong) VALUES
+   ('i', 'Doing batch insert file records');
 
 INSERT INTO Version (VersionId) VALUES (10);
 

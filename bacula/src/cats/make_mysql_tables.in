@@ -325,7 +325,9 @@ INSERT INTO Status (JobStatus,JobStatusLong) VALUES
    ('c', 'Waiting for client resource'),
    ('d', 'Waiting on maximum jobs'),
    ('t', 'Waiting on start time'),
-   ('p', 'Waiting on higher priority jobs');
+   ('p', 'Waiting on higher priority jobs'),
+   ('i', 'Doing batch insert file records'),
+   ('a', 'SD despooling attributes');
 
 CREATE TABLE Version (
    VersionId INTEGER UNSIGNED NOT NULL 
