@@ -26,7 +26,7 @@ if (navigator.appName == 'Konqueror') {
        <li><a href="bweb.pl?action=groups">Groups</a> </li>
      </ul>
  </li>
- <li>Jobs
+ <li style="padding: 0.25em 2em;">Jobs
    <ul> 
      <li><a href="bweb.pl?action=run_job">Defined Jobs</a>
      <li><a href="bweb.pl?action=job_group">Jobs by group</a>

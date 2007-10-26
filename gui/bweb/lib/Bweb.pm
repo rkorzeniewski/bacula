@@ -1428,6 +1428,7 @@ sub get_form
                  type   => 1,
 		 poolrecycle => 1,
 		 replace => 1,
+		 expired => 1,
 		 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
@@ -2167,13 +2168,20 @@ sub display_media
 					 'volstatus',
 					 'locations');
 
-    my $arg = $self->get_form('jmedias', 'qre_media');
+    my $arg = $self->get_form('jmedias', 'qre_media', 'expired');
 
     if ($arg->{jmedias}) {
 	$where = "AND Media.VolumeName IN ($arg->{jmedias}) $where"; 
     }
     if ($arg->{qre_media}) {
 	$where = "AND Media.VolumeName $self->{sql}->{MATCH} $arg->{qre_media} $where"; 
+    }
+    if ($arg->{expired}) {
+	$where = " 
+        AND VolStatus = 'Full'
+        AND (    $self->{sql}->{UNIX_TIMESTAMP}(Media.LastWritten) 
+               + $self->{sql}->{TO_SEC}(Media.VolRetention)
+            ) < NOW()  " . $where ;
     }
 
     my $query="
@@ -2209,7 +2217,7 @@ $limit
     $self->display({ ID => $cur_id++,
 		     Pool => $elt{pool},
 		     Location => $elt{location},
-		     Medias => [ values %$all ]
+		     Medias => [ values %$all ],
 		   },
 		   "display_media.tpl");
 }

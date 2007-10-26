@@ -61,6 +61,14 @@
 </tr>
  <tr>
   <td valign='bottom'> 
+    <h2>Expired media</h2>
+    <input type='checkbox' name='expired' <TMPL_IF expired> checked </TMPL_IF> 
+	class='formulaire'>
+  </td>
+</tr>
+</tr>
+ <tr>
+  <td valign='bottom'> 
     <h2>Number of items</h2>
     <input type='text' name='limit' value='<TMPL_VAR limit>' 
 	class='formulaire' size='4'>
