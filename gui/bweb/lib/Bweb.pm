@@ -3433,11 +3433,13 @@ sub prune
 
     my $b = new Bconsole(pref => $self->{info}, timeout => 60);
 
-    $self->display({
-	content => $b->prune_volume(@volume),
-	title => "Prune media",
-	name => "prune volume=" . join(' volume=', @volume),
-    }, "command.tpl");	
+    foreach my $v (@volume) {
+	$self->display({
+	    content => $b->prune_volume(@volume),
+	    title => "Prune volume",
+	    name => "prune volume=$v",
+	}, "command.tpl");
+    }
 
     $b->close();
 }
