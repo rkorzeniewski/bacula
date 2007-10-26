@@ -370,9 +370,9 @@ sub _get_volume
 
 sub purge_volume
 {
-    my ($self, @volume) = @_;
+    my ($self, $volume) = @_;
 
-    my $sel = $self->_get_volume(@volume);
+    my $sel = $self->_get_volume($volume);
     my $ret;
     if ($sel) {
 	$ret = $self->send_cmd("purge $sel");
@@ -384,9 +384,9 @@ sub purge_volume
 
 sub prune_volume
 {
-    my ($self, @volume) = @_;
+    my ($self, $volume) = @_;
 
-    my $sel = $self->_get_volume(@volume);
+    my $sel = $self->_get_volume($volume);
     my $ret;
     if ($sel) {
 	$ret = $self->send_cmd("prune $sel yes");

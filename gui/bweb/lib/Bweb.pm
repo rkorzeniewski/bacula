@@ -3414,11 +3414,13 @@ sub purge
 
     my $b = new Bconsole(pref => $self->{info}, timeout => 60);
 
-    $self->display({
-	content => $b->purge_volume(@volume),
-	title => "Purge media",
-	name => "purge volume=" . join(' volume=', @volume),
-    }, "command.tpl");	
+    foreach my $v (@volume) {
+	$self->display({
+	    content => $b->purge_volume($v),
+	    title => "Purge media",
+	    name => "purge volume=$v",
+	}, "command.tpl");
+    }	
     $b->close();
 }
 
@@ -3435,12 +3437,11 @@ sub prune
 
     foreach my $v (@volume) {
 	$self->display({
-	    content => $b->prune_volume(@volume),
+	    content => $b->prune_volume($v),
 	    title => "Prune volume",
 	    name => "prune volume=$v",
 	}, "command.tpl");
     }
-
     $b->close();
 }
 
