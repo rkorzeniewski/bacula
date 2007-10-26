@@ -17,13 +17,12 @@ Section: base
 Architecture: all
 Depends: libtime-modules-perl, bweb-common, libgd-graph-perl, libdbd-pg-perl|libdbd-mysql-perl,libhtml-template-perl
 Description: Bacula restore interface
-  Bweb is a bacula web interface
+  Bweb is a Bacula web interface
 
 Package: bweb-common
 Section: base
 Architecture: all
 Depends: libtime-modules-perl, libexpect-perl
 Description: Bacula restore interface
-  Bweb is a bacula web interface
-
+  Bweb is a Bacula web interface
 
