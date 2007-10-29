@@ -13,7 +13,6 @@
 # any patches for this release
 # be sure to check the setup section for patch macros
 
-
 #--------------------------------------------------------------------------
 # it should not be necessary to change anything below here for a release
 # except for patch macros in the setup section
@@ -1697,6 +1696,7 @@ else
         echo "Hmm, doesn't look like you have an existing database."
         echo "Creating SQLite database..."
 	%{script_dir}/create_sqlite_database
+	chown %{director_daemon_user}.%{daemon_group} %{working_dir}/bacula.db
         echo "Creating the SQLite tables..."
 	%{script_dir}/make_sqlite_tables
 fi
@@ -2024,6 +2024,8 @@ fi
 %endif
 
 %changelog
+* Mon Oct 29 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- correct ownership when creating sqlite db file in post script
 * Sun Sep 16 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix disable-batch-insert
 * Fri Sep 14 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
