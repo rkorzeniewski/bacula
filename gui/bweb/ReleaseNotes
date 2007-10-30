@@ -1,5 +1,9 @@
           Release Notes for bweb 2.2
 
+2007/10/30
+ - Replace VolStatus by Enabled in volume location 
+ - Add Enabled in volume update and zoom
+
 2007/10/26
  - add an option to view only expired media
 

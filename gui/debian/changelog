@@ -1,3 +1,9 @@
+bweb (2.2.6-1) stable; urgency=low
+  * Replace VolStatus by Enabled in volume location
+  * Add Enabled in volume update and zoom
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Tue,  30 Oct 2007 22:15:47 +0000
+
 bweb (2.2.1-1) stable; urgency=low
   
   * WARNING: 2.2.1-1 version don't support bacula 2.0.X anymore
