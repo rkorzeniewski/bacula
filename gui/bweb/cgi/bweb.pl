@@ -122,8 +122,8 @@ if ($action eq 'begin') {		# main display
 			 limit => $arg->{limit});
     print "</td></tr></table></div>";
 
-} elsif ($action eq 'medias') {
-    $bweb->display_medias();
+} elsif ($action eq 'allmedia') {
+    $bweb->display_allmedia();
 
 } elsif ($action eq 'eject') {
     my $arg = $bweb->get_form("ach");
@@ -228,7 +228,7 @@ if ($action eq 'begin') {		# main display
 	$bweb->update_slots();
     }
     print "</div><div style='float: left;margin-left: 20px;'>";
-    $bweb->move_media();
+    $bweb->move_media('no');	# enabled = no
     print "</div>";
 
 } elsif ($action eq 'move_email') {
@@ -244,10 +244,11 @@ if ($action eq 'begin') {		# main display
     $bweb->display($bweb, 'about.tpl');
 
 } elsif ($action eq 'intern') {
-    $bweb->move_media(); # TODO : remove that
+    $bweb->move_media('yes'); # TODO : remove that
 
 } elsif ($action eq 'move_media') {
-    $bweb->move_media(); 
+    my $a = $bweb->get_form('enabled');
+    $bweb->move_media($a->{enabled}); 
 
 } elsif ($action eq 'save_location') {
     $bweb->save_location();

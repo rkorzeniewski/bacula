@@ -40,7 +40,7 @@
 </table>
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Pool","Online","Location","Vol Status", "Vol Bytes", "Expire",
+var header = new Array("Pool","Online","Enabled", "Location","Vol Status", "Vol Bytes", "Expire",
 	               "Retention","Max use duration", "Max jobs" );
 
 var data = new Array();
@@ -52,6 +52,7 @@ img.src = '/bweb/inflag<TMPL_VAR online>.png';
 data.push( new Array(
 "<TMPL_VAR poolname>",
 img,
+human_enabled("<TMPL_VAR enabled>"),
 "<TMPL_VAR location>",
 "<TMPL_VAR volstatus>",
 human_size(<TMPL_VAR nb_bytes>),

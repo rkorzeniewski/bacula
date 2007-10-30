@@ -1195,6 +1195,20 @@ sub human_sec
     return "$val years";   
 }
 
+# display Enabled
+sub human_enabled
+{
+    my $val = shift || 0;
+
+    if ($val == 1 or $val eq "yes") {
+	return "yes";
+    } elsif ($val == 2 or $val eq "archived") {
+	return "archived";
+    } else {
+	return  "no";
+    }
+}
+
 # get Day, Hour, Year
 sub from_human_sec
 {
@@ -1429,6 +1443,7 @@ sub get_form
 		 poolrecycle => 1,
 		 replace => 1,
 		 expired => 1,
+		 enabled => 1,
 		 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
@@ -1536,9 +1551,9 @@ SELECT MediaType as mediatype
   FROM MediaType
 ";
 
-	my $medias = $self->dbh_selectall_hashref($query, 'mediatype');
+	my $media = $self->dbh_selectall_hashref($query, 'mediatype');
 	$ret{db_mediatypes} = [sort {$a->{mediatype} cmp $b->{mediatype} } 
-			          values %$medias] ;
+			          values %$media] ;
     }
 
     if ($what{db_locations}) {
@@ -1665,16 +1680,16 @@ sub get_selected_media_location
 {
     my ($self) = @_ ;
 
-    my $medias = $self->get_form('jmedias');
+    my $media = $self->get_form('jmedias');
 
-    unless ($medias->{jmedias}) {
+    unless ($media->{jmedias}) {
 	return undef;
     }
 
     my $query = "
 SELECT Media.VolumeName AS volumename, Location.Location AS location
 FROM Media LEFT JOIN Location ON (Media.LocationId = Location.LocationId)
-WHERE Media.VolumeName IN ($medias->{jmedias})
+WHERE Media.VolumeName IN ($media->{jmedias})
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
@@ -1688,20 +1703,21 @@ WHERE Media.VolumeName IN ($medias->{jmedias})
 
 sub move_media
 {
-    my ($self) = @_ ;
+    my ($self, $in) = @_ ;
 
-    my $medias = $self->get_selected_media_location();
+    my $media = $self->get_selected_media_location();
 
-    unless ($medias) {
+    unless ($media) {
 	return ;
     }
-    
+
     my $elt = $self->get_form('db_locations');
 
     $self->display({ ID => $cur_id++,
+		     enabled => human_enabled($in),
 		     %$elt,	# db_locations
-		     medias => [ 
-            sort { $a->{volumename} cmp $b->{volumename} } values %$medias
+		     media => [ 
+            sort { $a->{volumename} cmp $b->{volumename} } values %$media
 			       ],
 		     },
 		   "move_media.tpl");
@@ -1753,7 +1769,7 @@ LIMIT $number
     
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
 
-    $self->display({ Medias => [ values %$all ] },
+    $self->display({ Media => [ values %$all ] },
 		   "help_extern_compute.tpl");
 }
 
@@ -1809,7 +1825,7 @@ LIMIT $number
     
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
 
-    $self->display({ Medias => [ values %$all ] },
+    $self->display({ Media => [ values %$all ] },
 		   "help_intern_compute.tpl");
 
 }
@@ -1881,10 +1897,10 @@ sub get_param
     }
 
     if ($elt{mediatypes}) {
-	my @medias = grep { ! /^\s*$/ } CGI::param('mediatype');
-	if (@medias) {
-	    $ret{mediatypes} = \@medias;
-	    my $str = $self->dbh_join(@medias);
+	my @media = grep { ! /^\s*$/ } CGI::param('mediatype');
+	if (@media) {
+	    $ret{mediatypes} = \@media;
+	    my $str = $self->dbh_join(@media);
 	    $limit .= "AND Media.MediaType IN ($str) ";
 	}
     }
@@ -2217,12 +2233,12 @@ $limit
     $self->display({ ID => $cur_id++,
 		     Pool => $elt{pool},
 		     Location => $elt{location},
-		     Medias => [ values %$all ],
+		     Media => [ values %$all ],
 		   },
 		   "display_media.tpl");
 }
 
-sub display_medias
+sub display_allmedia
 {
     my ($self) = @_ ;
 
@@ -2238,14 +2254,15 @@ sub display_media_zoom
 {
     my ($self) = @_ ;
 
-    my $medias = $self->get_form('jmedias');
+    my $media = $self->get_form('jmedias');
     
-    unless ($medias->{jmedias}) {
+    unless ($media->{jmedias}) {
 	return $self->error("Can't get media selection");
     }
     
     my $query="
 SELECT InChanger     AS online,
+       Media.Enabled AS enabled,
        VolBytes      AS nb_bytes,
        VolumeName    AS volumename,
        VolStatus     AS volstatus,
@@ -2271,7 +2288,7 @@ SELECT InChanger     AS online,
  FROM Pool,
       Media LEFT JOIN Location ON (Media.LocationId = Location.LocationId)
  WHERE Pool.PoolId = Media.PoolId
- AND VolumeName IN ($medias->{jmedias})
+ AND VolumeName IN ($media->{jmedias})
 ";
 
     my $all = $self->dbh_selectall_hashref($query, 'volumename') ;
@@ -2455,8 +2472,8 @@ sub update_location
 {
     my ($self) = @_ ;
 
-    my $medias = $self->get_selected_media_location();
-    unless ($medias) {
+    my $media = $self->get_selected_media_location();
+    unless ($media) {
 	return ;
     }
 
@@ -2464,7 +2481,7 @@ sub update_location
 
     $self->display({ email  => $self->{info}->{email_media},
 		     %$arg,
-                     medias => [ values %$medias ],
+                     media => [ values %$media ],
 		   },
 		   "update_location.tpl");
 }
@@ -2654,7 +2671,8 @@ SELECT Media.Slot         AS slot,
        Media.VolUseDuration AS voluseduration,
        Media.VolRetention AS volretention,
        Media.Comment      AS comment,
-       PoolRecycle.Name   AS poolrecycle
+       PoolRecycle.Name   AS poolrecycle,
+       Media.Enabled      AS enabled
 
 FROM Media INNER JOIN Pool AS PoolMedia ON (Media.PoolId = PoolMedia.PoolId)
            LEFT  JOIN Pool AS PoolRecycle ON (Media.RecyclePoolId = PoolRecycle.PoolId)
@@ -2666,6 +2684,7 @@ WHERE Media.VolumeName = $media->{qmedia}
     my $row = $self->dbh_selectrow_hashref($query);
     $row->{volretention} = human_sec($row->{volretention});
     $row->{voluseduration} = human_sec($row->{voluseduration});
+    $row->{enabled} = human_enabled($row->{enabled});
 
     my $elt = $self->get_form(qw/db_pools db_locations/);
 
@@ -2708,8 +2727,8 @@ sub location_change
 {
     my ($self) = @_ ;
 
-    my $medias = $self->get_selected_media_location();
-    unless ($medias) {
+    my $media = $self->get_selected_media_location();
+    unless ($media) {
 	return $self->error("Can't get media selection");
     }
     my $newloc = CGI::param('newlocation');
@@ -2718,20 +2737,25 @@ sub location_change
     my $comm = CGI::param('comment') || '';
     $comm = $self->dbh_quote("$user: $comm");
 
-    my $query;
+    my $arg = $self->get_form('enabled');
+    my $en = human_enabled($arg->{enabled});
+    my $b = $self->get_bconsole();
 
-    foreach my $media (keys %$medias) {
+    my $query;
+    foreach my $vol (keys %$media) {
 	$query = "
 INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
  VALUES(
-       NOW(), $comm, (SELECT MediaId FROM Media WHERE VolumeName = '$media'),
-       (SELECT LocationId FROM Location WHERE Location = '$medias->{$media}->{location}'),
-       (SELECT VolStatus FROM Media WHERE VolumeName = '$media')
+       NOW(), $comm, (SELECT MediaId FROM Media WHERE VolumeName = '$vol'),
+       (SELECT LocationId FROM Location WHERE Location = '$media->{$vol}->{location}'),
+       (SELECT VolStatus FROM Media WHERE VolumeName = '$vol')
       )
 ";
 	$self->dbh_do($query);
 	$self->debug($query);
+	$b->send_cmd("update volume=\"$vol\" enabled=$en");
     }
+    $b->close();
 
     my $q = new CGI;
     $q->param('action', 'update_location');
@@ -2740,8 +2764,8 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
     $self->display({ email  => $self->{info}->{email_media},
 		     url => $url,
 		     newlocation => $newloc,
-		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
-		     medias => [ values %$medias ],
+		     # [ { volumename => 'vol1' }, { volumename => 'vol2'�},..]
+		     media => [ values %$media ],
 		   },
 		   "change_location.tpl");
 
@@ -3002,7 +3026,7 @@ WHERE Media.VolumeName IN ($arg->{jmedias})
 	    $a->status();
 	    $a->{have_status} = 1;
 	}
-
+	# TODO: set enabled
 	print "eject $vol->{volumename} from $vol->{storage} : ";
 	if ($a->send_to_io($vol->{slot})) {
 	    print "<img src='/bweb/T.png' alt='ok'><br/>";
@@ -3198,7 +3222,7 @@ sub do_update_media
     my $arg = $self->get_form(qw/media volstatus inchanger pool
 			         slot volretention voluseduration 
 			         maxvoljobs maxvolfiles maxvolbytes
-			         qcomment poolrecycle
+			         qcomment poolrecycle enabled
 			      /);
 
     unless ($arg->{media}) {
@@ -3218,6 +3242,10 @@ sub do_update_media
 	}
     } else {
 	$update .= " slot=0 inchanger=no ";
+    }
+
+    if ($arg->{enabled}) {
+        $update .= " enabled=$arg->{enabled} ";
     }
 
     if ($arg->{pool}) {

@@ -20,7 +20,7 @@ Hi,
 
 Could you move these media to <TMPL_VAR newlocation>
 Media :
-<TMPL_LOOP Medias>
+<TMPL_LOOP media>
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 

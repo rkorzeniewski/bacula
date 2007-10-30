@@ -24,7 +24,7 @@ var header = new Array("Nom de volume","Statut",
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=Medias>
+<TMPL_LOOP NAME=media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.value = '<TMPL_VAR NAME=volumename>';

@@ -291,7 +291,6 @@ function ext_init()
         copy:false,
         notifyDrop : function(dd, e, data){
            var r;
-           //TODO: gerer la multi-selection
            if (data.selections) {
              if (data.grid.id == 'div-files') {
                  for(var i=0;i<data.selections.length;i++) {
@@ -500,7 +499,6 @@ function ext_init()
     });
 
     job_combo.on('select', function(e,c) {
-        // TODO: choose between date and jobid here (with a toolbar bp ?)
         Ext.brestore.jobid = c.json[0];
 	Ext.brestore.jobdate = c.json[1];
         Ext.brestore.root_path='';
@@ -601,7 +599,123 @@ function ext_init()
             cls: 'x-btn-text-icon bmenu', // icon and text class
             text:'Options',
             menu: menu  // assign menu by instance
-        }
+        },
+	{
+	    icon: '/bweb/remove.png', // icons can also be specified inline
+            cls: 'x-btn-icon',
+	    text: 'restore',
+	    handler: function() { 
+		var dialog = new Ext.LayoutDialog("div-resto-dlg", { 
+//                        modal:true,
+                        width:600,
+                        height:400,
+                        shadow:true,
+                        minWidth:300,
+                        minHeight:300,
+                        proxyDrag: true,
+//                        west: {
+//	                        split:true,
+//	                        initialSize: 150,
+//	                        minSize: 100,
+//	                        maxSize: 250,
+//	                        titlebar: true,
+//	                        collapsible: true,
+//	                        animate: true
+//	                    },
+	                center: {
+	                        autoScroll:true,
+//	                        tabPosition: 'top',
+//	                        closeOnTab: true,
+//	                        alwaysShowTabs: true
+	                }
+                });
+                dialog.addKeyListener(27, dialog.hide, dialog);
+                dialog.addButton('Submit', dialog.hide, dialog);
+                dialog.addButton('Close', dialog.hide, dialog);
+
+    var fs = new Ext.form.Form({
+        labelAlign: 'right',
+        labelWidth: 80
+    });
+
+    fs.fieldset(
+        {legend:'Restore job'},
+        new Ext.form.ComboBox({
+            fieldLabel: 'Replace',
+            hiddenName:'replace',
+            store: new Ext.data.SimpleStore({
+   		 fields: ['replace'],
+		 data : [['always'],['never'],['if newer']]
+	    }),
+            displayField:'replace',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'never',
+            selectOnFocus:true,
+            width:190
+        }),
+
+        new Ext.form.ComboBox({
+            fieldLabel: 'job',
+            hiddenName:'job',
+            store: client_store,
+            displayField:'name',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'Select a job...',
+            selectOnFocus:true,
+            width:190
+        })
+//	,
+//        new Ext.form.TextField({
+//            fieldLabel: 'Where',
+//            name: 'where',
+//            width:190
+//        }),
+//
+//        new Ext.form.ComboBox({
+//            fieldLabel: 'client',
+//            hiddenName:'client',
+//            store: client_store,
+//            displayField:'name',
+//            typeAhead: true,
+//            mode: 'local',
+//            triggerAction: 'all',
+//            emptyText:'Select a client...',
+//            selectOnFocus:true,
+//            width:190
+//        }),
+//        new Ext.form.ComboBox({
+//            fieldLabel: 'storage',
+//            hiddenName:'storage',
+//            store: client_store,
+//            displayField:'name',
+//            typeAhead: true,
+//            mode: 'local',
+//            triggerAction: 'all',
+//            emptyText:'Select a storage...',
+//            selectOnFocus:true,
+//            width:190
+//        })
+    );
+
+    fs.render('div-resto-form');
+
+//      var f = new Ext.form.BasicForm('div-resto-form', {url: '/bweb/test', method: 'GET',
+//	                                                baseParams: {init: 1}
+// 						       }
+//                                     );
+
+		var layout = dialog.getLayout();
+                layout.beginUpdate();
+	        layout.add('center', new Ext.ContentPanel('div-resto-form', {
+                                    autoCreate:true, title: 'Third Tab', closable:true, background:true}));
+	        layout.endUpdate();
+	        dialog.show();
+	    }
+	}
     ]);
 
 ////////////////////////////////////////////////////////////////

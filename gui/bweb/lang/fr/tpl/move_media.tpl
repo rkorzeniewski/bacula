@@ -3,7 +3,7 @@
   <h1 class='newstitle'>Déplacer un média</h1>
  </div>
  <div class="bodydiv">
-   <form action='?' method='get'>
+   <form name='form1' action='?' method='get'>
     <table id='id<TMPL_VAR NAME=ID>'></table>
     <table border='0'>
     <tr><td> Nouvelle localisation : </td><td>
@@ -12,19 +12,11 @@
     <option value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
     </TMPL_LOOP>
 </select>
-    </td></tr><tr><td> Statut : </td><td>
-<select name='volstatus' class='formulaire'>
-    <option value=''>Ne pas modifier</option>
-    <option value='Append'>Append</option>
-    <option value='Archive'>Archive</option>
-    <option value='Disabled'>Disabled</option>
-    <option value='Cleaning'>Cleaning</option>
-    <option value='Error'>Error</option>
-    <option value='Full'>Full</option>
-    <option value='Purged'>Purged</option>
-    <option value='Read-Only'>Read-Only</option>
-    <option value='Recycle'>Recycle</option>
-    <option value='Used'>Used</option>
+    </td></tr><tr><td> Enabled: </td><td>
+<select name='enabled' class='formulaire'>
+    <option value='no'>non</option>
+    <option value='yes'>oui</option>
+    <option value='archived'>archive</option>
 </select>
     </td><tr><td> Utilisateur : </td><td>
 <input type='text' name='user' value='<TMPL_VAR loginname>' class='formulaire'>
@@ -46,7 +38,7 @@ var header = new Array("Nom de volume", "Localisation", "Sélection");
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=medias>
+<TMPL_LOOP NAME=media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.value = '<TMPL_VAR name=volumename>';
@@ -82,4 +74,14 @@ nrsTable.setup(
  rows_per_page: rows_per_page
 }
 );
+
+<TMPL_IF enabled>
+ok=1;
+for (var i=0; ok && i < document.form1.enabled.length; ++i) {
+   if (document.form1.enabled[i].value == '<TMPL_VAR enabled>') {
+      document.form1.enabled[i].selected = true;
+      ok=0;
+   }
+}
+</TMPL_IF>
 </script>

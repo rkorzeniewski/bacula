@@ -10,6 +10,7 @@
     <td style='align: left;'>
     <input type="image" onclick='javascript:window.history.go(-2);' title='Back' src='/bweb/prev.png'>
     </td><td style='align: right;'>
+    <input type="hidden" name='enabled' value="yes">
     <input type="image" name='action' value='move_media'
      src='/bweb/intern.png'>
    </td></tr>
@@ -25,7 +26,7 @@ var header = new Array("Volume Name","Vol Status",
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=Medias>
+<TMPL_LOOP NAME=media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'media';

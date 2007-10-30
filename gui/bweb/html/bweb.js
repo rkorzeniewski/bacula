@@ -106,6 +106,22 @@ function human_size(val)
    return val.toFixed(format) + ' ' + unit[i];
 }
 
+function human_enabled(val)
+{   
+   if (!val) {
+      return 'no';
+   }
+
+   if (val == 'yes' || val == '1') {
+      return 'yes';
+
+   } else if (val == 'archived' || val == '2') {
+      return 'archived';
+   } else {
+      return 'no';
+   }
+}
+
 function human_sec(val)
 {
    if (!val) {

@@ -20,7 +20,7 @@ Estimado,
 
 Puede mover este medio a <TMPL_VAR newlocation>
 Medio :
-<TMPL_LOOP Medias>
+<TMPL_LOOP media>
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 

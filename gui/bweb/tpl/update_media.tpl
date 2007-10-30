@@ -46,6 +46,15 @@
         </td>
     </tr>
 
+    <tr><td>Enabled:</td>
+        <td> <select name='enabled' class='formulaire'>
+           <option value='yes'>yes</option>
+           <option value='no'>no</option>
+           <option value='archived'>archived</option>
+           </select>
+        </td>
+    </tr>
+
     <tr><td> Location : </td>
         <td><select name='location' class='formulaire'>
         <option value=''></option>
@@ -153,6 +162,13 @@ ok=1;
 for (var i=0; ok && i < document.form1.volstatus.length; ++i) {
    if (document.form1.volstatus[i].value == '<TMPL_VAR volstatus>') {
       document.form1.volstatus[i].selected = true;
+      ok=0;
+   }
+}
+ok=1;
+for (var i=0; ok && i < document.form1.enabled.length; ++i) {
+   if (document.form1.enabled[i].value == '<TMPL_VAR enabled>') {
+      document.form1.enabled[i].selected = true;
       ok=0;
    }
 }

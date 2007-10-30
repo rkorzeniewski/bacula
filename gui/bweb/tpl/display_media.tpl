@@ -42,7 +42,7 @@ var img;
 var chkbox;
 var d;
 
-<TMPL_LOOP Medias>
+<TMPL_LOOP media>
 d = percent_usage(<TMPL_VAR volusage>);
 
 img = document.createElement('IMG');
