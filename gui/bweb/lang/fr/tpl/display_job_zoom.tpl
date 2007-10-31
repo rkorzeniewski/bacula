@@ -79,6 +79,13 @@
   </label>
  </form>
  </td>
+<TMPL_IF joberrors>
+ <td>
+    <a href="<TMPL_VAR thisurl>;error=1"
+         title="Voir seulement les erreurs">
+    <img src='/bweb/doc.png' alt="Voir les erreurs"></a> Voir les erreurs
+  </td>
+</TMPL_IF>
  </table>
 </div>
 

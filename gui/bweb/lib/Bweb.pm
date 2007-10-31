@@ -3340,6 +3340,12 @@ sub get_job_log
 
     my $t = CGI::param('time') || $self->{info}->{display_log_time} || '';
 
+    # display only Error and Warning messages
+    my $filter = '';
+    if (CGI::param('error')) {
+	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning' ";
+    }
+
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
  FROM  Job INNER JOIN Client ON (Job.ClientId = Client.ClientId)
@@ -3355,10 +3361,11 @@ SELECT Job.Name as name, Client.Name as clientname
     $query = "
 SELECT Time AS time, LogText AS log 
   FROM  Log 
- WHERE Log.JobId = $arg->{jobid} 
+ WHERE ( Log.JobId = $arg->{jobid} 
     OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
                       AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
        )
+       ) $filter
  ORDER BY LogId
  LIMIT $arg->{limit}
  OFFSET $arg->{offset}
