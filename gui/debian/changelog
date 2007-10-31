@@ -1,6 +1,7 @@
 bweb (2.2.6-1) stable; urgency=low
   * Replace VolStatus by Enabled in volume location
   * Add Enabled in volume update and zoom
+  * Add a error filter to Job zoom view
 
  -- Eric Bollengier <eric@eb.homelinux.org>  Tue,  30 Oct 2007 22:15:47 +0000
 

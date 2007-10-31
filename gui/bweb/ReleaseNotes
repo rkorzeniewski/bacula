@@ -1,5 +1,8 @@
           Release Notes for bweb 2.2
 
+2007/10/31
+ - Add a error filter to Job zoom view
+
 2007/10/30
  - Replace VolStatus by Enabled in volume location 
  - Add Enabled in volume update and zoom
