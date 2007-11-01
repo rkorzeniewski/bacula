@@ -77,6 +77,13 @@ Priority:
       x = k[i] - (d[i] & 0xF) + 16
    }
    s[i] = x + 'A';
+- Eliminate:  /var is a different filesystem. Will not descend from / into /var
+- Separate Files and Directories in catalog
+- Create FileVersions table
+- Look at rsysnc for incremental updates and dedupping
+- Add MD5 or SHA1 check in SD for data validation
+- modify pruning to keep a fixed number of versions of a file, 
+  if requested.
 - finish implementation of fdcalled -- see ua_run.c:105
 - Fix problem in postgresql.c in my_postgresql_query, where the
   generation of the error message doesn't differentiate result==NULL
