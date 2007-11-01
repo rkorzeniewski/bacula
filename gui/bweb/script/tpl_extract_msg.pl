@@ -81,6 +81,7 @@ sub text {
     # skip some special cases
     return if ($text eq '&nbsp;');
     return if ($text !~ /\w/);
+    return if ($text =~ />/);
     print_it($text);
 }
 
