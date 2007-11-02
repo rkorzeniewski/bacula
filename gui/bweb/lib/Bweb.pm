@@ -1273,6 +1273,7 @@ sub new
 	$self->{sql} = $sql_func{$1};
     }
 
+    $self->{loginname} = CGI::remote_user();
     $self->{debug} = $self->{info}->{debug};
     $Bweb::Gui::template_dir = $self->{info}->{template_dir};
 
@@ -1549,6 +1550,28 @@ SELECT client_group_name AS name
 	my $grps = $self->dbh_selectall_hashref($query, 'name');
 	$ret{db_client_groups} = [sort {$a->{name} cmp $b->{name} } 
 				  values %$grps] ;
+    }
+
+    if ($what{db_usernames}) {
+	my $query = "
+SELECT username 
+  FROM bweb_user
+";
+
+	my $users = $self->dbh_selectall_hashref($query, 'username');
+	$ret{db_usernames} = [sort {$a->{username} cmp $b->{username} } 
+				  values %$users] ;
+    }
+
+    if ($what{db_roles}) {
+	my $query = "
+SELECT rolename 
+  FROM bweb_role
+";
+
+	my $r = $self->dbh_selectall_hashref($query, 'rolename');
+	$ret{db_roles} = [sort {$a->{rolename} cmp $b->{rolename} } 
+				  values %$r] ;
     }
 
     if ($what{db_mediatypes}) {
@@ -1999,6 +2022,13 @@ sub get_param
 	    $ret{jobtype} = $1;
 	    $limit .= "AND Job.Type = '$1' ";
 	}
+    }
+
+    # fill this only when security is enabled
+    if ($elt{username} and $self->{info}->{enable_security}) {
+        my $u = $self->dbh_quote($self->{loginname});
+        $ret{username}=$self->{loginname};
+        $limit .= "AND bweb_user.username = $u ";
     }
 
     return ($limit, %ret);
@@ -2632,6 +2662,245 @@ sub display_groups
 		     %$arg},
 		   "display_groups.tpl");
 }
+
+###########################################################
+
+
+# TODO: avoir un mode qui coupe le programme avec une page d'erreur
+# we can also get all security and fill {security} hash
+sub can_do
+{
+    my ($self, $action) = @_;
+    # is security enabled in configuration ?
+    if (not $self->{info}->{enable_security}) {
+        return 1;
+    }
+    # admin is a special user that can do everything
+    if ($self->{loginname} eq 'admin') {
+        return 1;
+    }
+    # must be logged
+    if (!$self->{loginname}) {
+        $self->error("Can't do $action, your are not logged. " .
+                     "Check security with your administrator");
+        $self->display_end();
+        exit (0);
+    }
+    # already checked
+    if ($self->{security}->{$action}) {
+        return 1;
+    }
+    my ($u, $r) = ($self->dbh_quote($self->{loginname}),
+                   $self->dbh_quote($action));
+    my $query = "
+ SELECT 1, username, rolename
+  FROM bweb_user 
+       JOIN bweb_role_member USING (userid)
+       JOIN bweb_role USING (roleid)
+ WHERE username = $u
+   AND rolename = $r
+";
+
+    my $row = $self->dbh_selectrow_hashref($query);
+    # do cache with this role   
+    if (!$row) {
+        $self->error("$u sorry, but this action ($action) is not permited. " .
+                     "Check security with your administrator");
+        $self->display_end();
+        exit (0);
+    } 
+    $self->{security}->{$row->{rolename}} = 1;    
+    return 1;
+}
+# role and username have to be quoted before
+# role and username can be a quoted list
+sub revoke
+{
+    my ($self, $role, $username) = @_;
+    $self->can_do("user_mgnt");
+    
+    my $nb = $self->dbh_do("
+ DELETE FROM bweb_role_member 
+       WHERE roleid = (SELECT roleid FROM bweb_role
+                        WHERE rolename IN ($role))
+         AND userid = (SELECT userid FROM bweb_user
+                        WHERE username IN ($username))");
+    return $nb;
+}
+
+# role and username have to be quoted before
+# role and username can be a quoted list
+sub grant
+{
+    my ($self, $role, $username) = @_;
+    $self->can_do("user_mgnt");
+
+    my $nb = $self->dbh_do("
+   INSERT INTO bweb_role_member (roleid, userid)
+     SELECT roleid, userid FROM bweb_role, bweb_user 
+       WHERE rolename IN ($role)
+         AND username IN ($username)
+     ");
+    return $nb;
+}
+
+# role and username have to be quoted before
+# role and username can be a quoted list
+sub grant_like
+{
+    my ($self, $copy, $user) = @_;
+    $self->can_do("user_mgnt");
+
+    my $nb = $self->dbh_do("
+  INSERT INTO bweb_role_member (roleid, userid) 
+       SELECT roleid, a.userid FROM bweb_user AS a, bweb_role_member JOIN bweb_user USING (userid)
+        WHERE bweb_user.username = $copy
+          AND a.username = $user");
+    return $nb;
+}
+
+# username can be a join quoted list of usernames
+sub revoke_all
+{
+    my ($self, $username) = @_;
+    $self->can_do("user_mgnt");
+
+    $self->dbh_do("
+   DELETE FROM bweb_role_member
+         WHERE userid IN (
+               SELECT userid 
+                 FROM bweb_user 
+                WHERE username in ($username)
+)");
+}
+
+sub users_del
+{
+    my ($self) = @_;
+    $self->can_do("user_mgnt");
+
+    my $arg = $self->get_form(qw/jusernames/);
+
+    unless ($arg->{jusernames}) {
+        return $self->error("Can't get user");
+    }
+
+    $self->{dbh}->begin_work();
+    {
+        $self->revoke_all($arg->{jusernames});
+        $self->dbh_do("DELETE FROM bweb_user WHERE username IN ($arg->{jusernames})");
+    }
+    $self->{dbh}->commit();
+    
+    $self->display_users();
+}
+
+sub users_add
+{
+    my ($self) = @_;
+    $self->can_do("user_mgnt");
+
+    # we don't quote username directly to check that it is conform
+    my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate qcopy_username/) ;
+
+    if (not $arg->{qcreate}) {
+        $arg = $self->get_form(qw/db_roles db_usernames/);
+        $self->display($arg, "display_user.tpl");
+        return 1;
+    }
+
+    my $u = $self->dbh_quote($arg->{username});
+
+    if (!$arg->{qpasswd}) {
+        $arg->{qpasswd} = "''";
+    }
+    if (!$arg->{qcomment}) {
+        $arg->{qcomment} = "''";
+    }
+
+    # will fail if user already exists
+    $self->dbh_do("
+  UPDATE bweb_user SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}
+   WHERE username = $u")
+        or
+    $self->dbh_do("
+  INSERT INTO bweb_user (username, passwd, comment) 
+        VALUES ($u, $arg->{qpasswd}, $arg->{qcomment})");
+
+    $self->{dbh}->begin_work();
+    {
+        $self->revoke_all($u);
+
+        if ($arg->{qcopy_username}) {
+            $self->grant_like($arg->{qcopy_username}, $u);
+        } else {
+            $self->grant($arg->{jrolenames}, $u);
+        }
+    }
+    $self->{dbh}->commit();
+
+    $self->display_users();
+}
+
+# TODO: we miss a matrix with all user/roles
+sub display_users
+{
+    my ($self) = @_;
+    $self->can_do("user_mgnt");
+
+    my $arg = $self->get_form(qw/db_usernames/) ;
+
+    if ($self->{dbh}->errstr) {
+        return $self->error("Can't use users with bweb, read INSTALL to enable them");
+    }
+
+    $self->display({ ID => $cur_id++,
+                     %$arg},
+                   "display_users.tpl");
+}
+
+sub display_user
+{
+    my ($self) = @_;
+    $self->can_do("user_mgnt");
+
+    my $arg = $self->get_form(qw/username db_usernames/);
+    my $user = $self->dbh_quote($arg->{username});
+
+    my $userp = $self->dbh_selectrow_hashref("
+   SELECT username, passwd, comment
+     FROM bweb_user
+    WHERE username = $user
+");
+
+    if (!$userp) {
+        return $self->error("Can't find $user in catalog");
+    }
+
+#  rolename  | userid
+#------------+--------
+# cancel_job |
+# restore    |
+# run_job    |      1
+
+    my $role = $self->dbh_selectall_hashref("
+SELECT rolename, temp.userid
+     FROM bweb_role
+     LEFT JOIN (SELECT roleid, userid
+             FROM bweb_user JOIN bweb_role_member USING (userid)
+            WHERE username = $user) AS temp USING (roleid)
+ORDER BY rolename
+", 'rolename');
+
+    $self->display({
+        db_usernames => $arg->{db_usernames},
+        username => $userp->{username},
+        comment => $userp->{comment},
+        passwd => $userp->{passwd},
+        db_roles => [ values %$role], 
+    }, "display_user.tpl");
+}
+
 
 ###########################################################
 

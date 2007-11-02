@@ -55,7 +55,13 @@ if (navigator.appName == 'Konqueror') {
  </li>
 </TMPL_IF> 
  <li><a href="bweb.pl?action=graph"> Estadísticas </a></li>
- <li> <a href="bweb.pl?action=view_conf"> Configuración </a> </li>
+ <li> <a href="bweb.pl?action=view_conf"> Configuración </a> 
+<TMPL_IF enable_security>
+  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuration </a> 
+       <li> <a href="bweb.pl?action=users"> Manage users </a>
+  </ul>
+</TMPL_IF>
+</li>
  <li> <a href="bweb.pl?action=about"> Acerca </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Usuario  <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">

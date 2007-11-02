@@ -92,6 +92,21 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'apply_conf') {
     $conf->modify();
 
+} elsif ($action eq 'user_del') {
+    $bweb->users_del();
+
+} elsif ($action eq 'user_add') {
+    $bweb->users_add();
+
+} elsif ($action eq 'user_edit') {
+    $bweb->display_user();
+
+} elsif ($action eq 'user_save') {
+    $bweb->users_add();
+
+} elsif ($action eq 'users') {
+    $bweb->display_users();
+
 } elsif ($action eq 'client') {	
     $bweb->display_clients();
 

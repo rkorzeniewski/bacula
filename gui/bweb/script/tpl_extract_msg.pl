@@ -52,6 +52,10 @@ my %dict;
 sub print_it
 {
     foreach my $w (@_) {
+	next if ($w eq '&nbsp;');
+	next if ($w !~ /\w/);
+	next if ($w =~ />/);
+
 	next if (exists $dict{$w});
 	$dict{$w}=1;
 
@@ -79,9 +83,7 @@ sub text {
     $text =~ s/(^\s+)|(\s+$)//gs;
 
     # skip some special cases
-    return if ($text eq '&nbsp;');
-    return if ($text !~ /\w/);
-    return if ($text =~ />/);
+    return if ($text eq 'selected');
     print_it($text);
 }
 
