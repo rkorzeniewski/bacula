@@ -121,6 +121,10 @@
      document.getElementById('client_' + <TMPL_VAR name>).selected = true;
   </TMPL_LOOP>
 
+  <TMPL_LOOP qclient_groups>
+     document.getElementById('group_' + <TMPL_VAR name>).selected = true;
+  </TMPL_LOOP>
+
   <TMPL_IF status>
      document.getElementById('status_<TMPL_VAR status>').selected=true;
   </TMPL_IF>
