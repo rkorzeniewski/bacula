@@ -84,12 +84,15 @@ if ($action eq 'begin') {		# main display
     $bweb->display_job(limit => 10); 
 
 } elsif ($action eq 'view_conf') {
+    $bweb->can_do('configure');
     $conf->view()
 
 } elsif ($action eq 'edit_conf') {
+    $bweb->can_do('configure');
     $conf->edit();
 
 } elsif ($action eq 'apply_conf') {
+    $bweb->can_do('configure');
     $conf->modify();
 
 } elsif ($action eq 'user_del') {
@@ -141,6 +144,8 @@ if ($action eq 'begin') {		# main display
     $bweb->display_allmedia();
 
 } elsif ($action eq 'eject') {
+    $bweb->can_do('autochanger_mgnt');
+
     my $arg = $bweb->get_form("ach");
     my $a = $bweb->ach_get($arg->{ach});
     
@@ -162,6 +167,8 @@ if ($action eq 'begin') {		# main display
     $bweb->eject_media();
 
 } elsif ($action eq 'clear_io') {
+    $bweb->can_do('autochanger_mgnt');
+
     my $arg = $bweb->get_form('ach');
 
     my $a = $bweb->ach_get($arg->{ach});
@@ -178,6 +185,8 @@ if ($action eq 'begin') {		# main display
     $bweb->ach_del();
 
 } elsif ($action eq 'ach_view') {
+    $bweb->can_do('autochanger_mgnt');
+
     # TODO : get autochanger name and create it
     $bweb->connect_db();
     my $arg = $bweb->get_form('ach');
@@ -192,6 +201,8 @@ if ($action eq 'begin') {		# main display
     $bweb->ach_add();
 
 } elsif ($action eq 'ach_load') {
+    $bweb->can_do('autochanger_mgnt');
+
     my $arg = $bweb->get_form('ach', 'drive', 'slot');
     
     my $a = $bweb->ach_get($arg->{ach});
@@ -208,6 +219,8 @@ if ($action eq 'begin') {		# main display
     }
     
 } elsif ($action eq 'ach_unload') {
+    $bweb->can_do('autochanger_mgnt');
+
     my $arg = $bweb->get_form('drive', 'slot', 'ach');
 
     my $a = $bweb->ach_get($arg->{ach});
@@ -236,6 +249,9 @@ if ($action eq 'begin') {		# main display
     $bweb->help_extern_compute();
 
 } elsif ($action eq 'extern') {
+    $bweb->can_do('media_mgnt');
+    $bweb->can_do('autochanger_mgnt');
+
     print "<div style='float: left;'>";
     my @achs = $bweb->eject_media();
     for my $ach (@achs) {
@@ -348,7 +364,6 @@ if ($action eq 'begin') {		# main display
     }
 
 } elsif ($action eq 'group_stats') {
-
     $bweb->display_group_stats(age => $arg->{age});
 
 } elsif ($action eq 'running') {
@@ -358,6 +373,7 @@ if ($action eq 'begin') {		# main display
     $bweb->display_running_job();
 
 } elsif ($action eq 'update_from_pool') {
+    $bweb->can_do('media_mgnt');
     my $elt = $bweb->get_form(qw/media pool/);
     unless ($elt->{media} || $elt->{pool}) {
 	$bweb->error("Can't get media or pool param");
@@ -374,6 +390,7 @@ if ($action eq 'begin') {		# main display
     $bweb->update_media();
 
 } elsif ($action eq 'client_status') {
+    $bweb->can_do('client_status');
     my $b;
     foreach my $client (CGI::param('client')) {
 	if ($client =~ m/$client_re/) {
@@ -431,7 +448,7 @@ if ($action eq 'begin') {		# main display
     $bweb->fileset_view();
 
 } else {
-    $bweb->error("Sorry, this action don't exist");
+    $bweb->error("Sorry, this action doesn't exist");
 }
 
 $bweb->display_end();

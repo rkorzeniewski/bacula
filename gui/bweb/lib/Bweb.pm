@@ -6,7 +6,7 @@ use strict;
    Bweb - A Bacula web interface
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
 
    The main author of Bweb is Eric Bollengier.
    The main author of Bacula is Kern Sibbald, with contributions from
@@ -1295,18 +1295,24 @@ sub display_end
 sub display_clients
 {
     my ($self) = @_;
+    my $where=' WHERE true ';	# by default
 
-    my $where='';
-    my $arg = $self->get_form("client", "qre_client", "jclient_groups", "qnotingroup");
+    my $arg = $self->get_form("client", "qre_client", 
+			      "jclient_groups", "qnotingroup");
+
+    my ($filter, undef) = $self->get_param('username');
 
     if ($arg->{qre_client}) {
 	$where = "WHERE Name $self->{sql}->{MATCH} $arg->{qre_client} ";
     } elsif ($arg->{client}) {
 	$where = "WHERE Name = '$arg->{client}' ";
     } elsif ($arg->{jclient_groups}) {
-	$where = "JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
-                  JOIN client_group USING (client_group_id)
-                  WHERE client_group_name IN ($arg->{jclient_groups})";
+	# $filter could already contains client_group_member 
+	$where = ($filter?'':"
+ JOIN client_group_member USING (ClientId) 
+ JOIN client_group USING (client_group_id)") . 
+
+" WHERE client_group_name IN ($arg->{jclient_groups}) ";
     } elsif ($arg->{qnotingroup}) {
 	$where =   "
   WHERE NOT EXISTS
@@ -1314,7 +1320,6 @@ sub display_clients
      WHERE Client.ClientId = client_group_member.ClientId
    )
 ";
-   
     }
 
     my $query = "
@@ -1323,9 +1328,8 @@ SELECT Name   AS name,
        AutoPrune AS autoprune,
        FileRetention AS fileretention,
        JobRetention  AS jobretention
-FROM Client
-$where
-";
+FROM Client " . $self->get_client_filter() .
+$where . $filter ;
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
 
@@ -1531,9 +1535,16 @@ sub get_form
     }
 
     if ($what{db_clients}) {
+	my $filter='';	my $filter_where='';
+	if ($what{username}) {
+	    # get security filter only if asked
+	    $filter = $self->get_client_filter();
+	    ($filter_where, undef) = $self->get_param('username');
+	}
+
 	my $query = "
 SELECT Client.Name as clientname
-  FROM Client
+  FROM Client $filter WHERE true $filter_where
 ";
 
 	my $clients = $self->dbh_selectall_hashref($query, 'clientname');
@@ -1666,43 +1677,6 @@ sub display_graph
 	%$fields,
     }, "graph.tpl")
 
-}
-
-sub display_client_job
-{
-    my ($self, %arg) = @_ ;
-
-    $arg{order} = ' Job.JobId DESC ';
-    my ($limit, $label) = $self->get_limit(%arg);
-
-    my $clientname = $self->dbh_quote($arg{clientname});
-
-    my $query="
-SELECT DISTINCT Job.JobId       AS jobid,
-		Job.Name        AS jobname,
-                FileSet.FileSet AS fileset,
-                Level           AS level,
-                StartTime       AS starttime,
-                JobFiles        AS jobfiles, 
-                JobBytes        AS jobbytes,
-                JobStatus       AS jobstatus,
-		JobErrors	AS joberrors
-
- FROM Client,Job,FileSet
- WHERE Client.Name=$clientname
- AND Client.ClientId=Job.ClientId
- AND Job.FileSetId=FileSet.FileSetId
- $limit
-";
-
-    my $all = $self->dbh_selectall_hashref($query, 'jobid') ;
-
-    $self->display({ clientname => $arg{clientname},
-		     Filter => $label,
-	             ID => $cur_id++,
-		     Jobs => [ values %$all ],
-		   },
-		   "display_client_job.tpl") ;
 }
 
 sub get_selected_media_location
@@ -2026,9 +2000,11 @@ sub get_param
 
     # fill this only when security is enabled
     if ($elt{username} and $self->{info}->{enable_security}) {
-        my $u = $self->dbh_quote($self->{loginname});
-        $ret{username}=$self->{loginname};
-        $limit .= "AND bweb_user.username = $u ";
+	if ($self->{loginname} ne 'admin') {
+	    my $u = $self->dbh_quote($self->{loginname});
+	    $ret{username}=$self->{loginname};
+	    $limit .= "AND bweb_user.username = $u ";
+	}
     }
 
     return ($limit, %ret);
@@ -2054,15 +2030,18 @@ sub display_job
 					  'jobtype',
 					  'pools',
 					  'jobid',
+					  'username',
 					  'status');
-
-    my $cgq = '';
+    my $cgq='';
     if (CGI::param('client_group')) {
-	$cgq = "
-LEFT JOIN client_group_member ON (Job.ClientId = client_group_member.ClientId)
-LEFT JOIN client_group USING (client_group_id)
+	$cgq .= "
+JOIN client_group_member USING (ClientId)
+JOIN client_group USING (client_group_id)
 ";
     }
+    my $filter = $self->get_client_filter();
+
+    $cgq = ($filter)?$filter:$cgq;
 
     my $query="
 SELECT  Job.JobId       AS jobid,
@@ -2082,10 +2061,9 @@ SELECT  Job.JobId       AS jobid,
 
         JobErrors	AS joberrors
 
- FROM Client, 
+ FROM Client $cgq, 
       Job LEFT JOIN Pool     ON (Job.PoolId    = Pool.PoolId)
           LEFT JOIN FileSet  ON (Job.FileSetId = FileSet.FileSetId)
-          $cgq
  WHERE Client.ClientId=Job.ClientId
    AND Job.JobStatus NOT IN ('R', 'C')
  $where
@@ -2111,7 +2089,11 @@ sub display_job_zoom
     my ($self, $jobid) = @_ ;
 
     $jobid = $self->dbh_quote($jobid);
-    
+
+    # get security filter
+    my $filter = $self->get_client_filter();
+    my ($filter_where, undef) = $self->get_param('username');
+
     my $query="
 SELECT DISTINCT Job.JobId       AS jobid,
                 Client.Name     AS client,
@@ -2127,11 +2109,12 @@ SELECT DISTINCT Job.JobId       AS jobid,
                 $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                                             - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) AS duration
 
- FROM Client,
+ FROM Client $filter,
       Job LEFT JOIN FileSet ON (Job.FileSetId = FileSet.FileSetId)
           LEFT JOIN Pool    ON (Job.PoolId    = Pool.PoolId)
  WHERE Client.ClientId=Job.ClientId
  AND Job.JobId = $jobid
+ $filter_where
 ";
 
     my $row = $self->dbh_selectrow_hashref($query) ;
@@ -2374,6 +2357,7 @@ SELECT LocationLog.Date    AS date,
 sub location_edit
 {
     my ($self) = @_ ;
+    $self->can_do('location_mgnt');
 
     my $loc = $self->get_form('qlocation');
     unless ($loc->{qlocation}) {
@@ -2392,12 +2376,12 @@ WHERE Location.Location = $loc->{qlocation}
 
     $self->display({ ID => $cur_id++,
 		     %$row }, "location_edit.tpl") ;
-
 }
 
 sub location_save
 {
     my ($self) = @_ ;
+    $self->can_do('location_mgnt');
 
     my $arg = $self->get_form(qw/qlocation qnewlocation cost/) ;
     unless ($arg->{qlocation}) {
@@ -2428,6 +2412,8 @@ WHERE Location.Location = $arg->{qlocation}
 sub location_del
 {
     my ($self) = @_ ;
+    $self->can_do('location_mgnt');
+
     my $arg = $self->get_form(qw/qlocation/) ;
 
     unless ($arg->{qlocation}) {
@@ -2455,10 +2441,11 @@ DELETE FROM Location WHERE Location = $arg->{qlocation} LIMIT 1
     $self->location_display();
 }
 
-
 sub location_add
 {
     my ($self) = @_ ;
+    $self->can_do('location_mgnt');
+
     my $arg = $self->get_form(qw/qlocation cost/) ;
 
     unless ($arg->{qlocation}) {
@@ -2527,9 +2514,9 @@ sub update_location
 sub groups_edit
 {
     my ($self) = @_;
+    $self->can_do('group_mgnt');
 
     my $grp = $self->get_form(qw/qclient_group db_clients/);
-    $self->debug($grp);
 
     unless ($grp->{qclient_group}) {
  	return $self->error("Can't get group");
@@ -2554,6 +2541,7 @@ WHERE client_group_name = $grp->{qclient_group}
 sub groups_save
 {
     my ($self) = @_;
+    $self->can_do('group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group jclients qnewgroup/);
     unless ($arg->{qclient_group}) {
@@ -2600,6 +2588,8 @@ UPDATE client_group
 sub groups_del
 {
     my ($self) = @_;
+    $self->can_do('group_mgnt');
+
     my $arg = $self->get_form(qw/qclient_group/);
 
     unless ($arg->{qclient_group}) {
@@ -2629,6 +2619,8 @@ DELETE FROM client_group
 sub groups_add
 {
     my ($self) = @_;
+    $self->can_do('group_mgnt');
+
     my $arg = $self->get_form(qw/qclient_group/) ;
 
     unless ($arg->{qclient_group}) {
@@ -2664,7 +2656,6 @@ sub display_groups
 }
 
 ###########################################################
-
 
 # TODO: avoir un mode qui coupe le programme avec une page d'erreur
 # we can also get all security and fill {security} hash
@@ -2712,6 +2703,22 @@ sub can_do
     $self->{security}->{$row->{rolename}} = 1;    
     return 1;
 }
+
+# JOIN Client USING (ClientId) " . $b->get_client_filter() . "
+sub get_client_filter
+{
+    my ($self) = @_;
+    if ($self->{info}->{enable_security}) {
+	return "
+ JOIN client_group_member USING (ClientId)
+ JOIN client_group USING (client_group_id) 
+ JOIN bweb_client_group_acl USING (client_group_id) 
+ JOIN bweb_user USING (userid) ";
+    } else {
+	return '';
+    }
+}
+
 # role and username have to be quoted before
 # role and username can be a quoted list
 sub revoke
@@ -2974,6 +2981,7 @@ WHERE Media.VolumeName = $media->{qmedia}
 sub save_location
 {
     my ($self) = @_ ;
+    $self->can_do('media_mgnt');
 
     my $arg = $self->get_form('jmedias', 'qnewlocation') ;
 
@@ -3003,6 +3011,7 @@ sub save_location
 sub location_change
 {
     my ($self) = @_ ;
+    $self->can_do('media_mgnt');
 
     my $media = $self->get_selected_media_location();
     unless ($media) {
@@ -3053,9 +3062,10 @@ sub display_client_stats
     my ($self, %arg) = @_ ;
 
     my $client = $self->dbh_quote($arg{clientname});
-
+    # get security filter
+    my $filter = $self->get_client_filter();
+    my ($filter_where, undef) = $self->get_param('username');
     my ($limit, $label) = $self->get_limit(%arg);
-
     my $query = "
 SELECT 
     count(Job.JobId)     AS nb_jobs,
@@ -3063,9 +3073,10 @@ SELECT
     sum(Job.JobErrors)   AS nb_err,
     sum(Job.JobFiles)    AS nb_files,
     Client.Name          AS clientname
-FROM Job JOIN Client USING (ClientId)
+FROM Job JOIN Client USING (ClientId) $filter
 WHERE 
     Client.Name = $client
+    $filter_where
     $limit 
 GROUP BY Client.Name
 ";
@@ -3217,11 +3228,14 @@ sub display_running_job
     my $arg = $self->get_form('client', 'jobid');
 
     if (!$arg->{client} and $arg->{jobid}) {
+	# get security filter
+	my $filter = $self->get_client_filter();
+	my ($filter_where, undef) = $self->get_param('username');
 
 	my $query = "
 SELECT Client.Name AS name
-FROM Job INNER JOIN Client USING (ClientId)
-WHERE Job.JobId = $arg->{jobid}
+FROM Job INNER JOIN Client USING (ClientId) $filter
+WHERE Job.JobId = $arg->{jobid} $filter_where
 ";
 
 	my $row = $self->dbh_selectrow_hashref($query);
@@ -3246,7 +3260,10 @@ WHERE Job.JobId = $arg->{jobid}
 sub display_running_jobs
 {
     my ($self, $display_action) = @_;
-    
+    # get security filter
+    my $filter = $self->get_client_filter();
+    my ($filter_where, undef) = $self->get_param('username');
+
     my $query = "
 SELECT Job.JobId AS jobid, 
        Job.Name  AS jobname,
@@ -3259,8 +3276,10 @@ $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(NOW())
                             - $self->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
          AS duration,
        Client.Name AS clientname
-FROM Job INNER JOIN Client USING (ClientId) 
-WHERE JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
+FROM Job INNER JOIN Client USING (ClientId) $filter
+WHERE 
+  JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
+  $filter_where
 ";	
     my $all = $self->dbh_selectall_hashref($query, 'jobid') ;
     
@@ -3274,6 +3293,8 @@ WHERE JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
 sub eject_media
 {
     my ($self) = @_;
+    $self->can_do('media_mgnt');
+
     my %ret; 
     my $arg = $self->get_form('jmedias');
 
@@ -3377,6 +3398,7 @@ sub ach_get
 sub ach_register
 {
     my ($self, $ach) = @_;
+    $self->can_do('configure');
 
     $self->{info}->{ach_list}->{$ach->{name}} = $ach;
 
@@ -3388,6 +3410,8 @@ sub ach_register
 sub ach_edit
 {
     my ($self) = @_;
+    $self->can_do('configure');
+
     my $arg = $self->get_form('ach');
     if (!$arg->{ach} 
 	or !$self->{info}->{ach_list} 
@@ -3417,6 +3441,8 @@ sub ach_edit
 sub ach_del
 {
     my ($self) = @_;
+    $self->can_do('configure');
+
     my $arg = $self->get_form('ach');
 
     if (!$arg->{ach} 
@@ -3435,6 +3461,8 @@ sub ach_del
 sub ach_add
 {
     my ($self) = @_;
+    $self->can_do('configure');
+
     my $arg = $self->get_form('ach', 'mtxcmd', 'device', 'precmd');
 
     my $b = $self->get_bconsole();
@@ -3478,6 +3506,8 @@ sub ach_add
 sub delete
 {
     my ($self) = @_;
+    $self->can_do('delete_job');
+
     my $arg = $self->get_form('jobid');
 
     if ($arg->{jobid}) {
@@ -3495,6 +3525,7 @@ sub delete
 sub do_update_media
 {
     my ($self) = @_ ;
+    $self->can_do('media_mgnt');
 
     my $arg = $self->get_form(qw/media volstatus inchanger pool
 			         slot volretention voluseduration 
@@ -3589,6 +3620,7 @@ UPDATE Media
 sub update_slots
 {
     my ($self) = @_;
+    $self->can_do('autochanger_mgnt');
 
     my $ach = CGI::param('ach') ;
     $ach = $self->ach_get($ach);
@@ -3623,10 +3655,14 @@ sub get_job_log
 	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning' ";
     }
 
+    # get security filter
+    $filter .= $self->get_client_filter();
+    my ($filter_where, undef) = $self->get_param('username');
+
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
- FROM  Job INNER JOIN Client ON (Job.ClientId = Client.ClientId)
- WHERE JobId = $arg->{jobid}
+ FROM  Job INNER JOIN Client USING (ClientId) $filter
+ WHERE JobId = $arg->{jobid} $filter_where
 ";
 
     my $row = $self->dbh_selectrow_hashref($query);
@@ -3670,10 +3706,10 @@ SELECT Time AS time, LogText AS log
 		 }, 'display_log.tpl');
 }
 
-
 sub label_barcodes
 {
     my ($self) = @_ ;
+    $self->can_do('autochanger_mgnt');
 
     my $arg = $self->get_form('ach', 'slots', 'drive');
 
@@ -3725,6 +3761,7 @@ sub label_barcodes
 sub purge
 {
     my ($self) = @_;
+    $self->can_do('purge');
 
     my @volume = CGI::param('media');
 
@@ -3747,6 +3784,7 @@ sub purge
 sub prune
 {
     my ($self) = @_;
+    $self->can_do('prune');
 
     my @volume = CGI::param('media');
     unless (@volume) {
@@ -3768,6 +3806,7 @@ sub prune
 sub cancel_job
 {
     my ($self) = @_;
+    $self->can_do('cancel_job');
 
     my $arg = $self->get_form('jobid');
     unless ($arg->{jobid}) {
@@ -3818,6 +3857,7 @@ sub director_show_sched
 sub enable_disable_job
 {
     my ($self, $what) = @_ ;
+    $self->can_do('run_job');
 
     my $name = CGI::param('job') || '';
     unless ($name =~ /^[\w\d\.\-\s]+$/) {
@@ -3849,6 +3889,8 @@ sub get_bconsole
 sub run_job_select
 {
     my ($self) = @_;
+    $self->can_do('run_job');
+
     my $b = $self->get_bconsole();
 
     my $joblist = [ map { { name => $_ } } $b->list_job() ];
@@ -3884,6 +3926,8 @@ sub run_parse_job
 sub run_job_mod
 {
     my ($self) = @_;
+    $self->can_do('run_job');
+
     my $b = $self->get_bconsole();
     
     my $job = CGI::param('job') || '';
@@ -3915,6 +3959,8 @@ sub run_job_mod
 sub run_job
 {
     my ($self) = @_;
+    $self->can_do('run_job');
+
     my $b = $self->get_bconsole();
     
     my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
@@ -3927,6 +3973,8 @@ sub run_job
 sub run_job_now
 {
     my ($self) = @_;
+    $self->can_do('run_job');
+
     my $b = $self->get_bconsole();
     
     # TODO: check input (don't use pool, level)
