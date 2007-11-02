@@ -37,6 +37,15 @@
  </TMPL_LOOP>
  </select>
  </td>
+</tr><tr>
+<td> Groups:</td><td>
+ <select name="client_group" id='client_group' multiple class="formulaire" size=15>
+<TMPL_LOOP db_client_groups>
+        <option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
+</TMPL_LOOP>
+ </select>
+ </td>
+</tr>
 </table>
     <input type="image" name='action' value='user_save'
      src='/bweb/save.png'>
@@ -44,6 +53,12 @@
 </div>
 
 <script type="text/javascript" language='JavaScript'>
+
+<TMPL_LOOP client_group>
+    document.getElementById('group_<TMPL_VAR name>').selected = true;
+</TMPL_LOOP>
+
+
 function disable_sel(val) 
 {
 	document.form1.profile.disabled = val;

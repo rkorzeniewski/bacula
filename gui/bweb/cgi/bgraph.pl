@@ -110,6 +110,8 @@ if ($arg->{jclient_groups}) {
     $groupq = " AND client_group_name IN ($arg->{jclient_groups}) ";
 }
 
+my $filter = $bweb->get_client_filter();
+
 my $gtype = CGI::param('gtype') || 'bars';
 
 print CGI::header('image/png');
@@ -205,7 +207,7 @@ SELECT
        Client.Name                      AS clientname,
        $jobt.Name                       AS jobname,
        $jobt.JobBytes                   AS jobbytes
-FROM $jobt, FileSet, Client $groupf
+FROM $jobt, FileSet, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -243,7 +245,7 @@ SELECT
        Client.Name                      AS clientname,
        $jobt.Name                       AS jobname,
        $jobt.JobFiles                   AS jobfiles
-FROM $jobt, FileSet, Client $groupf
+FROM $jobt, FileSet, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -285,7 +287,7 @@ SELECT UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
        Job.Name                         AS jobname,
        base64_decode_lstat(8,LStat)     AS lstat
 
-FROM Job, FileSet, Filename, Path, File, Client
+FROM Job, FileSet, Filename, Path, File, Client $filter
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId
   AND Job.Type = 'B'
@@ -335,7 +337,7 @@ SELECT UNIX_TIMESTAMP(Job.StartTime) AS starttime,
        Job.Name                      AS jobname,
        brestore_pathvisibility.size  AS size
 
-FROM Job, Client, FileSet, Path, brestore_pathvisibility
+FROM Job, Client $filter, FileSet, Path, brestore_pathvisibility
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId
   AND Job.Type = 'B'
@@ -382,7 +384,7 @@ SELECT
                         - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) + 0.01) 
          AS rate
 
-FROM $jobt, FileSet, Client $groupf
+FROM $jobt, FileSet, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -424,7 +426,7 @@ SELECT
   $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                              - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
          AS duration
-FROM $jobt, FileSet, Client $groupf
+FROM $jobt, FileSet, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -485,7 +487,7 @@ $limitq
 SELECT
      " . ($per_t?"":"UNIX_TIMESTAMP") . "($stime) AS A,
      $t(JobBytes)                  AS nb
-FROM $jobt, FileSet, Client $groupf
+FROM $jobt, FileSet, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
   AND $jobt.FileSetId = FileSet.FileSetId
   AND $jobt.Type = 'B'
@@ -507,7 +509,7 @@ $limit
 			);
 
     my $all = $dbh->selectall_arrayref($query) ;
-    print STDERR Data::Dumper::Dumper($all);
+#    print STDERR Data::Dumper::Dumper($all);
     my ($ret) = make_tab_sum($all);
 
     print $obj->plot([$ret->{date}, $ret->{nb}])->png;    

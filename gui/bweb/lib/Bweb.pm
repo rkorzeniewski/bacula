@@ -1295,12 +1295,10 @@ sub display_end
 sub display_clients
 {
     my ($self) = @_;
-    my $where=' WHERE true ';	# by default
+    my $where='';	# by default
 
     my $arg = $self->get_form("client", "qre_client", 
 			      "jclient_groups", "qnotingroup");
-
-    my ($filter, undef) = $self->get_param('username');
 
     if ($arg->{qre_client}) {
 	$where = "WHERE Name $self->{sql}->{MATCH} $arg->{qre_client} ";
@@ -1308,11 +1306,10 @@ sub display_clients
 	$where = "WHERE Name = '$arg->{client}' ";
     } elsif ($arg->{jclient_groups}) {
 	# $filter could already contains client_group_member 
-	$where = ($filter?'':"
+	$where = "
  JOIN client_group_member USING (ClientId) 
- JOIN client_group USING (client_group_id)") . 
-
-" WHERE client_group_name IN ($arg->{jclient_groups}) ";
+ JOIN client_group USING (client_group_id)
+ WHERE client_group_name IN ($arg->{jclient_groups}) ";
     } elsif ($arg->{qnotingroup}) {
 	$where =   "
   WHERE NOT EXISTS
@@ -1329,7 +1326,7 @@ SELECT Name   AS name,
        FileRetention AS fileretention,
        JobRetention  AS jobretention
 FROM Client " . $self->get_client_filter() .
-$where . $filter ;
+$where ;
 
     my $all = $self->dbh_selectall_hashref($query, 'name') ;
 
@@ -1535,16 +1532,15 @@ sub get_form
     }
 
     if ($what{db_clients}) {
-	my $filter='';	my $filter_where='';
-	if ($what{username}) {
+	my $filter='';
+	if ($what{filter}) {
 	    # get security filter only if asked
 	    $filter = $self->get_client_filter();
-	    ($filter_where, undef) = $self->get_param('username');
 	}
 
 	my $query = "
 SELECT Client.Name as clientname
-  FROM Client $filter WHERE true $filter_where
+  FROM Client $filter
 ";
 
 	my $clients = $self->dbh_selectall_hashref($query, 'clientname');
@@ -1553,9 +1549,15 @@ SELECT Client.Name as clientname
     }
 
     if ($what{db_client_groups}) {
+	my $filter='';
+	if ($what{filter}) {
+	    # get security filter only if asked
+	    $filter = $self->get_client_group_filter();
+	}
+
 	my $query = "
 SELECT client_group_name AS name 
-  FROM client_group
+  FROM client_group $filter
 ";
 
 	my $grps = $self->dbh_selectall_hashref($query, 'name');
@@ -1628,9 +1630,13 @@ SELECT FileSet.FileSet AS fileset
     }
 
     if ($what{db_jobnames}) {
+	my $filter='';
+	if ($what{filter}) {
+	    $filter = " JOIN Client USING (ClientId) " . $self->get_client_filter();
+	}
 	my $query = "
 SELECT DISTINCT Job.Name AS jobname 
-  FROM Job
+  FROM Job $filter
 ";
 
 	my $jobnames = $self->dbh_selectall_hashref($query, 'jobname');
@@ -1659,8 +1665,8 @@ sub display_graph
     my ($self) = @_;
 
     my $fields = $self->get_form(qw/age level status clients filesets 
-                                    graph gtype type
-				    db_clients limit db_filesets width height
+                                    graph gtype type filter db_clients
+				    limit db_filesets width height
 				    qclients qfilesets qjobnames db_jobnames/);
 				
 
@@ -1998,15 +2004,6 @@ sub get_param
 	}
     }
 
-    # fill this only when security is enabled
-    if ($elt{username} and $self->{info}->{enable_security}) {
-	if ($self->{loginname} ne 'admin') {
-	    my $u = $self->dbh_quote($self->{loginname});
-	    $ret{username}=$self->{loginname};
-	    $limit .= "AND bweb_user.username = $u ";
-	}
-    }
-
     return ($limit, %ret);
 }
 
@@ -2030,7 +2027,6 @@ sub display_job
 					  'jobtype',
 					  'pools',
 					  'jobid',
-					  'username',
 					  'status');
     my $cgq='';
     if (CGI::param('client_group')) {
@@ -2040,8 +2036,6 @@ JOIN client_group USING (client_group_id)
 ";
     }
     my $filter = $self->get_client_filter();
-
-    $cgq = ($filter)?$filter:$cgq;
 
     my $query="
 SELECT  Job.JobId       AS jobid,
@@ -2061,7 +2055,7 @@ SELECT  Job.JobId       AS jobid,
 
         JobErrors	AS joberrors
 
- FROM Client $cgq, 
+ FROM Client $filter $cgq, 
       Job LEFT JOIN Pool     ON (Job.PoolId    = Pool.PoolId)
           LEFT JOIN FileSet  ON (Job.FileSetId = FileSet.FileSetId)
  WHERE Client.ClientId=Job.ClientId
@@ -2092,7 +2086,6 @@ sub display_job_zoom
 
     # get security filter
     my $filter = $self->get_client_filter();
-    my ($filter_where, undef) = $self->get_param('username');
 
     my $query="
 SELECT DISTINCT Job.JobId       AS jobid,
@@ -2114,7 +2107,6 @@ SELECT DISTINCT Job.JobId       AS jobid,
           LEFT JOIN Pool    ON (Job.PoolId    = Pool.PoolId)
  WHERE Client.ClientId=Job.ClientId
  AND Job.JobId = $jobid
- $filter_where
 ";
 
     my $row = $self->dbh_selectrow_hashref($query) ;
@@ -2144,7 +2136,7 @@ sub display_job_group
     my ($where, undef) = $self->get_param('client_groups',
 					  'level',
 					  'pools');
-    
+    my $filter = $self->get_client_group_filter();
     my $query = 
 "
 SELECT client_group_name AS client_group_name,
@@ -2155,7 +2147,7 @@ SELECT client_group_name AS client_group_name,
        COALESCE(joberr.nbjobs,0) AS nbjoberr,
        COALESCE(jobok.duration, '0:0:0') AS duration
 
-FROM client_group LEFT JOIN (
+FROM client_group $filter LEFT JOIN (
     SELECT client_group_name AS client_group_name, COUNT(1) AS nbjobs, 
            SUM(JobFiles) AS jobfiles, SUM(JobBytes) AS jobbytes, 
            SUM(JobErrors) AS joberrors,
@@ -2605,6 +2597,12 @@ DELETE FROM client_group_member
               FROM client_group 
              WHERE client_group_name = $arg->{qclient_group});
 
+DELETE FROM bweb_client_group_acl
+      WHERE client_group_id IN
+           (SELECT client_group_id 
+              FROM client_group 
+             WHERE client_group_name = $arg->{qclient_group});
+
 DELETE FROM client_group
       WHERE client_group_name = $arg->{qclient_group};
 ";
@@ -2709,11 +2707,31 @@ sub get_client_filter
 {
     my ($self) = @_;
     if ($self->{info}->{enable_security}) {
+	my $u = $self->dbh_quote($self->{loginname});
 	return "
- JOIN client_group_member USING (ClientId)
- JOIN client_group USING (client_group_id) 
- JOIN bweb_client_group_acl USING (client_group_id) 
- JOIN bweb_user USING (userid) ";
+ JOIN (SELECT ClientId FROM client_group_member
+   JOIN client_group USING (client_group_id) 
+   JOIN bweb_client_group_acl USING (client_group_id) 
+   JOIN bweb_user USING (userid)
+   WHERE bweb_user.username = $u 
+ ) AS filter USING (ClientId)";
+    } else {
+	return '';
+    }
+}
+
+#JOIN client_group USING (client_group_id)" . $b->get_client_group_filter()
+sub get_client_group_filter
+{
+    my ($self) = @_;
+    if ($self->{info}->{enable_security}) {
+	my $u = $self->dbh_quote($self->{loginname});
+	return "
+ JOIN (SELECT client_group_id 
+         FROM bweb_client_group_acl
+         JOIN bweb_user USING (userid)
+   WHERE bweb_user.username = $u 
+ ) AS filter USING (client_group_id)";
     } else {
 	return '';
     }
@@ -2779,8 +2797,14 @@ sub revoke_all
          WHERE userid IN (
            SELECT userid 
              FROM bweb_user 
-            WHERE username in ($username)
-)");
+            WHERE username in ($username))");
+    $self->dbh_do("
+DELETE FROM bweb_client_group_acl 
+ WHERE userid IN (
+  SELECT userid 
+    FROM bweb_user 
+   WHERE username IN ($username))");
+    
 }
 
 sub users_del
@@ -2797,7 +2821,8 @@ sub users_del
     $self->{dbh}->begin_work();
     {
         $self->revoke_all($arg->{jusernames});
-        $self->dbh_do("DELETE FROM bweb_user WHERE username IN ($arg->{jusernames})");
+        $self->dbh_do("
+DELETE FROM bweb_user WHERE username IN ($arg->{jusernames})");
     }
     $self->{dbh}->commit();
     
@@ -2810,10 +2835,10 @@ sub users_add
     $self->can_do("user_mgnt");
 
     # we don't quote username directly to check that it is conform
-    my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate qcopy_username/) ;
+    my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate qcopy_username jclient_groups/) ;
 
     if (not $arg->{qcreate}) {
-        $arg = $self->get_form(qw/db_roles db_usernames/);
+        $arg = $self->get_form(qw/db_roles db_usernames db_client_groups/);
         $self->display($arg, "display_user.tpl");
         return 1;
     }
@@ -2845,6 +2870,15 @@ sub users_add
         } else {
             $self->grant($arg->{jrolenames}, $u);
         }
+
+	$self->dbh_do("
+INSERT INTO bweb_client_group_acl (client_group_id, userid)
+ SELECT client_group_id, userid 
+   FROM client_group, bweb_user
+  WHERE client_group_name IN ($arg->{jclient_groups})
+    AND username = $u
+");
+
     }
     $self->{dbh}->commit();
 
@@ -2873,7 +2907,7 @@ sub display_user
     my ($self) = @_;
     $self->can_do("user_mgnt");
 
-    my $arg = $self->get_form(qw/username db_usernames/);
+    my $arg = $self->get_form('username');
     my $user = $self->dbh_quote($arg->{username});
 
     my $userp = $self->dbh_selectrow_hashref("
@@ -2885,6 +2919,8 @@ sub display_user
     if (!$userp) {
         return $self->error("Can't find $user in catalog");
     }
+    $arg = $self->get_form(qw/db_usernames db_client_groups/);
+    my $arg2 = $self->get_form(qw/filter db_client_groups/);
 
 #  rolename  | userid
 #------------+--------
@@ -2906,6 +2942,8 @@ ORDER BY rolename
         username => $userp->{username},
         comment => $userp->{comment},
         passwd => $userp->{passwd},
+	db_client_groups => $arg->{db_client_groups},
+	client_group => $arg2->{db_client_groups},
         db_roles => [ values %$role], 
     }, "display_user.tpl");
 }
@@ -3064,7 +3102,7 @@ sub display_client_stats
     my $client = $self->dbh_quote($arg{clientname});
     # get security filter
     my $filter = $self->get_client_filter();
-    my ($filter_where, undef) = $self->get_param('username');
+
     my ($limit, $label) = $self->get_limit(%arg);
     my $query = "
 SELECT 
@@ -3076,7 +3114,6 @@ SELECT
 FROM Job JOIN Client USING (ClientId) $filter
 WHERE 
     Client.Name = $client
-    $filter_where
     $limit 
 GROUP BY Client.Name
 ";
@@ -3230,12 +3267,11 @@ sub display_running_job
     if (!$arg->{client} and $arg->{jobid}) {
 	# get security filter
 	my $filter = $self->get_client_filter();
-	my ($filter_where, undef) = $self->get_param('username');
 
 	my $query = "
 SELECT Client.Name AS name
 FROM Job INNER JOIN Client USING (ClientId) $filter
-WHERE Job.JobId = $arg->{jobid} $filter_where
+WHERE Job.JobId = $arg->{jobid}
 ";
 
 	my $row = $self->dbh_selectrow_hashref($query);
@@ -3262,7 +3298,6 @@ sub display_running_jobs
     my ($self, $display_action) = @_;
     # get security filter
     my $filter = $self->get_client_filter();
-    my ($filter_where, undef) = $self->get_param('username');
 
     my $query = "
 SELECT Job.JobId AS jobid, 
@@ -3279,7 +3314,6 @@ $self->{sql}->{SEC_TO_TIME}(  $self->{sql}->{UNIX_TIMESTAMP}(NOW())
 FROM Job INNER JOIN Client USING (ClientId) $filter
 WHERE 
   JobStatus IN ('C','R','B','e','D','F','S','m','M','s','j','c','d','t','p')
-  $filter_where
 ";	
     my $all = $self->dbh_selectall_hashref($query, 'jobid') ;
     
@@ -3657,12 +3691,11 @@ sub get_job_log
 
     # get security filter
     $filter .= $self->get_client_filter();
-    my ($filter_where, undef) = $self->get_param('username');
 
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
  FROM  Job INNER JOIN Client USING (ClientId) $filter
- WHERE JobId = $arg->{jobid} $filter_where
+ WHERE JobId = $arg->{jobid}
 ";
 
     my $row = $self->dbh_selectrow_hashref($query);

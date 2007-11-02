@@ -326,7 +326,8 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'job') {
 
     print "<div><table border='0'><tr><td valign='top'>\n";
-    my $fields = $bweb->get_form(qw/status level db_clients db_filesets
+    my $fields = $bweb->get_form(qw/status level filter db_clients
+				    db_filesets 
 				    limit age offset qclients qfilesets
 				    jobtype qpools db_pools
 				    db_client_groups qclient_groups/); # drop this to hide 
@@ -341,7 +342,7 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'job_group') {
 
     print "<div><table border='0'><tr><td valign='top'>\n";
-    my $fields = $bweb->get_form(qw/limit level age 
+    my $fields = $bweb->get_form(qw/limit level age filter 
                                     db_client_groups qclient_groups/); # drop this to hide 
 
     $fields->{hide_status} = 1;
