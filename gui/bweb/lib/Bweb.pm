@@ -2738,8 +2738,8 @@ sub grant
     my $nb = $self->dbh_do("
    INSERT INTO bweb_role_member (roleid, userid)
      SELECT roleid, userid FROM bweb_role, bweb_user 
-       WHERE rolename IN ($role)
-         AND username IN ($username)
+      WHERE rolename IN ($role)
+        AND username IN ($username)
      ");
     return $nb;
 }
@@ -2753,9 +2753,11 @@ sub grant_like
 
     my $nb = $self->dbh_do("
   INSERT INTO bweb_role_member (roleid, userid) 
-       SELECT roleid, a.userid FROM bweb_user AS a, bweb_role_member JOIN bweb_user USING (userid)
-        WHERE bweb_user.username = $copy
-          AND a.username = $user");
+   SELECT roleid, a.userid 
+     FROM bweb_user AS a, bweb_role_member 
+     JOIN bweb_user USING (userid)
+    WHERE bweb_user.username = $copy
+      AND a.username = $user");
     return $nb;
 }
 
@@ -2768,9 +2770,9 @@ sub revoke_all
     $self->dbh_do("
    DELETE FROM bweb_role_member
          WHERE userid IN (
-               SELECT userid 
-                 FROM bweb_user 
-                WHERE username in ($username)
+           SELECT userid 
+             FROM bweb_user 
+            WHERE username in ($username)
 )");
 }
 
@@ -2887,8 +2889,8 @@ sub display_user
 SELECT rolename, temp.userid
      FROM bweb_role
      LEFT JOIN (SELECT roleid, userid
-             FROM bweb_user JOIN bweb_role_member USING (userid)
-            WHERE username = $user) AS temp USING (roleid)
+                  FROM bweb_user JOIN bweb_role_member USING (userid)
+                 WHERE username = $user) AS temp USING (roleid)
 ORDER BY rolename
 ", 'rolename');
 
