@@ -47,6 +47,8 @@
      <tr><td>display_log_time :</td>
          <td> <input class="formulaire" title="affiche les heures dans les logs" type='checkbox' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> >
          </td></tr>
+     <tr><td>security :</td> 
+         <td> <input class="formulaire" type='checkbox' name='enable_security' title='Active la gestion des utilisateurs dans bweb. Lire le manuel avant.' <TMPL_IF enable_security> checked='checked' value='on' </TMPL_IF> > 
      <tr><td>debug :</td> 
          <td> <input class="formulaire" type='checkbox' name='debug' <TMPL_IF debug> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>

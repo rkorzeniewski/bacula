@@ -217,6 +217,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      log_dir     => qr!^(.+)?$!,
 	      stat_job_table => qr!^(\w*)$!,
 	      display_log_time => qr!^(on)?$!,
+	      enable_security => qr/^(on)?$/,
 	      );
 
 =head1 FUNCTION
@@ -345,7 +346,10 @@ sub modify
     my ($self) = @_;
     
     $self->{error} = '';
+    # we need to reset checkbox first
     $self->{debug} = 0;
+    $self->{enable_security} = 0;
+    $self->{display_log_time} = 0;
 
     foreach my $k (CGI::param())
     {
@@ -1444,7 +1448,9 @@ sub get_form
 		 replace => 1,
 		 expired => 1,
 		 enabled => 1,
-		 );
+                 username => 1,
+                 rolename => 1,
+                 );
     my %opt_p = (		# option with path
 		 fileset=> 1,
 		 mtxcmd => 1,
@@ -2764,7 +2770,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
     $self->display({ email  => $self->{info}->{email_media},
 		     url => $url,
 		     newlocation => $newloc,
-		     # [ { volumename => 'vol1' }, { volumename => 'vol2' },..]
+		     # [ { volumename => 'vol1' }, { volumename => 'vol2'},..]
 		     media => [ values %$media ],
 		   },
 		   "change_location.tpl");

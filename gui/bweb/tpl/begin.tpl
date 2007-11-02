@@ -59,7 +59,7 @@ if (navigator.appName == 'Konqueror') {
  <li> <a href="bweb.pl?action=about"> About </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Logged as <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
-<input type="image" class="button" title="search media" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="search client" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value="search..." onclick="this.value='';" title="search media or client"></li>
+<input type="image" class="button" title="Search media" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="Search client" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value="search..." onclick="this.value='';" title="Search media or client"></li>
 </ul>
 
 <form name="search" action="bweb.pl?" method='GET'>

@@ -18,6 +18,7 @@
     <tr><td title="You can choose the Job table that you want to use to get statistics">stat_job_table :</td> <td> <TMPL_IF stat_job_table><TMPL_VAR stat_job_table><TMPL_ELSE>Job</TMPL_IF> </td></tr>
     <tr><td title="/path/a/bconsole -n -c /path/to/bconsole.conf">bconsole :</td> <td> <TMPL_VAR bconsole> </td></tr>
     <tr><td title="display timestamp in job log">display_log_time :</td> <td> <TMPL_VAR display_log_time> </td></tr>
+    <tr><td>security :</td> <td> <TMPL_VAR enable_security> </td></tr>
     <tr><td>debug :</td> <td> <TMPL_VAR debug> </td></tr>
     <TMPL_IF achs>
     <tr>  <td><b>Libreria</b></td>  <td/></tr>
