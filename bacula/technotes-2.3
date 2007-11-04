@@ -1,6 +1,12 @@
               Technical notes on version 2.3
 
 General:
+04Nov07
+kes  Minor tweaks to some bat restore SQL.
+kes  This patch fixes bug #1003 where putting the message output from
+     a Verify job into the catalog results in a recursive loop.  The problem
+     seems to show up only with postgresql (to be verified).
+kes  Correct %x to %p in postgresql debug statement.
 02Nov07
 kes  Fix bug #942 where lots of emails where generated when the heartbeat
      interval was low and Bacula wanted a different tape from the one in
