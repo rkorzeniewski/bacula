@@ -286,9 +286,20 @@ BuildRequires: python, python-devel
 %if %{gconsole}
 BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
-%if %{bat}
+
+# Rh qt4 packages don't provide, guess what, qt!
+# so fix for broken rh
+%define broken_rh 0
+%if %{rhel5} || %{centos5} || %{sl5} || %{fc5} || %{fc6} || %{fc7}
+%define broken_rh 1"
+%endif
+%if %{bat} && ! %{broken_rh}
 BuildRequires: qt-devel >= 4.2
 %endif
+%if %{bat} && %{broken_rh}
+BuildRequires: qt4-devel >= 4.2
+%endif
+
 %if %{rh7}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.2
@@ -995,7 +1006,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4.2
+Requires: qt4 >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -1007,7 +1018,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4.2
+Requires: qt4 >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -1019,7 +1030,7 @@ Requires: fontconfig
 Requires: freetype
 Requires: libgcc
 Requires: libpng
-Requires: qt >= 4.2
+Requires: qt4 >= 4.2
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -2042,6 +2053,7 @@ fi
 * Sun Nov 04 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix dist defines for rhel5 and clones
 - fix rhel broken 64 bit QT4 paths
+- rh qt4 packages don't provide qt so fix that too
 * Mon Oct 29 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - correct ownership when creating sqlite db file in post script
 * Sun Sep 16 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
