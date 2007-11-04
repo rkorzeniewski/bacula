@@ -54,10 +54,10 @@ static char Find_media[] = "CatReq Job=%127s FindMedia=%d pool_name=%127s media_
 static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d\n";
 
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
-   " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%" lld " VolMounts=%u"
-   " VolErrors=%u VolWrites=%u MaxVolBytes=%" lld " EndTime=%d VolStatus=%10s"
-   " Slot=%d relabel=%d InChanger=%d VolReadTime=%" lld " VolWriteTime=%" lld
-   " VolFirstWritten=%" lld " VolParts=%u\n";
+   " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%lld VolMounts=%u"
+   " VolErrors=%u VolWrites=%u MaxVolBytes=%lld EndTime=%lld VolStatus=%10s"
+   " Slot=%d relabel=%d InChanger=%d VolReadTime=%lld VolWriteTime=%lld"
+   " VolFirstWritten=%lld VolParts=%u\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
    " FirstIndex=%u LastIndex=%u StartFile=%u EndFile=%u "
@@ -113,6 +113,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    uint32_t Stripe;
    uint64_t MediaId;
    utime_t VolFirstWritten;
+   utime_t VolLastWritten;
 
    memset(&mr, 0, sizeof(mr));
    memset(&sdmr, 0, sizeof(sdmr));
@@ -217,7 +218,7 @@ void catalog_request(JCR *jcr, BSOCK *bs)
    } else if (sscanf(bs->msg, Update_media, &Job, &sdmr.VolumeName,
       &sdmr.VolJobs, &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes,
       &sdmr.VolMounts, &sdmr.VolErrors, &sdmr.VolWrites, &sdmr.MaxVolBytes,
-      &sdmr.LastWritten, &sdmr.VolStatus, &sdmr.Slot, &label, &sdmr.InChanger,
+      &VolLastWritten, &sdmr.VolStatus, &sdmr.Slot, &label, &sdmr.InChanger,
       &sdmr.VolReadTime, &sdmr.VolWriteTime, &VolFirstWritten,
       &sdmr.VolParts) == 19) {
 
@@ -266,6 +267,11 @@ void catalog_request(JCR *jcr, BSOCK *bs)
          }
       }
       Dmsg2(400, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
+      /* Check if the volume has been written by the job, 
+       * and update the LastWritten field if needed */
+      if (mr.VolBlocks != sdmr.VolBlocks && VolLastWritten != 0) {
+         mr.LastWritten = VolLastWritten;
+      }
       /* Copy updated values to original media record */
       mr.VolJobs      = sdmr.VolJobs;
       mr.VolFiles     = sdmr.VolFiles;
@@ -274,7 +280,6 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolMounts    = sdmr.VolMounts;
       mr.VolErrors    = sdmr.VolErrors;
       mr.VolWrites    = sdmr.VolWrites;
-      mr.LastWritten  = sdmr.LastWritten;
       mr.Slot         = sdmr.Slot;
       mr.InChanger    = sdmr.InChanger;
       mr.VolReadTime  = sdmr.VolReadTime;

@@ -158,6 +158,7 @@ struct VOLUME_CAT_INFO {
    btime_t  VolWriteTime;             /* time spent writing this Volume */
    int64_t  VolMediaId;               /* MediaId */
    utime_t  VolFirstWritten;          /* Time of first write */
+   utime_t  VolLastWritten;           /* Time of last write */
    bool     InChanger;                /* Set if vol in current magazine */
    char VolCatStatus[20];             /* Volume status */
    char VolCatName[MAX_NAME_LENGTH];  /* Desired volume to mount */

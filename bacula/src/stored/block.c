@@ -746,7 +746,7 @@ static bool terminate_writing_volume(DCR *dcr)
       dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
    }
    
-   if (!dir_update_volume_info(dcr, false)) {
+   if (!dir_update_volume_info(dcr, false, true)) {
       ok = false;
    }
    Dmsg1(100, "dir_update_volume_info terminate writing -- %s\n", ok?"OK":"ERROR");
@@ -798,7 +798,7 @@ static bool do_new_file_bookkeeping(DCR *dcr)
       return false;
    }
    dev->VolCatInfo.VolCatFiles = dev->file;
-   if (!dir_update_volume_info(dcr, false)) {
+   if (!dir_update_volume_info(dcr, false, false)) {
       Dmsg0(190, "Error from update_vol_info.\n");
       terminate_writing_volume(dcr);
       dev->dev_errno = EIO;
@@ -856,7 +856,7 @@ static bool do_dvd_size_checks(DCR *dcr)
       
       dev->VolCatInfo.VolCatParts = dev->num_dvd_parts;
             
-      if (!dir_update_volume_info(dcr, false)) {
+      if (!dir_update_volume_info(dcr, false, false)) {
          Dmsg0(190, "Error from update_vol_info.\n");
          dev->dev_errno = EIO;
          return false;

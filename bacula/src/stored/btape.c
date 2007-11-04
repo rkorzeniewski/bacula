@@ -2649,7 +2649,7 @@ get_cmd(const char *prompt)
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 
-bool dir_update_volume_info(DCR *dcr, bool relabel)
+bool dir_update_volume_info(DCR *dcr, bool relabel, bool update_LastWritten)
 {
    return 1;
 }

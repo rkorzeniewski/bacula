@@ -505,7 +505,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    }
    Dmsg0(150, "dir_update_vol_info. Set Append\n");
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
-   if (!dir_update_volume_info(dcr, true)) {  /* indicate doing relabel */
+   if (!dir_update_volume_info(dcr, true, true)) {  /* indicate doing relabel */
       return false;
    }
    if (recycle) {

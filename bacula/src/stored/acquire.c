@@ -436,7 +436,7 @@ DCR *acquire_device_for_append(DCR *dcr)
       jcr->NumWriteVolumes = 1;
    }
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
-   dir_update_volume_info(dcr, false);        /* send Volume info to Director */
+   dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
    dev->dlock();
    if (dcr->reserved_device) {
       dev->reserved_device--;
@@ -505,7 +505,7 @@ bool release_device(DCR *dcr)
    if (dev->can_read()) {
       dev->clear_read();              /* clear read bit */
       Dmsg0(100, "dir_update_vol_info. Release0\n");
-      dir_update_volume_info(dcr, false); /* send Volume info to Director */
+      dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
 
    } else if (dev->num_writers > 0) {
       /* 
@@ -531,7 +531,7 @@ bool release_device(DCR *dcr)
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
             /* Note! do volume update before close, which zaps VolCatInfo */
             Dmsg0(100, "dir_update_vol_info. Release0\n");
-            dir_update_volume_info(dcr, false); /* send Volume info to Director */
+            dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
          }
       }
 
