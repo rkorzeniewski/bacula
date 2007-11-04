@@ -42,7 +42,7 @@ static char Find_media[]   = "CatReq Job=%s FindMedia=%d pool_name=%s media_type
 static char Get_Vol_Info[] = "CatReq Job=%s GetVolInfo VolName=%s write=%d\n";
 static char Update_media[] = "CatReq Job=%s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%s VolMounts=%u"
-   " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%d VolStatus=%s"
+   " VolErrors=%u VolWrites=%u MaxVolBytes=%s EndTime=%s VolStatus=%s"
    " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s"
    " VolFirstWritten=%s VolParts=%u\n";
 static char Create_job_media[] = "CatReq Job=%s CreateJobMedia"
@@ -314,14 +314,13 @@ bail_out:
  * back to the director. The information comes from the
  * dev record.
  */
-bool dir_update_volume_info(DCR *dcr, bool label)
+bool dir_update_volume_info(DCR *dcr, bool label, bool update_LastWritten)
 {
    JCR *jcr = dcr->jcr;
    BSOCK *dir = jcr->dir_bsock;
    DEVICE *dev = dcr->dev;
-   time_t LastWritten = time(NULL);
    VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
-   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50];
+   char ed1[50], ed2[50], ed3[50], ed4[50], ed5[50], ed6[50];
    int InChanger;
    bool ok = false;
    POOL_MEM VolumeName;
@@ -344,6 +343,9 @@ bool dir_update_volume_info(DCR *dcr, bool label)
    if (label) {
       bstrncpy(vol->VolCatStatus, "Append", sizeof(vol->VolCatStatus));
    }
+// if (update_LastWritten) {
+      vol->VolLastWritten = time(NULL);
+// }
    pm_strcpy(VolumeName, vol->VolCatName);
    bash_spaces(VolumeName);
    InChanger = vol->InChanger;
@@ -352,7 +354,8 @@ bool dir_update_volume_info(DCR *dcr, bool label)
       vol->VolCatBlocks, edit_uint64(vol->VolCatBytes, ed1),
       vol->VolCatMounts, vol->VolCatErrors,
       vol->VolCatWrites, edit_uint64(vol->VolCatMaxBytes, ed2),
-      LastWritten, vol->VolCatStatus, vol->Slot, label,
+      edit_uint64(vol->VolLastWritten, ed6), 
+      vol->VolCatStatus, vol->Slot, label,
       InChanger,                      /* bool in structure */
       edit_int64(vol->VolReadTime, ed3),
       edit_int64(vol->VolWriteTime, ed4),

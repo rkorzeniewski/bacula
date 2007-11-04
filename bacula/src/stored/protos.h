@@ -49,7 +49,7 @@ enum get_vol_info_rw {
 };
 bool    dir_get_volume_info(DCR *dcr, enum get_vol_info_rw);
 bool    dir_find_next_appendable_volume(DCR *dcr);
-bool    dir_update_volume_info(DCR *dcr, bool label);
+bool    dir_update_volume_info(DCR *dcr, bool label, bool update_LastWritten);
 bool    dir_ask_sysop_to_create_appendable_volume(DCR *dcr);
 bool    dir_ask_sysop_to_mount_volume(DCR *dcr);
 bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec);

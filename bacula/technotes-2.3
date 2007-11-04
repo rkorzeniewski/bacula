@@ -2,6 +2,10 @@
 
 General:
 04Nov07
+kes  Cleanup of code in SD that sets the LastWritten date. This doesn't 
+     really change anything, but is the beginning of doing it *right*.
+     To do it completely right the LastWritten date must be passed to
+     the SD, but it is not yet done.
 kes  Minor tweaks to some bat restore SQL.
 kes  This patch fixes bug #1003 where putting the message output from
      a Verify job into the catalog results in a recursive loop.  The problem

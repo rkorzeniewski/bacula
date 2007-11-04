@@ -1,16 +1,7 @@
 /*
- *
- *   dvd.c  -- Routines specific to DVD devices (and
- *             possibly other removable hard media). 
- *
- *    Nicolas Boichat, MMV
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   dvd.c  -- Routines specific to DVD devices (and
+ *             possibly other removable hard media). 
+ *
+ *    Nicolas Boichat, MMV
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -686,7 +686,7 @@ bool truncate_dvd(DCR *dcr)
    dcr->VolCatInfo.VolCatBytes = 0;
 
    /* Update catalog */
-   if (!dir_update_volume_info(dcr, false)) {
+   if (!dir_update_volume_info(dcr, false, true)) {
       return false;
    }
    
