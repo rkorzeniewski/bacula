@@ -198,11 +198,9 @@ void restoreTree::populateDirectoryTree()
       prLabel2->setText("Querying Jobs");
       repaint();
       populateJobTable();
-      setJobsCheckedList();
-   } else {
-      if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating from checks in Job Table\n");
-      setJobsCheckedList();
    }
+   setJobsCheckedList();
+   if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating from checks in Job Table\n");
 
    if (m_checkedJobs != "") {
       /* First get the filenameid of where the nae is null.  These will be the directories
@@ -614,7 +612,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
 
    QBrush blackBrush(Qt::black);
 
-   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Md5" << "FileId");
+   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Hash" << "FileId");
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
@@ -623,7 +621,7 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
    int pathid = m_directoryPathIdHash.value(directory, -1);
    if ((pathid != -1) && (fileNameId != -1)) {
       QString cmd = 
-         "SELECT Job.JobId AS JobId, Job.Level AS Type, Job.EndTime AS EndTime, File.Md5 AS MD5, File.FileId AS FileId"
+         "SELECT Job.JobId AS JobId,Job.Level AS Type,Job.EndTime AS EndTime,File.MD5 AS MD5,File.FileId AS FileId"
          " FROM File"
          " INNER JOIN Filename on (Filename.FilenameId=File.FilenameId)"
          " INNER JOIN Path ON (Path.PathId=File.PathId)"
@@ -724,7 +722,7 @@ void restoreTree::directoryItemExpanded(QTreeWidgetItem *item)
 }
 
 /*
- * I wanted a table to show what jobs meet the criterion and are being used to
+ * Show what jobs meet the criteria and are being used to
  * populate the directory tree and file and version tables.
  */
 void restoreTree::populateJobTable()
@@ -732,7 +730,8 @@ void restoreTree::populateJobTable()
    QBrush blackBrush(Qt::black);
 
    if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
-   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << "Name" << "Purged" << "TU" << "TD");
+   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << 
+                                              "Name" << "Purged" << "TU" << "TD");
    m_toggleUpIndex = headerlist.indexOf("TU");
    m_toggleDownIndex = headerlist.indexOf("TD");
    int purgedIndex = headerlist.indexOf("Purged");
@@ -740,7 +739,8 @@ void restoreTree::populateJobTable()
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
    QString jobQuery =
-      "SELECT Job.Jobid AS Id, Job.EndTime AS EndTime, Job.Level AS Level, Job.Name AS JobName, Job.purgedfiles AS Purged"
+      "SELECT Job.Jobid AS Id,Job.EndTime AS EndTime,Job.Level AS Level,"
+      "Job.Name AS JobName,Job.purgedfiles AS Purged"
       " FROM Job"
       /* INNER JOIN FileSet eliminates all restore jobs */
       " INNER JOIN Client ON (Job.ClientId=Client.ClientId)"

@@ -767,11 +767,11 @@ static int missing_handler(void *ctx, int num_fields, char **row)
       return 1;
    }
    if (!jcr->fn_printed) {
-      Jmsg(jcr, M_INFO, 0, _("\nThe following files are in the Catalog but not on %s:\n"),
+      Qmsg(jcr, M_INFO, 0, _("\nThe following files are in the Catalog but not on %s:\n"),
        jcr->JobLevel == L_VERIFY_VOLUME_TO_CATALOG ? "the Volume(s)" : "disk");
       jcr->fn_printed = true;
    }
-   Jmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
+   Qmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
    return 0;
 }
 
