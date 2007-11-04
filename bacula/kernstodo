@@ -69,6 +69,16 @@ Professional Needs:
 - Implement Diff,Inc Retention Periods
 
 Priority:
+- Auto update of slot:
+   rufus-dir: ua_run.c:456-10 JobId=10 NewJobId=10 using pool Full priority=10
+   02-Nov 12:58 rufus-dir JobId 10: Start Backup JobId 10, Job=kernsave.2007-11-02_12.58.03
+   02-Nov 12:58 rufus-dir JobId 10: Using Device "DDS-4"
+   02-Nov 12:58 rufus-sd JobId 10: Invalid slot=0 defined in catalog for Volume "Vol001" on "DDS-4" (/dev/nst0). Manual load my be required.
+   02-Nov 12:58 rufus-sd JobId 10: 3301 Issuing autochanger "loaded? drive 0" command.
+   02-Nov 12:58 rufus-sd JobId 10: 3302 Autochanger "loaded? drive 0", result is Slot 2.
+   02-Nov 12:58 rufus-sd JobId 10: Wrote label to prelabeled Volume "Vol001" on device "DDS-4" (/dev/nst0)
+   02-Nov 12:58 rufus-sd JobId 10: Alert: TapeAlert[7]:   Media Life: The tape has reached the end of its useful life.
+   02-Nov 12:58 rufus-dir JobId 10: Bacula rufus-dir 2.3.6 (26Oct07): 02-Nov-2007 12:58:51
 - Encrypt sd_auth_key = s with director's key = d
    k[i] = s[i] + (d[i] & 0xF)) & 0xFF + 'A'  skip -
   Decrypt key = k with director's key
