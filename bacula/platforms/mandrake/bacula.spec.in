@@ -198,7 +198,7 @@ exit 1
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4} || %{rhel5}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc4} || %{fc5} || %{fc6} || %{fc7}
+%if %{fc1} || %{fc4} || %{fc5} || %{fc7}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos5} || %{centos4} || %{centos3}
@@ -208,6 +208,9 @@ exit 1
 %define _dist %(grep 'Scientific Linux' /etc/redhat-release)
 %endif
 %if %{fc3} && ! %{rhel4} && ! %{centos4} && ! %{sl4}
+%define _dist %(grep Fedora /etc/redhat-release)
+%endif
+%if %{fc6} && ! %{rhel5} && ! %{centos5} && ! %{sl5}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{wb3} && ! %{rhel3} && ! %{centos3} && ! %{sl3}
@@ -1101,6 +1104,18 @@ export LDFLAGS="${LDFLAGS} -L/usr/lib64/mysql"
 %endif
 %if %{python} && %{x86_64}
 export LDFLAGS="${LDFLAGS} -L/usr/lib64/python%{pyver}"
+%endif
+
+# Red Hat's 64 bit installation of QT4 appears to be broken so:
+%define qt_path 0
+%if %{rhel5} || %{centos5} || %{sl5}
+%define qt_path 1
+%endif
+%if %{bat} && %{qt_path} && %{x86_64}
+export PATH=/usr/lib64/qt4/bin/:$PATH
+export QTDIR=/usr/lib64/qt4/
+export QTINC=/usr/lib64/qt4/include/
+export QTLIB=/usr/lib64/qt4/
 %endif
 
 %configure \
@@ -2024,6 +2039,9 @@ fi
 %endif
 
 %changelog
+* Sun Nov 04 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix dist defines for rhel5 and clones
+- fix rhel broken 64 bit QT4 paths
 * Mon Oct 29 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - correct ownership when creating sqlite db file in post script
 * Sun Sep 16 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
