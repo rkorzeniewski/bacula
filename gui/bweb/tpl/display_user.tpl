@@ -80,11 +80,21 @@ function set_role(val)
 	for (var i=0; i < document.form1.rolename.length; ++i) {
 	      document.form1.rolename[i].selected = true;
 	}
+   else if (val == "production") {
+	for (var i=0; i < document.form1.rolename.length; ++i) {
+	   if (document.form1.rolename[i].value != 'r_configure' &&
+               document.form1.rolename[i].value != 'r_user_mgnt' &&
+               document.form1.rolename[i].value != 'r_group_mgnt'
+               )
+           {
+	      document.form1.rolename[i].selected = true;
+           }
+	}
    } else if (val == "customer") {
 	for (var i=0; i < document.form1.rolename.length; ++i) {
-	   if (document.form1.rolename[i].value == 'view_stats'   ||
-               document.form1.rolename[i].value == 'view_history' ||
-               document.form1.rolename[i].value == 'view_log'
+	   if (document.form1.rolename[i].value == 'r_view_stats'   ||
+               document.form1.rolename[i].value == 'r_view_history' ||
+               document.form1.rolename[i].value == 'r_view_log'
                )
            {
 	      document.form1.rolename[i].selected = true;
