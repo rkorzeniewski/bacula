@@ -301,7 +301,6 @@ public:
    int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
    POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
    DIRRES* director;                  /* Director resource */
-   bool VSS;                          /* VSS used by FD */
 #endif /* FILE_DAEMON */
 
 
