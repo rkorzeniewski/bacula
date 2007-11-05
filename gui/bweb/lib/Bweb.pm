@@ -218,6 +218,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      stat_job_table => qr!^(\w*)$!,
 	      display_log_time => qr!^(on)?$!,
 	      enable_security => qr/^(on)?$/,
+	      enable_security_acl => qr/^(on)?$/,
 	      );
 
 =head1 FUNCTION
@@ -348,8 +349,9 @@ sub modify
     $self->{error} = '';
     # we need to reset checkbox first
     $self->{debug} = 0;
-    $self->{enable_security} = 0;
     $self->{display_log_time} = 0;
+    $self->{enable_security} = 0;
+    $self->{enable_security_acl} = 0;
 
     foreach my $k (CGI::param())
     {
@@ -2016,6 +2018,7 @@ sub get_param
 sub display_job
 {
     my ($self, %arg) = @_ ;
+    $self->can_do('r_view_job');
 
     $arg{order} = ' Job.JobId DESC ';
 
@@ -2081,6 +2084,7 @@ SELECT  Job.JobId       AS jobid,
 sub display_job_zoom
 {
     my ($self, $jobid) = @_ ;
+    $self->can_do('r_view_job');
 
     $jobid = $self->dbh_quote($jobid);
 
@@ -2130,6 +2134,7 @@ WHERE Job.JobId = $jobid
 sub display_job_group
 {
     my ($self, %arg) = @_;
+    $self->can_do('r_view_job');
 
     my ($limit, $label) = $self->get_limit(groupby => 'client_group_name',  %arg);
 
@@ -2349,7 +2354,7 @@ SELECT LocationLog.Date    AS date,
 sub location_edit
 {
     my ($self) = @_ ;
-    $self->can_do('location_mgnt');
+    $self->can_do('r_location_mgnt');
 
     my $loc = $self->get_form('qlocation');
     unless ($loc->{qlocation}) {
@@ -2373,7 +2378,7 @@ WHERE Location.Location = $loc->{qlocation}
 sub location_save
 {
     my ($self) = @_ ;
-    $self->can_do('location_mgnt');
+    $self->can_do('r_location_mgnt');
 
     my $arg = $self->get_form(qw/qlocation qnewlocation cost/) ;
     unless ($arg->{qlocation}) {
@@ -2404,7 +2409,7 @@ WHERE Location.Location = $arg->{qlocation}
 sub location_del
 {
     my ($self) = @_ ;
-    $self->can_do('location_mgnt');
+    $self->can_do('r_location_mgnt');
 
     my $arg = $self->get_form(qw/qlocation/) ;
 
@@ -2436,7 +2441,7 @@ DELETE FROM Location WHERE Location = $arg->{qlocation} LIMIT 1
 sub location_add
 {
     my ($self) = @_ ;
-    $self->can_do('location_mgnt');
+    $self->can_do('r_location_mgnt');
 
     my $arg = $self->get_form(qw/qlocation cost/) ;
 
@@ -2506,7 +2511,7 @@ sub update_location
 sub groups_edit
 {
     my ($self) = @_;
-    $self->can_do('group_mgnt');
+    $self->can_do('r_group_mgnt');
 
     my $grp = $self->get_form(qw/qclient_group db_clients/);
 
@@ -2533,7 +2538,7 @@ WHERE client_group_name = $grp->{qclient_group}
 sub groups_save
 {
     my ($self) = @_;
-    $self->can_do('group_mgnt');
+    $self->can_do('r_group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group jclients qnewgroup/);
     unless ($arg->{qclient_group}) {
@@ -2580,7 +2585,7 @@ UPDATE client_group
 sub groups_del
 {
     my ($self) = @_;
-    $self->can_do('group_mgnt');
+    $self->can_do('r_group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group/);
 
@@ -2617,7 +2622,7 @@ DELETE FROM client_group
 sub groups_add
 {
     my ($self) = @_;
-    $self->can_do('group_mgnt');
+    $self->can_do('r_group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group/) ;
 
@@ -2682,7 +2687,7 @@ sub can_do
     my ($u, $r) = ($self->dbh_quote($self->{loginname}),
                    $self->dbh_quote($action));
     my $query = "
- SELECT 1, username, rolename
+ SELECT use_acl, username, rolename
   FROM bweb_user 
        JOIN bweb_role_member USING (userid)
        JOIN bweb_role USING (roleid)
@@ -2698,15 +2703,26 @@ sub can_do
         $self->display_end();
         exit (0);
     } 
-    $self->{security}->{$row->{rolename}} = 1;    
+    $self->{security}->{$row->{rolename}} = 1;
+    $self->{security}->{use_acl} = $row->{use_acl};
+    
     return 1;
+}
+
+sub use_filter
+{
+    my ($self) = @_;
+
+    return $self->{info}->{enable_security}     && 
+           $self->{info}->{enable_security_acl} && 
+           $self->{security}->{use_acl};
 }
 
 # JOIN Client USING (ClientId) " . $b->get_client_filter() . "
 sub get_client_filter
 {
     my ($self) = @_;
-    if ($self->{info}->{enable_security}) {
+    if ($self->use_filter()) {
 	my $u = $self->dbh_quote($self->{loginname});
 	return "
  JOIN (SELECT ClientId FROM client_group_member
@@ -2724,7 +2740,7 @@ sub get_client_filter
 sub get_client_group_filter
 {
     my ($self) = @_;
-    if ($self->{info}->{enable_security}) {
+    if ($self->use_filter()) {
 	my $u = $self->dbh_quote($self->{loginname});
 	return "
  JOIN (SELECT client_group_id 
@@ -2742,7 +2758,7 @@ sub get_client_group_filter
 sub revoke
 {
     my ($self, $role, $username) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
     
     my $nb = $self->dbh_do("
  DELETE FROM bweb_role_member 
@@ -2758,7 +2774,7 @@ sub revoke
 sub grant
 {
     my ($self, $role, $username) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     my $nb = $self->dbh_do("
    INSERT INTO bweb_role_member (roleid, userid)
@@ -2774,7 +2790,7 @@ sub grant
 sub grant_like
 {
     my ($self, $copy, $user) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     my $nb = $self->dbh_do("
   INSERT INTO bweb_role_member (roleid, userid) 
@@ -2790,7 +2806,7 @@ sub grant_like
 sub revoke_all
 {
     my ($self, $username) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     $self->dbh_do("
    DELETE FROM bweb_role_member
@@ -2810,7 +2826,7 @@ DELETE FROM bweb_client_group_acl
 sub users_del
 {
     my ($self) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     my $arg = $self->get_form(qw/jusernames/);
 
@@ -2832,7 +2848,7 @@ DELETE FROM bweb_user WHERE username IN ($arg->{jusernames})");
 sub users_add
 {
     my ($self) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     # we don't quote username directly to check that it is conform
     my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate qcopy_username jclient_groups/) ;
@@ -2844,6 +2860,8 @@ sub users_add
     }
 
     my $u = $self->dbh_quote($arg->{username});
+    
+    $arg->{use_acl}=(CGI::param('use_acl')?'true':'false');
 
     if (!$arg->{qpasswd}) {
         $arg->{qpasswd} = "''";
@@ -2854,12 +2872,14 @@ sub users_add
 
     # will fail if user already exists
     $self->dbh_do("
-  UPDATE bweb_user SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}
+  UPDATE bweb_user 
+     SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}, 
+         use_acl=$arg->{use_acl}
    WHERE username = $u")
         or
     $self->dbh_do("
-  INSERT INTO bweb_user (username, passwd, comment) 
-        VALUES ($u, $arg->{qpasswd}, $arg->{qcomment})");
+  INSERT INTO bweb_user (username, passwd, use_acl, comment) 
+        VALUES ($u, $arg->{qpasswd}, $arg->{use_acl}, $arg->{qcomment})");
 
     $self->{dbh}->begin_work();
     {
@@ -2889,7 +2909,7 @@ INSERT INTO bweb_client_group_acl (client_group_id, userid)
 sub display_users
 {
     my ($self) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     my $arg = $self->get_form(qw/db_usernames/) ;
 
@@ -2905,13 +2925,13 @@ sub display_users
 sub display_user
 {
     my ($self) = @_;
-    $self->can_do("user_mgnt");
+    $self->can_do("r_user_mgnt");
 
     my $arg = $self->get_form('username');
     my $user = $self->dbh_quote($arg->{username});
 
     my $userp = $self->dbh_selectrow_hashref("
-   SELECT username, passwd, comment
+   SELECT username, passwd, comment, use_acl
      FROM bweb_user
     WHERE username = $user
 ");
@@ -2942,6 +2962,7 @@ ORDER BY rolename
         username => $userp->{username},
         comment => $userp->{comment},
         passwd => $userp->{passwd},
+	use_acl => $userp->{use_acl},
 	db_client_groups => $arg->{db_client_groups},
 	client_group => $arg2->{db_client_groups},
         db_roles => [ values %$role], 
@@ -3019,7 +3040,7 @@ WHERE Media.VolumeName = $media->{qmedia}
 sub save_location
 {
     my ($self) = @_ ;
-    $self->can_do('media_mgnt');
+    $self->can_do('r_media_mgnt');
 
     my $arg = $self->get_form('jmedias', 'qnewlocation') ;
 
@@ -3049,7 +3070,7 @@ sub save_location
 sub location_change
 {
     my ($self) = @_ ;
-    $self->can_do('media_mgnt');
+    $self->can_do('r_media_mgnt');
 
     my $media = $self->get_selected_media_location();
     unless ($media) {
@@ -3098,6 +3119,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
 sub display_client_stats
 {
     my ($self, %arg) = @_ ;
+    $self->can_do('r_view_stats');
 
     my $client = $self->dbh_quote($arg{clientname});
     # get security filter
@@ -3261,6 +3283,7 @@ GROUP BY VolStatus
 sub display_running_job
 {
     my ($self) = @_;
+    $self->can_do('r_view_running_job');
 
     my $arg = $self->get_form('client', 'jobid');
 
@@ -3296,6 +3319,8 @@ WHERE Job.JobId = $arg->{jobid}
 sub display_running_jobs
 {
     my ($self, $display_action) = @_;
+    $self->can_do('r_view_running_job');
+
     # get security filter
     my $filter = $self->get_client_filter();
 
@@ -3327,7 +3352,7 @@ WHERE
 sub eject_media
 {
     my ($self) = @_;
-    $self->can_do('media_mgnt');
+    $self->can_do('r_media_mgnt');
 
     my %ret; 
     my $arg = $self->get_form('jmedias');
@@ -3432,7 +3457,7 @@ sub ach_get
 sub ach_register
 {
     my ($self, $ach) = @_;
-    $self->can_do('configure');
+    $self->can_do('r_configure');
 
     $self->{info}->{ach_list}->{$ach->{name}} = $ach;
 
@@ -3444,7 +3469,7 @@ sub ach_register
 sub ach_edit
 {
     my ($self) = @_;
-    $self->can_do('configure');
+    $self->can_do('r_configure');
 
     my $arg = $self->get_form('ach');
     if (!$arg->{ach} 
@@ -3475,7 +3500,7 @@ sub ach_edit
 sub ach_del
 {
     my ($self) = @_;
-    $self->can_do('configure');
+    $self->can_do('r_configure');
 
     my $arg = $self->get_form('ach');
 
@@ -3495,7 +3520,7 @@ sub ach_del
 sub ach_add
 {
     my ($self) = @_;
-    $self->can_do('configure');
+    $self->can_do('r_configure');
 
     my $arg = $self->get_form('ach', 'mtxcmd', 'device', 'precmd');
 
@@ -3540,7 +3565,7 @@ sub ach_add
 sub delete
 {
     my ($self) = @_;
-    $self->can_do('delete_job');
+    $self->can_do('r_delete_job');
 
     my $arg = $self->get_form('jobid');
 
@@ -3559,7 +3584,7 @@ sub delete
 sub do_update_media
 {
     my ($self) = @_ ;
-    $self->can_do('media_mgnt');
+    $self->can_do('r_media_mgnt');
 
     my $arg = $self->get_form(qw/media volstatus inchanger pool
 			         slot volretention voluseduration 
@@ -3654,7 +3679,7 @@ UPDATE Media
 sub update_slots
 {
     my ($self) = @_;
-    $self->can_do('autochanger_mgnt');
+    $self->can_do('r_autochanger_mgnt');
 
     my $ach = CGI::param('ach') ;
     $ach = $self->ach_get($ach);
@@ -3671,6 +3696,7 @@ sub update_slots
 sub get_job_log
 {
     my ($self) = @_;
+    $self->can_do('r_view_log');
 
     my $arg = $self->get_form('jobid', 'limit', 'offset');
     unless ($arg->{jobid}) {
@@ -3742,7 +3768,7 @@ SELECT Time AS time, LogText AS log
 sub label_barcodes
 {
     my ($self) = @_ ;
-    $self->can_do('autochanger_mgnt');
+    $self->can_do('r_autochanger_mgnt');
 
     my $arg = $self->get_form('ach', 'slots', 'drive');
 
@@ -3794,7 +3820,7 @@ sub label_barcodes
 sub purge
 {
     my ($self) = @_;
-    $self->can_do('purge');
+    $self->can_do('r_purge');
 
     my @volume = CGI::param('media');
 
@@ -3817,7 +3843,7 @@ sub purge
 sub prune
 {
     my ($self) = @_;
-    $self->can_do('prune');
+    $self->can_do('r_prune');
 
     my @volume = CGI::param('media');
     unless (@volume) {
@@ -3839,7 +3865,7 @@ sub prune
 sub cancel_job
 {
     my ($self) = @_;
-    $self->can_do('cancel_job');
+    $self->can_do('r_cancel_job');
 
     my $arg = $self->get_form('jobid');
     unless ($arg->{jobid}) {
@@ -3890,7 +3916,7 @@ sub director_show_sched
 sub enable_disable_job
 {
     my ($self, $what) = @_ ;
-    $self->can_do('run_job');
+    $self->can_do('r_run_job');
 
     my $name = CGI::param('job') || '';
     unless ($name =~ /^[\w\d\.\-\s]+$/) {
@@ -3922,7 +3948,7 @@ sub get_bconsole
 sub run_job_select
 {
     my ($self) = @_;
-    $self->can_do('run_job');
+    $self->can_do('r_run_job');
 
     my $b = $self->get_bconsole();
 
@@ -3959,7 +3985,7 @@ sub run_parse_job
 sub run_job_mod
 {
     my ($self) = @_;
-    $self->can_do('run_job');
+    $self->can_do('r_run_job');
 
     my $b = $self->get_bconsole();
     
@@ -3992,7 +4018,7 @@ sub run_job_mod
 sub run_job
 {
     my ($self) = @_;
-    $self->can_do('run_job');
+    $self->can_do('r_run_job');
 
     my $b = $self->get_bconsole();
     
@@ -4006,7 +4032,7 @@ sub run_job
 sub run_job_now
 {
     my ($self) = @_;
-    $self->can_do('run_job');
+    $self->can_do('r_run_job');
 
     my $b = $self->get_bconsole();
     

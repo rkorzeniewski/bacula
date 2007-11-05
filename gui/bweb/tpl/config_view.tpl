@@ -19,6 +19,7 @@
     <tr><td title="/path/to/bconsole -n -c /path/to/bconsole.conf">bconsole :</td> <td> <TMPL_VAR bconsole> </td></tr>
     <tr><td title="display timestamp in job log">display_log_time :</td> <td> <TMPL_VAR display_log_time> </td></tr>
     <tr><td title="user managment">security :</td> <td> <TMPL_VAR enable_security> </td></tr>
+    <tr><td title="user filter">security acl :</td> <td> <TMPL_VAR enable_security_acl> </td></tr>
     <tr><td>debug :</td> <td> <TMPL_VAR debug> </td></tr>
     <TMPL_IF achs>
     <tr>  <td><b>Autochanger</b></td>  <td/></tr>

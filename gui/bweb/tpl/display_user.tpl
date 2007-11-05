@@ -38,6 +38,9 @@
  </select>
  </td>
 </tr><tr>
+<td> Use groups filter:</td><td>
+<input class="formulaire" onclick="disable_group(this.checked == false)" type="checkbox" name="use_acl" <TMPL_IF use_acl> checked </TMPL_IF> > </td>
+</tr><tr>
 <td> Groups:</td><td>
  <select name="client_group" id='client_group' multiple class="formulaire" size=15>
 <TMPL_LOOP db_client_groups>
@@ -58,11 +61,18 @@
     document.getElementById('group_<TMPL_VAR name>').selected = true;
 </TMPL_LOOP>
 
+<TMPL_UNLESS use_acl>
+disable_group(true); 
+</TMPL_UNLESS>
 
 function disable_sel(val) 
 {
 	document.form1.profile.disabled = val;
 	document.form1.rolename.disabled = val;
+}
+function disable_group(val) 
+{
+	document.form1.client_group.disabled = val;
 }
 function set_role(val)
 {

@@ -48,6 +48,8 @@
          </td></tr>
      <tr><td>security :</td> 
          <td> <input class="formulaire" type='checkbox' name='enable_security' title='Use user managment in bweb. Read INSTALL first' <TMPL_IF enable_security> checked='checked' value='on' </TMPL_IF> > 
+     <tr><td>security acl:</td> 
+         <td> <input class="formulaire" type='checkbox' name='enable_security_acl' title='Use user acl in bweb. Read INSTALL first' <TMPL_IF enable_security_acl> checked='checked' value='on' </TMPL_IF> > 
      <tr><td>debug :</td> 
          <td> <input class="formulaire" type='checkbox' name='debug' <TMPL_IF debug> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>
