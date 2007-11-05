@@ -1321,6 +1321,25 @@ static int storage_cmd(JCR *jcr)
    return dir->fsend(OKstore);
 }
 
+static void job_end(JCR *jcr)
+{
+   char ed1[50], ed2[50];
+
+   /* Inform Storage daemon that we are done */
+   if (jcr->store_bsock) {
+      bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+   }
+
+   /* Run the after job */
+   run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
+
+   bnet_fsend(jcr->dir_bsock, EndJob, jcr->JobStatus, jcr->JobFiles,
+             edit_uint64(jcr->ReadBytes, ed1),
+             edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)jcr->VSS,
+             jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", jcr->dir_bsock->msg);
+}
+
 
 /*
  * Do a backup.
@@ -1331,6 +1350,7 @@ static int backup_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int ok = 0;
    int SDJobStatus;
+   char ed1[50], ed2[50];
 
 #if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
