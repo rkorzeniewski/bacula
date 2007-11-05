@@ -2660,6 +2660,46 @@ sub display_groups
 
 ###########################################################
 
+sub get_roles
+{
+    my ($self) = @_;
+    if (not $self->{info}->{enable_security}) {
+        return 1;
+    }
+    # admin is a special user that can do everything
+    if ($self->{loginname} eq 'admin') {
+        return 1;
+    }
+    if (!$self->{loginname}) {
+	return 0;
+    }
+    # already fill
+    if (defined $self->{security}) {
+	return 1;
+    }
+    $self->{security} = {};
+    my $u = $self->dbh_quote($self->{loginname});
+           
+    my $query = "
+ SELECT use_acl, rolename
+  FROM bweb_user 
+       JOIN bweb_role_member USING (userid)
+       JOIN bweb_role USING (roleid)
+ WHERE username = $u
+";
+    my $rows = $self->dbh_selectall_arrayref($query);
+    # do cache with this role   
+    if (!$rows) {
+        return 0;
+    }
+    foreach my $r (@$rows) {
+	$self->{security}->{$r->[1]}=1;
+    }
+
+    $self->{security}->{use_acl} = $rows->[0]->[0];
+    return 1;
+}
+
 # TODO: avoir un mode qui coupe le programme avec une page d'erreur
 # we can also get all security and fill {security} hash
 sub can_do
@@ -2680,32 +2720,14 @@ sub can_do
         $self->display_end();
         exit (0);
     }
-    # already checked
-    if ($self->{security}->{$action}) {
-        return 1;
-    }
-    my ($u, $r) = ($self->dbh_quote($self->{loginname}),
-                   $self->dbh_quote($action));
-    my $query = "
- SELECT use_acl, username, rolename
-  FROM bweb_user 
-       JOIN bweb_role_member USING (userid)
-       JOIN bweb_role USING (roleid)
- WHERE username = $u
-   AND rolename = $r
-";
-
-    my $row = $self->dbh_selectrow_hashref($query);
-    # do cache with this role   
-    if (!$row) {
-        $self->error("$u sorry, but this action ($action) is not permited. " .
+    $self->get_roles();
+    if (!$self->{security}->{$action}) {
+        $self->error("$self->{loginname} sorry, but this action ($action) " .
+		     "is not permited. " .
                      "Check security with your administrator");
         $self->display_end();
         exit (0);
-    } 
-    $self->{security}->{$row->{rolename}} = 1;
-    $self->{security}->{use_acl} = $row->{use_acl};
-    
+    }
     return 1;
 }
 
@@ -2713,9 +2735,17 @@ sub use_filter
 {
     my ($self) = @_;
 
-    return $self->{info}->{enable_security}     && 
-           $self->{info}->{enable_security_acl} && 
-           $self->{security}->{use_acl};
+    if (!$self->{info}->{enable_security} or 
+	!$self->{info}->{enable_security_acl})
+    {
+	return 0 ;
+    }
+    
+    if ($self->get_roles()) {
+	return $self->{security}->{use_acl};
+    } else {
+	return 0;
+    }
 }
 
 # JOIN Client USING (ClientId) " . $b->get_client_filter() . "

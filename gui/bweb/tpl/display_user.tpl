@@ -44,7 +44,7 @@
 <td> Groups:</td><td>
  <select name="client_group" id='client_group' multiple class="formulaire" size=15>
 <TMPL_LOOP db_client_groups>
-        <option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
+        <option id='group_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
  </select>
  </td>
@@ -80,7 +80,7 @@ function set_role(val)
 	for (var i=0; i < document.form1.rolename.length; ++i) {
 	      document.form1.rolename[i].selected = true;
 	}
-   else if (val == "production") {
+   } else if (val == "production") {
 	for (var i=0; i < document.form1.rolename.length; ++i) {
 	   if (document.form1.rolename[i].value != 'r_configure' &&
                document.form1.rolename[i].value != 'r_user_mgnt' &&
@@ -89,7 +89,7 @@ function set_role(val)
            {
 	      document.form1.rolename[i].selected = true;
            }
-	}
+        }
    } else if (val == "customer") {
 	for (var i=0; i < document.form1.rolename.length; ++i) {
 	   if (document.form1.rolename[i].value == 'r_view_stats'   ||
