@@ -1331,15 +1331,13 @@ static int backup_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int ok = 0;
    int SDJobStatus;
-   char ed1[50], ed2[50];
-   bool bDoVSS = false;
 
 #if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
    // and one enables vss and the other does not then enable_vss can change
    // between here and where its evaluated after the job completes.
-   bDoVSS = g_pVSSClient && enable_vss;
-   if (bDoVSS) {
+   jcr->VSS = g_pVSSClient && enable_vss;
+   if (jcr->VSS) {
       /* Run only one at a time */
       P(vss_mutex);
    }
@@ -1395,7 +1393,7 @@ static int backup_cmd(JCR *jcr)
 
 #if defined(WIN32_VSS)
    /* START VSS ON WIN 32 */
-   if (bDoVSS) {      
+   if (jcr->VSS) {      
       if (g_pVSSClient->InitializeForBackup()) {   
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
@@ -1488,7 +1486,7 @@ cleanup:
 #if defined(WIN32_VSS)
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
-   if (bDoVSS) {
+   if (jcr->VSS) {
       if (g_pVSSClient->CloseBackup()) {             
          /* inform user about writer states */
          for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
@@ -1506,7 +1504,7 @@ cleanup:
 
    bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->ReadBytes, ed1),
-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)bDoVSS, 
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)jcr->VSS, 
       jcr->pki_encrypt);
    Dmsg1(110, "End FD msg: %s\n", dir->msg);
    
