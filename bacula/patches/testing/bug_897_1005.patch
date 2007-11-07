@@ -1,0 +1,186 @@
+Index: src/dird/backup.c
+===================================================================
+--- src/dird/backup.c	(révision 5819)
++++ src/dird/backup.c	(copie de travail)
+@@ -245,8 +245,7 @@
+    set_jcr_job_status(jcr, JS_ErrorTerminated);
+    Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
+    /* Cancel SD */
+-   cancel_storage_daemon_job(jcr);
+-   wait_for_storage_daemon_termination(jcr);
++   wait_for_job_termination(jcr);
+    Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
+    return false;
+ }
+@@ -258,7 +257,7 @@
+  *   are done, we return the job status.
+  * Also used by restore.c
+  */
+-int wait_for_job_termination(JCR *jcr)
++int wait_for_job_termination(JCR *jcr, int timeout)
+ {
+    int32_t n = 0;
+    BSOCK *fd = jcr->file_bsock;
+@@ -268,8 +267,13 @@
+    uint64_t JobBytes = 0;
+    int VSS = 0;
+    int Encrypt = 0;
++   btimer_t *tid=NULL;
+ 
+    set_jcr_job_status(jcr, JS_Running);
++
++   if (timeout) {
++      tid = start_bsock_timer(fd, timeout); /* TODO: use user timeout */
++   }
+    /* Wait for Client to terminate */
+    while ((n = bget_dirmsg(fd)) >= 0) {
+       if (!fd_ok && 
+@@ -288,6 +292,9 @@
+          break;
+       }
+    }
++   if (tid) {
++      stop_bsock_timer(tid);
++   }
+ 
+    if (is_bnet_error(fd)) {
+       Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+Index: src/dird/protos.h
+===================================================================
+--- src/dird/protos.h	(révision 5819)
++++ src/dird/protos.h	(copie de travail)
+@@ -52,7 +52,7 @@
+ extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
+ 
+ /* backup.c */
+-extern int wait_for_job_termination(JCR *jcr);
++extern int wait_for_job_termination(JCR *jcr, int timeout=0);
+ extern bool do_backup_init(JCR *jcr);
+ extern bool do_backup(JCR *jcr);
+ extern void backup_cleanup(JCR *jcr, int TermCode);
+Index: src/filed/job.c
+===================================================================
+--- src/filed/job.c	(révision 5856)
++++ src/filed/job.c	(copie de travail)
+@@ -269,6 +269,16 @@
+    /* Run the after job */
+    run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
+ 
++   if (jcr->JobId) {
++      char ed1[50], ed2[50];
++      /* Send termination status back to Dir */
++      bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
++		 edit_uint64(jcr->ReadBytes, ed1),
++		 edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
++		 jcr->pki_encrypt);
++      Dmsg1(110, "End FD msg: %s\n", dir->msg);
++   }
++
+    generate_daemon_event(jcr, "JobEnd");
+ 
+    dequeue_messages(jcr);             /* send any queued messages */
+@@ -1331,15 +1341,13 @@
+    BSOCK *sd = jcr->store_bsock;
+    int ok = 0;
+    int SDJobStatus;
+-   char ed1[50], ed2[50];
+-   bool bDoVSS = false;
+ 
+ #if defined(WIN32_VSS)
+    // capture state here, if client is backed up by multiple directors
+    // and one enables vss and the other does not then enable_vss can change
+    // between here and where its evaluated after the job completes.
+-   bDoVSS = g_pVSSClient && enable_vss;
+-   if (bDoVSS) {
++   jcr->VSS = g_pVSSClient && enable_vss;
++   if (jcr->VSS) {
+       /* Run only one at a time */
+       P(vss_mutex);
+    }
+@@ -1395,7 +1403,7 @@
+ 
+ #if defined(WIN32_VSS)
+    /* START VSS ON WIN 32 */
+-   if (bDoVSS) {      
++   if (jcr->VSS) {      
+       if (g_pVSSClient->InitializeForBackup()) {   
+         /* tell vss which drives to snapshot */   
+         char szWinDriveLetters[27];   
+@@ -1488,7 +1496,7 @@
+ #if defined(WIN32_VSS)
+    /* STOP VSS ON WIN 32 */
+    /* tell vss to close the backup session */
+-   if (bDoVSS) {
++   if (jcr->VSS) {
+       if (g_pVSSClient->CloseBackup()) {             
+          /* inform user about writer states */
+          for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
+@@ -1504,12 +1512,6 @@
+    }
+ #endif
+ 
+-   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+-      edit_uint64(jcr->ReadBytes, ed1),
+-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)bDoVSS, 
+-      jcr->pki_encrypt);
+-   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+-   
+    return 0;                          /* return and stop command loop */
+ }
+ 
+@@ -1521,7 +1523,7 @@
+ {
+    BSOCK *dir = jcr->dir_bsock;
+    BSOCK *sd  = jcr->store_bsock;
+-   char level[100], ed1[50], ed2[50];
++   char level[100];
+ 
+    jcr->JobType = JT_VERIFY;
+    if (sscanf(dir->msg, verifycmd, level) != 1) {
+@@ -1585,13 +1587,6 @@
+ 
+    bnet_sig(dir, BNET_EOD);
+ 
+-   /* Send termination status back to Dir */
+-   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+-      edit_uint64(jcr->ReadBytes, ed1),
+-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+-      jcr->pki_encrypt);
+-   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+-
+    /* Inform Director that we are done */
+    bnet_sig(dir, BNET_TERMINATE);
+    return 0;                          /* return and terminate command loop */
+@@ -1609,7 +1604,6 @@
+    bool use_regexwhere=false;
+    int prefix_links;
+    char replace;
+-   char ed1[50], ed2[50];
+ 
+    /*
+     * Scan WHERE (base directory for restore) from command
+@@ -1696,12 +1690,6 @@
+    if (jcr->Errors) {
+       set_jcr_job_status(jcr, JS_ErrorTerminated);
+    }
+-   /* Send termination status back to Dir */
+-   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+-      edit_uint64(jcr->ReadBytes, ed1),
+-      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+-      jcr->pki_encrypt);
+-   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+ 
+    /* Inform Director that we are done */
+    bnet_sig(dir, BNET_TERMINATE);
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(révision 5856)
++++ src/jcr.h	(copie de travail)
+@@ -301,6 +301,7 @@
+    int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
+    POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
+    DIRRES* director;                  /* Director resource */
++   bool VSS;                          /* VSS used by FD */
+ #endif /* FILE_DAEMON */
+ 
+ 
