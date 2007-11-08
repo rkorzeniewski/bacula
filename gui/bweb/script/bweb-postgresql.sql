@@ -2,6 +2,26 @@
 -- --------------------------------------------------
 -- Upgrade from 2.2
 -- --------------------------------------------------
+
+CREATE FUNCTION concat (text, text) RETURNS text AS '
+DECLARE
+result text;
+BEGIN
+IF $1 is not null THEN
+result := $1 || $2;
+END IF;
+
+RETURN result;
+END;
+' LANGUAGE plpgsql;
+
+CREATE AGGREGATE group_concat(
+sfunc = concat,
+basetype = text,
+stype = text,
+initcond = ''
+);
+
 BEGIN;
 CREATE TABLE bweb_user
 (

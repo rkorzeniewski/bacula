@@ -3736,17 +3736,8 @@ sub get_job_log
     if ($arg->{limit} == 100) {
         $arg->{limit} = 1000;
     }
-
-    my $t = CGI::param('time') || $self->{info}->{display_log_time} || '';
-
-    # display only Error and Warning messages
-    my $filter = '';
-    if (CGI::param('error')) {
-	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning' ";
-    }
-
     # get security filter
-    $filter .= $self->get_client_filter();
+    my $filter = $self->get_client_filter();
 
     my $query = "
 SELECT Job.Name as name, Client.Name as clientname
@@ -3760,33 +3751,44 @@ SELECT Job.Name as name, Client.Name as clientname
 	return $self->error("Can't find $arg->{jobid} in catalog");
     }
 
+    # display only Error and Warning messages
+    $filter = '';
+    if (CGI::param('error')) {
+	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning' ";
+    }
+
+    my $logtext;
+    if (CGI::param('time') || $self->{info}->{display_log_time}) {
+	$logtext = 'LogText';
+    } else {
+	$logtext = $self->dbh_strcat('Time', ' ', 'LogText')
+    }
+
     $query = "
-SELECT Time AS time, LogText AS log 
-  FROM  Log 
- WHERE ( Log.JobId = $arg->{jobid} 
-    OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
+SELECT count(1) AS nbline, JobId AS jobid, group_concat($logtext) AS lines
+  FROM  (
+    SELECT JobId, Time, LogText
+    FROM Log 
+   WHERE ( Log.JobId = $arg->{jobid} 
+      OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
                       AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
        )
        ) $filter
  ORDER BY LogId
  LIMIT $arg->{limit}
  OFFSET $arg->{offset}
+ ) AS temp
+ GROUP BY JobId
+
 ";
 
-    my $log = $self->dbh_selectall_arrayref($query);
+    my $log = $self->dbh_selectrow_hashref($query);
     unless ($log) {
 	return $self->error("Can't get log for jobid $arg->{jobid}");
     }
 
-    my $logtxt;
-    if ($t) {
-	# log contains \n
-	$logtxt = join("", map { ($_->[0] . ' ' . $_->[1]) } @$log ) ; 
-    } else {
-	$logtxt = join("", map { $_->[1] } @$log ) ; 
-    }
-    
-    $self->display({ lines=> $logtxt,
+    $self->display({ lines=> $log->{lines},
+		     nbline => $log->{nbline},
 		     jobid => $arg->{jobid},
 		     name  => $row->{name},
 		     client => $row->{clientname},

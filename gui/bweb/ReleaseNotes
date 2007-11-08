@@ -1,4 +1,6 @@
           Release Notes for bweb 2.2
+2007/11/08
+ - Add Prev/Next on job log output
 
 2007/10/31
  - Add a error filter to Job zoom view
