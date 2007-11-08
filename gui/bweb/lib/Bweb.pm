@@ -1058,6 +1058,7 @@ our %sql_func = (
 	      STARTTIME_PWEEK => " date_part('week', Job.StartTime) ",
 	      DB_SIZE => " SELECT pg_database_size(current_database()) ",
 	      CAT_POOL_TYPE => " MediaType || '_' || Pool.Name ",
+	      CONCAT_SEP => "",
 	  },
 	  mysql => {
 	      UNIX_TIMESTAMP => 'UNIX_TIMESTAMP',
@@ -1078,6 +1079,7 @@ our %sql_func = (
 	      # works only with mysql 5
 	      # DB_SIZE => " SELECT sum(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES ",
 	      CAT_POOL_TYPE => " CONCAT(MediaType,'_',Pool.Name) ",
+	      CONCAT_SEP => " SEPARATOR '' ",
 	  },
 	 );
 
@@ -3765,15 +3767,16 @@ SELECT Job.Name as name, Client.Name as clientname
     }
 
     $query = "
-SELECT count(1) AS nbline, JobId AS jobid, group_concat($logtext) AS lines
+SELECT count(1) AS nbline, JobId AS jobid, 
+       GROUP_CONCAT($logtext $self->{sql}->{CONCAT_SEP}) AS logtxt
   FROM  (
     SELECT JobId, Time, LogText
     FROM Log 
    WHERE ( Log.JobId = $arg->{jobid} 
-      OR (Log.JobId = 0 AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
-                      AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
-       )
-       ) $filter
+      OR (Log.JobId = 0 
+          AND Time >= (SELECT StartTime FROM Job WHERE JobId=$arg->{jobid}) 
+          AND Time <= (SELECT COALESCE(EndTime,NOW()) FROM Job WHERE JobId=$arg->{jobid})
+       ) ) $filter
  ORDER BY LogId
  LIMIT $arg->{limit}
  OFFSET $arg->{offset}
@@ -3787,7 +3790,7 @@ SELECT count(1) AS nbline, JobId AS jobid, group_concat($logtext) AS lines
 	return $self->error("Can't get log for jobid $arg->{jobid}");
     }
 
-    $self->display({ lines=> $log->{lines},
+    $self->display({ lines=> $log->{logtxt},
 		     nbline => $log->{nbline},
 		     jobid => $arg->{jobid},
 		     name  => $row->{name},
