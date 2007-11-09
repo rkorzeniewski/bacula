@@ -490,7 +490,6 @@ void JobList::consoleListVolumes()
 void JobList::consoleListJobTotals()
 {
    QString cmd("list jobtotals");
-   cmd += m_currentJob;
    if (mainWin->m_longList) { cmd.prepend("l"); }
    consoleCommand(cmd);
 }
