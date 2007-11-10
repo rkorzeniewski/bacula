@@ -1208,12 +1208,26 @@ sub human_enabled
 {
     my $val = shift || 0;
 
-    if ($val == 1 or $val eq "yes") {
+    if ($val eq '1' or $val eq "yes") {
 	return "yes";
-    } elsif ($val == 2 or $val eq "archived") {
+    } elsif ($val eq '2' or $val eq "archived") {
 	return "archived";
     } else {
 	return  "no";
+    }
+}
+
+# display Enabled
+sub from_human_enabled
+{
+    my $val = shift || 0;
+
+    if ($val == 1 or $val eq "yes") {
+	return 1;
+    } elsif ($val == 2 or $val eq "archived") {
+	return 2;
+    } else {
+	return  0;
     }
 }
 
@@ -1255,6 +1269,8 @@ sub connect_db
 
 	if ($self->{info}->{dbi} =~ /^dbi:Pg/i) {
 	    $self->{dbh}->do("SET datestyle TO 'ISO, YMD'");
+	} else {
+	    $self->{dbh}->do("SET group_concat_max_len=1000000");
 	}
     }
 }
@@ -2372,7 +2388,7 @@ WHERE Location.Location = $loc->{qlocation}
 ";
 
     my $row = $self->dbh_selectrow_hashref($query);
-
+    $row->{enabled} = human_enabled($row->{enabled});
     $self->display({ ID => $cur_id++,
 		     %$row }, "location_edit.tpl") ;
 }
@@ -2382,7 +2398,7 @@ sub location_save
     my ($self) = @_ ;
     $self->can_do('r_location_mgnt');
 
-    my $arg = $self->get_form(qw/qlocation qnewlocation cost/) ;
+    my $arg = $self->get_form(qw/qlocation qnewlocation cost enabled/) ;
     unless ($arg->{qlocation}) {
 	return $self->error("Can't get location");
     }    
@@ -2393,8 +2409,7 @@ sub location_save
 	return $self->error("Can't get new cost");
     }
 
-    my $enabled = CGI::param('enabled') || '';
-    $enabled = $enabled?1:0;
+    my $enabled = from_human_enabled($arg->{enabled});
 
     my $query = "
 UPDATE Location SET Cost     = $arg->{cost}, 
