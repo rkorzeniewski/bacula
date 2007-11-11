@@ -7,6 +7,7 @@ a { text-decoration: none;}
 abutton.formulaire { font-size: 9pt; height: 48px; width: 80px; background-color: transparent; }
 
 button.formulaire { border: 0px; font-size: 9pt;  background-color: transparent; }
+button.bp { border: 0px; background-color: transparent; }
 
 td.joberr { background-color: red; color: white;}
 
