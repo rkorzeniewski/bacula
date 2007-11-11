@@ -10,7 +10,7 @@
       <option id='loc_<TMPL_VAR NAME=location>' value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
    </TMPL_LOOP>
   </select>
-  <input type="image" name='action' value='save_location' src='/bweb/apply.png'>
+  <button type="submit" class="bp" name='action' value='save_location'> <img src='/bweb/apply.png' alt=''>Apply</button>
    </form>
  </div>
 

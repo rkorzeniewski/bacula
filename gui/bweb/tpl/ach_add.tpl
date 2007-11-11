@@ -42,7 +42,7 @@
     </tr>
     </TMPL_LOOP>
     </table>
-    <input type="image" name='action' value='ach_add' src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='ach_add'> <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
 

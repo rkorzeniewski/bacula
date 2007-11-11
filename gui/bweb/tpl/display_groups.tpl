@@ -5,22 +5,19 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='groups_add' title='Add' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='groups_del' 
+    <button type="submit" class="bp" name='action' value='groups_add' title='Add'> <img src='/bweb/add.png' alt=''>Add</button>
+    <button type="submit" class="bp" name='action' value='groups_del' 
      onclick="return confirm('Do you want to delete this group ?');" 
-     title='Supprimer' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='groups_edit' title='Modify' src='/bweb/edit.png'>&nbsp;
+     title='Supprimer'> <img src='/bweb/remove.png' alt=''>Remove</button>
+    <button type="submit" class="bp" name='action' value='groups_edit' title='Modify'> <img src='/bweb/edit.png' alt=''>Edit</button>
 
-    <input type="image" name='action' value='client' title='View members'
-     src='/bweb/zoom.png'>&nbsp;
-    <input type="image" name='action' value='job' title='View jobs'
-     src='/bweb/zoom.png'>&nbsp;
-    <input type="image" name='action' value='group_stats' title='Statistics' src='/bweb/chart.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='client' title='View members'> <img src='/bweb/zoom.png' alt=''>View members</button>
+    <button type="submit" class="bp" name='action' value='job' title='View jobs'> <img src='/bweb/zoom.png' alt=''>View jobs</button>
+    <button type="submit" class="bp" name='action' value='group_stats' title='Statistics'> <img src='/bweb/chart.png' alt=''>View stats</button>
    </form>
    <form action='?' method='get'>
     <input type='hidden' name='action' value='client'>
-    <input type="image" name='notingroup' value='yes' title='View non-members'
-     src='/bweb/zoom.png'>&nbsp;
+    <button type="submit" class="bp" name='notingroup' value='yes' title='View non-members'> <img src='/bweb/zoom.png' alt=''>View others</button>
    </form>
  </div>
 

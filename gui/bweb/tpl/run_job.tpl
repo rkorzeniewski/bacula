@@ -17,17 +17,8 @@
    </td></tr>
    </table>
    <br/>
-   <label>
-   <input type="image" name='action' value='enable_job' title='Enable'
-    src='/bweb/inflag1.png'> Enable
-   </label>
-   <label>
-   <input type="image" name='action' value='disable_job' title='Disable'
-    src='/bweb/inflag0.png'> Disable
-   </label>
-   <label>
-   <input type="image" name='action' value='run_job_mod' title='Run now'
-    src='/bweb/R.png'> Run now 
-   </label>
+   <button type="submit" class="bp" name='action' value='enable_job' title='Enable'> <img src='/bweb/inflag1.png' alt=''> Enable </button>
+   <button type="submit" class="bp" name='action' value='disable_job' title='Disable' > <img src='/bweb/inflag0.png' alt=''> Disable </button>
+   <button type="submit" class="bp" name='action' value='run_job_mod' title='Run now' > <img src='/bweb/R.png' alt=''> Run now  </button>
   </form>
  </div>

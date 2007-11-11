@@ -13,10 +13,9 @@
         </div>
         <div class="otherbox">
        <h1>Actions</h1> 
-       <input type="image" name='action' value='job' title='Show last job'
-        src='/bweb/zoom.png'> &nbsp;
-       <input type="image" name='action' value='dsp_cur_job' title='Show current job' src='/bweb/zoom.png'> &nbsp;
-       <input type="image" name='action' value='client_stat' title='Client stats' src='/bweb/zoom.png'> &nbsp;
+       <button type="submit" class="bp" name='action' value='job' title='Show last job'> <img src='/bweb/zoom.png' alt=''>View last jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>View current jobs</button>
+       <button type="submit" class="bp" name='action' value='client_stat' title='Client stats'> <img src='/bweb/zoom.png' alt=''>View stats</button>
         </div>
 -->
 </form>

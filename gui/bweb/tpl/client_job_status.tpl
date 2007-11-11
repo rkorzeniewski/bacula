@@ -24,13 +24,13 @@
  </tr>
 </table>
 <form name='form1' action='?' method='GET'>
-<input type="image" name='action' value='dsp_cur_job' 
- src='/bweb/update.png' title='refresh'>&nbsp;
+<button type="submit" class="bp" name='action' value='dsp_cur_job' 
+> <img src='/bweb/update.png' title='refresh' alt=''>Refresh</button>
 <input type='hidden' name='client' value='<TMPL_VAR Client>'>
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
-<input type="image" name='action' value='cancel_job'
+<button type="submit" class="bp" name='action' value='cancel_job'
        onclick="return confirm('Do you want to cancel this job ?')"
-        title='Cancel job' src='/bweb/cancel.png'>&nbsp;
+        title='Cancel job'> <img src='/bweb/cancel.png' alt=''>Cancel</button>
 </form>
  </div>
 

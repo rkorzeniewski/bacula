@@ -8,9 +8,9 @@
     <table id='compute'></table>
     <table><tr>
     <td style='align: left;'>
-    <input type="image" onclick='javascript:window.history.go(-2);' title='Back' src='/bweb/prev.png'>
+    <button type="submit" class="bp" onclick='javascript:window.history.go(-2);' title='Back'> <img src='/bweb/prev.png' alt=''>Back</button>
     </td><td style='align: right;'>
-    <input type="image" name='action' value='extern' src='/bweb/extern.png' title='Eject selection'>
+    <button type="submit" class="bp" name='action' value='extern' title='Eject selection'> <img src='/bweb/extern.png' alt=''>Eject</button>
    </td></tr>
    </form>
  </div>

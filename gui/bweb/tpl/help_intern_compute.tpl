@@ -8,11 +8,11 @@
     <table id='compute'></table>
     <table><tr>
     <td style='align: left;'>
-    <input type="image" onclick='javascript:window.history.go(-2);' title='Back' src='/bweb/prev.png'>
+    <button type="submit" class="bp" onclick='javascript:window.history.go(-2);' title='Back'> <img src='/bweb/prev.png' alt=''>Back</button>
     </td><td style='align: right;'>
     <input type="hidden" name='enabled' value="yes">
-    <input type="image" name='action' value='move_media'
-     src='/bweb/intern.png'>
+    <button type="submit" class="bp" name='action' value='move_media'> 
+     <img src='/bweb/intern.png' alt=''></button>
    </td></tr>
    </form>
  </div>

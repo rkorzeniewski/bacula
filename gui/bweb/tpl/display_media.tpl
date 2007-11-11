@@ -20,14 +20,14 @@ Location : <TMPL_VAR location>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");'>&nbsp;
-      <input type="image" name='action' value='intern' title='Move in' src='/bweb/intern.png'>&nbsp;
-      <input type="image" name='action' value='update_media' title='Update medium' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='media_zoom' title='Information' src='/bweb/zoom.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' title='Move out'> <img src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");' alt=''>Eject</button>
+      <button type="submit" class="bp" name='action' value='intern' title='Move in'> <img src='/bweb/intern.png' alt=''>Load</button>
+      <button type="submit" class="bp" name='action' value='update_media' title='Update medium'> <img src='/bweb/edit.png' alt=''>Edit</button>
+      <button type="submit" class="bp" name='action' value='media_zoom' title='Information'> <img src='/bweb/zoom.png' alt=''>View</button>
 <!--
-      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' alt=''>Purge</button>
 -->
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
    </form>
  </div>
 

@@ -24,8 +24,8 @@
         </td>
     </tr>
     </table>
-    <input type="image" name='action' value='location_save'
-     src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='location_save'>
+      <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
 

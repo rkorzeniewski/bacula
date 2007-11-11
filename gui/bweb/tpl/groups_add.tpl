@@ -10,7 +10,6 @@
          </td>
      </tr>
     </table>
-    <input type="image" name='action' value='groups_add' title="Save"
-      src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='groups_add' title="Save"> <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>

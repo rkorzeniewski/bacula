@@ -70,18 +70,14 @@
    </td></tr>
    </table>
    <br/>
+
   <label onclick='
            document.getElementById("more1").style.visibility="visible";
            document.getElementById("more2").style.visibility="visible";'>
   <img title='Display more options' src='/bweb/add.png'>More options</label>
-  <label>
-  <input type="image" name='action' value='run_job_now' title='Run job'
-   src='/bweb/R.png'>Run now
-  </label>
-  <label>
-  <input type="image" name='action' value='fileset_view' title='View FileSet'
-   src='/bweb/zoom.png'>View FileSet
-  </label>
+
+  <button type="submit" class="bp" name='action' value='run_job_now' title='Run job'><img src='/bweb/R.png' alt=''>Run now</button>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='View FileSet'><img src='/bweb/zoom.png' alt=''>View FileSet</button>
   </form>
  </div>
 

@@ -54,6 +54,6 @@
          <td> <input class="formulaire" type='checkbox' name='debug' <TMPL_IF debug> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>
     </table>
-    <input type="image" name='action' value='apply_conf' src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='apply_conf'> <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>

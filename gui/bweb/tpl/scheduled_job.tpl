@@ -5,14 +5,10 @@
  <div class='bodydiv'>
     <form action='<TMPL_VAR cginame>?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
-     <label>
-     <input type="image" name='action' value='run_job_mod'
-      src='/bweb/R.png' title='Run now'>  Run now
-     </label>
-     <label>
-      <input type="image" name='action' value='disable_job'
-       src='/bweb/inflag0.png' title='Disable'> Disable
-      </label>
+     <button type="submit" class="bp" name='action' title='Run now' value='run_job_mod'>
+       <img src='/bweb/R.png' alt=''>  Run now </button>
+      <button type="submit" class="bp" name='action' title='Disable' value='disable_job'>
+       <img src='/bweb/inflag0.png' alt=''> Disable </button>
     </form>
  </div>
 

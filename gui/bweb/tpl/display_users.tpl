@@ -5,16 +5,14 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='user_add' title='Add' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='user_del' 
+    <button type="submit" class="bp" name='action' value='user_add' title='Add'> <img src='/bweb/add.png' alt=''>Add</button>
+    <button type="submit" class="bp" name='action' value='user_del' 
      onclick="return confirm('Do you want to delete this user ?');" 
-     title='Supprimer' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='user_edit' title='Modify' src='/bweb/edit.png'>&nbsp;
+     title='Remove'> <img src='/bweb/remove.png' alt=''>Remove </button>
+    <button type="submit" class="bp" name='action' value='user_edit' title='Modify'> <img src='/bweb/edit.png' alt=''>Edit </button>
 
-    <input type="image" name='action' value='client' title='View clients'
-     src='/bweb/zoom.png'>&nbsp;
-    <input type="image" name='action' value='job' title='View jobs'
-     src='/bweb/zoom.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='client' title='View clients'> <img src='/bweb/zoom.png' alt=''>View clients</button>
+    <button type="submit" class="bp" name='action' value='job' title='View jobs'> <img src='/bweb/zoom.png' alt=''>View jobs</button>
    </form>
  </div>
 

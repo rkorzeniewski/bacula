@@ -76,7 +76,7 @@
 </tr>
 
 </table>
-  <input type="image" name='action' value='media' src='/bweb/update.png'>
+  <button type="submit" class="bp" name='action' value='media'> <img src='/bweb/update.png' alt=''>Update</button>
 
 </form>
 </div>

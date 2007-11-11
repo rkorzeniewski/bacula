@@ -112,22 +112,16 @@
     </table>
 <table>
  <td>
- <label>
-  <input type="image" name='action' value='do_update_media' src='/bweb/apply.png'> Apply
-  </label>
-  <label>
-  <input type="image" name='action' title='Update from pool'
-    value='update_from_pool' src='/bweb/update.png'> Update from pool
-  </label>
+  <button type="submit" class="bp" name='action' value='do_update_media'> <img src='/bweb/apply.png' alt=''> Apply </button>
+  <button type="submit" class="bp" name='action' title='Update from pool'
+    value='update_from_pool'> <img src='/bweb/update.png' alt=''> Update from pool </button>
  </form>
  </td>
  <td>
   <form action='?' method='GET'>
    <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
-   <label>
-    <input type="image" name='action' value='media'
-     src='/bweb/zoom.png'>View Pool
-   </label>
+    <button type="submit" class="bp" name='action' value='media'>
+     <img src='/bweb/zoom.png' alt=''>View Pool </button>
   </form>
  </td>
 </table>

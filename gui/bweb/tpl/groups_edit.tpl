@@ -21,8 +21,8 @@
          </td>
      </tr>
     </table>
-    <input type="image" name='action' value='groups_save'
-     src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='groups_save'>
+     <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
 

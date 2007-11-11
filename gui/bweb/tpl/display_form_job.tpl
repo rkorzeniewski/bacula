@@ -109,9 +109,9 @@
 </tr>
 -->
 </table>
-  <input type="image" name='action' 
-         value='<TMPL_IF action><TMPL_VAR action><TMPL_ELSE>job</TMPL_IF>'
-         src='/bweb/update.png'>
+  <button type="submit" class="bp" name='action' 
+    value='<TMPL_IF action><TMPL_VAR action><TMPL_ELSE>job</TMPL_IF>'>
+     <img src='/bweb/update.png' alt=''> </button>
 
 </form>
 </div>

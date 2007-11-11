@@ -5,12 +5,11 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='location_add' title='Add a location' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='location_del' title='Remove a location' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='location_edit' title='Edit a location' src='/bweb/edit.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='location_add' title='Add a location'> <img src='/bweb/add.png' alt=''>Add</button>
+    <button type="submit" class="bp" name='action' value='location_del' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Remove</button>
+    <button type="submit" class="bp" name='action' value='location_edit' title='Edit a location'> <img src='/bweb/edit.png' alt=''>Edit</button>
 
-    <input type="image" name='action' value='media' title='Show content'
-     src='/bweb/zoom.png'>
+    <button type="submit" class="bp" name='action' value='media' title='Show content'> <img src='/bweb/zoom.png' alt=''>View content</button>
    </form>
  </div>
 

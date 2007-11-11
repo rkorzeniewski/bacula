@@ -14,13 +14,13 @@
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <input type="image" name='action' value='extern' onclick='return confirm("Do you want to eject this medium ?");' title='move out' src='/bweb/extern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' onclick='return confirm("Do you want to eject this volume ?");' title='move out'> <img src='/bweb/extern.png' alt=''>Eject</button>
 <TMPL_ELSE>
-      <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='intern' title='move in'> <img src='/bweb/intern.png' alt=''>Load</button>
 </TMPL_IF>
-      <input type="image" name='action' value='update_media' title='Update' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume ?')">&nbsp;
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='update_media' title='Update'><img src='/bweb/edit.png' alt=''>Edit</button>
+      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume ?')" alt=''>Purge</button>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
 <TMPL_IF Locationlog>
       <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='View location log' src='/bweb/zoom.png'></a>
 </TMPL_IF>

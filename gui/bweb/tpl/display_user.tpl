@@ -50,8 +50,8 @@
  </td>
 </tr>
 </table>
-    <input type="image" name='action' value='user_save'
-     src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='user_save'>
+     <img src='/bweb/save.png' alt=''> </button>
 </form>
 </div>
 

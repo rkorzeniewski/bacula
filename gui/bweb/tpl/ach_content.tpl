@@ -18,38 +18,21 @@ Autochanger : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Drives
      Tools
     </div>
     <div class='otherbox'>
-<label>
-<input type="image" name='action' value='label_barcodes'
-        title='run label barcodes' src='/bweb/label.png'>Label
-</label>
+<button type="submit" class="bp" name='action' value='label_barcodes'
+ title='run label barcodes'><img src='/bweb/label.png' alt=''>Label</button>
 <TMPL_IF nb_io>
-<label>
-<input type="image" name='action' value='eject'
-        title='put selected media on i/o' src='/bweb/extern.png'>
-Eject
-</label>
-<label>
-<input type="image" name='action' value='clear_io'
-        title='Clear i/o' src='/bweb/intern.png'>
-Clear I/O
-</label>
+<button type="submit" class="bp" name='action' value='eject'
+ title='put selected media on i/o'><img src='/bweb/extern.png' alt=''>Eject</button>
+<button type="submit" class="bp" name='action' value='clear_io'
+ title='Clear i/o'> <img src='/bweb/intern.png' alt=''>Clear I/O</button>
 </TMPL_IF>
-<label>
-<input type="image" name='action' value='update_slots'
-        title='run update slots' src='/bweb/update.png'>
-Update
-</label>
+<button type="submit" class="bp" name='action' value='update_slots'
+ title='run update slots'> <img src='/bweb/update.png' alt=''>Update</button>
 <br/><br/>
-<label>
-<input type="image" name='action' value='ach_load'
-	title='mount drive' src='/bweb/load.png'>
-Mount
-</label>
-<label>
-<input type="image" name='action' value='ach_unload'
-	title='umount drive' src='/bweb/unload.png'>
-Umount
-</label>
+<button type="submit" class="bp" name='action' value='ach_load'
+ title='mount drive'> <img src='/bweb/load.png' alt=''>Mount</button>
+<button type="submit" class="bp" name='action' value='ach_unload'
+ title='umount drive'> <img src='/bweb/unload.png' alt=''>Umount</button>
 
    </div>
     <td width='200'/>

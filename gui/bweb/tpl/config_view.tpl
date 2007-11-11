@@ -39,9 +39,9 @@
     </table>
    <td>
   
-   <input type="image" name="action" value="ach_edit" title="edit" src='/bweb/edit.png'> 
-   <input type="image" name='action' value='ach_del' title='delete' src='/bweb/remove.png'>
-   <input type='image' name='action' value='ach_view' title='view' src='/bweb/zoom.png'>
+   <button type="submit" class="bp" name="action" value="ach_edit" title="edit"> <img src='/bweb/edit.png' alt=''>Edit</button>
+   <button type="submit" class="bp" name='action' value='ach_del' title='delete'> <img src='/bweb/remove.png' alt=''>Delete</button>
+   <button type="submit" class="bp" name='action' value='ach_view' title='view'> <img src='/bweb/zoom.png' alt=''>View</button>
     </form>
     </td>
    </tr>
@@ -52,12 +52,8 @@
   </table>
 
   <form action='?' method='GET'>
-   <label>
-   <input name='action' value='edit_conf' type="image" title='Edit' src='/bweb/edit.png'> Edit
-   </label>
-   <label>
-   <input name='action' value='ach_add' type="image" title='Add an autochanger' src='/bweb/add.png'> Add autochanger
-   </label>
+   <button name='action' value='edit_conf' type="submit" class="bp" title='Edit'> <img src='/bweb/edit.png' alt=''>Edit</button>
+   <button name='action' value='ach_add' type="submit" class="bp" title='Add an autochanger'> <img src='/bweb/add.png' alt=''>Add autochanger</button>
   </form>
 
   <TMPL_IF error>

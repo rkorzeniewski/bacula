@@ -25,9 +25,7 @@
 <textarea name="comment" class='formulaire'></textarea>
     </td></tr>
     </table>
-    <label>
-    <input type="image" type='submit' name='action' value='change_location' src='/bweb/apply.png'> Move
-    </label>
+    <button type="submit" class="bp" type='submit' name='action' value='change_location'> <img src='/bweb/apply.png' alt=''> Move </button>
    </form>
  </div>
 

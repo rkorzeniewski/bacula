@@ -5,7 +5,7 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" type='submit' name='action' value='media' title='Show content' src='/bweb/zoom.png'>
+    <button type="submit" class="bp" type='submit' name='action' value='media' title='Show content'> <img src='/bweb/zoom.png' alt=''>View</button>
     <input id="mediatype" type='hidden' name='mediatype' value=''>
    </form>
    <br/>

@@ -43,8 +43,7 @@ be asked to make your selection on the next screen.
                 size='3' value='10'> </td>
     </tr>
     <tr>
-        <td><input type="image" name='action' value='compute_intern_media' 
-                title='Next' src='/bweb/next.png'>
+        <td><button type="submit" class="bp" name='action' value='compute_intern_media' title='Next'> <img src='/bweb/next.png' alt=''>Next</button>
         </td><td/>
     </tr>
    </table>

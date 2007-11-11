@@ -10,15 +10,10 @@
         </div>
         <div class="otherbox">
 <!--        <h1>Actions</h1> -->	
-       <label>
-       <input type="image" name='action' value='job' title='Show last job' src='/bweb/zoom.png'>Last jobs</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='dsp_cur_job' title='Show current job' src='/bweb/zoom.png'>Current jobs</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='client_status' title='Show client status' src='/bweb/zoom.png'>Status</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='client_stats' title='Client stats' src='/bweb/chart.png'>Stats</label> &nbsp;
-       </label>
+       <button type="submit" class="bp" name='action' value='job' title='Show last job'> <img src='/bweb/zoom.png' alt=''>Last jobsView jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
+       <button type="submit" class="bp" name='action' value='client_status' title='Show client status'> <img src='/bweb/zoom.png' alt=''>Status </button>
+       <button type="submit" class="bp" name='action' value='client_stats' title='Client stats'> <img src='/bweb/chart.png' alt=''>Stats </button>
         </div>
 
 </form>
