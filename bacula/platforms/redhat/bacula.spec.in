@@ -5,7 +5,7 @@
 
 # basic defines for every build
 %define _version @VERSION@
-%define _release 2
+%define _release 1
 %define depkgs_version 09Sep07
 %define _rescuever @VERSION@
 %define docs_version @VERSION@
@@ -1498,12 +1498,17 @@ chmod 644 $RPM_BUILD_ROOT/etc/log.d/conf/services/bacula.conf
 
 # install the rescue files
 mkdir $RPM_BUILD_ROOT%{sysconf_dir}/rescue
+mkdir $RPM_BUILD_ROOT%{sysconf_dir}/rescue/freebsd
+mkdir $RPM_BUILD_ROOT%{sysconf_dir}/rescue/solaris
 cp -p %{_rescuesrc}/Makefile* $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
+cp -p %{_rescuesrc}/freebsd/Makefile* $RPM_BUILD_ROOT%{sysconf_dir}/rescue/freebsd/
+cp -p %{_rescuesrc}/solaris/Makefile* $RPM_BUILD_ROOT%{sysconf_dir}/rescue/solaris/
 cp -p %{_rescuesrc}/README $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 cp -p %{_rescuesrc}/configure $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 cp -p %{_rescuesrc}/version.h $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 cp -pr %{_rescuesrc}/linux $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 cp -pr %{_rescuesrc}/autoconf $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
+cp -pr %{_rescuesrc}/knoppix $RPM_BUILD_ROOT%{sysconf_dir}/rescue/
 touch $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/rpm_release
 cp -p src/filed/static-bacula-fd $RPM_BUILD_ROOT%{sysconf_dir}/rescue/linux/cdrom/bacula/bin/bacula-fd
 rm -f src/filed/static-bacula-fd
@@ -2137,6 +2142,8 @@ fi
 %endif
 
 %changelog
+* Sun Nov 11 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add new files required by rescue makefile
 * Sat Nov 10 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add su103 build target
 * Sun Nov 04 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
