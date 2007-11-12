@@ -2454,7 +2454,7 @@ WHERE Location = $arg->{qlocation}
     }
 
     $query = "
-DELETE FROM Location WHERE Location = $arg->{qlocation} LIMIT 1
+DELETE FROM Location WHERE Location = $arg->{qlocation}
 ";
 
     $self->dbh_do($query);
