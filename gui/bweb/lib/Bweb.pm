@@ -3796,9 +3796,9 @@ SELECT Job.Name as name, Client.Name as clientname
 
     my $logtext;
     if (CGI::param('time') || $self->{info}->{display_log_time}) {
-	$logtext = 'LogText';
+	$logtext = $self->dbh_strcat('Time', " ' ' ", 'LogText');
     } else {
-	$logtext = $self->dbh_strcat('Time', ' ', 'LogText')
+	$logtext = 'LogText';
     }
 
     $query = "
