@@ -137,7 +137,7 @@ $cli = $1;
 $agent->get("$url?action=client_status;client=$cli");
 ok($agent->success(), "submit");
 $c=$agent->content;
-like($c, qr/Terminated Jobs/, "client status");
+like($c, qr/Terminated Jobs/, "check for client status");
 
 $agent->get("$url?action=job;client=$cli");
 ok($agent->success(), "submit");
@@ -147,6 +147,7 @@ like($c, qr/'$cli'\).selected = true;/, "list jobs for this client");
 ################################################################
 # Test location basic functions
 ################################################################
+
 my $loc = "loc$$";
 ok($agent->follow_link(text_regex=>qr/Location/), "Go to Location page");
 ok($agent->form_number(2), "Find form");
@@ -163,6 +164,19 @@ ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/$loc/, "Check if location is ok");
 
 ################################################################
+# Test media
+################################################################
+
+ok($agent->follow_link(text_regex=>qr/All Media/), "Go to All Media page");
+ok($agent->success(), "submit"); $c=$agent->content;
+ok($c =~ m/chkbox.value = '(.+?)'/, "get first media");
+my $vol = $1;
+
+$agent->get("$url?media=$vol;action=update_media");
+ok($agent->success(), "submit"); $c=$agent->content;
+like($c, qr/$vol/, "Check if volume is ok");
+
+################################################################
 # Test group basic functions
 ################################################################
 
@@ -172,7 +186,7 @@ like($c, qr/$cli/, "check client=$cli");
 
 my $grp = "test$$";
 ok($agent->follow_link(text_regex=>qr/Groups/), "Go to Groups page");
-$c=$agent->content;
+ok($agent->success(), "submit"); $c=$agent->content;
 unlike($c, qr/error/i, "Check for group installation");
 ok($agent->form_number(2), "Find form");
 $agent->click_button(value => 'groups_add');
