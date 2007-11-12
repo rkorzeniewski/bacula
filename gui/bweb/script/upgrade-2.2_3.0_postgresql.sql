@@ -27,6 +27,7 @@ CREATE TABLE bweb_user
 	userid       serial not null,
 	username     text not null,
 	use_acl      boolean default false,
+	enabled      boolean default true,
         comment      text default '',
 	passwd       text default '',
 	primary key (userid)
