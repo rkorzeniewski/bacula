@@ -1083,6 +1083,12 @@ our %sql_func = (
 	  },
 	 );
 
+sub dbh_is_mysql
+{
+    my ($self) = @_;
+    return $self->{info}->{dbi} =~ /dbi:mysql/i;
+}
+
 sub dbh_disconnect
 {
     my ($self) = @_;
@@ -1147,7 +1153,7 @@ sub dbh_selectrow_hashref
 sub dbh_strcat
 {
     my ($self, @what) = @_;
-    if ($self->{conf}->{connection_string} =~ /dbi:mysql/i) {
+    if ($self->dbh_is_mysql()) {
 	return 'CONCAT(' . join(',', @what) . ')' ;
     } else {
 	return join(' || ', @what);
@@ -1258,6 +1264,7 @@ sub connect_db
     my ($self) = @_;
 
     unless ($self->{dbh}) {
+
 	$self->{dbh} = DBI->connect($self->{info}->{dbi}, 
 				    $self->{info}->{user},
 				    $self->{info}->{password});
@@ -1267,10 +1274,10 @@ sub connect_db
 
 	$self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
 
-	if ($self->{info}->{dbi} =~ /^dbi:Pg/i) {
-	    $self->{dbh}->do("SET datestyle TO 'ISO, YMD'");
-	} else {
+	if ($self->dbh_is_mysql()) {
 	    $self->{dbh}->do("SET group_concat_max_len=1000000");
+	} else {
+	    $self->{dbh}->do("SET datestyle TO 'ISO, YMD'");
 	}
     }
 }
@@ -2768,36 +2775,42 @@ sub use_filter
 # JOIN Client USING (ClientId) " . $b->get_client_filter() . "
 sub get_client_filter
 {
-    my ($self) = @_;
-    if ($self->use_filter()) {
-	my $u = $self->dbh_quote($self->{loginname});
-	return "
+    my ($self, $login) = @_;
+    my $u;
+    if ($login) {
+	$u = $self->dbh_quote($login);
+    } elsif ($self->use_filter()) {
+	$u = $self->dbh_quote($self->{loginname});
+    } else {
+	return '';
+    }
+    return "
  JOIN (SELECT ClientId FROM client_group_member
    JOIN client_group USING (client_group_id) 
    JOIN bweb_client_group_acl USING (client_group_id) 
    JOIN bweb_user USING (userid)
    WHERE bweb_user.username = $u 
  ) AS filter USING (ClientId)";
-    } else {
-	return '';
-    }
 }
 
 #JOIN client_group USING (client_group_id)" . $b->get_client_group_filter()
 sub get_client_group_filter
 {
-    my ($self) = @_;
-    if ($self->use_filter()) {
-	my $u = $self->dbh_quote($self->{loginname});
-	return "
+    my ($self, $login) = @_;
+    my $u;
+    if ($login) {
+	$u = $self->dbh_quote($login);
+    } elsif ($self->use_filter()) {
+	$u = $self->dbh_quote($self->{loginname});
+    } else {
+	return '';
+    }
+    return "
  JOIN (SELECT client_group_id 
          FROM bweb_client_group_acl
          JOIN bweb_user USING (userid)
    WHERE bweb_user.username = $u 
  ) AS filter USING (client_group_id)";
-    } else {
-	return '';
-    }
 }
 
 # role and username have to be quoted before
@@ -2918,12 +2931,14 @@ sub users_add
     }
 
     # will fail if user already exists
-    $self->dbh_do("
+    # UPDATE with mysql dbi does not return if update is ok
+    ($self->dbh_do("
   UPDATE bweb_user 
      SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}, 
          use_acl=$arg->{use_acl}
-   WHERE username = $u")
-        or
+   WHERE username = $u") 
+     and (! $self->dbh_is_mysql() )
+     ) or
     $self->dbh_do("
   INSERT INTO bweb_user (username, passwd, use_acl, comment) 
         VALUES ($u, $arg->{qpasswd}, $arg->{use_acl}, $arg->{qcomment})");
@@ -2938,14 +2953,15 @@ sub users_add
             $self->grant($arg->{jrolenames}, $u);
         }
 
-	$self->dbh_do("
+	if ($arg->{jclient_groups}) {
+	    $self->dbh_do("
 INSERT INTO bweb_client_group_acl (client_group_id, userid)
  SELECT client_group_id, userid 
    FROM client_group, bweb_user
   WHERE client_group_name IN ($arg->{jclient_groups})
     AND username = $u
 ");
-
+	}
     }
     $self->{dbh}->commit();
 
@@ -2982,12 +2998,14 @@ sub display_user
      FROM bweb_user
     WHERE username = $user
 ");
-
     if (!$userp) {
         return $self->error("Can't find $user in catalog");
     }
-    $arg = $self->get_form(qw/db_usernames db_client_groups/);
-    my $arg2 = $self->get_form(qw/filter db_client_groups/);
+    my $filter = $self->get_client_group_filter($arg->{username});
+    my $scg = $self->dbh_selectall_hashref("
+ SELECT client_group_name AS name 
+   FROM client_group $filter
+", 'name');
 
 #  rolename  | userid
 #------------+--------
@@ -3004,6 +3022,8 @@ SELECT rolename, temp.userid
 ORDER BY rolename
 ", 'rolename');
 
+    $arg = $self->get_form(qw/db_usernames db_client_groups/);    
+
     $self->display({
         db_usernames => $arg->{db_usernames},
         username => $userp->{username},
@@ -3011,7 +3031,7 @@ ORDER BY rolename
         passwd => $userp->{passwd},
 	use_acl => $userp->{use_acl},
 	db_client_groups => $arg->{db_client_groups},
-	client_group => $arg2->{db_client_groups},
+	client_group => [ values %$scg ],
         db_roles => [ values %$role], 
     }, "display_user.tpl");
 }
