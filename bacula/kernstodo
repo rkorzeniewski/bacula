@@ -67,8 +67,13 @@ Professional Needs:
    Performance and usage instrumentation (not in list)
    See email of 21Aug2007 for details.
 - Implement Diff,Inc Retention Periods
+- Look at: http://tech.groups.yahoo.com/group/cfg2html
+   and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Duplicate Jobs
+  Run, Fail, Skip, Higher, Promote, CancelLowerLevel
+  Proximity
 - Auto update of slot:
    rufus-dir: ua_run.c:456-10 JobId=10 NewJobId=10 using pool Full priority=10
    02-Nov 12:58 rufus-dir JobId 10: Start Backup JobId 10, Job=kernsave.2007-11-02_12.58.03

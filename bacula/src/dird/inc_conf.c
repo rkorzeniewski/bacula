@@ -67,7 +67,7 @@ static void setup_current_opts(void);
  */
 #if defined(_MSC_VER)
 extern "C" { // work around visual compiler mangling variables
-    extern URES res_all;
+   extern URES res_all;
 }
 #else
 extern URES res_all;
