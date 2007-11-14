@@ -1,6 +1,6 @@
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 5819)
+--- src/dird/backup.c	(révision 5882)
 +++ src/dird/backup.c	(copie de travail)
 @@ -245,8 +245,7 @@
     set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -21,33 +21,89 @@ Index: src/dird/backup.c
  {
     int32_t n = 0;
     BSOCK *fd = jcr->file_bsock;
-@@ -268,8 +267,13 @@
+@@ -268,32 +267,42 @@
     uint64_t JobBytes = 0;
     int VSS = 0;
     int Encrypt = 0;
 +   btimer_t *tid=NULL;
  
     set_jcr_job_status(jcr, JS_Running);
+-   /* Wait for Client to terminate */
+-   while ((n = bget_dirmsg(fd)) >= 0) {
+-      if (!fd_ok && 
+-          (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+-              &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
+-           sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
+-                 &ReadBytes, &JobBytes, &Errors) == 5)) {
+-         fd_ok = true;
+-         set_jcr_job_status(jcr, jcr->FDJobStatus);
+-         Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
+-      } else {
+-         Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
+-            fd->msg);
 +
-+   if (timeout) {
-+      tid = start_bsock_timer(fd, timeout); /* TODO: use user timeout */
-+   }
-    /* Wait for Client to terminate */
-    while ((n = bget_dirmsg(fd)) >= 0) {
-       if (!fd_ok && 
-@@ -288,6 +292,9 @@
-          break;
++   if (fd) {
++      if (timeout) {
++         tid = start_bsock_timer(fd, timeout); /* TODO: use user timeout */
        }
-    }
-+   if (tid) {
-+      stop_bsock_timer(tid);
-+   }
+-      if (job_canceled(jcr)) {
+-         break;
++      /* Wait for Client to terminate */
++      while ((n = bget_dirmsg(fd)) >= 0) {
++         if (!fd_ok && 
++             (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
++                     &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
++              sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
++                     &ReadBytes, &JobBytes, &Errors) == 5)) {
++            fd_ok = true;
++            set_jcr_job_status(jcr, jcr->FDJobStatus);
++            Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
++         } else {
++            Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
++                 fd->msg);
++         }
++         if (job_canceled(jcr)) {
++            break;
++         }
+       }
+-   }
++      if (tid) {
++         stop_bsock_timer(tid);
++      }
  
-    if (is_bnet_error(fd)) {
-       Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+-   if (is_bnet_error(fd)) {
+-      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+-          job_type_to_str(jcr->JobType), fd->bstrerror());
++      if (is_bnet_error(fd)) {
++         Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
++              job_type_to_str(jcr->JobType), fd->bstrerror());
++      }
++      fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
+    }
+-   fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
+ 
+    /* Force cancel in SD if failing */
+    if (job_canceled(jcr) || !fd_ok) {
+@@ -303,7 +312,6 @@
+    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
+    wait_for_storage_daemon_termination(jcr);
+ 
+-
+    /* Return values from FD */
+    if (fd_ok) {
+       jcr->JobFiles = JobFiles;
+@@ -320,7 +328,7 @@
+ //   jcr->JobStatus, jcr->SDJobStatus);
+ 
+    /* Return the first error status we find Dir, FD, or SD */
+-   if (!fd_ok || is_bnet_error(fd)) {
++   if (!fd_ok || is_bnet_error(fd)) { /* if fd not set, that use !fd_ok */
+       jcr->FDJobStatus = JS_ErrorTerminated;
+    }
+    if (jcr->JobStatus != JS_Terminated) {
 Index: src/dird/protos.h
 ===================================================================
---- src/dird/protos.h	(révision 5819)
+--- src/dird/protos.h	(révision 5882)
 +++ src/dird/protos.h	(copie de travail)
 @@ -52,7 +52,7 @@
  extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
@@ -60,13 +116,13 @@ Index: src/dird/protos.h
  extern void backup_cleanup(JCR *jcr, int TermCode);
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 5856)
+--- src/filed/job.c	(révision 5882)
 +++ src/filed/job.c	(copie de travail)
 @@ -261,6 +261,16 @@
        }
     }
  
-+   if (jcr->JobId) {
++   if (jcr->JobId) {		/* send EndJob if running a job */
 +      char ed1[50], ed2[50];
 +      /* Send termination status back to Dir */
 +      bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
@@ -180,7 +236,7 @@ Index: src/filed/job.c
  }
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 5856)
+--- src/jcr.h	(révision 5882)
 +++ src/jcr.h	(copie de travail)
 @@ -301,6 +301,7 @@
     int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
