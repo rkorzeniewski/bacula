@@ -146,6 +146,7 @@ static void *handle_UA_client_request(void *arg)
          } else {
             do_a_command(ua, ua->cmd);
          }
+         dequeue_messages(ua->jcr);
          if (!ua->quit) {
             if (console_msg_pending && acl_access_ok(ua, Command_ACL, "messages", 8)) {
                if (ua->auto_display_messages) {
