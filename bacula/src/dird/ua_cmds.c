@@ -244,12 +244,10 @@ static int add_cmd(UAContext *ua, const char *cmd)
 
    while (pr.MaxVols > 0 && pr.NumVols >= pr.MaxVols) {
       ua->warning_msg(_("Pool already has maximum volumes=%d\n"), pr.MaxVols);
-      for (;;) {
-         if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
-            return 1;
-         }
-         pr.MaxVols = ua->pint32_val;
+      if (!get_pint(ua, _("Enter new maximum (zero for unlimited): "))) {
+         return 1;
       }
+      pr.MaxVols = ua->pint32_val;
    }
 
    /* Get media type */
@@ -277,27 +275,30 @@ static int add_cmd(UAContext *ua, const char *cmd)
       }
       break;
    }
-getVolName:
-   if (num == 0) {
-      if (!get_cmd(ua, _("Enter Volume name: "))) {
-         return 1;
+
+   for (;;) {
+      if (num == 0) {
+         if (!get_cmd(ua, _("Enter Volume name: "))) {
+            return 1;
+         }
+      } else {
+         if (!get_cmd(ua, _("Enter base volume name: "))) {
+            return 1;
+         }
       }
-   } else {
-      if (!get_cmd(ua, _("Enter base volume name: "))) {
-         return 1;
+      /* Don't allow | in Volume name because it is the volume separator character */
+      if (!is_volume_name_legal(ua, ua->cmd)) {
+         continue;
       }
-   }
-   /* Don't allow | in Volume name because it is the volume separator character */
-   if (!is_volume_name_legal(ua, ua->cmd)) {
-      goto getVolName;
-   }
-   if (strlen(ua->cmd) >= MAX_NAME_LENGTH-10) {
-      ua->warning_msg(_("Volume name too long.\n"));
-      goto getVolName;
-   }
-   if (strlen(ua->cmd) == 0) {
-      ua->warning_msg(_("Volume name must be at least one character long.\n"));
-      goto getVolName;
+      if (strlen(ua->cmd) >= MAX_NAME_LENGTH-10) {
+         ua->warning_msg(_("Volume name too long.\n"));
+         continue;
+      }
+      if (strlen(ua->cmd) == 0) {
+         ua->warning_msg(_("Volume name must be at least one character long.\n"));
+         continue;
+      }
+      break;
    }
 
    bstrncpy(name, ua->cmd, sizeof(name));

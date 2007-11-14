@@ -238,6 +238,8 @@ void InitWinAPIWrapper();
 #define STREAM_ENCRYPTED_FILE_GZIP_DATA   23   /* Encrypted, compressed data */
 #define STREAM_ENCRYPTED_WIN32_GZIP_DATA  24   /* Encrypted, compressed Win32 BackupRead data */
 #define STREAM_ENCRYPTED_MACOS_FORK_DATA  25   /* Encrypted, uncompressed Mac resource fork */
+#define STREAM_PLUGIN_NAME                26   /* Plugin "file" string */
+#define STREAM_PLUGIN_DATA                27   /* Plugin specific data */
 
 
 /*
@@ -245,7 +247,7 @@ void InitWinAPIWrapper();
  *  NOTE!!! These are saved in the Attributes record on the tape, so
  *          do not change them. If need be, add to them.
  *
- *  This is stored as 32 bits on tape, but only FT_MASK bits are
+ *  This is stored as 32 bits on the Volume, but only FT_MASK (16) bits are
  *    used for the file type. The upper bits are used to indicate
  *    additional optional fields in the attribute record.
  */
@@ -274,6 +276,7 @@ void InitWinAPIWrapper();
 #define FT_INVALIDFS 19               /* File system not allowed for */
 #define FT_INVALIDDT 20               /* Drive type not allowed for */
 #define FT_REPARSE   21               /* Win NTFS reparse point */
+#define FT_PLUGIN    22               /* Plugin generated filename */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */
