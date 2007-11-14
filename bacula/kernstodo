@@ -71,6 +71,8 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Plugins
+- Scripts
 - Duplicate Jobs
   Run, Fail, Skip, Higher, Promote, CancelLowerLevel
   Proximity
