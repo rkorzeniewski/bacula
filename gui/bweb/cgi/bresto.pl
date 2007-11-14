@@ -825,6 +825,25 @@ if ($action eq 'list_files') {
 	       @$files);
     print "]\n";
 
+} elsif ($action eq 'get_media') {
+
+    my $jobid = join(',', @jobid);
+    my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
+
+my $q="
+ SELECT DISTINCT VolumeName, InChanger
+   FROM File, 
+    ( -- Get all media from this job
+      SELECT MAX(FirstIndex), MIN(LastIndex), VolumeName, Inchanger
+        FROM JobMedia JOIN Media USING (MediaId)
+       WHERE JobId IN ($jobid)
+       GROUP BY VolumeName, InChanger
+    ) AS allmedia
+  WHERE File.FileId IN ($fileid)
+    AND File.FileIndex >= allmedia.FirstIndex 
+    AND File.FileIndex <= allmedia.LastIndex;
+";
+
 }
 
 
