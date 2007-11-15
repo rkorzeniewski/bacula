@@ -834,7 +834,8 @@ my $q="
  SELECT DISTINCT VolumeName, InChanger
    FROM File, 
     ( -- Get all media from this job
-      SELECT MAX(FirstIndex), MIN(LastIndex), VolumeName, Inchanger
+      SELECT MAX(FirstIndex) AS FirstIndex, MIN(LastIndex) AS LastIndex,
+             VolumeName, Inchanger
         FROM JobMedia JOIN Media USING (MediaId)
        WHERE JobId IN ($jobid)
        GROUP BY VolumeName, InChanger
@@ -843,8 +844,94 @@ my $q="
     AND File.FileIndex >= allmedia.FirstIndex 
     AND File.FileIndex <= allmedia.LastIndex;
 ";
+    my $lst = $bvfs->dbh_selectall_arrayref($q);
+    print "[";
+    print join(',', map { "[ '$_->[0]', $_->[1]]" } @$lst);
+    print "]\n";
 
+} elsif ($action eq 'list_storage') { # TODO: use .storage hier
+    my $q="SELECT Name FROM Storage";
+    my $lst = $bvfs->dbh_selectall_arrayref($q);
+    print "[";
+    print join(',', map { "[ '$_->[0]' ]" } @$lst);
+    print "]\n";
+
+} elsif ($action eq 'restore') {
+    my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
+    my @dirid = grep { /^\d+$/ } CGI::param('dirid');
+    my $inclause = join(',', @jobid);
+
+    my @union;
+
+    if ($fileid) {
+      push @union, "(SELECT JobId, FileIndex FROM File WHERE FileId IN ($fileid))";
+    }
+
+    foreach my $dirid (@dirid) {
+      push @union, "
+  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
+    FROM Path JOIN File USING (PathId)
+   WHERE Path.Path LIKE 
+        (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
+          WHERE PathId = $dirid
+        )
+     AND File.JobId IN ($inclause))";
+    }
+
+    my $u = join(" UNION ", @union);
+
+    $bvfs->dbh_do("CREATE TEMP TABLE btemp (JobId integer, FileIndex integer, FilenameId integer, PathId integer)");
+    $bvfs->dbh_do("INSERT INTO btemp $u");
+    # TODO: remove FilenameId et PathId
+    $bvfs->dbh_do("CREATE TABLE b2$$ (JobId integer, FileIndex integer, FilenameId integer, PathId integer)");
+    $bvfs->dbh_do("INSERT INTO b2$$ (
+SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
+  FROM btemp,
+       (SELECT max(JobId) as JobId, PathId, FilenameId
+          FROM btemp
+      GROUP BY PathId, FilenameId
+      ORDER BY JobId DESC) AS a
+  WHERE a.JobId = btemp.JobId
+    AND a.PathId= btemp.PathId
+    AND a.FilenameId = btemp.FilenameId
+)");
+
+    print "b2$$";
 }
 
 
+__END__ 
 
+CREATE VIEW files AS 
+ SELECT path || name,pathid,filenameid,fileid,jobid 
+   FROM File JOIN FileName USING (FilenameId) JOIN Path USING (PathId);
+
+
+
+CREATE temp TABLE bresto (JobId integer, FileIndex integer, FilenameId integer, PathId integer);
+INSERT INTO bresto 
+(SELECT JobId, FileIndex, FilenameId, PathId FROM File WHERE FileId IN (5716))
+UNION
+(SELECT File.JobId, File.FileIndex, FilenameId, PathId
+    FROM Path JOIN File USING (PathId)
+   WHERE Path.Path LIKE 
+        (SELECT Path || '%' FROM Path WHERE PathId = 1)
+     AND File.JobId IN (1));
+
+CREATE TABLE bresto2 (JobId integer, FileIndex integer, FilenameId integer, PathId integer);
+
+INSERT INTO bresto2 ( SELECT bresto.JobId, bresto.FileIndex, bresto.FilenameId, bresto.PathId
+  FROM bresto,
+       (SELECT max(JobId) as JobId, PathId, FilenameId
+          FROM bresto
+      GROUP BY PathId, FilenameId
+      ORDER BY JobId DESC) AS a
+  WHERE a.JobId = bresto.JobId and a.PathId=bresto.PathId and a.FilenameId = bresto.FilenameId);
+
+DROP TABLE bresto;
+
+# attention, je sais pas si on peut se fier au jobid pour selection la meilleur version...
+
+
+# dirid = 844
+# fileid = 5716

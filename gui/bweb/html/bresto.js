@@ -54,7 +54,7 @@ Ext.brestore.root_path='';       // user location
 
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
-
+Ext.brestore.dlglaunch;
 
 function get_node_path(node)
 {
@@ -605,7 +605,11 @@ function ext_init()
             cls: 'x-btn-icon',
 	    text: 'restore',
 	    handler: function() { 
-		var dialog = new Ext.LayoutDialog("div-resto-dlg", { 
+	        if (Ext.brestore.dlglaunch) {
+		   Ext.brestore.dlglaunch.show();
+                   return 0;
+		}
+		Ext.brestore.dlglaunch = new Ext.LayoutDialog("div-resto-dlg", {
 //                        modal:true,
                         width:600,
                         height:400,
@@ -629,6 +633,7 @@ function ext_init()
 //	                        alwaysShowTabs: true
 	                }
                 });
+		var dialog = Ext.brestore.dlglaunch;
                 dialog.addKeyListener(27, dialog.hide, dialog);
                 dialog.addButton('Submit', dialog.hide, dialog);
                 dialog.addButton('Close', dialog.hide, dialog);
@@ -636,6 +641,32 @@ function ext_init()
     var fs = new Ext.form.Form({
         labelAlign: 'right',
         labelWidth: 80
+    });
+
+    var storage_store = new Ext.data.Store({
+        proxy: new Ext.data.HttpProxy({
+            url: '/cgi-bin/bweb/bresto.pl',
+            method: 'GET',
+            params:{action:'list_storage'}
+        }),
+
+        reader: new Ext.data.ArrayReader({
+        }, Ext.data.Record.create([
+           {name: 'name' }
+        ]))
+    });
+
+    var resto_store = new Ext.data.Store({
+        proxy: new Ext.data.HttpProxy({
+            url: '/cgi-bin/bweb/bresto.pl',
+            method: 'GET',
+            params:{action:'list_resto'}
+        }),
+
+        reader: new Ext.data.ArrayReader({
+        }, Ext.data.Record.create([
+           {name: 'name' }
+        ]))
     });
 
     fs.fieldset(
@@ -659,7 +690,7 @@ function ext_init()
         new Ext.form.ComboBox({
             fieldLabel: 'job',
             hiddenName:'job',
-            store: client_store,
+            store: resto_store,
             displayField:'name',
             typeAhead: true,
             mode: 'local',
@@ -668,39 +699,40 @@ function ext_init()
             selectOnFocus:true,
             width:190
         })
-//	,
-//        new Ext.form.TextField({
-//            fieldLabel: 'Where',
-//            name: 'where',
-//            width:190
-//        }),
-//
-//        new Ext.form.ComboBox({
-//            fieldLabel: 'client',
-//            hiddenName:'client',
-//            store: client_store,
-//            displayField:'name',
-//            typeAhead: true,
-//            mode: 'local',
-//            triggerAction: 'all',
-//            emptyText:'Select a client...',
-//            selectOnFocus:true,
-//            width:190
-//        }),
-//        new Ext.form.ComboBox({
-//            fieldLabel: 'storage',
-//            hiddenName:'storage',
-//            store: client_store,
-//            displayField:'name',
-//            typeAhead: true,
-//            mode: 'local',
-//            triggerAction: 'all',
-//            emptyText:'Select a storage...',
-//            selectOnFocus:true,
-//            width:190
-//        })
-    );
+	,
+        new Ext.form.TextField({
+            fieldLabel: 'Where',
+            name: 'where',
+            width:190
+        }),
 
+        new Ext.form.ComboBox({
+            fieldLabel: 'client',
+            hiddenName:'client',
+            store: client_store,
+            displayField:'name',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'Select a client...',
+            selectOnFocus:true,
+            width:190
+        }),
+        new Ext.form.ComboBox({
+            fieldLabel: 'storage',
+            hiddenName:'storage',
+            store: storage_store,
+            displayField:'name',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'Select a storage...',
+            selectOnFocus:true,
+            width:190
+        })
+    );
+    storage_store.load({params:{action: 'list_storage'}});
+    resto_store.load({params:{action: 'list_resto'}});
     fs.render('div-resto-form');
 
 //      var f = new Ext.form.BasicForm('div-resto-form', {url: '/bweb/test', method: 'GET',
