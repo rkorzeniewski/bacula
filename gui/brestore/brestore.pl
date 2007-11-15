@@ -1983,7 +1983,7 @@ sub create_filelist
 SELECT Job.JobId, Job.VolsessionId, Job.VolsessionTime, JobMedia.StartFile, 
        JobMedia.EndFile, JobMedia.FirstIndex, JobMedia.LastIndex,
        JobMedia.StartBlock, JobMedia.EndBlock, JobMedia.VolIndex, 
-       Media.Volumename, Media.MediaType
+       Media.VolumeName, Media.MediaType
 FROM Job, JobMedia, Media
 WHERE Job.JobId = JobMedia.JobId
   AND JobMedia.MediaId = Media.MediaId
@@ -2149,7 +2149,7 @@ WHERE Job.JobId = JobMedia.JobId
 	# path, volsessiontime DESC (get the most recent file...)
 	# The array rows look like this :
 	# complete_path,is_dir,fileindex,
-	# ref->(jobid,VolsessionId,VolsessionTime,File,FirstIndex,
+	# ref->(jobid,VolsessionId,VolsessionTime,File,FirstIndex,
 	#       LastIndex,StartBlock-EndBlock,VolIndex,Volumename,MediaType)
 	@temp_list = sort {$a->[0] cmp $b->[0]
                         || $b->[3]->[2] <=> $a->[3]->[2]
@@ -2257,11 +2257,11 @@ WHERE Job.JobId = JobMedia.JobId
 		       or $prev_volfile ne $volfile)
 		{
 			# We have to create a new section in the bsr...
-			#Â We print the previous one ... 
+			# We print the previous one ... 
 			# (before that, save the current range ...)
 			if ($first_of_current_range != $prev_fileindex)
 			{
-			 	#Â we are in a range
+			 	# we are in a range
 				push @fileindex_ranges,
 				    ("$first_of_current_range-$prev_fileindex");
 			}
