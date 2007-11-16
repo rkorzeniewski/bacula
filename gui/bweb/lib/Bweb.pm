@@ -2540,7 +2540,11 @@ sub groups_edit
     my $grp = $self->get_form(qw/qclient_group db_clients/);
 
     unless ($grp->{qclient_group}) {
- 	return $self->error("Can't get group");
+	$self->display({ ID => $cur_id++,
+			 client_group => "''",
+			 %$grp,
+		     }, "groups_edit.tpl");
+	return;
     }
 
     my $query = "
@@ -2565,10 +2569,20 @@ sub groups_save
     $self->can_do('r_group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group jclients qnewgroup/);
+
+    if (!$arg->{qclient_group} and $arg->{qnewgroup}) {
+	my $query = "
+INSERT INTO client_group (client_group_name) 
+VALUES ($arg->{qnewgroup})
+";
+	$self->dbh_do($query);
+	$arg->{qclient_group} = $arg->{qnewgroup};
+    }
+
     unless ($arg->{qclient_group}) {
 	return $self->error("Can't get groups");
     }
-    
+
     $self->{dbh}->begin_work();
 
     my $query = "
@@ -2639,29 +2653,6 @@ DELETE FROM client_group
 
     $self->{dbh}->commit();
     
-    $self->display_groups();
-}
-
-
-sub groups_add
-{
-    my ($self) = @_;
-    $self->can_do('r_group_mgnt');
-
-    my $arg = $self->get_form(qw/qclient_group/) ;
-
-    unless ($arg->{qclient_group}) {
-	$self->display({}, "groups_add.tpl");
-	return 1;
-    }
-
-    my $query = "
-INSERT INTO client_group (client_group_name) 
-VALUES ($arg->{qclient_group})
-";
-
-    $self->dbh_do($query);
-
     $self->display_groups();
 }
 
@@ -2937,8 +2928,8 @@ sub users_add
      SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}, 
          use_acl=$arg->{use_acl}
    WHERE username = $u") 
-     and (! $self->dbh_is_mysql() )
-     ) or
+#     and (! $self->dbh_is_mysql() )
+     ) and
     $self->dbh_do("
   INSERT INTO bweb_user (username, passwd, use_acl, comment) 
         VALUES ($u, $arg->{qpasswd}, $arg->{use_acl}, $arg->{qcomment})");

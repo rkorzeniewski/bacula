@@ -1,4 +1,8 @@
           Release Notes for bweb 2.2
+2007/11/16
+ - Cleanup group usage
+ - Add some functions for security
+
 2007/11/08
  - Add Prev/Next on job log output
 

@@ -3,7 +3,7 @@
   <h1 class='newstitle'> Clients</h1>
  </div>
  <div class='bodydiv'>
-<form action='?' method='GET'>
+<form name="client" action='?' method='GET'>
      <table id='id<TMPL_VAR NAME=ID>'></table>
 	<div class="otherboxtitle">
           Actions &nbsp;

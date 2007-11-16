@@ -3,9 +3,9 @@
   <h1 class='newstitle'>Groups</h1>
  </div>
  <div class="bodydiv">
-   <form action='?' method='get'>
+   <form name='form1' action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='groups_add' title='Add' src='/bweb/add.png'>&nbsp;
+    <input type="image" name='action' onclick='document.form1.reset()' value='groups_edit' title='Add' src='/bweb/add.png'>&nbsp;
     <input type="image" name='action' value='groups_del' 
      onclick="return confirm('Do you want to delete this group ?');" 
      title='Supprimer' src='/bweb/remove.png'>&nbsp;
