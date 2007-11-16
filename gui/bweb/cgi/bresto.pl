@@ -61,8 +61,8 @@ sub up_dir
 {
     my ($self) = @_ ;
     my $query = "
-  SELECT PPathId 
-    FROM brestore_pathhierarchy 
+  SELECT PPathId
+    FROM brestore_pathhierarchy
    WHERE PathId IN ($self->{cwdid}) ";
 
     my $all = $self->dbh_selectall_arrayref($query);
@@ -84,14 +84,14 @@ sub get_path
 {
     my ($self, $pathid) = @_;
     $self->debug("Call with pathid = $pathid");
-    my $query = 
+    my $query =
 	"SELECT Path FROM Path WHERE PathId IN (?)";
 
     my $sth = $self->dbh_prepare($query);
     $sth->execute($pathid);
     my $result = $sth->fetchrow_arrayref();
     $sth->finish();
-    return $result->[0];    
+    return $result->[0];
 }
 
 sub set_curjobids
@@ -104,13 +104,13 @@ sub set_curjobids
 sub get_pathid
 {
     my ($self, $dir) = @_;
-    my $query = 
+    my $query =
 	"SELECT PathId FROM Path WHERE Path = ?";
     my $sth = $self->dbh_prepare($query);
     $sth->execute($dir);
     my $result = $sth->fetchall_arrayref();
     $sth->finish();
-    
+
     return join(',', map { $_->[0] } @$result);
 }
 
@@ -128,17 +128,17 @@ sub update_cache
     $self->{dbh}->begin_work();
 
     my $query = "
-  SELECT JobId from Job 
+  SELECT JobId from Job
    WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) AND JobStatus IN ('T', 'f', 'A') ORDER BY JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
 
     print STDERR "Cleaning path visibility\n";
-    
+
     my $nb = $self->dbh_do("
   DELETE FROM brestore_pathvisibility
-      WHERE NOT EXISTS 
+      WHERE NOT EXISTS
    (SELECT 1 FROM Job WHERE JobId=brestore_pathvisibility.JobId)");
 
     print STDERR "$nb rows affected\n";
@@ -146,7 +146,7 @@ sub update_cache
 
     $nb = $self->dbh_do("
   DELETE FROM brestore_knownjobid
-      WHERE NOT EXISTS 
+      WHERE NOT EXISTS
    (SELECT 1 FROM Job WHERE JobId=brestore_knownjobid.JobId)");
 
     print STDERR "$nb rows affected\n";
@@ -167,7 +167,7 @@ sub update_brestore_table
 	next if ($retour and ($retour->[0] == 1)); # We have allready done this one ...
 
 	print STDERR "Inserting path records for JobId $job\n";
-	$query = "INSERT INTO brestore_pathvisibility (PathId, JobId) 
+	$query = "INSERT INTO brestore_pathvisibility (PathId, JobId)
                    (SELECT DISTINCT PathId, JobId FROM File WHERE JobId = $job)";
 
 	$self->dbh_do($query);
@@ -178,7 +178,7 @@ sub update_brestore_table
 
 	print STDERR "Creating missing recursion paths for $job\n";
 
-	$query = "SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility 
+	$query = "SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility
 		  JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId)
 		  LEFT JOIN brestore_pathhierarchy ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId)
 		  WHERE brestore_pathvisibility.JobId = $job
@@ -189,7 +189,7 @@ sub update_brestore_table
 	$sth->execute();
 	my $pathid; my $path;
 	$sth->bind_columns(\$pathid,\$path);
-	
+
 	while ($sth->fetch)
 	{
 	    $self->build_path_hierarchy($path,$pathid);
@@ -275,7 +275,7 @@ sub build_path_hierarchy
 		my $ppath = parent_dir($path);
 		my $ppathid = $self->return_pathid_from_path($ppath);
 		$self->{cache_ppathid}->{$pathid}= $ppathid;
-		
+
 		$query = "INSERT INTO brestore_pathhierarchy (pathid, ppathid) VALUES (?,?)";
 		$sth2 = $self->{dbh}->prepare_cached($query);
 		$sth2->execute($pathid,$ppathid);
@@ -316,7 +316,7 @@ sub return_pathid_from_path
 	$sth = $self->{dbh}->prepare_cached($query);
 	$sth->execute($path);
 	$sth->finish();
-        
+
 	$query = "SELECT PathId FROM Path WHERE Path = ?";
 	#print STDERR $query,"\n" if $debug;
 	$sth = $self->{dbh}->prepare_cached($query);
@@ -336,7 +336,7 @@ sub ls_files
     my $inclause   = $self->{curjobids};
     my $inlistpath = $self->{cwdid};
 
-    my $query = 
+    my $query =
 "SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
  FROM
 	(SELECT Filename.Name, max(File.FileId) as id
@@ -349,11 +349,11 @@ sub ls_files
 	 ORDER BY Filename.Name) AS listfiles,
 File
 WHERE File.FileId = listfiles.id";
-	
+
     $self->debug($query);
     my $result = $self->dbh_selectall_arrayref($query);
     $self->debug($result);
-	
+
     return $result;
 }
 
@@ -376,11 +376,11 @@ sub ls_dirs
     my $result = $sth->fetchrow_arrayref();
     $sth->finish();
     my $dir_filenameid = $result->[0];
-     
+
     # Then we get all the dir entries from File ...
     $query = "
 SELECT PathId, Path, JobId, Lstat FROM (
-    
+
     SELECT Path1.PathId, Path1.Path, lower(Path1.Path),
            listfile1.JobId, listfile1.Lstat
     FROM (
@@ -429,11 +429,11 @@ SELECT PathId, Path, JobId, Lstat FROM (
         $prev_dir = $dirid;
     }
     $self->debug(\@return_list);
-    return \@return_list;    
+    return \@return_list;
 }
 
 # TODO : we want be able to restore files from a bad ended backup
-# we have JobStatus IN ('T', 'A', 'E') and we must 
+# we have JobStatus IN ('T', 'A', 'E') and we must
 
 # Data acces subs from here. Interaction with SGBD and caching
 
@@ -447,23 +447,21 @@ sub set_job_ids_for_date
     if (!$client or !$date) {
 	return ();
     }
-    	
+    my $filter = $self->get_client_filter();
     # The algorithm : for a client, we get all the backups for each
     # fileset, in reverse order Then, for each fileset, we store the 'good'
     # incrementals and differentials until we have found a full so it goes
     # like this : store all incrementals until we have found a differential
-    # or a full, then find the full #
-
+    # or a full, then find the full
     my $query = "SELECT JobId, FileSet, Level, JobStatus
-		FROM Job, Client, FileSet
-		WHERE Job.ClientId = Client.ClientId
-		AND FileSet.FileSetId = Job.FileSetId
-		AND EndTime <= $date
+		FROM Job JOIN FileSet USING (FileSetId)
+                         JOIN Client USING (ClientId) $filter
+		WHERE EndTime <= $date
 		AND Client.Name = '$client'
 		AND Type IN ('B')
 		AND JobStatus IN ('T')
 		ORDER BY FileSet, JobTDate DESC";
-    
+
     my @CurrentJobIds;
     my $result = $self->dbh_selectall_arrayref($query);
     my %progress;
@@ -472,11 +470,11 @@ sub set_job_ids_for_date
 	my $jobid = $refrow->[0];
 	my $fileset = $refrow->[1];
 	my $level = $refrow->[2];
-		
+
 	defined $progress{$fileset} or $progress{$fileset}='U'; # U for unknown
-		
+
 	next if $progress{$fileset} eq 'F'; # It's over for this fileset...
-		
+
 	if ($level eq 'I')
 	{
 	    next unless ($progress{$fileset} eq 'U' or $progress{$fileset} eq 'I');
@@ -509,19 +507,19 @@ sub dbh_selectrow_arrayref
 }
 
 # Returns list of versions of a file that could be restored
-# returns an array of 
+# returns an array of
 # (jobid,fileindex,mtime,size,inchanger,md5,volname,fileid)
 # there will be only one jobid in the array of jobids...
 sub get_all_file_versions
 {
     my ($self,$pathid,$fileid,$client,$see_all)=@_;
-    
+
     defined $see_all or $see_all=0;
-    
+
     my @versions;
     my $query;
-    $query = 
-"SELECT File.JobId, File.FileId, File.Lstat, 
+    $query =
+"SELECT File.JobId, File.FileId, File.Lstat,
         File.Md5, Media.VolumeName, Media.InChanger
  FROM File, Job, Client, JobMedia, Media
  WHERE File.FilenameId = $fileid
@@ -535,48 +533,46 @@ sub get_all_file_versions
    AND Client.Name = '$client'";
 
     $self->debug($query);
-	
     my $result = $self->dbh_selectall_arrayref($query);
-	
+
     foreach my $refrow (@$result)
     {
 	my ($jobid, $fid, $lstat, $md5, $volname, $inchanger) = @$refrow;
 	my @attribs = parse_lstat($lstat);
 	my $mtime = array_attrib('st_mtime',\@attribs);
 	my $size = array_attrib('st_size',\@attribs);
-		
+
 	my @list = ($pathid,$fileid,$jobid,
 		    $fid, $mtime, $size, $inchanger,
 		    $md5, $volname);
 	push @versions, (\@list);
     }
-	
+
     # We have the list of all versions of this file.
     # We'll sort it by mtime desc, size, md5, inchanger desc
     # the rest of the algorithm will be simpler
     # ('FILE:',filename,jobid,fileindex,mtime,size,inchanger,md5,volname)
-    @versions = sort { $b->[4] <=> $a->[4] 
-		    || $a->[5] <=> $b->[5] 
-		    || $a->[7] cmp $a->[7] 
+    @versions = sort { $b->[4] <=> $a->[4]
+		    || $a->[5] <=> $b->[5]
+		    || $a->[7] cmp $a->[7]
 		    || $b->[6] <=> $a->[6]} @versions;
 
-	
     my @good_versions;
     my %allready_seen_by_mtime;
     my %allready_seen_by_md5;
     # Now we should create a new array with only the interesting records
     foreach my $ref (@versions)
-    {	
+    {
 	if ($ref->[7])
 	{
 	    # The file has a md5. We compare his md5 to other known md5...
 	    # We take size into account. It may happen that 2 files
 	    # have the same md5sum and are different. size is a supplementary
 	    # criterion
-            
+
             # If we allready have a (better) version
-	    next if ( (not $see_all) 
-	              and $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]}); 
+	    next if ( (not $see_all)
+	              and $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]});
 
 	    # we never met this one before...
 	    $allready_seen_by_md5{$ref->[7] .'-'. $ref->[5]}=1;
@@ -584,18 +580,18 @@ sub get_all_file_versions
 	# Even if it has a md5, we should also work with mtimes
         # We allready have a (better) version
 	next if ( (not $see_all)
-	          and $allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5]}); 
+	          and $allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5]});
 	$allready_seen_by_mtime{$ref->[4] .'-'. $ref->[5] . '-' . $ref->[7]}=1;
-	
+
 	# We reached there. The file hasn't been seen.
 	push @good_versions,($ref);
     }
-	
+
     # To be nice with the user, we re-sort good_versions by
     # inchanger desc, mtime desc
-    @good_versions = sort { $b->[4] <=> $a->[4] 
+    @good_versions = sort { $b->[4] <=> $a->[4]
                          || $b->[2] <=> $a->[2]} @good_versions;
-	
+
     return \@good_versions;
 }
 {
@@ -610,16 +606,16 @@ sub get_all_file_versions
 	my ($attrib,$ref_attrib)=@_;
 	return $ref_attrib->[$attrib_name_id{$attrib}];
     }
-	
+
     sub file_attrib
     {   # $file = [filenameid,listfiles.id,listfiles.Name, File.LStat, File.JobId]
 
 	my ($file, $attrib)=@_;
-	
+
 	if (defined $attrib_name_id{$attrib}) {
 
 	    my @d = split(' ', $file->[3]) ; # TODO : cache this
-	    
+
 	    return from_base64($d[$attrib_name_id{$attrib}]);
 
 	} elsif ($attrib eq 'jobid') {
@@ -629,16 +625,16 @@ sub get_all_file_versions
         } elsif ($attrib eq 'name') {
 
 	    return $file->[2];
-	    
+
 	} else	{
 	    die "Attribute not known : $attrib.\n";
 	}
     }
-    
+
     sub lstat_attrib
     {
         my ($lstat,$attrib)=@_;
-        if ($lstat and defined $attrib_name_id{$attrib}) 
+        if ($lstat and defined $attrib_name_id{$attrib})
         {
 	    my @d = split(' ', $lstat) ; # TODO : cache this
 	    return from_base64($d[$attrib_name_id{$attrib}]);
@@ -665,7 +661,7 @@ sub get_all_file_versions
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 			  );
 	@base64_map = (0) x 128;
-	
+
 	for (my $i=0; $i<64; $i++) {
 	    $base64_map[ord($base64_digits[$i])] = $i;
 	}
@@ -681,19 +677,19 @@ sub get_all_file_versions
 	my $val = 0;
 	my $i = 0;
 	my $neg = 0;
-	
+
 	if (substr($where, 0, 1) eq '-') {
 	    $neg = 1;
 	    $where = substr($where, 1);
 	}
-	
+
 	while ($where ne '') {
 	    $val *= 64;
 	    my $d = substr($where, 0, 1);
 	    $val += $base64_map[ord(substr($where, 0, 1))];
 	    $where = substr($where, 1);
 	}
-	
+
 	return $val;
     }
 
@@ -708,6 +704,21 @@ sub get_all_file_versions
     }
 }
 
+sub get_jobids
+{
+  my ($self, @jobid) = @_;
+  my $filter = $self->get_client_filter();
+  if ($filter) {
+    my $jobids = $self->dbh_join(@jobid);
+    my $q="
+SELECT JobId 
+  FROM Job JOIN Client USING (ClientId) $filter 
+ WHERE Jobid IN ($jobids)";
+    my $res = $self->dbh_selectall_arrayref($q);
+    @jobid = map { $_->[0] } @$res;
+  }
+  return @jobid;
+}
 
 ################################################################
 
@@ -727,21 +738,12 @@ my $action = CGI::param('action') || '';
 my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid', 'qdate',
 			   'limit', 'offset', 'client');
 
-my @jobid = grep { /^\d+$/ } CGI::param('jobid');
-
-if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
-    @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});    
-}
-
-$bvfs->set_curjobids(@jobid);
-
-$bvfs->set_limits($args->{limit}, $args->{offset});
-
 print CGI::header('application/x-javascript');
 
 if ($action eq 'list_client') {
 
-  my $q = 'SELECT Name FROM Client';
+  my $filter = $bvfs->get_client_filter();
+  my $q = "SELECT Name FROM Client $filter";
   my $ret = $bvfs->dbh_selectall_arrayref($q);
 
   print "[";
@@ -751,15 +753,14 @@ if ($action eq 'list_client') {
 
 } elsif ($action eq 'list_job') {
 
+    my $filter = $bvfs->get_client_filter();
     my $query = "
  SELECT Job.EndTime, FileSet.FileSet, Job.Level, Job.JobStatus, Job.JobId
-  FROM Job,Client,FileSet
-  WHERE Job.ClientId=Client.ClientId
-  AND Client.Name = '$args->{client}'
-  AND Job.Type = 'B'
-  AND JobStatus IN ('f', 'T')
-  AND Job.FileSetId = FileSet.FileSetId
-  ORDER BY EndTime desc";
+  FROM Job JOIN FileSet USING (FileSetId) JOIN Client USING (ClientId) $filter
+ WHERE Client.Name = '$args->{client}'
+   AND Job.Type = 'B'
+   AND JobStatus IN ('f', 'T')
+ ORDER BY EndTime desc";
     my $result = $bvfs->dbh_selectall_arrayref($query);
 
     print "[";
@@ -769,6 +770,26 @@ if ($action eq 'list_client') {
       } @$result);
 
     print "]\n";
+    exit 0;
+} elsif ($action eq 'list_storage') { # TODO: use .storage hier
+
+    my $q="SELECT Name FROM Storage";
+    my $lst = $bvfs->dbh_selectall_arrayref($q);
+    print "[";
+    print join(',', map { "[ '$_->[0]' ]" } @$lst);
+    print "]\n";
+    exit 0;
+}
+
+my @jobid = $bvfs->get_jobids(grep { /^\d+$/ } CGI::param('jobid'));
+if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
+    @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
+}
+$bvfs->set_curjobids(@jobid);
+$bvfs->set_limits($args->{limit}, $args->{offset});
+
+if (!scalar(@jobid)) {
+    exit 0;
 }
 
 if (CGI::param('init')) {
@@ -791,8 +812,8 @@ $bvfs->ch_dir($pathid);
 if ($action eq 'list_files') {
     print "[";
     my $files = $bvfs->ls_files();
-#	[ 1, 2, 3, "Bill",  10, '2007-01-01 00:00:00'], 
-#   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId 
+#	[ 1, 2, 3, "Bill",  10, '2007-01-01 00:00:00'],
+#   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
 
     print join(',',
 	       map { "[$_->[1], $_->[0], $pathid, \"$_->[2]\", 10, \"2007-01-01 00:00:00\"]" }
@@ -805,7 +826,7 @@ if ($action eq 'list_files') {
     my $dirs = $bvfs->ls_dirs();
 	# return ($dirid,$dir_basename,$lstat,$jobid)
 
-    print join(',', 
+    print join(',',
 	       map { "{ 'id': '$_->[0]', 'text': '$_->[1]', 'cls':'folder'}" }
 	       @$dirs);
 
@@ -820,7 +841,7 @@ if ($action eq 'list_files') {
     #   0       1       2        3   4       5      6           7      8
     #($pathid,$fileid,$jobid, $fid, $mtime, $size, $inchanger, $md5, $volname);
     my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, $vafv);
-    print join(',', 
+    print join(',',
 	       map { "[ $_->[3], $_->[1], $_->[0], $_->[2], '$_->[8]', $_->[6], '$_->[7]', $_->[5], $_->[4] ]" }
 	       @$files);
     print "]\n";
@@ -830,9 +851,10 @@ if ($action eq 'list_files') {
     my $jobid = join(',', @jobid);
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
 
-my $q="
+    # TODO: use client filter
+    my $q="
  SELECT DISTINCT VolumeName, InChanger
-   FROM File, 
+   FROM File,
     ( -- Get all media from this job
       SELECT MAX(FirstIndex) AS FirstIndex, MIN(LastIndex) AS LastIndex,
              VolumeName, Inchanger
@@ -841,19 +863,12 @@ my $q="
        GROUP BY VolumeName, InChanger
     ) AS allmedia
   WHERE File.FileId IN ($fileid)
-    AND File.FileIndex >= allmedia.FirstIndex 
+    AND File.FileIndex >= allmedia.FirstIndex
     AND File.FileIndex <= allmedia.LastIndex;
 ";
     my $lst = $bvfs->dbh_selectall_arrayref($q);
     print "[";
     print join(',', map { "[ '$_->[0]', $_->[1]]" } @$lst);
-    print "]\n";
-
-} elsif ($action eq 'list_storage') { # TODO: use .storage hier
-    my $q="SELECT Name FROM Storage";
-    my $lst = $bvfs->dbh_selectall_arrayref($q);
-    print "[";
-    print join(',', map { "[ '$_->[0]' ]" } @$lst);
     print "]\n";
 
 } elsif ($action eq 'restore') {
@@ -867,19 +882,21 @@ my $q="
       push @union, "(SELECT JobId, FileIndex FROM File WHERE FileId IN ($fileid))";
     }
 
-    # using this is not good because the sql engine doesn't know 
+    # using this is not good because the sql engine doesn't know
     # what LIKE will use. It will be better to get Path% in perl
     # but it doesn't work with accents... :(
     foreach my $dirid (@dirid) {
       push @union, "
   (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
     FROM Path JOIN File USING (PathId)
-   WHERE Path.Path LIKE 
+   WHERE Path.Path LIKE
         (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
           WHERE PathId = $dirid
         )
      AND File.JobId IN ($inclause))";
     }
+
+    return unless scalar(@union);
 
     my $u = join(" UNION ", @union);
 
@@ -897,15 +914,14 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
     AND a.FilenameId = btemp.FilenameId
 )");
 
-    print "b2$$";
+    print "restore file=?b2$$ done\n";
 }
 
+__END__
 
-__END__ 
-
-CREATE VIEW files AS 
- SELECT path || name AS name,pathid,filenameid,fileid,jobid 
+CREATE VIEW files AS
+ SELECT path || name AS name,pathid,filenameid,fileid,jobid
    FROM File JOIN FileName USING (FilenameId) JOIN Path USING (PathId);
 
-SELECT 'drop table ' || tablename || ';' 
-  FROM pg_tables WHERE tablename ~ '^b[0-9]'
+SELECT 'drop table ' || tablename || ';'
+    FROM pg_tables WHERE tablename ~ '^b[0-9]';
