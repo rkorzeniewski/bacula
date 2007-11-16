@@ -293,7 +293,7 @@ BuildRequires: pkgconfig, pango-devel, atk-devel
 # so fix for broken rh
 %define broken_rh 0
 %if %{rhel5} || %{centos5} || %{sl5} || %{fc5} || %{fc6} || %{fc7}
-%define broken_rh 1"
+%define broken_rh 1
 %endif
 %if %{bat} && ! %{broken_rh}
 BuildRequires: qt-devel >= 4.2
