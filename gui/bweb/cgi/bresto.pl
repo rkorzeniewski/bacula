@@ -867,6 +867,9 @@ my $q="
       push @union, "(SELECT JobId, FileIndex FROM File WHERE FileId IN ($fileid))";
     }
 
+    # using this is not good because the sql engine doesn't know 
+    # what LIKE will use. It will be better to get Path% in perl
+    # but it doesn't work with accents... :(
     foreach my $dirid (@dirid) {
       push @union, "
   (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
@@ -880,11 +883,9 @@ my $q="
 
     my $u = join(" UNION ", @union);
 
-    $bvfs->dbh_do("CREATE TEMP TABLE btemp (JobId integer, FileIndex integer, FilenameId integer, PathId integer)");
-    $bvfs->dbh_do("INSERT INTO btemp $u");
+    $bvfs->dbh_do("CREATE TEMP TABLE btemp AS ($u)");
     # TODO: remove FilenameId et PathId
-    $bvfs->dbh_do("CREATE TABLE b2$$ (JobId integer, FileIndex integer, FilenameId integer, PathId integer)");
-    $bvfs->dbh_do("INSERT INTO b2$$ (
+    $bvfs->dbh_do("CREATE TABLE b2$$ AS (
 SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
   FROM btemp,
        (SELECT max(JobId) as JobId, PathId, FilenameId
@@ -903,35 +904,8 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
 __END__ 
 
 CREATE VIEW files AS 
- SELECT path || name,pathid,filenameid,fileid,jobid 
+ SELECT path || name AS name,pathid,filenameid,fileid,jobid 
    FROM File JOIN FileName USING (FilenameId) JOIN Path USING (PathId);
 
-
-
-CREATE temp TABLE bresto (JobId integer, FileIndex integer, FilenameId integer, PathId integer);
-INSERT INTO bresto 
-(SELECT JobId, FileIndex, FilenameId, PathId FROM File WHERE FileId IN (5716))
-UNION
-(SELECT File.JobId, File.FileIndex, FilenameId, PathId
-    FROM Path JOIN File USING (PathId)
-   WHERE Path.Path LIKE 
-        (SELECT Path || '%' FROM Path WHERE PathId = 1)
-     AND File.JobId IN (1));
-
-CREATE TABLE bresto2 (JobId integer, FileIndex integer, FilenameId integer, PathId integer);
-
-INSERT INTO bresto2 ( SELECT bresto.JobId, bresto.FileIndex, bresto.FilenameId, bresto.PathId
-  FROM bresto,
-       (SELECT max(JobId) as JobId, PathId, FilenameId
-          FROM bresto
-      GROUP BY PathId, FilenameId
-      ORDER BY JobId DESC) AS a
-  WHERE a.JobId = bresto.JobId and a.PathId=bresto.PathId and a.FilenameId = bresto.FilenameId);
-
-DROP TABLE bresto;
-
-# attention, je sais pas si on peut se fier au jobid pour selection la meilleur version...
-
-
-# dirid = 844
-# fileid = 5716
+SELECT 'drop table ' || tablename || ';' 
+  FROM pg_tables WHERE tablename ~ '^b[0-9]'
