@@ -317,9 +317,6 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'groups_save') {
     $bweb->groups_save();
 
-} elsif ($action eq 'groups_add') {
-    $bweb->groups_add();
-
 } elsif ($action eq 'groups_del') {
     $bweb->groups_del();
 
