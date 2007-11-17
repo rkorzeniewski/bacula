@@ -2748,8 +2748,9 @@ sub can_do
 {
     my ($self, $action) = @_;
     if ($self->cant_do($action)) {
-	$self->error($self->{error});
+        $self->error($self->{error});
         $self->display_end();
+        exit 0;
     }
     return 1;
 }
