@@ -6,7 +6,7 @@
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
     <button type="submit" class="bp" name='action' value='location_add' title='Add a location'> <img src='/bweb/add.png' alt=''>Add</button>
-    <button type="submit" class="bp" name='action' value='location_del' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Remove</button>
+    <button type="submit" class="bp" name='action' value='location_del' onclick='confirm("Do you want to remove this location ?")' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Remove</button>
     <button type="submit" class="bp" name='action' value='location_edit' title='Edit a location'> <img src='/bweb/edit.png' alt=''>Edit</button>
 
     <button type="submit" class="bp" name='action' value='media' title='Show content'> <img src='/bweb/zoom.png' alt=''>View content</button>
