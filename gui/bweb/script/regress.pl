@@ -122,8 +122,10 @@ ok($c =~ m!<select name='pool'>\s*<option value=''></option>\s*<option value='(.
 $agent->field('pool', $1);
 $agent->click_button(value => 'run_job_now');
 ok($agent->success(), "submit");
+sleep 2;
 ok($agent->follow_link(text_regex=>qr/here/i), "follow link");
-ok($agent->success(), "get job page");
+ok($agent->success(), "get job page"); $c=$agent->content;
+like($c, qr/Using Device/, "Check job log");
 
 ################################################################
 # client tests
@@ -135,13 +137,11 @@ ok($c =~ m!chkbox.value = '(.+?)';!, "get client name");
 $cli = $1;
 
 $agent->get("$url?action=client_status;client=$cli");
-ok($agent->success(), "submit");
-$c=$agent->content;
+ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/Terminated Jobs/, "check for client status");
 
 $agent->get("$url?action=job;client=$cli");
-ok($agent->success(), "submit");
-$c=$agent->content;
+ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/'$cli'\).selected = true;/, "list jobs for this client");
 
 ################################################################
@@ -156,12 +156,27 @@ ok($agent->success(), "submit");
 ok($agent->form_number(2), "Find form");
 $agent->field("location", $loc);
 ok($agent->field("cost", 20), "set field cost=20");
+ok($agent->field("enabled", "yes"), "set field enabled=yes");
 ok($agent->field("enabled", "archived"), "try set field enabled=archived");
 ok($agent->field("enabled", "no"), "try set field enabled=no");
-ok($agent->field("enabled", "yes"), "set field enabled=yes");
 $agent->click_button(value => 'location_add');
 ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/$loc/, "Check if location is ok");
+like($c, qr/inflag1.png/, "Check if enabled is ok");
+
+$agent->get("$url?location=$loc&action=location_edit");
+ok($agent->success(), "Try to edit location"); $c=$agent->content;
+like($c, qr/$loc/, "Check for location");
+ok($agent->form_number(2), "Find form");
+$agent->field("cost", 40);
+$agent->field("enabled", "no");
+$loc = "new$loc";
+$agent->field("newlocation", $loc);
+$agent->click_button(value => 'location_save');
+ok($agent->success(), "submit to edit location"); $c=$agent->content;
+like($c, qr/$loc/, "Check if location is ok");
+like($c, qr/inflag0.png/, "Check if enabled is 'no'");
+like($c, qr/40/, "Check for cost");
 
 ################################################################
 # Test media
@@ -242,8 +257,6 @@ unlike($c, qr/'other$grp'/, "Check if group was deleted");
 $agent->get("$url?location=$loc;action=location_del");
 ok($agent->success(), "submit"); $c=$agent->content;
 unlike($c, qr/$loc/, "Check if location was deleted");
-
-
 
 exit 0;
 
