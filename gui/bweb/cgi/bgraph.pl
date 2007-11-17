@@ -110,7 +110,7 @@ if ($arg->{jclient_groups}) {
     $groupq = " AND client_group_name IN ($arg->{jclient_groups}) ";
 }
 
-$bweb->can_do('r_view_job');
+$bweb->can_do('r_view_stat');
 my $filter = $bweb->get_client_filter();
 
 my $gtype = CGI::param('gtype') || 'bars';
