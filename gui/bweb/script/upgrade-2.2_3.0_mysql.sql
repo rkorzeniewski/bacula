@@ -2,26 +2,6 @@
 -- Upgrade from 2.2
 -- --------------------------------------------------
 
-CREATE FUNCTION concat (text, text) RETURNS text AS '
-DECLARE
-result text;
-BEGIN
-IF $1 is not null THEN
-result := $1 || $2;
-END IF;
-
-RETURN result;
-END;
-' LANGUAGE plpgsql;
-
-CREATE AGGREGATE group_concat(
-sfunc = concat,
-basetype = text,
-stype = text,
-initcond = ''
-);
-
-BEGIN;
 CREATE TABLE bweb_user
 (
 	userid       serial not null,
@@ -32,7 +12,7 @@ CREATE TABLE bweb_user
 	passwd       text default '',
 	primary key (userid)
 );
-CREATE UNIQUE INDEX bweb_user_idx on bweb_user (username);
+CREATE UNIQUE INDEX bweb_user_idx on bweb_user (username(255));
 
 CREATE TABLE bweb_role
 (
@@ -41,8 +21,7 @@ CREATE TABLE bweb_role
 --	comment      text default '',
 	primary key (roleid)
 );
-CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename);
-
+CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename(255));
 INSERT INTO bweb_role (rolename) VALUES ('r_user_mgnt');
 INSERT INTO bweb_role (rolename) VALUES ('r_group_mgnt');
 INSERT INTO bweb_role (rolename) VALUES ('r_configure');
@@ -73,4 +52,3 @@ CREATE TABLE  bweb_client_group_acl
 	userid                integer not null,
 	primary key (client_group_id, userid)
 );
-COMMIT;

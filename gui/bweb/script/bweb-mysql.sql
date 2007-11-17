@@ -19,16 +19,21 @@ CREATE TABLE bweb_role
 );
 CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename(255));
 INSERT INTO bweb_role (rolename) VALUES ('r_user_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_group_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_configure');
+
+INSERT INTO bweb_role (rolename) VALUES ('r_autochanger_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_location_mgnt');
 INSERT INTO bweb_role (rolename) VALUES ('r_delete_job');
 INSERT INTO bweb_role (rolename) VALUES ('r_prune');
 INSERT INTO bweb_role (rolename) VALUES ('r_purge');
-INSERT INTO bweb_role (rolename) VALUES ('r_group_mgnt');
-INSERT INTO bweb_role (rolename) VALUES ('r_location_mgnt');
-INSERT INTO bweb_role (rolename) VALUES ('r_cancel_job');
-INSERT INTO bweb_role (rolename) VALUES ('r_run_job');
-INSERT INTO bweb_role (rolename) VALUES ('r_configure');
-INSERT INTO bweb_role (rolename) VALUES ('r_client_status');
+
 INSERT INTO bweb_role (rolename) VALUES ('r_view_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_view_stat');
+
+INSERT INTO bweb_role (rolename) VALUES ('r_run_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_cancel_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_client_status');
 
 CREATE TABLE  bweb_role_member
 (
