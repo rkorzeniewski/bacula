@@ -63,7 +63,7 @@ GetOptions ("login=s"  => \$login,
 	    "verbose"  => \$verbose,
 	    );
 
-die "Usage: $0 --url http://.../cgi-bin/bweb/bweb.pl [-u user -p pass]"
+die "Usage: $0 --url http://.../cgi-bin/bweb/bweb.pl [-l user -p pass]"
     unless ($url);
 
 print "Making tests on $url\n";
@@ -119,7 +119,7 @@ ok($agent->field('storage', $1), "set field storage=$1");
 ok($c =~ m!<select name='fileset'>\s*<option value='(.+?)'!, "filesets");
 ok($agent->field('fileset', $1), "set field fileset=1");
 ok($c =~ m!<select name='pool'>\s*<option value=''></option>\s*<option value='(.+?)'!, "pools");
-ok($agent->field('pool', $1), "set field pool=$1");
+$agent->field('pool', $1);
 $agent->click_button(value => 'run_job_now');
 ok($agent->success(), "submit");
 ok($agent->follow_link(text_regex=>qr/here/i), "follow link");
@@ -154,7 +154,7 @@ ok($agent->form_number(2), "Find form");
 $agent->click_button(value => 'location_add');
 ok($agent->success(), "submit");
 ok($agent->form_number(2), "Find form");
-ok($agent->field("location", $loc), "set field location=$loc");
+$agent->field("location", $loc);
 ok($agent->field("cost", 20), "set field cost=20");
 ok($agent->field("enabled", "archived"), "try set field enabled=archived");
 ok($agent->field("enabled", "no"), "try set field enabled=no");
@@ -182,35 +182,36 @@ like($c, qr/$vol/, "Check if volume is ok");
 
 $agent->get("$url?action=client;notingroup=yes");
 ok($agent->success(), "submit"); $c=$agent->content;
-like($c, qr/$cli/, "check client=$cli");
+like($c, qr/$cli/, "check client=$cli is groupless");
 
+# create a group
 my $grp = "test$$";
 ok($agent->follow_link(text_regex=>qr/Groups/), "Go to Groups page");
 ok($agent->success(), "submit"); $c=$agent->content;
 unlike($c, qr/error/i, "Check for group installation");
 ok($agent->form_number(2), "Find form");
-$agent->click_button(value => 'groups_add');
-ok($agent->success(), "submit");
+$agent->click_button(value => 'groups_edit');
+ok($agent->success(), "submit action=groups_edit");
 ok($agent->form_number(2), "Find form to create a group");
-ok($agent->field("client_group", $grp), "set field client_group=$grp");
-$agent->click_button(value => 'groups_add');
-ok($agent->success(), "submit");
+$agent->field("newgroup", $grp);
+$agent->click_button(value => 'groups_save');
+ok($agent->success(), "submit action=groups_save");
 $c=$agent->content; 
-like($c, qr/$grp/, "Check if group is present");
+like($c, qr/$grp/, "Check if group have been created");
 
-# we can select javascript radio
+# rename group (client is loss because it was set by javascript)
 $agent->get("$url?client_group=$grp;action=groups_edit");
-ok($agent->success(), "submit"); $c=$agent->content;
-like($c, qr/$grp/, "Check if group is present");
+ok($agent->success(), "submit action=groups_edit"); $c=$agent->content;
+like($c, qr/$grp/, "Check if group is present to rename it");
 ok($agent->form_number(2), "Find form");
 $grp = "newtest$$";
-ok($agent->field("newgroup", $grp), "set field newgroup=$grp");
-like($c, qr/$cli/, "check client=$cli");
-ok($agent->field("client", $cli), "set field client=$cli");
+$agent->field("newgroup", $grp);
+$agent->field("client", $cli);
 $agent->click_button(value => 'groups_save');
 ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/'$grp'/, "Check if newgroup is present");
 
+# check if group is ok
 $agent->get("$url?client_group=$grp;action=client");
 ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/'$cli'/, "Check if client is present in newgrp");
@@ -220,7 +221,7 @@ ok($agent->success(), "check if client=$cli is already 'not in group'");
 $c=$agent->content;
 unlike($c, qr/$cli/, "check client=$cli");
 
-$agent->get("$url?client_group=other$grp;action=groups_add");
+$agent->get("$url?client_group=other$grp;action=groups_edit");
 ok($agent->success(), "create an empty other$grp"); $c=$agent->content;
 like($c, qr/'other$grp'/, "check if other$grp was created");
 
