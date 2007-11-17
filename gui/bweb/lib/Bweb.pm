@@ -2043,7 +2043,7 @@ sub get_param
 sub display_job
 {
     my ($self, %arg) = @_ ;
-    $self->can_do('r_view_job');
+    return if $self->cant_do('r_view_job');
 
     $arg{order} = ' Job.JobId DESC ';
 
@@ -2715,33 +2715,41 @@ sub get_roles
     return 1;
 }
 
-# TODO: avoir un mode qui coupe le programme avec une page d'erreur
-# we can also get all security and fill {security} hash
-sub can_do
+sub cant_do
 {
     my ($self, $action) = @_;
     # is security enabled in configuration ?
     if (not $self->{info}->{enable_security}) {
-        return 1;
+        return 0
     }
     # admin is a special user that can do everything
     if ($self->{loginname} eq 'admin') {
-        return 1;
+        return 0;
     }
     # must be logged
     if (!$self->{loginname}) {
-        $self->error("Can't do $action, your are not logged. " .
-                     "Check security with your administrator");
-        $self->display_end();
-        exit (0);
+	$self->{error} = "Can't do $action, your are not logged. " .
+	    "Check security with your administrator";
+        return 1;
     }
     $self->get_roles();
     if (!$self->{security}->{$action}) {
-        $self->error("$self->{loginname} sorry, but this action ($action) " .
-		     "is not permited. " .
-                     "Check security with your administrator");
+        $self->{error} =
+	    "$self->{loginname} sorry, but this action ($action) " .
+	    "is not permited. " .
+	    "Check security with your administrator";
+        return 1;
+    }
+    return 0;
+}
+
+# make like an assert (program die)
+sub can_do
+{
+    my ($self, $action) = @_;
+    if ($self->cant_do($action)) {
+	$self->error($self->{error});
         $self->display_end();
-        exit (0);
     }
     return 1;
 }
@@ -3177,7 +3185,7 @@ INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
 sub display_client_stats
 {
     my ($self, %arg) = @_ ;
-    $self->can_do('r_view_stats');
+    $self->can_do('r_view_stat');
 
     my $client = $self->dbh_quote($arg{clientname});
     # get security filter
@@ -3341,7 +3349,7 @@ GROUP BY VolStatus
 sub display_running_job
 {
     my ($self) = @_;
-    $self->can_do('r_view_running_job');
+    return if $self->cant_do('r_view_running_job');
 
     my $arg = $self->get_form('client', 'jobid');
 
@@ -3377,7 +3385,7 @@ WHERE Job.JobId = $arg->{jobid}
 sub display_running_jobs
 {
     my ($self, $display_action) = @_;
-    $self->can_do('r_view_running_job');
+    return if $self->cant_do('r_view_running_job');
 
     # get security filter
     my $filter = $self->get_client_filter();
