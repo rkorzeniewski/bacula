@@ -1669,9 +1669,29 @@ DB_VER=`mysql 2>/dev/null bacula -e 'select * from Version;'|tail -n 1`
 
 %if %{sqlite}
 %pre sqlite
-# test for bacula database older than version 9
-if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite* ];then
-        DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite* 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
+# are we upgrading from sqlite to sqlite3?
+if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
+        echo "This version of bacula-sqlite involves an upgrade to sqlite3."
+	echo "Your catalog database file is not compatible with sqlite3, thus"
+	echo "you will need to dump the data, delete the old file, and re-run"
+	echo "this rpm upgrade."
+	echo ""
+	echo "Backing up your current database..."
+        echo ".dump" | %{sqlite_bindir}/sqlite %{working_dir}/bacula.db > %{working_dir}/bacula_backup.sql
+	mv %{working_dir}/bacula.db %{working_dir}/bacula.db.old
+	echo "Your catalog data has been saved in %{working_dir}/bacula_backup.sql and your"
+	echo "catalog file has been renamed %{working_dir}/bacula.db.old."
+	echo ""
+	echo "Please re-run this rpm package upgrade."
+	echo "After the upgrade is complete, restore your catalog"
+	echo "with the following commands:"
+	echo "%{script_dir}/drop_sqlite3_tables"
+	echo "%{sqlite_bindir}/sqlite3 $* bacula.db < %{working_dir}/bacula_backup.sql"
+	exit 1
+fi
+# test for bacula database older than version 9 and sqlite3
+if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite3 ];then
+        DB_VER=`echo "select * from Version;" | %{sqlite_bindir}/sqlite3 2>/dev/null %{working_dir}/bacula.db | tail -n 1`
 %endif
 
 %if %{postgresql}
