@@ -55,6 +55,7 @@ INSERT INTO bweb_role (rolename) VALUES ('r_prune');
 INSERT INTO bweb_role (rolename) VALUES ('r_purge');
 
 INSERT INTO bweb_role (rolename) VALUES ('r_view_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_view_media');
 INSERT INTO bweb_role (rolename) VALUES ('r_view_stat');
 
 INSERT INTO bweb_role (rolename) VALUES ('r_run_job');
