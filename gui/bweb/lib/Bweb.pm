@@ -1228,9 +1228,9 @@ sub from_human_enabled
 {
     my $val = shift || 0;
 
-    if ($val == 1 or $val eq "yes") {
+    if ($val eq '1' or $val eq "yes") {
 	return 1;
-    } elsif ($val == 2 or $val eq "archived") {
+    } elsif ($val eq '2' or $val eq "archived") {
 	return 2;
     } else {
 	return  0;
@@ -1453,6 +1453,7 @@ sub get_form
 		 maxvolfiles => 0,
 		 filenameid => 0,
 		 pathid => 0,
+		 nb => 0,
 		 );
 
     my %opt_ss =(		# string with space
@@ -1690,7 +1691,7 @@ SELECT Device.Name AS name
 sub display_graph
 {
     my ($self) = @_;
-
+    $self->can_do('r_view_stat');
     my $fields = $self->get_form(qw/age level status clients filesets 
                                     graph gtype type filter db_clients
 				    limit db_filesets width height
@@ -1740,7 +1741,7 @@ WHERE Media.VolumeName IN ($media->{jmedias})
 sub move_media
 {
     my ($self, $in) = @_ ;
-
+    $self->can_do('r_media_mgnt');
     my $media = $self->get_selected_media_location();
 
     unless ($media) {
@@ -1762,6 +1763,7 @@ sub move_media
 sub help_extern
 {
     my ($self) = @_ ;
+    $self->can_do('r_media_mgnt');
 
     my $elt = $self->get_form(qw/db_pools db_mediatypes db_locations/) ;
     $self->debug($elt);
@@ -1771,6 +1773,7 @@ sub help_extern
 sub help_extern_compute
 {
     my ($self) = @_;
+    $self->can_do('r_media_mgnt');
 
     my $number = CGI::param('limit') || '' ;
     unless ($number =~ /^(\d+)$/) {
@@ -1812,6 +1815,7 @@ LIMIT $number
 sub help_intern
 {
     my ($self) = @_ ;
+    $self->can_do('r_media_mgnt');
 
     my $param = $self->get_form(qw/db_locations db_pools db_mediatypes/) ;
     $self->display($param, "help_intern.tpl");
@@ -1820,6 +1824,7 @@ sub help_intern
 sub help_intern_compute
 {
     my ($self) = @_;
+    $self->can_do('r_media_mgnt');
 
     my $number = CGI::param('limit') || '' ;
     unless ($number =~ /^(\d+)$/) {
@@ -2218,6 +2223,7 @@ FROM client_group $filter LEFT JOIN (
 sub display_media
 {
     my ($self, %arg) = @_ ;
+    $self->can_do('r_view_media');
 
     my ($limit, $label) = $self->get_limit(%arg);    
     my ($where, %elt) = $self->get_param('pools',
@@ -2659,8 +2665,13 @@ DELETE FROM client_group
 sub display_groups
 {
     my ($self) = @_;
+    my $arg;
 
-    my $arg = $self->get_form(qw/db_client_groups/) ;
+    if ($self->cant_do('r_group_mgnt')) {
+	$arg = $self->get_form(qw/db_client_groups filter/) ;
+    } else {
+	$arg = $self->get_form(qw/db_client_groups/) ;
+    }
 
     if ($self->{dbh}->errstr) {
 	return $self->error("Can't use groups with bweb, read INSTALL to enable them");
@@ -2686,7 +2697,9 @@ sub get_roles
         return 1;
     }
     if (!$self->{loginname}) {
-	return 0;
+        $self->error("Can't get your login name");
+        $self->display_end();
+	exit 0;
     }
     # already fill
     if (defined $self->{security}) {
@@ -2704,8 +2717,10 @@ sub get_roles
 ";
     my $rows = $self->dbh_selectall_arrayref($query);
     # do cache with this role   
-    if (!$rows) {
-        return 0;
+    if (!$rows or !scalar(@$rows)) {
+        $self->error("Can't get $self->{loginname}'s roles");
+        $self->display_end();
+        exit 0;
     }
     foreach my $r (@$rows) {
 	$self->{security}->{$r->[1]}=1;
@@ -2732,7 +2747,9 @@ sub cant_do
 	    "Check security with your administrator";
         return 1;
     }
-    $self->get_roles();
+    if (!$self->get_roles()) {
+	return 0;
+    }
     if (!$self->{security}->{$action}) {
         $self->{error} =
 	    "$self->{loginname} sorry, but this action ($action) " .
@@ -2768,7 +2785,7 @@ sub use_filter
     if ($self->get_roles()) {
 	return $self->{security}->{use_acl};
     } else {
-	return 0;
+	return 1;
     }
 }
 
@@ -3258,6 +3275,8 @@ GROUP BY client_group.client_group_name
 sub display_pool
 {
     my ($self, $poolname) = @_ ;
+    $self->can_do('r_view_media');
+
     my $whereA = '';
     my $whereW = '';
 
@@ -3835,6 +3854,36 @@ SELECT count(1) AS nbline, JobId AS jobid,
 		 }, 'display_log.tpl');
 }
 
+sub add_media
+{
+    my ($self) = @_ ;
+    $self->can_do('r_media_mgnt');
+    my $arg = $self->get_form('storage', 'pool', 'nb', 'media', 'offset');
+    my $b = $self->get_bconsole();
+
+    if (!$arg->{storage} || !$arg->{pool} || not defined $arg->{nb} || !$arg->{media} || !$arg->{offset}) {
+	CGI::param(offset => 0);
+	$arg = $self->get_form('db_pools');
+	$arg->{storage} = [ map { { name => $_ } }$b->list_storage()];
+	$self->display($arg, 'add_media.tpl');
+	return 1;
+    }
+
+    my $cmd;
+    if ($arg->{nb} > 0) {
+	$cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n$arg->{nb}\n$arg->{media}\n$arg->{offset}\n";
+    } else {
+	$cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n0\n$arg->{media}\n";
+    }
+    $b->connect();
+    $b->send($cmd);
+    $b->expect_it('*');
+
+    CGI::param('media', '');
+    CGI::param('re_media', $arg->{media});
+    $self->display_media();
+}
+
 sub label_barcodes
 {
     my ($self) = @_ ;
@@ -3971,7 +4020,7 @@ sub fileset_view
 sub director_show_sched
 {
     my ($self) = @_ ;
-
+    $self->can_do('r_view_job');
     my $arg = $self->get_form('days');
 
     my $b = $self->get_bconsole();
