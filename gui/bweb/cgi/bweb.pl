@@ -129,6 +129,8 @@ if ($action eq 'begin') {		# main display
     $bweb->location_del();
 
 } elsif ($action eq 'media') {
+    $bweb->can_do('r_view_media');
+
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/db_locations db_pools expired
 				    qlocations qpools volstatus qre_media
@@ -162,6 +164,8 @@ if ($action eq 'begin') {		# main display
 
 	$a->display_content();
     }
+} elsif ($action eq 'add_media') {
+    $bweb->add_media();
 
 } elsif ($action eq 'eject_media') {
     $bweb->eject_media();
