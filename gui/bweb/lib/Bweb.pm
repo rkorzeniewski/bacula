@@ -2639,26 +2639,25 @@ sub groups_del
 
     $self->{dbh}->begin_work();
 
-    my $query = "
+    $self->dbh_do("
 DELETE FROM client_group_member 
       WHERE client_group_id IN 
            (SELECT client_group_id 
               FROM client_group 
-             WHERE client_group_name = $arg->{qclient_group});
+             WHERE client_group_name = $arg->{qclient_group})");
 
+    $self->dbh_do("
 DELETE FROM bweb_client_group_acl
       WHERE client_group_id IN
            (SELECT client_group_id 
               FROM client_group 
-             WHERE client_group_name = $arg->{qclient_group});
+             WHERE client_group_name = $arg->{qclient_group})");
 
+    $self->dbh_do("
 DELETE FROM client_group
-      WHERE client_group_name = $arg->{qclient_group};
-";
-    $self->dbh_do($query);
+      WHERE client_group_name = $arg->{qclient_group}");
 
     $self->{dbh}->commit();
-    
     $self->display_groups();
 }
 
