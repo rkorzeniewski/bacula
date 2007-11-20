@@ -63,13 +63,13 @@ export dstat
 export bstat
 export rstat
 
-grep 'dir: BeforeJob: run command "/bin/echo RunBeforeJob"' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1 
+grep 'BeforeJob: run command "/bin/echo RunBeforeJob"' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1 
 a=$?
-grep 'fd: ClientRunBeforeJob: ClientRunBeforeJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'ClientRunBeforeJob: ClientRunBeforeJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 b=$?
-grep 'fd: ClientAfterJob: run command "/bin/echo ClientRunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'ClientAfterJob: run command "/bin/echo ClientRunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 c=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
+grep 'AfterJob: run command "/bin/echo RunAfterJob' ${cwd}/tmp/RUN_ALL_OK.log >/dev/null 2>&1
 d=$?
 if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 ]
 then
@@ -79,9 +79,9 @@ else
    rstat=1
 fi
 
-grep 'dir: BeforeJob: run command "/bin/false RUN_DIR_FAILED"' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+grep 'BeforeJob: run command "/bin/false RUN_DIR_FAILED"' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
 a=$?
-grep 'dir: AfterJob: RunAfterFailedJob' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
+grep 'AfterJob: RunAfterFailedJob' ${cwd}/tmp/RUN_DIR_FAILED.log >/dev/null 2>&1
 b=$?
 if [ $a = 0 -a $b = 0 ]
 then
@@ -91,11 +91,11 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 a=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 b=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
 #grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 test -f ${cwd}/tmp/RUN_FD_FAILED
@@ -110,13 +110,13 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 a=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 b=$?
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 c=$?
-grep 'dir: AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
+grep 'AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 d=$?
 grep  '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED2.log >/dev/null 2>&1
 e=$?
@@ -128,7 +128,7 @@ else
    rstat=1
 fi
 
-grep 'fd: ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
+grep 'ClientBeforeJob: run command "/bin/false RUN_FD_WARNING"' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
 a=$?
 grep 'RunAfterFailedJob' ${cwd}/tmp/RUN_FD_WARNING.log >/dev/null 2>&1
 b=$?
