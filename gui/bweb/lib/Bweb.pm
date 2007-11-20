@@ -2484,7 +2484,7 @@ sub location_add
     }
 
     my $enabled = CGI::param('enabled') || '';
-    $enabled = $enabled?1:0;
+    $enabled = from_human_enabled($enabled);
 
     my $query = "
 INSERT INTO Location (Location, Cost, Enabled) 
@@ -2600,7 +2600,8 @@ DELETE FROM client_group_member
 ";
     $self->dbh_do($query);
 
-    $query = "
+    if ($arg->{jclients}) {
+	$query = "
     INSERT INTO client_group_member (clientid, client_group_id) 
        (SELECT  Clientid, 
                 (SELECT client_group_id 
@@ -2609,8 +2610,8 @@ DELETE FROM client_group_member
           FROM Client WHERE Name IN ($arg->{jclients})
        )
 ";
-    $self->dbh_do($query);
-
+	$self->dbh_do($query);
+    }
     if ($arg->{qclient_group} ne $arg->{qnewgroup}) {
 	$query = "
 UPDATE client_group 
@@ -3166,18 +3167,17 @@ sub location_change
     $comm = $self->dbh_quote("$user: $comm");
 
     my $arg = $self->get_form('enabled');
-    my $en = human_enabled($arg->{enabled});
+    my $en = from_human_enabled($arg->{enabled});
     my $b = $self->get_bconsole();
 
     my $query;
     foreach my $vol (keys %$media) {
 	$query = "
-INSERT LocationLog (Date, Comment, MediaId, LocationId, NewVolStatus)
- VALUES(
-       NOW(), $comm, (SELECT MediaId FROM Media WHERE VolumeName = '$vol'),
-       (SELECT LocationId FROM Location WHERE Location = '$media->{$vol}->{location}'),
-       (SELECT VolStatus FROM Media WHERE VolumeName = '$vol')
-      )
+INSERT INTO LocationLog (Date,Comment,MediaId,LocationId,NewEnabled,NewVolStatus)
+ SELECT NOW(), $comm, Media.MediaId, Location.LocationId, $en, VolStatus 
+   FROM Media, Location
+  WHERE Media.VolumeName = '$vol'
+    AND Location.Location = '$media->{$vol}->{location}'
 ";
 	$self->dbh_do($query);
 	$self->debug($query);

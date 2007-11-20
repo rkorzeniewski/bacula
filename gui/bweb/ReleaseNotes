@@ -1,4 +1,7 @@
           Release Notes for bweb 2.2
+2007/11/20
+ - Fix a bug in Location log feature.
+
 2007/11/16
  - Cleanup group usage
  - Add some functions for security
