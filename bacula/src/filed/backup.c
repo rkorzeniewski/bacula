@@ -279,6 +279,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       break;
    case FT_SPEC:
       Dmsg1(130, "FT_SPEC saving: %s\n", ff_pkt->fname);
+      if (S_ISSOCK(ff_pkt->statp.st_mode)) {
+        Jmsg(jcr, M_SKIPPED, 1, _("     Socket file skipped: %s\n"), ff_pkt->fname);
+        return 1;
+      }
       break;
    case FT_RAW:
       Dmsg1(130, "FT_RAW saving: %s\n", ff_pkt->fname);
