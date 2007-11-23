@@ -3,12 +3,14 @@
   <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>Next Jobs </TMPL_IF></h1>
  </div>
  <div class='bodydiv'>
-    <form action='<TMPL_VAR cginame>?' method='GET'>
+    <form name='form1' action='<TMPL_VAR cginame>?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
      <button type="submit" class="bp" name='action' title='Run now' value='run_job_mod'>
        <img src='/bweb/R.png' alt=''>  Run now </button>
       <button type="submit" class="bp" name='action' title='Disable' value='disable_job'>
        <img src='/bweb/inflag0.png' alt=''> Disable </button>
+     <input type='hidden' name='pool' value=''>
+     <input type='hidden' name='level' value=''>
     </form>
  </div>
 
@@ -30,6 +32,10 @@ chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
 chkbox.name = 'job';
 chkbox.value = '<TMPL_VAR name>';
+chkbox.onclick = function() { 
+ document.form1.level.value = '<TMPL_VAR level>';
+ document.form1.pool.value = '<TMPL_VAR pool>';
+} ;
 
 data.push( new Array(
 "<TMPL_VAR date>",    
