@@ -11,6 +11,7 @@
        <img src='/bweb/inflag0.png' alt=''> Disable </button>
      <input type='hidden' name='pool' value=''>
      <input type='hidden' name='level' value=''>
+     <input type='hidden' name='media' value=''>
     </form>
  </div>
 
@@ -35,6 +36,7 @@ chkbox.value = '<TMPL_VAR name>';
 chkbox.onclick = function() { 
  document.form1.level.value = '<TMPL_VAR level>';
  document.form1.pool.value = '<TMPL_VAR pool>';
+ document.form1.media.value = '<TMPL_VAR volume>';
 } ;
 
 data.push( new Array(

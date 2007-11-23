@@ -3870,6 +3870,7 @@ sub add_media
 
     my $cmd;
     if ($arg->{nb} > 0) {
+	$arg->{offset} = $arg->{offset}?$arg->{offset}:1; 
 	$cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n$arg->{nb}\n$arg->{media}\n$arg->{offset}\n";
     } else {
 	$cmd = "add pool=\"$arg->{pool}\" storage=\"$arg->{storage}\"\n0\n$arg->{media}\n";
@@ -4113,7 +4114,20 @@ sub run_job_mod
     my $info = $b->send_cmd("show job=\"$job\"");
     my $attr = $self->run_parse_job($info);
 
-    my $arg = $self->get_form('pool', 'level', 'client', 'fileset', 'storage');
+    my $arg = $self->get_form(qw/pool level client fileset storage media/);
+    
+    if (!$arg->{pool} and $arg->{media}) {
+	my $r = $self->dbh_selectrow_hashref("
+SELECT Pool.Name AS name
+  FROM Media JOIN Pool USING (PoolId)
+ WHERE Media.VolumeName = '$arg->{media}'
+   AND Pool.Name != 'Scratch'
+");
+	if ($r) {
+	    $arg->{pool} = $r->{name};
+	}
+    }
+
     my %job_opt = (%$attr, %$arg);
     
     my $jobs   = [ map {{ name => $_ }} $b->list_job() ];
