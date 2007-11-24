@@ -51,12 +51,14 @@ sub get_root
     return $self->get_pathid('');
 }
 
+# change the current directory
 sub ch_dir
 {
     my ($self, $pathid) = @_;
     $self->{cwdid} = $pathid;
 }
 
+# do a cd ..
 sub up_dir
 {
     my ($self) = @_ ;
@@ -74,19 +76,19 @@ sub up_dir
     }
 }
 
+# return the current PWD
 sub pwd
 {
     my ($self) = @_;
     return $self->get_path($self->{cwdid});
 }
 
+# get the Path from a PathId
 sub get_path
 {
     my ($self, $pathid) = @_;
     $self->debug("Call with pathid = $pathid");
-    my $query =
-	"SELECT Path FROM Path WHERE PathId IN (?)";
-
+    my $query =	"SELECT Path FROM Path WHERE PathId = ?";
     my $sth = $self->dbh_prepare($query);
     $sth->execute($pathid);
     my $result = $sth->fetchrow_arrayref();
@@ -94,6 +96,7 @@ sub get_path
     return $result->[0];
 }
 
+# we are working with these jobids
 sub set_curjobids
 {
     my ($self, @jobids) = @_;
@@ -101,6 +104,7 @@ sub set_curjobids
 #    $self->update_brestore_table(@jobids);
 }
 
+# get the PathId from a Path
 sub get_pathid
 {
     my ($self, $dir) = @_;
@@ -108,10 +112,10 @@ sub get_pathid
 	"SELECT PathId FROM Path WHERE Path = ?";
     my $sth = $self->dbh_prepare($query);
     $sth->execute($dir);
-    my $result = $sth->fetchall_arrayref();
+    my $result = $sth->fetchrow_arrayref();
     $sth->finish();
 
-    return join(',', map { $_->[0] } @$result);
+    return $result->[0];
 }
 
 sub set_limits
@@ -121,18 +125,25 @@ sub set_limits
     $self->{offset} = $offset || 0;
 }
 
+# fill brestore_xxx tables for speedup
 sub update_cache
 {
     my ($self) = @_;
 
     $self->{dbh}->begin_work();
 
+    # getting all Jobs to "cache"
     my $query = "
   SELECT JobId from Job
-   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) AND JobStatus IN ('T', 'f', 'A') ORDER BY JobId";
+   WHERE JobId NOT IN (SELECT JobId FROM brestore_knownjobid) 
+     AND Type IN ('B') AND JobStatus IN ('T', 'f', 'A') 
+   ORDER BY JobId";
     my $jobs = $self->dbh_selectall_arrayref($query);
 
     $self->update_brestore_table(map { $_->[0] } @$jobs);
+
+    $self->{dbh}->commit();
+    $self->{dbh}->begin_work();	# we can break here
 
     print STDERR "Cleaning path visibility\n";
 
@@ -224,6 +235,7 @@ INSERT INTO brestore_pathvisibility (PathId, JobId) (
     }
 }
 
+# compute the parent directorie
 sub parent_dir
 {
     my ($path) = @_;
@@ -326,6 +338,7 @@ sub return_pathid_from_path
     }
 }
 
+# list all files in a directory, accross curjobids
 sub ls_files
 {
     my ($self) = @_;
@@ -333,7 +346,7 @@ sub ls_files
     return undef unless ($self->{curjobids});
 
     my $inclause   = $self->{curjobids};
-    my $inlistpath = $self->{cwdid};
+    my $inpath = $self->{cwdid};
 
     my $query =
 "SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
@@ -342,7 +355,7 @@ sub ls_files
 	 FROM File, Filename
 	WHERE File.FilenameId = Filename.FilenameId
           AND Filename.Name != ''
-          AND File.PathId IN ($inlistpath)
+          AND File.PathId = $inpath
           AND File.JobId IN ($inclause)
         GROUP BY Filename.Name
         ORDER BY Filename.Name) AS listfiles
@@ -355,7 +368,7 @@ WHERE File.FileId = listfiles.id";
     return $result;
 }
 
-
+# list all directories in a directory, accross curjobids
 # return ($dirid,$dir_basename,$lstat,$jobid)
 sub ls_dirs
 {
@@ -704,6 +717,7 @@ sub get_all_file_versions
     }
 }
 
+# get jobids that the current user can view (ACL)
 sub get_jobids
 {
   my ($self, @jobid) = @_;
@@ -738,29 +752,32 @@ my $action = CGI::param('action') || '';
 my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid', 'qdate',
 			   'limit', 'offset', 'client');
 
-if (CGI::param('batch')) {
+if ($action eq 'batch') {
     $bvfs->update_cache();
     exit 0;
 }
 
-if ($action eq 'list_client') {
-    print CGI::header('application/x-javascript');
+# All these functions are returning JSON compatible data
+# for javascript parsing
 
-  my $filter = $bvfs->get_client_filter();
-  my $q = "SELECT Name FROM Client $filter";
-  my $ret = $bvfs->dbh_selectall_arrayref($q);
-
-  print "[";
-  print join(',', map { "['$_->[0]']" } @$ret);
-  print "]\n";
-  exit 0;
-
-} elsif ($action eq 'list_job') {
+if ($action eq 'list_client') {	# list all client [ ['c1'],['c2']..]
     print CGI::header('application/x-javascript');
 
     my $filter = $bvfs->get_client_filter();
+    my $q = "SELECT Name FROM Client $filter";
+    my $ret = $bvfs->dbh_selectall_arrayref($q);
+
+    print "[";
+    print join(',', map { "['$_->[0]']" } @$ret);
+    print "]\n";
+    exit 0;
+    
+} elsif ($action eq 'list_job') { # list jobs for a client [[jobid,endtime,'desc'],..]
+    print CGI::header('application/x-javascript');
+    
+    my $filter = $bvfs->get_client_filter();
     my $query = "
- SELECT Job.EndTime, FileSet.FileSet, Job.Level, Job.JobStatus, Job.JobId
+ SELECT Job.JobId,Job.EndTime, FileSet.FileSet, Job.Level, Job.JobStatus
   FROM Job JOIN FileSet USING (FileSetId) JOIN Client USING (ClientId) $filter
  WHERE Client.Name = '$args->{client}'
    AND Job.Type = 'B'
@@ -771,7 +788,7 @@ if ($action eq 'list_client') {
     print "[";
 
     print join(',', map {
-      "[$_->[4], '$_->[0]', '$_->[0] $_->[1] $_->[2] ($_->[3]) $_->[4]']"
+      "[$_->[0], '$_->[1]', '$_->[1] $_->[2] $_->[3] ($_->[4]) $_->[0]']"
       } @$result);
 
     print "]\n";
@@ -787,7 +804,9 @@ if ($action eq 'list_client') {
     exit 0;
 }
 
+# get jobid param and apply user filter
 my @jobid = $bvfs->get_jobids(grep { /^\d+(,\d+)*$/ } CGI::param('jobid'));
+# get jobid from date arg
 if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
     @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
 }
@@ -798,7 +817,7 @@ if (!scalar(@jobid)) {
     exit 0;
 }
 
-if (CGI::param('init')) {
+if (CGI::param('init')) { # used when choosing a job
     $bvfs->update_brestore_table(@jobid);
 }
 
@@ -899,7 +918,7 @@ if ($action eq 'list_files') {
 
     print "[";
     my $dirs = $bvfs->ls_dirs();
-	# return ($dirid,$dir_basename,$lstat,$jobid)
+    # return ($dirid,$dir_basename,$lstat,$jobid)
 
     print join(',',
 	       map { "{ 'jobid': '$bvfs->{curjobids}', 'id': '$_->[0]', 'text': '$_->[1]', 'cls':'folder'}" }
@@ -926,7 +945,6 @@ if ($action eq 'list_files') {
     my $jobid = join(',', @jobid);
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
 
-    # TODO: use client filter
     my $q="
  SELECT DISTINCT VolumeName, InChanger
    FROM File,
