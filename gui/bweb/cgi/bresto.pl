@@ -896,6 +896,14 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
 			       file      => "?b2$$");
     
     $bvfs->dbh_do("DROP TABLE b2$$");
+
+    if (!$jobid) {
+	print CGI::header('text/html');
+	$bvfs->display_begin();
+	$bvfs->error("Can't start your job:<br/>" . $bconsole->before());
+	$bvfs->display_end();
+	exit 0;
+    }
     sleep(2);
     print CGI::redirect("bweb.pl?action=dsp_cur_job;jobid=$jobid") ;
     exit 0;
