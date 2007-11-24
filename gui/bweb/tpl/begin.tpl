@@ -41,6 +41,7 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="bweb.pl?action=pool">Pools</a> </li>
      <li><a href="bweb.pl?action=location">Locations</a> </li>
      <li><a href="bweb.pl?action=media">All Media</a><hr></li>
+     <li><a href="bweb.pl?action=add_media">Add Media</a><hr></li>
      <li><a href="bweb.pl?action=extern_media">Eject Media</a> </li>
      <li><a href="bweb.pl?action=intern_media">Load Media</a> </li>
   </ul>
