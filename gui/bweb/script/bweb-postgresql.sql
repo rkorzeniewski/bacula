@@ -59,22 +59,23 @@ initcond = ''
 BEGIN;
 CREATE TABLE bweb_user
 (
-	userid       serial not null,
-	username     text not null,
-	use_acl      boolean default false,
-	enabled      boolean default true,
+        userid       serial not null,
+        username     text not null,
+        use_acl      boolean default false,
+        enabled      boolean default true,
         comment      text default '',
-	passwd       text default '',
-	primary key (userid)
+        passwd       text default '',
+        tpl          text default '',
+        primary key (userid)
 );
 CREATE UNIQUE INDEX bweb_user_idx on bweb_user (username);
 
 CREATE TABLE bweb_role
 (
-	roleid       serial not null,
-	rolename     text not null,
---	comment      text default '',
-	primary key (roleid)
+        roleid       serial not null,
+        rolename     text not null,
+--      comment      text default '',
+        primary key (roleid)
 );
 CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename);
 
@@ -100,16 +101,16 @@ INSERT INTO bweb_role (rolename) VALUES ('r_client_status');
 
 CREATE TABLE  bweb_role_member
 (
-	roleid       integer not null,
-	userid       integer not null,
-	primary key (roleid, userid)
+        roleid       integer not null,
+        userid       integer not null,
+        primary key (roleid, userid)
 );
 
 CREATE TABLE  bweb_client_group_acl
 (
-	client_group_id       integer not null,
-	userid                integer not null,
-	primary key (client_group_id, userid)
+        client_group_id       integer not null,
+        userid                integer not null,
+        primary key (client_group_id, userid)
 );
 COMMIT;
 -- --------------------------------------------------
@@ -122,8 +123,8 @@ BEGIN;
 
 CREATE TABLE client_group
 (
-    client_group_id             serial	  not null,
-    client_group_name	        text	  not null,
+    client_group_id             serial    not null,
+    client_group_name           text      not null,
     primary key (client_group_id)
 );
 
@@ -131,7 +132,7 @@ CREATE UNIQUE INDEX client_group_idx on client_group (client_group_name);
 
 CREATE TABLE client_group_member
 (
-    client_group_id 		    integer	  not null,
+    client_group_id                 integer       not null,
     clientid          integer     not null,
     primary key (client_group_id, clientid)
 );
