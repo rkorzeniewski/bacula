@@ -44,7 +44,7 @@
          <td> <input class="formulaire" type='text' value='<TMPL_VAR bconsole>' size='64' name='bconsole'> 
          </td></tr>
      <tr><td>wiki_url :</td> 
-         <td> <input class="formulaire" title="use a wiki for jobs documentation?" type='text' name='wiki_url' value='<TMPL_VAR wiki_url>'> 
+         <td> <input class="formulaire" title="use a wiki for jobs documentation?" size='64' type='text' name='wiki_url' value='<TMPL_VAR wiki_url>'> 
          </td></tr>
      <tr><td>display_log_time :</td> 
          <td> <input class="formulaire" title="display log timestamp" type='checkbox' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> > 
