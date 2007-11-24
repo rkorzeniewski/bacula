@@ -3811,7 +3811,7 @@ SELECT Job.Name as name, Client.Name as clientname
     # display only Error and Warning messages
     $filter = '';
     if (CGI::param('error')) {
-	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning' ";
+	$filter = " AND LogText $self->{sql}->{MATCH} 'Error|Warning|ERR=' ";
     }
 
     my $logtext;

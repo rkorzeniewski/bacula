@@ -120,7 +120,7 @@ function ext_init()
 
     tree.on('click', function(node, event) { 
         Ext.brestore.path = get_node_path(node);
-
+	where_field.setValue(Ext.brestore.path);
         file_store.removeAll();
 	file_versions_store.removeAll();
         file_store.load({params:init_params({action: 'list_files',
