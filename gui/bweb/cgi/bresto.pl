@@ -178,12 +178,13 @@ sub update_brestore_table
 
 	print STDERR "Creating missing recursion paths for $job\n";
 
-	$query = "SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility
-		  JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId)
-		  LEFT JOIN brestore_pathhierarchy ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId)
-		  WHERE brestore_pathvisibility.JobId = $job
-		  AND brestore_pathhierarchy.PathId IS NULL
-		  ORDER BY Path";
+	$query = "
+SELECT brestore_pathvisibility.PathId, Path FROM brestore_pathvisibility
+  JOIN Path ON( brestore_pathvisibility.PathId = Path.PathId)
+       LEFT JOIN brestore_pathhierarchy ON (brestore_pathvisibility.PathId = brestore_pathhierarchy.PathId)
+ WHERE brestore_pathvisibility.JobId = $job
+   AND brestore_pathhierarchy.PathId IS NULL
+ ORDER BY Path";
 
 	my $sth = $self->dbh_prepare($query);
 	$sth->execute();
@@ -200,19 +201,17 @@ sub update_brestore_table
 	# This query gives all parent pathids for a given jobid that aren't stored.
 	# It has to be called until no record is updated ...
 	$query = "
-	INSERT INTO brestore_pathvisibility (PathId, JobId) (
-	SELECT a.PathId,$job
-	FROM
-		(SELECT DISTINCT h.PPathId AS PathId
-		FROM brestore_pathhierarchy AS h
-		JOIN  brestore_pathvisibility AS p ON (h.PathId=p.PathId)
-		WHERE p.JobId=$job) AS a
-		LEFT JOIN
-		(SELECT PathId
-		FROM brestore_pathvisibility
-		WHERE JobId=$job) AS b
-		ON (a.PathId = b.PathId)
-	WHERE b.PathId IS NULL)";
+INSERT INTO brestore_pathvisibility (PathId, JobId) (
+ SELECT a.PathId,$job
+   FROM (
+     SELECT DISTINCT h.PPathId AS PathId
+       FROM brestore_pathhierarchy AS h
+       JOIN  brestore_pathvisibility AS p ON (h.PathId=p.PathId)
+      WHERE p.JobId=$job) AS a LEFT JOIN
+       (SELECT PathId
+          FROM brestore_pathvisibility
+         WHERE JobId=$job) AS b ON (a.PathId = b.PathId)
+  WHERE b.PathId IS NULL)";
 
         my $rows_affected;
 	while (($rows_affected = $self->dbh_do($query)) and ($rows_affected !~ /^0/))
@@ -338,16 +337,15 @@ sub ls_files
 
     my $query =
 "SELECT File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
- FROM
-	(SELECT Filename.Name, max(File.FileId) as id
+ FROM File, (
+       SELECT Filename.Name, max(File.FileId) as id
 	 FROM File, Filename
-	 WHERE File.FilenameId = Filename.FilenameId
-	   AND Filename.Name != ''
-	   AND File.PathId IN ($inlistpath)
-	   AND File.JobId IN ($inclause)
-	 GROUP BY Filename.Name
-	 ORDER BY Filename.Name) AS listfiles,
-File
+	WHERE File.FilenameId = Filename.FilenameId
+          AND Filename.Name != ''
+          AND File.PathId IN ($inlistpath)
+          AND File.JobId IN ($inclause)
+        GROUP BY Filename.Name
+        ORDER BY Filename.Name) AS listfiles
 WHERE File.FileId = listfiles.id";
 
     $self->debug($query);
@@ -453,14 +451,16 @@ sub set_job_ids_for_date
     # incrementals and differentials until we have found a full so it goes
     # like this : store all incrementals until we have found a differential
     # or a full, then find the full
-    my $query = "SELECT JobId, FileSet, Level, JobStatus
-		FROM Job JOIN FileSet USING (FileSetId)
-                         JOIN Client USING (ClientId) $filter
-		WHERE EndTime <= $date
-		AND Client.Name = '$client'
-		AND Type IN ('B')
-		AND JobStatus IN ('T')
-		ORDER BY FileSet, JobTDate DESC";
+    my $query = "
+SELECT JobId, FileSet, Level, JobStatus
+  FROM Job 
+       JOIN FileSet USING (FileSetId)
+       JOIN Client USING (ClientId) $filter
+ WHERE EndTime <= $date
+   AND Client.Name = '$client'
+   AND Type IN ('B')
+   AND JobStatus IN ('T')
+ ORDER BY FileSet, JobTDate DESC";
 
     my @CurrentJobIds;
     my $result = $self->dbh_selectall_arrayref($query);
@@ -738,9 +738,13 @@ my $action = CGI::param('action') || '';
 my $args = $bvfs->get_form('pathid', 'filenameid', 'fileid', 'qdate',
 			   'limit', 'offset', 'client');
 
-print CGI::header('application/x-javascript');
+if (CGI::param('batch')) {
+    $bvfs->update_cache();
+    exit 0;
+}
 
 if ($action eq 'list_client') {
+    print CGI::header('application/x-javascript');
 
   my $filter = $bvfs->get_client_filter();
   my $q = "SELECT Name FROM Client $filter";
@@ -752,6 +756,7 @@ if ($action eq 'list_client') {
   exit 0;
 
 } elsif ($action eq 'list_job') {
+    print CGI::header('application/x-javascript');
 
     my $filter = $bvfs->get_client_filter();
     my $query = "
@@ -766,12 +771,13 @@ if ($action eq 'list_client') {
     print "[";
 
     print join(',', map {
-      "[$_->[4], '$_->[0]', '$_->[0] $_->[1] $_->[2] ($_->[3])']"
+      "[$_->[4], '$_->[0]', '$_->[0] $_->[1] $_->[2] ($_->[3]) $_->[4]']"
       } @$result);
 
     print "]\n";
     exit 0;
 } elsif ($action eq 'list_storage') { # TODO: use .storage hier
+    print CGI::header('application/x-javascript');
 
     my $q="SELECT Name FROM Storage";
     my $lst = $bvfs->dbh_selectall_arrayref($q);
@@ -781,7 +787,7 @@ if ($action eq 'list_client') {
     exit 0;
 }
 
-my @jobid = $bvfs->get_jobids(grep { /^\d+$/ } CGI::param('jobid'));
+my @jobid = $bvfs->get_jobids(grep { /^\d+(,\d+)*$/ } CGI::param('jobid'));
 if (!scalar(@jobid) and $args->{qdate} and $args->{client}) {
     @jobid = $bvfs->set_job_ids_for_date($args->{client}, $args->{qdate});
 }
@@ -809,6 +815,75 @@ if ($pathid =~ /^(\d+)$/) {
 
 $bvfs->ch_dir($pathid);
 
+if ($action eq 'restore') {
+
+    # TODO: pouvoir choisir le replace et le jobname
+    my $arg = $bvfs->get_form(qw/client storage regexwhere where/);
+
+    if (!$arg->{client}) {
+	print "ERROR: missing client\n";
+	exit 1;
+    }
+
+    my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
+    my @dirid = grep { /^\d+$/ } CGI::param('dirid');
+    my $inclause = join(',', @jobid);
+
+    my @union;
+
+    if ($fileid) {
+      push @union,
+      "(SELECT JobId, FileIndex, FilenameId, PathId FROM File WHERE FileId IN ($fileid))";
+    }
+
+    # using this is not good because the sql engine doesn't know
+    # what LIKE will use. It will be better to get Path% in perl
+    # but it doesn't work with accents... :(
+    foreach my $dirid (@dirid) {
+      push @union, "
+  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
+    FROM Path JOIN File USING (PathId)
+   WHERE Path.Path LIKE
+        (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
+          WHERE PathId = $dirid
+        )
+     AND File.JobId IN ($inclause))";
+    }
+
+    return unless scalar(@union);
+
+    my $u = join(" UNION ", @union);
+
+    $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp AS ($u)");
+    # TODO: remove FilenameId et PathId
+    $bvfs->dbh_do("CREATE TABLE b2$$ AS (
+SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
+  FROM btemp,
+       (SELECT max(JobId) as JobId, PathId, FilenameId
+          FROM btemp
+      GROUP BY PathId, FilenameId
+      ORDER BY JobId DESC) AS a
+  WHERE a.JobId = btemp.JobId
+    AND a.PathId= btemp.PathId
+    AND a.FilenameId = btemp.FilenameId
+)");
+    my $bconsole = $bvfs->get_bconsole();
+    # TODO: pouvoir choisir le replace et le jobname
+    my $jobid = $bconsole->run(client    => $arg->{client},
+			       storage   => $arg->{storage},
+			       where     => $arg->{where},
+			       regexwhere=> $arg->{regexwhere},
+			       restore   => 1,
+			       file      => "?b2$$");
+    
+    $bvfs->dbh_do("DROP TABLE b2$$");
+    sleep(2);
+    print CGI::redirect("bweb.pl?action=dsp_cur_job;jobid=$jobid") ;
+    exit 0;
+}
+
+print CGI::header('application/x-javascript');
+
 if ($action eq 'list_files') {
     print "[";
     my $files = $bvfs->ls_files();
@@ -816,7 +891,7 @@ if ($action eq 'list_files') {
 #   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
 
     print join(',',
-	       map { "[$_->[1], $_->[0], $pathid, \"$_->[2]\", 10, \"2007-01-01 00:00:00\"]" }
+	       map { "[$_->[1], $_->[0], $pathid, $_->[4], \"$_->[2]\", 10, \"2007-01-01 00:00:00\"]" }
 	       @$files);
     print "]\n";
 
@@ -827,7 +902,7 @@ if ($action eq 'list_files') {
 	# return ($dirid,$dir_basename,$lstat,$jobid)
 
     print join(',',
-	       map { "{ 'id': '$_->[0]', 'text': '$_->[1]', 'cls':'folder'}" }
+	       map { "{ 'jobid': '$bvfs->{curjobids}', 'id': '$_->[0]', 'text': '$_->[1]', 'cls':'folder'}" }
 	       @$dirs);
 
     print "]\n";
@@ -856,7 +931,7 @@ if ($action eq 'list_files') {
  SELECT DISTINCT VolumeName, InChanger
    FROM File,
     ( -- Get all media from this job
-      SELECT MAX(FirstIndex) AS FirstIndex, MIN(LastIndex) AS LastIndex,
+      SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex,
              VolumeName, Inchanger
         FROM JobMedia JOIN Media USING (MediaId)
        WHERE JobId IN ($jobid)
@@ -864,57 +939,13 @@ if ($action eq 'list_files') {
     ) AS allmedia
   WHERE File.FileId IN ($fileid)
     AND File.FileIndex >= allmedia.FirstIndex
-    AND File.FileIndex <= allmedia.LastIndex;
+    AND File.FileIndex <= allmedia.LastIndex
 ";
     my $lst = $bvfs->dbh_selectall_arrayref($q);
     print "[";
     print join(',', map { "[ '$_->[0]', $_->[1]]" } @$lst);
     print "]\n";
 
-} elsif ($action eq 'restore') {
-    my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
-    my @dirid = grep { /^\d+$/ } CGI::param('dirid');
-    my $inclause = join(',', @jobid);
-
-    my @union;
-
-    if ($fileid) {
-      push @union, "(SELECT JobId, FileIndex FROM File WHERE FileId IN ($fileid))";
-    }
-
-    # using this is not good because the sql engine doesn't know
-    # what LIKE will use. It will be better to get Path% in perl
-    # but it doesn't work with accents... :(
-    foreach my $dirid (@dirid) {
-      push @union, "
-  (SELECT File.JobId, File.FileIndex, File.FilenameId, File.PathId
-    FROM Path JOIN File USING (PathId)
-   WHERE Path.Path LIKE
-        (SELECT ". $bvfs->dbh_strcat('Path',"'\%'") ." FROM Path
-          WHERE PathId = $dirid
-        )
-     AND File.JobId IN ($inclause))";
-    }
-
-    return unless scalar(@union);
-
-    my $u = join(" UNION ", @union);
-
-    $bvfs->dbh_do("CREATE TEMP TABLE btemp AS ($u)");
-    # TODO: remove FilenameId et PathId
-    $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
-  FROM btemp,
-       (SELECT max(JobId) as JobId, PathId, FilenameId
-          FROM btemp
-      GROUP BY PathId, FilenameId
-      ORDER BY JobId DESC) AS a
-  WHERE a.JobId = btemp.JobId
-    AND a.PathId= btemp.PathId
-    AND a.FilenameId = btemp.FilenameId
-)");
-
-    print "restore file=?b2$$ done\n";
 }
 
 __END__

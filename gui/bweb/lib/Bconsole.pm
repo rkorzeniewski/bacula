@@ -66,6 +66,14 @@ sub run
     my ($self, %arg) = @_;
 
     my $cmd = 'run ';
+    my $go  = 'yes';
+
+    if ($arg{restore}) {
+	$cmd = 'restore ';
+	$go  = 'done yes';
+	delete $arg{restore};
+    }
+
     for my $key (keys %arg) {
 	if ($arg{$key}) {
 	    $arg{$key} =~ tr/""/  /;
@@ -77,9 +85,9 @@ sub run
 	return 0;
     }
 
-    print STDERR "===> $cmd yes\n";
+    print STDERR "===> $cmd $go\n";
     $self->{bconsole}->clear_accum();
-    $self->send("$cmd yes\n");
+    $self->send("$cmd $go\n");
     $self->expect_it('-re',qr/^[*]/);
     my $ret = $self->before();
     if ($ret =~ /jobid=(\d+)/is) {

@@ -49,12 +49,15 @@ Ext.namespace('Ext.brestore');
 Ext.brestore.jobid=0;            // selected jobid
 Ext.brestore.jobdate='';         // selected date
 Ext.brestore.client='';          // selected client
+Ext.brestore.rclient='';         // selected client for resto
+Ext.brestore.storage='';         // selected storage for resto
 Ext.brestore.path='';            // current path (without user location)
 Ext.brestore.root_path='';       // user location
 
 Ext.brestore.option_vosb = false;
 Ext.brestore.option_vafv = false;
 Ext.brestore.dlglaunch;
+Ext.BLANK_IMAGE_URL = '/bweb/ext/resources/images/aero/s.gif';  // 1.1
 
 function get_node_path(node)
 {
@@ -109,6 +112,7 @@ function ext_init()
         id:'source'
     });
     tree.setRootNode(root);
+    Ext.brestore.tree = root;
 
     // render the tree
     tree.render();
@@ -145,6 +149,7 @@ function ext_init()
    {name: 'fileid'    },
    {name: 'filenameid'},
    {name: 'pathid'    },
+   {name: 'jobid'     },
    {name: 'name'      },
    {name: 'size',     type: 'int'  },
    {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
@@ -174,6 +179,9 @@ function ext_init()
            hidden: true
         },{
            dataIndex: 'fileid',
+           hidden: true
+        },{
+           dataIndex: 'jobid',
            hidden: true
         }
         ]);
@@ -251,13 +259,15 @@ function ext_init()
            width:     100
         },{
            dataIndex: 'pathid',
-           hidden: true
+	   header: 'PathId'
+//           hidden: true
         },{
            dataIndex: 'filenameid',
            hidden: true
         },{
            dataIndex: 'fileid',
-           hidden: true
+	   header: 'FileId'
+//           hidden: true
         }
         ]);
 
@@ -295,13 +305,13 @@ function ext_init()
              if (data.grid.id == 'div-files') {
                  for(var i=0;i<data.selections.length;i++) {
                     r = new file_selection_record({
-                      jobid:     Ext.brestore.jobid,
+                      jobid:     data.selections[0].json[3],
                       fileid:    data.selections[i].json[0],
                       filenameid:data.selections[i].json[1],
                       pathid:    data.selections[i].json[2],
-                      name: Ext.brestore.path + data.selections[i].json[3],
-                      size:      data.selections[i].json[4],
-                      mtime:     data.selections[i].json[5]
+                      name: Ext.brestore.path + data.selections[i].json[4],
+                      size:      data.selections[i].json[5],
+                      mtime:     data.selections[i].json[6]
                     });
                     file_selection_store.add(r)
                  }
@@ -324,7 +334,7 @@ function ext_init()
            if (data.node) {
               var path= get_node_path(data.node);
               r = new file_selection_record({
-                      jobid:     Ext.brestore.jobid,
+                      jobid:     data.node.attributes.jobid,
                       fileid:    0,
                       filenameid:0,
                       pathid:    data.node.id,
@@ -540,34 +550,6 @@ function ext_init()
 
     // create the primary toolbar
     var tb2 = new Ext.Toolbar('div-tb-sel');
-    tb2.add({
-        id:'save',
-        text:'Save',
-        disabled:true,
-//        handler:save,
-        cls:'x-btn-text-icon save',
-        tooltip:'Saves all components to the server'
-    },'-', {
-        id:'add',
-        text:'Component',
-//        handler:addComponent,
-        cls:'x-btn-text-icon add-cmp',
-        tooltip:'Add a new Component to the dependency builder'
-    }, {
-        id:'option',
-        text:'Option',
-        disabled:true,
-//        handler:addOption,
-        cls:'x-btn-text-icon add-opt',
-        tooltip:'Add a new optional dependency to the selected component'
-    },'-',{
-        id:'remove',
-        text:'Remove',
-        disabled:true,
-//        handler:removeNode,
-        cls:'x-btn-text-icon remove',
-        tooltip:'Remove the selected item'
-    });
 
     var where_field = new Ext.form.TextField({
             fieldLabel: 'Location',
@@ -633,16 +615,44 @@ function ext_init()
 //	                        alwaysShowTabs: true
 	                }
                 });
-		var dialog = Ext.brestore.dlglaunch;
-                dialog.addKeyListener(27, dialog.hide, dialog);
-                dialog.addButton('Submit', dialog.hide, dialog);
-                dialog.addButton('Close', dialog.hide, dialog);
 
     var fs = new Ext.form.Form({
         labelAlign: 'right',
         labelWidth: 80
     });
 
+//    var resto_store = new Ext.data.Store({
+//        proxy: new Ext.data.HttpProxy({
+//            url: '/cgi-bin/bweb/bresto.pl',
+//            method: 'GET',
+//            params:{action:'list_resto'}
+//        }),
+//
+//        reader: new Ext.data.ArrayReader({
+//        }, Ext.data.Record.create([
+//           {name: 'name' }
+//        ]))
+//    });
+
+    var rclient_combo = new Ext.form.ComboBox({
+            value: Ext.brestore.client,
+            fieldLabel: 'client',
+            hiddenName:'client',
+            store: client_store,
+            displayField:'name',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'Select a client...',
+            selectOnFocus:true,
+            width:190
+        });
+    var where_text = new Ext.form.TextField({
+            fieldLabel: 'Where',
+            name: 'where',
+            value: '/tmp/bacula-restore',
+            width:190
+        });
     var storage_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
@@ -655,70 +665,7 @@ function ext_init()
            {name: 'name' }
         ]))
     });
-
-    var resto_store = new Ext.data.Store({
-        proxy: new Ext.data.HttpProxy({
-            url: '/cgi-bin/bweb/bresto.pl',
-            method: 'GET',
-            params:{action:'list_resto'}
-        }),
-
-        reader: new Ext.data.ArrayReader({
-        }, Ext.data.Record.create([
-           {name: 'name' }
-        ]))
-    });
-
-    fs.fieldset(
-        {legend:'Restore job'},
-        new Ext.form.ComboBox({
-            fieldLabel: 'Replace',
-            hiddenName:'replace',
-            store: new Ext.data.SimpleStore({
-   		 fields: ['replace'],
-		 data : [['always'],['never'],['if newer']]
-	    }),
-            displayField:'replace',
-            typeAhead: true,
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText:'never',
-            selectOnFocus:true,
-            width:190
-        }),
-
-        new Ext.form.ComboBox({
-            fieldLabel: 'job',
-            hiddenName:'job',
-            store: resto_store,
-            displayField:'name',
-            typeAhead: true,
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText:'Select a job...',
-            selectOnFocus:true,
-            width:190
-        })
-	,
-        new Ext.form.TextField({
-            fieldLabel: 'Where',
-            name: 'where',
-            width:190
-        }),
-
-        new Ext.form.ComboBox({
-            fieldLabel: 'client',
-            hiddenName:'client',
-            store: client_store,
-            displayField:'name',
-            typeAhead: true,
-            mode: 'local',
-            triggerAction: 'all',
-            emptyText:'Select a client...',
-            selectOnFocus:true,
-            width:190
-        }),
-        new Ext.form.ComboBox({
+    var storage_combo = new Ext.form.ComboBox({
             fieldLabel: 'storage',
             hiddenName:'storage',
             store: storage_store,
@@ -729,10 +676,44 @@ function ext_init()
             emptyText:'Select a storage...',
             selectOnFocus:true,
             width:190
-        })
+        });
+    fs.fieldset(
+        {legend:'Restore job'},
+//        new Ext.form.ComboBox({
+//            fieldLabel: 'Replace',
+//            hiddenName:'replace',
+//            store: new Ext.data.SimpleStore({
+//   		 fields: ['replace'],
+//		 data : [['always'],['never'],['if newer']]
+//	    }),
+//            displayField:'replace',
+//            typeAhead: true,
+//            mode: 'local',
+//            triggerAction: 'all',
+//            emptyText:'never',
+//            selectOnFocus:true,
+//            width:190
+//        }),
+//
+//        new Ext.form.ComboBox({
+//            fieldLabel: 'job',
+//            hiddenName:'job',
+//            store: resto_store,
+//            displayField:'name',
+//            typeAhead: true,
+//            mode: 'local',
+//            triggerAction: 'all',
+//            emptyText:'Select a job...',
+//            selectOnFocus:true,
+//            width:190
+//        }),
+
+        rclient_combo,
+        where_text,
+        storage_combo
     );
     storage_store.load({params:{action: 'list_storage'}});
-    resto_store.load({params:{action: 'list_resto'}});
+//  resto_store.load({params:{action: 'list_resto'}});
     fs.render('div-resto-form');
 
 //      var f = new Ext.form.BasicForm('div-resto-form', {url: '/bweb/test', method: 'GET',
@@ -740,12 +721,39 @@ function ext_init()
 // 						       }
 //                                     );
 
-		var layout = dialog.getLayout();
-                layout.beginUpdate();
-	        layout.add('center', new Ext.ContentPanel('div-resto-form', {
+    var launch_restore = function() {
+	var items = file_selection_store.data.items;
+	var tab_fileid=new Array();
+	var tab_dirid=new Array();
+	var tab_jobid=new Array();
+        for(var i=0;i<items.length;i++) {
+		if (items[i].data['fileid']) {
+			tab_fileid.push(items[i].data['fileid']);
+		} else {
+			tab_dirid.push(items[i].data['pathid']);
+		}
+		tab_jobid.push(items[i].data['jobid']);
+	}
+	var res = ';fileid=' + tab_fileid.join(";fileid=");
+	var res2 = ';dirid=' + tab_dirid.join(";dirid=");
+	var res3 = ';jobid=' + tab_jobid.join(";jobid=");
+
+	var res4 = ';client=' + rclient_combo.getValue() + ';storage=' + storage_combo.getValue() + ';where=' + where_text.getValue();
+
+	window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
+    }
+	var dialog = Ext.brestore.dlglaunch;
+        dialog.addKeyListener(27, dialog.hide, dialog);
+        dialog.addButton('Submit', launch_restore);
+        dialog.addButton('Close', dialog.hide, dialog);
+
+        var layout = dialog.getLayout();
+        layout.beginUpdate();
+	layout.add('center', new Ext.ContentPanel('div-resto-form', {
                                     autoCreate:true, title: 'Third Tab', closable:true, background:true}));
-	        layout.endUpdate();
-	        dialog.show();
+	layout.endUpdate();
+	dialog.show();
+
 	    }
 	}
     ]);

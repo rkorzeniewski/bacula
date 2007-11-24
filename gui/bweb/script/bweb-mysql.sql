@@ -1,3 +1,38 @@
+-- --------------------------------------------------
+-- Upgrade from 2.2
+-- --------------------------------------------------
+
+-- New tables for bresto (same as brestore)
+
+CREATE TABLE brestore_knownjobid
+(
+     JobId integer NOT NULL,
+     CONSTRAINT brestore_knownjobid_pkey PRIMARY KEY (JobId)
+);
+
+CREATE TABLE brestore_pathhierarchy
+(
+     PathId integer NOT NULL,
+     PPathId integer NOT NULL,
+     CONSTRAINT brestore_pathhierarchy_pkey PRIMARY KEY (PathId)
+);
+
+CREATE INDEX brestore_pathhierarchy_ppathid 
+                          ON brestore_pathhierarchy (PPathId);
+
+CREATE TABLE brestore_pathvisibility
+(
+      PathId integer NOT NULL,
+      JobId integer NOT NULL,
+      Size int8 DEFAULT 0,
+      Files int4 DEFAULT 0,
+      CONSTRAINT brestore_pathvisibility_pkey PRIMARY KEY (JobId, PathId)
+);
+
+CREATE INDEX brestore_pathvisibility_jobid
+                          ON brestore_pathvisibility (JobId);
+
+
 CREATE TABLE bweb_user
 (
 	userid       serial not null,
@@ -52,6 +87,10 @@ CREATE TABLE  bweb_client_group_acl
 	primary key (client_group_id, userid)
 );
 
+
+-- --------------------------------------------------
+-- Upgrade from 2.0
+-- --------------------------------------------------
 
 -- Manage Client groups in bweb
 -- Works with postgresql and mysql5 
