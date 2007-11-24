@@ -107,7 +107,7 @@ function ext_init()
 
     // set the root node
     var root = new Ext.tree.AsyncTreeNode({
-        text: 'Select a job',
+        text: 'Select a client then a job',
         draggable:false,
         id:'source'
     });
@@ -473,6 +473,16 @@ function ext_init()
 
     client_combo.on('valid', function(e) { 
         Ext.brestore.client = e.getValue();
+        Ext.brestore.jobid=0;
+        Ext.brestore.jobdate = '';
+        Ext.brestore.root_path='';
+        job_combo.clearValue();
+        file_store.removeAll();
+        file_versions_store.removeAll();
+        root.collapse(false, false);
+        while(root.firstChild){
+            root.removeChild(root.firstChild);
+        }
         job_store.load( {params:{action: 'list_job',
                                  client:Ext.brestore.client}});
         return true;
