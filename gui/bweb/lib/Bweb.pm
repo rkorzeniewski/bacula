@@ -206,7 +206,7 @@ use CGI;
 
 our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      user     => qr/^([\w\d\.-]+)$/i,
-	      password => qr/^(.*)$/i,
+	      password => qr/^(.*)$/,
 	      fv_write_path => qr!^([/\w\d\.-]*)$!,
 	      template_dir => qr!^([/\w\d\.-]+)$!,
 	      debug    => qr/^(on)?$/,
@@ -215,6 +215,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      bconsole    => qr!^(.+)?$!,
 	      syslog_file => qr!^(.+)?$!,
 	      log_dir     => qr!^(.+)?$!,
+	      wiki_url    => qr!(.*)$!,
 	      stat_job_table => qr!^(\w*)$!,
 	      display_log_time => qr!^(on)?$!,
 	      enable_security => qr/^(on)?$/,
@@ -2157,6 +2158,7 @@ WHERE Job.JobId = $jobid
     my $all = $self->dbh_selectall_hashref($query, 'volumename');
 
     $row->{volumes} = [ values %$all ] ;
+    $row->{wiki_url} = $self->{info}->{wiki_url};
 
     $self->display($row, "display_job_zoom.tpl");
 }

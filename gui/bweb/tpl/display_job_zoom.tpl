@@ -53,6 +53,11 @@
  </form>
  </td>
 -->
+<TMPL_IF wiki_url>
+  <td>
+   <a href="<TMPL_VAR wiki_url><TMPL_VAR Client>" title='View doc'><img src='/bweb/doc.png' alt='view doc'></a>View Doc
+ </td>
+</TMPL_IF>
  <td>
  <form name="rerun" action='bweb.pl?' onsubmit="document.getElementById('rerun_level').value=joblevelname['<TMPL_VAR NAME=Level>']">
   <input type='hidden' name='storage' value='<TMPL_VAR storage>'>
