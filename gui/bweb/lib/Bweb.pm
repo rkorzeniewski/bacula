@@ -4186,9 +4186,9 @@ sub run_job_now
 			when => $arg->{when},
 			);
 
-    print $jobid, $b->{error};    
+    print $b->{error};    
 
-    print "<br>You can follow job execution <a href='?action=dsp_cur_job;client=$arg->{client};jobid=$jobid'> here </a>";
+    print "<br>You can follow job (jobid=$jobid) execution <a href='?action=dsp_cur_job;client=$arg->{client};jobid=$jobid'> here </a><script type='text/javascript' language='JavaScript'>setTimeout(function() { window.location='?action=dsp_cur_job;client=$arg->{client};jobid=$jobid'},2000);</script>";
 }
 
 1;
