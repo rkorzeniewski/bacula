@@ -43,6 +43,25 @@
   </td>
 </tr>
 </TMPL_IF>
+<TMPL_UNLESS hide_since>
+<tr>
+  <td valign='top'>
+    <h2>Since</h2>
+    <input type='text' name='since' size='17' title='YYY-MM-DD'
+     value='<TMPL_VAR since>' class='formulaire'>
+  </td>
+ </tr>
+<tr>
+  <td valign='top'>
+    <h2>Age</h2>
+    <select name='age' class='formulaire'>
+      <option id='age_604800'   value='604800'>1 week</option>
+      <option id='age_2678400'  value='2678400'>30 days</option>
+      <option id='age_15552000' value='15552000'>6 month</option>
+    </select>     
+  </td>
+ </tr>
+<TMPL_ELSE>
 <tr>
   <td valign='top'>
     <h2>Age</h2>
@@ -53,6 +72,7 @@
     </select>     
   </td>
  </tr>
+</TMPL_UNLESS>
  <tr>
   <td valign='bottom'> 
     <h2>Number of items</h2>

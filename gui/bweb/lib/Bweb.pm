@@ -1053,6 +1053,7 @@ our %sql_func = (
 	      STARTTIME_DAY  => " date_trunc('day', Job.StartTime) ",
 	      STARTTIME_HOUR => " date_trunc('hour', Job.StartTime) ",
 	      STARTTIME_MONTH  => " date_trunc('month', Job.StartTime) ",
+	      STARTTIME_WEEK => " date_trunc('week', Job.StartTime) ",
 	      STARTTIME_PHOUR=> " date_part('hour', Job.StartTime) ",
 	      STARTTIME_PDAY => " date_part('day', Job.StartTime) ",
 	      STARTTIME_PMONTH => " date_part('month', Job.StartTime) ",
@@ -1071,6 +1072,7 @@ our %sql_func = (
 	      STARTTIME_DAY  => " DATE_FORMAT(StartTime, '%Y-%m-%d') ",
 	      STARTTIME_HOUR => " DATE_FORMAT(StartTime, '%Y-%m-%d %H') ",
 	      STARTTIME_MONTH => " DATE_FORMAT(StartTime, '%Y-%m') ",
+	      STARTTIME_WEEK => " DATE_FORMAT(StartTime, '%v') ",
 	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
 	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
 	      STARTTIME_PMONTH => " DATE_FORMAT(StartTime, '%m') ",
@@ -1371,16 +1373,23 @@ sub get_limit
     my $limit = '';
     my $label = '';
 
-    if ($arg{age}) {
-	$limit = 
-  "AND $self->{sql}->{UNIX_TIMESTAMP}(EndTime) 
-         > 
-       ( $self->{sql}->{UNIX_TIMESTAMP}(NOW()) 
-         - 
+    if ($arg{since} and $arg{age}) {
+	my $now = "$self->{sql}->{UNIX_TIMESTAMP}(TIMESTAMP '$arg{since}')";
+	$limit .= "
+ AND $self->{sql}->{UNIX_TIMESTAMP}(StartTime) > $now 
+ AND $self->{sql}->{UNIX_TIMESTAMP}(EndTime) < ($now + $self->{sql}->{TO_SEC}($arg{age}))";
+	$label .= "since $arg{since} and during " . human_sec($arg{age});
+
+    } elsif ($arg{age}) {
+        $limit .=
+  "AND $self->{sql}->{UNIX_TIMESTAMP}(EndTime)
+         >
+       ( $self->{sql}->{UNIX_TIMESTAMP}(NOW())
+         -
          $self->{sql}->{TO_SEC}($arg{age})
        )" ;
 
-	$label = "last " . human_sec($arg{age});
+        $label = "last " . human_sec($arg{age});
     }
 
     if ($arg{groupby}) {
@@ -1490,7 +1499,6 @@ sub get_form
 		 where  => 1,
 		 );
     my %opt_r = (regexwhere => 1);
-
     my %opt_d = (		# option with date
 		 voluseduration=> 1,
 		 volretention => 1,
@@ -1542,7 +1550,7 @@ sub get_form
 	    if ($value =~ /^\s*(\d+\s+\w+)$/) {
 		$ret{$i} = $1;
 	    }
-	}
+	} 
     }
 
     if ($what{slots}) {
@@ -1551,6 +1559,14 @@ sub get_form
 		push @{$ret{slots}}, $s;
 	    }
 	}
+    }
+
+    if ($what{since}) {
+        my $age = $ret{age} || $opt_i{age};
+        my $since = CGI::param('since') || strftime('%F %T', localtime(time - $age));
+        if ($since =~ /^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?)$/) {
+            $ret{since} = $1;
+        }
     }
 
     if ($what{when}) {
@@ -1588,7 +1604,6 @@ SELECT Client.Name as clientname
 SELECT client_group_name AS name 
   FROM client_group $filter
 ";
-
 	my $grps = $self->dbh_selectall_hashref($query, 'name');
 	$ret{db_client_groups} = [sort {$a->{name} cmp $b->{name} } 
 				  values %$grps] ;
@@ -1599,7 +1614,6 @@ SELECT client_group_name AS name
 SELECT username 
   FROM bweb_user
 ";
-
 	my $users = $self->dbh_selectall_hashref($query, 'username');
 	$ret{db_usernames} = [sort {$a->{username} cmp $b->{username} } 
 				  values %$users] ;
@@ -1610,7 +1624,6 @@ SELECT username
 SELECT rolename 
   FROM bweb_role
 ";
-
 	my $r = $self->dbh_selectall_hashref($query, 'rolename');
 	$ret{db_roles} = [sort {$a->{rolename} cmp $b->{rolename} } 
 				  values %$r] ;
@@ -1621,7 +1634,6 @@ SELECT rolename
 SELECT MediaType as mediatype
   FROM MediaType
 ";
-
 	my $media = $self->dbh_selectall_hashref($query, 'mediatype');
 	$ret{db_mediatypes} = [sort {$a->{mediatype} cmp $b->{mediatype} } 
 			          values %$media] ;
@@ -1651,7 +1663,6 @@ SELECT Location as location, Cost as cost
 SELECT FileSet.FileSet AS fileset 
   FROM FileSet
 ";
-
 	my $filesets = $self->dbh_selectall_hashref($query, 'fileset');
 
 	$ret{db_filesets} = [sort {lc($a->{fileset}) cmp lc($b->{fileset}) } 
@@ -1667,7 +1678,6 @@ SELECT FileSet.FileSet AS fileset
 SELECT DISTINCT Job.Name AS jobname 
   FROM Job $filter
 ";
-
 	my $jobnames = $self->dbh_selectall_hashref($query, 'jobname');
 
 	$ret{db_jobnames} = [sort {lc($a->{jobname}) cmp lc($b->{jobname}) } 
@@ -1679,7 +1689,6 @@ SELECT DISTINCT Job.Name AS jobname
 SELECT Device.Name AS name
   FROM Device
 ";
-
 	my $devices = $self->dbh_selectall_hashref($query, 'name');
 
 	$ret{db_devices} = [sort {lc($a->{name}) cmp lc($b->{name}) } 
@@ -3270,6 +3279,140 @@ GROUP BY client_group.client_group_name
     $row->{grapharg} = "client_group";
 
     $self->display($row, "display_client_stats.tpl");
+}
+
+# [ name, num, value, joberrors, nb_job ] =>
+# {  items => 
+#      [ { name => 'ALL',
+#          events => [ { num => 1, label => '2007-01', 
+#                        value => 'T', title => 10 },
+#                      { num => 2, label => '2007-02', 
+#                        value => 'R', title => 11 },
+#                     ]
+#         },
+#         { name => 'Other',
+#            ...
+#       ]
+# };
+sub make_overview_tab
+{
+    my ($self, $q) = @_;
+    my $ret = $self->dbh_selectall_arrayref($q);
+    my @items;
+    my $events=[];
+    my $cur_name='';
+    for my $elt (@$ret) {
+	if ($cur_name and $cur_name ne $elt->[0]) { # order by name, num
+	    push @items, { name => $cur_name, events => $events};
+	    $events = [];
+	}
+	$cur_name = $elt->[0];
+	push @$events, 
+	  { num => $elt->[1], status => $elt->[2], 
+	    joberrors => $elt->[3], title => "$elt->[4] jobs"};
+    }
+    push @items, { name => $cur_name, events => $events};
+    return \@items;
+}
+
+sub get_time_overview
+{
+    my ($self, $arg) = @_; # want since et age from get_form();
+    my $type = CGI::param('type') || 'day';
+    if ($type =~ /^(day|week|hour|month)$/) {
+	$type = uc($1);
+    } else {
+	$type = 'DAY';
+    }
+    my $jobt = $self->{info}->{stat_job_table} || 'Job';
+    my $stime1 = $self->{sql}->{"STARTTIME_P" . $type}; # get 1,2,3
+    $stime1 =~ s/Job.StartTime/date/;
+    my $stime2 = $self->{sql}->{"STARTTIME_" . $type}; # get 2007-01-03, 2007-01-23
+
+    my ($limit, $label) = $self->get_limit('since' => $arg->{since},
+					   'age' => $arg->{age});
+    return ($stime1, $stime2, $limit, $label, $jobt);
+}
+
+#              lu ma me je ve sa di
+#  groupe1     v  v  x  w  v  v  v    overview
+#   |-- s1     v  v  v  v  v  v  v    overview_zoom
+#   |-- s2     v  v  x  v  v  v  v
+#   `-- s3     v  v  v  w  v  v  v
+sub display_overview_zoom
+{
+    my ($self) = @_;
+    $self->can_do('r_view_stat');
+
+    my $arg = $self->get_form(qw/jclient_groups age since/);
+
+    if (!$arg->{jclient_groups}) {
+	return $self->error("Can't get client_group selection");
+    }
+    my ($filter2, undef) = $self->get_param(qw/level jobtype/);
+    my ($stime1, $stime2, $limit, $label, $jobt) = $self->get_time_overview($arg);
+
+    my $filter = $self->get_client_filter();
+    my $q = "
+SELECT name, $stime1 AS num,
+       JobStatus AS value, joberrors, nb_job
+FROM (
+  SELECT $stime2        AS date,
+	 Client.Name    AS name,
+         MAX(severity)  AS severity,
+         COUNT(1)       AS nb_job,
+         SUM(JobErrors) AS joberrors
+    FROM $jobt AS Job
+    JOIN client_group_member USING (ClientId)
+    JOIN client_group        USING (client_group_id)
+    JOIN Client              USING (ClientId)  $filter
+    JOIN Status              USING (JobStatus)
+   WHERE client_group_name IN ($arg->{jclient_groups})
+         $limit $filter2
+
+   GROUP BY Client.Name, date
+) AS sub JOIN Status USING (severity)
+ ORDER BY name, date
+";
+    my $items = $self->make_overview_tab($q);
+    $self->display({label => $label,
+		    action => "job;since=$arg->{since};age=$arg->{age};client=", 
+		    items => $items}, "overview.tpl");
+}
+
+sub display_overview
+{
+    my ($self) = @_ ;
+    $self->can_do('r_view_stat');
+
+    my $arg = $self->get_form(qw/jclient_groups age since/);
+    my ($filter2, undef) = $self->get_param(qw/client_groups level jobtype/);
+    my $filter3 = $self->get_client_group_filter();
+    my ($stime1, $stime2, $filter1, $label, $jobt) = $self->get_time_overview($arg);
+
+    my $q = "
+SELECT name, $stime1 AS num, 
+       JobStatus AS value, joberrors, nb_job
+FROM (
+  SELECT $stime2        AS date, 
+         client_group_name AS name,
+         MAX(severity)  AS severity,
+         COUNT(1)       AS nb_job,
+	 SUM(JobErrors) AS joberrors
+    FROM $jobt AS Job
+    JOIN client_group_member USING (ClientId)
+    JOIN client_group        USING (client_group_id) $filter3
+    JOIN Status              USING (JobStatus)
+   WHERE true $filter1 $filter2
+   GROUP BY client_group_name, date
+) AS sub JOIN Status USING (severity)
+ ORDER BY name, date
+";
+    my $items = $self->make_overview_tab($q);
+    $self->display({label=>$label,
+		    action => "overview_zoom;since=$arg->{since};age=$arg->{age};client_group=", 
+		    items => $items}, "overview.tpl");
+
 }
 
 # poolname can be undef

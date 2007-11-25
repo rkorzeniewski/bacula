@@ -1,8 +1,12 @@
-
 -- --------------------------------------------------
 -- Upgrade from 2.2
 -- --------------------------------------------------
 
+ALTER TABLE Status ADD COLUMN severity int;
+UPDATE status SET severity = 15;
+UPDATE status SET severity = 100 where jobstatus = 'f';
+UPDATE status SET severity = 90 where jobstatus = 'A';
+UPDATE status SET severity = 10 where jobstatus = 'T';
 
 -- New tables for bresto (same as brestore)
 

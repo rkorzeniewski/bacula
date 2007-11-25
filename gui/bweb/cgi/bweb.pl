@@ -328,17 +328,21 @@ if ($action eq 'begin') {		# main display
     $bweb->can_do('r_view_job');
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/status level filter db_clients
-				    db_filesets 
+				    db_filesets since
 				    limit age offset qclients qfilesets
 				    jobtype qpools db_pools
 				    db_client_groups qclient_groups/); # drop this to hide 
-
+    if (!CGI::param('since')) {
+	$fields->{hide_since}=1 ;
+	delete $fields->{since};
+    }
     $bweb->display($fields, "display_form_job.tpl");
 
     print "</td><td valign='top'>";
-    $bweb->display_job(age => $arg->{age},  # last 7 days
-		       offset => $arg->{offset},
-		       limit => $arg->{limit});
+    $bweb->display_job(age => $fields->{age},  # last 7 days
+		       since => $fields->{since},
+		       offset => $fields->{offset},
+		       limit => $fields->{limit});
     print "</td></tr></table></div>";
 } elsif ($action eq 'job_group') {
     $bweb->can_do('r_view_job');
@@ -348,6 +352,7 @@ if ($action eq 'begin') {		# main display
 
     $fields->{hide_status} = 1;
     $fields->{hide_type} = 1;
+    $fields->{hide_since}=1;
     $fields->{action} = 'job_group';
 
     $bweb->display($fields, "display_form_job.tpl");
@@ -448,6 +453,29 @@ if ($action eq 'begin') {		# main display
 
 } elsif ($action eq 'fileset_view') {
     $bweb->fileset_view();
+
+} elsif ($action eq 'overview') {
+    $bweb->can_do('r_view_job');
+    print "<div><table border='0'><tr><td valign='top'>\n";
+    my $fields = $bweb->get_form(qw/level filter age jobtype since
+				    db_client_groups qclient_groups/); # drop this to hide 
+    $fields->{action}='overview';
+    $bweb->display($fields, "display_form_job.tpl");
+
+    print "</td><td valign='top'>";
+    $bweb->display_overview();
+    print "</td></tr></table></div>";
+
+} elsif ($action eq 'overview_zoom') {
+    $bweb->can_do('r_view_job');
+    print "<div><table border='0'><tr><td valign='top'>\n";
+    my $fields = $bweb->get_form(qw/level filter age jobtype since
+				 db_client_groups qclient_groups/); # drop this to hide 
+    $fields->{action}='overview_zoom';
+    $bweb->display($fields, "display_form_job.tpl");
+    print "</td><td valign='top'>";
+    $bweb->display_overview_zoom();
+    print "</td></tr></table></div>";
 
 } else {
     $bweb->error("Sorry, this action doesn't exist");
