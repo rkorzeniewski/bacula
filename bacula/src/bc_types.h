@@ -62,7 +62,7 @@ typedef unsigned int u_int;
 
 #ifndef HAVE_INTXX_T
 # if (SIZEOF_CHAR == 1)
-typedef char int8_t;
+typedef signed char int8_t;
 # else
 #  error "8 bit int type not found."
 # endif
