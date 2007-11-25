@@ -1394,6 +1394,7 @@ AC_CHECK_HEADERS( \
 	stdlib.h \
 	stdint.h \
 	string.h \
+	strings.h \
 	termios.h \
 	termcap.h \
 	term.h \
@@ -1402,9 +1403,11 @@ AC_CHECK_HEADERS( \
 	sys/byteorder.h \
 	sys/ioctl.h \
 	sys/select.h \
-	sys/sockio.h \
-	sys/time.h \
 	sys/socket.h \
+	sys/sockio.h \
+	sys/stat.h \
+	sys/time.h \
+	sys/types.h \
 	arpa/nameser.h \
 	resolv.h \
 	mtio.h \

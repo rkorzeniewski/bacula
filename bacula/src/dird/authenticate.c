@@ -173,7 +173,7 @@ int authenticate_file_daemon(JCR *jcr)
    /*
     * Send my name to the File daemon then do authentication
     */
-   bstrncpy(dirname, director->hdr.name, sizeof(dirname));
+   bstrncpy(dirname, director->name(), sizeof(dirname));
    bash_spaces(dirname);
    /* Timeout Hello after 1 min */
    btimer_t *tid = start_bsock_timer(fd, AUTH_TIMEOUT);

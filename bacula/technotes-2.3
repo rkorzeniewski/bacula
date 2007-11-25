@@ -1,6 +1,18 @@
               Technical notes on version 2.3
 
 General:
+kes  This patch fixes the status command to include the formating string for
+     JS_AttrInsterting.  It fixes bug #1021.
+kes  This patch should fix the Mac OS X build problem on the latest
+     Darwin, where sys/types.h was not included correctly (apparently
+     due to a change in the Mac headers).  The solution was to explicitly
+     ensure that it is defined for the ./configure.
+     This patch also has a rebuild of configure that includes the Debian
+     qt4 kludge (look for alternate qt4 names).
+     This patch fixes bug #1020.
+kes  This patch should ensure that queued messages to the console are
+     displayed as soon as possible.  It should fix bug 1007, but has been
+     reported not to work.
 14Nov07
 kes  This patch fixes the infinite loop when trying to increase the
      maximum number of volumes in a Pool during the add command.
