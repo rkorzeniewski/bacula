@@ -457,9 +457,10 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'overview') {
     $bweb->can_do('r_view_job');
     print "<div><table border='0'><tr><td valign='top'>\n";
-    my $fields = $bweb->get_form(qw/level filter age jobtype since
+    my $fields = $bweb->get_form(qw/level filter age jobtype since type
 				    db_client_groups qclient_groups/); # drop this to hide 
     $fields->{action}='overview';
+    $fields->{view_time_slice}=1;
     $bweb->display($fields, "display_form_job.tpl");
 
     print "</td><td valign='top'>";
@@ -469,9 +470,10 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'overview_zoom') {
     $bweb->can_do('r_view_job');
     print "<div><table border='0'><tr><td valign='top'>\n";
-    my $fields = $bweb->get_form(qw/level filter age jobtype since
+    my $fields = $bweb->get_form(qw/level filter age jobtype since type
 				 db_client_groups qclient_groups/); # drop this to hide 
     $fields->{action}='overview_zoom';
+    $fields->{view_time_slice}=1;
     $bweb->display($fields, "display_form_job.tpl");
     print "</td><td valign='top'>";
     $bweb->display_overview_zoom();

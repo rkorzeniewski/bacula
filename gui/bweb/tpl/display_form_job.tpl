@@ -47,14 +47,14 @@
 <tr>
   <td valign='top'>
     <h2>Since</h2>
-    <input type='text' name='since' size='17' title='YYY-MM-DD'
+    <input type='text' id='since' name='since' size='17' title='YYY-MM-DD'
      value='<TMPL_VAR since>' class='formulaire'>
   </td>
  </tr>
 <tr>
   <td valign='top'>
     <h2>Age</h2>
-    <select name='age' class='formulaire'>
+    <select name='age' class='formulaire' onclick='document.getElementById("since").value="";'>
       <option id='age_604800'   value='604800'>1 week</option>
       <option id='age_2678400'  value='2678400'>30 days</option>
       <option id='age_15552000' value='15552000'>6 month</option>
@@ -73,6 +73,18 @@
   </td>
  </tr>
 </TMPL_UNLESS>
+<TMPL_IF view_time_slice>
+<tr>
+  <td valign='top'>
+    <h2>Time slice</h2>
+    <select name='type' class='formulaire'>
+      <option id='slice_day'   value='day'>Per days</option>
+      <option id='slice_week'  value='week'>Per weeks</option>
+      <option id='slice_month' value='month'>Per months</option>
+    </select>     
+  </td>
+ </tr>
+</TMPL_IF>
  <tr>
   <td valign='bottom'> 
     <h2>Number of items</h2>
@@ -155,6 +167,10 @@
 
   <TMPL_IF age>
      document.getElementById('age_<TMPL_VAR age>').selected=true;
+  </TMPL_IF>
+
+  <TMPL_IF type>
+     document.getElementById('slice_<TMPL_VAR type>').selected=true;
   </TMPL_IF>
 
   <TMPL_IF jobtype>
