@@ -1069,14 +1069,14 @@ our %sql_func = (
 	      TO_SEC => '',
 	      SEC_TO_TIME => 'SEC_TO_TIME',
 	      MATCH => " REGEXP ",
-	      STARTTIME_DAY  => " DATE_FORMAT(StartTime, '%Y-%m-%d') ",
-	      STARTTIME_HOUR => " DATE_FORMAT(StartTime, '%Y-%m-%d %H') ",
-	      STARTTIME_MONTH => " DATE_FORMAT(StartTime, '%Y-%m') ",
-	      STARTTIME_WEEK => " DATE_FORMAT(StartTime, '%v') ",
-	      STARTTIME_PHOUR=> " DATE_FORMAT(StartTime, '%H') ",
-	      STARTTIME_PDAY => " DATE_FORMAT(StartTime, '%d') ",
-	      STARTTIME_PMONTH => " DATE_FORMAT(StartTime, '%m') ",
-	      STARTTIME_PWEEK => " DATE_FORMAT(StartTime, '%v') ",
+	      STARTTIME_DAY  => " DATE_FORMAT(Job.StartTime, '%Y-%m-%d') ",
+	      STARTTIME_HOUR => " DATE_FORMAT(Job.StartTime, '%Y-%m-%d %H') ",
+	      STARTTIME_MONTH => " DATE_FORMAT(Job.StartTime, '%Y-%m') ",
+	      STARTTIME_WEEK => " DATE_FORMAT(Job.StartTime, '%Y-%v') ",
+	      STARTTIME_PHOUR=> " DATE_FORMAT(Job.StartTime, '%H') ",
+	      STARTTIME_PDAY => " DATE_FORMAT(Job.StartTime, '%d') ",
+	      STARTTIME_PMONTH => " DATE_FORMAT(Job.StartTime, '%m') ",
+	      STARTTIME_PWEEK => " DATE_FORMAT(Job.StartTime, '%v') ",
 	      # with mysql < 5, you have to play with the ugly SHOW command
 	      DB_SIZE => " SELECT 0 ",
 	      # works only with mysql 5
@@ -3326,7 +3326,7 @@ sub get_time_overview
     }
     my $jobt = $self->{info}->{stat_job_table} || 'Job';
     my $stime1 = $self->{sql}->{"STARTTIME_P" . $type}; # get 1,2,3
-    $stime1 =~ s/Job.StartTime/date/;
+    $stime1 =~ s/Job.StartTime/starttime/;
     my $stime2 = $self->{sql}->{"STARTTIME_" . $type}; # get 2007-01-03, 2007-01-23
 
     my ($limit, $label) = $self->get_limit('since' => $arg->{since},
@@ -3358,6 +3358,7 @@ SELECT name, $stime1 AS num,
        JobStatus AS value, joberrors, nb_job
 FROM (
   SELECT $stime2        AS date,
+         StartTime      AS starttime,
 	 Client.Name    AS name,
          MAX(severity)  AS severity,
          COUNT(1)       AS nb_job,
@@ -3395,6 +3396,7 @@ SELECT name, $stime1 AS num,
        JobStatus AS value, joberrors, nb_job
 FROM (
   SELECT $stime2        AS date, 
+         StartTime      AS starttime,
          client_group_name AS name,
          MAX(severity)  AS severity,
          COUNT(1)       AS nb_job,

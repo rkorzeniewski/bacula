@@ -459,8 +459,9 @@ if ($action eq 'begin') {		# main display
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/level filter age jobtype since type
 				    db_client_groups qclient_groups/); # drop this to hide 
-    $fields->{action}='overview';
+    $fields->{hide_status}=1;
     $fields->{view_time_slice}=1;
+    $fields->{action}='overview';
     $bweb->display($fields, "display_form_job.tpl");
 
     print "</td><td valign='top'>";
@@ -472,8 +473,9 @@ if ($action eq 'begin') {		# main display
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/level filter age jobtype since type
 				 db_client_groups qclient_groups/); # drop this to hide 
-    $fields->{action}='overview_zoom';
+    $fields->{hide_status}=1;
     $fields->{view_time_slice}=1;
+    $fields->{action}='overview_zoom';
     $bweb->display($fields, "display_form_job.tpl");
     print "</td><td valign='top'>";
     $bweb->display_overview_zoom();

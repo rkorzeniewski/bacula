@@ -3,10 +3,10 @@
 -- --------------------------------------------------
 
 ALTER TABLE Status ADD COLUMN severity int;
-UPDATE status SET severity = 15;
-UPDATE status SET severity = 100 where jobstatus = 'f';
-UPDATE status SET severity = 90 where jobstatus = 'A';
-UPDATE status SET severity = 10 where jobstatus = 'T';
+UPDATE Status SET severity = 15;
+UPDATE Status SET severity = 100 where JobStatus = 'f';
+UPDATE Status SET severity = 90 where JobStatus = 'A';
+UPDATE Status SET severity = 10 where JobStatus = 'T';
 
 -- New tables for bresto (same as brestore)
 
