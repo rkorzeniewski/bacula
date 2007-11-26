@@ -160,7 +160,7 @@ function ext_init()
            id:        'name', // id assigned so we can apply custom css (e.g. .x-grid-col-topic b { color:#333 })
            header:    'File',
            dataIndex: 'name',
-           width:     100,
+           width:     200,
            css:       'white-space:normal;'
         },{
            header:    "Size",
@@ -170,6 +170,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
+	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i:s'),
            width:     100
         },{
            dataIndex: 'pathid',
@@ -188,7 +189,6 @@ function ext_init()
 
     // by default columns are sortable
    cm.defaultSortable = true;
-
     // create the grid
    var files_grid = new Ext.grid.Grid('div-files', {
         ds: file_store,
@@ -198,10 +198,10 @@ function ext_init()
         enableDragDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
         loadMask: true,
+        autoSizeColumns: true,
         enableColLock:false
         
     });
-
     // when we reload the view,
     // we clear the file version box
     file_store.on('beforeload', function(e) {
@@ -211,7 +211,7 @@ function ext_init()
 
     // TODO: selection only when using dblclick
     files_grid.selModel.on('rowselect', function(e,i,r) { 
-        Ext.brestore.filename = r.json[3];
+        Ext.brestore.filename = r.json[4];
         file_versions_store.load({params:init_params({action: 'list_versions',
 						     vafv: Ext.brestore.option_vafv,
   	                                             pathid: r.json[2],
@@ -256,6 +256,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
+	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i'),
            width:     100
         },{
            dataIndex: 'pathid',
@@ -282,7 +283,6 @@ function ext_init()
         selModel: new Ext.grid.RowSelectionModel(),
         loadMask: true,
         enableColLock:false
-        
     });
 
     var file_selection_record = Ext.data.Record.create(
@@ -348,7 +348,6 @@ function ext_init()
            return true;
     }});
 
-
    file_selection_grid.on('enddrag', function(dd,e) { 
         alert(e) ; return true;
     });
@@ -376,7 +375,7 @@ function ext_init()
    {name: 'inchanger' },
    {name: 'md5'       },
    {name: 'size',     type: 'int'  },
-   {name: 'mtime'} //,    type: 'date', dateFormat: 'Y-m-d h:i:s'}
+   {name: 'mtime',    type: 'date', dateFormat: 'Y-m-d h:i:s'}
         ]))
    });
 
@@ -404,18 +403,22 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
+	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i:s'),
            width:     100
         },{
            header:    "MD5",
            dataIndex: 'md5',
            width:     160
         },{
+	   header:    "pathid",
            dataIndex: 'pathid',
            hidden: true
         },{
+           header:    "filenameid",
            dataIndex: 'filenameid',
            hidden: true
         },{
+           header:    "fileid",
            dataIndex: 'fileid',
            hidden: true
         }
@@ -593,9 +596,9 @@ function ext_init()
             menu: menu  // assign menu by instance
         },
 	{
-	    icon: '/bweb/remove.png', // icons can also be specified inline
+	    icon: '/bweb/mR.png', // icons can also be specified inline
             cls: 'x-btn-icon',
-	    text: 'restore',
+	    title: 'restore',
 	    handler: function() { 
 	        if (Ext.brestore.dlglaunch) {
 		   Ext.brestore.dlglaunch.show();

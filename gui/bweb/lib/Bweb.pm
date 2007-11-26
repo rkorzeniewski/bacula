@@ -3326,7 +3326,7 @@ sub get_time_overview
     }
     my $jobt = $self->{info}->{stat_job_table} || 'Job';
     my $stime1 = $self->{sql}->{"STARTTIME_P" . $type}; # get 1,2,3
-    $stime1 =~ s/Job.StartTime/starttime/;
+    $stime1 =~ s/Job.StartTime/date/;
     my $stime2 = $self->{sql}->{"STARTTIME_" . $type}; # get 2007-01-03, 2007-01-23
 
     my ($limit, $label) = $self->get_limit('since' => $arg->{since},
@@ -3358,7 +3358,6 @@ SELECT name, $stime1 AS num,
        JobStatus AS value, joberrors, nb_job
 FROM (
   SELECT $stime2        AS date,
-         StartTime      AS starttime,
 	 Client.Name    AS name,
          MAX(severity)  AS severity,
          COUNT(1)       AS nb_job,
@@ -3396,7 +3395,6 @@ SELECT name, $stime1 AS num,
        JobStatus AS value, joberrors, nb_job
 FROM (
   SELECT $stime2        AS date, 
-         StartTime      AS starttime,
          client_group_name AS name,
          MAX(severity)  AS severity,
          COUNT(1)       AS nb_job,

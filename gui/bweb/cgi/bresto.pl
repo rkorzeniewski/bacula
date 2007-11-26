@@ -739,6 +739,7 @@ SELECT JobId
 
 package main;
 use strict;
+use POSIX qw/strftime/;
 use Bweb;
 
 my $conf = new Bweb::Config(config_file => $Bweb::config_file);
@@ -873,19 +874,32 @@ if ($action eq 'restore') {
 
     my $u = join(" UNION ", @union);
 
-    $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp AS ($u)");
+    $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp AS $u");
     # TODO: remove FilenameId et PathId
-    $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
-  FROM btemp,
-       (SELECT max(JobId) as JobId, PathId, FilenameId
-          FROM btemp
-      GROUP BY PathId, FilenameId
-      ORDER BY JobId DESC) AS a
-  WHERE a.JobId = btemp.JobId
-    AND a.PathId= btemp.PathId
-    AND a.FilenameId = btemp.FilenameId
+
+    # now we have to choose the file with the max(jobid)
+    # for each file of btemp
+    if ($bvfs->dbh_is_mysql()) {
+       $bvfs->dbh_do("CREATE TEMPORARY TABLE btemp2 AS (
+SELECT max(JobId) as JobId, PathId, FilenameId
+  FROM btemp
+ GROUP BY PathId, FilenameId
 )");
+       $bvfs->dbh_do("CREATE TABLE b2$$ AS (
+SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
+  FROM btemp, btemp2
+  WHERE btemp2.JobId = btemp.JobId
+    AND btemp2.PathId= btemp.PathId
+    AND btemp2.FilenameId = btemp.FilenameId
+)");
+   } else { # postgresql have distinct with more than one criteria...
+        $bvfs->dbh_do("CREATE TABLE b2$$ AS (
+SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
+  FROM btemp
+ ORDER BY PathId, FilenameId, JobId DESC
+)");
+    }
+
     my $bconsole = $bvfs->get_bconsole();
     # TODO: pouvoir choisir le replace et le jobname
     my $jobid = $bconsole->run(client    => $arg->{client},
@@ -918,8 +932,7 @@ if ($action eq 'list_files') {
 #   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
 
     print join(',',
-	       map { "[$_->[1], $_->[0], $pathid, $_->[4], \"$_->[2]\", 10, \"2007-01-01 00:00:00\"]" }
-	       @$files);
+	       map { my @p=Bvfs::parse_lstat($_->[3]); "[$_->[1],$_->[0],$pathid,$_->[4],\"$_->[2]\"," . $p[7] . ",'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "']" } @$files);
     print "]\n";
 
 } elsif ($action eq 'list_dirs') {
@@ -944,7 +957,7 @@ if ($action eq 'list_files') {
     #($pathid,$fileid,$jobid, $fid, $mtime, $size, $inchanger, $md5, $volname);
     my $files = $bvfs->get_all_file_versions($args->{pathid}, $args->{filenameid}, $args->{client}, $vafv);
     print join(',',
-	       map { "[ $_->[3], $_->[1], $_->[0], $_->[2], '$_->[8]', $_->[6], '$_->[7]', $_->[5], $_->[4] ]" }
+	       map { "[ $_->[3], $_->[1], $_->[0], $_->[2], '$_->[8]', $_->[6], '$_->[7]', $_->[5],'" . strftime('%Y-%m-%d %H:%m:%S', localtime($_->[4])) . "']" }
 	       @$files);
     print "]\n";
 
@@ -954,11 +967,11 @@ if ($action eq 'list_files') {
     my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
 
     my $q="
- SELECT DISTINCT VolumeName, InChanger
+ SELECT DISTINCT VolumeName, Enabled, InChanger
    FROM File,
     ( -- Get all media from this job
       SELECT MIN(FirstIndex) AS FirstIndex, MAX(LastIndex) AS LastIndex,
-             VolumeName, Inchanger
+             VolumeName, Enabled, Inchanger
         FROM JobMedia JOIN Media USING (MediaId)
        WHERE JobId IN ($jobid)
        GROUP BY VolumeName, InChanger
@@ -969,7 +982,7 @@ if ($action eq 'list_files') {
 ";
     my $lst = $bvfs->dbh_selectall_arrayref($q);
     print "[";
-    print join(',', map { "[ '$_->[0]', $_->[1]]" } @$lst);
+    print join(',', map { "['$_->[0]',$_->[1]],$_->[2]]" } @$lst);
     print "]\n";
 
 }
