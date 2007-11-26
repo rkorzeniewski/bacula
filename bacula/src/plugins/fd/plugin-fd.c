@@ -38,80 +38,86 @@
 extern "C" {
 #endif
 
+#define PLUGIN_LICENSE      "GPL"
+#define PLUGIN_AUTHOR       "Kern Sibbald"
+#define PLUGIN_DATE         "November 2007"
+#define PLUGIN_VERSION      "1"
+#define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"
+
 /* Forward referenced functions */
-bpError pNew(bpContext *ctx);
-bpError pDestroy(bpContext *ctx);
-bpError pGetValue(bpContext *ctx, pVariable var, void *value);
-bpError pSetValue(bpContext *ctx, pVariable var, void *value);
-bpError pHandleEvent(bpContext *ctx, bEvent *event);
+static bpError newPlugin(bpContext *ctx);
+static bpError freePlugin(bpContext *ctx);
+static bpError getPluginValue(bpContext *ctx, pVariable var, void *value);
+static bpError setPluginValue(bpContext *ctx, pVariable var, void *value);
+static bpError handlePluginEvent(bpContext *ctx, bEvent *event);
 
 
 /* Pointers to Bacula functions */
-bpError (*p_bGetValue)(bpContext *ctx, bVariable var, void *value);
-bpError (*p_bSetValue)(bpContext *ctx, bVariable var, void *value);
+static bFuncs *bfuncs = NULL;
 
-pFuncs pluginFuncs = {
+static pFuncs pluginFuncs = {
    sizeof(pluginFuncs),
-   1,
-   pNew,
-   pDestroy,
-   pGetValue,
-   pSetValue,
-   pHandleEvent
+   PLUGIN_INTERFACE,
+   PLUGIN_MAGIC,
+   PLUGIN_LICENSE,
+   PLUGIN_AUTHOR,
+   PLUGIN_DATE,
+   PLUGIN_VERSION,
+   PLUGIN_DESCRIPTION,
+
+   /* Entry points into plugin */
+   newPlugin,                         /* new plugin instance */
+   freePlugin,                        /* free plugin instance */
+   getPluginValue,
+   setPluginValue,
+   handlePluginEvent
 };
 
-bpError bpInitialize(bFuncs *bfuncs, pFuncs *pfuncs) 
+bpError loadPlugin(bFuncs *lbfuncs, pFuncs **pfuncs) 
 {
-   printf("plugin: Initializing. size=%d version=%d\n", bfuncs->size, bfuncs->version);
-   p_bGetValue = bfuncs->bGetValue;
-   p_bSetValue = bfuncs->bSetValue;
+   bfuncs = lbfuncs;                  /* set Bacula funct pointers */
+   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->interface);
 
-   pfuncs->pNew = pNew;
-   pfuncs->pDestroy = pDestroy;
-   pfuncs->pGetValue = pGetValue;
-   pfuncs->pSetValue = pSetValue;
-   pfuncs->pHandleEvent = pHandleEvent;
-   pfuncs->size = sizeof(pFuncs);
-   pfuncs->version = 1;
+   *pfuncs = &pluginFuncs;            /* return pointer to our functions */
 
    return 0;
 }
 
-bpError bpShutdown() 
+bpError unloadPlugin() 
 {
-   printf("plugin: Shutting down\n");
+   printf("plugin: Unloaded\n");
    return 0;
 }
 
-bpError pNew(bpContext *ctx)
+static bpError newPlugin(bpContext *ctx)
 {
    int JobId = 0;
-   p_bGetValue(ctx, bVarJobId, (void *)&JobId);
-   printf("plugin: New JobId=%d\n", JobId);
+   bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
+   printf("plugin: newPlugin JobId=%d\n", JobId);
    return 0;
 }
 
-bpError pDestroy(bpContext *ctx)
+static bpError freePlugin(bpContext *ctx)
 {
    int JobId = 0;
-   p_bGetValue(ctx, bVarJobId, (void *)&JobId);
-   printf("plugin: Destroy JobId=%d\n", JobId);
+   bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
+   printf("plugin: freePlugin JobId=%d\n", JobId);
    return 0;
 }
 
-bpError pGetValue(bpContext *ctx, pVariable var, void *value) 
+static bpError getPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-   printf("plugin: GetValue var=%d\n", var);
+   printf("plugin: getPluginValue var=%d\n", var);
    return 0;
 }
 
-bpError pSetValue(bpContext *ctx, pVariable var, void *value) 
+static bpError setPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-   printf("plugin: PutValue var=%d\n", var);
+   printf("plugin: setPluginValue var=%d\n", var);
    return 0;
 }
 
-bpError pHandleEvent(bpContext *ctx, bEvent *event) 
+static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
 {
    printf("plugin: HandleEvent Event=%d\n", event->eventType);
    return 0;

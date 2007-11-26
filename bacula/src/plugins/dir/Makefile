@@ -11,14 +11,15 @@ CC = g++ -g -O0 -Wall
 
 all: main plugin-dir.so 
 
-main: main.o plugin-dir.h
+main: main.o plugin-dir.h 
 	$(CC) -L../../lib main.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
 plugin-dir.o: plugin-dir.c plugin-dir.h
 	$(CC) -fPIC -I../.. -c plugin-dir.c
 
-plugin-dir.so: plugin-dir.o
+plugin-dir.so: plugin-dir.o 
 	$(CC) -shared plugin-dir.o -o plugin-dir.so
 
+
 clean:
-	rm -f main *.so *.o
+	rm -f main *.so *.o 1 2 3
