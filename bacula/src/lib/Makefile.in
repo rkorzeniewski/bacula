@@ -25,7 +25,7 @@ LIBSRCS = attr.c base64.c berrno.c bsys.c bget_msg.c \
 	  cram-md5.c crc32.c crypto.c daemon.c edit.c fnmatch.c \
 	  guid_to_name.c hmac.c jcr.c lex.c alist.c dlist.c \
 	  md5.c message.c mem_pool.c openssl.c parse_conf.c \
-	  queue.c bregex.c \
+	  plugin.c queue.c bregex.c \
 	  res.c rwlock.c scan.c serial.c sha1.c \
 	  signal.c smartall.c rblist.c tls.c tree.c \
 	  util.c var.c watchdog.c workq.c btimers.c \
@@ -38,7 +38,7 @@ LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
 	  cram-md5.o crc32.o crypto.o daemon.o edit.o fnmatch.o \
 	  guid_to_name.o hmac.o jcr.o lex.o alist.o dlist.o \
 	  md5.o message.o mem_pool.o openssl.o parse_conf.o \
-	  queue.o bregex.o \
+	  plugin.o queue.o bregex.o \
 	  res.o rwlock.o scan.o serial.o sha1.o \
 	  signal.o smartall.o rblist.o tls.o tree.o \
 	  util.o var.o watchdog.o workq.o btimers.o \
@@ -108,7 +108,10 @@ bsnprintf: bsnprintf.o
 	$(CXX) $(LDFLAGS) -L. -o $@ bsnprintf.o $(LIBS) $(DLIB) -lbac $(OPENSSL_LIBS) -lm
 	rm -f bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
-	
+
+plugin.o: plugin.c
+	$(NO_ECHO)$(CXX) -fPIC $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
+
 	 
 install:
 
