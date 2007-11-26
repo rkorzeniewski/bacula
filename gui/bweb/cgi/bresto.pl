@@ -964,7 +964,7 @@ if ($action eq 'list_files') {
 } elsif ($action eq 'get_media') {
 
     my $jobid = join(',', @jobid);
-    my $fileid = join(',', grep { /^\d+$/ } CGI::param('fileid'));
+    my $fileid = join(',', grep { /^\d+(,\d+)*$/ } CGI::param('fileid'));
 
     my $q="
  SELECT DISTINCT VolumeName, Enabled, InChanger
@@ -974,7 +974,7 @@ if ($action eq 'list_files') {
              VolumeName, Enabled, Inchanger
         FROM JobMedia JOIN Media USING (MediaId)
        WHERE JobId IN ($jobid)
-       GROUP BY VolumeName, InChanger
+       GROUP BY VolumeName,Enabled,InChanger
     ) AS allmedia
   WHERE File.FileId IN ($fileid)
     AND File.FileIndex >= allmedia.FirstIndex
@@ -982,7 +982,7 @@ if ($action eq 'list_files') {
 ";
     my $lst = $bvfs->dbh_selectall_arrayref($q);
     print "[";
-    print join(',', map { "['$_->[0]',$_->[1]],$_->[2]]" } @$lst);
+    print join(',', map { "['$_->[0]',$_->[1],$_->[2]]" } @$lst);
     print "]\n";
 
 }

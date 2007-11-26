@@ -690,23 +690,85 @@ function ext_init()
             selectOnFocus:true,
             width:190
         });
+////////////////////////////////////////////////////////////////
+  var media_store = new Ext.data.Store({
+        proxy: new Ext.data.HttpProxy({
+            url: '/cgi-bin/bweb/bresto.pl',
+            method: 'GET',
+            params:{offset:0, limit:50 }
+        }),
+
+        reader: new Ext.data.ArrayReader({
+        }, Ext.data.Record.create([
+   {name: 'volumename'},
+   {name: 'enabled'   },
+   {name: 'inchanger' }
+        ]))
+   });
+
+   var media_cm = new Ext.grid.ColumnModel([{
+           header:    "InChanger",
+           dataIndex: 'inchanger',
+           width:     60,
+           renderer:  rd_vol_is_online
+        }, {
+           header:    "Volume",
+           id:        'volumename', 
+           dataIndex: 'volumename',
+	   width:     140
+        }
+   ]);
+
+    // create the grid
+   var media_grid = new Ext.grid.Grid('div-media', {
+        ds: media_store,
+        cm: media_cm,
+        enableDrag: false,
+        enableDrop: false,
+        loadMask: true,
+	width: 200,
+        enableColLock:false        
+    });
+
+    media_grid.render();
+
+    var items = file_selection_store.data.items;
+    var tab_fileid=new Array();
+    var tab_jobid=new Array();
+    for(var i=0;i<items.length;i++) {
+       if (items[i].data['fileid']) {
+          tab_fileid.push(items[i].data['fileid']);
+       }
+       tab_jobid.push(items[i].data['jobid']);
+    }
+    var res = tab_fileid.join(",");
+    var res2 = tab_jobid.join(",");
+
+    media_store.baseParams = init_params({action: 'get_media', jobid: res2, fileid: res});
+    media_store.reload();
+
+////////////////////////////////////////////////////////////////
+    fs.fieldset(
+        {legend:'Media needed'},
+        media_grid
+    );
     fs.fieldset(
         {legend:'Restore job'},
-//        new Ext.form.ComboBox({
-//            fieldLabel: 'Replace',
-//            hiddenName:'replace',
-//            store: new Ext.data.SimpleStore({
-//   		 fields: ['replace'],
-//		 data : [['always'],['never'],['if newer']]
-//	    }),
-//            displayField:'replace',
-//            typeAhead: true,
-//            mode: 'local',
-//            triggerAction: 'all',
-//            emptyText:'never',
-//            selectOnFocus:true,
-//            width:190
-//        }),
+        new Ext.form.ComboBox({
+            fieldLabel: 'Replace',
+            hiddenName:'replace',
+            store: new Ext.data.SimpleStore({
+   		 fields: ['replace'],
+		 data : [['always'],['never'],['if newer']]
+	    }),
+            displayField:'replace',
+            typeAhead: true,
+            mode: 'local',
+            triggerAction: 'all',
+            emptyText:'never',
+            selectOnFocus:true,
+            width:190
+        }),
 //
 //        new Ext.form.ComboBox({
 //            fieldLabel: 'job',
@@ -754,22 +816,23 @@ function ext_init()
 	var res4 = ';client=' + rclient_combo.getValue() + ';storage=' + storage_combo.getValue() + ';where=' + where_text.getValue();
 
 	window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
+    } // end launch_restore
+
+    var dialog = Ext.brestore.dlglaunch;
+    dialog.addKeyListener(27, dialog.hide, dialog);
+    dialog.addButton('Submit', launch_restore);
+    dialog.addButton('Close', dialog.hide, dialog);
+    
+    var layout = dialog.getLayout();
+    layout.beginUpdate();
+    layout.add('center', new Ext.ContentPanel('div-resto-form', {
+                                autoCreate:true, title: 'Third Tab', closable:true, background:true}));
+    layout.endUpdate();
+    dialog.show();
+
     }
-	var dialog = Ext.brestore.dlglaunch;
-        dialog.addKeyListener(27, dialog.hide, dialog);
-        dialog.addButton('Submit', launch_restore);
-        dialog.addButton('Close', dialog.hide, dialog);
-
-        var layout = dialog.getLayout();
-        layout.beginUpdate();
-	layout.add('center', new Ext.ContentPanel('div-resto-form', {
-                                    autoCreate:true, title: 'Third Tab', closable:true, background:true}));
-	layout.endUpdate();
-	dialog.show();
-
-	    }
-	}
-    ]);
+  }
+ ]);
 
 ////////////////////////////////////////////////////////////////
 
