@@ -1,0 +1,90 @@
+ Add a new runswhen directive ClientRunAfterVSS 
+ "Run After VSS snapshot, but before backup"
+
+ It can be applied to Bacula trunk (and probably earlier
+ 2.2.x versions) with:
+
+ cd <bacula-source>
+ ./configure <your options>
+ patch -p0 <clientrunaftervss.patch
+ make
+ ...
+ make install
+
+
+
+Index: src/lib/runscript.c
+===================================================================
+--- src/lib/runscript.c	(révision 5993)
++++ src/lib/runscript.c	(copie de travail)
+@@ -108,6 +108,8 @@
+ 
+    if (strstr(label, NT_("Before"))) {
+       when = SCRIPT_Before;
++   } else if (bstrcmp(label, NT_("ClientRunAfterVSS"))) {
++      when = SCRIPT_AfterVSS;
+    } else {
+       when = SCRIPT_After;
+    }
+@@ -134,6 +136,19 @@
+          }
+       }
+ 
++      if ((script->when & SCRIPT_AfterVSS) && (when & SCRIPT_AfterVSS)) {
++         if ((script->on_success 
++            && (jcr->JobStatus == JS_Running || jcr->JobStatus == JS_Created))
++            || (script->on_failure && job_canceled(jcr))
++            )
++         {
++            Dmsg4(200, "runscript: Run it because SCRIPT_AfterVSS (%s,%i,%i,%c)\n", 
++                  script->command, script->on_success, script->on_failure,
++                  jcr->JobStatus );
++            runit = true;
++         }
++      }
++
+       if ((script->when & SCRIPT_After) && (when & SCRIPT_After)) {
+          if ((script->on_success && (jcr->JobStatus == JS_Terminated))
+              || (script->on_failure && job_canceled(jcr))
+Index: src/lib/runscript.h
+===================================================================
+--- src/lib/runscript.h	(révision 5993)
++++ src/lib/runscript.h	(copie de travail)
+@@ -56,6 +56,7 @@
+    SCRIPT_Never  = 0,
+    SCRIPT_After  = (1<<0),      /* AfterJob */
+    SCRIPT_Before = (1<<1),      /* BeforeJob */
++   SCRIPT_AfterVSS = (1<<2),	/* BeforeJob and After VSS */
+    SCRIPT_Any    = SCRIPT_Before | SCRIPT_After
+ };
+ 
+Index: src/filed/job.c
+===================================================================
+--- src/filed/job.c	(révision 5993)
++++ src/filed/job.c	(copie de travail)
+@@ -1427,6 +1435,7 @@
+          berrno be;
+          Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
+       } 
++      script->run(jcr, "ClientRunAfterVSS");
+    }
+ #endif
+ 
+Index: src/dird/dird_conf.c
+===================================================================
+--- src/dird/dird_conf.c	(révision 5993)
++++ src/dird/dird_conf.c	(copie de travail)
+@@ -1682,10 +1682,12 @@
+       *(int *)(item->value) = SCRIPT_Before ;
+    } else if (strcasecmp(lc->str, "after") == 0) {
+       *(int *)(item->value) = SCRIPT_After;
++   } else if (strcasecmp(lc->str, "aftervss") == 0) {
++      *(int *)(item->value) = SCRIPT_AfterVSS;
+    } else if (strcasecmp(lc->str, "always") == 0) {
+       *(int *)(item->value) = SCRIPT_Any;
+    } else {
+-      scan_err2(lc, _("Expect %s, got: %s"), "Before, After or Always", lc->str);
++      scan_err2(lc, _("Expect %s, got: %s"), "Before, After, AfterVSS or Always", lc->str);
+    }
+    scan_to_eol(lc);
+ }
