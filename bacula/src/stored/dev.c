@@ -1856,7 +1856,7 @@ void DEVICE::close()
    /* Clean up device packet so it can be reused */
    clear_opened();
    state &= ~(ST_LABEL|ST_READ|ST_APPEND|ST_EOT|ST_WEOT|ST_EOF|
-              ST_MOUNTED|ST_MEDIA|ST_SHORT|ST_FREESPACE_OK|ST_PART_SPOOLED);
+              ST_MOUNTED|ST_MEDIA|ST_SHORT);
    label_type = B_BACULA_LABEL;
    file = block_num = 0;
    file_size = 0;
