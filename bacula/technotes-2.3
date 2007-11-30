@@ -6,7 +6,7 @@ kes  This patch fixes bug #1012 where the job is canceled because
       of Max Run Time exceeded when the job has not yet started.
 29Nov07
 ebl  Apply Richard Mortimer patch that fixes #1016 when there are more than 
-     one "part" to write.  Instead of each part being stored on disk, 
+     one 'part' to write.  Instead of each part being stored on disk, 
      written to DVD, then deleted from disk, all parts are written to disk,
      and only the last is written and deleted from disk.
 kes  This patch fixes the status command to include the formating string for
