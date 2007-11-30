@@ -165,13 +165,6 @@ if test x$sbindir = x'${exec_prefix}/sbin' ; then
 fi
 sbindir=`eval echo ${sbindir}`
 
-# ------------------------------------------------------------------
-# If the user has not set --archivedir, we set our default as /tmp
-# ------------------------------------------------------------------
-if test x$archivedir = x'${archivedir}' ; then
-    archivedir=${archivedir}
-fi
-archivedir=`eval echo ${archivedir}`
 
 # -------------------------------------------------------------------------
 #  If the user has not set --mandir, we default to /usr/share/man
@@ -948,6 +941,22 @@ AC_ARG_WITH(working-dir,
 )
 
 AC_SUBST(working_dir)
+
+# ------------------------------------------------------------------
+# If the user has not set archivedir, we set our default as /tmp
+# ------------------------------------------------------------------
+archive_dir=/tmp
+AC_ARG_WITH(archivedir,
+   [  --with-archivedir=PATH	specify path of SD archive directory],
+   [
+       if test "x$withval" != "xno" ; then     
+	      archivedir=$withval
+       fi
+   ]
+)
+
+AC_SUBST(archivedir)
+
 
 
 # ------------------------------------------
