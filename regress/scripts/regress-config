@@ -8,7 +8,6 @@
 CFLAGS="-g -O2 -Wall" \
  ./configure \
     --sbindir=${1}/bin \
-    --archivedir=${1}/tmp \
     --sysconfdir=${1}/bin \
     --mandir=${1}/bin \
     --with-pid-dir=${1}/working \
@@ -16,6 +15,7 @@ CFLAGS="-g -O2 -Wall" \
     --enable-smartalloc \
     --disable-readline \
     --with-working-dir=${1}/working \
+    --with-archivedir=${1}/tmp \
     --with-dump-email=${EMAIL} \
     --with-job-email=${EMAIL} \
     --with-smtp-host=${SMTP_HOST} \
