@@ -60,9 +60,8 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
 {
    t_loadPlugin loadPlugin;
    Plugin *plugin;
-   char *error;
    DIR* dp = NULL;
-   struct dirent *entry, *result;
+   struct dirent *entry = NULL, *result;
    int name_max;
    struct stat statp;
    bool found = false;
@@ -79,7 +78,7 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
 
    if (!(dp = opendir(plugin_dir))) {
       berrno be;
-      Dmsg2(29, "load_plugins: failed to open dir %s: ERR=%s\n", 
+      Jmsg(NULL, M_ERROR, 0, _("Failed to open Plugin directory %s: ERR=%s\n"), 
             plugin_dir, be.bstrerror());
       goto get_out;
    }
@@ -91,8 +90,10 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
    entry = (struct dirent *)malloc(sizeof(struct dirent) + name_max + 1000);
    for ( ;; ) {
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
-         Dmsg1(129, "load_plugins: failed to find suitable file in dir %s\n", 
-               plugin_dir);
+         if (!found) {
+            Jmsg(NULL, M_INFO, 0, _("Failed to find suitable plugin in %s\n"), 
+                  plugin_dir);
+         }
          break;
       }
       if (strcmp(result->d_name, ".") == 0 || 
@@ -119,19 +120,22 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
       plugin->file = bstrdup(result->d_name);
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
-         printf("dlopen of %s failed: ERR=%s\n", fname.c_str(), dlerror());
+         Jmsg(NULL, M_ERROR, 0, _("Plugin load %s failed: ERR=%s\n"), 
+              fname.c_str(), dlerror());
          goto get_out;
       }
 
       /* Get two global entry points */
       loadPlugin = (t_loadPlugin)dlsym(plugin->pHandle, "loadPlugin");
-      if ((error=dlerror()) != NULL) {
-         printf("dlsym failed: ERR=%s\n", error);
+      if (!loadPlugin) {
+         Jmsg(NULL, M_ERROR, 0, _("Lookup of loadPlugin in plugin %s failed: ERR=%s\n"),
+            fname.c_str(), dlerror());
          goto get_out;
       }
       plugin->unloadPlugin = (t_unloadPlugin)dlsym(plugin->pHandle, "unloadPlugin");
-      if ((error=dlerror()) != NULL) {
-         printf("dlsym failed: ERR=%s\n", error);
+      if (!plugin->unloadPlugin) {
+         Jmsg(NULL, M_ERROR, 0, _("Lookup of unloadPlugin in plugin %s failed: ERR=%s\n"),
+            fname.c_str(), dlerror());
          goto get_out;
       }
 
@@ -142,7 +146,9 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
    }
 
 get_out:
-   free(entry);
+   if (entry) {
+      free(entry);
+   }
    if (dp) {
       closedir(dp);
    }
