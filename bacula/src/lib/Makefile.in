@@ -109,7 +109,8 @@ bsnprintf: bsnprintf.o
 	rm -f bsnprintf.o
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) bsnprintf.c
 
-plugin.o: plugin.c
+plugin.o: plugin.c plugin.h
+	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) -fPIC $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 	 
