@@ -47,6 +47,7 @@
 #ifdef HAVE_POSTGRESQL
 
 #include "postgres_ext.h"       /* needed for NAMEDATALEN */
+#include "pg_config_manual.h"   /* get NAMEDATALEN on version 8.3 or later */
 
 /* -----------------------------------------------------------------------
  *
