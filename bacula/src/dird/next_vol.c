@@ -97,7 +97,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                   prune_volumes(jcr, InChanger, mr);
                }
                ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-               if (!ok) {
+               if (!ok && create) {
                   Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
                         ok, index, InChanger, mr->VolStatus);
                   /*

@@ -1,6 +1,10 @@
               Technical notes on version 2.3
 
 General:
+02Dec07
+kes  This patch prevents the 'status dir' command from trying to use a scratch
+     volume and possibly moving it from one pool to another.  This patch fixes
+     bug #1019.
 01Dec07
 kes  Add new include to cats/postgresql.c suggested by Marc Cousins so
      that it compiles correctly with pgre version 8.3.
