@@ -1,14 +1,4 @@
 /*
- *
- *   record.c -- tape record handling functions
- *
- *              Kern Sibbald, April MMI
- *                added BB02 format October MMII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   record.c -- tape record handling functions
+ *
+ *              Kern Sibbald, April MMI
+ *                added BB02 format October MMII
+ *
+ *   Version $Id$
+ *
+ */
 
 
 #include "bacula.h"
@@ -254,7 +254,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
    ASSERT(block->buf_len >= block->binbuf);
 
    Dmsg6(890, "write_record_to_block() FI=%s SessId=%d Strm=%s len=%d\n"
-"rem=%d remainder=%d\n",
+      "rem=%d remainder=%d\n",
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
       stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
       remlen, rec->remainder);
@@ -365,7 +365,7 @@ bool write_record_to_block(DEV_BLOCK *block, DEV_RECORD *rec)
          if (!sm_check_rtn(__FILE__, __LINE__, False)) {
             /* We damaged a buffer */
             Dmsg6(0, "Damaged block FI=%s SessId=%d Strm=%s len=%d\n"
-"rem=%d remainder=%d\n",
+               "rem=%d remainder=%d\n",
                FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
                stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len,
                remlen, rec->remainder);
