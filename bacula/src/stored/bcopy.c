@@ -42,6 +42,7 @@
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 
 /* Forward referenced functions */
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec);
 static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
 
@@ -52,10 +53,11 @@ static JCR *in_jcr;                    /* input jcr */
 static JCR *out_jcr;                   /* output jcr */
 static BSR *bsr = NULL;
 static const char *wd = "/tmp";
-static int list_records = 0;
+static bool list_records = false;
 static uint32_t records = 0;
 static uint32_t jobs = 0;
 static DEV_BLOCK *out_block;
+static SESSION_LABEL sessrec;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
@@ -90,6 +92,7 @@ int main (int argc, char *argv[])
    char *iVolumeName = NULL;
    char *oVolumeName = NULL;
    bool ignore_label_errors = false;
+   bool ok;
 
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -205,9 +208,12 @@ int main (int argc, char *argv[])
    }
    out_block = out_jcr->dcr->block;
 
-   read_records(in_jcr->dcr, record_cb, mount_next_read_volume);
-   if (!write_block_to_device(out_jcr->dcr)) {
-      Pmsg0(000, _("Write of last block failed.\n"));
+   ok = read_records(in_jcr->dcr, record_cb, mount_next_read_volume);
+
+   if (ok || out_dev->can_write()) {
+      if (!write_block_to_device(out_jcr->dcr)) {
+         Pmsg0(000, _("Write of last block failed.\n"));
+      }
    }
 
    Pmsg2(000, _("%u Jobs copied. %u records copied.\n"), jobs, records);
@@ -236,6 +242,7 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
     *
     */
    if (rec->FileIndex < 0) {
+      get_session_record(in_dcr->dev, rec, &sessrec);
 
       if (verbose > 1) {
          dump_label_record(in_dcr->dev, rec, 1);
@@ -259,6 +266,7 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
                   out_dev->print_name(), out_dev->bstrerror());
                Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
                      out_dev->bstrerror());
+               return false;
             }
          }
          if (!write_block_to_device(out_jcr->dcr)) {
@@ -266,8 +274,9 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
                out_dev->print_name(), out_dev->bstrerror());
             Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
                   out_dev->bstrerror());
+            return false;
          }
-         break;
+         return true;
       case EOM_LABEL:
          Pmsg0(000, _("EOM label not copied.\n"));
          return true;
@@ -275,7 +284,7 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
          Pmsg0(000, _("EOT label not copied.\n"));
          return true;
       default:
-         break;
+         return true;
       }
    }
 
@@ -289,10 +298,46 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
             out_dev->print_name(), out_dev->bstrerror());
          Jmsg(out_jcr, M_FATAL, 0, _("Cannot fixup device error. %s\n"),
                out_dev->bstrerror());
-         break;
+         return false;
       }
    }
    return true;
+}
+
+static void get_session_record(DEVICE *dev, DEV_RECORD *rec, SESSION_LABEL *sessrec)
+{
+   const char *rtype;
+   memset(sessrec, 0, sizeof(sessrec));
+   switch (rec->FileIndex) {
+   case PRE_LABEL:
+      rtype = _("Fresh Volume Label");
+      break;
+   case VOL_LABEL:
+      rtype = _("Volume Label");
+      unser_volume_label(dev, rec);
+      break;
+   case SOS_LABEL:
+      rtype = _("Begin Job Session");
+      unser_session_label(sessrec, rec);
+      break;
+   case EOS_LABEL:
+      rtype = _("End Job Session");
+      unser_session_label(sessrec, rec);
+      break;
+   case 0:
+   case EOM_LABEL:
+      rtype = _("End of Medium");
+      break;
+   default:
+      rtype = _("Unknown");
+      break;
+   }
+   Dmsg5(10, "%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n",
+         rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+   if (verbose) {
+      Pmsg5(-1, _("%s Record: VolSessionId=%d VolSessionTime=%d JobId=%d DataLen=%d\n"),
+            rtype, rec->VolSessionId, rec->VolSessionTime, rec->Stream, rec->data_len);
+   }
 }
 
 
