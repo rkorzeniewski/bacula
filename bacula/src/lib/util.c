@@ -474,6 +474,8 @@ void make_session_key(char *key, char *seed, int mode)
    unsigned char md5key[16], md5key1[16];
    char s[1024];
 
+#define ss sizeof(s)
+
    s[0] = 0;
    if (seed != NULL) {
      bstrncat(s, seed, sizeof(s));
@@ -494,41 +496,41 @@ void make_session_key(char *key, char *seed, int mode)
       char             *p;
 
       p = s;
-      sprintf(s + strlen(s), "%lu", (unsigned long)GetCurrentProcessId());
+      sprintf(s + strlen(s), "%lu", (uint32_t)GetCurrentProcessId());
       (void)getcwd(s + strlen(s), 256);
-      sprintf(s + strlen(s), "%lu", (unsigned long)GetTickCount());
+      bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)GetTickCount());
       QueryPerformanceCounter(&li);
-      sprintf(s + strlen(s), "%lu", (unsigned long)li.LowPart);
+      bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)li.LowPart);
       GetSystemTimeAsFileTime(&ft);
-      sprintf(s + strlen(s), "%lu", (unsigned long)ft.dwLowDateTime);
-      sprintf(s + strlen(s), "%lu", (unsigned long)ft.dwHighDateTime);
+      bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)ft.dwLowDateTime);
+      bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)ft.dwHighDateTime);
       length = 256;
       GetComputerName(s + strlen(s), &length);
       length = 256;
       GetUserName(s + strlen(s), &length);
    }
 #else
-   sprintf(s + strlen(s), "%lu", (unsigned long)getpid());
-   sprintf(s + strlen(s), "%lu", (unsigned long)getppid());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)getpid());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)getppid());
    (void)getcwd(s + strlen(s), 256);
-   sprintf(s + strlen(s), "%lu", (unsigned long)clock());
-   sprintf(s + strlen(s), "%lu", (unsigned long)time(NULL));
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)clock());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)time(NULL));
 #if defined(Solaris)
    sysinfo(SI_HW_SERIAL,s + strlen(s), 12);
 #endif
 #if defined(HAVE_GETHOSTID)
-   sprintf(s + strlen(s), "%lu", (unsigned long) gethostid());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t) gethostid());
 #endif
    gethostname(s + strlen(s), 256);
-   sprintf(s + strlen(s), "%u", (unsigned)getuid());
-   sprintf(s + strlen(s), "%u", (unsigned)getgid());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)getuid());
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)getgid());
 #endif
    MD5Init(&md5c);
-   MD5Update(&md5c, (unsigned char *)s, strlen(s));
+   MD5Update(&md5c, (uint8_t *)s, strlen(s));
    MD5Final(md5key, &md5c);
-   sprintf(s + strlen(s), "%lu", (unsigned long)((time(NULL) + 65121) ^ 0x375F));
+   bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)((time(NULL) + 65121) ^ 0x375F));
    MD5Init(&md5c);
-   MD5Update(&md5c, (unsigned char *)s, strlen(s));
+   MD5Update(&md5c, (uint8_t *)s, strlen(s));
    MD5Final(md5key1, &md5c);
 #define nextrand    (md5key[j] ^ md5key1[j])
    if (mode) {
@@ -551,6 +553,39 @@ void make_session_key(char *key, char *seed, int mode)
    }
 }
 #undef nextrand
+
+void encode_session_key(char *encode, char *session, char *key, int maxlen)
+{
+   int i;
+   for (i=0; (i < maxlen-1) && session[i]; i++) {
+      if (session[i] == '-') {
+         encode[i] = '-';
+      } else {
+         encode[i] = ((session[i] - 'A' + key[i]) & 0xF) + 'A';
+      }
+   }
+   encode[i] = 0;
+   Dmsg3(000, "Session=%s key=%s encode=%s\n", session, key, encode);
+}
+
+void decode_session_key(char *decode, char *session, char *key, int maxlen)
+{
+   int i, x;
+
+   for (i=0; (i < maxlen-1) && session[i]; i++) {
+      if (session[i] == '-') {
+         decode[i] = '-';
+      } else {
+         x = (session[i] - 'A' - key[i]) & 0xF;
+         if (x < 0) {
+            x += 16;
+         }
+         decode[i] = x + 'A';
+      }
+   }
+   decode[i] = 0;
+   Dmsg3(000, "Session=%s key=%s decode=%s\n", session, key, decode);
+}
 
 
 

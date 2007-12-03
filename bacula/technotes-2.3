@@ -1,6 +1,11 @@
               Technical notes on version 2.3
 
 General:
+03Dec07
+kes  This patch fixes bcopy so that it produces correct Volumes.
+     It fixes bug #1022.
+kes  This patch eliminates spurious output to the console during a VerifyVolume
+     job that contains encrypted data. It fixes bug #1024.
 02Dec07
 kes  This patch prevents the 'status dir' command from trying to use a scratch
      volume and possibly moving it from one pool to another.  This patch fixes
@@ -26,8 +31,7 @@ kes  This patch should fix the Mac OS X build problem on the latest
      due to a change in the Mac headers).  The solution was to explicitly
      ensure that it is defined for the ./configure.
      This patch also has a rebuild of configure that includes the Debian
-     qt4 kludge (look for alternate qt4 names).
-     This patch fixes bug #1020.
+     qt4 patch to check for qmake-qt4. This patch fixes bug #1020.
 kes  This patch should ensure that queued messages to the console are
      displayed as soon as possible.  It should fix bug 1007, but has been
      reported not to work.

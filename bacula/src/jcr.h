@@ -308,6 +308,7 @@ public:
    /* Storage Daemon specific part of JCR */
    JCR *next_dev;                     /* next JCR attached to device */
    JCR *prev_dev;                     /* previous JCR attached to device */
+   char *dir_auth_key;                /* Dir auth key */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
    int type;
    DCR *read_dcr;                     /* device context for reading */
