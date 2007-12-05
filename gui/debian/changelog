@@ -1,3 +1,8 @@
+bweb (2.2.7-1) stable; urgency=low
+  * Add new btime module
+
+ -- Eric Bollengier <eric@eb.homelinux.org>  Tue,  4 Dec 2007 22:15:47 +0000
+
 bweb (2.2.6-1) stable; urgency=low
   * Replace VolStatus by Enabled in volume location
   * Add Enabled in volume update and zoom

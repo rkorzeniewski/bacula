@@ -51,9 +51,12 @@ install-indep:
 	install -m 644 bweb/lib/Bconsole.pm debian/bweb-common/usr/share/perl5
 	install -m 644 bweb/lib/CCircle.pm debian/bweb/usr/share/perl5
 	install -m 644 bweb/lib/Bweb.pm debian/bweb/usr/share/perl5
+	install -m 644 bweb/lib/GTime.pm debian/bweb/usr/share/perl5
 	install -m 644 bweb/script/bweb.conf debian/bweb/etc/apache/conf.d
 	install -m 755 bweb/cgi/bgraph.pl debian/bweb/usr/lib/cgi-bin/bweb
 	install -m 755 bweb/cgi/bweb.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 755 bweb/cgi/btime.pl debian/bweb/usr/lib/cgi-bin/bweb
+	install -m 755 bweb/cgi/bresto.pl debian/bweb/usr/lib/cgi-bin/bweb
 	install -m 755 bweb/cgi/bfileview.pl debian/bweb/usr/lib/cgi-bin/bweb
 	install -m 755 bweb/cgi/bconsole.pl debian/bweb/usr/lib/cgi-bin/bweb
 	install -m 644 bweb/tpl/*.tpl debian/bweb/usr/share/bweb/tpl 
