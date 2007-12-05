@@ -67,7 +67,7 @@ die "Usage: $0 --url http://.../cgi-bin/bweb/bweb.pl [-l user -p pass]"
     unless ($url);
 
 print "Making tests on $url\n";
-my ($req, $res, $c, $cli);
+my ($req, $res, $c, $cli, $job_url);
 
 my $agent = new WWW::Mechanize(autocheck=>1);
 if ($login) {
@@ -88,13 +88,15 @@ $agent->get($url); ok($agent->success, "Get main page"); $c = $agent->content;
 like($c, qr!</html>!, "Check EOP");
 ok($c =~ m!(action=job_zoom;jobid=\d+)!, "Get the first JobId");
 die "Can't get first jobid ($c)" unless $1;
+$job_url=$1;
 
 # test job_zoom page
 # check for
 #  - job log
 #  - fileset
 #  - media view
-$agent->get("$url?$1"); ok($agent->success,"Get job zoom"); $c=$agent->content;
+$agent->get("$url?$job_url");
+ok($agent->success,"Get job zoom"); $c=$agent->content;
 like($c, qr!</html>!, "Check EOP");
 like($c, qr!Using Device!, "Check for job log");
 
@@ -127,6 +129,24 @@ ok($agent->follow_link(text_regex=>qr/here/i), "follow link");
 ok($agent->success(), "get job page"); $c=$agent->content;
 like($c, qr/Using Device/, "Check job log");
 
+# try to delete this job
+$agent->get("$url?$job_url");
+ok($agent->success,"Get job zoom");
+ok($agent->form_name('delete'), "Find form");
+$agent->click(); $c=$agent->content;
+ok($agent->success, "Delete it"); 
+like($c, qr!deleted!, "Check deleted message");
+
+$agent->get("$url?$job_url");
+ok($agent->success,"Get job zoom");
+$c=$agent->content;
+like($c, qr!An error has occurred!, "Check deleted job");
+
+# list jobs
+ok($agent->follow_link(text_regex=>qr/Defined Jobs/), "Go to Defined Jobs page");
+$c=$agent->content;
+like($c, qr/BackupCatalog/, "Check for BackupCatalog job");
+
 ################################################################
 # client tests
 ################################################################
@@ -157,12 +177,12 @@ ok($agent->form_number(2), "Find form");
 $agent->field("location", $loc);
 ok($agent->field("cost", 20), "set field cost=20");
 ok($agent->field("enabled", "yes"), "set field enabled=yes");
-ok($agent->field("enabled", "archived"), "try set field enabled=archived");
 ok($agent->field("enabled", "no"), "try set field enabled=no");
+ok($agent->field("enabled", "archived"), "try set field enabled=archived");
 $agent->click_button(value => 'location_add');
 ok($agent->success(), "submit"); $c=$agent->content;
 like($c, qr/$loc/, "Check if location is ok");
-like($c, qr/inflag1.png/, "Check if enabled is ok");
+like($c, qr/inflag2.png/, "Check if enabled is archived");
 
 $agent->get("$url?location=$loc&action=location_edit");
 ok($agent->success(), "Try to edit location"); $c=$agent->content;
@@ -240,6 +260,40 @@ $agent->get("$url?client_group=other$grp;action=groups_edit");
 ok($agent->success(), "create an empty other$grp"); $c=$agent->content;
 like($c, qr/'other$grp'/, "check if other$grp was created");
 
+# view job by group
+ok($agent->follow_link(text_regex=>qr/Jobs by group/), "Go to Job by group page");
+ok($agent->success(), "Get it"); $c=$agent->content;
+like($c, qr/"$grp"/, "check if $grp is here");
+
+# view job overview
+ok($agent->follow_link(text_regex=>qr/Jobs overview/), "Go to Job overview");
+ok($agent->success(), "Get it"); $c=$agent->content;
+like($c, qr/"$grp"/, "check if $grp is here");
+
+# view next jobs
+ok($agent->follow_link(text_regex=>qr/Next Jobs/), "Go to Next jobs");
+ok($agent->success(), "Get it"); $c=$agent->content;
+like($c, qr/'BackupCatalog'/, "check if BackupCatalog is here");
+
+# Add media
+ok($agent->follow_link(text_regex=>qr/Add Media/), "Go to Add Media");
+ok($agent->success(), "Get it");
+ok($agent->form_number(2), "Find form");
+$agent->field('pool', 'Scratch');
+$agent->field('storage', 'File');
+$agent->field('nb', '3');
+$agent->field('offset', '1');
+$agent->field('media', "Vol$$");
+$agent->click_button(value => 'add_media');
+ok($agent->success(), "Create them"); $c=$agent->content;
+like($c, qr/Vol${$}0001/, "Check if media are there");
+
+# view pools
+ok($agent->follow_link(text_regex=>qr/Pools/), "Go to Pool");
+ok($agent->success(), "Get it"); $c=$agent->content;
+like($c, qr/"Default"/, "check if Default pool is here");
+like($c, qr/"Scratch"/, "check if Scratch pool is here");
+
 ################################################################
 # other checks and cleanup
 ################################################################
@@ -263,19 +317,3 @@ exit 0;
 
 __END__
 
-
-# view media
-my @vol = ($cont =~ m!<input type='hidden' name='media' value='([^>]+)'>!sg);
-@vol = map { ('media', $_) } @vol;
-ok(scalar(@vol), "Check for job media using retry fields");
-$cont2 = get_content("View media " .  join('=', @vol),
-		     action => 'media', @vol);
-ok($cont2 =~ m!</html>!, "Check end of page");
-
-
-ok($cont =~ m!<input type='hidden' name='client' value='[^>]+'>!,
-   "Check for job client using retry fields");
-
-# test delete job page
-#$cont = get_content("Job delete", action => 'delete', jobid => $1);
-#ok($cont =~ m!</html>!, "Check end of page");
