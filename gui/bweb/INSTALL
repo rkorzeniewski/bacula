@@ -77,14 +77,16 @@ Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
     - CGI
     - Expect
     - Time::ParseDate
+    - Date::Calc
 
  You can install perl modules with CPAN
  perl -e shell -MCPAN
   > install Expect
 
  Or use your distribution
- apt-get install libgd-graph-perl libhtml-template-perl libexpect-perl
- apt-get install libdbd-mysql-perl libdbd-pg-perl libdbi-perl libtime-modules-perl
+ apt-get install libgd-graph-perl libhtml-template-perl libexpect-perl \
+                 libdbd-mysql-perl libdbd-pg-perl libdbi-perl \
+                 libdate-calc-perl libtime-modules-perl
 
  Note: the best way to test if you have all the dependencies
  fullfilled for Perl is to:

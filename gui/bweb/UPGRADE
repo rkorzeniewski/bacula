@@ -1,5 +1,16 @@
           Upgrade notes for Bweb
 
+Upgrade from 2.2.Y to 3.0
+-------------------------
+
+ - Add the Date::Calc package to your perl library
+ - Add user, new job overview and bresto tables to your catalog
+
+   mysql) 
+	load the bweb/script/upgrade-2.2_3.0_mysql.sql file
+   postgresql)
+        load the bweb/script/upgrade-2.2_3.0_postgresql.sql file
+
 Upgrade from 2.0.X to 2.2.Y
 ---------------------------
 

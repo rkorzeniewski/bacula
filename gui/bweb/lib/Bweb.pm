@@ -1012,6 +1012,190 @@ WHERE Media.VolumeName IN ($media_list)
 
 1;
 
+################################################################
+
+package Bweb::Sched;
+use base q/Bweb::Gui/;
+
+=head1 PACKAGE
+
+    Bweb::Sched() - Bweb package that parse show schedule ouput
+
+    new Bweb::Sched(format => '%Y-%m-%d');
+
+=head2 USAGE
+
+ my $b = $bweb->get_bconsole();
+ my $s = $b->send_cmd("show schedule");
+ my $sched = new Bweb::Sched();
+ $sched->parse_scheds(split(/\r?\n/, $s));
+
+
+$VAR1 = {
+          'event' => [
+                       '2007-01-04 04:05',
+                       '2007-12-05 04:05',
+                       '2007-12-12 04:05',
+                       '2007-12-19 04:05',
+                       '2007-12-26 04:05'
+                     ],
+          'level' => 'Differential',
+          'pool' => 'Semaine'
+        };
+=cut
+
+# cleanup and add a schedule
+sub add_sched
+{
+    my ($self, $name, $info) = @_;
+    # bacula uses dates that start from 0, we start from 1
+    foreach (@{$info->{mday}},@{$info->{month}}) { $_++ };
+
+    # get events
+    $info->{event} = [ $self->get_events($info, $self->{format}) ];
+
+    foreach my $i (qw/hour mday month wday wom woy mins/) {
+	delete $info->{$i};
+    }
+
+    push @{$self->{schedules}->{$name}}, $info;
+}
+
+# return the name of all schedules
+sub list_scheds
+{
+    my ($self, $name) = @_;
+    my %ret;
+    return keys %{ $self->{schedules} };
+}
+
+# return an array of all schedule
+sub get_scheds
+{
+    my ($self, $sched) = @_;
+    return $self->{schedules}->{$sched};
+}
+
+# return an ref array of all events
+# [ '2007-12-19 04:05', '2007-12-19 04:05' ]
+sub get_event
+{
+    my ($self, $sched) = @_;
+    return $sched->{event};
+}
+
+# return the pool name
+sub get_pool
+{
+    my ($self, $sched) = @_;
+    return $sched->{pool} || '';
+}
+
+# return the level name (Incremental, Differential, Full)
+sub get_level
+{
+    my ($self, $sched) = @_;
+    return $sched->{level};
+}
+
+# parse bacula sched bitmap
+sub parse_scheds
+{
+    my ($self, @output) = @_;
+
+    my $run;
+    my $name;
+    my $schedule;
+    my $elt;
+
+    foreach my $ligne (@output) {
+	if ($ligne =~ /Schedule: name=(.+)/) {
+	    if ($name and $elt) {
+		$elt->{level} = $run;
+		$self->add_sched($name, $elt);
+		$elt=undef;
+	    }
+	    $name = $1;
+	}
+	elsif ($ligne =~ /Run Level=(.+)/) {
+	    if ($name and $elt) {
+		$elt->{level} = $run;
+		$self->add_sched($name, $elt);
+		$elt=undef;
+	    }
+	    $run = $1;
+	}
+	elsif ($ligne =~ /(hour|mday|month|mins)=(.+)/) {
+	    # All theses lines have the same format
+	    
+	    my ($k,$v) = ($1,$2);
+	    # we get all values (0 1 4 9)
+	    $elt->{$k}=[split (/\s/,$v)];
+	}
+	    # we make a bitmap for this kind of data (0 0 1 0 0 0 1) for a quick access
+	elsif ($ligne =~ /(wday|wom|woy)=(.+)/) {
+	    my ($k,$v) = ($1,$2);
+	    foreach my $e (split (/\s/,$v)) {
+		$elt->{$k}->[$e]=1;
+	    }
+	}
+	elsif ($ligne =~ /Pool: name=(.+?) PoolType/) {
+	    $elt->{pool} = $1;
+	}
+    }
+
+    if ($name and $elt) {
+	$elt->{level} = $run;
+	$self->add_sched($name, $elt);
+    }
+}
+
+use Date::Calc qw(:all);
+
+# read bacula schedule bitmap and get $format date string
+sub get_events
+{
+    use integer;
+    my ($self, $s,$format) = @_;
+    my $year = $self->{year} || ((localtime)[5] + 1900);
+    $format = $format || '%u-%02u-%02u %02u:%02u';
+
+    my @ret;
+    foreach my $m (@{$s->{month}})		# mois de l'annee
+    {
+	foreach my $md (@{$s->{mday}})	# jour du mois
+	{
+#	    print "  m=$m md=$md\n";
+	    # we check if this day exists (31 fev)
+	    next if (!check_date($year,$m,$md));
+#	    print "    check_date ok\n";
+
+	    my $w = ($md-1)/7; # we use the same thing than bacula
+	    next if (! $s->{wom}->[$w]);
+#	    print "      wom ok\n";
+
+	    # on recupere le jour de la semaine 
+	    my $wd = Day_of_Week($year,$m,$md);
+
+	    my ($w1,undef) = Week_of_Year($year,$m,$wd);
+	    next if (! $s->{woy}->[$w1-1]); # bacula 0-51
+#	    print "        woy ok\n";
+
+	    $wd = 0 if ($wd == 7) ; # sunday is 0 on bacula
+	    next if (! $s->{wday}->[$wd]);
+#	    print "          wday ok\n";
+
+	    foreach my $h (@{$s->{hour}}) # hour of the day
+	    {
+		foreach my $min (@{$s->{mins}}) # minute
+		{
+		    push @ret, sprintf($format, $year,$m,$md,$h,$min);
+		}
+	    }
+	}
+    }
+    return @ret;
+}
 
 ################################################################
 

@@ -1,4 +1,4 @@
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 require_ok('DBI');
 require_ok('GD::Graph');
@@ -7,6 +7,7 @@ require_ok('HTML::Template');
 require_ok('CGI');
 require_ok('Expect');
 require_ok('Time::ParseDate');
+require_ok('Date::Calc');
 
 
 use ExtUtils::MakeMaker;
