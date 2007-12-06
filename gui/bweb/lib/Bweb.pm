@@ -4535,19 +4535,26 @@ sub display_next_job
 	return $self->error("Can't get $arg->{job} schedule");
     }
     my $jsched = $1;
+    my $jpool='';
+    if ($job =~ /Pool: name=([\w\d\-]+) PoolType=/) {
+	$jpool = $1;
+    }
 
     my $out = $b->send_cmd("show schedule=\"$jsched\"");
     my $sched = new Bweb::Sched();
     $sched->parse_scheds(split(/\r?\n/, $out));
 
     my $ss = $sched->get_scheds($jsched); 
+    my @ret;
 
     foreach my $s (@$ss) {
 	my $level = $sched->get_level($s);
-	my $pool  = $sched->get_pool($s);
+	my $pool  = $sched->get_pool($s) || $jpool;
 	my $evt = $sched->get_event($s);
-	print "$level on $pool <pre>", Data::Dumper::Dumper($evt), "</pre><br>";
+	push @ret, map { "$_ : $pool ($level)\n" } @$evt;
     }
+    
+    print "<b>$arg->{job}:</b><pre>", sort @ret, "</pre><br>";
 }
 
 1;
