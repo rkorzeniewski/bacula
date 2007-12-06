@@ -1021,7 +1021,7 @@ use base q/Bweb::Gui/;
 
     Bweb::Sched() - Bweb package that parse show schedule ouput
 
-    new Bweb::Sched(format => '%Y-%m-%d');
+    new Bweb::Sched(format => '%Y-%m-%d', year => 2008);
 
 =head2 USAGE
 
@@ -1132,7 +1132,7 @@ sub parse_scheds
 	    # we get all values (0 1 4 9)
 	    $elt->{$k}=[split (/\s/,$v)];
 	}
-	    # we make a bitmap for this kind of data (0 0 1 0 0 0 1) for a quick access
+	# we make a bitmap for this kind of data (0 0 1 0 0 0 1) for a quick access
 	elsif ($ligne =~ /(wday|wom|woy)=(.+)/) {
 	    my ($k,$v) = ($1,$2);
 	    foreach my $e (split (/\s/,$v)) {
@@ -1159,7 +1159,6 @@ sub get_events
     my ($self, $s,$format) = @_;
     my $year = $self->{year} || ((localtime)[5] + 1900);
     $format = $format || '%u-%02u-%02u %02u:%02u';
-
     my @ret;
     foreach my $m (@{$s->{month}})		# mois de l'annee
     {
@@ -4519,6 +4518,36 @@ sub run_job_now
     print $b->{error};    
 
     print "<br>You can follow job (jobid=$jobid) execution <a href='?action=dsp_cur_job;client=$arg->{client};jobid=$jobid'> here </a><script type='text/javascript' language='JavaScript'>setTimeout(function() { window.location='?action=dsp_cur_job;client=$arg->{client};jobid=$jobid'},2000);</script>";
+}
+
+sub display_next_job
+{
+    my ($self) = @_;
+    my $arg = $self->get_form(qw/job/);
+    if (!$arg->{job}) {
+	return $self->error("Can't get job name");
+    }
+
+    my $b = $self->get_bconsole();
+
+    my $job = $b->send_cmd("show job=\"$arg->{job}\"");
+    if ($job !~ /Schedule: name=([\w\d\-]+)/s) {
+	return $self->error("Can't get $arg->{job} schedule");
+    }
+    my $jsched = $1;
+
+    my $out = $b->send_cmd("show schedule=\"$jsched\"");
+    my $sched = new Bweb::Sched();
+    $sched->parse_scheds(split(/\r?\n/, $out));
+
+    my $ss = $sched->get_scheds($jsched); 
+
+    foreach my $s (@$ss) {
+	my $level = $sched->get_level($s);
+	my $pool  = $sched->get_pool($s);
+	my $evt = $sched->get_event($s);
+	print "$level on $pool <pre>", Data::Dumper::Dumper($evt), "</pre><br>";
+    }
 }
 
 1;

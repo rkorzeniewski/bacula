@@ -454,6 +454,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'fileset_view') {
     $bweb->fileset_view();
 
+} elsif ($action eq 'next_job2') {
+    $bweb->display_next_job();
+
 } elsif ($action eq 'overview') {
     $bweb->can_do('r_view_job');
     print "<div><table border='0'><tr><td valign='top'>\n";
