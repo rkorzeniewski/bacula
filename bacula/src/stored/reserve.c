@@ -331,9 +331,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          goto get_out;                  /* Volume already on this device */
       } else {
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
-         debug_list_volumes("reserve_vol free");
          vol_list->remove(vol);
          free_vol_item(vol);
+         debug_list_volumes("reserve_vol free");
       }
    }
 
@@ -453,7 +453,7 @@ bool volume_unused(DCR *dcr)
    }
 
    if (dev->is_busy()) {
-      Dmsg1(dbglvl, "vol_unused: no vol on %s\n", dev->print_name());
+      Dmsg1(dbglvl, "vol_unused: busy on %s\n", dev->print_name());
       debug_list_volumes("dev busy cannot unreserve_volume");
       return false;
    }
