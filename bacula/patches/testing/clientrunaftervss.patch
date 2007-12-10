@@ -21,7 +21,7 @@ Index: src/lib/runscript.c
  
     if (strstr(label, NT_("Before"))) {
        when = SCRIPT_Before;
-+   } else if (bstrcmp(label, NT_("ClientRunAfterVSS"))) {
++   } else if (bstrcmp(label, NT_("ClientAfterVSS"))) {
 +      when = SCRIPT_AfterVSS;
     } else {
        when = SCRIPT_After;
