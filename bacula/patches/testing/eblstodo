@@ -41,6 +41,7 @@ Sauvegarde des postes nomades :
 (4) & (5) DIR -> (PROX <-> PROX) -> FD connection (fileset, storage..)
 (6) & (7) FD -> (PROX <-> PROX) -> SD
 
+ - Utilisation d'une sorte proxy https
 
 
 Bconsole :
@@ -54,6 +55,16 @@ Sauvegarde SAN :
    * lance le SD
    * le script de mtx doit faire ses demandes au director sur
      un autochanger commun
+
+ - Tout le monde voit le lecteur, et le client doit demander la permission
+ pour despooler son bloc de XG au director.
+
+ - On fait du round robbin avec tout le monde, et on utilise un disque 
+ local pour  spooler.
+
+ - 50 clients qui spoolent en local, c'est plus rapide que vers 1 point 
+ central
+
 
 Gestion des stats :
  - Ajouter la gestion des stats dans le client et le sd
@@ -118,10 +129,148 @@ TODO
 ----
 
 bweb :
+ - Ajouter mount,umount,release,status pour chaque device
+ - Ajouter le viewfileset dans l'interface de resto
+ x Ajouter la labelisation de bande et l'ajout de media (add et label)
+ - Ajouter la possibilité de lancer des migrations et des
+ verification. 
+ - Quand on deplace un media, il faut prendre le enabled depuis
+   la nouvelle localisation (en javascript)
+  o On ajoute une combo (Backup/Migration/Verify)
+  o On peut regarder dans l'historique des job quel est le bon type
+  o Quand on relance, on spécifie le type directement
+  o Il faut adapter le status client pour traiter les autres type
+ de job (par exemple, si c'est pas un backup/restore, pas de status dir)
+
+
+ - Ajouter une vue par groupe et par date (sur 7, 15 ou 30 jours)
+
+              lu ma me je ve sa di
+  groupe1     v  v  x  w  v  v  v             q1
+   |-- s1     v  v  v  v  v  v  v             q2
+   |-- s2     v  v  x  v  v  v  v
+   `-- s3     v  v  v  w  v  v  v
+
+---8<-------8<--------8<--------8<----------8<------------------
+
+ALTER TABLE Status ADD COLUMN severity int;
+UPDATE status SET severity = 15;
+UPDATE status SET severity = 100 where jobstatus = 'f';
+UPDATE status SET severity = 90 where jobstatus = 'A';
+UPDATE status SET severity = 10 where jobstatus = 'T';
+
+-- Affiche par groupe et date le statut des jobs (q1)
+SELECT date_part('day', date) AS day, date, client_group_name, JobStatusLong, 
+       JobStatus, nb_job, joberrors
+FROM (
+  SELECT date_trunc('day', job_old.StartTime) AS date, 
+         MAX(severity)  AS severity,
+         COUNT(1)       AS nb_job,
+	 SUM(JobErrors) AS joberrors,
+         client_group_name
+    FROM job_old
+    JOIN client_group_member USING (ClientId)
+    JOIN client_group        USING (client_group_id)
+    JOIN Status              USING (JobStatus)
+   WHERE StartTime > '2007-10-01' AND StartTime < '2007-11-19'
+  
+   GROUP BY client_group_name, date
+) AS sub JOIN Status USING (severity)
+ ORDER BY client_group_name, date
+
+-- Affiche un client_group en detail (q2)
+SELECT date, client, JobStatusLong, JobStatus, nb_job, joberrors
+FROM (
+  SELECT date_trunc('day', job_old.StartTime) AS date,
+	 Client.Name    AS client,
+         MAX(severity)  AS severity,
+         COUNT(1)       AS nb_job,
+         SUM(JobErrors) AS joberrors
+    FROM job_old
+    JOIN client_group_member USING (ClientId)
+    JOIN client_group        USING (client_group_id)
+    JOIN Client              USING (ClientId)
+    JOIN Status              USING (JobStatus)
+   WHERE StartTime > '2007-10-01'
+     AND client_group_name = '0-SAVES_SIGMA1'
+
+   GROUP BY client, date
+) AS sub JOIN Status USING (severity)
+ ORDER BY client, date
+
+---8<-------8<--------8<--------8<----------8<------------------
+
+ - Quand on clique dessus on arrive sur la liste des jobs en question
+   Groupe -> Jobs
+   Job    -> Log
+
+ - Ajouter une variable pour remplacer NOW() dans les queries
+   origin = arg->{origin} || NOW();
+ - Ajouter des stats en %
+
+---8<-------8<--------8<--------8<----------8<------------------
+
+SELECT  client_group_name, (nb_ok::float/(nb_ok+nb_other)*100)::numeric(6,3) AS percent_ok
+FROM (
+
+     SELECT 
+       SUM(CASE WHEN JobStatus='T' THEN 1 
+                ELSE 0 END) AS nb_ok,
+       SUM(CASE WHEN JobStatus='A' THEN 1 
+		WHEN JobStatus='f' THEN 1
+		WHEN JobStatus='E' THEN 1 
+		WHEN JobStatus='e' THEN 1 
+                ELSE 0 END) AS nb_other,
+       client_group_name
+      FROM job_old 
+      JOIN client_group_member USING (ClientId)
+      JOIN client_group        USING (client_group_id)
+
+     WHERE StartTime > '2007-10-01'
+     GROUP BY client_group_name
+) AS subq
+
+SELECT  Name, (nb_ok::float/(nb_ok+nb_other)*100)::numeric(6,3) AS percent_ok
+FROM (
+
+     SELECT 
+       SUM(CASE WHEN JobStatus='T' THEN 1 
+                ELSE 0 END) AS nb_ok,
+       SUM(CASE WHEN JobStatus='A' THEN 1 
+		WHEN JobStatus='f' THEN 1
+		WHEN JobStatus='E' THEN 1 
+		WHEN JobStatus='e' THEN 1 
+                ELSE 0 END) AS nb_other,
+       Client.Name AS name
+      FROM job_old 
+      JOIN Client       USING (ClientId)
+
+     WHERE StartTime > '2007-10-01'
+       AND JobStatus IN ('T', 'A', 'f', 'E', 'e')
+     GROUP BY Client.Name
+) AS subq
+
+
+
+---8<-------8<--------8<--------8<----------8<------------------
+
+   Nb backup OK
+  -------------  x 100 => par groupe de client
+   Nb backup
+
+ - Il faut ajouter une estimation des jobs qui auraient
+   du se lancer (a voir avec les schedules)
+
+ - Affichage en html/csv pour des stats 
+  grp, nb client, nb backup, nb ok, nb err, nb cancel, 
+  %ok, nb files, nb gig, time
+
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
- - Ajouter la liste des medias qui vont/ont expirer et les pruner
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
- - Ajouter une gestion des utilisateurs avec des roles
+ x Ajouter un bouton suivant/precedant dans la vue des logs
+ x Ajouter la liste des medias qui vont/ont expirer et les pruner
+ x Fixer les purge/prune de multiple volumes
+ x Ajouter une gestion des utilisateurs avec des roles
    o Liste des roles possibles
      * view_stats
      * configure
@@ -147,15 +296,76 @@ bweb :
      client_group (visible bool).
 
    o Ajout de 4 tables dans le catalogue
-       - bweb_user (userid, username, passwd) passwd with apache ?
+       - bweb_user (userid, username, passwd, comment) passwd with apache ?
        - bweb_role (roleid, rolename)
        - bweb_role_member (roleid, userid)
 
        - bweb_client_group_acl (client_group_id, userid)
-     
+       - bweb_pool_acl (poolid, userid)
 
-     Ou bien on ajoute seulement les roles dans une structure perl
-     que l'on stocke dans le fichier de configuration
+ o Il faudrait aussi pouvoir choisir le login admin...
+
+ x On specifie par user si on veut filter par les groupes (gestion un peu
+   chiante, il faut ajouter les hosts dans les groupes, sinon, ils sont
+   invisibles)
+
+ x On recupere ce champs quand on check les can_do(); et apres, on le regarde
+   avant d'envoyer le JOIN de filtre. (Attention, admin n'est pas soumis a ca)
+   
+ x On peut ajouter une option dans la Config pour activer ce mode ou pas. 
+
+ x Regarder la possibilite de recuperer toutes les roles au debut pour
+   adapter les pages web... Il n'y a que les menus/actions autorises qui
+   seraient affiches. (bp cancel => role cancel_job, configuration => role configure)
+
+ * on utilise le commentaire depuis une page web, comme ca
+   on gere la traduction sans toucher a la base
+
+CREATE TABLE bweb_user
+(
+	userid       serial not null,
+	username     text not null,
+	use_acl      boolean default false,
+        comment      text default '',
+	passwd       text default '',
+	primary key (userid)
+);
+CREATE UNIQUE INDEX bweb_user_idx on bweb_user (username);
+
+CREATE TABLE bweb_role
+(
+	roleid       serial not null,
+	rolename     text not null,
+--	comment      text default '',
+	primary key (roleid)
+);
+CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename);
+
+INSERT INTO bweb_role (rolename) VALUES ('r_user_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_delete_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_prune');
+INSERT INTO bweb_role (rolename) VALUES ('r_purge');
+INSERT INTO bweb_role (rolename) VALUES ('r_group_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_location_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_cancel_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_run_job');
+INSERT INTO bweb_role (rolename) VALUES ('r_configure');
+INSERT INTO bweb_role (rolename) VALUES ('r_client_status');
+INSERT INTO bweb_role (rolename) VALUES ('r_view_job');
+
+CREATE TABLE  bweb_role_member
+(
+	roleid       integer not null,
+	userid       integer not null,
+	primary key (roleid, userid)
+);
+
+CREATE TABLE  bweb_client_group_acl
+(
+	client_group_id       integer not null,
+	userid                integer not null,
+	primary key (client_group_id, userid)
+);
 
  - Integrer brestore en mode javascript
    o ajouter une api 
@@ -165,6 +375,57 @@ bweb :
        .genbsr (fileid, fileid, fileid, fileid, fileid...)
            -> on peut utiliser une table dans la base pour faire ca
               cf bat
+
+> 1. Unloading tapes assistent.
+>
+> I'm using a script which selects tapes to unload. The idea is to
+> remove all volumes from the library that contain a current set of
+> backups. Basically, find the volumes from the most recent full backups
+> and all volumes that depend on these. Ignore older fulls and their
+> differentials and incrementals.
+>
+> This is to ensure that, at the time volumes are unloaded, a complete
+> set of backups can be stored safely.
+
+Already ok
+ Jobs -> Job Zoom -> View Media -> Select them -> Eject
+
+Yes, it's a very good idea, i see no difficulty to implement this kind of
+tool.
+
+Users go to 
+  Media -> Made a Safe backup set 
+        -> Select Client(s) -> Select Job(s) -> Backup set
+
+I think that i can do some sort of assistant to that.
+(with next, next next)
+
+
+> While volumes are prepared for unloading, I disable them, so Bacula
+> will not try to use them. Later, they are automatically re-enabled.
+
+x Do you use the Enabled flag for that ? It's a good idea.
+
+> Move these volumes (if possible) to the export slots.
+
+I have already some code for that, but at this time it doesn't use
+the mtx-script from bacula. (or bacula-sd commands)
+
+I have to change this, so user have a working mtx-scripts, and we use
+it everywhere. (The best solution is to send command to bacula-dir)
+
+> Later, request volumes to fill up the pools so there are usable
+> volumes for later backups around. Load these volumes from the import
+> slots to the regular working slots, and do an 'update slots'.
+
+I use the Scratch pool for this sort of things, but we could use an other 
+assistant for that.
+
+Media -> I/O -> Fill pools -> Select pool(s) -> import selections
+
+bschedule:
+ - Bug dans la determination des jours de la semaine (exemple de la full
+  le premier dimanche du mois)
 
 manuel :
  - Avoir la version 2.0 et la version 2.2 en ligne (pour que les utilisateurs
@@ -186,4 +447,7 @@ bacula :
  p modifier l'organisation de la table version (pour pouvoir ajouter
    les versions de bweb par exemple)
  - utiliser la meme fonction pour read_close_session et append_close_session
+ - pb dans le message de chargement d'une bande pendant une resto
 
+	Please mount Volume "R40175" or label a new one for
+	Pas le bon message pour une resto (label a new one)
