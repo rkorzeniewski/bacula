@@ -32,9 +32,69 @@ run job=$JobName yes
 wait
 messages
 @# 
-@# now do a restore
+@# now run 10 restores
 @#
 @$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
+restore where=${cwd}/tmp/bacula-restores storage=File
+7
+<${cwd}/tmp/restore-list
+
+yes
+wait
 restore where=${cwd}/tmp/bacula-restores storage=File
 7
 <${cwd}/tmp/restore-list
