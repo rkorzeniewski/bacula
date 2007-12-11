@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/bin/cp -f scripts/tls-auth-bacula-dir.conf bin/bacula-dir.conf
+/bin/cp -f scripts/tls-auth-bacula-sd.conf bin/bacula-sd.conf
+/bin/cp -f scripts/tls-auth-bacula-fd.conf bin/bacula-fd.conf
+/bin/cp -f scripts/test-console.conf bin/bconsole.conf
+/bin/cp -f scripts/tls-CA.pem bin/tls-CA.pem
+/bin/cp -f scripts/tls-cert.pem bin/tls-cert.pem
