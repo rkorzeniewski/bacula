@@ -85,6 +85,12 @@ void BSOCK::free_bsock()
    destroy();
 }
 
+void BSOCK::free_tls()
+{
+   free_tls_connection(this->tls);
+   this->tls = NULL;
+}   
+
 /*
  * Try to connect to host for max_retry_time at retry_time intervals.
  *   Note, you must have called the constructor prior to calling

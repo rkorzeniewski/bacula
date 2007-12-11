@@ -539,6 +539,7 @@ static bool check_resources()
 {
    bool OK = true;
    JOB *job;
+   bool need_tls;
 
    LockRes();
 
@@ -572,19 +573,22 @@ static bool check_resources()
          }
       }
 
-      if (!director->tls_certfile && director->tls_enable) {
+      need_tls = director->tls_enable || director->tls_authenticate;
+
+      if (!director->tls_certfile && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
             director->name(), configfile);
          OK = false;
       }
 
-      if (!director->tls_keyfile && director->tls_enable) {
+      if (!director->tls_keyfile && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
             director->name(), configfile);
          OK = false;
       }
 
-      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable && director->tls_verify_peer) {
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && 
+           need_tls && director->tls_verify_peer) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\" or \"TLS CA"
               " Certificate Dir\" are defined for Director \"%s\" in %s."
               " At least one CA certificate store is required"
@@ -594,7 +598,7 @@ static bool check_resources()
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
-      if (OK && (director->tls_enable || director->tls_require)) {
+      if (OK && (need_tls || director->tls_require)) {
          /* Initialize TLS context:
           * Args: CA certfile, CA certdir, Certfile, Keyfile,
           * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
@@ -774,19 +778,22 @@ static bool check_resources()
          }
       }
 
-      if (!cons->tls_certfile && cons->tls_enable) {
+      need_tls = cons->tls_enable || cons->tls_authenticate;
+      
+      if (!cons->tls_certfile && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Certificate\" file not defined for Console \"%s\" in %s.\n"),
             cons->name(), configfile);
          OK = false;
       }
 
-      if (!cons->tls_keyfile && cons->tls_enable) {
+      if (!cons->tls_keyfile && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("\"TLS Key\" file not defined for Console \"%s\" in %s.\n"),
             cons->name(), configfile);
          OK = false;
       }
 
-      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable && cons->tls_verify_peer) {
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) 
+            && need_tls && cons->tls_verify_peer) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\" or \"TLS CA"
             " Certificate Dir\" are defined for Console \"%s\" in %s."
             " At least one CA certificate store is required"
@@ -795,7 +802,7 @@ static bool check_resources()
          OK = false;
       }
       /* If everything is well, attempt to initialize our per-resource TLS context */
-      if (OK && (cons->tls_enable || cons->tls_require)) {
+      if (OK && (need_tls || cons->tls_require)) {
          /* Initialize TLS context:
           * Args: CA certfile, CA certdir, Certfile, Keyfile,
           * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
@@ -825,8 +832,8 @@ static bool check_resources()
             continue;
          }
       }
-
-      if ((!client->tls_ca_certfile && !client->tls_ca_certdir) && client->tls_enable) {
+      need_tls = client->tls_enable || client->tls_authenticate;
+      if ((!client->tls_ca_certfile && !client->tls_ca_certdir) && need_tls) {
          Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
             " or \"TLS CA Certificate Dir\" are defined for File daemon \"%s\" in %s.\n"),
             client->name(), configfile);
@@ -834,7 +841,7 @@ static bool check_resources()
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
-      if (OK && (client->tls_enable || client->tls_require)) {
+      if (OK && (need_tls || client->tls_require)) {
          /* Initialize TLS context:
           * Args: CA certfile, CA certdir, Certfile, Keyfile,
           * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
@@ -862,6 +869,7 @@ static bool check_resources()
 static bool check_catalog()
 {
    bool OK = true;
+   bool need_tls;
 
    /* Loop over databases */
    CAT *catalog;
@@ -929,7 +937,9 @@ static bool check_catalog()
             }
          } 
 
-         if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && store->tls_enable) {
+         need_tls = store->tls_enable || store->tls_authenticate;
+
+         if ((!store->tls_ca_certfile && !store->tls_ca_certdir) && need_tls) {
             Jmsg(NULL, M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                  " or \"TLS CA Certificate Dir\" are defined for Storage \"%s\" in %s.\n"),
                  store->name(), configfile);
@@ -937,7 +947,7 @@ static bool check_catalog()
          }
 
          /* If everything is well, attempt to initialize our per-resource TLS context */
-         if (OK && (store->tls_enable || store->tls_require)) {
+         if (OK && (need_tls || store->tls_require)) {
            /* Initialize TLS context:
             * Args: CA certfile, CA certdir, Certfile, Keyfile,
             * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */

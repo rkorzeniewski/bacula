@@ -59,7 +59,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
 
    if (rcode != R_DIRECTOR) {
       Dmsg1(dbglvl, "I only authenticate directors, not %d\n", rcode);
-      Emsg1(M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
+      Jmsg1(jcr, M_FATAL, 0, _("I only authenticate directors, not %d\n"), rcode);
       goto auth_fatal;
    }
    if (bs->msglen < 25 || bs->msglen > 500) {
@@ -67,7 +67,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
             bs->who(), bs->msglen);
       char addr[64];
       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("Bad Hello command from Director at %s. Len=%d.\n"),
              who, bs->msglen);
       goto auth_fatal;
    }
@@ -79,7 +79,7 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
       bs->msg[100] = 0;
       Dmsg2(dbglvl, "Bad Hello command from Director at %s: %s\n",
             bs->who(), bs->msg);
-      Emsg2(M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
+      Jmsg2(jcr, M_FATAL, 0, _("Bad Hello command from Director at %s: %s\n"),
             who, bs->msg);
       goto auth_fatal;
    }
@@ -89,9 +89,9 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
          break;
    }
    if (!director) {
-       char addr[64];
-       char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
-      Emsg2(M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
+      char addr[64];
+      char *who = bnet_get_peer(bs, addr, sizeof(addr)) ? bs->who() : addr;
+      Jmsg2(jcr, M_FATAL, 0, _("Connection from unknown Director %s at %s rejected.\n"), 
             dirname, who);
       goto auth_fatal;
    }
@@ -104,6 +104,10 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
          } else {
             tls_local_need = BNET_TLS_OK;
          }
+      }
+
+      if (director->tls_authenticate) {
+         tls_local_need = BNET_TLS_REQUIRED;
       }
 
       if (director->tls_verify_peer) {
@@ -138,27 +142,30 @@ static bool authenticate(int rcode, BSOCK *bs, JCR* jcr)
 
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
-      Emsg0(M_FATAL, 0, _("Authorization problem: Remote server did not"
+      Jmsg0(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not"
            " advertize required TLS support.\n"));
+      Dmsg2(dbglvl, "remote_need=%d local_need=%d\n", tls_remote_need, tls_local_need);
       auth_success = false;
       goto auth_fatal;
    }
 
    /* Verify that we are willing to meet the remote host's requirements */
    if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
-      Emsg0(M_FATAL, 0, _("Authorization problem: Remote server requires TLS.\n"));
+      Jmsg0(jcr, M_FATAL, 0, _("Authorization problem: Remote server requires TLS.\n"));
+      Dmsg2(dbglvl, "remote_need=%d local_need=%d\n", tls_remote_need, tls_local_need);
       auth_success = false;
       goto auth_fatal;
    }
 
-   if (have_tls) {
-      if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
-         /* Engage TLS! Full Speed Ahead! */
-         if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
-            Emsg0(M_FATAL, 0, _("TLS negotiation failed.\n"));
-            auth_success = false;
-            goto auth_fatal;
-         }
+   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+      /* Engage TLS! Full Speed Ahead! */
+      if (!bnet_tls_server(director->tls_ctx, bs, verify_list)) {
+         Jmsg0(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
+         auth_success = false;
+         goto auth_fatal;
+      }
+      if (director->tls_authenticate) {         /* authentication only? */
+         bs->free_tls();                        /* shutodown tls */
       }
    }
 
@@ -221,6 +228,10 @@ int authenticate_storagedaemon(JCR *jcr)
       }
    }
 
+   if (me->tls_authenticate) {
+      tls_local_need = BNET_TLS_REQUIRED;
+   }
+
    if (job_canceled(jcr)) {
       auth_success = false;     /* force quick exit */
       goto auth_fatal;
@@ -251,7 +262,8 @@ int authenticate_storagedaemon(JCR *jcr)
    /* Verify that the remote host is willing to meet our TLS requirements */
    if (tls_remote_need < tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server did not" 
-           " advertise required TLS support.\n"));
+           " advertize required TLS support.\n"));
+      Dmsg2(dbglvl, "remote_need=%d local_need=%d\n", tls_remote_need, tls_local_need);
       auth_success = false;
       goto auth_fatal;
    }
@@ -259,16 +271,20 @@ int authenticate_storagedaemon(JCR *jcr)
    /* Verify that we are willing to meet the remote host's requirements */
    if (tls_remote_need > tls_local_need && tls_local_need != BNET_TLS_OK && tls_remote_need != BNET_TLS_OK) {
       Jmsg(jcr, M_FATAL, 0, _("Authorization problem: Remote server requires TLS.\n"));
+      Dmsg2(dbglvl, "remote_need=%d local_need=%d\n", tls_remote_need, tls_local_need);
       auth_success = false;
       goto auth_fatal;
    }
 
-   if (have_tls && tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
+   if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(me->tls_ctx, sd, NULL)) {
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed.\n"));
          auth_success = false;
          goto auth_fatal;
+      }
+      if (me->tls_authenticate) {           /* tls authentication only? */
+         sd->free_tls();                    /* yes, shutdown tls */
       }
    }
 

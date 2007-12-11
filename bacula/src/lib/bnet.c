@@ -261,6 +261,7 @@ bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
          goto err;
       }
    }
+   Dmsg0(50, "TLS server negotiation established.\n");
    return true;
 
 err:
@@ -307,7 +308,7 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
          goto err;
       }
    }
-
+   Dmsg0(50, "TLS client negotiation established.\n");
    return true;
 
 err:

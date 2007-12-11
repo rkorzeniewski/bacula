@@ -500,7 +500,7 @@ static inline bool openssl_bsock_session_start(BSOCK *bsock, bool server)
          select(fdmax, NULL, &fdset, NULL, &tv);
          break;
       default:
-         /* Socket Error Occured */
+         /* Socket Error Occurred */
          openssl_post_errors(M_ERROR, _("Connect failure"));
          stat = false;
          goto cleanup;
