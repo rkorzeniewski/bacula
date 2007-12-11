@@ -195,6 +195,7 @@ static int check_resources()
    bool ok = true;
    DIRRES *director;
    int numdir;
+   bool tls_needed;
 
    LockRes();
 
@@ -211,8 +212,9 @@ static int check_resources()
             continue;
          }
       }
+      tls_needed = director->tls_enable || director->tls_authenticate;
 
-      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable) {
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && tls_needed) {
          Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                              " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
                              " At least one CA certificate store is required.\n"),
@@ -240,8 +242,9 @@ static int check_resources()
             continue;
          }
       }
+      tls_needed = cons->tls_enable || cons->tls_authenticate;
 
-      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && cons->tls_enable) {
+      if ((!cons->tls_ca_certfile && !cons->tls_ca_certdir) && tls_needed) {
          Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                              " or \"TLS CA Certificate Dir\" are defined for Console \"%s\" in %s.\n"),
                              cons->hdr.name, configfile);

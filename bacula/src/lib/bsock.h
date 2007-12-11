@@ -91,6 +91,7 @@ public:
    /* methods -- in bsock.c */
    void init();
    void free_bsock();
+   void free_tls();
    bool connect(JCR * jcr, int retry_interval, utime_t max_retry_time,
                 utime_t heart_beat, const char *name, char *host, 
                 char *service, int port, int verbose);

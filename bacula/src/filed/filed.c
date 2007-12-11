@@ -274,6 +274,7 @@ static bool check_resources()
 {
    bool OK = true;
    DIRRES *director;
+   bool need_tls;
 
    LockRes();
 
@@ -305,8 +306,9 @@ static bool check_resources()
          me->tls_enable = true;
 #endif
       }
+      need_tls = me->tls_enable || me->tls_authenticate;
 
-      if ((!me->tls_ca_certfile && !me->tls_ca_certdir) && me->tls_enable) {
+      if ((!me->tls_ca_certfile && !me->tls_ca_certdir) && need_tls) {
          Emsg1(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
             " or \"TLS CA Certificate Dir\" are defined for File daemon in %s.\n"),
                             configfile);
@@ -314,7 +316,7 @@ static bool check_resources()
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
-      if (OK && (me->tls_enable || me->tls_require)) {
+      if (OK && (need_tls || me->tls_require)) {
          /* Initialize TLS context:
           * Args: CA certfile, CA certdir, Certfile, Keyfile,
           * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */
@@ -464,20 +466,21 @@ static bool check_resources()
          director->tls_enable = true;
 #endif
       }
+      need_tls = director->tls_enable || director->tls_authenticate;
 
-      if (!director->tls_certfile && director->tls_enable) {
+      if (!director->tls_certfile && need_tls) {
          Emsg2(M_FATAL, 0, _("\"TLS Certificate\" file not defined for Director \"%s\" in %s.\n"),
                director->hdr.name, configfile);
          OK = false;
       }
 
-      if (!director->tls_keyfile && director->tls_enable) {
+      if (!director->tls_keyfile && need_tls) {
          Emsg2(M_FATAL, 0, _("\"TLS Key\" file not defined for Director \"%s\" in %s.\n"),
                director->hdr.name, configfile);
          OK = false;
       }
 
-      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && director->tls_enable && director->tls_verify_peer) {
+      if ((!director->tls_ca_certfile && !director->tls_ca_certdir) && need_tls && director->tls_verify_peer) {
          Emsg2(M_FATAL, 0, _("Neither \"TLS CA Certificate\""
                              " or \"TLS CA Certificate Dir\" are defined for Director \"%s\" in %s."
                              " At least one CA certificate store is required"
@@ -487,7 +490,7 @@ static bool check_resources()
       }
 
       /* If everything is well, attempt to initialize our per-resource TLS context */
-      if (OK && (director->tls_enable || director->tls_require)) {
+      if (OK && (need_tls || director->tls_require)) {
          /* Initialize TLS context:
           * Args: CA certfile, CA certdir, Certfile, Keyfile,
           * Keyfile PEM Callback, Keyfile CB Userdata, DHfile, Verify Peer */

@@ -124,6 +124,7 @@ public:
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_authenticate;             /* Authenticated with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
@@ -201,6 +202,7 @@ public:
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_authenticate;             /* Authenticated with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
@@ -258,6 +260,7 @@ public:
    char *tls_keyfile;                 /* TLS Client Key File */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_authenticate;             /* Authenticated with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool AutoPrune;                    /* Do automatic pruning? */
@@ -290,6 +293,7 @@ public:
    char *tls_certfile;                /* TLS Client Certificate File */
    char *tls_keyfile;                 /* TLS Client Key File */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   bool tls_authenticate;             /* Authenticated with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool enabled;                      /* Set if device is enabled */

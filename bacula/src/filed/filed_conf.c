@@ -108,6 +108,7 @@ static RES_ITEM cli_items[] = {
    {"pkisigner",             store_alist_str, ITEM(res_client.pki_signing_key_files), 0, 0, 0},
    {"pkimasterkey",          store_alist_str, ITEM(res_client.pki_master_key_files), 0, 0, 0},
 #endif
+   {"tlsauthenticate",       store_bool,    ITEM(res_client.tls_authenticate),  0, 0, 0},
    {"tlsenable",             store_bool,    ITEM(res_client.tls_enable),  0, 0, 0},
    {"tlsrequire",            store_bool,    ITEM(res_client.tls_require), 0, 0, 0},
    {"tlscacertificatefile",  store_dir,       ITEM(res_client.tls_ca_certfile), 0, 0, 0},
@@ -124,6 +125,7 @@ static RES_ITEM dir_items[] = {
    {"password",    store_password, ITEM(res_dir.password),  0, ITEM_REQUIRED, 0},
    {"address",     store_str,      ITEM(res_dir.address),   0, 0, 0},
    {"monitor",     store_bool,   ITEM(res_dir.monitor),   0, ITEM_DEFAULT, 0},
+   {"tlsauthenticate",      store_bool,    ITEM(res_dir.tls_authenticate), 0, 0, 0},
    {"tlsenable",            store_bool,    ITEM(res_dir.tls_enable), 0, 0, 0},
    {"tlsrequire",           store_bool,    ITEM(res_dir.tls_require), 0, 0, 0},
    {"tlsverifypeer",        store_bool,    ITEM(res_dir.tls_verify_peer), 0, ITEM_DEFAULT, 1},
