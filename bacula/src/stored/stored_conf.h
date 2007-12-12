@@ -83,6 +83,7 @@ public:
    char *working_directory;           /* working directory for checkpoints */
    char *pid_directory;
    char *subsys_directory;
+   char *plugin_directory;            /* Plugin directory */
    char *scripts_directory;
    uint32_t max_concurrent_jobs;      /* maximum concurrent jobs to run */
    MSGS *messages;                    /* Daemon message handler */

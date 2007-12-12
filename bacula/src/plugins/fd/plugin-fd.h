@@ -73,11 +73,16 @@ typedef struct s_bEvent {
    uint32_t eventType;
 } bEvent;
 
+typedef struct s_baculaInfo {
+   uint32_t size;
+   uint32_t interface;
+} bInfo;
 
 /* Bacula interface version and function pointers */
 typedef struct s_baculaFuncs {  
    uint32_t size;
    uint32_t interface;
+   bpError (*registerBaculaEvents)(bpContext *ctx, ...);
    bpError (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bpError (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bpError (*allocBaculaMem)(bpContext *ctx, uint32_t size, char *addr);
@@ -100,7 +105,7 @@ typedef enum {
 #define PLUGIN_MAGIC     "*PluginData*" 
 #define PLUGIN_INTERFACE  1
 
-typedef struct s_pluginFuncs {  
+typedef struct s_pluginInfo {
    uint32_t size;
    uint32_t interface;
    char *plugin_magic;
@@ -109,6 +114,11 @@ typedef struct s_pluginFuncs {
    char *plugin_date;
    char *plugin_version;
    char *plugin_description;
+} pInfo;
+
+typedef struct s_pluginFuncs {  
+   uint32_t size;
+   uint32_t interface;
    bpError (*newPlugin)(bpContext *ctx);
    bpError (*freePlugin)(bpContext *ctx);
    bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
@@ -116,7 +126,8 @@ typedef struct s_pluginFuncs {
    bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event);
 } pFuncs;
 
-#define pref(plugin) ((pFuncs *)(plugin->pfuncs))
+#define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))
+#define plug_info(plugin) ((pInfo *)(plugin->pinfo))
 
 #ifdef __cplusplus
 }

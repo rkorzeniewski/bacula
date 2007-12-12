@@ -56,7 +56,7 @@ Plugin *new_plugin()
 /*
  * Load all the plugins in the specified directory.
  */
-bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
+bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type)
 {
    t_loadPlugin loadPlugin;
    Plugin *plugin;
@@ -140,7 +140,7 @@ bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type)
       }
 
       /* Initialize the plugin */
-      loadPlugin(bfuncs, &plugin->pfuncs);
+      loadPlugin(binfo, bfuncs, &plugin->pinfo, &plugin->pfuncs);
 
       found = true;                /* found a plugin */
    }

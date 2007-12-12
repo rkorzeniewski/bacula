@@ -110,6 +110,7 @@ public:
    char *query_file;                  /* SQL query file */
    char *working_directory;           /* WorkingDirectory */
    const char *scripts_directory;     /* ScriptsDirectory */
+   const char *plugin_directory;      /* Plugin Directory */
    char *pid_directory;               /* PidDirectory */
    char *subsys_directory;            /* SubsysDirectory */
    MSGS *messages;                    /* Daemon message handler */

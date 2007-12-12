@@ -54,9 +54,10 @@ static bpError handlePluginEvent(bpContext *ctx, bEvent *event);
 
 /* Pointers to Bacula functions */
 static bFuncs *bfuncs = NULL;
+static bInfo  *binfo = NULL;
 
-static pFuncs pluginFuncs = {
-   sizeof(pluginFuncs),
+static pInfo pluginInfo = {
+   sizeof(pluginInfo),
    PLUGIN_INTERFACE,
    PLUGIN_MAGIC,
    PLUGIN_LICENSE,
@@ -64,6 +65,11 @@ static pFuncs pluginFuncs = {
    PLUGIN_DATE,
    PLUGIN_VERSION,
    PLUGIN_DESCRIPTION,
+};
+
+static pFuncs pluginFuncs = {
+   sizeof(pluginFuncs),
+   PLUGIN_INTERFACE,
 
    /* Entry points into plugin */
    newPlugin,                         /* new plugin instance */
@@ -73,11 +79,13 @@ static pFuncs pluginFuncs = {
    handlePluginEvent
 };
 
-bpError loadPlugin(bFuncs *lbfuncs, pFuncs **pfuncs) 
+bpError loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
+   binfo  = lbinfo;
    printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->interface);
 
+   *pinfo  = &pluginInfo;             /* return pointer to our info */
    *pfuncs = &pluginFuncs;            /* return pointer to our functions */
 
    return 0;
@@ -94,6 +102,7 @@ static bpError newPlugin(bpContext *ctx)
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
    printf("plugin: newPlugin JobId=%d\n", JobId);
+   bfuncs->registerBaculaEvents(ctx, 1, 2, 0);
    return 0;
 }
 

@@ -66,7 +66,7 @@ typedef struct s_bpContext {
 } bpContext;
 
 extern "C" {
-typedef bpError (*t_loadPlugin)(void *bfuncs, void **pfuncs);
+typedef bpError (*t_loadPlugin)(void *binfo, void *bfuncs, void **pinfo, void **pfuncs);
 typedef bpError (*t_unloadPlugin)(void);
 }
 
@@ -74,13 +74,14 @@ class Plugin {
 public:
    char *file;
    t_unloadPlugin unloadPlugin;
+   void *pinfo;
    void *pfuncs;
    void *pHandle;
 };
 
 /* Functions */
 extern Plugin *new_plugin();
-extern bool load_plugins(void *bfuncs, const char *plugin_dir, const char *type);
+extern bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type);
 extern void unload_plugins();
 
 
