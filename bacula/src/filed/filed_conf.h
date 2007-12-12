@@ -79,6 +79,7 @@ struct CLIENT {
    char *working_directory;
    char *pid_directory;
    char *subsys_directory;
+   char *plugin_directory;            /* Plugin directory */
    char *scripts_directory;
    MSGS *messages;                    /* daemon message handler */
    int MaxConcurrentJobs;

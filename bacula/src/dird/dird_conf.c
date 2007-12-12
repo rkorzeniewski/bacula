@@ -114,6 +114,7 @@ static RES_ITEM dir_items[] = {
    {"diraddresses",store_addresses,         ITEM(res_dir.DIRaddrs),  0, ITEM_DEFAULT, 9101},
    {"queryfile",   store_dir,      ITEM(res_dir.query_file), 0, ITEM_REQUIRED, 0},
    {"workingdirectory", store_dir, ITEM(res_dir.working_directory), 0, ITEM_REQUIRED, 0},
+   {"plugindirectory",  store_dir, ITEM(res_dir.plugin_directory), 0, 0, 0},
    {"scriptsdirectory", store_dir, ITEM(res_dir.scripts_directory), 0, 0, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, 0, 0},

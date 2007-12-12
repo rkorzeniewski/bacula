@@ -42,16 +42,23 @@ const char *plugin_type = "-fd.so";
 /* Forward referenced functions */
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value);
 static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value);
+static bpError baculaRegisterEvents(bpContext *ctx, ...);
 
+/* Bacula info */
+static bInfo binfo = {
+   sizeof(bFuncs),
+   PLUGIN_INTERFACE,
+};
 
 /* Bacula entry points */
 static bFuncs bfuncs = {
    sizeof(bFuncs),
    PLUGIN_INTERFACE,
+   baculaRegisterEvents,
    baculaGetValue,
    baculaSetValue,
    NULL,
-   NULL
+   NULL,
 };
     
 
@@ -70,29 +77,29 @@ int main(int argc, char *argv[])
    ctx.pContext = NULL;
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
 
-   load_plugins((void *)&bfuncs, plugin_dir, plugin_type);
+   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
 
    foreach_alist(plugin, plugin_list) {
       printf("bacula: plugin_size=%d plugin_version=%d\n", 
-              pref(plugin)->size, pref(plugin)->interface);
+              plug_func(plugin)->size, plug_func(plugin)->interface);
       printf("License: %s\nAuthor: %s\nDate: %s\nVersion: %s\nDescription: %s\n",
-         pref(plugin)->plugin_license, pref(plugin)->plugin_author, 
-         pref(plugin)->plugin_date, pref(plugin)->plugin_version, 
-         pref(plugin)->plugin_description);
+         plug_info(plugin)->plugin_license, plug_info(plugin)->plugin_author, 
+         plug_info(plugin)->plugin_date, plug_info(plugin)->plugin_version, 
+         plug_info(plugin)->plugin_description);
 
       /* Start a new instance of the plugin */
-      pref(plugin)->newPlugin(&ctx);
+      plug_func(plugin)->newPlugin(&ctx);
       event.eventType = bEventNewVolume;   
-      pref(plugin)->handlePluginEvent(&ctx, &event);
+      plug_func(plugin)->handlePluginEvent(&ctx, &event);
       /* Free the plugin instance */
-      pref(plugin)->freePlugin(&ctx);
+      plug_func(plugin)->freePlugin(&ctx);
 
       /* Start a new instance of the plugin */
-      pref(plugin)->newPlugin(&ctx);
+      plug_func(plugin)->newPlugin(&ctx);
       event.eventType = bEventNewVolume;   
-      pref(plugin)->handlePluginEvent(&ctx, &event);
+      plug_func(plugin)->handlePluginEvent(&ctx, &event);
       /* Free the plugin instance */
-      pref(plugin)->freePlugin(&ctx);
+      plug_func(plugin)->freePlugin(&ctx);
    }
 
    unload_plugins();
@@ -115,5 +122,18 @@ static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
 static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value)
 {
    printf("bacula: baculaSetValue var=%d\n", var);
+   return 0;
+}
+
+static bpError baculaRegisterEvents(bpContext *ctx, ...)
+{
+   va_list args;
+   uint32_t event;
+
+   va_start(args, ctx);
+   while ((event = va_arg(args, uint32_t))) {
+      printf("Plugin wants event=%u\n", event);
+   }
+   va_end(args);
    return 0;
 }
