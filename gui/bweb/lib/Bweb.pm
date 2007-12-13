@@ -1756,7 +1756,7 @@ sub get_form
 
     if ($what{when}) {
 	my $when = CGI::param('when') || '';
-	if ($when =~ /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})$/) {
+	if ($when =~ /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/) {
 	    $ret{when} = $1;
 	}
     }
