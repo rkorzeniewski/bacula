@@ -217,7 +217,9 @@ __MINGW_IMPORT long     _dstbias;
    long offset;
    _tzset();
    offset = _timezone;
-   offset += _dstbias;
+   if (tm.tm_isdst) {
+      offset += _dstbias;
+   }
    return offset /= 60;
 #else
 
