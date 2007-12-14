@@ -85,6 +85,7 @@ enum lex_state {
    lex_identifier,
    lex_string,
    lex_quoted_string,
+   lex_include_quoted_string,
    lex_include,
    lex_utf8_bom,      /* we are parsing out a utf8 byte order mark */ 
    lex_utf16_le_bom   /* we are parsing out a utf-16 (little endian) byte order mark */
