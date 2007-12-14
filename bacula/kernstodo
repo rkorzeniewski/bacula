@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                       16 July 2007
+                    14 December 2007
 
 
 Document:
@@ -71,8 +71,12 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
-- Plugins
+- Complete Catalog in Pool
+- Implement Bacula plugins -- design API
 - Scripts
+- Prune by Job
+- Prune by Job Level
+- True automatic pruning 
 - Duplicate Jobs
   Run, Fail, Skip, Higher, Promote, CancelLowerLevel
   Proximity
@@ -86,14 +90,6 @@ Priority:
    02-Nov 12:58 rufus-sd JobId 10: Wrote label to prelabeled Volume "Vol001" on device "DDS-4" (/dev/nst0)
    02-Nov 12:58 rufus-sd JobId 10: Alert: TapeAlert[7]:   Media Life: The tape has reached the end of its useful life.
    02-Nov 12:58 rufus-dir JobId 10: Bacula rufus-dir 2.3.6 (26Oct07): 02-Nov-2007 12:58:51
-- Encrypt sd_auth_key = s with director's key = d
-   k[i] = s[i] + (d[i] & 0xF)) & 0xFF + 'A'  skip -
-  Decrypt key = k with director's key
-   x  = k[i] - (d[i] & 0xF))
-   if (x < 0) {
-      x = k[i] - (d[i] & 0xF) + 16
-   }
-   s[i] = x + 'A';
 - Eliminate:  /var is a different filesystem. Will not descend from / into /var
 - Separate Files and Directories in catalog
 - Create FileVersions table
@@ -106,12 +102,7 @@ Priority:
   generation of the error message doesn't differentiate result==NULL
   and a bad status from that result.  Not only that, the result is
   cleared on a bail_out without having generated the error message.
-- Erabt if min_block_size > max_block_size
 - KIWI
-- Implement wait on multiple objects
-   - Multiple max times
-   - pthread signal
-   - socket input ready
 - Implement SDErrors (must return from SD)
 - Implement USB keyboard support in rescue CD.
 - Implement continue spooling while despooling.
@@ -1350,7 +1341,6 @@ Documentation to do: (any release a little bit at a time)
 - Have SD compute MD5 or SHA1 and compare to what FD computes.
 - Make VolumeToCatalog calculate an MD5 or SHA1 from the 
   actual data on the Volume and compare it.                  
-- Implement Bacula plugins -- design API
 - Make bcopy read through bad tape records.
 - Program files (i.e. execute a program to read/write files).
   Pass read date of last backup, size of file last time.
@@ -1576,6 +1566,10 @@ Jerry Schieffer
 ==============================
 
 Longer term to do:
+- Implement wait on multiple objects
+   - Multiple max times
+   - pthread signal
+   - socket input ready
 - Design at hierarchial storage for Bacula. Migration and Clone. 
 - Implement FSM (File System Modules).
 - Audit M_ error codes to ensure they are correct and consistent.
@@ -1590,9 +1584,6 @@ Longer term to do:
 - Enhance time/duration input to allow multiple qualifiers e.g. 3d2h
 - Add ability to backup to two Storage devices (two SD sessions) at
   the same time -- e.g. onsite, offsite.
-- Add the ability to consolidate old backup sets (basically do a restore
-  to tape and appropriately update the catalog). Compress Volume sets.
-  Might need to spool via file is only one drive is available.
 - Compress or consolidate Volumes of old possibly deleted files. Perhaps
   someway to do so with every volume that has less than x% valid 
   files.
@@ -1832,3 +1823,7 @@ Block Position: 0
   does the right thing.
 - FD-SD quick disconnect
 - Building the in memory restore tree is slow.
+- Erabt if min_block_size > max_block_size
+- Add the ability to consolidate old backup sets (basically do a restore
+  to tape and appropriately update the catalog). Compress Volume sets.
+  Might need to spool via file is only one drive is available.
