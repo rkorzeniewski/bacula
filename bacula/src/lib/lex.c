@@ -174,7 +174,7 @@ LEX *lex_open_file(LEX *lf, const char *filename, LEX_ERROR_HANDLER *scan_error)
 
 
    if (fname[0] == '|') {
-      if ((bpipe = open_bpipe(fname, 0, "rb")) == NULL) {
+      if ((bpipe = open_bpipe(fname+1, 0, "rb")) == NULL) {
          free(fname);
          return NULL;
       }
