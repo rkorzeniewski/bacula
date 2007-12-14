@@ -75,6 +75,7 @@ extern void catalog_update(JCR *jcr, BSOCK *bs);
 
 /* dird_conf.c */
 extern const char *level_to_str(int level);
+extern char *job_code_callback_filesetname(JCR *jcr, const char*);
 
 /* expand.c */
 int variable_expansion(JCR *jcr, char *inp, POOLMEM **exp);

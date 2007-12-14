@@ -73,6 +73,8 @@ public:
    bool fail_on_error;         /* abort job on error (Before) */
    /* TODO : drop this with bacula 1.42 */
    bool old_proto;              /* used by old 1.3X protocol */
+   job_code_callback_t job_code_callback;
+   				/* Optional callback function passed to edit_job_code */
 
    bool run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
@@ -81,6 +83,8 @@ public:
    void reset_default(bool free_string = false);
    bool is_local();             /* true if running on local host */
    void debug();
+
+   void set_job_code_callback(job_code_callback_t job_code_callback);
 };
 
 /* create new RUNSCRIPT (set all value to 0) */
