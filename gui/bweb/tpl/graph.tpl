@@ -84,6 +84,8 @@
    <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
    <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
    <option id='job_sum_day' value='job_sum_day' title="Job size per day for the period">Job Bytes (d)</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="Display Job size, duration and number of files with a balloon">Size,time,files</option>
+
  </select>
   </td>
   <td valign='bottom'> 
@@ -98,7 +100,7 @@
     <option id='gtype_bars' value='bars'>Bars</option>
 <!--  <option id='gtype_bars3d' value='bars3d'>Bars3d</option> -->
     <option id='gtype_lines' value='lines'>Lines</option>
-    <option id='gtype_balloon' value='balloon'>Balloon</option>
+    <option onclick='document.getElementById("job_time_size").selected=true;' id='gtype_balloon' value='balloon'>Balloon</option>
     <option id='gtype_linespoints' value='linespoints'>Lines points</option>
 </td>
 <td>
