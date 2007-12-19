@@ -1,4 +1,5 @@
 bweb (2.2.7-1) stable; urgency=low
+  * Add new balloon view
   * Add new btime module
   * Add a new scheduled view, you MUST have Date::Calc module
 	

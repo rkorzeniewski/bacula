@@ -98,6 +98,7 @@
     <option id='gtype_bars' value='bars'>Bars</option>
 <!--  <option id='gtype_bars3d' value='bars3d'>Bars3d</option> -->
     <option id='gtype_lines' value='lines'>Lines</option>
+    <option id='gtype_balloon' value='balloon'>Balloon</option>
     <option id='gtype_linespoints' value='linespoints'>Lines points</option>
 </td>
 <td>
@@ -115,7 +116,9 @@
  Current &nbsp;
  </div>
  <div class="otherbox">
- <img src='bgraph.pl?<TMPL_VAR NAME=url>' alt='Nothing to display, Try a bigger date range'>
+
+ <img usemap='imggraph' id='imggraph' 
+      alt='Nothing to display, Try a bigger date range'>
  </div>
 
 </td>
@@ -166,6 +169,10 @@
 
   <TMPL_IF gtype>
      document.getElementById('gtype_<TMPL_VAR gtype>').selected=true;
+  </TMPL_IF>
+
+  <TMPL_IF url>
+   document.getElementById('imggraph').src='bgraph.pl?<TMPL_VAR NAME=url>'
   </TMPL_IF>
 
 </script>

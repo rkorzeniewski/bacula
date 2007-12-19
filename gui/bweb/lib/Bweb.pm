@@ -1891,11 +1891,10 @@ sub display_graph
                                     graph gtype type filter db_clients
 				    limit db_filesets width height
 				    qclients qfilesets qjobnames db_jobnames/);
-				
-
+    
     my $url = CGI::url(-full => 0,
-		       -base => 0,
-		       -query => 1);
+                      -base => 0,
+                      -query => 1);
     $url =~ s/^.+?\?//;	# http://path/to/bweb.pl?arg => arg
 
 # this organisation is to keep user choice between 2 click
@@ -1906,6 +1905,9 @@ sub display_graph
 	%$fields,
     }, "graph.tpl");
 
+    if ($fields->{gtype} eq 'balloon') {
+	system("./bgraph.pl");
+    }
 }
 
 sub get_selected_media_location

@@ -115,6 +115,58 @@ my $filter = $bweb->get_client_filter();
 
 my $gtype = CGI::param('gtype') || 'bars';
 
+
+# in this mode, we generate an image and an imagemap
+if ($gtype eq 'balloon') {
+    use Digest::MD5 qw(md5_hex);
+    use GBalloon;
+
+    my $all = $dbh->selectall_arrayref("
+SELECT $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)
+                                  - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime))
+         AS duration, JobBytes, JobFiles, JobId, $jobt.Name
+       
+ FROM $jobt, Client $filter $groupf
+WHERE $jobt.ClientId = Client.ClientId
+  AND $jobt.Type = 'B'
+  $clientq
+  $statusq
+  $levelq
+  $jobnameq
+  $groupq
+$limitq
+");
+
+    my $b = new GBalloon(width=>$arg->{width}, 
+			 height =>$arg->{height});
+    $b->set_legend_axis(x_title => 'Time', 
+			x_func => sub { 
+			    POSIX::strftime('%H:%M', gmtime($_[0])) 
+			    },
+			y_title => 'Size', y_func => \&Bweb::human_size,
+			z_title => 'Nb files');
+
+    foreach my $a (@$all) {
+	$b->add_point($a->[0], $a->[1], $a->[2], 
+		      "?action=job_zoom;jobid=$a->[3]",
+		      "$a->[4] $a->[2] files");
+    }
+    
+    $b->init_gd();
+    $b->finalize();
+
+    my $md5_rep = md5_hex(join(":", map { $arg->{$_} } sort keys %$arg));
+
+    # need to cleanup this path
+    open(FP, ">$conf->{fv_write_path}/$md5_rep.png");
+    print FP $GBalloon::gd->png;
+    close(FP);
+    
+    print $b->get_imagemap("Job overview", "/bweb/fv/$md5_rep.png");
+
+    exit 0;
+}
+
 print CGI::header('image/png');
 
 sub get_graph
@@ -514,6 +566,7 @@ $limit
     my ($ret) = make_tab_sum($all);
 
     print $obj->plot([$ret->{date}, $ret->{nb}])->png;    
-}
+
+} 
 
 $dbh->disconnect();
