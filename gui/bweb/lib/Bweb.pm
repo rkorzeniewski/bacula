@@ -1904,7 +1904,7 @@ sub display_graph
     $self->display({
 	url => $url,
 	%$fields,
-    }, "graph.tpl")
+    }, "graph.tpl");
 
 }
 
