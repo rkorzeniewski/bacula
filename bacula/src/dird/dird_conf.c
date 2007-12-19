@@ -1899,11 +1899,11 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /* callback function for edit_job_codes */
-char *job_code_callback_filesetname(JCR *jcr, const char* param) {
-	if (param[0] == 'f') {
-		return jcr->fileset->name();
-	} else {
-		return NULL;
-	}
+char *job_code_callback_filesetname(JCR *jcr, const char* param)
+{
+   if (param[0] == 'f') {
+      return jcr->fileset->name();
+   } else {
+      return NULL;
+   }
 }
-
