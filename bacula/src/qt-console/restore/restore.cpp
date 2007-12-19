@@ -258,6 +258,7 @@ void restorePage::directoryItemChanged(QTreeWidgetItem *currentitem,
                                          QTreeWidgetItem * /*previousitem*/)
 {
    QString fullpath = m_dirTreeItems.value(currentitem);
+   statusLine->setText("");
    if (fullpath != ""){
       cwd(fullpath.toUtf8().data());
       fillDirectory();
@@ -266,7 +267,7 @@ void restorePage::directoryItemChanged(QTreeWidgetItem *currentitem,
 
 void restorePage::okButtonPushed()
 {
-   printf("In restorePage::okButtonPushed\n");
+// printf("In restorePage::okButtonPushed\n");
    this->hide();
    m_console->write("done");
    m_console->notify(true);
@@ -290,6 +291,7 @@ void restorePage::cancelButtonPushed()
 void restorePage::fileDoubleClicked(QTreeWidgetItem *item, int column)
 {
    char cmd[1000];
+   statusLine->setText("");
    if (column == 0) {                 /* mark/unmark */
       if (item->data(0, Qt::UserRole).toBool()) {
          bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
@@ -337,6 +339,7 @@ void restorePage::upButtonPushed()
    if (item) {
       directoryWidget->setCurrentItem(item);
    }
+   statusLine->setText("");
 }
 
 /*
@@ -347,7 +350,10 @@ void restorePage::markButtonPushed()
    QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
    char cmd[1000];
+   int count = 0;
+   statusLine->setText("");
    foreach (item, treeItemList) {
+      count++;
       bsnprintf(cmd, sizeof(cmd), "mark \"%s\"", item->text(1).toUtf8().data());
       item->setIcon(0, QIcon(QString::fromUtf8(":images/check.png")));
       m_console->write_dir(cmd);
@@ -358,6 +364,11 @@ void restorePage::markButtonPushed()
       Dmsg1(100, "cmd=%s\n", cmd);
       m_console->discardToPrompt();
    }
+   if (count == 0) {
+      mainWin->set_status("Nothing selected, nothing done");
+      statusLine->setText("Nothing selected, nothing done");
+   }
+      
 }
 
 /*
@@ -368,7 +379,10 @@ void restorePage::unmarkButtonPushed()
    QList<QTreeWidgetItem *> treeItemList = fileWidget->selectedItems();
    QTreeWidgetItem *item;
    char cmd[1000];
+   int count = 0;
+   statusLine->setText("");
    foreach (item, treeItemList) {
+      count++;
       bsnprintf(cmd, sizeof(cmd), "unmark \"%s\"", item->text(1).toUtf8().data());
       item->setIcon(0, QIcon(QString::fromUtf8(":images/unchecked.png")));
       m_console->write_dir(cmd);
@@ -379,6 +393,11 @@ void restorePage::unmarkButtonPushed()
       Dmsg1(100, "cmd=%s\n", cmd);
       m_console->discardToPrompt();
    }
+   if (count == 0) {
+      mainWin->set_status("Nothing selected, nothing done");
+      statusLine->setText("Nothing selected, nothing done");
+   }
+
 }
 
 /*
@@ -389,6 +408,7 @@ bool restorePage::cwd(const char *dir)
    int stat;
    char cd_cmd[MAXSTRING];
 
+   statusLine->setText("");
    bsnprintf(cd_cmd, sizeof(cd_cmd), "cd \"%s\"", dir);
    Dmsg2(100, "dir=%s cmd=%s\n", dir, cd_cmd);
    m_console->write_dir(cd_cmd);
