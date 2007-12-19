@@ -261,16 +261,6 @@ void *handle_client_request(void *dirp)
       }
    }
 
-   if (jcr->JobId) {		/* send EndJob if running a job */
-      char ed1[50], ed2[50];
-      /* Send termination status back to Dir */
-      bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
-		 edit_uint64(jcr->ReadBytes, ed1),
-		 edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
-		 jcr->pki_encrypt);
-      Dmsg1(110, "End FD msg: %s\n", dir->msg);
-   }
-
    /* Inform Storage daemon that we are done */
    if (jcr->store_bsock) {
       bnet_sig(jcr->store_bsock, BNET_TERMINATE);
@@ -947,7 +937,7 @@ static void set_options(findFOPTS *fo, const char *opts)
    char strip[100];
 
 #ifdef HAVE_WIN32
-   fo->flags |= FO_IGNORECASE;	/* always ignorecase under windows */
+   fo->flags |= FO_IGNORECASE; /* always ignorecase under windows */
 #endif
 
    for (p=opts; *p; p++) {
@@ -1345,13 +1335,15 @@ static int backup_cmd(JCR *jcr)
    BSOCK *sd = jcr->store_bsock;
    int ok = 0;
    int SDJobStatus;
+   char ed1[50], ed2[50];
+   bool bDoVSS = false;
 
 #if defined(WIN32_VSS)
    // capture state here, if client is backed up by multiple directors
    // and one enables vss and the other does not then enable_vss can change
    // between here and where its evaluated after the job completes.
-   jcr->VSS = g_pVSSClient && enable_vss;
-   if (jcr->VSS) {
+   bDoVSS = g_pVSSClient && enable_vss;
+   if (bDoVSS) {
       /* Run only one at a time */
       P(vss_mutex);
    }
@@ -1407,7 +1399,7 @@ static int backup_cmd(JCR *jcr)
 
 #if defined(WIN32_VSS)
    /* START VSS ON WIN 32 */
-   if (jcr->VSS) {      
+   if (bDoVSS) {      
       if (g_pVSSClient->InitializeForBackup()) {   
         /* tell vss which drives to snapshot */   
         char szWinDriveLetters[27];   
@@ -1500,7 +1492,7 @@ cleanup:
 #if defined(WIN32_VSS)
    /* STOP VSS ON WIN 32 */
    /* tell vss to close the backup session */
-   if (jcr->VSS) {
+   if (bDoVSS) {
       if (g_pVSSClient->CloseBackup()) {             
          /* inform user about writer states */
          for (int i=0; i<(int)g_pVSSClient->GetWriterCount(); i++) {
@@ -1516,6 +1508,12 @@ cleanup:
    }
 #endif
 
+   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+      edit_uint64(jcr->ReadBytes, ed1),
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, (int)bDoVSS, 
+      jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+   
    return 0;                          /* return and stop command loop */
 }
 
@@ -1527,7 +1525,7 @@ static int verify_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    BSOCK *sd  = jcr->store_bsock;
-   char level[100];
+   char level[100], ed1[50], ed2[50];
 
    jcr->JobType = JT_VERIFY;
    if (sscanf(dir->msg, verifycmd, level) != 1) {
@@ -1591,6 +1589,15 @@ static int verify_cmd(JCR *jcr)
 
    bnet_sig(dir, BNET_EOD);
 
+   /* Send termination status back to Dir */
+   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+      edit_uint64(jcr->ReadBytes, ed1),
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+      jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+
+   /* Inform Director that we are done */
+   bnet_sig(dir, BNET_TERMINATE);
    return 0;                          /* return and terminate command loop */
 }
 
@@ -1606,6 +1613,7 @@ static int restore_cmd(JCR *jcr)
    bool use_regexwhere=false;
    int prefix_links;
    char replace;
+   char ed1[50], ed2[50];
 
    /*
     * Scan WHERE (base directory for restore) from command
@@ -1692,6 +1700,15 @@ bail_out:
    if (jcr->Errors) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
+   /* Send termination status back to Dir */
+   bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+      edit_uint64(jcr->ReadBytes, ed1),
+      edit_uint64(jcr->JobBytes, ed2), jcr->Errors, 0,
+      jcr->pki_encrypt);
+   Dmsg1(110, "End FD msg: %s\n", dir->msg);
+
+   /* Inform Director that we are done */
+   bnet_sig(dir, BNET_TERMINATE);
 
    Dmsg0(130, "Done in job.c\n");
    return 0;                          /* return and terminate command loop */
