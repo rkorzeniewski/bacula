@@ -19,7 +19,7 @@ rm -rf weird-files2
 cp -Rp weird-files weird-files2
 echo "${cwd}/weird-files2" >${cwd}/tmp/file-list
 cd weird-files2
-perl socket.pl
+#perl socket.pl     # we no longer restore sockets
 cd ..
 
 change_jobname NightlySave $JobName
@@ -76,8 +76,8 @@ stop_bacula
 bin/testls weird-files2 >${cwd}/tmp/restored
 
 check_two_logs
-#diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
-diff ${cwd}/tmp/original ${cwd}/tmp/restored
+diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+#diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
 dstat=$?
 
 end_test
