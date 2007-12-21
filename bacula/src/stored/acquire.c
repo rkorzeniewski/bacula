@@ -373,12 +373,14 @@ DCR *acquire_device_for_append(DCR *dcr)
           do_mount = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
           Dmsg2(190, "jid=%u Correct tape mounted. recycle=%d\n", 
                 (uint32_t)jcr->JobId, do_mount);
+#ifdef xxx
           if (do_mount && dev->num_writers != 0) {
              Jmsg(jcr, M_FATAL, 0, _("Cannot recycle volume \"%s\""
                   " on device %s because it is in use by another job.\n"),
                   dev->VolHdr.VolumeName, dev->print_name());
              goto get_out;
           }
+#endif
           if (dev->num_writers == 0) {
              memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
           }
