@@ -1,5 +1,5 @@
  <div class='titlediv'>
-  <h1 class='newstitle'> Last Jobs (<TMPL_VAR Filter>)</h1>
+  <h1 class='newstitle'> __Last Jobs__ (<TMPL_VAR Filter>)</h1>
  </div>
  <div class='bodydiv'>
     <table id='id<TMPL_VAR ID>'></table>
@@ -13,17 +13,17 @@ document.getElementById('status_<TMPL_VAR status>').checked = true;
 
 
 var header = new Array("JobId",
-	               "Client",
-	               "Job Name", 
-		       "FileSet",
-//                     "Pool",
-                       "Level",
-                       "StartTime",
-	               "Duration",
-                       "JobFiles",
-                       "JobBytes", 
-                       "Errors",
-	               "Status");
+	               "__Client__",
+	               "__Job Name__", 
+		       "__FileSet__",
+//                     "__Pool__",
+                       "__Level__",
+                       "__StartTime__",
+	               "__Duration__",
+                       "__JobFiles__",
+                       "__JobBytes__", 
+                       "__Errors__",
+	               "__Status__");
 
 var data = new Array();
 

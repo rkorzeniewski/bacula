@@ -1,28 +1,28 @@
  <div class='titlediv'>
-  <h1 class='newstitle'>Information about job</h1>
+  <h1 class='newstitle'>__Information about job__</h1>
  </div>
  <div class="bodydiv">
  <table id='id0'></table>
  <table><td>
  <form name="delete" action='bweb.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
-  <button type="submit" name='action' class="bp" value='delete' title='delete this job'
- onclick="return confirm('Do you want to delete this job from the catalog ?');">
-   <img src='/bweb/purge.png' alt=''> Delete </button>
+  <button type="submit" name='action' class="bp" value='delete' title='__delete this job__'
+ onclick="return confirm('__Do you want to delete this job from the catalog?__');">
+   <img src='/bweb/purge.png' alt=''>__Delete__</button>
  </form>
  </td><td>
  <form name="media" action='bweb.pl?'>
   <TMPL_LOOP volumes>
    <input type='hidden' name='media' value='<TMPL_VAR VolumeName>'>
   </TMPL_LOOP>   
-  <button type="submit" name='action' value='media' title='view media' class="bp">
-   <img src='/bweb/zoom.png'alt=''>View media </button>
+  <button type="submit" name='action' value='media' title='__View media__' class="bp">
+   <img src='/bweb/zoom.png'alt=''>__View media__</button>
  </form>
  </td>
  <td>
  <form name="job" action='bweb.pl?'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
-  <button type="submit" class="bp" name='action' value='job' title='view <TMPL_VAR Client> jobs'><img src='/bweb/zoom.png'>View jobs</button>
+  <button type="submit" class="bp" name='action' value='job' title='__view__ <TMPL_VAR Client> __jobs__'><img src='/bweb/zoom.png'>__View jobs__</button>
  </form>
  </td>
  <td>
@@ -30,15 +30,15 @@
   <input type='hidden' name='age' value='2678400'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
   <input type='hidden' name='jobname' value='<TMPL_VAR jobname>'>
-  <button type="submit" class="bp" name='action' value='graph' title='view trends'>
-   <img src='/bweb/chart.png' alt=''> View stats </button>
+  <button type="submit" class="bp" name='action' value='graph' title='__View trends__'>
+   <img src='/bweb/chart.png' alt=''> __View stats__ </button>
  </form>
  </td>
  <td>
  <form name="fileset_view" action='bweb.pl?'>
   <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
-  <button type="submit" class="bp" name='action' value='fileset_view' title='view fileset'> 
- <img src='/bweb/zoom.png' alt=''> View FileSet</button>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='__View Fileset__'> 
+ <img src='/bweb/zoom.png' alt=''>__View FileSet__</button>
  </form>
  </td>
 <!-- Remove this to activate bfileview 
@@ -47,15 +47,15 @@
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <input type='hidden' name='where' value='/'>
   <button type="submit" class="bp" name='action' value='bfileview' 
-   title='view file usage' 
-   onclick='if (<TMPL_VAR JobFiles> > 50000) { return confirm("It could take long time, do you want to continue ?")} else { return 1; }'>
-   <img src='/bweb/colorscm.png' alt=''> View file usage </button>
+   title='__view file usage__' 
+   onclick='if (<TMPL_VAR JobFiles> > 50000) { return confirm("__It could take long time, do you want to continue?__")} else { return 1; }'>
+   <img src='/bweb/colorscm.png' alt=''> __View file usage__ </button>
  </form>
  </td>
 -->
 <TMPL_IF wiki_url>
   <td>
-   <a href="<TMPL_VAR wiki_url><TMPL_VAR Client>" title='View doc'><img src='/bweb/doc.png' alt='view doc'></a>View Doc
+   <a href="<TMPL_VAR wiki_url><TMPL_VAR Client>" title='__View doc__'><img src='/bweb/doc.png' alt='__View doc__'></a>__View doc__
  </td>
 </TMPL_IF>
  <td>
@@ -66,15 +66,15 @@
   <input type='hidden' name='client' value='<TMPL_VAR client>'>
   <input type='hidden' id="rerun_level" name='level'>
   <input type='hidden' name='job' value='<TMPL_VAR jobname>'>
-  <button type="submit" class="bp" name='action' value='run_job_mod' title='run this job again'>
-   <img src='/bweb/R.png'> Run this job </button>
+  <button type="submit" class="bp" name='action' value='run_job_mod' title='__run this job again__'>
+   <img src='/bweb/R.png'> __Run this job__ </button>
  </form>
  </td>
 <TMPL_IF joberrors>
  <td>
     <a href="<TMPL_VAR thisurl>;error=1"
-         title="View only errors">
-    <img src='/bweb/doc.png' alt="view errors"></a> View only errors
+         title="__View only errors__">
+    <img src='/bweb/doc.png' alt="__View errors__"></a> __View only errors__
   </td>
 </TMPL_IF>
  </table>
@@ -82,18 +82,18 @@
 
 <script type="text/javascript" language='JavaScript'>
 var header = new Array("JobId",
-	               "Client",
-	               "Job Name", 
-		       "FileSet",
-                       "Level",
-                       "StartTime", 
-	               "Duration",
-                       "JobFiles",
-                       "JobBytes",
-                       "Errors",
-	               "Pool",
-                       "Volume Name",
-	               "Status");
+	               "__Client__",
+	               "__Job Name__", 
+		       "__FileSet__",
+                       "__Level__",
+                       "__StartTime__", 
+	               "__Duration__",
+                       "__JobFiles__",
+                       "__JobBytes__",
+                       "__Errors__",
+	               "__Pool__",
+                       "__Volume Name__",
+	               "__Status__");
 
 var data = new Array();
 

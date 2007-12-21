@@ -1,57 +1,58 @@
 <br/>
  <div class='titlediv'>
   <h1 class='newstitle'> 
-Autochanger : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Drives
-<TMPL_IF nb_io><TMPL_VAR nb_io> IMPORT/EXPORT</TMPL_IF>)</h1>
+__Autochanger:__ <TMPL_VAR Name> (<TMPL_VAR nb_drive> __Drives__
+<TMPL_IF nb_io><TMPL_VAR nb_io> __IMPORT/EXPORT__</TMPL_IF>)</h1>
  </div>
  <div class='bodydiv'>
    <form action='?' method='get'>
     <input type='hidden' name='ach' value='<TMPL_VAR name>'>
     <TMPL_IF "Update">
-    <font color='red'> You must run update slot, Autochanger status is different from bacula slots </font>
+    <font color='red'> __You must run update slot, Autochanger status is different from bacula slots__ </font>
     <br/>
     </TMPL_IF>
     <table border='0'>
     <tr>
     <td valign='top'>
     <div class='otherboxtitle'>
-     Tools
+     __Tools__
     </div>
     <div class='otherbox'>
 <button type="submit" class="bp" name='action' value='label_barcodes'
- title='run label barcodes'><img src='/bweb/label.png' alt=''>Label</button>
+ title='__run label barcodes__'><img src='/bweb/label.png' alt=''>__Label__</button>
 <TMPL_IF nb_io>
 <button type="submit" class="bp" name='action' value='eject'
- title='put selected media on i/o'><img src='/bweb/extern.png' alt=''>Eject</button>
+ title='__put selected media on i/o__'><img src='/bweb/extern.png' alt=''>__Eject__</button>
 <button type="submit" class="bp" name='action' value='clear_io'
- title='Clear i/o'> <img src='/bweb/intern.png' alt=''>Clear I/O</button>
+ title='__Clear I/O__'> <img src='/bweb/intern.png' alt=''>__Clear I/O__</button>
 </TMPL_IF>
 <button type="submit" class="bp" name='action' value='update_slots'
- title='run update slots'> <img src='/bweb/update.png' alt=''>Update</button>
+ title='__run update slots__'> <img src='/bweb/update.png' alt=''>__Update__</button>
 <br/><br/>
 <button type="submit" class="bp" name='action' value='ach_load'
- title='mount drive'> <img src='/bweb/load.png' alt=''>Mount</button>
+ title='__mount drive__'> <img src='/bweb/load.png' alt=''>__Mount__</button>
 <button type="submit" class="bp" name='action' value='ach_unload'
- title='umount drive'> <img src='/bweb/unload.png' alt=''>Umount</button>
+ title='__umount drive__'> <img src='/bweb/unload.png' alt=''>__Umount__</button>
 
    </div>
     <td width='200'/>
     <td>
-    <b> Drives: </b><br/>
+    <b> __Drives:__ </b><br/>
     <table id='id_drive'></table> <br/>
     </td>
     </tr>
     </table>
-    <b> Content: </b><br/>
+    <b> __Content:__ </b><br/>
     <table id='id_ach'></table>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Real Slot", "Slot", "Volume Name","Vol Bytes","Vol Status",
-	               "Media Type","Pool Name","Last Written", 
-                       "When expire ?", "Select");
+var header = new Array("__Real Slot__", "__Slot__", "__Volume Name__",
+		       "__Vol Bytes__","__Vol Status__",
+	               "__Media Type__","__Pool Name__","__Last Written__", 
+                       "__When expire ?__", "__Select__");
 
 var data = new Array();
 var chkbox;
@@ -99,7 +100,8 @@ nrsTable.setup(
 }
 );
 
-var header = new Array("Index", "Drive Name", "Volume Name", "Select");
+var header = new Array("__Index__", "__Drive Name__", 
+		       "__Volume Name__", "__Select__");
 
 var data = new Array();
 var chkbox;

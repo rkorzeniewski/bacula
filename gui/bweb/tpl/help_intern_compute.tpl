@@ -1,16 +1,16 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Help to load media (part 2/2)</h1>
+  <h1 class='newstitle'>__Help to load media (part 2/2)__</h1>
  </div>
  <div class='bodydiv'>
-  Now, you can verify the selection and load the media.
+  __Now, you can verify the selection and load the media.__
    <form action='?' method='get'>
     <table id='compute'></table>
     <table><tr>
     <td style='align: left;'>
-    <button type="submit" class="bp" onclick='javascript:window.history.go(-2);' title='Back'> <img src='/bweb/prev.png' alt=''>Back</button>
+    <button type="submit" class="bp" onclick='javascript:window.history.go(-2);' title='__Back__'> <img src='/bweb/prev.png' alt=''>__Back__</button>
     </td><td style='align: right;'>
-    <input type="hidden" name='enabled' value="yes">
+    <input type="hidden" name='enabled' value='yes'>
     <button type="submit" class="bp" name='action' value='move_media'> 
      <img src='/bweb/intern.png' alt=''></button>
    </td></tr>
@@ -19,9 +19,9 @@
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Volume Name","Vol Status",
-                       "Media Type","Pool Name","Last Written", 
-                       "When expire ?", "Select");
+var header = new Array("__Volume Name__","__Vol Status__",
+                       "__Media Type__","__Pool Name__","__Last Written__", 
+                       "__When expire ?__", "__Select__");
 
 var data = new Array();
 var chkbox;
@@ -30,16 +30,16 @@ var chkbox;
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'media';
-chkbox.value= '<TMPL_VAR NAME=volumename>';
+chkbox.value= '<TMPL_VAR volumename>';
 chkbox.checked = 'on';
 
 data.push( new Array(
-"<TMPL_VAR NAME=volumename>",
-"<TMPL_VAR NAME=volstatus>",
-"<TMPL_VAR NAME=mediatype>",
-"<TMPL_VAR NAME=name>",
-"<TMPL_VAR NAME=lastwritten>",
-"<TMPL_VAR NAME=expire>",
+"<TMPL_VAR volumename>",
+"<TMPL_VAR volstatus>",
+"<TMPL_VAR mediatype>",
+"<TMPL_VAR name>",
+"<TMPL_VAR lastwritten>",
+"<TMPL_VAR expire>",
 chkbox
  )
 );

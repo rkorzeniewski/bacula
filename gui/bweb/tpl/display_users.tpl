@@ -1,24 +1,24 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Users</h1>
+  <h1 class='newstitle'>__Users__</h1>
  </div>
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <button type="submit" class="bp" name='action' value='user_add' title='Add'> <img src='/bweb/add.png' alt=''>Add</button>
+    <button type="submit" class="bp" name='action' value='user_add' title='__Add__'> <img src='/bweb/add.png' alt=''>__Add__</button>
     <button type="submit" class="bp" name='action' value='user_del' 
      onclick="return confirm('Do you want to delete this user ?');" 
-     title='Remove'> <img src='/bweb/remove.png' alt=''>Remove </button>
-    <button type="submit" class="bp" name='action' value='user_edit' title='Modify'> <img src='/bweb/edit.png' alt=''>Edit </button>
+     title='__Remove__'> <img src='/bweb/remove.png' alt=''>__Remove__ </button>
+    <button type="submit" class="bp" name='action' value='user_edit' title='__Edit__'> <img src='/bweb/edit.png' alt=''>__Edit__ </button>
 
-    <button type="submit" class="bp" name='action' value='client' title='View clients'> <img src='/bweb/zoom.png' alt=''>View clients</button>
-    <button type="submit" class="bp" name='action' value='job' title='View jobs'> <img src='/bweb/zoom.png' alt=''>View jobs</button>
+    <button type="submit" class="bp" name='action' value='client' title='__View clients__'> <img src='/bweb/zoom.png' alt=''>__View clients__</button>
+    <button type="submit" class="bp" name='action' value='job' title='__View jobs__'> <img src='/bweb/zoom.png' alt=''>__View jobs__</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Username","Selection");
+var header = new Array("__Username__","__Selection__");
 
 var data = new Array();
 var chkbox;

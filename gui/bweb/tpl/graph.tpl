@@ -1,107 +1,107 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Statistics</h1>
+  <h1 class='newstitle'>__Statistics__</h1>
  </div>
  <div class='bodydiv'>
 <table border='0'>
 <td>
 <form name='form1' action='?' method='GET'>
         <div class="otherboxtitle">
-          Options &nbsp;
+          __Options__ &nbsp;
         </div>
         <div class="otherbox">
 <table border='0'>
 <tr>
   <td valign='top'>
-    <h2>Level</h2>
+    <h2>__Level__</h2>
     <select name='level' class='formulaire'>
-      <option id='level_Any' value='Any'>Any</option>
-      <option id='level_F' value='F'>Full</option>
-      <option id='level_D' value='D'>Differential</option>
-      <option id='level_I' value='I'>Incremental</option>
+      <option id='level_Any' value='Any'>__Any__</option>
+      <option id='level_F' value='F'>__Full__</option>
+      <option id='level_D' value='D'>__Differential__</option>
+      <option id='level_I' value='I'>__Incremental__</option>
     </select>     
   </td><td valign='top'>
-    <h2>Status</h2>
+    <h2>__Status__</h2>
     <select name='status' class='formulaire'>
-      <option id='status_Any' value='Any'>Any</option>
-      <option id='status_T'   value='T'>Ok</option>
-      <option id='status_f'   value='f'>Error</option>
-      <option id='status_A'   value='A'>Canceled</option>
+      <option id='status_Any' value='Any'>__Any__</option>
+      <option id='status_T'   value='T'>__Ok__</option>
+      <option id='status_f'   value='f'>__Error__</option>
+      <option id='status_A'   value='A'>__Canceled__</option>
     </select>   
   </td>
 </tr>
 <tr>
   <td valign='top'>
-    <h2>Age</h2>
+    <h2>__Age__</h2>
     <select name='age' class='formulaire'>
-      <option id='age_604800'   value='604800'>This week</option>
-      <option id='age_2678400'  value='2678400'>Last 30 days</option>
-      <option id='age_15552000' value='15552000'>Last 6 month</option>
+      <option id='age_604800'   value='604800'>__This week__</option>
+      <option id='age_2678400'  value='2678400'>__Last 30 days__</option>
+      <option id='age_15552000' value='15552000'>__Last 6 month__</option>
     </select>     
   </td>
   <td  valign='top'>
-    <h2>Size</h2>
-     Width: &nbsp;<input class='formulaire' type='text' 
+    <h2>__Size__</h2>
+     __Width:__ &nbsp;<input class='formulaire' type='text' 
                          name='width' value='<TMPL_VAR width>' size='4'><br/>
-     Height:  <input type='text' class='formulaire' 
+     __Height:__  <input type='text' class='formulaire' 
                 name='height' value='<TMPL_VAR height>' size='4'><br/>
   </td>
 </tr>
 <tr>
   <td valign='top'> 
-    <h2>Clients</h2>
+    <h2>__Clients__</h2>
     <select name='client' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_clients>
+<TMPL_LOOP db_clients>
       <option id='client_<TMPL_VAR clientname>'><TMPL_VAR clientname></option>
 </TMPL_LOOP>
     </select>
   </td>
   <td valign='top'> 
-    <h2>Job Name</h2>
+    <h2>__Job Name__</h2>
     <select name='jobname' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_jobnames>
-      <option><TMPL_VAR NAME=jobname></option>
+<TMPL_LOOP db_jobnames>
+      <option><TMPL_VAR jobname></option>
 </TMPL_LOOP>
     </select>
   </td>
 </tr>
 <tr>
-  <td> <h2> Type </h2> 
+  <td> <h2> __Type__ </h2> 
  <select name='graph' class='formulaire'>
-   <option id='job_size'     value='job_size' title="Job size per job for the period">Job Size</option>
-   <option id='job_duration' value='job_duration' title="Job duration per job for the period">Job Duration</option>
-   <option id='job_rate' value='job_rate' title="Job rate per job for the period">Job Rate</option>
-   <option id='job_file' value='job_file' title="Number of backed files per job for the period">Job Files</option>
-   <option id='job_count_phour' value='job_count_phour' title="Number of jobs per hour for the period">Job per hour</option>
-   <option id='job_count_pday' value='job_count_pday' title="Number of jobs per day for the period">Job per day</option>
-   <option id='job_avg_phour' value='job_avg_pday' title="Average backup size per day for the period">Job avg B/hour</option>
-   <option id='job_avg_pday' value='job_avg_pday' title="Average backup size per hour for the period">Job avg B/day</option>
-   <option id='job_sum_phour' value='job_sum_phour' title="Job size per hour">Job total B/hour</option>
-   <option id='job_sum_pday' value='job_sum_pday' title="Job size per day">Job total B/day</option>
-   <option id='job_count_hour' value='job_count_hour' title="Number of jobs per hour for the period">Jobs Count (h)</option>
-   <option id='job_count_day' value='job_count_day' title="Number of jobs per day for the period">Jobs Count (d)</option>
-   <option id='job_avg_hour' value='job_avg_hour' title="Average backup size per hour for the period">Job avg size (h)</option>
-   <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
-   <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
-   <option id='job_sum_day' value='job_sum_day' title="Job size per day for the period">Job Bytes (d)</option>
-   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="Display Job size, duration and number of files with a balloon">Size,time,files</option>
+   <option id='job_size'     value='job_size' title="__Job size per job for the period__">__Job Size__</option>
+   <option id='job_duration' value='job_duration' title="__Job duration per job for the period__">__Job Duration__</option>
+   <option id='job_rate' value='job_rate' title="__Job rate per job for the period__">__Job Rate__</option>
+   <option id='job_file' value='job_file' title="__Number of backed files per job for the period__">__Job Files__</option>
+   <option id='job_count_phour' value='job_count_phour' title="__Number of jobs per hour for the period__">__Job per hour__</option>
+   <option id='job_count_pday' value='job_count_pday' title="__Number of jobs per day for the period__">__Job per day__</option>
+   <option id='job_avg_phour' value='job_avg_pday' title="__Average backup size per day for the period__">__Job avg B/hour__</option>
+   <option id='job_avg_pday' value='job_avg_pday' title="__Average backup size per hour for the period__">__Job avg B/day__</option>
+   <option id='job_sum_phour' value='job_sum_phour' title="__Job size per hour__">__Job total B/hour__</option>
+   <option id='job_sum_pday' value='job_sum_pday' title="__Job size per day__">__Job total B/day__</option>
+   <option id='job_count_hour' value='job_count_hour' title="__Number of jobs per hour for the period__">__Jobs Count (h)__</option>
+   <option id='job_count_day' value='job_count_day' title="__Number of jobs per day for the period__">__Jobs Count (d)__</option>
+   <option id='job_avg_hour' value='job_avg_hour' title="__Average backup size per hour for the period__">__Job avg size (h)__</option>
+   <option id='job_avg_day' value='job_avg_day' title="__Average backup size per day for the period__">__Job avg size (d)__</option>
+   <option id='job_sum_hour' value='job_sum_hour' title="__Job size per hour for the period__">__Job Bytes (h)__</option>
+   <option id='job_sum_day' value='job_sum_day' title="__Job size per day for the period__">__Job Bytes (d)__</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="__Display Job size, duration and number of files with a balloon__">__Size,time,files__</option>
 
  </select>
   </td>
   <td valign='bottom'> 
-    <h2>Number of items</h2>
-    <input type='text' name='limit' value='<TMPL_VAR NAME=limit>' 
+    <h2>__Number of items__</h2>
+    <input type='text' name='limit' value='<TMPL_VAR limit>' 
         class='formulaire' size='4'>
   </td>
 </tr>
 <tr>
-<td><h2> Graph type </h2> 
+<td><h2> __Graph type__ </h2> 
   <select name='gtype' class='formulaire'>
-    <option id='gtype_bars' value='bars'>Bars</option>
-<!--  <option id='gtype_bars3d' value='bars3d'>Bars3d</option> -->
-    <option id='gtype_lines' value='lines'>Lines</option>
-    <option onclick='document.getElementById("job_time_size").selected=true;' id='gtype_balloon' value='balloon'>Balloon</option>
-    <option id='gtype_linespoints' value='linespoints'>Lines points</option>
+    <option id='gtype_bars' value='bars'>__Bars__</option>
+<!--  <option id='gtype_bars3d' value='bars3d'>__Bars3d__</option> -->
+    <option id='gtype_lines' value='lines'>__Lines__</option>
+    <option onclick='document.getElementById("job_time_size").selected=true;' id='gtype_balloon' value='balloon'>__Balloon__</option>
+    <option id='gtype_linespoints' value='linespoints'>__Lines points__</option>
 </td>
 <td>
   <input type='submit' name='action' value='graph' class='formulaire'> 
@@ -115,12 +115,12 @@
 <td>
 
  <div class="otherboxtitle">
- Current &nbsp;
+ __Current__ &nbsp;
  </div>
  <div class="otherbox">
 
  <img usemap='imggraph' id='imggraph' 
-      alt='Nothing to display, Try a bigger date range'>
+      alt='__Nothing to display, Try a bigger date range__'>
  </div>
 
 </td>
@@ -174,7 +174,7 @@
   </TMPL_IF>
 
   <TMPL_IF url>
-   document.getElementById('imggraph').src='bgraph.pl?<TMPL_VAR NAME=url>'
+   document.getElementById('imggraph').src='bgraph.pl?<TMPL_VAR url>'
   </TMPL_IF>
 
 </script>

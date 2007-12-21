@@ -1,7 +1,7 @@
 <br/>
 <div class='titlediv'>
   <h1 class='newstitle'> 
-   Move media
+   __Move media__
   </h1>
  </div>
  <div class='bodydiv'>
@@ -9,9 +9,9 @@
 <form action="?" method='GET'>
 <table>
 <tr>
-<td><b>To: </b></td><td><input class='formulaire' name='email' value='<TMPL_VAR email>'></td>
+<td><b>__To:__ </b></td><td><input class='formulaire' name='email' value='<TMPL_VAR email>'></td>
 </tr><tr>
-<td><b>Subject: </b></td><td><input class='formulaire' name='subject' value='[BACULA] Move media to <TMPL_VAR newlocation>' size='80'></td>
+<td><b>__Subject:__ </b></td><td><input class='formulaire' name='subject' value='[BACULA] Move media to <TMPL_VAR newlocation>' size='80'></td>
 </tr><tr>
 <td></td>
 <td>
@@ -33,5 +33,5 @@ Thanks
 <input class='formulaire' type='submit' name='action' value='move_email'>
 </form>
 <br>
-<a href="<TMPL_VAR url>"><img alt='update now' src='/bweb/update.png'>Update now</a>
+<a href="<TMPL_VAR url>"><img alt='__Update now__' src='/bweb/update.png'>__Update now__</a>
 </div>

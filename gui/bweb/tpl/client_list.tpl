@@ -1,50 +1,50 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Clients</h1>
+  <h1 class='newstitle'>__Clients__</h1>
  </div>
  <div class='bodydiv'>
 <form name="client" action='?' method='GET'>
-     <table id='id<TMPL_VAR NAME=ID>'></table>
+     <table id='id<TMPL_VAR ID>'></table>
 	<div class="otherboxtitle">
-          Actions &nbsp;
+          __Actions__ &nbsp;
         </div>
         <div class="otherbox">
-<!--        <h1>Actions</h1> -->	
-       <button type="submit" class="bp" name='action' value='job' title='Show last job'> <img src='/bweb/zoom.png' alt=''>Last jobsView jobs</button>
-       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
-       <button type="submit" class="bp" name='action' value='client_status' title='Show client status'> <img src='/bweb/zoom.png' alt=''>Status </button>
-       <button type="submit" class="bp" name='action' value='client_stats' title='Client stats'> <img src='/bweb/chart.png' alt=''>Stats </button>
+<!--        <h1>__Actions__</h1> -->	
+       <button type="submit" class="bp" name='action' value='job' title='__Show last job__'> <img src='/bweb/zoom.png' alt=''>__Last jobsView jobs__</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='__Show current job__'> <img src='/bweb/zoom.png' alt=''>__Current jobs__</button>
+       <button type="submit" class="bp" name='action' value='client_status' title='__Show client status__'> <img src='/bweb/zoom.png' alt=''>__Status__ </button>
+       <button type="submit" class="bp" name='action' value='client_stats' title='__Client stats__'> <img src='/bweb/chart.png' alt=''>__Stats__ </button>
         </div>
 
 </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Name", "Select", "Desc", "Auto Prune", "File Retention", "Job Retention");
+var header = new Array("__Name__", "__Select__", "__Desc__", "__Auto Prune__", "__File Retention__", "__Job Retention__");
 
 var data = new Array();
 var chkbox ;
 
-<TMPL_LOOP NAME=Clients>
+<TMPL_LOOP Clients>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'client';
-chkbox.value = '<TMPL_VAR NAME=Name>';
+chkbox.value = '<TMPL_VAR Name>';
 
 data.push( 
-  new Array( "<TMPL_VAR NAME=Name>", 
+  new Array( "<TMPL_VAR Name>", 
              chkbox,
-	     "<TMPL_VAR NAME=Uname>",
-	     "<TMPL_VAR NAME=AutoPrune>",
-	     human_sec(<TMPL_VAR NAME=FileRetention>),
-	     human_sec(<TMPL_VAR NAME=JobRetention>)
+	     "<TMPL_VAR Uname>",
+	     "<TMPL_VAR AutoPrune>",
+	     human_sec(<TMPL_VAR FileRetention>),
+	     human_sec(<TMPL_VAR JobRetention>)
               )
 ) ; 
 </TMPL_LOOP>
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,

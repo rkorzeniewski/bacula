@@ -1,31 +1,31 @@
 <br/>
 <div class='titlediv'>
-  <h1 class='newstitle'> New location </h1>
+  <h1 class='newstitle'> __New location__ </h1>
 </div>
 <div class='bodydiv'>
    <form action="?" method='get'>
     <table>
-     <tr><td>Location :</td>     
+     <tr><td>__Location:__</td>     
          <td> 
           <input class="formulaire" type='text' value='' size='32' name='location'> 
          </td>
      </tr>
-     <tr><td>Cost :</td> 
+     <tr><td>__Cost:__</td> 
          <td> <input class="formulaire" type='text' value='10' name='cost' size='3'>
          </td>
      </tr>
-    <tr><td>Enabled:</td>
+    <tr><td>__Enabled:__</td>
         <td> <select name='enabled' class='formulaire'>
-           <option value='yes'>yes</option>
-           <option value='no'>no</option>
-           <option value='archived'>archived</option>
+           <option value='yes'>__yes__</option>
+           <option value='no'>__no__</option>
+           <option value='archived'>__archived__</option>
            </select>
         </td>
     </tr>
     </table>
-    <button type="submit" class="bp" name='action' value='location_add' title="save" ><img src='/bweb/save.png' alt=''>Save</button>
+    <button type="submit" class="bp" name='action' value='location_add' title="__Save__" ><img src='/bweb/save.png' alt=''>__Save__</button>
    </form>
 
-Tips: It's a good idea to have a location per autochanger. 
+__Tips: It's a good idea to have a location per autochanger.__
 
 </div>

@@ -1,35 +1,35 @@
 <table>
 <td valign='top'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Medium : <TMPL_VAR volumename> <TMPL_VAR comment></h1>
+  <h1 class='newstitle'> __Volume:__ <TMPL_VAR volumename> <TMPL_VAR comment></h1>
  </div>
  <div class='bodydiv'>
-    <b> Medium Infos</b><br/>
+    <b> __Volume Infos__</b><br/>
     <table id='id_info_<TMPL_VAR volumename>'></table>
-    <b> Medium Stats</b><br/>
+    <b> __Volume Stats__</b><br/>
     <table id='id_media_<TMPL_VAR volumename>'></table>
-    <b> Job List </b></br>
+    <b> __Job List__ </b></br>
     <table id='id_jobs_<TMPL_VAR volumename>'></table>
-    <b> Actions </b></br>
+    <b> __Actions__ </b></br>
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <button type="submit" class="bp" name='action' value='extern' onclick='return confirm("Do you want to eject this volume ?");' title='move out'> <img src='/bweb/extern.png' alt=''>Eject</button>
+      <button type="submit" class="bp" name='action' value='extern' onclick='return confirm("__Do you want to eject this volume ?__");' title='__move out__'> <img src='/bweb/extern.png' alt=''>__Eject__</button>
 <TMPL_ELSE>
-      <button type="submit" class="bp" name='action' value='intern' title='move in'> <img src='/bweb/intern.png' alt=''>Load</button>
+      <button type="submit" class="bp" name='action' value='intern' title='__move in__'> <img src='/bweb/intern.png' alt=''>__Load__</button>
 </TMPL_IF>
-      <button type="submit" class="bp" name='action' value='update_media' title='Update'><img src='/bweb/edit.png' alt=''>Edit</button>
-      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume ?')" alt=''>Purge</button>
-      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
+      <button type="submit" class="bp" name='action' value='update_media' title='__Update__'><img src='/bweb/edit.png' alt=''>__Edit__</button>
+      <button type="submit" class="bp" name='action' value='purge' title='__Purge__'> <img src='/bweb/purge.png' onclick="return confirm('__Do you want to purge this volume?__')" alt=''>__Purge__</button>
+      <button type="submit" class="bp" name='action' value='prune' title='__Prune__'> <img src='/bweb/prune.png' alt=''>__Prune__</button>
 <TMPL_IF Locationlog>
-      <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='View location log' src='/bweb/zoom.png'></a>
+      <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='__View location log__' src='/bweb/zoom.png'></a>
 </TMPL_IF>
    </form>
  </div>
 </td>
 <td valign='top'style="visibility:hidden;" id='locationlog'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Location log </h1>
+  <h1 class='newstitle'>__Location log__ </h1>
  </div>
  <div class='bodydiv'>
 <pre>
@@ -40,8 +40,8 @@
 </table>
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Pool","Online","Enabled", "Location","Vol Status", "Vol Bytes", "Expire",
-	               "Retention","Max use duration", "Max jobs" );
+var header = new Array("__Pool__","__Online__","__Enabled__", "__Location__","__Vol Status__", "__Vol Bytes__", "__Expire__",
+	               "__Retention__","__Max use duration__", "__Max jobs__" );
 
 var data = new Array();
 var img;
@@ -80,7 +80,7 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Vol Mounts", "Recycle count", "Read time", "Write time", "Errors");
+var header = new Array( "__Vol Mounts__", "__Recycle count__", "__Read time__", "__Write time__", "__Errors__");
 
 var data = new Array();
 data.push( new Array(
@@ -110,8 +110,8 @@ nrsTable.setup(
 );
 
 
-var header = new Array("JobId","Name","Start Time","Type",
-	               "Level", "Files", "Bytes", "Status");
+var header = new Array("JobId","__Name__","__Start Time__","__Type__",
+	               "__Level__","__Files__","__Bytes__","__Status__");
 
 var data = new Array();
 var a;

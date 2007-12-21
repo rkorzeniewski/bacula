@@ -1,41 +1,41 @@
  <div class='titlediv'>
   <h1 class='newstitle'> 
-   Media
+   __Media__
   </h1>
  </div>
  <div class='bodydiv'>
 
 <TMPL_IF Pool>
 <h2>
-Pool : <a href="?action=pool;pool=<TMPL_VAR Pool>">
+__Pool:__ <a href="?action=pool;pool=<TMPL_VAR Pool>">
          <TMPL_VAR Pool>
        </a>
 </h2>
 </TMPL_IF>
 <TMPL_IF Location>
 <h2>
-Location : <TMPL_VAR location>
+__Location:__ <TMPL_VAR location>
 </h2>
 </TMPL_IF>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <button type="submit" class="bp" name='action' value='extern' title='Move out'> <img src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");' alt=''>Eject</button>
-      <button type="submit" class="bp" name='action' value='intern' title='Move in'> <img src='/bweb/intern.png' alt=''>Load</button>
-      <button type="submit" class="bp" name='action' value='update_media' title='Update medium'> <img src='/bweb/edit.png' alt=''>Edit</button>
-      <button type="submit" class="bp" name='action' value='media_zoom' title='Information'> <img src='/bweb/zoom.png' alt=''>View</button>
+      <button type="submit" class="bp" name='action' value='extern' title='__Move out__'> <img src='/bweb/extern.png' onclick='return confirm("__Do you want to eject selected media ?__");' alt=''>__Eject__</button>
+      <button type="submit" class="bp" name='action' value='intern' title='__Move in__'> <img src='/bweb/intern.png' alt=''>__Load__</button>
+      <button type="submit" class="bp" name='action' value='update_media' title='__Update media__'> <img src='/bweb/edit.png' alt=''>__Edit__</button>
+      <button type="submit" class="bp" name='action' value='media_zoom' title='__Information__'> <img src='/bweb/zoom.png' alt=''>__View__</button>
 <!--
-      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' alt=''>Purge</button>
+      <button type="submit" class="bp" name='action' value='purge' title='__Purge__'> <img src='/bweb/purge.png' alt=''>__Purge__</button>
 -->
-      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
+      <button type="submit" class="bp" name='action' value='prune' title='__Prune__'> <img src='/bweb/prune.png' alt=''>__Prune__</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Volume Name","Online","Vol Bytes", "Vol Usage", "Vol Status",
-                       "Pool", "Media Type",
-                       "Last Written", "When expire ?", "Select");
+var header = new Array("__Volume Name__","__Online__","__Vol Bytes__", "__Vol Usage__", "__Vol Status__",
+                       "__Pool__", "__Media Type__",
+                       "__Last Written__", "__When expire ?__", "__Select__");
 
 var data = new Array();
 var img;

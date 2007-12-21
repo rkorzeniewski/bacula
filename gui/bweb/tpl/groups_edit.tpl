@@ -1,17 +1,17 @@
 
 <div class='titlediv'>
-  <h1 class='newstitle'> Group : <TMPL_VAR client_group></h1>
+  <h1 class='newstitle'> __Group:__ <TMPL_VAR client_group></h1>
 </div>
 <div class='bodydiv'>
    <form action="?" method='get'>
     <input type='hidden' name='client_group' value=<TMPL_VAR client_group>>
     <table>
-     <tr><td>Group :</td>
+     <tr><td>__Group:__</td>
          <td> 
           <input class="formulaire" type='text' value=<TMPL_VAR client_group> size='15' name='newgroup'> 
          </td>
      </tr>
-     <tr><td>Clients :</td> 
+     <tr><td>__Clients:__</td> 
          <td>
             <select name='client' size='15' class='formulaire' multiple>
             <TMPL_LOOP db_clients>
@@ -22,7 +22,7 @@
      </tr>
     </table>
     <button type="submit" class="bp" name='action' value='groups_save'>
-     <img src='/bweb/save.png' alt=''>Save</button>
+     <img src='/bweb/save.png' alt=''>__Save__</button>
    </form>
 </div>
 

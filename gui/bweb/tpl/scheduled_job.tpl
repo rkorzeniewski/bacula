@@ -1,14 +1,14 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>Next Jobs </TMPL_IF></h1>
+  <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>__Next Jobs__ </TMPL_IF></h1>
  </div>
  <div class='bodydiv'>
     <form name='form1' action='<TMPL_VAR cginame>?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
-     <button type="submit" class="bp" name='action' title='Run now' value='run_job_mod'>
-       <img src='/bweb/R.png' alt=''>  Run now </button>
-      <button type="submit" class="bp" name='action' title='Disable' value='disable_job'>
-       <img src='/bweb/inflag0.png' alt=''> Disable </button>
+     <button type="submit" class="bp" name='action' title='__Run now__' value='run_job_mod'>
+       <img src='/bweb/R.png' alt=''>  __Run now__ </button>
+      <button type="submit" class="bp" name='action' title='__Disable__' value='disable_job'>
+       <img src='/bweb/inflag0.png' alt=''> __Disable__ </button>
      <input type='hidden' name='pool' value=''>
      <input type='hidden' name='level' value=''>
      <input type='hidden' name='media' value=''>
@@ -17,13 +17,13 @@
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Scheduled",
-                       "Level",
-	               "Type",
-	               "Priority", 
-                       "Name",
-                       "Volume",
-	               "Select");
+var header = new Array("__Scheduled__",
+                       "__Level__",
+	               "__Type__",
+	               "__Priority__", 
+                       "__Name__",
+                       "__Volume__",
+	               "__Select__");
 
 var data = new Array();
 var chkbox;

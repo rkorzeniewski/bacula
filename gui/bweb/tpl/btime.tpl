@@ -1,25 +1,25 @@
  <div class='titlediv'>
-  <h1 class='newstitle'>Timing Statistics</h1>
+  <h1 class='newstitle'>__Timing Statistics__</h1>
  </div>
  <div class='bodydiv'>
 <table border='0' valign='top'>
 <td>
 <form name='form1' action='?' method='GET'>
 	<div class="otherboxtitle" valign='top'>
-          Options &nbsp;
+          __Options__ &nbsp;
         </div>
         <div class="otherbox">
 <table border='0'>
 <tr>
   <td>
-    <h2>Time limits</h2>
+    <h2>__Time limits__</h2>
      <table>
-      <tr><td> Begin: </td> <td><input class='formulaire' type='text' 
+      <tr><td> __Begin:__ </td> <td><input class='formulaire' type='text' 
            id='iso_begin' name='iso_begin' title='YYYY-MM-DD HH:MM' 
            <TMPL_IF qiso_begin> value=<TMPL_VAR qiso_begin> </TMPL_IF> 
            size='16'>
       </td></tr>
-      <tr><td> End: </td><td> <input type='text' class='formulaire' 
+      <tr><td> __End:__ </td><td> <input type='text' class='formulaire' 
 	id='iso_end' name='iso_end' title='YYYY-MM-DD HH:MM'
 	<TMPL_IF qiso_end> value=<TMPL_VAR qiso_end> </TMPL_IF>
         size='16'>
@@ -29,20 +29,20 @@
 </tr>
 <tr>
   <td>
-    <h2>Graph</h2>
+    <h2>__Graph__</h2>
       <input type='checkbox' 
-             <TMPL_IF qusage>checked="checked" value='on'</TMPL_IF> 
-             name="usage"> Drive usage<br/>
+             <TMPL_IF qusage>checked</TMPL_IF> 
+             name="usage"> __Drive usage__<br/>
       <input type='checkbox' 
-             <TMPL_IF qpool>checked="checked" value='on'</TMPL_IF> 
-             name="pool"> Pool usage<br/>
+             <TMPL_IF qpool>checked</TMPL_IF> 
+             name="pool"> __Pool usage__<br/>
       <input type='checkbox' 
-             <TMPL_IF qnojob>checked="checked" value='on'</TMPL_IF> 
-             name="nojob"> Hide Job<br/>
+             <TMPL_IF qnojob>checked</TMPL_IF> 
+             name="nojob"> __Hide Job__<br/>
 <TMPL_IF db_client_groups>
 <tr>
   <td valign='top'>
-    <h2>Groups</h2>
+    <h2>__Groups__</h2>
     <select name='client_group' size='10' class='formulaire' multiple>
 <TMPL_LOOP db_client_groups>
 	<option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
@@ -55,43 +55,43 @@
 </tr>
 <!--
   <td valign='top'>
-    <h2>Level</h2>
+    <h2>__Level__</h2>
     <select name='level' class='formulaire'>
-      <option id='level_Any' value='Any'>Any</option>
-      <option id='level_F' value='F'>Full</option>
-      <option id='level_D' value='D'>Differential</option>
-      <option id='level_I' value='I'>Incremental</option>
+      <option id='level_Any' value='Any'>__Any__</option>
+      <option id='level_F' value='F'>__Full__</option>
+      <option id='level_D' value='D'>__Differential__</option>
+      <option id='level_I' value='I'>__Incremental__</option>
     </select>     
   </td><td valign='top'>
-    <h2>Status</h2>
+    <h2>__Status__</h2>
     <select name='status' class='formulaire'>
-      <option id='status_Any' value='Any'>Any</option>
-      <option id='status_T'   value='T'>Ok</option>
-      <option id='status_f'   value='f'>Error</option>
-      <option id='status_A'   value='A'>Canceled</option>
+      <option id='status_Any' value='Any'>__Any__</option>
+      <option id='status_T'   value='T'>__Ok__</option>
+      <option id='status_f'   value='f'>__Error__</option>
+      <option id='status_A'   value='A'>__Canceled__</option>
     </select>   
   </td>
 </tr>
 <tr>
   <td valign='top'>
-    <h2>Age</h2>
+    <h2>__Age__</h2>
     <select name='age' class='formulaire'>
-      <option id='age_604800'   value='604800'>This week</option>
-      <option id='age_2678400'  value='2678400'>Last 30 days</option>
-      <option id='age_15552000' value='15552000'>Last 6 month</option>
+      <option id='age_604800'   value='604800'>__This week__</option>
+      <option id='age_2678400'  value='2678400'>__Last 30 days__</option>
+      <option id='age_15552000' value='15552000'>__Last 6 month__</option>
     </select>     
   </td>
   <td  valign='top'>
-    <h2>Size</h2>
-     Width: &nbsp;<input class='formulaire' type='text' 
+    <h2>__Size__</h2>
+     __Width:__ &nbsp;<input class='formulaire' type='text' 
 			 name='width' value='<TMPL_VAR width>' size='4'><br/>
-     Height:  <input type='text' class='formulaire' 
+     __Height:__  <input type='text' class='formulaire' 
 		name='height' value='<TMPL_VAR height>' size='4'><br/>
   </td>
 </tr>
 <tr>
   <td valign='top'> 
-    <h2>Clients</h2>
+    <h2>__Clients__</h2>
     <select name='client' size='15' class='formulaire' multiple>
 <TMPL_LOOP NAME=db_clients>
       <option id='client_<TMPL_VAR clientname>'><TMPL_VAR clientname></option>
@@ -99,7 +99,7 @@
     </select>
   </td>
   <td valign='top'> 
-    <h2>Job Name</h2>
+    <h2>__Job Name__</h2>
     <select name='jobname' size='15' class='formulaire' multiple>
 <TMPL_LOOP NAME=db_jobnames>
       <option><TMPL_VAR NAME=jobname></option>
@@ -121,10 +121,10 @@
 <td>
 
  <div class="otherboxtitle">
- Current &nbsp;
+ __Current__ &nbsp;
  </div>
  <div class="otherbox">
- <img src='<TMPL_VAR result>' alt='Nothing to display, Try a bigger date range'>
+ <img src='<TMPL_VAR result>' alt='__Nothing to display, Try a bigger date range__'>
  </div>
 
 </td>

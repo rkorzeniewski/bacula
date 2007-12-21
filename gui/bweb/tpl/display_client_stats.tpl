@@ -1,6 +1,6 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Client : <TMPL_VAR clientname> (<TMPL_VAR label>)</h1>
+  <h1 class='newstitle'> __Client:__ <TMPL_VAR clientname> (<TMPL_VAR label>)</h1>
  </div>
  <div class='bodydiv'>
 <form action='?'>
@@ -9,20 +9,20 @@
      <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
      <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
 <!--	<div class="otherboxtitle">
-          Actions &nbsp;
+          __Actions__ &nbsp;
         </div>
         <div class="otherbox">
        <h1>Actions</h1> 
-       <button type="submit" class="bp" name='action' value='job' title='Show last job'> <img src='/bweb/zoom.png' alt=''>View last jobs</button>
-       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>View current jobs</button>
-       <button type="submit" class="bp" name='action' value='client_stat' title='Client stats'> <img src='/bweb/zoom.png' alt=''>View stats</button>
+       <button type="submit" class="bp" name='action' value='job' title='__Show last job__'> <img src='/bweb/zoom.png' alt=''>__View last jobs__</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='__Show current job__'> <img src='/bweb/zoom.png' alt=''>__View current jobs__</button>
+       <button type="submit" class="bp" name='action' value='client_stat' title='__Client stats__'> <img src='/bweb/zoom.png' alt=''>__View stats__</button>
         </div>
 -->
 </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Name", "Nb Jobs", "Nb Bytes", "Nb Files", "Nb Errors");
+var header = new Array("__Name__", "__Nb Jobs__", "__Nb Bytes__", "__Nb Files__", "__Nb Errors__");
 
 var data = new Array();
 

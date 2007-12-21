@@ -1,23 +1,22 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Pools</h1>
+  <h1 class='newstitle'>__Pools__</h1>
  </div>
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <button type="submit" class="bp" type='submit' name='action' value='media' title='Show content'> <img src='/bweb/zoom.png' alt=''>View</button>
+    <button type="submit" class="bp" type='submit' name='action' value='media' title='__Show content__'> <img src='/bweb/zoom.png' alt=''>__View__</button>
     <input id="mediatype" type='hidden' name='mediatype' value=''>
    </form>
    <br/>
-   Tips: To modify pool properties, you have to edit your Bacula configuration
-   and reload it. After, you have to run "update pool=mypool" with bconsole.
+   __Tips: To modify pool properties, you have to edit your Bacula configuration and reload it. After, you have to run "update pool=mypool" with bconsole.__
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Name","Media Type", "Recycle","Retention","Use Duration",
-                       "Max jobs per volume","Max files per volume", 
-                       "Max volume size","Nb volumes", "Vol Status", "Usage", "Select");
+var header = new Array("__Name__","__Media Type__", "__Recycle__","__Retention__","__Use Duration__",
+                       "__Max jobs per volume__","__Max files per volume__", 
+                       "__Max volume size__","__Nb volumes__", "__Vol Status__", "__Usage__", "__Select__");
 
 var data = new Array();
 var chkbox;

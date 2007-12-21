@@ -1,21 +1,21 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Locations</h1>
+  <h1 class='newstitle'>__Locations__</h1>
  </div>
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <button type="submit" class="bp" name='action' value='location_add' title='Add a location'> <img src='/bweb/add.png' alt=''>Add</button>
-    <button type="submit" class="bp" name='action' value='location_del' onclick='confirm("Do you want to remove this location ?")' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Remove</button>
-    <button type="submit" class="bp" name='action' value='location_edit' title='Edit a location'> <img src='/bweb/edit.png' alt=''>Edit</button>
+    <button type="submit" class="bp" name='action' value='location_add' title='__Add a location__'> <img src='/bweb/add.png' alt=''>__Add__</button>
+    <button type="submit" class="bp" name='action' value='location_del' onclick='confirm("__Do you want to remove this location?__")' title='__Remove a location__'> <img src='/bweb/remove.png' alt=''>__Remove__</button>
+    <button type="submit" class="bp" name='action' value='location_edit' title='__Edit a location__'> <img src='/bweb/edit.png' alt=''>__Edit__</button>
 
-    <button type="submit" class="bp" name='action' value='media' title='Show content'> <img src='/bweb/zoom.png' alt=''>View content</button>
+    <button type="submit" class="bp" name='action' value='media' title='__View content__'> <img src='/bweb/zoom.png' alt=''>__View content__</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Name","Enabled", "Cost", "Nb volumes", "Select");
+var header = new Array("__Name__","__Enabled__", "__Cost__", "__Nb volumes__", "__Select__");
 
 var data = new Array();
 var chkbox;

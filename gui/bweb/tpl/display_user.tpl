@@ -1,47 +1,47 @@
 <div class='titlediv'>
-  <h1 class='newstitle'> User: <TMPL_VAR username></h1>
+  <h1 class='newstitle'>__User:__ <TMPL_VAR username></h1>
 </div>
 <div class='bodydiv'>
 
 <form name="form1" action="?">
-<input type="hidden" value="1" name="create">
+<input type="hidden" value='1' name="create">
  <table>
  <tr>
-  <td>Username:</td> <td> <input class="formulaire" type="text" name="username" value="<TMPL_VAR username>"> </td>
+  <td>__Username:__</td> <td> <input class="formulaire" type="text" name="username" value='<TMPL_VAR username>'> </td>
 <!-- </tr><tr>
-  <td>Password:</td> <td> <input class="formulaire" type="password" name="passwd" value="<TMPL_VAR passwd>"> </td>
+  <td>__Password:__</td> <td> <input class="formulaire" type="password" name="passwd" value='<TMPL_VAR passwd>'> </td>
 -->
  </tr><tr>
-  <td>Comment:</td> <td> <input class="formulaire" type="text" name="comment" value="<TMPL_VAR comment>"> </td>
+  <td>__Comment:__</td> <td> <input class="formulaire" type="text" name="comment" value='<TMPL_VAR comment>'> </td>
  </tr><tr>
-<td> Profile:</td><td>
+<td> __Profile:__</td><td>
  <select name="profile" id='profile' class="formulaire">
   <option onclick='set_role("")'></option>
-  <option onclick='set_role("administrator")'>Administrator</option>
-  <option onclick='set_role("customer")'>Customer</option>
+  <option onclick='set_role("administrator")'>__Administrator__</option>
+  <option onclick='set_role("customer")'>__Customer__</option>
  </select>
-</td><td>Or like an existing user: </td><td>
+</td><td>__Or like an existing user:__ </td><td>
  <select name="copy_username" class="formulaire">
   <option onclick="disable_sel(false)"></option>
  <TMPL_LOOP db_usernames>
-  <option title="<TMPL_VAR comment>" onclick="disable_sel(true)" value="<TMPL_VAR username>"><TMPL_VAR username></option>
+  <option title="<TMPL_VAR comment>" onclick="disable_sel(true)" value='<TMPL_VAR username>'><TMPL_VAR username></option>
  </TMPL_LOOP>
  </select>
 </td>
  </tr><tr>
  </tr><tr>
-<td> Roles:</td><td>
+<td> __Roles:__</td><td>
  <select name="rolename" id='rolename' multiple class="formulaire" size=15>
  <TMPL_LOOP db_roles>
-  <option title="<TMPL_VAR comment>" value="<TMPL_VAR rolename>" <TMPL_IF userid>selected</TMPL_IF> ><TMPL_VAR rolename></option>
+  <option title="<TMPL_VAR comment>" value='<TMPL_VAR rolename>' <TMPL_IF userid>selected</TMPL_IF> ><TMPL_VAR rolename></option>
  </TMPL_LOOP>
  </select>
  </td>
 </tr><tr>
-<td> Use groups filter:</td><td>
+<td> __Use groups filter:__</td><td>
 <input class="formulaire" onclick="disable_group(this.checked == false)" type="checkbox" name="use_acl" <TMPL_IF use_acl> checked </TMPL_IF> > </td>
 </tr><tr>
-<td> Groups:</td><td>
+<td> __Groups:__</td><td>
  <select name="client_group" id='client_group' multiple class="formulaire" size=15>
 <TMPL_LOOP db_client_groups>
         <option id='group_<TMPL_VAR name>'><TMPL_VAR name></option>

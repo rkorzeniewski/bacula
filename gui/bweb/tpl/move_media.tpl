@@ -1,27 +1,27 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Move media</h1>
+  <h1 class='newstitle'>__Move media__</h1>
  </div>
  <div class="bodydiv">
    <form name='form1' action='?' method='get'>
-    <table id='id<TMPL_VAR NAME=ID>'></table>
+    <table id='id<TMPL_VAR ID>'></table>
     <table border='0'>
-    <tr><td> New location: </td><td>
+    <tr><td> __New location:__ </td><td>
 <select name='newlocation' class='formulaire'>
-    <TMPL_LOOP NAME=db_locations>
-    <option value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
+    <TMPL_LOOP db_locations>
+    <option value='<TMPL_VAR location>'><TMPL_VAR location></option>
     </TMPL_LOOP>
 </select>
-    </td></tr><tr><td> Enabled: </td><td>
+    </td></tr><tr><td> __Enabled:__ </td><td>
 <select name='enabled' class='formulaire'>
-    <option value='no'>no</option>
-    <option value='yes'>yes</option>
-    <option value='archived'>archived</option>
+    <option value='no'>__no__</option>
+    <option value='yes'>__yes__</option>
+    <option value='archived'>__archived__</option>
 </select>
-    </td><tr><td> User: </td><td>
+    </td><tr><td> __User:__ </td><td>
 <input type='text' name='user' value='<TMPL_VAR loginname>' class='formulaire'>
     </td></tr>
-    </td></tr><tr><td> Comment: </td><td>
+    </td></tr><tr><td> __Comment:__ </td><td>
 <textarea name="comment" class='formulaire'></textarea>
     </td></tr>
     </table>
@@ -31,21 +31,21 @@
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Volume Name", "Location", "Select");
+var header = new Array("__Volume Name__", "__Location__", "__Select__");
 
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=media>
+<TMPL_LOOP media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
-chkbox.value = '<TMPL_VAR name=volumename>';
+chkbox.value = '<TMPL_VAR volumename>';
 chkbox.name  = 'media';
 chkbox.checked = 1;
 
 data.push( new Array(
-"<TMPL_VAR NAME=volumename>",
-"<TMPL_VAR NAME=location>",
+"<TMPL_VAR volumename>",
+"<TMPL_VAR location>",
 chkbox
  )
 );
@@ -53,7 +53,7 @@ chkbox
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,

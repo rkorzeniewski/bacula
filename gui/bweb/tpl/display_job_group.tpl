@@ -1,5 +1,5 @@
  <div class='titlediv'>
-  <h1 class='newstitle'> Group summary (<TMPL_VAR Filter>)</h1>
+  <h1 class='newstitle'> __Group summary__ (<TMPL_VAR Filter>)</h1>
  </div>
  <div class='bodydiv'>
     <table id='id<TMPL_VAR ID>'></table>
@@ -12,15 +12,15 @@ document.getElementById('status_<TMPL_VAR status>').checked = true;
 
 
 
-var header = new Array("Group",
-	               "Nb Jobs",
-	               "Nb Ok",
-                       "Nb Err",
-	               "Nb Files", 
-		       "Size",
-		       "Duration",
-                       "Errors",
-	               "Status");
+var header = new Array("__Group__",
+	               "__Nb Jobs__",
+	               "__Nb Ok__",
+                       "__Nb Err__",
+	               "__Nb Files__", 
+		       "__Size__",
+		       "__Duration__",
+                       "__Errors__",
+	               "__Status__");
 
 var data = new Array();
 var age = <TMPL_VAR age>;

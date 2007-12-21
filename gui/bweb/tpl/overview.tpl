@@ -23,7 +23,7 @@ table.sample td {
 }
 </style>
  <div class='titlediv'>
-  <h1 class='newstitle'> Jobs overview (<TMPL_VAR label>)</h1>
+  <h1 class='newstitle'> __Jobs overview__ (<TMPL_VAR label>)</h1>
  </div>
  <div class='bodydiv'>
   <table class='sample' id='report'>

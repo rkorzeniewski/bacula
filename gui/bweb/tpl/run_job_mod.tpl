@@ -1,12 +1,12 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Run job : <TMPL_VAR job> on <TMPL_VAR client></h1>
+  <h1 class='newstitle'> __Run job:__ <TMPL_VAR job> __on__ <TMPL_VAR client></h1>
  </div>
  <div class='bodydiv'>
   <form name='form1' action='?' method='GET'>  
   <table border='0'>
 
-   <tr><td>Job Name: </td><td>
+   <tr><td>__Job Name:__ </td><td>
    <select name='job'>
     <TMPL_LOOP jobs>
      <option value='<TMPL_VAR name>'>
@@ -14,7 +14,7 @@
      </option>
     </TMPL_LOOP>
    </select>
-   </td></tr><tr><td>Pool: </td><td>
+   </td></tr><tr><td>__Pool:__ </td><td>
 
    <select name='pool'>	
      <option value=''></option>
@@ -24,7 +24,7 @@
      </option>
     </TMPL_LOOP>
    </select>
-   </td></tr><tr><td>Client: </td><td>
+   </td></tr><tr><td>__Client:__ </td><td>
 
    <select name='client'>
     <TMPL_LOOP clients>
@@ -34,7 +34,7 @@
     </TMPL_LOOP>
    </select>
 
-   </td></tr><tr><td>FileSet: </td><td>
+   </td></tr><tr><td>__FileSet:__ </td><td>
    <select name='fileset'>
     <TMPL_LOOP filesets>
      <option value='<TMPL_VAR name>'>
@@ -43,7 +43,7 @@
     </TMPL_LOOP>
    </select>
 
-   </td></tr><tr><td>Storage: </td><td>
+   </td></tr><tr><td>__Storage:__ </td><td>
    <select name='storage'>
     <TMPL_LOOP storages>
      <option value='<TMPL_VAR name>'>
@@ -52,18 +52,18 @@
     </TMPL_LOOP>
    </select>
 
-   </td></tr><tr><td>Level: </td><td>
+   </td></tr><tr><td>__Level:__ </td><td>
    <select name='level'>
-     <option id='level_Incremental' value='Incremental'>Incremental</option>
-     <option id='level_Full' value='Full'>Full</option>
-     <option id='level_Differential' value='Differential'>Differential</option>
+     <option id='level_Incremental' value='Incremental'>__Incremental__</option>
+     <option id='level_Full' value='Full'>__Full__</option>
+     <option id='level_Differential' value='Differential'>__Differential__</option>
    </select>
 
-   </td></tr><tr id='more1' style="visibility:hidden"><td>Start Time: </td><td>
+   </td></tr><tr id='more1' style="visibility:hidden"><td>__Start Time:__ </td><td>
    <input type='text' title='YYYY-MM-DD HH:MM:SS'
           size='17' name='when' value='<TMPL_VAR when>'>
 
-   </td></tr><tr id='more2' style="visibility:hidden"><td>Priority: </td><td>
+   </td></tr><tr id='more2' style="visibility:hidden"><td>__Priority:__ </td><td>
    <input type='text' 
           size='3' name='priority' value='<TMPL_VAR priority>'>
 
@@ -74,10 +74,10 @@
   <label onclick='
            document.getElementById("more1").style.visibility="visible";
            document.getElementById("more2").style.visibility="visible";'>
-  <img title='Display more options' src='/bweb/add.png'>More options</label>
+  <img title='Display more options' src='/bweb/add.png'>__More options__</label>
 
-  <button type="submit" class="bp" name='action' value='run_job_now' title='Run job'><img src='/bweb/R.png' alt=''>Run now</button>
-  <button type="submit" class="bp" name='action' value='fileset_view' title='View FileSet'><img src='/bweb/zoom.png' alt=''>View FileSet</button>
+  <button type="submit" class="bp" name='action' value='run_job_now' title='__Run job__'><img src='/bweb/R.png' alt=''>__Run now__</button>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='__View FileSet__'><img src='/bweb/zoom.png' alt=''>__View FileSet__</button>
   </form>
  </div>
 

@@ -1,6 +1,6 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Log : <TMPL_VAR name> on <TMPL_VAR client> (<TMPL_VAR jobid>)</h1>
+  <h1 class='newstitle'> __Log:__ <TMPL_VAR name> __on__ <TMPL_VAR client> (<TMPL_VAR jobid>)</h1>
  </div>
  <div class='bodydiv'>
   <pre id='log'>
