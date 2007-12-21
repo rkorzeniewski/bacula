@@ -1,6 +1,6 @@
 
 <div class='titlediv'>
-  <h1 class='newstitle'> __Add media__</h1>
+  <h1 class='newstitle'> __Add Media__</h1>
 </div>
 <div class='bodydiv'>
    <form action="?" method='get'>

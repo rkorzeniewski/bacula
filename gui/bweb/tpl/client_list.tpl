@@ -10,7 +10,7 @@
         </div>
         <div class="otherbox">
 <!--        <h1>__Actions__</h1> -->	
-       <button type="submit" class="bp" name='action' value='job' title='__Show last job__'> <img src='/bweb/zoom.png' alt=''>__Last jobsView jobs__</button>
+       <button type="submit" class="bp" name='action' value='job' title='__Show last job__'> <img src='/bweb/zoom.png' alt=''>__Last jobs__</button>
        <button type="submit" class="bp" name='action' value='dsp_cur_job' title='__Show current job__'> <img src='/bweb/zoom.png' alt=''>__Current jobs__</button>
        <button type="submit" class="bp" name='action' value='client_status' title='__Show client status__'> <img src='/bweb/zoom.png' alt=''>__Status__ </button>
        <button type="submit" class="bp" name='action' value='client_stats' title='__Client stats__'> <img src='/bweb/chart.png' alt=''>__Stats__ </button>

@@ -48,7 +48,7 @@ if (navigator.appName == 'Konqueror') {
   </ul>
  </li>
 <TMPL_IF achs>
- <li style="padding: 0.25em 2em;">__Autochanger
+ <li style="padding: 0.25em 2em;">__Autochanger__
   <ul>
 <TMPL_LOOP achs>
    <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>

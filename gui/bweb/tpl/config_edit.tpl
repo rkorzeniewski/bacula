@@ -47,7 +47,7 @@
          <td> <input class="formulaire" title="__Use a wiki for jobs documentation?__" size='64' type='text' name='wiki_url' value='<TMPL_VAR wiki_url>'> 
          </td></tr>
      <tr><td>display_log_time:</td> 
-         <td> <input class="formulaire" title="__Display log timestamp" type='checkbox__' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> > 
+         <td> <input class="formulaire" title="__Display log timestamp__" type='checkbox' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>
      <tr><td>security:</td> 
          <td> <input class="formulaire" type='checkbox' name='enable_security' title='__Use user managment in bweb. Read INSTALL first__' <TMPL_IF enable_security> checked='checked' value='on' </TMPL_IF> > 
