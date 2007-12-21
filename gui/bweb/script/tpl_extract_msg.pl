@@ -4,7 +4,7 @@ use strict;
 =head1 LICENSE
 
    Bweb - A Bacula web interface
-   Bacula¬Æ - The Network Backup Solution
+   BaculaÅ¬ÅÆ - The Network Backup Solution
 
    Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
 
@@ -27,7 +27,7 @@ use strict;
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula¬Æ is a registered trademark of John Walker.
+   BaculaÅ¬ÅÆ is a registered trademark of John Walker.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zurich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -49,20 +49,31 @@ use Locale::PO;
 my $in_script;
 
 my %dict;
+my $l=0;
+my $file;
+
+sub init_fp
+{
+    open(FP, "|sort -n") ;
+}
+
 sub print_it
 {
     foreach my $w (@_) {
+#	print "<$w\n";
 	next if ($w eq '&nbsp;');
 	next if ($w !~ /\w/);
 	next if ($w =~ />/);
-
+	next if ($w eq 'checked');
+#	print "$w>\n";
 	next if (exists $dict{$w});
 	$dict{$w}=1;
 
 	# we add " at the begining and the end of the string
-	$w =~ s/(^|$)/"/gm; # "
-	print "msgid ", $w, "\n";
-        print 'msgstr ""', "\n\n";
+	#$w =~ s/'/\\'/gm; # "
+	#print "s\@(?!value='|_)$w\@\$1_${w}_\@g;\n";
+	#print "s!(${w})([^a-zA-Z0-9]|\$)!__\$1__\$2!g;\n";
+	print "$w\n";
     }
 }
 
@@ -71,7 +82,7 @@ sub text {
     
     # between <script>..</script> we take only "words"
     if ($in_script) {
-	my @words = ($text =~ /"([\w\s]+)"/gs);
+	my @words = ($text =~ /"([\w\sÅÈÅËÅ‡ÅÁÅ˚ÅÙÅˆÅ¸ÅÔÅÓÅ˘!?]+)"/gs);
 	print_it(@words);
 	return;
     }
@@ -114,12 +125,22 @@ sub end {
     }
 }
 
+sub finish_fp
+{
+    close(FP);
+}
+1;
+
 package main;
 
 my $p = new TmplParser;
+$p->init_fp();
 for (my $f = shift ; $f and -f $f ; $f = shift) {
     #$TmplParser::nb=0;
-    print "#============ $f ==========\n";
-    $p->parse_file($f);
+#    print "#============ $f ==========\n";
+    $file = $f;
+    $file =~ s!.*?/([\w\d]+).tpl$!$1!;
+    $p->parse_file($f); $l=0;
 }
-
+$p->finish_fp();
+#print "s/value='__([^']+)__'/value='\$1'/g;\n";
