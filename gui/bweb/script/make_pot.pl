@@ -20,8 +20,9 @@ foreach my $f (@ARGV)
     open(FP, $f) or print STDERR "Can't open $f for reading\n";
     while (my $l = <FP>)
     {
-	if ($l =~ m/__(.+?)__/) {
-	    my $s = $1;
+        my (@str) = ($l =~ m/__(.+?)__/g);
+
+        while (my $s = shift @str) {
 	    my $r = ''; #$tab->{$s} || $s;
 	    $s =~ s/\n/\\n/g;
 	    $s =~ s/"/\\"/g;
