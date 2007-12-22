@@ -1,0 +1,1408 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bweb VERSION\n"
+"PO-Revision-Date: 2007-12-22 17:03+0100\n"
+"Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
+"Language-Team: Eric Bollengier <eric@eb.homelinux.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../tpl/about.tpl:3 ../tpl/begin.tpl:67
+msgid "About"
+msgstr "Acerca"
+
+#: ../tpl/ach_add.tpl:3
+msgid "New"
+msgstr "Nueva"
+
+#: ../tpl/ach_add.tpl:6
+msgid "You have to create a Location which will have the same name."
+msgstr "Tiene que crear una Ubicación, la cual deberá tener el mismo nombre."
+
+#: ../tpl/ach_add.tpl:10 ../tpl/add_media.tpl:32
+msgid "Name:"
+msgstr "Nombre :"
+
+#: ../tpl/ach_add.tpl:17
+msgid "Pre-command:"
+msgstr "Pre-comando :"
+
+#: ../tpl/ach_add.tpl:19
+msgid "can be \"sudo\" or \"ssh storage@storagehost\"..."
+msgstr "can be \"sudo\" or \"ssh storage@storagehost\"..."
+
+#: ../tpl/ach_add.tpl:22
+msgid "mtx command:"
+msgstr "Comando mtx :"
+
+#: ../tpl/ach_add.tpl:27
+msgid "Device:"
+msgstr "Device :"
+
+#: ../tpl/ach_add.tpl:32
+msgid "Drives"
+msgstr "Drives"
+
+#: ../tpl/ach_add.tpl:38
+msgid "index"
+msgstr "index"
+
+#: ../tpl/ach_add.tpl:46 ../tpl/config_edit.tpl:60 ../tpl/groups_edit.tpl:25
+#: ../tpl/location_add.tpl:26 ../tpl/location_edit.tpl:28
+msgid "Save"
+msgstr "Save"
+
+#: ../tpl/ach_content.tpl:4
+msgid "Autochanger:"
+msgstr "Autochanger :"
+
+#: ../tpl/ach_content.tpl:5
+msgid "IMPORT/EXPORT"
+msgstr "IMPORT/EXPORT"
+
+#: ../tpl/ach_content.tpl:11
+msgid ""
+"You must run update slot, Autochanger status is different from bacula slots"
+msgstr ""
+"Debe ejecutar el comando update slot, El estado del Autochanger es diferente "
+"al de las slots de bacula"
+
+#: ../tpl/ach_content.tpl:18
+msgid "Tools"
+msgstr "Tools"
+
+#: ../tpl/ach_content.tpl:22
+msgid "run label barcodes"
+msgstr "run label barcodes"
+
+#: ../tpl/ach_content.tpl:25
+msgid "put selected media on i/o"
+msgstr "put selected media on i/o"
+
+#: ../tpl/ach_content.tpl:27
+msgid "Clear I/O"
+msgstr "Limpiar I/O"
+
+#: ../tpl/ach_content.tpl:30
+msgid "run update slots"
+msgstr "run update slots"
+
+#: ../tpl/ach_content.tpl:33
+msgid "mount drive"
+msgstr "mount drive"
+
+#: ../tpl/ach_content.tpl:35
+msgid "umount drive"
+msgstr "umount drive"
+
+#: ../tpl/ach_content.tpl:40
+msgid "Drives:"
+msgstr "Drives:"
+
+#: ../tpl/ach_content.tpl:45
+msgid "Content:"
+msgstr "Contenido:"
+
+#: ../tpl/ach_content.tpl:52
+msgid "Real Slot"
+msgstr "Slot Real"
+
+#: ../tpl/ach_content.tpl:53
+msgid "Vol Bytes"
+msgstr "Bytes Vol"
+
+#: ../tpl/ach_content.tpl:54 ../tpl/display_form_media.tpl:9
+#: ../tpl/help_extern_compute.tpl:21 ../tpl/help_intern_compute.tpl:23
+msgid "Media Type"
+msgstr "Tipo Medio"
+
+#: ../tpl/ach_content.tpl:55 ../tpl/help_extern_compute.tpl:22
+#: ../tpl/help_intern_compute.tpl:24
+msgid "When expire ?"
+msgstr "When expire ?"
+
+#: ../tpl/ach_content.tpl:103
+msgid "Index"
+msgstr "Index"
+
+#: ../tpl/ach_content.tpl:104 ../tpl/display_job_zoom.tpl:95
+#: ../tpl/display_media.tpl:36 ../tpl/help_extern_compute.tpl:20
+#: ../tpl/help_intern_compute.tpl:22 ../tpl/move_media.tpl:34
+#: ../tpl/update_location.tpl:19
+msgid "Volume Name"
+msgstr "Nombre Volumen"
+
+#: ../tpl/add_media.tpl:3 ../tpl/begin.tpl:45
+msgid "Add Media"
+msgstr "Add Media"
+
+#: ../tpl/add_media.tpl:8 ../tpl/display_media.tpl:10 ../tpl/help_extern.tpl:9
+#: ../tpl/help_intern.tpl:9 ../tpl/run_job_mod.tpl:17
+#: ../tpl/update_media.tpl:12
+msgid "Pool:"
+msgstr "Pool:"
+
+#: ../tpl/add_media.tpl:17 ../tpl/run_job_mod.tpl:46
+msgid "Storage:"
+msgstr "Almacenamiento :"
+
+#: ../tpl/add_media.tpl:26
+msgid "Number of media to create:"
+msgstr "Number of media to create:"
+
+#: ../tpl/add_media.tpl:29
+msgid "Starting number:"
+msgstr "Starting number:"
+
+#: ../tpl/add_media.tpl:37 ../tpl/display_groups.tpl:8
+#: ../tpl/display_users.tpl:8
+msgid "Add"
+msgstr "Add"
+
+#: ../tpl/begin.tpl:4
+msgid "Bweb - Bacula Web Interface"
+msgstr "Bweb - Bacula Web Interface"
+
+#: ../tpl/begin.tpl:17
+msgid "Sorry at this moment, bweb works only with mozilla."
+msgstr "Sorry at this moment, bweb works only with mozilla."
+
+#: ../tpl/begin.tpl:22
+msgid "Main"
+msgstr "Principal"
+
+#: ../tpl/begin.tpl:23 ../tpl/begin.tpl:25 ../tpl/btime.tpl:94
+#: ../tpl/client_list.tpl:3 ../tpl/display_form_job.tpl:110
+#: ../tpl/graph.tpl:52
+msgid "Clients"
+msgstr "Clientes"
+
+#: ../tpl/begin.tpl:26 ../tpl/btime.tpl:45 ../tpl/display_form_job.tpl:122
+#: ../tpl/display_groups.tpl:3
+msgid "Groups"
+msgstr "Groupes"
+
+#: ../tpl/begin.tpl:29
+msgid "Jobs"
+msgstr "Jobs"
+
+#: ../tpl/begin.tpl:31
+msgid "Defined Jobs"
+msgstr "Jobs Definidos"
+
+#: ../tpl/begin.tpl:32
+msgid "Jobs by group"
+msgstr "Jobs by group"
+
+#: ../tpl/begin.tpl:33 ../tpl/overview.tpl:26
+msgid "Jobs overview"
+msgstr "Jobs overview"
+
+#: ../tpl/begin.tpl:34 ../tpl/display_job.tpl:2
+msgid "Last Jobs"
+msgstr "Últimos Jobs"
+
+#: ../tpl/begin.tpl:35 ../tpl/running_job.tpl:3
+msgid "Running Jobs"
+msgstr "Jobs en Ejecución"
+
+#: ../tpl/begin.tpl:36 ../tpl/scheduled_job.tpl:3
+msgid "Next Jobs"
+msgstr "Próximos Jobs"
+
+#: ../tpl/begin.tpl:37
+msgid "Launch brestore"
+msgstr "Launch brestore"
+
+#: ../tpl/begin.tpl:40 ../tpl/display_media.tpl:3
+msgid "Media"
+msgstr "Medios"
+
+#: ../tpl/begin.tpl:42 ../tpl/display_pool.tpl:3
+msgid "Pools"
+msgstr "Pools"
+
+#: ../tpl/begin.tpl:43 ../tpl/display_location.tpl:3
+msgid "Locations"
+msgstr "Ubicaciones"
+
+#: ../tpl/begin.tpl:44
+msgid "All Media"
+msgstr "Todos los Medios"
+
+#: ../tpl/begin.tpl:46
+msgid "Eject Media"
+msgstr "Expulsar Medio"
+
+#: ../tpl/begin.tpl:47
+msgid "Load Media"
+msgstr "Cargar Medio"
+
+#: ../tpl/begin.tpl:51 ../tpl/config_view.tpl:26
+msgid "Autochanger"
+msgstr "Autochanger"
+
+#: ../tpl/begin.tpl:59 ../tpl/display_groups.tpl:16 ../tpl/graph.tpl:3
+#: ../tpl/stats.tpl:2
+msgid "Statistics"
+msgstr "Estadísticas"
+
+#: ../tpl/begin.tpl:60 ../tpl/begin.tpl:62 ../tpl/config_edit.tpl:3
+#: ../tpl/config_view.tpl:3
+msgid "Configuration"
+msgstr "Configuración"
+
+#: ../tpl/begin.tpl:63
+msgid "Manage users"
+msgstr "Manage users"
+
+#: ../tpl/begin.tpl:68
+msgid "Logged as"
+msgstr "Usuario"
+
+#: ../tpl/begin.tpl:70
+msgid "Search media"
+msgstr "buscar medio"
+
+#: ../tpl/btime.tpl:2
+msgid "Timing Statistics"
+msgstr "Timing Statistics"
+
+#: ../tpl/btime.tpl:9 ../tpl/graph.tpl:10
+msgid "Options"
+msgstr "Options"
+
+#: ../tpl/btime.tpl:15
+msgid "Time limits"
+msgstr "Time limits"
+
+#: ../tpl/btime.tpl:17
+msgid "Begin:"
+msgstr "Begin:"
+
+#: ../tpl/btime.tpl:22
+msgid "End:"
+msgstr "End:"
+
+#: ../tpl/btime.tpl:32
+msgid "Graph"
+msgstr "Graph"
+
+#: ../tpl/btime.tpl:35
+msgid "Drive usage"
+msgstr "Drive usage"
+
+#: ../tpl/btime.tpl:38
+msgid "Pool usage"
+msgstr "Pool usage"
+
+#: ../tpl/btime.tpl:41
+msgid "Hide Job"
+msgstr "Hide Job"
+
+#: ../tpl/btime.tpl:58 ../tpl/display_form_job.tpl:10
+#: ../tpl/display_job.tpl:20 ../tpl/display_job_zoom.tpl:88
+#: ../tpl/display_media_zoom.tpl:114 ../tpl/graph.tpl:16
+#: ../tpl/running_job.tpl:23 ../tpl/scheduled_job.tpl:21
+msgid "Level"
+msgstr "Nivel"
+
+#: ../tpl/btime.tpl:60 ../tpl/btime.tpl:68 ../tpl/display_form_job.tpl:12
+#: ../tpl/display_form_job.tpl:24 ../tpl/display_form_job.tpl:100
+#: ../tpl/graph.tpl:18 ../tpl/graph.tpl:26
+msgid "Any"
+msgstr "Cualquiera"
+
+#: ../tpl/btime.tpl:61 ../tpl/display_form_job.tpl:13 ../tpl/graph.tpl:19
+#: ../tpl/run_job_mod.tpl:58
+msgid "Full"
+msgstr "Completo"
+
+#: ../tpl/btime.tpl:62 ../tpl/display_form_job.tpl:14 ../tpl/graph.tpl:20
+#: ../tpl/run_job_mod.tpl:59
+msgid "Differential"
+msgstr "Diferencial"
+
+#: ../tpl/btime.tpl:63 ../tpl/display_form_job.tpl:15 ../tpl/graph.tpl:21
+#: ../tpl/run_job_mod.tpl:57
+msgid "Incremental"
+msgstr "Incremental"
+
+#: ../tpl/btime.tpl:66 ../tpl/display_form_job.tpl:22
+#: ../tpl/display_form_media.tpl:31 ../tpl/display_job.tpl:26
+#: ../tpl/display_job_group.tpl:23 ../tpl/display_job_zoom.tpl:96
+#: ../tpl/graph.tpl:24 ../tpl/running_job.tpl:28
+msgid "Status"
+msgstr "Estado"
+
+#: ../tpl/btime.tpl:69 ../tpl/display_form_job.tpl:25 ../tpl/graph.tpl:27
+msgid "Ok"
+msgstr "Ok"
+
+#: ../tpl/btime.tpl:70 ../tpl/display_form_job.tpl:27 ../tpl/graph.tpl:28
+msgid "Error"
+msgstr "Error"
+
+#: ../tpl/btime.tpl:71 ../tpl/display_form_job.tpl:28 ../tpl/graph.tpl:29
+msgid "Canceled"
+msgstr "Cancelado"
+
+#: ../tpl/btime.tpl:77 ../tpl/display_form_job.tpl:56
+#: ../tpl/display_form_job.tpl:67 ../tpl/graph.tpl:35
+msgid "Age"
+msgstr "Tiempo"
+
+#: ../tpl/btime.tpl:79 ../tpl/display_form_job.tpl:69 ../tpl/graph.tpl:37
+msgid "This week"
+msgstr "Esta Semana"
+
+#: ../tpl/btime.tpl:80 ../tpl/display_form_job.tpl:70 ../tpl/graph.tpl:38
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+#: ../tpl/btime.tpl:81 ../tpl/graph.tpl:39
+msgid "Last 6 month"
+msgstr "Últimos 6 meses"
+
+#: ../tpl/btime.tpl:85 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:43
+msgid "Size"
+msgstr "Tamaño"
+
+#: ../tpl/btime.tpl:86 ../tpl/graph.tpl:44
+msgid "Width:"
+msgstr "Ancho:"
+
+#: ../tpl/btime.tpl:88 ../tpl/graph.tpl:46
+msgid "Height:"
+msgstr "Alto:"
+
+#: ../tpl/btime.tpl:102 ../tpl/display_job.tpl:17
+#: ../tpl/display_job_zoom.tpl:86 ../tpl/graph.tpl:60
+#: ../tpl/running_job.tpl:22
+msgid "Job Name"
+msgstr "Nombre Job"
+
+#: ../tpl/btime.tpl:124 ../tpl/graph.tpl:119
+msgid "Current"
+msgstr "Current"
+
+#: ../tpl/btime.tpl:127 ../tpl/graph.tpl:124
+msgid "Nothing to display, Try a bigger date range"
+msgstr "Nothing to display, Try a bigger date range"
+
+#: ../tpl/change_location.tpl:4 ../tpl/move_media.tpl:3
+msgid "Move media"
+msgstr "Mover Medio"
+
+#: ../tpl/change_location.tpl:12
+msgid "To:"
+msgstr "Para:"
+
+#: ../tpl/change_location.tpl:14
+msgid "Subject:"
+msgstr "Asunto:"
+
+#: ../tpl/change_location.tpl:36
+msgid "Update now"
+msgstr "Actualizar Ahora"
+
+#: ../tpl/client_job_status.tpl:4
+msgid "Running job"
+msgstr "Job ejecutándose"
+
+#: ../tpl/client_job_status.tpl:11 ../tpl/run_job.tpl:9
+#: ../tpl/run_job_mod.tpl:9
+msgid "Job Name:"
+msgstr "Nombre Job:"
+
+#: ../tpl/client_job_status.tpl:14
+msgid "Processing file:"
+msgstr "Archivo en proceso:"
+
+#: ../tpl/client_job_status.tpl:17
+msgid "Speed:"
+msgstr "Velocidad:"
+
+#: ../tpl/client_job_status.tpl:20
+msgid "Files Examined:"
+msgstr "Archivos Examinados:"
+
+#: ../tpl/client_job_status.tpl:23
+msgid "Bytes:"
+msgstr "Bytes:"
+
+#: ../tpl/client_job_status.tpl:28
+msgid "Refresh"
+msgstr "Refresh"
+
+#: ../tpl/client_job_status.tpl:32
+msgid "Do you want to cancel this job?"
+msgstr "Do you want to cancel this job?"
+
+#: ../tpl/client_job_status.tpl:33 ../tpl/running_job.tpl:14
+msgid "Cancel job"
+msgstr "Cancelar job"
+
+#: ../tpl/client_list.tpl:9 ../tpl/client_list.tpl:12
+#: ../tpl/display_client_stats.tpl:12 ../tpl/display_media_zoom.tpl:13
+msgid "Actions"
+msgstr "Acciones"
+
+#: ../tpl/client_list.tpl:13 ../tpl/display_client_stats.tpl:16
+msgid "Show last job"
+msgstr "Mostrar últimos jobs"
+
+#: ../tpl/client_list.tpl:14 ../tpl/display_client_stats.tpl:17
+msgid "Show current job"
+msgstr "Mostrar job actual"
+
+#: ../tpl/client_list.tpl:15
+msgid "Show client status"
+msgstr "Mostrar estado del cliente"
+
+#: ../tpl/client_list.tpl:16 ../tpl/display_client_stats.tpl:18
+msgid "Client stats"
+msgstr "Estadísticas del Cliente"
+
+#: ../tpl/client_list.tpl:23 ../tpl/display_client_stats.tpl:25
+#: ../tpl/display_form_media.tpl:56 ../tpl/display_groups.tpl:26
+#: ../tpl/display_location.tpl:18 ../tpl/display_media_zoom.tpl:113
+#: ../tpl/display_pool.tpl:17 ../tpl/scheduled_job.tpl:24
+msgid "Name"
+msgstr "Nombre"
+
+#: ../tpl/config_edit.tpl:8 ../tpl/config_view.tpl:7
+msgid "SQL Connection"
+msgstr "SQL Connection"
+
+#: ../tpl/config_edit.tpl:10 ../tpl/config_view.tpl:8
+msgid "DBI:"
+msgstr "DBI :"
+
+#: ../tpl/config_edit.tpl:15 ../tpl/config_view.tpl:9
+msgid "user:"
+msgstr "Usuario :"
+
+#: ../tpl/config_edit.tpl:19 ../tpl/config_view.tpl:10
+msgid "password:"
+msgstr "Clave :"
+
+#: ../tpl/config_edit.tpl:23 ../tpl/config_view.tpl:11
+msgid "General Options"
+msgstr "Opciones Generales"
+
+#: ../tpl/config_edit.tpl:30 ../tpl/config_view.tpl:13
+msgid "Bweb Configuration"
+msgstr "Configuración Bweb"
+
+#: ../tpl/config_edit.tpl:39 ../tpl/config_view.tpl:17
+msgid ""
+"This folder must be writable by apache user and must be accessible on /bweb/"
+"fv"
+msgstr ""
+"Este directorio debe tener permisos de escritura para el usuario apache y "
+"debe ser accesible en /bweb/fv"
+
+#: ../tpl/config_edit.tpl:41 ../tpl/config_view.tpl:18
+msgid "You can choose the Job table that you want to use to get statistics"
+msgstr "You can choose the Job table that you want to use to get statistics"
+
+#: ../tpl/config_edit.tpl:47
+msgid "Use a wiki for jobs documentation?"
+msgstr "Use a wiki for jobs documentation?"
+
+#: ../tpl/config_edit.tpl:50
+msgid "Display log timestamp"
+msgstr "Display log timestamp"
+
+#: ../tpl/config_edit.tpl:53
+msgid "Use user managment in bweb. Read INSTALL first"
+msgstr "Use user managment in bweb. Read INSTALL first"
+
+#: ../tpl/config_edit.tpl:55
+msgid "Use user acl in bweb. Read INSTALL first"
+msgstr "Use user acl in bweb. Read INSTALL first"
+
+#: ../tpl/config_view.tpl:20
+#, fuzzy
+msgid "use a wiki for jobs documentation?"
+msgstr "use a wiki for jobs documentation?"
+
+#: ../tpl/config_view.tpl:21
+msgid "display timestamp in job log"
+msgstr "display timestamp in job log"
+
+#: ../tpl/config_view.tpl:22
+msgid "user managment"
+msgstr "user managment"
+
+#: ../tpl/config_view.tpl:23
+msgid "user filter"
+msgstr "user filter"
+
+#: ../tpl/config_view.tpl:24
+msgid "debug:"
+msgstr "borrar"
+
+#: ../tpl/config_view.tpl:43 ../tpl/config_view.tpl:56
+#: ../tpl/display_users.tpl:12
+msgid "Edit"
+msgstr "Editar"
+
+#: ../tpl/config_view.tpl:44 ../tpl/display_job_zoom.tpl:11
+msgid "Delete"
+msgstr "Borrar"
+
+#: ../tpl/config_view.tpl:45
+msgid "View"
+msgstr "Ver"
+
+#: ../tpl/config_view.tpl:57
+msgid "Add autochanger"
+msgstr "Agregar libreria"
+
+#: ../tpl/config_view.tpl:61
+msgid "info:"
+msgstr "info:"
+
+#: ../tpl/display_client_stats.tpl:3 ../tpl/run_job_mod.tpl:27
+msgid "Client:"
+msgstr "Cliente :"
+
+#: ../tpl/display_form_job.tpl:3 ../tpl/display_form_media.tpl:2
+msgid "Filter"
+msgstr "Filter"
+
+#: ../tpl/display_form_job.tpl:26
+msgid "Warning"
+msgstr "Warning"
+
+#: ../tpl/display_form_job.tpl:36 ../tpl/display_form_media.tpl:45
+#: ../tpl/display_job.tpl:19 ../tpl/display_job_zoom.tpl:94
+#: ../tpl/display_media.tpl:37 ../tpl/display_media_zoom.tpl:43
+msgid "Pool"
+msgstr "Pool"
+
+#: ../tpl/display_form_job.tpl:38
+msgid "All"
+msgstr "Todos"
+
+#: ../tpl/display_form_job.tpl:49
+msgid "Since"
+msgstr "Tiempo"
+
+#: ../tpl/display_form_job.tpl:58
+msgid "1 week"
+msgstr "Esta semana"
+
+#: ../tpl/display_form_job.tpl:59
+msgid "30 days"
+msgstr "Últimos 30 dias"
+
+#: ../tpl/display_form_job.tpl:60
+msgid "6 months"
+msgstr "Últimos 6 meses"
+
+#: ../tpl/display_form_job.tpl:71
+msgid "Last 6 months"
+msgstr "Últimos 6 meses"
+
+#: ../tpl/display_form_job.tpl:79
+msgid "Time slice"
+msgstr "Time slice"
+
+#: ../tpl/display_form_job.tpl:81
+msgid "Per days"
+msgstr "Per days"
+
+#: ../tpl/display_form_job.tpl:82
+msgid "Per weeks"
+msgstr "Per weeks"
+
+#: ../tpl/display_form_job.tpl:83
+msgid "Per months"
+msgstr "Per months"
+
+#: ../tpl/display_form_job.tpl:90 ../tpl/display_form_media.tpl:72
+#: ../tpl/graph.tpl:93
+msgid "Number of items"
+msgstr "Número de items"
+
+#: ../tpl/display_form_job.tpl:98
+msgid "Job Type"
+msgstr "Tipo Job"
+
+#: ../tpl/display_form_job.tpl:101
+msgid "Backup"
+msgstr "Backup"
+
+#: ../tpl/display_form_job.tpl:102
+msgid "Restore"
+msgstr "Recuperación"
+
+#: ../tpl/display_form_job.tpl:134
+msgid "File Set"
+msgstr "File Set"
+
+#: ../tpl/display_form_media.tpl:20
+msgid "Location"
+msgstr "Ubicación"
+
+#: ../tpl/display_form_media.tpl:64
+msgid "Expired media"
+msgstr "Expired media"
+
+#: ../tpl/display_form_media.tpl:79 ../tpl/display_media_zoom.tpl:21
+msgid "Update"
+msgstr "Actualizar"
+
+#: ../tpl/display_groups.tpl:10
+msgid "Do you want to delete this group?"
+msgstr "Do you want to delete this group?"
+
+#: ../tpl/display_groups.tpl:11 ../tpl/display_users.tpl:11
+msgid "Remove"
+msgstr "Remove"
+
+#: ../tpl/display_groups.tpl:12
+msgid "Modify"
+msgstr "Modify"
+
+#: ../tpl/display_groups.tpl:14
+msgid "View members"
+msgstr "View members"
+
+#: ../tpl/display_groups.tpl:15 ../tpl/display_users.tpl:15
+msgid "View jobs"
+msgstr "Ver jobs"
+
+#: ../tpl/display_groups.tpl:20
+msgid "View non-members"
+msgstr "View non-members"
+
+#: ../tpl/display_job.tpl:16 ../tpl/display_job_zoom.tpl:85
+#: ../tpl/running_job.tpl:21
+msgid "Client"
+msgstr "Cliente"
+
+#: ../tpl/display_job.tpl:18 ../tpl/display_job_zoom.tpl:87
+#: ../tpl/fileset_view.tpl:3
+msgid "FileSet"
+msgstr "FileSet"
+
+#: ../tpl/display_job.tpl:21 ../tpl/display_job_zoom.tpl:89
+msgid "StartTime"
+msgstr "Inicio"
+
+#: ../tpl/display_job.tpl:22 ../tpl/display_job_group.tpl:21
+#: ../tpl/display_job_zoom.tpl:90 ../tpl/running_job.tpl:25
+msgid "Duration"
+msgstr "Archivos Job"
+
+#: ../tpl/display_job.tpl:23 ../tpl/display_job_zoom.tpl:91
+msgid "JobFiles"
+msgstr "Bytes Job"
+
+#: ../tpl/display_job.tpl:24 ../tpl/display_job_zoom.tpl:92
+msgid "JobBytes"
+msgstr "JobBytes"
+
+#: ../tpl/display_job.tpl:25 ../tpl/display_job_group.tpl:22
+#: ../tpl/display_job_zoom.tpl:93
+msgid "Errors"
+msgstr "Errores"
+
+#: ../tpl/display_job_group.tpl:2
+msgid "Group summary"
+msgstr "Group summary"
+
+#: ../tpl/display_job_group.tpl:15
+msgid "Group"
+msgstr "Group"
+
+#: ../tpl/display_job_group.tpl:16
+msgid "Nb Jobs"
+msgstr "Nb Jobs"
+
+#: ../tpl/display_job_group.tpl:17
+msgid "Nb Ok"
+msgstr "Nb Ok"
+
+#: ../tpl/display_job_group.tpl:18
+msgid "Nb Err"
+msgstr "Nb Err"
+
+#: ../tpl/display_job_group.tpl:19
+msgid "Nb Files"
+msgstr "Nb Files"
+
+#: ../tpl/display_job_zoom.tpl:2
+msgid "Information about job"
+msgstr "Información acerca jobs"
+
+#: ../tpl/display_job_zoom.tpl:9
+msgid "delete this job"
+msgstr "delete this job"
+
+#: ../tpl/display_job_zoom.tpl:10
+msgid "Do you want to delete this job from the catalog?"
+msgstr "Do you want to delete this job from the catalog?"
+
+#: ../tpl/display_job_zoom.tpl:18 ../tpl/display_job_zoom.tpl:19
+msgid "View media"
+msgstr "Ver medio"
+
+#: ../tpl/display_job_zoom.tpl:25
+msgid "view"
+msgstr "view"
+
+#: ../tpl/display_job_zoom.tpl:33
+msgid "View trends"
+msgstr "View trends"
+
+#: ../tpl/display_job_zoom.tpl:34
+msgid "View stats"
+msgstr "Ver estadísticas"
+
+#: ../tpl/display_job_zoom.tpl:40 ../tpl/display_job_zoom.tpl:41
+#: ../tpl/run_job_mod.tpl:80
+msgid "View FileSet"
+msgstr "Ver FileSet"
+
+#: ../tpl/display_job_zoom.tpl:50 ../tpl/display_job_zoom.tpl:52
+msgid "View file usage"
+msgstr "View file usage"
+
+#: ../tpl/display_job_zoom.tpl:51
+msgid "It could take long time, do you want to continue?"
+msgstr "It could take long time, do you want to continue?"
+
+#: ../tpl/display_job_zoom.tpl:58
+msgid "View doc"
+msgstr "View doc"
+
+#: ../tpl/display_job_zoom.tpl:69
+msgid "run this job again"
+msgstr "run this job again"
+
+#: ../tpl/display_job_zoom.tpl:70
+msgid "Run this job"
+msgstr "Run this job"
+
+#: ../tpl/display_job_zoom.tpl:76
+msgid "View only errors"
+msgstr "View only errors"
+
+#: ../tpl/display_job_zoom.tpl:77
+msgid "View errors"
+msgstr "View errors"
+
+#: ../tpl/display_location.tpl:8
+msgid "Add a location"
+msgstr "Agregar Ubicación"
+
+#: ../tpl/display_location.tpl:9
+msgid "Do you want to remove this location?"
+msgstr "Do you want to remove this location?"
+
+#: ../tpl/display_location.tpl:10
+msgid "Edit a location"
+msgstr "Editar Ubicación"
+
+#: ../tpl/display_location.tpl:12
+msgid "View content"
+msgstr "Mostrar contenido"
+
+#: ../tpl/display_log.tpl:3
+msgid "Log:"
+msgstr "Log:"
+
+#: ../tpl/display_media.tpl:17 ../tpl/help_extern.tpl:25
+#: ../tpl/help_intern.tpl:26 ../tpl/location_add.tpl:8
+#: ../tpl/location_edit.tpl:3 ../tpl/location_edit.tpl:9
+#: ../tpl/update_media.tpl:58
+msgid "Location:"
+msgstr "Ubicación :"
+
+#: ../tpl/display_media.tpl:23
+msgid "Move out"
+msgstr "Move out"
+
+#: ../tpl/display_media.tpl:24
+msgid "Move in"
+msgstr "Move in"
+
+#: ../tpl/display_media.tpl:25 ../tpl/update_media.tpl:3
+msgid "Update media"
+msgstr "Update medium"
+
+#: ../tpl/display_media.tpl:26
+msgid "Information"
+msgstr "Information"
+
+#: ../tpl/display_media.tpl:28 ../tpl/display_media_zoom.tpl:22
+msgid "Purge"
+msgstr "Purge"
+
+#: ../tpl/display_media.tpl:30 ../tpl/display_media_zoom.tpl:23
+msgid "Prune"
+msgstr "Prune"
+
+#: ../tpl/display_media.tpl:38
+msgid "Last Written"
+msgstr "Fecha Escritura"
+
+#: ../tpl/display_media_zoom.tpl:4
+msgid "Volume:"
+msgstr "Medium :"
+
+#: ../tpl/display_media_zoom.tpl:7
+msgid "Volume Infos"
+msgstr "Medium Infos"
+
+#: ../tpl/display_media_zoom.tpl:9
+msgid "Volume Stats"
+msgstr "Medium Stats"
+
+#: ../tpl/display_media_zoom.tpl:11
+msgid "Job List"
+msgstr "Job List"
+
+#: ../tpl/display_media_zoom.tpl:17
+msgid "Do you want to eject this volume ?"
+msgstr "Do you want to eject this volume ?"
+
+#: ../tpl/display_media_zoom.tpl:19
+msgid "move in"
+msgstr "move in"
+
+#: ../tpl/display_media_zoom.tpl:25
+msgid "View location log"
+msgstr "View location log"
+
+#: ../tpl/display_media_zoom.tpl:32
+msgid "Location log"
+msgstr "Location log"
+
+#: ../tpl/display_media_zoom.tpl:44
+msgid "Retention"
+msgstr "Retention"
+
+#: ../tpl/display_media_zoom.tpl:83
+msgid "Vol Mounts"
+msgstr "Vol Mounts"
+
+#: ../tpl/display_pool.tpl:8
+msgid "Show content"
+msgstr "Mostrar contenido"
+
+#: ../tpl/display_pool.tpl:12
+msgid ""
+"Tips: To modify pool properties, you have to edit your Bacula configuration "
+"and reload it. After, you have to run \"update pool=mypool\" with bconsole."
+msgstr ""
+"Tips: To modify pool properties, you have to edit your Bacula configuration "
+"and reload it. After, you have to run \"update pool=mypool\" with bconsole."
+
+#: ../tpl/display_pool.tpl:18
+msgid "Max jobs per volume"
+msgstr "Max jobs per volume"
+
+#: ../tpl/display_pool.tpl:19
+msgid "Max volume size"
+msgstr "Max volume size"
+
+#: ../tpl/display_user.tpl:2 ../tpl/move_media.tpl:21
+msgid "User:"
+msgstr "Usuario:"
+
+#: ../tpl/display_user.tpl:10
+msgid "Username:"
+msgstr "Username:"
+
+#: ../tpl/display_user.tpl:12
+msgid "Password:"
+msgstr "Password:"
+
+#: ../tpl/display_user.tpl:15 ../tpl/move_media.tpl:24
+#: ../tpl/update_media.tpl:105
+msgid "Comment:"
+msgstr "Comentario:"
+
+#: ../tpl/display_user.tpl:17
+msgid "Profile:"
+msgstr "Profile:"
+
+#: ../tpl/display_user.tpl:20
+msgid "Administrator"
+msgstr "Administrator"
+
+#: ../tpl/display_user.tpl:21
+msgid "Customer"
+msgstr "Customer"
+
+#: ../tpl/display_user.tpl:23
+msgid "Or like an existing user:"
+msgstr "Or like an existing user:"
+
+#: ../tpl/display_user.tpl:33
+msgid "Roles:"
+msgstr "Roles:"
+
+#: ../tpl/display_user.tpl:41
+msgid "Use groups filter:"
+msgstr "Use groups filter:"
+
+#: ../tpl/display_user.tpl:44
+msgid "Groups:"
+msgstr "Groups:"
+
+#: ../tpl/display_users.tpl:3
+msgid "Users"
+msgstr "Users"
+
+#: ../tpl/display_users.tpl:14
+msgid "View clients"
+msgstr "View clients"
+
+#: ../tpl/display_users.tpl:21
+msgid "Username"
+msgstr "Username"
+
+#: ../tpl/error.tpl:1
+msgid "An error has occurred:"
+msgstr "Un error ha ocurrido :"
+
+#: ../tpl/extern.tpl:3
+msgid "Help ejecting media"
+msgstr "Help ejecting media"
+
+#: ../tpl/extern.tpl:7
+msgid "You want to:"
+msgstr "You want to:"
+
+#: ../tpl/extern.tpl:9
+msgid "Made a safe backup set"
+msgstr "Made a safe backup set"
+
+#: ../tpl/extern.tpl:10
+msgid "Eject media"
+msgstr "Eject media"
+
+#: ../tpl/extern.tpl:11 ../tpl/help_extern.tpl:39 ../tpl/help_intern.tpl:45
+msgid "Next"
+msgstr "Siguiente"
+
+#: ../tpl/fileset_view.tpl:8
+msgid "What is included:"
+msgstr "Incluido :"
+
+#: ../tpl/fileset_view.tpl:13
+msgid "What is excluded:"
+msgstr "Excluido :"
+
+#: ../tpl/fileset_view.tpl:18
+msgid "Tips: Warning, this is the current fileset, it could have changed ..."
+msgstr "Nota: Cuidado, este es el fileset actual, puede haber cambiado..."
+
+#: ../tpl/fv_file_attribs.tpl:2
+msgid "Information about"
+msgstr "Información acerca"
+
+#: ../tpl/general.tpl:12
+msgid "Total clients:"
+msgstr "Cantidad Clientes:"
+
+#: ../tpl/general.tpl:13
+msgid "Total bytes stored:"
+msgstr "Bytes Almacenados:"
+
+#: ../tpl/general.tpl:14
+msgid "Total media:"
+msgstr "Cantidad Medios:"
+
+#: ../tpl/general.tpl:16
+msgid "Database size:"
+msgstr "Tamaño Base de Datos:"
+
+#: ../tpl/general.tpl:17
+msgid "Total Pool:"
+msgstr "Total Pool:"
+
+#: ../tpl/general.tpl:18
+msgid "Total Job:"
+msgstr "Cantidad Jobs:"
+
+#: ../tpl/general.tpl:20
+msgid "Job failed"
+msgstr "Jobs fallados"
+
+#: ../tpl/graph.tpl:69 ../tpl/scheduled_job.tpl:22
+msgid "Type"
+msgstr "Tipo"
+
+#: ../tpl/graph.tpl:71
+msgid "Job size per job for the period"
+msgstr "Job size per job for the period"
+
+#: ../tpl/graph.tpl:72
+msgid "Job duration per job for the period"
+msgstr "Job duration per job for the period"
+
+#: ../tpl/graph.tpl:73
+msgid "Job rate per job for the period"
+msgstr "Job rate per job for the period"
+
+#: ../tpl/graph.tpl:74
+msgid "Number of backed files per job for the period"
+msgstr "Number of backed files per job for the period"
+
+#: ../tpl/graph.tpl:75 ../tpl/graph.tpl:81
+msgid "Number of jobs per hour for the period"
+msgstr "Number of jobs per hour for the period"
+
+#: ../tpl/graph.tpl:76 ../tpl/graph.tpl:82
+msgid "Number of jobs per day for the period"
+msgstr "Number of jobs per day for the period"
+
+#: ../tpl/graph.tpl:77 ../tpl/graph.tpl:84
+msgid "Average backup size per day for the period"
+msgstr "Average backup size per day for the period"
+
+#: ../tpl/graph.tpl:78 ../tpl/graph.tpl:83
+msgid "Average backup size per hour for the period"
+msgstr "Average backup size per hour for the period"
+
+#: ../tpl/graph.tpl:79
+msgid "Job size per hour"
+msgstr "Job size per hour"
+
+#: ../tpl/graph.tpl:80
+msgid "Job size per day"
+msgstr "Job size per day"
+
+#: ../tpl/graph.tpl:85
+msgid "Job size per hour for the period"
+msgstr "Job size per hour for the period"
+
+#: ../tpl/graph.tpl:86
+msgid "Job size per day for the period"
+msgstr "Job size per day for the period"
+
+#: ../tpl/graph.tpl:87
+msgid "Display Job duration, size and files with balloons"
+msgstr "Display Job duration, size and files with balloons"
+
+#: ../tpl/graph.tpl:88
+msgid "Display Job duration, files and size with balloons"
+msgstr "Display Job duration, files and size with balloons"
+
+#: ../tpl/graph.tpl:99
+msgid "Graph type"
+msgstr "Tipo de Gráfico"
+
+#: ../tpl/graph.tpl:101
+msgid "Bars"
+msgstr "Barras"
+
+#: ../tpl/graph.tpl:102
+msgid "Bars3d"
+msgstr "Bars3d"
+
+#: ../tpl/graph.tpl:103
+msgid "Lines"
+msgstr "Líneas"
+
+#: ../tpl/graph.tpl:104
+msgid "Balloon"
+msgstr "Balloon"
+
+#: ../tpl/graph.tpl:105
+msgid "Lines points"
+msgstr "Líneas y puntos"
+
+#: ../tpl/groups_edit.tpl:3 ../tpl/groups_edit.tpl:9
+msgid "Group:"
+msgstr "Group :"
+
+#: ../tpl/groups_edit.tpl:14
+msgid "Clients:"
+msgstr "Clients:"
+
+#: ../tpl/help_extern.tpl:3
+msgid "Help ejecting media (part 1/2)"
+msgstr "Ayuda para expulsar medios (part 1/2)"
+
+#: ../tpl/help_extern.tpl:6
+msgid ""
+"This tool will select the best candidates to eject. You will be asked to "
+"make your selection on the next screen."
+msgstr ""
+"Se seleccionará el mejor candidato para expulsar. Se le pedirá realizar su "
+"selección en la próxima pantalla."
+
+#: ../tpl/help_extern.tpl:17 ../tpl/help_intern.tpl:17
+msgid "Media Type:"
+msgstr "Tipo Medio:"
+
+#: ../tpl/help_extern.tpl:34
+msgid "Number of media <br/> to eject:"
+msgstr "Number of media <br/> to eject:"
+
+#: ../tpl/help_extern_compute.tpl:3
+msgid "Help to eject media (part 2/2)"
+msgstr "Ayuda para expulsar medios (part 2/2)"
+
+#: ../tpl/help_extern_compute.tpl:6
+msgid "Now, you can verify the selection and eject the media."
+msgstr "Ahora puede verificar la selección y expulsar el medio."
+
+#: ../tpl/help_extern_compute.tpl:11 ../tpl/help_intern_compute.tpl:11
+msgid "Back"
+msgstr "Volver"
+
+#: ../tpl/help_extern_compute.tpl:13
+msgid "Eject selection"
+msgstr "Expulsar selección"
+
+#: ../tpl/help_intern.tpl:3
+msgid "Help loading media (part 1/2)"
+msgstr "Ayuda para cargar medios (part 1/2)"
+
+#: ../tpl/help_intern.tpl:6
+msgid ""
+"This tool will select the best candidates to load. You will be asked to make "
+"your selection on the next screen."
+msgstr ""
+"Se seleccionará el mejor candidato para cargar. Se le pedirá realizar su "
+"selección en la próxima pantalla."
+
+#: ../tpl/help_intern.tpl:35
+msgid "Expired:"
+msgstr "Expiración :"
+
+#: ../tpl/help_intern.tpl:40
+msgid "Number of media <br/> to load:"
+msgstr "Number of media <br/> to load:"
+
+#: ../tpl/help_intern_compute.tpl:3
+msgid "Help to load media (part 2/2)"
+msgstr "Ayuda para cargar medios (part 2/2)"
+
+#: ../tpl/help_intern_compute.tpl:6
+msgid "Now, you can verify the selection and load the media."
+msgstr "Ahora puede verificar la selección y cargar el medio cargar selección"
+
+#: ../tpl/location_add.tpl:3
+msgid "New location"
+msgstr "Nueva Ubicación"
+
+#: ../tpl/location_add.tpl:13 ../tpl/location_edit.tpl:14
+msgid "Cost:"
+msgstr "Cost :"
+
+#: ../tpl/location_add.tpl:17 ../tpl/location_edit.tpl:18
+#: ../tpl/move_media.tpl:15 ../tpl/update_media.tpl:49
+msgid "Enabled:"
+msgstr "Activado :"
+
+#: ../tpl/location_add.tpl:19 ../tpl/location_edit.tpl:20
+#: ../tpl/move_media.tpl:18 ../tpl/update_media.tpl:51
+msgid "yes"
+msgstr "yes"
+
+#: ../tpl/location_add.tpl:20 ../tpl/location_edit.tpl:21
+#: ../tpl/move_media.tpl:17 ../tpl/update_media.tpl:52
+msgid "no"
+msgstr "no"
+
+#: ../tpl/location_add.tpl:21 ../tpl/location_edit.tpl:22
+#: ../tpl/move_media.tpl:19 ../tpl/update_media.tpl:53
+msgid "archived"
+msgstr "archived"
+
+#: ../tpl/location_add.tpl:29
+msgid "Tips: It's a good idea to have a location per autochanger."
+msgstr "Tips: It's a good idea to have a location per autochanger."
+
+#: ../tpl/move_media.tpl:9 ../tpl/update_location.tpl:8
+msgid "New location:"
+msgstr "Nueva Ubicación:"
+
+#: ../tpl/move_media.tpl:28
+msgid "Move"
+msgstr "Mover"
+
+#: ../tpl/run_job.tpl:3
+msgid "Defined jobs:"
+msgstr "Jobs Definidos:"
+
+#: ../tpl/run_job.tpl:20
+msgid "Enable"
+msgstr "Activar"
+
+#: ../tpl/run_job.tpl:21 ../tpl/scheduled_job.tpl:10
+#: ../tpl/scheduled_job.tpl:11
+msgid "Disable"
+msgstr "Desactivar"
+
+#: ../tpl/run_job.tpl:22
+msgid "Show schedule"
+msgstr "Show schedule"
+
+#: ../tpl/run_job.tpl:23 ../tpl/scheduled_job.tpl:8 ../tpl/scheduled_job.tpl:9
+msgid "Run now"
+msgstr "Ejecutar Ahora"
+
+#: ../tpl/run_job_mod.tpl:3
+msgid "Run job:"
+msgstr "Ejecutar Job :"
+
+#: ../tpl/run_job_mod.tpl:37
+msgid "FileSet:"
+msgstr "FileSet:"
+
+#: ../tpl/run_job_mod.tpl:55
+msgid "Level:"
+msgstr "Nivel:"
+
+#: ../tpl/run_job_mod.tpl:62
+msgid "Start Time:"
+msgstr "Hora Inicio:"
+
+#: ../tpl/run_job_mod.tpl:66
+msgid "Priority:"
+msgstr "Prioridad:"
+
+#: ../tpl/run_job_mod.tpl:77
+msgid "More options"
+msgstr "Más opciones"
+
+#: ../tpl/run_job_mod.tpl:79
+msgid "Run job"
+msgstr "Ejecutar job"
+
+#: ../tpl/running_job.tpl:11
+msgid "View job"
+msgstr "Ver job"
+
+#: ../tpl/running_job.tpl:13
+msgid "Do you want to cancel the selected job?"
+msgstr "Do you want to cancel the selected job?"
+
+#: ../tpl/running_job.tpl:24
+msgid "Start Time"
+msgstr "Start Time"
+
+#: ../tpl/running_job.tpl:26
+msgid "Job Files"
+msgstr "Archivos Job"
+
+#: ../tpl/running_job.tpl:27
+msgid "Job Bytes"
+msgstr "Job Bytes"
+
+#: ../tpl/running_job.tpl:29 ../tpl/scheduled_job.tpl:26
+msgid "Select"
+msgstr "Select"
+
+#: ../tpl/scheduled_job.tpl:20
+msgid "Scheduled"
+msgstr "Programado"
+
+#: ../tpl/scheduled_job.tpl:23
+msgid "Priority"
+msgstr "Prioridad"
+
+#: ../tpl/scheduled_job.tpl:25
+msgid "Volume"
+msgstr "Volumen"
+
+#: ../tpl/stats.tpl:6
+msgid "Nothing to display"
+msgstr "Nothing to display"
+
+#: ../tpl/update_location.tpl:3
+msgid "Update media location"
+msgstr "Actualizar Ubicación del Medio"
+
+#: ../tpl/update_location.tpl:13 ../tpl/update_media.tpl:115
+msgid "Apply"
+msgstr "Apply"
+
+#: ../tpl/update_media.tpl:8
+msgid "Volume Name:"
+msgstr "Volume Name:"
+
+#: ../tpl/update_media.tpl:9
+msgid "Change this to update an other volume"
+msgstr "Change this to update an other volume"
+
+#: ../tpl/update_media.tpl:20
+msgid "Status:"
+msgstr "Estado:"
+
+#: ../tpl/update_media.tpl:35
+msgid "Slot:"
+msgstr "Slot:"
+
+#: ../tpl/update_media.tpl:42
+msgid "InChanger Flag:"
+msgstr "Cargado:"
+
+#: ../tpl/update_media.tpl:67
+msgid "Retention period:"
+msgstr "Período de Retención:"
+
+#: ../tpl/update_media.tpl:69 ../tpl/update_media.tpl:75
+msgid "ex: 3 days, 1 month"
+msgstr "ex: 3 days, 1 month"
+
+#: ../tpl/update_media.tpl:73
+msgid "Use duration:"
+msgstr "Use duration:"
+
+#: ../tpl/update_media.tpl:79
+msgid "Max Jobs:"
+msgstr "Jobs Máximos:"
+
+#: ../tpl/update_media.tpl:81
+msgid "ex: 10"
+msgstr "ex: 10"
+
+#: ../tpl/update_media.tpl:85
+msgid "Max Files:"
+msgstr "Archivos Máximos:"
+
+#: ../tpl/update_media.tpl:87
+msgid "ex: 10000"
+msgstr "ex: 10000"
+
+#: ../tpl/update_media.tpl:91
+msgid "Max Bytes:"
+msgstr "Bytes Máximos:"
+
+#: ../tpl/update_media.tpl:93
+msgid "ex: 10M, 11G"
+msgstr "ex: 10M, 11G"
+
+#: ../tpl/update_media.tpl:97
+msgid "Recycle Pool:"
+msgstr "Recycle Pool:"
+
+#: ../tpl/update_media.tpl:107
+msgid "a comment"
+msgstr "a comment"
+
+#: ../tpl/update_media.tpl:116 ../tpl/update_media.tpl:117
+msgid "Update from pool"
+msgstr "Actualizar del Pool"
+
+#: ../tpl/update_media.tpl:124
+msgid "View Pool"
+msgstr "Ver Pool"
