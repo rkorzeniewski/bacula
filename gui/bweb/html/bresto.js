@@ -124,6 +124,7 @@ function ext_init()
         file_store.removeAll();
 	file_versions_store.removeAll();
         file_store.load({params:init_params({action: 'list_files',
+					     path:Ext.brestore.path,
                                              node:node.id})
                        });
         return true;
@@ -220,7 +221,6 @@ function ext_init()
                                  });
         return true;
     });
-    files_grid.render();
 
 //////////////////////////////////////////////////////////////:
 
@@ -354,7 +354,6 @@ function ext_init()
    file_selection_grid.on('notifyDrop', function(dd,e) { 
         alert(e) ; return true;
     });
-   file_selection_grid.render();
 
 ///////////////////////////////////////////////////////
 
@@ -443,7 +442,6 @@ function ext_init()
     file_versions_grid.on('rowdblclick', function(e) { 
         alert(e) ; file_versions_store.removeAll(); return true;
     });
-    file_versions_grid.render();
 
 //////////////////////////////////////////////////////////////:
 
@@ -883,6 +881,9 @@ layout.endUpdate();
 //    file_store.load({params:{offset:0, limit:50}});
 //    file_versions_store.load({params:{offset:0, limit:50}});
 //    file_selection_store.load();
+   files_grid.render();
+   file_selection_grid.render();
+   file_versions_grid.render();
 
 }
 Ext.onReady( ext_init );
