@@ -69,6 +69,7 @@ unmark *
 mark *
 done
 yes
+list volumes
 wait
 messages
 @output
