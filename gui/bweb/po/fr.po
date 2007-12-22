@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: 2007-12-22 17:41+0100\n"
+"PO-Revision-Date: 2007-12-22 19:23+0100\n"
 "Last-Translator: Eric <eric@eb.homelinux.org>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +50,6 @@ msgid "Drives"
 msgstr "Lecteurs"
 
 #: ../tpl/ach_add.tpl:38
-#, fuzzy
 msgid "index"
 msgstr "Index"
 
@@ -141,9 +140,8 @@ msgid "Real Slot"
 msgstr "Slot réel"
 
 #: ../tpl/ach_content.tpl:52
-#, fuzzy
 msgid "Slot"
-msgstr "Slot :"
+msgstr "Slot"
 
 #: ../tpl/ach_content.tpl:52 ../tpl/ach_content.tpl:104
 #: ../tpl/display_job_zoom.tpl:95 ../tpl/display_media.tpl:36
@@ -171,9 +169,8 @@ msgstr "Type"
 
 #: ../tpl/ach_content.tpl:54 ../tpl/help_extern_compute.tpl:21
 #: ../tpl/help_intern_compute.tpl:23
-#, fuzzy
 msgid "Pool Name"
-msgstr "Utilisation du pool"
+msgstr "Nom du Pool"
 
 #: ../tpl/ach_content.tpl:54 ../tpl/display_media.tpl:38
 #: ../tpl/help_extern_compute.tpl:21 ../tpl/help_intern_compute.tpl:23
@@ -331,14 +328,12 @@ msgid "Logged as"
 msgstr "Logged as"
 
 #: ../tpl/begin.tpl:70
-#, fuzzy
 msgid "Search media"
-msgstr "Chercher un media ou un client"
+msgstr "Chercher un media"
 
 #: ../tpl/begin.tpl:70
-#, fuzzy
 msgid "Search client"
-msgstr "Chercher un media ou un client"
+msgstr "Chercher un client"
 
 #: ../tpl/begin.tpl:70
 msgid "search..."
@@ -445,9 +440,9 @@ msgstr "Cette semaine"
 msgid "Last 30 days"
 msgstr "30 derniers jours"
 
-#: ../tpl/btime.tpl:81 ../tpl/graph.tpl:39
-msgid "Last 6 month"
-msgstr "6 derniers mois"
+#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:71 ../tpl/graph.tpl:39
+msgid "Last 6 months"
+msgstr ""
 
 #: ../tpl/btime.tpl:85 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:43
 msgid "Size"
@@ -491,6 +486,26 @@ msgstr "Subject:"
 msgid "[BACULA] Move media to"
 msgstr "[BACULA] Déplacer des médias vers"
 
+#: ../tpl/change_location.tpl:19
+msgid "Hi,"
+msgstr "Bonjour,"
+
+#: ../tpl/change_location.tpl:21
+msgid "Could you move these media to"
+msgstr "Pouvez vous déplacer ces médias vers"
+
+#: ../tpl/change_location.tpl:27
+msgid "When it's finish, could you update media location?"
+msgstr "Quand cela sera terminé, pouvez vous cliquer sur le lien ci-dessous pour mettre à jour la localisation ?"
+
+#: ../tpl/change_location.tpl:28
+msgid "you can use this link:"
+msgstr "Vous pouvez utiliser ce lien :"
+
+#: ../tpl/change_location.tpl:30
+msgid "Thanks"
+msgstr "Merci"
+
 #: ../tpl/change_location.tpl:36
 msgid "Update now"
 msgstr "Mettre à jour maintenant"
@@ -502,7 +517,7 @@ msgstr "Job"
 #: ../tpl/client_job_status.tpl:4 ../tpl/display_log.tpl:3
 #: ../tpl/run_job_mod.tpl:3
 msgid "on"
-msgstr ""
+msgstr "sur"
 
 #: ../tpl/client_job_status.tpl:11 ../tpl/run_job.tpl:9
 #: ../tpl/run_job_mod.tpl:9
@@ -555,7 +570,6 @@ msgid "Last jobs"
 msgstr "Historique"
 
 #: ../tpl/client_list.tpl:14 ../tpl/display_client_stats.tpl:17
-#, fuzzy
 msgid "Show current job"
 msgstr "Voir les jobs en cours"
 
@@ -564,7 +578,6 @@ msgid "Current jobs"
 msgstr "Jobs courants"
 
 #: ../tpl/client_list.tpl:15
-#, fuzzy
 msgid "Show client status"
 msgstr "Statistiques"
 
@@ -584,19 +597,16 @@ msgid "Name"
 msgstr "Nom"
 
 #: ../tpl/client_list.tpl:23
-#, fuzzy
 msgid "Desc"
-msgstr "Lecteurs"
+msgstr "Description"
 
 #: ../tpl/client_list.tpl:23
-#, fuzzy
 msgid "Auto Prune"
-msgstr "Prune"
+msgstr "Prune automatique"
 
 #: ../tpl/client_list.tpl:23
-#, fuzzy
 msgid "File Retention"
-msgstr "Rétention"
+msgstr "Rétention des fichiers"
 
 #: ../tpl/client_list.tpl:23
 msgid "Job Retention"
@@ -773,10 +783,6 @@ msgstr "30 derniers jours"
 #: ../tpl/display_form_job.tpl:60
 msgid "6 months"
 msgstr "6 derniers mois"
-
-#: ../tpl/display_form_job.tpl:71
-msgid "Last 6 months"
-msgstr ""
 
 #: ../tpl/display_form_job.tpl:79
 msgid "Time slice"
@@ -988,19 +994,16 @@ msgid "View content"
 msgstr "Voir le contenu"
 
 #: ../tpl/display_location.tpl:18 ../tpl/display_media_zoom.tpl:43
-#, fuzzy
 msgid "Enabled"
-msgstr "En ligne :"
+msgstr "Active"
 
 #: ../tpl/display_location.tpl:18
-#, fuzzy
 msgid "Cost"
-msgstr "Coût :"
+msgstr "Coût"
 
 #: ../tpl/display_location.tpl:18 ../tpl/display_pool.tpl:19
-#, fuzzy
 msgid "Nb volumes"
-msgstr "Nb Fichiers"
+msgstr "Nb médias"
 
 #: ../tpl/display_log.tpl:3
 msgid "Log:"
@@ -1018,9 +1021,8 @@ msgid "Move out"
 msgstr "Externaliser"
 
 #: ../tpl/display_media.tpl:23
-#, fuzzy
 msgid "Do you want to eject selected media ?"
-msgstr "Voulez vous vraiment éjecter ce média ?"
+msgstr "Voulez vous vraiment éjecter ces médias ?"
 
 #: ../tpl/display_media.tpl:24
 msgid "Move in"
@@ -1051,9 +1053,8 @@ msgid "Online"
 msgstr ""
 
 #: ../tpl/display_media.tpl:36
-#, fuzzy
 msgid "Vol Usage"
-msgstr "Utilisation du pool"
+msgstr "Utilisation du volume"
 
 #: ../tpl/display_media_zoom.tpl:4
 msgid "Volume:"
@@ -1076,7 +1077,6 @@ msgid "Do you want to eject this volume ?"
 msgstr "Voulez vous vraiment éjecter ce média ?"
 
 #: ../tpl/display_media_zoom.tpl:17
-#, fuzzy
 msgid "move out"
 msgstr "Externaliser"
 
@@ -1085,9 +1085,8 @@ msgid "move in"
 msgstr "Internaliser"
 
 #: ../tpl/display_media_zoom.tpl:22
-#, fuzzy
 msgid "Do you want to purge this volume?"
-msgstr "Voulez vous vraiment éjecter ce média ?"
+msgstr "Voulez vous vraiment purger ce média ?"
 
 #: ../tpl/display_media_zoom.tpl:25
 msgid "View location log"
@@ -1102,37 +1101,32 @@ msgid "Expire"
 msgstr "Expiration"
 
 #: ../tpl/display_media_zoom.tpl:44 ../tpl/display_pool.tpl:17
-#, fuzzy
 msgid "Retention"
 msgstr "Rétention"
 
 #: ../tpl/display_media_zoom.tpl:44
-#, fuzzy
 msgid "Max use duration"
-msgstr "Durée d'utilisation :"
+msgstr "Temps maxi d'utilisation"
 
 #: ../tpl/display_media_zoom.tpl:44
 msgid "Max jobs"
 msgstr "Nombre de jobs maxi :"
 
 #: ../tpl/display_media_zoom.tpl:83
-#, fuzzy
 msgid "Vol Mounts"
-msgstr "Mount"
+msgstr "Nb montages"
 
 #: ../tpl/display_media_zoom.tpl:83
-#, fuzzy
 msgid "Recycle count"
-msgstr "Pool de recyclage :"
+msgstr "Nb de recyclage"
 
 #: ../tpl/display_media_zoom.tpl:83
 msgid "Read time"
-msgstr ""
+msgstr "Temps de lecture"
 
 #: ../tpl/display_media_zoom.tpl:83
-#, fuzzy
 msgid "Write time"
-msgstr "Lecteurs"
+msgstr "Temp d'écriture"
 
 #: ../tpl/display_media_zoom.tpl:113 ../tpl/running_job.tpl:24
 msgid "Start Time"
@@ -1144,14 +1138,12 @@ msgid "Type"
 msgstr "Type"
 
 #: ../tpl/display_media_zoom.tpl:114
-#, fuzzy
 msgid "Files"
 msgstr "Fichiers"
 
 #: ../tpl/display_media_zoom.tpl:114
-#, fuzzy
 msgid "Bytes"
-msgstr "Taille :"
+msgstr "Taille"
 
 #: ../tpl/display_pool.tpl:8
 msgid "Show content"
@@ -1167,16 +1159,14 @@ msgstr ""
 "\"update pool=mypool\" sur la bconsole."
 
 #: ../tpl/display_pool.tpl:17
-#, fuzzy
 msgid "Recycle"
-msgstr "Pool de recyclage :"
+msgstr "Recyclé"
 
 #: ../tpl/display_pool.tpl:17
 msgid "Use Duration"
 msgstr "Durée d'utilisation :"
 
 #: ../tpl/display_pool.tpl:18
-#, fuzzy
 msgid "Max jobs per volume"
 msgstr "Nb job maxi par média"
 
@@ -1189,9 +1179,8 @@ msgid "Max volume size"
 msgstr "Nb volumes"
 
 #: ../tpl/display_pool.tpl:19
-#, fuzzy
 msgid "Usage"
-msgstr "Utilisateur :"
+msgstr "Utilisation"
 
 #: ../tpl/display_user.tpl:2 ../tpl/move_media.tpl:21
 msgid "User:"
@@ -1212,15 +1201,15 @@ msgstr "Commentaire :"
 
 #: ../tpl/display_user.tpl:17
 msgid "Profile:"
-msgstr ""
+msgstr "Profile :"
 
 #: ../tpl/display_user.tpl:20
 msgid "Administrator"
-msgstr ""
+msgstr "Administrateur"
 
 #: ../tpl/display_user.tpl:21
 msgid "Customer"
-msgstr ""
+msgstr "Client"
 
 #: ../tpl/display_user.tpl:23
 msgid "Or like an existing user:"
@@ -1228,28 +1217,27 @@ msgstr ""
 
 #: ../tpl/display_user.tpl:33
 msgid "Roles:"
-msgstr ""
+msgstr "Roles :"
 
 #: ../tpl/display_user.tpl:41
 msgid "Use groups filter:"
-msgstr ""
+msgstr "Utiliser les filtres par groupes"
 
 #: ../tpl/display_user.tpl:44
 msgid "Groups:"
-msgstr ""
+msgstr "Groupes :"
 
 #: ../tpl/display_users.tpl:3
 msgid "Users"
-msgstr ""
+msgstr "Utilisateurs"
 
 #: ../tpl/display_users.tpl:14
 msgid "View clients"
 msgstr ""
 
 #: ../tpl/display_users.tpl:21
-#, fuzzy
 msgid "Username"
-msgstr "Utilisateur :"
+msgstr "Utilisateur"
 
 #: ../tpl/error.tpl:1
 msgid "An error has occurred:"
@@ -1286,7 +1274,7 @@ msgstr "Ce qui est exclus :"
 #: ../tpl/fileset_view.tpl:18
 msgid "Tips: Warning, this is the current fileset, it could have changed ..."
 msgstr ""
-"Tips : Attention ceci est le FileSet courant. Il peut avoir changÃ sur une "
+"Tips : Attention ceci est le FileSet courant. Il peut avoir changé sur une "
 "ancienne sauvegarde."
 
 #: ../tpl/fv_file_attribs.tpl:2
@@ -1755,3 +1743,6 @@ msgstr "Mettre à jour à partir du pool"
 #: ../tpl/update_media.tpl:124
 msgid "View Pool"
 msgstr "Voir le pool"
+
+#~ msgid "Last 6 month"
+#~ msgstr "6 derniers mois"

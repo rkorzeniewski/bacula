@@ -427,8 +427,8 @@ msgstr ""
 msgid "Last 30 days"
 msgstr ""
 
-#: ../tpl/btime.tpl:81 ../tpl/graph.tpl:39
-msgid "Last 6 month"
+#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:71 ../tpl/graph.tpl:39
+msgid "Last 6 months"
 msgstr ""
 
 #: ../tpl/btime.tpl:85 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:43
@@ -471,6 +471,26 @@ msgstr ""
 
 #: ../tpl/change_location.tpl:14
 msgid "[BACULA] Move media to"
+msgstr ""
+
+#: ../tpl/change_location.tpl:19
+msgid "Hi,"
+msgstr ""
+
+#: ../tpl/change_location.tpl:21
+msgid "Could you move these media to"
+msgstr ""
+
+#: ../tpl/change_location.tpl:27
+msgid "When it's finish, could you update media location?"
+msgstr ""
+
+#: ../tpl/change_location.tpl:28
+msgid "you can use this link:"
+msgstr ""
+
+#: ../tpl/change_location.tpl:30
+msgid "Thanks"
 msgstr ""
 
 #: ../tpl/change_location.tpl:36
@@ -746,10 +766,6 @@ msgstr ""
 
 #: ../tpl/display_form_job.tpl:60
 msgid "6 months"
-msgstr ""
-
-#: ../tpl/display_form_job.tpl:71
-msgid "Last 6 months"
 msgstr ""
 
 #: ../tpl/display_form_job.tpl:79

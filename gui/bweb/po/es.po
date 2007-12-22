@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Bweb VERSION\n"
-"PO-Revision-Date: 2007-12-22 17:03+0100\n"
+"PO-Revision-Date: 2007-12-22 19:24+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: Eric Bollengier <eric@eb.homelinux.org>\n"
 "MIME-Version: 1.0\n"
@@ -148,9 +148,8 @@ msgid "Real Slot"
 msgstr "Slot Real"
 
 #: ../tpl/ach_content.tpl:52
-#, fuzzy
 msgid "Slot"
-msgstr "Slot:"
+msgstr "Slot"
 
 #: ../tpl/ach_content.tpl:52 ../tpl/ach_content.tpl:104
 #: ../tpl/display_job_zoom.tpl:95 ../tpl/display_media.tpl:36
@@ -455,8 +454,8 @@ msgstr "Esta Semana"
 msgid "Last 30 days"
 msgstr "Últimos 30 días"
 
-#: ../tpl/btime.tpl:81 ../tpl/graph.tpl:39
-msgid "Last 6 month"
+#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:71 ../tpl/graph.tpl:39
+msgid "Last 6 months"
 msgstr "Últimos 6 meses"
 
 #: ../tpl/btime.tpl:85 ../tpl/display_job_group.tpl:20 ../tpl/graph.tpl:43
@@ -498,9 +497,28 @@ msgid "Subject:"
 msgstr "Asunto:"
 
 #: ../tpl/change_location.tpl:14
-#, fuzzy
 msgid "[BACULA] Move media to"
-msgstr "Mover Medio"
+msgstr "[BACULA] Mover medio a"
+
+#: ../tpl/change_location.tpl:19
+msgid "Hi,"
+msgstr "Estimado,"
+
+#: ../tpl/change_location.tpl:21
+msgid "Could you move these media to"
+msgstr "Puede mover este medio a"
+
+#: ../tpl/change_location.tpl:27
+msgid "When it's finish, could you update media location?"
+msgstr "Cuando finalice, puede actualizar la ubicacion del medio ?"
+
+#: ../tpl/change_location.tpl:28
+msgid "you can use this link:"
+msgstr "puede usar este link :"
+
+#: ../tpl/change_location.tpl:30
+msgid "Thanks"
+msgstr "Gracias"
 
 #: ../tpl/change_location.tpl:36
 msgid "Update now"
@@ -791,10 +809,6 @@ msgstr "Últimos 30 dias"
 
 #: ../tpl/display_form_job.tpl:60
 msgid "6 months"
-msgstr "Últimos 6 meses"
-
-#: ../tpl/display_form_job.tpl:71
-msgid "Last 6 months"
 msgstr "Últimos 6 meses"
 
 #: ../tpl/display_form_job.tpl:79
@@ -1778,3 +1792,6 @@ msgstr "Actualizar del Pool"
 #: ../tpl/update_media.tpl:124
 msgid "View Pool"
 msgstr "Ver Pool"
+
+#~ msgid "Last 6 month"
+#~ msgstr "Últimos 6 meses"
