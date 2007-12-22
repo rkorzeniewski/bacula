@@ -11,7 +11,7 @@
 <tr>
 <td><b>__To:__ </b></td><td><input class='formulaire' name='email' value='<TMPL_VAR email>'></td>
 </tr><tr>
-<td><b>__Subject:__ </b></td><td><input class='formulaire' name='subject' value='[BACULA] Move media to <TMPL_VAR newlocation>' size='80'></td>
+<td><b>__Subject:__ </b></td><td><input class='formulaire' name='subject' value='__[BACULA] Move media to__ <TMPL_VAR newlocation>' size='80'></td>
 </tr><tr>
 <td></td>
 <td>

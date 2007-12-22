@@ -17,7 +17,7 @@
     <tr><td title="__This folder must be writable by apache user and must be accessible on /bweb/fv__">fv_write_path:</td> <td> <TMPL_VAR fv_write_path> </td></tr>
     <tr><td title="__You can choose the Job table that you want to use to get statistics__">stat_job_table:</td> <td> <TMPL_IF stat_job_table><TMPL_VAR stat_job_table><TMPL_ELSE>Job</TMPL_IF> </td></tr>
     <tr><td title="/path/to/bconsole -n -c /path/to/bconsole.conf">bconsole:</td> <td> <TMPL_VAR bconsole> </td></tr>
-    <tr><td title="__use a wiki for jobs documentation ?__">wiki_url:</td> <td> <TMPL_VAR wiki_url> </td></tr>
+    <tr><td title="__use a wiki for jobs documentation?__">wiki_url:</td> <td> <TMPL_VAR wiki_url> </td></tr>
     <tr><td title="__display timestamp in job log__">display_log_time:</td> <td> <TMPL_VAR display_log_time> </td></tr>
     <tr><td title="__user managment__">__security:__</td> <td> <TMPL_VAR enable_security> </td></tr>
     <tr><td title="__user filter__">__security acl:__</td> <td> <TMPL_VAR enable_security_acl> </td></tr>

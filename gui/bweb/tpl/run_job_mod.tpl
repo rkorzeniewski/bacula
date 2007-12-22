@@ -74,7 +74,7 @@
   <label onclick='
            document.getElementById("more1").style.visibility="visible";
            document.getElementById("more2").style.visibility="visible";'>
-  <img title='Display more options' src='/bweb/add.png'>__More options__</label>
+  <img title="__Display more options__" src='/bweb/add.png'>__More options__</label>
 
   <button type="submit" class="bp" name='action' value='run_job_now' title='__Run job__'><img src='/bweb/R.png' alt=''>__Run now__</button>
   <button type="submit" class="bp" name='action' value='fileset_view' title='__View FileSet__'><img src='/bweb/zoom.png' alt=''>__View FileSet__</button>
