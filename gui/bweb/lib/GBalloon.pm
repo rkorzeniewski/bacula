@@ -179,6 +179,15 @@ sub finalize
 sub set_legend_axis
 {
     my ($self, %arg) = @_;
+
+    unless ($arg{x_func}) {
+	$arg{x_func} = sub { join(" ", @_) }
+    }
+
+    unless ($arg{y_func}) {
+	$arg{y_func} = sub { join(" ", @_) }
+    }
+
     $self->{axis} = \%arg;
 }
 

@@ -121,10 +121,37 @@ if ($gtype eq 'balloon') {
     use Digest::MD5 qw(md5_hex);
     use GBalloon;
 
+    my $b = new GBalloon(width=>$arg->{width}, 
+			 height =>$arg->{height});
+
+    my $order;
+    my %legend = (x_title => 'Time', 
+		  x_func => sub { 
+		      POSIX::strftime('%H:%M', gmtime($_[0])) 
+		      }
+		  ) ;
+    if ($graph eq 'job_time_size') {
+	$order = 'JobFiles,JobBytes';
+
+	$legend{y_title} = 'Nb files';
+	$legend{y_func} = sub { int(shift)};
+	$legend{z_title} = 'Size';
+	$legend{z_func} = \&Bweb::human_size;
+    } else {
+	$order = 'JobBytes,JobFiles';
+
+	$legend{y_title} = 'Size';
+	$legend{y_func} = \&Bweb::human_size;
+	$legend{z_title} = 'Nb files';
+	$legend{z_func} = sub { int(shift)};
+    }
+
+    $b->set_legend_axis(%legend);
+
     my $all = $dbh->selectall_arrayref("
 SELECT $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)
                                   - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime))
-         AS duration, JobBytes, JobFiles, JobId, $jobt.Name
+         AS duration, $order, JobId, $jobt.Name
        
  FROM $jobt, Client $filter $groupf
 WHERE $jobt.ClientId = Client.ClientId
@@ -137,19 +164,10 @@ WHERE $jobt.ClientId = Client.ClientId
 $limitq
 ");
 
-    my $b = new GBalloon(width=>$arg->{width}, 
-			 height =>$arg->{height});
-    $b->set_legend_axis(x_title => 'Time', 
-			x_func => sub { 
-			    POSIX::strftime('%H:%M', gmtime($_[0])) 
-			    },
-			y_title => 'Size', y_func => \&Bweb::human_size,
-			z_title => 'Nb files');
-
     foreach my $a (@$all) {
 	$b->add_point($a->[0], $a->[1], $a->[2], 
 		      "?action=job_zoom;jobid=$a->[3]",
-		      "$a->[4] $a->[2] files");
+		      "$a->[4] $legend{z_title} " . $legend{z_func}($a->[2]));
     }
     
     $b->init_gd();
