@@ -51,7 +51,7 @@ package Bweb::Gui;
 =cut
 
 use HTML::Template;
-our $template_dir='/usr/share/bweb/tpl';
+our $template_dir='/usr/share/bweb/en/tpl';
 
 =head1 FUNCTION
 
