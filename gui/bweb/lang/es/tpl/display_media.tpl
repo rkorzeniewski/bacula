@@ -7,35 +7,35 @@
 
 <TMPL_IF Pool>
 <h2>
-Pool : <a href="?action=pool;pool=<TMPL_VAR Pool>">
+Pool: <a href="?action=pool;pool=<TMPL_VAR Pool>">
          <TMPL_VAR Pool>
        </a>
 </h2>
 </TMPL_IF>
 <TMPL_IF Location>
 <h2>
-Location : <TMPL_VAR location>
+Ubicación : <TMPL_VAR location>
 </h2>
 </TMPL_IF>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <input type="image" name='action' value='extern' title='Move out' src='/bweb/extern.png' onclick='return confirm("¿Seguro quiere expulsar el medio seleccionado?");'>&nbsp;
-      <input type="image" name='action' value='intern' title='Move in' src='/bweb/intern.png'>&nbsp;
-      <input type="image" name='action' value='update_media' title='Update medium' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='media_zoom' title='Informations' src='/bweb/zoom.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' title='Move out'> <img src='/bweb/extern.png' onclick='return confirm("Do you want to eject selected media ?");' alt=''>Eject</button>
+      <button type="submit" class="bp" name='action' value='intern' title='Move in'> <img src='/bweb/intern.png' alt=''>Load</button>
+      <button type="submit" class="bp" name='action' value='update_media' title='Update medium'> <img src='/bweb/edit.png' alt=''>Editar</button>
+      <button type="submit" class="bp" name='action' value='media_zoom' title='Information'> <img src='/bweb/zoom.png' alt=''>Ver</button>
 <!--
-      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' alt=''>Purge</button>
 -->
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nombre Volumen","Online","Bytes Vol", "Uso Vol", "Estado Vol",
-		       "Pool", "Tipo Medio",
-		       "Fecha Escritura", "Expiración", "Selección");
+var header = new Array("Nombre Volumen","Online","Bytes Vol", "Vol Usage", "Vol Status",
+                       "Pool", "Tipo Medio",
+                       "Fecha Escritura", "When expire ?", "Select");
 
 var data = new Array();
 var img;

@@ -3,27 +3,26 @@
   <h1 class='newstitle'> Client : <TMPL_VAR clientname> (<TMPL_VAR label>)</h1>
  </div>
  <div class='bodydiv'>
-<form action='?'
+<form action='?'>
      <table id='id<TMPL_VAR ID>'></table>
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_duration;age=2592000;width=420;height=200" alt='Données insufisantes' > &nbsp;
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Données insufisantes'> &nbsp;
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Données insufisantes'> &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_duration;age=2592000;width=420;height=200" alt='Not enough data' > &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
 <!--	<div class="otherboxtitle">
           Actions &nbsp;
         </div>
         <div class="otherbox">
        <h1>Actions</h1> 
-       <input type="image" name='action' value='job' title="Voir l'historique"
-        src='/bweb/zoom.png'> &nbsp;
-       <input type="image" name='action' value='dsp_cur_job' title='Voir les job en cours' src='/bweb/zoom.png'> &nbsp;
-       <input type="image" name='action' value='client_stat' title='Statistiques' src='/bweb/zoom.png'> &nbsp;
+       <button type="submit" class="bp" name='action' value='job' title='Voir l'historique'> <img src='/bweb/zoom.png' alt=''>Voir les anciens jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Voir les jobs en cours'> <img src='/bweb/zoom.png' alt=''>Voir les jobs en cours</button>
+       <button type="submit" class="bp" name='action' value='client_stat' title='Statistiques'> <img src='/bweb/zoom.png' alt=''>Voir les stats</button>
         </div>
 -->
 </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Nom", "Nb Jobs", "Taille", "Nb Fichiers", "Nb Erreurs");
+var header = new Array("Nom", "Nb Jobs", "Nb Bytes", "Nb Fichiers", "Nb Erreurs");
 
 var data = new Array();
 

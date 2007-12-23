@@ -5,28 +5,25 @@
  <div class="bodydiv">
    <form name='form1' action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' onclick='document.form1.reset()' value='groups_edit' title='Ajouter' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='groups_del' 
+    <button type="submit" class="bp" name='action' onclick='document.form1.reset()' value='groups_edit' title='Ajouter'> <img src='/bweb/add.png' alt=''>Ajouter</button>
+    <button type="submit" class="bp" name='action' value='groups_del' 
      onclick="return confirm('Voulez vous vraiment supprimer ce groupe ?');" 
-     title='Supprimer' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='groups_edit' title='Modifier' src='/bweb/edit.png'>&nbsp;
+     title='Supprimer'> <img src='/bweb/remove.png' alt=''>Supprimer</button>
+    <button type="submit" class="bp" name='action' value='groups_edit' title='Modifier'> <img src='/bweb/edit.png' alt=''>Modifier</button>
 
-    <input type="image" name='action' value='client' title='Voir les membres'
-     src='/bweb/zoom.png'>&nbsp;
-    <input type="image" name='action' value='job' title='Voir les jobs'
-     src='/bweb/zoom.png'>&nbsp;
-    <input type="image" name='action' value='group_stats' title='Statistiques sur le groupe' src='/bweb/chart.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='client' title='Voir les membres'> <img src='/bweb/zoom.png' alt=''>Voir les membres</button>
+    <button type="submit" class="bp" name='action' value='job' title='Voir les jobs'> <img src='/bweb/zoom.png' alt=''>Voir les jobs</button>
+    <button type="submit" class="bp" name='action' value='group_stats' title='Statistiques'> <img src='/bweb/chart.png' alt=''>Voir les stats</button>
    </form>
    <form action='?' method='get'>
     <input type='hidden' name='action' value='client'>
-    <input type="image" name='notingroup' value='yes' title='Voir les clients sans groupe'
-     src='/bweb/zoom.png'>&nbsp;
+    <button type="submit" class="bp" name='notingroup' value='yes' title='Voir les clients sans groupe'> <img src='/bweb/zoom.png' alt=''>Voir les autres</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nom","Selection");
+var header = new Array("Nom","Sélection");
 
 var data = new Array();
 var chkbox;

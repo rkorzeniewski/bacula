@@ -4,62 +4,59 @@
  </div>
  <div class='bodydiv'>
    <form action='?' method='GET'>
-   <table id='id<TMPL_VAR NAME=ID>'></table>
+   <table id='id<TMPL_VAR ID>'></table>
    <br/>
 <label>
-<input type='image' name='action' value='dsp_cur_job' 
- title='Voir le job' src='/bweb/zoom.png'>
-</label>
-<label>
-<input type="image" type='submit' name='action' value='cancel_job'
+<button type="submit" class="bp" name='action' value='dsp_cur_job' 
+ title='Voir le job'> <img src='/bweb/zoom.png' alt=''>Voir</button>
+<button type="submit" class="bp" type='submit' name='action' value='cancel_job'
  onclick="return confirm('Vous voulez vraiment annuler ce job ?')"
- title='Annuler le job' src='/bweb/cancel.png'>
-</label>
+ title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annul&eacute;</button>
    </form>
 
  </div>
 
 <script type="text/javascript" language="JavaScript">
 var header = new Array("JobId",
-	               "Client",
-	               "Nom du Job", 
+                       "Client",
+                       "Nom du Job", 
                        "Niveau",
                        "Début", 
                        "Durée", 
 //                       "Job Files",
 //                       "Job Bytes", 
-	               "Statut",
-	               "Sélection"
-	);
+                       "Statut",
+                       "Sélection"
+        );
 
 var data = new Array();
 var chkbox;
 var img;
 
-<TMPL_LOOP NAME=Jobs>
+<TMPL_LOOP Jobs>
 a = document.createElement('A');
 a.href='?action=dsp_cur_job;jobid=<TMPL_VAR JobId>';
 
 img = document.createElement("IMG");
-img.src = '/bweb/<TMPL_VAR NAME=JobStatus>.png';
-img.title = jobstatus['<TMPL_VAR NAME=JobStatus>'];
+img.src = '/bweb/<TMPL_VAR JobStatus>.png';
+img.title = jobstatus['<TMPL_VAR JobStatus>'];
 
 a.appendChild(img);
 
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
 chkbox.name = 'jobid';
-chkbox.value = '<TMPL_VAR NAME=jobid>';
+chkbox.value = '<TMPL_VAR jobid>';
 
 data.push( new Array(
-"<TMPL_VAR NAME=JobId>",
-"<TMPL_VAR NAME=ClientName>",     
-"<TMPL_VAR NAME=JobName>",    
-joblevel['<TMPL_VAR NAME=Level>'],      
-"<TMPL_VAR NAME=StartTime>",
-"<TMPL_VAR NAME=duration>",
-//"<TMPL_VAR NAME=JobFiles>",   
-//"<TMPL_VAR NAME=JobBytes>",
+"<TMPL_VAR JobId>",
+"<TMPL_VAR ClientName>",     
+"<TMPL_VAR JobName>",    
+joblevel['<TMPL_VAR Level>'],      
+"<TMPL_VAR StartTime>",
+"<TMPL_VAR duration>",
+//"<TMPL_VAR JobFiles>",   
+//"<TMPL_VAR JobBytes>",
 a,
 chkbox
  )
@@ -68,7 +65,7 @@ chkbox
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,
@@ -89,7 +86,7 @@ nrsTable.setup(
 );
 
 // get newest backup first
-nrsTables['id<TMPL_VAR NAME=ID>'].fieldSort(0);
+nrsTables['id<TMPL_VAR ID>'].fieldSort(0);
 
 bweb_add_refresh();
 

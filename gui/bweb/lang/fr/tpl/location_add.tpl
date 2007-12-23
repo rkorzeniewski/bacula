@@ -14,13 +14,16 @@
          <td> <input class="formulaire" type='text' value='10' name='cost' size='3'>
          </td>
      </tr>
-     <tr><td>En ligne :</td> 
-         <td> <input class="formulaire" type='checkbox' value='10' name='enabled'>
-         </td>
-     </tr>
+    <tr><td>En ligne :</td>
+        <td> <select name='enabled' class='formulaire'>
+           <option value='yes'>oui</option>
+           <option value='no'>non</option>
+           <option value='archived'>archivé</option>
+           </select>
+        </td>
+    </tr>
     </table>
-    <input type="image" name='action' value='location_add' title="Sauvegarder"
-      src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='location_add' title="Sauver" ><img src='/bweb/save.png' alt=''>Sauver</button>
    </form>
 
 Tips: Vous devez avoir une localisation par robotique.

@@ -14,6 +14,15 @@
  </tr><tr>
   <td>__Comment:__</td> <td> <input class="formulaire" type="text" name="comment" value='<TMPL_VAR comment>'> </td>
  </tr><tr>
+  <td>__Lang:__</td> 
+   <td> 
+ <select name="lang" id='lang' class="formulaire">
+  <option value='en'>english</option>
+  <option value='fr'>french</option>
+  <option value='es'>spanish</option>
+ </select>
+   </td>
+ </tr><tr>
 <td> __Profile:__</td><td>
  <select name="profile" id='profile' class="formulaire">
   <option onclick='set_role("")'></option>

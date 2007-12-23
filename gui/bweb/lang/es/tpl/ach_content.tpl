@@ -18,38 +18,21 @@ Autochanger : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Drives
      Tools
     </div>
     <div class='otherbox'>
-<label>
-<input type="image" name='action' value='label_barcodes'
-        title='run label barcodes' src='/bweb/label.png'>Label
-</label>
+<button type="submit" class="bp" name='action' value='label_barcodes'
+ title='run label barcodes'><img src='/bweb/label.png' alt=''>Label</button>
 <TMPL_IF nb_io>
-<label>
-<input type="image" name='action' value='eject'
-        title='put selected media on i/o' src='/bweb/extern.png'>
-Exportar
-</label>
-<label>
-<input type="image" name='action' value='clear_io'
-        title='Clear i/o' src='/bweb/intern.png'>
-Limpiar I/O
-</label>
+<button type="submit" class="bp" name='action' value='eject'
+ title='put selected media on i/o'><img src='/bweb/extern.png' alt=''>Eject</button>
+<button type="submit" class="bp" name='action' value='clear_io'
+ title='Limpiar I/O'> <img src='/bweb/intern.png' alt=''>Limpiar I/O</button>
 </TMPL_IF>
-<label>
-<input type="image" name='action' value='update_slots'
-        title='run update slots' src='/bweb/update.png'>
-Actualizar
-</label>
+<button type="submit" class="bp" name='action' value='update_slots'
+ title='run update slots'> <img src='/bweb/update.png' alt=''>Actualizar</button>
 <br/><br/>
-<label>
-<input type="image" name='action' value='ach_load'
-	title='mount drive' src='/bweb/load.png'>
-Montar
-</label>
-<label>
-<input type="image" name='action' value='ach_unload'
-	title='umount drive' src='/bweb/unload.png'>
-Desmontar
-</label>
+<button type="submit" class="bp" name='action' value='ach_load'
+ title='mount drive'> <img src='/bweb/load.png' alt=''>Mount</button>
+<button type="submit" class="bp" name='action' value='ach_unload'
+ title='umount drive'> <img src='/bweb/unload.png' alt=''>Umount</button>
 
    </div>
     <td width='200'/>
@@ -66,9 +49,10 @@ Desmontar
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Slot Real", "Slot", "Nombre Volumen","Bytes Vol","Estado Vol",
-	               "Tipo Medio","Nombre Pool","Fecha Escritura", 
-                       "Expiración", "Selección");
+var header = new Array("Slot Real", "Slot", "Nombre Volumen",
+		       "Bytes Vol","Vol Status",
+	               "Tipo Medio","Pool Name","Fecha Escritura", 
+                       "When expire ?", "Select");
 
 var data = new Array();
 var chkbox;
@@ -116,7 +100,8 @@ nrsTable.setup(
 }
 );
 
-var header = new Array("Index", "Nombre Drive", "Nombre Volumen", "Selección");
+var header = new Array("Index", "Drive Name", 
+		       "Nombre Volumen", "Select");
 
 var data = new Array();
 var chkbox;

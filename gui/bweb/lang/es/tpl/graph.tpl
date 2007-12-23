@@ -49,9 +49,9 @@
 </tr>
 <tr>
   <td valign='top'> 
-    <h2>Clients</h2>
+    <h2>Clientes</h2>
     <select name='client' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_clients>
+<TMPL_LOOP db_clients>
       <option id='client_<TMPL_VAR clientname>'><TMPL_VAR clientname></option>
 </TMPL_LOOP>
     </select>
@@ -59,8 +59,8 @@
   <td valign='top'> 
     <h2>Nombre Job</h2>
     <select name='jobname' size='15' class='formulaire' multiple>
-<TMPL_LOOP NAME=db_jobnames>
-      <option><TMPL_VAR NAME=jobname></option>
+<TMPL_LOOP db_jobnames>
+      <option><TMPL_VAR jobname></option>
 </TMPL_LOOP>
     </select>
   </td>
@@ -68,12 +68,12 @@
 <tr>
   <td> <h2> Tipo </h2> 
  <select name='graph' class='formulaire'>
-   <option id='job_size'     value='job_size' title="Job size per job for the period">Tamaño Job</option>
-   <option id='job_duration' value='job_duration' title="Job duration per job for the period">Duración Job</option>
-   <option id='job_rate' value='job_rate' title="Job rate per job for the period">Velocidad Job</option>
+   <option id='job_size'     value='job_size' title="Job size per job for the period">Job Size</option>
+   <option id='job_duration' value='job_duration' title="Job duration per job for the period">Job Duration</option>
+   <option id='job_rate' value='job_rate' title="Job rate per job for the period">Job Rate</option>
    <option id='job_file' value='job_file' title="Number of backed files per job for the period">Archivos Job</option>
-   <option id='job_count_phour' value='job_count_phour' title="Number of jobs per hour for the period">Job por hora</option>
-   <option id='job_count_pday' value='job_count_pday' title="Number of jobs per day for the period">Job por dia</option>
+   <option id='job_count_phour' value='job_count_phour' title="Number of jobs per hour for the period">Job per hour</option>
+   <option id='job_count_pday' value='job_count_pday' title="Number of jobs per day for the period">Job per day</option>
    <option id='job_avg_phour' value='job_avg_pday' title="Average backup size per day for the period">Job avg B/hour</option>
    <option id='job_avg_pday' value='job_avg_pday' title="Average backup size per hour for the period">Job avg B/day</option>
    <option id='job_sum_phour' value='job_sum_phour' title="Job size per hour">Job total B/hour</option>
@@ -84,11 +84,14 @@
    <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
    <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
    <option id='job_sum_day' value='job_sum_day' title="Job size per day for the period">Job Bytes (d)</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_nb' value='job_time_nb' title="Display Job duration, size and files with balloons">Time,size,files</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="Display Job duration, files and size with balloons">Time,files,size</option>
+
  </select>
   </td>
   <td valign='bottom'> 
     <h2>Número de items</h2>
-    <input type='text' name='limit' value='<TMPL_VAR NAME=limit>' 
+    <input type='text' name='limit' value='<TMPL_VAR limit>' 
         class='formulaire' size='4'>
   </td>
 </tr>
@@ -96,13 +99,13 @@
 <td><h2> Tipo de Gráfico </h2> 
   <select name='gtype' class='formulaire'>
     <option id='gtype_bars' value='bars'>Barras</option>
-<!--  <option id='gtype_bars3d' value='bars3d'>Barras3d</option> -->
+<!--  <option id='gtype_bars3d' value='bars3d'>Bars3d</option> -->
     <option id='gtype_lines' value='lines'>Líneas</option>
+    <option onclick='document.getElementById("job_time_size").selected=true;' id='gtype_balloon' value='balloon'>Balloon</option>
     <option id='gtype_linespoints' value='linespoints'>Líneas y puntos</option>
 </td>
 <td>
-  <input type='hidden' name='action' value='graph'>
-  <input type='submit' name='_action' value='graficar' class='formulaire'> 
+  <input type='submit' name='action' value='graph' class='formulaire'> 
 </td>
 </tr>
 </table>
@@ -116,7 +119,9 @@
  Current &nbsp;
  </div>
  <div class="otherbox">
- <img src='bgraph.pl?<TMPL_VAR NAME=url>' alt='Nothing to display, Try a bigger date range'>
+
+ <img usemap='imggraph' id='imggraph' 
+      alt='Nothing to display, Try a bigger date range'>
  </div>
 
 </td>
@@ -167,6 +172,10 @@
 
   <TMPL_IF gtype>
      document.getElementById('gtype_<TMPL_VAR gtype>').selected=true;
+  </TMPL_IF>
+
+  <TMPL_IF url>
+   document.getElementById('imggraph').src='bgraph.pl?<TMPL_VAR url>'
   </TMPL_IF>
 
 </script>

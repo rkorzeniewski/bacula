@@ -5,18 +5,17 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='location_add' title='Agregar Ubicación' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='location_del' title='Remover Ubicación' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='location_edit' title='Editar Ubicación' src='/bweb/edit.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='location_add' title='Agregar Ubicación'> <img src='/bweb/add.png' alt=''>Add</button>
+    <button type="submit" class="bp" name='action' value='location_del' onclick='confirm("Do you want to remove this location?")' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Remove</button>
+    <button type="submit" class="bp" name='action' value='location_edit' title='Editar Ubicación'> <img src='/bweb/edit.png' alt=''>Editar</button>
 
-    <input type="image" name='action' value='media' title='Mostrar contenido'
-     src='/bweb/zoom.png'>
+    <button type="submit" class="bp" name='action' value='media' title='Mostrar contenido'> <img src='/bweb/zoom.png' alt=''>Mostrar contenido</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nombre","Activado", "Cost", "Nb volumes", "Selección");
+var header = new Array("Nombre","Enabled", "Cost", "Nb volumes", "Select");
 
 var data = new Array();
 var chkbox;

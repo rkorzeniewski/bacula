@@ -1,6 +1,6 @@
 <br/>
 <div class='titlediv'>
- <h1 class='newstitle'> Modifier le media <TMPL_VAR volumename></h1>
+ <h1 class='newstitle'>Modifier le media <TMPL_VAR volumename></h1>
 </div>
 <div class='bodydiv'>
   <form name='form1' action="?" method='GET'>
@@ -46,18 +46,18 @@
         </td>
     </tr>
 
-    <tr><td>Enabled :</td>
+    <tr><td>En ligne :</td>
         <td> <select name='enabled' class='formulaire'>
            <option value='yes'>oui</option>
            <option value='no'>non</option>
-           <option value='archived'>archive</option>
+           <option value='archived'>archivé</option>
            </select>
         </td>
     </tr>
 
     <tr><td> Localisation : </td>
         <td><select name='location' class='formulaire'>
-      <option value=''></option>
+        <option value=''></option>
   <TMPL_LOOP db_locations>
       <option value='<TMPL_VAR location>'><TMPL_VAR location></option>
   </TMPL_LOOP>
@@ -108,25 +108,20 @@
                name='comment' value='<TMPL_VAR comment>'>
         </td>
     </tr>
+
     </table>
 <table>
  <td>
- <label>
-  <input type="image" name='action' value='do_update_media' src='/bweb/apply.png'> Appliquer
-  </label>
-  <label>
-  <input type="image" name='action' title='Mettre à jour à partir du pool'
-    value='update_from_pool' src='/bweb/update.png'> Reinitialiser
-  </label>
+  <button type="submit" class="bp" name='action' value='do_update_media'> <img src='/bweb/apply.png' alt=''> Appliquer </button>
+  <button type="submit" class="bp" name='action' title='Mettre à jour à partir du pool'
+    value='update_from_pool'> <img src='/bweb/update.png' alt=''> Mettre à jour à partir du pool </button>
  </form>
  </td>
  <td>
   <form action='?' method='GET'>
    <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
-   <label>
-    <input type="image" name='action' value='media'
-     src='/bweb/zoom.png'>Voir le pool
-   </label>
+    <button type="submit" class="bp" name='action' value='media'>
+     <img src='/bweb/zoom.png' alt=''>Voir le pool </button>
   </form>
  </td>
 </table>
@@ -140,13 +135,15 @@ for (var i=0; ok && i < document.form1.pool.length; ++i) {
       ok=0;
    }
 }
+
 ok=1;
-for (var i=0; ok && i < document.form1.poolrecycle.length; ++i) {
+for (var i=0; ok && i < document.form1.pool.length; ++i) {
    if (document.form1.poolrecycle[i].value == '<TMPL_VAR poolrecycle>') {
       document.form1.poolrecycle[i].selected = true;
       ok=0;
    }
 }
+
 ok=1;
 for (var i=0; ok && i < document.form1.location.length; ++i) {
    if (document.form1.location[i].value == '<TMPL_VAR location>') {

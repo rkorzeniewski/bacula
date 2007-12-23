@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Bweb VERSION\n"
-"PO-Revision-Date: 2007-12-22 19:24+0100\n"
+"PO-Revision-Date: 2007-12-22 19:27+0100\n"
 "Last-Translator: Eric Bollengier <eric@eb.homelinux.org>\n"
 "Language-Team: Eric Bollengier <eric@eb.homelinux.org>\n"
 "MIME-Version: 1.0\n"
@@ -581,12 +581,10 @@ msgid "Show last job"
 msgstr "Mostrar últimos jobs"
 
 #: ../tpl/client_list.tpl:13
-#, fuzzy
 msgid "Last jobs"
 msgstr "Últimos Jobs"
 
 #: ../tpl/client_list.tpl:14 ../tpl/display_client_stats.tpl:17
-#, fuzzy
 msgid "Show current job"
 msgstr "Mostrar job actual"
 
@@ -604,7 +602,6 @@ msgid "Client stats"
 msgstr "Estadísticas del Cliente"
 
 #: ../tpl/client_list.tpl:16
-#, fuzzy
 msgid "Stats"
 msgstr "Estado"
 

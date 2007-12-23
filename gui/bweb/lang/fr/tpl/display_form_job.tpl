@@ -35,7 +35,7 @@
  <td valign='top'>
     <h2>Pool</h2>
     <select name='pool' class='formulaire'>
-      <option id='pool_tout' value=''>Tous</option>
+      <option id='pool_all' value=''>P&eacute;riode</option>
 <TMPL_LOOP db_pools>
       <option id='pool_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
@@ -43,17 +43,48 @@
   </td>
 </tr>
 </TMPL_IF>
+<TMPL_UNLESS hide_since>
 <tr>
   <td valign='top'>
-    <h2>P&eacute;riode</h2>
-    <select name='age' class='formulaire'>
-      <option id='age_86400'   value='86400'>Hier</option>
+    <h2>Hier</h2>
+    <input type='text' id='since' name='since' size='17' title='YYYY-MM-DD'
+     value='<TMPL_VAR since>' class='formulaire'>
+  </td>
+ </tr>
+<tr>
+  <td valign='top'>
+    <h2>Période</h2>
+    <select name='age' class='formulaire' onclick='document.getElementById("since").value="";'>
       <option id='age_604800'   value='604800'>Cette semaine</option>
       <option id='age_2678400'  value='2678400'>30 derniers jours</option>
       <option id='age_15552000' value='15552000'>6 derniers mois</option>
     </select>     
   </td>
  </tr>
+<TMPL_ELSE>
+<tr>
+  <td valign='top'>
+    <h2>Période</h2>
+    <select name='age' class='formulaire'>
+      <option id='age_604800'   value='604800'>Cette semaine</option>
+      <option id='age_2678400'  value='2678400'>30 derniers jours</option>
+      <option id='age_15552000' value='15552000'>Last 6 months</option>
+    </select>     
+  </td>
+ </tr>
+</TMPL_UNLESS>
+<TMPL_IF view_time_slice>
+<tr>
+  <td valign='top'>
+    <h2>Time slice</h2>
+    <select name='type' class='formulaire'>
+      <option id='slice_day'   value='day'>Per days</option>
+      <option id='slice_week'  value='week'>Per weeks</option>
+      <option id='slice_month' value='month'>Per months</option>
+    </select>     
+  </td>
+ </tr>
+</TMPL_IF>
  <tr>
   <td valign='bottom'> 
     <h2>Nombre d'&eacute;l&eacute;ments</h2>
@@ -91,16 +122,28 @@
     <h2>Groupes</h2>
     <select name='client_group' size='10' class='formulaire' multiple>
 <TMPL_LOOP db_client_groups>
-	<option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
+        <option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
     </select>
   </td>
 </tr>
 </TMPL_IF>
+<!--
+<tr>
+  <td valign='top'> 
+    <h2>File Set</h2>
+    <select name='fileset' size='15' class='formulaire' multiple>
+<TMPL_LOOP db_filesets>
+      <option id='client_<TMPL_VAR fileset>'><TMPL_VAR fileset></option>
+</TMPL_LOOP>
+    </select>
+  </td>
+</tr>
+-->
 </table>
-  <input type="image" name='action'
-         value='<TMPL_IF action><TMPL_VAR action><TMPL_ELSE>job</TMPL_IF>'
-         src='/bweb/update.png'>
+  <button type="submit" class="bp" name='action' 
+    value='<TMPL_IF action><TMPL_VAR action><TMPL_ELSE>job</TMPL_IF>'>
+     <img src='/bweb/update.png' alt=''> </button>
 
 </form>
 </div>
@@ -124,6 +167,10 @@
 
   <TMPL_IF age>
      document.getElementById('age_<TMPL_VAR age>').selected=true;
+  </TMPL_IF>
+
+  <TMPL_IF type>
+     document.getElementById('slice_<TMPL_VAR type>').selected=true;
   </TMPL_IF>
 
   <TMPL_IF jobtype>

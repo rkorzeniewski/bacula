@@ -12,16 +12,16 @@ document.getElementById('status_<TMPL_VAR status>').checked = true;
 
 
 
-var header = new Array("IdJob",
+var header = new Array("JobId",
 	               "Cliente",
 	               "Nombre Job", 
 		       "FileSet",
 //                     "Pool",
                        "Nivel",
                        "Inicio",
-	               "Duración",
-                       "Archivos Job",
-                       "Bytes Job", 
+	               "Archivos Job",
+                       "Bytes Job",
+                       "JobBytes", 
                        "Errores",
 	               "Estado");
 

@@ -18,38 +18,21 @@ Robotique : <TMPL_VAR Name> (<TMPL_VAR nb_drive> Lecteurs
      Options
     </div>
     <div class='otherbox'>
-<label>
-<input type="image" name='action' value='label_barcodes'
-        title='Labélisation des médias, (label barcodes)' src='/bweb/label.png'>Labéliser
-</label>
+<button type="submit" class="bp" name='action' value='label_barcodes'
+ title='Labélisation des médias, (label barcodes)'><img src='/bweb/label.png' alt=''>Label</button>
 <TMPL_IF nb_io>
-<label>
-<input type="image" name='action' value='eject'
-        title='Mettre les médias sélectionnés dans le guichet' src='/bweb/extern.png'>
-Ejecter
-</label>
-<label>
-<input type="image" name='action' value='clear_io'
-        title='Vider le guichet' src='/bweb/intern.png'>
-Vider le guichet
-</label>
+<button type="submit" class="bp" name='action' value='eject'
+ title='Mettre les médias sélectionnés dans le guichet'><img src='/bweb/extern.png' alt=''>Externaliser</button>
+<button type="submit" class="bp" name='action' value='clear_io'
+ title='Vider le guichet'> <img src='/bweb/intern.png' alt=''>Vider le guichet</button>
 </TMPL_IF>
-<label>
-<input type="image" name='action' value='update_slots'
-        title='Mettre à jour la base bacula, (update slots)' src='/bweb/update.png'>
-Scanner
-</label>
+<button type="submit" class="bp" name='action' value='update_slots'
+ title='Mettre à jour la base bacula, (update slots)'> <img src='/bweb/update.png' alt=''>Scanner</button>
 <br/><br/>
-<label>
-<input type="image" name='action' value='ach_load'
-	title='Charger un lecteur' src='/bweb/load.png'>
-Mount
-</label>
-<label>
-<input type="image" name='action' value='ach_unload'
-	title='Décharger un lecteur' src='/bweb/unload.png'>
-Umount
-</label>
+<button type="submit" class="bp" name='action' value='ach_load'
+ title='Charger un lecteur'> <img src='/bweb/load.png' alt=''>Mount</button>
+<button type="submit" class="bp" name='action' value='ach_unload'
+ title='Décharger un lecteur'> <img src='/bweb/unload.png' alt=''>Umount</button>
 
    </div>
     <td width='200'/>
@@ -66,8 +49,9 @@ Umount
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Slot réel", "Slot", "Nom de volume","Taille","Statut",
-	               "Type","Pool","Dernière écriture", 
+var header = new Array("Slot réel", "Slot", "Nom de volume",
+		       "Taille","Vol Statut",
+	               "Type","Nom du Pool","Dernière écriture", 
                        "Expiration", "Sélection");
 
 var data = new Array();
@@ -116,7 +100,8 @@ nrsTable.setup(
 }
 );
 
-var header = new Array("Index", "Nom du lecteur", "Nom de volume", "Sélection");
+var header = new Array("Index", "Lecteurs", 
+		       "Nom de volume", "Sélection");
 
 var data = new Array();
 var chkbox;

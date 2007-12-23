@@ -4,9 +4,9 @@
   <h1 class='newstitle'> Media : <TMPL_VAR volumename> <TMPL_VAR comment></h1>
  </div>
  <div class='bodydiv'>
-    <b> Informations </b><br/>
+    <b> Informations</b><br/>
     <table id='id_info_<TMPL_VAR volumename>'></table>
-    <b> Statistiques </b><br/>
+    <b> Statistiques</b><br/>
     <table id='id_media_<TMPL_VAR volumename>'></table>
     <b> Contenu </b></br>
     <table id='id_jobs_<TMPL_VAR volumename>'></table>
@@ -14,13 +14,13 @@
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <input type="image" name='action' value='extern' onclick='return confirm("Voulez vous vraiment éjecter ce média ?");' title='Externaliser' src='/bweb/extern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' onclick='return confirm("Voulez vous vraiment éjecter ce média ?");' title='Externaliser'> <img src='/bweb/extern.png' alt=''>Externaliser</button>
 <TMPL_ELSE>
-      <input type="image" name='action' value='intern' title='Internaliser' src='/bweb/intern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='intern' title='Internaliser'> <img src='/bweb/intern.png' alt=''>Load</button>
 </TMPL_IF>
-      <input type="image" name='action' value='update_media' title='Mettre à jour' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='purge' title='Purger' src='/bweb/purge.png' onclick="return confirm('Vous voulez vraiment purger ce volume ?')">&nbsp;
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='update_media' title='Scanner'><img src='/bweb/edit.png' alt=''>Modifier</button>
+      <button type="submit" class="bp" name='action' value='purge' title='Purger'> <img src='/bweb/purge.png' onclick="return confirm('Voulez vous vraiment purger ce média ?')" alt=''>Purger</button>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
 <TMPL_IF Locationlog>
       <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='Voir les déplacements' src='/bweb/zoom.png'></a>
 </TMPL_IF>
@@ -29,7 +29,7 @@
 </td>
 <td valign='top'style="visibility:hidden;" id='locationlog'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Log sur les déplacements </h1>
+  <h1 class='newstitle'>Log sur les déplacements </h1>
  </div>
  <div class='bodydiv'>
 <pre>
@@ -40,8 +40,8 @@
 </table>
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Pool","En ligne","Enabled","Localisation","Statut", "Taille", "Expiration",
-	               "Rétention","Temps maxi d'utilisation", "Nb de job maxi" );
+var header = new Array("Pool","Online","Active", "Localisation","Vol Statut", "Taille", "Expiration",
+	               "Rétention","Temps maxi d'utilisation", "Nombre de jobs maxi :" );
 
 var data = new Array();
 var img;
@@ -80,7 +80,7 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Nb montages", "Nb recyclages", "Temps de lecture", "Temps d'écriture", "Erreurs");
+var header = new Array( "Nb montages", "Nb de recyclage", "Temps de lecture", "Temp d'écriture", "Erreurs");
 
 var data = new Array();
 data.push( new Array(
@@ -111,7 +111,7 @@ nrsTable.setup(
 
 
 var header = new Array("JobId","Nom","Début","Type",
-	               "Niveau", "Nb Fichiers", "Taille", "Statut");
+	               "Niveau","Fichiers","Taille","Statut");
 
 var data = new Array();
 var a;

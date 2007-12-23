@@ -1,9 +1,10 @@
 <br/>
 <div class='titlediv'>
-  <h1 class='newstitle'><TMPL_UNLESS name>Nouvelle</TMPL_UNLESS> Robotique (Autochanger) </h1>
+  <h1 class='newstitle'><TMPL_UNLESS name>Nouvelle</TMPL_UNLESS> Autochanger </h1>
 </div>
 <div class='bodydiv'>
    Vous devez créer une Location du même nom que votre robotique.<br/><br/>
+
    <form name='form1' action="?" method='get'>
     <table>
      <tr><td>Nom :</td>     
@@ -15,7 +16,7 @@
      </tr>
      <tr><td>Pre-commande :</td> 
          <td> <input class="formulaire" type='text' id='precmd' value='sudo'
-           title='peut être "sudo" ou "ssh storage@storagehost"...' name='precmd'>
+           title='peut être "sudo" ou "ssh storage\@storagehost"...' name='precmd'>
          </td>
      </tr>
      <tr><td>commande mtx :</td> 
@@ -34,14 +35,15 @@
      <td><input class='formulaire' type='checkbox' id='drive_<TMPL_VAR name>'
                 name='drives' value='<TMPL_VAR name>'><TMPL_VAR name>
      </td>
-     <td>index <input type='text' title='drive index' class='formulaire'
+     <td>Index <input type='text' title='drive index' 
+                class='formulaire'
 		id='index_<TMPL_VAR name>' value='' 
                 name='index_<TMPL_VAR name>' size='3'>
      </td>
     </tr>
     </TMPL_LOOP>
     </table>
-    <input type="image" name='action' value='ach_add' src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='ach_add'> <img src='/bweb/save.png' alt=''>Sauver</button>
    </form>
 </div>
 

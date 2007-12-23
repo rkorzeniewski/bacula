@@ -1,12 +1,12 @@
 <br/>
 <div class='titlediv'>
- <h1 class='newstitle'> Actualizar Medio <TMPL_VAR volumename></h1>
+ <h1 class='newstitle'>Update medium <TMPL_VAR volumename></h1>
 </div>
 <div class='bodydiv'>
   <form name='form1' action="?" method='GET'>
    <table>
-    <tr><td>Nombre del Volumen:</td>
-        <td><input type='text' name='media' class='formulaire' value='<TMPL_VAR volumename>' title='Change this to update an other media'>
+    <tr><td>Volume Name:</td>
+        <td><input type='text' name='media' class='formulaire' value='<TMPL_VAR volumename>' title='Change this to update an other volume'>
         </td>
     </tr>
     <tr><td>Pool:</td>
@@ -19,14 +19,14 @@
     </tr>
     <tr><td>Estado:</td>
         <td><select name='volstatus' class='formulaire'>
-           <option value='Append'>Listo</option>
-           <option value='Archive'>Archivado</option>
-           <option value='Disabled'>Desactivado</option>
-           <option value='Cleaning'>Limpieza</option>
+           <option value='Append'>Append</option>
+           <option value='Archive'>Archive</option>
+           <option value='Disabled'>Disabled</option>
+           <option value='Cleaning'>Cleaning</option>
            <option value='Error'>Error</option>
-	   <option value='Full'>Lleno</option>
-           <option value='Read-Only'>Lectura</option>
-           <option value='Used'>Usado</option>
+	   <option value='Full'>Full</option>
+           <option value='Read-Only'>Read-Only</option>
+           <option value='Used'>Used</option>
 	   <option value='Recycle'>Recycle</option>
            </select>
         </td>
@@ -46,7 +46,7 @@
         </td>
     </tr>
 
-    <tr><td>Enabled:</td>
+    <tr><td>Activado :</td>
         <td> <select name='enabled' class='formulaire'>
            <option value='yes'>yes</option>
            <option value='no'>no</option>
@@ -112,22 +112,16 @@
     </table>
 <table>
  <td>
- <label>
-  <input type="image" name='action' value='do_update_media' src='/bweb/apply.png'> Apply
-  </label>
-  <label>
-  <input type="image" name='action' title='Update from pool'
-    value='update_from_pool' src='/bweb/update.png'> Actualizar del Pool
-  </label>
+  <button type="submit" class="bp" name='action' value='do_update_media'> <img src='/bweb/apply.png' alt=''> Apply </button>
+  <button type="submit" class="bp" name='action' title='Actualizar del Pool'
+    value='update_from_pool'> <img src='/bweb/update.png' alt=''> Actualizar del Pool </button>
  </form>
  </td>
  <td>
   <form action='?' method='GET'>
    <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
-   <label>
-    <input type="image" name='action' value='media'
-     src='/bweb/zoom.png'> Ver Pool
-   </label>
+    <button type="submit" class="bp" name='action' value='media'>
+     <img src='/bweb/zoom.png' alt=''>Ver Pool </button>
   </form>
  </td>
 </table>

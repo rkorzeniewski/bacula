@@ -54,12 +54,13 @@
 
    </td></tr><tr><td>Niveau : </td><td>
    <select name='level'>
-     <option id='level_Incremental' value='Incremental'>Incrémentale</option>
+     <option id='level_Incremental' value='Incremental'>Incr&eacute;mentale</option>
      <option id='level_Full' value='Full'>Full</option>
-     <option id='level_Differential' value='Differential'>Différentielle</option>
+     <option id='level_Differential' value='Differential'>Diff&eacute;rentielle</option>
    </select>
+
    </td></tr><tr id='more1' style="visibility:hidden"><td>Date de d&eacute;marrage : </td><td>
-   <input type='text' title='AAAA-MM-JJ HH:MM:SS'
+   <input type='text' title='YYYY-MM-DD HH:MM:SS'
           size='17' name='when' value='<TMPL_VAR when>'>
 
    </td></tr><tr id='more2' style="visibility:hidden"><td>Priorité : </td><td>
@@ -69,19 +70,14 @@
    </td></tr>
    </table>
    <br/>
+
   <label onclick='
            document.getElementById("more1").style.visibility="visible";
            document.getElementById("more2").style.visibility="visible";'>
-  <img title="Affiche plus d'options" src='/bweb/add.png'>Options</label>
-  <label>
-  <label>
-  <input type="image" name='action' value='run_job_now' title='Lancer maintenant'
-   src='/bweb/R.png'>Lancer maintenant
-  </label>
-  <label>
-  <input type="image" name='action' value='fileset_view' title='Voir le FileSet'
-   src='/bweb/zoom.png'>Voir le FileSet
-  </label>
+  <img title="Display more options" src='/bweb/add.png'>Options</label>
+
+  <button type="submit" class="bp" name='action' value='run_job_now' title='Run job'><img src='/bweb/R.png' alt=''>Lancer maintenant</button>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='Voir le fileset associé'><img src='/bweb/zoom.png' alt=''>Voir le fileset associé</button>
   </form>
  </div>
 
@@ -123,7 +119,7 @@
      }
   </TMPL_IF>
   <TMPL_IF level>
-    document.getElementById('level_<TMPL_VAR level>').selected=true;
+     document.getElementById('level_<TMPL_VAR level>').selected=true; 
   </TMPL_IF>
   <TMPL_IF fileset>
      ok=1;

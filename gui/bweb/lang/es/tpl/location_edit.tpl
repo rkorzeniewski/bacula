@@ -15,19 +15,20 @@
          <td> <input class="formulaire" type='text' value='<TMPL_VAR cost>' name='cost' size='3'>
          </td>
      </tr>
-     <tr><td>Activado :</td> 
+    <tr><td>Activado :</td>
         <td> <select name='enabled' class='formulaire'>
            <option value='yes'>yes</option>
            <option value='no'>no</option>
            <option value='archived'>archived</option>
            </select>
         </td>
-     </tr>
+    </tr>
     </table>
-    <input type="image" name='action' value='location_save'
-     src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='location_save'>
+      <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
+
 <script type="text/javascript" language='JavaScript'>
 ok=1;
 for (var i=0; ok && i < document.form1.enabled.length; ++i) {

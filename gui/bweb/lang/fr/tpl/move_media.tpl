@@ -1,22 +1,22 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Déplacer un média</h1>
+  <h1 class='newstitle'>Déplacer des médias</h1>
  </div>
  <div class="bodydiv">
    <form name='form1' action='?' method='get'>
-    <table id='id<TMPL_VAR NAME=ID>'></table>
+    <table id='id<TMPL_VAR ID>'></table>
     <table border='0'>
     <tr><td> Nouvelle localisation : </td><td>
 <select name='newlocation' class='formulaire'>
-    <TMPL_LOOP NAME=db_locations>
-    <option value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
+    <TMPL_LOOP db_locations>
+    <option value='<TMPL_VAR location>'><TMPL_VAR location></option>
     </TMPL_LOOP>
 </select>
-    </td></tr><tr><td> Enabled: </td><td>
+    </td></tr><tr><td> En ligne : </td><td>
 <select name='enabled' class='formulaire'>
     <option value='no'>non</option>
     <option value='yes'>oui</option>
-    <option value='archived'>archive</option>
+    <option value='archived'>archivé</option>
 </select>
     </td><tr><td> Utilisateur : </td><td>
 <input type='text' name='user' value='<TMPL_VAR loginname>' class='formulaire'>
@@ -25,9 +25,7 @@
 <textarea name="comment" class='formulaire'></textarea>
     </td></tr>
     </table>
-    <label>
-    <input type="image" type='submit' name='action' value='change_location' src='/bweb/apply.png'> Déplacer
-    </label>
+    <button type="submit" class="bp" type='submit' name='action' value='change_location'> <img src='/bweb/apply.png' alt=''> Déplacer </button>
    </form>
  </div>
 
@@ -38,16 +36,16 @@ var header = new Array("Nom de volume", "Localisation", "Sélection");
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=media>
+<TMPL_LOOP media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
-chkbox.value = '<TMPL_VAR name=volumename>';
+chkbox.value = '<TMPL_VAR volumename>';
 chkbox.name  = 'media';
 chkbox.checked = 1;
 
 data.push( new Array(
-"<TMPL_VAR NAME=volumename>",
-"<TMPL_VAR NAME=location>",
+"<TMPL_VAR volumename>",
+"<TMPL_VAR location>",
 chkbox
  )
 );
@@ -55,7 +53,7 @@ chkbox
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,
@@ -74,7 +72,6 @@ nrsTable.setup(
  rows_per_page: rows_per_page
 }
 );
-
 <TMPL_IF enabled>
 ok=1;
 for (var i=0; ok && i < document.form1.enabled.length; ++i) {

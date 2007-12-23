@@ -1,16 +1,16 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Mise à jour de la localisation d'un média</h1>
+  <h1 class='newstitle'>Mise à jour de la localisation des médias</h1>
  </div> 
  <div class="bodydiv">
    <form action='?' method='get'>
-    <table id='id<TMPL_VAR NAME=ID>'></table>
+    <table id='id<TMPL_VAR ID>'></table>
     Nouvelle localisation : <select class='formulaire' name='newlocation'>
-   <TMPL_LOOP NAME=db_locations>
-      <option id='loc_<TMPL_VAR NAME=location>' value='<TMPL_VAR NAME=location>'><TMPL_VAR NAME=location></option>
+   <TMPL_LOOP db_locations>
+      <option id='loc_<TMPL_VAR location>' value='<TMPL_VAR location>'><TMPL_VAR location></option>
    </TMPL_LOOP>
   </select>
-  <input type="image" name='action' value='save_location' src='/bweb/apply.png'>
+  <button type="submit" class="bp" name='action' value='save_location'> <img src='/bweb/apply.png' alt=''>Appliquer</button>
    </form>
  </div>
 
@@ -21,7 +21,7 @@ var header = new Array("Nom de volume", "Localisation", "Sélection");
 var data = new Array();
 var chkbox;
 
-<TMPL_LOOP NAME=media>
+<TMPL_LOOP media>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.value = '<TMPL_VAR name=volumename>';
@@ -29,8 +29,8 @@ chkbox.name  = 'media';
 chkbox.checked = 1;
 
 data.push( new Array(
-"<TMPL_VAR NAME=volumename>",
-"<TMPL_VAR NAME=location>",
+"<TMPL_VAR volumename>",
+"<TMPL_VAR location>",
 chkbox
  )
 );
@@ -38,7 +38,7 @@ chkbox
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,

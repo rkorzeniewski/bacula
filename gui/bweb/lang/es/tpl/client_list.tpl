@@ -1,55 +1,50 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'> Clientes</h1>
+  <h1 class='newstitle'>Clientes</h1>
  </div>
  <div class='bodydiv'>
-<form action='?' method='GET'>
-     <table id='id<TMPL_VAR NAME=ID>'></table>
+<form name="client" action='?' method='GET'>
+     <table id='id<TMPL_VAR ID>'></table>
 	<div class="otherboxtitle">
           Acciones &nbsp;
         </div>
         <div class="otherbox">
 <!--        <h1>Acciones</h1> -->	
-       <label>
-       <input type="image" name='action' value='job' title='Mostrar últimos jobs' src='/bweb/zoom.png'>Últimos Jobs</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='dsp_cur_job' title='Mostrar job actual' src='/bweb/zoom.png'>Jobs Actuales</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='client_status' title='Mostrar estado del cliente' src='/bweb/zoom.png'>Estado</label> &nbsp;
-       <label>
-       <input type="image" name='action' value='client_stats' title='Estadísticas del Cliente' src='/bweb/chart.png'>Estadísticas</label> &nbsp;
-       </label>
+       <button type="submit" class="bp" name='action' value='job' title="Mostrar últimos jobs"> <img src='/bweb/zoom.png' alt=''>Last jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
+       <button type="submit" class="bp" name='action' value='client_status' title='Mostrar estado del cliente'> <img src='/bweb/zoom.png' alt=''>Estado </button>
+       <button type="submit" class="bp" name='action' value='client_stats' title='Estadísticas del Cliente'> <img src='/bweb/chart.png' alt=''>Stats </button>
         </div>
 
 </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Nombre", "Selección", "Descripción", "Auto Prune", "Retención Archivos", "Retención Jobs");
+var header = new Array("Nombre", "Select", "Desc", "Auto Prune", "File Retention", "Job Retention");
 
 var data = new Array();
 var chkbox ;
 
-<TMPL_LOOP NAME=Clients>
+<TMPL_LOOP Clients>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'checkbox';
 chkbox.name = 'client';
-chkbox.value = '<TMPL_VAR NAME=Name>';
+chkbox.value = '<TMPL_VAR Name>';
 
 data.push( 
-  new Array( "<TMPL_VAR NAME=Name>", 
+  new Array( "<TMPL_VAR Name>", 
              chkbox,
-	     "<TMPL_VAR NAME=Uname>",
-	     "<TMPL_VAR NAME=AutoPrune>",
-	     human_sec(<TMPL_VAR NAME=FileRetention>),
-	     human_sec(<TMPL_VAR NAME=JobRetention>)
+	     "<TMPL_VAR Uname>",
+	     "<TMPL_VAR AutoPrune>",
+	     human_sec(<TMPL_VAR FileRetention>),
+	     human_sec(<TMPL_VAR JobRetention>)
               )
 ) ; 
 </TMPL_LOOP>
 
 nrsTable.setup(
 {
- table_name:     "id<TMPL_VAR NAME=ID>",
+ table_name:     "id<TMPL_VAR ID>",
  table_header: header,
  table_data: data,
  up_icon: up_icon,

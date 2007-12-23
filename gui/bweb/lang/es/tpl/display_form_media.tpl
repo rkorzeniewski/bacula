@@ -9,7 +9,7 @@
     <h2>Tipo Medio</h2>
     <select name='mediatype' class='formulaire'>
       <option id='mediatype_all' value=''></option>
-<TMPL_LOOP NAME=db_mediatypes>
+<TMPL_LOOP db_mediatypes>
       <option id='mediatype_<TMPL_VAR mediatype>'><TMPL_VAR mediatype></option>
 </TMPL_LOOP>
     </select>     
@@ -20,7 +20,7 @@
     <h2>Ubicación</h2>
     <select name='location' class='formulaire'>
       <option id='location_all>' value=''></option>
-<TMPL_LOOP NAME=db_locations>
+<TMPL_LOOP db_locations>
       <option id='location_<TMPL_VAR location>'><TMPL_VAR location></option>
 </TMPL_LOOP>
     </select>     
@@ -31,11 +31,11 @@
     <h2>Estado</h2>
     <select name='volstatus' class='formulaire'>
       <option id='volstatus_All' value=''></option>
-      <option id='volstatus_Append' value='Append'>Abierta</option>
-      <option id='volstatus_Full'   value='Full'>Llena</option>
+      <option id='volstatus_Append' value='Append'>Append</option>
+      <option id='volstatus_Full'   value='Full'>Full</option>
       <option id='volstatus_Error'  value='Error'>Error</option>
-      <option id='volstatus_Used'   value='Used'>Usada</option>
-      <option id='volstatus_Purged' value='Purged'>Purgada</option>
+      <option id='volstatus_Used'   value='Used'>Used</option>
+      <option id='volstatus_Purged' value='Purged'>Purged</option>
       <option id='volstatus_Recycle' value='Recycle'>Recycle</option>
     </select>     
   </td>
@@ -45,7 +45,7 @@
     <h2>Pool</h2>
     <select name='pool' class='formulaire'>
       <option id='pool_all>' value=''></option>
-<TMPL_LOOP NAME=db_pools>
+<TMPL_LOOP db_pools>
       <option id='pool_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
     </select>     
@@ -66,16 +66,17 @@
 	class='formulaire'>
   </td>
 </tr>
+</tr>
  <tr>
   <td valign='bottom'> 
-    <h2>Number of items</h2>
+    <h2>Número de items</h2>
     <input type='text' name='limit' value='<TMPL_VAR limit>' 
 	class='formulaire' size='4'>
   </td>
 </tr>
 
 </table>
-  <input type="image" name='action' value='media' src='/bweb/update.png'>
+  <button type="submit" class="bp" name='action' value='media'> <img src='/bweb/update.png' alt=''>Actualizar</button>
 
 </form>
 </div>

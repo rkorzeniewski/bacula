@@ -15,6 +15,6 @@
 <TMPL_LOOP E><TMPL_VAR file>
 </TMPL_LOOP></pre>
 
-Tips : Attention ceci est le FileSet courant. Il peut avoir changÃ sur une ancienne sauvegarde.
+Tips : Attention ceci est le FileSet courant. Il peut avoir changé sur une ancienne sauvegarde.
 
  </div>

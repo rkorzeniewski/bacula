@@ -17,17 +17,9 @@
    </td></tr>
    </table>
    <br/>
-   <label>
-   <input type="image" name='action' value='enable_job' title='Activer'
-    src='/bweb/inflag1.png'> Activer
-   </label>
-   <label>
-   <input type="image" name='action' value='disable_job' title='Désactiver'
-    src='/bweb/inflag0.png'> Désactiver
-   </label>
-   <label>
-   <input type="image" name='action' value='run_job_mod' title='Lancer maintenant'
-    src='/bweb/R.png'> Lancer maintenant
-   </label>
+   <button type="submit" class="bp" name='action' value='enable_job' title='Activer'> <img src='/bweb/inflag1.png' alt=''> Activer </button>
+   <button type="submit" class="bp" name='action' value='disable_job' title='Désactiver' > <img src='/bweb/inflag0.png' alt=''> Désactiver </button>
+   <button type="submit" class="bp" name='action' value='next_job2' title='Show schedule' > <img src='/bweb/zoom.png' alt=''> Show schedule  </button>
+   <button type="submit" class="bp" name='action' value='run_job_mod' title='Lancer maintenant' > <img src='/bweb/R.png' alt=''> Lancer maintenant  </button>
   </form>
  </div>

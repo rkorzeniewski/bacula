@@ -5,19 +5,18 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" type='submit' name='action' value='media' title='Afficher le contenu' src='/bweb/zoom.png'>
+    <button type="submit" class="bp" type='submit' name='action' value='media' title='Afficher le contenu'> <img src='/bweb/zoom.png' alt=''>Voir</button>
     <input id="mediatype" type='hidden' name='mediatype' value=''>
    </form>
    <br/>
-   Tips : Pour modifier les options d'un pool, vous devez éditer la configuration bacula et
-   la recharger (reload). Après vous devez lancer "update pool=mypool" sur la bconsole.
+   Tips : Pour modifier les options d'un pool, vous devez éditer la configuration bacula et la recharger (reload). Après vous devez lancer "update pool=mypool" sur la bconsole.
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nom","Type","Recyclage","Rétention","Durée d'utilisation",
-//	               "Nb job maxi par média","Nb fichier maxi par média","Taille maxi d'un média",
-	               "Nb volumes", "Statut", "Utilisation", "Sélection");
+var header = new Array("Nom","Type", "Recyclé","Rétention","Durée d'utilisation :",
+                       "Nb job maxi par média","Nb job maxi par média", 
+                       "Nb volumes","Nb médias", "Vol Statut", "Utilisation", "Sélection");
 
 var data = new Array();
 var chkbox;
@@ -53,9 +52,9 @@ data.push( new Array(
 "<TMPL_VAR Recycle>",
 human_sec(<TMPL_VAR VolRetention>),
 human_sec(<TMPL_VAR VolUseDuration>),
-//"<TMPL_VAR MaxVolJobs>",
-//"<TMPL_VAR MaxVolFiles>",
-//human_size(<TMPL_VAR MaxVolBytes>),
+"<TMPL_VAR MaxVolJobs>",
+"<TMPL_VAR MaxVolFiles>",
+human_size(<TMPL_VAR MaxVolBytes>),
 "<TMPL_VAR VolNum>",
 img,
 img2,

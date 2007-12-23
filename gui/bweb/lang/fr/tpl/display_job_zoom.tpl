@@ -4,86 +4,77 @@
  <div class="bodydiv">
  <table id='id0'></table>
  <table><td>
- <form action='bweb.pl?'>
+ <form name="delete" action='bweb.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
-  <label>
-  <input type="image" name='action' value='delete' title='Supprimer ce job'
- onclick="return confirm('Voulez vous vraiment supprimer ce job du catalogue ?');"
-   src='/bweb/purge.png'> Purger
-  </label>
+  <button type="submit" name='action' class="bp" value='delete' title='Supprimer ce job'
+ onclick="return confirm('Voulez vous vraiment supprimer ce job du catalogue ?');">
+   <img src='/bweb/purge.png' alt=''>Supprimer</button>
  </form>
  </td><td>
- <form action='bweb.pl?'>
+ <form name="media" action='bweb.pl?'>
   <TMPL_LOOP volumes>
    <input type='hidden' name='media' value='<TMPL_VAR VolumeName>'>
   </TMPL_LOOP>   
-  <label>
-  <input type="image" name='action' value='media' title='Voir les médias associés' 
-   src='/bweb/zoom.png'>Voir les médias
-  </label>
+  <button type="submit" name='action' value='media' title='Voir les médias' class="bp">
+   <img src='/bweb/zoom.png'alt=''>Voir les médias</button>
  </form>
  </td>
  <td>
- <form action='bweb.pl?'>
+ <form name="job" action='bweb.pl?'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
-  <label>
-  <input type="image" name='action' value='job' title='Voir les jobs de <TMPL_VAR Client>' src='/bweb/zoom.png'>Voir les jobs
-  </label>
+  <button type="submit" class="bp" name='action' value='job' title='voir <TMPL_VAR Client> jobs'><img src='/bweb/zoom.png'>Voir les jobs</button>
  </form>
  </td>
  <td>
- <form action='bweb.pl?'>
+ <form name="graph" action='bweb.pl?'>
   <input type='hidden' name='age' value='2678400'>
   <input type='hidden' name='client' value='<TMPL_VAR Client>'>
   <input type='hidden' name='jobname' value='<TMPL_VAR jobname>'>
-  <label>
-  <input type="image" name='action' value='graph' title='Voir les tendances'
-   src='/bweb/chart.png'> Voir les stats
-  </label>
+  <button type="submit" class="bp" name='action' value='graph' title='Voir les tendances'>
+   <img src='/bweb/chart.png' alt=''> Voir les stats </button>
  </form>
  </td>
  <td>
- <form action='bweb.pl?'>
+ <form name="fileset_view" action='bweb.pl?'>
   <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
-  <label>
-  <input type="image" name='action' value='fileset_view' title='Voir le fileset associé'
-   src='/bweb/zoom.png'> Voir le FileSet
-  </label>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='Voir le fileset associé'> 
+ <img src='/bweb/zoom.png' alt=''>Voir le fileset associé</button>
  </form>
  </td>
-<!-- Enlever ce commentaire pour activer le bfileview
+<!-- Remove this to activate bfileview 
  <td>
- <form action='bfileview.pl?'>
+ <form name="bfileview" action='bfileview.pl?'>
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <input type='hidden' name='where' value='/'>
-  <label>
-  <input type="image" name='action' value='bfileview' 
-   title="Voir la répartition des fichiers"
-   onclick='if (<TMPL_VAR JobFiles> > 5000) { return confirm("Ce traitement peut prendre beaucoup de temps, voulez vous continuer ?")} else { return 1;}'
-   src='/bweb/colorscm.png'> Voir la répartition des fichiers
-  </label>
+  <button type="submit" class="bp" name='action' value='bfileview' 
+   title='Répartition des fichiers' 
+   onclick='if (<TMPL_VAR JobFiles> > 50000) { return confirm("Ce traitement peut prendre beaucoup de temps, voulez vous continuer ?")} else { return 1; }'>
+   <img src='/bweb/colorscm.png' alt=''> Répartition des fichiers </button>
  </form>
  </td>
 -->
+<TMPL_IF wiki_url>
+  <td>
+   <a href="<TMPL_VAR wiki_url><TMPL_VAR Client>" title='Documentation'><img src='/bweb/doc.png' alt='Documentation'></a>Documentation
+ </td>
+</TMPL_IF>
  <td>
- <form action='bweb.pl?' onsubmit="document.getElementById('rerun_level').value=joblevelname['<TMPL_VAR NAME=Level>']">
+ <form name="rerun" action='bweb.pl?' onsubmit="document.getElementById('rerun_level').value=joblevelname['<TMPL_VAR NAME=Level>']">
   <input type='hidden' name='storage' value='<TMPL_VAR storage>'>
   <input type='hidden' name='fileset' value='<TMPL_VAR fileset>'>
   <input type='hidden' name='pool' value='<TMPL_VAR poolname>'>
   <input type='hidden' name='client' value='<TMPL_VAR client>'>
   <input type='hidden' id="rerun_level" name='level'>
   <input type='hidden' name='job' value='<TMPL_VAR jobname>'>
-  <label>
-  <input type="image" name='action' value='run_job_mod' title='Relancer ce job'
-   src='/bweb/R.png'> Relancer ce job
-  </label>
+  <button type="submit" class="bp" name='action' value='run_job_mod' title='Relancer ce job'>
+   <img src='/bweb/R.png'> Lancer ce job </button>
  </form>
  </td>
 <TMPL_IF joberrors>
  <td>
     <a href="<TMPL_VAR thisurl>;error=1"
-         title="Voir seulement les erreurs">
-    <img src='/bweb/doc.png' alt="Voir les erreurs"></a> Voir les erreurs
+         title="Voir les erreurs">
+    <img src='/bweb/doc.png' alt="View errors"></a> Voir les erreurs
   </td>
 </TMPL_IF>
  </table>
@@ -101,7 +92,7 @@ var header = new Array("JobId",
                        "Taille",
                        "Erreurs",
 	               "Pool",
-                       "Volumes utilisés",
+                       "Nom de volume",
 	               "Statut");
 
 var data = new Array();

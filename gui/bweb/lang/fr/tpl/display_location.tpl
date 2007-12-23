@@ -1,22 +1,21 @@
 <br/>
  <div class='titlediv'>
-  <h1 class='newstitle'>Localisation</h1>
+  <h1 class='newstitle'>Localisations</h1>
  </div>
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" name='action' value='location_add' title='Ajouter' src='/bweb/add.png'>&nbsp;
-    <input type="image" name='action' value='location_del' title='Supprimer' src='/bweb/remove.png'>&nbsp;
-    <input type="image" name='action' value='location_edit' title='Modifier' src='/bweb/edit.png'>&nbsp;
+    <button type="submit" class="bp" name='action' value='location_add' title='Add a location'> <img src='/bweb/add.png' alt=''>Ajouter</button>
+    <button type="submit" class="bp" name='action' value='location_del' onclick='confirm("Voulez vous supprimer cette localisation ?")' title='Remove a location'> <img src='/bweb/remove.png' alt=''>Supprimer</button>
+    <button type="submit" class="bp" name='action' value='location_edit' title='Modifier'> <img src='/bweb/edit.png' alt=''>Modifier</button>
 
-    <input type="image" name='action' value='media' title='Voir les médias'
-     src='/bweb/zoom.png'>
+    <button type="submit" class="bp" name='action' value='media' title='Voir le contenu'> <img src='/bweb/zoom.png' alt=''>Voir le contenu</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nom","Enabled", "Coût", "Nb de volumes", "Sélection");
+var header = new Array("Nom","Active", "Coût", "Nb médias", "Sélection");
 
 var data = new Array();
 var chkbox;

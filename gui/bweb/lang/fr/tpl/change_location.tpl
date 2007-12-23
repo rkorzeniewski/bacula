@@ -11,30 +11,27 @@
 <tr>
 <td><b>To: </b></td><td><input class='formulaire' name='email' value='<TMPL_VAR email>'></td>
 </tr><tr>
-<td><b>Subject: </b></td><td><input class='formulaire' name='subject' value='[BACULA] Deplacement des medias vers <TMPL_VAR newlocation>' size='80'></td>
+<td><b>Subject: </b></td><td><input class='formulaire' name='subject' value='__[BACULA] Move media to__ <TMPL_VAR newlocation>' size='80'></td>
 </tr><tr>
 <td></td>
 <td>
 <textarea name='content' class='formulaire' cols='80' rows='32'>
-Bonjour,
+Hi,
 
-Pouvez vous déplacer ces médias vers <TMPL_VAR newlocation> ?
-Média :
+Could you move these media to <TMPL_VAR newlocation>
+Media :
 <TMPL_LOOP media>
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-Quand cela sera terminé, pouvez vous cliquer sur le lien ci-dessous pour mettre à jour la localisation ?
-(Vous pouvez utiliser ce lien : 
-<TMPL_VAR url>
-).
+When it's finish, could you update media location?
+(you can use this link: <TMPL_VAR url>).
 
-Merci
+Thanks
 </textarea>
 </td></tr></table>
-<input type="hidden" name='action' value='move_email'>
-<input class='formulaire' type='submit' name='bp' value='Envoyer'>
+<input class='formulaire' type='submit' name='action' value='move_email'>
 </form>
 <br>
-<a href="<TMPL_VAR url>"><img alt='update now' src='/bweb/update.png'>Mettre à jour maintenant</a>
+<a href="<TMPL_VAR url>"><img alt='Mettre à jour maintenant' src='/bweb/update.png'>Mettre à jour maintenant</a>
 </div>

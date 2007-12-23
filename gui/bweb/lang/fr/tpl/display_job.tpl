@@ -1,5 +1,5 @@
  <div class='titlediv'>
-  <h1 class='newstitle'> Historique des Jobs (<TMPL_VAR Filter>)</h1>
+  <h1 class='newstitle'> Historique (<TMPL_VAR Filter>)</h1>
  </div>
  <div class='bodydiv'>
     <table id='id<TMPL_VAR ID>'></table>
@@ -20,7 +20,7 @@ var header = new Array("JobId",
                        "Niveau",
                        "Début",
 	               "Durée",
-                       "Nb Fichier",
+                       "Fichiers",
                        "Taille", 
                        "Erreurs",
 	               "Statut");

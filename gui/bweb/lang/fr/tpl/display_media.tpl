@@ -20,22 +20,22 @@ Localisation : <TMPL_VAR location>
 
    <form action='?action=test' method='get'>
     <table id='id_pool_<TMPL_VAR ID>'></table>
-      <input type="image" name='action' value='extern' title='Externaliser' src='/bweb/extern.png' onclick='return confirm("Voulez vous vraiment éjecter les médias sélectionnés ?");'>&nbsp;
-      <input type="image" name='action' value='intern' title='Internaliser' src='/bweb/intern.png'>&nbsp;
-      <input type="image" name='action' value='update_media' title='Mettre à jour' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='media_zoom' title='Informations' src='/bweb/zoom.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' title='Externaliser'> <img src='/bweb/extern.png' onclick='return confirm("Voulez vous vraiment éjecter ces médias ?");' alt=''>Externaliser</button>
+      <button type="submit" class="bp" name='action' value='intern' title='Internaliser'> <img src='/bweb/intern.png' alt=''>Load</button>
+      <button type="submit" class="bp" name='action' value='update_media' title='Modifier le media'> <img src='/bweb/edit.png' alt=''>Modifier</button>
+      <button type="submit" class="bp" name='action' value='media_zoom' title='Informations'> <img src='/bweb/zoom.png' alt=''>Voir</button>
 <!--
-      <input type="image" name='action' value='purge' title='Purger' src='/bweb/purge.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='purge' title='Purger'> <img src='/bweb/purge.png' alt=''>Purger</button>
 -->
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
    </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nom du volume","En ligne","Taille", "Utilisation", "Statut",
-		       "Pool", "Type",
-		       "Dernière écriture", "Expiration", "Sélection");
+var header = new Array("Nom de volume","Online","Taille", "Utilisation du volume", "Vol Statut",
+                       "Pool", "Type",
+                       "Dernière écriture", "Expiration", "Sélection");
 
 var data = new Array();
 var img;

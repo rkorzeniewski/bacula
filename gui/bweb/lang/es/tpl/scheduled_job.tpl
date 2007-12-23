@@ -3,16 +3,15 @@
   <h1 class='newstitle'> <TMPL_IF title><TMPL_VAR title><TMPL_ELSE>Próximos Jobs </TMPL_IF></h1>
  </div>
  <div class='bodydiv'>
-    <form action='<TMPL_VAR cginame>?' method='GET'>
+    <form name='form1' action='<TMPL_VAR cginame>?' method='GET'>
      <table id='id<TMPL_VAR ID>'></table>
-     <label>
-     <input type="image" name='action' value='run_job_mod'
-      src='/bweb/R.png' title='Ejecutar Ahora'>  Ejecutar Ahora
-     </label>
-     <label>
-      <input type="image" name='action' value='disable_job'
-       src='/bweb/inflag0.png' title='Desactivar'> Desactivar
-      </label>
+     <button type="submit" class="bp" name='action' title='Ejecutar Ahora' value='run_job_mod'>
+       <img src='/bweb/R.png' alt=''>  Ejecutar Ahora </button>
+      <button type="submit" class="bp" name='action' title='Desactivar' value='disable_job'>
+       <img src='/bweb/inflag0.png' alt=''> Desactivar </button>
+     <input type='hidden' name='pool' value=''>
+     <input type='hidden' name='level' value=''>
+     <input type='hidden' name='media' value=''>
     </form>
  </div>
 
@@ -24,7 +23,7 @@ var header = new Array("Programado",
 	               "Prioridad", 
                        "Nombre",
                        "Volumen",
-	               "Selección");
+	               "Select");
 
 var data = new Array();
 var chkbox;
@@ -34,6 +33,11 @@ chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
 chkbox.name = 'job';
 chkbox.value = '<TMPL_VAR name>';
+chkbox.onclick = function() { 
+ document.form1.level.value = '<TMPL_VAR level>';
+ document.form1.pool.value = '<TMPL_VAR pool>';
+ document.form1.media.value = '<TMPL_VAR volume>';
+} ;
 
 data.push( new Array(
 "<TMPL_VAR date>",    

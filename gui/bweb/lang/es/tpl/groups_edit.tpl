@@ -11,7 +11,7 @@
           <input class="formulaire" type='text' value=<TMPL_VAR client_group> size='15' name='newgroup'> 
          </td>
      </tr>
-     <tr><td>Clients :</td> 
+     <tr><td>Clients:</td> 
          <td>
             <select name='client' size='15' class='formulaire' multiple>
             <TMPL_LOOP db_clients>
@@ -21,8 +21,8 @@
          </td>
      </tr>
     </table>
-    <input type="image" name='action' value='groups_save'
-     src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='groups_save'>
+     <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
 

@@ -3,8 +3,7 @@
   <h1 class='newstitle'> Ayuda para cargar medios (part 1/2)</h1>
 </div>
 <div class="bodydiv">
-Se seleccionará el mejor candidato para cargar. Se le pedirá
-realizar su selección en la próxima pantalla.
+Se seleccionará el mejor candidato para cargar. Se le pedirá realizar su selección en la próxima pantalla.
   <form action="?" method='GET'>
    <table>
     <tr><td>Pool:</td>      
@@ -38,13 +37,12 @@ realizar su selección en la próxima pantalla.
                 checked> </td>
     </tr>
     <tr>
-        <td>Número de medio <br/> a cargar:</td> 
+        <td>Number of media <br/> to load:</td> 
         <td> <input type='text' name='limit' class='formulaire' 
                 size='3' value='10'> </td>
     </tr>
     <tr>
-        <td><input type="image" name='action' value='compute_intern_media' 
-                title='Siguiente' src='/bweb/next.png'>
+        <td><button type="submit" class="bp" name='action' value='compute_intern_media' title='Siguiente'> <img src='/bweb/next.png' alt=''>Siguiente</button>
         </td><td/>
     </tr>
    </table>

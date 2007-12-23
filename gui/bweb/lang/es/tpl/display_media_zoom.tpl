@@ -10,17 +10,17 @@
     <table id='id_media_<TMPL_VAR volumename>'></table>
     <b> Job List </b></br>
     <table id='id_jobs_<TMPL_VAR volumename>'></table>
-    <b> Actions </b></br>
+    <b> Acciones </b></br>
    <form action='?' method='get'>
       <input type='hidden' name='media' value='<TMPL_VAR volumename>'>
 <TMPL_IF online>&nbsp;
-      <input type="image" name='action' value='extern' onclick='return confirm("Do you want to eject this medium ?");' title='move out' src='/bweb/extern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='extern' onclick='return confirm("Do you want to eject this volume ?");' title='move out'> <img src='/bweb/extern.png' alt=''>Eject</button>
 <TMPL_ELSE>
-      <input type="image" name='action' value='intern' title='move in' src='/bweb/intern.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='intern' title='move in'> <img src='/bweb/intern.png' alt=''>Load</button>
 </TMPL_IF>
-      <input type="image" name='action' value='update_media' title='Update' src='/bweb/edit.png'>&nbsp;
-      <input type="image" name='action' value='purge' title='Purge' src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume ?')">&nbsp;
-      <input type="image" name='action' value='prune' title='Prune' src='/bweb/prune.png'>&nbsp;
+      <button type="submit" class="bp" name='action' value='update_media' title='Actualizar'><img src='/bweb/edit.png' alt=''>Editar</button>
+      <button type="submit" class="bp" name='action' value='purge' title='Purge'> <img src='/bweb/purge.png' onclick="return confirm('Do you want to purge this volume?')" alt=''>Purge</button>
+      <button type="submit" class="bp" name='action' value='prune' title='Prune'> <img src='/bweb/prune.png' alt=''>Prune</button>
 <TMPL_IF Locationlog>
       <a href='#' onclick='document.getElementById("locationlog").style.visibility="visible";'><img title='View location log' src='/bweb/zoom.png'></a>
 </TMPL_IF>
@@ -29,7 +29,7 @@
 </td>
 <td valign='top'style="visibility:hidden;" id='locationlog'>
  <div class='titlediv'>
-  <h1 class='newstitle'> Location log </h1>
+  <h1 class='newstitle'>Location log </h1>
  </div>
  <div class='bodydiv'>
 <pre>
@@ -40,7 +40,7 @@
 </table>
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Pool","Online","Enabled","Location","Vol Status", "Vol Bytes", "Expire",
+var header = new Array("Pool","Online","Enabled", "Ubicación","Vol Status", "Bytes Vol", "Expire",
 	               "Retention","Max use duration", "Max jobs" );
 
 var data = new Array();
@@ -80,7 +80,7 @@ nrsTable.setup(
 }
 );
 
-var header = new Array( "Vol Mounts", "Recycle count", "Read time", "Write time", "Errors");
+var header = new Array( "Vol Mounts", "Recycle count", "Read time", "Write time", "Errores");
 
 var data = new Array();
 data.push( new Array(
@@ -110,8 +110,8 @@ nrsTable.setup(
 );
 
 
-var header = new Array("IdJob","Nombre","Inicio","Tipo",
-	               "Nivel", "Archivos", "Bytes", "Estado");
+var header = new Array("JobId","Nombre","Start Time","Tipo",
+	               "Nivel","Files","Bytes","Estado");
 
 var data = new Array();
 var a;

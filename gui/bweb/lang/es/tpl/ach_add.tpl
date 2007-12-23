@@ -16,7 +16,7 @@
      </tr>
      <tr><td>Pre-comando :</td> 
          <td> <input class="formulaire" type='text' id='precmd' value='sudo'
-           title='can be "sudo" or "ssh storage@storagehost"...' name='precmd'>
+           title='can be "sudo" or "ssh storage\@storagehost"...' name='precmd'>
          </td>
      </tr>
      <tr><td>Comando mtx :</td> 
@@ -35,14 +35,15 @@
      <td><input class='formulaire' type='checkbox' id='drive_<TMPL_VAR name>'
                 name='drives' value='<TMPL_VAR name>'><TMPL_VAR name>
      </td>
-     <td>index <input type='text' title='drive index' class='formulaire'
+     <td>index <input type='text' title='drive index' 
+                class='formulaire'
 		id='index_<TMPL_VAR name>' value='' 
                 name='index_<TMPL_VAR name>' size='3'>
      </td>
     </tr>
     </TMPL_LOOP>
     </table>
-    <input type="image" name='action' value='ach_add' src='/bweb/save.png'>
+    <button type="submit" class="bp" name='action' value='ach_add'> <img src='/bweb/save.png' alt=''>Save</button>
    </form>
 </div>
 

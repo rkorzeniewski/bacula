@@ -18,7 +18,7 @@ var header = new Array("Groupe",
                        "Nb Err",
 	               "Nb Fichiers", 
 		       "Taille",
-		       "Duree",
+		       "Durée",
                        "Erreurs",
 	               "Statut");
 

@@ -17,10 +17,10 @@ var header = new Array("Group",
 	               "Nb Ok",
                        "Nb Err",
 	               "Nb Files", 
-		       "Size",
-		       "Duration",
-                       "Errors",
-	               "Status");
+		       "Tamaño",
+		       "Archivos Job",
+                       "Errores",
+	               "Estado");
 
 var data = new Array();
 var age = <TMPL_VAR age>;

@@ -23,13 +23,14 @@ if (navigator.appName == 'Konqueror') {
  <li><a href="bweb.pl?action=client">Clientes</a>
      <ul>
        <li><a href="bweb.pl?action=client">Clientes</a> </li>
-       <li><a href="bweb.pl?action=groups">Groups</a> </li>
+       <li><a href="bweb.pl?action=groups">Groupes</a> </li>
      </ul>
  </li>
- <li><a href="bweb.pl?action=run_job">Jobs</a>
+ <li style="padding: 0.25em 2em;">Jobs
    <ul> 
      <li><a href="bweb.pl?action=run_job">Jobs Definidos</a>
      <li><a href="bweb.pl?action=job_group">Jobs by group</a>
+     <li><a href="bweb.pl?action=overview">Jobs overview</a>
      <li><a href="bweb.pl?action=job">Últimos Jobs</a> </li>
      <li><a href="bweb.pl?action=running">Jobs en Ejecución</a>
      <li><a href="bweb.pl?action=next_job">Próximos Jobs</a> </li>
@@ -41,12 +42,13 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="bweb.pl?action=pool">Pools</a> </li>
      <li><a href="bweb.pl?action=location">Ubicaciones</a> </li>
      <li><a href="bweb.pl?action=media">Todos los Medios</a><hr></li>
+     <li><a href="bweb.pl?action=add_media">Add Media</a><hr></li>
      <li><a href="bweb.pl?action=extern_media">Expulsar Medio</a> </li>
      <li><a href="bweb.pl?action=intern_media">Cargar Medio</a> </li>
   </ul>
  </li>
 <TMPL_IF achs>
- <li style="padding: 0.25em 2em;">Libreria
+ <li style="padding: 0.25em 2em;">Autochanger
   <ul>
 <TMPL_LOOP achs>
    <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
@@ -57,21 +59,21 @@ if (navigator.appName == 'Konqueror') {
  <li><a href="bweb.pl?action=graph"> Estadísticas </a></li>
  <li> <a href="bweb.pl?action=view_conf"> Configuración </a> 
 <TMPL_IF enable_security>
-  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuration </a> 
+  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuración </a> 
        <li> <a href="bweb.pl?action=users"> Manage users </a>
   </ul>
 </TMPL_IF>
 </li>
  <li> <a href="bweb.pl?action=about"> Acerca </a> </li>
- <li style="padding: 0.25em 2em;float: right;">&nbsp;Usuario  <TMPL_VAR NAME=loginname> </li>
+ <li style="padding: 0.25em 2em;float: right;">&nbsp;Usuario <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
-<input type="image" class="button" title="buscar medio" onclick="search_media();" src="/bweb/tape.png"><input type="image" title="buscar cliente" onclick="search_client();" src="/bweb/client.png">&nbsp;<input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value="buscar..." onclick="this.value='';" title="buscar por medio o cliente"></li>
+<button type="submit" class="bp" class="button" title="Search media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Search client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Search media or client"></li> </button>
 </ul>
 
 <form name="search" action="bweb.pl?" method='GET'>
- <input type="hidden" name="action" value="">
- <input type="hidden" name="re_media" value="">
- <input type="hidden" name="re_client" value="">
+ <input type="hidden" name="action" value=''>
+ <input type="hidden" name="re_media" value=''>
+ <input type="hidden" name="re_client" value=''>
 </form>
 
 <div style="clear: left;">

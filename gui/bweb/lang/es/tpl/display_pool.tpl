@@ -5,19 +5,18 @@
  <div class="bodydiv">
    <form action='?' method='get'>
     <table id='id<TMPL_VAR ID>'></table>
-    <input type="image" type='submit' name='action' value='media' title='Mostrar contenido' src='/bweb/zoom.png'>
-    <input id="mediatype" type='hidden' name='mediatype' value="">
+    <button type="submit" class="bp" type='submit' name='action' value='media' title='Mostrar contenido'> <img src='/bweb/zoom.png' alt=''>Ver</button>
+    <input id="mediatype" type='hidden' name='mediatype' value=''>
    </form>
    <br/>
-   Nota: Para modificar las propiedades de un pool, se debe editar la configuración de Bacula
-   y aplicar el comando "reload", Luego se debe ejecutar "update pool=mypool" con la bconsole.
+   Tips: To modify pool properties, you have to edit your Bacula configuration and reload it. After, you have to run "update pool=mypool" with bconsole.
  </div>
 
 <script type="text/javascript" language="JavaScript">
 
-var header = new Array("Nombre","Media Type","Reciclado","Retención","Use Duration",
-                       "Máx Jobs/Volumen","Máx Archivos/Volumen", 
-                       "Máx Tamaño/Volumen","Nb volumes", "Estado Volumen", "Uso", "Selección");
+var header = new Array("Nombre","Tipo Medio", "Recycle","Retention","Use Duration",
+                       "Max jobs per volume","Max files per volume", 
+                       "Max volume size","Nb volumes", "Vol Status", "Usage", "Select");
 
 var data = new Array();
 var chkbox;
@@ -27,15 +26,15 @@ var img2;
 <TMPL_LOOP Pools>
 
 img = percent_display([
-<TMPL_IF nb_recycle>{ name: "Reciclado", nb: <TMPL_VAR nb_recycle> },</TMPL_IF>
-<TMPL_IF nb_purged> { name: "Purgado", nb: <TMPL_VAR nb_purged> },</TMPL_IF>
-<TMPL_IF nb_append> { name: "Abierto", nb: <TMPL_VAR nb_append> },</TMPL_IF>
-<TMPL_IF nb_full>   { name: "Lleno", nb: <TMPL_VAR nb_full> },    </TMPL_IF>
-<TMPL_IF nb_disabled>   { name: "Disactivado", nb: <TMPL_VAR nb_disabled> },    </TMPL_IF>
+<TMPL_IF nb_recycle>{ name: "Recycle", nb: <TMPL_VAR nb_recycle> },</TMPL_IF>
+<TMPL_IF nb_purged> { name: "Purged", nb: <TMPL_VAR nb_purged> },</TMPL_IF>
+<TMPL_IF nb_append> { name: "Append", nb: <TMPL_VAR nb_append> },</TMPL_IF>
+<TMPL_IF nb_full>   { name: "Full", nb: <TMPL_VAR nb_full> },    </TMPL_IF>
+<TMPL_IF nb_disabled>   { name: "Disabled", nb: <TMPL_VAR nb_disabled> },    </TMPL_IF>
 <TMPL_IF nb_error>  { name: "Error", nb: <TMPL_VAR nb_error> },  </TMPL_IF>
-<TMPL_IF nb_archive>{ name: "Archivado", nb: <TMPL_VAR nb_archive> },</TMPL_IF>
-<TMPL_IF nb_used>   { name: "Usado", nb: <TMPL_VAR nb_used> },    </TMPL_IF>
-<TMPL_IF NAME='nb_read-only'> { name: "Lectura", nb: <TMPL_VAR NAME='nb_read-only'> }, </TMPL_IF>
+<TMPL_IF nb_archive>{ name: "Archive", nb: <TMPL_VAR nb_archive> },</TMPL_IF>
+<TMPL_IF nb_used>   { name: "Used", nb: <TMPL_VAR nb_used> },    </TMPL_IF>
+<TMPL_IF NAME='nb_read-only'> { name: "Read-Only", nb: <TMPL_VAR NAME='nb_read-only'> }, </TMPL_IF>
 {}
 ]);
 

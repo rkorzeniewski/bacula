@@ -6,7 +6,7 @@
   <form name='form1' action='?' method='GET'>  
   <table border='0'>
 
-   <tr><td>Nombre del Job: </td><td>
+   <tr><td>Nombre Job: </td><td>
    <select name='job'>
     <TMPL_LOOP jobs>
      <option value='<TMPL_VAR name>'>
@@ -24,7 +24,7 @@
      </option>
     </TMPL_LOOP>
    </select>
-   </td></tr><tr><td>Cliente: </td><td>
+   </td></tr><tr><td>Cliente : </td><td>
 
    <select name='client'>
     <TMPL_LOOP clients>
@@ -43,7 +43,7 @@
     </TMPL_LOOP>
    </select>
 
-   </td></tr><tr><td>Almacenamiento: </td><td>
+   </td></tr><tr><td>Almacenamiento : </td><td>
    <select name='storage'>
     <TMPL_LOOP storages>
      <option value='<TMPL_VAR name>'>
@@ -70,18 +70,14 @@
    </td></tr>
    </table>
    <br/>
+
   <label onclick='
            document.getElementById("more1").style.visibility="visible";
            document.getElementById("more2").style.visibility="visible";'>
-  <img title='Muestra más opciones' src='/bweb/add.png'>Más opciones</label>
-  <label>
-  <input type="image" name='action' value='run_job_now' title='Ejecutar job'
-   src='/bweb/R.png'>Ejecutar Ahora
-  </label>
-  <label>
-  <input type="image" name='action' value='fileset_view' title='Ver FileSet'
-   src='/bweb/zoom.png'>Ver FileSet
-  </label>
+  <img title="Display more options" src='/bweb/add.png'>More options</label>
+
+  <button type="submit" class="bp" name='action' value='run_job_now' title='Ejecutar job'><img src='/bweb/R.png' alt=''>Ejecutar Ahora</button>
+  <button type="submit" class="bp" name='action' value='fileset_view' title='Ver FileSet'><img src='/bweb/zoom.png' alt=''>Ver FileSet</button>
   </form>
  </div>
 
@@ -123,7 +119,7 @@
      }
   </TMPL_IF>
   <TMPL_IF level>
-     document.getElementById('level_<TMPL_VAR level>').selected=true;
+     document.getElementById('level_<TMPL_VAR level>').selected=true; 
   </TMPL_IF>
   <TMPL_IF fileset>
      ok=1;

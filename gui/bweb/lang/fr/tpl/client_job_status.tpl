@@ -1,7 +1,7 @@
 <br/>
  <div class='titlediv'>
   <h1 class='newstitle'> 
-	Job <TMPL_VAR JobName> en cours sur <TMPL_VAR Client>
+	Job <TMPL_VAR JobName> sur <TMPL_VAR Client>
   </h1>
  </div>
  <div class='bodydiv'>
@@ -24,16 +24,17 @@
  </tr>
 </table>
 <form name='form1' action='?' method='GET'>
-<input type="image" name='action' value='dsp_cur_job' 
- src='/bweb/update.png' title='refresh'>&nbsp;
+<button type="submit" class="bp" name='action' value='dsp_cur_job' 
+> <img src='/bweb/update.png' title='Rafraîchir' alt=''>Rafraîchir</button>
 <input type='hidden' name='client' value='<TMPL_VAR Client>'>
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
-<input type="image" name='action' value='cancel_job'
+<button type="submit" class="bp" name='action' value='cancel_job'
        onclick="return confirm('Vous voulez annuler ce job ?')"
-        title='Annuler ce job' src='/bweb/cancel.png'>&nbsp;
+        title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annul&eacute;</button>
 </form>
  </div>
 
 <script type="text/javascript" language="JavaScript">
   bweb_add_refresh();
 </script>
+
