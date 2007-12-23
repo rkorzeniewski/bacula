@@ -16,18 +16,18 @@
 <td></td>
 <td>
 <textarea name='content' class='formulaire' cols='80' rows='32'>
-Hi,
+Bonjour,
 
-Could you move these media to <TMPL_VAR newlocation>
+Pouvez vous déplacer ces médias vers <TMPL_VAR newlocation>
 Media :
 <TMPL_LOOP media>
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-When it's finish, could you update media location?
-(you can use this link: <TMPL_VAR url>).
+Quand cela sera terminé, pouvez vous cliquer sur le lien ci-dessous pour mettre à jour la localisation ?
+(Vous pouvez utiliser ce lien : <TMPL_VAR url>).
 
-Thanks
+Merci
 </textarea>
 </td></tr></table>
 <input class='formulaire' type='submit' name='action' value='move_email'>

@@ -11,7 +11,7 @@
  title='Voir le job'> <img src='/bweb/zoom.png' alt=''>Voir</button>
 <button type="submit" class="bp" type='submit' name='action' value='cancel_job'
  onclick="return confirm('Vous voulez vraiment annuler ce job ?')"
- title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annul&eacute;</button>
+ title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annuler</button>
    </form>
 
  </div>

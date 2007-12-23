@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../tpl/about.tpl:3 ../tpl/begin.tpl:67
+#: ../tpl/about.tpl:3 ../tpl/begin.tpl:70
 msgid "About"
 msgstr "Acerca"
 
@@ -20,7 +20,7 @@ msgstr "Acerca"
 msgid "New"
 msgstr "Nueva"
 
-#: ../tpl/ach_add.tpl:3 ../tpl/begin.tpl:51 ../tpl/config_view.tpl:26
+#: ../tpl/ach_add.tpl:3 ../tpl/begin.tpl:54 ../tpl/config_view.tpl:26
 msgid "Autochanger"
 msgstr "Autochanger"
 
@@ -210,7 +210,7 @@ msgstr "Index"
 msgid "Drive Name"
 msgstr "Drive usage"
 
-#: ../tpl/add_media.tpl:3 ../tpl/begin.tpl:45
+#: ../tpl/add_media.tpl:3 ../tpl/begin.tpl:48
 msgid "Add Media"
 msgstr "Add Media"
 
@@ -245,114 +245,118 @@ msgstr "Bweb - Bacula Web Interface"
 msgid "Sorry at this moment, bweb works only with mozilla."
 msgstr "Sorry at this moment, bweb works only with mozilla."
 
-#: ../tpl/begin.tpl:22
+#: ../tpl/begin.tpl:19 ../tpl/begin.tpl:25
 msgid "Main"
 msgstr "Principal"
 
-#: ../tpl/begin.tpl:23 ../tpl/begin.tpl:25 ../tpl/btime.tpl:94
+#: ../tpl/begin.tpl:20
+msgid "Update your configuration to use the correct tpl directory"
+msgstr ""
+
+#: ../tpl/begin.tpl:26 ../tpl/begin.tpl:28 ../tpl/btime.tpl:94
 #: ../tpl/client_list.tpl:3 ../tpl/display_form_job.tpl:110
 #: ../tpl/graph.tpl:52
 msgid "Clients"
 msgstr "Clientes"
 
-#: ../tpl/begin.tpl:26 ../tpl/btime.tpl:45 ../tpl/display_form_job.tpl:122
+#: ../tpl/begin.tpl:29 ../tpl/btime.tpl:45 ../tpl/display_form_job.tpl:122
 #: ../tpl/display_groups.tpl:3
 msgid "Groups"
 msgstr "Groupes"
 
-#: ../tpl/begin.tpl:29
+#: ../tpl/begin.tpl:32
 msgid "Jobs"
 msgstr "Jobs"
 
-#: ../tpl/begin.tpl:31
+#: ../tpl/begin.tpl:34
 msgid "Defined Jobs"
 msgstr "Jobs Definidos"
 
-#: ../tpl/begin.tpl:32
+#: ../tpl/begin.tpl:35
 msgid "Jobs by group"
 msgstr "Jobs by group"
 
-#: ../tpl/begin.tpl:33 ../tpl/overview.tpl:26
+#: ../tpl/begin.tpl:36 ../tpl/overview.tpl:26
 msgid "Jobs overview"
 msgstr "Jobs overview"
 
-#: ../tpl/begin.tpl:34 ../tpl/display_job.tpl:2
+#: ../tpl/begin.tpl:37 ../tpl/display_job.tpl:2
 msgid "Last Jobs"
 msgstr "Últimos Jobs"
 
-#: ../tpl/begin.tpl:35 ../tpl/running_job.tpl:3
+#: ../tpl/begin.tpl:38 ../tpl/running_job.tpl:3
 msgid "Running Jobs"
 msgstr "Jobs en Ejecución"
 
-#: ../tpl/begin.tpl:36 ../tpl/scheduled_job.tpl:3
+#: ../tpl/begin.tpl:39 ../tpl/scheduled_job.tpl:3
 msgid "Next Jobs"
 msgstr "Próximos Jobs"
 
-#: ../tpl/begin.tpl:37
+#: ../tpl/begin.tpl:40
 msgid "Launch brestore"
 msgstr "Launch brestore"
 
-#: ../tpl/begin.tpl:37 ../tpl/display_form_job.tpl:102
+#: ../tpl/begin.tpl:40 ../tpl/display_form_job.tpl:102
 msgid "Restore"
 msgstr "Recuperación"
 
-#: ../tpl/begin.tpl:40 ../tpl/display_media.tpl:3
+#: ../tpl/begin.tpl:43 ../tpl/display_media.tpl:3
 msgid "Media"
 msgstr "Medios"
 
-#: ../tpl/begin.tpl:42 ../tpl/display_pool.tpl:3
+#: ../tpl/begin.tpl:45 ../tpl/display_pool.tpl:3
 msgid "Pools"
 msgstr "Pools"
 
-#: ../tpl/begin.tpl:43 ../tpl/display_location.tpl:3
+#: ../tpl/begin.tpl:46 ../tpl/display_location.tpl:3
 msgid "Locations"
 msgstr "Ubicaciones"
 
-#: ../tpl/begin.tpl:44
+#: ../tpl/begin.tpl:47
 msgid "All Media"
 msgstr "Todos los Medios"
 
-#: ../tpl/begin.tpl:46
+#: ../tpl/begin.tpl:49
 msgid "Eject Media"
 msgstr "Expulsar Medio"
 
-#: ../tpl/begin.tpl:47
+#: ../tpl/begin.tpl:50
 msgid "Load Media"
 msgstr "Cargar Medio"
 
-#: ../tpl/begin.tpl:59 ../tpl/display_groups.tpl:16 ../tpl/graph.tpl:3
+#: ../tpl/begin.tpl:62 ../tpl/display_groups.tpl:16 ../tpl/graph.tpl:3
 #: ../tpl/stats.tpl:2
 msgid "Statistics"
 msgstr "Estadísticas"
 
-#: ../tpl/begin.tpl:60 ../tpl/begin.tpl:62 ../tpl/config_edit.tpl:3
+#: ../tpl/begin.tpl:63 ../tpl/begin.tpl:65 ../tpl/config_edit.tpl:3
 #: ../tpl/config_view.tpl:3
 msgid "Configuration"
 msgstr "Configuración"
 
-#: ../tpl/begin.tpl:63
+#: ../tpl/begin.tpl:66
 msgid "Manage users"
 msgstr "Manage users"
 
-#: ../tpl/begin.tpl:68
+#: ../tpl/begin.tpl:71
 msgid "Logged as"
 msgstr "Usuario"
 
-#: ../tpl/begin.tpl:70
+#: ../tpl/begin.tpl:73
 #, fuzzy
 msgid "Search media"
 msgstr "buscar medio"
 
-#: ../tpl/begin.tpl:70
+#: ../tpl/begin.tpl:73
 #, fuzzy
 msgid "Search client"
 msgstr "buscar medio"
 
-#: ../tpl/begin.tpl:70
+#: ../tpl/begin.tpl:73
 msgid "search..."
 msgstr ""
 
-#: ../tpl/begin.tpl:70
+#: ../tpl/begin.tpl:73
 #, fuzzy
 msgid "Search media or client"
 msgstr "buscar medio"
@@ -1244,30 +1248,35 @@ msgid "Comment:"
 msgstr "Comentario:"
 
 #: ../tpl/display_user.tpl:17
+#, fuzzy
+msgid "Lang:"
+msgstr "Log:"
+
+#: ../tpl/display_user.tpl:26
 msgid "Profile:"
 msgstr "Profile:"
 
-#: ../tpl/display_user.tpl:20
+#: ../tpl/display_user.tpl:29
 msgid "Administrator"
 msgstr "Administrator"
 
-#: ../tpl/display_user.tpl:21
+#: ../tpl/display_user.tpl:30
 msgid "Customer"
 msgstr "Customer"
 
-#: ../tpl/display_user.tpl:23
+#: ../tpl/display_user.tpl:32
 msgid "Or like an existing user:"
 msgstr "Or like an existing user:"
 
-#: ../tpl/display_user.tpl:33
+#: ../tpl/display_user.tpl:42
 msgid "Roles:"
 msgstr "Roles:"
 
-#: ../tpl/display_user.tpl:41
+#: ../tpl/display_user.tpl:50
 msgid "Use groups filter:"
 msgstr "Use groups filter:"
 
-#: ../tpl/display_user.tpl:44
+#: ../tpl/display_user.tpl:53
 msgid "Groups:"
 msgstr "Groups:"
 

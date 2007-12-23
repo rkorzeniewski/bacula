@@ -16,6 +16,9 @@
 if (navigator.appName == 'Konqueror') {
         alert("Désolé, bweb fonctionne seulement avec mozilla.");
 }
+if ('Accueil' == ('_' + '_Main_' + '_')) {
+	alert("Update your configuration to use the correct tpl directory (something like /usr/share/bweb/en/tpl instead of /usr/share/bweb/tpl)");
+} 
 </script>
 
 <ul id="menu">

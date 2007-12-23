@@ -30,7 +30,7 @@
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
 <button type="submit" class="bp" name='action' value='cancel_job'
        onclick="return confirm('Vous voulez annuler ce job ?')"
-        title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annul&eacute;</button>
+        title='Annuler le job'> <img src='/bweb/cancel.png' alt=''>Annuler</button>
 </form>
  </div>
 
