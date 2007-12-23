@@ -45,12 +45,12 @@ Bweb works well with 1.39 release or later.
  # get a config file
  mkdir -m 755 /etc/bacula
  chown root:bacula /etc/bacula
- echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
+ echo '$VAR1 = { template_dir => "/usr/share/bweb/en/tpl" };' > /etc/bacula/bweb.conf
  chown www-data /etc/bacula/bweb.conf
 
  # copy the bweb template file
  mkdir -p /usr/share/bweb/tpl
- install -m 644 -o root -g root  bweb/tpl/*.tpl /usr/share/bweb/tpl
+ install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/en/tpl
 
  # copy the bweb graphics elements (bweb elements must reside in /bweb)
  mkdir /var/www/bweb
@@ -64,7 +64,7 @@ Bweb works well with 1.39 release or later.
 
 ################ USE FRENCH VERSION ############################
 
-Simply use lang/fr/tpl/*.tpl files instead of tpl/*.tpl
+Simply use lang/fr/tpl/*.tpl files instead of lang/en/tpl/*.tpl
 
 ################ INSTALL PERL LIBRARY ##########################
 
@@ -170,7 +170,7 @@ $VAR1 = bless( {
        }, 'Bweb::Autochanger' )
    },
   'password' => 'xxx',
-  'template_dir' => '/usr/share/bweb/tpl',
+  'template_dir' => '/usr/share/bweb/en/tpl',
   'dbi' => 'DBI:mysql:database=bacula',
   'error' => '',
   'debug' => 0,
