@@ -1,4 +1,8 @@
 bweb (2.2.7-1) stable; urgency=low
+  * Move /usr/share/bweb/fr/tpl to /usr/share/bweb/tpl/fr
+  * Move /usr/share/bweb/es/tpl to /usr/share/bweb/tpl/es
+  * Move default /usr/share/bweb/tpl to /usr/share/bweb/tpl/en
+  * Each user can have his own language
   * Add new balloon view
   * Add new btime module
   * Add a new scheduled view, you MUST have Date::Calc module

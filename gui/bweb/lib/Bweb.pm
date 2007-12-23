@@ -51,7 +51,7 @@ package Bweb::Gui;
 =cut
 
 use HTML::Template;
-our $template_dir='/usr/share/bweb/en/tpl';
+our $template_dir='/usr/share/bweb/tpl';
 
 =head1 FUNCTION
 
@@ -127,14 +127,15 @@ sub error
     this function is use to render all html codes. it takes an
     ref hash as arg in which all param are usable in template.
 
-    it will use global template_dir to search the template file.
+    it will use user template_dir then global template_dir 
+    to search the template file.
 
     hash keys are not sensitive. See HTML::Template for more
     explanations about the hash ref. (it's can be quiet hard to understand) 
 
 =head2 EXAMPLE
 
-    $ref = { name => 'me', age => 26 };
+    $ref = { name => 'me', age => 26 };
     $self->display($ref, "people.tpl");
 
 =cut
@@ -142,9 +143,11 @@ sub error
 sub display
 {
     my ($self, $hash, $tpl) = @_ ;
-    
+    my $dir = $self->{template_dir} || $template_dir;
+    my $lang = $self->{lang} || 'en';
     my $template = HTML::Template->new(filename => $tpl,
-				       path =>[$template_dir],
+				       path =>["$dir/$lang",
+					       $dir],
 				       die_on_bad_params => 0,
 				       case_sensitive => 0);
 
@@ -210,6 +213,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      fv_write_path => qr!^([/\w\d\.-]*)$!,
 	      template_dir => qr!^([/\w\d\.-]+)$!,
 	      debug    => qr/^(on)?$/,
+	      lang     => qr/^(\w\w)?$/,
 	      email_media => qr/^([\w\d\.-]+@[\d\w\.-]+)$/,
 	      graph_font  => qr!^([/\w\d\.-]+.ttf)$!,
 	      bconsole    => qr!^(.+)?$!,
@@ -1490,7 +1494,8 @@ sub new
 
     $self->{loginname} = CGI::remote_user();
     $self->{debug} = $self->{info}->{debug};
-    $Bweb::Gui::template_dir = $self->{info}->{template_dir};
+    $self->{lang} = $self->{info}->{lang};
+    $self->{template_dir} = $self->{info}->{template_dir};
 
     return $self;
 }
@@ -1498,6 +1503,9 @@ sub new
 sub display_begin
 {
     my ($self) = @_;
+    if ($self->{info}->{enable_security}) {
+	$self->get_roles();	# get lang
+    }
     $self->display($self->{info}, "begin.tpl");
 }
 
@@ -1758,6 +1766,13 @@ sub get_form
 	my $when = CGI::param('when') || '';
 	if ($when =~ /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/) {
 	    $ret{when} = $1;
+	}
+    }
+
+    if ($what{lang}) {
+	my $lang = CGI::param('lang') || 'en';
+	if ($lang =~ /^(\w\w)$/) {
+	    $ret{lang} = $1;
 	}
     }
 
@@ -2907,7 +2922,7 @@ sub get_roles
     my $u = $self->dbh_quote($self->{loginname});
            
     my $query = "
- SELECT use_acl, rolename
+ SELECT use_acl, rolename, tpl
   FROM bweb_user 
        JOIN bweb_role_member USING (userid)
        JOIN bweb_role USING (roleid)
@@ -2923,8 +2938,10 @@ sub get_roles
     foreach my $r (@$rows) {
 	$self->{security}->{$r->[1]}=1;
     }
-
     $self->{security}->{use_acl} = $rows->[0]->[0];
+    if ($rows->[0]->[2] =~ /^(\w\w)$/) {
+	$self->{lang} = $1;
+    }
     return 1;
 }
 
@@ -3126,7 +3143,8 @@ sub users_add
     $self->can_do("r_user_mgnt");
 
     # we don't quote username directly to check that it is conform
-    my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate qcopy_username jclient_groups/) ;
+    my $arg = $self->get_form(qw/username qpasswd qcomment jrolenames qcreate 
+			         lang qcopy_username jclient_groups/) ;
 
     if (not $arg->{qcreate}) {
         $arg = $self->get_form(qw/db_roles db_usernames db_client_groups/);
@@ -3150,13 +3168,14 @@ sub users_add
     ($self->dbh_do("
   UPDATE bweb_user 
      SET passwd=$arg->{qpasswd}, comment=$arg->{qcomment}, 
-         use_acl=$arg->{use_acl}
+         use_acl=$arg->{use_acl}, tpl='$arg->{lang}'
    WHERE username = $u") 
 #     and (! $self->dbh_is_mysql() )
      ) and
     $self->dbh_do("
-  INSERT INTO bweb_user (username, passwd, use_acl, comment) 
-        VALUES ($u, $arg->{qpasswd}, $arg->{use_acl}, $arg->{qcomment})");
+  INSERT INTO bweb_user (username, passwd, use_acl, comment, tpl) 
+        VALUES ($u, $arg->{qpasswd}, $arg->{use_acl}, 
+                $arg->{qcomment}, '$arg->{lang}')");
 
     $self->{dbh}->begin_work();
     {
@@ -3209,7 +3228,7 @@ sub display_user
     my $user = $self->dbh_quote($arg->{username});
 
     my $userp = $self->dbh_selectrow_hashref("
-   SELECT username, passwd, comment, use_acl
+   SELECT username, passwd, comment, use_acl, tpl
      FROM bweb_user
     WHERE username = $user
 ");
@@ -3244,6 +3263,7 @@ ORDER BY rolename
         username => $userp->{username},
         comment => $userp->{comment},
         passwd => $userp->{passwd},
+	lang => $userp->{lang},
 	use_acl => $userp->{use_acl},
 	db_client_groups => $arg->{db_client_groups},
 	client_group => [ values %$scg ],

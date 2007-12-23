@@ -16,6 +16,9 @@
 if (navigator.appName == 'Konqueror') {
         alert("Sorry at this moment, bweb works only with mozilla.");
 }
+if ('Principal' == ('_' + '_Main_' + '_')) {
+	document.write("<font color='red'>Update your configuration to use the correct tpl directory (You are using devel tpl)</font>");
+} 
 </script>
 
 <ul id="menu">
@@ -35,6 +38,7 @@ if (navigator.appName == 'Konqueror') {
      <li><a href="bweb.pl?action=running">Jobs en Ejecución</a>
      <li><a href="bweb.pl?action=next_job">Próximos Jobs</a> </li>
      <li><a href="bweb.pl?action=restore" title="Launch brestore">Recuperación</a> </li>
+     <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>
  <li style="padding: 0.25em 2em;">Medios

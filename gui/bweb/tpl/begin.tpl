@@ -17,7 +17,7 @@ if (navigator.appName == 'Konqueror') {
         alert("__Sorry at this moment, bweb works only with mozilla.__");
 }
 if ('__Main__' == ('_' + '_Main_' + '_')) {
-	document.write("<font color='red'>__Update your configuration to use the correct tpl directory (something like /usr/share/bweb/en/tpl instead of /usr/share/bweb/tpl)__</font>");
+	document.write("<font color='red'>__Update your configuration to use the correct tpl directory (You are using devel tpl)__</font>");
 } 
 </script>
 

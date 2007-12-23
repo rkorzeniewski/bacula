@@ -45,12 +45,12 @@ Bweb works well with 1.39 release or later.
  # get a config file
  mkdir -m 755 /etc/bacula
  chown root:bacula /etc/bacula
- echo '$VAR1 = { template_dir => "/usr/share/bweb/en/tpl" };' > /etc/bacula/bweb.conf
+ echo '$VAR1 = { template_dir => "/usr/share/bweb/tpl" };' > /etc/bacula/bweb.conf
  chown www-data /etc/bacula/bweb.conf
 
  # copy the bweb template file
- mkdir -p /usr/share/bweb/en/tpl
- install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/en/tpl
+ mkdir -p /usr/share/bweb/tpl/en
+ install -m 644 -o root -g root  bweb/lang/tpl/en/*.tpl /usr/share/bweb/tpl/en
 
  # copy the bweb graphics elements (bweb elements must reside in /bweb)
  mkdir /var/www/bweb
@@ -62,9 +62,10 @@ Bweb works well with 1.39 release or later.
            to read the bconsole.conf file!
            You can create an bconsole group for that.
 
-################ USE FRENCH VERSION ############################
+################ USE FRENCH/SPANISH VERSION ####################
 
-Simply use lang/fr/tpl/*.tpl files instead of lang/en/tpl/*.tpl
+Simply copy lang/fr/tpl/*.tpl files to .../tpl/fr/*.tpl and choose
+your language in the configuration panel.
 
 ################ INSTALL PERL LIBRARY ##########################
 
@@ -170,7 +171,8 @@ $VAR1 = bless( {
        }, 'Bweb::Autochanger' )
    },
   'password' => 'xxx',
-  'template_dir' => '/usr/share/bweb/en/tpl',
+  'template_dir' => '/usr/share/bweb/tpl',
+  'lang' => 'en',
   'dbi' => 'DBI:mysql:database=bacula',
   'error' => '',
   'debug' => 0,
@@ -263,7 +265,7 @@ chmod 700 /var/spool/bweb
 chown www-data /var/spool/bweb
 
 You have to remove "<!-- Remove this to activate bfileview" and "-->" from
-tpl/display_job_zoom.tpl.
+tpl/en/display_job_zoom.tpl.
 
 You MUST use brestore.pl -b to initialize the database, and
 you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.

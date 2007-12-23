@@ -14,12 +14,12 @@
  </tr><tr>
   <td>Comment:</td> <td> <input class="formulaire" type="text" name="comment" value='<TMPL_VAR comment>'> </td>
  </tr><tr>
-  <td>Lang:</td> 
+  <td>Language:</td> 
    <td> 
  <select name="lang" id='lang' class="formulaire">
-  <option value='en'>english</option>
-  <option value='fr'>french</option>
-  <option value='es'>spanish</option>
+  <option id='lang_en' value='en'>English</option>
+  <option id='lang_fr' value='fr'>French</option>
+  <option id='lang_es' value='es'>Spanish</option>
  </select>
    </td>
  </tr><tr>
@@ -114,4 +114,7 @@ function set_role(val)
    }
 
 }
+<TMPL_IF lang>
+  document.getElementById('lang_<TMPL_VAR lang>').selected = true;
+</TMPL_IF>
 </script>

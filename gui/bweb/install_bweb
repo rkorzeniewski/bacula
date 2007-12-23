@@ -90,7 +90,8 @@ cat > ${CONF_DIR}/bweb.conf <<END_OF_DATA
        }, 'Bweb::Autochanger' )
    },
   'password' => '${DB_PW}',
-  'template_dir' => '${SHARE_DIR}/bweb/en/tpl',
+  'template_dir' => '${SHARE_DIR}/bweb/tpl',
+  'lang' => 'en',
   'dbi' => 'DBI:mysql:database=bacula',
   'error' => '',
   'debug' => 0,
@@ -103,10 +104,12 @@ fi
 chown ${HTTP_USER} ${CONF_DIR}/bweb.conf
 
 # copy the bweb template file
-if [ ! -d ${SHARE_DIR}/bweb/en/tpl ] ; then
-   mkdir -p ${SHARE_DIR}/bweb/en/tpl
+if [ ! -d ${SHARE_DIR}/bweb/tpl/en ] ; then
+   mkdir -p ${SHARE_DIR}/bweb/tpl/{en,fr,es}
 fi
-install -m 644 -o root -g root  lang/en/tpl/*.tpl ${SHARE_DIR}/bweb/en/tpl
+install -m 644 -o root -g root  lang/tpl/en/*.tpl ${SHARE_DIR}/bweb/tpl/en
+install -m 644 -o root -g root  lang/tpl/es/*.tpl ${SHARE_DIR}/bweb/tpl/es
+install -m 644 -o root -g root  lang/tpl/fr/*.tpl ${SHARE_DIR}/bweb/tpl/fr
 
 # copy the bweb graphics elements (bweb elements must reside in /bweb)
 if [ ! -d ${WEB_DIR} ] ; then

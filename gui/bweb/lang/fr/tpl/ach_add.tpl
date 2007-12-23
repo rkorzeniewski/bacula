@@ -16,7 +16,7 @@
      </tr>
      <tr><td>Pre-commande :</td> 
          <td> <input class="formulaire" type='text' id='precmd' value='sudo'
-           title='peut être "sudo" ou "ssh storage\@storagehost"...' name='precmd'>
+           title='peut être "sudo" ou "ssh storage@storagehost"...' name='precmd'>
          </td>
      </tr>
      <tr><td>commande mtx :</td> 

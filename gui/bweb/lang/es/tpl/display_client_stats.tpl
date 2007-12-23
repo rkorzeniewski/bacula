@@ -14,7 +14,7 @@
         <div class="otherbox">
        <h1>Actions</h1> 
        <button type="submit" class="bp" name='action' value='job' title='Mostrar últimos jobs'> <img src='/bweb/zoom.png' alt=''>View last jobs</button>
-       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>View current jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Mostrar job actual'> <img src='/bweb/zoom.png' alt=''>View current jobs</button>
        <button type="submit" class="bp" name='action' value='client_stat' title='Estadísticas del Cliente'> <img src='/bweb/zoom.png' alt=''>Ver estadísticas</button>
         </div>
 -->

@@ -32,9 +32,6 @@
      <tr><td>graph_font:</td> 
          <td> <input class="formulaire" type='text' value='<TMPL_VAR graph_font>' size='64' name='graph_font'> 
          </td></tr>
-     <tr><td>template_dir:</td> 
-         <td> <input class="formulaire" type='text' value='<TMPL_VAR template_dir>' size='64' name='template_dir'> 
-         </td></tr>
      <tr><td>fv_write_path:</td> 
          <td> <input class="formulaire" title="__This folder must be writable by apache user and must be accessible on /bweb/fv__" type='text' value='<TMPL_VAR fv_write_path>' size='64' name='fv_write_path'> 
      <tr><td>stat_job_table:</td> 
@@ -46,6 +43,16 @@
      <tr><td>wiki_url:</td> 
          <td> <input class="formulaire" title="__Use a wiki for jobs documentation?__" size='64' type='text' name='wiki_url' value='<TMPL_VAR wiki_url>'> 
          </td></tr>
+     <tr><td>template_dir:</td> 
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR template_dir>' size='64' name='template_dir'> 
+         </td></tr>
+     <tr><td>__language:__</td> 
+     <td> <select name="lang" id='lang' class="formulaire">
+           <option id='lang_en' value='en'>__English__</option>
+           <option id='lang_fr' value='fr'>__French__</option>
+           <option id='lang_es' value='es'>__Spanish__</option>
+          </select>
+     </td></tr>
      <tr><td>display_log_time:</td> 
          <td> <input class="formulaire" title="__Display log timestamp__" type='checkbox' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>
@@ -60,3 +67,9 @@
     <button type="submit" class="bp" name='action' value='apply_conf'> <img src='/bweb/save.png' alt=''>__Save__</button>
    </form>
 </div>
+
+<script type="text/javascript" language='JavaScript'>
+<TMPL_IF lang>
+  document.getElementById('lang_<TMPL_VAR lang>').selected = true;
+</TMPL_IF>
+</script>

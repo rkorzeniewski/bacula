@@ -10,10 +10,10 @@
         </div>
         <div class="otherbox">
 <!--        <h1>Acciones</h1> -->	
-       <button type="submit" class="bp" name='action' value='job' title="Mostrar últimos jobs"> <img src='/bweb/zoom.png' alt=''>Last jobs</button>
-       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Show current job'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
+       <button type="submit" class="bp" name='action' value='job' title="Mostrar últimos jobs"> <img src='/bweb/zoom.png' alt=''>Últimos Jobs</button>
+       <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Mostrar job actual'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
        <button type="submit" class="bp" name='action' value='client_status' title='Mostrar estado del cliente'> <img src='/bweb/zoom.png' alt=''>Estado </button>
-       <button type="submit" class="bp" name='action' value='client_stats' title='Estadísticas del Cliente'> <img src='/bweb/chart.png' alt=''>Stats </button>
+       <button type="submit" class="bp" name='action' value='client_stats' title='Estadísticas del Cliente'> <img src='/bweb/chart.png' alt=''>Estado </button>
         </div>
 
 </form>

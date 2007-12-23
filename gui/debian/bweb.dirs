@@ -4,8 +4,9 @@ usr/lib/cgi-bin/bweb
 usr/share/doc/bweb
 usr/share/bweb
 usr/share/bweb/tpl
-usr/share/bweb/fr/tpl
-usr/share/bweb/es/tpl
+usr/share/bweb/tpl/en
+usr/share/bweb/tpl/fr
+usr/share/bweb/tpl/es
 usr/share/bweb/html
 usr/share/perl5
 var/spool/bweb

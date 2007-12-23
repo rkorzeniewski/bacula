@@ -12,12 +12,13 @@
     <tr><td>email_media:</td> <td> <TMPL_VAR email_media> </td></tr>
     <tr>  <td><b>Configuración Bweb</b></td>  <td/></tr>
     <tr><td>config_file:</td> <td> <TMPL_VAR config_file> </td></tr>
-    <tr><td title="/path/to/your/template_dir">template_dir:</td> <td> <TMPL_VAR template_dir> </td></tr>
     <tr><td title="/path/to/a/font.ttf">graph_font:</td> <td> <TMPL_VAR graph_font> </td></tr>
     <tr><td title="Este directorio debe tener permisos de escritura para el usuario apache y debe ser accesible en /bweb/fv">fv_write_path:</td> <td> <TMPL_VAR fv_write_path> </td></tr>
     <tr><td title="You can choose the Job table that you want to use to get statistics">stat_job_table:</td> <td> <TMPL_IF stat_job_table><TMPL_VAR stat_job_table><TMPL_ELSE>Job</TMPL_IF> </td></tr>
     <tr><td title="/path/to/bconsole -n -c /path/to/bconsole.conf">bconsole:</td> <td> <TMPL_VAR bconsole> </td></tr>
     <tr><td title="use a wiki for jobs documentation?">wiki_url:</td> <td> <TMPL_VAR wiki_url> </td></tr>
+    <tr><td title="/path/to/your/template_dir">template_dir:</td> <td> <TMPL_VAR template_dir> </td></tr>
+    <tr><td title="Default language">language:</td> <td> <TMPL_VAR lang> </td></tr>
     <tr><td title="display timestamp in job log">display_log_time:</td> <td> <TMPL_VAR display_log_time> </td></tr>
     <tr><td title="user managment">security:</td> <td> <TMPL_VAR enable_security> </td></tr>
     <tr><td title="user filter">security acl:</td> <td> <TMPL_VAR enable_security_acl> </td></tr>

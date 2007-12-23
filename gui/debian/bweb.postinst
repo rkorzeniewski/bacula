@@ -42,8 +42,3 @@ if [ "$1" = "configure" ] ; then
  
 fi
 
-if [ "$1" = "upgrade" ] ; then
- echo "If you are using postgresql, you have to load /usr/share/bweb/upgrade-2.0_2.2_postgresql.sql in your database"
- echo "postgres@localhost:~$ psql -U bacula bacula < /usr/share/bweb/upgrade-2.0_2.2_postgresql.sql"
- echo
-fi
