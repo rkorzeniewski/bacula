@@ -36,7 +36,7 @@
     <select name='age' class='formulaire'>
       <option id='age_604800'   value='604800'>This week</option>
       <option id='age_2678400'  value='2678400'>Last 30 days</option>
-      <option id='age_15552000' value='15552000'>Last 6 month</option>
+      <option id='age_15552000' value='15552000'>Last 6 months</option>
     </select>     
   </td>
   <td  valign='top'>
@@ -84,7 +84,8 @@
    <option id='job_avg_day' value='job_avg_day' title="Average backup size per day for the period">Job avg size (d)</option>
    <option id='job_sum_hour' value='job_sum_hour' title="Job size per hour for the period">Job Bytes (h)</option>
    <option id='job_sum_day' value='job_sum_day' title="Job size per day for the period">Job Bytes (d)</option>
-   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="Display Job size, duration and number of files with a balloon">Size,time,files</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_nb' value='job_time_nb' title="Display Job duration, size and files with balloons">Time,size,files</option>
+   <option onclick='document.getElementById("gtype_balloon").selected=true;' id='job_time_size' value='job_time_size' title="Display Job duration, files and size with balloons">Time,files,size</option>
 
  </select>
   </td>

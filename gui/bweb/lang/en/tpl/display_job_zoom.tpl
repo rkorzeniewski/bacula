@@ -37,7 +37,7 @@
  <td>
  <form name="fileset_view" action='bweb.pl?'>
   <input type='hidden' name='fileset' value='<TMPL_VAR FileSet>'>
-  <button type="submit" class="bp" name='action' value='fileset_view' title='View Fileset'> 
+  <button type="submit" class="bp" name='action' value='fileset_view' title='View FileSet'> 
  <img src='/bweb/zoom.png' alt=''>View FileSet</button>
  </form>
  </td>
@@ -47,7 +47,7 @@
   <input type='hidden' name='jobid' value='<TMPL_VAR jobid>'>
   <input type='hidden' name='where' value='/'>
   <button type="submit" class="bp" name='action' value='bfileview' 
-   title='view file usage' 
+   title='View file usage' 
    onclick='if (<TMPL_VAR JobFiles> > 50000) { return confirm("It could take long time, do you want to continue?")} else { return 1; }'>
    <img src='/bweb/colorscm.png' alt=''> View file usage </button>
  </form>

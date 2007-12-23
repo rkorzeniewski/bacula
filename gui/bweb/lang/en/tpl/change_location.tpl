@@ -11,7 +11,7 @@
 <tr>
 <td><b>To: </b></td><td><input class='formulaire' name='email' value='<TMPL_VAR email>'></td>
 </tr><tr>
-<td><b>Subject: </b></td><td><input class='formulaire' name='subject' value='[BACULA] Move media to <TMPL_VAR newlocation>' size='80'></td>
+<td><b>Subject: </b></td><td><input class='formulaire' name='subject' value='__[BACULA] Move media to__ <TMPL_VAR newlocation>' size='80'></td>
 </tr><tr>
 <td></td>
 <td>
@@ -24,8 +24,8 @@ Media :
  - <TMPL_VAR VolumeName>  (<TMPL_VAR location>)
 </TMPL_LOOP>
 
-When it's finish, could you update media location ? 
-(you can use this link : <TMPL_VAR url>).
+When it's finish, could you update media location?
+(you can use this link: <TMPL_VAR url>).
 
 Thanks
 </textarea>
