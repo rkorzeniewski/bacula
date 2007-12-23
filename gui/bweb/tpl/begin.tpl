@@ -38,6 +38,7 @@ if ('__Main__' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=running">__Running Jobs__</a>
      <li><a href="bweb.pl?action=next_job">__Next Jobs__</a> </li>
      <li><a href="bweb.pl?action=restore" title="__Launch brestore__">__Restore__</a> </li>
+     <li><a href="/bweb/bresto.html" title="__Try bresto__">__Web Restore__</a> </li>
    </ul>
  </li>
  <li style="padding: 0.25em 2em;">__Media__

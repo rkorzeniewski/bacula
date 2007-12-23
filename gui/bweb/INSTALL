@@ -49,7 +49,7 @@ Bweb works well with 1.39 release or later.
  chown www-data /etc/bacula/bweb.conf
 
  # copy the bweb template file
- mkdir -p /usr/share/bweb/tpl
+ mkdir -p /usr/share/bweb/en/tpl
  install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/en/tpl
 
  # copy the bweb graphics elements (bweb elements must reside in /bweb)
@@ -336,8 +336,7 @@ It will do some basics things on a working bweb/brestore setup.
  example on debian : 
   root@localhost:~# mv ext-1.1.1 /usr/share/bweb/html/ext
 
-3) Make sure that brestore cache tables are updated with brestore.pl
-  bacula@localhost:~$ brestore.pl -b
+3) Make sure that brestore cache tables are in your catalog (bweb-xxx.sql files)
 
 4) Enable bresto.pl cgi. 
   edit the bweb/cgi/bresto.pl script and change $bresto_enable=0; to $bresto_enable=1;
