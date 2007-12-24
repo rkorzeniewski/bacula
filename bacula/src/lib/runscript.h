@@ -35,6 +35,8 @@
 #ifndef __RUNSCRIPT_H_
 #define __RUNSCRIPT_H_ 1
 
+#include "protos.h"
+
 /* Usage:
  *
  * #define USE_RUNSCRIPT
@@ -74,7 +76,7 @@ public:
    /* TODO : drop this with bacula 1.42 */
    bool old_proto;              /* used by old 1.3X protocol */
    job_code_callback_t job_code_callback;
-   				/* Optional callback function passed to edit_job_code */
+                                /* Optional callback function passed to edit_job_code */
 
    bool run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */

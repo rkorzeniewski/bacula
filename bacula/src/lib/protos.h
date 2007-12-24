@@ -31,6 +31,9 @@
  *   Version $Id$
  */
 
+#ifndef __LIBPROTOS_H
+#define __LIBPROTOS_H
+
 class JCR;
 
 /* attr.c */
@@ -342,3 +345,5 @@ btimer_t *start_thread_timer(JCR *jcr, pthread_t tid, uint32_t wait);
 void stop_thread_timer(btimer_t *wid);
 btimer_t *start_bsock_timer(BSOCK *bs, uint32_t wait);
 void stop_bsock_timer(btimer_t *wid);
+
+#endif /* __LIBPROTOS_H */
