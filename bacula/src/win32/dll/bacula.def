@@ -580,6 +580,7 @@ _ZN6rblist6searchEPvPFiS0_S0_E
 _ZN6rblist7destroyEv
  
 ; runscript.o
+_ZN9RUNSCRIPT21set_job_code_callbackEPFPcP3JCRPKcE
 _Z11run_scriptsP3JCRP5alistPKc
 _Z13new_runscriptv
 _Z14copy_runscriptP9RUNSCRIPT

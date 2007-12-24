@@ -37,7 +37,6 @@
 
 #include "bacula.h"
 #include "jcr.h"
-
 #include "runscript.h"
 
 RUNSCRIPT *new_runscript()
