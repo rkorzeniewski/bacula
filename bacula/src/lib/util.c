@@ -496,7 +496,7 @@ void make_session_key(char *key, char *seed, int mode)
       char             *p;
 
       p = s;
-      sprintf(s + strlen(s), "%lu", (uint32_t)GetCurrentProcessId());
+      bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)GetCurrentProcessId());
       (void)getcwd(s + strlen(s), 256);
       bsnprintf(s + strlen(s), ss, "%lu", (uint32_t)GetTickCount());
       QueryPerformanceCounter(&li);
