@@ -1,6 +1,12 @@
               Technical notes on version 2.3
 
 General:
+24Dec07
+kes  Fix seg fault Frank Sweetser reports in regression testing
+     on his systems. The problem was that the original author of
+     bsnprintf.c did not take into account the side effects of
+     using ++x in the argument to a #define.
+kes  Make SD protocol backward compatible with version 2.2.x.
 19Dec07
 ebl  Fixes bug #1015 where bacula failed to restore acl to a socket
      because Bacula no longer restores sockets.

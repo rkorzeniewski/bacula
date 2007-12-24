@@ -233,7 +233,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       escaped_where_name = escape_filename(rx.RegexWhere);
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" regexwhere=\"%s\" files=%d catalog=\"%s\"",
+          " bootstrap=\"%s\" regexwhere=\"%s\" files=%u catalog=\"%s\"",
           job->name(), rx.ClientName, rx.RestoreClientName, 
           rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
@@ -244,7 +244,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
       escaped_where_name = escape_filename(rx.where);
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" where=\"%s\" files=%d catalog=\"%s\"",
+          " bootstrap=\"%s\" where=\"%s\" files=%u catalog=\"%s\"",
           job->name(), rx.ClientName, rx.RestoreClientName,
           rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
@@ -254,7 +254,7 @@ int restore_cmd(UAContext *ua, const char *cmd)
    } else {
       Mmsg(ua->cmd,
           "run job=\"%s\" client=\"%s\" restoreclient=\"%s\" storage=\"%s\""
-          " bootstrap=\"%s\" files=%d catalog=\"%s\"",
+          " bootstrap=\"%s\" files=%u catalog=\"%s\"",
           job->name(), rx.ClientName, rx.RestoreClientName,
           rx.store?rx.store->name():"",
           escaped_bsr_name ? escaped_bsr_name : jcr->RestoreBootstrap,
