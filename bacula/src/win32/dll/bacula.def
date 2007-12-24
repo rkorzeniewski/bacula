@@ -651,6 +651,7 @@ _Z9sm_mallocPKcij
 _Z9sm_staticb
  
 ; tls.o
+_ZN5BSOCK8free_tlsEv
 _Z14get_tls_enableP11TLS_Context
 _Z15get_tls_requireP11TLS_Context
 _Z15new_tls_contextPKcS0_S0_S0_PFiPciPKvES3_S0_b
