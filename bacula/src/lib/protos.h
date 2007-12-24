@@ -301,7 +301,9 @@ bool             get_tls_enable          (TLS_CONTEXT *ctx);
 
 /* util.c */
 
+extern "C" {
 typedef char *(*job_code_callback_t)(JCR *, const char *);
+}
 
 bool             is_buf_zero             (char *buf, int len);
 void             lcase                   (char *str);
