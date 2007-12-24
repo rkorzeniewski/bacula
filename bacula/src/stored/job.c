@@ -50,6 +50,10 @@ extern bool do_mac(JCR *jcr);
 static char jobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
       "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
       "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d SpoolSize=%s\n";
+static char oldjobcmd[] = "JobId=%d job=%127s job_name=%127s client_name=%127s "
+      "type=%d level=%d FileSet=%127s NoAttr=%d SpoolAttr=%d FileSetMD5=%127s "
+      "SpoolData=%d WritePartAfterJob=%d PreferMountedVols=%d\n";
+
 
 
 /* Responses sent to Director daemon */
@@ -86,17 +90,26 @@ bool job_cmd(JCR *jcr)
     * Get JobId and permissions from Director
     */
    Dmsg1(100, "<dird: %s", dir->msg);
+   bstrncpy(spool_size, "0", sizeof(spool_size));
    stat = sscanf(dir->msg, jobcmd, &JobId, job.c_str(), job_name.c_str(),
               client_name.c_str(),
               &JobType, &level, fileset_name.c_str(), &no_attributes,
               &spool_attributes, fileset_md5.c_str(), &spool_data,
               &write_part_after_job, &PreferMountedVols, spool_size);
    if (stat != 14) {
-      pm_strcpy(jcr->errmsg, dir->msg);
-      dir->fsend(BAD_job, stat, jcr->errmsg);
-      Dmsg1(100, ">dird: %s", dir->msg);
-      set_jcr_job_status(jcr, JS_ErrorTerminated);
-      return false;
+      /* Try old version */
+      stat = sscanf(dir->msg, oldjobcmd, &JobId, job.c_str(), job_name.c_str(),
+              client_name.c_str(),
+              &JobType, &level, fileset_name.c_str(), &no_attributes,
+              &spool_attributes, fileset_md5.c_str(), &spool_data,
+              &write_part_after_job, &PreferMountedVols);
+      if (stat != 13) {
+         pm_strcpy(jcr->errmsg, dir->msg);
+         dir->fsend(BAD_job, stat, jcr->errmsg);
+         Dmsg1(100, ">dird: %s", dir->msg);
+         set_jcr_job_status(jcr, JS_ErrorTerminated);
+         return false;
+      }
    }
    /*
     * Since this job could be rescheduled, we

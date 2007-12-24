@@ -339,8 +339,8 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
 
    /*
-    * find defines whether or not mount_next_write_volume should
-    *   as the Director again about what Volume to use.
+    * have_vol defines whether or not mount_next_write_volume should
+    *   ask the Director again about what Volume to use.
     */
    have_vol = is_suitable_volume_mounted(dcr);
    if (dev->can_append()) {
