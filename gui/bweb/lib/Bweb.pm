@@ -1031,7 +1031,7 @@ use base q/Bweb::Gui/;
 
  my $b = $bweb->get_bconsole();
  my $s = $b->send_cmd("show schedule");
- my $sched = new Bweb::Sched();
+ my $sched = new Bweb::Sched(begin => '2007-01-01', end => '2007-01-02 12:00');
  $sched->parse_scheds(split(/\r?\n/, $s));
 
 
@@ -1047,6 +1047,27 @@ $VAR1 = {
           'pool' => 'Semaine'
         };
 =cut
+
+sub new
+{
+    my ($class, @arg) = @_;
+    my $self = $class->SUPER::new(@arg);
+
+    # we compare the current schedule date with begin and end
+    # in a float form ex: 20071212.1243 > 20070101
+    if ($self->{begin} and $self->{end}) {
+
+	$self->{begin} =~ s/(-|:)//g;
+	$self->{begin} =~ s/ /./;
+	$self->{end} =~ s/(-|:)//g;
+	$self->{end} =~ s/ /./;
+
+    } else {
+	delete $self->{begin};
+	delete $self->{end};
+    }
+    return bless($self,$class);
+}
 
 # cleanup and add a schedule
 sub add_sched
@@ -1192,6 +1213,12 @@ sub get_events
 	    {
 		foreach my $min (@{$s->{mins}}) # minute
 		{
+		    if ($self->{begin}) {
+			no integer;
+			my $d = sprintf('%d%0.2d%0.2d.%0.2d%0.2d',
+					$year,$m,$md,$h,$min);
+			next if ($d < $self->{begin} or $d > $self->{end});
+		    }
 		    push @ret, sprintf($format, $year,$m,$md,$h,$min);
 		}
 	    }
@@ -1696,6 +1723,10 @@ sub get_form
 		 voluseduration=> 1,
 		 volretention => 1,
 		);
+    my %opt_t = (when => 2,	# option with time 
+		 begin => 1,	# 1 hh:min are optionnal
+		 end => 1,	# 2 hh:min are required
+		 );
 
     foreach my $i (@what) {
 	if (exists $opt_i{$i}) {# integer param
@@ -1743,7 +1774,14 @@ sub get_form
 	    if ($value =~ /^\s*(\d+\s+\w+)$/) {
 		$ret{$i} = $1;
 	    }
-	} 
+	} elsif (exists $opt_t{$i}) { # 1: hh:min optionnal, 2: hh:min required
+	    my $when = CGI::param($i) || '';
+	    if ($when =~ /(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2}))/) {
+		if ($opt_t{$i} == 1 or defined $2) {
+		    $ret{$i} = $1;
+		}
+	    }
+	}
     }
 
     if ($what{slots}) {
@@ -1760,13 +1798,6 @@ sub get_form
         if ($since =~ /^(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?)$/) {
             $ret{since} = $1;
         }
-    }
-
-    if ($what{when}) {
-	my $when = CGI::param('when') || '';
-	if ($when =~ /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/) {
-	    $ret{when} = $1;
-	}
     }
 
     if ($what{lang}) {
@@ -4545,7 +4576,7 @@ sub run_job_now
 sub display_next_job
 {
     my ($self) = @_;
-    my $arg = $self->get_form(qw/job/);
+    my $arg = $self->get_form(qw/job begin end/);
     if (!$arg->{job}) {
 	return $self->error("Can't get job name");
     }
@@ -4563,7 +4594,7 @@ sub display_next_job
     }
 
     my $out = $b->send_cmd("show schedule=\"$jsched\"");
-    my $sched = new Bweb::Sched();
+    my $sched = new Bweb::Sched(begin => $arg->{begin}, end => $arg->{end});
     $sched->parse_scheds(split(/\r?\n/, $out));
 
     my $ss = $sched->get_scheds($jsched); 
