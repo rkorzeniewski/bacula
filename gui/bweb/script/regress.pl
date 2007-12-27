@@ -82,6 +82,8 @@ if ($login) {
 require_ok('Bweb');
 require_ok('Bconsole');
 require_ok('CCircle');
+require_ok('GBalloon');
+require_ok('GTime');
 
 # test first page and check for the last job 
 $agent->get($url); ok($agent->success, "Get main page"); $c = $agent->content;
