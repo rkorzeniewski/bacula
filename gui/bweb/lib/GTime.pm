@@ -271,7 +271,7 @@ sub finalize
     }
 
     $self->{period} = $self->{cend} - $self->{cbegin};
-    return if ($self->{period < 1);
+    return if ($self->{period} < 1);
 
     foreach my $elt (@{$self->{data}}) {
         my $y1 = $self->get_y($elt->{label});
