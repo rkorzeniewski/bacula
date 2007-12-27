@@ -57,8 +57,9 @@ sub new
 
 	x_min => 0,
 	y_min => 0,
-	x_max => 0,
-	y_max => 0,
+	x_max => 1,
+	y_max => 1,
+	z_max => 1,
 
         data       => [],
         type       => {},
@@ -159,7 +160,7 @@ sub finalize
     return unless (scalar(@data));
 
     # the max z will take something like 10% of the total size
-    $self->{z_max} = sqrt($data[0]->[2]);
+    $self->{z_max} = sqrt($data[0]->[2]) || 1;
     my $c=0;
 
 #   print STDERR "max: x=$self->{x_max} y=$self->{y_max} z=$self->{z_max}\n";
