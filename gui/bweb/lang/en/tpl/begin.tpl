@@ -34,6 +34,7 @@ if ('Main' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=run_job">Defined Jobs</a>
      <li><a href="bweb.pl?action=job_group">Jobs by group</a>
      <li><a href="bweb.pl?action=overview">Jobs overview</a>
+     <li><a href="bweb.pl?action=missing">Missing Jobs</a>
      <li><a href="bweb.pl?action=job">Last Jobs</a> </li>
      <li><a href="bweb.pl?action=running">Running Jobs</a>
      <li><a href="bweb.pl?action=next_job">Next Jobs</a> </li>

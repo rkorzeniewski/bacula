@@ -34,6 +34,7 @@ if ('__Main__' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=run_job">__Defined Jobs__</a>
      <li><a href="bweb.pl?action=job_group">__Jobs by group__</a>
      <li><a href="bweb.pl?action=overview">__Jobs overview__</a>
+     <li><a href="bweb.pl?action=missing">__Missing Jobs__</a>
      <li><a href="bweb.pl?action=job">__Last Jobs__</a> </li>
      <li><a href="bweb.pl?action=running">__Running Jobs__</a>
      <li><a href="bweb.pl?action=next_job">__Next Jobs__</a> </li>

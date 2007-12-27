@@ -1,4 +1,4 @@
-#: ../tpl/about.tpl:3 ../tpl/begin.tpl:70
+#: ../tpl/about.tpl:3 ../tpl/begin.tpl:72
 msgid "About"
 msgstr ""
 
@@ -6,7 +6,7 @@ msgstr ""
 msgid "New"
 msgstr ""
 
-#: ../tpl/ach_add.tpl:3 ../tpl/begin.tpl:54 ../tpl/config_view.tpl:26
+#: ../tpl/ach_add.tpl:3 ../tpl/begin.tpl:56 ../tpl/config_view.tpl:27
 msgid "Autochanger"
 msgstr ""
 
@@ -46,7 +46,7 @@ msgstr ""
 msgid "drive index"
 msgstr ""
 
-#: ../tpl/ach_add.tpl:46 ../tpl/config_edit.tpl:60 ../tpl/groups_edit.tpl:25
+#: ../tpl/ach_add.tpl:46 ../tpl/config_edit.tpl:67 ../tpl/groups_edit.tpl:25
 #: ../tpl/location_add.tpl:26 ../tpl/location_edit.tpl:28
 msgid "Save"
 msgstr ""
@@ -186,7 +186,7 @@ msgstr ""
 msgid "Drive Name"
 msgstr ""
 
-#: ../tpl/add_media.tpl:3 ../tpl/begin.tpl:48
+#: ../tpl/add_media.tpl:3 ../tpl/begin.tpl:50
 msgid "Add Media"
 msgstr ""
 
@@ -226,7 +226,9 @@ msgid "Main"
 msgstr ""
 
 #: ../tpl/begin.tpl:20
-msgid "Update your configuration to use the correct tpl directory"
+msgid ""
+"Update your configuration to use the correct tpl directory (You are using "
+"devel tpl)"
 msgstr ""
 
 #: ../tpl/begin.tpl:26 ../tpl/begin.tpl:28 ../tpl/btime.tpl:94
@@ -256,81 +258,93 @@ msgstr ""
 msgid "Jobs overview"
 msgstr ""
 
-#: ../tpl/begin.tpl:37 ../tpl/display_job.tpl:2
+#: ../tpl/begin.tpl:37
+msgid "Missing Jobs"
+msgstr ""
+
+#: ../tpl/begin.tpl:38 ../tpl/display_job.tpl:2
 msgid "Last Jobs"
 msgstr ""
 
-#: ../tpl/begin.tpl:38 ../tpl/running_job.tpl:3
+#: ../tpl/begin.tpl:39 ../tpl/running_job.tpl:3
 msgid "Running Jobs"
 msgstr ""
 
-#: ../tpl/begin.tpl:39 ../tpl/scheduled_job.tpl:3
+#: ../tpl/begin.tpl:40 ../tpl/scheduled_job.tpl:3
 msgid "Next Jobs"
 msgstr ""
 
-#: ../tpl/begin.tpl:40
+#: ../tpl/begin.tpl:41
 msgid "Launch brestore"
 msgstr ""
 
-#: ../tpl/begin.tpl:40 ../tpl/display_form_job.tpl:102
+#: ../tpl/begin.tpl:41 ../tpl/display_form_job.tpl:102
 msgid "Restore"
 msgstr ""
 
-#: ../tpl/begin.tpl:43 ../tpl/display_media.tpl:3
+#: ../tpl/begin.tpl:42
+msgid "Try bresto"
+msgstr ""
+
+#: ../tpl/begin.tpl:42
+msgid "Web Restore"
+msgstr ""
+
+#: ../tpl/begin.tpl:45 ../tpl/display_media.tpl:3
 msgid "Media"
 msgstr ""
 
-#: ../tpl/begin.tpl:45 ../tpl/display_pool.tpl:3
+#: ../tpl/begin.tpl:47 ../tpl/display_pool.tpl:3
 msgid "Pools"
 msgstr ""
 
-#: ../tpl/begin.tpl:46 ../tpl/display_location.tpl:3
+#: ../tpl/begin.tpl:48 ../tpl/display_location.tpl:3
 msgid "Locations"
 msgstr ""
 
-#: ../tpl/begin.tpl:47
+#: ../tpl/begin.tpl:49
 msgid "All Media"
 msgstr ""
 
-#: ../tpl/begin.tpl:49
+#: ../tpl/begin.tpl:51
 msgid "Eject Media"
 msgstr ""
 
-#: ../tpl/begin.tpl:50
+#: ../tpl/begin.tpl:52
 msgid "Load Media"
 msgstr ""
 
-#: ../tpl/begin.tpl:62 ../tpl/display_groups.tpl:16 ../tpl/graph.tpl:3
+#: ../tpl/begin.tpl:64 ../tpl/display_groups.tpl:16 ../tpl/graph.tpl:3
 #: ../tpl/stats.tpl:2
 msgid "Statistics"
 msgstr ""
 
-#: ../tpl/begin.tpl:63 ../tpl/begin.tpl:65 ../tpl/config_edit.tpl:3
+#: ../tpl/begin.tpl:65 ../tpl/begin.tpl:67 ../tpl/config_edit.tpl:3
 #: ../tpl/config_view.tpl:3
 msgid "Configuration"
 msgstr ""
 
-#: ../tpl/begin.tpl:66
+#: ../tpl/begin.tpl:68
 msgid "Manage users"
 msgstr ""
 
-#: ../tpl/begin.tpl:71
+#: ../tpl/begin.tpl:73
 msgid "Logged as"
 msgstr ""
 
-#: ../tpl/begin.tpl:73
+#: ../tpl/begin.tpl:75
 msgid "Search media"
 msgstr ""
 
-#: ../tpl/begin.tpl:73
+#: ../tpl/begin.tpl:75
 msgid "Search client"
 msgstr ""
 
-#: ../tpl/begin.tpl:73
+#: ../tpl/begin.tpl:75
 msgid "search..."
 msgstr ""
 
-#: ../tpl/begin.tpl:73
+#: ../tpl/begin.tpl:75
 msgid "Search media or client"
 msgstr ""
 
@@ -627,81 +641,101 @@ msgstr ""
 msgid "Bweb Configuration"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:39 ../tpl/config_view.tpl:17
+#: ../tpl/config_edit.tpl:36 ../tpl/config_view.tpl:16
 msgid ""
 "This folder must be writable by apache user and must be accessible on /bweb/"
 "fv"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:41 ../tpl/config_view.tpl:18
+#: ../tpl/config_edit.tpl:38 ../tpl/config_view.tpl:17
 msgid "You can choose the Job table that you want to use to get statistics"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:47
+#: ../tpl/config_edit.tpl:44
 msgid "Use a wiki for jobs documentation?"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:50
+#: ../tpl/config_edit.tpl:49 ../tpl/config_view.tpl:21
+msgid "language:"
+msgstr ""
+
+#: ../tpl/config_edit.tpl:51 ../tpl/display_user.tpl:20
+msgid "English"
+msgstr ""
+
+#: ../tpl/config_edit.tpl:52 ../tpl/display_user.tpl:21
+msgid "French"
+msgstr ""
+
+#: ../tpl/config_edit.tpl:53 ../tpl/display_user.tpl:22
+msgid "Spanish"
+msgstr ""
+
+#: ../tpl/config_edit.tpl:57
 msgid "Display log timestamp"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:53
+#: ../tpl/config_edit.tpl:60
 msgid "Use user managment in bweb. Read INSTALL first"
 msgstr ""
 
-#: ../tpl/config_edit.tpl:55
+#: ../tpl/config_edit.tpl:62
 msgid "Use user acl in bweb. Read INSTALL first"
 msgstr ""
 
-#: ../tpl/config_view.tpl:20
+#: ../tpl/config_view.tpl:19
 msgid "use a wiki for jobs documentation?"
 msgstr ""
 
 #: ../tpl/config_view.tpl:21
+msgid "Default language"
+msgstr ""
+
+#: ../tpl/config_view.tpl:22
 msgid "display timestamp in job log"
 msgstr ""
 
-#: ../tpl/config_view.tpl:22
+#: ../tpl/config_view.tpl:23
 msgid "user managment"
 msgstr ""
 
-#: ../tpl/config_view.tpl:22
+#: ../tpl/config_view.tpl:23
 msgid "security:"
 msgstr ""
 
-#: ../tpl/config_view.tpl:23
+#: ../tpl/config_view.tpl:24
 msgid "user filter"
 msgstr ""
 
-#: ../tpl/config_view.tpl:23
+#: ../tpl/config_view.tpl:24
 msgid "security acl:"
 msgstr ""
 
-#: ../tpl/config_view.tpl:24
+#: ../tpl/config_view.tpl:25
 msgid "debug:"
 msgstr ""
 
-#: ../tpl/config_view.tpl:43 ../tpl/config_view.tpl:56
+#: ../tpl/config_view.tpl:44 ../tpl/config_view.tpl:57
 #: ../tpl/display_groups.tpl:12 ../tpl/display_location.tpl:10
 #: ../tpl/display_media.tpl:25 ../tpl/display_media_zoom.tpl:21
 #: ../tpl/display_users.tpl:12
 msgid "Edit"
 msgstr ""
 
-#: ../tpl/config_view.tpl:44 ../tpl/display_job_zoom.tpl:11
+#: ../tpl/config_view.tpl:45 ../tpl/display_job_zoom.tpl:11
 msgid "Delete"
 msgstr ""
 
-#: ../tpl/config_view.tpl:45 ../tpl/display_media.tpl:26
+#: ../tpl/config_view.tpl:46 ../tpl/display_media.tpl:26
 #: ../tpl/display_pool.tpl:8 ../tpl/running_job.tpl:11
 msgid "View"
 msgstr ""
 
-#: ../tpl/config_view.tpl:57
+#: ../tpl/config_view.tpl:58
 msgid "Add autochanger"
 msgstr ""
 
-#: ../tpl/config_view.tpl:61
+#: ../tpl/config_view.tpl:62
 msgid "info:"
 msgstr ""
 
@@ -1181,7 +1215,7 @@ msgid "Comment:"
 msgstr ""
 
 #: ../tpl/display_user.tpl:17
-msgid "Lang:"
+msgid "Language:"
 msgstr ""
 
 #: ../tpl/display_user.tpl:26

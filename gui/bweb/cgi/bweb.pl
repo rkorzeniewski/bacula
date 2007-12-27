@@ -457,6 +457,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'next_job2') {
     $bweb->display_next_job();
 
+} elsif ($action eq 'missing') {
+    $bweb->display_missing_job();
+
 } elsif ($action eq 'overview') {
     $bweb->can_do('r_view_job');
     print "<div><table border='0'><tr><td valign='top'>\n";
@@ -496,27 +499,8 @@ __END__
 
 TODO :
 
- o Affichage des job en cours, termines
- o Affichage du detail d'un job (status client)
- o Acces aux log d'une sauvegarde
- o Cancel d'un job
- o Lancement d'un job
-
- o Affichage des medias (pool, cf bacweb)
- o Affichage de la liste des cartouches
- o Affichage d'un autochangeur
- o Mise a jour des slots
- o Label barcodes
  o Affichage des medias qui ont besoin d'etre change
-
- o Affichage des stats sur les dernieres sauvegardes (cf bacula-web)
- o Affichage des stats sur un type de job
  o Affichage des infos de query.sql
 
  - Affichage des du TapeAlert sur le site
  - Recuperation des erreurs SCSI de /var/log/kern.log
-
- o update d'un volume
- o update d'un pool
-
- o Configuration des autochanger a la main dans un hash dumper

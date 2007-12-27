@@ -1056,17 +1056,22 @@ sub new
     # we compare the current schedule date with begin and end
     # in a float form ex: 20071212.1243 > 20070101
     if ($self->{begin} and $self->{end}) {
+	($self->{fbegin}, $self->{fend}) = ($self->{begin}, $self->{end});
+	$self->{fbegin} =~ s/(-|:)//g; 	$self->{fbegin} =~ s/ /./;
+	$self->{fend}   =~ s/(-|:)//g;  $self->{fend}   =~ s/ /./;
+    } 
 
-	$self->{begin} =~ s/(-|:)//g;
-	$self->{begin} =~ s/ /./;
-	$self->{end} =~ s/(-|:)//g;
-	$self->{end} =~ s/ /./;
+    bless($self,$class);
 
-    } else {
-	delete $self->{begin};
-	delete $self->{end};
+    if ($self->{bconsole}) {
+	my $sel = $self->{name}?"=\"$self->{name}\"":'';
+	my $b = $self->{bconsole};
+	my $out = $b->send_cmd("show schedule$sel");
+	$self->parse_scheds(split(/\r?\n/, $out));
+	undef $self->{bconsole}; # useless now
     }
-    return bless($self,$class);
+
+    return $self;
 }
 
 # cleanup and add a schedule
@@ -1213,11 +1218,11 @@ sub get_events
 	    {
 		foreach my $min (@{$s->{mins}}) # minute
 		{
-		    if ($self->{begin}) {
+		    if ($self->{fbegin}) {
 			no integer;
 			my $d = sprintf('%d%0.2d%0.2d.%0.2d%0.2d',
 					$year,$m,$md,$h,$min);
-			next if ($d < $self->{begin} or $d > $self->{end});
+			next if ($d < $self->{fbegin} or $d > $self->{fend});
 		    }
 		    push @ret, sprintf($format, $year,$m,$md,$h,$min);
 		}
@@ -1226,6 +1231,7 @@ sub get_events
     }
     return @ret;
 }
+1;
 
 ################################################################
 
@@ -1776,7 +1782,7 @@ sub get_form
 	    }
 	} elsif (exists $opt_t{$i}) { # 1: hh:min optionnal, 2: hh:min required
 	    my $when = CGI::param($i) || '';
-	    if ($when =~ /(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2}))/) {
+	    if ($when =~ /(\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?)/) {
 		if ($opt_t{$i} == 1 or defined $2) {
 		    $ret{$i} = $1;
 		}
@@ -2974,6 +2980,22 @@ sub get_roles
 	$self->{lang} = $1;
     }
     return 1;
+}
+
+sub can_view_client
+{
+    my ($self, $client) = @_;
+
+    my $filter = $self->get_client_filter();
+    if (!$filter) {
+	return 1;
+    }
+    my $cont = $self->dbh_selectrow_hashref("
+ SELECT 1
+   FROM Client $filter
+  WHERE Name = '$client'
+");
+    return defined $cont;
 }
 
 sub cant_do
@@ -4576,6 +4598,7 @@ sub run_job_now
 sub display_next_job
 {
     my ($self) = @_;
+
     my $arg = $self->get_form(qw/job begin end/);
     if (!$arg->{job}) {
 	return $self->error("Can't get job name");
@@ -4593,9 +4616,8 @@ sub display_next_job
 	$jpool = $1;
     }
 
-    my $out = $b->send_cmd("show schedule=\"$jsched\"");
-    my $sched = new Bweb::Sched(begin => $arg->{begin}, end => $arg->{end});
-    $sched->parse_scheds(split(/\r?\n/, $out));
+    my $sched = new Bweb::Sched(bconsole => $b, name => $jsched,
+				begin => $arg->{begin}, end => $arg->{end});
 
     my $ss = $sched->get_scheds($jsched); 
     my @ret;
@@ -4608,6 +4630,94 @@ sub display_next_job
     }
     
     print "<b>$arg->{job}:</b><pre>", sort @ret, "</pre><br>";
+}
+
+# check jobs against their schedule
+sub check_job
+{
+    my ($self, $sched, $schedname, $job, $job_pool, $client) = @_;
+    return undef if (!$self->can_view_client($client));
+
+    my $sch = $sched->get_scheds($schedname);    
+    return undef if (!$sch);
+
+    my $end = $sched->{end}; # this backup must have start before the next one
+    my @ret;
+    foreach my $s (@$sch) {
+	my $pool = $sched->get_pool($s) || $job_pool;
+	my $level = $sched->get_level($s);
+	my ($l) = ($level =~ m/^(.)/); # we keep the first letter
+	my $evts = $sched->get_event($s);
+	
+	foreach my $evt (reverse @$evts) {
+	    my $all = $self->dbh_selectrow_hashref("
+ SELECT 1
+   FROM Job JOIN Pool USING (PoolId) JOIN Client USING (ClientId)
+  WHERE Job.StartTime >= '$evt' 
+    AND Job.StartTime <  '$end'
+    AND Job.Type = 'B'
+    AND Job.Name = '$job'
+    AND Job.JobStatus = 'T'
+    AND Job.Level = '$l'
+" . ($pool?" AND Pool.Name = '$pool' ":'') . "
+    AND Client.Name = '$client'
+ LIMIT 1
+");		
+	    if ($all) {
+#		print "ok $job ";
+	    } else {
+		push @{$self->{tmp}}, {date => $evt, level => $level,
+				       type => 'Backup', name => $job,
+				       pool => $pool, volume => $pool};
+	    }
+	    $end = $evt;
+	}
+    }
+}
+
+sub display_missing_job
+{
+    my ($self) = @_;
+    my $arg = $self->get_form(qw/begin end/);
+
+    if (!$arg->{begin}) { # TODO: change this
+	$arg->{begin} = strftime('%F %T', localtime(time - 24*60*60 ));
+    }
+    if (!$arg->{end}) {
+	$arg->{end} = strftime('%F %T', localtime(time));
+    }
+    $self->{tmp} = [];		# check_job use this for result
+
+    my $bconsole = $self->get_bconsole();
+
+    my $sched = new Bweb::Sched(bconsole => $bconsole,
+				begin => $arg->{begin},
+				end => $arg->{end});
+
+    my $job = $bconsole->send_cmd("show job");
+    my ($jname, $jsched, $jclient, $jpool);
+    foreach my $j (split(/\r?\n/, $job)) {
+	if ($j =~ /Job: name=([\w\d\-]+?) JobType=/i) {
+	    if ($jname and $jsched) {
+		$self->check_job($sched, $jsched, $jname, $jpool, $jclient);
+	    }
+	    $jname = $1;
+	    $jclient = $jpool = $jsched = undef;
+	} elsif ($j =~ /Client: name=(.+?) address=/i) {
+	    $jclient = $1;
+	} elsif ($j =~ /Pool: name=([\w\d\-]+) PoolType=/i) {
+	    $jpool = $1;
+	} elsif ($j =~ /Schedule: name=([\w\d\-]+)/i) {
+	    $jsched = $1;
+	}
+    }
+    $self->display({
+	id => $cur_id++,
+	title => "Missing Job (since $arg->{begin} to $arg->{end})",
+	list => $self->{tmp},
+    }, "scheduled_job.tpl");
+
+    delete $self->{tmp};
 }
 
 1;
