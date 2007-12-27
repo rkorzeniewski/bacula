@@ -3316,10 +3316,10 @@ ORDER BY rolename
         username => $userp->{username},
         comment => $userp->{comment},
         passwd => $userp->{passwd},
-	lang => $userp->{lang},
-	use_acl => $userp->{use_acl},
-	db_client_groups => $arg->{db_client_groups},
-	client_group => [ values %$scg ],
+        lang => $userp->{tpl},
+        use_acl => $userp->{use_acl},
+        db_client_groups => $arg->{db_client_groups},
+        client_group => [ values %$scg ],
         db_roles => [ values %$role], 
     }, "display_user.tpl");
 }
