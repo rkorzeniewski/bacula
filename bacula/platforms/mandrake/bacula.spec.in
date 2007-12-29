@@ -33,6 +33,7 @@ Source1: http://www.prdownloads.sourceforge.net/bacula/depkgs-%{depkgs_version}.
 Source2: Release_Notes-%{version}-%{release}.tar.gz
 Source3: http://www.prdownloads.sourceforge.net/bacula/%{name}-docs-%{docs_version}.tar.gz
 Source4: http://www.prdownloads.sourceforge.net/bacula/%{name}-rescue-%{_rescuever}.tar.gz
+Source5: bacula-2.2.7-postgresql.patch
 BuildRoot: %{_tmppath}/%{name}-root
 URL: http://www.bacula.org/
 Vendor: The Bacula Team
@@ -255,6 +256,14 @@ Distribution: %{_dist}
 # should we turn on python support
 %define python 0
 %{?build_python:%define python 1}
+
+# specifically disallow build of mtx package if desired
+%define mtx 1
+%{?nobuild_mtx:%define mtx 0}
+
+# do we need to patch for old postgresql version?
+%define old_pgsql 0
+%{?build_old_pgsql:%define old_pgsql 1}
 
 # Mandriva somehow forces the manpage file extension to bz2 rather than gz
 %if %{mdk}
@@ -679,7 +688,7 @@ This build incorporates sqlite3 as the catalog database, statically compiled.
 This build includes python scripting support.
 %endif
 
-%if ! %{client_only}
+%if ! %{client_only} && %{mtx}
 %package mtx
 Summary: Bacula - The Network Backup Solution
 Group: System Environment/Daemons
@@ -1140,13 +1149,17 @@ cd %{depkgs}
 %if %{sqlite}
 make sqlite3
 %endif
-%if ! %{client_only}
+%if ! %{client_only} && %{mtx}
 make mtx
 %endif
 %if %{bat}
 make qwt
 %endif
 cd ${cwd}
+
+%if %{wb3} || %{old_pgsql}
+patch -p3 src/cats/postgresql.c < %SOURCE5
+%endif
 
 # patches for the bundled sqlite scripts
 
@@ -1319,7 +1332,7 @@ make \
 	mandir=$RPM_BUILD_ROOT%{_mandir} \
         install
 
-%if ! %{client_only}
+%if ! %{client_only} && %{mtx}
 cd %{depkgs}
 make \
         prefix=$RPM_BUILD_ROOT/usr \
@@ -1522,9 +1535,6 @@ cp -p src/qt-console/bat.conf $RPM_BUILD_ROOT%{sysconf_dir}/bat.conf
 %endif
 
 # now clean up permissions that are left broken by the install
-%if ! %{client_only}
-chmod o-r $RPM_BUILD_ROOT%{script_dir}/query.sql
-%endif
 chmod o-rwx $RPM_BUILD_ROOT%{working_dir}
 %if %{gconsole} && ! %{rh8}
 chmod 755 $RPM_BUILD_ROOT/usr/sbin/bacula-tray-monitor
@@ -1686,7 +1696,9 @@ if [ -s %{working_dir}/bacula.db ] && [ -s %{sqlite_bindir}/sqlite ];then
 	echo "After the upgrade is complete, restore your catalog"
 	echo "with the following commands:"
 	echo "%{script_dir}/drop_sqlite3_tables"
-	echo "%{sqlite_bindir}/sqlite3 $* bacula.db < %{working_dir}/bacula_backup.sql"
+	echo "cd %{working_dir}"
+	echo "%{sqlite_bindir}/sqlite3 $* bacula.db < bacula_backup.sql"
+	echo "chown bacula.bacula bacula.db"
 	exit 1
 fi
 # test for bacula database older than version 9 and sqlite3
@@ -1906,7 +1918,7 @@ fi
 %endif
 
 
-%if ! %{client_only}
+%if ! %{client_only} && %{mtx}
 %files mtx
 %defattr(-,root,root)
 %attr(-, root, %{storage_daemon_group}) /usr/sbin/loaderinfo
@@ -2164,6 +2176,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 28 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add nobuild_mtx switch
+- add patch for postgresql.c for old postgresql versions
 * Sat Nov 17 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - switch to sqlite3
 * Sun Nov 11 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
