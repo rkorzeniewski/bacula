@@ -4607,19 +4607,17 @@ sub display_next_job
     my $b = $self->get_bconsole();
 
     my $job = $b->send_cmd("show job=\"$arg->{job}\"");
-    if ($job !~ /Schedule: name=([\w\d\-]+)/s) {
+    my $attr = $self->run_parse_job($job);
+    
+    if (!$attr->{schedule}) {
 	return $self->error("Can't get $arg->{job} schedule");
     }
-    my $jsched = $1;
-    my $jpool='';
-    if ($job =~ /Pool: name=([\w\d\-]+) PoolType=/) {
-	$jpool = $1;
-    }
+    my $jpool=$attr->{pool} || '';
 
-    my $sched = new Bweb::Sched(bconsole => $b, name => $jsched,
+    my $sched = new Bweb::Sched(bconsole => $b, name => $attr->{schedule},
 				begin => $arg->{begin}, end => $arg->{end});
 
-    my $ss = $sched->get_scheds($jsched); 
+    my $ss = $sched->get_scheds($attr->{schedule}); 
     my @ret;
 
     foreach my $s (@$ss) {
