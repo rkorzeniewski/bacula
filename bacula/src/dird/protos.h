@@ -52,7 +52,7 @@ extern int recycle_volume(JCR *jcr, MEDIA_DBR *mr);
 extern bool find_recycled_volume(JCR *jcr, bool InChanger, MEDIA_DBR *mr);
 
 /* backup.c */
-extern int wait_for_job_termination(JCR *jcr);
+extern int wait_for_job_termination(JCR *jcr, int timeout=0);
 extern bool do_backup_init(JCR *jcr);
 extern bool do_backup(JCR *jcr);
 extern void backup_cleanup(JCR *jcr, int TermCode);
