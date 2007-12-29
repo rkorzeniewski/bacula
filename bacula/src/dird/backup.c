@@ -245,8 +245,7 @@ bail_out:
    set_jcr_job_status(jcr, JS_ErrorTerminated);
    Dmsg1(400, "wait for sd. use=%d\n", jcr->use_count());
    /* Cancel SD */
-   cancel_storage_daemon_job(jcr);
-   wait_for_storage_daemon_termination(jcr);
+   wait_for_job_termination(jcr, FDConnectTimeout);
    Dmsg1(400, "after wait for sd. use=%d\n", jcr->use_count());
    return false;
 }
@@ -258,7 +257,7 @@ bail_out:
  *   are done, we return the job status.
  * Also used by restore.c
  */
-int wait_for_job_termination(JCR *jcr)
+int wait_for_job_termination(JCR *jcr, int timeout)
 {
    int32_t n = 0;
    BSOCK *fd = jcr->file_bsock;
@@ -268,32 +267,42 @@ int wait_for_job_termination(JCR *jcr)
    uint64_t JobBytes = 0;
    int VSS = 0;
    int Encrypt = 0;
+   btimer_t *tid=NULL;
 
    set_jcr_job_status(jcr, JS_Running);
-   /* Wait for Client to terminate */
-   while ((n = bget_dirmsg(fd)) >= 0) {
-      if (!fd_ok && 
-          (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
-              &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
-           sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
-                 &ReadBytes, &JobBytes, &Errors) == 5)) {
-         fd_ok = true;
-         set_jcr_job_status(jcr, jcr->FDJobStatus);
-         Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
-      } else {
-         Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
-            fd->msg);
-      }
-      if (job_canceled(jcr)) {
-         break;
-      }
-   }
 
-   if (is_bnet_error(fd)) {
-      Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-          job_type_to_str(jcr->JobType), fd->bstrerror());
+   if (fd) {
+      if (timeout) {
+         tid = start_bsock_timer(fd, timeout); /* TODO: use user timeout */
+      }
+      /* Wait for Client to terminate */
+      while ((n = bget_dirmsg(fd)) >= 0) {
+         if (!fd_ok && 
+             (sscanf(fd->msg, EndJob, &jcr->FDJobStatus, &JobFiles,
+                     &ReadBytes, &JobBytes, &Errors, &VSS, &Encrypt) == 7 ||
+              sscanf(fd->msg, OldEndJob, &jcr->FDJobStatus, &JobFiles,
+                     &ReadBytes, &JobBytes, &Errors) == 5)) {
+            fd_ok = true;
+            set_jcr_job_status(jcr, jcr->FDJobStatus);
+            Dmsg1(100, "FDStatus=%c\n", (char)jcr->JobStatus);
+         } else {
+            Jmsg(jcr, M_WARNING, 0, _("Unexpected Client Job message: %s\n"),
+                 fd->msg);
+         }
+         if (job_canceled(jcr)) {
+            break;
+         }
+      }
+      if (tid) {
+         stop_bsock_timer(tid);
+      }
+
+      if (is_bnet_error(fd)) {
+         Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
+              job_type_to_str(jcr->JobType), fd->bstrerror());
+      }
+      fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
-   fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
 
    /* Force cancel in SD if failing */
    if (job_canceled(jcr) || !fd_ok) {
@@ -302,7 +311,6 @@ int wait_for_job_termination(JCR *jcr)
 
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
    wait_for_storage_daemon_termination(jcr);
-
 
    /* Return values from FD */
    if (fd_ok) {
@@ -320,7 +328,7 @@ int wait_for_job_termination(JCR *jcr)
 //   jcr->JobStatus, jcr->SDJobStatus);
 
    /* Return the first error status we find Dir, FD, or SD */
-   if (!fd_ok || is_bnet_error(fd)) {
+   if (!fd_ok || is_bnet_error(fd)) { /* if fd not set, that use !fd_ok */
       jcr->FDJobStatus = JS_ErrorTerminated;
    }
    if (jcr->JobStatus != JS_Terminated) {
