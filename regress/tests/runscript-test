@@ -97,8 +97,7 @@ grep 'ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_F
 b=$?
 grep 'AfterJob: run command "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
-#grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
-test -f ${cwd}/tmp/RUN_FD_FAILED
+grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 d=$?
 grep '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 e=$?
