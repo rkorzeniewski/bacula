@@ -726,7 +726,7 @@ Requires: termcap
 Requires: glibc >= 2.5
 Requires: termcap
 %endif
-%if %{su102}
+%if %{su103}
 Requires: glibc >= 2.6
 Requires: termcap
 %endif
@@ -2176,6 +2176,8 @@ fi
 %endif
 
 %changelog
+* Sun Dec 30 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix typo on su103 client package requirements
 * Fri Dec 28 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add nobuild_mtx switch
 - add patch for postgresql.c for old postgresql versions
