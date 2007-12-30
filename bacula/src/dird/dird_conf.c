@@ -74,8 +74,8 @@ void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_level(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_replace(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_acl(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_device(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass);
@@ -1559,7 +1559,7 @@ static void store_device(LEX *lc, RES_ITEM *item, int index, int pass)
  * Store JobType (backup, verify, restore)
  *
  */
-static void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass)
+void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token, i;
 
