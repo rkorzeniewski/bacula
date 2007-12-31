@@ -2802,7 +2802,9 @@ sub groups_edit
 	return;
     }
 
-    $self->cant_do('r_group_mgnt') or $self->can_do('r_view_group');
+    unless ($self->cant_do('r_group_mgnt')) {
+	$self->can_do('r_view_group');
+    }
 
     my $query = "
 SELECT Name AS name 
