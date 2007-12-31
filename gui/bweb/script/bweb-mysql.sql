@@ -74,6 +74,7 @@ INSERT INTO bweb_role (rolename) VALUES ('r_view_job');
 INSERT INTO bweb_role (rolename) VALUES ('r_view_log');
 INSERT INTO bweb_role (rolename) VALUES ('r_view_stat');
 INSERT INTO bweb_role (rolename) VALUES ('r_view_media');
+INSERT INTO bweb_role (rolename) VALUES ('r_view_group');
 INSERT INTO bweb_role (rolename) VALUES ('r_view_running_job');
 
 INSERT INTO bweb_role (rolename) VALUES ('r_run_job');

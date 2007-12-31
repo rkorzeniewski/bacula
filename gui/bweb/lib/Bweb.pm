@@ -2791,17 +2791,18 @@ sub update_location
 sub groups_edit
 {
     my ($self) = @_;
-    $self->can_do('r_group_mgnt');
-
     my $grp = $self->get_form(qw/qclient_group db_clients/);
 
     unless ($grp->{qclient_group}) {
+	$self->can_do('r_group_mgnt');
 	$self->display({ ID => $cur_id++,
 			 client_group => "''",
 			 %$grp,
 		     }, "groups_edit.tpl");
 	return;
     }
+
+    $self->cant_do('r_group_mgnt') or $self->can_do('r_view_group');
 
     my $query = "
 SELECT Name AS name 

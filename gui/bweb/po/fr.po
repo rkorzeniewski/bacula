@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: 2007-12-27 21:13+0100\n"
+"PO-Revision-Date: 2007-12-31 10:45+0100\n"
 "Last-Translator: Eric <eric@eb.homelinux.org>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1736,7 +1736,7 @@ msgstr "Slot :"
 
 #: ../tpl/update_media.tpl:42
 msgid "InChanger Flag:"
-msgstr "En ligne :"
+msgstr "InChanger :"
 
 #: ../tpl/update_media.tpl:67
 msgid "Retention period:"
