@@ -61,6 +61,11 @@ enum {
    SCRIPT_Any    = SCRIPT_Before | SCRIPT_After
 };
 
+enum {
+   SHELL_CMD   = 1,
+   CONSOLE_CMD = 2 
+};
+
 /*
  * Structure for RunScript ressource
  */
@@ -69,6 +74,7 @@ public:
    POOLMEM *command;            /* command string */
    POOLMEM *target;             /* host target */
    int  when;                   /* SCRIPT_Before|Script_After BEFORE/AFTER JOB*/
+   int  cmd_type;               /* Command type -- Shell, Console */
    char level;                  /* Base|Full|Incr...|All (NYI) */
    bool on_success;             /* execute command on job success (After) */
    bool on_failure;             /* execute command on job failure (After) */
@@ -80,7 +86,7 @@ public:
 
    bool run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
-   void set_command(const POOLMEM *cmd);
+   void set_command(const POOLMEM *cmd, int cmd_type = SHELL_CMD);
    void set_target(const POOLMEM *client_name);
    void reset_default(bool free_string = false);
    bool is_local();             /* true if running on local host */
@@ -103,5 +109,7 @@ void free_runscript(RUNSCRIPT *script);
 
 /* foreach_alist free RUNSCRIPT */
 void free_runscripts(alist *runscripts); /* you have to free alist */
+
+extern bool (*console_command)(JCR *jcr, const char *cmd);
 
 #endif /* __RUNSCRIPT_H_ */

@@ -855,11 +855,11 @@ static void start_migration_job(JCR *jcr)
         edit_uint64(jcr->MigrateJobId, ed1));
    Dmsg1(dbglevel, "=============== Migration cmd=%s\n", ua->cmd);
    parse_ua_args(ua);                 /* parse command */
-   int jobid = run_cmd(ua, ua->cmd);
+   JobId_t jobid = run_cmd(ua, ua->cmd);
    if (jobid == 0) {
       Jmsg(jcr, M_ERROR, 0, _("Could not start migration job.\n"));
    } else {
-      Jmsg(jcr, M_INFO, 0, _("Migration JobId %d started.\n"), jobid);
+      Jmsg(jcr, M_INFO, 0, _("Migration JobId %d started.\n"), (int)jobid);
    }
    free_ua_context(ua);
 }

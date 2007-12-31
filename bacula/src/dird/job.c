@@ -1231,3 +1231,16 @@ bool create_restore_bootstrap_file(JCR *jcr)
    jcr->needs_sd = true;
    return true;
 }
+
+bool run_console_command(JCR *jcr, const char *cmd){
+   UAContext *ua;
+   bool ok;
+
+   ua = new_ua_context(jcr);
+   Mmsg(ua->cmd, "%s", cmd);
+   Dmsg1(100, "Console command: %s\n", ua->cmd);
+   parse_ua_args(ua);
+   ok= do_a_command(ua);
+   free_ua_context(ua);
+   return ok;
+}

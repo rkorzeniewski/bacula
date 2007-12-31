@@ -38,6 +38,14 @@
 #include "bacula.h"
 #include "jcr.h"
 #include "runscript.h"
+               
+/*
+ * This function pointer is set only by the Director (dird.c),
+ * and is not set in the File daemon, because the File
+ * daemon cannot run console commands.
+ */
+bool (*console_command)(JCR *jcr, const char *cmd) = NULL;
+
 
 RUNSCRIPT *new_runscript()
 {
@@ -78,7 +86,7 @@ RUNSCRIPT *copy_runscript(RUNSCRIPT *src)
    dst->command = NULL;
    dst->target = NULL;
 
-   dst->set_command(src->command);
+   dst->set_command(src->command, src->cmd_type);
    dst->set_target(src->target);
 
    return dst;   
@@ -168,7 +176,7 @@ bool RUNSCRIPT::is_local()
 }
 
 /* set this->command to cmd */
-void RUNSCRIPT::set_command(const POOLMEM *cmd)
+void RUNSCRIPT::set_command(const POOLMEM *cmd, int acmd_type)
 {
    Dmsg1(500, "runscript: setting command = %s\n", NPRT(cmd));
 
@@ -181,6 +189,7 @@ void RUNSCRIPT::set_command(const POOLMEM *cmd)
    }
 
    pm_strcpy(command, cmd);
+   cmd_type = acmd_type;
 }
 
 /* set this->target to client_name */
@@ -201,7 +210,7 @@ void RUNSCRIPT::set_target(const POOLMEM *client_name)
 
 bool RUNSCRIPT::run(JCR *jcr, const char *name)
 {
-   Dmsg0(200, "runscript: running a RUNSCRIPT object\n");
+   Dmsg1(100, "runscript: running a RUNSCRIPT object type=%d\n", cmd_type);
    POOLMEM *ecmd = get_pool_memory(PM_FNAME);
    int status;
    BPIPE *bpipe;
@@ -209,31 +218,43 @@ bool RUNSCRIPT::run(JCR *jcr, const char *name)
 
    ecmd = edit_job_codes(jcr, ecmd, this->command, "", this->job_code_callback);
    Dmsg1(100, "runscript: running '%s'...\n", ecmd);
-   Jmsg(jcr, M_INFO, 0, _("%s: run command \"%s\"\n"), name, ecmd);
+   Jmsg(jcr, M_INFO, 0, _("%s: run %s \"%s\"\n"), 
+        cmd_type==SHELL_CMD?"shell command":"console command", name, ecmd);
 
-   bpipe = open_bpipe(ecmd, 0, "r");
-   free_pool_memory(ecmd);
-   if (bpipe == NULL) {
-      berrno be;
-      Jmsg(jcr, M_ERROR, 0, _("Runscript: %s could not execute. ERR=%s\n"), name,
-         be.bstrerror());
-      goto bail_out;
-   }
-   while (fgets(line, sizeof(line), bpipe->rfd)) {
-      int len = strlen(line);
-      if (len > 0 && line[len-1] == '\n') {
-         line[len-1] = 0;
+   switch (cmd_type) {
+   case SHELL_CMD:
+      bpipe = open_bpipe(ecmd, 0, "r");
+      free_pool_memory(ecmd);
+      if (bpipe == NULL) {
+         berrno be;
+         Jmsg(jcr, M_ERROR, 0, _("Runscript: %s could not execute. ERR=%s\n"), name,
+            be.bstrerror());
+         goto bail_out;
       }
-      Jmsg(jcr, M_INFO, 0, _("%s: %s\n"), name, line);
+      while (fgets(line, sizeof(line), bpipe->rfd)) {
+         int len = strlen(line);
+         if (len > 0 && line[len-1] == '\n') {
+            line[len-1] = 0;
+         }
+         Jmsg(jcr, M_INFO, 0, _("%s: %s\n"), name, line);
+      }
+      status = close_bpipe(bpipe);
+      if (status != 0) {
+         berrno be;
+         Jmsg(jcr, M_ERROR, 0, _("Runscript: %s returned non-zero status=%d. ERR=%s\n"), name,
+            be.code(status), be.bstrerror(status));
+         goto bail_out;
+      }
+      Dmsg0(100, "runscript OK\n");
+      break;
+   case CONSOLE_CMD:
+      if (console_command) {                 /* can we run console command? */
+         if (!console_command(jcr, ecmd)) {  /* yes, do so */
+            goto bail_out;
+         }
+      }
+      break;
    }
-   status = close_bpipe(bpipe);
-   if (status != 0) {
-      berrno be;
-      Jmsg(jcr, M_ERROR, 0, _("Runscript: %s returned non-zero status=%d. ERR=%s\n"), name,
-         be.code(status), be.bstrerror(status));
-      goto bail_out;
-   }
-   Dmsg0(100, "runscript OK\n");
    return true;
 
 bail_out:
@@ -268,7 +289,6 @@ void RUNSCRIPT::debug()
 }
 
 void RUNSCRIPT::set_job_code_callback(job_code_callback_t arg_job_code_callback) 
-
 {
    this->job_code_callback = arg_job_code_callback;
 }
