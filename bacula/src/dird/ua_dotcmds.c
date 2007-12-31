@@ -98,7 +98,7 @@ static struct cmdstruct commands[] = {
 /*
  * Execute a command from the UA
  */
-int do_a_dot_command(UAContext *ua, const char *cmd)
+bool do_a_dot_command(UAContext *ua) 
 {
    int i;
    int len;
@@ -108,14 +108,14 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
 
    Dmsg1(1400, "Dot command: %s\n", user->msg);
    if (ua->argc == 0) {
-      return 1;
+      return false;
    }
 
    len = strlen(ua->argk[0]);
    if (len == 1) {
       if (ua->api) user->signal(BNET_CMD_BEGIN);
       if (ua->api) user->signal(BNET_CMD_OK);
-      return 1;                       /* no op */
+      return true;                    /* no op */
    }
    for (i=0; i<comsize; i++) {     /* search for command */
       if (strncasecmp(ua->argk[0],  _(commands[i].key), len) == 0) {
@@ -125,10 +125,10 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
              !acl_access_ok(ua, Command_ACL, ua->argk[0], len)) {
             break;
          }
-         Dmsg1(100, "Cmd: %s\n", cmd);
+         Dmsg1(100, "Cmd: %s\n", ua->cmd);
          ua->gui = true;
          if (ua->api) user->signal(BNET_CMD_BEGIN);
-         ok = (*commands[i].func)(ua, cmd);   /* go execute command */
+         ok = (*commands[i].func)(ua, ua->cmd);   /* go execute command */
          ua->gui = gui;
          found = true;
          break;
@@ -136,11 +136,11 @@ int do_a_dot_command(UAContext *ua, const char *cmd)
    }
    if (!found) {
       pm_strcat(user->msg, _(": is an invalid command.\n"));
-      user->msglen = strlen(user->msg);
-      user->send();
+      ua->error_msg("%s", user->msg);
+      ok = false;
    }
    if (ua->api) user->signal(ok?BNET_CMD_OK:BNET_CMD_FAILED);
-   return 1;
+   return ok;
 }
 
 static bool dot_quit_cmd(UAContext *ua, const char *cmd)

@@ -1723,15 +1723,15 @@ static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
    scan_to_eol(lc);
 }
 
-/* Store a runscript->command in a bit field
- * 
+/*
+ * Store a runscript->command as a string
  */
 static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_STRING);
 
    if (pass == 2) {
-      ((RUNSCRIPT*) item->value)->set_command(lc->str);
+      ((RUNSCRIPT*)item->value)->set_command(lc->str, item->code);
    }
    scan_to_eol(lc);
 }
@@ -1809,10 +1809,11 @@ void store_runscript_bool(LEX *lc, RES_ITEM *item, int index, int pass)
 
 /*
  * new RunScript items
- *   name             handler              value                             code flags default_value
+ *   name     handler     value               code flags default_value
  */
 static RES_ITEM runscript_items[] = {
- {"command",        store_runscript_cmd,  {(char **)&res_runscript},           0,  ITEM_REQUIRED, 0}, 
+ {"command",        store_runscript_cmd,  {(char **)&res_runscript},     SHELL_CMD, 0, 0}, 
+ {"console",        store_runscript_cmd,  {(char **)&res_runscript},     CONSOLE_CMD, 0, 0}, 
  {"target",         store_runscript_target,{(char **)&res_runscript},          0,  0, 0}, 
  {"runsonsuccess",  store_runscript_bool, {(char **)&res_runscript.on_success},0,  0, 0},
  {"runsonfailure",  store_runscript_bool, {(char **)&res_runscript.on_failure},0,  0, 0},

@@ -130,6 +130,7 @@ extern bool create_restore_bootstrap_file(JCR *jcr);
 extern void dird_free_jcr(JCR *jcr);
 extern void dird_free_jcr_pointers(JCR *jcr);
 extern void cancel_storage_daemon_job(JCR *jcr);
+extern bool run_console_command(JCR *jcr, const char *cmd);
 
 /* migration.c */
 extern bool do_migration(JCR *jcr);
@@ -174,8 +175,8 @@ bool acl_access_ok(UAContext *ua, int acl, const char *item);
 bool acl_access_ok(UAContext *ua, int acl, const char *item, int len);
 
 /* ua_cmds.c */
-int do_a_command(UAContext *ua, const char *cmd);
-int do_a_dot_command(UAContext *ua, const char *cmd);
+bool do_a_command(UAContext *ua);
+bool do_a_dot_command(UAContext *ua);
 int qmessagescmd(UAContext *ua, const char *cmd);
 bool open_client_db(UAContext *ua);
 bool open_db(UAContext *ua);

@@ -141,6 +141,8 @@ int main (int argc, char *argv[])
    init_reload();
    daemon_start_time = time(NULL);
 
+   console_command = run_console_command;
+
    while ((ch = getopt(argc, argv, "c:d:fg:r:stu:v?")) != -1) {
       switch (ch) {
       case 'c':                    /* specify config file */
