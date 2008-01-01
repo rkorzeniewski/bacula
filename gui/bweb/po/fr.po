@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: 2007-12-31 10:45+0100\n"
+"PO-Revision-Date: 2008-01-01 15:04+0100\n"
 "Last-Translator: Eric <eric@eb.homelinux.org>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -811,7 +811,7 @@ msgstr "P&eacute;riode"
 
 #: ../tpl/display_form_job.tpl:49
 msgid "Since"
-msgstr "Hier"
+msgstr "Depuis"
 
 #: ../tpl/display_form_job.tpl:58
 msgid "1 week"
@@ -831,15 +831,15 @@ msgstr ""
 
 #: ../tpl/display_form_job.tpl:81
 msgid "Per days"
-msgstr ""
+msgstr "Par jour"
 
 #: ../tpl/display_form_job.tpl:82
 msgid "Per weeks"
-msgstr ""
+msgstr "Par semaine"
 
 #: ../tpl/display_form_job.tpl:83
 msgid "Per months"
-msgstr ""
+msgstr "Par mois"
 
 #: ../tpl/display_form_job.tpl:90 ../tpl/display_form_media.tpl:72
 #: ../tpl/graph.tpl:93
