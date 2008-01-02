@@ -134,9 +134,7 @@ bool acquire_device_for_read(DCR *dcr)
       bstrncpy(store->pool_type, dcr->pool_type, sizeof(store->pool_type));
       store->append = false;
       rctx.store = store;
-      dcr->keep_dcr = true;                  /* do not free the dcr */
-      release_device(dcr);
-      dcr->keep_dcr = false;
+      clean_device(dcr);                     /* clean up the dcr */
       
       /*
        * Search for a new device
@@ -594,6 +592,18 @@ bool release_device(DCR *dcr)
    }
    Dmsg2(100, "===== Device %s released by JobId=%u\n", dev->print_name(),
          (uint32_t)jcr->JobId);
+   return ok;
+}
+
+/*
+ * Clean up the device for reuse without freeing the memory
+ */
+bool clean_device(DCR *dcr)
+{
+   bool ok;
+   dcr->keep_dcr = true;                  /* do not free the dcr */
+   ok = release_device(dcr);
+   dcr->keep_dcr = false;
    return ok;
 }
 
