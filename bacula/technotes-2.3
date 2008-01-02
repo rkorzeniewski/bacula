@@ -1,6 +1,13 @@
               Technical notes on version 2.3
 
 General:
+02Jan08
+kes  Fix exist switch drive SD code to call autochanger to release
+     any old volume. This must be done to keep the autochanger from
+     releasing subsequently newly reserved volumes in doing a close().
+kes  Fail if attempting to get console input in batch mode. This
+     should help fail RunScript console commands that are incomplete.
+kes  First cut implementing switch_drive() in SD (not actually called).
 31Dec07
 kes  Implement first cut running console commands in a RunScript.
 29Dec07

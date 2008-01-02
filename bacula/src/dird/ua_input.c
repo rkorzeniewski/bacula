@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,11 +49,11 @@ int get_cmd(UAContext *ua, const char *prompt)
    int stat;
 
    ua->cmd[0] = 0;
-   if (!sock) {                       /* No UA */
+   if (!sock || ua->batch) {          /* No UA or batch mode */
       return 0;
    }
    sock->fsend("%s", prompt);
-   sock->signal(BNET_PROMPT);       /* request more input */
+   sock->signal(BNET_PROMPT);         /* request more input */
    for ( ;; ) {
       stat = sock->recv();
       if (stat == BNET_SIGNAL) {

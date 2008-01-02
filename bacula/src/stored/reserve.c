@@ -331,8 +331,8 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          goto get_out;                  /* Volume already on this device */
       } else {
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
-         vol_list->remove(vol);
-         free_vol_item(vol);
+         unload_autochanger(dcr, -1);   /* unload the volume */
+         free_volume(dev);
          debug_list_volumes("reserve_vol free");
       }
    }
@@ -389,6 +389,35 @@ get_out:
    debug_list_volumes("end new volume");
    unlock_volumes();
    return vol;
+}
+
+/* 
+ * Switch from current device to given device  
+ */
+void switch_device(DCR *dcr, DEVICE *dev)
+{
+   // lock_reservations();
+   DCR save_dcr;
+
+   dev->dlock();
+   memcpy(&save_dcr, dcr, sizeof(save_dcr));
+   clean_device(dcr);                  /* clean up the dcr */
+
+   dcr->dev = dev;                     /* get new device pointer */
+   Jmsg(dcr->jcr, M_INFO, 0, _("Device switch. New device %s chosen.\n"),
+      dcr->dev->print_name());
+
+   bstrncpy(dcr->VolumeName, save_dcr.VolumeName, sizeof(dcr->VolumeName));
+   bstrncpy(dcr->media_type, save_dcr.media_type, sizeof(dcr->media_type));
+   dcr->VolCatInfo.Slot = save_dcr.VolCatInfo.Slot;
+   bstrncpy(dcr->pool_name, save_dcr.pool_name, sizeof(dcr->pool_name));
+   bstrncpy(dcr->pool_type, save_dcr.pool_type, sizeof(dcr->pool_type));
+   bstrncpy(dcr->dev_name, save_dcr.dev_name, sizeof(dcr->dev_name));
+
+   dev->reserved_device++;
+   dcr->reserved_device = true;
+
+   dev->dunlock();
 }
 
 /*
