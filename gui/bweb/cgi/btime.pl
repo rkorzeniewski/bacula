@@ -104,7 +104,7 @@ my $filter = join(" OR ",
 my $query = "
 SELECT " . $bweb->dbh_strcat('Job.Name', "'_'", 'Job.Level') . ",
        $sec,
-       substring(Log.LogText from 1 for 65),
+       substring(Log.LogText from 8 for 70),
        Job.JobId,
        Pool.Name
 
@@ -125,7 +125,7 @@ ORDER BY Job.JobId,Log.Time
 ";
 
 
-print STDERR $query if ($conf->{debug})
+print STDERR $query if ($conf->{debug});
 my $all = $bweb->dbh_selectall_arrayref($query);
 
 my $lastid = 0;
@@ -148,7 +148,7 @@ foreach my $elt (@$all)
 	$lastspool=0;
     }
 
-    if ($elt->[2] =~ /$regs{start_job}/) {
+    if ($elt->[2] =~ /$regs{end_job}/) {
 	push @$data, {
 	    type  => "commit",
 	    begin => $begin,
@@ -221,7 +221,7 @@ foreach my $elt (@$all)
 	    end   => $elt->[1],
 	};
 
-    } elsif ($elt->[2] =~ /$regs{end_job}/) {
+    } elsif ($elt->[2] =~ /$regs{start_job}/) {
 	1;
     } else {
 	next;
