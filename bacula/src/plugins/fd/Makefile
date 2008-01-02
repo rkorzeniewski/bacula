@@ -9,20 +9,16 @@ CC = g++ -g -O0 -Wall
 .c.o:
 	$(CC) -I../.. -DTEST_PROGRAM -c $<
 
-all: main plugin-fd.so 
+all: main example-plugin-fd.so 
 
 main: main.o plugin-fd.h 
 	$(CC) -L../../lib main.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
-plugin-fd.o: plugin-fd.c plugin-fd.h
-	$(CC) -fPIC -I../.. -c plugin-fd.c
+example-plugin-fd.o: example-plugin-fd.c plugin-fd.h
+	$(CC) -fPIC -I../.. -c example-plugin-fd.c
 
-plugin.o: plugin.c plugin.h
-	$(CC) -fPIC -I../.. -c plugin.c
-
-
-plugin-fd.so: plugin-fd.o 
-	$(CC) -shared plugin-fd.o -o plugin-fd.so
+example-plugin-fd.so: example-plugin-fd.o 
+	$(CC) -shared example-plugin-fd.o -o example-plugin-fd.so
 
 
 clean:
