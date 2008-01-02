@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    14 December 2007
+                    02 January 2008
 
 
 Document:
@@ -71,6 +71,84 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+=== Duplicate jobs ===
+   hese apply only to backup jobs.
+
+   1.  Allow Duplicate Jobs  = Yes | No | Higher   (Yes)
+
+   2. Duplicate Job Interval = <time-interval>   (0)
+
+   The defaults are in parenthesis and would produce the same behavior as today.
+
+   If Allow Duplicate Jobs is set to No, then any job starting while a job of the
+   same name is running will be canceled.
+
+   If Allow Duplicate Jobs is set to Higher, then any job starting with the same
+   or lower level will be canceled, but any job with a Higher level will start.
+   The Levels are from High to Low:  Full, Differential, Incremental
+
+   Finally, if you have Duplicate Job Interval set to a non-zero value, any job
+   of the same name which starts <time-interval> after a previous job of the
+   same name would run, any one that starts within <time-interval> would be
+   subject to the above rules.  Another way of looking at it is that the Allow
+   Duplicate Jobs directive will only apply after <time-interval> of when the
+   previous job finished (i.e. it is the minimum interval between jobs).
+
+   So in summary:
+
+   Allow Duplicate Jobs = Yes | No | HigherLevel | CancelLowerLevel  (Yes)
+
+   Where HigherLevel cancels any waiting job but not any running job.
+   Where CancelLowerLevel is same as HigherLevel but cancels any running job or
+               waiting job.
+
+   Duplicate Job Proximity = <time-interval>   (0)
+
+    Skip  = Do not allow two or more jobs with the same name to run
+    simultaneously within the proximity interval. The second and subsequent
+    jobs are skipped without further processing (other than to note the job
+    and exit immediately), and are not considered errors.
+
+    Fail = The second and subsequent jobs that attempt to run during the
+    proximity interval are cancelled and treated as error-terminated jobs.
+
+    Promote = If a job is running, and a second/subsequent job of higher
+    level attempts to start, the running job is promoted to the higher level
+    of processing using the resources already allocated, and the subsequent
+    job is treated as in Skip above.
+===
+- the cd-command should allow complete paths
+  i.e. cd /foo/bar/foo/bar
+  -> if a customer mails me the path to a certain file,
+     its faster to enter the specified directory
+- Fix bpipe.c so that it does not modify results pointer.
+  ***FIXME*** calling sequence should be changed.
+- Make tree walk routines like cd, ls, ... more user friendly
+  by handling spaces better.
+=== rate design
+  jcr->last_rate
+  jcr->last_runtime
+  MA = (last_MA * 3 + rate) / 4
+  rate = (bytes - last_bytes) / (runtime - last_runtime)
+- Add a recursive mark command (rmark) to restore.
+- "Minimum Job Interval = nnn" sets minimum interval between Jobs
+  of the same level and does not permit multiple simultaneous
+  running of that Job (i.e. lets any previous invocation finish
+  before doing Interval testing).
+- Look at simplifying File exclusions.
+- New directive "Delete purged Volumes"
+- It appears to me that you have run into some sort of race
+  condition where two threads want to use the same Volume and they
+  were both given access.  Normally that is no problem.  However,
+  one thread wanted the particular Volume in drive 0, but it was
+  loaded into drive 1 so it decided to unload it from drive 1 and
+  then loaded it into drive 0, while the second thread went on
+  thinking that the Volume could be used in drive 1 not realizing
+  that in between time, it was loaded in drive 0.
+  I'll look at the code to see if there is some way we can avoid
+  this kind of problem.  Probably the best solution is to make the
+  first thread simply start using the Volume in drive 1 rather than
+  transferring it to drive 0.
 - Complete Catalog in Pool
 - Implement Bacula plugins -- design API
 - Scripts
@@ -80,6 +158,7 @@ Priority:
 - Duplicate Jobs
   Run, Fail, Skip, Higher, Promote, CancelLowerLevel
   Proximity
+  New directive.
 - Auto update of slot:
    rufus-dir: ua_run.c:456-10 JobId=10 NewJobId=10 using pool Full priority=10
    02-Nov 12:58 rufus-dir JobId 10: Start Backup JobId 10, Job=kernsave.2007-11-02_12.58.03
@@ -146,7 +225,6 @@ Priority:
    > configuration string value to a CRYPTO_CIPHER_* value, if anyone is  
    > interested in implementing this functionality.
 
-- Why doesn't @"xxx abc" work in a conf file?
 - Figure out some way to "automatically" backup conf changes.
 - Add the OS version back to the Win32 client info.
 - Restarted jobs have a NULL in the from field.
@@ -218,9 +296,6 @@ Projects:
 For next release:
 - Try to fix bscan not working with multiple DVD volumes bug #912.
 - Look at mondo/mindi
-- Don't restore Solaris Door files:
-   #define   S_IFDOOR   in st_mode.
-  see: http://docs.sun.com/app/docs/doc/816-5173/6mbb8ae23?a=view#indexterm-360
 - Make Bacula by default not backup tmpfs, procfs, sysfs, ...
 - Fix hardlinked immutable files when linking a second file, the
   immutable flag must be removed prior to trying to link it.
@@ -277,18 +352,6 @@ Low priority:
   http://linuxwiki.de/Bacula   (in German)
 
 - Possibly allow SD to spool even if a tape is not mounted.
-- It appears to me that you have run into some sort of race
-  condition where two threads want to use the same Volume and they
-  were both given access.  Normally that is no problem.  However,
-  one thread wanted the particular Volume in drive 0, but it was
-  loaded into drive 1 so it decided to unload it from drive 1 and
-  then loaded it into drive 0, while the second thread went on
-  thinking that the Volume could be used in drive 1 not realizing
-  that in between time, it was loaded in drive 0.
-  I'll look at the code to see if there is some way we can avoid
-  this kind of problem.  Probably the best solution is to make the
-  first thread simply start using the Volume in drive 1 rather than
-  transferring it to drive 0.
 - Fix re-read of last block to check if job has actually written
   a block, and check if block was written by a different job
   (i.e. multiple simultaneous jobs writing).
@@ -359,70 +422,6 @@ select Path.Path from Path,File where File.JobId=nnn and
 - Look into replacing autotools with cmake
   http://www.cmake.org/HTML/Index.html
 
-=== Migration from David ===
-What I'd like to see: 
-
-Job {
-  Name = "<poolname>-migrate"
-  Type = Migrate
-  Messages = Standard
-  Pool = Default
-  Migration Selection Type = LowestUtil | OldestVol | PoolOccupancy |
-Client | PoolResidence | Volume | JobName | SQLquery
-  Migration Selection Pattern = "regexp"
-  Next Pool = <override>
-}
-
-There should be no need for a Level (migration is always Full, since you
-don't calculate differential/incremental differences for migration),
-Storage should be determined by the volume types in the pool, and Client
-is really a selection issue.  Migration should always occur to the
-NextPool defined in the pool definition. If no nextpool is defined, the
-job should end with a reason of "no place to go". If Next Pool statement
-is present, we override the check in the pool definition and use the
-pool specified. 
-
-Here's how I'd define Migration Selection Types: 
-
-With Regexes:
-Client  -- Migrate data from selected client only. Migration Selection
-Pattern regexp provides pattern to select client names, eg ^FS00* makes
-all client names starting with FS00 eligible for migration. 
-
-Jobname -- Migration all jobs matching name. Migration Selection Pattern
-regexp provides pattern to select jobnames existing in pool. 
-
-Volume -- Migrate all data on specified volumes. Migration Selection
-Pattern regexp provides selection criteria for volumes to be migrated.
-Volumes must exist in pool to be eligible for migration. 
-
-
-With Regex optional:
-LowestUtil -- Identify the volume in the pool with the least data on it
-and empty it. No Migration Selection Pattern required. 
-
-OldestVol -- Identify the LRU volume with data written, and empty it. No
-Migration Selection Pattern required. 
-
-PoolOccupancy -- if pool occupancy exceeds <highmig>, migrate volumes
-(starting with most full volumes) until pool occupancy drops below
-<lowmig>. Pool highmig and lowmig values are in pool definition, no
-Migration Selection Pattern required.
-
-
-No regex:
-SQLQuery -- Migrate all jobuids returned by the supplied SQL query.
-Migration Selection Pattern contains SQL query to execute; should return
-a list of 1 or more jobuids to migrate.
-
-PoolResidence -- Migrate data sitting in pool for longer than
-PoolResidence value in pool definition. Migration Selection Pattern
-optional; if specified, override value in pool definition (value in
-minutes). 
-
-
-[ possibly a Python event -- kes ]
-===
 - Mount on an Autochanger with no tape in the drive causes:
    Automatically selected Storage: LTO-changer
    Enter autochanger drive[0]: 0
@@ -571,20 +570,12 @@ minutes).
   ("D","Diff"),
   ("I","Inc");
 - Show files/second in client status output.
-- Add a recursive mark command (rmark) to restore.
-- "Minimum Job Interval = nnn" sets minimum interval between Jobs
-  of the same level and does not permit multiple simultaneous
-  running of that Job (i.e. lets any previous invocation finish
-  before doing Interval testing).
-- Look at simplifying File exclusions.
-- New directive "Delete purged Volumes"
 - new pool XXX with ScratchPoolId = MyScratchPool's PoolId and
   let it fill itself, and RecyclePoolId = XXX's PoolId so I can
   see if it become stable and I just have to supervise
   MyScratchPool
 - If I want to remove this pool, I set RecyclePoolId = MyScratchPool's
   PoolId, and when it is empty remove it.
-- Figure out how to recycle Scratch volumes back to the Scratch Pool.
 - Add Volume=SCRTCH
 - Allow Check Labels to be used with Bacula labels.
 - "Resuming" a failed backup (lost line for example) by using the
@@ -616,8 +607,6 @@ minutes).
   backups of the same client and if we again try to start a full backup of 
   client backup abc bacula won't complain. That should be fixed.
 
-- Fix bpipe.c so that it does not modify results pointer.
-  ***FIXME*** calling sequence should be changed.
 - For Windows disaster recovery see http://unattended.sf.net/
 - regardless of the retention period, Bacula will not prune the
   last Full, Diff, or Inc File data until a month after the
@@ -647,11 +636,8 @@ minutes).
 
 - In restore don't compare byte count on a raw device -- directory
   entry does not contain bytes.
-=== rate design
-  jcr->last_rate
-  jcr->last_runtime
-  MA = (last_MA * 3 + rate) / 4
-  rate = (bytes - last_bytes) / (runtime - last_runtime)
+
+
 - Max Vols limit in Pool off by one?
 - Implement Files/Bytes,... stats for restore job.
 - Implement Total Bytes Written, ... for restore job.
@@ -765,6 +751,77 @@ minutes).
 
   - It remains to be seen how the backup performance of the DIR's will be
   affected when comparing the catalog for a large filesystem.
+
+   1. Use the current Director in-memory tree code (very fast), but currently in 
+   memory.  It probably could be paged.
+
+   2. Use some DB such as Berkeley DB or SQLite.  SQLite is already compiled and 
+   built for Win32, and it is something we could compile into the program.
+
+   3. Implement our own custom DB code.
+
+   Note, by appropriate use of Directives in the Director, we can dynamically 
+   decide if the work is done in the Director or in the FD, and we can even 
+   allow the user to choose.
+
+=== most recent accurate file backup/restore ===
+   Here is a sketch (i.e. more details must be filled in later) that I recently 
+   made of an algorithm for doing Accurate Backup.
+
+   1. Dir informs FD that it is doing an Accurate backup and lookup done by 
+   Director.
+
+   2. FD passes through the file system doing a normal backup based on normal 
+   conditions, recording the names of all files and their attributes, and 
+   indicating which files were backed up.  This is very similar to what Verify 
+   does.
+
+   3. The Director receives the two lists of files at the end of the FD backup. 
+   One, files backed up, and one files not backed up. It then looks up all the 
+   files not backed up (using Verify style code).
+
+   4. The Dir sends the FD a list of:
+     a. Additional files to backup (based on user specified criteria, name, size
+           inode date, hash, ...).
+             b. Files to delete.
+
+   5. Dir deletes list of file not backed up.
+
+   6. FD backs up additional files generates a list of those backed up and sends 
+   it to the Director, which adds it to the list of files backed up.  The list 
+   is now complete and current.
+
+   7. The FD generates delete records for all the files that were deleted and 
+   sends to the SD.
+
+   8. The Dir deletes the previous CurrentBackup list, and then does a 
+   transaction insert of the new list that it has.
+
+   9. The rest works as before ...
+
+   That is it.
+
+   Two new tables needed.
+   1. CurrentBackupId table that contains Client, JobName, FileSet, and a unique 
+   BackupId.  This is created during a Full save, and the BackupId can be set to 
+   the JobId of the Full save.  It will remain the same until another Full 
+   backup is done.  That is when new records are added during a Differential or 
+   Incremental, they must use the same BackupId.
+
+   2. CurrentBackup table that contains essentially a File record (less a number 
+   of fields, but with a few extra fields) -- e.g. a flag that the File was 
+   backed up by a Full save (this permits doing a Differential).    The unique 
+   BackupId allows us to look up the CurrentBackup for a particular Client, 
+   Jobname, FileSet using that unique BackupId as the key, so this table must be 
+   indexed by the BackupId. 
+
+   Note any time a file is saved by the FD other than during a Full save, the 
+   Full save flag is cleared.  When doing a Differential backup, if a file has 
+   the Full save flag set, it is skipped, otherwise it is backed up.  For an 
+   Incremental backup, we check to see if the file has changed since the last 
+   time we backed it up.
+
+   Deleted files should have FileIndex == 0
 
 ==== 
 From David:
@@ -924,18 +981,6 @@ Why:
     format string. Then I have the tape labeled automatically with weekday
     name in the correct language.
 ==========
--  Yes, that is surely the case. I probably should turn those into Warning
-   errors. In addition, you just made me think that it might not be bad to
-   add an option to check the file size after backing up the file and
-   report if it changes. This would be done as an option because it would
-   add extra overhead.
- 
-   Kern, good idea.  If you do do that, mention in the output: file 
-   shrunk, or file expanded, just to make it obvious to the user 
-   (without having to the refer to file size), just how the file size 
-   changed.
- 
-   Would this option be for all file, or just one file?  Or a fileset?
 - Make output from status use html table tags for nicely 
   presenting in a browser.
 - Can one write tapes faster with 8192 byte block sizes?
@@ -1055,10 +1100,6 @@ Documentation to do: (any release a little bit at a time)
   -> maybe its more easy to maintain this, if the
      descriptions of that commands are outsourced to
      a ceratin-file
-- the cd-command should allow complete paths
-  i.e. cd /foo/bar/foo/bar
-  -> if a customer mails me the path to a certain file,
-     its faster to enter the specified directory
 - if the password is not configured in bconsole.conf
   you should be asked for it.
   -> sometimes you like to do restore on a customer-machine
@@ -1261,8 +1302,6 @@ Documentation to do: (any release a little bit at a time)
   to start a job or pass its DHCP obtained IP number.
 - Implement a query tape prompt/replace feature for a console
 - Copy console @ code to gnome2-console
-- Make tree walk routines like cd, ls, ... more user friendly
-  by handling spaces better.
 - Make sure that Bacula rechecks the tape after the 20 min wait.
 - Set IO_NOWAIT on Bacula TCP/IP packets.
 - Try doing a raw partition backup and restore by mounting a
@@ -1827,3 +1866,8 @@ Block Position: 0
 - Add the ability to consolidate old backup sets (basically do a restore
   to tape and appropriately update the catalog). Compress Volume sets.
   Might need to spool via file is only one drive is available.
+- Why doesn't @"xxx abc" work in a conf file?
+- Don't restore Solaris Door files:
+   #define   S_IFDOOR   in st_mode.
+  see: http://docs.sun.com/app/docs/doc/816-5173/6mbb8ae23?a=view#indexterm-360
+- Figure out how to recycle Scratch volumes back to the Scratch Pool.
