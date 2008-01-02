@@ -3608,7 +3608,7 @@ sub display_overview_zoom
     my ($self) = @_;
     $self->can_do('r_view_stat');
 
-    my $arg = $self->get_form(qw/jclient_groups age since type/);
+    my $arg = $self->get_form(qw/jclient_groups age since type level/);
 
     if (!$arg->{jclient_groups}) {
 	return $self->error("Can't get client_group selection");
@@ -3640,7 +3640,7 @@ FROM (
 ";
     my $items = $self->make_overview_tab($q);
     $self->display({label => $label,
-		    action => "job;since=$arg->{since};type=$arg->{type};age=$arg->{age};client=", 
+		    action => "job;since=$arg->{since};level=$arg->{level};type=$arg->{type};age=$arg->{age};client=", 
 		    items => $items}, "overview.tpl");
 }
 
@@ -3649,7 +3649,7 @@ sub display_overview
     my ($self) = @_ ;
     $self->can_do('r_view_stat');
 
-    my $arg = $self->get_form(qw/jclient_groups age since type/);
+    my $arg = $self->get_form(qw/jclient_groups age since type level/);
     my ($filter2, undef) = $self->get_param(qw/client_groups level jobtype/);
     my $filter3 = $self->get_client_group_filter();
     my ($stime1, $stime2, $filter1, $label, $jobt) = $self->get_time_overview($arg);
@@ -3674,7 +3674,7 @@ FROM (
 ";
     my $items = $self->make_overview_tab($q);
     $self->display({label=>$label,
-		    action => "overview_zoom;since=$arg->{since};type=$arg->{type};age=$arg->{age};client_group=", 
+		    action => "overview_zoom;since=$arg->{since};level=$arg->{level};type=$arg->{type};age=$arg->{age};client_group=", 
 		    items => $items}, "overview.tpl");
 
 }
