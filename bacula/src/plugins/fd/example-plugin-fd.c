@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,7 +40,7 @@ extern "C" {
 
 #define PLUGIN_LICENSE      "GPL"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
-#define PLUGIN_DATE         "November 2007"
+#define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
 #define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"
 
@@ -128,7 +128,10 @@ static bpError setPluginValue(bpContext *ctx, pVariable var, void *value)
 
 static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
 {
+   char *name;
    printf("plugin: HandleEvent Event=%d\n", event->eventType);
+   bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
+   printf("FD Name=%s\n", name);
    return 0;
 }
 

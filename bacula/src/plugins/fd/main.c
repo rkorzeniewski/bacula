@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -43,6 +43,10 @@ const char *plugin_type = "-fd.so";
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value);
 static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value);
 static bpError baculaRegisterEvents(bpContext *ctx, ...);
+static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+  int type, time_t mtime, const char *msg);
+static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+  int level, const char *msg);
 
 /* Bacula info */
 static bInfo binfo = {
@@ -57,8 +61,8 @@ static bFuncs bfuncs = {
    baculaRegisterEvents,
    baculaGetValue,
    baculaSetValue,
-   NULL,
-   NULL,
+   baculaJobMsg,
+   baculaDebugMsg
 };
     
 
@@ -89,14 +93,18 @@ int main(int argc, char *argv[])
 
       /* Start a new instance of the plugin */
       plug_func(plugin)->newPlugin(&ctx);
-      event.eventType = bEventNewVolume;   
+      event.eventType = bEventJobStart;
+      plug_func(plugin)->handlePluginEvent(&ctx, &event);
+      event.eventType = bEventJobEnd;
       plug_func(plugin)->handlePluginEvent(&ctx, &event);
       /* Free the plugin instance */
       plug_func(plugin)->freePlugin(&ctx);
 
       /* Start a new instance of the plugin */
       plug_func(plugin)->newPlugin(&ctx);
-      event.eventType = bEventNewVolume;   
+      event.eventType = bEventJobStart;
+      plug_func(plugin)->handlePluginEvent(&ctx, &event);
+      event.eventType = bEventJobEnd;
       plug_func(plugin)->handlePluginEvent(&ctx, &event);
       /* Free the plugin instance */
       plug_func(plugin)->freePlugin(&ctx);
@@ -113,8 +121,23 @@ int main(int argc, char *argv[])
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
    printf("bacula: baculaGetValue var=%d\n", var);
-   if (value) {
+   if (!value) {
+      return 1;
+   }
+   switch (var) {
+   case bVarJobId:
       *((int *)value) = 100;
+      break;
+   case bVarFDName:
+      *((char **)value) = "FD Name";
+      break;
+   case bVarLevel:
+   case bVarType:
+   case bVarClient:
+   case bVarJobName:
+   case bVarJobStatus:
+   case bVarSinceTime:
+      break;
    }
    return 0;
 }
@@ -135,5 +158,21 @@ static bpError baculaRegisterEvents(bpContext *ctx, ...)
       printf("Plugin wants event=%u\n", event);
    }
    va_end(args);
+   return 0;
+}
+
+static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+  int type, time_t mtime, const char *msg)
+{
+   printf("Job message: %s:%d type=%d time=%ld msg=%s\n",
+      file, line, type, mtime, msg);
+   return 0;
+}
+
+static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+  int level, const char *msg)
+{
+   printf("Debug message: %s:%d level=%d msg=%s\n",
+      file, line, level, msg);
    return 0;
 }

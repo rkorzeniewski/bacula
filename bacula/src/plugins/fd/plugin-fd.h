@@ -56,17 +56,19 @@ extern "C" {
 
 /* Bacula Variable Ids */
 typedef enum {
-  bVarJobId = 1
+  bVarJobId     = 1,
+  bVarFDName    = 2,
+  bVarLevel     = 3,
+  bVarType      = 4,
+  bVarClient    = 5,
+  bVarJobName   = 6,
+  bVarJobStatus = 7,
+  bVarSinceTime = 8
 } bVariable;
 
 typedef enum {
   bEventJobStart      = 1,
-  bEventJobInit       = 2,
-  bEventJobRun        = 3,
-  bEventJobEnd        = 4,
-  bEventNewVolume     = 5,
-  bEventVolumePurged  = 6,
-  bEventReload        = 7
+  bEventJobEnd        = 2,
 } bEventType;
 
 typedef struct s_bEvent {
@@ -85,8 +87,10 @@ typedef struct s_baculaFuncs {
    bpError (*registerBaculaEvents)(bpContext *ctx, ...);
    bpError (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bpError (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
-   bpError (*allocBaculaMem)(bpContext *ctx, uint32_t size, char *addr);
-   bpError (*freeBaculaMem)(bpContext *ctx, char *addr);
+   bpError (*JobMessage)(bpContext *ctx, const char *file, int line, 
+       int type, time_t mtime, const char *msg);     
+   bpError (*DebugMessage)(bpContext *ctx, const char *file, int line,
+       int level, const char *msg);
 } bFuncs;
 
 
