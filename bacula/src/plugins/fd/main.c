@@ -36,6 +36,7 @@
 #include "lib/plugin.h"
 #include "fd-plugins.h"
 
+const int dbglvl = 0;
 const char *plugin_type = "-fd.so";
 
 
@@ -82,10 +83,10 @@ int main(int argc, char *argv[])
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
    load_fd_plugins(plugin_dir);
 
-   jcr1->JobId = 1;
+   jcr1->JobId = 111;
    new_plugins(jcr1);
 
-   jcr2->JobId = 2;
+   jcr2->JobId = 222;
    new_plugins(jcr2);
 
    plugin_event(jcr1, bEventJobStart);
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
 
    unload_plugins();
 
-   printf("bacula: OK ...\n");
+   Dmsg0(dbglvl, "bacula: OK ...\n");
    close_memory_pool();
    sm_dump(false);
    return 0;
@@ -110,6 +111,7 @@ void plugin_event(JCR *jcr, bEventType eventType)
    int i = 0;
 
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
    event.eventType = eventType;
    foreach_alist(plugin, plugin_list) {
       plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event);
@@ -144,6 +146,7 @@ void new_plugins(JCR *jcr)
    jcr->plugin_ctx = (void *)malloc(sizeof(bpContext) * num);
 
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Start a new instance of each plugin */
       plugin_ctx[i].bContext = (void *)jcr;
@@ -172,13 +175,16 @@ void free_plugins(JCR *jcr)
 
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
-   printf("bacula: baculaGetValue var=%d\n", var);
+   JCR *jcr = (JCR *)(ctx->bContext);
+   Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    if (!value) {
       return 1;
    }
+   Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
    switch (var) {
    case bVarJobId:
-      *((int *)value) = ((JCR *)ctx)->JobId;
+      *((int *)value) = jcr->JobId;
+      Dmsg1(dbglvl, "Bacula: return bVarJobId=%d\n", jcr->JobId);
       break;
    case bVarFDName:
       *((char **)value) = "FD Name";
@@ -196,7 +202,7 @@ static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
 
 static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value)
 {
-   printf("bacula: baculaSetValue var=%d\n", var);
+   Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
    return 0;
 }
 
@@ -207,7 +213,7 @@ static bpError baculaRegisterEvents(bpContext *ctx, ...)
 
    va_start(args, ctx);
    while ((event = va_arg(args, uint32_t))) {
-      printf("Plugin wants event=%u\n", event);
+      Dmsg1(dbglvl, "Plugin wants event=%u\n", event);
    }
    va_end(args);
    return 0;
@@ -216,7 +222,7 @@ static bpError baculaRegisterEvents(bpContext *ctx, ...)
 static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg)
 {
-   printf("Job message: %s:%d type=%d time=%ld msg=%s\n",
+   Dmsg5(dbglvl, "Job message: %s:%d type=%d time=%ld msg=%s\n",
       file, line, type, mtime, msg);
    return 0;
 }
@@ -224,7 +230,7 @@ static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
 static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg)
 {
-   printf("Debug message: %s:%d level=%d msg=%s\n",
+   Dmsg4(dbglvl, "Debug message: %s:%d level=%d msg=%s\n",
       file, line, level, msg);
    return 0;
 }
