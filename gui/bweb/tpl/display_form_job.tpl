@@ -55,6 +55,7 @@
   <td valign='top'>
     <h2>__Age__</h2>
     <select name='age' class='formulaire' onclick='document.getElementById("since").value="";'>
+      <option id='age_86400'   value='86400'>__1 day</option>
       <option id='age_604800'   value='604800'>__1 week__</option>
       <option id='age_2678400'  value='2678400'>__30 days__</option>
       <option id='age_15552000' value='15552000'>__6 months__</option>
@@ -66,6 +67,7 @@
   <td valign='top'>
     <h2>__Age__</h2>
     <select name='age' class='formulaire'>
+      <option id='age_86400'   value='86400'>__Last 24h__</option>
       <option id='age_604800'   value='604800'>__This week__</option>
       <option id='age_2678400'  value='2678400'>__Last 30 days__</option>
       <option id='age_15552000' value='15552000'>__Last 6 months__</option>

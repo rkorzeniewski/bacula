@@ -38,6 +38,7 @@ use GTime;
 use Getopt::Long ;
 use Bweb;
 use Time::ParseDate qw/parsedate/;
+use POSIX qw/strftime/;
 use CGI;
 
 my $conf = new Bweb::Config(config_file => $Bweb::config_file);
@@ -47,6 +48,10 @@ my $bweb = new Bweb(info => $conf);
 my $arg = $bweb->get_form(qw/qiso_begin qiso_end qusage qpool qnojob
                              jclient_groups db_client_groups qclient_groups/);
 
+if (!$arg->{qiso_begin}) {
+   $arg->{qiso_begin} = strftime('\'%F %H:%M:00\'', localtime(time - 60*60*12));
+   $arg->{qiso_end} = strftime('\'%F %H:%M:00\'', localtime(time));
+}
 use Digest::MD5 qw(md5_hex);
 my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" . 
 		      "$arg->{jclient_groups}:$arg->{qpool};$arg->{qnojob}") ;
