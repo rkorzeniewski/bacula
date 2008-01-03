@@ -1,0 +1,88 @@
+Index: src/dird/dird_conf.c
+===================================================================
+--- src/dird/dird_conf.c	(révision 6192)
++++ src/dird/dird_conf.c	(copie de travail)
+@@ -1678,6 +1678,8 @@
+ 
+ /* We build RunScripts items here */
+ static RUNSCRIPT res_runscript;
++static alist *res_runscript_cmd;
++static alist *res_runscript_type;
+ 
+ /* Store a runscript->when in a bit field */
+ static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
+@@ -1731,7 +1733,10 @@
+    lex_get_token(lc, T_STRING);
+ 
+    if (pass == 2) {
+-      ((RUNSCRIPT*)item->value)->set_command(lc->str, item->code);
++      POOLMEM *c = get_pool_memory(PM_FNAME);
++      pm_strcpy(c, lc->str);
++      res_runscript_cmd->prepend(c);
++      res_runscript_type->prepend((void*) item->code);
+    }
+    scan_to_eol(lc);
+ }
+@@ -1833,7 +1838,8 @@
+  */
+ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
+ {
+-   int token, i;
++   char *c;
++   int token, i, t;
+    alist **runscripts = (alist **)(item->value) ;
+ 
+    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
+@@ -1846,6 +1852,11 @@
+       scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
+    }
+    
++   if (pass == 2) {
++      res_runscript_cmd = New(alist(10, not_owned_by_alist));
++      res_runscript_type = New(alist(10, not_owned_by_alist));
++   }
++
+    while ((token = lex_get_token(lc, T_SKIP_EOL)) != T_EOF) {
+       if (token == T_EOB) {
+         break;
+@@ -1873,26 +1884,26 @@
+    }
+ 
+    if (pass == 2) {
+-      if (res_runscript.command == NULL) {
+-         scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
+-                   "command", "runscript");
+-      }
+-
+       /* run on client by default */
+       if (res_runscript.target == NULL) {
+          res_runscript.set_target("%c");
+       }
+-
+-      RUNSCRIPT *script = new_runscript();
+-      memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
+-      script->set_job_code_callback(job_code_callback_filesetname);
+-      
+       if (*runscripts == NULL) {
+-        *runscripts = New(alist(10, not_owned_by_alist));
++         *runscripts = New(alist(10, not_owned_by_alist));
+       }
+-      
+-      (*runscripts)->append(script);
+-      script->debug();
++      while ((c=(char*)res_runscript_cmd->pop()) != NULL) {
++         t = (int) res_runscript_type->pop();
++         RUNSCRIPT *script = new_runscript();
++         memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
++         script->set_job_code_callback(job_code_callback_filesetname);
++         script->command = c;
++         script->cmd_type = t;
++
++         (*runscripts)->append(script);
++         script->debug();
++      }
++      delete res_runscript_type;
++      delete res_runscript_cmd;
+    }
+ 
+    scan_to_eol(lc);
