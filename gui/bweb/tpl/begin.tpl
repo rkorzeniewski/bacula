@@ -61,7 +61,13 @@ if ('__Main__' == ('_' + '_Main_' + '_')) {
   </ul>
  </li>
 </TMPL_IF> 
- <li><a href="bweb.pl?action=graph"> __Statistics__ </a></li>
+ <li><a href="bweb.pl?action=graph"> __Statistics__ </a>
+  <ul>
+    <li><a href="bweb.pl?action=graph"> __Statistics__ </a>
+    <li><a href="btime.pl"> __Backup Timing__ </a>
+    <!-- <li><a href="bperf.pl"> __Perfs__ </a> -->
+  </ul>
+ </li>
  <li> <a href="bweb.pl?action=view_conf"> __Configuration__ </a> 
 <TMPL_IF enable_security>
   <ul> <li> <a href="bweb.pl?action=view_conf"> __Configuration__ </a> 
