@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,7 +31,6 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
-#include <dlfcn.h>
 #include "plugin.h"
 
 /* All loaded plugins */
@@ -58,18 +57,18 @@ Plugin *new_plugin()
  */
 bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type)
 {
+   bool found = false;
+#ifndef HAVE_WIN32
    t_loadPlugin loadPlugin;
    Plugin *plugin;
    DIR* dp = NULL;
    struct dirent *entry = NULL, *result;
    int name_max;
    struct stat statp;
-   bool found = false;
    POOL_MEM fname(PM_FNAME);
    bool need_slash = false;
    int len, type_len;
 
-   plugin = new_plugin();
 
    name_max = pathconf(".", _PC_NAME_MAX);
    if (name_max < 1024) {
@@ -117,6 +116,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
          continue;                 /* ignore directories & special files */
       }
 
+      plugin = new_plugin();
       plugin->file = bstrdup(result->d_name);
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
@@ -152,6 +152,7 @@ get_out:
    if (dp) {
       closedir(dp);
    }
+#endif
    return found;
 }
 
@@ -160,6 +161,7 @@ get_out:
  */
 void unload_plugins()
 {
+#ifndef HAVE_WIN32
    Plugin *plugin;
 
    foreach_alist(plugin, plugin_list) {
@@ -173,4 +175,5 @@ void unload_plugins()
    }
    delete plugin_list;
    plugin_list = NULL;
+#endif
 }
