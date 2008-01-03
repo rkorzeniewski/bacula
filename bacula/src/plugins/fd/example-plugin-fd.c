@@ -129,9 +129,18 @@ static bpError setPluginValue(bpContext *ctx, pVariable var, void *value)
 static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
 {
    char *name;
-   printf("plugin: HandleEvent Event=%d\n", event->eventType);
+   switch (event->eventType) {
+   case bEventJobStart:
+      printf("plugin: HandleEvent JobStart\n");
+      break;
+   case bEventJobEnd:
+      printf("plugin: HandleEvent JobEnd\n");
+      break;
+   }
    bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
    printf("FD Name=%s\n", name);
+   bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
+   bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");
    return 0;
 }
 

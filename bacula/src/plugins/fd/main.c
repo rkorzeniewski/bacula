@@ -32,7 +32,6 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
-#include <dlfcn.h>
 #include "lib/plugin.h"
 #include "plugin-fd.h"
 
