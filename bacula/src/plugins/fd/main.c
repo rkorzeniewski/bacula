@@ -32,8 +32,9 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
+#include "jcr.h"
 #include "lib/plugin.h"
-#include "plugin-fd.h"
+#include "fd-plugins.h"
 
 const char *plugin_type = "-fd.so";
 
@@ -46,6 +47,12 @@ static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg);
 static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg);
+
+void load_fd_plugins(const char *plugin_dir);
+void new_plugins(JCR *jcr);
+void free_plugins(JCR *jcr);
+void plugin_event(JCR *jcr, bEventType event);
+
 
 /* Bacula info */
 static bInfo binfo = {
@@ -65,49 +72,28 @@ static bFuncs bfuncs = {
 };
     
 
-
-
 int main(int argc, char *argv[])
 {
    char plugin_dir[1000];
-   bpContext ctx;
-   bEvent event;
-   Plugin *plugin;
+   JCR mjcr1, mjcr2;
+   JCR *jcr1 = &mjcr1;
+   JCR *jcr2 = &mjcr2;
     
-   plugin_list = New(alist(10, not_owned_by_alist));
-
-   ctx.bContext = NULL;
-   ctx.pContext = NULL;
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
+   load_fd_plugins(plugin_dir);
 
-   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+   jcr1->JobId = 1;
+   new_plugins(jcr1);
 
-   foreach_alist(plugin, plugin_list) {
-      printf("bacula: plugin_size=%d plugin_version=%d\n", 
-              plug_func(plugin)->size, plug_func(plugin)->interface);
-      printf("License: %s\nAuthor: %s\nDate: %s\nVersion: %s\nDescription: %s\n",
-         plug_info(plugin)->plugin_license, plug_info(plugin)->plugin_author, 
-         plug_info(plugin)->plugin_date, plug_info(plugin)->plugin_version, 
-         plug_info(plugin)->plugin_description);
+   jcr2->JobId = 2;
+   new_plugins(jcr2);
 
-      /* Start a new instance of the plugin */
-      plug_func(plugin)->newPlugin(&ctx);
-      event.eventType = bEventJobStart;
-      plug_func(plugin)->handlePluginEvent(&ctx, &event);
-      event.eventType = bEventJobEnd;
-      plug_func(plugin)->handlePluginEvent(&ctx, &event);
-      /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&ctx);
-
-      /* Start a new instance of the plugin */
-      plug_func(plugin)->newPlugin(&ctx);
-      event.eventType = bEventJobStart;
-      plug_func(plugin)->handlePluginEvent(&ctx, &event);
-      event.eventType = bEventJobEnd;
-      plug_func(plugin)->handlePluginEvent(&ctx, &event);
-      /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&ctx);
-   }
+   plugin_event(jcr1, bEventJobStart);
+   plugin_event(jcr1, bEventJobEnd);
+   plugin_event(jcr2, bEventJobStart);
+   free_plugins(jcr1);
+   plugin_event(jcr2, bEventJobEnd);
+   free_plugins(jcr2);
 
    unload_plugins();
 
@@ -117,6 +103,73 @@ int main(int argc, char *argv[])
    return 0;
 }
 
+void plugin_event(JCR *jcr, bEventType eventType) 
+{
+   bEvent event;
+   Plugin *plugin;
+   int i = 0;
+
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   event.eventType = eventType;
+   foreach_alist(plugin, plugin_list) {
+      plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event);
+   }
+}
+
+void load_fd_plugins(const char *plugin_dir)
+{
+   if (!plugin_dir) {
+      return;
+   }
+
+   plugin_list = New(alist(10, not_owned_by_alist));
+
+   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+}
+
+/*
+ * Create a new instance of each plugin for this Job
+ */
+void new_plugins(JCR *jcr)
+{
+   Plugin *plugin;
+   int i = 0;
+
+   int num = plugin_list->size();
+
+   if (num == 0) {
+      return;
+   }
+
+   jcr->plugin_ctx = (void *)malloc(sizeof(bpContext) * num);
+
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   foreach_alist(plugin, plugin_list) {
+      /* Start a new instance of each plugin */
+      plugin_ctx[i].bContext = (void *)jcr;
+      plugin_ctx[i].pContext = NULL;
+      plug_func(plugin)->newPlugin(&plugin_ctx[i++]);
+   }
+}
+
+/*
+ * Free the plugin instances for this Job
+ */
+void free_plugins(JCR *jcr)
+{
+   Plugin *plugin;
+   int i = 0;
+
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   foreach_alist(plugin, plugin_list) {
+      /* Free the plugin instance */
+      plug_func(plugin)->freePlugin(&plugin_ctx[i++]);
+   }
+   free(plugin_ctx);
+   jcr->plugin_ctx = NULL;
+}
+
+
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
    printf("bacula: baculaGetValue var=%d\n", var);
@@ -125,7 +178,7 @@ static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
    }
    switch (var) {
    case bVarJobId:
-      *((int *)value) = 100;
+      *((int *)value) = ((JCR *)ctx)->JobId;
       break;
    case bVarFDName:
       *((char **)value) = "FD Name";
