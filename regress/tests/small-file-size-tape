@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory 
 #   to a tape where the maximum tape file size is set to 1M
 #
-TestName="small-file-size-tape"
+TestName="small-file-size-1t1d-tape"
 JobName=smallfilesize
 . scripts/functions
 
