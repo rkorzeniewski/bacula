@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory
 #   then verify the catalog.           
 #
-TestName="verify-vol-tape"
+TestName="verify-vol-1t1d-tape"
 JobName=VerifyVol
 . scripts/functions
 

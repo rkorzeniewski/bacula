@@ -5,7 +5,7 @@
 #
 # This script uses the autochanger and two tapes
 #
-TestName="2drive-incremental-2tape"
+TestName="2drive-incremental-2t2da-tape"
 JobName="2drive2tape"
 . scripts/functions
 
