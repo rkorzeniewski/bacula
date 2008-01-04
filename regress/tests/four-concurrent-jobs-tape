@@ -2,7 +2,7 @@
 #
 # Run four jobs at the same time
 #
-TestName="four-concurrent-jobs-tape"
+TestName="four-concurrent-jobs-1t1d-tape"
 JobName=FourConcurrentJobs
 . scripts/functions
 
