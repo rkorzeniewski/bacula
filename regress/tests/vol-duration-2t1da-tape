@@ -9,14 +9,11 @@
 #
 # This test uses an autochanger
 #
-TestName="vol-duration-2t:1d:a-tape"
+TestName="vol-duration-2t1da-tape"
 JobName=VolDuration
 . scripts/functions
 
-if test x${AUTOCHANGER} = x/dev/null ; then
-   echo "$TestName test skipped. No autochanger."
-   exit
-fi
+skip_if_not_autochanger
 
 scripts/cleanup
 scripts/copy-2tape-confs
