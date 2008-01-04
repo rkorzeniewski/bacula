@@ -9,7 +9,7 @@
 #
 # This test uses an autochanger
 #
-TestName="vol-duration-tape"
+TestName="vol-duration-2t:1d:a-tape"
 JobName=VolDuration
 . scripts/functions
 
