@@ -4,7 +4,7 @@
 #   to a tape where we set the minimum and maximum block
 #   sizes.
 #
-TestName="fixed-block-size-tape"
+TestName="fixed-block-size-1t1d-tape"
 JobName=fixedblocksize
 . scripts/functions
 
