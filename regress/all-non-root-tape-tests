@@ -25,5 +25,6 @@ nice tests/two-pool-tape
 nice tests/2drive-incremental-2tape
 nice tests/bscan-tape
 nice tests/verify-vol-tape
+nice tests/vol-duration-tape
 echo "End all non-root tape tests"
 echo "End all non-root tape tests" >>test.out
