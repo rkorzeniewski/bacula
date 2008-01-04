@@ -21,7 +21,7 @@ nice tests/relabel-tape
 nice tests/restore-by-file-tape
 nice tests/small-file-size-tape
 nice tests/truncate-bug-tape
-nice tests/two-pool-tape
+nice tests/two-pool-2t1da-tape
 nice tests/2drive-incremental-2t2da-tape
 nice tests/bscan-tape
 nice tests/verify-vol-1t1d-tape

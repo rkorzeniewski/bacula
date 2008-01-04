@@ -12,7 +12,7 @@ JobName=twopooltape
 . scripts/functions
 
 if test x${AUTOCHANGER} = x/dev/null ; then
-   echo "two-pool-tape test skipped. No autochanger."
+   echo "${TestName} test skipped. No autochanger."
    exit
 fi
 
