@@ -25,6 +25,14 @@ if [ $MUID != 0 ] ; then
 fi
 }
 
+skip_if_no_autochanger()
+{
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "$TestName test skipped. No autochanger."
+   exit
+fi
+
+}
 
 set_debug()
 {
