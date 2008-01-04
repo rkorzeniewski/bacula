@@ -6,7 +6,7 @@
 #   file size to 1M, it runs very slow. There are about 64 files that
 #   are created during each of the two backups.
 #
-TestName="restore-by-file-tape"
+TestName="restore-by-file-1t1d-tape"
 JobName=restorebyfile
 . scripts/functions
 copy_tape_confs
