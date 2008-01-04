@@ -15,7 +15,7 @@ nice tests/backup-bacula-tape
 nice tests/btape-fill-tape
 nice tests/fixed-block-size-tape
 nice tests/four-concurrent-jobs-tape
-nice tests/four-jobs-tape
+nice tests/four-jobs-1t1d-tape
 nice tests/incremental-tape
 nice tests/relabel-1t1d-tape
 nice tests/restore-by-file-1t1d-tape
