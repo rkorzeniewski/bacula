@@ -7,7 +7,7 @@
 #  is in ${cwd}/tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
-TestName="two-pool-tape"
+TestName="two-pool-2t1da-tape"
 JobName=twopooltape
 . scripts/functions
 
