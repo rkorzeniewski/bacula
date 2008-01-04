@@ -22,7 +22,7 @@ nice tests/restore-by-file-tape
 nice tests/small-file-size-tape
 nice tests/truncate-bug-tape
 nice tests/two-pool-tape
-nice tests/2drive-incremental-2tape
+nice tests/2drive-incremental-2t2da-tape
 nice tests/bscan-tape
 nice tests/verify-vol-1t1d-tape
 nice tests/vol-duration-2t1da-tape
