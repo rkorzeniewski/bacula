@@ -4,7 +4,7 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
-TestName="relabel-tape"
+TestName="relabel-1t1d-tape"
 JobName=Relabeltape
 . scripts/functions
 
