@@ -3,7 +3,7 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do an Incremental and restore those two files.
 #
-TestName="incremental-tape"
+TestName="incremental-1t1d-tape"
 JobName=IncTape
 . scripts/functions
 
