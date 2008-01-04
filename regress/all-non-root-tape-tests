@@ -18,7 +18,7 @@ nice tests/four-concurrent-jobs-tape
 nice tests/four-jobs-tape
 nice tests/incremental-tape
 nice tests/relabel-tape
-nice tests/restore-by-file-tape
+nice tests/restore-by-file-1t1d-tape
 nice tests/small-file-size-1t1d-tape
 nice tests/truncate-bug-1t1d-tape
 nice tests/two-pool-2t1da-tape
