@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory but 
+#   create two volumes and set a short Volume duration on
+#   the first so that it will be used, recycled.  Then
+#   Bug #1032 indicates it will get a changer error when
+#   loading the second volume. However, we cannot reproduce
+#   this problem.
+#
+# This test uses an autochanger
+#
+TestName="vol-duration-tape"
+JobName=VolDuration
+. scripts/functions
+
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "$TestName test skipped. No autochanger."
+   exit
+fi
+
+scripts/cleanup
+scripts/copy-2tape-confs
+scripts/prepare-two-tapes
+
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+setdebug level=100 storage=DDS-4
+label storage=DDS-4 volume=TestVolume001 slot=1 pool=Default drive=0
+label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=0
+update Volume=TestVolume001 VolUse=30
+update Volume=TestVolume002 VolUse=30
+run job=$JobName level=Full Storage=DDS-4 yes
+@sleep 31
+run job=$JobName level=Full Storage=DDS-4 yes
+wait
+messages
+list volumes
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=DDS-4
+unmark *
+mark *
+done
+yes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
