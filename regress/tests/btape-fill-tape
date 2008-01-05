@@ -2,7 +2,7 @@
 #
 # Test the fill command in btape
 #
-TestName="btape-fill-tape"
+TestName="btape-fill-1t1d-tape"
 JobName=filltape
 . scripts/functions
 
