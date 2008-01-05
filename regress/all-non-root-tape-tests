@@ -23,7 +23,7 @@ nice tests/small-file-size-1t1d-tape
 nice tests/truncate-bug-1t1d-tape
 nice tests/two-pool-2t1da-tape
 nice tests/2drive-incremental-2t2da-tape
-nice tests/bscan-tape
+nice tests/bscan-1t1d-tape
 nice tests/verify-vol-1t1d-tape
 nice tests/vol-duration-2t1da-tape
 echo "End all non-root tape tests"
