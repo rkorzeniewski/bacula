@@ -1157,6 +1157,37 @@ Item h10: Clustered file-daemons
           implement it. A lot more design detail should be presented
           before voting on this project.
 
+========= Added since the last vote =================
+
+Item: Store and restore extended attributes, especially selinux file contexts
+   Date: 28 December 2007
+   Origin: Frank Sweetser <fs@wpi.edu>
+   What: The ability to store and restore extended attributes on
+         filesystems that support them, such as ext3.
+
+   Why: Security Enhanced Linux (SELinux) enabled systems make extensive
+        use of extended attributes.  In addition to the standard user,
+        group, and permission, each file has an associated SELinux context
+        stored as an extended attribute.  This context is used to define
+        which operations a given program is permitted to perform on that
+        file.  Storing contexts on an SELinux system is as critical as
+        storing ownership and permissions.  In the case of a full system
+        restore, the system will not even be able to boot until all
+        critical system files have been properly relabeled.
+
+ Notes: Fedora ships with a version of tar that has been patched to handle
+        extended attributes.  The patch has not been integrated upstream
+        yet, so could serve as a good starting point.
+
+        http://linux.die.net/man/2/getxattr
+        http://linux.die.net/man/2/setxattr
+        http://linux.die.net/man/2/listxattr
+        ===
+        http://linux.die.net/man/3/getfilecon
+        http://linux.die.net/man/3/setfilecon
+
+
+
 
 ========== Already implemented ================================
 
