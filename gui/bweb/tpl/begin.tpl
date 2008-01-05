@@ -52,15 +52,14 @@ if ('__Main__' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=intern_media">__Load Media__</a> </li>
   </ul>
  </li>
-<TMPL_IF achs>
- <li style="padding: 0.25em 2em;">__Autochanger__
+ <li style="padding: 0.25em 2em;">__Storages__
   <ul>
+   <li><a href="bweb.pl?action=cmd_storage">__Manage Device__</a><TMPL_IF achs><hr></TMPL_IF></li>
 <TMPL_LOOP achs>
    <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
 </TMPL_LOOP>
   </ul>
  </li>
-</TMPL_IF> 
  <li><a href="bweb.pl?action=graph"> __Statistics__ </a>
   <ul>
     <li><a href="bweb.pl?action=graph"> __Statistics__ </a>

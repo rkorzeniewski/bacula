@@ -128,6 +128,9 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'location_del') {
     $bweb->location_del();
 
+} elsif ($action eq 'cmd_storage') {
+    $bweb->cmd_storage();
+
 } elsif ($action eq 'media') {
     $bweb->can_do('r_view_media');
 

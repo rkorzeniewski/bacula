@@ -1716,6 +1716,7 @@ sub get_form
 		 enabled => 1,
                  username => 1,
                  rolename => 1,
+		 storage_cmd => 1,
                  );
     my %opt_p = (		# option with path
 		 fileset=> 1,
@@ -1787,6 +1788,12 @@ sub get_form
 		    $ret{$i} = $1;
 		}
 	    }
+	}
+    }
+
+    if ($what{storage_cmd}) {
+	if (!grep {/^$ret{storage_cmd}$/} ('mount', 'umount', 'release','status')) {
+	    delete $ret{storage_cmd};
 	}
     }
 
@@ -4471,6 +4478,28 @@ sub get_bconsole
 {
     my ($self) = @_;
     return new Bconsole(pref => $self->{info});
+}
+
+sub cmd_storage
+{
+    my ($self) = @_;
+    $self->can_do('r_storage_mgnt');
+    my $arg = $self->get_form(qw/storage storage_cmd drive/);
+    my $b = $self->get_bconsole();
+
+    if ($arg->{storage} and $arg->{storage_cmd}) {
+	my $cmd = "$arg->{storage_cmd} storage=\"$arg->{storage}\" drive=$arg->{drive}";
+	my $ret = $b->send_cmd($cmd);
+
+	$self->display({
+	    content => $ret,
+	    title => "Storage ",
+	    name => $cmd,
+	}, "command.tpl");		
+    } else {
+	my $storages= [ map { { name => $_ } } $b->list_storage()];
+	$self->display({ storage => $storages}, "cmd_storage.tpl");
+    }
 }
 
 sub run_job_select

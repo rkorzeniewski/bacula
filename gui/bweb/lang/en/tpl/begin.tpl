@@ -52,16 +52,21 @@ if ('Main' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=intern_media">Load Media</a> </li>
   </ul>
  </li>
-<TMPL_IF achs>
- <li style="padding: 0.25em 2em;">Autochanger
+ <li style="padding: 0.25em 2em;">Storages
   <ul>
+   <li><a href="bweb.pl?action=cmd_storage">Manage Device</a><TMPL_IF achs><hr></TMPL_IF></li>
 <TMPL_LOOP achs>
    <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
 </TMPL_LOOP>
   </ul>
  </li>
-</TMPL_IF> 
- <li><a href="bweb.pl?action=graph"> Statistics </a></li>
+ <li><a href="bweb.pl?action=graph"> Statistics </a>
+  <ul>
+    <li><a href="bweb.pl?action=graph"> Statistics </a>
+    <li><a href="btime.pl"> Backup Timing </a>
+    <!-- <li><a href="bperf.pl"> Perfs </a> -->
+  </ul>
+ </li>
  <li> <a href="bweb.pl?action=view_conf"> Configuration </a> 
 <TMPL_IF enable_security>
   <ul> <li> <a href="bweb.pl?action=view_conf"> Configuration </a> 

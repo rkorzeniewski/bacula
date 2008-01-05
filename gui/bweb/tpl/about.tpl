@@ -7,7 +7,7 @@
    Bweb - A Bacula web interface
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bweb is Eric Bollengier.
    The main author of Bacula is Kern Sibbald, with contributions from
