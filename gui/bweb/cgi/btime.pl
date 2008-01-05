@@ -82,7 +82,7 @@ $sec =~ s/Job.StartTime/Log.Time/;
 my $reg = $bweb->{sql}->{MATCH};
 
 
-my %regs1 = (
+my %regs = (
 	    end_job => ': Bacula [1-9]',
 	    start_job => ': Start Backup',
 	    data_despool_time => ': Despooling elapsed time',
@@ -93,7 +93,7 @@ my %regs1 = (
 	    );
 
 
-my %regs = (
+my %regs_fr = (
 	    end_job => ': Bacula [1-9]',
 	    start_job => ': D.marrage du ',
 	    data_despool_time => ': Temps du tran',
