@@ -89,6 +89,7 @@ INSERT INTO bweb_role (rolename) VALUES ('r_configure');
 
 INSERT INTO bweb_role (rolename) VALUES ('r_autochanger_mgnt');
 INSERT INTO bweb_role (rolename) VALUES ('r_location_mgnt');
+INSERT INTO bweb_role (rolename) VALUES ('r_storage_mgnt');
 INSERT INTO bweb_role (rolename) VALUES ('r_delete_job');
 INSERT INTO bweb_role (rolename) VALUES ('r_prune');
 INSERT INTO bweb_role (rolename) VALUES ('r_purge');

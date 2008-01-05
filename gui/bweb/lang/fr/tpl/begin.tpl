@@ -52,18 +52,14 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=intern_media">Internaliser</a> </li>
   </ul>
  </li>
- <li style="padding: 0.25em 2em;">Storage
+ <li style="padding: 0.25em 2em;">Storages
   <ul>
-   <li><a href="bweb.pl?action=cmd_storage">Manage Device</a></li>
-<TMPL_IF achs>
-<li><hr></li>
-</TMPL_IF>
+   <li><a href="bweb.pl?action=cmd_storage">Manage Device</a><TMPL_IF achs><hr></TMPL_IF></li>
 <TMPL_LOOP achs>
    <li><a href="bweb.pl?action=ach_view;ach=<TMPL_VAR name>"><TMPL_VAR name></a></li>
 </TMPL_LOOP>
   </ul>
  </li>
-</TMPL_IF> 
  <li><a href="bweb.pl?action=graph"> Statistiques </a>
   <ul>
     <li><a href="bweb.pl?action=graph"> Statistiques </a>
