@@ -11,7 +11,7 @@ echo " " >>test.out
 echo "Start all non-root tape tests"
 echo "Start all non-root tape tests" >>test.out
 nice tests/ansi-label-tape
-nice tests/backup-bacula-tape
+nice tests/backup-bacula-1t1d-tape
 nice tests/btape-fill-1t1d-tape
 nice tests/fixed-block-size-1t1d-tape
 nice tests/four-concurrent-jobs-1t1d-tape
