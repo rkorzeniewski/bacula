@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -579,7 +579,7 @@ static int update_volume(UAContext *ua)
       i = do_prompt(ua, "", _("Select parameter to modify"), NULL, 0);  
 
       /* For All Volumes, All Volumes from Pool, and Done, we don't need
-	   * a Volume record */
+           * a Volume record */
       if ( i != 12 && i != 13 && i != 16) {
          if (!select_media_dbr(ua, &mr)) {  /* Get Volume record */
             return 0;

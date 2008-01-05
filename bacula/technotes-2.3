@@ -1,18 +1,24 @@
               Technical notes on version 2.3
 
 General:
+05Jan08
+kes  Fix reserve_volume() so it doesn't release a volume in use
+     (i.e. a volume entry not marked released). This should be
+     the last part needed to fix bug #1018.
 02Jan08
-kes  Fix exist switch drive SD code to call autochanger to release
+kes  Fix existing switch drive SD code to call autochanger to release
      any old volume. This must be done to keep the autochanger from
      releasing subsequently newly reserved volumes in doing a close().
+     This should fix bug #1018.
 kes  Fail if attempting to get console input in batch mode. This
      should help fail RunScript console commands that are incomplete.
 kes  First cut implementing switch_drive() in SD (not actually called).
 31Dec07
 kes  Implement first cut running console commands in a RunScript.
 29Dec07
-ebl  Fixes #1028 where "Selection Type" option was not usable with JobDefs.
-ebl  Fixes #897 and #1005 where bacula doesn't display runscript
+ebl  Fixes bug #1028 where "Selection Type" option was not usable 
+     with JobDefs.
+ebl  Fixes bug #897 and bug #1005 where bacula doesn't display runscript
      output in error.
 24Dec07
 kes  Add new free_tls() entry point so that Win32 builds.

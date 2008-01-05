@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -82,7 +82,10 @@ static int my_compare(void *item1, void *item2)
    return strcmp(((VOLRES *)item1)->vol_name, ((VOLRES *)item2)->vol_name);
 }
 
-
+/*
+ * This allows a given thread to recursively call lock_reservations.
+ *   It must, of course, call unlock_... the same number of times.
+ */
 void init_reservations_lock()
 {
    int errstat;
@@ -132,6 +135,9 @@ void _unlock_reservations()
 
 int vol_list_lock_count = 0;
 
+/* 
+ * This allows a given thread to recursively call to lock_volumes()
+ */
 void _lock_volumes()
 {
    int errstat;
@@ -330,6 +336,11 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          Dmsg1(dbglvl, "OK, vol=%s on device.\n", VolumeName);
          goto get_out;                  /* Volume already on this device */
       } else {
+         /* Don't release a volume if it is in use */
+         if (!vol->released) {
+            vol = NULL;                  /* vol in use */
+            goto get_out;
+         }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
@@ -393,6 +404,7 @@ get_out:
 
 /* 
  * Switch from current device to given device  
+ *   (not yet used) 
  */
 void switch_device(DCR *dcr, DEVICE *dev)
 {
@@ -467,8 +479,12 @@ void unreserve_device(DCR *dcr)
 
 /*  
  * Free a Volume from the Volume list if it is no longer used
+ *   Note, for tape drives we want to remember where the Volume
+ *   was when last used, so rather than free the volume entry,
+ *   we simply mark it "released" so when the drive is really
+ *   needed for another volume, we can reuse it.
  *
- *  Returns: true if the Volume found and removed from the list
+ *  Returns: true if the Volume found and "removed" from the list
  *           false if the Volume is not in the list or is in use
  */
 bool volume_unused(DCR *dcr)
@@ -502,7 +518,7 @@ bool volume_unused(DCR *dcr)
 }
 
 /*
- * Unconditionally release the volume
+ * Unconditionally release the volume entry
  */
 bool free_volume(DEVICE *dev)
 {
@@ -953,8 +969,9 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       free_volume_list();                  /* release temp_vol_list */
       vol_list = save_vol_list;
       Dmsg0(dbglvl, "deleted temp vol list\n");
-      Dmsg0(dbglvl, "lock volumes\n");
+      Dmsg0(dbglvl, "unlock volumes\n");
       unlock_volumes();
+      debug_list_volumes("=== After free temp table\n");
    }
    if (ok) {
       Dmsg1(dbglvl, "got vol %s from in-use vols list\n", rctx.VolumeName);

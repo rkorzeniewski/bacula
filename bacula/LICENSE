@@ -75,7 +75,7 @@ Code falling under the above conditions will be marked as follows:
 
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -122,9 +122,10 @@ copyrighted code.
 GPLv2 or later license:
  src/tools/bsmtp.c
     Copyright (C) 1997 Ralf S. Engelschall, All Rights Reserved.
-  (note, bsmtp.c does not use OpenSSL)
+  (note, bsmtp.c does not use OpenSSL, nor is it used with the code
+   of any other part of Bacula)
 
-BSD License notice for inclusion with the binary:
+3 clause BSD License notice for inclusion with the binary:              
  src/lib/fnmatch.c
    * Copyright (c) 1989, 1993, 1994
    *      The Regents of the University of California.  All rights reserved.
@@ -163,7 +164,7 @@ that contains cryptographic software written by Eric Young
 (tjh@cryptsoft.com).
 
 There are parts of Bacula that are licensed under the LGPL so
-that they may be used in proprietary code to interface with
+that those files may be used in proprietary code to interface with
 Bacula.
 
 Finally there are parts of Bacula that are in the public domain.
