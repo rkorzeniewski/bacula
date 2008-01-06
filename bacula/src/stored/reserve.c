@@ -456,8 +456,8 @@ VOLRES *find_volume(DCR *dcr)
 }
 
 /* 
- * Remove any reservation from a drive and tell the system
- *  that the volume is unused at least by us.
+ * Remove any reservation from a drive and if no one is using
+ *  the volume, mark it unused.
  */
 void unreserve_device(DCR *dcr)
 {
@@ -475,8 +475,10 @@ void unreserve_device(DCR *dcr)
          Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
          dev->num_writers = 0;
       }
+      if (dev->reserved_device == 0 && dev->num_writers == 0) {
+         volume_unused(dcr);
+      }
    }
-   volume_unused(dcr);
 }
 
 /*  
@@ -499,11 +501,15 @@ bool volume_unused(DCR *dcr)
       return false;
    }
 
+#ifdef xxx
    if (dev->is_busy()) {
       Dmsg1(dbglvl, "vol_unused: busy on %s\n", dev->print_name());
       debug_list_volumes("dev busy cannot unreserve_volume");
       return false;
    }
+#endif
+   Dmsg2(dbglvl, "mark released. num_writers=%d reserved=%d\n",
+      dev->num_writers, dev->reserved_device);
 
    /*  
     * If this is a tape, we do not free the volume, rather we wait
