@@ -80,7 +80,6 @@ bool acquire_device_for_read(DCR *dcr)
          edit_int64(jcr->JobId, ed1));
       goto get_out;
    }
-   volume_unused(dcr);                /* release any current volume */
    jcr->CurReadVolume++;
    for (i=1; i<jcr->CurReadVolume; i++) {
       vol = vol->next;
@@ -507,6 +506,7 @@ bool release_device(DCR *dcr)
       dev->clear_read();              /* clear read bit */
       Dmsg0(100, "dir_update_vol_info. Release0\n");
       dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
+      volume_unused(dcr);
 
    } else if (dev->num_writers > 0) {
       /* 
@@ -527,6 +527,7 @@ bool release_device(DCR *dcr)
          if (!dev->num_writers && dev->can_write() && dev->block_num > 0) {
             dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
+            volume_unused(dcr);
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */

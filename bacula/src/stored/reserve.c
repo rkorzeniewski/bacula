@@ -456,8 +456,8 @@ VOLRES *find_volume(DCR *dcr)
 }
 
 /* 
- * Remove any reservation from a drive and if no one is using
- *  the volume, mark it unused.
+ * Remove any reservation from a drive and tell the system
+ *  that the volume is unused at least by us.
  */
 void unreserve_device(DCR *dcr)
 {
@@ -510,6 +510,11 @@ bool volume_unused(DCR *dcr)
 #endif
    Dmsg2(dbglvl, "mark released. num_writers=%d reserved=%d\n",
       dev->num_writers, dev->reserved_device);
+#ifdef xxx
+   if (dev->num_writers > 0 || dev->reserved_device > 0) {
+      ASSERT(0);
+   }
+#endif
 
    /*  
     * If this is a tape, we do not free the volume, rather we wait
@@ -1161,7 +1166,7 @@ static int reserve_device(RCTX &rctx)
             if (dcr->volume_in_use && !rctx.PreferMountedVols) {
                rctx.PreferMountedVols = true;
                if (dcr->VolumeName[0]) {
-                  volume_unused(dcr);
+        //        volume_unused(dcr);
                }
                goto bail_out;
             }
@@ -1178,7 +1183,7 @@ static int reserve_device(RCTX &rctx)
              */
             if (dcr->dev->num_writers != 0) {
                if (dcr->VolumeName[0]) {
-                  volume_unused(dcr);
+         //       volume_unused(dcr);
                }
                goto bail_out;
             }
