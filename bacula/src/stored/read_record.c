@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -82,6 +82,7 @@ bool read_records(DCR *dcr,
             DEV_RECORD *trec = new_record();
             Jmsg(jcr, M_INFO, 0, _("End of Volume at file %u on device %s, Volume \"%s\"\n"),
                  dev->file, dev->print_name(), dcr->VolumeName);
+            volume_unused(dcr);       /* mark volume unused */
             if (!mount_cb(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("End of all volumes.\n"));
                ok = false;            /* Stop everything */

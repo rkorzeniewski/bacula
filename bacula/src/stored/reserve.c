@@ -330,19 +330,20 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       vol = dev->vol;
       /*
        * Make sure we don't remove the current volume we are inserting
-       *  because it was probably inserted by another job.
+       *  because it was probably inserted by another job, or it
+       *  is not being used and is marked as released.
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
          Dmsg1(dbglvl, "OK, vol=%s on device.\n", VolumeName);
+         vol->released = false;         /* retake vol if released previously */
          goto get_out;                  /* Volume already on this device */
       } else {
          /* Don't release a volume if it is in use */
-#ifdef xxx
          if (!vol->released) {
+            Dmsg1(dbglvl, "Cannot free vol=%s. It is not released.\n", vol->vol_name);
             vol = NULL;                  /* vol in use */
             goto get_out;
          }
-#endif
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
@@ -475,7 +476,6 @@ void unreserve_device(DCR *dcr)
          dev->num_writers = 0;
       }
    }
-
    volume_unused(dcr);
 }
 
@@ -515,6 +515,10 @@ bool volume_unused(DCR *dcr)
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {
+      /*
+       * Note, this frees the volume reservation entry, but the 
+       *   file descriptor remains open with the OS.
+       */
       return free_volume(dev);
    }
 }

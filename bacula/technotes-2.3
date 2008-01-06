@@ -1,6 +1,11 @@
               Technical notes on version 2.3
 
 General:
+06Jan08
+kes  A few more tweaks to new reservation code. Make sure to clear
+     vol released flag when retaking volume. When reading label and
+     label is bad mark volume unused. When recycling, mark volume
+     unused so it can be renamed.
 05Jan08
 kes  Fix reserve_volume() so it doesn't release a volume in use
      (i.e. a volume entry not marked released). This should be
