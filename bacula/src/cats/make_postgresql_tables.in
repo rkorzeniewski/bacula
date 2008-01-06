@@ -14,6 +14,7 @@ CREATE TABLE filename
     primary key (filenameid)
 );
 
+ALTER TABLE filename ALTER COLUMN name SET STATISTICS 1000;
 CREATE INDEX filename_name_idx on filename (name);
 
 CREATE TABLE path
@@ -23,6 +24,7 @@ CREATE TABLE path
     primary key (pathid)
 );
 
+ALTER TABLE path ALTER COLUMN path SET STATISTICS 1000;
 CREATE INDEX path_name_idx on path (path);
 
 CREATE TABLE file
