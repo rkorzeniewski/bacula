@@ -337,10 +337,12 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          goto get_out;                  /* Volume already on this device */
       } else {
          /* Don't release a volume if it is in use */
+#ifdef xxx
          if (!vol->released) {
             vol = NULL;                  /* vol in use */
             goto get_out;
          }
+#endif
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
