@@ -54,6 +54,8 @@ self-initalizing and should clean up after itself.
 All the tests expect you to execute them from the main regress 
 directory!               
 
+Running the disk based tests:
+
 You can run all the disk based tests by doing:
 
   ./do_file
@@ -61,6 +63,8 @@ You can run all the disk based tests by doing:
 The disk based tests are totally separate from any production
 system, provided you have configured the database appropriately     
 as noted above.
+
+Running all the "standard" tests:
 
 You can run all the disk and most of the tape tests by doing:
 
@@ -99,6 +103,24 @@ to do:
 
 this cleans up any files that may be created with root permissions.
 
+Tape test naming convention:
+
+I've renamed the tape tests to include an indication of how
+many tapes and drives each test needs.  The indication consists
+of 4 or 5 characters just before the final -tape.  For example,
+there is a tape test named:
+
+  vol-duration-2t1da-tape
+
+this means that it uses 2 tape (2t) one drive (1d) and the
+autochanger (a).  Another test might be named
+
+  fixed-block-size-1t1d-tape
+
+which means it uses one tape on one drive and no autochanger.
+
+Adding tests:
+
 If you want to add more tests, do so by putting the shell script 
 in the tests subdirectory. Be careful when adding (or better not)
 new clients, pools, and such to the test-bacula-dir.conf.in file
@@ -113,6 +135,7 @@ conf files, and you do not need a new copy of the source, you can simply do:
    make sed
 
 Debugging failed tests:
+
 Prior versions required editing the tests/xxxx and changing a debug flag.
 However, that has been replaced by two environment variables:
 
