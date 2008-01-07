@@ -23,7 +23,7 @@ label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 update Volume=TestVolume001 MaxVolBytes=3000000
 @#setdebug level=400 dir
-@#setdebug level=400 storage=File1
+setdebug level=400 storage=File1
 run job=$JobName storage=File1 yes
 wait
 messages
