@@ -1,3 +1,18 @@
+
+ This patch fixes bug #1034 about Temporary MySQL table 'batch' 
+ disappears if MySQL connection times out.
+
+ Apply the patch to 2.2.7 (and possibly any 2.2.x version with):
+
+ cd <bacula-source>
+ patch -p0 <2.2.7-mysql-batch-timeout.patch
+ ./configure <your-options>
+ make
+ ...
+ make install
+
+
+
 Index: src/cats/mysql.c
 ===================================================================
 --- src/cats/mysql.c	(révision 6192)
