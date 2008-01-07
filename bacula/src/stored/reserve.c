@@ -314,7 +314,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 
    ASSERT(dev != NULL);
 
-   Dmsg1(dbglvl, "reserve_volume %s\n", VolumeName);
+   Dmsg1(dbglvl, "enter reserve_volume %s\n", VolumeName);
    /* 
     * We lock the reservations system here to ensure
     *  when adding a new volume that no newly scheduled
@@ -328,13 +328,15 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
     */
    if (dev->vol) {
       vol = dev->vol;
+      Dmsg4(dbglvl, "Vol attached=%s, newvol=%s release=%d on %s\n",
+         vol->vol_name, VolumeName, vol->released, dev->print_name());
       /*
        * Make sure we don't remove the current volume we are inserting
        *  because it was probably inserted by another job, or it
        *  is not being used and is marked as released.
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
-         Dmsg1(dbglvl, "OK, vol=%s on device.\n", VolumeName);
+         Dmsg1(dbglvl, "=== OK, vol=%s on device. set not released.\n", VolumeName);
          vol->released = false;         /* retake vol if released previously */
          goto get_out;                  /* Volume already on this device */
       } else {
@@ -398,6 +400,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 
 get_out:
    if (vol) {
+      Dmsg1(dbglvl, "=== set not released. vol=%s\n", vol->vol_name);
       vol->released = false;
    }
    debug_list_volumes("end new volume");
@@ -508,8 +511,6 @@ bool volume_unused(DCR *dcr)
       return false;
    }
 #endif
-   Dmsg2(dbglvl, "mark released. num_writers=%d reserved=%d\n",
-      dev->num_writers, dev->reserved_device);
 #ifdef xxx
    if (dev->num_writers > 0 || dev->reserved_device > 0) {
       ASSERT(0);
@@ -522,6 +523,8 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
+   Dmsg2(dbglvl, "=== mark released. num_writers=%d reserved=%d\n",
+      dev->num_writers, dev->reserved_device);
    dev->vol->released = true;
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
@@ -549,7 +552,7 @@ bool free_volume(DEVICE *dev)
    vol = dev->vol;
    dev->vol = NULL;
    vol_list->remove(vol);
-   Dmsg2(dbglvl, "free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
+   Dmsg2(dbglvl, "=== free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
    free_vol_item(vol);
    debug_list_volumes("free_volume");
    unlock_volumes();
@@ -1136,7 +1139,7 @@ static int reserve_device(RCTX &rctx)
    bstrncpy(dcr->media_type, rctx.store->media_type, name_len);
    bstrncpy(dcr->dev_name, rctx.device_name, name_len);
    if (rctx.store->append == SD_APPEND) {
-      Dmsg2(dbglvl, "have_vol=%d vol=%s\n", rctx.have_volume, rctx.VolumeName);                                   
+      Dmsg2(dbglvl, "call reserve for append: have_vol=%d vol=%s\n", rctx.have_volume, rctx.VolumeName);                                   
       ok = reserve_device_for_append(dcr, rctx);
       if (!ok) {
          goto bail_out;
@@ -1146,8 +1149,13 @@ static int reserve_device(RCTX &rctx)
       Dmsg5(dbglvl, "Reserved=%d dev_name=%s mediatype=%s pool=%s ok=%d\n",
                dcr->dev->reserved_device,
                dcr->dev_name, dcr->media_type, dcr->pool_name, ok);
-      if (!rctx.have_volume) {
+      Dmsg2(dbglvl, "num_writers=%d, have_vol=%d\n", dcr->dev->num_writers,
+         rctx.have_volume);
+      if (rctx.have_volume && !reserve_volume(dcr, rctx.VolumeName)) {
+         goto bail_out;
+      } else {
          dcr->any_volume = true;
+         Dmsg0(dbglvl, "no vol, call find_next_appendable_vol.\n");
          if (dir_find_next_appendable_volume(dcr)) {
             bstrncpy(rctx.VolumeName, dcr->VolumeName, sizeof(rctx.VolumeName));
             Dmsg1(dbglvl, "looking for Volume=%s\n", rctx.VolumeName);
@@ -1166,7 +1174,7 @@ static int reserve_device(RCTX &rctx)
             if (dcr->volume_in_use && !rctx.PreferMountedVols) {
                rctx.PreferMountedVols = true;
                if (dcr->VolumeName[0]) {
-        //        volume_unused(dcr);
+                  unreserve_device(dcr);
                }
                goto bail_out;
             }
@@ -1183,7 +1191,7 @@ static int reserve_device(RCTX &rctx)
              */
             if (dcr->dev->num_writers != 0) {
                if (dcr->VolumeName[0]) {
-         //       volume_unused(dcr);
+                  unreserve_device(dcr);
                }
                goto bail_out;
             }
@@ -1201,6 +1209,7 @@ static int reserve_device(RCTX &rctx)
    if (!ok) {
       goto bail_out;
    }
+
    if (rctx.notify_dir) {
       POOL_MEM dev_name;
       BSOCK *dir = rctx.jcr->dir_bsock;
