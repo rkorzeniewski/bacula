@@ -177,10 +177,10 @@ static void debug_list_volumes(const char *imsg)
    lock_volumes();
    foreach_dlist(vol, vol_list) {
       if (vol->dev) {
-         Mmsg(msg, "List from %s: %s at %p on device %s\n", imsg, 
-              vol->vol_name, vol->vol_name, vol->dev->print_name());
+         Mmsg(msg, "List %s: %s rel=%d on device %s\n", imsg, 
+              vol->vol_name, vol->released, vol->dev->print_name());
       } else {
-         Mmsg(msg, "List from %s: %s at %p no dev\n", imsg, vol->vol_name, vol->vol_name);
+         Mmsg(msg, "List %s: %s rel=%d no dev\n", imsg, vol->vol_name, vol->released);
       }
       Dmsg1(dbglvl, "%s", msg.c_str());
    }
@@ -337,15 +337,8 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
          Dmsg1(dbglvl, "=== OK, vol=%s on device. set not released.\n", VolumeName);
-         vol->released = false;         /* retake vol if released previously */
          goto get_out;                  /* Volume already on this device */
       } else {
-         /* Don't release a volume if it is in use */
-         if (!vol->released) {
-            Dmsg1(dbglvl, "Cannot free vol=%s. It is not released.\n", vol->vol_name);
-            vol = NULL;                  /* vol in use */
-            goto get_out;
-         }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
@@ -478,10 +471,9 @@ void unreserve_device(DCR *dcr)
          Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
          dev->num_writers = 0;
       }
-      if (dev->reserved_device == 0 && dev->num_writers == 0) {
-         volume_unused(dcr);
-      }
    }
+
+   volume_unused(dcr);
 }
 
 /*  
@@ -504,13 +496,11 @@ bool volume_unused(DCR *dcr)
       return false;
    }
 
-#ifdef xxx
    if (dev->is_busy()) {
       Dmsg1(dbglvl, "vol_unused: busy on %s\n", dev->print_name());
       debug_list_volumes("dev busy cannot unreserve_volume");
       return false;
    }
-#endif
 #ifdef xxx
    if (dev->num_writers > 0 || dev->reserved_device > 0) {
       ASSERT(0);
@@ -523,8 +513,8 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
-   Dmsg2(dbglvl, "=== mark released. num_writers=%d reserved=%d\n",
-      dev->num_writers, dev->reserved_device);
+   Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d reserved=%d\n",
+      dev->vol->vol_name, dev->num_writers, dev->reserved_device);
    dev->vol->released = true;
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
@@ -972,6 +962,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
                   Dmsg0(dbglvl, "No suitable device found.\n");
                }
                rctx.have_volume = false;
+               rctx.VolumeName[0] = 0;
             }
             if (ok) {
                break;
@@ -1149,21 +1140,17 @@ static int reserve_device(RCTX &rctx)
       Dmsg5(dbglvl, "Reserved=%d dev_name=%s mediatype=%s pool=%s ok=%d\n",
                dcr->dev->reserved_device,
                dcr->dev_name, dcr->media_type, dcr->pool_name, ok);
-      Dmsg2(dbglvl, "num_writers=%d, have_vol=%d\n", dcr->dev->num_writers,
-         rctx.have_volume);
-      if (rctx.have_volume && !reserve_volume(dcr, rctx.VolumeName)) {
-         goto bail_out;
-      } else {
+      Dmsg3(dbglvl, "Vol=%s num_writers=%d, have_vol=%d\n", 
+         rctx.VolumeName, dcr->dev->num_writers, rctx.have_volume);
+      if (!rctx.have_volume) {
          dcr->any_volume = true;
          Dmsg0(dbglvl, "no vol, call find_next_appendable_vol.\n");
          if (dir_find_next_appendable_volume(dcr)) {
             bstrncpy(rctx.VolumeName, dcr->VolumeName, sizeof(rctx.VolumeName));
-            Dmsg1(dbglvl, "looking for Volume=%s\n", rctx.VolumeName);
             rctx.have_volume = true;
+            Dmsg1(dbglvl, "looking for Volume=%s\n", rctx.VolumeName);
          } else {
             Dmsg0(dbglvl, "No next volume found\n");
-            rctx.have_volume = false;
-            rctx.VolumeName[0] = 0;
             /*
              * If there is at least one volume that is valid and in use,
              *   but we get here, check if we are running with prefers
@@ -1174,7 +1161,7 @@ static int reserve_device(RCTX &rctx)
             if (dcr->volume_in_use && !rctx.PreferMountedVols) {
                rctx.PreferMountedVols = true;
                if (dcr->VolumeName[0]) {
-                  unreserve_device(dcr);
+                  volume_unused(dcr);
                }
                goto bail_out;
             }
@@ -1191,10 +1178,12 @@ static int reserve_device(RCTX &rctx)
              */
             if (dcr->dev->num_writers != 0) {
                if (dcr->VolumeName[0]) {
-                  unreserve_device(dcr);
+                  volume_unused(dcr);
                }
                goto bail_out;
             }
+            rctx.have_volume = false;
+            rctx.VolumeName[0] = 0;
          }
       }
    } else {
@@ -1224,6 +1213,7 @@ static int reserve_device(RCTX &rctx)
 
 bail_out:
    rctx.have_volume = false;
+   rctx.VolumeName[0] = 0;
 // free_dcr(dcr);
    Dmsg0(dbglvl, "Not OK.\n");
    return 0;

@@ -324,7 +324,7 @@ DCR *acquire_device_for_append(DCR *dcr)
    init_device_wait_timers(dcr);
 
    dev->dblock(BST_DOING_ACQUIRE);
-   Dmsg1(190, "acquire_append device is %s\n", dev->is_tape()?"tape":
+   Dmsg1(100, "acquire_append device is %s\n", dev->is_tape()?"tape":
         (dev->is_dvd()?"DVD":"disk"));
 
    /*
@@ -506,7 +506,6 @@ bool release_device(DCR *dcr)
       dev->clear_read();              /* clear read bit */
       Dmsg0(100, "dir_update_vol_info. Release0\n");
       dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
-      volume_unused(dcr);
 
    } else if (dev->num_writers > 0) {
       /* 
@@ -527,7 +526,6 @@ bool release_device(DCR *dcr)
          if (!dev->num_writers && dev->can_write() && dev->block_num > 0) {
             dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
-            volume_unused(dcr);
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */

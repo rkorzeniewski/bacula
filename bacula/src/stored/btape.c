@@ -2732,7 +2732,6 @@ static bool my_mount_next_read_volume(DCR *dcr)
    Pmsg2(000, _("End of Volume \"%s\" %d records.\n"), dcr->VolumeName,
       quickie_count);
 
-   volume_unused(dcr);                    /* mark volume no longer needed */
    if (LastBlock != block->BlockNumber) {
       VolBytes += block->block_len;
    }

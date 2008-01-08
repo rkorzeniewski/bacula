@@ -257,7 +257,6 @@ int read_dev_volume_label(DCR *dcr)
    return VOL_OK;
 
 bail_out:
-   volume_unused(dcr);                /* mark volume "released" */
    empty_block(block);
    dev->rewind(dcr);
    Dmsg1(150, "return %d\n", stat);
@@ -317,7 +316,6 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    empty_block(dcr->block);
 
    if (relabel) {
-      volume_unused(dcr);             /* mark current volume unused */
       /* Truncate device */
       if (!dev->truncate(dcr)) {
          goto bail_out;
@@ -454,7 +452,6 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
          return false;
       }
       if (recycle) {
-         volume_unused(dcr);             /* mark volume unused */
          if (!dev->truncate(dcr)) {
             Jmsg2(jcr, M_FATAL, 0, _("Truncate error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->print_errmsg());

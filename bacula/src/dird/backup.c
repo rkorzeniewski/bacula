@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -423,7 +423,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    if (RunTime <= 0) {
       kbps = 0;
    } else {
-      kbps = (double)jcr->jr.JobBytes / (1000 * RunTime);
+      kbps = ((double)jcr->jr.JobBytes) / (1000.0 * (double)RunTime);
    }
    if (!db_get_job_volume_names(jcr, jcr->db, jcr->jr.JobId, &jcr->VolumeName)) {
       /*
@@ -445,7 +445,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
       if (compression < 0.5) {
          bstrncpy(compress, "None", sizeof(compress));
       } else {
-         bsnprintf(compress, sizeof(compress), "%.1f %%", (float)compression);
+         bsnprintf(compress, sizeof(compress), "%.1f %%", compression);
       }
    }
    jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
@@ -504,7 +504,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
         edit_uint64_with_commas(jcr->SDJobBytes, ec5),
         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
-        (float)kbps,
+        kbps,
         compress,
         jcr->VSS?"yes":"no",
         jcr->Encrypt?"yes":"no",

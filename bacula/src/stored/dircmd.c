@@ -512,7 +512,6 @@ static void label_volume_if_ok(DCR *dcr, char *oldname,
    }
 
 bail_out:
-   volume_unused(dcr);                   /* no longer using */
    if (!dev->is_open()) {
       dev->clear_volhdr();
    }
@@ -549,7 +548,6 @@ static bool read_label(DCR *dcr)
       ok = false;
       break;
    }
-   volume_unused(dcr);
    give_back_device_lock(dev, &hold);
    return ok;
 }
