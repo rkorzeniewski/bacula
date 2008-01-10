@@ -71,6 +71,7 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Implement Despooling data status.
 === Duplicate jobs ===
    hese apply only to backup jobs.
 
