@@ -516,7 +516,7 @@ bool volume_unused(DCR *dcr)
    Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d reserved=%d\n",
       dev->vol->vol_name, dev->num_writers, dev->reserved_device);
    dev->vol->released = true;
-   if (dev->is_tape() || dev->is_autochanger()) {
+   if (dev->is_tape()) { // || dev->is_autochanger()) {
       return true;
    } else {
       /*
@@ -1142,7 +1142,14 @@ static int reserve_device(RCTX &rctx)
                dcr->dev_name, dcr->media_type, dcr->pool_name, ok);
       Dmsg3(dbglvl, "Vol=%s num_writers=%d, have_vol=%d\n", 
          rctx.VolumeName, dcr->dev->num_writers, rctx.have_volume);
-      if (!rctx.have_volume) {
+      if (rctx.have_volume) {
+         if (reserve_volume(dcr, rctx.VolumeName)) {
+            Dmsg1(dbglvl, "Reserved vol=%s\n", rctx.VolumeName);
+         } else {
+            Dmsg1(dbglvl, "Could not reserve vol=%s\n", rctx.VolumeName);
+            goto bail_out;
+         }
+      } else {
          dcr->any_volume = true;
          Dmsg0(dbglvl, "no vol, call find_next_appendable_vol.\n");
          if (dir_find_next_appendable_volume(dcr)) {
@@ -1161,13 +1168,13 @@ static int reserve_device(RCTX &rctx)
             if (dcr->volume_in_use && !rctx.PreferMountedVols) {
                rctx.PreferMountedVols = true;
                if (dcr->VolumeName[0]) {
-                  volume_unused(dcr);
+                  unreserve_device(dcr);
                }
                goto bail_out;
             }
             /*
              * Note. Under some circumstances, the Director can hand us
-             *  a Volume name that is no the same as the one on the current
+             *  a Volume name that is not the same as the one on the current
              *  drive, and in that case, the call above to find the next
              *  volume will fail because in attempting to reserve the Volume
              *  the code will realize that we already have a tape mounted,
@@ -1178,7 +1185,7 @@ static int reserve_device(RCTX &rctx)
              */
             if (dcr->dev->num_writers != 0) {
                if (dcr->VolumeName[0]) {
-                  volume_unused(dcr);
+                  unreserve_device(dcr);
                }
                goto bail_out;
             }
@@ -1214,7 +1221,6 @@ static int reserve_device(RCTX &rctx)
 bail_out:
    rctx.have_volume = false;
    rctx.VolumeName[0] = 0;
-// free_dcr(dcr);
    Dmsg0(dbglvl, "Not OK.\n");
    return 0;
 }

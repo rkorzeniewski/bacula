@@ -1,11 +1,15 @@
               Technical notes on version 2.3
 
 General:
+10Jan08
+kes  Add DataDespooling and DataCommitting status (committing is
+     the last despooling).
+kes  Finish implementation of new reservations code noted below.
 08Jan08
+kes  Fix bsnprintf for float point numbers. I broke recently when
+     parameterizing some variables. This fixes bug #1036.
 kes  Undo recent reservations changes ... will apply them later
      when they work better.
-kes  Fix bsnprintf for float point numbers. I broke recently when
-     parameterizing some variables.
 06Jan08
 ebl  Fixes #1034 which cause mysql to hang the connection after 8h
 ebl  Change default statistics target of filename.name and path.path
@@ -37,6 +41,8 @@ ebl  Fixes bug #1028 where "Selection Type" option was not usable
      with JobDefs.
 ebl  Fixes bug #897 and bug #1005 where bacula doesn't display runscript
      output in error.
+
+Release Version 2.2.7
 24Dec07
 kes  Add new free_tls() entry point so that Win32 builds.
 kes  Fix compile warning in src/lib/util.c

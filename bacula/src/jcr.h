@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -89,6 +89,8 @@
 #define JS_WaitPriority          'p'  /* Waiting for higher priority jobs to finish */
 #define JS_AttrDespooling        'a'  /* SD despooling attributes */
 #define JS_AttrInserting         'i'  /* Doing batch insert file records */
+#define JS_DataDespooling        'l'  /* Doing data despooling */
+#define JS_DataCommitting        'L'  /* Committing data (last despool) */
 
 /* Migration selection types */
 enum {

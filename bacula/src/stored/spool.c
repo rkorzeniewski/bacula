@@ -232,10 +232,14 @@ static bool despool_data(DCR *dcr, bool commit)
       Jmsg(jcr, M_INFO, 0, _("Committing spooled data to Volume \"%s\". Despooling %s bytes ...\n"),
          jcr->dcr->VolumeName,
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
+      set_jcr_job_status(jcr, JS_DataCommitting);
    } else {
       Jmsg(jcr, M_INFO, 0, _("Writing spooled data to Volume. Despooling %s bytes ...\n"),
          edit_uint64_with_commas(jcr->dcr->job_spool_size, ec1));
+      set_jcr_job_status(jcr, JS_DataDespooling);
    }
+   set_jcr_job_status(jcr, JS_DataDespooling);
+   dir_send_job_status(jcr);
    dcr->despool_wait = true;
    dcr->spooling = false;
    /*
@@ -337,6 +341,7 @@ static bool despool_data(DCR *dcr, bool commit)
    free(rdev);
    dcr->spooling = true;           /* turn on spooling again */
    dcr->despooling = false;
+
    /* 
     * We are done, so unblock the device, but if we have done a 
     *  commit, leave it locked so that the job cleanup does not
@@ -348,6 +353,8 @@ static bool despool_data(DCR *dcr, bool commit)
    if (!commit) {
       dcr->dunlock();
    }
+   set_jcr_job_status(jcr, JS_Running);
+   dir_send_job_status(jcr);
    return ok;
 }
 
