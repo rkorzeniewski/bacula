@@ -337,8 +337,15 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
          Dmsg1(dbglvl, "=== OK, vol=%s on device. set not released.\n", VolumeName);
+         vol->released = false;         /* retake vol if released previously */
          goto get_out;                  /* Volume already on this device */
       } else {
+         /* Don't release a volume if it is in use */
+         if (!vol->released) {
+            Dmsg1(dbglvl, "Cannot free vol=%s. It is not released.\n", vol->vol_name);
+            vol = NULL;                  /* vol in use */
+            goto get_out;
+         }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
@@ -471,9 +478,10 @@ void unreserve_device(DCR *dcr)
          Jmsg1(dcr->jcr, M_ERROR, 0, _("Hey! num_writers=%d!!!!\n"), dev->num_writers);
          dev->num_writers = 0;
       }
+      if (dev->reserved_device == 0 && dev->num_writers == 0) {
+         volume_unused(dcr);
+      }
    }
-
-   volume_unused(dcr);
 }
 
 /*  
@@ -496,11 +504,13 @@ bool volume_unused(DCR *dcr)
       return false;
    }
 
+#ifdef xxx
    if (dev->is_busy()) {
       Dmsg1(dbglvl, "vol_unused: busy on %s\n", dev->print_name());
       debug_list_volumes("dev busy cannot unreserve_volume");
       return false;
    }
+#endif
 #ifdef xxx
    if (dev->num_writers > 0 || dev->reserved_device > 0) {
       ASSERT(0);
@@ -1158,6 +1168,8 @@ static int reserve_device(RCTX &rctx)
             Dmsg1(dbglvl, "looking for Volume=%s\n", rctx.VolumeName);
          } else {
             Dmsg0(dbglvl, "No next volume found\n");
+            rctx.have_volume = false;
+            rctx.VolumeName[0] = 0;
             /*
              * If there is at least one volume that is valid and in use,
              *   but we get here, check if we are running with prefers
@@ -1189,8 +1201,6 @@ static int reserve_device(RCTX &rctx)
                }
                goto bail_out;
             }
-            rctx.have_volume = false;
-            rctx.VolumeName[0] = 0;
          }
       }
    } else {
