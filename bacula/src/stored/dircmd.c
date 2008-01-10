@@ -549,6 +549,7 @@ static bool read_label(DCR *dcr)
       ok = false;
       break;
    }
+   volume_unused(dcr);
    give_back_device_lock(dev, &hold);
    return ok;
 }

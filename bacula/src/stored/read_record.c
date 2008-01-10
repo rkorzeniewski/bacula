@@ -82,6 +82,7 @@ bool read_records(DCR *dcr,
             DEV_RECORD *trec = new_record();
             Jmsg(jcr, M_INFO, 0, _("End of Volume at file %u on device %s, Volume \"%s\"\n"),
                  dev->file, dev->print_name(), dcr->VolumeName);
+            volume_unused(dcr);       /* mark volume unused */
             if (!mount_cb(dcr)) {
                Jmsg(jcr, M_INFO, 0, _("End of all volumes.\n"));
                ok = false;            /* Stop everything */
