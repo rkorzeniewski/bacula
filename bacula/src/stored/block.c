@@ -705,6 +705,11 @@ static void reread_last_block(DCR *dcr)
 #endif
 }
 
+/*
+ * If this routine is called, we do our bookkeeping and
+ *   then assure that the volume will not be written any
+ *   more.
+ */
 static bool terminate_writing_volume(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
