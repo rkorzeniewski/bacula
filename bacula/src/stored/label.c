@@ -409,6 +409,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    return true;
 
 bail_out:
+   volume_unused(dcr);
    dev->clear_volhdr();
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return false;

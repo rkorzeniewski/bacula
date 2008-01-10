@@ -541,6 +541,7 @@ bool release_device(DCR *dcr)
        *   has failed, since the device is not in read mode and
        *   there are no writers. It was probably reserved.
        */
+      volume_unused(dcr);
    }
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */

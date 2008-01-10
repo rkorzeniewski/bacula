@@ -636,6 +636,12 @@ static void list_running_jobs(UAContext *ua)
       case JS_WaitPriority:
          msg = _("is waiting for higher priority jobs to finish");
          break;
+      case JS_DataCommitting:
+         msg = _("SD committing Data");
+         break;
+      case JS_DataDespooling:
+         msg = _("SD despooling Data");
+         break;
       case JS_AttrDespooling:
          msg = _("SD despooling Attributes");
          break;
@@ -681,6 +687,12 @@ static void list_running_jobs(UAContext *ua)
         }
         msg = emsg;
         break;
+      case JS_DataCommitting:
+         msg = _("SD committing Data");
+         break;
+      case JS_DataDespooling:
+         msg = _("SD despooling Data");
+         break;
       case JS_AttrDespooling:
          msg = _("SD despooling Attributes");
          break;

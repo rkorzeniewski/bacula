@@ -515,6 +515,7 @@ bail_out:
    if (!dev->is_open()) {
       dev->clear_volhdr();
    }
+   volume_unused(dcr);                   /* no longer using volume */
    give_back_device_lock(dev, &hold);
    return;
 }
