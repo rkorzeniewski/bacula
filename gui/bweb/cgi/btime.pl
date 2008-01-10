@@ -83,24 +83,26 @@ my $reg = $bweb->{sql}->{MATCH};
 
 
 my %regs = (
-	    end_job => ': Bacula [1-9]',
+	    end_job => ': Bacula',
 	    start_job => ': Start Backup',
 	    data_despool_time => ': Despooling elapsed time',
 	    attr_despool_time => ': Sending spooled attrs',
 	    get_drive => ': Using Device',
 	    start_spool => ': Spooling',
 	    end_spool => ': User specified spool',
+	    end_spool2 => ': Committing spooled data to',
 	    );
 
 
 my %regs_fr = (
-	    end_job => ': Bacula [1-9]',
+	    end_job => ': Bacula',
 	    start_job => ': D.marrage du ',
 	    data_despool_time => ': Temps du tran',
-	    attr_despool_time => ': Transfert des',
+	    attr_despool_time => ': Transfert des attributs',
 	    get_drive => ': Using Device',
 	    start_spool => ': Spooling',
 	    end_spool => ': Taille du spool',
+	    end_spool2 => ': Transfert des donn',
 	    );
 
 my $filter = join(" OR ", 
@@ -126,7 +128,7 @@ FROM  Log INNER JOIN Job USING (JobId) JOIN Pool USING (PoolId)
   AND Job.StartTime < $arg->{qiso_end}
   AND ( $filter )
   AND Job.Type = 'B'
-ORDER BY Job.JobId,Log.Time  
+ORDER BY Job.JobId,Log.LogId,Log.Time  
 ";
 
 
@@ -160,14 +162,15 @@ foreach my $elt (@$all)
 	    end   => $elt->[1],
 	};
 
-    } elsif ($elt->[2] =~ /$regs{attr_despool_time}/) {
-
-	push @$data, {
-	    type  => "waiting",
-	    begin => $begin,
-	    end   => $elt->[1],
-	};
-
+#    } elsif ($elt->[2] =~ /$regs{attr_despool_time}/) {
+#
+#	push @$data, {
+#	    l => $elt->[2],
+#	    type  => "waiting",
+#	    begin => $begin,
+#	    end   => $elt->[1],
+#	};
+#
     } elsif ($elt->[2] =~ /$regs{get_drive} "([\w\d]+)"/) {
 	$drive = $1;
 
@@ -177,12 +180,14 @@ foreach my $elt (@$all)
 
 	if ($t > 10) {		# en dessous de 10s on affiche pas
 	    push @$data, {	# temps d'attente du drive
+#		l => $elt->[2],
 		type  => "waiting",
 		begin => $begin,
 		end   => parsedate($elt->[1]) - $t,
 	    };
 
 	    push @$data, {
+#		l => $elt->[2],
 		type  => "despool",
 		begin => parsedate($elt->[1]) - $t,
 		end   => $elt->[1],
@@ -201,6 +206,8 @@ foreach my $elt (@$all)
 	    };
 	} else {
 	    push @$data, {
+#		t => $t,
+#		l => $elt->[2],
 		type  => "waiting",
 		begin => $begin,
 		end   => $elt->[1],
@@ -219,8 +226,9 @@ foreach my $elt (@$all)
 
 	$lastspool = 1;
 
-    } elsif ($elt->[2] =~ /($regs{end_spool}|$regs{attr_despool_time})/) {
+    } elsif ($elt->[2] =~ /($regs{end_spool}|$regs{end_spool2})/) {
 	push @$data, {
+#	    l => $elt->[2],
 	    type  => "spool",
 	    begin => $begin,
 	    end   => $elt->[1],
@@ -256,6 +264,7 @@ if ($arg->{qusage}) {
     }
 }
 
+#print STDERR Data::Dumper::Dumper($top);
 
 $top->finalize();
 
