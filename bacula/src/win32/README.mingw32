@@ -75,6 +75,7 @@ make, ...  However a few that you may not have are:
   postgresql (at least client)
   mysql (at least client)
   SQLite3 (from depkgs or as package)
+  readline (readlineN-dev on Debian)
   ...
 
 Once the source is on your system, change to the win32 directory
