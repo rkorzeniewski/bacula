@@ -36,6 +36,7 @@ make, ...  However a few that you may not have are:
   texinfo
   flex
   bison
+  patch (Debian)
   m4
   ...
 
