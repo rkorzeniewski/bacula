@@ -17,3 +17,11 @@ for i in *.o ; do \
    ${NM} $i | grep "^[0-9a-f]* T _" | cut -c13- ; \
    echo " "; \
 done
+
+DATA="\
+   console_command"
+
+for i in ${DATA}; do \
+   echo "$i DATA"; \
+done
+

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2006-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2006-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -110,6 +110,6 @@ void free_runscript(RUNSCRIPT *script);
 /* foreach_alist free RUNSCRIPT */
 void free_runscripts(alist *runscripts); /* you have to free alist */
 
-extern bool (*console_command)(JCR *jcr, const char *cmd);
+extern DLL_IMP_EXP bool (*console_command)(JCR *jcr, const char *cmd);
 
 #endif /* __RUNSCRIPT_H_ */

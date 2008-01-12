@@ -201,7 +201,16 @@ exported.
 New data variables are exported by adding the macro DLL_IMP_EXP to
 the variable declaration in the header file.  All exported variables
 must be declared in a header file and MUST NOT be declared in a
-source file referencing the variable.
+source file referencing the variable. Example, src/lib/runscript.h:
+
+extern DLL_IMP_EXP bool (*console_command)(JCR *jcr, const char *cmd);
+
+or src/jcr.h
+
+extern int DLL_IMP_EXP num_jobs_run;
+extern DLL_IMP_EXP dlist * last_jobs;
+...
+
 
 Exporting functions is now more or less automated.  If you find that
 a function name has been added, changed, or an argument modified,    

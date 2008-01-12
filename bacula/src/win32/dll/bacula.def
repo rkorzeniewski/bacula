@@ -714,3 +714,4 @@ _Z17register_watchdogP12s_watchdog_t
 _Z19unregister_watchdogP12s_watchdog_t
 watchdog_thread
  
+console_command DATA
