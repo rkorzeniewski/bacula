@@ -78,6 +78,9 @@ make, ...  However a few that you may not have are:
   readline (readlineN-dev on Debian)
   ...
 
+NB: On Debian, I had to remove /usr/bin/lorder for
+postresql to build correctly.
+
 Once the source is on your system, change to the win32 directory
         cd .../bacula/src/win32
 
