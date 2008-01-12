@@ -38,6 +38,9 @@ make, ...  However a few that you may not have are:
   bison
   patch (Debian)
   m4
+  postgresql (at least client)
+  mysql (at least client)
+  SQLite3 (from depkgs or as package)
   ...
 
 Once the source is on your system, change to the win32 directory
@@ -100,6 +103,7 @@ following:
         wget
         texinfo
         bison
+        flex
 
 and possibly other packages.
 
@@ -120,7 +124,7 @@ to ensure that you pick up all the new Win32 changes:
 
    cd .../bacula
    make clean
-   cvs -q update -d -P
+   svn update
    cd src/win32
    make
 
@@ -173,7 +177,11 @@ simply do the following:
    make                  (to build the .o files, note the link will fail)
    ./make_def >bacula.def
 
-This should rebuild the bacula.def file.
+This should rebuild the bacula.def file, but it uses relative paths
+and assumes you have the directory structure noted above. If you 
+are using something different, you can set the NM variable at the
+top of the make_def file to use an absolute path to the correct
+directory.
 
 ===== manual changing of bacula.def no longer necessary =====
 If you want to do it manually, please see below:
