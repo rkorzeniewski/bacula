@@ -580,18 +580,19 @@ _ZN6rblist6searchEPvPFiS0_S0_E
 _ZN6rblist7destroyEv
  
 ; runscript.o
-_ZN9RUNSCRIPT21set_job_code_callbackEPFPcP3JCRPKcE
 _Z11run_scriptsP3JCRP5alistPKc
 _Z13new_runscriptv
 _Z14copy_runscriptP9RUNSCRIPT
 _Z14free_runscriptP9RUNSCRIPT
 _Z15free_runscriptsP5alist
 _ZN9RUNSCRIPT10set_targetEPKc
-_ZN9RUNSCRIPT11set_commandEPKc
+_ZN9RUNSCRIPT11set_commandEPKci
 _ZN9RUNSCRIPT13reset_defaultEb
+_ZN9RUNSCRIPT21set_job_code_callbackEPFPcP3JCRPKcE
 _ZN9RUNSCRIPT3runEP3JCRPKc
 _ZN9RUNSCRIPT5debugEv
 _ZN9RUNSCRIPT8is_localEv
+
  
 ; rwlock.o
 _Z11rwl_destroyP12s_rwlock_tag
