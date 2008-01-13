@@ -71,6 +71,9 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Use "./config no-idea no-mdc2 no-rc5" on building OpenSSL for
+  Win32 to avoid patent problems.
+- Plugins
 - Implement Despooling data status.
 === Duplicate jobs ===
    hese apply only to backup jobs.
@@ -150,8 +153,10 @@ Priority:
   this kind of problem.  Probably the best solution is to make the
   first thread simply start using the Volume in drive 1 rather than
   transferring it to drive 0.
+>>>>>>> .r6288
 - Complete Catalog in Pool
 - Implement Bacula plugins -- design API
+>>>>>>> .r6079
 - Scripts
 - Prune by Job
 - Prune by Job Level
