@@ -1186,6 +1186,28 @@ Item: Store and restore extended attributes, especially selinux file contexts
         http://linux.die.net/man/3/getfilecon
         http://linux.die.net/man/3/setfilecon
 
+Item 1:   enable/disable compression depending on storage device (disk/tape)
+  Origin: Ralf Gross ralf-lists@ralfgross.de
+  Date:   2008-01-11
+  Status: Initial Request
+
+  What:   Add a new option to the storage resource of the director. Depending
+          on this option, compression will be enabled/disabled for a device.
+
+  Why:    If different devices (disks/tapes) are used for full/diff/incr
+          backups, software compression will be enabled for all backups
+          because of the FileSet compression option. For backup to tapes wich
+          are able to do hardware compression this is not desired.
+          
+
+  Notes: http://news.gmane.org/gmane.comp.sysutils.backup.bacula.devel/cutoff=11124
+         It must be clear to the user, that the FileSet compression option must
+         still be enabled use compression for a backup job at all. Thus a name
+         for the new option in the director must be well-defined.
+
+  Notes: KES I think the Storage definition should probably override what
+         is in the Job definition or vice-versa, but in any case, it must
+         be well defined.
 
 
 
