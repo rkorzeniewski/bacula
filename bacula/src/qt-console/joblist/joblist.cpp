@@ -231,6 +231,7 @@ void JobList::populateTable()
    QStringList headerlist = (QStringList()
       << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
       << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" << "File Set" );
+   m_jobIdIndex = headerlist.indexOf("Job Id");
    m_purgedIndex = headerlist.indexOf("Purged");
    m_typeIndex = headerlist.indexOf("Job Type");
    m_statusIndex = headerlist.indexOf("Job Status");
@@ -270,8 +271,8 @@ void JobList::populateTable()
                m_statusIndexDone = true;
                statusCode = field;
             } else {
-               p_tableitem = new QTableWidgetItem(field,1);
-               p_tableitem->setFlags(0);
+               p_tableitem = new QTableWidgetItem(field, 1);
+               p_tableitem->setFlags(Qt::ItemIsSelectable);
                p_tableitem->setForeground(blackBrush);
                mp_tableWidget->setItem(row, column, p_tableitem);
                if (column == m_statusIndex)
@@ -367,6 +368,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       int row = currentItem->row();
       QTableWidgetItem* jobitem = mp_tableWidget->item(row, 0);
       m_currentJob = jobitem->text();
+      selectedJobsGet();
 
       /* include purged action or not */
       jobitem = mp_tableWidget->item(row, m_purgedIndex);
@@ -510,7 +512,7 @@ void JobList::consoleDeleteJob()
       == QMessageBox::Cancel) { return; }
 
    QString cmd("delete job jobid=");
-   cmd += m_currentJob;
+   cmd += m_selectedJobs;
    consoleCommand(cmd);
 }
 void JobList::consolePurgeFiles()
@@ -610,4 +612,35 @@ void JobList::readSettings()
    settings.beginGroup(m_groupText);
    m_splitter->restoreState(settings.value(m_splitText).toByteArray());
    settings.endGroup();
+}
+
+/*
+ * Function to fill m_selectedJobsCount and m_selectedJobs with selected values
+ */
+void JobList::selectedJobsGet()
+{
+   QList<int> rowList;
+   QList<QTableWidgetItem *> sitems = mp_tableWidget->selectedItems();
+   foreach (QTableWidgetItem *sitem, sitems) {
+      int row = sitem->row();
+      if (!rowList.contains(row)) {
+         rowList.append(row);
+      }
+   }
+
+   m_selectedJobs = "";
+   bool first = true;
+   foreach(int row, rowList) {
+      QTableWidgetItem * sitem = mp_tableWidget->item(row, m_jobIdIndex);
+      if (!first) m_selectedJobs.append(",");
+      else first = false;
+      m_selectedJobs.append(sitem->text());
+   }
+   m_selectedJobsCount = rowList.count();
+   if (m_selectedJobsCount > 1) {
+      QString text = QString("Delete list of %1 Jobs").arg(m_selectedJobsCount);
+      actionDeleteJob->setText(text);
+   } else {
+      actionDeleteJob->setText("Delete Single Job");
+   }
 }
