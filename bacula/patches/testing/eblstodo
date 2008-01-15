@@ -129,6 +129,17 @@ TODO
 ----
 
 bweb :
+  - Balloon
+Btw., the vertical axis was the number of files 
+while the size of the ballon is the volume (in MB 
+or GB).  Those could be switched, though, depending on what looks better.
+
+What are you using for color-coding the ballons? 
+That could be a variety of different things like 
+client, client group, backup level (full, 
+incremental, etc.,) that adds context to the size 
+and position that is already present in the chart.
+
  - Ajouter mount,umount,release,status pour chaque device
  - Ajouter le viewfileset dans l'interface de resto
  x Ajouter la labelisation de bande et l'ajout de media (add et label)
@@ -451,3 +462,46 @@ bacula :
 
 	Please mount Volume "R40175" or label a new one for
 	Pas le bon message pour une resto (label a new one)
+ - Impossible de lancer une restauration en meme temps qu'un backup sur
+   un autochanger. Le code dans jobq.c qui controle les MaxConcurrentJobs
+   ne prend pas en compte les autochanger avec plusieurs drives. Ce code
+   fait surement doublon avec le nouveau code de reservation.
+   Il faudrait le simplifier, et compter les jobs de restauration comme les
+   jobs normaux. Le patch précédent ne changeait pas le MaxConcurrentJobs
+   comme il faut à la fin du backup.
+
+ - Accurate backup
+   o Envoyer la liste de tous les fichiers au client dans un format simple
+    /path/	LSTAT			# un / a la fin pour un repertoire
+    /path/file	LSTAT
+
+   o Le client construit un hash disque (ou en memoire ou les deux)
+   o A chaque repertoire/fichier on verifie la presence du fichier dans le hash
+     et on peut aussi comparer date/taille/bloc
+      - Si le fichier n'est pas dedans, on le backup
+      - Si le fichier est present on verifie les attributs et on mark le fichier comme vu
+   o A la fin, on parcours tous le hash pour trouver les fichiers qui ne sont pas vu et 
+     on envoie la liste des fichiers supprimes avec le fileindex=0 et pourquoi pas la date
+     du jour dans le champ mtime
+   o Utiliser systematiquement l'option ignorecase sous windows
+   p Ajouter une option pour avoir la table de stat
+      Enable Statistic = yes/no
+      Statistic retention = 4 years
+
+
+ o Utiliser une alist dans les runscripts
+
+RunScript {
+   console = "xxxx"
+   console = "yyy"
+   console = "zzzz"
+}
+
+or possibly
+
+RunScript {
+   console = "xxxx", "yyyy", "zzzz" 
+   console = "aaaa"
+}
+
+ o fix segfault when config files are empty
