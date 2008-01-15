@@ -74,6 +74,7 @@ private:
    void setStatusColor(QTableWidgetItem *item, QString &field);
    void writeSettings();
    void readSettings();
+   void selectedJobsGet();
    QSplitter *m_splitter;
    QString m_groupText;
    QString m_splitText;
@@ -84,12 +85,15 @@ private:
    QString m_currentJob;
    bool m_populated;
    bool m_checkCurrentWidget;
+   int m_jobIdIndex;
    int m_purgedIndex;
    int m_typeIndex;
    int m_statusIndex;
    int m_startIndex;
    int m_bytesIndex;
    int m_filesIndex;
+   int m_selectedJobsCount;
+   QString m_selectedJobs;
 };
 
 #endif /* _JOBLIST_H_ */
