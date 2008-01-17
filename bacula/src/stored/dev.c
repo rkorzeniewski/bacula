@@ -2385,7 +2385,7 @@ void set_os_device_parameters(DCR *dcr)
    }
 #endif
 #if defined(MTSETDRVBUFFER)
-   if (getpid() == 0) {          /* Only root can do this */
+   if (getuid() == 0) {          /* Only root can do this */
       mt_com.mt_op = MTSETDRVBUFFER;
       mt_com.mt_count = MT_ST_CLEARBOOLEANS;
       if (!dev->has_cap(CAP_TWOEOF)) {
