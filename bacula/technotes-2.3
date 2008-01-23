@@ -1,6 +1,15 @@
               Technical notes on version 2.3
 
 General:
+23Jan08
+kes  Move initialization of read/write res lock earlier in the code.
+     This fixes the crash with a null conf file. This fixes bug
+     #1030.
+kes  Redefine CURES in lib/parse_conf to be URES and move it all
+     into lib/parse_conf.c -- this responds to bug #1042, but does
+     not fix it. The fix is not to compile with FORTIFY_SOURCE.
+kes  Backport to 2.2.8 fix de-referencing a NULL pointer in the scanner from
+     the trunk SVN. I don't think this was reported as a bug.
 17Jan08
 ebl  Fix a bug during tape initialization with MTSETDRVBUFFER.
 12Jan08
