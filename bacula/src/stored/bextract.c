@@ -271,6 +271,26 @@ static void do_extract(char *devname)
    return;
 }
 
+static bool store_data(BFILE *bfd, char *data, const int32_t length)
+{
+   if (is_win32_stream(attr->data_stream) && !have_win32_api()) {
+      set_portable_backup(bfd);
+      if (!processWin32BackupAPIBlock(bfd, data, length)) {
+	 berrno be;
+	 Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
+	       attr->ofname, be.bstrerror());
+         return false;
+      }
+   } else if (bwrite(bfd, data, length) != (ssize_t)length) {
+      berrno be;
+      Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
+	    attr->ofname, be.bstrerror());
+      return false;
+   }
+
+   return true;
+}
+
 /*
  * Called here for each record from read_records()
  */
@@ -320,7 +340,6 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
             extract = false;
             return true;
          }
-
 
          build_attr_output_fnames(jcr, attr);
 
@@ -373,11 +392,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          }
          total += wsize;
          Dmsg2(8, "Write %u bytes, total=%u\n", wsize, total);
-         if ((uint32_t)bwrite(&bfd, wbuf, wsize) != wsize) {
-            berrno be;
-            Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
-               attr->ofname, be.bstrerror());
-         }
+         store_data(&bfd, wbuf, wsize);
          fileAddr += wsize;
       }
       break;
@@ -422,14 +437,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          }
 
          Dmsg2(100, "Write uncompressed %d bytes, total before write=%d\n", compress_len, total);
-         if ((uLongf)bwrite(&bfd, compress_buf, (size_t)compress_len) != compress_len) {
-            berrno be;
-            Pmsg0(0, _("===Write error===\n"));
-            Emsg2(M_ERROR, 0, _("Write error on %s: %s\n"),
-               attr->ofname, be.bstrerror());
-            extract = false;
-            return true;
-         }
+         store_data(&bfd, compress_buf, compress_len);
          total += compress_len;
          fileAddr += compress_len;
          Dmsg2(100, "Compress len=%d uncompressed=%d\n", rec->data_len,
