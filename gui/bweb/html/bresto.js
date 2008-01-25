@@ -171,7 +171,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i:s'),
+	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            dataIndex: 'pathid',
@@ -256,7 +256,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i'),
+	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            dataIndex: 'pathid',
@@ -402,7 +402,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-d-m h:i:s'),
+	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            header:    "MD5",
