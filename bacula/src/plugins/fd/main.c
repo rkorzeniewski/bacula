@@ -73,36 +73,6 @@ static bFuncs bfuncs = {
 };
     
 
-int main(int argc, char *argv[])
-{
-   char plugin_dir[1000];
-   JCR mjcr1, mjcr2;
-   JCR *jcr1 = &mjcr1;
-   JCR *jcr2 = &mjcr2;
-    
-   getcwd(plugin_dir, sizeof(plugin_dir)-1);
-   load_fd_plugins(plugin_dir);
-
-   jcr1->JobId = 111;
-   new_plugins(jcr1);
-
-   jcr2->JobId = 222;
-   new_plugins(jcr2);
-
-   plugin_event(jcr1, bEventJobStart);
-   plugin_event(jcr1, bEventJobEnd);
-   plugin_event(jcr2, bEventJobStart);
-   free_plugins(jcr1);
-   plugin_event(jcr2, bEventJobEnd);
-   free_plugins(jcr2);
-
-   unload_plugins();
-
-   Dmsg0(dbglvl, "bacula: OK ...\n");
-   close_memory_pool();
-   sm_dump(false);
-   return 0;
-}
 
 void plugin_event(JCR *jcr, bEventType eventType) 
 {
@@ -234,3 +204,38 @@ static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
       file, line, level, msg);
    return 0;
 }
+
+#ifdef TEST_PROGRAM
+
+int main(int argc, char *argv[])
+{
+   char plugin_dir[1000];
+   JCR mjcr1, mjcr2;
+   JCR *jcr1 = &mjcr1;
+   JCR *jcr2 = &mjcr2;
+    
+   getcwd(plugin_dir, sizeof(plugin_dir)-1);
+   load_fd_plugins(plugin_dir);
+
+   jcr1->JobId = 111;
+   new_plugins(jcr1);
+
+   jcr2->JobId = 222;
+   new_plugins(jcr2);
+
+   plugin_event(jcr1, bEventJobStart);
+   plugin_event(jcr1, bEventJobEnd);
+   plugin_event(jcr2, bEventJobStart);
+   free_plugins(jcr1);
+   plugin_event(jcr2, bEventJobEnd);
+   free_plugins(jcr2);
+
+   unload_plugins();
+
+   Dmsg0(dbglvl, "bacula: OK ...\n");
+   close_memory_pool();
+   sm_dump(false);
+   return 0;
+}
+
+#endif /* TEST_PROGRAM */
