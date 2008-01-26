@@ -48,6 +48,8 @@ extern "C" {
 #endif
 
 
+
+
 /****************************************************************************
  *                                                                          *
  *                Bacula definitions                                        *
@@ -92,6 +94,13 @@ typedef struct s_baculaFuncs {
    bpError (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *msg);
 } bFuncs;
+
+/* Bacula Subroutines */
+void load_fd_plugins(const char *plugin_dir);
+void new_plugins(JCR *jcr);
+void free_plugins(JCR *jcr);
+void generate_plugin_event(JCR *jcr, bEventType event);
+
 
 
 /****************************************************************************

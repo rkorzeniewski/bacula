@@ -1,14 +1,7 @@
 /*
- * Bacula File Daemon specific configuration and defines
- *
- *     Kern Sibbald, Jan MMI
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,9 +25,18 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula File Daemon specific configuration and defines
+ *
+ *     Kern Sibbald, Jan MMI
+ *
+ *   Version $Id$
+ */
+
 
 #define FILE_DAEMON 1
 #include "filed_conf.h"
+#include "fd-plugins.h"
 #include "findlib/find.h"
 #include "jcr.h"
 #include "acl.h"
