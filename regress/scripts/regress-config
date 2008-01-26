@@ -24,6 +24,6 @@ CFLAGS="-g -O2 -Wall" \
     ${OPENSSL} \
     ${TCPWRAPPERS} \
     ${WHICHDB} \
-    --with-baseport=8101
+    --with-baseport=${BASEPORT}
 
 exit 0
