@@ -140,7 +140,7 @@ client, client group, backup level (full,
 incremental, etc.,) that adds context to the size 
 and position that is already present in the chart.
 
- - Ajouter mount,umount,release,status pour chaque device
+ x Ajouter mount,umount,release,status pour chaque device
  - Ajouter le viewfileset dans l'interface de resto
  x Ajouter la labelisation de bande et l'ajout de media (add et label)
  - Ajouter la possibilité de lancer des migrations et des
@@ -154,7 +154,7 @@ and position that is already present in the chart.
  de job (par exemple, si c'est pas un backup/restore, pas de status dir)
 
 
- - Ajouter une vue par groupe et par date (sur 7, 15 ou 30 jours)
+ x Ajouter une vue par groupe et par date (sur 7, 15 ou 30 jours)
 
               lu ma me je ve sa di
   groupe1     v  v  x  w  v  v  v             q1
@@ -215,7 +215,7 @@ FROM (
    Groupe -> Jobs
    Job    -> Log
 
- - Ajouter une variable pour remplacer NOW() dans les queries
+ x Ajouter une variable pour remplacer NOW() dans les queries
    origin = arg->{origin} || NOW();
  - Ajouter des stats en %
 
@@ -435,7 +435,7 @@ assistant for that.
 Media -> I/O -> Fill pools -> Select pool(s) -> import selections
 
 bschedule:
- - Bug dans la determination des jours de la semaine (exemple de la full
+ x Bug dans la determination des jours de la semaine (exemple de la full
   le premier dimanche du mois)
 
 manuel :
@@ -504,4 +504,5 @@ RunScript {
    console = "aaaa"
 }
 
- o fix segfault when config files are empty
+ x fix segfault when config files are empty
+ o cleanup bextract to use filed code
