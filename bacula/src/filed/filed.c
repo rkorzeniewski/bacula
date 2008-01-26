@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -208,6 +208,8 @@ int main (int argc, char *argv[])
    create_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
    read_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
 
+   load_fd_plugins(me->plugin_directory);
+
    drop(uid, gid);
 
 #ifdef BOMB
@@ -248,6 +250,7 @@ void terminate_filed(int sig)
 
    bnet_stop_thread_server(server_tid);
    generate_daemon_event(NULL, "Exit");
+   unload_plugins();
    write_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
    delete_pid_file(me->pid_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
 

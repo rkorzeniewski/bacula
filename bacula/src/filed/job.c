@@ -212,6 +212,7 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
+   new_plugins(jcr);                  /* instantiate plugins for this jcr */
    pm_strcpy(jcr->client_name, my_name);
    jcr->pki_sign = me->pki_sign;
    jcr->pki_encrypt = me->pki_encrypt;
@@ -280,11 +281,14 @@ void *handle_client_request(void *dirp)
    }
 
    generate_daemon_event(jcr, "JobEnd");
+   generate_plugin_event(jcr, bEventJobEnd);
 
    dequeue_messages(jcr);             /* send any queued messages */
 
    /* Inform Director that we are done */
-   bnet_sig(dir, BNET_TERMINATE);
+   dir->signal(BNET_TERMINATE);
+
+   free_plugins(jcr);                 /* release instantiated plugins */
 
    /* Clean up fileset */
    FF_PKT *ff = jcr->ff;
@@ -1405,6 +1409,7 @@ static int backup_cmd(JCR *jcr)
    }
    
    generate_daemon_event(jcr, "JobStart");
+   generate_plugin_event(jcr, bEventJobStart);
 
 #if defined(WIN32_VSS)
    /* START VSS ON WIN 32 */
@@ -1554,6 +1559,7 @@ static int verify_cmd(JCR *jcr)
    dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
+   generate_plugin_event(jcr, bEventJobStart);
 
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
@@ -1650,7 +1656,7 @@ static int restore_cmd(JCR *jcr)
    jcr->replace = replace;
    jcr->prefix_links = prefix_links;
 
-   bnet_fsend(dir, OKrestore);
+   dir->fsend(OKrestore);
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    jcr->JobType = JT_RESTORE;
@@ -1669,6 +1675,7 @@ static int restore_cmd(JCR *jcr)
     */
    start_dir_heartbeat(jcr);
    generate_daemon_event(jcr, "JobStart");
+   generate_plugin_event(jcr, bEventJobStart);
    do_restore(jcr);
    stop_dir_heartbeat(jcr);
 
@@ -1680,13 +1687,13 @@ static int restore_cmd(JCR *jcr)
    /*
     * Send Close session command to Storage daemon
     */
-   bnet_fsend(sd, read_close, jcr->Ticket);
+   sd->fsend(read_close, jcr->Ticket);
    Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
    bget_msg(sd);                      /* get OK */
 
    /* Inform Storage daemon that we are done */
-   bnet_sig(sd, BNET_TERMINATE);
+   sd->signal(BNET_TERMINATE);
 
 bail_out:
 

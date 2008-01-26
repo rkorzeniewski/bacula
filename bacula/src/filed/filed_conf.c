@@ -260,6 +260,9 @@ void free_resource(RES *sres, int type)
       if (res->res_client.scripts_directory) {
          free(res->res_client.scripts_directory);
       }
+      if (res->res_client.plugin_directory) {
+         free(res->res_client.plugin_directory);
+      }
       if (res->res_client.FDaddrs) {
          free_addresses(res->res_client.FDaddrs);
       }
