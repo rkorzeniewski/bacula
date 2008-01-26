@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -298,8 +298,7 @@ int main (int argc, char *argv[])
    if (update_db) {
       printf("Records added or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
          num_media, num_pools, num_jobs, num_files);
-   }
-   else {
+   } else {
       printf("Records would have been added or updated in the catalog:\n%7d Media\n%7d Pool\n%7d Job\n%7d File\n",
          num_media, num_pools, num_jobs, num_files);
    }
@@ -973,7 +972,16 @@ static int create_pool_record(B_DB *db, POOL_DBR *pr)
  */
 static int create_client_record(B_DB *db, CLIENT_DBR *cr)
 {
+   /*
+    * Note, update_db can temporarily be set false while 
+    * updating the database, so we must ensure that ClientId is non-zero.
+    */
    if (!update_db) {
+      cr->ClientId = 0;
+      if (!db_get_client_record(bjcr, db, cr)) {
+        Pmsg1(0, _("Could not get Client record. ERR=%s\n"), db_strerror(db));
+        return 0;
+      }
       return 1;
    }
    if (!db_create_client_record(bjcr, db, cr)) {

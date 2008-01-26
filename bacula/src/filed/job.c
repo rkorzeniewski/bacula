@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -269,13 +269,13 @@ void *handle_client_request(void *dirp)
    /* Run the after job */
    run_scripts(jcr, jcr->RunScripts, "ClientAfterJob");
 
-   if (jcr->JobId) {		/* send EndJob if running a job */
+   if (jcr->JobId) {            /* send EndJob if running a job */
       char ed1[50], ed2[50];
       /* Send termination status back to Dir */
       bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
-		 edit_uint64(jcr->ReadBytes, ed1),
-		 edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
-		 jcr->pki_encrypt);
+                 edit_uint64(jcr->ReadBytes, ed1),
+                 edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
+                 jcr->pki_encrypt);
       Dmsg1(110, "End FD msg: %s\n", dir->msg);
    }
 
@@ -380,7 +380,7 @@ static int cancel_cmd(JCR *jcr)
 
    if (sscanf(dir->msg, "cancel Job=%127s", Job) == 1) {
       if (!(cjcr=get_jcr_by_full_name(Job))) {
-         bnet_fsend(dir, _("2901 Job %s not found.\n"), Job);
+         dir->fsend(_("2901 Job %s not found.\n"), Job);
       } else {
          if (cjcr->store_bsock) {
             cjcr->store_bsock->set_timed_out();
@@ -389,12 +389,12 @@ static int cancel_cmd(JCR *jcr)
          }
          set_jcr_job_status(cjcr, JS_Canceled);
          free_jcr(cjcr);
-         bnet_fsend(dir, _("2001 Job %s marked to be canceled.\n"), Job);
+         dir->fsend(_("2001 Job %s marked to be canceled.\n"), Job);
       }
    } else {
-      bnet_fsend(dir, _("2902 Error scanning cancel command.\n"));
+      dir->fsend(_("2902 Error scanning cancel command.\n"));
    }
-   bnet_sig(dir, BNET_EOD);
+   dir->signal(BNET_EOD);
    return 1;
 }
 
@@ -411,7 +411,7 @@ static int setdebug_cmd(JCR *jcr)
    Dmsg1(110, "setdebug_cmd: %s", dir->msg);
    if (sscanf(dir->msg, "setdebug=%d trace=%d", &level, &trace_flag) != 2 || level < 0) {
       pm_strcpy(jcr->errmsg, dir->msg);
-      bnet_fsend(dir, _("2991 Bad setdebug command: %s\n"), jcr->errmsg);
+      dir->fsend(_("2991 Bad setdebug command: %s\n"), jcr->errmsg);
       return 0;
    }
    debug_level = level;
@@ -434,7 +434,7 @@ static int estimate_cmd(JCR *jcr)
    make_estimate(jcr);
    dir->fsend(OKest, jcr->num_files_examined,
       edit_uint64_with_commas(jcr->JobBytes, ed2));
-   bnet_sig(dir, BNET_EOD);
+   dir->signal(BNET_EOD);
    return 1;
 }
 
@@ -452,7 +452,7 @@ static int job_cmd(JCR *jcr)
               sd_auth_key) != 5) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg(jcr, M_FATAL, 0, _("Bad Job Command: %s"), jcr->errmsg);
-      bnet_fsend(dir, BADjob);
+      dir->fsend(BADjob);
       free_pool_memory(sd_auth_key);
       return 0;
    }
@@ -488,10 +488,10 @@ static int runbefore_cmd(JCR *jcr)
 
    free_memory(cmd);
    if (ok) {
-      bnet_fsend(dir, OKRunBefore);
+      dir->fsend(OKRunBefore);
       return 1;
    } else {
-      bnet_fsend(dir, _("2905 Bad RunBeforeJob command.\n"));
+      dir->fsend(_("2905 Bad RunBeforeJob command.\n"));
       return 0;
    }
 }
@@ -502,11 +502,11 @@ static int runbeforenow_cmd(JCR *jcr)
 
    run_scripts(jcr, jcr->RunScripts, "ClientBeforeJob");
    if (job_canceled(jcr)) {
-      bnet_fsend(dir, _("2905 Bad RunBeforeNow command.\n"));
+      dir->fsend(_("2905 Bad RunBeforeNow command.\n"));
       Dmsg0(100, "Back from run_scripts ClientBeforeJob now: FAILED\n");
       return 0;
    } else {
-      bnet_fsend(dir, OKRunBeforeNow);
+      dir->fsend(OKRunBeforeNow);
       Dmsg0(100, "Back from run_scripts ClientBeforeJob now: OK\n");
       return 1;
    }
@@ -522,7 +522,7 @@ static int runafter_cmd(JCR *jcr)
    if (sscanf(dir->msg, runafter, msg) != 1) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunAfter command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("2905 Bad RunAfterJob command.\n"));
+      dir->fsend(_("2905 Bad RunAfterJob command.\n"));
       free_memory(msg);
       return 0;
    }
@@ -537,7 +537,7 @@ static int runafter_cmd(JCR *jcr)
    jcr->RunScripts->append(cmd);
 
    free_pool_memory(msg);
-   return bnet_fsend(dir, OKRunAfter);
+   return dir->fsend(OKRunAfter);
 }
 
 static int runscript_cmd(JCR *jcr)
@@ -557,7 +557,7 @@ static int runscript_cmd(JCR *jcr)
                                   msg) != 5) {
       pm_strcpy(jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad RunScript command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("2905 Bad RunScript command.\n"));
+      dir->fsend(_("2905 Bad RunScript command.\n"));
       free_runscript(cmd);
       free_memory(msg);
       return 0;
@@ -572,7 +572,7 @@ static int runscript_cmd(JCR *jcr)
    jcr->RunScripts->append(cmd);
 
    free_pool_memory(msg);
-   return bnet_fsend(dir, OKRunScript);
+   return dir->fsend(OKRunScript);
 }
 
 
@@ -838,7 +838,7 @@ static bool term_fileset(JCR *jcr)
 {
    FF_PKT *ff = jcr->ff;
 
-#ifdef xxx
+#ifdef xxx_DEBUG_CODE
    findFILESET *fileset = ff->fileset;
    int i, j, k;
 
@@ -946,8 +946,9 @@ static void set_options(findFOPTS *fo, const char *opts)
    const char *p;
    char strip[100];
 
+// Commented out as it is not backward compatible - KES
 #ifdef HAVE_WIN32
-   fo->flags |= FO_IGNORECASE; /* always ignorecase under windows */
+//   fo->flags |= FO_IGNORECASE; /* always ignorecase under windows */
 #endif
 
    for (p=opts; *p; p++) {
@@ -1089,7 +1090,7 @@ static int fileset_cmd(JCR *jcr)
    if (!init_fileset(jcr)) {
       return 0;
    }
-   while (bnet_recv(dir) >= 0) {
+   while (dir->recv() >= 0) {
       strip_trailing_junk(dir->msg);
       Dmsg1(500, "Fileset: %s\n", dir->msg);
       add_fileset(jcr, dir->msg);
@@ -1140,14 +1141,14 @@ static int bootstrap_cmd(JCR *jcr)
        * Suck up what he is sending to us so that he will then
        *   read our error message.
        */
-      while (bnet_recv(dir) >= 0)
+      while (dir->recv() >= 0)
         {  }
       free_bootstrap(jcr);
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       return 0;
    }
 
-   while (bnet_recv(dir) >= 0) {
+   while (dir->recv() >= 0) {
        Dmsg1(200, "filed<dird: bootstrap file %s\n", dir->msg);
        fputs(dir->msg, bs);
    }
@@ -1156,7 +1157,7 @@ static int bootstrap_cmd(JCR *jcr)
     * Note, do not free the bootstrap yet -- it needs to be 
     *  sent to the SD 
     */
-   return bnet_fsend(dir, OKbootstrap);
+   return dir->fsend(OKbootstrap);
 }
 
 
@@ -1213,8 +1214,8 @@ static int level_cmd(JCR *jcr)
        */
       for (int i=0; i<10; i++) {
          bt_start = get_current_btime();
-         bnet_sig(dir, BNET_BTIME);   /* poll for time */
-         if (bnet_recv(dir) <= 0) {   /* get response */
+         dir->signal(BNET_BTIME);     /* poll for time */
+         if (dir->recv() <= 0) {      /* get response */
             goto bail_out;
          }
          if (sscanf(dir->msg, "btime %s", buf) != 1) {
@@ -1245,7 +1246,7 @@ static int level_cmd(JCR *jcr)
          }
          Jmsg(jcr, type, 0, _("DIR and FD clocks differ by %d seconds, FD automatically compensating.\n"), adj);
       }
-      bnet_sig(dir, BNET_EOD);
+      dir->signal(BNET_EOD);
 
       Dmsg2(100, "adj = %d since_time=%d\n", (int)adj, (int)since_time);
       jcr->incremental = 1;           /* set incremental or decremental backup */
@@ -1259,7 +1260,7 @@ static int level_cmd(JCR *jcr)
    if (buf) {
       free_memory(buf);
    }
-   return bnet_fsend(dir, OKlevel);
+   return dir->fsend(OKlevel);
 
 bail_out:
    pm_strcpy(jcr->errmsg, dir->msg);
@@ -1366,13 +1367,13 @@ static int backup_cmd(JCR *jcr)
       goto cleanup;
    }
 
-   bnet_fsend(dir, OKbackup);
+   dir->fsend(OKbackup);
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
    /*
     * Send Append Open Session to Storage daemon
     */
-   bnet_fsend(sd, append_open);
+   sd->fsend(append_open);
    Dmsg1(110, ">stored: %s", sd->msg);
    /*
     * Expect to receive back the Ticket number
@@ -1392,7 +1393,7 @@ static int backup_cmd(JCR *jcr)
    /*
     * Send Append data command to Storage daemon
     */
-   bnet_fsend(sd, append_data, jcr->Ticket);
+   sd->fsend(append_data, jcr->Ticket);
    Dmsg1(110, ">stored: %s", sd->msg);
 
    /*
@@ -1469,7 +1470,7 @@ static int backup_cmd(JCR *jcr)
       /*
        * Send Append End Data to Storage daemon
        */
-      bnet_fsend(sd, append_end, jcr->Ticket);
+      sd->fsend(append_end, jcr->Ticket);
       /* Get end OK */
       if (!response(jcr, sd, OK_end, "Append End")) {
          set_jcr_job_status(jcr, JS_ErrorTerminated);
@@ -1479,7 +1480,7 @@ static int backup_cmd(JCR *jcr)
       /*
        * Send Append Close to Storage daemon
        */
-      bnet_fsend(sd, append_close, jcr->Ticket);
+      sd->fsend(append_close, jcr->Ticket);
       while (bget_msg(sd) >= 0) {    /* stop on signal or error */
          if (sscanf(sd->msg, OK_close, &SDJobStatus) == 1) {
             ok = 1;
@@ -1531,7 +1532,7 @@ static int verify_cmd(JCR *jcr)
 
    jcr->JobType = JT_VERIFY;
    if (sscanf(dir->msg, verifycmd, level) != 1) {
-      bnet_fsend(dir, _("2994 Bad verify command: %s\n"), dir->msg);
+      dir->fsend(_("2994 Bad verify command: %s\n"), dir->msg);
       return 0;
    }
 
@@ -1546,11 +1547,11 @@ static int verify_cmd(JCR *jcr)
    } else if (strcasecmp(level, "disk_to_catalog") == 0) {
       jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
    } else {
-      bnet_fsend(dir, _("2994 Bad verify level: %s\n"), dir->msg);
+      dir->fsend(_("2994 Bad verify level: %s\n"), dir->msg);
       return 0;
    }
 
-   bnet_fsend(dir, OKverify);
+   dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
 
@@ -1571,25 +1572,25 @@ static int verify_cmd(JCR *jcr)
       /*
        * Send Close session command to Storage daemon
        */
-      bnet_fsend(sd, read_close, jcr->Ticket);
+      sd->fsend(read_close, jcr->Ticket);
       Dmsg1(130, "bfiled>stored: %s", sd->msg);
 
       /* ****FIXME**** check response */
       bget_msg(sd);                      /* get OK */
 
       /* Inform Storage daemon that we are done */
-      bnet_sig(sd, BNET_TERMINATE);
+      sd->signal(BNET_TERMINATE);
 
       break;
    case L_VERIFY_DISK_TO_CATALOG:
       do_verify(jcr);
       break;
    default:
-      bnet_fsend(dir, _("2994 Bad verify level: %s\n"), dir->msg);
+      dir->fsend(_("2994 Bad verify level: %s\n"), dir->msg);
       return 0;
    }
 
-   bnet_sig(dir, BNET_EOD);
+   dir->signal(BNET_EOD);
 
    return 0;                          /* return and terminate command loop */
 }
