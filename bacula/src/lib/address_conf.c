@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -59,7 +59,7 @@ IPADDR::IPADDR(const IPADDR &src) : type(src.type)
 IPADDR::IPADDR(int af) : type(R_EMPTY)
 {
 #ifdef HAVE_IPV6
-  if (!(af  == AF_INET6 || af  == AF_INET)) {
+  if (!(af == AF_INET6 || af == AF_INET)) {
      Emsg1(M_ERROR_TERM, 0, _("Only ipv4 and ipv6 are supported (%d)\n"), af);
   }
 #else
