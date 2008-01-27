@@ -1182,6 +1182,13 @@ This is the Bacula Administration Tool package. It is an add-on to
 the client or server packages.
 %endif
 
+# SuSE turns off stripping of binaries by default. In order to get
+# stripped packages we must generate debug package. RedHat and Mandriva
+# turn debug packages on by default but strip binaries regardless.
+%if %{su9} || %{su10} || %{su102} || %{su103}
+%debug_package
+%endif
+
 %prep
 
 %setup
@@ -2228,8 +2235,11 @@ fi
 %endif
 
 %changelog
+* Sun Jan 27 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- 2.2.8 release
+- add debug package for SuSE
 * Sat Jan 12 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
-- 2.2.8 release  
+- 2.2.8 beta release  
 - fix bug 1037
 - add fc8 target
 * Sun Dec 30 2007 D. Scott Barninger <barninger@fairfieldcomputers.com>
