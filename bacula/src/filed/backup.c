@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,6 +45,9 @@ static void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
 static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
+static bool crypto_session_start(JCR *jcr);
+static void crypto_session_end(JCR *jcr);
+static bool crypto_session_send(JCR *jcr, BSOCK *sd);
 
 /*
  * Find all the requested files and send them
@@ -63,8 +66,6 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    BSOCK *sd;
    bool ok = true;
    // TODO landonf: Allow user to specify encryption algorithm
-   crypto_cipher_t cipher = CRYPTO_CIPHER_AES_128_CBC;
-
 
    sd = jcr->store_bsock;
 
@@ -108,42 +109,16 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       pZlibStream->opaque = Z_NULL;
       pZlibStream->state = Z_NULL;
 
-      if (deflateInit(pZlibStream, Z_DEFAULT_COMPRESSION) == Z_OK)
+      if (deflateInit(pZlibStream, Z_DEFAULT_COMPRESSION) == Z_OK) {
          jcr->pZLIB_compress_workset = pZlibStream;
-      else
+      } else {
          free (pZlibStream);
+      }
    }
 #endif
 
-   /* Create encryption session data and a cached, DER-encoded session data
-    * structure. We use a single session key for each backup, so we'll encode
-    * the session data only once. */
-   if (jcr->pki_encrypt) {
-      uint32_t size = 0;
-
-      /* Create per-job session encryption context */
-      jcr->pki_session = crypto_session_new(cipher, jcr->pki_recipients);
-
-      /* Get the session data size */
-      if (crypto_session_encode(jcr->pki_session, (uint8_t *)0, &size) == false) {
-         Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
-         return 0;
-      }
-
-      /* Allocate buffer */
-      jcr->pki_session_encoded = (uint8_t *)malloc(size);
-
-      /* Encode session data */
-      if (crypto_session_encode(jcr->pki_session, jcr->pki_session_encoded, &size) == false) {
-         Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
-         return 0;
-      }
-
-      /* ... and store the encoded size */
-      jcr->pki_session_encoded_size = size;
-
-      /* Allocate the encryption/decryption buffer */
-      jcr->crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+   if (!crypto_session_start(jcr)) {
+      return false;
    }
 
    Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
@@ -182,20 +157,85 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       free (jcr->pZLIB_compress_workset);
       jcr->pZLIB_compress_workset = NULL;
    }
-   if (jcr->crypto_buf) {
-      free_pool_memory(jcr->crypto_buf);
-      jcr->crypto_buf = NULL;
-   }
-   if (jcr->pki_session) {
-      crypto_session_free(jcr->pki_session);
-   }
-   if (jcr->pki_session_encoded) {
-      free(jcr->pki_session_encoded);
-      jcr->pki_session_encoded = NULL;
-   }
+   crypto_session_end(jcr);
+
 
    Dmsg1(100, "end blast_data ok=%d\n", ok);
    return ok;
+}
+
+static bool crypto_session_start(JCR *jcr)
+{
+   crypto_cipher_t cipher = CRYPTO_CIPHER_AES_128_CBC;
+
+   /*
+    * Create encryption session data and a cached, DER-encoded session data
+    * structure. We use a single session key for each backup, so we'll encode
+    * the session data only once.
+    */
+   if (jcr->crypto.pki_encrypt) {
+      uint32_t size = 0;
+
+      /* Create per-job session encryption context */
+      jcr->crypto.pki_session = crypto_session_new(cipher, jcr->crypto.pki_recipients);
+
+      /* Get the session data size */
+      if (!crypto_session_encode(jcr->crypto.pki_session, (uint8_t *)0, &size)) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
+         return false;
+      }
+
+      /* Allocate buffer */
+      jcr->crypto.pki_session_encoded = get_memory(size);
+
+      /* Encode session data */
+      if (!crypto_session_encode(jcr->crypto.pki_session, (uint8_t *)jcr->crypto.pki_session_encoded, &size)) {
+         Jmsg(jcr, M_FATAL, 0, _("An error occurred while encrypting the stream.\n"));
+         return false;
+      }
+
+      /* ... and store the encoded size */
+      jcr->crypto.pki_session_encoded_size = size;
+
+      /* Allocate the encryption/decryption buffer */
+      jcr->crypto.crypto_buf = get_memory(CRYPTO_CIPHER_MAX_BLOCK_SIZE);
+   }
+   return true;
+}
+
+static void crypto_session_end(JCR *jcr)
+{
+   if (jcr->crypto.crypto_buf) {
+      free_pool_memory(jcr->crypto.crypto_buf);
+      jcr->crypto.crypto_buf = NULL;
+   }
+   if (jcr->crypto.pki_session) {
+      crypto_session_free(jcr->crypto.pki_session);
+   }
+   if (jcr->crypto.pki_session_encoded) {
+      free_pool_memory(jcr->crypto.pki_session_encoded);
+      jcr->crypto.pki_session_encoded = NULL;
+   }
+}
+
+static bool crypto_session_send(JCR *jcr, BSOCK *sd)
+{
+   POOLMEM *msgsave;
+
+   /* Send our header */
+   Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+   sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
+
+   msgsave = sd->msg;
+   sd->msg = jcr->crypto.pki_session_encoded;
+   sd->msglen = jcr->crypto.pki_session_encoded_size;
+   jcr->JobBytes += sd->msglen;
+
+   Dmsg1(100, "Send data len=%d\n", sd->msglen);
+   sd->send();
+   sd->msg = msgsave;
+   sd->signal(BNET_EOD);
+   return true;
 }
 
 /*
@@ -376,7 +416,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
        * NULL and not used.
        */
       // TODO landonf: We should really only calculate the digest once, for both verification and signing.
-      if (jcr->pki_sign) {
+      if (jcr->crypto.pki_sign) {
          signing_digest = crypto_digest_new(jcr, signing_algorithm);
 
          /* Full-stop if a failure occurred initializing the signature digest */
@@ -389,12 +429,12 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       }
 
       /* Enable encryption */
-      if (jcr->pki_encrypt) {
+      if (jcr->crypto.pki_encrypt) {
          ff_pkt->flags |= FO_ENCRYPT;
       }
    }
 
-   /* Initialise the file descriptor we use for data and other streams. */
+   /* Initialize the file descriptor we use for data and other streams. */
    binit(&ff_pkt->bfd);
    if (ff_pkt->flags & FO_PORTABLE) {
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
@@ -413,24 +453,10 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    }
 
    /* Set up the encryption context and send the session data to the SD */
-   if (has_file_data && jcr->pki_encrypt) {
-      /* Send our header */
-      Dmsg2(100, "Send hdr fi=%ld stream=%d\n", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
-      sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_ENCRYPTED_SESSION_DATA);
-
-      /* Grow the bsock buffer to fit our message if necessary */
-      if (sizeof_pool_memory(sd->msg) < jcr->pki_session_encoded_size) {
-         sd->msg = realloc_pool_memory(sd->msg, jcr->pki_session_encoded_size);
+   if (has_file_data && jcr->crypto.pki_encrypt) {
+      if (!crypto_session_send(jcr, sd)) {
+         goto bail_out;
       }
-
-      /* Copy our message over and send it */
-      memcpy(sd->msg, jcr->pki_session_encoded, jcr->pki_session_encoded_size);
-      sd->msglen = jcr->pki_session_encoded_size;
-      jcr->JobBytes += sd->msglen;
-
-      Dmsg1(100, "Send data len=%d\n", sd->msglen);
-      sd->send();
-      sd->signal(BNET_EOD);
    }
 
    /*
@@ -561,7 +587,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
          goto bail_out;
       }
 
-      if (!crypto_sign_add_signer(sig, signing_digest, jcr->pki_keypair)) {
+      if (!crypto_sign_add_signer(sig, signing_digest, jcr->crypto.pki_keypair)) {
          Jmsg(jcr, M_FATAL, 0, _("An error occurred while signing the stream.\n"));
          goto bail_out;
       }
@@ -592,7 +618,7 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       sd->signal(BNET_EOD);              /* end of checksum */
    }
 
-   /* Terminate any digest and send it to Storage daemon and the Director */
+   /* Terminate any digest and send it to Storage daemon */
    if (digest) {
       uint32_t size;
 
@@ -710,7 +736,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          goto err;
       }
       /* Allocate the cipher context */
-      if ((cipher_ctx = crypto_cipher_new(jcr->pki_session, true, 
+      if ((cipher_ctx = crypto_cipher_new(jcr->crypto.pki_session, true, 
            &cipher_block_size)) == NULL) {
          /* Shouldn't happen! */
          Jmsg0(jcr, M_FATAL, 0, _("Failed to initialize encryption context.\n"));
@@ -724,11 +750,11 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
        * could be returned for the given read buffer size.
        * (Using the larger of either rsize or max_compress_len)
        */
-      jcr->crypto_buf = check_pool_memory_size(jcr->crypto_buf, 
+      jcr->crypto.crypto_buf = check_pool_memory_size(jcr->crypto.crypto_buf, 
            (MAX(rsize + (int)sizeof(uint32_t), (int32_t)max_compress_len) + 
             cipher_block_size - 1) / cipher_block_size * cipher_block_size);
 
-      wbuf = jcr->crypto_buf; /* Encrypted, possibly compressed output here. */
+      wbuf = jcr->crypto.crypto_buf; /* Encrypted, possibly compressed output here. */
    }
 
    /*
@@ -863,7 +889,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
          Dmsg1(20, "Encrypt len=%d\n", cipher_input_len);
 
          if (!crypto_cipher_update(cipher_ctx, packet_len, sizeof(packet_len),
-             (u_int8_t *)jcr->crypto_buf, &initial_len)) {
+             (uint8_t *)jcr->crypto.crypto_buf, &initial_len)) {
             /* Encryption failed. Shouldn't happen. */
             Jmsg(jcr, M_FATAL, 0, _("Encryption error\n"));
             goto err;
@@ -871,7 +897,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
 
          /* Encrypt the input block */
          if (crypto_cipher_update(cipher_ctx, cipher_input, cipher_input_len, 
-             (u_int8_t *)&jcr->crypto_buf[initial_len], &encrypted_len)) {
+             (uint8_t *)&jcr->crypto.crypto_buf[initial_len], &encrypted_len)) {
             if ((initial_len + encrypted_len) == 0) {
                /* No full block of data available, read more data */
                continue;
@@ -915,7 +941,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
        * For encryption, we must call finalize to push out any
        *  buffered data.
        */
-      if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto_buf, 
+      if (!crypto_cipher_finalize(cipher_ctx, (uint8_t *)jcr->crypto.crypto_buf, 
            &encrypted_len)) {
          /* Padding failed. Shouldn't happen. */
          Jmsg(jcr, M_FATAL, 0, _("Encryption padding error\n"));
@@ -925,7 +951,7 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       /* Note, on SSL pre-0.9.7, there is always some output */
       if (encrypted_len > 0) {
          sd->msglen = encrypted_len;      /* set encrypted length */
-         sd->msg = jcr->crypto_buf;       /* set correct write buffer */
+         sd->msg = jcr->crypto.crypto_buf;       /* set correct write buffer */
          if (!sd->send()) {
             Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
                   sd->bstrerror());

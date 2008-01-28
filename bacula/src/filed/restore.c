@@ -395,18 +395,18 @@ void do_restore(JCR *jcr)
          }
 
          /* Do we have any keys at all? */
-         if (!jcr->pki_recipients) {
+         if (!jcr->crypto.pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
             extract = false;
             bclose(&rctx.bfd);
             break;
          }
 
-         if (jcr->digest) {
-            crypto_digest_free(jcr->digest);
+         if (jcr->crypto.digest) {
+            crypto_digest_free(jcr->crypto.digest);
          }  
-         jcr->digest = crypto_digest_new(jcr, signing_algorithm);
-         if (!jcr->digest) {
+         jcr->crypto.digest = crypto_digest_new(jcr, signing_algorithm);
+         if (!jcr->crypto.digest) {
             Jmsg0(jcr, M_FATAL, 0, _("Could not create digest.\n"));
             extract = false;
             bclose(&rctx.bfd);
@@ -415,7 +415,7 @@ void do_restore(JCR *jcr)
 
          /* Decode and save session keys. */
          cryptoerr = crypto_session_decode((uint8_t *)sd->msg, (uint32_t)sd->msglen, 
-                        jcr->pki_recipients, &rctx.cs);
+                        jcr->crypto.pki_recipients, &rctx.cs);
          switch(cryptoerr) {
          case CRYPTO_ERROR_NONE:
             /* Success */
@@ -692,9 +692,9 @@ ok_out:
    /* Free Signature & Crypto Data */
    free_signature(rctx);
    free_session(rctx);
-   if (jcr->digest) {
-      crypto_digest_free(jcr->digest);
-      jcr->digest = NULL;
+   if (jcr->crypto.digest) {
+      crypto_digest_free(jcr->crypto.digest);
+      jcr->crypto.digest = NULL;
    }
 
    /* Free file cipher restore context */
@@ -779,7 +779,7 @@ static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level)
 {
    JCR *jcr = (JCR *)pkt;
    Dmsg1(50, "do_file_digest jcr=%p\n", jcr);
-   return (digest_file(jcr, ff_pkt, jcr->digest));
+   return (digest_file(jcr, ff_pkt, jcr->crypto.digest));
 }
 
 /*
@@ -801,7 +801,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
    SIGNATURE *sig = rctx.sig;
 
 
-   if (!jcr->pki_sign) {
+   if (!jcr->crypto.pki_sign) {
       return true;                    /* no signature OK */
    }
    if (!sig) {
@@ -814,26 +814,26 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
    }
 
    /* Iterate through the trusted signers */
-   foreach_alist(keypair, jcr->pki_signers) {
-      err = crypto_sign_get_digest(sig, jcr->pki_keypair, algorithm, &digest);
+   foreach_alist(keypair, jcr->crypto.pki_signers) {
+      err = crypto_sign_get_digest(sig, jcr->crypto.pki_keypair, algorithm, &digest);
       switch (err) {
       case CRYPTO_ERROR_NONE:
          Dmsg0(50, "== Got digest\n");
          /*
-          * We computed jcr->digest using signing_algorithm while writing
+          * We computed jcr->crypto.digest using signing_algorithm while writing
           * the file. If it is not the same as the algorithm used for 
           * this file, punt by releasing the computed algorithm and 
           * computing by re-reading the file.
           */
          if (algorithm != signing_algorithm) {
-            if (jcr->digest) {
-               crypto_digest_free(jcr->digest);
-               jcr->digest = NULL;
+            if (jcr->crypto.digest) {
+               crypto_digest_free(jcr->crypto.digest);
+               jcr->crypto.digest = NULL;
             }  
          }
-         if (jcr->digest) {
+         if (jcr->crypto.digest) {
              /* Use digest computed while writing the file to verify the signature */
-            if ((err = crypto_sign_verify(sig, keypair, jcr->digest)) != CRYPTO_ERROR_NONE) {
+            if ((err = crypto_sign_verify(sig, keypair, jcr->crypto.digest)) != CRYPTO_ERROR_NONE) {
                Dmsg1(50, "Bad signature on %s\n", jcr->last_fname);
                Jmsg2(jcr, M_ERROR, 0, _("Signature validation failed for file %s: ERR=%s\n"), 
                      jcr->last_fname, crypto_strerror(err));
@@ -843,7 +843,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
             /* Signature found, digest allocated.  Old method, 
              * re-read the file and compute the digest
              */
-            jcr->digest = digest;
+            jcr->crypto.digest = digest;
 
             /* Checksum the entire file */
             /* Make sure we don't modify JobBytes by saving and restoring it */
@@ -863,7 +863,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
                      jcr->last_fname, crypto_strerror(err));
                goto bail_out;
             }
-            jcr->digest = NULL;
+            jcr->crypto.digest = NULL;
          }
 
          /* Valid signature */
@@ -959,8 +959,8 @@ static void unser_crypto_packet_len(RESTORE_CIPHER_CTX *ctx)
 
 bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win32_decomp)
 {
-   if (jcr->digest) {
-      crypto_digest_update(jcr->digest, (uint8_t *)data, length);
+   if (jcr->crypto.digest) {
+      crypto_digest_update(jcr->crypto.digest, (uint8_t *)data, length);
    }
    if (win32_decomp) {
       if (!processWin32BackupAPIBlock(bfd, data, length)) {
