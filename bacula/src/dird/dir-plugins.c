@@ -40,8 +40,8 @@ const char *plugin_type = "-dir.so";
 
 
 /* Forward referenced functions */
-static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value);
-static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value);
+static bpError baculaGetValue(bpContext *ctx, brVariable var, void *value);
+static bpError baculaSetValue(bpContext *ctx, bwVariable var, void *value);
 static bpError baculaRegisterEvents(bpContext *ctx, ...);
 static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg);
@@ -156,7 +156,7 @@ void free_plugins(JCR *jcr)
  *
  * ==============================================================
  */
-static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
+static bpError baculaGetValue(bpContext *ctx, brVariable var, void *value)
 {
    JCR *jcr = (JCR *)(ctx->bContext);
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
@@ -169,22 +169,13 @@ static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
       *((int *)value) = jcr->JobId;
       Dmsg1(dbglvl, "Bacula: return bVarJobId=%d\n", jcr->JobId);
       break;
-   case bVarFDName:
-      *((char **)value) = my_name;
-      Dmsg1(dbglvl, "Bacula: return my_name=%s\n", my_name);
-      break;
-   case bVarLevel:
-   case bVarType:
-   case bVarClient:
-   case bVarJobName:
-   case bVarJobStatus:
-   case bVarSinceTime:
+   default:
       break;
    }
    return 0;
 }
 
-static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value)
+static bpError baculaSetValue(bpContext *ctx, bwVariable var, void *value)
 {
    Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
    return 0;

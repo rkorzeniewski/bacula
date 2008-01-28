@@ -58,15 +58,36 @@ extern "C" {
 
 /* Bacula Variable Ids */
 typedef enum {
-  bVarJobId     = 1,
-  bVarFDName    = 2,
-  bVarLevel     = 3,
-  bVarType      = 4,
+  bVarJob       = 1,
+  bVarLevel     = 2,
+  bVarType      = 3,
+  bVarJobId     = 4,
   bVarClient    = 5,
-  bVarJobName   = 6,
-  bVarJobStatus = 7,
-  bVarSinceTime = 8
-} bVariable;
+  bVarNumVols   = 6,
+  bVarPool      = 7,
+  bVarStorage   = 8,
+  bVarCatalog   = 9,
+  bVarMediaType = 10,
+  bVarJobName   = 11,
+  bVarJobStatus = 12,
+  bVarPriority  = 13,
+  bVarVolumeName = 14,
+  bVarCatalogRes = 15,
+  bVarJobErrors  = 16,
+  bVarJobFiles   = 17,
+  bVarSDJobFiles = 18,
+  bVarSDErrors   = 19,
+  bVarFDJobStatus = 20,
+  bVarSDJobStatus = 21
+} brVariable;
+
+typedef enum {
+  bwVarJobReport  = 1,
+  bwVarVolumeName = 2,
+  bwVarPriority   = 3,
+  bwVarJobLevel   = 4,
+} bwVariable;
+
 
 typedef enum {
   bEventJobStart      = 1,
@@ -87,8 +108,8 @@ typedef struct s_baculaFuncs {
    uint32_t size;
    uint32_t interface;
    bpError (*registerBaculaEvents)(bpContext *ctx, ...);
-   bpError (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
-   bpError (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
+   bpError (*getBaculaValue)(bpContext *ctx, brVariable var, void *value);
+   bpError (*setBaculaValue)(bpContext *ctx, bwVariable var, void *value);
    bpError (*JobMessage)(bpContext *ctx, const char *file, int line, 
        int type, time_t mtime, const char *msg);     
    bpError (*DebugMessage)(bpContext *ctx, const char *file, int line,
