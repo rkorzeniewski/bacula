@@ -96,7 +96,7 @@ typedef struct s_baculaFuncs {
 } bFuncs;
 
 /* Bacula Subroutines */
-void load_fd_plugins(const char *plugin_dir);
+void load_dir_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event);

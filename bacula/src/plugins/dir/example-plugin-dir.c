@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -32,7 +32,7 @@
  *
  */
 #include <stdio.h>
-#include "plugin-dir.h"
+#include "dir-plugins.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,9 +40,9 @@ extern "C" {
 
 #define PLUGIN_LICENSE      "GPL"
 #define PLUGIN_AUTHOR       "Kern Sibbald"
-#define PLUGIN_DATE         "November 2007"
+#define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
-#define PLUGIN_DESCRIPTION  "Test Director Plugin"
+#define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"
 
 /* Forward referenced functions */
 static bpError newPlugin(bpContext *ctx);
@@ -54,9 +54,10 @@ static bpError handlePluginEvent(bpContext *ctx, bEvent *event);
 
 /* Pointers to Bacula functions */
 static bFuncs *bfuncs = NULL;
+static bInfo  *binfo = NULL;
 
-static pFuncs pluginFuncs = {
-   sizeof(pluginFuncs),
+static pInfo pluginInfo = {
+   sizeof(pluginInfo),
    PLUGIN_INTERFACE,
    PLUGIN_MAGIC,
    PLUGIN_LICENSE,
@@ -64,6 +65,11 @@ static pFuncs pluginFuncs = {
    PLUGIN_DATE,
    PLUGIN_VERSION,
    PLUGIN_DESCRIPTION,
+};
+
+static pFuncs pluginFuncs = {
+   sizeof(pluginFuncs),
+   PLUGIN_INTERFACE,
 
    /* Entry points into plugin */
    newPlugin,                         /* new plugin instance */
@@ -73,11 +79,13 @@ static pFuncs pluginFuncs = {
    handlePluginEvent
 };
 
-bpError loadPlugin(bFuncs *lbfuncs, pFuncs **pfuncs) 
+bpError loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
+   binfo  = lbinfo;
    printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->interface);
 
+   *pinfo  = &pluginInfo;             /* return pointer to our info */
    *pfuncs = &pluginFuncs;            /* return pointer to our functions */
 
    return 0;
@@ -94,6 +102,7 @@ static bpError newPlugin(bpContext *ctx)
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
    printf("plugin: newPlugin JobId=%d\n", JobId);
+   bfuncs->registerBaculaEvents(ctx, 1, 2, 0);
    return 0;
 }
 
@@ -119,7 +128,19 @@ static bpError setPluginValue(bpContext *ctx, pVariable var, void *value)
 
 static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
 {
-   printf("plugin: HandleEvent Event=%d\n", event->eventType);
+   char *name;
+   switch (event->eventType) {
+   case bEventJobStart:
+      printf("plugin: HandleEvent JobStart\n");
+      break;
+   case bEventJobEnd:
+      printf("plugin: HandleEvent JobEnd\n");
+      break;
+   }
+   bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
+   printf("FD Name=%s\n", name);
+   bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
+   bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");
    return 0;
 }
 

@@ -31,7 +31,7 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
-#include "plugin.h"
+#include "plugins.h"
 
 /* All loaded plugins */
 alist *plugin_list;
