@@ -1,5 +1,5 @@
 #
-# Simple Makefile for building test plugins for Bacula
+# Simple Makefile for building test Director plugins for Bacula
 #
 
 # No optimization for now for easy debugging
@@ -9,16 +9,16 @@ CC = g++ -g -O0 -Wall
 .c.o:
 	$(CC) -I../.. -DTEST_PROGRAM -c $<
 
-all: main plugin-dir.so 
+all: dir-plugins example-plugin-dir.so 
 
-main: main.o plugin-dir.h 
-	$(CC) -L../../lib main.o -o main -lbac -lpthread -lssl -l crypto -ldl
+dir-plugins: dir-plugins.o dir-plugins.h 
+	$(CC) -L../../lib dir-plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
-plugin-dir.o: plugin-dir.c plugin-dir.h
-	$(CC) -fPIC -I../.. -c plugin-dir.c
+example-plugin-dir.o: example-plugin-dir.c dir-plugins.h
+	$(CC) -fPIC -I../.. -c example-plugin-dir.c
 
-plugin-dir.so: plugin-dir.o 
-	$(CC) -shared plugin-dir.o -o plugin-dir.so
+example-plugin-dir.so: example-plugin-dir.o 
+	$(CC) -shared example-plugin-dir.o -o example-plugin-dir.so
 
 
 clean:

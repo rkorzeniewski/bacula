@@ -33,10 +33,10 @@
  */
 #include "bacula.h"
 #include "jcr.h"
-#include "fd-plugins.h"
+#include "dir-plugins.h"
 
 const int dbglvl = 0;
-const char *plugin_type = "-fd.so";
+const char *plugin_type = "-dir.so";
 
 
 /* Forward referenced functions */
@@ -87,7 +87,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType)
    }
 }
 
-void load_fd_plugins(const char *plugin_dir)
+void load_dir_plugins(const char *plugin_dir)
 {
    if (!plugin_dir) {
       return;
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
    JCR *jcr1 = &mjcr1;
    JCR *jcr2 = &mjcr2;
 
-   strcpy(my_name, "test-fd");
+   strcpy(my_name, "test-dir");
     
    getcwd(plugin_dir, sizeof(plugin_dir)-1);
-   load_fd_plugins(plugin_dir);
+   load_dir_plugins(plugin_dir);
 
    jcr1->JobId = 111;
    new_plugins(jcr1);

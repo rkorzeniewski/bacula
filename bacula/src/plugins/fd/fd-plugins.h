@@ -32,8 +32,8 @@
  *
  */
  
-#ifndef __PLUGIN_FD_H 
-#define __PLUGIN_FD_H
+#ifndef __FD_PLUGINS_H 
+#define __FD_PLUGINS_H
 
 #include <sys/types.h>
 #ifndef __CONFIG_H
@@ -41,7 +41,7 @@
 #include "config.h"
 #endif
 #include "bc_types.h"
-#include "lib/plugin.h"
+#include "lib/plugins.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -146,4 +146,4 @@ typedef struct s_pluginFuncs {
 }
 #endif
 
-#endif /* __PLUGIN_FD_H */
+#endif /* __FD_PLUGINS_H */

@@ -30,8 +30,8 @@
  *
  * Kern Sibbald, October 2007
  */
-#ifndef __PLUGIN_H
-#define __PLUGIN_H
+#ifndef __PLUGINS_H
+#define __PLUGINS_H
 
 #include "bacula.h"
 #ifndef HAVE_WIN32
@@ -87,4 +87,4 @@ extern bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, cons
 extern void unload_plugins();
 
 
-#endif /* __PLUGIN_H */
+#endif /* __PLUGINS_H */
