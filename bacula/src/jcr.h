@@ -123,6 +123,21 @@ struct FF_PKT;
 struct B_DB;
 struct ATTR_DBR;
 
+#ifdef FILE_DAEMON
+struct CRYPTO_CTX {
+   bool pki_sign;                     /* Enable PKI Signatures? */
+   bool pki_encrypt;                  /* Enable PKI Encryption? */
+   DIGEST *digest;                    /* Last file's digest context */
+   X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
+   alist *pki_signers;                /* Trusted Signers */
+   alist *pki_recipients;             /* Trusted Recipients */
+   CRYPTO_SESSION *pki_session;       /* PKE Public Keys + Symmetric Session Keys */
+   POOLMEM *pki_session_encoded;      /* Cached DER-encoded copy of pki_session */
+   int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
+   POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
+};
+#endif
+
 typedef void (JCR_free_HANDLER)(JCR *jcr);
 
 /* Job Control Record (JCR) */
@@ -294,16 +309,7 @@ public:
    BSOCK *hb_bsock;                   /* duped SD socket */
    BSOCK *hb_dir_bsock;               /* duped DIR socket */
    alist *RunScripts;                 /* Commands to run before and after job */
-   bool pki_sign;                     /* Enable PKI Signatures? */
-   bool pki_encrypt;                  /* Enable PKI Encryption? */
-   DIGEST *digest;                    /* Last file's digest context */
-   X509_KEYPAIR *pki_keypair;         /* Encryption key pair */
-   alist *pki_signers;                /* Trusted Signers */
-   alist *pki_recipients;             /* Trusted Recipients */
-   CRYPTO_SESSION *pki_session;       /* PKE Public Keys + Symmetric Session Keys */
-   uint8_t *pki_session_encoded;      /* Cached DER-encoded copy of pki_session */
-   int32_t pki_session_encoded_size;  /* Size of DER-encoded pki_session */
-   POOLMEM *crypto_buf;               /* Encryption/Decryption buffer */
+   CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
 #endif /* FILE_DAEMON */

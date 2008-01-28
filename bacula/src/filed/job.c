@@ -214,11 +214,11 @@ void *handle_client_request(void *dirp)
    jcr->client_name = get_memory(strlen(my_name) + 1);
    new_plugins(jcr);                  /* instantiate plugins for this jcr */
    pm_strcpy(jcr->client_name, my_name);
-   jcr->pki_sign = me->pki_sign;
-   jcr->pki_encrypt = me->pki_encrypt;
-   jcr->pki_keypair = me->pki_keypair;
-   jcr->pki_signers = me->pki_signers;
-   jcr->pki_recipients = me->pki_recipients;
+   jcr->crypto.pki_sign = me->pki_sign;
+   jcr->crypto.pki_encrypt = me->pki_encrypt;
+   jcr->crypto.pki_keypair = me->pki_keypair;
+   jcr->crypto.pki_signers = me->pki_signers;
+   jcr->crypto.pki_recipients = me->pki_recipients;
    dir->set_jcr(jcr);
    enable_backup_privileges(NULL, 1 /* ignore_errors */);
 
@@ -276,7 +276,7 @@ void *handle_client_request(void *dirp)
       bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
                  edit_uint64(jcr->ReadBytes, ed1),
                  edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
-                 jcr->pki_encrypt);
+                 jcr->crypto.pki_encrypt);
       Dmsg1(110, "End FD msg: %s\n", dir->msg);
    }
 
