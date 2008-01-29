@@ -147,7 +147,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    changer = get_pool_memory(PM_FNAME);
    if (slot <= 0) {
       Jmsg(jcr, M_INFO, 0, _("Invalid slot=%d defined in catalog for Volume \"%s\" "
-           "on %s. Manual load my be required.\n"), slot, dcr->VolCatInfo.VolCatName,
+           "on %s. Manual load may be required.\n"), slot, dcr->VolCatInfo.VolCatName,
            dev->print_name());
       rtn_stat = 0;
    } else if (!dcr->device->changer_name) {
