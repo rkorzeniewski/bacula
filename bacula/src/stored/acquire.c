@@ -263,7 +263,7 @@ default_path:
          
          /* Mount a specific volume and no other */
          Dmsg0(200, "calling dir_ask_sysop\n");
-         if (!dir_ask_sysop_to_mount_volume(dcr)) {
+         if (!dir_ask_sysop_to_mount_volume(dcr, ST_READ)) {
             goto get_out;             /* error return */
          }
          try_autochanger = true;      /* permit using autochanger again */

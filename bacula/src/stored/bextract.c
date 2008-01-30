@@ -1,16 +1,7 @@
 /*
- *
- *  Dumb program to extract files from a Bacula backup.
- *
- *   Kern E. Sibbald, MM
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -34,6 +25,15 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *  Dumb program to extract files from a Bacula backup.
+ *
+ *   Kern E. Sibbald, MM
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "stored.h"
@@ -276,15 +276,15 @@ static bool store_data(BFILE *bfd, char *data, const int32_t length)
    if (is_win32_stream(attr->data_stream) && !have_win32_api()) {
       set_portable_backup(bfd);
       if (!processWin32BackupAPIBlock(bfd, data, length)) {
-	 berrno be;
-	 Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
-	       attr->ofname, be.bstrerror());
+         berrno be;
+         Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
+               attr->ofname, be.bstrerror());
          return false;
       }
    } else if (bwrite(bfd, data, length) != (ssize_t)length) {
       berrno be;
       Emsg2(M_ERROR_TERM, 0, _("Write error on %s: %s\n"),
-	    attr->ofname, be.bstrerror());
+            attr->ofname, be.bstrerror());
       return false;
    }
 
@@ -497,7 +497,7 @@ bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
 {
    DEVICE *dev = dcr->dev;
    fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),

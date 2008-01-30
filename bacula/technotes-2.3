@@ -1,6 +1,15 @@
               Technical notes on version 2.3
 
 General:
+30Jan08
+kes  Apply patch from bug #1049 to prevent stripping the path on a
+     symlink.
+kes  Attempt to fix bug #1047 where stripping a path corrupts the
+     heap. Waiting for feedback.
+kes  Correct the Mount message not to suggest labeling a new tape
+     when doing a restore.  Submitted by email by John Stoffel.
+kes  Attempt to work around gcc FORTIFY_SOURCE bug that crashes the 
+     FD by using casting. Reported in bug #1042.
 28Jan08
 kes  A bit of crypto cleanup.  More later.
 25Jan08

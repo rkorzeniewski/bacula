@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -350,7 +350,7 @@ bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
 {
    DEVICE *dev = dcr->dev;
    fprintf(stderr, _("Mount Volume \"%s\" on device %s and press return when ready: "),
