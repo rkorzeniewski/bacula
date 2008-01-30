@@ -1292,7 +1292,7 @@ bool    dir_update_file_attributes(DCR *dcr, DEV_RECORD *rec) { return 1;}
 bool    dir_send_job_status(JCR *jcr) {return 1;}
 int     generate_job_event(JCR *jcr, const char *event) { return 1; }
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /*mode*/)
 {
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -553,7 +553,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
  *                  Note, must create dev->errmsg on error return.
  *
  */
-bool dir_ask_sysop_to_mount_volume(DCR *dcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
 {
    int stat = W_TIMEOUT;
    DEVICE *dev = dcr->dev;
@@ -582,11 +582,21 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr)
        *   Otherwise skip it.
        */
       if (!dev->poll && (stat == W_TIMEOUT || stat == W_MOUNT)) {
-         Jmsg(jcr, M_MOUNT, 0, _("Please mount Volume \"%s\" or label a new one for:\n"
+         char *msg;
+         if (mode == ST_APPEND) {
+            msg = _("Please mount Volume \"%s\" or label a new one for:\n"
               "    Job:          %s\n"
               "    Storage:      %s\n"
               "    Pool:         %s\n"
-              "    Media type:   %s\n"),
+              "    Media type:   %s\n");
+         } else {
+            msg = _("Please mount Volume \"%s\" for:\n"
+              "    Job:          %s\n"
+              "    Storage:      %s\n"
+              "    Pool:         %s\n"
+              "    Media type:   %s\n");
+         }
+         Jmsg(jcr, M_MOUNT, 0, msg, 
               dcr->VolumeName,
               jcr->Job,
               dev->print_name(),

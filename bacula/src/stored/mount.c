@@ -86,7 +86,7 @@ mount_next_vol:
    if (!dev->poll && retry++ > 4) {
       /* Last ditch effort before giving up, force operator to respond */
       dcr->VolCatInfo.Slot = 0;
-      if (!dir_ask_sysop_to_mount_volume(dcr)) {
+      if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
          Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
               dev->print_name());
          return false;
@@ -162,7 +162,7 @@ mount_next_vol:
    Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
    release = true;                /* release next time if we "recurse" */
 
-   if (ask && !dir_ask_sysop_to_mount_volume(dcr)) {
+   if (ask && !dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
       Dmsg0(150, "Error return ask_sysop ...\n");
       return false;          /* error return */
    }

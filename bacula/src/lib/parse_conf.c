@@ -201,7 +201,7 @@ static void init_resource(int type, RES_ITEM *items, int pass)
    int i;
    int rindex = type - r_first;
 
-   memset(&res_all, 0, res_all_size);
+   memset((char *)&res_all, 0, res_all_size);
    res_all.hdr.rcode = type;
    res_all.hdr.refcnt = 1;
 

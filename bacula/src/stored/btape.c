@@ -2675,7 +2675,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
    return dcr->VolumeName[0] != 0;
 }
 
-bool dir_ask_sysop_to_mount_volume(DCR *dcr)
+bool dir_ask_sysop_to_mount_volume(DCR *dcr, int /* mode */)
 {
    DEVICE *dev = dcr->dev;
    Dmsg0(20, "Enter dir_ask_sysop_to_mount_volume\n");
