@@ -51,8 +51,11 @@ run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
-@sleep 3
+@sleep 5
 status storage=DDS-4
+list volumes
+list jobs
+messages
 wait
 list volumes
 list jobs
@@ -72,6 +75,7 @@ messages
 @# Force Incremental on the second Volume
 update volume=TestVolume001 VolStatus=Used
 status storage=DDS-4
+list volumes
 @#setdebug level=120 storage=DDS-4
 run level=Incremental job=NightlySave yes
 wait
