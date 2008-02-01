@@ -745,6 +745,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
             for (k=0; k<fo->drivetype.size(); k++) {
                sendit(sock, "      XD %s\n", fo->drivetype.get(k));
             }
+            if (fo->plugin) {
+               sendit(sock, "      G %s\n", fo->plugin);
+            }
             if (fo->reader) {
                sendit(sock, "      D %s\n", fo->reader);
             }
@@ -759,6 +762,13 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          if (incexe->name_list.size()) {
             sendit(sock, "      N\n");
          }
+         for (j=0; j<incexe->plugin_list.size(); j++) {
+            sendit(sock, "      P %s\n", incexe->plugin_list.get(j));
+         }
+         if (incexe->plugin_list.size()) {
+            sendit(sock, "      N\n");
+         }
+
       }
 
       for (i=0; i<res->res_fs.num_excludes; i++) {
@@ -936,6 +946,7 @@ next_run:
 static void free_incexe(INCEXE *incexe)
 {
    incexe->name_list.destroy();
+   incexe->plugin_list.destroy();
    for (int i=0; i<incexe->num_opts; i++) {
       FOPTS *fopt = incexe->opts_list[i];
       fopt->regex.destroy();
@@ -948,6 +959,9 @@ static void free_incexe(INCEXE *incexe)
       fopt->base.destroy();
       fopt->fstype.destroy();
       fopt->drivetype.destroy();
+      if (fopt->plugin) {
+         free(fopt->plugin);
+      }
       if (fopt->reader) {
          free(fopt->reader);
       }

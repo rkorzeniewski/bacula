@@ -165,6 +165,7 @@ struct findINCEXE {
    findFOPTS *current_opts;           /* points to current options structure */
    alist opts_list;                   /* options list */
    dlist name_list;                   /* filename list -- holds dlistString */
+   dlist plugin_list;                 /* plugin list -- holds dlistString */
 };
 
 /*
