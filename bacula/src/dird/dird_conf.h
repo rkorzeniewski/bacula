@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -442,6 +442,7 @@ struct FOPTS {
    alist drivetype;                   /* drive type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
+   char *plugin;                      /* plugin program */
 };
 
 
@@ -451,6 +452,7 @@ struct INCEXE {
    FOPTS **opts_list;                 /* options list */
    int num_opts;                      /* number of options items */
    alist name_list;                   /* filename list -- holds char * */
+   alist plugin_list;                 /* filename list for plugins */
 };
 
 /*

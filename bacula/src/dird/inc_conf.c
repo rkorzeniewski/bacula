@@ -53,8 +53,10 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_drivetype(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_opts(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
@@ -83,6 +85,7 @@ static INCEXE res_incexe;
  */
 static RES_ITEM newinc_items[] = {
    {"file",            store_fname,   {0},      0, 0, 0},
+   {"plugin",          store_plugin_name,   {0},      0, 0, 0},
    {"options",         options_res,   {0},      0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
@@ -112,6 +115,7 @@ static RES_ITEM options_items[] = {
    {"wildfile",        store_wild,    {0},     2, 0, 0},
    {"exclude",         store_opts,    {0},     0, 0, 0},
    {"aclsupport",      store_opts,    {0},     0, 0, 0},
+   {"plugin",          store_plugin,  {0},     0, 0, 0},
    {"reader",          store_reader,  {0},     0, 0, 0},
    {"writer",          store_writer,  {0},     0, 0, 0},
    {"ignorecase",      store_opts,    {0},     0, 0, 0},
@@ -471,6 +475,22 @@ static void store_base(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /* Store reader info */
+static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   token = lex_get_token(lc, T_NAME);
+   if (pass == 1) {
+      /*
+       * Pickup plugin command
+       */
+      res_incexe.current_opts->plugin = bstrdup(lc->str);
+   }
+   scan_to_eol(lc);
+}
+
+
+/* Store reader info */
 static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    int token;
@@ -631,6 +651,46 @@ static void store_fname(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
 }
+
+/*
+ * Store Filename info. Note, for minor efficiency reasons, we
+ * always increase the name buffer by 10 items because we expect
+ * to add more entries.
+ */
+static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+   INCEXE *incexe;
+
+   token = lex_get_token(lc, T_SKIP_EOL);
+   if (pass == 1) {
+      /* Pickup Filename string
+       */
+      switch (token) {
+      case T_IDENTIFIER:
+      case T_UNQUOTED_STRING:
+         if (strchr(lc->str, '\\')) {
+            scan_err1(lc, _("Backslash found. Use forward slashes or quote the string.: %s\n"), lc->str);
+            /* NOT REACHED */
+         }
+      case T_QUOTED_STRING:
+         if (res_all.res_fs.have_MD5) {
+            MD5Update(&res_all.res_fs.md5c, (unsigned char *)lc->str, lc->str_len);
+         }
+         incexe = &res_incexe;
+         if (incexe->plugin_list.size() == 0) {
+            incexe->plugin_list.init(10, true);
+         }
+         incexe->plugin_list.append(bstrdup(lc->str));
+         Dmsg1(900, "Add to plugin_list %s\n", lc->str);
+         break;
+      default:
+         scan_err1(lc, _("Expected a filename, got: %s"), lc->str);
+      }
+   }
+   scan_to_eol(lc);
+}
+
 
 
 /*
