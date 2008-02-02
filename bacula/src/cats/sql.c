@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -30,6 +30,8 @@
  *
  *     Almost generic set of SQL database interface routines
  *      (with a little more work)
+ *     SQL engine specific routines are in mysql.c, postgresql.c,
+ *       sqlite.c, ...
  *
  *    Kern Sibbald, March 2000
  *
@@ -48,9 +50,22 @@
 
 uint32_t bacula_db_version = 0;
 
+char db_driver[100];
+
 /* Forward referenced subroutines */
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);
+
+B_DB *db_init(JCR *jcr, const char *adb_driver, const char *db_name, const char *db_user, 
+              const char *db_password, const char *db_address, int db_port, 
+              const char *db_socket, int mult_db_connections)
+{              
+   if (adb_driver) {
+      bstrncpy(db_driver, adb_driver, sizeof(db_driver));
+   }
+   return db_init_database(jcr, db_name, db_user, db_password, db_address,
+             db_port, db_socket, mult_db_connections);
+}
 
 dbid_list::dbid_list() 
 {

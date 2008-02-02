@@ -245,6 +245,7 @@ static RES_ITEM cat_items[] = {
    {"dbpassword", store_str,    ITEM(res_cat.db_password), 0, 0, 0},
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
+   {"dbdriver", store_str,      ITEM(res_cat.db_driver),   0, 0, 0},
    {"dbsocket", store_str,      ITEM(res_cat.db_socket),   0, 0, 0},
    /* Turned off for the moment */
    {"multipleconnections", store_bit, ITEM(res_cat.mult_db_connections), 0, 0, 0},
@@ -595,9 +596,10 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
 
    case R_CATALOG:
       sendit(sock, _("Catalog: name=%s address=%s DBport=%d db_name=%s\n"
-"      db_user=%s MutliDBConn=%d\n"),
+"      db_driver=%s db_user=%s MutliDBConn=%d\n"),
          res->res_cat.hdr.name, NPRT(res->res_cat.db_address),
-         res->res_cat.db_port, res->res_cat.db_name, NPRT(res->res_cat.db_user),
+         res->res_cat.db_port, res->res_cat.db_name, 
+         NPRT(res->res_cat.db_driver), NPRT(res->res_cat.db_user),
          res->res_cat.mult_db_connections);
       break;
 
@@ -1148,6 +1150,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_cat.db_name) {
          free(res->res_cat.db_name);
+      }
+      if (res->res_cat.db_driver) {
+         free(res->res_cat.db_driver);
       }
       if (res->res_cat.db_password) {
          free(res->res_cat.db_password);

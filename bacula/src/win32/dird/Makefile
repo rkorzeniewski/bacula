@@ -33,6 +33,7 @@ DIRD_OBJS = \
 	$(OBJDIR)/backup.o \
 	$(OBJDIR)/bsr.o \
 	$(OBJDIR)/catreq.o \
+	$(OBJDIR)/dir-plugins.o \
 	$(OBJDIR)/dird.o \
 	$(OBJDIR)/dird_conf.o \
 	$(OBJDIR)/expand.o \

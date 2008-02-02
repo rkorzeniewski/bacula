@@ -68,30 +68,7 @@
  */
 bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
-   int len, stat = 1;
-   JOB_DBR ojr;
-
-   db_lock(mdb);
-
-   Dmsg0(200, "In db_update_job_start_record\n");
-   len = sizeof(ojr);
-   memcpy(&ojr, jr, len);
-
-   if (!db_get_job_record(jcr, mdb, &ojr)) {
-      db_unlock(mdb);
-      return 0;
-   }
-
-
-   fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
-   if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
-      Mmsg1(mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
-      stat = 0;
-   }
-   fflush(mdb->jobfd);
-
-   db_unlock(mdb);
-   return stat;
+   return false;
 }
 
 /*
@@ -100,106 +77,18 @@ bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  */
 int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
-   int len, stat = 1;
-   JOB_DBR ojr;
-
-   db_lock(mdb);
-
-   Dmsg0(200, "In db_update_job_start_record\n");
-   len = sizeof(ojr);
-   memcpy(&ojr, jr, len);
-
-   if (!db_get_job_record(jcr, mdb, &ojr)) {
-      db_unlock(mdb);
-      return 0;
-   }
-
-   fseek(mdb->jobfd, ojr.rec_addr, SEEK_SET);
-   if (fwrite(jr, len, 1, mdb->jobfd) != 1) {
-      Mmsg1(&mdb->errmsg, _("Error updating DB Job file. ERR=%s\n"), strerror(errno));
-      stat = 0;
-   }
-   fflush(mdb->jobfd);
-
-   db_unlock(mdb);
-   return stat;
+   return 0;
 }
 
 
 int db_update_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
 {
-   int stat = 1;
-   MEDIA_DBR omr;
-   int len;
-
-   db_lock(mdb);
-   Dmsg0(200, "In db_update_media_record\n");
-   mr->MediaId = 0;
-   len = sizeof(omr);
-   memcpy(&omr, mr, len);
-
-   if (!db_get_media_record(jcr, mdb, &omr)) {
-      db_unlock(mdb);
-      return 0;
-   }
-
-
-   /* Don't allow some fields to change by copying from master record */
-   strcpy(mr->VolumeName, omr.VolumeName);
-   strcpy(mr->MediaType, omr.MediaType);
-   mr->MediaId = omr.MediaId;
-   mr->PoolId = omr.PoolId;
-   mr->MaxVolBytes = omr.MaxVolBytes;
-   mr->VolCapacityBytes = omr.VolCapacityBytes;
-   mr->Recycle = omr.Recycle;
-
-   fseek(mdb->mediafd, omr.rec_addr, SEEK_SET);
-   if (fwrite(mr, len, 1, mdb->mediafd) != 1) {
-      Mmsg1(mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
-      stat = 0;
-   }
-   fflush(mdb->mediafd);
-
-   db_unlock(mdb);
-   return stat;
+   return 0;
 }
 
 int db_update_pool_record(JCR *jcr, B_DB *mdb, POOL_DBR *pr)
 {
-   int stat = 1;
-   POOL_DBR opr;
-   int len;
-
-   db_lock(mdb);
-   Dmsg0(200, "In db_update_pool_record\n");
-   len = sizeof(opr);
-   memcpy(&opr, pr, len);
-
-   if (!db_get_pool_record(jcr, mdb, &opr)) {
-      db_unlock(mdb);
-      return 0;
-   }
-
-
-   /* Update specific fields */
-   opr.NumVols = pr->NumVols;
-   opr.MaxVols = pr->MaxVols;
-   opr.UseOnce = pr->UseOnce;
-   opr.UseCatalog = pr->UseCatalog;
-   opr.AcceptAnyVolume = pr->AcceptAnyVolume;
-   strcpy(opr.LabelFormat, pr->LabelFormat);
-
-   fseek(mdb->poolfd, opr.rec_addr, SEEK_SET);
-   if (fwrite(&opr, len, 1, mdb->poolfd) != 1) {
-      Mmsg1(mdb->errmsg, _("Error updating DB Media file. ERR=%s\n"), strerror(errno));
-      stat = 0;
-   } else {
-      memcpy(pr, &opr, len);          /* return record written */
-   }
-   fflush(mdb->poolfd);
-
-   db_unlock(mdb);
-   return stat;
+   return 0;
 }
 
 int db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type)

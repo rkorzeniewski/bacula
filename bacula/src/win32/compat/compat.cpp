@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -57,6 +57,10 @@ static pthread_mutex_t Win32Convmutex = PTHREAD_MUTEX_INITIALIZER;
 
 static t_pVSSPathConvert   g_pVSSPathConvert;
 static t_pVSSPathConvertW  g_pVSSPathConvertW;
+
+/* Forward referenced functions */
+static const char *errorString(void);
+
 
 void SetVSSPathConvert(t_pVSSPathConvert pPathConvert, t_pVSSPathConvertW pPathConvertW)
 {
@@ -486,6 +490,43 @@ int umask(int)
 }
 #endif
 
+#ifndef LOAD_WITH_ALTERED_SEARCH_PATH
+#define LOAD_WITH_ALTERED_SEARCH_PATH 0x00000008
+#endif
+
+void *dlopen(const char *file, int mode)
+{
+   void *handle;
+
+   handle = LoadLibraryEx(file, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+   return handle;
+}
+
+void *dlsym(void *handle, const char *name)
+{
+   void *symaddr;
+   symaddr = (void *)GetProcAddress((HMODULE)handle, name);
+   return symaddr;
+}
+
+int dlclose(void *handle) 
+{
+   if (handle && !FreeLibrary((HMODULE)handle)) {
+      errno = b_errno_win32;
+      return 1;        /* failed */
+   }
+   return 0;           /* OK */
+}
+
+char *dlerror(void) 
+{
+   static char buf[200];
+   const char *err = errorString();
+   bstrncpy(buf, (char *)err, sizeof(buf));
+   LocalFree((void *)err);
+   return buf;
+}
+
 int fcntl(int fd, int cmd)
 {
    return 0;
@@ -548,8 +589,7 @@ cvt_ftime_to_utime(const FILETIME &time)
     return (time_t) (mstime & 0xffffffff);
 }
 
-static const char *
-errorString(void)
+static const char *errorString(void)
 {
    LPVOID lpMsgBuf;
 

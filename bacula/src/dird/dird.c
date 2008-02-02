@@ -886,7 +886,7 @@ static bool check_catalog()
        * Make sure we can open catalog, otherwise print a warning
        * message because the server is probably not running.
        */
-      db = db_init_database(NULL, catalog->db_name, catalog->db_user,
+      db = db_init(NULL, catalog->db_driver, catalog->db_name, catalog->db_user,
                          catalog->db_password, catalog->db_address,
                          catalog->db_port, catalog->db_socket,
                          catalog->mult_db_connections);

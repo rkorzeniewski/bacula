@@ -79,13 +79,13 @@ typedef struct s_bEvent {
 
 typedef struct s_baculaInfo {
    uint32_t size;
-   uint32_t interface;
+   uint32_t version;
 } bInfo;
 
 /* Bacula interface version and function pointers */
 typedef struct s_baculaFuncs {  
    uint32_t size;
-   uint32_t interface;
+   uint32_t version;
    bpError (*registerBaculaEvents)(bpContext *ctx, ...);
    bpError (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bpError (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
@@ -120,7 +120,7 @@ typedef enum {
 
 typedef struct s_pluginInfo {
    uint32_t size;
-   uint32_t interface;
+   uint32_t version;
    char *plugin_magic;
    char *plugin_license;
    char *plugin_author;
@@ -131,7 +131,7 @@ typedef struct s_pluginInfo {
 
 typedef struct s_pluginFuncs {  
    uint32_t size;
-   uint32_t interface;
+   uint32_t version;
    bpError (*newPlugin)(bpContext *ctx);
    bpError (*freePlugin)(bpContext *ctx);
    bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);

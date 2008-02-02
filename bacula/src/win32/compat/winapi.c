@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -105,18 +105,13 @@ InitWinAPIWrapper()
    HMODULE hLib = LoadLibraryA("KERNEL32.DLL");
    if (hLib) {
       /* create file calls */
-      p_CreateFileA = (t_CreateFileA)
-          GetProcAddress(hLib, "CreateFileA");
-      p_CreateDirectoryA = (t_CreateDirectoryA)
-          GetProcAddress(hLib, "CreateDirectoryA");
+      p_CreateFileA = (t_CreateFileA)GetProcAddress(hLib, "CreateFileA");
+      p_CreateDirectoryA = (t_CreateDirectoryA)GetProcAddress(hLib, "CreateDirectoryA");
 
       /* attribute calls */
-      p_GetFileAttributesA = (t_GetFileAttributesA)
-          GetProcAddress(hLib, "GetFileAttributesA");
-      p_GetFileAttributesExA = (t_GetFileAttributesExA)
-          GetProcAddress(hLib, "GetFileAttributesExA");
-      p_SetFileAttributesA = (t_SetFileAttributesA)
-          GetProcAddress(hLib, "SetFileAttributesA");
+      p_GetFileAttributesA = (t_GetFileAttributesA)GetProcAddress(hLib, "GetFileAttributesA");
+      p_GetFileAttributesExA = (t_GetFileAttributesExA)GetProcAddress(hLib, "GetFileAttributesExA");
+      p_SetFileAttributesA = (t_SetFileAttributesA)GetProcAddress(hLib, "SetFileAttributesA");
 
       /* process calls */
       p_SetProcessShutdownParameters = (t_SetProcessShutdownParameters)
@@ -129,10 +124,8 @@ InitWinAPIWrapper()
           GetProcAddress(hLib, "MultiByteToWideChar");
 
       /* find files */
-      p_FindFirstFileA = (t_FindFirstFileA)
-          GetProcAddress(hLib, "FindFirstFileA"); 
-      p_FindNextFileA = (t_FindNextFileA)
-          GetProcAddress(hLib, "FindNextFileA");
+      p_FindFirstFileA = (t_FindFirstFileA)GetProcAddress(hLib, "FindFirstFileA"); 
+      p_FindNextFileA = (t_FindNextFileA)GetProcAddress(hLib, "FindNextFileA");
 
       /* get and set directory */
       p_GetCurrentDirectoryA = (t_GetCurrentDirectoryA)
@@ -147,10 +140,8 @@ InitWinAPIWrapper()
              GetProcAddress(hLib, "CreateDirectoryW");
 
          /* backup calls */
-         p_BackupRead = (t_BackupRead)
-             GetProcAddress(hLib, "BackupRead");
-         p_BackupWrite = (t_BackupWrite)
-             GetProcAddress(hLib, "BackupWrite");
+         p_BackupRead = (t_BackupRead)GetProcAddress(hLib, "BackupRead");
+         p_BackupWrite = (t_BackupWrite)GetProcAddress(hLib, "BackupWrite");
 
          p_GetFileAttributesW = (t_GetFileAttributesW)
              GetProcAddress(hLib, "GetFileAttributesW");
@@ -168,7 +159,7 @@ InitWinAPIWrapper()
              GetProcAddress(hLib, "SetCurrentDirectoryW");
 
          /* some special stuff we need for VSS
-            but statically linkage doesn't work on Win 9x */
+            but static linkage doesn't work on Win 9x */
          p_GetVolumePathNameW = (t_GetVolumePathNameW)
              GetProcAddress(hLib, "GetVolumePathNameW");
          p_GetVolumeNameForVolumeMountPointW = (t_GetVolumeNameForVolumeMountPointW)

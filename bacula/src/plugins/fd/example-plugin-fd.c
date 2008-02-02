@@ -83,7 +83,7 @@ bpError loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfunc
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
    binfo  = lbinfo;
-   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->interface);
+   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->version);
 
    *pinfo  = &pluginInfo;             /* return pointer to our info */
    *pfuncs = &pluginFuncs;            /* return pointer to our functions */

@@ -66,6 +66,11 @@ syslog
 umask
 utime
  
+; plugins.o
+_Z10new_pluginv
+_Z12load_pluginsPvS_PKcS1_
+_Z14unload_pluginsv
+
 ; print.o
 _Z10__snprintfPcjPKcz
 _Z10__vsprintfPcPKcS_
@@ -715,3 +720,4 @@ _Z19unregister_watchdogP12s_watchdog_t
 watchdog_thread
  
 console_command DATA
+plugin_list DATA

@@ -75,6 +75,7 @@ LIB_OBJS = \
 	$(OBJDIR)/mem_pool.o \
 	$(OBJDIR)/message.o \
 	$(OBJDIR)/openssl.o \
+	$(OBJDIR)/plugins.o \
 	$(OBJDIR)/pythonlib.o \
 	$(OBJDIR)/queue.o \
 	$(OBJDIR)/rblist.o \

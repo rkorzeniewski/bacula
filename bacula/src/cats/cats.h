@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -908,6 +908,11 @@ struct db_int64_ctx {
 #include "protos.h"
 #include "jcr.h"
 #include "sql_cmds.h"
+
+/*
+ * Exported globals from sql.c  
+ */
+extern char db_driver[];
 
 /*
  * Some functions exported by sql.c for use within the

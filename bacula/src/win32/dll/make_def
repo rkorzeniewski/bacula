@@ -19,9 +19,9 @@ for i in *.o ; do \
 done
 
 DATA="\
-   console_command"
+   console_command \
+   plugin_list"
 
 for i in ${DATA}; do \
    echo "$i DATA"; \
 done
-
