@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -41,6 +41,9 @@
 /* Database prototypes */
 
 /* sql.c */
+B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user, 
+              const char *db_password, const char *db_address, int db_port, 
+              const char *db_socket, int mult_db_connections);
 B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char *db_password,
                        const char *db_address, int db_port, const char *db_socket,
                        int mult_db_connections);

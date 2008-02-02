@@ -1,6 +1,13 @@
               Technical notes on version 2.3
 
 General:
+02Feb08
+kes  Implement DB Driver = "string" for the DBI driver.
+kes  Remove all old bdb_xxx.c code.  Add dummy routines to bdb.c
+kes  First cut of code for loading Win32 plugin dlls. Implement
+     dlopen, dlsym, dlclose, and dlerror in src/win32/compat/compat.cpp
+     and implement a dlfcn.h file based on opengroup's definitions of
+     the functions.
 01Feb08
 kes  First cut plugin directives.
 30Jan08

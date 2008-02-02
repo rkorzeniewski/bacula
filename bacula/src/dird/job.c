@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -123,10 +123,11 @@ bool setup_job(JCR *jcr)
     * Open database
     */
    Dmsg0(100, "Open database\n");
-   jcr->db=db_init_database(jcr, jcr->catalog->db_name, jcr->catalog->db_user,
-                            jcr->catalog->db_password, jcr->catalog->db_address,
-                            jcr->catalog->db_port, jcr->catalog->db_socket,
-                            jcr->catalog->mult_db_connections);
+   jcr->db=db_init(jcr, jcr->catalog->db_driver, jcr->catalog->db_name, 
+                   jcr->catalog->db_user,
+                   jcr->catalog->db_password, jcr->catalog->db_address,
+                   jcr->catalog->db_port, jcr->catalog->db_socket,
+                   jcr->catalog->mult_db_connections);
    if (!jcr->db || !db_open_database(jcr, jcr->db)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not open database \"%s\".\n"),
                  jcr->catalog->db_name);

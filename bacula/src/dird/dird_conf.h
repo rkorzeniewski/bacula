@@ -229,6 +229,7 @@ public:
    char *db_password;
    char *db_user;
    char *db_name;
+   char *db_driver;                   /* Select appropriate driver */
    int   mult_db_connections;         /* set if multiple connections wanted */
 
    /* Methods */

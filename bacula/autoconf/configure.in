@@ -920,12 +920,9 @@ AC_SUBST(OPENSSL_INC)
 
 
 # -----------------------------------------------------------
-# Python and OpenSSL are using dlopen
+# dlopen is needed for plugins
 # -----------------------------------------------------------
-
-if test "$support_python" = "yes" -o "$support_tls" = "yes"; then
-   AC_SEARCH_LIBS(dlopen, [dl])
-fi
+AC_SEARCH_LIBS(dlopen, [dl])
 
 # ------------------------------------------
 # Where to place working dir

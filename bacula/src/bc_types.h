@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -172,7 +172,6 @@ typedef u_int64_t u_intmax_t;
 typedef double            float64_t;
 typedef float             float32_t;
 
-#endif /* __bc_types_INCLUDED */
 
 /* Define the uint versions actually used in Bacula */
 #ifndef uint8_t
@@ -197,3 +196,5 @@ typedef float             float32_t;
 #else
 #define sockopt_val_t void *
 #endif
+
+#endif /* __bc_types_INCLUDED */
