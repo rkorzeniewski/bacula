@@ -129,6 +129,9 @@ TODO
 ----
 
 bweb :
+  - Voir les groupes d'un client
+  - Overview, pouvoir choisir entre la job_old et l'autre
+  - utiliser des noms de table plus proche (brestore -> bweb ?)
   - Balloon
 Btw., the vertical axis was the number of files 
 while the size of the ballon is the volume (in MB 
@@ -487,6 +490,35 @@ bacula :
    p Ajouter une option pour avoir la table de stat
       Enable Statistic = yes/no
       Statistic retention = 4 years
+
+  - Accurate backup (kern)
+1. Run bconsole
+2. Dir -> FD run job
+*3. FD does a normal backup and at the same time makes a list of all files on 
+the system (in the FileSet), marking which ones were just now backed up.
+4. For each file backed up send attributes/data to SD.  Note, this is done 
+during step 3 above. Minor difference, the connection with the SD is not 
+dropped at the end of the backup -- see later.
+*5. Send the list of all files including those backed up to the Dir
+  --> Send to SD and DIR at the same time ? 
+        filed/backup.c/encode_and_send_attributes
+
+6. Dir computes files and deleted files.
+7. Dir sends list of additional files (new files) to backup, and list of files
+deleted.
+8. FD does backup of files Dir says to save.
+9. FD sends SD attrs of backed up files
+10. FD sends SD delete records for files Dir wants deleted.
+*11. FD connection to SD can be closed, this part of the backup is done.
+*12. FD sends new list of files just backed up to Dir
+*13. Dir adds newly backed up files to previous list sent by FD
+*14. Dir "batch" inserts complete new list in the catalog (I forgot the name 
+of the new table). Note this table has nothing to do with the File table.
+*15. Dir deletes previous list in catalog.
+*16. Dir does normal batch insert of attributes from SD, but must handle 
+deleted records. Note, this will probably happen at the same time as the 
+items 13-15.
+
 
 
  o Utiliser une alist dans les runscripts
