@@ -465,7 +465,8 @@ static int job_cmd(JCR *jcr)
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
-   generate_plugin_event(jcr, bEventJobStart, (void *)dir->msg);
+   Mmsg(jcr->errmsg, "JobId=%d Job=%s", jcr->JobId, jcr->Job);
+   generate_plugin_event(jcr, bEventJobStart, (void *)jcr->errmsg);
    return dir->fsend(OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
