@@ -465,6 +465,7 @@ static int job_cmd(JCR *jcr)
    jcr->sd_auth_key = bstrdup(sd_auth_key);
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
+   generate_plugin_event(jcr, bEventJobStart, (void *)dir->msg);
    return dir->fsend(OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);
 }
 
@@ -1283,6 +1284,7 @@ static int level_cmd(JCR *jcr)
       Dmsg2(100, "adj = %d since_time=%d\n", (int)adj, (int)since_time);
       jcr->incremental = 1;           /* set incremental or decremental backup */
       jcr->mtime = (time_t)since_time; /* set since time */
+      generate_plugin_event(jcr, bEventSince, (void *)jcr->mtime);
    } else {
       Jmsg1(jcr, M_FATAL, 0, _("Unknown backup level: %s\n"), level);
       free_memory(level);
@@ -1292,6 +1294,7 @@ static int level_cmd(JCR *jcr)
    if (buf) {
       free_memory(buf);
    }
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->JobLevel);
    return dir->fsend(OKlevel);
 
 bail_out:
@@ -1437,10 +1440,10 @@ static int backup_cmd(JCR *jcr)
    }
    
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventJobStart);
+   generate_plugin_event(jcr, bEventBackupStart);
 
 #if defined(WIN32_VSS)
-   /* START VSS ON WIN 32 */
+   /* START VSS ON WIN32 */
    if (jcr->VSS) {      
       if (g_pVSSClient->InitializeForBackup()) {   
         /* tell vss which drives to snapshot */   
@@ -1532,7 +1535,7 @@ static int backup_cmd(JCR *jcr)
 
 cleanup:
 #if defined(WIN32_VSS)
-   /* STOP VSS ON WIN 32 */
+   /* STOP VSS ON WIN32 */
    /* tell vss to close the backup session */
    if (jcr->VSS) {
       if (g_pVSSClient->CloseBackup()) {             
@@ -1550,6 +1553,7 @@ cleanup:
    }
 #endif
 
+   generate_plugin_event(jcr, bEventBackupEnd); 
    return 0;                          /* return and stop command loop */
 }
 
@@ -1587,7 +1591,8 @@ static int verify_cmd(JCR *jcr)
    dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventJobStart);
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->JobLevel);
+   generate_plugin_event(jcr, bEventVerifyStart);
 
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
@@ -1625,7 +1630,7 @@ static int verify_cmd(JCR *jcr)
    }
 
    dir->signal(BNET_EOD);
-
+   generate_plugin_event(jcr, bEventVerifyEnd);
    return 0;                          /* return and terminate command loop */
 }
 
@@ -1703,7 +1708,7 @@ static int restore_cmd(JCR *jcr)
     */
    start_dir_heartbeat(jcr);
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventJobStart);
+   generate_plugin_event(jcr, bEventRestoreStart);
    do_restore(jcr);
    stop_dir_heartbeat(jcr);
 
@@ -1730,6 +1735,7 @@ bail_out:
    }
 
    Dmsg0(130, "Done in job.c\n");
+   generate_plugin_event(jcr, bEventRestoreEnd);
    return 0;                          /* return and terminate command loop */
 }
 

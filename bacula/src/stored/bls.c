@@ -472,3 +472,6 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
    Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatParts);
    return 1;
 }
+
+void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
+{ return; }

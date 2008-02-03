@@ -57,7 +57,6 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 extern DLL_IMP_EXP alist *plugin_list;
 
-
 /* Universal return code from all functions */
 typedef int32_t bpError;
 

@@ -43,12 +43,6 @@
 #include "bc_types.h"
 #include "lib/plugins.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-
 
 /****************************************************************************
  *                                                                          *
@@ -71,6 +65,16 @@ typedef enum {
 typedef enum {
   bEventJobStart      = 1,
   bEventJobEnd        = 2,
+  bEventBackupStart   = 3,
+  bEventBackupEnd     = 4,
+  bEventRestoreStart  = 5,
+  bEventRestoreEnd    = 6,
+  bEventVerifyStart   = 7,
+  bEventVerifyEnd     = 8,
+  bEventPluginCommand = 9,
+  bEventPluginFile    = 10,
+  bEventLevel         = 11,
+  bEventSince         = 12,
 } bEventType;
 
 typedef struct s_bEvent {
@@ -81,6 +85,16 @@ typedef struct s_baculaInfo {
    uint32_t size;
    uint32_t version;
 } bInfo;
+
+/* Bacula Core Routines -- not used by plugins */
+void load_fd_plugins(const char *plugin_dir);
+void new_plugins(JCR *jcr);
+void free_plugins(JCR *jcr);
+void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Bacula interface version and function pointers */
 typedef struct s_baculaFuncs {  
@@ -95,11 +109,6 @@ typedef struct s_baculaFuncs {
        int level, const char *msg);
 } bFuncs;
 
-/* Bacula Subroutines */
-void load_fd_plugins(const char *plugin_dir);
-void new_plugins(JCR *jcr);
-void free_plugins(JCR *jcr);
-void generate_plugin_event(JCR *jcr, bEventType event);
 
 
 
@@ -116,7 +125,7 @@ typedef enum {
 
 
 #define PLUGIN_MAGIC     "*PluginData*" 
-#define PLUGIN_INTERFACE  1
+#define PLUGIN_INTERFACE_VERSION  1
 
 typedef struct s_pluginInfo {
    uint32_t size;
@@ -136,7 +145,7 @@ typedef struct s_pluginFuncs {
    bpError (*freePlugin)(bpContext *ctx);
    bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
    bpError (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event);
+   bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))
