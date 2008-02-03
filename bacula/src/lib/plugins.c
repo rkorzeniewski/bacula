@@ -105,7 +105,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       if (len < type_len+1 || strcmp(&result->d_name[len-type_len], type) != 0) {
          continue;
       }
-      printf("Got: name=%s len=%d\n", result->d_name, len);
+      Dmsg2(000, "Loaded plugin: name=%s len=%d\n", result->d_name, len);
        
       pm_strcpy(fname, plugin_dir);
       if (need_slash) {

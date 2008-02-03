@@ -101,7 +101,7 @@ static bpError newPlugin(bpContext *ctx)
 {
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
-   printf("plugin: newPlugin JobId=%d\n", JobId);
+// printf("plugin: newPlugin JobId=%d\n", JobId);
    bfuncs->registerBaculaEvents(ctx, 1, 2, 0);
    return 0;
 }
@@ -110,19 +110,19 @@ static bpError freePlugin(bpContext *ctx)
 {
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
-   printf("plugin: freePlugin JobId=%d\n", JobId);
+// printf("plugin: freePlugin JobId=%d\n", JobId);
    return 0;
 }
 
 static bpError getPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-   printf("plugin: getPluginValue var=%d\n", var);
+// printf("plugin: getPluginValue var=%d\n", var);
    return 0;
 }
 
 static bpError setPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-   printf("plugin: setPluginValue var=%d\n", var);
+// printf("plugin: setPluginValue var=%d\n", var);
    return 0;
 }
 
@@ -131,16 +131,31 @@ static bpError handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    char *name;
    switch (event->eventType) {
    case bEventJobStart:
-      printf("plugin: HandleEvent JobStart\n");
+      printf("plugin: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
-      printf("plugin: HandleEvent JobEnd\n");
+      printf("plugin: JobEnd\n");
+      break;
+   case bEventBackupStart:
+      printf("plugin: BackupStart\n");
+      break;
+   case bEventBackupEnd:
+      printf("plugin: BackupEnd\n");
+      break;
+   case bEventPluginCommand:
+      printf("plugin: command=%s\n", (char *)value);
+      break;
+   case bEventLevel:
+      printf("plugin: JobLevel=%c %d\n", (int)value, (int)value);
+      break;
+   case bEventSince:
+      printf("plugin: since=%d\n", (int)value);
       break;
    }
    bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
-   printf("FD Name=%s\n", name);
-   bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
-   bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");
+// printf("FD Name=%s\n", name);
+// bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
+// bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");
    return 0;
 }
 

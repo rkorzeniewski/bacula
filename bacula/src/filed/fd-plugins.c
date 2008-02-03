@@ -35,7 +35,7 @@
 #include "jcr.h"
 #include "fd-plugins.h"
 
-const int dbglvl = 0;
+const int dbglvl = 50;
 const char *plugin_type = "-fd.so";
 
 
