@@ -71,6 +71,12 @@ typedef enum {
 typedef enum {
   bEventJobStart      = 1,
   bEventJobEnd        = 2,
+  bEventBackupStart   = 3,
+  bEventBackupEnd     = 4,
+  bEventRestoreStart  = 5,
+  bEventRestoreEnd    = 6,
+  bEventPluginCommand = 7,
+  bEventPluginFile    = 8 
 } bEventType;
 
 typedef struct s_bEvent {
@@ -82,7 +88,7 @@ typedef struct s_baculaInfo {
    uint32_t version;
 } bInfo;
 
-/* Bacula version interface and function pointers */
+/* Bacula interface version and function pointers */
 typedef struct s_baculaFuncs {  
    uint32_t size;
    uint32_t version;
