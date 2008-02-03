@@ -33,7 +33,7 @@
    <item row="1" column="0" >
     <widget class="QTabWidget" name="tabWidget" >
      <property name="currentIndex" >
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab" >
       <attribute name="title" >
@@ -185,8 +185,8 @@
       <widget class="QGroupBox" name="groupBox_4" >
        <property name="geometry" >
         <rect>
-         <x>70</x>
-         <y>120</y>
+         <x>40</x>
+         <y>40</y>
          <width>190</width>
          <height>55</height>
         </rect>
@@ -209,6 +209,58 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_6" >
+       <property name="geometry" >
+        <rect>
+         <x>40</x>
+         <y>160</y>
+         <width>261</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="title" >
+        <string>Convert</string>
+       </property>
+       <widget class="QRadioButton" name="radioConvertOff" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Off</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioConvertIEC" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>60</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Bytes with IEC 1000B = KB</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioConvertStandard" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>100</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Bytes with 1024B = KB</string>
+        </property>
+       </widget>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_3" >

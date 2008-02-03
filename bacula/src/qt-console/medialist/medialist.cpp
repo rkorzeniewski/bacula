@@ -85,6 +85,11 @@ void MediaList::populateTree()
       << "Max Jobs" << "Max Files" << "Max Bytes" << "Recycle" << "Enabled"
       << "RecyclePool" << "Last Written");
    int statusIndex = headerlist.indexOf("Status");
+   QStringList flaglist = (QStringList()
+      << "L" << "R" << "L" << "R" << "BR" << "R"
+      << "R" << "RS" << "L" << "R" << "RS"
+      << "R" << "R" << "BR" << "R" << "R"
+      << "L" << "L");
 
    m_checkcurwidget = false;
    if (m_populated)
@@ -153,7 +158,29 @@ void MediaList::populateTree()
                   mediatreeitem->setText(index, field);
                   if (index == statusIndex) {
                      setStatusColor(mediatreeitem, field, index);
+                  } 
+                  if (flaglist[index].contains("B")) {
+                     QString text;
+                     bool okay;
+                     qlonglong bytes = field.toULongLong(&okay);
+                     if (okay){
+                        QString test =  QString("%1").arg(bytes);
+                        mainWin->hrConvert(text, bytes);
+                        mediatreeitem->setText(index, text);
+                     } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
                   }
+                  if (flaglist[index].contains("S")) {
+                     QString text;
+                     bool okay;
+                     qlonglong seconds = field.toULongLong(&okay);
+                     if (okay){
+                        QString test =  QString("%1").arg(seconds);
+                        mainWin->hrConvertSeconds(text, seconds);
+                        mediatreeitem->setText(index, text);
+                     } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
+                  }
+                  if (flaglist[index].contains("R"))
+                     mediatreeitem->setTextAlignment(index, Qt::AlignRight);
                }
                index++;
             } /* foreach field */

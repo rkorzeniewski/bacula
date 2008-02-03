@@ -632,6 +632,14 @@ void MainWin::setPreferences()
    prefs.rtRestore1CheckBox->setCheckState(m_rtRestore1Debug ? Qt::Checked : Qt::Unchecked);
    prefs.rtRestore2CheckBox->setCheckState(m_rtRestore2Debug ? Qt::Checked : Qt::Unchecked);
    prefs.rtRestore3CheckBox->setCheckState(m_rtRestore3Debug ? Qt::Checked : Qt::Unchecked);
+   if (m_radioConvert == 0) {
+      prefs.radioConvertOff->setChecked(Qt::Checked);
+   } else if (m_radioConvert == 1){
+      prefs.radioConvertIEC->setChecked(Qt::Checked);
+   } else {
+      m_radioConvert = 2;
+      prefs.radioConvertStandard->setChecked(Qt::Checked);
+   }
    prefs.exec();
 }
 
@@ -669,6 +677,13 @@ void prefsDialog::accept()
    mainWin->m_rtRestore1Debug = this->rtRestore1CheckBox->checkState() == Qt::Checked;
    mainWin->m_rtRestore2Debug = this->rtRestore2CheckBox->checkState() == Qt::Checked;
    mainWin->m_rtRestore3Debug = this->rtRestore3CheckBox->checkState() == Qt::Checked;
+   if (this->radioConvertOff->isChecked()) {
+      mainWin->m_radioConvert = 0;
+   } else if (this->radioConvertIEC->isChecked()){
+      mainWin->m_radioConvert = 1;
+   } else {
+      mainWin->m_radioConvert = 2;
+   }
 
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
@@ -690,6 +705,7 @@ void prefsDialog::accept()
    settings.endGroup();
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
+   settings.setValue("byteConvert", mainWin->m_radioConvert);
    settings.endGroup();
    settings.beginGroup("RestoreTree");
    settings.setValue("rtPopDirDebug", mainWin->m_rtPopDirDebug);
@@ -739,6 +755,7 @@ void MainWin::readPreferences()
    settings.endGroup();
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
+   m_radioConvert = settings.value("byteConvert", false).toInt();
    settings.endGroup();
    settings.beginGroup("RestoreTree");
    m_rtPopDirDebug = settings.value("rtPopDirDebug", false).toBool();
@@ -754,4 +771,72 @@ void MainWin::readPreferences()
    m_rtRestore2Debug = settings.value("rtRestore2Debug", false).toBool();
    m_rtRestore3Debug = settings.value("rtRestore3Debug", false).toBool();
    settings.endGroup();
+}
+
+void MainWin::hrConvert(QString &ret, qlonglong &inval)
+{
+   double net = 0;
+   qlonglong base;
+   QStringList suflist;
+
+   if (m_radioConvert == 0) {
+      ret =  QString("%1").arg(inval);
+      return;
+   } else if (m_radioConvert == 1){
+      base = 1000;
+      suflist = (QStringList() << "B" << "KiB" << "MiB" << "GiB" << "TiB" << "PiB" << "EiB" << "ZiB");
+   } else {
+      base = 1024;
+      suflist = (QStringList() << "B" << "KB" << "MB" << "GB" << "TB" << "PB" << "EB" << "ZB");
+   }
+   qlonglong running = base;
+   bool done = false;
+   int count = 1;
+   while (done == false) {
+      QString test1 =  QString("%1").arg(inval);
+      QString test2 =  QString("%1").arg(running);
+      if (float(inval) < (float)(running)) {
+         done = true;
+         ret = suflist[count - 1];
+         net = (float)inval / (float)(running/base);
+      }
+      count += 1;
+      if (count > suflist.count()) done = true;
+      running *= base;
+   }
+   char format = 'f';
+   if (net != 0)
+      ret =  QString("%1 %2")
+                  .arg(net, 0, format, 2, QLatin1Char(' '))
+                  .arg(ret);
+   else ret = "0 B";
+}
+
+void MainWin::hrConvertSeconds(QString &ret, qlonglong &inval)
+{
+   double net = 0;
+   QList<qlonglong> durations;
+   durations.append(1);
+   durations.append(60);
+   durations.append(3600);
+   durations.append(86400);
+   durations.append(2592000);
+   durations.append(31536000);
+   QStringList abbrlist = (QStringList() << "Sec" << "Min" << "Hrs" << "Days" << "Mnth" << "Yrs");
+   bool done = false;
+   int count = 1;
+   while (done == false) {
+      QString test1 =  QString("%1").arg(inval);
+      QString test2 =  QString("%1").arg(durations[count]);
+      if ((inval < durations[count]) || (count >= abbrlist.count() - 1)) { 
+         done = true;
+         net = (float)inval / (float)(durations[count - 1]);
+         if (net != 0)
+            ret =  QString("%1 %2")
+                  .arg(net, 0, 'f', 2, QLatin1Char(' '))
+                  .arg(abbrlist[count - 1]);
+         else ret = "0 S";
+      }
+      count += 1;
+   }
 }

@@ -238,6 +238,7 @@ void JobList::populateTable()
    m_startIndex = headerlist.indexOf("Job Starttime");
    m_filesIndex = headerlist.indexOf("Job Files");
    m_bytesIndex = headerlist.indexOf("Job Bytes");
+   int jobLevelIndex = headerlist.indexOf("Job Level");
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -277,6 +278,33 @@ void JobList::populateTable()
                mp_tableWidget->setItem(row, column, p_tableitem);
                if (column == m_statusIndex)
                   setStatusColor(p_tableitem, statusCode);
+               if (column == m_bytesIndex) {
+                  QString text;
+                  bool okay;
+                  qlonglong bytes = field.toULongLong(&okay);
+                  if (okay){
+                     QString test =  QString("%1").arg(bytes);
+                     mainWin->hrConvert(text, bytes);
+                     p_tableitem->setText(text);
+                  } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
+               } else if (column == m_purgedIndex) {
+                  bool okay;
+                  int isPurged = field.toInt(&okay);
+                  if (okay){
+                     if (isPurged) { p_tableitem->setText("IS");
+                     } else { p_tableitem->setText("NOT"); }
+                  }
+               } else if (column == m_typeIndex) {
+                  if (field == "B") { p_tableitem->setText("Backup"); }
+                  else if (field == "R") { p_tableitem->setText("Restore"); }
+               } else if (column == jobLevelIndex) {
+                  if (field == "F") { p_tableitem->setText("Full"); }
+                  else if (field == "D") { p_tableitem->setText("Diff"); }
+                  else if (field == "I") { p_tableitem->setText("Incr"); }
+               }   
+               if ((column == m_bytesIndex) || (column == m_filesIndex)){
+                  p_tableitem->setTextAlignment(Qt::AlignRight);
+               }
                column++;
             }
          }
