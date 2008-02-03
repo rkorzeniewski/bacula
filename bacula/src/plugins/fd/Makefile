@@ -13,12 +13,12 @@ LIBDIR=../../lib
 .c.o:
 	$(CC) -I${SRCDIR} -I${FDDOR} -DTEST_PROGRAM -c $<
 
-all: fd-plugins example-plugin-fd.so 
+all: main example-plugin-fd.so 
 
-fd-plugins.o: ${FDDIR}/fd-plugins.h
-	$(CC)  -I${SRCDIR} -I${FDDOR} -DTEST_PROGRAM -c ${FDDIR}/fd-plugins.c -o fd-plugins.o
+fd-plugins.o: ${FDDIR}/fd-plugins.h ${FDDIR}/fd-plugins.c
+	$(CC)  -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c ${FDDIR}/fd-plugins.c 
 
-fd-plugins: fd-plugins.o ${FDDIR}/fd-plugins.h 
+main: fd-plugins.o
 	$(CC) -L${LIBDIR} fd-plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
 example-plugin-fd.o: example-plugin-fd.c ${FDDIR}/fd-plugins.h
