@@ -1,13 +1,7 @@
 /*
- * Test program for listing files during regression testing
- *
- *  Kern Sibbald, MM
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,6 +25,12 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Test program for listing files during regression testing
+ *
+ *  Kern Sibbald, MM
+ *
+ */
 
 #include "bacula.h"
 #include "findlib/find.h"
@@ -38,6 +38,7 @@
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 int generate_job_event(JCR *jcr, const char *event) { return 1; }
+void generate_plugin_event(JCR *jcr, bEventType eventType, void *value) { }
 
 
 /* Global variables */

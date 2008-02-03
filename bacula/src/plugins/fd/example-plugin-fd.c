@@ -49,7 +49,7 @@ static bpError newPlugin(bpContext *ctx);
 static bpError freePlugin(bpContext *ctx);
 static bpError getPluginValue(bpContext *ctx, pVariable var, void *value);
 static bpError setPluginValue(bpContext *ctx, pVariable var, void *value);
-static bpError handlePluginEvent(bpContext *ctx, bEvent *event);
+static bpError handlePluginEvent(bpContext *ctx, bEvent *event, void *value);
 
 
 /* Pointers to Bacula functions */
@@ -58,7 +58,7 @@ static bInfo  *binfo = NULL;
 
 static pInfo pluginInfo = {
    sizeof(pluginInfo),
-   PLUGIN_INTERFACE,
+   PLUGIN_INTERFACE_VERSION,
    PLUGIN_MAGIC,
    PLUGIN_LICENSE,
    PLUGIN_AUTHOR,
@@ -69,7 +69,7 @@ static pInfo pluginInfo = {
 
 static pFuncs pluginFuncs = {
    sizeof(pluginFuncs),
-   PLUGIN_INTERFACE,
+   PLUGIN_INTERFACE_VERSION,
 
    /* Entry points into plugin */
    newPlugin,                         /* new plugin instance */
@@ -126,7 +126,7 @@ static bpError setPluginValue(bpContext *ctx, pVariable var, void *value)
    return 0;
 }
 
-static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
+static bpError handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    char *name;
    switch (event->eventType) {

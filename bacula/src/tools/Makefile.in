@@ -81,7 +81,7 @@ inc_conf.o: ../dird/inc_conf.c
 	$(CXX) $(DEFS) $(DEBUG) -c $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 testfind: ../findlib/libfind.a ../lib/libbac.a $(FINDOBJS)
-	$(CXX) -g $(LDFLAGS) -L. -L../lib -L../findlib -o $@ $(FINDOBJS) \
+	$(CXX) -g $(LDFLAGS) -o $@ $(FINDOBJS) -L. -L../lib -L../findlib \
 	  $(DLIB) -lfind -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 testls: ../findlib/libfind.a ../lib/libbac.a testls.o

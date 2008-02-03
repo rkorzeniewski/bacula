@@ -52,13 +52,13 @@ static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
 /* Bacula info */
 static bInfo binfo = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE,
+   PLUGIN_INTERFACE_VERSION 
 };
 
 /* Bacula entry points */
 static bFuncs bfuncs = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE,
+   PLUGIN_INTERFACE_VERSION,
    baculaRegisterEvents,
    baculaGetValue,
    baculaSetValue,
@@ -69,7 +69,7 @@ static bFuncs bfuncs = {
 /*
  * Create a plugin event 
  */
-void generate_plugin_event(JCR *jcr, bEventType eventType) 
+void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)     
 {
    bEvent event;
    Plugin *plugin;
@@ -83,7 +83,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType)
    Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
    event.eventType = eventType;
    foreach_alist(plugin, plugin_list) {
-      plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event);
+      plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event, value);
    }
 }
 
@@ -220,7 +220,6 @@ static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
 }
 
 #ifdef TEST_PROGRAM
-
 
 int main(int argc, char *argv[])
 {
