@@ -439,10 +439,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    if (ff_pkt->flags & FO_PORTABLE) {
       set_portable_backup(&ff_pkt->bfd); /* disable Win32 BackupRead() */
    }
-   if (ff_pkt->reader) {
-      if (!set_prog(&ff_pkt->bfd, ff_pkt->reader, jcr)) {
-         Jmsg(jcr, M_FATAL, 0, _("Python reader program \"%s\" not found.\n"), 
-            ff_pkt->reader);
+   if (ff_pkt->cmd_plugin) {
+      if (!set_cmd_plugin(&ff_pkt->bfd, jcr)) {
          goto bail_out;
       }
    }
