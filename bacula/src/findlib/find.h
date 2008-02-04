@@ -68,7 +68,6 @@ struct utimbuf {
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-
 /*
  * Status codes returned by create_file()
  */
@@ -80,7 +79,8 @@ enum {
 };
 
 
-/* Options saved int "options" of the include/exclude lists.
+/*  
+ * Options saved int "options" of the include/exclude lists.
  * They are directly jammed ito  "flag" of ff packet
  */
 #define FO_MD5          (1<<1)        /* Do MD5 checksum */
@@ -156,8 +156,6 @@ struct findFOPTS {
    alist base;                        /* list of base names */
    alist fstype;                      /* file system type limitation */
    alist drivetype;                   /* drive type limitation */
-   char *reader;                      /* reader program */
-   char *writer;                      /* writer program */
 };
 
 
@@ -221,8 +219,7 @@ struct FF_PKT {
    uint32_t flags;                    /* backup options */
    int GZIP_level;                    /* compression level */
    int strip_path;                    /* strip path count */
-   char *reader;                      /* reader program */
-   char *writer;                      /* writer program */
+   bool cmd_plugin;                   /* set if we have a command plugin */
    alist fstypes;                     /* allowed file system types */
    alist drivetypes;                  /* allowed drive types */
 

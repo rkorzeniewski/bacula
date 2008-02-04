@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,6 +44,12 @@ int     (*python_open)(BFILE *bfd, const char *fname, int flags, mode_t mode) = 
 int     (*python_close)(BFILE *bfd) = NULL;
 ssize_t (*python_read)(BFILE *bfd, void *buf, size_t count) = NULL;
 ssize_t (*python_write)(BFILE *bfd, void *buf, size_t count) = NULL;
+
+int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
+int     (*plugin_bclose)(JCR *jcr) = NULL;
+ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
+ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
+
 
 #ifdef HAVE_DARWIN_OS
 #include <sys/paths.h>
@@ -287,6 +293,7 @@ void binit(BFILE *bfd)
    bfd->fid = -1;
    bfd->mode = BF_CLOSED;
    bfd->use_backup_api = have_win32_api();
+   bfd->cmd_plugin = false;
 }
 
 /*
@@ -310,9 +317,14 @@ bool set_portable_backup(BFILE *bfd)
 
 bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 {
-   bfd->prog = prog;
-   bfd->jcr = jcr;
    return false;
+}
+
+bool set_cmd_plugin(BFILE *bfd, JCR *jcr)
+{
+   bfd->cmd_plugin = true;
+   bfd->jcr = jcr;
+   return true;
 }
 
 /*
@@ -567,6 +579,7 @@ int bclose(BFILE *bfd)
    }
    bfd->mode = BF_CLOSED;
    bfd->lpContext = NULL;
+   bfd->cmd_plugin = false;
    return stat;
 }
 
@@ -705,22 +718,14 @@ bool is_portable_backup(BFILE *bfd)
 
 bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
 {
-#ifdef HAVE_PYTHON
-   if (bfd->prog && strcmp(prog, bfd->prog) == 0) {
-      return true;                    /* already setup */
-   }
-
-   if (python_set_prog(jcr, prog)) {
-      Dmsg1(000, "Set prog=%s\n", prog);
-      bfd->prog = prog;
-      bfd->jcr = jcr;
-      return true;
-   }
-#endif
-   Dmsg0(000, "No prog set\n");
-   bfd->prog = NULL;
    return false;
+}
 
+bool set_cmd_plugin(BFILE *bfd, JCR *jcr)
+{
+   bfd->cmd_plugin = true;
+   bfd->jcr = jcr;
+   return true;
 }
 
 /* 
@@ -783,10 +788,8 @@ bool is_restore_stream_supported(int stream)
 
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
-   /* Open reader/writer program */
-   if (bfd->prog) {
-      Dmsg1(000, "Open file %d\n", bfd->fid);
-      return python_open(bfd, fname, flags, mode);
+   if (bfd->cmd_plugin && plugin_bopen) {
+      return plugin_bopen(bfd->jcr, fname, flags, mode);
    }
 
    /* Normal file open */
@@ -850,9 +853,8 @@ int bclose(BFILE *bfd)
 
    Dmsg1(400, "Close file %d\n", bfd->fid);
 
-   /* Close reader/writer program */
-   if (bfd->prog) {
-      return python_close(bfd);
+   if (bfd->cmd_plugin && plugin_bclose) {
+      return plugin_bclose(bfd->jcr);
    }
 
    if (bfd->fid == -1) {
@@ -870,6 +872,7 @@ int bclose(BFILE *bfd)
    stat = close(bfd->fid);
    bfd->berrno = errno;
    bfd->fid = -1;
+   bfd->cmd_plugin = false;
    return stat;
 }
 
@@ -877,9 +880,10 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
    ssize_t stat;
 
-   if (bfd->prog) {
-      return python_read(bfd, buf, count);
+   if (bfd->cmd_plugin && plugin_bread) {
+      return plugin_bread(bfd->jcr, buf, count);
    }
+
    stat = read(bfd->fid, buf, count);
    bfd->berrno = errno;
    return stat;
@@ -889,8 +893,8 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 {
    ssize_t stat;
 
-   if (bfd->prog) {
-      return python_write(bfd, buf, count);
+   if (bfd->cmd_plugin && plugin_bwrite) {
+      return plugin_bwrite(bfd->jcr, buf, count);
    }
    stat = write(bfd->fid, buf, count);
    bfd->berrno = errno;

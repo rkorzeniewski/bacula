@@ -42,7 +42,29 @@
 #endif
 #include "bc_types.h"
 #include "lib/plugins.h"
+#include <sys/stat.h>
 
+/*
+ * This packet is used for file save/restore info transfer */
+struct save_pkt {
+  char *fname;                        /* Full path and filename */
+  char *link;                         /* Link name if any */
+  struct stat statp;                  /* System stat() packet for file */
+  int type;                           /* FT_xx for this file */             
+  uint32_t flags;                     /* Bacula internal flags */
+  bool portable;                      /* set if data format is portable */
+};
+
+#define IO_OPEN  1
+#define IO_READ  2
+#define IO_WRITE 3
+#define IO_CLOSE 4
+
+struct io_pkt {
+   int func;                          /* Function code */
+   int count;                         /* read/write count */
+   char *buf;                         /* read/write buffer */
+};
 
 /****************************************************************************
  *                                                                          *
@@ -146,6 +168,8 @@ typedef struct s_pluginFuncs {
    bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
    bpError (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
    bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
+   bpError (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
+   bpError (*pluginIO)(bpContext *ctx, struct io_pkt *io);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))

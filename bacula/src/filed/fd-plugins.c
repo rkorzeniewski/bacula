@@ -38,6 +38,12 @@
 const int dbglvl = 50;
 const char *plugin_type = "-fd.so";
 
+/* External functions */
+extern int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
+extern int     (*plugin_bclose)(JCR *jcr);
+extern ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
+extern ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
+
 
 /* Forward referenced functions */
 static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value);
@@ -47,6 +53,11 @@ static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg);
 static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg);
+
+static int     my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode);
+static int     my_plugin_bclose(JCR *jcr);
+static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count);
+static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count);
 
 
 /* Bacula info */
@@ -66,6 +77,7 @@ static bFuncs bfuncs = {
    baculaDebugMsg
 };
 
+
 /*
  * Create a plugin event 
  */
@@ -74,17 +86,44 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    bEvent event;
    Plugin *plugin;
    int i = 0;
+   int len;
+   char *p;
+   char *cmd = (char *)value;
 
    if (!plugin_list) {
       return;
    }
 
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
    event.eventType = eventType;
-   foreach_alist(plugin, plugin_list) {
-      plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event, value);
+
+   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   if (eventType != bEventPluginCommand) {
+      /* Pass event to every plugin */
+      foreach_alist(plugin, plugin_list) {
+         plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event, value);
+      }
+      return;
    }
+
+   /* Handle plugin command here (backup/restore of file) */
+   if (!(p = strchr(cmd, ':'))) {
+      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+      return;
+   }
+   len = p - cmd;
+   if (len > 0) {
+      foreach_alist(plugin, plugin_list) {
+         Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+         if (strncmp(plugin->file, cmd, len) == 0) {
+            Dmsg1(000, "Command plugin = %s\n", cmd);
+            plug_func(plugin)->handlePluginEvent(&plugin_ctx[i], &event, value);
+            return;
+         }
+         i++;
+      }
+   }
+      
 }
 
 void load_fd_plugins(const char *plugin_dir)
@@ -95,6 +134,11 @@ void load_fd_plugins(const char *plugin_dir)
 
    plugin_list = New(alist(10, not_owned_by_alist));
    load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+   plugin_bopen     = my_plugin_bopen;
+   plugin_bclose    = my_plugin_bclose;
+   plugin_bread     = my_plugin_bread;
+   plugin_bwrite    = my_plugin_bwrite;
+
 }
 
 /*
@@ -149,6 +193,46 @@ void free_plugins(JCR *jcr)
    jcr->plugin_ctx = NULL;
 }
 
+static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
+{
+   struct io_pkt io;
+   Dmsg0(000, "plugin_bopen\n");
+   io.func = IO_OPEN;
+   io.count = 0;
+   io.buf = NULL;
+
+   return 0;
+}
+
+static int my_plugin_bclose(JCR *jcr)
+{
+   struct io_pkt io;
+   Dmsg0(000, "plugin_bclose\n");
+   io.func = IO_CLOSE;
+   io.count = 0;
+   io.buf = NULL;
+   return 0;
+}
+
+static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count)
+{
+   struct io_pkt io;
+   Dmsg0(000, "plugin_bread\n");
+   io.func = IO_READ;
+   io.count = count;
+   io.buf = (char *)buf;
+   return 0;
+}
+
+static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
+{
+   struct io_pkt io;
+   Dmsg0(000, "plugin_bwrite\n");
+   io.func = IO_WRITE;
+   io.count = count;
+   io.buf = (char *)buf;
+   return 0;
+}
 
 /* ==============================================================
  *
@@ -220,6 +304,12 @@ static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
 }
 
 #ifdef TEST_PROGRAM
+
+int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
+int     (*plugin_bclose)(JCR *jcr) = NULL;
+ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
+ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
+
 
 int main(int argc, char *argv[])
 {

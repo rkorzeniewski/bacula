@@ -313,12 +313,6 @@ void *handle_client_request(void *dirp)
             fo->base.destroy();
             fo->fstype.destroy();
             fo->drivetype.destroy();
-            if (fo->reader) {
-               free(fo->reader);
-            }
-            if (fo->writer) {
-               free(fo->writer);
-            }
          }
          incexe->opts_list.destroy();
          incexe->name_list.destroy();
@@ -846,12 +840,12 @@ static void add_fileset(JCR *jcr, const char *item)
       break;
    case 'D':
       current_opts = start_options(ff);
-      current_opts->reader = bstrdup(item);
+//    current_opts->reader = bstrdup(item);
       state = state_options;
       break;
    case 'T':
       current_opts = start_options(ff);
-      current_opts->writer = bstrdup(item);
+//    current_opts->writer = bstrdup(item);
       state = state_options;
       break;
    default:
@@ -904,12 +898,6 @@ static bool term_fileset(JCR *jcr)
          }
          for (k=0; k<fo->drivetype.size(); k++) {
             Dmsg1(400, "XD %s\n", (char *)fo->drivetype.get(k));
-         }
-         if (fo->reader) {
-            Dmsg1(400, "D %s\n", fo->reader);
-         }
-         if (fo->writer) {
-            Dmsg1(400, "T %s\n", fo->writer);
          }
       }
       dlistString *node;

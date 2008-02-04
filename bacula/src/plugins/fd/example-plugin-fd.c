@@ -151,6 +151,8 @@ static bpError handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventSince:
       printf("plugin: since=%d\n", (int)value);
       break;
+   default:
+      printf("plugin: unknown event=%d\n", event->eventType);
    }
    bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
 // printf("FD Name=%s\n", name);

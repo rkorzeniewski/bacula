@@ -191,12 +191,6 @@ main (int argc, char *const *argv)
             fo->wildbase.destroy();
             fo->fstype.destroy();
             fo->drivetype.destroy();
-            if (fo->reader) {
-               free(fo->reader);
-            }
-            if (fo->writer) {
-               free(fo->writer);
-            }
          }
          incexe->opts_list.destroy();
          incexe->name_list.destroy();
@@ -512,12 +506,6 @@ static bool copy_fileset(FF_PKT *ff, JCR *jcr)
             }
             for (k=0; k<fo->drivetype.size(); k++) {
                current_opts->drivetype.append(bstrdup((const char *)fo->drivetype.get(k)));
-            }
-            if (fo->reader) {
-               current_opts->reader = bstrdup(fo->reader);
-            }
-            if (fo->writer) {
-               current_opts->writer = bstrdup(fo->writer);
             }
          }
 
