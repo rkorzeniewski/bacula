@@ -40,12 +40,12 @@ const char *plugin_type = "-dir.so";
 
 
 /* Forward referenced functions */
-static bpError baculaGetValue(bpContext *ctx, brVariable var, void *value);
-static bpError baculaSetValue(bpContext *ctx, bwVariable var, void *value);
-static bpError baculaRegisterEvents(bpContext *ctx, ...);
-static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value);
+static bRC baculaSetValue(bpContext *ctx, bwVariable var, void *value);
+static bRC baculaRegisterEvents(bpContext *ctx, ...);
+static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg);
-static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg);
 
 
@@ -79,11 +79,11 @@ void generate_plugin_event(JCR *jcr, bEventType eventType)
       return;
    }
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   Dmsg2(dbglvl, "plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    event.eventType = eventType;
    foreach_alist(plugin, plugin_list) {
-      plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event);
+      plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event);
    }
 }
 
@@ -115,15 +115,15 @@ void new_plugins(JCR *jcr)
       return;
    }
 
-   jcr->plugin_ctx = (void *)malloc(sizeof(bpContext) * num);
+   jcr->plugin_ctx_list = (void *)malloc(sizeof(bpContext) * num);
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   Dmsg2(dbglvl, "Instantiate plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Start a new instance of each plugin */
-      plugin_ctx[i].bContext = (void *)jcr;
-      plugin_ctx[i].pContext = NULL;
-      plug_func(plugin)->newPlugin(&plugin_ctx[i++]);
+      plugin_ctx_list[i].bContext = (void *)jcr;
+      plugin_ctx_list[i].pContext = NULL;
+      plug_func(plugin)->newPlugin(&plugin_ctx_list[i++]);
    }
 }
 
@@ -139,14 +139,14 @@ void free_plugins(JCR *jcr)
       return;
    }
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   Dmsg2(dbglvl, "Free instance plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&plugin_ctx[i++]);
+      plug_func(plugin)->freePlugin(&plugin_ctx_list[i++]);
    }
-   free(plugin_ctx);
-   jcr->plugin_ctx = NULL;
+   free(plugin_ctx_list);
+   jcr->plugin_ctx_list = NULL;
 }
 
 
@@ -156,12 +156,12 @@ void free_plugins(JCR *jcr)
  *
  * ==============================================================
  */
-static bpError baculaGetValue(bpContext *ctx, brVariable var, void *value)
+static bRC baculaGetValue(bpContext *ctx, brVariable var, void *value)
 {
    JCR *jcr = (JCR *)(ctx->bContext);
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    if (!value) {
-      return 1;
+      return bRC_Error;
    }
 // Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
    switch (var) {
@@ -172,16 +172,16 @@ static bpError baculaGetValue(bpContext *ctx, brVariable var, void *value)
    default:
       break;
    }
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaSetValue(bpContext *ctx, bwVariable var, void *value)
+static bRC baculaSetValue(bpContext *ctx, bwVariable var, void *value)
 {
    Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaRegisterEvents(bpContext *ctx, ...)
+static bRC baculaRegisterEvents(bpContext *ctx, ...)
 {
    va_list args;
    uint32_t event;
@@ -191,23 +191,23 @@ static bpError baculaRegisterEvents(bpContext *ctx, ...)
       Dmsg1(dbglvl, "Plugin wants event=%u\n", event);
    }
    va_end(args);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg)
 {
    Dmsg5(dbglvl, "Job message: %s:%d type=%d time=%ld msg=%s\n",
       file, line, type, mtime, msg);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg)
 {
    Dmsg4(dbglvl, "Debug message: %s:%d level=%d msg=%s\n",
       file, line, level, msg);
-   return 0;
+   return bRC_OK;
 }
 
 #ifdef TEST_PROGRAM

@@ -209,7 +209,9 @@ public:
    ATTR_DBR *ar;                      /* DB attribute record */
    guid_list *id_list;                /* User/group id to name list */
 
-   void *plugin_ctx;
+   void *plugin_ctx_list;             /* list of contexts for plugins */
+   void *plugin_ctx;                  /* current plugin context */
+   void *plugin;                      /* plugin instance */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

@@ -42,12 +42,6 @@
 #undef _POSIX_C_SOURCE
 #include <Python.h>
 
-/* External function pointers to be set */
-extern bool    (*python_set_prog)(JCR *jcr, const char *prog);
-extern int     (*python_open)(BFILE *bfd, const char *fname, int flags, mode_t mode);
-extern int     (*python_close)(BFILE *bfd);
-extern ssize_t (*python_read)(BFILE *bfd, void *buf, size_t count);
-
 
 extern JCR *get_jcr_from_PyObject(PyObject *self);
 extern PyObject *find_method(PyObject *eventsObject, PyObject *method, 
@@ -62,12 +56,6 @@ PyMethodDef JobMethods[] = {
     {"write", job_write, METH_VARARGS, "Write to output"},
     {NULL, NULL, 0, NULL}             /* last item */
 };
-
-
-bool my_python_set_prog(JCR *jcr, const char *prog);
-int my_python_open(BFILE *bfd, const char *fname, int flags, mode_t mode);
-int my_python_close(BFILE *bfd);
-ssize_t my_python_read(BFILE *bfd, void *buf, size_t count);
 
 
 struct s_vars {
@@ -231,12 +219,6 @@ static PyObject *set_job_events(PyObject *self, PyObject *arg)
    Py_INCREF(eObject);
    jcr->Python_events = (void *)eObject;        /* set new events */
 
-   /* Set function pointers to call here */
-   python_set_prog = my_python_set_prog;
-   python_open     = my_python_open;
-   python_close    = my_python_close;
-   python_read     = my_python_read;
-
    Py_INCREF(Py_None);
    return Py_None;
 }
@@ -281,45 +263,6 @@ bail_out:
    return stat;
 }
 
-
-bool my_python_set_prog(JCR *jcr, const char *prog)
-{
-   PyObject *events = (PyObject *)jcr->Python_events;
-   BFILE *bfd = &jcr->ff->bfd;
-   char method[MAX_NAME_LENGTH];
-
-   if (!events) {
-      return false;
-   }
-   bstrncpy(method, prog, sizeof(method));
-   bstrncat(method, "_", sizeof(method));
-   bstrncat(method, "open", sizeof(method));
-   bfd->pio.fo = find_method(events, bfd->pio.fo, method);
-   bstrncpy(method, prog, sizeof(method));
-   bstrncat(method, "_", sizeof(method));
-   bstrncat(method, "read", sizeof(method));
-   bfd->pio.fr = find_method(events, bfd->pio.fr, method);
-   bstrncpy(method, prog, sizeof(method));
-   bstrncat(method, "_", sizeof(method));
-   bstrncat(method, "close", sizeof(method));
-   bfd->pio.fc = find_method(events, bfd->pio.fc, method);
-   return bfd->pio.fo && bfd->pio.fr && bfd->pio.fc;
-}
-
-int my_python_open(BFILE *bfd, const char *fname, int flags, mode_t mode)
-{
-   return -1;
-}
-
-int my_python_close(BFILE *bfd) 
-{
-   return 0;
-}
-
-ssize_t my_python_read(BFILE *bfd, void *buf, size_t count)
-{
-   return -1;
-}
 
 #else
 

@@ -39,7 +39,7 @@
 #include "filed.h"
 
 /* Forward referenced functions */
-static int save_file(FF_PKT *ff_pkt, void *pkt, bool top_level);
+int save_file(FF_PKT *ff_pkt, void *pkt, bool top_level);
 static void strip_path(FF_PKT *ff_pkt);
 static void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
@@ -248,7 +248,7 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
  *           0 if error
  *          -1 to ignore file/directory (not used here)
  */
-static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
+int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 {
    bool do_read = false;
    int stat, data_stream; 
@@ -472,6 +472,8 @@ static int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
    } else if (ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
               ff_pkt->type == FT_REPARSE ||
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
+      do_read = true;
+   } else if (ff_pkt->cmd_plugin) {
       do_read = true;
    }
 

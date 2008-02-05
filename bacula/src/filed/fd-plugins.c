@@ -32,11 +32,13 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
-#include "jcr.h"
-#include "fd-plugins.h"
+#include "filed.h"
 
 const int dbglvl = 50;
 const char *plugin_type = "-fd.so";
+
+extern int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level);
+
 
 /* Function pointers to be set here */
 extern int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
@@ -94,36 +96,60 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
       return;
    }
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    event.eventType = eventType;
 
-   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    if (eventType != bEventPluginCommand) {
       /* Pass event to every plugin */
       foreach_alist(plugin, plugin_list) {
-         plug_func(plugin)->handlePluginEvent(&plugin_ctx[i++], &event, value);
+         plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
       }
-      return;
+      goto bail_out;
    }
 
    /* Handle plugin command here (backup/restore of file) */
+   Dmsg1(000, "plugin cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
       Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
-      return;
+      goto bail_out;
    }
    len = p - cmd;
-   if (len > 0) {
-      foreach_alist(plugin, plugin_list) {
-         Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
-         if (strncmp(plugin->file, cmd, len) == 0) {
-            Dmsg1(000, "Command plugin = %s\n", cmd);
-            plug_func(plugin)->handlePluginEvent(&plugin_ctx[i], &event, value);
-            return;
+   if (len <= 0) {
+      goto bail_out;
+   }
+
+   foreach_alist(plugin, plugin_list) {
+      Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      if (strncmp(plugin->file, cmd, len) == 0) {
+         struct save_pkt sp;
+         FF_PKT *ff_pkt;
+         Dmsg1(000, "Command plugin = %s\n", cmd);
+         if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
+            goto bail_out;
          }
-         i++;
+         memset(&sp, 0, sizeof(sp));
+         sp.type = FT_REG;
+         sp.portable = true;
+         Dmsg0(000, "Plugin startBackup\n");
+         if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
+            goto bail_out;
+         }
+         jcr->plugin_ctx = &plugin_ctx_list[i];
+         jcr->plugin = plugin;
+         ff_pkt = jcr->ff;
+         ff_pkt->fname = sp.fname;
+         ff_pkt->type = sp.type;
+         ff_pkt->statp = sp.statp;        /* structure copy */
+         Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
+         save_file(ff_pkt, (void *)jcr, true);
+         goto bail_out;
       }
+      i++;
    }
       
+bail_out:
+   return;
 }
 
 void load_fd_plugins(const char *plugin_dir)
@@ -134,10 +160,10 @@ void load_fd_plugins(const char *plugin_dir)
 
    plugin_list = New(alist(10, not_owned_by_alist));
    load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
-   plugin_bopen     = my_plugin_bopen;
-   plugin_bclose    = my_plugin_bclose;
-   plugin_bread     = my_plugin_bread;
-   plugin_bwrite    = my_plugin_bwrite;
+   plugin_bopen  = my_plugin_bopen;
+   plugin_bclose = my_plugin_bclose;
+   plugin_bread  = my_plugin_bread;
+   plugin_bwrite = my_plugin_bwrite;
 
 }
 
@@ -159,15 +185,15 @@ void new_plugins(JCR *jcr)
       return;
    }
 
-   jcr->plugin_ctx = (void *)malloc(sizeof(bpContext) * num);
+   jcr->plugin_ctx_list = (void *)malloc(sizeof(bpContext) * num);
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   Dmsg2(dbglvl, "Instantiate plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Start a new instance of each plugin */
-      plugin_ctx[i].bContext = (void *)jcr;
-      plugin_ctx[i].pContext = NULL;
-      plug_func(plugin)->newPlugin(&plugin_ctx[i++]);
+      plugin_ctx_list[i].bContext = (void *)jcr;
+      plugin_ctx_list[i].pContext = NULL;
+      plug_func(plugin)->newPlugin(&plugin_ctx_list[i++]);
    }
 }
 
@@ -183,55 +209,66 @@ void free_plugins(JCR *jcr)
       return;
    }
 
-   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-   Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx, jcr->JobId);
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   Dmsg2(dbglvl, "Free instance plugin_ctx=%p JobId=%d\n", plugin_ctx_list, jcr->JobId);
    foreach_alist(plugin, plugin_list) {
       /* Free the plugin instance */
-      plug_func(plugin)->freePlugin(&plugin_ctx[i++]);
+      plug_func(plugin)->freePlugin(&plugin_ctx_list[i++]);
    }
-   free(plugin_ctx);
-   jcr->plugin_ctx = NULL;
+   free(plugin_ctx_list);
+   jcr->plugin_ctx_list = NULL;
 }
 
 static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
 {
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(000, "plugin_bopen\n");
    io.func = IO_OPEN;
    io.count = 0;
    io.buf = NULL;
-
-   return 0;
+   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   return io.status;
 }
 
 static int my_plugin_bclose(JCR *jcr)
 {
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(000, "plugin_bclose\n");
    io.func = IO_CLOSE;
    io.count = 0;
    io.buf = NULL;
-   return 0;
+   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   return io.status;
 }
 
 static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count)
 {
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(000, "plugin_bread\n");
    io.func = IO_READ;
    io.count = count;
    io.buf = (char *)buf;
-   return 0;
+   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   return (ssize_t)io.status;
 }
 
 static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
 {
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
    Dmsg0(000, "plugin_bwrite\n");
    io.func = IO_WRITE;
    io.count = count;
    io.buf = (char *)buf;
-   return 0;
+   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   return (ssize_t)io.status;
 }
 
 /* ==============================================================
@@ -310,6 +347,10 @@ int     (*plugin_bclose)(JCR *jcr) = NULL;
 ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
 ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
 
+int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
+{
+   return 0;
+}
 
 int main(int argc, char *argv[])
 {
