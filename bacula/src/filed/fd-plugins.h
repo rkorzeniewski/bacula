@@ -64,6 +64,8 @@ struct io_pkt {
    int func;                          /* Function code */
    int count;                         /* read/write count */
    char *buf;                         /* read/write buffer */
+   int status;                        /* return status */
+   int io_errno;                      /* errno code */  
 };
 
 /****************************************************************************
@@ -122,12 +124,12 @@ extern "C" {
 typedef struct s_baculaFuncs {  
    uint32_t size;
    uint32_t version;
-   bpError (*registerBaculaEvents)(bpContext *ctx, ...);
-   bpError (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
-   bpError (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
-   bpError (*JobMessage)(bpContext *ctx, const char *file, int line, 
+   bRC (*registerBaculaEvents)(bpContext *ctx, ...);
+   bRC (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
+   bRC (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
+   bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
        int type, time_t mtime, const char *msg);     
-   bpError (*DebugMessage)(bpContext *ctx, const char *file, int line,
+   bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *msg);
 } bFuncs;
 
@@ -163,13 +165,13 @@ typedef struct s_pluginInfo {
 typedef struct s_pluginFuncs {  
    uint32_t size;
    uint32_t version;
-   bpError (*newPlugin)(bpContext *ctx);
-   bpError (*freePlugin)(bpContext *ctx);
-   bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bpError (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
-   bpError (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
-   bpError (*pluginIO)(bpContext *ctx, struct io_pkt *io);
+   bRC (*newPlugin)(bpContext *ctx);
+   bRC (*freePlugin)(bpContext *ctx);
+   bRC (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
+   bRC (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
+   bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
+   bRC (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
+   bRC (*pluginIO)(bpContext *ctx, struct io_pkt *io);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))
