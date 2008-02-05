@@ -38,7 +38,7 @@
 const int dbglvl = 50;
 const char *plugin_type = "-fd.so";
 
-/* External functions */
+/* Function pointers to be set here */
 extern int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
 extern int     (*plugin_bclose)(JCR *jcr);
 extern ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
@@ -46,12 +46,12 @@ extern ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
 
 
 /* Forward referenced functions */
-static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value);
-static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value);
-static bpError baculaRegisterEvents(bpContext *ctx, ...);
-static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value);
+static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value);
+static bRC baculaRegisterEvents(bpContext *ctx, ...);
+static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg);
-static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg);
 
 static int     my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode);
@@ -240,12 +240,12 @@ static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
  *
  * ==============================================================
  */
-static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
+static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value)
 {
    JCR *jcr = (JCR *)(ctx->bContext);
 // Dmsg1(dbglvl, "bacula: baculaGetValue var=%d\n", var);
    if (!value) {
-      return 1;
+      return bRC_Error;
    }
 // Dmsg1(dbglvl, "Bacula: jcr=%p\n", jcr); 
    switch (var) {
@@ -265,16 +265,16 @@ static bpError baculaGetValue(bpContext *ctx, bVariable var, void *value)
    case bVarSinceTime:
       break;
    }
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaSetValue(bpContext *ctx, bVariable var, void *value)
+static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value)
 {
    Dmsg1(dbglvl, "bacula: baculaSetValue var=%d\n", var);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaRegisterEvents(bpContext *ctx, ...)
+static bRC baculaRegisterEvents(bpContext *ctx, ...)
 {
    va_list args;
    uint32_t event;
@@ -284,23 +284,23 @@ static bpError baculaRegisterEvents(bpContext *ctx, ...)
       Dmsg1(dbglvl, "Plugin wants event=%u\n", event);
    }
    va_end(args);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaJobMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
   int type, time_t mtime, const char *msg)
 {
    Dmsg5(dbglvl, "Job message: %s:%d type=%d time=%ld msg=%s\n",
       file, line, type, mtime, msg);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError baculaDebugMsg(bpContext *ctx, const char *file, int line,
+static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *msg)
 {
    Dmsg4(dbglvl, "Debug message: %s:%d level=%d msg=%s\n",
       file, line, level, msg);
-   return 0;
+   return bRC_OK;
 }
 
 #ifdef TEST_PROGRAM

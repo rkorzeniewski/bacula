@@ -57,8 +57,12 @@ int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 
 extern DLL_IMP_EXP alist *plugin_list;
 
-/* Universal return code from all functions */
-typedef int32_t bpError;
+/* Universal return codes from all functions */
+typedef enum {
+  bRC_OK    = 0,                         /* OK */
+  bRC_Stop  = 1,                         /* Stop calling plugins */
+  bRC_Error = 2,
+} bRC;
 
 /* Context packet as first argument of all functions */
 typedef struct s_bpContext {
@@ -67,8 +71,8 @@ typedef struct s_bpContext {
 } bpContext;
 
 extern "C" {
-typedef bpError (*t_loadPlugin)(void *binfo, void *bfuncs, void **pinfo, void **pfuncs);
-typedef bpError (*t_unloadPlugin)(void);
+typedef bRC (*t_loadPlugin)(void *binfo, void *bfuncs, void **pinfo, void **pfuncs);
+typedef bRC (*t_unloadPlugin)(void);
 }
 
 class Plugin {
