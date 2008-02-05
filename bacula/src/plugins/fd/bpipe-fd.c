@@ -34,6 +34,9 @@
 #include <stdio.h>
 #include "fd-plugins.h"
 
+#undef malloc
+#undef free
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -83,11 +86,15 @@ static pFuncs pluginFuncs = {
    pluginIO
 };
 
+struct plugin_ctx {
+   int record;
+};
+
 bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
    binfo  = lbinfo;
-   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->version);
+   printf("bpipe-fd: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->version);
 
    *pinfo  = &pluginInfo;             /* return pointer to our info */
    *pfuncs = &pluginFuncs;            /* return pointer to our functions */
@@ -97,36 +104,33 @@ bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 
 bRC unloadPlugin() 
 {
-   printf("plugin: Unloaded\n");
+   printf("bpipe-fd: Unloaded\n");
    return bRC_OK;
 }
 
 static bRC newPlugin(bpContext *ctx)
 {
-   int JobId = 0;
-   bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
-// printf("plugin: newPlugin JobId=%d\n", JobId);
-   bfuncs->registerBaculaEvents(ctx, 1, 2, 0);
+   struct plugin_ctx *p_ctx = (struct plugin_ctx *)malloc(sizeof(struct plugin_ctx));
+
+   p_ctx->record = -1;
+   ctx->pContext = (void *)p_ctx;        /* set our context pointer */
    return bRC_OK;
 }
 
 static bRC freePlugin(bpContext *ctx)
 {
-   int JobId = 0;
-   bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
-// printf("plugin: freePlugin JobId=%d\n", JobId);
+   struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
+   free(p_ctx);
    return bRC_OK;
 }
 
 static bRC getPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-// printf("plugin: getPluginValue var=%d\n", var);
    return bRC_OK;
 }
 
 static bRC setPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
-// printf("plugin: setPluginValue var=%d\n", var);
    return bRC_OK;
 }
 
@@ -136,31 +140,31 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
    switch (event->eventType) {
    case bEventJobStart:
-      printf("plugin: JobStart=%s\n", (char *)value);
+      printf("bpipe-fd: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
-      printf("plugin: JobEnd\n");
+      printf("bpipe-fd: JobEnd\n");
       break;
    case bEventBackupStart:
-      printf("plugin: BackupStart\n");
+      printf("bpipe-fd: BackupStart\n");
       break;
    case bEventBackupEnd:
-      printf("plugin: BackupEnd\n");
+      printf("bpipe-fd: BackupEnd\n");
       break;
    case bEventLevel:
-      printf("plugin: JobLevel=%c %d\n", (int)value, (int)value);
+      printf("bpipe-fd: JobLevel=%c %d\n", (int)value, (int)value);
       break;
    case bEventSince:
-      printf("plugin: since=%d\n", (int)value);
+      printf("bpipe-fd: since=%d\n", (int)value);
       break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
    case bEventPluginCommand:
-      printf("plugin: command=%s\n", (char *)value);
+      printf("bpipe-fd: command=%s\n", (char *)value);
       break;
 
    default:
-      printf("plugin: unknown event=%d\n", event->eventType);
+      printf("bpipe-fd: unknown event=%d\n", event->eventType);
    }
    bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
 // printf("FD Name=%s\n", name);
@@ -171,6 +175,17 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
 static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
 {
+   static char *fname = (char *)"/BPIPE/test.txt";
+   time_t now = time(NULL);
+   sp->fname = fname;
+   sp->statp.st_mode = 0700;
+   sp->statp.st_ctime = now;
+   sp->statp.st_mtime = now;
+   sp->statp.st_atime = now;
+   sp->statp.st_size = 100;
+   sp->statp.st_blksize = 4096;
+   sp->statp.st_blocks = 1;
+   printf("bpipe-fd: startPluginBackup\n");
    return bRC_OK;
 }
 
@@ -179,20 +194,30 @@ static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
  */
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 {
+   struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
+    
    io->status = 0;
    io->io_errno = 0;
    switch(io->func) {
    case IO_OPEN:
-      printf("plugin: IO_OPEN\n");
+      p_ctx->record = 0;
+      printf("bpipe-fd: IO_OPEN\n");
       break;
    case IO_READ:
-      printf("plugin: IO_READ buf=%p len=%d\n", io->buf, io->count);
+      printf("bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->count);
+      if (p_ctx->record == 0) {
+         strcpy(io->buf, "This is a test string.\n");
+         io->status = strlen(io->buf);
+         p_ctx->record = 1;
+         return bRC_OK;
+      }
+      io->status = 0;
       break;
    case IO_WRITE:
-      printf("plugin: IO_WRITE buf=%p len=%d\n", io->buf, io->count);
+      printf("bpipe-fd: IO_WRITE buf=%p len=%d\n", io->buf, io->count);
       break;
    case IO_CLOSE:
-      printf("plugin: IO_CLOSE\n");
+      printf("bpipe-fd: IO_CLOSE\n");
       break;
    }
    return bRC_OK;

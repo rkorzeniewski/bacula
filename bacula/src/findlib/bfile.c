@@ -39,12 +39,6 @@
 #include "bacula.h"
 #include "find.h"
 
-bool    (*python_set_prog)(JCR *jcr, const char *prog) = NULL;
-int     (*python_open)(BFILE *bfd, const char *fname, int flags, mode_t mode) = NULL;
-int     (*python_close)(BFILE *bfd) = NULL;
-ssize_t (*python_read)(BFILE *bfd, void *buf, size_t count) = NULL;
-ssize_t (*python_write)(BFILE *bfd, void *buf, size_t count) = NULL;
-
 int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
 int     (*plugin_bclose)(JCR *jcr) = NULL;
 ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;

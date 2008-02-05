@@ -107,12 +107,12 @@ typedef struct s_baculaInfo {
 typedef struct s_baculaFuncs {  
    uint32_t size;
    uint32_t version;
-   bpError (*registerBaculaEvents)(bpContext *ctx, ...);
-   bpError (*getBaculaValue)(bpContext *ctx, brVariable var, void *value);
-   bpError (*setBaculaValue)(bpContext *ctx, bwVariable var, void *value);
-   bpError (*JobMessage)(bpContext *ctx, const char *file, int line, 
+   bRC (*registerBaculaEvents)(bpContext *ctx, ...);
+   bRC (*getBaculaValue)(bpContext *ctx, brVariable var, void *value);
+   bRC (*setBaculaValue)(bpContext *ctx, bwVariable var, void *value);
+   bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
        int type, time_t mtime, const char *msg);     
-   bpError (*DebugMessage)(bpContext *ctx, const char *file, int line,
+   bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
        int level, const char *msg);
 } bFuncs;
 
@@ -153,11 +153,11 @@ typedef struct s_pluginInfo {
 typedef struct s_pluginFuncs {  
    uint32_t size;
    uint32_t version;
-   bpError (*newPlugin)(bpContext *ctx);
-   bpError (*freePlugin)(bpContext *ctx);
-   bpError (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bpError (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bpError (*handlePluginEvent)(bpContext *ctx, bEvent *event);
+   bRC (*newPlugin)(bpContext *ctx);
+   bRC (*freePlugin)(bpContext *ctx);
+   bRC (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
+   bRC (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
+   bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))

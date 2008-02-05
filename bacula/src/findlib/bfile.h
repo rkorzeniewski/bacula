@@ -36,19 +36,6 @@
 #ifndef __BFILE_H
 #define __BFILE_H
 
-#ifdef HAVE_PYTHON
-#undef _POSIX_C_SOURCE
-#include <Python.h>
-struct Python_IO {
-   PyObject *fo;
-   PyObject *fr;
-   PyObject *fc;
-};
-#else
-struct Python_IO {
-};
-#endif
-
 
 /* this should physically correspond to WIN32_STREAM_ID
  * from winbase.h on Win32. We didn't inlcude cStreamName
@@ -99,7 +86,6 @@ struct BFILE {
    DWORD lerror;                      /* Last error code */
    int berrno;                        /* errno */
    JCR *jcr;                          /* jcr for editing job codes */
-   Python_IO pio;                     /* Python I/O routines */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
    bool reparse_point;                /* set if reparse point */ 
@@ -123,7 +109,6 @@ struct BFILE {
    int m_flags;                       /* open flags */
    int berrno;
    JCR *jcr;                          /* jcr for editing job codes */
-   Python_IO pio;                     /* Python I/O routines */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
    bool reparse_point;                /* not used in Unix */

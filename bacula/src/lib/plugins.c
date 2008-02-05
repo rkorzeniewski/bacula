@@ -121,7 +121,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       plugin->pHandle = dlopen(fname.c_str(), RTLD_NOW);
       if (!plugin->pHandle) {
          Jmsg(NULL, M_ERROR, 0, _("Plugin load %s failed: ERR=%s\n"), 
-              fname.c_str(), dlerror());
+              fname.c_str(), NPRT(dlerror()));
          goto get_out;
       }
 
@@ -129,13 +129,13 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       loadPlugin = (t_loadPlugin)dlsym(plugin->pHandle, "loadPlugin");
       if (!loadPlugin) {
          Jmsg(NULL, M_ERROR, 0, _("Lookup of loadPlugin in plugin %s failed: ERR=%s\n"),
-            fname.c_str(), dlerror());
+            fname.c_str(), NPRT(dlerror()));
          goto get_out;
       }
       plugin->unloadPlugin = (t_unloadPlugin)dlsym(plugin->pHandle, "unloadPlugin");
       if (!plugin->unloadPlugin) {
          Jmsg(NULL, M_ERROR, 0, _("Lookup of unloadPlugin in plugin %s failed: ERR=%s\n"),
-            fname.c_str(), dlerror());
+            fname.c_str(), NPRT(dlerror()));
          goto get_out;
       }
 
