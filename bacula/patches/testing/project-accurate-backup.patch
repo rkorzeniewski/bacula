@@ -1,7 +1,7 @@
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(revision 6372)
-+++ src/dird/backup.c	(working copy)
+--- src/dird/backup.c	(révision 6373)
++++ src/dird/backup.c	(copie de travail)
 @@ -44,6 +44,7 @@
  #include "bacula.h"
  #include "dird.h"
@@ -10,7 +10,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,300 @@
+@@ -97,6 +98,308 @@
  }
  
  /*
@@ -43,6 +43,7 @@ Index: src/dird/backup.c
 + * Need to insert file and attributes to temp table
 + * Batch compare files and attributes 
 + *
++ * If file have file_index=0, they are discarded by FD
 + *
 + */
 +bool accurate_compute_files(JCR *jcr)
@@ -66,7 +67,7 @@ Index: src/dird/backup.c
 +   fdbr.JobId = JobId;		
 +   jcr->FileIndex = 0;
 +
-+   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
++   if (/*jcr->accurate == false ||*/ jcr->JobLevel == L_FULL) {
 +      return true;
 +   }
 +
@@ -76,7 +77,7 @@ Index: src/dird/backup.c
 +      return false;
 +   }
 +
-+   Dmsg0(20, "bdird: waiting to receive file attributes\n");
++   Dmsg0(1, "bdird: waiting to receive file attributes\n");
 +   /*
 +    * Get Attributes and Signature from File daemon
 +    * We expect:
@@ -97,7 +98,7 @@ Index: src/dird/backup.c
 +      }
 +      fname = check_pool_memory_size(fname, fd->msglen);
 +      jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
-+      Dmsg1(20, "Atts+Digest=%s\n", fd->msg);
++      Dmsg1(1, "Atts+Digest=%s\n", fd->msg);
 +      if ((len = sscanf(fd->msg, "%ld %d %100s", &file_index, &stream,
 +            fname)) != 3) {
 +         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n"
@@ -140,11 +141,13 @@ Index: src/dird/backup.c
 +          * Find equivalent record in the database
 +          */
 +         fdbr.FileId = 0;
++	 /* If file_index==0, file is not saved by fd, check them */
 +         if (!db_accurate_get_file_attributes_record(jcr, jcr->db, jcr->fname, backupid, &fdbr)) {
 +            Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
-+            Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
++            Dmsg1(1, _("File not in catalog: %s\n"), jcr->fname);
 +            continue;
 +         } else {
++	    Dmsg1(1, _("File in catalog: %s\n"), jcr->fname);
 +            /*
 +             * mark file record as visited by stuffing the
 +             * current JobId, which is unique, into the MarkId field.
@@ -161,6 +164,7 @@ Index: src/dird/backup.c
 +          * Loop over options supplied by user and verify the
 +          * fields he requests.
 +          */
++	 stat = JS_Terminated;	/* TODO: track changes */
 +         for (p=Opts_Digest; *p; p++) {
 +            char ed1[30], ed2[30];
 +            switch (*p) {
@@ -247,6 +251,10 @@ Index: src/dird/backup.c
 +               break;
 +            }
 +         }
++	 if (stat == JS_Differences) {
++	    Jmsg(jcr, M_INFO, 0, _("      fname=%s\n"), jcr->fname);
++	 }
++
 +      /*
 +       * Got Digest Signature from Storage daemon
 +       *  It came across in the Opts_Digest field.
@@ -311,7 +319,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,6 +526,13 @@
+@@ -231,6 +534,13 @@
        goto bail_out;
     }
  
@@ -327,8 +335,8 @@ Index: src/dird/backup.c
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(revision 6372)
-+++ src/dird/inc_conf.c	(working copy)
+--- src/dird/inc_conf.c	(révision 6373)
++++ src/dird/inc_conf.c	(copie de travail)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
   */
@@ -366,8 +374,8 @@ Index: src/dird/inc_conf.c
  
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(revision 6372)
-+++ src/dird/dird_conf.c	(working copy)
+--- src/dird/dird_conf.c	(révision 6373)
++++ src/dird/dird_conf.c	(copie de travail)
 @@ -319,6 +319,7 @@
     {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
     {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
@@ -388,8 +396,8 @@ Index: src/dird/dird_conf.c
        }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(revision 6372)
-+++ src/dird/dird_conf.h	(working copy)
+--- src/dird/dird_conf.h	(révision 6373)
++++ src/dird/dird_conf.h	(copie de travail)
 @@ -400,6 +400,7 @@
     bool write_part_after_job;         /* Set to write part after job in SD */
     bool enabled;                      /* Set if job enabled */
@@ -400,13 +408,14 @@ Index: src/dird/dird_conf.h
     SCHED     *schedule;               /* When -- Automatic schedule */
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(revision 6372)
-+++ src/filed/backup.c	(working copy)
-@@ -50,6 +50,81 @@
+--- src/filed/backup.c	(révision 6373)
++++ src/filed/backup.c	(copie de travail)
+@@ -50,6 +50,98 @@
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
  
  /*
 + * Called by save_file when accept/discard file for backup
++ *
 + * TODO: we could add MD5/SHAX digest, but we have to compute it
 + * for all files.
 + */
@@ -422,25 +431,41 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
-+   if (!stats) {
++   if (!stats) {		/* TODO: don't always compute attribute  */
 +      file_index=0;
 +      encode_stat(attribs, ff_pkt, 0);
 +      a = attribs;
 +   }
 +
-+   if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
++   switch (ff_pkt->type) {
++   case FT_LNKSAVED:                  /* Hard linked, file already saved */
++   case FT_LNK:
 +      stat = dir->fsend("%d %d %s %s%c%s%c%s%c", file_index,
 +            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
 +            0, a, 0, ff_pkt->link, 0);
-+   } else if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE) {
-+         /* Here link is the canonical filename (i.e. with trailing slash) */
-+      stat = dir->fsend("%d %d %s %s%c%s%c%c", file_index,
-+               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
-+               0, a, 0, 0);
-+   } else {
++      break;
++   case FT_REGE:
++   case FT_REG:
++   case FT_SPEC:
++   case FT_RAW:
++   case FT_FIFO:
++   case FT_NOCHG:
 +      stat = dir->fsend("%d %d %s %s%c%s%c%c", file_index,
 +            STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->fname,
 +            0, a, 0, 0);
++
++      break;
++   case FT_REPARSE: 
++   case FT_DIREND:
++   case FT_NORECURSE:
++   case FT_DIRNOCHG:
++      stat = dir->fsend("%d %d %s %s%c%s%c%c", file_index,
++               STREAM_UNIX_ATTRIBUTES, ff_pkt->VerifyOpts, ff_pkt->link,
++               0, a, 0, 0);
++      break;
++   default:
++      Dmsg2(1, _("Fname=%s Type=%i\n"), ff_pkt->fname, ff_pkt->type);
++      return true;
 +   }
 +
 +   if (!stat) {
@@ -484,18 +509,21 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,6 +141,7 @@
+@@ -66,6 +158,9 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
-+   jcr->accurate=true;		/* TODO: remove that */
++   if (jcr->JobLevel != L_FULL) {
++      jcr->accurate=true;		/* TODO: remove that */
++   }
  
     sd = jcr->store_bsock;
  
-@@ -135,6 +211,20 @@
+@@ -134,6 +229,20 @@
+       ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
- 
++   Dmsg1(1, "jcr->accurate == %i\n", jcr->accurate);
 +   /* start accurate stuffs */
 +   if (jcr->accurate) {
 +      /* TODO: test job_canceled() */
@@ -509,11 +537,10 @@ Index: src/filed/backup.c
 +//      accurate_send_file_list(jcr);                 /* send all new files to DIR */
 +      accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
 +   }
-+
+ 
     free_pool_memory(jcr->acl_text);
  
-    stop_heartbeat_monitor(jcr);
-@@ -355,9 +445,11 @@
+@@ -355,9 +464,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -525,7 +552,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1111,6 +1203,9 @@
+@@ -1111,6 +1222,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -537,8 +564,8 @@ Index: src/filed/backup.c
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(revision 6372)
-+++ src/filed/job.c	(working copy)
+--- src/filed/job.c	(révision 6373)
++++ src/filed/job.c	(copie de travail)
 @@ -1087,6 +1087,9 @@
        case 'c':
           fo->flags |= FO_CHKCHANGES;
@@ -551,8 +578,8 @@ Index: src/filed/job.c
           break;
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(revision 6372)
-+++ src/cats/make_postgresql_tables.in	(working copy)
+--- src/cats/make_postgresql_tables.in	(révision 6373)
++++ src/cats/make_postgresql_tables.in	(copie de travail)
 @@ -43,6 +43,58 @@
  CREATE INDEX file_jobid_idx on file (jobid);
  CREATE INDEX file_fp_idx on file (filenameid, pathid);
@@ -614,8 +641,8 @@ Index: src/cats/make_postgresql_tables.in
  --  if your Verifies are too slow.
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(revision 6372)
-+++ src/cats/protos.h	(working copy)
+--- src/cats/protos.h	(révision 6373)
++++ src/cats/protos.h	(copie de travail)
 @@ -82,10 +82,12 @@
  /* sql_find.c */
  bool db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
@@ -631,8 +658,8 @@ Index: src/cats/protos.h
  bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
 Index: src/cats/sql_find.c
 ===================================================================
---- src/cats/sql_find.c	(revision 6372)
-+++ src/cats/sql_find.c	(working copy)
+--- src/cats/sql_find.c	(révision 6373)
++++ src/cats/sql_find.c	(copie de travail)
 @@ -190,7 +190,55 @@
     return true;
  }
@@ -691,8 +718,8 @@ Index: src/cats/sql_find.c
   *   VERIFY_CATALOG we want the JobId of the last INIT.
 Index: src/cats/sql_create.c
 ===================================================================
---- src/cats/sql_create.c	(revision 6372)
-+++ src/cats/sql_create.c	(working copy)
+--- src/cats/sql_create.c	(révision 6373)
++++ src/cats/sql_create.c	(copie de travail)
 @@ -829,6 +829,14 @@
     return true;
  }
@@ -710,8 +737,8 @@ Index: src/cats/sql_create.c
   *
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(revision 6372)
-+++ src/cats/sql_get.c	(working copy)
+--- src/cats/sql_get.c	(révision 6373)
++++ src/cats/sql_get.c	(copie de travail)
 @@ -66,6 +66,8 @@
   *
   *  Returns: 0 on failure
@@ -721,7 +748,7 @@ Index: src/cats/sql_get.c
   */
  int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
  {
-@@ -86,7 +88,70 @@
+@@ -86,7 +88,73 @@
     return stat;
  }
  
@@ -734,7 +761,7 @@ Index: src/cats/sql_get.c
 + */
 +int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JobId_t backupid, FILE_DBR *fdbr)
 +{
-+   int stat;
++   int stat=0;
 +   char ed1[50];
 +   SQL_ROW row;
  
@@ -758,6 +785,8 @@ Index: src/cats/sql_get.c
 +	mdb->esc_path,
 +	mdb->esc_name,
 +	edit_int64(backupid, ed1));
++   
++   Dmsg1(1,"get_file %s\n", mdb->cmd);
 +
 +   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 +      char ed1[30];
@@ -774,9 +803,10 @@ Index: src/cats/sql_get.c
 +	    fdbr->FileIndex  = str_to_int64(row[5]);
 +	    fdbr->MarkId     = str_to_int64(row[6]);
 +	    fdbr->JobId      = str_to_int64(row[7]);
++	    stat=1;
 +	 }
 +      } else {
-+	 Mmsg1(mdb->errmsg, _("Get DB File record %s failed\n"),fname);
++	 Mmsg2(mdb->errmsg, _("Get DB File record %s failed num=%i\n"),fname,mdb->num_rows);
 +         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
 +      }
 +      sql_free_result(mdb);
@@ -794,8 +824,8 @@ Index: src/cats/sql_get.c
   * Returns: 0 on failure
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(revision 6372)
-+++ src/jcr.h	(working copy)
+--- src/jcr.h	(révision 6373)
++++ src/jcr.h	(copie de travail)
 @@ -208,6 +208,7 @@
     B_DB *db_batch;                    /* database pointer for batch insert */
     ATTR_DBR *ar;                      /* DB attribute record */
@@ -806,8 +836,8 @@ Index: src/jcr.h
     void *plugin_ctx;                  /* current plugin context */
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(revision 6372)
-+++ src/findlib/find.h	(working copy)
+--- src/findlib/find.h	(révision 6373)
++++ src/findlib/find.h	(copie de travail)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
  #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
