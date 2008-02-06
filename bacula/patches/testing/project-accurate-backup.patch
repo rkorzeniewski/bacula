@@ -1,7 +1,7 @@
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 6368)
-+++ src/dird/backup.c	(copie de travail)
+--- src/dird/backup.c	(revision 6372)
++++ src/dird/backup.c	(working copy)
 @@ -44,6 +44,7 @@
  #include "bacula.h"
  #include "dird.h"
@@ -10,7 +10,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,286 @@
+@@ -97,6 +98,300 @@
  }
  
  /*
@@ -54,15 +54,27 @@ Index: src/dird/backup.c
 +   struct stat statc;                 /* catalog stat */
 +   int stat = JS_Terminated;
 +   char buf[MAXSTRING];
++   char ed1[50], ed2[50];
 +   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
 +   int do_Digest = CRYPTO_DIGEST_NONE;
 +   int32_t file_index = 0;
 +   JobId_t JobId=0;		/* TODO: compute the job key in new table */
++   JobId_t backupid=0;
 +
 +   memset(&fdbr, 0, sizeof(FILE_DBR));
 +   fd = jcr->file_bsock;
 +   fdbr.JobId = JobId;		
 +   jcr->FileIndex = 0;
++
++   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
++      return true;
++   }
++
++   backupid = db_find_backupid(jcr, jcr->db, &jcr->jr);
++   if (!backupid) {
++      Jmsg(jcr, M_ERROR, 0, _("Can't use Accurate mode ERR=Can't find BackupId\n"));
++      return false;
++   }
 +
 +   Dmsg0(20, "bdird: waiting to receive file attributes\n");
 +   /*
@@ -128,9 +140,7 @@ Index: src/dird/backup.c
 +          * Find equivalent record in the database
 +          */
 +         fdbr.FileId = 0;
-+//         if (!db_get_file_attributes_record(jcr, jcr->db, jcr->fname,
-+//              &jcr->previous_jr, &fdbr)) {
-+	 if (1) {
++         if (!db_accurate_get_file_attributes_record(jcr, jcr->db, jcr->fname, backupid, &fdbr)) {
 +            Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
 +            Dmsg1(020, _("File not in catalog: %s\n"), jcr->fname);
 +            continue;
@@ -279,12 +289,16 @@ Index: src/dird/backup.c
 +   /* Now find all the files that are missing -- i.e. all files in
 +    *  the database where the MarkId != current JobId
 +    */
++
 +   bsnprintf(buf, sizeof(buf),
-+      "SELECT Path.Path,Filename.Name FROM File,Path,Filename "
-+      "WHERE File.JobId=%d "
-+      "AND File.MarkId!=%d AND File.PathId=Path.PathId "
-+      "AND File.FilenameId=Filename.FilenameId",
-+         JobId, jcr->JobId);
++      "SELECT Path.Path,Filename.Name "
++        "FROM CurrentBackup "
++             "JOIN File USING (FileId) "
++             "JOIN Path USING (PathId) "
++             "JOIN Filename USING (FilenameId) "
++      "WHERE CurrentBackup.BackupId=%s "
++        "AND File.MarkId!=%d ",
++	     edit_uint64(backupid, ed1), edit_uint64(jcr->JobId, ed2));
 +   /* missing_handler is called for each file found */
 +   db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
 +
@@ -297,7 +311,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,6 +512,13 @@
+@@ -231,6 +526,13 @@
        goto bail_out;
     }
  
@@ -313,8 +327,8 @@ Index: src/dird/backup.c
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(révision 6368)
-+++ src/dird/inc_conf.c	(copie de travail)
+--- src/dird/inc_conf.c	(revision 6372)
++++ src/dird/inc_conf.c	(working copy)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
   */
@@ -352,8 +366,8 @@ Index: src/dird/inc_conf.c
  
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 6368)
-+++ src/dird/dird_conf.c	(copie de travail)
+--- src/dird/dird_conf.c	(revision 6372)
++++ src/dird/dird_conf.c	(working copy)
 @@ -319,6 +319,7 @@
     {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
     {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
@@ -374,8 +388,8 @@ Index: src/dird/dird_conf.c
        }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 6368)
-+++ src/dird/dird_conf.h	(copie de travail)
+--- src/dird/dird_conf.h	(revision 6372)
++++ src/dird/dird_conf.h	(working copy)
 @@ -400,6 +400,7 @@
     bool write_part_after_job;         /* Set to write part after job in SD */
     bool enabled;                      /* Set if job enabled */
@@ -386,14 +400,11 @@ Index: src/dird/dird_conf.h
     SCHED     *schedule;               /* When -- Automatic schedule */
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6368)
-+++ src/filed/backup.c	(copie de travail)
-@@ -49,7 +49,84 @@
- static void crypto_session_end(JCR *jcr);
+--- src/filed/backup.c	(revision 6372)
++++ src/filed/backup.c	(working copy)
+@@ -50,6 +50,81 @@
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
  
-+#define backup_stat(x,y,z) (x.z = y.z ; y.z = 0)
-+
  /*
 + * Called by save_file when accept/discard file for backup
 + * TODO: we could add MD5/SHAX digest, but we have to compute it
@@ -407,7 +418,7 @@ Index: src/filed/backup.c
 +   BSOCK *dir = jcr->dir_bsock;
 +   int stat;
 +
-+   if (jcr->accurate == false) {
++   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
 +      return true;
 +   }
 +
@@ -473,7 +484,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,6 +143,7 @@
+@@ -66,6 +141,7 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -481,7 +492,7 @@ Index: src/filed/backup.c
  
     sd = jcr->store_bsock;
  
-@@ -135,6 +213,20 @@
+@@ -135,6 +211,20 @@
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
  
@@ -502,7 +513,7 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -355,9 +447,11 @@
+@@ -355,9 +445,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -514,7 +525,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1109,6 +1203,9 @@
+@@ -1111,6 +1203,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -526,8 +537,8 @@ Index: src/filed/backup.c
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 6368)
-+++ src/filed/job.c	(copie de travail)
+--- src/filed/job.c	(revision 6372)
++++ src/filed/job.c	(working copy)
 @@ -1087,6 +1087,9 @@
        case 'c':
           fo->flags |= FO_CHKCHANGES;
@@ -538,10 +549,150 @@ Index: src/filed/job.c
        default:
           Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
           break;
+Index: src/cats/make_postgresql_tables.in
+===================================================================
+--- src/cats/make_postgresql_tables.in	(revision 6372)
++++ src/cats/make_postgresql_tables.in	(working copy)
+@@ -43,6 +43,58 @@
+ CREATE INDEX file_jobid_idx on file (jobid);
+ CREATE INDEX file_fp_idx on file (filenameid, pathid);
+ 
++CREATE TABLE CurrentBackupId
++(
++     BackupId          serial     not null,
++     ClientId          integer    not null,
++     JobName           text       not null,
++     FileSetId         integer    not null,
++     primary key (BackupId)
++);
++
++-- Serait bien de prendre la meme table pour
++-- les File et le CurrentBackup...
++-- Mais y'a des problemes pour les prunes
++
++CREATE TABLE CurrentBackup
++(
++     FileId           integer    not null,
++     BackupId         integer    not null,
++     FullMark         char(1)    default 0,
++     primary key (FileId)
++);
++
++CREATE INDEX currentbackup_fileid on CurrentBackup (BackupId);
++
++-- CREATE TEMPORARY TABLE batch (fileindex int,
++--                               jobid int,
++--                               path varchar,
++--                               name varchar,
++--                               lstat varchar,
++--                               md5 varchar);
++-- 
++-- -- On batch insert dans la table temporaire
++
++-- il faut trouver les fichiers manquant
++-- INSERT des nouveaux, UPDATE des anciens, SELECT pour trouver les deletes
++
++
++-- il faut trouver les fichiers modifies
++-- Le champs LStat n'est plus le meme
++-- SELECT * 
++--   FROM CurrentBackup, 
++--        batch JOIN Path USING (Path) JOIN Filename USING (Name)
++--  WHERE Path.PathId = CurrentBackup.PathId
++--    AND Filename.FilenameId = CurrentBackup.FilenameId
++--    AND CurrentBackup.LStat != batch.LStat
++-- 
++-- il faut mettre a jour la liste des fichiers
++
++
++
++
++
++
+ --
+ -- Possibly add one or more of the following indexes
+ --  if your Verifies are too slow.
+Index: src/cats/protos.h
+===================================================================
+--- src/cats/protos.h	(revision 6372)
++++ src/cats/protos.h	(working copy)
+@@ -82,10 +82,12 @@
+ /* sql_find.c */
+ bool db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
+ bool db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
++JobId_t db_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
+ bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
+ 
+ /* sql_get.c */
++int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JobId_t backupid, FILE_DBR *fdbr);
+ bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
+ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
+ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+Index: src/cats/sql_find.c
+===================================================================
+--- src/cats/sql_find.c	(revision 6372)
++++ src/cats/sql_find.c	(working copy)
+@@ -190,7 +190,55 @@
+    return true;
+ }
+ 
++/*
++ * Find BackupId of last job that ran.  E.g. for
++ *
++ * Returns: Last backuip
++ *
++ */
++JobId_t
++db_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
++{
++   SQL_ROW row;
++   char ed1[50],ed2[50];
++   JobId_t backupid=0;
+ 
++   /* Find backupid */
++   db_lock(mdb);
++   Dmsg2(100, "JobLevel=%d JobType=%d\n", jcr->JobLevel, jcr->JobType);
++   Mmsg(mdb->cmd,
++"SELECT BackupId FROM CurrentBackupId WHERE JobName='%s' AND "
++"ClientId=%s AND FileSetId=%s ORDER BY BackupId DESC LIMIT 1",
++	jr->Name, 
++	edit_int64(jr->ClientId, ed1),
++	edit_int64(jr->FileSetId, ed2));
++
++   Dmsg1(100, "Query: %s\n", mdb->cmd);
++   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
++      db_unlock(mdb);
++      return 0;
++   }
++   if ((row = sql_fetch_row(mdb)) == NULL) {
++      Mmsg1(&mdb->errmsg, _("No Job found for: %s.\n"), mdb->cmd);
++      sql_free_result(mdb);
++      db_unlock(mdb);
++      return 0;
++   }
++
++   backupid = str_to_int64(row[0]);
++   sql_free_result(mdb);
++
++   if (backupid <= 0) {
++      Mmsg1(&mdb->errmsg, _("No Job found for: %s\n"), mdb->cmd);
++      db_unlock(mdb);
++      return 0;
++   }
++
++   db_unlock(mdb);
++   return backupid;
++}
++
++
+ /*
+  * Find JobId of last job that ran.  E.g. for
+  *   VERIFY_CATALOG we want the JobId of the last INIT.
 Index: src/cats/sql_create.c
 ===================================================================
---- src/cats/sql_create.c	(révision 6368)
-+++ src/cats/sql_create.c	(copie de travail)
+--- src/cats/sql_create.c	(revision 6372)
++++ src/cats/sql_create.c	(working copy)
 @@ -829,6 +829,14 @@
     return true;
  }
@@ -557,22 +708,106 @@ Index: src/cats/sql_create.c
  /*
   * Create File record in B_DB
   *
+Index: src/cats/sql_get.c
+===================================================================
+--- src/cats/sql_get.c	(revision 6372)
++++ src/cats/sql_get.c	(working copy)
+@@ -66,6 +66,8 @@
+  *
+  *  Returns: 0 on failure
+  *           1 on success with the File record in FILE_DBR
++ *
++ * TODO: optimize this with only one query
+  */
+ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
+ {
+@@ -86,7 +88,70 @@
+    return stat;
+ }
+ 
++/*
++ * Given a full filename (with path), look up the File record
++ * (with attributes) in the database.
++ *
++ *  Returns: 0 on failure
++ *           1 on success with the File record in FILE_DBR
++ */
++int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JobId_t backupid, FILE_DBR *fdbr)
++{
++   int stat;
++   char ed1[50];
++   SQL_ROW row;
+ 
++   db_lock(mdb);
++   split_path_and_file(jcr, mdb, fname);
++
++   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*mdb->fnl+2);
++   db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
++
++   mdb->esc_path = check_pool_memory_size(mdb->esc_path, 2*mdb->pnl+2);
++   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
++
++   Mmsg(mdb->cmd,
++"SELECT FileId, LStat, MD5, FilenameId, PathId, FileIndex, MarkId, JobId "
++  "FROM File JOIN CurrentBackup USING (FileId) "
++            "JOIN Filename USING (FilenameId) "
++            "JOIN Path     USING (PathId) "
++ "WHERE Path.Path='%s' "
++   "AND Filename.Name='%s' "
++   "AND BackupId=%s ",
++	mdb->esc_path,
++	mdb->esc_name,
++	edit_int64(backupid, ed1));
++
++   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
++      char ed1[30];
++      mdb->num_rows = sql_num_rows(mdb);
++      if (mdb->num_rows == 1) {
++         if ((row = sql_fetch_row(mdb)) == NULL) {
++            Mmsg1(mdb->errmsg, _("error fetching row: %s\n"), sql_strerror(mdb));
++         } else {
++	    fdbr->FileId     = str_to_int64(row[0]);
++            bstrncpy(fdbr->LStat, row[1], sizeof(fdbr->LStat));
++            bstrncpy(fdbr->Digest, row[2], sizeof(fdbr->Digest));
++	    fdbr->FilenameId = str_to_int64(row[3]);
++	    fdbr->PathId     = str_to_int64(row[4]);
++	    fdbr->FileIndex  = str_to_int64(row[5]);
++	    fdbr->MarkId     = str_to_int64(row[6]);
++	    fdbr->JobId      = str_to_int64(row[7]);
++	 }
++      } else {
++	 Mmsg1(mdb->errmsg, _("Get DB File record %s failed\n"),fname);
++         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
++      }
++      sql_free_result(mdb);
++   } else {
++      Mmsg(mdb->errmsg, _("File record: %s not found in Catalog for BackupId=%s.\n"), fname, ed1);
++   }
++
++   db_unlock(mdb);
++
++   return stat;
++}
++
+ /*
+  * Get a File record
+  * Returns: 0 on failure
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6368)
-+++ src/jcr.h	(copie de travail)
+--- src/jcr.h	(revision 6372)
++++ src/jcr.h	(working copy)
 @@ -208,6 +208,7 @@
     B_DB *db_batch;                    /* database pointer for batch insert */
     ATTR_DBR *ar;                      /* DB attribute record */
     guid_list *id_list;                /* User/group id to name list */
 +   bool accurate;                     /* true if job is accurate */
  
-    void *plugin_ctx;
- 
+    void *plugin_ctx_list;             /* list of contexts for plugins */
+    void *plugin_ctx;                  /* current plugin context */
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(révision 6368)
-+++ src/findlib/find.h	(copie de travail)
+--- src/findlib/find.h	(revision 6372)
++++ src/findlib/find.h	(working copy)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
  #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
