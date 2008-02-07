@@ -43,6 +43,7 @@ int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = N
 int     (*plugin_bclose)(JCR *jcr) = NULL;
 ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
 ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
+boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
 
 
 #ifdef HAVE_DARWIN_OS
@@ -106,9 +107,9 @@ const char *stream_to_ascii(int stream)
       return _("MacOS Fork data");
    case STREAM_HFSPLUS_ATTRIBUTES:
       return _("HFS+ attribs");
-   case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
+   case STREAM_UNIX_ACCESS_ACL:
       return _("Standard Unix ACL attribs");
-   case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
+   case STREAM_UNIX_DEFAULT_ACL:
       return _("Default Unix ACL attribs");
    case STREAM_SHA256_DIGEST:
       return _("SHA256 digest");
@@ -903,6 +904,10 @@ bool is_bopen(BFILE *bfd)
 boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
 {
     boffset_t pos;
+
+   if (bfd->cmd_plugin && plugin_bwrite) {
+      return plugin_blseek(bfd->jcr, offset, whence);
+   }
     pos = (boffset_t)lseek(bfd->fid, (off_t)offset, whence);
     bfd->berrno = errno;
     return pos;

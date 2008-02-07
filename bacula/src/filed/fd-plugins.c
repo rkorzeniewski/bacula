@@ -45,6 +45,7 @@ extern int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mo
 extern int     (*plugin_bclose)(JCR *jcr);
 extern ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
 extern ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
+extern boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence);
 
 
 /* Forward referenced functions */
@@ -60,6 +61,7 @@ static int     my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mo
 static int     my_plugin_bclose(JCR *jcr);
 static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count);
 static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count);
+static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence);
 
 
 /* Bacula info */
@@ -131,16 +133,18 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          memset(&sp, 0, sizeof(sp));
          sp.type = FT_REG;
          sp.portable = true;
+         sp.cmd = cmd;
          Dmsg0(000, "Plugin startBackup\n");
          if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
             goto bail_out;
          }
          jcr->plugin_ctx = &plugin_ctx_list[i];
          jcr->plugin = plugin;
+         jcr->plugin_sp = &sp;
          ff_pkt = jcr->ff;
          ff_pkt->fname = sp.fname;
          ff_pkt->type = sp.type;
-         ff_pkt->statp = sp.statp;        /* structure copy */
+         memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
          save_file(ff_pkt, (void *)jcr, true);
          goto bail_out;
@@ -151,6 +155,31 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 bail_out:
    return;
 }
+
+/* 
+ * Send plugin name record to SD
+ */
+bool send_plugin_name(JCR *jcr, BSOCK *sd)
+{
+   int stat;
+   struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   if (!sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_PLUGIN_NAME)) {
+     Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+           sd->bstrerror());
+     return false;
+   }
+   stat = sd->fsend("%ld %d %s%c%s%c", jcr->JobFiles, sp->portable, 0, plugin->file,
+            sp->cmd, 0);
+   if (!stat) {
+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+            sd->bstrerror());
+         return false;
+   }
+   sd->signal(BNET_EOD);            /* indicate end of plugin name data */
+   return true;
+}
+
 
 void load_fd_plugins(const char *plugin_dir)
 {
@@ -164,6 +193,7 @@ void load_fd_plugins(const char *plugin_dir)
    plugin_bclose = my_plugin_bclose;
    plugin_bread  = my_plugin_bread;
    plugin_bwrite = my_plugin_bwrite;
+   plugin_blseek = my_plugin_blseek;
 
 }
 
@@ -271,6 +301,19 @@ static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
    return (ssize_t)io.status;
 }
 
+static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence)
+{
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   struct io_pkt io;
+   Dmsg0(000, "plugin_bseek\n");
+   io.func = IO_SEEK;
+   io.offset = offset;
+   io.whence = whence;
+   plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   return (boffset_t)io.offset;
+}
+
 /* ==============================================================
  *
  * Callbacks from the plugin
@@ -346,6 +389,7 @@ int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = N
 int     (*plugin_bclose)(JCR *jcr) = NULL;
 ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
 ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
+boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
 
 int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 {

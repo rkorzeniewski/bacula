@@ -153,6 +153,12 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventSince:
       printf("plugin: since=%d\n", (int)value);
       break;
+   case bEventRestoreStart:
+      printf("bpipe-fd: RestoreStart\n");
+      break;
+   case bEventRestoreEnd:
+      printf("bpipe-fd: RestoreEnd\n");
+      break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
    case bEventPluginCommand:

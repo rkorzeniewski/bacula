@@ -790,8 +790,8 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       break;
 
-   case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:   /* Standard ACL attributes on UNIX */
-   case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:  /* Default ACL attributes on UNIX */
+   case STREAM_UNIX_ACCESS_ACL:          /* Standard ACL attributes on UNIX */
+   case STREAM_UNIX_DEFAULT_ACL:         /* Default ACL attributes on UNIX */
       /* Ignore Unix attributes */
       break;
 
