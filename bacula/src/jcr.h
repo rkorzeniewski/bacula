@@ -212,6 +212,7 @@ public:
    void *plugin_ctx_list;             /* list of contexts for plugins */
    void *plugin_ctx;                  /* current plugin context */
    void *plugin;                      /* plugin instance */
+   void *plugin_sp;                   /* plugin save packet */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

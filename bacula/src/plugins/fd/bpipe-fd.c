@@ -88,6 +88,7 @@ static pFuncs pluginFuncs = {
 
 struct plugin_ctx {
    int record;
+   boffset_t offset;
 };
 
 bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
@@ -158,6 +159,13 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       printf("bpipe-fd: since=%d\n", (int)value);
       break;
 
+   case bEventRestoreStart: 
+      printf("bpipe-fd: RestoreStart\n");
+      break;
+   case bEventRestoreEnd:
+      printf("bpipe-fd: RestoreEnd\n");
+      break;
+
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
    case bEventPluginCommand:
       printf("bpipe-fd: command=%s\n", (char *)value);
@@ -175,7 +183,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 
 static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
 {
-   static char *fname = (char *)"/BPIPE/test.txt";
+   static char *fname = (char *)"/@BPIPE/test.txt";
    time_t now = time(NULL);
    sp->fname = fname;
    sp->statp.st_mode = 0700;
@@ -208,6 +216,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       if (p_ctx->record == 0) {
          strcpy(io->buf, "This is a test string.\n");
          io->status = strlen(io->buf);
+         p_ctx->offset = io->status;
          p_ctx->record = 1;
          return bRC_OK;
       }
@@ -218,6 +227,9 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       break;
    case IO_CLOSE:
       printf("bpipe-fd: IO_CLOSE\n");
+      break;
+   case IO_SEEK:
+      io->offset = p_ctx->offset;
       break;
    }
    return bRC_OK;

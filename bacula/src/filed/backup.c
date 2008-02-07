@@ -443,6 +443,7 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       if (!set_cmd_plugin(&ff_pkt->bfd, jcr)) {
          goto bail_out;
       }
+      send_plugin_name(jcr, sd);
    }
 
    /* Send attributes -- must be done after binit() */
@@ -567,12 +568,12 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 
    if (ff_pkt->flags & FO_ACL) {
       /* Read access ACLs for files, dirs and links */
-      if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ATTRIBUTES_ACCESS_ACL)) {
+      if (!read_and_send_acl(jcr, BACL_TYPE_ACCESS, STREAM_UNIX_ACCESS_ACL)) {
          goto bail_out;
       }
       /* Directories can have default ACLs too */
       if (ff_pkt->type == FT_DIREND && (BACL_CAP & BACL_CAP_DEFAULTS_DIR)) {
-         if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL)) {
+         if (!read_and_send_acl(jcr, BACL_TYPE_DEFAULT, STREAM_UNIX_DEFAULT_ACL)) {
             goto bail_out;
          }
       }

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -207,27 +207,27 @@ void InitWinAPIWrapper();
  *   STREAM_SHA256_DIGEST
  *   STREAM_SHA512_DIGEST
  */
-#define STREAM_NONE               0    /* Reserved Non-Stream */
-#define STREAM_UNIX_ATTRIBUTES    1    /* Generic Unix attributes */
-#define STREAM_FILE_DATA          2    /* Standard uncompressed data */
-#define STREAM_MD5_SIGNATURE      3    /* deprecated */
-#define STREAM_MD5_DIGEST         3    /* MD5 digest for the file */
-#define STREAM_GZIP_DATA          4    /* GZip compressed file data */
+#define STREAM_NONE                        0    /* Reserved Non-Stream */
+#define STREAM_UNIX_ATTRIBUTES             1    /* Generic Unix attributes */
+#define STREAM_FILE_DATA                   2    /* Standard uncompressed data */
+#define STREAM_MD5_SIGNATURE               3    /* deprecated */
+#define STREAM_MD5_DIGEST                  3    /* MD5 digest for the file */
+#define STREAM_GZIP_DATA                   4    /* GZip compressed file data */
 /* Extended Unix attributes with Win32 Extended data.  Deprecated. */
-#define STREAM_UNIX_ATTRIBUTES_EX 5    /* Extended Unix attr for Win32 EX */
-#define STREAM_SPARSE_DATA        6    /* Sparse data stream */
-#define STREAM_SPARSE_GZIP_DATA   7
-#define STREAM_PROGRAM_NAMES      8    /* program names for program data */
-#define STREAM_PROGRAM_DATA       9    /* Data needing program */
-#define STREAM_SHA1_SIGNATURE    10    /* deprecated */
-#define STREAM_SHA1_DIGEST       10    /* SHA1 digest for the file */
-#define STREAM_WIN32_DATA        11    /* Win32 BackupRead data */
-#define STREAM_WIN32_GZIP_DATA   12    /* Gzipped Win32 BackupRead data */
-#define STREAM_MACOS_FORK_DATA   13    /* Mac resource fork */
-#define STREAM_HFSPLUS_ATTRIBUTES 14   /* Mac OS extra attributes */
+#define STREAM_UNIX_ATTRIBUTES_EX          5    /* Extended Unix attr for Win32 EX */
+#define STREAM_SPARSE_DATA                 6    /* Sparse data stream */
+#define STREAM_SPARSE_GZIP_DATA            7
+#define STREAM_PROGRAM_NAMES               8    /* program names for program data */
+#define STREAM_PROGRAM_DATA                9    /* Data needing program */
+#define STREAM_SHA1_SIGNATURE             10    /* deprecated */
+#define STREAM_SHA1_DIGEST                10    /* SHA1 digest for the file */
+#define STREAM_WIN32_DATA                 11    /* Win32 BackupRead data */
+#define STREAM_WIN32_GZIP_DATA            12    /* Gzipped Win32 BackupRead data */
+#define STREAM_MACOS_FORK_DATA            13    /* Mac resource fork */
+#define STREAM_HFSPLUS_ATTRIBUTES         14    /* Mac OS extra attributes */
 /*** FIXME ***/
-#define STREAM_UNIX_ATTRIBUTES_ACCESS_ACL 15 /* Standard ACL attributes on UNIX */
-#define STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL 16 /* Default ACL attributes on UNIX */
+#define STREAM_UNIX_ACCESS_ACL            15   /* Standard ACL attributes on UNIX */
+#define STREAM_UNIX_DEFAULT_ACL           16   /* Default ACL attributes on UNIX */
 /*** FIXME ***/
 #define STREAM_SHA256_DIGEST              17   /* SHA-256 digest for the file */
 #define STREAM_SHA512_DIGEST              18   /* SHA-512 digest for the file */

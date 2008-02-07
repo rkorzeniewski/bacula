@@ -50,22 +50,26 @@ struct save_pkt {
   char *fname;                        /* Full path and filename */
   char *link;                         /* Link name if any */
   struct stat statp;                  /* System stat() packet for file */
-  int type;                           /* FT_xx for this file */             
+  int32_t type;                       /* FT_xx for this file */             
   uint32_t flags;                     /* Bacula internal flags */
   bool portable;                      /* set if data format is portable */
+  char *cmd;                          /* command */
 };
 
 #define IO_OPEN  1
 #define IO_READ  2
 #define IO_WRITE 3
 #define IO_CLOSE 4
+#define IO_SEEK  5
 
 struct io_pkt {
-   int func;                          /* Function code */
-   int count;                         /* read/write count */
+   int32_t func;                      /* Function code */
+   int32_t count;                     /* read/write count */
    char *buf;                         /* read/write buffer */
-   int status;                        /* return status */
-   int io_errno;                      /* errno code */  
+   int32_t status;                    /* return status */
+   int32_t io_errno;                  /* errno code */  
+   int32_t whence;
+   boffset_t offset;
 };
 
 /****************************************************************************
@@ -115,6 +119,7 @@ void load_fd_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
+bool send_plugin_name(JCR *jcr, BSOCK *sd);
 
 #ifdef __cplusplus
 extern "C" {

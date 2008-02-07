@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -122,7 +122,7 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags,
  * Close a bfd check that we are at the expected file offset.
  * Makes some code in set_attributes().
  */
-int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
+static int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
 {
    char ec1[50], ec2[50];
    boffset_t fsize;
@@ -580,7 +580,7 @@ void do_restore(JCR *jcr)
 #endif
          break;
 
-      case STREAM_UNIX_ATTRIBUTES_ACCESS_ACL:
+      case STREAM_UNIX_ACCESS_ACL:
          if (have_acl) {
             pm_strcpy(jcr->acl_text, sd->msg);
             Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_ACCESS, jcr->acl_text);
@@ -592,7 +592,7 @@ void do_restore(JCR *jcr)
          }
          break;
 
-      case STREAM_UNIX_ATTRIBUTES_DEFAULT_ACL:
+      case STREAM_UNIX_DEFAULT_ACL:
          if (have_acl) {
             pm_strcpy(jcr->acl_text, sd->msg);
             Dmsg2(400, "Restoring ACL type 0x%2x <%s>\n", BACL_TYPE_DEFAULT, jcr->acl_text);
