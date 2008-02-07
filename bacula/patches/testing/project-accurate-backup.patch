@@ -1,6 +1,6 @@
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 6373)
+--- src/dird/backup.c	(révision 6374)
 +++ src/dird/backup.c	(copie de travail)
 @@ -44,6 +44,7 @@
  #include "bacula.h"
@@ -10,7 +10,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,308 @@
+@@ -97,6 +98,338 @@
  }
  
  /*
@@ -28,8 +28,114 @@ Index: src/dird/backup.c
 +   }
 +
 +   /* TODO: return the list to the FD */
-+   Qmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
++   if (num_fields == 2) 
++      Qmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
++   else
++      Qmsg(jcr, M_INFO, 0, "      %s\n", row[0]?row[0]:"");
++ 
 +   return 0;
++}
++
++bool accurate_check_file(JCR *jcr, FILE_DBR *fdbr, char *attr, char *Opts_Digest, int *do_Digest)
++{
++   char *p;
++   int stat=false;
++   struct stat statf;                 /* file stat */
++   struct stat statc;                 /* catalog stat */
++
++   int32_t LinkFIf, LinkFIc;
++
++   decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
++   decode_stat(fdbr->LStat, &statc, &LinkFIc); /* decode catalog stat */
++   *do_Digest = CRYPTO_DIGEST_NONE;
++
++   for (p=Opts_Digest; *p; p++) {
++      char ed1[30], ed2[30];
++      switch (*p) {
++      case 'i':                /* compare INODEs */
++	 if (statc.st_ino != statf.st_ino) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_ino, ed1),
++		 edit_uint64((uint64_t)statf.st_ino, ed2));
++	    stat = true;
++	 }
++	 break;
++      case 'p':                /* permissions bits */
++	 if (statc.st_mode != statf.st_mode) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
++		 (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
++	    stat = true;
++	 }
++	 break;
++      case 'n':                /* number of links */
++	 if (statc.st_nlink != statf.st_nlink) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
++		 (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
++	    stat = true;
++	 }
++	 break;
++      case 'u':                /* user id */
++	 if (statc.st_uid != statf.st_uid) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
++		 (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
++	    stat = true;
++	 }
++	 break;
++      case 'g':                /* group id */
++	 if (statc.st_gid != statf.st_gid) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
++		 (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
++	    stat = true;
++	 }
++	 break;
++      case 's':                /* size */
++	 if (statc.st_size != statf.st_size) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_size, ed1),
++		 edit_uint64((uint64_t)statf.st_size, ed2));
++	    stat = true;
++	 }
++	 break;
++      case 'a':                /* access time */
++	 if (statc.st_atime != statf.st_atime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'm':
++	 if (statc.st_mtime != statf.st_mtime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'c':                /* ctime */
++	 if (statc.st_ctime != statf.st_ctime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'd':                /* file size decrease */
++	 if (statc.st_size > statf.st_size) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_size, ed1),
++		 edit_uint64((uint64_t)statf.st_size, ed2));
++	    stat = true;
++	 }
++	 break;
++      case '5':                /* compare MD5 */
++	 Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
++	 *do_Digest = CRYPTO_DIGEST_MD5;
++	 break;
++      case '1':                 /* compare SHA1 */
++	 *do_Digest = CRYPTO_DIGEST_SHA1;
++	 break;
++      case ':':
++      case 'V':
++      default:
++	 break;
++      }
++   }
++   return stat;
 +}
 +
 +/*
@@ -40,20 +146,20 @@ Index: src/dird/backup.c
 + *    deleted.
 + *
 + * Cleanup attributes (don't use atime, inode etc..)
-+ * Need to insert file and attributes to temp table
-+ * Batch compare files and attributes 
++ * Need to insert file and attributes to temp table ?
++ * Batch compare files and attributes ?
 + *
 + * If file have file_index=0, they are discarded by FD
 + *
++ * TODO: send deleted list and new list to client
++ *       initialize currentlist and currentbackupid tables
++ *       tweak SD with file_index=-1
 + */
 +bool accurate_compute_files(JCR *jcr)
 +{
 +   BSOCK   *fd;
 +   int n, len;
 +   FILE_DBR fdbr;
-+   struct stat statf;                 /* file stat */
-+   struct stat statc;                 /* catalog stat */
-+   int stat = JS_Terminated;
 +   char buf[MAXSTRING];
 +   char ed1[50], ed2[50];
 +   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
@@ -76,7 +182,7 @@ Index: src/dird/backup.c
 +      Jmsg(jcr, M_ERROR, 0, _("Can't use Accurate mode ERR=Can't find BackupId\n"));
 +      return false;
 +   }
-+
++   db_accurate_create_backup_table(jcr, jcr->db, jcr->JobId);
 +   Dmsg0(1, "bdird: waiting to receive file attributes\n");
 +   /*
 +    * Get Attributes and Signature from File daemon
@@ -94,7 +200,7 @@ Index: src/dird/backup.c
 +      char Opts_Digest[MAXSTRING];        /* Verify Opts or MD5/SHA1 digest */
 +
 +      if (job_canceled(jcr)) {
-+         return false;
++         goto bail_out2;
 +      }
 +      fname = check_pool_memory_size(fname, fd->msglen);
 +      jcr->fname = check_pool_memory_size(jcr->fname, fd->msglen);
@@ -103,7 +209,7 @@ Index: src/dird/backup.c
 +            fname)) != 3) {
 +         Jmsg3(jcr, M_FATAL, 0, _("bird<filed: bad attributes, expected 3 fields got %d\n"
 +" mslen=%d msg=%s\n"), len, fd->msglen, fd->msg);
-+         return false;
++         goto bail_out2;
 +      }
 +      /*
 +       * We read the Options or Signature into fname
@@ -127,133 +233,45 @@ Index: src/dird/backup.c
 +       * Got attributes stream, decode it
 +       */
 +      if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX) {
-+         int32_t LinkFIf, LinkFIc;
++	 int changed=true;
 +         Dmsg2(400, "file_index=%d attr=%s\n", file_index, attr);
 +         jcr->JobFiles++;
 +         jcr->FileIndex = file_index;    /* remember attribute file_index */
-+         decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
 +         do_Digest = CRYPTO_DIGEST_NONE;
 +         pm_strcpy(jcr->fname, fname);  /* move filename into JCR */
-+
-+         Dmsg3(040, "dird<filed: stream=%d %s %s\n", stream, jcr->fname, attr);
++	 fdbr.FileId = 0;
 +
 +         /*
 +          * Find equivalent record in the database
 +          */
-+         fdbr.FileId = 0;
-+	 /* If file_index==0, file is not saved by fd, check them */
-+         if (!db_accurate_get_file_attributes_record(jcr, jcr->db, jcr->fname, backupid, &fdbr)) {
-+            Jmsg(jcr, M_INFO, 0, _("New file: %s\n"), jcr->fname);
-+            Dmsg1(1, _("File not in catalog: %s\n"), jcr->fname);
-+            continue;
-+         } else {
-+	    Dmsg1(1, _("File in catalog: %s\n"), jcr->fname);
-+            /*
-+             * mark file record as visited by stuffing the
-+             * current JobId, which is unique, into the MarkId field.
-+             */
-+            db_mark_file_record(jcr, jcr->db, fdbr.FileId, jcr->JobId);
-+         }
++	 
++	 if (db_accurate_get_file_attributes_record(jcr, jcr->db, jcr->fname,
++						    backupid, &fdbr))
++	 {
++	    Dmsg2(1, "get_file ok fname=%s fileid=%i\n", jcr->fname, fdbr.FileId);
 +
-+         Dmsg3(400, "Found %s in catalog. inx=%d Opts=%s\n", jcr->fname,
-+            file_index, Opts_Digest);
-+         decode_stat(fdbr.LStat, &statc, &LinkFIc); /* decode catalog stat */
++	    if (file_index != 0) {
++	       changed = accurate_check_file(jcr, &fdbr, attr, Opts_Digest, &do_Digest);
++	       Dmsg1(1, "check_file changed=%i\n", changed);
 +
-+	 // TODO: for each JS_Differences, send it to FD for backup
-+         /*
-+          * Loop over options supplied by user and verify the
-+          * fields he requests.
-+          */
-+	 stat = JS_Terminated;	/* TODO: track changes */
-+         for (p=Opts_Digest; *p; p++) {
-+            char ed1[30], ed2[30];
-+            switch (*p) {
-+            case 'i':                /* compare INODEs */
-+               if (statc.st_ino != statf.st_ino) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
-+                     edit_uint64((uint64_t)statc.st_ino, ed1),
-+                     edit_uint64((uint64_t)statf.st_ino, ed2));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'p':                /* permissions bits */
-+               if (statc.st_mode != statf.st_mode) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
-+                     (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'n':                /* number of links */
-+               if (statc.st_nlink != statf.st_nlink) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
-+                     (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'u':                /* user id */
-+               if (statc.st_uid != statf.st_uid) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
-+                     (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'g':                /* group id */
-+               if (statc.st_gid != statf.st_gid) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
-+                     (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 's':                /* size */
-+               if (statc.st_size != statf.st_size) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
-+                     edit_uint64((uint64_t)statc.st_size, ed1),
-+                     edit_uint64((uint64_t)statf.st_size, ed2));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'a':                /* access time */
-+               if (statc.st_atime != statf.st_atime) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'm':
-+               if (statc.st_mtime != statf.st_mtime) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'c':                /* ctime */
-+               if (statc.st_ctime != statf.st_ctime) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case 'd':                /* file size decrease */
-+               if (statc.st_size > statf.st_size) {
-+                  Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
-+                     edit_uint64((uint64_t)statc.st_size, ed1),
-+                     edit_uint64((uint64_t)statf.st_size, ed2));
-+                  stat = JS_Differences;
-+               }
-+               break;
-+            case '5':                /* compare MD5 */
-+               Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
-+               do_Digest = CRYPTO_DIGEST_MD5;
-+               break;
-+            case '1':                 /* compare SHA1 */
-+               do_Digest = CRYPTO_DIGEST_SHA1;
-+               break;
-+            case ':':
-+            case 'V':
-+            default:
-+               break;
-+            }
-+         }
-+	 if (stat == JS_Differences) {
-+	    Jmsg(jcr, M_INFO, 0, _("      fname=%s\n"), jcr->fname);
++	       if (changed == true) {
++		  db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
++		  db_accurate_delete_file_record(jcr, jcr->db, fdbr.FileId,
++						 backupid);
++	       }
++	    }
++
++	    if (file_index == 0 || changed == false) {
++	       Dmsg1(1, "mark_file fileid=%i\n", fdbr.FileId);
++	       db_accurate_mark_file_record(jcr, jcr->db, backupid,
++					    fdbr.FileId, jcr->JobId);
++	    }
++
++	 } else if (file_index == 0) {
++	    Dmsg1(1, "mark_for_backup fname=%s\n", jcr->fname);
++	    db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
 +	 }
++	 
 +
 +      /*
 +       * Got Digest Signature from Storage daemon
@@ -268,7 +286,7 @@ Index: src/dird/backup.c
 +         if (jcr->FileIndex != (uint32_t)file_index) {
 +            Jmsg2(jcr, M_FATAL, 0, _("MD5/SHA1 index %d not same as attributes %d\n"),
 +               file_index, jcr->FileIndex);
-+            return false;
++            goto bail_out2;
 +         }
 +         if (do_Digest != CRYPTO_DIGEST_NONE) {
 +            db_escape_string(jcr, jcr->db, buf, Opts_Digest, strlen(Opts_Digest));
@@ -280,7 +298,7 @@ Index: src/dird/backup.c
 +                  Jmsg(jcr, M_INFO, 0, _("      %d differs.\n"),
 +                       stream);
 +               }
-+               stat = JS_Differences;
++               //stat = JS_Differences;
 +            }
 +            do_Digest = CRYPTO_DIGEST_NONE;
 +         }
@@ -291,7 +309,7 @@ Index: src/dird/backup.c
 +      berrno be;
 +      Jmsg2(jcr, M_FATAL, 0, _("bdird<filed: bad attributes from filed n=%d : %s\n"),
 +                        n, be.bstrerror());
-+      return false;
++      goto bail_out2;
 +   }
 +
 +   /* Now find all the files that are missing -- i.e. all files in
@@ -300,26 +318,38 @@ Index: src/dird/backup.c
 +
 +   bsnprintf(buf, sizeof(buf),
 +      "SELECT Path.Path,Filename.Name "
-+        "FROM CurrentBackup "
++        "FROM CurrentFile "
 +             "JOIN File USING (FileId) "
 +             "JOIN Path USING (PathId) "
 +             "JOIN Filename USING (FilenameId) "
-+      "WHERE CurrentBackup.BackupId=%s "
-+        "AND File.MarkId!=%d ",
++      "WHERE CurrentFile.BackupId=%s "
++        "AND CurrentFile.MarkId!=%s ",
 +	     edit_uint64(backupid, ed1), edit_uint64(jcr->JobId, ed2));
 +   /* missing_handler is called for each file found */
++   Dmsg1(1, "display deleted files cmd=%s\n", buf);
++   db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
++
++   bsnprintf(buf, sizeof(buf),
++	     "SELECT Name FROM ToBackup%s",
++	     edit_uint64(jcr->JobId, ed2));
++   /* missing_handler is called for each file found */
++   Dmsg1(1, "display files to backup cmd=%s\n", buf);
 +   db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
 +
 +   free_pool_memory(fname);
 +
 +   return true;
++
++bail_out2:
++   db_accurate_drop_backup_table(jcr, jcr->db, jcr->JobId);
++   return false;
 +}
 +
 +/*
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,6 +534,13 @@
+@@ -231,6 +564,13 @@
        goto bail_out;
     }
  
@@ -335,7 +365,7 @@ Index: src/dird/backup.c
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(révision 6373)
+--- src/dird/inc_conf.c	(révision 6374)
 +++ src/dird/inc_conf.c	(copie de travail)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
@@ -374,7 +404,7 @@ Index: src/dird/inc_conf.c
  
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 6373)
+--- src/dird/dird_conf.c	(révision 6374)
 +++ src/dird/dird_conf.c	(copie de travail)
 @@ -319,6 +319,7 @@
     {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
@@ -396,7 +426,7 @@ Index: src/dird/dird_conf.c
        }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 6373)
+--- src/dird/dird_conf.h	(révision 6374)
 +++ src/dird/dird_conf.h	(copie de travail)
 @@ -400,6 +400,7 @@
     bool write_part_after_job;         /* Set to write part after job in SD */
@@ -408,7 +438,7 @@ Index: src/dird/dird_conf.h
     SCHED     *schedule;               /* When -- Automatic schedule */
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6373)
+--- src/filed/backup.c	(révision 6374)
 +++ src/filed/backup.c	(copie de travail)
 @@ -50,6 +50,98 @@
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
@@ -564,7 +594,7 @@ Index: src/filed/backup.c
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 6373)
+--- src/filed/job.c	(révision 6374)
 +++ src/filed/job.c	(copie de travail)
 @@ -1087,6 +1087,9 @@
        case 'c':
@@ -576,11 +606,92 @@ Index: src/filed/job.c
        default:
           Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
           break;
+Index: src/cats/sql_update.c
+===================================================================
+--- src/cats/sql_update.c	(révision 6374)
++++ src/cats/sql_update.c	(copie de travail)
+@@ -88,6 +88,76 @@
+    return stat;
+ }
+ 
++int db_accurate_delete_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE FileId=%s AND BackupId=%s",
++	edit_int64(FileId, ed1), edit_int64(BackupId, ed2));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, JobId_t JobId)
++{
++   int stat;
++   int len=strlen(fname);
++   char ed1[50];
++   db_lock(mdb);
++   /* TODO: mdb->esc_xxx are already ok but it's more smart to recompute it */
++//   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*len+2);
++//   mdb->esc_name = db_escape_string(jcr, mdb, mdb->esc_name, fname, len);
++   Mmsg(mdb->cmd, "INSERT INTO ToBackup%s (name) VALUES ('%s%s')", edit_int64(JobId, ed1), mdb->esc_path, mdb->esc_name);
++   stat = INSERT_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_create_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "CREATE TABLE ToBackup%s (name text)", edit_int64(JobId, ed1));
++//   Mmsg(mdb->cmd, "CREATE TEMPORARY TABLE ToBackup%s (name text)", edit_int64(JobId, ed1));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_drop_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++//   Mmsg(mdb->cmd, "DROP TABLE ToBackup%s", edit_int64(JobId, ed1));
++//   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++
++/* Mark the file record as being visited during database
++ * accurate compare. Stuff JobId into the MarkId field
++ */
++int db_accurate_mark_file_record(JCR *jcr, B_DB *mdb, JobId_t BackupId, FileId_t FileId, JobId_t JobId)
++{
++   int stat;
++   char ed1[50], ed2[50], ed3[50];
++
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "UPDATE CurrentFile SET MarkId=%s WHERE FileId=%s AND BackupId=%s", 
++	edit_int64(JobId, ed1), edit_int64(FileId, ed2), edit_int64(BackupId, ed3));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   if (!stat || sql_affected_rows(mdb) != 1) {
++      stat = 0;
++   }
++   db_unlock(mdb);
++   return stat;
++}
++
+ /*
+  * Update the Job record at start of Job
+  *
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 6373)
+--- src/cats/make_postgresql_tables.in	(révision 6374)
 +++ src/cats/make_postgresql_tables.in	(copie de travail)
-@@ -43,6 +43,58 @@
+@@ -43,6 +43,59 @@
  CREATE INDEX file_jobid_idx on file (jobid);
  CREATE INDEX file_fp_idx on file (filenameid, pathid);
  
@@ -597,15 +708,16 @@ Index: src/cats/make_postgresql_tables.in
 +-- les File et le CurrentBackup...
 +-- Mais y'a des problemes pour les prunes
 +
-+CREATE TABLE CurrentBackup
++CREATE TABLE CurrentFile
 +(
 +     FileId           integer    not null,
 +     BackupId         integer    not null,
 +     FullMark         char(1)    default 0,
++     MarkId           integer    default 0,
 +     primary key (FileId)
 +);
 +
-+CREATE INDEX currentbackup_fileid on CurrentBackup (BackupId);
++CREATE INDEX currentfile_fileid on CurrentFile (BackupId);
 +
 +-- CREATE TEMPORARY TABLE batch (fileindex int,
 +--                               jobid int,
@@ -641,7 +753,7 @@ Index: src/cats/make_postgresql_tables.in
  --  if your Verifies are too slow.
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(révision 6373)
+--- src/cats/protos.h	(révision 6374)
 +++ src/cats/protos.h	(copie de travail)
 @@ -82,10 +82,12 @@
  /* sql_find.c */
@@ -656,9 +768,21 @@ Index: src/cats/protos.h
  bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
  int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
  bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+@@ -129,6 +131,11 @@
+ int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
+ int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
+ int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
++int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, FileId_t JobId);
++int db_accurate_mark_file_record(JCR *jcr, B_DB *mdb, JobId_t BackupId, FileId_t FileId, JobId_t JobId);
++int db_accurate_drop_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_create_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_delete_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t BackupId);
+ void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
+ 
+ #endif /* __SQL_PROTOS_H */
 Index: src/cats/sql_find.c
 ===================================================================
---- src/cats/sql_find.c	(révision 6373)
+--- src/cats/sql_find.c	(révision 6374)
 +++ src/cats/sql_find.c	(copie de travail)
 @@ -190,7 +190,55 @@
     return true;
@@ -718,7 +842,7 @@ Index: src/cats/sql_find.c
   *   VERIFY_CATALOG we want the JobId of the last INIT.
 Index: src/cats/sql_create.c
 ===================================================================
---- src/cats/sql_create.c	(révision 6373)
+--- src/cats/sql_create.c	(révision 6374)
 +++ src/cats/sql_create.c	(copie de travail)
 @@ -829,6 +829,14 @@
     return true;
@@ -737,7 +861,7 @@ Index: src/cats/sql_create.c
   *
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 6373)
+--- src/cats/sql_get.c	(révision 6374)
 +++ src/cats/sql_get.c	(copie de travail)
 @@ -66,6 +66,8 @@
   *
@@ -775,8 +899,8 @@ Index: src/cats/sql_get.c
 +   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
 +
 +   Mmsg(mdb->cmd,
-+"SELECT FileId, LStat, MD5, FilenameId, PathId, FileIndex, MarkId, JobId "
-+  "FROM File JOIN CurrentBackup USING (FileId) "
++"SELECT FileId, LStat, MD5, FilenameId, PathId, FileIndex, CurrentFile.MarkId, JobId "
++  "FROM File JOIN CurrentFile USING (FileId) "
 +            "JOIN Filename USING (FilenameId) "
 +            "JOIN Path     USING (PathId) "
 + "WHERE Path.Path='%s' "
@@ -786,7 +910,7 @@ Index: src/cats/sql_get.c
 +	mdb->esc_name,
 +	edit_int64(backupid, ed1));
 +   
-+   Dmsg1(1,"get_file %s\n", mdb->cmd);
++   Dmsg1(100,"get_file %s\n", mdb->cmd);
 +
 +   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 +      char ed1[30];
@@ -805,7 +929,7 @@ Index: src/cats/sql_get.c
 +	    fdbr->JobId      = str_to_int64(row[7]);
 +	    stat=1;
 +	 }
-+      } else {
++      } else if (mdb->num_rows > 1) {
 +	 Mmsg2(mdb->errmsg, _("Get DB File record %s failed num=%i\n"),fname,mdb->num_rows);
 +         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
 +      }
@@ -824,7 +948,7 @@ Index: src/cats/sql_get.c
   * Returns: 0 on failure
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6373)
+--- src/jcr.h	(révision 6374)
 +++ src/jcr.h	(copie de travail)
 @@ -208,6 +208,7 @@
     B_DB *db_batch;                    /* database pointer for batch insert */
@@ -836,7 +960,7 @@ Index: src/jcr.h
     void *plugin_ctx;                  /* current plugin context */
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(révision 6373)
+--- src/findlib/find.h	(révision 6374)
 +++ src/findlib/find.h	(copie de travail)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
