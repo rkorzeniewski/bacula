@@ -113,7 +113,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    }
 
    /* Handle plugin command here (backup/restore of file) */
-   Dmsg1(000, "plugin cmd=%s\n", cmd);
+   Dmsg1(100, "plugin cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
       Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
       goto bail_out;
@@ -124,9 +124,9 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    }
 
    foreach_alist(plugin, plugin_list) {
-      Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) == 0) {
-         Dmsg1(000, "Command plugin = %s\n", cmd);
+         Dmsg1(100, "Command plugin = %s\n", cmd);
          if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
             goto bail_out;
          }
@@ -134,8 +134,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          sp.type = FT_REG;
          sp.portable = true;
          sp.cmd = cmd;
-         Dmsg0(000, "Plugin startBackup\n");
-         printf("st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
+         Dmsg3(000, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
                 &sp);
          if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
             goto bail_out;
@@ -153,6 +152,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
       }
       i++;
    }
+   Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
       
 bail_out:
    return;

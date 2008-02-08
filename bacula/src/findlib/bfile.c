@@ -784,11 +784,12 @@ bool is_restore_stream_supported(int stream)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    if (bfd->cmd_plugin && plugin_bopen) {
+      Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
       return plugin_bopen(bfd->jcr, fname, flags, mode);
    }
 
    /* Normal file open */
-   Dmsg1(400, "open file %s\n", fname);
+   Dmsg1(100, "open file %s\n", fname);
    /* We use fnctl to set O_NOATIME if requested to avoid open error */
    bfd->fid = open(fname, flags & ~O_NOATIME, mode);
    /* Set O_NOATIME if possible */
