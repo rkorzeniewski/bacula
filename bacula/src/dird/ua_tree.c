@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -514,7 +514,7 @@ static void ls_output(guid_list *guid, char *buf, const char *fname, const char 
                   guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
                   guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
-      n = sprintf(p, "%s,", edit_uint64(statp->st_size, ec1));
+      n = sprintf(p, "%s,", edit_int64(statp->st_size, ec1));
       p += n;
       p = encode_time(statp->st_mtime, p);
       *p++ = ',';
@@ -527,7 +527,7 @@ static void ls_output(guid_list *guid, char *buf, const char *fname, const char 
                   guid->uid_to_name(statp->st_uid, en1, sizeof(en1)),
                   guid->gid_to_name(statp->st_gid, en2, sizeof(en2)));
       p += n;
-      n = sprintf(p, "%10.10s  ", edit_uint64(statp->st_size, ec1));
+      n = sprintf(p, "%10.10s  ", edit_int64(statp->st_size, ec1));
       p += n;
       if (statp->st_ctime > statp->st_mtime) {
          time = statp->st_ctime;
