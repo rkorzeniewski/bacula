@@ -443,7 +443,7 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       if (!set_cmd_plugin(&ff_pkt->bfd, jcr)) {
          goto bail_out;
       }
-      send_plugin_name(jcr, sd);
+      send_plugin_name(jcr, sd, true);      /* signal start of plugin data */
    }
 
    /* Send attributes -- must be done after binit() */
@@ -641,6 +641,9 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
       sd->msglen = size;
       sd->send();
       sd->signal(BNET_EOD);              /* end of checksum */
+   }
+   if (ff_pkt->cmd_plugin) {
+      send_plugin_name(jcr, sd, false); /* signal end of plugin data */
    }
 
 good_rtn:

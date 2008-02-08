@@ -93,6 +93,8 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    int len;
    char *p;
    char *cmd = (char *)value;
+   struct save_pkt sp;
+   FF_PKT *ff_pkt;
 
    if (!plugin_list) {
       return;
@@ -124,8 +126,6 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    foreach_alist(plugin, plugin_list) {
       Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) == 0) {
-         struct save_pkt sp;
-         FF_PKT *ff_pkt;
          Dmsg1(000, "Command plugin = %s\n", cmd);
          if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
             goto bail_out;
@@ -135,6 +135,8 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          sp.portable = true;
          sp.cmd = cmd;
          Dmsg0(000, "Plugin startBackup\n");
+         printf("st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
+                &sp);
          if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
             goto bail_out;
          }
@@ -157,20 +159,26 @@ bail_out:
 }
 
 /* 
- * Send plugin name record to SD
+ * Send plugin name start/end record to SD
  */
-bool send_plugin_name(JCR *jcr, BSOCK *sd)
+bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
 {
    int stat;
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
    Plugin *plugin = (Plugin *)jcr->plugin;
-   if (!sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_PLUGIN_NAME)) {
+  
+   if (!sd->fsend("%ld %d %d", jcr->JobFiles, STREAM_PLUGIN_NAME, start)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
            sd->bstrerror());
      return false;
    }
-   stat = sd->fsend("%ld %d %s%c%s%c", jcr->JobFiles, sp->portable, 0, plugin->file,
-            sp->cmd, 0);
+   if (start) {
+      stat = sd->fsend("%ld 1 %d %s%c%s%c", jcr->JobFiles, sp->portable, plugin->file, 0,
+                  sp->cmd, 0);
+   } else {
+      stat = sd->fsend("%ld 0 %d %s%c%s%c", jcr->JobFiles, sp->portable, plugin->file, 0,
+                  sp->cmd, 0);
+   }
    if (!stat) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
             sd->bstrerror());

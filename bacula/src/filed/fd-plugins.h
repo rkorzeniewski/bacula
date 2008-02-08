@@ -35,6 +35,19 @@
 #ifndef __FD_PLUGINS_H 
 #define __FD_PLUGINS_H
 
+#ifndef _BACULA_H
+#ifdef __cplusplus
+/* Workaround for SGI IRIX 6.5 */
+#define _LANGUAGE_C_PLUS_PLUS 1
+#endif
+#define _REENTRANT    1
+#define _THREAD_SAFE  1
+#define _POSIX_PTHREAD_SEMANTICS 1
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE_SOURCE 1
+#define _LARGE_FILES 1
+#endif
+
 #include <sys/types.h>
 #ifndef __CONFIG_H
 #define __CONFIG_H
@@ -119,7 +132,7 @@ void load_fd_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
-bool send_plugin_name(JCR *jcr, BSOCK *sd);
+bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
 
 #ifdef __cplusplus
 extern "C" {
