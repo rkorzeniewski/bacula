@@ -336,47 +336,6 @@ static void remove_jcr(JCR *jcr)
  */
 static void free_common_jcr(JCR *jcr)
 {
-   struct s_last_job *je, last_job;
-
-   /* Keep some statistics */
-   switch (jcr->JobType) {
-   case JT_BACKUP:
-   case JT_VERIFY:
-   case JT_RESTORE:
-   case JT_MIGRATE:
-   case JT_COPY:
-   case JT_ADMIN:
-      num_jobs_run++;
-      last_job.Errors = jcr->Errors;
-      last_job.JobType = jcr->JobType;
-      last_job.JobId = jcr->JobId;
-      last_job.VolSessionId = jcr->VolSessionId;
-      last_job.VolSessionTime = jcr->VolSessionTime;
-      bstrncpy(last_job.Job, jcr->Job, sizeof(last_job.Job));
-      last_job.JobFiles = jcr->JobFiles;
-      last_job.JobBytes = jcr->JobBytes;
-      last_job.JobStatus = jcr->JobStatus;
-      last_job.JobLevel = jcr->JobLevel;
-      last_job.start_time = jcr->start_time;
-      last_job.end_time = time(NULL);
-      /* Keep list of last jobs, but not Console where JobId==0 */
-      if (last_job.JobId > 0) {
-         je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-         memcpy((char *)je, (char *)&last_job, sizeof(last_job));
-         if (!last_jobs) {
-            init_last_jobs_list();
-         }
-         last_jobs->append(je);
-         if (last_jobs->size() > max_last_jobs) {
-            je = (struct s_last_job *)last_jobs->first();
-            last_jobs->remove(je);
-            free(je);
-         }
-      }
-      break;
-   default:
-      break;
-   }
    jcr->destroy_mutex();
 
    if (jcr->msg_queue) {
@@ -446,12 +405,15 @@ static void free_common_jcr(JCR *jcr)
 #ifdef DEBUG
 void b_free_jcr(const char *file, int line, JCR *jcr)
 {
+   struct s_last_job *je, last_job;
+
    Dmsg3(dbglvl, "Enter free_jcr jid=%u from %s:%d\n", jcr->JobId, file, line);
 
 #else
 
 void free_jcr(JCR *jcr)
 {
+   struct s_last_job *je, last_job;
 
    Dmsg3(dbglvl, "Enter free_jcr jid=%u use_count=%d Job=%s\n", 
          jcr->JobId, jcr->use_count(), jcr->Job);
@@ -478,14 +440,56 @@ void free_jcr(JCR *jcr)
             jcr->JobId, jcr->use_count(), jcr->Job);
    }
    remove_jcr(jcr);                   /* remove Jcr from chain */
-   unlock_jcr_chain();
 
    job_end_pop(jcr);                  /* pop and call hooked routines */
 
    Dmsg1(dbglvl, "End job=%d\n", jcr->JobId);
+
+   /* Keep some statistics */
+   switch (jcr->JobType) {
+   case JT_BACKUP:
+   case JT_VERIFY:
+   case JT_RESTORE:
+   case JT_MIGRATE:
+   case JT_COPY:
+   case JT_ADMIN:
+      num_jobs_run++;
+      last_job.Errors = jcr->Errors;
+      last_job.JobType = jcr->JobType;
+      last_job.JobId = jcr->JobId;
+      last_job.VolSessionId = jcr->VolSessionId;
+      last_job.VolSessionTime = jcr->VolSessionTime;
+      bstrncpy(last_job.Job, jcr->Job, sizeof(last_job.Job));
+      last_job.JobFiles = jcr->JobFiles;
+      last_job.JobBytes = jcr->JobBytes;
+      last_job.JobStatus = jcr->JobStatus;
+      last_job.JobLevel = jcr->JobLevel;
+      last_job.start_time = jcr->start_time;
+      last_job.end_time = time(NULL);
+      /* Keep list of last jobs, but not Console where JobId==0 */
+      if (last_job.JobId > 0) {
+         je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
+         memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+         if (!last_jobs) {
+            init_last_jobs_list();
+         }
+         last_jobs->append(je);
+         if (last_jobs->size() > max_last_jobs) {
+            je = (struct s_last_job *)last_jobs->first();
+            last_jobs->remove(je);
+            free(je);
+         }
+      }
+      break;
+   default:
+      break;
+
+   }
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
+
+   unlock_jcr_chain();
    free_common_jcr(jcr);
    close_msg(NULL);                   /* flush any daemon messages */
    garbage_collect_memory_pool();

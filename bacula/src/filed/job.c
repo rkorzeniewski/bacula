@@ -1797,6 +1797,9 @@ static void filed_free_jcr(JCR *jcr)
    free_runscripts(jcr->RunScripts);
    delete jcr->RunScripts;
 
+   if (jcr->JobId != 0)
+      write_state_file(me->working_directory, "bacula-fd", get_first_port_host_order(me->FDaddrs));
+
    return;
 }
 

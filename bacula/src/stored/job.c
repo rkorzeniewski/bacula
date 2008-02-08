@@ -406,5 +406,9 @@ void stored_free_jcr(JCR *jcr)
       jcr->write_store = NULL;
    }
    Dsm_check(1);
+
+   if (jcr->JobId != 0)
+      write_state_file(me->working_directory, "bacula-sd", get_first_port_host_order(me->sdaddrs));
+
    return;
 }
