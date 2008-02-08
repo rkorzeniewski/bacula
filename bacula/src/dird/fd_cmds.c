@@ -163,13 +163,13 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    int JobLevel;
 
    since[0] = 0;
-   if (jcr->cloned) {
-      if (jcr->stime && jcr->stime[0]) {
-         bstrncpy(since, _(", since="), since_len);
-         bstrncat(since, jcr->stime, since_len);
-      }
+   /* If job cloned and a since time already given, use it */
+   if (jcr->cloned && jcr->stime && jcr->stime[0]) {
+      bstrncpy(since, _(", since="), since_len);
+      bstrncat(since, jcr->stime, since_len);
       return;
    }
+   /* Make sure stime buffer is allocated */
    if (!jcr->stime) {
       jcr->stime = get_pool_memory(PM_MESSAGE);
    } 
