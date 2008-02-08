@@ -189,7 +189,7 @@ static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
    sp->statp.st_ctime = now;
    sp->statp.st_mtime = now;
    sp->statp.st_atime = now;
-   sp->statp.st_size = 100;
+   sp->statp.st_size = -1;
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
    printf("bpipe: st_size=%p st_blocks=%p sp=%p\n", &sp->statp.st_size, &sp->statp.st_blocks,
