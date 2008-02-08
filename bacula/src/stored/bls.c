@@ -403,7 +403,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          print_ls_output(jcr, attr);
          num_files++;
       }
+   } else if (rec->Stream == STREAM_PLUGIN_NAME) {
+      Pmsg1(000, "Plugin name: %s\n", rec->data);
    }
+      
    return true;
 }
 

@@ -31,7 +31,6 @@
  *  Kern Sibbald, October 2007
  *
  */
-#include <stdio.h>
 #include "fd-plugins.h"
 
 #undef malloc
@@ -193,6 +192,9 @@ static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
    sp->statp.st_size = 100;
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
+   printf("bpipe: st_size=%p st_blocks=%p sp=%p\n", &sp->statp.st_size, &sp->statp.st_blocks,
+                sp);
+
    printf("bpipe-fd: startPluginBackup\n");
    return bRC_OK;
 }
