@@ -198,7 +198,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool t
          }
          foreach_dlist(node, &incexe->plugin_list) {
             char *fname = node->c_str();
-            Dmsg1(000, "PluginCommand: %s\n", fname);
+            Dmsg1(100, "PluginCommand: %s\n", fname);
             ff->top_fname = fname;
             ff->cmd_plugin = true;
             generate_plugin_event(jcr, bEventPluginCommand, (void *)fname);

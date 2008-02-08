@@ -468,18 +468,21 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 #ifdef HAVE_WIN32
       do_read = !is_portable_backup(&ff_pkt->bfd) || ff_pkt->statp.st_size > 0;
 #else
-      do_read = ff_pkt->statp.st_size > 0;
+      do_read = ff_pkt->statp.st_size > 0;  
 #endif
    } else if (ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO ||
               ff_pkt->type == FT_REPARSE ||
          (!is_portable_backup(&ff_pkt->bfd) && ff_pkt->type == FT_DIREND)) {
       do_read = true;
-   } else if (ff_pkt->cmd_plugin) {
+   }
+   if (ff_pkt->cmd_plugin) {
       do_read = true;
    }
 
+   Dmsg1(100, "do_read=%d\n", do_read);
    if (do_read) {
       btimer_t *tid;
+
       if (ff_pkt->type == FT_FIFO) {
          tid = start_thread_timer(jcr, pthread_self(), 60);
       } else {
