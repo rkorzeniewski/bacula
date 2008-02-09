@@ -41,11 +41,11 @@ extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
 
 /* Function pointers to be set here */
-extern int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
-extern int     (*plugin_bclose)(JCR *jcr);
-extern ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
-extern ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
-extern boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence);
+extern DLL_IMP_EXP int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
+extern DLL_IMP_EXP int     (*plugin_bclose)(JCR *jcr);
+extern DLL_IMP_EXP ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
+extern DLL_IMP_EXP ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
+extern DLL_IMP_EXP boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence);
 
 
 /* Forward referenced functions */
