@@ -10,7 +10,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,338 @@
+@@ -97,6 +98,411 @@
  }
  
  /*
@@ -36,6 +36,7 @@ Index: src/dird/backup.c
 +   return 0;
 +}
 +
++/* TODO: tweak verify code to use the same function */
 +bool accurate_check_file(JCR *jcr, FILE_DBR *fdbr, char *attr, char *Opts_Digest, int *do_Digest)
 +{
 +   char *p;
@@ -139,6 +140,95 @@ Index: src/dird/backup.c
 +}
 +
 +/*
++ * This function is called at EOJ.
++ *  For a Full backup, we remove old one, and we add all entries 
++ *  For an Incremental, we add all entries (delete have been before)
++ *  For a Differential, we add all entries (delete have been before)
++ * 
++ * TODO: 
++ *      
++ */
++bool accurate_update_current_files(JCR *jcr)
++{
++   JobId_t backupid;
++/*
++   if (jcr->accurate == false) {
++      return true;
++   }
++*/
++   backupid = db_accurate_find_backupid(jcr, jcr->db, &jcr->jr);
++
++   Dmsg1(1, "backupid = %i\n", backupid);
++
++   if (!backupid) {
++      return false;		/* something goes wrong */
++   }
++
++   if (jcr->JobLevel == L_FULL) {
++      db_accurate_cleanup_currentfile(jcr, jcr->db, backupid);
++   }
++
++   db_accurate_update_currentfile(jcr, jcr->db, jcr->JobId, 
++				  jcr->JobLevel, backupid);
++   return true;
++}
++
++/*
++ * We are called here for each record that matches the above
++ *  SQL query -- that is for each file contained in the Catalog
++ *  that was not marked earlier. This means that the file in
++ *  question is a missing file (in the Catalog but not on Disk).
++ */
++static int accurate_handler(void *ctx, int num_fields, char **row)
++{
++   JCR *jcr = (JCR *)ctx;
++
++   if (job_canceled(jcr)) {
++      return 1;
++   }
++   if (num_fields == 2) {	/* deleted files */
++      jcr->file_bsock->fsend("D %s%s", row[0]?row[0]:"", row[1]?row[1]:""); 
++   } else if (num_fields == 1) { /* files to backup */
++      jcr->file_bsock->fsend("S %s", row[0]?row[0]:""); 
++   }
++   return 0;
++}
++
++/*
++ * Send deleted files and files to backup in accurate mode
++ *
++ */
++static int accurate_send_missing_and_deleted_files(JCR *jcr, JobId_t BackupId)
++{
++   char buf[MAXSTRING];
++   char ed1[50], ed2[50];
++
++   bsnprintf(buf, sizeof(buf),
++      "SELECT Path.Path,Filename.Name "
++        "FROM CurrentFile "
++             "JOIN File USING (FileId) "
++             "JOIN Path USING (PathId) "
++             "JOIN Filename USING (FilenameId) "
++      "WHERE CurrentFile.BackupId=%s "
++        "AND CurrentFile.MarkId!=%s ",
++	     edit_uint64(BackupId, ed1), edit_uint64(jcr->JobId, ed2));
++   /* missing_handler is called for each file found */
++   Dmsg1(2, "display deleted files cmd=%s\n", buf);
++   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
++   jcr->file_bsock->signal(BNET_EOD);
++   
++   bsnprintf(buf, sizeof(buf),
++	     "SELECT Name FROM ToBackup%s",
++	     edit_uint64(jcr->JobId, ed2));
++   /* missing_handler is called for each file found */
++   Dmsg1(2, "display files to backup cmd=%s\n", buf);
++   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
++   jcr->file_bsock->signal(BNET_EOD);
++
++   return 1;
++}
++
++/*
 + * Accurate backup mode
 + * 1. Receive the list of all files including those backed up to the Dir
 + * 2. Dir computes files and deleted files.
@@ -152,16 +242,14 @@ Index: src/dird/backup.c
 + * If file have file_index=0, they are discarded by FD
 + *
 + * TODO: send deleted list and new list to client
-+ *       initialize currentlist and currentbackupid tables
 + *       tweak SD with file_index=-1
 + */
 +bool accurate_compute_files(JCR *jcr)
 +{
 +   BSOCK   *fd;
++   char buf[MAXSTRING];
 +   int n, len;
 +   FILE_DBR fdbr;
-+   char buf[MAXSTRING];
-+   char ed1[50], ed2[50];
 +   POOLMEM *fname = get_pool_memory(PM_MESSAGE);
 +   int do_Digest = CRYPTO_DIGEST_NONE;
 +   int32_t file_index = 0;
@@ -177,12 +265,12 @@ Index: src/dird/backup.c
 +      return true;
 +   }
 +
-+   backupid = db_find_backupid(jcr, jcr->db, &jcr->jr);
++   backupid = db_accurate_find_backupid(jcr, jcr->db, &jcr->jr);
 +   if (!backupid) {
 +      Jmsg(jcr, M_ERROR, 0, _("Can't use Accurate mode ERR=Can't find BackupId\n"));
 +      return false;
 +   }
-+   db_accurate_create_backup_table(jcr, jcr->db, jcr->JobId);
++   db_accurate_create_tobackup_table(jcr, jcr->db, jcr->JobId);
 +   Dmsg0(1, "bdird: waiting to receive file attributes\n");
 +   /*
 +    * Get Attributes and Signature from File daemon
@@ -249,34 +337,32 @@ Index: src/dird/backup.c
 +						    backupid, &fdbr))
 +	 {
 +	    Dmsg2(1, "get_file ok fname=%s fileid=%i\n", jcr->fname, fdbr.FileId);
-+
-+	    if (file_index != 0) {
-+	       changed = accurate_check_file(jcr, &fdbr, attr, Opts_Digest, &do_Digest);
-+	       Dmsg1(1, "check_file changed=%i\n", changed);
-+
-+	       if (changed == true) {
-+		  db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
-+		  db_accurate_delete_file_record(jcr, jcr->db, fdbr.FileId,
-+						 backupid);
++	    if (fdbr.MarkId != jcr->JobId) {	       /* Already visited ? */
++	       if (file_index == 0) { /* file not saved */
++		  changed = accurate_check_file(jcr, &fdbr, attr, Opts_Digest, &do_Digest);
++		  Dmsg1(1, "check_file changed=%i\n", changed);
++		  
++		  if (changed == true) {
++		     db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
++		     db_accurate_delete_file_record(jcr, jcr->db, fdbr.FileId, backupid);
++		  } else {
++		     db_accurate_mark_file_record(jcr, jcr->db, backupid,
++						  fdbr.FileId, jcr->JobId);
++		  }
++	       } else {		/* file_index != 0 file have be backuped */
++		  db_accurate_delete_file_record(jcr, jcr->db, fdbr.FileId, backupid);
 +	       }
 +	    }
-+
-+	    if (file_index == 0 || changed == false) {
-+	       Dmsg1(1, "mark_file fileid=%i\n", fdbr.FileId);
-+	       db_accurate_mark_file_record(jcr, jcr->db, backupid,
-+					    fdbr.FileId, jcr->JobId);
-+	    }
-+
 +	 } else if (file_index == 0) {
-+	    Dmsg1(1, "mark_for_backup fname=%s\n", jcr->fname);
-+	    db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
++	       Dmsg1(1, "mark_for_backup fname=%s\n", jcr->fname);
++	       db_accurate_mark_file_for_backup(jcr, jcr->db, jcr->fname, jcr->JobId);
 +	 }
-+	 
-+
++      
 +      /*
 +       * Got Digest Signature from Storage daemon
 +       *  It came across in the Opts_Digest field.
 +       */
++	 /* not used */
 +      } else if (crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
 +         Dmsg2(400, "stream=Digest inx=%d Digest=%s\n", file_index, Opts_Digest);
 +         /*
@@ -312,36 +398,23 @@ Index: src/dird/backup.c
 +      goto bail_out2;
 +   }
 +
-+   /* Now find all the files that are missing -- i.e. all files in
-+    *  the database where the MarkId != current JobId
-+    */
++/*
++CREATE  VIEW cf AS SELECT path.path || filename.name as filename, 
++       jobid, currentfile.markid, backupid 
++  FROM File join currentfile using (fileid) join filename using (filenameid) join path using (pathid)
++*/
 +
-+   bsnprintf(buf, sizeof(buf),
-+      "SELECT Path.Path,Filename.Name "
-+        "FROM CurrentFile "
-+             "JOIN File USING (FileId) "
-+             "JOIN Path USING (PathId) "
-+             "JOIN Filename USING (FilenameId) "
-+      "WHERE CurrentFile.BackupId=%s "
-+        "AND CurrentFile.MarkId!=%s ",
-+	     edit_uint64(backupid, ed1), edit_uint64(jcr->JobId, ed2));
-+   /* missing_handler is called for each file found */
-+   Dmsg1(1, "display deleted files cmd=%s\n", buf);
-+   db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
++   accurate_send_missing_and_deleted_files(jcr, backupid);
 +
-+   bsnprintf(buf, sizeof(buf),
-+	     "SELECT Name FROM ToBackup%s",
-+	     edit_uint64(jcr->JobId, ed2));
-+   /* missing_handler is called for each file found */
-+   Dmsg1(1, "display files to backup cmd=%s\n", buf);
-+   db_sql_query(jcr->db, buf, missing_handler, (void *)jcr);
++   db_accurate_clean_deleted_files(jcr, jcr->db, jcr->JobId, backupid);
++
++   db_accurate_drop_tobackup_table(jcr, jcr->db, jcr->JobId);
 +
 +   free_pool_memory(fname);
-+
 +   return true;
 +
 +bail_out2:
-+   db_accurate_drop_backup_table(jcr, jcr->db, jcr->JobId);
++   db_accurate_drop_tobackup_table(jcr, jcr->db, jcr->JobId);
 +   return false;
 +}
 +
@@ -349,7 +422,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,6 +564,13 @@
+@@ -231,9 +637,18 @@
        goto bail_out;
     }
  
@@ -363,6 +436,11 @@ Index: src/dird/backup.c
     /* Pickup Job termination data */
     stat = wait_for_job_termination(jcr);
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
++   accurate_update_current_files(jcr);
++
+    if (stat == JS_Terminated) {
+       backup_cleanup(jcr, stat);
+       return true;
 Index: src/dird/inc_conf.c
 ===================================================================
 --- src/dird/inc_conf.c	(révision 6374)
@@ -440,7 +518,7 @@ Index: src/filed/backup.c
 ===================================================================
 --- src/filed/backup.c	(révision 6374)
 +++ src/filed/backup.c	(copie de travail)
-@@ -50,6 +50,98 @@
+@@ -50,6 +50,109 @@
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
  
  /*
@@ -509,9 +587,20 @@ Index: src/filed/backup.c
 +/* build a fileset with new files from director */
 +static bool accurate_get_new_and_deleted_file_list(JCR *jcr)
 +{   
++   BSOCK *dir = jcr->dir_bsock;
 +   if (jcr->accurate == false || job_canceled(jcr)) {
 +      return true;
 +   }
++
++   /* get deleted files */
++   while (dir->recv() >= 0) {
++      Dmsg1(1, "deleted = %s\n", dir->msg);
++   }
++   /* get missing files */
++   while (dir->recv() >= 0) {
++      Dmsg1(1, "missing = %s\n", dir->msg);
++   }
++   
 +   return true;
 +}
 +
@@ -539,7 +628,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,6 +158,9 @@
+@@ -66,6 +169,9 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -549,7 +638,7 @@ Index: src/filed/backup.c
  
     sd = jcr->store_bsock;
  
-@@ -134,6 +229,20 @@
+@@ -134,6 +240,20 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -570,7 +659,7 @@ Index: src/filed/backup.c
  
     free_pool_memory(jcr->acl_text);
  
-@@ -355,9 +464,11 @@
+@@ -355,9 +475,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -582,7 +671,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1111,6 +1222,9 @@
+@@ -1111,6 +1233,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -610,7 +699,7 @@ Index: src/cats/sql_update.c
 ===================================================================
 --- src/cats/sql_update.c	(révision 6374)
 +++ src/cats/sql_update.c	(copie de travail)
-@@ -88,6 +88,76 @@
+@@ -88,6 +88,102 @@
     return stat;
  }
  
@@ -621,7 +710,7 @@ Index: src/cats/sql_update.c
 +   db_lock(mdb);
 +   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE FileId=%s AND BackupId=%s",
 +	edit_int64(FileId, ed1), edit_int64(BackupId, ed2));
-+   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   stat = INSERT_DB(jcr, mdb, mdb->cmd);
 +   db_unlock(mdb);
 +   return stat;
 +}
@@ -629,7 +718,6 @@ Index: src/cats/sql_update.c
 +int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, JobId_t JobId)
 +{
 +   int stat;
-+   int len=strlen(fname);
 +   char ed1[50];
 +   db_lock(mdb);
 +   /* TODO: mdb->esc_xxx are already ok but it's more smart to recompute it */
@@ -641,7 +729,34 @@ Index: src/cats/sql_update.c
 +   return stat;
 +}
 +
-+int db_accurate_create_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++int db_accurate_cleanup_currentfile(JCR *jcr, B_DB *mdb, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE BackupId=%s", edit_int64(BackupId, ed1));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_update_currentfile(JCR *jcr, B_DB *mdb, JobId_t JobId, int JobLevel, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50], ed3[50];
++   db_lock(mdb);
++   edit_int64(JobId, ed2);
++   Mmsg(mdb->cmd, 
++	"INSERT INTO CurrentFile (FileId, BackupId, FullMark, MarkId) "
++	" (SELECT FileId, %s, '%c', %s FROM File WHERE JobId=%s)", 
++	edit_int64(BackupId, ed1),
++	JobLevel, ed2, ed2);
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat; 
++}
++
++int db_accurate_create_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
 +{
 +   int stat;
 +   char ed1[50];
@@ -653,9 +768,9 @@ Index: src/cats/sql_update.c
 +   return stat;
 +}
 +
-+int db_accurate_drop_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++int db_accurate_drop_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
 +{
-+   int stat;
++   int stat=0;
 +   char ed1[50];
 +   db_lock(mdb);
 +//   Mmsg(mdb->cmd, "DROP TABLE ToBackup%s", edit_int64(JobId, ed1));
@@ -755,11 +870,16 @@ Index: src/cats/protos.h
 ===================================================================
 --- src/cats/protos.h	(révision 6374)
 +++ src/cats/protos.h	(copie de travail)
-@@ -82,10 +82,12 @@
+@@ -78,14 +78,17 @@
+ /* sql_delete.c */
+ int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
+ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
++int db_accurate_clean_deleted_files(JCR *jcr, B_DB *mdb, JobId_t JobId, JobId_t BackupId);
+ 
  /* sql_find.c */
  bool db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
  bool db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
-+JobId_t db_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
++JobId_t db_accurate_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
  int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
  bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
  
@@ -768,23 +888,26 @@ Index: src/cats/protos.h
  bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
  int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
  bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
-@@ -129,6 +131,11 @@
+@@ -129,6 +132,14 @@
  int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
  int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
  int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 +int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, FileId_t JobId);
 +int db_accurate_mark_file_record(JCR *jcr, B_DB *mdb, JobId_t BackupId, FileId_t FileId, JobId_t JobId);
-+int db_accurate_drop_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
-+int db_accurate_create_backup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_drop_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_create_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
 +int db_accurate_delete_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t BackupId);
  void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
++int db_accurate_cleanup_currentfile(JCR *jcr, B_DB *mdb, JobId_t BackupId);
++int db_accurate_update_currentfile(JCR *jcr, B_DB *mdb, JobId_t JobId, int JobLevel, JobId_t BackupId);
  
++
  #endif /* __SQL_PROTOS_H */
 Index: src/cats/sql_find.c
 ===================================================================
 --- src/cats/sql_find.c	(révision 6374)
 +++ src/cats/sql_find.c	(copie de travail)
-@@ -190,7 +190,55 @@
+@@ -190,7 +190,60 @@
     return true;
  }
  
@@ -795,7 +918,7 @@ Index: src/cats/sql_find.c
 + *
 + */
 +JobId_t
-+db_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
++db_accurate_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 +{
 +   SQL_ROW row;
 +   char ed1[50],ed2[50];
@@ -817,20 +940,25 @@ Index: src/cats/sql_find.c
 +      return 0;
 +   }
 +   if ((row = sql_fetch_row(mdb)) == NULL) {
-+      Mmsg1(&mdb->errmsg, _("No Job found for: %s.\n"), mdb->cmd);
 +      sql_free_result(mdb);
-+      db_unlock(mdb);
-+      return 0;
++      if (jcr->JobLevel == L_FULL) {
++	 Mmsg(mdb->cmd,
++	      "INSERT INTO CurrentBackupId (JobName, ClientId, FileSetId) VALUES ('%s', %s, %s)",
++	      jr->Name, ed1, ed2);
++	 if (!INSERT_DB(jcr, mdb, mdb->cmd)) {
++	    db_unlock(mdb);
++	    return 0;
++	 }
++	 backupid = sql_insert_id(mdb, NT_("CurrentBackupId"));
++      } else {
++	 Mmsg1(&mdb->errmsg, _("No Job found for: %s.\n"), mdb->cmd);
++	 backupid = 0;
++      }
++   } else {
++      backupid = str_to_int64(row[0]);
 +   }
 +
-+   backupid = str_to_int64(row[0]);
 +   sql_free_result(mdb);
-+
-+   if (backupid <= 0) {
-+      Mmsg1(&mdb->errmsg, _("No Job found for: %s\n"), mdb->cmd);
-+      db_unlock(mdb);
-+      return 0;
-+   }
 +
 +   db_unlock(mdb);
 +   return backupid;
@@ -840,6 +968,33 @@ Index: src/cats/sql_find.c
  /*
   * Find JobId of last job that ran.  E.g. for
   *   VERIFY_CATALOG we want the JobId of the last INIT.
+Index: src/cats/sql_delete.c
+===================================================================
+--- src/cats/sql_delete.c	(révision 6374)
++++ src/cats/sql_delete.c	(copie de travail)
+@@ -236,5 +236,22 @@
+    return 1;
+ }
+ 
++/*
++ * Purge delete file from CurrentFile table. This table contains only
++ * current files.
++ */
++int db_accurate_clean_deleted_files(JCR *jcr, B_DB *mdb, JobId_t JobId, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE MarkId!=%s AND BackupId=%s", 
++	edit_int64(JobId, ed1), edit_int64(BackupId, ed2));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
+ 
++}
++
++
+ #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
 Index: src/cats/sql_create.c
 ===================================================================
 --- src/cats/sql_create.c	(révision 6374)
