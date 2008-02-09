@@ -55,7 +55,7 @@ static int attrs = 0;
 
 static JCR *jcr;
 
-static int print_file(FF_PKT *ff, void *pkt, bool);
+static int print_file(JCR *jcr, FF_PKT *ff, bool);
 static void count_files(FF_PKT *ff);
 static bool copy_fileset(FF_PKT *ff, JCR *jcr);
 static void set_options(findFOPTS *fo, const char *opts);
@@ -163,7 +163,7 @@ main (int argc, char *const *argv)
    
    copy_fileset(ff, jcr);
 
-   find_files(jcr, ff, print_file);
+   find_files(jcr, ff, print_file, NULL);
 
    free_jcr(jcr);
    free_config_resources();
@@ -238,7 +238,7 @@ main (int argc, char *const *argv)
    exit(0);
 }
 
-static int print_file(FF_PKT *ff, void *pkt, bool top_level) 
+static int print_file(JCR *jcr, FF_PKT *ff, bool top_level) 
 {
 
    switch (ff->type) {

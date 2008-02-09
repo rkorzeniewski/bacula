@@ -775,9 +775,8 @@ static const char *zlib_strerror(int stat)
 }
 #endif
 
-static int do_file_digest(FF_PKT *ff_pkt, void *pkt, bool top_level) 
+static int do_file_digest(JCR *jcr, FF_PKT *ff_pkt, bool top_level) 
 {
-   JCR *jcr = (JCR *)pkt;
    Dmsg1(50, "do_file_digest jcr=%p\n", jcr);
    return (digest_file(jcr, ff_pkt, jcr->crypto.digest));
 }

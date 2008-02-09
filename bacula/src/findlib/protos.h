@@ -45,8 +45,9 @@ int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
 /* From find.c */
 FF_PKT *init_find_files();
 void  set_find_options(FF_PKT *ff, int incremental, time_t mtime);
-int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool));
-int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool));
+int   find_files(JCR *jcr, FF_PKT *ff, int file_sub(JCR *, FF_PKT *ff_pkt, bool),
+                 int plugin_sub(JCR *, FF_PKT *ff_pkt, bool));
+int   match_files(JCR *jcr, FF_PKT *ff, int sub(JCR *, FF_PKT *ff_pkt, bool));
 int   term_find_files(FF_PKT *ff);
 int   get_win32_driveletters(FF_PKT *ff, char* szDrives);
 
@@ -62,7 +63,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff,
 
 /* From find_one.c */
 int   find_one_file(JCR *jcr, FF_PKT *ff, 
-               int handle_file(FF_PKT *ff_pkt, void *hpkt, bool top_level),
+               int handle_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level),
                char *p, dev_t parent_device, bool top_level);
 int   term_find_one(FF_PKT *ff);
 bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);

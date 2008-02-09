@@ -37,7 +37,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int verify_file(FF_PKT *ff_pkt, void *my_pkt, bool);
+static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool);
 static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr);
 
 /*
@@ -56,7 +56,7 @@ void do_verify(JCR *jcr)
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(10, "Start find files\n");
    /* Subroutine verify_file() is called for each file */
-   find_files(jcr, (FF_PKT *)jcr->ff, verify_file);
+   find_files(jcr, (FF_PKT *)jcr->ff, verify_file, NULL);
    Dmsg0(10, "End find files\n");
 
    if (jcr->big_buf) {
@@ -71,7 +71,7 @@ void do_verify(JCR *jcr)
  *
  *  Find the file, compute the MD5 or SHA1 and send it back to the Director
  */
-static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
+static int verify_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 {
    char attribs[MAXSTRING];
    char attribsEx[MAXSTRING];
@@ -79,7 +79,6 @@ static int verify_file(FF_PKT *ff_pkt, void *pkt, bool top_level)
    int stat;
    DIGEST *digest = NULL;
    BSOCK *dir;
-   JCR *jcr = (JCR *)pkt;
 
    if (job_canceled(jcr)) {
       return 0;

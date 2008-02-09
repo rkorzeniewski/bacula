@@ -47,7 +47,7 @@ int attrs = 0;
 static JCR *jcr;
 
 
-static int print_file(FF_PKT *ff, void *pkt, bool);
+static int print_file(JCR *jcr, FF_PKT *ff, bool);
 static void print_ls_output(char *fname, char *link, int type, struct stat *statp);
 
 static void usage()
@@ -176,7 +176,7 @@ main (int argc, char *const *argv)
    exit(0);
 }
 
-static int print_file(FF_PKT *ff, void *pkt, bool top_level) 
+static int print_file(JCR *jcr, FF_PKT *ff, bool top_level) 
 {
 
    switch (ff->type) {
