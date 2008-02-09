@@ -64,7 +64,7 @@ static const int fnmode = 0;
 
 
 int
-match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool), void *his_pkt)
+match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool))
 {
    ff->callback = callback;
 
@@ -76,7 +76,7 @@ match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool)
       bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
       Dmsg1(100, "find_files: file=%s\n", inc->fname);
       if (!file_is_excluded(ff, inc->fname)) {
-         if (find_one_file(jcr, ff, callback, his_pkt, inc->fname, (dev_t)-1, 1) ==0) {
+         if (find_one_file(jcr, ff, callback, inc->fname, (dev_t)-1, 1) ==0) {
             return 0;                  /* error return */
          }
       }

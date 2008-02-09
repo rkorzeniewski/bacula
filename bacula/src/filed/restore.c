@@ -848,7 +848,7 @@ static bool verify_signature(JCR *jcr, r_ctx &rctx)
             /* Checksum the entire file */
             /* Make sure we don't modify JobBytes by saving and restoring it */
             saved_bytes = jcr->JobBytes;                     
-            if (find_one_file(jcr, jcr->ff, do_file_digest, jcr, jcr->last_fname, (dev_t)-1, 1) != 0) {
+            if (find_one_file(jcr, jcr->ff, do_file_digest, jcr->last_fname, (dev_t)-1, 1) != 0) {
                Jmsg(jcr, M_ERROR, 0, _("Digest one file failed for file: %s\n"), 
                     jcr->last_fname);
                jcr->JobBytes = saved_bytes;
