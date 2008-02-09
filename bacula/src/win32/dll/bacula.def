@@ -107,6 +107,7 @@ _Z15stream_to_asciii
 _Z16set_win32_backupP5BFILE
 _Z18is_portable_backupP5BFILE
 _Z19set_portable_backupP5BFILE
+_Z14set_cmd_pluginP5BFILEP3JCR
 _Z26processWin32BackupAPIBlockP5BFILEPvl
 _Z27is_restore_stream_supportedi
 _Z5binitP5BFILE
@@ -128,14 +129,14 @@ _Z9drivetypePKcPci
 _Z24enable_backup_privilegesP3JCRi
  
 ; find.o
-_Z10find_filesP3JCRP6FF_PKTPFiS2_PvbES3_
+_Z10find_filesP3JCRP6FF_PKTPFiS0_S2_bES4_
 _Z15init_find_filesv
 _Z15term_find_filesP6FF_PKT
 _Z16set_find_optionsP6FF_PKTil
 _Z22get_win32_drivelettersP6FF_PKTPc
  
 ; find_one.o
-_Z13find_one_fileP3JCRP6FF_PKTPFiS2_PvbES3_Pcjb
+_Z13find_one_fileP3JCRP6FF_PKTPFiS0_S2_bEPcjb
 _Z13term_find_oneP6FF_PKT
 _Z16has_file_changedP3JCRP6FF_PKT
  
@@ -143,7 +144,7 @@ _Z16has_file_changedP3JCRP6FF_PKT
 _Z6fstypePKcPci
  
 ; match.o
-_Z11match_filesP3JCRP6FF_PKTPFiS2_PvbES3_
+_Z11match_filesP3JCRP6FF_PKTPFiS0_S2_bE
 _Z16file_is_excludedP6FF_PKTPKc
 _Z16file_is_includedP6FF_PKTPKc
 _Z22get_next_included_fileP6FF_PKTP15s_included_file
@@ -721,3 +722,8 @@ watchdog_thread
  
 console_command DATA
 plugin_list DATA
+plugin_bopen DATA
+plugin_bclose DATA
+plugin_bwrite DATA
+plugin_bread DATA
+plugin_blseek DATA
