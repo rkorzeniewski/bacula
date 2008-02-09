@@ -267,7 +267,7 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
  */
 int
 find_one_file(JCR *jcr, FF_PKT *ff_pkt, 
-               int handle_file(FF_PKT *ff, void *hpkt, bool top_level),
+               int handle_file(JCR *jcr, FF_PKT *ff, bool top_level),
                char *fname, dev_t parent_device, bool top_level)
 {
    struct utimbuf restore_times;
@@ -280,7 +280,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        /* Cannot stat file */
        ff_pkt->type = FT_NOSTAT;
        ff_pkt->ff_errno = errno;
-       return handle_file(ff_pkt, jcr, top_level);
+       return handle_file(jcr, ff_pkt, top_level);
    }
 
    Dmsg1(300, "File ----: %s\n", fname);
@@ -341,7 +341,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
               ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
          /* Incremental option, file not changed */
          ff_pkt->type = FT_NOCHG;
-         return handle_file(ff_pkt, jcr, top_level);
+         return handle_file(jcr, ff_pkt, top_level);
       }
    }
 
@@ -358,7 +358,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
                 sizeof(ff_pkt->hfsinfo), FSOPT_NOFOLLOW) != 0) {
           ff_pkt->type = FT_NOSTAT;
           ff_pkt->ff_errno = errno;
-          return handle_file(ff_pkt, jcr, top_level);
+          return handle_file(jcr, ff_pkt, top_level);
        }
    }
 #endif
@@ -397,7 +397,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
              ff_pkt->link = lp->name;
              ff_pkt->type = FT_LNKSAVED;       /* Handle link, file already saved */
              ff_pkt->LinkFI = lp->FileIndex;
-             return handle_file(ff_pkt, jcr, top_level);
+             return handle_file(jcr, ff_pkt, top_level);
          }
 
       /* File not previously dumped. Chain it into our list. */
@@ -427,7 +427,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       } else {
          ff_pkt->type = FT_REG;
       }
-      rtn_stat = handle_file(ff_pkt, jcr, top_level);
+      rtn_stat = handle_file(jcr, ff_pkt, top_level);
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
       }
@@ -446,7 +446,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
          /* Could not follow link */
          ff_pkt->type = FT_NOFOLLOW;
          ff_pkt->ff_errno = errno;
-         rtn_stat = handle_file(ff_pkt, jcr, top_level);
+         rtn_stat = handle_file(jcr, ff_pkt, top_level);
          if (ff_pkt->linked) {
             ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
          }
@@ -455,7 +455,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       buffer[size] = 0;
       ff_pkt->link = buffer;          /* point to link */
       ff_pkt->type = FT_LNK;          /* got a real link */
-      rtn_stat = handle_file(ff_pkt, jcr, top_level);
+      rtn_stat = handle_file(jcr, ff_pkt, top_level);
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
       }
@@ -482,7 +482,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
             /* Could not access() directory */
             ff_pkt->type = FT_NOACCESS;
             ff_pkt->ff_errno = errno;
-            rtn_stat = handle_file(ff_pkt, jcr, top_level);
+            rtn_stat = handle_file(jcr, ff_pkt, top_level);
             if (ff_pkt->linked) {
                ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
             }
@@ -523,7 +523,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * do not immediately save it, but do so only after everything
        * in the directory is seen (i.e. the FT_DIREND).
        */
-      rtn_stat = handle_file(ff_pkt, jcr, top_level);
+      rtn_stat = handle_file(jcr, ff_pkt, top_level);
       if (rtn_stat < 1 || ff_pkt->type == FT_REPARSE) {   /* ignore or error status */
          free(link);
          return rtn_stat;
@@ -568,7 +568,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       }
       /* If not recursing, just backup dir and return */
       if (!recurse) {
-         rtn_stat = handle_file(ff_pkt, jcr, top_level);
+         rtn_stat = handle_file(jcr, ff_pkt, top_level);
          if (ff_pkt->linked) {
             ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
          }
@@ -591,7 +591,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       if ((directory = opendir(fname)) == NULL) {
          ff_pkt->type = FT_NOOPEN;
          ff_pkt->ff_errno = errno;
-         rtn_stat = handle_file(ff_pkt, jcr, top_level);
+         rtn_stat = handle_file(jcr, ff_pkt, top_level);
          if (ff_pkt->linked) {
             ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
          }
@@ -652,7 +652,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        *  the directory modes and dates.  Temp directory values
        *  were used without this record.
        */
-      handle_file(dir_ff_pkt, jcr, top_level);       /* handle directory entry */
+      handle_file(jcr, dir_ff_pkt, top_level);       /* handle directory entry */
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = dir_ff_pkt->FileIndex;
       }
@@ -690,7 +690,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       /* The only remaining types are special (character, ...) files */
       ff_pkt->type = FT_SPEC;
    }
-   rtn_stat = handle_file(ff_pkt, jcr, top_level);
+   rtn_stat = handle_file(jcr, ff_pkt, top_level);
    if (ff_pkt->linked) {
       ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
    }

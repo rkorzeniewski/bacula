@@ -39,7 +39,8 @@
 #include "filed.h"
 
 /* Forward referenced functions */
-int save_file(FF_PKT *ff_pkt, void *pkt, bool top_level);
+int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
+static int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 static void strip_path(FF_PKT *ff_pkt);
 static void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
@@ -130,7 +131,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    /* Subroutine save_file() is called for each file */
-   if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file)) {
+   if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, plugin_save)) {
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
@@ -238,6 +239,12 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
    return true;
 }
 
+int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
+{
+   generate_plugin_event(jcr, bEventPluginCommand, (void *)ff_pkt->top_fname);
+   return 1;
+}
+
 /*
  * Called here by find() for each file included.
  *   This is a callback. The original is find_files() above.
@@ -248,7 +255,7 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
  *           0 if error
  *          -1 to ignore file/directory (not used here)
  */
-int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
+int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 {
    bool do_read = false;
    int stat, data_stream; 
@@ -264,7 +271,6 @@ int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
 #else
    crypto_digest_t signing_algorithm = CRYPTO_DIGEST_SHA1;
 #endif
-   JCR *jcr = (JCR *)vjcr;
    BSOCK *sd = jcr->store_bsock;
 
    if (job_canceled(jcr)) {

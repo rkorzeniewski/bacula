@@ -213,7 +213,8 @@ struct FF_PKT {
    struct s_excluded_file *excluded_files_list;
    struct s_excluded_file *excluded_paths_list;
    findFILESET *fileset;
-   int (*callback)(FF_PKT *, void *, bool); /* User's callback */
+   int (*file_save)(JCR *, FF_PKT *, bool); /* User's callback */
+   int (*plugin_save)(JCR *, FF_PKT *, bool); /* User's callback */
 
    /* Values set by accept_file while processing Options */
    uint32_t flags;                    /* backup options */

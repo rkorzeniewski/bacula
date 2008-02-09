@@ -37,7 +37,7 @@
 const int dbglvl = 50;
 const char *plugin_type = "-fd.so";
 
-extern int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level);
+extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
 
 /* Function pointers to be set here */
@@ -147,7 +147,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
          ff_pkt->type = sp.type;
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
          Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
-         save_file(ff_pkt, (void *)jcr, true);
+         save_file(jcr, ff_pkt, true);
          goto bail_out;
       }
       i++;

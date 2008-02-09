@@ -48,7 +48,7 @@ int32_t path_max;              /* path name max length */
 #undef bmalloc
 #define bmalloc(x) sm_malloc(__FILE__, __LINE__, x)
 #endif
-static int our_callback(FF_PKT *ff, void *hpkt, bool top_level);
+static int our_callback(JCR *jcr, FF_PKT *ff, bool top_level);
 static bool accept_file(FF_PKT *ff);
 
 static const int fnmode = 0;
@@ -153,15 +153,13 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
  * will be passed back to the callback subroutine as the last
  * argument.
  *
- * The callback subroutine gets called with:
- *  arg1 -- the FF_PKT containing filename, link, stat, ftype, flags, etc
- *  arg2 -- the user supplied packet
- *
  */
 int
-find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool top_level)) 
+find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level),
+           int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)) 
 {
-   ff->callback = callback;
+   ff->file_save = file_save;
+   ff->plugin_save = plugin_save;
 
    /* This is the new way */
    findFILESET *fileset = ff->fileset;
@@ -195,13 +193,15 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool t
                return 0;                  /* error return */
             }
          }
-         foreach_dlist(node, &incexe->plugin_list) {
-            char *fname = node->c_str();
-            Dmsg1(100, "PluginCommand: %s\n", fname);
-            ff->top_fname = fname;
-            ff->cmd_plugin = true;
-            generate_plugin_event(jcr, bEventPluginCommand, (void *)fname);
-            ff->cmd_plugin = false;
+         if (plugin_save) {
+            foreach_dlist(node, &incexe->plugin_list) {
+               char *fname = node->c_str();
+               Dmsg1(100, "PluginCommand: %s\n", fname);
+               ff->top_fname = fname;
+               ff->cmd_plugin = true;
+               plugin_save(jcr, ff, true);
+               ff->cmd_plugin = false;
+            }
          }
       }
    }
@@ -361,10 +361,10 @@ static bool accept_file(FF_PKT *ff)
  * We filter the files, then call the user's callback if
  *    the file is included.
  */
-static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
+static int our_callback(JCR *jcr, FF_PKT *ff, bool top_level)
 {
    if (top_level) {
-      return ff->callback(ff, hpkt, top_level);   /* accept file */
+      return ff->file_save(jcr, ff, top_level);   /* accept file */
    }
    switch (ff->type) {
    case FT_NOACCESS:
@@ -378,7 +378,7 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
    case FT_INVALIDDT:
    case FT_NOOPEN:
    case FT_REPARSE:
-//    return ff->callback(ff, hpkt, top_level);
+//    return ff->file_save(jcr, ff, top_level);
 
    /* These items can be filtered */
    case FT_LNKSAVED:
@@ -392,7 +392,7 @@ static int our_callback(FF_PKT *ff, void *hpkt, bool top_level)
    case FT_SPEC:
    case FT_DIRNOCHG:
       if (accept_file(ff)) {
-         return ff->callback(ff, hpkt, top_level);
+         return ff->file_save(jcr, ff, top_level);
       } else {
          Dmsg1(100, "Skip file %s\n", ff->fname);
          return -1;                   /* ignore this file */

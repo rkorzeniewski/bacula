@@ -38,7 +38,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int tally_file(FF_PKT *ff_pkt, void *pkt, bool);
+static int tally_file(JCR *jcr, FF_PKT *ff_pkt, bool);
 
 /*
  * Find all the requested files and count them.
@@ -50,7 +50,7 @@ int make_estimate(JCR *jcr)
    set_jcr_job_status(jcr, JS_Running);
 
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
-   stat = find_files(jcr, (FF_PKT *)jcr->ff, tally_file);
+   stat = find_files(jcr, (FF_PKT *)jcr->ff, tally_file, NULL);
 
    return stat;
 }
@@ -59,9 +59,8 @@ int make_estimate(JCR *jcr)
  * Called here by find() for each file included.
  *
  */
-static int tally_file(FF_PKT *ff_pkt, void *ijcr, bool top_level) 
+static int tally_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level) 
 {
-   JCR *jcr = (JCR *)ijcr;
    ATTR attr;
 
    if (job_canceled(jcr)) {

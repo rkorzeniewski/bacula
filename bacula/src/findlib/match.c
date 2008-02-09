@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -64,9 +64,9 @@ static const int fnmode = 0;
 
 
 int
-match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool))
+match_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *, FF_PKT *ff_pkt, bool))
 {
-   ff->callback = callback;
+   ff->file_save = file_save;
 
    struct s_included_file *inc = NULL;
 
@@ -76,7 +76,7 @@ match_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool)
       bstrncat(ff->VerifyOpts, inc->VerifyOpts, sizeof(ff->VerifyOpts));
       Dmsg1(100, "find_files: file=%s\n", inc->fname);
       if (!file_is_excluded(ff, inc->fname)) {
-         if (find_one_file(jcr, ff, callback, inc->fname, (dev_t)-1, 1) ==0) {
+         if (find_one_file(jcr, ff, file_save, inc->fname, (dev_t)-1, 1) ==0) {
             return 0;                  /* error return */
          }
       }
