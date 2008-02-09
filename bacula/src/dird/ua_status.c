@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -86,6 +86,14 @@ bool dot_status_cmd(UAContext *ua, const char *cmd)
                   job->JobStatus, job->Errors);
          }
       }
+   } else if (strcasecmp(ua->argk[2], "header") == 0) {
+       list_dir_status_header(ua);
+   } else if (strcasecmp(ua->argk[2], "scheduled") == 0) {
+       list_scheduled_jobs(ua);
+   } else if (strcasecmp(ua->argk[2], "running") == 0) {
+       list_running_jobs(ua);
+   } else if (strcasecmp(ua->argk[2], "terminated") == 0) {
+       list_terminated_jobs(ua);
    } else {
       ua->send_msg("1900 Bad .status command, wrong argument.\n");
       return false;
@@ -296,7 +304,7 @@ static void do_director_status(UAContext *ua)
     * List terminated jobs
     */
    list_terminated_jobs(ua);
-   ua->send_msg(_("====\n"));
+   ua->send_msg("====\n");
 }
 
 static void do_storage_status(UAContext *ua, STORE *store)
@@ -359,12 +367,12 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    }
    Dmsg0(20, _("Connected to file daemon\n"));
    fd = ua->jcr->file_bsock;
-   bnet_fsend(fd, "status");
-   while (bnet_recv(fd) >= 0) {
+   fd->fsend("status");
+   while (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
-   bnet_sig(fd, BNET_TERMINATE);
-   bnet_close(fd);
+   fd->signal(BNET_TERMINATE);
+   fd->close();
    ua->jcr->file_bsock = NULL;
 
    return;
@@ -372,9 +380,11 @@ static void do_client_status(UAContext *ua, CLIENT *client)
 
 static void prt_runhdr(UAContext *ua)
 {
-   ua->send_msg(_("\nScheduled Jobs:\n"));
-   ua->send_msg(_("Level          Type     Pri  Scheduled          Name               Volume\n"));
-   ua->send_msg(_("===================================================================================\n"));
+   if (!ua->api) {
+      ua->send_msg(_("\nScheduled Jobs:\n"));
+      ua->send_msg(_("Level          Type     Pri  Scheduled          Name               Volume\n"));
+      ua->send_msg(_("===================================================================================\n"));
+   }
 }
 
 /* Scheduling packet */
@@ -426,9 +436,15 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       level_ptr = level_to_str(sp->level);
       break;
    }
-   ua->send_msg(_("%-14s %-8s %3d  %-18s %-18s %s\n"),
-      level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt,
-      sp->job->name(), mr.VolumeName);
+   if (ua->api) {
+      ua->send_msg(_("%-14s\t%-8s\t%3d\t%-18s\t%-18s\t%s\n"),
+         level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt,
+         sp->job->name(), mr.VolumeName);
+   } else {
+      ua->send_msg(_("%-14s %-8s %3d  %-18s %-18s %s\n"),
+         level_ptr, job_type_to_str(sp->job->JobType), sp->priority, dt,
+         sp->job->name(), mr.VolumeName);
+   }
    if (close_db) {
       db_close_database(jcr, jcr->db);
    }
@@ -477,8 +493,8 @@ static void list_scheduled_jobs(UAContext *ua)
    i = find_arg_with_value(ua, NT_("days"));
    if (i >= 0) {
      days = atoi(ua->argv[i]);
-     if ((days < 0) || (days > 50)) {
-       ua->send_msg(_("Ignoring invalid value for days. Max is 50.\n"));
+     if ((days < 0) || (days > 500) && !ua->api) {
+       ua->send_msg(_("Ignoring invalid value for days. Max is 500.\n"));
        days = 1;
      }
    }
@@ -520,10 +536,10 @@ static void list_scheduled_jobs(UAContext *ua)
    foreach_dlist(sp, &sched) {
       prt_runtime(ua, sp);
    }
-   if (num_jobs == 0) {
+   if (num_jobs == 0 && !ua->api) {
       ua->send_msg(_("No Scheduled Jobs.\n"));
    }
-   ua->send_msg(_("====\n"));
+   if (!ua->api) ua->send_msg("====\n");
    Dmsg0(200, "Leave list_sched_jobs_runs()\n");
 }
 
@@ -538,13 +554,13 @@ static void list_running_jobs(UAContext *ua)
    bool pool_mem = false;
 
    Dmsg0(200, "enter list_run_jobs()\n");
-   ua->send_msg(_("\nRunning Jobs:\n"));
+   if (!ua->api) ua->send_msg(_("\nRunning Jobs:\n"));
    foreach_jcr(jcr) {
       if (jcr->JobId == 0) {      /* this is us */
          /* this is a console or other control job. We only show console
           * jobs in the status output.
           */
-         if (jcr->JobType == JT_CONSOLE) {
+         if (jcr->JobType == JT_CONSOLE && !ua->api) {
             bstrftime_nc(dt, sizeof(dt), jcr->start_time);
             ua->send_msg(_("Console connected at %s\n"), dt);
          }
@@ -556,13 +572,15 @@ static void list_running_jobs(UAContext *ua)
 
    if (njobs == 0) {
       /* Note the following message is used in regress -- don't change */
-      ua->send_msg(_("No Jobs running.\n====\n"));
+      if (!ua->api)  ua->send_msg(_("No Jobs running.\n====\n"));
       Dmsg0(200, "leave list_run_jobs()\n");
       return;
    }
    njobs = 0;
-   ua->send_msg(_(" JobId Level   Name                       Status\n"));
-   ua->send_msg(_("======================================================================\n"));
+   if (!ua->api) {
+      ua->send_msg(_(" JobId Level   Name                       Status\n"));
+      ua->send_msg(_("======================================================================\n"));
+   }
    foreach_jcr(jcr) {
       if (jcr->JobId == 0 || !acl_access_ok(ua, Job_ACL, jcr->job->name())) {
          continue;
@@ -711,11 +729,13 @@ static void list_running_jobs(UAContext *ua)
          break;
       }
 
-      ua->send_msg(_("%6d %-6s  %-20s %s\n"),
-         jcr->JobId,
-         level,
-         jcr->Job,
-         msg);
+      if (ua->api) {
+         ua->send_msg(_("%6d\t%-6s\t%-20s\t%s\n"),
+            jcr->JobId, level, jcr->Job, msg);
+      } else {
+         ua->send_msg(_("%6d %-6s  %-20s %s\n"),
+            jcr->JobId, level, jcr->Job, msg);
+      }
 
       if (pool_mem) {
          free_pool_memory(emsg);
@@ -723,7 +743,7 @@ static void list_running_jobs(UAContext *ua)
       }
    }
    endeach_jcr(jcr);
-   ua->send_msg(_("====\n"));
+   if (!ua->api) ua->send_msg("====\n");
    Dmsg0(200, "leave list_run_jobs()\n");
 }
 
@@ -733,14 +753,16 @@ static void list_terminated_jobs(UAContext *ua)
    char level[10];
 
    if (last_jobs->empty()) {
-      ua->send_msg(_("No Terminated Jobs.\n"));
+      if (!ua->api) ua->send_msg(_("No Terminated Jobs.\n"));
       return;
    }
    lock_last_jobs_list();
    struct s_last_job *je;
-   ua->send_msg(_("\nTerminated Jobs:\n"));
-   ua->send_msg(_(" JobId  Level    Files      Bytes   Status   Finished        Name \n"));
-   ua->send_msg(_("====================================================================\n"));
+   if (!ua->api) {
+      ua->send_msg(_("\nTerminated Jobs:\n"));
+      ua->send_msg(_(" JobId  Level    Files      Bytes   Status   Finished        Name \n"));
+      ua->send_msg(_("====================================================================\n"));
+   }
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       const char *termstat;
@@ -790,14 +812,24 @@ static void list_terminated_jobs(UAContext *ua)
          termstat = _("Other");
          break;
       }
-      ua->send_msg(_("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
-         je->JobId,
-         level,
-         edit_uint64_with_commas(je->JobFiles, b1),
-         edit_uint64_with_suffix(je->JobBytes, b2),
-         termstat,
-         dt, JobName);
+      if (ua->api) {
+         ua->send_msg(_("%6d\t%-6s\t%8s\t%10s\t%-7s\t%-8s\t%s\n"),
+            je->JobId,
+            level,
+            edit_uint64_with_commas(je->JobFiles, b1),
+            edit_uint64_with_suffix(je->JobBytes, b2),
+            termstat,
+            dt, JobName);
+      } else {
+         ua->send_msg(_("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
+            je->JobId,
+            level,
+            edit_uint64_with_commas(je->JobFiles, b1),
+            edit_uint64_with_suffix(je->JobBytes, b2),
+            termstat,
+            dt, JobName);
+      }
    }
-   ua->send_msg(_("\n"));
+   if (!ua->api) ua->send_msg(_("\n"));
    unlock_last_jobs_list();
 }
