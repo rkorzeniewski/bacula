@@ -165,7 +165,7 @@ main (int argc, char *const *argv)
       }
       fclose(fd);
    }
-   match_files(jcr, ff, print_file, NULL);
+   match_files(jcr, ff, print_file);
    term_include_exclude_files(ff);
    hard_links = term_find_files(ff);
 

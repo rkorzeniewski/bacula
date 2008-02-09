@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -56,7 +56,7 @@ void do_verify(JCR *jcr)
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
    Dmsg0(10, "Start find files\n");
    /* Subroutine verify_file() is called for each file */
-   find_files(jcr, (FF_PKT *)jcr->ff, verify_file, (void *)jcr);
+   find_files(jcr, (FF_PKT *)jcr->ff, verify_file);
    Dmsg0(10, "End find files\n");
 
    if (jcr->big_buf) {

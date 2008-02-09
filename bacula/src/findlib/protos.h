@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,8 +45,8 @@ int    create_file       (JCR *jcr, ATTR *attr, BFILE *ofd, int replace);
 /* From find.c */
 FF_PKT *init_find_files();
 void  set_find_options(FF_PKT *ff, int incremental, time_t mtime);
-int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
-int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool), void *pkt);
+int   find_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool));
+int   match_files(JCR *jcr, FF_PKT *ff, int sub(FF_PKT *ff_pkt, void *hpkt, bool));
 int   term_find_files(FF_PKT *ff);
 int   get_win32_driveletters(FF_PKT *ff, char* szDrives);
 
@@ -63,7 +63,7 @@ struct s_included_file *get_next_included_file(FF_PKT *ff,
 /* From find_one.c */
 int   find_one_file(JCR *jcr, FF_PKT *ff, 
                int handle_file(FF_PKT *ff_pkt, void *hpkt, bool top_level),
-               void *pkt, char *p, dev_t parent_device, bool top_level);
+               char *p, dev_t parent_device, bool top_level);
 int   term_find_one(FF_PKT *ff);
 bool  has_file_changed(JCR *jcr, FF_PKT *ff_pkt);
 

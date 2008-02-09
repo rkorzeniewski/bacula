@@ -159,8 +159,7 @@ get_win32_driveletters(FF_PKT *ff, char* szDrives)
  *
  */
 int
-find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool top_level), 
-           void *his_pkt)
+find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool top_level)) 
 {
    ff->callback = callback;
 
@@ -192,7 +191,7 @@ find_files(JCR *jcr, FF_PKT *ff, int callback(FF_PKT *ff_pkt, void *hpkt, bool t
             char *fname = node->c_str();
             Dmsg1(100, "F %s\n", fname);
             ff->top_fname = fname;
-            if (find_one_file(jcr, ff, our_callback, his_pkt, ff->top_fname, (dev_t)-1, true) == 0) {
+            if (find_one_file(jcr, ff, our_callback, ff->top_fname, (dev_t)-1, true) == 0) {
                return 0;                  /* error return */
             }
          }

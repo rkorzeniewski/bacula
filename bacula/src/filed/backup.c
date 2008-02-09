@@ -130,7 +130,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    /* Subroutine save_file() is called for each file */
-   if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
+   if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file)) {
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }

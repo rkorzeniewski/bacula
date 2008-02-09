@@ -163,7 +163,7 @@ main (int argc, char *const *argv)
    
    copy_fileset(ff, jcr);
 
-   find_files(jcr, ff, print_file, NULL);
+   find_files(jcr, ff, print_file);
 
    free_jcr(jcr);
    free_config_resources();
