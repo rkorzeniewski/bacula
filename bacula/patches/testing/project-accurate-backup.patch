@@ -1,6 +1,58 @@
+Index: src/dird/fd_cmds.c
+===================================================================
+--- src/dird/fd_cmds.c	(révision 6372)
++++ src/dird/fd_cmds.c	(copie de travail)
+@@ -50,7 +50,7 @@
+ static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
+ static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
+ /* Note, mtime_only is not used here -- implemented as file option */
+-static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
++static char levelcmd[]    = "level = %s%s%s mtime_only=%d\n";
+ static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
+ static char runbeforenow[]= "RunBeforeNow\n";
+ 
+@@ -217,7 +217,7 @@
+    char ed1[50];
+ 
+    stime = str_to_utime(jcr->stime);
+-   fd->fsend(levelcmd, NT_("since_utime "), edit_uint64(stime, ed1), 0);
++   fd->fsend(levelcmd, "", NT_("since_utime "), edit_uint64(stime, ed1), 0);
+    while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
+       Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
+    }
+@@ -231,24 +231,25 @@
+ bool send_level_command(JCR *jcr)
+ {
+    BSOCK   *fd = jcr->file_bsock;
++   const char *accurate=jcr->job->accurate?"accurate_":"";
+    /*
+     * Send Level command to File daemon
+     */
+    switch (jcr->JobLevel) {
+    case L_BASE:
+-      fd->fsend(levelcmd, "base", " ", 0);
++      fd->fsend(levelcmd, "", "base", " ", 0);
+       break;
+    /* L_NONE is the console, sending something off to the FD */
+    case L_NONE:
+    case L_FULL:
+-      fd->fsend(levelcmd, "full", " ", 0);
++      fd->fsend(levelcmd, "", "full", " ", 0);
+       break;
+    case L_DIFFERENTIAL:
+-      fd->fsend(levelcmd, "differential", " ", 0);
++      fd->fsend(levelcmd, accurate, "differential", " ", 0);
+       send_since_time(jcr);
+       break;
+    case L_INCREMENTAL:
+-      fd->fsend(levelcmd, "incremental", " ", 0);
++      fd->fsend(levelcmd, accurate, "incremental", " ", 0);
+       send_since_time(jcr);
+       break;
+    case L_SINCE:
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 6374)
+--- src/dird/backup.c	(révision 6372)
 +++ src/dird/backup.c	(copie de travail)
 @@ -44,6 +44,7 @@
  #include "bacula.h"
@@ -151,11 +203,11 @@ Index: src/dird/backup.c
 +bool accurate_update_current_files(JCR *jcr)
 +{
 +   JobId_t backupid;
-+/*
++
 +   if (jcr->accurate == false) {
 +      return true;
 +   }
-+*/
++
 +   backupid = db_accurate_find_backupid(jcr, jcr->db, &jcr->jr);
 +
 +   Dmsg1(1, "backupid = %i\n", backupid);
@@ -261,7 +313,7 @@ Index: src/dird/backup.c
 +   fdbr.JobId = JobId;		
 +   jcr->FileIndex = 0;
 +
-+   if (/*jcr->accurate == false ||*/ jcr->JobLevel == L_FULL) {
++   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
 +      return true;
 +   }
 +
@@ -441,9 +493,21 @@ Index: src/dird/backup.c
     if (stat == JS_Terminated) {
        backup_cleanup(jcr, stat);
        return true;
+Index: src/dird/job.c
+===================================================================
+--- src/dird/job.c	(révision 6372)
++++ src/dird/job.c	(copie de travail)
+@@ -979,6 +979,7 @@
+    jcr->spool_data = job->spool_data;
+    jcr->spool_size = job->spool_size;
+    jcr->write_part_after_job = job->write_part_after_job;
++   jcr->accurate = job->accurate;
+    if (jcr->RestoreBootstrap) {
+       free(jcr->RestoreBootstrap);
+       jcr->RestoreBootstrap = NULL;
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(révision 6374)
+--- src/dird/inc_conf.c	(révision 6372)
 +++ src/dird/inc_conf.c	(copie de travail)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
@@ -482,13 +546,13 @@ Index: src/dird/inc_conf.c
  
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 6374)
+--- src/dird/dird_conf.c	(révision 6372)
 +++ src/dird/dird_conf.c	(copie de travail)
 @@ -319,6 +319,7 @@
     {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
     {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
     {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
-+   {"accuratebackup", store_bool, ITEM(res_job.accurate), 0,0,0},
++   {"accurate", store_bool, ITEM(res_job.accurate), 0,0,0},
     {NULL, NULL, {0}, 0, 0, 0}
  };
  
@@ -504,7 +568,7 @@ Index: src/dird/dird_conf.c
        }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 6374)
+--- src/dird/dird_conf.h	(révision 6372)
 +++ src/dird/dird_conf.h	(copie de travail)
 @@ -400,6 +400,7 @@
     bool write_part_after_job;         /* Set to write part after job in SD */
@@ -516,7 +580,7 @@ Index: src/dird/dird_conf.h
     SCHED     *schedule;               /* When -- Automatic schedule */
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6374)
+--- src/filed/backup.c	(révision 6372)
 +++ src/filed/backup.c	(copie de travail)
 @@ -50,6 +50,109 @@
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
@@ -628,17 +692,15 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,6 +169,9 @@
+@@ -66,7 +169,6 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
-+   if (jcr->JobLevel != L_FULL) {
-+      jcr->accurate=true;		/* TODO: remove that */
-+   }
- 
+-
     sd = jcr->store_bsock;
  
-@@ -134,6 +240,20 @@
+    set_jcr_job_status(jcr, JS_Running);
+@@ -134,6 +236,20 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -649,7 +711,7 @@ Index: src/filed/backup.c
 +      accurate_send_file_list(jcr);                 /* send all files to DIR */
 +      accurate_get_new_and_deleted_file_list(jcr);  /* get a new incr fileset from DIR */
 +//      set_find_options((FF_PKT *)jcr->ff, 0, 0);            /* we backup all that director wants */
-+//      if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file, (void *)jcr)) {
++//      if (!find_files(jcr, (FF_PKT *)jcr->ff, save_file)) {
 +//	 ok = false;                     /* error */
 +//	 set_jcr_job_status(jcr, JS_ErrorTerminated);
 +//      }
@@ -659,7 +721,7 @@ Index: src/filed/backup.c
  
     free_pool_memory(jcr->acl_text);
  
-@@ -355,9 +475,11 @@
+@@ -355,9 +471,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -671,7 +733,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1111,6 +1233,9 @@
+@@ -1111,6 +1229,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -683,7 +745,7 @@ Index: src/filed/backup.c
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 6374)
+--- src/filed/job.c	(révision 6372)
 +++ src/filed/job.c	(copie de travail)
 @@ -1087,6 +1087,9 @@
        case 'c':
@@ -695,9 +757,37 @@ Index: src/filed/job.c
        default:
           Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
           break;
+@@ -1195,6 +1198,9 @@
+ 
+    level = get_memory(dir->msglen+1);
+    Dmsg1(110, "level_cmd: %s", dir->msg);
++   if (strstr(dir->msg, "accurate")) {
++      jcr->accurate = true;
++   }
+    if (sscanf(dir->msg, "level = %s ", level) != 1) {
+       goto bail_out;
+    }
+@@ -1204,14 +1210,14 @@
+    /* Full backup requested? */
+    } else if (strcmp(level, "full") == 0) {
+       jcr->JobLevel = L_FULL;
+-   } else if (strcmp(level, "differential") == 0) {
++   } else if (strstr(level, "differential")) {
+       jcr->JobLevel = L_DIFFERENTIAL;
+       free_memory(level);
+       return 1;
+-   } else if (strcmp(level, "incremental") == 0) {
++   } else if (strstr(level, "incremental")) {
+       jcr->JobLevel = L_INCREMENTAL;
+       free_memory(level);
+-      return 1;   
++      return 1;
+    /*
+     * We get his UTC since time, then sync the clocks and correct it
+     *   to agree with our clock.
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(révision 6374)
+--- src/cats/sql_update.c	(révision 6372)
 +++ src/cats/sql_update.c	(copie de travail)
 @@ -88,6 +88,102 @@
     return stat;
@@ -804,7 +894,7 @@ Index: src/cats/sql_update.c
   *
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 6374)
+--- src/cats/make_postgresql_tables.in	(révision 6372)
 +++ src/cats/make_postgresql_tables.in	(copie de travail)
 @@ -43,6 +43,59 @@
  CREATE INDEX file_jobid_idx on file (jobid);
@@ -868,7 +958,7 @@ Index: src/cats/make_postgresql_tables.in
  --  if your Verifies are too slow.
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(révision 6374)
+--- src/cats/protos.h	(révision 6372)
 +++ src/cats/protos.h	(copie de travail)
 @@ -78,14 +78,17 @@
  /* sql_delete.c */
@@ -905,7 +995,7 @@ Index: src/cats/protos.h
  #endif /* __SQL_PROTOS_H */
 Index: src/cats/sql_find.c
 ===================================================================
---- src/cats/sql_find.c	(révision 6374)
+--- src/cats/sql_find.c	(révision 6372)
 +++ src/cats/sql_find.c	(copie de travail)
 @@ -190,7 +190,60 @@
     return true;
@@ -970,7 +1060,7 @@ Index: src/cats/sql_find.c
   *   VERIFY_CATALOG we want the JobId of the last INIT.
 Index: src/cats/sql_delete.c
 ===================================================================
---- src/cats/sql_delete.c	(révision 6374)
+--- src/cats/sql_delete.c	(révision 6372)
 +++ src/cats/sql_delete.c	(copie de travail)
 @@ -236,5 +236,22 @@
     return 1;
@@ -997,7 +1087,7 @@ Index: src/cats/sql_delete.c
  #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
 Index: src/cats/sql_create.c
 ===================================================================
---- src/cats/sql_create.c	(révision 6374)
+--- src/cats/sql_create.c	(révision 6372)
 +++ src/cats/sql_create.c	(copie de travail)
 @@ -829,6 +829,14 @@
     return true;
@@ -1016,7 +1106,7 @@ Index: src/cats/sql_create.c
   *
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 6374)
+--- src/cats/sql_get.c	(révision 6372)
 +++ src/cats/sql_get.c	(copie de travail)
 @@ -66,6 +66,8 @@
   *
@@ -1103,7 +1193,7 @@ Index: src/cats/sql_get.c
   * Returns: 0 on failure
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6374)
+--- src/jcr.h	(révision 6372)
 +++ src/jcr.h	(copie de travail)
 @@ -208,6 +208,7 @@
     B_DB *db_batch;                    /* database pointer for batch insert */
@@ -1115,7 +1205,7 @@ Index: src/jcr.h
     void *plugin_ctx;                  /* current plugin context */
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(révision 6374)
+--- src/findlib/find.h	(révision 6372)
 +++ src/findlib/find.h	(copie de travail)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
