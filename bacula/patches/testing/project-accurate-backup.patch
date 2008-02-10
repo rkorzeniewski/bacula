@@ -11,7 +11,20 @@ Index: src/dird/fd_cmds.c
  static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
  static char runbeforenow[]= "RunBeforeNow\n";
  
-@@ -217,7 +217,7 @@
+@@ -189,6 +189,12 @@
+          bsnprintf(since, since_len, _(" (upgraded from %s)"),
+             level_to_str(jcr->JobLevel));
+          jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
++      /* look if we found the last accurate backup */
++      } else if (jcr->accurate && !db_accurate_find_backupid(jcr, jcr->db, &jcr->jr)) {
++         Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full accurate backup found in catalog. Doing FULL backup.\n"));
++         bsnprintf(since, since_len, _(" (upgraded from %s)"),
++		   level_to_str(jcr->JobLevel));
++         jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
+       } else {
+          if (jcr->job->rerun_failed_levels) {
+             if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
+@@ -217,7 +223,7 @@
     char ed1[50];
  
     stime = str_to_utime(jcr->stime);
@@ -20,7 +33,7 @@ Index: src/dird/fd_cmds.c
     while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
        Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
     }
-@@ -231,24 +231,25 @@
+@@ -231,24 +237,25 @@
  bool send_level_command(JCR *jcr)
  {
     BSOCK   *fd = jcr->file_bsock;
@@ -284,8 +297,8 @@ Index: src/dird/backup.c
 + * Accurate backup mode
 + * 1. Receive the list of all files including those backed up to the Dir
 + * 2. Dir computes files and deleted files.
-+ * 3. Dir sends list of additional files (new files) to backup, and list of files
-+ *    deleted.
++ * 3. Dir sends list of additional files (new files) to backup,
++ *    and list of files deleted.
 + *
 + * Cleanup attributes (don't use atime, inode etc..)
 + * Need to insert file and attributes to temp table ?
@@ -319,7 +332,7 @@ Index: src/dird/backup.c
 +
 +   backupid = db_accurate_find_backupid(jcr, jcr->db, &jcr->jr);
 +   if (!backupid) {
-+      Jmsg(jcr, M_ERROR, 0, _("Can't use Accurate mode ERR=Can't find BackupId\n"));
++      Jmsg(jcr, M_FATAL, 0, _("Can't use Accurate mode ERR=Can't find BackupId\n"));
 +      return false;
 +   }
 +   db_accurate_create_tobackup_table(jcr, jcr->db, jcr->JobId);
@@ -1021,7 +1034,7 @@ Index: src/cats/sql_find.c
 ===================================================================
 --- src/cats/sql_find.c	(révision 6372)
 +++ src/cats/sql_find.c	(copie de travail)
-@@ -190,7 +190,60 @@
+@@ -190,7 +190,64 @@
     return true;
  }
  
@@ -1038,6 +1051,10 @@ Index: src/cats/sql_find.c
 +   char ed1[50],ed2[50];
 +   JobId_t backupid=0;
  
++   if (jcr->accurate == false) {
++      return 0;
++   }
++
 +   /* Find backupid */
 +   db_lock(mdb);
 +   Dmsg2(100, "JobLevel=%d JobType=%d\n", jcr->JobLevel, jcr->JobType);
