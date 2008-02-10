@@ -133,6 +133,7 @@ void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
+void plugin_name_stream(JCR *jcr, char *name);    
 
 #ifdef __cplusplus
 extern "C" {

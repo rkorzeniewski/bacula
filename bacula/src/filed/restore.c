@@ -631,6 +631,10 @@ void do_restore(JCR *jcr)
          }
          break;
 
+      case STREAM_PLUGIN_NAME:
+         plugin_name_stream(jcr, sd->msg);
+         break;
+
       default:
          /* If extracting, wierd stream (not 1 or 2), close output file anyway */
          if (extract) {

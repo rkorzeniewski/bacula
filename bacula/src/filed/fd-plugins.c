@@ -104,55 +104,59 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    event.eventType = eventType;
 
    Dmsg2(dbglvl, "plugin_ctx=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
-   if (eventType != bEventPluginCommand) {
+   switch (eventType) {
+   case bEventPluginCommand:  
+      /* Handle plugin command here backup */
+      Dmsg1(100, "plugin cmd=%s\n", cmd);
+      if (!(p = strchr(cmd, ':'))) {
+         Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+         goto bail_out;
+      }
+      len = p - cmd;
+      if (len <= 0) {
+         goto bail_out;
+      }
+
+      foreach_alist(plugin, plugin_list) {
+         Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+         if (strncmp(plugin->file, cmd, len) == 0) {
+            Dmsg1(100, "Command plugin = %s\n", cmd);
+            if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
+               goto bail_out;
+            }
+            memset(&sp, 0, sizeof(sp));
+            sp.type = FT_REG;
+            sp.portable = true;
+            sp.cmd = cmd;
+            Dmsg3(000, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
+                   &sp);
+            if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
+               goto bail_out;
+            }
+            jcr->plugin_ctx = &plugin_ctx_list[i];
+            jcr->plugin = plugin;
+            jcr->plugin_sp = &sp;
+            ff_pkt = jcr->ff;
+            ff_pkt->fname = sp.fname;
+            ff_pkt->type = sp.type;
+            memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
+            Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
+            save_file(jcr, ff_pkt, true);
+            goto bail_out;
+         }
+         i++;
+      }
+      Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
+      break;
+
+   default:
       /* Pass event to every plugin */
       foreach_alist(plugin, plugin_list) {
          plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
       }
-      goto bail_out;
+      break;
    }
 
-   /* Handle plugin command here (backup/restore of file) */
-   Dmsg1(100, "plugin cmd=%s\n", cmd);
-   if (!(p = strchr(cmd, ':'))) {
-      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
-      goto bail_out;
-   }
-   len = p - cmd;
-   if (len <= 0) {
-      goto bail_out;
-   }
-
-   foreach_alist(plugin, plugin_list) {
-      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
-      if (strncmp(plugin->file, cmd, len) == 0) {
-         Dmsg1(100, "Command plugin = %s\n", cmd);
-         if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
-            goto bail_out;
-         }
-         memset(&sp, 0, sizeof(sp));
-         sp.type = FT_REG;
-         sp.portable = true;
-         sp.cmd = cmd;
-         Dmsg3(000, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
-                &sp);
-         if (plug_func(plugin)->startPluginBackup(&plugin_ctx_list[i], &sp) != bRC_OK) {
-            goto bail_out;
-         }
-         jcr->plugin_ctx = &plugin_ctx_list[i];
-         jcr->plugin = plugin;
-         jcr->plugin_sp = &sp;
-         ff_pkt = jcr->ff;
-         ff_pkt->fname = sp.fname;
-         ff_pkt->type = sp.type;
-         memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
-         Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
-         save_file(jcr, ff_pkt, true);
-         goto bail_out;
-      }
-      i++;
-   }
-   Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
       
 bail_out:
    return;
@@ -165,20 +169,13 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
 {
    int stat;
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
-   Plugin *plugin = (Plugin *)jcr->plugin;
   
    if (!sd->fsend("%ld %d %d", jcr->JobFiles, STREAM_PLUGIN_NAME, start)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
            sd->bstrerror());
      return false;
    }
-   if (start) {
-      stat = sd->fsend("%ld 1 %d %s%c%s%c", jcr->JobFiles, sp->portable, plugin->file, 0,
-                  sp->cmd, 0);
-   } else {
-      stat = sd->fsend("%ld 0 %d %s%c%s%c", jcr->JobFiles, sp->portable, plugin->file, 0,
-                  sp->cmd, 0);
-   }
+   stat = sd->fsend("%ld %d %d %s%c", jcr->JobFiles, start, sp->portable, sp->cmd, 0);
    if (!stat) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
             sd->bstrerror());
@@ -186,6 +183,79 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    }
    sd->signal(BNET_EOD);            /* indicate end of plugin name data */
    return true;
+}
+
+/*
+ * Plugin name stream found during restore.  This is the record
+ *  that was generated in send_plugin_name() above.
+ */
+void plugin_name_stream(JCR *jcr, char *name)    
+{
+   char *p = name;
+   char *cmd;
+   bool start, portable;
+   bEvent event;
+   Plugin *plugin;
+   int len;
+   int i = 0;
+   bpContext *plugin_ctx_list;
+
+   Dmsg1(000, "plugin stream string=%s\n", name);
+   skip_nonspaces(&p);             /* skip over jcr->JobFiles */
+   skip_spaces(&p);
+   start = *p == '1';
+   skip_nonspaces(&p);             /* skip start/end flag */
+   skip_spaces(&p);
+   portable = *p == '1';
+   skip_nonspaces(&p);             /* skip portable flag */
+   skip_spaces(&p);
+   cmd = p;
+   event.eventType = start ? bEventRestoreStart : bEventRestoreEnd;
+    
+   /* Check for restore end */
+   if (!start) {
+      /*
+       * If end of restore, notify plugin, then clear flags   
+       */
+      plugin = (Plugin *)jcr->plugin;
+      plug_func(plugin)->handlePluginEvent((bpContext *)jcr->plugin_ctx, &event, cmd);
+      jcr->plugin_ctx = NULL;
+      jcr->plugin = NULL;
+      goto bail_out;
+   }
+      
+   /*
+    * After this point, we are dealing with a restore start
+    */
+
+   Dmsg1(000, "plugin cmd=%s\n", cmd);
+   if (!(p = strchr(cmd, ':'))) {
+      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+      goto bail_out;
+   }
+   len = p - cmd;
+   if (len <= 0) {
+      goto bail_out;
+   }
+
+   
+   plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   foreach_alist(plugin, plugin_list) {
+      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      if (strncmp(plugin->file, cmd, len) == 0) {
+         Dmsg1(100, "Command plugin = %s\n", cmd);
+         if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
+               &event, (void *)name) != bRC_OK) {
+            goto bail_out;
+         }
+         jcr->plugin_ctx = &plugin_ctx_list[i];
+         jcr->plugin = plugin;
+         goto bail_out;
+      }
+      i++;
+   }
+bail_out:
+   return;
 }
 
 
