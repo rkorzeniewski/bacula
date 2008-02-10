@@ -1120,7 +1120,7 @@ static int fileset_cmd(JCR *jcr)
    if (!term_fileset(jcr)) {
       return 0;
    }
-   return bnet_fsend(dir, OKinc);
+   return dir->fsend(OKinc);
 }
 
 static void free_bootstrap(JCR *jcr)
