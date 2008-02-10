@@ -703,13 +703,7 @@ bool write_session_label(DCR *dcr, int label)
    Dmsg1(130, "session_label record=%x\n", rec);
    switch (label) {
    case SOS_LABEL:
-      if (dev->is_tape()) {
-         dcr->StartBlock = dev->block_num;
-         dcr->StartFile  = dev->file;
-      } else {
-         dcr->StartBlock = (uint32_t)dev->file_addr;
-         dcr->StartFile = (uint32_t)(dev->file_addr >> 32);
-      }
+      set_start_vol_position(dcr);
       break;
    case EOS_LABEL:
       if (dev->is_tape()) {
