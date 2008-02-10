@@ -62,7 +62,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,411 @@
+@@ -97,6 +98,413 @@
  }
  
  /*
@@ -404,6 +404,8 @@ Index: src/dird/backup.c
 +	       } else {		/* file_index != 0 file have be backuped */
 +		  db_accurate_delete_file_record(jcr, jcr->db, fdbr.FileId, backupid);
 +	       }
++	    } else {
++	       Dmsg2(1, "already saved fname=%s fileid=%i\n", jcr->fname, fdbr.FileId);
 +	    }
 +	 } else if (file_index == 0) {
 +	       Dmsg1(1, "mark_for_backup fname=%s\n", jcr->fname);
@@ -474,7 +476,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,9 +637,18 @@
+@@ -231,9 +639,18 @@
        goto bail_out;
     }
  
@@ -892,10 +894,32 @@ Index: src/cats/sql_update.c
  /*
   * Update the Job record at start of Job
   *
+Index: src/cats/drop_postgresql_tables.in
+===================================================================
+--- src/cats/drop_postgresql_tables.in	(révision 6372)
++++ src/cats/drop_postgresql_tables.in	(copie de travail)
+@@ -5,7 +5,7 @@
+ bindir=@SQL_BINDIR@
+ db_name=@db_name@
+ 
+-$bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
++$bindir/psql -f - -U regress -d ${db_name} $* <<END-OF-DATA
+ drop table unsavedfiles;
+ drop table basefiles;
+ drop table jobmedia;
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
 --- src/cats/make_postgresql_tables.in	(révision 6372)
 +++ src/cats/make_postgresql_tables.in	(copie de travail)
+@@ -5,7 +5,7 @@
+ bindir=@SQL_BINDIR@
+ db_name=@db_name@
+ 
+-$bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
++$bindir/psql -f - -U regress -d ${db_name} $* <<END-OF-DATA
+ 
+ CREATE TABLE filename
+ (
 @@ -43,6 +43,59 @@
  CREATE INDEX file_jobid_idx on file (jobid);
  CREATE INDEX file_fp_idx on file (filenameid, pathid);
@@ -1128,7 +1152,8 @@ Index: src/cats/sql_get.c
 + *  Returns: 0 on failure
 + *           1 on success with the File record in FILE_DBR
 + */
-+int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JobId_t backupid, FILE_DBR *fdbr)
++int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, 
++					   JobId_t backupid, FILE_DBR *fdbr)
 +{
 +   int stat=0;
 +   char ed1[50];
@@ -1143,6 +1168,7 @@ Index: src/cats/sql_get.c
 +   mdb->esc_path = check_pool_memory_size(mdb->esc_path, 2*mdb->pnl+2);
 +   db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
 +
++   /* A file could be present more than one time in the same backup, so we use LIMIT 1 */
 +   Mmsg(mdb->cmd,
 +"SELECT FileId, LStat, MD5, FilenameId, PathId, FileIndex, CurrentFile.MarkId, JobId "
 +  "FROM File JOIN CurrentFile USING (FileId) "
@@ -1150,12 +1176,13 @@ Index: src/cats/sql_get.c
 +            "JOIN Path     USING (PathId) "
 + "WHERE Path.Path='%s' "
 +   "AND Filename.Name='%s' "
-+   "AND BackupId=%s ",
++   "AND BackupId=%s "
++   "ORDER BY FileId DESC LIMIT 1",
 +	mdb->esc_path,
 +	mdb->esc_name,
 +	edit_int64(backupid, ed1));
 +   
-+   Dmsg1(100,"get_file %s\n", mdb->cmd);
++   Dmsg1(2,"get_file %s\n", mdb->cmd);
 +
 +   if (QUERY_DB(jcr, mdb, mdb->cmd)) {
 +      char ed1[30];
@@ -1174,10 +1201,7 @@ Index: src/cats/sql_get.c
 +	    fdbr->JobId      = str_to_int64(row[7]);
 +	    stat=1;
 +	 }
-+      } else if (mdb->num_rows > 1) {
-+	 Mmsg2(mdb->errmsg, _("Get DB File record %s failed num=%i\n"),fname,mdb->num_rows);
-+         Jmsg(jcr, M_WARNING, 0, "%s", mdb->errmsg);
-+      }
++      } 
 +      sql_free_result(mdb);
 +   } else {
 +      Mmsg(mdb->errmsg, _("File record: %s not found in Catalog for BackupId=%s.\n"), fname, ed1);
