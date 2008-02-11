@@ -60,8 +60,9 @@ extern DLL_IMP_EXP alist *plugin_list;
 /* Universal return codes from all functions */
 typedef enum {
   bRC_OK    = 0,                         /* OK */
-  bRC_Stop  = 1,                         /* Stop calling plugins */
-  bRC_Error = 2,
+  bRC_Stop  = 1,                         /* Stop calling other plugins */
+  bRC_Error = 2,                         /* Some kind of error */
+  bRC_More  = 3,                         /* More files to backup */
 } bRC;
 
 /* Context packet as first argument of all functions */

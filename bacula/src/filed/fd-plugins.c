@@ -81,6 +81,21 @@ static bFuncs bfuncs = {
    baculaDebugMsg
 };
 
+/*   
+ * Sequence of calls for a backup:
+ * 1. generate_plugin_event called with bEventPluginCommand
+ *    the command string is passed as an argument.
+ * 2. we find the plugin requested on the command string
+ * 3. we generate a bEventPluginCommand event to the specified plugin
+ * 4. we make a startPluginBackup call to the plugin, which gives
+ *    us the data we need in save_pkt
+ * 5. we call Bacula's save_file() subroutine to save the specified
+ *    file.  The plugin will be called at pluginIO() to supply the
+ *    file data.
+ *
+ * Sequence of calls for restore:
+ *   See subroutine plugin_name_stream() below.
+ */
 
 /*
  * Create a plugin event 
@@ -119,7 +134,11 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 
       foreach_alist(plugin, plugin_list) {
          Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
-         if (strncmp(plugin->file, cmd, len) == 0) {
+         if (strncmp(plugin->file, cmd, len) != 0) {
+            i++;
+            continue;
+         }
+         while (!job_canceled(jcr)) { 
             Dmsg1(100, "Command plugin = %s\n", cmd);
             if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, value) != bRC_OK) {
                goto bail_out;
@@ -142,9 +161,10 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
             memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
             Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
             save_file(jcr, ff_pkt, true);
+            /* ***FIXME***/
+            /* add call to endPluginBackup() and loop on bRC_MORE */
             goto bail_out;
          }
-         i++;
       }
       Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
       break;
@@ -152,7 +172,11 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    default:
       /* Pass event to every plugin */
       foreach_alist(plugin, plugin_list) {
-         plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
+         bRC rc;
+         rc = plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
+         if (rc != bRC_OK) {
+            break;
+         }
       }
       break;
    }
@@ -242,17 +266,18 @@ void plugin_name_stream(JCR *jcr, char *name)
    plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    foreach_alist(plugin, plugin_list) {
       Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
-      if (strncmp(plugin->file, cmd, len) == 0) {
-         Dmsg1(100, "Command plugin = %s\n", cmd);
-         if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
-               &event, (void *)name) != bRC_OK) {
-            goto bail_out;
-         }
-         jcr->plugin_ctx = &plugin_ctx_list[i];
-         jcr->plugin = plugin;
+      if (strncmp(plugin->file, cmd, len) != 0) {
+         i++;
+         continue;
+      }
+      Dmsg1(100, "Command plugin = %s\n", cmd);
+      if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
+            &event, (void *)name) != bRC_OK) {
          goto bail_out;
       }
-      i++;
+      jcr->plugin_ctx = &plugin_ctx_list[i];
+      jcr->plugin = plugin;
+      goto bail_out;
    }
 bail_out:
    return;

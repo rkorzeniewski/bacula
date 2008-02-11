@@ -58,7 +58,8 @@
 #include <sys/stat.h>
 
 /*
- * This packet is used for file save/restore info transfer */
+ * This packet is used for file save info transfer.
+*/
 struct save_pkt {
   char *fname;                        /* Full path and filename */
   char *link;                         /* Link name if any */
@@ -67,6 +68,12 @@ struct save_pkt {
   uint32_t flags;                     /* Bacula internal flags */
   bool portable;                      /* set if data format is portable */
   char *cmd;                          /* command */
+};
+
+/*
+ * This packet is used for file restore info transfer.
+*/
+struct restore_pkt {
 };
 
 #define IO_OPEN  1
@@ -190,7 +197,9 @@ typedef struct s_pluginFuncs {
    bRC (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
    bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
    bRC (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
+   bRC (*endPluginBackup)(bpContext *ctx);
    bRC (*pluginIO)(bpContext *ctx, struct io_pkt *io);
+   bRC (*createPluginFile)(bpContext *ctx, struct restore_pkt *rp);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))
