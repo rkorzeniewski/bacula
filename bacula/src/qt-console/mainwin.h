@@ -99,6 +99,9 @@ public:
    bool m_rtRestore2Debug;
    bool m_rtRestore3Debug;
    int m_radioConvert;
+   bool m_openBrowser;
+   bool m_openPlot;
+   bool m_openDirStat;
 
 public slots:
    void input_line();
@@ -109,6 +112,7 @@ public slots:
    void runButtonClicked();
    void estimateButtonClicked();
    void browseButtonClicked();
+   void statusPageButtonClicked();
    void jobPlotButtonClicked();
    void restoreButtonClicked();
    void undockWindowButton();

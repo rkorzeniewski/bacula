@@ -50,6 +50,7 @@
 #include "help/help.h"
 #include "jobs/jobs.h"
 #include "jobgraphs/jobplot.h"
+#include "status/dirstat.h"
 
 /* 
  * Daemon message callback
@@ -145,10 +146,14 @@ void MainWin::createPages()
       createPageJobList("", "", "", "", NULL);
       JobPlotPass pass;
       pass.use = false;
-      new JobPlot(NULL, pass);
+      if (m_openPlot)
+         new JobPlot(NULL, pass);
       new MediaList();
       new Storage();
-      new restoreTree();
+      if (m_openBrowser)
+         new restoreTree();
+      if (m_openDirStat)
+         new DirStat();
 
       treeWidget->expandItem(topItem);
       stackedWidget->setCurrentWidget(m_currentConsole);
@@ -232,6 +237,7 @@ void MainWin::createConnections()
    connect(actionRun, SIGNAL(triggered()), this,  SLOT(runButtonClicked()));
    connect(actionEstimate, SIGNAL(triggered()), this,  SLOT(estimateButtonClicked()));
    connect(actionBrowse, SIGNAL(triggered()), this,  SLOT(browseButtonClicked()));
+   connect(actionStatusDirPage, SIGNAL(triggered()), this,  SLOT(statusPageButtonClicked()));
    connect(actionJobPlot, SIGNAL(triggered()), this,  SLOT(jobPlotButtonClicked()));
    connect(actionRestore, SIGNAL(triggered()), this,  SLOT(restoreButtonClicked()));
    connect(actionUndock, SIGNAL(triggered()), this,  SLOT(undockWindowButton()));
@@ -427,6 +433,22 @@ void MainWin::estimateButtonClicked()
 void MainWin::browseButtonClicked() 
 {
    new restoreTree();
+}
+
+void MainWin::statusPageButtonClicked()
+{
+   /* if one exists, then just set it current */
+   bool found = false;
+   foreach(Pages *page, m_pagehash) {
+      if (m_currentConsole == page->console()) {
+         if (page->name() == "Director Status") {
+            found = true;
+            page->setCurrent();
+         }
+      }
+   }
+   if (!found)
+      new DirStat();
 }
 
 void MainWin::restoreButtonClicked() 
@@ -640,6 +662,9 @@ void MainWin::setPreferences()
       m_radioConvert = 2;
       prefs.radioConvertStandard->setChecked(Qt::Checked);
    }
+   prefs.openPlotCheckBox->setCheckState(m_openPlot ? Qt::Checked : Qt::Unchecked);
+   prefs.openBrowserCheckBox->setCheckState(m_openBrowser ? Qt::Checked : Qt::Unchecked);
+   prefs.openDirStatCheckBox->setCheckState(m_openDirStat ? Qt::Checked : Qt::Unchecked);
    prefs.exec();
 }
 
@@ -684,6 +709,9 @@ void prefsDialog::accept()
    } else {
       mainWin->m_radioConvert = 2;
    }
+   mainWin->m_openPlot = this->openPlotCheckBox->checkState() == Qt::Checked;
+   mainWin->m_openBrowser = this->openBrowserCheckBox->checkState() == Qt::Checked;
+   mainWin->m_openDirStat = this->openDirStatCheckBox->checkState() == Qt::Checked;
 
    QSettings settings("www.bacula.org", "bat");
    settings.beginGroup("Debug");
@@ -706,6 +734,9 @@ void prefsDialog::accept()
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
    settings.setValue("byteConvert", mainWin->m_radioConvert);
+   settings.setValue("openplot", mainWin->m_openPlot);
+   settings.setValue("openbrowser", mainWin->m_openBrowser);
+   settings.setValue("opendirstat", mainWin->m_openDirStat);
    settings.endGroup();
    settings.beginGroup("RestoreTree");
    settings.setValue("rtPopDirDebug", mainWin->m_rtPopDirDebug);
@@ -756,6 +787,9 @@ void MainWin::readPreferences()
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
    m_radioConvert = settings.value("byteConvert", false).toInt();
+   m_openPlot = settings.value("openplot", false).toBool();
+   m_openBrowser = settings.value("openbrowser", false).toBool();
+   m_openDirStat = settings.value("opendirstat", false).toBool();
    settings.endGroup();
    settings.beginGroup("RestoreTree");
    m_rtPopDirDebug = settings.value("rtPopDirDebug", false).toBool();

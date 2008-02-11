@@ -83,6 +83,7 @@ public:
    bool authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons, 
           char *buf, int buflen);
    bool is_connected() { return m_sock != NULL; };
+   bool is_ready() { return is_connected() && m_at_prompt && m_at_main_prompt; };
    bool is_connectedGui();
    bool preventInUseConnect();
    const QFont get_font();

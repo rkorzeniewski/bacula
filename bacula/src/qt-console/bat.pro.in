@@ -43,6 +43,7 @@ FORMS += clients/clients.ui storage/storage.ui fileset/fileset.ui
 FORMS += joblog/joblog.ui jobs/jobs.ui
 FORMS += help/help.ui
 FORMS += jobgraphs/jobplotcontrols.ui
+FORMS += status/dirstat.ui
 
 # Main directory
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h pages.h
@@ -123,6 +124,10 @@ SOURCES += jobgraphs/jobplot.cpp
 # Help dialog
 HEADERS += help/help.h
 SOURCES += help/help.cpp
+
+## Status Dir
+HEADERS += status/dirstat.h
+SOURCES += status/dirstat.cpp
 
 INSTALLS += bins
 INSTALLS += confs
