@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>361</width>
-    <height>452</height>
+    <width>360</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="sizePolicy" >
@@ -182,11 +182,63 @@
       <attribute name="title" >
        <string>Misc</string>
       </attribute>
+      <widget class="QGroupBox" name="groupBox_6" >
+       <property name="geometry" >
+        <rect>
+         <x>30</x>
+         <y>220</y>
+         <width>271</width>
+         <height>111</height>
+        </rect>
+       </property>
+       <property name="title" >
+        <string>Convert</string>
+       </property>
+       <widget class="QRadioButton" name="radioConvertOff" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Off</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioConvertIEC" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Bytes with IEC 1000B = KB</string>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioConvertStandard" >
+        <property name="geometry" >
+         <rect>
+          <x>20</x>
+          <y>80</y>
+          <width>231</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text" >
+         <string>Convert Bytes with 1024B = KB</string>
+        </property>
+       </widget>
+      </widget>
       <widget class="QGroupBox" name="groupBox_4" >
        <property name="geometry" >
         <rect>
-         <x>40</x>
-         <y>40</y>
+         <x>30</x>
+         <y>10</y>
          <width>190</width>
          <height>55</height>
         </rect>
@@ -210,55 +262,55 @@
         </item>
        </layout>
       </widget>
-      <widget class="QGroupBox" name="groupBox_6" >
+      <widget class="QGroupBox" name="groupBox_7" >
        <property name="geometry" >
         <rect>
-         <x>40</x>
-         <y>160</y>
-         <width>261</width>
-         <height>131</height>
+         <x>30</x>
+         <y>80</y>
+         <width>271</width>
+         <height>121</height>
         </rect>
        </property>
        <property name="title" >
-        <string>Convert</string>
+        <string>GroupBox</string>
        </property>
-       <widget class="QRadioButton" name="radioConvertOff" >
+       <widget class="QCheckBox" name="openPlotCheckBox" >
         <property name="geometry" >
          <rect>
-          <x>20</x>
-          <y>20</y>
-          <width>231</width>
-          <height>22</height>
+          <x>10</x>
+          <y>30</y>
+          <width>241</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text" >
-         <string>Convert Off</string>
+         <string>Open Plot page on startup</string>
         </property>
        </widget>
-       <widget class="QRadioButton" name="radioConvertIEC" >
+       <widget class="QCheckBox" name="openBrowserCheckBox" >
         <property name="geometry" >
          <rect>
-          <x>20</x>
+          <x>10</x>
           <y>60</y>
-          <width>231</width>
-          <height>22</height>
+          <width>241</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text" >
-         <string>Convert Bytes with IEC 1000B = KB</string>
+         <string>Open Browser page on startup</string>
         </property>
        </widget>
-       <widget class="QRadioButton" name="radioConvertStandard" >
+       <widget class="QCheckBox" name="openDirStatCheckBox" >
         <property name="geometry" >
          <rect>
-          <x>20</x>
-          <y>100</y>
-          <width>231</width>
-          <height>22</height>
+          <x>10</x>
+          <y>90</y>
+          <width>241</width>
+          <height>20</height>
          </rect>
         </property>
         <property name="text" >
-         <string>Convert Bytes with 1024B = KB</string>
+         <string>Open Director Status page on startup</string>
         </property>
        </widget>
       </widget>

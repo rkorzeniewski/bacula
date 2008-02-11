@@ -71,6 +71,7 @@ public:
    void setTreeWidgetItemDockColor();
    void consoleCommand(QString &);
    void consoleInput(QString &);
+   QString &name() { return m_name; };
 
 public slots:
    /* closeEvent is a virtual function inherited from QWidget */

@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>882</width>
-     <height>26</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEdit" >
@@ -135,6 +135,7 @@
    </attribute>
    <addaction name="actionConnect" />
    <addaction name="actionStatusDir" />
+   <addaction name="actionStatusDirPage" />
    <addaction name="actionMessages" />
    <addaction name="actionLabel" />
    <addaction name="actionRestore" />
@@ -464,10 +465,10 @@
     <string>Status Dir</string>
    </property>
    <property name="toolTip" >
-    <string>Query status of director</string>
+    <string>Query status of director in console</string>
    </property>
    <property name="statusTip" >
-    <string>Query status of director</string>
+    <string>Query status of director in console</string>
    </property>
    <property name="autoRepeat" >
     <bool>true</bool>
@@ -573,6 +574,17 @@
    </property>
    <property name="statusTip" >
     <string>Plot Job Files and Bytes</string>
+   </property>
+  </action>
+  <action name="actionStatusDirPage" >
+   <property name="icon" >
+    <iconset>images/joblog.svg</iconset>
+   </property>
+   <property name="text" >
+    <string>Status Dir Page</string>
+   </property>
+   <property name="toolTip" >
+    <string>Director Status Page</string>
    </property>
   </action>
  </widget>
