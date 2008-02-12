@@ -75,32 +75,62 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -97,6 +98,413 @@
+@@ -96,7 +97,443 @@
+    return true;
  }
  
- /*
-+ * We are called here for each record that matches the above
-+ *  SQL query -- that is for each file contained in the Catalog
-+ *  that was not marked earlier. This means that the file in
-+ *  question is a missing file (in the Catalog but not on Disk).
-+ */
-+static int missing_handler(void *ctx, int num_fields, char **row)
++static int accurate_list_handler(void *ctx, int num_fields, char **row)
 +{
 +   JCR *jcr = (JCR *)ctx;
 +
 +   if (job_canceled(jcr)) {
 +      return 1;
 +   }
-+
-+   /* TODO: return the list to the FD */
-+   if (num_fields == 2) 
-+      Qmsg(jcr, M_INFO, 0, "      %s%s\n", row[0]?row[0]:"", row[1]?row[1]:"");
-+   else
-+      Qmsg(jcr, M_INFO, 0, "      %s\n", row[0]?row[0]:"");
-+ 
++   
++   if (row[0] > 0) {
++      jcr->file_bsock->fsend("%s%s%c%s", row[1], row[2], 0, row[3]); 
++   }
 +   return 0;
 +}
 +
++bool accurate_send_current_files(JCR *jcr)
++{
++   char buf[MAXSTRING];
++   char ed1[50], ed2[50];
+ /*
++ CREATE TEMPORARY TABLE btemp2 AS (
++  SELECT max(FileId) as FileId, PathId, FilenameId 
++    FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (39867,40341)) AS F
++   GROUP BY PathId, FilenameId )
++
++  SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat
++    FROM btemp2 JOIN Path USING (PathId) JOIN Filename USING (FilenameId)
++                JOIN File USING (FileId)
++   WHERE File.FileIndex > 0
++
++
++SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
++  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
++ ORDER BY PathId, FilenameId, JobId DESC
++*/
++   bsnprintf(buf, sizeof(buf),
++	     "SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat "
++	      "FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (%s)"
++              "ORDER BY PathId, FilenameId, JobId DESC",
++	     "10,20,30");	/* jobid */
++
++   Dmsg1(2, "display current files cmd=%s\n", buf);
++   db_sql_query(jcr->db, buf, accurate_list_handler, (void *)jcr);
++   jcr->file_bsock->signal(BNET_EOD);
++   return true;
++}
++
++/*
++ * We are called here for each record that matches the above
++ *  SQL query -- that is for each file contained in the Catalog
++ *  that was not marked earlier. This means that the file in
++ *  question is a missing file (in the Catalog but not on Disk).
++ */
 +/* TODO: tweak verify code to use the same function */
 +bool accurate_check_file(JCR *jcr, FILE_DBR *fdbr, char *attr, char *Opts_Digest, int *do_Digest)
 +{
@@ -252,9 +282,9 @@ Index: src/dird/backup.c
 +      return 1;
 +   }
 +   if (num_fields == 2) {	/* deleted files */
-+      jcr->file_bsock->fsend("D %s%s", row[0]?row[0]:"", row[1]?row[1]:""); 
++      jcr->file_bsock->fsend("%s%s", row[0]?row[0]:"", row[1]?row[1]:""); 
 +   } else if (num_fields == 1) { /* files to backup */
-+      jcr->file_bsock->fsend("S %s", row[0]?row[0]:""); 
++      jcr->file_bsock->fsend("%s", row[0]?row[0]:""); 
 +   }
 +   return 0;
 +}
@@ -489,7 +519,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,9 +639,18 @@
+@@ -231,9 +668,18 @@
        goto bail_out;
     }
  
@@ -597,8 +627,11 @@ Index: src/filed/backup.c
 ===================================================================
 --- src/filed/backup.c	(révision 6372)
 +++ src/filed/backup.c	(copie de travail)
-@@ -50,6 +50,109 @@
+@@ -48,8 +48,113 @@
+ static bool crypto_session_start(JCR *jcr);
+ static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
++static bool encode_and_send_deleted_files(JCR *jcr, char *fname);
  
  /*
 + * Called by save_file when accept/discard file for backup
@@ -674,6 +707,7 @@ Index: src/filed/backup.c
 +   /* get deleted files */
 +   while (dir->recv() >= 0) {
 +      Dmsg1(1, "deleted = %s\n", dir->msg);
++      encode_and_send_deleted_files(jcr, dir->msg); 
 +   }
 +   /* get missing files */
 +   while (dir->recv() >= 0) {
@@ -707,7 +741,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,7 +169,6 @@
+@@ -66,7 +171,6 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -715,7 +749,7 @@ Index: src/filed/backup.c
     sd = jcr->store_bsock;
  
     set_jcr_job_status(jcr, JS_Running);
-@@ -134,6 +236,20 @@
+@@ -134,6 +238,20 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -736,7 +770,7 @@ Index: src/filed/backup.c
  
     free_pool_memory(jcr->acl_text);
  
-@@ -355,9 +471,11 @@
+@@ -355,9 +473,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -748,7 +782,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1111,6 +1229,9 @@
+@@ -1111,6 +1231,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -758,6 +792,65 @@ Index: src/filed/backup.c
     Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
     if (!stat) {
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+@@ -1121,6 +1244,58 @@
+    return true;
+ }
+ 
++static bool encode_and_send_deleted_files(JCR *jcr, char *fname) 
++{
++   BSOCK *sd = jcr->store_bsock;
++   char *attribs;
++   char *attribsEx;
++   int stat;
++#ifdef FD_NO_SEND_TEST
++   return true;
++#endif
++
++   attribs = " ";
++   attribsEx = " ";
++
++   /*
++    * Send Attributes header to Storage daemon
++    *    <file-index> <stream> <info>
++    */
++   if (!sd->fsend("%ld %d 0", 0, STREAM_UNIX_ATTRIBUTES)) {
++      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
++            sd->bstrerror());
++      return false;
++   }
++   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
++
++   /*
++    * Send file attributes to Storage daemon
++    *   File_index
++    *   File type
++    *   Filename (full path)
++    *   Encoded attributes
++    *   Link name (if type==FT_LNK or FT_LNKSAVED)
++    *   Encoded extended-attributes (for Win32)
++    *
++    * For a directory, link is the same as fname, but with trailing
++    * slash. For a linked file, link is the link.
++    */
++   stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", 
++		    0 /* FileIndex */,
++		    FT_NOSTAT /* FileType */,
++		    fname /* FileName */, 
++		    0, attribs, 0, 0, 0, attribsEx, 0);
++
++   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
++   if (!stat) {
++      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
++            sd->bstrerror());
++      return false;
++   }
++   sd->signal(BNET_EOD);            /* indicate end of attributes data */
++   return true;
++}
++
+ /* 
+  * Do in place strip of path
+  */
 Index: src/filed/job.c
 ===================================================================
 --- src/filed/job.c	(révision 6372)
@@ -1232,6 +1325,83 @@ Index: src/cats/sql_get.c
  /*
   * Get a File record
   * Returns: 0 on failure
+Index: src/stored/append.c
+===================================================================
+--- src/stored/append.c	(révision 6372)
++++ src/stored/append.c	(copie de travail)
+@@ -185,16 +185,18 @@
+ 
+       Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
+ 
+-      if (!(file_index > 0 && (file_index == last_file_index ||
+-          file_index == last_file_index + 1))) {
+-         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
+-         ok = false;
+-         break;
++      if (file_index != 0) {	/* TODO: handle file_index == 0 */
++	 if (!(file_index > 0 && (file_index == last_file_index ||
++				  file_index == last_file_index + 1))) {
++	    Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
++	    ok = false;
++	    break;
++	 }
++	 if (file_index != last_file_index) {
++	    jcr->JobFiles = file_index;
++	    last_file_index = file_index;
++	 }
+       }
+-      if (file_index != last_file_index) {
+-         jcr->JobFiles = file_index;
+-         last_file_index = file_index;
+-      }
+ 
+       /* Read data stream from the File daemon.
+        *  The data stream is just raw bytes
+@@ -212,24 +214,26 @@
+             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
+             rec.data_len);
+ 
+-         while (!write_record_to_block(dcr->block, &rec)) {
+-            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+-                       rec.remainder);
+-            if (!write_block_to_device(dcr)) {
+-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+-                  dev->print_name(), dev->bstrerror());
+-               ok = false;
+-               break;
+-            }
+-         }
+-         if (!ok) {
+-            Dmsg0(400, "Not OK\n");
+-            break;
+-         }
+-         jcr->JobBytes += rec.data_len;   /* increment bytes this job */
+-         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+-            FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
+-            stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
++	 if (file_index != 0) {
++	    while (!write_record_to_block(dcr->block, &rec)) {
++	       Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
++		     rec.remainder);
++	       if (!write_block_to_device(dcr)) {
++		  Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
++			dev->print_name(), dev->bstrerror());
++		  ok = false;
++		  break;
++	       }
++	    }
++	    if (!ok) {
++	       Dmsg0(400, "Not OK\n");
++	       break;
++	    }
++	    jcr->JobBytes += rec.data_len;   /* increment bytes this job */
++	    Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
++		  FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
++		  stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
++	 }
+ 
+          /* Send attributes and digest to Director for Catalog */
+          if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
 Index: src/jcr.h
 ===================================================================
 --- src/jcr.h	(révision 6372)
