@@ -34,8 +34,8 @@
              <TMPL_IF qusage>checked</TMPL_IF> 
              name="usage"> __Drive usage__<br/>
       <input type='checkbox' 
-             <TMPL_IF qpool>checked</TMPL_IF> 
-             name="pool"> __Pool usage__<br/>
+             <TMPL_IF qpoolusage>checked</TMPL_IF> 
+             name="poolusage"> __Pool usage__<br/>
       <input type='checkbox' 
              <TMPL_IF qnojob>checked</TMPL_IF> 
              name="nojob"> __Hide Job__<br/>
@@ -46,6 +46,18 @@
     <select name='client_group' size='10' class='formulaire' multiple>
 <TMPL_LOOP db_client_groups>
 	<option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
+</TMPL_LOOP>
+    </select>
+  </td>
+</tr>
+</TMPL_IF>
+<TMPL_IF db_pools>
+<tr>
+  <td valign='top'>
+    <h2>__Pools__</h2>
+    <select name='pool' size='10' class='formulaire' multiple>
+<TMPL_LOOP db_pools>
+	<option id= 'pool_<TMPL_VAR name>'><TMPL_VAR name></option>
 </TMPL_LOOP>
     </select>
   </td>
@@ -135,6 +147,10 @@
 
   <TMPL_LOOP qclient_groups>
      document.getElementById('group_' + <TMPL_VAR name>).selected = true;
+  </TMPL_LOOP>
+
+  <TMPL_LOOP qpools>
+     document.getElementById('pool_' + <TMPL_VAR name>).selected = true;
   </TMPL_LOOP>
 
   <TMPL_LOOP qclients>

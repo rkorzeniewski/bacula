@@ -45,8 +45,11 @@ my $conf = new Bweb::Config(config_file => $Bweb::config_file);
 $conf->load();
 
 my $bweb = new Bweb(info => $conf);
-my $arg = $bweb->get_form(qw/qiso_begin qiso_end qusage qpool qnojob
+$bweb->can_do('r_view_stat');
+
+my $arg = $bweb->get_form(qw/qiso_begin qiso_end qusage qpools qpoolusage qnojob
                              jclient_groups db_client_groups qclient_groups/);
+my ($filter1, undef) = $bweb->get_param('pool');
 
 if (!$arg->{qiso_begin}) {
    $arg->{qiso_begin} = strftime('\'%F %H:%M:00\'', localtime(time - 60*60*12));
@@ -54,7 +57,7 @@ if (!$arg->{qiso_begin}) {
 }
 use Digest::MD5 qw(md5_hex);
 my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" . 
-		      "$arg->{jclient_groups}:$arg->{qpool};$arg->{qnojob}") ;
+		      "$arg->{jclient_groups}:$arg->{qpoolusage};$arg->{qnojob}") ;
 
 print CGI::header('text/html');
 $bweb->display_begin();
@@ -128,8 +131,8 @@ FROM  Log INNER JOIN Job USING (JobId) JOIN Pool USING (PoolId)
   AND Job.StartTime < $arg->{qiso_end}
   AND ( $filter )
   AND Job.Type = 'B'
-ORDER BY Job.JobId,Log.LogId,Log.Time  
-";
+  $filter1
+ ORDER BY Job.JobId,Log.LogId,Log.Time  ";
 
 
 print STDERR $query if ($conf->{debug});
@@ -250,7 +253,7 @@ if (!$arg->{qnojob} && $last_name) {
     $top->add_job(label => $last_name,
 		  data => $data);
 }
-if ($arg->{qpool}) {
+if ($arg->{qpoolusage}) {
     foreach my $d (sort keys %$pool) {
 	$top->add_job(label => $d,
 		      data => $pool->{$d});
