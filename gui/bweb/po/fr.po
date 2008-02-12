@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: 2008-01-01 15:04+0100\n"
+"PO-Revision-Date: 2008-02-12 16:51+0100\n"
 "Last-Translator: Eric <eric@eb.homelinux.org>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1071,7 +1071,7 @@ msgstr "Internaliser"
 
 #: ../tpl/display_media.tpl:24 ../tpl/display_media_zoom.tpl:19
 msgid "Load"
-msgstr ""
+msgstr "Internaliser"
 
 #: ../tpl/display_media.tpl:25 ../tpl/update_media.tpl:3
 msgid "Update media"
@@ -1091,7 +1091,7 @@ msgstr "Prune"
 
 #: ../tpl/display_media.tpl:36 ../tpl/display_media_zoom.tpl:43
 msgid "Online"
-msgstr ""
+msgstr "En ligne"
 
 #: ../tpl/display_media.tpl:36
 msgid "Vol Usage"
@@ -1597,7 +1597,7 @@ msgstr "Coût :"
 #: ../tpl/location_add.tpl:17 ../tpl/location_edit.tpl:18
 #: ../tpl/move_media.tpl:15 ../tpl/update_media.tpl:49
 msgid "Enabled:"
-msgstr "En ligne :"
+msgstr "Activ&eacute; :"
 
 #: ../tpl/location_add.tpl:19 ../tpl/location_edit.tpl:20
 #: ../tpl/move_media.tpl:18 ../tpl/update_media.tpl:51

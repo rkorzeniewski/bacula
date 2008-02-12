@@ -884,6 +884,7 @@ if ($action eq 'restore') {
 SELECT max(JobId) as JobId, PathId, FilenameId
   FROM btemp
  GROUP BY PathId, FilenameId
+ HAVING FileIndex > 0
 )");
        $bvfs->dbh_do("CREATE TABLE b2$$ AS (
 SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
@@ -897,6 +898,7 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
 SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
   FROM btemp
  ORDER BY PathId, FilenameId, JobId DESC
+ HAVING FileIndex > 0
 )");
     }
 

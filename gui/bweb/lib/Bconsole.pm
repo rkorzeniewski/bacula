@@ -326,31 +326,31 @@ sub get_fileset
 sub list_job
 {
     my ($self) = @_;
-    return split(/\r\n/, $self->send_cmd(".jobs"));
+    return sort split(/\r\n/, $self->send_cmd(".jobs"));
 }
 
 sub list_fileset
 {
     my ($self) = @_;
-    return split(/\r\n/, $self->send_cmd(".filesets"));
+    return sort split(/\r\n/, $self->send_cmd(".filesets"));
 }
 
 sub list_storage
 {
     my ($self) = @_;
-    return split(/\r\n/, $self->send_cmd(".storage"));
+    return sort split(/\r\n/, $self->send_cmd(".storage"));
 }
 
 sub list_client
 {
     my ($self) = @_;
-    return split(/\r\n/, $self->send_cmd(".clients"));
+    return sort split(/\r\n/, $self->send_cmd(".clients"));
 }
 
 sub list_pool
 {
     my ($self) = @_;
-    return split(/\r\n/, $self->send_cmd(".pools"));
+    return sort split(/\r\n/, $self->send_cmd(".pools"));
 }
 
 use Time::ParseDate qw/parsedate/;
