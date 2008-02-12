@@ -53,9 +53,9 @@ static bRC baculaGetValue(bpContext *ctx, bVariable var, void *value);
 static bRC baculaSetValue(bpContext *ctx, bVariable var, void *value);
 static bRC baculaRegisterEvents(bpContext *ctx, ...);
 static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
-  int type, time_t mtime, const char *msg);
+  int type, time_t mtime, const char *fmt, ...);
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
-  int level, const char *msg);
+  int level, const char *fmt, ...);
 
 static int     my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode);
 static int     my_plugin_bclose(JCR *jcr);
@@ -499,18 +499,29 @@ static bRC baculaRegisterEvents(bpContext *ctx, ...)
 }
 
 static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
-  int type, time_t mtime, const char *msg)
+  int type, time_t mtime, const char *fmt, ...)
 {
-   Dmsg5(dbglvl, "Job message: %s:%d type=%d time=%ld msg=%s\n",
-      file, line, type, mtime, msg);
+   va_list arg_ptr;
+   char buf[2000];
+   JCR *jcr = (JCR *)(ctx->bContext);
+
+   va_start(arg_ptr, fmt);
+   bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+   Jmsg(jcr, type, mtime, "%s", buf);
    return bRC_OK;
 }
 
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
-  int level, const char *msg)
+  int level, const char *fmt, ...)
 {
-   Dmsg4(dbglvl, "Debug message: %s:%d level=%d msg=%s\n",
-      file, line, level, msg);
+   va_list arg_ptr;
+   char buf[2000];
+
+   va_start(arg_ptr, fmt);
+   bvsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+   va_end(arg_ptr);
+   d_msg(file, line, level, "%s", buf);
    return bRC_OK;
 }
 

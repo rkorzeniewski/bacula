@@ -155,7 +155,7 @@ static bRC setPluginValue(bpContext *ctx, pVariable var, void *value)
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
-   char *name;
+// char *name;
 
    switch (event->eventType) {
    case bEventJobStart:
@@ -191,21 +191,21 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       p_ctx->cmd = strdup((char *)value);
       p = strchr(p_ctx->cmd, ':');
       if (!p) {
-         printf("Plugin terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Plugin terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate plugin */
       p_ctx->fname = p;
       p = strchr(p, ':');
       if (!p) {
-         printf("File terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "File terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate file */
       p_ctx->reader = p;
       p = strchr(p, ':');
       if (!p) {
-         printf("Reader terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Reader terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate reader string */
@@ -217,7 +217,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    default:
       printf("bpipe-fd: unknown event=%d\n", event->eventType);
    }
-   bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
+// bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
 // printf("FD Name=%s\n", name);
 // bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
 // bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");

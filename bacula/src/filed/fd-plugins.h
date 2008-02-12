@@ -162,9 +162,9 @@ typedef struct s_baculaFuncs {
    bRC (*getBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bRC (*setBaculaValue)(bpContext *ctx, bVariable var, void *value);
    bRC (*JobMessage)(bpContext *ctx, const char *file, int line, 
-       int type, time_t mtime, const char *msg);     
+       int type, time_t mtime, const char *fmt, ...);     
    bRC (*DebugMessage)(bpContext *ctx, const char *file, int line,
-       int level, const char *msg);
+       int level, const char *fmt, ...);
 } bFuncs;
 
 
