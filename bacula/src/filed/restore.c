@@ -120,7 +120,7 @@ bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags,
 
 /*
  * Close a bfd check that we are at the expected file offset.
- * Makes some code in set_attributes().
+ * Makes use of some code from set_attributes().
  */
 static int bclose_chksize(JCR *jcr, BFILE *bfd, boffset_t osize)
 {
@@ -299,7 +299,11 @@ void do_restore(JCR *jcr)
                deallocate_fork_cipher(rctx);
             }
 
-            set_attributes(jcr, attr, &rctx.bfd);
+            if (jcr->plugin) {
+               plugin_set_attributes(jcr, attr, &rctx.bfd);
+            } else {
+               set_attributes(jcr, attr, &rctx.bfd);
+            }
             extract = false;
 
             /* Verify the cryptographic signature, if any */
@@ -345,11 +349,16 @@ void do_restore(JCR *jcr)
          build_attr_output_fnames(jcr, attr);
 
          /*
-          * Now determine if we are extracting or not.
+          * Try to actually create the file, which returns a status telling
+          *  us if we need to extract or not.
           */
          jcr->num_files_examined++;
          extract = false;
-         stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
+         if (jcr->plugin) {
+            stat = plugin_create_file(jcr, attr, &rctx.bfd, jcr->replace);
+         } else {
+            stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
+         }
          Dmsg2(30, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
          switch (stat) {
          case CF_ERROR:
@@ -376,7 +385,11 @@ void do_restore(JCR *jcr)
             }
             if (!extract) {
                /* set attributes now because file will not be extracted */
-               set_attributes(jcr, attr, &rctx.bfd);
+               if (jcr->plugin) {
+                  plugin_set_attributes(jcr, attr, &rctx.bfd);
+               } else {
+                  set_attributes(jcr, attr, &rctx.bfd);
+               }
             }
             break;
          }
@@ -646,7 +659,11 @@ void do_restore(JCR *jcr)
             deallocate_cipher(rctx);
             deallocate_fork_cipher(rctx);
 
-            set_attributes(jcr, attr, &rctx.bfd);
+            if (jcr->plugin) {
+               plugin_set_attributes(jcr, attr, &rctx.bfd);
+            } else {
+               set_attributes(jcr, attr, &rctx.bfd);
+            }
 
             /* Verify the cryptographic signature if any */
             rctx.type = attr->type;
@@ -675,7 +692,11 @@ void do_restore(JCR *jcr)
       deallocate_cipher(rctx);
       deallocate_fork_cipher(rctx);
 
-      set_attributes(jcr, attr, &rctx.bfd);
+      if (jcr->plugin) {
+         plugin_set_attributes(jcr, attr, &rctx.bfd);
+      } else {
+         set_attributes(jcr, attr, &rctx.bfd);
+      }
 
       /* Verify the cryptographic signature on the last file, if any */
       rctx.type = attr->type;

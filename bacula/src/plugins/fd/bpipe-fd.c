@@ -54,7 +54,12 @@ static bRC getPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC setPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value);
 static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp);
+static bRC endPluginBackup(bpContext *ctx);
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io);
+static bRC startRestoreFile(bpContext *ctx, const char *cmd);
+static bRC endRestoreFile(bpContext *ctx);
+static bRC createFile(bpContext *ctx, struct restore_pkt *rp);
+static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp);
 
 
 /* Pointers to Bacula functions */
@@ -83,7 +88,12 @@ static pFuncs pluginFuncs = {
    setPluginValue,
    handlePluginEvent,
    startPluginBackup,
-   pluginIO
+   endPluginBackup,
+   startRestoreFile,
+   endRestoreFile,
+   pluginIO,
+   createFile,
+   setFileAttributes
 };
 
 struct plugin_ctx {
@@ -231,6 +241,11 @@ static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
    return bRC_OK;
 }
 
+static bRC endPluginBackup(bpContext *ctx)
+{
+   return bRC_OK;
+}
+
 /*
  * Do actual I/O
  */
@@ -280,6 +295,27 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    }
    return bRC_OK;
 }
+
+static bRC startRestoreFile(bpContext *ctx, const char *cmd)
+{
+   return bRC_OK;
+}
+
+static bRC endRestoreFile(bpContext *ctx)
+{
+   return bRC_OK;
+}
+
+static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
+{
+   return bRC_OK;
+}
+
+static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
+{
+   return bRC_OK;
+}
+
 
 #ifdef __cplusplus
 }
