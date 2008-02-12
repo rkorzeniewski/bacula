@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-20087 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -117,7 +117,7 @@ bool do_restore(JCR *jcr)
       restore_cleanup(jcr, JS_ErrorTerminated);
       return false;
    }
-   if (!bnet_fsend(jcr->store_bsock, "run")) {
+   if (!jcr->store_bsock->fsend("run")) {
       return false;
    }
    /*
@@ -150,7 +150,7 @@ bool do_restore(JCR *jcr)
    if (jcr->rstore->SDDport == 0) {
       jcr->rstore->SDDport = jcr->rstore->SDport;
    }
-   bnet_fsend(fd, storaddr, jcr->rstore->address, jcr->rstore->SDDport);
+   fd->fsend(storaddr, jcr->rstore->address, jcr->rstore->SDDport);
    Dmsg1(6, "dird>filed: %s\n", fd->msg);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
       restore_cleanup(jcr, JS_ErrorTerminated);
@@ -198,15 +198,15 @@ bool do_restore(JCR *jcr)
       where = jcr->job->RestoreWhere; /* no override take from job */
       cmd = restorecmd;
 
-   } else {			      /* nothing was specified */
-      where = &empty;		      /* use default */
-      cmd   = restorecmd;		     
+   } else {                           /* nothing was specified */
+      where = &empty;                 /* use default */
+      cmd   = restorecmd;                    
    }
    
    jcr->prefix_links = jcr->job->PrefixLinks;
 
    bash_spaces(where);
-   bnet_fsend(fd, cmd, replace, jcr->prefix_links, where);
+   fd->fsend(cmd, replace, jcr->prefix_links, where);
    unbash_spaces(where);
 
    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
@@ -265,7 +265,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
       term_msg = _("*** Restore Error ***");
       msg_type = M_ERROR;          /* Generate error message */
       if (jcr->store_bsock) {
-         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         jcr->store_bsock->signal(BNET_TERMINATE);
          if (jcr->SD_msg_chan) {
             pthread_cancel(jcr->SD_msg_chan);
          }
@@ -274,7 +274,7 @@ void restore_cleanup(JCR *jcr, int TermCode)
    case JS_Canceled:
       term_msg = _("Restore Canceled");
       if (jcr->store_bsock) {
-         bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+         jcr->store_bsock->signal(BNET_TERMINATE);
          if (jcr->SD_msg_chan) {
             pthread_cancel(jcr->SD_msg_chan);
          }

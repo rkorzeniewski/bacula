@@ -122,6 +122,8 @@ class JCR;
 struct FF_PKT;
 struct B_DB;
 struct ATTR_DBR;
+struct Plugin;
+struct save_pkt;
 
 #ifdef FILE_DAEMON
 struct CRYPTO_CTX {
@@ -211,8 +213,8 @@ public:
 
    void *plugin_ctx_list;             /* list of contexts for plugins */
    void *plugin_ctx;                  /* current plugin context */
-   void *plugin;                      /* plugin instance */
-   void *plugin_sp;                   /* plugin save packet */
+   Plugin *plugin;                    /* plugin instance */
+   save_pkt *plugin_sp;               /* plugin save packet */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

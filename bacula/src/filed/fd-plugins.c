@@ -283,6 +283,34 @@ bail_out:
    return;
 }
 
+/*
+ * Tell the plugin to create the file.  Return values are
+ *
+ *  CF_ERROR    -- error
+ *  CF_SKIP     -- skip processing this file
+ *  CF_EXTRACT  -- extract the file (i.e.call i/o routines)
+ *  CF_CREATED  -- created, but no content to extract (typically directories)
+ *
+ */
+int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
+{
+// bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+// Plugin *plugin = (Plugin *)jcr->plugin;
+   if (!set_cmd_plugin(bfd, jcr)) {
+      return CF_ERROR;
+   }
+   return CF_EXTRACT;
+}
+
+/*
+ * Reset the file attributes after all file I/O is done -- this allows
+ *  the previous access time/dates to be set properly, and it also allows
+ *  us to properly set directory permissions.
+ */
+bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
+{
+   return true;
+}
 
 void load_fd_plugins(const char *plugin_dir)
 {
@@ -494,9 +522,14 @@ ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
 ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
 boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
 
-int save_file(FF_PKT *ff_pkt, void *vjcr, bool top_level)
+int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
 {
    return 0;
+}
+
+bool set_cmd_plugin(BFILE *bfd, JCR *jcr)
+{
+   return true;
 }
 
 int main(int argc, char *argv[])

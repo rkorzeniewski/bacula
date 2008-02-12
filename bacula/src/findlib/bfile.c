@@ -310,11 +310,6 @@ bool set_portable_backup(BFILE *bfd)
    return true;
 }
 
-bool set_prog(BFILE *bfd, char *prog, JCR *jcr)
-{
-   return false;
-}
-
 bool set_cmd_plugin(BFILE *bfd, JCR *jcr)
 {
    bfd->cmd_plugin = true;

@@ -26,7 +26,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Interface definition for Bacula Plugins
+ * Application Programming Interface (API) definition for Bacula Plugins
  *
  * Kern Sibbald, October 2007
  *
@@ -76,11 +76,13 @@ struct save_pkt {
 struct restore_pkt {
 };
 
-#define IO_OPEN  1
-#define IO_READ  2
-#define IO_WRITE 3
-#define IO_CLOSE 4
-#define IO_SEEK  5
+enum {
+   IO_OPEN = 1,
+   IO_READ = 2,
+   IO_WRITE = 3,
+   IO_CLOSE = 4,
+   IO_SEEK = 5
+};
 
 struct io_pkt {
    int32_t func;                      /* Function code */
@@ -135,18 +137,24 @@ typedef struct s_baculaInfo {
 } bInfo;
 
 /* Bacula Core Routines -- not used by plugins */
+struct BFILE;                   /* forward referenced */
 void load_fd_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
 void plugin_name_stream(JCR *jcr, char *name);    
+int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace);
+bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Bacula interface version and function pointers */
+/* 
+ * Bacula interface version and function pointers -- 
+ *  i.e. callbacks from the plugin to Bacula
+ */
 typedef struct s_baculaFuncs {  
    uint32_t size;
    uint32_t version;
@@ -188,6 +196,10 @@ typedef struct s_pluginInfo {
    char *plugin_description;
 } pInfo;
 
+/*
+ * This is a set of function pointers that Bacula can call
+ *  within the plugin.
+ */
 typedef struct s_pluginFuncs {  
    uint32_t size;
    uint32_t version;
@@ -198,8 +210,11 @@ typedef struct s_pluginFuncs {
    bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
    bRC (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
    bRC (*endPluginBackup)(bpContext *ctx);
+   bRC (*startRestoreFile)(bpContext *ctx, const char *cmd);
+   bRC (*endRestoreFile)(bpContext *ctx);
    bRC (*pluginIO)(bpContext *ctx, struct io_pkt *io);
-   bRC (*createPluginFile)(bpContext *ctx, struct restore_pkt *rp);
+   bRC (*createFile)(bpContext *ctx, struct restore_pkt *rp);
+   bRC (*setFileAttributes)(bpContext *ctx, struct restore_pkt *rp);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))
