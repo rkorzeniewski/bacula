@@ -53,8 +53,8 @@ static bRC freePlugin(bpContext *ctx);
 static bRC getPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC setPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value);
-static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp);
-static bRC endPluginBackup(bpContext *ctx);
+static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp);
+static bRC endBackupFile(bpContext *ctx);
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io);
 static bRC startRestoreFile(bpContext *ctx, const char *cmd);
 static bRC endRestoreFile(bpContext *ctx);
@@ -87,8 +87,8 @@ static pFuncs pluginFuncs = {
    getPluginValue,
    setPluginValue,
    handlePluginEvent,
-   startPluginBackup,
-   endPluginBackup,
+   startBackupFile,
+   endBackupFile,
    startRestoreFile,
    endRestoreFile,
    pluginIO,
@@ -164,10 +164,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventJobEnd:
 //    printf("bpipe-fd: JobEnd\n");
       break;
-   case bEventBackupStart:
+   case bEventStartBackupJob:
 //    printf("bpipe-fd: BackupStart\n");
       break;
-   case bEventBackupEnd:
+   case bEventEndBackupJob:
 //    printf("bpipe-fd: BackupEnd\n");
       break;
    case bEventLevel:
@@ -177,17 +177,20 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 //    printf("bpipe-fd: since=%d\n", (int)value);
       break;
 
-   case bEventRestoreStart: 
-//    printf("bpipe-fd: RestoreStart\n");
-      break;
-   case bEventRestoreEnd:
-//    printf("bpipe-fd: RestoreEnd\n");
+   case bEventStartRestoreJob:
+      printf("bpipe-fd: StartRestoreJob\n");
       break;
 
-   /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
-   case bEventPluginCommand:
+   case bEventEndRestoreJob:
+      printf("bpipe-fd: EndRestoreJob\n");
+      break;
+
+   /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
+   case bEventRestoreCommand:
+      printf("bpipe-fd: EventRestoreCommand cmd=%s\n", (char *)value);
+   case bEventBackupCommand:
       char *p;
-//    printf("bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
+      printf("bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
       p_ctx->cmd = strdup((char *)value);
       p = strchr(p_ctx->cmd, ':');
       if (!p) {
@@ -224,7 +227,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    return bRC_OK;
 }
 
-static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
+static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
 {
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
    time_t now = time(NULL);
@@ -237,12 +240,17 @@ static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
    sp->statp.st_blksize = 4096;
    sp->statp.st_blocks = 1;
    p_ctx->backup = true;
-// printf("bpipe-fd: startPluginBackup\n");
+// printf("bpipe-fd: startBackupFile\n");
    return bRC_OK;
 }
 
-static bRC endPluginBackup(bpContext *ctx)
+static bRC endBackupFile(bpContext *ctx)
 {
+   /*
+    * We would return bRC_More if we wanted startBackupFile to be
+    * called again to backup another file
+    */
+// printf("bpipe-fd: endBackupFile\n");
    return bRC_OK;
 }
 
@@ -262,7 +270,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       if (!p_ctx->fd) {
          io->io_errno = errno;
          snprintf(msg, sizeof(msg), "bpipe-fd: reader=%s failed: ERR=%d\n", p_ctx->reader, errno);
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, msg);
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, msg);
          printf("%s", msg);
          return bRC_Error;
       }
@@ -271,9 +279,14 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       break;
 
    case IO_READ:
+      if (!p_ctx->fd) {
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "NULL FD\n");
+         return bRC_Error;
+      }
       io->status = fread(io->buf, 1, io->count, p_ctx->fd);
       printf("bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Pipe I/O error\n");
          printf("Error reading pipe\n");
          return bRC_Error;
       }
@@ -285,6 +298,10 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
       break;
 
    case IO_CLOSE:
+      if (!p_ctx->fd) {
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "NULL FD\n");
+         return bRC_Error;
+      }
       io->status = pclose(p_ctx->fd);
       printf("bpipe-fd: IO_CLOSE\n");
       break;
@@ -298,21 +315,25 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
 static bRC startRestoreFile(bpContext *ctx, const char *cmd)
 {
+   printf("bpipe-fd: startRestoreFile cmd=%s\n", cmd);
    return bRC_OK;
 }
 
 static bRC endRestoreFile(bpContext *ctx)
 {
+   printf("bpipe-fd: endRestoreFile\n");
    return bRC_OK;
 }
 
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
 {
+   printf("bpipe-fd: createFile\n");
    return bRC_OK;
 }
 
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
 {
+   printf("bpipe-fd: setFileAttributes\n");
    return bRC_OK;
 }
 

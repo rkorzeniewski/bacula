@@ -113,18 +113,18 @@ typedef enum {
 } bVariable;
 
 typedef enum {
-  bEventJobStart      = 1,
-  bEventJobEnd        = 2,
-  bEventBackupStart   = 3,
-  bEventBackupEnd     = 4,
-  bEventRestoreStart  = 5,
-  bEventRestoreEnd    = 6,
-  bEventVerifyStart   = 7,
-  bEventVerifyEnd     = 8,
-  bEventPluginCommand = 9,
-  bEventPluginFile    = 10,
-  bEventLevel         = 11,
-  bEventSince         = 12,
+  bEventJobStart        = 1,
+  bEventJobEnd          = 2,
+  bEventStartBackupJob  = 3,
+  bEventEndBackupJob    = 4,
+  bEventStartRestoreJob = 5,
+  bEventEndRestoreJob   = 6,
+  bEventStartVerifyJob  = 7,
+  bEventEndVerifyJob    = 8,
+  bEventBackupCommand   = 9,
+  bEventRestoreCommand  = 10,
+  bEventLevel           = 11,
+  bEventSince           = 12,
 } bEventType;
 
 typedef struct s_bEvent {
@@ -138,6 +138,7 @@ typedef struct s_baculaInfo {
 
 /* Bacula Core Routines -- not used by plugins */
 struct BFILE;                   /* forward referenced */
+struct FF_PKT;
 void load_fd_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
@@ -146,6 +147,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
 void plugin_name_stream(JCR *jcr, char *name);    
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace);
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
+int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
 #ifdef __cplusplus
 extern "C" {
@@ -208,8 +210,8 @@ typedef struct s_pluginFuncs {
    bRC (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
    bRC (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
    bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
-   bRC (*startPluginBackup)(bpContext *ctx, struct save_pkt *sp);
-   bRC (*endPluginBackup)(bpContext *ctx);
+   bRC (*startBackupFile)(bpContext *ctx, struct save_pkt *sp);
+   bRC (*endBackupFile)(bpContext *ctx);
    bRC (*startRestoreFile)(bpContext *ctx, const char *cmd);
    bRC (*endRestoreFile)(bpContext *ctx);
    bRC (*pluginIO)(bpContext *ctx, struct io_pkt *io);

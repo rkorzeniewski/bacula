@@ -40,7 +40,6 @@
 
 /* Forward referenced functions */
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-static int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 static void strip_path(FF_PKT *ff_pkt);
 static void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
@@ -239,11 +238,6 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd)
    return true;
 }
 
-int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
-{
-   generate_plugin_event(jcr, bEventPluginCommand, (void *)ff_pkt->top_fname);
-   return 1;
-}
 
 /*
  * Called here by find() for each file included.
