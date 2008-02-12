@@ -645,6 +645,7 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_PLUGIN_NAME:
+         Dmsg1(000, "stream_plugin_name=%s\n", sd->msg);
          plugin_name_stream(jcr, sd->msg);
          break;
 

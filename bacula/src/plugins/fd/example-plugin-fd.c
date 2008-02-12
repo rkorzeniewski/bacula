@@ -50,8 +50,8 @@ static bRC freePlugin(bpContext *ctx);
 static bRC getPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC setPluginValue(bpContext *ctx, pVariable var, void *value);
 static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value);
-static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp);
-static bRC endPluginBackup(bpContext *ctx);
+static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp);
+static bRC endBackupFile(bpContext *ctx);
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io);
 static bRC startRestoreFile(bpContext *ctx, const char *cmd);
 static bRC endRestoreFile(bpContext *ctx);
@@ -84,8 +84,8 @@ static pFuncs pluginFuncs = {
    getPluginValue,
    setPluginValue,
    handlePluginEvent,
-   startPluginBackup,
-   endPluginBackup,
+   startBackupFile,
+   endBackupFile,
    startRestoreFile,
    endRestoreFile,
    pluginIO,
@@ -151,10 +151,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventJobEnd:
       printf("plugin: JobEnd\n");
       break;
-   case bEventBackupStart:
+   case bEventStartBackupJob:
       printf("plugin: BackupStart\n");
       break;
-   case bEventBackupEnd:
+   case bEventEndBackupJob:
       printf("plugin: BackupEnd\n");
       break;
    case bEventLevel:
@@ -163,16 +163,20 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    case bEventSince:
       printf("plugin: since=%d\n", (int)value);
       break;
-   case bEventRestoreStart:
-      printf("bpipe-fd: RestoreStart\n");
+   case bEventStartRestoreJob:
+      printf("plugin: StartRestoreJob\n");
       break;
-   case bEventRestoreEnd:
-      printf("bpipe-fd: RestoreEnd\n");
+   case bEventEndRestoreJob:
+      printf("plugin: EndRestoreJob\");
       break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */
-   case bEventPluginCommand:
-      printf("plugin: command=%s\n", (char *)value);
+   case bEventRestoreCommand:
+      printf("plugin: backup command=%s\n", (char *)value);
+      break;
+
+   case bEventBackupCommand:
+      printf("plugin: backup command=%s\n", (char *)value);
       break;
 
    default:
@@ -185,12 +189,12 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    return bRC_OK;
 }
 
-static bRC startPluginBackup(bpContext *ctx, struct save_pkt *sp)
+static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
 {
    return bRC_OK;
 }
 
-static bRC endPluginBackup(bpContext *ctx)
+static bRC endBackupFile(bpContext *ctx)
 { 
    return bRC_OK;
 }

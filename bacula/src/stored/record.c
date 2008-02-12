@@ -116,6 +116,8 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "PROG-NAMES";
     case STREAM_PROGRAM_DATA:
        return "PROG-DATA";
+    case STREAM_PLUGIN_NAME:
+       return "PLUGIN-NAME";
     case STREAM_MACOS_FORK_DATA:
        return "MACOS-RSRC";
     case STREAM_HFSPLUS_ATTRIBUTES:
@@ -184,6 +186,9 @@ const char *stream_to_ascii(char *buf, int stream, int fi)
        return "contENCRYPTED-WIN32-GZIP";
     case -STREAM_ENCRYPTED_MACOS_FORK_DATA:
        return "contENCRYPTED-MACOS-RSRC";
+    case -STREAM_PLUGIN_NAME:
+       return "contPLUGIN-NAME";
+
     default:
        sprintf(buf, "%d", stream);
        return buf;

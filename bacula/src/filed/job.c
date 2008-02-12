@@ -1429,7 +1429,7 @@ static int backup_cmd(JCR *jcr)
    }
    
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventBackupStart);
+   generate_plugin_event(jcr, bEventStartBackupJob);
 
 #if defined(WIN32_VSS)
    /* START VSS ON WIN32 */
@@ -1542,7 +1542,7 @@ cleanup:
    }
 #endif
 
-   generate_plugin_event(jcr, bEventBackupEnd); 
+   generate_plugin_event(jcr, bEventEndBackupJob);
    return 0;                          /* return and stop command loop */
 }
 
@@ -1581,7 +1581,7 @@ static int verify_cmd(JCR *jcr)
 
    generate_daemon_event(jcr, "JobStart");
    generate_plugin_event(jcr, bEventLevel, (void *)jcr->JobLevel);
-   generate_plugin_event(jcr, bEventVerifyStart);
+   generate_plugin_event(jcr, bEventStartVerifyJob);
 
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
@@ -1619,7 +1619,7 @@ static int verify_cmd(JCR *jcr)
    }
 
    dir->signal(BNET_EOD);
-   generate_plugin_event(jcr, bEventVerifyEnd);
+   generate_plugin_event(jcr, bEventEndVerifyJob);
    return 0;                          /* return and terminate command loop */
 }
 
@@ -1697,7 +1697,7 @@ static int restore_cmd(JCR *jcr)
     */
    start_dir_heartbeat(jcr);
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventRestoreStart);
+   generate_plugin_event(jcr, bEventStartRestoreJob);
    do_restore(jcr);
    stop_dir_heartbeat(jcr);
 
@@ -1724,7 +1724,7 @@ bail_out:
    }
 
    Dmsg0(130, "Done in job.c\n");
-   generate_plugin_event(jcr, bEventRestoreEnd);
+   generate_plugin_event(jcr, bEventEndRestoreJob);
    return 0;                          /* return and terminate command loop */
 }
 
