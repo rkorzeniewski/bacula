@@ -93,6 +93,16 @@ sub debug
     }
 }
 
+sub fdebug
+{
+    my ($self, $what) = @_;
+
+    my $old = $self->{debug};
+    $self->{debug}=1;
+    $self->debug($what);
+    $self->{debug} = $old;
+}
+
 =head1 FUNCTION
 
     error - display an error to the user
@@ -1548,6 +1558,26 @@ sub display_end
     $self->display($self->{info}, "end.tpl");
 }
 
+sub client_edit
+{
+    my ($self) = @_;
+    my $arg = $self->get_form("qclient");
+    my $f1 = $self->get_client_group_filter();
+    my $f2 = $self->get_client_filter();
+ 
+    my $query = "
+SELECT client_group_name, here
+  FROM client_group $f1
+  LEFT JOIN (SELECT 1 AS here, client_group_id
+               FROM Client JOIN client_group_member USING (ClientId) $f2
+              WHERE Name = $arg->{qclient}) AS temp USING (client_group_id)
+";
+
+    my $all = $self->dbh_selectall_hashref($query, 'client_group_name');
+    
+    $self->display({ client_group => [ values %$all ], %$arg }, "client_edit.tpl");
+}
+
 sub display_clients
 {
     my ($self) = @_;
@@ -1845,7 +1875,7 @@ SELECT Client.Name as clientname
 	}
 
 	my $query = "
-SELECT client_group_name AS name 
+SELECT client_group_name AS name, comment AS comment
   FROM client_group $filter
 ";
 	my $grps = $self->dbh_selectall_hashref($query, 'name');
@@ -1855,7 +1885,7 @@ SELECT client_group_name AS name
 
     if ($what{db_usernames}) {
 	my $query = "
-SELECT username 
+SELECT username, comment
   FROM bweb_user
 ";
 	my $users = $self->dbh_selectall_hashref($query, 'username');
@@ -1865,7 +1895,7 @@ SELECT username
 
     if ($what{db_roles}) {
 	my $query = "
-SELECT rolename 
+SELECT rolename, comment
   FROM bweb_role
 ";
 	my $r = $self->dbh_selectall_hashref($query, 'rolename');
@@ -2795,6 +2825,48 @@ sub update_location
 
 ###########################################################
 
+sub client_save
+{
+    my ($self) = @_;
+    my $arg = $self->get_form(qw/jclient_groups qclient/);
+
+    unless ($arg->{qclient}) {
+	return $self->error("Can't get client name");
+    }
+
+    $self->can_do('r_group_mgnt');
+
+    my $f1 = $self->get_client_filter();
+    my $f2 = $self->get_client_group_filter();
+
+    $self->{dbh}->begin_work();
+
+    my $query = "
+DELETE FROM client_group_member 
+      WHERE ClientId IN 
+           (SELECT ClientId 
+              FROM Client $f1
+             WHERE Client.Name = $arg->{qclient})
+";
+    $self->dbh_do($query);
+
+    if ($arg->{jclient_groups}) {
+	$query = "
+ INSERT INTO client_group_member (client_group_id, ClientId) 
+    (SELECT client_group_id, (SELECT ClientId
+                FROM Client $f1
+               WHERE Name = $arg->{qclient})
+       FROM client_group $f2 WHERE client_group_name IN ($arg->{jclient_groups})
+    )
+";
+	$self->dbh_do($query);
+    }
+
+    $self->{dbh}->commit() or $self->error($self->{dbh}->errstr);
+
+    $self->display_clients();
+}
+
 sub groups_edit
 {
     my ($self) = @_;
@@ -2815,7 +2887,7 @@ sub groups_edit
 
     my $query = "
 SELECT Name AS name 
-  FROM Client JOIN client_group_member using (clientid)
+  FROM Client JOIN client_group_member using (ClientId)
               JOIN client_group using (client_group_id)
 WHERE client_group_name = $grp->{qclient_group}
 ";
@@ -2834,12 +2906,12 @@ sub groups_save
     my ($self) = @_;
     $self->can_do('r_group_mgnt');
 
-    my $arg = $self->get_form(qw/qclient_group jclients qnewgroup/);
+    my $arg = $self->get_form(qw/qclient_group jclients qnewgroup qcomment/);
 
     if (!$arg->{qclient_group} and $arg->{qnewgroup}) {
 	my $query = "
-INSERT INTO client_group (client_group_name) 
-VALUES ($arg->{qnewgroup})
+INSERT INTO client_group (client_group_name, comment) 
+VALUES ($arg->{qnewgroup}, $arg->{qcomment})
 ";
 	$self->dbh_do($query);
 	$arg->{qclient_group} = $arg->{qnewgroup};
@@ -2862,8 +2934,8 @@ DELETE FROM client_group_member
 
     if ($arg->{jclients}) {
 	$query = "
-    INSERT INTO client_group_member (clientid, client_group_id) 
-       (SELECT  Clientid, 
+    INSERT INTO client_group_member (ClientId, client_group_id) 
+       (SELECT  ClientId, 
                 (SELECT client_group_id 
                    FROM client_group 
                   WHERE client_group_name = $arg->{qclient_group})
@@ -2875,7 +2947,7 @@ DELETE FROM client_group_member
     if ($arg->{qclient_group} ne $arg->{qnewgroup}) {
 	$query = "
 UPDATE client_group 
-   SET client_group_name = $arg->{qnewgroup}
+   SET client_group_name = $arg->{qnewgroup}, comment = $arg->{qcomment}
  WHERE client_group_name = $arg->{qclient_group}
 ";
 
@@ -3534,7 +3606,7 @@ SELECT
     sum(Job.JobFiles)    AS nb_files,
     client_group.client_group_name  AS clientname
 FROM Job JOIN Client USING (ClientId) 
-         JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
+         JOIN client_group_member ON (Client.ClientId = client_group_member.ClientId) 
          JOIN client_group USING (client_group_id)
 WHERE 
     client_group.client_group_name = $carg->{qclient_group}

@@ -2,6 +2,9 @@
 -- Upgrade from 2.2
 -- --------------------------------------------------
 
+ALTER TABLE client_group ADD COLUMN comment text;
+ALTER TABLE client_group_member RENAME COLUMN clientid TO ClientId;
+
 CREATE TABLE bweb_user
 (
 	userid       serial not null,
@@ -18,7 +21,7 @@ CREATE TABLE bweb_role
 (
 	roleid       serial not null,
 	rolename     text not null,
---	comment      text default '',
+	comment      text default '',
 	primary key (roleid)
 );
 CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename(255));

@@ -12,8 +12,10 @@
 <!--        <h1>Acciones</h1> -->	
        <button type="submit" class="bp" name='action' value='job' title="Mostrar últimos jobs"> <img src='/bweb/zoom.png' alt=''>Últimos Jobs</button>
        <button type="submit" class="bp" name='action' value='dsp_cur_job' title='Mostrar job actual'> <img src='/bweb/zoom.png' alt=''>Current jobs</button>
+       <button type="submit" class="bp" name='action' value='groups' title='View client groups'> <img src='/bweb/zoom.png' alt=''>View groups</button>
        <button type="submit" class="bp" name='action' value='client_status' title='Mostrar estado del cliente'> <img src='/bweb/zoom.png' alt=''>Estado </button>
        <button type="submit" class="bp" name='action' value='client_stats' title='Estadísticas del Cliente'> <img src='/bweb/chart.png' alt=''>Estado </button>
+       <button type="submit" class="bp" name='action' value='client_edit' title='Client groups'> <img src='/bweb/edit.png' alt=''>Editar </button>
         </div>
 
 </form>

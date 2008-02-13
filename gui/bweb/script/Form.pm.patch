@@ -1,0 +1,30 @@
+--- Form-original.pm	2005-12-07 09:32:27.000000000 -0500
++++ Form.pm	2007-05-08 13:26:16.000000000 -0400
+@@ -18,5 +18,4 @@
+  textarea => "TextInput",
+ 
+- button   => "IgnoreInput",
+  "reset"  => "IgnoreInput",
+ 
+@@ -25,4 +24,5 @@
+  option   => "ListInput",
+ 
++ button   => "SubmitInput",
+  submit   => "SubmitInput",
+  image    => "ImageInput",
+@@ -118,5 +118,5 @@
+     eval {
+ 	# optimization
+-	$p->report_tags(qw(form input textarea select optgroup option keygen label));
++	$p->report_tags(qw(form input textarea select optgroup option keygen label button));
+     };
+ 
+@@ -184,4 +184,8 @@
+ 		    $f->push_input($type, $attr);
+ 		}
++        elsif ($tag eq "button") {
++            my $type = delete $attr->{type} || "submit";
++            $f->push_input($type, $attr);
++        }
+ 		elsif ($tag eq "textarea") {
+ 		    $attr->{textarea_value} = $attr->{value}

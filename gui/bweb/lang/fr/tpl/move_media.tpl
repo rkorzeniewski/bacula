@@ -14,11 +14,11 @@
 </select>
     </td></tr><tr><td> En ligne : </td><td>
 <select name='enabled' class='formulaire'>
-    <option value='no'>non</option>
     <option value='yes'>oui</option>
+    <option value='no'>non</option>
     <option value='archived'>archivé</option>
 </select>
-    </td><tr><td> Utilisateur : </td><td>
+    </td></tr><tr><td> Utilisateur : </td><td>
 <input type='text' name='user' value='<TMPL_VAR loginname>' class='formulaire'>
     </td></tr>
     </td></tr><tr><td> Commentaire : </td><td>
@@ -73,12 +73,12 @@ nrsTable.setup(
 }
 );
 <TMPL_IF enabled>
-ok=1;
-for (var i=0; ok && i < document.form1.enabled.length; ++i) {
-   if (document.form1.enabled[i].value == '<TMPL_VAR enabled>') {
-      document.form1.enabled[i].selected = true;
-      ok=0;
-   }
-}
+//ok=1;
+//for (var i=0; ok && i < document.form1.enabled.length; ++i) {
+//   if (document.form1.enabled[i].value == '<TMPL_VAR enabled>') {
+//      document.form1.enabled[i].selected = true;
+//      ok=0;
+//   }
+//}
 </TMPL_IF>
 </script>

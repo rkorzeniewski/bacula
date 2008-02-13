@@ -56,7 +56,7 @@ CREATE TABLE bweb_role
 (
         roleid       serial not null,
         rolename     text not null,
---      comment      text default '',
+        comment      text default '',
         primary key (roleid)
 );
 CREATE UNIQUE INDEX bweb_role_idx on bweb_role (rolename(255));
@@ -108,6 +108,7 @@ CREATE TABLE client_group
 (
     client_group_id             serial    not null,
     client_group_name           text      not null,
+    comment                     text default '',
     primary key (client_group_id)
 );
 
@@ -116,7 +117,7 @@ CREATE UNIQUE INDEX client_group_idx on client_group (client_group_name(255));
 CREATE TABLE client_group_member
 (
     client_group_id   integer     not null,
-    clientid          integer     not null,
+    ClientId          integer     not null,
     primary key (client_group_id, clientid)
 );
 

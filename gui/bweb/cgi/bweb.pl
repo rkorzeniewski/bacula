@@ -113,6 +113,12 @@ if ($action eq 'begin') {		# main display
 } elsif ($action eq 'client') {	
     $bweb->display_clients();
 
+} elsif ($action eq 'client_edit') {
+    $bweb->client_edit();
+
+} elsif ($action eq 'client_save') {
+    $bweb->client_save();
+
 } elsif ($action eq 'pool') {
     $bweb->display_pool();
 
@@ -266,7 +272,7 @@ if ($action eq 'begin') {		# main display
 	$bweb->update_slots();
     }
     print "</div><div style='float: left;margin-left: 20px;'>";
-    $bweb->move_media('no');	# enabled = no
+    $bweb->move_media('yes');	# pb with enabled = no for restore
     print "</div>";
 
 } elsif ($action eq 'move_email') {
