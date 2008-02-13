@@ -210,6 +210,7 @@ public:
    B_DB *db_batch;                    /* database pointer for batch insert */
    ATTR_DBR *ar;                      /* DB attribute record */
    guid_list *id_list;                /* User/group id to name list */
+   bool accurate;                     /* true if job is accurate */
 
    void *plugin_ctx_list;             /* list of contexts for plugins */
    void *plugin_ctx;                  /* current plugin context */
