@@ -319,6 +319,7 @@ RES_ITEM job_items[] = {
    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
+   {"accurate", store_bool, ITEM(res_job.accurate), 0,0,0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -617,6 +618,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          res->res_job.spool_data, res->res_job.write_part_after_job);
       if (res->res_job.spool_size) {
          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
+      }
+      if (res->res_job.JobType == JT_BACKUP) {
+	 sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
       }
       if (res->res_job.JobType == JT_MIGRATE) {
          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
