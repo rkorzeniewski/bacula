@@ -75,7 +75,7 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -96,7 +97,443 @@
+@@ -96,7 +97,450 @@
     return true;
  }
  
@@ -93,6 +93,11 @@ Index: src/dird/backup.c
 +   return 0;
 +}
 +
++bool db_get_jobids(JCR *jcr)
++{
++   
++}
++
 +bool accurate_send_current_files(JCR *jcr)
 +{
 +   char buf[MAXSTRING];
@@ -108,6 +113,7 @@ Index: src/dird/backup.c
 +                JOIN File USING (FileId)
 +   WHERE File.FileIndex > 0
 +
++ DROP TABLE btemp2
 +
 +SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
 +  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
@@ -299,6 +305,15 @@ Index: src/dird/backup.c
 +   char ed1[50], ed2[50];
 +
 +   bsnprintf(buf, sizeof(buf),
++	     "SELECT Name FROM ToBackup%s",
++	     edit_uint64(jcr->JobId, ed2));
++
++   /* missing_handler is called for each file found */
++   Dmsg1(2, "display files to backup cmd=%s\n", buf);
++   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
++   jcr->file_bsock->signal(BNET_EOD);
++
++   bsnprintf(buf, sizeof(buf),
 +      "SELECT Path.Path,Filename.Name "
 +        "FROM CurrentFile "
 +             "JOIN File USING (FileId) "
@@ -312,14 +327,6 @@ Index: src/dird/backup.c
 +   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
 +   jcr->file_bsock->signal(BNET_EOD);
 +   
-+   bsnprintf(buf, sizeof(buf),
-+	     "SELECT Name FROM ToBackup%s",
-+	     edit_uint64(jcr->JobId, ed2));
-+   /* missing_handler is called for each file found */
-+   Dmsg1(2, "display files to backup cmd=%s\n", buf);
-+   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
-+   jcr->file_bsock->signal(BNET_EOD);
-+
 +   return 1;
 +}
 +
@@ -519,7 +526,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -231,9 +668,18 @@
+@@ -231,9 +675,18 @@
        goto bail_out;
     }
  
@@ -538,18 +545,6 @@ Index: src/dird/backup.c
     if (stat == JS_Terminated) {
        backup_cleanup(jcr, stat);
        return true;
-Index: src/dird/job.c
-===================================================================
---- src/dird/job.c	(révision 6372)
-+++ src/dird/job.c	(copie de travail)
-@@ -979,6 +979,7 @@
-    jcr->spool_data = job->spool_data;
-    jcr->spool_size = job->spool_size;
-    jcr->write_part_after_job = job->write_part_after_job;
-+   jcr->accurate = job->accurate;
-    if (jcr->RestoreBootstrap) {
-       free(jcr->RestoreBootstrap);
-       jcr->RestoreBootstrap = NULL;
 Index: src/dird/inc_conf.c
 ===================================================================
 --- src/dird/inc_conf.c	(révision 6372)
@@ -589,49 +584,15 @@ Index: src/dird/inc_conf.c
     {NULL,       0,                      0}
  };
  
-Index: src/dird/dird_conf.c
-===================================================================
---- src/dird/dird_conf.c	(révision 6372)
-+++ src/dird/dird_conf.c	(copie de travail)
-@@ -319,6 +319,7 @@
-    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
-    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
-    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
-+   {"accurate", store_bool, ITEM(res_job.accurate), 0,0,0},
-    {NULL, NULL, {0}, 0, 0, 0}
- };
- 
-@@ -618,6 +619,9 @@
-       if (res->res_job.spool_size) {
-          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
-       }
-+      if (res->res_job.JobType == JT_BACKUP) {
-+	 sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
-+      }
-       if (res->res_job.JobType == JT_MIGRATE) {
-          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
-       }
-Index: src/dird/dird_conf.h
-===================================================================
---- src/dird/dird_conf.h	(révision 6372)
-+++ src/dird/dird_conf.h	(copie de travail)
-@@ -400,6 +400,7 @@
-    bool write_part_after_job;         /* Set to write part after job in SD */
-    bool enabled;                      /* Set if job enabled */
-    bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
-+   bool accurate;                     /* Set if it is an accurate backup job */
-    
-    MSGS      *messages;               /* How and where to send messages */
-    SCHED     *schedule;               /* When -- Automatic schedule */
 Index: src/filed/backup.c
 ===================================================================
 --- src/filed/backup.c	(révision 6372)
 +++ src/filed/backup.c	(copie de travail)
-@@ -48,8 +48,113 @@
+@@ -48,8 +48,114 @@
  static bool crypto_session_start(JCR *jcr);
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
-+static bool encode_and_send_deleted_files(JCR *jcr, char *fname);
++static bool encode_and_send_deleted_file(JCR *jcr, char *fname);
  
  /*
 + * Called by save_file when accept/discard file for backup
@@ -704,16 +665,17 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
-+   /* get deleted files */
-+   while (dir->recv() >= 0) {
-+      Dmsg1(1, "deleted = %s\n", dir->msg);
-+      encode_and_send_deleted_files(jcr, dir->msg); 
-+   }
 +   /* get missing files */
 +   while (dir->recv() >= 0) {
 +      Dmsg1(1, "missing = %s\n", dir->msg);
 +   }
-+   
++
++   /* get deleted files */
++   while (dir->recv() >= 0) {
++      Dmsg1(1, "deleted = %s\n", dir->msg);
++      encode_and_send_deleted_file(jcr, dir->msg); 
++   }
++  
 +   return true;
 +}
 +
@@ -741,7 +703,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,7 +171,6 @@
+@@ -66,7 +172,6 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -749,7 +711,7 @@ Index: src/filed/backup.c
     sd = jcr->store_bsock;
  
     set_jcr_job_status(jcr, JS_Running);
-@@ -134,6 +238,20 @@
+@@ -134,6 +239,20 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -770,7 +732,7 @@ Index: src/filed/backup.c
  
     free_pool_memory(jcr->acl_text);
  
-@@ -355,9 +473,11 @@
+@@ -355,9 +474,11 @@
     case FT_DIRNOCHG:
     case FT_NOCHG:
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -782,7 +744,7 @@ Index: src/filed/backup.c
        return 1;
     case FT_NOOPEN: {
        berrno be;
-@@ -1111,6 +1231,9 @@
+@@ -1111,6 +1232,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -792,11 +754,11 @@ Index: src/filed/backup.c
     Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
     if (!stat) {
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-@@ -1121,6 +1244,58 @@
+@@ -1121,6 +1245,58 @@
     return true;
  }
  
-+static bool encode_and_send_deleted_files(JCR *jcr, char *fname) 
++static bool encode_and_send_deleted_file(JCR *jcr, char *fname) 
 +{
 +   BSOCK *sd = jcr->store_bsock;
 +   char *attribs;
@@ -1402,18 +1364,6 @@ Index: src/stored/append.c
  
           /* Send attributes and digest to Director for Catalog */
           if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
-Index: src/jcr.h
-===================================================================
---- src/jcr.h	(révision 6372)
-+++ src/jcr.h	(copie de travail)
-@@ -208,6 +208,7 @@
-    B_DB *db_batch;                    /* database pointer for batch insert */
-    ATTR_DBR *ar;                      /* DB attribute record */
-    guid_list *id_list;                /* User/group id to name list */
-+   bool accurate;                     /* true if job is accurate */
- 
-    void *plugin_ctx_list;             /* list of contexts for plugins */
-    void *plugin_ctx;                  /* current plugin context */
 Index: src/findlib/find.h
 ===================================================================
 --- src/findlib/find.h	(révision 6372)
@@ -1426,3 +1376,240 @@ Index: src/findlib/find.h
  
  struct s_included_file {
     struct s_included_file *next;
+Index: patches/testing/project-accurate-backup.patch
+===================================================================
+--- patches/testing/project-accurate-backup.patch	(révision 6410)
++++ patches/testing/project-accurate-backup.patch	(copie de travail)
+@@ -75,7 +75,7 @@
+  
+  /* Commands sent to File daemon */
+  static char backupcmd[] = "backup\n";
+-@@ -96,7 +97,443 @@
++@@ -96,7 +97,450 @@
+     return true;
+  }
+  
+@@ -93,6 +93,11 @@
+ +   return 0;
+ +}
+ +
+++bool db_get_jobids(JCR *jcr)
+++{
+++   
+++}
+++
+ +bool accurate_send_current_files(JCR *jcr)
+ +{
+ +   char buf[MAXSTRING];
+@@ -108,6 +113,7 @@
+ +                JOIN File USING (FileId)
+ +   WHERE File.FileIndex > 0
+ +
+++ DROP TABLE btemp2
+ +
+ +SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
+ +  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
+@@ -299,6 +305,15 @@
+ +   char ed1[50], ed2[50];
+ +
+ +   bsnprintf(buf, sizeof(buf),
+++	     "SELECT Name FROM ToBackup%s",
+++	     edit_uint64(jcr->JobId, ed2));
+++
+++   /* missing_handler is called for each file found */
+++   Dmsg1(2, "display files to backup cmd=%s\n", buf);
+++   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
+++   jcr->file_bsock->signal(BNET_EOD);
+++
+++   bsnprintf(buf, sizeof(buf),
+ +      "SELECT Path.Path,Filename.Name "
+ +        "FROM CurrentFile "
+ +             "JOIN File USING (FileId) "
+@@ -312,14 +327,6 @@
+ +   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
+ +   jcr->file_bsock->signal(BNET_EOD);
+ +   
+-+   bsnprintf(buf, sizeof(buf),
+-+	     "SELECT Name FROM ToBackup%s",
+-+	     edit_uint64(jcr->JobId, ed2));
+-+   /* missing_handler is called for each file found */
+-+   Dmsg1(2, "display files to backup cmd=%s\n", buf);
+-+   db_sql_query(jcr->db, buf, accurate_handler, (void *)jcr);
+-+   jcr->file_bsock->signal(BNET_EOD);
+-+
+ +   return 1;
+ +}
+ +
+@@ -519,7 +526,7 @@
+   * Do a backup of the specified FileSet
+   *
+   *  Returns:  false on failure
+-@@ -231,9 +668,18 @@
++@@ -231,9 +675,18 @@
+        goto bail_out;
+     }
+  
+@@ -538,18 +545,6 @@
+     if (stat == JS_Terminated) {
+        backup_cleanup(jcr, stat);
+        return true;
+-Index: src/dird/job.c
+-===================================================================
+---- src/dird/job.c	(révision 6372)
+-+++ src/dird/job.c	(copie de travail)
+-@@ -979,6 +979,7 @@
+-    jcr->spool_data = job->spool_data;
+-    jcr->spool_size = job->spool_size;
+-    jcr->write_part_after_job = job->write_part_after_job;
+-+   jcr->accurate = job->accurate;
+-    if (jcr->RestoreBootstrap) {
+-       free(jcr->RestoreBootstrap);
+-       jcr->RestoreBootstrap = NULL;
+ Index: src/dird/inc_conf.c
+ ===================================================================
+ --- src/dird/inc_conf.c	(révision 6372)
+@@ -589,49 +584,15 @@
+     {NULL,       0,                      0}
+  };
+  
+-Index: src/dird/dird_conf.c
+-===================================================================
+---- src/dird/dird_conf.c	(révision 6372)
+-+++ src/dird/dird_conf.c	(copie de travail)
+-@@ -319,6 +319,7 @@
+-    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
+-    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
+-    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
+-+   {"accurate", store_bool, ITEM(res_job.accurate), 0,0,0},
+-    {NULL, NULL, {0}, 0, 0, 0}
+- };
+- 
+-@@ -618,6 +619,9 @@
+-       if (res->res_job.spool_size) {
+-          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
+-       }
+-+      if (res->res_job.JobType == JT_BACKUP) {
+-+	 sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
+-+      }
+-       if (res->res_job.JobType == JT_MIGRATE) {
+-          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
+-       }
+-Index: src/dird/dird_conf.h
+-===================================================================
+---- src/dird/dird_conf.h	(révision 6372)
+-+++ src/dird/dird_conf.h	(copie de travail)
+-@@ -400,6 +400,7 @@
+-    bool write_part_after_job;         /* Set to write part after job in SD */
+-    bool enabled;                      /* Set if job enabled */
+-    bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
+-+   bool accurate;                     /* Set if it is an accurate backup job */
+-    
+-    MSGS      *messages;               /* How and where to send messages */
+-    SCHED     *schedule;               /* When -- Automatic schedule */
+ Index: src/filed/backup.c
+ ===================================================================
+ --- src/filed/backup.c	(révision 6372)
+ +++ src/filed/backup.c	(copie de travail)
+-@@ -48,8 +48,113 @@
++@@ -48,8 +48,114 @@
+  static bool crypto_session_start(JCR *jcr);
+  static void crypto_session_end(JCR *jcr);
+  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
+-+static bool encode_and_send_deleted_files(JCR *jcr, char *fname);
+++static bool encode_and_send_deleted_file(JCR *jcr, char *fname);
+  
+  /*
+ + * Called by save_file when accept/discard file for backup
+@@ -704,16 +665,17 @@
+ +      return true;
+ +   }
+ +
+-+   /* get deleted files */
+-+   while (dir->recv() >= 0) {
+-+      Dmsg1(1, "deleted = %s\n", dir->msg);
+-+      encode_and_send_deleted_files(jcr, dir->msg); 
+-+   }
+ +   /* get missing files */
+ +   while (dir->recv() >= 0) {
+ +      Dmsg1(1, "missing = %s\n", dir->msg);
+ +   }
+-+   
+++
+++   /* get deleted files */
+++   while (dir->recv() >= 0) {
+++      Dmsg1(1, "deleted = %s\n", dir->msg);
+++      encode_and_send_deleted_file(jcr, dir->msg); 
+++   }
+++  
+ +   return true;
+ +}
+ +
+@@ -741,7 +703,7 @@
+   * Find all the requested files and send them
+   * to the Storage daemon.
+   *
+-@@ -66,7 +171,6 @@
++@@ -66,7 +172,6 @@
+     BSOCK *sd;
+     bool ok = true;
+     // TODO landonf: Allow user to specify encryption algorithm
+@@ -749,7 +711,7 @@
+     sd = jcr->store_bsock;
+  
+     set_jcr_job_status(jcr, JS_Running);
+-@@ -134,6 +238,20 @@
++@@ -134,6 +239,20 @@
+        ok = false;                     /* error */
+        set_jcr_job_status(jcr, JS_ErrorTerminated);
+     }
+@@ -770,7 +732,7 @@
+  
+     free_pool_memory(jcr->acl_text);
+  
+-@@ -355,9 +473,11 @@
++@@ -355,9 +474,11 @@
+     case FT_DIRNOCHG:
+     case FT_NOCHG:
+        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
+@@ -782,7 +744,7 @@
+        return 1;
+     case FT_NOOPEN: {
+        berrno be;
+-@@ -1111,6 +1231,9 @@
++@@ -1111,6 +1232,9 @@
+     }
+     unstrip_path(ff_pkt);
+  
+@@ -792,11 +754,11 @@
+     Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+     if (!stat) {
+        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+-@@ -1121,6 +1244,58 @@
++@@ -1121,6 +1245,58 @@
+     return true;
+  }
+  
+-+static bool encode_and_send_deleted_files(JCR *jcr, char *fname) 
+++static bool encode_and_send_deleted_file(JCR *jcr, char *fname) 
+ +{
+ +   BSOCK *sd = jcr->store_bsock;
+ +   char *attribs;
+@@ -1402,18 +1364,6 @@
+  
+           /* Send attributes and digest to Director for Catalog */
+           if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
+-Index: src/jcr.h
+-===================================================================
+---- src/jcr.h	(révision 6372)
+-+++ src/jcr.h	(copie de travail)
+-@@ -208,6 +208,7 @@
+-    B_DB *db_batch;                    /* database pointer for batch insert */
+-    ATTR_DBR *ar;                      /* DB attribute record */
+-    guid_list *id_list;                /* User/group id to name list */
+-+   bool accurate;                     /* true if job is accurate */
+- 
+-    void *plugin_ctx_list;             /* list of contexts for plugins */
+-    void *plugin_ctx;                  /* current plugin context */
+ Index: src/findlib/find.h
+ ===================================================================
+ --- src/findlib/find.h	(révision 6372)
