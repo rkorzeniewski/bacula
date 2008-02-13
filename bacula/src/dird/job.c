@@ -983,6 +983,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->spool_data = job->spool_data;
    jcr->spool_size = job->spool_size;
    jcr->write_part_after_job = job->write_part_after_job;
+   jcr->accurate = job->accurate;
    if (jcr->RestoreBootstrap) {
       free(jcr->RestoreBootstrap);
       jcr->RestoreBootstrap = NULL;
