@@ -69,6 +69,12 @@
 #ifndef __SQL_H_
 #define __SQL_H_ 1
 
+enum {
+   SQL_TYPE_MYSQL   = 0,
+   SQL_TYPE_POSTGRE = 1,
+   SQL_TYPE_SQLITE  = 2
+};
+
 
 typedef void (DB_LIST_HANDLER)(void *, const char *);
 typedef int (DB_RESULT_HANDLER)(void *, int, char **);

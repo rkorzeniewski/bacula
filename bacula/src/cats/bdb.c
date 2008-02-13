@@ -51,7 +51,8 @@
 #ifdef HAVE_BACULA_DB
 
 uint32_t bacula_db_version = 0;
-char db_driver[100];
+
+int db_type = 0;
 
 /* List of open databases */
 static BQUEUE db_list = {&db_list, &db_list};
@@ -74,13 +75,10 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 #define DB_FILESET_FILENAME  "fileset.db"
 
 
-B_DB *db_init(JCR *jcr, const char *adb_driver, const char *db_name, const char *db_user, 
+B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user, 
               const char *db_password, const char *db_address, int db_port, 
               const char *db_socket, int mult_db_connections)
 {              
-   if (adb_driver) {
-      bstrncpy(db_driver, adb_driver, sizeof(db_driver));
-   }
    return db_init_database(jcr, db_name, db_user, db_password, db_address,
              db_port, db_socket, mult_db_connections);
 }
