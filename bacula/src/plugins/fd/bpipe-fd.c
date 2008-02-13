@@ -260,41 +260,63 @@ static bRC endBackupFile(bpContext *ctx)
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 {
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
-   char msg[200];
     
    io->status = 0;
    io->io_errno = 0;
    switch(io->func) {
    case IO_OPEN:
-      p_ctx->fd = popen(p_ctx->reader, "r");
-      if (!p_ctx->fd) {
-         io->io_errno = errno;
-         snprintf(msg, sizeof(msg), "bpipe-fd: reader=%s failed: ERR=%d\n", p_ctx->reader, errno);
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, msg);
-         printf("%s", msg);
-         return bRC_Error;
+      printf("bpipe-fd: IO_OPEN\n");
+      if (io->flags & (O_CREAT | O_WRONLY)) {
+         p_ctx->fd = popen(p_ctx->writer, "w");
+         printf("bpipe-fd: IO_OPEN writer=%s\n", p_ctx->writer);
+         if (!p_ctx->fd) {
+            io->io_errno = errno;
+            bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+               "bpipe-fd: writer=%s failed: ERR=%d\n", p_ctx->writer, errno);
+            return bRC_Error;
+         }
+      } else {
+         p_ctx->fd = popen(p_ctx->reader, "r");
+         printf("bpipe-fd: IO_OPEN reader=%s\n", p_ctx->reader);
+         if (!p_ctx->fd) {
+            io->io_errno = errno;
+            bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+               "bpipe-fd: reader=%s failed: ERR=%d\n", p_ctx->reader, errno);
+            return bRC_Error;
+         }
       }
-      printf("bpipe-fd: IO_OPEN reader=%s fd=%p\n", p_ctx->reader, p_ctx->fd);
       sleep(1);                 /* let pipe connect */
       break;
 
    case IO_READ:
       if (!p_ctx->fd) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "NULL FD\n");
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "NULL read FD\n");
          return bRC_Error;
       }
       io->status = fread(io->buf, 1, io->count, p_ctx->fd);
       printf("bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Pipe I/O error\n");
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Pipe read error\n");
          printf("Error reading pipe\n");
          return bRC_Error;
       }
-      printf("status=%d\n", io->status);
+//    printf("status=%d\n", io->status);
       break;
 
    case IO_WRITE:
-      printf("bpipe-fd: IO_WRITE buf=%p len=%d\n", io->buf, io->count);
+      if (!p_ctx->fd) {
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "NULL write FD\n");
+         return bRC_Error;
+      }
+      printf("bpipe-fd: IO_WRITE fd=%p buf=%p len=%d\n", p_ctx->fd, io->buf, io->count);
+      io->status = fwrite(io->buf, 1, io->count, p_ctx->fd);
+      printf("bpipe-fd: IO_WRITE buf=%p len=%d\n", io->buf, io->status);
+      if (io->status == 0 && ferror(p_ctx->fd)) {
+         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Pipe write error\n");
+         printf("Error writing pipe\n");
+         return bRC_Error;
+      }
+//    printf("status=%d\n", io->status);
       break;
 
    case IO_CLOSE:

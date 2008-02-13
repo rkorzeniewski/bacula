@@ -74,6 +74,16 @@ struct save_pkt {
  * This packet is used for file restore info transfer.
 */
 struct restore_pkt {
+   int32_t stream;                    /* attribute stream id */
+   int32_t data_stream;               /* id of data stream to follow */
+   int32_t type;                      /* file type FT */
+   int32_t file_index;                /* file index */
+   int32_t LinkFI;                    /* file index to data if hard link */
+   uid_t uid;                         /* userid */
+   struct stat statp;                 /* decoded stat packet */
+   const char *attrEx;                /* extended attributes if any */
+   const char *ofname;                /* output filename */
+   const char *olname;                /* output link name */
 };
 
 enum {
@@ -87,6 +97,8 @@ enum {
 struct io_pkt {
    int32_t func;                      /* Function code */
    int32_t count;                     /* read/write count */
+   mode_t mode;                       /* permissions for created files */
+   int32_t flags;                     /* open flags (e.g. O_WRONLY ...) */
    char *buf;                         /* read/write buffer */
    int32_t status;                    /* return status */
    int32_t io_errno;                  /* errno code */  

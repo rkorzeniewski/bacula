@@ -243,7 +243,7 @@ void plugin_name_stream(JCR *jcr, char *name)
    int i = 0;
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
 
-   Dmsg1(000, "Read plugin stream string=%s\n", name);
+   Dmsg1(100, "Read plugin stream string=%s\n", name);
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
    skip_spaces(&p);
    start = *p == '1';
@@ -270,7 +270,7 @@ void plugin_name_stream(JCR *jcr, char *name)
     * After this point, we are dealing with a restore start
     */
 
-   Dmsg1(000, "plugin cmd=%s\n", cmd);
+   Dmsg1(100, "plugin restore cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
       Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
       goto bail_out;
@@ -285,12 +285,12 @@ void plugin_name_stream(JCR *jcr, char *name)
     */
    foreach_alist(plugin, plugin_list) {
       bEvent event;
-      Dmsg3(000, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) != 0) {
          i++;
          continue;
       }
-      Dmsg1(000, "Restore Command plugin = %s\n", cmd);
+      Dmsg1(100, "Restore Command plugin = %s\n", cmd);
       event.eventType = bEventRestoreCommand;     
       if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
             &event, cmd) != bRC_OK) {
@@ -315,9 +315,33 @@ bail_out:
  */
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 {
-// bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
-// Plugin *plugin = (Plugin *)jcr->plugin;
+   bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
+   Plugin *plugin = (Plugin *)jcr->plugin;
+   struct restore_pkt rp;
+   struct io_pkt io;
+
    if (!set_cmd_plugin(bfd, jcr)) {
+      return CF_ERROR;
+   }
+   rp.stream = attr->stream;
+   rp.data_stream = attr->data_stream;
+   rp.type = attr->type;
+   rp.file_index = attr->file_index;
+   rp.LinkFI = attr->LinkFI;
+   rp.uid = attr->uid;
+   rp.statp = attr->statp;                /* structure assignment */
+   rp.attrEx = attr->attrEx;
+   rp.ofname = attr->ofname;
+   rp.olname = attr->olname;
+   if (plug_func(plugin)->createFile(plugin_ctx, &rp) != bRC_OK) {
+      return CF_ERROR;
+   }
+   io.func = IO_OPEN;
+   io.count = 0;
+   io.buf = NULL;
+   io.mode = 0777 & attr->statp.st_mode;
+   io.flags = O_WRONLY;
+   if (plug_func(plugin)->pluginIO(plugin_ctx, &io) != bRC_OK) {
       return CF_ERROR;
    }
    return CF_EXTRACT;
@@ -410,6 +434,8 @@ static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
    io.func = IO_OPEN;
    io.count = 0;
    io.buf = NULL;
+   io.mode = mode;
+   io.flags = flags;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
    return io.status;
 }
