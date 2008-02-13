@@ -39,10 +39,10 @@
 #include "bacula.h"
 #include "find.h"
 
-int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
-int     (*plugin_bclose)(JCR *jcr) = NULL;
-ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
-ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
+int       (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
+int       (*plugin_bclose)(JCR *jcr) = NULL;
+ssize_t   (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
+ssize_t   (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
 boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
 
 
@@ -404,6 +404,15 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    
    unix_name_to_win32(&win32_fname, (char *)fname);
 
+   if (bfd->cmd_plugin && plugin_bopen) {
+      int rtnstat;
+      Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
+      rtnstat = plugin_bopen(bfd->jcr, fname, flags, mode);
+      free_pool_memory(win32_fname_wchar);
+      free_pool_memory(win32_fname);
+      return rtnstat;
+   }
+
    if (!(p_CreateFileA || p_CreateFileW))
       return 0;
 
@@ -538,6 +547,12 @@ int bclose(BFILE *bfd)
    if (bfd->mode == BF_CLOSED) {
       return 0;
    }
+
+   if (bfd->cmd_plugin && plugin_bclose) {
+      stat = plugin_bclose(bfd->jcr);
+      goto all_done;
+   }
+
    if (bfd->use_backup_api && bfd->mode == BF_READ) {
       BYTE buf[10];
       if (!bfd->lpContext && !p_BackupRead(bfd->fh,
@@ -567,6 +582,8 @@ int bclose(BFILE *bfd)
       stat = -1;
       errno = b_errno_win32;
    }
+
+all_done:
    bfd->mode = BF_CLOSED;
    bfd->lpContext = NULL;
    bfd->cmd_plugin = false;
@@ -580,6 +597,10 @@ int bclose(BFILE *bfd)
 ssize_t bread(BFILE *bfd, void *buf, size_t count)
 {
    bfd->rw_bytes = 0;
+
+   if (bfd->cmd_plugin && plugin_bread) {
+      return plugin_bread(bfd->jcr, buf, count);
+   }
 
    if (bfd->use_backup_api) {
       if (!p_BackupRead(bfd->fh,
@@ -613,6 +634,10 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
 ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
 {
    bfd->rw_bytes = 0;
+
+   if (bfd->cmd_plugin && plugin_bwrite) {
+      return plugin_bwrite(bfd->jcr, buf, count);
+   }
 
    if (bfd->use_backup_api) {
       if (!p_BackupWrite(bfd->fh,
@@ -652,6 +677,10 @@ boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
    LONG  offset_low = (LONG)offset;
    LONG  offset_high = (LONG)(offset >> 32);
    DWORD dwResult;
+
+   if (bfd->cmd_plugin && plugin_bwrite) {
+      return plugin_blseek(bfd->jcr, offset, whence);
+   }
 
    dwResult = SetFilePointer(bfd->fh, offset_low, &offset_high, whence);
 
@@ -785,8 +814,10 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    /* Normal file open */
    Dmsg1(100, "open file %s\n", fname);
+
    /* We use fnctl to set O_NOATIME if requested to avoid open error */
    bfd->fid = open(fname, flags & ~O_NOATIME, mode);
+
    /* Set O_NOATIME if possible */
    if (bfd->fid != -1 && flags & O_NOATIME) {
       int oldflags = fcntl(bfd->fid, F_GETFL, 0);
@@ -845,7 +876,9 @@ int bclose(BFILE *bfd)
    Dmsg1(400, "Close file %d\n", bfd->fid);
 
    if (bfd->cmd_plugin && plugin_bclose) {
-      return plugin_bclose(bfd->jcr);
+      stat = plugin_bclose(bfd->jcr);
+      bfd->fid = -1;
+      bfd->cmd_plugin = false;
    }
 
    if (bfd->fid == -1) {
@@ -899,14 +932,14 @@ bool is_bopen(BFILE *bfd)
 
 boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
 {
-    boffset_t pos;
+   boffset_t pos;
 
    if (bfd->cmd_plugin && plugin_bwrite) {
       return plugin_blseek(bfd->jcr, offset, whence);
    }
-    pos = (boffset_t)lseek(bfd->fid, (off_t)offset, whence);
-    bfd->berrno = errno;
-    return pos;
+   pos = (boffset_t)lseek(bfd->fid, (off_t)offset, whence);
+   bfd->berrno = errno;
+   return pos;
 }
 
 #endif
