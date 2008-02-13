@@ -117,7 +117,6 @@ _Z6bcloseP5BFILE
 _Z6blseekP5BFILExi
 _Z6bwriteP5BFILEPvj
 _Z8is_bopenP5BFILE
-_Z8set_progP5BFILEPcP3JCR
  
 ; create_file.o
 _Z11create_fileP3JCRP4ATTRP5BFILEi
