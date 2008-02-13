@@ -46,23 +46,48 @@
 #include "bacula.h"
 #include "cats.h"
 
-#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL
+#if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
 
 uint32_t bacula_db_version = 0;
 
-char db_driver[100];
+int db_type = -1;
 
 /* Forward referenced subroutines */
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);
 
-B_DB *db_init(JCR *jcr, const char *adb_driver, const char *db_name, const char *db_user, 
+B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user, 
               const char *db_password, const char *db_address, int db_port, 
               const char *db_socket, int mult_db_connections)
 {              
-   if (adb_driver) {
-      bstrncpy(db_driver, adb_driver, sizeof(db_driver));
+#ifdef HAVE_DBI
+   char *p;
+   if (!db_driver) {
+      Jmsg0(jcr, M_ABORT, 0, _("Driver type not specified in Catalog resource.\n"));
    }
+   if (strlen(db_driver) < 5 || db_driver[3] != ':' || strncasecmp(db_driver, "dbi", 3) != 0) {
+      Jmsg0(jcr, M_ABORT, 0, _("Invalid driver type, must be \"dbi:<type>\"\n"));
+   }
+   p = (char *)(db_driver + 4);      
+   if (strcasecmp(p, "mysql") == 0) {
+      db_type = SQL_TYPE_MYSQL;
+   } else if (strcasecmp(p, "postgresql") == 0) {
+      db_type = SQL_TYPE_POSTGRE;
+   } else if (strcasecmp(p, "sqlite") == 0) {
+      db_type = SQL_TYPE_SQLITE;
+   } else {
+      Jmsg1(jcr, M_ABORT, 0, _("Unknown database type: %s\n"), p);
+   }
+#elif HAVE_MYSQL
+   db_type = SQL_TYPE_MYSQL;
+#elif HAVE_POSTGRESQL
+   db_type = SQL_TYPE_POSTGRE;
+#elif HAVE_SQLITE
+   db_type = SQL_TYPE_SQLITE;
+#elif HAVE_SQLITE3
+   db_type = SQL_TYPE_SQLITE;
+#endif
+
    return db_init_database(jcr, db_name, db_user, db_password, db_address,
              db_port, db_socket, mult_db_connections);
 }
