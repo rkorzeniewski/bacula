@@ -38,8 +38,6 @@
 
 #include "cats.h"
 
-extern int db_type;                       /* DB engine type */
-
 /* Database prototypes */
 
 /* sql.c */

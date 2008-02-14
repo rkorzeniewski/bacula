@@ -918,7 +918,7 @@ struct db_int64_ctx {
 /*
  * Exported globals from sql.c  
  */
-extern char db_driver[];
+extern int db_type;                   /* SQL engine type index */
 
 /*
  * Some functions exported by sql.c for use within the
