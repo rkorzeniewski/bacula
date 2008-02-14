@@ -207,7 +207,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
   
    Dmsg1(000, "send_plugin_name=%s\n", sp->cmd);
-   if (!sd->fsend("%ld %d 0", jcr->JobFiles, STREAM_PLUGIN_NAME)) {
+   if (!sd->fsend("%ld %d 0", jcr->JobFiles+1, STREAM_PLUGIN_NAME)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
            sd->bstrerror());
      return false;
@@ -215,7 +215,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    Dmsg1(000, "send: %s\n", sd->msg);
 
    if (start) {
-      stat = sd->fsend("%ld 1 %d %s%c", jcr->JobFiles, sp->portable, sp->cmd, 0);
+      stat = sd->fsend("%ld 1 %d %s%c", jcr->JobFiles+1, sp->portable, sp->cmd, 0);
    } else {
       stat = sd->fsend("%ld 0");
    }
