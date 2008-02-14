@@ -1565,13 +1565,23 @@ sub client_edit
     my $f1 = $self->get_client_group_filter();
     my $f2 = $self->get_client_filter();
  
+# client_group_name | here 
+#-------------------+-----
+#      GROUP1       | 1
+#      GRP3         | 0
+
     my $query = "
-SELECT client_group_name, here
-  FROM client_group $f1
-  LEFT JOIN (SELECT 1 AS here, client_group_id
-               FROM Client JOIN client_group_member USING (ClientId) $f2
-              WHERE Name = $arg->{qclient}) AS temp USING (client_group_id)
-";
+SELECT client_group_name, max(here) AS here FROM (
+  SELECT client_group_name, 1 AS here
+    FROM client_group
+    JOIN client_group_member USING (client_group_id)
+    JOIN Client USING (ClientId) $f2
+   WHERE Name = $arg->{qclient}
+  UNION ALL
+  SELECT client_group_name, 0 
+    FROM client_group $f1
+) AS temp
+GROUP by client_group_name";
 
     my $all = $self->dbh_selectall_hashref($query, 'client_group_name');
     
@@ -3378,18 +3388,22 @@ sub display_user
 
 #  rolename  | userid
 #------------+--------
-# cancel_job |
-# restore    |
+# cancel_job |      0
+# restore    |      0
 # run_job    |      1
 
     my $role = $self->dbh_selectall_hashref("
-SELECT rolename, temp.userid
-     FROM bweb_role
-     LEFT JOIN (SELECT roleid, userid
-                  FROM bweb_user JOIN bweb_role_member USING (userid)
-                 WHERE username = $user) AS temp USING (roleid)
-ORDER BY rolename
-", 'rolename');
+SELECT rolename, max(here) AS userid FROM (
+        SELECT rolename, 1 AS here
+          FROM bweb_user 
+          JOIN bweb_role_member USING (userid)
+          JOIN bweb_role USING (roleid)
+          WHERE username = $user
+       UNION ALL
+       SELECT rolename, 0 
+         FROM bweb_role
+) AS temp
+GROUP by rolename", 'rolename');
 
     $arg = $self->get_form(qw/db_usernames db_client_groups/);    
 
