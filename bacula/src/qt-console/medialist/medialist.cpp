@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -47,7 +47,7 @@
 MediaList::MediaList()
 {
    setupUi(this);
-   m_name = "Media";
+   m_name = tr("Media");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge.png")));
@@ -80,10 +80,10 @@ void MediaList::populateTree()
        return;
 
    QStringList headerlist = (QStringList()
-      << "Volume Name" << "Id" << "Status" << "Enabled" << "Bytes" << "Files"
-      << "Jobs" << "Retention" << "Media Type" << "Slot" << "Use Duration"
-      << "Max Jobs" << "Max Files" << "Max Bytes" << "Recycle" << "Enabled"
-      << "RecyclePool" << "Last Written");
+      << tr("Volume Name") << tr("Id") << tr("Status") << tr("Enabled") << tr("Bytes") << tr("Files")
+      << tr("Jobs") << tr("Retention") << tr("Media Type") << tr("Slot") << tr("Use Duration")
+      << tr("Max Jobs") << tr("Max Files") << tr("Max Bytes") << tr("Recycle") << tr("Enabled")
+      << tr("RecyclePool") << tr("Last Written"));
    int statusIndex = headerlist.indexOf("Status");
    QStringList flaglist = (QStringList()
       << "L" << "R" << "L" << "R" << "BR" << "R"
@@ -98,7 +98,7 @@ void MediaList::populateTree()
    m_checkcurwidget = true;
    mp_treeWidget->setColumnCount(headerlist.count());
    m_topItem = new QTreeWidgetItem(mp_treeWidget);
-   m_topItem->setText(0, "Pools");
+   m_topItem->setText(0, tr("Pools"));
    m_topItem->setData(0, Qt::UserRole, 0);
    m_topItem->setExpanded(true);
    
@@ -312,7 +312,7 @@ void MediaList::currentStackItem()
  */
 void MediaList::deleteVolume()
 {
-   if (QMessageBox::warning(this, tr("Bat"),
+   if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to delete??  !!!.\n"
 "This delete command is used to delete a Volume record and all associated catalog"
 " records that were created. This command operates only on the Catalog"
@@ -334,7 +334,7 @@ void MediaList::deleteVolume()
  */
 void MediaList::purgeVolume()
 {
-   if (QMessageBox::warning(this, tr("Bat"),
+   if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to purge ??  !!!.\n"
 "The Purge command will delete associated Catalog database records from Jobs and"
 " Volumes without considering the retention period. Purge  works only on the"

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -113,7 +113,7 @@ void JobList::populateTable()
 
    /* Can't do this in constructor because not neccesarily conected in constructor */
    if (!m_populated) {
-      clientComboBox->addItem("Any");
+      clientComboBox->addItem(tr("Any"));
       clientComboBox->addItems(m_console->client_list);
       int clientIndex = clientComboBox->findText(m_clientName, Qt::MatchExactly);
       if (clientIndex != -1)
@@ -121,23 +121,23 @@ void JobList::populateTable()
 
       QStringList volumeList;
       m_console->getVolumeList(volumeList);
-      volumeComboBox->addItem("Any");
+      volumeComboBox->addItem(tr("Any"));
       volumeComboBox->addItems(volumeList);
       int volumeIndex = volumeComboBox->findText(m_mediaName, Qt::MatchExactly);
       if (volumeIndex != -1) {
          volumeComboBox->setCurrentIndex(volumeIndex);
       }
-      jobComboBox->addItem("Any");
+      jobComboBox->addItem(tr("Any"));
       jobComboBox->addItems(m_console->job_list);
       int jobIndex = jobComboBox->findText(m_jobName, Qt::MatchExactly);
       if (jobIndex != -1) {
          jobComboBox->setCurrentIndex(jobIndex);
       }
-      levelComboBox->addItem("Any");
+      levelComboBox->addItem(tr("Any"));
       levelComboBox->addItems( QStringList() << "F" << "D" << "I");
-      purgedComboBox->addItem("Any");
+      purgedComboBox->addItem(tr("Any"));
       purgedComboBox->addItems( QStringList() << "0" << "1");
-      fileSetComboBox->addItem("Any");
+      fileSetComboBox->addItem(tr("Any"));
       fileSetComboBox->addItems(m_console->fileset_list);
       int filesetIndex = fileSetComboBox->findText(m_filesetName, Qt::MatchExactly);
       if (filesetIndex != -1) {
@@ -145,7 +145,7 @@ void JobList::populateTable()
       }
       QStringList statusLongList;
       m_console->getStatusList(statusLongList);
-      statusComboBox->addItem("Any");
+      statusComboBox->addItem(tr("Any"));
       statusComboBox->addItems(statusLongList);
    }
 
@@ -155,7 +155,7 @@ void JobList::populateTable()
    if (volumeIndex != -1)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
    QString distinct = "";
-   if (m_mediaName != "Any") { distinct = "DISTINCT "; }
+   if (m_mediaName != tr("Any")) { distinct = "DISTINCT "; }
    query += "SELECT " + distinct + "Job.Jobid AS Id, Job.Name AS JobName, " 
             " Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
@@ -168,7 +168,7 @@ void JobList::populateTable()
             " JOIN Status ON (Job.JobStatus=Status.JobStatus)"
             " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId) ";
    QStringList conditions;
-   if (m_mediaName != "Any") {
+   if (m_mediaName != tr("Any")) {
       query += " LEFT OUTER JOIN JobMedia ON (JobMedia.JobId=Job.JobId) "
                " LEFT OUTER JOIN Media ON (JobMedia.MediaId=Media.MediaId) ";
       conditions.append("Media.VolumeName='" + m_mediaName + "'");
@@ -176,31 +176,31 @@ void JobList::populateTable()
    int clientIndex = clientComboBox->currentIndex();
    if (clientIndex != -1)
       m_clientName = clientComboBox->itemText(clientIndex);
-   if (m_clientName != "Any") {
+   if (m_clientName != tr("Any")) {
       conditions.append("Client.Name='" + m_clientName + "'");
    }
    int jobIndex = jobComboBox->currentIndex();
    if (jobIndex != -1)
       m_jobName = jobComboBox->itemText(jobIndex);
-   if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != "Any")) {
+   if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != tr("Any"))) {
       conditions.append("Job.Name='" + jobComboBox->itemText(jobIndex) + "'");
    }
    int levelIndex = levelComboBox->currentIndex();
-   if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != "Any")) {
+   if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != tr("Any"))) {
       conditions.append("Job.Level='" + levelComboBox->itemText(levelIndex) + "'");
    }
    int statusIndex = statusComboBox->currentIndex();
-   if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != "Any")) {
+   if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != tr("Any"))) {
       conditions.append("Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'");
    }
    int purgedIndex = purgedComboBox->currentIndex();
-   if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != "Any")) {
+   if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != tr("Any"))) {
       conditions.append("Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'");
    }
    int fileSetIndex = fileSetComboBox->currentIndex();
    if (fileSetIndex != -1)
       m_filesetName = fileSetComboBox->itemText(fileSetIndex);
-   if ((fileSetIndex != -1) && (fileSetComboBox->itemText(fileSetIndex) != "Any")) {
+   if ((fileSetIndex != -1) && (fileSetComboBox->itemText(fileSetIndex) != tr("Any"))) {
       conditions.append("FileSet.FileSet='" + fileSetComboBox->itemText(fileSetIndex) + "'");
    }
    /* If Limit check box For limit by days is checked  */
@@ -229,16 +229,17 @@ void JobList::populateTable()
 
    /* Set up the Header for the table */
    QStringList headerlist = (QStringList()
-      << "Job Id" << "Job Name" << "Client" << "Job Starttime" << "Job Type" 
-      << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"  << "Purged" << "File Set" );
-   m_jobIdIndex = headerlist.indexOf("Job Id");
-   m_purgedIndex = headerlist.indexOf("Purged");
-   m_typeIndex = headerlist.indexOf("Job Type");
-   m_statusIndex = headerlist.indexOf("Job Status");
-   m_startIndex = headerlist.indexOf("Job Starttime");
-   m_filesIndex = headerlist.indexOf("Job Files");
-   m_bytesIndex = headerlist.indexOf("Job Bytes");
-   int jobLevelIndex = headerlist.indexOf("Job Level");
+      << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime") 
+      << tr("Job Type") << tr("Job Level") << tr("Job Files") 
+      << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set"));
+   m_jobIdIndex = headerlist.indexOf(tr("Job Id"));
+   m_purgedIndex = headerlist.indexOf(tr("Purged"));
+   m_typeIndex = headerlist.indexOf(tr("Job Type"));
+   m_statusIndex = headerlist.indexOf(tr("Job Status"));
+   m_startIndex = headerlist.indexOf(tr("Job Starttime"));
+   m_filesIndex = headerlist.indexOf(tr("Job Files"));
+   m_bytesIndex = headerlist.indexOf(tr("Job Bytes"));
+   int jobLevelIndex = headerlist.indexOf(tr("Job Level"));
 
    /* Initialize the QTableWidget */
    m_checkCurrentWidget = false;
@@ -291,12 +292,12 @@ void JobList::populateTable()
                   bool okay;
                   int isPurged = field.toInt(&okay);
                   if (okay){
-                     if (isPurged) { p_tableitem->setText("IS");
-                     } else { p_tableitem->setText("NOT"); }
+                     if (isPurged) { p_tableitem->setText(tr("IS"));
+                     } else { p_tableitem->setText(tr("NOT")); }
                   }
                } else if (column == m_typeIndex) {
-                  if (field == "B") { p_tableitem->setText("Backup"); }
-                  else if (field == "R") { p_tableitem->setText("Restore"); }
+                  if (field == "B") { p_tableitem->setText(tr("Backup")); }
+                  else if (field == "R") { p_tableitem->setText(tr("Restore")); }
                } else if (column == jobLevelIndex) {
                   if (field == "F") { p_tableitem->setText("Full"); }
                   else if (field == "D") { p_tableitem->setText("Diff"); }
@@ -315,10 +316,10 @@ void JobList::populateTable()
    mp_tableWidget->resizeColumnsToContents();
    mp_tableWidget->resizeRowsToContents();
    mp_tableWidget->verticalHeader()->hide();
-   if ((m_mediaName != "Any") && (m_resultCount == 0)){
+   if ((m_mediaName != tr("Any")) && (m_resultCount == 0)){
       /* for context sensitive searches, let the user know if there were no
        * results */
-      QMessageBox::warning(this, tr("Bat"),
+      QMessageBox::warning(this, "Bat",
           tr("The Jobs query returned no results.\n"
          "Press OK to continue?"), QMessageBox::Ok );
    }
@@ -527,7 +528,7 @@ void JobList::consoleListJobTotals()
 }
 void JobList::consoleDeleteJob()
 {
-   if (QMessageBox::warning(this, tr("Bat"),
+   if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to delete??  !!!.\n"
 "This delete command is used to delete a Job record and all associated catalog"
 " records that were created. This command operates only on the Catalog"
@@ -545,7 +546,7 @@ void JobList::consoleDeleteJob()
 }
 void JobList::consolePurgeFiles()
 {
-   if (QMessageBox::warning(this, tr("Bat"),
+   if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to purge ??  !!!.\n"
 "The Purge command will delete associated Catalog database records from Jobs and"
 " Volumes without considering the retention period. Purge  works only on the"
