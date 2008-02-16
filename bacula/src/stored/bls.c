@@ -476,5 +476,3 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
    return 1;
 }
 
-void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
-{ return; }

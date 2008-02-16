@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    02 January 2008
+                    15 February 2008
 
 
 Document:
@@ -71,6 +71,7 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Implement unmount of USB volumes.
 - Use "./config no-idea no-mdc2 no-rc5" on building OpenSSL for
   Win32 to avoid patent problems.
 - Plugins
