@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -261,7 +261,7 @@ void Pages::setTitle()
    QString title, director;
    treeWidgetName(title);
    m_console->getDirResName(director);
-   title += " of Director ";
+   title += tr(" of Director ");
    title += director;
    setWindowTitle(title);
 }
@@ -291,11 +291,11 @@ void Pages::setContextMenuDockText()
    QTreeWidgetItem *item = mainWin->getFromHash(this);
    QString docktext("");
    if (isDocked()) {
-       docktext += "UnDock ";
+       docktext += tr("UnDock ");
    } else {
-       docktext += "ReDock ";
+       docktext += tr("ReDock ");
    }
-   docktext += item->text(0) += " Window";
+   docktext += item->text(0) += tr(" Window");
       
    mainWin->actionToggleDock->setText(docktext);
    setTreeWidgetItemDockColor();
