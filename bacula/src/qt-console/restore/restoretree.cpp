@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,7 +42,7 @@
 restoreTree::restoreTree()
 {
    setupUi(this);
-   m_name = "Version Browser";
+   m_name = tr("Version Browser");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0, QIcon(QString::fromUtf8(":images/browse.png")));
@@ -115,12 +115,12 @@ void restoreTree::setupPage()
    connect(jobTable, SIGNAL(cellClicked(int, int)),
            this, SLOT(jobTableCellClicked(int, int)));
 
-   QStringList titles = QStringList() << "Directories";
+   QStringList titles = QStringList() << tr("Directories");
    directoryTree->setHeaderLabels(titles);
    clientCombo->addItems(m_console->client_list);
-   fileSetCombo->addItem("Any");
+   fileSetCombo->addItem(tr("Any"));
    fileSetCombo->addItems(m_console->fileset_list);
-   jobCombo->addItem("Any");
+   jobCombo->addItem(tr("Any"));
    jobCombo->addItems(m_console->job_list);
 
    directoryTree->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -142,7 +142,7 @@ void restoreTree::updateRefresh()
       refreshLabel->setText("Refresh From Re-Select");
    } else {
       if (mainWin->m_rtPopDirDebug) Pmsg0(000, "In restoreTree::updateRefresh Is not Changed\n");
-      refreshLabel->setText("Refresh From JobChecks");
+      refreshLabel->setText(tr("Refresh From JobChecks"));
    }
 }
 
@@ -174,11 +174,11 @@ void restoreTree::populateDirectoryTree()
    prBar1->setVisible(true);
    prBar1->setRange(0,taskcount);
    prBar1->setValue(0);
-   prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+   prLabel1->setText(tr("Task ") + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
    prLabel1->setVisible(true);
    prBar2->setVisible(true);
    prBar2->setRange(0,0);
-   prLabel2->setText("Querying Database");
+   prLabel2->setText(tr("Querying Database"));
    prLabel2->setVisible(true);
    repaint();
 
@@ -192,10 +192,10 @@ void restoreTree::populateDirectoryTree()
       m_prevDaysCheckState = daysCheckBox->checkState();
       updateRefresh();
       prBar1->setValue(ontask++);
-      prLabel1->setText("Task " + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+      prLabel1->setText(tr("Task ") + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
       prBar2->setRange(0,0);
-      prLabel2->setText("Querying Jobs");
+      prLabel2->setText(tr("Querying Jobs"));
       repaint();
       populateJobTable();
    }
@@ -235,10 +235,10 @@ void restoreTree::populateDirectoryTree()
       if (mainWin->m_sqlDebug)
          Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       prBar1->setValue(ontask++);
-      prLabel1->setText("Task " + QString("%1").arg(ontask) + " of " + QString("%1").arg(taskcount));
+      prLabel1->setText(tr("Task ") + QString("%1").arg(ontask) + " of " + QString("%1").arg(taskcount));
       prBar2->setValue(0);
       prBar2->setRange(0,0);
-      prLabel2->setText("Querying for Directories");
+      prLabel2->setText(tr("Querying for Directories"));
       repaint();
       QStringList results;
       m_directoryPathIdHash.clear();
@@ -246,7 +246,7 @@ void restoreTree::populateDirectoryTree()
       if (m_console->sql_cmd(cmd, results)) {
          if (!querydone) {
             querydone = true;
-            prLabel2->setText("Processing Directories");
+            prLabel2->setText(tr("Processing Directories"));
             prBar2->setRange(0,results.count());
             repaint();
          }
@@ -276,7 +276,7 @@ void restoreTree::populateDirectoryTree()
          }
       }
    } else {
-     QMessageBox::warning(this, tr("Bat"),
+     QMessageBox::warning(this, "Bat",
         tr("No jobs were selected in the job query !!!.\n"
       "Press OK to continue?"),
       QMessageBox::Ok );
@@ -381,7 +381,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
    bool ok = true, added = false;
 
    if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-      QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
+      QString msg = QString(tr("In addDirectory cwd \"%1\" newdir \"%2\"\n"))
                     .arg(m_cwd)
                     .arg(newdir);
       Pmsg0(000, msg.toUtf8().data());
@@ -435,7 +435,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       } else {
          ok = false;
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
+            QString msg = QString(tr("In else of if parent cwd \"%1\" newdir \"%2\"\n"))
                  .arg(m_cwd)
                  .arg(newdir);
             Pmsg0(000, msg.toUtf8().data());
@@ -479,8 +479,8 @@ void restoreTree::refreshButtonPushed()
  */
 void restoreTree::jobComboChanged(int)
 {
-   if (jobCombo->currentText() == "Any") {
-      fileSetCombo->setCurrentIndex(fileSetCombo->findText("Any", Qt::MatchExactly));
+   if (jobCombo->currentText() == tr("Any")) {
+      fileSetCombo->setCurrentIndex(fileSetCombo->findText(tr("Any"), Qt::MatchExactly));
       return;
    }
    job_defaults job_defs;
@@ -508,7 +508,7 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
    versionTable->setRowCount(0);
    versionTable->setColumnCount(0);
 
-   QStringList headerlist = (QStringList() << "File Name" << "Filename Id");
+   QStringList headerlist = (QStringList() << tr("File Name") << tr("Filename Id"));
    fileTable->setColumnCount(headerlist.size());
    fileTable->setHorizontalHeaderLabels(headerlist);
    fileTable->setRowCount(0);
@@ -518,7 +518,7 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
            this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
    QBrush blackBrush(Qt::black);
    QString directory = item->data(0, Qt::UserRole).toString();
-   directoryLabel->setText("Present Working Directory : " + directory);
+   directoryLabel->setText(tr("Present Working Directory : ") + directory);
    int pathid = m_directoryPathIdHash.value(directory, -1);
    if (pathid != -1) {
       QString cmd =
@@ -612,7 +612,8 @@ void restoreTree::fileCurrentItemChanged(QTableWidgetItem *currentFileTableItem,
 
    QBrush blackBrush(Qt::black);
 
-   QStringList headerlist = (QStringList() << "Job Id" << "Type" << "End Time" << "Hash" << "FileId");
+   QStringList headerlist = (QStringList() 
+      << tr("Job Id") << tr("Type") << tr("End Time") << tr("Hash") << tr("FileId"));
    versionTable->clear();
    versionTable->setColumnCount(headerlist.size());
    versionTable->setHorizontalHeaderLabels(headerlist);
@@ -698,7 +699,7 @@ void restoreTree::writeSettings()
  */
 void restoreTree::readSettings()
 {
-   m_groupText = "RestoreTreePage";
+   m_groupText = tr("RestoreTreePage");
    m_splitText = "splitterSizes_1";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
@@ -730,11 +731,12 @@ void restoreTree::populateJobTable()
    QBrush blackBrush(Qt::black);
 
    if (mainWin->m_rtPopDirDebug) Pmsg0(000, "Repopulating the Job Table\n");
-   QStringList headerlist = (QStringList() << "Job Id" << "End Time" << "Level" << 
-                                              "Name" << "Purged" << "TU" << "TD");
-   m_toggleUpIndex = headerlist.indexOf("TU");
-   m_toggleDownIndex = headerlist.indexOf("TD");
-   int purgedIndex = headerlist.indexOf("Purged");
+   QStringList headerlist = (QStringList() 
+      << tr("Job Id") << tr("End Time") << tr("Level") 
+      << tr("Name") << tr("Purged") << tr("TU") << tr("TD"));
+   m_toggleUpIndex = headerlist.indexOf(tr("TU"));
+   m_toggleDownIndex = headerlist.indexOf(tr("TD"));
+   int purgedIndex = headerlist.indexOf(tr("Purged"));
    jobTable->clear();
    jobTable->setColumnCount(headerlist.size());
    jobTable->setHorizontalHeaderLabels(headerlist);
@@ -747,10 +749,10 @@ void restoreTree::populateJobTable()
       " INNER JOIN FileSet ON (Job.FileSetId=FileSet.FileSetId)"
       " WHERE"
       " Client.Name='" + clientCombo->currentText() + "'";
-   if ((jobCombo->currentIndex() >= 0) && (jobCombo->currentText() != "Any")) {
+   if ((jobCombo->currentIndex() >= 0) && (jobCombo->currentText() != tr("Any"))) {
       jobQuery += " AND Job.name = '" + jobCombo->currentText() + "'";
    }
-   if ((fileSetCombo->currentIndex() >= 0) && (fileSetCombo->currentText() != "Any")) {
+   if ((fileSetCombo->currentIndex() >= 0) && (fileSetCombo->currentText() != tr("Any"))) {
       jobQuery += " AND FileSet.FileSet='" + fileSetCombo->currentText() + "'";
    }
    /* If Limit check box For limit by days is checked  */

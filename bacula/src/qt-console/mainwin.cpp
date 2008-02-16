@@ -474,7 +474,7 @@ void MainWin::input_line()
       /* Use consoleInput to allow typing anything */
       m_currentConsole->consoleInput(cmdStr);
    } else {
-      set_status("Director not connected. Click on connect button.");
+      set_status(tr("Director not connected. Click on connect button."));
    }
    m_cmd_history.append(cmdStr);
    m_cmd_last = -1;
@@ -487,7 +487,7 @@ void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
       tr("<br><h2>bat 1.0, by Dirk H Bartley and Kern Sibbald</h2>"
-         "<p>Copyright &copy; " BYEAR " Free Software Foundation Europe e.V."
+         "<p>Copyright &copy; 2007-" BYEAR " Free Software Foundation Europe e.V."
          "<p>The <b>bat</b> is an administrative console"
          " interface to the Director."));
 }
@@ -510,7 +510,12 @@ void MainWin::set_statusf(const char *fmt, ...)
 
 void MainWin::set_status_ready()
 {
-   set_status(" Ready");
+   set_status(tr(" Ready"));
+}
+
+void MainWin::set_status(const QString &str)
+{
+   statusBar()->showMessage(str);
 }
 
 void MainWin::set_status(const char *buf)
@@ -760,7 +765,7 @@ void prefsDialog::accept()
 void prefsDialog::reject()
 {
    this->hide();
-   mainWin->set_status("Canceled");
+   mainWin->set_status(tr("Canceled"));
 }
 
 /* read preferences for the prefences dialog box */
