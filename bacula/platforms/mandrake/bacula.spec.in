@@ -1276,11 +1276,6 @@ export QTINC=/usr/lib64/qt4/include/
 export QTLIB=/usr/lib64/qt4/
 %endif
 
-# most distributions now set default CFLAGS with -D_FORTIFY_SOURCE=2.
-# from glibc 2.7 on this causes false detection of buffer overflows in
-# the file daemon.
-export CFLAGS="${CFLAGS} -D_FORTIFY_SOURCE=0"
-
 %configure \
         --prefix=/usr \
         --sbindir=/usr/sbin \
@@ -2240,6 +2235,8 @@ fi
 %endif
 
 %changelog
+* Sat Feb 16 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- remove fix for false buffer overflow detection with glibc >= 2.7
 * Sat Feb 09 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix for false buffer overflow detection with glibc >= 2.7
 * Sun Jan 27 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
