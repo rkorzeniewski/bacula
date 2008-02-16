@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -133,8 +133,9 @@ void DirStat::populateTerminated()
 
    terminatedTable->clear();
    QStringList headerlist = (QStringList()
-      << "Job Id" << "Job Level" << "Job Files" << "Job Bytes" << "Job Status"
-      << "Job Time" << "Job Name");
+      << tr("Job Id") << tr("Job Level") << tr("Job Files")
+      << tr("Job Bytes") << tr("Job Status") << tr("Job Time") 
+      << tr("Job Name"));
    QStringList flaglist = (QStringList()
       << "R" << "L" << "R" << "R" << "LC" 
       << "L" << "L");
@@ -186,7 +187,8 @@ void DirStat::populateScheduled()
 
    scheduledTable->clear();
    QStringList headerlist = (QStringList()
-      << "Job Level" << "Job Type" << "Priority" << "Job Time" << "Job Name" << "Volume");
+      << tr("Job Level") << tr("Job Type") << tr("Priority") << tr("Job Time") 
+      << tr("Job Name") << tr("Volume"));
    QStringList flaglist = (QStringList()
       << "L" << "L" << "R" << "L" << "L" << "L");
 
@@ -230,7 +232,7 @@ void DirStat::populateRunning()
 
    runningTable->clear();
    QStringList headerlist = (QStringList()
-      << "Job Id" << "Job Level" << "Job Data" << "Job Info");
+      << tr("Job Id") << tr("Job Level") << tr("Job Data") << tr("Job Info"));
 
    runningTable->setColumnCount(headerlist.size());
    runningTable->setHorizontalHeaderLabels(headerlist);

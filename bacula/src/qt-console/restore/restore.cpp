@@ -43,7 +43,7 @@ restorePage::restorePage()
    QStringList titles;
 
    setupUi(this);
-   m_name = "Restore Select";
+   m_name = tr("Restore Select");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/restore.png")));
@@ -71,7 +71,8 @@ restorePage::restorePage()
    setFont(m_console->get_font());
    m_console->displayToPrompt();
 
-   titles << "Mark" << "File" << "Mode" << "User" << "Group" << "Size" << "Date";
+   titles << tr("Mark") << tr("File") << tr("Mode") << tr("User") 
+          << tr("Group") << tr("Size") << tr("Date");
    fileWidget->setHeaderLabels(titles);
 
    get_cwd();
@@ -185,7 +186,7 @@ void restorePage::addDirectory(QString &newdirr)
    bool windrive = false;
 
    if (mainWin->m_miscDebug) {
-      QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
+      QString msg = QString(tr("In addDirectory cwd \"%1\" newdir \"%2\"\n"))
                     .arg(m_cwd)
                     .arg(newdir);
       Pmsg0(000, msg.toUtf8().data());
@@ -232,7 +233,7 @@ void restorePage::addDirectory(QString &newdirr)
          } else {
             ok = false;
             if (mainWin->m_miscDebug) {
-               QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
+               QString msg = QString(tr("In else of if parent cwd \"%1\" newdir \"%2\"\n"))
                     .arg(m_cwd)
                     .arg(newdir);
                Pmsg0(000, msg.toUtf8().data());
@@ -282,7 +283,7 @@ void restorePage::cancelButtonPushed()
    this->hide();
    m_console->write("quit");
    m_console->displayToPrompt();
-   mainWin->set_status("Canceled");
+   mainWin->set_status(tr("Canceled"));
    closeStackPage();
    m_console->notify(true);
    mainWin->resetFocus();
