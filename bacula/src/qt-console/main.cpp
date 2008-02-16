@@ -36,6 +36,7 @@
 
 
 #include <QApplication>
+#include <QTranslator>
 #include "bat.h"
 
 MainWin *mainWin;
@@ -61,9 +62,18 @@ int main(int argc, char *argv[])
    app = new QApplication(argc, argv);        
    app->setQuitOnLastWindowClosed(true);
    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+     
+   QTranslator qtTranslator;
+   qtTranslator.load(QString("qt_") + QLocale::system().name());
+   app->installTranslator(&qtTranslator);
+
+   QTranslator batTranslator;
+   batTranslator.load(QString("bat_") + QLocale::system().name());
+   app->installTranslator(&batTranslator);
 
 
-#ifdef ENABLE_NLS
+
+#ifdef xENABLE_NLS
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
    textdomain("bacula");
