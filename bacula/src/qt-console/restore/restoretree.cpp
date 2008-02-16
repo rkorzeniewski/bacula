@@ -139,7 +139,7 @@ void restoreTree::updateRefresh()
    );
    if (m_dropdownChanged) {
       if (mainWin->m_rtPopDirDebug) Pmsg0(000, "In restoreTree::updateRefresh Is CHANGED\n");
-      refreshLabel->setText("Refresh From Re-Select");
+      refreshLabel->setText(tr("Refresh From Re-Select"));
    } else {
       if (mainWin->m_rtPopDirDebug) Pmsg0(000, "In restoreTree::updateRefresh Is not Changed\n");
       refreshLabel->setText(tr("Refresh From JobChecks"));

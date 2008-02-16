@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,7 +44,7 @@
 Clients::Clients()
 {
    setupUi(this);
-   m_name = "Clients";
+   m_name = tr("Clients");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/network-server.png")));
@@ -78,11 +78,11 @@ void Clients::populateTree()
    mp_treeWidget->clear();
    m_checkcurwidget = true;
 
-   QStringList headerlist = (QStringList() << "Client Name" << "File Retention"
-       << "Job Retention" << "AutoPrune" << "ClientId" << "Uname" );
+   QStringList headerlist = (QStringList() << tr("Client Name") << tr("File Retention")
+       << tr("Job Retention") << tr("AutoPrune") << tr("ClientId") << tr("Uname") );
 
    topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, "Clients");
+   topItem->setText(0, tr("Clients"));
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded(true);
 
@@ -244,7 +244,7 @@ void Clients::currentStackItem()
  */
 void Clients::consolePurgeJobs()
 {
-   if (QMessageBox::warning(this, tr("Bat"),
+   if (QMessageBox::warning(this, "Bat",
       tr("Are you sure you want to purge ??  !!!.\n"
 "The Purge command will delete associated Catalog database records from Jobs and"
 " Volumes without considering the retention period. Purge  works only on the"
@@ -252,7 +252,7 @@ void Clients::consolePurgeJobs()
 " be dangerous because you can delete catalog records associated with current"
 " backups of files, and we recommend that you do not use it unless you know what"
 " you are doing.\n\n"
-" Is there any way I can get you to Click cancel here.  You really don't want to do"
+" Is there any way I can get you to click Cancel here?  You really don't want to do"
 " this\n\n"
       "Press OK to proceed with the purge operation?"),
       QMessageBox::Ok | QMessageBox::Cancel)

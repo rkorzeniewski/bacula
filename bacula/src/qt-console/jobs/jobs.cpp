@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -42,7 +42,7 @@
 Jobs::Jobs()
 {
    setupUi(this);
-   m_name = "Jobs";
+   m_name = tr("Jobs");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/run.png")));
@@ -75,13 +75,14 @@ void Jobs::populateTree()
    m_checkcurwidget = false;
    mp_treeWidget->clear();
    m_checkcurwidget = true;
-   QStringList headerlist = (QStringList() << "Job Name" << "Pool" << "Messages"
-      << "Client" << "Storage" << "Where" << "Level" << "Type" << "FileSet" 
-      << "Catalog" << "Enabled");
+   QStringList headerlist = (QStringList() << tr("Job Name") << tr("Pool") << tr("Messages")
+      << tr("Client") << tr("Storage") << tr("Where") << tr("Level") << tr("Type") 
+      << tr("FileSet") 
+      << tr("Catalog") << tr("Enabled"));
 
-   m_typeIndex = headerlist.indexOf("Type");
+   m_typeIndex = headerlist.indexOf(tr("Type"));
    topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, "Jobs");
+   topItem->setText(0, tr("Jobs"));
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded(true);
 
@@ -161,7 +162,7 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
          mp_treeWidget->addAction(actionConsoleDisableJob);
          mp_treeWidget->addAction(actionConsoleCancel);
          mp_treeWidget->addAction(actionJobListQuery);
-         if (currentwidgetitem->text(m_typeIndex) == "Backup")
+         if (currentwidgetitem->text(m_typeIndex) == tr("Backup"))
             mp_treeWidget->addAction(actionRunJob);
       }
    }

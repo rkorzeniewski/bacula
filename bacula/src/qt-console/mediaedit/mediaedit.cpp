@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,7 +44,7 @@
 MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
 {
    setupUi(this);
-   m_name = "Media Edit";
+   m_name = tr("Media Edit");
    pgInitialize(parentWidget);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/cartridge-edit.png")));
@@ -72,7 +72,8 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
    poolCombo->addItems(m_console->pool_list);
 
    /* The media's Status */
-   QStringList statusList = (QStringList() << "Full" << "Used" << "Append" << "Error" << "Purged" << "Recycle" << "Read-Only" << "Cleaning");
+   QStringList statusList = (QStringList() << "Full" << "Used" << "Append" 
+       << "Error" << "Purged" << "Recycle" << "Read-Only" << "Cleaning");
    statusCombo->addItems(statusList);
 
    /* Set up the query for the default values */
@@ -192,7 +193,7 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
          recyclePoolCombo->setCurrentIndex(index);
       }
    } else {
-      QMessageBox::warning(this, "No Volume name", "No Volume name given",
+      QMessageBox::warning(this, tr("No Volume name"), tr("No Volume name given"),
                            QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
