@@ -13,7 +13,9 @@ LIBDIR=../../lib
 .c.o:
 	$(CC) -I${SRCDIR} -I${FDDOR} -DTEST_PROGRAM -c $<
 
-all: main bpipe-fd.so
+all: bpipe-fd.so
+
+test: main example-plugin-fd.so
 
 fd-plugins.o: ${FDDIR}/fd-plugins.h ${FDDIR}/fd-plugins.c
 	$(CC)  -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c ${FDDIR}/fd-plugins.c 
