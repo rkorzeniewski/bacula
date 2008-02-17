@@ -293,6 +293,7 @@ RES_ITEM job_items[] = {
    {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxWaitTime), 0, 0, 0},
    {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
+   {"maxfullage",  store_time, ITEM(res_job.MaxFullAge), 0, 0, 0},
    {"jobretention", store_time, ITEM(res_job.JobRetention),  0, 0, 0},
    {"prefixlinks", store_bool, ITEM(res_job.PrefixLinks), 0, ITEM_DEFAULT, false},
    {"prunejobs",   store_bool, ITEM(res_job.PruneJobs), 0, ITEM_DEFAULT, false},
