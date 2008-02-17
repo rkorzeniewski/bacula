@@ -620,7 +620,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
       }
       if (res->res_job.JobType == JT_BACKUP) {
-	 sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
+         sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
       }
       if (res->res_job.JobType == JT_MIGRATE) {
          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
@@ -1014,6 +1014,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_dir.scripts_directory) {
          free((char *)res->res_dir.scripts_directory);
+      }
+      if (res->res_dir.plugin_directory) {
+         free((char *)res->res_dir.plugin_directory);
       }
       if (res->res_dir.pid_directory) {
          free(res->res_dir.pid_directory);

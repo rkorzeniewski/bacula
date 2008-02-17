@@ -90,7 +90,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
    for ( ;; ) {
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          if (!found) {
-            Jmsg(NULL, M_INFO, 0, _("Failed to find suitable plugin in %s\n"), 
+            Jmsg(NULL, M_INFO, 0, _("Failed to find any plugins in %s\n"), 
                   plugin_dir);
          }
          break;
@@ -103,6 +103,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       len = strlen(result->d_name);
       type_len = strlen(type);
       if (len < type_len+1 || strcmp(&result->d_name[len-type_len], type) != 0) {
+         Dmsg3(100, "Rejected plugin: want=%s name=%s len=%d\n", type, result->d_name, len);
          continue;
       }
       Dmsg2(100, "Loaded plugin: name=%s len=%d\n", result->d_name, len);
