@@ -1,7 +1,7 @@
 
           Release Notes for Bacula 2.2.2 
 
-  Bacula code: Total files = 520 Total lines = 195,550 (*.h *.c *.in)
+  Bacula code: Total files = 506 Total lines = 190,209 (*.h *.c *.in)
   82 new files, 41,221 new lines of code, 208,380 lines of change from 2.0.3
 
 This Director and Storage daemon must be upgraded at the same time,

@@ -385,6 +385,7 @@ public:
    utime_t MaxStartDelay;             /* max start delay in seconds */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
+   utime_t MaxFullAge;                /* Max age of full to avoid upgrade */
    uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
    int64_t spool_size;                /* Size of spool file for this job */
    int RescheduleTimes;               /* Number of times to reschedule job */

@@ -161,6 +161,8 @@ int connect_to_file_daemon(JCR *jcr, int retry_interval, int max_retry_time,
 void get_level_since_time(JCR *jcr, char *since, int since_len)
 {
    int JobLevel;
+   bool FullOk;
+   utime_t now, LastFull;
 
    since[0] = 0;
    /* If job cloned and a since time already given, use it */
@@ -182,8 +184,15 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    case L_INCREMENTAL:
       /* Look up start time of last job */
       jcr->jr.JobId = 0;     /* flag for db_find_job_start time */
-      if (!db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
-         /* No job found, so upgrade this one to Full */
+      FullOk = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
+      /* If there was a successful job, make sure it is recent enough */
+      if (FullOk && jcr->job->MaxFullAge > 0) {
+         now = btime_to_utime(get_current_btime());
+         LastFull = str_to_utime(jcr->stime);
+         FullOk = ((now - LastFull) < jcr->job->MaxFullAge);
+      }
+      if (!FullOk) {
+         /* No recent job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found in catalog. Doing FULL backup.\n"));
          bsnprintf(since, since_len, _(" (upgraded from %s)"),
