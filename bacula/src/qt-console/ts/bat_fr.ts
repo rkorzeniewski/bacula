@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1">
+<!DOCTYPE TS><TS version="1.1" language="fr">
 <context>
     <name>ClientForm</name>
     <message>
@@ -1276,72 +1276,72 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../prefs.ui" line="19"/>
         <source>Preferences</source>
-        <translation type="unfinished"></translation>
+        <translation>Préférences</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="50"/>
         <source>Messages</source>
-        <translation type="unfinished"></translation>
+        <translation>Messages</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="80"/>
         <source>Messages Options</source>
-        <translation type="unfinished"></translation>
+        <translation>Options des Messages</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="104"/>
         <source>Message check interval in seconds</source>
-        <translation type="unfinished"></translation>
+        <translation>Intervalle de vérification</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="111"/>
         <source>Check Messages</source>
-        <translation type="unfinished"></translation>
+        <translation>Activer la vérification automatique des Messages</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="129"/>
         <source>Joblist</source>
-        <translation type="unfinished"></translation>
+        <translation>JobList</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="159"/>
         <source>Jolist Limit Options</source>
-        <translation type="unfinished"></translation>
+        <translation>Options de limitation sur JobList</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="203"/>
         <source>Days Limit</source>
-        <translation type="unfinished"></translation>
+        <translation>Limitation en jour</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="236"/>
         <source>Record Limit</source>
-        <translation type="unfinished"></translation>
+        <translation>Limitation sur la taille</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="249"/>
         <source>Misc</source>
-        <translation type="unfinished"></translation>
+        <translation>Autres</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="261"/>
         <source>Convert</source>
-        <translation type="unfinished"></translation>
+        <translation>Conversion</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="273"/>
         <source>Convert Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Désactiver la conversion</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="286"/>
         <source>Convert Bytes with IEC 1000B = KB</source>
-        <translation type="unfinished"></translation>
+        <translation>Convertir les octets avec IEC 1000B = KB</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="299"/>
         <source>Convert Bytes with 1024B = KB</source>
-        <translation type="unfinished"></translation>
+        <translation>Convertir les octets avec 1024B = KB</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="313"/>
@@ -1376,7 +1376,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../prefs.ui" line="398"/>
         <source>Debug</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="543"/>
@@ -1401,7 +1401,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../prefs.ui" line="493"/>
         <source>Debug Sql queries</source>
-        <translation type="unfinished"></translation>
+        <translation>Debug sur les requêtes SQL</translation>
     </message>
     <message>
         <location filename="../prefs.ui" line="500"/>
@@ -1476,7 +1476,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../prefs.ui" line="726"/>
         <source>&lt;h2&gt;Preferences&lt;/h2&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h2&gt;Préférences&lt;/h2&gt;</translation>
     </message>
 </context>
 <context>
@@ -1484,7 +1484,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../storage/storage.cpp" line="87"/>
         <source>Storage</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../storage/storage.cpp" line="83"/>
@@ -1512,7 +1512,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../storage/storage.ui" line="31"/>
         <source>Refresh Storage List</source>
-        <translation type="unfinished"></translation>
+        <translation>Rafraichir la liste</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="34"/>
@@ -1527,32 +1527,32 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../storage/storage.ui" line="56"/>
         <source>Label Storage</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Labéliser</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="67"/>
         <source>MountStorage</source>
-        <translation type="unfinished"></translation>
+        <translation>Monter</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="78"/>
         <source>UnMount Storage</source>
-        <translation type="unfinished"></translation>
+        <translation>Démonter</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="89"/>
         <source>Update Slots</source>
-        <translation type="unfinished"></translation>
+        <translation>Mettre à jour les slots</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="100"/>
         <source>Update Slots Scan</source>
-        <translation type="unfinished"></translation>
+        <translation>Mettre à jour les slots (scan)</translation>
     </message>
     <message>
         <location filename="../storage/storage.ui" line="108"/>
         <source>Release</source>
-        <translation type="unfinished"></translation>
+        <translation>Relâcher</translation>
     </message>
 </context>
 <context>
@@ -2011,7 +2011,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../mainwin.cpp" line="768"/>
         <source>Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation>Annulé</translation>
     </message>
 </context>
 <context>
@@ -2019,77 +2019,77 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/prerestore.ui" line="13"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="51"/>
         <source>All Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Tous les fichiers</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="61"/>
         <source>Select Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Fichiers sélectionnés</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="126"/>
         <source>Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Job</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="136"/>
         <source>JobIds</source>
-        <translation type="unfinished"></translation>
+        <translation>JobIds</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="176"/>
         <source>yyyy-mm-dd h:mm:ss</source>
-        <translation type="unfinished"></translation>
+        <translation>aaaa-mm-jj h:mm:ss</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="189"/>
         <source>Use Most Recent</source>
-        <translation type="unfinished"></translation>
+        <translation>Utiliser le plus récent</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="196"/>
         <source>File Set:</source>
-        <translation type="unfinished"></translation>
+        <translation>File Set :</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="206"/>
         <source>Client:</source>
-        <translation type="unfinished"></translation>
+        <translation>Client :</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="219"/>
         <source>Storage:</source>
-        <translation type="unfinished"></translation>
+        <translation>Storage :</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="232"/>
         <source>Before:</source>
-        <translation type="unfinished"></translation>
+        <translation>Avant :</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="245"/>
         <source>Pool:</source>
-        <translation type="unfinished"></translation>
+        <translation>Pool :</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="292"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="299"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.ui" line="391"/>
         <source>&lt;h3&gt;Select Jobs&lt;/h3&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Jobs sélectionnés&lt;/h3&gt;</translation>
     </message>
 </context>
 <context>
@@ -2097,30 +2097,33 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/prerestore.cpp" line="310"/>
         <source>Bat</source>
-        <translation type="unfinished"></translation>
+        <translation>Bat</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="274"/>
         <source>There can be no spaces in the text for the joblist.
 Press OK to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Il ne peut pas y avoir d&apos;espace dans la liste des jobs.
+Appuyer sur OK pour continuer ?</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="312"/>
         <source>At least one of the jobs is not a valid job of type &quot;Backup&quot;.
 Press OK to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Il y a au moins un job qui n&apos;est pas du type &quot;Backup&quot;.
+Appuyer sur OK pour continuer ?</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="318"/>
         <source>All jobs in the list must be of the same jobName and same client.
 Press OK to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Tous les jobs de la liste doivent avoir le même JobName et le même Client.
+Appuyer sur OK pour continuer ?</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="62"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Restaurer</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="76"/>
@@ -2130,18 +2133,19 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/prerestore.cpp" line="104"/>
         <source>Comma separted list of Job Ids</source>
-        <translation type="unfinished"></translation>
+        <translation>Liste de job id séparé par des virgules</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="194"/>
         <source>Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation>Annulé</translation>
     </message>
     <message>
         <location filename="../restore/prerestore.cpp" line="306"/>
         <source>The string is not a comma separated list of integers.
 Press OK to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>La chaine n&apos;est pas une liste de nombres séparés par des virgules.
+Appuyer sur OK pour continuer ?</translation>
     </message>
 </context>
 <context>
@@ -2149,47 +2153,47 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/prune.ui" line="13"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="41"/>
         <source>Prune Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Pruner les fichiers</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="63"/>
         <source>Volume:</source>
-        <translation type="unfinished"></translation>
+        <translation>Volume :</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="103"/>
         <source>&lt;h3&gt;Prune Files/Jobs/Volumes&lt;/h3&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Pruner (Élaguer) les Fichiers/Jobs/Volumes&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="133"/>
         <source>Prune Jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>Pruner les jobs</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="176"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="183"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="201"/>
         <source>Client:</source>
-        <translation type="unfinished"></translation>
+        <translation>Client :</translation>
     </message>
     <message>
         <location filename="../run/prune.ui" line="219"/>
         <source>Prune Volumes</source>
-        <translation type="unfinished"></translation>
+        <translation>Pruner les Volumes</translation>
     </message>
 </context>
 <context>
@@ -2197,17 +2201,17 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/prune.cpp" line="47"/>
         <source>Prune</source>
-        <translation type="unfinished"></translation>
+        <translation>Élaguer (prune)</translation>
     </message>
     <message>
         <location filename="../run/prune.cpp" line="140"/>
         <source>Any</source>
-        <translation type="unfinished"></translation>
+        <translation>Tous</translation>
     </message>
     <message>
         <location filename="../run/prune.cpp" line="124"/>
         <source> Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation> Annulé</translation>
     </message>
 </context>
 <context>
@@ -2215,22 +2219,22 @@ Press OK to continue?</source>
     <message>
         <location filename="../relabel/relabel.cpp" line="53"/>
         <source>From Volume : </source>
-        <translation type="unfinished"></translation>
+        <translation>Volume : </translation>
     </message>
     <message>
         <location filename="../relabel/relabel.cpp" line="64"/>
         <source>No Volume name</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas de nom de volume</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.cpp" line="64"/>
         <source>No Volume name given</source>
-        <translation type="unfinished"></translation>
+        <translation>Pas de nom de Volume donné</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.cpp" line="70"/>
         <source>New name must be different</source>
-        <translation type="unfinished"></translation>
+        <translation>Le nouveau nom doit être différent</translation>
     </message>
 </context>
 <context>
@@ -2238,7 +2242,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../relabel/relabel.ui" line="16"/>
         <source>Label</source>
-        <translation type="unfinished"></translation>
+        <translation>Label</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.ui" line="34"/>
@@ -2248,22 +2252,22 @@ Press OK to continue?</source>
     <message>
         <location filename="../relabel/relabel.ui" line="101"/>
         <source>Pool:</source>
-        <translation type="unfinished"></translation>
+        <translation>Pool :</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.ui" line="111"/>
         <source>Storage:</source>
-        <translation type="unfinished"></translation>
+        <translation>Storage :</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.ui" line="134"/>
         <source>New Volume Name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Nouveau nom de Volume :</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.ui" line="147"/>
         <source>Slot:</source>
-        <translation type="unfinished"></translation>
+        <translation>Slot :</translation>
     </message>
     <message>
         <location filename="../relabel/relabel.ui" line="186"/>
@@ -2271,7 +2275,10 @@ Press OK to continue?</source>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Sans Serif&apos;; font-size:9pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Relabel a Volume&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Sans Serif&apos;; font-size:9pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Relabéliser un Volume&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -2279,92 +2286,92 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restore.ui" line="13"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="123"/>
         <source>1</source>
-        <translation type="unfinished"></translation>
+        <translation>1</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="128"/>
         <source>2</source>
-        <translation type="unfinished"></translation>
+        <translation>2</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="133"/>
         <source>3</source>
-        <translation type="unfinished"></translation>
+        <translation>3</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="138"/>
         <source>4</source>
-        <translation type="unfinished"></translation>
+        <translation>4</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="143"/>
         <source>5</source>
-        <translation type="unfinished"></translation>
+        <translation>5</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="148"/>
         <source>6</source>
-        <translation type="unfinished"></translation>
+        <translation>6</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="190"/>
         <source>&lt;h2&gt;Directories&lt;/h2&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h2&gt;Répertoires&lt;/h2&gt;</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="219"/>
         <source>&lt;h3&gt;Restore Select&lt;/h3&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Restaurer la sélection&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="254"/>
         <source>Up</source>
-        <translation type="unfinished"></translation>
+        <translation>Dossier parent</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="469"/>
         <source>Mark</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionner</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="298"/>
         <source>Unmark</source>
-        <translation type="unfinished"></translation>
+        <translation>Désélectionner</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="324"/>
         <source>&lt;h2&gt;Files&lt;/h2&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h2&gt;Fichiers&lt;/h2&gt;</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="369"/>
         <source>Status:</source>
-        <translation type="unfinished"></translation>
+        <translation>Statut :</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="414"/>
         <source>Current Dir:</source>
-        <translation type="unfinished"></translation>
+        <translation>Dossier courrant :</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="450"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="457"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../restore/restore.ui" line="477"/>
         <source>UnMark</source>
-        <translation type="unfinished"></translation>
+        <translation>Désélectionner</translation>
     </message>
 </context>
 <context>
@@ -2377,37 +2384,37 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restore.cpp" line="74"/>
         <source>Mark</source>
-        <translation type="unfinished"></translation>
+        <translation>Sélectionner</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="74"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>Fichier</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="74"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Mode</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="75"/>
         <source>User</source>
-        <translation type="unfinished"></translation>
+        <translation>Propriétaire</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="75"/>
         <source>Group</source>
-        <translation type="unfinished"></translation>
+        <translation>Group</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="75"/>
         <source>Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Taille</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="75"/>
         <source>Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Date</translation>
     </message>
     <message>
         <location filename="../restore/restore.cpp" line="189"/>
@@ -2424,7 +2431,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restore.cpp" line="286"/>
         <source>Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation>Annulé</translation>
     </message>
 </context>
 <context>
@@ -2437,7 +2444,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restoretree.cpp" line="118"/>
         <source>Directories</source>
-        <translation type="unfinished"></translation>
+        <translation>Dossiers</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="755"/>
@@ -2447,12 +2454,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restoretree.cpp" line="145"/>
         <source>Refresh From JobChecks</source>
-        <translation type="unfinished"></translation>
+        <translation>Rafraichir depuis JobChecks</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="238"/>
         <source>Task </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Taches </translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="181"/>
@@ -2472,7 +2479,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../restore/restoretree.cpp" line="249"/>
         <source>Processing Directories</source>
-        <translation type="unfinished"></translation>
+        <translation>Analyse des dossiers</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="281"/>
@@ -2510,12 +2517,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.cpp" line="735"/>
         <source>Job Id</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="616"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Type</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="735"/>
@@ -2525,12 +2532,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.cpp" line="616"/>
         <source>Hash</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="616"/>
         <source>FileId</source>
-        <translation type="unfinished"></translation>
+        <translation>FileId</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="702"/>
@@ -2540,7 +2547,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.cpp" line="736"/>
         <source>Level</source>
-        <translation type="unfinished"></translation>
+        <translation>Niveau</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.cpp" line="736"/>
@@ -2613,7 +2620,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.ui" line="232"/>
         <source>Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Job</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.ui" line="250"/>
@@ -2633,7 +2640,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.ui" line="302"/>
         <source>FileSet</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSet</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.ui" line="320"/>
@@ -2653,7 +2660,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../restore/restoretree.ui" line="396"/>
         <source>Directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Dossier</translation>
     </message>
     <message>
         <location filename="../restore/restoretree.ui" line="407"/>
@@ -2671,52 +2678,52 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/runcmd.ui" line="13"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="41"/>
         <source>Priority:</source>
-        <translation type="unfinished"></translation>
+        <translation>Priorité :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="157"/>
         <source>yyyy-mm-dd hh:mm:ss</source>
-        <translation type="unfinished"></translation>
+        <translation>aaaa-mm-jj hh:mm:ss</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="167"/>
         <source>When:</source>
-        <translation type="unfinished"></translation>
+        <translation>Quand :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="177"/>
         <source>Where:</source>
-        <translation type="unfinished"></translation>
+        <translation>Ou :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="190"/>
         <source>Bootstrap:</source>
-        <translation type="unfinished"></translation>
+        <translation>Bootstrap :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="206"/>
         <source>Job:</source>
-        <translation type="unfinished"></translation>
+        <translation>Job :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="232"/>
         <source>Storage:</source>
-        <translation type="unfinished"></translation>
+        <translation>Storage :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="242"/>
         <source>FileSet:</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSet :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="277"/>
         <source>Replace:</source>
-        <translation type="unfinished"></translation>
+        <translation>Remplacer :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="287"/>
@@ -2726,22 +2733,22 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/runcmd.ui" line="297"/>
         <source>Catalog:</source>
-        <translation type="unfinished"></translation>
+        <translation>Catalogue :</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="330"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="337"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../run/runcmd.ui" line="376"/>
         <source>&lt;h3&gt;Run Restore Job&lt;/h3&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Lancer une restauration&lt;/h3&gt;</translation>
     </message>
 </context>
 <context>
@@ -2749,32 +2756,32 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/runcmd.cpp" line="51"/>
         <source>Restore Run</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Restauration</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="79"/>
         <source>never</source>
-        <translation type="unfinished"></translation>
+        <translation>jamais</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="77"/>
         <source>always</source>
-        <translation type="unfinished"></translation>
+        <translation>toujours</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="78"/>
         <source>ifnewer</source>
-        <translation type="unfinished"></translation>
+        <translation>si nouveau</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="78"/>
         <source>ifolder</source>
-        <translation type="unfinished"></translation>
+        <translation>si ancien</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="177"/>
         <source> Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation> Annulé</translation>
     </message>
 </context>
 <context>
@@ -2782,87 +2789,87 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/run.ui" line="13"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Form</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="33"/>
         <source>Level:</source>
-        <translation type="unfinished"></translation>
+        <translation>Niveau :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="46"/>
         <source>Bootstrap:</source>
-        <translation type="unfinished"></translation>
+        <translation>Bootstrap :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="91"/>
         <source>yyyy-mm-dd hh:mm:ss</source>
-        <translation type="unfinished"></translation>
+        <translation>aaaa-mm-jj h:mm:ss</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="101"/>
         <source>Job:</source>
-        <translation type="unfinished"></translation>
+        <translation>Job :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="124"/>
         <source>Pool:</source>
-        <translation type="unfinished"></translation>
+        <translation>Pool :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="142"/>
         <source>Type:</source>
-        <translation type="unfinished"></translation>
+        <translation>Type :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="149"/>
         <source>&lt;h3&gt;Backup&lt;h3/&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Sauvegarde&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="158"/>
         <source>FileSet:</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSet :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="168"/>
         <source>Messages:</source>
-        <translation type="unfinished"></translation>
+        <translation>Messages :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="205"/>
         <source>&lt;h3&gt;Run a Job&lt;/h3&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Lancer un Job&lt;/h3&gt;</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="230"/>
         <source>Priority:</source>
-        <translation type="unfinished"></translation>
+        <translation>Priorité :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="243"/>
         <source>Client:</source>
-        <translation type="unfinished"></translation>
+        <translation>Client :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="274"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="281"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="306"/>
         <source>Storage:</source>
-        <translation type="unfinished"></translation>
+        <translation>Storage :</translation>
     </message>
     <message>
         <location filename="../run/run.ui" line="319"/>
         <source>When:</source>
-        <translation type="unfinished"></translation>
+        <translation>Quand :</translation>
     </message>
 </context>
 <context>
@@ -2870,12 +2877,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/run.cpp" line="47"/>
         <source>Run</source>
-        <translation type="unfinished"></translation>
+        <translation>Lancer</translation>
     </message>
     <message>
         <location filename="../run/run.cpp" line="117"/>
         <source> Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation> Annulé</translation>
     </message>
 </context>
 <context>
@@ -2883,7 +2890,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../select/select.cpp" line="83"/>
         <source> Canceled</source>
-        <translation type="unfinished"></translation>
+        <translation> Annulé</translation>
     </message>
 </context>
 <context>
@@ -2899,7 +2906,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../select/select.cpp" line="111"/>
         <source>Bat Question</source>
-        <translation type="unfinished"></translation>
+        <translation>Bat Question</translation>
     </message>
 </context>
 </TS>
