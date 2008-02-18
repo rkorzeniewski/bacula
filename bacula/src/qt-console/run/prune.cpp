@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -44,7 +44,7 @@ prunePage::prunePage(const QString &volume, const QString &client)
 {
    QDateTime dt;
 
-   m_name = "Prune";
+   m_name = tr("Prune");
    pgInitialize();
    setupUi(this);
    m_console->notify(false);
@@ -64,9 +64,9 @@ prunePage::prunePage(const QString &volume, const QString &client)
       } /* foreach resultline */
    } /* if results from query */
 
-   volumeCombo->addItem("Any");
+   volumeCombo->addItem(tr("Any"));
    volumeCombo->addItems(volumeList);
-   clientCombo->addItem("Any");
+   clientCombo->addItem(tr("Any"));
    clientCombo->addItems(m_console->client_list);
    connect(okButton, SIGNAL(pressed()), this, SLOT(okButtonPushed()));
    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelButtonPushed()));
@@ -100,10 +100,10 @@ void prunePage::okButtonPushed()
    if (filesRadioButton->isChecked()) {
       cmd += " volume";
    }
-   if (volumeCombo->currentText() != "Any") {
+   if (volumeCombo->currentText() != tr("Any")) {
       cmd += " volume=\"" + volumeCombo->currentText() + "\"";
    }
-   if (clientCombo->currentText() != "Any") {
+   if (clientCombo->currentText() != tr("Any")) {
       cmd += " client=\"" + clientCombo->currentText() + "\"";
    }
    cmd += " yes";
@@ -121,7 +121,7 @@ void prunePage::okButtonPushed()
 
 void prunePage::cancelButtonPushed()
 {
-   mainWin->set_status(" Canceled");
+   mainWin->set_status(tr(" Canceled"));
    this->hide();
    m_console->notify(true);
    closeStackPage();
@@ -130,14 +130,14 @@ void prunePage::cancelButtonPushed()
 
 void prunePage::volumeChanged()
 {
-   if ((volumeCombo->currentText() == "Any") && (clientCombo->currentText() == "Any")) {
+   if ((volumeCombo->currentText() == tr("Any")) && (clientCombo->currentText() == tr("Any"))) {
       clientCombo->setCurrentIndex(1);
    }
 }
 
 void prunePage::clientChanged()
 {
-   if ((volumeCombo->currentText() == "Any") && (clientCombo->currentText() == "Any")) {
+   if ((volumeCombo->currentText() == tr("Any")) && (clientCombo->currentText() == tr("Any"))) {
       volumeCombo->setCurrentIndex(1);
    }
 }

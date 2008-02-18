@@ -42,7 +42,7 @@
 DirStat::DirStat()
 {
    setupUi(this);
-   m_name = "Director Status";
+   m_name = tr("Director Status");
    m_closeable = true;
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);

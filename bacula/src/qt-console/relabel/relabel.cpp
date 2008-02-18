@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -50,7 +50,7 @@ relabelDialog::relabelDialog(Console *console, QString &fromVolume)
    storageCombo->addItems(console->storage_list);
    poolCombo->addItems(console->pool_list);
    volumeName->setText(fromVolume);
-   QString fromText("From Volume : ");
+   QString fromText(tr("From Volume : "));
    fromText += fromVolume;
    fromLabel->setText(fromText);
    this->show();
@@ -61,12 +61,13 @@ void relabelDialog::accept()
 {
    QString scmd;
    if (volumeName->text().toUtf8().data()[0] == 0) {
-      QMessageBox::warning(this, "No Volume name", "No Volume name given",
+      QMessageBox::warning(this, tr("No Volume name"), tr("No Volume name given"),
                            QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
    if (m_fromVolume == volumeName->text().toUtf8()) {
-      QMessageBox::warning(this, "New name must be different", "New name must be different",
+      QMessageBox::warning(this, tr("New name must be different"), 
+                           tr("New name must be different"),
                            QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
