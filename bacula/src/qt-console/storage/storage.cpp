@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -45,7 +45,7 @@
 Storage::Storage()
 {
    setupUi(this);
-   m_name = "Storage";
+   m_name = tr("Storage");
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.png")));
@@ -80,11 +80,11 @@ void Storage::populateTree()
    mp_treeWidget->clear();
    m_checkcurwidget = true;
 
-   QStringList headerlist = (QStringList() << "Storage Name" << "Storage Id"
-       << "Auto Changer");
+   QStringList headerlist = (QStringList() << tr("Storage Name") << tr("Storage Id")
+       << tr("Auto Changer"));
 
    topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, "Storage");
+   topItem->setText(0, tr("Storage"));
    topItem->setData(0, Qt::UserRole, 0);
    topItem->setExpanded(true);
 

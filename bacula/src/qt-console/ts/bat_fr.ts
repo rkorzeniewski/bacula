@@ -204,6 +204,11 @@ Press OK to proceed with the purge operation?</source>
         <source>Job Info</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../status/dirstat.cpp" line="45"/>
+        <source>Director Status</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DirStatForm</name>
@@ -1269,208 +1274,231 @@ Press OK to proceed with the purge operation?</source>
 <context>
     <name>PrefsForm</name>
     <message>
-        <location filename="../prefs.ui" line="21"/>
+        <location filename="../prefs.ui" line="19"/>
         <source>Preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="40"/>
+        <location filename="../prefs.ui" line="50"/>
         <source>Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="60"/>
+        <location filename="../prefs.ui" line="80"/>
         <source>Messages Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="72"/>
+        <location filename="../prefs.ui" line="104"/>
         <source>Message check interval in seconds</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="79"/>
+        <location filename="../prefs.ui" line="111"/>
         <source>Check Messages</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="97"/>
+        <location filename="../prefs.ui" line="129"/>
         <source>Joblist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="117"/>
+        <location filename="../prefs.ui" line="159"/>
         <source>Jolist Limit Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="137"/>
+        <location filename="../prefs.ui" line="203"/>
         <source>Days Limit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="170"/>
+        <location filename="../prefs.ui" line="236"/>
         <source>Record Limit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="183"/>
+        <location filename="../prefs.ui" line="249"/>
         <source>Misc</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="195"/>
+        <location filename="../prefs.ui" line="261"/>
         <source>Convert</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="207"/>
+        <location filename="../prefs.ui" line="273"/>
         <source>Convert Off</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="220"/>
+        <location filename="../prefs.ui" line="286"/>
         <source>Convert Bytes with IEC 1000B = KB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="233"/>
+        <location filename="../prefs.ui" line="299"/>
         <source>Convert Bytes with 1024B = KB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="247"/>
+        <location filename="../prefs.ui" line="313"/>
         <source>Context Sensitive List Commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="259"/>
+        <location filename="../prefs.ui" line="337"/>
         <source>Execute Long List</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="275"/>
+        <location filename="../prefs.ui" line="353"/>
         <source>GroupBox</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="287"/>
+        <location filename="../prefs.ui" line="365"/>
         <source>Open Plot page on startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="300"/>
+        <location filename="../prefs.ui" line="378"/>
         <source>Open Browser page on startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="313"/>
+        <location filename="../prefs.ui" line="391"/>
         <source>Open Director Status page on startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="320"/>
+        <location filename="../prefs.ui" line="398"/>
         <source>Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="421"/>
+        <location filename="../prefs.ui" line="543"/>
         <source>Debugging Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="360"/>
+        <location filename="../prefs.ui" line="472"/>
         <source>Debug comm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="367"/>
+        <location filename="../prefs.ui" line="479"/>
         <source>Display all messages in console</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="374"/>
+        <location filename="../prefs.ui" line="486"/>
         <source>Debug Commands</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="381"/>
+        <location filename="../prefs.ui" line="493"/>
         <source>Debug Sql queries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="388"/>
+        <location filename="../prefs.ui" line="500"/>
         <source>Debug Miscelaneous Items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="401"/>
+        <location filename="../prefs.ui" line="513"/>
         <source>RestoreTree</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="441"/>
+        <location filename="../prefs.ui" line="587"/>
         <source>Restore Debug 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="448"/>
+        <location filename="../prefs.ui" line="594"/>
         <source>Directory Item Changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="455"/>
+        <location filename="../prefs.ui" line="601"/>
         <source>Restore Debug 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="462"/>
+        <location filename="../prefs.ui" line="608"/>
         <source>Directory Current Item Changed Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="469"/>
+        <location filename="../prefs.ui" line="615"/>
         <source>Update File Table Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="476"/>
+        <location filename="../prefs.ui" line="622"/>
         <source>Version Table Item Changed Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="483"/>
+        <location filename="../prefs.ui" line="629"/>
         <source>File Table Item Changed Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="490"/>
+        <location filename="../prefs.ui" line="636"/>
         <source>Icon State Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="497"/>
+        <location filename="../prefs.ui" line="643"/>
         <source>Update Checks Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="504"/>
+        <location filename="../prefs.ui" line="650"/>
         <source>Restore Debug 3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="511"/>
+        <location filename="../prefs.ui" line="657"/>
         <source>Update Version Table Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="518"/>
+        <location filename="../prefs.ui" line="664"/>
         <source>Populate Directory Debug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../prefs.ui" line="573"/>
+        <location filename="../prefs.ui" line="726"/>
         <source>&lt;h2&gt;Preferences&lt;/h2&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Storage</name>
+    <message>
+        <location filename="../storage/storage.cpp" line="87"/>
+        <source>Storage</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../storage/storage.cpp" line="83"/>
+        <source>Storage Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../storage/storage.cpp" line="84"/>
+        <source>Storage Id</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../storage/storage.cpp" line="84"/>
+        <source>Auto Changer</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2165,6 +2193,47 @@ Press OK to continue?</source>
     </message>
 </context>
 <context>
+    <name>prunePage</name>
+    <message>
+        <location filename="../run/prune.cpp" line="47"/>
+        <source>Prune</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/prune.cpp" line="140"/>
+        <source>Any</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/prune.cpp" line="124"/>
+        <source> Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>relabelDialog</name>
+    <message>
+        <location filename="../relabel/relabel.cpp" line="53"/>
+        <source>From Volume : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../relabel/relabel.cpp" line="64"/>
+        <source>No Volume name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../relabel/relabel.cpp" line="64"/>
+        <source>No Volume name given</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../relabel/relabel.cpp" line="70"/>
+        <source>New name must be different</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>relabelForm</name>
     <message>
         <location filename="../relabel/relabel.ui" line="16"/>
@@ -2213,87 +2282,87 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="115"/>
+        <location filename="../restore/restore.ui" line="123"/>
         <source>1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="120"/>
+        <location filename="../restore/restore.ui" line="128"/>
         <source>2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="125"/>
+        <location filename="../restore/restore.ui" line="133"/>
         <source>3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="130"/>
+        <location filename="../restore/restore.ui" line="138"/>
         <source>4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="135"/>
+        <location filename="../restore/restore.ui" line="143"/>
         <source>5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="140"/>
+        <location filename="../restore/restore.ui" line="148"/>
         <source>6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="173"/>
+        <location filename="../restore/restore.ui" line="190"/>
         <source>&lt;h2&gt;Directories&lt;/h2&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="202"/>
+        <location filename="../restore/restore.ui" line="219"/>
         <source>&lt;h3&gt;Restore Select&lt;/h3&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="239"/>
+        <location filename="../restore/restore.ui" line="254"/>
         <source>Up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="446"/>
+        <location filename="../restore/restore.ui" line="469"/>
         <source>Mark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="287"/>
+        <location filename="../restore/restore.ui" line="298"/>
         <source>Unmark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="313"/>
+        <location filename="../restore/restore.ui" line="324"/>
         <source>&lt;h2&gt;Files&lt;/h2&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="351"/>
+        <location filename="../restore/restore.ui" line="369"/>
         <source>Status:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="391"/>
+        <location filename="../restore/restore.ui" line="414"/>
         <source>Current Dir:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="427"/>
+        <location filename="../restore/restore.ui" line="450"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="434"/>
+        <location filename="../restore/restore.ui" line="457"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../restore/restore.ui" line="454"/>
+        <location filename="../restore/restore.ui" line="477"/>
         <source>UnMark</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2676,6 +2745,39 @@ Press OK to continue?</source>
     </message>
 </context>
 <context>
+    <name>runCmdPage</name>
+    <message>
+        <location filename="../run/runcmd.cpp" line="51"/>
+        <source>Restore Run</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/runcmd.cpp" line="79"/>
+        <source>never</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/runcmd.cpp" line="77"/>
+        <source>always</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/runcmd.cpp" line="78"/>
+        <source>ifnewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/runcmd.cpp" line="78"/>
+        <source>ifolder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/runcmd.cpp" line="177"/>
+        <source> Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>runForm</name>
     <message>
         <location filename="../run/run.ui" line="13"/>
@@ -2764,10 +2866,39 @@ Press OK to continue?</source>
     </message>
 </context>
 <context>
+    <name>runPage</name>
+    <message>
+        <location filename="../run/run.cpp" line="47"/>
+        <source>Run</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../run/run.cpp" line="117"/>
+        <source> Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>selectDialog</name>
+    <message>
+        <location filename="../select/select.cpp" line="83"/>
+        <source> Canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>selectForm</name>
     <message>
         <location filename="../select/select.ui" line="16"/>
         <source>Selection dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>yesnoPopUp</name>
+    <message>
+        <location filename="../select/select.cpp" line="111"/>
+        <source>Bat Question</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

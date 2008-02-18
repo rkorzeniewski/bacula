@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -48,7 +48,7 @@
  */
 runCmdPage::runCmdPage()
 {
-   m_name = "Restore Run";
+   m_name = tr("Restore Run");
    pgInitialize();
    setupUi(this);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
@@ -74,8 +74,9 @@ void runCmdPage::fill()
 
    clientCombo->addItems(m_console->client_list);
    filesetCombo->addItems(m_console->fileset_list);
-   replaceCombo->addItems(QStringList() << "never" << "always" << "ifnewer" << "ifolder");
-   replaceCombo->setCurrentIndex(replaceCombo->findText("never", Qt::MatchExactly));
+   replaceCombo->addItems(QStringList() << tr("never") << tr("always") << tr("ifnewer") 
+        << tr("ifolder"));
+   replaceCombo->setCurrentIndex(replaceCombo->findText(tr("never"), Qt::MatchExactly));
    storageCombo->addItems(m_console->storage_list);
    dateTimeEdit->setDisplayFormat(mainWin->m_dtformat);
 
@@ -173,7 +174,7 @@ void runCmdPage::cancelButtonPushed()
    m_console->displayToPrompt();
    m_console->write_dir(".");
    m_console->displayToPrompt();
-   mainWin->set_status(" Canceled");
+   mainWin->set_status(tr(" Canceled"));
    this->hide();
    m_console->notify(true);
    closeStackPage();

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -80,7 +80,7 @@ void selectDialog::accept()
 void selectDialog::reject()
 {
    this->hide();
-   mainWin->set_status(" Canceled");
+   mainWin->set_status(tr(" Canceled"));
    this->close();
    mainWin->resetFocus();
    m_console->beginNewCommand();
@@ -108,7 +108,7 @@ yesnoPopUp::yesnoPopUp(Console *console)
 
    setAttribute(Qt::WA_DeleteOnClose);
    console->read();                 /* get yesno question */
-   msgBox.setWindowTitle("Bat Question");
+   msgBox.setWindowTitle(tr("Bat Question"));
    msgBox.setText(console->msg());
    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
    console->displayToPrompt();
