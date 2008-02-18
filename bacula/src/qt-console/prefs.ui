@@ -10,7 +10,9 @@
    </rect>
   </property>
   <property name="sizePolicy" >
-   <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+   <sizepolicy>
+    <hsizetype>0</hsizetype>
+    <vsizetype>0</vsizetype>
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -22,56 +24,34 @@
    <iconset>images/bat.png</iconset>
   </property>
   <layout class="QGridLayout" >
-   <property name="leftMargin" >
+   <property name="margin" >
     <number>9</number>
    </property>
-   <property name="topMargin" >
-    <number>9</number>
-   </property>
-   <property name="rightMargin" >
-    <number>9</number>
-   </property>
-   <property name="bottomMargin" >
-    <number>9</number>
-   </property>
-   <property name="horizontalSpacing" >
-    <number>6</number>
-   </property>
-   <property name="verticalSpacing" >
+   <property name="spacing" >
     <number>6</number>
    </property>
    <item row="1" column="0" >
     <widget class="QTabWidget" name="tabWidget" >
      <property name="currentIndex" >
-      <number>4</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab" >
       <attribute name="title" >
        <string>Messages</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="0" column="0" >
         <widget class="QGroupBox" name="groupBox" >
          <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <sizepolicy>
+           <hsizetype>0</hsizetype>
+           <vsizetype>0</vsizetype>
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -80,22 +60,10 @@
           <string>Messages Options</string>
          </property>
          <layout class="QGridLayout" >
-          <property name="leftMargin" >
+          <property name="margin" >
            <number>9</number>
           </property>
-          <property name="topMargin" >
-           <number>9</number>
-          </property>
-          <property name="rightMargin" >
-           <number>9</number>
-          </property>
-          <property name="bottomMargin" >
-           <number>9</number>
-          </property>
-          <property name="horizontalSpacing" >
-           <number>6</number>
-          </property>
-          <property name="verticalSpacing" >
+          <property name="spacing" >
            <number>6</number>
           </property>
           <item row="2" column="0" >
@@ -129,28 +97,18 @@
        <string>Joblist</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="0" column="0" >
         <widget class="QGroupBox" name="groupBox_2" >
          <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <sizepolicy>
+           <hsizetype>0</hsizetype>
+           <vsizetype>0</vsizetype>
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -159,42 +117,18 @@
           <string>Jolist Limit Options</string>
          </property>
          <layout class="QGridLayout" >
-          <property name="leftMargin" >
+          <property name="margin" >
            <number>9</number>
           </property>
-          <property name="topMargin" >
-           <number>9</number>
-          </property>
-          <property name="rightMargin" >
-           <number>9</number>
-          </property>
-          <property name="bottomMargin" >
-           <number>9</number>
-          </property>
-          <property name="horizontalSpacing" >
-           <number>6</number>
-          </property>
-          <property name="verticalSpacing" >
+          <property name="spacing" >
            <number>6</number>
           </property>
           <item row="0" column="0" >
            <layout class="QGridLayout" >
-            <property name="leftMargin" >
+            <property name="margin" >
              <number>0</number>
             </property>
-            <property name="topMargin" >
-             <number>0</number>
-            </property>
-            <property name="rightMargin" >
-             <number>0</number>
-            </property>
-            <property name="bottomMargin" >
-             <number>0</number>
-            </property>
-            <property name="horizontalSpacing" >
-             <number>6</number>
-            </property>
-            <property name="verticalSpacing" >
+            <property name="spacing" >
              <number>6</number>
             </property>
             <item row="2" column="0" >
@@ -206,11 +140,11 @@
             </item>
             <item row="3" column="0" >
              <widget class="QSpinBox" name="daysSpinBox" >
-              <property name="minimum" >
-               <number>1</number>
-              </property>
               <property name="maximum" >
                <number>10000</number>
+              </property>
+              <property name="minimum" >
+               <number>1</number>
               </property>
               <property name="singleStep" >
                <number>7</number>
@@ -219,11 +153,11 @@
             </item>
             <item row="1" column="0" >
              <widget class="QSpinBox" name="recordSpinBox" >
-              <property name="minimum" >
-               <number>1</number>
-              </property>
               <property name="maximum" >
                <number>10000</number>
+              </property>
+              <property name="minimum" >
+               <number>1</number>
               </property>
               <property name="singleStep" >
                <number>25</number>
@@ -313,22 +247,10 @@
         <string>Context Sensitive List Commands</string>
        </property>
        <layout class="QGridLayout" >
-        <property name="leftMargin" >
+        <property name="margin" >
          <number>9</number>
         </property>
-        <property name="topMargin" >
-         <number>9</number>
-        </property>
-        <property name="rightMargin" >
-         <number>9</number>
-        </property>
-        <property name="bottomMargin" >
-         <number>9</number>
-        </property>
-        <property name="horizontalSpacing" >
-         <number>6</number>
-        </property>
-        <property name="verticalSpacing" >
+        <property name="spacing" >
          <number>6</number>
         </property>
         <item row="0" column="0" >
@@ -398,28 +320,18 @@
        <string>Debug</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="0" column="0" >
         <widget class="QGroupBox" name="groupBox_3" >
          <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <sizepolicy>
+           <hsizetype>0</hsizetype>
+           <vsizetype>0</vsizetype>
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -428,42 +340,18 @@
           <string>Debugging Options</string>
          </property>
          <layout class="QGridLayout" >
-          <property name="leftMargin" >
+          <property name="margin" >
            <number>9</number>
           </property>
-          <property name="topMargin" >
-           <number>9</number>
-          </property>
-          <property name="rightMargin" >
-           <number>9</number>
-          </property>
-          <property name="bottomMargin" >
-           <number>9</number>
-          </property>
-          <property name="horizontalSpacing" >
-           <number>6</number>
-          </property>
-          <property name="verticalSpacing" >
+          <property name="spacing" >
            <number>6</number>
           </property>
           <item row="0" column="0" >
            <layout class="QGridLayout" >
-            <property name="leftMargin" >
+            <property name="margin" >
              <number>0</number>
             </property>
-            <property name="topMargin" >
-             <number>0</number>
-            </property>
-            <property name="rightMargin" >
-             <number>0</number>
-            </property>
-            <property name="bottomMargin" >
-             <number>0</number>
-            </property>
-            <property name="horizontalSpacing" >
-             <number>6</number>
-            </property>
-            <property name="verticalSpacing" >
+            <property name="spacing" >
              <number>6</number>
             </property>
             <item row="0" column="0" >
@@ -513,28 +401,18 @@
        <string>RestoreTree</string>
       </attribute>
       <layout class="QGridLayout" >
-       <property name="leftMargin" >
+       <property name="margin" >
         <number>9</number>
        </property>
-       <property name="topMargin" >
-        <number>9</number>
-       </property>
-       <property name="rightMargin" >
-        <number>9</number>
-       </property>
-       <property name="bottomMargin" >
-        <number>9</number>
-       </property>
-       <property name="horizontalSpacing" >
-        <number>6</number>
-       </property>
-       <property name="verticalSpacing" >
+       <property name="spacing" >
         <number>6</number>
        </property>
        <item row="0" column="0" >
         <widget class="QGroupBox" name="groupBox_5" >
          <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <sizepolicy>
+           <hsizetype>0</hsizetype>
+           <vsizetype>0</vsizetype>
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -543,42 +421,18 @@
           <string>Debugging Options</string>
          </property>
          <layout class="QGridLayout" >
-          <property name="leftMargin" >
+          <property name="margin" >
            <number>9</number>
           </property>
-          <property name="topMargin" >
-           <number>9</number>
-          </property>
-          <property name="rightMargin" >
-           <number>9</number>
-          </property>
-          <property name="bottomMargin" >
-           <number>9</number>
-          </property>
-          <property name="horizontalSpacing" >
-           <number>6</number>
-          </property>
-          <property name="verticalSpacing" >
+          <property name="spacing" >
            <number>6</number>
           </property>
           <item row="0" column="0" >
            <layout class="QGridLayout" >
-            <property name="leftMargin" >
+            <property name="margin" >
              <number>0</number>
             </property>
-            <property name="topMargin" >
-             <number>0</number>
-            </property>
-            <property name="rightMargin" >
-             <number>0</number>
-            </property>
-            <property name="bottomMargin" >
-             <number>0</number>
-            </property>
-            <property name="horizontalSpacing" >
-             <number>6</number>
-            </property>
-            <property name="verticalSpacing" >
+            <property name="spacing" >
              <number>6</number>
             </property>
             <item row="10" column="0" >
@@ -686,20 +540,11 @@
    </item>
    <item row="0" column="0" >
     <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
      <property name="spacing" >
       <number>6</number>
-     </property>
-     <property name="leftMargin" >
-      <number>0</number>
-     </property>
-     <property name="topMargin" >
-      <number>0</number>
-     </property>
-     <property name="rightMargin" >
-      <number>0</number>
-     </property>
-     <property name="bottomMargin" >
-      <number>0</number>
      </property>
      <item>
       <spacer>
@@ -717,7 +562,9 @@
      <item>
       <widget class="QLabel" name="headingLabel" >
        <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+        <sizepolicy>
+         <hsizetype>0</hsizetype>
+         <vsizetype>0</vsizetype>
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
