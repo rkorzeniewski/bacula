@@ -1,0 +1,975 @@
+Index: src/dird/fd_cmds.c
+===================================================================
+--- src/dird/fd_cmds.c	(révision 6443)
++++ src/dird/fd_cmds.c	(copie de travail)
+@@ -50,7 +50,7 @@
+ static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
+ static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
+ /* Note, mtime_only is not used here -- implemented as file option */
+-static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
++static char levelcmd[]    = "level = %s%s%s mtime_only=%d\n";
+ static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
+ static char runbeforenow[]= "RunBeforeNow\n";
+ 
+@@ -226,7 +226,7 @@
+    char ed1[50];
+ 
+    stime = str_to_utime(jcr->stime);
+-   fd->fsend(levelcmd, NT_("since_utime "), edit_uint64(stime, ed1), 0);
++   fd->fsend(levelcmd, "", NT_("since_utime "), edit_uint64(stime, ed1), 0);
+    while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
+       Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
+    }
+@@ -240,24 +240,25 @@
+ bool send_level_command(JCR *jcr)
+ {
+    BSOCK   *fd = jcr->file_bsock;
++   const char *accurate=jcr->job->accurate?"accurate_":"";
+    /*
+     * Send Level command to File daemon
+     */
+    switch (jcr->JobLevel) {
+    case L_BASE:
+-      fd->fsend(levelcmd, "base", " ", 0);
++      fd->fsend(levelcmd, "", "base", " ", 0);
+       break;
+    /* L_NONE is the console, sending something off to the FD */
+    case L_NONE:
+    case L_FULL:
+-      fd->fsend(levelcmd, "full", " ", 0);
++      fd->fsend(levelcmd, "", "full", " ", 0);
+       break;
+    case L_DIFFERENTIAL:
+-      fd->fsend(levelcmd, "differential", " ", 0);
++      fd->fsend(levelcmd, accurate, "differential", " ", 0);
+       send_since_time(jcr);
+       break;
+    case L_INCREMENTAL:
+-      fd->fsend(levelcmd, "incremental", " ", 0);
++      fd->fsend(levelcmd, accurate, "incremental", " ", 0);
+       send_since_time(jcr);
+       break;
+    case L_SINCE:
+Index: src/dird/backup.c
+===================================================================
+--- src/dird/backup.c	(révision 6443)
++++ src/dird/backup.c	(copie de travail)
+@@ -44,6 +44,7 @@
+ #include "bacula.h"
+ #include "dird.h"
+ #include "ua.h"
++#include "findlib/find.h"
+ 
+ /* Commands sent to File daemon */
+ static char backupcmd[] = "backup\n";
+@@ -96,7 +97,81 @@
+    return true;
+ }
+ 
++static int accurate_list_handler(void *ctx, int num_fields, char **row)
++{
++   JCR *jcr = (JCR *)ctx;
++
++   if (job_canceled(jcr)) {
++      return 1;
++   }
++   
++   if (row[0] > 0) {
++      jcr->file_bsock->fsend("%s%s%c%s", row[1], row[2], 0, row[3]); 
++   }
++   return 0;
++}
++
++bool db_accurate_get_jobids(JCR *jcr, POOLMEM *jobids)
++{
++   pm_strcpy(jobids, "1");
++   return 1;
++}
++
++bool send_accurate_current_files(JCR *jcr)
++{
++   char buf[MAXSTRING];
++   char ed1[50], ed2[50];
++
++   POOLMEM *jobids = get_pool_memory(PM_FNAME);
++   db_accurate_get_jobids(jcr, jobids);
++
++   bsnprintf(buf, sizeof(buf),
++	      "CREATE TEMPORARY TABLE btemp2%s AS ( "
++	      "SELECT max(FileId) as FileId, PathId, FilenameId "
++	      "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
++	      "GROUP BY PathId, FilenameId ) ",
++	      edit_uint64(jcr->JobId, ed1),
++	      jobids);
++   db_sql_query(jcr->db, buf, NULL, NULL);
++
++   // TODO: compter le nombre de rows 
++   jcr->file_bsock->fsend("accurate files=%s", edit_uint64(5895, ed2)); /* TODO: change protocol to something like nb= */
++
++   bsnprintf(buf, sizeof(buf),
++	     "SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat "
++	       "FROM btemp2%s JOIN Path USING (PathId) JOIN Filename USING (FilenameId) "
++	       "JOIN File USING (FileId) "
++	      "WHERE File.FileIndex > 0",
++	     ed1, jobids);
++   db_sql_query(jcr->db, buf, accurate_list_handler, (void *)jcr);
++
++   bsnprintf(buf, sizeof(buf), "DROP TABLE btemp2%s", ed1);
++   free_pool_memory(jobids);
++
+ /*
++ CREATE TEMPORARY TABLE btemp2 AS (
++  SELECT max(FileId) as FileId, PathId, FilenameId 
++    FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (39867,40341)) AS F
++   GROUP BY PathId, FilenameId )
++
++  SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat
++    FROM btemp2 JOIN Path USING (PathId) JOIN Filename USING (FilenameId)
++                JOIN File USING (FileId)
++   WHERE File.FileIndex > 0
++
++ DROP TABLE btemp2
++*/
++/*
++SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
++  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
++ ORDER BY PathId, FilenameId, JobId DESC
++*/
++
++   jcr->file_bsock->signal(BNET_EOD);
++   return true;
++}
++
++/*
+  * Do a backup of the specified FileSet
+  *
+  *  Returns:  false on failure
+@@ -225,6 +300,14 @@
+       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+    }
+ 
++   /*
++    * If backup is in accurate mode, FD will send the list of
++    * all files.
++    */
++   if (!send_accurate_current_files(jcr)) {
++      goto bail_out;
++   }
++
+    /* Send backup command */
+    fd->fsend(backupcmd);
+    if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
+@@ -234,6 +317,7 @@
+    /* Pickup Job termination data */
+    stat = wait_for_job_termination(jcr);
+    db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
++
+    if (stat == JS_Terminated) {
+       backup_cleanup(jcr, stat);
+       return true;
+Index: src/dird/inc_conf.c
+===================================================================
+--- src/dird/inc_conf.c	(révision 6443)
++++ src/dird/inc_conf.c	(copie de travail)
+@@ -94,6 +94,7 @@
+  * Items that are valid in an Options resource
+  */
+ static RES_ITEM options_items[] = {
++   {"accurate",        store_opts,    {0},     0, 0, 0},
+    {"compression",     store_opts,    {0},     0, 0, 0},
+    {"signature",       store_opts,    {0},     0, 0, 0},
+    {"verify",          store_opts,    {0},     0, 0, 0},
+@@ -153,7 +154,8 @@
+    INC_KW_NOATIME,
+    INC_KW_ENHANCEDWILD,
+    INC_KW_CHKCHANGES,
+-   INC_KW_STRIPPATH
++   INC_KW_STRIPPATH,
++   INC_KW_ACCURATE
+ };
+ 
+ /*
+@@ -163,6 +165,7 @@
+  *   options given above.
+  */
+ static struct s_kw FS_option_kw[] = {
++   {"accurate",    INC_KW_ACCURATE},
+    {"compression", INC_KW_COMPRESSION},
+    {"signature",   INC_KW_DIGEST},
+    {"encryption",  INC_KW_ENCRYPTION},
+@@ -251,6 +254,8 @@
+    {"no",       INC_KW_ENHANCEDWILD,  "0"},
+    {"yes",      INC_KW_CHKCHANGES,    "c"},
+    {"no",       INC_KW_CHKCHANGES,    "0"},
++   {"yes",      INC_KW_ACCURATE,      "C"},
++   {"no",       INC_KW_ACCURATE,      "0"},
+    {NULL,       0,                      0}
+ };
+ 
+Index: src/filed/backup.c
+===================================================================
+--- src/filed/backup.c	(révision 6443)
++++ src/filed/backup.c	(copie de travail)
+@@ -48,8 +48,175 @@
+ static bool crypto_session_start(JCR *jcr);
+ static void crypto_session_end(JCR *jcr);
+ static bool crypto_session_send(JCR *jcr, BSOCK *sd);
++static bool encode_and_send_deleted_file(JCR *jcr, char *fname);
+ 
++
+ /*
++ * We are called here for each record that matches the above
++ *  SQL query -- that is for each file contained in the Catalog
++ *  that was not marked earlier. This means that the file in
++ *  question is a missing file (in the Catalog but not on Disk).
++ */
++/* TODO: tweak verify code to use the same function */
++bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt, char *attr)
++{
++   char *p;
++   int stat=false;
++   struct stat statf;                 /* file stat */
++   struct stat statc;                 /* catalog stat */
++   char *Opts_Digest = ff_pkt->VerifyOpts;
++   char *lstat;
++
++   int32_t LinkFIf, LinkFIc;
++
++   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
++      return attr != NULL;	/* if null => don't backup */
++   }
++   
++   return attr != true;
++
++   decode_stat(attr, &statf, &LinkFIf);  /* decode file stat packet */
++   
++   // TODO: check for /path/ and /path/file
++   lstat = (char *) jcr->file_list->lookup(ff_pkt->fname);
++
++   if (!lstat) {
++      // TODO: we must backup it !
++      return true;
++   }
++
++   decode_stat(lstat, &statc, &LinkFIc); /* decode catalog stat */
++//   *do_Digest = CRYPTO_DIGEST_NONE;
++
++   for (p=Opts_Digest; *p; p++) {
++      char ed1[30], ed2[30];
++      switch (*p) {
++      case 'i':                /* compare INODEs */
++	 if (statc.st_ino != statf.st_ino) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_ino, ed1),
++		 edit_uint64((uint64_t)statf.st_ino, ed2));
++	    stat = true;
++	 }
++	 break;
++      case 'p':                /* permissions bits */
++	 if (statc.st_mode != statf.st_mode) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
++		 (uint32_t)statc.st_mode, (uint32_t)statf.st_mode);
++	    stat = true;
++	 }
++	 break;
++      case 'n':                /* number of links */
++	 if (statc.st_nlink != statf.st_nlink) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
++		 (uint32_t)statc.st_nlink, (uint32_t)statf.st_nlink);
++	    stat = true;
++	 }
++	 break;
++      case 'u':                /* user id */
++	 if (statc.st_uid != statf.st_uid) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
++		 (uint32_t)statc.st_uid, (uint32_t)statf.st_uid);
++	    stat = true;
++	 }
++	 break;
++      case 'g':                /* group id */
++	 if (statc.st_gid != statf.st_gid) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
++		 (uint32_t)statc.st_gid, (uint32_t)statf.st_gid);
++	    stat = true;
++	 }
++	 break;
++      case 's':                /* size */
++	 if (statc.st_size != statf.st_size) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_size, ed1),
++		 edit_uint64((uint64_t)statf.st_size, ed2));
++	    stat = true;
++	 }
++	 break;
++      case 'a':                /* access time */
++	 if (statc.st_atime != statf.st_atime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'm':
++	 if (statc.st_mtime != statf.st_mtime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'c':                /* ctime */
++	 if (statc.st_ctime != statf.st_ctime) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
++	    stat = true;
++	 }
++	 break;
++      case 'd':                /* file size decrease */
++	 if (statc.st_size > statf.st_size) {
++	    Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
++		 edit_uint64((uint64_t)statc.st_size, ed1),
++		 edit_uint64((uint64_t)statf.st_size, ed2));
++	    stat = true;
++	 }
++	 break;
++      case '5':                /* compare MD5 */
++	 Dmsg1(500, "set Do_MD5 for %s\n", jcr->fname);
++//	 *do_Digest = CRYPTO_DIGEST_MD5;
++	 break;
++      case '1':                 /* compare SHA1 */
++//	 *do_Digest = CRYPTO_DIGEST_SHA1;
++	 break;
++      case ':':
++      case 'V':
++      default:
++	 break;
++      }
++   }
++   *lstat = '\0';		/* mark it as deleted */
++   return stat;
++}
++
++#include "lib/htable.c"
++int accurate_get_current_file_list_cmd(JCR *jcr)
++{
++   BSOCK *dir = jcr->dir_bsock;
++   char *lstat;
++   int len;
++   uint64_t nb;
++
++   if (jcr->accurate == false || job_canceled(jcr)) {
++      return true;
++   }
++
++   if (sscanf(dir->msg, "accurate files=%ld", &nb) != 1) {
++      dir->fsend(_("2991 Bad accurate command\n"));
++      return false;
++   }
++
++   jcr->file_list = (htable *)malloc(sizeof(htable));
++   jcr->file_list->init(jcr, &jcr->link, nb);
++
++   /* get current files */
++   while (dir->recv() >= 0) {
++      len = strlen(dir->msg);
++      if ((len+1) < dir->msglen) {
++	 char *elt = (char *) malloc(dir->msglen+1);
++	 memcpy(elt, dir->msg, dir->msglen+1);
++	 lstat = elt + len + 1;
++	 Dmsg2(5, "hash[%s]=%s\n", elt, lstat);
++	 jcr->file_list->insert(elt, lstat);
++      }
++   }
++  
++   jcr->file_list->stats();
++//   dir->fsend("2000 OK accurate\n");
++
++   return true;
++}
++
++/*
+  * Find all the requested files and send them
+  * to the Storage daemon.
+  *
+@@ -66,7 +233,6 @@
+    BSOCK *sd;
+    bool ok = true;
+    // TODO landonf: Allow user to specify encryption algorithm
+-
+    sd = jcr->store_bsock;
+ 
+    set_jcr_job_status(jcr, JS_Running);
+@@ -134,7 +300,12 @@
+       ok = false;                     /* error */
+       set_jcr_job_status(jcr, JS_ErrorTerminated);
+    }
++   Dmsg1(1, "jcr->accurate == %i\n", jcr->accurate);
+ 
++   if (jcr->accurate) {
++      //accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
++   }
++
+    free_pool_memory(jcr->acl_text);
+ 
+    stop_heartbeat_monitor(jcr);
+@@ -355,9 +526,11 @@
+    case FT_DIRNOCHG:
+    case FT_NOCHG:
+       Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
++      accurate_check_file(jcr, ff_pkt, NULL); /* list skipped files */
+       return 1;
+    case FT_ISARCH:
+       Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
++      accurate_check_file(jcr, ff_pkt, NULL); /* list skipped files */
+       return 1;
+    case FT_NOOPEN: {
+       berrno be;
+@@ -1118,6 +1291,9 @@
+    }
+    unstrip_path(ff_pkt);
+ 
++   /* list backuped files */
++   accurate_check_file(jcr, ff_pkt, attribs);
++
+    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+    if (!stat) {
+       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
+@@ -1128,6 +1304,58 @@
+    return true;
+ }
+ 
++static bool encode_and_send_deleted_file(JCR *jcr, char *fname) 
++{
++   BSOCK *sd = jcr->store_bsock;
++   char *attribs;
++   char *attribsEx;
++   int stat;
++#ifdef FD_NO_SEND_TEST
++   return true;
++#endif
++
++   attribs = " ";
++   attribsEx = " ";
++
++   /*
++    * Send Attributes header to Storage daemon
++    *    <file-index> <stream> <info>
++    */
++   if (!sd->fsend("%ld %d 0", 0, STREAM_UNIX_ATTRIBUTES)) {
++      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
++            sd->bstrerror());
++      return false;
++   }
++   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
++
++   /*
++    * Send file attributes to Storage daemon
++    *   File_index
++    *   File type
++    *   Filename (full path)
++    *   Encoded attributes
++    *   Link name (if type==FT_LNK or FT_LNKSAVED)
++    *   Encoded extended-attributes (for Win32)
++    *
++    * For a directory, link is the same as fname, but with trailing
++    * slash. For a linked file, link is the link.
++    */
++   stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", 
++		    0 /* FileIndex */,
++		    FT_NOSTAT /* FileType */,
++		    fname /* FileName */, 
++		    0, attribs, 0, 0, 0, attribsEx, 0);
++
++   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
++   if (!stat) {
++      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
++            sd->bstrerror());
++      return false;
++   }
++   sd->signal(BNET_EOD);            /* indicate end of attributes data */
++   return true;
++}
++
+ /* 
+  * Do in place strip of path
+  */
+Index: src/filed/job.c
+===================================================================
+--- src/filed/job.c	(révision 6443)
++++ src/filed/job.c	(copie de travail)
+@@ -49,6 +49,7 @@
+ /* Imported functions */
+ extern int status_cmd(JCR *jcr);
+ extern int qstatus_cmd(JCR *jcr);
++extern int accurate_get_current_file_list_cmd(JCR *jcr);
+ 
+ /* Forward referenced functions */
+ static int backup_cmd(JCR *jcr);
+@@ -106,6 +107,7 @@
+    {"RunBeforeJob", runbefore_cmd, 0},
+    {"RunAfterJob",  runafter_cmd,  0},
+    {"Run",          runscript_cmd, 0},
++   {"accurate",     accurate_get_current_file_list_cmd, 0},
+    {NULL,       NULL}                  /* list terminator */
+ };
+ 
+@@ -1087,6 +1089,9 @@
+       case 'c':
+          fo->flags |= FO_CHKCHANGES;
+          break;
++      case 'C':
++         fo->flags |= FO_ACCURATE;
++         break;
+       default:
+          Emsg1(M_ERROR, 0, _("Unknown include/exclude option: %c\n"), *p);
+          break;
+@@ -1195,6 +1200,9 @@
+ 
+    level = get_memory(dir->msglen+1);
+    Dmsg1(110, "level_cmd: %s", dir->msg);
++   if (strstr(dir->msg, "accurate")) {
++      jcr->accurate = true;
++   }
+    if (sscanf(dir->msg, "level = %s ", level) != 1) {
+       goto bail_out;
+    }
+@@ -1204,14 +1212,14 @@
+    /* Full backup requested? */
+    } else if (strcmp(level, "full") == 0) {
+       jcr->JobLevel = L_FULL;
+-   } else if (strcmp(level, "differential") == 0) {
++   } else if (strstr(level, "differential")) {
+       jcr->JobLevel = L_DIFFERENTIAL;
+       free_memory(level);
+       return 1;
+-   } else if (strcmp(level, "incremental") == 0) {
++   } else if (strstr(level, "incremental")) {
+       jcr->JobLevel = L_INCREMENTAL;
+       free_memory(level);
+-      return 1;   
++      return 1;
+    /*
+     * We get his UTC since time, then sync the clocks and correct it
+     *   to agree with our clock.
+Index: src/cats/sql_update.c
+===================================================================
+--- src/cats/sql_update.c	(révision 6443)
++++ src/cats/sql_update.c	(copie de travail)
+@@ -88,6 +88,102 @@
+    return stat;
+ }
+ 
++int db_accurate_delete_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE FileId=%s AND BackupId=%s",
++	edit_int64(FileId, ed1), edit_int64(BackupId, ed2));
++   stat = INSERT_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, JobId_t JobId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++   /* TODO: mdb->esc_xxx are already ok but it's more smart to recompute it */
++//   mdb->esc_name = check_pool_memory_size(mdb->esc_name, 2*len+2);
++//   mdb->esc_name = db_escape_string(jcr, mdb, mdb->esc_name, fname, len);
++   Mmsg(mdb->cmd, "INSERT INTO ToBackup%s (name) VALUES ('%s%s')", edit_int64(JobId, ed1), mdb->esc_path, mdb->esc_name);
++   stat = INSERT_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_cleanup_currentfile(JCR *jcr, B_DB *mdb, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE BackupId=%s", edit_int64(BackupId, ed1));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_update_currentfile(JCR *jcr, B_DB *mdb, JobId_t JobId, int JobLevel, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50], ed3[50];
++   db_lock(mdb);
++   edit_int64(JobId, ed2);
++   Mmsg(mdb->cmd, 
++	"INSERT INTO CurrentFile (FileId, BackupId, FullMark, MarkId) "
++	" (SELECT FileId, %s, '%c', %s FROM File WHERE JobId=%s)", 
++	edit_int64(BackupId, ed1),
++	JobLevel, ed2, ed2);
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat; 
++}
++
++int db_accurate_create_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++{
++   int stat;
++   char ed1[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "CREATE TABLE ToBackup%s (name text)", edit_int64(JobId, ed1));
++//   Mmsg(mdb->cmd, "CREATE TEMPORARY TABLE ToBackup%s (name text)", edit_int64(JobId, ed1));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++int db_accurate_drop_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId)
++{
++   int stat=0;
++   char ed1[50];
++   db_lock(mdb);
++//   Mmsg(mdb->cmd, "DROP TABLE ToBackup%s", edit_int64(JobId, ed1));
++//   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
++}
++
++
++/* Mark the file record as being visited during database
++ * accurate compare. Stuff JobId into the MarkId field
++ */
++int db_accurate_mark_file_record(JCR *jcr, B_DB *mdb, JobId_t BackupId, FileId_t FileId, JobId_t JobId)
++{
++   int stat;
++   char ed1[50], ed2[50], ed3[50];
++
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "UPDATE CurrentFile SET MarkId=%s WHERE FileId=%s AND BackupId=%s", 
++	edit_int64(JobId, ed1), edit_int64(FileId, ed2), edit_int64(BackupId, ed3));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   if (!stat || sql_affected_rows(mdb) != 1) {
++      stat = 0;
++   }
++   db_unlock(mdb);
++   return stat;
++}
++
+ /*
+  * Update the Job record at start of Job
+  *
+Index: src/cats/drop_postgresql_tables.in
+===================================================================
+--- src/cats/drop_postgresql_tables.in	(révision 6443)
++++ src/cats/drop_postgresql_tables.in	(copie de travail)
+@@ -5,7 +5,7 @@
+ bindir=@SQL_BINDIR@
+ db_name=@db_name@
+ 
+-$bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
++$bindir/psql -f - -U regress -d ${db_name} $* <<END-OF-DATA
+ drop table unsavedfiles;
+ drop table basefiles;
+ drop table jobmedia;
+Index: src/cats/make_postgresql_tables.in
+===================================================================
+--- src/cats/make_postgresql_tables.in	(révision 6443)
++++ src/cats/make_postgresql_tables.in	(copie de travail)
+@@ -5,7 +5,7 @@
+ bindir=@SQL_BINDIR@
+ db_name=@db_name@
+ 
+-$bindir/psql -f - -d ${db_name} $* <<END-OF-DATA
++$bindir/psql -f - -U regress -d ${db_name} $* <<END-OF-DATA
+ 
+ CREATE TABLE filename
+ (
+@@ -43,6 +43,59 @@
+ CREATE INDEX file_jobid_idx on file (jobid);
+ CREATE INDEX file_fp_idx on file (filenameid, pathid);
+ 
++CREATE TABLE CurrentBackupId
++(
++     BackupId          serial     not null,
++     ClientId          integer    not null,
++     JobName           text       not null,
++     FileSetId         integer    not null,
++     primary key (BackupId)
++);
++
++-- Serait bien de prendre la meme table pour
++-- les File et le CurrentBackup...
++-- Mais y'a des problemes pour les prunes
++
++CREATE TABLE CurrentFile
++(
++     FileId           integer    not null,
++     BackupId         integer    not null,
++     FullMark         char(1)    default 0,
++     MarkId           integer    default 0,
++     primary key (FileId)
++);
++
++CREATE INDEX currentfile_fileid on CurrentFile (BackupId);
++
++-- CREATE TEMPORARY TABLE batch (fileindex int,
++--                               jobid int,
++--                               path varchar,
++--                               name varchar,
++--                               lstat varchar,
++--                               md5 varchar);
++-- 
++-- -- On batch insert dans la table temporaire
++
++-- il faut trouver les fichiers manquant
++-- INSERT des nouveaux, UPDATE des anciens, SELECT pour trouver les deletes
++
++
++-- il faut trouver les fichiers modifies
++-- Le champs LStat n'est plus le meme
++-- SELECT * 
++--   FROM CurrentBackup, 
++--        batch JOIN Path USING (Path) JOIN Filename USING (Name)
++--  WHERE Path.PathId = CurrentBackup.PathId
++--    AND Filename.FilenameId = CurrentBackup.FilenameId
++--    AND CurrentBackup.LStat != batch.LStat
++-- 
++-- il faut mettre a jour la liste des fichiers
++
++
++
++
++
++
+ --
+ -- Possibly add one or more of the following indexes
+ --  if your Verifies are too slow.
+Index: src/cats/protos.h
+===================================================================
+--- src/cats/protos.h	(révision 6443)
++++ src/cats/protos.h	(copie de travail)
+@@ -78,14 +78,17 @@
+ /* sql_delete.c */
+ int db_delete_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pool_dbr);
+ int db_delete_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
++int db_accurate_clean_deleted_files(JCR *jcr, B_DB *mdb, JobId_t JobId, JobId_t BackupId);
+ 
+ /* sql_find.c */
+ bool db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime);
+ bool db_find_last_jobid(JCR *jcr, B_DB *mdb, const char *Name, JOB_DBR *jr);
++JobId_t db_accurate_find_backupid(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+ int db_find_next_volume(JCR *jcr, B_DB *mdb, int index, bool InChanger, MEDIA_DBR *mr);
+ bool db_find_failed_job_since(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *stime, int &JobLevel);
+ 
+ /* sql_get.c */
++int db_accurate_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JobId_t backupid, FILE_DBR *fdbr);
+ bool db_get_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pdbr);
+ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
+ bool db_get_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr);
+@@ -129,6 +132,14 @@
+ int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
+ int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
+ int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
++int db_accurate_mark_file_for_backup(JCR *jcr, B_DB *mdb, char *fname, FileId_t JobId);
++int db_accurate_mark_file_record(JCR *jcr, B_DB *mdb, JobId_t BackupId, FileId_t FileId, JobId_t JobId);
++int db_accurate_drop_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_create_tobackup_table(JCR *jcr, B_DB *mdb, JobId_t JobId);
++int db_accurate_delete_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t BackupId);
+ void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
++int db_accurate_cleanup_currentfile(JCR *jcr, B_DB *mdb, JobId_t BackupId);
++int db_accurate_update_currentfile(JCR *jcr, B_DB *mdb, JobId_t JobId, int JobLevel, JobId_t BackupId);
+ 
++
+ #endif /* __SQL_PROTOS_H */
+Index: src/cats/sql_find.c
+===================================================================
+--- src/cats/sql_find.c	(révision 6443)
++++ src/cats/sql_find.c	(copie de travail)
+@@ -190,7 +190,6 @@
+    return true;
+ }
+ 
+-
+ /*
+  * Find JobId of last job that ran.  E.g. for
+  *   VERIFY_CATALOG we want the JobId of the last INIT.
+Index: src/cats/sql_delete.c
+===================================================================
+--- src/cats/sql_delete.c	(révision 6443)
++++ src/cats/sql_delete.c	(copie de travail)
+@@ -236,5 +236,22 @@
+    return 1;
+ }
+ 
++/*
++ * Purge delete file from CurrentFile table. This table contains only
++ * current files.
++ */
++int db_accurate_clean_deleted_files(JCR *jcr, B_DB *mdb, JobId_t JobId, JobId_t BackupId)
++{
++   int stat;
++   char ed1[50], ed2[50];
++   db_lock(mdb);
++   Mmsg(mdb->cmd, "DELETE FROM CurrentFile WHERE MarkId!=%s AND BackupId=%s", 
++	edit_int64(JobId, ed1), edit_int64(BackupId, ed2));
++   stat = QUERY_DB(jcr, mdb, mdb->cmd);
++   db_unlock(mdb);
++   return stat;
+ 
++}
++
++
+ #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
+Index: src/cats/sql_create.c
+===================================================================
+--- src/cats/sql_create.c	(révision 6443)
++++ src/cats/sql_create.c	(copie de travail)
+@@ -829,6 +829,14 @@
+    return true;
+ }
+ 
++bool db_accurate_insert(JCR *jcr, B_DB *mdb, bool saved, const char *fname, struct stat *stat)
++{
++   int len;
++   split_path_and_file(jcr, mdb, fname);
++   /* make like in Verify code */
++   return true;
++} 
++
+ /*
+  * Create File record in B_DB
+  *
+Index: src/cats/sql_get.c
+===================================================================
+--- src/cats/sql_get.c	(révision 6443)
++++ src/cats/sql_get.c	(copie de travail)
+@@ -66,6 +66,8 @@
+  *
+  *  Returns: 0 on failure
+  *           1 on success with the File record in FILE_DBR
++ *
++ * TODO: optimize this with only one query
+  */
+ int db_get_file_attributes_record(JCR *jcr, B_DB *mdb, char *fname, JOB_DBR *jr, FILE_DBR *fdbr)
+ {
+@@ -86,7 +88,6 @@
+    return stat;
+ }
+ 
+-
+ /*
+  * Get a File record
+  * Returns: 0 on failure
+Index: src/stored/append.c
+===================================================================
+--- src/stored/append.c	(révision 6443)
++++ src/stored/append.c	(copie de travail)
+@@ -146,7 +146,7 @@
+ 
+       /* Read Stream header from the File daemon.
+        *  The stream header consists of the following:
+-       *    file_index (sequential Bacula file index, base 1)
++       *    file_index (sequential Bacula file index, base 1, 0 for deleted files)
+        *    stream     (Bacula number to distinguish parts of data)
+        *    info       (Info for Storage daemon -- compressed, encryped, ...)
+        *       info is not currently used, so is read, but ignored!
+@@ -185,16 +185,18 @@
+ 
+       Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
+ 
+-      if (!(file_index > 0 && (file_index == last_file_index ||
+-          file_index == last_file_index + 1))) {
+-         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
+-         ok = false;
+-         break;
++      if (file_index != 0) {	/* TODO: handle file_index == 0 */
++	 if (!(file_index > 0 && (file_index == last_file_index ||
++				  file_index == last_file_index + 1))) {
++	    Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
++	    ok = false;
++	    break;
++	 }
++	 if (file_index != last_file_index) {
++	    jcr->JobFiles = file_index;
++	    last_file_index = file_index;
++	 }
+       }
+-      if (file_index != last_file_index) {
+-         jcr->JobFiles = file_index;
+-         last_file_index = file_index;
+-      }
+ 
+       /* Read data stream from the File daemon.
+        *  The data stream is just raw bytes
+@@ -212,25 +214,26 @@
+             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
+             rec.data_len);
+ 
+-         while (!write_record_to_block(dcr->block, &rec)) {
+-            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+-                       rec.remainder);
+-            if (!write_block_to_device(dcr)) {
+-               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
+-                  dev->print_name(), dev->bstrerror());
+-               ok = false;
+-               break;
+-            }
+-         }
+-         if (!ok) {
+-            Dmsg0(400, "Not OK\n");
+-            break;
+-         }
+-         jcr->JobBytes += rec.data_len;   /* increment bytes this job */
+-         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
+-            FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
+-            stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
++	 while (!write_record_to_block(dcr->block, &rec)) {
++	    Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
++		  rec.remainder);
++	    if (!write_block_to_device(dcr)) {
++	       Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
++		     dev->print_name(), dev->bstrerror());
++	       ok = false;
++	       break;
++	    }
+ 
++	    if (!ok) {
++	       Dmsg0(400, "Not OK\n");
++	       break;
++	    }
++	    jcr->JobBytes += rec.data_len;   /* increment bytes this job */
++	    Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
++		  FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
++		  stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
++	 }
++
+          /* Send attributes and digest to Director for Catalog */
+          if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
+              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(révision 6443)
++++ src/jcr.h	(copie de travail)
+@@ -119,6 +119,7 @@
+ 
+ /* Forward referenced structures */
+ class JCR;
++class htable;
+ struct FF_PKT;
+ struct B_DB;
+ struct ATTR_DBR;
+@@ -318,6 +319,7 @@
+    CRYPTO_CTX crypto;                 /* Crypto ctx */
+    DIRRES* director;                  /* Director resource */
+    bool VSS;                          /* VSS used by FD */
++   htable *file_list;                 /* Previous file list (accurate mode) */
+ #endif /* FILE_DAEMON */
+ 
+ 
+Index: src/findlib/find.h
+===================================================================
+--- src/findlib/find.h	(révision 6443)
++++ src/findlib/find.h	(copie de travail)
+@@ -108,6 +108,7 @@
+ #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
+ #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
+ #define FO_STRIPPATH    (1<<25)       /* Check for stripping path */
++#define FO_ACCURATE     (1<<26)       /* Accurate mode */
+ 
+ struct s_included_file {
+    struct s_included_file *next;
