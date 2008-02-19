@@ -53,8 +53,7 @@ DirStat::DirStat()
    dockPage();
    m_timer = new QTimer(this);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTriggered()));
-   //m_timer->start(mainWin->m_checkMessagesInterval*1000);
-   m_timer->start(10*1000);
+   m_timer->start(mainWin->m_refreshStatusDirInterval*1000);
 }
 
 void DirStat::getFont()
@@ -99,7 +98,7 @@ void DirStat::populateAll()
 void DirStat::timerTriggered()
 {
    bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
-   if ((isDocked() && iscurrent) || (!isDocked())) {
+   if (((isDocked() && iscurrent) || (!isDocked())) && mainWin->m_refreshStatusDir) {
       if (m_console->is_ready())
          populateAll();
    }

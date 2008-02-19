@@ -53,7 +53,6 @@ public slots:
    void populateTerminated();
    void populateScheduled();
    void populateRunning();
-//   virtual void treeWidgetName(QString &);
    void populateAll();
 
 private slots:
@@ -67,7 +66,7 @@ private:
    QTextCursor *m_cursor;
    void getFont();
    QString m_groupText, m_splitText;
-   QTimer * m_timer;
+   QTimer *m_timer;
 };
 
 #endif /* _DIRSTAT_H_ */
