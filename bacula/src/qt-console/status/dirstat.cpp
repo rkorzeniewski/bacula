@@ -54,6 +54,8 @@ DirStat::DirStat()
    m_timer = new QTimer(this);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTriggered()));
    m_timer->start(mainWin->m_refreshStatusDirInterval*1000);
+
+   createConnections();
 }
 
 void DirStat::getFont()
@@ -292,6 +294,21 @@ void DirStat::currentStackItem()
  */
 void DirStat::createConnections()
 {
+   connect(actionRefresh, SIGNAL(triggered()), this,
+                   SLOT(populateAll()));
+   connect(actionCancelRunning, SIGNAL(triggered()), this,
+                   SLOT(consoleCancelJob()));
+   connect(actionDisableScheduledJob, SIGNAL(triggered()), this,
+                   SLOT(consoleDisableJob()));
+
+   scheduledTable->setContextMenuPolicy(Qt::ActionsContextMenu);
+   scheduledTable->addAction(actionRefresh);
+   scheduledTable->addAction(actionDisableScheduledJob);
+   terminatedTable->setContextMenuPolicy(Qt::ActionsContextMenu);
+   terminatedTable->addAction(actionRefresh);
+   runningTable->setContextMenuPolicy(Qt::ActionsContextMenu);
+   runningTable->addAction(actionRefresh);
+   runningTable->addAction(actionCancelRunning);
 }
 
 /*
@@ -317,3 +334,34 @@ void DirStat::readSettings()
    splitter->restoreState(settings.value(m_splitText).toByteArray());
    settings.endGroup();
 }
+
+/*
+ * Cancel a running job
+ */
+void DirStat::consoleCancelJob()
+{
+   int currentrow = runningTable->currentRow();
+   QTableWidgetItem *item = runningTable->item(currentrow, 0);
+   if (item) {
+      QString text = item->text();
+      QString cmd("cancel jobid=");
+      cmd += text;
+      consoleCommand(cmd);
+   }
+}
+
+/*
+ * Disable a scheduled Job
+ */
+void DirStat::consoleDisableJob()
+{
+   int currentrow = scheduledTable->currentRow();
+   QTableWidgetItem *item = scheduledTable->item(currentrow, 4);
+   if (item) {
+      QString text = item->text();
+      QString cmd("disable job=\"");
+      cmd += text + '"';
+      consoleCommand(cmd);
+   }
+}
+
