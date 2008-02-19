@@ -646,6 +646,8 @@ void MainWin::setPreferences()
    prefs.daysSpinBox->setValue(m_daysLimitVal);
    prefs.checkMessages->setCheckState(m_checkMessages ? Qt::Checked : Qt::Unchecked);
    prefs.checkMessagesSpin->setValue(m_checkMessagesInterval);
+   prefs.refreshStatusDir->setCheckState(m_refreshStatusDir ? Qt::Checked : Qt::Unchecked);
+   prefs.refreshStatusDirSpin->setValue(m_refreshStatusDirInterval);
    prefs.executeLongCheckBox->setCheckState(m_longList ? Qt::Checked : Qt::Unchecked);
    prefs.rtPopDirCheckBox->setCheckState(m_rtPopDirDebug ? Qt::Checked : Qt::Unchecked);
    prefs.rtDirCurICCheckBox->setCheckState(m_rtDirCurICDebug ? Qt::Checked : Qt::Unchecked);
@@ -693,6 +695,8 @@ void prefsDialog::accept()
    mainWin->m_daysLimitVal = this->daysSpinBox->value();
    mainWin->m_checkMessages = this->checkMessages->checkState() == Qt::Checked;
    mainWin->m_checkMessagesInterval = this->checkMessagesSpin->value();
+   mainWin->m_refreshStatusDir = this->refreshStatusDir->checkState() == Qt::Checked;
+   mainWin->m_refreshStatusDirInterval = this->refreshStatusDirSpin->value();
    mainWin->m_longList = this->executeLongCheckBox->checkState() == Qt::Checked;
 
    mainWin->m_rtPopDirDebug = this->rtPopDirCheckBox->checkState() == Qt::Checked;
@@ -732,9 +736,11 @@ void prefsDialog::accept()
    settings.setValue("daysLimitCheck", mainWin->m_daysLimitCheck);
    settings.setValue("daysLimitVal", mainWin->m_daysLimitVal);
    settings.endGroup();
-   settings.beginGroup("Messages");
+   settings.beginGroup("Timers");
    settings.setValue("checkMessages", mainWin->m_checkMessages);
    settings.setValue("checkMessagesInterval", mainWin->m_checkMessagesInterval);
+   settings.setValue("refreshStatusDir", mainWin->m_refreshStatusDir);
+   settings.setValue("refreshStatusDirInterval", mainWin->m_refreshStatusDirInterval);
    settings.endGroup();
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
@@ -785,9 +791,11 @@ void MainWin::readPreferences()
    m_daysLimitCheck = settings.value("daysLimitCheck", false).toBool();
    m_daysLimitVal = settings.value("daysLimitVal", 28).toInt();
    settings.endGroup();
-   settings.beginGroup("Messages");
+   settings.beginGroup("Timers");
    m_checkMessages = settings.value("checkMessages", false).toBool();
    m_checkMessagesInterval = settings.value("checkMessagesInterval", 28).toInt();
+   m_refreshStatusDir = settings.value("refreshStatusDir", false).toBool();
+   m_refreshStatusDirInterval = settings.value("refreshStatusDirInterval", 28).toInt();
    settings.endGroup();
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
