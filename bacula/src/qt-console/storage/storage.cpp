@@ -132,7 +132,7 @@ void Storage::populateTree()
       }
    }
    /* Resize the columns */
-   for(int cnter=1; cnter<headerlist.size(); cnter++) {
+   for(int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
 }

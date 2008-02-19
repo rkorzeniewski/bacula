@@ -79,7 +79,7 @@ void FileSet::populateTree()
    mp_treeWidget->clear();
    m_checkcurwidget = true;
 
-   QStringList headerlist = (QStringList() << tr("  FileSet Name  ") << tr("FileSet Id")
+   QStringList headerlist = (QStringList() << tr("FileSet Name") << tr("FileSet Id")
        << tr("Create Time"));
 
    topItem = new QTreeWidgetItem(mp_treeWidget);
@@ -132,10 +132,9 @@ void FileSet::populateTree()
       }
    }
    /* Resize the columns */
-   for (int cnter=1; cnter<headerlist.size(); cnter++) {
+   for (int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
-
 }
 
 /*
