@@ -54,7 +54,7 @@ Index: src/dird/backup.c
 ===================================================================
 --- src/dird/backup.c	(révision 6443)
 +++ src/dird/backup.c	(copie de travail)
-@@ -96,6 +96,138 @@
+@@ -96,6 +96,140 @@
     return true;
  }
  
@@ -187,13 +187,15 @@ Index: src/dird/backup.c
 +   free_pool_memory(nb);
 +
 +   jcr->file_bsock->signal(BNET_EOD);
++   /* TODO: use response() ? */
++
 +   return true;
 +}
 +
  /*
   * Do a backup of the specified FileSet
   *
-@@ -225,6 +357,14 @@
+@@ -225,6 +359,14 @@
        Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
     }
  
@@ -208,7 +210,7 @@ Index: src/dird/backup.c
     /* Send backup command */
     fd->fsend(backupcmd);
     if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-@@ -234,6 +374,7 @@
+@@ -234,6 +376,7 @@
     /* Pickup Job termination data */
     stat = wait_for_job_termination(jcr);
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
@@ -343,7 +345,7 @@ Index: src/filed/backup.c
  
  /* Forward referenced functions */
  int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-@@ -48,8 +49,223 @@
+@@ -48,8 +49,225 @@
  static bool crypto_session_start(JCR *jcr);
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
@@ -510,6 +512,8 @@ Index: src/filed/backup.c
 +      dir->fsend(_("2991 Bad accurate command\n"));
 +      return false;
 +   }
++
++   Jmsg(jcr, M_INFO, 0, _("Getting Accurate informations.\n"));
 +   
 +   jcr->file_list = (htable *)malloc(sizeof(htable));
 +   jcr->file_list->init(elt, &elt->link, nb);
@@ -531,7 +535,7 @@ Index: src/filed/backup.c
 +	 Dmsg2(1, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +      }
 +   }
-+  
++
 +//   jcr->file_list->stats();
 +   /* TODO: send a EOM ?
 +   dir->fsend("2000 OK accurate\n");
@@ -567,7 +571,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,7 +282,6 @@
+@@ -66,7 +284,6 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -575,7 +579,7 @@ Index: src/filed/backup.c
     sd = jcr->store_bsock;
  
     set_jcr_job_status(jcr, JS_Running);
-@@ -100,7 +315,7 @@
+@@ -100,7 +317,7 @@
      */
     jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
     jcr->compress_buf = get_memory(jcr->compress_buf_size);
@@ -584,7 +588,7 @@ Index: src/filed/backup.c
  #ifdef HAVE_LIBZ
     z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
     if (pZlibStream) {
-@@ -134,7 +349,10 @@
+@@ -134,7 +351,10 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -595,7 +599,7 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -354,9 +572,21 @@
+@@ -354,9 +574,21 @@
     }
     case FT_DIRNOCHG:
     case FT_NOCHG:
@@ -617,7 +621,7 @@ Index: src/filed/backup.c
        Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
        return 1;
     case FT_NOOPEN: {
-@@ -1118,6 +1348,9 @@
+@@ -1118,6 +1350,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -627,7 +631,7 @@ Index: src/filed/backup.c
     Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
     if (!stat) {
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-@@ -1128,6 +1361,58 @@
+@@ -1128,6 +1363,58 @@
     return true;
  }
  
