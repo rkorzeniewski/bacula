@@ -1,7 +1,7 @@
 Index: src/dird/fd_cmds.c
 ===================================================================
---- src/dird/fd_cmds.c	(révision 6443)
-+++ src/dird/fd_cmds.c	(copie de travail)
+--- src/dird/fd_cmds.c	(revision 6450)
++++ src/dird/fd_cmds.c	(working copy)
 @@ -50,7 +50,7 @@
  static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
  static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
@@ -52,8 +52,8 @@ Index: src/dird/fd_cmds.c
     case L_SINCE:
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 6443)
-+++ src/dird/backup.c	(copie de travail)
+--- src/dird/backup.c	(revision 6450)
++++ src/dird/backup.c	(working copy)
 @@ -44,6 +44,7 @@
  #include "bacula.h"
  #include "dird.h"
@@ -62,10 +62,22 @@ Index: src/dird/backup.c
  
  /* Commands sent to File daemon */
  static char backupcmd[] = "backup\n";
-@@ -96,7 +97,93 @@
+@@ -96,7 +97,177 @@
     return true;
  }
  
++static int get_int_handler(void *ctx, int num_fields, char **row)
++{
++   POOLMEM *ret = (POOLMEM *)ctx;
++   if (num_fields == 1) {
++      if (ret[0] != 0) {
++	 pm_strcat(ret, ",");
++      }
++      pm_strcat(ret, row[0]);
++   }
++   return 0;
++}
++
 +static int accurate_list_handler(void *ctx, int num_fields, char **row)
 +{
 +   JCR *jcr = (JCR *)ctx;
@@ -88,46 +100,118 @@ Index: src/dird/backup.c
 + */
 +bool db_accurate_get_jobids(JCR *jcr, POOLMEM *jobids)
 +{
-+   pm_strcpy(jobids, "42");
++   char clientid[50], jobid[50], filesetid[50];
++   char date[MAX_TIME_LENGTH];
++
++   JOB_DBR *jr = &jcr->jr; 
++   POOLMEM *query = get_pool_memory(PM_FNAME);
++   bstrutime(date, sizeof(date),  time(NULL) + 1);
++
++   Mmsg(query, 
++"CREATE TEMPORARY TABLE btemp3%s AS ( "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='F' AND JobStatus='T' AND Type='B' "
++    "AND StartTime<'%s' "
++    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC LIMIT 1) ",
++	edit_uint64(jcr->JobId, jobid),
++	edit_uint64(jr->ClientId, clientid),
++	date,
++	edit_uint64(jr->FileSetId, filesetid));
++   db_sql_query(jcr->db, query, NULL, NULL);
++
++   if (jcr->JobLevel == L_INCREMENTAL) {
++
++      Mmsg(query, 
++"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='D' AND JobStatus='T' AND Type='B' "
++    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
++    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC LIMIT 1 ",
++	   jobid,
++	   clientid,
++	   jobid,
++	   filesetid);
++      db_sql_query(jcr->db, query, NULL, NULL);
++
++      Mmsg(query, 
++"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='I' AND JobStatus='T' AND Type='B' "
++    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
++    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC ",
++	   jobid,
++	   clientid,
++	   jobid,
++	   filesetid);
++      db_sql_query(jcr->db, query, NULL, NULL);
++   }
++
++   jobids[0]='\0';
++   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
++   db_sql_query(jcr->db, query, get_int_handler, jobids);
++   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
++
++   Mmsg(query, "DROP TABLE btemp3%s", jobid);
++   db_sql_query(jcr->db, query, NULL, NULL);
++   free_pool_memory(query);
++
 +   return 1;
 +}
 +
 +bool send_accurate_current_files(JCR *jcr)
 +{
 +   char buf[MAXSTRING];
-+   char ed1[50], ed2[50];
++   char ed1[50];
 +
 +   if (jcr->accurate == false || job_canceled(jcr) || jcr->JobLevel == L_FULL) {
 +      return true;
 +   }
-+
 +   POOLMEM *jobids = get_pool_memory(PM_FNAME);
 +   db_accurate_get_jobids(jcr, jobids);
++
++   if (*jobids == 0) {
++      free_pool_memory(jobids);
++      Jmsg(jcr, M_ERROR_TERM, 0, _("Cannot find previous jobids.\n"));
++      return true;
++   }
 +
 +   bsnprintf(buf, sizeof(buf),
 +	      "CREATE TEMPORARY TABLE btemp2%s AS ( "
 +	      "SELECT max(FileId) as FileId, PathId, FilenameId "
-+	      "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
++	      "FROM (SELECT FileId, PathId, FilenameId "
++                      "FROM File WHERE JobId IN (%s)) AS F "
 +	      "GROUP BY PathId, FilenameId ) ",
 +	      edit_uint64(jcr->JobId, ed1),
 +	      jobids);
 +   db_sql_query(jcr->db, buf, NULL, NULL);
 +
++   /* to be able to allocate the right size for htable */
++   POOLMEM *nb = get_pool_memory(PM_FNAME);
 +   bsnprintf(buf, sizeof(buf), "SELECT count(1) FROM btemp2%s",ed1);
-+   db_sql_query(jcr->db, buf, NULL, NULL);  // TODO: compter le nombre de rows 
-+
-+   jcr->file_bsock->fsend("accurate files=%s\n", edit_uint64(337969*2, ed2)); 
++   db_sql_query(jcr->db, buf, get_int_handler, nb);
++   jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 +
 +   bsnprintf(buf, sizeof(buf),
 +	     "SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat "
-+	       "FROM btemp2%s JOIN Path USING (PathId) JOIN Filename USING (FilenameId) "
-+	       "JOIN File USING (FileId) "
++	       "FROM btemp2%s JOIN Path USING (PathId) " 
++                             "JOIN Filename USING (FilenameId) "
++	                     "JOIN File USING (FileId) "
 +	      "WHERE File.FileIndex > 0",
 +	     ed1, jobids);
 +   db_sql_query(jcr->db, buf, accurate_list_handler, (void *)jcr);
 +
 +   bsnprintf(buf, sizeof(buf), "DROP TABLE btemp2%s", ed1);
 +   free_pool_memory(jobids);
++   free_pool_memory(nb);
 +
  /*
 + CREATE TEMPORARY TABLE btemp2 AS (
@@ -156,7 +240,7 @@ Index: src/dird/backup.c
   * Do a backup of the specified FileSet
   *
   *  Returns:  false on failure
-@@ -225,6 +312,14 @@
+@@ -225,6 +396,14 @@
        Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
     }
  
@@ -171,7 +255,7 @@ Index: src/dird/backup.c
     /* Send backup command */
     fd->fsend(backupcmd);
     if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-@@ -234,6 +329,7 @@
+@@ -234,6 +413,7 @@
     /* Pickup Job termination data */
     stat = wait_for_job_termination(jcr);
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
@@ -181,8 +265,8 @@ Index: src/dird/backup.c
        return true;
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(révision 6443)
-+++ src/dird/inc_conf.c	(copie de travail)
+--- src/dird/inc_conf.c	(revision 6450)
++++ src/dird/inc_conf.c	(working copy)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
   */
@@ -220,15 +304,22 @@ Index: src/dird/inc_conf.c
  
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6443)
-+++ src/filed/backup.c	(copie de travail)
-@@ -48,8 +48,220 @@
+--- src/filed/backup.c	(revision 6450)
++++ src/filed/backup.c	(working copy)
+@@ -37,6 +37,7 @@
+ 
+ #include "bacula.h"
+ #include "filed.h"
++#include "lib/htable.h"
+ 
+ /* Forward referenced functions */
+ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
+@@ -48,8 +49,223 @@
  static bool crypto_session_start(JCR *jcr);
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
 +static bool encode_and_send_deleted_file(JCR *jcr, char *fname);
  
-+#include "lib/htable.c"
 +typedef struct CurFile {
 +   char *fname;
 +   char *lstat;
@@ -372,7 +463,9 @@ Index: src/filed/backup.c
 +   return stat;
 +}
 +
-+static int deb=0;
++/* 
++ * This function doesn't work very well with smartalloc
++ */
 +int accurate_get_current_file_list_cmd(JCR *jcr)
 +{
 +   BSOCK *dir = jcr->dir_bsock;
@@ -396,26 +489,24 @@ Index: src/filed/backup.c
 +   while (dir->recv() >= 0) {
 +      len = strlen(dir->msg);
 +      if ((len+1) < dir->msglen) {
-+	 elt = (CurFile *)malloc(sizeof(CurFile));
-+	 elt->fname  = (char *) malloc(dir->msglen+1);
++//	 elt = (CurFile *)malloc(sizeof(CurFile));
++//	 elt->fname  = (char *) malloc(dir->msglen+1);
++
++	 /* we store CurFile, fname and lstat in the same chunk */
++	 elt = (CurFile *)malloc(sizeof(CurFile)+dir->msglen+1);
++	 elt->fname  = (char *) elt+sizeof(CurFile);
 +	 memcpy(elt->fname, dir->msg, dir->msglen);
 +	 elt->fname[dir->msglen]='\0';
 +	 elt->lstat = elt->fname + len + 1;
-+	 if ((deb % 1000) == 1) {
-+	    Dmsg1(1, "deb=%i\n", deb);
-+	 }
-+	 if ((deb % 5000) == 1) {
-+	    jcr->file_list->stats();
-+	 }
-+	 Dmsg2(100, "hash[%s]=%s\n", elt->fname, elt->lstat);
 +	 jcr->file_list->insert(elt->fname, elt); 
-+	 deb++;
++	 Dmsg2(1, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +      }
 +   }
 +  
-+   jcr->file_list->stats();
-+//   dir->fsend("2000 OK accurate\n");
-+
++//   jcr->file_list->stats();
++   /* TODO: send a EOM ?
++   dir->fsend("2000 OK accurate\n");
++    */
 +   return true;
 +}
 +
@@ -425,13 +516,17 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
++   if (jcr->file_list == NULL) { /* TODO: bug ? */
++      return true;
++   }
++
 +   CurFile *elt;
 +   foreach_htable (elt, jcr->file_list) {
-+      Dmsg3(100, "elt = 0x%x fname=%s lstat=%s\n", elt, elt->fname, elt->lstat);
 +      if (*elt->lstat != '\0') {
++	 Dmsg2(1, "deleted fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +	 encode_and_send_deleted_file(jcr, elt->fname);
 +      }
-+      free(elt->fname);
++//      free(elt->fname);
 +   }
 +   jcr->file_list->destroy();	/* TODO: clean htable when this function is not reached ? */
 +   free(jcr->file_list);
@@ -443,7 +538,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -66,7 +278,6 @@
+@@ -66,7 +282,6 @@
     BSOCK *sd;
     bool ok = true;
     // TODO landonf: Allow user to specify encryption algorithm
@@ -451,7 +546,16 @@ Index: src/filed/backup.c
     sd = jcr->store_bsock;
  
     set_jcr_job_status(jcr, JS_Running);
-@@ -134,7 +345,10 @@
+@@ -100,7 +315,7 @@
+     */
+    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
+    jcr->compress_buf = get_memory(jcr->compress_buf_size);
+-
++   
+ #ifdef HAVE_LIBZ
+    z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
+    if (pZlibStream) {
+@@ -134,7 +349,10 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -462,7 +566,7 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -354,9 +568,19 @@
+@@ -354,9 +572,21 @@
     }
     case FT_DIRNOCHG:
     case FT_NOCHG:
@@ -471,6 +575,7 @@ Index: src/filed/backup.c
 +//	 Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
 +//	 return 1;
 +//      }
++      accurate_check_file(jcr, ff_pkt, false);
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
        return 1;
     case FT_ISARCH:
@@ -479,10 +584,11 @@ Index: src/filed/backup.c
 +//	 Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
 +//	 return 1;
 +//      }
++      accurate_check_file(jcr, ff_pkt, false);
        Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
        return 1;
     case FT_NOOPEN: {
-@@ -1118,6 +1342,9 @@
+@@ -1118,6 +1348,9 @@
     }
     unstrip_path(ff_pkt);
  
@@ -492,7 +598,7 @@ Index: src/filed/backup.c
     Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
     if (!stat) {
        Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-@@ -1128,6 +1355,58 @@
+@@ -1128,6 +1361,58 @@
     return true;
  }
  
@@ -553,8 +659,8 @@ Index: src/filed/backup.c
   */
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 6443)
-+++ src/filed/job.c	(copie de travail)
+--- src/filed/job.c	(revision 6450)
++++ src/filed/job.c	(working copy)
 @@ -49,6 +49,7 @@
  /* Imported functions */
  extern int status_cmd(JCR *jcr);
@@ -611,8 +717,8 @@ Index: src/filed/job.c
      *   to agree with our clock.
 Index: src/filed/restore.c
 ===================================================================
---- src/filed/restore.c	(révision 6443)
-+++ src/filed/restore.c	(copie de travail)
+--- src/filed/restore.c	(revision 6450)
++++ src/filed/restore.c	(working copy)
 @@ -320,6 +320,11 @@
              bclose(&rctx.bfd);
           }
@@ -627,8 +733,8 @@ Index: src/filed/restore.c
            */
 Index: src/stored/bextract.c
 ===================================================================
---- src/stored/bextract.c	(révision 6443)
-+++ src/stored/bextract.c	(copie de travail)
+--- src/stored/bextract.c	(revision 6450)
++++ src/stored/bextract.c	(working copy)
 @@ -324,6 +324,14 @@
           Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
        }
@@ -637,7 +743,7 @@ Index: src/stored/bextract.c
 +       */
 +      if (rec->FileIndex == 0) {
 +	 /* if file is included, remove it ? */
-+	 Jmsg(jcr, M_INFO, 0, _("fname=%s is marked as deleted.\n", attr->fname));
++	 Jmsg(jcr, M_INFO, 0, _("fname=%s is marked as deleted.\n"), attr->fname);
 +	 break;
 +      }
 +
@@ -646,8 +752,8 @@ Index: src/stored/bextract.c
              rec->FileIndex, attr->file_index);
 Index: src/stored/bscan.c
 ===================================================================
---- src/stored/bscan.c	(révision 6443)
-+++ src/stored/bscan.c	(copie de travail)
+--- src/stored/bscan.c	(revision 6450)
++++ src/stored/bscan.c	(working copy)
 @@ -648,6 +648,15 @@
     case STREAM_UNIX_ATTRIBUTES:
     case STREAM_UNIX_ATTRIBUTES_EX:
@@ -666,8 +772,8 @@ Index: src/stored/bscan.c
        }
 Index: src/stored/append.c
 ===================================================================
---- src/stored/append.c	(révision 6443)
-+++ src/stored/append.c	(copie de travail)
+--- src/stored/append.c	(revision 6450)
++++ src/stored/append.c	(working copy)
 @@ -146,7 +146,7 @@
  
        /* Read Stream header from the File daemon.
@@ -752,8 +858,8 @@ Index: src/stored/append.c
               crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6443)
-+++ src/jcr.h	(copie de travail)
+--- src/jcr.h	(revision 6450)
++++ src/jcr.h	(working copy)
 @@ -119,6 +119,7 @@
  
  /* Forward referenced structures */
@@ -770,10 +876,90 @@ Index: src/jcr.h
  #endif /* FILE_DAEMON */
  
  
+Index: src/lib/Makefile.in
+===================================================================
+--- src/lib/Makefile.in	(revision 6450)
++++ src/lib/Makefile.in	(working copy)
+@@ -29,7 +29,7 @@
+ 	  res.c rwlock.c scan.c serial.c sha1.c \
+ 	  signal.c smartall.c rblist.c tls.c tree.c \
+ 	  util.c var.c watchdog.c workq.c btimers.c \
+-	  address_conf.c pythonlib.c breg.c
++	  address_conf.c pythonlib.c breg.c htable.c
+ 
+ 
+ LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
+@@ -42,7 +42,7 @@
+ 	  res.o rwlock.o scan.o serial.o sha1.o \
+ 	  signal.o smartall.o rblist.o tls.o tree.o \
+ 	  util.o var.o watchdog.o workq.o btimers.o \
+-	  address_conf.o pythonlib.o breg.o
++	  address_conf.o pythonlib.o breg.o htable.o
+ 
+ 
+ EXTRAOBJS = @OBJLIST@
+Index: src/lib/htable.c
+===================================================================
+--- src/lib/htable.c	(revision 6450)
++++ src/lib/htable.c	(working copy)
+@@ -193,7 +193,6 @@
+    if (lookup(key)) {
+       return false;                   /* already exists */
+    }
+-   sm_check(__FILE__, __LINE__, false);
+    ASSERT(index < buckets);
+    Dmsg2(100, "Insert: hash=0x%x index=%d\n", (unsigned)hash, index);
+    hp = (hlink *)(((char *)item)+loffset);
+@@ -210,7 +209,6 @@
+       Dmsg2(100, "num_items=%d max_items=%d\n", num_items, max_items);
+       grow_table();
+    }
+-   sm_check(__FILE__, __LINE__, false);
+    Dmsg3(100, "Leave insert index=%d num_items=%d key=%s\n", index, num_items, key);
+    return true;
+ }
+@@ -275,12 +273,13 @@
+ {
+    void *ni;
+    void *li = first();
+-   do {
+-      ni = next();
+-      free(li);
+-      li = ni;
+-   } while (ni);
+-
++   if (li) {
++      do {
++	 ni = next();
++	 free(li);
++	 li = ni;
++      } while (ni);
++   }
+    free(table);
+    table = NULL;
+    Dmsg0(100, "Done destroy.\n");
+@@ -295,7 +294,7 @@
+    hlink link;
+ };
+ 
+-#define NITEMS 10000
++#define NITEMS 1000000
+ 
+ int main()
+ {
+@@ -311,7 +310,7 @@
+    Dmsg1(000, "Inserting %d items\n", NITEMS);
+    for (int i=0; i<NITEMS; i++) {
+       sprintf(mkey, "This is htable item %d", i);
+-      jcr = (MYJCR *)malloc(sizeof(MYJCR));
++      jcr = (MYJCR *)malloc(sizeof(MYJCR)+strlen(mkey)+1);
+       Dmsg2(100, "link=0x%x jcr=0x%x\n", (unsigned)&jcr->link, (unsigned)jcr);
+       jcr->key = bstrdup(mkey);
+ 
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(révision 6443)
-+++ src/findlib/find.h	(copie de travail)
+--- src/findlib/find.h	(revision 6450)
++++ src/findlib/find.h	(working copy)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
  #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
