@@ -1,7 +1,7 @@
 Index: src/dird/fd_cmds.c
 ===================================================================
---- src/dird/fd_cmds.c	(revision 6450)
-+++ src/dird/fd_cmds.c	(working copy)
+--- src/dird/fd_cmds.c	(révision 6443)
++++ src/dird/fd_cmds.c	(copie de travail)
 @@ -50,7 +50,7 @@
  static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
  static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
@@ -52,17 +52,9 @@ Index: src/dird/fd_cmds.c
     case L_SINCE:
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(revision 6450)
-+++ src/dird/backup.c	(working copy)
-@@ -44,6 +44,7 @@
- #include "bacula.h"
- #include "dird.h"
- #include "ua.h"
-+#include "findlib/find.h"
- 
- /* Commands sent to File daemon */
- static char backupcmd[] = "backup\n";
-@@ -96,7 +97,177 @@
+--- src/dird/backup.c	(révision 6443)
++++ src/dird/backup.c	(copie de travail)
+@@ -96,6 +96,138 @@
     return true;
  }
  
@@ -86,8 +78,8 @@ Index: src/dird/backup.c
 +      return 1;
 +   }
 +   
-+   if (row[0] > 0) {		/* discard when file_index == 0 */
-+      jcr->file_bsock->fsend("%s%s%c%s", row[1], row[2], 0, row[3]); 
++   if (row[2] > 0) {		/* discard when file_index == 0 */
++      jcr->file_bsock->fsend("%s%s%c%s", row[0], row[1], 0, row[4]); 
 +   }
 +   return 0;
 +}
@@ -170,7 +162,6 @@ Index: src/dird/backup.c
 +bool send_accurate_current_files(JCR *jcr)
 +{
 +   char buf[MAXSTRING];
-+   char ed1[50];
 +
 +   if (jcr->accurate == false || job_canceled(jcr) || jcr->JobLevel == L_FULL) {
 +      return true;
@@ -184,63 +175,25 @@ Index: src/dird/backup.c
 +      return true;
 +   }
 +
-+   bsnprintf(buf, sizeof(buf),
-+	      "CREATE TEMPORARY TABLE btemp2%s AS ( "
-+	      "SELECT max(FileId) as FileId, PathId, FilenameId "
-+	      "FROM (SELECT FileId, PathId, FilenameId "
-+                      "FROM File WHERE JobId IN (%s)) AS F "
-+	      "GROUP BY PathId, FilenameId ) ",
-+	      edit_uint64(jcr->JobId, ed1),
-+	      jobids);
-+   db_sql_query(jcr->db, buf, NULL, NULL);
-+
 +   /* to be able to allocate the right size for htable */
 +   POOLMEM *nb = get_pool_memory(PM_FNAME);
-+   bsnprintf(buf, sizeof(buf), "SELECT count(1) FROM btemp2%s",ed1);
++   bsnprintf(buf, sizeof(buf), "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
 +   db_sql_query(jcr->db, buf, get_int_handler, nb);
 +   jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 +
-+   bsnprintf(buf, sizeof(buf),
-+	     "SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat "
-+	       "FROM btemp2%s JOIN Path USING (PathId) " 
-+                             "JOIN Filename USING (FilenameId) "
-+	                     "JOIN File USING (FileId) "
-+	      "WHERE File.FileIndex > 0",
-+	     ed1, jobids);
-+   db_sql_query(jcr->db, buf, accurate_list_handler, (void *)jcr);
++   db_get_file_list(jcr->db, jobids, accurate_list_handler, (void *)jcr);
 +
-+   bsnprintf(buf, sizeof(buf), "DROP TABLE btemp2%s", ed1);
 +   free_pool_memory(jobids);
 +   free_pool_memory(nb);
-+
- /*
-+ CREATE TEMPORARY TABLE btemp2 AS (
-+  SELECT max(FileId) as FileId, PathId, FilenameId 
-+    FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (39867,40341)) AS F
-+   GROUP BY PathId, FilenameId )
-+
-+  SELECT File.FileIndex, Path.Path, Filename.Name, File.LStat
-+    FROM btemp2 JOIN Path USING (PathId) JOIN Filename USING (FilenameId)
-+                JOIN File USING (FileId)
-+   WHERE File.FileIndex > 0
-+
-+ DROP TABLE btemp2
-+*/
-+/*
-+SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
-+  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
-+ ORDER BY PathId, FilenameId, JobId DESC
-+*/
 +
 +   jcr->file_bsock->signal(BNET_EOD);
 +   return true;
 +}
 +
-+/*
+ /*
   * Do a backup of the specified FileSet
   *
-  *  Returns:  false on failure
-@@ -225,6 +396,14 @@
+@@ -225,6 +357,14 @@
        Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
     }
  
@@ -255,7 +208,7 @@ Index: src/dird/backup.c
     /* Send backup command */
     fd->fsend(backupcmd);
     if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-@@ -234,6 +413,7 @@
+@@ -234,6 +374,7 @@
     /* Pickup Job termination data */
     stat = wait_for_job_termination(jcr);
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
@@ -263,10 +216,86 @@ Index: src/dird/backup.c
     if (stat == JS_Terminated) {
        backup_cleanup(jcr, stat);
        return true;
+Index: src/dird/ua_restore.c
+===================================================================
+--- src/dird/ua_restore.c	(révision 6443)
++++ src/dird/ua_restore.c	(copie de travail)
+@@ -1006,7 +1006,6 @@
+     * For display purposes, the same JobId, with different volumes may
+     * appear more than once, however, we only insert it once.
+     */
+-   int items = 0;
+    p = rx->JobIds;
+    tree.FileEstimate = 0;
+    if (get_next_jobid_from_list(&p, &JobId) > 0) {
+@@ -1021,24 +1020,14 @@
+          tree.DeltaCount = rx->JobId/50; /* print 50 ticks */
+       }
+    }
+-   for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+-      char ed1[50];
+ 
+-      if (JobId == last_JobId) {
+-         continue;                    /* eliminate duplicate JobIds */
+-      }
+-      last_JobId = JobId;
+-      ua->info_msg(_("\nBuilding directory tree for JobId %s ...  "), 
+-         edit_int64(JobId, ed1));
+-      items++;
+-      /*
+-       * Find files for this JobId and insert them in the tree
+-       */
+-      Mmsg(rx->query, uar_sel_files, edit_int64(JobId, ed1));
+-      if (!db_sql_query(ua->db, rx->query, insert_tree_handler, (void *)&tree)) {
+-         ua->error_msg("%s", db_strerror(ua->db));
+-      }
++   ua->info_msg(_("\nBuilding directory tree for JobId(s) %s ...  "),
++		rx->JobIds);
++
++   if (!db_get_file_list(ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
++      ua->error_msg("%s", db_strerror(ua->db));
+    }
++
+    if (tree.FileCount == 0) {
+       ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
+          "is not possible.Most likely your retention policy pruned the files\n"));
+@@ -1056,26 +1045,13 @@
+       }
+    } else {
+       char ec1[50];
+-      if (items==1) {
+-         if (tree.all) {
+-            ua->info_msg(_("\n1 Job, %s files inserted into the tree and marked for extraction.\n"),
+-              edit_uint64_with_commas(tree.FileCount, ec1));
+-         }
+-         else {
+-            ua->info_msg(_("\n1 Job, %s files inserted into the tree.\n"),
+-              edit_uint64_with_commas(tree.FileCount, ec1));
+-         }
++      if (tree.all) {
++	 ua->info_msg(_("\n%s files inserted into the tree and marked for extraction.\n"),
++		      edit_uint64_with_commas(tree.FileCount, ec1));
++      } else {
++	 ua->info_msg(_("\n%s files inserted into the tree.\n"),
++		      edit_uint64_with_commas(tree.FileCount, ec1));
+       }
+-      else {
+-         if (tree.all) {
+-            ua->info_msg(_("\n%d Jobs, %s files inserted into the tree and marked for extraction.\n"),
+-              items, edit_uint64_with_commas(tree.FileCount, ec1));
+-         }
+-         else {
+-            ua->info_msg(_("\n%d Jobs, %s files inserted into the tree.\n"),
+-              items, edit_uint64_with_commas(tree.FileCount, ec1));
+-         }
+-      }
+ 
+       if (find_arg(ua, NT_("done")) < 0) {
+          /* Let the user interact in selecting which files to restore */
 Index: src/dird/inc_conf.c
 ===================================================================
---- src/dird/inc_conf.c	(revision 6450)
-+++ src/dird/inc_conf.c	(working copy)
+--- src/dird/inc_conf.c	(révision 6443)
++++ src/dird/inc_conf.c	(copie de travail)
 @@ -94,6 +94,7 @@
   * Items that are valid in an Options resource
   */
@@ -304,8 +333,8 @@ Index: src/dird/inc_conf.c
  
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(revision 6450)
-+++ src/filed/backup.c	(working copy)
+--- src/filed/backup.c	(révision 6443)
++++ src/filed/backup.c	(copie de travail)
 @@ -37,6 +37,7 @@
  
  #include "bacula.h"
@@ -659,8 +688,8 @@ Index: src/filed/backup.c
   */
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(revision 6450)
-+++ src/filed/job.c	(working copy)
+--- src/filed/job.c	(révision 6443)
++++ src/filed/job.c	(copie de travail)
 @@ -49,6 +49,7 @@
  /* Imported functions */
  extern int status_cmd(JCR *jcr);
@@ -717,8 +746,8 @@ Index: src/filed/job.c
      *   to agree with our clock.
 Index: src/filed/restore.c
 ===================================================================
---- src/filed/restore.c	(revision 6450)
-+++ src/filed/restore.c	(working copy)
+--- src/filed/restore.c	(révision 6443)
++++ src/filed/restore.c	(copie de travail)
 @@ -320,6 +320,11 @@
              bclose(&rctx.bfd);
           }
@@ -731,10 +760,69 @@ Index: src/filed/restore.c
           /*
            * Unpack attributes and do sanity check them
            */
+Index: src/cats/protos.h
+===================================================================
+--- src/cats/protos.h	(révision 6443)
++++ src/cats/protos.h	(copie de travail)
+@@ -102,8 +102,8 @@
+ int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
+ int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
+ bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
++bool db_get_file_list(B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
+ 
+-
+ /* sql_list.c */
+ enum e_list_type {
+    HORZ_LIST,
+Index: src/cats/sql_get.c
+===================================================================
+--- src/cats/sql_get.c	(révision 6443)
++++ src/cats/sql_get.c	(copie de travail)
+@@ -898,8 +898,6 @@
+    return ok;
+ }
+ 
+-
+-
+ /* Get Media Record
+  *
+  * Returns: false: on failure
+@@ -1018,5 +1016,31 @@
+    return ok;
+ }
+ 
++bool db_get_file_list(B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx)
++{
++   if (*jobids == 0) {
++      db_lock(mdb);
++      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
++      db_unlock(mdb);
++      return false;
++   }
+ 
++   POOL_MEM buf (PM_MESSAGE);
++   
++   Mmsg(buf,
++ "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
++ "FROM ( "
++  "SELECT max(FileId) as FileId, PathId, FilenameId "
++    "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
++   "GROUP BY PathId, FilenameId "
++  ") AS Temp "
++ "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
++ "JOIN Path ON (Path.PathId = Temp.PathId) "
++ "JOIN File ON (File.FileId = Temp.FileId) "
++ "WHERE File.FileIndex > 0 ",
++	     jobids);
++
++   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
++}
++
+ #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
 Index: src/stored/bextract.c
 ===================================================================
---- src/stored/bextract.c	(revision 6450)
-+++ src/stored/bextract.c	(working copy)
+--- src/stored/bextract.c	(révision 6443)
++++ src/stored/bextract.c	(copie de travail)
 @@ -324,6 +324,14 @@
           Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
        }
@@ -752,8 +840,8 @@ Index: src/stored/bextract.c
              rec->FileIndex, attr->file_index);
 Index: src/stored/bscan.c
 ===================================================================
---- src/stored/bscan.c	(revision 6450)
-+++ src/stored/bscan.c	(working copy)
+--- src/stored/bscan.c	(révision 6443)
++++ src/stored/bscan.c	(copie de travail)
 @@ -648,6 +648,15 @@
     case STREAM_UNIX_ATTRIBUTES:
     case STREAM_UNIX_ATTRIBUTES_EX:
@@ -772,8 +860,8 @@ Index: src/stored/bscan.c
        }
 Index: src/stored/append.c
 ===================================================================
---- src/stored/append.c	(revision 6450)
-+++ src/stored/append.c	(working copy)
+--- src/stored/append.c	(révision 6443)
++++ src/stored/append.c	(copie de travail)
 @@ -146,7 +146,7 @@
  
        /* Read Stream header from the File daemon.
@@ -858,8 +946,8 @@ Index: src/stored/append.c
               crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(revision 6450)
-+++ src/jcr.h	(working copy)
+--- src/jcr.h	(révision 6443)
++++ src/jcr.h	(copie de travail)
 @@ -119,6 +119,7 @@
  
  /* Forward referenced structures */
@@ -878,8 +966,8 @@ Index: src/jcr.h
  
 Index: src/lib/Makefile.in
 ===================================================================
---- src/lib/Makefile.in	(revision 6450)
-+++ src/lib/Makefile.in	(working copy)
+--- src/lib/Makefile.in	(révision 6443)
++++ src/lib/Makefile.in	(copie de travail)
 @@ -29,7 +29,7 @@
  	  res.c rwlock.c scan.c serial.c sha1.c \
  	  signal.c smartall.c rblist.c tls.c tree.c \
@@ -898,68 +986,10 @@ Index: src/lib/Makefile.in
  
  
  EXTRAOBJS = @OBJLIST@
-Index: src/lib/htable.c
-===================================================================
---- src/lib/htable.c	(revision 6450)
-+++ src/lib/htable.c	(working copy)
-@@ -193,7 +193,6 @@
-    if (lookup(key)) {
-       return false;                   /* already exists */
-    }
--   sm_check(__FILE__, __LINE__, false);
-    ASSERT(index < buckets);
-    Dmsg2(100, "Insert: hash=0x%x index=%d\n", (unsigned)hash, index);
-    hp = (hlink *)(((char *)item)+loffset);
-@@ -210,7 +209,6 @@
-       Dmsg2(100, "num_items=%d max_items=%d\n", num_items, max_items);
-       grow_table();
-    }
--   sm_check(__FILE__, __LINE__, false);
-    Dmsg3(100, "Leave insert index=%d num_items=%d key=%s\n", index, num_items, key);
-    return true;
- }
-@@ -275,12 +273,13 @@
- {
-    void *ni;
-    void *li = first();
--   do {
--      ni = next();
--      free(li);
--      li = ni;
--   } while (ni);
--
-+   if (li) {
-+      do {
-+	 ni = next();
-+	 free(li);
-+	 li = ni;
-+      } while (ni);
-+   }
-    free(table);
-    table = NULL;
-    Dmsg0(100, "Done destroy.\n");
-@@ -295,7 +294,7 @@
-    hlink link;
- };
- 
--#define NITEMS 10000
-+#define NITEMS 1000000
- 
- int main()
- {
-@@ -311,7 +310,7 @@
-    Dmsg1(000, "Inserting %d items\n", NITEMS);
-    for (int i=0; i<NITEMS; i++) {
-       sprintf(mkey, "This is htable item %d", i);
--      jcr = (MYJCR *)malloc(sizeof(MYJCR));
-+      jcr = (MYJCR *)malloc(sizeof(MYJCR)+strlen(mkey)+1);
-       Dmsg2(100, "link=0x%x jcr=0x%x\n", (unsigned)&jcr->link, (unsigned)jcr);
-       jcr->key = bstrdup(mkey);
- 
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(revision 6450)
-+++ src/findlib/find.h	(working copy)
+--- src/findlib/find.h	(révision 6443)
++++ src/findlib/find.h	(copie de travail)
 @@ -108,6 +108,7 @@
  #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
  #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
