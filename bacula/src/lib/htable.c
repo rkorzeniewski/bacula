@@ -193,7 +193,6 @@ bool htable::insert(char *key, void *item)
    if (lookup(key)) {
       return false;                   /* already exists */
    }
-   sm_check(__FILE__, __LINE__, false);
    ASSERT(index < buckets);
    Dmsg2(100, "Insert: hash=0x%x index=%d\n", (unsigned)hash, index);
    hp = (hlink *)(((char *)item)+loffset);
@@ -210,7 +209,6 @@ bool htable::insert(char *key, void *item)
       Dmsg2(100, "num_items=%d max_items=%d\n", num_items, max_items);
       grow_table();
    }
-   sm_check(__FILE__, __LINE__, false);
    Dmsg3(100, "Leave insert index=%d num_items=%d key=%s\n", index, num_items, key);
    return true;
 }
@@ -275,11 +273,12 @@ void htable::destroy()
 {
    void *ni;
    void *li = first();
-   do {
+
+   while (li) {
       ni = next();
       free(li);
-      li = ni;
-   } while (ni);
+      li=ni;
+   }
 
    free(table);
    table = NULL;
