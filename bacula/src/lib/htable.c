@@ -1,31 +1,7 @@
 /*
- *  Bacula hash table routines
- *
- *  htable is a hash table of items (pointers). This code is
- *    adapted and enhanced from code I wrote in 1982 for a
- *    relocatable linker.  At that time, the hash table size
- *    was fixed and a primary number, which essentially provides
- *    the randomness. In this program, the hash table can grow when
- *    it gets too full, so the table size here is a binary number. The
- *    hashing is provided using an idea from Tcl where the initial
- *    hash code is "randomized" using a simple calculation from
- *    a random number generator that multiplies by a big number
- *    (I multiply by a prime number, while Tcl did not)
- *    then shifts the result down and does the binary division
- *    by masking.  Increasing the size of the hash table is simple.
- *    Just create a new larger table, walk the old table and
- *    re-hash insert each entry into the new table.
- *
- *
- *   Kern Sibbald, July MMIII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -49,6 +25,30 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula hash table routines
+ *
+ *  htable is a hash table of items (pointers). This code is
+ *    adapted and enhanced from code I wrote in 1982 for a
+ *    relocatable linker.  At that time, the hash table size
+ *    was fixed and a primary number, which essentially provides
+ *    the randomness. In this program, the hash table can grow when
+ *    it gets too full, so the table size here is a binary number. The
+ *    hashing is provided using an idea from Tcl where the initial
+ *    hash code is "randomized" using a simple calculation from
+ *    a random number generator that multiplies by a big number
+ *    (I multiply by a prime number, while Tcl did not)
+ *    then shifts the result down and does the binary division
+ *    by masking.  Increasing the size of the hash table is simple.
+ *    Just create a new larger table, walk the old table and
+ *    re-hash insert each entry into the new table.
+ *
+ *
+ *   Kern Sibbald, July MMIII
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 
@@ -57,6 +57,59 @@
 /* ===================================================================
  *    htable
  */
+
+#ifdef BIG_MALLOC
+/*
+ * This subroutine gets a big buffer.
+ */
+void htable::malloc_buf(int size)
+{
+   struct h_mem *hmem;
+
+   hmem = (struct h_mem *)malloc(size);
+   total_size += size;
+   blocks++;
+   hmem->next = this->mem;
+   this->mem = hmem;
+   hmem->mem = mem->first;
+   hmem->rem = (char *)hmem + size - hmem->mem;
+   Dmsg2(200, "malloc buf size=%d rem=%d\n", size, hmem->rem);
+}
+
+char *htable::hash_alloc(int size)
+{
+   char *buf;
+   int asize = BALIGN(size);
+
+   if (mem->rem < asize) {
+      uint32_t mb_size;
+      if (total_size >= 1000000) {
+         mb_size = 1000000;
+      } else {
+         mb_size = 100000;
+      }
+      malloc_buf(mb_size);
+   }
+   mem->rem -= asize;
+   buf = mem->mem;
+   mem->mem += asize;
+   return buf;
+}
+
+
+/* This routine frees the whole tree */
+void htable::hash_free()
+{
+   struct h_mem *hmem, *rel;
+
+   for (hmem=mem; hmem; ) {
+      rel = hmem;
+      hmem = hmem->next;
+      free(rel);
+   }
+}
+#endif
+ 
 
 /*
  * Create hash of key, stored in hash then
@@ -95,6 +148,10 @@ void htable::init(void *item, void *link, int tsize)
    memset(table, 0, buckets * sizeof(hlink *));
    walkptr = NULL;
    walk_index = 0;
+#ifdef BIG_MALLOC
+   mem = NULL;
+   malloc_buf(1000000);   /* ***FIXME*** base off of size */
+#endif
 }
 
 uint32_t htable::size()
@@ -294,7 +351,7 @@ struct MYJCR {
    hlink link;
 };
 
-#define NITEMS 10000
+#define NITEMS 1000000
 
 int main()
 {
@@ -309,10 +366,18 @@ int main()
 
    Dmsg1(000, "Inserting %d items\n", NITEMS);
    for (int i=0; i<NITEMS; i++) {
-      sprintf(mkey, "This is htable item %d", i);
+      int len;
+      len = sprintf(mkey, "This is htable item %d", i) + 1;
+
+#ifdef BIG_MALLOC
+      jcr = (MYJCR *)jcrtbl->hash_alloc(sizeof(MYJCR));
+      jcr->key = (char *)jcrtbl->hash_alloc(len);
+#else
       jcr = (MYJCR *)malloc(sizeof(MYJCR));
+      jcr->key = (char *)malloc(len);
+#endif
+      memcpy(jcr->key, mkey, len);
       Dmsg2(100, "link=0x%x jcr=0x%x\n", (unsigned)&jcr->link, (unsigned)jcr);
-      jcr->key = bstrdup(mkey);
 
       jcrtbl->insert(jcr->key, jcr);
       if (i == 10) {
@@ -329,7 +394,9 @@ int main()
    printf("Walk the hash table:\n");
    foreach_htable (jcr, jcrtbl) {
 //    printf("htable item = %s\n", jcr->key);
+#ifndef BIG_MALLOC
       free(jcr->key);
+#endif
       count++;
    }
    printf("Got %d items -- %s\n", count, count==NITEMS?"OK":"***ERROR***");

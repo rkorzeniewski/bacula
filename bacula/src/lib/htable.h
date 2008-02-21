@@ -1,13 +1,7 @@
 /*
- *
- * Written by Kern Sibbald, MMIV
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -31,12 +25,24 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ * Written by Kern Sibbald, MMIV
+ *
+ *   Version $Id$
+ */
 
 /* ========================================================================
  *
  *   Hash table class -- htable
  *
  */
+
+/* 
+ * BIG_MALLOC is to provide a large malloc service to htable
+ *   not yet implemented, and not yet working.
+ */
+//#define BIG_MALLOC
 
 /*
  * Loop var through each member of table
@@ -52,6 +58,13 @@ struct hlink {
    uint32_t hash;                     /* hash for this key */
 };
 
+struct h_mem {
+   struct h_mem *next;                /* next buffer */
+   int rem;                           /* remaining bytes */
+   char *mem;                         /* memory pointer */
+   char first[1];                     /* first byte */
+};
+
 class htable : public SMARTALLOC {
    hlink **table;                     /* hash table */
    int loffset;                       /* link offset in item */
@@ -64,6 +77,12 @@ class htable : public SMARTALLOC {
    uint32_t rshift;                   /* amount to shift down */
    hlink *walkptr;                    /* table walk pointer */
    uint32_t walk_index;               /* table walk index */
+   uint32_t total_size;               /* total bytes malloced */
+   uint32_t blocks;                   /* blocks malloced */
+#ifdef BIG_MALLOC
+   struct h_mem *mem;                 /* malloced memory blocks */
+   void malloc_buf(int size);         /* Get a bit buffer */
+#endif
    void hash_index(char *key);        /* produce hash key,index */
    void grow_table();                 /* grow the table */
 public:
@@ -77,4 +96,8 @@ public:
    void destroy();
    void stats();                      /* print stats about the table */
    uint32_t size();                   /* return size of table */
+#ifdef BIG_MALLOC
+   char *hash_alloc(int size);        /* malloc bytes for a hash entry */
+   void hash_free();                  /* free all hash allocated bytes */
+#endif
 };
