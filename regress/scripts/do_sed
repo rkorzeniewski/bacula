@@ -43,6 +43,7 @@ echo "s%@fdport@%${fdport}%g" >>${out}
 
 # process .in files with sed script
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.errors.in >${cwd}/scripts/bacula-dir.conf.errors
+sed -f ${out} ${cwd}/scripts/bacula-dir.conf.accurate.in >${cwd}/scripts/bacula-dir.conf.accurate
 sed -f ${out} ${cwd}/scripts/test-bacula-dir.conf.in >${cwd}/scripts/test-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/multi-client-bacula-dir.conf.in >${cwd}/scripts/multi-client-bacula-dir.conf
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.regexwhere.in >${cwd}/scripts/bacula-dir.conf.regexwhere

@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# Run a accurate backup of the Bacula build directory
+#   then restore it.
+#
+TestName="accurate-test"
+JobName=backup
+. scripts/functions
+scripts/cleanup
+
+copy_test_confs
+/bin/cp -f scripts/bacula-dir.conf.accurate bin/bacula-dir.conf
+
+rm -rf ${cwd}/build/accurate.new
+rm -rf ${cwd}/build/accurate
+
+change_jobname Client1 $JobName
+mkdir ${cwd}/build/accurate
+echo "test test" > ${cwd}/build/accurate/xxx
+echo "test test" > ${cwd}/build/accurate/yyy
+echo "test test" > ${cwd}/build/accurate/zzz
+echo ${cwd}/build > ${cwd}/tmp/file-list
+
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+label volume=TestVolume001 storage=File pool=Default
+messages
+END_OF_DATA
+
+run_bacula
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+# Now do a second backup after making a few changes
+#
+rm ${cwd}/build/accurate/xxx
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+# This doesn't work yet...
+#
+## Now do a second backup after making a few changes
+##
+#mv ${cwd}/build/accurate ${cwd}/build/accurate.new
+#
+#run_bconsole
+#check_for_zombie_jobs storage=File
+#
+#check_two_logs
+#check_restore_diff
+#
+#rm -rf ${cwd}/tmp/bacula-restores
+#
+stop_bacula
+end_test
