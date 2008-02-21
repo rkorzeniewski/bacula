@@ -54,22 +54,10 @@ Index: src/dird/backup.c
 ===================================================================
 --- src/dird/backup.c	(révision 6443)
 +++ src/dird/backup.c	(copie de travail)
-@@ -96,6 +96,140 @@
+@@ -96,6 +96,54 @@
     return true;
  }
  
-+static int get_int_handler(void *ctx, int num_fields, char **row)
-+{
-+   POOLMEM *ret = (POOLMEM *)ctx;
-+   if (num_fields == 1) {
-+      if (ret[0] != 0) {
-+	 pm_strcat(ret, ",");
-+      }
-+      pm_strcat(ret, row[0]);
-+   }
-+   return 0;
-+}
-+
 +static int accurate_list_handler(void *ctx, int num_fields, char **row)
 +{
 +   JCR *jcr = (JCR *)ctx;
@@ -78,85 +66,10 @@ Index: src/dird/backup.c
 +      return 1;
 +   }
 +   
-+   if (row[2] > 0) {		/* discard when file_index == 0 */
++   if (row[2] > 0) {            /* discard when file_index == 0 */
 +      jcr->file_bsock->fsend("%s%s%c%s", row[0], row[1], 0, row[4]); 
 +   }
 +   return 0;
-+}
-+
-+/* Full : do nothing
-+ * Differential : get the last full id
-+ * Incremental : get the last full + last diff + last incr(s) ids
-+ *
-+ * TODO: look and merge from ua_restore.c
-+ */
-+bool db_accurate_get_jobids(JCR *jcr, POOLMEM *jobids)
-+{
-+   char clientid[50], jobid[50], filesetid[50];
-+   char date[MAX_TIME_LENGTH];
-+
-+   JOB_DBR *jr = &jcr->jr; 
-+   POOLMEM *query = get_pool_memory(PM_FNAME);
-+   bstrutime(date, sizeof(date),  time(NULL) + 1);
-+
-+   Mmsg(query, 
-+"CREATE TEMPORARY TABLE btemp3%s AS ( "
-+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-+   "FROM Job JOIN FileSet USING (FileSetId) "
-+  "WHERE ClientId = %s "
-+    "AND Level='F' AND JobStatus='T' AND Type='B' "
-+    "AND StartTime<'%s' "
-+    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-+  "ORDER BY Job.JobTDate DESC LIMIT 1) ",
-+	edit_uint64(jcr->JobId, jobid),
-+	edit_uint64(jr->ClientId, clientid),
-+	date,
-+	edit_uint64(jr->FileSetId, filesetid));
-+   db_sql_query(jcr->db, query, NULL, NULL);
-+
-+   if (jcr->JobLevel == L_INCREMENTAL) {
-+
-+      Mmsg(query, 
-+"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
-+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-+   "FROM Job JOIN FileSet USING (FileSetId) "
-+  "WHERE ClientId = %s "
-+    "AND Level='D' AND JobStatus='T' AND Type='B' "
-+    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
-+    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-+  "ORDER BY Job.JobTDate DESC LIMIT 1 ",
-+	   jobid,
-+	   clientid,
-+	   jobid,
-+	   filesetid);
-+      db_sql_query(jcr->db, query, NULL, NULL);
-+
-+      Mmsg(query, 
-+"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
-+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
-+   "FROM Job JOIN FileSet USING (FileSetId) "
-+  "WHERE ClientId = %s "
-+    "AND Level='I' AND JobStatus='T' AND Type='B' "
-+    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
-+    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
-+  "ORDER BY Job.JobTDate DESC ",
-+	   jobid,
-+	   clientid,
-+	   jobid,
-+	   filesetid);
-+      db_sql_query(jcr->db, query, NULL, NULL);
-+   }
-+
-+   jobids[0]='\0';
-+   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
-+   db_sql_query(jcr->db, query, get_int_handler, jobids);
-+   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
-+
-+   Mmsg(query, "DROP TABLE btemp3%s", jobid);
-+   db_sql_query(jcr->db, query, NULL, NULL);
-+   free_pool_memory(query);
-+
-+   return 1;
 +}
 +
 +bool send_accurate_current_files(JCR *jcr)
@@ -167,7 +80,7 @@ Index: src/dird/backup.c
 +      return true;
 +   }
 +   POOLMEM *jobids = get_pool_memory(PM_FNAME);
-+   db_accurate_get_jobids(jcr, jobids);
++   db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
 +
 +   if (*jobids == 0) {
 +      free_pool_memory(jobids);
@@ -177,11 +90,12 @@ Index: src/dird/backup.c
 +
 +   /* to be able to allocate the right size for htable */
 +   POOLMEM *nb = get_pool_memory(PM_FNAME);
-+   bsnprintf(buf, sizeof(buf), "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
-+   db_sql_query(jcr->db, buf, get_int_handler, nb);
++   bsnprintf(buf, sizeof(buf), 
++             "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
++   db_sql_query(jcr->db, buf, db_get_int_handler, nb);
 +   jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 +
-+   db_get_file_list(jcr->db, jobids, accurate_list_handler, (void *)jcr);
++   db_get_file_list(jcr, jcr->db, jobids, accurate_list_handler, (void *)jcr);
 +
 +   free_pool_memory(jobids);
 +   free_pool_memory(nb);
@@ -195,7 +109,7 @@ Index: src/dird/backup.c
  /*
   * Do a backup of the specified FileSet
   *
-@@ -225,6 +359,14 @@
+@@ -225,6 +273,14 @@
        Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
     }
  
@@ -210,7 +124,7 @@ Index: src/dird/backup.c
     /* Send backup command */
     fd->fsend(backupcmd);
     if (!response(jcr, fd, OKbackup, "backup", DISPLAY_ERROR)) {
-@@ -234,6 +376,7 @@
+@@ -234,6 +290,7 @@
     /* Pickup Job termination data */
     stat = wait_for_job_termination(jcr);
     db_write_batch_file_records(jcr);    /* used by bulk batch file insert */
@@ -218,6 +132,26 @@ Index: src/dird/backup.c
     if (stat == JS_Terminated) {
        backup_cleanup(jcr, stat);
        return true;
+@@ -475,6 +532,7 @@
+ "  Software Compression:   %s\n"
+ "  VSS:                    %s\n"
+ "  Encryption:             %s\n"
++"  Accurate:               %s\n"
+ "  Volume name(s):         %s\n"
+ "  Volume Session Id:      %d\n"
+ "  Volume Session Time:    %d\n"
+@@ -506,8 +564,9 @@
+         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
+         kbps,
+         compress,
+-        jcr->VSS?"yes":"no",
+-        jcr->Encrypt?"yes":"no",
++        jcr->VSS?_("yes"):_("no"),
++        jcr->Encrypt?_("yes"):_("no"),
++        jcr->accurate?_("yes"):_("no"),
+         jcr->VolumeName,
+         jcr->VolSessionId,
+         jcr->VolSessionTime,
 Index: src/dird/ua_restore.c
 ===================================================================
 --- src/dird/ua_restore.c	(révision 6443)
@@ -252,9 +186,9 @@ Index: src/dird/ua_restore.c
 -         ua->error_msg("%s", db_strerror(ua->db));
 -      }
 +   ua->info_msg(_("\nBuilding directory tree for JobId(s) %s ...  "),
-+		rx->JobIds);
++                rx->JobIds);
 +
-+   if (!db_get_file_list(ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
++   if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
 +      ua->error_msg("%s", db_strerror(ua->db));
     }
 +
@@ -275,11 +209,11 @@ Index: src/dird/ua_restore.c
 -              edit_uint64_with_commas(tree.FileCount, ec1));
 -         }
 +      if (tree.all) {
-+	 ua->info_msg(_("\n%s files inserted into the tree and marked for extraction.\n"),
-+		      edit_uint64_with_commas(tree.FileCount, ec1));
++         ua->info_msg(_("\n%s files inserted into the tree and marked for extraction.\n"),
++                      edit_uint64_with_commas(tree.FileCount, ec1));
 +      } else {
-+	 ua->info_msg(_("\n%s files inserted into the tree.\n"),
-+		      edit_uint64_with_commas(tree.FileCount, ec1));
++         ua->info_msg(_("\n%s files inserted into the tree.\n"),
++                      edit_uint64_with_commas(tree.FileCount, ec1));
        }
 -      else {
 -         if (tree.all) {
@@ -407,89 +341,89 @@ Index: src/filed/backup.c
 +      char ed1[30], ed2[30];
 +      switch (*p) {
 +      case 'i':                /* compare INODEs */
-+	 if (statc.st_ino != ff_pkt->statp.st_ino) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
-+		 edit_uint64((uint64_t)statc.st_ino, ed1),
-+		 edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_ino != ff_pkt->statp.st_ino) {
++            Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
++                 edit_uint64((uint64_t)statc.st_ino, ed1),
++                 edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
++            stat = true;
++         }
++         break;
 +      case 'p':                /* permissions bits */
-+	 if (statc.st_mode != ff_pkt->statp.st_mode) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
-+		 (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_mode != ff_pkt->statp.st_mode) {
++            Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
++                 (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
++            stat = true;
++         }
++         break;
 +      case 'n':                /* number of links */
-+	 if (statc.st_nlink != ff_pkt->statp.st_nlink) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
-+		 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
++            Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
++                 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
++            stat = true;
++         }
++         break;
 +      case 'u':                /* user id */
-+	 if (statc.st_uid != ff_pkt->statp.st_uid) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
-+		 (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_uid != ff_pkt->statp.st_uid) {
++            Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
++                 (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
++            stat = true;
++         }
++         break;
 +      case 'g':                /* group id */
-+	 if (statc.st_gid != ff_pkt->statp.st_gid) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
-+		 (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_gid != ff_pkt->statp.st_gid) {
++            Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
++                 (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
++            stat = true;
++         }
++         break;
 +      case 's':                /* size */
-+	 if (statc.st_size != ff_pkt->statp.st_size) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
-+		 edit_uint64((uint64_t)statc.st_size, ed1),
-+		 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_size != ff_pkt->statp.st_size) {
++            Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
++                 edit_uint64((uint64_t)statc.st_size, ed1),
++                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
++            stat = true;
++         }
++         break;
 +      case 'a':                /* access time */
-+	 if (statc.st_atime != ff_pkt->statp.st_atime) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_atime != ff_pkt->statp.st_atime) {
++            Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
++            stat = true;
++         }
++         break;
 +      case 'm':
-+	 if (statc.st_mtime != ff_pkt->statp.st_mtime) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_mtime != ff_pkt->statp.st_mtime) {
++            Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
++            stat = true;
++         }
++         break;
 +      case 'c':                /* ctime */
-+	 if (statc.st_ctime != ff_pkt->statp.st_ctime) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_ctime != ff_pkt->statp.st_ctime) {
++            Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
++            stat = true;
++         }
++         break;
 +      case 'd':                /* file size decrease */
-+	 if (statc.st_size > ff_pkt->statp.st_size) {
-+	    Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
-+		 edit_uint64((uint64_t)statc.st_size, ed1),
-+		 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
-+	    stat = true;
-+	 }
-+	 break;
++         if (statc.st_size > ff_pkt->statp.st_size) {
++            Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
++                 edit_uint64((uint64_t)statc.st_size, ed1),
++                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
++            stat = true;
++         }
++         break;
 +      case '5':                /* compare MD5 */
-+	 Dmsg1(500, "set Do_MD5 for %s\n", ff_pkt->fname);
-+//	 *do_Digest = CRYPTO_DIGEST_MD5;
-+	 break;
++         Dmsg1(500, "set Do_MD5 for %s\n", ff_pkt->fname);
++//       *do_Digest = CRYPTO_DIGEST_MD5;
++         break;
 +      case '1':                 /* compare SHA1 */
-+//	 *do_Digest = CRYPTO_DIGEST_SHA1;
-+	 break;
++//       *do_Digest = CRYPTO_DIGEST_SHA1;
++         break;
 +      case ':':
 +      case 'V':
 +      default:
-+	 break;
++         break;
 +      }
 +   }
-+   *elt->lstat = '\0';		/* mark it as seen */
++   *elt->lstat = '\0';          /* mark it as seen */
 +   Dmsg2(1, "accurate %s = %i\n", fname, stat);
 +   return stat;
 +}
@@ -522,17 +456,17 @@ Index: src/filed/backup.c
 +   while (dir->recv() >= 0) {
 +      len = strlen(dir->msg);
 +      if ((len+1) < dir->msglen) {
-+//	 elt = (CurFile *)malloc(sizeof(CurFile));
-+//	 elt->fname  = (char *) malloc(dir->msglen+1);
++//       elt = (CurFile *)malloc(sizeof(CurFile));
++//       elt->fname  = (char *) malloc(dir->msglen+1);
 +
-+	 /* we store CurFile, fname and lstat in the same chunk */
-+	 elt = (CurFile *)malloc(sizeof(CurFile)+dir->msglen+1);
-+	 elt->fname  = (char *) elt+sizeof(CurFile);
-+	 memcpy(elt->fname, dir->msg, dir->msglen);
-+	 elt->fname[dir->msglen]='\0';
-+	 elt->lstat = elt->fname + len + 1;
-+	 jcr->file_list->insert(elt->fname, elt); 
-+	 Dmsg2(1, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
++         /* we store CurFile, fname and lstat in the same chunk */
++         elt = (CurFile *)malloc(sizeof(CurFile)+dir->msglen+1);
++         elt->fname  = (char *) elt+sizeof(CurFile);
++         memcpy(elt->fname, dir->msg, dir->msglen);
++         elt->fname[dir->msglen]='\0';
++         elt->lstat = elt->fname + len + 1;
++         jcr->file_list->insert(elt->fname, elt); 
++         Dmsg2(1, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +      }
 +   }
 +
@@ -556,12 +490,12 @@ Index: src/filed/backup.c
 +   CurFile *elt;
 +   foreach_htable (elt, jcr->file_list) {
 +      if (*elt->lstat != '\0') {
-+	 Dmsg2(1, "deleted fname=%s lstat=%s\n", elt->fname, elt->lstat);
-+	 encode_and_send_deleted_file(jcr, elt->fname);
++         Dmsg2(1, "deleted fname=%s lstat=%s\n", elt->fname, elt->lstat);
++         encode_and_send_deleted_file(jcr, elt->fname);
 +      }
 +//      free(elt->fname);
 +   }
-+   jcr->file_list->destroy();	/* TODO: clean htable when this function is not reached ? */
++   jcr->file_list->destroy();   /* TODO: clean htable when this function is not reached ? */
 +   free(jcr->file_list);
 +   jcr->file_list = NULL;
 +   return true;
@@ -605,8 +539,8 @@ Index: src/filed/backup.c
     case FT_NOCHG:
 +      /* TODO: in accurate mode, we have to change NOCHG attribute to FT_REG... */
 +//      if (!accurate_check_file(jcr, ff_pkt, false)) {
-+//	 Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
-+//	 return 1;
++//       Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
++//       return 1;
 +//      }
 +      accurate_check_file(jcr, ff_pkt, false);
        Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
@@ -614,8 +548,8 @@ Index: src/filed/backup.c
     case FT_ISARCH:
 +      /* TODO: in accurate mode, we have to change NOCHG attribute to FT_REG... */
 +//      if (!accurate_check_file(jcr, ff_pkt, false)) { 
-+//	 Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
-+//	 return 1;
++//       Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
++//       return 1;
 +//      }
 +      accurate_check_file(jcr, ff_pkt, false);
        Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
@@ -672,10 +606,10 @@ Index: src/filed/backup.c
 +    * slash. For a linked file, link is the link.
 +    */
 +   stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", 
-+		    0 /* FileIndex */,
-+		    FT_NOSTAT /* FileType */,
-+		    fname /* FileName */, 
-+		    0, attribs, 0, 0, 0, attribsEx, 0);
++                    0 /* FileIndex */,
++                    FT_NOSTAT /* FileType */,
++                    fname /* FileName */, 
++                    0, attribs, 0, 0, 0, attribsEx, 0);
 +
 +   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
 +   if (!stat) {
@@ -768,16 +702,16 @@ Index: src/cats/protos.h
 ===================================================================
 --- src/cats/protos.h	(révision 6443)
 +++ src/cats/protos.h	(copie de travail)
-@@ -102,8 +102,8 @@
+@@ -102,6 +102,9 @@
  int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
  int db_get_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
  bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids);
-+bool db_get_file_list(B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
++bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx);
++bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM *jobids);
++int db_get_int_handler(void *ctx, int num_fields, char **row);
  
--
+ 
  /* sql_list.c */
- enum e_list_type {
-    HORZ_LIST,
 Index: src/cats/sql_get.c
 ===================================================================
 --- src/cats/sql_get.c	(révision 6443)
@@ -791,11 +725,12 @@ Index: src/cats/sql_get.c
  /* Get Media Record
   *
   * Returns: false: on failure
-@@ -1018,5 +1016,31 @@
+@@ -1018,5 +1016,126 @@
     return ok;
  }
  
-+bool db_get_file_list(B_DB *mdb, char *jobids, DB_RESULT_HANDLER *result_handler, void *ctx)
++bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, 
++                      DB_RESULT_HANDLER *result_handler, void *ctx)
 +{
 +   if (*jobids == 0) {
 +      db_lock(mdb);
@@ -817,9 +752,103 @@ Index: src/cats/sql_get.c
 + "JOIN Path ON (Path.PathId = Temp.PathId) "
 + "JOIN File ON (File.FileId = Temp.FileId) "
 + "WHERE File.FileIndex > 0 ",
-+	     jobids);
++             jobids);
 +
 +   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
++}
++
++
++/* Full : do nothing
++ * Differential : get the last full id
++ * Incremental : get the last full + last diff + last incr(s) ids
++ *
++ * TODO: look and merge from ua_restore.c
++ */
++bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, 
++                            JOB_DBR *jr, POOLMEM *jobids)
++{
++   char clientid[50], jobid[50], filesetid[50];
++   char date[MAX_TIME_LENGTH];
++
++   POOL_MEM query (PM_FNAME);
++   bstrutime(date, sizeof(date),  time(NULL) + 1);
++   jobids[0]='\0';
++
++   Mmsg(query, 
++"CREATE TEMPORARY TABLE btemp3%s AS ( "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='F' AND JobStatus='T' AND Type='B' "
++    "AND StartTime<'%s' "
++    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC LIMIT 1) ",
++        edit_uint64(jcr->JobId, jobid),
++        edit_uint64(jr->ClientId, clientid),
++        date,
++        edit_uint64(jr->FileSetId, filesetid));
++
++   if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
++      return false;
++   }
++
++   if (jr->JobLevel == L_INCREMENTAL) {
++
++      Mmsg(query, 
++"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='D' AND JobStatus='T' AND Type='B' "
++    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
++    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC LIMIT 1 ",
++           jobid,
++           clientid,
++           jobid,
++           filesetid);
++
++      db_sql_query(mdb, query.c_str(), NULL, NULL);
++
++      Mmsg(query, 
++"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
++ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
++   "FROM Job JOIN FileSet USING (FileSetId) "
++  "WHERE ClientId = %s "
++    "AND Level='I' AND JobStatus='T' AND Type='B' "
++    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
++    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
++  "ORDER BY Job.JobTDate DESC ",
++           jobid,
++           clientid,
++           jobid,
++           filesetid);
++      db_sql_query(mdb, query.c_str(), NULL, NULL);
++   }
++
++   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
++   db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
++   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
++
++   Mmsg(query, "DROP TABLE btemp3%s", jobid);
++   db_sql_query(mdb, query.c_str(), NULL, NULL);
++
++   return true;
++}
++
++/*
++ * Use to build a string of int list from a query. "10,20,30"
++ */
++int db_get_int_handler(void *ctx, int num_fields, char **row)
++{
++   POOLMEM *ret = (POOLMEM *)ctx;
++   if (num_fields == 1) {
++      if (ret[0] != 0) {
++         pm_strcat(ret, ",");
++      }
++      pm_strcat(ret, row[0]);
++   }
++   return 0;
 +}
 +
  #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/
@@ -834,9 +863,9 @@ Index: src/stored/bextract.c
 +      /* handle deleted file 
 +       */
 +      if (rec->FileIndex == 0) {
-+	 /* if file is included, remove it ? */
-+	 Jmsg(jcr, M_INFO, 0, _("fname=%s is marked as deleted.\n"), attr->fname);
-+	 break;
++         /* if file is included, remove it ? */
++         Jmsg(jcr, M_INFO, 0, _("fname=%s is marked as deleted.\n"), attr->fname);
++         break;
 +      }
 +
        if (attr->file_index != rec->FileIndex) {
@@ -853,10 +882,10 @@ Index: src/stored/bscan.c
 +      /* handle deleted file 
 +       */
 +      if (rec->FileIndex == 0) {
-+	 create_file_attributes_record(db, mjcr, attr->fname, attr->lname,
-+				       FT_NOSTAT, "", rec);
-+	 free_jcr(mjcr);
-+	 break;
++         create_file_attributes_record(db, mjcr, attr->fname, attr->lname,
++                                       FT_NOSTAT, "", rec);
++         free_jcr(mjcr);
++         break;
 +      }
 +
        if (!unpack_attributes_record(bjcr, rec->Stream, rec->data, attr)) {
@@ -884,17 +913,17 @@ Index: src/stored/append.c
 -         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
 -         ok = false;
 -         break;
-+      if (file_index != 0) {	/* TODO: handle file_index == 0 */
-+	 if (!(file_index > 0 && (file_index == last_file_index ||
-+				  file_index == last_file_index + 1))) {
-+	    Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
-+	    ok = false;
-+	    break;
-+	 }
-+	 if (file_index != last_file_index) {
-+	    jcr->JobFiles = file_index;
-+	    last_file_index = file_index;
-+	 }
++      if (file_index != 0) {    /* TODO: handle file_index == 0 */
++         if (!(file_index > 0 && (file_index == last_file_index ||
++                                  file_index == last_file_index + 1))) {
++            Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
++            ok = false;
++            break;
++         }
++         if (file_index != last_file_index) {
++            jcr->JobFiles = file_index;
++            last_file_index = file_index;
++         }
        }
 -      if (file_index != last_file_index) {
 -         jcr->JobFiles = file_index;
@@ -903,20 +932,29 @@ Index: src/stored/append.c
  
        /* Read data stream from the File daemon.
         *  The data stream is just raw bytes
-@@ -212,25 +214,26 @@
-             stream_to_ascii(buf1, rec.Stream,rec.FileIndex),
-             rec.data_len);
+@@ -214,22 +216,23 @@
  
--         while (!write_record_to_block(dcr->block, &rec)) {
--            Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
+          while (!write_record_to_block(dcr->block, &rec)) {
+             Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
 -                       rec.remainder);
--            if (!write_block_to_device(dcr)) {
--               Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
++                  rec.remainder);
+             if (!write_block_to_device(dcr)) {
+                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
 -                  dev->print_name(), dev->bstrerror());
--               ok = false;
--               break;
--            }
--         }
++                     dev->print_name(), dev->bstrerror());
+                ok = false;
+                break;
+             }
++
++            if (!ok) {
++               Dmsg0(400, "Not OK\n");
++               break;
++            }
++            jcr->JobBytes += rec.data_len;   /* increment bytes this job */
++            Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
++                  FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
++                  stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
+          }
 -         if (!ok) {
 -            Dmsg0(400, "Not OK\n");
 -            break;
@@ -925,29 +963,9 @@ Index: src/stored/append.c
 -         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
 -            FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
 -            stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
-+	 while (!write_record_to_block(dcr->block, &rec)) {
-+	    Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
-+		  rec.remainder);
-+	    if (!write_block_to_device(dcr)) {
-+	       Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
-+		     dev->print_name(), dev->bstrerror());
-+	       ok = false;
-+	       break;
-+	    }
  
-+	    if (!ok) {
-+	       Dmsg0(400, "Not OK\n");
-+	       break;
-+	    }
-+	    jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-+	    Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-+		  FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
-+		  stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
-+	 }
-+
           /* Send attributes and digest to Director for Catalog */
           if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
-              crypto_digest_stream_type(stream) != CRYPTO_DIGEST_NONE) {
 Index: src/jcr.h
 ===================================================================
 --- src/jcr.h	(révision 6443)
