@@ -316,7 +316,7 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
-+   if (ff_pkt->type == FT_DIREND || ff_pkt->type == FT_REPARSE || ff_pkt->type == FT_DIRNOCHG) {
++   if (S_ISDIR(ff_pkt->statp.st_mode)) {
 +      fname = ff_pkt->link;
 +   } 
 +
@@ -1048,12 +1048,15 @@ Index: src/findlib/find_one.c
   * Find a single file.
   * handle_file is the callback for handling the file.
   * p is the filename
-@@ -333,16 +360,10 @@
+@@ -333,16 +360,13 @@
      * since our last "save_time", presumably the last Full save
      * or Incremental.
      */
 -   if (ff_pkt->incremental && !S_ISDIR(ff_pkt->statp.st_mode)) {
-+   if (!S_ISDIR(ff_pkt->statp.st_mode) && !check_changes(jcr, ff_pkt)) {
++   if (   ff_pkt->incremental 
++       && !S_ISDIR(ff_pkt->statp.st_mode) 
++       && !check_changes(jcr, ff_pkt)) 
++   {
        Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
 -      /* Not a directory */
 -      if (ff_pkt->statp.st_mtime < ff_pkt->save_time
@@ -1068,7 +1071,7 @@ Index: src/findlib/find_one.c
     }
  
  #ifdef HAVE_DARWIN_OS
-@@ -502,15 +523,13 @@
+@@ -502,15 +526,13 @@
        link[len] = 0;
  
        ff_pkt->link = link;
@@ -1076,14 +1079,12 @@ Index: src/findlib/find_one.c
 -          (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
 -             ((ff_pkt->flags & FO_MTIMEONLY) ||
 -               ff_pkt->statp.st_ctime < ff_pkt->save_time))) {
-+      if (check_changes(jcr, ff_pkt)) {
-+         ff_pkt->type = FT_DIRBEGIN;
-+      } else {
++      if (ff_pkt->incremental && !check_changes(jcr, ff_pkt)) {
           /* Incremental option, directory entry not changed */
--         ff_pkt->type = FT_DIRNOCHG;
--      } else {
+          ff_pkt->type = FT_DIRNOCHG;
+       } else {
 -         ff_pkt->type = FT_DIRBEGIN;
-+         ff_pkt->type = FT_DIRNOCHG;	 
++         ff_pkt->type = FT_DIRBEGIN;;	 
        }
 +
        /* We have set st_rdev to 1 if it is a reparse point, otherwise 0 */
