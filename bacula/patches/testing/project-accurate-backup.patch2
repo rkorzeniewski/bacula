@@ -1077,11 +1077,13 @@ Index: src/findlib/find_one.c
 -             ((ff_pkt->flags & FO_MTIMEONLY) ||
 -               ff_pkt->statp.st_ctime < ff_pkt->save_time))) {
 +      if (check_changes(jcr, ff_pkt)) {
++         ff_pkt->type = FT_DIRBEGIN;
++      } else {
           /* Incremental option, directory entry not changed */
 -         ff_pkt->type = FT_DIRNOCHG;
+-      } else {
+-         ff_pkt->type = FT_DIRBEGIN;
 +         ff_pkt->type = FT_DIRNOCHG;	 
-       } else {
-          ff_pkt->type = FT_DIRBEGIN;
        }
 +
        /* We have set st_rdev to 1 if it is a reparse point, otherwise 0 */
