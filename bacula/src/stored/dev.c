@@ -1917,6 +1917,8 @@ boffset_t DEVICE::lseek(DCR *dcr, boffset_t offset, int whence)
 
 bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
 {
+   struct stat st;
+
    Dmsg1(100, "truncate %s\n", print_name());
    switch (dev_type) {
    case B_TAPE_DEV:
@@ -1925,15 +1927,62 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
    case B_DVD_DEV:
       return truncate_dvd(dcr);
    case B_FILE_DEV:
-      /* ***FIXME*** we really need to unlink() the file so that
-       *  its name can be changed for a relabel.
-       */
       if (ftruncate(m_fd, 0) != 0) {
          berrno be;
          Mmsg2(errmsg, _("Unable to truncate device %s. ERR=%s\n"), 
                print_name(), be.bstrerror());
          return false;
       }
+          
+      /*
+       * Check for a successful ftruncate() and issue a work-around for devices 
+       * (mostly cheap NAS) that don't support truncation. 
+       * Workaround supplied by Martin Schmid as a solution to bug #1011.
+       * 1. close file
+       * 2. delete file
+       * 3. open new file with same mode
+       * 4. change ownership to original
+       */
+
+      if (fstat(m_fd, &st) != 0) {
+         berrno be;
+         Mmsg2(errmsg, _("Unable to stat device %s. ERR=%s\n"), 
+               print_name(), be.bstrerror());
+         return false;
+      }
+          
+      if (st.st_size != 0) {             /* ftruncate() didn't work */
+         POOL_MEM archive_name(PM_FNAME);
+                
+         pm_strcpy(archive_name, dev_name);
+         if (!IsPathSeparator(archive_name.c_str()[strlen(archive_name.c_str())-1])) {
+            pm_strcat(archive_name, "/");
+         }
+         pm_strcat(archive_name, dcr->VolumeName);
+                   
+         Mmsg2(errmsg, _("Device %s doesn't support ftruncate(). Recreating file %s.\n"), 
+               print_name(), archive_name.c_str());
+
+         /* Close file and blow it away */
+         ::close(m_fd);
+         ::unlink(archive_name.c_str());
+                   
+         /* Recreate the file -- of course, empty */
+         set_mode(CREATE_READ_WRITE);
+         if ((m_fd = ::open(archive_name.c_str(), mode, st.st_mode)) < 0) {
+            berrno be;
+            dev_errno = errno;
+            Mmsg2(errmsg, _("Could not reopen: %s, ERR=%s\n"), archive_name.c_str(), 
+                  be.bstrerror());
+            Dmsg1(100, "reopen failed: %s", errmsg);
+            Emsg0(M_FATAL, 0, errmsg);
+            return false;
+         }
+                   
+         /* Reset proper owner */
+         chown(archive_name.c_str(), st.st_uid, st.st_gid);  
+      }
+          
       return true;
    }
    return false;
