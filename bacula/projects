@@ -1,7 +1,7 @@
                 
 Projects:
                      Bacula Projects Roadmap 
-                    Status updated 24 January 2008
+                    Status updated 22 February 2008
 
 Items Completed:
 
@@ -1207,6 +1207,32 @@ Item 1:   enable/disable compression depending on storage device (disk/tape)
          is in the Job definition or vice-versa, but in any case, it must
          be well defined.
 
+
+Item 1: Backup and Restore of Windows Encrypted Files through raw encryption functions
+
+  Origin: Michael Mohr, SAG  Mohr.External@infineon.com
+  
+  Date:   22 February 2008
+  
+  Status:
+
+  What:   Make it possible to backup and restore Encypted Files from and
+          to Windows systems without the need to decrypt it by using the raw encryption
+          functions API 
+          (see: http://msdn2.microsoft.com/en-us/library/aa363783.aspx)
+
+          that is provided for that reason by Microsoft.
+          If a file ist encrypted could be examined by evaluating the 
+          FILE_ATTRIBUTE_ENCRYTED flag of the GetFileAttributes
+          function.
+
+  Why:    Without the usage of this interface the fd-daemon running
+          under the system account can't read encypted Files because
+          the key needed for the decrytion is missed by them. As a result 
+          actually encrypted files are not backed up
+          by bacula and also no error is shown while missing these files.
+
+  Notes:  ./.
 
 
 ========== Already implemented ================================
