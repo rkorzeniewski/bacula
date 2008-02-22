@@ -10,11 +10,16 @@ scripts/cleanup
 
 copy_test_confs
 /bin/cp -f scripts/bacula-dir.conf.accurate bin/bacula-dir.conf
+sed -i s/all,/all,saved,/ bin/bacula-fd.conf
 
+change_jobname Client1 $JobName
+
+# cleanup
 rm -rf ${cwd}/build/accurate.new
 rm -rf ${cwd}/build/accurate
 
-change_jobname Client1 $JobName
+
+# add extra files
 mkdir ${cwd}/build/accurate
 echo "test test" > ${cwd}/build/accurate/xxx
 echo "test test" > ${cwd}/build/accurate/yyy
@@ -41,7 +46,68 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out  
-restore where=${cwd}/tmp/bacula-restores select all done
+restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+################################################################
+# First :  We just run full and restore to compare if all is ok
+################################################################
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a second backup after making a few changes
+################################################################
+rm ${cwd}/build/accurate/xxx  # delete a file
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a third backup after making a few changes
+################################################################
+
+# some files will have disappear, others have their old mtime/ctime
+mv ${cwd}/build/accurate ${cwd}/build/accurate.new
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do an other test in differential mode
+################################################################
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+run job=$JobName level=differential yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
 messages
@@ -57,9 +123,29 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
-# Now do a second backup after making a few changes
-#
-rm ${cwd}/build/accurate/xxx
+################################################################
+# Now do an other test in differential mode + incremental
+################################################################
+
+# make some changes
+mv ${cwd}/build/accurate.new ${cwd}/build/accurate
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+run job=$JobName yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
 
 run_bconsole
 check_for_zombie_jobs storage=File
@@ -69,9 +155,27 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
-# Now do a second backup after making a few changes
-#
-mv ${cwd}/build/accurate ${cwd}/build/accurate.new
+
+################################################################
+# Now do a test with other attributes (owner, gid, rights)
+################################################################
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+run job=backup_advance yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
 
 run_bconsole
 check_for_zombie_jobs storage=File
@@ -80,6 +184,43 @@ check_two_logs
 check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
+
+
+################################################################
+# Use the p option for verify
+################################################################
+
+chmod 400 ${cwd}/build/accurate/yyy
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+run job=backup_advance yes
+wait
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore fileset=FS_TESTJOB_ADVANCE where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+if ! grep 'st_mode  differ' tmp/log1.out > /dev/null
+then
+    bstat=2
+fi
 
 stop_bacula
 end_test

@@ -47,12 +47,30 @@ FileSet {
  }
 }
 
+FileSet {
+ Name = FS_TESTJOB_ADVANCE
+ Include {
+   Options {
+    Verify = mcpgu
+   }
+   File=<@tmpdir@/file-list
+ }
+}
+
 Job {
   Accurate = yes
   Name = backup
   JobDefs = DefaultJob
   FileSet = FS_TESTJOB
 }
+
+Job {
+  Accurate = yes
+  Name = backup_advance
+  JobDefs = DefaultJob
+  FileSet = FS_TESTJOB_ADVANCE
+}
+
 
 # Standard Restore template, to be changed by Console program
 Job {
@@ -99,7 +117,7 @@ Catalog {
 
 Messages {
   Name = Standard
-  console = all, !skipped, !saved
+  console = all, !skipped, saved
 }
 
 # Default pool definition
