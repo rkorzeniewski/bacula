@@ -69,19 +69,17 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
-# This doesn't work yet...
+# Now do a second backup after making a few changes
 #
-## Now do a second backup after making a few changes
-##
-#mv ${cwd}/build/accurate ${cwd}/build/accurate.new
-#
-#run_bconsole
-#check_for_zombie_jobs storage=File
-#
-#check_two_logs
-#check_restore_diff
-#
-#rm -rf ${cwd}/tmp/bacula-restores
-#
+mv ${cwd}/build/accurate ${cwd}/build/accurate.new
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
 stop_bacula
 end_test
