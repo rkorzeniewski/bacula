@@ -259,14 +259,16 @@ static void drop_temp_tables(UAContext *ua)
 
 static bool create_temp_tables(UAContext *ua)
 {
-   int i;
    /* Create temp tables and indicies */
-   for (i=0; create_deltabs[i]; i++) {
-      if (!db_sql_query(ua->db, create_deltabs[i], NULL, (void *)NULL)) {
-         ua->error_msg("%s", db_strerror(ua->db));
-         Dmsg0(050, "create DelTables table failed\n");
-         return false;
-      }
+   if (!db_sql_query(ua->db, create_deltabs[db_type], NULL, (void *)NULL)) {
+      ua->error_msg("%s", db_strerror(ua->db));
+      Dmsg0(050, "create DelTables table failed\n");
+      return false;
+   }
+   if (!db_sql_query(ua->db, create_delindex, NULL, (void *)NULL)) {
+       ua->error_msg("%s", db_strerror(ua->db));
+       Dmsg0(050, "create DelInx1 index failed\n");
+       return false;
    }
    return true;
 }

@@ -1,3 +1,124 @@
+AC_DEFUN([BA_CHECK_DBI_DB],
+[
+db_found=no
+AC_MSG_CHECKING(for DBI support)
+AC_ARG_WITH(dbi,
+[
+  --with-dbi@<:@=DIR@:>@     Include DBI support.  DIR is the DBD base
+                          install directory, default is to search through
+                          a number of common places for the DBI files.],
+[
+  if test "$withval" != "no"; then
+     if test "$withval" = "yes"; then
+        if test -f /usr/local/include/dbi/dbi.h; then
+           DBI_INCDIR=/usr/local/dbi/include
+           if test -d /usr/local/lib64; then
+              DBI_LIBDIR=/usr/local/lib64
+           else
+              DBI_LIBDIR=/usr/local/lib
+           fi
+           DBI_BINDIR=/usr/local/bin
+        elif test -f /usr/include/dbi/dbi.h; then
+           DBI_INCDIR=/usr/include
+           if test -d /usr/lib64; then
+              DBI_LIBDIR=/usr/lib64
+           else
+              DBI_LIBDIR=/usr/lib
+           fi
+           DBI_BINDIR=/usr/bin      
+        elif test -f $prefix/include/dbi/dbi.h; then
+           DBI_INCDIR=$prefix/include
+           if test -d $prefix/lib64; then
+              DBI_LIBDIR=$prefix/lib64
+           else
+              DBI_LIBDIR=$prefix/lib
+           fi
+           DBI_BINDIR=$prefix/bin      
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Unable to find dbi.h in standard locations)
+        fi
+        if test -d /usr/local/lib/dbd; then
+           DRIVERDIR=/usr/local/lib/dbd
+           if test -d /usr/local/lib64/dbd; then
+              DRIVERDIR=/usr/local/lib64/dbd
+           else
+              DRIVERDIR=/usr/local/lib/dbd
+           fi
+        elif test -d /usr/lib/dbd; then
+           DRIVERDIR=/usr/lib/dbd
+           if test -d /usr/lib64/dbd; then
+              DRIVERDIR=/usr/lib64/dbd
+           else
+              DRIVERDIR=/usr/lib/dbd
+           fi
+        elif test -d $prefix/lib/dbd; then
+           if test -d $prefix/lib64/dbd; then
+              DRIVERDIR=$prefix/lib64/dbd
+           else
+              DRIVERDIR=$prefix/lib/dbd
+           fi
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Unable to find DBD drivers in standard locations)
+        fi
+     else
+        if test -f $withval/dbi.h; then
+           DBI_INCDIR=$withval
+           DBI_LIBDIR=$withval
+           DBI_BINDIR=$withval
+        elif test -f $withval/include/dbi/dbi.h; then
+           DBI_INCDIR=$withval/include
+           if test -d $withval/lib64; then
+              DBI_LIBDIR=$withval/lib64
+           else
+              DBI_LIBDIR=$withval/lib
+           fi
+           DBI_BINDIR=$withval/bin
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Invalid DBI directory $withval - unable to find dbi.h under $withval)
+        fi
+        if test -d $withval/dbd; then
+           DRIVERDIR=$withval/dbd
+        elif test -d $withval/lib/; then
+           if test -d $withval/lib64/dbd; then
+              DRIVERDIR=$withval/lib64/dbd
+           else
+              DRIVERDIR=$withval/lib/dbd
+           fi
+        else
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Invalid DBD driver directory $withval - unable to find DBD drivers under $withval)
+        fi
+     fi
+     SQL_INCLUDE=-I$DBI_INCDIR
+     SQL_LFLAGS="-L$DBI_LIBDIR -ldbi"
+     SQL_BINDIR=$DBI_BINDIR
+     SQL_LIB=$DBI_LIBDIR/libdbi.a
+     DBI_DBD_DRIVERDIR="-D DBI_DRIVER_DIR=\\\"$DRIVERDIR\\\""
+
+     AC_DEFINE(HAVE_DBI)
+     AC_MSG_RESULT(yes)
+     db_found=yes
+     support_dbi=yes
+     db_type=DBI
+     DB_TYPE=dbi
+
+  else
+     AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+AC_SUBST(SQL_LFLAGS)
+AC_SUBST(SQL_INCLUDE)
+AC_SUBST(SQL_BINDIR)
+AC_SUBST(DBI_DBD_DRIVERDIR)  
+
+])
+
+
 AC_DEFUN([BA_CHECK_MYSQL_DB],
 [
 db_found=no

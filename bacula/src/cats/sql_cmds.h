@@ -26,10 +26,11 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 
+
 extern const char CATS_IMP_EXP *client_backups;
 extern const char CATS_IMP_EXP *list_pool;
 extern const char CATS_IMP_EXP *drop_deltabs[];
-extern const char CATS_IMP_EXP *create_deltabs[];
+extern const char CATS_IMP_EXP *create_delindex;
 extern const char CATS_IMP_EXP *insert_delcand;
 extern const char CATS_IMP_EXP *select_backup_del;
 extern const char CATS_IMP_EXP *select_verify_del;
@@ -49,13 +50,10 @@ extern const char CATS_IMP_EXP *sel_JobMedia;
 extern const char CATS_IMP_EXP *upd_Purged;
 
 extern const char CATS_IMP_EXP *uar_list_jobs;
-extern const char CATS_IMP_EXP *uar_file;
 extern const char CATS_IMP_EXP *uar_count_files;
 extern const char CATS_IMP_EXP *uar_sel_files;
 extern const char CATS_IMP_EXP *uar_del_temp;
 extern const char CATS_IMP_EXP *uar_del_temp1;
-extern const char CATS_IMP_EXP *uar_create_temp;
-extern const char CATS_IMP_EXP *uar_create_temp1;
 extern const char CATS_IMP_EXP *uar_last_full;
 extern const char CATS_IMP_EXP *uar_full;
 extern const char CATS_IMP_EXP *uar_inc;
@@ -68,6 +66,12 @@ extern const char CATS_IMP_EXP *uar_dif;
 extern const char CATS_IMP_EXP *uar_sel_all_temp;
 extern const char CATS_IMP_EXP *uar_count_files;
 extern const char CATS_IMP_EXP *uar_jobids_fileindex;
-extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir;
 extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_table;
 extern const char CATS_IMP_EXP *uar_sel_jobid_temp;
+
+extern const char CATS_IMP_EXP *create_deltabs[3];
+
+extern const char CATS_IMP_EXP *uar_file[3];
+extern const char CATS_IMP_EXP *uar_create_temp[3];
+extern const char CATS_IMP_EXP *uar_create_temp1[3];
+extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[3];
