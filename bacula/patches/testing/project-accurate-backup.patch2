@@ -301,7 +301,7 @@ Index: src/filed/backup.c
 + * 
 + */
 +/* TODO: tweak verify code to use the same function */
-+bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt, bool saved)
++bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 +{
 +   char *p;
 +   int stat=false;
@@ -328,7 +328,7 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
-+   if (saved || *elt->lstat == '\0') {
++   if (*elt->lstat == '\0') {
 +      Dmsg1(1, "accurate %s = no (already seen)\n", fname);
 +      *elt->lstat = '\0';
 +      return false;
@@ -342,7 +342,7 @@ Index: src/filed/backup.c
 +      switch (*p) {
 +      case 'i':                /* compare INODEs */
 +         if (statc.st_ino != ff_pkt->statp.st_ino) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_ino   differ. Cat: %s File: %s\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_ino   differ. Cat: %s File: %s\n"), fname,
 +                 edit_uint64((uint64_t)statc.st_ino, ed1),
 +                 edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
 +            stat = true;
@@ -350,61 +350,61 @@ Index: src/filed/backup.c
 +         break;
 +      case 'p':                /* permissions bits */
 +         if (statc.st_mode != ff_pkt->statp.st_mode) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_mode  differ. Cat: %x File: %x\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_mode  differ. Cat: %x File: %x\n"), fname,
 +                 (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
 +            stat = true;
 +         }
 +         break;
-+      case 'n':                /* number of links */
-+         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_nlink differ. Cat: %d File: %d\n"),
-+                 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
-+            stat = true;
-+         }
-+         break;
++//      case 'n':                /* number of links */
++//         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
++//            Jmsg(jcr, M_SAVED, 0, _("%s      st_nlink differ. Cat: %d File: %d\n"), fname,
++//                 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
++//            stat = true;
++//         }
++//         break;
 +      case 'u':                /* user id */
 +         if (statc.st_uid != ff_pkt->statp.st_uid) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_uid   differ. Cat: %u File: %u\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_uid   differ. Cat: %u File: %u\n"), fname,
 +                 (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
 +            stat = true;
 +         }
 +         break;
 +      case 'g':                /* group id */
 +         if (statc.st_gid != ff_pkt->statp.st_gid) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_gid   differ. Cat: %u File: %u\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_gid   differ. Cat: %u File: %u\n"), fname,
 +                 (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
 +            stat = true;
 +         }
 +         break;
 +      case 's':                /* size */
 +         if (statc.st_size != ff_pkt->statp.st_size) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_size  differ. Cat: %s File: %s\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  differ. Cat: %s File: %s\n"), fname,
 +                 edit_uint64((uint64_t)statc.st_size, ed1),
 +                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
 +            stat = true;
 +         }
 +         break;
-+      case 'a':                /* access time */
-+         if (statc.st_atime != ff_pkt->statp.st_atime) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_atime differs\n"));
-+            stat = true;
-+         }
-+         break;
++//      case 'a':                /* access time */
++//         if (statc.st_atime != ff_pkt->statp.st_atime) {
++//            Jmsg(jcr, M_SAVED, 0, _("%s      st_atime differs\n"), fname);
++//            stat = true;
++//         }
++//         break;
 +      case 'm':
 +         if (statc.st_mtime != ff_pkt->statp.st_mtime) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_mtime differs\n"));
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
 +            stat = true;
 +         }
 +         break;
 +      case 'c':                /* ctime */
 +         if (statc.st_ctime != ff_pkt->statp.st_ctime) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_ctime differs\n"));
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
 +            stat = true;
 +         }
 +         break;
 +      case 'd':                /* file size decrease */
 +         if (statc.st_size > ff_pkt->statp.st_size) {
-+            Jmsg(jcr, M_INFO, 0, _("      st_size  decrease. Cat: %s File: %s\n"),
++            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  decrease. Cat: %s File: %s\n"), fname,
 +                 edit_uint64((uint64_t)statc.st_size, ed1),
 +                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
 +            stat = true;
@@ -466,7 +466,7 @@ Index: src/filed/backup.c
 +         elt->fname[dir->msglen]='\0';
 +         elt->lstat = elt->fname + len + 1;
 +         jcr->file_list->insert(elt->fname, elt); 
-+         Dmsg2(1, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
++         Dmsg2(5, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +      }
 +   }
 +
@@ -522,7 +522,23 @@ Index: src/filed/backup.c
  #ifdef HAVE_LIBZ
     z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
     if (pZlibStream) {
-@@ -134,7 +351,10 @@
+@@ -121,10 +338,13 @@
+       return false;
+    }
+ 
+-   Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
+    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
+-   Dmsg0(300, "start find files\n");
+ 
++   /* in accurate mode, we overwrite the find_one check function */
++   if (jcr->accurate) {
++      set_find_changed_function((FF_PKT *)jcr->ff, accurate_check_file);
++   } 
++   
+    start_heartbeat_monitor(jcr);
+ 
+    jcr->acl_text = get_pool_memory(PM_MESSAGE);
+@@ -134,7 +354,10 @@
        ok = false;                     /* error */
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
@@ -533,39 +549,7 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -354,9 +574,21 @@
-    }
-    case FT_DIRNOCHG:
-    case FT_NOCHG:
-+      /* TODO: in accurate mode, we have to change NOCHG attribute to FT_REG... */
-+//      if (!accurate_check_file(jcr, ff_pkt, false)) {
-+//       Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
-+//       return 1;
-+//      }
-+      accurate_check_file(jcr, ff_pkt, false);
-       Jmsg(jcr, M_SKIPPED, 1, _("     Unchanged file skipped: %s\n"), ff_pkt->fname);
-       return 1;
-    case FT_ISARCH:
-+      /* TODO: in accurate mode, we have to change NOCHG attribute to FT_REG... */
-+//      if (!accurate_check_file(jcr, ff_pkt, false)) { 
-+//       Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
-+//       return 1;
-+//      }
-+      accurate_check_file(jcr, ff_pkt, false);
-       Jmsg(jcr, M_NOTSAVED, 0, _("     Archive file not saved: %s\n"), ff_pkt->fname);
-       return 1;
-    case FT_NOOPEN: {
-@@ -1118,6 +1350,9 @@
-    }
-    unstrip_path(ff_pkt);
- 
-+   /* list backuped files */
-+   accurate_check_file(jcr, ff_pkt, true);
-+
-    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
-    if (!stat) {
-       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-@@ -1128,6 +1363,58 @@
+@@ -1128,6 +1351,58 @@
     return true;
  }
  
@@ -1008,6 +992,101 @@ Index: src/lib/Makefile.in
  
  
  EXTRAOBJS = @OBJLIST@
+Index: src/findlib/find.c
+===================================================================
+--- src/findlib/find.c	(révision 6443)
++++ src/findlib/find.c	(copie de travail)
+@@ -96,6 +96,13 @@
+   Dmsg0(100, "Leave set_find_options()\n");
+ }
+ 
++void
++set_find_changed_function(FF_PKT *ff, bool check_fct(JCR *jcr, FF_PKT *ff))
++{
++   Dmsg0(100, "Enter set_find_changed_function()\n");
++   ff->check_fct = check_fct;
++}
++
+ /*
+  * For VSS we need to know which windows drives
+  * are used, because we create a snapshot of all used
+Index: src/findlib/find_one.c
+===================================================================
+--- src/findlib/find_one.c	(révision 6443)
++++ src/findlib/find_one.c	(copie de travail)
+@@ -258,6 +258,33 @@
+ }
+ 
+ /*
++ * In incremental/diffential or accurate backup, we
++ * say if the current file has changed.
++ */
++static bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
++{
++   /* in special mode (like accurate backup), user can 
++    * choose his comparison function.
++    */
++   if (ff_pkt->check_fct) {
++      return ff_pkt->check_fct(jcr, ff_pkt);
++   }
++
++   /* in normal modes (incr/diff), we use this default
++    * behaviour
++    */
++   if (ff_pkt->incremental &&
++       (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
++	((ff_pkt->flags & FO_MTIMEONLY) ||
++	 ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
++   {
++      return true;
++   } else {
++      return false;
++   }
++}
++
++/*
+  * Find a single file.
+  * handle_file is the callback for handling the file.
+  * p is the filename
+@@ -333,16 +360,10 @@
+     * since our last "save_time", presumably the last Full save
+     * or Incremental.
+     */
+-   if (ff_pkt->incremental && !S_ISDIR(ff_pkt->statp.st_mode)) {
++   if (!S_ISDIR(ff_pkt->statp.st_mode) && !check_changes(jcr, ff_pkt)) {
+       Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
+-      /* Not a directory */
+-      if (ff_pkt->statp.st_mtime < ff_pkt->save_time
+-          && ((ff_pkt->flags & FO_MTIMEONLY) ||
+-              ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
+-         /* Incremental option, file not changed */
+-         ff_pkt->type = FT_NOCHG;
+-         return handle_file(jcr, ff_pkt, top_level);
+-      }
++      ff_pkt->type = FT_NOCHG;
++      return handle_file(jcr, ff_pkt, top_level);
+    }
+ 
+ #ifdef HAVE_DARWIN_OS
+@@ -502,15 +523,13 @@
+       link[len] = 0;
+ 
+       ff_pkt->link = link;
+-      if (ff_pkt->incremental &&
+-          (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
+-             ((ff_pkt->flags & FO_MTIMEONLY) ||
+-               ff_pkt->statp.st_ctime < ff_pkt->save_time))) {
++      if (check_changes(jcr, ff_pkt)) {
+          /* Incremental option, directory entry not changed */
+-         ff_pkt->type = FT_DIRNOCHG;
++         ff_pkt->type = FT_DIRNOCHG;	 
+       } else {
+          ff_pkt->type = FT_DIRBEGIN;
+       }
++
+       /* We have set st_rdev to 1 if it is a reparse point, otherwise 0 */
+       if (have_win32_api() && ff_pkt->statp.st_rdev) {
+          ff_pkt->type = FT_REPARSE;
 Index: src/findlib/find.h
 ===================================================================
 --- src/findlib/find.h	(révision 6443)
@@ -1020,3 +1099,23 @@ Index: src/findlib/find.h
  
  struct s_included_file {
     struct s_included_file *next;
+@@ -215,6 +216,7 @@
+    findFILESET *fileset;
+    int (*file_save)(JCR *, FF_PKT *, bool); /* User's callback */
+    int (*plugin_save)(JCR *, FF_PKT *, bool); /* User's callback */
++   bool (*check_fct)(JCR *, FF_PKT *); /* optionnal user fct to check file changes */
+ 
+    /* Values set by accept_file while processing Options */
+    uint32_t flags;                    /* backup options */
+Index: src/findlib/protos.h
+===================================================================
+--- src/findlib/protos.h	(révision 6443)
++++ src/findlib/protos.h	(copie de travail)
+@@ -45,6 +45,7 @@
+ /* From find.c */
+ FF_PKT *init_find_files();
+ void  set_find_options(FF_PKT *ff, int incremental, time_t mtime);
++void set_find_changed_function(FF_PKT *ff, bool check_fct(JCR *jcr, FF_PKT *ff));
+ int   find_files(JCR *jcr, FF_PKT *ff, int file_sub(JCR *, FF_PKT *ff_pkt, bool),
+                  int plugin_sub(JCR *, FF_PKT *ff_pkt, bool));
+ int   match_files(JCR *jcr, FF_PKT *ff, int sub(JCR *, FF_PKT *ff_pkt, bool));
