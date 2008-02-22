@@ -1,6 +1,11 @@
               Technical notes on version 2.3
 
 General:
+22Feb08
+kes  Add patch from Martin Schmid scm@apsag.com that checks to see if
+     ftruncate() actually works. In the case of some (cheap) NAS devices,
+     it does not, and so recycling NAS Volumes does not work. The code
+     simply unlink()s the file, then recreates it.  This fixes bug #1011.
 21Feb08
 kes  First incomplete cut of big malloc blocks for htable.
 kes  Tweak plugin code.
