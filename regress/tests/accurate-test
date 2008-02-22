@@ -67,7 +67,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a second backup after making a few changes
+# Now do a second backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/xxx  # delete a file
 
@@ -80,7 +80,7 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
-# Now do a third backup after making a few changes
+# Now do a third backup after making few changes
 ################################################################
 
 # some files will have disappear, others have their old mtime/ctime
