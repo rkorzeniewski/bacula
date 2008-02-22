@@ -189,6 +189,7 @@ support_mysql=no
 support_sqlite=no
 support_sqlite3=no
 support_postgresql=no
+support_dbi=no
 support_smartalloc=yes
 support_readline=yes
 support_conio=yes
@@ -1329,6 +1330,8 @@ BA_CHECK_SQLITE3_DB
 
 BA_CHECK_SQLITE_DB
 
+BA_CHECK_DBI_DB
+
 AC_SUBST(cats)
 AC_SUBST(DB_TYPE)
 
@@ -2332,7 +2335,7 @@ if test "x${db_type}" = "xInternal" ; then
    echo " "
    echo " "
    echo "You have not specified either --enable-client-only or one of the"
-   echo "  supported databases: MySQL, PostgreSQL, SQLite3 or SQLite."
+   echo "  supported databases: MySQL, PostgreSQL, SQLite3, SQLite or DBI."
    echo "  This is not permitted. Please reconfigure."
    echo " "
    echo "Aborting the configuration ..."

@@ -82,10 +82,12 @@ static ATTR *attr;
 
 static time_t lasttime = 0;
 
+static const char *db_driver = "NULL";
 static const char *db_name = "bacula";
 static const char *db_user = "bacula";
 static const char *db_password = "";
 static const char *db_host = NULL;
+static int db_port = 0;
 static const char *wd = NULL;
 static bool update_db = false;
 static bool update_vol_info = false;
@@ -119,10 +121,12 @@ PROG_COPYRIGHT
 "       -d <nn>           set debug level to <nn>\n"
 "       -dt               print timestamp in debug output\n"
 "       -m                update media info in database\n"
+"       -D <driver name>  specify the driver database name (default NULL)\n"
 "       -n <name>         specify the database name (default bacula)\n"
 "       -u <user>         specify database user name (default bacula)\n"
 "       -P <password>     specify database password (default none)\n"
 "       -h <host>         specify database host (default NULL)\n"
+"       -t <port>         specify database port (default 0)\n"
 "       -p                proceed inspite of I/O errors\n"
 "       -r                list records\n"
 "       -s                synchronize or store in database\n"
@@ -150,7 +154,7 @@ int main (int argc, char *argv[])
 
    OSDependentInit();
 
-   while ((ch = getopt(argc, argv, "b:c:d:h:mn:pP:rsSu:vV:w:?")) != -1) {
+   while ((ch = getopt(argc, argv, "b:c:dD:h:p:mn:pP:rsStu:vV:w:?")) != -1) {
       switch (ch) {
       case 'S' :
          showProgress = true;
@@ -166,6 +170,10 @@ int main (int argc, char *argv[])
          configfile = bstrdup(optarg);
          break;
 
+      case 'D':
+         db_driver = optarg;
+         break;
+
       case 'd':                    /* debug level */
          if (*optarg == 't') {
             dbg_timestamp = true;
@@ -179,6 +187,10 @@ int main (int argc, char *argv[])
 
       case 'h':
          db_host = optarg;
+         break;
+         
+      case 't':
+         db_port = atoi(optarg);
          break;
 
       case 'm':
@@ -282,8 +294,8 @@ int main (int argc, char *argv[])
          edit_uint64(currentVolumeSize, ed1));
    }
 
-   if ((db=db_init_database(NULL, db_name, db_user, db_password,
-        db_host, 0, NULL, 0)) == NULL) {
+   if ((db=db_init(NULL, db_driver, db_name, db_user, db_password,
+        db_host, db_port, NULL, 0)) == NULL) {
       Emsg0(M_ERROR_TERM, 0, _("Could not init Bacula database\n"));
    }
    if (!db_open_database(NULL, db)) {

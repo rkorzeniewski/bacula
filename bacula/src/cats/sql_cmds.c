@@ -95,31 +95,7 @@ const char *drop_deltabs[] = {
    "DROP TABLE DelCandidates",
    NULL};
 
-
-/* List of SQL commands to create temp table and indicies  */
-const char *create_deltabs[] = {
-   "CREATE TEMPORARY TABLE DelCandidates ("
-#if defined(HAVE_MYSQL)
-      "JobId INTEGER UNSIGNED NOT NULL, "
-      "PurgedFiles TINYINT, "
-      "FileSetId INTEGER UNSIGNED, "
-      "JobFiles INTEGER UNSIGNED, "
-      "JobStatus BINARY(1))",
-#elif defined(HAVE_POSTGRESQL)
-      "JobId INTEGER NOT NULL, "
-      "PurgedFiles SMALLINT, "
-      "FileSetId INTEGER, "
-      "JobFiles INTEGER, "
-      "JobStatus char(1))",
-#else
-      "JobId INTEGER UNSIGNED NOT NULL, "
-      "PurgedFiles TINYINT, "
-      "FileSetId INTEGER UNSIGNED, "
-      "JobFiles INTEGER UNSIGNED, "
-      "JobStatus CHAR)",
-#endif
-   "CREATE INDEX DelInx1 ON DelCandidates (JobId)",
-   NULL};
+const char *create_delindex = "CREATE INDEX DelInx1 ON DelCandidates (JobId)";
 
 /* Fill candidates table with all Jobs subject to being deleted.
  *  This is used for pruning Jobs (first the files, then the Jobs).
@@ -270,32 +246,6 @@ const char *uar_list_jobs =
    "FROM Client,Job WHERE Client.ClientId=Job.ClientId AND JobStatus='T' "
    "AND Type='B' ORDER BY StartTime DESC LIMIT 20";
 
-#ifdef HAVE_MYSQL
-/*  MYSQL IS NOT STANDARD SQL !!!!! */
-/* List Jobs where a particular file is saved */
-const char *uar_file =
-   "SELECT Job.JobId as JobId,"
-   "CONCAT(Path.Path,Filename.Name) as Name, "
-   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
-   "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
-   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
-#else
-/* List Jobs where a particular file is saved */
-const char *uar_file =
-   "SELECT Job.JobId as JobId,"
-   "Path.Path||Filename.Name as Name, "
-   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
-   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
-   "AND Client.ClientId=Job.ClientId "
-   "AND Job.JobId=File.JobId "
-   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
-   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20";
-#endif
-
-
 /*
  * Find all files for a particular JobId and insert them into
  *  the tree during a restore.
@@ -308,44 +258,6 @@ const char *uar_sel_files =
 
 const char *uar_del_temp  = "DROP TABLE temp";
 const char *uar_del_temp1 = "DROP TABLE temp1";
-
-const char *uar_create_temp =
-   "CREATE TEMPORARY TABLE temp ("
-#ifdef HAVE_POSTGRESQL
-   "JobId INTEGER NOT NULL,"
-   "JobTDate BIGINT,"
-   "ClientId INTEGER,"
-   "Level CHAR,"
-   "JobFiles INTEGER,"
-   "JobBytes BIGINT,"
-   "StartTime TEXT,"
-   "VolumeName TEXT,"
-   "StartFile INTEGER,"
-   "VolSessionId INTEGER,"
-   "VolSessionTime INTEGER)";
-#else
-   "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED,"
-   "ClientId INTEGER UNSIGNED,"
-   "Level CHAR,"
-   "JobFiles INTEGER UNSIGNED,"
-   "JobBytes BIGINT UNSIGNED,"
-   "StartTime TEXT,"
-   "VolumeName TEXT,"
-   "StartFile INTEGER UNSIGNED,"
-   "VolSessionId INTEGER UNSIGNED,"
-   "VolSessionTime INTEGER UNSIGNED)";
-#endif
-
-const char *uar_create_temp1 =
-   "CREATE TEMPORARY TABLE temp1 ("
-#ifdef HAVE_POSTGRESQL
-   "JobId INTEGER NOT NULL,"
-   "JobTDate BIGINT)";
-#else
-   "JobId INTEGER UNSIGNED NOT NULL,"
-   "JobTDate BIGINT UNSIGNED)";
-#endif
 
 const char *uar_last_full =
    "INSERT INTO temp1 SELECT Job.JobId,JobTdate "
@@ -460,6 +372,143 @@ const char *uar_jobids_fileindex =
    "AND Filename.FilenameId=File.FilenameId "
    "ORDER BY Job.StartTime DESC LIMIT 1";
 
+/* Query to get list of files from table -- presuably built by an external program */
+const char *uar_jobid_fileindex_from_table = 
+   "SELECT JobId,FileIndex from %s";
+
+
+/*
+ *
+ *  This file contains all the SQL commands issued by the Director
+ *
+ *     Kern Sibbald, July MMII
+ *
+ *   Version $Id$
+ */
+/*
+ * Note, PostgreSQL imposes some constraints on using DISTINCT and GROUP BY
+ *  for example, the following is illegal in PostgreSQL:
+ *  SELECT DISTINCT JobId FROM temp ORDER BY StartTime ASC;
+ *  because all the ORDER BY expressions must appear in the SELECT list!
+ */
+
+
+#include "bacula.h"
+#include "cats.h"
+
+/* ====== ua_prune.c */
+
+/* List of SQL commands to create temp table and indicies  */
+const char *create_deltabs[3] = {
+   /* MySQL */
+   "CREATE TEMPORARY TABLE DelCandidates ("
+   "JobId INTEGER UNSIGNED NOT NULL, "
+   "PurgedFiles TINYINT, "
+   "FileSetId INTEGER UNSIGNED, "
+   "JobFiles INTEGER UNSIGNED, "
+   "JobStatus BINARY(1))",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE DelCandidates (" 
+   "JobId INTEGER NOT NULL, "
+   "PurgedFiles SMALLINT, "
+   "FileSetId INTEGER, "
+   "JobFiles INTEGER, "
+   "JobStatus char(1))",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE DelCandidates ("
+   "JobId INTEGER UNSIGNED NOT NULL, "
+   "PurgedFiles TINYINT, "
+   "FileSetId INTEGER UNSIGNED, "
+   "JobFiles INTEGER UNSIGNED, "
+   "JobStatus CHAR)"};
+
+/* ======= ua_restore.c */
+
+/* List Jobs where a particular file is saved */
+const char *uar_file[3] = {
+   /* Mysql */
+   "SELECT Job.JobId as JobId,"
+   "CONCAT(Path.Path,Filename.Name) as Name, "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+   /* Postgresql */
+   "SELECT Job.JobId as JobId,"
+   "Path.Path||Filename.Name as Name, "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+   /* SQLite */
+   "SELECT Job.JobId as JobId,"
+   "Path.Path||Filename.Name as Name, "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"};
+
+const char *uar_create_temp[3] = {
+   /* Mysql */
+   "CREATE TEMPORARY TABLE temp ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED,"
+   "ClientId INTEGER UNSIGNED,"
+   "Level CHAR,"
+   "JobFiles INTEGER UNSIGNED,"
+   "JobBytes BIGINT UNSIGNED,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER UNSIGNED,"
+   "VolSessionId INTEGER UNSIGNED,"
+   "VolSessionTime INTEGER UNSIGNED)",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE temp ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT,"
+   "ClientId INTEGER,"
+   "Level CHAR,"
+   "JobFiles INTEGER,"
+   "JobBytes BIGINT,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER,"
+   "VolSessionId INTEGER,"
+   "VolSessionTime INTEGER)",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE temp ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED,"
+   "ClientId INTEGER UNSIGNED,"
+   "Level CHAR,"
+   "JobFiles INTEGER UNSIGNED,"
+   "JobBytes BIGINT UNSIGNED,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER UNSIGNED,"
+   "VolSessionId INTEGER UNSIGNED,"
+   "VolSessionTime INTEGER UNSIGNED)"};
+
+const char *uar_create_temp1[3] = {
+   /* Mysql */
+   "CREATE TEMPORARY TABLE temp1 ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED)",
+   /* Postgresql */
+   "CREATE TEMPORARY TABLE temp1 ("
+   "JobId INTEGER NOT NULL,"
+   "JobTDate BIGINT)",
+   /* SQLite */
+   "CREATE TEMPORARY TABLE temp1 ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED)"};
+
 /* Query to get all files in a directory -- no recursing   
  *  Note, for PostgreSQL since it respects the "Single Value
  *  rule", the results of the SELECT will be unoptimized.
@@ -467,18 +516,8 @@ const char *uar_jobids_fileindex =
  *  for each time it was backed up.
  */
 
-#ifdef HAVE_POSTGRESQL
-const char *uar_jobid_fileindex_from_dir = 
-   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
-   "WHERE Job.JobId IN (%s) "
-   "AND Job.JobId=File.JobId "
-   "AND Path.Path='%s' "
-   "AND Client.Name='%s' "
-   "AND Job.ClientId=Client.ClientId "
-   "AND Path.PathId=File.Pathid "
-   "AND Filename.FilenameId=File.FilenameId"; 
-#else
-const char *uar_jobid_fileindex_from_dir = 
+const char *uar_jobid_fileindex_from_dir[3] = {
+   /* Mysql */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
    "AND Job.JobId=File.JobId "
@@ -487,9 +526,23 @@ const char *uar_jobid_fileindex_from_dir =
    "AND Job.ClientId=Client.ClientId "
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId "
-   "GROUP BY File.FileIndex ";
-#endif
- 
-/* Query to get list of files from table -- presuably built by an external program */
-const char *uar_jobid_fileindex_from_table = 
-   "SELECT JobId,FileIndex from %s";
+   "GROUP BY File.FileIndex ",
+   /* Postgresql */
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "AND Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId",
+   /* SQLite */
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "AND Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId "
+   "GROUP BY File.FileIndex "};

@@ -96,10 +96,13 @@ _Z16db_init_databaseP3JCRPKcS2_S2_S2_iS2_i
 _Z16db_open_databaseP3JCRP4B_DB
 _Z17db_close_databaseP3JCRP4B_DB
 _Z17db_thread_cleanupv
+
+db_type DATA
 client_backups DATA
 list_pool DATA
 drop_deltabs DATA
 create_deltabs DATA
+create_delindex DATA
 insert_delcand DATA
 select_backup_del DATA
 select_verify_del DATA

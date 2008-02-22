@@ -21,6 +21,9 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
 
+/* Define if you want to use DBI */
+#undef HAVE_DBI
+
 /* Define if you want to use PostgreSQL */
 #undef HAVE_POSTGRESQL
 
@@ -317,6 +320,10 @@
 /* Define to 1 if you have the declaration of `getc_unlocked', and to 0 if you
    don't. */
 #undef HAVE_DECL_GETC_UNLOCKED
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
 
 /* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
    */
