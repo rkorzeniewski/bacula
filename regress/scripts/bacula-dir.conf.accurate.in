@@ -40,6 +40,9 @@ JobDefs {
 FileSet {
  Name = FS_TESTJOB
  Include {
+   Options {
+    Verify = mc
+   }
    File=<@tmpdir@/file-list
  }
 }
