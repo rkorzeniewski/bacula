@@ -1,5 +1,11 @@
 #!/bin/sh
 #
+# TODO:
+#  - test bls
+#  - test bextract
+#  - test bscan
+#  - with strip path 
+#
 # Run a accurate backup of the Bacula build directory
 #   then restore it.
 #
@@ -32,6 +38,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 label volume=TestVolume001 storage=File pool=Default
+label volume=TestVolume002 storage=File pool=Default
 messages
 END_OF_DATA
 
@@ -78,6 +85,16 @@ check_two_logs
 check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Check with bls
+################################################################
+
+${cwd}/bin/bls -c ${cwd}/bin/bacula-sd.conf -V 'TestVolume001|TestVolume002' FileStorage > tmp/bls.out
+if ! grep -- '----' tmp/bls.out | grep xxx > /dev/null
+then
+    bstat=2
+fi
 
 ################################################################
 # Now do a third backup after making few changes
@@ -155,6 +172,47 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
+################################################################
+# Check with bscan
+################################################################
+
+stop_bacula
+
+cd ${cwd}/bin
+  ./drop_bacula_tables      >/dev/null 2>&1
+  ./make_bacula_tables      >/dev/null 2>&1
+  ./grant_bacula_privileges >/dev/null 2>&1
+cd ..
+
+echo "volume=TestVolume001" >tmp/bscan.bsr
+echo "volume=TestVolume002" >>tmp/bscan.bsr
+
+${cwd}/bin/bscan -c ${cwd}/bin/bacula-sd.conf -n regress -u regress -m -s -b tmp/bscan.bsr FileStorage 2>&1 > /dev/null
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out  
+restore fileset=FS_TESTJOB where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+# run bacula with just the restore job
+run_bacula
+
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
 # Now do a test with other attributes (owner, gid, rights)
@@ -222,5 +280,7 @@ then
     bstat=2
 fi
 
+
 stop_bacula
 end_test
+
