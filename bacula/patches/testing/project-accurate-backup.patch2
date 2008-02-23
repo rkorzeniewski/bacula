@@ -104,7 +104,7 @@ Index: src/dird/backup.c
 +      Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
 +      return false;
 +   }
-+   Jmsg(jcr, M_INFO, 0, _("Sending Accurate informations.\n"));
++   Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
 +
 +   /* to be able to allocate the right size for htable */
 +   POOLMEM *nb = get_pool_memory(PM_FNAME);
@@ -248,7 +248,7 @@ Index: src/filed/backup.c
  
  /* Forward referenced functions */
  int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-@@ -48,8 +49,224 @@
+@@ -48,8 +49,231 @@
  static bool crypto_session_start(JCR *jcr);
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
@@ -259,6 +259,9 @@ Index: src/filed/backup.c
 +   char *lstat;
 +   hlink link;
 +} CurFile;
++
++#define accurate_mark_file_as_seen(elt) ((elt)->lstat[0] = 0)
++#define accurate_file_has_been_seen(elt) ((elt)->lstat[0] == 0)
 +
  /*
 + * This function is called for each file seen in fileset.
@@ -273,7 +276,7 @@ Index: src/filed/backup.c
 +   char *p;
 +   int stat=false;
 +   struct stat statc;                 /* catalog stat */
-+   char *Opts_Digest = ff_pkt->VerifyOpts;
++   char *Opts_Digest = (*ff_pkt->VerifyOpts)?ff_pkt->VerifyOpts:"cm";
 +   char *fname = ff_pkt->fname;
 +   CurFile *elt;
 +
@@ -294,7 +297,7 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
-+   if (*elt->lstat == '\0') {
++   if (accurate_file_has_been_seen(elt)) {
 +      Dmsg1(500, "accurate %s = no (already seen)\n", fname);
 +      return false;
 +   }
@@ -388,7 +391,7 @@ Index: src/filed/backup.c
 +         break;
 +      }
 +   }
-+   *elt->lstat = '\0';          /* mark it as seen */
++   accurate_mark_file_as_seen(elt);
 +   Dmsg2(500, "accurate %s = %i\n", fname, stat);
 +   return stat;
 +}
@@ -448,24 +451,28 @@ Index: src/filed/backup.c
 +bool accurate_send_deleted_list(JCR *jcr)
 +{
 +   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
-+      return true;
++      goto bailout;
 +   }
 +
 +   if (jcr->file_list == NULL) {
-+      return true;
++      goto bailout;
 +   }
 +
 +   CurFile *elt;
 +   foreach_htable (elt, jcr->file_list) {
-+      if (*elt->lstat != '\0') { /* already seen */
++      if (accurate_file_has_been_seen(elt)) { /* already seen */
 +         Dmsg2(500, "deleted fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +         encode_and_send_deleted_file(jcr, elt->fname);
 +      }
 +//      free(elt->fname);
 +   }
-+   jcr->file_list->destroy(); /* TODO: clean htable when this function is not reached ? */
-+   free(jcr->file_list);
-+   jcr->file_list = NULL;
++bailout:
++   /* TODO: clean htable when this function is not reached ? */
++   if (jcr->file_list) {
++      jcr->file_list->destroy();
++      free(jcr->file_list);
++      jcr->file_list = NULL;
++   }
 +   return true;
 +}
 +
@@ -473,7 +480,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -100,7 +317,7 @@
+@@ -100,7 +324,7 @@
      */
     jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
     jcr->compress_buf = get_memory(jcr->compress_buf_size);
@@ -482,7 +489,7 @@ Index: src/filed/backup.c
  #ifdef HAVE_LIBZ
     z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
     if (pZlibStream) {
-@@ -121,10 +338,13 @@
+@@ -121,10 +345,13 @@
        return false;
     }
  
@@ -498,7 +505,7 @@ Index: src/filed/backup.c
     start_heartbeat_monitor(jcr);
  
     jcr->acl_text = get_pool_memory(PM_MESSAGE);
-@@ -135,6 +355,8 @@
+@@ -135,6 +362,8 @@
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
  
@@ -507,7 +514,7 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -1128,6 +1350,58 @@
+@@ -1128,6 +1357,57 @@
     return true;
  }
  
@@ -547,8 +554,7 @@ Index: src/filed/backup.c
 +    * For a directory, link is the same as fname, but with trailing
 +    * slash. For a linked file, link is the link.
 +    */
-+   stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", 
-+                    0 /* FileIndex */,
++   stat = sd->fsend("0 %d %s%c%s%c%s%c%s%c", 
 +                    FT_NOSTAT /* FileType */,
 +                    fname /* FileName */, 
 +                    0, attribs, 0, 0, 0, attribsEx, 0);
@@ -657,14 +663,25 @@ Index: src/cats/sql_get.c
  /* Get Media Record
   *
   * Returns: false: on failure
-@@ -1018,5 +1016,126 @@
+@@ -1018,5 +1016,141 @@
     return ok;
  }
  
++/*
++ * Find the last "accurate" backup state (that can take deleted files in account)
++ * 1) Get all files with jobid in list (F subquery) 
++ * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
++ * 3) Join the result to file table to get fileindex, jobid and lstat information
++ *
++ * TODO: On postgresql, this is done with
++SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
++  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
++ ORDER BY PathId, FilenameId, JobId DESC
++ */
 +bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, 
 +                      DB_RESULT_HANDLER *result_handler, void *ctx)
 +{
-+   if (*jobids == 0) {
++   if (!*jobids) {
 +      db_lock(mdb);
 +      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
 +      db_unlock(mdb);
@@ -706,6 +723,7 @@ Index: src/cats/sql_get.c
 +   bstrutime(date, sizeof(date),  time(NULL) + 1);
 +   jobids[0]='\0';
 +
++   /* First, find the last good Full backup for this job/client/fileset */
 +   Mmsg(query, 
 +"CREATE TEMPORARY TABLE btemp3%s AS "
 + "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -726,6 +744,7 @@ Index: src/cats/sql_get.c
 +
 +   if (jr->JobLevel == L_INCREMENTAL) {
 +
++      /* Now, find the last differential backup after the last full */
 +      Mmsg(query, 
 +"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
 + "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -742,6 +761,7 @@ Index: src/cats/sql_get.c
 +
 +      db_sql_query(mdb, query.c_str(), NULL, NULL);
 +
++      /* We just have to take all incremental after the last Full/Diff */
 +      Mmsg(query, 
 +"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
 + "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
@@ -758,6 +778,7 @@ Index: src/cats/sql_get.c
 +      db_sql_query(mdb, query.c_str(), NULL, NULL);
 +   }
 +
++   /* build a jobid list ie: 1,2,3,4 */
 +   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
 +   db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
 +   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
@@ -775,7 +796,7 @@ Index: src/cats/sql_get.c
 +{
 +   POOLMEM *ret = (POOLMEM *)ctx;
 +   if (num_fields == 1) {
-+      if (ret[0] != 0) {
++      if (ret[0]) {
 +         pm_strcat(ret, ",");
 +      }
 +      pm_strcat(ret, row[0]);
@@ -827,16 +848,17 @@ Index: src/stored/append.c
 ===================================================================
 --- src/stored/append.c	(révision 6467)
 +++ src/stored/append.c	(copie de travail)
-@@ -146,7 +146,7 @@
+@@ -146,7 +146,8 @@
  
        /* Read Stream header from the File daemon.
         *  The stream header consists of the following:
 -       *    file_index (sequential Bacula file index, base 1)
-+       *    file_index (sequential Bacula file index, base 1, 0 for deleted files)
++       *    file_index (sequential Bacula file index, base 1, 
++       *                0 for deleted files)
         *    stream     (Bacula number to distinguish parts of data)
         *    info       (Info for Storage daemon -- compressed, encryped, ...)
         *       info is not currently used, so is read, but ignored!
-@@ -185,16 +185,18 @@
+@@ -185,16 +186,21 @@
  
        Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
  
@@ -845,7 +867,10 @@ Index: src/stored/append.c
 -         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
 -         ok = false;
 -         break;
-+      if (file_index != 0) {    /* TODO: handle file_index == 0 */
++      /*
++       * In accurate mode, files with file_index == 0 are marked as deleted
++       */
++      if (!file_index) {
 +         if (!(file_index > 0 && (file_index == last_file_index ||
 +                                  file_index == last_file_index + 1))) {
 +            Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
@@ -864,7 +889,7 @@ Index: src/stored/append.c
  
        /* Read data stream from the File daemon.
         *  The data stream is just raw bytes
-@@ -214,22 +216,23 @@
+@@ -214,22 +220,23 @@
  
           while (!write_record_to_block(dcr->block, &rec)) {
              Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
