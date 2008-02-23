@@ -70,9 +70,9 @@
 #define __SQL_H_ 1
 
 enum {
-   SQL_TYPE_MYSQL   = 0,
-   SQL_TYPE_POSTGRE = 1,
-   SQL_TYPE_SQLITE  = 2
+   SQL_TYPE_MYSQL      = 0,
+   SQL_TYPE_POSTGRESQL = 1,
+   SQL_TYPE_SQLITE     = 2
 };
 
 

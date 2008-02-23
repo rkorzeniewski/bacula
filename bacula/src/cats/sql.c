@@ -72,7 +72,7 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
    if (strcasecmp(p, "mysql") == 0) {
       db_type = SQL_TYPE_MYSQL;
    } else if (strcasecmp(p, "postgresql") == 0) {
-      db_type = SQL_TYPE_POSTGRE;
+      db_type = SQL_TYPE_POSTGRESQL;
    } else if (strcasecmp(p, "sqlite") == 0) {
       db_type = SQL_TYPE_SQLITE;
    } else {
@@ -81,7 +81,7 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
 #elif HAVE_MYSQL
    db_type = SQL_TYPE_MYSQL;
 #elif HAVE_POSTGRESQL
-   db_type = SQL_TYPE_POSTGRE;
+   db_type = SQL_TYPE_POSTGRESQL;
 #elif HAVE_SQLITE
    db_type = SQL_TYPE_SQLITE;
 #elif HAVE_SQLITE3
