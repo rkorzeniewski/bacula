@@ -1011,9 +1011,9 @@ Index: src/findlib/find_one.c
 +	((ff_pkt->flags & FO_MTIMEONLY) ||
 +	 ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
 +   {
-+      return true;
-+   } else {
 +      return false;
++   } else {
++      return true;
 +   }
 +}
 +
