@@ -1,6 +1,6 @@
 Index: src/dird/fd_cmds.c
 ===================================================================
---- src/dird/fd_cmds.c	(révision 6467)
+--- src/dird/fd_cmds.c	(révision 6471)
 +++ src/dird/fd_cmds.c	(copie de travail)
 @@ -50,7 +50,7 @@
  static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
@@ -59,7 +59,7 @@ Index: src/dird/fd_cmds.c
     case L_SINCE:
 Index: src/dird/backup.c
 ===================================================================
---- src/dird/backup.c	(révision 6467)
+--- src/dird/backup.c	(révision 6471)
 +++ src/dird/backup.c	(copie de travail)
 @@ -97,6 +97,65 @@
  }
@@ -162,9 +162,64 @@ Index: src/dird/backup.c
          jcr->VolumeName,
          jcr->VolSessionId,
          jcr->VolSessionTime,
+Index: src/dird/catreq.c
+===================================================================
+--- src/dird/catreq.c	(révision 6471)
++++ src/dird/catreq.c	(copie de travail)
+@@ -346,8 +346,8 @@
+  * Update File Attributes in the catalog with data
+  *  sent by the Storage daemon.  Note, we receive the whole
+  *  attribute record, but we select out only the stat packet,
+- *  VolSessionId, VolSessionTime, FileIndex, and file name
+- *  to store in the catalog.
++ *  VolSessionId, VolSessionTime, FileIndex, file type, and 
++ *  file name to store in the catalog.
+  */
+ void catalog_update(JCR *jcr, BSOCK *bs)
+ {
+@@ -357,6 +357,7 @@
+    uint32_t FileIndex;
+    uint32_t data_len;
+    char *p;
++   int filetype;
+    int len;
+    char *fname, *attr;
+    ATTR_DBR *ar = NULL;
+@@ -398,8 +399,8 @@
+    unser_uint32(data_len);
+    p += unser_length(p);
+ 
+-   Dmsg1(400, "UpdCat msg=%s\n", bs->msg);
+-   Dmsg5(400, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
++   Dmsg1(1, "UpdCat msg=%s\n", bs->msg);
++   Dmsg5(1, "UpdCat VolSessId=%d VolSessT=%d FI=%d Strm=%d data_len=%d\n",
+       VolSessionId, VolSessionTime, FileIndex, Stream, data_len);
+ 
+    if (Stream == STREAM_UNIX_ATTRIBUTES || Stream == STREAM_UNIX_ATTRIBUTES_EX) {
+@@ -415,6 +416,7 @@
+       p = jcr->attr - bs->msg + p;    /* point p into jcr->attr */
+       skip_nonspaces(&p);             /* skip FileIndex */
+       skip_spaces(&p);
++      filetype = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
+       skip_nonspaces(&p);             /* skip FileType */
+       skip_spaces(&p);
+       fname = p;
+@@ -425,7 +427,11 @@
+       Dmsg1(400, "dird<stored: attr=%s\n", attr);
+       ar->attr = attr;
+       ar->fname = fname;
+-      ar->FileIndex = FileIndex;
++      if (filetype == FT_DELETED) {
++         ar->FileIndex = 0;     /* special value */
++      } else {
++         ar->FileIndex = FileIndex;
++      }
+       ar->Stream = Stream;
+       ar->link = NULL;
+       if (jcr->mig_jcr) {
 Index: src/dird/ua_restore.c
 ===================================================================
---- src/dird/ua_restore.c	(révision 6467)
+--- src/dird/ua_restore.c	(révision 6471)
 +++ src/dird/ua_restore.c	(copie de travail)
 @@ -1005,7 +1005,6 @@
      * For display purposes, the same JobId, with different volumes may
@@ -238,7 +293,7 @@ Index: src/dird/ua_restore.c
           /* Let the user interact in selecting which files to restore */
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6467)
+--- src/filed/backup.c	(révision 6471)
 +++ src/filed/backup.c	(copie de travail)
 @@ -37,6 +37,7 @@
  
@@ -248,26 +303,24 @@ Index: src/filed/backup.c
  
  /* Forward referenced functions */
  int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-@@ -48,8 +49,231 @@
- static bool crypto_session_start(JCR *jcr);
+@@ -49,7 +50,248 @@
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
-+static bool encode_and_send_deleted_file(JCR *jcr, char *fname);
  
 +typedef struct CurFile {
++   hlink link;
 +   char *fname;
 +   char *lstat;
-+   hlink link;
++   bool seen;
 +} CurFile;
 +
-+#define accurate_mark_file_as_seen(elt) ((elt)->lstat[0] = 0)
-+#define accurate_file_has_been_seen(elt) ((elt)->lstat[0] == 0)
++#define accurate_mark_file_as_seen(elt) ((elt)->seen = 1)
++#define accurate_file_has_been_seen(elt) ((elt)->seen)
 +
  /*
 + * This function is called for each file seen in fileset.
 + * We check in file_list hash if fname have been backuped
-+ * the last time. After we can compare Lstat field. When
-+ * a file have been seen, we put '\0' in LStat field.
++ * the last time. After we can compare Lstat field. 
 + * 
 + */
 +/* TODO: tweak verify code to use the same function ?? */
@@ -277,7 +330,7 @@ Index: src/filed/backup.c
 +   int stat=false;
 +   struct stat statc;                 /* catalog stat */
 +   char *Opts_Digest = ff_pkt->VerifyOpts;
-+   char *fname = ff_pkt->fname;
++   char *fname;
 +   CurFile *elt;
 +
 +   int32_t LinkFIc;
@@ -286,20 +339,26 @@ Index: src/filed/backup.c
 +      return true;
 +   }
 +
++   strip_path(ff_pkt);
++   
 +   if (S_ISDIR(ff_pkt->statp.st_mode)) {
 +      fname = ff_pkt->link;
++   } else {
++      fname = ff_pkt->fname;
 +   } 
 +
 +   elt = (CurFile *) jcr->file_list->lookup(fname);
 +
 +   if (!elt) {
 +      Dmsg1(500, "accurate %s = yes (not found)\n", fname);
-+      return true;
++      stat=true;
++      goto bail_out;
 +   }
 +
 +   if (accurate_file_has_been_seen(elt)) {
 +      Dmsg1(500, "accurate %s = no (already seen)\n", fname);
-+      return false;
++      stat=false;
++      goto bail_out;
 +   }
 +
 +   decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
@@ -393,6 +452,9 @@ Index: src/filed/backup.c
 +   }
 +   accurate_mark_file_as_seen(elt);
 +   Dmsg2(500, "accurate %s = %i\n", fname, stat);
++
++bail_out:
++   unstrip_path(ff_pkt);
 +   return stat;
 +}
 +
@@ -436,6 +498,7 @@ Index: src/filed/backup.c
 +         memcpy(elt->fname, dir->msg, dir->msglen);
 +         elt->fname[dir->msglen]='\0';
 +         elt->lstat = elt->fname + len + 1;
++	 elt->seen=0;
 +         jcr->file_list->insert(elt->fname, elt); 
 +         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
 +      }
@@ -450,23 +513,32 @@ Index: src/filed/backup.c
 +
 +bool accurate_send_deleted_list(JCR *jcr)
 +{
++   CurFile *elt;
++   FF_PKT *ff_pkt;
++
++   int stream = STREAM_UNIX_ATTRIBUTES;
++
 +   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
-+      goto bailout;
++      goto bail_out;
 +   }
 +
 +   if (jcr->file_list == NULL) {
-+      goto bailout;
++      goto bail_out;
 +   }
 +
-+   CurFile *elt;
++   ff_pkt = init_find_files();
++   ff_pkt->type = FT_DELETED;
++
 +   foreach_htable (elt, jcr->file_list) {
-+      if (accurate_file_has_been_seen(elt)) { /* already seen */
-+         Dmsg2(500, "deleted fname=%s lstat=%s\n", elt->fname, elt->lstat);
-+         encode_and_send_deleted_file(jcr, elt->fname);
++      if (!accurate_file_has_been_seen(elt)) { /* already seen */
++         Dmsg3(500, "deleted fname=%s lstat=%s seen=%i\n", elt->fname, elt->lstat, elt->seen);
++	 ff_pkt->fname = elt->fname;
++	 encode_and_send_attributes(jcr, ff_pkt, stream);
 +      }
 +//      free(elt->fname);
 +   }
-+bailout:
++   term_find_files(ff_pkt);
++bail_out:
 +   /* TODO: clean htable when this function is not reached ? */
 +   if (jcr->file_list) {
 +      jcr->file_list->destroy();
@@ -480,7 +552,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -100,7 +324,7 @@
+@@ -100,7 +342,7 @@
      */
     jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
     jcr->compress_buf = get_memory(jcr->compress_buf_size);
@@ -489,7 +561,7 @@ Index: src/filed/backup.c
  #ifdef HAVE_LIBZ
     z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
     if (pZlibStream) {
-@@ -121,10 +345,13 @@
+@@ -121,10 +363,13 @@
        return false;
     }
  
@@ -505,7 +577,7 @@ Index: src/filed/backup.c
     start_heartbeat_monitor(jcr);
  
     jcr->acl_text = get_pool_memory(PM_MESSAGE);
-@@ -135,6 +362,8 @@
+@@ -135,6 +380,8 @@
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
  
@@ -514,67 +586,31 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -1128,6 +1357,57 @@
-    return true;
- }
+@@ -1066,11 +1313,17 @@
+       Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
+       return false;
+    }
+-   encode_stat(attribs, ff_pkt, data_stream);
++   if (ff_pkt->type == FT_DELETED) {
++      strcpy(attribs, " ");
++      strcpy(attribsEx, " ");
++      attr_stream = STREAM_UNIX_ATTRIBUTES;
++      Dmsg1(1, "deleted %s\n", ff_pkt->fname);
++   } else {
++      encode_stat(attribs, ff_pkt, data_stream);
++      /* Now possibly extend the attributes */
++      attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
++   } 
  
-+static bool encode_and_send_deleted_file(JCR *jcr, char *fname) 
-+{
-+   BSOCK *sd = jcr->store_bsock;
-+   char *attribs;
-+   char *attribsEx;
-+   int stat;
-+#ifdef FD_NO_SEND_TEST
-+   return true;
-+#endif
-+
-+   attribs = " ";
-+   attribsEx = " ";
-+
-+   /*
-+    * Send Attributes header to Storage daemon
-+    *    <file-index> <stream> <info>
-+    */
-+   if (!sd->fsend("%ld %d 0", 0, STREAM_UNIX_ATTRIBUTES)) {
-+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-+            sd->bstrerror());
-+      return false;
-+   }
-+   Dmsg1(300, ">stored: attrhdr %s\n", sd->msg);
-+
-+   /*
-+    * Send file attributes to Storage daemon
-+    *   File_index
-+    *   File type
-+    *   Filename (full path)
-+    *   Encoded attributes
-+    *   Link name (if type==FT_LNK or FT_LNKSAVED)
-+    *   Encoded extended-attributes (for Win32)
-+    *
-+    * For a directory, link is the same as fname, but with trailing
-+    * slash. For a linked file, link is the link.
-+    */
-+   stat = sd->fsend("0 %d %s%c%s%c%s%c%s%c", 
-+                    FT_NOSTAT /* FileType */,
-+                    fname /* FileName */, 
-+                    0, attribs, 0, 0, 0, attribsEx, 0);
-+
-+   Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
-+   if (!stat) {
-+      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
-+            sd->bstrerror());
-+      return false;
-+   }
-+   sd->signal(BNET_EOD);            /* indicate end of attributes data */
-+   return true;
-+}
-+
- /* 
-  * Do in place strip of path
-  */
+-   /* Now possibly extend the attributes */
+-   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
+-
+    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
+ 
+    jcr->lock();
 Index: src/filed/job.c
 ===================================================================
---- src/filed/job.c	(révision 6467)
+--- src/filed/job.c	(révision 6471)
 +++ src/filed/job.c	(copie de travail)
 @@ -49,6 +49,7 @@
  /* Imported functions */
@@ -622,14 +658,14 @@ Index: src/filed/job.c
      *   to agree with our clock.
 Index: src/filed/restore.c
 ===================================================================
---- src/filed/restore.c	(révision 6467)
+--- src/filed/restore.c	(révision 6471)
 +++ src/filed/restore.c	(copie de travail)
 @@ -320,6 +320,11 @@
              bclose(&rctx.bfd);
           }
  
 +	 /* TODO: manage deleted files */
-+	 if (file_index == 0) {	/* deleted file */
++	 if (rctx.type == FT_DELETED) {	/* deleted file */
 +	    continue;
 +	 }
 +
@@ -638,7 +674,7 @@ Index: src/filed/restore.c
            */
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(révision 6467)
+--- src/cats/protos.h	(révision 6471)
 +++ src/cats/protos.h	(copie de travail)
 @@ -102,6 +102,9 @@
  int db_get_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cdbr);
@@ -652,7 +688,7 @@ Index: src/cats/protos.h
  /* sql_list.c */
 Index: src/cats/sql_get.c
 ===================================================================
---- src/cats/sql_get.c	(révision 6467)
+--- src/cats/sql_get.c	(révision 6471)
 +++ src/cats/sql_get.c	(copie de travail)
 @@ -898,8 +898,6 @@
     return ok;
@@ -805,127 +841,85 @@ Index: src/cats/sql_get.c
 +}
 +
  #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */
+Index: src/baconfig.h
+===================================================================
+--- src/baconfig.h	(révision 6471)
++++ src/baconfig.h	(copie de travail)
+@@ -277,6 +277,7 @@
+ #define FT_INVALIDDT 20               /* Drive type not allowed for */
+ #define FT_REPARSE   21               /* Win NTFS reparse point */
+ #define FT_PLUGIN    22               /* Plugin generated filename */
++#define FT_DELETED   23               /* Deleted file entry */
+ 
+ /* Definitions for upper part of type word (see above). */
+ #define AR_DATA_STREAM (1<<16)        /* Data stream id present */
 Index: src/stored/bextract.c
 ===================================================================
---- src/stored/bextract.c	(révision 6467)
+--- src/stored/bextract.c	(révision 6471)
 +++ src/stored/bextract.c	(copie de travail)
-@@ -324,6 +324,14 @@
-          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+@@ -331,6 +331,12 @@
+ 
+       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
+ 
++	 if (attr->type == FT_DELETED) {
++	    Jmsg(jcr, M_INFO, 0, _("%s was deleted.\n"), attr->fname);
++	    extract = false;
++	    return true;
++	 }
++
+          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
+          if (!is_restore_stream_supported(attr->data_stream)) {
+             if (!non_support_data++) {
+Index: src/stored/bls.c
+===================================================================
+--- src/stored/bls.c	(révision 6471)
++++ src/stored/bls.c	(copie de travail)
+@@ -392,7 +392,13 @@
+                rec->FileIndex, attr->file_index);
        }
  
-+      /* handle deleted file 
-+       */
-+      if (rec->FileIndex == 0) {
-+         /* if file is included, remove it ? */
-+         Jmsg(jcr, M_INFO, 0, _("fname=%s is marked as deleted.\n"), attr->fname);
-+         break;
+-      attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
++      if (attr->type == FT_DELETED) { /* TODO: set this in a more cleaner way */
++	 attr->data_stream = 0;	
++	 memset(&attr->statp, 0, sizeof(attr->statp));
++	 attr->LinkFI = 0;
++      } else {
++	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 +      }
-+
-       if (attr->file_index != rec->FileIndex) {
-          Emsg2(M_ERROR_TERM, 0, _("Record header file index %ld not equal record index %ld\n"),
-             rec->FileIndex, attr->file_index);
+       build_attr_output_fnames(jcr, attr);
+ 
+       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
 Index: src/stored/bscan.c
 ===================================================================
---- src/stored/bscan.c	(révision 6467)
+--- src/stored/bscan.c	(révision 6471)
 +++ src/stored/bscan.c	(copie de travail)
-@@ -660,6 +660,15 @@
-    case STREAM_UNIX_ATTRIBUTES:
-    case STREAM_UNIX_ATTRIBUTES_EX:
- 
-+      /* handle deleted file 
-+       */
-+      if (rec->FileIndex == 0) {
-+         create_file_attributes_record(db, mjcr, attr->fname, attr->lname,
-+                                       FT_NOSTAT, "", rec);
-+         free_jcr(mjcr);
-+         break;
-+      }
-+
-       if (!unpack_attributes_record(bjcr, rec->Stream, rec->data, attr)) {
-          Emsg0(M_ERROR_TERM, 0, _("Cannot continue.\n"));
+@@ -670,7 +670,9 @@
        }
-Index: src/stored/append.c
-===================================================================
---- src/stored/append.c	(révision 6467)
-+++ src/stored/append.c	(copie de travail)
-@@ -146,7 +146,8 @@
  
-       /* Read Stream header from the File daemon.
-        *  The stream header consists of the following:
--       *    file_index (sequential Bacula file index, base 1)
-+       *    file_index (sequential Bacula file index, base 1, 
-+       *                0 for deleted files)
-        *    stream     (Bacula number to distinguish parts of data)
-        *    info       (Info for Storage daemon -- compressed, encryped, ...)
-        *       info is not currently used, so is read, but ignored!
-@@ -185,16 +186,21 @@
- 
-       Dmsg2(890, "<filed: Header FilInx=%d stream=%d\n", file_index, stream);
- 
--      if (!(file_index > 0 && (file_index == last_file_index ||
--          file_index == last_file_index + 1))) {
--         Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
--         ok = false;
--         break;
-+      /*
-+       * In accurate mode, files with file_index == 0 are marked as deleted
-+       */
-+      if (!file_index) {
-+         if (!(file_index > 0 && (file_index == last_file_index ||
-+                                  file_index == last_file_index + 1))) {
-+            Jmsg0(jcr, M_FATAL, 0, _("File index from FD not positive or sequential\n"));
-+            ok = false;
-+            break;
+       if (verbose > 1) {
+-         decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
++         if (attr->type != FT_DELETED) {
++            decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
 +         }
-+         if (file_index != last_file_index) {
-+            jcr->JobFiles = file_index;
-+            last_file_index = file_index;
-+         }
+          build_attr_output_fnames(bjcr, attr);
+          print_ls_output(bjcr, attr);
        }
--      if (file_index != last_file_index) {
--         jcr->JobFiles = file_index;
--         last_file_index = file_index;
--      }
- 
-       /* Read data stream from the File daemon.
-        *  The data stream is just raw bytes
-@@ -214,22 +220,23 @@
- 
-          while (!write_record_to_block(dcr->block, &rec)) {
-             Dmsg2(850, "!write_record_to_block data_len=%d rem=%d\n", rec.data_len,
--                       rec.remainder);
-+                  rec.remainder);
-             if (!write_block_to_device(dcr)) {
-                Dmsg2(90, "Got write_block_to_dev error on device %s. %s\n",
--                  dev->print_name(), dev->bstrerror());
-+                     dev->print_name(), dev->bstrerror());
-                ok = false;
-                break;
-             }
-+
-+            if (!ok) {
-+               Dmsg0(400, "Not OK\n");
-+               break;
-+            }
-+            jcr->JobBytes += rec.data_len;   /* increment bytes this job */
-+            Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
-+                  FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
-+                  stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
-          }
--         if (!ok) {
--            Dmsg0(400, "Not OK\n");
--            break;
--         }
--         jcr->JobBytes += rec.data_len;   /* increment bytes this job */
--         Dmsg4(850, "write_record FI=%s SessId=%d Strm=%s len=%d\n",
--            FI_to_ascii(buf1, rec.FileIndex), rec.VolSessionId,
--            stream_to_ascii(buf2, rec.Stream, rec.FileIndex), rec.data_len);
- 
-          /* Send attributes and digest to Director for Catalog */
-          if (stream == STREAM_UNIX_ATTRIBUTES || stream == STREAM_UNIX_ATTRIBUTES_EX ||
+@@ -845,7 +847,11 @@
+    ar.ClientId = mjcr->ClientId;
+    ar.JobId = mjcr->JobId;
+    ar.Stream = rec->Stream;
+-   ar.FileIndex = rec->FileIndex;
++   if (type == FT_DELETED) {
++      ar.FileIndex = 0;
++   } else {
++      ar.FileIndex = rec->FileIndex;
++   }
+    ar.attr = ap;
+    if (dcr->VolFirstIndex == 0) {
+       dcr->VolFirstIndex = rec->FileIndex;
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6467)
+--- src/jcr.h	(révision 6471)
 +++ src/jcr.h	(copie de travail)
 @@ -119,6 +119,7 @@
  
@@ -945,7 +939,7 @@ Index: src/jcr.h
  
 Index: src/lib/Makefile.in
 ===================================================================
---- src/lib/Makefile.in	(révision 6467)
+--- src/lib/Makefile.in	(révision 6471)
 +++ src/lib/Makefile.in	(copie de travail)
 @@ -29,7 +29,7 @@
  	  res.c rwlock.c scan.c serial.c sha1.c \
@@ -965,9 +959,50 @@ Index: src/lib/Makefile.in
  
  
  EXTRAOBJS = @OBJLIST@
+Index: src/lib/attr.c
+===================================================================
+--- src/lib/attr.c	(révision 6471)
++++ src/lib/attr.c	(copie de travail)
+@@ -242,6 +242,14 @@
+    char *p, *f;
+    guid_list *guid;
+ 
++   if (attr->type == FT_DELETED) {
++      bsnprintf(buf, sizeof(buf),
++		"----------   - -        -                - ---------- --------  %s\n", attr->ofname);
++      Dmsg1(20, "%s", buf);
++      Jmsg(jcr, M_RESTORED, 1, "%s", buf);
++      return;
++   }
++
+    if (!jcr->id_list) {
+       jcr->id_list = new_guid_list();
+    }
+@@ -268,6 +276,7 @@
+          *p++ = *f++;
+       }
+    }
++
+    *p++ = '\n';
+    *p = 0;
+    Dmsg1(20, "%s", buf);
+Index: src/findlib/create_file.c
+===================================================================
+--- src/findlib/create_file.c	(révision 6471)
++++ src/findlib/create_file.c	(copie de travail)
+@@ -389,6 +389,9 @@
+          return CF_CREATED;
+       }
+ 
++   case FT_DELETED:
++      Qmsg2(jcr, M_INFO, 0, _("Original file %s have been deleted: type=%d\n"), attr->fname, attr->type);
++      break;
+    /* The following should not occur */
+    case FT_NOACCESS:
+    case FT_NOFOLLOW:
 Index: src/findlib/find.c
 ===================================================================
---- src/findlib/find.c	(révision 6467)
+--- src/findlib/find.c	(révision 6471)
 +++ src/findlib/find.c	(copie de travail)
 @@ -96,6 +96,13 @@
    Dmsg0(100, "Leave set_find_options()\n");
@@ -976,7 +1011,7 @@ Index: src/findlib/find.c
 +void
 +set_find_changed_function(FF_PKT *ff, bool check_fct(JCR *jcr, FF_PKT *ff))
 +{
-+   Dmsg0(100, "Enter set_find_changed_function()\n");
++   Dmsg0(1, "Enter set_find_changed_function()\n");
 +   ff->check_fct = check_fct;
 +}
 +
@@ -985,7 +1020,7 @@ Index: src/findlib/find.c
   * are used, because we create a snapshot of all used
 Index: src/findlib/find_one.c
 ===================================================================
---- src/findlib/find_one.c	(révision 6467)
+--- src/findlib/find_one.c	(révision 6471)
 +++ src/findlib/find_one.c	(copie de travail)
 @@ -258,6 +258,33 @@
  }
@@ -1012,9 +1047,9 @@ Index: src/findlib/find_one.c
 +	 ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
 +   {
 +      return false;
-+   } else {
-+      return true;
-+   }
++   } 
++
++   return true;
 +}
 +
 +/*
@@ -1026,11 +1061,7 @@ Index: src/findlib/find_one.c
      * or Incremental.
      */
 -   if (ff_pkt->incremental && !S_ISDIR(ff_pkt->statp.st_mode)) {
-+   if (   ff_pkt->incremental 
-+       && !S_ISDIR(ff_pkt->statp.st_mode) 
-+       && !check_changes(jcr, ff_pkt)) 
-+   {
-       Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
+-      Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
 -      /* Not a directory */
 -      if (ff_pkt->statp.st_mtime < ff_pkt->save_time
 -          && ((ff_pkt->flags & FO_MTIMEONLY) ||
@@ -1039,6 +1070,11 @@ Index: src/findlib/find_one.c
 -         ff_pkt->type = FT_NOCHG;
 -         return handle_file(jcr, ff_pkt, top_level);
 -      }
++   if (   ff_pkt->incremental 
++       && !S_ISDIR(ff_pkt->statp.st_mode) 
++       && !check_changes(jcr, ff_pkt)) 
++   {
++      Dmsg1(500, "Non-directory incremental: %s\n", ff_pkt->fname);
 +      ff_pkt->type = FT_NOCHG;
 +      return handle_file(jcr, ff_pkt, top_level);
     }
@@ -1064,7 +1100,7 @@ Index: src/findlib/find_one.c
           ff_pkt->type = FT_REPARSE;
 Index: src/findlib/find.h
 ===================================================================
---- src/findlib/find.h	(révision 6467)
+--- src/findlib/find.h	(révision 6471)
 +++ src/findlib/find.h	(copie de travail)
 @@ -215,6 +215,7 @@
     findFILESET *fileset;
@@ -1076,7 +1112,7 @@ Index: src/findlib/find.h
     uint32_t flags;                    /* backup options */
 Index: src/findlib/protos.h
 ===================================================================
---- src/findlib/protos.h	(révision 6467)
+--- src/findlib/protos.h	(révision 6471)
 +++ src/findlib/protos.h	(copie de travail)
 @@ -45,6 +45,7 @@
  /* From find.c */
