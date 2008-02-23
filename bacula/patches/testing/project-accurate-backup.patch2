@@ -276,7 +276,7 @@ Index: src/filed/backup.c
 +   char *p;
 +   int stat=false;
 +   struct stat statc;                 /* catalog stat */
-+   char *Opts_Digest = (*ff_pkt->VerifyOpts)?ff_pkt->VerifyOpts:"cm";
++   char *Opts_Digest = ff_pkt->VerifyOpts;
 +   char *fname = ff_pkt->fname;
 +   CurFile *elt;
 +
