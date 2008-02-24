@@ -291,6 +291,47 @@ Index: src/dird/ua_restore.c
  
        if (find_arg(ua, NT_("done")) < 0) {
           /* Let the user interact in selecting which files to restore */
+Index: src/dird/inc_conf.c
+===================================================================
+--- src/dird/inc_conf.c	(révision 6471)
++++ src/dird/inc_conf.c	(copie de travail)
+@@ -96,6 +96,7 @@
+ static RES_ITEM options_items[] = {
+    {"compression",     store_opts,    {0},     0, 0, 0},
+    {"signature",       store_opts,    {0},     0, 0, 0},
++   {"accurate",        store_opts,    {0},     0, 0, 0},
+    {"verify",          store_opts,    {0},     0, 0, 0},
+    {"onefs",           store_opts,    {0},     0, 0, 0},
+    {"recurse",         store_opts,    {0},     0, 0, 0},
+@@ -137,6 +138,7 @@
+    INC_KW_DIGEST,
+    INC_KW_ENCRYPTION,
+    INC_KW_VERIFY,
++   INC_KW_ACCURATE,
+    INC_KW_ONEFS,
+    INC_KW_RECURSE,
+    INC_KW_SPARSE,
+@@ -167,6 +169,7 @@
+    {"signature",   INC_KW_DIGEST},
+    {"encryption",  INC_KW_ENCRYPTION},
+    {"verify",      INC_KW_VERIFY},
++   {"accurate",    INC_KW_ACCURATE},
+    {"onefs",       INC_KW_ONEFS},
+    {"recurse",     INC_KW_RECURSE},
+    {"sparse",      INC_KW_SPARSE},
+@@ -278,6 +281,12 @@
+       bstrncat(opts, lc->str, optlen);
+       bstrncat(opts, ":", optlen);         /* terminate it */
+       Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
++   } else if (keyword == INC_KW_ACCURATE) { /* special case */
++      /* ***FIXME**** ensure these are in permitted set */
++      bstrncat(opts, "C", optlen);         /* indicate Accurate */
++      bstrncat(opts, lc->str, optlen);
++      bstrncat(opts, ":", optlen);         /* terminate it */
++      Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+    } else if (keyword == INC_KW_STRIPPATH) { /* another special case */
+       if (!is_an_integer(lc->str)) {
+          scan_err1(lc, _("Expected a strip path positive integer, got:%s:"), lc->str);
 Index: src/filed/backup.c
 ===================================================================
 --- src/filed/backup.c	(révision 6471)
@@ -303,7 +344,7 @@ Index: src/filed/backup.c
  
  /* Forward referenced functions */
  int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-@@ -49,7 +50,248 @@
+@@ -49,7 +50,255 @@
  static void crypto_session_end(JCR *jcr);
  static bool crypto_session_send(JCR *jcr, BSOCK *sd);
  
@@ -329,11 +370,17 @@ Index: src/filed/backup.c
 +   char *p;
 +   int stat=false;
 +   struct stat statc;                 /* catalog stat */
-+   char *Opts_Digest = ff_pkt->VerifyOpts;
++   char *Opts_Digest;
 +   char *fname;
 +   CurFile *elt;
 +
 +   int32_t LinkFIc;
++
++   if (*ff_pkt->VerifyOpts) {	/* use mtime + ctime checks by default */
++      Opts_Digest = ff_pkt->VerifyOpts;
++   } else {
++      Opts_Digest = "cm"; 
++   }
 +
 +   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
 +      return true;
@@ -532,10 +579,11 @@ Index: src/filed/backup.c
 +   foreach_htable (elt, jcr->file_list) {
 +      if (!accurate_file_has_been_seen(elt)) { /* already seen */
 +         Dmsg3(500, "deleted fname=%s lstat=%s seen=%i\n", elt->fname, elt->lstat, elt->seen);
-+	 ff_pkt->fname = elt->fname;
-+	 encode_and_send_attributes(jcr, ff_pkt, stream);
++         ff_pkt->fname = elt->fname;
++         decode_stat(elt->lstat, &ff_pkt->statp, &ff_pkt->LinkFI); /* decode catalog stat */
++         encode_and_send_attributes(jcr, ff_pkt, stream);
 +      }
-+//      free(elt->fname);
++//      Free(elt->fname);
 +   }
 +   term_find_files(ff_pkt);
 +bail_out:
@@ -552,7 +600,7 @@ Index: src/filed/backup.c
   * Find all the requested files and send them
   * to the Storage daemon.
   *
-@@ -100,7 +342,7 @@
+@@ -100,7 +349,7 @@
      */
     jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
     jcr->compress_buf = get_memory(jcr->compress_buf_size);
@@ -561,7 +609,7 @@ Index: src/filed/backup.c
  #ifdef HAVE_LIBZ
     z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
     if (pZlibStream) {
-@@ -121,10 +363,13 @@
+@@ -121,10 +370,13 @@
        return false;
     }
  
@@ -577,7 +625,7 @@ Index: src/filed/backup.c
     start_heartbeat_monitor(jcr);
  
     jcr->acl_text = get_pool_memory(PM_MESSAGE);
-@@ -135,6 +380,8 @@
+@@ -135,6 +387,8 @@
        set_jcr_job_status(jcr, JS_ErrorTerminated);
     }
  
@@ -586,28 +634,38 @@ Index: src/filed/backup.c
     free_pool_memory(jcr->acl_text);
  
     stop_heartbeat_monitor(jcr);
-@@ -1066,11 +1313,17 @@
+@@ -1066,8 +1320,8 @@
        Jmsg0(jcr, M_FATAL, 0, _("Invalid file flags, no supported data stream type.\n"));
        return false;
     }
--   encode_stat(attribs, ff_pkt, data_stream);
-+   if (ff_pkt->type == FT_DELETED) {
-+      strcpy(attribs, " ");
-+      strcpy(attribsEx, " ");
-+      attr_stream = STREAM_UNIX_ATTRIBUTES;
-+      Dmsg1(1, "deleted %s\n", ff_pkt->fname);
-+   } else {
-+      encode_stat(attribs, ff_pkt, data_stream);
-+      /* Now possibly extend the attributes */
-+      attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
-+   } 
- 
--   /* Now possibly extend the attributes */
--   attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
++
+    encode_stat(attribs, ff_pkt, data_stream);
 -
-    Dmsg3(300, "File %s\nattribs=%s\nattribsEx=%s\n", ff_pkt->fname, attribs, attribsEx);
+    /* Now possibly extend the attributes */
+    attr_stream = encode_attribsEx(jcr, attribsEx, ff_pkt);
  
-    jcr->lock();
+@@ -1102,7 +1356,9 @@
+     * For a directory, link is the same as fname, but with trailing
+     * slash. For a linked file, link is the link.
+     */
+-   strip_path(ff_pkt);
++   if (ff_pkt->type != FT_DELETED) { /* already stripped */
++      strip_path(ff_pkt);
++   }
+    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
+       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
+       stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
+@@ -1116,7 +1372,9 @@
+       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
+                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
+    }
+-   unstrip_path(ff_pkt);
++   if (ff_pkt->type != FT_DELETED) {
++      unstrip_path(ff_pkt);
++   }
+ 
+    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
+    if (!stat) {
 Index: src/filed/job.c
 ===================================================================
 --- src/filed/job.c	(révision 6471)
@@ -628,7 +686,24 @@ Index: src/filed/job.c
     {NULL,       NULL}                  /* list terminator */
  };
  
-@@ -1195,6 +1197,9 @@
+@@ -1057,6 +1059,16 @@
+          }
+          fo->VerifyOpts[j] = 0;
+          break;
++      case 'C':                  /* accurate options */
++         /* Copy Accurate Options */
++         for (j=0; *p && *p != ':'; p++) {
++            fo->AccurateOpts[j] = *p;
++            if (j < (int)sizeof(fo->AccurateOpts) - 1) {
++               j++;
++            }
++         }
++         fo->AccurateOpts[j] = 0;
++         break;
+       case 'P':                  /* strip path */
+          /* Get integer */
+          p++;                    /* skip P */
+@@ -1195,6 +1207,9 @@
  
     level = get_memory(dir->msglen+1);
     Dmsg1(110, "level_cmd: %s", dir->msg);
@@ -638,7 +713,7 @@ Index: src/filed/job.c
     if (sscanf(dir->msg, "level = %s ", level) != 1) {
        goto bail_out;
     }
-@@ -1204,14 +1209,14 @@
+@@ -1204,14 +1219,14 @@
     /* Full backup requested? */
     } else if (strcmp(level, "full") == 0) {
        jcr->JobLevel = L_FULL;
@@ -857,54 +932,24 @@ Index: src/stored/bextract.c
 ===================================================================
 --- src/stored/bextract.c	(révision 6471)
 +++ src/stored/bextract.c	(copie de travail)
-@@ -331,6 +331,12 @@
+@@ -343,6 +343,12 @@
  
-       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
+          build_attr_output_fnames(jcr, attr);
  
-+	 if (attr->type == FT_DELETED) {
++	 if (attr->type == FT_DELETED) { /* TODO: choose the right fname/ofname */
 +	    Jmsg(jcr, M_INFO, 0, _("%s was deleted.\n"), attr->fname);
 +	    extract = false;
 +	    return true;
 +	 }
 +
-          attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
-          if (!is_restore_stream_supported(attr->data_stream)) {
-             if (!non_support_data++) {
-Index: src/stored/bls.c
-===================================================================
---- src/stored/bls.c	(révision 6471)
-+++ src/stored/bls.c	(copie de travail)
-@@ -392,7 +392,13 @@
-                rec->FileIndex, attr->file_index);
-       }
- 
--      attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
-+      if (attr->type == FT_DELETED) { /* TODO: set this in a more cleaner way */
-+	 attr->data_stream = 0;	
-+	 memset(&attr->statp, 0, sizeof(attr->statp));
-+	 attr->LinkFI = 0;
-+      } else {
-+	 attr->data_stream = decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
-+      }
-       build_attr_output_fnames(jcr, attr);
- 
-       if (file_is_included(ff, attr->fname) && !file_is_excluded(ff, attr->fname)) {
+          extract = false;
+          stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);
+          switch (stat) {
 Index: src/stored/bscan.c
 ===================================================================
 --- src/stored/bscan.c	(révision 6471)
 +++ src/stored/bscan.c	(copie de travail)
-@@ -670,7 +670,9 @@
-       }
- 
-       if (verbose > 1) {
--         decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
-+         if (attr->type != FT_DELETED) {
-+            decode_stat(attr->attr, &attr->statp, &attr->LinkFI);
-+         }
-          build_attr_output_fnames(bjcr, attr);
-          print_ls_output(bjcr, attr);
-       }
-@@ -845,7 +847,11 @@
+@@ -845,7 +845,11 @@
     ar.ClientId = mjcr->ClientId;
     ar.JobId = mjcr->JobId;
     ar.Stream = rec->Stream;
@@ -967,7 +1012,7 @@ Index: src/lib/attr.c
     char *p, *f;
     guid_list *guid;
  
-+   if (attr->type == FT_DELETED) {
++   if (attr->type == FT_DELETED) { /* TODO: change this to get last seen values */
 +      bsnprintf(buf, sizeof(buf),
 +		"----------   - -        -                - ---------- --------  %s\n", attr->ofname);
 +      Dmsg1(20, "%s", buf);
@@ -1102,7 +1147,15 @@ Index: src/findlib/find.h
 ===================================================================
 --- src/findlib/find.h	(révision 6471)
 +++ src/findlib/find.h	(copie de travail)
-@@ -215,6 +215,7 @@
+@@ -146,6 +146,7 @@
+    int GZIP_level;                    /* GZIP level */
+    int strip_path;                    /* strip path count */
+    char VerifyOpts[MAX_FOPTS];        /* verify options */
++   char AccurateOpts[MAX_FOPTS];      /* accurate mode options */
+    alist regex;                       /* regex string(s) */
+    alist regexdir;                    /* regex string(s) for directories */
+    alist regexfile;                   /* regex string(s) for files */
+@@ -215,6 +216,7 @@
     findFILESET *fileset;
     int (*file_save)(JCR *, FF_PKT *, bool); /* User's callback */
     int (*plugin_save)(JCR *, FF_PKT *, bool); /* User's callback */
