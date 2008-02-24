@@ -80,7 +80,7 @@ JobPlot::JobPlot(QTreeWidgetItem *parentTreeWidgetItem, JobPlotPass &passVals)
    pgInitialize(parentTreeWidgetItem);
    readSplitterSettings();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/graph1.png")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/applications-graphics.png")));
    m_drawn = false;
 
    /* this invokes the pass values = operator function */
