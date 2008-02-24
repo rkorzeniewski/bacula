@@ -350,6 +350,9 @@ int prune_jobs(UAContext *ua, CLIENT *client, int JobType)
    case JT_ADMIN:
       Mmsg(query, select_admin_del, ed1, ed2);
       break;
+   case JT_COPY:
+      Mmsg(query, select_copy_del, ed1, ed2);
+      break;
    case JT_MIGRATE:
       Mmsg(query, select_migrate_del, ed1, ed2);
       break;

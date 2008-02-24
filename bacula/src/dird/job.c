@@ -147,7 +147,7 @@ bool setup_job(JCR *jcr)
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
    Dmsg2(500, "pool=%s (From %s)\n", jcr->pool->name(), jcr->pool_source);
-   if (jcr->JobType == JT_MIGRATE) {
+   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
          pm_strcpy(jcr->rpool_source, _("unknown source"));
@@ -202,6 +202,7 @@ bool setup_job(JCR *jcr)
          admin_cleanup(jcr, JS_ErrorTerminated);
       }
       break;
+   case JT_COPY:
    case JT_MIGRATE:
       if (!do_migration_init(jcr)) { 
          migration_cleanup(jcr, JS_ErrorTerminated);
@@ -315,9 +316,8 @@ static void *job_thread(void *arg)
             admin_cleanup(jcr, JS_ErrorTerminated);
          }
          break;
-      case JT_MIGRATE:
       case JT_COPY:
-      case JT_ARCHIVE:
+      case JT_MIGRATE:
          if (do_migration(jcr)) {
             do_autoprune(jcr);
          } else {
@@ -956,6 +956,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    case JT_RESTORE:
       jcr->JobLevel = L_NONE;
       break;
+   case JT_COPY:
    case JT_MIGRATE:
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
@@ -1046,6 +1047,7 @@ void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
    switch(jcr->JobType) {
    case JT_RESTORE:
    case JT_VERIFY:
+   case JT_COPY:
    case JT_MIGRATE:
       copy_rstorage(jcr, storage, where);
       break;
@@ -1066,6 +1068,7 @@ void set_rwstorage(JCR *jcr, USTORE *store)
    switch(jcr->JobType) {
    case JT_RESTORE:
    case JT_VERIFY:
+   case JT_COPY:
    case JT_MIGRATE:
       set_rstorage(jcr, store);
       break;

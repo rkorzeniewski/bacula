@@ -171,8 +171,8 @@ bool run_cmd(JCR *jcr)
    Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
    /* The following jobs don't need the FD */
    switch (jcr->JobType) {
-   case JT_MIGRATE:
    case JT_COPY:
+   case JT_MIGRATE:
    case JT_ARCHIVE:
       jcr->authenticated = true;
       do_mac(jcr);

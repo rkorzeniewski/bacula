@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -218,8 +218,8 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
     */
    /* Do read side of storage daemon */
    if (ok && rstore) {
-      /* For the moment, only migrate has rpool */
-      if (jcr->JobType == JT_MIGRATE) {
+      /* For the moment, only migrate and copy have rpool */
+      if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
          pm_strcpy(pool_type, jcr->rpool->pool_type);
          pm_strcpy(pool_name, jcr->rpool->name());
       } else {

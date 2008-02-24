@@ -461,6 +461,7 @@ struct s_jt jobtypes[] = {
    {"verify",        JT_VERIFY},
    {"restore",       JT_RESTORE},
    {"migrate",       JT_MIGRATE},
+   {"copy",          JT_COPY},
    {NULL,            0}
 };
 
@@ -623,7 +624,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_job.JobType == JT_BACKUP) {
          sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
       }
-      if (res->res_job.JobType == JT_MIGRATE) {
+      if (res->res_job.JobType == JT_MIGRATE || res->res_job.JobType == JT_COPY) {
          sendit(sock, _("     SelectionType=%d\n"), res->res_job.selection_type);
       }
       if (res->res_job.client) {

@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -1067,7 +1067,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
       db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
       /* Now mark the previous job as migrated if it terminated normally */
-      if (jcr->JobStatus == JS_Terminated) {
+      if (jcr->JobType == JT_MIGRATE && jcr->JobStatus == JS_Terminated) {
          Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
               (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
@@ -1078,7 +1078,6 @@ void migration_cleanup(JCR *jcr, int TermCode)
             db_strerror(jcr->db));
          set_jcr_job_status(jcr, JS_ErrorTerminated);
       }
-
 
       update_bootstrap_file(mig_jcr);
 
@@ -1143,7 +1142,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
          break;
       }
   } else {
-     if (jcr->previous_jr.JobId != 0) {
+     if (jcr->JobType == JT_MIGRATE && jcr->previous_jr.JobId != 0) {
         /* Mark previous job as migrated */
         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));

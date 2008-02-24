@@ -205,7 +205,7 @@ try_again:
 
 
    /* If pool changed, update migration write storage */
-   if (jcr->JobType == JT_MIGRATE) {
+   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
       if (!set_migration_wstorage(jcr, rc.pool)) {
          goto bail_out;
       }
@@ -276,6 +276,7 @@ try_again:
       add_prompt(ua, _("When"));             /* 5 */
       add_prompt(ua, _("Priority"));         /* 6 */
       if (jcr->JobType == JT_BACKUP ||
+          jcr->JobType == JT_COPY ||
           jcr->JobType == JT_MIGRATE ||
           jcr->JobType == JT_VERIFY) {
          add_prompt(ua, _("Pool"));          /* 7 */
@@ -357,6 +358,7 @@ try_again:
       case 7:
          /* Pool or Bootstrap depending on JobType */
          if (jcr->JobType == JT_BACKUP ||
+             jcr->JobType == JT_COPY ||
              jcr->JobType == JT_MIGRATE ||
              jcr->JobType == JT_VERIFY) {      /* Pool */
             rc.pool = select_pool_resource(ua);
@@ -852,10 +854,17 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
               jcr->JobPriority);
       }
       break;
+   case JT_COPY:
    case JT_MIGRATE:
+      char *prt_type;
+      if (jcr->JobType == JT_COPY) {
+         prt_type = _("Run Copy job\n");
+      } else {
+         prt_type = _("Run Migration job\n");
+      }
       jcr->JobLevel = L_FULL;      /* default level */
       if (ua->api) ua->signal(BNET_RUN_CMD);   
-      ua->send_msg(_("Run Migration job\n"
+      ua->send_msg("%s"
                      "JobName:       %s\n"
                      "Bootstrap:     %s\n"
                      "Client:        %s\n"
@@ -866,7 +875,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                      "JobId:         %s\n"
                      "When:          %s\n"
                      "Catalog:       %s\n"
-                     "Priority:      %d\n"),
+                     "Priority:      %d\n",
+           prt_type,
            job->name(),
            NPRT(jcr->RestoreBootstrap),
            jcr->client->name(),
