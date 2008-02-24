@@ -277,6 +277,48 @@ then
     bstat=2
 fi
 
+################################################################
+# Test strippath option
+################################################################
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log1.out
+setdebug  level=1 client
+run job=backup fileset=FS_TESTJOB2 yes
+wait
+messages
+@$out ${cwd}/tmp/log3.out
+st dir
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+# run incremental
+rm -f ${cwd}/build/accurate/yyy
+run_bconsole
+check_for_zombie_jobs storage=File
+
+jobid=$(awk '/ Incr.+backup/ { jobid=$1 } END { print jobid }' ${cwd}/tmp/log3.out)
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log3.out
+list files jobid=$jobid
+quit
+END_OF_DATA
+
+run_bconsole
+
+if ! grep yyy ${cwd}/tmp/log3.out > /dev/null
+then
+    bstat=2
+fi
+
+if grep zzz ${cwd}/tmp/log3.out > /dev/null
+then
+    bstat=2
+fi
 
 stop_bacula
 end_test

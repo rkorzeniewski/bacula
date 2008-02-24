@@ -48,6 +48,17 @@ FileSet {
 }
 
 FileSet {
+ Name = FS_TESTJOB2
+ Include {
+   Options {
+    Verify = mc
+    strippath=1
+   }
+   File=<@tmpdir@/file-list
+ }
+}
+
+FileSet {
  Name = FS_TESTJOB_ADVANCE
  Include {
    Options {
