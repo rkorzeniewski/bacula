@@ -907,12 +907,14 @@ static bool check_catalog()
       /* Loop over all pools, defining/updating them in each database */
       POOL *pool;
       foreach_res(pool, R_POOL) {
-         create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
-      }
-
-      /* Loop over all pools for updating RecyclePool */
-      foreach_res(pool, R_POOL) {
-         update_pool_recyclepool(NULL, db, pool);
+         /*
+          * If the Pool has a catalog resource create the pool only
+          *   in that catalog.
+          */
+         if (!pool->catalog || pool->catalog == catalog) {
+            create_pool(NULL, db, pool, POOL_OP_UPDATE);  /* update request */
+            update_pool_recyclepool(NULL, db, pool);
+         }
       }
 
       STORE *store;

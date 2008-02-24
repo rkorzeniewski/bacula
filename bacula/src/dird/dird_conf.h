@@ -546,7 +546,7 @@ public:
    bool  Recycle;                     /* default for media recycle yes/no */
    POOL  *RecyclePool;                /* RecyclePool destination when media is purged */
    alist *CopyPool;                   /* List of copy pools */
-   CAT *Catalog;                      /* Catalog to be used */
+   CAT *catalog;                      /* Catalog to be used */
    /* Methods */
    char *name() const;
 };

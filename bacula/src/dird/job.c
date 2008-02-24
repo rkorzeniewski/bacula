@@ -597,6 +597,8 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
 
 void apply_pool_overrides(JCR *jcr)
 {
+   bool pool_override = false;
+
    if (jcr->run_pool_override) {
       pm_strcpy(jcr->pool_source, _("Run pool override"));
    }
@@ -607,6 +609,7 @@ void apply_pool_overrides(JCR *jcr)
    case L_FULL:
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
+         pool_override = true;
          if (jcr->run_full_pool_override) {
             pm_strcpy(jcr->pool_source, _("Run FullPool override"));
          } else {
@@ -617,6 +620,7 @@ void apply_pool_overrides(JCR *jcr)
    case L_INCREMENTAL:
       if (jcr->inc_pool) {
          jcr->pool = jcr->inc_pool;
+         pool_override = true;
          if (jcr->run_inc_pool_override) {
             pm_strcpy(jcr->pool_source, _("Run IncPool override"));
          } else {
@@ -627,6 +631,7 @@ void apply_pool_overrides(JCR *jcr)
    case L_DIFFERENTIAL:
       if (jcr->diff_pool) {
          jcr->pool = jcr->diff_pool;
+         pool_override = true;
          if (jcr->run_diff_pool_override) {
             pm_strcpy(jcr->pool_source, _("Run DiffPool override"));
          } else {
@@ -634,6 +639,11 @@ void apply_pool_overrides(JCR *jcr)
          }
       }
       break;
+   }
+   /* Update catalog if pool overridden */
+   if (pool_override && jcr->pool->catalog) {
+      jcr->catalog = jcr->pool->catalog;
+      pm_strcpy(jcr->catalog_source, _("Pool resource"));
    }
 }
 
@@ -875,6 +885,10 @@ void dird_free_jcr(JCR *jcr)
       free_pool_memory(jcr->pool_source);
       jcr->pool_source = NULL;
    }
+   if (jcr->catalog_source) {
+      free_pool_memory(jcr->catalog_source);
+      jcr->catalog_source = NULL;
+   }
    if (jcr->rpool_source) {
       free_pool_memory(jcr->rpool_source);
       jcr->rpool_source = NULL;
@@ -959,6 +973,10 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
+   if (!jcr->catalog_source) {
+      jcr->catalog_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->catalog_source, _("unknown source"));
+   }
 
    jcr->JobPriority = job->Priority;
    /* Copy storage definitions -- deleted in dir_free_jcr above */
@@ -977,7 +995,13 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->full_pool = job->full_pool;
    jcr->inc_pool = job->inc_pool;
    jcr->diff_pool = job->diff_pool;
-   jcr->catalog = job->client->catalog;
+   if (job->pool->catalog) {
+      jcr->catalog = job->pool->catalog;
+      pm_strcpy(jcr->catalog_source, _("Pool resource"));
+   } else {
+      jcr->catalog = job->client->catalog;
+      pm_strcpy(jcr->catalog_source, _("Client resource"));
+   }
    jcr->fileset = job->fileset;
    jcr->messages = job->messages;
    jcr->spool_data = job->spool_data;

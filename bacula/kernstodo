@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    15 February 2008
+                    23 February 2008
 
 
 Document:
@@ -66,16 +66,22 @@ Professional Needs:
    Complete rework of the scheduling system (not in list)
    Performance and usage instrumentation (not in list)
    See email of 21Aug2007 for details.
-- Implement Diff,Inc Retention Periods
 - Look at: http://tech.groups.yahoo.com/group/cfg2html
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Add Catalog = to Pool resource so that pools will exist
+  in only one catalog -- currently Pools are "global".
+- New directive "Delete purged Volumes"
+- Prune by Job
+- Prune by Job Level (Full, Differential, Incremental)
+- Strict automatic pruning 
 - Implement unmount of USB volumes.
 - Use "./config no-idea no-mdc2 no-rc5" on building OpenSSL for
   Win32 to avoid patent problems.
-- Plugins
-- Implement Despooling data status.
+- Implement Bacula plugins -- design API
+- modify pruning to keep a fixed number of versions of a file, 
+  if requested.
 === Duplicate jobs ===
    hese apply only to backup jobs.
 
@@ -141,31 +147,7 @@ Priority:
   running of that Job (i.e. lets any previous invocation finish
   before doing Interval testing).
 - Look at simplifying File exclusions.
-- New directive "Delete purged Volumes"
-- It appears to me that you have run into some sort of race
-  condition where two threads want to use the same Volume and they
-  were both given access.  Normally that is no problem.  However,
-  one thread wanted the particular Volume in drive 0, but it was
-  loaded into drive 1 so it decided to unload it from drive 1 and
-  then loaded it into drive 0, while the second thread went on
-  thinking that the Volume could be used in drive 1 not realizing
-  that in between time, it was loaded in drive 0.
-  I'll look at the code to see if there is some way we can avoid
-  this kind of problem.  Probably the best solution is to make the
-  first thread simply start using the Volume in drive 1 rather than
-  transferring it to drive 0.
->>>>>>> .r6288
-- Complete Catalog in Pool
-- Implement Bacula plugins -- design API
->>>>>>> .r6079
 - Scripts
-- Prune by Job
-- Prune by Job Level
-- True automatic pruning 
-- Duplicate Jobs
-  Run, Fail, Skip, Higher, Promote, CancelLowerLevel
-  Proximity
-  New directive.
 - Auto update of slot:
    rufus-dir: ua_run.c:456-10 JobId=10 NewJobId=10 using pool Full priority=10
    02-Nov 12:58 rufus-dir JobId 10: Start Backup JobId 10, Job=kernsave.2007-11-02_12.58.03
@@ -181,8 +163,6 @@ Priority:
 - Create FileVersions table
 - Look at rsysnc for incremental updates and dedupping
 - Add MD5 or SHA1 check in SD for data validation
-- modify pruning to keep a fixed number of versions of a file, 
-  if requested.
 - finish implementation of fdcalled -- see ua_run.c:105
 - Fix problem in postgresql.c in my_postgresql_query, where the
   generation of the error message doesn't differentiate result==NULL
@@ -194,22 +174,17 @@ Priority:
 - Implement continue spooling while despooling.
 - Remove all install temp files in Win32 PLUGINSDIR.
 - Audit retention periods to make sure everything is 64 bit.
-- Use E'xxx' to escape PostgreSQL strings.
 - No where in restore causes kaboom.
 - Performance: multiple spool files for a single job.
 - Performance: despool attributes when despooling data (problem
   multiplexing Dir connection).
 - Make restore use the in-use volume reservation algorithm.
-- Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
-- Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
 - Add TLS to bat (should be done).
 - When Pool specifies Storage command override does not work.
 - Implement wait_for_sysop() message display in wait_for_device(), which
   now prints warnings too often.
 - Ensure that each device in an Autochanger has a different
   Device Index.
-- Add Catalog = to Pool resource so that pools will exist
-  in only one catalog -- currently Pools are "global".
 - Look at sg_logs -a /dev/sg0 for getting soft errors.
 - btape "test" command with Offline on Unmount = yes
 
@@ -241,8 +216,6 @@ Priority:
   and possibly changing the blobs into varchar.
 - Ensure that the SD re-reads the Media record if the JobFiles
   does not match -- it may have been updated by another job.
-- Look at moving the Storage directive from the Job to the
-  Pool in the default conf files.
 - Doc items
 - Test Volume compatibility between machine architectures
 - Encryption documentation
@@ -1612,10 +1585,6 @@ Jerry Schieffer
 ==============================
 
 Longer term to do:
-- Implement wait on multiple objects
-   - Multiple max times
-   - pthread signal
-   - socket input ready
 - Design at hierarchial storage for Bacula. Migration and Clone. 
 - Implement FSM (File System Modules).
 - Audit M_ error codes to ensure they are correct and consistent.
@@ -1691,22 +1660,6 @@ Need:
   VolSessionId and VolSessionTime.
 =========================================================  
 
-
-========================================================== 
-    Unsaved File design
-For each Incremental job that is run, there may be files that
-were found but not saved because they were locked (this applies
-only to Windows). Such a system could send back to the Director
-a list of Unsaved files.
-Need:
-- New UnSavedFiles table that contains:
-  JobId
-  PathId
-  FilenameId
-- Then in the next Incremental job, the list of Unsaved Files will be
-  feed to the FD, who will ensure that they are explicitly chosen even
-  if standard date/time check would not have selected them.
-=============================================================
 
 
 =====
@@ -1878,3 +1831,10 @@ Block Position: 0
    #define   S_IFDOOR   in st_mode.
   see: http://docs.sun.com/app/docs/doc/816-5173/6mbb8ae23?a=view#indexterm-360
 - Figure out how to recycle Scratch volumes back to the Scratch Pool.
+- Implement Despooling data status.
+- Use E'xxx' to escape PostgreSQL strings.
+- Look at mincore: http://insights.oetiker.ch/linux/fadvise.html
+- Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
+- Look at moving the Storage directive from the Job to the
+  Pool in the default conf files.
+
