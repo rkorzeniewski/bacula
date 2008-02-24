@@ -70,6 +70,9 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Look at in src/filed/backup.c
+>    pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
+>    pm_strcpy(ff_pkt->link, ff_pkt->link_save);
 - Add Catalog = to Pool resource so that pools will exist
   in only one catalog -- currently Pools are "global".
 - New directive "Delete purged Volumes"
@@ -1837,4 +1840,3 @@ Block Position: 0
 - Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
-

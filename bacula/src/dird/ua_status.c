@@ -43,8 +43,8 @@ extern void *start_heap;
 static void list_scheduled_jobs(UAContext *ua);
 static void list_running_jobs(UAContext *ua);
 static void list_terminated_jobs(UAContext *ua);
-static void do_storage_status(UAContext *ua, STORE *store);
-static void do_client_status(UAContext *ua, CLIENT *client);
+static void do_storage_status(UAContext *ua, STORE *store, char *cmd);
+static void do_client_status(UAContext *ua, CLIENT *client, char *cmd);
 static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
 
@@ -57,43 +57,61 @@ static char DotStatusJob[] = "JobId=%s JobStatus=%c JobErrors=%d\n";
 
 bool dot_status_cmd(UAContext *ua, const char *cmd)
 {
+   STORE *store;
+   CLIENT *client;
    JCR* njcr = NULL;
    s_last_job* job;
    char ed1[50];
 
-   Dmsg1(20, "status:%s:\n", cmd);
+   Dmsg2(20, "status=\"%s\" argc=%d\n", cmd, ua->argc);
 
-   if ((ua->argc != 3) || (strcasecmp(ua->argk[1], "dir"))) {
+   if (ua->argc < 3) {
       ua->send_msg("1900 Bad .status command, missing arguments.\n");
       return false;
    }
 
-   if (strcasecmp(ua->argk[2], "current") == 0) {
-      ua->send_msg(OKqstatus, ua->argk[2]);
-      foreach_jcr(njcr) {
-         if (njcr->JobId != 0 && acl_access_ok(ua, Job_ACL, njcr->job->name())) {
-            ua->send_msg(DotStatusJob, edit_int64(njcr->JobId, ed1), 
-                     njcr->JobStatus, njcr->JobErrors);
+   if (strcasecmp(ua->argk[1], "dir") == 0) {
+      if (strcasecmp(ua->argk[2], "current") == 0) {
+         ua->send_msg(OKqstatus, ua->argk[2]);
+         foreach_jcr(njcr) {
+            if (njcr->JobId != 0 && acl_access_ok(ua, Job_ACL, njcr->job->name())) {
+               ua->send_msg(DotStatusJob, edit_int64(njcr->JobId, ed1), 
+                        njcr->JobStatus, njcr->JobErrors);
+            }
          }
-      }
-      endeach_jcr(njcr);
-   } else if (strcasecmp(ua->argk[2], "last") == 0) {
-      ua->send_msg(OKqstatus, ua->argk[2]);
-      if ((last_jobs) && (last_jobs->size() > 0)) {
-         job = (s_last_job*)last_jobs->last();
-         if (acl_access_ok(ua, Job_ACL, job->Job)) {
-            ua->send_msg(DotStatusJob, edit_int64(job->JobId, ed1), 
-                  job->JobStatus, job->Errors);
+         endeach_jcr(njcr);
+      } else if (strcasecmp(ua->argk[2], "last") == 0) {
+         ua->send_msg(OKqstatus, ua->argk[2]);
+         if ((last_jobs) && (last_jobs->size() > 0)) {
+            job = (s_last_job*)last_jobs->last();
+            if (acl_access_ok(ua, Job_ACL, job->Job)) {
+               ua->send_msg(DotStatusJob, edit_int64(job->JobId, ed1), 
+                     job->JobStatus, job->Errors);
+            }
          }
+      } else if (strcasecmp(ua->argk[2], "header") == 0) {
+          list_dir_status_header(ua);
+      } else if (strcasecmp(ua->argk[2], "scheduled") == 0) {
+          list_scheduled_jobs(ua);
+      } else if (strcasecmp(ua->argk[2], "running") == 0) {
+          list_running_jobs(ua);
+      } else if (strcasecmp(ua->argk[2], "terminated") == 0) {
+          list_terminated_jobs(ua);
+      } else {
+         ua->send_msg("1900 Bad .status command, wrong argument.\n");
+         return false;
       }
-   } else if (strcasecmp(ua->argk[2], "header") == 0) {
-       list_dir_status_header(ua);
-   } else if (strcasecmp(ua->argk[2], "scheduled") == 0) {
-       list_scheduled_jobs(ua);
-   } else if (strcasecmp(ua->argk[2], "running") == 0) {
-       list_running_jobs(ua);
-   } else if (strcasecmp(ua->argk[2], "terminated") == 0) {
-       list_terminated_jobs(ua);
+   } else if (strcasecmp(ua->argk[1], "client") == 0) {
+      client = get_client_resource(ua);
+      if (client) {
+         Dmsg2(000, "Client=%s arg=%s\n", client->name(), NPRT(ua->argk[2]));
+         do_client_status(ua, client, ua->argk[2]);
+      }
+   } else if (strcasecmp(ua->argk[1], "storage") == 0) {
+      store = get_storage_resource(ua, false /*no default*/);
+      if (store) {
+         do_storage_status(ua, store, ua->argk[2]);
+      }
    } else {
       ua->send_msg("1900 Bad .status command, wrong argument.\n");
       return false;
@@ -133,13 +151,13 @@ int status_cmd(UAContext *ua, const char *cmd)
       } else if (strcasecmp(ua->argk[i], NT_("client")) == 0) {
          client = get_client_resource(ua);
          if (client) {
-            do_client_status(ua, client);
+            do_client_status(ua, client, NULL);
          }
          return 1;
       } else {
          store = get_storage_resource(ua, false/*no default*/);
          if (store) {
-            do_storage_status(ua, store);
+            do_storage_status(ua, store, NULL);
          }
          return 1;
       }
@@ -165,13 +183,13 @@ int status_cmd(UAContext *ua, const char *cmd)
       case 1:
          store = select_storage_resource(ua);
          if (store) {
-            do_storage_status(ua, store);
+            do_storage_status(ua, store, NULL);
          }
          break;
       case 2:
          client = select_client_resource(ua);
          if (client) {
-            do_client_status(ua, client);
+            do_client_status(ua, client, NULL);
          }
          break;
       case 3:
@@ -223,7 +241,7 @@ static void do_all_status(UAContext *ua)
 
    /* Call each unique Storage daemon */
    for (j=0; j<i; j++) {
-      do_storage_status(ua, unique_store[j]);
+      do_storage_status(ua, unique_store[j], NULL);
    }
    free(unique_store);
 
@@ -257,7 +275,7 @@ static void do_all_status(UAContext *ua)
 
    /* Call each unique File daemon */
    for (j=0; j<i; j++) {
-      do_client_status(ua, unique_client[j]);
+      do_client_status(ua, unique_client[j], NULL);
    }
    free(unique_client);
 
@@ -307,7 +325,7 @@ static void do_director_status(UAContext *ua)
    ua->send_msg("====\n");
 }
 
-static void do_storage_status(UAContext *ua, STORE *store)
+static void do_storage_status(UAContext *ua, STORE *store, char *cmd)
 {
    BSOCK *sd;
    USTORE lstore;
@@ -316,7 +334,7 @@ static void do_storage_status(UAContext *ua, STORE *store)
    pm_strcpy(lstore.store_source, _("unknown source"));
    set_wstorage(ua->jcr, &lstore);
    /* Try connecting for up to 15 seconds */
-   ua->send_msg(_("Connecting to Storage daemon %s at %s:%d\n"),
+   if (!ua->api) ua->send_msg(_("Connecting to Storage daemon %s at %s:%d\n"),
       store->name(), store->address, store->SDport);
    if (!connect_to_storage_daemon(ua->jcr, 1, 15, 0)) {
       ua->send_msg(_("\nFailed to connect to Storage daemon %s.\n====\n"),
@@ -329,17 +347,21 @@ static void do_storage_status(UAContext *ua, STORE *store)
    }
    Dmsg0(20, _("Connected to storage daemon\n"));
    sd = ua->jcr->store_bsock;
-   bnet_fsend(sd, "status");
-   while (bnet_recv(sd) >= 0) {
+   if (cmd) {
+      sd->fsend(".status %s", cmd);
+   } else {
+      sd->fsend("status");
+   }
+   while (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
-   bnet_sig(sd, BNET_TERMINATE);
-   bnet_close(sd);
+   sd->signal( BNET_TERMINATE);
+   sd->close();
    ua->jcr->store_bsock = NULL;
    return;
 }
 
-static void do_client_status(UAContext *ua, CLIENT *client)
+static void do_client_status(UAContext *ua, CLIENT *client, char *cmd)
 {
    BSOCK *fd;
 
@@ -354,7 +376,7 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    ua->jcr->sd_auth_key = bstrdup("dummy");
 
    /* Try to connect for 15 seconds */
-   ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
+   if (!ua->api) ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
       client->name(), client->address, client->FDport);
    if (!connect_to_file_daemon(ua->jcr, 1, 15, 0)) {
       ua->send_msg(_("Failed to connect to Client %s.\n====\n"),
@@ -367,7 +389,11 @@ static void do_client_status(UAContext *ua, CLIENT *client)
    }
    Dmsg0(20, _("Connected to file daemon\n"));
    fd = ua->jcr->file_bsock;
-   fd->fsend("status");
+   if (cmd) {
+      fd->fsend(".status %s", cmd);
+   } else {
+      fd->fsend("status");
+   }
    while (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
