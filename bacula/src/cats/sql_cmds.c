@@ -173,6 +173,19 @@ const char *select_migrate_del =
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
 
+/*
+ * Select Jobs from the DelCandidates table.
+ * This is the list of Jobs to delete for an Copy Job.
+ */
+const char *select_copy_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobTdate<%s AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='C')";
+
+
 #else
 /* Faster way */
 const char *select_backup_del =
@@ -232,6 +245,15 @@ const char *select_migrate_del =
    "(Job.JobTDate>%s "
    "AND Job.ClientId=%s "
    "AND Job.Type='g')";
+
+const char *select_copy_del =
+   "SELECT DISTINCT DelCandidates.JobId,DelCandidates.PurgedFiles "
+   "FROM Job,DelCandidates "
+   "WHERE (Job.JobId=DelCandidates.JobId AND DelCandidates.JobStatus!='T') OR "
+   "(Job.JobTDate>%s "
+   "AND Job.ClientId=%s "
+   "AND Job.Type='C')";
+
 
 #endif
 
