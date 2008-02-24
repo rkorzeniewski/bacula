@@ -323,7 +323,7 @@ Index: src/dird/inc_conf.c
           scan_err1(lc, _("Expected a strip path positive integer, got:%s:"), lc->str);
 Index: src/filed/backup.c
 ===================================================================
---- src/filed/backup.c	(révision 6471)
+--- src/filed/backup.c	(révision 6484)
 +++ src/filed/backup.c	(copie de travail)
 @@ -37,6 +37,7 @@
  
@@ -376,7 +376,7 @@ Index: src/filed/backup.c
 +   }
 +
 +   strip_path(ff_pkt);
-+   
++ 
 +   if (S_ISDIR(ff_pkt->statp.st_mode)) {
 +      fname = ff_pkt->link;
 +   } else {
@@ -1072,7 +1072,13 @@ Index: src/findlib/find_one.c
   * Find a single file.
   * handle_file is the callback for handling the file.
   * p is the filename
-@@ -333,16 +360,13 @@
+@@ -327,22 +354,18 @@
+       }
+       ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
+    }
+-
+    /*
+     * If this is an Incremental backup, see if file was modified
      * since our last "save_time", presumably the last Full save
      * or Incremental.
      */
@@ -1096,7 +1102,7 @@ Index: src/findlib/find_one.c
     }
  
  #ifdef HAVE_DARWIN_OS
-@@ -502,10 +526,7 @@
+@@ -502,10 +525,7 @@
        link[len] = 0;
  
        ff_pkt->link = link;
