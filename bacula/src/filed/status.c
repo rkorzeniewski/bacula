@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -40,7 +40,9 @@
 extern void *start_heap;
 
 /* Forward referenced functions */
-static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg);
+static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
+static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
+static void  list_status_header(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
 static void bsock_sendit(const char *msg, int len, void *arg);
 static const char *level_to_str(int level);
 
@@ -66,12 +68,16 @@ extern VSSClient *g_pVSSClient;
  */
 void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
 {
-   int sec, bps;
+   list_status_header(sendit, arg, false /*no api*/);
+   list_running_jobs(sendit, arg, false /*no api*/);
+   list_terminated_jobs(sendit, arg, false /*no api*/);
+}
+
+static void  list_status_header(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
+{
    POOL_MEM msg(PM_MESSAGE);
    char b1[32], b2[32], b3[32], b4[32], b5[35];
    int len;
-   bool found = false;
-   JCR *njcr;
    char dt[MAX_TIME_LENGTH];
 
    len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s %s\n"), 
@@ -136,13 +142,25 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
          sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());
    sendit(msg.c_str(), len, arg);
+}
 
+static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
+{
+   int sec, bps;
+   POOL_MEM msg(PM_MESSAGE);
+   char b1[32], b2[32], b3[32];
+   int len;
+   bool found = false;
+   JCR *njcr;
+   char dt[MAX_TIME_LENGTH];
    /*
     * List running jobs
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
-   len = Mmsg(msg, _("\nRunning Jobs:\n"));
-   sendit(msg.c_str(), len, arg);
+   if (!api) {
+      len = Mmsg(msg, _("\nRunning Jobs:\n"));
+      sendit(msg.c_str(), len, arg);
+   }
    const char *vss = "";
 #ifdef WIN32_VSS
    if (g_pVSSClient && g_pVSSClient->IsInitialized()) {
@@ -197,34 +215,39 @@ void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
    }
    endeach_jcr(njcr);
 
-   if (!found) {
-      len = Mmsg(msg, _("No Jobs running.\n"));
-      sendit(msg.c_str(), len, arg);
+   if (!api) {
+      if (!found) {
+         len = Mmsg(msg, _("No Jobs running.\n"));
+         sendit(msg.c_str(), len, arg);
+      }
+      sendit(_("====\n"), 5, arg);
    }
-   sendit(_("====\n"), 5, arg);
-
-   list_terminated_jobs(sendit, arg);
 }
+  
 
-static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg)
+static void list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
 {
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
    struct s_last_job *je;
    const char *msg;
 
-   msg =  _("\nTerminated Jobs:\n");
-   sendit(msg, strlen(msg), arg);
+   if (!api) {
+      msg =  _("\nTerminated Jobs:\n");
+      sendit(msg, strlen(msg), arg);
+   }
 
    if (last_jobs->size() == 0) {
-      sendit(_("====\n"), 5, arg);
+      if (!api) sendit(_("====\n"), 5, arg);
       return;
    }
    lock_last_jobs_list();
-   msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
-   sendit(msg, strlen(msg), arg);
-   msg = _("======================================================================\n");
-   sendit(msg, strlen(msg), arg);
+   if (!api) {
+      msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
+      sendit(msg, strlen(msg), arg);
+      msg = _("======================================================================\n");
+      sendit(msg, strlen(msg), arg);
+   }
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
       const char *termstat;
@@ -270,16 +293,26 @@ static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sa
             *p = 0;
          }
       }
-      bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
-         je->JobId,
-         level,
-         edit_uint64_with_commas(je->JobFiles, b1),
-         edit_uint64_with_suffix(je->JobBytes, b2),
-         termstat,
-         dt, JobName);
+      if (api) {
+         bsnprintf(buf, sizeof(buf), _("%6d\t%-6s\t%8s\t%10s\t%-7s\t%-8s\t%s\n"),
+            je->JobId,
+            level,
+            edit_uint64_with_commas(je->JobFiles, b1),
+            edit_uint64_with_suffix(je->JobBytes, b2),
+            termstat,
+            dt, JobName);
+      } else {
+         bsnprintf(buf, sizeof(buf), _("%6d  %-6s %8s %10s  %-7s  %-8s %s\n"),
+            je->JobId,
+            level,
+            edit_uint64_with_commas(je->JobFiles, b1),
+            edit_uint64_with_suffix(je->JobBytes, b2),
+            termstat,
+            dt, JobName);
+      }
       sendit(buf, strlen(buf), arg);
    }
-   sendit(_("====\n"), 5, arg);
+   if (!api) sendit(_("====\n"), 5, arg);
    unlock_last_jobs_list();
 }
 
@@ -294,7 +327,7 @@ static void bsock_sendit(const char *msg, int len, void *arg)
    user->msg = check_pool_memory_size(user->msg, len+1);
    memcpy(user->msg, msg, len+1);
    user->msglen = len+1;
-   bnet_send(user);
+   user->send();
 }
 
 /*
@@ -304,10 +337,10 @@ int status_cmd(JCR *jcr)
 {
    BSOCK *user = jcr->dir_bsock;
 
-   bnet_fsend(user, "\n");
+   user->fsend("\n");
    output_status(bsock_sendit, (void *)user);
 
-   bnet_sig(user, BNET_EOD);
+   user->signal(BNET_EOD);
    return 1;
 }
 
@@ -317,47 +350,53 @@ int status_cmd(JCR *jcr)
 int qstatus_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
-   POOLMEM *time;
+   POOLMEM *cmd;
    JCR *njcr;
    s_last_job* job;
 
-   time = get_memory(dir->msglen+1);
+   cmd = get_memory(dir->msglen+1);
 
-   if (sscanf(dir->msg, qstatus, time) != 1) {
+   if (sscanf(dir->msg, qstatus, cmd) != 1) {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("2900 Bad .status command, missing argument.\n"));
-      bnet_sig(dir, BNET_EOD);
-      free_memory(time);
+      dir->fsend(_("2900 Bad .status command, missing argument.\n"));
+      dir->signal(BNET_EOD);
+      free_memory(cmd);
       return 0;
    }
-   unbash_spaces(time);
+   unbash_spaces(cmd);
 
-   if (strcmp(time, "current") == 0) {
-      bnet_fsend(dir, OKqstatus, time);
+   if (strcmp(cmd, "current") == 0) {
+      dir->fsend(OKqstatus, cmd);
       foreach_jcr(njcr) {
          if (njcr->JobId != 0) {
-            bnet_fsend(dir, DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
+            dir->fsend(DotStatusJob, njcr->JobId, njcr->JobStatus, njcr->JobErrors);
          }
       }
       endeach_jcr(njcr);
-   } else if (strcmp(time, "last") == 0) {
-      bnet_fsend(dir, OKqstatus, time);
+   } else if (strcmp(cmd, "last") == 0) {
+      dir->fsend(OKqstatus, cmd);
       if ((last_jobs) && (last_jobs->size() > 0)) {
          job = (s_last_job*)last_jobs->last();
-         bnet_fsend(dir, DotStatusJob, job->JobId, job->JobStatus, job->Errors);
+         dir->fsend(DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
+   } else if (strcasecmp(cmd, "header") == 0) {
+       list_status_header(bsock_sendit, (void *)dir, true/*api*/);
+   } else if (strcasecmp(cmd, "running") == 0) {
+       list_running_jobs(bsock_sendit, (void *)dir, true/*api*/);
+   } else if (strcasecmp(cmd, "terminated") == 0) {
+       list_terminated_jobs(bsock_sendit, (void *)dir, true/*api*/);
    } else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
-      bnet_fsend(dir, _("2900 Bad .status command, wrong argument.\n"));
+      dir->fsend(_("2900 Bad .status command, wrong argument.\n"));
       bnet_sig(dir, BNET_EOD);
-      free_memory(time);
+      free_memory(cmd);
       return 0;
    }
 
    bnet_sig(dir, BNET_EOD);
-   free_memory(time);
+   free_memory(cmd);
    return 1;
 }
 
