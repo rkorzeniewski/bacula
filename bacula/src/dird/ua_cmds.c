@@ -1141,7 +1141,11 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    jcr->client = client;
    jcr->fileset = fileset;
    close_db(ua);
-   ua->catalog = client->catalog;
+   if (job->pool->catalog) {
+      ua->catalog = job->pool->catalog;
+   } else {
+      ua->catalog = client->catalog;
+   }
 
    if (!open_db(ua)) {
       return 1;

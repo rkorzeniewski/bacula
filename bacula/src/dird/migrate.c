@@ -1178,6 +1178,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  Read Storage:           \"%s\" (From %s)\n"
 "  Write Pool:             \"%s\" (From %s)\n"
 "  Write Storage:          \"%s\" (From %s)\n"
+"  Catalog:                \"%s\" (From %s)\n"
 "  Start time:             %s\n"
 "  End time:               %s\n"
 "  Elapsed time:           %s\n"
@@ -1207,6 +1208,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         jcr->pool->name(), jcr->pool_source,
         jcr->wstore?jcr->wstore->name():"*None*", 
         NPRT(jcr->wstore_source),
+        jcr->catalog->name(), jcr->catalog_source,
         sdt,
         edt,
         edit_utime(RunTime, elapsed, sizeof(elapsed)),

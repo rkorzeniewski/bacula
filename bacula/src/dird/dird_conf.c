@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -382,7 +382,7 @@ static RES_ITEM pool_items[] = {
    {"recycle",       store_bool,      ITEM(res_pool.Recycle),   0, ITEM_DEFAULT, true},
    {"recyclepool",   store_res,       ITEM(res_pool.RecyclePool), R_POOL, 0, 0},
    {"copypool",      store_alist_res, ITEM(res_pool.CopyPool), R_POOL, 0, 0},
-   {"catalog",       store_res,       ITEM(res_pool.Catalog), R_CATALOG, 0, 0},
+   {"catalog",       store_res,       ITEM(res_pool.catalog), R_CATALOG, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -910,8 +910,8 @@ next_run:
       if (res->res_pool.RecyclePool) {
          sendit(sock, _("      RecyclePool=%s\n"), res->res_pool.RecyclePool->name());
       }
-      if (res->res_pool.Catalog) {
-         sendit(sock, _("      Catalog=%s\n"), res->res_pool.Catalog->name());
+      if (res->res_pool.catalog) {
+         sendit(sock, _("      Catalog=%s\n"), res->res_pool.catalog->name());
       }
       if (res->res_pool.storage) {
          STORE *store;
@@ -1339,7 +1339,7 @@ void save_resource(int type, RES_ITEM *items, int pass)
          res->res_pool.NextPool = res_all.res_pool.NextPool;
          res->res_pool.RecyclePool = res_all.res_pool.RecyclePool;
          res->res_pool.storage    = res_all.res_pool.storage;
-         res->res_pool.Catalog    = res_all.res_pool.Catalog;
+         res->res_pool.catalog    = res_all.res_pool.catalog;
          break;
       case R_CONSOLE:
          if ((res = (URES *)GetResWithName(R_CONSOLE, res_all.res_con.hdr.name)) == NULL) {

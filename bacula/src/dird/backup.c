@@ -461,6 +461,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Client:                 \"%s\" %s\n"
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\" (From %s)\n"
+"  Catalog:                \"%s\" (From %s)\n"
 "  Storage:                \"%s\" (From %s)\n"
 "  Scheduled time:         %s\n"
 "  Start time:             %s\n"
@@ -492,6 +493,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
+        jcr->catalog->name(), jcr->catalog_source,
         jcr->wstore->name(), jcr->wstore_source,
         schedt,
         sdt,

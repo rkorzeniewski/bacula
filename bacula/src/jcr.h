@@ -271,6 +271,7 @@ public:
    POOLMEM *rpool_source;             /* Where migrate read pool came from */
    POOLMEM *rstore_source;            /* Where read storage came from */
    POOLMEM *wstore_source;            /* Where write storage came from */
+   POOLMEM *catalog_source;           /* Where catalog came from */
    int replace;                       /* Replace option */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
