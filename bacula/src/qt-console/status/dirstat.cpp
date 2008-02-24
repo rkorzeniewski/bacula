@@ -46,7 +46,7 @@ DirStat::DirStat()
    m_closeable = true;
    pgInitialize();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
-   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/joblog.png")));
+   thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
    m_cursor = new QTextCursor(textEdit->document());
 
    readSettings();
