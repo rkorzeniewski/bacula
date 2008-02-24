@@ -1193,12 +1193,12 @@ static void strip_path(FF_PKT *ff_pkt)
       if (ff_pkt->type != FT_LNK && ff_pkt->fname != ff_pkt->link) {
          pm_strcpy(ff_pkt->link_save, ff_pkt->link);
          if (!do_strip(ff_pkt->strip_path, ff_pkt->link)) {
-            pm_strcpy(ff_pkt->link, ff_pkt->link_save);
-            pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
+            strcpy(ff_pkt->link, ff_pkt->link_save);
+            strcpy(ff_pkt->fname, ff_pkt->fname_save);
          }
       }
    } else {
-      pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
+      strcpy(ff_pkt->fname, ff_pkt->fname_save);
    } 
    Dmsg2(200, "fname=%s stripped=%s\n", ff_pkt->fname_save, ff_pkt->fname);
 }
@@ -1208,8 +1208,8 @@ static void unstrip_path(FF_PKT *ff_pkt)
    if (!(ff_pkt->flags & FO_STRIPPATH) || ff_pkt->strip_path <= 0) {
       return;
    }
-   pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
+   strcpy(ff_pkt->fname, ff_pkt->fname_save);
    if (ff_pkt->type != FT_LNK && ff_pkt->fname != ff_pkt->link) {
-      pm_strcpy(ff_pkt->link, ff_pkt->link_save);
+      strcpy(ff_pkt->link, ff_pkt->link_save);
    }
 }
