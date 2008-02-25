@@ -898,8 +898,6 @@ bool db_get_query_dbids(JCR *jcr, B_DB *mdb, POOL_MEM &query, dbid_list &ids)
    return ok;
 }
 
-
-
 /* Get Media Record
  *
  * Returns: false: on failure
@@ -1018,5 +1016,141 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
    return ok;
 }
 
+/*
+ * Find the last "accurate" backup state (that can take deleted files in account)
+ * 1) Get all files with jobid in list (F subquery) 
+ * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
+ * 3) Join the result to file table to get fileindex, jobid and lstat information
+ *
+ * TODO: On postgresql, this is done with
+SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
+  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
+ ORDER BY PathId, FilenameId, JobId DESC
+ */
+bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, 
+                      DB_RESULT_HANDLER *result_handler, void *ctx)
+{
+   if (!*jobids) {
+      db_lock(mdb);
+      Mmsg(mdb->errmsg, _("ERR=JobIds are empty\n"));
+      db_unlock(mdb);
+      return false;
+   }
+
+   POOL_MEM buf (PM_MESSAGE);
+   
+   Mmsg(buf,
+ "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
+ "FROM ( "
+  "SELECT max(FileId) as FileId, PathId, FilenameId "
+    "FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (%s)) AS F "
+   "GROUP BY PathId, FilenameId "
+  ") AS Temp "
+ "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
+ "JOIN Path ON (Path.PathId = Temp.PathId) "
+ "JOIN File ON (File.FileId = Temp.FileId) "
+ "WHERE File.FileIndex > 0 ",
+             jobids);
+
+   return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
+}
+
+
+/* Full : do nothing
+ * Differential : get the last full id
+ * Incremental : get the last full + last diff + last incr(s) ids
+ *
+ * TODO: look and merge from ua_restore.c
+ */
+bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, 
+                            JOB_DBR *jr, POOLMEM *jobids)
+{
+   char clientid[50], jobid[50], filesetid[50];
+   char date[MAX_TIME_LENGTH];
+
+   POOL_MEM query (PM_FNAME);
+   bstrutime(date, sizeof(date),  time(NULL) + 1);
+   jobids[0]='\0';
+
+   /* First, find the last good Full backup for this job/client/fileset */
+   Mmsg(query, 
+"CREATE TEMPORARY TABLE btemp3%s AS "
+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job JOIN FileSet USING (FileSetId) "
+  "WHERE ClientId = %s "
+    "AND Level='F' AND JobStatus='T' AND Type='B' "
+    "AND StartTime<'%s' "
+    "AND FileSet.FileSet=(SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
+  "ORDER BY Job.JobTDate DESC LIMIT 1",
+        edit_uint64(jcr->JobId, jobid),
+        edit_uint64(jr->ClientId, clientid),
+        date,
+        edit_uint64(jr->FileSetId, filesetid));
+
+   if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
+      return false;
+   }
+
+   if (jr->JobLevel == L_INCREMENTAL) {
+
+      /* Now, find the last differential backup after the last full */
+      Mmsg(query, 
+"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job JOIN FileSet USING (FileSetId) "
+  "WHERE ClientId = %s "
+    "AND Level='D' AND JobStatus='T' AND Type='B' "
+    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
+    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
+  "ORDER BY Job.JobTDate DESC LIMIT 1 ",
+           jobid,
+           clientid,
+           jobid,
+           filesetid);
+
+      db_sql_query(mdb, query.c_str(), NULL, NULL);
+
+      /* We just have to take all incremental after the last Full/Diff */
+      Mmsg(query, 
+"INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "
+ "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
+   "FROM Job JOIN FileSet USING (FileSetId) "
+  "WHERE ClientId = %s "
+    "AND Level='I' AND JobStatus='T' AND Type='B' "
+    "AND StartTime > (SELECT EndTime FROM btemp3%s ORDER BY EndTime DESC LIMIT 1) "
+    "AND FileSet.FileSet= (SELECT FileSet FROM FileSet WHERE FileSetId = %s) "
+  "ORDER BY Job.JobTDate DESC ",
+           jobid,
+           clientid,
+           jobid,
+           filesetid);
+      db_sql_query(mdb, query.c_str(), NULL, NULL);
+   }
+
+   /* build a jobid list ie: 1,2,3,4 */
+   Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
+   db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
+   Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
+
+   Mmsg(query, "DROP TABLE btemp3%s", jobid);
+   db_sql_query(mdb, query.c_str(), NULL, NULL);
+
+   return true;
+}
+
+/*
+ * Use to build a string of int list from a query. "10,20,30"
+ */
+int db_get_int_handler(void *ctx, int num_fields, char **row)
+{
+   POOLMEM *ret = (POOLMEM *)ctx;
+   if (num_fields == 1) {
+      if (ret[0]) {
+         pm_strcat(ret, ",");
+      }
+      pm_strcat(ret, row[0]);
+   }
+   return 0;
+}
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI */

@@ -119,6 +119,7 @@ enum {
 
 /* Forward referenced structures */
 class JCR;
+class htable;
 struct FF_PKT;
 struct B_DB;
 struct ATTR_DBR;
@@ -319,6 +320,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
+   htable *file_list;                 /* Previous file list (accurate mode) */
 #endif /* FILE_DAEMON */
 
 

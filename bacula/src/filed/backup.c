@@ -37,6 +37,7 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "lib/htable.h"
 
 /* Forward referenced functions */
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
@@ -48,6 +49,254 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
 static bool crypto_session_start(JCR *jcr);
 static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
+
+typedef struct CurFile {
+   hlink link;
+   char *fname;
+   char *lstat;
+   bool seen;
+} CurFile;
+
+#define accurate_mark_file_as_seen(elt) ((elt)->seen = 1)
+#define accurate_file_has_been_seen(elt) ((elt)->seen)
+
+/*
+ * This function is called for each file seen in fileset.
+ * We check in file_list hash if fname have been backuped
+ * the last time. After we can compare Lstat field. 
+ * 
+ */
+/* TODO: tweak verify code to use the same function ?? */
+bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
+{
+   char *p;
+   int stat=false;
+   struct stat statc;                 /* catalog stat */
+   char *Opts_Digest;
+   char *fname;
+   CurFile *elt;
+
+   int32_t LinkFIc;
+
+   if (*ff_pkt->VerifyOpts) {	/* use mtime + ctime checks by default */
+      Opts_Digest = ff_pkt->VerifyOpts;
+   } else {
+      Opts_Digest = "cm"; 
+   }
+
+   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
+      return true;
+   }
+
+   strip_path(ff_pkt);
+ 
+   if (S_ISDIR(ff_pkt->statp.st_mode)) {
+      fname = ff_pkt->link;
+   } else {
+      fname = ff_pkt->fname;
+   } 
+
+   elt = (CurFile *) jcr->file_list->lookup(fname);
+
+   if (!elt) {
+      Dmsg1(500, "accurate %s = yes (not found)\n", fname);
+      stat=true;
+      goto bail_out;
+   }
+
+   if (accurate_file_has_been_seen(elt)) {
+      Dmsg1(500, "accurate %s = no (already seen)\n", fname);
+      stat=false;
+      goto bail_out;
+   }
+
+   decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
+//   *do_Digest = CRYPTO_DIGEST_NONE;
+
+   for (p=Opts_Digest; *p; p++) {
+      char ed1[30], ed2[30];
+      switch (*p) {
+      case 'i':                /* compare INODEs */
+         if (statc.st_ino != ff_pkt->statp.st_ino) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_ino   differ. Cat: %s File: %s\n"), fname,
+                 edit_uint64((uint64_t)statc.st_ino, ed1),
+                 edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
+            stat = true;
+         }
+         break;
+      case 'p':                /* permissions bits */
+         if (statc.st_mode != ff_pkt->statp.st_mode) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_mode  differ. Cat: %x File: %x\n"), fname,
+                 (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
+            stat = true;
+         }
+         break;
+//      case 'n':                /* number of links */
+//         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
+//            Jmsg(jcr, M_SAVED, 0, _("%s      st_nlink differ. Cat: %d File: %d\n"), fname,
+//                 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
+//            stat = true;
+//         }
+//         break;
+      case 'u':                /* user id */
+         if (statc.st_uid != ff_pkt->statp.st_uid) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_uid   differ. Cat: %u File: %u\n"), fname,
+                 (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
+            stat = true;
+         }
+         break;
+      case 'g':                /* group id */
+         if (statc.st_gid != ff_pkt->statp.st_gid) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_gid   differ. Cat: %u File: %u\n"), fname,
+                 (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
+            stat = true;
+         }
+         break;
+      case 's':                /* size */
+         if (statc.st_size != ff_pkt->statp.st_size) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  differ. Cat: %s File: %s\n"), fname,
+                 edit_uint64((uint64_t)statc.st_size, ed1),
+                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
+            stat = true;
+         }
+         break;
+//      case 'a':                /* access time */
+//         if (statc.st_atime != ff_pkt->statp.st_atime) {
+//            Jmsg(jcr, M_SAVED, 0, _("%s      st_atime differs\n"), fname);
+//            stat = true;
+//         }
+//         break;
+      case 'm':
+         if (statc.st_mtime != ff_pkt->statp.st_mtime) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
+            stat = true;
+         }
+         break;
+      case 'c':                /* ctime */
+         if (statc.st_ctime != ff_pkt->statp.st_ctime) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
+            stat = true;
+         }
+         break;
+      case 'd':                /* file size decrease */
+         if (statc.st_size > ff_pkt->statp.st_size) {
+            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  decrease. Cat: %s File: %s\n"), fname,
+                 edit_uint64((uint64_t)statc.st_size, ed1),
+                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
+            stat = true;
+         }
+         break;
+      case '5':                /* compare MD5 */
+         Dmsg1(500, "set Do_MD5 for %s\n", ff_pkt->fname);
+//       *do_Digest = CRYPTO_DIGEST_MD5;
+         break;
+      case '1':                 /* compare SHA1 */
+//       *do_Digest = CRYPTO_DIGEST_SHA1;
+         break;
+      case ':':
+      case 'V':
+      default:
+         break;
+      }
+   }
+   accurate_mark_file_as_seen(elt);
+   Dmsg2(500, "accurate %s = %i\n", fname, stat);
+
+bail_out:
+   unstrip_path(ff_pkt);
+   return stat;
+}
+
+/* 
+ * This function doesn't work very well with smartalloc
+ * TODO: use bigbuffer from htable
+ */
+int accurate_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   int len;
+   uint64_t nb;
+   CurFile *elt=NULL;
+
+   if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+      return true;
+   }
+
+   if (sscanf(dir->msg, "accurate files=%ld", &nb) != 1) {
+      dir->fsend(_("2991 Bad accurate command\n"));
+      return false;
+   }
+
+   jcr->file_list = (htable *)malloc(sizeof(htable));
+   jcr->file_list->init(elt, &elt->link, nb);
+
+   /*
+    * buffer = sizeof(CurFile) + dirmsg
+    * dirmsg = fname + lstat
+    */
+   /* get current files */
+   while (dir->recv() >= 0) {
+      len = strlen(dir->msg);
+      if ((len+1) < dir->msglen) {
+//       elt = (CurFile *)malloc(sizeof(CurFile));
+//       elt->fname  = (char *) malloc(dir->msglen+1);
+
+         /* we store CurFile, fname and lstat in the same chunk */
+         elt = (CurFile *)malloc(sizeof(CurFile)+dir->msglen+1);
+         elt->fname  = (char *) elt+sizeof(CurFile);
+         memcpy(elt->fname, dir->msg, dir->msglen);
+         elt->fname[dir->msglen]='\0';
+         elt->lstat = elt->fname + len + 1;
+	 elt->seen=0;
+         jcr->file_list->insert(elt->fname, elt); 
+         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
+      }
+   }
+
+//   jcr->file_list->stats();
+   /* TODO: send a EOM ?
+   dir->fsend("2000 OK accurate\n");
+    */
+   return true;
+}
+
+bool accurate_send_deleted_list(JCR *jcr)
+{
+   CurFile *elt;
+   FF_PKT *ff_pkt;
+
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
+      goto bail_out;
+   }
+
+   if (jcr->file_list == NULL) {
+      goto bail_out;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_DELETED;
+
+   foreach_htable (elt, jcr->file_list) {
+      if (!accurate_file_has_been_seen(elt)) { /* already seen */
+         Dmsg3(500, "deleted fname=%s lstat=%s seen=%i\n", elt->fname, elt->lstat, elt->seen);
+         ff_pkt->fname = elt->fname;
+         decode_stat(elt->lstat, &ff_pkt->statp, &ff_pkt->LinkFI); /* decode catalog stat */
+         encode_and_send_attributes(jcr, ff_pkt, stream);
+      }
+//      Free(elt->fname);
+   }
+   term_find_files(ff_pkt);
+bail_out:
+   /* TODO: clean htable when this function is not reached ? */
+   if (jcr->file_list) {
+      jcr->file_list->destroy();
+      free(jcr->file_list);
+      jcr->file_list = NULL;
+   }
+   return true;
+}
 
 /*
  * Find all the requested files and send them
@@ -100,7 +349,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
     */
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
-
+   
 #ifdef HAVE_LIBZ
    z_stream *pZlibStream = (z_stream*)malloc(sizeof(z_stream));  
    if (pZlibStream) {
@@ -121,10 +370,13 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       return false;
    }
 
-   Dmsg1(300, "set_find_options ff=%p\n", jcr->ff);
    set_find_options((FF_PKT *)jcr->ff, jcr->incremental, jcr->mtime);
-   Dmsg0(300, "start find files\n");
 
+   /* in accurate mode, we overwrite the find_one check function */
+   if (jcr->accurate) {
+      set_find_changed_function((FF_PKT *)jcr->ff, accurate_check_file);
+   } 
+   
    start_heartbeat_monitor(jcr);
 
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
@@ -134,6 +386,8 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
       ok = false;                     /* error */
       set_jcr_job_status(jcr, JS_ErrorTerminated);
    }
+
+   accurate_send_deleted_list(jcr);              /* send deleted list to SD  */
 
    free_pool_memory(jcr->acl_text);
 
@@ -1102,7 +1356,9 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
     * For a directory, link is the same as fname, but with trailing
     * slash. For a linked file, link is the link.
     */
-   strip_path(ff_pkt);
+   if (ff_pkt->type != FT_DELETED) { /* already stripped */
+      strip_path(ff_pkt);
+   }
    if (ff_pkt->type == FT_LNK || ff_pkt->type == FT_LNKSAVED) {
       Dmsg2(300, "Link %s to %s\n", ff_pkt->fname, ff_pkt->link);
       stat = sd->fsend("%ld %d %s%c%s%c%s%c%s%c", jcr->JobFiles,
@@ -1116,7 +1372,9 @@ static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_strea
       stat = sd->fsend("%ld %d %s%c%s%c%c%s%c", jcr->JobFiles,
                ff_pkt->type, ff_pkt->fname, 0, attribs, 0, 0, attribsEx, 0);
    }
-   unstrip_path(ff_pkt);
+   if (ff_pkt->type != FT_DELETED) {
+      unstrip_path(ff_pkt);
+   }
 
    Dmsg2(300, ">stored: attr len=%d: %s\n", sd->msglen, sd->msg);
    if (!stat) {

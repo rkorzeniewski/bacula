@@ -320,6 +320,11 @@ void do_restore(JCR *jcr)
             bclose(&rctx.bfd);
          }
 
+	 /* TODO: manage deleted files */
+	 if (rctx.type == FT_DELETED) {	/* deleted file */
+	    continue;
+	 }
+
          /*
           * Unpack attributes and do sanity check them
           */

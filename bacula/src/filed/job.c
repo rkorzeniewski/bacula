@@ -49,6 +49,7 @@ extern CLIENT *me;                    /* our client resource */
 /* Imported functions */
 extern int status_cmd(JCR *jcr);
 extern int qstatus_cmd(JCR *jcr);
+extern int accurate_cmd(JCR *jcr);
 
 /* Forward referenced functions */
 static int backup_cmd(JCR *jcr);
@@ -106,6 +107,7 @@ static struct s_cmds cmds[] = {
    {"RunBeforeJob", runbefore_cmd, 0},
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
+   {"accurate",     accurate_cmd, 0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -1057,6 +1059,16 @@ static void set_options(findFOPTS *fo, const char *opts)
          }
          fo->VerifyOpts[j] = 0;
          break;
+      case 'C':                  /* accurate options */
+         /* Copy Accurate Options */
+         for (j=0; *p && *p != ':'; p++) {
+            fo->AccurateOpts[j] = *p;
+            if (j < (int)sizeof(fo->AccurateOpts) - 1) {
+               j++;
+            }
+         }
+         fo->AccurateOpts[j] = 0;
+         break;
       case 'P':                  /* strip path */
          /* Get integer */
          p++;                    /* skip P */
@@ -1195,6 +1207,9 @@ static int level_cmd(JCR *jcr)
 
    level = get_memory(dir->msglen+1);
    Dmsg1(110, "level_cmd: %s", dir->msg);
+   if (strstr(dir->msg, "accurate")) {
+      jcr->accurate = true;
+   }
    if (sscanf(dir->msg, "level = %s ", level) != 1) {
       goto bail_out;
    }
@@ -1204,14 +1219,14 @@ static int level_cmd(JCR *jcr)
    /* Full backup requested? */
    } else if (strcmp(level, "full") == 0) {
       jcr->JobLevel = L_FULL;
-   } else if (strcmp(level, "differential") == 0) {
+   } else if (strstr(level, "differential")) {
       jcr->JobLevel = L_DIFFERENTIAL;
       free_memory(level);
       return 1;
-   } else if (strcmp(level, "incremental") == 0) {
+   } else if (strstr(level, "incremental")) {
       jcr->JobLevel = L_INCREMENTAL;
       free_memory(level);
-      return 1;   
+      return 1;
    /*
     * We get his UTC since time, then sync the clocks and correct it
     *   to agree with our clock.

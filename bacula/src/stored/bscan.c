@@ -845,7 +845,11 @@ static int create_file_attributes_record(B_DB *db, JCR *mjcr,
    ar.ClientId = mjcr->ClientId;
    ar.JobId = mjcr->JobId;
    ar.Stream = rec->Stream;
-   ar.FileIndex = rec->FileIndex;
+   if (type == FT_DELETED) {
+      ar.FileIndex = 0;
+   } else {
+      ar.FileIndex = rec->FileIndex;
+   }
    ar.attr = ap;
    if (dcr->VolFirstIndex == 0) {
       dcr->VolFirstIndex = rec->FileIndex;

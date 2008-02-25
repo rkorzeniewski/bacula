@@ -258,6 +258,33 @@ bool has_file_changed(JCR *jcr, FF_PKT *ff_pkt)
 }
 
 /*
+ * In incremental/diffential or accurate backup, we
+ * say if the current file has changed.
+ */
+static bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
+{
+   /* in special mode (like accurate backup), user can 
+    * choose his comparison function.
+    */
+   if (ff_pkt->check_fct) {
+      return ff_pkt->check_fct(jcr, ff_pkt);
+   }
+
+   /* in normal modes (incr/diff), we use this default
+    * behaviour
+    */
+   if (ff_pkt->incremental &&
+       (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
+	((ff_pkt->flags & FO_MTIMEONLY) ||
+	 ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
+   {
+      return false;
+   } 
+
+   return true;
+}
+
+/*
  * Find a single file.
  * handle_file is the callback for handling the file.
  * p is the filename
@@ -327,22 +354,18 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       }
       ff_pkt->volhas_attrlist = volume_has_attrlist(fname);
    }
-
    /*
     * If this is an Incremental backup, see if file was modified
     * since our last "save_time", presumably the last Full save
     * or Incremental.
     */
-   if (ff_pkt->incremental && !S_ISDIR(ff_pkt->statp.st_mode)) {
-      Dmsg1(300, "Non-directory incremental: %s\n", ff_pkt->fname);
-      /* Not a directory */
-      if (ff_pkt->statp.st_mtime < ff_pkt->save_time
-          && ((ff_pkt->flags & FO_MTIMEONLY) ||
-              ff_pkt->statp.st_ctime < ff_pkt->save_time)) {
-         /* Incremental option, file not changed */
-         ff_pkt->type = FT_NOCHG;
-         return handle_file(jcr, ff_pkt, top_level);
-      }
+   if (   ff_pkt->incremental 
+       && !S_ISDIR(ff_pkt->statp.st_mode) 
+       && !check_changes(jcr, ff_pkt)) 
+   {
+      Dmsg1(500, "Non-directory incremental: %s\n", ff_pkt->fname);
+      ff_pkt->type = FT_NOCHG;
+      return handle_file(jcr, ff_pkt, top_level);
    }
 
 #ifdef HAVE_DARWIN_OS
@@ -502,10 +525,7 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       link[len] = 0;
 
       ff_pkt->link = link;
-      if (ff_pkt->incremental &&
-          (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
-             ((ff_pkt->flags & FO_MTIMEONLY) ||
-               ff_pkt->statp.st_ctime < ff_pkt->save_time))) {
+      if (ff_pkt->incremental && !check_changes(jcr, ff_pkt)) {
          /* Incremental option, directory entry not changed */
          ff_pkt->type = FT_DIRNOCHG;
       } else {

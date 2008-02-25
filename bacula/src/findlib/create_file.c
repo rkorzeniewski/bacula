@@ -389,6 +389,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          return CF_CREATED;
       }
 
+   case FT_DELETED:
+      Qmsg2(jcr, M_INFO, 0, _("Original file %s have been deleted: type=%d\n"), attr->fname, attr->type);
+      break;
    /* The following should not occur */
    case FT_NOACCESS:
    case FT_NOFOLLOW:

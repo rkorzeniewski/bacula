@@ -277,6 +277,7 @@ void InitWinAPIWrapper();
 #define FT_INVALIDDT 20               /* Drive type not allowed for */
 #define FT_REPARSE   21               /* Win NTFS reparse point */
 #define FT_PLUGIN    22               /* Plugin generated filename */
+#define FT_DELETED   23               /* Deleted file entry */
 
 /* Definitions for upper part of type word (see above). */
 #define AR_DATA_STREAM (1<<16)        /* Data stream id present */

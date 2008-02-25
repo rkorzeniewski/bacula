@@ -346,8 +346,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
  * Update File Attributes in the catalog with data
  *  sent by the Storage daemon.  Note, we receive the whole
  *  attribute record, but we select out only the stat packet,
- *  VolSessionId, VolSessionTime, FileIndex, and file name
- *  to store in the catalog.
+ *  VolSessionId, VolSessionTime, FileIndex, file type, and 
+ *  file name to store in the catalog.
  */
 void catalog_update(JCR *jcr, BSOCK *bs)
 {
@@ -357,6 +357,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
    uint32_t FileIndex;
    uint32_t data_len;
    char *p;
+   int filetype;
    int len;
    char *fname, *attr;
    ATTR_DBR *ar = NULL;
@@ -415,6 +416,7 @@ void catalog_update(JCR *jcr, BSOCK *bs)
       p = jcr->attr - bs->msg + p;    /* point p into jcr->attr */
       skip_nonspaces(&p);             /* skip FileIndex */
       skip_spaces(&p);
+      filetype = str_to_int32(p);     /* TODO: choose between unserialize and str_to_int32 */
       skip_nonspaces(&p);             /* skip FileType */
       skip_spaces(&p);
       fname = p;
@@ -425,7 +427,11 @@ void catalog_update(JCR *jcr, BSOCK *bs)
       Dmsg1(400, "dird<stored: attr=%s\n", attr);
       ar->attr = attr;
       ar->fname = fname;
-      ar->FileIndex = FileIndex;
+      if (filetype == FT_DELETED) {
+         ar->FileIndex = 0;     /* special value */
+      } else {
+         ar->FileIndex = FileIndex;
+      }
       ar->Stream = Stream;
       ar->link = NULL;
       if (jcr->mig_jcr) {

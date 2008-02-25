@@ -50,7 +50,7 @@ const int dbglvl = 400;
 static char filesetcmd[]  = "fileset%s\n"; /* set full fileset */
 static char jobcmd[]      = "JobId=%s Job=%s SDid=%u SDtime=%u Authorization=%s\n";
 /* Note, mtime_only is not used here -- implemented as file option */
-static char levelcmd[]    = "level = %s%s mtime_only=%d\n";
+static char levelcmd[]    = "level = %s%s%s mtime_only=%d\n";
 static char runscript[]   = "Run OnSuccess=%u OnFailure=%u AbortOnError=%u When=%u Command=%s\n";
 static char runbeforenow[]= "RunBeforeNow\n";
 
@@ -226,12 +226,11 @@ static void send_since_time(JCR *jcr)
    char ed1[50];
 
    stime = str_to_utime(jcr->stime);
-   fd->fsend(levelcmd, NT_("since_utime "), edit_uint64(stime, ed1), 0);
+   fd->fsend(levelcmd, "", NT_("since_utime "), edit_uint64(stime, ed1), 0);
    while (bget_dirmsg(fd) >= 0) {  /* allow him to poll us to sync clocks */
       Jmsg(jcr, M_INFO, 0, "%s\n", fd->msg);
    }
 }
-
 
 /*
  * Send level command to FD.
@@ -240,24 +239,26 @@ static void send_since_time(JCR *jcr)
 bool send_level_command(JCR *jcr)
 {
    BSOCK   *fd = jcr->file_bsock;
+   const char *accurate=jcr->job->accurate?"accurate_":"";
+   const char *not_accurate="";
    /*
     * Send Level command to File daemon
     */
    switch (jcr->JobLevel) {
    case L_BASE:
-      fd->fsend(levelcmd, "base", " ", 0);
+      fd->fsend(levelcmd, not_accurate, "base", " ", 0);
       break;
    /* L_NONE is the console, sending something off to the FD */
    case L_NONE:
    case L_FULL:
-      fd->fsend(levelcmd, "full", " ", 0);
+      fd->fsend(levelcmd, not_accurate, "full", " ", 0);
       break;
    case L_DIFFERENTIAL:
-      fd->fsend(levelcmd, "differential", " ", 0);
+      fd->fsend(levelcmd, accurate, "differential", " ", 0);
       send_since_time(jcr);
       break;
    case L_INCREMENTAL:
-      fd->fsend(levelcmd, "incremental", " ", 0);
+      fd->fsend(levelcmd, accurate, "incremental", " ", 0);
       send_since_time(jcr);
       break;
    case L_SINCE:

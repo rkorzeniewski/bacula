@@ -96,6 +96,13 @@ set_find_options(FF_PKT *ff, int incremental, time_t save_time)
   Dmsg0(100, "Leave set_find_options()\n");
 }
 
+void
+set_find_changed_function(FF_PKT *ff, bool check_fct(JCR *jcr, FF_PKT *ff))
+{
+   Dmsg0(1, "Enter set_find_changed_function()\n");
+   ff->check_fct = check_fct;
+}
+
 /*
  * For VSS we need to know which windows drives
  * are used, because we create a snapshot of all used

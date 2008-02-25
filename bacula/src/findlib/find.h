@@ -146,6 +146,7 @@ struct findFOPTS {
    int GZIP_level;                    /* GZIP level */
    int strip_path;                    /* strip path count */
    char VerifyOpts[MAX_FOPTS];        /* verify options */
+   char AccurateOpts[MAX_FOPTS];      /* accurate mode options */
    alist regex;                       /* regex string(s) */
    alist regexdir;                    /* regex string(s) for directories */
    alist regexfile;                   /* regex string(s) for files */
@@ -215,6 +216,7 @@ struct FF_PKT {
    findFILESET *fileset;
    int (*file_save)(JCR *, FF_PKT *, bool); /* User's callback */
    int (*plugin_save)(JCR *, FF_PKT *, bool); /* User's callback */
+   bool (*check_fct)(JCR *, FF_PKT *); /* optionnal user fct to check file changes */
 
    /* Values set by accept_file while processing Options */
    uint32_t flags;                    /* backup options */
