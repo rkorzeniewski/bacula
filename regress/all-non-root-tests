@@ -20,6 +20,7 @@ nice tests/encrypt-bug-test
 nice tests/fifo-test
 nice tests/backup-to-null
 nice tests/regexwhere-test
+nice tests/accurate-test
 # The following two can uses *lots* of disk space
 #   so they are normally turned off, but if you have
 #   at least two GB free, you can run them
