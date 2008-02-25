@@ -97,6 +97,65 @@ bool do_backup_init(JCR *jcr)
 }
 
 /*
+ * Foreach files in currrent list, send "/path/fname\0LStat" to FD
+ */
+static int accurate_list_handler(void *ctx, int num_fields, char **row)
+{
+   JCR *jcr = (JCR *)ctx;
+
+   if (job_canceled(jcr)) {
+      return 1;
+   }
+   
+   if (row[2] > 0) {            /* discard when file_index == 0 */
+      jcr->file_bsock->fsend("%s%s%c%s", row[0], row[1], 0, row[4]); 
+   }
+   return 0;
+}
+
+/*
+ * Send current file list to FD
+ *    DIR -> FD : accurate files=xxxx
+ *    DIR -> FD : /path/to/file\0Lstat
+ *    DIR -> FD : /path/to/dir/\0Lstat
+ *    ...
+ *    DIR -> FD : EOD
+ */
+bool send_accurate_current_files(JCR *jcr)
+{
+   POOL_MEM buf;
+
+   if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+      return true;
+   }
+   POOLMEM *jobids = get_pool_memory(PM_FNAME);
+   db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
+
+   if (*jobids == 0) {
+      free_pool_memory(jobids);
+      Jmsg(jcr, M_FATAL, 0, _("Cannot find previous jobids.\n"));
+      return false;
+   }
+   Jmsg(jcr, M_INFO, 0, _("Sending Accurate information.\n"));
+
+   /* to be able to allocate the right size for htable */
+   POOLMEM *nb = get_pool_memory(PM_FNAME);
+   Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
+   db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
+   jcr->file_bsock->fsend("accurate files=%s\n", nb); 
+
+   db_get_file_list(jcr, jcr->db, jobids, accurate_list_handler, (void *)jcr);
+
+   free_pool_memory(jobids);
+   free_pool_memory(nb);
+
+   jcr->file_bsock->signal(BNET_EOD);
+   /* TODO: use response() ? */
+
+   return true;
+}
+
+/*
  * Do a backup of the specified FileSet
  *
  *  Returns:  false on failure
@@ -223,6 +282,14 @@ bool do_backup(JCR *jcr)
    jcr->jr.StartTime = jcr->start_time;
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+
+   /*
+    * If backup is in accurate mode, we send the list of
+    * all files to FD.
+    */
+   if (!send_accurate_current_files(jcr)) {
+      goto bail_out;
    }
 
    /* Send backup command */
@@ -476,6 +543,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
 "  Software Compression:   %s\n"
 "  VSS:                    %s\n"
 "  Encryption:             %s\n"
+"  Accurate:               %s\n"
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
@@ -508,8 +576,9 @@ void backup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         kbps,
         compress,
-        jcr->VSS?"yes":"no",
-        jcr->Encrypt?"yes":"no",
+        jcr->VSS?_("yes"):_("no"),
+        jcr->Encrypt?_("yes"):_("no"),
+        jcr->accurate?_("yes"):_("no"),
         jcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,

@@ -96,6 +96,7 @@ static RES_ITEM newinc_items[] = {
 static RES_ITEM options_items[] = {
    {"compression",     store_opts,    {0},     0, 0, 0},
    {"signature",       store_opts,    {0},     0, 0, 0},
+   {"accurate",        store_opts,    {0},     0, 0, 0},
    {"verify",          store_opts,    {0},     0, 0, 0},
    {"onefs",           store_opts,    {0},     0, 0, 0},
    {"recurse",         store_opts,    {0},     0, 0, 0},
@@ -137,6 +138,7 @@ enum {
    INC_KW_DIGEST,
    INC_KW_ENCRYPTION,
    INC_KW_VERIFY,
+   INC_KW_ACCURATE,
    INC_KW_ONEFS,
    INC_KW_RECURSE,
    INC_KW_SPARSE,
@@ -167,6 +169,7 @@ static struct s_kw FS_option_kw[] = {
    {"signature",   INC_KW_DIGEST},
    {"encryption",  INC_KW_ENCRYPTION},
    {"verify",      INC_KW_VERIFY},
+   {"accurate",    INC_KW_ACCURATE},
    {"onefs",       INC_KW_ONEFS},
    {"recurse",     INC_KW_RECURSE},
    {"sparse",      INC_KW_SPARSE},
@@ -275,6 +278,12 @@ static void scan_include_options(LEX *lc, int keyword, char *opts, int optlen)
    if (keyword == INC_KW_VERIFY) { /* special case */
       /* ***FIXME**** ensure these are in permitted set */
       bstrncat(opts, "V", optlen);         /* indicate Verify */
+      bstrncat(opts, lc->str, optlen);
+      bstrncat(opts, ":", optlen);         /* terminate it */
+      Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);
+   } else if (keyword == INC_KW_ACCURATE) { /* special case */
+      /* ***FIXME**** ensure these are in permitted set */
+      bstrncat(opts, "C", optlen);         /* indicate Accurate */
       bstrncat(opts, lc->str, optlen);
       bstrncat(opts, ":", optlen);         /* terminate it */
       Dmsg3(900, "Catopts=%s option=%s optlen=%d\n", opts, option,optlen);

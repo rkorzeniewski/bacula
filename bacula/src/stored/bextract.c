@@ -343,6 +343,12 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          build_attr_output_fnames(jcr, attr);
 
+	 if (attr->type == FT_DELETED) { /* TODO: choose the right fname/ofname */
+	    Jmsg(jcr, M_INFO, 0, _("%s was deleted.\n"), attr->fname);
+	    extract = false;
+	    return true;
+	 }
+
          extract = false;
          stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);
          switch (stat) {

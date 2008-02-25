@@ -242,6 +242,14 @@ void print_ls_output(JCR *jcr, ATTR *attr)
    char *p, *f;
    guid_list *guid;
 
+   if (attr->type == FT_DELETED) { /* TODO: change this to get last seen values */
+      bsnprintf(buf, sizeof(buf),
+		"----------   - -        -                - ---------- --------  %s\n", attr->ofname);
+      Dmsg1(20, "%s", buf);
+      Jmsg(jcr, M_RESTORED, 1, "%s", buf);
+      return;
+   }
+
    if (!jcr->id_list) {
       jcr->id_list = new_guid_list();
    }

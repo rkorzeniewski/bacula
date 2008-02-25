@@ -1005,7 +1005,6 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
     * For display purposes, the same JobId, with different volumes may
     * appear more than once, however, we only insert it once.
     */
-   int items = 0;
    p = rx->JobIds;
    tree.FileEstimate = 0;
    if (get_next_jobid_from_list(&p, &JobId) > 0) {
@@ -1020,23 +1019,12 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
          tree.DeltaCount = rx->JobId/50; /* print 50 ticks */
       }
    }
-   for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
-      char ed1[50];
 
-      if (JobId == last_JobId) {
-         continue;                    /* eliminate duplicate JobIds */
-      }
-      last_JobId = JobId;
-      ua->info_msg(_("\nBuilding directory tree for JobId %s ...  "), 
-         edit_int64(JobId, ed1));
-      items++;
-      /*
-       * Find files for this JobId and insert them in the tree
-       */
-      Mmsg(rx->query, uar_sel_files, edit_int64(JobId, ed1));
-      if (!db_sql_query(ua->db, rx->query, insert_tree_handler, (void *)&tree)) {
-         ua->error_msg("%s", db_strerror(ua->db));
-      }
+   ua->info_msg(_("\nBuilding directory tree for JobId(s) %s ...  "),
+                rx->JobIds);
+
+   if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
+      ua->error_msg("%s", db_strerror(ua->db));
    }
    if (tree.FileCount == 0) {
       ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
@@ -1055,25 +1043,12 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
       }
    } else {
       char ec1[50];
-      if (items==1) {
-         if (tree.all) {
-            ua->info_msg(_("\n1 Job, %s files inserted into the tree and marked for extraction.\n"),
-              edit_uint64_with_commas(tree.FileCount, ec1));
-         }
-         else {
-            ua->info_msg(_("\n1 Job, %s files inserted into the tree.\n"),
-              edit_uint64_with_commas(tree.FileCount, ec1));
-         }
-      }
-      else {
-         if (tree.all) {
-            ua->info_msg(_("\n%d Jobs, %s files inserted into the tree and marked for extraction.\n"),
-              items, edit_uint64_with_commas(tree.FileCount, ec1));
-         }
-         else {
-            ua->info_msg(_("\n%d Jobs, %s files inserted into the tree.\n"),
-              items, edit_uint64_with_commas(tree.FileCount, ec1));
-         }
+      if (tree.all) {
+         ua->info_msg(_("\n%s files inserted into the tree and marked for extraction.\n"),
+                      edit_uint64_with_commas(tree.FileCount, ec1));
+      } else {
+         ua->info_msg(_("\n%s files inserted into the tree.\n"),
+                      edit_uint64_with_commas(tree.FileCount, ec1));
       }
 
       if (find_arg(ua, NT_("done")) < 0) {
