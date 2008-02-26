@@ -34,7 +34,7 @@
 #include "plugins.h"
 
 /* All loaded plugins */
-alist *plugin_list;
+alist *plugin_list = NULL;
 
 /*
  * Create a new plugin "class" entry and enter it in the
@@ -165,6 +165,9 @@ void unload_plugins()
 #ifndef HAVE_WIN32
    Plugin *plugin;
 
+   if (!plugin_list) {
+      return;
+   }
    foreach_alist(plugin, plugin_list) {
       /* Shut it down and unload it */
       plugin->unloadPlugin();
