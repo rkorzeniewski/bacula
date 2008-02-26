@@ -50,7 +50,7 @@ root_test:
 clean:
 	scripts/cleanup
 	rm -f tmp/file-list
-	rm -fr tmp/* working/*
+	rm -fr tmp/* working/* Testing
 	rm -f test.out
 	rm -f diff
 	rm -f 1 2 3 scripts/1 scripts/2 scripts/3 tests/1 tests/2 tests/3

@@ -10,21 +10,6 @@ echo " "
 echo " " >>test.out
 echo "Start all non-root tape tests"
 echo "Start all non-root tape tests" >>test.out
-nice tests/ansi-label-1t1d-tape
-nice tests/backup-bacula-1t1d-tape
-#nice tests/btape-fill-full-tape
-nice tests/fixed-block-size-1t1d-tape
-nice tests/four-concurrent-jobs-1t1d-tape
-nice tests/four-jobs-1t1d-tape
-nice tests/incremental-1t1d-tape
-nice tests/relabel-1t1d-tape
-nice tests/restore-by-file-1t1d-tape
-nice tests/small-file-size-1t1d-tape
-nice tests/truncate-bug-1t1d-tape
-nice tests/two-pool-2t1da-tape
-nice tests/2drive-incremental-2t2da-tape
-nice tests/bscan-1t1d-tape
-nice tests/verify-vol-1t1d-tape
-#nice tests/vol-duration-2t1da-tape
+nice ctest -R all-non-root-tape:
 echo "End all non-root tape tests"
 echo "End all non-root tape tests" >>test.out
