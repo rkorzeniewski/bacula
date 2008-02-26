@@ -187,11 +187,9 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
       index = recyclePoolCombo->findText(m_recyclePool, Qt::MatchExactly);
       if (index == -1) {
          recyclePoolCombo->insertItem(0, "");
-         index = recyclePoolCombo->findText(m_recyclePool, Qt::MatchExactly);
+         index = 0;
       }
-      if (index != -1) {
-         recyclePoolCombo->setCurrentIndex(index);
-      }
+      recyclePoolCombo->setCurrentIndex(index);
    } else {
       QMessageBox::warning(this, tr("No Volume name"), tr("No Volume name given"),
                            QMessageBox::Ok, QMessageBox::Ok);
@@ -257,7 +255,7 @@ void MediaEdit::okButtonPushed()
       scmd += " enabled=yes";
       docmd = true;
    }
-   if (m_recyclePool != recyclePoolCombo->currentText()) {
+   if (m_recyclePool != recyclePoolCombo->currentText() && recyclePoolCombo->currentText() != "") {
       scmd += " recyclepool=\"" + recyclePoolCombo->currentText() + "\"";
       docmd = true;
    }
