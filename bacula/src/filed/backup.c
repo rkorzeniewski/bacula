@@ -78,7 +78,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    int32_t LinkFIc;
 
-   if (*ff_pkt->VerifyOpts) {	/* use mtime + ctime checks by default */
+   if (*ff_pkt->VerifyOpts) {   /* use mtime + ctime checks by default */
       Opts_Digest = ff_pkt->VerifyOpts;
    } else {
       Opts_Digest = "cm"; 
@@ -247,7 +247,7 @@ int accurate_cmd(JCR *jcr)
          memcpy(elt->fname, dir->msg, dir->msglen);
          elt->fname[dir->msglen]='\0';
          elt->lstat = elt->fname + len + 1;
-	 elt->seen=0;
+         elt->seen=0;
          jcr->file_list->insert(elt->fname, elt); 
          Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
       }
@@ -255,7 +255,7 @@ int accurate_cmd(JCR *jcr)
 
 //   jcr->file_list->stats();
    /* TODO: send a EOM ?
-   dir->fsend("2000 OK accurate\n");
+    * dir->fsend("2000 OK accurate\n");
     */
    return true;
 }
