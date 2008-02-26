@@ -4,7 +4,6 @@
 #
 echo "Start two tape tests"
 echo "Start two tape tests" >>test.out
-nice tests/two-volume-tape
-nice tests/incremental-2tape
+nice ctest -R all-non-root-2tape:
 echo "End two tape tests"
 echo "End two tape tests" >>test.out

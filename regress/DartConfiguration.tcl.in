@@ -1,0 +1,4 @@
+SourceDirectory: @srcdir@
+BuildDirectory: @regressdir@
+Site: @sitename@
+BuildName: bacula-@os@-@dbengine@
