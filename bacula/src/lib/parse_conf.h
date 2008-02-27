@@ -37,6 +37,7 @@ struct RES_ITEM;                    /* Declare forward referenced structure */
 class RES;                         /* Declare forware referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
+
 /* This is the structure that defines
  * the record types (items) permitted within each
  * resource. It is used to define the configuration
@@ -65,7 +66,7 @@ struct RES_ITEM {
 /* For storing name_addr items in res_items table */
 #define ITEM(x) {(char **)&res_all.x}
 
-#define MAX_RES_ITEMS 70              /* maximum resource items per RES */
+#define MAX_RES_ITEMS 80              /* maximum resource items per RES */
 
 /* This is the universal header that is
  * at the beginning of every resource
@@ -93,6 +94,38 @@ struct RES_TABLE {
    int rcode;                         /* code if needed */
 };
 
+class PARSER {
+public:
+   const char *m_cf;                   /* config file */
+   LEX_ERROR_HANDLER *m_scan_error;    /* error handler if non-null */
+   int m_err_type;                     /* the way to terminate on failure */
+   void *m_res_all;                    /* pointer to res_all buffer */
+   int m_res_all_size;                 /* length of buffer */
+   /* The below are not yet implemented */
+   int m_r_first;                      /* first daemon resource type */
+   int m_r_last;                       /* last daemon resource type */
+   RES_TABLE *m_resources;             /* pointer to table of permitted resources */      
+   RES **m_res_head;                   /* pointer to defined resources */
+   brwlock_t m_res_lock;               /* resource lock */
+
+   /* functions */
+   void init(
+      const char *cf,
+      LEX_ERROR_HANDLER *scan_error,
+      int err_type,
+      void *vres_all,
+      int res_all_size,
+      int r_first,
+      int r_last,
+      RES_TABLE *resources,
+      RES **res_head);
+
+   bool parse_config();
+};
+
+PARSER *new_parser();
+
+
 /* Common Resource definitions */
 
 #define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1       /* maximum resource name length */
@@ -117,6 +150,7 @@ public:
 inline char *MSGS::name() const { return hdr.name; }
 
 /* Configuration routines */
+
 int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
 void    free_config_resources(void);
 RES   **save_config_resources(void);
@@ -144,7 +178,9 @@ const char *res_to_str(int rcode);
 #endif
 
 
-
+/*
+ * Standard global parsers defined in parse_config.c
+ */
 void store_str(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_dir(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_password(LEX *lc, RES_ITEM *item, int index, int pass);
