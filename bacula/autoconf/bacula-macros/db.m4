@@ -118,6 +118,66 @@ AC_SUBST(DBI_DBD_DRIVERDIR)
 
 ])
 
+AC_DEFUN([BA_CHECK_DBI_DRIVER],
+[
+db_found=no
+db_prog=no
+AC_MSG_CHECKING(for DBI drivers support)
+AC_ARG_WITH(dbi-driver,
+[
+  --with-dbi-driver@<:@=DRIVER@:>@     Suport for DBI driver.  DRIVER is 
+                          the one DBI driver like Mysql, Postgresql, others.
+                          Default is to not configure any driver.],
+[
+  if test "$withval" != "no"; then
+     case $withval in
+        "mysql")
+           db_prog="mysql"
+           if test -f /usr/local/mysql/bin/mysql; then
+              SQL_BINDIR=/usr/local/mysql/bin
+           elif test -f /usr/bin/mysql; then
+              SQL_BINDIR=/usr/bin
+           elif test -f /usr/local/bin/mysql; then
+              SQL_BINDIR=/usr/local/bin
+           else
+              AC_MSG_RESULT(no)
+              AC_MSG_ERROR(Unable to find mysql in standard locations)
+           fi
+        ;;
+        "postgresql")
+           db_prog="postgresql"
+           PG_CONFIG=`which pg_config`
+           if test -n "$PG_CONFIG";then
+              SQL_BINDIR=`"$PG_CONFIG" --bindir`
+           elif test -f /usr/local/bin/psql; then
+              SQL_BINDIR=/usr/local/bin
+           elif test -f /usr/bin/psql; then
+              SQL_BINDIR=/usr/bin
+           else
+              AC_MSG_RESULT(no)
+              AC_MSG_ERROR(Unable to find psql in standard locations)
+          fi
+        ;;
+        *)
+           AC_MSG_RESULT(no)
+           AC_MSG_ERROR(Unable to set DBI driver. $withval is not supported)
+        ;;
+     esac
+
+     AC_MSG_RESULT(yes)
+     DB_PROG=$db_prog
+
+  else
+     AC_MSG_RESULT(no)
+  fi
+],[
+  AC_MSG_RESULT(no)
+])
+AC_SUBST(SQL_BINDIR)
+AC_SUBST(DB_PROG)
+
+])
+
 
 AC_DEFUN([BA_CHECK_MYSQL_DB],
 [

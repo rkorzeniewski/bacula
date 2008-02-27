@@ -832,6 +832,7 @@ SQL_LFLAGS
 SQL_INCLUDE
 SQL_BINDIR
 DBI_DBD_DRIVERDIR
+DB_PROG
 cats
 DB_TYPE
 GETCONF
@@ -1537,6 +1538,10 @@ Optional Packages:
   --with-dbi[=DIR]     Include DBI support.  DIR is the DBD base
                           install directory, default is to search through
                           a number of common places for the DBI files.
+
+  --with-dbi-driver[=DRIVER]     Suport for DBI driver.  DRIVER is
+                          the one DBI driver like Mysql, Postgresql, others.
+                          Default is to not configure any driver.
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -17994,6 +17999,80 @@ fi
 
 
 
+db_found=no
+db_prog=no
+{ echo "$as_me:$LINENO: checking for DBI drivers support" >&5
+echo $ECHO_N "checking for DBI drivers support... $ECHO_C" >&6; }
+
+# Check whether --with-dbi-driver was given.
+if test "${with_dbi_driver+set}" = set; then
+  withval=$with_dbi_driver;
+  if test "$withval" != "no"; then
+     case $withval in
+        "mysql")
+           db_prog="mysql"
+           if test -f /usr/local/mysql/bin/mysql; then
+              SQL_BINDIR=/usr/local/mysql/bin
+           elif test -f /usr/bin/mysql; then
+              SQL_BINDIR=/usr/bin
+           elif test -f /usr/local/bin/mysql; then
+              SQL_BINDIR=/usr/local/bin
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find mysql in standard locations" >&5
+echo "$as_me: error: Unable to find mysql in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+        ;;
+        "postgresql")
+           db_prog="postgresql"
+           PG_CONFIG=`which pg_config`
+           if test -n "$PG_CONFIG";then
+              SQL_BINDIR=`"$PG_CONFIG" --bindir`
+           elif test -f /usr/local/bin/psql; then
+              SQL_BINDIR=/usr/local/bin
+           elif test -f /usr/bin/psql; then
+              SQL_BINDIR=/usr/bin
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find psql in standard locations" >&5
+echo "$as_me: error: Unable to find psql in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+          fi
+        ;;
+        *)
+           { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+           { { echo "$as_me:$LINENO: error: Unable to set DBI driver. $withval is not supported" >&5
+echo "$as_me: error: Unable to set DBI driver. $withval is not supported" >&2;}
+   { (exit 1); exit 1; }; }
+        ;;
+     esac
+
+     { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+     DB_PROG=$db_prog
+
+  else
+     { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+  fi
+
+else
+
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+
+fi
+
+
+
+
+
+
+
 
 
 # -------------------------------------------
@@ -18022,6 +18101,11 @@ if test x$DB_TYPE = xpostgresql; then
    if test $pkg != 0; then
       support_batch_insert=no
    fi
+fi
+
+if test x$DB_TYPE = xdbi; then
+   DB_TYPE=$DB_PROG
+   db_type=$DB_PROG
 fi
 
 if test $support_batch_insert = yes ; then
@@ -31285,6 +31369,7 @@ SQL_LFLAGS!$SQL_LFLAGS$ac_delim
 SQL_INCLUDE!$SQL_INCLUDE$ac_delim
 SQL_BINDIR!$SQL_BINDIR$ac_delim
 DBI_DBD_DRIVERDIR!$DBI_DBD_DRIVERDIR$ac_delim
+DB_PROG!$DB_PROG$ac_delim
 cats!$cats$ac_delim
 DB_TYPE!$DB_TYPE$ac_delim
 GETCONF!$GETCONF$ac_delim
@@ -31313,7 +31398,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 54; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 55; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
