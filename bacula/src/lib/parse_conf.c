@@ -196,12 +196,12 @@ const char *res_to_str(int rcode)
  * Initialize the static structure to zeros, then
  *  apply all the default values.
  */
-static void init_resource(int type, RES_ITEM *items, int pass)
+static void init_resource(PARSER *parser, int type, RES_ITEM *items, int pass)
 {
    int i;
    int rindex = type - r_first;
 
-   memset((char *)&res_all, 0, res_all_size);
+   memset(parser->m_res_all, 0, parser->m_res_all_size);
    res_all.hdr.rcode = type;
    res_all.hdr.refcnt = 1;
 
@@ -773,6 +773,36 @@ enum parse_state {
    p_resource
 };
 
+PARSER *new_parser()
+{
+   PARSER *parser;
+   parser = (PARSER *)malloc(sizeof(PARSER));
+   memset(parser, 0, sizeof(PARSER));
+   return parser;
+}
+
+void PARSER::init(
+   const char *cf,
+   LEX_ERROR_HANDLER *scan_error,
+   int err_type,
+   void *vres_all,
+   int res_all_size,
+   int r_first,
+   int r_last,
+   RES_TABLE *resources,
+   RES **res_head)
+{
+   m_cf = cf;
+   m_scan_error = scan_error;
+   m_err_type = err_type;
+   m_res_all = vres_all;
+   m_res_all_size = res_all_size;
+   m_r_first = r_first;
+   m_r_last = r_last;
+   m_resources = resources;
+   m_res_head = res_head;
+}
+
 /*********************************************************************
  *
  * Parse configuration file
@@ -784,6 +814,18 @@ enum parse_state {
 int
 parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 {
+   int ok;
+   PARSER *parser = new_parser();
+   parser->init(cf, scan_error, err_type, (void *)&res_all, res_all_size,    
+                r_first, r_last, resources, res_head);
+   ok = parser->parse_config();
+   free(parser);
+   return ok;
+}
+      
+   
+bool PARSER::parse_config()
+{
    LEX *lc = NULL;
    int token, i, pass;
    int res_type = 0;
@@ -792,6 +834,9 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
    int level = 0;
    static bool first = true;
    int errstat;
+   const char *cf = m_cf;
+   LEX_ERROR_HANDLER *scan_error = m_scan_error;
+   int err_type = m_err_type;
 
    if (first && (errstat=rwl_init(&res_lock)) != 0) {
       berrno be;
@@ -857,7 +902,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
                   }
                   state = p_resource;
                   res_type = resources[i].rcode;
-                  init_resource(res_type, items, pass);
+                  init_resource(this, res_type, items, pass);
                   break;
                }
             }
@@ -970,7 +1015,7 @@ const char *get_default_configdir()
 #endif
 }
 
-bool
+static bool
 find_config_file(const char *config_file, char *full_path, int max_path)
 {
    if (first_path_separator(config_file) != NULL) {

@@ -118,6 +118,11 @@ Priority:
 
    Duplicate Job Proximity = <time-interval>   (0)
 
+    My suggestion was to define it as the minimum guard time between
+    executions of a specific job -- ie, if a job was scheduled within Job
+    Proximity number of seconds, it would be considered a duplicate and
+    consolidated.
+
     Skip  = Do not allow two or more jobs with the same name to run
     simultaneously within the proximity interval. The second and subsequent
     jobs are skipped without further processing (other than to note the job

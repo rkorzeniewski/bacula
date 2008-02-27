@@ -137,12 +137,12 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    struct save_pkt sp;
    bEvent event;
 
-   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
-   event.eventType = bEventBackupCommand;
-
    if (!plugin_list) {
       return 1;                            /* Return if no plugins loaded */
    }
+
+   bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   event.eventType = bEventBackupCommand;
 
    /* Handle plugin command here backup */
    Dmsg1(100, "plugin cmd=%s\n", cmd);
