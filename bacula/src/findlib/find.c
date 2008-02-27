@@ -215,6 +215,46 @@ find_files(JCR *jcr, FF_PKT *ff, int file_save(JCR *jcr, FF_PKT *ff_pkt, bool to
    return 1;
 }
 
+/*
+ * Test if the currently selected directory (in ff->fname) is
+ *  explicitly in the Include list or explicitly in the Exclude 
+ *  list.
+ */
+bool is_in_fileset(FF_PKT *ff)
+{
+   dlistString *node;
+   char *fname;
+   int i;
+   findINCEXE *incexe;
+   findFILESET *fileset = ff->fileset;
+   if (fileset) {
+      for (i=0; i<fileset->include_list.size(); i++) {
+         incexe = (findINCEXE *)fileset->include_list.get(i);
+         foreach_dlist(node, &incexe->name_list) {
+            fname = node->c_str();
+            Dmsg2(100, "Inc fname=%s ff->fname=%s\n", fname, ff->fname);
+            if (strcmp(fname, ff->fname) == 0) {
+               return true;
+            }
+         }
+      }
+#ifdef xxx
+      for (i=0; i<fileset->exclude_list.size(); i++) {
+         incexe = (findINCEXE *)fileset->exclude_list.get(i);
+         foreach_dlist(node, &incexe->name_list) {
+            fname = node->c_str();
+            Dmsg2(000, "Exc fname=%s ff->fname=%s\n", fname, ff->fname);
+            if (strcmp(fname, ff->fname) == 0) {
+               return true;
+            }
+         }
+      }
+#endif
+   }
+   return false;
+}
+
+
 static bool accept_file(FF_PKT *ff)
 {
    int i, j, k;
