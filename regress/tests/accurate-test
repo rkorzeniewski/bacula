@@ -88,8 +88,8 @@ rm -rf ${cwd}/tmp/bacula-restores
 ################################################################
 
 ${cwd}/bin/bls -c ${cwd}/bin/bacula-sd.conf -V 'TestVolume001' FileStorage > tmp/bls.out
-if ! grep -- '----' tmp/bls.out | grep xxx > /dev/null
-then
+grep -- '----' tmp/bls.out | grep xxx > /dev/null
+if [ $? != 0 ] ; then
     bstat=2
 fi
 
@@ -272,8 +272,8 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
-if ! grep 'st_mode  differ' tmp/log1.out > /dev/null
-then
+grep 'st_mode  differ' tmp/log1.out > /dev/null
+if [ $? != 0 ] ; then
     bstat=2
 fi
 
@@ -300,7 +300,7 @@ rm -f ${cwd}/build/accurate/yyy
 run_bconsole
 check_for_zombie_jobs storage=File
 
-jobid=$(awk '/ Incr.+backup/ { jobid=$1 } END { print jobid }' ${cwd}/tmp/log3.out)
+jobid=`awk '/ Incr.+backup/ { jobid=$1 } END { print jobid }' ${cwd}/tmp/log3.out`
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log3.out
@@ -310,8 +310,8 @@ END_OF_DATA
 
 run_bconsole
 
-if ! grep yyy ${cwd}/tmp/log3.out > /dev/null
-then
+grep yyy ${cwd}/tmp/log3.out > /dev/null
+if [ $? != 0 ] ; then
     bstat=2
 fi
 
