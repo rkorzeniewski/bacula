@@ -1,0 +1,2 @@
+#!/bin/sh
+ctest -D Nightly -R all-non-root
