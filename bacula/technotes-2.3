@@ -1,10 +1,16 @@
               Technical notes on version 2.3
 
 General:
+28Feb08
+kes  Correct po warning message with datarootdir
+kes  Implement more code in dird.c to put configuration parsing in
+     a class rather than use globals.
+kes  Restructure SD status command for implementation of bat API
+     interface.
 27Feb08
-kes   Suppress incorrect 'Will not descend from x into y' messages.
-kes   Eliminate FORTIFY_CODE=2 bug, and make first cut at removing 
-      daemon globals used by parser.              
+kes  Suppress incorrect 'Will not descend from x into y' messages.
+kes  Eliminate FORTIFY_CODE=2 bug, and make first cut at removing 
+     daemon globals used by parser.              
 kes  Apply Joao's patch to separate DB_TYPE and DB_PROG in configure.
 26Feb08
 kes  Fix free of plugin_list when none exists.
