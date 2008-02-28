@@ -552,7 +552,6 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       break;
    case FT_NOFSCHG:
       /* Suppress message for /dev filesystems */
-//    if (strncmp(ff_pkt->fname, "/dev/", 5) != 0) {
       if (!is_in_fileset(ff_pkt)) {
          Jmsg(jcr, M_INFO, 1, _("     %s is a different filesystem. Will not descend from %s into %s\n"),
               ff_pkt->fname, ff_pkt->top_fname, ff_pkt->fname);
