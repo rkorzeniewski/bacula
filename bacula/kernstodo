@@ -70,11 +70,6 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
-- Look at in src/filed/backup.c
->    pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
->    pm_strcpy(ff_pkt->link, ff_pkt->link_save);
-- Add Catalog = to Pool resource so that pools will exist
-  in only one catalog -- currently Pools are "global".
 - New directive "Delete purged Volumes"
 - Prune by Job
 - Prune by Job Level (Full, Differential, Incremental)
@@ -135,6 +130,31 @@ Priority:
     level attempts to start, the running job is promoted to the higher level
     of processing using the resources already allocated, and the subsequent
     job is treated as in Skip above.
+
+
+DuplicateJobs {
+  Name = "xxx"
+  Description = "xxx"
+  Allow = yes|no          (no = default)
+
+  AllowHigherLevel = yes|no    (no)
+
+  AllowLowerLevel = yes|no     (no)
+
+  AllowSameLevel = yes|no 
+
+  Cancel = Running | New        (no)
+
+  CancelledStatus = Fail | Skip  (fail)
+
+  Job Proximity = <time-interval>  (0)
+  My suggestion was to define it as the minimum guard time between
+  executions of a specific job -- ie, if a job was scheduled within Job
+  Proximity number of seconds, it would be considered a duplicate and
+  consolidated.
+
+}
+
 ===
 - the cd-command should allow complete paths
   i.e. cd /foo/bar/foo/bar
@@ -187,7 +207,6 @@ Priority:
 - Performance: despool attributes when despooling data (problem
   multiplexing Dir connection).
 - Make restore use the in-use volume reservation algorithm.
-- Add TLS to bat (should be done).
 - When Pool specifies Storage command override does not work.
 - Implement wait_for_sysop() message display in wait_for_device(), which
   now prints warnings too often.
@@ -1845,3 +1864,10 @@ Block Position: 0
 - Unicode input http://en.wikipedia.org/wiki/Byte_Order_Mark
 - Look at moving the Storage directive from the Job to the
   Pool in the default conf files.
+- Look at in src/filed/backup.c
+>    pm_strcpy(ff_pkt->fname, ff_pkt->fname_save);
+>    pm_strcpy(ff_pkt->link, ff_pkt->link_save);
+- Add Catalog = to Pool resource so that pools will exist
+  in only one catalog -- currently Pools are "global".
+- Add TLS to bat (should be done).
+

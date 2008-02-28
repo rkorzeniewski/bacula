@@ -196,12 +196,12 @@ const char *res_to_str(int rcode)
  * Initialize the static structure to zeros, then
  *  apply all the default values.
  */
-static void init_resource(PARSER *parser, int type, RES_ITEM *items, int pass)
+static void init_resource(CONFIG *config, int type, RES_ITEM *items, int pass)
 {
    int i;
    int rindex = type - r_first;
 
-   memset(parser->m_res_all, 0, parser->m_res_all_size);
+   memset(config->m_res_all, 0, config->m_res_all_size);
    res_all.hdr.rcode = type;
    res_all.hdr.refcnt = 1;
 
@@ -773,15 +773,15 @@ enum parse_state {
    p_resource
 };
 
-PARSER *new_parser()
+CONFIG *new_config_parser()
 {
-   PARSER *parser;
-   parser = (PARSER *)malloc(sizeof(PARSER));
-   memset(parser, 0, sizeof(PARSER));
-   return parser;
+   CONFIG *config;
+   config = (CONFIG *)malloc(sizeof(CONFIG));
+   memset(config, 0, sizeof(CONFIG));
+   return config;
 }
 
-void PARSER::init(
+void CONFIG::init(
    const char *cf,
    LEX_ERROR_HANDLER *scan_error,
    int err_type,
@@ -815,16 +815,16 @@ int
 parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 {
    int ok;
-   PARSER *parser = new_parser();
-   parser->init(cf, scan_error, err_type, (void *)&res_all, res_all_size,    
+   CONFIG *config = new_config_parser();
+   config->init(cf, scan_error, err_type, (void *)&res_all, res_all_size,    
                 r_first, r_last, resources, res_head);
-   ok = parser->parse_config();
-   free(parser);
+   ok = config->parse_config();
+   free(config);
    return ok;
 }
       
    
-bool PARSER::parse_config()
+bool CONFIG::parse_config()
 {
    LEX *lc = NULL;
    int token, i, pass;
@@ -1052,6 +1052,33 @@ find_config_file(const char *config_file, char *full_path, int max_path)
  *      Free configuration resources
  *
  */
+void CONFIG::free_resources()
+{
+   for (int i=m_r_first; i<=m_r_last; i++) {
+      free_resource(m_res_head[i-m_r_first], i);
+      m_res_head[i-m_r_first] = NULL;
+   }
+}
+
+RES **CONFIG::save_resources()
+{
+   int num = m_r_last - m_r_first + 1;
+   RES **res = (RES **)malloc(num*sizeof(RES *));
+   for (int i=0; i<num; i++) {
+      res[i] = m_res_head[i];
+      m_res_head[i] = NULL;
+   }
+   return res;
+}
+
+RES **CONFIG::new_res_head()
+{
+   int size = (m_r_last - m_r_first + 1) * sizeof(RES *);
+   RES **res = (RES **)malloc(size);
+   memset(res, 0, size);
+   return res;
+}
+
 void free_config_resources()
 {
    for (int i=r_first; i<=r_last; i++) {
@@ -1060,6 +1087,7 @@ void free_config_resources()
    }
 }
 
+#ifdef xxx
 RES **save_config_resources()
 {
    int num = r_last - r_first + 1;
@@ -1078,3 +1106,4 @@ RES **new_res_head()
    memset(res, 0, size);
    return res;
 }
+#endif

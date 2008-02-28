@@ -94,7 +94,44 @@ struct RES_TABLE {
    int rcode;                         /* code if needed */
 };
 
-class PARSER {
+
+
+/* Common Resource definitions */
+
+#define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1       /* maximum resource name length */
+
+#define ITEM_REQUIRED    0x1          /* item required */
+#define ITEM_DEFAULT     0x2          /* default supplied */
+#define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
+
+/* Message Resource */
+class MSGS {
+public:
+   RES   hdr;
+   char *mail_cmd;                    /* mail command */
+   char *operator_cmd;                /* Operator command */
+   DEST *dest_chain;                  /* chain of destinations */
+   char send_msg[nbytes_for_bits(M_MAX+1)];  /* bit array of types */
+
+   /* Methods */
+   char *name() const;
+};
+
+inline char *MSGS::name() const { return hdr.name; }
+
+/* 
+ * Old C style configuration routines -- deprecated do not use.
+ */
+int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
+void    free_config_resources(void);
+RES   **save_config_resources(void);
+RES   **new_res_head();
+
+/*
+ * New C++ configuration routines
+ */
+
+class CONFIG {
 public:
    const char *m_cf;                   /* config file */
    LEX_ERROR_HANDLER *m_scan_error;    /* error handler if non-null */
@@ -121,40 +158,12 @@ public:
       RES **res_head);
 
    bool parse_config();
+   void free_resources();
+   RES **save_resources();
+   RES **new_res_head();
 };
-
-PARSER *new_parser();
-
-
-/* Common Resource definitions */
-
-#define MAX_RES_NAME_LENGTH MAX_NAME_LENGTH-1       /* maximum resource name length */
-
-#define ITEM_REQUIRED    0x1          /* item required */
-#define ITEM_DEFAULT     0x2          /* default supplied */
-#define ITEM_NO_EQUALS   0x4          /* Don't scan = after name */
-
-/* Message Resource */
-class MSGS {
-public:
-   RES   hdr;
-   char *mail_cmd;                    /* mail command */
-   char *operator_cmd;                /* Operator command */
-   DEST *dest_chain;                  /* chain of destinations */
-   char send_msg[nbytes_for_bits(M_MAX+1)];  /* bit array of types */
-
-   /* Methods */
-   char *name() const;
-};
-
-inline char *MSGS::name() const { return hdr.name; }
-
-/* Configuration routines */
-
-int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
-void    free_config_resources(void);
-RES   **save_config_resources(void);
-RES   **new_res_head();
+ 
+CONFIG *new_config_parser();
 
 
 /* Resource routines */

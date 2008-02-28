@@ -23,6 +23,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 binprefix =
 manprefix =
+datarootdir = @datarootdir@
 sbindir = @sbindir@
 sysconfdir = @sysconfdir@
 scriptdir = @scriptdir@

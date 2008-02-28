@@ -64,7 +64,7 @@ void init_device_resources();
 static char *runjob = NULL;
 static int background = 1;
 static void init_reload(void);
-static PARSER *parser;
+static CONFIG *config;
  
 /* Globals Exported */
 DIRRES *director;                     /* Director resource */
@@ -228,10 +228,10 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parser = new_parser();
-   parser->init(configfile, NULL, M_ERROR_TERM, (void *)&res_all, res_all_size,
+   config = new_config_parser();
+   config->init(configfile, NULL, M_ERROR_TERM, (void *)&res_all, res_all_size,
                 r_first, r_last, resources, res_head);
-   parser->parse_config();
+   config->parse_config();
 
    if (init_crypto() != 0) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
@@ -354,8 +354,9 @@ void terminate_dird(int sig)
    if (debug_level > 5) {
       print_memory_pool_stats();
    }
-   free_config_resources();
-   free(parser);
+   config->free_resources();
+   free(config);
+   config = NULL;
    term_ua_server();
    term_msg();                        /* terminate message handler */
    cleanup_crypto();
@@ -481,7 +482,7 @@ void reload_config(int sig)
    }
 
    Dmsg1(100, "Reload_config njobs=%d\n", njobs);
-   reload_table[table].res_table = save_config_resources();
+   reload_table[table].res_table = config->save_resources();
    Dmsg1(100, "Saved old config in table %d\n", table);
 
    ok = parse_config(configfile, 0, M_ERROR);  /* no exit on error */
@@ -496,7 +497,7 @@ void reload_config(int sig)
          Jmsg(NULL, M_ERROR, 0, _("Please correct configuration file: %s\n"), configfile);
          Jmsg(NULL, M_ERROR, 0, _("Resetting previous configuration.\n"));
       }
-      reload_table[rtable].res_table = save_config_resources();
+      reload_table[rtable].res_table = config->save_resources();
       /* Now restore old resoure values */
       int num = r_last - r_first + 1;
       RES **res_tab = reload_table[table].res_table;
