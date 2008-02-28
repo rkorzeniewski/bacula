@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
+<defaultcodec></defaultcodec>
 <context>
     <name>ClientForm</name>
     <message>
@@ -729,12 +730,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="14"/>
         <source>bat - Bacula Admin Tool</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../main.ui" line="23"/>
         <source>Bacula Administration Tool</source>
-        <translation type="unfinished"></translation>
+        <translation>Console d&apos;administration de Bacula</translation>
     </message>
     <message>
         <location filename="../main.ui" line="26"/>
@@ -744,32 +745,32 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="79"/>
         <source>&amp;Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Édition</translation>
     </message>
     <message>
         <location filename="../main.ui" line="87"/>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Configuration</translation>
     </message>
     <message>
         <location filename="../main.ui" line="94"/>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Aide</translation>
     </message>
     <message>
         <location filename="../main.ui" line="101"/>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Fichier</translation>
     </message>
     <message>
         <location filename="../main.ui" line="117"/>
         <source>Current Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Statut courrant</translation>
     </message>
     <message>
         <location filename="../main.ui" line="128"/>
         <source>Tool Bar</source>
-        <translation type="unfinished"></translation>
+        <translation>Bar d&apos;outils</translation>
     </message>
     <message>
         <location filename="../main.ui" line="188"/>
@@ -779,7 +780,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="233"/>
         <source>Selects panel window</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Sélectionne le panel</translation>
     </message>
     <message>
         <location filename="../main.ui" line="236"/>
@@ -789,12 +790,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="248"/>
         <source>Console Entry</source>
-        <translation type="unfinished"></translation>
+        <translation>Console</translation>
     </message>
     <message>
         <location filename="../main.ui" line="251"/>
         <source>Enter a bacula command</source>
-        <translation type="unfinished">Entrer une commande Bacula</translation>
+        <translation>Entrer une commande Bacula</translation>
     </message>
     <message>
         <location filename="../main.ui" line="254"/>
@@ -809,122 +810,122 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="287"/>
         <source>Command:</source>
-        <translation type="unfinished">Commande:</translation>
+        <translation>Commande:</translation>
     </message>
     <message>
         <location filename="../main.ui" line="294"/>
         <source>Click here to enter command</source>
-        <translation type="unfinished"></translation>
+        <translation>Cliquer ici pour sasir une commande</translation>
     </message>
     <message>
         <location filename="../main.ui" line="305"/>
         <source>&amp;Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Quitter</translation>
     </message>
     <message>
         <location filename="../main.ui" line="308"/>
         <source>Ctrl+Q</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../main.ui" line="316"/>
         <source>&amp;About bat</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Apropos de bat</translation>
     </message>
     <message>
         <location filename="../main.ui" line="324"/>
         <source>&amp;Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Copier</translation>
     </message>
     <message>
         <location filename="../main.ui" line="332"/>
         <source>Cu&amp;t</source>
-        <translation type="unfinished"></translation>
+        <translation>Cou&amp;per</translation>
     </message>
     <message>
         <location filename="../main.ui" line="340"/>
         <source>new</source>
-        <translation type="unfinished"></translation>
+        <translation>Nouveau</translation>
     </message>
     <message>
         <location filename="../main.ui" line="348"/>
         <source>open</source>
-        <translation type="unfinished"></translation>
+        <translation>Ouvrir</translation>
     </message>
     <message>
         <location filename="../main.ui" line="356"/>
         <source>&amp;Paste</source>
-        <translation type="unfinished"></translation>
+        <translation>Colle&amp;r</translation>
     </message>
     <message>
         <location filename="../main.ui" line="364"/>
         <source>&amp;Print</source>
-        <translation type="unfinished"></translation>
+        <translation>Im&amp;primer</translation>
     </message>
     <message>
         <location filename="../main.ui" line="367"/>
         <source>Print</source>
-        <translation type="unfinished"></translation>
+        <translation>Imprimer</translation>
     </message>
     <message>
         <location filename="../main.ui" line="375"/>
         <source>&amp;Save</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Sauvegarder</translation>
     </message>
     <message>
         <location filename="../main.ui" line="378"/>
         <source>Save (not implemented)</source>
-        <translation type="unfinished"></translation>
+        <translation>Sauvegarder (non implémenté)</translation>
     </message>
     <message>
         <location filename="../main.ui" line="386"/>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Connecter</translation>
     </message>
     <message>
         <location filename="../main.ui" line="389"/>
         <source>Connect/disconnect</source>
-        <translation type="unfinished"></translation>
+        <translation>Connecter/Déconnecter</translation>
     </message>
     <message>
         <location filename="../main.ui" line="397"/>
         <source>Label</source>
-        <translation type="unfinished"></translation>
+        <translation>Labéliser</translation>
     </message>
     <message>
         <location filename="../main.ui" line="403"/>
         <source>Label a Volume</source>
-        <translation type="unfinished"></translation>
+        <translation>Labéliser un volume</translation>
     </message>
     <message>
         <location filename="../main.ui" line="411"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Restaurer</translation>
     </message>
     <message>
         <location filename="../main.ui" line="414"/>
         <source>Restore Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Restaurer des fichiers</translation>
     </message>
     <message>
         <location filename="../main.ui" line="431"/>
         <source>Run Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Lancer un job</translation>
     </message>
     <message>
         <location filename="../main.ui" line="434"/>
         <source>Run a Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Lancer un job</translation>
     </message>
     <message>
         <location filename="../main.ui" line="451"/>
         <source>Estimate Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Estimer un job</translation>
     </message>
     <message>
         <location filename="../main.ui" line="454"/>
         <source>Estimate a Job</source>
-        <translation type="unfinished"></translation>
+        <translation>Estimer un job</translation>
     </message>
     <message>
         <location filename="../main.ui" line="462"/>
@@ -980,7 +981,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="523"/>
         <source>Messages</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../main.ui" line="526"/>
@@ -990,7 +991,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="534"/>
         <source>&amp;Preferences ...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&amp;Préférences...</translation>
     </message>
     <message>
         <location filename="../main.ui" line="540"/>
@@ -1038,22 +1039,22 @@ Press OK to continue?</source>
     <message>
         <location filename="../mainwin.cpp" line="477"/>
         <source>Director not connected. Click on connect button.</source>
-        <translation type="unfinished"></translation>
+        <translation>Le director n&apos;est pas connecté. Cliquer sur &quot;Connecter&quot;.</translation>
     </message>
     <message>
         <location filename="../mainwin.cpp" line="488"/>
         <source>About bat</source>
-        <translation type="unfinished">A propos bat</translation>
+        <translation>A propos bat</translation>
     </message>
     <message>
         <location filename="../mainwin.cpp" line="490"/>
         <source>&lt;br&gt;&lt;h2&gt;bat 1.0, by Dirk H Bartley and Kern Sibbald&lt;/h2&gt;&lt;p&gt;Copyright &amp;copy; 2007-</source>
-        <translation type="unfinished">&lt;br&gt;&lt;h2&gt;bat 1.0, par Dirk H Bartley et Kern Sibbald&lt;/h2&gt;&lt;p&gt;Copyright &amp;copy; 2007-</translation>
+        <translation>&lt;br&gt;&lt;h2&gt;bat 1.0, par Dirk H Bartley et Kern Sibbald&lt;/h2&gt;&lt;p&gt;Copyright &amp;copy; 2007-</translation>
     </message>
     <message>
         <location filename="../mainwin.cpp" line="513"/>
         <source> Ready</source>
-        <translation type="unfinished">Prêt</translation>
+        <translation>Prêt</translation>
     </message>
 </context>
 <context>
