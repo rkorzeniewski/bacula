@@ -2,4 +2,8 @@
 #
 # run both the disk and the tape based regression tests.
 #
+# Include full output
+REGRESS_DEBUG=1
+export REGRESS_DEBUG
+scripts/do_sed
 ctest -D Nightly -R "all-non-root.*"

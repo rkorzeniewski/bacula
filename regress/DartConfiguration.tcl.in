@@ -1,7 +1,7 @@
 SourceDirectory: @srcdir@
 BuildDirectory: @regressdir@
 Site: @sitename@
-BuildName: bacula-@os@-@dbengine@
+BuildName: bacula-@bversion@-@bdate@-@os@-@dbengine@
 DropMethod: xmlrpc
 DropSite: http://baculadart.wpi.edu:8081
 DropLocation: Bacula
