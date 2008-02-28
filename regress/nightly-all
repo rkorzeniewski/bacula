@@ -3,7 +3,9 @@
 # run both the disk and the tape based regression tests.
 #
 # Include full output
+save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
 scripts/do_sed
 ctest -D Nightly -R "all-non-root.*"
+REGRESS_DEBUG=${save_debug}
