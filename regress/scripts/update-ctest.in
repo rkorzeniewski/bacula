@@ -2,7 +2,7 @@
 
 cd @regressdir@
 
-if [ -d build ] ; then
+if [ ! -d build ] ; then
     echo "Build directory not present, will run make setup"
     cd @srcdir@
     svn update > /dev/null
