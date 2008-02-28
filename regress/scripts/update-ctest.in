@@ -1,0 +1,34 @@
+#!/bin/sh
+
+cd @regressdir@
+
+if [ -d build ] ; then
+    echo "Build directory not present, will run make setup"
+    cd @srcdir@
+    svn update > /dev/null
+    cd @regressdir@
+    make setup
+    exit
+fi
+
+cd @regressdir@/build 
+
+cur=`svn info | grep Revision: | awk '{print $2'}`
+
+cd @srcdir@
+
+svn update > /dev/null
+
+new=`svn info | grep Revision: | awk '{print $2'}`
+
+cd @regressdir@
+
+echo Build is ${cur}
+echo Source is ${new}
+
+if [ ${cur}x != ${new}x ] ; then
+    echo "Newer version available, will run make setup"
+    make setup
+else
+    echo "Latest version present in build, skipping make setup"
+fi
