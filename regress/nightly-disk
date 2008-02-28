@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# test only the disk based regression scripts
+#
+# Include full output
+REGRESS_DEBUG=1
+export REGRESS_DEBUG
+ctest -D Nightly -R "all-non-root:"

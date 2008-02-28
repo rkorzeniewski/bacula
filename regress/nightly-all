@@ -1,2 +1,5 @@
 #!/bin/sh
-ctest -D Nightly -R all-non-root
+#
+# run both the disk and the tape based regression tests.
+#
+ctest -D Nightly -R "all-non-root.*"
