@@ -12,14 +12,14 @@ Index: src/filed/backup.c
     bool seen;
  } CurFile;
  
-@@ -66,24 +67,13 @@
+@@ -66,24 +67,12 @@
   * the last time. After we can compare Lstat field. 
   * 
   */
 -/* TODO: tweak verify code to use the same function ?? */
  bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
  {
-    char *p;
+-   char *p;
     int stat=false;
 -   struct stat statc;                 /* catalog stat */
 -   char *Opts_Digest;
@@ -37,7 +37,7 @@ Index: src/filed/backup.c
     if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
        return true;
     }
-@@ -110,95 +100,14 @@
+@@ -110,95 +99,14 @@
        goto bail_out;
     }
  
@@ -129,10 +129,10 @@ Index: src/filed/backup.c
 -      default:
 -         break;
 -      }
-+   if (elt->st_mtime != ff_pkt->statp.st_mtime) {
++   if (elt->mtime != ff_pkt->statp.st_mtime) {
 +     Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
 +     stat = true;
-+   } else if (elt->st_ctime != ff_pkt->statp.st_ctime) {
++   } else if (elt->ctime != ff_pkt->statp.st_ctime) {
 +     Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
 +     stat = true;
     }
@@ -140,7 +140,7 @@ Index: src/filed/backup.c
     accurate_mark_file_as_seen(elt);
     Dmsg2(500, "accurate %s = %i\n", fname, stat);
  
-@@ -215,8 +124,11 @@
+@@ -215,8 +123,11 @@
  {
     BSOCK *dir = jcr->dir_bsock;
     int len;
@@ -152,7 +152,7 @@ Index: src/filed/backup.c
  
     if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
        return true;
-@@ -246,8 +158,11 @@
+@@ -246,10 +157,13 @@
           elt->fname  = (char *) elt+sizeof(CurFile);
           memcpy(elt->fname, dir->msg, dir->msglen);
           elt->fname[dir->msglen]='\0';
@@ -160,9 +160,25 @@ Index: src/filed/backup.c
 -         elt->seen=0;
 +         lstat = elt->fname + len + 1;
 +         decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
-+         elt->st_ctime = statp.st_ctime;
-+         elt->st_mtime = statp.st_mtime;
++         elt->ctime = statp.st_ctime;
++         elt->mtime = statp.st_mtime;
 +         elt->seen = 0;
           jcr->file_list->insert(elt->fname, elt); 
-          Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
+-         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
++         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, lstat);
        }
+    }
+ 
+@@ -280,9 +194,10 @@
+ 
+    foreach_htable (elt, jcr->file_list) {
+       if (!accurate_file_has_been_seen(elt)) { /* already seen */
+-         Dmsg3(500, "deleted fname=%s lstat=%s seen=%i\n", elt->fname, elt->lstat, elt->seen);
++         Dmsg2(500, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+          ff_pkt->fname = elt->fname;
+-         decode_stat(elt->lstat, &ff_pkt->statp, &ff_pkt->LinkFI); /* decode catalog stat */
++         ff_pkt->statp.st_mtime = elt->mtime;
++         ff_pkt->statp.st_ctime = elt->ctime;
+          encode_and_send_attributes(jcr, ff_pkt, stream);
+       }
+ //      Free(elt->fname);
