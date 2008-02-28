@@ -5,4 +5,5 @@
 # Include full output
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
+scripts/do_sed
 ctest -D Nightly -R "all-non-root:"
