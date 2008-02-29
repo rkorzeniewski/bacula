@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# Create the sed file for configuring everything
+#
+cwd=`pwd`
+. ${cwd}/config
+mkdir -p ${cwd}/bin
+mkdir -p ${cwd}/tmp
+out="${cwd}/tmp/sed_tmp"
+
+# set the ports used by these tests
+BASEPORT=${BASEPORT:-8101}
+srcdir=${BACULA_SOURCE}
+dirport=${BASEPORT}
+fdport=`expr ${BASEPORT} '+' 1`
+sdport=`expr ${BASEPORT} '+' 2`
+os=`uname -s`
+dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
+bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+
+# Create sed command script
+echo "s%@sbindir@%${cwd}/bin%g" >${out}
+echo "s%@scriptdir@%${cwd}/bin%g" >>${out}
+echo "s%@working_dir@%${cwd}/working%g" >>${out}
+echo "s%@piddir@%${cwd}/working%g" >>${out}
+echo "s%@subsysdir@%${cwd}/working%g" >>${out}
+echo "s%@job_email@%${EMAIL}%g" >>${out}
+echo "s%@tape_drive@%${TAPE_DRIVE}%g" >>${out}
+echo "s%@autochanger@%${AUTOCHANGER}%g" >>${out}
+echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
+echo "s%@hostname@%${HOST}%g" >>${out}
+echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}
+echo "s%@tape_drive1@%${TAPE_DRIVE1}%g" >>${out}
+echo "s%@smtp_host@%${SMTP_HOST}%g" >>${out}
+echo "s%@disk_drive@%${cwd}/tmp/disk-changer%g" >>${out}
+echo "s%@hostname@%${hostname}%g" >>${out}
+echo "s%@hostname1@%${hostname1}%g" >>${out}
+echo "s%@hostname2@%${hostname2}%g" >>${out}
+echo "s%@hostname3@%${hostname3}%g" >>${out}
+echo "s%@hostname1_files@%${hostname1_files}%g" >>${out}
+echo "s%@hostname_files@%${hostname_files}%g" >>${out}
+echo "s%@hostname2_files@%${hostname2_files}%g" >>${out}
+echo "s%@hostname3_files@%${hostname3_files}%g" >>${out}
+echo "s%@hostname1_password@%${hostname1_password}%g" >>${out}
+echo "s%@hostname2_password@%${hostname2_password}%g" >>${out}
+echo "s%@hostname3_password@%${hostname3_password}%g" >>${out}
+echo "s%@dirport@%${dirport}%g" >>${out}
+echo "s%@sdport@%${sdport}%g" >>${out}
+echo "s%@fdport@%${fdport}%g" >>${out}
+echo "s%@regressdir@%${cwd}%g" >>${out}
+echo "s%@dbengine@%${dbengine}%g" >>${out}
+echo "s%@srcdir@%${srcdir}%g" >>${out}
+echo "s%@sitename@%${SITE_NAME}%g" >>${out}
+echo "s%@os@%${os}%g" >>${out}
+echo "s%@bversion@%${bversion}%g" >>${out}
+echo "s%@bdate@%${bdate}%g" >>${out}
