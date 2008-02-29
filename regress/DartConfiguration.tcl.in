@@ -7,5 +7,5 @@ DropSite: http://baculadart.wpi.edu:8081
 DropLocation: Bacula
 NightlyStartTime: 21:00:00 EST
 MakeCommand: @regressdir@/scripts/update-ctest
-ConfigureCommand: /bin/true
-UpdateCommand: /bin/true
+ConfigureCommand: true
+UpdateCommand: svn

@@ -4,8 +4,6 @@ cd @regressdir@
 
 if [ ! -d build ] ; then
     echo "Build directory not present, will run make setup"
-    cd @srcdir@
-    svn update > /dev/null
     cd @regressdir@
     make setup
     exit
@@ -16,8 +14,6 @@ cd @regressdir@/build
 cur=`svn info | grep Revision: | awk '{print $2'}`
 
 cd @srcdir@
-
-svn update > /dev/null
 
 new=`svn info | grep Revision: | awk '{print $2'}`
 
