@@ -3,7 +3,7 @@ BuildDirectory: @regressdir@
 Site: @sitename@
 BuildName: bacula-@bversion@-@bdate@-@os@-@dbengine@
 DropMethod: xmlrpc
-DropSite: http://baculadart.wpi.edu:8081
+DropSite: http://regress.bacula.org:8081
 DropLocation: Bacula
 NightlyStartTime: 21:00:00 EST
 MakeCommand: @regressdir@/scripts/update-ctest
