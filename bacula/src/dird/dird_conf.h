@@ -385,7 +385,9 @@ public:
    utime_t MaxStartDelay;             /* max start delay in seconds */
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
-   utime_t MaxFullAge;                /* Max age of full to avoid upgrade */
+   utime_t MaxFullInterval;           /* Maximum time interval between Fulls */
+   utime_t MaxDiffInterval;           /* Maximum time interval between Diffs */
+   utime_t DuplicateJobProximity;     /* Permitted time between duplicicates */
    uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
    int64_t spool_size;                /* Size of spool file for this job */
    int RescheduleTimes;               /* Number of times to reschedule job */
@@ -402,6 +404,10 @@ public:
    bool enabled;                      /* Set if job enabled */
    bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
    bool accurate;                     /* Set if it is an accurate backup job */
+   bool AllowDuplicateJobs;           /* Allow duplicate jobs */
+   bool AllowHigherDuplicates;        /* Permit Higher Level */
+   bool CancelQueuedDuplicates;       /* Cancel queued jobs */
+   bool CancelRunningDuplicates;      /* Cancel Running jobs */
    
    MSGS      *messages;               /* How and where to send messages */
    SCHED     *schedule;               /* When -- Automatic schedule */

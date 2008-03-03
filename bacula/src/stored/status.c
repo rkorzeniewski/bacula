@@ -621,12 +621,9 @@ static void sendit(const char *msg, int len, BSOCK *bs)
    bs->send();
 }
 
-static void sendit(const char *msg, int len, void *arg)
+static void sendit(const char *msg, int len, void *bs)
 {
-   BSOCK *bs = (BSOCK *)arg;
-   memcpy(bs->msg, msg, len+1);
-   bs->msglen = len+1;
-   bs->send();
+   sendit(msg, len, (BSOCK *)bs);
 }
 
 static void sendit(POOL_MEM &msg, int len, BSOCK *bs)

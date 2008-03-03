@@ -293,7 +293,8 @@ RES_ITEM job_items[] = {
    {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxWaitTime), 0, 0, 0},
    {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
-   {"maxfullage",  store_time, ITEM(res_job.MaxFullAge), 0, 0, 0},
+   {"maxfullinterval",  store_time, ITEM(res_job.MaxFullInterval), 0, 0, 0},
+   {"maxdiffinterval",  store_time, ITEM(res_job.MaxDiffInterval), 0, 0, 0},
    {"jobretention", store_time, ITEM(res_job.JobRetention),  0, 0, 0},
    {"prefixlinks", store_bool, ITEM(res_job.PrefixLinks), 0, ITEM_DEFAULT, false},
    {"prunejobs",   store_bool, ITEM(res_job.PruneJobs), 0, ITEM_DEFAULT, false},
@@ -321,6 +322,10 @@ RES_ITEM job_items[] = {
    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
    {"accurate", store_bool, ITEM(res_job.accurate), 0,0,0},
+   {"allowduplicatejobs",     store_bool, ITEM(res_job.AllowDuplicateJobs), 0, ITEM_DEFAULT, false},
+   {"allowhigherduplicates",  store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
+   {"cancelqueuedduplicates",  store_bool, ITEM(res_job.CancelQueuedDuplicates), 0, ITEM_DEFAULT, true},
+   {"cancelrunningduplicates", store_bool, ITEM(res_job.CancelRunningDuplicates), 0, ITEM_DEFAULT, false},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 

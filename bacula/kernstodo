@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    23 February 2008
+                    03 March 2008
 
 
 Document:
@@ -1870,4 +1870,3 @@ Block Position: 0
 - Add Catalog = to Pool resource so that pools will exist
   in only one catalog -- currently Pools are "global".
 - Add TLS to bat (should be done).
-
