@@ -9,3 +9,4 @@ NightlyStartTime: 21:00:00 EST
 MakeCommand: @regressdir@/scripts/update-ctest
 ConfigureCommand: true
 UpdateCommand: svn
+TimeOut: 3600
