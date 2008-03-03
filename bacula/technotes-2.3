@@ -2,6 +2,10 @@
 
 General:
 03Mar08
+kes  Implement 'MaxFullInterval' and start 'MaxDiffInterval' based on
+     some ideas in patch from Scott Bailey.
+kes  Begin implementation of duplicate Job control.
+kes  Fix some of Win32 build after recent additions.
 kes  Apply patch from Frank Kardel that implements 'honor no dump flag',
      which causes the FD to detect whether or not the OS has the 
      honor no dump bit (*BSD systems), and if so, to skip backing up
@@ -46,9 +50,6 @@ kes  First incomplete cut of big malloc blocks for htable.
 kes  Tweak plugin code.
 17Feb08
 kes  Plugin debug code + tweak a couple bat dialog layouts
-16Feb08
-kes  Apply Max Full Age patch submitted by Scott Bailey 
-     <scott dot bailey at eds dot com>
 14Feb08
 kes  Fix creating first JobMedia record during Migration to include
      proper index. This caused slow restores of migrated jobs.

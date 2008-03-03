@@ -1234,6 +1234,45 @@ Item 1: Backup and Restore of Windows Encrypted Files through raw encryption fun
 
   Notes:  ./.
 
+   Item 1: Possibilty to schedule Jobs on last Friday of the month
+   Origin: Carsten Menke <bootsy52 at gmx dot net>
+   Date:   02 March 2008
+   Status:
+
+   What:   Currently if you want to run your monthly Backups on the last
+           Friday of each month this is only possible with workarounds (e.g 
+           scripting) (As some months got 4 Fridays and some got 5 Fridays)
+           The same is true if you plan to run your yearly Backups on the last 
+           Friday of the year. It would be nice to have the ability to use the builtin 
+           scheduler for this.
+
+   Why:    In many companies the last working day of the week is Friday (or 
+           Saturday), so to get the most data of the month onto the monthly tape, the 
+           employees are advised to insert the tape for the monthly backups on the last 
+           friday of the month.
+
+   Notes:  To give this a complete functionality it would be nice if the "first" 
+           and "last" Keywords could be implemented in the scheduler, so it is also 
+           possible to run monthy backups at the first friday of the month and many things 
+           more. So if the syntax would expand to this {first|last} {Month|Week|Day|Mo-Fri} 
+           of the {Year|Month|Week} you would be able to run really flexible jobs.
+
+           To got a certain Job run on the last Friday of the Month for example one could 
+           then write
+
+              Run = pool=Monthly last Fri of the Month at 23:50
+
+              ## Yearly Backup
+
+              Run = pool=Yearly last Fri of the Year at 23:50
+
+              ## Certain Jobs the last Week of a Month
+
+              Run = pool=LastWeek last Week of the Month at 23:50
+
+              ## Monthly Backup on the last day of the month
+
+              Run = pool=Monthly last Day of the Month at 23:50
 
 ========== Already implemented ================================
 

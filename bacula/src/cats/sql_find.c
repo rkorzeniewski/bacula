@@ -1,18 +1,7 @@
 /*
- * Bacula Catalog Database Find record interface routines
- *
- *  Note, generally, these routines are more complicated
- *        that a simple search by name or id. Such simple
- *        request are in get.c
- *
- *    Kern Sibbald, December 2000
- *
- *    Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -36,6 +25,17 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Bacula Catalog Database Find record interface routines
+ *
+ *  Note, generally, these routines are more complicated
+ *        that a simple search by name or id. Such simple
+ *        request are in get.c
+ *
+ *    Kern Sibbald, December 2000
+ *
+ *    Version $Id$
+ */
 
 
 /* The following is necessary so that we do not include
@@ -75,7 +75,7 @@ db_find_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime)
    pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
    /* If no Id given, we must find corresponding job */
    if (jr->JobId == 0) {
-      /* Differential is since last Full backup */
+         /* Differential is since last Full backup */
          Mmsg(mdb->cmd,
 "SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
 "Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "

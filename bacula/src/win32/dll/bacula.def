@@ -129,10 +129,12 @@ _Z24enable_backup_privilegesP3JCRi
  
 ; find.o
 _Z10find_filesP3JCRP6FF_PKTPFiS0_S2_bES4_
+_Z13is_in_filesetP6FF_PKT
 _Z15init_find_filesv
 _Z15term_find_filesP6FF_PKT
 _Z16set_find_optionsP6FF_PKTil
 _Z22get_win32_drivelettersP6FF_PKTPc
+_Z25set_find_changed_functionP6FF_PKTPFbP3JCRS0_E
  
 ; find_one.o
 _Z13find_one_fileP3JCRP6FF_PKTPFiS0_S2_bEPcjb
@@ -462,6 +464,24 @@ _ZN9guid_list11uid_to_nameEjPci
 _ZN9guid_list11gid_to_nameEjPci
 _Z14free_guid_listP9guid_list
 _Z13new_guid_listv
+
+; hmac.o
+_Z8hmac_md5PhiS_iS_
+ 
+; htable.o
+_ZN6htable10grow_tableEv
+_ZN6htable10hash_indexEPc
+_ZN6htable4initEPvS0_i
+_ZN6htable4nextEv
+_ZN6htable4sizeEv
+_ZN6htable5firstEv
+_ZN6htable5statsEv
+_ZN6htable6insertEPcPv
+_ZN6htable6lookupEPc
+_ZN6htable7destroyEv
+_ZN6htableC1EPvS0_i
+_ZN6htableC2EPvS0_i
+    
  
 ; jcr.o
 _Z10b_free_jcrPKciP3JCR
