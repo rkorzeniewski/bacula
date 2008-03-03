@@ -428,7 +428,7 @@ public:
 inline char *JOB::name() const { return hdr.name; }
 
 #undef  MAX_FOPTS
-#define MAX_FOPTS 34
+#define MAX_FOPTS 40
 
 /* File options structure */
 struct FOPTS {

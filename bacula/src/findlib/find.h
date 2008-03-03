@@ -108,6 +108,7 @@ enum {
 #define FO_ENHANCEDWILD (1<<23)       /* Enhanced wild card processing */
 #define FO_CHKCHANGES   (1<<24)       /* Check if file have been modified during backup */
 #define FO_STRIPPATH    (1<<25)       /* Check for stripping path */
+#define FO_HONOR_NODUMP (1<<26)       /* honor NODUMP flag */
 
 struct s_included_file {
    struct s_included_file *next;
