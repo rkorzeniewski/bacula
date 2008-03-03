@@ -1,6 +1,12 @@
               Technical notes on version 2.3
 
 General:
+03Mar08
+kes  Apply patch from Frank Kardel that implements 'honor no dump flag',
+     which causes the FD to detect whether or not the OS has the 
+     honor no dump bit (*BSD systems), and if so, to skip backing up
+     any file with this bit set.  The feature is enabled by setting
+     'honor no dump flag = yes' in the Options section of a FileSet.
 28Feb08
 kes  Correct po warning message with datarootdir
 kes  Implement more code in dird.c to put configuration parsing in

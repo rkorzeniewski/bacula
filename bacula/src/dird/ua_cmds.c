@@ -1558,7 +1558,8 @@ int wait_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr;
 
-   /* no args
+   /*
+    * no args
     * Wait until no job is running
     */
    if (ua->argc == 1) {
@@ -1626,7 +1627,7 @@ int wait_cmd(UAContext *ua, const char *cmd)
    }
 
    /*
-    * We wait the end of job
+    * We wait the end of a specific job
     */
 
    bmicrosleep(0, 200000);            /* let job actually start */
