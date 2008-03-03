@@ -44,6 +44,13 @@ set_debug()
    fi
 } 
 
+print_debug()
+{
+   if test "$debug" -eq 1 ; then
+     echo $*
+   fi
+}
+
 run_bacula()
 {
    debug_wait

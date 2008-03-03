@@ -312,12 +312,14 @@ run_bconsole
 
 grep yyy ${cwd}/tmp/log3.out > /dev/null
 if [ $? != 0 ] ; then
-    bstat=2
+    print_debug "Can't find xxx file into 'list files' output (${cwd}/tmp/log3.out)"
+    dstat=2
 fi
 
 if grep zzz ${cwd}/tmp/log3.out > /dev/null
 then
-    bstat=2
+    print_debug "Can't find zzz file into 'list files' output (${cwd}/tmp/log3.out)"
+    dstat=2
 fi
 
 stop_bacula
