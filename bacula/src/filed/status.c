@@ -36,14 +36,15 @@
 
 #include "bacula.h"
 #include "filed.h"
+#include "lib/status.h"
 
 extern void *start_heap;
 
 /* Forward referenced functions */
-static void  list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
-static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
-static void  list_status_header(void sendit(const char *msg, int len, void *sarg), void *arg, bool api);
-static void bsock_sendit(const char *msg, int len, void *arg);
+static void  list_terminated_jobs(STATUS_PKT *sp, bool api);
+static void  list_running_jobs(STATUS_PKT *sp, bool api);
+static void  list_status_header(STATUS_PKT *sp, bool api);
+static void sendit(const char *msg, int len, STATUS_PKT *sp);
 static const char *level_to_str(int level);
 
 /* Static variables */
@@ -66,14 +67,14 @@ extern VSSClient *g_pVSSClient;
 /*
  * General status generator
  */
-void output_status(void sendit(const char *msg, int len, void *sarg), void *arg)
+void output_status(STATUS_PKT *sp)
 {
-   list_status_header(sendit, arg, false /*no api*/);
-   list_running_jobs(sendit, arg, false /*no api*/);
-   list_terminated_jobs(sendit, arg, false /*no api*/);
+   list_status_header(sp, false /*no api*/);
+   list_running_jobs(sp, false /*no api*/);
+   list_terminated_jobs(sp, false /*no api*/);
 }
 
-static void  list_status_header(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
+static void  list_status_header(STATUS_PKT *sp, bool api)
 {
    POOL_MEM msg(PM_MESSAGE);
    char b1[32], b2[32], b3[32], b4[32], b5[35];
@@ -82,25 +83,25 @@ static void  list_status_header(void sendit(const char *msg, int len, void *sarg
 
    len = Mmsg(msg, _("%s Version: %s (%s) %s %s %s %s\n"), 
               my_name, VERSION, BDATE, VSS, HOST_OS, DISTNAME, DISTVER);
-   sendit(msg.c_str(), len, arg);
+   sendit(msg.c_str(), len, sp);
    bstrftime_nc(dt, sizeof(dt), daemon_start_time);
    len = Mmsg(msg, _("Daemon started %s, %d Job%s run since started.\n"),
         dt, num_jobs_run, num_jobs_run == 1 ? "" : "s");
-   sendit(msg.c_str(), len, arg);
+   sendit(msg.c_str(), len, sp);
 #if defined(HAVE_WIN32)
    if (debug_level > 0) {
       if (!privs) {
          privs = enable_backup_privileges(NULL, 1);
       }
       len = Mmsg(msg, "VSS %s, Priv 0x%x\n", g_pVSSClient?"enabled":"disabled", privs);
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, "APIs=%sOPT,%sATP,%sLPV,%sCFA,%sCFW,\n",
                  p_OpenProcessToken?"":"!",
                  p_AdjustTokenPrivileges?"":"!",
                  p_LookupPrivilegeValue?"":"!",
                  p_CreateFileA?"":"!",
                  p_CreateFileW?"":"!");
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, " %sWUL,%sWMKD,%sGFAA,%sGFAW,%sGFAEA,%sGFAEW,%sSFAA,%sSFAW,%sBR,%sBW,%sSPSP,\n",
                  p_wunlink?"":"!",
                  p_wmkdir?"":"!",
@@ -113,7 +114,7 @@ static void  list_status_header(void sendit(const char *msg, int len, void *sarg
                  p_BackupRead?"":"!",
                  p_BackupWrite?"":"!",
                  p_SetProcessShutdownParameters?"":"!");
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, " %sWC2MB,%sMB2WC,%sFFFA,%sFFFW,%sFNFA,%sFNFW,%sSCDA,%sSCDW,\n",
                  p_WideCharToMultiByte?"":"!",
                  p_MultiByteToWideChar?"":"!",
@@ -123,13 +124,13 @@ static void  list_status_header(void sendit(const char *msg, int len, void *sarg
                  p_FindNextFileW?"":"!",
                  p_SetCurrentDirectoryA?"":"!",
                  p_SetCurrentDirectoryW?"":"!");
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, " %sGCDA,%sGCDW,%sGVPNW,%sGVNFVMPW\n",  
                  p_GetCurrentDirectoryA?"":"!",
                  p_GetCurrentDirectoryW?"":"!",
                  p_GetVolumePathNameW?"":"!",
                  p_GetVolumeNameForVolumeMountPointW?"":"!");
-     sendit(msg.c_str(), len, arg);
+     sendit(msg.c_str(), len, sp);
    }
 #endif
    len = Mmsg(msg, _(" Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n"),
@@ -138,13 +139,13 @@ static void  list_status_header(void sendit(const char *msg, int len, void *sarg
          edit_uint64_with_commas(sm_max_bytes, b3),
          edit_uint64_with_commas(sm_buffers, b4),
          edit_uint64_with_commas(sm_max_buffers, b5));
-   sendit(msg.c_str(), len, arg);
+   sendit(msg.c_str(), len, sp);
    len = Mmsg(msg, _(" Sizeof: boffset_t=%d size_t=%d debug=%d trace=%d\n"),
          sizeof(boffset_t), sizeof(size_t), debug_level, get_trace());
-   sendit(msg.c_str(), len, arg);
+   sendit(msg.c_str(), len, sp);
 }
 
-static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
+static void  list_running_jobs(STATUS_PKT *sp, bool api)
 {
    int sec, bps;
    POOL_MEM msg(PM_MESSAGE);
@@ -159,7 +160,7 @@ static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg)
    Dmsg0(1000, "Begin status jcr loop.\n");
    if (!api) {
       len = Mmsg(msg, _("\nRunning Jobs:\n"));
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
    }
    const char *vss = "";
 #ifdef WIN32_VSS
@@ -174,11 +175,11 @@ static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg)
       } else {
          len = Mmsg(msg, _("JobId %d Job %s is running.\n"),
                     njcr->JobId, njcr->Job);
-         sendit(msg.c_str(), len, arg);
+         sendit(msg.c_str(), len, sp);
          len = Mmsg(msg, _("    %s%s Job started: %s\n"),
                     vss, job_type_to_str(njcr->JobType), dt);
       }
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       if (njcr->JobId == 0) {
          continue;
       }
@@ -192,25 +193,25 @@ static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg)
            edit_uint64_with_commas(njcr->JobBytes, b2),
            edit_uint64_with_commas(bps, b3),
            njcr->JobErrors);
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       len = Mmsg(msg, _("    Files Examined=%s\n"),
            edit_uint64_with_commas(njcr->num_files_examined, b1));
-      sendit(msg.c_str(), len, arg);
+      sendit(msg.c_str(), len, sp);
       if (njcr->JobFiles > 0) {
          njcr->lock();
          len = Mmsg(msg, _("    Processing file: %s\n"), njcr->last_fname);
          njcr->unlock();
-         sendit(msg.c_str(), len, arg);
+         sendit(msg.c_str(), len, sp);
       }
 
       found = true;
       if (njcr->store_bsock) {
          len = Mmsg(msg, "    SDReadSeqNo=%" lld " fd=%d\n",
              njcr->store_bsock->read_seqno, njcr->store_bsock->m_fd);
-         sendit(msg.c_str(), len, arg);
+         sendit(msg.c_str(), len, sp);
       } else {
          len = Mmsg(msg, _("    SDSocket closed.\n"));
-         sendit(msg.c_str(), len, arg);
+         sendit(msg.c_str(), len, sp);
       }
    }
    endeach_jcr(njcr);
@@ -218,14 +219,14 @@ static void  list_running_jobs(void sendit(const char *msg, int len, void *sarg)
    if (!api) {
       if (!found) {
          len = Mmsg(msg, _("No Jobs running.\n"));
-         sendit(msg.c_str(), len, arg);
+         sendit(msg.c_str(), len, sp);
       }
-      sendit(_("====\n"), 5, arg);
+      sendit(_("====\n"), 5, sp);
    }
 }
   
 
-static void list_terminated_jobs(void sendit(const char *msg, int len, void *sarg), void *arg, bool api)
+static void list_terminated_jobs(STATUS_PKT *sp, bool api)
 {
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
@@ -234,19 +235,19 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
 
    if (!api) {
       msg =  _("\nTerminated Jobs:\n");
-      sendit(msg, strlen(msg), arg);
+      sendit(msg, strlen(msg), sp);
    }
 
    if (last_jobs->size() == 0) {
-      if (!api) sendit(_("====\n"), 5, arg);
+      if (!api) sendit(_("====\n"), 5, sp);
       return;
    }
    lock_last_jobs_list();
    if (!api) {
       msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
-      sendit(msg, strlen(msg), arg);
+      sendit(msg, strlen(msg), sp);
       msg = _("======================================================================\n");
-      sendit(msg, strlen(msg), arg);
+      sendit(msg, strlen(msg), sp);
    }
    foreach_dlist(je, last_jobs) {
       char JobName[MAX_NAME_LENGTH];
@@ -310,9 +311,9 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
             termstat,
             dt, JobName);
       }
-      sendit(buf, strlen(buf), arg);
+      sendit(buf, strlen(buf), sp);
    }
-   if (!api) sendit(_("====\n"), 5, arg);
+   if (!api) sendit(_("====\n"), 5, sp);
    unlock_last_jobs_list();
 }
 
@@ -320,14 +321,17 @@ static void list_terminated_jobs(void sendit(const char *msg, int len, void *sar
 /*
  * Send to bsock (Director or Console)
  */
-static void bsock_sendit(const char *msg, int len, void *arg)
+static void sendit(const char *msg, int len, STATUS_PKT *sp)          
 {
-   BSOCK *user = (BSOCK *)arg;
-
-   user->msg = check_pool_memory_size(user->msg, len+1);
-   memcpy(user->msg, msg, len+1);
-   user->msglen = len+1;
-   user->send();
+   if (sp->bs) {
+      BSOCK *user = sp->bs;
+      user->msg = check_pool_memory_size(user->msg, len+1);
+      memcpy(user->msg, msg, len+1);
+      user->msglen = len+1;
+      user->send();
+   } else {
+      sp->callback(msg, len, sp->context);
+   }
 }
 
 /*
@@ -336,9 +340,11 @@ static void bsock_sendit(const char *msg, int len, void *arg)
 int status_cmd(JCR *jcr)
 {
    BSOCK *user = jcr->dir_bsock;
+   STATUS_PKT sp;
 
    user->fsend("\n");
-   output_status(bsock_sendit, (void *)user);
+   sp.bs = user;
+   output_status(&sp);
 
    user->signal(BNET_EOD);
    return 1;
@@ -353,7 +359,9 @@ int qstatus_cmd(JCR *jcr)
    POOLMEM *cmd;
    JCR *njcr;
    s_last_job* job;
+   STATUS_PKT sp;
 
+   sp.bs = dir;
    cmd = get_memory(dir->msglen+1);
 
    if (sscanf(dir->msg, qstatus, cmd) != 1) {
@@ -381,21 +389,21 @@ int qstatus_cmd(JCR *jcr)
          dir->fsend(DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    } else if (strcasecmp(cmd, "header") == 0) {
-       list_status_header(bsock_sendit, (void *)dir, true/*api*/);
+       list_status_header(&sp, true/*api*/);
    } else if (strcasecmp(cmd, "running") == 0) {
-       list_running_jobs(bsock_sendit, (void *)dir, true/*api*/);
+       list_running_jobs(&sp, true/*api*/);
    } else if (strcasecmp(cmd, "terminated") == 0) {
-       list_terminated_jobs(bsock_sendit, (void *)dir, true/*api*/);
+       list_terminated_jobs(&sp, true/*api*/);
    } else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);
       dir->fsend(_("2900 Bad .status command, wrong argument.\n"));
-      bnet_sig(dir, BNET_EOD);
+      dir->signal(BNET_EOD);
       free_memory(cmd);
       return 0;
    }
 
-   bnet_sig(dir, BNET_EOD);
+   dir->signal(BNET_EOD);
    free_memory(cmd);
    return 1;
 }
