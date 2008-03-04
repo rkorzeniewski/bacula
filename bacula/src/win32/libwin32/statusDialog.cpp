@@ -36,6 +36,7 @@
 #include "bacula.h"
 #include "win32.h"
 #include "statusDialog.h"
+#include "lib/status.h"
 
 static BOOL CALLBACK dialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -123,6 +124,7 @@ static void displayString(const char *msg, int len, void *context)
 void statusDialog::display()
 {
    if (m_textWin != NULL) {
+      STATUS_PKT sp;
       long hPos = GetScrollPos(m_textWin, SB_HORZ);
       long vPos = GetScrollPos(m_textWin, SB_VERT);
       long selStart;
@@ -131,7 +133,10 @@ void statusDialog::display()
       SendMessage(m_textWin, EM_GETSEL, (WPARAM)&selStart, (LPARAM)&selEnd);
 
       SetWindowText(m_textWin, "");
-      output_status(displayString, this);
+      sp.bs = NULL;
+      sp.context = this;
+      sp.callback = displayString;
+      output_status(&sp);
 
       SendMessage(m_textWin, EM_SETSEL, selStart, selEnd);
       SendMessage(m_textWin, WM_HSCROLL, MAKEWPARAM(SB_THUMBPOSITION, hPos), 0);

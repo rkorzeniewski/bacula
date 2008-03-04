@@ -1,14 +1,14 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2008-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
    This program is Free Software; you can redistribute it and/or
    modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   License as published by the Free Software Foundation and included
+   in the file LICENSE.
 
    This program is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,35 +26,31 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * Kern Sibbald, August 2007
+ *  Status packet definition that is used in both the SD and FD. It 
+ *    permits Win32 to call output_status() and get the output back
+ *    at the callback address line by line, and for Linux code,
+ *    the output can be sent directly to a BSOCK.
  *
- *   Version $Id$
+ *     Kern Sibbald, March MMVII
+ *
+ *   Version $Id: $
+ *
  */
 
-#define log_error_message(msg) LogErrorMsg((msg), __FILE__, __LINE__)
+#ifndef __STATUS_H_
+#define __STATUS_H_
 
-extern int BaculaAppMain();
-extern void LogErrorMsg(char *msg, char *fname, int lineno);
+/*
+ * Packet to send to output_status()
+ */
+class STATUS_PKT {
+public:
+  BSOCK *bs;                       /* used on Unix machines */
+  void *context;                   /* Win32 */
+  void (*callback)(const char *msg, int len, void *context);  /* Win32 */
+};
 
-extern int BaculaMain(int argc, char *argv[]);
-extern BOOL ReportStatus(DWORD state, DWORD exitcode, DWORD waithint);
-extern void d_msg(const char *, int, int, const char *, ...);
-extern char *bac_status(char *buf, int buf_len);
-
-
-/* service.cpp */
-bool postToBacula(UINT message, WPARAM wParam, LPARAM lParam);
-bool isAService();
-int installService(const char *svc);
-int removeService();
-int stopRunningBacula();
-int baculaServiceMain();
+extern void output_status(STATUS_PKT *sp);
 
 
-/* Globals */
-extern DWORD service_thread_id;
-extern DWORD service_error;
-extern bool opt_debug;
-extern bool have_service_api;
-extern HINSTANCE appInstance;
-extern int bacstat;
+#endif

@@ -165,7 +165,8 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool do_full = false;
    bool do_diff = false;
    time_t now;
-   utime_t full_time, diff_time;
+   utime_t full_time;
+// utime_t diff_time;
 
    since[0] = 0;
    /* If job cloned and a since time already given, use it */
