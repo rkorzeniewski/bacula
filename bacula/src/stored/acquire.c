@@ -361,7 +361,10 @@ DCR *acquire_device_for_append(DCR *dcr)
          /* Wrong tape mounted, release it, then fall through to get correct one */
          Dmsg3(50, "Wrong tape mounted. Wanted:%s, got:%s, dev=%s release and try mount.\n",
               dcr->VolumeName, dev->VolHdr.VolumeName, dev->print_name());
-         release = true;
+         /* Release drive only if tape really in drive */
+         if (dev->VolHdr.VolumeName[0]) {
+            release = true;
+         }
          do_mount = true;
       } else {
          /*
