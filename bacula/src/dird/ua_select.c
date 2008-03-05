@@ -494,6 +494,9 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
    }
 
    start_prompt(ua, _("Defined Pools:\n"));
+   if (bstrcmp(argk, NT_("recyclepool"))) {
+      add_prompt(ua, _("*None*"));
+   }
    for (i=0; i < num_pools; i++) {
       opr.PoolId = ids[i];
       if (!db_get_pool_record(ua->jcr, ua->db, &opr) ||
@@ -506,13 +509,21 @@ bool select_pool_dbr(UAContext *ua, POOL_DBR *pr, const char *argk)
    if (do_prompt(ua, _("Pool"),  _("Select the Pool"), name, sizeof(name)) < 0) {
       return false;
    }
-   memset(&opr, 0, sizeof(opr));
-   bstrncpy(opr.Name, name, sizeof(opr.Name));
 
-   if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
-      ua->error_msg(_("Could not find Pool \"%s\": ERR=%s"), name, db_strerror(ua->db));
-      return false;
+   memset(&opr, 0, sizeof(opr));
+   /* *None* is only returned when selecting a recyclepool, and in that case
+    * the calling code is only interested in opr.Name, so then we can leave
+    * pr as all zero.
+    */
+   if (!bstrcmp(name, _("*None*"))) {
+     bstrncpy(opr.Name, name, sizeof(opr.Name));
+
+     if (!db_get_pool_record(ua->jcr, ua->db, &opr)) {
+        ua->error_msg(_("Could not find Pool \"%s\": ERR=%s"), name, db_strerror(ua->db));
+        return false;
+     }
    }
+
    memcpy(pr, &opr, sizeof(opr));
    return true;
 }

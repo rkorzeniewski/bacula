@@ -333,15 +333,24 @@ void update_vol_recyclepool(UAContext *ua, char *val, MEDIA_DBR *mr)
 {
    POOL_DBR pr;
    POOL_MEM query(PM_MESSAGE);
-   char ed1[50], ed2[50];
+   char ed1[50], ed2[50], *poolname;
 
-   memset(&pr, 0, sizeof(pr));
-   bstrncpy(pr.Name, val, sizeof(pr.Name));
-   if (!get_pool_dbr(ua, &pr, NT_("recyclepool"))) {
-      return;
-   }
-   /* pool = select_pool_resource(ua);  */
-   mr->RecyclePoolId = pr.PoolId;            /* get the PoolId */
+   if(val && *val) { /* update volume recyclepool="Scratch" */
+     /* If a pool name is given, look up the PoolId */
+     memset(&pr, 0, sizeof(pr));
+     bstrncpy(pr.Name, val, sizeof(pr.Name));
+     if (!get_pool_dbr(ua, &pr, NT_("recyclepool"))) {
+        return;
+     }
+     /* pool = select_pool_resource(ua);  */
+     mr->RecyclePoolId = pr.PoolId;            /* get the PoolId */
+     poolname = pr.Name;
+
+  } else { /* update volume recyclepool="" */
+    /* If no pool name is given, set the PoolId to 0 (the default) */
+     mr->RecyclePoolId = 0;
+     poolname = _("*None*");
+  }
 
    db_lock(ua->db);
    Mmsg(query, "UPDATE Media SET RecyclePoolId=%s WHERE MediaId=%s",
@@ -349,7 +358,7 @@ void update_vol_recyclepool(UAContext *ua, char *val, MEDIA_DBR *mr)
    if (!db_sql_query(ua->db, query.c_str(), NULL, NULL)) {
       ua->error_msg("%s", db_strerror(ua->db));
    } else {
-      ua->info_msg(_("New RecyclePool is: %s\n"), pr.Name);
+      ua->info_msg(_("New RecyclePool is: %s\n"), poolname);
    }
    db_unlock(ua->db);
 }
@@ -763,12 +772,12 @@ static int update_volume(UAContext *ua)
          if (db_get_pool_record(ua->jcr, ua->db, &pr)) {
             ua->info_msg(_("Current RecyclePool is: %s\n"), pr.Name);
          } else {
-            ua->warning_msg(_("No current RecyclePool\n"));
+            ua->info_msg(_("No current RecyclePool\n"));
          }
-         if (!get_cmd(ua, _("Enter new RecyclePool name: "))) {
-            return 0;
-         }
-         update_vol_recyclepool(ua, ua->cmd, &mr);
+	 if (!select_pool_dbr(ua, &pr, NT_("recyclepool"))) {
+	    return 0;
+	 }
+         update_vol_recyclepool(ua, pr.Name, &mr);
          return 1;
 
       default:                        /* Done or error */
