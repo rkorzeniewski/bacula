@@ -166,7 +166,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool do_diff = false;
    time_t now;
    utime_t full_time;
-// utime_t diff_time;
+   utime_t diff_time;
 
    since[0] = 0;
    /* If job cloned and a since time already given, use it */
@@ -187,26 +187,26 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    switch (jcr->JobLevel) {
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
+      POOLMEM *stime = get_pool_memory(PM_MESSAGE);
       /* Look up start time of last Full job */
       now = time(NULL);
-      jcr->jr.JobId = 0;     /* flag for db_find_job_start time */
+      jcr->jr.JobId = 0;     /* flag to return since time */
       have_full = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
-#ifdef xxx
       /* If there was a successful job, make sure it is recent enough */
       if (jcr->JobLevel == L_INCREMENTAL && have_full && jcr->job->MaxDiffInterval > 0) {
          /* Lookup last diff job */
-         jcr->jr.JobId = 0;
-         /* ***FIXME*** must find diff start time and not destroy jcr->stime */
-         if (db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime)) {
-            diff_time = str_to_utime(jcr->stime);
+         if (db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_DIFFERENTIAL)) {
+            diff_time = str_to_utime(stime);
             do_diff = ((now - diff_time) <= jcr->job->MaxDiffInterval);
          }
       }
-#endif
-      if (have_full && jcr->job->MaxFullInterval > 0) {
-         full_time = str_to_utime(jcr->stime);
+      if (have_full && jcr->job->MaxFullInterval > 0 &&
+         db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_FULL)) {
+         full_time = str_to_utime(stime);
          do_full = ((now - full_time) <= jcr->job->MaxFullInterval);
       }
+      free_pool_memory(stime);
+
       if (!have_full || do_full) {
          /* No recent Full job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));

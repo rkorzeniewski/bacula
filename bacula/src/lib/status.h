@@ -48,6 +48,10 @@ public:
   BSOCK *bs;                       /* used on Unix machines */
   void *context;                   /* Win32 */
   void (*callback)(const char *msg, int len, void *context);  /* Win32 */
+
+  /* Methods */
+  STATUS_PKT() { memset(this, 0, sizeof(STATUS_PKT)); };
+  ~STATUS_PKT() { };
 };
 
 extern void output_status(STATUS_PKT *sp);
