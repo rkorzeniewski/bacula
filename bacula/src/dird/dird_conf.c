@@ -326,6 +326,7 @@ RES_ITEM job_items[] = {
    {"allowhigherduplicates",  store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
    {"cancelqueuedduplicates",  store_bool, ITEM(res_job.CancelQueuedDuplicates), 0, ITEM_DEFAULT, true},
    {"cancelrunningduplicates", store_bool, ITEM(res_job.CancelRunningDuplicates), 0, ITEM_DEFAULT, false},
+   {"pluginoptions", store_str, ITEM(res_job.PluginOptions), 0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -655,6 +656,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.WriteBootstrap) {
          sendit(sock, _("  --> WriteBootstrap=%s\n"), NPRT(res->res_job.WriteBootstrap));
+      }
+      if (res->res_job.PluginOptions) {
+         sendit(sock, _("  --> PluginOptions=%s\n"), NPRT(res->res_job.PluginOptions));
       }
       if (res->res_job.storage) {
          STORE *store;
@@ -1235,6 +1239,9 @@ void free_resource(RES *sres, int type)
       }
       if (res->res_job.WriteBootstrap) {
          free(res->res_job.WriteBootstrap);
+      }
+      if (res->res_job.PluginOptions) {
+         free(res->res_job.PluginOptions);
       }
       if (res->res_job.selection_pattern) {
          free(res->res_job.selection_pattern);

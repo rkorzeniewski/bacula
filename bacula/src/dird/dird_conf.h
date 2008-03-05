@@ -364,19 +364,21 @@ public:
    int   JobLevel;                    /* default backup/verify level */
    int   Priority;                    /* Job priority */
    int   RestoreJobId;                /* What -- JobId to restore */
+   int   RescheduleTimes;             /* Number of times to reschedule job */
+   int   replace;                     /* How (overwrite, ..) */
+   int   selection_type;
+
    char *RestoreWhere;                /* Where on disk to restore -- directory */
    char *RegexWhere;                  /* RegexWhere option */
    char *strip_prefix;                /* remove prefix from filename  */
    char *add_prefix;                  /* add prefix to filename  */
    char *add_suffix;                  /* add suffix to filename -- .old */
-   bool  where_use_regexp;            /* true if RestoreWhere is a BREGEXP */
    char *RestoreBootstrap;            /* Bootstrap file */
-   alist *RunScripts;                 /* Run {client} program {after|before} Job */
+   char *PluginOptions;               /* Options to pass to plugin */
    union {
       char *WriteBootstrap;           /* Where to write bootstrap Job updates */
       char *WriteVerifyList;          /* List of changed files */
    };
-   int   replace;                     /* How (overwrite, ..) */
    utime_t MaxRunTime;                /* max run time in seconds */
    utime_t MaxWaitTime;               /* max blocking time in seconds */
    utime_t FullMaxWaitTime;           /* Max Full job wait time */
@@ -388,9 +390,28 @@ public:
    utime_t MaxFullInterval;           /* Maximum time interval between Fulls */
    utime_t MaxDiffInterval;           /* Maximum time interval between Diffs */
    utime_t DuplicateJobProximity;     /* Permitted time between duplicicates */
-   uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
    int64_t spool_size;                /* Size of spool file for this job */
-   int RescheduleTimes;               /* Number of times to reschedule job */
+   uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
+   uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+
+   MSGS      *messages;               /* How and where to send messages */
+   SCHED     *schedule;               /* When -- Automatic schedule */
+   CLIENT    *client;                 /* Who to backup */
+   FILESET   *fileset;                /* What to backup -- Fileset */
+   alist     *storage;                /* Where is device -- list of Storage to be used */
+   POOL      *pool;                   /* Where is media -- Media Pool */
+   POOL      *full_pool;              /* Pool for Full backups */
+   POOL      *inc_pool;               /* Pool for Incremental backups */
+   POOL      *diff_pool;              /* Pool for Differental backups */
+   char      *selection_pattern;
+   union {
+      JOB    *verify_job;             /* Job name to verify */
+   };
+   JOB       *jobdefs;                /* Job defaults */
+   alist     *run_cmds;               /* Run commands */
+   alist *RunScripts;                 /* Run {client} program {after|before} Job */
+
+   bool where_use_regexp;             /* true if RestoreWhere is a BREGEXP */
    bool RescheduleOnError;            /* Set to reschedule on error */
    bool PrefixLinks;                  /* prefix soft links with Where path */
    bool PruneJobs;                    /* Force pruning of Jobs */
@@ -409,23 +430,6 @@ public:
    bool CancelQueuedDuplicates;       /* Cancel queued jobs */
    bool CancelRunningDuplicates;      /* Cancel Running jobs */
    
-   MSGS      *messages;               /* How and where to send messages */
-   SCHED     *schedule;               /* When -- Automatic schedule */
-   CLIENT    *client;                 /* Who to backup */
-   FILESET   *fileset;                /* What to backup -- Fileset */
-   alist     *storage;                /* Where is device -- list of Storage to be used */
-   POOL      *pool;                   /* Where is media -- Media Pool */
-   POOL      *full_pool;              /* Pool for Full backups */
-   POOL      *inc_pool;               /* Pool for Incremental backups */
-   POOL      *diff_pool;              /* Pool for Differental backups */
-   char      *selection_pattern;
-   int        selection_type;
-   union {
-      JOB       *verify_job;          /* Job name to verify */
-   };
-   JOB       *jobdefs;                /* Job defaults */
-   alist     *run_cmds;               /* Run commands */
-   uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
 
    /* Methods */
    char *name() const;

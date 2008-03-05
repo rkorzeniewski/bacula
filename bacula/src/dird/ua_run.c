@@ -46,6 +46,7 @@ public:
    char *when, *verify_job_name, *catalog_name;
    char *previous_job_name;
    char *since;
+   char *plugin_options;
    const char *verify_list;
    JOB *job;
    JOB *verify_job;
@@ -73,6 +74,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job,
                 char *client_name);
 static void select_where_regexp(UAContext *ua, JCR *jcr);
 static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc);
+static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc);
+static int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc);
 
 /* Imported variables */
 extern struct s_kw ReplaceOptions[];
@@ -92,7 +95,7 @@ int run_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr = NULL;
    run_ctx rc;
-   int i, opt;
+   int status;
 
    if (!open_client_db(ua)) {
       return 1;
@@ -107,7 +110,6 @@ int run_cmd(UAContext *ua, const char *cmd)
       ua->quit = true;
    }
 
-try_again:
    /*
     * Create JCR to run job.  NOTE!!! after this point, free_jcr()
     *  before returning.
@@ -119,115 +121,11 @@ try_again:
       ua->jcr->unlink_bsr = false;
    }
 
-   jcr->verify_job = rc.verify_job;
-   jcr->previous_job = rc.previous_job;
-   jcr->pool = rc.pool;
-   if (jcr->pool != jcr->job->pool) {
-      pm_strcpy(jcr->pool_source, _("User input"));
-   }
-   set_rwstorage(jcr, rc.store);
-   jcr->client = rc.client;
-   pm_strcpy(jcr->client_name, rc.client->name());
-   jcr->fileset = rc.fileset;
-   jcr->ExpectedFiles = rc.files;
-   if (rc.catalog) {
-      jcr->catalog = rc.catalog;
-      pm_strcpy(jcr->catalog_source, _("User input"));
-   }
-   if (rc.where) {
-      if (jcr->where) {
-         free(jcr->where);
-      }
-      jcr->where = bstrdup(rc.where);
-      rc.where = NULL;
+try_again:
+   if (!reset_restore_context(ua, jcr, rc)) {
+      goto bail_out;
    }
 
-   if (rc.regexwhere) {
-      if (jcr->RegexWhere) {
-         free(jcr->RegexWhere);
-      }
-      jcr->RegexWhere = bstrdup(rc.regexwhere);       
-      rc.regexwhere = NULL;
-   }
-
-   if (rc.when) {
-      jcr->sched_time = str_to_utime(rc.when);
-      if (jcr->sched_time == 0) {
-         ua->send_msg(_("Invalid time, using current time.\n"));
-         jcr->sched_time = time(NULL);
-      }
-      rc.when = NULL;
-   }
-
-   if (rc.bootstrap) {
-      if (jcr->RestoreBootstrap) {
-         free(jcr->RestoreBootstrap);
-      }
-      jcr->RestoreBootstrap = bstrdup(rc.bootstrap);
-      rc.bootstrap = NULL;
-   }
-
-   if (rc.replace) {
-      jcr->replace = 0;
-      for (i=0; ReplaceOptions[i].name; i++) {
-         if (strcasecmp(rc.replace, ReplaceOptions[i].name) == 0) {
-            jcr->replace = ReplaceOptions[i].token;
-         }
-      }
-      if (!jcr->replace) {
-         ua->send_msg(_("Invalid replace option: %s\n"), rc.replace);
-         goto bail_out;
-      }
-   } else if (rc.job->replace) {
-      jcr->replace = rc.job->replace;
-   } else {
-      jcr->replace = REPLACE_ALWAYS;
-   }
-   rc.replace = NULL;
-
-   if (rc.Priority) {
-      jcr->JobPriority = rc.Priority;
-      rc.Priority = 0;
-   }
-
-   if (rc.since) {
-      if (!jcr->stime) {
-         jcr->stime = get_pool_memory(PM_MESSAGE);
-      }
-      pm_strcpy(jcr->stime, rc.since);
-      rc.since = NULL;
-   }
-
-   if (rc.cloned) {
-      jcr->cloned = rc.cloned;
-      rc.cloned = false;
-   }
-
-
-   /* If pool changed, update migration write storage */
-   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
-      if (!set_migration_wstorage(jcr, rc.pool)) {
-         goto bail_out;
-      }
-   }
-   rc.replace = ReplaceOptions[0].name;
-   for (i=0; ReplaceOptions[i].name; i++) {
-      if (ReplaceOptions[i].token == jcr->replace) {
-         rc.replace = ReplaceOptions[i].name;
-      }
-   }
-   if (rc.level_name) {
-      if (!get_level_from_name(jcr, rc.level_name)) {
-         ua->send_msg(_("Level %s not valid.\n"), rc.level_name);
-         goto bail_out;
-      }
-      rc.level_name = NULL;
-   }
-   if (rc.jid) {
-      /* Note, this is also MigrateJobId */
-      jcr->RestoreJobId = str_to_int64(rc.jid);
-      rc.jid = 0;
-   }
 
    /* Run without prompting? */
    if (ua->batch || find_arg(ua, NT_("yes")) > 0) {
@@ -257,6 +155,47 @@ try_again:
       goto try_again;
    }
 
+   /* Allow the user to modify the settings */
+   status = modify_job_parameters(ua, jcr, rc);
+   switch (status) {
+   case 0:
+      goto try_again;
+   case 1:
+      break;
+   case -1:
+      goto bail_out;
+   }
+
+
+   if (ua->cmd[0] == 0 || strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
+      JobId_t JobId;
+      Dmsg1(800, "Calling run_job job=%x\n", jcr->job);
+
+start_job:
+      Dmsg3(100, "JobId=%u using pool %s priority=%d\n", (int)jcr->JobId, 
+            jcr->pool->name(), jcr->JobPriority);
+      JobId = run_job(jcr);
+      Dmsg4(100, "JobId=%u NewJobId=%d using pool %s priority=%d\n", (int)jcr->JobId, 
+            JobId, jcr->pool->name(), jcr->JobPriority);
+      free_jcr(jcr);                  /* release jcr */
+      if (JobId == 0) {
+         ua->error_msg(_("Job failed.\n"));
+      } else {
+         char ed1[50];
+         ua->send_msg(_("Job queued. JobId=%s\n"), edit_int64(JobId, ed1));
+      }
+      return JobId;
+   }
+
+bail_out:
+   ua->send_msg(_("Job not run.\n"));
+   free_jcr(jcr);
+   return 0;                       /* do not run */
+}
+
+int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
+{
+   int i, opt;
    /*
     * At user request modify parameters of job to be run.
     */
@@ -449,31 +388,144 @@ try_again:
       }
       goto bail_out;
    }
-
-   if (ua->cmd[0] == 0 || strncasecmp(ua->cmd, _("yes"), strlen(ua->cmd)) == 0) {
-      JobId_t JobId;
-      Dmsg1(800, "Calling run_job job=%x\n", jcr->job);
-
-start_job:
-      Dmsg3(100, "JobId=%u using pool %s priority=%d\n", (int)jcr->JobId, 
-            jcr->pool->name(), jcr->JobPriority);
-      JobId = run_job(jcr);
-      Dmsg4(100, "JobId=%u NewJobId=%d using pool %s priority=%d\n", (int)jcr->JobId, 
-            JobId, jcr->pool->name(), jcr->JobPriority);
-      free_jcr(jcr);                  /* release jcr */
-      if (JobId == 0) {
-         ua->error_msg(_("Job failed.\n"));
-      } else {
-         char ed1[50];
-         ua->send_msg(_("Job queued. JobId=%s\n"), edit_int64(JobId, ed1));
-      }
-      return JobId;
-   }
+   return 1;
 
 bail_out:
-   ua->send_msg(_("Job not run.\n"));
-   free_jcr(jcr);
-   return 0;                       /* do not run */
+   return -1;
+
+try_again:
+   return 0;
+}
+
+/*
+ * Reset the restore context. 
+ * This subroutine can be called multiple times, so it
+ *  must keep any prior settings.
+ */
+static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
+{
+   int i;
+
+   jcr->verify_job = rc.verify_job;
+   jcr->previous_job = rc.previous_job;
+   jcr->pool = rc.pool;
+   if (jcr->pool != jcr->job->pool) {
+      pm_strcpy(jcr->pool_source, _("User input"));
+   }
+   set_rwstorage(jcr, rc.store);
+   jcr->client = rc.client;
+   pm_strcpy(jcr->client_name, rc.client->name());
+   jcr->fileset = rc.fileset;
+   jcr->ExpectedFiles = rc.files;
+   if (rc.catalog) {
+      jcr->catalog = rc.catalog;
+      pm_strcpy(jcr->catalog_source, _("User input"));
+   }
+   if (rc.where) {
+      if (jcr->where) {
+         free(jcr->where);
+      }
+      jcr->where = bstrdup(rc.where);
+      rc.where = NULL;
+   }
+
+
+   if (rc.regexwhere) {
+      if (jcr->RegexWhere) {
+         free(jcr->RegexWhere);
+      }
+      jcr->RegexWhere = bstrdup(rc.regexwhere);       
+      rc.regexwhere = NULL;
+   }
+
+   if (rc.when) {
+      jcr->sched_time = str_to_utime(rc.when);
+      if (jcr->sched_time == 0) {
+         ua->send_msg(_("Invalid time, using current time.\n"));
+         jcr->sched_time = time(NULL);
+      }
+      rc.when = NULL;
+   }
+
+   if (rc.bootstrap) {
+      if (jcr->RestoreBootstrap) {
+         free(jcr->RestoreBootstrap);
+      }
+      jcr->RestoreBootstrap = bstrdup(rc.bootstrap);
+      rc.bootstrap = NULL;
+   }
+
+   if (rc.plugin_options) {
+      if (jcr->plugin_options) {
+         free(jcr->plugin_options);
+      }
+      jcr->plugin_options = bstrdup(rc.plugin_options);
+      rc.plugin_options = NULL;
+   }
+
+
+   if (rc.replace) {
+      jcr->replace = 0;
+      for (i=0; ReplaceOptions[i].name; i++) {
+         if (strcasecmp(rc.replace, ReplaceOptions[i].name) == 0) {
+            jcr->replace = ReplaceOptions[i].token;
+         }
+      }
+      if (!jcr->replace) {
+         ua->send_msg(_("Invalid replace option: %s\n"), rc.replace);
+         return false;
+      }
+   } else if (rc.job->replace) {
+      jcr->replace = rc.job->replace;
+   } else {
+      jcr->replace = REPLACE_ALWAYS;
+   }
+   rc.replace = NULL;
+
+   if (rc.Priority) {
+      jcr->JobPriority = rc.Priority;
+      rc.Priority = 0;
+   }
+
+   if (rc.since) {
+      if (!jcr->stime) {
+         jcr->stime = get_pool_memory(PM_MESSAGE);
+      }
+      pm_strcpy(jcr->stime, rc.since);
+      rc.since = NULL;
+   }
+
+   if (rc.cloned) {
+      jcr->cloned = rc.cloned;
+      rc.cloned = false;
+   }
+
+
+   /* If pool changed, update migration write storage */
+   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
+      if (!set_migration_wstorage(jcr, rc.pool)) {
+         return false;
+      }
+   }
+   rc.replace = ReplaceOptions[0].name;
+   for (i=0; ReplaceOptions[i].name; i++) {
+      if (ReplaceOptions[i].token == jcr->replace) {
+         rc.replace = ReplaceOptions[i].name;
+      }
+   }
+   if (rc.level_name) {
+      if (!get_level_from_name(jcr, rc.level_name)) {
+         ua->send_msg(_("Level %s not valid.\n"), rc.level_name);
+         return false;
+      }
+      rc.level_name = NULL;
+   }
+   if (rc.jid) {
+      /* Note, this is also MigrateJobId */
+      jcr->RestoreJobId = str_to_int64(rc.jid);
+      rc.jid = 0;
+   }
+   return true;
 }
 
 static void select_where_regexp(UAContext *ua, JCR *jcr)

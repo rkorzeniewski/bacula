@@ -217,6 +217,7 @@ public:
    void *plugin_ctx;                  /* current plugin context */
    Plugin *plugin;                    /* plugin instance */
    save_pkt *plugin_sp;               /* plugin save packet */
+   char *plugin_options;              /* user set options for plugin */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */

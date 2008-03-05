@@ -148,6 +148,52 @@ bail_out:
    return false;
 }
 
+
+/*
+ * Find the last job start time for the specified JobLevel
+ *
+ *  StartTime is returned in stime
+ *
+ * Returns: false on failure
+ *          true  on success, jr is unchanged, but stime is set
+ */
+bool
+db_find_last_job_start_time(JCR *jcr, B_DB *mdb, JOB_DBR *jr, POOLMEM **stime, int JobLevel)
+{
+   SQL_ROW row;
+   char ed1[50], ed2[50];
+
+   db_lock(mdb);
+
+   pm_strcpy(stime, "0000-00-00 00:00:00");   /* default */
+
+   Mmsg(mdb->cmd,
+"SELECT StartTime FROM Job WHERE JobStatus='T' AND Type='%c' AND "
+"Level='%c' AND Name='%s' AND ClientId=%s AND FileSetId=%s "
+"ORDER BY StartTime DESC LIMIT 1",
+      jr->JobType, JobLevel, jr->Name, 
+      edit_int64(jr->ClientId, ed1), edit_int64(jr->FileSetId, ed2));
+   if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
+      Mmsg2(&mdb->errmsg, _("Query error for start time request: ERR=%s\nCMD=%s\n"),
+         sql_strerror(mdb), mdb->cmd);
+      goto bail_out;
+   }
+   if ((row = sql_fetch_row(mdb)) == NULL) {
+      sql_free_result(mdb);
+      Mmsg(mdb->errmsg, _("No prior Full backup Job record found.\n"));
+      goto bail_out;
+   }
+   Dmsg1(100, "Got start time: %s\n", row[0]);
+   pm_strcpy(stime, row[0]);
+   sql_free_result(mdb);
+   db_unlock(mdb);
+   return true;
+
+bail_out:
+   db_unlock(mdb);
+   return false;
+}
+
 /*
  * Find last failed job since given start-time
  *   it must be either Full or Diff.
