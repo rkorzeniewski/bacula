@@ -78,6 +78,10 @@ bool do_backup_init(JCR *jcr)
 
    apply_pool_overrides(jcr);
 
+   if (!allow_duplicate_job(jcr)) {
+      return false;
+   }
+
    jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->name());
    if (jcr->jr.PoolId == 0) {
       return false;

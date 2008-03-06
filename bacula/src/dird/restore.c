@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-20087 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -69,15 +69,21 @@ bool do_restore(JCR *jcr)
 {
    BSOCK   *fd;
    JOB_DBR rjr;                       /* restore job record */
+   char replace, *where, *cmd;
+   char empty = '\0';
+   int stat;
 
    free_wstorage(jcr);                /* we don't write */
+
+   if (!allow_duplicate_job(jcr)) {
+      goto bail_out;
+   }
 
    memset(&rjr, 0, sizeof(rjr));
    jcr->jr.JobLevel = L_FULL;         /* Full restore */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
    Dmsg0(20, "Updated job start record\n");
 
@@ -87,8 +93,7 @@ bool do_restore(JCR *jcr)
       Jmsg0(jcr, M_FATAL, 0, _("Cannot restore without a bootstrap file.\n"
           "You probably ran a restore job directly. All restore jobs must\n"
           "be run using the restore command.\n"));
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
 
@@ -107,25 +112,22 @@ bool do_restore(JCR *jcr)
     * Start conversation with Storage daemon
     */
    if (!connect_to_storage_daemon(jcr, 10, SDConnectTimeout, 1)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
    /*
     * Now start a job with the Storage daemon
     */
    if (!start_storage_daemon_job(jcr, jcr->rstorage, NULL)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
    if (!jcr->store_bsock->fsend("run")) {
-      return false;
+      goto bail_out;
    }
    /*
     * Now start a Storage daemon message thread
     */
    if (!start_storage_daemon_message_thread(jcr)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
    Dmsg0(50, "Storage daemon connection OK\n");
 
@@ -135,8 +137,7 @@ bool do_restore(JCR *jcr)
     */
    set_jcr_job_status(jcr, JS_WaitFD);
    if (!connect_to_file_daemon(jcr, 10, FDConnectTimeout, 1)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
    fd = jcr->file_bsock;
@@ -153,8 +154,7 @@ bool do_restore(JCR *jcr)
    fd->fsend(storaddr, jcr->rstore->address, jcr->rstore->SDDport);
    Dmsg1(6, "dird>filed: %s\n", fd->msg);
    if (!response(jcr, fd, OKstore, "Storage", DISPLAY_ERROR)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
    /*
@@ -162,19 +162,15 @@ bool do_restore(JCR *jcr)
     */
    if (!send_bootstrap_file(jcr, fd) ||
        !response(jcr, fd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
 
    if (!send_runscripts_commands(jcr)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
    /* Send restore command */
-   char replace, *where, *cmd;
-   char empty = '\0';
 
    if (jcr->replace != 0) {
       replace = jcr->replace;
@@ -210,15 +206,17 @@ bool do_restore(JCR *jcr)
    unbash_spaces(where);
 
    if (!response(jcr, fd, OKrestore, "Restore", DISPLAY_ERROR)) {
-      restore_cleanup(jcr, JS_ErrorTerminated);
-      return false;
+      goto bail_out;
    }
 
    /* Wait for Job Termination */
-   int stat = wait_for_job_termination(jcr);
+   stat = wait_for_job_termination(jcr);
    restore_cleanup(jcr, stat);
-
    return true;
+
+bail_out:
+   restore_cleanup(jcr, JS_ErrorTerminated);
+   return false;
 }
 
 bool do_restore_init(JCR *jcr) 

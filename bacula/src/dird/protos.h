@@ -103,6 +103,7 @@ enum e_prtmsg {
 extern bool response(JCR *jcr, BSOCK *fd, char *resp, const char *cmd, e_prtmsg prtmsg);
 
 /* job.c */
+extern bool allow_duplicate_job(JCR *jcr);
 extern void set_jcr_defaults(JCR *jcr, JOB *job);
 extern void create_unique_job_name(JCR *jcr, const char *base_name);
 extern void update_job_end_record(JCR *jcr);

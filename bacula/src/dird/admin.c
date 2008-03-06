@@ -45,6 +45,9 @@
 bool do_admin_init(JCR *jcr)
 {
    free_rstorage(jcr);
+   if (!allow_duplicate_job(jcr)) {
+      return false;
+   }
    return true;
 }
 
