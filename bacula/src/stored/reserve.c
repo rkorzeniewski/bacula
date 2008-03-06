@@ -389,7 +389,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             dev->vol = vol;               /* point dev at vol */
             dev->VolHdr.VolumeName[0] = 0;
          } else {
-            Dmsg3(dbglvl, "Volume busy could not swap vol=%s from dev=%s to %s\n", 
+            Dmsg3(dbglvl, "==== Swap not possible Vol busy vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             vol = NULL;                /* device busy */
             goto get_out;

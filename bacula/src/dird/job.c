@@ -585,14 +585,75 @@ DBId_t get_or_create_pool_record(JCR *jcr, char *pool_name)
    while (!db_get_pool_record(jcr, jcr->db, &pr)) { /* get by Name */
       /* Try to create the pool */
       if (create_pool(jcr, jcr->db, jcr->pool, POOL_OP_CREATE) < 0) {
-         Jmsg(jcr, M_FATAL, 0, _("Pool %s not in database. %s"), pr.Name,
+         Jmsg(jcr, M_FATAL, 0, _("Pool \"%s\" not in database. ERR=%s"), pr.Name,
             db_strerror(jcr->db));
          return 0;
       } else {
-         Jmsg(jcr, M_INFO, 0, _("Pool %s created in database.\n"), pr.Name);
+         Jmsg(jcr, M_INFO, 0, _("Created database record for Pool \"%s\".\n"), pr.Name);
       }
    }
    return pr.PoolId;
+}
+
+/*
+ * Check for duplicate jobs.
+ *  Returns: true  if current job should continue
+ *           false if current job should terminate
+ */
+bool allow_duplicate_job(JCR *jcr)
+{
+   JOB *job = jcr->job;
+   JCR *djcr;                /* possible duplicate */
+
+   if (job->AllowDuplicateJobs) {
+      return true;
+   }
+   if (!job->AllowHigherDuplicates) {
+      foreach_jcr(djcr) {
+         if (strcmp(job->name(), djcr->job->name()) == 0) {
+            bool cancel_queued = false;
+            if (job->DuplicateJobProximity > 0) {
+               time_t now = time(NULL);
+               if ((now - djcr->start_time) > job->DuplicateJobProximity) {
+                  continue;               /* not really a duplicate */
+               }
+            }
+            /* Cancel */
+            if (!(job->CancelQueuedDuplicates || job->CancelRunningDuplicates)) {
+               /* Zap current job */
+               Jmsg(jcr, M_FATAL, 0, _("Duplicate job not allowed.\n"));
+               return false;
+            }
+            /* If CancelQueuedDuplicates is set do so only if job is queued */
+            if (job->CancelQueuedDuplicates) {
+                switch (djcr->JobStatus) {
+                case JS_Created:
+                case JS_WaitJobRes:
+                case JS_WaitClientRes:
+                case JS_WaitStoreRes:
+                case JS_WaitPriority:
+                case JS_WaitMaxJobs:
+                case JS_WaitStartTime:
+                   cancel_queued = true;
+                   break;
+                default:
+                   break;
+                }
+            }
+            if (cancel_queued || job->CancelRunningDuplicates) {
+               UAContext *ua = new_ua_context(djcr);
+               char ec1[50];
+               Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%s.\n"), 
+                  edit_uint64(djcr->JobId, ec1));
+               ua->jcr = djcr;
+               cancel_job(ua, djcr);
+               free_ua_context(ua);
+               Dmsg2(800, "Have cancelled JCR %p Job=%d\n", djcr, djcr->JobId);
+            }
+         }
+      }
+   }
+   return true;   
 }
 
 void apply_pool_overrides(JCR *jcr)
