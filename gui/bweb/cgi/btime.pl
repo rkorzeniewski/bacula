@@ -47,7 +47,7 @@ $conf->load();
 my $bweb = new Bweb(info => $conf);
 $bweb->can_do('r_view_stat');
 
-my $arg = $bweb->get_form(qw/qiso_begin qiso_end qusage qpools qpoolusage qnojob
+my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools qpoolusage qnojob
                              jclient_groups db_client_groups qclient_groups/);
 my ($filter1, undef) = $bweb->get_param('pool');
 
@@ -62,7 +62,7 @@ my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" .
 print CGI::header('text/html');
 $bweb->display_begin();
 
-if ($arg->{qiso_begin} && -f "$conf->{fv_write_path}/$md5_rep.png") {
+if (!$arg->{qnocache} && $arg->{qiso_begin} && -f "$conf->{fv_write_path}/$md5_rep.png") {
     $arg->{result} = "/bweb/fv/$md5_rep.png";
     $bweb->display($arg, 'btime.tpl');
     
@@ -86,6 +86,17 @@ my $reg = $bweb->{sql}->{MATCH};
 
 
 my %regs = (
+	    end_job => ': Bacula',
+	    start_job => ': Start Backup|: D.marrage du ',
+	    data_despool_time => ': Despooling elapsed time|: Temps du tran',
+	    attr_despool_time => ': Sending spooled attrs|: Transfert des attributs',
+	    get_drive => ': Using Device',
+	    start_spool => ': Spooling',
+	    end_spool => ': User specified spool|: Taille du spool',
+	    end_spool2 => ': Committing spooled data to|: Transfert des donn',
+    );
+
+my %regs_en = (
 	    end_job => ': Bacula',
 	    start_job => ': Start Backup',
 	    data_despool_time => ': Despooling elapsed time',
@@ -135,7 +146,7 @@ FROM  Log INNER JOIN Job USING (JobId) JOIN Pool USING (PoolId)
  ORDER BY Job.JobId,Log.LogId,Log.Time  ";
 
 
-print STDERR $query if ($conf->{debug});
+print STDERR $query if (1 || $conf->{debug});
 my $all = $bweb->dbh_selectall_arrayref($query);
 
 my $lastid = 0;
@@ -174,10 +185,10 @@ foreach my $elt (@$all)
 #	    end   => $elt->[1],
 #	};
 #
-    } elsif ($elt->[2] =~ /$regs{get_drive} "([\w\d]+)"/) {
+    } elsif ($elt->[2] =~ /(?:$regs{get_drive}) "([\w\d]+)"/) {
 	$drive = $1;
 
-    } elsif ($elt->[2] =~ /$regs{data_despool_time}.+? = (\d+):(\d+):(\d+)/) {
+    } elsif ($elt->[2] =~ /(?:$regs{data_despool_time}).*? = (\d+):(\d+):(\d+)/) {
 	# on connait le temps de despool
 	my $t = $1*60*60+ $2*60 + $3;
 
