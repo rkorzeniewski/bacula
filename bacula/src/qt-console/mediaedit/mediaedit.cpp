@@ -184,9 +184,9 @@ MediaEdit::MediaEdit(QTreeWidgetItem *parentWidget, QString &mediaId)
       else enabledCheck->setCheckState(Qt::Unchecked);
       /* default for recycle pool */
       recyclePoolCombo->addItems(m_console->pool_list);
+      recyclePoolCombo->insertItem(0, "*None*");
       index = recyclePoolCombo->findText(m_recyclePool, Qt::MatchExactly);
       if (index == -1) {
-         recyclePoolCombo->insertItem(0, "");
          index = 0;
       }
       recyclePoolCombo->setCurrentIndex(index);
@@ -255,8 +255,12 @@ void MediaEdit::okButtonPushed()
       scmd += " enabled=yes";
       docmd = true;
    }
-   if (m_recyclePool != recyclePoolCombo->currentText() && recyclePoolCombo->currentText() != "") {
-      scmd += " recyclepool=\"" + recyclePoolCombo->currentText() + "\"";
+   if (m_recyclePool != recyclePoolCombo->currentText()) {
+      scmd += " recyclepool=\"";
+      if (recyclePoolCombo->currentText() != "*None*") {
+         scmd += recyclePoolCombo->currentText();
+      }
+      scmd += "\"";
       docmd = true;
    }
    if (docmd) {
