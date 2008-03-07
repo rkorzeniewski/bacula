@@ -14,7 +14,7 @@ srcdir=${BACULA_SOURCE}
 dirport=${BASEPORT}
 fdport=`expr ${BASEPORT} '+' 1`
 sdport=`expr ${BASEPORT} '+' 2`
-os=`uname -s`
+os=`uname -s`-`./scripts/get-os`
 dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
 bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
