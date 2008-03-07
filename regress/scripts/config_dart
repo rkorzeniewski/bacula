@@ -4,8 +4,14 @@
 #
 cwd=`pwd`
 . ${cwd}/config
+
 mkdir -p ${cwd}/bin
 out="${cwd}/tmp/sed_tmp"
+
+# pull in latest Bacula version
+cd ${BACULA_SOURCE}
+svn update src/version.h
+cd ${cwd}
 
 scripts/create_sed
 
