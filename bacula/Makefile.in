@@ -1,6 +1,7 @@
 # 
 # Version $Id$
-# 
+# Master Makefile
+#
 @MCOMMON@
 
 working_dir=@working_dir@
