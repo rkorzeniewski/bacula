@@ -1,5 +1,5 @@
 #
-# Simple Makefile for building test plugin-fds for Bacula
+# Simple Makefile for building test FD plugins for Bacula
 #
 
 # No optimization for now for easy debugging
@@ -11,7 +11,7 @@ LIBDIR=../../lib
 
 .SUFFIXES:    .c .o
 .c.o:
-	$(CC) -I${SRCDIR} -I${FDDOR} -DTEST_PROGRAM -c $<
+	$(CC) -I${SRCDIR} -I${FDDIR} -DTEST_PROGRAM -c $<
 
 all: bpipe-fd.so
 

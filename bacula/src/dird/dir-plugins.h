@@ -35,6 +35,19 @@
 #ifndef __FD_PLUGINS_H 
 #define __FD_PLUGINS_H
 
+#ifndef _BACULA_H
+#ifdef __cplusplus
+/* Workaround for SGI IRIX 6.5 */
+#define _LANGUAGE_C_PLUS_PLUS 1
+#endif
+#define _REENTRANT    1
+#define _THREAD_SAFE  1
+#define _POSIX_PTHREAD_SEMANTICS 1
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE_SOURCE 1
+#define _LARGE_FILES 1
+#endif
+
 #include <sys/types.h>
 #ifndef __CONFIG_H
 #define __CONFIG_H
@@ -120,7 +133,7 @@ typedef struct s_baculaFuncs {
 void load_dir_plugins(const char *plugin_dir);
 void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
-void generate_plugin_event(JCR *jcr, bEventType event);
+void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
 
 
 
@@ -136,8 +149,8 @@ typedef enum {
 } pVariable;
 
 
-#define PLUGIN_MAGIC     "*PluginData*" 
-#define PLUGIN_INTERFACE  1
+#define DIR_PLUGIN_MAGIC     "*DirPluginData*" 
+#define DIR_PLUGIN_INTERFACE_VERSION  1
 
 typedef struct s_pluginInfo {
    uint32_t size;
@@ -157,7 +170,7 @@ typedef struct s_pluginFuncs {
    bRC (*freePlugin)(bpContext *ctx);
    bRC (*getPluginValue)(bpContext *ctx, pVariable var, void *value);
    bRC (*setPluginValue)(bpContext *ctx, pVariable var, void *value);
-   bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event);
+   bRC (*handlePluginEvent)(bpContext *ctx, bEvent *event, void *value);
 } pFuncs;
 
 #define plug_func(plugin) ((pFuncs *)(plugin->pfuncs))

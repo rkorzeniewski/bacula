@@ -65,8 +65,8 @@ static bInfo  *binfo = NULL;
 
 static pInfo pluginInfo = {
    sizeof(pluginInfo),
-   PLUGIN_INTERFACE_VERSION,
-   PLUGIN_MAGIC,
+   FD_PLUGIN_INTERFACE_VERSION,
+   FD_PLUGIN_MAGIC,
    PLUGIN_LICENSE,
    PLUGIN_AUTHOR,
    PLUGIN_DATE,
@@ -76,7 +76,7 @@ static pInfo pluginInfo = {
 
 static pFuncs pluginFuncs = {
    sizeof(pluginFuncs),
-   PLUGIN_INTERFACE_VERSION,
+   FD_PLUGIN_INTERFACE_VERSION,
 
    /* Entry points into plugin */
    newPlugin,                         /* new plugin instance */
@@ -167,7 +167,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       printf("plugin: StartRestoreJob\n");
       break;
    case bEventEndRestoreJob:
-      printf("plugin: EndRestoreJob\");
+      printf("plugin: EndRestoreJob\n");
       break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:command */

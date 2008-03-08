@@ -45,11 +45,11 @@ extern "C" {
 #define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"
 
 /* Forward referenced functions */
-static bpError newPlugin(bpContext *ctx);
-static bpError freePlugin(bpContext *ctx);
-static bpError getPluginValue(bpContext *ctx, pVariable var, void *value);
-static bpError setPluginValue(bpContext *ctx, pVariable var, void *value);
-static bpError handlePluginEvent(bpContext *ctx, bEvent *event);
+static bRC newPlugin(bpContext *ctx);
+static bRC freePlugin(bpContext *ctx);
+static bRC getPluginValue(bpContext *ctx, pVariable var, void *value);
+static bRC setPluginValue(bpContext *ctx, pVariable var, void *value);
+static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value);
 
 
 /* Pointers to Bacula functions */
@@ -58,8 +58,8 @@ static bInfo  *binfo = NULL;
 
 static pInfo pluginInfo = {
    sizeof(pluginInfo),
-   PLUGIN_INTERFACE,
-   PLUGIN_MAGIC,
+   DIR_PLUGIN_INTERFACE_VERSION,
+   DIR_PLUGIN_MAGIC,
    PLUGIN_LICENSE,
    PLUGIN_AUTHOR,
    PLUGIN_DATE,
@@ -69,7 +69,7 @@ static pInfo pluginInfo = {
 
 static pFuncs pluginFuncs = {
    sizeof(pluginFuncs),
-   PLUGIN_INTERFACE,
+   DIR_PLUGIN_INTERFACE_VERSION,
 
    /* Entry points into plugin */
    newPlugin,                         /* new plugin instance */
@@ -79,54 +79,54 @@ static pFuncs pluginFuncs = {
    handlePluginEvent
 };
 
-bpError loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
+bRC loadPlugin(bInfo *lbinfo, bFuncs *lbfuncs, pInfo **pinfo, pFuncs **pfuncs)
 {
    bfuncs = lbfuncs;                  /* set Bacula funct pointers */
    binfo  = lbinfo;
-   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->interface);
+   printf("plugin: Loaded: size=%d version=%d\n", bfuncs->size, bfuncs->version);
 
    *pinfo  = &pluginInfo;             /* return pointer to our info */
    *pfuncs = &pluginFuncs;            /* return pointer to our functions */
 
-   return 0;
+   return bRC_OK;
 }
 
-bpError unloadPlugin() 
+bRC unloadPlugin() 
 {
    printf("plugin: Unloaded\n");
-   return 0;
+   return bRC_OK;
 }
 
-static bpError newPlugin(bpContext *ctx)
+static bRC newPlugin(bpContext *ctx)
 {
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
    printf("plugin: newPlugin JobId=%d\n", JobId);
    bfuncs->registerBaculaEvents(ctx, 1, 2, 0);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError freePlugin(bpContext *ctx)
+static bRC freePlugin(bpContext *ctx)
 {
    int JobId = 0;
    bfuncs->getBaculaValue(ctx, bVarJobId, (void *)&JobId);
    printf("plugin: freePlugin JobId=%d\n", JobId);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError getPluginValue(bpContext *ctx, pVariable var, void *value) 
+static bRC getPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
    printf("plugin: getPluginValue var=%d\n", var);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError setPluginValue(bpContext *ctx, pVariable var, void *value) 
+static bRC setPluginValue(bpContext *ctx, pVariable var, void *value) 
 {
    printf("plugin: setPluginValue var=%d\n", var);
-   return 0;
+   return bRC_OK;
 }
 
-static bpError handlePluginEvent(bpContext *ctx, bEvent *event) 
+static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 {
    char *name;
    switch (event->eventType) {
@@ -137,11 +137,11 @@ static bpError handlePluginEvent(bpContext *ctx, bEvent *event)
       printf("plugin: HandleEvent JobEnd\n");
       break;
    }
-   bfuncs->getBaculaValue(ctx, bVarFDName, (void *)&name);
-   printf("FD Name=%s\n", name);
+   bfuncs->getBaculaValue(ctx, bVarJobName, (void *)&name);
+   printf("Job Name=%s\n", name);
    bfuncs->JobMessage(ctx, __FILE__, __LINE__, 1, 0, "JobMesssage message");
    bfuncs->DebugMessage(ctx, __FILE__, __LINE__, 1, "DebugMesssage message");
-   return 0;
+   return bRC_OK;
 }
 
 #ifdef __cplusplus
