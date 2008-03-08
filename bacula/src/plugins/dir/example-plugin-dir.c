@@ -32,7 +32,7 @@
  *
  */
 #include <stdio.h>
-#include "dir-plugins.h"
+#include "dir_plugins.h"
 
 #ifdef __cplusplus
 extern "C" {

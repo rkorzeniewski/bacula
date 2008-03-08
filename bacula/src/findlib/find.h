@@ -36,7 +36,7 @@
 
 #include "jcr.h"
 #include "bfile.h"
-#include "../filed/fd-plugins.h"
+#include "../filed/fd_plugins.h"
 
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>

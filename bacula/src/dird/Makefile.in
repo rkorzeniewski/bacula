@@ -29,7 +29,7 @@ dummy:
 #
 SVRSRCS = dird.c admin.c authenticate.c \
 	  autoprune.c backup.c bsr.c \
-	  catreq.c dir-plugins.c dird_conf.c expand.c \
+	  catreq.c dir_plugins.c dird_conf.c expand.c \
 	  fd_cmds.c getmsg.c inc_conf.c job.c \
 	  jobq.c migrate.c \
 	  mountreq.c msgchan.c next_vol.c newvol.c \
@@ -44,7 +44,7 @@ SVRSRCS = dird.c admin.c authenticate.c \
 	  ua_status.c ua_tree.c ua_update.c verify.c
 SVROBJS = dird.o admin.o authenticate.o \
 	  autoprune.o backup.o bsr.o \
-	  catreq.o dir-plugins.o dird_conf.o expand.o \
+	  catreq.o dir_plugins.o dird_conf.o expand.o \
 	  fd_cmds.o getmsg.o inc_conf.o job.o \
 	  jobq.o migrate.o \
 	  mountreq.o msgchan.o next_vol.o newvol.o \
