@@ -15,13 +15,13 @@ LIBDIR=../../lib
 
 test: main example-plugin-dir.so
 
-dir-plugins.o: ${DIRDIR}/dir-plugins.h ${DIRDIR}/dir-plugins.c
-	$(CC)  -I${SRCDIR} -I${DIRDIR} -DTEST_PROGRAM -c ${DIRDIR}/dir-plugins.c 
+dir_plugins.o: ${DIRDIR}/dir_plugins.h ${DIRDIR}/dir_plugins.c
+	$(CC)  -I${SRCDIR} -I${DIRDIR} -DTEST_PROGRAM -c ${DIRDIR}/dir_plugins.c 
 
-main: dir-plugins.o
-	$(CC) -L${LIBDIR} dir-plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
+main: dir_plugins.o
+	$(CC) -L${LIBDIR} dir_plugins.o -o main -lbac -lpthread -lssl -l crypto -ldl
 
-example-plugin-dir.o: example-plugin-dir.c ${DIRDIR}/dir-plugins.h
+example-plugin-dir.o: example-plugin-dir.c ${DIRDIR}/dir_plugins.h
 	$(CC) -fPIC -I../.. -I${DIRDIR} -c example-plugin-dir.c
 
 example-plugin-dir.so: example-plugin-dir.o 

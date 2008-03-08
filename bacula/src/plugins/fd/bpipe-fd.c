@@ -31,7 +31,7 @@
  *  Kern Sibbald, October 2007
  *
  */
-#include "fd-plugins.h"
+#include "fd_plugins.h"
 
 #undef malloc
 #undef free

@@ -36,7 +36,7 @@
 
 #define FILE_DAEMON 1
 #include "filed_conf.h"
-#include "fd-plugins.h"
+#include "fd_plugins.h"
 #include "findlib/find.h"
 #include "jcr.h"
 #include "acl.h"

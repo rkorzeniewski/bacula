@@ -32,7 +32,7 @@
  *
  */
 #include <stdio.h>
-#include "fd-plugins.h"
+#include "fd_plugins.h"
 
 #ifdef __cplusplus
 extern "C" {
