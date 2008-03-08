@@ -212,6 +212,7 @@ static s_kw dev_types[] = {
    {"tape",          B_TAPE_DEV},
    {"dvd",           B_DVD_DEV},
    {"fifo",          B_FIFO_DEV},
+   {"vtl",           B_VTL_DEV},
    {NULL,            0}
 };
 

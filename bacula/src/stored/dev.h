@@ -64,7 +64,7 @@ enum {
    B_TAPE_DEV,
    B_DVD_DEV,
    B_FIFO_DEV,
-   B_PROG_DEV
+   B_VTL_DEV 
 };
 
 /* Generic status bits returned from status_dev() */
@@ -277,7 +277,7 @@ public:
    int is_file() const { return dev_type == B_FILE_DEV; }
    int is_fifo() const { return dev_type == B_FIFO_DEV; }
    int is_dvd() const  { return dev_type == B_DVD_DEV; }
-   int is_prog() const  { return dev_type == B_PROG_DEV; }
+   int is_vtl() const  { return dev_type == B_VTL_DEV; }
    int is_open() const { return m_fd >= 0; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
