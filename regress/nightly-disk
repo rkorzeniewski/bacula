@@ -7,5 +7,5 @@ save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
 scripts/config_dart
-ctest -D Nightly -R "all-non-root:"
+nice ctest -D Nightly -R "all-non-root:"
 REGRESS_DEBUG=${save_debug}
