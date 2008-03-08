@@ -39,7 +39,6 @@ const char *plugin_type = "-fd.so";
 
 extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
-
 /* Function pointers to be set here */
 extern DLL_IMP_EXP int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
 extern DLL_IMP_EXP int     (*plugin_bclose)(JCR *jcr);
@@ -67,13 +66,13 @@ static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence);
 /* Bacula info */
 static bInfo binfo = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE_VERSION 
+   FD_PLUGIN_INTERFACE_VERSION 
 };
 
 /* Bacula entry points */
 static bFuncs bfuncs = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE_VERSION,
+   FD_PLUGIN_INTERFACE_VERSION,
    baculaRegisterEvents,
    baculaGetValue,
    baculaSetValue,
@@ -333,6 +332,9 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    rp.attrEx = attr->attrEx;
    rp.ofname = attr->ofname;
    rp.olname = attr->olname;
+   rp.where = jcr->where;
+   rp.RegexWhere = jcr->RegexWhere;
+   rp.replace = jcr->replace;
    if (plug_func(plugin)->createFile(plugin_ctx, &rp) != bRC_OK) {
       return CF_ERROR;
    }
@@ -365,6 +367,8 @@ void load_fd_plugins(const char *plugin_dir)
 
    plugin_list = New(alist(10, not_owned_by_alist));
    load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+
+   /* Plug entry points called from findlib */
    plugin_bopen  = my_plugin_bopen;
    plugin_bclose = my_plugin_bclose;
    plugin_bread  = my_plugin_bread;
@@ -608,9 +612,9 @@ int main(int argc, char *argv[])
    jcr2->JobId = 222;
    new_plugins(jcr2);
 
-   generate_plugin_event(jcr1, bEventJobStart);
+   generate_plugin_event(jcr1, bEventJobStart, (void *)"Start Job 1");
    generate_plugin_event(jcr1, bEventJobEnd);
-   generate_plugin_event(jcr2, bEventJobStart);
+   generate_plugin_event(jcr2, bEventJobStart, (void *)"Start Job 2");
    free_plugins(jcr1);
    generate_plugin_event(jcr2, bEventJobEnd);
    free_plugins(jcr2);

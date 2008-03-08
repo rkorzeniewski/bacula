@@ -84,6 +84,9 @@ struct restore_pkt {
    const char *attrEx;                /* extended attributes if any */
    const char *ofname;                /* output filename */
    const char *olname;                /* output link name */
+   const char *where;                 /* where */
+   const char *RegexWhere;            /* regex where */
+   int replace;                       /* replace flag */
 };
 
 enum {
@@ -196,8 +199,8 @@ typedef enum {
 } pVariable;
 
 
-#define PLUGIN_MAGIC     "*PluginData*" 
-#define PLUGIN_INTERFACE_VERSION  1
+#define FD_PLUGIN_MAGIC     "*FDPluginData*" 
+#define FD_PLUGIN_INTERFACE_VERSION  1
 
 typedef struct s_pluginInfo {
    uint32_t size;

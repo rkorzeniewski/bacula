@@ -32,8 +32,7 @@
  * Kern Sibbald, October 2007
  */
 #include "bacula.h"
-#include "jcr.h"
-#include "dir-plugins.h"
+#include "dird.h"
 
 const int dbglvl = 0;
 const char *plugin_type = "-dir.so";
@@ -52,13 +51,13 @@ static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
 /* Bacula info */
 static bInfo binfo = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE,
+   DIR_PLUGIN_INTERFACE_VERSION,
 };
 
 /* Bacula entry points */
 static bFuncs bfuncs = {
    sizeof(bFuncs),
-   PLUGIN_INTERFACE,
+   DIR_PLUGIN_INTERFACE_VERSION,
    baculaRegisterEvents,
    baculaGetValue,
    baculaSetValue,
@@ -69,7 +68,7 @@ static bFuncs bfuncs = {
 /*
  * Create a plugin event 
  */
-void generate_plugin_event(JCR *jcr, bEventType eventType) 
+void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
 {
    bEvent event;
    Plugin *plugin;
@@ -80,11 +79,19 @@ void generate_plugin_event(JCR *jcr, bEventType eventType)
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
-   Dmsg2(dbglvl, "plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
    event.eventType = eventType;
+
+   Dmsg2(dbglvl, "plugin_ctx_list=%p JobId=%d\n", jcr->plugin_ctx_list, jcr->JobId);
+
    foreach_alist(plugin, plugin_list) {
-      plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event);
+      bRC rc;
+      rc = plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i++], &event, value);
+      if (rc != bRC_OK) {
+         break;
+      }
    }
+
+   return;
 }
 
 void load_dir_plugins(const char *plugin_dir)
@@ -231,9 +238,9 @@ int main(int argc, char *argv[])
    jcr2->JobId = 222;
    new_plugins(jcr2);
 
-   generate_plugin_event(jcr1, bEventJobStart);
+   generate_plugin_event(jcr1, bEventJobStart, (void *)"Start Job 1");
    generate_plugin_event(jcr1, bEventJobEnd);
-   generate_plugin_event(jcr2, bEventJobStart);
+   generate_plugin_event(jcr2, bEventJobStart, (void *)"Start Job 1");
    free_plugins(jcr1);
    generate_plugin_event(jcr2, bEventJobEnd);
    free_plugins(jcr2);
