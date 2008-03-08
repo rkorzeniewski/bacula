@@ -1,5 +1,5 @@
                     Kern's ToDo List
-                    03 March 2008
+                    06 March 2008
 
 
 Document:
@@ -70,6 +70,7 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Doc Duplicate Jobs.
 - New directive "Delete purged Volumes"
 - Prune by Job
 - Prune by Job Level (Full, Differential, Incremental)
@@ -80,82 +81,6 @@ Priority:
 - Implement Bacula plugins -- design API
 - modify pruning to keep a fixed number of versions of a file, 
   if requested.
-=== Duplicate jobs ===
-   hese apply only to backup jobs.
-
-   1.  Allow Duplicate Jobs  = Yes | No | Higher   (Yes)
-
-   2. Duplicate Job Interval = <time-interval>   (0)
-
-   The defaults are in parenthesis and would produce the same behavior as today.
-
-   If Allow Duplicate Jobs is set to No, then any job starting while a job of the
-   same name is running will be canceled.
-
-   If Allow Duplicate Jobs is set to Higher, then any job starting with the same
-   or lower level will be canceled, but any job with a Higher level will start.
-   The Levels are from High to Low:  Full, Differential, Incremental
-
-   Finally, if you have Duplicate Job Interval set to a non-zero value, any job
-   of the same name which starts <time-interval> after a previous job of the
-   same name would run, any one that starts within <time-interval> would be
-   subject to the above rules.  Another way of looking at it is that the Allow
-   Duplicate Jobs directive will only apply after <time-interval> of when the
-   previous job finished (i.e. it is the minimum interval between jobs).
-
-   So in summary:
-
-   Allow Duplicate Jobs = Yes | No | HigherLevel | CancelLowerLevel  (Yes)
-
-   Where HigherLevel cancels any waiting job but not any running job.
-   Where CancelLowerLevel is same as HigherLevel but cancels any running job or
-               waiting job.
-
-   Duplicate Job Proximity = <time-interval>   (0)
-
-    My suggestion was to define it as the minimum guard time between
-    executions of a specific job -- ie, if a job was scheduled within Job
-    Proximity number of seconds, it would be considered a duplicate and
-    consolidated.
-
-    Skip  = Do not allow two or more jobs with the same name to run
-    simultaneously within the proximity interval. The second and subsequent
-    jobs are skipped without further processing (other than to note the job
-    and exit immediately), and are not considered errors.
-
-    Fail = The second and subsequent jobs that attempt to run during the
-    proximity interval are cancelled and treated as error-terminated jobs.
-
-    Promote = If a job is running, and a second/subsequent job of higher
-    level attempts to start, the running job is promoted to the higher level
-    of processing using the resources already allocated, and the subsequent
-    job is treated as in Skip above.
-
-
-DuplicateJobs {
-  Name = "xxx"
-  Description = "xxx"
-  Allow = yes|no          (no = default)
-
-  AllowHigherLevel = yes|no    (no)
-
-  AllowLowerLevel = yes|no     (no)
-
-  AllowSameLevel = yes|no 
-
-  Cancel = Running | New        (no)
-
-  CancelledStatus = Fail | Skip  (fail)
-
-  Job Proximity = <time-interval>  (0)
-  My suggestion was to define it as the minimum guard time between
-  executions of a specific job -- ie, if a job was scheduled within Job
-  Proximity number of seconds, it would be considered a duplicate and
-  consolidated.
-
-}
-
-===
 - the cd-command should allow complete paths
   i.e. cd /foo/bar/foo/bar
   -> if a customer mails me the path to a certain file,
@@ -1870,3 +1795,79 @@ Block Position: 0
 - Add Catalog = to Pool resource so that pools will exist
   in only one catalog -- currently Pools are "global".
 - Add TLS to bat (should be done).
+=== Duplicate jobs ===
+   hese apply only to backup jobs.
+
+   1.  Allow Duplicate Jobs  = Yes | No | Higher   (Yes)
+
+   2. Duplicate Job Interval = <time-interval>   (0)
+
+   The defaults are in parenthesis and would produce the same behavior as today.
+
+   If Allow Duplicate Jobs is set to No, then any job starting while a job of the
+   same name is running will be canceled.
+
+   If Allow Duplicate Jobs is set to Higher, then any job starting with the same
+   or lower level will be canceled, but any job with a Higher level will start.
+   The Levels are from High to Low:  Full, Differential, Incremental
+
+   Finally, if you have Duplicate Job Interval set to a non-zero value, any job
+   of the same name which starts <time-interval> after a previous job of the
+   same name would run, any one that starts within <time-interval> would be
+   subject to the above rules.  Another way of looking at it is that the Allow
+   Duplicate Jobs directive will only apply after <time-interval> of when the
+   previous job finished (i.e. it is the minimum interval between jobs).
+
+   So in summary:
+
+   Allow Duplicate Jobs = Yes | No | HigherLevel | CancelLowerLevel  (Yes)
+
+   Where HigherLevel cancels any waiting job but not any running job.
+   Where CancelLowerLevel is same as HigherLevel but cancels any running job or
+               waiting job.
+
+   Duplicate Job Proximity = <time-interval>   (0)
+
+    My suggestion was to define it as the minimum guard time between
+    executions of a specific job -- ie, if a job was scheduled within Job
+    Proximity number of seconds, it would be considered a duplicate and
+    consolidated.
+
+    Skip  = Do not allow two or more jobs with the same name to run
+    simultaneously within the proximity interval. The second and subsequent
+    jobs are skipped without further processing (other than to note the job
+    and exit immediately), and are not considered errors.
+
+    Fail = The second and subsequent jobs that attempt to run during the
+    proximity interval are cancelled and treated as error-terminated jobs.
+
+    Promote = If a job is running, and a second/subsequent job of higher
+    level attempts to start, the running job is promoted to the higher level
+    of processing using the resources already allocated, and the subsequent
+    job is treated as in Skip above.
+
+
+DuplicateJobs {
+  Name = "xxx"
+  Description = "xxx"
+  Allow = yes|no          (no = default)
+
+  AllowHigherLevel = yes|no    (no)
+
+  AllowLowerLevel = yes|no     (no)
+
+  AllowSameLevel = yes|no 
+
+  Cancel = Running | New        (no)
+
+  CancelledStatus = Fail | Skip  (fail)
+
+  Job Proximity = <time-interval>  (0)
+  My suggestion was to define it as the minimum guard time between
+  executions of a specific job -- ie, if a job was scheduled within Job
+  Proximity number of seconds, it would be considered a duplicate and
+  consolidated.
+
+}
+
+===
