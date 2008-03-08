@@ -843,7 +843,7 @@ bool DEVICE::eod(DCR *dcr)
    block_num = file = 0;
    file_size = 0;
    file_addr = 0;
-   if (is_fifo() || is_prog()) {
+   if (is_fifo()) {
       return true;
    }
    if (!is_tape()) {
@@ -1845,6 +1845,7 @@ void DEVICE::close()
    }
 
    switch (dev_type) {
+   case B_VTL_DEV:
    case B_TAPE_DEV:
       unlock_door(); 
       tape_close(m_fd);
@@ -1921,6 +1922,7 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
 
    Dmsg1(100, "truncate %s\n", print_name());
    switch (dev_type) {
+   case B_VTL_DEV:
    case B_TAPE_DEV:
       /* maybe we should rewind and write and eof ???? */
       return true;                    /* we don't really truncate tapes */

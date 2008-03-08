@@ -233,11 +233,11 @@ int chmod(const char *, mode_t mode);
 #define F_GETFL      3
 #define F_SETFL      4
 
-int tape_open(const char *file, int flags, int mode = 0);
-int tape_read(int fd, void *buffer, unsigned int count);
-int tape_write(int fd, const void *buffer, unsigned int count);
-int tape_ioctl(int fd, unsigned long int request, ...);
-int tape_close(int fd);
+int win32_tape_open(const char *file, int flags, int mode = 0);
+int win32_tape_read(int fd, void *buffer, unsigned int count);
+int win32_tape_write(int fd, const void *buffer, unsigned int count);
+int win32_tape_ioctl(int fd, unsigned long int request, ...);
+int win32_tape_close(int fd);
 
 #define open   _open
 
