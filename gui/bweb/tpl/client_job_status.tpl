@@ -26,6 +26,8 @@
  <tr>
   <td> <b> __Bytes done__ </b> </td><td> <div id='progress1'><td>
  </tr>
+</TMPL_IF>
+<TMPL_IF last_jobfiles>
  <tr>
   <td> <b> __Files done__ </b> </td><td> <div id='progress2'><td>
  </tr>
@@ -43,8 +45,10 @@
  </div>
 
 <script type="text/javascript" language="JavaScript">
-<TMPL_IF last_jobbytes>
+<TMPL_IF last_jobfiles>
   percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, document.getElementById('progress1'));
+</TMPL_IF>
+<TMPL_IF last_jobbytes>
   percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, document.getElementById('progress2'));
 </TMPL_IF>
   bweb_add_refresh();

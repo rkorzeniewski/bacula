@@ -423,8 +423,8 @@ use base q/Bweb::Gui/;
 
 sub display_running_job
 {
-    my ($self, $conf, $jobid, $last_jobfiles, $last_jobbytes) = @_ ;
-    my $status = $self->status($conf);
+    my ($self, $bweb, $jobid, $last_jobfiles, $last_jobbytes) = @_ ;
+    my $status = $self->status($bweb->{info});
 
     if ($jobid) {
 	if ($status->{$jobid}) {
@@ -435,11 +435,11 @@ sub display_running_job
 	    $status->{jobbytes} =~ s![, B/s]!!g;
 	    $status->{jobfiles}=$status->{Files}; 
 	    $status->{jobfiles} =~ s/,//g;
-	    $self->display($status, "client_job_status.tpl");
+	    $bweb->display($status, "client_job_status.tpl");
 	}
     } else {
 	for my $id (keys %$status) {
-	    $self->display($status->{$id}, "client_job_status.tpl");
+	    $bweb->display($status->{$id}, "client_job_status.tpl");
 	}
     }
 }
@@ -3927,7 +3927,7 @@ FROM (
 	}
     }
     my $cli = new Bweb::Client(name => $arg->{client});
-    $cli->display_running_job($self->{info}, $arg->{jobid}, 
+    $cli->display_running_job($self, $arg->{jobid}, 
 			      $arg->{jobfiles}, $arg->{jobbytes});
     if ($arg->{jobid}) {
 	$self->get_job_log();

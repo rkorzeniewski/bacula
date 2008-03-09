@@ -1,6 +1,6 @@
 
 <div class='titlediv'>
-  <h1 class='newstitle'> Manage Storage device</h1>
+  <h1 class='newstitle'> Manage Storage devices</h1>
 </div>
 <div class='bodydiv'>
    <form action="?" method='get'>
