@@ -21,8 +21,8 @@ setdebug level=15  storage=File
 messages
 @output/dev/null
 estimate job=$JobName listing
-estimate job=$JobName listing
-estimate job=$JobName listing
+estimate job=$JobName
+estimate job=$JobName
 messages
 @$out tmp/log1.out
 label storage=File volume=TestVolume001
