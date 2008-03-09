@@ -40,6 +40,7 @@
 #include "bat.h"
 #include "clients/clients.h"
 #include "run/run.h"
+#include "status/clientstat.h"
 
 Clients::Clients()
 {
@@ -163,6 +164,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          if (treedepth == 1){
             mp_treeWidget->removeAction(actionListJobsofClient);
             mp_treeWidget->removeAction(actionStatusClientInConsole);
+            mp_treeWidget->removeAction(actionStatusClientWindow);
             mp_treeWidget->removeAction(actionPurgeJobs);
             mp_treeWidget->removeAction(actionPrune);
          }
@@ -175,6 +177,7 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          m_currentlyselected=currentwidgetitem->text(0);
          mp_treeWidget->addAction(actionListJobsofClient);
          mp_treeWidget->addAction(actionStatusClientInConsole);
+         mp_treeWidget->addAction(actionStatusClientWindow);
          mp_treeWidget->addAction(actionPurgeJobs);
          mp_treeWidget->addAction(actionPrune);
       }
@@ -200,6 +203,8 @@ void Clients::createContextMenu()
                 SLOT(showJobs()));
    connect(actionStatusClientInConsole, SIGNAL(triggered()), this,
                 SLOT(consoleStatusClient()));
+   connect(actionStatusClientWindow, SIGNAL(triggered()), this,
+                SLOT(statusClientWindow()));
    connect(actionPurgeJobs, SIGNAL(triggered()), this,
                 SLOT(consolePurgeJobs()));
    connect(actionPrune, SIGNAL(triggered()), this,
@@ -269,4 +274,12 @@ void Clients::consolePurgeJobs()
 void Clients::prune()
 {
    new prunePage("", m_currentlyselected);
+}
+
+/*
+ * Function responding to action to create new client status window
+ */
+void Clients::statusClientWindow()
+{
+   new ClientStat(m_currentlyselected);
 }
