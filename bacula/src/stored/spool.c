@@ -99,8 +99,6 @@ void list_spool_stats(void sendit(const char *msg, int len, void *sarg), void *a
    
       sendit(msg.c_str(), len, arg);
    }
-   len = Mmsg(msg, "====\n");
-   sendit(msg.c_str(), len, arg);
 }
 
 bool begin_data_spool(DCR *dcr)

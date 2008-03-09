@@ -305,7 +305,7 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
       }
    } else {
       if (!tls_postconnect_verify_host(jcr, tls, bsock->host())) {
-         Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), 
+         Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS host certificate verification failed. Host name \"%s\" did not match presented certificate\n"), 
                bsock->host());
          goto err;
       }

@@ -48,6 +48,7 @@ public:
   BSOCK *bs;                       /* used on Unix machines */
   void *context;                   /* Win32 */
   void (*callback)(const char *msg, int len, void *context);  /* Win32 */
+  bool api;                        /* set if we want API output */
 
   /* Methods */
   STATUS_PKT() { memset(this, 0, sizeof(STATUS_PKT)); };
