@@ -1,5 +1,5 @@
-#ifndef _CLIENTS_H_
-#define _CLIENTS_H_
+#ifndef _CLIENTSTAT_H_
+#define _CLIENTSTAT_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -28,42 +28,46 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
+ *   Version $Id: clientstat.h 5372 2007-08-17 12:17:04Z kerns $
  *
  *   Dirk Bartley, March 2007
  */
 
 #include <QtGui>
-#include "ui_clients.h"
+#include "ui_clientstat.h"
 #include "console.h"
 #include "pages.h"
 
-class Clients : public Pages, public Ui::ClientForm
+class ClientStat : public Pages, public Ui::ClientStatForm
 {
    Q_OBJECT 
 
 public:
-   Clients();
-   ~Clients();
+   ClientStat(QString&);
+   ~ClientStat();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
 
 public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void populateHeader();
+   void populateTerminated();
+   void populateRunning();
+   void populateAll();
 
 private slots:
-   void populateTree();
-   void showJobs();
-   void consoleStatusClient();
-   void statusClientWindow();
-   void consolePurgeJobs();
-   void prune();
+   void timerTriggered();
+   void consoleCancelJob();
 
 private:
-   void createContextMenu();
-   QString m_currentlyselected;
+   void createConnections();
+   void writeSettings();
+   void readSettings();
    bool m_populated;
-   bool m_checkcurwidget;
+   QTextCursor *m_cursor;
+   void getFont();
+   QString m_groupText, m_splitText;
+   QTimer *m_timer;
+   QString m_client;
 };
 
-#endif /* _CLIENTS_H_ */
+#endif /* _CLIENTSTAT_H_ */
