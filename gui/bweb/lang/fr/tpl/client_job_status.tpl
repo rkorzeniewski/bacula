@@ -8,20 +8,27 @@
 
 <table>
  <tr>
-  <td> <b> Nom du job : </b> <td> <td> <TMPL_VAR jobname> (<TMPL_VAR jobid>) <td> 
+  <td> <b> Nom du job : </b> </td> <td> <TMPL_VAR jobname> (<TMPL_VAR jobid>) <td> 
  </tr>
  <tr>
-  <td> <b> Fichier en cours : </b> <td> <td> <TMPL_VAR "processing file"> </td>
+  <td> <b> Fichier en cours : </b> </td> <td> <TMPL_VAR "processing file"> </td>
  </tr>
  <tr>
-  <td> <b> Vitesse : </b> <td> <td> <TMPL_VAR "bytes/sec"> B/s</td>
+  <td> <b> Vitesse : </b> </td> <td> <TMPL_VAR "bytes/sec"> B/s</td>
  </tr>
  <tr>
-  <td> <b> Fichiers vus : </b> <td> <td> <TMPL_VAR "files examined"></td>
+  <td> <b> Fichiers vus : </b> </td> <td> <TMPL_VAR "files examined"></td>
  </tr>
  <tr>
-  <td> <b> Taille : </b> <td> <td> <TMPL_VAR bytes></td>
+  <td> <b> Taille : </b> </td> <td> <TMPL_VAR bytes></td>
  </tr>
+ <tr>
+  <td> <b> Bytes done </b> </td><td> <div id='progress1'><td>
+ </tr>
+ <tr>
+  <td> <b> Files done </b> </td><td> <div id='progress2'><td>
+ </tr>
+
 </table>
 <form name='form1' action='?' method='GET'>
 <button type="submit" class="bp" name='action' value='dsp_cur_job' 
@@ -35,6 +42,10 @@
  </div>
 
 <script type="text/javascript" language="JavaScript">
+<TMPL_IF last_jobbytes>
+  percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, document.getElementById('progress1'));
+  percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, document.getElementById('progress2'));
+</TMPL_IF>
   bweb_add_refresh();
 </script>
 

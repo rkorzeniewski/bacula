@@ -423,13 +423,19 @@ use base q/Bweb::Gui/;
 
 sub display_running_job
 {
-    my ($self, $conf, $jobid) = @_ ;
-
+    my ($self, $conf, $jobid, $last_jobfiles, $last_jobbytes) = @_ ;
     my $status = $self->status($conf);
 
     if ($jobid) {
 	if ($status->{$jobid}) {
-	    $self->display($status->{$jobid}, "client_job_status.tpl");
+	    $status = $status->{$jobid};
+	    $status->{last_jobbytes} = $last_jobbytes;
+	    $status->{last_jobfiles} = $last_jobfiles;
+	    $status->{jobbytes}=$status->{Bytes}; 
+	    $status->{jobbytes} =~ s![, B/s]!!g;
+	    $status->{jobfiles}=$status->{Files}; 
+	    $status->{jobfiles} =~ s/,//g;
+	    $self->display($status, "client_job_status.tpl");
 	}
     } else {
 	for my $id (keys %$status) {
@@ -3872,34 +3878,59 @@ sub display_running_job
     my ($self) = @_;
     return if $self->cant_do('r_view_running_job');
 
-    my $arg = $self->get_form('client', 'jobid');
+    my $arg = $self->get_form('jobid');
 
-    if (!$arg->{client} and $arg->{jobid}) {
-	# get security filter
-	my $filter = $self->get_client_filter();
+    return $self->error("Can't get jobid") unless ($arg->{jobid});
 
-	my $query = "
-SELECT Client.Name AS name
+    # get security filter
+    my $filter = $self->get_client_filter();
+
+    my $query = "
+SELECT Client.Name AS name, Job.Name AS jobname, 
+       Job.Level AS level
 FROM Job INNER JOIN Client USING (ClientId) $filter
 WHERE Job.JobId = $arg->{jobid}
 ";
 
-	my $row = $self->dbh_selectrow_hashref($query);
-
-	if ($row) {
-	    $arg->{client} = $row->{name};
-	    CGI::param('client', $arg->{client});
-	}
+    my $row = $self->dbh_selectrow_hashref($query);
+    
+    if ($row) {
+	$arg->{client} = $row->{name};
+    } else {
+	return $self->error("Can't get client");
     }
 
-    if ($arg->{client}) {
-	my $cli = new Bweb::Client(name => $arg->{client});
-	$cli->display_running_job($self->{info}, $arg->{jobid});
-	if ($arg->{jobid}) {
-	    $self->get_job_log();
+    $query = "
+SELECT temp.jobname AS jobname, AVG(JobBytes) AS jobbytes,
+       AVG(JobFiles) AS jobfiles, COUNT(1) AS nb
+FROM (
+   SELECT Job.Name AS jobname, 
+          JobBytes AS jobbytes,
+          JobFiles AS jobfiles
+   FROM Job INNER JOIN Client USING (ClientId) $filter
+   WHERE Job.Name = '$row->{jobname}'
+     AND Job.Level = '$row->{level}'
+     AND Job.JobStatus = 'T'
+   ORDER BY StartTime DESC
+   LIMIT 4
+) AS temp GROUP BY temp.jobname
+";
+
+    $row = $self->dbh_selectrow_hashref($query);
+
+    if ($row) {
+	if ($row->{nb} >= 1) {
+	    $arg->{jobbytes} = $row->{jobbytes};
+	    $arg->{jobfiles} = $row->{jobfiles};
+	} else {
+	    $arg->{jobbytes} = $arg->{jobfiles} = 0;
 	}
-    } else {
-	$self->error("Can't get client or jobid");
+    }
+    my $cli = new Bweb::Client(name => $arg->{client});
+    $cli->display_running_job($self->{info}, $arg->{jobid}, 
+			      $arg->{jobfiles}, $arg->{jobbytes});
+    if ($arg->{jobid}) {
+	$self->get_job_log();
     }
 }
 

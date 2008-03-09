@@ -23,10 +23,10 @@
   </td><td valign='top'>
     <h2>__Status__</h2>
     <select name='status' class='formulaire'>
-      <option id='status_Any' value='Any'>__Any__</option>
       <option id='status_T'   value='T'>__Ok__</option>
       <option id='status_f'   value='f'>__Error__</option>
       <option id='status_A'   value='A'>__Canceled__</option>
+      <option id='status_Any' value='Any'>__Any__</option>
     </select>   
   </td>
 </tr>

@@ -230,6 +230,31 @@ function percent_display(hash_values, parent)
   return parent;
 }
 
+function percent_finish(value, parent)
+{
+   var type;
+
+   var nb = parseInt(value*300/100, 10);
+   parent.title = parseInt(value*100,10)/100 + "% finished (approximate)";
+
+   var img=document.createElement('img');
+   img.className="pSliceFinished";
+   img.src="/bweb/pix.png";
+   img.width=nb;
+   parent.appendChild(img);
+
+   if (value >= 100) {
+      return;
+   }
+
+   nb = parseInt((100-value)*300/100, 10);
+   img=document.createElement('img');
+   img.className="pSliceNotFinished";
+   img.src="/bweb/pix.png";
+   img.width=nb;
+   parent.appendChild(img);       
+}
+
 function percent_usage(value, parent)
 {
    var nb_elt=percent_usage_nb_slice;
