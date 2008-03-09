@@ -45,13 +45,13 @@
 /*
  * Constructor for the class
  */
-ClientStat::ClientStat(QString &client)
+ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
 {
    m_client = client;
    setupUi(this);
-   m_name = tr("Director Status");
+   m_name = tr("Client Status");
    m_closeable = true;
-   pgInitialize();
+   pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
    m_cursor = new QTextCursor(textEdit->document());
@@ -63,6 +63,7 @@ ClientStat::ClientStat(QString &client)
    m_timer->start(mainWin->m_refreshStatusDirInterval*1000);
 
    createConnections();
+   setCurrent();
 }
 
 void ClientStat::getFont()
