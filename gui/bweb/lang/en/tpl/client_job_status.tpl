@@ -22,14 +22,14 @@
  <tr>
   <td> <b> Bytes: </b> </td> <td> <TMPL_VAR bytes></td>
  </tr>
-
+<TMPL_IF last_jobbytes>
  <tr>
   <td> <b> Bytes done </b> </td><td> <div id='progress1'><td>
  </tr>
  <tr>
   <td> <b> Files done </b> </td><td> <div id='progress2'><td>
  </tr>
-
+</TMPL_IF>
 </table>
 <form name='form1' action='?' method='GET'>
 <button type="submit" class="bp" name='action' value='dsp_cur_job' 
