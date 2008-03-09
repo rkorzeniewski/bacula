@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -238,6 +238,7 @@ bool bnet_send(BSOCK *bsock)
 bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
+   JCR *jcr = bsock->jcr();
    
    tls = new_tls_connection(ctx, bsock->m_fd);
    if (!tls) {
@@ -254,7 +255,7 @@ bool bnet_tls_server(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
    }
 
    if (verify_list) {
-      if (!tls_postconnect_verify_cn(tls, verify_list)) {
+      if (!tls_postconnect_verify_cn(jcr, tls, verify_list)) {
          Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS certificate verification failed."
                                          " Peer certificate did not match a required commonName\n"),
                                          bsock->host());
@@ -278,6 +279,7 @@ err:
 bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
 {
    TLS_CONNECTION *tls;
+   JCR *jcr = bsock->jcr();
 
    tls  = new_tls_connection(ctx, bsock->m_fd);
    if (!tls) {
@@ -295,14 +297,14 @@ bool bnet_tls_client(TLS_CONTEXT *ctx, BSOCK * bsock, alist *verify_list)
    /* If there's an Allowed CN verify list, use that to validate the remote
     * certificate's CN. Otherwise, we use standard host/CN matching. */
    if (verify_list) {
-      if (!tls_postconnect_verify_cn(tls, verify_list)) {
+      if (!tls_postconnect_verify_cn(jcr, tls, verify_list)) {
          Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS certificate verification failed."
                                          " Peer certificate did not match a required commonName\n"),
                                          bsock->host());
          goto err;
       }
    } else {
-      if (!tls_postconnect_verify_host(tls, bsock->host())) {
+      if (!tls_postconnect_verify_host(jcr, tls, bsock->host())) {
          Qmsg1(bsock->jcr(), M_FATAL, 0, _("TLS host certificate verification failed. Host %s did not match presented certificate\n"), 
                bsock->host());
          goto err;
