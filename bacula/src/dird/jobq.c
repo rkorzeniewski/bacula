@@ -56,8 +56,8 @@ extern "C" void *sched_wait(void *arg);
 
 static int  start_server(jobq_t *jq);
 static bool acquire_resources(JCR *jcr);
-
-
+static void dec_read_store(JCR *jcr);
+static void dec_write_store(JCR *jcr);
 
 /*
  * Initialize a job queue
@@ -477,16 +477,8 @@ void *jobq_server(void *arg)
           *  put into the ready queue.
           */
          if (jcr->acquired_resource_locks) {
-            if (jcr->rstore) {
-               jcr->rstore->NumConcurrentJobs--;
-               Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
-               ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
-            }
-            if (jcr->wstore) {
-               jcr->wstore->NumConcurrentJobs--;
-               Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
-               ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
-            }
+            dec_read_store(jcr);
+            dec_write_store(jcr);
             jcr->client->NumConcurrentJobs--;
             jcr->job->NumConcurrentJobs--;
             jcr->acquired_resource_locks = false;
@@ -692,13 +684,16 @@ static bool acquire_resources(JCR *jcr)
    }
    if (jcr->rstore) {
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
-      if (jcr->rstore->NumConcurrentJobs == 0 &&
+      if (jcr->rstore->NumConcurrentReadJobs == 0 &&
           jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
          /* Simple case, first job */
-         jcr->rstore->NumConcurrentJobs = 1;
+         jcr->rstore->NumConcurrentReadJobs = 1;
+         jcr->rstore->NumConcurrentJobs++;
          Dmsg0(200, "Set rncj=1\n");
       /* We can do this only if multi-drive autochanger */
-//    } else if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+//    } else if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs
+//       && jcr->rstore->NumConcurrentReadJobs < jcr->rstore->MaxConcurrentReadJobs) {
+//       jcr->rstore->NumConcurrentReadJobs++;
 //       jcr->rstore->NumConcurrentJobs++;
 //       Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       } else {
@@ -719,9 +714,7 @@ static bool acquire_resources(JCR *jcr)
          jcr->wstore->NumConcurrentJobs++;
          Dmsg1(200, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       } else if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
-         Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
-         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
+         dec_read_store(jcr);
          skip_this_jcr = true;
       } else {
          Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
@@ -737,16 +730,8 @@ static bool acquire_resources(JCR *jcr)
       jcr->client->NumConcurrentJobs++;
    } else {
       /* Back out previous locks */
-      if (jcr->wstore) {
-         jcr->wstore->NumConcurrentJobs--;
-         Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
-         ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
-      }
-      if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs--;  
-         Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
-         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
-      }
+      dec_write_store(jcr);
+      dec_read_store(jcr);
       set_jcr_job_status(jcr, JS_WaitClientRes);
       return false;
    }
@@ -754,16 +739,8 @@ static bool acquire_resources(JCR *jcr)
       jcr->job->NumConcurrentJobs++;
    } else {
       /* Back out previous locks */
-      if (jcr->wstore) {
-         jcr->wstore->NumConcurrentJobs--;
-         Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
-         ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
-      }
-      if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs--;
-         Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
-         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
-      }
+      dec_write_store(jcr);
+      dec_read_store(jcr);
       jcr->client->NumConcurrentJobs--;
       set_jcr_job_status(jcr, JS_WaitJobRes);
       return false;
@@ -771,4 +748,24 @@ static bool acquire_resources(JCR *jcr)
 
    jcr->acquired_resource_locks = true;
    return true;
+}
+
+static void dec_read_store(JCR *jcr)
+{
+   if (jcr->rstore) {
+      jcr->rstore->NumConcurrentReadJobs--;    /* back out rstore */
+      jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
+      Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+      ASSERT(jcr->rstore->NumConcurrentReadJobs >= 0);
+      ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
+   }
+}
+
+static void dec_write_store(JCR *jcr)
+{
+   if (jcr->wstore) {
+      jcr->wstore->NumConcurrentJobs--;
+      Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+      ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
+   }
 }

@@ -41,9 +41,9 @@
 extern void *start_heap;
 
 /* Forward referenced functions */
-static void  list_terminated_jobs(STATUS_PKT *sp, bool api);
-static void  list_running_jobs(STATUS_PKT *sp, bool api);
-static void  list_status_header(STATUS_PKT *sp, bool api);
+static void  list_terminated_jobs(STATUS_PKT *sp);
+static void  list_running_jobs(STATUS_PKT *sp);
+static void  list_status_header(STATUS_PKT *sp);
 static void sendit(const char *msg, int len, STATUS_PKT *sp);
 static const char *level_to_str(int level);
 
@@ -69,12 +69,12 @@ extern VSSClient *g_pVSSClient;
  */
 void output_status(STATUS_PKT *sp)
 {
-   list_status_header(sp, false /*no api*/);
-   list_running_jobs(sp, false /*no api*/);
-   list_terminated_jobs(sp, false /*no api*/);
+   list_status_header(sp);
+   list_running_jobs(sp);
+   list_terminated_jobs(sp);
 }
 
-static void  list_status_header(STATUS_PKT *sp, bool api)
+static void  list_status_header(STATUS_PKT *sp)
 {
    POOL_MEM msg(PM_MESSAGE);
    char b1[32], b2[32], b3[32], b4[32], b5[35];
@@ -145,7 +145,7 @@ static void  list_status_header(STATUS_PKT *sp, bool api)
    sendit(msg.c_str(), len, sp);
 }
 
-static void  list_running_jobs(STATUS_PKT *sp, bool api)
+static void  list_running_jobs(STATUS_PKT *sp)
 {
    int sec, bps;
    POOL_MEM msg(PM_MESSAGE);
@@ -158,7 +158,7 @@ static void  list_running_jobs(STATUS_PKT *sp, bool api)
     * List running jobs
     */
    Dmsg0(1000, "Begin status jcr loop.\n");
-   if (!api) {
+   if (!sp->api) {
       len = Mmsg(msg, _("\nRunning Jobs:\n"));
       sendit(msg.c_str(), len, sp);
    }
@@ -216,7 +216,7 @@ static void  list_running_jobs(STATUS_PKT *sp, bool api)
    }
    endeach_jcr(njcr);
 
-   if (!api) {
+   if (!sp->api) {
       if (!found) {
          len = Mmsg(msg, _("No Jobs running.\n"));
          sendit(msg.c_str(), len, sp);
@@ -226,24 +226,24 @@ static void  list_running_jobs(STATUS_PKT *sp, bool api)
 }
   
 
-static void list_terminated_jobs(STATUS_PKT *sp, bool api)
+static void list_terminated_jobs(STATUS_PKT *sp)
 {
    char dt[MAX_TIME_LENGTH], b1[30], b2[30];
    char level[10];
    struct s_last_job *je;
    const char *msg;
 
-   if (!api) {
+   if (!sp->api) {
       msg =  _("\nTerminated Jobs:\n");
       sendit(msg, strlen(msg), sp);
    }
 
    if (last_jobs->size() == 0) {
-      if (!api) sendit(_("====\n"), 5, sp);
+      if (!sp->api) sendit(_("====\n"), 5, sp);
       return;
    }
    lock_last_jobs_list();
-   if (!api) {
+   if (!sp->api) {
       msg =  _(" JobId  Level    Files      Bytes   Status   Finished        Name \n");
       sendit(msg, strlen(msg), sp);
       msg = _("======================================================================\n");
@@ -294,7 +294,7 @@ static void list_terminated_jobs(STATUS_PKT *sp, bool api)
             *p = 0;
          }
       }
-      if (api) {
+      if (sp->api) {
          bsnprintf(buf, sizeof(buf), _("%6d\t%-6s\t%8s\t%10s\t%-7s\t%-8s\t%s\n"),
             je->JobId,
             level,
@@ -313,7 +313,7 @@ static void list_terminated_jobs(STATUS_PKT *sp, bool api)
       }
       sendit(buf, strlen(buf), sp);
    }
-   if (!api) sendit(_("====\n"), 5, sp);
+   if (!sp->api) sendit(_("====\n"), 5, sp);
    unlock_last_jobs_list();
 }
 
@@ -344,6 +344,7 @@ int status_cmd(JCR *jcr)
 
    user->fsend("\n");
    sp.bs = user;
+   sp.api = false;                         /* no API output */
    output_status(&sp);
 
    user->signal(BNET_EOD);
@@ -389,11 +390,14 @@ int qstatus_cmd(JCR *jcr)
          dir->fsend(DotStatusJob, job->JobId, job->JobStatus, job->Errors);
       }
    } else if (strcasecmp(cmd, "header") == 0) {
-       list_status_header(&sp, true/*api*/);
+       sp.api = true;
+       list_status_header(&sp);
    } else if (strcasecmp(cmd, "running") == 0) {
-       list_running_jobs(&sp, true/*api*/);
+       sp.api = true;
+       list_running_jobs(&sp);
    } else if (strcasecmp(cmd, "terminated") == 0) {
-       list_terminated_jobs(&sp, true/*api*/);
+       sp.api = true;
+       list_terminated_jobs(&sp);
    } else {
       pm_strcpy(&jcr->errmsg, dir->msg);
       Jmsg1(jcr, M_FATAL, 0, _("Bad .status command: %s\n"), jcr->errmsg);

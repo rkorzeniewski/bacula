@@ -290,6 +290,7 @@ public:
    alist *device;                     /* Alternate devices for this Storage */
    uint32_t MaxConcurrentJobs;        /* Maximume concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+   uint32_t NumConcurrentReadJobs;    /* number of jobs reading */
    char *tls_ca_certfile;             /* TLS CA Certificate File */
    char *tls_ca_certdir;              /* TLS CA Certificate Directory */
    char *tls_certfile;                /* TLS Client Certificate File */

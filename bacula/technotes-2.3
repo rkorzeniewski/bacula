@@ -2,6 +2,14 @@
 
 General:
 09Mar08
+kes  Attempt to correct problems with restores with autochangers and
+     use counts going negative 
+kes  Rework SD status command and implement API for bat. Implements
+     header, runing waitreservation, devices, volumes, spooling,
+     and terminated status keywords.
+     .status storage=xxx <keyword>
+kes  Clarify TLS error message by adding double quotes around name.
+kes  Simplify SD/FD status code by putting api flag in STATUS_PKT
 kes  Pass jcr to tls routines so debug messages can be handled better.
 kes  Rework jobq resource allocation code, and possibly fix a bug
      that caused reference counts to get out of sync.
