@@ -18,8 +18,8 @@ start_test
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 estimate job=$JobName listing
-estimate job=$JobName listing
-estimate job=$JobName listing
+estimate job=$JobName
+estimate job=$JobName
 messages
 @$out ${cwd}/tmp/log1.out
 label storage=File volume=TestVolume001

@@ -13,6 +13,16 @@ scripts/copy-test-confs
 
 /bin/cp -f scripts/bacula-dir.conf.regexwhere bin/bacula-dir.conf
 
+#
+# Remove the !restored from the messages resource because
+#  this test needs the restored listing to verify the
+#  restore results
+#
+outf="${cwd}/tmp/sed_tmp"
+echo "s%, \!restored%%g" >${outf}
+cp ${cwd}/bin/bacula-fd.conf ${cwd}/tmp/1
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-fd.conf
+
 echo "${cwd}/build/po" >tmp/file-list
 
 start_test
