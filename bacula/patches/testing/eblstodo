@@ -281,6 +281,8 @@ FROM (
 
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
+ - Ajouter une estimation de progression du backup basé sur le nombre
+   de fichier et le nombre de Mo
  x Ajouter un bouton suivant/precedant dans la vue des logs
  x Ajouter la liste des medias qui vont/ont expirer et les pruner
  x Fixer les purge/prune de multiple volumes
@@ -522,12 +524,16 @@ items 13-15.
 
 
   - TODO:
- * Backup a file that is not in accurate list (change NOCHG to LINK, FILE, etc..)
+ x Backup a file that is not in accurate list (change NOCHG to LINK, FILE, etc..)
  * Manage JobFiles (Deleted compte pour 1 ?)
- * Gerer la fuite memoire...
+ x Gerer la fuite memoire...
   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
 12521 eric      15   0  178m 132m  844 S  0.0 26.4   2:39.30 bacula-fd
 
+ x Utiliser le check_accurate dans find_one et declencher le save_file
+ si besoin en desactivant le incremental.
+ x ne va pas marcher avec le strip path (la recherche est faite avant le strip path)
+ * on peut utiliser le champs LStat de la base pour noter que le fichier est supprimé...
   
  CREATE TEMPORARY TABLE btemp2 AS (
   SELECT max(FileId) as FileId, PathId, FilenameId 
@@ -537,7 +543,7 @@ items 13-15.
  SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat 
  FROM (
   SELECT max(FileId) as FileId, PathId, FilenameId 
-    FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (39867,40341)) AS F
+    FROM (SELECT FileId, PathId, FilenameId FROM File WHERE JobId IN (11,13)) AS F
    GROUP BY PathId, FilenameId
   ) AS Temp 
  JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) 
