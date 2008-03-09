@@ -249,7 +249,7 @@ bool get_tls_enable(TLS_CONTEXT *ctx)
  *  Returns: true on success
  *           false on failure
  */
-bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
+bool tls_postconnect_verify_cn(JCR *jcr, TLS_CONNECTION *tls, alist *verify_list)
 {
    SSL *ssl = tls->openssl;
    X509 *cert;
@@ -259,7 +259,7 @@ bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
 
    /* Check if peer provided a certificate */
    if (!(cert = SSL_get_peer_certificate(ssl))) {
-      Jmsg0(NULL, M_ERROR, 0, _("Peer failed to present a TLS certificate\n"));
+      Qmsg0(jcr, M_ERROR, 0, _("Peer failed to present a TLS certificate\n"));
       return false;
    }
 
@@ -288,7 +288,7 @@ bool tls_postconnect_verify_cn(TLS_CONNECTION *tls, alist *verify_list)
  *  Returns: true on success
  *           false on failure
  */
-bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
+bool tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls, const char *host)
 {
    SSL *ssl = tls->openssl;
    X509 *cert;
@@ -301,7 +301,7 @@ bool tls_postconnect_verify_host(TLS_CONNECTION *tls, const char *host)
 
    /* Check if peer provided a certificate */
    if (!(cert = SSL_get_peer_certificate(ssl))) {
-      Jmsg1(NULL, M_ERROR, 0, 
+      Qmsg1(jcr, M_ERROR, 0, 
             _("Peer %s failed to present a TLS certificate\n"), host);
       return false;
    }

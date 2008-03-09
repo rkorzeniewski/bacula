@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -357,8 +357,8 @@ static int start_server(jobq_t *jq)
    pthread_t id;
 
    /*
-    * if any threads are idle, wake one --                
-    *   actually we do a broadcast because on /lib/tls 
+    * if any threads are idle, wake one.
+    *   Actually we do a broadcast because on /lib/tls 
     *   these signals seem to get lost from time to time.
     */
    if (jq->idle_workers > 0) {
@@ -478,12 +478,14 @@ void *jobq_server(void *arg)
           */
          if (jcr->acquired_resource_locks) {
             if (jcr->rstore) {
-               jcr->rstore->NumConcurrentJobs = 0;
+               jcr->rstore->NumConcurrentJobs--;
                Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+               ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
             }
             if (jcr->wstore) {
                jcr->wstore->NumConcurrentJobs--;
                Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+               ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
             }
             jcr->client->NumConcurrentJobs--;
             jcr->job->NumConcurrentJobs--;
@@ -681,15 +683,24 @@ static bool acquire_resources(JCR *jcr)
    bool skip_this_jcr = false;
 
    jcr->acquired_resource_locks = false;
+   if (jcr->rstore == jcr->wstore) {           /* deadlock */
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
+         "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
+         jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
+      set_jcr_job_status(jcr, JS_Canceled);
+      return false;
+   }
    if (jcr->rstore) {
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
-      /*
-       * Let only one Restore/Verify job run at a time regardless
-       *  of MaxConcurrentjobs.
-       */
-      if (jcr->rstore->NumConcurrentJobs == 0) {
+      if (jcr->rstore->NumConcurrentJobs == 0 &&
+          jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+         /* Simple case, first job */
          jcr->rstore->NumConcurrentJobs = 1;
          Dmsg0(200, "Set rncj=1\n");
+      /* We can do this only if multi-drive autochanger */
+//    } else if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+//       jcr->rstore->NumConcurrentJobs++;
+//       Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       } else {
          Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
@@ -699,14 +710,6 @@ static bool acquire_resources(JCR *jcr)
    
    if (jcr->wstore) {
       Dmsg1(200, "Wstore=%s\n", jcr->wstore->name());
-      if (jcr->rstore == jcr->wstore) {           /* deadlock */
-         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
-         Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
-            "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
-            jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
-         set_jcr_job_status(jcr, JS_Canceled);
-         return false;
-      }
       if (jcr->wstore->NumConcurrentJobs == 0 &&
           jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
          /* Simple case, first job */
@@ -716,8 +719,9 @@ static bool acquire_resources(JCR *jcr)
          jcr->wstore->NumConcurrentJobs++;
          Dmsg1(200, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       } else if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;      /* back out rstore */
+         jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
          Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
          skip_this_jcr = true;
       } else {
          Dmsg1(200, "Fail wncj=%d\n", jcr->wstore->NumConcurrentJobs);
@@ -736,10 +740,12 @@ static bool acquire_resources(JCR *jcr)
       if (jcr->wstore) {
          jcr->wstore->NumConcurrentJobs--;
          Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
       }
       if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;
+         jcr->rstore->NumConcurrentJobs--;  
          Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
       }
       set_jcr_job_status(jcr, JS_WaitClientRes);
       return false;
@@ -751,10 +757,12 @@ static bool acquire_resources(JCR *jcr)
       if (jcr->wstore) {
          jcr->wstore->NumConcurrentJobs--;
          Dmsg1(200, "Dec wncj=%d\n", jcr->wstore->NumConcurrentJobs);
+         ASSERT(jcr->wstore->NumConcurrentJobs >= 0);
       }
       if (jcr->rstore) {
-         jcr->rstore->NumConcurrentJobs = 0;
+         jcr->rstore->NumConcurrentJobs--;
          Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
       }
       jcr->client->NumConcurrentJobs--;
       set_jcr_job_status(jcr, JS_WaitJobRes);

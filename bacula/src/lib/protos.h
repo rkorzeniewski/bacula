@@ -286,9 +286,9 @@ TLS_CONTEXT      *new_tls_context        (const char *ca_certfile,
                                           bool verify_peer);
 void             free_tls_context        (TLS_CONTEXT *ctx);
 #ifdef HAVE_TLS
-bool             tls_postconnect_verify_host  (TLS_CONNECTION *tls,
+bool             tls_postconnect_verify_host(JCR *jcr, TLS_CONNECTION *tls,
                                                const char *host);
-bool             tls_postconnect_verify_cn    (TLS_CONNECTION *tls,
+bool             tls_postconnect_verify_cn(JCR *jcr, TLS_CONNECTION *tls,
                                                alist *verify_list);
 TLS_CONNECTION   *new_tls_connection     (TLS_CONTEXT *ctx, int fd);
 bool             tls_bsock_accept        (BSOCK *bsock);
