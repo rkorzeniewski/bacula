@@ -281,5 +281,6 @@ void Clients::prune()
  */
 void Clients::statusClientWindow()
 {
-   new ClientStat(m_currentlyselected);
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   new ClientStat(m_currentlyselected, parentItem);
 }

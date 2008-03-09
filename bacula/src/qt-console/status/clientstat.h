@@ -43,7 +43,7 @@ class ClientStat : public Pages, public Ui::ClientStatForm
    Q_OBJECT 
 
 public:
-   ClientStat(QString&);
+   ClientStat(QString&, QTreeWidgetItem*);
    ~ClientStat();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
