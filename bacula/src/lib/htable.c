@@ -251,16 +251,16 @@ bool htable::insert(char *key, void *item)
       return false;                   /* already exists */
    }
    ASSERT(index < buckets);
-   Dmsg2(100, "Insert: hash=0x%x index=%d\n", (unsigned)hash, index);
+   Dmsg2(100, "Insert: hash=%p index=%d\n", hash, index);
    hp = (hlink *)(((char *)item)+loffset);
-   Dmsg4(100, "Insert hp=0x%x index=%d item=0x%x offset=%u\n", (unsigned)hp,
-      index, (unsigned)item, loffset);
+   Dmsg4(100, "Insert hp=%p index=%d item=%p offset=%u\n", hp,
+      index, item, loffset);
    hp->next = table[index];
    hp->hash = hash;
    hp->key = key;
    table[index] = hp;
-   Dmsg3(100, "Insert hp->next=0x%x hp->hash=0x%x hp->key=%s\n",
-      (unsigned)hp->next, hp->hash, hp->key);
+   Dmsg3(100, "Insert hp->next=%p hp->hash=0x%x hp->key=%s\n",
+      hp->next, hp->hash, hp->key);
 
    if (++num_items >= max_items) {
       Dmsg2(100, "num_items=%d max_items=%d\n", num_items, max_items);
@@ -274,9 +274,9 @@ void *htable::lookup(char *key)
 {
    hash_index(key);
    for (hlink *hp=table[index]; hp; hp=(hlink *)hp->next) {
-//    Dmsg2(100, "hp=0x%x key=%s\n", (long)hp, hp->key);
+//    Dmsg2(100, "hp=%p key=%s\n", hp, hp->key);
       if (hash == hp->hash && strcmp(key, hp->key) == 0) {
-         Dmsg1(100, "lookup return %x\n", ((char *)hp)-loffset);
+         Dmsg1(100, "lookup return %p\n", ((char *)hp)-loffset);
          return ((char *)hp)-loffset;
       }
    }
@@ -285,20 +285,20 @@ void *htable::lookup(char *key)
 
 void *htable::next()
 {
-   Dmsg1(100, "Enter next: walkptr=0x%x\n", (unsigned)walkptr);
+   Dmsg1(100, "Enter next: walkptr=%p\n", walkptr);
    if (walkptr) {
       walkptr = (hlink *)(walkptr->next);
    }
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];
       if (walkptr) {
-         Dmsg3(100, "new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
-            (unsigned)(walkptr->next), walk_index-1);
+         Dmsg3(100, "new walkptr=%p next=%p inx=%d\n", walkptr,
+            walkptr->next, walk_index-1);
       }
    }
    if (walkptr) {
-      Dmsg2(100, "next: rtn 0x%x walk_index=%d\n",
-         (unsigned)(((char *)walkptr)-loffset), walk_index);
+      Dmsg2(100, "next: rtn %p walk_index=%d\n",
+         ((char *)walkptr)-loffset, walk_index);
       return ((char *)walkptr)-loffset;
    }
    Dmsg0(100, "next: return NULL\n");
@@ -313,12 +313,12 @@ void *htable::first()
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];  /* go to next bucket */
       if (walkptr) {
-         Dmsg3(100, "first new walkptr=0x%x next=0x%x inx=%d\n", (unsigned)walkptr,
-            (unsigned)(walkptr->next), walk_index-1);
+         Dmsg3(100, "first new walkptr=%p next=%p inx=%d\n", walkptr,
+            walkptr->next, walk_index-1);
       }
    }
    if (walkptr) {
-      Dmsg1(100, "Leave first walkptr=0x%x\n", (unsigned)walkptr);
+      Dmsg1(100, "Leave first walkptr=%p\n", walkptr);
       return ((char *)walkptr)-loffset;
    }
    Dmsg0(100, "Leave first walkptr=NULL\n");
@@ -377,7 +377,7 @@ int main()
       jcr->key = (char *)malloc(len);
 #endif
       memcpy(jcr->key, mkey, len);
-      Dmsg2(100, "link=0x%x jcr=0x%x\n", (unsigned)&jcr->link, (unsigned)jcr);
+      Dmsg2(100, "link=%p jcr=%p\n", jcr->link, jcr);
 
       jcrtbl->insert(jcr->key, jcr);
       if (i == 10) {
