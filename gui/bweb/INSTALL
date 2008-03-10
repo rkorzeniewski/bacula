@@ -50,7 +50,7 @@ Bweb works well with 1.39 release or later.
 
  # copy the bweb template file
  mkdir -p /usr/share/bweb/tpl/en
- install -m 644 -o root -g root  bweb/lang/tpl/en/*.tpl /usr/share/bweb/tpl/en
+ install -m 644 -o root -g root  bweb/lang/en/tpl/*.tpl /usr/share/bweb/tpl/en
 
  # copy the bweb graphics elements (bweb elements must reside in /bweb)
  mkdir /var/www/bweb
