@@ -104,7 +104,7 @@ bool dot_status_cmd(UAContext *ua, const char *cmd)
    } else if (strcasecmp(ua->argk[1], "client") == 0) {
       client = get_client_resource(ua);
       if (client) {
-         Dmsg2(000, "Client=%s arg=%s\n", client->name(), NPRT(ua->argk[2]));
+         Dmsg2(200, "Client=%s arg=%s\n", client->name(), NPRT(ua->argk[2]));
          do_client_status(ua, client, ua->argk[2]);
       }
    } else if (strcasecmp(ua->argk[1], "storage") == 0) {
