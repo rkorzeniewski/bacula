@@ -534,6 +534,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          return false;
       }
       Dmsg1(100, "Someone woke me for device %s\n", dev->print_name());
+      break;
    }
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
