@@ -50,9 +50,9 @@
 #include "dird.h"
 
 /* Commands sent to File daemon */
-static char restorecmd[]        = "restore replace=%c prelinks=%d where=%s\n";
+static char restorecmd[]  = "restore replace=%c prelinks=%d where=%s\n";
 static char restorecmdR[] = "restore replace=%c prelinks=%d regexwhere=%s\n";
-static char storaddr[]   = "storage address=%s port=%d ssl=0\n";
+static char storaddr[]    = "storage address=%s port=%d ssl=0\n";
 
 /* Responses received from File daemon */
 static char OKrestore[]   = "2000 OK restore\n";

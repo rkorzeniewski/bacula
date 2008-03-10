@@ -155,6 +155,7 @@ static RES_ITEM con_items[] = {
    {"filesetacl",  store_acl,      ITEM(res_con.ACL_lists), FileSet_ACL, 0, 0},
    {"catalogacl",  store_acl,      ITEM(res_con.ACL_lists), Catalog_ACL, 0, 0},
    {"whereacl",    store_acl,      ITEM(res_con.ACL_lists), Where_ACL, 0, 0},
+   {"pluginoptionsacl",     store_acl,       ITEM(res_con.ACL_lists), PluginOptions_ACL, 0, 0},
    {"tlsauthenticate",      store_bool,      ITEM(res_con.tls_authenticate), 0, 0, 0},
    {"tlsenable",            store_bool,      ITEM(res_con.tls_enable), 0, 0, 0},
    {"tlsrequire",           store_bool,      ITEM(res_con.tls_require), 0, 0, 0},

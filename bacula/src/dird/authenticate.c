@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -50,8 +50,9 @@ extern DIRRES *director;
 static char hello[]    = "Hello Director %s calling\n";
 
 /* Response from Storage daemon */
-static char OKhello[]   = "3000 OK Hello\n";
-static char FDOKhello[] = "2000 OK Hello\n";
+static char OKhello[]      = "3000 OK Hello\n";
+static char FDOKhello[]    = "2000 OK Hello\n";
+static char FDOKnewHello[] = "2000 OK Hello %d\n";
 
 /* Sent to User Agent */
 static char Dir_sorry[]  = "1999 You are not authorized.\n";
@@ -249,7 +250,6 @@ int authenticate_file_daemon(JCR *jcr)
    if (tls_local_need >= BNET_TLS_OK && tls_remote_need >= BNET_TLS_OK) {
       /* Engage TLS! Full Speed Ahead! */
       if (!bnet_tls_client(client->tls_ctx, fd, client->tls_allowed_cns)) {
-
          stop_bsock_timer(tid);
          Jmsg(jcr, M_FATAL, 0, _("TLS negotiation failed with FD at \"%s:%d\".\n"),
               fd->host(), fd->port());
@@ -269,9 +269,11 @@ int authenticate_file_daemon(JCR *jcr)
          fd->host(), fd->port(), fd->bstrerror());
       return 0;
    }
-   Dmsg1(110, "<stored: %s", fd->msg);
+   Dmsg1(110, "<filed: %s", fd->msg);
    stop_bsock_timer(tid);
-   if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0) {
+   jcr->FDVersion = 0;
+   if (strncmp(fd->msg, FDOKhello, sizeof(FDOKhello)) != 0 &&
+       sscanf(fd->msg, FDOKnewHello, &jcr->FDVersion) != 1) {
       Dmsg0(dbglvl, _("File daemon rejected Hello command\n"));
       Jmsg(jcr, M_FATAL, 0, _("File daemon at \"%s:%d\" rejected Hello command\n"),
            fd->host(), fd->port());
