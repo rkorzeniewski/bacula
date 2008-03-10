@@ -339,7 +339,6 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    }
    Dmsg1(150, "Label type=%d\n", dev->label_type);
    if (!dev->rewind(dcr)) {
-      dev->clear_volhdr();
       Dmsg2(130, "Bad status on %s from rewind: ERR=%s\n", dev->print_name(), dev->print_errmsg());
       if (!forge_on) {
          goto bail_out;
@@ -602,7 +601,7 @@ void create_volume_label(DEVICE *dev, const char *VolName,
 
    ASSERT(dev != NULL);
 
-   dev->clear_volhdr();          /* release any old volume */
+   dev->clear_volhdr();          /* clear any old volume info */
 
    bstrncpy(dev->VolHdr.Id, BaculaId, sizeof(dev->VolHdr.Id));
    dev->VolHdr.VerNum = BaculaTapeVersion;

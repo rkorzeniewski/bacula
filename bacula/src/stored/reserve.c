@@ -53,6 +53,7 @@ static bool reserve_device_for_append(DCR *dcr, RCTX &rctx);
 static bool use_storage_cmd(JCR *jcr);
 static void queue_reserve_message(JCR *jcr);
 static void pop_reserve_messages(JCR *jcr);
+void switch_device(DCR *dcr, DEVICE *dev);
 
 /* Requests from the Director daemon */
 static char use_storage[]  = "use storage=%127s media_type=%127s "
@@ -379,6 +380,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
+         switch_device(dcr, vol->dev);
+         dev = vol->dev;
+#ifdef xxx
          if (!vol->dev->is_busy()) {
             /* OK to move it -- I'm not sure this will work */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", VolumeName,
@@ -394,6 +398,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             vol = NULL;                /* device busy */
             goto get_out;
          }
+#endif
       }
    }
    dev->vol = vol;
