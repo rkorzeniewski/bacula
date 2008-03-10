@@ -190,7 +190,7 @@ void ClientStat::populateTerminated()
 void ClientStat::populateRunning()
 {
    QString command = QString(".status client=\"" + m_client + "\" running");
-   Pmsg1(000, "Clients running cmd : %s\n",command.toUtf8().data());
+   Pmsg1(100, "Clients running cmd : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
