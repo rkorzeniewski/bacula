@@ -277,6 +277,7 @@ public:
    int replace;                       /* Replace option */
    int NumVols;                       /* Number of Volume used in pool */
    int reschedule_count;              /* Number of times rescheduled */
+   int FDVersion;                     /* File daemon version number */
    int64_t spool_size;                /* Spool size for this job */
    bool spool_data;                   /* Spool data in SD */
    bool acquired_resource_locks;      /* set if resource locks acquired */

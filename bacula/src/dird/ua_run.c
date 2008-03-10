@@ -229,6 +229,9 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
          add_prompt(ua, _("Replace"));       /* 10 */
          add_prompt(ua, _("JobId"));         /* 11 */
       }
+      if (jcr->JobType == JT_BACKUP || jcr->JobType == JT_RESTORE) {
+         add_prompt(ua, _("Plugin Options")); /* 12 */
+      }
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
       case 0:
          /* Level */
@@ -294,7 +297,7 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
             jcr->JobPriority = ua->pint32_val;
          }
          goto try_again;
-      case 7:
+      case 7: 
          /* Pool or Bootstrap depending on JobType */
          if (jcr->JobType == JT_BACKUP ||
              jcr->JobType == JT_COPY ||
@@ -381,6 +384,17 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
             ua->send_msg(_("You must set the bootstrap file to NULL to be able to specify a JobId.\n"));
          }
          goto try_again;
+      case 12:        
+         /* Plugin Options */
+         if (!get_cmd(ua, _("Please Plugin Options string: "))) {
+            break;
+         }
+         if (jcr->plugin_options) {
+            free(jcr->plugin_options);
+            jcr->plugin_options = NULL;
+         }
+         jcr->plugin_options = bstrdup(ua->cmd);
+         goto try_again;
       case -1:                        /* error or cancel */
          goto bail_out;
       default:
@@ -428,7 +442,6 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
       jcr->where = bstrdup(rc.where);
       rc.where = NULL;
    }
-
 
    if (rc.regexwhere) {
       if (jcr->RegexWhere) {
@@ -758,7 +771,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                         "Pool:     %s (From %s)\n"
                         "Storage:  %s (From %s)\n"
                         "When:     %s\n"
-                        "Priority: %d\n"),
+                        "Priority: %d\n"
+                        "%s%s%s"),
                  _("Backup"),
                  job->name(),
                  level_to_str(jcr->JobLevel),
@@ -767,7 +781,10 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  NPRT(jcr->pool->name()), jcr->pool_source,
                  jcr->wstore?jcr->wstore->name():"*None*", jcr->wstore_source,
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
-                 jcr->JobPriority);
+                 jcr->JobPriority,
+                 jcr->plugin_options?"Plugin Options: ":"",
+                 jcr->plugin_options?jcr->plugin_options:"",
+                 jcr->plugin_options?"\n":"");
       } else {  /* JT_VERIFY */
          const char *Name;
          if (jcr->verify_job) {
@@ -834,7 +851,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                         "Storage:         %s\n"
                         "When:            %s\n"
                         "Catalog:         %s\n"
-                        "Priority:        %d\n"),
+                        "Priority:        %d\n"
+                        "Plugin Options:  %s\n"),
                  job->name(),
                  NPRT(jcr->RestoreBootstrap), 
                  jcr->RegexWhere?jcr->RegexWhere:job->RegexWhere,
@@ -845,7 +863,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  jcr->rstore->name(),
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->catalog->name(),
-                 jcr->JobPriority);
+                 jcr->JobPriority,
+                 NPRT(jcr->plugin_options));
 
          } else {
             ua->send_msg(_("Run Restore job\n"
@@ -859,7 +878,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                         "Storage:         %s\n"
                         "When:            %s\n"
                         "Catalog:         %s\n"
-                        "Priority:        %d\n"),
+                        "Priority:        %d\n"
+                        "Plugin Options:  %s\n"),
                  job->name(),
                  NPRT(jcr->RestoreBootstrap), 
                  jcr->where?jcr->where:NPRT(job->RestoreWhere), 
@@ -870,7 +890,8 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  jcr->rstore->name(),
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->catalog->name(),
-                 jcr->JobPriority);
+                 jcr->JobPriority,
+                 NPRT(jcr->plugin_options));
          }
 
       } else {
@@ -890,20 +911,22 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                          jcr->where?jcr->where:NPRT(job->RestoreWhere));
          }
 
-         ua->send_msg(_("Replace:    %s\n"
-                        "Client:     %s\n"
-                        "Storage:    %s\n"
-                        "JobId:      %s\n"
-                        "When:       %s\n"
-                        "Catalog:    %s\n"
-                        "Priority:   %d\n"),
+         ua->send_msg(_("Replace:         %s\n"
+                        "Client:          %s\n"
+                        "Storage:         %s\n"
+                        "JobId:           %s\n"
+                        "When:            %s\n"
+                        "Catalog:         %s\n"
+                        "Priority:        %d\n"
+                        "Plugin Options:  %s\n"),
               replace,
               jcr->client->name(),
               jcr->rstore->name(),
               jcr->RestoreJobId==0?"*None*":edit_uint64(jcr->RestoreJobId, ec1),
               bstrutime(dt, sizeof(dt), jcr->sched_time),
               jcr->catalog->name(),
-              jcr->JobPriority);
+              jcr->JobPriority,
+              NPRT(jcr->plugin_options));
       }
       break;
    case JT_COPY:
@@ -979,6 +1002,7 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
       "pool",                         /* 22 */
       "backupclient",                 /* 23 */
       "restoreclient",                /* 24 */
+      "pluginoptions",                /* 25 */
       NULL};
 
 #define YES_POS 14
@@ -1182,6 +1206,18 @@ static bool scan_command_line_arguments(UAContext *ua, run_ctx &rc)
                   return false;
                }
                rc.restore_client_name = ua->argv[i];
+               kw_ok = true;
+               break;
+            case 25: /* pluginoptions */
+               if (rc.plugin_options) {
+                  ua->send_msg(_("Plugin Options specified twice.\n"));
+                  return false;
+               }
+               rc.plugin_options = ua->argv[i];
+               if (!acl_access_ok(ua, PluginOptions_ACL, rc.plugin_options)) {
+                  ua->send_msg(_("No authoriztion for \"PluginOptions\" specification.\n"));
+                  return false;
+               }
                kw_ok = true;
                break;
             default:

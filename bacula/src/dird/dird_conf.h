@@ -185,6 +185,7 @@ enum {
    FileSet_ACL,
    Catalog_ACL,
    Where_ACL,
+   PluginOptions_ACL,
    Num_ACL                            /* keep last */
 };
 
