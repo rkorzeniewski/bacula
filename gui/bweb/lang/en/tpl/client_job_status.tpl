@@ -46,10 +46,10 @@
 
 <script type="text/javascript" language="JavaScript">
 <TMPL_IF last_jobfiles>
-  percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, document.getElementById('progress1'));
+  percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, <TMPL_VAR corr_jobfiles>, document.getElementById('progress1'));
 </TMPL_IF>
 <TMPL_IF last_jobbytes>
-  percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, document.getElementById('progress2'));
+  percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, <TMPL_VAR corr_jobbytes>, document.getElementById('progress2'));
 </TMPL_IF>
   bweb_add_refresh();
 </script>

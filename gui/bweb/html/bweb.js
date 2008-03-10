@@ -230,12 +230,12 @@ function percent_display(hash_values, parent)
   return parent;
 }
 
-function percent_finish(value, parent)
+function percent_finish(value, corr, parent)
 {
    var type;
 
    var nb = parseInt(value*300/100, 10);
-   parent.title = parseInt(value*100,10)/100 + "% finished (approximate)";
+   parent.title = parseInt(value*100,10)/100 + "% finished (approximate " + (corr).toFixed(2) + ")" ;
 
    var img=document.createElement('img');
    img.className="pSliceFinished";

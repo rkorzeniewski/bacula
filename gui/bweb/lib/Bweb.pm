@@ -423,16 +423,18 @@ use base q/Bweb::Gui/;
 
 sub display_running_job
 {
-    my ($self, $bweb, $jobid, $last_jobfiles, $last_jobbytes) = @_ ;
+    my ($self, $bweb, $jobid, $infos) = @_ ;
     my $status = $self->status($bweb->{info});
 
     if ($jobid) {
 	if ($status->{$jobid}) {
 	    $status = $status->{$jobid};
-	    $status->{last_jobbytes} = $last_jobbytes;
-	    $status->{last_jobfiles} = $last_jobfiles;
+	    $status->{last_jobbytes} = $infos->{jobbytes};
+	    $status->{last_jobfiles} = $infos->{jobfiles};
+	    $status->{corr_jobbytes} = $infos->{corr_jobbytes};
+	    $status->{corr_jobfiles} = $infos->{corr_jobfiles};
 	    $status->{jobbytes}=$status->{Bytes}; 
-	    $status->{jobbytes} =~ s![, B/s]!!g;
+	    $status->{jobbytes} =~ s![^\d]!!g;
 	    $status->{jobfiles}=$status->{Files}; 
 	    $status->{jobfiles} =~ s/,//g;
 	    $bweb->display($status, "client_job_status.tpl");
@@ -3900,13 +3902,35 @@ WHERE Job.JobId = $arg->{jobid}
 	return $self->error("Can't get client");
     }
 
-    $query = "
-SELECT temp.jobname AS jobname, AVG(JobBytes) AS jobbytes,
-       AVG(JobFiles) AS jobfiles, COUNT(1) AS nb
+    if ($self->dbh_is_mysql()) { # mysql doesn't have statistics functions
+	$query = "
+SELECT jobname AS jobname, 
+       0.1 AS corr_jobbytes, AVG(jobbytes) AS jobbytes,
+       0.1 AS corr_jobfiles, AVG(jobfiles) AS jobfiles, 
+       COUNT(1) AS nb ";
+    } else {
+	# postgresql have functions that permit to handle lineal regression
+	# in y=ax + b
+	# REGR_SLOPE(Y,X) = get x
+	# REGR_INTERCEPT(Y,X) = get b
+	# and we need y when x=now()
+	# CORR gives the correlation (TODO: display progress bar only if CORR > 0.8)
+	my $now = scalar(time);
+	$query = "
+SELECT temp.jobname AS jobname, 
+       CORR(jobbytes,jobtdate) AS corr_jobbytes,
+       ($now*REGR_SLOPE(jobbytes,jobtdate) + REGR_INTERCEPT(jobbytes,jobtdate)) AS jobbytes,
+       CORR(jobfiles,jobtdate) AS corr_jobfiles,
+       ($now*REGR_SLOPE(jobfiles,jobtdate) + REGR_INTERCEPT(jobfiles,jobtdate)) AS jobfiles,
+       COUNT(1) AS nb ";
+    }
+    $query .= 
+"
 FROM (
    SELECT Job.Name AS jobname, 
           JobBytes AS jobbytes,
-          JobFiles AS jobfiles
+          JobFiles AS jobfiles,
+          JobTDate AS jobtdate
    FROM Job INNER JOIN Client USING (ClientId) $filter
    WHERE Job.Name = '$row->{jobname}'
      AND Job.Level = '$row->{level}'
@@ -3918,17 +3942,11 @@ FROM (
 
     $row = $self->dbh_selectrow_hashref($query);
 
-    if ($row) {
-	if ($row->{nb} >= 1) {
-	    $arg->{jobbytes} = $row->{jobbytes};
-	    $arg->{jobfiles} = $row->{jobfiles};
-	} else {
-	    $arg->{jobbytes} = $arg->{jobfiles} = 0;
-	}
+    if (!$row or $row->{nb} == 0) {
+	$row->{jobbytes} = $row->{jobfiles} = 0;
     }
     my $cli = new Bweb::Client(name => $arg->{client});
-    $cli->display_running_job($self, $arg->{jobid}, 
-			      $arg->{jobfiles}, $arg->{jobbytes});
+    $cli->display_running_job($self, $arg->{jobid}, $row);
     if ($arg->{jobid}) {
 	$self->get_job_log();
     }
