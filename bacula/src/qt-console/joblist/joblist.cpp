@@ -403,7 +403,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       jobitem = mp_tableWidget->item(row, m_purgedIndex);
       QString purged = jobitem->text();
       mp_tableWidget->removeAction(actionPurgeFiles);
-      if (purged == "0") {
+      if (purged == "NOT") {
          mp_tableWidget->addAction(actionPurgeFiles);
       }
       /* include restore from time and job action or not */
@@ -411,7 +411,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       QString type = jobitem->text();
       mp_tableWidget->removeAction(actionRestoreFromJob);
       mp_tableWidget->removeAction(actionRestoreFromTime);
-      if (type == "B") {
+      if (type == "Backup") {
          mp_tableWidget->addAction(actionRestoreFromJob);
          mp_tableWidget->addAction(actionRestoreFromTime);
       }
