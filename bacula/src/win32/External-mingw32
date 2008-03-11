@@ -37,7 +37,7 @@ SCONS|http://www.bacula.org/depkgs-mingw32/scons-0.96.92.tar.gz
 SED|http://www.bacula.org/depkgs-mingw32/sed-4.1.5.tar.gz
 SQLITE|http://www.bacula.org/depkgs-mingw32/sqlite-3.3.17.tar.gz
 STAB2CV|http://www.bacula.org/depkgs-mingw32/stab2cv-0.1.tar.bz2
-WX|http://www.bacula.org/depkgs-mingw32/wxWidgets-2.7.0.tar.gz
+WX|http://www.bacula.org/depkgs-mingw32/wxWidgets-2.8.7.tar.gz
 ZLIB|http://www.bacula.org/depkgs-mingw32/zlib-1.2.3.tar.gz
 # 
 # 

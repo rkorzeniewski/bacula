@@ -32,7 +32,7 @@ FILED_OBJS = \
 	$(OBJDIR)/authenticate.o \
 	$(OBJDIR)/backup.o \
 	$(OBJDIR)/estimate.o \
-	$(OBJDIR)/fd-plugins.o \
+	$(OBJDIR)/fd_plugins.o \
 	$(OBJDIR)/filed.o \
 	$(OBJDIR)/filed_conf.o \
 	$(OBJDIR)/heartbeat.o \
