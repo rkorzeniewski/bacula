@@ -3875,6 +3875,58 @@ GROUP BY VolStatus
 		   "display_pool.tpl");
 }
 
+# With this function, we get an estimation of next jobfiles/jobbytes count
+sub get_estimate_query
+{
+    my ($self, $mode, $job, $level) = @_;
+    # get security filter
+    my $filter = $self->get_client_filter();
+
+    my $query;
+   
+    if (1 || $self->dbh_is_mysql()) { # mysql doesn't have statistics functions
+	$query = "
+SELECT jobname AS jobname, 
+       0.1 AS corr_jobbytes, AVG(jobbytes) AS jobbytes,
+       COUNT(1) AS nb_jobbytes ";
+    } else {
+	# postgresql have functions that permit to handle lineal regression
+	# in y=ax + b
+	# REGR_SLOPE(Y,X) = get x
+	# REGR_INTERCEPT(Y,X) = get b
+	# and we need y when x=now()
+	# CORR gives the correlation
+	# (TODO: display progress bar only if CORR > 0.8)
+	my $now = scalar(time);
+	$query = "
+SELECT temp.jobname AS jobname, 
+       CORR(jobbytes,jobtdate) AS corr_jobbytes,
+       ($now*REGR_SLOPE(jobbytes,jobtdate) 
+         + REGR_INTERCEPT(jobbytes,jobtdate)) AS jobbytes,
+       COUNT(1) AS nb_jobbytes ";
+    }
+    $query .= 
+"
+FROM (
+   SELECT Job.Name AS jobname, 
+          JobBytes AS jobbytes,
+          JobTDate AS jobtdate
+   FROM Job INNER JOIN Client USING (ClientId) $filter
+   WHERE Job.Name = '$job'
+     AND Job.Level = '$level'
+     AND Job.JobStatus = 'T'
+   ORDER BY StartTime DESC
+   LIMIT 4
+) AS temp GROUP BY temp.jobname
+";
+ 
+    if ($mode eq 'jobfiles') {
+	$query =~ s/jobbytes/jobfiles/g;
+	$query =~ s/JobBytes/JobFiles/g;
+    }
+    return $query;
+}
+
 sub display_running_job
 {
     my ($self) = @_;
@@ -3902,47 +3954,20 @@ WHERE Job.JobId = $arg->{jobid}
 	return $self->error("Can't get client");
     }
 
-    if ($self->dbh_is_mysql()) { # mysql doesn't have statistics functions
-	$query = "
-SELECT jobname AS jobname, 
-       0.1 AS corr_jobbytes, AVG(jobbytes) AS jobbytes,
-       0.1 AS corr_jobfiles, AVG(jobfiles) AS jobfiles, 
-       COUNT(1) AS nb ";
-    } else {
-	# postgresql have functions that permit to handle lineal regression
-	# in y=ax + b
-	# REGR_SLOPE(Y,X) = get x
-	# REGR_INTERCEPT(Y,X) = get b
-	# and we need y when x=now()
-	# CORR gives the correlation (TODO: display progress bar only if CORR > 0.8)
-	my $now = scalar(time);
-	$query = "
-SELECT temp.jobname AS jobname, 
-       CORR(jobbytes,jobtdate) AS corr_jobbytes,
-       ($now*REGR_SLOPE(jobbytes,jobtdate) + REGR_INTERCEPT(jobbytes,jobtdate)) AS jobbytes,
-       CORR(jobfiles,jobtdate) AS corr_jobfiles,
-       ($now*REGR_SLOPE(jobfiles,jobtdate) + REGR_INTERCEPT(jobfiles,jobtdate)) AS jobfiles,
-       COUNT(1) AS nb ";
-    }
-    $query .= 
-"
-FROM (
-   SELECT Job.Name AS jobname, 
-          JobBytes AS jobbytes,
-          JobFiles AS jobfiles,
-          JobTDate AS jobtdate
-   FROM Job INNER JOIN Client USING (ClientId) $filter
-   WHERE Job.Name = '$row->{jobname}'
-     AND Job.Level = '$row->{level}'
-     AND Job.JobStatus = 'T'
-   ORDER BY StartTime DESC
-   LIMIT 4
-) AS temp GROUP BY temp.jobname
-";
+    # for jobfiles, we use only last Full backup. status client= returns
+    # all files that have been checked
+    my $query1 = $self->get_estimate_query('jobfiles', $row->{jobname}, 'F');
+    my $query2 = $self->get_estimate_query('jobbytes', 
+					   $row->{jobname}, $row->{level});
 
+    # LEFT JOIN because we always have a previous Full
+    $query = "
+SELECT  corr_jobbytes, jobbytes, corr_jobfiles, jobfiles
+  FROM ($query1) AS A LEFT JOIN ($query2) AS B USING (jobname)
+";
     $row = $self->dbh_selectrow_hashref($query);
 
-    if (!$row or $row->{nb} == 0) {
+    if (!$row) {
 	$row->{jobbytes} = $row->{jobfiles} = 0;
     }
     my $cli = new Bweb::Client(name => $arg->{client});
