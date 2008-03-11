@@ -70,7 +70,7 @@ typedef struct CurFile {
 bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 {
    char *p;
-   int stat=false;
+   bool stat = false;
    struct stat statc;                 /* catalog stat */
    char *Opts_Digest;
    char *fname;
@@ -84,7 +84,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       Opts_Digest = "cm"; 
    }
 
-   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
       return true;
    }
 
@@ -96,17 +96,16 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       fname = ff_pkt->fname;
    } 
 
-   elt = (CurFile *) jcr->file_list->lookup(fname);
+   elt = (CurFile *)jcr->file_list->lookup(fname);
 
    if (!elt) {
       Dmsg1(500, "accurate %s = yes (not found)\n", fname);
-      stat=true;
+      stat = true;
       goto bail_out;
    }
 
    if (accurate_file_has_been_seen(elt)) {
       Dmsg1(500, "accurate %s = no (already seen)\n", fname);
-      stat=false;
       goto bail_out;
    }
 
@@ -1446,7 +1445,11 @@ static bool do_strip(int count, char *in)
 }
 
 /*
- * If requested strip leading components of the path
+ * If requested strip leading components of the path so that we can
+ *   save file as if it came from a subdirectory.  This is most useful
+ *   for dealing with snapshots, by removing the snapshot directory, or
+ *   in handling vendor migrations where files have been restored with
+ *   a vendor product into a subdirectory.
  */
 static void strip_path(FF_PKT *ff_pkt)
 {
