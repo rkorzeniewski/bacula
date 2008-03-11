@@ -29,6 +29,8 @@
  *
  *   Bacula Director -- migrate.c -- responsible for doing
  *     migration jobs.
+ * 
+ *   Also handles Copy jobs (March MMVIII)
  *
  *     Kern Sibbald, September MMIV
  *
@@ -279,7 +281,8 @@ bool do_migration(JCR *jcr)
    }
 
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Migration JobId %s, Job=%s\n"),
+   Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
+        jcr->JobType == JT_MIGRATE ? "Migration" : "Copy",
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
 
@@ -364,7 +367,7 @@ bool do_migration(JCR *jcr)
     * to avoid two threads from using the BSOCK structure at
     * the same time.
     */
-   if (!bnet_fsend(sd, "run")) {
+   if (!sd->fsend("run")) {
       return false;
    }
 
@@ -389,7 +392,7 @@ bool do_migration(JCR *jcr)
    }
 
    migration_cleanup(jcr, jcr->JobStatus);
-   if (mig_jcr) {
+   if (jcr->JobType == JT_MIGRATE && mig_jcr) {
       char jobid[50];
       UAContext *ua = new_ua_context(jcr);
       edit_uint64(jcr->previous_jr.JobId, jobid);
@@ -1172,8 +1175,8 @@ void migration_cleanup(JCR *jcr, int TermCode)
 "  Build OS:               %s %s %s\n"
 "  Prev Backup JobId:      %s\n"
 "  New Backup JobId:       %s\n"
-"  Migration JobId:        %s\n"
-"  Migration Job:          %s\n"
+"  Current JobId:          %s\n"
+"  Current Job:            %s\n"
 "  Backup Level:           %s%s\n"
 "  Client:                 %s\n"
 "  FileSet:                \"%s\" %s\n"
