@@ -166,7 +166,7 @@ void DirStat::populateTerminated()
                   p_tableitem->setBackground(Qt::green);
                else
                   p_tableitem->setBackground(Qt::red);
-            terminatedTable->setItem(row, column, p_tableitem);
+            terminatedTable->setItem(results.size() - row - 1, column, p_tableitem);
             column += 1;
          }
          row += 1;
