@@ -24,12 +24,12 @@
  </tr>
 <TMPL_IF last_jobbytes>
  <tr>
-  <td> <b> Bytes done </b> </td><td> <div id='progress1'><td>
+  <td> <b> Bytes done </b> </td><td> <div id='progressb'><td>
  </tr>
 </TMPL_IF>
 <TMPL_IF last_jobfiles>
  <tr>
-  <td> <b> Files done </b> </td><td> <div id='progress2'><td>
+  <td> <b> Files done </b> </td><td> <div id='progressf'><td>
  </tr>
 </TMPL_IF>
 </table>
@@ -46,10 +46,10 @@
 
 <script type="text/javascript" language="JavaScript">
 <TMPL_IF last_jobfiles>
-  percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, <TMPL_VAR corr_jobfiles>, document.getElementById('progress1'));
+  percent_finish(<TMPL_VAR jobfiles>*100/<TMPL_VAR last_jobfiles>, <TMPL_VAR corr_jobfiles>, document.getElementById('progressf'));
 </TMPL_IF>
 <TMPL_IF last_jobbytes>
-  percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, <TMPL_VAR corr_jobbytes>, document.getElementById('progress2'));
+  percent_finish(<TMPL_VAR jobbytes>*100/<TMPL_VAR last_jobbytes>, <TMPL_VAR corr_jobbytes>, document.getElementById('progressb'));
 </TMPL_IF>
   bweb_add_refresh();
 </script>

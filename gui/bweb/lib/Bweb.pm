@@ -3884,7 +3884,7 @@ sub get_estimate_query
 
     my $query;
    
-    if (1 || $self->dbh_is_mysql()) { # mysql doesn't have statistics functions
+    if ($self->dbh_is_mysql()) { # mysql doesn't have statistics functions
 	$query = "
 SELECT jobname AS jobname, 
        0.1 AS corr_jobbytes, AVG(jobbytes) AS jobbytes,
