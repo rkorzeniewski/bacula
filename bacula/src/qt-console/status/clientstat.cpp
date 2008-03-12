@@ -48,7 +48,7 @@ ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
    pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
-   m_cursor = new QTextCursor(textEdit->document());
+   m_cursor = new QTextCursor(textEditHeader->document());
 
    readSettings();
    dockPage();
@@ -62,7 +62,7 @@ ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
 
 void ClientStat::getFont()
 {
-   QFont font = textEdit->font();
+   QFont font = textEditHeader->font();
 
    QString dirname;
    m_console->getDirResName(dirname);
@@ -72,7 +72,7 @@ void ClientStat::getFont()
    font.setPointSize(settings.value("consolePointSize", 10).toInt());
    font.setFixedPitch(settings.value("consoleFixedPitch", true).toBool());
    settings.endGroup();
-   textEdit->setFont(font);
+   textEditHeader->setFont(font);
 }
 
 /*
@@ -114,12 +114,12 @@ void ClientStat::populateHeader()
 {
    QString command = QString(".status client=\"" + m_client + "\" header");
    QStringList results;
-   textEdit->clear();
+   textEditHeader->clear();
 
    if (m_console->dir_cmd(command, results)) {
       foreach (QString line, results) {
          line += "\n";
-         textEdit->insertPlainText(line);
+         textEditHeader->insertPlainText(line);
       }
    }
 }
@@ -179,46 +179,21 @@ void ClientStat::populateTerminated()
 }
 
 /*
- * Populate running table
+ * Populate running text
  */
 void ClientStat::populateRunning()
 {
    QString command = QString(".status client=\"" + m_client + "\" running");
    Pmsg1(100, "Clients running cmd : %s\n",command.toUtf8().data());
    QStringList results;
-   QBrush blackBrush(Qt::black);
-
-   runningTable->clear();
-   QStringList headerlist = (QStringList()
-      << tr("Job Id") << tr("Job Level") << tr("Job Data") << tr("Job Info"));
-
-   runningTable->setColumnCount(headerlist.size());
-   runningTable->setHorizontalHeaderLabels(headerlist);
+   textEditRunning->clear();
 
    if (m_console->dir_cmd(command, results)) {
-      int row = 0;
-      QTableWidgetItem* p_tableitem;
-      runningTable->setRowCount(results.size());
       foreach (QString line, results) {
-         /* Iterate through the record returned from the query */
-         QStringList fieldlist = line.split("\t");
-         int column = 0;
-         QString statusCode("");
-         /* Iterate through fields in the record */
-         foreach (QString field, fieldlist) {
-            field = field.trimmed();  /* strip leading & trailing spaces */
-            p_tableitem = new QTableWidgetItem(field, 1);
-            p_tableitem->setForeground(blackBrush);
-            p_tableitem->setFlags(0);
-            runningTable->setItem(row, column, p_tableitem);
-            column += 1;
-         }
-         row += 1;
+         line += "\n";
+         textEditRunning->insertPlainText(line);
       }
    }
-   runningTable->resizeColumnsToContents();
-   runningTable->resizeRowsToContents();
-   runningTable->verticalHeader()->hide();
 }
 
 /*
@@ -253,12 +228,6 @@ void ClientStat::createConnections()
 {
    connect(actionRefresh, SIGNAL(triggered()), this,
                    SLOT(populateAll()));
-   connect(actionCancelRunning, SIGNAL(triggered()), this,
-                   SLOT(consoleCancelJob()));
-
-   runningTable->setContextMenuPolicy(Qt::ActionsContextMenu);
-   runningTable->addAction(actionRefresh);
-   runningTable->addAction(actionCancelRunning);
 }
 
 /*
@@ -278,24 +247,9 @@ void ClientStat::writeSettings()
 void ClientStat::readSettings()
 {
    m_groupText = "ClientStatPage";
-   m_splitText = "splitterSizes_0";
+   m_splitText = "splitterSizes_1";
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
    splitter->restoreState(settings.value(m_splitText).toByteArray());
    settings.endGroup();
-}
-
-/*
- * Cancel a running job
- */
-void ClientStat::consoleCancelJob()
-{
-   int currentrow = runningTable->currentRow();
-   QTableWidgetItem *item = runningTable->item(currentrow, 0);
-   if (item) {
-      QString text = item->text();
-      QString cmd("cancel jobid=");
-      cmd += text;
-      consoleCommand(cmd);
-   }
 }
