@@ -40,7 +40,8 @@
 #include "bat.h"
 #include "storage.h"
 #include "label/label.h"
-#include "../mount/mount.h"
+#include "mount/mount.h"
+#include "status/storstat.h"
 
 Storage::Storage()
 {
@@ -163,6 +164,7 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
          if (treedepth == 1){
             mp_treeWidget->removeAction(actionStatusStorageInConsole);
+            mp_treeWidget->removeAction(actionStatusStorageWindow);
             mp_treeWidget->removeAction(actionLabelStorage);
             mp_treeWidget->removeAction(actionMountStorage);
             mp_treeWidget->removeAction(actionUnMountStorage);
@@ -179,6 +181,7 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          m_currentStorage = currentwidgetitem->text(0);
          m_currentAutoChanger = currentwidgetitem->text(2).toInt();
          mp_treeWidget->addAction(actionStatusStorageInConsole);
+         mp_treeWidget->addAction(actionStatusStorageWindow);
          mp_treeWidget->addAction(actionLabelStorage);
          mp_treeWidget->addAction(actionMountStorage);
          mp_treeWidget->addAction(actionUnMountStorage);
@@ -186,6 +189,8 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          QString text;
          text = "Status Storage \"" + m_currentStorage + "\"";
          actionStatusStorageInConsole->setText(text);
+         text = "Status Storage \"" + m_currentStorage + "\" in Window";
+         actionStatusStorageWindow->setText(text);
          text = "Label media in Storage \"" + m_currentStorage + "\"";
          actionLabelStorage->setText(text);
          text = "Mount media in Storage \"" + m_currentStorage + "\"";
@@ -235,6 +240,8 @@ void Storage::createContextMenu()
                 SLOT(consoleUpdateSlotsScan()));
    connect(actionRelease, SIGNAL(triggered()), this,
                 SLOT(consoleRelease()));
+   connect(actionStatusStorageWindow, SIGNAL(triggered()), this,
+                SLOT(statusStorageWindow()));
 }
 
 /*
@@ -312,4 +319,13 @@ void Storage::consoleRelease()
    QString cmd("release storage=");
    cmd += m_currentStorage;
    consoleCommand(cmd);
+}
+
+/*
+ *  Open a status storage window
+ */
+void Storage::statusStorageWindow()
+{
+   QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
+   new StorStat(m_currentStorage, parentItem);
 }

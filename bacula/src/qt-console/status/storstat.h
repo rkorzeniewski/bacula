@@ -1,5 +1,5 @@
-#ifndef _STORAGE_H_
-#define _STORAGE_H_
+#ifndef _STORSTAT_H_
+#define _STORSTAT_H_
 /*
    Bacula® - The Network Backup Solution
 
@@ -28,46 +28,51 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
+ *   Version $Id: dirstat.h 5372 2007-08-17 12:17:04Z kerns $
  *
  *   Dirk Bartley, March 2007
  */
 
 #include <QtGui>
-#include "ui_storage.h"
+#include "ui_storstat.h"
 #include "console.h"
 #include "pages.h"
 
-class Storage : public Pages, public Ui::StorageForm
+class StorStat : public Pages, public Ui::StorStatForm
 {
    Q_OBJECT 
 
 public:
-   Storage();
-   ~Storage();
+   StorStat(QString &, QTreeWidgetItem *);
+   ~StorStat();
    virtual void PgSeltreeWidgetClicked();
    virtual void currentStackItem();
 
 public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void populateHeader();
+   void populateTerminated();
+   void populateRunning();
+   void populateWaitReservation();
+   void populateDevices();
+   void populateVolumes();
+   void populateSpooling();
+   void populateAll();
 
 private slots:
-   void populateTree();
-   void consoleStatusStorage();
-   void consoleLabelStorage();
-   void consoleMountStorage();
-   void consoleUnMountStorage();
-   void consoleUpdateSlots();
-   void consoleUpdateSlotsScan();
-   void consoleRelease();
-   void statusStorageWindow();
+   void timerTriggered();
+   void consoleCancelJob();
 
 private:
-   void createContextMenu();
-   QString m_currentStorage;
-   int m_currentAutoChanger;
+   void createConnections();
+   void writeSettings();
+   void readSettings();
    bool m_populated;
-   bool m_checkcurwidget;
+   QTextCursor *m_cursor;
+   void getFont();
+   QString m_groupText;
+   QString m_splitText;
+   QTimer *m_timer;
+   QString m_storage;
 };
 
-#endif /* _STORAGE_H_ */
+#endif /* _STORSTAT_H_ */
