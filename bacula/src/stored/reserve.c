@@ -380,8 +380,11 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
+         Dmsg2(dbglvl, "==== Swap from dev=%s to %s\n",
+               dev->print_name(), vol->dev->print_name());
          switch_device(dcr, vol->dev);
          dev = vol->dev;
+         bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
 #ifdef xxx
          if (!vol->dev->is_busy()) {
             /* OK to move it -- I'm not sure this will work */
