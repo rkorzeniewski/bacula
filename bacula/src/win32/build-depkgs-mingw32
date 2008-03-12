@@ -6,26 +6,26 @@
 
 usage()
 {
-        echo "usage: $0 [-h] [-C] [<dependency 1>] [<dependency 2>] ..."
-        echo "       -h      Displays this usage"
-        echo "       -C      Clobbers (overwrites) the source code by "
-        echo "               reextracting the archive and reapplying the"
-        echo "               patches."
-        echo ""
-        echo "<dependency N> Optional dependency, If none are given then all"
-        echo "               of them will be built."
-        echo ""
-        echo "Valid dependencies are:"
-        grep -v '^#' < External-mingw32 | cut -d'|' -f1 | cut -d'_' -f1 | tr A-Z a-z | sort -u | awk '{ print "        " $1 }'
+   echo "usage: $0 [-h] [-C] [<dependency 1>] [<dependency 2>] ..."
+   echo "       -h      Displays this usage"
+   echo "       -C      Clobbers (overwrites) the source code by "
+   echo "               reextracting the archive and reapplying the"
+   echo "               patches."
+   echo ""
+   echo "<dependency N> Optional dependency, If none are given then all"
+   echo "               of them will be built."
+   echo ""
+   echo "Valid dependencies are:"
+   grep -v '^#' < External-mingw32 | cut -d'|' -f1 | cut -d'_' -f1 | tr A-Z a-z | sort -u | awk '{ print "        " $1 }'
 }
 
 CLOBBER_SOURCE=
 
 while getopts "hHC" opt; do
-        case ${opt} in
-        H|h|\?) usage;exit 1;;
-        C)      CLOBBER_SOURCE=true;;
-        esac
+   case ${opt} in
+   H|h|\?) usage;exit 1;;
+   C)      CLOBBER_SOURCE=true;;
+   esac
 done
 
 [ ${OPTIND} -gt 1 ] && shift `expr ${OPTIND} - 1`
@@ -39,15 +39,15 @@ TOP_DIR=`pwd`
 
 if [ -e ${TOP_DIR}/cross-tools/mingw32/bin/mingw32-gcc ]
 then
-        cd ${TOP_DIR}/cross-tools/mingw32/bin
-        BIN_DIR=`pwd`
+   cd ${TOP_DIR}/cross-tools/mingw32/bin
+   BIN_DIR=`pwd`
 elif [ -e /mingw/bin/mingw32-gcc ] 
 then
-        BIN_DIR=/mingw/bin
+   BIN_DIR=/mingw/bin
 else
-        echo The GCC cross compiler isn\'t installed.
-        echo You must run build-win32-cross-tools first
-        exit 1
+   echo "The GCC cross compiler isn\'t installed."
+   echo "You must run build-win32-cross-tools first"
+   exit 1
 fi
 
 [ ! -e ${TOP_DIR}/depkgs-mingw32 ] && mkdir ${TOP_DIR}/depkgs-mingw32
@@ -63,64 +63,64 @@ export PATH=${BIN_DIR}:${PATH}
 
 OLD_IFS=${IFS};IFS="|";
 while read package url dir mkd; do
-        echo "Got package ${package}"
-        case ${package} in
-        \#*) ;;
-        *) eval "URL_${package}=${url};DIR_${package}=${dir};MKD_${package}=${mkd}";;
+   echo "Got package ${package}"
+   case ${package} in
+   \#*) ;;
+   *) eval "URL_${package}=${url};DIR_${package}=${dir};MKD_${package}=${mkd}";;
         esac
 done < ${SCRIPT_DIR}/External-mingw32
 IFS=${OLD_IFS};unset OLD_IFS
 
 get_source()
 {
-        URL=$1
-        SRC_DIR=$2
-        MAKE_DIR=$3
-        echo "Processing ${URL}"
-        ARCHIVE=`basename ${URL}`
-        
-        case ${ARCHIVE} in
-        *.tar.gz)       ARCHIVER="tar xzf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.gz'`;;
-        *.tar.bz2)      ARCHIVER="tar xjf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.bz2'`;;
-        *.zip)          ARCHIVER="unzip -q";   [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
-        *.exe)          ARCHIVER="";           [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
-        *)              echo Unsupported archive type - $ARCHIVE; exit 1;;
-        esac
-        
-        cd ${DEPPKG_DIR}/src
-        
-        if [ ! -e "${ARCHIVE}" ]
-        then 
-                echo Downloading "${URL}"
-                if wget --passive-ftp "${URL}"
-                then
-                        :
-                else
-                        echo Unable to download ${ARCHIVE}
-                        exit 1
-                fi
-        fi
+   URL=$1
+   SRC_DIR=$2
+   MAKE_DIR=$3
+   echo "Processing ${URL}"
+   ARCHIVE=`basename ${URL}`
+   
+   case ${ARCHIVE} in
+   *.tar.gz)       ARCHIVER="tar xzf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.gz'`;;
+   *.tar.bz2)      ARCHIVER="tar xjf";    [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.tar\.bz2'`;;
+   *.zip)          ARCHIVER="unzip -q";   [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
+   *.exe)          ARCHIVER="";           [ -z "${SRC_DIR}" ] && SRC_DIR=`expr "${ARCHIVE}" : '\(.*\)\.zip'`;;
+   *)              echo Unsupported archive type - $ARCHIVE; exit 1;;
+   esac
+   
+   cd ${DEPPKG_DIR}/src
+   
+   if [ ! -e "${ARCHIVE}" ]
+   then 
+      echo Downloading "${URL}"
+      if wget --passive-ftp "${URL}"
+      then
+         :
+      else
+         echo Unable to download ${ARCHIVE}
+         exit 1
+      fi
+   fi
 
-        [ -z "${ARCHIVER}" ] && return 0
+   [ -z "${ARCHIVER}" ] && return 0
 
-        if [ ! -e "${SRC_DIR}" -o "${CLOBBER_SOURCE}" = "true" ]
-        then
-                rm -rf ${SRC_DIR}
-                echo Extracting ${ARCHIVE}
-                if [ "${MAKE_DIR}" = "true" ]
-                then
-                        mkdir ${SRC_DIR}
-                        cd ${SRC_DIR}
-                        ${ARCHIVER} ../${ARCHIVE} > ../${ARCHIVE}.log 2>&1
-                else
-                        ${ARCHIVER} ${ARCHIVE} > ${ARCHIVE}.log 2>&1
-                        cd ${SRC_DIR}
-                fi
-                return 0
-        fi
+   if [ ! -e "${SRC_DIR}" -o "${CLOBBER_SOURCE}" = "true" ]
+   then
+      rm -rf ${SRC_DIR}
+      echo Extracting ${ARCHIVE}
+      if [ "${MAKE_DIR}" = "true" ]
+      then
+         mkdir ${SRC_DIR}
+         cd ${SRC_DIR}
+         ${ARCHIVER} ../${ARCHIVE} > ../${ARCHIVE}.log 2>&1
+      else
+         ${ARCHIVER} ${ARCHIVE} > ${ARCHIVE}.log 2>&1
+         cd ${SRC_DIR}
+      fi
+      return 0
+   fi
 
-        cd ${SRC_DIR}
-        return 1
+   cd ${SRC_DIR}
+   return 1
 }
 
 parse_output()
@@ -143,10 +143,10 @@ do_patch()
    
    if patch -f -p0 "$@" >>patch.log < ${PATCH_FILE}
    then
-           :
+      :
    else
-           echo Patch failed - Check `pwd`/patch.log > /dev/tty
-           exit 1
+      echo "Patch failed - Check `pwd`/patch.log" > /dev/tty
+      exit 1
    fi
 }
 
@@ -154,10 +154,10 @@ do_make()
 {
    if make -f "$@" 2>&1
    then
-           :
+      :
    else
-           echo Make failed - Check `pwd`/make.log > /dev/tty
-           exit 1
+      echo "Make failed - Check `pwd`/make.log" > /dev/tty
+      exit 1
    fi | tee -a make.log | parse_output
 }
 
@@ -165,9 +165,9 @@ process_zlib()
 {
    if get_source "${URL_ZLIB}" "${DIR_ZLIB}" "${MKD_ZLIB}"
    then
-           echo Patching zlib
-           >patch.log
-           do_patch zlib.patch
+      echo "Patching zlib"
+      >patch.log
+      do_patch zlib.patch
    fi
    echo Building zlib
    > make.log
@@ -457,41 +457,41 @@ process_stab2cv()
 
 process_cmd_utils()
 {
-        if get_source "${URL_CMD_UTILS}" "${DIR_CMD_UTILS}" "${MKD_CMD_UTILS}"
-        then
-                # echo Patching cmd-utils
-                # >patch.log
-                # do_patch cmd-utils.patch
-                echo Configuring cmd-utils
-                ./configure --host=mingw32 \
-                            --prefix=${DEPPKG_DIR} \
-                            >make.log 2>&1
-        fi
-        echo Building cmd-utils
-        do_make Makefile 
-        echo Installing cmd-utils
-        do_make Makefile install
+   if get_source "${URL_CMD_UTILS}" "${DIR_CMD_UTILS}" "${MKD_CMD_UTILS}"
+   then
+           # echo Patching cmd-utils
+           # >patch.log
+           # do_patch cmd-utils.patch
+           echo Configuring cmd-utils
+           ./configure --host=mingw32 \
+                       --prefix=${DEPPKG_DIR} \
+                       >make.log 2>&1
+   fi
+   echo Building cmd-utils
+   do_make Makefile 
+   echo Installing cmd-utils
+   do_make Makefile install
 }
 
 process_mkisofs()
 {
-        get_source "${URL_MKISOFS}" "${DIR_MKISOFS}" "${MKD_MKISOFS}"
-        echo Installing mkisofs
-        cp `basename ${URL_MKISOFS}` ${DEPPKG_DIR}/bin
+   get_source "${URL_MKISOFS}" "${DIR_MKISOFS}" "${MKD_MKISOFS}"
+   echo Installing mkisofs
+   cp `basename ${URL_MKISOFS}` ${DEPPKG_DIR}/bin
 }
 
 process_dvd_rw_tools()
 {
-        if get_source "${URL_DVD_RW_TOOLS}" "${DIR_DVD_RW_TOOLS}" "${MKD_DVD_RW_TOOLS}"
-        then
-                echo Patching dvd+rw-tools
-                >patch.log
-                do_patch dvd+rw-tools.patch
-        fi
-        echo "Building dvd+rw-tools"
-        m4 -DOS=XMINGW32 Makefile.m4 | make -f - dvd+rw-tools >make.log 2>&1
-        echo "Installing dvd+rw-tools"
-        m4 -DOS=XMINGW32 Makefile.m4 | make -f - prefix=${DEPPKG_DIR} manprefix=${DEPPKG_DIR} install >>make.log 2>&1
+   if get_source "${URL_DVD_RW_TOOLS}" "${DIR_DVD_RW_TOOLS}" "${MKD_DVD_RW_TOOLS}"
+   then
+           echo Patching dvd+rw-tools
+           >patch.log
+           do_patch dvd+rw-tools.patch
+   fi
+   echo "Building dvd+rw-tools"
+   m4 -DOS=XMINGW32 Makefile.m4 | make -f - dvd+rw-tools >make.log 2>&1
+   echo "Installing dvd+rw-tools"
+   m4 -DOS=XMINGW32 Makefile.m4 | make -f - prefix=${DEPPKG_DIR} manprefix=${DEPPKG_DIR} install >>make.log 2>&1
 }
 
 process_qt4()
@@ -502,30 +502,29 @@ process_qt4()
 
 if [ "$#" -eq 0 ]
 then
-        process_zlib
-        process_pcre
-        process_pthreads
-        process_openssl
-        process_mysql
-        process_sqlite
-        process_postgresql
-        process_wx
-        process_scons
-        process_nsis
-        process_mtx
-        process_mt
-        process_sed
-        process_stab2cv
-        process_cmd_utils
-        process_mkisofs
-        process_dvd_rw_tools
-        process_qt4
+   process_zlib
+   process_pcre
+   process_pthreads
+   process_openssl
+   process_mysql
+   process_sqlite
+   process_postgresql
+   process_wx
+   process_scons
+   process_nsis
+   process_mtx
+   process_mt
+   process_sed
+   process_stab2cv
+   process_cmd_utils
+   process_mkisofs
+   process_dvd_rw_tools
+   process_qt4
 else
-        for dependency in "$@"
-        do
-                eval "process_${dependency}"
-        done
-
+   for dependency in "$@"
+   do
+      eval "process_${dependency}"
+   done
 fi
 #vss
 #Need to download from Microsoft
