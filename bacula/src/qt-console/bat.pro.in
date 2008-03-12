@@ -45,6 +45,7 @@ FORMS += help/help.ui
 FORMS += jobgraphs/jobplotcontrols.ui
 FORMS += status/dirstat.ui
 FORMS += status/clientstat.ui
+FORMS += status/storstat.ui
 
 # Main directory
 HEADERS += mainwin.h bat.h bat_conf.h qstd.h pages.h
@@ -133,6 +134,10 @@ SOURCES += status/dirstat.cpp
 ## Status Client
 HEADERS += status/clientstat.h
 SOURCES += status/clientstat.cpp
+
+## Status Client
+HEADERS += status/storstat.h
+SOURCES += status/storstat.cpp
 
 INSTALLS += bins
 INSTALLS += confs
