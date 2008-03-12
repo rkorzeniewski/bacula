@@ -311,7 +311,7 @@ static void free_vol_item(VOLRES *vol)
 VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 {
    VOLRES *vol, *nvol;
-   DEVICE *dev = dcr->dev;
+   DEVICE * volatile dev = dcr->dev;
 
    ASSERT(dev != NULL);
 
@@ -435,7 +435,7 @@ void switch_device(DCR *dcr, DEVICE *dev)
    dcr->VolCatInfo.Slot = save_dcr.VolCatInfo.Slot;
    bstrncpy(dcr->pool_name, save_dcr.pool_name, sizeof(dcr->pool_name));
    bstrncpy(dcr->pool_type, save_dcr.pool_type, sizeof(dcr->pool_type));
-   bstrncpy(dcr->dev_name, save_dcr.dev_name, sizeof(dcr->dev_name));
+   bstrncpy(dcr->dev_name, dev->dev_name, sizeof(dcr->dev_name));
 
    dev->reserved_device++;
    dcr->reserved_device = true;

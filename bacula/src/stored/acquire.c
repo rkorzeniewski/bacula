@@ -318,7 +318,7 @@ DCR *acquire_device_for_append(DCR *dcr)
    bool do_mount = false;
    bool release = false;
    bool have_vol;
-   DEVICE *dev = dcr->dev;
+   DEVICE * volatile dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
    init_device_wait_timers(dcr);
@@ -355,18 +355,25 @@ DCR *acquire_device_for_append(DCR *dcr)
        *  dcr->VolumeName is what we pass into the routines, or
        *    get back from the subroutines.
        */
-      if (!have_vol &&
-          !(dir_find_next_appendable_volume(dcr) &&
-            strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) == 0)) { /* wrong tape mounted */
-         /* Wrong tape mounted, release it, then fall through to get correct one */
-         Dmsg3(50, "Wrong tape mounted. Wanted:%s, got:%s, dev=%s release and try mount.\n",
-              dcr->VolumeName, dev->VolHdr.VolumeName, dev->print_name());
-         /* Release drive only if tape really in drive */
-         if (dev->VolHdr.VolumeName[0]) {
-            release = true;
-         }
+      do_mount = false;
+      release = false;
+      /* If we do not have a volume, see if we can find one */
+      if (!have_vol) {
+         have_vol = dir_find_next_appendable_volume(dcr);
+         dev = dcr->dev;
+      }
+      if (have_vol) {
          do_mount = true;
-      } else {
+         /* Make sure it is what we we have on the drive */
+         if (dev->VolHdr.VolumeName[0]) {
+            /* If we already have the volume, mount/release are not needed */
+            do_mount = strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) != 0;
+            if (do_mount) {
+               release = true;
+            }
+         }
+      }
+      if (have_vol && !do_mount) {
          /*
           * At this point, the correct tape is already mounted, so
           *   we do not need to do mount_next_write_volume(), unless

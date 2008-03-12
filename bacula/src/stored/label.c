@@ -67,7 +67,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec);
 int read_dev_volume_label(DCR *dcr)
 {
    JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
+   DEVICE * volatile dev = dcr->dev;
    char *VolName = dcr->VolumeName;
    DEV_RECORD *record;
    bool ok = false;
@@ -218,6 +218,7 @@ int read_dev_volume_label(DCR *dcr)
       stat = VOL_NAME_ERROR;
       goto bail_out;
    }
+   dev = dcr->dev;                    /* may have changed in reserve volume */
 
    /* Compare Volume Names */
    Dmsg2(130, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
@@ -310,7 +311,7 @@ bool write_volume_label_to_block(DCR *dcr)
 bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName, 
                                    const char *PoolName, bool relabel, bool dvdnow)
 {
-   DEVICE *dev = dcr->dev;
+   DEVICE * volatile dev = dcr->dev;
 
 
    Dmsg0(150, "write_volume_label()\n");
@@ -405,6 +406,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
            dev->VolHdr.VolumeName, dev->print_name());
       goto bail_out;
    }
+   dev = dcr->dev;                    /* may have changed in reserve_volume */
 
    dev->clear_append();               /* remove append since this is PRE_LABEL */
    return true;
