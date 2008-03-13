@@ -43,7 +43,7 @@ ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
 {
    m_client = client;
    setupUi(this);
-   m_name = tr("Client Status");
+   m_name = tr("Client Status") + " " + m_client;
    m_closeable = true;
    pgInitialize(parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
