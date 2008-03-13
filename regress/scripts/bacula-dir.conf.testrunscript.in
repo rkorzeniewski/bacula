@@ -87,11 +87,12 @@ Job {
   JobDefs = DefaultJob
   RunScript {
     Command = "/bin/false RUN_FD_FAILED1"
+    Command = "/bin/false RUN_FD_FAILED2"
     failjobonerror = no
     RunsWhen = Before
   }
   RunScript {
-    Command = "/bin/false RUN_FD_FAILED2"
+    Command = "/bin/false RUN_FD_FAILED3"
     failjobonerror = yes
     RunsWhen = Before
   }
