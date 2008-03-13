@@ -1,8 +1,8 @@
 Index: src/dird/job.c
 ===================================================================
---- src/dird/job.c	(révision 6151)
-+++ src/dird/job.c	(copie de travail)
-@@ -734,7 +734,7 @@
+--- src/dird/job.c	(revision 6595)
++++ src/dird/job.c	(working copy)
+@@ -806,7 +806,7 @@
     jcr->jr.VolSessionId = jcr->VolSessionId;
     jcr->jr.VolSessionTime = jcr->VolSessionTime;
     jcr->jr.JobErrors = jcr->Errors;
@@ -13,8 +13,8 @@ Index: src/dird/job.c
     }
 Index: src/dird/ua_prune.c
 ===================================================================
---- src/dird/ua_prune.c	(révision 6151)
-+++ src/dird/ua_prune.c	(copie de travail)
+--- src/dird/ua_prune.c	(revision 6595)
++++ src/dird/ua_prune.c	(working copy)
 @@ -107,6 +107,7 @@
   *    prune files (from) client=xxx
   *    prune jobs (from) client=xxx
@@ -52,8 +52,8 @@ Index: src/dird/ua_prune.c
     }
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 6151)
-+++ src/dird/dird_conf.c	(copie de travail)
+--- src/dird/dird_conf.c	(revision 6595)
++++ src/dird/dird_conf.c	(working copy)
 @@ -133,6 +133,7 @@
     {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
     {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
@@ -62,15 +62,15 @@ Index: src/dird/dird_conf.c
     {NULL, NULL, {0}, 0, 0, 0}
  };
  
-@@ -318,6 +319,7 @@
-    {"selectionpattern", store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
-    {"runscript", store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
-    {"selectiontype", store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
-+   {"usestatistics", store_bool,  ITEM(res_job.stats_enabled), 0, 0, 0},
-    {NULL, NULL, {0}, 0, 0, 0}
- };
- 
-@@ -637,6 +639,9 @@
+@@ -322,6 +323,7 @@
+    {"selectionpattern",   store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
+    {"runscript",          store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
+    {"selectiontype",      store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
++   {"usestatistics",      store_bool,  ITEM(res_job.stats_enabled), 0, 0, 0},
+    {"accurate",           store_bool, ITEM(res_job.accurate), 0,0,0},
+    {"allowduplicatejobs", store_bool, ITEM(res_job.AllowDuplicateJobs), 0, ITEM_DEFAULT, false},
+    {"allowhigherduplicates",   store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
+@@ -652,6 +654,9 @@
        if (res->res_job.RegexWhere) {
             sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
        }
@@ -82,8 +82,8 @@ Index: src/dird/dird_conf.c
        }
 Index: src/dird/dird_conf.h
 ===================================================================
---- src/dird/dird_conf.h	(révision 6151)
-+++ src/dird/dird_conf.h	(copie de travail)
+--- src/dird/dird_conf.h	(revision 6595)
++++ src/dird/dird_conf.h	(working copy)
 @@ -129,6 +129,7 @@
     bool tls_enable;                   /* Enable TLS */
     bool tls_require;                  /* Require TLS */
@@ -92,18 +92,18 @@ Index: src/dird/dird_conf.h
  
     /* Methods */
     char *name() const;
-@@ -399,6 +400,7 @@
+@@ -426,6 +427,7 @@
     bool write_part_after_job;         /* Set to write part after job in SD */
     bool enabled;                      /* Set if job enabled */
     bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
 +   bool stats_enabled;                /* Keep job records in a table for long term statistics */
-    
-    MSGS      *messages;               /* How and where to send messages */
-    SCHED     *schedule;               /* When -- Automatic schedule */
+    bool accurate;                     /* Set if it is an accurate backup job */
+    bool AllowDuplicateJobs;           /* Allow duplicate jobs */
+    bool AllowHigherDuplicates;        /* Permit Higher Level */
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(révision 6151)
-+++ src/cats/sql_update.c	(copie de travail)
+--- src/cats/sql_update.c	(revision 6595)
++++ src/cats/sql_update.c	(working copy)
 @@ -142,7 +142,7 @@
   *           1 on success
   */
@@ -134,8 +134,8 @@ Index: src/cats/sql_update.c
   *   Returns: 0 on failure
 Index: src/cats/make_sqlite3_tables.in
 ===================================================================
---- src/cats/make_sqlite3_tables.in	(révision 6151)
-+++ src/cats/make_sqlite3_tables.in	(copie de travail)
+--- src/cats/make_sqlite3_tables.in	(revision 6595)
++++ src/cats/make_sqlite3_tables.in	(working copy)
 @@ -75,6 +75,9 @@
     );
  CREATE INDEX inx6 ON Job (Name);
@@ -148,9 +148,9 @@ Index: src/cats/make_sqlite3_tables.in
     Location TEXT NOT NULL,
 Index: src/cats/make_postgresql_tables.in
 ===================================================================
---- src/cats/make_postgresql_tables.in	(révision 6151)
-+++ src/cats/make_postgresql_tables.in	(copie de travail)
-@@ -79,6 +79,9 @@
+--- src/cats/make_postgresql_tables.in	(revision 6595)
++++ src/cats/make_postgresql_tables.in	(working copy)
+@@ -81,6 +81,9 @@
  
  CREATE INDEX job_name_idx on job (name);
  
@@ -162,9 +162,9 @@ Index: src/cats/make_postgresql_tables.in
     Location	      text	  not null,
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(révision 6151)
-+++ src/cats/protos.h	(copie de travail)
-@@ -117,7 +117,7 @@
+--- src/cats/protos.h	(revision 6595)
++++ src/cats/protos.h	(working copy)
+@@ -124,7 +124,7 @@
  
  /* sql_update.c */
  bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
@@ -175,8 +175,8 @@ Index: src/cats/protos.h
  bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
 Index: src/cats/make_sqlite_tables.in
 ===================================================================
---- src/cats/make_sqlite_tables.in	(révision 6151)
-+++ src/cats/make_sqlite_tables.in	(copie de travail)
+--- src/cats/make_sqlite_tables.in	(revision 6595)
++++ src/cats/make_sqlite_tables.in	(working copy)
 @@ -75,6 +75,9 @@
     );
  CREATE INDEX inx6 ON Job (Name);
@@ -189,8 +189,8 @@ Index: src/cats/make_sqlite_tables.in
     Location TEXT NOT NULL,
 Index: src/cats/sql_create.c
 ===================================================================
---- src/cats/sql_create.c	(révision 6151)
-+++ src/cats/sql_create.c	(copie de travail)
+--- src/cats/sql_create.c	(revision 6595)
++++ src/cats/sql_create.c	(working copy)
 @@ -112,7 +112,7 @@
  bool
  db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
@@ -211,8 +211,8 @@ Index: src/cats/sql_create.c
   *          true  on success
 Index: src/cats/make_mysql_tables.in
 ===================================================================
---- src/cats/make_mysql_tables.in	(révision 6151)
-+++ src/cats/make_mysql_tables.in	(copie de travail)
+--- src/cats/make_mysql_tables.in	(revision 6595)
++++ src/cats/make_mysql_tables.in	(working copy)
 @@ -115,6 +115,8 @@
     INDEX (Name(128))
     );
@@ -224,9 +224,9 @@ Index: src/cats/make_mysql_tables.in
     LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
 Index: src/stored/bscan.c
 ===================================================================
---- src/stored/bscan.c	(révision 6151)
-+++ src/stored/bscan.c	(copie de travail)
-@@ -622,7 +622,7 @@
+--- src/stored/bscan.c	(revision 6595)
++++ src/stored/bscan.c	(working copy)
+@@ -619,7 +619,7 @@
                 jr.VolSessionTime = mjcr->VolSessionTime;
                 jr.JobTDate = (utime_t)mjcr->start_time;
                 jr.ClientId = mjcr->ClientId;
@@ -235,7 +235,7 @@ Index: src/stored/bscan.c
                    Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
                 }
                 mjcr->read_dcr = NULL;
-@@ -1112,7 +1112,7 @@
+@@ -1122,7 +1122,7 @@
        return 1;
     }
  
@@ -246,9 +246,9 @@ Index: src/stored/bscan.c
        return 0;
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 6156)
-+++ src/jcr.h	(copie de travail)
-@@ -260,6 +260,7 @@
+--- src/jcr.h	(revision 6595)
++++ src/jcr.h	(working copy)
+@@ -289,6 +289,7 @@
     bool unlink_bsr;                   /* Unlink bsr file created */
     bool VSS;                          /* VSS used by FD */
     bool Encrypt;                      /* Encryption used by FD */
