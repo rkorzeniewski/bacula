@@ -116,6 +116,8 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
 
    if (strstr(label, NT_("Before"))) {
       when = SCRIPT_Before;
+   } else if (bstrcmp(label, NT_("ClientAfterVSS"))) {
+      when = SCRIPT_AfterVSS;
    } else {
       when = SCRIPT_After;
    }
@@ -136,6 +138,18 @@ int run_scripts(JCR *jcr, alist *runscripts, const char *label)
             )
          {
             Dmsg4(200, "runscript: Run it because SCRIPT_Before (%s,%i,%i,%c)\n", 
+                  script->command, script->on_success, script->on_failure,
+                  jcr->JobStatus );
+            runit = true;
+         }
+      }
+
+      if ((script->when & SCRIPT_AfterVSS) && (when & SCRIPT_AfterVSS)) {
+         if ((script->on_success && (jcr->JobStatus == JS_Blocked))
+            || (script->on_failure && job_canceled(jcr))
+            )
+         {
+            Dmsg4(200, "runscript: Run it because SCRIPT_AfterVSS (%s,%i,%i,%c)\n", 
                   script->command, script->on_success, script->on_failure,
                   jcr->JobStatus );
             runit = true;
