@@ -95,13 +95,15 @@ grep 'shell command: run ClientBeforeJob "/bin/false RUN_FD_FAILED1"' ${cwd}/tmp
 a=$?
 grep 'shell command: run ClientBeforeJob "/bin/false RUN_FD_FAILED2"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 b=$?
-grep 'shell command: run AfterJob "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'shell command: run ClientBeforeJob "/bin/false RUN_FD_FAILED3"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 c=$?
-grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'shell command: run AfterJob "/bin/echo RunAfterFailedJob"' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 d=$?
-grep '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+grep 'touching' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
 e=$?
-if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
+grep '*** Backup Error ***' ${cwd}/tmp/RUN_FD_FAILED.log >/dev/null 2>&1
+f=$?
+if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 -a $f = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
 else
