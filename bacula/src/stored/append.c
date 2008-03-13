@@ -296,6 +296,7 @@ bool do_append_data(JCR *jcr)
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
          Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
+         Dmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
       }
       Dmsg0(90, "back from write_end_session_label()\n");
       /* Flush out final partial block of this session */
@@ -307,6 +308,7 @@ bool do_append_data(JCR *jcr)
       }
       if (dev->VolCatInfo.VolCatName[0] == 0) {
          Pmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
+         Dmsg0(000, _("NULL Volume name. This shouldn't happen!!!\n"));
       }
    }
 
