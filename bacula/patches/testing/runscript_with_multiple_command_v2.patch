@@ -1,29 +1,21 @@
 Index: src/dird/dird_conf.c
 ===================================================================
---- src/dird/dird_conf.c	(révision 6192)
+--- src/dird/dird_conf.c	(révision 6586)
 +++ src/dird/dird_conf.c	(copie de travail)
-@@ -1678,6 +1678,8 @@
- 
- /* We build RunScripts items here */
- static RUNSCRIPT res_runscript;
-+static alist *res_runscript_cmd;
-+static alist *res_runscript_type;
- 
- /* Store a runscript->when in a bit field */
- static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
-@@ -1731,7 +1733,10 @@
+@@ -1772,7 +1772,11 @@
     lex_get_token(lc, T_STRING);
  
     if (pass == 2) {
 -      ((RUNSCRIPT*)item->value)->set_command(lc->str, item->code);
++      Dmsg2(1, "runscript cmd=%s type=%c\n", lc->str, item->code);
 +      POOLMEM *c = get_pool_memory(PM_FNAME);
 +      pm_strcpy(c, lc->str);
-+      res_runscript_cmd->prepend(c);
-+      res_runscript_type->prepend((void*) item->code);
++      ((RUNSCRIPT*) item->value)->commands->prepend(c);
++      ((RUNSCRIPT*) item->value)->commands->prepend((void *)item->code);
     }
     scan_to_eol(lc);
  }
-@@ -1833,7 +1838,8 @@
+@@ -1874,7 +1878,8 @@
   */
  static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
  {
@@ -33,19 +25,18 @@ Index: src/dird/dird_conf.c
     alist **runscripts = (alist **)(item->value) ;
  
     Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
-@@ -1846,6 +1852,11 @@
+@@ -1887,6 +1892,10 @@
        scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
     }
     
 +   if (pass == 2) {
-+      res_runscript_cmd = New(alist(10, not_owned_by_alist));
-+      res_runscript_type = New(alist(10, not_owned_by_alist));
++      res_runscript.commands = New(alist(10, not_owned_by_alist));
 +   }
 +
     while ((token = lex_get_token(lc, T_SKIP_EOL)) != T_EOF) {
        if (token == T_EOB) {
          break;
-@@ -1873,26 +1884,26 @@
+@@ -1914,26 +1923,25 @@
     }
  
     if (pass == 2) {
@@ -70,19 +61,42 @@ Index: src/dird/dird_conf.c
 -      
 -      (*runscripts)->append(script);
 -      script->debug();
-+      while ((c=(char*)res_runscript_cmd->pop()) != NULL) {
-+         t = (int) res_runscript_type->pop();
++      while ((c=(char*)res_runscript.commands->pop()) != NULL) {
++	 t = (int) res_runscript.commands->pop();
 +         RUNSCRIPT *script = new_runscript();
 +         memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
 +         script->set_job_code_callback(job_code_callback_filesetname);
-+         script->command = c;
-+         script->cmd_type = t;
++         script->set_command(c, t);
 +
 +         (*runscripts)->append(script);
 +         script->debug();
 +      }
-+      delete res_runscript_type;
-+      delete res_runscript_cmd;
++      delete res_runscript.commands;
++      res_runscript.commands = NULL;
     }
  
     scan_to_eol(lc);
+Index: src/lib/runscript.h
+===================================================================
+--- src/lib/runscript.h	(révision 6586)
++++ src/lib/runscript.h	(copie de travail)
+@@ -62,8 +62,8 @@
+ };
+ 
+ enum {
+-   SHELL_CMD   = 1,
+-   CONSOLE_CMD = 2 
++   SHELL_CMD   = '|',
++   CONSOLE_CMD = '@' 
+ };
+ 
+ /*
+@@ -83,7 +83,7 @@
+    bool old_proto;              /* used by old 1.3X protocol */
+    job_code_callback_t job_code_callback;
+                                 /* Optional callback function passed to edit_job_code */
+-
++   alist *commands;             /* Use during parsing */
+    bool run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
+    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
+    void set_command(const POOLMEM *cmd, int cmd_type = SHELL_CMD);
