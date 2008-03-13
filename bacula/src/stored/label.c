@@ -212,6 +212,7 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
+   Dmsg0(100, "Call reserve_volume\n");
    if (reserve_volume(dcr, dev->VolHdr.VolumeName) == NULL) {
       Mmsg2(jcr->errmsg, _("Could not reserve volume %s on %s\n"),
            dev->VolHdr.VolumeName, dev->print_name());
@@ -401,6 +402,7 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (debug_level >= 20)  {
       dump_volume_label(dev);
    }
+   Dmsg0(100, "Call reserve_volume\n");
    if (reserve_volume(dcr, VolName) == NULL) {
       Mmsg2(dcr->jcr->errmsg, _("Could not reserve volume %s on %s\n"),
            dev->VolHdr.VolumeName, dev->print_name());
