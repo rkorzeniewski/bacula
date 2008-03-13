@@ -44,7 +44,7 @@
 #endif
 
 #ifdef HAVE_AIX_OS
-extern "C" int initgroups(char *,int);
+extern "C" int initgroups(const char *,int);
 #endif
 
 
