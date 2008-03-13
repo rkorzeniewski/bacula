@@ -1767,14 +1767,19 @@ static void store_runscript_target(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /*
- * Store a runscript->command as a string
+ * Store a runscript->command as a string and runscript->cmd_type as a pointer
  */
 static void store_runscript_cmd(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_STRING);
 
    if (pass == 2) {
-      ((RUNSCRIPT*)item->value)->set_command(lc->str, item->code);
+      Dmsg2(1, "runscript cmd=%s type=%c\n", lc->str, item->code);
+      POOLMEM *c = get_pool_memory(PM_FNAME);
+      /* Each runscript command takes 2 entries in commands list */
+      pm_strcpy(c, lc->str);
+      ((RUNSCRIPT*) item->value)->commands->prepend(c); /* command line */
+      ((RUNSCRIPT*) item->value)->commands->prepend((void *)item->code); /* command type */
    }
    scan_to_eol(lc);
 }
@@ -1876,7 +1881,8 @@ static RES_ITEM runscript_items[] = {
  */
 static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 {
-   int token, i;
+   char *c;
+   int token, i, t;
    alist **runscripts = (alist **)(item->value) ;
 
    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
@@ -1889,6 +1895,10 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
       scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
    }
    
+   if (pass == 2) {
+      res_runscript.commands = New(alist(10, not_owned_by_alist));
+   }
+
    while ((token = lex_get_token(lc, T_SKIP_EOL)) != T_EOF) {
       if (token == T_EOB) {
         break;
@@ -1916,26 +1926,35 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
    }
 
    if (pass == 2) {
-      if (res_runscript.command == NULL) {
-         scan_err2(lc, _("%s item is required in %s resource, but not found.\n"),
-                   "command", "runscript");
-      }
-
       /* run on client by default */
       if (res_runscript.target == NULL) {
          res_runscript.set_target("%c");
       }
-
-      RUNSCRIPT *script = new_runscript();
-      memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
-      script->set_job_code_callback(job_code_callback_filesetname);
-      
       if (*runscripts == NULL) {
-        *runscripts = New(alist(10, not_owned_by_alist));
+         *runscripts = New(alist(10, not_owned_by_alist));
       }
-      
-      (*runscripts)->append(script);
-      script->debug();
+      /*
+       * commands list contains 2 values per command
+       *  - POOLMEM command string (ex: /bin/true) 
+       *  - int command type (ex: SHELL_CMD)
+       */
+      res_runscript.set_job_code_callback(job_code_callback_filesetname);
+      while ((c=(char*)res_runscript.commands->pop()) != NULL) {
+	 t = (int) res_runscript.commands->pop();
+	 res_runscript.command = c;
+	 res_runscript.cmd_type = t;
+         RUNSCRIPT *script = new_runscript();
+         memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
+	 /* target is taken from res_runscript, each runscript object have
+	  * a copy 
+	  */
+	 script->target = NULL;
+	 script->set_target(res_runscript.target);
+
+         (*runscripts)->append(script);
+         script->debug();
+      }
+      delete res_runscript.commands;
    }
 
    scan_to_eol(lc);

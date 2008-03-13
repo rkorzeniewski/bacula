@@ -63,8 +63,8 @@ enum {
 };
 
 enum {
-   SHELL_CMD   = 1,
-   CONSOLE_CMD = 2 
+   SHELL_CMD   = '|',
+   CONSOLE_CMD = '@' 
 };
 
 /*
@@ -84,11 +84,11 @@ public:
    bool old_proto;              /* used by old 1.3X protocol */
    job_code_callback_t job_code_callback;
                                 /* Optional callback function passed to edit_job_code */
-
+   alist *commands;             /* Use during parsing */
    bool run(JCR *job, const char *name=""); /* name must contain "Before" or "After" keyword */
    bool can_run_at_level(int JobLevel) { return true;};        /* TODO */
-   void set_command(const POOLMEM *cmd, int cmd_type = SHELL_CMD);
-   void set_target(const POOLMEM *client_name);
+   void set_command(const char *cmd, int cmd_type = SHELL_CMD);
+   void set_target(const char *client_name);
    void reset_default(bool free_string = false);
    bool is_local();             /* true if running on local host */
    void debug();
