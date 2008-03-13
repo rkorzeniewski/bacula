@@ -342,7 +342,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     */
    have_vol = is_suitable_volume_mounted(dcr);
    if (dev->can_append()) {
-      Dmsg0(190, "device already in append.\n");
+      Dmsg0(100, "device already in append.\n");
       /*
        * Device already in append mode
        *
@@ -355,21 +355,23 @@ DCR *acquire_device_for_append(DCR *dcr)
        *  dcr->VolumeName is what we pass into the routines, or
        *    get back from the subroutines.
        */
-      do_mount = false;
-      release = false;
       /* If we do not have a volume, see if we can find one */
       if (!have_vol) {
+         Dmsg0(100, "call dir_find_next_appendable_volume\n");
          have_vol = dir_find_next_appendable_volume(dcr);
          dev = dcr->dev;
+         Dmsg2(100, "devVol=%s dcrVol=%s\n", dev->VolHdr.VolumeName, dcr->VolumeName);
       }
       if (have_vol) {
          do_mount = true;
          /* Make sure it is what we we have on the drive */
          if (dev->VolHdr.VolumeName[0]) {
+            Dmsg2(100, "devVol=%s dcrVol=%s\n", dev->VolHdr.VolumeName, dcr->VolumeName);
             /* If we already have the volume, mount/release are not needed */
             do_mount = strcmp(dev->VolHdr.VolumeName, dcr->VolumeName) != 0;
             if (do_mount) {
                release = true;
+               Dmsg0(100, "Set release\n");
             }
          }
       }
@@ -379,35 +381,36 @@ DCR *acquire_device_for_append(DCR *dcr)
           *   we do not need to do mount_next_write_volume(), unless
           *   we need to recycle the tape.
           */
-          do_mount = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
-          Dmsg2(190, "jid=%u Correct tape mounted. recycle=%d\n", 
-                (uint32_t)jcr->JobId, do_mount);
-          if (dev->num_writers == 0) {
-             memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
-          }
+         Dmsg2(100, "devVol=%s dcrVol=%s\n", dev->VolHdr.VolumeName, dcr->VolumeName);
+         do_mount = strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0;
+         Dmsg2(190, "jid=%u Correct tape mounted. recycle=%d\n", 
+               (uint32_t)jcr->JobId, do_mount);
+         if (dev->num_writers == 0) {
+            memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+         }
 
-          /*
-           *      Insanity check 
-           *
-           * Check to see if the tape position as defined by the OS is
-           *  the same as our concept.  If it is not, we bail out, because
-           *  it means the user has probably manually rewound the tape.
-           * Note, we check only if num_writers == 0, but this code will
-           *  also work fine for any number of writers. If num_writers > 0,
-           *  we probably should cancel all jobs using this device, or 
-           *  perhaps even abort the SD, or at a minimum, mark the tape
-           *  in error.  Another strategy with num_writers == 0, would be
-           *  to rewind the tape and do a new eod() request.
-           */
-          if (dev->is_tape() && dev->num_writers == 0) {
-             int32_t file = dev->get_os_tape_file();
-             if (file >= 0 && file != (int32_t)dev->get_file()) {
-                Jmsg(jcr, M_FATAL, 0, _("Invalid tape position on volume \"%s\"" 
-                     " on device %s. Expected %d, got %d\n"), 
-                     dev->VolHdr.VolumeName, dev->print_name(), dev->get_file(), file);
-                goto get_out;
-             }
-          }
+         /*
+          *      Insanity check 
+          *
+          * Check to see if the tape position as defined by the OS is
+          *  the same as our concept.  If it is not, we bail out, because
+          *  it means the user has probably manually rewound the tape.
+          * Note, we check only if num_writers == 0, but this code will
+          *  also work fine for any number of writers. If num_writers > 0,
+          *  we probably should cancel all jobs using this device, or 
+          *  perhaps even abort the SD, or at a minimum, mark the tape
+          *  in error.  Another strategy with num_writers == 0, would be
+          *  to rewind the tape and do a new eod() request.
+          */
+         if (dev->is_tape() && dev->num_writers == 0) {
+            int32_t file = dev->get_os_tape_file();
+            if (file >= 0 && file != (int32_t)dev->get_file()) {
+               Jmsg(jcr, M_FATAL, 0, _("Invalid tape position on volume \"%s\"" 
+                    " on device %s. Expected %d, got %d\n"), 
+                    dev->VolHdr.VolumeName, dev->print_name(), dev->get_file(), file);
+               goto get_out;
+            }
+         }
       }
    } else {
       /* Not already in append mode, so mount the device */
@@ -420,6 +423,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 
    if (do_mount || !have_vol) {
       Dmsg1(190, "jid=%u Do mount_next_write_vol\n", (uint32_t)jcr->JobId);
+      Dmsg2(100, "devVol=%s dcrVol=%s\n", dev->VolHdr.VolumeName, dcr->VolumeName);
       bool mounted = mount_next_write_volume(dcr, have_vol, release);
       if (!mounted) {
          if (!job_canceled(jcr)) {
