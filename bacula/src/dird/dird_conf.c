@@ -1940,16 +1940,16 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
        */
       res_runscript.set_job_code_callback(job_code_callback_filesetname);
       while ((c=(char*)res_runscript.commands->pop()) != NULL) {
-	 t = (int) res_runscript.commands->pop();
-	 res_runscript.command = c;
-	 res_runscript.cmd_type = t;
+         t = (int) res_runscript.commands->pop();
+         res_runscript.command = c;
+         res_runscript.cmd_type = t;
          RUNSCRIPT *script = new_runscript();
          memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
-	 /* target is taken from res_runscript, each runscript object have
-	  * a copy 
-	  */
-	 script->target = NULL;
-	 script->set_target(res_runscript.target);
+         /* target is taken from res_runscript, each runscript object have
+          * a copy 
+          */
+         script->target = NULL;
+         script->set_target(res_runscript.target);
 
          (*runscripts)->append(script);
          script->debug();
