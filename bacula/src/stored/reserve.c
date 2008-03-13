@@ -531,7 +531,7 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
-   Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d reserved=%d\n",
+   Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d dev_reserved=%d\n",
       dev->vol->vol_name, dev->num_writers, dev->reserved_device);
    dev->vol->released = true;
    if (dev->is_tape()) { // || dev->is_autochanger()) {
@@ -564,7 +564,8 @@ bool free_volume(DEVICE *dev)
    free_vol_item(vol);
    debug_list_volumes("free_volume");
    unlock_volumes();
-   return vol != NULL;
+// return vol != NULL;
+   return true;
 }
 
       
@@ -873,6 +874,10 @@ static bool is_vol_in_autochanger(RCTX &rctx, VOLRES *vol)
 
 /*
  * Search for a device suitable for this job.
+ * Note, this routine sets sets rctx.suitable_device if any 
+ *   device exists within the SD.  The device may not be actually
+ *   useable.
+ * It also returns if it finds a useable device.  
  */
 bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
 {
@@ -1003,7 +1008,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       debug_list_volumes("=== After free temp table\n");
    }
    if (ok) {
-      Dmsg1(dbglvl, "got vol %s from in-use vols list\n", rctx.VolumeName);
+      Dmsg1(dbglvl, "Usable dev found. Vol=%s from in-use vols list\n", rctx.VolumeName);
       return true;
    }
 
@@ -1024,15 +1029,18 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
             ok = true;
             break;
          } else if (stat == 0) {      /* device busy */
-            Dmsg1(dbglvl, "Suitable device=%s, busy: not use\n", device_name);
+            Dmsg1(dbglvl, "No usable device=%s, busy: not use\n", device_name);
          } else {
             /* otherwise error */
-            Dmsg0(dbglvl, "No suitable device found.\n");
+            Dmsg0(dbglvl, "No usable device found.\n");
          }
       }
       if (ok) {
          break;
       }
+   }
+   if (ok) {
+      Dmsg1(dbglvl, "Usable dev found. Vol=%s\n", rctx.VolumeName);
    }
    return ok;
 }
@@ -1161,6 +1169,7 @@ static int reserve_device(RCTX &rctx)
       Dmsg3(dbglvl, "Vol=%s num_writers=%d, have_vol=%d\n", 
          rctx.VolumeName, dcr->dev->num_writers, rctx.have_volume);
       if (rctx.have_volume) {
+         Dmsg0(dbglvl, "Call reserve_volume\n");
          if (reserve_volume(dcr, rctx.VolumeName)) {
             Dmsg1(dbglvl, "Reserved vol=%s\n", rctx.VolumeName);
          } else {

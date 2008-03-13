@@ -274,7 +274,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        bool ok = do_get_volume_info(dcr);
        if (ok) {
           if (!is_volume_in_use(dcr)) {
-             Dmsg1(100, "Attempt reserve. Vol=%s\n", dcr->VolumeName);
+             Dmsg1(100, "Call reserve_volume. Vol=%s\n", dcr->VolumeName);
              if (reserve_volume(dcr, dcr->VolumeName) == 0) {
                 Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
                     dcr->dev->print_name());
