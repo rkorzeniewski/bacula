@@ -2,6 +2,8 @@
 
 General:
 13Mar08
+ebl  Permit multiple command/console per runscript definition.
+     RunScript { command = /bin/true ; command = /bin/false ... }
 ebl  Add RunsWhen = AfterVSS to runscript. You can execute a command
      (restart an application) just after the VSS snapshot on windows.
 kes  Don't zap dcr values during release_volume() as they might

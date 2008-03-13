@@ -190,7 +190,7 @@ bool RUNSCRIPT::is_local()
 }
 
 /* set this->command to cmd */
-void RUNSCRIPT::set_command(const POOLMEM *cmd, int acmd_type)
+void RUNSCRIPT::set_command(const char *cmd, int acmd_type)
 {
    Dmsg1(500, "runscript: setting command = %s\n", NPRT(cmd));
 
@@ -207,7 +207,7 @@ void RUNSCRIPT::set_command(const POOLMEM *cmd, int acmd_type)
 }
 
 /* set this->target to client_name */
-void RUNSCRIPT::set_target(const POOLMEM *client_name)
+void RUNSCRIPT::set_target(const char *client_name)
 {
    Dmsg1(500, "runscript: setting target = %s\n", NPRT(client_name));
 
