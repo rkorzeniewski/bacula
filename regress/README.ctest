@@ -165,3 +165,30 @@ BuildName parameter was misnamed, and intended to be treated more as a build
 platform name, rather than the name of the build being tested.  Rather than 
 create a hook to tag the version being tested, everyone as far as I can tell 
 just seems to rely on the timestamp of the test.
+======
+
+NOTE !!!!!!!!! ctest can actually back out changes that have been made to
+your local source repository.  As a consequence, it is probably better not to
+use a directory in which you are developing code for Nightly tests.  Seee the
+below explanation given by Frank Sweetser. 
+
+When a Nightly run is done, the timestamp is set to the last occurring
+instance of the time defined by the NightlyStartTime parameter.  The piece
+that I missed is that, in addition to using that timestamp for reporting to
+the dashboard, the update stage also uses that point in time to determine
+exactly which version of the repository to check out.
+
+So if you make commit changes at 10PM EST, and then run a Nightly test run,
+the NightlyStartTime of 9PM EST will back out those changes in the local
+repository.  Any subsequent runs that are started at 9PM EST the following day
+or later will include them.  This implies to me that NightlyStartTime should
+be set such that you don't expect any developers to commit any changes in
+between NightlyStartTime and the time at which the ctest run actually starts.
+
+The alternative is to make use of the Experimental track.  While it normally
+just uses the local source tree as is, you can manually have it update:
+
+ctest -D ExperimentalUpdate
+
+Unlike Nightly, this will update to whatever the latest version of the
+repository is.
