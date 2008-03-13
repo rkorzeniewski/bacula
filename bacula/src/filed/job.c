@@ -1483,6 +1483,7 @@ static int backup_cmd(JCR *jcr)
          berrno be;
          Jmsg(jcr, M_WARNING, 0, _("VSS was not initialized properly. VSS support is disabled. ERR=%s\n"), be.bstrerror());
       } 
+      run_scripts(jcr, jcr->RunScripts, "ClientAfterVSS");
    }
 #endif
 

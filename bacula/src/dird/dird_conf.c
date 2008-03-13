@@ -1729,10 +1729,12 @@ static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
       *(int *)(item->value) = SCRIPT_Before ;
    } else if (strcasecmp(lc->str, "after") == 0) {
       *(int *)(item->value) = SCRIPT_After;
+   } else if (strcasecmp(lc->str, "aftervss") == 0) {
+      *(int *)(item->value) = SCRIPT_AfterVSS;
    } else if (strcasecmp(lc->str, "always") == 0) {
       *(int *)(item->value) = SCRIPT_Any;
    } else {
-      scan_err2(lc, _("Expect %s, got: %s"), "Before, After or Always", lc->str);
+      scan_err2(lc, _("Expect %s, got: %s"), "Before, After, AfterVSS or Always", lc->str);
    }
    scan_to_eol(lc);
 }
