@@ -1887,14 +1887,14 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
 
    Dmsg1(200, "store_runscript: begin store_runscript pass=%i\n", pass);
 
-   res_runscript.reset_default();      /* setting on_success, on_failure, fail_on_error */
-   
    token = lex_get_token(lc, T_SKIP_EOL);
    
    if (token != T_BOB) {
       scan_err1(lc, _("Expecting open brace. Got %s"), lc->str);
    }
-   
+   /* setting on_success, on_failure, fail_on_error */
+   res_runscript.reset_default();   
+
    if (pass == 2) {
       res_runscript.commands = New(alist(10, not_owned_by_alist));
    }
@@ -1941,10 +1941,10 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
       res_runscript.set_job_code_callback(job_code_callback_filesetname);
       while ((c=(char*)res_runscript.commands->pop()) != NULL) {
          t = (int) res_runscript.commands->pop();
-         res_runscript.command = c;
-         res_runscript.cmd_type = t;
          RUNSCRIPT *script = new_runscript();
          memcpy(script, &res_runscript, sizeof(RUNSCRIPT));
+         script->command = c;
+         script->cmd_type = t;
          /* target is taken from res_runscript, each runscript object have
           * a copy 
           */
@@ -1955,6 +1955,8 @@ static void store_runscript(LEX *lc, RES_ITEM *item, int index, int pass)
          script->debug();
       }
       delete res_runscript.commands;
+      /* setting on_success, on_failure... cleanup target field */
+      res_runscript.reset_default(true); 
    }
 
    scan_to_eol(lc);
