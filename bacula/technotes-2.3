@@ -1,6 +1,12 @@
               Technical notes on version 2.3
 
 General:
+14Mar08
+kes  Add dcr->reserved_volume flag that allows us to release a volume
+     even if it is not vol->released.  This allows maxvol2 to work when
+     Volumes expire and we are already writing to the device (i.e. a
+     volume is pulled out from under us by another job terminating after
+     we reserve the drive).
 13Mar08
 ebl  Permit multiple command/console per runscript definition.
      RunScript { command = /bin/true ; command = /bin/false ... }

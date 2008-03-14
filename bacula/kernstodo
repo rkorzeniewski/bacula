@@ -70,6 +70,9 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+- Re-check new dcr->reserved_volume
+- Softlinks that point to non-existent file are not restored in restore all,
+  but are restored if the file is individually selected.  BUG!
 - Doc Duplicate Jobs.
 - New directive "Delete purged Volumes"
 - Prune by Job
