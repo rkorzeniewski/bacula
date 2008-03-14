@@ -337,12 +337,14 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        *  is not being used and is marked as released.
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
-         Dmsg1(dbglvl, "=== OK, vol=%s on device. set not released.\n", VolumeName);
+         Dmsg2(dbglvl, "=== set not released vol=%s dev=%s\n", VolumeName,
+               vol->dev->print_name());
          vol->released = false;         /* retake vol if released previously */
+         dcr->reserved_volume = true;   /* reserved volume */
          goto get_out;                  /* Volume already on this device */
       } else {
          /* Don't release a volume if it is in use */
-         if (!vol->released) {
+         if (!vol->released && !dcr->reserved_volume) { 
             Dmsg1(dbglvl, "Cannot free vol=%s. It is not released.\n", vol->vol_name);
             vol = NULL;                  /* vol in use */
             goto get_out;
@@ -408,8 +410,10 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 
 get_out:
    if (vol) {
-      Dmsg1(dbglvl, "=== set not released. vol=%s\n", vol->vol_name);
+      Dmsg2(dbglvl, "=== set not released. vol=%s dev=%s\n", vol->vol_name,
+            vol->dev->print_name());
       vol->released = false;
+      dcr->reserved_volume = true;
    }
    debug_list_volumes("end new volume");
    unlock_volumes();
@@ -475,9 +479,9 @@ void unreserve_device(DCR *dcr)
    DEVICE *dev = dcr->dev;
    if (dcr->reserved_device) {
       dcr->reserved_device = false;
+      dcr->reserved_volume = false;
       dev->reserved_device--;
       Dmsg2(dbglvl, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
       /* If we set read mode in reserving, remove it */
       if (dev->can_read()) {
          dev->clear_read();
@@ -534,6 +538,8 @@ bool volume_unused(DCR *dcr)
    Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d dev_reserved=%d\n",
       dev->vol->vol_name, dev->num_writers, dev->reserved_device);
    dev->vol->released = true;
+   Dmsg2(dbglvl, "=== set released. Vol=%s dev=%s\n", dev->vol->vol_name,
+         dev->print_name());
    if (dev->is_tape()) { // || dev->is_autochanger()) {
       return true;
    } else {
