@@ -107,7 +107,7 @@ if [ $a = 0 -a $b = 0 -a $c = 0 -a $d = 0 -a $e = 0 -a $f = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
 else
-   echo "RUN_FD_FAILED in error"
+   echo "RUN_FD_FAILED in error a=$a b=$b c=$c d=$d e=$e f=$f"
    rstat=1
 fi
 
@@ -125,7 +125,7 @@ if [ $a = 0 -a $b != 0 -a $c = 0 -a $d = 0 -a $e = 0 ]
 then
    [ "$debug" = 1 ] && echo RUN_FD_FAILED ok
 else
-   echo "RUN_FD_FAILED2 in error"
+   echo "RUN_FD_FAILED2 in error a=$a b=$b c=$d d=$d e=$e"
    rstat=1
 fi
 
