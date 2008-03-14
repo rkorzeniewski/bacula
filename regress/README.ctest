@@ -2,12 +2,12 @@
 Bacula Regression Suite and CTest
 ==================================================================
 
-The Bacula regression scripts have now been modified to use the ctest component
-of cmake.  The major gain from this, since Bacula already had a working test
-framework in place, is the ability to have the results of each test submitted
-to a centralized dashboard system.  All of the test results are aggregated and
-summarized, where all of the developers can quickly see how the regression
-tests are running.
+Thanks to Frank Sweetser, the Bacula regression scripts have now been modified
+to use the ctest component of cmake.  The major gain from this, since Bacula
+already had a working test framework in place, is the ability to have the
+results of each test submitted to a centralized dashboard system.  All of the
+test results are aggregated and summarized, where all of the developers can
+quickly see how the regression tests are running.
 
 How to Use CTest
 ==================================================================
@@ -42,6 +42,26 @@ as a different run.
 The simplest way to trigger a nightly run is to use one of the two provided
 scripts.  The nightly-all script will run all non root tests, both tape and
 disk based, while the nightly-disk script will run only the disk based tests.
+So, you can choose between the following scripts:
+
+ cd <regress>
+ ./nightly-all         # does disk and tape testing
+ ./nightly-disk        # disk only tests
+
+ ./experimental-all    # experimental disk and tape testing
+ ./experimental-disk   # experimental disk testing
+
+If you are a developer and you have modified your local SVN repository, you
+should be running the experimental tests -- they are designed for developers.
+If you do modify your local repository and commit it, then run a nightly
+test, the local repository may be reverted to a prior version so that the
+nightly tests all have a consistent cutoff time.
+
+If you are just doing testing on a nightly basis (no development in your
+source repository), then please use the nightly tests.
+
+All the old scripts (./do_all, do_file, all-non-root-tests, ...) manually
+run the tests outside of ctest.
 
 Periodically, however, you may want to submit a single test separately from a
 weekly run.  This may be a test of a particular patch you're working on, or
