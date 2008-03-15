@@ -368,17 +368,15 @@ BOOL VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
    if(hrReturned != VSS_S_ASYNC_FINISHED) {   
       wchar_t *pwszBuffer = NULL;
       /* I don't see the usefulness of the following -- KES */
-      DWORD dwRet = ::FormatMessageW(
-                        FORMAT_MESSAGE_ALLOCATE_BUFFER 
-                        | FORMAT_MESSAGE_FROM_SYSTEM 
-                        | FORMAT_MESSAGE_IGNORE_INSERTS,
-                        NULL, hrReturned, 
-                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-                        (LPWSTR)&pwszBuffer, 0, NULL);
+      FormatMessageW(
+         FORMAT_MESSAGE_ALLOCATE_BUFFER 
+         | FORMAT_MESSAGE_FROM_SYSTEM 
+         | FORMAT_MESSAGE_IGNORE_INSERTS,
+         NULL, hrReturned, 
+         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+         (LPWSTR)&pwszBuffer, 0, NULL);
 
-//    if (dwRet != 0) {         
-         LocalFree(pwszBuffer);         
-//    }      
+      LocalFree(pwszBuffer);         
       errno = b_errno_win32;
    }
 #endif
