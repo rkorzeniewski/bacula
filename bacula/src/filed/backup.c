@@ -53,7 +53,8 @@ static bool crypto_session_send(JCR *jcr, BSOCK *sd);
 typedef struct CurFile {
    hlink link;
    char *fname;
-   char *lstat;
+   time_t ctime;
+   time_t mtime;
    bool seen;
 } CurFile;
 
@@ -64,25 +65,13 @@ typedef struct CurFile {
  * This function is called for each file seen in fileset.
  * We check in file_list hash if fname have been backuped
  * the last time. After we can compare Lstat field. 
- * 
+ * Full Lstat usage have been removed on 6612 
  */
-/* TODO: tweak verify code to use the same function ?? */
 bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 {
-   char *p;
    bool stat = false;
-   struct stat statc;                 /* catalog stat */
-   char *Opts_Digest;
    char *fname;
    CurFile *elt;
-
-   int32_t LinkFIc;
-
-   if (*ff_pkt->VerifyOpts) {   /* use mtime + ctime checks by default */
-      Opts_Digest = ff_pkt->VerifyOpts;
-   } else {
-      Opts_Digest = "cm"; 
-   }
 
    if (!jcr->accurate || jcr->JobLevel == L_FULL) {
       return true;
@@ -109,95 +98,14 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
       goto bail_out;
    }
 
-   decode_stat(elt->lstat, &statc, &LinkFIc); /* decode catalog stat */
-//   *do_Digest = CRYPTO_DIGEST_NONE;
-
-   for (p=Opts_Digest; *p; p++) {
-      char ed1[30], ed2[30];
-      switch (*p) {
-      case 'i':                /* compare INODEs */
-         if (statc.st_ino != ff_pkt->statp.st_ino) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_ino   differ. Cat: %s File: %s\n"), fname,
-                 edit_uint64((uint64_t)statc.st_ino, ed1),
-                 edit_uint64((uint64_t)ff_pkt->statp.st_ino, ed2));
-            stat = true;
-         }
-         break;
-      case 'p':                /* permissions bits */
-         if (statc.st_mode != ff_pkt->statp.st_mode) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_mode  differ. Cat: %x File: %x\n"), fname,
-                 (uint32_t)statc.st_mode, (uint32_t)ff_pkt->statp.st_mode);
-            stat = true;
-         }
-         break;
-//      case 'n':                /* number of links */
-//         if (statc.st_nlink != ff_pkt->statp.st_nlink) {
-//            Jmsg(jcr, M_SAVED, 0, _("%s      st_nlink differ. Cat: %d File: %d\n"), fname,
-//                 (uint32_t)statc.st_nlink, (uint32_t)ff_pkt->statp.st_nlink);
-//            stat = true;
-//         }
-//         break;
-      case 'u':                /* user id */
-         if (statc.st_uid != ff_pkt->statp.st_uid) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_uid   differ. Cat: %u File: %u\n"), fname,
-                 (uint32_t)statc.st_uid, (uint32_t)ff_pkt->statp.st_uid);
-            stat = true;
-         }
-         break;
-      case 'g':                /* group id */
-         if (statc.st_gid != ff_pkt->statp.st_gid) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_gid   differ. Cat: %u File: %u\n"), fname,
-                 (uint32_t)statc.st_gid, (uint32_t)ff_pkt->statp.st_gid);
-            stat = true;
-         }
-         break;
-      case 's':                /* size */
-         if (statc.st_size != ff_pkt->statp.st_size) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  differ. Cat: %s File: %s\n"), fname,
-                 edit_uint64((uint64_t)statc.st_size, ed1),
-                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
-            stat = true;
-         }
-         break;
-//      case 'a':                /* access time */
-//         if (statc.st_atime != ff_pkt->statp.st_atime) {
-//            Jmsg(jcr, M_SAVED, 0, _("%s      st_atime differs\n"), fname);
-//            stat = true;
-//         }
-//         break;
-      case 'm':
-         if (statc.st_mtime != ff_pkt->statp.st_mtime) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
-            stat = true;
-         }
-         break;
-      case 'c':                /* ctime */
-         if (statc.st_ctime != ff_pkt->statp.st_ctime) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
-            stat = true;
-         }
-         break;
-      case 'd':                /* file size decrease */
-         if (statc.st_size > ff_pkt->statp.st_size) {
-            Jmsg(jcr, M_SAVED, 0, _("%s      st_size  decrease. Cat: %s File: %s\n"), fname,
-                 edit_uint64((uint64_t)statc.st_size, ed1),
-                 edit_uint64((uint64_t)ff_pkt->statp.st_size, ed2));
-            stat = true;
-         }
-         break;
-      case '5':                /* compare MD5 */
-         Dmsg1(500, "set Do_MD5 for %s\n", ff_pkt->fname);
-//       *do_Digest = CRYPTO_DIGEST_MD5;
-         break;
-      case '1':                 /* compare SHA1 */
-//       *do_Digest = CRYPTO_DIGEST_SHA1;
-         break;
-      case ':':
-      case 'V':
-      default:
-         break;
-      }
+   if (elt->mtime != ff_pkt->statp.st_mtime) {
+     Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
+     stat = true;
+   } else if (elt->ctime != ff_pkt->statp.st_ctime) {
+     Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
+     stat = true;
    }
+
    accurate_mark_file_as_seen(elt);
    Dmsg2(500, "accurate %s = %i\n", fname, stat);
 
@@ -214,8 +122,11 @@ int accurate_cmd(JCR *jcr)
 {
    BSOCK *dir = jcr->dir_bsock;
    int len;
+   struct stat statp;
+   int32_t LinkFIc;
    uint64_t nb;
    CurFile *elt=NULL;
+   char *lstat;
 
    if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
       return true;
@@ -231,7 +142,7 @@ int accurate_cmd(JCR *jcr)
 
    /*
     * buffer = sizeof(CurFile) + dirmsg
-    * dirmsg = fname + lstat
+    * dirmsg = fname + \0 + lstat
     */
    /* get current files */
    while (dir->recv() >= 0) {
@@ -240,22 +151,31 @@ int accurate_cmd(JCR *jcr)
 //       elt = (CurFile *)malloc(sizeof(CurFile));
 //       elt->fname  = (char *) malloc(dir->msglen+1);
 
-         /* we store CurFile, fname and lstat in the same chunk */
-         elt = (CurFile *)malloc(sizeof(CurFile)+dir->msglen+1);
+         /* we store CurFile, fname and ctime/mtime in the same chunk */
+         elt = (CurFile *)malloc(sizeof(CurFile)+len+1);
          elt->fname  = (char *) elt+sizeof(CurFile);
-         memcpy(elt->fname, dir->msg, dir->msglen);
-         elt->fname[dir->msglen]='\0';
-         elt->lstat = elt->fname + len + 1;
-         elt->seen=0;
+         strcpy(elt->fname, dir->msg);
+         lstat = dir->msg + len + 1;
+         decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
+         elt->ctime = statp.st_ctime;
+         elt->mtime = statp.st_mtime;
+         elt->seen = 0;
          jcr->file_list->insert(elt->fname, elt); 
-         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, elt->lstat);
+         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, lstat);
       }
    }
+   extern void *start_heap;
+
+   char b1[50], b2[50], b3[50], b4[50], b5[50];
+   Dmsg5(1," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
+	 edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
+	 edit_uint64_with_commas(sm_bytes, b2),
+	 edit_uint64_with_commas(sm_max_bytes, b3),
+	 edit_uint64_with_commas(sm_buffers, b4),
+	 edit_uint64_with_commas(sm_max_buffers, b5));
 
 //   jcr->file_list->stats();
-   /* TODO: send a EOM ?
-    * dir->fsend("2000 OK accurate\n");
-    */
+
    return true;
 }
 
@@ -279,9 +199,10 @@ bool accurate_send_deleted_list(JCR *jcr)
 
    foreach_htable (elt, jcr->file_list) {
       if (!accurate_file_has_been_seen(elt)) { /* already seen */
-         Dmsg3(500, "deleted fname=%s lstat=%s seen=%i\n", elt->fname, elt->lstat, elt->seen);
+         Dmsg2(500, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
-         decode_stat(elt->lstat, &ff_pkt->statp, &ff_pkt->LinkFI); /* decode catalog stat */
+         ff_pkt->statp.st_mtime = elt->mtime;
+         ff_pkt->statp.st_ctime = elt->ctime;
          encode_and_send_attributes(jcr, ff_pkt, stream);
       }
 //      Free(elt->fname);
