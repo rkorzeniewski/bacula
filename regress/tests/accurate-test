@@ -272,11 +272,6 @@ check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
 
-grep 'st_mode  differ' tmp/log1.out > /dev/null
-if [ $? != 0 ] ; then
-    bstat=2
-fi
-
 ################################################################
 # Test strippath option
 ################################################################
