@@ -1,6 +1,10 @@
               Technical notes on version 2.3
 
 General:
+16Mar08
+ebl  Reduce memory usage for accurate backup, working only with ctime
+     and mtime. (not all Lstat field) 
+     About 40MB for my linux system (400.000 files)
 14Mar08
 kes  Add dcr->reserved_volume flag that allows us to release a volume
      even if it is not vol->released.  This allows maxvol2 to work when
