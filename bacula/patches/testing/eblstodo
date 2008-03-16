@@ -47,6 +47,7 @@ Sauvegarde des postes nomades :
 Bconsole :
  p Ajouter l'historique dans la bconsole
  - Ajouter une commande pour bloquer un drive
+ - Ajouter de la completion automatique sur les commandes
 
 Sauvegarde SAN :
  - Avoir un SD sur chaque FD
@@ -129,7 +130,9 @@ TODO
 ----
 
 bweb :
-  - Voir les groupes d'un client
+  - Support sqlite
+    SELECT strftime('%Y-%m-%d', Job.StartTime) FROM Job LIMIT 1;
+  x Voir les groupes d'un client
   - Overview, pouvoir choisir entre la job_old et l'autre
   - utiliser des noms de table plus proche (brestore -> bweb ?)
   - Balloon
@@ -281,7 +284,7 @@ FROM (
 
  - Ajouter la liste des fichiers (quand il n'y en a pas trop)
  - Ajouter un mode qui compte le nombre de fichier sous bfileview
- - Ajouter une estimation de progression du backup basé sur le nombre
+ x Ajouter une estimation de progression du backup basé sur le nombre
    de fichier et le nombre de Mo
  x Ajouter un bouton suivant/precedant dans la vue des logs
  x Ajouter la liste des medias qui vont/ont expirer et les pruner
@@ -463,7 +466,7 @@ bacula :
  p modifier l'organisation de la table version (pour pouvoir ajouter
    les versions de bweb par exemple)
  - utiliser la meme fonction pour read_close_session et append_close_session
- - pb dans le message de chargement d'une bande pendant une resto
+ x pb dans le message de chargement d'une bande pendant une resto
 
 	Please mount Volume "R40175" or label a new one for
 	Pas le bon message pour une resto (label a new one)
@@ -475,7 +478,7 @@ bacula :
    jobs normaux. Le patch précédent ne changeait pas le MaxConcurrentJobs
    comme il faut à la fin du backup.
 
- - Accurate backup
+ x Accurate backup
    o Envoyer la liste de tous les fichiers au client dans un format simple
     /path/	LSTAT			# un / a la fin pour un repertoire
     /path/file	LSTAT
@@ -492,6 +495,39 @@ bacula :
    p Ajouter une option pour avoir la table de stat
       Enable Statistic = yes/no
       Statistic retention = 4 years
+   o use mmap to map hash ? (on 32b, we are limited to 1 or 2GB)
+
+#ifndef _WIN32
+       ef->data = mmap(NULL, ef->data_size, PROT_READ,
+                       MAP_SHARED, fileno(ef->fp), 0);
+#else
+       fm = CreateFileMapping((HANDLE) _get_osfhandle (fileno(ef->fp)),
+                              NULL,
+                              PAGE_READONLY,
+                              0,
+                              0,
+                              NULL);
+       ef->data = MapViewOfFile(fm,
+                                FILE_MAP_READ,
+                                0,
+                                0,
+                                ef->data_size);
+       CloseHandle(fm);
+#endif
+ 
+        ef = eet_internal_read(ef);
+        if (!ef)
+@@ -892,11 +862,7 @@
+        free(ef->header);
+      }
+ 
+#ifndef _WIN32
+   if (ef->data) munmap((void*)ef->data, ef->data_size);
+#else
+   if (ef->data) UnmapViewOfFile (ef->data);
+#endif
+
+if (ef->fp) fclose(ef->fp);
 
   - Accurate backup (kern)
 1. Run bconsole
@@ -526,9 +562,6 @@ items 13-15.
   - TODO:
  x Backup a file that is not in accurate list (change NOCHG to LINK, FILE, etc..)
  * Manage JobFiles (Deleted compte pour 1 ?)
- x Gerer la fuite memoire...
-  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
-12521 eric      15   0  178m 132m  844 S  0.0 26.4   2:39.30 bacula-fd
 
  x Utiliser le check_accurate dans find_one et declencher le save_file
  si besoin en desactivant le incremental.
@@ -565,10 +598,21 @@ SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
  ORDER BY PathId, FilenameId, JobId DESC
 */
 
+ - .api mode:
+Some ideas :
+- Every dates have to be in ISO format
+YYYY-MM-DD HH:MM:SS
+- JobLevel, JobStatus, etc.. have to use C constant T,R,a,A,f...
+- Sizes are always in bytes (no suffix)
+- Numbers have to be used without commas
+- If we change (add) something,  we must always add new elements
+at the end.
+
+For director status on running jobs, it will be great to display :
+JobId, Client name, Job Name, Level, Start Time and Status
 
 
-
- p Utiliser une alist dans les runscripts
+ x Utiliser une alist dans les runscripts
 
 RunScript {
    console = "xxxx"
@@ -585,3 +629,4 @@ RunScript {
 
  x fix segfault when config files are empty
  o cleanup bextract to use filed code
+
