@@ -113,6 +113,8 @@ void ClientStat::timerTriggered()
 void ClientStat::populateHeader()
 {
    QString command = QString(".status client=\"" + m_client + "\" header");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditHeader->clear();
 
@@ -130,6 +132,8 @@ void ClientStat::populateHeader()
 void ClientStat::populateTerminated()
 {
    QString command = QString(".status client=\"" + m_client + "\" terminated");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
@@ -184,7 +188,8 @@ void ClientStat::populateTerminated()
 void ClientStat::populateRunning()
 {
    QString command = QString(".status client=\"" + m_client + "\" running");
-   Pmsg1(100, "Clients running cmd : %s\n",command.toUtf8().data());
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditRunning->clear();
 

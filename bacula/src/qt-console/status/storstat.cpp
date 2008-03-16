@@ -104,13 +104,9 @@ void StorStat::populateAll()
 {
    if (!m_console->preventInUseConnect())
        return;
-   populateHeader();
    populateTerminated();
    populateRunning();
-   populateWaitReservation();
-   populateDevices();
-   populateVolumes();
-   populateSpooling();
+   populateCurrentTab(tabWidget->currentIndex());
 }
 
 /*
@@ -131,6 +127,8 @@ void StorStat::timerTriggered()
 void StorStat::populateHeader()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" header");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditHeader->clear();
 
@@ -145,6 +143,8 @@ void StorStat::populateHeader()
 void StorStat::populateWaitReservation()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" waitreservation");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditWaitReservation->clear();
 
@@ -159,6 +159,8 @@ void StorStat::populateWaitReservation()
 void StorStat::populateDevices()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" devices");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditDevices->clear();
 
@@ -173,6 +175,8 @@ void StorStat::populateDevices()
 void StorStat::populateVolumes()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" volumes");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditVolumes->clear();
 
@@ -187,6 +191,8 @@ void StorStat::populateVolumes()
 void StorStat::populateSpooling()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" spooling");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEditSpooling->clear();
 
@@ -204,6 +210,8 @@ void StorStat::populateSpooling()
 void StorStat::populateTerminated()
 {
    QString command = QString(".status storage=\"" + m_storage + "\" terminated");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
@@ -257,7 +265,9 @@ void StorStat::populateTerminated()
  */
 void StorStat::populateRunning()
 {
-   QString command = QString(".status dir running");
+   QString command = QString(".status storage=\"" + m_storage + "\" running");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
@@ -328,6 +338,8 @@ void StorStat::createConnections()
                    SLOT(populateAll()));
    connect(actionCancelRunning, SIGNAL(triggered()), this,
                    SLOT(consoleCancelJob()));
+   connect(tabWidget, SIGNAL(currentChanged(int)), this,
+                   SLOT(populateCurrentTab(int)));
    terminatedTable->setContextMenuPolicy(Qt::ActionsContextMenu);
    terminatedTable->addAction(actionRefresh);
    runningTable->setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -372,4 +384,21 @@ void StorStat::consoleCancelJob()
       cmd += text;
       consoleCommand(cmd);
    }
+}
+
+/*
+ * Populate the text edit window in the current tab
+ */
+void StorStat::populateCurrentTab(int index)
+{
+   if (index == 0)
+      populateHeader();
+   if (index == 1)
+      populateWaitReservation();
+   if (index == 2)
+      populateDevices();
+   if (index == 3)
+      populateVolumes();
+   if (index == 4)
+      populateSpooling();
 }
