@@ -30,7 +30,7 @@ update Volume=TestVolume002 maxvoljobs=1
 update Volume=TestVolume003 volretention=10s
 update Volume=TestVolume003 maxvoljobs=1
 list volumes
-setdebug level=50 storage=File1
+setdebug level=150 storage=File1
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes

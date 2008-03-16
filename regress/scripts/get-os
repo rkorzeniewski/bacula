@@ -339,72 +339,77 @@ fi
 # ----------------------------------------------------------
 if test "x$DISTNAME" != "x"
 then
-        echo "distname set to $DISTNAME"
+	echo "distname set to $DISTNAME"
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
-        DISTNAME=alpha
+	DISTNAME=alpha
 elif test $HAVE_UNAME=yes -a x`uname -s` = xAIX
 then
-        DISTNAME=aix
+	DISTNAME=aix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xHP-UX
 then
-        DISTNAME=hpux
+	DISTNAME=hpux
 elif test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
-        DISTNAME=solaris
+	DISTNAME=solaris
 elif test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
-        DISTNAME=freebsd
+	DISTNAME=freebsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xNetBSD
 then
-        DISTNAME=netbsd
+	DISTNAME=netbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
-        DISTNAME=openbsd
+	DISTNAME=openbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
 then
-        DISTNAME=irix
+	DISTNAME=irix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
-        DISTNAME=bsdi
+	DISTNAME=bsdi
 elif test -f /etc/SuSE-release
 then
-        DISTNAME=suse
+	DISTNAME=suse
 elif test -d /etc/SuSEconfig
 then
-        DISTNAME=suse5
+	DISTNAME=suse5
 elif test -f /etc/mandrake-release
 then
-        DISTNAME=mandrake
+	DISTNAME=mandrake
 elif test -f /etc/fedora-release
 then
-        DISTNAME=fedora
+	DISTNAME=fedora
 elif test -f /etc/whitebox-release
 then
        DISTNAME=redhat
 elif test -f /etc/redhat-release
 then
-        DISTNAME=redhat
+       if test `grep CentOs /etc/redhat-release`
+       then
+	   DISTNAME=redhat
+       else
+	   DISTNAME=centos
+       fi
 elif test -f /etc/gentoo-release
 then
-        DISTNAME=gentoo
+	DISTNAME=gentoo
 elif test -f /etc/debian_version
 then
-        DISTNAME=debian
+	DISTNAME=debian
 elif test -f /etc/slackware-version
 then
-        DISTNAME=slackware
+	DISTNAME=slackware
 elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
 then
     DISTNAME=darwin
 elif test -f /etc/engarde-version
 then
-        DISTNAME=engarde
+	DISTNAME=engarde
 elif test "$CYGWIN" = yes
 then
-        DISTNAME=cygwin
+	DISTNAME=cygwin
 else
-        DISTNAME=unknown
+	DISTNAME=unknown
 fi
 
 case "$DISTNAME" in
@@ -455,6 +460,10 @@ redhat)
 	    DISTVER=`cat /etc/redhat-release | grep release |\
 		     cut -f 5 -d ' '`
 	fi
+  ;;
+centos)
+  DISTVER=`cat /etc/redhat-release | grep release |\
+	   cut -f 3 -d ' '`
   ;;
 fedora)
 	if test `cat /etc/fedora-release | grep release | cut -f 2 -d ' '`x = "Core"x ; then
