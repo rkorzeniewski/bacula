@@ -61,6 +61,7 @@ public slots:
 private slots:
    void timerTriggered();
    void consoleCancelJob();
+   void populateCurrentTab(int);
 
 private:
    void createConnections();

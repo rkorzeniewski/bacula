@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
-    <height>477</height>
+    <width>502</width>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -22,7 +22,7 @@
       <property name="currentIndex" >
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab" >
+      <widget class="QWidget" name="headerTab" >
        <attribute name="title" >
         <string>Header</string>
        </attribute>
@@ -32,7 +32,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2" >
+      <widget class="QWidget" name="waitReservationTab" >
        <attribute name="title" >
         <string>Waitreservation</string>
        </attribute>
@@ -42,7 +42,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3" >
+      <widget class="QWidget" name="devicesTab" >
        <attribute name="title" >
         <string>Devices</string>
        </attribute>
@@ -52,7 +52,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_4" >
+      <widget class="QWidget" name="volumesTab" >
        <attribute name="title" >
         <string>Volumes</string>
        </attribute>
@@ -62,7 +62,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_5" >
+      <widget class="QWidget" name="spoolingTab" >
        <attribute name="title" >
         <string>Spooling</string>
        </attribute>
@@ -73,7 +73,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QVBoxLayout" >
        <item>
         <widget class="QLabel" name="runningLabel" >
@@ -96,7 +96,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="" >
+     <widget class="QWidget" name="layoutWidget" >
       <layout class="QVBoxLayout" >
        <item>
         <widget class="QLabel" name="terminatedLabel" >

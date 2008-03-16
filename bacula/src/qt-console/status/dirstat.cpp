@@ -112,6 +112,8 @@ void DirStat::timerTriggered()
 void DirStat::populateHeader()
 {
    QString command = QString(".status dir header");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    textEdit->clear();
 
@@ -129,6 +131,8 @@ void DirStat::populateHeader()
 void DirStat::populateTerminated()
 {
    QString command = QString(".status dir terminated");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
@@ -183,6 +187,8 @@ void DirStat::populateTerminated()
 void DirStat::populateScheduled()
 {
    QString command = QString(".status dir scheduled");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
@@ -228,6 +234,8 @@ void DirStat::populateScheduled()
 void DirStat::populateRunning()
 {
    QString command = QString(".status dir running");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
    QStringList results;
    QBrush blackBrush(Qt::black);
 
