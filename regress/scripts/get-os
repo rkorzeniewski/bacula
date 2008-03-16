@@ -13,11 +13,11 @@ echo "$as_me: error: cannot run $SHELL $ac_aux_dir/config.sub" >&2;}
   ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
   test "x$ac_build_alias" = x &&
   { { echo "$as_me:$LINENO: error: cannot guess build type; you must specify one" >&5
-	  echo "$as_me: error: cannot guess build type; you must specify one" >&2;}
+          echo "$as_me: error: cannot guess build type; you must specify one" >&2;}
       { (exit 1); exit 1; }; }
   ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
   { { echo "$as_me:$LINENO: error: $SHELL $ac_aux_dir/config.sub $ac_build_alias failed" >&5
-	  echo "$as_me: error: $SHELL $ac_aux_dir/config.sub $ac_build_alias failed" >&2;}
+          echo "$as_me: error: $SHELL $ac_aux_dir/config.sub $ac_build_alias failed" >&2;}
       { (exit 1); exit 1; }; }
   
   
@@ -42,7 +42,7 @@ case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
 
 case $host_os in
   *cygwin* ) CYGWIN=yes;;
-	 * ) CYGWIN=no;;
+         * ) CYGWIN=no;;
 esac
 
 if test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
@@ -339,46 +339,46 @@ fi
 # ----------------------------------------------------------
 if test "x$DISTNAME" != "x"
 then
-	echo "distname set to $DISTNAME"
+        echo "distname set to $DISTNAME"
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOSF1
 then
-	DISTNAME=alpha
+        DISTNAME=alpha
 elif test $HAVE_UNAME=yes -a x`uname -s` = xAIX
 then
-	DISTNAME=aix
+        DISTNAME=aix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xHP-UX
 then
-	DISTNAME=hpux
+        DISTNAME=hpux
 elif test $HAVE_UNAME=yes -a x`uname -s` = xSunOS
 then
-	DISTNAME=solaris
+        DISTNAME=solaris
 elif test $HAVE_UNAME=yes -a x`uname -s` = xFreeBSD
 then
-	DISTNAME=freebsd
+        DISTNAME=freebsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xNetBSD
 then
-	DISTNAME=netbsd
+        DISTNAME=netbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xOpenBSD
 then
-	DISTNAME=openbsd
+        DISTNAME=openbsd
 elif test $HAVE_UNAME=yes -a x`uname -s` = xIRIX
 then
-	DISTNAME=irix
+        DISTNAME=irix
 elif test $HAVE_UNAME=yes -a x`uname -s` = xBSD/OS
 then
-	DISTNAME=bsdi
+        DISTNAME=bsdi
 elif test -f /etc/SuSE-release
 then
-	DISTNAME=suse
+        DISTNAME=suse
 elif test -d /etc/SuSEconfig
 then
-	DISTNAME=suse5
+        DISTNAME=suse5
 elif test -f /etc/mandrake-release
 then
-	DISTNAME=mandrake
+        DISTNAME=mandrake
 elif test -f /etc/fedora-release
 then
-	DISTNAME=fedora
+        DISTNAME=fedora
 elif test -f /etc/whitebox-release
 then
        DISTNAME=redhat
@@ -386,115 +386,119 @@ elif test -f /etc/redhat-release
 then
        if test `grep CentOs /etc/redhat-release`
        then
-	   DISTNAME=redhat
+           DISTNAME=redhat
        else
-	   DISTNAME=centos
+           DISTNAME=centos
        fi
 elif test -f /etc/gentoo-release
 then
-	DISTNAME=gentoo
+        DISTNAME=gentoo
 elif test -f /etc/debian_version
 then
-	DISTNAME=debian
+        DISTNAME=debian
 elif test -f /etc/slackware-version
 then
-	DISTNAME=slackware
+        DISTNAME=slackware
 elif test $HAVE_UNAME=yes -a x`uname -s` = xDarwin
 then
     DISTNAME=darwin
 elif test -f /etc/engarde-version
 then
-	DISTNAME=engarde
+        DISTNAME=engarde
 elif test "$CYGWIN" = yes
 then
-	DISTNAME=cygwin
+        DISTNAME=cygwin
 else
-	DISTNAME=unknown
+        DISTNAME=unknown
 fi
 
 case "$DISTNAME" in
 aix)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 alpha)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 bsdi)
-	DISTVER=`uname -a |awk '{print $3}'`
+        DISTVER=`uname -a |awk '{print $3}'`
   ;;
 cygwin)
-	DISTVER=`uname -a |awk '{print $3}'`
+        DISTVER=`uname -a |awk '{print $3}'`
   ;;
 darwin)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 debian)
-	DISTVER=`cat /etc/debian_version`
+        if `grep -q ubuntu /etc/apt/sources.list`; then
+           DISTVER="Ubuntu"
+        else
+           DISTVER=`cat /etc/debian_version`
+        fi
   ;;
 freebsd)
-	DISTVER=`uname -a |awk '{print $3}'`
+        DISTVER=`uname -a |awk '{print $3}'`
   ;;
 hpux)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 irix)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 netbsd)
-	DISTVER=`uname -a |awk '{print $3}'`
+        DISTVER=`uname -a |awk '{print $3}'`
   ;;
 openbsd)
-	DISTVER=`uname -a |awk '{print $3}'`
+        DISTVER=`uname -a |awk '{print $3}'`
   ;;
 redhat)
-	if test -f /etc/whitebox-release ; then
-	   f=/etc/whitebox-release
-	else
-	   f=/etc/redhat-release
-	fi
-	if test `cat $f | grep release |\
-		   cut -f 3 -d ' '`x = "Enterprise"x ; then
-	   DISTVER="Enterprise "`cat $f | grep release |\
-		    cut -f 6 -d ' '`
-	else
-	    DISTVER=`cat /etc/redhat-release | grep release |\
-		     cut -f 5 -d ' '`
-	fi
+        if test -f /etc/whitebox-release ; then
+           f=/etc/whitebox-release
+        else
+           f=/etc/redhat-release
+        fi
+        if test `cat $f | grep release |\
+                   cut -f 3 -d ' '`x = "Enterprise"x ; then
+           DISTVER="Enterprise "`cat $f | grep release |\
+                    cut -f 6 -d ' '`
+        else
+            DISTVER=`cat /etc/redhat-release | grep release |\
+                     cut -f 5 -d ' '`
+        fi
   ;;
 centos)
   DISTVER=`cat /etc/redhat-release | grep release |\
-	   cut -f 3 -d ' '`
+           cut -f 3 -d ' '`
   ;;
 fedora)
-	if test `cat /etc/fedora-release | grep release | cut -f 2 -d ' '`x = "Core"x ; then
-	    DISTVER=`cat /etc/fedora-release | grep release |cut -f 4 -d ' '`
-	else
-	    DISTVER=`cat /etc/fedora-release | grep release |cut -f 3 -d ' '`
-	fi
+        if test `cat /etc/fedora-release | grep release | cut -f 2 -d ' '`x = "Core"x ; then
+            DISTVER=`cat /etc/fedora-release | grep release |cut -f 4 -d ' '`
+        else
+            DISTVER=`cat /etc/fedora-release | grep release |cut -f 3 -d ' '`
+        fi
   ;;
 mandrake)
-	DISTVER=`cat /etc/mandrake-release | grep release |\
-	   cut -f 5 -d ' '`
+        DISTVER=`cat /etc/mandrake-release | grep release |\
+           cut -f 5 -d ' '`
   ;;
 gentoo)
-	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
+        DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
   ;;
 slackware)
-	DISTVER=`cat /etc/slackware-version`
+        DISTVER=`cat /etc/slackware-version`
   ;;
 solaris)
-	DISTVER=`uname -r`
+        DISTVER=`uname -r`
   ;;
 suse)
-	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
-	    cut -f 3 -d ' '`
+        DISTVER=`cat /etc/SuSE-release |grep VERSION|\
+            cut -f 3 -d ' '`
   ;;
 suse5)
-	DISTNAME=suse
-	DISTVER=5.x
+        DISTNAME=suse
+        DISTVER=5.x
   ;;
 unknown)
-	DISTVER=unknown
+        DISTVER=unknown
   ;;
 *)
   echo " === Something went wrong. Unknown DISTNAME $DISTNAME ==="
