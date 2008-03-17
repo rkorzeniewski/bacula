@@ -605,7 +605,7 @@ function ext_init()
 		Ext.brestore.dlglaunch = new Ext.LayoutDialog("div-resto-dlg", {
 //                        modal:true,
                         width:600,
-                        height:400,
+                        height:500,
                         shadow:true,
                         minWidth:300,
                         minHeight:300,
@@ -647,7 +647,7 @@ function ext_init()
 
     var rclient_combo = new Ext.form.ComboBox({
             value: Ext.brestore.client,
-            fieldLabel: 'client',
+            fieldLabel: 'Client',
             hiddenName:'client',
             store: client_store,
             displayField:'name',
@@ -664,6 +664,85 @@ function ext_init()
             value: '/tmp/bacula-restore',
             width:190
         });
+    var stripprefix_text = new Ext.form.TextField({
+            fieldLabel: 'Strip prefix',
+            name: 'strip_prefix',
+            value: '',
+            disabled: 1,
+            width:190
+        });
+    var addsuffix_text = new Ext.form.TextField({
+            fieldLabel: 'Add suffix',
+            name: 'add_suffix',
+            value: '',
+            disabled: 1,
+            width:190
+        });
+    var addprefix_text = new Ext.form.TextField({
+            fieldLabel: 'Add prefix',
+            name: 'add_prefix',
+            value: '',
+            disabled: 1,
+            width:190
+        });
+    var rwhere_text = new Ext.form.TextField({
+            fieldLabel: 'Where regexp',
+            name: 'regexp_where',
+            value: '',
+            disabled: 1,
+            width:190
+        });
+    var usefilerelocation_bp = new Ext.form.Checkbox({
+            fieldLabel: 'Use file relocation',
+            name: 'use_relocation',
+            checked: 0
+    });
+    var useregexp_bp = new Ext.form.Checkbox({
+            fieldLabel: 'Use regexp',
+            name: 'use_regexp',
+            disabled: 1,
+            checked: 0 
+    });
+    usefilerelocation_bp.on('check', function(bp,state) {
+       if (state) {
+          where_text.disable();
+          useregexp_bp.enable();
+          if (useregexp_bp.getValue()) {
+             addsuffix_text.disable();
+             addprefix_text.disable();
+             stripprefix_text.disable();
+             rwhere_text.enable();
+          } else {
+             addsuffix_text.enable();
+             addprefix_text.enable();
+             stripprefix_text.enable();
+             rwhere_text.disable();
+          }
+       } else {
+          where_text.enable();
+          addsuffix_text.disable();
+          addprefix_text.disable();
+          stripprefix_text.disable();
+          useregexp_bp.disable();
+	  rwhere_text.disable();
+       }
+    }); 
+
+    useregexp_bp.on('check', function(bp,state) {
+       if (state) {
+          addsuffix_text.disable();
+          addprefix_text.disable();
+          stripprefix_text.disable();
+	  rwhere_text.enable();
+       } else {
+          addsuffix_text.enable();
+          addprefix_text.enable();
+          stripprefix_text.enable();
+	  rwhere_text.disable();
+       }
+    }); 
+
+
     var storage_store = new Ext.data.Store({
         proxy: new Ext.data.HttpProxy({
             url: '/cgi-bin/bweb/bresto.pl',
@@ -677,7 +756,7 @@ function ext_init()
         ]))
     });
     var storage_combo = new Ext.form.ComboBox({
-            fieldLabel: 'storage',
+            fieldLabel: 'Storage',
             hiddenName:'storage',
             store: storage_store,
             displayField:'name',
@@ -728,8 +807,6 @@ function ext_init()
         enableColLock:false        
     });
 
-    media_grid.render();
-
     var items = file_selection_store.data.items;
     var tab_fileid=new Array();
     var tab_jobid=new Array();
@@ -742,16 +819,13 @@ function ext_init()
     var res = tab_fileid.join(",");
     var res2 = tab_jobid.join(",");
 
-    media_store.baseParams = init_params({action: 'get_media', jobid: res2, fileid: res});
-    media_store.reload();
-
 ////////////////////////////////////////////////////////////////
     fs.fieldset(
         {legend:'Media needed'},
         media_grid
     );
     fs.fieldset(
-        {legend:'Restore job'},
+        {legend:'Restore options'},
         new Ext.form.ComboBox({
             fieldLabel: 'Replace',
             hiddenName:'replace',
@@ -782,9 +856,20 @@ function ext_init()
 //        }),
 
         rclient_combo,
-        where_text,
-        storage_combo
+        storage_combo,
+        where_text
+	);
+    fs.fieldset(
+        {legend:'File relocation'},
+        usefilerelocation_bp,
+        stripprefix_text,
+        addprefix_text,
+        addsuffix_text,
+        useregexp_bp,
+        rwhere_text
     );
+    media_store.baseParams = init_params({action: 'get_media', jobid: res2, fileid: res});
+    media_store.load();
     storage_store.load({params:{action: 'list_storage'}});
 //  resto_store.load({params:{action: 'list_resto'}});
     fs.render('div-resto-form');
@@ -811,8 +896,29 @@ function ext_init()
 	var res2 = ';dirid=' + tab_dirid.join(";dirid=");
 	var res3 = ';jobid=' + tab_jobid.join(";jobid=");
 
-	var res4 = ';client=' + rclient_combo.getValue() + ';storage=' + storage_combo.getValue() + ';where=' + where_text.getValue();
-
+	var res4 = ';client=' + rclient_combo.getValue();
+        if (storage_combo.getValue()) {
+           res4 = res4 + ';storage=' + storage_combo.getValue();
+        }
+        if (usefilerelocation_bp.getValue()) {
+           if (useregexp_bp.getValue()) {
+              res4 = res4 + ';regexwhere=' + rwhere_text.getValue();
+           } else {
+              var reg = new Array();
+              if (stripprefix_text.getValue()) {
+                 reg.push('!' + stripprefix_text.getValue() + '!!i');
+              }
+              if (addprefix_text.getValue()) {
+                 reg.push('!^!' + addprefix_text.getValue() + '!');
+              }
+              if (addsuffix_text.getValue()) {
+		 reg.push('!([^/])$!$1' + addsuffix_text.getValue() + '!');
+              }
+              res4 = res4 + ';regexwhere=' + reg.join(',');
+           }
+        } else {
+           res4 = res4 + ';where=' + where_text.getValue();
+        }
 	window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
     } // end launch_restore
 
