@@ -56,6 +56,7 @@ DirStat::DirStat()
    m_timer->start(mainWin->m_refreshStatusDirInterval*1000);
 
    createConnections();
+   setCurrent();
 }
 
 void DirStat::getFont()
