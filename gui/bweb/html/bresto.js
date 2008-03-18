@@ -198,7 +198,7 @@ function ext_init()
         enableDrag: true,
         enableDragDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
-        loadMask: true,
+	        loadMask: true,
         autoSizeColumns: true,
         enableColLock:false
         
@@ -212,6 +212,9 @@ function ext_init()
 
     // TODO: selection only when using dblclick
     files_grid.selModel.on('rowselect', function(e,i,r) { 
+        if (r.json[4] == '.') {
+			return true;
+		}
         Ext.brestore.filename = r.json[4];
         file_versions_store.load({params:init_params({action: 'list_versions',
 						     vafv: Ext.brestore.option_vafv,
@@ -260,15 +263,15 @@ function ext_init()
            width:     100
         },{
            dataIndex: 'pathid',
-	   header: 'PathId'
-//           hidden: true
+	   header: 'PathId',
+           hidden: true
         },{
            dataIndex: 'filenameid',
            hidden: true
         },{
            dataIndex: 'fileid',
-	   header: 'FileId'
-//           hidden: true
+	   header: 'FileId',
+           hidden: true
         }
         ]);
 
@@ -354,7 +357,15 @@ function ext_init()
    file_selection_grid.on('notifyDrop', function(dd,e) { 
         alert(e) ; return true;
     });
-
+   func1 = function(e,b,c) { 
+   		if (e.browserEvent.keyCode == 46) {
+			for (elt in file_selection_grid.getSelectionModel().getSelections()) {
+				alert(elt);
+//				file_selection_store.remove(elt);
+			}
+		} 
+	};
+   file_selection_grid.on('keypress', func1);
 ///////////////////////////////////////////////////////
 
   var file_versions_store = new Ext.data.Store({
@@ -515,6 +526,7 @@ function ext_init()
         triggerAction: 'all',
         emptyText:'Select a job...',
         selectOnFocus:true,
+		loadMask: true,
         forceSelection: true,
         width:350
     });

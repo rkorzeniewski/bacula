@@ -928,7 +928,7 @@ SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
 print CGI::header('application/x-javascript');
 
 if ($action eq 'list_files') {
-    print "[";
+    print "[[0,0,0,0,'.',4096,'1970-01-01 00:00:00'],";
     my $files = $bvfs->ls_files();
 #	[ 1, 2, 3, "Bill",  10, '2007-01-01 00:00:00'],
 #   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
