@@ -701,7 +701,7 @@ bool qstatus_cmd(JCR *jcr)
    }
    unbash_spaces(cmd);
 
-   Dmsg1(000, "cmd=%s\n", cmd.c_str());
+   Dmsg1(200, "cmd=%s\n", cmd.c_str());
 
    if (strcmp(cmd.c_str(), "current") == 0) {
       dir->fsend(OKqstatus, cmd.c_str());
