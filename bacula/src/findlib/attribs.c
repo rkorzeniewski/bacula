@@ -376,7 +376,7 @@ bool set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    mode_t old_mask;
    bool ok = true;
    boffset_t fsize;
-
+ 
    if (uid_set) {
       my_uid = getuid();
       my_gid = getgid();
@@ -626,8 +626,9 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    POOLMEM *win32_ofile;
 
    // if we have neither ansi nor wchar version, we leave
-   if (!(p_SetFileAttributesW || p_SetFileAttributesA))
+   if (!(p_SetFileAttributesW || p_SetFileAttributesA)) {
       return false;
+   }
 
    if (!p || !*p) {                   /* we should have attributes */
       Dmsg2(100, "Attributes missing. of=%s ofd=%d\n", attr->ofname, ofd->fid);
@@ -686,10 +687,9 @@ static bool set_win32_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    }
 
    Dmsg1(100, "SetFileAtts %s\n", attr->ofname);
-   if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
-   {
+   if (!(atts.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
       if (p_SetFileAttributesW) {
-         POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
+         POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);   
          make_win32_path_UTF8_2_wchar(&pwszBuf, attr->ofname);
 
          BOOL b=p_SetFileAttributesW((LPCWSTR)pwszBuf, atts.dwFileAttributes & SET_ATTRS);

@@ -651,6 +651,9 @@ inline bool IsPathSeparator(int ch) { return ch == '/' || ch == '\\'; }
 inline char *first_path_separator(char *path) { return strpbrk(path, "/\\"); }
 inline const char *first_path_separator(const char *path) { return strpbrk(path, "/\\"); }
 
+extern void pause_msg(const char *file, const char *func, int line, const char *msg);
+#define pause(msg) if (debug_level) pause_msg(__FILE__, __func__, __LINE__, (msg))
+
 #else
 #define PathSeparator '/'
 /* Define Winsock functions if we aren't on Windows */
@@ -661,6 +664,7 @@ inline const char *first_path_separator(const char *path) { return strpbrk(path,
 inline bool IsPathSeparator(int ch) { return ch == '/'; }
 inline char *first_path_separator(char *path) { return strchr(path, '/'); }
 inline const char *first_path_separator(const char *path) { return strchr(path, '/'); }
+#define pause(msg)
 #endif
 
 
