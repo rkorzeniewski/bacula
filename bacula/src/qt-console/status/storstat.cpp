@@ -35,6 +35,7 @@
 #include <QTableWidgetItem>
 #include "bat.h"
 #include "storstat.h"
+#include "mount/mount.h"
 
 /*
 .status storage=<storage-name> <keyword>
@@ -64,11 +65,10 @@ StorStat::StorStat(QString &storage, QTreeWidgetItem *parentTreeWidgetItem)
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
    m_cursor = new QTextCursor(textEditHeader->document());
 
+   m_timer = new QTimer(this);
    readSettings();
    dockPage();
-   m_timer = new QTimer(this);
    QWidget::connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTriggered()));
-   m_timer->start(mainWin->m_refreshStatusDirInterval*1000);
 
    createConnections();
    setCurrent();
@@ -105,7 +105,6 @@ void StorStat::populateAll()
    if (!m_console->preventInUseConnect())
        return;
    populateTerminated();
-   populateRunning();
    populateCurrentTab(tabWidget->currentIndex());
 }
 
@@ -115,7 +114,7 @@ void StorStat::populateAll()
 void StorStat::timerTriggered()
 {
    bool iscurrent = mainWin->stackedWidget->currentIndex() == mainWin->stackedWidget->indexOf(this);
-   if (((isDocked() && iscurrent) || (!isDocked())) && mainWin->m_refreshStatusDir) {
+   if (((isDocked() && iscurrent) || (!isDocked())) && (checkBox->checkState() == Qt::Checked)) {
       if (m_console->is_ready())
          populateAll();
    }
@@ -204,6 +203,22 @@ void StorStat::populateSpooling()
    }
 }
 
+void StorStat::populateRunning()
+{
+   QString command = QString(".status storage=\"" + m_storage + "\" running");
+   if (mainWin->m_commandDebug)
+      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
+   QStringList results;
+   textEditRunning->clear();
+
+   if (m_console->dir_cmd(command, results)) {
+      foreach (QString line, results) {
+         line += "\n";
+         textEditRunning->insertPlainText(line);
+      }
+   }
+}
+
 /*
  * Populate teminated table
  */
@@ -261,50 +276,6 @@ void StorStat::populateTerminated()
 }
 
 /*
- * Populate running table
- */
-void StorStat::populateRunning()
-{
-   QString command = QString(".status storage=\"" + m_storage + "\" running");
-   if (mainWin->m_commandDebug)
-      Pmsg1(000, "sending command : %s\n",command.toUtf8().data());
-   QStringList results;
-   QBrush blackBrush(Qt::black);
-
-   runningTable->clear();
-   QStringList headerlist = (QStringList()
-      << tr("Job Id") << tr("Job Level") << tr("Job Data") << tr("Job Info"));
-
-   runningTable->setColumnCount(headerlist.size());
-   runningTable->setHorizontalHeaderLabels(headerlist);
-
-   if (m_console->dir_cmd(command, results)) {
-      int row = 0;
-      QTableWidgetItem* p_tableitem;
-      runningTable->setRowCount(results.size());
-      foreach (QString line, results) {
-         /* Iterate through the record returned from the query */
-         QStringList fieldlist = line.split("\t");
-         int column = 0;
-         QString statusCode("");
-         /* Iterate through fields in the record */
-         foreach (QString field, fieldlist) {
-            field = field.trimmed();  /* strip leading & trailing spaces */
-            p_tableitem = new QTableWidgetItem(field, 1);
-            p_tableitem->setForeground(blackBrush);
-            p_tableitem->setFlags(0);
-            runningTable->setItem(row, column, p_tableitem);
-            column += 1;
-         }
-         row += 1;
-      }
-   }
-   runningTable->resizeColumnsToContents();
-   runningTable->resizeRowsToContents();
-   runningTable->verticalHeader()->hide();
-}
-
-/*
  * When the treeWidgetItem in the page selector tree is singleclicked, Make sure
  * The tree has been populated.
  */
@@ -336,15 +307,14 @@ void StorStat::createConnections()
 {
    connect(actionRefresh, SIGNAL(triggered()), this,
                    SLOT(populateAll()));
-   connect(actionCancelRunning, SIGNAL(triggered()), this,
-                   SLOT(consoleCancelJob()));
    connect(tabWidget, SIGNAL(currentChanged(int)), this,
                    SLOT(populateCurrentTab(int)));
+   connect(spinBox, SIGNAL(valueChanged(int)), this,
+                   SLOT(spinBoxValueChanged(int)));
+   connect(mountButton, SIGNAL(pressed()), this, SLOT(mountButtonPushed()));
+   connect(umountButton, SIGNAL(pressed()), this, SLOT(umountButtonPushed()));
    terminatedTable->setContextMenuPolicy(Qt::ActionsContextMenu);
    terminatedTable->addAction(actionRefresh);
-   runningTable->setContextMenuPolicy(Qt::ActionsContextMenu);
-   runningTable->addAction(actionRefresh);
-   runningTable->addAction(actionCancelRunning);
 }
 
 /*
@@ -355,6 +325,8 @@ void StorStat::writeSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
    settings.setValue(m_splitText, splitter->saveState());
+   settings.setValue("refreshInterval", spinBox->value());
+   settings.setValue("refreshCheck", checkBox->checkState());
    settings.endGroup();
 }
 
@@ -368,22 +340,11 @@ void StorStat::readSettings()
    QSettings settings(m_console->m_dir->name(), "bat");
    settings.beginGroup(m_groupText);
    splitter->restoreState(settings.value(m_splitText).toByteArray());
+   spinBox->setValue(settings.value("refreshInterval", 28).toInt());
+   checkBox->setCheckState((Qt::CheckState)settings.value("refreshCheck", Qt::Checked).toInt());
    settings.endGroup();
-}
 
-/*
- * Cancel a running job
- */
-void StorStat::consoleCancelJob()
-{
-   int currentrow = runningTable->currentRow();
-   QTableWidgetItem *item = runningTable->item(currentrow, 0);
-   if (item) {
-      QString text = item->text();
-      QString cmd("cancel jobid=");
-      cmd += text;
-      consoleCommand(cmd);
-   }
+   m_timer->start(spinBox->value()*1000);
 }
 
 /*
@@ -401,4 +362,72 @@ void StorStat::populateCurrentTab(int index)
       populateVolumes();
    if (index == 4)
       populateSpooling();
+   if (index == 5)
+      populateRunning();
+}
+
+/*
+ * Set the timer when changed
+ */
+void StorStat::spinBoxValueChanged(int newval)
+{
+   m_timer->setInterval(newval*1000);
+}
+
+/*
+ * execute mount in console
+ */
+void StorStat::mountButtonPushed()
+{
+   int haschanger = 3;
+
+   /* Set up query QString and header QStringList */
+   QString query("SELECT AutoChanger AS Changer"
+            " FROM Storage WHERE Name='" + m_storage + "'"
+            " ORDER BY Name" );
+
+   QStringList results;
+   /* This could be a log item */
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Storage query cmd : %s\n",query.toUtf8().data());
+   }
+   if (m_console->sql_cmd(query, results)) {
+      int resultCount = results.count();
+      if (resultCount == 1){
+         QString resultline;
+         QString field;
+         QStringList fieldlist;
+         /* there will only be one of these */
+         foreach (resultline, results) {
+            fieldlist = resultline.split("\t");
+            int index = 0;
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               haschanger = field.toInt();
+               index++;
+            }
+         }
+      }
+   }
+
+   Pmsg1(000, "haschanger is : %i\n", haschanger);
+   if (haschanger == 0){
+      /* no autochanger, just execute the command in the console */
+      QString cmd("mount storage=" + m_storage);
+      consoleCommand(cmd);
+   } else if (haschanger != 3) {
+      setConsoleCurrent();
+      /* if this storage is an autochanger, lets ask for the slot */
+      new mountDialog(m_console, m_storage);
+   }
+}
+
+/*
+ * execute umount in console
+ */
+void StorStat::umountButtonPushed()
+{
+   QString cmd("umount storage=" + m_storage);
+   consoleCommand(cmd);
 }
