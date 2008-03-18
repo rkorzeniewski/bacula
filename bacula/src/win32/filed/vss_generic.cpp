@@ -363,7 +363,7 @@ BOOL VSSClientGeneric::WaitAndCheckForAsyncOperation(IVssAsync* pAsync)
       return TRUE;
 
    
-#ifdef DEBUG 
+#ifdef xDEBUG 
    // Check if the async operation succeeded...
    if(hrReturned != VSS_S_ASYNC_FINISHED) {   
       wchar_t *pwszBuffer = NULL;

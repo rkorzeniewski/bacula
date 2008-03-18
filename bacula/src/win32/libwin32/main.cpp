@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -378,4 +378,16 @@ int BaculaAppMain()
 
    WSACleanup();
    _exit(0);
+}
+
+
+void pause_msg(const char *file, const char *func, int line, const char *msg)
+{
+   char buf[1000];
+   if (msg) {
+      bsnprintf(buf, sizeof(buf), "%s:%s:%d %s", file, func, line, msg);
+   } else {
+      bsnprintf(buf, sizeof(buf), "%s:%s:%d", file, func, line);
+   }
+   MessageBox(NULL, buf, "Pause", MB_OK);
 }

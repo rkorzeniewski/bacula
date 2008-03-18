@@ -54,6 +54,18 @@ boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
 #define fdatasync(fd)
 #endif
 
+#ifdef HAVE_WIN32
+void pause_msg(const char *file, const char *func, int line, const char *msg)
+{
+   char buf[1000];
+   if (msg) {
+      bsnprintf(buf, sizeof(buf), "%s:%s:%d %s", file, func, line, msg);
+   } else {
+      bsnprintf(buf, sizeof(buf), "%s:%s:%d", file, func, line);
+   }
+   MessageBox(NULL, buf, "Pause", MB_OK);
+}
+#endif
 
 /* ===============================================================
  *
@@ -140,16 +152,16 @@ void int64_LE2BE(int64_t* pBE, const int64_t v)
 {
    /* convert little endian to big endian */
    if (htonl(1) != 1L) { /* no work if on little endian machine */
-           memcpy(pBE, &v, sizeof(int64_t));
+      memcpy(pBE, &v, sizeof(int64_t));
    } else {
-           int i;
-           uint8_t rv[sizeof(int64_t)];
-           uint8_t *pv = (uint8_t *) &v;
+      int i;
+      uint8_t rv[sizeof(int64_t)];
+      uint8_t *pv = (uint8_t *) &v;
 
-           for (i = 0; i < 8; i++) {
-              rv[i] = pv[7 - i];
-           }
-           memcpy(pBE, &rv, sizeof(int64_t));
+      for (i = 0; i < 8; i++) {
+         rv[i] = pv[7 - i];
+      }
+      memcpy(pBE, &rv, sizeof(int64_t));
    }    
 }
 
@@ -158,16 +170,16 @@ void int32_LE2BE(int32_t* pBE, const int32_t v)
 {
    /* convert little endian to big endian */
    if (htonl(1) != 1L) { /* no work if on little endian machine */
-           memcpy(pBE, &v, sizeof(int32_t));
+      memcpy(pBE, &v, sizeof(int32_t));
    } else {
-           int i;
-           uint8_t rv[sizeof(int32_t)];
-           uint8_t *pv = (uint8_t *) &v;
+      int i;
+      uint8_t rv[sizeof(int32_t)];
+      uint8_t *pv = (uint8_t *) &v;
 
-           for (i = 0; i < 4; i++) {
-              rv[i] = pv[3 - i];
-           }
-           memcpy(pBE, &rv, sizeof(int32_t));
+      for (i = 0; i < 4; i++) {
+         rv[i] = pv[3 - i];
+      }
+      memcpy(pBE, &rv, sizeof(int32_t));
    }    
 }
 
@@ -553,9 +565,14 @@ int bclose(BFILE *bfd)
       goto all_done;
    }
 
+   /*
+    * We need to tell the API to release the buffer it
+    *  allocated in lpContext.  We do so by calling the
+    *  API one more time, but with the Abort bit set.
+    */
    if (bfd->use_backup_api && bfd->mode == BF_READ) {
       BYTE buf[10];
-      if (!bfd->lpContext && !p_BackupRead(bfd->fh,
+      if (bfd->lpContext && !p_BackupRead(bfd->fh,
               buf,                    /* buffer */
               (DWORD)0,               /* bytes to read */
               &bfd->rw_bytes,         /* bytes read */
@@ -567,7 +584,7 @@ int bclose(BFILE *bfd)
       }
    } else if (bfd->use_backup_api && bfd->mode == BF_WRITE) {
       BYTE buf[10];
-      if (!bfd->lpContext && !p_BackupWrite(bfd->fh,
+      if (bfd->lpContext && !p_BackupWrite(bfd->fh,
               buf,                    /* buffer */
               (DWORD)0,               /* bytes to read */
               &bfd->rw_bytes,         /* bytes written */

@@ -320,10 +320,10 @@ void do_restore(JCR *jcr)
             bclose(&rctx.bfd);
          }
 
-	 /* TODO: manage deleted files */
-	 if (rctx.type == FT_DELETED) {	/* deleted file */
-	    continue;
-	 }
+         /* TODO: manage deleted files */
+         if (rctx.type == FT_DELETED) { /* deleted file */
+            continue;
+         }
 
          /*
           * Unpack attributes and do sanity check them
@@ -1114,7 +1114,6 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
        * packet length may be re-read by unser_crypto_packet_len() */
       cipher_ctx->packet_len = 0;
    }
-
    return wsize;
 }
 

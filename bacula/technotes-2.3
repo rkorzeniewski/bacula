@@ -1,6 +1,15 @@
               Technical notes on version 2.3
 
 General:
+18Mar08
+kes  Apply doc fix from bug #1062.
+kes  Resolve crash and improper restore wx-console Win32 restore
+     GUI. Fixes bug #1065.                   
+kes  Update Win32 wxWidgets to latest version.
+kes  Attempt to do correct handling of Win32 mount points. Should
+     fix bug #1046.
+kes  Fix Win32 FD backup/restore memory leak due to improper termination
+     of BackupRead/Write. This fixes bug# 1038.
 16Mar08
 ebl  Reduce memory usage for accurate backup, working only with ctime
      and mtime. (not all Lstat field) 

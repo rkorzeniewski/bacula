@@ -787,16 +787,16 @@ Section "Graphical Console" SecWxConsole
 
   Call InstallCommonFiles
 !if "${BUILD_TOOLS}" == "VC8"
-  File "${SRC_DIR}\wxbase270_vc_bacula.dll"
-  File "${SRC_DIR}\wxmsw270_core_vc_bacula.dll"
+  File "${SRC_DIR}\wxbase28_vc_bacula.dll"
+  File "${SRC_DIR}\wxmsw28_core_vc_bacula.dll"
 !endif
 !If "${BUILD_TOOLS}" == "VC8_DEBUG"
-  File "${SRC_DIR}\wxbase270_vc_bacula.dll"
-  File "${SRC_DIR}\wxmsw270_core_vc_bacula.dll"
+  File "${SRC_DIR}\wxbase28_vc_bacula.dll"
+  File "${SRC_DIR}\wxmsw28_core_vc_bacula.dll"
 !endif
 !if "${BUILD_TOOLS}" == "MinGW"
-  File "${SRC_DIR}\wxbase270_gcc_bacula.dll"
-  File "${SRC_DIR}\wxmsw270_core_gcc_bacula.dll"
+  File "${SRC_DIR}\wxbase28_gcc_bacula.dll"
+  File "${SRC_DIR}\wxmsw28_core_gcc_bacula.dll"
 !endif
 
   File "${SRC_DIR}\bwx-console.exe"

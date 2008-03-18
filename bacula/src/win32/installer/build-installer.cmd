@@ -12,7 +12,7 @@ SET BACULA_DLLS=bacula.dll cats_mysql.dll cats_postgresql.dll cats_sqlite3.dll
 SET BACULA_EXES=bacula-dir.exe bacula-fd.exe bacula-sd.exe bconsole.exe wx-console.exe
 SET BACULA_TOOLS=bcopy.exe bextract.exe bls.exe bscan.exe bsleep.exe bsmtp.exe btape.exe dbcheck.exe scsilist.exe
 
-SET DEP_DLLS=libeay32.dll pthreadVCE.dll ssleay32.dll zlib1.dll zlib1.dll.manifest wxbase270_vc_bacula.dll wxmsw270_core_vc_bacula.dll libmysql.dll libpq.dll comerr32.dll libintl-2.dll libiconv-2.dll krb5_32.dll
+SET DEP_DLLS=libeay32.dll pthreadVCE.dll ssleay32.dll zlib1.dll zlib1.dll.manifest wxbase28_vc_bacula.dll wxmsw28_core_vc_bacula.dll libmysql.dll libpq.dll comerr32.dll libintl-2.dll libiconv-2.dll krb5_32.dll
 SET DEP_EXES=openssl.exe loaderinfo.exe mt.exe mtx.exe scsitape.exe sed.exe tapeinfo.exe sqlite3.exe sqlite3.exe.manifest expr64.exe snooze.exe mkisofs.exe growisofs.exe dvd-ram-control.exe dvd+rw-booktype.exe dvd+rw-format.exe dvd+rw-mediainfo.exe
 
 SET SCRIPTS=mtx-changer.cmd disk-changer.cmd dvd-handler.cmd
