@@ -30,6 +30,12 @@ run job=$JobName storage=File yes
 list pools
 list volumes
 wait
+sql
+SELECT StartTime, JobFiles, JobId, Level, count(*) AS nb_jobmedia  
+FROM JobMedia join Job using (JobId) join Client using (ClientId) 
+where Client.Name = 'localhost-fd' group by JobId, Level, StartTime, 
+JobFiles order by JobId desc ;
+
 messages
 @# 
 @# now do a restore
