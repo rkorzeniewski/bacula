@@ -75,6 +75,9 @@ CREATE TABLE Job (
    );
 CREATE INDEX inx6 ON Job (Name);
 
+-- Create a table like Job for long term statistics 
+CREATE TABLE JobStat (LIKE Job);
+
 CREATE TABLE Location (
    LocationId INTEGER,
    Location TEXT NOT NULL,

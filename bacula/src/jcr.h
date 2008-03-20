@@ -289,6 +289,7 @@ public:
    bool unlink_bsr;                   /* Unlink bsr file created */
    bool VSS;                          /* VSS used by FD */
    bool Encrypt;                      /* Encryption used by FD */
+   bool stats_enabled;                /* Keep all job records in a table for long term statistics */
 #endif /* DIRECTOR_DAEMON */
 
 

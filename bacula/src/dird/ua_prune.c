@@ -107,6 +107,7 @@ int file_delete_handler(void *ctx, int num_fields, char **row)
  *    prune files (from) client=xxx
  *    prune jobs (from) client=xxx
  *    prune volume=xxx
+ *    prune stats
  */
 int prunecmd(UAContext *ua, const char *cmd)
 {
@@ -119,6 +120,7 @@ int prunecmd(UAContext *ua, const char *cmd)
       NT_("Files"),
       NT_("Jobs"),
       NT_("Volume"),
+      NT_("Stats"),
       NULL};
 
    if (!open_client_db(ua)) {
@@ -127,7 +129,7 @@ int prunecmd(UAContext *ua, const char *cmd)
 
    /* First search args */
    kw = find_arg_keyword(ua, keywords);
-   if (kw < 0 || kw > 2) {
+   if (kw < 0 || kw > 3) {
       /* no args, so ask user */
       kw = do_keyword_prompt(ua, _("Choose item to prune"), keywords);
    }
@@ -161,6 +163,9 @@ int prunecmd(UAContext *ua, const char *cmd)
          return false;
       }
       prune_volume(ua, &mr);
+      return true;
+   case 3:  /* prune stats */
+      /* TODO: prune JobStat table */
       return true;
    default:
       break;

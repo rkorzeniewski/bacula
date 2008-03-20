@@ -142,7 +142,7 @@ static void edit_num_or_null(char *s, size_t n, uint64_t id) {
  *           1 on success
  */
 int
-db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
 {
    char dt[MAX_TIME_LENGTH];
    char rdt[MAX_TIME_LENGTH];
@@ -192,10 +192,16 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
       edit_int64(jr->JobId, ed3));
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+
+   if (stat && stats_enabled) {
+      Mmsg(mdb->cmd,
+	   "INSERT INTO JobStat (SELECT * FROM Job WHERE JobId=%s)",
+	   edit_int64(jr->JobId, ed3));
+      INSERT_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
+   }
    db_unlock(mdb);
    return stat;
 }
-
 
 /*
  * Update Client record
