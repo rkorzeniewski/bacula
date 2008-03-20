@@ -380,7 +380,8 @@ sub ls_dirs
     my $jobclause = $self->{curjobids};
 
     # Let's retrieve the list of the visible dirs in this dir ...
-    # First, I need the empty filenameid to locate efficiently the dirs in the file table
+    # First, I need the empty filenameid to locate efficiently
+    # the dirs in the file table
     my $query = "SELECT FilenameId FROM Filename WHERE Name = ''";
     my $sth = $self->dbh_prepare($query);
     $sth->execute();
@@ -395,20 +396,20 @@ SELECT PathId, Path, JobId, Lstat FROM (
     SELECT Path1.PathId, Path1.Path, lower(Path1.Path),
            listfile1.JobId, listfile1.Lstat
     FROM (
-        SELECT DISTINCT brestore_pathhierarchy1.PathId
-        FROM brestore_pathhierarchy AS brestore_pathhierarchy1
-        JOIN Path AS Path2
-            ON (brestore_pathhierarchy1.PathId = Path2.PathId)
-        JOIN brestore_pathvisibility AS brestore_pathvisibility1
-            ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId)
-        WHERE brestore_pathhierarchy1.PPathId = $pathid
-        AND brestore_pathvisibility1.jobid IN ($jobclause)) AS listpath1
-    JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
-    LEFT JOIN (
-        SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
-        WHERE File1.FilenameId = $dir_filenameid
-        AND File1.JobId IN ($jobclause)) AS listfile1
-        ON (listpath1.PathId = listfile1.PathId)
+       SELECT DISTINCT brestore_pathhierarchy1.PathId
+       FROM brestore_pathhierarchy AS brestore_pathhierarchy1
+       JOIN Path AS Path2
+           ON (brestore_pathhierarchy1.PathId = Path2.PathId)
+       JOIN brestore_pathvisibility AS brestore_pathvisibility1
+           ON (brestore_pathhierarchy1.PathId = brestore_pathvisibility1.PathId)
+       WHERE brestore_pathhierarchy1.PPathId = $pathid
+       AND brestore_pathvisibility1.jobid IN ($jobclause)) AS listpath1
+   JOIN Path AS Path1 ON (listpath1.PathId = Path1.PathId)
+   LEFT JOIN (
+       SELECT File1.PathId, File1.JobId, File1.Lstat FROM File AS File1
+       WHERE File1.FilenameId = $dir_filenameid
+       AND File1.JobId IN ($jobclause)) AS listfile1
+       ON (listpath1.PathId = listfile1.PathId)
      ) AS A ORDER BY 2,3 DESC
 ";
     $self->debug($query);
@@ -832,7 +833,6 @@ if ($pathid =~ /^(\d+)$/) {
 } else {
     $pathid = $bvfs->get_root();
 }
-
 $bvfs->ch_dir($pathid);
 
 if ($action eq 'restore') {
@@ -925,6 +925,13 @@ SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
     exit 0;
 }
 
+sub escape_quote
+{
+    my ($str) = @_;
+    $str =~ s/'/\\'/g;
+    return $str;
+}
+
 print CGI::header('application/x-javascript');
 
 if ($action eq 'list_files') {
@@ -934,7 +941,17 @@ if ($action eq 'list_files') {
 #   File.FilenameId, listfiles.id, listfiles.Name, File.LStat, File.JobId
 
     print join(',',
-	       map { my @p=Bvfs::parse_lstat($_->[3]); "[$_->[1],$_->[0],$pathid,$_->[4],\"$_->[2]\"," . $p[7] . ",'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "']" } @$files);
+	       map { my @p=Bvfs::parse_lstat($_->[3]); 
+		     '[' . join(',', 
+				$_->[1],
+				$_->[0],
+				$pathid,
+				$_->[4],
+				"'" . escape_quote($_->[2]) . "'",
+				"'" . $p[7] . "'",
+				"'" . strftime('%Y-%m-%d %H:%m:%S', localtime($p[11])) .  "'") .
+		    ']'; 
+	       } @$files);
     print "]\n";
 
 } elsif ($action eq 'list_dirs') {
@@ -944,9 +961,9 @@ if ($action eq 'list_files') {
     # return ($dirid,$dir_basename,$lstat,$jobid)
 
     print join(',',
-	       map { "{ 'jobid': '$bvfs->{curjobids}', 'id': '$_->[0]', 'text': '$_->[1]', 'cls':'folder'}" }
+	       map { "{ 'jobid': '$bvfs->{curjobids}', 'id': '$_->[0]'," . 
+		        "'text': '" . escape_quote($_->[1]) . "', 'cls':'folder'}" }
 	       @$dirs);
-
     print "]\n";
 
 } elsif ($action eq 'list_versions') {
