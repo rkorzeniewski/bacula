@@ -7,7 +7,7 @@
 # SunOS     No Additional Sense
 # FreeBSD   Current Driver State: at rest.
 # Linux     ONLINE
-#  Note Debian has messed up their mt. When no tape is in the
+#  Note Debian has an inferior mt. When no tape is in the
 #    drive it waits 2 minutes.	When a tape is in the drive, it
 #    prints user unfriendly output.
 #
