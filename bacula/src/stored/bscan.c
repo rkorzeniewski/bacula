@@ -619,7 +619,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
                jr.VolSessionTime = mjcr->VolSessionTime;
                jr.JobTDate = (utime_t)mjcr->start_time;
                jr.ClientId = mjcr->ClientId;
-               if (!db_update_job_end_record(bjcr, db, &jr)) {
+               if (!db_update_job_end_record(bjcr, db, &jr, false)) {
                   Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
                }
                mjcr->read_dcr = NULL;
@@ -1122,7 +1122,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
       return 1;
    }
 
-   if (!db_update_job_end_record(bjcr, db, jr)) {
+   if (!db_update_job_end_record(bjcr, db, jr, false)) {
       Pmsg2(0, _("Could not update JobId=%u record. ERR=%s\n"), jr->JobId,  db_strerror(db));
       free_jcr(mjcr);
       return 0;

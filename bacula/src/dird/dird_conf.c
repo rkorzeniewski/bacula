@@ -133,6 +133,7 @@ static RES_ITEM dir_items[] = {
    {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
+   {"statisticsretention",  store_time,      ITEM(res_dir.stats_retention),  0, ITEM_DEFAULT, 60*60*24*31*12*5},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -322,6 +323,7 @@ RES_ITEM job_items[] = {
    {"selectionpattern",   store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
    {"runscript",          store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
    {"selectiontype",      store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
+   {"usestatistics",      store_bool,  ITEM(res_job.stats_enabled), 0, 0, 0},
    {"accurate",           store_bool, ITEM(res_job.accurate), 0,0,0},
    {"allowduplicatejobs", store_bool, ITEM(res_job.AllowDuplicateJobs), 0, ITEM_DEFAULT, false},
    {"allowhigherduplicates",   store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
@@ -651,6 +653,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.RegexWhere) {
            sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
+      }
+      if (res->res_job.stats_enabled) {
+           sendit(sock, _("  --> StatsEnabled=%d\n"), res->res_job.stats_enabled);
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));

@@ -112,7 +112,7 @@ db_create_job_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 bool
 db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
 {
-   bool ok = true;;
+   bool ok = true;
    int count;
    char ed1[50], ed2[50];
 
@@ -161,8 +161,6 @@ db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
    Dmsg0(300, "Return from JobMedia\n");
    return ok;
 }
-
-
 
 /* Create Unique Pool record
  * Returns: false on failure
