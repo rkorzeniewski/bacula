@@ -2,6 +2,16 @@
 #
 # Create two blank tapes
 #
+
+# mt status output
+# SunOS     No Additional Sense
+# FreeBSD   Current Driver State: at rest.
+# Linux     ONLINE
+#  Note Debian has messed up their mt. When no tape is in the
+#    drive it waits 2 minutes.	When a tape is in the drive, it
+#    prints user unfriendly output.
+#
+
 OS=`uname`
 case ${OS} in
   SunOS)
@@ -10,14 +20,19 @@ case ${OS} in
   FreeBSD)
     ready="Current Driver State: at rest."
     ;;
-  *)
-    ready="ONLINE"
+  Linux)
+    if test -e /etc/debian_version ; then
+       ready="drive status"
+    else
+       ready="ONLINE"
+    fi
   ;;
 esac
+
 wait_for_drive() {
   i=0 
   while [ $i -le 300 ]; do  # Wait max 300 seconds
-    if mt -f $1 status | grep ${ready}	>/dev/null 2>&1; then
+    if mt -f $1 status 2>&1 | grep "${ready}" >/dev/null 2>&1; then
       break
     fi
 #   debug "Device $1 - not ready, retrying..."
