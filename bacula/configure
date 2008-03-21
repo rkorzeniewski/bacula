@@ -17968,7 +17968,8 @@ echo "$as_me: error: Invalid DBD driver directory $withval - unable to find DBD 
      SQL_LIB=$DBI_LIBDIR/libdbi.a
      DBI_DBD_DRIVERDIR="-D DBI_DRIVER_DIR=\\\"$DRIVERDIR\\\""
 
-     cat >>confdefs.h <<\_ACEOF
+
+cat >>confdefs.h <<\_ACEOF
 #define HAVE_DBI 1
 _ACEOF
 
@@ -30110,8 +30111,13 @@ darwin)
   ;;
 debian)
 	DISTVER=`cat /etc/debian_version`
-	TAPEDRIVE="/dev/nrst0"
+	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
+	PFILES="${PFILES} \
+	    platforms/debian/Makefile \
+	    platforms/debian/bacula-fd \
+	    platforms/debian/bacula-sd \
+	    platforms/debian/bacula-dir"
   ;;
 freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`

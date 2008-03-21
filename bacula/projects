@@ -1274,6 +1274,28 @@ Item 1: Backup and Restore of Windows Encrypted Files through raw encryption fun
 
               Run = pool=Monthly last Day of the Month at 23:50
 
+   Date: 20 March 2008
+
+   Origin: Frank Sweetser <fs@wpi.edu>
+
+   What: Add a new SD directive, "minimum spool size" (or similar).  This
+         directive would specify a minimum level of free space available for
+         spooling.  If the unused spool space is less than this level, any new
+         spooling requests would be blocked as if the "maximum spool size"
+         threshold had bee reached.  Already spooling jobs would be unaffected
+         by this directive.
+
+   Why: I've been bitten by this scenario a couple of times:
+
+        Assume a maximum spool size of 100M. Two concurrent jobs, A and B, are
+        both running.  Due to timing quirks and previously running jobs, job A
+        has used 99.9M of space in the spool directory.  While A is busy
+        despooling to disk, B is happily using the remaining 0.1M of spool
+        space.  This ends up in a spool/despool sequence every 0.1M of data.
+        In addition to fragmenting the data on the volume far more than was
+        necessary, in larger data sets (ie, tens or hundreds of gigabytes) it
+        can easily produce multi-megabyte report emails!
+
 ========== Already implemented ================================
 
 Item  n:  make changing "spooldata=yes|no" possible for

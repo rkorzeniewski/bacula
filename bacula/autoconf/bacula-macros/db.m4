@@ -98,7 +98,7 @@ AC_ARG_WITH(dbi,
      SQL_LIB=$DBI_LIBDIR/libdbi.a
      DBI_DBD_DRIVERDIR="-D DBI_DRIVER_DIR=\\\"$DRIVERDIR\\\""
 
-     AC_DEFINE(HAVE_DBI)
+     AC_DEFINE(HAVE_DBI, 1, [Set if you have the DBI driver])
      AC_MSG_RESULT(yes)
      db_found=yes
      support_dbi=yes

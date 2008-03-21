@@ -1945,8 +1945,13 @@ darwin)
   ;;
 debian)
 	DISTVER=`cat /etc/debian_version`
-	TAPEDRIVE="/dev/nrst0"
+	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
+	PFILES="${PFILES} \
+	    platforms/debian/Makefile \
+	    platforms/debian/bacula-fd \
+	    platforms/debian/bacula-sd \
+	    platforms/debian/bacula-dir"
   ;;
 freebsd)
 	DISTVER=`uname -a |awk '{print $3}'`
