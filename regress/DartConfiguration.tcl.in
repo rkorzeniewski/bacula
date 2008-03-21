@@ -5,8 +5,8 @@ BuildName: bacula-@bversion@-@bdate@-@dbengine@-@os@
 DropMethod: xmlrpc
 DropSite: http://regress.bacula.org:8081
 DropLocation: Bacula
-NightlyStartTime: 21:00:00 EST
+NightlyStartTime: 04:00:00 GMT
 MakeCommand: @regressdir@/scripts/update-ctest
 ConfigureCommand: true
 UpdateCommand: svn
-TimeOut: 3600
+TimeOut: 1800

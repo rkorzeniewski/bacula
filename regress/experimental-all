@@ -6,6 +6,7 @@
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
+svn update
 scripts/config_dart
 nice ctest -D Experimental -R "all-non-root.*"
 if [ $? != 0 ] ; then
