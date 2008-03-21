@@ -2251,6 +2251,10 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
 	   po/Makefile.in \
+	   updatedb/update_mysql_tables_10_to_11 \
+	   updatedb/update_sqlite3_tables_10_to_11 \
+	   updatedb/update_postgresql_tables_10_to_11 \
+	   updatedb/update_sqlite_tables_10_to_11 \
 	   $PFILES ],  
 	  [ ]
 )
@@ -2284,6 +2288,10 @@ chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
 chmod 755 bconsole gconsole mtx-changer devel_bacula logrotate
 cd ..
+
+c=updatedb
+chmod 755 $c/update_mysql_tables_10_to_11       $c/update_sqlite3_tables_10_to_11
+chmod 755 $c/update_postgresql_tables_10_to_11  $c/update_sqlite_tables_10_to_11
 
 c=src/cats
 
