@@ -47,8 +47,9 @@ $conf->load();
 my $bweb = new Bweb(info => $conf);
 $bweb->can_do('r_view_stat');
 
-my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools qpoolusage qnojob
-                             jclient_groups db_client_groups qclient_groups/);
+my $arg = $bweb->get_form(qw/qnocache qiso_begin qiso_end qusage qpools 
+			     qpoolusage qnojob jclient_groups 
+			     db_client_groups qclient_groups/);
 my ($filter1, undef) = $bweb->get_param('pool');
 
 if (!$arg->{qiso_begin}) {
@@ -62,7 +63,10 @@ my $md5_rep = md5_hex("$arg->{qiso_begin}:$arg->{qiso_end}:$arg->{qusage}:" .
 print CGI::header('text/html');
 $bweb->display_begin();
 
-if (!$arg->{qnocache} && $arg->{qiso_begin} && -f "$conf->{fv_write_path}/$md5_rep.png") {
+if (   !$arg->{qnocache} 
+    && $arg->{qiso_begin} 
+    && -f "$conf->{fv_write_path}/$md5_rep.png") 
+{
     $arg->{result} = "/bweb/fv/$md5_rep.png";
     $bweb->display($arg, 'btime.tpl');
     
@@ -279,7 +283,6 @@ if ($arg->{qusage}) {
 }
 
 #print STDERR Data::Dumper::Dumper($top);
-
 $top->finalize();
 
 open(FP, ">$conf->{fv_write_path}/$md5_rep.png");
