@@ -284,7 +284,7 @@ static void *do_batch(void *jcr)
    P(mutex);
    char ed1[200], ed2[200];
    printf("\rbegin = %s, end = %s\n", edit_int64(begin, ed1),edit_int64(end, ed2));
-   printf("Insert time = %llims\n", (end - begin) / 10000);
+   printf("Insert time = %sms\n", edit_int64((end - begin) / 10000, ed1));
    printf("Create %u files at %.2f/s\n", lineno, 
 	  (lineno / ((float)((end - begin) / 1000000))));
    nb--;
