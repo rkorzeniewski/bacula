@@ -267,8 +267,10 @@ void catalog_request(JCR *jcr, BSOCK *bs)
          }
       }
       Dmsg2(400, "Update media: BefVolJobs=%u After=%u\n", mr.VolJobs, sdmr.VolJobs);
-      /* Check if the volume has been written by the job, 
-       * and update the LastWritten field if needed */
+      /*
+       * Check if the volume has been written by the job, 
+       * and update the LastWritten field if needed.
+       */
       if (mr.VolBlocks != sdmr.VolBlocks && VolLastWritten != 0) {
          mr.LastWritten = VolLastWritten;
       }
@@ -286,7 +288,12 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolWriteTime = sdmr.VolWriteTime;
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
-      if (jcr->wstore && jcr->wstore->StorageId) {
+      /*
+       * Update to point to the last device used to write the Volume.
+       *   However, do so only if we are writing the tape, i.e.
+       *   the number of VolBlocks has increased.
+       */
+      if (jcr->wstore && jcr->wstore->StorageId && mr.VolBlocks != sdmr.VolBlocks) {
          mr.StorageId = jcr->wstore->StorageId;
       }
 
