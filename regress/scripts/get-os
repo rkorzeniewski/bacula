@@ -434,6 +434,15 @@ debian)
         else
            DISTVER=`cat /etc/debian_version`
         fi
+        if test -f /etc/lsb-release ; then
+           . /etc/lsb-release
+           if test "x$DISTRIB_ID" != "x" ; then
+              DISTNAME=$DISTRIB_ID
+           fi
+           if test "x$DISTRIB_RELEASE" != "x" ; then
+              DISTVER=$DISTRIB_RELEASE
+           fi
+        fi
   ;;
 freebsd)
         DISTVER=`uname -a |awk '{print $3}'`

@@ -7,7 +7,8 @@ TestName="verify-vol-1t1d-tape"
 JobName=VerifyVol
 . scripts/functions
 
-copy_tape_confs
+scripts/copy-tape-confs
+scripts/cleanup-tape
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
 

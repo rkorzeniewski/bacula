@@ -7,7 +7,8 @@ TestName="incremental-1t1d-tape"
 JobName=IncTape
 . scripts/functions
 
-copy_tape_confs
+scripts/copy-tape-confs
+scripts/cleanup-tape
 
 echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then
