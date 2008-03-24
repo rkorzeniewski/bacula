@@ -43,7 +43,7 @@ ADD_TEST(all-non-root:2drive-concurrent-test "@regressdir@/tests/2drive-concurre
 ADD_TEST(all-non-root:2drive-incremental-2disk "@regressdir@/tests/2drive-incremental-2disk")
 ADD_TEST(all-non-root-2tape:incremental-2tape "@regressdir@/tests/incremental-2tape")
 ADD_TEST(all-non-root-2tape:two-volume-tape "@regressdir@/tests/two-volume-tape")
-ADD_TEST(all-non-root-tape:2drive-incremental-2t2da-tape "@regressdir@/tests/2drive-incremental-2t2da-tape")
+ADD_TEST(all-non-root-2drive-tape:2drive-incremental-2t2da-tape "@regressdir@/tests/2drive-incremental-2t2da-tape")
 ADD_TEST(all-non-root-tape:ansi-label-1t1d-tape "@regressdir@/tests/ansi-label-1t1d-tape")
 ADD_TEST(all-non-root-tape:backup-bacula-1t1d-tape "@regressdir@/tests/backup-bacula-1t1d-tape")
 ADD_TEST(all-non-root-tape:bscan-1t1d-tape "@regressdir@/tests/bscan-1t1d-tape")

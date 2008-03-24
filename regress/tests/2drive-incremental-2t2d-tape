@@ -3,16 +3,15 @@
 # Run a simple backup of the Bacula build directory then create some           
 #   new files, do an Incremental and restore those two files.
 #
-# This script uses the autochanger and two tapes
+# This script uses the autochanger and two drives
 #
 TestName="2drive-incremental-2t2da-tape"
 JobName="2drive2tape"
 . scripts/functions
 
-if test x${TAPE_DRIVE1} = x/dev/null ; then
-   echo "Skipping 2drive-incremental-2tape test. No second drive."
-   exit
-fi
+require_tape_drive
+require_autochanger
+require_second_drive
 
 
 scripts/copy-2drive-confs

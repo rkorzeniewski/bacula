@@ -25,13 +25,37 @@ if [ $MUID != 0 ] ; then
 fi
 }
 
+require_tape_drive() 
+{
+if test x${TAPE_DRIVE} = x/dev/null ; then
+   echo "$TestName test needs a tape drive, but has none."
+   exit 1
+fi
+}
+
+require_second_drive()
+{ 
+if test x${TAPE_DRIVE1} = x/dev/null ; then
+   echo "$JobName needs second drive, but has none."
+   exit 1
+fi
+}
+
+require_autochanger()
+{
+if test x${AUTOCHANGER} = x/dev/null ; then
+   echo "$TestName needs an autochanger, but has none."
+   exit 1
+fi
+}
+
+
 skip_if_no_autochanger()
 {
 if test x${AUTOCHANGER} = x/dev/null ; then
    echo "$TestName test skipped. No autochanger."
    exit
 fi
-
 }
 
 set_debug()

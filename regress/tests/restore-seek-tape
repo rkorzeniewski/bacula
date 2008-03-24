@@ -10,6 +10,8 @@ TestName="restore-seek-tape"
 JobName=restore-tape-seek
 . scripts/functions
 
+require_tape_drive
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 

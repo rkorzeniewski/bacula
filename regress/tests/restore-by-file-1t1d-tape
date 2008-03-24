@@ -9,6 +9,9 @@
 TestName="restore-by-file-1t1d-tape"
 JobName=restorebyfile
 . scripts/functions
+
+require_tape_drive
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 

@@ -9,6 +9,8 @@ TestName="bscan-1t1d-tape"
 JobName=bscantape
 . scripts/functions
 
+require_tape_drive
+
 copy_tape_confs
 
 echo "${cwd}/build" >tmp/file-list

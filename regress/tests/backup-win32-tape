@@ -8,6 +8,8 @@ TestName="backup-win32-tape"
 JobName=backupwintape
 . scripts/functions
 
+require_tape_drive_drive
+
 scripts/cleanup-tape
 scripts/copy-win32-confs
 

@@ -6,6 +6,8 @@ TestName="truncate-bug-1t1d-tape"
 JobName=truncatebug
 . scripts/functions
 
+require_tape_drive
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 
