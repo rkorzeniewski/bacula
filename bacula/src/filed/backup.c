@@ -115,7 +115,6 @@ bail_out:
 }
 
 /* 
- * This function doesn't work very well with smartalloc
  * TODO: use bigbuffer from htable
  */
 int accurate_cmd(JCR *jcr)
@@ -124,11 +123,11 @@ int accurate_cmd(JCR *jcr)
    int len;
    struct stat statp;
    int32_t LinkFIc;
-   uint64_t nb;
+   int32_t nb;
    CurFile *elt=NULL;
    char *lstat;
 
-   if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
       return true;
    }
 
@@ -136,6 +135,7 @@ int accurate_cmd(JCR *jcr)
       dir->fsend(_("2991 Bad accurate command\n"));
       return false;
    }
+   Dmsg2(200, "nb=%d msg=%s\n", nb, dir->msg);
 
    jcr->file_list = (htable *)malloc(sizeof(htable));
    jcr->file_list->init(elt, &elt->link, nb);
@@ -146,16 +146,13 @@ int accurate_cmd(JCR *jcr)
     */
    /* get current files */
    while (dir->recv() >= 0) {
-      len = strlen(dir->msg);
-      if ((len+1) < dir->msglen) {
-//       elt = (CurFile *)malloc(sizeof(CurFile));
-//       elt->fname  = (char *) malloc(dir->msglen+1);
-
+      len = strlen(dir->msg) + 1;
+      if (len < dir->msglen) {
          /* we store CurFile, fname and ctime/mtime in the same chunk */
-         elt = (CurFile *)malloc(sizeof(CurFile)+len+1);
-         elt->fname  = (char *) elt+sizeof(CurFile);
+         elt = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len);
+         elt->fname  = (char *)elt+sizeof(CurFile);
          strcpy(elt->fname, dir->msg);
-         lstat = dir->msg + len + 1;
+         lstat = dir->msg + len;
          decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
          elt->ctime = statp.st_ctime;
          elt->mtime = statp.st_mtime;
@@ -164,17 +161,20 @@ int accurate_cmd(JCR *jcr)
          Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, lstat);
       }
    }
+
+#ifdef DEBUG
    extern void *start_heap;
 
    char b1[50], b2[50], b3[50], b4[50], b5[50];
    Dmsg5(1," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
-	 edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
-	 edit_uint64_with_commas(sm_bytes, b2),
-	 edit_uint64_with_commas(sm_max_bytes, b3),
-	 edit_uint64_with_commas(sm_buffers, b4),
-	 edit_uint64_with_commas(sm_max_buffers, b5));
+         edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
+         edit_uint64_with_commas(sm_bytes, b2),
+         edit_uint64_with_commas(sm_max_bytes, b3),
+         edit_uint64_with_commas(sm_buffers, b4),
+         edit_uint64_with_commas(sm_max_buffers, b5));
 
 //   jcr->file_list->stats();
+#endif
 
    return true;
 }
@@ -186,7 +186,7 @@ bool accurate_send_deleted_list(JCR *jcr)
 
    int stream = STREAM_UNIX_ATTRIBUTES;
 
-   if (jcr->accurate == false || jcr->JobLevel == L_FULL) {
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
       goto bail_out;
    }
 
@@ -267,7 +267,7 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
    } else {
       buf_size = 0;                   /* use default */
    }
-   if (!bnet_set_buffer_size(sd, buf_size, BNET_SETBUF_WRITE)) {
+   if (!sd->set_buffer_size(buf_size, BNET_SETBUF_WRITE)) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       Jmsg(jcr, M_FATAL, 0, _("Cannot set buffer size FD->SD.\n"));
       return false;
@@ -275,13 +275,14 @@ bool blast_data_to_storage_daemon(JCR *jcr, char *addr)
 
    jcr->buf_size = sd->msglen;
    /* Adjust for compression so that output buffer is
-    * 12 bytes + 0.1% larger than input buffer plus 18 bytes.
-    * This gives a bit extra plus room for the sparse addr if any.
-    * Note, we adjust the read size to be smaller so that the
-    * same output buffer can be used without growing it.
+    *  12 bytes + 0.1% larger than input buffer plus 18 bytes.
+    *  This gives a bit extra plus room for the sparse addr if any.
+    *  Note, we adjust the read size to be smaller so that the
+    *  same output buffer can be used without growing it.
     *
-    * The zlib compression workset is initialized here to minimise
-    * the "per file" load. The jcr member is only set, if the init was successful.
+    * The zlib compression workset is initialized here to minimize
+    *  the "per file" load. The jcr member is only set, if the init 
+    *  was successful.
     */
    jcr->compress_buf_size = jcr->buf_size + ((jcr->buf_size+999) / 1000) + 30;
    jcr->compress_buf = get_memory(jcr->compress_buf_size);
@@ -529,21 +530,21 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       break;
    case FT_NOACCESS: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access %s: ERR=%s\n"), ff_pkt->fname,
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not access \"%s\": ERR=%s\n"), ff_pkt->fname,
          be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOFOLLOW: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link %s: ERR=%s\n"), 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not follow link \"%s\": ERR=%s\n"), 
            ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
    }
    case FT_NOSTAT: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat %s: ERR=%s\n"), ff_pkt->fname,
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not stat \"%s\": ERR=%s\n"), ff_pkt->fname,
          be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
@@ -557,7 +558,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       return 1;
    case FT_NOOPEN: {
       berrno be;
-      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory %s: ERR=%s\n"), 
+      Jmsg(jcr, M_NOTSAVED, 0, _("     Could not open directory \"%s\": ERR=%s\n"), 
            ff_pkt->fname, be.bstrerror(ff_pkt->ff_errno));
       jcr->Errors++;
       return 1;
@@ -689,7 +690,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       if (bopen(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY | noatime, 0) < 0) {
          ff_pkt->ff_errno = errno;
          berrno be;
-         Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open %s: ERR=%s.\n"), ff_pkt->fname,
+         Jmsg(jcr, M_NOTSAVED, 0, _("     Cannot open \"%s\": ERR=%s.\n"), ff_pkt->fname,
               be.bstrerror());
          jcr->Errors++;
          if (tid) {
@@ -726,7 +727,7 @@ int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          if (!bopen_rsrc(&ff_pkt->bfd, ff_pkt->fname, O_RDONLY | O_BINARY, 0) < 0) {
             ff_pkt->ff_errno = errno;
             berrno be;
-            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for %s: ERR=%s.\n"), 
+            Jmsg(jcr, M_NOTSAVED, -1, _("     Cannot open resource fork for \"%s\": ERR=%s.\n"), 
                  ff_pkt->fname, be.bstrerror());
             jcr->Errors++;
             if (is_bopen(&ff_pkt->bfd)) {

@@ -632,14 +632,19 @@ statDir(const char *file, struct stat *sb)
    FILETIME *pftLastWriteTime;
    FILETIME *pftCreationTime;
 
+   /* 
+    * Oh, cool, another exception: Microsoft doesn't let us do 
+    *  FindFile operations on a Drive, so simply fake root attibutes.
+    */
    if (file[1] == ':' && file[2] == 0) {
-        Dmsg1(99, "faking ROOT attrs(%s).\n", file);
-        sb->st_mode = S_IFDIR;
-        sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
-        time(&sb->st_ctime);
-        time(&sb->st_mtime);
-        time(&sb->st_atime);
-        return 0;
+      time_t now = time(NULL);
+      Dmsg1(99, "faking ROOT attrs(%s).\n", file);
+      sb->st_mode = S_IFDIR;
+      sb->st_mode |= S_IREAD|S_IEXEC|S_IWRITE;
+      sb->st_ctime = now;
+      sb->st_mtime = now;
+      sb->st_atime = now;
+      return 0;
     }
 
    HANDLE h = INVALID_HANDLE_VALUE;
@@ -649,7 +654,7 @@ statDir(const char *file, struct stat *sb)
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
-      h = p_FindFirstFileW((LPCWSTR) pwszBuf, &info_w);
+      h = p_FindFirstFileW((LPCWSTR)pwszBuf, &info_w);
       free_pool_memory(pwszBuf);
 
       pdwFileAttributes = &info_w.dwFileAttributes;
@@ -799,8 +804,9 @@ stat2(const char *file, struct stat *sb)
    rval = fstat((int)h, sb);
    CloseHandle(h);
 
-   if (attr & FILE_ATTRIBUTE_DIRECTORY) {
-      return statDir(tmpbuf, sb);
+   if (attr & FILE_ATTRIBUTE_DIRECTORY &&
+        file[1] == ':' && file[2] != 0) {
+      statDir(file, sb);
    }
 
    return rval;
@@ -815,19 +821,12 @@ stat(const char *file, struct stat *sb)
 
    memset(sb, 0, sizeof(*sb));
 
-   /* why not allow win 95 to use p_GetFileAttributesExA ? 
-    * this function allows _some_ open files to be stat'ed 
-    * if (g_platform_id == VER_PLATFORM_WIN32_WINDOWS) {
-    *    return stat2(file, sb);
-    * }
-    */
-
    if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
       POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
-      BOOL b = p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, &data);
+      BOOL b = p_GetFileAttributesExW((LPCWSTR)pwszBuf, GetFileExInfoStandard, &data);
       free_pool_memory(pwszBuf);
 
       if (!b) {
@@ -869,8 +868,18 @@ stat(const char *file, struct stat *sb)
    sb->st_atime = cvt_ftime_to_utime(data.ftLastAccessTime);
    sb->st_mtime = cvt_ftime_to_utime(data.ftLastWriteTime);
    sb->st_ctime = cvt_ftime_to_utime(data.ftCreationTime);
-   if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-      return statDir(file, sb);
+
+   /*
+    * If we are not at the root, then to distinguish a reparse 
+    *  point from a mount point, we must call FindFirstFile() to
+    *  get the WIN32_FIND_DATA, which has the bit that indicates
+    *  that this directory is a mount point -- aren't Win32 APIs
+    *  wonderful? (sarcasm).  The code exists in the statDir
+    *  subroutine.
+    */
+   if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
+        file[1] == ':' && file[2] != 0) {
+      statDir(file, sb);
    }
    return 0;
 }
