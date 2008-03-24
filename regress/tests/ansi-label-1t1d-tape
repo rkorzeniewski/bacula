@@ -12,6 +12,8 @@ TestName="ansi-label-1t1d-tape"
 JobName=backuptape
 . scripts/functions
 
+require_tape_drive
+
 scripts/copy-tape-confs
 /bin/cp -f scripts/ansi-sd-tape.conf bin/bacula-sd.conf
 scripts/cleanup-tape

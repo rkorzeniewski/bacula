@@ -4,5 +4,9 @@
 #
 scripts/cleanup
 
+a=`bin/mtx-changer @autochanger@ loaded 0 @tape_drive@ 0`
+if test $a = 0 ; then
+  bin/mtx-changer @autochanger@ load 1 @tape_drive@ 0
+fi
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof

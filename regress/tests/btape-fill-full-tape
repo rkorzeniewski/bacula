@@ -6,6 +6,8 @@ TestName="btape-fill-full-tape"
 JobName=AutoLabel
 . scripts/functions
 
+require_tape_drive
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 

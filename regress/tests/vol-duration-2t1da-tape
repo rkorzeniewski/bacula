@@ -13,7 +13,8 @@ TestName="vol-duration-2t1da-tape"
 JobName=VolDuration
 . scripts/functions
 
-skip_if_no_autochanger
+require_tape_drive
+require_autochanger
 
 scripts/cleanup
 scripts/copy-2tape-confs

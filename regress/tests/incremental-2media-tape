@@ -10,6 +10,8 @@ TestName="incremental-2media-tape"
 JobName=Inc2mediaTape
 . scripts/functions
 
+require_tape_drive
+require_second_drive
 
 scripts/cleanup
 # Get conf files

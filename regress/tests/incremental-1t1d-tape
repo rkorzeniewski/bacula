@@ -7,6 +7,8 @@ TestName="incremental-1t1d-tape"
 JobName=IncTape
 . scripts/functions
 
+require_tape_drive
+
 scripts/copy-tape-confs
 scripts/cleanup-tape
 

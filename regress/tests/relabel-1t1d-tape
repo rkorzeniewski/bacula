@@ -8,6 +8,8 @@ TestName="relabel-1t1d-tape"
 JobName=Relabeltape
 . scripts/functions
 
+require_tape_drive
+
 scripts/cleanup-tape
 scripts/copy-tape-confs
 

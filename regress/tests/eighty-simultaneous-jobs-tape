@@ -6,6 +6,8 @@ TestName="eighty-simultaneous-jobs-tape"
 JobName=EightySimultaneousJobs
 . scripts/functions
 
+require_tape_drive
+
 scripts/cleanup-tape
 scripts/copy-tape-confs
 
