@@ -76,8 +76,23 @@ void htable::malloc_buf(int size)
    Dmsg2(200, "malloc buf size=%d rem=%d\n", size, hmem->rem);
 }
 
-char *htable::hash_alloc(int size)
+/* This routine frees the whole tree */
+void htable::hash_free()
 {
+   struct h_mem *hmem, *rel;
+
+   for (hmem=mem; hmem; ) {
+      rel = hmem;
+      hmem = hmem->next;
+      free(rel);
+   }
+}
+
+#endif
+
+char *htable::hash_malloc(int size)
+{
+#ifdef BIG_MALLOC
    char *buf;
    int asize = BALIGN(size);
 
@@ -94,21 +109,14 @@ char *htable::hash_alloc(int size)
    buf = mem->mem;
    mem->mem += asize;
    return buf;
-}
-
-
-/* This routine frees the whole tree */
-void htable::hash_free()
-{
-   struct h_mem *hmem, *rel;
-
-   for (hmem=mem; hmem; ) {
-      rel = hmem;
-      hmem = hmem->next;
-      free(rel);
-   }
-}
+#else 
+   total_size += size;
+   blocks++;
+   return (char *)malloc(size);
 #endif
+}
+
+
  
 
 /*
@@ -126,6 +134,9 @@ void htable::hash_index(char *key)
    Dmsg2(100, "Leave hash_index hash=0x%x index=%d\n", hash, index);
 }
 
+/*
+ * tsize is the estimated number of entries in the hash table
+ */
 htable::htable(void *item, void *link, int tsize)
 {
    init(item, link, tsize);
@@ -134,6 +145,10 @@ htable::htable(void *item, void *link, int tsize)
 void htable::init(void *item, void *link, int tsize)
 {
    int pwr;
+
+   if (tsize < 31) {
+      tsize = 31;
+   }
    tsize >>= 2;
    for (pwr=0; tsize; pwr++) {
       tsize >>= 1;
@@ -148,9 +163,11 @@ void htable::init(void *item, void *link, int tsize)
    memset(table, 0, buckets * sizeof(hlink *));
    walkptr = NULL;
    walk_index = 0;
+   total_size = 0;
+   blocks = 0;
 #ifdef BIG_MALLOC
    mem = NULL;
-   malloc_buf(1000000);   /* ***FIXME*** base off of size */
+   malloc_buf(1000000);   /* ***FIXME*** need variable or some estimate */
 #endif
 }
 
@@ -163,7 +180,7 @@ uint32_t htable::size()
  * Take each hash link and walk down the chain of items
  *  that hash there counting them (i.e. the hits), 
  *  then report that number.
- *  Obiously, the more hits in a chain, the more time
+ * Obiously, the more hits in a chain, the more time
  *  it takes to reference them. Empty chains are not so
  *  hot either -- as it means unused or wasted space.
  */
@@ -196,7 +213,12 @@ void htable::stats()
    for (i=0; i < MAX_COUNT; i++) {
       printf("%2d:           %d\n",i, hits[i]);
    }
+   printf("buckets=%d num_items=%d max_items=%d\n", buckets, num_items, max_items);
    printf("max hits in a bucket = %d\n", max);
+#ifdef BIG_MALLOC
+   printf("total bytes malloced = %d\n", total_size);
+   printf("total blocks malloced = %d\n", blocks);
+#endif
 }
 
 void htable::grow_table()
@@ -328,6 +350,9 @@ void *htable::first()
 /* Destroy the table and its contents */
 void htable::destroy()
 {
+#ifdef BIG_MALLOC
+   hash_free();
+#else
    void *ni;
    void *li = first();
 
@@ -336,6 +361,7 @@ void htable::destroy()
       free(li);
       li=ni;
    }
+#endif
 
    free(table);
    table = NULL;
@@ -351,7 +377,7 @@ struct MYJCR {
    hlink link;
 };
 
-#define NITEMS 1000000
+#define NITEMS 5000000
 
 int main()
 {
@@ -369,13 +395,8 @@ int main()
       int len;
       len = sprintf(mkey, "This is htable item %d", i) + 1;
 
-#ifdef BIG_MALLOC
-      jcr = (MYJCR *)jcrtbl->hash_alloc(sizeof(MYJCR));
-      jcr->key = (char *)jcrtbl->hash_alloc(len);
-#else
-      jcr = (MYJCR *)malloc(sizeof(MYJCR));
-      jcr->key = (char *)malloc(len);
-#endif
+      jcr = (MYJCR *)jcrtbl->hash_malloc(sizeof(MYJCR));
+      jcr->key = (char *)jcrtbl->hash_malloc(len);
       memcpy(jcr->key, mkey, len);
       Dmsg2(100, "link=%p jcr=%p\n", jcr->link, jcr);
 

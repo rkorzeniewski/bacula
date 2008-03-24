@@ -144,8 +144,10 @@ bool send_accurate_current_files(JCR *jcr)
 
    /* to be able to allocate the right size for htable */
    POOLMEM *nb = get_pool_memory(PM_FNAME);
+   *nb = 0;                           /* clear buffer */
    Mmsg(buf, "SELECT sum(JobFiles) FROM Job WHERE JobId IN (%s)",jobids);
    db_sql_query(jcr->db, buf.c_str(), db_get_int_handler, nb);
+   Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 
    db_get_file_list(jcr, jcr->db, jobids, accurate_list_handler, (void *)jcr);

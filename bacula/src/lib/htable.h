@@ -40,17 +40,25 @@
 
 /* 
  * BIG_MALLOC is to provide a large malloc service to htable
- *   not yet implemented, and not yet working.
  */
-//#define BIG_MALLOC
+#define BIG_MALLOC
 
 /*
  * Loop var through each member of table
  */
+#ifdef HAVE_TYPEOF
+#define foreach_htable(var, tbl) \
+        for((var)=(typeof(var))((tbl)->first()); \
+           (var); \
+           (var)=(typeof(var))((tbl)->next()))
+#else
 #define foreach_htable(var, tbl) \
         for((*((void **)&(var))=(void *)((tbl)->first())); \
             (var); \
             (*((void **)&(var))=(void *)((tbl)->next())))
+#endif
+
+
 
 struct hlink {
    void *next;                        /* next hash item */
@@ -85,6 +93,7 @@ class htable : public SMARTALLOC {
 #endif
    void hash_index(char *key);        /* produce hash key,index */
    void grow_table();                 /* grow the table */
+
 public:
    htable(void *item, void *link, int tsize = 31);
    ~htable() { destroy(); }
@@ -96,8 +105,8 @@ public:
    void destroy();
    void stats();                      /* print stats about the table */
    uint32_t size();                   /* return size of table */
+   char *hash_malloc(int size);       /* malloc bytes for a hash entry */
 #ifdef BIG_MALLOC
-   char *hash_alloc(int size);        /* malloc bytes for a hash entry */
    void hash_free();                  /* free all hash allocated bytes */
 #endif
 };
