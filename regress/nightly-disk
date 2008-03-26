@@ -8,7 +8,7 @@ REGRESS_DEBUG=1
 export REGRESS_DEBUG
 svn update
 scripts/config_dart
-nice ctest -D Nightly -R "all-non-root:"
+nice ctest -D Nightly -R "^disk:"
 if [ $? != 0 ] ; then
    echo "ctest failed re-running Submit"
    ctest -D NightlySubmit

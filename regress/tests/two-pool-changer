@@ -7,8 +7,8 @@
 #  is in ${cwd}/tmp/file-list, which is by default the Bacula
 #  source code (i.e. the build directory).
 #
-TestName="two-pool-2t1da-tape"
-JobName=twopooltape
+TestName="two-pool-changer"
+JobName=twopoolchanger
 . scripts/functions
 
 require_tape_drive
@@ -34,8 +34,8 @@ cat <<END_OF_DATA >tmp/bconcmds
 @output /dev/null
 messages
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=1 pool=Full drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
+label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Full drive=$DRIVE1
+label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
 list volumes
 @# Start job with Client run before and sleep
 run job=NightlySave1 level=Full pool=Default yes

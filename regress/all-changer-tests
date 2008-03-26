@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Run all tape tests
+#
+echo "Start autochanger tests"
+echo "Start autochanger tests" >>test.out
+
+nice tests/incremental-changer
+nice tests/two-pool-changer
+nice tests/two-volume-changer
+nice tests/vol-duration-changer
+
+echo "End autochanger tests"
+echo "End autochanger tests" >>test.out

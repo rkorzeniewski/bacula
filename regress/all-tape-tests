@@ -2,29 +2,31 @@
 #
 # Run all tape tests
 #
-. ./config.out
+. ./config
+
+# 
+# If we have an autoloader, load the tape in slot1
 if test ! x$AUTOCHANGER = x/dev/null ; then
-   mtx -f $AUTOCHANGER load 1 >/dev/null &2>/dev/null
+   a=`bin/mtx-changer $AUTOCHANGER loaded $SLOT1 $TAPE_DRIVE $DRIVE1`
+   if test $a = 0 ; then
+      bin/mtx-changer $AUTOCHANGER load $SLOT1 $TAPE_DRIVE $DRIVE1
+   fi
 fi
 echo " "
 echo " " >>test.out
-echo "Start all tape tests"
-echo "Start all tape tests" >>test.out
-nice tests/ansi-label-1t1d-tape
-nice tests/backup-bacula-1t1d-tape
-#nice tests/btape-fill-full-tape
-nice tests/fixed-block-size-1t1d-tape
-nice tests/four-concurrent-jobs-1t1d-tape
-nice tests/four-jobs-1t1d-tape
-nice tests/incremental-1t1d-tape
-nice tests/relabel-1t1d-tape
-nice tests/restore-by-file-1t1d-tape
-nice tests/small-file-size-1t1d-tape
-nice tests/truncate-bug-1t1d-tape
-nice tests/two-pool-2t1da-tape
-nice tests/2drive-incremental-2t2da-tape
-nice tests/bscan-1t1d-tape
-nice tests/verify-vol-1t1d-tape
-#nice tests/vol-duration-2t1da-tape
-echo "End all tape tests"
-echo "End all tape tests" >>test.out
+echo "Start all non-root tape tests"
+echo "Start all non-root tape tests" >>test.out
+nice tests/ansi-label-tape
+nice tests/backup-bacula-tape
+nice tests/bscan-tape
+nice tests/fixed-block-size-tape
+nice tests/four-concurrent-jobs-tape
+nice tests/four-jobs-tape
+nice tests/incremental-tape
+nice tests/relabel-tape
+nice tests/restore-by-file-tape
+nice tests/small-file-size-tape
+nice tests/truncate-bug-tape
+nice tests/verify-vol-tape
+echo "End all non-root tape tests"
+echo "End all non-root tape tests" >>test.out

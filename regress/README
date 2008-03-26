@@ -105,19 +105,15 @@ this cleans up any files that may be created with root permissions.
 
 Tape test naming convention:
 
-I've renamed the tape tests to include an indication of how
-many tapes and drives each test needs.  The indication consists
-of 4 or 5 characters just before the final -tape.  For example,
-there is a tape test named:
+The last part of the tape test name indicates (in general) what kind
+of test it is.  They are broken (for the most part) into test names
+ending with:
 
-  vol-duration-2t1da-tape
-
-this means that it uses 2 tape (2t) one drive (1d) and the
-autochanger (a).  Another test might be named
-
-  fixed-block-size-1t1d-tape
-
-which means it uses one tape on one drive and no autochanger.
+  -test     => a disk based test
+  -tape     => a tape based test (can be a standalone tape drive
+                or an autochanger). Only one tape will be used
+                and it is assumed to be mounted.
+  -changer  => you have an autochanger 
 
 Adding tests:
 
