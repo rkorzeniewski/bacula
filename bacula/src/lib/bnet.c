@@ -689,7 +689,7 @@ BSOCK *init_bsock(JCR * jcr, int sockfd, const char *who, const char *host, int 
    return bsock;
 }
 
-BSOCK *dup_bsock(BSOCK * osock)
+BSOCK *dup_bsock(BSOCK *osock)
 {
    BSOCK *bsock = (BSOCK *)malloc(sizeof(BSOCK));
    memcpy(bsock, osock, sizeof(BSOCK));

@@ -54,6 +54,7 @@ class BSOCK {
 private:
    BSOCK *m_next;                     /* next BSOCK if duped */
    JCR *m_jcr;                        /* jcr or NULL for error msgs */
+   pthread_mutex_t m_mutex;           /* for locking if use_locking set */
    char *m_who;                       /* Name of daemon to which we are talking */
    char *m_host;                      /* Host name/IP */
    int m_port;                        /* desired port */
@@ -62,6 +63,7 @@ private:
    volatile bool m_terminated: 1;     /* set when BNET_TERMINATE arrives */
    bool m_duped: 1;                   /* set if duped BSOCK */
    bool m_spool: 1;                   /* set for spooling */
+   bool m_use_locking: 1;             /* set to use locking */
 
    void fin_init(JCR * jcr, int sockfd, const char *who, const char *host, int port,
                struct sockaddr *lclient_addr);
@@ -112,6 +114,8 @@ public:
    int wait_data_intr(int sec);
    bool authenticate_director(const char *name, const char *password,
                   TLS_CONTEXT *tls_ctx, char *msg, int msglen);
+   bool set_locking();                /* in bsock.c */
+   void clear_locking();              /* in bsock.c */
 
    /* Inline functions */
    void set_jcr(JCR *jcr) { m_jcr = jcr; };

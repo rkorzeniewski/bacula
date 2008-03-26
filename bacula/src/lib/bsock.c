@@ -257,7 +257,34 @@ bool BSOCK::open(JCR *jcr, const char *name, char *host, char *service,
    return true;
 }
 
+/*
+ * Force read/write to use locking
+ */
+bool BSOCK::set_locking()
+{
+   int stat;
+   if (m_use_locking) {
+      return true;                      /* already set */
+   }
+   if ((stat = pthread_mutex_init(&m_mutex, NULL)) != 0) {
+      berrno be;
+      Jmsg(m_jcr, M_FATAL, 0, _("Could not init bsock mutex. ERR=%s\n"),
+         be.bstrerror(stat));
+      return false;
+   }
+   m_use_locking = true;
+   return true;
+}
 
+void BSOCK::clear_locking()
+{
+   if (!m_use_locking) {
+      return;
+   }
+   m_use_locking = false;
+   pthread_mutex_destroy(&m_mutex);
+   return;
+}
 
 /*
  * Send a message over the network. The send consists of
@@ -272,10 +299,12 @@ bool BSOCK::send()
    int32_t rc;
    int32_t pktsiz;
    int32_t *hdr;
+   bool ok = true;
 
    if (errors || is_terminated() || msglen > 1000000) {
       return false;
    }
+   if (m_use_locking) P(m_mutex);
    /* Compute total packet length */
    if (msglen <= 0) {
       pktsiz = sizeof(pktsiz);               /* signal, no data */
@@ -316,9 +345,10 @@ bool BSOCK::send()
                _("Wrote %d bytes to %s:%s:%d, but only %d accepted.\n"),
                msglen, m_who, m_host, m_port, rc);
       }
-      return false;
+      ok = false;
    }
-   return true;
+   if (m_use_locking) V(m_mutex);
+   return ok;
 }
 
 /*
@@ -380,6 +410,7 @@ int32_t BSOCK::recv()
       return BNET_HARDEOF;
    }
 
+   if (m_use_locking) P(m_mutex);
    read_seqno++;            /* bump sequence number */
    timer_start = watchdog_time;  /* set start wait time */
    clear_timed_out();
@@ -393,7 +424,8 @@ int32_t BSOCK::recv()
          b_errno = errno;
       }
       errors++;
-      return BNET_HARDEOF;         /* assume hard EOF received */
+      nbytes = BNET_HARDEOF;        /* assume hard EOF received */
+      goto get_out;
    }
    timer_start = 0;         /* clear timer */
    if (nbytes != sizeof(int32_t)) {
@@ -401,16 +433,18 @@ int32_t BSOCK::recv()
       b_errno = EIO;
       Qmsg5(m_jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"),
             sizeof(int32_t), nbytes, m_who, m_host, m_port);
-      return BNET_ERROR;
+      nbytes = BNET_ERROR;
+      goto get_out;
    }
 
    pktsiz = ntohl(pktsiz);         /* decode no. of bytes that follow */
 
    if (pktsiz == 0) {              /* No data transferred */
-      timer_start = 0;      /* clear timer */
+      timer_start = 0;             /* clear timer */
       in_msg_no++;
       msglen = 0;
-      return 0;                    /* zero bytes read */
+      nbytes = 0;                  /* zero bytes read */
+      goto get_out;
    }
 
    /* If signal or packet size too big */
@@ -424,10 +458,11 @@ int32_t BSOCK::recv()
       if (pktsiz == BNET_TERMINATE) {
          set_terminated();
       }
-      timer_start = 0;      /* clear timer */
+      timer_start = 0;                /* clear timer */
       b_errno = ENODATA;
-      msglen = pktsiz;      /* signal code */
-      return BNET_SIGNAL;          /* signal */
+      msglen = pktsiz;                /* signal code */
+      nbytes =  BNET_SIGNAL;          /* signal */
+      goto get_out;
    }
 
    /* Make sure the buffer is big enough + one byte for EOS */
@@ -448,7 +483,8 @@ int32_t BSOCK::recv()
       errors++;
       Qmsg4(m_jcr, M_ERROR, 0, _("Read error from %s:%s:%d: ERR=%s\n"),
             m_who, m_host, m_port, this->bstrerror());
-      return BNET_ERROR;
+      nbytes = BNET_ERROR;
+      goto get_out;
    }
    timer_start = 0;         /* clear timer */
    in_msg_no++;
@@ -458,7 +494,8 @@ int32_t BSOCK::recv()
       errors++;
       Qmsg5(m_jcr, M_ERROR, 0, _("Read expected %d got %d from %s:%s:%d\n"),
             pktsiz, nbytes, m_who, m_host, m_port);
-      return BNET_ERROR;
+      nbytes = BNET_ERROR;
+      goto get_out;
    }
    /* always add a zero by to properly terminate any
     * string that was send to us. Note, we ensured above that the
@@ -466,6 +503,9 @@ int32_t BSOCK::recv()
     */
    msg[nbytes] = 0; /* terminate in case it is a string */
    sm_check(__FILE__, __LINE__, false);
+
+get_out:
+   if (m_use_locking) V(m_mutex);
    return nbytes;                  /* return actual length of message */
 }
 
@@ -799,6 +839,9 @@ void BSOCK::close()
    BSOCK *bsock = this;
    BSOCK *next;
 
+   if (!m_duped) {
+      clear_locking();
+   }
    for (; bsock; bsock = next) {
       next = bsock->m_next;           /* get possible pointer to next before destoryed */
       if (!bsock->m_duped) {

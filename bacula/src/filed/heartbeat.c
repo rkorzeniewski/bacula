@@ -1,17 +1,7 @@
 /*
- *  Bacula File Daemon heartbeat routines
- *    Listens for heartbeats coming from the SD
- *    If configured, sends heartbeats to Dir
- *
- *    Kern Sibbald, May MMIII
- *
- *   Version $Id$
- *
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2003-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2003-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -35,6 +25,16 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *  Bacula File Daemon heartbeat routines
+ *    Listens for heartbeats coming from the SD
+ *    If configured, sends heartbeats to Dir
+ *
+ *    Kern Sibbald, May MMIII
+ *
+ *   Version $Id$
+ *
+ */
 
 #include "bacula.h"
 #include "filed.h"
@@ -171,12 +171,12 @@ extern "C" void *dir_heartbeat_thread(void *arg)
       now = time(NULL);
       next = now - last_heartbeat;
       if (next >= me->heartbeat_interval) {
-         bnet_sig(dir, BNET_HEARTBEAT);
+         dir->signal(BNET_HEARTBEAT);
          last_heartbeat = now;
       }
       bmicrosleep(next, 0);
    }
-   bnet_close(dir);
+   dir->close();
    jcr->hb_bsock = NULL;
    return NULL;
 }
@@ -187,6 +187,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
 void start_dir_heartbeat(JCR *jcr)
 {
    if (me->heartbeat_interval) {
+      jcr->dir_bsock->set_locking();
       pthread_create(&jcr->heartbeat_id, NULL, dir_heartbeat_thread, (void *)jcr);
    }
 }

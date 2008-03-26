@@ -515,6 +515,7 @@ void *device_initialization(void *arg)
          switch (read_dev_volume_label(dcr)) {
          case VOL_OK:
             memcpy(&dev->VolCatInfo, &dcr->VolCatInfo, sizeof(dev->VolCatInfo));
+            volume_unused(dcr);             /* mark volume "released" */
             break;
          default:
             Jmsg1(NULL, M_WARNING, 0, _("Could not mount device %s\n"), dev->print_name());
