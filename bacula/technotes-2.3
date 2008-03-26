@@ -22,6 +22,15 @@ Add long term statistic job table
 
 
 General:
+26Mar08
+kes  Implement bsock code to permit locking. Use the new code in Verify
+     in the FD to prevent the heartbeat thread from disrupting the Verify
+     data sent to the Dir.
+kes  Modify SD locking to eliminate locking the reservations system from
+     outside the system. Use the volume lock when getting media data
+     and reserving a new volume at end of media.   
+kes  Add Eric's volume_unused() fix to stored.c so that Volumes found
+     when SD starts are not locked into place.
 24Mar08
 kes  Fix error compiling runscript code on 64 bit machines.
 kes  Tweak Win32 mount point code.

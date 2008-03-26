@@ -557,6 +557,7 @@ void mark_volume_in_error(DCR *dcr)
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Error", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg0(150, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(dcr, false, false);
+   volume_unused(dcr);
 }
 
 /*

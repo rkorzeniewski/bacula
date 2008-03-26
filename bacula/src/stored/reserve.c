@@ -426,7 +426,6 @@ get_out:
  */
 void switch_device(DCR *dcr, DEVICE *dev)
 {
-   // lock_reservations();
    DCR save_dcr;
 
    dev->dlock();
@@ -608,28 +607,37 @@ void free_volume_list()
 
 bool is_volume_in_use(DCR *dcr)
 {
-   VOLRES *vol = find_volume(dcr);
+   bool rtn = false;
+   VOLRES *vol;
+
+   lock_volumes();
+   vol = find_volume(dcr);
    if (!vol) {
       Dmsg1(dbglvl, "Vol=%s not in use.\n", dcr->VolumeName);
-      return false;                   /* vol not in list */
+      goto get_out;                   /* vol not in list */
    }
    ASSERT(vol->dev != NULL);
 
    if (dcr->dev == vol->dev) {        /* same device OK */
       Dmsg1(dbglvl, "Vol=%s on same dev.\n", dcr->VolumeName);
-      return false;
+      goto get_out;
    } else {
       Dmsg3(dbglvl, "Vol=%s on %s we have %s\n", dcr->VolumeName,
             vol->dev->print_name(), dcr->dev->print_name());
    }
    if (!vol->dev->is_busy()) {
       Dmsg2(dbglvl, "Vol=%s dev=%s not busy.\n", dcr->VolumeName, vol->dev->print_name());
-      return false;
+      goto get_out;
    } else {
       Dmsg2(dbglvl, "Vol=%s dev=%s busy.\n", dcr->VolumeName, vol->dev->print_name());
    }
    Dmsg2(dbglvl, "Vol=%s in use by %s.\n", dcr->VolumeName, vol->dev->print_name());
-   return true;
+   rtn = true;
+
+get_out:
+   unlock_volumes();
+   return rtn;
+
 }
 
 

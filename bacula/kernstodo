@@ -70,6 +70,21 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+> There's definitely something fishy in the recording of start and
+> end blocks in the JOBMEDIA table.  This is a snip from last night's
+> incremental run (still using 2.2.8 plus the four published patches, plus
+> my posted fix for the jobmedia patch):
+>
+>  JmId | JID | MId | FI | LI | Sfile | Efile | Sblock | Eblock
+>- 119 |   26 |   3 |  1 |  53 |   31 |    31 |      0 |    32 
+   120 |   27 |   3 |  1 |  83 |   31 |    31 |      0 |    242
+   121 |   28 |   3 |  1 | 239 |   31 |    31 |      0 |   5683
+>
+> Since I'm using spooling, those jobs should not be interspersed on
+> tape.  Still, at least it seems the error is in including too many
+> blocks in the set that a job's files occupies, so if I understand
+> correctly, it shouldn't cause any restore problems.  :)
+
 - Re-check new dcr->reserved_volume
 - Softlinks that point to non-existent file are not restored in restore all,
   but are restored if the file is individually selected.  BUG!
