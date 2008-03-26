@@ -112,8 +112,8 @@ Messages {
   Name = Standard
   mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression Job %j\) %r\" -s \"Regression: %t %e of %c %l\" %r"
   operatorcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression Job %j\) %r\" -s \"Regression: Intervention needed for %j\" %r"
-  MailOnError = @job_email@ = all, !terminate
-  operator = @job_email@ = mount
+# MailOnError = @job_email@ = all, !terminate
+# operator = @job_email@ = mount
   console = all, !skipped, !terminate, !restored
 #
 # WARNING! the following will create a file that you must cycle from
@@ -128,7 +128,7 @@ Messages {
 Messages {
   Name = Daemon
   mailcommand = "@sbindir@/bsmtp -h @smtp_host@ -f \"\(Bacula regression\) %r\" -s \"Regression daemon message\" %r"
-  mail = @job_email@ = all, !skipped            
+# mail = @job_email@ = all, !skipped            
   console = all, !skipped, !saved
   append = "@working_dir@/log" = all, !skipped
 }

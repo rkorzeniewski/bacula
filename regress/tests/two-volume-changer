@@ -31,8 +31,8 @@ cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
 messages
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=1 pool=Default drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 pool=Default drive=0
+label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Default drive=$DRIVE1
+label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
 update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default drive=0
 sql
 select * from Storage;
