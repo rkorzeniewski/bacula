@@ -6,9 +6,11 @@
 
 scripts/cleanup
 
-a=`bin/mtx-changer @autochanger@ loaded $SLOT1 @tape_drive@ 0`
-if test $a = 0 ; then
-  bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ 0
+if test "x@autochanger@" != "x/dev/null" ; then
+   a=`bin/mtx-changer @autochanger@ loaded $SLOT1 @tape_drive@ 0`
+   if test $a = 0 ; then
+     bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ 0
+   fi
 fi
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof
