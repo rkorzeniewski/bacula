@@ -31,29 +31,37 @@ setdebug level=51 Storage=File1
 status storage=File1
 llist volume=TestVolume001
 llist volume=TestVolume002
+list nextvol
+1
 run job=$JobName level=Full Storage=File1
 yes
 reload
 llist volume=TestVolume001
 llist volume=TestVolume002
+list nextvol
+1
 run job=$JobName level=Full Storage=File1
 yes
 reload
 llist volume=TestVolume001
 llist volume=TestVolume002
+list nextvol
+1
 run job=$JobName level=Full Storage=File1
 yes
 reload
 llist volume=TestVolume001
 llist volume=TestVolume002
+list nextvol
+1
 status storage=File1
 run job=$JobName level=Full Storage=File1
 yes
 status storage=File1
 reload
 reload
-reload
-reload
+list nextvol
+1
 @sleep 2
 status dir
 status storage=File1
@@ -67,6 +75,8 @@ reload
 wait
 status storage=File1
 reload
+list nextvol
+1
 messages
 @# 
 @# now do a restore
