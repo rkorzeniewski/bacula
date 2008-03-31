@@ -127,7 +127,8 @@ void htable::hash_index(char *key)
 {
    hash = 0;
    for (char *p=key; *p; p++) {
-      hash += (hash << 3) + (uint32_t)*p;
+//    hash += (hash << 3) + (uint32_t)*p;
+      hash +=  ((hash << 5) | (hash >> (sizeof(hash)*8-5))) + (uint32_t)*p;
    }
    /* Multiply by large prime number, take top bits, mask for remainder */
    index = ((hash * 1103515249) >> rshift) & mask;
