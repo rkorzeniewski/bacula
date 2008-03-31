@@ -540,7 +540,7 @@ bool volume_unused(DCR *dcr)
    dev->vol->released = true;
    Dmsg2(dbglvl, "=== set released. Vol=%s dev=%s\n", dev->vol->vol_name,
          dev->print_name());
-   if (dev->is_tape()) { // || dev->is_autochanger()) {
+   if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {
       /*

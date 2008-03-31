@@ -248,9 +248,6 @@ static bool despool_data(DCR *dcr, bool commit)
    dcr->dblock(BST_DESPOOLING);
    dcr->despool_wait = false;
    dcr->despooling = true;
-   if (!dcr->NewVol) {
-      set_start_vol_position(dcr);
-   }
 
    /*
     * This is really quite kludgy and should be fixed some time.
@@ -281,6 +278,8 @@ static bool despool_data(DCR *dcr, bool commit)
    /* Add run time, to get current wait time */
    time_t despool_start = time(NULL) - jcr->run_time;
 
+   set_new_file_parameters(dcr);
+
    for ( ; ok; ) {
       if (job_canceled(jcr)) {
          ok = false;
@@ -300,6 +299,13 @@ static bool despool_data(DCR *dcr, bool commit)
       }
       Dmsg3(800, "Write block ok=%d FI=%d LI=%d\n", ok, block->FirstIndex, block->LastIndex);
    }
+
+   if (!dir_create_jobmedia_record(dcr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
+         dcr->VolCatInfo.VolCatName, jcr->Job);
+   }
+   /* Set new file/block parameters for current dcr */
+   set_new_file_parameters(dcr);
 
    /* Subtracting run_time give us elapsed time - wait_time since we started despooling */
    time_t despool_elapsed = time(NULL) - despool_start - jcr->run_time;
