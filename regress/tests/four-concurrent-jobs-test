@@ -71,7 +71,6 @@ reload
 @sleep 5
 messages
 reload
-reload
 wait
 status storage=File1
 reload
@@ -81,6 +80,12 @@ messages
 @# 
 @# now do a restore
 @#
+@$out ${cwd}/tmp/jobmedia.out
+list volumes
+sql
+select JobId,MediaId,StartFile,StartBlock,EndFile,EndBlock from JobMedia;
+
+
 @$out   ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
@@ -89,7 +94,6 @@ done
 yes
 run job=$JobName level=Full Storage=File1 yes
 wait
-reload
 reload
 messages
 @output

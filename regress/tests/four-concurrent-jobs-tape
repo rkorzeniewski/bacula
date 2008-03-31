@@ -2,7 +2,7 @@
 #
 # Run four jobs at the same time
 #
-TestName="four-concurrent-jobs-1t1d-tape"
+TestName="four-concurrent-jobs-tape"
 JobName=FourConcurrentJobs
 . scripts/functions
 
@@ -33,6 +33,11 @@ status storage=DDS-4
 messages
 wait
 messages
+@$out ${cwd}/tmp/jobmedia.out
+list volumes
+sql
+select JobId,MediaId,StartFile,StartBlock,EndFile,EndBlock from JobMedia;
+
 @# 
 @# now do a restore
 @#

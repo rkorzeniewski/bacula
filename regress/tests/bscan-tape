@@ -5,7 +5,7 @@
 #   do a bscan and restore.
 #   It should require at least 4 different bsrs.
 #
-TestName="bscan-1t1d-tape"
+TestName="bscan-tape"
 JobName=bscantape
 . scripts/functions
 

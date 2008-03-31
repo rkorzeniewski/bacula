@@ -6,7 +6,7 @@
 # We also use the purge and the relabel commands as
 #   well as a pile of status storage commands.
 #
-TestName="backup-bacula-1t1d-tape"
+TestName="backup-bacula-tape"
 JobName=backuptape
 . scripts/functions
 

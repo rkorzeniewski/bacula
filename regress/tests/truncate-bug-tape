@@ -2,7 +2,7 @@
 #
 # Test for a tape truncation bug.
 #
-TestName="truncate-bug-1t1d-tape" 
+TestName="truncate-bug-tape" 
 JobName=truncatebug
 . scripts/functions
 
