@@ -24,6 +24,14 @@ Add long term statistics job table
 
 
 General:
+31Mar08
+kes  Remember what volume is in VTLs (previously turned off for
+     testing).
+kes  Analysis of JobMedia records by Tom Ivar Helbekkmo <tih@hamartun.priv.no>
+     pointed out some problems in creating JobMedia records during
+     spooling with concurrent jobs. Fix the problem by updating the
+     start file position before despooling and generate a jobmedia
+     record at the end of despooling.
 28Mar08
 kes  Fix handling of JobMedia records during spooling and when a
      Volume is changed without actually writing data to the Volume.

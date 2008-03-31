@@ -70,20 +70,40 @@ Professional Needs:
    and http://www.openeyet.nl/scc/ for managing customer changes
 
 Priority:
+================
+Tom Ivar Helbekkmo <tih@hamartun.priv.no>
 > There's definitely something fishy in the recording of start and
-> end blocks in the JOBMEDIA table.  This is a snip from last night's
-> incremental run (still using 2.2.8 plus the four published patches, plus
-> my posted fix for the jobmedia patch):
+> end blocks in the JOBMEDIA table. 
+> - If several jobs start spooling at the same time, they will all get the
+>   current tape position noted as the StartFile/StartBlock for the job.
+>   If they end up despooling to the file that was current when they
+>   started spooling, this is what will end up in the JOBMEDIA table.  If
+>   there is a file change before they despool, the setting of NewFile in
+>   the dcr structure will fix this up later, but the "start of session"
+>   label is already in the spool file, of course, so it holds the wrong
+>   information anyway.
 >
->  JmId | JID | MId | FI | LI | Sfile | Efile | Sblock | Eblock
->- 119 |   26 |   3 |  1 |  53 |   31 |    31 |      0 |    32 
-   120 |   27 |   3 |  1 |  83 |   31 |    31 |      0 |    242
-   121 |   28 |   3 |  1 | 239 |   31 |    31 |      0 |   5683
+> - If the job is longer than the maximum spool size, it will get its
+>   first spool session despooled, and then start spooling again after the
+>   first despooling is over.  The last blocks despooled to tape from the
+>   first session will not have been recorded, but they will be flushed
+>   later, when the next session despools.  However, if another job has
+>   been despooling while this one is spooling its second round, the
+>   session label written to the spool file at its close will cause the
+>   EndFile/Endblock to be set to wherever the tape is at that time.  When
+>   the dangling record is flushed to JOBMEDIA, it gets this wrong
+>   information.  Both session labels in the spool file will be wrong,
+>   too, of course, because they reflect the state of the tape during
+>   spooling, not during despooling.
 >
-> Since I'm using spooling, those jobs should not be interspersed on
-> tape.  Still, at least it seems the error is in including too many
-> blocks in the set that a job's files occupies, so if I understand
-> correctly, it shouldn't cause any restore problems.  :)
+> I would have to study the code much more closely to work out what's the
+> proper fix -- but it seems clear that it should involve creating the
+> session labels only when something is actually written to the archive
+> device, not during spooling.  I'm tempted to try making do_append_data()
+> not create session labels if we're spooling, and add the making of them
+> to despool_data() in stored/spool.c.  Sound reasonable?
+===========
+
 
 - Re-check new dcr->reserved_volume
 - Softlinks that point to non-existent file are not restored in restore all,
