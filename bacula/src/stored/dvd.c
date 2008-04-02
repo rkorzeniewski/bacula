@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -254,7 +254,7 @@ bool dvd_write_part(DCR *dcr)
    }
 
    Dmsg2(20, "Write part: cmd=%s timeout=%d\n", ocmd.c_str(), timeout);
-   status = run_program_full_output(ocmd.c_str(), timeout, results.c_str());
+   status = run_program_full_output(ocmd.c_str(), timeout, results.addr());
    Dmsg2(20, "Write part status=%d result=%s\n", status, results.c_str());
 
    dev->blank_dvd = false;

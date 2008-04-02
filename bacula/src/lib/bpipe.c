@@ -326,45 +326,41 @@ static void build_argc_argv(char *cmd, int *bargc, char *bargv[], int max_argv)
  *  Returns: 0 on success
  *           non-zero on error == berrno status
  */
-int run_program(char *prog, int wait, POOLMEM *results)
+int run_program(char *prog, int wait, POOLMEM *&results)
 {
    BPIPE *bpipe;
    int stat1, stat2;
    char *mode;
 
-   mode = (char *)(results != NULL ? "r" : "");
+   mode = (char *)"r";
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
       return ENOENT;
    }
-   if (results) {
-      results[0] = 0;
-      int len = sizeof_pool_memory(results) - 1;
-      fgets(results, len, bpipe->rfd);
-      results[len] = 0;
-      if (feof(bpipe->rfd)) {
-         stat1 = 0;
-      } else {
-         stat1 = ferror(bpipe->rfd);
-      }
-      if (stat1 < 0) {
-         berrno be;
-         Dmsg2(150, "Run program fgets stat=%d ERR=%s\n", stat1, be.bstrerror(errno));
-      } else if (stat1 != 0) {
-         Dmsg1(150, "Run program fgets stat=%d\n", stat1);
-         if (bpipe->timer_id) {
-            Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
-            /* NB: I'm not sure it is really useful for run_program. Without the
-             * following lines run_program would not detect if the program was killed
-             * by the watchdog. */
-            if (bpipe->timer_id->killed) {
-               stat1 = ETIME;
-               pm_strcat(results, _("Program killed by Bacula watchdog (timeout)\n"));
-            }
+   results[0] = 0;
+   int len = sizeof_pool_memory(results) - 1;
+   fgets(results, len, bpipe->rfd);
+   results[len] = 0;
+   if (feof(bpipe->rfd)) {
+      stat1 = 0;
+   } else {
+      stat1 = ferror(bpipe->rfd);
+   }
+   if (stat1 < 0) {
+      berrno be;
+      Dmsg2(150, "Run program fgets stat=%d ERR=%s\n", stat1, be.bstrerror(errno));
+   } else if (stat1 != 0) {
+      Dmsg1(150, "Run program fgets stat=%d\n", stat1);
+      if (bpipe->timer_id) {
+         Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
+         /* NB: I'm not sure it is really useful for run_program. Without the
+          * following lines run_program would not detect if the program was killed
+          * by the watchdog. */
+         if (bpipe->timer_id->killed) {
+            stat1 = ETIME;
+            pm_strcpy(results, _("Program killed by Bacula (timeout)\n"));
          }
       }
-   } else {
-      stat1 = 0;
    }
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
@@ -388,7 +384,7 @@ int run_program(char *prog, int wait, POOLMEM *results)
  *           non-zero on error == berrno status
  *
  */
-int run_program_full_output(char *prog, int wait, POOLMEM *results)
+int run_program_full_output(char *prog, int wait, POOLMEM *&results)
 {
    BPIPE *bpipe;
    int stat1, stat2;
@@ -397,21 +393,16 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
    char *buf;
    const int bufsize = 32000;
 
-   if (results == NULL) {
-      return run_program(prog, wait, NULL);
-   }
    
    sm_check(__FILE__, __LINE__, false);
 
    tmp = get_pool_memory(PM_MESSAGE);
    buf = (char *)malloc(bufsize+1);
    
+   results[0] = 0;
    mode = (char *)"r";
    bpipe = open_bpipe(prog, wait, mode);
    if (!bpipe) {
-      if (results) {
-         results[0] = 0;
-      }
       return ENOENT;
    }
    
@@ -449,11 +440,10 @@ int run_program_full_output(char *prog, int wait, POOLMEM *results)
     */
    if (bpipe->timer_id && bpipe->timer_id->killed) {
       Dmsg1(150, "Run program fgets killed=%d\n", bpipe->timer_id->killed);
-      pm_strcat(tmp, _("Program killed by Bacula watchdog (timeout)\n"));
+      pm_strcpy(tmp, _("Program killed by Bacula (timeout)\n"));
       stat1 = ETIME;
    }
-   int len = sizeof_pool_memory(results) - 1;
-   bstrncpy(results, tmp, len);
+   pm_strcpy(results, tmp);
    Dmsg3(1900, "resadr=0x%x reslen=%d res=%s\n", results, strlen(results), results);
    stat2 = close_bpipe(bpipe);
    stat1 = stat2 != 0 ? stat2 : stat1;
