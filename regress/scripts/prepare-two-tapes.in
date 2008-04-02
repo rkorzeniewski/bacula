@@ -1,56 +1,33 @@
 #!/bin/sh
 #
-# Create two blank tapes
+# Cleanup left over files -- both before and after test run
 #
 
-# mt status output
-# SunOS     No Additional Sense
-# FreeBSD   Current Driver State: at rest.
-# Linux     ONLINE
-#  Note Debian has an inferior mt. When no tape is in the
-#    drive it waits 2 minutes.	When a tape is in the drive, it
-#    prints user unfriendly output.
-#
+. scripts/functions
 
-OS=`uname`
-case ${OS} in
-  SunOS)
-    ready="No Additional Sense"
-    ;;
-  FreeBSD)
-    ready="Current Driver State: at rest."
-    ;;
-  Linux)
-    if test -e /etc/debian_version ; then
-       ready="drive status"
-    else
-       ready="ONLINE"
-    fi
-  ;;
-esac
+scripts/cleanup
 
-wait_for_drive() {
-  i=0 
-  while [ $i -le 300 ]; do  # Wait max 300 seconds
-    if mt -f $1 status 2>&1 | grep "${ready}" >/dev/null 2>&1; then
-      break
-    fi
-#   debug "Device $1 - not ready, retrying..."
-    sleep 1
-    i=`expr $i + 1`
-  done
-}
+if test x@autochanger@ != x/dev/null; then
+   slot=`bin/mtx-changer @autochanger@ loaded 0 dummy $DRIVE1`
+   if test "x${slot}" != "x$SLOT2"; then
+      bin/mtx-changer @autochanger@ unload $slot @tape_drive@ $DRIVE1
+      bin/mtx-changer @autochanger@ load $SLOT2 @tape_drive@ $DRIVE1
+   fi
+   mt -f @tape_drive@ rewind
+   mt -f @tape_drive@ weof
+fi
+
 
 #
-# mt -f @tape_drive@ offline
-@changer_path@ -f @autochanger@ unload
-@changer_path@ -f @autochanger@ load 1
-wait_for_drive @tape_drive@
+# If we have an autochanger always load tape in slot 1
+#
+if test x@autochanger@ != x/dev/null; then
+   slot=`bin/mtx-changer @autochanger@ loaded 0 dummy $DRIVE1`
+   if test "x${slot}" != "x$SLOT1"; then
+      bin/mtx-changer @autochanger@ unload $slot @tape_drive@ $DRIVE1
+      bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
+   fi
+fi
+
 mt -f @tape_drive@ rewind
 mt -f @tape_drive@ weof
-@changer_path@ -f @autochanger@ unload
-@changer_path@ -f @autochanger@ load 2
-wait_for_drive @tape_drive@
-mt -f @tape_drive@ rewind
-mt -f @tape_drive@ weof
-#@changer_path@ -f @autochanger@ unload

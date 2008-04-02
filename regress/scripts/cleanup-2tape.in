@@ -2,13 +2,16 @@
 #
 # Cleanup left over files -- both before and after test run
 #
+
+. scripts/functions
+
 scripts/cleanup
 
 if test x@autochanger@ != x/dev/null; then
-   drive=`bin/mtx-changer @autochanger@ loaded 0 dummy 0`
-   if test x${drive} != x2; then
-      bin/mtx-changer @autochanger@ unload 0 @tape_drive@ 0
-      bin/mtx-changer @autochanger@ load 2 @tape_drive@ 0
+   slot=`bin/mtx-changer @autochanger@ loaded 0 dummy $DRIVE1`
+   if test "x${slot}" != "x$SLOT2"; then
+      bin/mtx-changer @autochanger@ unload $slot @tape_drive@ $DRIVE1
+      bin/mtx-changer @autochanger@ load $SLOT2 @tape_drive@ $DRIVE1
    fi
    mt -f @tape_drive@ rewind
    mt -f @tape_drive@ weof
@@ -19,10 +22,10 @@ fi
 # If we have an autochanger always load tape in slot 1
 #
 if test x@autochanger@ != x/dev/null; then
-   drive=`bin/mtx-changer @autochanger@ loaded 0 dummy 0`
-   if test x${drive} != x1; then
-      bin/mtx-changer @autochanger@ unload 0 @tape_drive@ 0
-      bin/mtx-changer @autochanger@ load 1 @tape_drive@ 0
+   slot=`bin/mtx-changer @autochanger@ loaded 0 dummy $DRIVE1`
+   if test "x${slot}" != "x$SLOT1"; then
+      bin/mtx-changer @autochanger@ unload $slot @tape_drive@ $DRIVE1
+      bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
    fi
 fi
 
