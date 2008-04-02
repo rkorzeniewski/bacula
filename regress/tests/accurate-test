@@ -28,6 +28,12 @@ mkdir ${cwd}/build/accurate
 echo "test test" > ${cwd}/build/accurate/xxx
 echo "test test" > ${cwd}/build/accurate/yyy
 echo "test test" > ${cwd}/build/accurate/zzz
+echo "test test" > ${cwd}/build/accurate/zzzzzz
+echo "test test" > ${cwd}/build/accurate/xxxxxx
+echo "test test" > ${cwd}/build/accurate/yyyyyy
+echo "test test" > ${cwd}/build/accurate/xxxxxxxxx
+echo "test test" > ${cwd}/build/accurate/yyyyyyyyy
+echo "test test" > ${cwd}/build/accurate/zzzzzzzzz
 echo ${cwd}/build > ${cwd}/tmp/file-list
 
 start_test
@@ -84,6 +90,58 @@ check_restore_diff
 rm -rf ${cwd}/tmp/bacula-restores
 
 ################################################################
+# Now do a third backup after making few changes
+################################################################
+rm ${cwd}/build/accurate/yyyyyy  # delete a file
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a 4 backup after making few changes
+################################################################
+rm ${cwd}/build/accurate/zzzzzz  # delete a file
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a 5 backup after making few changes
+################################################################
+rm ${cwd}/build/accurate/zzzzzzzzz
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a backup after making few changes
+################################################################
+touch ${cwd}/build/accurate/aaaaaa
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
 # Check with bls
 ################################################################
 
@@ -94,7 +152,7 @@ if [ $? != 0 ] ; then
 fi
 
 ################################################################
-# Now do a third backup after making few changes
+# Now do a backup after making few changes
 ################################################################
 
 # some files will have disappear, others have their old mtime/ctime
@@ -168,6 +226,31 @@ check_two_logs
 check_restore_diff
 
 rm -rf ${cwd}/tmp/bacula-restores
+
+################################################################
+# Now do a backup after making few changes
+################################################################
+rm ${cwd}/build/accurate/aaaaaa
+touch ${cwd}/build/accurate/bbbbbb
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+################################################################
+# Now do a backup after making few changes
+################################################################
+mv ${cwd}/tmp/bacula-restores ${cwd}/build/accurate/
+
+run_bconsole
+check_for_zombie_jobs storage=File
+
+check_two_logs
+check_restore_diff
+
+rm -rf ${cwd}/tmp/bacula-restores ${cwd}/build/accurate/bacula-restores
 
 ################################################################
 # Check with bscan
