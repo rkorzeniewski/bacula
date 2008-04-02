@@ -73,6 +73,7 @@ if [ $? != 0 -o $bsrstat != 0 -o $bstat != 0 -o $rstat != 0 ] ; then
       echo "  !!!!! Restored files differ          !!!!! " >>test.out
    fi
    echo " "
+   exit 1
 else
    echo "  ===== bsr-opt-test Bacula source OK `date +%R:%S` ===== "
    echo "  ===== bsr-opt-test OK `date +%R:%S` ===== " >>test.out
