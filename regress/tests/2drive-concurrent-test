@@ -32,40 +32,40 @@ llist volume=TestVolume001
 llist volume=TestVolume002
 run job=$JobName level=Full Storage=DDS-4
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 run job=$JobName level=Full Storage=DDS-4
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 run job=$JobName level=Full Storage=DDS-4
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 status storage=DDS-4
 run job=$JobName level=Full Storage=DDS-4
 yes
 status storage=DDS-4
-reload
-reload
-reload
-reload
+@#reload
+@#reload
+@#reload
+@#reload
 @sleep 2
 status dir
 status storage=DDS-4
 llist volume=TestVolume001
 llist volume=TestVolume002
-reload
+@#reload
 @sleep 5
 messages
-reload
-reload
+@#reload
+@#reload
 wait
 status storage=DDS-4
-reload
+@#reload
 messages
 @# 
 @# now do a restore
@@ -77,8 +77,8 @@ mark *
 done
 yes
 wait
-reload
-reload
+@#reload
+@#reload
 messages
 @output
 quit
