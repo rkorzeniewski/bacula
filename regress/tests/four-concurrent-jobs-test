@@ -35,21 +35,21 @@ list nextvol
 1
 run job=$JobName level=Full Storage=File1
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 list nextvol
 1
 run job=$JobName level=Full Storage=File1
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 list nextvol
 1
 run job=$JobName level=Full Storage=File1
 yes
-reload
+@#reload
 llist volume=TestVolume001
 llist volume=TestVolume002
 list nextvol
@@ -58,8 +58,8 @@ status storage=File1
 run job=$JobName level=Full Storage=File1
 yes
 status storage=File1
-reload
-reload
+@#reload
+@#reload
 list nextvol
 1
 @sleep 2
@@ -67,13 +67,13 @@ status dir
 status storage=File1
 llist volume=TestVolume001
 llist volume=TestVolume002
-reload
+@#reload
 @sleep 5
 messages
-reload
+@#reload
 wait
 status storage=File1
-reload
+@#reload
 list nextvol
 1
 messages
@@ -94,7 +94,7 @@ done
 yes
 run job=$JobName level=Full Storage=File1 yes
 wait
-reload
+@#reload
 messages
 @output
 quit

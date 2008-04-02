@@ -48,8 +48,8 @@ mark *
 done
 yes
 wait
-reload
-reload
+@#reload
+@#reload
 messages
 @output
 quit
