@@ -895,10 +895,13 @@ SELECT btemp.JobId, btemp.FileIndex, btemp.FilenameId, btemp.PathId
 )");
    } else { # postgresql have distinct with more than one criteria...
         $bvfs->dbh_do("CREATE TABLE b2$$ AS (
-SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
-  FROM btemp
- ORDER BY PathId, FilenameId, JobId DESC
- HAVING FileIndex > 0
+SELECT JobId, FileIndex
+FROM (
+ SELECT DISTINCT ON (PathId, FilenameId) JobId, FileIndex
+   FROM btemp
+  ORDER BY PathId, FilenameId, JobId DESC
+ ) AS T
+ WHERE FileIndex > 0
 )");
     }
 

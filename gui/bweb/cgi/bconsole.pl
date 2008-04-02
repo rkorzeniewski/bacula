@@ -108,7 +108,7 @@ for my $a (@action)
 				   fileset   => $arg->{fileset},
 				   where     => $arg->{where},
 				   regexwhere => $arg->{regexwhere},
-				   replace   => $arg->{replace},
+#				   replace   => $arg->{replace},
 				   priority  => $arg->{priority},
 				   bootstrap => $filename);
 

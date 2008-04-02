@@ -64,6 +64,7 @@ if ('Main' == ('_' + '_Main_' + '_')) {
   <ul>
     <li><a href="bweb.pl?action=graph"> Statistics </a>
     <li><a href="btime.pl"> Backup Timing </a>
+    <li><a href="bweb.pl?action=group_stats"> Groups </a>
     <!-- <li><a href="bperf.pl"> Perfs </a> -->
   </ul>
  </li>

@@ -14,7 +14,7 @@
 
 <script type="text/javascript" language="JavaScript">
 if (navigator.appName == 'Konqueror') {
-        alert("Désolé, bweb fonctionne seulement avec mozilla.");
+        alert("DÃ©solÃ©, bweb fonctionne seulement avec mozilla.");
 }
 if ('Accueil' == ('_' + '_Main_' + '_')) {
 	document.write("<font color='red'>Update your configuration to use the correct tpl directory (You are using devel tpl)</font>");
@@ -31,10 +31,10 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
  </li>
  <li style="padding: 0.25em 2em;">Jobs
    <ul> 
-     <li><a href="bweb.pl?action=run_job">Jobs définis</a>
+     <li><a href="bweb.pl?action=run_job">Jobs dÃ©finis</a>
      <li><a href="bweb.pl?action=job_group">Jobs par groupe</a>
      <li><a href="bweb.pl?action=overview">Jobs overview</a>
-     <li><a href="bweb.pl?action=missing">Missing Jobs</a>
+     <li><a href="bweb.pl?action=missing">Jobs absents</a>
      <li><a href="bweb.pl?action=job">Historique</a> </li>
      <li><a href="bweb.pl?action=running">Jobs en cours</a>
      <li><a href="bweb.pl?action=next_job">Prochains jobs</a> </li>
@@ -42,9 +42,9 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
      <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>
- <li style="padding: 0.25em 2em;">Médias
+ <li style="padding: 0.25em 2em;">MÃ©dias
   <ul>
-     <li><a href="bweb.pl?action=pool">Pools de média</a> </li>
+     <li><a href="bweb.pl?action=pool">Pools de mÃ©dia</a> </li>
      <li><a href="bweb.pl?action=location">Localisations</a> </li>
      <li><a href="bweb.pl?action=media">Tous les Medias</a><hr></li>
      <li><a href="bweb.pl?action=add_media">Ajouter des Medias</a><hr></li>
@@ -64,6 +64,7 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
   <ul>
     <li><a href="bweb.pl?action=graph"> Statistiques </a>
     <li><a href="btime.pl"> Backup Timing </a>
+    <li><a href="bweb.pl?action=group_stats"> Groupes </a>
     <!-- <li><a href="bperf.pl"> Perfs </a> -->
   </ul>
  </li>

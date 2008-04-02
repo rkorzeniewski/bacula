@@ -35,10 +35,10 @@ if ('Principal' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=job_group">Jobs by group</a>
      <li><a href="bweb.pl?action=overview">Jobs overview</a>
      <li><a href="bweb.pl?action=missing">Missing Jobs</a>
-     <li><a href="bweb.pl?action=job">趌timos Jobs</a> </li>
-     <li><a href="bweb.pl?action=running">Jobs en Ejecuci髇</a>
-     <li><a href="bweb.pl?action=next_job">Pr髕imos Jobs</a> </li>
-     <li><a href="bweb.pl?action=restore" title="Launch brestore">Recuperaci髇</a> </li>
+     <li><a href="bweb.pl?action=job">脷ltimos Jobs</a> </li>
+     <li><a href="bweb.pl?action=running">Jobs en Ejecuci贸n</a>
+     <li><a href="bweb.pl?action=next_job">Pr贸ximos Jobs</a> </li>
+     <li><a href="bweb.pl?action=restore" title="Launch brestore">Recuperaci贸n</a> </li>
      <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>
@@ -60,16 +60,17 @@ if ('Principal' == ('_' + '_Main_' + '_')) {
 </TMPL_LOOP>
   </ul>
  </li>
- <li><a href="bweb.pl?action=graph"> Estad韘ticas </a>
+ <li><a href="bweb.pl?action=graph"> Estad铆sticas </a>
   <ul>
-    <li><a href="bweb.pl?action=graph"> Estad韘ticas </a>
+    <li><a href="bweb.pl?action=graph"> Estad铆sticas </a>
     <li><a href="btime.pl"> Backup Timing </a>
+    <li><a href="bweb.pl?action=group_stats"> Groupes </a>
     <!-- <li><a href="bperf.pl"> Perfs </a> -->
   </ul>
  </li>
- <li> <a href="bweb.pl?action=view_conf"> Configuraci髇 </a> 
+ <li> <a href="bweb.pl?action=view_conf"> Configuraci贸n </a> 
 <TMPL_IF enable_security>
-  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuraci髇 </a> 
+  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuraci贸n </a> 
        <li> <a href="bweb.pl?action=users"> Manage users </a>
   </ul>
 </TMPL_IF>

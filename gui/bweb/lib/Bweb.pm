@@ -3608,7 +3608,7 @@ GROUP BY Client.Name
 }
 
 
-sub display_group_stats
+sub _display_group_stats
 {
     my ($self, %arg) = @_ ;
 
@@ -4007,6 +4007,49 @@ WHERE
 		     display_action => $display_action,
 		     Jobs => [ values %$all ]},
 		   "running_job.tpl") ;
+}
+
+sub display_group_stats
+{
+    my ($self) = @_;
+    my $arg = $self->get_form('age', 'since');
+    return if $self->cant_do('r_view_stat');
+    my $filter = $self->get_client_group_filter();
+
+    my ($limit, $label) = $self->get_limit(%$arg);
+
+    my $query = "
+SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
+  FROM (
+
+    SELECT sum(JobBytes) AS nb_byte,
+           sum(JobFiles) AS nb_file,
+           count(1) AS nb_job, client_group_name 
+      FROM job_old JOIN client_group_member USING (ClientId) 
+      JOIN client_group USING (client_group_id) $filter
+     WHERE JobStatus = 'T' AND Type IN ('M', 'B', 'g') 
+           $limit
+    GROUP BY client_group_name ORDER BY client_group_name
+
+  ) AS T1 LEFT JOIN (
+
+    SELECT count(1) AS nb_resto, client_group_name 
+      FROM job_old JOIN client_group_member USING (ClientId) 
+      JOIN client_group USING (client_group_id)
+     WHERE JobStatus = 'T' AND Type = 'R'
+           $limit
+    GROUP BY client_group_name ORDER BY client_group_name
+
+  ) AS T2 USING (client_group_name)
+";
+    $self->debug($query);
+    my $all = $self->dbh_selectall_hashref($query, 'name') ;
+    $self->debug($all);
+
+    $self->display({ ID => $cur_id++,
+		     label => $label,
+		     Stats => [ values %$all ]},
+		   "display_stats.tpl") ;
 }
 
 # return the autochanger list to update

@@ -378,6 +378,8 @@ if ($action eq 'begin') {		# main display
 					age => $arg->{age});
 	}
     }
+} elsif ($action eq 'group_stats') {
+    $bweb->display_group_stats();
 
 } elsif ($action eq 'group_stats') {
     $bweb->display_group_stats(age => $arg->{age});
