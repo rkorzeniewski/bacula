@@ -24,6 +24,19 @@ Add long term statistics job table
 
 
 General:
+02Apr08
+kes  Modify run_program() and run_program_full_output() to use
+     call by reference for the results string. This corrects a long
+     standing problem where the address of the string may be changed
+     in the subroutine but not in the calling program.
+01Apr08
+kes  Re-enable code to remember last volume mounted on a non-tape
+     Autochanger.
+kes  Add patch supplied in bug #1068 that fixes a SD crash when using
+     a Virtual autochanger.
+kes  Generate correct JobMedia records during spooling/despooling when
+     running concurrent jobs.  Thanks to Tom Ivar Helbekkmo
+     <tih@hamartun.priv.no> for excellent analysis and testing.
 31Mar08
 kes  Tweak hash algorithm for htable using Martin Simmons idea
      for doing a circular shift.

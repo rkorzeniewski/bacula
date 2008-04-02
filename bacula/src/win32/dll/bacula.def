@@ -248,8 +248,8 @@ _Z18bnet_thread_serverP5dlistiP9workq_tagPFPvS3_E
 _Z23bnet_stop_thread_serverP10pthread_t_
  
 ; bpipe.o
-_Z11run_programPciS_
-_Z23run_program_full_outputPciS_
+_Z11run_programPciRS_
+_Z23run_program_full_outputPciRS_
  
 ; breg.o
 _Z11new_bregexpPKc

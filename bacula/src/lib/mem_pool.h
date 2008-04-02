@@ -91,6 +91,7 @@ public:
    POOL_MEM(int pool) { mem = get_pool_memory(pool); *mem = 0; }
    ~POOL_MEM() { free_pool_memory(mem); mem = NULL; }
    char *c_str() const { return mem; }
+   POOLMEM *&addr() { return mem; }
    int size() const { return sizeof_pool_memory(mem); }
    char *check_size(int32_t size) {
       mem = check_pool_memory_size(mem, size);

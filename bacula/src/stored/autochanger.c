@@ -191,7 +191,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
          changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "load");
          dev->close();
          Dmsg1(200, "Run program=%s\n", changer);
-         status = run_program_full_output(changer, timeout, results.c_str());
+         status = run_program_full_output(changer, timeout, results.addr());
          if (status == 0) {
             Jmsg(jcr, M_INFO, 0, _("3305 Autochanger \"load slot %d, drive %d\", status is OK.\n"),
                     slot, drive);
@@ -265,9 +265,8 @@ int get_autochanger_loaded_slot(DCR *dcr)
    Jmsg(jcr, M_INFO, 0, _("3301 Issuing autochanger \"loaded? drive %d\" command.\n"),
         drive);
    changer = edit_device_codes(dcr, changer, dcr->device->changer_command, "loaded");
-   *results.c_str() = 0;
    Dmsg1(100, "Run program=%s\n", changer);
-   status = run_program_full_output(changer, timeout, results.c_str());
+   status = run_program_full_output(changer, timeout, results.addr());
    Dmsg3(100, "run_prog: %s stat=%d result=%s", changer, status, results.c_str());
    if (status == 0) {
       loaded = str_to_int32(results.c_str());
@@ -333,6 +332,11 @@ bool unload_autochanger(DCR *dcr, int loaded)
       return false;
    }
 
+   /* Virtual disk autochanger */
+   if (dcr->device->changer_command[0] == 0) {
+      return true;
+   }
+
    if (loaded < 0) {
       loaded = get_autochanger_loaded_slot(dcr);
    }
@@ -350,8 +354,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
                    dcr->device->changer_command, "unload");
       dev->close();
       Dmsg1(100, "Run program=%s\n", changer);
-      *results.c_str() = 0;
-      int stat = run_program_full_output(changer, timeout, results.c_str());
+      int stat = run_program_full_output(changer, timeout, results.addr());
       dcr->VolCatInfo.Slot = slot;
       if (stat != 0) {
          berrno be;
@@ -449,7 +452,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
    Dmsg2(200, "close dev=%s reserve=%d\n", dev->print_name(), 
       dev->reserved_device);
    Dmsg1(100, "Run program=%s\n", changer_cmd);
-   int stat = run_program_full_output(changer_cmd, timeout, results.c_str());
+   int stat = run_program_full_output(changer_cmd, timeout, results.addr());
    dcr->VolCatInfo.Slot = save_slot;
    dcr->dev = save_dev;
    if (stat != 0) {

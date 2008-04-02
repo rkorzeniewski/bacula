@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -445,6 +445,7 @@ static int check_resources()
 static void cleanup_old_files()
 {
    POOLMEM *cleanup = get_pool_memory(PM_MESSAGE);
+   POOLMEM *results = get_pool_memory(PM_MESSAGE);
    int len = strlen(me->working_directory);
 #if defined(HAVE_WIN32)
    pm_strcpy(cleanup, "del /q ");
@@ -457,8 +458,9 @@ static void cleanup_old_files()
    }
    pm_strcat(cleanup, my_name);
    pm_strcat(cleanup, "*.spool");
-   run_program(cleanup, 0, NULL);
+   run_program(cleanup, 0, results);
    free_pool_memory(cleanup);
+   free_pool_memory(results);
 }
 
 

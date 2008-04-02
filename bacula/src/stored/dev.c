@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -2053,7 +2053,6 @@ bool DEVICE::do_mount(int mount, int dotimeout)
       timeout = 0;
    }
    results = get_memory(4000);
-   results[0] = 0;
 
    /* If busy retry each second */
    Dmsg1(100, "do_mount run_prog=%s\n", ocmd.c_str());
