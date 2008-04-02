@@ -205,7 +205,7 @@ end_test()
    else
       echo "  ===== $TestName OK `date +%R:%S` ===== "
       echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
-      if test "$debug" -eq 0 ; then
+      if [ $debug -eq 0 ] ; then
          scripts/cleanup
       fi
    fi
