@@ -710,7 +710,7 @@ static void attach_dcr_to_dev(DCR *dcr)
 void detach_dcr_from_dev(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
-   Dmsg1(500, "JobId=%u enter detach_dcr_from_dev\n", (uint32_t)dcr->jcr->JobId);
+   Dmsg0(500, "Enter detach_dcr_from_dev\n");
 
    /* Detach this dcr only if attached */
    if (dcr->attached_to_dev && dev) {
