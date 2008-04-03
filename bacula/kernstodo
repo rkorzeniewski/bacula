@@ -71,40 +71,6 @@ Professional Needs:
 
 Priority:
 ================
-Tom Ivar Helbekkmo <tih@hamartun.priv.no>
-> There's definitely something fishy in the recording of start and
-> end blocks in the JOBMEDIA table. 
-> - If several jobs start spooling at the same time, they will all get the
->   current tape position noted as the StartFile/StartBlock for the job.
->   If they end up despooling to the file that was current when they
->   started spooling, this is what will end up in the JOBMEDIA table.  If
->   there is a file change before they despool, the setting of NewFile in
->   the dcr structure will fix this up later, but the "start of session"
->   label is already in the spool file, of course, so it holds the wrong
->   information anyway.
->
-> - If the job is longer than the maximum spool size, it will get its
->   first spool session despooled, and then start spooling again after the
->   first despooling is over.  The last blocks despooled to tape from the
->   first session will not have been recorded, but they will be flushed
->   later, when the next session despools.  However, if another job has
->   been despooling while this one is spooling its second round, the
->   session label written to the spool file at its close will cause the
->   EndFile/Endblock to be set to wherever the tape is at that time.  When
->   the dangling record is flushed to JOBMEDIA, it gets this wrong
->   information.  Both session labels in the spool file will be wrong,
->   too, of course, because they reflect the state of the tape during
->   spooling, not during despooling.
->
-> I would have to study the code much more closely to work out what's the
-> proper fix -- but it seems clear that it should involve creating the
-> session labels only when something is actually written to the archive
-> device, not during spooling.  I'm tempted to try making do_append_data()
-> not create session labels if we're spooling, and add the making of them
-> to despool_data() in stored/spool.c.  Sound reasonable?
-===========
-
-
 - Re-check new dcr->reserved_volume
 - Softlinks that point to non-existent file are not restored in restore all,
   but are restored if the file is individually selected.  BUG!
@@ -116,6 +82,8 @@ Tom Ivar Helbekkmo <tih@hamartun.priv.no>
 - Implement unmount of USB volumes.
 - Use "./config no-idea no-mdc2 no-rc5" on building OpenSSL for
   Win32 to avoid patent problems.
+- Implement multiple jobid specification for the cancel command,
+  similar to what is permitted on the update slots command.
 - Implement Bacula plugins -- design API
 - modify pruning to keep a fixed number of versions of a file, 
   if requested.
@@ -123,8 +91,6 @@ Tom Ivar Helbekkmo <tih@hamartun.priv.no>
   i.e. cd /foo/bar/foo/bar
   -> if a customer mails me the path to a certain file,
      its faster to enter the specified directory
-- Fix bpipe.c so that it does not modify results pointer.
-  ***FIXME*** calling sequence should be changed.
 - Make tree walk routines like cd, ls, ... more user friendly
   by handling spaces better.
 === rate design
@@ -1834,6 +1800,8 @@ Block Position: 0
   in only one catalog -- currently Pools are "global".
 - Add TLS to bat (should be done).
 === Duplicate jobs ===
+- Done, but implemented somewhat differently than described below!!!
+
    hese apply only to backup jobs.
 
    1.  Allow Duplicate Jobs  = Yes | No | Higher   (Yes)
@@ -1909,3 +1877,6 @@ DuplicateJobs {
 }
 
 ===
+- Fix bpipe.c so that it does not modify results pointer.
+  ***FIXME*** calling sequence should be changed.
+
