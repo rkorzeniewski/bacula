@@ -52,29 +52,36 @@ export dstat=0
 export bstat=0
 export rstat=0
 
-if grep -e 'RUN_MAXWAITTIME.* Fatal error: Max wait time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
+grep -e '1: Fatal error: Max wait time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
+if [ $? -eq 0 ]
 then
     [ "$debug" = 1 ] && echo MAXWAITTIME ok
 else
    echo "MAXWAITTIME in error"
-   rstat=1
+   bstat=1
 fi
 
-if grep -e 'RUN_MAXSTARTDELAY.* Fatal error: Job canceled because max start delay time exceeded.' ${cwd}/tmp/RUN_MAXTIME.log &&
-  ! grep -e 'NEVER start this' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
+grep -e '2: Fatal error: Job canceled because max start delay time exceeded.' ${cwd}/tmp/RUN_MAXTIME.log > /dev/null
+f=$?
+
+grep -e 'NEVER start this' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
+s=$?
+
+if [ $f -eq 0 -a $s -ne 0 ]
 then
     [ "$debug" = 1 ] && echo MAXSTARTDELAY ok
 else
    echo "MAXSTARTDELAY in error"
-   rstat=1
+   bstat=1
 fi
 
-if grep -e 'RUN_MAXRUNTIME.* Fatal error: Max run time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 2>&1
+grep -e '3: Fatal error: Max run time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null 
+if [ $? -eq 0 ]
 then
     [ "$debug" = 1 ] && echo MAXRUNTIME ok
 else
    echo "MAXRUNTIME in error"
-   rstat=1
+   bstat=1
 fi
 
 end_test
