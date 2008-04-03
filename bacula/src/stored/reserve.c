@@ -390,6 +390,10 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
 #else  
          if (!vol->dev->is_busy()) {
+            if (vol->dev->Slot > 0) {
+               Dmsg1(dbglvl, "Unload dev=%s\n", vol->dev->print_name());
+               unload_dev(dcr, vol->dev);
+            }
             /* OK to move it -- I'm not sure this will work */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", VolumeName,
                vol->dev->print_name(), dev->print_name());
