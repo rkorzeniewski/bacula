@@ -269,6 +269,7 @@ int insert_tree_handler(void *ctx, int num_fields, char **row);
 /* ua_prune.c */
 int prune_files(UAContext *ua, CLIENT *client);
 int prune_jobs(UAContext *ua, CLIENT *client, int JobType);
+int prune_stats(UAContext *ua, utime_t retention);
 bool prune_volume(UAContext *ua, MEDIA_DBR *mr);
 int job_delete_handler(void *ctx, int num_fields, char **row);
 int del_count_handler(void *ctx, int num_fields, char **row);
