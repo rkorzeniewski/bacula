@@ -5,6 +5,7 @@
 <div class="otherbox">
 <form name='form1' action='?' method='GET'>
 <table border='0'>
+<TMPL_UNLESS hide_level>
 <tr>
   <td valign='top'>
     <h2>__Level__</h2>
@@ -16,6 +17,7 @@
     </select>     
   </td>
 </tr>
+</TMPL_UNLESS>
 <TMPL_UNLESS hide_status>
 <tr>
  <td valign='top'>
@@ -47,7 +49,7 @@
 <tr>
   <td valign='top'>
     <h2>__Since__</h2>
-    <input type='text' id='since' name='since' size='17' title='YYYY-MM-DD'
+    <input type='text' id='since' name='since' size='22' title='YYYY-MM-DD'
      value='<TMPL_VAR since>' class='formulaire'>
   </td>
  </tr>

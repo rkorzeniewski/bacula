@@ -5,6 +5,7 @@
 <div class="otherbox">
 <form name='form1' action='?' method='GET'>
 <table border='0'>
+<TMPL_UNLESS hide_level>
 <tr>
   <td valign='top'>
     <h2>Level</h2>
@@ -16,6 +17,7 @@
     </select>     
   </td>
 </tr>
+</TMPL_UNLESS>
 <TMPL_UNLESS hide_status>
 <tr>
  <td valign='top'>
@@ -47,7 +49,7 @@
 <tr>
   <td valign='top'>
     <h2>Since</h2>
-    <input type='text' id='since' name='since' size='17' title='YYYY-MM-DD'
+    <input type='text' id='since' name='since' size='22' title='YYYY-MM-DD'
      value='<TMPL_VAR since>' class='formulaire'>
   </td>
  </tr>
@@ -55,6 +57,8 @@
   <td valign='top'>
     <h2>Age</h2>
     <select name='age' class='formulaire' onclick='document.getElementById("since").value="";'>
+      <option id='age_86400'   value='86400'>1 day</option>
+      <option id='age_172800'   value='172800'>2 days</option>
       <option id='age_604800'   value='604800'>1 week</option>
       <option id='age_2678400'  value='2678400'>30 days</option>
       <option id='age_15552000' value='15552000'>6 months</option>
@@ -66,6 +70,8 @@
   <td valign='top'>
     <h2>Age</h2>
     <select name='age' class='formulaire'>
+      <option id='age_86400'   value='86400'>Last 24h</option>
+      <option id='age_172800'   value='172800'>This weekend</option>
       <option id='age_604800'   value='604800'>This week</option>
       <option id='age_2678400'  value='2678400'>Last 30 days</option>
       <option id='age_15552000' value='15552000'>Last 6 months</option>

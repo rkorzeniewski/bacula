@@ -379,10 +379,21 @@ if ($action eq 'begin') {		# main display
 	}
     }
 } elsif ($action eq 'group_stats') {
+    $bweb->can_do('r_view_stat');
+    print "<div><table border='0'><tr><td valign='top'>\n";
+    my $fields = $bweb->get_form(qw/since age 
+                                    db_client_groups qclient_groups/); # drop this to hide 
+    $fields->{action}='group_stats';
+    $fields->{hide_level}=1;
+    $fields->{hide_type}=1;
+    $fields->{hide_status}=1;
+
+    $bweb->display($fields, "display_form_job.tpl");
+
+    print "</td><td valign='top'>";
     $bweb->display_group_stats();
 
-} elsif ($action eq 'group_stats') {
-    $bweb->display_group_stats(age => $arg->{age});
+    print "</td></tr></table></div>"
 
 } elsif ($action eq 'running') {
     $bweb->display_running_jobs(1);

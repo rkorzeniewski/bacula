@@ -435,7 +435,7 @@ sub display_running_job
 	    $status->{corr_jobfiles} = $infos->{corr_jobfiles};
 	    $status->{jobbytes}=$status->{Bytes}; 
 	    $status->{jobbytes} =~ s![^\d]!!g;
-	    $status->{jobfiles}=$status->{Files}; 
+	    $status->{jobfiles}=$status->{'Files Examined'}; 
 	    $status->{jobfiles} =~ s/,//g;
 	    $bweb->display($status, "client_job_status.tpl");
 	}
@@ -3905,6 +3905,26 @@ SELECT temp.jobname AS jobname,
          + REGR_INTERCEPT(jobbytes,jobtdate)) AS jobbytes,
        COUNT(1) AS nb_jobbytes ";
     }
+    # if it's a differential, we need to compare since the last full
+    # 
+    #   F D D D F D D D      F I I I I D I I I
+    # | #     # #     #    | #         #
+    # | #   # # #   # #    | #         #
+    # | # # # # # # # #    | # # # # # # # # #
+    # +-----------------   +-------------------
+    my $filter2='';
+    if ($level eq 'D') {
+	$filter2 = "
+AND Job.StartTime > (
+ SELECT StartTime 
+   FROM Job 
+  WHERE Job.Name = '$job' 
+    AND Job.Level = 'F' 
+    AND Job.JobStatus = 'T' 
+ORDER BY Job.StartTime DESC LIMIT 1
+) ";
+    }
+    
     $query .= 
 "
 FROM (
@@ -3915,6 +3935,7 @@ FROM (
    WHERE Job.Name = '$job'
      AND Job.Level = '$level'
      AND Job.JobStatus = 'T'
+     $filter2
    ORDER BY StartTime DESC
    LIMIT 4
 ) AS temp GROUP BY temp.jobname
@@ -4014,6 +4035,7 @@ sub display_group_stats
     my ($self) = @_;
     my $arg = $self->get_form('age', 'since');
     return if $self->cant_do('r_view_stat');
+
     my $filter = $self->get_client_group_filter();
 
     my ($limit, $label) = $self->get_limit(%$arg);

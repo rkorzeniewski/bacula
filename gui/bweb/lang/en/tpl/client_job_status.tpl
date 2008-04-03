@@ -20,6 +20,9 @@
   <td> <b> Files Examined: </b> </td> <td> <TMPL_VAR "files examined"></td>
  </tr>
  <tr>
+  <td> <b> Files Backuped: </b> </td> <td> <TMPL_VAR files></td>
+ </tr>
+ <tr>
   <td> <b> Bytes: </b> </td> <td> <TMPL_VAR bytes></td>
  </tr>
 <TMPL_IF last_jobbytes>
