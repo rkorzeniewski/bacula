@@ -111,9 +111,11 @@ int file_delete_handler(void *ctx, int num_fields, char **row)
  */
 int prunecmd(UAContext *ua, const char *cmd)
 {
+   DIRRES *dir;
    CLIENT *client;
    POOL_DBR pr;
    MEDIA_DBR mr;
+   utime_t retention;
    int kw;
 
    static const char *keywords[] = {
@@ -165,11 +167,39 @@ int prunecmd(UAContext *ua, const char *cmd)
       prune_volume(ua, &mr);
       return true;
    case 3:  /* prune stats */
-      /* TODO: prune JobStat table */
+      dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
+      if (!dir->stats_retention) {
+	 return false;
+      }
+      retention = dir->stats_retention;
+      if (!confirm_retention(ua, &retention, "Statistics")) {
+	 return false;
+      }
+      prune_stats(ua, retention);
       return true;
    default:
       break;
    }
+
+   return true;
+}
+
+/* Prune Job stat records from the database. 
+ *
+ */
+int prune_stats(UAContext *ua, utime_t retention)
+{
+   char ed1[50];
+   POOL_MEM query(PM_MESSAGE);
+   utime_t now = (utime_t)time(NULL);
+
+   db_lock(ua->db);
+   Mmsg(query, "DELETE FROM JobStat WHERE JobTDate < %s", 
+	edit_uint64(now - retention, ed1));
+   db_sql_query(ua->db, query.c_str(), NULL, NULL);
+   db_unlock(ua->db);
+
+   ua->info_msg(_("Pruned Jobs from JobStat catalog.\n"));
 
    return true;
 }
