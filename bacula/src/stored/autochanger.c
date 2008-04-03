@@ -380,14 +380,9 @@ bool unload_autochanger(DCR *dcr, int loaded)
 static bool unload_other_drive(DCR *dcr, int slot)
 {
    DEVICE *dev = NULL;
-   DEVICE *save_dev;
-   JCR *jcr = dcr->jcr;
-   int save_slot;
-   uint32_t timeout = dcr->device->max_changer_wait;
-   bool ok = true;
+   bool found = false;
    AUTOCHANGER *changer = dcr->dev->device->changer_res;
    DEVRES *device;
-   bool found = false;
    int retries = 0;                /* wait for device retries */
 
    if (!changer) {
@@ -421,12 +416,27 @@ static bool unload_other_drive(DCR *dcr, int slot)
       }
       break;
    }
+   return unload_dev(dcr, dev);
+}
+
+bool unload_dev(DCR *dcr, DEVICE *dev)
+{
+   JCR *jcr = dcr->jcr;
+   bool ok = true;
+   uint32_t timeout = dcr->device->max_changer_wait;
+   AUTOCHANGER *changer = dcr->dev->device->changer_res;
+   DEVICE *save_dev;
+   int save_slot;
+
+   if (!changer) {
+      return false;
+   }
    dev->dlock();
    if (dev->is_busy()) {
       Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
            dcr->VolumeName, dev->print_name());
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
-           dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), slot);
+           dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->Slot);
       Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
       dev->dunlock();
       return false;
@@ -437,15 +447,15 @@ static bool unload_other_drive(DCR *dcr, int slot)
    lock_changer(dcr);
    Jmsg(jcr, M_INFO, 0,
         _("3307 Issuing autochanger \"unload slot %d, drive %d\" command.\n"),
-        slot, dev->drive_index);
+        dev->Slot, dev->drive_index);
 
    Dmsg2(100, "Issuing autochanger \"unload slot %d, drive %d\" command.\n",
-        slot, dev->drive_index);
+        dev->Slot, dev->drive_index);
 
    save_dev = dcr->dev;
    dcr->dev = dev;
    save_slot = dcr->VolCatInfo.Slot;
-   dcr->VolCatInfo.Slot = slot;
+   dcr->VolCatInfo.Slot = dev->Slot;
    changer_cmd = edit_device_codes(dcr, changer_cmd, 
                 dcr->device->changer_command, "unload");
    dev->close();
@@ -459,10 +469,10 @@ static bool unload_other_drive(DCR *dcr, int slot)
       berrno be;
       be.set_errno(stat);
       Jmsg(jcr, M_INFO, 0, _("3995 Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n"),
-              slot, dev->drive_index, be.bstrerror());
+              dev->Slot, dev->drive_index, be.bstrerror());
 
       Dmsg3(100, "Bad autochanger \"unload slot %d, drive %d\": ERR=%s.\n",
-              slot, dev->drive_index, be.bstrerror());
+              dev->Slot, dev->drive_index, be.bstrerror());
       ok = false;
       dev->Slot = -1;          /* unknown */
    } else {

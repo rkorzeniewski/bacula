@@ -24,6 +24,8 @@ Add long term statistics job table
 
 
 General:
+03Apr08
+kes  Separate unload_dev() from unload_other_device() in autochanger.c
 02Apr08
 kes  Apply patch from bug #1069 that corrects spurious error messages
      when ACLs enabled on SGI but no ACL exists.
@@ -53,6 +55,12 @@ kes  Analysis of JobMedia records by Tom Ivar Helbekkmo <tih@hamartun.priv.no>
 28Mar08
 kes  Fix handling of JobMedia records during spooling and when a
      Volume is changed without actually writing data to the Volume.
+27Mar08
+kes  Rework certain SD locking based on gdb tracebacks of deadlocks
+     sent by Eric. This code now uses only the volume_lock() rather
+     than the reservations lock when at EOM and acquiring a new
+     volume. 
+kes  Ensure only one exit point in several subroutines.
 26Mar08
 kes  Implement bsock code to permit locking. Use the new code in Verify
      in the FD to prevent the heartbeat thread from disrupting the Verify
