@@ -3962,7 +3962,7 @@ sub display_running_job
 
     my $query = "
 SELECT Client.Name AS name, Job.Name AS jobname, 
-       Job.Level AS level
+       Job.Level AS level, Type AS type
 FROM Job INNER JOIN Client USING (ClientId) $filter
 WHERE Job.JobId = $arg->{jobid}
 ";
@@ -3975,21 +3975,23 @@ WHERE Job.JobId = $arg->{jobid}
 	return $self->error("Can't get client");
     }
 
-    # for jobfiles, we use only last Full backup. status client= returns
-    # all files that have been checked
-    my $query1 = $self->get_estimate_query('jobfiles', $row->{jobname}, 'F');
-    my $query2 = $self->get_estimate_query('jobbytes', 
-					   $row->{jobname}, $row->{level});
+    if ($row->{type} eq 'B') {
+	# for jobfiles, we use only last Full backup. status client= returns
+	# all files that have been checked
+	my $query1 = $self->get_estimate_query('jobfiles', $row->{jobname}, 'F');
+	my $query2 = $self->get_estimate_query('jobbytes', 
+					       $row->{jobname}, $row->{level});
 
-    # LEFT JOIN because we always have a previous Full
-    $query = "
+	# LEFT JOIN because we always have a previous Full
+	$query = "
 SELECT  corr_jobbytes, jobbytes, corr_jobfiles, jobfiles
   FROM ($query1) AS A LEFT JOIN ($query2) AS B USING (jobname)
 ";
-    $row = $self->dbh_selectrow_hashref($query);
+	$row = $self->dbh_selectrow_hashref($query);
 
-    if (!$row) {
-	$row->{jobbytes} = $row->{jobfiles} = 0;
+	if (!$row) {
+	    $row->{jobbytes} = $row->{jobfiles} = 0;
+	}
     }
     my $cli = new Bweb::Client(name => $arg->{client});
     $cli->display_running_job($self, $arg->{jobid}, $row);
