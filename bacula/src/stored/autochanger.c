@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -416,6 +416,14 @@ static bool unload_other_drive(DCR *dcr, int slot)
       }
       break;
    }
+   if (dev->is_busy()) {
+      Jmsg(dcr->jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
+           dcr->VolumeName, dev->print_name());
+      Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
+           dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->Slot);
+      Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
+      return false;
+   }
    return unload_dev(dcr, dev);
 }
 
@@ -432,15 +440,6 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
       return false;
    }
    dev->dlock();
-   if (dev->is_busy()) {
-      Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" is in use by device %s\n"),
-           dcr->VolumeName, dev->print_name());
-      Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
-           dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->Slot);
-      Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
-      dev->dunlock();
-      return false;
-   }
 
    POOLMEM *changer_cmd = get_pool_memory(PM_FNAME);
    POOL_MEM results(PM_MESSAGE);
