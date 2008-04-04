@@ -246,11 +246,16 @@ static VOLRES *new_vol_item(DCR *dcr, const char *VolumeName)
 
 static void free_vol_item(VOLRES *vol)
 {
+   DEVICE *dev = NULL;
+
    free(vol->vol_name);
    if (vol->dev) {
-      vol->dev->vol = NULL;
+      dev = vol->dev;
    }
    free(vol);
+   if (dev) {
+      dev->vol = NULL;
+   }
 }
 
 
@@ -385,11 +390,13 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 #ifdef xxx
          Dmsg2(dbglvl, "==== Swap from dev=%s to %s\n",
                dev->print_name(), vol->dev->print_name());
+         vol->dev->vol = NULL;            /* take vol from old drive */
          switch_device(dcr, vol->dev);
          dev = vol->dev;
          bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
 #else  
          if (!vol->dev->is_busy()) {
+            vol->dev->vol = NULL;         /* take vol from old drive */
             if (vol->dev->Slot > 0) {
                Dmsg1(dbglvl, "Unload dev=%s\n", vol->dev->print_name());
                unload_dev(dcr, vol->dev);
@@ -397,7 +404,6 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             /* OK to move it -- I'm not sure this will work */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", VolumeName,
                vol->dev->print_name(), dev->print_name());
-            vol->dev->vol = NULL;         /* take vol from old drive */
             vol->dev->VolHdr.VolumeName[0] = 0;
             vol->dev = dev;               /* point vol at new drive */
             dev->vol = vol;               /* point dev at vol */
@@ -574,7 +580,6 @@ bool free_volume(DEVICE *dev)
    free_vol_item(vol);
    debug_list_volumes("free_volume");
    unlock_volumes();
-// return vol != NULL;
    return true;
 }
 
