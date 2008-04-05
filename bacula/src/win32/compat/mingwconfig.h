@@ -14,6 +14,9 @@
 /* Define if you want SmartAlloc debug code enabled */
 #define SMARTALLOC 1
 
+/* Define if you want to use Batch Mode */
+/* #define HAVE_BATCH_FILE_INSERT 1 */
+
 /* Define if you need function prototypes */
 #define PROTOTYPES 1
 
