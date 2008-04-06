@@ -261,7 +261,7 @@ void DirStat::populateRunning()
             field = field.trimmed();  /* strip leading & trailing spaces */
             p_tableitem = new QTableWidgetItem(field, 1);
             p_tableitem->setForeground(blackBrush);
-            p_tableitem->setFlags(0);
+            p_tableitem->setFlags(Qt::ItemIsSelectable);
             runningTable->setItem(row, column, p_tableitem);
             column += 1;
          }
@@ -309,6 +309,9 @@ void DirStat::createConnections()
                    SLOT(consoleCancelJob()));
    connect(actionDisableScheduledJob, SIGNAL(triggered()), this,
                    SLOT(consoleDisableJob()));
+   connect(runningTable, SIGNAL(
+           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(runningTableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
 
    scheduledTable->setContextMenuPolicy(Qt::ActionsContextMenu);
    scheduledTable->addAction(actionRefresh);
@@ -349,12 +352,10 @@ void DirStat::readSettings()
  */
 void DirStat::consoleCancelJob()
 {
-   int currentrow = runningTable->currentRow();
-   QTableWidgetItem *item = runningTable->item(currentrow, 0);
-   if (item) {
-      QString text = item->text();
+   foreach( QString job, m_selectedJobsList )
+   {
       QString cmd("cancel jobid=");
-      cmd += text;
+      cmd += job;
       consoleCommand(cmd);
    }
 }
@@ -373,4 +374,28 @@ void DirStat::consoleDisableJob()
       consoleCommand(cmd);
    }
 }
+/*
+ * Function to fill m_selectedJobsList with selected values
+ */
+void DirStat::runningTableItemChanged(QTableWidgetItem * /*currentItem*/, QTableWidgetItem * /*previousItem*/)
+{
+   QList<int> rowList;
+   QList<QTableWidgetItem *> sitems = runningTable->selectedItems();
+   foreach (QTableWidgetItem *sitem, sitems) {
+      int row = sitem->row();
+      if (!rowList.contains(row)) {
+         rowList.append(row);
+      }
+   }
 
+   m_selectedJobsList.clear();
+   foreach(int row, rowList) {
+      QTableWidgetItem * sitem = runningTable->item(row, 0);
+      m_selectedJobsList.append(sitem->text());
+   }
+   if (m_selectedJobsList.count() > 1) {
+      actionCancelRunning->setText(QString("Cancel list of %1 Jobs").arg(m_selectedJobsList.count()));
+   } else {
+      actionCancelRunning->setText("Cancel Single Job");
+   }
+}
