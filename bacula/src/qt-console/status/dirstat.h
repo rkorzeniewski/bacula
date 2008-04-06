@@ -59,6 +59,7 @@ private slots:
    void timerTriggered();
    void consoleCancelJob();
    void consoleDisableJob();
+   void runningTableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
 
 private:
    void createConnections();
@@ -69,6 +70,7 @@ private:
    void getFont();
    QString m_groupText, m_splitText;
    QTimer *m_timer;
+   QStringList m_selectedJobsList;
 };
 
 #endif /* _DIRSTAT_H_ */
