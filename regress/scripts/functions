@@ -4,6 +4,12 @@
 
 start_test()
 {
+   # Turn off email
+   outf="tmp/sed_tmp"
+   echo "s%  mail =%# mail = %g" >${outf}
+   echo "s%  operator =%# operator =%g" >>${outf}
+   cp bin/bacula-dir.conf tmp/1
+   sed -f ${outf} tmp/1 >bin/bacula-dir.conf
    echo " "
    echo " "
    echo " === Starting $TestName at `date +%R:%S` ==="
@@ -205,7 +211,7 @@ end_test()
    else
       echo "  ===== $TestName OK `date +%R:%S` ===== "
       echo "  ===== $TestName OK `date +%R:%S` ===== " >>test.out
-      if [ $debug -eq 0 ] ; then
+      if test "$debug" -eq 0 ; then
          scripts/cleanup
       fi
    fi
