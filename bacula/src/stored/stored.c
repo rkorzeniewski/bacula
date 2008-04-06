@@ -553,6 +553,7 @@ void terminate_stored(int sig)
       exit(1);
    }
    in_here = true;
+   debug_level = 0;                   /* turn off any debug */
    stop_watchdog();
 
    if (sig == SIGTERM) {              /* normal shutdown request? */
@@ -596,6 +597,8 @@ void terminate_stored(int sig)
 
    Dmsg1(200, "In terminate_stored() sig=%d\n", sig);
 
+   free_volume_list();
+
    foreach_res(device, R_DEVICE) {
       Dmsg1(10, "Term device %s\n", device->device_name);
       if (device->dev) {
@@ -618,7 +621,6 @@ void terminate_stored(int sig)
    }
    term_msg();
    cleanup_crypto();
-   free_volume_list();
    term_reservations_lock();
    close_memory_pool();
 

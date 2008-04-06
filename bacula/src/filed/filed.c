@@ -246,6 +246,7 @@ void terminate_filed(int sig)
       exit(1);                        /* prevent loops */
    }
    already_here = true;
+   debug_level = 0;                   /* turn off debug */
    stop_watchdog();
 
    bnet_stop_thread_server(server_tid);

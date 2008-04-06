@@ -305,6 +305,12 @@ void *handle_client_request(void *dirp)
             for (k=0; k<fo->regex.size(); k++) {
                regfree((regex_t *)fo->regex.get(k));
             }
+            for (k=0; k<fo->regexdir.size(); k++) {
+               regfree((regex_t *)fo->regexdir.get(k));
+            }
+            for (k=0; k<fo->regexfile.size(); k++) {
+               regfree((regex_t *)fo->regexfile.get(k));
+            }
             fo->regex.destroy();
             fo->regexdir.destroy();
             fo->regexfile.destroy();
