@@ -24,6 +24,17 @@ Add long term statistics job table
 
 
 General:
+06Apr08
+kes  Correctly detect Ubuntu systems, and add ubuntu platform directory.
+kes  Fix bug #1063, reuse of freed ptr in list nextvol.
+kes  Release regex compile buffer in filed/job.c
+kes  Add proper type of const char in sql_create.c
+kes  Turn off debug in daemon termination routines
+kes  Move free_volume_list() before devices are freed in stored.c
+kes  Fix reference to uninitalized stack variables in bregex.c. 
+     This should correct bug #1067.
+04Apr08
+kes  Fix possible seg fault in SD when freeing a volume entry.
 03Apr08
 kes  Implement unload_dev() before swap device.
 ebl  Add statistics prunning with option and menu

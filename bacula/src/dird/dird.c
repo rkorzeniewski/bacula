@@ -338,6 +338,7 @@ void terminate_dird(int sig)
       exit(1);
    }
    already_here = true;
+   debug_level = 0;                   /* turn off debug */
    stop_watchdog();
    generate_daemon_event(NULL, "Exit");
    unload_plugins();
