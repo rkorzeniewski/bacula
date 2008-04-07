@@ -419,10 +419,13 @@ inline const char *DEVICE::print_name() const { return prt_name; }
  *  DCRs open, each pointing to a different device. 
  */
 class DCR {
+private:
+   bool m_dev_locked;                 /* set if dev already locked */
+
 public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
-   DEVICE *dev;                       /* pointer to device */
+   DEVICE * volatile dev;             /* pointer to device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */
    DEV_RECORD *rec;                   /* pointer to record */
@@ -432,7 +435,6 @@ public:
    bool spooling;                     /* set when actually spooling */
    bool despooling;                   /* set when despooling */
    bool despool_wait;                 /* waiting for despooling */
-   bool m_dev_locked;                 /* set if dev already locked */
    bool NewVol;                       /* set if new Volume mounted */
    bool WroteVol;                     /* set if Volume written */
    bool NewFile;                      /* set when EOF written */
