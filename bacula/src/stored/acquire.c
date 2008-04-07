@@ -530,11 +530,13 @@ bool release_device(DCR *dcr)
             Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
                dcr->VolCatInfo.VolCatName, jcr->Job);
          }
-         /* If no more writers, write an EOF */
+         /* If no more writers, and no errors, and wrote something, write an EOF */
          if (!dev->num_writers && dev->can_write() && dev->block_num > 0) {
             dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
-            volume_unused(dcr);
+         }
+         if (!dev->num_writers) {             /* if no more writers */
+            volume_unused(dcr);               /*  we obviously are not using the volume */
          }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
