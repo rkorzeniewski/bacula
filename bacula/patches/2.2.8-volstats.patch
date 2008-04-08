@@ -1,3 +1,25 @@
+
+ This patch fix a catalog query error while trying to update 
+ Volume information.  You can apply this patch if you have seen 
+ this error :
+
+ Error getting Volume info: 1990 Invalid Catalog Request: CatReq Job=ZOLTAN.2008-04-07_02.17.28 UpdateMedia 
+ VolName=IMG011 VolJobs=1 VolFiles=17 VolBlocks=247999 VolBytes=15998976000 VolMounts=2 VolErrors=0 
+ VolWrites=2609347 MaxVolBytes=0 EndTime=1207602760 VolStatus=Full Slot=2 relabel=0 InChanger=1 
+ VolReadTime=0 VolWriteTime=-2382413895 VolFirstWritten=0 VolParts=0 
+
+ Apply it to version 2.2.8 or earlier with:
+
+ cd <bacula-source>
+ patch -p0 <2.2.8-volstats.patch
+ ./configure <your-options>
+ make
+ ...
+ make install
+
+
+
+
 Index: src/stored/askdir.c
 ===================================================================
 --- src/stored/askdir.c	(révision 6743)
