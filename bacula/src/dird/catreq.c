@@ -56,7 +56,7 @@ static char Get_Vol_Info[] = "CatReq Job=%127s GetVolInfo VolName=%127s write=%d
 static char Update_media[] = "CatReq Job=%127s UpdateMedia VolName=%s"
    " VolJobs=%u VolFiles=%u VolBlocks=%u VolBytes=%lld VolMounts=%u"
    " VolErrors=%u VolWrites=%u MaxVolBytes=%lld EndTime=%lld VolStatus=%10s"
-   " Slot=%d relabel=%d InChanger=%d VolReadTime=%s VolWriteTime=%s"
+   " Slot=%d relabel=%d InChanger=%d VolReadTime=%lld VolWriteTime=%lld"
    " VolFirstWritten=%lld VolParts=%u\n";
 
 static char Create_job_media[] = "CatReq Job=%127s CreateJobMedia "
@@ -103,7 +103,6 @@ static int send_volume_info_to_storage_daemon(JCR *jcr, BSOCK *sd, MEDIA_DBR *mr
 
 void catalog_request(JCR *jcr, BSOCK *bs)
 {
-   char ed_vrt[50], ed_vwt[50];
    MEDIA_DBR mr, sdmr;
    JOBMEDIA_DBR jm;
    char Job[MAX_NAME_LENGTH];
@@ -220,11 +219,8 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       &sdmr.VolJobs, &sdmr.VolFiles, &sdmr.VolBlocks, &sdmr.VolBytes,
       &sdmr.VolMounts, &sdmr.VolErrors, &sdmr.VolWrites, &sdmr.MaxVolBytes,
       &VolLastWritten, &sdmr.VolStatus, &sdmr.Slot, &label, &sdmr.InChanger,
-      ed_vrt, ed_vwt, &VolFirstWritten,
+      &sdmr.VolReadTime, &sdmr.VolWriteTime, &VolFirstWritten,
       &sdmr.VolParts) == 19) {
-
-      sdmr.VolReadTime = str_to_int64(ed_vrt);
-      sdmr.VolWriteTime = str_to_int64(ed_vwt);
 
       db_lock(jcr->db);
       Dmsg3(400, "Update media %s oldStat=%s newStat=%s\n", sdmr.VolumeName,
