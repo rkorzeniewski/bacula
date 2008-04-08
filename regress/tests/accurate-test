@@ -14,7 +14,8 @@ scripts/cleanup
 
 copy_test_confs
 /bin/cp -f scripts/bacula-dir.conf.accurate bin/bacula-dir.conf
-sed -i s/all,/all,saved,/ bin/bacula-fd.conf
+sed s/all,/all,saved,/ bin/bacula-fd.conf > tmp/1
+cp tmp/1 bin/bacula-fd.conf
 
 change_jobname Client1 $JobName
 
