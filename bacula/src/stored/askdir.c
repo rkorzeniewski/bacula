@@ -56,7 +56,7 @@ static char OK_media[] = "1000 OK VolName=%127s VolJobs=%u VolFiles=%lu"
    " VolBlocks=%lu VolBytes=%lld VolMounts=%lu VolErrors=%lu VolWrites=%lu"
    " MaxVolBytes=%lld VolCapacityBytes=%lld VolStatus=%20s"
    " Slot=%ld MaxVolJobs=%lu MaxVolFiles=%lu InChanger=%ld"
-   " VolReadTime=%lld VolWriteTime=%lld EndFile=%lu EndBlock=%lu"
+   " VolReadTime=%s VolWriteTime=%s EndFile=%lu EndBlock=%lu"
    " VolParts=%lu LabelType=%ld MediaId=%lld\n";
 
 
@@ -167,6 +167,7 @@ bool dir_send_job_status(JCR *jcr)
  */
 static bool do_get_volume_info(DCR *dcr)
 {
+    char ed_vrt[50], ed_vwt[50];
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
     VOLUME_CAT_INFO vol;
@@ -187,7 +188,7 @@ static bool do_get_volume_info(DCR *dcr)
                &vol.VolCatWrites, &vol.VolCatMaxBytes,
                &vol.VolCatCapacityBytes, vol.VolCatStatus,
                &vol.Slot, &vol.VolCatMaxJobs, &vol.VolCatMaxFiles,
-               &InChanger, &vol.VolReadTime, &vol.VolWriteTime,
+               &InChanger, ed_vrt, ed_vwt,
                &vol.EndFile, &vol.EndBlock, &vol.VolCatParts,
                &vol.LabelType, &vol.VolMediaId);
     if (n != 22) {
@@ -196,6 +197,8 @@ static bool do_get_volume_info(DCR *dcr)
        Mmsg(jcr->errmsg, _("Error getting Volume info: %s"), dir->msg);
        return false;
     }
+    vol.VolReadTime = str_to_int64(ed_vrt);
+    vol.VolWriteTime = str_to_int64(ed_vwt);
     vol.InChanger = InChanger;        /* bool in structure */
     unbash_spaces(vol.VolCatName);
     bstrncpy(dcr->VolumeName, vol.VolCatName, sizeof(dcr->VolumeName));
