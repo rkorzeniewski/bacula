@@ -258,7 +258,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        dcr->reserved_device, dcr->VolumeName);
 
     /*
-     * Try the fourty oldest or most available volumes.  Note,
+     * Try the forty oldest or most available volumes.  Note,
      *   the most available could already be mounted on another
      *   drive, so we continue looking for a not in use Volume.
      */

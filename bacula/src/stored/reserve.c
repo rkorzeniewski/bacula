@@ -320,7 +320,8 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 
    ASSERT(dev != NULL);
 
-   Dmsg1(dbglvl, "enter reserve_volume %s\n", VolumeName);
+   Dmsg2(dbglvl, "enter reserve_volume=%s drive=%s\n", VolumeName, 
+      dcr->dev->print_name());
    /* 
     * We lock the reservations system here to ensure
     *  when adding a new volume that no newly scheduled
@@ -355,8 +356,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             goto get_out;
          }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
-         unload_autochanger(dcr, -1);   /* unload the volume */
          free_volume(dev);
+         dcr->unload_device = true;     /* have to unload current volume */
+//       unload_autochanger(dcr, -1);   /* unload the volume */
          debug_list_volumes("reserve_vol free");
       }
    }
@@ -381,40 +383,22 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
        * Clear dev pointer so that free_vol_item() doesn't 
        *  take away our volume. 
        */
-      nvol->dev = NULL;                   /* don't zap dev entry */
+      nvol->dev = NULL;                  /* don't zap dev entry */
       free_vol_item(nvol);
 
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
-#ifdef xxx
-         Dmsg2(dbglvl, "==== Swap from dev=%s to %s\n",
-               dev->print_name(), vol->dev->print_name());
-         vol->dev->vol = NULL;            /* take vol from old drive */
-         switch_device(dcr, vol->dev);
-         dev = vol->dev;
-         bstrncpy(dcr->VolumeName, VolumeName, sizeof(dcr->VolumeName));
-#else  
          if (!vol->dev->is_busy()) {
-            vol->dev->vol = NULL;         /* take vol from old drive */
-            if (vol->dev->Slot > 0) {
-               Dmsg1(dbglvl, "Unload dev=%s\n", vol->dev->print_name());
-               unload_dev(dcr, vol->dev);
-            }
-            /* OK to move it -- I'm not sure this will work */
-            Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", VolumeName,
-               vol->dev->print_name(), dev->print_name());
-            vol->dev->VolHdr.VolumeName[0] = 0;
-            vol->dev = dev;               /* point vol at new drive */
-            dev->vol = vol;               /* point dev at vol */
-            dev->VolHdr.VolumeName[0] = 0;
+            dcr->swap_dev = vol->dev;   /* remember to get this vol */
+            Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
+               VolumeName, vol->dev->print_name(), dev->print_name());
          } else {
             Dmsg3(dbglvl, "==== Swap not possible Vol busy vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
-            vol = NULL;                /* device busy */
+            vol = NULL;                 /* device busy */
             goto get_out;
          }
-#endif
       }
    }
    dev->vol = vol;
@@ -487,6 +471,7 @@ VOLRES *find_volume(DCR *dcr)
 void unreserve_device(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
+   lock_volumes();
    if (dcr->reserved_device) {
       dcr->reserved_device = false;
       dcr->reserved_volume = false;
@@ -504,6 +489,7 @@ void unreserve_device(DCR *dcr)
          volume_unused(dcr);
       }
    }
+   unlock_volumes();
 }
 
 /*  

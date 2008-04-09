@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -123,7 +123,8 @@ bool fixup_device_block_write_error(DCR *dcr)
         bstrftime(dt, sizeof(dt), time(NULL)));
 
    /* Called with have_vol=false, release=true */
-   if (!mount_next_write_volume(dcr, false, true)) {
+   dcr->unload_device = true;
+   if (!dcr->mount_next_write_volume()) {
       free_block(label_blk);
       dcr->block = block;
       dev->dlock();  
