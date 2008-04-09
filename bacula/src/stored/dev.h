@@ -426,6 +426,7 @@ public:
    dlink dev_link;                    /* link to attach to dev */
    JCR *jcr;                          /* pointer to JCR */
    DEVICE * volatile dev;             /* pointer to device */
+   DEVICE * volatile swap_dev;        /* Swap vol from this device */
    DEVRES *device;                    /* pointer to device resource */
    DEV_BLOCK *block;                  /* pointer to block */
    DEV_RECORD *rec;                   /* pointer to record */
@@ -444,6 +445,7 @@ public:
    bool attached_to_dev;              /* set when attached to dev */
    bool volume_in_use;                /* set in dir_find_next_appendable_volume() */
    bool keep_dcr;                     /* do not free dcr in release_dcr */
+   bool unload_device;                /* set if device must be unloaded */
    uint32_t VolFirstIndex;            /* First file index this Volume */
    uint32_t VolLastIndex;             /* Last file index this Volume */
    uint32_t FileIndex;                /* Current File Index */
@@ -468,6 +470,8 @@ public:
    void dlock() { dev->dlock(); m_dev_locked = true; }
    void dunlock() { m_dev_locked = false; dev->dunlock(); }
    void dblock(int why) { dev->dblock(why); }
+   bool mount_next_write_volume();
+   void mark_volume_in_error();
 
 };
 

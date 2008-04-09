@@ -266,7 +266,7 @@ bool dvd_write_part(DCR *dcr)
       Dmsg1(100, "%s\n", dev->errmsg);
       dev->dev_errno = EIO;
       if (!dev->truncating) {
-         mark_volume_in_error(dcr);
+         dcr->mark_volume_in_error();
       }
       sm_check(__FILE__, __LINE__, false);
       return false;

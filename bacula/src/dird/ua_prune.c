@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -169,11 +169,11 @@ int prunecmd(UAContext *ua, const char *cmd)
    case 3:  /* prune stats */
       dir = (DIRRES *)GetNextRes(R_DIRECTOR, NULL);
       if (!dir->stats_retention) {
-	 return false;
+         return false;
       }
       retention = dir->stats_retention;
       if (!confirm_retention(ua, &retention, "Statistics")) {
-	 return false;
+         return false;
       }
       prune_stats(ua, retention);
       return true;
@@ -195,7 +195,7 @@ int prune_stats(UAContext *ua, utime_t retention)
 
    db_lock(ua->db);
    Mmsg(query, "DELETE FROM JobStat WHERE JobTDate < %s", 
-	edit_uint64(now - retention, ed1));
+        edit_uint64(now - retention, ed1));
    db_sql_query(ua->db, query.c_str(), NULL, NULL);
    db_unlock(ua->db);
 
@@ -468,6 +468,8 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
    int i;          
    utime_t now, period;
    char ed1[50], ed2[50];
+   JCR *jcr;
+   bool skip;
 
    if (mr->Enabled == 2) {
       return 0;                    /* cannot prune Archived volumes */
@@ -495,10 +497,18 @@ int get_prune_list_for_volume(UAContext *ua, MEDIA_DBR *mr, del_ctx *del)
       goto bail_out;
    }
 
+   /* Do not prune any job currently running */
    for (i=0; i < del->num_ids; i++) {
-      if (ua->jcr->JobId == del->JobId[i]) {
-         Dmsg2(150, "skip same job JobId[%d]=%d\n", i, (int)del->JobId[i]);
-         del->JobId[i] = 0;
+      skip = false;
+      foreach_jcr(jcr) {
+         if (jcr->JobId == del->JobId[i]) {
+            Dmsg2(150, "skip same job JobId[%d]=%d\n", i, (int)del->JobId[i]);
+            del->JobId[i] = 0;
+            skip = true;
+            break;
+         }
+      }
+      if (skip) {
          continue;
       }
       Dmsg2(150, "accept JobId[%d]=%d\n", i, (int)del->JobId[i]);

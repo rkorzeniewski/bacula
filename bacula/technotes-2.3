@@ -24,6 +24,15 @@ Add long term statistics job table
 
 
 General:
+09Apr08
+kes  Correct error string numbers in dird/catreq.c
+kes  Restructure reserving, acquiring, and mounting volumes. Calls to
+     autochanger are deferred for mount.c -- simplifes the code.
+08Apr08
+kes  Do not prune any running job. It just fails the job.
+kes  Lock the volumes when changing dev->reserved_device and marking
+     the volume unused otherwise the device can get reserved by
+     another job before the volume is released, thus blocking it.
 06Apr08
 kes  Correctly detect Ubuntu systems, and add ubuntu platform directory.
 kes  Fix bug #1063, reuse of freed ptr in list nextvol.

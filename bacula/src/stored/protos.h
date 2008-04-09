@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-20087 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -185,9 +185,7 @@ BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
 bool     is_this_bsr_done(BSR *bsr, DEV_RECORD *rec);
 
 /* From mount.c */
-bool     mount_next_write_volume(DCR *dcr, bool have_vol, bool release);
 bool     mount_next_read_volume(DCR *dcr);
-void     mark_volume_in_error(DCR *dcr);
 
 /* From parse_bsr.c */
 BSR     *parse_bsr(JCR *jcr, char *lf);
