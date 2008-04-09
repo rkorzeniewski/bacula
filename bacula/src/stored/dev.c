@@ -2234,12 +2234,15 @@ void DEVICE::edit_mount_codes(POOL_MEM &omsg, const char *imsg)
    }
 }
 
-/* return the last timer interval (ms) */
+/* return the last timer interval (ms) 
+ * or 0 if something goes wrong
+ */
 btime_t DEVICE::get_timer_count()
 {
-   btime_t old = last_timer;
+   btime_t temp = last_timer;
    last_timer = get_current_btime();
-   return last_timer - old;
+   temp = last_timer - temp;   /* get elapsed time */
+   return (temp>0)?temp:0;     /* take care of skewed clock */
 }
 
 /* read from fd */

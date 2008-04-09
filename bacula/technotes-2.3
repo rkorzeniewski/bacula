@@ -25,6 +25,9 @@ Add long term statistics job table
 
 General:
 09Apr08
+ebl  Add sanity checks for VolWriteTime and VolReadTime
+ebl  Take care of bad clock changes while computing VolWriteTime
+     and VolReadTime. This should fix or limit #1066
 kes  Correct error string numbers in dird/catreq.c
 kes  Restructure reserving, acquiring, and mounting volumes. Calls to
      autochanger are deferred for mount.c -- simplifes the code.

@@ -284,10 +284,14 @@ void catalog_request(JCR *jcr, BSOCK *bs)
       mr.VolWrites    = sdmr.VolWrites;
       mr.Slot         = sdmr.Slot;
       mr.InChanger    = sdmr.InChanger;
-      mr.VolReadTime  = sdmr.VolReadTime;
-      mr.VolWriteTime = sdmr.VolWriteTime;
       mr.VolParts     = sdmr.VolParts;
       bstrncpy(mr.VolStatus, sdmr.VolStatus, sizeof(mr.VolStatus));
+      if (sdmr.VolReadTime >= 0) { 
+         mr.VolReadTime  = sdmr.VolReadTime;
+      }
+      if (sdmr.VolWriteTime >= 0) {
+         mr.VolWriteTime = sdmr.VolWriteTime;
+      }
       /*
        * Update to point to the last device used to write the Volume.
        *   However, do so only if we are writing the tape, i.e.
