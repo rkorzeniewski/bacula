@@ -52,6 +52,7 @@ ADD_TEST(disk:two-vol-test "@regressdir@/tests/two-vol-test")
 ADD_TEST(disk:two-volume-test "@regressdir@/tests/two-volume-test")
 ADD_TEST(disk:verify-cat-test "@regressdir@/tests/verify-cat-test")
 ADD_TEST(disk:verify-vol-test "@regressdir@/tests/verify-vol-test")
+ADD_TEST(disk:virtual-changer-test "@regressdir@/tests/virtual-changer-test")
 ADD_TEST(disk:weird-files2-test "@regressdir@/tests/weird-files2-test")
 ADD_TEST(disk:weird-files-test "@regressdir@/tests/weird-files-test")
 

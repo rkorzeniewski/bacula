@@ -35,7 +35,7 @@ Autochanger {
   Name = DDS-4
   Changer Device = @disk_drive@/conf
   Changer Command ="@scriptdir@/disk-changer %c %o %S %a %d"
-  Device = Drive-0
+  Device = Drive-0, Drive-1
 }
 
 Device {
@@ -52,16 +52,51 @@ Device {
 }
 
 Device {
-  Name = FileStorage
-  Media Type = FileMedia
-  Archive Device = @tmpdir@
-  LabelMedia = yes;                   # lets Bacula label unlabeled media
-  Random Access = Yes;
+  Name = Drive-1                   # 
+  Device Type = File
+  Media Type = DDS-4
+  Archive Device = @disk_drive@/drive0
   AutomaticMount = yes;               # when device opened, read it
-  RemovableMedia = no;
-  AlwaysOpen = no;
+  Autochanger = yes
+  Drive Index = 1
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
 }
 
+
+Autochanger {
+  Name = Virtual
+  Changer Device = /dev/null
+  Changer Command =""
+  Device = Virtual-1, Virtual-2
+}
+
+Device {
+  Name = Virtual-1
+  Device Type = File
+  Media Type = Disk
+  Archive Device = @disk_drive@/drive0
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 0
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
+}
+
+Device {
+  Name = Virtual-2
+  Device Type = File
+  Media Type = Disk
+  Archive Device = @disk_drive@/drive0
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 1
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
+}
 
 # 
 # Send all messages to the Director, 
