@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory. Create three
+#   tapes, each in a different pool, then run two jobs both of which
+#   want the disk that is not loaded.  Note, they both have     
+#   prefers non-mounted tapes.  This should expose bug #801
+#
+# This script uses the virtual disk autochanger and two drives
+#
+TestName="virtual-changer-disk"
+JobName="virtualchangerdisk"
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-2disk-drive-confs
+scripts/prepare-two-disks
+
+echo "${cwd}/build" >${cwd}/tmp/file-list
+#change_jobname Virtual $JobName
+start_test
+
+# Turn off Prefer Mounted Volumes so we use 2 drives
+outf="${cwd}/tmp/sed_tmp"
+echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+# Comment the next line out to write everything to one drive
+#  otherwise, it writes the two jobs to different drives
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
+# Write out bconsole commands
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+@#setdebug level=200 storage=Virtual
+@#setdebug level=200 client 
+label storage=Virtual volume=TestVolume001 slot=1 Pool=Default drive=0
+label storage=Virtual volume=TestVolume002 slot=2 Pool=Full    drive=0
+label storage=Virtual volume=TestVolume003 slot=3 Pool=Inc     drive=1
+status storage=Virtual
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+run job=Virtual level=Full Pool=Default yes
+@sleep 10
+status storage=Virtual
+list volumes
+wait
+list volumes
+list jobs
+status storage=Virtual
+messages
+quit
+END_OF_DATA
+
+# exit
+
+run_bacula
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=Virtual done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+
+check_for_zombie_jobs storage=Virtual
+stop_bacula
+
+check_two_logs
+check_restore_diff
+
+end_test

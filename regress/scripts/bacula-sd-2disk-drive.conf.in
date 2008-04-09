@@ -64,6 +64,38 @@ Device {
 # Maximum File Size = 1000000
 }
 
+Autochanger {
+  Name = Virtual
+  Changer Device = /dev/null
+  Changer Command =""
+  Device = Virtual-1, Virtual-2
+}
+
+Device {
+  Name = Virtual-1
+  Device Type = File
+  Media Type = Disk
+  Archive Device = tmp
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 0
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
+}
+
+Device {
+  Name = Virtual-2
+  Device Type = File
+  Media Type = Disk
+  Archive Device = tmp
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 1
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+# Maximum File Size = 1000000
+}
 
 # 
 # Send all messages to the Director, 

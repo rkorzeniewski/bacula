@@ -84,6 +84,19 @@ Job {
 # Prefer Mounted Volumes = no
 }
 
+Job {
+  Name = "Virtual"
+  Type = Backup
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = Virtual
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+# Prefer Mounted Volumes = no
+}
 
 
 
@@ -168,6 +181,18 @@ Storage {
   Media Type = FileMedia              # must be same as MediaType in Storage daemon
   Maximum Concurrent Jobs = 4
 }
+
+# Definition of Virtual storage device
+Storage {
+  Name = Virtual
+  Address = @hostname@                # N.B. Use a fully qualified name here
+  SDPort = @sdport@
+  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
+  Device = Virtual                    # must be same as Device in Storage daemon
+  Media Type = Disk                   # must be same as MediaType in Storage daemon
+  Maximum Concurrent Jobs = 4
+}
+
 
 
 

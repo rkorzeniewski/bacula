@@ -23,14 +23,21 @@ messages
 label storage=File1 volume=TestVolume001
 label storage=File1 volume=TestVolume002
 label storage=File1 volume=TestVolume003
+label storage=File1 volume=TestVolume004
+@# Note, this is going to fail if the pruning gets
+@#  to tight because the saved volume is too large.
+@#  In that case, either add another volume, or
+@#  increase the volume capacity a bit.
 update Volume=TestVolume001 volretention=10s
 update Volume=TestVolume001 maxvolbytes=200000000
 update Volume=TestVolume002 volretention=10s
 update Volume=TestVolume002 maxvolbytes=200000000
 update Volume=TestVolume003 volretention=10s
 update Volume=TestVolume003 maxvolbytes=200000000
+update Volume=TestVolume004 volretention=10s
+update Volume=TestVolume004 maxvolbytes=200000000
 list volumes
-@#setdebug level=100 storage=File1
+setdebug level=150 storage=File1
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
 run job=$JobName storage=File1 level=full yes
