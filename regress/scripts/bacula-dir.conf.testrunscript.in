@@ -80,6 +80,7 @@ Job {
 
 #@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED1"
 #@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED2"
+#@hostname@-fd: ClientBeforeJob: run command "/bin/false RUN_FD_FAILED3"
 #@hostname@-dir: AfterJob: run command "/bin/echo RunAfterFailedJob"
 Job {
   Name = "RUN_FD_FAILED"
@@ -151,30 +152,53 @@ Job {
   Run After Failed Job = "/bin/echo RunAfterFailedJob"
 }
 
-FileSet {
- Name = FS_FIFO
- Include {
-   Options { readfifo = yes }
-   File=<@tmpdir@/file-list
- }
-}
-
 Job {
-  Name = BUG_897
+  Name = "RUN_CONSOLE_CMD"
+  FileSet = FS_TESTJOB  
   JobDefs = DefaultJob
-  FileSet = FS_FIFO
-
   RunScript {
-    Command = "/bin/echo touching @tmpdir@/RUN_BUG_897"
-    RunsWhen = after
-    RunsOnFailure = yes
-  }
-  RunScript {
-    Command = "/bin/touch @tmpdir@/RUN_BUG_897"
-    RunsWhen = after
-    RunsOnFailure = yes
+    Console = "purge volume=TestVolume001 yes"
+    Console = "st dir"
+    RunsWhen = Before
+    runsonclient = no
   }
 }
+
+Job { 
+  Name = "Restore" 
+  Type = Restore 
+  Client = @hostname@-fd 
+  FileSet = FS_TESTJOB
+  Storage = File
+  Messages = Standard
+  Pool = Default
+
+  RunScript  { 
+   RunsWhen = Before
+   RunsOnClient = Yes 
+   Command = "echo ClientBeforeRestore" 
+  } 
+
+  RunScript  { 
+   RunsOnFailure = No 
+   RunsWhen = After 
+   RunsOnClient = Yes 
+   Command = "echo ClientAfterRestore" 
+  } 
+
+  RunScript  { 
+   RunsWhen = Before
+   RunsOnClient = No
+   Command = "echo DirBeforeRestore" 
+  } 
+
+  RunScript  { 
+   RunsOnFailure = No 
+   RunsWhen = After 
+   RunsOnClient = Yes 
+   Command = "echo DirAfterRestore" 
+  } 
+} 
 
 # Client (File Services) to backup
 Client {
