@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="1.1" language="fr">
-<defaultcodec></defaultcodec>
 <context>
     <name>ClientForm</name>
     <message>
@@ -11,7 +10,7 @@
     <message>
         <location filename="../clients/clients.ui" line="31"/>
         <source>Refresh Client List</source>
-        <translation type="unfinished"></translation>
+        <translation>Rafraichir la liste des Clients</translation>
     </message>
     <message>
         <location filename="../clients/clients.ui" line="34"/>
@@ -21,7 +20,7 @@
     <message>
         <location filename="../clients/clients.ui" line="42"/>
         <source>List Jobs of Client</source>
-        <translation type="unfinished"></translation>
+        <translation>Lister les jobs du Client</translation>
     </message>
     <message>
         <location filename="../clients/clients.ui" line="45"/>
@@ -41,17 +40,17 @@
     <message>
         <location filename="../clients/clients.ui" line="64"/>
         <source>Purge Jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>Purger les jobs</translation>
     </message>
     <message>
         <location filename="../clients/clients.ui" line="67"/>
         <source>Purge jobs peformed from this client.</source>
-        <translation type="unfinished"></translation>
+        <translation>Purger les jobs de ce client.</translation>
     </message>
     <message>
         <location filename="../clients/clients.ui" line="75"/>
         <source>Prune Jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>Pruner les jobs</translation>
     </message>
     <message>
         <location filename="../clients/clients.ui" line="78"/>
@@ -64,12 +63,12 @@
     <message>
         <location filename="../clients/clients.cpp" line="85"/>
         <source>Clients</source>
-        <translation type="unfinished"></translation>
+        <translation>Clients</translation>
     </message>
     <message>
         <location filename="../clients/clients.cpp" line="81"/>
         <source>Client Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nom du client</translation>
     </message>
     <message>
         <location filename="../clients/clients.cpp" line="82"/>
@@ -84,17 +83,17 @@
     <message>
         <location filename="../clients/clients.cpp" line="82"/>
         <source>AutoPrune</source>
-        <translation type="unfinished"></translation>
+        <translation>AutoPrune</translation>
     </message>
     <message>
         <location filename="../clients/clients.cpp" line="82"/>
         <source>ClientId</source>
-        <translation type="unfinished"></translation>
+        <translation>ClientId</translation>
     </message>
     <message>
         <location filename="../clients/clients.cpp" line="82"/>
         <source>Uname</source>
-        <translation type="unfinished"></translation>
+        <translation>Uname</translation>
     </message>
     <message>
         <location filename="../clients/clients.cpp" line="257"/>
@@ -112,7 +111,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../console/console.ui" line="13"/>
         <source>Console</source>
-        <translation type="unfinished"></translation>
+        <translation>Console</translation>
     </message>
     <message>
         <location filename="../console/console.ui" line="85"/>
@@ -132,7 +131,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../console/console.ui" line="109"/>
         <source>Reload bacula-dir.conf</source>
-        <translation type="unfinished"></translation>
+        <translation>Recharger bacula-dir.conf</translation>
     </message>
 </context>
 <context>
@@ -140,7 +139,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../bcomm/dircomm.cpp" line="523"/>
         <source>Bat</source>
-        <translation type="unfinished"></translation>
+        <translation>Bat</translation>
     </message>
 </context>
 <context>
@@ -148,7 +147,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../status/dirstat.cpp" line="235"/>
         <source>Job Id</source>
-        <translation type="unfinished"></translation>
+        <translation>Job Id</translation>
     </message>
     <message>
         <location filename="../status/dirstat.cpp" line="235"/>
@@ -188,12 +187,12 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../status/dirstat.cpp" line="190"/>
         <source>Priority</source>
-        <translation type="unfinished"></translation>
+        <translation>Priorité</translation>
     </message>
     <message>
         <location filename="../status/dirstat.cpp" line="191"/>
         <source>Volume</source>
-        <translation type="unfinished"></translation>
+        <translation>Volume</translation>
     </message>
     <message>
         <location filename="../status/dirstat.cpp" line="235"/>
@@ -248,27 +247,27 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../fileset/fileset.cpp" line="46"/>
         <source>FileSets</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSets</translation>
     </message>
     <message>
         <location filename="../fileset/fileset.cpp" line="82"/>
         <source>  FileSet Name  </source>
-        <translation type="unfinished"></translation>
+        <translation>  Nom du FileSet  </translation>
     </message>
     <message>
         <location filename="../fileset/fileset.cpp" line="83"/>
         <source>FileSet Id</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSet Id</translation>
     </message>
     <message>
         <location filename="../fileset/fileset.cpp" line="83"/>
         <source>Create Time</source>
-        <translation type="unfinished"></translation>
+        <translation>Date de création</translation>
     </message>
     <message>
         <location filename="../fileset/fileset.cpp" line="86"/>
         <source>FileSet</source>
-        <translation type="unfinished"></translation>
+        <translation>FileSet</translation>
     </message>
 </context>
 <context>
@@ -304,7 +303,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../help/help.cpp" line="61"/>
         <source>Help: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Aide : %1</translation>
     </message>
 </context>
 <context>
@@ -336,17 +335,17 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../joblist/joblist.cpp" line="235"/>
         <source>Job Id</source>
-        <translation type="unfinished"></translation>
+        <translation>Job Id</translation>
     </message>
     <message>
         <location filename="../joblist/joblist.cpp" line="232"/>
         <source>Job Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nom du job</translation>
     </message>
     <message>
         <location filename="../joblist/joblist.cpp" line="232"/>
         <source>Client</source>
-        <translation type="unfinished"></translation>
+        <translation>Client</translation>
     </message>
     <message>
         <location filename="../joblist/joblist.cpp" line="239"/>
@@ -401,12 +400,12 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../joblist/joblist.cpp" line="299"/>
         <source>Backup</source>
-        <translation type="unfinished"></translation>
+        <translation>Sauvegarde</translation>
     </message>
     <message>
         <location filename="../joblist/joblist.cpp" line="300"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Restauration</translation>
     </message>
 </context>
 <context>
@@ -542,7 +541,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../joblog/joblog.cpp" line="110"/>
         <source>Bat</source>
-        <translation type="unfinished"></translation>
+        <translation>Bat</translation>
     </message>
     <message>
         <location filename="../joblog/joblog.cpp" line="113"/>
@@ -730,12 +729,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="14"/>
         <source>bat - Bacula Admin Tool</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="23"/>
         <source>Bacula Administration Tool</source>
-        <translation>Console d&apos;administration de Bacula</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="26"/>
@@ -745,32 +744,32 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="79"/>
         <source>&amp;Edit</source>
-        <translation>&amp;Édition</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="87"/>
         <source>Settings</source>
-        <translation>Configuration</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="94"/>
         <source>&amp;Help</source>
-        <translation>&amp;Aide</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="101"/>
         <source>&amp;File</source>
-        <translation>&amp;Fichier</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="117"/>
         <source>Current Status</source>
-        <translation>Statut courrant</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="128"/>
         <source>Tool Bar</source>
-        <translation>Bar d&apos;outils</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="188"/>
@@ -780,7 +779,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="233"/>
         <source>Selects panel window</source>
-        <translation type="unfinished">Sélectionne le panel</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="236"/>
@@ -790,12 +789,12 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="248"/>
         <source>Console Entry</source>
-        <translation>Console</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="251"/>
         <source>Enter a bacula command</source>
-        <translation>Entrer une commande Bacula</translation>
+        <translation type="unfinished">Entrer une commande Bacula</translation>
     </message>
     <message>
         <location filename="../main.ui" line="254"/>
@@ -810,122 +809,122 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="287"/>
         <source>Command:</source>
-        <translation>Commande:</translation>
+        <translation type="unfinished">Commande:</translation>
     </message>
     <message>
         <location filename="../main.ui" line="294"/>
         <source>Click here to enter command</source>
-        <translation>Cliquer ici pour sasir une commande</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="305"/>
         <source>&amp;Quit</source>
-        <translation>&amp;Quitter</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="308"/>
         <source>Ctrl+Q</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="316"/>
         <source>&amp;About bat</source>
-        <translation>&amp;Apropos de bat</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="324"/>
         <source>&amp;Copy</source>
-        <translation>&amp;Copier</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="332"/>
         <source>Cu&amp;t</source>
-        <translation>Cou&amp;per</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="340"/>
         <source>new</source>
-        <translation>Nouveau</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="348"/>
         <source>open</source>
-        <translation>Ouvrir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="356"/>
         <source>&amp;Paste</source>
-        <translation>Colle&amp;r</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="364"/>
         <source>&amp;Print</source>
-        <translation>Im&amp;primer</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="367"/>
         <source>Print</source>
-        <translation>Imprimer</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="375"/>
         <source>&amp;Save</source>
-        <translation>&amp;Sauvegarder</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="378"/>
         <source>Save (not implemented)</source>
-        <translation>Sauvegarder (non implémenté)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="386"/>
         <source>Connect</source>
-        <translation>Connecter</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="389"/>
         <source>Connect/disconnect</source>
-        <translation>Connecter/Déconnecter</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="397"/>
         <source>Label</source>
-        <translation>Labéliser</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="403"/>
         <source>Label a Volume</source>
-        <translation>Labéliser un volume</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="411"/>
         <source>Restore</source>
-        <translation>Restaurer</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="414"/>
         <source>Restore Files</source>
-        <translation>Restaurer des fichiers</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="431"/>
         <source>Run Job</source>
-        <translation>Lancer un job</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="434"/>
         <source>Run a Job</source>
-        <translation>Lancer un job</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="451"/>
         <source>Estimate Job</source>
-        <translation>Estimer un job</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="454"/>
         <source>Estimate a Job</source>
-        <translation>Estimer un job</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="462"/>
@@ -981,7 +980,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="523"/>
         <source>Messages</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="526"/>
@@ -991,7 +990,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../main.ui" line="534"/>
         <source>&amp;Preferences ...</source>
-        <translation type="unfinished">&amp;Préférences...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.ui" line="540"/>
@@ -1039,7 +1038,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../mainwin.cpp" line="477"/>
         <source>Director not connected. Click on connect button.</source>
-        <translation>Le director n&apos;est pas connecté. Cliquer sur &quot;Connecter&quot;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../mainwin.cpp" line="488"/>
@@ -1485,7 +1484,7 @@ Press OK to proceed with the purge operation?</source>
     <message>
         <location filename="../storage/storage.cpp" line="87"/>
         <source>Storage</source>
-        <translation></translation>
+        <translation>Storage</translation>
     </message>
     <message>
         <location filename="../storage/storage.cpp" line="83"/>
@@ -2757,7 +2756,7 @@ Press OK to continue?</source>
     <message>
         <location filename="../run/runcmd.cpp" line="51"/>
         <source>Restore Run</source>
-        <translation type="unfinished">Restauration</translation>
+        <translation>Restauration</translation>
     </message>
     <message>
         <location filename="../run/runcmd.cpp" line="79"/>
