@@ -38,15 +38,19 @@
 #include "bacula.h"                   /* pull in global headers */
 #include "stored.h"                   /* pull in Storage Deamon headers */
 
-static void mark_volume_not_inchanger(DCR *dcr);
-static int try_autolabel(DCR *dcr, bool opened);
-static bool is_eod_valid(DCR *dcr);
 
 enum {
    try_next_vol = 1,
    try_read_vol,
    try_error,
    try_default
+};
+
+enum {
+   check_next_vol = 1,
+   check_ok,
+   check_read_vol,
+   check_error
 };
 
 /*
@@ -65,7 +69,6 @@ bool DCR::mount_next_write_volume()
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
-   int vol_label_status;
    int mode;
    DCR *dcr = this;
 
@@ -106,16 +109,29 @@ mount_next_vol:
    }
 
    /*
-    * Get Director's idea of what tape we should have mounted.
-    *    in dcr->VolCatInfo
+    * See if we are asked to swap the Volume from another device
+    *  if so, unload the other device here, and attach the
+    *  volume to our drive.
     */
-   Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
-   while (!dir_find_next_appendable_volume(dcr)) {
-      Dmsg0(200, "not dir_find_next\n");
-      if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
-         goto bail_out;
-       }
-       Dmsg0(200, "Again dir_find_next_append...\n");
+   if (swap_dev) {
+      dev->vol = swap_dev->vol;      /* take its volume */
+      swap_dev->vol = NULL;
+      unload_dev(dcr, swap_dev);
+      swap_dev = NULL;
+   }
+   if (!is_suitable_volume_mounted()) {
+      /*
+       * Get Director's idea of what tape we should have mounted.
+       *    in dcr->VolCatInfo
+       */
+      Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
+      while (!dir_find_next_appendable_volume(dcr)) {
+         Dmsg0(200, "not dir_find_next\n");
+         if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
+            goto bail_out;
+          }
+          Dmsg0(200, "Again dir_find_next_append...\n");
+      }
    }
    if (job_canceled(jcr)) {
       goto bail_out;
@@ -134,12 +150,6 @@ mount_next_vol:
     * and move the tape to the end of data.
     *
     */
-   if (swap_dev) {
-      dev->vol = swap_dev->vol;      /* take its volume */
-      swap_dev->vol = NULL;
-      unload_dev(dcr, swap_dev);
-      swap_dev = NULL;
-   }
    if (autoload_device(dcr, 1, NULL) > 0) {
       autochanger = true;
       ask = false;
@@ -188,7 +198,7 @@ mount_next_vol:
    }
    /* Try autolabel if enabled */
    if (dev->open(dcr, mode) < 0) {
-      try_autolabel(dcr, false);      /* try to create a new volume label */
+      try_autolabel(false);      /* try to create a new volume label */
    }
    while (dev->open(dcr, mode) < 0) {
       Dmsg1(150, "open_device failed: ERR=%s\n", dev->bstrerror());
@@ -209,7 +219,7 @@ mount_next_vol:
             dev->unmount(0);
          }
       }
-      if (try_autolabel(dcr, false) == try_read_vol) {
+      if (try_autolabel(false) == try_read_vol) {
          break;                       /* created a new volume label */
       }
       /* If DVD, ignore the error, very often you cannot open the device
@@ -224,138 +234,19 @@ mount_next_vol:
    }
 
    /*
-    * Now make sure we have the right tape mounted
+    * Now check the volume label to make sure we have the right tape mounted
     */
 read_volume:
-   /*
-    * If we are writing to a stream device, ASSUME the volume label
-    *  is correct.
-    */
-   if (dev->has_cap(CAP_STREAM)) {
-      vol_label_status = VOL_OK;
-      create_volume_label(dev, VolumeName, "Default", false /* not DVD */);
-      dev->VolHdr.LabelType = PRE_LABEL;
-   } else {
-      vol_label_status = read_dev_volume_label(dcr);
-   }
-   if (job_canceled(jcr)) {
-      goto bail_out;
-   }
 
-   Dmsg2(150, "Want dirVol=%s dirStat=%s\n", VolumeName,
-      VolCatInfo.VolCatStatus);
-   /*
-    * At this point, dev->VolCatInfo has what is in the drive, if anything,
-    *          and   dcr->VolCatInfo has what the Director wants.
-    */
-   switch (vol_label_status) {
-   case VOL_OK:
-      Dmsg1(150, "Vol OK name=%s\n", VolumeName);
-      dev->VolCatInfo = VolCatInfo;       /* structure assignment */
-      recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
-      break;                    /* got a Volume */
-   case VOL_NAME_ERROR:
-      VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
-      char VolumeName[MAX_NAME_LENGTH];
-
-      /* If not removable, Volume is broken */
-      if (!dev->is_removable()) {
-         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
-            VolumeName, dev->print_name());
-         dcr->mark_volume_in_error();
-         goto mount_next_vol;
-      }
-
-      Dmsg1(150, "Vol NAME Error Name=%s\n", VolumeName);
-      /* If polling and got a previous bad name, ignore it */
-      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
-         ask = true;
-         Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n", VolumeName);
-         goto mount_next_vol;
-      }
-      /*
-       * OK, we got a different volume mounted. First save the
-       *  requested Volume info (dcr) structure, then query if
-       *  this volume is really OK. If not, put back the desired
-       *  volume name, mark it not in changer and continue.
-       */
-      dcrVolCatInfo = VolCatInfo;      /* structure assignment */
-      devVolCatInfo = dev->VolCatInfo;      /* structure assignment */
-      /* Check if this is a valid Volume in the pool */
-      bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
-      bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
-      if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE)) {
-         POOL_MEM vol_info_msg;
-         pm_strcpy(vol_info_msg, jcr->dir_bsock->msg);  /* save error message */
-         /* Restore desired volume name, note device info out of sync */
-         /* This gets the info regardless of the Pool */
-         bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
-         if (autochanger && !dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
-            /*
-             * If we get here, we know we cannot write on the Volume,
-             *  and we know that we cannot read it either, so it 
-             *  is not in the autochanger.
-             */
-            mark_volume_not_inchanger(dcr);
-         }
-         dev->VolCatInfo = devVolCatInfo;    /* structure assignment */
-         bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
-         Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
-              "    Current Volume \"%s\" not acceptable because:\n"
-              "    %s"),
-             dcrVolCatInfo.VolCatName, dev->VolHdr.VolumeName,
-             vol_info_msg.c_str());
-         ask = true;
-         /* Restore saved DCR before continuing */
-         bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
-         VolCatInfo = dcrVolCatInfo;  /* structure assignment */
-         goto mount_next_vol;
-      }
-      /*
-       * This was not the volume we expected, but it is OK with
-       * the Director, so use it.
-       */
-      Dmsg1(150, "want new name=%s\n", VolumeName);
-      dev->VolCatInfo = VolCatInfo;   /* structure assignment */
-      recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
-      break;                /* got a Volume */
-   /*
-    * At this point, we assume we have a blank tape mounted.
-    */
-   case VOL_IO_ERROR:
-      if (dev->is_dvd()) {
-         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
-         dcr->mark_volume_in_error();
-         goto bail_out;       /* we could not write on DVD */
-      }
-      /* Fall through wanted */
-   case VOL_NO_LABEL:
-      switch (try_autolabel(dcr, true)) {
-      case try_next_vol:
-         goto mount_next_vol;
-      case try_read_vol:
-         goto read_volume;
-      case try_error:
-         goto bail_out;
-      case try_default:
-         break;
-      }
-
-      /* NOTE! Fall-through wanted. */
-   case VOL_NO_MEDIA:
-   default:
-      Dmsg0(200, "VOL_NO_MEDIA or default.\n");
-      /* Send error message */
-      if (!dev->poll) {
-      } else {
-         Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
-      }
-      ask = true;
-      /* Needed, so the medium can be changed */
-      if (dev->requires_mount()) {
-         dev->close();
-      }
+   switch (check_volume_label(ask, autochanger)) {
+   case check_next_vol:
       goto mount_next_vol;
+   case check_read_vol:
+      goto read_volume;
+   case check_error:
+      goto bail_out;
+   case check_ok:
+      break;
    }
 
    /*
@@ -371,9 +262,10 @@ read_volume:
     *
     *  If the tape is marked as Recycle, we rewrite the label.
     */
+   recycle = strcmp(dev->VolCatInfo.VolCatStatus, "Recycle") == 0;
    if (dev->VolHdr.LabelType == PRE_LABEL || recycle) {
       if (!rewrite_volume_label(dcr, recycle)) {
-         dcr->mark_volume_in_error();
+         mark_volume_in_error();
          goto mount_next_vol;
       }
    } else {
@@ -389,10 +281,10 @@ read_volume:
       if (!dev->eod(dcr)) {
          Jmsg(jcr, M_ERROR, 0, _("Unable to position to end of data on device %s: ERR=%s\n"),
             dev->print_name(), dev->bstrerror());
-         dcr->mark_volume_in_error();
+         mark_volume_in_error();
          goto mount_next_vol;
       }
-      if (!is_eod_valid(dcr)) {
+      if (!is_eod_valid()) {
          goto mount_next_vol;
       }
 
@@ -417,29 +309,183 @@ bail_out:
    return false;
 }
 
+int DCR::check_volume_label(bool &ask, bool &autochanger)
+{
+   int vol_label_status;
+   /*
+    * If we are writing to a stream device, ASSUME the volume label
+    *  is correct.
+    */
+   if (dev->has_cap(CAP_STREAM)) {
+      vol_label_status = VOL_OK;
+      create_volume_label(dev, VolumeName, "Default", false /* not DVD */);
+      dev->VolHdr.LabelType = PRE_LABEL;
+   } else {
+      vol_label_status = read_dev_volume_label(this);
+   }
+   if (job_canceled(jcr)) {
+      goto check_bail_out;
+   }
+
+   Dmsg2(150, "Want dirVol=%s dirStat=%s\n", VolumeName,
+      VolCatInfo.VolCatStatus);
+   /*
+    * At this point, dev->VolCatInfo has what is in the drive, if anything,
+    *          and   dcr->VolCatInfo has what the Director wants.
+    */
+   switch (vol_label_status) {
+   case VOL_OK:
+      Dmsg1(150, "Vol OK name=%s\n", VolumeName);
+      dev->VolCatInfo = VolCatInfo;       /* structure assignment */
+      break;                    /* got a Volume */
+   case VOL_NAME_ERROR:
+      VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
+      char VolumeName[MAX_NAME_LENGTH];
+
+      /* If not removable, Volume is broken */
+      if (!dev->is_removable()) {
+         Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
+            VolumeName, dev->print_name());
+         mark_volume_in_error();
+         goto check_next_volume;
+      }
+
+      Dmsg1(150, "Vol NAME Error Name=%s\n", VolumeName);
+      /* If polling and got a previous bad name, ignore it */
+      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
+         ask = true;
+         Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n", VolumeName);
+         goto check_next_volume;
+      }
+      /*
+       * OK, we got a different volume mounted. First save the
+       *  requested Volume info (dcr) structure, then query if
+       *  this volume is really OK. If not, put back the desired
+       *  volume name, mark it not in changer and continue.
+       */
+      dcrVolCatInfo = VolCatInfo;      /* structure assignment */
+      devVolCatInfo = dev->VolCatInfo;      /* structure assignment */
+      /* Check if this is a valid Volume in the pool */
+      bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
+      bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
+      if (!dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE)) {
+         POOL_MEM vol_info_msg;
+         pm_strcpy(vol_info_msg, jcr->dir_bsock->msg);  /* save error message */
+         /* Restore desired volume name, note device info out of sync */
+         /* This gets the info regardless of the Pool */
+         bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
+         if (autochanger && !dir_get_volume_info(this, GET_VOL_INFO_FOR_READ)) {
+            /*
+             * If we get here, we know we cannot write on the Volume,
+             *  and we know that we cannot read it either, so it 
+             *  is not in the autochanger.
+             */
+            mark_volume_not_inchanger();
+         }
+         dev->VolCatInfo = devVolCatInfo;    /* structure assignment */
+         bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
+         Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
+              "    Current Volume \"%s\" not acceptable because:\n"
+              "    %s"),
+             dcrVolCatInfo.VolCatName, dev->VolHdr.VolumeName,
+             vol_info_msg.c_str());
+         ask = true;
+         /* Restore saved DCR before continuing */
+         bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
+         VolCatInfo = dcrVolCatInfo;  /* structure assignment */
+         goto check_next_volume;
+      }
+      /*
+       * This was not the volume we expected, but it is OK with
+       * the Director, so use it.
+       */
+      Dmsg1(150, "want new name=%s\n", VolumeName);
+      dev->VolCatInfo = VolCatInfo;   /* structure assignment */
+      break;                /* got a Volume */
+   /*
+    * At this point, we assume we have a blank tape mounted.
+    */
+   case VOL_IO_ERROR:
+      if (dev->is_dvd()) {
+         Jmsg(jcr, M_FATAL, 0, "%s", jcr->errmsg);
+         mark_volume_in_error();
+         goto check_bail_out;       /* we could not write on DVD */
+      }
+      /* Fall through wanted */
+   case VOL_NO_LABEL:
+      switch (try_autolabel(true)) {
+      case try_next_vol:
+         goto check_next_volume;
+      case try_read_vol:
+         goto check_read_volume;
+      case try_error:
+         goto check_bail_out;
+      case try_default:
+         break;
+      }
+
+      /* NOTE! Fall-through wanted. */
+   case VOL_NO_MEDIA:
+   default:
+      Dmsg0(200, "VOL_NO_MEDIA or default.\n");
+      /* Send error message */
+      if (!dev->poll) {
+      } else {
+         Dmsg1(200, "Msg suppressed by poll: %s\n", jcr->errmsg);
+      }
+      ask = true;
+      /* Needed, so the medium can be changed */
+      if (dev->requires_mount()) {
+         dev->close();
+      }
+      goto check_next_volume;
+   }
+   return check_ok;
+
+check_next_volume:
+   return check_next_vol;
+
+check_bail_out:
+   return check_error;
+
+check_read_volume:
+   return check_read_vol;
+
+}
+
+
+bool DCR::is_suitable_volume_mounted()
+{
+
+   /* Volume mounted? */
+   if (dev->VolHdr.VolumeName[0] == 0 || swap_dev || unload_device) {
+      return false;                      /* no */
+   }
+   bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
+   return dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
+}
+
+
 
 /*
  * Check if the current position on the volume corresponds to
  *  what is in the catalog.
  */
-static bool is_eod_valid(DCR *dcr)
+bool DCR::is_eod_valid()
 {
-   DEVICE *dev = dcr->dev;
-   JCR *jcr = dcr->jcr;
-
    if (dev->is_dvd()) {
       char ed1[50], ed2[50];
       if (dev->VolCatInfo.VolCatBytes == dev->part_start + dev->part_size) {
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\""
-              " part=%d size=%s\n"), dcr->VolumeName, 
+              " part=%d size=%s\n"), VolumeName, 
               dev->part, edit_uint64(dev->VolCatInfo.VolCatBytes,ed1));
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on DVD Volume \"%s\" because: "
               "The sizes do not match! Volume=%s Catalog=%s\n"),
-              dcr->VolumeName,
+              VolumeName,
               edit_uint64(dev->part_start + dev->part_size, ed1),
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
-         dcr->mark_volume_in_error();
+         mark_volume_in_error();
          return false;
       }
    } else if (dev->is_tape()) {
@@ -449,29 +495,29 @@ static bool is_eod_valid(DCR *dcr)
        */
       if (dev->VolCatInfo.VolCatFiles == dev->get_file()) {
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\" at file=%d.\n"),
-              dcr->VolumeName, dev->get_file());
+              VolumeName, dev->get_file());
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on tape Volume \"%s\" because:\n"
               "The number of files mismatch! Volume=%u Catalog=%u\n"),
-              dcr->VolumeName, dev->get_file(), dev->VolCatInfo.VolCatFiles);
-         dcr->mark_volume_in_error();
+              VolumeName, dev->get_file(), dev->VolCatInfo.VolCatFiles);
+         mark_volume_in_error();
          return false;
       }
    } else if (dev->is_file()) {
       char ed1[50], ed2[50];
       boffset_t pos;
-      pos = dev->lseek(dcr, (boffset_t)0, SEEK_END);
+      pos = dev->lseek(this, (boffset_t)0, SEEK_END);
       if (dev->VolCatInfo.VolCatBytes == (uint64_t)pos) {
          Jmsg(jcr, M_INFO, 0, _("Ready to append to end of Volume \"%s\""
-              " size=%s\n"), dcr->VolumeName, 
+              " size=%s\n"), VolumeName, 
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed1));
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Bacula cannot write on disk Volume \"%s\" because: "
               "The sizes do not match! Volume=%s Catalog=%s\n"),
-              dcr->VolumeName,
+              VolumeName,
               edit_uint64(pos, ed1),
               edit_uint64(dev->VolCatInfo.VolCatBytes, ed2));
-         dcr->mark_volume_in_error();
+         mark_volume_in_error();
          return false;
       }
    }
@@ -496,9 +542,9 @@ static bool is_eod_valid(DCR *dcr)
  *   try_error           hard error (catalog update)
  *   try_default         I couldn't do anything
  */
-static int try_autolabel(DCR *dcr, bool opened)
+int DCR::try_autolabel(bool opened)
 {
-   DEVICE *dev = dcr->dev;
+   DCR *dcr = this;
 
    if (dev->poll && !dev->is_tape()) {
       return try_default;       /* if polling, don't try to create new labels */
@@ -507,38 +553,38 @@ static int try_autolabel(DCR *dcr, bool opened)
    if (!opened && dev->is_tape()) {
       return try_default;
    }
-   if (dev->has_cap(CAP_LABEL) && (dcr->VolCatInfo.VolCatBytes == 0 ||
-         (!dev->is_tape() && strcmp(dcr->VolCatInfo.VolCatStatus,
+   if (dev->has_cap(CAP_LABEL) && (VolCatInfo.VolCatBytes == 0 ||
+         (!dev->is_tape() && strcmp(VolCatInfo.VolCatStatus,
                                 "Recycle") == 0))) {
       Dmsg0(150, "Create volume label\n");
       /* Create a new Volume label and write it to the device */
-      if (!write_new_volume_label_to_dev(dcr, dcr->VolumeName,
-             dcr->pool_name, false, /* no relabel */ false /* defer DVD label */)) {
+      if (!write_new_volume_label_to_dev(dcr, VolumeName,
+             pool_name, false, /* no relabel */ false /* defer DVD label */)) {
          Dmsg0(150, "!write_vol_label\n");
          if (opened) { 
-            dcr->mark_volume_in_error();
+            mark_volume_in_error();
          }
          return try_next_vol;
       }
       Dmsg0(150, "dir_update_vol_info. Set Append\n");
       /* Copy Director's info into the device info */
-      dev->VolCatInfo = dcr->VolCatInfo;    /* structure assignment */
+      dev->VolCatInfo = VolCatInfo;    /* structure assignment */
       if (!dir_update_volume_info(dcr, true, true)) {  /* indicate tape labeled */
          return try_error;
       }
       Jmsg(dcr->jcr, M_INFO, 0, _("Labeled new Volume \"%s\" on device %s.\n"),
-         dcr->VolumeName, dev->print_name());
+         VolumeName, dev->print_name());
       return try_read_vol;   /* read label we just wrote */
    }
-   if (!dev->has_cap(CAP_LABEL) && dcr->VolCatInfo.VolCatBytes == 0) {
-      Jmsg(dcr->jcr, M_WARNING, 0, _("Device %s not configured to autolabel Volumes.\n"), 
+   if (!dev->has_cap(CAP_LABEL) && VolCatInfo.VolCatBytes == 0) {
+      Jmsg(jcr, M_WARNING, 0, _("Device %s not configured to autolabel Volumes.\n"), 
          dev->print_name());
    }
    /* If not removable, Volume is broken */
    if (!dev->is_removable()) {
-      Jmsg(dcr->jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
-         dcr->VolumeName, dev->print_name());
-      dcr->mark_volume_in_error();
+      Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
+         VolumeName, dev->print_name());
+      mark_volume_in_error();
       return try_next_vol;
    }
    return try_default;
@@ -563,18 +609,16 @@ void DCR::mark_volume_in_error()
  * The Volume is not in the correct slot, so mark this
  *   Volume as not being in the Changer.
  */
-static void mark_volume_not_inchanger(DCR *dcr)
+void DCR::mark_volume_not_inchanger()
 {
-   JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
    Jmsg(jcr, M_ERROR, 0, _("Autochanger Volume \"%s\" not found in slot %d.\n"
 "    Setting InChanger to zero in catalog.\n"),
-        dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.Slot);
-   dev->VolCatInfo = dcr->VolCatInfo;    /* structure assignment */
-   dcr->VolCatInfo.InChanger = false;
+        VolCatInfo.VolCatName, VolCatInfo.Slot);
+   dev->VolCatInfo = VolCatInfo;    /* structure assignment */
+   VolCatInfo.InChanger = false;
    dev->VolCatInfo.InChanger = false;
    Dmsg0(400, "update vol info in mount\n");
-   dir_update_volume_info(dcr, true, false);  /* set new status */
+   dir_update_volume_info(this, true, false);  /* set new status */
 }
 
 /*

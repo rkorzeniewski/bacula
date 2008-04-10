@@ -38,7 +38,6 @@
 
 /* Forward referenced functions */
 static void attach_dcr_to_dev(DCR *dcr);
-static bool is_suitable_volume_mounted(DCR *dcr);
 static bool is_tape_position_ok(JCR *jcr, DEVICE *dev);
 
 
@@ -338,7 +337,7 @@ DCR *acquire_device_for_append(DCR *dcr)
     * have_vol defines whether or not mount_next_write_volume should
     *   ask the Director again about what Volume to use.
     */
-   if (dev->can_append() && is_suitable_volume_mounted(dcr) &&
+   if (dev->can_append() && dcr->is_suitable_volume_mounted() &&
        strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") != 0) {
       Dmsg0(190, "device already in append.\n");
       /*
@@ -425,17 +424,6 @@ static bool is_tape_position_ok(JCR *jcr, DEVICE *dev)
    return true;
 }
 
-static bool is_suitable_volume_mounted(DCR *dcr)
-{
-   DEVICE *dev = dcr->dev;
-
-   /* Volume mounted? */
-   if (dev->VolHdr.VolumeName[0] == 0 || dcr->swap_dev || dcr->unload_device) {
-      return false;                      /* no */
-   }
-   bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
-   return dir_get_volume_info(dcr, GET_VOL_INFO_FOR_WRITE);
-}
 
 /*
  * This job is done, so release the device. From a Unix standpoint,
