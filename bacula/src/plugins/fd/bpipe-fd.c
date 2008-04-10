@@ -109,6 +109,9 @@ struct plugin_ctx {
    char *fname;                       /* filename to "backup/restore" */
    char *reader;                      /* reader program for backup */
    char *writer;                      /* writer program for backup */
+
+   char where[512];
+   int replace;
 };
 
 /*
@@ -288,6 +291,94 @@ static bRC endBackupFile(bpContext *ctx)
 }
 
 /*
+ * Apply codes in writer command:
+ * %w -> "where"
+ * %r -> "replace"
+ *
+ * Replace:
+ * 'always' => 'a', chr(97)
+ * 'ifnewer' => 'w', chr(119)
+ * 'ifolder' => 'o', chr(111)
+ * 'never' => 'n', chr(110)
+ *
+ * This function will allocate the required amount of memory with malloc.
+ * Need to be free()d manually.
+ * Inspired by edit_job_codes in lib/util.c
+ */
+
+char *apply_rp_codes(struct plugin_ctx * p_ctx)
+{
+   char *p, *q;
+   const char *str;
+   char add[10];
+   int w_count = 0, r_count = 0;
+   char *omsg;
+
+   char *imsg = p_ctx->writer;
+
+   if (!imsg) {
+      return NULL;
+   }
+
+   if ((p = imsg)) {
+      while ((q = strstr(p, "%w"))) {
+         w_count++;
+         p=q+1;
+      }
+
+      p = imsg;
+      while ((q = strstr(p, "%r"))) {
+         r_count++;
+         p=q+1;
+      }
+   }
+
+   /* Required mem: 
+    * len(imsg) 
+    * + number of "where" codes * (len(where)-2) 
+    * - number of "replace" codes
+    */
+   omsg = (char*)malloc(strlen(imsg) + (w_count * (strlen(p_ctx->where)-2)) - r_count + 1);
+   if (!omsg) {
+      fprintf(stderr, "Out of memory.");
+      exit(1);
+   }
+
+   *omsg = 0;
+   //printf("apply_rp_codes: %s\n", imsg);
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+         switch (*++p) {
+         case '%':
+            str = "%";
+            break;
+         case 'w':
+	     str = p_ctx->where;
+             break;
+         case 'r':
+	    snprintf(add, 2, "%c", p_ctx->replace);
+	    str = add;
+            break;
+         default:
+            add[0] = '%';
+            add[1] = *p;
+            add[2] = 0;
+            str = add;
+            break;
+         }
+      } else {
+         add[0] = *p;
+         add[1] = 0;
+         str = add;
+      }
+      //printf("add_str %s\n", str);
+      strcat(omsg, str);
+      //printf("omsg=%s\n", omsg);
+   }
+   return omsg;
+}
+
+/*
  * Bacula is calling us to do the actual I/O
  */
 static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
@@ -300,13 +391,21 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
 //    printf("bpipe-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-         p_ctx->fd = popen(p_ctx->writer, "w");
-         printf("bpipe-fd: IO_OPEN writer=%s\n", p_ctx->writer);
+	 char *writer_codes = apply_rp_codes(p_ctx);
+
+         p_ctx->fd = popen(writer_codes, "w");
+         printf("bpipe-fd: IO_OPEN writer=%s\n", writer_codes);
          if (!p_ctx->fd) {
             io->io_errno = errno;
             bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
-               "Open pipe writer=%s failed: ERR=%s\n", p_ctx->writer, strerror(errno));
+               "Open pipe writer=%s failed: ERR=%s\n", writer_codes, strerror(errno));
+            if (writer_codes) {
+               free(writer_codes);
+            }
             return bRC_Error;
+         }
+         if (writer_codes) {
+            free(writer_codes);
          }
       } else {
          p_ctx->fd = popen(p_ctx->reader, "r");
@@ -382,6 +481,11 @@ static bRC endRestoreFile(bpContext *ctx)
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
 {
 // printf("bpipe-fd: createFile\n");
+   if (strlen(rp->where) > 512) {
+      printf("Restore target dir too long. Restricting to first 512 bytes.\n");
+   }
+   strncpy(((struct plugin_ctx *)ctx->pContext)->where, rp->where, 513);
+   ((struct plugin_ctx *)ctx->pContext)->replace = rp->replace;
    return bRC_OK;
 }
 
