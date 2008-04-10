@@ -4041,6 +4041,7 @@ sub display_group_stats
     my $filter = $self->get_client_group_filter();
 
     my ($limit, $label) = $self->get_limit(%$arg);
+    my ($where, undef) = $self->get_param('client_groups', 'level');
 
     my $query = "
 SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
@@ -4052,7 +4053,7 @@ SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
       FROM job_old JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id) $filter
      WHERE JobStatus = 'T' AND Type IN ('M', 'B', 'g') 
-           $limit
+           $where $limit
     GROUP BY client_group_name ORDER BY client_group_name
 
   ) AS T1 LEFT JOIN (
@@ -4061,7 +4062,7 @@ SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
       FROM job_old JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id)
      WHERE JobStatus = 'T' AND Type = 'R'
-           $limit
+           $where $limit
     GROUP BY client_group_name ORDER BY client_group_name
 
   ) AS T2 USING (client_group_name)

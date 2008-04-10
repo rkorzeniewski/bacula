@@ -382,7 +382,7 @@ if ($action eq 'begin') {		# main display
     $bweb->can_do('r_view_stat');
     print "<div><table border='0'><tr><td valign='top'>\n";
     my $fields = $bweb->get_form(qw/since age 
-                                    db_client_groups qclient_groups/); # drop this to hide 
+                                    db_client_groups qclient_groups/); 
     $fields->{action}='group_stats';
     $fields->{hide_level}=1;
     $fields->{hide_type}=1;
