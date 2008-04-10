@@ -197,7 +197,6 @@ static void debug_list_volumes(const char *imsg)
    }
 #endif
 
-// Dmsg2(dbglvl, "List from %s: %d volumes\n", imsg, count);
    unlock_volumes();
 }
 
@@ -358,7 +357,6 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          free_volume(dev);
          dcr->unload_device = true;     /* have to unload current volume */
-//       unload_autochanger(dcr, -1);   /* unload the volume */
          debug_list_volumes("reserve_vol free");
       }
    }
