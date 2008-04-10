@@ -76,7 +76,7 @@ Device {
   Name = Virtual-1
   Device Type = File
   Media Type = Disk
-  Archive Device = @disk_drive@/drive0
+  Archive Device = @tmpdir@
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
   Drive Index = 0
@@ -89,7 +89,7 @@ Device {
   Name = Virtual-2
   Device Type = File
   Media Type = Disk
-  Archive Device = @disk_drive@/drive0
+  Archive Device = @tmpdir@
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
   Drive Index = 1
@@ -97,6 +97,18 @@ Device {
   RemovableMedia = yes;
 # Maximum File Size = 1000000
 }
+
+Device {
+  Name = FileStorage
+  Media Type = FileMedia
+  Archive Device = @tmpdir@
+  LabelMedia = yes;                   # lets Bacula label unlabeled media
+  Random Access = Yes;
+  AutomaticMount = yes;               # when device opened, read it
+  RemovableMedia = no;
+  AlwaysOpen = no;
+}
+
 
 # 
 # Send all messages to the Director, 
