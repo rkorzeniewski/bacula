@@ -114,6 +114,7 @@ mount_next_vol:
     *  volume to our drive.
     */
    if (swap_dev) {
+      Dmsg1(150, "Swap vol=%d\n", swap_dev->vol->vol_name);
       dev->vol = swap_dev->vol;      /* take its volume */
       swap_dev->vol = NULL;
       unload_dev(dcr, swap_dev);

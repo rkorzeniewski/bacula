@@ -436,7 +436,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
    DEVICE *save_dev;
    int save_slot;
 
-   if (!changer) {
+   if (!changer || dev->Slot <= 0) {
       return false;
    }
    dev->dlock();
