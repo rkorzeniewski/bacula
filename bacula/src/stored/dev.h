@@ -485,11 +485,19 @@ public:
  * Volume reservation class -- see reserve.c
  */
 class VOLRES { 
+   bool m_swapping;                   /* set when swapping to another drive */
+   bool m_reserved;                   /* set when volume reserved */
 public:
    dlink link;
    char *vol_name;                    /* Volume name */
    DEVICE *dev;                       /* Pointer to device to which we are attached */
-   bool released;                     /* set when the Volume can be released */
+
+   bool is_swapping() const { return m_swapping; };
+   void set_swapping() { m_swapping = true; };
+   void clear_swapping() { m_swapping = false; };
+   bool is_reserved() const { return m_reserved; };
+   void set_reserved() { m_reserved = true; };
+   void clear_reserved() { m_reserved = false; };
 };
 
 
