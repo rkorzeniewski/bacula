@@ -178,10 +178,11 @@ static void debug_list_volumes(const char *imsg)
    lock_volumes();
    foreach_dlist(vol, vol_list) {
       if (vol->dev) {
-         Mmsg(msg, "List %s: %s rel=%d on device %s\n", imsg, 
-              vol->vol_name, vol->released, vol->dev->print_name());
+         Mmsg(msg, "List %s: %s reserved=%d on device %s\n", imsg, 
+              vol->vol_name, vol->is_reserved(), vol->dev->print_name());
       } else {
-         Mmsg(msg, "List %s: %s rel=%d no dev\n", imsg, vol->vol_name, vol->released);
+         Mmsg(msg, "List %s: %s reserved=%d no dev\n", imsg, vol->vol_name, 
+              vol->is_reserved());
       }
       Dmsg1(dbglvl, "%s", msg.c_str());
    }
@@ -216,11 +217,13 @@ void list_volumes(void sendit(const char *msg, int len, void *sarg), void *arg)
       if (dev) {
          len = Mmsg(msg, "%s on device %s\n", vol->vol_name, dev->print_name());
          sendit(msg.c_str(), len, arg);
-         len = Mmsg(msg, "    Reader=%d writers=%d reserved=%d released=%d\n", 
-            dev->can_read()?1:0, dev->num_writers, dev->reserved_device, vol->released);
+         len = Mmsg(msg, "    Reader=%d writers=%d devres=%d volres=%d\n", 
+            dev->can_read()?1:0, dev->num_writers, dev->reserved_device, 
+            vol->is_reserved());
          sendit(msg.c_str(), len, arg);
       } else {
-         len = Mmsg(msg, "%s no device. released=%d\n", vol->vol_name, vol->released);
+         len = Mmsg(msg, "%s no device. volres= %d\n", vol->vol_name, 
+            vol->is_reserved());
          sendit(msg.c_str(), len, arg);
       }
    }
@@ -334,23 +337,23 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
     */
    if (dev->vol) {
       vol = dev->vol;
-      Dmsg4(dbglvl, "Vol attached=%s, newvol=%s release=%d on %s\n",
-         vol->vol_name, VolumeName, vol->released, dev->print_name());
+      Dmsg4(dbglvl, "Vol attached=%s, newvol=%s volres=%d on %s\n",
+         vol->vol_name, VolumeName, vol->is_reserved(), dev->print_name());
       /*
        * Make sure we don't remove the current volume we are inserting
        *  because it was probably inserted by another job, or it
-       *  is not being used and is marked as released.
+       *  is not being used and is marked as not reserved.
        */
       if (strcmp(vol->vol_name, VolumeName) == 0) {
-         Dmsg2(dbglvl, "=== set not released vol=%s dev=%s\n", VolumeName,
+         Dmsg2(dbglvl, "=== set reserved vol=%s dev=%s\n", VolumeName,
                vol->dev->print_name());
-         vol->released = false;         /* retake vol if released previously */
+         vol->set_reserved();           /* retake vol if released previously */
          dcr->reserved_volume = true;   /* reserved volume */
          goto get_out;                  /* Volume already on this device */
       } else {
-         /* Don't release a volume if it is in use */
-         if (!vol->released && !dcr->reserved_volume) { 
-            Dmsg1(dbglvl, "Cannot free vol=%s. It is not released.\n", vol->vol_name);
+         /* Don't release a volume if it was reserved by someone other than us */
+         if (vol->is_reserved() && !dcr->reserved_volume) { 
+            Dmsg1(dbglvl, "Cannot free vol=%s. It is reserved.\n", vol->vol_name);
             vol = NULL;                  /* vol in use */
             goto get_out;
          }
@@ -387,7 +390,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
+         /*  ***FIXME*** don't let vol being swapped be stolen */
          if (!vol->dev->is_busy()) {
+            vol->set_swapping();
             dcr->swap_dev = vol->dev;   /* remember to get this vol */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
@@ -403,9 +408,9 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
 
 get_out:
    if (vol) {
-      Dmsg2(dbglvl, "=== set not released. vol=%s dev=%s\n", vol->vol_name,
+      Dmsg2(dbglvl, "=== set reserved. vol=%s dev=%s\n", vol->vol_name,
             vol->dev->print_name());
-      vol->released = false;
+      vol->set_reserved();
       dcr->reserved_volume = true;
    }
    debug_list_volumes("end new volume");
@@ -494,7 +499,7 @@ void unreserve_device(DCR *dcr)
  * Free a Volume from the Volume list if it is no longer used
  *   Note, for tape drives we want to remember where the Volume
  *   was when last used, so rather than free the volume entry,
- *   we simply mark it "released" so when the drive is really
+ *   we simply mark it "not reserved" so when the drive is really
  *   needed for another volume, we can reuse it.
  *
  *  Returns: true if the Volume found and "removed" from the list
@@ -504,9 +509,14 @@ bool volume_unused(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
 
-   if (dev->vol == NULL) {
+   if (!dev->vol) {
       Dmsg1(dbglvl, "vol_unused: no vol on %s\n", dev->print_name());
       debug_list_volumes("null vol cannot unreserve_volume");
+      return false;
+   }
+   if (dev->vol->is_swapping()) {
+      Dmsg1(dbglvl, "vol_unused: vol being swapped on %s\n", dev->print_name());
+      debug_list_volumes("swapping vol cannot unreserve_volume");
       return false;
    }
 
@@ -529,10 +539,10 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
-   Dmsg3(dbglvl, "=== mark released vol=%s num_writers=%d dev_reserved=%d\n",
+   Dmsg3(dbglvl, "=== mark not reserved vol=%s num_writers=%d dev_reserved=%d\n",
       dev->vol->vol_name, dev->num_writers, dev->reserved_device);
-   dev->vol->released = true;
-   Dmsg2(dbglvl, "=== set released. Vol=%s dev=%s\n", dev->vol->vol_name,
+   dev->vol->clear_reserved();
+   Dmsg2(dbglvl, "=== set not reserved. Vol=%s dev=%s\n", dev->vol->vol_name,
          dev->print_name());
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;

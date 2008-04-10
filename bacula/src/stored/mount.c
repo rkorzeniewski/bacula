@@ -118,6 +118,7 @@ mount_next_vol:
       swap_dev->vol = NULL;
       unload_dev(dcr, swap_dev);
       swap_dev = NULL;
+      dev->vol->clear_swapping();
    }
    if (!is_suitable_volume_mounted()) {
       /*
@@ -340,7 +341,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
       VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
-      char VolumeName[MAX_NAME_LENGTH];
+      char saveVolumeName[MAX_NAME_LENGTH];
 
       /* If not removable, Volume is broken */
       if (!dev->is_removable()) {
@@ -366,7 +367,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       dcrVolCatInfo = VolCatInfo;      /* structure assignment */
       devVolCatInfo = dev->VolCatInfo;      /* structure assignment */
       /* Check if this is a valid Volume in the pool */
-      bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
+      bstrncpy(saveVolumeName, VolumeName, sizeof(saveVolumeName));
       bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));
       if (!dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE)) {
          POOL_MEM vol_info_msg;
@@ -391,7 +392,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
              vol_info_msg.c_str());
          ask = true;
          /* Restore saved DCR before continuing */
-         bstrncpy(VolumeName, VolumeName, sizeof(VolumeName));
+         bstrncpy(VolumeName, saveVolumeName, sizeof(VolumeName));
          VolCatInfo = dcrVolCatInfo;  /* structure assignment */
          goto check_next_volume;
       }
