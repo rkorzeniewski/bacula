@@ -402,9 +402,12 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             vol = NULL;                 /* device busy */
             goto get_out;
          }
+      } else {
+         dev->vol = vol;
       }
+   } else {
+      dev->vol = vol;                    /* point to newly inserted volume */
    }
-   dev->vol = vol;
 
 get_out:
    if (vol) {
