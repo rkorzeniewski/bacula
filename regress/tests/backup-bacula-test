@@ -10,6 +10,15 @@ JobName=backup
 scripts/cleanup
 scripts/copy-confs
 
+#
+# Zap out any schedule in default conf file so that
+#  it doesn't start during our test
+#
+outf="tmp/sed_tmp"
+echo "s%  Schedule =%# Schedule =%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
 change_jobname Client1 $JobName
 start_test
 
