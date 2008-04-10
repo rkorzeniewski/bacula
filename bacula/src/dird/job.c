@@ -1272,6 +1272,14 @@ void free_wstorage(JCR *jcr)
    jcr->wstore = NULL;
 }
 
+char *job_code_callback_clones(JCR *jcr, const char* param) {
+	if (param[0] == 'p') {
+		return jcr->pool->name();
+	} else {
+		return NULL;
+	}
+}
+
 void create_clones(JCR *jcr)
 {
    /*
@@ -1285,7 +1293,7 @@ void create_clones(JCR *jcr)
       UAContext *ua = new_ua_context(jcr);
       ua->batch = true;
       foreach_alist(runcmd, job->run_cmds) {
-         cmd = edit_job_codes(jcr, cmd, runcmd, "");              
+         cmd = edit_job_codes(jcr, cmd, runcmd, "", job_code_callback_clones);
          Mmsg(ua->cmd, "run %s cloned=yes", cmd);
          Dmsg1(900, "=============== Clone cmd=%s\n", ua->cmd);
          parse_ua_args(ua);                 /* parse command */
