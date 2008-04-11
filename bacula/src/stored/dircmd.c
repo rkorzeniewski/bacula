@@ -915,7 +915,7 @@ static bool release_cmd(JCR *jcr)
          } else {                     /* device not being used */
             Dmsg0(90, "Device not in use, releaseing\n");
             unload_autochanger(dcr, -1);
-            release_volume(dcr);
+            dcr->release_volume();
             dir->fsend(_("3022 Device %s released.\n"), 
                dev->print_name());
          }

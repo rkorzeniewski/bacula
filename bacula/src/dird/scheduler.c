@@ -118,6 +118,7 @@ JCR *wait_for_next_job(char *one_shot_job_to_run)
          return jcr;
       }
    }
+
    /* Wait until we have something in the
     * next hour or so.
     */
@@ -246,11 +247,6 @@ again:
 void term_scheduler()
 {
    if (jobs_to_run) {
-      job_item *je;
-      /* Release all queued job entries to be run */
-      foreach_dlist(je, jobs_to_run) {
-         free(je);
-      }
       delete jobs_to_run;
    }
 }
@@ -285,7 +281,7 @@ static void find_runs()
    woy = tm_woy(now);                     /* get week of year */
 
    Dmsg7(dbglvl, "now = %x: h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-	 now, hour, month, mday, wday, wom, woy);
+         now, hour, month, mday, wday, wom, woy);
 
    /*
     * Compute values for next hour from now.
@@ -303,7 +299,7 @@ static void find_runs()
    nh_woy = tm_woy(now);                     /* get week of year */
 
    Dmsg7(dbglvl, "nh = %x: h=%d m=%d md=%d wd=%d wom=%d woy=%d\n",
-	 next_hour, nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
+         next_hour, nh_hour, nh_month, nh_mday, nh_wday, nh_wom, nh_woy);
 
    /* Loop through all jobs */
    LockRes();
@@ -357,20 +353,20 @@ static void find_runs()
 
          Dmsg3(dbglvl, "run@%p: run_now=%d run_nh=%d\n", run, run_now, run_nh);
 
-	 if (run_now || run_nh) {
-	   /* find time (time_t) job is to be run */
-	   (void)localtime_r(&now, &tm);      /* reset tm structure */
-	   tm.tm_min = run->minute;     /* set run minute */
-	   tm.tm_sec = 0;               /* zero secs */
-	   runtime = mktime(&tm);
-	   if (run_now) {
-	     add_job(job, run, now, runtime);
-	   }
-	   /* If job is to be run in the next hour schedule it */
-	   if (run_nh) {
-	     add_job(job, run, now, runtime + 3600);
-	   }
-	 }
+         if (run_now || run_nh) {
+           /* find time (time_t) job is to be run */
+           (void)localtime_r(&now, &tm);      /* reset tm structure */
+           tm.tm_min = run->minute;     /* set run minute */
+           tm.tm_sec = 0;               /* zero secs */
+           runtime = mktime(&tm);
+           if (run_now) {
+             add_job(job, run, now, runtime);
+           }
+           /* If job is to be run in the next hour schedule it */
+           if (run_nh) {
+             add_job(job, run, now, runtime + 3600);
+           }
+         }
       }
    }
    UnlockRes();

@@ -102,8 +102,8 @@ mount_next_vol:
    recycle = false;
    if (unload_device) {
       Dmsg0(150, "mount_next_volume release=1\n");
-      release_volume(dcr);
       unload_autochanger(dcr, -1);
+      release_volume();
       unload_device = false;
       ask = true;                     /* ask operator to mount tape */
    }
@@ -636,11 +636,9 @@ void DCR::mark_volume_not_inchanger()
  * Either because we are going to hang a new volume, or because
  *  of explicit user request, we release the current volume.
  */
-void release_volume(DCR *dcr)
+void DCR::release_volume()
 {
-   JCR *jcr = dcr->jcr;
-   DEVICE *dev = dcr->dev;
-   if (dcr->WroteVol) {
+   if (WroteVol) {
       Jmsg0(jcr, M_ERROR, 0, _("Hey!!!!! WroteVol non-zero !!!!!\n"));
       Dmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
    }
@@ -651,14 +649,14 @@ void release_volume(DCR *dcr)
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
-// memset(&dcr->VolCatInfo, 0, sizeof(dcr->VolCatInfo));
+   memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    dev->clear_volhdr();
    /* Force re-read of label */
    dev->clear_labeled();
    dev->clear_read();
    dev->clear_append();
    dev->label_type = B_BACULA_LABEL;
-// dcr->VolumeName[0] = 0;
+   VolumeName[0] = 0;
 
    if (dev->is_open() && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
       dev->close();
