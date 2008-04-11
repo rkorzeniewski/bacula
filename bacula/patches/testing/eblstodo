@@ -1,6 +1,11 @@
 Idees
 ------
 
+
+Deduplication:
+ proba de collision en fonction de la taille du hash
+  http://en.wikipedia.org/wiki/Birthday_attack
+
 Cryptage :
  - Pouvoir configurer les algos de cryptage
  - Pouvoir choisir de crypter dans le fileset
