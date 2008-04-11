@@ -142,6 +142,7 @@ mount_next_vol:
              }
              Dmsg0(200, "Again dir_find_next_append...\n");
          }
+         goto mount_next_vol;   
       }
    }
    if (job_canceled(jcr)) {
