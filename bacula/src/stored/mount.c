@@ -120,19 +120,28 @@ mount_next_vol:
       unload_dev(dcr, swap_dev);
       swap_dev = NULL;
       dev->vol->clear_swapping();
+      dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
    }
    if (!is_suitable_volume_mounted()) {
+      bool have_vol = false;
+      /* Do we have a candidate volume? */
+      if (dev->vol) {
+         bstrncpy(VolumeName, dev->vol->vol_name, sizeof(VolumeName));
+         have_vol = dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
+      }
       /*
        * Get Director's idea of what tape we should have mounted.
        *    in dcr->VolCatInfo
        */
-      Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
-      while (!dir_find_next_appendable_volume(dcr)) {
-         Dmsg0(200, "not dir_find_next\n");
-         if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
-            goto bail_out;
-          }
-          Dmsg0(200, "Again dir_find_next_append...\n");
+      if (!have_vol) {
+         Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
+         while (!dir_find_next_appendable_volume(dcr)) {
+            Dmsg0(200, "not dir_find_next\n");
+            if (job_canceled(jcr) || !dir_ask_sysop_to_create_appendable_volume(dcr)) {
+               goto bail_out;
+             }
+             Dmsg0(200, "Again dir_find_next_append...\n");
+         }
       }
    }
    if (job_canceled(jcr)) {
