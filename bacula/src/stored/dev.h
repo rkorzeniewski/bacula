@@ -473,12 +473,14 @@ public:
 
    /* Methods in mount.c */
    bool mount_next_write_volume();
+   bool mount_next_read_volume();
    void mark_volume_in_error();
    void mark_volume_not_inchanger();
    int try_autolabel(bool opened);
    bool is_suitable_volume_mounted();
    bool is_eod_valid();
    int check_volume_label(bool &ask, bool &autochanger);
+   void release_volume();
 };
 
 /*

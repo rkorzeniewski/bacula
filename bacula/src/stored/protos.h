@@ -218,7 +218,6 @@ void    _lock_reservations();
 void    _unlock_reservations();
 void    _lock_volumes();
 void    _unlock_volumes();
-void    release_volume(DCR *dcr);
 VOLRES *reserve_volume(DCR *dcr, const char *VolumeName);
 VOLRES *find_volume(const char *VolumeName);
 bool    free_volume(DEVICE *dev);
