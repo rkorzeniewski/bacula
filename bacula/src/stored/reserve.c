@@ -390,8 +390,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       /* Check if we are trying to use the Volume on a different drive */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
-         /*  ***FIXME*** don't let vol being swapped be stolen */
-         if (!vol->dev->is_busy()) {
+         if (!vol->dev->is_busy() && !vol->is_swapping()) {
             vol->set_swapping();
             dcr->swap_dev = vol->dev;   /* remember to get this vol */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
