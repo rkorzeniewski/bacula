@@ -469,7 +469,8 @@ bool release_device(DCR *dcr)
       dev->num_writers--;
       Dmsg1(100, "There are %d writers in release_device\n", dev->num_writers);
       if (dev->is_labeled()) {
-         Dmsg0(100, "dir_create_jobmedia_record. Release\n");
+         Dmsg2(200, "dir_create_jobmedia. Release vol=%s dev=%s\n", 
+               dev->VolCatInfo.VolCatName, dev->print_name());
          if (!dev->at_weot() && !dir_create_jobmedia_record(dcr)) {
             Jmsg(jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
                dcr->VolCatInfo.VolCatName, jcr->Job);
@@ -479,14 +480,15 @@ bool release_device(DCR *dcr)
             dev->weof(1);
             write_ansi_ibm_labels(dcr, ANSI_EOF_LABEL, dev->VolHdr.VolumeName);
          }
-         if (!dev->num_writers) {             /* if no more writers */
-            volume_unused(dcr);               /*  we obviously are not using the volume */
-         }
          if (!dev->at_weot()) {
             dev->VolCatInfo.VolCatFiles = dev->file;   /* set number of files */
             /* Note! do volume update before close, which zaps VolCatInfo */
-            Dmsg0(100, "dir_update_vol_info. Release0\n");
             dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
+            Dmsg2(200, "dir_update_vol_info. Release vol=%s dev=%s\n", 
+                  dev->VolCatInfo.VolCatName, dev->print_name());
+         }
+         if (!dev->num_writers) {             /* if no more writers */
+            volume_unused(dcr);               /*  we obviously are not using the volume */
          }
       }
 
