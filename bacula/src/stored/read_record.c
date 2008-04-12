@@ -228,11 +228,13 @@ bool read_records(DCR *dcr,
              *  he wants to know if they matched the bsr, then he must
              *  check the match_stat in the record */
             ok = record_cb(dcr, rec);
+#ifdef xxx
             /*
              * If this is the end of the Session (EOS) for this record
              *  we can remove the record.  Note, there is a separate
              *  record to read each session. If a new session is seen
              *  a new record will be created at approx line 157 above.
+             * However, it seg faults in the for line at lineno 196.
              */
             if (rec->FileIndex == EOS_LABEL) {
                Dmsg2(dbglvl, "Remove EOS rec. SI=%d ST=%d\n", rec->VolSessionId,
@@ -240,6 +242,7 @@ bool read_records(DCR *dcr,
                recs->remove(rec);
                free_record(rec);
             }
+#endif
             continue;
          } /* end if label record */
 

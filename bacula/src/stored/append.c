@@ -70,7 +70,7 @@ bool do_append_data(JCR *jcr)
       return false;
    }                                              
 
-   Dmsg1(100, "Start append data. res=%d\n", dev->reserved_device);
+   Dmsg1(100, "Start append data. res=%d\n", dev->num_reserved());
 
    memset(&rec, 0, sizeof(rec));
 

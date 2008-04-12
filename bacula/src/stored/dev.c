@@ -711,7 +711,7 @@ bool DEVICE::rewind(DCR *dcr)
    unsigned int i;
    bool first = true;
 
-   Dmsg3(400, "rewind res=%d fd=%d %s\n", reserved_device, m_fd, print_name());
+   Dmsg3(400, "rewind res=%d fd=%d %s\n", num_reserved(), m_fd, print_name());
    state &= ~(ST_EOT|ST_EOF|ST_WEOT);  /* remove EOF/EOT flags */
    block_num = file = 0;
    file_size = 0;

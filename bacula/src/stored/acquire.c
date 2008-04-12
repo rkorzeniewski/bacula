@@ -286,11 +286,7 @@ default_path:
 
 get_out:
    dev->dlock();
-   if (dcr && dcr->reserved_device) {
-      dev->reserved_device--;
-      Dmsg2(50, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
-   }
+   dcr->clear_reserved();
    /* 
     * Normally we are blocked, but in at least one error case above 
     *   we are not blocked because we unsuccessfully tried changing
@@ -317,6 +313,7 @@ DCR *acquire_device_for_append(DCR *dcr)
 {
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
+   bool ok = false;
 
    init_device_wait_timers(dcr);
 
@@ -358,8 +355,8 @@ DCR *acquire_device_for_append(DCR *dcr)
             /* Reduce "noise" -- don't print if job canceled */
             Jmsg(jcr, M_FATAL, 0, _("Could not ready device %s for append.\n"),
                dev->print_name());
-            Dmsg2(200, "jid=%u Could not ready device %s for append.\n", 
-               (uint32_t)jcr->JobId, dev->print_name());
+            Dmsg1(200, "Could not ready device %s for append.\n", 
+               dev->print_name());
          }
          goto get_out;
       }
@@ -372,29 +369,13 @@ DCR *acquire_device_for_append(DCR *dcr)
    }
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */
    dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
-   dev->dlock();
-   if (dcr->reserved_device) {
-      dev->reserved_device--;
-      Dmsg3(100, "jid=%u Dec reserve=%d dev=%s\n", (uint32_t)jcr->JobId,
-            dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
-   }
-   dev->dunblock(DEV_LOCKED);
-   return dcr;
+   ok = true;
 
-/*
- * Error return
- */
 get_out:
    dev->dlock();
-   if (dcr->reserved_device) {
-      dev->reserved_device--;
-      Dmsg3(100, "jid=%u Dec reserve=%d dev=%s\n", (uint32_t)jcr->JobId, 
-            dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
-   }
+   dcr->clear_reserved();
    dev->dunblock(DEV_LOCKED);
-   return NULL;
+   return ok ? dcr : NULL;
 }
 
 /*
@@ -447,11 +428,7 @@ bool release_device(DCR *dcr)
    Dmsg2(100, "release_device device %s is %s\n", dev->print_name(), dev->is_tape()?"tape":"disk");
 
    /* if device is reserved, job never started, so release the reserve here */
-   if (dcr->reserved_device) {
-      dev->reserved_device--;
-      Dmsg2(100, "Dec reserve=%d dev=%s\n", dev->reserved_device, dev->print_name());
-      dcr->reserved_device = false;
-   }
+   dcr->clear_reserved();
 
    if (dev->can_read()) {
       dev->clear_read();              /* clear read bit */
@@ -664,7 +641,7 @@ void detach_dcr_from_dev(DCR *dcr)
    /* Detach this dcr only if attached */
    if (dcr->attached_to_dev && dev) {
       dev->dlock();
-      unreserve_device(dcr);
+      dcr->unreserve_device();
       dcr->dev->attached_dcrs->remove(dcr);  /* detach dcr from device */
       dcr->attached_to_dev = false;
 //    remove_dcr_from_dcrs(dcr);      /* remove dcr from jcr list */

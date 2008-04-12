@@ -136,6 +136,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
       if (dir) {
          return 0;                    /* For user, bail out right now */
       }
+      /* ***FIXME*** this really should not be here */
       if (dir_find_next_appendable_volume(dcr)) {
          slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
       } else {
@@ -367,6 +368,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
       } else {
          dev->Slot = 0;            /* nothing loaded */
       }
+      dev->clear_unload();
       free_volume(dev);            /* Free any volume associated with this drive */
       free_pool_memory(changer);
       unlock_changer(dcr);
@@ -421,7 +423,7 @@ static bool unload_other_drive(DCR *dcr, int slot)
            dcr->VolumeName, dev->print_name());
       Dmsg4(100, "Vol %s for dev=%s is busy dev=%s slot=%d\n",
            dcr->VolumeName, dcr->dev->print_name(), dev->print_name(), dev->Slot);
-      Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->reserved_device);
+      Dmsg2(100, "num_writ=%d reserv=%d\n", dev->num_writers, dev->num_reserved());
       return false;
    }
    return unload_dev(dcr, dev);
@@ -459,7 +461,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
                 dcr->device->changer_command, "unload");
    dev->close();
    Dmsg2(200, "close dev=%s reserve=%d\n", dev->print_name(), 
-      dev->reserved_device);
+      dev->num_reserved());
    Dmsg1(100, "Run program=%s\n", changer_cmd);
    int stat = run_program_full_output(changer_cmd, timeout, results.addr());
    dcr->VolCatInfo.Slot = save_slot;
@@ -479,6 +481,7 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
       Dmsg0(100, "Slot unloaded\n");
    }
    free_volume(dev);               /* Free any volume associated with this drive */
+   dev->clear_unload();
    unlock_changer(dcr);
    dev->dunlock();
    free_pool_memory(changer_cmd);
