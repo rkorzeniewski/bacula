@@ -77,7 +77,7 @@ int read_dev_volume_label(DCR *dcr)
    bool have_ansi_label = false;
 
    Dmsg4(100, "Enter read_volume_label res=%d device=%s vol=%s dev_Vol=%s\n",
-      dev->reserved_device, dev->print_name(), VolName, 
+      dev->num_reserved(), dev->print_name(), VolName, 
       dev->VolHdr.VolumeName[0]?dev->VolHdr.VolumeName:"*NULL*");
 
    if (!dev->is_open()) {

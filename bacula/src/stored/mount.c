@@ -72,7 +72,7 @@ bool DCR::mount_next_write_volume()
    int mode;
    DCR *dcr = this;
 
-   Dmsg2(150, "Enter mount_next_volume(release=%d) dev=%s\n", unload_device,
+   Dmsg2(150, "Enter mount_next_volume(release=%d) dev=%s\n", dev->must_unload(),
       dev->print_name());
 
    init_device_wait_timers(dcr);
@@ -100,27 +100,29 @@ mount_next_vol:
       goto bail_out;
    }
    recycle = false;
-   if (unload_device) {
+   if (dev->must_unload()) {
       Dmsg0(150, "mount_next_volume release=1\n");
       unload_autochanger(dcr, -1);
       release_volume();
-      unload_device = false;
+      dev->clear_unload();
       ask = true;                     /* ask operator to mount tape */
    }
-
    /*
     * See if we are asked to swap the Volume from another device
     *  if so, unload the other device here, and attach the
     *  volume to our drive.
     */
-   if (swap_dev) {
-      Dmsg1(150, "Swap vol=%d\n", swap_dev->vol->vol_name);
-      dev->vol = swap_dev->vol;      /* take its volume */
-      swap_dev->vol = NULL;
-      unload_dev(dcr, swap_dev);
-      swap_dev = NULL;
-      dev->vol->clear_swapping();
-      dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
+   if (dev->swap_dev) {
+      Dmsg1(100, "Swap unloading %s\n", dev->swap_dev->print_name());
+      if (dev->swap_dev->must_unload()) {
+         unload_dev(dcr, dev->swap_dev);
+      }
+      if (dev->vol) {
+         dev->vol->clear_swapping();
+         dev->vol->set_in_use();
+         dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
+      }
+      dev->swap_dev = NULL;
    }
    if (!is_suitable_volume_mounted()) {
       bool have_vol = false;
@@ -176,7 +178,7 @@ mount_next_vol:
     *   and read the label. If there is no tape in the drive,
     *   we will fail, recurse and ask the operator the next time.
     */
-   if (!unload_device && dev->is_tape() && dev->has_cap(CAP_AUTOMOUNT)) {
+   if (!dev->must_unload() && dev->is_tape() && dev->has_cap(CAP_AUTOMOUNT)) {
       Dmsg0(150, "(1)Ask=0\n");
       ask = false;                 /* don't ask SYSOP this time */
    }
@@ -186,7 +188,7 @@ mount_next_vol:
       ask = false;
    }
    Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
-   unload_device = true;     /* release next time if we "recurse" */
+   dev->must_unload();       /* release next time if we "recurse" */
 
    if (ask && !dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
       Dmsg0(150, "Error return ask_sysop ...\n");
@@ -470,7 +472,7 @@ bool DCR::is_suitable_volume_mounted()
 {
 
    /* Volume mounted? */
-   if (dev->VolHdr.VolumeName[0] == 0 || swap_dev || unload_device) {
+   if (dev->VolHdr.VolumeName[0] == 0 || dev->swap_dev || dev->must_unload()) {
       return false;                      /* no */
    }
    bstrncpy(VolumeName, dev->VolHdr.VolumeName, sizeof(VolumeName));

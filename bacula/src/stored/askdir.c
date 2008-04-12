@@ -242,7 +242,7 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw writing)
  * Returns: true  on success dcr->VolumeName is volume
  *                reserve_volume() called on Volume name
  *          false on failure dcr->VolumeName[0] == 0
- *                also sets dcr->volume_in_use if at least one 
+ *                also sets dcr->found_in_use if at least one 
  *                in use volume was found.
  *
  *          Volume information returned in dcr
@@ -255,7 +255,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     bool rtn;
 
     Dmsg2(200, "dir_find_next_appendable_volume: reserved=%d Vol=%s\n", 
-       dcr->reserved_device, dcr->VolumeName);
+       dcr->is_reserved(), dcr->VolumeName);
 
     /*
      * Try the forty oldest or most available volumes.  Note,
@@ -264,7 +264,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
      */
     lock_volumes();
     P(vol_info_mutex);
-    dcr->volume_in_use = false;
+    dcr->clear_found_in_use();
     for (int vol_index=1;  vol_index < 40; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
@@ -273,7 +273,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird %s", dir->msg);
        if (do_get_volume_info(dcr)) {
-          if (!is_volume_in_use(dcr)) {
+          if (dcr->can_i_use_volume()) {
              Dmsg1(100, "Call reserve_volume. Vol=%s\n", dcr->VolumeName);
              if (reserve_volume(dcr, dcr->VolumeName) == 0) {
                 Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
@@ -286,7 +286,8 @@ bool dir_find_next_appendable_volume(DCR *dcr)
              goto get_out;
           } else {
              Dmsg1(100, "Volume %s is in use.\n", dcr->VolumeName);
-             dcr->volume_in_use = true;
+             /* If volume is not usable, it is in use by someone else */
+             dcr->set_found_in_use();
              continue;
           }
        }

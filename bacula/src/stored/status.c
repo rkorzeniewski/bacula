@@ -367,7 +367,8 @@ static void send_device_status(DEVICE *dev, STATUS_PKT *sp)
       dev->state & ST_MOUNTED ? "" : "!");
    sendit(msg, len, sp);
 
-   len = Mmsg(msg, _("num_writers=%d block=%d\n\n"), dev->num_writers, dev->blocked());
+   len = Mmsg(msg, _("num_writers=%d reserved=%d block=%d\n\n"), dev->num_writers, 
+              dev->num_reserved(), dev->blocked());
    sendit(msg, len, sp);
 
    len = Mmsg(msg, _("Device parameters:\n"));
