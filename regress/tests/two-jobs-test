@@ -16,7 +16,7 @@ change_jobname CompressedTest $JobName
 start_test
 
 cat >tmp/bconcmds <<END_OF_DATA
-setdebug level=15  storage=File
+setdebug level=150  storage=File
 @output /dev/null
 messages
 @output/dev/null
