@@ -461,7 +461,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
          return false;
       }
       if (recycle) {
-         volume_unused(dcr);             /* mark volume unused */
+//       volume_unused(dcr);             /* mark volume unused */
          if (!dev->truncate(dcr)) {
             Jmsg2(jcr, M_FATAL, 0, _("Truncate error on device %s: ERR=%s\n"),
                   dev->print_name(), dev->print_errmsg());

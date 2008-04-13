@@ -24,6 +24,14 @@ Add long term statistics job table
 
 
 General:
+13Apr08
+kes  Tweak the swap Volume from one drive to another code so that
+     it now seems to work.
+kes  Resolve several problems with recycling that broke the new
+     code (these problems are in 2.2.9 as well).
+kes  Remove the volume lock when calling the sysop code.   
+kes  Don't mark a reserved volume with no writers as unused otherwise
+     jobs fail.
 12Apr08
 kes  Rework class structures for VOLRES, DCR, and DEVICE to make
      the method names a bit more logical, and for more logically

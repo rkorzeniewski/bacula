@@ -464,7 +464,7 @@ bool release_device(DCR *dcr)
             Dmsg2(200, "dir_update_vol_info. Release vol=%s dev=%s\n", 
                   dev->VolCatInfo.VolCatName, dev->print_name());
          }
-         if (!dev->num_writers) {             /* if no more writers */
+         if (!dev->is_busy()) {               /* if not being used */
             volume_unused(dcr);               /*  we obviously are not using the volume */
          }
       }
