@@ -258,14 +258,14 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        dcr->is_reserved(), dcr->VolumeName);
 
     /*
-     * Try the forty oldest or most available volumes.  Note,
+     * Try the twenty oldest or most available volumes.  Note,
      *   the most available could already be mounted on another
      *   drive, so we continue looking for a not in use Volume.
      */
     lock_volumes();
     P(vol_info_mutex);
     dcr->clear_found_in_use();
-    for (int vol_index=1;  vol_index < 40; vol_index++) {
+    for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
        dir->fsend(Find_media, jcr->Job, vol_index, dcr->pool_name, dcr->media_type);
