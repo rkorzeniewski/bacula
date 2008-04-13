@@ -43,7 +43,7 @@ run job=NightlySave1 level=Full pool=Default yes
 run job=NightlySave1 level=Full pool=Default yes
 @# wait between starting jobs
 @sleep 60
-@#setdebug level=100 storage=DDS-4
+setdebug level=190 storage=DDS-4
 run job=NightlySave2 level=Full pool=Full yes
 run job=NightlySave2 level=Full pool=Full yes
 run job=NightlySave2 level=Full pool=Full yes
