@@ -791,9 +791,6 @@ static bool use_storage_cmd(JCR *jcr)
             rctx.PreferMountedVols = false;                
             rctx.exact_match = false;
             rctx.autochanger_only = true;
-            Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
-               rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-               rctx.autochanger_only, rctx.any_drive);
             if ((ok = find_suitable_device_for_job(jcr, rctx))) {
                break;
             }
@@ -806,9 +803,6 @@ static bool use_storage_cmd(JCR *jcr)
                rctx.try_low_use_drive = false;
             }
             rctx.autochanger_only = false;
-            Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
-               rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-               rctx.autochanger_only, rctx.any_drive);
             if ((ok = find_suitable_device_for_job(jcr, rctx))) {
                break;
             }
@@ -821,25 +815,16 @@ static bool use_storage_cmd(JCR *jcr)
          rctx.PreferMountedVols = true;
          rctx.exact_match = true;
          rctx.autochanger_only = false;
-         Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
-            rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-            rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
             break;
          }
          /* Look for any mounted drive */
          rctx.exact_match = false;
-         Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
-            rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-            rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
             break;
          }
          /* Try any drive */
          rctx.any_drive = true;
-         Dmsg5(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
-            rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-            rctx.autochanger_only, rctx.any_drive);
          if ((ok = find_suitable_device_for_job(jcr, rctx))) {
             break;
          }
@@ -932,9 +917,9 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
    } else {
       dirstore = jcr->read_store;
    }
-   Dmsg4(dbglvl, "PrefMnt=%d exact=%d suitable=%d chgronly=%d\n",
-      rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
-      rctx.autochanger_only);
+   Dmsg5(dbglvl, "Start find_suit_dev PrefMnt=%d exact=%d suitable=%d chgronly=%d any=%d\n",
+         rctx.PreferMountedVols, rctx.exact_match, rctx.suitable_device,
+         rctx.autochanger_only, rctx.any_drive);
 
    /* 
     * If the appropriate conditions of this if are met, namely that
@@ -1048,7 +1033,7 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       debug_list_volumes("=== After free temp table\n");
    }
    if (ok) {
-      Dmsg1(dbglvl, "Usable dev found. Vol=%s from in-use vols list\n", rctx.VolumeName);
+      Dmsg1(dbglvl, "OK dev found. Vol=%s from in-use vols list\n", rctx.VolumeName);
       return true;
    }
 
@@ -1080,7 +1065,9 @@ bool find_suitable_device_for_job(JCR *jcr, RCTX &rctx)
       }
    }
    if (ok) {
-      Dmsg1(dbglvl, "Usable dev found. Vol=%s\n", rctx.VolumeName);
+      Dmsg1(dbglvl, "OK dev found. Vol=%s\n", rctx.VolumeName);
+   } else {
+      Dmsg0(dbglvl, "Leave find_suit_dev: no dev found.\n");
    }
    return ok;
 }
