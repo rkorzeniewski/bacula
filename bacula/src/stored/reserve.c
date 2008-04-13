@@ -393,12 +393,13 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
-            vol->set_swapping();
-            vol->dev->set_unload();
+            vol->dev->set_unload();      /* unload our drive */
+            vol->set_swapping();         /* swap from other drive */
             dev->swap_dev = vol->dev;    /* remember to get this vol */
-            vol->dev->vol = NULL;        /* take volume */
-            vol->dev = dev;
-            dev->vol = vol;
+            vol->dev->set_load();        /* then reload on our drive */
+            vol->dev->vol = NULL;        /* remove volume from other drive */
+            vol->dev = dev;              /* point it at our drive */
+            dev->vol = vol;              /* point our drive at it */
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
          } else {
@@ -561,11 +562,9 @@ bool volume_unused(DCR *dcr)
     *  explicitly read in this drive. This allows the SD to remember
     *  where the tapes are or last were.
     */
-   Dmsg3(dbglvl, "=== mark not reserved vol=%s num_writers=%d dev_reserved=%d\n",
-      dev->vol->vol_name, dev->num_writers, dev->num_reserved());
+   Dmsg4(dbglvl, "=== set not reserved vol=%s num_writers=%d dev_reserved=%d dev=%s\n",
+      dev->vol->vol_name, dev->num_writers, dev->num_reserved(), dev->print_name());
    dev->vol->clear_in_use();
-   Dmsg2(dbglvl, "=== set not reserved. Vol=%s dev=%s\n", dev->vol->vol_name,
-         dev->print_name());
    if (dev->is_tape() || dev->is_autochanger()) {
       return true;
    } else {
@@ -1426,10 +1425,14 @@ static bool is_max_jobs_ok(DCR *dcr)
    DEVICE *dev = dcr->dev;
    JCR *jcr = dcr->jcr;
 
-   Dmsg4(dbglvl, "MaxJobs=%d Jobs=%d reserves=%d Vol=%s\n",
+   Dmsg5(dbglvl, "MaxJobs=%d Jobs=%d reserves=%d Status=%s Vol=%s\n",
          dcr->VolCatInfo.VolCatMaxJobs,
          dcr->VolCatInfo.VolCatJobs, dev->num_reserved(),
+         dcr->VolCatInfo.VolCatStatus,
          dcr->VolumeName);
+   if (strcmp(dcr->VolCatInfo.VolCatStatus, "Recycle") == 0) {
+      return true;
+   }
    if (dcr->VolCatInfo.VolCatMaxJobs > 0 && dcr->VolCatInfo.VolCatMaxJobs <=
         (dcr->VolCatInfo.VolCatJobs + dev->num_reserved())) {
       /* Max Job Vols depassed or already reserved */

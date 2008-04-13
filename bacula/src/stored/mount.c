@@ -89,11 +89,13 @@ mount_next_vol:
    if (!dev->poll && retry++ > 4) {
       /* Last ditch effort before giving up, force operator to respond */
       VolCatInfo.Slot = 0;
+      unlock_volumes();
       if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
          Jmsg(jcr, M_FATAL, 0, _("Too many errors trying to mount device %s.\n"),
               dev->print_name());
-         goto bail_out;
+         goto no_lock_bail_out;
       }
+      lock_volumes();
    }
    if (job_canceled(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Job %d canceled.\n"), jcr->JobId);
@@ -124,6 +126,10 @@ mount_next_vol:
       }
       dev->swap_dev = NULL;
    }
+   if (dev->must_load()) {
+      dev->clear_load();
+      dev->clear_volhdr();               /* force "load" */
+   }
    if (!is_suitable_volume_mounted()) {
       bool have_vol = false;
       /* Do we have a candidate volume? */
@@ -139,9 +145,14 @@ mount_next_vol:
          Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
          while (!dir_find_next_appendable_volume(dcr)) {
             Dmsg0(200, "not dir_find_next\n");
-            if (job_canceled(jcr) || !dir_ask_sysop_to_create_appendable_volume(dcr)) {
+            if (job_canceled(jcr)) {
                goto bail_out;
+            }
+            unlock_volumes();
+            if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
+               goto no_lock_bail_out;
              }
+             lock_volumes();
              Dmsg0(200, "Again dir_find_next_append...\n");
          }
          goto mount_next_vol;   
@@ -320,6 +331,8 @@ read_volume:
 
 bail_out:
    unlock_volumes();
+
+no_lock_bail_out:
    return false;
 }
 
@@ -349,7 +362,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
     */
    switch (vol_label_status) {
    case VOL_OK:
-      Dmsg1(150, "Vol OK name=%s\n", VolumeName);
+      Dmsg1(150, "Vol OK name=%s\n", dev->VolHdr.VolumeName);
       dev->VolCatInfo = VolCatInfo;       /* structure assignment */
       break;                    /* got a Volume */
    case VOL_NAME_ERROR:
@@ -413,7 +426,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
        * This was not the volume we expected, but it is OK with
        * the Director, so use it.
        */
-      Dmsg1(150, "want new name=%s\n", VolumeName);
+      Dmsg1(150, "Got new Volume name=%s\n", VolumeName);
       dev->VolCatInfo = VolCatInfo;   /* structure assignment */
       break;                /* got a Volume */
    /*
