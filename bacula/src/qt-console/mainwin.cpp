@@ -253,6 +253,16 @@ void MainWin::closeEvent(QCloseEvent *event)
 {
    m_isClosing = true;
    writeSettings();
+   /*
+    * Close the console pages before non-console pages so that
+    *  the notifier is turned off. Otherwise it prints an error when
+    *  the page it is using gets destroyed.
+    */
+   foreach(Console *console, m_consoleHash){
+      console->writeSettings();
+      console->terminate();
+      console->closeStackPage();
+   }
    /* close all non console pages, this will call settings in destructors */
    while (m_consoleHash.count() < m_pagehash.count()) {
       foreach(Pages *page, m_pagehash) {
@@ -264,12 +274,6 @@ void MainWin::closeEvent(QCloseEvent *event)
             }
          }
       }
-   }
-   /* close the console pages and terminate connection */
-   foreach(Console *console, m_consoleHash){
-      console->writeSettings();
-      console->terminate();
-      console->closeStackPage();
    }
    event->accept();
 }
