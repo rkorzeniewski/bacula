@@ -253,6 +253,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     JCR *jcr = dcr->jcr;
     BSOCK *dir = jcr->dir_bsock;
     bool rtn;
+    char lastVolume[MAX_NAME_LENGTH];
 
     Dmsg2(200, "dir_find_next_appendable_volume: reserved=%d Vol=%s\n", 
        dcr->is_reserved(), dcr->VolumeName);
@@ -265,6 +266,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
     lock_volumes();
     P(vol_info_mutex);
     dcr->clear_found_in_use();
+    lastVolume[0] = 0;
     for (int vol_index=1;  vol_index < 20; vol_index++) {
        bash_spaces(dcr->media_type);
        bash_spaces(dcr->pool_name);
@@ -273,6 +275,12 @@ bool dir_find_next_appendable_volume(DCR *dcr)
        unbash_spaces(dcr->pool_name);
        Dmsg1(100, ">dird %s", dir->msg);
        if (do_get_volume_info(dcr)) {
+          /* Give up if we get the same volume name twice */
+          if (lastVolume[0] && strcmp(lastVolume, dcr->VolumeName) == 0) {
+             Dmsg1(100, "Got same vol = %s\n", lastVolume);
+             break;
+          }
+          bstrncpy(lastVolume, dcr->VolumeName, sizeof(lastVolume));
           if (dcr->can_i_use_volume()) {
              Dmsg1(100, "Call reserve_volume. Vol=%s\n", dcr->VolumeName);
              if (reserve_volume(dcr, dcr->VolumeName) == 0) {
