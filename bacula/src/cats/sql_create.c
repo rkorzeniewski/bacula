@@ -741,7 +741,11 @@ bool my_batch_end(JCR *jcr, B_DB *mdb, const char *error)
    Dmsg0(50, "sql_batch_end started\n");
 
    if (mdb) {
+#ifdef HAVE_DBI 
+      mdb->status = (dbi_error_flag)0;
+#else
       mdb->status = 0;
+#endif
    }
    return true;
 }
