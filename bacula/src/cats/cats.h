@@ -533,6 +533,10 @@ extern const char* my_pg_batch_fill_path_query;
 
 #include <dbi/dbi.h>
 
+#ifdef HAVE_BATCH_FILE_INSERT
+#include <dbi/dbi-dev.h>
+#endif //HAVE_BATCH_FILE_INSERT
+
 #define IS_NUM(x)        ((x) == 1 || (x) == 2 )
 #define IS_NOT_NULL(x)   ((x) == (1 << 0))
 
@@ -557,6 +561,8 @@ struct B_DB {
    brwlock_t lock;                    /* transaction lock */
    dbi_conn *db;
    dbi_result *result;
+   dbi_inst instance;
+   // TODO: change dbi_error_flag to int for more compatible with bacula
    dbi_error_flag status;
    DBI_ROW row;
    DBI_FIELD *fields;
@@ -603,20 +609,24 @@ DBI_FIELD *        my_dbi_fetch_field(B_DB *mdb);
 const char *       my_dbi_strerror   (B_DB *mdb);
 int                my_dbi_getisnull  (dbi_result *result, int row_number, int column_number);
 char *             my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number);
+//int                my_dbi_getvalue   (dbi_result *result, int row_number, unsigned int column_number, char *value);
 int                my_dbi_sql_insert_id(B_DB *mdb, char *table_name);
 
-// TODO: do batch insert in DBI
-//int my_dbi_batch_start(JCR *jcr, B_DB *mdb);
-//int my_dbi_batch_end(JCR *jcr, B_DB *mdb, const char *error);
-//typedef struct ATTR_DBR ATTR_DBR;
-//int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
-//char *my_dbi_copy_escape(char *dest, char *src, size_t len);
+int my_dbi_batch_start(JCR *jcr, B_DB *mdb);
+int my_dbi_batch_end(JCR *jcr, B_DB *mdb, const char *error);
+typedef struct ATTR_DBR ATTR_DBR;
+int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
+char *my_postgresql_copy_escape(char *dest, char *src, size_t len);
+// typedefs for libdbi work with postgresql copy insert
+typedef int (*custom_function_insert_t)(void*, const char*, int);   
+typedef char* (*custom_function_error_t)(void*);
+typedef int (*custom_function_end_t)(void*, const char*);
 
-//extern const char* my_dbi_batch_lock_path_query;
-//extern const char* my_dbi_batch_lock_filename_query;
-//extern const char* my_dbi_batch_unlock_tables_query;
-//extern const char* my_dbi_batch_fill_filename_query;
-//extern const char* my_dbi_batch_fill_path_query;
+extern const char* my_dbi_batch_lock_path_query[3];
+extern const char* my_dbi_batch_lock_filename_query[3];
+extern const char* my_dbi_batch_unlock_tables_query[3];
+extern const char* my_dbi_batch_fill_filename_query[3];
+extern const char* my_dbi_batch_fill_path_query[3];
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   (x)->result
@@ -633,15 +643,14 @@ int                my_dbi_sql_insert_id(B_DB *mdb, char *table_name);
 #define sql_field_seek(x, y)  my_dbi_field_seek((x), (y))
 #define sql_fetch_field(x)    my_dbi_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
-// TODO: do dbi batch insert
 #define sql_batch_start(x,y)    my_dbi_batch_start(x,y)   
 #define sql_batch_end(x,y,z)    my_dbi_batch_end(x,y,z)   
 #define sql_batch_insert(x,y,z) my_dbi_batch_insert(x,y,z)
-#define sql_batch_lock_path_query       my_dbi_batch_lock_path_query
-#define sql_batch_lock_filename_query   my_dbi_batch_lock_filename_query
-#define sql_batch_unlock_tables_query   my_dbi_batch_unlock_tables_query
-#define sql_batch_fill_filename_query   my_dbi_batch_fill_filename_query
-#define sql_batch_fill_path_query       my_dbi_batch_fill_path_query
+#define sql_batch_lock_path_query       my_dbi_batch_lock_path_query[db_type]
+#define sql_batch_lock_filename_query   my_dbi_batch_lock_filename_query[db_type]
+#define sql_batch_unlock_tables_query   my_dbi_batch_unlock_tables_query[db_type]
+#define sql_batch_fill_filename_query   my_dbi_batch_fill_filename_query[db_type]
+#define sql_batch_fill_path_query       my_dbi_batch_fill_path_query[db_type]
 
 #define SQL_ROW               DBI_ROW
 #define SQL_FIELD             DBI_FIELD
