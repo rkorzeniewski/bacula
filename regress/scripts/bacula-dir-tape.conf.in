@@ -199,6 +199,7 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
+  @libdbi@
   dbname = regress; user = regress; password = ""
 }
 
