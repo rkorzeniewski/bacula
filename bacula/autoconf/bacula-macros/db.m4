@@ -135,28 +135,90 @@ AC_ARG_WITH(dbi-driver,
            db_prog="mysql"
            if test -f /usr/local/mysql/bin/mysql; then
               SQL_BINDIR=/usr/local/mysql/bin
+              if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                 -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
+                 SQL_LIBDIR=/usr/local/mysql/lib64/mysql
+              else
+                 SQL_LIBDIR=/usr/local/mysql/lib/mysql
+              fi
            elif test -f /usr/bin/mysql; then
               SQL_BINDIR=/usr/bin
+              if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib64/mysql/libmysqlclient_r.so; then  
+                  SQL_LIBDIR=/usr/lib64/mysql
+              elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/lib
+              fi
            elif test -f /usr/local/bin/mysql; then
               SQL_BINDIR=/usr/local/bin
+              if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then  
+                  SQL_LIBDIR=/usr/local/lib64/mysql
+              elif test -f /usr/local/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/local/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f $withval/bin/mysql; then
+              SQL_BINDIR=$withval/bin
+              if test -f $withval/lib64/mysql/libmysqlclient_r.a \
+                  -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64/mysql
+              elif test -f $withval/lib64/libmysqlclient_r.a \
+                  -o -f $withval/lib64/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64
+              elif test -f $withval/lib/libmysqlclient_r.a \
+                  -o -f $withval/lib/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib/
+              else
+                  SQL_LIBDIR=$withval/lib/mysql
+              fi
            else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find mysql in standard locations)
            fi
+           DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
         ;;
         "postgresql")
            db_prog="postgresql"
            PG_CONFIG=`which pg_config`
-           if test -n "$PG_CONFIG";then
+           if test -n "$PG_CONFIG"; then
               SQL_BINDIR=`"$PG_CONFIG" --bindir`
+              SQL_LIBDIR=`"$PG_CONFIG" --libdir`
            elif test -f /usr/local/bin/psql; then
               SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
            elif test -f /usr/bin/psql; then
-              SQL_BINDIR=/usr/bin
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/lib64/postgresql; then
+                 SQL_LIBDIR=/usr/lib64/postgresql
+              elif test -d /usr/lib/postgresql; then
+                 SQL_LIBDIR=/usr/lib/postgresql
+              elif test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/psql; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
            else
               AC_MSG_RESULT(no)
               AC_MSG_ERROR(Unable to find psql in standard locations)
-          fi
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libpq.a
         ;;
         *)
            AC_MSG_RESULT(no)
@@ -166,7 +228,6 @@ AC_ARG_WITH(dbi-driver,
 
      AC_MSG_RESULT(yes)
      DB_PROG=$db_prog
-
   else
      AC_MSG_RESULT(no)
   fi
@@ -175,6 +236,7 @@ AC_ARG_WITH(dbi-driver,
 ])
 AC_SUBST(SQL_BINDIR)
 AC_SUBST(DB_PROG)
+AC_SUBST(DB_PROG_LIB)
 
 ])
 

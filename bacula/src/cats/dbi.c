@@ -117,7 +117,8 @@ db_init_database(JCR *jcr, const char *db_name, const char *db_user, const char 
              bstrcmp(mdb->db_address, db_address) &&
              bstrcmp(mdb->db_driver, db_driver) &&
              mdb->db_port == db_port) { 
-            Dmsg3(100, "DB REopen %d %s %s\n", mdb->ref_count, db_driver, db_name);
+            Dmsg4(100, "DB REopen %d %s %s erro: %d\n", mdb->ref_count, db_driver, db_name, 
+                  dbi_conn_error(mdb->db, NULL));
             mdb->ref_count++;
             V(mutex);
             return mdb;                  /* already open */
@@ -200,16 +201,15 @@ db_open_database(JCR *jcr, B_DB *mdb)
       port = NULL;
    }
    
-   numdrivers = dbi_initialize(mdb->db_driverdir);
+   numdrivers = dbi_initialize_r(mdb->db_driverdir, &(mdb->instance));
    if (numdrivers < 0) {
-      dbi_shutdown();
       Mmsg2(&mdb->errmsg, _("Unable to locate the DBD drivers to DBI interface in: \n"
                                "db_driverdir=%s. It is probaly not found any drivers\n"),
                                mdb->db_driverdir,numdrivers);
       V(mutex);
       return 0;
    }
-   mdb->db = (void **)dbi_conn_new(mdb->db_driver);
+   mdb->db = (void **)dbi_conn_new_r(mdb->db_driver, mdb->instance);
    dbi_conn_set_option(mdb->db, "host", mdb->db_address); /* default = localhost */
    dbi_conn_set_option(mdb->db, "port", port);            /* default port */
    dbi_conn_set_option(mdb->db, "username", mdb->db_user);     /* login name */
@@ -287,8 +287,10 @@ db_close_database(JCR *jcr, B_DB *mdb)
    if (mdb->ref_count == 0) {
       qdchain(&mdb->bq);
       if (mdb->connected && mdb->db) {
-         sql_close(mdb);
+         //sql_close(mdb);
+         dbi_shutdown_r(mdb->instance);
          mdb->db = NULL;
+         mdb->instance = NULL;
       }
       rwl_destroy(&mdb->lock);
       free_pool_memory(mdb->errmsg);
@@ -313,13 +315,13 @@ db_close_database(JCR *jcr, B_DB *mdb)
       if (mdb->db_socket) {
          free(mdb->db_socket);
       }
-      dbi_shutdown();
+      if (mdb->db_driverdir) {
+         free(mdb->db_driverdir);
+      }
       if (mdb->db_driver) {
           free(mdb->db_driver);
       }
-      free(mdb);
-      
-      
+      free(mdb);            
    }   
    V(mutex);
 }
@@ -347,7 +349,7 @@ int db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index)
  *         the escaped output.
  * 
  * dbi_conn_quote_string_copy receives a pointer to pointer.
- * We need copy the value of pointer to snew. Because libdbi change the 
+ * We need copy the value of pointer to snew because libdbi change the 
  * pointer
  */
 void
@@ -357,14 +359,17 @@ db_escape_string(JCR *jcr, B_DB *mdb, char *snew, char *old, int len)
    char *pnew;
    
    if (len == 0) {
-          snew[0] = 0; 
+      snew[0] = 0; 
    } else {
-          /* correct the size of old basead in len and copy new string to inew */
-          inew = (char *)malloc(sizeof(char) * len + 1);
-          bstrncpy(inew,old,len + 1);
-          /* escape the correct size of old */
-          dbi_conn_escape_string_copy(mdb->db, inew, &pnew);
-          /* copy the escaped string to snew */
+      /* correct the size of old basead in len
+       * and copy new string to inew
+       */
+      inew = (char *)malloc(sizeof(char) * len + 1);
+      bstrncpy(inew,old,len + 1);
+      /* escape the correct size of old */
+      dbi_conn_escape_string_copy(mdb->db, inew, &pnew);
+      free(inew);
+      /* copy the escaped string to snew */
       bstrncpy(snew, pnew, 2 * len + 1);   
    }
    
@@ -429,6 +434,15 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
 
       if (mdb->row) {
          Dmsg0(500, "my_dbi_fetch_row freeing space\n");
+         Dmsg2(500, "my_dbi_free_row row: '%p' num_fields: '%d'\n", mdb->row, mdb->num_fields);
+         if (mdb->num_rows != 0) {
+            for(j = 0; j < mdb->num_fields; j++) {
+               Dmsg2(500, "my_dbi_free_row row '%p' '%d'\n", mdb->row[j], j);
+                  if(mdb->row[j]) {
+                     free(mdb->row[j]);
+                  }                  
+            } 
+         }
          free(mdb->row);
       }
       num_fields += 20;                  /* add a bit extra */
@@ -445,7 +459,7 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
       // get each value from this row
       for (j = 0; j < mdb->num_fields; j++) {
          mdb->row[j] = my_dbi_getvalue(mdb->result, mdb->row_number, j);
-         Dmsg2(500, "my_dbi_fetch_row field '%d' has value '%s'\n", j, mdb->row[j]);
+         Dmsg3(500, "my_dbi_fetch_row field '%p' '%d' has value '%s'\n",mdb->row[j], j, mdb->row[j]);
       }
       // increment the row number for the next call
       mdb->row_number++;
@@ -467,6 +481,7 @@ int my_dbi_max_length(B_DB *mdb, int field_num) {
    int max_length;
    int i;
    int this_length;
+   char *cbuf = NULL;
 
    max_length = 0;
    for (i = 0; i < mdb->num_rows; i++) {
@@ -474,7 +489,9 @@ int my_dbi_max_length(B_DB *mdb, int field_num) {
           this_length = 4;        // "NULL"
       } else {
           // TODO: error
-          this_length = cstrlen(my_dbi_getvalue(mdb->result, i, field_num));
+         cbuf = my_dbi_getvalue(mdb->result, i, field_num);
+         this_length = cstrlen(cbuf);
+         free(cbuf);
       }
 
       if (max_length < this_length) {
@@ -553,23 +570,15 @@ int my_dbi_query(B_DB *mdb, const char *query)
       dbi_result_free(mdb->result);  /* hmm, someone forgot to free?? */
       mdb->result = NULL;
    }
-
-   //for (int i=0; i < 10; i++) {
-          
-      mdb->result = (void **)dbi_conn_query(mdb->db, query);
+         
+   mdb->result = (void **)dbi_conn_query(mdb->db, query);
       
-   //   if (mdb->result) {
-   //      break;
-   //   }
-   //   bmicrosleep(5, 0);
-   //}
-   if (mdb->result == NULL) {
+   if (!mdb->result) {
       Dmsg2(50, "Query failed: %s %p\n", query, mdb->result);      
       goto bail_out;
    }
-
-   //mdb->status = (dbi_error_flag)dbi_conn_error_flag(mdb->db);
-   mdb->status = DBI_ERROR_NONE;
+   
+   mdb->status = (dbi_error_flag) dbi_conn_error(mdb->db, &errmsg);
    
    if (mdb->status == DBI_ERROR_NONE) {
       Dmsg1(500, "we have a result\n", query);
@@ -591,9 +600,9 @@ int my_dbi_query(B_DB *mdb, const char *query)
    return mdb->status;
 
 bail_out:
-   mdb->status = dbi_conn_error_flag(mdb->db);
-   dbi_conn_error(mdb->db, &errmsg);
-   Dmsg4(500, "my_dbi_query we failed dbi error "
+   mdb->status = (dbi_error_flag) dbi_conn_error(mdb->db,&errmsg);
+   //dbi_conn_error(mdb->db, &errmsg);
+   Dmsg4(500, "my_dbi_query we failed dbi error: "
                    "'%s' '%p' '%d' flag '%d''\n", errmsg, mdb->result, mdb->result, mdb->status);
    dbi_result_free(mdb->result);
    mdb->result = NULL;
@@ -602,21 +611,27 @@ bail_out:
 }
 
 void my_dbi_free_result(B_DB *mdb)
-{
-   int i;
+{ 
    
-   db_lock(mdb);
-   //Dmsg2(500, "my_dbi_free_result started result '%p' '%p'\n", mdb->result, mdb->result);
-   if (mdb->result != NULL) {
-          i = dbi_result_free(mdb->result);
-      if(i == 0) {
-         mdb->result = NULL;
-         //Dmsg2(500, "my_dbi_free_result result '%p' '%d'\n", mdb->result, mdb->result);
-      }
-      
+   db_lock(mdb);  
+   int i = 0;
+   if (mdb->result) {
+      Dmsg1(500, "my_dbi_free_result result '%p'\n", mdb->result);
+      dbi_result_free(mdb->result);
    }
 
+   mdb->result = NULL;
+   
    if (mdb->row) {
+      Dmsg2(500, "my_dbi_free_result row: '%p' num_fields: '%d'\n", mdb->row, mdb->num_fields);
+      if (mdb->num_rows != 0) {
+         for(i = 0; i < mdb->num_fields; i++) {
+            Dmsg2(500, "my_dbi_free_result row '%p' '%d'\n", mdb->row[i], i);
+            if(mdb->row[i]) {
+               free(mdb->row[i]);
+            }
+         } 
+      }
       free(mdb->row);
       mdb->row = NULL;
    }
@@ -639,66 +654,116 @@ const char *my_dbi_strerror(B_DB *mdb)
    return errmsg;
 }
 
-// TODO: make batch insert work with libdbi
 #ifdef HAVE_BATCH_FILE_INSERT
 
+/*
+ * This can be a bit strang but is the one way to do
+ * 
+ * Returns 1 if OK
+ *         0 if failed
+ */
 int my_dbi_batch_start(JCR *jcr, B_DB *mdb)
 {
    char *query = "COPY batch FROM STDIN";
-
-   Dmsg0(500, "my_postgresql_batch_start started\n");
-
-   if (my_postgresql_query(mdb,
-                           "CREATE TEMPORARY TABLE batch ("
-                               "fileindex int,"
-                               "jobid int,"
-                               "path varchar,"
-                               "name varchar,"
-                               "lstat varchar,"
-                               "md5 varchar)") == 1)
-   {
-      Dmsg0(500, "my_postgresql_batch_start failed\n");
+   
+   Dmsg0(500, "my_dbi_batch_start started\n");
+   
+   switch (mdb->db_type) {
+   case SQL_TYPE_MYSQL:
+      db_lock(mdb);
+      if (my_dbi_query(mdb,
+                              "CREATE TEMPORARY TABLE batch ("
+                                  "FileIndex integer,"
+                                  "JobId integer,"
+                                  "Path blob,"
+                                  "Name blob,"
+                                  "LStat tinyblob,"
+                                  "MD5 tinyblob)") == 1)
+      {
+         Dmsg0(500, "my_dbi_batch_start failed\n");
+         return 1;
+      }
+      db_unlock(mdb);
+      Dmsg0(500, "my_dbi_batch_start finishing\n");
       return 1;
+      break;
+   case SQL_TYPE_POSTGRESQL:
+      
+      //query = "COPY batch FROM STDIN";
+
+      if (my_dbi_query(mdb,
+                              "CREATE TEMPORARY TABLE batch ("
+                                  "fileindex int,"
+                                  "jobid int,"
+                                  "path varchar,"
+                                  "name varchar,"
+                                  "lstat varchar,"
+                                  "md5 varchar)") == 1)
+      {
+         Dmsg0(500, "my_dbi_batch_start failed\n");
+         return 1;
+      }
+      
+      // We are starting a new query.  reset everything.
+      mdb->num_rows     = -1;
+      mdb->row_number   = -1;
+      mdb->field_number = -1;
+
+      my_dbi_free_result(mdb);
+
+      for (int i=0; i < 10; i++) {
+         my_dbi_query(mdb, query);
+         if (mdb->result) {
+            break;
+         }
+         bmicrosleep(5, 0);
+      }
+      if (!mdb->result) {
+         Dmsg1(50, "Query failed: %s\n", query);
+         goto bail_out;
+      }
+
+      mdb->status = (dbi_error_flag)dbi_conn_error(mdb->db, NULL);
+      //mdb->status = DBI_ERROR_NONE;
+         
+      if (mdb->status == DBI_ERROR_NONE) {
+         // how many fields in the set?
+         mdb->num_fields = dbi_result_get_numfields(mdb->result);
+         mdb->num_rows   = dbi_result_get_numrows(mdb->result);
+         mdb->status = (dbi_error_flag) 1;
+      } else {
+         Dmsg1(50, "Result status failed: %s\n", query);
+         goto bail_out;
+      }
+
+      Dmsg0(500, "my_postgresql_batch_start finishing\n");
+
+      return mdb->status;
+      break;
+   case SQL_TYPE_SQLITE:
+      db_lock(mdb);
+      if (my_dbi_query(mdb,
+                              "CREATE TEMPORARY TABLE batch ("
+                                  "FileIndex integer,"
+                                  "JobId integer,"
+                                  "Path blob,"
+                                  "Name blob,"
+                                  "LStat tinyblob,"
+                                  "MD5 tinyblob)") == 1)
+      {
+         Dmsg0(500, "my_dbi_batch_start failed\n");
+         goto bail_out;
+      }
+      db_unlock(mdb);
+      Dmsg0(500, "my_dbi_batch_start finishing\n");
+      return 1;
+      break;
    }
    
-   // We are starting a new query.  reset everything.
-   mdb->num_rows     = -1;
-   mdb->row_number   = -1;
-   mdb->field_number = -1;
-
-   my_postgresql_free_result(mdb);
-
-   for (int i=0; i < 10; i++) {
-      mdb->result = PQexec(mdb->db, query);
-      if (mdb->result) {
-         break;
-      }
-      bmicrosleep(5, 0);
-   }
-   if (!mdb->result) {
-      Dmsg1(50, "Query failed: %s\n", query);
-      goto bail_out;
-   }
-
-   mdb->status = PQresultStatus(mdb->result);
-   if (mdb->status == PGRES_COPY_IN) {
-      // how many fields in the set?
-      mdb->num_fields = (int) PQnfields(mdb->result);
-      mdb->num_rows   = 0;
-      mdb->status = 1;
-   } else {
-      Dmsg1(50, "Result status failed: %s\n", query);
-      goto bail_out;
-   }
-
-   Dmsg0(500, "my_postgresql_batch_start finishing\n");
-
-   return mdb->status;
-
 bail_out:
-   Mmsg1(&mdb->errmsg, _("error starting batch mode: %s"), PQerrorMessage(mdb->db));
-   mdb->status = 0;
-   PQclear(mdb->result);
+   Mmsg1(&mdb->errmsg, _("error starting batch mode: %s"), my_dbi_strerror(mdb));
+   mdb->status = (dbi_error_flag) 0;
+   my_dbi_free_result(mdb);
    mdb->result = NULL;
    return mdb->status;
 }
@@ -706,47 +771,75 @@ bail_out:
 /* set error to something to abort operation */
 int my_dbi_batch_end(JCR *jcr, B_DB *mdb, const char *error)
 {
-   int res;
-   int count=30;
-   Dmsg0(500, "my_postgresql_batch_end started\n");
+   int res = 0;
+   int count = 30;
+   int (*custom_function)(void*, const char*) = NULL;  
+   dbi_conn_t *myconn = (dbi_conn_t *)(mdb->db);
+   
+   Dmsg0(500, "my_dbi_batch_end started\n");
 
    if (!mdb) {                  /* no files ? */
       return 0;
    }
 
-   do { 
-      res = PQputCopyEnd(mdb->db, error);
-   } while (res == 0 && --count > 0);
+   switch (mdb->db_type) {
+   case SQL_TYPE_MYSQL:
+      if(mdb) {
+         mdb->status = (dbi_error_flag) 0;
+      }
+      break;
+   case SQL_TYPE_POSTGRESQL:
+      custom_function = (custom_function_end_t)dbi_driver_specific_function(dbi_conn_get_driver(mdb->db), "PQputCopyEnd");
 
-   if (res == 1) {
-      Dmsg0(500, "ok\n");
-      mdb->status = 1;
-   }
-   
-   if (res <= 0) {
-      Dmsg0(500, "we failed\n");
-      mdb->status = 0;
-      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
-   }
-   
-   Dmsg0(500, "my_postgresql_batch_end finishing\n");
+                  
+      do { 
+         res = (*custom_function)(myconn->connection, error);         
+      } while (res == 0 && --count > 0);
 
-   return mdb->status;
+      if (res == 1) {
+         Dmsg0(500, "ok\n");
+         mdb->status = (dbi_error_flag) 1;
+      }
+         
+      if (res <= 0) {
+         Dmsg0(500, "we failed\n");
+         mdb->status = (dbi_error_flag) 0;
+         //Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
+       }
+      break;
+   case SQL_TYPE_SQLITE:
+      if(mdb) {
+         mdb->status = (dbi_error_flag) 0;
+      }
+      break;
+   }
+
+   Dmsg0(500, "my_dbi_batch_end finishing\n");
+
+   return true;      
 }
 
+/* 
+ * This function is big and use a big switch.  
+ * In near future is better split in small functions
+ * and refactory.
+ * 
+ */
 int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 {
    int res;
-   int count=30;
+   int count=30;   
+   dbi_conn_t *myconn = (dbi_conn_t *)(mdb->db);
+   int (*custom_function)(void*, const char*, int) = NULL;
+   char* (*custom_function_error)(void*) = NULL;
    size_t len;
    char *digest;
    char ed1[50];
 
-   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
-   my_postgresql_copy_escape(mdb->esc_name, mdb->fname, mdb->fnl);
+   Dmsg0(500, "my_dbi_batch_insert started \n");
 
+   mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);    
    mdb->esc_path = check_pool_memory_size(mdb->esc_path, mdb->pnl*2+1);
-   my_postgresql_copy_escape(mdb->esc_path, mdb->path, mdb->pnl);
 
    if (ar->Digest == NULL || ar->Digest[0] == 0) {
       digest = "0";
@@ -754,31 +847,131 @@ int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
       digest = ar->Digest;
    }
 
-   len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
-              ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
-              mdb->esc_name, ar->attr, digest);
+   switch (mdb->db_type) {
+   case SQL_TYPE_MYSQL:
+      db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+      db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
+      len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
+                      ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_path, 
+                      mdb->esc_name, ar->attr, digest);
+      
+      if (my_dbi_query(mdb,mdb->cmd) == 1)
+      {
+         Dmsg0(500, "my_dbi_batch_insert failed\n");
+         goto bail_out;
+      }
+      
+      Dmsg0(500, "my_dbi_batch_insert finishing\n");
+      
+      return 1;
+      break;
+   case SQL_TYPE_POSTGRESQL:
+      my_postgresql_copy_escape(mdb->esc_name, mdb->fname, mdb->fnl);
+      my_postgresql_copy_escape(mdb->esc_path, mdb->path, mdb->pnl);
+      len = Mmsg(mdb->cmd, "%u\t%s\t%s\t%s\t%s\t%s\n", 
+                     ar->FileIndex, edit_int64(ar->JobId, ed1), mdb->esc_path, 
+                     mdb->esc_name, ar->attr, digest);
+      
+      /* libdbi don't support CopyData and we need call a postgresql
+       * specific function to do this work
+       */
+      Dmsg2(500, "my_dbi_batch_insert :\n %s \ncmd_size: %d",mdb->cmd, len);
+      if ((custom_function = (custom_function_insert_t)dbi_driver_specific_function(dbi_conn_get_driver(mdb->db),
+            "PQputCopyData")) != NULL) {
+         do { 
+            res = (*custom_function)(myconn->connection, mdb->cmd, len);
+         } while (res == 0 && --count > 0);
 
-   do { 
-      res = PQputCopyData(mdb->db,
-                          mdb->cmd,
-                          len);
-   } while (res == 0 && --count > 0);
+         if (res == 1) {
+            Dmsg0(500, "ok\n");
+            mdb->changes++;
+            mdb->status = (dbi_error_flag) 1;
+         }
 
-   if (res == 1) {
-      Dmsg0(500, "ok\n");
-      mdb->changes++;
-      mdb->status = 1;
+         if (res <= 0) {
+            Dmsg0(500, "my_dbi_batch_insert failed\n");
+            goto bail_out;
+         }
+
+         Dmsg0(500, "my_dbi_batch_insert finishing\n");
+         return mdb->status;
+      } else {
+         // ensure to detect a PQerror 
+         custom_function_error = (custom_function_error_t)dbi_driver_specific_function(dbi_conn_get_driver(mdb->db), "PQerrorMessage");
+         Dmsg1(500, "my_dbi_batch_insert failed\n PQerrorMessage: %s", (*custom_function_error)(myconn->connection));
+         goto bail_out;
+      }
+      break;
+   case SQL_TYPE_SQLITE:
+      db_escape_string(jcr, mdb, mdb->esc_name, mdb->fname, mdb->fnl);
+      db_escape_string(jcr, mdb, mdb->esc_path, mdb->path, mdb->pnl);
+      len = Mmsg(mdb->cmd, "INSERT INTO batch VALUES (%u,%s,'%s','%s','%s','%s')",
+                      ar->FileIndex, edit_int64(ar->JobId,ed1), mdb->esc_path, 
+                      mdb->esc_name, ar->attr, digest);
+      if (my_dbi_query(mdb,mdb->cmd) == 1)
+      {
+         Dmsg0(500, "my_dbi_batch_insert failed\n");
+         goto bail_out;
+      }
+      
+      Dmsg0(500, "my_dbi_batch_insert finishing\n");
+      
+      return 1;
+      break;
+   }
+    
+bail_out:
+  Mmsg1(&mdb->errmsg, _("error inserting batch mode: %s"), my_dbi_strerror(mdb));
+  mdb->status = (dbi_error_flag) 0;
+  my_dbi_free_result(mdb);  
+  return mdb->status;
+}
+
+/*
+ * Escape strings so that PostgreSQL is happy on COPY
+ *
+ *   NOTE! len is the length of the old string. Your new
+ *         string must be long enough (max 2*old+1) to hold
+ *         the escaped output.
+ */
+char *my_postgresql_copy_escape(char *dest, char *src, size_t len)
+{
+   /* we have to escape \t, \n, \r, \ */
+   char c = '\0' ;
+
+   while (len > 0 && *src) {
+      switch (*src) {
+      case '\n':
+         c = 'n';
+         break;
+      case '\\':
+         c = '\\';
+         break;
+      case '\t':
+         c = 't';
+         break;
+      case '\r':
+         c = 'r';
+         break;
+      default:
+         c = '\0' ;
+      }
+
+      if (c) {
+         *dest = '\\';
+         dest++;
+         *dest = c;
+      } else {
+         *dest = *src;
+      }
+
+      len--;
+      src++;
+      dest++;
    }
 
-   if (res <= 0) {
-      Dmsg0(500, "we failed\n");
-      mdb->status = 0;
-      Mmsg1(&mdb->errmsg, _("error ending batch mode: %s"), PQerrorMessage(mdb->db));
-   }
-
-   Dmsg0(500, "my_postgresql_batch_insert finishing\n");
-
-   return mdb->status;
+   *dest = '\0';
+   return dest;
 }
 
 #endif /* HAVE_BATCH_FILE_INSERT */
@@ -823,9 +1016,8 @@ int my_dbi_getisnull(dbi_result *result, int row_number, int column_number) {
 char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_number) {
 
    /* TODO: This is very bad, need refactoring */
-   POOLMEM *buf = get_pool_memory(PM_FNAME);
-   //const unsigned char *bufb = (unsigned char *)malloc(sizeof(unsigned char) * 300);
-   //const unsigned char *bufb;
+   //POOLMEM *buf = get_pool_memory(PM_FNAME);
+   char *buf = NULL;
    const char *errmsg;
    const char *field_name;     
    unsigned short dbitype;
@@ -853,16 +1045,19 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
       field_name = dbi_result_get_field_name(result, column_number);
       field_length = dbi_result_get_field_length(result, field_name);
       dbitype = dbi_result_get_field_type_idx(result,column_number);
-                
+      
       if(field_length) {
-          buf = check_pool_memory_size(buf, field_length + 1);
+         //buf = check_pool_memory_size(buf, field_length + 1);
+         buf = (char *)malloc(sizeof(char *) * field_length + 1);
       } else {
-          buf = check_pool_memory_size(buf, 50);
+         /* if numbers */
+         //buf = check_pool_memory_size(buf, 50);
+         buf = (char *)malloc(sizeof(char *) * 50);
       }
       
-      Dmsg5(500, "my_dbi_getvalue result '%p' type '%d' \n field name '%s' "
-            "field_length '%d' field_length size '%d'\n", 
-            result, dbitype, field_name, field_length, sizeof_pool_memory(buf));
+      Dmsg4(500, "my_dbi_getvalue result '%p' type '%d' \n\tfield name '%s'\n\t"
+            "field_length '%d'\n", 
+            result, dbitype, field_name, field_length);
       
       switch (dbitype) {
       case DBI_TYPE_INTEGER:
@@ -873,7 +1068,7 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
       case DBI_TYPE_STRING:
          if(field_length) {
             field_length = bsnprintf(buf, field_length + 1, "%s", 
-                  dbi_result_get_string(result, field_name));
+            dbi_result_get_string(result, field_name));
          } else {
             buf[0] = 0;
          }
@@ -913,8 +1108,97 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
                 
    Dmsg3(500, "my_dbi_getvalue finish result '%p' num bytes '%d' data '%s'\n", 
       result, field_length, buf);
+   
    return buf;
 }
+
+//int my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_number, char *value) {
+//   
+//   void *v;
+//   const char *errmsg;
+//   int error = 0;
+//   const char *field_name;     
+//   unsigned short dbitype;
+//   int32_t field_length = 0;
+//   int64_t num;
+//
+//   /* correct the index for dbi interface
+//    * dbi index begins 1
+//    * I prefer do not change others functions
+//    */
+//   Dmsg3(600, "my_dbi_getvalue pre-starting result '%p' row number '%d' column number '%d'\n", 
+//                                result, row_number, column_number);
+//        
+//   column_number++;
+//
+//   if(row_number == 0) {
+//     row_number++;
+//   }
+//      
+//   Dmsg3(600, "my_dbi_getvalue starting result '%p' row number '%d' column number '%d'\n", 
+//                        result, row_number, column_number);
+//   
+//   if(dbi_result_seek_row(result, row_number)) {
+//
+//      field_name = dbi_result_get_field_name(result, column_number);
+//      field_length = dbi_result_get_field_length(result, field_name);
+//      dbitype = dbi_result_get_field_type_idx(result,column_number);
+//
+//      Dmsg4(500, "my_dbi_getvalue result '%p' type '%d' \n\tfield name '%s'\n\t"
+//            "field_length '%d'\n", result, dbitype, field_name, field_length);
+//
+//      switch (dbitype) {
+//      case DBI_TYPE_INTEGER:
+//         v = (int64_t *)malloc(sizeof(int64_t));
+//         error = dbi_result_bind_longlong(result, field_name, (int64_t *)v);
+//         // transform in string
+//         num = *(int64_t *)v;
+//         edit_int64(num, value);
+//         field_length = strlen(value);
+//         break;
+//      case DBI_TYPE_STRING:
+//         if(field_length) {
+//            dbi_result_bind_string(result, field_name, (const char **)v);
+//            value = (char *) v;
+//         } else {
+//            value[0] = 0;
+//         }
+//         break;
+//      case DBI_TYPE_BINARY:
+//         if(field_length) {
+//            dbi_result_bind_binary(result, field_name, (const unsigned char **)v);
+//            value = (char *)v;
+//         } else {
+//            value[0] = 0;
+//         }
+//         break;
+//      case DBI_TYPE_DATETIME:
+//         //time_t last;
+//         struct tm tm;
+//
+//         v = (time_t *)dbi_result_get_datetime(result, field_name);
+//         dbi_result_bind_datetime(result, field_name, (time_t *)v);
+//         if(!v) {
+//                field_length = bsnprintf(value, 20, "0000-00-00 00:00:00"); 
+//         } else {
+//            (void)localtime_r((time_t *)v, &tm);
+//            field_length = bsnprintf(value, 20, "%04d-%02d-%02d %02d:%02d:%02d",
+//                  (tm.tm_year + 1900), (tm.tm_mon + 1), tm.tm_mday,
+//                  tm.tm_hour, tm.tm_min, tm.tm_sec);
+//         }
+//         break;
+//      }
+//
+//   } else {
+//      dbi_conn_error(dbi_result_get_conn(result), &errmsg);
+//      Dmsg1(500, "my_dbi_getvalue error: %s\n", errmsg);
+//   }
+//                
+//   Dmsg2(500, "my_dbi_getvalue finish result '%p' num bytes '%d'\n",
+//      result, field_length);
+//   
+//   return 1;
+//}
 
 int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
 {
@@ -960,28 +1244,62 @@ int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
 }
 
 #ifdef HAVE_BATCH_FILE_INSERT
-const char *my_dbi_batch_lock_path_query = 
-   "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE";
+const char *my_dbi_batch_lock_path_query[3] = {
+   /* Mysql */
+   "LOCK TABLES Path write, batch write, Path as p write",
+   /* Postgresql */
+   "BEGIN; LOCK TABLE Path IN SHARE ROW EXCLUSIVE MODE",
+   /* SQLite */
+   "BEGIN"};  
 
+const char *my_dbi_batch_lock_filename_query[3] = {
+   /* Mysql */
+   "LOCK TABLES Filename write, batch write, Filename as f write",
+   /* Postgresql */
+   "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE",
+   /* SQLite */
+   "BEGIN"};
 
-const char *my_dbi_batch_lock_filename_query = 
-   "BEGIN; LOCK TABLE Filename IN SHARE ROW EXCLUSIVE MODE";
+const char *my_dbi_batch_unlock_tables_query[3] = {
+   /* Mysql */
+   "UNLOCK TABLES",
+   /* Postgresql */
+   "COMMIT",
+   /* SQLite */
+   "COMMIT"};
 
-const char *my_dbi_batch_unlock_tables_query = "COMMIT";
-
-const char *my_dbi_batch_fill_path_query = 
+const char *my_dbi_batch_fill_path_query[3] = {
+   /* Mysql */
    "INSERT INTO Path (Path) "
-    "SELECT a.Path FROM "
-     "(SELECT DISTINCT Path FROM batch) AS a "
-      "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ";
+   "SELECT a.Path FROM " 
+   "(SELECT DISTINCT Path FROM batch) AS a WHERE NOT EXISTS "
+   "(SELECT Path FROM Path AS p WHERE p.Path = a.Path)",
+   /* Postgresql */
+   "INSERT INTO Path (Path) "
+   "SELECT a.Path FROM "
+   "(SELECT DISTINCT Path FROM batch) AS a "
+   "WHERE NOT EXISTS (SELECT Path FROM Path WHERE Path = a.Path) ",
+   /* SQLite */
+   "INSERT INTO Path (Path)" 
+   " SELECT DISTINCT Path FROM batch"
+   " EXCEPT SELECT Path FROM Path"};
 
-
-const char *my_dbi_batch_fill_filename_query = 
+const char *my_dbi_batch_fill_filename_query[3] = {
+   /* Mysql */
    "INSERT INTO Filename (Name) "
-    "SELECT a.Name FROM "
-     "(SELECT DISTINCT Name FROM batch) as a "
-      "WHERE NOT EXISTS "
-       "(SELECT Name FROM Filename WHERE Name = a.Name)";
+   "SELECT a.Name FROM " 
+   "(SELECT DISTINCT Name FROM batch) AS a WHERE NOT EXISTS "
+   "(SELECT Name FROM Filename AS f WHERE f.Name = a.Name)",
+   /* Postgresql */
+   "INSERT INTO Filename (Name) "
+   "SELECT a.Name FROM "
+   "(SELECT DISTINCT Name FROM batch) as a "
+   "WHERE NOT EXISTS "
+   "(SELECT Name FROM Filename WHERE Name = a.Name)",
+   /* SQLite */
+   "INSERT INTO Filename (Name)"
+   " SELECT DISTINCT Name FROM batch "
+   " EXCEPT SELECT Name FROM Filename"};
 #endif /* HAVE_BATCH_FILE_INSERT */
 
 #endif /* HAVE_DBI */
