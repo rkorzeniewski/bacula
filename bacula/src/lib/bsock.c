@@ -822,6 +822,7 @@ int BSOCK::wait_data_intr(int sec)
       return -1;                /* error return */
    default:
       b_errno = 0;
+      break;
    }
    return 1;
 }
