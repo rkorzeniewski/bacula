@@ -10,6 +10,8 @@ out="${cwd}/tmp/sed_tmp"
 
 # set the ports used by these tests
 BASEPORT=${BASEPORT:-8101}
+LIBDBI=${LIBDBI:- }
+libdbi=${LIBDBI}
 srcdir=${BACULA_SOURCE}
 dirport=${BASEPORT}
 fdport=`expr ${BASEPORT} '+' 1`
@@ -55,3 +57,5 @@ echo "s%@sitename@%${SITE_NAME}%g" >>${out}
 echo "s%@os@%${os}%g" >>${out}
 echo "s%@bversion@%${bversion}%g" >>${out}
 echo "s%@bdate@%${bdate}%g" >>${out}
+echo "s%@libdbi@%${libdbi}%g" >>${out}
+
