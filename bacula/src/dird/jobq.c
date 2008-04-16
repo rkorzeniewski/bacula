@@ -684,18 +684,10 @@ static bool acquire_resources(JCR *jcr)
    }
    if (jcr->rstore) {
       Dmsg1(200, "Rstore=%s\n", jcr->rstore->name());
-      if (jcr->rstore->NumConcurrentReadJobs == 0 &&
-          jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
-         /* Simple case, first job */
-         jcr->rstore->NumConcurrentReadJobs = 1;
+      if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs) {
+         jcr->rstore->NumConcurrentReadJobs++;
          jcr->rstore->NumConcurrentJobs++;
-         Dmsg0(200, "Set rncj=1\n");
-      /* We can do this only if multi-drive autochanger */
-//    } else if (jcr->rstore->NumConcurrentJobs < jcr->rstore->MaxConcurrentJobs
-//       && jcr->rstore->NumConcurrentReadJobs < jcr->rstore->MaxConcurrentReadJobs) {
-//       jcr->rstore->NumConcurrentReadJobs++;
-//       jcr->rstore->NumConcurrentJobs++;
-//       Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
+         Dmsg1(200, "Inc rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       } else {
          Dmsg1(200, "Fail rncj=%d\n", jcr->rstore->NumConcurrentJobs);
          set_jcr_job_status(jcr, JS_WaitStoreRes);
@@ -705,12 +697,7 @@ static bool acquire_resources(JCR *jcr)
    
    if (jcr->wstore) {
       Dmsg1(200, "Wstore=%s\n", jcr->wstore->name());
-      if (jcr->wstore->NumConcurrentJobs == 0 &&
-          jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
-         /* Simple case, first job */
-         jcr->wstore->NumConcurrentJobs = 1;
-         Dmsg0(200, "Set wncj=1\n");
-      } else if (jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
+      if (jcr->wstore->NumConcurrentJobs < jcr->wstore->MaxConcurrentJobs) {
          jcr->wstore->NumConcurrentJobs++;
          Dmsg1(200, "Inc wncj=%d\n", jcr->wstore->NumConcurrentJobs);
       } else if (jcr->rstore) {

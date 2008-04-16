@@ -192,6 +192,8 @@ bool acquire_device_for_read(DCR *dcr)
          goto get_out;                /* error return */
       }
 
+      dcr->do_swapping();
+
       autoload_device(dcr, 0, NULL);
 
       /*
@@ -236,6 +238,7 @@ bool acquire_device_for_read(DCR *dcr)
          } else {
              bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
          }
+         unload_autochanger(dcr, -1);
          /* Fall through */
       default:
          Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);

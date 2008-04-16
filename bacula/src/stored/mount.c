@@ -102,34 +102,12 @@ mount_next_vol:
       goto bail_out;
    }
    recycle = false;
+
    if (dev->must_unload()) {
-      Dmsg0(150, "mount_next_volume release=1\n");
-      unload_autochanger(dcr, -1);
-      release_volume();
-      dev->clear_unload();
       ask = true;                     /* ask operator to mount tape */
    }
-   /*
-    * See if we are asked to swap the Volume from another device
-    *  if so, unload the other device here, and attach the
-    *  volume to our drive.
-    */
-   if (dev->swap_dev) {
-      Dmsg1(100, "Swap unloading %s\n", dev->swap_dev->print_name());
-      if (dev->swap_dev->must_unload()) {
-         unload_dev(dcr, dev->swap_dev);
-      }
-      if (dev->vol) {
-         dev->vol->clear_swapping();
-         dev->vol->set_in_use();
-         dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
-      }
-      dev->swap_dev = NULL;
-   }
-   if (dev->must_load()) {
-      dev->clear_load();
-      dev->clear_volhdr();               /* force "load" */
-   }
+   do_swapping();
+
    if (!is_suitable_volume_mounted()) {
       bool have_vol = false;
       /* Do we have a candidate volume? */
@@ -492,6 +470,36 @@ bool DCR::is_suitable_volume_mounted()
    return dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
 }
 
+void DCR::do_swapping()
+{
+   if (dev->must_unload()) {
+      Dmsg0(150, "mount_next_volume release=1\n");
+      unload_autochanger(this, -1);
+      release_volume();
+      dev->clear_unload();
+   }
+   /*
+    * See if we are asked to swap the Volume from another device
+    *  if so, unload the other device here, and attach the
+    *  volume to our drive.
+    */
+   if (dev->swap_dev) {
+      Dmsg1(100, "Swap unloading %s\n", dev->swap_dev->print_name());
+      if (dev->swap_dev->must_unload()) {
+         unload_dev(this, dev->swap_dev);
+      }
+      if (dev->vol) {
+         dev->vol->clear_swapping();
+         dev->vol->set_in_use();
+         dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
+      }
+      dev->swap_dev = NULL;
+   }
+   if (dev->must_load()) {
+      dev->clear_load();
+      dev->clear_volhdr();               /* force "load" */
+   }
+}
 
 
 /*
