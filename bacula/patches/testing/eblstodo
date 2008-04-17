@@ -632,6 +632,5 @@ RunScript {
    console = "aaaa"
 }
 
- x fix segfault when config files are empty
  o cleanup bextract to use filed code
 
