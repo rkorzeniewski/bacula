@@ -36,6 +36,7 @@
  */ 
 
 #include "bat.h"
+#include "version.h"
 #include "joblist/joblist.h"
 #include "storage/storage.h"
 #include "fileset/fileset.h"
@@ -253,11 +254,6 @@ void MainWin::closeEvent(QCloseEvent *event)
 {
    m_isClosing = true;
    writeSettings();
-   /*
-    * Close the console pages before non-console pages so that
-    *  the notifier is turned off. Otherwise it prints an error when
-    *  the page it is using gets destroyed.
-    */
    foreach(Console *console, m_consoleHash){
       console->writeSettings();
       console->terminate();
@@ -274,6 +270,11 @@ void MainWin::closeEvent(QCloseEvent *event)
             }
          }
       }
+   }
+   foreach(Console *console, m_consoleHash){
+      console->writeSettings();
+      console->terminate();
+      console->closeStackPage();
    }
    event->accept();
 }
@@ -490,7 +491,7 @@ void MainWin::input_line()
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
-      tr("<br><h2>bat 1.0, by Dirk H Bartley and Kern Sibbald</h2>"
+      tr("<br><h2>bat " VERSION "(" BDATE "), by Dirk H Bartley and Kern Sibbald</h2>"
          "<p>Copyright &copy; 2007-" BYEAR " Free Software Foundation Europe e.V."
          "<p>The <b>bat</b> is an administrative console"
          " interface to the Director."));
