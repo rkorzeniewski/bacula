@@ -27,6 +27,7 @@
 */
 /*
  * mtops.c - Emulate the Linux st (scsi tape) driver on file.
+ * for regression and bug hunting purpose
  *
  * Version $Id$
  *
@@ -54,15 +55,114 @@
 #define SCSISTAT_COMMAND_TERMINATED    0x22
 #define SCSISTAT_QUEUE_FULL            0x28
 
+/*
+ * +---+-------+----------------+------------------------+
+ * | V | NB FM | FM index tab   | Data                   |
+ * +---+-------+----------------+------------------------+
+ *
+ * V : char version
+ * NB FM : int16 max_file_mark
+ * FM index : int64 file_mark_index[max_file_mark]
+ * DATA : data
+ */
+
+typedef struct
+{
+   /* format infos */
+   int16_t     version;
+   int16_t     max_file_mark;
+   int16_t     block_size;
+   int32_t     block_max;
+   off_t       *file_mark_index;
+   off_t       data_start;
+
+} FTAPE_FORMAT;
+
+#define FTAPE_HEADER_SIZE (2+sizeof(int16_t))
+
+typedef  struct
+{
+   int         fd : 0;		/* Os file descriptor */
+   char        *file;		/* file name */
+   bool        EOD;
+   bool        EOF;		/* End of file */
+   bool        EOT;		/* End of tape */
+
+   FTAPE_FORMAT format;
+
+   int16_t     current_file;	/* max 65000 files */
+   int32_t     current_block;	/* max 4G blocks of 512B */
+
+} FTAPE_INFO;
+
+#define NB_TAPE_LIST  15
+FTAPE_INFO tape_list[NB_TAPE_LIST];
+
+
 static int tape_get(int fd, struct mtget *mt_get);
 static int tape_op(int fd, struct mtop *mt_com);
 static int tape_pos(int fd, struct mtpos *mt_pos);
+
+static int dbglevel = 10;
+
+static FTAPE_INFO *get_tape(int fd)
+{
+   if (fd >= NB_TAPE_LIST) {
+      /* error */
+      return NULL;
+   }
+
+   return &tape_list[fd];
+}
+
+static FTAPE_INFO *new_volume(int fd, const char *file)
+{
+   FTAPE_INFO *tape = get_tape(fd);
+   if (!tape) {
+      return NULL;
+   }
+   memset(tape, 0, sizeof(FTAPE_INFO));
+
+   tape->fd = fd;
+   tape->file = bstrdup(file);
+
+   nb = read(tape->fd, &tape->format, FTAPE_HEADER_SIZE);
+   if (nb != FTAPE_HEADER_SIZE) { /* new tape ? */
+      
+   }
+   tape->format.file_index = mmap(NULL, 
+				  tape->format.max_file_mark * sizeof(off_t), 
+				  PROT_READ | PROT_WRITE,
+				  MAP_SHARED, fileno(fd), FTAPE_HEADER_SIZE);
+
+   if (!tape->format.file_index) {
+      /* error */
+   }
+
+   tape->format.data_start = 
+      FTAPE_HEADER_SIZE  + sizeof(off_t)* tape->format.max_file_mark ;
+
+   return tape;
+}
+
+static int free_volume(int fd)
+{
+   FTAPE_INFO *tape = get_tape(fd);
+
+   if (tape) {
+      munmap(tape->format.file_index, tape->format.max_file_mark * sizeof(off_t));
+      free(tape->file);
+      free(tape);
+   }
+}
 
 int
 fake_tape_open(const char *file, int flags, int mode)
 {
    int fd;
+   Dmsg(dbglevel, "fake_tape_open(%s, %i, %i)\n", file, flags, mode);
    fd = open(file, flags, mode);
+   new_volume(fd, file);
    return fd;
 }
 
@@ -93,6 +193,7 @@ fake_tape_write(int fd, const void *buffer, unsigned int count)
 int
 fake_tape_close(int fd)
 {
+   free_volume(fd);
    close(fd);
    return 0;
 }
@@ -132,7 +233,13 @@ fake_tape_ioctl(int fd, unsigned long int request, ...)
 static int tape_op(int fd, struct mtop *mt_com)
 {
    int result;
-
+   
+   FTAPE_INFO *tape = get_tape(fd);
+   if (!tape) {
+      errno = EBADF;
+      return -1;
+   }
+   
    switch (mt_com->mt_op)
    {
    case MTRESET:
@@ -150,147 +257,167 @@ static int tape_op(int fd, struct mtop *mt_com)
       break;
 
    case MTFSF:
-      for (index = 0; index < mt_com->mt_count; index++) {
-         result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, 1, 0, FALSE);
-         if (result == NO_ERROR) {
-            pHandleInfo->ulFile++;
-            pHandleInfo->bEOF = true;
-            pHandleInfo->bEOT = false;
-         }
+      index = tape->current_file + mt_com->mt_count;
+
+      if (index >= tape->max_file_mark) {
+	 errno = EIO;
+	 result = -1;
+
+      } else {
+	 tape->current_file = index;
+	 tape->current_block = 0;
+	 tape->EOF = true;
+	 tape->EOT = false;
+
+	 pos = tape->file_mark_index[index];
+	 if (lseek(fd, pos, SEEK_SET) == (boffset_t)-1) {
+	    berrno be;
+	    dev_errno = errno;
+	    Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
+		  print_name(), be.bstrerror());
+	    result = -1;
+	 }
       }
       break;
 
    case MTBSF:
-      for (index = 0; index < mt_com->mt_count; index++) {
-         result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, (DWORD)-1, ~0, FALSE);
-         if (result == NO_ERROR) {
-            pHandleInfo->ulFile--;
-            pHandleInfo->bBlockValid = false;
-            pHandleInfo->bEOD = false;
-            pHandleInfo->bEOF = false;
-            pHandleInfo->bEOT = false;
-         }
-      }
+      index = tape->current_file - mt_com->mt_count;
+
+      if (index < 0 && index => tape->max_file_mark) {
+	 errno = EIO;
+	 result = -1;
+
+      } else {
+	 tape->current_file = index;
+	 tape->current_block = 0;
+	 tape->EOF = true;
+	 tape->EOT = false;
+
+	 pos = tape->file_mark_index[index];
+	 if (lseek(fd, pos, SEEK_SET) == (boffset_t)-1) {
+	    berrno be;
+	    dev_errno = errno;
+	    Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
+		  print_name(), be.bstrerror());
+	    result = -1;
+	 }
       break;
 
-   case MTFSR:
-      result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_RELATIVE_BLOCKS, 0, mt_com->mt_count, 0, FALSE);
-      if (result == NO_ERROR) {
-         pHandleInfo->bEOD = false;
-         pHandleInfo->bEOF = false;
-         pHandleInfo->bEOT = false;
-      } else if (result == ERROR_FILEMARK_DETECTED) {
-         pHandleInfo->bEOF = true;
+   case MTFSR:			/* block forward */
+      if ((tape->current_block + mt_com->mt_count) >= tape->block_max) {
+	 errno = ENOSPC;
+	 result = -1;
+
+      } else { // TODO: check for tape mark
+
+	 tape->current_block += mt_com->mt_count;
+	 tape->EOF = false;
+	 tape->EOT = false;
+
+	 if (lseek(fd, mt_com->mt_count * tape->format.block_size, SEEK_CUR) == (boffset_t)-1) {
+	    berrno be;
+	    dev_errno = errno;
+	    Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
+		  print_name(), be.bstrerror());
+	    result = -1;
+	 }
       }
+
+//
+//      result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_RELATIVE_BLOCKS, 0, mt_com->mt_count, 0, FALSE);
+//      if (result == NO_ERROR) {
+//         pHandleInfo->bEOD = false;
+//         pHandleInfo->bEOF = false;
+//         pHandleInfo->bEOT = false;
+//      } else if (result == ERROR_FILEMARK_DETECTED) {
+//         pHandleInfo->bEOF = true;
+//      }
+//
       break;
 
    case MTBSR:
-      result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_RELATIVE_BLOCKS, 0, -mt_com->mt_count, ~0, FALSE);
-      if (result == NO_ERROR) {
-         pHandleInfo->bEOD = false;
-         pHandleInfo->bEOF = false;
-         pHandleInfo->bEOT = false;
-      } else if (result == ERROR_FILEMARK_DETECTED) {
-         pHandleInfo->ulFile--;
-         pHandleInfo->bBlockValid = false;
-         pHandleInfo->bEOD = false;
-         pHandleInfo->bEOF = false;
-         pHandleInfo->bEOT = false;
+      if ((tape->current_block - mt_com->mt_count) < 0) {
+         // we are on tapemark, we have to BSF
+	 struct mtop mt;
+	 mt.mt_op = MTBSF;
+	 mt.mt_count = 1;
+	 result = tape_op(fd, &mt);
+	 
+      } else { 
+
+	 tape->current_block -= mt_com->mt_count;
+	 tape->EOF = false;
+	 tape->EOT = false;
+	 
+	 if (lseek(fd, -mt_com->mt_count * tape->format.block_size, SEEK_CUR) == (boffset_t)-1) {
+	    berrno be;
+	    dev_errno = errno;
+	    Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
+		  print_name(), be.bstrerror());
+	    result = -1;
+	 }
       }
       break;
 
    case MTWEOF:
-      result = WriteTapemark(pHandleInfo->OSHandle, TAPE_FILEMARKS, mt_com->mt_count, FALSE);
-      if (result == NO_ERROR) {
-         pHandleInfo->bEOF = true;
-         pHandleInfo->bEOT = false;
-         pHandleInfo->ulFile += mt_com->mt_count;
-         pHandleInfo->bBlockValid = true;
-         pHandleInfo->ullFileStart = 0;
+      if (tape->current_file >= tape->format.max_file_mark) {
+	 errno = ENOSPC;
+	 result = -1;
+      } else {
+	 tape->current_file++;
+	 tape->format.file_index[tape->current_file] = ftell(fd);
+	 tape->EOF = 1;
       }
+
       break;
 
    case MTREW:
-      if (lseek(fd, (boffset_t)0, SEEK_SET) < 0) {
+      if (lseek(fd, tape->format.data_start, SEEK_SET) < 0) {
          berrno be;
          dev_errno = errno;
          Mmsg2(errmsg, _("lseek error on %s. ERR=%s.\n"),
             print_name(), be.bstrerror());
          result = -1 ;
       } else {
+	 tape->EOF = false;
 	 result = NO_ERROR;
       }
       break;
 
-   case MTOFFL:
-      result = PrepareTape(pHandleInfo->OSHandle, TAPE_UNLOAD, FALSE);
-      if (result == NO_ERROR) {
-         pHandleInfo->bEOD = false;
-         pHandleInfo->bEOF = false;
-         pHandleInfo->bEOT = false;
-         pHandleInfo->ulFile = 0;
-         pHandleInfo->ullFileStart = 0;
-      }
+   case MTOFFL:			/* put tape offline */
+      // check if can_read/can_write
+      result = NO_ERROR;
       break;
 
    case MTRETEN:
-      result = PrepareTape(pHandleInfo->OSHandle, TAPE_TENSION, FALSE);
-      if (result == NO_ERROR) {
-         pHandleInfo->bEOD = false;
-         pHandleInfo->bEOF = false;
-         pHandleInfo->bEOT = false;
-         pHandleInfo->ulFile = 0;
-         pHandleInfo->bBlockValid = true;
-         pHandleInfo->ullFileStart = 0;
-      }
+      result = NO_ERROR;
       break;
 
-   case MTBSFM:
-      for (index = 0; index < mt_com->mt_count; index++) {
-         result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, (DWORD)-1, ~0, FALSE);
-         if (result == NO_ERROR) {
-            result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, 1, 0, FALSE);
-            pHandleInfo->bEOD = false;
-            pHandleInfo->bEOF = false;
-            pHandleInfo->bEOT = false;
-         }
-      }
+   case MTBSFM:			/* not used by bacula */
+      errno = EIO;
+      result = -1;
       break;
 
-   case MTFSFM:
-      for (index = 0; index < mt_com->mt_count; index++) {
-         result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, mt_com->mt_count, 0, FALSE);
-         if (result == NO_ERROR) {
-            result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, (DWORD)-1, ~0, FALSE);
-            pHandleInfo->bEOD = false;
-            pHandleInfo->bEOF = false;
-            pHandleInfo->bEOT = false;
-         }
-      }
+   case MTFSFM:			/* not used by bacula */
+      errno = EIO;
+      result = -1;
       break;
 
    case MTEOM:
-      for ( ; ; ) {
-         result = SetTapePosition(pHandleInfo->OSHandle, TAPE_SPACE_FILEMARKS, 0, 1, 0, FALSE);
-         if (result != NO_ERROR) {
-            pHandleInfo->bEOF = false;
-
-            if (result == ERROR_END_OF_MEDIA) {
-               pHandleInfo->bEOD = true;
-               pHandleInfo->bEOT = true;
-               return 0;
-            }
-            if (result == ERROR_NO_DATA_DETECTED) {
-               pHandleInfo->bEOD = true;
-               pHandleInfo->bEOT = false;
-               return 0;
-            }
-            break;
-         } else {
-            pHandleInfo->bEOF = true;
-            pHandleInfo->ulFile++;
-         }
+      int i=0;
+      int last=0;
+      for (i=tape->format.current_file;
+	   (i < tape->format.max_file_mark) &&(tape->format.file_index[i] != 0) ; 
+	   i++)
+      {
+	 last = i;
       }
+
+      struct mtop mt;
+      mt.mt_op = MTFSF;
+      mt.mt_count = last;
+      result = tape_op(fd, &mt);
+
       break;
 
    case MTERASE:
