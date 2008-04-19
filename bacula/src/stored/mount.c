@@ -633,11 +633,12 @@ void DCR::mark_volume_in_error()
 {
    Jmsg(jcr, M_INFO, 0, _("Marking Volume \"%s\" in Error in Catalog.\n"),
         VolumeName);
-   dev->VolCatInfo = VolCatInfo;     /* structure assignment */
+   dev->VolCatInfo = VolCatInfo;       /* structure assignment */
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Error", sizeof(dev->VolCatInfo.VolCatStatus));
    Dmsg0(150, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(this, false, false);
    volume_unused(this);
+   dev->set_unload();                 /* must get a new volume */
 }
 
 /*
@@ -690,6 +691,7 @@ void DCR::release_volume()
    if (dev->is_open()) {
       dev->offline_or_rewind();
    }
+   dev->set_unload();
    Dmsg0(190, "release_volume\n");
 }
 
