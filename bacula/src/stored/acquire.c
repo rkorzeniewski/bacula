@@ -238,7 +238,10 @@ bool acquire_device_for_read(DCR *dcr)
          } else {
              bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
          }
-         unload_autochanger(dcr, -1);
+         if (!unload_autochanger(dcr, -1)) {
+            /* at least free the device so we can re-open with correct volume */
+            dev->close();                                                          
+         }
          /* Fall through */
       default:
          Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
@@ -261,6 +264,12 @@ default_path:
             if (stat > 0) {
                try_autochanger = false;
                continue;              /* try reading volume mounted */
+            }
+            /* Try closing and re-opening */
+            dev->close();
+            dev->clear_unload();
+            if (dev->open(dcr, OPEN_READ_ONLY) >= 0) {
+               continue;
             }
          }
          
