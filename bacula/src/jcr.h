@@ -119,7 +119,6 @@ enum {
 
 /* Forward referenced structures */
 class JCR;
-class htable;
 struct FF_PKT;
 struct B_DB;
 struct ATTR_DBR;
@@ -127,6 +126,9 @@ struct Plugin;
 struct save_pkt;
 
 #ifdef FILE_DAEMON
+class htable;
+struct TCHDB;
+
 struct CRYPTO_CTX {
    bool pki_sign;                     /* Enable PKI Signatures? */
    bool pki_encrypt;                  /* Enable PKI Encryption? */
@@ -323,7 +325,11 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
+#ifdef USE_TCHDB
+   TCHDB *file_list;		      /* Previous file list (accurate mode) */
+#else
    htable *file_list;                 /* Previous file list (accurate mode) */
+#endif
 #endif /* FILE_DAEMON */
 
 

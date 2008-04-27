@@ -37,186 +37,21 @@
 
 #include "bacula.h"
 #include "filed.h"
-#include "lib/htable.h"
+
+/* from accurate.c */
+bool accurate_send_deleted_list(JCR *jcr);
+bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt);
 
 /* Forward referenced functions */
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-static void strip_path(FF_PKT *ff_pkt);
-static void unstrip_path(FF_PKT *ff_pkt);
+void strip_path(FF_PKT *ff_pkt);
+void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
-static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
+bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
 static bool crypto_session_start(JCR *jcr);
 static void crypto_session_end(JCR *jcr);
 static bool crypto_session_send(JCR *jcr, BSOCK *sd);
-
-typedef struct CurFile {
-   hlink link;
-   char *fname;
-   time_t ctime;
-   time_t mtime;
-   bool seen;
-} CurFile;
-
-#define accurate_mark_file_as_seen(elt) ((elt)->seen = 1)
-#define accurate_file_has_been_seen(elt) ((elt)->seen)
-
-/*
- * This function is called for each file seen in fileset.
- * We check in file_list hash if fname have been backuped
- * the last time. After we can compare Lstat field. 
- * Full Lstat usage have been removed on 6612 
- */
-bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
-{
-   bool stat = false;
-   char *fname;
-   CurFile *elt;
-
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
-      return true;
-   }
-
-   strip_path(ff_pkt);
- 
-   if (S_ISDIR(ff_pkt->statp.st_mode)) {
-      fname = ff_pkt->link;
-   } else {
-      fname = ff_pkt->fname;
-   } 
-
-   elt = (CurFile *)jcr->file_list->lookup(fname);
-
-   if (!elt) {
-      Dmsg1(500, "accurate %s = yes (not found)\n", fname);
-      stat = true;
-      goto bail_out;
-   }
-
-   if (accurate_file_has_been_seen(elt)) {
-      Dmsg1(500, "accurate %s = no (already seen)\n", fname);
-      goto bail_out;
-   }
-
-   if (elt->mtime != ff_pkt->statp.st_mtime) {
-     Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
-     stat = true;
-   } else if (elt->ctime != ff_pkt->statp.st_ctime) {
-     Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
-     stat = true;
-   }
-
-   accurate_mark_file_as_seen(elt);
-   Dmsg2(500, "accurate %s = %i\n", fname, stat);
-
-bail_out:
-   unstrip_path(ff_pkt);
-   return stat;
-}
-
-/* 
- * TODO: use bigbuffer from htable
- */
-int accurate_cmd(JCR *jcr)
-{
-   BSOCK *dir = jcr->dir_bsock;
-   int len;
-   struct stat statp;
-   int32_t LinkFIc;
-   int32_t nb;
-   CurFile *elt=NULL;
-   char *lstat;
-
-   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
-      return true;
-   }
-
-   if (sscanf(dir->msg, "accurate files=%ld", &nb) != 1) {
-      dir->fsend(_("2991 Bad accurate command\n"));
-      return false;
-   }
-   Dmsg2(200, "nb=%d msg=%s\n", nb, dir->msg);
-
-   jcr->file_list = (htable *)malloc(sizeof(htable));
-   jcr->file_list->init(elt, &elt->link, nb);
-
-   /*
-    * buffer = sizeof(CurFile) + dirmsg
-    * dirmsg = fname + \0 + lstat
-    */
-   /* get current files */
-   while (dir->recv() >= 0) {
-      len = strlen(dir->msg) + 1;
-      if (len < dir->msglen) {
-         /* we store CurFile, fname and ctime/mtime in the same chunk */
-         elt = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+len);
-         elt->fname  = (char *)elt+sizeof(CurFile);
-         strcpy(elt->fname, dir->msg);
-         lstat = dir->msg + len;
-         decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
-         elt->ctime = statp.st_ctime;
-         elt->mtime = statp.st_mtime;
-         elt->seen = 0;
-         jcr->file_list->insert(elt->fname, elt); 
-         Dmsg2(500, "add fname=%s lstat=%s\n", elt->fname, lstat);
-      }
-   }
-
-#ifdef DEBUG
-   extern void *start_heap;
-
-   char b1[50], b2[50], b3[50], b4[50], b5[50];
-   Dmsg5(1," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
-         edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
-         edit_uint64_with_commas(sm_bytes, b2),
-         edit_uint64_with_commas(sm_max_bytes, b3),
-         edit_uint64_with_commas(sm_buffers, b4),
-         edit_uint64_with_commas(sm_max_buffers, b5));
-
-//   jcr->file_list->stats();
-#endif
-
-   return true;
-}
-
-bool accurate_send_deleted_list(JCR *jcr)
-{
-   CurFile *elt;
-   FF_PKT *ff_pkt;
-
-   int stream = STREAM_UNIX_ATTRIBUTES;
-
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
-      goto bail_out;
-   }
-
-   if (jcr->file_list == NULL) {
-      goto bail_out;
-   }
-
-   ff_pkt = init_find_files();
-   ff_pkt->type = FT_DELETED;
-
-   foreach_htable (elt, jcr->file_list) {
-      if (!accurate_file_has_been_seen(elt)) { /* already seen */
-         Dmsg2(500, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
-         ff_pkt->fname = elt->fname;
-         ff_pkt->statp.st_mtime = elt->mtime;
-         ff_pkt->statp.st_ctime = elt->ctime;
-         encode_and_send_attributes(jcr, ff_pkt, stream);
-      }
-//      Free(elt->fname);
-   }
-   term_find_files(ff_pkt);
-bail_out:
-   /* TODO: clean htable when this function is not reached ? */
-   if (jcr->file_list) {
-      jcr->file_list->destroy();
-      free(jcr->file_list);
-      jcr->file_list = NULL;
-   }
-   return true;
-}
 
 /*
  * check for BSD nodump flag
@@ -1245,7 +1080,7 @@ static bool read_and_send_acl(JCR *jcr, int acltype, int stream)
    return true;
 }
 
-static bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream) 
+bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream) 
 {
    BSOCK *sd = jcr->store_bsock;
    char attribs[MAXSTRING];
@@ -1373,7 +1208,7 @@ static bool do_strip(int count, char *in)
  *   in handling vendor migrations where files have been restored with
  *   a vendor product into a subdirectory.
  */
-static void strip_path(FF_PKT *ff_pkt)
+void strip_path(FF_PKT *ff_pkt)
 {
    if (!(ff_pkt->flags & FO_STRIPPATH) || ff_pkt->strip_path <= 0) {
       Dmsg1(200, "No strip for %s\n", ff_pkt->fname);
@@ -1408,7 +1243,7 @@ static void strip_path(FF_PKT *ff_pkt)
    Dmsg2(200, "fname=%s stripped=%s\n", ff_pkt->fname_save, ff_pkt->fname);
 }
 
-static void unstrip_path(FF_PKT *ff_pkt)
+void unstrip_path(FF_PKT *ff_pkt)
 {
    if (!(ff_pkt->flags & FO_STRIPPATH) || ff_pkt->strip_path <= 0) {
       return;
