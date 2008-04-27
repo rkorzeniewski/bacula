@@ -29,11 +29,11 @@ dummy:
 
 #
 SVRSRCS = filed.c authenticate.c acl.c backup.c estimate.c \
-	  fd_plugins.c \
+	  fd_plugins.c accurate.c \
 	  filed_conf.c heartbeat.c job.c pythonfd.c \
 	  restore.c status.c verify.c verify_vol.c
 SVROBJS = filed.o authenticate.o acl.o backup.o estimate.o \
-	  fd_plugins.o \
+	  fd_plugins.o accurate.o \
 	  filed_conf.o heartbeat.o job.o pythonfd.o \
 	  restore.o status.o verify.o verify_vol.o
 
