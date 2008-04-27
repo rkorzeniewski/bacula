@@ -35,6 +35,11 @@
 
 
 #define FILE_DAEMON 1
+#ifdef USE_TCHDB		      /* hash disk based */
+# include <tchdb.h>
+#else
+# include "lib/htable.h"
+#endif
 #include "filed_conf.h"
 #include "fd_plugins.h"
 #include "findlib/find.h"

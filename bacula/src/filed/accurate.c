@@ -1,0 +1,320 @@
+/*
+   Bacula® - The Network Backup Solution
+
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
+
+   The main author of Bacula is Kern Sibbald, with contributions from
+   many others, a complete list can be found in the file AUTHORS.
+   This program is Free Software; you can redistribute it and/or
+   modify it under the terms of version two of the GNU General Public
+   License as published by the Free Software Foundation and included
+   in the file LICENSE.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA.
+
+   Bacula® is a registered trademark of John Walker.
+   The licensor of Bacula is the Free Software Foundation Europe
+   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
+   Switzerland, email:ftf@fsfeurope.org.
+*/
+/*
+ *   Version $Id$
+ *
+ */
+
+#include "bacula.h"
+#include "filed.h"
+
+void strip_path(FF_PKT *ff_pkt);
+void unstrip_path(FF_PKT *ff_pkt);
+bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
+typedef struct PrivateCurFile {
+#ifndef USE_TCHDB
+   hlink link;
+#endif
+   char *fname;			/* not stored with tchdb mode */
+   time_t ctime;
+   time_t mtime;
+   bool seen;
+} CurFile;
+
+bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
+{
+   CurFile elt;
+   struct stat statp;
+   int LinkFIc;
+   decode_stat(lstat, &statp, &LinkFIc); /* decode catalog stat */
+   elt.ctime = statp.st_ctime;
+   elt.mtime = statp.st_mtime;
+   elt.seen = 0;
+
+#ifdef USE_TCHDB
+   if (!tchdbputasync(jcr->file_list,
+		      fname, strlen(fname)+1,
+		      &elt, sizeof(CurFile)))
+   {
+      /* TODO: check error */
+   }
+#else  /* HTABLE */
+   CurFile *item;
+   /* we store CurFile, fname and ctime/mtime in the same chunk */
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
+   memcpy(item, &elt, sizeof(CurFile));
+   item->fname  = (char *)item+sizeof(CurFile);
+   strcpy(item->fname, fname);
+   jcr->file_list->insert(item->fname, item); 
+#endif
+
+   Dmsg2(500, "add fname=%s lstat=%s\n", fname, lstat);
+   return true;
+}
+
+bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
+{
+   bool ret=true;
+
+#ifdef USE_TCHDB
+   elt->seen = 1;
+   if (!tchdbputasync(jcr->file_list, 
+		      elt->fname, strlen(elt->fname)+1, 
+		      elt, sizeof(CurFile)))
+   {
+      ret = false;		/* TODO: add error message */
+   }
+#else
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
+   temp->seen = 1;
+#endif    
+   return ret;
+}
+
+bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
+{
+   bool found=false;
+   ret->seen = 0;
+
+#ifdef USE_TCHDB
+   if (tchdbget3(jcr->file_list, 
+		 fname, strlen(fname)+1, 
+		 ret, sizeof(CurFile)) != -1)
+   {
+      found = true;
+      ret->fname = fname;
+   }
+
+#else  /* HTABLE */
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
+   if (temp) {
+      memcpy(ret, temp, sizeof(CurFile));
+      found=true;
+   }
+#endif
+
+   return found;
+}
+
+bool accurate_init(JCR *jcr, int nbfile)
+{
+#ifdef USE_TCHDB
+   jcr->file_list = tchdbnew();
+   tchdbsetcache(jcr->file_list, 300000);
+   tchdbtune(jcr->file_list,
+	     nbfile,		/* nb bucket 0.5n to 4n */
+	     7,			/* size of element 2^x */
+	     16,
+	     0);		/* options like compression */
+   /* TODO: make accurate file unique */
+   if(!tchdbopen(jcr->file_list, "/tmp/casket.hdb", HDBOWRITER | HDBOCREAT)){
+      /* TODO: handle error creation */
+      //ecode = tchdbecode(hdb);
+      //fprintf(stderr, "open error: %s\n", tchdberrmsg(ecode));
+   }
+
+#else  /* HTABLE */
+   CurFile *elt=NULL;
+   jcr->file_list = (htable *)malloc(sizeof(htable));
+   jcr->file_list->init(elt, &elt->link, nbfile);
+#endif
+
+   return true;
+}
+
+/*
+ * This function is called for each file seen in fileset.
+ * We check in file_list hash if fname have been backuped
+ * the last time. After we can compare Lstat field. 
+ * Full Lstat usage have been removed on 6612 
+ */
+bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
+{
+   bool stat = false;
+   char *fname;
+   CurFile elt;
+
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+      return true;
+   }
+
+   strip_path(ff_pkt);
+ 
+   if (S_ISDIR(ff_pkt->statp.st_mode)) {
+      fname = ff_pkt->link;
+   } else {
+      fname = ff_pkt->fname;
+   } 
+
+   if (!accurate_lookup(jcr, fname, &elt)) {
+      Dmsg1(2, "accurate %s (not found)\n", fname);
+      stat = true;
+      goto bail_out;
+   }
+
+   if (elt.seen) { /* file has been seen ? */
+      Dmsg1(2, "accurate %s (already seen)\n", fname);
+      goto bail_out;
+   }
+
+   if (elt.mtime != ff_pkt->statp.st_mtime) {
+     Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
+     stat = true;
+   } else if (elt.ctime != ff_pkt->statp.st_ctime) {
+     Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
+     stat = true;
+   }
+
+   if (stat) {
+      Dmsg4(1, "%i = %i\t%i = %i\n", elt.mtime, ff_pkt->statp.st_mtime,
+	    elt.ctime, ff_pkt->statp.st_ctime);
+   }
+
+   accurate_mark_file_as_seen(jcr, &elt);
+   Dmsg2(500, "accurate %s = %i\n", fname, stat);
+
+bail_out:
+   unstrip_path(ff_pkt);
+   return stat;
+}
+
+/* 
+ * TODO: use bigbuffer from htable
+ */
+int accurate_cmd(JCR *jcr)
+{
+   BSOCK *dir = jcr->dir_bsock;
+   int len;
+   int32_t nb;
+
+   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+      return true;
+   }
+
+   if (sscanf(dir->msg, "accurate files=%ld", &nb) != 1) {
+      dir->fsend(_("2991 Bad accurate command\n"));
+      return false;
+   }
+   Dmsg2(2, "nb=%d msg=%s\n", nb, dir->msg);
+
+   accurate_init(jcr, nb);
+
+   /*
+    * buffer = sizeof(CurFile) + dirmsg
+    * dirmsg = fname + \0 + lstat
+    */
+   /* get current files */
+   while (dir->recv() >= 0) {
+      Dmsg1(2, "accurate_cmd fname=%s\n", dir->msg);
+      len = strlen(dir->msg) + 1;
+      if (len < dir->msglen) {
+	 accurate_add_file(jcr, dir->msg, dir->msg + len);
+      }
+   }
+
+#ifdef DEBUG
+   extern void *start_heap;
+
+   char b1[50], b2[50], b3[50], b4[50], b5[50];
+   Dmsg5(1," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
+         edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
+         edit_uint64_with_commas(sm_bytes, b2),
+         edit_uint64_with_commas(sm_max_bytes, b3),
+         edit_uint64_with_commas(sm_buffers, b4),
+         edit_uint64_with_commas(sm_max_buffers, b5));
+
+#endif
+
+   return true;
+}
+
+bool accurate_send_deleted_list(JCR *jcr)
+{
+   CurFile *elt;
+   FF_PKT *ff_pkt;
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+      goto bail_out;
+   }
+
+   if (jcr->file_list == NULL) {
+      goto bail_out;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_DELETED;
+
+#ifdef USE_TCHDB
+   char *key;
+   CurFile item;
+   elt = &item;
+  /* traverse records */
+   tchdbiterinit(jcr->file_list);
+   while((key = tchdbiternext2(jcr->file_list)) != NULL){
+      tchdbget3(jcr->file_list, key, strlen(key), elt, sizeof(CurFile));
+      ff_pkt->fname = key;
+      ff_pkt->statp.st_mtime = elt->mtime;
+      ff_pkt->statp.st_ctime = elt->ctime;
+      encode_and_send_attributes(jcr, ff_pkt, stream);
+//      free(key);
+   }
+#else
+   foreach_htable (elt, jcr->file_list) {
+      if (!elt->seen) { /* already seen */
+         Dmsg2(1, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+         ff_pkt->fname = elt->fname;
+         ff_pkt->statp.st_mtime = elt->mtime;
+         ff_pkt->statp.st_ctime = elt->ctime;
+         encode_and_send_attributes(jcr, ff_pkt, stream);
+      }
+//      free(elt->fname);
+   }
+#endif
+
+   term_find_files(ff_pkt);
+bail_out:
+   /* TODO: clean htable when this function is not reached ? */
+   if (jcr->file_list) {
+#ifdef USE_TCHDB
+      if(!tchdbclose(jcr->file_list)){
+//	 ecode = tchdbecode(hdb);
+//	 fprintf(stderr, "close error: %s\n", tchdberrmsg(ecode));
+      }
+
+      /* delete the object */
+      tchdbdel(jcr->file_list);
+      unlink("/tmp/casket.hdb");
+#else
+      jcr->file_list->destroy();
+      free(jcr->file_list);
+#endif
+      jcr->file_list = NULL;
+   }
+   return true;
+}
