@@ -542,7 +542,7 @@ const char *sql_oldest_vol =
 /* Get JobIds when we have selected MediaId */
 const char *sql_jobids_from_mediaid =
    "SELECT DISTINCT Job.JobId,Job.StartTime FROM JobMedia,Job"
-   " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId=%s"
+   " WHERE JobMedia.JobId=Job.JobId AND JobMedia.MediaId IN (%s)"
    " AND Job.Type='B'"
    " ORDER by Job.StartTime";
 
