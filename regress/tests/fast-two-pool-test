@@ -46,12 +46,16 @@ run job=NightlySave1 level=Full pool=Full yes
 status storage=DDS-4
 messages
 wait
-list volumes
 messages
 @# 
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+list volumes
+list jobs
+status storage=DDS-4
+messages
+setdebug level=100 storage=DDS-4
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
