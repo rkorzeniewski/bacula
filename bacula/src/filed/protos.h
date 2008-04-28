@@ -49,3 +49,13 @@ void stop_dir_heartbeat(JCR *jcr);
 /* From acl.c */
 int bacl_get(JCR *jcr, int acltype);
 int bacl_set(JCR *jcr, int acltype);
+
+/* from accurate.c */
+bool accurate_send_deleted_list(JCR *jcr);
+bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt);
+
+/* from backup.c */
+bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
+void strip_path(FF_PKT *ff_pkt);
+void unstrip_path(FF_PKT *ff_pkt);
+

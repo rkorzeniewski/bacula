@@ -38,14 +38,8 @@
 #include "bacula.h"
 #include "filed.h"
 
-/* from accurate.c */
-bool accurate_send_deleted_list(JCR *jcr);
-bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt);
-
 /* Forward referenced functions */
 int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
-void strip_path(FF_PKT *ff_pkt);
-void unstrip_path(FF_PKT *ff_pkt);
 static int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest, DIGEST *signature_digest);
 bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 static bool read_and_send_acl(JCR *jcr, int acltype, int stream);
