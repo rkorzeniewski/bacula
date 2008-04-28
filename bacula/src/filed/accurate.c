@@ -388,7 +388,7 @@ int accurate_cmd(JCR *jcr)
 
 /*
  * Tokyo Cabinet library doesn't use smartalloc by default
- * results need to be release with real free()
+ * results need to be released with real free()
  */
 #undef free
 void realfree(void *p)
