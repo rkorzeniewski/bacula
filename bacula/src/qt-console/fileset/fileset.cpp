@@ -48,7 +48,7 @@ FileSet::FileSet()
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/system-file-manager.png")));
 
-   /* mp_treeWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
+   /* tableWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
@@ -68,33 +68,28 @@ FileSet::~FileSet()
  * The main meat of the class!!  The function that querries the director and 
  * creates the widgets with appropriate values.
  */
-void FileSet::populateTree()
+void FileSet::populateTable()
 {
-   QTreeWidgetItem *filesetItem, *topItem;
+   QTableWidgetItem *tableItem;
+   QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
        return;
 
    m_checkcurwidget = false;
-   mp_treeWidget->clear();
+   tableWidget->clear();
    m_checkcurwidget = true;
 
    QStringList headerlist = (QStringList() << tr("FileSet Name") << tr("FileSet Id")
        << tr("Create Time"));
 
-   topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, tr("FileSet"));
-   topItem->setData(0, Qt::UserRole, 0);
-   topItem->setExpanded(true);
-
-   mp_treeWidget->setColumnCount(headerlist.count());
-   mp_treeWidget->setHeaderLabels(headerlist);
+   tableWidget->setColumnCount(headerlist.count());
+   tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->setRowCount(m_console->fileset_list.count());
+   tableWidget->verticalHeader()->hide();
+   int row = 0;
 
    foreach(QString filesetName, m_console->fileset_list) {
-      filesetItem = new QTreeWidgetItem(topItem);
-      filesetItem->setText(0, filesetName);
-      filesetItem->setData(0, Qt::UserRole, 1);
-      filesetItem->setExpanded(true);
 
       /* Set up query QString and header QStringList */
       QString query("");
@@ -102,7 +97,7 @@ void FileSet::populateTree()
            " FROM FileSet"
            " WHERE ";
       query += " FileSet='" + filesetName + "'";
-      query += " ORDER BY FileSet";
+      query += " ORDER BY CreateTime DESC LIMIT 1";
 
       QStringList results;
       if (mainWin->m_sqlDebug) {
@@ -110,30 +105,31 @@ void FileSet::populateTree()
       }
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
-         if (resultCount == 1){
+         if (resultCount) {
             QString resultline;
             QString field;
             QStringList fieldlist;
-            /* there will only be one of these */
-            foreach (resultline, results) {
-               fieldlist = resultline.split("\t");
-               int index = 0;
-               /* Iterate through fields in the record */
-               foreach (field, fieldlist) {
-                  field = field.trimmed();  /* strip leading & trailing spaces */
-                  filesetItem->setData(index, Qt::UserRole, 1);
-                  /* Put media fields under the pool tree item */
-                  filesetItem->setData(index, Qt::UserRole, 1);
-                  filesetItem->setText(index, field);
-                  index++;
-               }
+            /* only use the last one */
+            resultline = results[resultCount - 1];
+            fieldlist = resultline.split("\t");
+            int column = 0;
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               tableItem = new QTableWidgetItem(field, 1);
+               tableItem->setFlags(Qt::ItemIsSelectable);
+               tableItem->setForeground(blackBrush);
+               tableItem->setData(Qt::UserRole, 1);
+               tableWidget->setItem(row, column, tableItem);
+               column++;
             }
          }
       }
+      row++;
    }
    /* Resize the columns */
    for (int cnter=0; cnter<headerlist.size(); cnter++) {
-      mp_treeWidget->resizeColumnToContents(cnter);
+      tableWidget->resizeColumnToContents(cnter);
    }
 }
 
@@ -144,7 +140,7 @@ void FileSet::populateTree()
 void FileSet::PgSeltreeWidgetClicked()
 {
    if (!m_populated) {
-      populateTree();
+      populateTable();
       createContextMenu();
       m_populated = true;
    }
@@ -154,27 +150,25 @@ void FileSet::PgSeltreeWidgetClicked()
  * Added to set the context menu policy based on currently active treeWidgetItem
  * signaled by currentItemChanged
  */
-void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem, 
-                              QTreeWidgetItem *previouswidgetitem )
+void FileSet::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetItem *previouswidgetitem)
 {
    /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
    if (m_checkcurwidget) {
+      int currentRow = currentwidgetitem->row();
+      QTableWidgetItem *currentrowzeroitem = tableWidget->item(currentRow, 0);
+      m_currentlyselected = currentrowzeroitem->text();
+
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
-         if (treedepth == 1) {
-            mp_treeWidget->removeAction(actionStatusFileSetInConsole);
-            mp_treeWidget->removeAction(actionShowJobs);
-         }
+         tableWidget->removeAction(actionStatusFileSetInConsole);
+         tableWidget->removeAction(actionShowJobs);
       }
 
-      int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
-      if (treedepth == 1){
+      if (m_currentlyselected.length() != 0) {
          /* set a hold variable to the fileset name in case the context sensitive
           * menu is used */
-         m_currentlyselected=currentwidgetitem->text(0);
-         mp_treeWidget->addAction(actionStatusFileSetInConsole);
-         mp_treeWidget->addAction(actionShowJobs);
+         tableWidget->addAction(actionStatusFileSetInConsole);
+         tableWidget->addAction(actionShowJobs);
       }
    }
 }
@@ -186,14 +180,14 @@ void FileSet::treeItemChanged(QTreeWidgetItem *currentwidgetitem,
  */
 void FileSet::createContextMenu()
 {
-   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   mp_treeWidget->addAction(actionRefreshFileSet);
-   connect(mp_treeWidget, SIGNAL(
-           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   tableWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   tableWidget->addAction(actionRefreshFileSet);
+   connect(tableWidget, SIGNAL(
+           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(tableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
    /* connect to the action specific to this pages class */
    connect(actionRefreshFileSet, SIGNAL(triggered()), this,
-                SLOT(populateTree()));
+                SLOT(populateTable()));
    connect(actionStatusFileSetInConsole, SIGNAL(triggered()), this,
                 SLOT(consoleStatusFileSet()));
    connect(actionShowJobs, SIGNAL(triggered()), this,
@@ -217,8 +211,8 @@ void FileSet::consoleStatusFileSet()
 void FileSet::currentStackItem()
 {
    if(!m_populated) {
-      populateTree();
-      /* Create the context menu for the fileset tree */
+      populateTable();
+      /* Create the context menu for the fileset table */
       createContextMenu();
       m_populated=true;
    }
