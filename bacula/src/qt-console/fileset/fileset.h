@@ -49,10 +49,10 @@ public:
    virtual void currentStackItem();
 
 public slots:
-   void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
+   void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
 
 private slots:
-   void populateTree();
+   void populateTable();
    void consoleStatusFileSet();
    void showJobs();
 

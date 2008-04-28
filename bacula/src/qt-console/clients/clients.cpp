@@ -50,7 +50,7 @@ Clients::Clients()
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/network-server.png")));
 
-   /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
+   /* tableWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
@@ -69,36 +69,30 @@ Clients::~Clients()
  * The main meat of the class!!  The function that querries the director and 
  * creates the widgets with appropriate values.
  */
-void Clients::populateTree()
+void Clients::populateTable()
 {
-   QTreeWidgetItem *clientItem, *topItem;
+   QTableWidgetItem *tableItem;
+   QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
       return;
    m_checkcurwidget = false;
-   mp_treeWidget->clear();
+   tableWidget->clear();
    m_checkcurwidget = true;
 
    QStringList headerlist = (QStringList() << tr("Client Name") << tr("File Retention")
        << tr("Job Retention") << tr("AutoPrune") << tr("ClientId") << tr("Uname") );
 
-   topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, tr("Clients"));
-   topItem->setData(0, Qt::UserRole, 0);
-   topItem->setExpanded(true);
-
-   mp_treeWidget->setColumnCount(headerlist.count());
-   mp_treeWidget->setHeaderLabels(headerlist);
+   tableWidget->setColumnCount(headerlist.count());
+   tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->setRowCount(m_console->client_list.count());
+   tableWidget->verticalHeader()->hide();
+   int row = 0;
 
    foreach (QString clientName, m_console->client_list){
-      clientItem = new QTreeWidgetItem(topItem);
-      clientItem->setText(0, clientName);
-      clientItem->setData(0, Qt::UserRole, 1);
-      clientItem->setExpanded(true);
-
       /* Set up query QString and header QStringList */
       QString query("");
-      query += "SELECT FileRetention, JobRetention, AutoPrune, ClientId, Uname"
+      query += "SELECT Name, FileRetention, JobRetention, AutoPrune, ClientId, Uname"
            " FROM Client"
            " WHERE ";
       query += " Name='" + clientName + "'";
@@ -118,23 +112,25 @@ void Clients::populateTree()
             /* there will only be one of these */
             foreach (resultline, results) {
                fieldlist = resultline.split("\t");
-               int index = 0;
+               int column = 0;
                /* Iterate through fields in the record */
                foreach (field, fieldlist) {
                   field = field.trimmed();  /* strip leading & trailing spaces */
-                  clientItem->setData(index+1, Qt::UserRole, 1);
-                  /* Put media fields under the pool tree item */
-                  clientItem->setData(index+1, Qt::UserRole, 1);
-                  clientItem->setText(index+1, field);
-                  index++;
+                  tableItem = new QTableWidgetItem(field, 1);
+                  tableItem->setFlags(Qt::ItemIsSelectable);
+                  tableItem->setForeground(blackBrush);
+                  tableItem->setData(Qt::UserRole, 1);
+                  tableWidget->setItem(row, column, tableItem);
+                  column++;
                }
             }
          }
       }
+      row ++;
    }
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
-      mp_treeWidget->resizeColumnToContents(cnter);
+      tableWidget->resizeColumnToContents(cnter);
    }
 }
 
@@ -145,7 +141,7 @@ void Clients::populateTree()
 void Clients::PgSeltreeWidgetClicked()
 {
    if(!m_populated) {
-      populateTree();
+      populateTable();
       m_populated=true;
    }
 }
@@ -154,32 +150,31 @@ void Clients::PgSeltreeWidgetClicked()
  * Added to set the context menu policy based on currently active treeWidgetItem
  * signaled by currentItemChanged
  */
-void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *previouswidgetitem )
+void Clients::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetItem *previouswidgetitem )
 {
    /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
    if (m_checkcurwidget) {
+      int currentRow = currentwidgetitem->row();
+      QTableWidgetItem *currentrowzeroitem = tableWidget->item(currentRow, 0);
+      m_currentlyselected = currentrowzeroitem->text();
+
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         int treedepth = previouswidgetitem->data(0, Qt::UserRole).toInt();
-         if (treedepth == 1){
-            mp_treeWidget->removeAction(actionListJobsofClient);
-            mp_treeWidget->removeAction(actionStatusClientInConsole);
-            mp_treeWidget->removeAction(actionStatusClientWindow);
-            mp_treeWidget->removeAction(actionPurgeJobs);
-            mp_treeWidget->removeAction(actionPrune);
-         }
+         tableWidget->removeAction(actionListJobsofClient);
+         tableWidget->removeAction(actionStatusClientInConsole);
+         tableWidget->removeAction(actionStatusClientWindow);
+         tableWidget->removeAction(actionPurgeJobs);
+         tableWidget->removeAction(actionPrune);
       }
 
-      int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
-      if (treedepth == 1){
+      if (m_currentlyselected.length() != 0) {
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
-         m_currentlyselected=currentwidgetitem->text(0);
-         mp_treeWidget->addAction(actionListJobsofClient);
-         mp_treeWidget->addAction(actionStatusClientInConsole);
-         mp_treeWidget->addAction(actionStatusClientWindow);
-         mp_treeWidget->addAction(actionPurgeJobs);
-         mp_treeWidget->addAction(actionPrune);
+         tableWidget->addAction(actionListJobsofClient);
+         tableWidget->addAction(actionStatusClientInConsole);
+         tableWidget->addAction(actionStatusClientWindow);
+         tableWidget->addAction(actionPurgeJobs);
+         tableWidget->addAction(actionPrune);
       }
    }
 }
@@ -191,14 +186,16 @@ void Clients::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
  */
 void Clients::createContextMenu()
 {
-   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   mp_treeWidget->addAction(actionRefreshClients);
-   connect(mp_treeWidget, SIGNAL(
-           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   tableWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   tableWidget->addAction(actionRefreshClients);
+   /* for the tableItemChanged to maintain m_currentJob */
+   connect(tableWidget, SIGNAL(
+           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(tableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+
    /* connect to the action specific to this pages class */
    connect(actionRefreshClients, SIGNAL(triggered()), this,
-                SLOT(populateTree()));
+                SLOT(populateTable()));
    connect(actionListJobsofClient, SIGNAL(triggered()), this,
                 SLOT(showJobs()));
    connect(actionStatusClientInConsole, SIGNAL(triggered()), this,
@@ -238,8 +235,8 @@ void Clients::consoleStatusClient()
 void Clients::currentStackItem()
 {
    if(!m_populated) {
-      populateTree();
-      /* Create the context menu for the client tree */
+      populateTable();
+      /* Create the context menu for the client table */
       m_populated=true;
    }
 }
