@@ -33,9 +33,6 @@
 #include "bacula.h"
 #include "filed.h"
 
-void strip_path(FF_PKT *ff_pkt);
-void unstrip_path(FF_PKT *ff_pkt);
-bool encode_and_send_attributes(JCR *jcr, FF_PKT *ff_pkt, int &data_stream);
 typedef struct PrivateCurFile {
 #ifndef USE_TCHDB
    hlink link;
