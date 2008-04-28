@@ -43,7 +43,207 @@ typedef struct PrivateCurFile {
    bool seen;
 } CurFile;
 
-bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
+#ifdef USE_TCHDB
+
+static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
+{
+   bool ret=true;
+
+   elt->seen = 1;
+   if (!tchdbputasync(jcr->file_list, 
+		      elt->fname, strlen(elt->fname)+1, 
+		      elt, sizeof(CurFile)))
+   {
+      Dmsg1(2, "can't update <%s>\n", elt->fname);
+      ret = false;		/* TODO: add error message */
+   }
+
+   return ret;
+}
+
+static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
+{
+   bool found=false;
+   ret->seen = 0;
+
+   if (tchdbget3(jcr->file_list, 
+		 fname, strlen(fname)+1, 
+		 ret, sizeof(CurFile)) != -1)
+   {
+      found = true;
+      ret->fname = fname;
+   }
+
+   if (found) {
+      Dmsg1(2, "lookup <%s> ok\n", fname);
+   }
+
+   return found;
+}
+
+static bool accurate_init(JCR *jcr, int nbfile)
+{
+   jcr->file_list = tchdbnew();
+   tchdbsetcache(jcr->file_list, 300000);
+   tchdbtune(jcr->file_list,
+	     nbfile,		/* nb bucket 0.5n to 4n */
+	     6,			/* size of element 2^x */
+	     16,
+	     0);		/* options like compression */
+   /* TODO: make accurate file unique */
+   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+   make_unique_filename(name, jcr->JobId, "accurate");
+
+   if(!tchdbopen(jcr->file_list, name, HDBOWRITER | HDBOCREAT)){
+      /* TODO: handle error creation */
+      //ecode = tchdbecode(hdb);
+      //fprintf(stderr, "open error: %s\n", tchdberrmsg(ecode));
+   }
+   free_pool_memory(name);
+   return true;
+}
+
+
+bool accurate_send_deleted_list(JCR *jcr)
+{
+   CurFile elt;
+   FF_PKT *ff_pkt;
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+      goto bail_out;
+   }
+
+   if (jcr->file_list == NULL) {
+      goto bail_out;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_DELETED;
+
+   char *key;
+  /* traverse records */
+   tchdbiterinit(jcr->file_list);
+   while((key = tchdbiternext2(jcr->file_list)) != NULL) {
+      if (tchdbget3(jcr->file_list, 
+		    key, strlen(key)+1, 
+		    &elt, sizeof(CurFile)) != -1)
+      {
+	 if (!elt.seen) {
+	    ff_pkt->fname = key;
+	    ff_pkt->statp.st_mtime = elt.mtime;
+	    ff_pkt->statp.st_ctime = elt.ctime;
+	    encode_and_send_attributes(jcr, ff_pkt, stream);
+	    Dmsg1(2, "deleted <%s>\n", key);
+	 }
+//         free(key);
+
+      } else {			/* TODO: add error message */
+	 Dmsg1(2, "No value for <%s> key\n", key);
+      }
+   }
+
+   term_find_files(ff_pkt);
+bail_out:
+   /* TODO: clean htable when this function is not reached ? */
+   if (jcr->file_list) {
+      if(!tchdbclose(jcr->file_list)){
+//	 ecode = tchdbecode(hdb);
+//	 fprintf(stderr, "close error: %s\n", tchdberrmsg(ecode));
+      }
+
+      /* delete the object */
+      tchdbdel(jcr->file_list);
+
+      POOLMEM *name  = get_pool_memory(PM_MESSAGE);
+      make_unique_filename(name, jcr->JobId, "accurate");
+
+//    unlink(name);
+
+      free_pool_memory(name);
+
+      jcr->file_list = NULL;
+   }
+   return true;
+}
+
+#else  /* HTABLE mode */
+
+static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
+{
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
+   temp->seen = 1;		/* records are in memory */
+   return true;
+}
+
+static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
+{
+   bool found=false;
+   ret->seen = 0;
+
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
+   if (temp) {
+      memcpy(ret, temp, sizeof(CurFile));
+      found=true;
+   }
+
+   if (found) {
+      Dmsg1(2, "lookup <%s> ok\n", fname);
+   }
+
+   return found;
+}
+
+static bool accurate_init(JCR *jcr, int nbfile)
+{
+   CurFile *elt=NULL;
+   jcr->file_list = (htable *)malloc(sizeof(htable));
+   jcr->file_list->init(elt, &elt->link, nbfile);
+   return true;
+}
+
+bool accurate_send_deleted_list(JCR *jcr)
+{
+   CurFile *elt;
+   FF_PKT *ff_pkt;
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+      goto bail_out;
+   }
+
+   if (jcr->file_list == NULL) {
+      goto bail_out;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_DELETED;
+
+   foreach_htable (elt, jcr->file_list) {
+      if (!elt->seen) { /* already seen */
+         Dmsg2(1, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+         ff_pkt->fname = elt->fname;
+         ff_pkt->statp.st_mtime = elt->mtime;
+         ff_pkt->statp.st_ctime = elt->ctime;
+         encode_and_send_attributes(jcr, ff_pkt, stream);
+      }
+//      free(elt->fname);
+   }
+
+   term_find_files(ff_pkt);
+bail_out:
+   /* TODO: clean htable when this function is not reached ? */
+   if (jcr->file_list) {
+      jcr->file_list->destroy();
+      free(jcr->file_list);
+      jcr->file_list = NULL;
+   }
+   return true;
+}
+
+#endif
+
+static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 {
    CurFile elt;
    struct stat statp;
@@ -72,85 +272,6 @@ bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 #endif
 
    Dmsg2(2, "add fname=<%s> lstat=%s\n", fname, lstat);
-   return true;
-}
-
-bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
-{
-   bool ret=true;
-   CurFile deb;
-
-#ifdef USE_TCHDB
-   elt->seen = 1;
-   if (!tchdbputasync(jcr->file_list, 
-		      elt->fname, strlen(elt->fname)+1, 
-		      elt, sizeof(CurFile)))
-   {
-      Dmsg1(2, "can't update <%s>\n", elt->fname);
-      ret = false;		/* TODO: add error message */
-   }
-
-#else  /* HTABLE */
-   CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
-   temp->seen = 1;
-#endif    
-   return ret;
-}
-
-bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
-{
-   bool found=false;
-   ret->seen = 0;
-
-#ifdef USE_TCHDB
-   if (tchdbget3(jcr->file_list, 
-		 fname, strlen(fname)+1, 
-		 ret, sizeof(CurFile)) != -1)
-   {
-      found = true;
-      ret->fname = fname;
-   }
-
-#else  /* HTABLE */
-   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
-   if (temp) {
-      memcpy(ret, temp, sizeof(CurFile));
-      found=true;
-   }
-#endif
-
-   if (found) {
-      Dmsg1(2, "lookup <%s> ok\n", fname);
-   }
-
-   return found;
-}
-
-bool accurate_init(JCR *jcr, int nbfile)
-{
-#ifdef USE_TCHDB
-   jcr->file_list = tchdbnew();
-   tchdbsetcache(jcr->file_list, 300000);
-   tchdbtune(jcr->file_list,
-	     nbfile,		/* nb bucket 0.5n to 4n */
-	     7,			/* size of element 2^x */
-	     16,
-	     0);		/* options like compression */
-   /* TODO: make accurate file unique */
-   POOL_MEM buf;
-   Mmsg(buf, "/tmp/casket.hdb.%i", jcr->JobId);
-   if(!tchdbopen(jcr->file_list, buf.c_str(), HDBOWRITER | HDBOCREAT)){
-      /* TODO: handle error creation */
-      //ecode = tchdbecode(hdb);
-      //fprintf(stderr, "open error: %s\n", tchdberrmsg(ecode));
-   }
-
-#else  /* HTABLE */
-   CurFile *elt=NULL;
-   jcr->file_list = (htable *)malloc(sizeof(htable));
-   jcr->file_list->init(elt, &elt->link, nbfile);
-#endif
-
    return true;
 }
 
@@ -257,83 +378,5 @@ int accurate_cmd(JCR *jcr)
 
 #endif
 
-   return true;
-}
-
-bool accurate_send_deleted_list(JCR *jcr)
-{
-   CurFile *elt;
-   FF_PKT *ff_pkt;
-   int stream = STREAM_UNIX_ATTRIBUTES;
-
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
-      goto bail_out;
-   }
-
-   if (jcr->file_list == NULL) {
-      goto bail_out;
-   }
-
-   ff_pkt = init_find_files();
-   ff_pkt->type = FT_DELETED;
-
-#ifdef USE_TCHDB
-   char *key;
-   CurFile item;
-   elt = &item;
-  /* traverse records */
-   tchdbiterinit(jcr->file_list);
-   while((key = tchdbiternext2(jcr->file_list)) != NULL) {
-      if (tchdbget3(jcr->file_list, 
-		    key, strlen(key)+1, 
-		    elt, sizeof(CurFile)) != -1)
-      {
-	 if (!elt->seen) {
-	    ff_pkt->fname = key;
-	    ff_pkt->statp.st_mtime = elt->mtime;
-	    ff_pkt->statp.st_ctime = elt->ctime;
-	    encode_and_send_attributes(jcr, ff_pkt, stream);
-	    Dmsg1(2, "deleted <%s>\n", key);
-	 }
- //      free(key);
-
-      } else {			/* TODO: add error message */
-	 Dmsg1(2, "No value for <%s> key\n", key);
-      }
-   }
-#else
-   foreach_htable (elt, jcr->file_list) {
-      if (!elt->seen) { /* already seen */
-         Dmsg2(1, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
-         ff_pkt->fname = elt->fname;
-         ff_pkt->statp.st_mtime = elt->mtime;
-         ff_pkt->statp.st_ctime = elt->ctime;
-         encode_and_send_attributes(jcr, ff_pkt, stream);
-      }
-//      free(elt->fname);
-   }
-#endif
-
-   term_find_files(ff_pkt);
-bail_out:
-   /* TODO: clean htable when this function is not reached ? */
-   if (jcr->file_list) {
-#ifdef USE_TCHDB
-      if(!tchdbclose(jcr->file_list)){
-//	 ecode = tchdbecode(hdb);
-//	 fprintf(stderr, "close error: %s\n", tchdberrmsg(ecode));
-      }
-
-      /* delete the object */
-      tchdbdel(jcr->file_list);
-      POOL_MEM buf;
-      Mmsg(buf, "/tmp/casket.hdb.%i", jcr->JobId);
-//      unlink("/tmp/casket.hdb");
-#else
-      jcr->file_list->destroy();
-      free(jcr->file_list);
-#endif
-      jcr->file_list = NULL;
-   }
    return true;
 }
