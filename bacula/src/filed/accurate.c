@@ -33,6 +33,9 @@
 #include "bacula.h"
 #include "filed.h"
 
+static void realfree(void *p);	/* used by tokyo code */
+static int dbglvl=200;
+
 typedef struct PrivateCurFile {
 #ifndef USE_TCHDB
    hlink link;
@@ -45,6 +48,9 @@ typedef struct PrivateCurFile {
 
 #ifdef USE_TCHDB
 
+/*
+ * Update hash element seen=1
+ */
 static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 {
    bool ret=true;
@@ -53,9 +59,10 @@ static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
    if (!tchdbputasync(jcr->file_list, 
 		      elt->fname, strlen(elt->fname)+1, 
 		      elt, sizeof(CurFile)))
-   {
-      Dmsg1(2, "can't update <%s>\n", elt->fname);
-      ret = false;		/* TODO: add error message */
+   { /* TODO: disabling accurate mode ?  */
+      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"),
+	   tchdberrmsg(tchdbecode(jcr->file_list)));
+      ret = false;
    }
 
    return ret;
@@ -72,15 +79,14 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    {
       found = true;
       ret->fname = fname;
+//    Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
    }
-
-   if (found) {
-      Dmsg1(2, "lookup <%s> ok\n", fname);
-   }
-
    return found;
 }
 
+/* Create tokyo dbm hash file 
+ * If something goes wrong, we cancel accurate mode.
+ */
 static bool accurate_init(JCR *jcr, int nbfile)
 {
    jcr->file_list = tchdbnew();
@@ -90,22 +96,29 @@ static bool accurate_init(JCR *jcr, int nbfile)
 	     6,			/* size of element 2^x */
 	     16,
 	     0);		/* options like compression */
-   /* TODO: make accurate file unique */
+
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
    make_unique_filename(name, jcr->JobId, "accurate");
 
    if(!tchdbopen(jcr->file_list, name, HDBOWRITER | HDBOCREAT)){
-      /* TODO: handle error creation */
-      //ecode = tchdbecode(hdb);
-      //fprintf(stderr, "open error: %s\n", tchdberrmsg(ecode));
+      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%s\n"),
+	   tchdberrmsg(tchdbecode(jcr->file_list)));
+      Jmsg(jcr, M_INFO, 1, _("Disabling accurate mode\n"));
+      tchdbdel(jcr->file_list);
+      jcr->file_list = NULL;
+      jcr->accurate = false;
    }
    free_pool_memory(name);
-   return true;
+   return jcr->file_list != NULL;
 }
 
-
+/* This function is called at the end of backup
+ * We walk over all hash disk element, and we check
+ * for elt.seen.
+ */
 bool accurate_send_deleted_list(JCR *jcr)
 {
+   char *key;
    CurFile elt;
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
@@ -121,8 +134,7 @@ bool accurate_send_deleted_list(JCR *jcr)
    ff_pkt = init_find_files();
    ff_pkt->type = FT_DELETED;
 
-   char *key;
-  /* traverse records */
+   /* traverse records */
    tchdbiterinit(jcr->file_list);
    while((key = tchdbiternext2(jcr->file_list)) != NULL) {
       if (tchdbget3(jcr->file_list, 
@@ -134,12 +146,8 @@ bool accurate_send_deleted_list(JCR *jcr)
 	    ff_pkt->statp.st_mtime = elt.mtime;
 	    ff_pkt->statp.st_ctime = elt.ctime;
 	    encode_and_send_attributes(jcr, ff_pkt, stream);
-	    Dmsg1(2, "deleted <%s>\n", key);
 	 }
-//         free(key);
-
-      } else {			/* TODO: add error message */
-	 Dmsg1(2, "No value for <%s> key\n", key);
+	 realfree(key);		/* tokyo cabinet have to use real free() */
       }
    }
 
@@ -147,9 +155,10 @@ bool accurate_send_deleted_list(JCR *jcr)
 bail_out:
    /* TODO: clean htable when this function is not reached ? */
    if (jcr->file_list) {
+      Dmsg2(dbglvl, "Accurate hash size=%lli\n",tchdbfsiz(jcr->file_list));
       if(!tchdbclose(jcr->file_list)){
-//	 ecode = tchdbecode(hdb);
-//	 fprintf(stderr, "close error: %s\n", tchdberrmsg(ecode));
+	 Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk ERR=%s\n"),
+	      tchdberrmsg(tchdbecode(jcr->file_list)));
       }
 
       /* delete the object */
@@ -157,11 +166,9 @@ bail_out:
 
       POOLMEM *name  = get_pool_memory(PM_MESSAGE);
       make_unique_filename(name, jcr->JobId, "accurate");
-
-//    unlink(name);
+      unlink(name);
 
       free_pool_memory(name);
-
       jcr->file_list = NULL;
    }
    return true;
@@ -185,10 +192,7 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    if (temp) {
       memcpy(ret, temp, sizeof(CurFile));
       found=true;
-   }
-
-   if (found) {
-      Dmsg1(2, "lookup <%s> ok\n", fname);
+//    Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
    }
 
    return found;
@@ -202,6 +206,10 @@ static bool accurate_init(JCR *jcr, int nbfile)
    return true;
 }
 
+/* This function is called at the end of backup
+ * We walk over all hash disk element, and we check
+ * for elt.seen.
+ */
 bool accurate_send_deleted_list(JCR *jcr)
 {
    CurFile *elt;
@@ -221,7 +229,7 @@ bool accurate_send_deleted_list(JCR *jcr)
 
    foreach_htable (elt, jcr->file_list) {
       if (!elt->seen) { /* already seen */
-         Dmsg2(1, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
          ff_pkt->statp.st_mtime = elt->mtime;
          ff_pkt->statp.st_ctime = elt->ctime;
@@ -245,6 +253,7 @@ bail_out:
 
 static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 {
+   bool ret = true;
    CurFile elt;
    struct stat statp;
    int LinkFIc;
@@ -258,8 +267,9 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 		      fname, strlen(fname)+1,
 		      &elt, sizeof(CurFile)))
    {
-      Dmsg1(2, "Can't add <%s> to file_list\n", fname);
-      /* TODO: check error */
+      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"),
+	   tchdberrmsg(tchdbecode(jcr->file_list)));
+      ret = false;
    }
 #else  /* HTABLE */
    CurFile *item;
@@ -271,8 +281,8 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    jcr->file_list->insert(item->fname, item); 
 #endif
 
-   Dmsg2(2, "add fname=<%s> lstat=%s\n", fname, lstat);
-   return true;
+// Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
+   return ret;
 }
 
 /*
@@ -300,13 +310,13 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    } 
 
    if (!accurate_lookup(jcr, fname, &elt)) {
-      Dmsg1(2, "accurate %s (not found)\n", fname);
+      Dmsg1(dbglvl, "accurate %s (not found)\n", fname);
       stat = true;
       goto bail_out;
    }
 
    if (elt.seen) { /* file has been seen ? */
-      Dmsg1(2, "accurate %s (already seen)\n", fname);
+      Dmsg1(dbglvl, "accurate %s (already seen)\n", fname);
       goto bail_out;
    }
 
@@ -318,13 +328,8 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
      stat = true;
    }
 
-   if (stat) {
-      Dmsg4(1, "%i = %i\t%i = %i\n", elt.mtime, ff_pkt->statp.st_mtime,
-	    elt.ctime, ff_pkt->statp.st_ctime);
-   }
-
    accurate_mark_file_as_seen(jcr, &elt);
-   Dmsg2(2, "accurate %s = %i\n", fname, stat);
+   Dmsg2(dbglvl, "accurate %s = %i\n", fname, stat);
 
 bail_out:
    unstrip_path(ff_pkt);
@@ -348,7 +353,7 @@ int accurate_cmd(JCR *jcr)
       dir->fsend(_("2991 Bad accurate command\n"));
       return false;
    }
-   Dmsg2(2, "nb=%d msg=%s\n", nb, dir->msg);
+   Dmsg2(dbglvl, "nb=%d msg=%s\n", nb, dir->msg);
 
    accurate_init(jcr, nb);
 
@@ -358,7 +363,6 @@ int accurate_cmd(JCR *jcr)
     */
    /* get current files */
    while (dir->recv() >= 0) {
-      Dmsg1(2, "accurate_cmd fname=%s\n", dir->msg);
       len = strlen(dir->msg) + 1;
       if (len < dir->msglen) {
 	 accurate_add_file(jcr, dir->msg, dir->msg + len);
@@ -369,7 +373,7 @@ int accurate_cmd(JCR *jcr)
    extern void *start_heap;
 
    char b1[50], b2[50], b3[50], b4[50], b5[50];
-   Dmsg5(1," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
+   Dmsg5(dbglvl," Heap: heap=%s smbytes=%s max_bytes=%s bufs=%s max_bufs=%s\n",
          edit_uint64_with_commas((char *)sbrk(0)-(char *)start_heap, b1),
          edit_uint64_with_commas(sm_bytes, b2),
          edit_uint64_with_commas(sm_max_bytes, b3),
@@ -379,4 +383,14 @@ int accurate_cmd(JCR *jcr)
 #endif
 
    return true;
+}
+
+/*
+ * Tokyo Cabinet library doesn't use smartalloc by default
+ * results need to be release with real free()
+ */
+#undef free
+void realfree(void *p)
+{
+   free(p);
 }
