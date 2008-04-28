@@ -33,7 +33,6 @@
 #include "bacula.h"
 #include "filed.h"
 
-static void realfree(void *p);	/* used by tokyo code */
 static int dbglvl=200;
 
 typedef struct PrivateCurFile {
@@ -47,6 +46,7 @@ typedef struct PrivateCurFile {
 } CurFile;
 
 #ifdef USE_TCHDB
+static void realfree(void *p);	/* used by tokyo code */
 
 /*
  * Update hash element seen=1
@@ -98,7 +98,7 @@ static bool accurate_init(JCR *jcr, int nbfile)
 	     0);		/* options like compression */
 
    POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-   make_unique_filename(name, jcr->JobId, "accurate");
+   make_unique_filename(&name, jcr->JobId, "accurate");
 
    if(!tchdbopen(jcr->file_list, name, HDBOWRITER | HDBOCREAT)){
       Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%s\n"),
@@ -155,7 +155,7 @@ bool accurate_send_deleted_list(JCR *jcr)
 bail_out:
    /* TODO: clean htable when this function is not reached ? */
    if (jcr->file_list) {
-      Dmsg2(dbglvl, "Accurate hash size=%lli\n",tchdbfsiz(jcr->file_list));
+      Dmsg1(dbglvl, "Accurate hash size=%lli\n",tchdbfsiz(jcr->file_list));
       if(!tchdbclose(jcr->file_list)){
 	 Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk ERR=%s\n"),
 	      tchdberrmsg(tchdbecode(jcr->file_list)));
@@ -165,7 +165,7 @@ bail_out:
       tchdbdel(jcr->file_list);
 
       POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-      make_unique_filename(name, jcr->JobId, "accurate");
+      make_unique_filename(&name, jcr->JobId, "accurate");
       unlink(name);
 
       free_pool_memory(name);
@@ -384,6 +384,8 @@ int accurate_cmd(JCR *jcr)
    return true;
 }
 
+#ifdef USE_TCHDB
+
 /*
  * Tokyo Cabinet library doesn't use smartalloc by default
  * results need to be release with real free()
@@ -393,3 +395,5 @@ void realfree(void *p)
 {
    free(p);
 }
+
+#endif
