@@ -127,7 +127,6 @@ struct save_pkt;
 
 #ifdef FILE_DAEMON
 class htable;
-struct TCHDB;
 
 struct CRYPTO_CTX {
    bool pki_sign;                     /* Enable PKI Signatures? */

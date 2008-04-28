@@ -58,6 +58,7 @@ bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 		      fname, strlen(fname)+1,
 		      &elt, sizeof(CurFile)))
    {
+      Dmsg1(2, "Can't add <%s> to file_list\n", fname);
       /* TODO: check error */
    }
 #else  /* HTABLE */
@@ -70,13 +71,14 @@ bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    jcr->file_list->insert(item->fname, item); 
 #endif
 
-   Dmsg2(500, "add fname=%s lstat=%s\n", fname, lstat);
+   Dmsg2(2, "add fname=<%s> lstat=%s\n", fname, lstat);
    return true;
 }
 
 bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 {
    bool ret=true;
+   CurFile deb;
 
 #ifdef USE_TCHDB
    elt->seen = 1;
@@ -84,9 +86,11 @@ bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 		      elt->fname, strlen(elt->fname)+1, 
 		      elt, sizeof(CurFile)))
    {
+      Dmsg1(2, "can't update <%s>\n", elt->fname);
       ret = false;		/* TODO: add error message */
    }
-#else
+
+#else  /* HTABLE */
    CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
    temp->seen = 1;
 #endif    
@@ -115,6 +119,10 @@ bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    }
 #endif
 
+   if (found) {
+      Dmsg1(2, "lookup <%s> ok\n", fname);
+   }
+
    return found;
 }
 
@@ -129,7 +137,9 @@ bool accurate_init(JCR *jcr, int nbfile)
 	     16,
 	     0);		/* options like compression */
    /* TODO: make accurate file unique */
-   if(!tchdbopen(jcr->file_list, "/tmp/casket.hdb", HDBOWRITER | HDBOCREAT)){
+   POOL_MEM buf;
+   Mmsg(buf, "/tmp/casket.hdb.%i", jcr->JobId);
+   if(!tchdbopen(jcr->file_list, buf.c_str(), HDBOWRITER | HDBOCREAT)){
       /* TODO: handle error creation */
       //ecode = tchdbecode(hdb);
       //fprintf(stderr, "open error: %s\n", tchdberrmsg(ecode));
@@ -193,7 +203,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    accurate_mark_file_as_seen(jcr, &elt);
-   Dmsg2(500, "accurate %s = %i\n", fname, stat);
+   Dmsg2(2, "accurate %s = %i\n", fname, stat);
 
 bail_out:
    unstrip_path(ff_pkt);
@@ -273,13 +283,23 @@ bool accurate_send_deleted_list(JCR *jcr)
    elt = &item;
   /* traverse records */
    tchdbiterinit(jcr->file_list);
-   while((key = tchdbiternext2(jcr->file_list)) != NULL){
-      tchdbget3(jcr->file_list, key, strlen(key), elt, sizeof(CurFile));
-      ff_pkt->fname = key;
-      ff_pkt->statp.st_mtime = elt->mtime;
-      ff_pkt->statp.st_ctime = elt->ctime;
-      encode_and_send_attributes(jcr, ff_pkt, stream);
-//      free(key);
+   while((key = tchdbiternext2(jcr->file_list)) != NULL) {
+      if (tchdbget3(jcr->file_list, 
+		    key, strlen(key)+1, 
+		    elt, sizeof(CurFile)) != -1)
+      {
+	 if (!elt->seen) {
+	    ff_pkt->fname = key;
+	    ff_pkt->statp.st_mtime = elt->mtime;
+	    ff_pkt->statp.st_ctime = elt->ctime;
+	    encode_and_send_attributes(jcr, ff_pkt, stream);
+	    Dmsg1(2, "deleted <%s>\n", key);
+	 }
+ //      free(key);
+
+      } else {			/* TODO: add error message */
+	 Dmsg1(2, "No value for <%s> key\n", key);
+      }
    }
 #else
    foreach_htable (elt, jcr->file_list) {
@@ -306,7 +326,9 @@ bail_out:
 
       /* delete the object */
       tchdbdel(jcr->file_list);
-      unlink("/tmp/casket.hdb");
+      POOL_MEM buf;
+      Mmsg(buf, "/tmp/casket.hdb.%i", jcr->JobId);
+//      unlink("/tmp/casket.hdb");
 #else
       jcr->file_list->destroy();
       free(jcr->file_list);
