@@ -141,7 +141,7 @@ bool accurate_send_deleted_list(JCR *jcr)
 		    key, strlen(key)+1, 
 		    &elt, sizeof(CurFile)) != -1)
       {
-	 if (!elt.seen) {
+	 if (!elt.seen) {	/* already seen */
 	    ff_pkt->fname = key;
 	    ff_pkt->statp.st_mtime = elt.mtime;
 	    ff_pkt->statp.st_ctime = elt.ctime;
@@ -249,7 +249,7 @@ bail_out:
    return true;
 }
 
-#endif
+#endif /* common code */
 
 static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 {
@@ -353,7 +353,6 @@ int accurate_cmd(JCR *jcr)
       dir->fsend(_("2991 Bad accurate command\n"));
       return false;
    }
-   Dmsg2(dbglvl, "nb=%d msg=%s\n", nb, dir->msg);
 
    accurate_init(jcr, nb);
 
