@@ -1,4 +1,4 @@
-#: ../tpl/about.tpl:3 ../tpl/begin.tpl:77
+#: ../tpl/about.tpl:3 ../tpl/begin.tpl:78
 msgid "About"
 msgstr ""
 
@@ -232,13 +232,13 @@ msgid ""
 msgstr ""
 
 #: ../tpl/begin.tpl:26 ../tpl/begin.tpl:28 ../tpl/btime.tpl:106
-#: ../tpl/client_list.tpl:3 ../tpl/display_form_job.tpl:114
+#: ../tpl/client_list.tpl:3 ../tpl/display_form_job.tpl:116
 #: ../tpl/graph.tpl:52
 msgid "Clients"
 msgstr ""
 
-#: ../tpl/begin.tpl:29 ../tpl/btime.tpl:45 ../tpl/display_form_job.tpl:126
-#: ../tpl/display_groups.tpl:3
+#: ../tpl/begin.tpl:29 ../tpl/begin.tpl:67 ../tpl/btime.tpl:45
+#: ../tpl/display_form_job.tpl:128 ../tpl/display_groups.tpl:3
 msgid "Groups"
 msgstr ""
 
@@ -278,7 +278,7 @@ msgstr ""
 msgid "Launch brestore"
 msgstr ""
 
-#: ../tpl/begin.tpl:41 ../tpl/display_form_job.tpl:106
+#: ../tpl/begin.tpl:41 ../tpl/display_form_job.tpl:108
 msgid "Restore"
 msgstr ""
 
@@ -323,7 +323,7 @@ msgid "Manage Device"
 msgstr ""
 
 #: ../tpl/begin.tpl:63 ../tpl/begin.tpl:65 ../tpl/display_groups.tpl:16
-#: ../tpl/graph.tpl:3 ../tpl/stats.tpl:2
+#: ../tpl/display_stats.tpl:2 ../tpl/graph.tpl:3 ../tpl/stats.tpl:2
 msgid "Statistics"
 msgstr ""
 
@@ -331,36 +331,36 @@ msgstr ""
 msgid "Backup Timing"
 msgstr ""
 
-#: ../tpl/begin.tpl:67
+#: ../tpl/begin.tpl:68
 msgid "Perfs"
 msgstr ""
 
-#: ../tpl/begin.tpl:70 ../tpl/begin.tpl:72 ../tpl/config_edit.tpl:3
+#: ../tpl/begin.tpl:71 ../tpl/begin.tpl:73 ../tpl/config_edit.tpl:3
 #: ../tpl/config_view.tpl:3
 msgid "Configuration"
 msgstr ""
 
-#: ../tpl/begin.tpl:73
+#: ../tpl/begin.tpl:74
 msgid "Manage users"
 msgstr ""
 
-#: ../tpl/begin.tpl:78
+#: ../tpl/begin.tpl:79
 msgid "Logged as"
 msgstr ""
 
-#: ../tpl/begin.tpl:80
+#: ../tpl/begin.tpl:81
 msgid "Search media"
 msgstr ""
 
-#: ../tpl/begin.tpl:80
+#: ../tpl/begin.tpl:81
 msgid "Search client"
 msgstr ""
 
-#: ../tpl/begin.tpl:80
+#: ../tpl/begin.tpl:81
 msgid "search..."
 msgstr ""
 
-#: ../tpl/begin.tpl:80
+#: ../tpl/begin.tpl:81
 msgid "Search media or client"
 msgstr ""
 
@@ -400,68 +400,68 @@ msgstr ""
 msgid "Hide Job"
 msgstr ""
 
-#: ../tpl/btime.tpl:70 ../tpl/display_form_job.tpl:10
+#: ../tpl/btime.tpl:70 ../tpl/display_form_job.tpl:11
 #: ../tpl/display_job.tpl:20 ../tpl/display_job_zoom.tpl:88
 #: ../tpl/display_media_zoom.tpl:114 ../tpl/graph.tpl:16
 #: ../tpl/running_job.tpl:23 ../tpl/scheduled_job.tpl:21
 msgid "Level"
 msgstr ""
 
-#: ../tpl/btime.tpl:72 ../tpl/btime.tpl:80 ../tpl/display_form_job.tpl:12
-#: ../tpl/display_form_job.tpl:24 ../tpl/display_form_job.tpl:104
+#: ../tpl/btime.tpl:72 ../tpl/btime.tpl:80 ../tpl/display_form_job.tpl:13
+#: ../tpl/display_form_job.tpl:26 ../tpl/display_form_job.tpl:106
 #: ../tpl/graph.tpl:18 ../tpl/graph.tpl:29
 msgid "Any"
 msgstr ""
 
-#: ../tpl/btime.tpl:73 ../tpl/display_form_job.tpl:13 ../tpl/graph.tpl:19
+#: ../tpl/btime.tpl:73 ../tpl/display_form_job.tpl:14 ../tpl/graph.tpl:19
 #: ../tpl/run_job_mod.tpl:58
 msgid "Full"
 msgstr ""
 
-#: ../tpl/btime.tpl:74 ../tpl/display_form_job.tpl:14 ../tpl/graph.tpl:20
+#: ../tpl/btime.tpl:74 ../tpl/display_form_job.tpl:15 ../tpl/graph.tpl:20
 #: ../tpl/run_job_mod.tpl:59
 msgid "Differential"
 msgstr ""
 
-#: ../tpl/btime.tpl:75 ../tpl/display_form_job.tpl:15 ../tpl/graph.tpl:21
+#: ../tpl/btime.tpl:75 ../tpl/display_form_job.tpl:16 ../tpl/graph.tpl:21
 #: ../tpl/run_job_mod.tpl:57
 msgid "Incremental"
 msgstr ""
 
 #: ../tpl/btime.tpl:78 ../tpl/client_list.tpl:16 ../tpl/cmd_storage.tpl:30
-#: ../tpl/display_form_job.tpl:22 ../tpl/display_form_media.tpl:31
+#: ../tpl/display_form_job.tpl:24 ../tpl/display_form_media.tpl:31
 #: ../tpl/display_job.tpl:26 ../tpl/display_job_group.tpl:23
 #: ../tpl/display_job_zoom.tpl:96 ../tpl/display_media_zoom.tpl:114
 #: ../tpl/graph.tpl:24 ../tpl/running_job.tpl:28
 msgid "Status"
 msgstr ""
 
-#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:25 ../tpl/graph.tpl:26
+#: ../tpl/btime.tpl:81 ../tpl/display_form_job.tpl:27 ../tpl/graph.tpl:26
 msgid "Ok"
 msgstr ""
 
-#: ../tpl/btime.tpl:82 ../tpl/display_form_job.tpl:27 ../tpl/graph.tpl:27
+#: ../tpl/btime.tpl:82 ../tpl/display_form_job.tpl:29 ../tpl/graph.tpl:27
 msgid "Error"
 msgstr ""
 
-#: ../tpl/btime.tpl:83 ../tpl/display_form_job.tpl:28 ../tpl/graph.tpl:28
+#: ../tpl/btime.tpl:83 ../tpl/display_form_job.tpl:30 ../tpl/graph.tpl:28
 msgid "Canceled"
 msgstr ""
 
-#: ../tpl/btime.tpl:89 ../tpl/display_form_job.tpl:56
-#: ../tpl/display_form_job.tpl:69 ../tpl/graph.tpl:35
+#: ../tpl/btime.tpl:89 ../tpl/display_form_job.tpl:58
+#: ../tpl/display_form_job.tpl:71 ../tpl/graph.tpl:35
 msgid "Age"
 msgstr ""
 
-#: ../tpl/btime.tpl:91 ../tpl/display_form_job.tpl:73 ../tpl/graph.tpl:37
+#: ../tpl/btime.tpl:91 ../tpl/display_form_job.tpl:75 ../tpl/graph.tpl:37
 msgid "This week"
 msgstr ""
 
-#: ../tpl/btime.tpl:92 ../tpl/display_form_job.tpl:74 ../tpl/graph.tpl:38
+#: ../tpl/btime.tpl:92 ../tpl/display_form_job.tpl:76 ../tpl/graph.tpl:38
 msgid "Last 30 days"
 msgstr ""
 
-#: ../tpl/btime.tpl:93 ../tpl/display_form_job.tpl:75 ../tpl/graph.tpl:39
+#: ../tpl/btime.tpl:93 ../tpl/display_form_job.tpl:77 ../tpl/graph.tpl:39
 msgid "Last 6 months"
 msgstr ""
 
@@ -576,30 +576,34 @@ msgid "Files Examined:"
 msgstr ""
 
 #: ../tpl/client_job_status.tpl:23
+msgid "Files Backuped:"
+msgstr ""
+
+#: ../tpl/client_job_status.tpl:26
 msgid "Bytes:"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:27
+#: ../tpl/client_job_status.tpl:30
 msgid "Bytes done"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:32
+#: ../tpl/client_job_status.tpl:35
 msgid "Files done"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:38
+#: ../tpl/client_job_status.tpl:41
 msgid "Refresh"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:42
+#: ../tpl/client_job_status.tpl:45
 msgid "Do you want to cancel this job?"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:43 ../tpl/running_job.tpl:14
+#: ../tpl/client_job_status.tpl:46 ../tpl/running_job.tpl:14
 msgid "Cancel job"
 msgstr ""
 
-#: ../tpl/client_job_status.tpl:43 ../tpl/running_job.tpl:14
+#: ../tpl/client_job_status.tpl:46 ../tpl/running_job.tpl:14
 msgid "Cancel"
 msgstr ""
 
@@ -658,7 +662,8 @@ msgstr ""
 #: ../tpl/client_list.tpl:25 ../tpl/display_client_stats.tpl:25
 #: ../tpl/display_form_media.tpl:56 ../tpl/display_groups.tpl:26
 #: ../tpl/display_location.tpl:18 ../tpl/display_media_zoom.tpl:113
-#: ../tpl/display_pool.tpl:17 ../tpl/scheduled_job.tpl:24
+#: ../tpl/display_pool.tpl:17 ../tpl/display_stats.tpl:11
+#: ../tpl/scheduled_job.tpl:24
 msgid "Name"
 msgstr ""
 
@@ -839,14 +844,16 @@ msgid "View stats"
 msgstr ""
 
 #: ../tpl/display_client_stats.tpl:25 ../tpl/display_job_group.tpl:16
+#: ../tpl/display_stats.tpl:11
 msgid "Nb Jobs"
 msgstr ""
 
-#: ../tpl/display_client_stats.tpl:25
+#: ../tpl/display_client_stats.tpl:25 ../tpl/display_stats.tpl:11
 msgid "Nb Bytes"
 msgstr ""
 
 #: ../tpl/display_client_stats.tpl:25 ../tpl/display_job_group.tpl:19
+#: ../tpl/display_stats.tpl:11
 msgid "Nb Files"
 msgstr ""
 
@@ -858,82 +865,82 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:26
+#: ../tpl/display_form_job.tpl:28
 msgid "Warning"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:36 ../tpl/display_form_media.tpl:45
+#: ../tpl/display_form_job.tpl:38 ../tpl/display_form_media.tpl:45
 #: ../tpl/display_job.tpl:19 ../tpl/display_job_zoom.tpl:94
 #: ../tpl/display_media.tpl:37 ../tpl/display_media_zoom.tpl:43
 msgid "Pool"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:38
+#: ../tpl/display_form_job.tpl:40
 msgid "All"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:49
+#: ../tpl/display_form_job.tpl:51
 msgid "Since"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:58
+#: ../tpl/display_form_job.tpl:60
 msgid "1 day"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:59
+#: ../tpl/display_form_job.tpl:61
 msgid "2 days"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:60
+#: ../tpl/display_form_job.tpl:62
 msgid "1 week"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:61
+#: ../tpl/display_form_job.tpl:63
 msgid "30 days"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:62
+#: ../tpl/display_form_job.tpl:64
 msgid "6 months"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:71
+#: ../tpl/display_form_job.tpl:73
 msgid "Last 24h"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:72
+#: ../tpl/display_form_job.tpl:74
 msgid "This weekend"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:83
+#: ../tpl/display_form_job.tpl:85
 msgid "Time slice"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:85
+#: ../tpl/display_form_job.tpl:87
 msgid "Per days"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:86
+#: ../tpl/display_form_job.tpl:88
 msgid "Per weeks"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:87
+#: ../tpl/display_form_job.tpl:89
 msgid "Per months"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:94 ../tpl/display_form_media.tpl:72
+#: ../tpl/display_form_job.tpl:96 ../tpl/display_form_media.tpl:72
 #: ../tpl/graph.tpl:93
 msgid "Number of items"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:102
+#: ../tpl/display_form_job.tpl:104
 msgid "Job Type"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:105
+#: ../tpl/display_form_job.tpl:107
 msgid "Backup"
 msgstr ""
 
-#: ../tpl/display_form_job.tpl:138
+#: ../tpl/display_form_job.tpl:140
 msgid "File Set"
 msgstr ""
 
@@ -1289,6 +1296,10 @@ msgstr ""
 
 #: ../tpl/display_pool.tpl:19
 msgid "Usage"
+msgstr ""
+
+#: ../tpl/display_stats.tpl:11
+msgid "Nb Resto"
 msgstr ""
 
 #: ../tpl/display_user.tpl:2 ../tpl/move_media.tpl:21

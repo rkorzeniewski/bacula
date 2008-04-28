@@ -1,3 +1,4 @@
+<br/>
 <div class="otherboxtitle">
   Filter &nbsp;
 </div>
@@ -70,7 +71,7 @@
     <h2>Tiempo</h2>
     <select name='age' class='formulaire'>
       <option id='age_86400'   value='86400'>Last 24h</option>
-      <option id='age_172800'   value='172800'>This weekend</option>
+      <option id='age_172800'   value='237600'>This weekend</option>
       <option id='age_604800'   value='604800'>Esta Semana</option>
       <option id='age_2678400'  value='2678400'>Últimos 30 días</option>
       <option id='age_15552000' value='15552000'>Últimos 6 meses</option>
