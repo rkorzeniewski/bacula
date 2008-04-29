@@ -81,7 +81,7 @@ int main(int argc, char **argv)
    /*
     * apow : 128 (size of stat hash field)
     */
-   int opt=HDBTLARGE;//HDBTTCBS;
+   int opt=HDBTLARGE | HDBTTCBS;
    tchdbtune(hdb, atoll(argv[1]), 7, 16, opt);
    fprintf(res, "bucket;%lli\n", atoll(argv[1]));
    fprintf(res, "compress;%i\n", opt);
