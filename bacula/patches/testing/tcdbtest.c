@@ -37,12 +37,21 @@ int64_t get_current_time()
    return (int64_t)tv.tv_sec * 1000000 + (int64_t)tv.tv_usec;
 }
 
-int main(int argc, char **argv){
+typedef struct PrivateCurFile {
+   char *fname;			/* not stored with tchdb mode */
+   time_t ctime;
+   time_t mtime;
+   bool seen;
+} CurFile;
 
+int main(int argc, char **argv)
+{
+   CurFile elt;
    FILE *fp, *res;
    TCHDB *hdb;
    int ecode;
-   char *key, *value;
+   char *key;
+   int value;
    int i=0;
    char save_key[512];
    char line[512];
@@ -58,7 +67,7 @@ int main(int argc, char **argv){
    signal(15, exit);
    signal(2, exit);
 
-   snprintf(result, sizeof(result), "result.%i", getpid());
+   snprintf(result, sizeof(result), "result.%i.csv", getpid());
    res = fopen(result, "w");
    
    /* create the object */
@@ -72,7 +81,7 @@ int main(int argc, char **argv){
    /*
     * apow : 128 (size of stat hash field)
     */
-   int opt=0;//HDBTTCBS;
+   int opt=HDBTLARGE;//HDBTTCBS;
    tchdbtune(hdb, atoll(argv[1]), 7, 16, opt);
    fprintf(res, "bucket;%lli\n", atoll(argv[1]));
    fprintf(res, "compress;%i\n", opt);
@@ -92,8 +101,7 @@ int main(int argc, char **argv){
       exit (1);
    }
    while (fgets(line, sizeof(line), fp)) {
-      char *data = "A AAA B AZS SDSZ EZEZ SSDFS AEZEZEZ ZEZDSDDQe";
-      if (!tchdbputasync2(hdb, line, data)) {
+      if (!tchdbputasync(hdb, line, strlen(line)+1, &elt, sizeof(elt))) {
 	 ecode = tchdbecode(hdb);
          fprintf(stderr, "put error: %s\n", tchdberrmsg(ecode));
       }
@@ -104,7 +112,7 @@ int main(int argc, char **argv){
    fclose(fp);
 
    ttime= get_current_time();
-   fprintf(res, "nbelt;%lli\n", i);
+   fprintf(res, "nbelt;%u\n", i);
 
    fprintf(stderr, "loading %i file into hash database in %ims\n", 
 	   i, (ttime - ctime)/1000);
@@ -112,11 +120,8 @@ int main(int argc, char **argv){
 
 
    /* retrieve records */
-   value = tchdbget2(hdb, save_key);
-   if(value){
-      //printf("%s:%s\n", save_key, value);
-      free(value);
-   } else {
+   value = tchdbget3(hdb, save_key, strlen(save_key)+1, &elt, sizeof(elt));
+   if(value == -1){
       ecode = tchdbecode(hdb);
       fprintf(stderr, "get error: %s\n", tchdberrmsg(ecode));
    }
@@ -129,16 +134,14 @@ int main(int argc, char **argv){
       exit (1);
    }
    while (fgets(line, sizeof(line), fp)) {
-      char *data = "A AAA B AZS SDSZ EZEZ SSDFS AEZEZEZ ZEZDSDDQe";
       if (i++ != 200) {
-	 value = tchdbget2(hdb, line);
-	 if (value) {
-	    *value=0;
-	    if (!tchdbputasync2(hdb, line, value)) {
+	 value = tchdbget3(hdb, line, strlen(line)+1, &elt, sizeof(elt));
+	 if (value > 0) {
+	    elt.seen=1;
+	    if (!tchdbputasync(hdb, line, strlen(line)+1, &elt, sizeof(elt))) {
 	       ecode = tchdbecode(hdb);
 	       fprintf(stderr, "put error: %s\n", tchdberrmsg(ecode));
 	    }
-	    free(value);
 	 } else {
 	    fprintf(stderr, "can't find %s in hash\n", line);
 	 }
@@ -153,12 +156,16 @@ int main(int argc, char **argv){
   /* traverse records */
   tchdbiterinit(hdb);
   while((key = tchdbiternext2(hdb)) != NULL){
-    value = tchdbget2(hdb, key);
-    if(value && *value){
-       //printf("%s:%s\n", key, value);
-      free(value);
-    }
-    free(key);
+	 value = tchdbget3(hdb, key, strlen(key)+1, &elt, sizeof(elt));
+	 if (value > 0) {
+	    elt.seen=1;
+	    if (!tchdbputasync(hdb, key, strlen(key)+1, &elt, sizeof(elt))) {
+	       ecode = tchdbecode(hdb);
+	       fprintf(stderr, "put error: %s\n", tchdberrmsg(ecode));
+	    }
+	 } else {
+	    fprintf(stderr, "can't find %s in hash\n", line);
+	 }
   }
 
    ttime = get_current_time();
