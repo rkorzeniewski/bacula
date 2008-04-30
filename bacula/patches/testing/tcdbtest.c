@@ -158,11 +158,7 @@ int main(int argc, char **argv)
   while((key = tchdbiternext2(hdb)) != NULL){
 	 value = tchdbget3(hdb, key, strlen(key)+1, &elt, sizeof(elt));
 	 if (value > 0) {
-	    elt.seen=1;
-	    if (!tchdbputasync(hdb, key, strlen(key)+1, &elt, sizeof(elt))) {
-	       ecode = tchdbecode(hdb);
-	       fprintf(stderr, "put error: %s\n", tchdberrmsg(ecode));
-	    }
+	    elt.seen=1; // check seen element
 	 } else {
 	    fprintf(stderr, "can't find %s in hash\n", line);
 	 }
