@@ -275,8 +275,8 @@ static bool check_changes(JCR *jcr, FF_PKT *ff_pkt)
     */
    if (ff_pkt->incremental &&
        (ff_pkt->statp.st_mtime < ff_pkt->save_time &&
-	((ff_pkt->flags & FO_MTIMEONLY) ||
-	 ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
+        ((ff_pkt->flags & FO_MTIMEONLY) ||
+         ff_pkt->statp.st_ctime < ff_pkt->save_time))) 
    {
       return false;
    } 
@@ -429,8 +429,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       lp->ino = ff_pkt->statp.st_ino;
       lp->dev = ff_pkt->statp.st_dev;
       bstrncpy(lp->name, fname, len);
-       lp->next = ff_pkt->linkhash[linkhash];
-       ff_pkt->linkhash[linkhash] = lp;
+      lp->next = ff_pkt->linkhash[linkhash];
+      ff_pkt->linkhash[linkhash] = lp;
       ff_pkt->linked = lp;            /* mark saved link */
    } else {
       ff_pkt->linked = NULL;
@@ -531,8 +531,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       } else {
          ff_pkt->type = FT_DIRBEGIN;
       }
-      /* We have set st_rdev to 1 if it is a reparse point, otherwise 0 */
-      if (have_win32_api() && ff_pkt->statp.st_rdev) {
+      /*
+       * We have set st_rdev to 1 if it is a reparse point, otherwise 0,
+       *  if st_rdev is 2, it is a mount point 
+       */
+      if (have_win32_api() && ff_pkt->statp.st_rdev == 1) {
          ff_pkt->type = FT_REPARSE;
       }
       /*

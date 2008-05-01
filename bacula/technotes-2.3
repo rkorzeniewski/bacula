@@ -25,6 +25,9 @@ Add long term statistics job table
 
 General:
 01May08
+kes  Fix strippath so that it does not get a buffer overrun and crash FD.
+     This fixes bug #1078.
+kes  Remove 50 millisec wait in SD that broke debugger.
 ebl  Add MaxRunSchedTime option that specifies the maximum allowed time 
      that a job may run, counted from when the job was scheduled.
 ebl  Fix MaxWaitTime option that specifies the maximum allowed time that 
