@@ -103,6 +103,9 @@ static int echocmd(FILE *input, BSOCK *UA_sock);
 static int timecmd(FILE *input, BSOCK *UA_sock);
 static int sleepcmd(FILE *input, BSOCK *UA_sock);
 static int execcmd(FILE *input, BSOCK *UA_sock);
+#ifdef HAVE_READLINE
+static int eolcmd(FILE *input, BSOCK *UA_sock);
+#endif
 
 
 #define CONFIG_FILE "bconsole.conf"   /* default configuration file */
@@ -171,6 +174,9 @@ static struct cmdstruct commands[] = {
  { N_("exec"),       execcmd,      _("execute an external command")},
  { N_("exit"),       quitcmd,      _("exit = quit")},
  { N_("zed_keys"),   zed_keyscmd,  _("zed_keys = use zed keys instead of bash keys")},
+#ifdef HAVE_READLINE
+ { N_("separator"),  eolcmd,       _("set command separator")},
+#endif
              };
 #define comsize (sizeof(commands)/sizeof(struct cmdstruct))
 
@@ -340,23 +346,60 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 #include "readline.h"
 #include "history.h"
 
+static char eol = ';';
+static int eolcmd(FILE *input, BSOCK *UA_sock)
+{
+   if ((argc > 1) && (strchr("!$%&'()*+,-/:;<>?[]^`{|}~", argk[1][0]) != NULL)) {
+      eol = argk[1][0];
+      return 1;
+   }
+   sendit(_("Missing or illegal separator character.\n"));
+   return 1;
+}
+
 int
 get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
 {
-   char *line;
+   static char *line = NULL;
+   static char *next = NULL;
+   static int do_history = 0;
+   char *command;
 
-   rl_catch_signals = 0;              /* do it ourselves */
-   line = readline((char *)prompt);   /* cast needed for old readlines */
+   if (line == NULL) {
+      do_history = 0;
+      rl_catch_signals = 0;              /* do it ourselves */
+      line = readline((char *)prompt);   /* cast needed for old readlines */
 
-   if (!line) {
-      exit(1);
+      if (!line) {
+         exit(1);
+      }
+      strip_trailing_junk(line);
+      command = line;
+   } else {
+      *next = eol;
+      command = next + 1;
    }
-   strip_trailing_junk(line);
-   sock->msglen = pm_strcpy(&sock->msg, line);
+
+   next = strchr(command, eol);
+   if (next != NULL) {
+      *next = '\0';
+   }
+   if (command != line && isatty(fileno(input))) {
+      senditf("%s%s\n", prompt, command);
+   }
+
+   sock->msglen = pm_strcpy(&sock->msg, command);
    if (sock->msglen) {
-      add_history(sock->msg);
+      do_history++;
    }
-   free(line);
+
+   if (next == NULL) {
+      if (do_history) {
+        add_history(line);
+      }
+      free(line);
+      line = NULL;
+   }
    return 1;
 }
 
