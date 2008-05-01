@@ -39,6 +39,8 @@
 #include "bacula.h"
 #include "find.h"
 
+const int dbglvl = 200;
+
 int       (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
 int       (*plugin_bclose)(JCR *jcr) = NULL;
 ssize_t   (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
@@ -830,7 +832,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    }
 
    /* Normal file open */
-   Dmsg1(100, "open file %s\n", fname);
+   Dmsg1(dbglvl, "open file %s\n", fname);
 
    /* We use fnctl to set O_NOATIME if requested to avoid open error */
    bfd->fid = open(fname, flags & ~O_NOATIME, mode);

@@ -694,7 +694,7 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
          jcr->wait_time = time(NULL);
       }
    }
-   Dmsg3(100, "jid=%u OnExit JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
+   Dmsg3(100, "jid=%u Exit set_jcr_job_status=%c set=%c\n", (uint32_t)jcr->JobId,
          jcr->JobStatus, JobStatus);
 }
 

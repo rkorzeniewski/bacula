@@ -165,7 +165,7 @@ bool run_cmd(JCR *jcr)
    struct timeval tv;
    struct timezone tz;
    struct timespec timeout;
-   int errstat;
+   int errstat = 0;
 
    Dsm_check(1);
    Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
@@ -187,7 +187,7 @@ bool run_cmd(JCR *jcr)
    timeout.tv_sec = tv.tv_sec + me->client_wait;
 
    Dmsg3(050, "%s waiting %d sec for FD to contact SD key=%s\n",
-         jcr->Job, (int)me->client_wait, jcr->sd_auth_key);
+         jcr->Job, (int)(timeout.tv_sec-time(NULL)), jcr->sd_auth_key);
 
    /*
     * Wait for the File daemon to contact us to start the Job,
@@ -201,6 +201,8 @@ bool run_cmd(JCR *jcr)
          break;
       }
    }
+   Dmsg3(100, "Auth=%d canceled=%d errstat=%d\n", jcr->authenticated,
+      job_canceled(jcr), errstat);
    V(mutex);
 
    memset(jcr->sd_auth_key, 0, strlen(jcr->sd_auth_key));
@@ -220,10 +222,14 @@ void handle_filed_connection(BSOCK *fd, char *job_name)
 {
    JCR *jcr;
 
-   bmicrosleep(0, 50000);             /* wait 50 millisecs */
+/*
+ * With the following bmicrosleep on, running the 
+ * SD under the debugger fails.   
+ */ 
+// bmicrosleep(0, 50000);             /* wait 50 millisecs */
    if (!(jcr=get_jcr_by_full_name(job_name))) {
       Jmsg1(NULL, M_FATAL, 0, _("FD connect failed: Job name not found: %s\n"), job_name);
-      Dmsg1(3, "**** Job \"%s\" not found", job_name);
+      Dmsg1(3, "**** Job \"%s\" not found.\n", job_name);
       return;
    }
 
