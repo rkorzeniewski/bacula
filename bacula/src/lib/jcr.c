@@ -632,6 +632,24 @@ JCR *get_jcr_by_full_name(char *Job)
 
 void set_jcr_job_status(JCR *jcr, int JobStatus)
 {
+    bool set_waittime=false;
+    Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
+    /* if wait state is new, we keep current time for watchdog MaxWaitTime */
+    switch (JobStatus) {
+       case JS_WaitFD:
+       case JS_WaitSD:
+       case JS_WaitMedia:
+       case JS_WaitMount:
+       case JS_WaitStoreRes:
+       case JS_WaitJobRes:
+       case JS_WaitClientRes:
+       case JS_WaitMaxJobs:
+       case JS_WaitPriority:
+         set_waittime = true;
+       default:
+         break;
+    }
+ 
    /*
     * For a set of errors, ... keep the current status
     *   so it isn't lost. For all others, set it.
@@ -652,10 +670,29 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
          /* Override more minor status */
          jcr->JobStatus = JobStatus;
          break;
+      default:
+         break;
       }
-      break;
+   /*
+    * For a set of Wait situation, keep old time.
+    */
+   case JS_WaitFD:
+   case JS_WaitSD:
+   case JS_WaitMedia:
+   case JS_WaitMount:
+   case JS_WaitStoreRes:
+   case JS_WaitJobRes:
+   case JS_WaitClientRes:
+   case JS_WaitMaxJobs:
+   case JS_WaitPriority:
+       set_waittime = false;    /* keep old time */
    default:
       jcr->JobStatus = JobStatus;
+      if (set_waittime) {
+         /* set it before JobStatus */
+         Dmsg0(800, "Setting wait_time\n");
+         jcr->wait_time = time(NULL);
+      }
    }
    Dmsg3(100, "jid=%u OnExit JobStatus=%c set=%c\n", (uint32_t)jcr->JobId,
          jcr->JobStatus, JobStatus);

@@ -70,6 +70,33 @@ static char Device_update[]   = "DevUpd Job=%127s "
 
 static char OK_msg[] = "1000 OK\n";
 
+
+void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
+{
+   bool set_waittime=false;
+   Dmsg2(800, "set_jcr_sd_job_status(%s, %c)\n", jcr->Job, SDJobStatus);
+   /* if wait state is new, we keep current time for watchdog MaxWaitTime */
+   switch (SDJobStatus) {
+      case JS_WaitMedia:
+      case JS_WaitMount:
+      case JS_WaitMaxJobs:
+	 set_waittime = true;
+      default:
+	 break;
+   }
+
+   if (job_waiting(jcr)) {
+      set_waittime = false;
+   }
+
+   if (set_waittime) {
+      /* set it before JobStatus */
+      Dmsg0(800, "Setting wait_time\n");
+      jcr->wait_time = time(NULL);
+   }
+   jcr->SDJobStatus = SDJobStatus;
+}
+
 /*
  * Get a message
  *  Call appropriate processing routine
@@ -230,7 +257,7 @@ int bget_dirmsg(BSOCK *bs)
          int JobStatus;
          char Job[MAX_NAME_LENGTH];
          if (sscanf(bs->msg, Job_status, &Job, &JobStatus) == 2) {
-            jcr->SDJobStatus = JobStatus; /* current status */
+            set_jcr_sd_job_status(jcr,JobStatus); /* current status */
          } else {
             Emsg1(M_ERROR, 0, _("Malformed message: %s\n"), bs->msg);
          }
