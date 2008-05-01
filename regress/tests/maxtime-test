@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  Test RunScript
+#  Test MaxWaitTime, MaxRunTime and MaxStartDelay
 #
 
 TestName="maxtime-test"
@@ -42,9 +42,7 @@ END_OF_DATA
  mkfifo ${cwd}/tmp/fifo2
  mkfifo ${cwd}/tmp/fifo3) 2> /dev/null
 
-bin/bacula start
-cat ${cwd}/tmp/bconcmds | bin/bconsole -c bin/bconsole.conf > /dev/null
-stop_bacula
+run_bacula
 
 rm ${cwd}/tmp/fifo ${cwd}/tmp/fifo2 ${cwd}/tmp/fifo3
 
