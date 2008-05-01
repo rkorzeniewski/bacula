@@ -289,10 +289,15 @@ RES_ITEM job_items[] = {
    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
    {"writeverifylist",store_dir, ITEM(res_job.WriteVerifyList), 0, 0, 0},
    {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
+   {"maxrunschedtime", store_time, ITEM(res_job.MaxRunSchedTime), 0, 0, 0},
    {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
-   {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxWaitTime), 0, 0, 0},
-   {"incrementalmaxwaittime",  store_time, ITEM(res_job.IncMaxWaitTime), 0, 0, 0},
-   {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxWaitTime), 0, 0, 0},
+   /* xxxMaxWaitTime are deprecated */
+   {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxRunTime), 0, 0, 0},
+   {"incrementalmaxwaittime",  store_time, ITEM(res_job.IncMaxRunTime), 0, 0, 0},
+   {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
+   {"fullmaxruntime",  store_time, ITEM(res_job.FullMaxRunTime), 0, 0, 0},
+   {"incrementalmaxruntime",  store_time, ITEM(res_job.IncMaxRunTime), 0, 0, 0},
+   {"differentialmaxruntime",  store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
    {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"maxfullinterval",  store_time, ITEM(res_job.MaxFullInterval), 0, 0, 0},
@@ -665,6 +670,15 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.PluginOptions) {
          sendit(sock, _("  --> PluginOptions=%s\n"), NPRT(res->res_job.PluginOptions));
+      }
+      if (res->res_job.MaxRunTime) {
+         sendit(sock, _("  --> MaxRunTime=%u\n"), res->res_job.MaxRunTime);
+      }
+      if (res->res_job.MaxWaitTime) {
+         sendit(sock, _("  --> MaxWaitTime=%u\n"), res->res_job.MaxWaitTime);
+      }
+      if (res->res_job.MaxStartDelay) {
+         sendit(sock, _("  --> MaxStartDelay=%u\n"), res->res_job.MaxStartDelay);
       }
       if (res->res_job.storage) {
          STORE *store;

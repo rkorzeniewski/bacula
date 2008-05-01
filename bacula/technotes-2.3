@@ -25,6 +25,11 @@ Add long term statistics job table
 
 General:
 01May08
+ebl  Add MaxRunSchedTime option that specifies the maximum allowed time 
+     that a job may run, counted from when the job was scheduled.
+ebl  Fix MaxWaitTime option that specifies the maximum allowed time that 
+     a job may block waiting for a resource, counted from when the job starts
+ebl  Rename (add) Max(Incr|Diff|Full)WaitTime to Max(Incr|Diff|Full)RunTime
 kes  Apply patch from bug #1076 by Tullio Andreatta <t.andreatta@troppoavanti.it>
      that implements multiple commands per line in the console when using 
      readline. Modify the default to use a semicolon as the command separator.  

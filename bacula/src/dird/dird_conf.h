@@ -384,10 +384,11 @@ public:
    };
    utime_t MaxRunTime;                /* max run time in seconds */
    utime_t MaxWaitTime;               /* max blocking time in seconds */
-   utime_t FullMaxWaitTime;           /* Max Full job wait time */
-   utime_t DiffMaxWaitTime;           /* Max Differential job wait time */
-   utime_t IncMaxWaitTime;            /* Max Incremental job wait time */
+   utime_t FullMaxRunTime;            /* Max Full job run time */
+   utime_t DiffMaxRunTime;            /* Max Differential job run time */
+   utime_t IncMaxRunTime;             /* Max Incremental job run time */
    utime_t MaxStartDelay;             /* max start delay in seconds */
+   utime_t MaxRunSchedTime;           /* max run time in seconds from Scheduled time*/
    utime_t RescheduleInterval;        /* Reschedule interval */
    utime_t JobRetention;              /* job retention period in seconds */
    utime_t MaxFullInterval;           /* Maximum time interval between Fulls */

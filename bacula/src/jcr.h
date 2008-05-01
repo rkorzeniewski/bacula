@@ -109,6 +109,22 @@ enum {
    jcr->JobStatus == JS_ErrorTerminated || \
    jcr->JobStatus == JS_FatalError)
 
+#define job_waiting(jcr) \
+  (jcr->JobStatus == JS_WaitFD       || \
+   jcr->JobStatus == JS_WaitSD	     || \
+   jcr->JobStatus == JS_WaitMedia    || \
+   jcr->JobStatus == JS_WaitMount    || \
+   jcr->JobStatus == JS_WaitStoreRes || \
+   jcr->JobStatus == JS_WaitJobRes   || \
+   jcr->JobStatus == JS_WaitClientRes|| \
+   jcr->JobStatus == JS_WaitMaxJobs  || \
+   jcr->JobStatus == JS_WaitPriority || \
+   jcr->SDJobStatus == JS_WaitMedia  || \
+   jcr->SDJobStatus == JS_WaitMount  || \
+   jcr->SDJobStatus == JS_WaitMaxJobs)
+
+
+
 #define foreach_jcr(jcr) \
    for (jcr=jcr_walk_start(); jcr; (jcr=jcr_walk_next(jcr)) )
 
@@ -189,6 +205,7 @@ public:
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
    time_t end_time;                   /* job end time */
+   time_t wait_time;                  /* when job have started to wait */
    POOLMEM *client_name;              /* client name */
    POOLMEM *RestoreBootstrap;         /* Bootstrap file to restore */
    POOLMEM *stime;                    /* start time for incremental/differential */

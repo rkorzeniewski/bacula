@@ -41,8 +41,9 @@
 static void *job_thread(void *arg);
 static void job_monitor_watchdog(watchdog_t *self);
 static void job_monitor_destructor(watchdog_t *self);
-static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr);
-static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr);
+static bool job_check_maxwaittime(JCR *jcr);
+static bool job_check_maxruntime(JCR *jcr);
+static bool job_check_maxschedruntime(JCR *jcr);
 
 /* Imported subroutines */
 extern void term_scheduler();
@@ -251,6 +252,11 @@ static void *job_thread(void *arg)
        (utime_t)(jcr->start_time - jcr->sched_time)) {
       set_jcr_job_status(jcr, JS_Canceled);
       Jmsg(jcr, M_FATAL, 0, _("Job canceled because max start delay time exceeded.\n"));
+   }
+
+   if (job_check_maxschedruntime(jcr)) {
+      set_jcr_job_status(jcr, JS_Canceled);
+      Jmsg(jcr, M_FATAL, 0, _("Job canceled because max sched run time exceeded.\n"));
    }
 
    /* TODO : check if it is used somewhere */
@@ -493,14 +499,19 @@ static void job_monitor_watchdog(watchdog_t *self)
       }
 
       /* check MaxWaitTime */
-      if (job_check_maxwaittime(control_jcr, jcr)) {
+      if (job_check_maxwaittime(jcr)) {
          set_jcr_job_status(jcr, JS_Canceled);
          Jmsg(jcr, M_FATAL, 0, _("Max wait time exceeded. Job canceled.\n"));
          cancel = true;
       /* check MaxRunTime */
-      } else if (job_check_maxruntime(control_jcr, jcr)) {
+      } else if (job_check_maxruntime(jcr)) {
          set_jcr_job_status(jcr, JS_Canceled);
          Jmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
+         cancel = true;
+      /* check MaxRunSchedTime */ 
+      } else if (job_check_maxschedruntime(jcr)) {
+         set_jcr_job_status(jcr, JS_Canceled);
+         Jmsg(jcr, M_FATAL, 0, _("Max sched run time exceeded. Job canceled.\n"));
          cancel = true;
       }
 
@@ -522,29 +533,17 @@ static void job_monitor_watchdog(watchdog_t *self)
  * Check if the maxwaittime has expired and it is possible
  *  to cancel the job.
  */
-static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
+static bool job_check_maxwaittime(JCR *jcr)
 {
    bool cancel = false;
    JOB *job = jcr->job;
 
-   if (job_canceled(jcr)) {
-      return false;                /* already canceled */
-   }
-   if (job->MaxWaitTime == 0 && job->FullMaxWaitTime == 0 &&
-       job->IncMaxWaitTime == 0 && job->DiffMaxWaitTime == 0) {
+   if (!job_waiting(jcr)) {
       return false;
-   } 
-   if (jcr->JobLevel == L_FULL && job->FullMaxWaitTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->FullMaxWaitTime) {
-      cancel = true;
-   } else if (jcr->JobLevel == L_DIFFERENTIAL && job->DiffMaxWaitTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->DiffMaxWaitTime) {
-      cancel = true;
-   } else if (jcr->JobLevel == L_INCREMENTAL && job->IncMaxWaitTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->IncMaxWaitTime) {
-      cancel = true;
-   } else if (job->MaxWaitTime != 0 &&
-         (watchdog_time - jcr->start_time) >= job->MaxWaitTime) {
+   }
+   Dmsg3(200, "check maxwaittime %u - %u >= %u\n", watchdog_time, jcr->wait_time, job->MaxWaitTime);
+   if (job->MaxWaitTime != 0 &&
+       (watchdog_time - jcr->wait_time) >= job->MaxWaitTime) {
       cancel = true;
    }
 
@@ -555,14 +554,50 @@ static bool job_check_maxwaittime(JCR *control_jcr, JCR *jcr)
  * Check if maxruntime has expired and if the job can be
  *   canceled.
  */
-static bool job_check_maxruntime(JCR *control_jcr, JCR *jcr)
+static bool job_check_maxruntime(JCR *jcr)
 {
-   if (jcr->job->MaxRunTime == 0 || job_canceled(jcr) || jcr->JobStatus == JS_Created) {
+   bool cancel = false;
+   JOB *job = jcr->job;
+
+   if (job_canceled(jcr) || jcr->JobStatus == JS_Created) {
       return false;
    }
-   if ((watchdog_time - jcr->start_time) < jcr->job->MaxRunTime) {
-      Dmsg3(200, "Job %p (%s) with MaxRunTime %d not expired\n",
-            jcr, jcr->Job, jcr->job->MaxRunTime);
+   if (jcr->job->MaxRunTime == 0 && job->FullMaxRunTime == 0 &&
+       job->IncMaxRunTime == 0 && job->DiffMaxRunTime == 0) {
+      return false;
+   }
+   Dmsg6(200, "check_maxruntime %u - %u >= %u|%u|%u|%u\n\n",
+	 watchdog_time, jcr->start_time, job->MaxRunTime, job->FullMaxRunTime, 
+	 job->IncMaxRunTime, job->DiffMaxRunTime);
+
+   if (jcr->JobLevel == L_FULL && job->FullMaxRunTime != 0 &&
+         (watchdog_time - jcr->start_time) >= job->FullMaxRunTime) {
+      cancel = true;
+   } else if (jcr->JobLevel == L_DIFFERENTIAL && job->DiffMaxRunTime != 0 &&
+         (watchdog_time - jcr->start_time) >= job->DiffMaxRunTime) {
+      cancel = true;
+   } else if (jcr->JobLevel == L_INCREMENTAL && job->IncMaxRunTime != 0 &&
+         (watchdog_time - jcr->start_time) >= job->IncMaxRunTime) {
+      cancel = true;
+   } else if ((watchdog_time - jcr->start_time) >= job->MaxRunTime) {
+      cancel = true;
+   }
+ 
+   return cancel;
+}
+
+/*
+ * Check if MaxRunSchedTime has expired and if the job can be
+ *   canceled.
+ */
+static bool job_check_maxschedruntime(JCR *jcr)
+{
+   if (jcr->job->MaxRunSchedTime == 0 || job_canceled(jcr)) {
+      return false;
+   }
+   if ((watchdog_time - jcr->sched_time) < jcr->job->MaxRunSchedTime) {
+      Dmsg3(200, "Job %p (%s) with MaxRunSchedTime %d not expired\n",
+            jcr, jcr->Job, jcr->job->MaxRunSchedTime);
       return false;
    }
 
