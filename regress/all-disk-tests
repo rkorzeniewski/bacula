@@ -42,6 +42,7 @@ nice tests/maxvol-test
 nice tests/maxvol2-test
 nice tests/sparse-compressed-test
 nice tests/sparse-test
+nice tests/strip-test
 nice tests/two-jobs-test
 nice tests/two-vol-test
 nice tests/verify-cat-test
