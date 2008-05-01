@@ -25,6 +25,9 @@ Add long term statistics job table
 
 General:
 01May08
+kes  Prevent a Volume that is being swapped from being freed from
+     the volume list. This will most likely fix, at least partially,
+     bug #1083.
 kes  Fix strippath so that it does not get a buffer overrun and crash FD.
      This fixes bug #1078.
 kes  Remove 50 millisec wait in SD that broke debugger.

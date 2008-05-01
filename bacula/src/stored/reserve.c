@@ -386,22 +386,24 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       nvol->dev = NULL;                  /* don't zap dev entry */
       free_vol_item(nvol);
 
-      /* Check if we are trying to use the Volume on a different drive */
+      /*
+       * Check if we are trying to use the Volume on a different drive
+       *  dev      is our device
+       *  vol->dev is where the Volume we want is
+       */
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
          if (!vol->dev->is_busy() && !vol->is_swapping()) {
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
-            vol->dev->set_unload();      /* unload our drive */
+            vol->dev->set_unload();      /* unload the other drive */
             vol->set_swapping();         /* swap from other drive */
             dev->swap_dev = vol->dev;    /* remember to get this vol */
             vol->dev->set_load();        /* then reload on our drive */
             vol->dev->vol = NULL;        /* remove volume from other drive */
-            vol->dev = dev;              /* point it at our drive */
-            dev->vol = vol;              /* point our drive at it */
-            Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
-               VolumeName, vol->dev->print_name(), dev->print_name());
+            vol->dev = dev;              /* point the Volume at our drive */
+            dev->vol = vol;              /* point our drive at the Volume */
          } else {
             Dmsg3(dbglvl, "==== Swap not possible Vol busy vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
@@ -589,11 +591,14 @@ bool free_volume(DEVICE *dev)
    }
    lock_volumes();
    vol = dev->vol;
-   dev->vol = NULL;
-   vol_list->remove(vol);
-   Dmsg2(dbglvl, "=== free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
-   free_vol_item(vol);
-   debug_list_volumes("free_volume");
+   /* Don't free a volume while it is being swapped */
+   if (!vol->is_swapping()) {
+      dev->vol = NULL;
+      vol_list->remove(vol);
+      Dmsg2(dbglvl, "=== free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
+      free_vol_item(vol);
+      debug_list_volumes("free_volume");
+   }
    unlock_volumes();
    return true;
 }
