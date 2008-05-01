@@ -644,6 +644,7 @@ statDir(const char *file, struct stat *sb)
       sb->st_ctime = now;
       sb->st_mtime = now;
       sb->st_atime = now;
+      sb->st_rdev = 0;
       return 0;
     }
 
