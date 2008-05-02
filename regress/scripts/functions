@@ -123,6 +123,21 @@ run_bscan()
    fi
 }
 
+bscan_libdbi()
+{   
+   B=`echo $LIBDBI | sed 's/;//' | sed 's/;//g'`
+   B_D=`echo $B | awk '{print $3}'`
+   B_t=`echo $B | awk '{print $6}'`
+   B_p=`echo $B | awk '{print $9}'`
+
+   BSCANLIBDBI="${LIBDBI:+1}"
+		
+   if test "$BSCANLIBDBI" -eq "1" ; then
+      BSCANLIBDBI="-D $B_D -h $B_t -t $B_p"
+   else
+      BSCANLIBDBI=" "
+   fi
+}
 
 stop_bacula()
 {

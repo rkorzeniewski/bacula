@@ -29,7 +29,7 @@ Director {                            # define myself
 Job {
   Name = "NightlySave"
   Type = Backup
-  Client=Tibs
+  Client=@win32_client@
   FileSet="Full Set"
   Storage = DDS-4
   Messages = Standard
@@ -44,7 +44,7 @@ Job {
 Job {
   Name = "RestoreFiles"
   Type = Restore
-  Client=Tibs
+  Client=@win32_client@
   FileSet="Full Set"
   Storage = DDS-4
   Messages = Standard
@@ -58,7 +58,7 @@ FileSet {
   Name = "Full Set"
   Enable VSS = yes
   Include { Options { signature=MD5 }
-    File =  "c:"
+    File =  "@win32_file@"
   }
 }
 
@@ -76,11 +76,11 @@ Schedule {
 
 # Client (File Services) to backup
 Client {
-  Name = Tibs
-  Address = tibs
-  FDPort = 9102
+  Name = @win32_client@
+  Address = @win32_addr@
+  FDPort = @win32_port@
   Catalog = MyCatalog
-  Password = "xBzFq+a9llZyGyfMaNO9e3outP86/1AUAT8P34RoT62G"
+  Password = "@win32_password@"
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
@@ -90,7 +90,7 @@ Client {
 # Definition of DDS tape storage device
 Storage {
   Name = DDS-4
-  Address = 192.168.68.112            # N.B. Use a fully qualified name here
+  Address = @hostname@-sd            # N.B. Use a fully qualified name here
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = DDS-4                      # must be same as Device in Storage daemon
@@ -103,6 +103,7 @@ Storage {
 # Generic catalog service
 Catalog {
   Name = MyCatalog
+  @libdbi@
   dbname = regress; user = regress; password = ""
 }
 

@@ -58,4 +58,8 @@ echo "s%@os@%${os}%g" >>${out}
 echo "s%@bversion@%${bversion}%g" >>${out}
 echo "s%@bdate@%${bdate}%g" >>${out}
 echo "s%@libdbi@%${libdbi}%g" >>${out}
-
+echo "s%@win32_client@%${WIN32_CLIENT}%g" >>${out}
+echo "s%@win32_addr@%${WIN32_ADDR}%g" >>${out}
+echo "s%@win32_file@%${WIN32_FILE}%g" >>${out}
+echo "s%@win32_port@%${WIN32_PORT}%g" >>${out}
+echo "s%@win32_password@%${WIN32_PASSWORD}%g" >>${out}
