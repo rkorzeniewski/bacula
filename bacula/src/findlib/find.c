@@ -280,6 +280,7 @@ static bool accept_file(FF_PKT *ff)
       findFOPTS *fo = (findFOPTS *)incexe->opts_list.get(j);
       ff->flags = fo->flags;
       ff->GZIP_level = fo->GZIP_level;
+      ff->ignoredir = fo->ignoredir;
       ff->fstypes = fo->fstype;
       ff->drivetypes = fo->drivetype;
 

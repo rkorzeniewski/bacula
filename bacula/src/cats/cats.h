@@ -548,6 +548,10 @@ typedef struct dbi_field {
    unsigned int  flags;       // 1 == not null
 } DBI_FIELD;
 
+typedef struct dbi_field_get {
+   BQUEUE bq;
+   char *value;
+} DBI_FIELD_GET;
 
 /*
  * This is the "real" definition that should only be
@@ -562,10 +566,10 @@ struct B_DB {
    dbi_conn *db;
    dbi_result *result;
    dbi_inst instance;
-   // TODO: change dbi_error_flag to int for more compatible with bacula
    dbi_error_flag status;
    DBI_ROW row;
    DBI_FIELD *fields;
+   DBI_FIELD_GET *field_get;
    int num_rows;
    int row_size;                  /* size of malloced rows */
    int num_fields;

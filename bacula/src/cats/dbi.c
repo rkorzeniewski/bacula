@@ -57,6 +57,9 @@
 /* List of open databases */
 static BQUEUE db_list = {&db_list, &db_list};
 
+/* Control allocated fields by my_dbi_getvalue */
+static BQUEUE dbi_getvalue_list = {&dbi_getvalue_list, &dbi_getvalue_list};
+
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /*
@@ -427,8 +430,9 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
    DBI_ROW row = NULL; // by default, return NULL
 
    Dmsg0(500, "my_dbi_fetch_row start\n");
+   
 
-   if (!mdb->row || mdb->row_size < mdb->num_fields) {
+   if (!mdb->row || mdb->row_size < mdb->num_fields) {   
       int num_fields = mdb->num_fields;
       Dmsg1(500, "we have need space of %d bytes\n", sizeof(char *) * mdb->num_fields);
 
@@ -437,7 +441,7 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
          Dmsg2(500, "my_dbi_free_row row: '%p' num_fields: '%d'\n", mdb->row, mdb->num_fields);
          if (mdb->num_rows != 0) {
             for(j = 0; j < mdb->num_fields; j++) {
-               Dmsg2(500, "my_dbi_free_row row '%p' '%d'\n", mdb->row[j], j);
+               Dmsg2(500, "my_dbi_free_row row '%p' '%d'\n", mdb->row[j], j);               
                   if(mdb->row[j]) {
                      free(mdb->row[j]);
                   }                  
@@ -445,7 +449,7 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
          }
          free(mdb->row);
       }
-      num_fields += 20;                  /* add a bit extra */
+      //num_fields += 20;                  /* add a bit extra */
       mdb->row = (DBI_ROW)malloc(sizeof(char *) * num_fields);
       mdb->row_size = num_fields;
 
@@ -455,18 +459,25 @@ DBI_ROW my_dbi_fetch_row(B_DB *mdb)
 
    // if still within the result set
    if (mdb->row_number <= mdb->num_rows) {
-      Dmsg2(500, "my_dbi_fetch_row row number '%d' is acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
+      Dmsg2(500, "my_dbi_fetch_row row number '%d' is acceptable (1..%d)\n", mdb->row_number, mdb->num_rows);
       // get each value from this row
       for (j = 0; j < mdb->num_fields; j++) {
-         mdb->row[j] = my_dbi_getvalue(mdb->result, mdb->row_number, j);
-         Dmsg3(500, "my_dbi_fetch_row field '%p' '%d' has value '%s'\n",mdb->row[j], j, mdb->row[j]);
+         mdb->row[j] = my_dbi_getvalue(mdb->result, mdb->row_number, j);         
+         // allocate space to queue row 
+         mdb->field_get = (DBI_FIELD_GET *)malloc(sizeof(DBI_FIELD_GET));
+         // store the pointer in queue
+         mdb->field_get->value = mdb->row[j];  
+         Dmsg4(500, "my_dbi_fetch_row row[%d] field: '%p' in queue: '%p' has value: '%s'\n",
+               j, mdb->row[j], mdb->field_get->value, mdb->row[j]);
+         // insert in queue to future free
+         qinsert(&dbi_getvalue_list, &mdb->field_get->bq);         
       }
       // increment the row number for the next call
       mdb->row_number++;
 
       row = mdb->row;
    } else {
-      Dmsg2(500, "my_dbi_fetch_row row number '%d' is NOT acceptable (0..%d)\n", mdb->row_number, mdb->num_rows);
+      Dmsg2(500, "my_dbi_fetch_row row number '%d' is NOT acceptable (1..%d)\n", mdb->row_number, mdb->num_rows);
    }
 
    Dmsg1(500, "my_dbi_fetch_row finishes returning %p\n", row);
@@ -488,9 +499,9 @@ int my_dbi_max_length(B_DB *mdb, int field_num) {
       if (my_dbi_getisnull(mdb->result, i, field_num)) {
           this_length = 4;        // "NULL"
       } else {
-          // TODO: error
          cbuf = my_dbi_getvalue(mdb->result, i, field_num);
          this_length = cstrlen(cbuf);
+         // cbuf is always free
          free(cbuf);
       }
 
@@ -516,8 +527,9 @@ DBI_FIELD * my_dbi_fetch_field(B_DB *mdb)
       Dmsg1(500, "allocating space for %d fields\n", mdb->num_fields);
       mdb->fields = (DBI_FIELD *)malloc(sizeof(DBI_FIELD) * mdb->num_fields);
       mdb->fields_size = mdb->num_fields;
-
+      
       for (i = 0; i < mdb->num_fields; i++) {
+         // num_fileds is starting at 1, increment i by 1
          dbi_index = i + 1;
          Dmsg1(500, "filling field %d\n", i);
          mdb->fields[i].name       = (char *)dbi_result_get_field_name(mdb->result, dbi_index);
@@ -584,9 +596,10 @@ int my_dbi_query(B_DB *mdb, const char *query)
       Dmsg1(500, "we have a result\n", query);
 
       // how many fields in the set?
+      // num_fields starting at 1
       mdb->num_fields = dbi_result_get_numfields(mdb->result);
       Dmsg1(500, "we have %d fields\n", mdb->num_fields);
-
+      // if no result num_rows is 0
       mdb->num_rows = dbi_result_get_numrows(mdb->result);
       Dmsg1(500, "we have %d rows\n", mdb->num_rows);
 
@@ -613,6 +626,7 @@ bail_out:
 void my_dbi_free_result(B_DB *mdb)
 { 
    
+   DBI_FIELD_GET *f;
    db_lock(mdb);  
    int i = 0;
    if (mdb->result) {
@@ -623,25 +637,30 @@ void my_dbi_free_result(B_DB *mdb)
    mdb->result = NULL;
    
    if (mdb->row) {
-      Dmsg2(500, "my_dbi_free_result row: '%p' num_fields: '%d'\n", mdb->row, mdb->num_fields);
-      if (mdb->num_rows != 0) {
-         for(i = 0; i < mdb->num_fields; i++) {
-            Dmsg2(500, "my_dbi_free_result row '%p' '%d'\n", mdb->row[i], i);
-            if(mdb->row[i]) {
-               free(mdb->row[i]);
-            }
-         } 
-      }
       free(mdb->row);
-      mdb->row = NULL;
    }
-
+   
+   /* now is time to free all value return by my_dbi_get_value
+    * this is necessary because libdbi don't free memory return by yours results
+    * and Bacula has some routine wich call more than once time my_dbi_fetch_row
+    * 
+    * Using a queue to store all pointer allocate is a good way to free all things
+    * when necessary
+    */
+   while((f=(DBI_FIELD_GET *)qremove(&dbi_getvalue_list))) {
+      Dmsg2(500, "my_dbi_free_result field value: '%p' in queue: '%p'\n", f->value, f);
+      free(f->value);
+      free(f);
+   }
+      
+   mdb->row = NULL;
+   
    if (mdb->fields) {
       free(mdb->fields);
       mdb->fields = NULL;
    }
    db_unlock(mdb);
-   //Dmsg0(500, "my_dbi_free_result finish\n");
+   Dmsg0(500, "my_dbi_free_result finish\n");
    
 }
 
@@ -1015,13 +1034,11 @@ int my_dbi_getisnull(dbi_result *result, int row_number, int column_number) {
  */
 char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_number) {
 
-   /* TODO: This is very bad, need refactoring */
-   //POOLMEM *buf = get_pool_memory(PM_FNAME);
    char *buf = NULL;
    const char *errmsg;
    const char *field_name;     
    unsigned short dbitype;
-   int32_t field_length = 0;
+   size_t field_length;
    int64_t num;
         
    /* correct the index for dbi interface
@@ -1046,18 +1063,17 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
       field_length = dbi_result_get_field_length(result, field_name);
       dbitype = dbi_result_get_field_type_idx(result,column_number);
       
+      Dmsg3(500, "my_dbi_getvalue start: type: '%d' "
+            "field_length bytes: '%d' fieldname: '%s'\n", 
+            dbitype, field_length, field_name);
+      
       if(field_length) {
-         //buf = check_pool_memory_size(buf, field_length + 1);
-         buf = (char *)malloc(sizeof(char *) * field_length + 1);
+         //buf = (char *)malloc(sizeof(char *) * field_length + 1);
+         buf = (char *)malloc(field_length + 1);
       } else {
          /* if numbers */
-         //buf = check_pool_memory_size(buf, 50);
          buf = (char *)malloc(sizeof(char *) * 50);
-      }
-      
-      Dmsg4(500, "my_dbi_getvalue result '%p' type '%d' \n\tfield name '%s'\n\t"
-            "field_length '%d'\n", 
-            result, dbitype, field_name, field_length);
+      }           
       
       switch (dbitype) {
       case DBI_TYPE_INTEGER:
@@ -1106,99 +1122,12 @@ char *my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_nu
       Dmsg1(500, "my_dbi_getvalue error: %s\n", errmsg);
    }
                 
-   Dmsg3(500, "my_dbi_getvalue finish result '%p' num bytes '%d' data '%s'\n", 
-      result, field_length, buf);
-   
+   Dmsg3(500, "my_dbi_getvalue finish buffer: '%p' num bytes: '%d' data: '%s'\n", 
+      buf, field_length, buf);
+      
+   // don't worry about this buf
    return buf;
 }
-
-//int my_dbi_getvalue(dbi_result *result, int row_number, unsigned int column_number, char *value) {
-//   
-//   void *v;
-//   const char *errmsg;
-//   int error = 0;
-//   const char *field_name;     
-//   unsigned short dbitype;
-//   int32_t field_length = 0;
-//   int64_t num;
-//
-//   /* correct the index for dbi interface
-//    * dbi index begins 1
-//    * I prefer do not change others functions
-//    */
-//   Dmsg3(600, "my_dbi_getvalue pre-starting result '%p' row number '%d' column number '%d'\n", 
-//                                result, row_number, column_number);
-//        
-//   column_number++;
-//
-//   if(row_number == 0) {
-//     row_number++;
-//   }
-//      
-//   Dmsg3(600, "my_dbi_getvalue starting result '%p' row number '%d' column number '%d'\n", 
-//                        result, row_number, column_number);
-//   
-//   if(dbi_result_seek_row(result, row_number)) {
-//
-//      field_name = dbi_result_get_field_name(result, column_number);
-//      field_length = dbi_result_get_field_length(result, field_name);
-//      dbitype = dbi_result_get_field_type_idx(result,column_number);
-//
-//      Dmsg4(500, "my_dbi_getvalue result '%p' type '%d' \n\tfield name '%s'\n\t"
-//            "field_length '%d'\n", result, dbitype, field_name, field_length);
-//
-//      switch (dbitype) {
-//      case DBI_TYPE_INTEGER:
-//         v = (int64_t *)malloc(sizeof(int64_t));
-//         error = dbi_result_bind_longlong(result, field_name, (int64_t *)v);
-//         // transform in string
-//         num = *(int64_t *)v;
-//         edit_int64(num, value);
-//         field_length = strlen(value);
-//         break;
-//      case DBI_TYPE_STRING:
-//         if(field_length) {
-//            dbi_result_bind_string(result, field_name, (const char **)v);
-//            value = (char *) v;
-//         } else {
-//            value[0] = 0;
-//         }
-//         break;
-//      case DBI_TYPE_BINARY:
-//         if(field_length) {
-//            dbi_result_bind_binary(result, field_name, (const unsigned char **)v);
-//            value = (char *)v;
-//         } else {
-//            value[0] = 0;
-//         }
-//         break;
-//      case DBI_TYPE_DATETIME:
-//         //time_t last;
-//         struct tm tm;
-//
-//         v = (time_t *)dbi_result_get_datetime(result, field_name);
-//         dbi_result_bind_datetime(result, field_name, (time_t *)v);
-//         if(!v) {
-//                field_length = bsnprintf(value, 20, "0000-00-00 00:00:00"); 
-//         } else {
-//            (void)localtime_r((time_t *)v, &tm);
-//            field_length = bsnprintf(value, 20, "%04d-%02d-%02d %02d:%02d:%02d",
-//                  (tm.tm_year + 1900), (tm.tm_mon + 1), tm.tm_mday,
-//                  tm.tm_hour, tm.tm_min, tm.tm_sec);
-//         }
-//         break;
-//      }
-//
-//   } else {
-//      dbi_conn_error(dbi_result_get_conn(result), &errmsg);
-//      Dmsg1(500, "my_dbi_getvalue error: %s\n", errmsg);
-//   }
-//                
-//   Dmsg2(500, "my_dbi_getvalue finish result '%p' num bytes '%d'\n",
-//      result, field_length);
-//   
-//   return 1;
-//}
 
 int my_dbi_sql_insert_id(B_DB *mdb, char *table_name)
 {

@@ -460,6 +460,7 @@ struct FOPTS {
    alist drivetype;                   /* drive type limitation */
    char *reader;                      /* reader program */
    char *writer;                      /* writer program */
+   char *ignoredir;                   /* ignoredir string */
    char *plugin;                      /* plugin program */
 };
 

@@ -369,6 +369,9 @@ static bool send_fileset(JCR *jcr)
             if (fo->plugin) {
                fd->fsend("G %s\n", fo->plugin);
             }
+            if (fo->ignoredir) {
+               bnet_fsend(fd, "Z %s\n", fo->ignoredir);
+            }
             if (fo->reader) {
                fd->fsend("D %s\n", fo->reader);
             }
