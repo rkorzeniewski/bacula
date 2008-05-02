@@ -321,6 +321,9 @@ void *handle_client_request(void *dirp)
             fo->base.destroy();
             fo->fstype.destroy();
             fo->drivetype.destroy();
+            if (fo->ignoredir != NULL) {
+               free(fo->ignoredir);
+            }
          }
          incexe->opts_list.destroy();
          incexe->name_list.destroy();
@@ -680,7 +683,7 @@ static void add_file_to_fileset(JCR *jcr, const char *fname, findFILESET *filese
       }
       break;
    case '<':
-      Dmsg0(100, "Doing < include on client.\n");
+      Dmsg1(100, "Doing < of '%s' include on client.\n", p + 1);
       p++;                      /* skip over < */
       if ((ffd = fopen(p, "rb")) == NULL) {
          berrno be;
@@ -846,6 +849,11 @@ static void add_fileset(JCR *jcr, const char *item)
       set_options(current_opts, item);
       state = state_options;
       break;
+   case 'Z':
+      current_opts = start_options(ff);
+      current_opts->ignoredir = bstrdup(item);
+      state = state_options;
+      break;
    case 'D':
       current_opts = start_options(ff);
 //    current_opts->reader = bstrdup(item);
@@ -906,6 +914,9 @@ static bool term_fileset(JCR *jcr)
          }
          for (k=0; k<fo->drivetype.size(); k++) {
             Dmsg1(400, "XD %s\n", (char *)fo->drivetype.get(k));
+         }
+         if (fo->ignoredir) {
+            Dmsg1(400, "Z %s\n", fo->ignoredir);
          }
       }
       dlistString *node;

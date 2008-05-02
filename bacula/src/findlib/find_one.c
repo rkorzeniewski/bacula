@@ -513,6 +513,28 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
          }
       }
 
+      /*
+       * Ignore this directory and everything below if the file .nobackup
+       * (or what is defined for IgnoreDir in this fileset) exists
+       */
+      if (ff_pkt->ignoredir != NULL) {
+	 struct stat sb;
+	 char fname[MAXPATHLEN];
+
+	 if (strlen(ff_pkt->fname) + strlen("/") +
+	    strlen(ff_pkt->ignoredir) + 1 > MAXPATHLEN)
+	    return 1;	/* Is this wisdom? */
+
+	 strcpy(fname, ff_pkt->fname);
+	 strcat(fname, "/");
+	 strcat(fname, ff_pkt->ignoredir);
+	 if (stat(fname, &sb) == 0) {
+            Dmsg2(100, "Directory '%s' ignored (found %s)\n",
+	       ff_pkt->fname, ff_pkt->ignoredir);
+            return 1;      /* Just ignore this directory */
+	 }
+      }
+
       /* Build a canonical directory name with a trailing slash in link var */
       len = strlen(fname);
       link_len = len + 200;

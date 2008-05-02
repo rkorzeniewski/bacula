@@ -567,8 +567,8 @@ static bool job_check_maxruntime(JCR *jcr)
       return false;
    }
    Dmsg6(200, "check_maxruntime %u - %u >= %u|%u|%u|%u\n\n",
-	 watchdog_time, jcr->start_time, job->MaxRunTime, job->FullMaxRunTime, 
-	 job->IncMaxRunTime, job->DiffMaxRunTime);
+         watchdog_time, jcr->start_time, job->MaxRunTime, job->FullMaxRunTime, 
+         job->IncMaxRunTime, job->DiffMaxRunTime);
 
    if (jcr->JobLevel == L_FULL && job->FullMaxRunTime != 0 &&
          (watchdog_time - jcr->start_time) >= job->FullMaxRunTime) {
@@ -1307,12 +1307,12 @@ void free_wstorage(JCR *jcr)
    jcr->wstore = NULL;
 }
 
-char *job_code_callback_clones(JCR *jcr, const char* param) {
-	if (param[0] == 'p') {
-		return jcr->pool->name();
-	} else {
-		return NULL;
-	}
+char *job_code_callback_clones(JCR *jcr, const char* param) 
+{
+   if (param[0] == 'p') {
+      return jcr->pool->name();
+   }
+   return NULL;
 }
 
 void create_clones(JCR *jcr)

@@ -58,6 +58,7 @@ static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass);
+static void store_ignoredir(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
 
@@ -84,9 +85,10 @@ static INCEXE res_incexe;
  *   name             handler     value    code flags default_value
  */
 static RES_ITEM newinc_items[] = {
-   {"file",            store_fname,   {0},      0, 0, 0},
-   {"plugin",          store_plugin_name,   {0},      0, 0, 0},
-   {"options",         options_res,   {0},      0, 0, 0},
+   {"file",            store_fname,       {0},      0, 0, 0},
+   {"plugin",          store_plugin_name, {0},      0, 0, 0},
+   {"ignoredir",       store_ignoredir,   {0},      0, 0, 0},
+   {"options",         options_res,       {0},      0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
 };
 
@@ -600,6 +602,21 @@ static void store_fstype(LEX *lc, RES_ITEM *item, int index, int pass)
       default:
          scan_err1(lc, _("Expected an fstype string, got: %s\n"), lc->str);
       }
+   }
+   scan_to_eol(lc);
+}
+
+/* Store ignoredir info */
+static void store_ignoredir(LEX *lc, RES_ITEM *item, int index, int pass)
+{
+   int token;
+
+   token = lex_get_token(lc, T_NAME);
+   if (pass == 1) {
+      /*
+       * Pickup reader command
+       */
+      res_incexe.current_opts->ignoredir = bstrdup(lc->str);
    }
    scan_to_eol(lc);
 }
