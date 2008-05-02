@@ -1,8 +1,51 @@
                     Kern's ToDo List
-                    06 March 2008
+                    02 May 2008
 
 
 Document:
+- This patch will give Bacula the option to specify files in
+   FileSets which can be dropped in directories which are Included
+   which will cause that directory not the be backed up.
+
+   For example, my FileSet contains:
+   # List of files to be backed up
+   FileSet {
+       Name = "Remote Specified1"
+       Include {
+           Options {
+               signature = MD5
+           }
+           File = "\\</etc/bacula-include"
+           IgnoreDir = .notthisone
+       }
+       Exclude {
+           File = "\\</etc/bacula-exclude"
+       }
+   }
+
+   And /etc/bacula-include contains:
+
+   /home
+
+   But in /home, there are hundreds of directories of users and some
+   people want to indicate that they don't want to have certain
+   directories backed-up:
+
+   /home/edwin/www/cache
+   /home/edwin/temp
+
+   So I can put them in /etc/bacula-exclude, but that is a system
+   file and not editable for mortal users.  To make it possible for
+   users to make it clear to the system that certain directories
+   don't need to be backed up, they now can create file called
+   .notthisone:
+
+   /home/edwin/www/cache/.notthisone
+   /home/edwin/temp/.notthisone
+
+   so that the backup system will be clear of rubbish like stuff in
+   these two directories but still that I as administrator of the
+   system don't have to be involved in it.
 - !!! Cannot restore two jobs a the same time that were
   written simultaneously unless they were totally spooled.
 - Document cleaning up the spool files:
@@ -1879,4 +1922,3 @@ DuplicateJobs {
 ===
 - Fix bpipe.c so that it does not modify results pointer.
   ***FIXME*** calling sequence should be changed.
-
