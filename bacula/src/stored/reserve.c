@@ -394,13 +394,18 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
       if (dev != vol->dev) {
          /* Caller wants to switch Volume to another device */
          if (!vol->dev->is_busy() && !vol->is_swapping()) {
+            int32_t slot;
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
+            dcr->dev = vol->dev;         /* temp point to other dev */
+            slot = get_autochanger_loaded_slot(dcr);  /* get slot */
+            dcr->dev = dev;              /* restore dev */
+            vol->set_slot(slot);         /* save slot */
             vol->dev->set_unload();      /* unload the other drive */
             vol->set_swapping();         /* swap from other drive */
             dev->swap_dev = vol->dev;    /* remember to get this vol */
-            vol->dev->set_load();        /* then reload on our drive */
+            dev->set_load();             /* then reload on our drive */
             vol->dev->vol = NULL;        /* remove volume from other drive */
             vol->dev = dev;              /* point the Volume at our drive */
             dev->vol = vol;              /* point our drive at the Volume */
@@ -1330,8 +1335,8 @@ bail_out:
 
 
 /*
- * We reserve the device for appending by incrementing the 
- *  reserved_device. We do virtually all the same work that
+ * We reserve the device for appending by incrementing
+ *  num_reserved(). We do virtually all the same work that
  *  is done in acquire_device_for_append(), but we do
  *  not attempt to mount the device. This routine allows
  *  the DIR to reserve multiple devices before *really* 

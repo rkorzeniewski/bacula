@@ -160,7 +160,7 @@ mount_next_vol:
       autochanger = false;
       VolCatInfo.Slot = 0;
    }
-   Dmsg1(200, "autoload_dev returns %d\n", autochanger);
+   Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*
     * If we autochanged to correct Volume or (we have not just
     *   released the Volume AND we can automount) we go ahead
@@ -473,7 +473,7 @@ bool DCR::is_suitable_volume_mounted()
 void DCR::do_swapping()
 {
    if (dev->must_unload()) {
-      Dmsg0(150, "mount_next_volume release=1\n");
+      Dmsg1(100, "swapping: unloading %s\n", dev->print_name());
       unload_autochanger(this, -1);
       release_volume();
       dev->clear_unload();
@@ -484,9 +484,14 @@ void DCR::do_swapping()
     *  volume to our drive.
     */
    if (dev->swap_dev) {
-      Dmsg1(100, "Swap unloading %s\n", dev->swap_dev->print_name());
       if (dev->swap_dev->must_unload()) {
+         if (dev->vol) {
+            dev->Slot = dev->vol->get_slot();
+         }
+         Dmsg2(100, "Swap unloading slot=%d %s\n", dev->Slot, 
+               dev->swap_dev->print_name());
          unload_dev(this, dev->swap_dev);
+         dev->Slot = -1;
       }
       if (dev->vol) {
          dev->vol->clear_swapping();
@@ -496,6 +501,7 @@ void DCR::do_swapping()
       dev->swap_dev = NULL;
    }
    if (dev->must_load()) {
+      Dmsg1(100, "swapping: must load %s\n", dev->print_name());
       dev->clear_load();
       dev->clear_volhdr();               /* force "load" */
    }

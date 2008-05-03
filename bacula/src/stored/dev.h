@@ -542,6 +542,7 @@ public:
 class VOLRES { 
    bool m_swapping;                   /* set when swapping to another drive */
    bool m_in_use;                     /* set when volume reserved or in use */
+   int32_t m_slot;                    /* slot of swapping volume */
 public:
    dlink link;
    char *vol_name;                    /* Volume name */
@@ -553,6 +554,8 @@ public:
    bool is_in_use() const { return m_in_use; };
    void set_in_use() { m_in_use = true; };
    void clear_in_use() { m_in_use = false; };
+   void set_slot(int32_t slot) { m_slot = slot; };
+   int32_t get_slot() const { return m_slot; };
 };
 
 
