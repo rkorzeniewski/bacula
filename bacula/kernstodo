@@ -114,6 +114,7 @@ Professional Needs:
 
 Priority:
 ================
+- Check for FD compatibility -- eg .nobackup ...
 - Re-check new dcr->reserved_volume
 - Softlinks that point to non-existent file are not restored in restore all,
   but are restored if the file is individually selected.  BUG!
