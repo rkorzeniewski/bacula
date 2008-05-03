@@ -533,7 +533,7 @@ public:
    bool is_eod_valid();
    int check_volume_label(bool &ask, bool &autochanger);
    void release_volume();
-   void do_swapping();
+   void do_swapping(bool is_writing);
 };
 
 /*

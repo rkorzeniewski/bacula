@@ -1554,7 +1554,7 @@ static int can_reserve_drive(DCR *dcr, RCTX &rctx)
             /* Changing pool, unload old tape if any in drive */
             Dmsg0(dbglvl, "OK dev: num_writers=0, not reserved, pool change, unload changer\n");
             /* ***FIXME*** use set_unload() */
-            unload_autochanger(dcr, 0);
+            unload_autochanger(dcr, -1);
          }
       }
       /* Device is available but not yet reserved, reserve it for us */

@@ -283,7 +283,7 @@ bool dir_find_next_appendable_volume(DCR *dcr)
           bstrncpy(lastVolume, dcr->VolumeName, sizeof(lastVolume));
           if (dcr->can_i_use_volume()) {
              Dmsg1(100, "Call reserve_volume. Vol=%s\n", dcr->VolumeName);
-             if (reserve_volume(dcr, dcr->VolumeName) == 0) {
+             if (reserve_volume(dcr, dcr->VolumeName) == NULL) {
                 Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
                     dcr->dev->print_name());
                 continue;

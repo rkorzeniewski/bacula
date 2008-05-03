@@ -913,7 +913,7 @@ static bool release_cmd(JCR *jcr)
          } else if (dev->is_busy()) {
             send_dir_busy_message(dir, dev);
          } else {                     /* device not being used */
-            Dmsg0(90, "Device not in use, releaseing\n");
+            Dmsg0(90, "Device not in use, releasing\n");
             unload_autochanger(dcr, -1);
             dcr->release_volume();
             dir->fsend(_("3022 Device %s released.\n"), 
