@@ -118,16 +118,19 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
    POOLMEM *changer;
 
    if (!dev->is_autochanger()) {
-      Dmsg1(200, "Device %s is not an autochanger\n", dev->print_name());
+      Dmsg1(100, "Device %s is not an autochanger\n", dev->print_name());
       return 0;
    }
 
    /* An empty ChangerCommand => virtual disk autochanger */
    if (dcr->device->changer_command && dcr->device->changer_command[0] == 0) {
+      Dmsg0(100, "ChangerCommand=0, virtual disk changer\n");
       return 1;                       /* nothing to load */
    }
 
    slot = dcr->VolCatInfo.InChanger ? dcr->VolCatInfo.Slot : 0;
+   Dmsg3(100, "autoload: slot=%d InChgr=%d Vol=%s\n", dcr->VolCatInfo.Slot,
+         dcr->VolCatInfo.InChanger, dcr->VolCatInfo.VolCatName);
    /*
     * Handle autoloaders here.  If we cannot autoload it, we
     *  will return 0 so that the sysop will be asked to load it.
@@ -249,7 +252,7 @@ int get_autochanger_loaded_slot(DCR *dcr)
       return -1;
    }
    if (!dcr->device->changer_command) {
-      Jmsg(jcr, M_FATAL, 0, _("3992 Missing Changer command.\n"));
+//    Jmsg(jcr, M_FATAL, 0, _("3992 Missing Changer command.\n"));
       return -1;
    }
    if (dev->Slot > 0) {

@@ -106,7 +106,7 @@ mount_next_vol:
    if (dev->must_unload()) {
       ask = true;                     /* ask operator to mount tape */
    }
-   do_swapping();
+   do_swapping(true /*writing*/);
 
    if (!is_suitable_volume_mounted()) {
       bool have_vol = false;
@@ -153,7 +153,7 @@ mount_next_vol:
     * and move the tape to the end of data.
     *
     */
-   if (autoload_device(dcr, 1, NULL) > 0) {
+   if (autoload_device(dcr, true/*writing*/, NULL) > 0) {
       autochanger = true;
       ask = false;
    } else {
@@ -470,7 +470,7 @@ bool DCR::is_suitable_volume_mounted()
    return dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
 }
 
-void DCR::do_swapping()
+void DCR::do_swapping(bool is_writing)
 {
    if (dev->must_unload()) {
       Dmsg1(100, "swapping: unloading %s\n", dev->print_name());
@@ -502,8 +502,9 @@ void DCR::do_swapping()
    }
    if (dev->must_load()) {
       Dmsg1(100, "swapping: must load %s\n", dev->print_name());
-      dev->clear_load();
-      dev->clear_volhdr();               /* force "load" */
+      if (autoload_device(this, is_writing, NULL) > 0) {
+         dev->clear_load();
+      }
    }
 }
 
@@ -680,7 +681,7 @@ void DCR::release_volume()
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
-   memset(&VolCatInfo, 0, sizeof(VolCatInfo));
+// memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    dev->clear_volhdr();
    /* Force re-read of label */
    dev->clear_labeled();

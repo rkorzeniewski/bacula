@@ -89,9 +89,27 @@ bool acquire_device_for_read(DCR *dcr)
          jcr->NumReadVolumes, jcr->CurReadVolume);
       goto get_out;                   /* should not happen */   
    }
+   /*    
+    * Note, if we want to be able to work from a .bsr file only          
+    *  for disaster recovery, we must "simulate" reading the catalog
+    */
    bstrncpy(dcr->VolumeName, vol->VolumeName, sizeof(dcr->VolumeName));
+   bstrncpy(dcr->VolCatInfo.VolCatName, vol->VolumeName, sizeof(dcr->VolCatInfo.VolCatName));
    bstrncpy(dcr->media_type, vol->MediaType, sizeof(dcr->media_type));
    dcr->VolCatInfo.Slot = vol->Slot;
+   dcr->VolCatInfo.InChanger = vol->Slot > 0; 
+   if (reserve_volume(dcr, dcr->VolumeName) == NULL) {
+      Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
+            dcr->dev->print_name());
+      Jmsg2(jcr, M_FATAL, 0, _("Could not reserve volume %s on %s\n"), dcr->VolumeName,
+            dcr->dev->print_name());
+      goto get_out;
+   }
+   if (dev->vol && dev->vol->is_swapping()) {
+      dev->vol->set_slot(vol->Slot);
+      Dmsg3(100, "swapping: slot=%d Vol=%s dev=%s\n", dev->vol->get_slot(),
+         dev->vol->vol_name, dev->print_name());
+   }
     
    /*
     * If the MediaType requested for this volume is not the
@@ -192,9 +210,7 @@ bool acquire_device_for_read(DCR *dcr)
          goto get_out;                /* error return */
       }
 
-      dcr->do_swapping();
-
-      autoload_device(dcr, 0, NULL);
+      dcr->do_swapping(false/*is_writing*/);
 
       /*
        * This code ensures that the device is ready for
