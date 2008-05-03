@@ -76,5 +76,6 @@ nice tests/2drive-concurrent-test
 nice tests/incremental-2media
 nice tests/three-pool-test
 nice tests/2drive-3pool-test
+nice tests/2drive-swap-test
 echo "End non-root virtual disk autochanger tests"
 echo "End non-root virtual disk autochanger tests" >>test.out

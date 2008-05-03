@@ -1,4 +1,7 @@
 #!/bin/sh
+rm -rf tmp/disk-changer
+mkdir tmp/disk-changer
+touch tmp/disk-changer/conf 
 echo "Unload drive 0"
 bin/disk-changer tmp/disk-changer/conf unload 1 tmp/disk-changer/drive0 0
 echo "rtn=$?"   
@@ -32,5 +35,11 @@ echo "Load Slot 2 into drive 1 -- error"
 bin/disk-changer tmp/disk-changer/conf load 2 tmp/disk-changer/drive1 1
 echo "rtn=$?"   
 echo "Load Slot 2 in drive 0 -- error"
+bin/disk-changer tmp/disk-changer/conf load 2 tmp/disk-changer/drive0 0
+echo "rtn=$?"   
+echo "Unload drive 0"
+bin/disk-changer tmp/disk-changer/conf unload 1 tmp/disk-changer/drive0 0
+echo "rtn=$?"   
+echo "Load Slot 2 in drive 0 -- should fail"
 bin/disk-changer tmp/disk-changer/conf load 2 tmp/disk-changer/drive0 0
 echo "rtn=$?"   
