@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# Set prefer mounted volumes to no to try to force use of
+#   the drive swap code.
+#
+# This script uses the virtual disk autochanger and two drives
+#
+TestName="2drive-swap"
+JobName="2drive-swap"
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-2disk-drive-confs
+scripts/prepare-two-disks
+
+change_jobname NightlySave $JobName
+start_test
+
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+# Turn off Prefer Mounted Volumes so we use 2 drives
+outf="${cwd}/tmp/sed_tmp"
+echo "s%# Prefer Mounted Volumes%  Prefer Mounted Volumes%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+# Comment the next line out to write everything to one drive
+#  otherwise, it writes the two jobs to different drives
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
+# Write out bconsole commands
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
+label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
+status storage=DDS-4
+@#setdebug level=120 storage=DDS-4
+run job=$JobName level=Full yes
+@sleep 2
+run job=$JobName level=Full yes
+wait
+list volumes
+list jobs
+update volume=TestVolume001 maxvolbytes=40123123
+setdebug level=150 storage=DDS-4
+run job=$JobName level=Full yes
+wait
+list volumes
+list jobs
+messages
+quit
+END_OF_DATA
+
+run_bacula
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out /dev/null
+messages
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bconsole
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+check_restore_diff
+
+end_test
