@@ -47,7 +47,7 @@ Jobs::Jobs()
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/run.png")));
 
-   /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_client.h */
+   /* tableWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;
    m_checkcurwidget = true;
    m_closeable = false;
@@ -66,14 +66,15 @@ Jobs::~Jobs()
  * The main meat of the class!!  The function that querries the director and 
  * creates the widgets with appropriate values.
  */
-void Jobs::populateTree()
+void Jobs::populateTable()
 {
-   QTreeWidgetItem *jobsItem, *topItem;
+   QTableWidgetItem *tableItem;
+   QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
       return;
    m_checkcurwidget = false;
-   mp_treeWidget->clear();
+   tableWidget->clear();
    m_checkcurwidget = true;
    QStringList headerlist = (QStringList() << tr("Job Name") << tr("Pool") << tr("Messages")
       << tr("Client") << tr("Storage") << tr("Where") << tr("Level") << tr("Type") 
@@ -81,45 +82,56 @@ void Jobs::populateTree()
       << tr("Catalog") << tr("Enabled"));
 
    m_typeIndex = headerlist.indexOf(tr("Type"));
-   topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, tr("Jobs"));
-   topItem->setData(0, Qt::UserRole, 0);
-   topItem->setExpanded(true);
 
-   mp_treeWidget->setColumnCount(headerlist.count());
-   mp_treeWidget->setHeaderLabels(headerlist);
+   tableWidget->setColumnCount(headerlist.count());
+   tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->setRowCount(m_console->job_list.count());
+   tableWidget->verticalHeader()->hide();
+   int row = 0;
+
 
    foreach (QString jobName, m_console->job_list){
-      jobsItem = new QTreeWidgetItem(topItem);
-      jobsItem->setText(0, jobName);
-      //jobsItem->setExpanded(true);
-
-      for (int i=0; i<headerlist.count(); i++)
-         jobsItem->setData(i, Qt::UserRole, 1);
-
       job_defaults job_defs;
       job_defs.job_name = jobName;
       if (m_console->get_job_defaults(job_defs)) {
-         int col = 1;
-         jobsItem->setText(col++, job_defs.pool_name);
-         jobsItem->setText(col++, job_defs.messages_name);
-         jobsItem->setText(col++, job_defs.client_name);
-         jobsItem->setText(col++, job_defs.store_name);
-         jobsItem->setText(col++, job_defs.where);
-         jobsItem->setText(col++, job_defs.level);
-         jobsItem->setText(col++, job_defs.type);
-         jobsItem->setText(col++, job_defs.fileset_name);
-         jobsItem->setText(col++, job_defs.catalog_name);
-         if (job_defs.enabled) {
-            jobsItem->setText(col++, "Yes");
-         } else {
-            jobsItem->setText(col++, "No");
+
+        for (int column=0; column<headerlist.count(); column++) {
+            tableItem = new QTableWidgetItem(1);
+            if (column == 0) 
+               tableItem->setText(job_defs.job_name);
+            if (column == 1) 
+               tableItem->setText(job_defs.pool_name);
+            if (column == 2) 
+               tableItem->setText(job_defs.messages_name);
+            if (column == 3) 
+               tableItem->setText(job_defs.client_name);
+            if (column == 4) 
+               tableItem->setText(job_defs.store_name);
+            if (column == 5) 
+               tableItem->setText(job_defs.where);
+            if (column == 6) 
+               tableItem->setText(job_defs.level);
+            if (column == 7) 
+               tableItem->setText(job_defs.type);
+            if (column == 8) 
+               tableItem->setText(job_defs.fileset_name);
+            if (column == 9) 
+               tableItem->setText(job_defs.catalog_name);
+            if (column == 10) 
+               if (job_defs.enabled)
+                  tableItem->setText("Yes");
+               else
+                  tableItem->setText("No");
+            /* tableItem->setFlags(Qt::ItemIsSelectable); */
+            tableItem->setForeground(blackBrush);
+            tableWidget->setItem(row, column, tableItem);
          }
       }
+      row++;
    }
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
-      mp_treeWidget->resizeColumnToContents(cnter);
+      tableWidget->resizeColumnToContents(cnter);
    }
 }
 
@@ -130,40 +142,43 @@ void Jobs::populateTree()
 void Jobs::PgSeltreeWidgetClicked()
 {
    if(!m_populated) {
-      populateTree();
+      populateTable();
       m_populated=true;
    }
 }
 
 /*
- * Added to set the context menu policy based on currently active treeWidgetItem
+ * Added to set the context menu policy based on currently active tableWidgetItem
  * signaled by currentItemChanged
  */
-void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *previouswidgetitem )
+void Jobs::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetItem *previouswidgetitem )
 {
    /* m_checkcurwidget checks to see if this is during a refresh, which will segfault */
    if (m_checkcurwidget) {
       /* The Previous item */
       if (previouswidgetitem) { /* avoid a segfault if first time */
-         foreach(QAction* jobAction, mp_treeWidget->actions()) {
-            mp_treeWidget->removeAction(jobAction);
+         foreach(QAction* jobAction, tableWidget->actions()) {
+            tableWidget->removeAction(jobAction);
          }
       }
+      int currentRow = currentwidgetitem->row();
+      QTableWidgetItem *currentrowzeroitem = tableWidget->item(currentRow, 0);
+      m_currentlyselected = currentrowzeroitem->text();
+      QTableWidgetItem *currenttypeitem = tableWidget->item(currentRow, m_typeIndex);
+      QString type = currenttypeitem->text();
 
-      int treedepth = currentwidgetitem->data(0, Qt::UserRole).toInt();
-      if (treedepth == 1){
+      if (m_currentlyselected.length() != 0) {
          /* set a hold variable to the client name in case the context sensitive
           * menu is used */
-         m_currentlyselected=currentwidgetitem->text(0);
-         mp_treeWidget->addAction(actionConsoleListFiles);
-         mp_treeWidget->addAction(actionConsoleListVolumes);
-         mp_treeWidget->addAction(actionConsoleListNextVolume);
-         mp_treeWidget->addAction(actionConsoleEnableJob);
-         mp_treeWidget->addAction(actionConsoleDisableJob);
-         mp_treeWidget->addAction(actionConsoleCancel);
-         mp_treeWidget->addAction(actionJobListQuery);
-         if (currentwidgetitem->text(m_typeIndex) == tr("Backup"))
-            mp_treeWidget->addAction(actionRunJob);
+         tableWidget->addAction(actionConsoleListFiles);
+         tableWidget->addAction(actionConsoleListVolumes);
+         tableWidget->addAction(actionConsoleListNextVolume);
+         tableWidget->addAction(actionConsoleEnableJob);
+         tableWidget->addAction(actionConsoleDisableJob);
+         tableWidget->addAction(actionConsoleCancel);
+         tableWidget->addAction(actionJobListQuery);
+         if (type == tr("Backup"))
+            tableWidget->addAction(actionRunJob);
       }
    }
 }
@@ -171,18 +186,18 @@ void Jobs::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetItem *
 /* 
  * Setup a context menu 
  * Made separate from populate so that it would not create context menu over and
- * over as the tree is repopulated.
+ * over as the table is repopulated.
  */
 void Jobs::createContextMenu()
 {
-   mp_treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-   mp_treeWidget->addAction(actionRefreshJobs);
-   connect(mp_treeWidget, SIGNAL(
-           currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)),
-           this, SLOT(treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)));
+   tableWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
+   tableWidget->addAction(actionRefreshJobs);
+   connect(tableWidget, SIGNAL(
+           currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+           this, SLOT(tableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
    /* connect to the action specific to this pages class */
    connect(actionRefreshJobs, SIGNAL(triggered()), this,
-                SLOT(populateTree()));
+                SLOT(populateTable()));
    connect(actionConsoleListFiles, SIGNAL(triggered()), this, SLOT(consoleListFiles()));
    connect(actionConsoleListVolumes, SIGNAL(triggered()), this, SLOT(consoleListVolume()));
    connect(actionConsoleListNextVolume, SIGNAL(triggered()), this, SLOT(consoleListNextVolume()));
@@ -198,9 +213,9 @@ void Jobs::createContextMenu()
  */
 void Jobs::currentStackItem()
 {
-   populateTree();
+   populateTable();
    if(!m_populated) {
-      /* Create the context menu for the client tree */
+      /* Create the context menu for the client table */
       m_populated=true;
    }
 }
