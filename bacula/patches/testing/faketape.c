@@ -232,7 +232,7 @@ int faketape::tape_op(struct mtop *mt_com)
       atEOF = true;
       atEOD = true;
       close_file();
-      current_file = last_file;
+      current_file = last_file+1;
       current_block = -1;
       /* Ne pas creer le fichier si on est a la fin */
 
@@ -575,22 +575,21 @@ int faketape::fsr(int count)
 
    check_file();
 
+   /* check all block record */
    for(i=0; (i < count) && (where != -1) ; i++) {
-      Dmsg3(dbglevel,"  fsr ok count=%i i=%i where=%i\n", count, i, where);
-      nb = ::read(cur_fd, &size, sizeof(size));
+      nb = ::read(cur_fd, &size, sizeof(size));	/* get size of block */
       if (nb == sizeof(size)) {
-	 where = lseek(cur_fd, size, SEEK_CUR);
+	 current_block++;
+	 where = lseek(cur_fd, size, SEEK_CUR);	/* seek after this block */
 	 if (where == -1) {
 	    errno = EIO;
 	    return -1;
 	 }
-	 current_block++;
       } else {
 	 errno = EIO;
 	 return -1;
       }
    }
-   Dmsg2(dbglevel,"  fsr ok i=%i where=%i\n", i, where);
    return 0;
 }
 
