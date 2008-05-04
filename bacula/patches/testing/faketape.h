@@ -62,20 +62,23 @@ class faketape {
 private:
    int         fd;		/* Our file descriptor */
 
-   int         cur_fd;		/* OS file descriptor */
+   int         cur_fd;		/* OS file descriptor (-1 if not open) */
    off_t       size;		/* size */
 
    bool        atEOF;		/* End of file */
-   bool        atEOM;		/* End of media */
+   bool        atEOT;		/* End of media */
    bool        atEOD;		/* End of data */
+   bool        atBOT;           /* Begin of tape */
+   bool        online;		/* volume online */
 
    POOLMEM     *volume;		/* volume name */
    POOLMEM     *cur_info;	/* volume info */
    POOLMEM     *cur_file;	/* current file name */
 
-   int16_t     max_file;
+   int16_t     last_file;	/* last file of the volume */
    int16_t     current_file;	/* max 65000 files */
    int32_t     current_block;	/* max 4G blocks of 1KB */
+   off_t       max_size;	/* max size of volume */
 
    FTAPE_FORMAT tape_info;
 
@@ -83,9 +86,16 @@ private:
    int read_volinfo();		     /* read current volume format */
    int find_maxfile();
    int open_file();
-   int delete_files();
+   int delete_files(int startfile);
+   void check_file() { if (cur_fd == -1) open_file(); };
+   int offline();
+   int close_file();
 
 public:
+   int fsf(int count);
+   int weof(int count);
+   int bsf(int count);
+
    faketape();
    ~faketape();
 
