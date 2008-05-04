@@ -42,9 +42,9 @@ typedef struct
 {
    /* format infos */
    int16_t     version;
-   int16_t     max_file_mark;
-   int16_t     block_size;
-   int32_t     block_max;
+   int16_t     block_size;	/* block size */
+   int32_t     block_max;	/* max blocks of volume */
+   off_t       max_size;	/* max size of volume */
 } FTAPE_FORMAT;
 
 #define FTAPE_MAX_DRIVE 20
@@ -78,7 +78,6 @@ private:
    int16_t     last_file;	/* last file of the volume */
    int16_t     current_file;	/* max 65000 files */
    int32_t     current_block;	/* max 4G blocks of 1KB */
-   off_t       max_size;	/* max size of volume */
 
    FTAPE_FORMAT tape_info;
 
@@ -93,6 +92,7 @@ private:
 
 public:
    int fsf(int count);
+   int fsr(int count);
    int weof(int count);
    int bsf(int count);
 
