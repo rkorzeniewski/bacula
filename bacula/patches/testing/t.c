@@ -45,6 +45,18 @@ int main()
    printf("write something (3 writes)\n");
    print_pos();
 
+   /* write EOF */
+   printf("WEOF\n");
+   mt_com.mt_op = MTWEOF;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   print_pos();
+
+   /* write a second file */
+   write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
+   printf("write something\n");
+   print_pos();
+
    /* rewind */
    mt_com.mt_count = 1;
    mt_com.mt_op = MTREW;
@@ -135,7 +147,12 @@ int main()
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    printf("goto eom\n");
    print_pos();
-   
+
+   /* write something */
+   printf("write something\n");
+   write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
+   print_pos();
+
    close(fd);
    return(0);
 }
