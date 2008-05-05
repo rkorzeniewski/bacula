@@ -38,15 +38,6 @@
 #include <stddef.h>
 #include "bacula.h"
 
-typedef struct
-{
-   /* format infos */
-   int16_t     version;
-   int16_t     block_size;	/* block size */
-   int32_t     block_max;	/* max blocks of volume */
-   off_t       max_size;	/* max size of volume */
-} FTAPE_FORMAT;
-
 #define FTAPE_MAX_DRIVE 20
 
 /* 
@@ -62,8 +53,8 @@ class faketape {
 private:
    int         fd;		/* Our file descriptor */
 
-   int         cur_fd;		/* OS file descriptor (-1 if not open) */
-   off_t       size;		/* size */
+   off_t       file_size;	/* size */
+   off_t       max_block;
 
    bool        atEOF;		/* End of file */
    bool        atEOT;		/* End of media */
@@ -72,23 +63,17 @@ private:
    bool        online;		/* volume online */
 
    POOLMEM     *volume;		/* volume name */
-   POOLMEM     *cur_info;	/* volume info */
-   POOLMEM     *cur_file;	/* current file name */
 
    int16_t     last_file;	/* last file of the volume */
    int16_t     current_file;	/* max 65000 files */
    int32_t     current_block;	/* max 4G blocks of 1KB */
-
-   FTAPE_FORMAT tape_info;
+   off_t       current_pos;	/* current position in stream */
 
    void destroy();
-   int read_volinfo();		     /* read current volume format */
    int find_maxfile();
-   int open_file();
-   int delete_files(int startfile);
-   void check_file() { if (cur_fd == -1) open_file(); };
    int offline();
-   int close_file();
+   int truncate_file();
+   int seek_file();
 
 public:
    int fsf(int count);
