@@ -48,6 +48,7 @@ int faketape_read(int fd, void *buffer, unsigned int count);
 int faketape_write(int fd, const void *buffer, unsigned int count);
 int faketape_close(int fd);
 int faketape_ioctl(int fd, unsigned long int request, ...);
+void faketape_debug(int level);
 
 class faketape {
 private:
@@ -61,11 +62,12 @@ private:
    bool        atEOD;		/* End of data */
    bool        atBOT;           /* Begin of tape */
    bool        online;		/* volume online */
+   bool        inplace;		/* have to seek before writing ? */
 
    POOLMEM     *volume;		/* volume name */
 
-   int16_t     last_file;	/* last file of the volume */
-   int16_t     current_file;	/* max 65000 files */
+   int32_t     last_file;	/* last file of the volume */
+   int32_t     current_file;	/* max 65000 files */
    int32_t     current_block;	/* max 4G blocks of 1KB */
    off_t       current_pos;	/* current position in stream */
 
@@ -74,6 +76,7 @@ private:
    int offline();
    int truncate_file();
    int seek_file();
+   int read_eof();
 
 public:
    int fsf(int count);
