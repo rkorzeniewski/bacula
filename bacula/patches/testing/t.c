@@ -30,6 +30,10 @@ int main()
    struct mtop mt_com;
 
    fd  = open("/dev/lto2", O_CREAT | O_RDWR, 0700);
+   if (fd < 0) {
+      perror("Can't open fd");
+      exit(1);
+   }
 
    /* rewind */
    mt_com.mt_count = 1;
