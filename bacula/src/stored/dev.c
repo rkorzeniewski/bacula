@@ -86,6 +86,10 @@
 #define O_NONBLOCK 0
 #endif
 
+#ifdef USE_FAKETAPE
+#include "faketape.h"
+#endif
+
 /* Forward referenced functions */
 void set_os_device_parameters(DCR *dcr);   
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);
@@ -379,7 +383,7 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
    /* If busy retry each second for max_open_wait seconds */
    for ( ;; ) {
       /* Try non-blocking open */
-      m_fd = ::open(dev_name, mode+O_NONBLOCK);
+      m_fd = tape_open(dev_name, mode+O_NONBLOCK);
       if (m_fd < 0) {
          berrno be;
          dev_errno = errno;
@@ -391,10 +395,10 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
          mt_com.mt_op = MTREW;
          mt_com.mt_count = 1;
          /* rewind only if dev is a tape */
-         if (is_tape() && (ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0)) {
+         if (is_tape() && (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0)) {
             berrno be;
             dev_errno = errno;           /* set error status from rewind */
-            ::close(m_fd);
+            tape_close(m_fd);
             clear_opened();
             Dmsg2(100, "Rewind error on %s close: ERR=%s\n", print_name(),
                   be.bstrerror(dev_errno));
@@ -404,8 +408,8 @@ void DEVICE::open_tape_device(DCR *dcr, int omode)
             }
          } else {
             /* Got fd and rewind worked, so we must have medium in drive */
-            ::close(m_fd);
-            m_fd = ::open(dev_name, mode);  /* open normally */
+            tape_close(m_fd);
+            m_fd = tape_open(dev_name, mode);  /* open normally */
             if (m_fd < 0) {
                berrno be;
                dev_errno = errno;
@@ -2491,7 +2495,7 @@ void set_os_device_parameters(DCR *dcr)
    } else {
       neof = 1;
    }
-   if (ioctl(dev->fd(), MTIOCSETEOTMODEL, (caddr_t)&neof) < 0) {
+   if (tape_ioctl(dev->fd(), MTIOCSETEOTMODEL, (caddr_t)&neof) < 0) {
       berrno be;
       dev->dev_errno = errno;         /* save errno */
       Mmsg2(dev->errmsg, _("Unable to set eotmodel on device %s: ERR=%s\n"),
