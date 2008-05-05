@@ -41,7 +41,7 @@ int main(int argc, char **argv)
       debug(atoi(argv[1]));
    }
 
-   fd  = open("/dev/lto2", O_CREAT | O_RDWR, 0700);
+   fd  = open("/dev/lto2", O_CREAT | O_RDWR);
    if (fd < 0) {
       perror("Can't open fd");
       exit(1);
@@ -70,11 +70,71 @@ int main(int argc, char **argv)
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    print_pos();
 
+   write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
+   /* write EOF */
+   printf("\n*** WEOF\n");
+   mt_com.mt_op = MTWEOF;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   print_pos();
+
+   /* rewind */
+   printf("\n*** rewind\n");
+   mt_com.mt_count = 1;
+   mt_com.mt_op = MTREW;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   print_pos();
+
+   /* FSR */
+   printf("\n*** fsr");
+   mt_com.mt_op = MTFSR;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   printf(" r=%i\n", r1);
+   print_pos();
+   /* FSR */
+   printf("\n*** fsr");
+   mt_com.mt_op = MTFSR;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   printf(" r=%i\n", r1);
+   print_pos();
+   /* FSR */
+   printf("\n*** fsr");
+   mt_com.mt_op = MTFSR;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   printf(" r=%i\n", r1);
+   print_pos();
+   /* FSR */
+   printf("\n*** fsr");
+   mt_com.mt_op = MTFSR;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   printf(" r=%i\n", r1);
+   print_pos();
+   /* FSR */
+   printf("\n*** fsr");
+   mt_com.mt_op = MTFSR;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   printf(" r=%i\n", r1);
+   print_pos();
+   exit(0);
+
+
    /* write a second file */
    printf("\n*** write something\n");
    write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
    print_pos();
 
+    /* BSF */
+   printf("\n*** bsf\n");
+   mt_com.mt_op = MTBSF;
+   mt_com.mt_count = 1;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   print_pos();
+   
    /* rewind */
    printf("\n*** rewind\n");
    mt_com.mt_count = 1;
