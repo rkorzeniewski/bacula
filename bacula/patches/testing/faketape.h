@@ -43,7 +43,7 @@
 /* 
  * Theses functions will replace open/read/write
  */
-int faketape_open(const char *pathname, int flags, int mode);
+int faketape_open(const char *pathname, int flags);
 int faketape_read(int fd, void *buffer, unsigned int count);
 int faketape_write(int fd, const void *buffer, unsigned int count);
 int faketape_close(int fd);
@@ -63,6 +63,7 @@ private:
    bool        atBOT;           /* Begin of tape */
    bool        online;		/* volume online */
    bool        inplace;		/* have to seek before writing ? */
+   bool        needEOF;		/* check if last operation need eof */
 
    POOLMEM     *volume;		/* volume name */
 
@@ -76,20 +77,21 @@ private:
    int offline();
    int truncate_file();
    int seek_file();
-   int read_eof();
+   void check_eof() { if(needEOF) weof(1);};
 
 public:
    int fsf(int count);
    int fsr(int count);
    int weof(int count);
    int bsf(int count);
+   int bsr(int count);
 
    faketape();
    ~faketape();
 
    int get_fd();
    void dump();
-   int open(const char *pathname, int flags, int mode);
+   int open(const char *pathname, int flags);
    int read(void *buffer, unsigned int count);
    int write(const void *buffer, unsigned int count);
    int close();
