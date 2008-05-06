@@ -57,6 +57,14 @@
 #define SMCHECK
 #endif
 
+/*
+ * USE_FAKETAPE is a dummy tape driver. This is useful to
+ *  run regress test.
+ */
+#ifdef DEVELOPER
+//#define USE_FAKETAPE
+#endif
+
 /* 
  * for fastest speed but you must have a UPS to avoid unwanted shutdowns
  */

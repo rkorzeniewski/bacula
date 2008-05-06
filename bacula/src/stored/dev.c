@@ -123,7 +123,7 @@ init_dev(JCR *jcr, DEVRES *device)
       }
       if (S_ISDIR(statp.st_mode)) {
          device->dev_type = B_FILE_DEV;
-      } else if (S_ISCHR(statp.st_mode)) {
+      } else if (IS_TAPE(statp.st_mode)) { /* char device or fake tape */
          device->dev_type = B_TAPE_DEV;
       } else if (S_ISFIFO(statp.st_mode)) {
          device->dev_type = B_FIFO_DEV;
