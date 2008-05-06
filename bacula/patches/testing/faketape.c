@@ -27,8 +27,20 @@
 */
 
 /*
- * Maximum File Size = 800M
- *
+
+Device {
+  Name = Drive-1                      #
+  Maximum File Size = 800M
+  Maximum Volume Size = 3G
+  Device Type = TAPE
+  Archive Device = /tmp/fake
+  Media Type = DLT-8000
+  AutomaticMount = yes;               # when device opened, read it
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+  RandomAccess = no;
+}
+
  */
 
 #include "faketape.h"
@@ -127,13 +139,9 @@ int faketape_ioctl(int fd, unsigned long int request, ...)
       result = t->tape_op(va_arg(argp, mtop *));
    } else if (request == MTIOCGET) {
       result = t->tape_get(va_arg(argp, mtget *));
-   }
-//
-//   case MTIOCPOS:
-//      result = tape_pos(fd, va_arg(argp, mtpos *));
-//      break;
-//
-   else {
+   } else if (request == MTIOCPOS) {
+      result = t->tape_pos(va_arg(argp, mtpos *));
+   } else {
       errno = ENOTTY;
       result = -1;
    }
@@ -374,7 +382,12 @@ int faketape::tape_get(struct mtget *mt_get)
 
 int faketape::tape_pos(struct mtpos *mt_pos)
 {
-   return 0;
+   if (current_block >= 0) {
+      mt_pos->mt_blkno = current_block;
+      return 0;
+   }
+
+   return -1;
 }
 
 /*
