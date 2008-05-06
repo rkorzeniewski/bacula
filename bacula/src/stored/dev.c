@@ -86,10 +86,6 @@
 #define O_NONBLOCK 0
 #endif
 
-#ifdef USE_FAKETAPE
-#include "faketape.h"
-#endif
-
 /* Forward referenced functions */
 void set_os_device_parameters(DCR *dcr);   
 static bool dev_get_os_pos(DEVICE *dev, struct mtget *mt_stat);

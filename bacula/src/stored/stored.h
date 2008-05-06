@@ -78,6 +78,10 @@ const int sd_dbglvl = 300;
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
+#ifdef USE_FAKETAPE
+# include "faketape.h"
+#endif
+
 /* Daemon globals from stored.c */
 extern STORES *me;                    /* "Global" daemon resource */
 extern bool forge_on;                 /* proceed inspite of I/O errors */
