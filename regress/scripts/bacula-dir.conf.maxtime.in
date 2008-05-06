@@ -61,7 +61,7 @@ Job {
   Name = "RUN_MAXWAITTIME"
   JobDefs = DefaultJob
   FileSet = FS_TESTJOB
-  MaxWaitTime = 2min
+  MaxWaitTime = 100sec
 }
 
 Job {
