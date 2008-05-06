@@ -23,6 +23,8 @@ ADD_TEST(disk:hardlink-test "@regressdir@/tests/hardlink-test")
 ADD_TEST(disk:incremental-2media "@regressdir@/tests/incremental-2media")
 ADD_TEST(disk:incremental-test "@regressdir@/tests/incremental-test")
 ADD_TEST(disk:maxtime-test "@regressdir@/tests/maxtime-test")
+SET_TESTS_PROPERTIES(disk:maxtime-test PROPERTIES     
+   PASS_REGULAR_EXPRESSION "Fatal error")
 ADD_TEST(disk:maxvol2-test "@regressdir@/tests/maxvol2-test")
 ADD_TEST(disk:maxvol-test "@regressdir@/tests/maxvol-test")
 ADD_TEST(disk:migration-jobspan-test "@regressdir@/tests/migration-jobspan-test")
