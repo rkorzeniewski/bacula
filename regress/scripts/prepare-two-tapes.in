@@ -29,5 +29,9 @@ if test x@autochanger@ != x/dev/null; then
    fi
 fi
 
-mt -f @tape_drive@ rewind
-mt -f @tape_drive@ weof
+if test a$USE_FAKETAPE = a; then
+   mt -f @tape_drive@ rewind
+   mt -f @tape_drive@ weof
+else
+   cp /dev/null @tape_drive@
+fi
