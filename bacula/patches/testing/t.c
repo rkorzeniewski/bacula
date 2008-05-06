@@ -56,6 +56,50 @@ int main(int argc, char **argv)
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    print_pos();
 
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   exit(0);
+
    /* write something */
    printf("\n*** write something (3 writes)\n");
    write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
@@ -70,7 +114,9 @@ int main(int argc, char **argv)
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    print_pos();
 
-   write(fd, "abcdefghijklmnopqrstuvwyz", strlen("abcdefghijklmnopqrstuvwyz")+1);
+   write(fd, "12345", strlen("12345")+1);
+   write(fd, "678910", strlen("678910")+1);
+
    /* write EOF */
    printf("\n*** WEOF\n");
    mt_com.mt_op = MTWEOF;
@@ -78,12 +124,36 @@ int main(int argc, char **argv)
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    print_pos();
 
-   /* rewind */
-   printf("\n*** rewind\n");
+   
+
+   /* BSF */
+   printf("\n*** bsf\n");
    mt_com.mt_count = 1;
-   mt_com.mt_op = MTREW;
+   mt_com.mt_op = MTBSF;
    r1 = ioctl(fd, MTIOCTOP, &mt_com);
    print_pos();
+
+   /* BSR */
+   printf("\n*** bsr\n");
+   mt_com.mt_count = 1;
+   mt_com.mt_op = MTBSR;
+   r1 = ioctl(fd, MTIOCTOP, &mt_com);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+
+   /* read something */
+   errno=0;
+   r1 = read(fd, c, 200);
+   c[r1] = 0;
+   printf("\n*** read c=%s len=%i\n", c, r1);
+   print_pos();
+   exit(0);
 
    /* FSR */
    printf("\n*** fsr");

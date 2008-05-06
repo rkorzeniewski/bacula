@@ -468,11 +468,11 @@ int faketape::write(const void *buffer, unsigned int count)
 //      atEOT = true;
 //   }
 
-   off_t size = count;
-   ::write(fd, &size, sizeof(off_t));
+   uint32_t size = count;
+   ::write(fd, &size, sizeof(uint32_t));
    nb = ::write(fd, buffer, count);
    
-   file_size += sizeof(off_t) + nb;
+   file_size += sizeof(uint32_t) + nb;
 
    if (nb != count) {
       atEOT = true;
@@ -500,9 +500,9 @@ int faketape::weof(int count)
    current_file += count;
    current_block = 0;
 
-   off_t c=0;
+   uint32_t c=0;
    seek_file();
-   ::write(fd, &c, sizeof(off_t));
+   ::write(fd, &c, sizeof(uint32_t));
    seek_file();
 
    atEOD = false;
@@ -552,7 +552,8 @@ int faketape::fsr(int count)
    ASSERT(fd >= 0);
    
    int i,nb, ret=0;
-   off_t where=0, s;
+   off_t where=0;
+   uint32_t s;
    Dmsg3(dbglevel, "fsr %i:%i count=%i\n", current_file,current_block, count);
 
    check_eof();
@@ -572,8 +573,8 @@ int faketape::fsr(int count)
 
    /* check all block record */
    for(i=0; (i < count) && !atEOF ; i++) {
-      nb = ::read(fd, &s, sizeof(off_t)); /* get size of next block */
-      if (nb == sizeof(off_t) && s) {
+      nb = ::read(fd, &s, sizeof(uint32_t)); /* get size of next block */
+      if (nb == sizeof(uint32_t) && s) {
 	 current_block++;
 	 where = lseek(fd, s, SEEK_CUR);	/* seek after this block */
       } else {
@@ -619,14 +620,17 @@ int faketape::bsr(int count)
    int last_f=0;
    int last_b=0;
 
-   off_t last=-1;
+   off_t last=-1, last2=-1;
    off_t orig = lseek(fd, 0, SEEK_CUR);
+   int orig_f = current_file;
+   int orig_b = current_block;
 
    current_block=0;
    seek_file();
 
    do {
       if (!atEOF) {
+	 last2 = last;
 	 last = lseek(fd, 0, SEEK_CUR);
 	 last_f = current_file;
 	 last_b = current_block;
@@ -635,12 +639,24 @@ int faketape::bsr(int count)
       ret = fsr(1);
    } while ((lseek(fd, 0, SEEK_CUR) < orig) && (ret == 0));
 
-   if (last > 0) {
+   if (last2 > 0 && atEOF) {	/* we take the previous position */
+      lseek(fd, last2, SEEK_SET);
+      current_file = last_f;
+      current_block = last_b - 1;
+      Dmsg3(dbglevel, "set offset2=%lli %i:%i\n", 
+	    last, current_file, current_block);
+
+   } else if (last > 0) {
       lseek(fd, last, SEEK_SET);
       current_file = last_f;
       current_block = last_b;
       Dmsg3(dbglevel, "set offset=%lli %i:%i\n", 
 	    last, current_file, current_block);
+   } else {
+      lseek(fd, orig, SEEK_SET);
+      current_file = orig_f;
+      current_block = orig_b;
+      return -1;
    }
 
    Dmsg2(dbglevel, "bsr %i:%i\n", current_file, current_block);
@@ -682,7 +698,7 @@ int faketape::bsf(int count)
       seek_file();
       current_file--;
       /* go just before last EOF */
-      lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(off_t), SEEK_SET);
+      lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(uint32_t), SEEK_SET);
    }
    return ret;
 }
@@ -729,22 +745,29 @@ int faketape::read(void *buffer, unsigned int count)
 {
    ASSERT(current_file >= 0);
    unsigned int nb;
-   off_t s;
+   uint32_t s;
+   
+   Dmsg2(dbglevel, "read %i:%i\n", current_file, current_block);
 
    if (atEOT || atEOD) {
       return 0;
    }
 
+   if (atEOF) {
+      current_file++;
+      current_block=0;
+      inplace = false;
+      atEOF = false;
+   }
+
    if (!inplace) {
       seek_file();
    }
-   
-   Dmsg2(dbglevel, "read %i:%i\n", current_file, current_block);
 
-   atBOT = false;
+   atEOD = atBOT = false;
    current_block++;
 
-   nb = ::read(fd, &s, sizeof(off_t));
+   nb = ::read(fd, &s, sizeof(uint32_t));
    if (nb <= 0) {
       atEOF = true;
       return 0;
@@ -756,7 +779,7 @@ int faketape::read(void *buffer, unsigned int count)
    }
    if (!s) {			/* EOF */
       atEOF = true;
-      lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(off_t), SEEK_SET);
+      lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(uint32_t), SEEK_SET);
       return 0;
    }
    nb = ::read(fd, buffer, s);
