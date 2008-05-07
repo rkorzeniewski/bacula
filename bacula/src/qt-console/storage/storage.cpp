@@ -42,6 +42,7 @@
 #include "label/label.h"
 #include "mount/mount.h"
 #include "status/storstat.h"
+#include "util/fmtwidgetitem.h"
 
 Storage::Storage()
 {
@@ -72,7 +73,7 @@ Storage::~Storage()
  */
 void Storage::populateTree()
 {
-   QTreeWidgetItem *storageItem, *topItem;
+   QTreeWidgetItem *topItem;
 
    if (!m_console->preventInUseConnect())
        return;
@@ -81,8 +82,9 @@ void Storage::populateTree()
    mp_treeWidget->clear();
    m_checkcurwidget = true;
 
-   QStringList headerlist = (QStringList() << tr("Storage Name") << tr("Storage Id")
-       << tr("Auto Changer"));
+   QStringList headerlist = (QStringList() << tr("Name") << tr("Id")
+        << tr("Changer") << tr("Slot") << tr("Status") << tr("Enabled") << tr("Pool") 
+        << tr("Media Type") );
 
    topItem = new QTreeWidgetItem(mp_treeWidget);
    topItem->setText(0, tr("Storage"));
@@ -93,10 +95,9 @@ void Storage::populateTree()
    mp_treeWidget->setHeaderLabels(headerlist);
 
    foreach(QString storageName, m_console->storage_list){
-      storageItem = new QTreeWidgetItem(topItem);
-      storageItem->setText(0, storageName);
-      storageItem->setData(0, Qt::UserRole, 1);
-      storageItem->setExpanded(true);
+      ItemFormatter storageItem(*topItem, 1);
+      storageItem.setTextFld(0, storageName);
+      storageItem.widget()->setExpanded(true);
 
       /* Set up query QString and header QStringList */
       QString query("SELECT StorageId AS ID, AutoChanger AS Changer"
@@ -118,16 +119,16 @@ void Storage::populateTree()
             /* there will only be one of these */
             foreach (resultline, results) {
                fieldlist = resultline.split("\t");
-               int index = 0;
-               /* Iterate through fields in the record */
-               foreach (field, fieldlist) {
-                  field = field.trimmed();  /* strip leading & trailing spaces */
-                  storageItem->setData(index+1, Qt::UserRole, 1);
-                  /* Put media fields under the pool tree item */
-                  storageItem->setData(index+1, Qt::UserRole, 1);
-                  storageItem->setText(index+1, field);
-                  index++;
-               }
+               int index = 1;
+ 	       QStringListIterator fld(fieldlist);
+ 
+ 	       /* storage id */
+ 	       storageItem.setNumericFld(index++, fld.next() );
+ 
+ 	       /* changer */
+ 	       storageItem.setBoolFld(index++, fld.next() );
+ 
+ 	       mediaList(storageItem.widget(), fieldlist.first());
             }
          }
       }
@@ -135,6 +136,61 @@ void Storage::populateTree()
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
+   }
+}
+void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
+{
+   QString query("SELECT Media.VolumeName AS Media, Media.Slot AS Slot,"
+                 " Media.VolStatus AS VolStatus, Media.Enabled AS Enabled,"
+		 " Pool.Name AS MediaPool, Media.MediaType AS MediaType" 
+                 " From Media"
+		 " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
+		 " WHERE Media.StorageId='" + storageID + "'"
+		 " AND Media.InChanger<>0"
+		 " ORDER BY Media.Slot");
+
+   QStringList results;
+   /* This could be a log item */
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Storage query cmd : %s\n",query.toUtf8().data());
+   }
+   if (m_console->sql_cmd(query, results)) {
+      QString resultline;
+      QString field;
+      QStringList fieldlist;
+ 
+      foreach (resultline, results) {
+         fieldlist = resultline.split("\t");
+	 if (fieldlist.size() < 6)
+ 	    continue; 
+
+         /* Iterate through fields in the record */
+         QStringListIterator fld(fieldlist);
+         int index = 0;
+	 ItemFormatter fmt(*parent, 2);
+
+         /* volname */
+         fmt.setTextFld(index++, fld.next()); 
+ 
+	 /* skip the next two columns, unused by media */
+	 index += 2;
+
+	 /* slot */
+	 fmt.setNumericFld(index++, fld.next());
+
+	 /* status */
+	 fmt.setVolStatusFld(index++, fld.next());
+
+         /* enabled */
+         fmt.setBoolFld(index++, fld.next()); 
+
+         /* pool */
+         fmt.setTextFld(index++, fld.next()); 
+
+         /* media type */
+         fmt.setTextFld(index++, fld.next()); 
+
+      }
    }
 }
 
