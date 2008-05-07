@@ -87,7 +87,7 @@ void InitWinAPIWrapper();
 #define  tape_read            win32_tape_read
 #define  tape_write           win32_tape_write
 #define  tape_close           win32_tape_close
-#define  IS_TAPE(x)           (0)
+#define  IS_TAPE(x)           S_ISCHR(x)
 
 #define sbrk(x)  0
 
@@ -119,7 +119,7 @@ void InitWinAPIWrapper();
 #  define  tape_read            faketape_read
 #  define  tape_write           faketape_write
 #  define  tape_close           faketape_close
-#  define  IS_TAPE(x)           (S_ISCHR(x) || S_ISREG(x))
+#  define  IS_TAPE(x)           S_ISREG(x)
 #else  /* UNIX && !FAKETAPE */
 #  define  tape_open            ::open
 #  define  tape_ioctl           ::ioctl
