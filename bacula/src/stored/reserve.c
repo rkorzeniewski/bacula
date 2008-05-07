@@ -170,7 +170,7 @@ enum {
    debug_nolock = false
 };
 
-static void debug_list_volumes(const char *imsg)
+void debug_list_volumes(const char *imsg)
 {
    VOLRES *vol;
    POOL_MEM msg(PM_MESSAGE);

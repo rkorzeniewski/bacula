@@ -231,6 +231,7 @@ void    send_drive_reserve_messages(JCR *jcr, void sendit(const char *msg, int l
 bool    find_suitable_device_for_job(JCR *jcr, RCTX &rctx);
 int     search_res_for_device(RCTX &rctx);
 void    release_reserve_messages(JCR *jcr);
+void debug_list_volumes(const char *imsg);
 
 extern int reservations_lock_count;
 extern int vol_list_lock_count;
