@@ -492,7 +492,8 @@ bool release_device(DCR *dcr)
             Dmsg2(200, "dir_update_vol_info. Release vol=%s dev=%s\n", 
                   dev->VolCatInfo.VolCatName, dev->print_name());
          }
-         if (!dev->is_busy()) {               /* if not being used */
+         if (dev->num_writers == 0) {         /* if not being used */
+//       if (!dev->is_busy()) {               /* if not being used */
             volume_unused(dcr);               /*  we obviously are not using the volume */
          }
       }
@@ -506,6 +507,10 @@ bool release_device(DCR *dcr)
       volume_unused(dcr);
    }
    unlock_volumes();
+   Dmsg3(100, "%d writers, %d reserve, dev=%s\n", dev->num_writers, dev->num_reserved(),
+         dev->print_name());
+   debug_list_volumes("acquire:release_device()");
+
 
    /* If no writers, close if file or !CAP_ALWAYS_OPEN */
    if (dev->num_writers == 0 && (!dev->is_tape() || !dev->has_cap(CAP_ALWAYSOPEN))) {
