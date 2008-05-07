@@ -314,7 +314,10 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    pm_strcat(cmd, "\"");
    write(cmd.c_str());
    while ((stat = read()) > 0) {
-      if (mainWin->m_displayAll) display_text(msg());
+      if (mainWin->m_displayAll) {
+         display_text(msg());
+	 display_text("\n");
+      }
       strip_trailing_junk(msg());
       results << msg();
    }

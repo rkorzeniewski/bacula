@@ -139,6 +139,10 @@ SOURCES += status/clientstat.cpp
 HEADERS += status/storstat.h
 SOURCES += status/storstat.cpp
 
+# Utility sources
+HEADERS += util/fmtwidgetitem.h
+SOURCES += util/fmtwidgetitem.cpp
+
 INSTALLS += bins
 INSTALLS += confs
 

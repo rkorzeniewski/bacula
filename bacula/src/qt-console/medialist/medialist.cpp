@@ -37,12 +37,14 @@
 
 #include <QAbstractEventDispatcher>
 #include <QMenu>
+#include <math.h>
 #include "bat.h"
 #include "medialist.h"
 #include "mediaedit/mediaedit.h"
 #include "joblist/joblist.h"
 #include "relabel/relabel.h"
 #include "run/run.h"
+#include "util/fmtwidgetitem.h"
 
 MediaList::MediaList()
 {
@@ -74,7 +76,7 @@ MediaList::~MediaList()
  */
 void MediaList::populateTree()
 {
-   QTreeWidgetItem *mediatreeitem, *pooltreeitem;
+   QTreeWidgetItem *pooltreeitem;
 
    if (!m_console->preventInUseConnect())
        return;
@@ -82,14 +84,8 @@ void MediaList::populateTree()
    QStringList headerlist = (QStringList()
       << tr("Volume Name") << tr("Id") << tr("Status") << tr("Enabled") << tr("Bytes") << tr("Files")
       << tr("Jobs") << tr("Retention") << tr("Media Type") << tr("Slot") << tr("Use Duration")
-      << tr("Max Jobs") << tr("Max Files") << tr("Max Bytes") << tr("Recycle") << tr("Enabled")
+      << tr("Max Jobs") << tr("Max Files") << tr("Max Bytes") << tr("Recycle")
       << tr("RecyclePool") << tr("Last Written"));
-   int statusIndex = headerlist.indexOf("Status");
-   QStringList flaglist = (QStringList()
-      << "L" << "R" << "L" << "R" << "BR" << "R"
-      << "R" << "RS" << "L" << "R" << "RS"
-      << "R" << "R" << "BR" << "R" << "R"
-      << "L" << "L");
 
    m_checkcurwidget = false;
    if (m_populated)
@@ -123,11 +119,11 @@ void MediaList::populateTree()
          " Media.Enabled AS Enabled, Media.VolBytes AS Bytes,"
          " Media.VolFiles AS FileCount, Media.VolJobs AS JobCount,"
          " Media.VolRetention AS VolumeRetention, Media.MediaType AS MediaType,"
-         " Media.Slot AS Slot, Media.VolUseDuration AS UseDuration,"
+         " Media.InChanger AS InChanger, Media.Slot AS Slot, "
+         " Media.VolUseDuration AS UseDuration,"
          " Media.MaxVolJobs AS MaxJobs, Media.MaxVolFiles AS MaxFiles,"
          " Media.MaxVolBytes AS MaxBytes, Media.Recycle AS Recycle,"
-         " Media.Enabled AS enabled, Pol.Name AS RecyclePool,"
-         " Media.LastWritten AS LastWritten"
+         " Pol.Name AS RecyclePool, Media.LastWritten AS LastWritten"
          " FROM Media"
          " JOIN Pool ON (Media.PoolId=Pool.PoolId)"
          " LEFT OUTER JOIN Pool AS Pol ON (Media.RecyclePoolId=Pol.PoolId)"
@@ -140,50 +136,80 @@ void MediaList::populateTree()
       }
       QStringList results;
       if (m_console->sql_cmd(query, results)) {
-         QString field;
          QStringList fieldlist;
 
          /* Iterate through the lines of results. */
          foreach (QString resultline, results) {
             fieldlist = resultline.split("\t");
-            int index = 0;
-            mediatreeitem = new QTreeWidgetItem(pooltreeitem);
 
+	    if (fieldlist.size() < 18)
+	       continue; // some fields missing, ignore row
+
+            int index = 0;
+	    ItemFormatter mediaitem(*pooltreeitem, 2);
+  
             /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
-               field = field.trimmed();  /* strip leading & trailing spaces */
-               if (field != "") {
-                  mediatreeitem->setData(index, Qt::UserRole, 2);
-                  mediatreeitem->setData(index, Qt::UserRole, 2);
-                  mediatreeitem->setText(index, field);
-                  if (index == statusIndex) {
-                     setStatusColor(mediatreeitem, field, index);
-                  } 
-                  if (flaglist[index].contains("B")) {
-                     QString text;
-                     bool okay;
-                     qlonglong bytes = field.toULongLong(&okay);
-                     if (okay){
-                        QString test =  QString("%1").arg(bytes);
-                        mainWin->hrConvert(text, bytes);
-                        mediatreeitem->setText(index, text);
-                     } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
-                  }
-                  if (flaglist[index].contains("S")) {
-                     QString text;
-                     bool okay;
-                     qlonglong seconds = field.toULongLong(&okay);
-                     if (okay){
-                        QString test =  QString("%1").arg(seconds);
-                        mainWin->hrConvertSeconds(text, seconds);
-                        mediatreeitem->setText(index, text);
-                     } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
-                  }
-                  if (flaglist[index].contains("R"))
-                     mediatreeitem->setTextAlignment(index, Qt::AlignRight);
-               }
-               index++;
-            } /* foreach field */
+	    QStringListIterator fld(fieldlist);
+
+	    /* volname */
+            mediaitem.setTextFld(index++, fld.next()); 
+
+	    /* id */
+            mediaitem.setNumericFld(index++, fld.next()); 
+
+	    /* status */
+            mediaitem.setVolStatusFld(index++, fld.next());
+
+	    /* enabled */
+ 	    mediaitem.setBoolFld(index++, fld.next());
+
+            /* bytes */
+ 	    mediaitem.setBytesFld(index++, fld.next());
+
+	    /* files */
+            mediaitem.setNumericFld(index++, fld.next()); 
+
+	    /* jobs */
+            mediaitem.setNumericFld(index++, fld.next()); 
+
+	    /* retention */
+	    mediaitem.setDurationFld(index++, fld.next());
+
+	    /* media type */
+            mediaitem.setTextFld(index++, fld.next()); 
+
+	    /* inchanger + slot */
+	    int inchanger = fld.next().toInt();
+            if (inchanger) {
+               mediaitem.setNumericFld(index++, fld.next()); 
+            }
+            else {
+               /* volume not in changer, show blank slot */
+               mediaitem.setNumericFld(index++, ""); 
+               fld.next();
+	    }
+
+	    /* use duration */
+	    mediaitem.setDurationFld(index++, fld.next());
+
+	    /* max jobs */
+            mediaitem.setNumericFld(index++, fld.next()); 
+
+	    /* max files */
+            mediaitem.setNumericFld(index++, fld.next()); 
+
+            /* max bytes */
+ 	    mediaitem.setBytesFld(index++, fld.next());
+
+	    /* recycle */
+ 	    mediaitem.setBoolFld(index++, fld.next());
+
+	    /* recycle pool */
+            mediaitem.setTextFld(index++, fld.next()); 
+
+	    /* last written */
+            mediaitem.setTextFld(index++, fld.next()); 
+
          } /* foreach resultline */
       } /* if results from query */
    } /* foreach pool_listItem */
@@ -191,17 +217,6 @@ void MediaList::populateTree()
    /* Resize the columns */
    for(int cnter=0; cnter<headerlist.count(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
-   }
-}
-
-void MediaList::setStatusColor(QTreeWidgetItem *item, QString &field, int &index)
-{
-   if (field == "Append" ) {
-      item->setBackground(index, Qt::green);
-   } else if (field == "Error") {
-      item->setBackground(index, Qt::red);
-   } else if ((field == "Used") || ("Full")){
-      item->setBackground(index, Qt::yellow);
    }
 }
 
