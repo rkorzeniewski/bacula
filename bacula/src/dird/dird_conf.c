@@ -635,6 +635,9 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       if (res->res_job.spool_size) {
          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
       }
+      if (res->res_job.stats_enabled) {
+	 sendit(sock, _("     StatsEnabled=%d\n"), res->res_job.stats_enabled);
+      }
       if (res->res_job.JobType == JT_BACKUP) {
          sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
       }
@@ -658,9 +661,6 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
       }
       if (res->res_job.RegexWhere) {
            sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
-      }
-      if (res->res_job.stats_enabled) {
-           sendit(sock, _("  --> StatsEnabled=%d\n"), res->res_job.stats_enabled);
       }
       if (res->res_job.RestoreBootstrap) {
          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
