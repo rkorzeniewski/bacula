@@ -43,9 +43,8 @@ Device {
 
  */
 
-#include <dirent.h>
-#include <sys/mtio.h>
-#include <ctype.h>
+#include "bacula.h"		/* define 64bit file usage */
+#include "stored.h"
 #include "faketape.h"
 
 static int dbglevel = 10;
@@ -774,7 +773,7 @@ int faketape::open(const char *pathname, int uflags)
       return -1;
    }
 
-   fd = ::open(pathname, O_CREAT | O_RDWR, 0700);
+   fd = ::open(pathname, O_CREAT | O_RDWR | O_LARGEFILE, 0700);
    if (fd < 0) {
       return -1;
    }
@@ -822,10 +821,10 @@ int faketape::seek_file()
    if(lseek(fd, pos, SEEK_SET) == -1) {
       return -1;
    }
+   last_file = (last_file > current_file)?last_file:current_file;
    if (current_block > 0) {
       fsr(current_block);
    }
-   last_file = (last_file > current_file)?last_file:current_file;
    inplace = true;
 
    return 0;
