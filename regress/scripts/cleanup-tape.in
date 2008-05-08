@@ -2,21 +2,18 @@
 #
 # Cleanup left over files -- both before and after test run
 #
-. ./config
+
+. scripts/functions
 
 scripts/cleanup
 
 if test "x@autochanger@" != "x/dev/null" ; then
-   a=`bin/mtx-changer @autochanger@ loaded $SLOT1 @tape_drive@ 0`
+   a=`bin/@changer_script@ @autochanger@ loaded $SLOT1 @tape_drive@ 0`
    if test $a = 0 ; then
-     bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ 0
+     bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ 0
    fi
 fi
 
-if test a$USE_FAKETAPE = a; then
-   mt -f @tape_drive@ rewind
-   mt -f @tape_drive@ weof
-else
-   cp /dev/null @tape_drive@
-fi
+init_drive @tape_drive@
+
 

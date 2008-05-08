@@ -252,6 +252,16 @@ debug_wait()
   fi
 }
 
+init_drive()
+{
+  if test a$USE_FAKETAPE = a; then
+    mt -f $1 rewind
+    mt -f $1 weof
+  else
+    cp /dev/null $1
+  fi
+}
+
 # Save current directory
 cwd=`pwd`
 if test "x${REGRESS_DEBUG}" = "x1"; then
