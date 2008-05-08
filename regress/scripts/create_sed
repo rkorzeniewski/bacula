@@ -10,6 +10,7 @@ out="${cwd}/tmp/sed_tmp"
 
 # set the ports used by these tests
 BASEPORT=${BASEPORT:-8101}
+AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
 LIBDBI=${LIBDBI:- }
 libdbi=${LIBDBI}
 srcdir=${BACULA_SOURCE}
@@ -30,6 +31,7 @@ echo "s%@subsysdir@%${cwd}/working%g" >>${out}
 echo "s%@job_email@%${EMAIL}%g" >>${out}
 echo "s%@tape_drive@%${TAPE_DRIVE}%g" >>${out}
 echo "s%@autochanger@%${AUTOCHANGER}%g" >>${out}
+echo "s%@changer_script@%${AUTOCHANGER_SCRIPT}%g" >>${out}
 echo "s%@tmpdir@%${cwd}/tmp%g" >>${out}
 echo "s%@hostname@%${HOST}%g" >>${out}
 echo "s%@changer_path@%${AUTOCHANGER_PATH}%g" >>${out}

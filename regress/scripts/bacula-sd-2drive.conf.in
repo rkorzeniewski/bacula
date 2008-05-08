@@ -34,7 +34,7 @@ Director {
 Autochanger {
   Name = DDS-4
   Changer Device = @autochanger@
-  Changer Command ="@scriptdir@/mtx-changer %c %o %S %a %d"
+  Changer Command ="@scriptdir@/@changer_script@ %c %o %S %a %d"
   Device = Drive-0, Drive-1
 }
 
