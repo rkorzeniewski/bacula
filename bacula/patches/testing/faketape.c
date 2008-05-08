@@ -43,10 +43,10 @@ Device {
 
  */
 
-#include "faketape.h"
 #include <dirent.h>
 #include <sys/mtio.h>
 #include <ctype.h>
+#include "faketape.h"
 
 static int dbglevel = 10;
 #define FILE_OFFSET 30
@@ -188,7 +188,7 @@ int faketape::tape_op(struct mtop *mt_com)
     file number = 1
     block number = 1
    
-    mt: /dev/lto2: Erreur d'entrée/sortie
+    mt: /dev/lto2: Erreur d'entree/sortie
    
     file number = 2
     block number = 0
@@ -298,36 +298,7 @@ int faketape::tape_op(struct mtop *mt_com)
    case MTMKPART:
       break;
    }
-//
-//   switch (result) {
-//   case NO_ERROR:
-//   case -1:   /* Error has already been translated into errno */
-//      break;
-//
-//   default:
-//   case ERROR_FILEMARK_DETECTED:
-//      errno = EIO;
-//      break;
-//
-//   case ERROR_END_OF_MEDIA:
-//      errno = EIO;
-//      break;
-//
-//   case ERROR_NO_DATA_DETECTED:
-//      errno = EIO;
-//      break;
-//
-//   case ERROR_NO_MEDIA_IN_DRIVE:
-//      errno = ENOMEDIUM;
-//      break;
-//
-//   case ERROR_INVALID_HANDLE:
-//   case ERROR_ACCESS_DENIED:
-//   case ERROR_LOCK_VIOLATION:
-//      errno = EBADF;
-//      break;
-//   }
-//
+
    return result == 0 ? 0 : -1;
 }
 
@@ -438,7 +409,7 @@ int faketape::get_fd()
 }
 
 /*
- * TODO: regarder si apres un write une operation x pose un EOF
+ * TODO: check if after a write op, and other tape op put a EOF
  */
 int faketape::write(const void *buffer, unsigned int count)
 {
@@ -555,7 +526,6 @@ int faketape::fsf(int count)
       ret = -1;
    }
    seek_file();
-//   read_eof();
    return ret;
 }
 
@@ -589,7 +559,7 @@ int faketape::fsr(int count)
       nb = ::read(fd, &s, sizeof(uint32_t)); /* get size of next block */
       if (nb == sizeof(uint32_t) && s) {
 	 current_block++;
-	 where = lseek(fd, s, SEEK_CUR);	/* seek after this block */
+	 where = lseek(fd, s, SEEK_CUR);     /* seek after this block */
       } else {
 	 Dmsg4(dbglevel, "read EOF %i:%i nb=%i s=%i\n",
 	       current_file, current_block, nb,s);
@@ -612,18 +582,16 @@ int faketape::fsr(int count)
    return ret;
 }
 
-// TODO: Make it working, at this time we get only the EOF position...
 int faketape::bsr(int count)
 {
    Dmsg2(dbglevel, "bsr current_block=%i count=%i\n", 
 	 current_block, count);
 
    ASSERT(current_file >= 0);
+   ASSERT(count == 1);
    ASSERT(fd >= 0);
 
    check_eof();
-
-   ASSERT(count == 1);
 
    if (!count) {
       return 0;
@@ -647,7 +615,8 @@ int faketape::bsr(int count)
 	 last = lseek(fd, 0, SEEK_CUR);
 	 last_f = current_file;
 	 last_b = current_block;
-	 Dmsg5(dbglevel, "EOF=%i last=%lli orig=%lli %i:%i\n", atEOF, last, orig, current_file, current_block);
+	 Dmsg5(dbglevel, "EOF=%i last=%lli orig=%lli %i:%i\n", 
+	       atEOF, last, orig, current_file, current_block);
       }
       ret = fsr(1);
    } while ((lseek(fd, 0, SEEK_CUR) < orig) && (ret == 0));
@@ -677,18 +646,6 @@ int faketape::bsr(int count)
 
    return 0;
 }
-
-//int faketape::read_eof()
-//{
-//   int s, nb;
-//   off_t old = lseek(fd, 0, SEEK_CUR);
-//   nb = ::read(fd, &s, sizeof(s));
-//   if (nb >= 0 && (nb != sizeof(s) || !s)) { /* EOF */
-//      atEOF = true;
-//   }
-//   lseek(fd, old, SEEK_SET);
-//   return 0;
-//}
 
 int faketape::bsf(int count)
 {
@@ -721,7 +678,6 @@ int faketape::bsf(int count)
  */
 int faketape::offline()
 {
-   check_eof();
    close();
    
    atEOF = false;		/* End of file */
@@ -885,109 +841,3 @@ void faketape::dump()
    Dmsg4(dbglevel+1, "EOF=%i EOT=%i EOD=%i BOT=%i\n", 
 	 atEOF, atEOT, atEOD, atBOT);  
 }
-
-/****************************************************************
-
-#define GMT_EOF(x)              ((x) & 0x80000000)
-#define GMT_BOT(x)              ((x) & 0x40000000)
-#define GMT_EOT(x)              ((x) & 0x20000000)
-#define GMT_SM(x)               ((x) & 0x10000000)
-#define GMT_EOD(x)              ((x) & 0x08000000)
-
-
- GMT_EOF(x) : La bande est positionnée juste après une filemark (toujours faux
-     après une opération MTSEEK).
-
- GMT_BOT(x) : La bande est positionnée juste au début du premier fichier
-     (toujours faux après une opération MTSEEK).
- 
- GMT_EOT(x) : Une opération a atteint la fin physique de la bande (End Of
- Tape).
-
- GMT_SM(x) : La bande est positionnée sur une setmark (toujours faux après une
- opération MTSEEK).
-
- GMT_EOD(x) : La bande est positionnée à la fin des données enregistrées.
-
-
-blkno = -1 (after MTBSF MTBSS or MTSEEK)
-fileno = -1 (after MTBSS or MTSEEK)
-
-*** mtx load
-drive type = Generic SCSI-2 tape
-drive status = 0
-sense key error = 0
-residue count = 0
-file number = 0
-block number = 0
-Tape block size 0 bytes. Density code 0x0 (default).
-Soft error count since last status=0
-General status bits on (41010000):
- BOT ONLINE IM_REP_EN
-
-*** read empty block
-dd if=/dev/lto2 of=/tmp/toto count=1
-dd: lecture de `/dev/lto2': Ne peut allouer de la mémoire
-0+0 enregistrements lus
-0+0 enregistrements écrits
-1 octet (1B) copié, 4,82219 seconde, 0,0 kB/s
-
-file number = 0
-block number = 1
-
-*** read file mark
-dd if=/dev/lto2 of=/tmp/toto count=1
-0+0 enregistrements lus
-0+0 enregistrements écrits
-1 octet (1B) copié, 0,167274 seconde, 0,0 kB/s
-
-file number = 1
-block number = 0
-
- *** write 2 blocks after rewind
-dd if=/dev/zero of=/dev/lto2 count=2
-2+0 enregistrements lus
-2+0 enregistrements écrits
-1024 octets (1,0 kB) copiés, 6,57402 seconde, 0,2 kB/s
-
-file number = 1
-block number = 0
-
-*** write 2 blocks
-file number = 2
-block number = 0
-
-*** rewind and fsr
-file number = 0
-block number = 1
-
-*** rewind and 2x fsr (we have just 2 blocks)
-file number = 0
-block number = 2
-
-*** fsr
-mt: /dev/lto2: Erreur
-file number = 1
-block number = 0
-
-
- ****************************************************************/
-
-
-#ifdef TEST
-
-int main()
-{
-   int fd;
-   char buf[500];
-   printf("Starting FakeTape\n");
-
-   mkdir("/tmp/fake", 0700);
-
-
-
-
-   return 0;
-}
-
-#endif
