@@ -9,6 +9,9 @@
 /* Define if you want SmartAlloc debug code enabled */
 #undef SMARTALLOC
 
+/* Define if you want to use faketape driver */
+#undef USE_FAKETAPE
+
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef daddr_t
 
