@@ -43,6 +43,7 @@ END_OF_DATA
  mkfifo ${cwd}/tmp/fifo3) 2> /dev/null
 
 run_bacula
+stop_bacula
 
 rm ${cwd}/tmp/fifo ${cwd}/tmp/fifo2 ${cwd}/tmp/fifo3
 
