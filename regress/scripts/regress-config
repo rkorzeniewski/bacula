@@ -21,6 +21,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-smtp-host=${SMTP_HOST} \
     --with-db-name=regress \
     --with-db-user=regress \
+    ${USE_FAKETAPE} \
     ${OPENSSL} \
     ${TCPWRAPPERS} \
     ${WHICHDB} \
