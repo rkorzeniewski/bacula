@@ -12,5 +12,11 @@ if test "x@autochanger@" != "x/dev/null" ; then
      bin/mtx-changer @autochanger@ load $SLOT1 @tape_drive@ 0
    fi
 fi
-mt -f @tape_drive@ rewind
-mt -f @tape_drive@ weof
+
+if test a$USE_FAKETAPE = a; then
+   mt -f @tape_drive@ rewind
+   mt -f @tape_drive@ weof
+else
+   cp /dev/null @tape_drive@
+fi
+
