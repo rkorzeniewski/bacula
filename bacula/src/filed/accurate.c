@@ -33,10 +33,10 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=200;
+static int dbglvl=0;
 
 typedef struct PrivateCurFile {
-#ifndef USE_TCHDB
+#ifndef USE_TCADB
    hlink link;
 #endif
    char *fname;			/* not stored with tchdb mode */
@@ -45,7 +45,7 @@ typedef struct PrivateCurFile {
    bool seen;
 } CurFile;
 
-#ifdef USE_TCHDB
+#ifdef USE_TCADB
 static void realfree(void *p);	/* used by tokyo code */
 
 /*
@@ -56,12 +56,11 @@ static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
    bool ret=true;
 
    elt->seen = 1;
-   if (!tchdbputasync(jcr->file_list, 
-		      elt->fname, strlen(elt->fname)+1, 
-		      elt, sizeof(CurFile)))
+   if (!tcadbput(jcr->file_list, 
+		 elt->fname, strlen(elt->fname)+1, 
+		 elt, sizeof(CurFile)))
    { /* TODO: disabling accurate mode ?  */
-      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"),
-	   tchdberrmsg(tchdbecode(jcr->file_list)));
+      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk\n"));
       ret = false;
    }
 
@@ -72,13 +71,18 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
 {
    bool found=false;
    ret->seen = 0;
+   int size;
+   CurFile *elt;
 
-   if (tchdbget3(jcr->file_list, 
-		 fname, strlen(fname)+1, 
-		 ret, sizeof(CurFile)) != -1)
+   elt = (CurFile*)tcadbget(jcr->file_list, 
+			    fname, strlen(fname)+1, &size);
+   if (elt)
    {
+      /* TODO: don't malloc/free results */
       found = true;
-      ret->fname = fname;
+      elt->fname = fname;
+      memcpy(ret, elt, sizeof(CurFile));
+      realfree(elt);
 //    Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
    }
    return found;
@@ -89,26 +93,38 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
  */
 static bool accurate_init(JCR *jcr, int nbfile)
 {
-   jcr->file_list = tchdbnew();
-   tchdbsetcache(jcr->file_list, 300000);
-   tchdbtune(jcr->file_list,
-	     nbfile,		/* nb bucket 0.5n to 4n */
-	     6,			/* size of element 2^x */
-	     16,
-	     0);		/* options like compression */
+   jcr->file_list = tcadbnew();
+//
+//   tchdbsetcache(jcr->file_list, 300000);
+//   tchdbtune(jcr->file_list,
+//	     nbfile,		/* nb bucket 0.5n to 4n */
+//	     6,			/* size of element 2^x */
+//	     16,
+//	     0);		/* options like compression */
+//
+   jcr->hash_name  = get_pool_memory(PM_MESSAGE);
+   POOLMEM *temp = get_pool_memory(PM_MESSAGE);
 
-   POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-   make_unique_filename(&name, jcr->JobId, "accurate");
-
-   if(!tchdbopen(jcr->file_list, name, HDBOWRITER | HDBOCREAT)){
-      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%s\n"),
-	   tchdberrmsg(tchdbecode(jcr->file_list)));
+   if (nbfile > 500000) {
+      make_unique_filename(&jcr->hash_name, jcr->JobId, "accurate");
+      pm_strcat(jcr->hash_name, ".tcb");
+      Mmsg(temp, "%s#bnum=%i#mode=e#opts=l",
+	   jcr->hash_name, nbfile*4); 
+      Dmsg1(dbglvl, "Doing accurate hash on disk %s\n", jcr->hash_name);
+   } else {
+      Dmsg0(dbglvl, "Doing accurate hash on memory\n");
+      pm_strcpy(jcr->hash_name, "*");
+      pm_strcpy(temp, "*");
+   }
+   
+   if(!tcadbopen(jcr->file_list, jcr->hash_name)){
+      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk\n"));
       Jmsg(jcr, M_INFO, 1, _("Disabling accurate mode\n"));
-      tchdbdel(jcr->file_list);
+      tcadbdel(jcr->file_list);
       jcr->file_list = NULL;
       jcr->accurate = false;
    }
-   free_pool_memory(name);
+   free_pool_memory(temp);
    return jcr->file_list != NULL;
 }
 
@@ -119,7 +135,8 @@ static bool accurate_init(JCR *jcr, int nbfile)
 bool accurate_send_deleted_list(JCR *jcr)
 {
    char *key;
-   CurFile elt;
+   CurFile *elt;
+   int size;
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
@@ -135,40 +152,39 @@ bool accurate_send_deleted_list(JCR *jcr)
    ff_pkt->type = FT_DELETED;
 
    /* traverse records */
-   tchdbiterinit(jcr->file_list);
-   while((key = tchdbiternext2(jcr->file_list)) != NULL) {
-      if (tchdbget3(jcr->file_list, 
-		    key, strlen(key)+1, 
-		    &elt, sizeof(CurFile)) != -1)
+   tcadbiterinit(jcr->file_list);
+   while((key = tcadbiternext2(jcr->file_list)) != NULL) {
+      elt = (CurFile *) tcadbget(jcr->file_list, 
+				 key, strlen(key)+1, &size);
+      if (elt)
       {
-	 if (!elt.seen) {	/* already seen */
+	 if (!elt->seen) {	/* already seen */
 	    ff_pkt->fname = key;
-	    ff_pkt->statp.st_mtime = elt.mtime;
-	    ff_pkt->statp.st_ctime = elt.ctime;
+	    ff_pkt->statp.st_mtime = elt->mtime;
+	    ff_pkt->statp.st_ctime = elt->ctime;
 	    encode_and_send_attributes(jcr, ff_pkt, stream);
 	 }
-	 realfree(key);		/* tokyo cabinet have to use real free() */
+	 realfree(elt);
       }
+      realfree(key);		/* tokyo cabinet have to use real free() */
    }
 
    term_find_files(ff_pkt);
 bail_out:
    /* TODO: clean htable when this function is not reached ? */
    if (jcr->file_list) {
-      Dmsg1(dbglvl, "Accurate hash size=%lli\n",tchdbfsiz(jcr->file_list));
-      if(!tchdbclose(jcr->file_list)){
-	 Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk ERR=%s\n"),
-	      tchdberrmsg(tchdbecode(jcr->file_list)));
+      if(!tcadbclose(jcr->file_list)){
+	 Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk\n"));
       }
 
       /* delete the object */
-      tchdbdel(jcr->file_list);
+      tcadbdel(jcr->file_list);
+      if (!bstrcmp(jcr->hash_name, "*")) {
+	 unlink(jcr->hash_name);
+      }
 
-      POOLMEM *name  = get_pool_memory(PM_MESSAGE);
-      make_unique_filename(&name, jcr->JobId, "accurate");
-      unlink(name);
-
-      free_pool_memory(name);
+      free_pool_memory(jcr->hash_name);
+      jcr->hash_name = NULL;
       jcr->file_list = NULL;
    }
    return true;
@@ -262,13 +278,12 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    elt.mtime = statp.st_mtime;
    elt.seen = 0;
 
-#ifdef USE_TCHDB
-   if (!tchdbputasync(jcr->file_list,
-		      fname, strlen(fname)+1,
-		      &elt, sizeof(CurFile)))
+#ifdef USE_TCADB
+   if (!tcadbput(jcr->file_list,
+		 fname, strlen(fname)+1,
+		 &elt, sizeof(CurFile)))
    {
-      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"),
-	   tchdberrmsg(tchdbecode(jcr->file_list)));
+      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"));
       ret = false;
    }
 #else  /* HTABLE */
@@ -384,7 +399,7 @@ int accurate_cmd(JCR *jcr)
    return true;
 }
 
-#ifdef USE_TCHDB
+#ifdef USE_TCADB
 
 /*
  * Tokyo Cabinet library doesn't use smartalloc by default
