@@ -65,8 +65,6 @@ private:
    bool        inplace;		/* have to seek before writing ? */
    bool        needEOF;		/* check if last operation need eof */
 
-   POOLMEM     *volume;		/* volume name */
-
    int32_t     last_file;	/* last file of the volume */
    int32_t     current_file;	/* max 65000 files */
    int32_t     current_block;	/* max 4G blocks of 1KB */

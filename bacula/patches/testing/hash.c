@@ -134,7 +134,7 @@ bool hash_put(char *key, char *val)
 {
    int ecode;
 
-   if (!tcbdbput2(hdb, key, val)) {
+   if (!tcbdbput(hdb, key, strlen(key), val, strlen(val)+1)) {
       ecode = tcbdbecode(hdb);
       fprintf(stderr, "put error: %s\n", tcbdberrmsg(ecode));
       return 0;
@@ -314,9 +314,11 @@ int main(int argc, char **argv)
   ctime = get_current_time();
   fprintf(stderr, "elt;time\n"); 
   while (fgets(line, sizeof(line), fp)) {
+     i++;
+
      hash_put(line, data);
 
-     if (i++ == 99) {
+     if (i == 99) {
 	strcpy(save_key, mkey);
      }
 
@@ -347,6 +349,7 @@ int main(int argc, char **argv)
   char *p;
   fprintf(stderr, "elt;time\n"); 
   while (fgets(line, sizeof(line), fp)) {
+     i++;
      p = hash_get(line, data, sizeof(data));
      if (p) {
 	p[5]='H';
@@ -358,7 +361,6 @@ int main(int argc, char **argv)
 	fprintf(stderr, "%i;%i\n", 
 	  i/100000, (int) ((ttime - ctime)/1000));
      }
-     i++;
 
      hash_free(p);
   }
@@ -370,12 +372,12 @@ int main(int argc, char **argv)
   hash_iterinit();
   while(hash_next(line, sizeof(line), data, sizeof(data)))
   {
+     i++;
      if (i%100000 == 0) {
 	ttime= get_current_time();
 	fprintf(stderr, "%i;%i\n", 
 	  i/100000, (int) ((ttime - ctime)/1000));
      }
-     i++;
   }
   hash_iterdone();
 
