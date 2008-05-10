@@ -131,8 +131,8 @@ bscan_libdbi()
    B_p=`echo $B | awk '{print $9}'`
 
    BSCANLIBDBI="${LIBDBI:+1}"
-		
-   if test "$BSCANLIBDBI" -eq "1" ; then
+                
+   if test "$BSCANLIBDBI" = "1" ; then
       BSCANLIBDBI="-D $B_D -h $B_t -t $B_p"
    else
       BSCANLIBDBI=" "
