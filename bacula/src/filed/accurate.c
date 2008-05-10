@@ -33,7 +33,7 @@
 #include "bacula.h"
 #include "filed.h"
 
-static int dbglvl=0;
+static int dbglvl=200;
 
 typedef struct PrivateCurFile {
 #ifndef USE_TCADB
