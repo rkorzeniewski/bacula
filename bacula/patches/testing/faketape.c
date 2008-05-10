@@ -41,6 +41,20 @@ Device {
   RandomAccess = no;
 }
 
+  Block description :
+
+  block {
+    int32  size;
+    void   *data;
+  }
+
+  EOF description :
+
+  EOF {
+    int32  size=0;
+  }
+
+
  */
 
 #include "bacula.h"		/* define 64bit file usage */
@@ -394,12 +408,10 @@ faketape::faketape()
 
    max_block = 1024*1024*1024*1024*8;
 
-   volume = get_pool_memory(PM_NAME);
 }
 
 faketape::~faketape()
 {
-   free_pool_memory(volume);
 }
 
 int faketape::get_fd()
@@ -473,6 +485,7 @@ int faketape::weof(int count)
    Dmsg3(dbglevel, "Writing EOF %i:%i last=%i\n", 
 	 current_file, current_block,last_file);
    if (atEOT) {
+      errno = ENOSPC;
       current_block = -1;
       return -1;
    }
@@ -741,6 +754,7 @@ int faketape::read(void *buffer, unsigned int count)
       return 0;
    }
    if (s > count) {		/* not enough buffer to read block */
+      Dmsg2(dbglevel, "Need more buffer to read next block %i > %i\n",s,count);
       lseek(fd, s, SEEK_CUR);
       errno = ENOMEM;
       return -1;
@@ -765,11 +779,10 @@ int faketape::read(void *buffer, unsigned int count)
 int faketape::open(const char *pathname, int uflags)
 {
    Dmsg2(dbglevel, "faketape::open(%s, %i)\n", pathname, uflags);
-   pm_strcpy(volume, pathname);
 
    struct stat statp;   
-   if (stat(volume, &statp) != 0) {
-      Dmsg1(dbglevel, "Can't stat on %s\n", volume);
+   if (stat(pathname, &statp) != 0) {
+      Dmsg1(dbglevel, "Can't stat on %s\n", pathname);
       return -1;
    }
 
@@ -835,7 +848,6 @@ void faketape::dump()
    Dmsg0(dbglevel+1, "===================\n");
    Dmsg2(dbglevel, "file:block = %i:%i\n", current_file, current_block);
    Dmsg1(dbglevel+1, "last_file=%i\n", last_file);
-   Dmsg1(dbglevel+1, "volume=%s\n", volume);
    Dmsg1(dbglevel+1, "file_size=%i\n", file_size);  
    Dmsg4(dbglevel+1, "EOF=%i EOT=%i EOD=%i BOT=%i\n", 
 	 atEOF, atEOT, atEOD, atBOT);  
