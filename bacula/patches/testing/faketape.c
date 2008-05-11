@@ -59,6 +59,8 @@ Device {
 
 #include "bacula.h"		/* define 64bit file usage */
 #include "stored.h"
+
+#ifdef USE_FAKETAPE
 #include "faketape.h"
 
 static int dbglevel = 10;
@@ -871,3 +873,5 @@ void faketape::dump()
    Dmsg4(dbglevel+1, "EOF=%i EOT=%i EOD=%i BOT=%i\n", 
 	 atEOF, atEOT, atEOD, atBOT);  
 }
+
+#endif /* USE_FAKETAPE */
