@@ -4,9 +4,9 @@
 # This test setups an Autochanger with 80 slots
 # and 5 drives (3 LTO3 and 2 LTO1)
 #
-# TAPE_DRIVE="$cwd/working/fake/drive0"
-# TAPE_DRIVE1="$cwd/working/fake/drive0"
-# AUTOCHANGER="$cwd/working/fake/conf"
+# TAPE_DRIVE="$cwd/working/ach/drive0"
+# TAPE_DRIVE1="$cwd/working/ach/drive0"
+# AUTOCHANGER="$cwd/working/ach/conf"
 # USE_FAKETAPE=--enable-faketape
 # AUTOCHANGER_SCRIPT=disk-changer
 # 
@@ -41,12 +41,20 @@ messages
 @#setdebug level=200 storage=LTO1
 label barcodes pool=Scratch slots=1-40 storage=LTO1 drive=3
 yes
+messages
+list volumes
+END_OF_DATA
+
+run_bacula
+stop_bacula
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log2.out
 label barcodes pool=Scratch slots=41-80 storage=LTO3 drive=0
 yes
 messages
 list volumes
-messages
-@$out ${cwd}/tmp/log2.out
+@$out ${cwd}/tmp/log3.out
 run storage=LTO3 when="$when1" job=NightlySave  pool=Inc     yes
 run storage=LTO3 when="$when1" job=NightlySave2 pool=Full    yes
 run storage=LTO3 when="$when1" job=NightlySave1 pool=Default yes
@@ -61,11 +69,13 @@ run_bacula
 check_for_zombie_jobs storage=LTO1 client=$clientname
 check_for_zombie_jobs storage=LTO3 client=$clientname
 
-export dstat=1
-export bstat=1
-export rstat=1
-
 stop_bacula
+
+grep 'Error: Re-read' tmp/log3.out > /dev/null
+if test $? = 0; then
+    echo "Found Re-read errors"
+    bstat=1
+fi
 
 end_test
 
