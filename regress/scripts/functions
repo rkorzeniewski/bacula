@@ -55,6 +55,13 @@ if test x${AUTOCHANGER} = x/dev/null ; then
 fi
 }
 
+require_faketape() 
+{
+if test x${USE_FAKETAPE} = x ; then
+   echo "$TestName test needs the faketape driver."
+   exit 1
+fi
+}
 
 skip_if_no_autochanger()
 {

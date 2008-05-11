@@ -6,27 +6,37 @@
 . scripts/functions
 
 # check if user wants to run this test
-if test x$USE_FAKETAPE == x; then
+if test x$USE_FAKETAPE = x; then
     exit 1
 fi
 
 adir=@working_dir@/ach
 
-mkdir $adir
+mkdir $adir 2> /dev/null
+rm -f $adir/log $adir/barcodes $adir/slot* $adir/drive* 2> /dev/null
 
 # create the autochanger configuration file
 cat > $adir/conf <<EOF
 maxdrive=8
-maxslot=10
+maxslot=80
 dbgfile=$adir/log
 EOF
 
 # turn on ach debug
 touch $adir/log
 
-# create 80 volumes
-for i in `seq 1 80`; do
+# create 75 volumes
+for i in `seq 1 75`; do
     echo $i:vol$i >> $adir/barcodes
     cp /dev/null $adir/slot$i
+done
+
+# make a cleaning tape
+echo 76:CLN01 >> $adir/barcodes
+cp /dev/null $adir/slot76
+
+# keep other empty
+for i in `seq 77 79`; do
+    echo $i:  >> $adir/barcodes
 done
 

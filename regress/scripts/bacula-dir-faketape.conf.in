@@ -81,7 +81,7 @@ Job {
   Type = Restore
   Client=@hostname@-fd 
   FileSet="Full Set"
-  Storage = LTO
+  Storage = LTO1
   Messages = Standard
   Pool = Default
   Where = @tmpdir@/bacula-restores
@@ -118,7 +118,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Client (File Services) to backup
@@ -131,7 +131,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Client (File Services) to backup
@@ -144,7 +144,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Client (File Services) to backup
@@ -157,7 +157,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Client (File Services) to backup
@@ -170,7 +170,7 @@ Client {
   File Retention = 30d                # 30 days
   Job Retention = 180d                # six months
   AutoPrune = yes                     # Prune expired Jobs/Files
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 
@@ -196,18 +196,6 @@ Storage {
   Maximum Concurrent Jobs = 50
 }
 
-# define all LTO drives
-Storage {
-  Name = LTO
-  Address = @hostname@ 
-  SDPort = @sdport@
-  Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
-  Device = LTO
-  Autochanger = yes
-  Maximum Concurrent Jobs = 50
-}
-
-
 ################################################################
 # WARNING: Bacula doesn't support this kind of configuration
 #          This is for testing purpose only !!!!!!!!!!!!
@@ -219,6 +207,7 @@ Storage {
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = LTO3_0
+  Media Type = LTO3
   Autochanger = yes
   Maximum Concurrent Jobs = 5
 }
@@ -229,6 +218,7 @@ Storage {
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = LTO3_1
+  Media Type = LTO3
   Autochanger = yes
   Maximum Concurrent Jobs = 5
 }
@@ -239,6 +229,7 @@ Storage {
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = LTO3_2
+  Media Type = LTO3
   Autochanger = yes
   Maximum Concurrent Jobs = 5
 }
@@ -249,6 +240,7 @@ Storage {
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = LTO1_3
+  Media Type = LTO1
   Autochanger = yes
   Maximum Concurrent Jobs = 5
 }
@@ -259,6 +251,7 @@ Storage {
   SDPort = @sdport@
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"
   Device = LTO1_4
+  Media Type = LTO1
   Autochanger = yes
   Maximum Concurrent Jobs = 5
 }
@@ -272,7 +265,7 @@ Storage {
   Password = "ccV3lVTsQRsdIUGyab0N4sMDavui2hOBkmpBU0aQKOr9"          # password for Storage daemon
   Device = FileStorage                # must be same as Device in Storage daemon
   Media Type = FileMedia              # must be same as MediaType in Storage daemon
-  Maximum Concurrent Jobs = 4
+  Maximum Concurrent Jobs = 10
 }
 
 # Generic catalog service
@@ -327,10 +320,19 @@ Pool {
 }
 
 Pool {
+  Name = Diff
+  Pool Type = Backup
+  Recycle = yes                       # Bacula can automatically recycle Volumes
+  AutoPrune = yes                     # Prune expired volumes
+  Volume Retention = 365d             # one year
+}
+
+Pool {
   Name = Scratch
   Pool Type = Backup
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
   Recycle Pool = Scratch              # recycle back here
+  Cleaning Prefix = CLN
 }

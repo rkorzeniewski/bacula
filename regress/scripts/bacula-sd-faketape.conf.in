@@ -46,7 +46,7 @@ Device {
   Maximum File Size = 10M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
-
+  Device Type = Tape
 }
 
 Device {
@@ -62,6 +62,7 @@ Device {
   Maximum File Size = 10M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
+  Device Type = Tape
 }
 
 
@@ -79,6 +80,7 @@ Device {
   Auto Select = no
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
+  Device Type = Tape
 }
 
 
@@ -95,6 +97,7 @@ Device {
   Maximum File Size = 10M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
+  Device Type = Tape
 }
 
 
@@ -111,6 +114,7 @@ Device {
   Maximum File Size = 10M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
+  Device Type = Tape
 }
 
 
