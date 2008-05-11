@@ -1,4 +1,4 @@
-#
+
 # Bacula Storage Daemon Configuration file with
 # dummy Autochanger
 #
@@ -43,7 +43,8 @@ Device {
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
-  Maximum File Size = 10M
+  Maximum File Size = 7M
+  Maximum Volume Size = 30M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
@@ -59,7 +60,8 @@ Device {
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
-  Maximum File Size = 10M
+  Maximum File Size = 7M
+  Maximum Volume Size = 30M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
@@ -76,8 +78,9 @@ Device {
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
-  Maximum File Size = 10M
   Auto Select = no
+  Maximum File Size = 7M
+  Maximum Volume Size = 30M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
@@ -94,7 +97,8 @@ Device {
   AlwaysOpen = yes;
   RemovableMedia = yes;
   @@sbindir@/tape_options
-  Maximum File Size = 10M
+  Maximum File Size = 7M
+  Maximum Volume Size = 30M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
@@ -112,6 +116,7 @@ Device {
   RemovableMedia = yes;
   @@sbindir@/tape_options
   Maximum File Size = 10M
+  Maximum Volume Size = 30M
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
