@@ -51,7 +51,7 @@ run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
 run job=NightlySave yes
-@sleep 5
+wait jobid=2
 status storage=DDS-4
 list volumes
 list jobs
@@ -67,6 +67,7 @@ END_OF_DATA
 run_bacula
 echo "ficheriro1.txt" >${cwd}/tmp/build/ficheriro1.txt
 echo "ficheriro2.txt" >${cwd}/tmp/build/ficheriro2.txt
+
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
@@ -98,7 +99,9 @@ quit
 END_OF_DATA
 
 run_bconsole
+
 check_for_zombie_jobs storage=DDS-4
+
 stop_bacula
 
 check_two_logs
