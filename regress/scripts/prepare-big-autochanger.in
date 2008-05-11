@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# This script will prepare a big dummy autochanger 
+#
+
+. scripts/functions
+
+# check if user wants to run this test
+if test x$USE_FAKETAPE == x; then
+    exit 1
+fi
+
+adir=@working_dir@/ach
+
+mkdir $adir
+
+# create the autochanger configuration file
+cat > $adir/conf <<EOF
+maxdrive=8
+maxslot=10
+dbgfile=$adir/log
+EOF
+
+# turn on ach debug
+touch $adir/log
+
+# create 80 volumes
+for i in `seq 1 80`; do
+    echo $i:vol$i >> $adir/barcodes
+    cp /dev/null $adir/slot$i
+done
+
