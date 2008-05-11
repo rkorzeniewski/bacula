@@ -624,7 +624,10 @@ bool commit_attribute_spool(JCR *jcr)
 {
    off_t size;
    char ec1[30];
+   char tbuf[100];
 
+   Dmsg1(100, "Commit attributes at %s\n", bstrftimes(tbuf, sizeof(tbuf),
+         ( utime_t)time(NULL)));
    if (are_attributes_spooled(jcr)) {
       if (fseeko(jcr->dir_bsock->m_spool_fd, 0, SEEK_END) != 0) {
          berrno be;
@@ -690,6 +693,10 @@ bool close_attr_spool_file(JCR *jcr, BSOCK *bs)
 {
    POOLMEM *name;
 
+   char tbuf[100];
+
+   Dmsg1(100, "Close attr spool file at %s\n", bstrftimes(tbuf, sizeof(tbuf),
+         ( utime_t)time(NULL)));
    if (!bs->m_spool_fd) {
       return true;
    }
