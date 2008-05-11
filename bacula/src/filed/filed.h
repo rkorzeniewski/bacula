@@ -35,8 +35,8 @@
 
 
 #define FILE_DAEMON 1
-#ifdef USE_TCHDB		      /* hash disk based */
-# include <tchdb.h>
+#ifdef USE_TCADB		      /* hash disk based */
+# include <tcadb.h>
 #else
 # include "lib/htable.h"
 #endif
