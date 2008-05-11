@@ -168,6 +168,11 @@ int faketape_ioctl(int fd, unsigned long int request, ...)
 int faketape::tape_op(struct mtop *mt_com)
 {
    int result=0;
+
+   if (!online) {
+      errno = ENOMEDIUM;
+      return -1;
+   }
    
    switch (mt_com->mt_op)
    {
@@ -424,6 +429,7 @@ int faketape::get_fd()
  */
 int faketape::write(const void *buffer, unsigned int count)
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    ASSERT(count > 0);
    ASSERT(buffer);
@@ -481,6 +487,7 @@ int faketape::write(const void *buffer, unsigned int count)
 
 int faketape::weof(int count)
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    Dmsg3(dbglevel, "Writing EOF %i:%i last=%i\n", 
 	 current_file, current_block,last_file);
@@ -510,6 +517,7 @@ int faketape::weof(int count)
 
 int faketape::fsf(int count)
 {   
+   ASSERT(online);
    ASSERT(current_file >= 0);
    ASSERT(fd >= 0);
 /*
@@ -543,6 +551,7 @@ int faketape::fsf(int count)
 
 int faketape::fsr(int count)
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    ASSERT(fd >= 0);
    
@@ -599,6 +608,7 @@ int faketape::bsr(int count)
    Dmsg2(dbglevel, "bsr current_block=%i count=%i\n", 
 	 current_block, count);
 
+   ASSERT(online);
    ASSERT(current_file >= 0);
    ASSERT(count == 1);
    ASSERT(fd >= 0);
@@ -661,6 +671,7 @@ int faketape::bsr(int count)
 
 int faketape::bsf(int count)
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    Dmsg3(dbglevel, "bsf %i:%i count=%i\n", current_file, current_block, count);
    int ret = 0;
@@ -696,6 +707,7 @@ int faketape::offline()
    atEOT = false;		/* End of tape */
    atEOD = false;		/* End of data */
    atBOT = false;		/* Begin of tape */
+   online = false;
 
    current_file = -1;
    current_block = -1;
@@ -724,6 +736,7 @@ int faketape::close()
 
 int faketape::read(void *buffer, unsigned int count)
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    unsigned int nb;
    uint32_t s;
@@ -780,26 +793,31 @@ int faketape::open(const char *pathname, int uflags)
 {
    Dmsg2(dbglevel, "faketape::open(%s, %i)\n", pathname, uflags);
 
+   online = true;		/* assume that drive contains a tape */
+
    struct stat statp;   
    if (stat(pathname, &statp) != 0) {
       Dmsg1(dbglevel, "Can't stat on %s\n", pathname);
-      return -1;
+      if (uflags & O_NONBLOCK) {
+	 online = false;
+	 fd = ::open("/dev/null", O_CREAT | O_RDWR | O_LARGEFILE, 0600);
+      }
+   } else {
+      fd = ::open(pathname, O_CREAT | O_RDWR | O_LARGEFILE, 0600);
    }
 
-   fd = ::open(pathname, O_CREAT | O_RDWR | O_LARGEFILE, 0700);
    if (fd < 0) {
+      errno = ENOMEDIUM;
       return -1;
    }
 
    /* open volume descriptor and get this->fd */
-   if (find_maxfile() < 0) {
-      return -1;
-   }
+   find_maxfile();
 
    current_block = 0;
    current_file = 0;
    needEOF = false;
-   online = inplace = true;
+   inplace = true;
    atBOT = true;
    atEOT = atEOD = false;
 
@@ -827,6 +845,7 @@ int faketape::find_maxfile()
 
 int faketape::seek_file()
 {
+   ASSERT(online);
    ASSERT(current_file >= 0);
    Dmsg2(dbglevel, "seek_file %i:%i\n", current_file, current_block);
 

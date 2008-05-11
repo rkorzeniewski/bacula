@@ -52,23 +52,23 @@ void faketape_debug(int level);
 
 class faketape {
 private:
-   int         fd;		/* Our file descriptor */
+   int         fd;              /* Our file descriptor */
 
-   off_t       file_size;	/* size */
+   off_t       file_size;       /* size */
    off_t       max_block;
 
-   bool        atEOF;		/* End of file */
-   bool        atEOT;		/* End of media */
-   bool        atEOD;		/* End of data */
+   bool        atEOF;           /* End of file */
+   bool        atEOT;           /* End of media */
+   bool        atEOD;           /* End of data */
    bool        atBOT;           /* Begin of tape */
-   bool        online;		/* volume online */
-   bool        inplace;		/* have to seek before writing ? */
-   bool        needEOF;		/* check if last operation need eof */
+   bool        online;          /* volume online */
+   bool        inplace;         /* have to seek before writing ? */
+   bool        needEOF;         /* check if last operation need eof */
 
-   int32_t     last_file;	/* last file of the volume */
-   int32_t     current_file;	/* max 65000 files */
-   int32_t     current_block;	/* max 4G blocks of 1KB */
-   off_t       current_pos;	/* current position in stream */
+   int32_t     last_file;       /* last file of the volume */
+   int32_t     current_file;    /* max 65000 files */
+   int32_t     current_block;   /* max 4G blocks of 1KB */
+   off_t       current_pos;     /* current position in stream */
 
    void destroy();
    int find_maxfile();
