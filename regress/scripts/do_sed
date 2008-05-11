@@ -40,7 +40,9 @@ sed -f ${out} ${cwd}/scripts/cleanup-2tape.in >${cwd}/scripts/cleanup-2tape
 sed -f ${out} ${cwd}/scripts/cleanup-2drive.in >${cwd}/scripts/cleanup-2drive
 sed -f ${out} ${cwd}/scripts/prepare-two-tapes.in >${cwd}/scripts/prepare-two-tapes
 sed -f ${out} ${cwd}/scripts/bacula-dir.conf.testrunscript.in >${cwd}/scripts/bacula-dir.conf.testrunscript
-
+sed -f ${out} ${cwd}/scripts/bacula-dir-faketape.conf.in >${cwd}/scripts/bacula-dir-faketape.conf
+sed -f ${out} ${cwd}/scripts/bacula-sd-faketape.conf.in >${cwd}/scripts/bacula-sd-faketape.conf
+sed -f ${out} ${cwd}/scripts/prepare-big-autochanger.in >${cwd}/scripts/prepare-big-autochanger
 sed -f ${out} ${cwd}/scripts/tls-bacula-fd.conf.in >${cwd}/scripts/tls-bacula-fd.conf
 sed -f ${out} ${cwd}/scripts/tls-bacula-sd.conf.in >${cwd}/scripts/tls-bacula-sd.conf
 sed -f ${out} ${cwd}/scripts/tls-bacula-dir.conf.in >${cwd}/scripts/tls-bacula-dir.conf
@@ -63,11 +65,11 @@ cp scripts/win32-bacula-fd.conf.in      scripts/win32-bacula-fd.conf
 
 cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/bac$$
 sed s%/tmp%${cwd}/tmp%g ${cwd}/tmp/bac$$ >${cwd}/bin/bacula-sd.conf
-chmod 777 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes
+chmod 755 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scripts/prepare-two-tapes 
 rm -f ${cwd}/tmp/bac$$
 cp ${cwd}/bin/mtx-changer ${cwd}/tmp/bac$$
 sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-changer
-chmod 777 ${cwd}/bin/mtx-changer
+chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-big-autochanger
 
 # get proper SD tape definitions
 cp -f ${cwd}/scripts/linux_tape_options ${cwd}/bin/tape_options
