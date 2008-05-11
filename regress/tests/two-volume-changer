@@ -5,8 +5,8 @@
 #  Note, this test simulates the tape filling and writing to
 #   the next tape.
 #
-TestName="two-volume-tape"
-JobName=twovoltape
+TestName="two-volume-changer"
+JobName=twovolchanger
 . scripts/functions
 
 require_tape_drive
