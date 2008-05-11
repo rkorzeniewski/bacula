@@ -486,9 +486,9 @@ void DCR::do_swapping(bool is_writing)
    if (dev->swap_dev) {
       if (dev->swap_dev->must_unload()) {
          if (dev->vol) {
-            dev->Slot = dev->vol->get_slot();
+            dev->swap_dev->Slot = dev->vol->get_slot();
          }
-         Dmsg2(100, "Swap unloading slot=%d %s\n", dev->Slot, 
+         Dmsg2(100, "Swap unloading slot=%d %s\n", dev->swap_dev->Slot, 
                dev->swap_dev->print_name());
          unload_dev(this, dev->swap_dev);
          dev->Slot = -1;
