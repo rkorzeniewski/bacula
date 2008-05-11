@@ -149,6 +149,7 @@ void *handle_connection_request(void *arg)
    bool found, quit;
    int bnet_stat = 0;
    char name[500];
+   char tbuf[100];
 
    if (bs->recv() <= 0) {
       Emsg0(M_ERROR, 0, _("Connection request failed.\n"));
@@ -174,7 +175,8 @@ void *handle_connection_request(void *arg)
       Dmsg1(000, "<filed: %s", bs->msg);
    }
    if (sscanf(bs->msg, "Hello Start Job %127s", name) == 1) {
-      Dmsg0(110, "Got a FD connection\n");
+      Dmsg1(110, "Got a FD connection at %s\n", bstrftimes(tbuf, sizeof(tbuf), 
+            (utime_t)time(NULL)));
       handle_filed_connection(bs, name);
       return NULL;
    }
@@ -182,7 +184,8 @@ void *handle_connection_request(void *arg)
    /* 
     * This is a connection from the Director, so setup a JCR 
     */
-   Dmsg0(110, "Got a DIR connection\n");
+   Dmsg1(110, "Got a DIR connection at %s\n", bstrftimes(tbuf, sizeof(tbuf), 
+         (utime_t)time(NULL)));
    jcr = new_jcr(sizeof(JCR), stored_free_jcr); /* create Job Control Record */
    jcr->dir_bsock = bs;               /* save Director bsock */
    jcr->dir_bsock->set_jcr(jcr);

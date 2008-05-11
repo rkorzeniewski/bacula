@@ -447,6 +447,7 @@ bool release_device(DCR *dcr)
    JCR *jcr = dcr->jcr;
    DEVICE *dev = dcr->dev;
    bool ok = true;
+   char tbuf[100];
 
    /* lock only if not already locked by this thread */
    if (!dcr->is_dev_locked()) {
@@ -545,7 +546,8 @@ bool release_device(DCR *dcr)
       free_pool_memory(alert);
    }
    pthread_cond_broadcast(&dev->wait_next_vol);
-   Dmsg1(100, "JobId=%u broadcast wait_device_release\n", (uint32_t)jcr->JobId);
+   Dmsg2(100, "JobId=%u broadcast wait_device_release at %s\n", 
+         (uint32_t)jcr->JobId, bstrftimes(tbuf, sizeof(tbuf), (utime_t)time(NULL)));
    pthread_cond_broadcast(&wait_device_release);
    dev->dunlock();
    if (dcr->keep_dcr) {

@@ -114,6 +114,10 @@ Professional Needs:
 
 Priority:
 ================
+- Dangling softlinks are not restored properly.  For example, take a
+  soft link such as src/testprogs/install-sh, which points to /usr/share/autoconf...
+  move the directory to another machine where the file /usr/share/autoconf does
+  not exist, back it up, then try a full restore.  It fails.
 - Check for FD compatibility -- eg .nobackup ...
 - Re-check new dcr->reserved_volume
 - Softlinks that point to non-existent file are not restored in restore all,
