@@ -24,8 +24,8 @@ echo "Done prepare two tapes"
 echo "${cwd}/build" >${cwd}/tmp/file-list
 echo "${cwd}/build" >>${cwd}/tmp/file-list
 echo "${cwd}/build" >>${cwd}/tmp/file-list
-echo "${cwd}/build" >>${cwd}/tmp/file-list
-echo "${cwd}/build" >>${cwd}/tmp/file-list
+# echo "${cwd}/build" >>${cwd}/tmp/file-list
+# echo "${cwd}/build" >>${cwd}/tmp/file-list
 
 start_test
 
@@ -40,17 +40,13 @@ list volumes
 @# Start job with Client run before and sleep
 run job=NightlySave1 level=Full pool=Default yes
 run job=NightlySave1 level=Full pool=Default yes
-run job=NightlySave1 level=Full pool=Default yes
+#run job=NightlySave1 level=Full pool=Default yes
 @# wait between starting jobs
 @sleep 60
 setdebug level=190 storage=DDS-4
 run job=NightlySave2 level=Full pool=Full yes
 run job=NightlySave2 level=Full pool=Full yes
-run job=NightlySave2 level=Full pool=Full yes
-@sleep 10
-messages
-@sleep 10
-messages
+#run job=NightlySave2 level=Full pool=Full yes
 @sleep 10
 status storage=DDS-4
 messages
