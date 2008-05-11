@@ -38,6 +38,8 @@
 #include <stddef.h>
 #include "bacula.h"
 
+#ifdef USE_FAKETAPE
+
 #define FTAPE_MAX_DRIVE 50
 
 /* 
@@ -99,4 +101,5 @@ public:
    int tape_pos(struct mtpos *mt_com);
 };
 
+#endif /* USE_FAKETAPE */
 #endif /* !FAKETAPE_H */
