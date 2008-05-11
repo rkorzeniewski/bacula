@@ -20,7 +20,7 @@ first_rule: all
 dummy:
 
 # bacula-sd
-SDOBJS =  stored.o ansi_label.o \
+SDOBJS =  stored.o ansi_label.o faketape.o \
 	  autochanger.o acquire.o append.o \
 	  askdir.o authenticate.o \
 	  block.o butil.o dev.o \
@@ -31,33 +31,33 @@ SDOBJS =  stored.o ansi_label.o \
 	  spool.o status.o stored_conf.o wait.o
 
 # btape
-TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o \
+TAPEOBJS = btape.o block.o butil.o dev.o device.o label.o faketape.o \
 	   lock.o ansi_label.o dvd.o ebcdic.o \
 	   autochanger.o acquire.o mount.o record.o read_record.o \
 	   reserve.o \
 	   stored_conf.o match_bsr.o parse_bsr.o scan.o spool.o wait.o
 
 # bls
-BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o \
+BLSOBJS = bls.o block.o butil.o device.o dev.o label.o match_bsr.o faketape.o \
 	  ansi_label.o dvd.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o parse_bsr.o record.o	\
 	  read_record.o reserve.o scan.o stored_conf.o spool.o wait.o
 
 # bextract
-BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o \
+BEXTOBJS = bextract.o block.o device.o dev.o label.o record.o faketape.o \
 	   ansi_label.o dvd.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o match_bsr.o parse_bsr.o butil.o \
 	   pythonsd.o read_record.o reserve.o \
 	   scan.o stored_conf.o spool.o wait.o
 
 # bscan
-SCNOBJS = bscan.o block.o device.o dev.o label.o \
+SCNOBJS = bscan.o block.o device.o dev.o label.o faketape.o \
 	  ansi_label.o dvd.o ebcdic.o lock.o \
 	  autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	  butil.o read_record.o scan.o reserve.o stored_conf.o spool.o wait.o
 
 # bcopy
-COPYOBJS = bcopy.o block.o device.o dev.o label.o \
+COPYOBJS = bcopy.o block.o device.o dev.o label.o faketape.o \
 	   ansi_label.o dvd.o ebcdic.o lock.o \
 	   autochanger.o acquire.o mount.o record.o match_bsr.o parse_bsr.o \
 	   butil.o read_record.o reserve.o \
