@@ -38,7 +38,7 @@
 #include <stddef.h>
 #include "bacula.h"
 
-#define FTAPE_MAX_DRIVE 20
+#define FTAPE_MAX_DRIVE 50
 
 /* 
  * Theses functions will replace open/read/write
