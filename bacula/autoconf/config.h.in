@@ -9,9 +9,6 @@
 /* Define if you want SmartAlloc debug code enabled */
 #undef SMARTALLOC
 
-/* Define if you want to use faketape driver */
-#undef USE_FAKETAPE
-
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef daddr_t
 
@@ -533,6 +530,9 @@
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
+/* Set if bat QWT library found */
+#undef HAVE_QWT
+
 /* Define to 1 if you have the `readdir_r' function. */
 #undef HAVE_READDIR_R
 
@@ -866,6 +866,9 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Set if you want faketape enabled */
+#undef USE_FAKETAPE
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING

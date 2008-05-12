@@ -116,7 +116,9 @@ public slots:
    void estimateButtonClicked();
    void browseButtonClicked();
    void statusPageButtonClicked();
+#ifdef HAVE_QWT
    void jobPlotButtonClicked();
+#endif 
    void restoreButtonClicked();
    void undockWindowButton();
    void treeItemChanged(QTreeWidgetItem *, QTreeWidgetItem *);
