@@ -774,6 +774,8 @@ GNOME_DIR
 BAT_DIR
 QWT_INC
 QWT_LDFLAGS
+QWT_LIB
+QWT
 WXCONS_CPPFLAGS
 WXCONS_LDFLAGS
 WX_DIR
@@ -833,6 +835,7 @@ SQL_INCLUDE
 SQL_BINDIR
 DBI_DBD_DRIVERDIR
 DB_PROG
+DB_PROG_LIB
 cats
 DB_TYPE
 GETCONF
@@ -1458,6 +1461,7 @@ Optional Features:
   --enable-bwx-console     enable build of wxWidgets console disabled
   --enable-tray-monitor   enable build of Gnome tray monitor (compatible with KDE) disabled
   --enable-smartalloc     enable smartalloc debugging support disabled
+  --enable-faketape	     enable faketape debugging support disabled
   --enable-static-tools   enable static tape tools disabled
   --enable-static-fd      enable static File daemon disabled
   --enable-static-sd      enable static Storage daemon disabled
@@ -1473,6 +1477,7 @@ Optional Features:
   --disable-readline      disable readline support disable
 
 	--enable-batch-insert	    enable the DB batch insert code disabled
+ --enable-batch-insert	    enable the DB batch insert code disabled
   --disable-largefile     omit support for large files
 
 Optional Packages:
@@ -13425,7 +13430,7 @@ _ACEOF
 
 fi
 
-
+support_faketape=no
 support_mysql=no
 support_sqlite=no
 support_sqlite3=no
@@ -13523,6 +13528,8 @@ fi
 got_qwt=no
 QWT_INC=
 QWT_LDFLAGS=
+QWT_LIB=
+QWT=
 if test x$support_bat = xyes; then
    { echo "$as_me:$LINENO: checking for qwt support" >&5
 echo $ECHO_N "checking for qwt support... $ECHO_C" >&6; }
@@ -13537,6 +13544,8 @@ if test "${with_qwt+set}" = set; then
 	  if test -f ${with_qwt}/include/qwt.h; then
 	     QWT_INC="${with_qwt}/include"
 	     QWT_LDFLAGS="-L${with_qwt}/lib"
+	     QWT_LIB="-lqwt"
+	     QWT="qwt"
 	  fi
 	  ;;
 	esac
@@ -13557,6 +13566,8 @@ fi
 	       else
 		  QWT_LDFLAGS="-L${root}/lib"
 	       fi
+	       QWT_LIB="-lqwt"
+	       QWT="qwt"
 	       got_qwt=yes
 	       break;
 	    fi
@@ -13566,16 +13577,18 @@ fi
    if test x$QWT_INC = x; then
       { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-      { { echo "$as_me:$LINENO: error: Unable to find qwt package needed by bat" >&5
-echo "$as_me: error: Unable to find qwt package needed by bat" >&2;}
-   { (exit 1); exit 1; }; }
-      BAT_DIR=
-      support_bat=no
    else
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_QWT 1
+_ACEOF
+
       { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
    fi
 fi
+
+
 
 
 
@@ -13664,6 +13677,25 @@ if test x$support_smartalloc = xyes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define SMARTALLOC 1
+_ACEOF
+
+fi
+
+# -------------------------------------------
+# faketape (default off)
+# -------------------------------------------
+# Check whether --enable-faketape was given.
+if test "${enable_faketape+set}" = set; then
+  enableval=$enable_faketape; if test x$enableval = xyes; then
+    support_faketape=yes
+  fi
+fi
+
+
+if test x$support_faketape = xyes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_FAKETAPE 1
 _ACEOF
 
 fi
@@ -18014,10 +18046,48 @@ if test "${with_dbi_driver+set}" = set; then
            db_prog="mysql"
            if test -f /usr/local/mysql/bin/mysql; then
               SQL_BINDIR=/usr/local/mysql/bin
+              if test -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.a \
+                 -o -f /usr/local/mysql/lib64/mysql/libmysqlclient_r.so; then
+                 SQL_LIBDIR=/usr/local/mysql/lib64/mysql
+              else
+                 SQL_LIBDIR=/usr/local/mysql/lib/mysql
+              fi
            elif test -f /usr/bin/mysql; then
               SQL_BINDIR=/usr/bin
+              if test -f /usr/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/lib64/mysql
+              elif test -f /usr/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/lib
+              fi
            elif test -f /usr/local/bin/mysql; then
               SQL_BINDIR=/usr/local/bin
+              if test -f /usr/local/lib64/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/local/lib64/mysql
+              elif test -f /usr/local/lib/mysql/libmysqlclient_r.a \
+                  -o -f /usr/local/lib/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=/usr/local/lib/mysql
+              else
+                  SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f $withval/bin/mysql; then
+              SQL_BINDIR=$withval/bin
+              if test -f $withval/lib64/mysql/libmysqlclient_r.a \
+                  -o -f $withval/lib64/mysql/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64/mysql
+              elif test -f $withval/lib64/libmysqlclient_r.a \
+                  -o -f $withval/lib64/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib64
+              elif test -f $withval/lib/libmysqlclient_r.a \
+                  -o -f $withval/lib/libmysqlclient_r.so; then
+                  SQL_LIBDIR=$withval/lib/
+              else
+                  SQL_LIBDIR=$withval/lib/mysql
+              fi
            else
               { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -18025,23 +18095,47 @@ echo "${ECHO_T}no" >&6; }
 echo "$as_me: error: Unable to find mysql in standard locations" >&2;}
    { (exit 1); exit 1; }; }
            fi
+           DB_PROG_LIB=$SQL_LIBDIR/libmysqlclient_r.a
         ;;
         "postgresql")
            db_prog="postgresql"
            PG_CONFIG=`which pg_config`
-           if test -n "$PG_CONFIG";then
+           if test -n "$PG_CONFIG"; then
               SQL_BINDIR=`"$PG_CONFIG" --bindir`
+              SQL_LIBDIR=`"$PG_CONFIG" --libdir`
            elif test -f /usr/local/bin/psql; then
               SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
            elif test -f /usr/bin/psql; then
-              SQL_BINDIR=/usr/bin
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/lib64/postgresql; then
+                 SQL_LIBDIR=/usr/lib64/postgresql
+              elif test -d /usr/lib/postgresql; then
+                 SQL_LIBDIR=/usr/lib/postgresql
+              elif test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/psql; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
            else
               { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
               { { echo "$as_me:$LINENO: error: Unable to find psql in standard locations" >&5
 echo "$as_me: error: Unable to find psql in standard locations" >&2;}
    { (exit 1); exit 1; }; }
-          fi
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libpq.a
         ;;
         *)
            { echo "$as_me:$LINENO: result: no" >&5
@@ -18055,7 +18149,6 @@ echo "$as_me: error: Unable to set DBI driver. $withval is not supported" >&2;}
      { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
      DB_PROG=$db_prog
-
   else
      { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -18067,6 +18160,7 @@ else
 echo "${ECHO_T}no" >&6; }
 
 fi
+
 
 
 
@@ -18107,6 +18201,29 @@ fi
 if test x$DB_TYPE = xdbi; then
    DB_TYPE=$DB_PROG
    db_type=$DB_PROG
+   pkg=1
+   # Check for batch insert
+   if test $DB_PROG = postgresql; then
+      A=`nm $DB_PROG_LIB | grep PQputCopyData`
+      pkg=$?
+   fi
+
+   if test $DB_PROG = mysql; then
+      A=`nm $DB_PROG_LIB | grep pthread_mutex_lock`
+      pkg=$?
+   fi
+
+   if test $pkg = 0; then
+      # Check whether --enable-batch-insert was given.
+if test "${enable_batch_insert+set}" = set; then
+  enableval=$enable_batch_insert; if test x$enableval = xno; then
+	 support_batch_insert=no
+       else
+	 support_batch_insert=yes
+      fi
+fi
+
+   fi
 fi
 
 if test $support_batch_insert = yes ; then
@@ -31303,6 +31420,8 @@ GNOME_DIR!$GNOME_DIR$ac_delim
 BAT_DIR!$BAT_DIR$ac_delim
 QWT_INC!$QWT_INC$ac_delim
 QWT_LDFLAGS!$QWT_LDFLAGS$ac_delim
+QWT_LIB!$QWT_LIB$ac_delim
+QWT!$QWT$ac_delim
 WXCONS_CPPFLAGS!$WXCONS_CPPFLAGS$ac_delim
 WXCONS_LDFLAGS!$WXCONS_LDFLAGS$ac_delim
 WX_DIR!$WX_DIR$ac_delim
@@ -31331,8 +31450,6 @@ PYTHON_INCDIR!$PYTHON_INCDIR$ac_delim
 OPENSSL_LIBS!$OPENSSL_LIBS$ac_delim
 OPENSSL_INC!$OPENSSL_INC$ac_delim
 working_dir!$working_dir$ac_delim
-archivedir!$archivedir$ac_delim
-scriptdir!$scriptdir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -31374,6 +31491,8 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+archivedir!$archivedir$ac_delim
+scriptdir!$scriptdir$ac_delim
 dump_email!$dump_email$ac_delim
 job_email!$job_email$ac_delim
 smtp_host!$smtp_host$ac_delim
@@ -31403,6 +31522,7 @@ SQL_INCLUDE!$SQL_INCLUDE$ac_delim
 SQL_BINDIR!$SQL_BINDIR$ac_delim
 DBI_DBD_DRIVERDIR!$DBI_DBD_DRIVERDIR$ac_delim
 DB_PROG!$DB_PROG$ac_delim
+DB_PROG_LIB!$DB_PROG_LIB$ac_delim
 cats!$cats$ac_delim
 DB_TYPE!$DB_TYPE$ac_delim
 GETCONF!$GETCONF$ac_delim
@@ -31431,7 +31551,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 55; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 58; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -32141,6 +32261,7 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc}
+  enable-faketape:	      ${support_faketape}
   bat support:		      ${support_bat} ${QWT_LDFLAGS}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-bwx-console:	      ${support_wx_console} ${wx_version}

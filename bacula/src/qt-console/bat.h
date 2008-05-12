@@ -34,10 +34,10 @@
  *   Kern Sibbald, January 2007
  */
 
+#include "config.h"
 #include <QtGui>
 #include <QtCore>
 #include "mainwin.h"
-#include "config.h"
 #include "bacula.h"
 #include "bat_conf.h"
 #include "jcr.h"

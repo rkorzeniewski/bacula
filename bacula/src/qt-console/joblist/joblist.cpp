@@ -37,7 +37,9 @@
 #include "joblist.h"
 #include "restore.h"
 #include "joblog/joblog.h"
+#ifdef HAVE_QWT
 #include "jobgraphs/jobplot.h"
+#endif
 
 /*
  * Constructor for the class
@@ -436,7 +438,11 @@ void JobList::createConnections()
    connect(actionRefreshJobList, SIGNAL(triggered()), this,
                 SLOT(populateTable()));
    connect(refreshButton, SIGNAL(pressed()), this, SLOT(populateTable()));
+#ifdef HAVE_QWT
    connect(graphButton, SIGNAL(pressed()), this, SLOT(graphTable()));
+#else
+   graphButton->setEnabled(false);
+#endif
    /* for the tableItemChanged to maintain m_currentJob */
    connect(mp_tableWidget, SIGNAL(
            currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
@@ -601,6 +607,7 @@ void JobList::consoleCancelJob()
 /*
  * Graph this table
  */
+#ifdef HAVE_QWT
 void JobList::graphTable()
 {
    JobPlotPass pass;
@@ -619,6 +626,8 @@ void JobList::graphTable()
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new JobPlot(pageSelectorTreeWidgetItem, pass);
 }
+#endif
+
 /*
  * Save user settings associated with this page
  */
