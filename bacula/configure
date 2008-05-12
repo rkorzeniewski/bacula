@@ -13530,6 +13530,7 @@ QWT_INC=
 QWT_LDFLAGS=
 QWT_LIB=
 QWT=
+no_qwt=no
 if test x$support_bat = xyes; then
    { echo "$as_me:$LINENO: checking for qwt support" >&5
 echo $ECHO_N "checking for qwt support... $ECHO_C" >&6; }
@@ -13539,6 +13540,7 @@ if test "${with_qwt+set}" = set; then
   withval=$with_qwt;
 	case "$with_qwt" in
 	no)
+	   no_qwt=yes
 	  ;;
 	yes|*)
 	  if test -f ${with_qwt}/include/qwt.h; then
@@ -13556,7 +13558,8 @@ fi
 #
 # Search in standard places, or --with-qwt not specified
 #
-   if test x$QWT_INC = x; then
+   if test $no_qwt = no; then
+    if test x$QWT_INC = x; then
       for root in /usr /usr/local; do
 	 for ver in qwt qwt5 qwt-qt4; do
 	    if test -f ${root}/include/${ver}/qwt.h; then
@@ -13573,6 +13576,7 @@ fi
 	    fi
 	 done
       done
+    fi
    fi
    if test x$QWT_INC = x; then
       { echo "$as_me:$LINENO: result: no" >&5

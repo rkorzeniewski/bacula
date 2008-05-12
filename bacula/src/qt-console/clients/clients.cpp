@@ -96,7 +96,7 @@ void Clients::populateTable()
            " FROM Client"
            " WHERE ";
       query += " Name='" + clientName + "'";
-      query += " ORDER BY Name";
+      query += " ORDER BY ClientId LIMIT 1";
 
       QStringList results;
       /* This could be a log item */
@@ -105,24 +105,23 @@ void Clients::populateTable()
       }
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
-         if (resultCount == 1){
+         if (resultCount){
             QString resultline;
             QString field;
             QStringList fieldlist;
-            /* there will only be one of these */
-            foreach (resultline, results) {
-               fieldlist = resultline.split("\t");
-               int column = 0;
-               /* Iterate through fields in the record */
-               foreach (field, fieldlist) {
-                  field = field.trimmed();  /* strip leading & trailing spaces */
-                  tableItem = new QTableWidgetItem(field, 1);
-                  tableItem->setFlags(Qt::ItemIsSelectable);
-                  tableItem->setForeground(blackBrush);
-                  tableItem->setData(Qt::UserRole, 1);
-                  tableWidget->setItem(row, column, tableItem);
-                  column++;
-               }
+            resultline = results[resultCount - 1];
+            fieldlist = resultline.split("\t");
+
+            int column = 0;
+            /* Iterate through fields in the record */
+            foreach (field, fieldlist) {
+               field = field.trimmed();  /* strip leading & trailing spaces */
+               tableItem = new QTableWidgetItem(field, 1);
+               tableItem->setFlags(Qt::ItemIsSelectable);
+               tableItem->setForeground(blackBrush);
+               tableItem->setData(Qt::UserRole, 1);
+               tableWidget->setItem(row, column, tableItem);
+               column++;
             }
          }
       }
