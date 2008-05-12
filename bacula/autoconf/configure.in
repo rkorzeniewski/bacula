@@ -275,6 +275,7 @@ QWT_INC=
 QWT_LDFLAGS=
 QWT_LIB=
 QWT=
+no_qwt=no
 if test x$support_bat = xyes; then
    AC_MSG_CHECKING(for qwt support)
    AC_ARG_WITH(qwt,
@@ -282,6 +283,7 @@ if test x$support_bat = xyes; then
      [
 	case "$with_qwt" in
 	no)
+	   no_qwt=yes
 	  ;;
 	yes|*)
 	  if test -f ${with_qwt}/include/qwt.h; then
@@ -297,7 +299,8 @@ if test x$support_bat = xyes; then
 #
 # Search in standard places, or --with-qwt not specified
 #
-   if test x$QWT_INC = x; then
+   if test $no_qwt = no; then 
+    if test x$QWT_INC = x; then
       for root in /usr /usr/local; do
 	 for ver in qwt qwt5 qwt-qt4; do
 	    if test -f ${root}/include/${ver}/qwt.h; then
@@ -314,6 +317,7 @@ if test x$support_bat = xyes; then
 	    fi
 	 done
       done
+    fi
    fi
    if test x$QWT_INC = x; then
       AC_MSG_RESULT(no)
