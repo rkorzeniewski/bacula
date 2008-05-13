@@ -32117,8 +32117,6 @@ if test "${support_bat}" = "yes" ; then
     QMAKEBIN=qmake-qt4
   fi
 
-
-
   cd src/qt-console
   chmod 755 install_conf_file build-depkgs-qt-console
   echo "Creating bat Makefile"
