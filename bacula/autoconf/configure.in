@@ -2337,8 +2337,6 @@ if test "${support_bat}" = "yes" ; then
   if test "x$QMAKEQT4" != "xnone"; then
     QMAKEBIN=qmake-qt4
   fi
-
-
   
   cd src/qt-console
   chmod 755 install_conf_file build-depkgs-qt-console
