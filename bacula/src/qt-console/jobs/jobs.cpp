@@ -76,10 +76,11 @@ void Jobs::populateTable()
    m_checkcurwidget = false;
    tableWidget->clear();
    m_checkcurwidget = true;
-   QStringList headerlist = (QStringList() << tr("Job Name") << tr("Pool") << tr("Messages")
-      << tr("Client") << tr("Storage") << tr("Where") << tr("Level") << tr("Type") 
-      << tr("FileSet") 
-      << tr("Catalog") << tr("Enabled"));
+   QStringList headerlist = (QStringList() << tr("Job Name") 
+      << tr("Pool") << tr("Messages") << tr("Client") 
+      << tr("Storage") << tr("Level") << tr("Type") 
+      << tr("FileSet") << tr("Catalog") << tr("Enabled")
+      << tr("Where"));
 
    m_typeIndex = headerlist.indexOf(tr("Type"));
 
@@ -108,20 +109,22 @@ void Jobs::populateTable()
             if (column == 4) 
                tableItem->setText(job_defs.store_name);
             if (column == 5) 
-               tableItem->setText(job_defs.where);
-            if (column == 6) 
                tableItem->setText(job_defs.level);
-            if (column == 7) 
+            if (column == 6) 
                tableItem->setText(job_defs.type);
-            if (column == 8) 
+            if (column == 7) 
                tableItem->setText(job_defs.fileset_name);
-            if (column == 9) 
+            if (column == 8) 
                tableItem->setText(job_defs.catalog_name);
-            if (column == 10) 
+            if (column == 9) {
                if (job_defs.enabled)
                   tableItem->setText("Yes");
                else
                   tableItem->setText("No");
+            }
+            if (column == 10) 
+               tableItem->setText(job_defs.where);
+
             /* tableItem->setFlags(Qt::ItemIsSelectable); */
             tableItem->setForeground(blackBrush);
             tableWidget->setItem(row, column, tableItem);
