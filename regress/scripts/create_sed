@@ -11,7 +11,7 @@ out="${cwd}/tmp/sed_tmp"
 # set the ports used by these tests
 BASEPORT=${BASEPORT:-8101}
 AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
-LIBDBI=${LIBDBI:- }
+LIBDBI=${LIBDBI:-}
 libdbi=${LIBDBI}
 srcdir=${BACULA_SOURCE}
 dirport=${BASEPORT}
