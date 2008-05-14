@@ -1,5 +1,6 @@
 #!/bin/sh
 
+SHELL=${SHELL:-/bin/sh}
 ac_aux_dir=scripts
 
 # Make sure we can run config.sub.
