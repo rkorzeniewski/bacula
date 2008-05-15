@@ -49,8 +49,6 @@ public slots:
 private slots:
 
 private:
-   void display_text(const char *buf);
-   void display_text(const QString buf);
    void populateText();
    void getFont();
    QTextCursor *m_cursor;
