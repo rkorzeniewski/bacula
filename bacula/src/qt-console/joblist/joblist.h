@@ -73,9 +73,10 @@ private slots:
 
 private:
    void createConnections();
-   void setStatusColor(QTableWidgetItem *item, QString &field);
    void writeSettings();
    void readSettings();
+   void prepareFilterWidgets();
+   void fillQueryString(QString &query);
    void selectedJobsGet();
    QSplitter *m_splitter;
    QString m_groupText;

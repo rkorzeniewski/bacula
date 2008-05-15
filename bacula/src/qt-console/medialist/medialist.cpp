@@ -146,7 +146,7 @@ void MediaList::populateTree()
 	       continue; // some fields missing, ignore row
 
             int index = 0;
-	    ItemFormatter mediaitem(*pooltreeitem, 2);
+	    TreeItemFormatter mediaitem(*pooltreeitem, 2);
   
             /* Iterate through fields in the record */
 	    QStringListIterator fld(fieldlist);
