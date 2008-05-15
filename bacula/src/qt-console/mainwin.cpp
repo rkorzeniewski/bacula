@@ -54,6 +54,7 @@
 #include "jobgraphs/jobplot.h"
 #endif
 #include "status/dirstat.h"
+#include "util/fmtwidgetitem.h"
 
 /* 
  * Daemon message callback
@@ -674,13 +675,16 @@ void MainWin::setPreferences()
    prefs.rtRestore1CheckBox->setCheckState(m_rtRestore1Debug ? Qt::Checked : Qt::Unchecked);
    prefs.rtRestore2CheckBox->setCheckState(m_rtRestore2Debug ? Qt::Checked : Qt::Unchecked);
    prefs.rtRestore3CheckBox->setCheckState(m_rtRestore3Debug ? Qt::Checked : Qt::Unchecked);
-   if (m_radioConvert == 0) {
+   switch (ItemFormatterBase::getBytesConversion()) {
+   case ItemFormatterBase::BYTES_CONVERSION_NONE:
       prefs.radioConvertOff->setChecked(Qt::Checked);
-   } else if (m_radioConvert == 1){
+      break;
+   case ItemFormatterBase::BYTES_CONVERSION_IEC:
       prefs.radioConvertIEC->setChecked(Qt::Checked);
-   } else {
-      m_radioConvert = 2;
+      break;
+   default:
       prefs.radioConvertStandard->setChecked(Qt::Checked);
+      break;
    }
    prefs.openPlotCheckBox->setCheckState(m_openPlot ? Qt::Checked : Qt::Unchecked);
    prefs.openBrowserCheckBox->setCheckState(m_openBrowser ? Qt::Checked : Qt::Unchecked);
@@ -725,11 +729,11 @@ void prefsDialog::accept()
    mainWin->m_rtRestore2Debug = this->rtRestore2CheckBox->checkState() == Qt::Checked;
    mainWin->m_rtRestore3Debug = this->rtRestore3CheckBox->checkState() == Qt::Checked;
    if (this->radioConvertOff->isChecked()) {
-      mainWin->m_radioConvert = 0;
+      ItemFormatterBase::setBytesConversion(ItemFormatterBase::BYTES_CONVERSION_NONE);
    } else if (this->radioConvertIEC->isChecked()){
-      mainWin->m_radioConvert = 1;
+      ItemFormatterBase::setBytesConversion(ItemFormatterBase::BYTES_CONVERSION_IEC);
    } else {
-      mainWin->m_radioConvert = 2;
+      ItemFormatterBase::setBytesConversion(ItemFormatterBase::BYTES_CONVERSION_SI);
    }
    mainWin->m_openPlot = this->openPlotCheckBox->checkState() == Qt::Checked;
    mainWin->m_openBrowser = this->openBrowserCheckBox->checkState() == Qt::Checked;
@@ -757,7 +761,7 @@ void prefsDialog::accept()
    settings.endGroup();
    settings.beginGroup("Misc");
    settings.setValue("longList", mainWin->m_longList);
-   settings.setValue("byteConvert", mainWin->m_radioConvert);
+   settings.setValue("byteConvert", ItemFormatterBase::getBytesConversion());
    settings.setValue("openplot", mainWin->m_openPlot);
    settings.setValue("openbrowser", mainWin->m_openBrowser);
    settings.setValue("opendirstat", mainWin->m_openDirStat);
@@ -812,7 +816,9 @@ void MainWin::readPreferences()
    settings.endGroup();
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
-   m_radioConvert = settings.value("byteConvert", false).toInt();
+   ItemFormatterBase::setBytesConversion(
+	 (ItemFormatterBase::BYTES_CONVERSION) settings.value("byteConvert", 
+	 ItemFormatterBase::BYTES_CONVERSION_IEC).toInt());
    m_openPlot = settings.value("openplot", false).toBool();
    m_openBrowser = settings.value("openbrowser", false).toBool();
    m_openDirStat = settings.value("opendirstat", false).toBool();
@@ -833,70 +839,4 @@ void MainWin::readPreferences()
    settings.endGroup();
 }
 
-void MainWin::hrConvert(QString &ret, qlonglong &inval)
-{
-   double net = 0;
-   qlonglong base;
-   QStringList suflist;
 
-   if (m_radioConvert == 0) {
-      ret =  QString("%1").arg(inval);
-      return;
-   } else if (m_radioConvert == 1){
-      base = 1000;
-      suflist = (QStringList() << "B" << "KiB" << "MiB" << "GiB" << "TiB" << "PiB" << "EiB" << "ZiB");
-   } else {
-      base = 1024;
-      suflist = (QStringList() << "B" << "KB" << "MB" << "GB" << "TB" << "PB" << "EB" << "ZB");
-   }
-   qlonglong running = base;
-   bool done = false;
-   int count = 1;
-   while (done == false) {
-      QString test1 =  QString("%1").arg(inval);
-      QString test2 =  QString("%1").arg(running);
-      if (float(inval) < (float)(running)) {
-         done = true;
-         ret = suflist[count - 1];
-         net = (float)inval / (float)(running/base);
-      }
-      count += 1;
-      if (count > suflist.count()) done = true;
-      running *= base;
-   }
-   char format = 'f';
-   if (net != 0)
-      ret =  QString("%1 %2")
-                  .arg(net, 0, format, 2, QLatin1Char(' '))
-                  .arg(ret);
-   else ret = "0 B";
-}
-
-void MainWin::hrConvertSeconds(QString &ret, qlonglong &inval)
-{
-   double net = 0;
-   QList<qlonglong> durations;
-   durations.append(1);
-   durations.append(60);
-   durations.append(3600);
-   durations.append(86400);
-   durations.append(2592000);
-   durations.append(31536000);
-   QStringList abbrlist = (QStringList() << "Sec" << "Min" << "Hrs" << "Days" << "Mnth" << "Yrs");
-   bool done = false;
-   int count = 1;
-   while (done == false) {
-      QString test1 =  QString("%1").arg(inval);
-      QString test2 =  QString("%1").arg(durations[count]);
-      if ((inval < durations[count]) || (count >= abbrlist.count() - 1)) { 
-         done = true;
-         net = (float)inval / (float)(durations[count - 1]);
-         if (net != 0)
-            ret =  QString("%1 %2")
-                  .arg(net, 0, 'f', 2, QLatin1Char(' '))
-                  .arg(abbrlist[count - 1]);
-         else ret = "0 S";
-      }
-      count += 1;
-   }
-}

@@ -40,6 +40,7 @@
 #ifdef HAVE_QWT
 #include "jobgraphs/jobplot.h"
 #endif
+#include "util/fmtwidgetitem.h"
 
 /*
  * Constructor for the class
@@ -106,14 +107,120 @@ JobList::~JobList()
  */
 void JobList::populateTable()
 {
-   QStringList results;
-   QString resultline;
-   QBrush blackBrush(Qt::black);
-
    if (!m_console->preventInUseConnect())
        return;
 
    /* Can't do this in constructor because not neccesarily conected in constructor */
+   prepareFilterWidgets();
+
+   /* Set up query */
+   QString query;
+   fillQueryString(query);
+
+   /* Set up the Header for the table */
+   QStringList headerlist = (QStringList()
+      << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime") 
+      << tr("Job Type") << tr("Job Level") << tr("Job Files") 
+      << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set"));
+
+   m_jobIdIndex = headerlist.indexOf(tr("Job Id"));
+   m_purgedIndex = headerlist.indexOf(tr("Purged"));
+   m_typeIndex = headerlist.indexOf(tr("Job Type"));
+   m_statusIndex = headerlist.indexOf(tr("Job Status"));
+   m_startIndex = headerlist.indexOf(tr("Job Starttime"));
+   m_filesIndex = headerlist.indexOf(tr("Job Files"));
+   m_bytesIndex = headerlist.indexOf(tr("Job Bytes"));
+
+   /* Initialize the QTableWidget */
+   m_checkCurrentWidget = false;
+   mp_tableWidget->clear();
+   m_checkCurrentWidget = true;
+   mp_tableWidget->setColumnCount(headerlist.size());
+   mp_tableWidget->setHorizontalHeaderLabels(headerlist);
+   mp_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+   mp_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+
+   if (mainWin->m_sqlDebug) {
+      Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
+   }
+
+   QStringList results;
+   if (m_console->sql_cmd(query, results)) {
+      m_resultCount = results.count();
+
+      QStringList fieldlist;
+      mp_tableWidget->setRowCount(results.size());
+
+      int row = 0;
+      /* Iterate through the record returned from the query */
+      QString resultline;
+      foreach (resultline, results) {
+         fieldlist = resultline.split("\t");
+         if (fieldlist.size() < 12)
+	    continue; // some fields missing, ignore row
+
+	 TableItemFormatter jobitem(*mp_tableWidget, row);
+  
+         /* Iterate through fields in the record */
+	 QStringListIterator fld(fieldlist);
+         int col = 0;
+
+	 /* job id */
+         jobitem.setNumericFld(col++, fld.next());
+
+	 /* job name */
+         jobitem.setTextFld(col++, fld.next());
+
+	 /* client */
+         jobitem.setTextFld(col++, fld.next());
+
+	 /* job starttime */
+         jobitem.setTextFld(col++, fld.next(), true);
+
+	 /* job type */
+         jobitem.setJobTypeFld(col++, fld.next());
+
+	 /* job level */
+         jobitem.setJobLevelFld(col++, fld.next());
+
+	 /* job files */
+         jobitem.setNumericFld(col++, fld.next());
+
+	 /* job bytes */
+         jobitem.setBytesFld(col++, fld.next());
+
+	 /* job status */
+	 QString shortstatus(fld.next());
+	 QString longstatus(fld.next());
+         jobitem.setJobStatusFld(col++, shortstatus, longstatus);
+
+	 /* purged */
+         if (fld.next().toInt())
+	    jobitem.setTextFld(col++, tr("IS"), true);
+	 else
+	    jobitem.setTextFld(col++, tr("NOT"), true);
+
+	 /* fileset */
+         jobitem.setTextFld(col++, fld.next());
+
+         row++;
+      }
+   } 
+   /* Resize the columns */
+   mp_tableWidget->resizeColumnsToContents();
+   mp_tableWidget->resizeRowsToContents();
+   mp_tableWidget->verticalHeader()->hide();
+   if ((m_mediaName != tr("Any")) && (m_resultCount == 0)){
+      /* for context sensitive searches, let the user know if there were no
+       * results */
+      QMessageBox::warning(this, "Bat",
+          tr("The Jobs query returned no results.\n"
+         "Press OK to continue?"), QMessageBox::Ok );
+   }
+}
+
+void JobList::prepareFilterWidgets()
+{
    if (!m_populated) {
       clientComboBox->addItem(tr("Any"));
       clientComboBox->addItems(m_console->client_list);
@@ -150,9 +257,11 @@ void JobList::populateTable()
       statusComboBox->addItem(tr("Any"));
       statusComboBox->addItems(statusLongList);
    }
+}
 
-   /* Set up query */
-   QString query("");
+void JobList::fillQueryString(QString &query)
+{
+   query = "";
    int volumeIndex = volumeComboBox->currentIndex();
    if (volumeIndex != -1)
       m_mediaName = volumeComboBox->itemText(volumeIndex);
@@ -221,123 +330,12 @@ void JobList::populateTable()
       }
    }
    /* Descending */
-   query += " ORDER BY Job.Starttime DESC, Job.JobId DESC";
+   query += " ORDER BY Job.Starttime=0 DESC, Job.Starttime DESC, Job.JobId DESC";
    /* If Limit check box for limit records returned is checked  */
    if (limitCheckBox->checkState() == Qt::Checked) {
       QString limit;
       limit.setNum(limitSpinBox->value());
       query += " LIMIT " + limit;
-   }
-
-   /* Set up the Header for the table */
-   QStringList headerlist = (QStringList()
-      << tr("Job Id") << tr("Job Name") << tr("Client") << tr("Job Starttime") 
-      << tr("Job Type") << tr("Job Level") << tr("Job Files") 
-      << tr("Job Bytes") << tr("Job Status")  << tr("Purged") << tr("File Set"));
-   m_jobIdIndex = headerlist.indexOf(tr("Job Id"));
-   m_purgedIndex = headerlist.indexOf(tr("Purged"));
-   m_typeIndex = headerlist.indexOf(tr("Job Type"));
-   m_statusIndex = headerlist.indexOf(tr("Job Status"));
-   m_startIndex = headerlist.indexOf(tr("Job Starttime"));
-   m_filesIndex = headerlist.indexOf(tr("Job Files"));
-   m_bytesIndex = headerlist.indexOf(tr("Job Bytes"));
-   int jobLevelIndex = headerlist.indexOf(tr("Job Level"));
-
-   /* Initialize the QTableWidget */
-   m_checkCurrentWidget = false;
-   mp_tableWidget->clear();
-   m_checkCurrentWidget = true;
-   mp_tableWidget->setColumnCount(headerlist.size());
-   mp_tableWidget->setHorizontalHeaderLabels(headerlist);
-
-   if (mainWin->m_sqlDebug) {
-      Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
-   }
-   if (m_console->sql_cmd(query, results)) {
-      m_resultCount = results.count();
-
-      QTableWidgetItem* p_tableitem;
-      QString field;
-      QStringList fieldlist;
-      mp_tableWidget->setRowCount(results.size());
-
-      int row = 0;
-      /* Iterate through the record returned from the query */
-      foreach (resultline, results) {
-         fieldlist = resultline.split("\t");
-         int column = 0;
-         bool m_statusIndexDone = false;
-         QString statusCode("");
-         /* Iterate through fields in the record */
-         foreach (field, fieldlist) {
-            field = field.trimmed();  /* strip leading & trailing spaces */
-            if ((column == m_statusIndex) && (!m_statusIndexDone)){
-               m_statusIndexDone = true;
-               statusCode = field;
-            } else {
-               p_tableitem = new QTableWidgetItem(field, 1);
-               p_tableitem->setFlags(Qt::ItemIsSelectable);
-               p_tableitem->setForeground(blackBrush);
-               mp_tableWidget->setItem(row, column, p_tableitem);
-               if (column == m_statusIndex)
-                  setStatusColor(p_tableitem, statusCode);
-               if (column == m_bytesIndex) {
-                  QString text;
-                  bool okay;
-                  qlonglong bytes = field.toULongLong(&okay);
-                  if (okay){
-                     QString test =  QString("%1").arg(bytes);
-                     mainWin->hrConvert(text, bytes);
-                     p_tableitem->setText(text);
-                  } else { Pmsg1(000, "conversion error %s\n", field.toUtf8().data()); }
-               } else if (column == m_purgedIndex) {
-                  bool okay;
-                  int isPurged = field.toInt(&okay);
-                  if (okay){
-                     if (isPurged) { p_tableitem->setText(tr("IS"));
-                     } else { p_tableitem->setText(tr("NOT")); }
-                  }
-               } else if (column == m_typeIndex) {
-                  if (field == "B") { p_tableitem->setText(tr("Backup")); }
-                  else if (field == "R") { p_tableitem->setText(tr("Restore")); }
-               } else if (column == jobLevelIndex) {
-                  if (field == "F") { p_tableitem->setText("Full"); }
-                  else if (field == "D") { p_tableitem->setText("Diff"); }
-                  else if (field == "I") { p_tableitem->setText("Incr"); }
-               }   
-               if ((column == m_bytesIndex) || (column == m_filesIndex)){
-                  p_tableitem->setTextAlignment(Qt::AlignRight);
-               }
-               column++;
-            }
-         }
-         row++;
-      }
-   } 
-   /* Resize the columns */
-   mp_tableWidget->resizeColumnsToContents();
-   mp_tableWidget->resizeRowsToContents();
-   mp_tableWidget->verticalHeader()->hide();
-   if ((m_mediaName != tr("Any")) && (m_resultCount == 0)){
-      /* for context sensitive searches, let the user know if there were no
-       * results */
-      QMessageBox::warning(this, "Bat",
-          tr("The Jobs query returned no results.\n"
-         "Press OK to continue?"), QMessageBox::Ok );
-   }
-}
-
-void JobList::setStatusColor(QTableWidgetItem *item, QString &field)
-{
-   QString greenchars("TCR");
-   QString redchars("BEf");
-   QString yellowchars("eDAFSMmsjdctp");
-   if (greenchars.contains(field, Qt::CaseSensitive)) {
-      item->setBackground(Qt::green);
-   } else if (redchars.contains(field, Qt::CaseSensitive)) {
-      item->setBackground(Qt::red);
-   } else if (yellowchars.contains(field, Qt::CaseSensitive)){ 
-      item->setBackground(Qt::yellow);
    }
 }
 

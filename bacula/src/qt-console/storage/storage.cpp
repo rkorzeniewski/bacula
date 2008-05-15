@@ -95,7 +95,7 @@ void Storage::populateTree()
    mp_treeWidget->setHeaderLabels(headerlist);
 
    foreach(QString storageName, m_console->storage_list){
-      ItemFormatter storageItem(*topItem, 1);
+      TreeItemFormatter storageItem(*topItem, 1);
       storageItem.setTextFld(0, storageName);
       storageItem.widget()->setExpanded(true);
 
@@ -167,7 +167,7 @@ void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
          /* Iterate through fields in the record */
          QStringListIterator fld(fieldlist);
          int index = 0;
-	 ItemFormatter fmt(*parent, 2);
+	 TreeItemFormatter fmt(*parent, 2);
 
          /* volname */
          fmt.setTextFld(index++, fld.next()); 

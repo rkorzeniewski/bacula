@@ -59,8 +59,6 @@ public:
    void hashInsert(QTreeWidgetItem *, Pages *);
    void hashRemove(Pages *);
    void hashRemove(QTreeWidgetItem *, Pages *);
-   void hrConvert(QString &, qlonglong &);
-   void hrConvertSeconds(QString &, qlonglong &);
    Console *currentConsole();
    QTreeWidgetItem *currentTopItem();
    Pages* getFromHash(QTreeWidgetItem *);
@@ -101,7 +99,6 @@ public:
    bool m_rtRestore1Debug;
    bool m_rtRestore2Debug;
    bool m_rtRestore3Debug;
-   int m_radioConvert;
    bool m_openBrowser;
    bool m_openPlot;
    bool m_openDirStat;
