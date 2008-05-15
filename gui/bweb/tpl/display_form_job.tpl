@@ -71,7 +71,7 @@
     <h2>__Age__</h2>
     <select name='age' class='formulaire'>
       <option id='age_86400'   value='86400'>__Last 24h__</option>
-      <option id='age_172800'   value='237600'>__This weekend__</option>
+      <option id='age_237600'   value='237600'>__This weekend__</option>
       <option id='age_604800'   value='604800'>__This week__</option>
       <option id='age_2678400'  value='2678400'>__Last 30 days__</option>
       <option id='age_15552000' value='15552000'>__Last 6 months__</option>
