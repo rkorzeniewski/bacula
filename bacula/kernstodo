@@ -114,6 +114,8 @@ Professional Needs:
 
 Priority:
 ================
+- Change calling sequence to delete_job_id_range() in ua_cmds.c 
+  the preceding strtok() is done inside the subroutine only once.
 - Dangling softlinks are not restored properly.  For example, take a
   soft link such as src/testprogs/install-sh, which points to /usr/share/autoconf...
   move the directory to another machine where the file /usr/share/autoconf does
