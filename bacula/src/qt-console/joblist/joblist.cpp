@@ -138,7 +138,6 @@ void JobList::populateTable()
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
    mp_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-   mp_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
@@ -157,7 +156,7 @@ void JobList::populateTable()
       foreach (resultline, results) {
          fieldlist = resultline.split("\t");
          if (fieldlist.size() < 12)
-	    continue; // some fields missing, ignore row
+  	    continue; /* some fields missing, ignore row */
 
 	 TableItemFormatter jobitem(*mp_tableWidget, row);
   
@@ -397,7 +396,6 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       int row = currentItem->row();
       QTableWidgetItem* jobitem = mp_tableWidget->item(row, 0);
       m_currentJob = jobitem->text();
-      selectedJobsGet();
 
       /* include purged action or not */
       jobitem = mp_tableWidget->item(row, m_purgedIndex);
@@ -445,6 +443,10 @@ void JobList::createConnections()
    connect(mp_tableWidget, SIGNAL(
            currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
            this, SLOT(tableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+
+   /* for the tableItemChanged to maintain a delete selection */
+   connect(mp_tableWidget, SIGNAL( itemSelectionChanged()),
+           this, SLOT(selectedJobsGet()) );
 
    /* Do what is required for the local context sensitive menu */
 

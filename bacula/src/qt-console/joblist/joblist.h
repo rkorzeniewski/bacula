@@ -54,6 +54,7 @@ public slots:
    void populateTable();
    virtual void treeWidgetName(QString &);
    void tableItemChanged(QTableWidgetItem *, QTableWidgetItem *);
+   void selectedJobsGet();
 
 private slots:
    void consoleListJobid();
@@ -77,7 +78,6 @@ private:
    void readSettings();
    void prepareFilterWidgets();
    void fillQueryString(QString &query);
-   void selectedJobsGet();
    QSplitter *m_splitter;
    QString m_groupText;
    QString m_splitText;
