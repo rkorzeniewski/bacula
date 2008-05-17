@@ -585,12 +585,18 @@ void Console::beginNewCommand()
 void Console::displayToPrompt()
 { 
    int stat = 0;
+   QString buf;
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-         display_text(msg());
+	buf += msg();
+	if (buf.size() >= 8196) {
+	   display_text(buf);
+	   buf.clear();
+	}
       }
    }
+   display_text(buf);
    if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
 }
 
@@ -598,12 +604,14 @@ void Console::discardToPrompt()
 { 
    int stat = 0;
    if (mainWin->m_commDebug) Pmsg0(000, "discardToPrompt\n");
-   while (!m_at_prompt) {
-      if ((stat=read()) > 0) {
-         if (mainWin->m_displayAll) display_text(msg());
+   if (mainWin->m_displayAll) {
+      displayToPrompt();
+   } else {
+      while (!m_at_prompt) {
+	 stat=read();
       }
    }
-   if (mainWin->m_commDebug) Pmsg1(000, "endDisplayToPrompt=%d\n", stat);
+   if (mainWin->m_commDebug) Pmsg1(000, "endDiscardToPrompt=%d\n", stat);
 }
 
 
