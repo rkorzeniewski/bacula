@@ -138,6 +138,7 @@ void JobList::populateTable()
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
    mp_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+   mp_tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
 
    if (mainWin->m_sqlDebug) {
       Pmsg1(000, "Query cmd : %s\n",query.toUtf8().data());
@@ -205,6 +206,10 @@ void JobList::populateTable()
          row++;
       }
    } 
+   /* set default sorting */
+   mp_tableWidget->sortByColumn(m_jobIdIndex, Qt::DescendingOrder);
+   mp_tableWidget->setSortingEnabled(true);
+   
    /* Resize the columns */
    mp_tableWidget->resizeColumnsToContents();
    mp_tableWidget->resizeRowsToContents();
@@ -329,7 +334,7 @@ void JobList::fillQueryString(QString &query)
       }
    }
    /* Descending */
-   query += " ORDER BY Job.Starttime=0 DESC, Job.Starttime DESC, Job.JobId DESC";
+   query += " ORDER BY Job.JobId DESC";
    /* If Limit check box for limit records returned is checked  */
    if (limitCheckBox->checkState() == Qt::Checked) {
       QString limit;
