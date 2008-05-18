@@ -46,11 +46,11 @@ class QBrush;
 class ItemFormatterBase
 {
 public:
-  enum BYTES_CONVERSION {
-    BYTES_CONVERSION_NONE,
-    BYTES_CONVERSION_IEC,
-    BYTES_CONVERSION_SI,
-  };
+   enum BYTES_CONVERSION {
+      BYTES_CONVERSION_NONE,
+      BYTES_CONVERSION_IEC,
+      BYTES_CONVERSION_SI,
+   };
 
 public:
    virtual ~ItemFormatterBase(); 
@@ -60,10 +60,14 @@ public:
    void setBoolFld(int index, int fld, bool center = true);
 
    /* Normal text field. Centers field if center true*/
-   virtual void setTextFld(int index, const QString &fld, bool center = false) = 0;
+   void setTextFld(int index, const QString &fld, bool center = false);
 
-   /* Right-aligned text field.*/
+   /* Right-aligned text field. */
+   void setRightFld(int index, const QString &fld);
+
+   /* Numeric field - sorted as numeric type */
    void setNumericFld(int index, const QString &fld);
+   void setNumericFld(int index, const QString &fld, const QVariant &sortVal);
 
    /* fld value interpreted as bytes and formatted with size suffixes */
    void setBytesFld(int index, const QString &fld);
@@ -95,10 +99,15 @@ protected:
    /* only derived classes can create one of these */
    ItemFormatterBase();
 
+   virtual void setText(int index, const QString &fld) = 0;
    virtual void setTextAlignment(int index, int align) = 0;
    virtual void setBackground(int index, const QBrush &) = 0;
 
+   /* sets the *optional* value used for sorting */
+   virtual void setSortValue(int index, const QVariant &value) = 0;
+
 private:
+
    /* bytes formatted as power-of-two with IEC suffixes (KiB, MiB, and so on) */
    static QString convertBytesIEC(qint64 fld);
 
@@ -120,15 +129,15 @@ public:
 
    TreeItemFormatter(QTreeWidgetItem &parent, int indent_level);
 
-   virtual void setTextFld(int index, const QString &fld, bool center = false);
-
    /* access internal widget */
    QTreeWidgetItem *widget() { return wdg; }
    const QTreeWidgetItem *widget() const { return wdg; }
 
 protected:
+   virtual void setText(int index, const QString &fld);
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
+   virtual void setSortValue(int index, const QVariant &value);
 
 private:
    QTreeWidgetItem *wdg;
@@ -142,24 +151,41 @@ private:
  */
 class TableItemFormatter : public ItemFormatterBase
 {
+private:
+
+   /* specialized widget item - allows an optional data property for sorting */ 
+   class BatSortingTableItem : public QTableWidgetItem
+   {
+   private:
+      static const int SORTDATA_ROLE = Qt::UserRole + 100;
+   public:
+      BatSortingTableItem();
+      
+      /* uses the sort data if available, reverts to default behavior othervise */
+      virtual bool operator< ( const QTableWidgetItem & o ) const;
+
+      /* set the value used for sorting - MUST BE A NUMERIC TYPE */
+      void setSortData(const QVariant &d);
+   };
+
 public:
 
    TableItemFormatter(QTableWidget &parent, int row);
-
-   virtual void setTextFld(int col, const QString &fld, bool center = false);
 
    /* access internal widget at column col*/
    QTableWidgetItem *widget(int col);
    const QTableWidgetItem *widget(int col) const;
 
 protected:
+   virtual void setText(int index, const QString &fld);
    virtual void setTextAlignment(int index, int align);
    virtual void setBackground(int index, const QBrush &);
+   virtual void setSortValue(int index, const QVariant &value);
 
 private:
    QTableWidget *parent;
    int row;
-   QTableWidgetItem *last;
+   BatSortingTableItem  *last;
 };
 
 #endif /* _FMTWIDGETITEM_H_ */
