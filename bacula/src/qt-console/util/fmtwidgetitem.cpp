@@ -156,26 +156,46 @@ ItemFormatterBase::~ItemFormatterBase()
 {
 }
 
+void ItemFormatterBase::setTextFld(int index, const QString &fld, bool center)
+{
+   setText(index, fld.trimmed());
+   if (center) {
+      setTextAlignment(index, Qt::AlignCenter);
+   }
+}
+
+void ItemFormatterBase::setRightFld(int index, const QString &fld)
+{
+   setText(index, fld.trimmed());
+   setTextAlignment(index, Qt::AlignRight | Qt::AlignVCenter);
+}
+
 void ItemFormatterBase::setBoolFld(int index, const QString &fld, bool center)
 {
    if (fld.trimmed().toInt())
-     setTextFld(index, "Yes", center);
+     setTextFld(index, QObject::tr("Yes"), center);
    else
-     setTextFld(index, "No", center);
+     setTextFld(index, QObject::tr("No"), center);
 }
 
 void ItemFormatterBase::setBoolFld(int index, int fld, bool center)
 {
    if (fld)
-     setTextFld(index, "Yes", center);
+     setTextFld(index, QObject::tr("Yes"), center);
    else
-     setTextFld(index, "No", center);
+     setTextFld(index, QObject::tr("No"), center);
 }
 
 void ItemFormatterBase::setNumericFld(int index, const QString &fld)
 {
-   setTextFld(index, fld);
-   setTextAlignment(index, Qt::AlignRight | Qt::AlignVCenter);
+   setRightFld(index, fld.trimmed());
+   setSortValue(index, fld.toDouble() );
+}
+
+void ItemFormatterBase::setNumericFld(int index, const QString &fld, const QVariant &sortval)
+{
+   setRightFld(index, fld.trimmed());
+   setSortValue(index, sortval );
 }
 
 void ItemFormatterBase::setBytesFld(int index, const QString &fld)
@@ -193,7 +213,8 @@ void ItemFormatterBase::setBytesFld(int index, const QString &fld)
       msg = convertBytesSI(qfld);
       break;
    }
-   setNumericFld(index, msg);
+
+   setNumericFld(index, msg, qfld);
 }
 
 void ItemFormatterBase::setDurationFld(int index, const QString &fld)
@@ -234,36 +255,9 @@ void ItemFormatterBase::setDurationFld(int index, const QString &fld)
       }
       if (dfld)
  	 msg += QString(" %1s").arg(dfld);
-           
-/*
-     double net = 0;
-     QList<qlonglong> durations;
-     durations.append(1);
-     durations.append(60);
-     durations.append(HOUR);
-     durations.append(DAY);
-     durations.append(MONTH);
-     durations.append(YEAR);
-     QStringList abbrlist = (QStringList() << "s" << "min" << "h" << "d" << "m" << "y");
-     bool done = false;
-     int count = 1;
-     while (done == false) {
-	if ((dfld < durations[count]) || (count >= abbrlist.count() - 1)) { 
-           done = true;
-	   net = (double)dfld / (double)(durations[count - 1]);
-	   if (net != 0) {
-              msg =  QString("%1%2")
-                  .arg(net, 0, 'f', 2, QLatin1Char(' '))
-                  .arg(abbrlist[count - 1]);
-	   } else {
-	     msg = "0s";
-	   }
-	}
-        count += 1;
-     }
-*/   }
+   }
 
-   setNumericFld(index, msg);
+   setNumericFld(index, msg, fld.trimmed().toLongLong());
 }
 
 void ItemFormatterBase::setVolStatusFld(int index, const QString &fld, bool center)
@@ -340,13 +334,10 @@ level(indent_level)
 {
 }
 
-void TreeItemFormatter::setTextFld(int index, const QString &fld, bool center)
+void TreeItemFormatter::setText(int index, const QString &fld)
 {
    wdg->setData(index, Qt::UserRole, level);
-   if (center) {
-      setTextAlignment(index, Qt::AlignCenter);
-   }
-   wdg->setText(index, fld.trimmed());
+   wdg->setText(index, fld);
 }
 
 void TreeItemFormatter::setTextAlignment(int index, int align)
@@ -359,6 +350,44 @@ void TreeItemFormatter::setBackground(int index, const QBrush &qb)
    wdg->setBackground(index, qb);
 }
 
+/* at this time we don't sort trees, so this method does nothing */
+void TreeItemFormatter::setSortValue(int /* index */, const QVariant & /* value */)
+{
+}
+
+/***********************************************
+ *
+ * Specialized table widget used for sorting
+ *
+ ***********************************************/
+TableItemFormatter::BatSortingTableItem::BatSortingTableItem():
+QTableWidgetItem(1)
+{
+}
+
+void TableItemFormatter::BatSortingTableItem::setSortData(const QVariant &d)
+{
+   setData(SORTDATA_ROLE, d);
+}
+
+bool TableItemFormatter::BatSortingTableItem::operator< ( const QTableWidgetItem & o ) const 
+{
+   QVariant my = data(SORTDATA_ROLE);
+   QVariant other = o.data(SORTDATA_ROLE);
+   if (!my.isValid() || !other.isValid() || my.type() != other.type())
+      return QTableWidgetItem::operator< (o); /* invalid combination, revert to default sorting */
+
+   /* 64bit integers must be handled separately, others can be converted to double */
+   if (QVariant::ULongLong == my.type()) {
+      return my.toULongLong() < other.toULongLong(); 
+   } else if (QVariant::LongLong == my.type()) {
+      return my.toLongLong() < other.toLongLong(); 
+   } else if (my.canConvert(QVariant::Double)) {
+      return my.toDouble() < other.toDouble(); 
+   } else {
+      return QTableWidgetItem::operator< (o); /* invalid combination, revert to default sorting */
+   }
+}
 
 /***********************************************
  *
@@ -373,15 +402,11 @@ last(NULL)
 {
 }
 
-void TableItemFormatter::setTextFld(int col, const QString &fld, bool center)
+void TableItemFormatter::setText(int col, const QString &fld)
 {
-   last = new QTableWidgetItem(1);
-/*   last->setForeground(blackBrush); */
+   last = new BatSortingTableItem;
    parent->setItem(row, col, last);
-   if (center) {
-      setTextAlignment(col, Qt::AlignCenter);
-   }
-   last->setText(fld.trimmed());
+   last->setText(fld);
 }
 
 void TableItemFormatter::setTextAlignment(int /*index*/, int align)
@@ -394,12 +419,18 @@ void TableItemFormatter::setBackground(int /*index*/, const QBrush &qb)
    last->setBackground(qb);
 }
 
+void TableItemFormatter::setSortValue(int /* index */, const QVariant &value )
+{
+   last->setSortData(value);
+}
+
 QTableWidgetItem *TableItemFormatter::widget(int col)
 {
-  return parent->item(row, col);
+   return parent->item(row, col);
 }
 
 const QTableWidgetItem *TableItemFormatter::widget(int col) const
 {
-  return parent->item(row, col);
+   return parent->item(row, col);
 }
+
