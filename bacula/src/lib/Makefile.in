@@ -47,7 +47,6 @@ LIBOBJS = attr.o base64.o berrno.o bsys.o bget_msg.o \
 
 EXTRAOBJS = @OBJLIST@
 
-
 .SUFFIXES:	.c .o .ch .dvi .pdf .tex .view .w .1
 .PHONY:
 .DONTCARE:
@@ -62,9 +61,16 @@ EXTRAOBJS = @OBJLIST@
 	$(NO_ECHO)$(CXX) $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) $(PYTHON_INC) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
 #-------------------------------------------------------------------------
-all: Makefile libbac.a
+all: Makefile libbac.a libtokyocabinet.a
 	@echo "==== Make of lib is good ===="
 	@echo " "
+
+libtokyocabinet.a:
+	@(cd tokyocabinet ; echo "==>Entering directory `pwd`"; \
+	      $(MAKE) $@ || (echo ""; echo ""; echo "  ====== Error in `pwd` ======"; \
+			    echo ""; echo "";));
+	@cp tokyocabinet/tcadb.h tokyocabinet/tcbdb.h tokyocabinet/tchdb.h .
+	@cp tokyocabinet/libtokyocabinet.a .
 
 libbac.a: $(LIBOBJS)
 	@echo "Making $@ ..."
@@ -113,7 +119,7 @@ plugins.o: plugins.c plugins.h
 	@echo "Compiling $<"
 	$(NO_ECHO)$(CXX) -fPIC $(DEFS) $(DEBUG) -c $(WCFLAGS) $(CPPFLAGS) -I$(srcdir) -I$(basedir) $(DINCLUDE) $(CFLAGS) $<
 
-	 
+
 install:
 
 uninstall:
@@ -121,6 +127,7 @@ uninstall:
 clean:
 	$(RMF) *.a core a.out *.o *.bak *.tex *.pdf *~ *.intpro *.extpro 1 2 3
 	$(RMF) rwlock_test md5sum sha1sum
+	(cd tokyocabinet ; make clean)
 
 realclean: clean
 	$(RMF) tags
