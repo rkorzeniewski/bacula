@@ -742,7 +742,7 @@ bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  * This is called at Job termination time to add all the
  * other fields to the job record.
  */
-int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
 {
    return 0;
 }
