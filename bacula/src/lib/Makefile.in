@@ -69,7 +69,7 @@ libtokyocabinet.a:
 	@(cd tokyocabinet ; echo "==>Entering directory `pwd`"; \
 	      $(MAKE) $@ || (echo ""; echo ""; echo "  ====== Error in `pwd` ======"; \
 			    echo ""; echo "";));
-	@cp tokyocabinet/t*.h .
+	@cp tokyocabinet/tcadb.h tokyocabinet/tcbdb.h tokyocabinet/tchdb.h .
 	@cp tokyocabinet/libtokyocabinet.a .
 
 libbac.a: $(LIBOBJS)

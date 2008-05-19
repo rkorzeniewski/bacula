@@ -36,12 +36,16 @@
 static int dbglvl=200;
 
 typedef struct PrivateCurFile {
+#ifndef USE_TCADB
+   hlink link;
+#endif
    char *fname;			/* not stored with tchdb mode */
    time_t ctime;
    time_t mtime;
    bool seen;
 } CurFile;
 
+#ifdef USE_TCADB
 static void realfree(void *p);	/* used by tokyo code */
 
 /*
@@ -186,6 +190,83 @@ bail_out:
    return true;
 }
 
+#else  /* HTABLE mode */
+
+static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
+{
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
+   temp->seen = 1;		/* records are in memory */
+   return true;
+}
+
+static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
+{
+   bool found=false;
+   ret->seen = 0;
+
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
+   if (temp) {
+      memcpy(ret, temp, sizeof(CurFile));
+      found=true;
+//    Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
+   }
+
+   return found;
+}
+
+static bool accurate_init(JCR *jcr, int nbfile)
+{
+   CurFile *elt=NULL;
+   jcr->file_list = (htable *)malloc(sizeof(htable));
+   jcr->file_list->init(elt, &elt->link, nbfile);
+   return true;
+}
+
+/* This function is called at the end of backup
+ * We walk over all hash disk element, and we check
+ * for elt.seen.
+ */
+bool accurate_send_deleted_list(JCR *jcr)
+{
+   CurFile *elt;
+   FF_PKT *ff_pkt;
+   int stream = STREAM_UNIX_ATTRIBUTES;
+
+   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+      goto bail_out;
+   }
+
+   if (jcr->file_list == NULL) {
+      goto bail_out;
+   }
+
+   ff_pkt = init_find_files();
+   ff_pkt->type = FT_DELETED;
+
+   foreach_htable (elt, jcr->file_list) {
+      if (!elt->seen) { /* already seen */
+         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+         ff_pkt->fname = elt->fname;
+         ff_pkt->statp.st_mtime = elt->mtime;
+         ff_pkt->statp.st_ctime = elt->ctime;
+         encode_and_send_attributes(jcr, ff_pkt, stream);
+      }
+//      free(elt->fname);
+   }
+
+   term_find_files(ff_pkt);
+bail_out:
+   /* TODO: clean htable when this function is not reached ? */
+   if (jcr->file_list) {
+      jcr->file_list->destroy();
+      free(jcr->file_list);
+      jcr->file_list = NULL;
+   }
+   return true;
+}
+
+#endif /* common code */
+
 static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 {
    bool ret = true;
@@ -197,6 +278,7 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    elt.mtime = statp.st_mtime;
    elt.seen = 0;
 
+#ifdef USE_TCADB
    if (!tcadbput(jcr->file_list,
 		 fname, strlen(fname)+1,
 		 &elt, sizeof(CurFile)))
@@ -204,6 +286,15 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
       Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"));
       ret = false;
    }
+#else  /* HTABLE */
+   CurFile *item;
+   /* we store CurFile, fname and ctime/mtime in the same chunk */
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
+   memcpy(item, &elt, sizeof(CurFile));
+   item->fname  = (char *)item+sizeof(CurFile);
+   strcpy(item->fname, fname);
+   jcr->file_list->insert(item->fname, item); 
+#endif
 
 // Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
    return ret;
@@ -308,6 +399,8 @@ int accurate_cmd(JCR *jcr)
    return true;
 }
 
+#ifdef USE_TCADB
+
 /*
  * Tokyo Cabinet library doesn't use smartalloc by default
  * results need to be released with real free()
@@ -318,3 +411,4 @@ void realfree(void *p)
    free(p);
 }
 
+#endif
