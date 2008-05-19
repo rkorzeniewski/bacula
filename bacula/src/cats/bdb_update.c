@@ -16,7 +16,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -75,7 +75,7 @@ bool db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  * This is called at Job termination time to add all the
  * other fields to the job record.
  */
-int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
+int db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
 {
    return 0;
 }
