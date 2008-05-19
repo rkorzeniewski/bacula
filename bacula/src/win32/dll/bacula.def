@@ -285,6 +285,7 @@ _Z10bvsnprintfPciPKcS_
 _Z9bsnprintfPciPKcz
  
 ; bsock.o
+_ZN5BSOCK11set_lockingEv
 _Z9new_bsockv
 _ZN5BSOCK10free_bsockEv
 _ZN5BSOCK12set_blockingEv
@@ -469,6 +470,7 @@ _Z13new_guid_listv
 _Z8hmac_md5PhiS_iS_
  
 ; htable.o
+_ZN6htable11hash_mallocEi
 _ZN6htable10grow_tableEv
 _ZN6htable10hash_indexEPc
 _ZN6htable4initEPvS0_i
