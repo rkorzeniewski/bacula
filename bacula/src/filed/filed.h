@@ -35,11 +35,7 @@
 
 
 #define FILE_DAEMON 1
-#ifdef USE_TCADB		      /* hash disk based */
-# include <tcadb.h>
-#else
-# include "lib/htable.h"
-#endif
+#include "lib/tcadb.h"
 #include "filed_conf.h"
 #include "fd_plugins.h"
 #include "findlib/find.h"
