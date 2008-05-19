@@ -2345,9 +2345,7 @@ if test "${support_bat}" = "yes" ; then
   cd ${BUILD_DIR}
 fi
 
-echo "Doing make of dependencies"
-${MAKE:-make} depend
-
+# configure and prepare libtokyodbm for bacula
 pushd src/lib/tokyocabinet > /dev/null
 tcdbm_opt=
 if test x$largefile_support = xyes; then
@@ -2355,6 +2353,11 @@ if test x$largefile_support = xyes; then
 fi
 ./configure $tcdbm_opt
 popd > /dev/null
+# need tokyo header files for "make depend"
+cp src/lib/tokyocabinet/t*.h src/lib
+
+echo "Doing make of dependencies"
+${MAKE:-make} depend
 
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
