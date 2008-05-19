@@ -32127,6 +32127,14 @@ fi
 echo "Doing make of dependencies"
 ${MAKE:-make} depend
 
+pushd src/lib/tokyocabinet
+tcdbm_opt=
+if test x$largefile_support = xyes; then
+   tcdbm_opt=--enable-off64
+fi
+./configure $tcdbm_opt
+popd > /dev/null
+
 cd scripts
 chmod 755 startmysql stopmysql bacula startit stopit btraceback mtx-changer
 chmod 755 dvd-handler dvd-simulator
