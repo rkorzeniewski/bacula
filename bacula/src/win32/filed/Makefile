@@ -29,6 +29,7 @@ vpath %.cpp ../../filed ../libwin32
 ##########################################################################
 
 FILED_OBJS = \
+	$(OBJDIR)/accurate.o \
 	$(OBJDIR)/authenticate.o \
 	$(OBJDIR)/backup.o \
 	$(OBJDIR)/estimate.o \
