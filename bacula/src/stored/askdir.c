@@ -491,9 +491,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
          Jmsg(jcr, M_INFO, 0, "%s", dev->errmsg);
          return false;
       }
-      dev->dlock();  
       got_vol = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
-      dev->dunlock();
       if (got_vol) {
          return true;
       } else {

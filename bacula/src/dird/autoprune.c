@@ -138,18 +138,10 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
     *  RecyclePoolId is the current pool or the scratch pool
     */
    const char *select = "SELECT DISTINCT MediaId,LastWritten FROM Media WHERE "
-        "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' %s"
+        "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' "
         "ORDER BY LastWritten ASC,MediaId";
 
-   if (InChanger) {
-      char changer[100];
-      /* Ensure it is in this autochanger */
-      bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s ",
-         edit_int64(mr->StorageId, ed3));
-      Mmsg(query, select, ed1, ed2, mr->MediaType, changer);
-   } else {
-      Mmsg(query, select, ed1, ed2, mr->MediaType, "");
-   }
+   Mmsg(query, select, ed1, ed2, mr->MediaType);
 
    Dmsg1(050, "query=%s\n", query.c_str());
    if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
