@@ -74,7 +74,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    readPreferences();
    treeWidget->clear();
    treeWidget->setColumnCount(1);
-   treeWidget->setHeaderLabel("Select Page");
+   treeWidget->setHeaderLabel( tr("Select Page") );
    treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
 
    createPages();
@@ -125,7 +125,7 @@ void MainWin::createPages()
 
       /* Create Tree Widget Item */
       item = new QTreeWidgetItem(topItem);
-      item->setText(0, "Console");
+      item->setText(0, tr("Console"));
       if (!m_firstItem){ m_firstItem = item; }
       item->setIcon(0,QIcon(QString::fromUtf8(":images/utilities-terminal.png")));
 
@@ -453,7 +453,7 @@ void MainWin::statusPageButtonClicked()
    bool found = false;
    foreach(Pages *page, m_pagehash) {
       if (m_currentConsole == page->console()) {
-         if (page->name() == "Director Status") {
+ 	 if (page->name() == tr("Director Status")) {
             found = true;
             page->setCurrent();
          }
@@ -500,10 +500,10 @@ void MainWin::input_line()
 void MainWin::about()
 {
    QMessageBox::about(this, tr("About bat"),
-      tr("<br><h2>bat " VERSION "(" BDATE "), by Dirk H Bartley and Kern Sibbald</h2>"
-         "<p>Copyright &copy; 2007-" BYEAR " Free Software Foundation Europe e.V."
+      tr("<br><h2>bat %1 (%2), by Dirk H Bartley and Kern Sibbald</h2>"
+         "<p>Copyright &copy; 2007-%3 Free Software Foundation Europe e.V."
          "<p>The <b>bat</b> is an administrative console"
-         " interface to the Director."));
+         " interface to the Director.").arg(VERSION).arg(BDATE).arg(BYEAR));
 }
 
 void MainWin::help()
