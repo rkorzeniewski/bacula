@@ -388,7 +388,7 @@ static bool do_label(JCR *jcr, int relabel)
       if (dcr) {
          dev = dcr->dev;
          dev->dlock();                 /* Use P to avoid indefinite block */
-         if (!dev->is_open()) {
+         if (!dev->is_open() && !dev->is_busy()) {
             Dmsg1(400, "Can %slabel. Device is not open\n", relabel?"re":"");
             label_volume_if_ok(dcr, oldname, newname, poolname, slot, relabel);
             dev->close();
