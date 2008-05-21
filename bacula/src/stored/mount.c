@@ -227,7 +227,7 @@ mount_next_vol:
       }
       /* If DVD, ignore the error, very often you cannot open the device
        * (when there is no DVD, or when the one inserted is a wrong one) */
-      if (dev->poll || dev->is_dvd() || dev->is_removable()) {
+      if (dev->poll || dev->is_dvd()) {
          goto mount_next_vol;
       } else {
          Jmsg(jcr, M_ERROR, 0, _("Could not open device %s: ERR=%s\n"),

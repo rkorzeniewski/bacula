@@ -673,8 +673,8 @@ static bool mount_cmd(JCR *jcr)
             }
             /* We freed the device, so reopen it and wake any waiting threads */
             if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
-               dir->fsend(_("3901 open device failed: ERR=%s\n"),
-                  dev->bstrerror());
+               dir->fsend(_("3901 Unable to open device %s: ERR=%s\n"),
+                  dev->print_name(), dev->bstrerror());
                if (dev->blocked() == BST_UNMOUNTED) {
                   /* We blocked the device, so unblock it */
                   Dmsg0(100, "Unmounted. Unblocking device\n");
@@ -730,8 +730,8 @@ static bool mount_cmd(JCR *jcr)
                }
             } else if (dev->is_tape()) {
                if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
-                  dir->fsend(_("3901 open device failed: ERR=%s\n"),
-                     dev->bstrerror());
+                  dir->fsend(_("3901 Unable to open device %s: ERR=%s\n"),
+                     dev->print_name(), dev->bstrerror());
                   break;
                }
                read_label(dcr);

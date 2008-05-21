@@ -685,6 +685,8 @@ statDir(const char *file, struct stat *sb)
       LocalFree((void *)err);
       errno = b_errno_win32;
       return -1;
+   } else {
+      FindClose(h);
    }
 
    sb->st_mode = 0777;               /* start with everything */
@@ -696,12 +698,23 @@ statDir(const char *file, struct stat *sb)
        sb->st_mode |= S_ISVTX; /* use sticky bit -> hidden */
    sb->st_mode |= S_IFDIR;
 
-   /* Use st_rdev to store reparse attribute */
-   sb->st_rdev = (*pdwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ? 1 : 0; 
-   if (sb->st_rdev == 1 && *pdwReserved0 & IO_REPARSE_TAG_MOUNT_POINT) {
-      sb->st_rdev = 2;                /* mount point */
-   }
-
+   /* 
+    * Store reparse/mount point info in st_rdev.  Note a
+    *  Win32 reparse point (junction point) is like a link
+    *  though it can have many properties (directory link,
+    *  soft link, hard link, HSM, ...
+    *  A mount point is a reparse point where another volume
+    *  is mounted, so it is like a Unix mount point (change of
+    *  filesystem).
+    */
+   if (*pdwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+      if (*pdwReserved0 & IO_REPARSE_TAG_MOUNT_POINT) {
+         sb->st_rdev = WIN32_MOUNT_POINT;           /* mount point */
+      } else {
+         sb->st_rdev = WIN32_REPARSE_POINT;         /* reparse point */
+      }
+   }  
+   Dmsg2(100, "st_rdev=%d file=%s\n", sb->st_rdev, file);
    sb->st_size = *pnFileSizeHigh;
    sb->st_size <<= 32;
    sb->st_size |= *pnFileSizeLow;
@@ -711,7 +724,6 @@ statDir(const char *file, struct stat *sb)
    sb->st_atime = cvt_ftime_to_utime(*pftLastAccessTime);
    sb->st_mtime = cvt_ftime_to_utime(*pftLastWriteTime);
    sb->st_ctime = cvt_ftime_to_utime(*pftCreationTime);
-   FindClose(h);
 
    return 0;
 }
@@ -720,11 +732,10 @@ int
 fstat(int fd, struct stat *sb)
 {
    BY_HANDLE_FILE_INFORMATION info;
-   char tmpbuf[1024];
 
    if (!GetFileInformationByHandle((HANDLE)fd, &info)) {
        const char *err = errorString();
-       Dmsg2(99, "GetfileInformationByHandle(%s): %s\n", tmpbuf, err);
+       Dmsg1(99, "GetfileInformationByHandle: %s\n", err);
        LocalFree((void *)err);
        errno = b_errno_win32;
        return -1;
@@ -749,7 +760,11 @@ fstat(int fd, struct stat *sb)
    sb->st_mode |= S_IFREG;
 
    /* Use st_rdev to store reparse attribute */
-   sb->st_rdev = (info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ? 1 : 0; 
+   if  (info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+      sb->st_rdev = WIN32_REPARSE_POINT;
+   }
+   Dmsg3(100, "st_rdev=%d sizino=%d ino=%lld\n", sb->st_rdev, sizeof(sb->st_ino),
+      (long long)sb->st_ino);
 
    sb->st_size = info.nFileSizeHigh;
    sb->st_size <<= 32;
@@ -768,8 +783,8 @@ stat2(const char *file, struct stat *sb)
 {
    HANDLE h;
    int rval = 0;
-   char tmpbuf[1024];
-   conv_unix_to_win32_path(file, tmpbuf, 1024);
+   char tmpbuf[5000];
+   conv_unix_to_win32_path(file, tmpbuf, 5000);
 
    DWORD attr = (DWORD)-1;
 
@@ -819,12 +834,11 @@ stat(const char *file, struct stat *sb)
    WIN32_FILE_ATTRIBUTE_DATA data;
    errno = 0;
 
-
    memset(sb, 0, sizeof(*sb));
 
    if (p_GetFileAttributesExW) {
       /* dynamically allocate enough space for UCS2 filename */
-      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);
+      POOLMEM *pwszBuf = get_pool_memory(PM_FNAME);
       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
       BOOL b = p_GetFileAttributesExW((LPCWSTR)pwszBuf, GetFileExInfoStandard, &data);
@@ -833,6 +847,7 @@ stat(const char *file, struct stat *sb)
       if (!b) {
          return stat2(file, sb);
       }
+
    } else if (p_GetFileAttributesExA) {
       if (!p_GetFileAttributesExA(file, GetFileExInfoStandard, &data)) {
          return stat2(file, sb);
@@ -882,6 +897,8 @@ stat(const char *file, struct stat *sb)
         file[1] == ':' && file[2] != 0) {
       statDir(file, sb);
    }
+   Dmsg3(100, "sizino=%d ino=%lld file=%s\n", sizeof(sb->st_ino),
+                       (long long)sb->st_ino, file);
    return 0;
 }
 
@@ -2168,10 +2185,10 @@ utime(const char *fname, struct utimbuf *times)
     HANDLE h = INVALID_HANDLE_VALUE;
 
     if (p_CreateFileW) {
-      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-      make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
+       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+       make_win32_path_UTF8_2_wchar(&pwszBuf, tmpbuf);
 
-      h = p_CreateFileW((LPCWSTR)pwszBuf,
+       h = p_CreateFileW((LPCWSTR)pwszBuf,
                         FILE_WRITE_ATTRIBUTES,
                         FILE_SHARE_WRITE|FILE_SHARE_READ|FILE_SHARE_DELETE,
                         NULL,
@@ -2179,9 +2196,9 @@ utime(const char *fname, struct utimbuf *times)
                         FILE_FLAG_BACKUP_SEMANTICS, // required for directories
                         NULL);
 
-      free_pool_memory(pwszBuf);
+       free_pool_memory(pwszBuf);
     } else if (p_CreateFileA) {
-      h = p_CreateFileA(tmpbuf,
+       h = p_CreateFileA(tmpbuf,
                         FILE_WRITE_ATTRIBUTES,
                         FILE_SHARE_WRITE|FILE_SHARE_READ|FILE_SHARE_DELETE,
                         NULL,
@@ -2191,11 +2208,11 @@ utime(const char *fname, struct utimbuf *times)
     }
 
     if (h == INVALID_HANDLE_VALUE) {
-        const char *err = errorString();
-        Dmsg2(99, "Cannot open file \"%s\" for utime(): ERR=%s", tmpbuf, err);
-        LocalFree((void *)err);
-        errno = b_errno_win32;
-        return -1;
+       const char *err = errorString();
+       Dmsg2(99, "Cannot open file \"%s\" for utime(): ERR=%s", tmpbuf, err);
+       LocalFree((void *)err);
+       errno = b_errno_win32;
+       return -1;
     }
 
     int rval = SetFileTime(h, NULL, &acc, &mod) ? 0 : -1;
@@ -2210,49 +2227,49 @@ utime(const char *fname, struct utimbuf *times)
 int
 file_open(const char *file, int flags, int mode)
 {
-    DWORD access = 0;
-    DWORD shareMode = 0;
-    DWORD create = 0;
-    DWORD msflags = 0;
-    HANDLE foo = INVALID_HANDLE_VALUE;
-    const char *remap = file;
+   DWORD access = 0;
+   DWORD shareMode = 0;
+   DWORD create = 0;
+   DWORD msflags = 0;
+   HANDLE foo = INVALID_HANDLE_VALUE;
+   const char *remap = file;
 
-    if (flags & O_WRONLY) access = GENERIC_WRITE;
-    else if (flags & O_RDWR) access = GENERIC_READ|GENERIC_WRITE;
-    else access = GENERIC_READ;
+   if (flags & O_WRONLY) access = GENERIC_WRITE;
+   else if (flags & O_RDWR) access = GENERIC_READ|GENERIC_WRITE;
+   else access = GENERIC_READ;
 
-    if ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
-       create = CREATE_NEW;
-    else if ((flags & (O_CREAT | O_TRUNC)) == (O_CREAT | O_TRUNC))
-       create = CREATE_ALWAYS;
-    else if (flags & O_CREAT)
-       create = OPEN_ALWAYS;
-    else if (flags & O_TRUNC)
-       create = TRUNCATE_EXISTING;
-    else 
-       create = OPEN_EXISTING;
+   if ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
+      create = CREATE_NEW;
+   else if ((flags & (O_CREAT | O_TRUNC)) == (O_CREAT | O_TRUNC))
+      create = CREATE_ALWAYS;
+   else if (flags & O_CREAT)
+      create = OPEN_ALWAYS;
+   else if (flags & O_TRUNC)
+      create = TRUNCATE_EXISTING;
+   else 
+      create = OPEN_EXISTING;
 
-    shareMode = 0;
+   shareMode = 0;
 
-    if (flags & O_APPEND) {
-        printf("open...APPEND not implemented yet.");
-        exit(-1);
-    }
+   if (flags & O_APPEND) {
+      printf("open...APPEND not implemented yet.");
+      exit(-1);
+   }
 
-    if (p_CreateFileW) {
-       POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
-       make_win32_path_UTF8_2_wchar(&pwszBuf, file);
+   if (p_CreateFileW) {
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);
+      make_win32_path_UTF8_2_wchar(&pwszBuf, file);
 
-       foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
-       free_pool_memory(pwszBuf);
-    } else if (p_CreateFileA)
-       foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
+      foo = p_CreateFileW((LPCWSTR) pwszBuf, access, shareMode, NULL, create, msflags, NULL);
+      free_pool_memory(pwszBuf);
+   } else if (p_CreateFileA)
+      foo = CreateFile(file, access, shareMode, NULL, create, msflags, NULL);
 
-    if (INVALID_HANDLE_VALUE == foo) {
-        errno = b_errno_win32;
-        return(int) -1;
-    }
-    return (int)foo;
+   if (INVALID_HANDLE_VALUE == foo) {
+      errno = b_errno_win32;
+      return (int)-1;
+   }
+   return (int)foo;
 
 }
 
