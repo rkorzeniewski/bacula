@@ -219,8 +219,10 @@ bool acquire_device_for_read(DCR *dcr)
        */
       Dmsg1(100, "bstored: open vol=%s\n", dcr->VolumeName);
       if (dev->open(dcr, OPEN_READ_ONLY) < 0) {
-        Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
-              dev->print_name(), dcr->VolumeName, dev->bstrerror());
+         if (!dev->poll) {
+            Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
+                  dev->print_name(), dcr->VolumeName, dev->bstrerror());
+         }
          goto default_path;
       }
       Dmsg1(50, "opened dev %s OK\n", dev->print_name());
@@ -286,6 +288,10 @@ default_path:
             dev->clear_unload();
             if (dev->open(dcr, OPEN_READ_ONLY) >= 0) {
                continue;
+            }
+            if (!dev->poll) {
+               Jmsg3(jcr, M_WARNING, 0, _("Read open device %s Volume \"%s\" failed: ERR=%s\n"),
+                     dev->print_name(), dcr->VolumeName, dev->bstrerror());
             }
          }
          

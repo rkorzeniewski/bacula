@@ -339,6 +339,8 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
       /* If device is not tape, attempt to create it */
       if (dev->is_tape() || dev->open(dcr, CREATE_READ_WRITE) < 0) {
+         Jmsg3(dcr->jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+               dev->print_name(), dcr->VolumeName, dev->bstrerror());
          goto bail_out;
       }
    }
@@ -435,6 +437,8 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
    JCR *jcr = dcr->jcr;
 
    if (dev->open(dcr, OPEN_READ_WRITE) < 0) {
+       Jmsg3(jcr, M_WARNING, 0, _("Open device %s Volume \"%s\" failed: ERR=%s\n"),
+             dev->print_name(), dcr->VolumeName, dev->bstrerror());
       return false;
    }
    Dmsg2(190, "set append found freshly labeled volume. fd=%d dev=%x\n", dev->fd(), dev);

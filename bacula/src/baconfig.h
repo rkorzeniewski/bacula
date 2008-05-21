@@ -79,6 +79,10 @@
 #define NPRT(x) (x)?(x):_("*None*")
  
 #if defined(HAVE_WIN32)
+
+#define WIN32_REPARSE_POINT 1
+#define WIN32_MOUNT_POINT   2
+
 void InitWinAPIWrapper();
 
 #define  OSDependentInit()    InitWinAPIWrapper()

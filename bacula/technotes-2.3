@@ -24,6 +24,15 @@ Add long term statistics job table
 
 
 General:
+21May08
+kes  Display open() errors except when polling. Previously too
+     many were suppressed.  This should fix bug #1070.
+kes  Fix Win32 reparse points. Bacula will not recurse into any
+     reparse point directory, including mount points, unless the
+     directory is explicitly mentioned at the top level (same as
+     with Unix).  A file that is linked to another file will be
+     backed up -- much as Unix does for hardlinked files.
+     This fixes bug #1041.
 20May08
 kes  Remove double quotes from ChangeLog and ReleaseNotes
 kes  Remove StorageId test when pruning and recycling (Eric's changes).

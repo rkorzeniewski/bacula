@@ -96,7 +96,7 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    POOL_MEM query(PM_MESSAGE);
    UAContext *ua;
    bool ok = false;
-   char ed1[50], ed2[100], ed3[50];
+   char ed1[50], ed2[100];
    POOL_DBR spr;
 
    Dmsg1(050, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);

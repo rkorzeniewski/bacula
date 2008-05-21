@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -518,21 +518,21 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * (or what is defined for IgnoreDir in this fileset) exists
        */
       if (ff_pkt->ignoredir != NULL) {
-	 struct stat sb;
-	 char fname[MAXPATHLEN];
+         struct stat sb;
+         char fname[MAXPATHLEN];
 
-	 if (strlen(ff_pkt->fname) + strlen("/") +
-	    strlen(ff_pkt->ignoredir) + 1 > MAXPATHLEN)
-	    return 1;	/* Is this wisdom? */
+         if (strlen(ff_pkt->fname) + strlen("/") +
+            strlen(ff_pkt->ignoredir) + 1 > MAXPATHLEN)
+            return 1;   /* Is this wisdom? */
 
-	 strcpy(fname, ff_pkt->fname);
-	 strcat(fname, "/");
-	 strcat(fname, ff_pkt->ignoredir);
-	 if (stat(fname, &sb) == 0) {
+         strcpy(fname, ff_pkt->fname);
+         strcat(fname, "/");
+         strcat(fname, ff_pkt->ignoredir);
+         if (stat(fname, &sb) == 0) {
             Dmsg2(100, "Directory '%s' ignored (found %s)\n",
-	       ff_pkt->fname, ff_pkt->ignoredir);
+               ff_pkt->fname, ff_pkt->ignoredir);
             return 1;      /* Just ignore this directory */
-	 }
+         }
       }
 
       /* Build a canonical directory name with a trailing slash in link var */
@@ -557,9 +557,11 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * We have set st_rdev to 1 if it is a reparse point, otherwise 0,
        *  if st_rdev is 2, it is a mount point 
        */
-      if (have_win32_api() && ff_pkt->statp.st_rdev == 1) {
+#if defined(HAVE_WIN32)
+      if (ff_pkt->statp.st_rdev == WIN32_REPARSE_POINT) {
          ff_pkt->type = FT_REPARSE;
       }
+#endif 
       /*
        * Note, we return the directory to the calling program (handle_file)
        * when we first see the directory (FT_DIRBEGIN.
@@ -597,10 +599,15 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
        * to cross, or we may be restricted by a list of permitted
        * file systems.
        */
+      bool is_win32_mount_point = false;
+#if defined(HAVE_WIN32)
+      is_win32_mount_point = ff_pkt->statp.st_rdev == WIN32_MOUNT_POINT;
+#endif
       if (!top_level && ff_pkt->flags & FO_NO_RECURSION) {
          ff_pkt->type = FT_NORECURSE;
          recurse = false;
-      } else if (!top_level && parent_device != ff_pkt->statp.st_dev) {
+      } else if (!top_level && (parent_device != ff_pkt->statp.st_dev ||
+                 is_win32_mount_point)) {
          if(!(ff_pkt->flags & FO_MULTIFS)) {
             ff_pkt->type = FT_NOFSCHG;
             recurse = false;
