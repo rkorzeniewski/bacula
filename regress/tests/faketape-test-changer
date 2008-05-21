@@ -21,7 +21,7 @@ scripts/cleanup
 scripts/copy-tape-confs
 cp scripts/bacula-dir-faketape.conf bin/bacula-dir.conf
 cp scripts/bacula-sd-faketape.conf bin/bacula-sd.conf
-scripts/prepare-big-autochanger
+scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
 

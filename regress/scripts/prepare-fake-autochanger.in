@@ -13,7 +13,7 @@ fi
 adir=@working_dir@/ach
 
 mkdir $adir 2> /dev/null
-rm -f $adir/log $adir/barcodes $adir/slot* $adir/drive* 2> /dev/null
+rm -f $adir/log $adir/barcodes $adir/load* $adir/slot* $adir/drive* 2> /dev/null
 
 # create the autochanger configuration file
 cat > $adir/conf <<EOF
