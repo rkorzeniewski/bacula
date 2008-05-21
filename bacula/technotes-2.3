@@ -25,6 +25,9 @@ Add long term statistics job table
 
 General:
 21May08
+kes  Modify autochanger locking to attempt to avoid race
+     conditions. 
+kes  Make sure device not busy before doing label command.
 kes  Display open() errors except when polling. Previously too
      many were suppressed.  This should fix bug #1070.
 kes  Fix Win32 reparse points. Bacula will not recurse into any
