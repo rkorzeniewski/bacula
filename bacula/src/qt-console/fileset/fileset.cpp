@@ -39,6 +39,7 @@
 #include <QMenu>
 #include "bat.h"
 #include "fileset/fileset.h"
+#include "util/fmtwidgetitem.h"
 
 FileSet::FileSet()
 {
@@ -70,7 +71,6 @@ FileSet::~FileSet()
  */
 void FileSet::populateTable()
 {
-   QTableWidgetItem *tableItem;
    QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
@@ -85,8 +85,12 @@ void FileSet::populateTable()
 
    tableWidget->setColumnCount(headerlist.count());
    tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->horizontalHeader()->setHighlightSections(false);
    tableWidget->setRowCount(m_console->fileset_list.count());
    tableWidget->verticalHeader()->hide();
+   tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+   tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+   tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
    int row = 0;
 
    foreach(QString filesetName, m_console->fileset_list) {
@@ -106,31 +110,36 @@ void FileSet::populateTable()
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount) {
-            QString resultline;
-            QString field;
-            QStringList fieldlist;
             /* only use the last one */
-            resultline = results[resultCount - 1];
-            fieldlist = resultline.split("\t");
-            int column = 0;
-            /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
-               field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field, 1);
-               tableItem->setFlags(Qt::ItemIsSelectable);
-               tableItem->setForeground(blackBrush);
-               tableItem->setData(Qt::UserRole, 1);
-               tableWidget->setItem(row, column, tableItem);
-               column++;
-            }
+            QString resultline = results[resultCount - 1];
+            QStringList fieldlist = resultline.split("\t");
+
+	    TableItemFormatter item(*tableWidget, row);
+  
+	    /* Iterate through fields in the record */
+	    QStringListIterator fld(fieldlist);
+	    int col = 0;
+
+	    /* name */
+	    item.setTextFld(col++, fld.next());
+
+	    /* id */
+	    item.setNumericFld(col++, fld.next());
+
+	    /* creation time */
+	    item.setTextFld(col++, fld.next());
+
          }
       }
       row++;
    }
-   /* Resize the columns */
-   for (int cnter=0; cnter<headerlist.size(); cnter++) {
-      tableWidget->resizeColumnToContents(cnter);
-   }
+   /* set default sorting */
+   tableWidget->sortByColumn(headerlist.indexOf(tr("Create Time")), Qt::DescendingOrder);
+   tableWidget->setSortingEnabled(true);
+   
+   /* Resize rows and columns */
+   tableWidget->resizeColumnsToContents();
+   tableWidget->resizeRowsToContents();
 }
 
 /*

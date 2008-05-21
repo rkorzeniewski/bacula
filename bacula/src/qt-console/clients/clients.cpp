@@ -41,6 +41,7 @@
 #include "clients/clients.h"
 #include "run/run.h"
 #include "status/clientstat.h"
+#include "util/fmtwidgetitem.h"
 
 Clients::Clients()
 {
@@ -71,22 +72,33 @@ Clients::~Clients()
  */
 void Clients::populateTable()
 {
-   QTableWidgetItem *tableItem;
    QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
       return;
-   m_checkcurwidget = false;
-   tableWidget->clear();
-   m_checkcurwidget = true;
 
    QStringList headerlist = (QStringList() << tr("Client Name") << tr("File Retention")
        << tr("Job Retention") << tr("AutoPrune") << tr("ClientId") << tr("Uname") );
 
+   int sortcol = headerlist.indexOf(tr("Client Name"));
+   Qt::SortOrder sortord = Qt::AscendingOrder;
+   if (tableWidget->rowCount()) {
+      sortcol = tableWidget->horizontalHeader()->sortIndicatorSection();
+      sortord = tableWidget->horizontalHeader()->sortIndicatorOrder();
+   }
+
+   m_checkcurwidget = false;
+   tableWidget->clear();
+   m_checkcurwidget = true;
+
    tableWidget->setColumnCount(headerlist.count());
    tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->horizontalHeader()->setHighlightSections(false);
    tableWidget->setRowCount(m_console->client_list.count());
    tableWidget->verticalHeader()->hide();
+   tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+   tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+   tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
    int row = 0;
 
    foreach (QString clientName, m_console->client_list){
@@ -106,31 +118,45 @@ void Clients::populateTable()
       if (m_console->sql_cmd(query, results)) {
          int resultCount = results.count();
          if (resultCount){
-            QString resultline;
-            QString field;
-            QStringList fieldlist;
-            resultline = results[resultCount - 1];
-            fieldlist = resultline.split("\t");
+            /* only use the last one */
+            QString resultline = results[resultCount - 1];
+            QStringList fieldlist = resultline.split("\t");
 
-            int column = 0;
-            /* Iterate through fields in the record */
-            foreach (field, fieldlist) {
-               field = field.trimmed();  /* strip leading & trailing spaces */
-               tableItem = new QTableWidgetItem(field, 1);
-               tableItem->setFlags(Qt::ItemIsSelectable);
-               tableItem->setForeground(blackBrush);
-               tableItem->setData(Qt::UserRole, 1);
-               tableWidget->setItem(row, column, tableItem);
-               column++;
-            }
+	    TableItemFormatter item(*tableWidget, row);
+
+	    /* Iterate through fields in the record */
+	    QStringListIterator fld(fieldlist);
+	    int col = 0;
+
+	    /* name */
+	    item.setTextFld(col++, fld.next());
+
+	    /* file retention */
+	    item.setDurationFld(col++, fld.next());
+
+	    /* job retention */
+	    item.setDurationFld(col++, fld.next());
+
+	    /* autoprune */
+	    item.setBoolFld(col++, fld.next());
+
+	    /* client id */
+	    item.setNumericFld(col++, fld.next());
+
+	    /* uname */
+	    item.setTextFld(col++, fld.next());
+
          }
       }
       row ++;
    }
-   /* Resize the columns */
-   for(int cnter=0; cnter<headerlist.size(); cnter++) {
-      tableWidget->resizeColumnToContents(cnter);
-   }
+   /* set default sorting */
+   tableWidget->sortByColumn(sortcol, sortord);
+   tableWidget->setSortingEnabled(true);
+   
+   /* Resize rows and columns */
+   tableWidget->resizeColumnsToContents();
+   tableWidget->resizeRowsToContents();
 }
 
 /*
@@ -246,7 +272,7 @@ void Clients::currentStackItem()
 void Clients::consolePurgeJobs()
 {
    if (QMessageBox::warning(this, "Bat",
-      tr("Are you sure you want to purge ??  !!!.\n"
+      tr("Are you sure you want to purge all jobs of client \"%1\" ?\n"
 "The Purge command will delete associated Catalog database records from Jobs and"
 " Volumes without considering the retention period. Purge  works only on the"
 " Catalog database and does not affect data written to Volumes. This command can"
@@ -255,8 +281,9 @@ void Clients::consolePurgeJobs()
 " you are doing.\n\n"
 " Is there any way I can get you to click Cancel here?  You really don't want to do"
 " this\n\n"
-      "Press OK to proceed with the purge operation?"),
-      QMessageBox::Ok | QMessageBox::Cancel)
+	 "Press OK to proceed with the purge operation?").arg(m_currentlyselected),
+	 QMessageBox::Ok | QMessageBox::Cancel,
+	 QMessageBox::Cancel)
       == QMessageBox::Cancel) { return; }
 
    QString cmd("purge jobs client=");
@@ -280,3 +307,4 @@ void Clients::statusClientWindow()
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
    new ClientStat(m_currentlyselected, parentItem);
 }
+

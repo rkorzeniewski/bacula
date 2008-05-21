@@ -133,6 +133,7 @@ void runPage::job_name_change(int index)
    (void)index;
    job_defs.job_name = jobCombo->currentText();
    if (m_console->get_job_defaults(job_defs)) {
+      typeLabel->setText("<H3>"+job_defs.type+"</H3>");
       filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
       levelCombo->setCurrentIndex(levelCombo->findText(job_defs.level, Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));

@@ -38,6 +38,7 @@
 #include "bat.h"
 #include "jobs/jobs.h"
 #include "run/run.h"
+#include "util/fmtwidgetitem.h"
 
 Jobs::Jobs()
 {
@@ -68,7 +69,6 @@ Jobs::~Jobs()
  */
 void Jobs::populateTable()
 {
-   QTableWidgetItem *tableItem;
    QBrush blackBrush(Qt::black);
 
    if (!m_console->preventInUseConnect())
@@ -86,56 +86,42 @@ void Jobs::populateTable()
 
    tableWidget->setColumnCount(headerlist.count());
    tableWidget->setHorizontalHeaderLabels(headerlist);
+   tableWidget->horizontalHeader()->setHighlightSections(false);
    tableWidget->setRowCount(m_console->job_list.count());
    tableWidget->verticalHeader()->hide();
+   tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+   tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+   tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
+
    int row = 0;
-
-
    foreach (QString jobName, m_console->job_list){
       job_defaults job_defs;
       job_defs.job_name = jobName;
       if (m_console->get_job_defaults(job_defs)) {
+	 int col = 0;
+	 TableItemFormatter jobsItem(*tableWidget, row);
+	 jobsItem.setTextFld(col++, jobName); 
+	 jobsItem.setTextFld(col++, job_defs.pool_name);
+	 jobsItem.setTextFld(col++, job_defs.messages_name);
+	 jobsItem.setTextFld(col++, job_defs.client_name);
+	 jobsItem.setTextFld(col++, job_defs.store_name);
+	 jobsItem.setTextFld(col++, job_defs.level);
+	 jobsItem.setTextFld(col++, job_defs.type);
+	 jobsItem.setTextFld(col++, job_defs.fileset_name);
+	 jobsItem.setTextFld(col++, job_defs.catalog_name);
+	 jobsItem.setBoolFld(col++, job_defs.enabled);
+	 jobsItem.setTextFld(col++, job_defs.where);
 
-        for (int column=0; column<headerlist.count(); column++) {
-            tableItem = new QTableWidgetItem(1);
-            if (column == 0) 
-               tableItem->setText(job_defs.job_name);
-            if (column == 1) 
-               tableItem->setText(job_defs.pool_name);
-            if (column == 2) 
-               tableItem->setText(job_defs.messages_name);
-            if (column == 3) 
-               tableItem->setText(job_defs.client_name);
-            if (column == 4) 
-               tableItem->setText(job_defs.store_name);
-            if (column == 5) 
-               tableItem->setText(job_defs.level);
-            if (column == 6) 
-               tableItem->setText(job_defs.type);
-            if (column == 7) 
-               tableItem->setText(job_defs.fileset_name);
-            if (column == 8) 
-               tableItem->setText(job_defs.catalog_name);
-            if (column == 9) {
-               if (job_defs.enabled)
-                  tableItem->setText("Yes");
-               else
-                  tableItem->setText("No");
-            }
-            if (column == 10) 
-               tableItem->setText(job_defs.where);
-
-            /* tableItem->setFlags(Qt::ItemIsSelectable); */
-            tableItem->setForeground(blackBrush);
-            tableWidget->setItem(row, column, tableItem);
-         }
       }
       row++;
    }
-   /* Resize the columns */
-   for(int cnter=0; cnter<headerlist.size(); cnter++) {
-      tableWidget->resizeColumnToContents(cnter);
-   }
+   /* set default sorting */
+   tableWidget->sortByColumn(headerlist.indexOf(tr("Job Name")), Qt::AscendingOrder);
+   tableWidget->setSortingEnabled(true);
+   
+   /* Resize rows and columns */
+   tableWidget->resizeColumnsToContents();
+   tableWidget->resizeRowsToContents();
 }
 
 /*
@@ -180,8 +166,7 @@ void Jobs::tableItemChanged(QTableWidgetItem *currentwidgetitem, QTableWidgetIte
          tableWidget->addAction(actionConsoleDisableJob);
          tableWidget->addAction(actionConsoleCancel);
          tableWidget->addAction(actionJobListQuery);
-         if (type == tr("Backup"))
-            tableWidget->addAction(actionRunJob);
+         tableWidget->addAction(actionRunJob);
       }
    }
 }
@@ -274,7 +259,7 @@ void Jobs::listJobs()
 }
 
 /*
- * Open a new job run page with the currentley selected "Backup" job 
+ * Open a new job run page with the currently selected job 
  * defaulted In
  */
 void Jobs::runJob()

@@ -137,6 +137,7 @@ void JobList::populateTable()
    m_checkCurrentWidget = true;
    mp_tableWidget->setColumnCount(headerlist.size());
    mp_tableWidget->setHorizontalHeaderLabels(headerlist);
+   mp_tableWidget->horizontalHeader()->setHighlightSections(false);
    mp_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
    mp_tableWidget->setSortingEnabled(false); /* rows move on insert if sorting enabled */
 
@@ -195,10 +196,7 @@ void JobList::populateTable()
          jobitem.setJobStatusFld(col++, shortstatus, longstatus);
 
 	 /* purged */
-         if (fld.next().toInt())
-	    jobitem.setTextFld(col++, tr("IS"), true);
-	 else
-	    jobitem.setTextFld(col++, tr("NOT"), true);
+	 jobitem.setBoolFld(col++, fld.next());
 
 	 /* fileset */
          jobitem.setTextFld(col++, fld.next());
@@ -246,10 +244,23 @@ void JobList::prepareFilterWidgets()
       if (jobIndex != -1) {
          jobComboBox->setCurrentIndex(jobIndex);
       }
+
       levelComboBox->addItem(tr("Any"));
-      levelComboBox->addItems( QStringList() << "F" << "D" << "I");
-      purgedComboBox->addItem(tr("Any"));
-      purgedComboBox->addItems( QStringList() << "0" << "1");
+      levelComboBox->addItem(job_level_to_str(L_FULL), L_FULL);
+      levelComboBox->addItem(job_level_to_str(L_INCREMENTAL), L_INCREMENTAL);
+      levelComboBox->addItem(job_level_to_str(L_DIFFERENTIAL), L_DIFFERENTIAL);
+      levelComboBox->addItem(job_level_to_str(L_SINCE), L_SINCE);
+      levelComboBox->addItem(job_level_to_str(L_VERIFY_CATALOG), L_VERIFY_CATALOG);
+      levelComboBox->addItem(job_level_to_str(L_VERIFY_INIT), L_VERIFY_INIT);
+      levelComboBox->addItem(job_level_to_str(L_VERIFY_VOLUME_TO_CATALOG), L_VERIFY_VOLUME_TO_CATALOG);
+      levelComboBox->addItem(job_level_to_str(L_VERIFY_DISK_TO_CATALOG), L_VERIFY_DISK_TO_CATALOG);
+      levelComboBox->addItem(job_level_to_str(L_VERIFY_DATA), L_VERIFY_DATA);
+      /* levelComboBox->addItem(job_level_to_str(L_BASE), L_BASE);  base jobs ignored */ 
+
+      purgedComboBox->addItem(tr("Any"), -1);
+      purgedComboBox->addItem(tr("No"), 0);
+      purgedComboBox->addItem(tr("Yes"), 1);
+
       fileSetComboBox->addItem(tr("Any"));
       fileSetComboBox->addItems(m_console->fileset_list);
       int filesetIndex = fileSetComboBox->findText(m_filesetName, Qt::MatchExactly);
@@ -302,15 +313,15 @@ void JobList::fillQueryString(QString &query)
    }
    int levelIndex = levelComboBox->currentIndex();
    if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != tr("Any"))) {
-      conditions.append("Job.Level='" + levelComboBox->itemText(levelIndex) + "'");
+      conditions.append( QString("Job.Level='%1'").arg(levelComboBox->itemData(levelIndex).toChar()) );
    }
    int statusIndex = statusComboBox->currentIndex();
    if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != tr("Any"))) {
       conditions.append("Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'");
    }
    int purgedIndex = purgedComboBox->currentIndex();
-   if ((purgedIndex != -1) && (purgedComboBox->itemText(purgedIndex) != tr("Any"))) {
-      conditions.append("Job.PurgedFiles='" + purgedComboBox->itemText(purgedIndex) + "'");
+   if (purgedIndex != -1 && purgedComboBox->itemData(purgedIndex).toInt() >= 0 ) {
+      conditions.append("Job.PurgedFiles='" + purgedComboBox->itemData(purgedIndex).toString() + "'");
    }
    int fileSetIndex = fileSetComboBox->currentIndex();
    if (fileSetIndex != -1)
@@ -372,22 +383,16 @@ void JobList::currentStackItem()
  */
 void JobList::treeWidgetName(QString &desc)
 {
-   if ((m_mediaName == "") && (m_clientName == "") && (m_jobName == "") && (m_filesetName == "")) {
-      desc = "JobList";
+   if (m_mediaName != "" ) {
+     desc = tr("JobList of Volume %1").arg(m_mediaName);
+   } else if (m_clientName != "" ) {
+     desc = tr("JobList of Client %1").arg(m_clientName);
+   } else if (m_jobName != "" ) {
+     desc = tr("JobList of Job %1").arg(m_jobName);
+   } else if (m_filesetName != "" ) {
+     desc = tr("JobList of fileset %1").arg(m_filesetName);
    } else {
-      desc = "JobList ";
-      if (m_mediaName != "" ) {
-         desc += "of Volume " + m_mediaName;
-      }
-      if (m_clientName != "" ) {
-         desc += "of Client " + m_clientName;
-      }
-      if (m_jobName != "" ) {
-         desc += "of Job " + m_jobName;
-      }
-      if (m_filesetName != "" ) {
-         desc += "of fileset " + m_filesetName;
-      }
+     desc = tr("JobList");
    }
 }
 
@@ -406,7 +411,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       jobitem = mp_tableWidget->item(row, m_purgedIndex);
       QString purged = jobitem->text();
       mp_tableWidget->removeAction(actionPurgeFiles);
-      if (purged == "NOT") {
+      if (purged == tr("No") ) {
          mp_tableWidget->addAction(actionPurgeFiles);
       }
       /* include restore from time and job action or not */
@@ -414,7 +419,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       QString type = jobitem->text();
       mp_tableWidget->removeAction(actionRestoreFromJob);
       mp_tableWidget->removeAction(actionRestoreFromTime);
-      if (type == "Backup") {
+      if (type == tr("Backup")) {
          mp_tableWidget->addAction(actionRestoreFromJob);
          mp_tableWidget->addAction(actionRestoreFromTime);
       }
@@ -422,7 +427,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       jobitem = mp_tableWidget->item(row, m_statusIndex);
       QString status = jobitem->text();
       mp_tableWidget->removeAction(actionCancelJob);
-      if (status == "Running") {
+      if (status == tr("Running")) {
          mp_tableWidget->addAction(actionCancelJob);
       }
    }
@@ -681,9 +686,9 @@ void JobList::selectedJobsGet()
    }
    m_selectedJobsCount = rowList.count();
    if (m_selectedJobsCount > 1) {
-      QString text = QString("Delete list of %1 Jobs").arg(m_selectedJobsCount);
-      actionDeleteJob->setText(text);
+     QString text = QString( tr("Delete list of %1 Jobs")).arg(m_selectedJobsCount);
+       actionDeleteJob->setText(text);
    } else {
-      actionDeleteJob->setText("Delete Single Job");
+     actionDeleteJob->setText(tr("Delete Single Job"));
    }
 }

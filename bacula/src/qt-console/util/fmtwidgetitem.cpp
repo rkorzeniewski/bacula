@@ -42,6 +42,7 @@
 #include <QString>
 #include <QStringList>
 #include <math.h>
+#include "bacula.h"
 #include "fmtwidgetitem.h"
 
 /***********************************************
@@ -295,29 +296,22 @@ void ItemFormatterBase::setJobStatusFld(int index, const QString &shortstatus,
 
 void ItemFormatterBase::setJobTypeFld(int index, const QString &fld, bool center)
 {
-   static QHash<QString, QString> jobt;
-   if (jobt.isEmpty()) {
-      jobt.insert("B", QObject::tr("Backup"));
-      jobt.insert("R", QObject::tr("Restore"));
-      jobt.insert("V", QObject::tr("Verify"));
-      jobt.insert("A", QObject::tr("Admin"));
+   QByteArray jtype(fld.trimmed().toAscii());
+   if (jtype.size()) {
+      setTextFld(index, job_type_to_str(jtype[0]), center);
+   } else {
+      setTextFld(index, "", center);
    }
-
-   setTextFld(index, jobt.value(fld.trimmed(), fld.trimmed()), center);
 }
 
 void ItemFormatterBase::setJobLevelFld(int index, const QString &fld, bool center)
 {
-   static QHash<QString, QString> jobt;
-   if (jobt.isEmpty()) {
-      jobt.insert("F", QObject::tr("Full"));
-      jobt.insert("D", QObject::tr("Differential"));
-      jobt.insert("I", QObject::tr("Incremental"));
-      jobt.insert("C", QObject::tr("Catalog"));
-      jobt.insert("O", QObject::tr("VolToCatalog"));
+   QByteArray lvl(fld.trimmed().toAscii());
+   if (lvl.size()) {
+      setTextFld(index, job_level_to_str(lvl[0]), center);
+   } else {
+      setTextFld(index, "", center);
    }
-
-   setTextFld(index, jobt.value(fld.trimmed(), fld.trimmed()), center);
 }
 
 

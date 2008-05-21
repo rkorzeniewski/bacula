@@ -258,11 +258,10 @@ void Pages::changeEvent(QEvent *event)
  */
 void Pages::setTitle()
 {
-   QString title, director;
-   treeWidgetName(title);
+   QString wdgname, director;
+   treeWidgetName(wdgname);
    m_console->getDirResName(director);
-   title += tr(" of Director ");
-   title += director;
+   QString title = tr("%1 of Director %2").arg(wdgname).arg(director);
    setWindowTitle(title);
 }
 
@@ -289,13 +288,12 @@ void Pages::setCurrent()
 void Pages::setContextMenuDockText()
 {
    QTreeWidgetItem *item = mainWin->getFromHash(this);
-   QString docktext("");
+   QString docktext;
    if (isDocked()) {
-       docktext += tr("UnDock ");
+      docktext = tr("UnDock %1 Window").arg(item->text(0));
    } else {
-       docktext += tr("ReDock ");
+      docktext = tr("ReDock %1 Window").arg(item->text(0));
    }
-   docktext += item->text(0) += tr(" Window");
       
    mainWin->actionToggleDock->setText(docktext);
    setTreeWidgetItemDockColor();
@@ -309,7 +307,7 @@ void Pages::setTreeWidgetItemDockColor()
 {
    QTreeWidgetItem* item = mainWin->getFromHash(this);
    if (item) {
-      if (item->text(0) != "Console") {
+      if (item->text(0) != tr("Console")) {
          if (isDocked()) {
          /* Set the brush to blue if undocked */
             QBrush blackBrush(Qt::black);
