@@ -1165,7 +1165,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
    get_level_since_time(ua->jcr, since, sizeof(since));
 
    ua->send_msg(_("Connecting to Client %s at %s:%d\n"),
-      job->client->name(), job->client->address, job->client->FDport);
+      jcr->client->name(), jcr->client->address, jcr->client->FDport);
    if (!connect_to_file_daemon(jcr, 1, 15, 0)) {
       ua->error_msg(_("Failed to connect to Client.\n"));
       return 1;
