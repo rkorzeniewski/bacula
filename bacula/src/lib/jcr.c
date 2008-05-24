@@ -405,7 +405,7 @@ static void free_common_jcr(JCR *jcr)
 #ifdef DEBUG
 void b_free_jcr(const char *file, int line, JCR *jcr)
 {
-   struct s_last_job *je, last_job;
+   struct s_last_job *je;
 
    Dmsg3(dbglvl, "Enter free_jcr jid=%u from %s:%d\n", jcr->JobId, file, line);
 
@@ -413,7 +413,7 @@ void b_free_jcr(const char *file, int line, JCR *jcr)
 
 void free_jcr(JCR *jcr)
 {
-   struct s_last_job *je, last_job;
+   struct s_last_job *je;
 
    Dmsg3(dbglvl, "Enter free_jcr jid=%u use_count=%d Job=%s\n", 
          jcr->JobId, jcr->use_count(), jcr->Job);
@@ -453,23 +453,24 @@ void free_jcr(JCR *jcr)
    case JT_MIGRATE:
    case JT_COPY:
    case JT_ADMIN:
-      num_jobs_run++;
-      last_job.Errors = jcr->Errors;
-      last_job.JobType = jcr->JobType;
-      last_job.JobId = jcr->JobId;
-      last_job.VolSessionId = jcr->VolSessionId;
-      last_job.VolSessionTime = jcr->VolSessionTime;
-      bstrncpy(last_job.Job, jcr->Job, sizeof(last_job.Job));
-      last_job.JobFiles = jcr->JobFiles;
-      last_job.JobBytes = jcr->JobBytes;
-      last_job.JobStatus = jcr->JobStatus;
-      last_job.JobLevel = jcr->JobLevel;
-      last_job.start_time = jcr->start_time;
-      last_job.end_time = time(NULL);
       /* Keep list of last jobs, but not Console where JobId==0 */
-      if (last_job.JobId > 0) {
+      if (jcr->JobId > 0) {
+         num_jobs_run++;
          je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
-         memcpy((char *)je, (char *)&last_job, sizeof(last_job));
+         memset(je, 0, sizeof(struct s_last_job));  /* zero in case unset fields */
+         je->Errors = jcr->Errors;
+         je->JobType = jcr->JobType;
+         je->JobId = jcr->JobId;
+         je->VolSessionId = jcr->VolSessionId;
+         je->VolSessionTime = jcr->VolSessionTime;
+         bstrncpy(je->Job, jcr->Job, sizeof(je->Job));
+         je->JobFiles = jcr->JobFiles;
+         je->JobBytes = jcr->JobBytes;
+         je->JobStatus = jcr->JobStatus;
+         je->JobLevel = jcr->JobLevel;
+         je->start_time = jcr->start_time;
+         je->end_time = time(NULL);
+
          if (!last_jobs) {
             init_last_jobs_list();
          }

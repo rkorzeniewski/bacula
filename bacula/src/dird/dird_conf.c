@@ -636,7 +636,7 @@ void dump_resource(int type, RES *reshdr, void sendit(void *sock, const char *fm
          sendit(sock, _("     SpoolSize=%s\n"),        edit_uint64(res->res_job.spool_size, ed1));
       }
       if (res->res_job.stats_enabled) {
-	 sendit(sock, _("     StatsEnabled=%d\n"), res->res_job.stats_enabled);
+         sendit(sock, _("     StatsEnabled=%d\n"), res->res_job.stats_enabled);
       }
       if (res->res_job.JobType == JT_BACKUP) {
          sendit(sock, _("     Accurate=%d\n"), res->res_job.accurate);
@@ -1616,7 +1616,7 @@ static void store_device(LEX *lc, RES_ITEM *item, int index, int pass)
 }
 
 /*
- * Store JobType (backup, verify, restore)
+ * Store Migration/Copy type
  *
  */
 void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass)
