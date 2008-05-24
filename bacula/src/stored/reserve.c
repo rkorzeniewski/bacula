@@ -187,17 +187,6 @@ void debug_list_volumes(const char *imsg)
       Dmsg1(dbglvl, "%s", msg.c_str());
    }
 
-#ifdef xxx
-   DEVICE *dev = NULL;
-   foreach_dlist(vol, vol_list) {
-      if (vol->dev == dev) {
-         Dmsg0(dbglvl, "Two Volumes on same device.\n");
-         ASSERT(0);
-         dev = vol->dev;
-      }
-   }
-#endif
-
    unlock_volumes();
 }
 
@@ -358,6 +347,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          }
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          free_volume(dev);
+//       volume_unused(dcr);
          dev->set_unload();             /* have to unload current volume */
          debug_list_volumes("reserve_vol free");
       }
@@ -398,8 +388,10 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
             Dmsg3(dbglvl, "==== Swap vol=%s from dev=%s to %s\n", 
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
+//          volume_unused(dcr);
+            dev->set_unload();           /* Unload any volume that is on our drive */
             dcr->dev = vol->dev;         /* temp point to other dev */
-            slot = get_autochanger_loaded_slot(dcr);  /* get slot */
+            slot = get_autochanger_loaded_slot(dcr);  /* get slot on other drive */
             dcr->dev = dev;              /* restore dev */
             vol->set_slot(slot);         /* save slot */
             vol->dev->set_unload();      /* unload the other drive */
@@ -600,7 +592,7 @@ bool free_volume(DEVICE *dev)
    if (!vol->is_swapping()) {
       dev->vol = NULL;
       vol_list->remove(vol);
-      Dmsg2(dbglvl, "=== free_volume %s dev=%s\n", vol->vol_name, dev->print_name());
+      Dmsg2(dbglvl, "=== remove volume %s dev=%s\n", vol->vol_name, dev->print_name());
       free_vol_item(vol);
       debug_list_volumes("free_volume");
    }
