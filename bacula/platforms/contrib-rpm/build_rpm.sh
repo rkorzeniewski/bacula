@@ -76,6 +76,10 @@ SAVEUPDATEDB=0
 # to override your language shell variable uncomment and edit this
 # export LANG=en_US.UTF-8
 
+# if you have a problem getting bat to build try these (needed on Fedora 8/9)
+# export QTDIR=/usr/lib/qt4
+# export PATH=/usr/lib/qt4/bin;$PATH
+
 # Make no changes below this point without consensus
 
 ############################################################################################
