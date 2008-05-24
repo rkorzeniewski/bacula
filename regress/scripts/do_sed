@@ -69,7 +69,7 @@ chmod 755 ${cwd}/scripts/cleanup-*tape ${cwd}/scripts/cleanup-*drive ${cwd}/scri
 rm -f ${cwd}/tmp/bac$$
 cp ${cwd}/bin/mtx-changer ${cwd}/tmp/bac$$
 sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-changer
-chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-big-autochanger
+chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-fake-autochanger
 
 # get proper SD tape definitions
 cp -f ${cwd}/scripts/linux_tape_options ${cwd}/bin/tape_options
