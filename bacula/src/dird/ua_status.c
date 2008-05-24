@@ -432,7 +432,9 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    bool close_db = false;
    JCR *jcr = ua->jcr;
    MEDIA_DBR mr;
+   int orig_jobtype;
 
+   orig_jobtype = jcr->JobType;
    memset(&mr, 0, sizeof(mr));
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
@@ -475,6 +477,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       db_close_database(jcr, jcr->db);
    }
    jcr->db = ua->db;                  /* restore ua db to jcr */
+   jcr->JobType = orig_jobtype;
 }
 
 /*
