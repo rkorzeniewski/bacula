@@ -5,7 +5,7 @@
 
 # basic defines for every build
 %define _version @VERSION@
-%define _release 2
+%define _release 1
 %define depkgs_version 22Feb08
 %define _rescuever @VERSION@
 %define docs_version @VERSION@
@@ -101,6 +101,8 @@ Packager: %{_packager}
 %{?build_fc7:%define fc7 1}
 %define fc8 0
 %{?build_fc8:%define fc8 1}
+%define fc9 0
+%{?build_fc9:%define fc9 1}
 # Whitebox Enterprise build
 %define wb3 0
 %{?build_wb3:%define wb3 1}
@@ -155,7 +157,7 @@ Packager: %{_packager}
 %{?build_client_only:%define client_only 1}
 
 # test for a platform definition
-%if !%{rh7} && !%{rh8} && !%{rh9} && !%{fc1} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{wb3} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk}
+%if !%{rh7} && !%{rh8} && !%{rh9} && !%{fc1} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9} && !%{wb3} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk}
 %{error: You must specify a platform. Please examine the spec file.}
 exit 1
 %endif
@@ -203,7 +205,7 @@ exit 1
 %if %{rh7} || %{rh8} || %{rh9} || %{rhel3} || %{rhel4} || %{rhel5}
 %define _dist %(grep Red /etc/redhat-release)
 %endif
-%if %{fc1} || %{fc4} || %{fc5} || %{fc7} || %{fc8}
+%if %{fc1} || %{fc4} || %{fc5} || %{fc7} || %{fc8} || %{fc9}
 %define _dist %(grep Fedora /etc/redhat-release)
 %endif
 %if %{centos5} || %{centos4} || %{centos3}
@@ -301,7 +303,7 @@ BuildRequires: pkgconfig, pango-devel, atk-devel
 %endif
 
 # Rh qt4 packages don't have a provide for, guess what, qt!
-# still broken in fc8
+# still broken in fc8, ok in fc9
 # so fix for broken rh
 %define broken_rh 0
 %if %{rhel5} || %{centos5} || %{sl5} || %{fc5} || %{fc6} || %{fc7} || %{fc8}
@@ -509,11 +511,26 @@ BuildRequires: libbonoboui-devel >= 2.20
 BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
-%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8}
+%if %{fc9}
+BuildRequires: libtermcap-devel
+BuildRequires: glibc-devel >= 2.8
+BuildRequires: zlib-static
+%endif
+%if %{fc9} && %{gconsole}
+BuildRequires: gtk2-devel >= 2.12
+BuildRequires: libgnomeui-devel >= 2.22
+BuildRequires: ORBit2-devel
+BuildRequires: libart_lgpl-devel >= 2.3
+BuildRequires: libbonobo-devel >= 2.22
+BuildRequires: libbonoboui-devel >= 2.22
+BuildRequires: GConf2-devel
+BuildRequires: freetype-devel
+%endif
+%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
 BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.3
 %endif
-%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && %{gconsole}
+%if !%{rh7} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9} && %{gconsole}
 BuildRequires: gtk2-devel >= 2.0
 BuildRequires: libgnomeui-devel >= 2.0
 BuildRequires: ORBit2-devel
@@ -599,7 +616,7 @@ Requires: termcap
 Requires: glibc >= 2.6
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{fc5} && ! %{fc6} && ! %{fc7} && ! %{fc8}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{fc5} && ! %{fc6} && ! %{fc7} && ! %{fc8} && ! %{fc9}
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
@@ -613,6 +630,10 @@ Requires: libtermcap
 %endif
 %if %{fc8}
 Requires: glibc >= 2.7
+Requires: libtermcap
+%endif
+%if %{fc9}
+Requires: glibc >= 2.8
 Requires: libtermcap
 %endif
 
@@ -751,7 +772,7 @@ Requires: termcap
 Requires: glibc >= 2.6
 Requires: termcap
 %endif
-%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{fc5} && ! %{fc6} && ! %{fc7} && ! %{fc8}
+%if ! %{rh7} && ! %{su9} && ! %{su10} && ! %{su102} && ! %{su103} && ! %{fc5} && ! %{fc6} && ! %{fc7} && ! %{fc8} && ! %{fc9}
 Requires: glibc >= 2.3
 Requires: libtermcap
 %endif
@@ -765,6 +786,10 @@ Requires: libtermcap
 %endif
 %if %{fc8}
 Requires: glibc >= 2.7
+Requires: libtermcap
+%endif
+%if %{fc9}
+Requires: glibc >= 2.8
 Requires: libtermcap
 %endif
 
@@ -972,7 +997,18 @@ Requires: libbonoboui >= 2.20
 Requires: GConf2
 Requires: freetype
 %endif
-%if %{gconsole} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8}
+%if %{gconsole} && %{fc9}  
+Requires: gtk2 >= 2.12
+Requires: libgnomeui >= 2.22
+Requires: glibc >= 2.8
+Requires: ORBit2
+Requires: libart_lgpl >= 2.3
+Requires: libbonobo >= 2.22
+Requires: libbonoboui >= 2.22
+Requires: GConf2
+Requires: freetype
+%endif
+%if %{gconsole} && !%{su9} && !%{su10} && !%{su102} && !%{su103} && !%{mdk} && !%{fc3} && !%{fc4} && !%{fc5} && !%{fc6} && !%{fc7} && !%{fc8} && !%{fc9}
 Requires: gtk2 >= 2.0
 Requires: libgnomeui >= 2.0
 Requires: glibc >= 2.3
@@ -1056,7 +1092,11 @@ Requires: gtk2 >= 2.10
 Requires: gtk2 >= 2.10
 %endif
 
-%if %{wxconsole} && %{fc7}  
+%if %{wxconsole} && %{fc8}  
+Requires: gtk2 >= 2.12
+%endif
+
+%if %{wxconsole} && %{fc9}  
 Requires: gtk2 >= 2.12
 %endif
 
@@ -1162,6 +1202,18 @@ Requires: freetype
 Requires: libgcc
 Requires: libpng
 Requires: qt4 >= 4.2
+Requires: libstdc++
+Requires: zlib
+%endif
+
+%if %{bat} && %{fc8}
+Requires: openssl
+Requires: glibc >= 2.8
+Requires: fontconfig
+Requires: freetype
+Requires: libgcc
+Requires: libpng
+Requires: qt4 >= 4.3
 Requires: libstdc++
 Requires: zlib
 %endif
@@ -1516,7 +1568,7 @@ cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
 cp -p src/qt-console/images/bat_icon.png $RPM_BUILD_ROOT/usr/share/pixmaps/bat_icon.png
 cp -p scripts/bat.desktop.xsu $RPM_BUILD_ROOT/usr/share/applications/bat.desktop
 %endif
-%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{mdk}
+%if %{rh8} || %{rh9} || %{wb3} || %{fc1} || %{fc3} || %{fc4} || %{fc5} || %{fc6} || %{fc7} || %{fc8} || %{fc9} || %{mdk}
 %define iftrick 1
 %else
 %define iftrick 0
@@ -2235,6 +2287,8 @@ fi
 %endif
 
 %changelog
+* Sat May 24 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- add fc9 target
 * Sun Mar 30 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - FHS compatibility changes
 * Sat Feb 16 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
