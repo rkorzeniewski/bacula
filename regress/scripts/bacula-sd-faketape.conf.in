@@ -27,7 +27,7 @@ Director {
 #
 Autochanger {
   Name = LTO
-  Changer Device = @autochanger@
+  Changer Device = @working_dir@/ach/conf
   Changer Command ="@scriptdir@/@changer_script@ %c %o %S %a %d"
   Device = LTO3_0, LTO3_1, LTO3_2, LTO1_3, LTO1_4
 }
