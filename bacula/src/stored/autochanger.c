@@ -187,7 +187,7 @@ int autoload_device(DCR *dcr, int writing, BSOCK *dir)
           * Load the desired cassette
           */
          lock_changer(dcr);
-         Dmsg1(100, "Doing changer load slot %d\n", slot);
+         Dmsg2(100, "Doing changer load slot %d %s\n", slot, dev->print_name());
          Jmsg(jcr, M_INFO, 0,
               _("3304 Issuing autochanger \"load slot %d, drive %d\" command.\n"),
               slot, drive);
@@ -338,6 +338,7 @@ bool unload_autochanger(DCR *dcr, int loaded)
 
    /* Virtual disk autochanger */
    if (dcr->device->changer_command[0] == 0) {
+      dev->clear_unload();
       return true;
    }
 
@@ -371,12 +372,12 @@ bool unload_autochanger(DCR *dcr, int loaded)
       } else {
          dev->Slot = 0;            /* nothing loaded */
       }
-      dev->clear_unload();
       unlock_changer(dcr);
 
       free_volume(dev);            /* Free any volume associated with this drive */
       free_pool_memory(changer);
    }
+   dev->clear_unload();
    return ok;
 }
 
@@ -481,8 +482,8 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
       ok = false;
       dev->Slot = -1;          /* unknown */
    } else {
+      Dmsg2(100, "Slot %d unloaded %s\n", dev->Slot, dev->print_name());
       dev->Slot = 0;           /* nothing loaded */
-      Dmsg0(100, "Slot unloaded\n");
    }
    dev->clear_unload();
    unlock_changer(dcr);

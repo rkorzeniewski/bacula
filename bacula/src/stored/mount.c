@@ -474,7 +474,6 @@ void DCR::do_swapping(bool is_writing)
 {
    if (dev->must_unload()) {
       Dmsg1(100, "swapping: unloading %s\n", dev->print_name());
-      unload_autochanger(this, -1);
       release_volume();
       dev->clear_unload();
    }
@@ -670,6 +669,8 @@ void DCR::mark_volume_not_inchanger()
  */
 void DCR::release_volume()
 {
+   unload_autochanger(this, -1);
+
    if (WroteVol) {
       Jmsg0(jcr, M_ERROR, 0, _("Hey!!!!! WroteVol non-zero !!!!!\n"));
       Dmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
