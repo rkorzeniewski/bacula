@@ -1,0 +1,56 @@
+HOWTO SETUP A FAKE TAPE ENVIRONMENT
+-----------------------------------
+
+Introduction:
+-------------
+
+The fake tape driver attempts to simulate a tape drive from a low level
+aspect. It emulate tape operations like fsf, bsf, weom, variable bloc, etc..
+
+For that the driver implements 5 operations :
+ - read
+ - write
+ - open
+ - close
+ - ioctl
+
+If your bacula's binaries are compiled with fake tape support, you won't be
+able to use real tape drive.
+
+
+Setup the regress environment for tape tests
+--------------------------------------------
+
+Be sure to configure your config file with this :
+
+TAPE_DRIVE="/tmp/drive0"
+TAPE_DRIVE1="/tmp/drive1"
+DRIVE1=0
+DRIVE2=1
+SLOT1=1
+SLOT2=2
+AUTOCHANGER="/tmp/ach_config"
+USE_FAKETAPE=--enable-faketape
+AUTOCHANGER_SCRIPT=disk-changer
+
+You can remplace /tmp/ by what you want.
+
+Then, the /tmp/ach_config can contain this to simulate 2 drives :
+maxdrive=2
+maxslot=10
+
+And type "make setup"
+
+That all !
+
+
+Setup a quite big autochanger (5 drives and 80 slots)
+-----------------------------------------------------
+
+Just run "./tests/faketape-test-changer" test to use right configuration files,
+then you can use "./scripts/prepare-fake-autochanger" script to initialize the
+dummy autochanger.
+
+
+
+
