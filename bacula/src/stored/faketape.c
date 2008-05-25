@@ -57,7 +57,7 @@ Device {
 
  */
 
-#include "bacula.h"		/* define 64bit file usage */
+#include "bacula.h"             /* define 64bit file usage */
 #include "stored.h"
 
 #ifdef USE_FAKETAPE
@@ -192,15 +192,15 @@ int faketape::tape_op(struct mtop *mt_com)
       result = -1;
       break;
 
-   case MTFSF:			/* Forward space over mt_count filemarks. */
+   case MTFSF:                  /* Forward space over mt_count filemarks. */
       result = fsf(mt_com->mt_count);
       break;
 
-   case MTBSF:			/* Backward space over mt_count filemarks. */
+   case MTBSF:                  /* Backward space over mt_count filemarks. */
       result = bsf(mt_com->mt_count);
       break;
 
-   case MTFSR:	    /* Forward space over mt_count records (tape blocks). */
+   case MTFSR:      /* Forward space over mt_count records (tape blocks). */
 /*
     file number = 1
     block number = 0
@@ -221,11 +221,11 @@ int faketape::tape_op(struct mtop *mt_com)
       result = bsr(mt_com->mt_count);
       break;
 
-   case MTWEOF:			/* Write mt_count filemarks. */
+   case MTWEOF:                 /* Write mt_count filemarks. */
       result = weof(mt_com->mt_count);
       break;
 
-   case MTREW:			/* Rewind. */
+   case MTREW:                  /* Rewind. */
       Dmsg0(dbglevel, "rewind faketape\n");
       atEOF = atEOD = false;
       atBOT = true;
@@ -234,20 +234,20 @@ int faketape::tape_op(struct mtop *mt_com)
       seek_file();
       break;
 
-   case MTOFFL:			/* put tape offline */
+   case MTOFFL:                 /* put tape offline */
       result = offline();
       break;
 
-   case MTRETEN:		/* Re-tension tape. */
+   case MTRETEN:                /* Re-tension tape. */
       result = 0;
       break;
 
-   case MTBSFM:			/* not used by bacula */
+   case MTBSFM:                 /* not used by bacula */
       errno = EIO;
       result = -1;
       break;
 
-   case MTFSFM:			/* not used by bacula */
+   case MTFSFM:                 /* not used by bacula */
       errno = EIO;
       result = -1;
       break;
@@ -268,7 +268,7 @@ int faketape::tape_op(struct mtop *mt_com)
       seek_file();
       break;
 
-   case MTERASE:		/* not used by bacula */
+   case MTERASE:                /* not used by bacula */
       atEOD = true;
       atEOF = false;
       atEOT = false;
@@ -392,6 +392,7 @@ int faketape::truncate_file()
    ftruncate(fd, lseek(fd, 0, SEEK_CUR));
    last_file = current_file;
    atEOD=true;
+   update_pos();
    return 0;
 }
 
@@ -407,14 +408,12 @@ faketape::faketape()
    inplace = false;
    needEOF = false;
 
-   file_size = 0;
+   file_block = 0;
    last_file = 0;
    current_file = 0;
    current_block = -1;
-   current_pos = 0;
 
-   max_block = 1024*1024*1024*1024*8;
-
+   max_block = 2*1024*100;      /* 100MB */
 }
 
 faketape::~faketape()
@@ -449,7 +448,7 @@ int faketape::write(const void *buffer, unsigned int count)
       seek_file();
    }
 
-   if (!atEOD) {		/* if not at the end of the data */
+   if (!atEOD) {                /* if not at the end of the data */
       truncate_file();
    }
  
@@ -459,14 +458,14 @@ int faketape::write(const void *buffer, unsigned int count)
 
    atBOT = false;
    atEOF = false;
-   atEOD = true;		/* End of data */
+   atEOD = true;                /* End of data */
 
-   needEOF = true;		/* next operation need EOF mark */
+   needEOF = true;              /* next operation need EOF mark */
 
 //   if ((count + file_size) > max_size) {
 //      Dmsg2(dbglevel, 
-//	    "EOT writing only %i of %i requested\n", 
-//	    max_size - file_size, count);
+//          "EOT writing only %i of %i requested\n", 
+//          max_size - file_size, count);
 //      count = max_size - file_size;
 //      atEOT = true;
 //   }
@@ -475,14 +474,14 @@ int faketape::write(const void *buffer, unsigned int count)
    ::write(fd, &size, sizeof(uint32_t));
    nb = ::write(fd, buffer, count);
    
-   file_size += sizeof(uint32_t) + nb;
-
    if (nb != count) {
       atEOT = true;
       Dmsg2(dbglevel, 
-	    "Not enough space writing only %i of %i requested\n", 
-	    nb, count);
+            "Not enough space writing only %i of %i requested\n", 
+            nb, count);
    }
+
+   update_pos();
 
    return nb;
 }
@@ -492,14 +491,14 @@ int faketape::weof(int count)
    ASSERT(online);
    ASSERT(current_file >= 0);
    Dmsg3(dbglevel, "Writing EOF %i:%i last=%i\n", 
-	 current_file, current_block,last_file);
+         current_file, current_block,last_file);
    if (atEOT) {
       errno = ENOSPC;
       current_block = -1;
       return -1;
    }
    needEOF = false;
-   truncate_file();		/* nothing after this point */
+   truncate_file();             /* nothing after this point */
 
    /* TODO: check this */
    current_file += count;
@@ -513,6 +512,8 @@ int faketape::weof(int count)
    atEOD = false;
    atBOT = false;
    atEOF = true;
+
+   update_pos();
 
    return 0;
 }
@@ -581,34 +582,31 @@ int faketape::fsr(int count)
    for(i=0; (i < count) && !atEOF ; i++) {
       nb = ::read(fd, &s, sizeof(uint32_t)); /* get size of next block */
       if (nb == sizeof(uint32_t) && s) {
-	 current_block++;
-	 where = lseek(fd, s, SEEK_CUR);     /* seek after this block */
+         current_block++;
+         where = lseek(fd, s, SEEK_CUR);     /* seek after this block */
       } else {
-	 Dmsg4(dbglevel, "read EOF %i:%i nb=%i s=%i\n",
-	       current_file, current_block, nb,s);
-	 errno = EIO;
-	 ret = -1;
-	 if (current_file < last_file) {
-	    current_block = 0;
-	    current_file++;
-	    seek_file();
-	 }
-	 atEOF = true;		/* stop the loop */
+         Dmsg4(dbglevel, "read EOF %i:%i nb=%i s=%i\n",
+               current_file, current_block, nb,s);
+         errno = EIO;
+         ret = -1;
+         if (current_file < last_file) {
+            current_block = 0;
+            current_file++;
+            seek_file();
+         }
+         atEOF = true;          /* stop the loop */
       }
    }
 
-   find_maxfile();		/* refresh stats */
+   find_maxfile();              /* refresh stats */
 
-   if (where == file_size) {
-      atEOD = true;
-   }
    return ret;
 }
 
 int faketape::bsr(int count)
 {
    Dmsg2(dbglevel, "bsr current_block=%i count=%i\n", 
-	 current_block, count);
+         current_block, count);
 
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -635,29 +633,29 @@ int faketape::bsr(int count)
 
    do {
       if (!atEOF) {
-	 last2 = last;
-	 last = lseek(fd, 0, SEEK_CUR);
-	 last_f = current_file;
-	 last_b = current_block;
-	 Dmsg5(dbglevel, "EOF=%i last=%lli orig=%lli %i:%i\n", 
-	       atEOF, last, orig, current_file, current_block);
+         last2 = last;
+         last = lseek(fd, 0, SEEK_CUR);
+         last_f = current_file;
+         last_b = current_block;
+         Dmsg5(dbglevel, "EOF=%i last=%lli orig=%lli %i:%i\n", 
+               atEOF, last, orig, current_file, current_block);
       }
       ret = fsr(1);
    } while ((lseek(fd, 0, SEEK_CUR) < orig) && (ret == 0));
 
-   if (last2 > 0 && atEOF) {	/* we take the previous position */
+   if (last2 > 0 && atEOF) {    /* we take the previous position */
       lseek(fd, last2, SEEK_SET);
       current_file = last_f;
       current_block = last_b - 1;
       Dmsg3(dbglevel, "set offset2=%lli %i:%i\n", 
-	    last, current_file, current_block);
+            last, current_file, current_block);
 
    } else if (last > 0) {
       lseek(fd, last, SEEK_SET);
       current_file = last_f;
       current_block = last_b;
       Dmsg3(dbglevel, "set offset=%lli %i:%i\n", 
-	    last, current_file, current_block);
+            last, current_file, current_block);
    } else {
       lseek(fd, orig, SEEK_SET);
       current_file = orig_f;
@@ -705,12 +703,13 @@ int faketape::offline()
 {
    close();
    
-   atEOF = false;		/* End of file */
-   atEOT = false;		/* End of tape */
-   atEOD = false;		/* End of data */
-   atBOT = false;		/* Begin of tape */
+   atEOF = false;               /* End of file */
+   atEOT = false;               /* End of tape */
+   atEOD = false;               /* End of data */
+   atBOT = false;               /* Begin of tape */
    online = false;
 
+   file_size = 0;
    current_file = -1;
    current_block = -1;
    last_file = -1;
@@ -768,13 +767,13 @@ int faketape::read(void *buffer, unsigned int count)
       atEOF = true;
       return 0;
    }
-   if (s > count) {		/* not enough buffer to read block */
+   if (s > count) {             /* not enough buffer to read block */
       Dmsg2(dbglevel, "Need more buffer to read next block %i > %i\n",s,count);
       lseek(fd, s, SEEK_CUR);
       errno = ENOMEM;
       return -1;
    }
-   if (!s) {			/* EOF */
+   if (!s) {                    /* EOF */
       atEOF = true;
       lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(uint32_t), SEEK_SET);
       return 0;
@@ -783,8 +782,8 @@ int faketape::read(void *buffer, unsigned int count)
    if (s != nb) {
       atEOF = true;
       if (current_file == last_file) {
-	 atEOD = true;
-	 current_block = -1;
+         atEOD = true;
+         current_block = -1;
       }
       Dmsg0(dbglevel, "EOF during reading\n");
    }
@@ -795,14 +794,14 @@ int faketape::open(const char *pathname, int uflags)
 {
    Dmsg2(dbglevel, "faketape::open(%s, %i)\n", pathname, uflags);
 
-   online = true;		/* assume that drive contains a tape */
+   online = true;               /* assume that drive contains a tape */
 
    struct stat statp;   
    if (stat(pathname, &statp) != 0) {
       Dmsg1(dbglevel, "Can't stat on %s\n", pathname);
       if (uflags & O_NONBLOCK) {
-	 online = false;
-	 fd = ::open("/dev/null", O_CREAT | O_RDWR | O_LARGEFILE, 0600);
+         online = false;
+         fd = ::open("/dev/null", O_CREAT | O_RDWR | O_LARGEFILE, 0600);
       }
    } else {
       fd = ::open(pathname, O_CREAT | O_RDWR | O_LARGEFILE, 0600);
@@ -816,6 +815,7 @@ int faketape::open(const char *pathname, int uflags)
    /* open volume descriptor and get this->fd */
    find_maxfile();
 
+   file_block = 0;
    current_block = 0;
    current_file = 0;
    needEOF = false;
@@ -836,13 +836,25 @@ int faketape::find_maxfile()
       return 0;
    }
    last_file = statp.st_size>>FILE_OFFSET;
-   file_size = statp.st_size;
       
-   current_pos = lseek(fd, 0, SEEK_CUR); /* get current position */
-   Dmsg3(dbglevel+1, "last_file=%i file_size=%u current_pos=%i\n", 
-	 last_file, file_size, current_pos);
+   Dmsg1(dbglevel+1, "last_file=%i\n", last_file);
 
    return last_file;
+}
+
+void faketape::update_pos()
+{
+   ASSERT(online);
+   struct stat statp;
+   if (fstat(fd, &statp) == 0) {
+      file_block = statp.st_blocks;
+   } 
+
+   if (file_block > max_block) {
+      atEOT = true;
+   } else {
+      atEOT = false;
+   }
 }
 
 int faketape::seek_file()
@@ -855,7 +867,7 @@ int faketape::seek_file()
    if(lseek(fd, pos, SEEK_SET) == -1) {
       return -1;
    }
-   last_file = (last_file > current_file)?last_file:current_file;
+   last_file = MAX(last_file, current_file);
    if (current_block > 0) {
       fsr(current_block);
    }
@@ -869,9 +881,9 @@ void faketape::dump()
    Dmsg0(dbglevel+1, "===================\n");
    Dmsg2(dbglevel, "file:block = %i:%i\n", current_file, current_block);
    Dmsg1(dbglevel+1, "last_file=%i\n", last_file);
-   Dmsg1(dbglevel+1, "file_size=%i\n", file_size);  
+   Dmsg1(dbglevel+1, "file_block=%i\n", file_block);  
    Dmsg4(dbglevel+1, "EOF=%i EOT=%i EOD=%i BOT=%i\n", 
-	 atEOF, atEOT, atEOD, atBOT);  
+         atEOF, atEOT, atEOD, atBOT);  
 }
 
 #endif /* USE_FAKETAPE */
