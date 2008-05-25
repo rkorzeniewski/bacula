@@ -56,7 +56,7 @@ class faketape {
 private:
    int         fd;              /* Our file descriptor */
 
-   off_t       file_size;       /* size */
+   off_t       file_block;       /* size */
    off_t       max_block;
 
    bool        atEOF;           /* End of file */
@@ -68,9 +68,8 @@ private:
    bool        needEOF;         /* check if last operation need eof */
 
    int32_t     last_file;       /* last file of the volume */
-   int32_t     current_file;    /* max 65000 files */
-   int32_t     current_block;   /* max 4G blocks of 1KB */
-   off_t       current_pos;     /* current position in stream */
+   int32_t     current_file;    /* current position */
+   int32_t     current_block;   /* current position */
 
    void destroy();
    int find_maxfile();
@@ -78,6 +77,7 @@ private:
    int truncate_file();
    int seek_file();
    void check_eof() { if(needEOF) weof(1);};
+   void update_pos();
 
 public:
    int fsf(int count);
