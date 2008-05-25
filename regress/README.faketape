@@ -5,7 +5,7 @@ Introduction:
 -------------
 
 The fake tape driver attempts to simulate a tape drive from a low level
-aspect. It emulate tape operations like fsf, bsf, weom, variable bloc, etc..
+aspect. It emulates tape operations like fsf, bsf, weom, variable bloc, etc..
 
 For that the driver implements 5 operations :
  - read
