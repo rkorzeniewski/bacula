@@ -451,18 +451,21 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
 
    P(mutex);
    ap = (struct abufhead *) abqueue.qnext;
-   while (ap != (struct abufhead *) &abqueue) {
+   while (ap != (struct abufhead *)&abqueue) {
       bad = 0;
-      if ((ap == NULL) ||
-          (ap->abq.qnext->qprev != (struct b_queue *) ap)) {
-         bad = 0x1;
-      }
-      if (ap->abq.qprev->qnext != (struct b_queue *) ap) {
-         bad |= 0x2;
-      }
-      if (((unsigned char *) ap)[((struct abufhead *) ap)->ablen - 1] !=
-           ((((long) ap) & 0xFF) ^ 0xC5)) {
-         bad |= 0x4;
+      if (ap != NULL) {
+         if (ap->abq.qnext->qprev != (struct b_queue *)ap) {
+            bad = 0x1;
+         }
+         if (ap->abq.qprev->qnext != (struct b_queue *)ap) {
+            bad |= 0x2;
+         }
+         if (((unsigned char *) ap)[((struct abufhead *)ap)->ablen - 1] !=
+              ((((long) ap) & 0xFF) ^ 0xC5)) {
+            bad |= 0x4;
+         }
+      } else {
+         bad = 0x8;
       }
       badbuf |= bad;
       if (bad) {
@@ -478,7 +481,13 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
          if (bad & 0x4) {
             fprintf(stderr, _("  discovery of data overrun.\n"));
          }
+         if (bad & 0x8) {
+            fprintf(stderr, _("  NULL pointer.\n"));
+         }
 
+         if (!ap) {
+            goto get_out;
+         }
          fprintf(stderr, _("  Buffer address: %p\n"), ap);
 
          if (ap->abfname != NULL) {
@@ -515,8 +524,9 @@ int sm_check_rtn(const char *fname, int lineno, bool bufdump)
             }
          }
       }
-      ap = (struct abufhead *) ap->abq.qnext;
+      ap = (struct abufhead *)ap->abq.qnext;
    }
+get_out:
    V(mutex);
    return badbuf ? 0 : 1;
 }
