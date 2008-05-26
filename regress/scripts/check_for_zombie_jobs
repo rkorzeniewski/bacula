@@ -4,19 +4,21 @@
 # Also scan logs for ERROR messages
 #
 
+. ./config         
+
 # check_for_zombie_jobs storage=STORAGE [client=localhost-fd]
 
 if [ $# = 2 ] ; then
     client="$2"
 else 
-    client="client"
+    client=${HOST}-fd
 fi
 
 bin/bconsole -c bin/bconsole.conf <<END_OF_DATA 2>&1 >/dev/null
 @output tmp/dir.out
 status dir
 @output tmp/fd.out
-status $client
+status client=${client}
 @output tmp/sd.out
 status $1
 @output

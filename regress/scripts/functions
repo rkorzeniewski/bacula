@@ -2,6 +2,7 @@
 # A set of useful functions to be sourced in each test
 #
 
+
 start_test()
 {
    # Turn off email
@@ -279,3 +280,4 @@ fi
 
 # Source the configuration variables
 . ${cwd}/config
+
