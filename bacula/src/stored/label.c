@@ -221,7 +221,6 @@ int read_dev_volume_label(DCR *dcr)
       goto bail_out;
    }
    Dmsg2(100, "=== dcr->dev=%p dev=%p\n", dcr->dev, dev);
-// dev = dcr->dev;                    /* may have changed in reserve volume */
 
    /* Compare Volume Names */
    Dmsg2(130, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);

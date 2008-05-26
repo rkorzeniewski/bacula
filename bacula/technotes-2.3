@@ -24,6 +24,13 @@ Add long term statistics job table
 
 
 General:
+26May08
+kes  If operator has rewind tape, print warning, release tape and
+     try once more. If tape is positioned somewhere, something went
+     wrong, so mark the tape in error and try once more. Previously
+     this error was fatal, now it produces an error message.
+kes  Ensure correct volume name displayed during restore
+kes  Ensure that Volume is mounted for restore.
 25May08
 kes  Fix a few more Coverity reported problems.
 24May08

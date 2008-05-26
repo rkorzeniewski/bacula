@@ -704,6 +704,44 @@ void DCR::release_volume()
 }
 
 /*
+ *      Insanity check 
+ *
+ * Check to see if the tape position as defined by the OS is
+ *  the same as our concept.  If it is not, 
+ *  it means the user has probably manually rewound the tape.
+ * Note, we check only if num_writers == 0, but this code will
+ *  also work fine for any number of writers. If num_writers > 0,
+ *  we probably should cancel all jobs using this device, or 
+ *  perhaps even abort the SD, or at a minimum, mark the tape
+ *  in error.  Another strategy with num_writers == 0, would be
+ *  to rewind the tape and do a new eod() request.
+ */
+bool DCR::is_tape_position_ok()
+{
+   if (dev->is_tape() && dev->num_writers == 0) {
+      int32_t file = dev->get_os_tape_file();
+      if (file >= 0 && file != (int32_t)dev->get_file()) {
+         Jmsg(jcr, M_ERROR, 0, _("Invalid tape position on volume \"%s\"" 
+              " on device %s. Expected %d, got %d\n"), 
+              dev->VolHdr.VolumeName, dev->print_name(), dev->get_file(), file);
+         /* 
+          * If the current file is greater than zero, it means we probably
+          *  have some bad count of EOF marks, so mark tape in error.  Otherwise
+          *  the operator might have moved the tape, so we just release it
+          *  and try again.
+          */
+         if (file > 0) {
+            mark_volume_in_error();
+         }
+         release_volume();
+         return false;
+      }
+   }
+   return true;
+}
+
+
+/*
  * If we are reading, we come here at the end of the tape
  *  and see if there are more volumes to be mounted.
  */

@@ -420,6 +420,7 @@ get_out:
             vol->dev->print_name());
       vol->set_in_use();
       dcr->reserved_volume = true;
+      bstrncpy(dcr->VolumeName, vol->vol_name, sizeof(dcr->VolumeName));
    }
    debug_list_volumes("end new volume");
    unlock_volumes();
