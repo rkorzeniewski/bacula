@@ -709,7 +709,7 @@ int faketape::offline()
    atBOT = false;               /* Begin of tape */
    online = false;
 
-   file_size = 0;
+   file_block = 0;
    current_file = -1;
    current_block = -1;
    last_file = -1;
@@ -849,6 +849,8 @@ void faketape::update_pos()
    if (fstat(fd, &statp) == 0) {
       file_block = statp.st_blocks;
    } 
+
+   Dmsg1(dbglevel+1, "update_pos=%i\n", file_block);
 
    if (file_block > max_block) {
       atEOT = true;
