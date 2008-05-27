@@ -281,3 +281,4 @@ fi
 # Source the configuration variables
 . ${cwd}/config
 
+CLIENT=${HOST}-fd

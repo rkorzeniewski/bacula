@@ -38,7 +38,7 @@ sql
 select * from Storage;
 select VolumeName,InChanger,StorageId from Media;
 
-@#setdebug level=1000 client 
+@#setdebug level=1000 client=$CLIENT 
 run job=$JobName yes
 wait
 update slots scan storage=DDS-4
