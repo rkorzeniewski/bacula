@@ -12,6 +12,7 @@ JobName="2drive2job"
 scripts/cleanup
 scripts/copy-2disk-drive-confs
 scripts/prepare-two-disks
+CLIENT=2drive2disk
 
 change_jobname NightlySave $JobName
 start_test

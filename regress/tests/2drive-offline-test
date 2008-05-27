@@ -5,8 +5,11 @@
 #
 # This script uses the virtual disk autochanger and two drives
 #
-TestName="2drive-swap"
-JobName="2drive-swap"
+# It tests starting job 1, which will not complete because FD is
+#   offline, then starting job 2, which wants to swap the volume.
+#
+TestName="2drive-offline"
+JobName="2driveoffline"
 . scripts/functions
 
 scripts/cleanup
@@ -32,22 +35,18 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=1 Pool=Default drive=0
-label storage=DDS-4 volume=TestVolume002 slot=2 Pool=Default drive=1
+label storage=DDS-4 volume=TestVolume001 slot=2 Pool=Default drive=0
+label storage=DDS-4 volume=TestVolume002 slot=1 Pool=Default drive=1
 status storage=DDS-4
-@#setdebug level=120 storage=DDS-4
-run job=$JobName level=Full yes
+setdebug level=120 storage=DDS-4
+run job=Offline level=Full yes
 @sleep 2
 run job=$JobName level=Full yes
+status storage=DDS-4
 wait
 list volumes
 list jobs
-update volume=TestVolume001 maxvolbytes=40123123
-setdebug level=150 storage=DDS-4
-run job=$JobName level=Full yes
-wait
-list volumes
-list jobs
+status storage=DDS-4
 messages
 quit
 END_OF_DATA
@@ -60,6 +59,10 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+@#unmount storage=DDS-4 drive=0
+@#unmount storage=DDS-4 drive=1
+@#mount storage=DDS-4 slot=1 drive=0
+@#mount storage=DDS-4 slot=2 drive=1
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
