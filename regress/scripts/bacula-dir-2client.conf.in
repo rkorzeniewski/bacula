@@ -30,7 +30,25 @@ Director {                            # define myself
 Job {
   Name = "NightlySave"
   Type = Backup
-  Client = @hostname@-fd 
+  Client=@hostname@-fd 
+  FileSet="Full Set"
+  Storage = DDS-4
+  Messages = Standard
+  Pool = Default
+  Write Bootstrap = "@working_dir@/NightlySave.bsr"
+  Maximum Concurrent Jobs = 4
+  SpoolData = yes
+# Prefer Mounted Volumes = no
+}
+
+#
+# Note, this client does not exist so the job will
+#   fail
+#
+Job {
+  Name = "Offline"
+  Type = Backup
+  Client=@hostname@-fd1
   FileSet="Full Set"
   Storage = DDS-4
   Messages = Standard
@@ -45,7 +63,7 @@ Job {
 Job {
   Name = "NightlySave1"
   Type = Backup
-  Client = @hostname@-fd 
+  Client=@hostname@-fd 
   FileSet="Full Set"
   Storage = DDS-4
   Messages = Standard
@@ -159,6 +177,19 @@ Client {
   AutoPrune = yes                     # Prune expired Jobs/Files
   Maximum Concurrent Jobs = 4
 }
+
+Client {
+  Name = @hostname@-fd1
+  Address = @hostname@
+  FDPort = 1@fdport@                # nothing should be on this port!!!!!
+  Catalog = MyCatalog
+  Password = "xevrjURYoCHhn26RaJoWbeWXEY/a3VqGKp/37tgWiuHc"          # password for FileDaemon
+  File Retention = 30d                # 30 days
+  Job Retention = 180d                # six months
+  AutoPrune = yes                     # Prune expired Jobs/Files
+  Maximum Concurrent Jobs = 4
+}
+
 
 # Definition of DDS tape storage device
 Storage {

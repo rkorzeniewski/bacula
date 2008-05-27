@@ -12,6 +12,8 @@ JobName=Four-concurrent-jobs
 scripts/cleanup
 scripts/copy-2disk-drive-confs
 scripts/prepare-two-disks
+CLIENT=2drive2disk
+
 echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
