@@ -39,7 +39,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-@#setdebug level=50 client
+@#setdebug level=50 client=$CLIENT
 restore where=/  select all storage=File1 done
 yes
 wait

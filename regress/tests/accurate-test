@@ -364,7 +364,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log1.out
-setdebug  level=1 client
+setdebug  level=1 client=$CLIENT
 run job=backup fileset=FS_TESTJOB2 yes
 wait
 messages
@@ -405,4 +405,3 @@ fi
 
 stop_bacula
 end_test
-

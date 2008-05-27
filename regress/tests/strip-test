@@ -21,7 +21,7 @@ messages
 @$out ${cwd}/tmp/log1.out
 @#setdebug level=150 dir
 @#setdebug level=150 storage=FileStorage
-setdebug level=100 client
+setdebug level=100 client=$CLIENT
 label storage=FileStorage pool=Default volume=TestVolume001
 run job=$JobName storage=FileStorage pool=Default yes
 wait
@@ -39,7 +39,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-@#setdebug level=50 client
+@#setdebug level=50 client=$CLIENT
 restore where=${cwd}/tmp/bacula-restores select all storage=FileStorage done
 yes
 wait
