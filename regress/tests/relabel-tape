@@ -22,6 +22,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
+setdebug level=150 storage=DDS-4
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default
 run job=$JobName level=Full yes
 wait
@@ -38,14 +39,12 @@ wait
 list volumes
 unmount storage=DDS-4
 unmount storage=DDS-4
-setdebug level=150 storage=DDS-4
 purge volume=TestVolume001
 relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0 pool=Default storage=DDS-4
 list volumes
 mount storage=DDS-4
 messages
 wait
-setdebug level=0 storage=DDS-4
 run job=$JobName level=Full yes
 wait
 list volumes
@@ -63,7 +62,8 @@ echo "Backup done"
 # now do several restores to ensure we cleanup between jobs
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
+@$out ${cwd}/tmp/log2.out
+setdebug level=150 storage=DDS-4
 list volumes
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
@@ -77,7 +77,6 @@ wait
 @#  at the same time
 @#
 list volumes
-setdebug level=150 storage=DDS-4
 unmount storage=DDS-4
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
