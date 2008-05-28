@@ -1082,13 +1082,21 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
           strcasecmp(ua->argk[i], NT_("fd")) == 0) {
          if (ua->argv[i]) {
             client = GetClientResWithName(ua->argv[i]);
+            if (!client) {
+               ua->error_msg(_("Client \"%s\" not found.\n"), ua->argv[i]);
+               return 1;
+            }
             continue;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
          if (ua->argv[i]) {
             job = GetJobResWithName(ua->argv[i]);
-            if (job && !acl_access_ok(ua, Job_ACL, job->name())) {
+            if (!job) {
+               ua->error_msg(_("Job \"%s\" not found.\n"), ua->argv[i]);
+               return 1;
+            }
+            if (!acl_access_ok(ua, Job_ACL, job->name())) {
                ua->error_msg(_("No authorization for Job \"%s\"\n"), job->name());
                return 1;
             }
@@ -1098,7 +1106,11 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       if (strcasecmp(ua->argk[i], NT_("fileset")) == 0) {
          if (ua->argv[i]) {
             fileset = GetFileSetResWithName(ua->argv[i]);
-            if (fileset && !acl_access_ok(ua, FileSet_ACL, fileset->name())) {
+            if (!fileset) {
+               ua->error_msg(_("Fileset \"%s\" not found.\n"), ua->argv[i]);
+               return 1;
+            }
+            if (!acl_access_ok(ua, FileSet_ACL, fileset->name())) {
                ua->error_msg(_("No authorization for FileSet \"%s\"\n"), fileset->name());
                return 1;
             }
