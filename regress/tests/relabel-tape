@@ -4,7 +4,7 @@
 #   then backup four times, each with incremental then finally restore.
 #   It should require at least 4 different bsrs.
 #
-TestName="relabel-1t1d-tape"
+TestName="relabel-tape"
 JobName=Relabeltape
 . scripts/functions
 
@@ -35,17 +35,20 @@ update volume=TestVolume001
 .
 run job=$JobName level=Full yes
 wait
+list volumes
 unmount storage=DDS-4
 unmount storage=DDS-4
-@#setdebug level=150 storage=DDS-4
+setdebug level=150 storage=DDS-4
 purge volume=TestVolume001
 relabel oldvolume=TestVolume001 volume=TestVolume003 slot=0 pool=Default storage=DDS-4
 list volumes
 mount storage=DDS-4
 messages
 wait
+setdebug level=0 storage=DDS-4
 run job=$JobName level=Full yes
 wait
+list volumes
 messages
 @$out
 quit
@@ -61,6 +64,7 @@ echo "Backup done"
 #
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @$out /dev/null
+list volumes
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
 wait
@@ -72,6 +76,8 @@ wait
 @# now unmount the tape and start two restores
 @#  at the same time
 @#
+list volumes
+setdebug level=150 storage=DDS-4
 unmount storage=DDS-4
 restore where=${cwd}/tmp/bacula-restores select all done
 yes
