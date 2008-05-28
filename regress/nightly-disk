@@ -20,3 +20,4 @@ if [ $? != 0 ] ; then
    fi
 fi
 REGRESS_DEBUG=${save_debug}
+echo "End nightly-disk `date`"
