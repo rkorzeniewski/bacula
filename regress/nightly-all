@@ -3,6 +3,7 @@
 # run both the disk and the tape based regression tests.
 #
 # Include full output
+echo "Begin nightly-all `date`"
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
@@ -20,3 +21,4 @@ if [ $? != 0 ] ; then
    fi
 fi
 REGRESS_DEBUG=${save_debug}
+echo "End nightly-all `date`"
