@@ -3,6 +3,7 @@
 # test only the disk based regression scripts
 #
 # Include full output
+echo "Begin nightly-disk `date`"
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG

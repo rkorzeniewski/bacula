@@ -3,6 +3,7 @@
 # test only the disk based regression scripts
 #
 # Include full output
+echo "Begin experimental-disk-and-tape `date`"
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
@@ -20,3 +21,4 @@ if [ $? != 0 ] ; then
    fi
 fi
 REGRESS_DEBUG=${save_debug}
+echo "End experimental-disk-and-tape `date`"
