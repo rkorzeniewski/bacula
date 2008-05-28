@@ -295,7 +295,8 @@ bool write_volume_label_to_block(DCR *dcr)
          dev->print_name());
       return false;
    } else {
-      Dmsg1(130, "Wrote label of %d bytes to block\n", rec.data_len);
+      Dmsg2(130, "Wrote label of %d bytes to block. Vol=%s\n", rec.data_len,
+            dcr->VolumeName);
    }
    free_pool_memory(rec.data);
    return true;
@@ -447,6 +448,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       Dmsg0(200, "Error from write volume label.\n");
       return false;
    }
+   Dmsg1(150, "wrote vol label to block. Vol=%s\n", dcr->VolumeName);
 
    dev->VolCatInfo.VolCatBytes = 0;        /* reset byte count */
 
@@ -464,6 +466,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
          return false;
       }
       if (recycle) {
+         Dmsg1(150, "Doing recycle. Vol=%s\n", dcr->VolumeName);
 //       volume_unused(dcr);             /* mark volume unused */
          if (!dev->truncate(dcr)) {
             Jmsg2(jcr, M_FATAL, 0, _("Truncate error on device %s: ERR=%s\n"),
@@ -517,8 +520,9 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
       dev->VolCatInfo.VolCatWrites = 1;
       dev->VolCatInfo.VolCatReads = 1;
    }
-   Dmsg0(150, "dir_update_vol_info. Set Append\n");
+   Dmsg1(150, "dir_update_vol_info. Set Append vol=%s\n", dcr->VolumeName);
    bstrncpy(dev->VolCatInfo.VolCatStatus, "Append", sizeof(dev->VolCatInfo.VolCatStatus));
+   bstrncpy(dev->VolCatInfo.VolCatName, dcr->VolumeName, sizeof(dev->VolCatInfo.VolCatName));
    if (!dir_update_volume_info(dcr, true, true)) {  /* indicate doing relabel */
       return false;
    }
@@ -533,7 +537,7 @@ bool rewrite_volume_label(DCR *dcr, bool recycle)
     * End writing real Volume label (from pre-labeled tape), or recycling
     *  the volume.
     */
-   Dmsg0(200, "OK from rewrite vol label.\n");
+   Dmsg1(150, "OK from rewrite vol label. Vol=%s\n", dcr->VolumeName);
    return true;
 }
 
@@ -589,6 +593,7 @@ static void create_volume_label_record(DCR *dcr, DEV_RECORD *rec)
    ser_string(dev->VolHdr.ProgDate);
 
    ser_end(rec->data, SER_LENGTH_Volume_Label);
+   bstrncpy(dcr->VolumeName, dev->VolHdr.VolumeName, sizeof(dcr->VolumeName));
    rec->data_len = ser_length(rec->data);
    rec->FileIndex = dev->VolHdr.LabelType;
    rec->VolSessionId = jcr->VolSessionId;
