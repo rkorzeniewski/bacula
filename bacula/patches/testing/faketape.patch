@@ -1,0 +1,518 @@
+Index: src/baconfig.h
+===================================================================
+--- src/baconfig.h	(révision 7044)
++++ src/baconfig.h	(copie de travail)
+@@ -91,7 +91,6 @@
+ #define  tape_read            win32_tape_read
+ #define  tape_write           win32_tape_write
+ #define  tape_close           win32_tape_close
+-#define  IS_TAPE(x)           S_ISCHR(x)
+ 
+ #define sbrk(x)  0
+ 
+@@ -117,21 +116,11 @@
+ 
+ #define  OSDependentInit()
+ 
+-#if defined(USE_FAKETAPE)
+-#  define  tape_open            faketape_open
+-#  define  tape_ioctl           faketape_ioctl
+-#  define  tape_read            faketape_read
+-#  define  tape_write           faketape_write
+-#  define  tape_close           faketape_close
+-#  define  IS_TAPE(x)           S_ISREG(x)
+-#else  /* UNIX && !FAKETAPE */
+-#  define  tape_open            ::open
+-#  define  tape_ioctl           ::ioctl
+-#  define  tape_read            ::read
+-#  define  tape_write           ::write
+-#  define  tape_close           ::close
+-#  define  IS_TAPE(x)           S_ISCHR(x)
+-#endif
++#define  tape_open            ::open
++#define  tape_ioctl           ::ioctl
++#define  tape_read            ::read
++#define  tape_write           ::write
++#define  tape_close           ::close
+ 
+ #endif /* HAVE_WIN32 */
+ 
+Index: src/stored/stored_conf.c
+===================================================================
+--- src/stored/stored_conf.c	(révision 7044)
++++ src/stored/stored_conf.c	(copie de travail)
+@@ -213,6 +213,7 @@
+    {"dvd",           B_DVD_DEV},
+    {"fifo",          B_FIFO_DEV},
+    {"vtl",           B_VTL_DEV},
++   {"faketape",      B_FAKETAPE_DEV},
+    {NULL,            0}
+ };
+ 
+Index: src/stored/dev.c
+===================================================================
+--- src/stored/dev.c	(révision 7044)
++++ src/stored/dev.c	(copie de travail)
+@@ -123,10 +123,17 @@
+       }
+       if (S_ISDIR(statp.st_mode)) {
+          device->dev_type = B_FILE_DEV;
+-      } else if (IS_TAPE(statp.st_mode)) { /* char device or fake tape */
++      } else if (S_ISCHR(statp.st_mode)) {
+          device->dev_type = B_TAPE_DEV;
+       } else if (S_ISFIFO(statp.st_mode)) {
+          device->dev_type = B_FIFO_DEV;
++#ifdef USE_FAKETAPE
++      /* must set DeviceType = Faketape 
++       * in normal mode, autodetection is disabled
++       */
++      } else if (S_ISREG(statp.st_mode)) { 
++         device->dev_type = B_FAKETAPE_DEV;
++#endif
+       } else if (!(device->cap_bits & CAP_REQMOUNT)) {
+          Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory\n"
+                " or have RequiresMount=yes for DVD. st_mode=%x\n"),
+@@ -162,6 +169,7 @@
+    dev->drive_index = device->drive_index;
+    dev->autoselect = device->autoselect;
+    dev->dev_type = device->dev_type;
++   dev->init_backend();
+    if (dev->is_tape()) { /* No parts on tapes */
+       dev->max_part_size = 0;
+    } else {
+@@ -264,6 +272,38 @@
+    return dev;
+ }
+ 
++void DEVICE::init_backend()
++{
++
++#ifdef USE_FAKETAPE
++   /* in this mode, force FAKETAPE driver */
++   dev_type = (dev_type == B_TAPE_DEV)?B_FAKETAPE_DEV:dev_type;
++#endif
++
++   if (is_faketape()) {
++      d_open = faketape_open;
++      d_write = faketape_write;
++      d_close = faketape_close;
++      d_ioctl = faketape_ioctl;
++      d_read = faketape_read;
++      dev_type = B_TAPE_DEV;    /* do exactly as real tape */
++
++   } else if (is_tape()) {
++      d_open = tape_open;
++      d_write = tape_write;
++      d_close = tape_close;
++      d_ioctl = tape_ioctl;
++      d_read = tape_read;
++
++   } else {
++      d_open = ::open;
++      d_write = ::write;
++      d_close = ::close;
++      d_ioctl = ::ioctl;
++      d_read = ::read;
++   }
++}
++
+ /*
+  * Open the device with the operating system and
+  * initialize buffer pointers.
+@@ -285,11 +325,7 @@
+       if (openmode == omode) {
+          return m_fd;
+       } else {
+-         if (is_tape()) {
+-            tape_close(m_fd);
+-         } else {
+-            ::close(m_fd);
+-         }
++         d_close(m_fd);
+          clear_opened();
+          Dmsg0(100, "Close fd for mode change.\n");
+          preserve = state & (ST_LABEL|ST_APPEND|ST_READ);
+@@ -369,7 +405,7 @@
+ #if defined(HAVE_WIN32)
+ 
+    /*   Windows Code */
+-   if ((m_fd = tape_open(dev_name, mode)) < 0) {
++   if ((m_fd = d_open(dev_name, mode)) < 0) {
+       dev_errno = errno;
+    }
+ 
+@@ -379,7 +415,7 @@
+    /* If busy retry each second for max_open_wait seconds */
+    for ( ;; ) {
+       /* Try non-blocking open */
+-      m_fd = tape_open(dev_name, mode+O_NONBLOCK);
++      m_fd = d_open(dev_name, mode+O_NONBLOCK);
+       if (m_fd < 0) {
+          berrno be;
+          dev_errno = errno;
+@@ -391,10 +427,10 @@
+          mt_com.mt_op = MTREW;
+          mt_com.mt_count = 1;
+          /* rewind only if dev is a tape */
+-         if (is_tape() && (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0)) {
++         if (is_tape() && (d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0)) {
+             berrno be;
+             dev_errno = errno;           /* set error status from rewind */
+-            tape_close(m_fd);
++            d_close(m_fd);
+             clear_opened();
+             Dmsg2(100, "Rewind error on %s close: ERR=%s\n", print_name(),
+                   be.bstrerror(dev_errno));
+@@ -404,8 +440,8 @@
+             }
+          } else {
+             /* Got fd and rewind worked, so we must have medium in drive */
+-            tape_close(m_fd);
+-            m_fd = tape_open(dev_name, mode);  /* open normally */
++            d_close(m_fd);
++            m_fd = d_open(dev_name, mode);  /* open normally */
+             if (m_fd < 0) {
+                berrno be;
+                dev_errno = errno;
+@@ -689,7 +725,7 @@
+                be.bstrerror());
+          Dmsg1(100, "open failed: %s", errmsg);
+          /* Use system close() */
+-         ::close(m_fd);
++         d_close(m_fd);
+          clear_opened();
+       } else {
+          part_size = filestat.st_size;
+@@ -733,7 +769,7 @@
+        * retrying every 5 seconds.
+        */
+       for (i=max_rewind_wait; ; i -= 5) {
+-         if (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
++         if (d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
+             berrno be;
+             clrerror(MTREW);
+             if (i == max_rewind_wait) {
+@@ -747,7 +783,7 @@
+              */
+             if (first && dcr) {
+                int open_mode = openmode;
+-               tape_close(m_fd);
++               d_close(m_fd);
+                clear_opened();
+                open(dcr, open_mode);
+                if (m_fd < 0) {
+@@ -887,7 +923,7 @@
+          mt_com.mt_count = 1;
+       }
+ 
+-      if (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
++      if (d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
+          berrno be;
+          clrerror(mt_com.mt_op);
+          Dmsg1(50, "ioctl error: %s\n", be.bstrerror());
+@@ -1031,7 +1067,7 @@
+       stat |= BMT_TAPE;
+       Pmsg0(-20,_(" Bacula status:"));
+       Pmsg2(-20,_(" file=%d block=%d\n"), dev->file, dev->block_num);
+-      if (tape_ioctl(dev->fd(), MTIOCGET, (char *)&mt_stat) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCGET, (char *)&mt_stat) < 0) {
+          berrno be;
+          dev->dev_errno = errno;
+          Mmsg2(dev->errmsg, _("ioctl MTIOCGET error on %s. ERR=%s.\n"),
+@@ -1158,7 +1194,7 @@
+    dev->file_addr = 0;
+    mt_com.mt_op = MTLOAD;
+    mt_com.mt_count = 1;
+-   if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++   if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+       berrno be;
+       dev->dev_errno = errno;
+       Mmsg2(dev->errmsg, _("ioctl MTLOAD error on %s. ERR=%s.\n"),
+@@ -1189,7 +1225,7 @@
+    unlock_door();
+    mt_com.mt_op = MTOFFL;
+    mt_com.mt_count = 1;
+-   if (tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
++   if (d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com) < 0) {
+       berrno be;
+       dev_errno = errno;
+       Mmsg2(errmsg, _("ioctl MTOFFL error on %s. ERR=%s.\n"),
+@@ -1264,7 +1300,7 @@
+       int my_errno = 0;
+       mt_com.mt_op = MTFSF;
+       mt_com.mt_count = num;
+-      stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++      stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+       if (stat < 0) {
+          my_errno = errno;            /* save errno */
+       } else if ((os_file=get_os_tape_file()) < 0) {
+@@ -1345,7 +1381,7 @@
+          }
+ 
+          Dmsg0(100, "Doing MTFSF\n");
+-         stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++         stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+          if (stat < 0) {                 /* error => EOT */
+             berrno be;
+             set_eot();
+@@ -1419,7 +1455,7 @@
+    file_size = 0;
+    mt_com.mt_op = MTBSF;
+    mt_com.mt_count = num;
+-   stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+    if (stat < 0) {
+       berrno be;
+       clrerror(MTBSF);
+@@ -1459,7 +1495,7 @@
+    Dmsg1(100, "fsr %d\n", num);
+    mt_com.mt_op = MTFSR;
+    mt_com.mt_count = num;
+-   stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+    if (stat == 0) {
+       clear_eof();
+       block_num += num;
+@@ -1518,7 +1554,7 @@
+    clear_eot();
+    mt_com.mt_op = MTBSR;
+    mt_com.mt_count = num;
+-   stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+    if (stat < 0) {
+       berrno be;
+       clrerror(MTBSR);
+@@ -1534,7 +1570,7 @@
+    struct mtop mt_com;
+    mt_com.mt_op = MTLOCK;
+    mt_com.mt_count = 1;
+-   tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+ #endif
+ }
+ 
+@@ -1544,7 +1580,7 @@
+    struct mtop mt_com;
+    mt_com.mt_op = MTUNLOCK;
+    mt_com.mt_count = 1;
+-   tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+ #endif
+ }
+  
+@@ -1656,7 +1692,7 @@
+    clear_eot();
+    mt_com.mt_op = MTWEOF;
+    mt_com.mt_count = num;
+-   stat = tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   stat = d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+    if (stat == 0) {
+       block_num = 0;
+       file += num;
+@@ -1787,7 +1823,7 @@
+ /* Found on Solaris */
+ #ifdef MTIOCLRERR
+ {
+-   tape_ioctl(m_fd, MTIOCLRERR);
++   d_ioctl(m_fd, MTIOCLRERR);
+    Dmsg0(200, "Did MTIOCLRERR\n");
+ }
+ #endif
+@@ -1800,7 +1836,7 @@
+    union mterrstat mt_errstat;
+    Dmsg2(200, "Doing MTIOCERRSTAT errno=%d ERR=%s\n", dev_errno,
+       be.bstrerror(dev_errno));
+-   tape_ioctl(m_fd, MTIOCERRSTAT, (char *)&mt_errstat);
++   d_ioctl(m_fd, MTIOCERRSTAT, (char *)&mt_errstat);
+ }
+ #endif
+ 
+@@ -1811,7 +1847,7 @@
+    mt_com.mt_op = MTCSE;
+    mt_com.mt_count = 1;
+    /* Clear any error condition on the tape */
+-   tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
++   d_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
+    Dmsg0(200, "Did MTCSE\n");
+ }
+ #endif
+@@ -1848,10 +1884,8 @@
+    case B_VTL_DEV:
+    case B_TAPE_DEV:
+       unlock_door(); 
+-      tape_close(m_fd);
+-      break;
+    default:
+-      ::close(m_fd);
++      d_close(m_fd);
+    }
+ 
+    /* Clean up device packet so it can be reused */
+@@ -2251,11 +2285,7 @@
+ 
+    get_timer_count();
+ 
+-   if (this->is_tape()) {
+-      read_len = tape_read(m_fd, buf, len);
+-   } else {
+-      read_len = ::read(m_fd, buf, len);
+-   }
++   read_len = d_read(m_fd, buf, len);
+ 
+    last_tick = get_timer_count();
+ 
+@@ -2276,11 +2306,7 @@
+ 
+    get_timer_count();
+ 
+-   if (this->is_tape()) {
+-      write_len = tape_write(m_fd, buf, len);
+-   } else {
+-      write_len = ::write(m_fd, buf, len);
+-   }
++   write_len = d_write(m_fd, buf, len);
+ 
+    last_tick = get_timer_count();
+ 
+@@ -2306,7 +2332,7 @@
+    struct mtget mt_stat;
+ 
+    if (has_cap(CAP_MTIOCGET) &&
+-       tape_ioctl(m_fd, MTIOCGET, (char *)&mt_stat) == 0) {
++       d_ioctl(m_fd, MTIOCGET, (char *)&mt_stat) == 0) {
+       return mt_stat.mt_fileno;
+    }
+    return -1;
+@@ -2431,7 +2457,7 @@
+       mt_com.mt_op = MTSETBLK;
+       mt_com.mt_count = 0;
+       Dmsg0(100, "Set block size to zero\n");
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTSETBLK);
+       }
+    }
+@@ -2447,7 +2473,7 @@
+          mt_com.mt_count |= MT_ST_FAST_MTEOM;
+       }
+       Dmsg0(100, "MTSETDRVBUFFER\n");
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTSETDRVBUFFER);
+       }
+    }
+@@ -2461,13 +2487,13 @@
+        dev->min_block_size == 0) {    /* variable block mode */
+       mt_com.mt_op = MTSETBSIZ;
+       mt_com.mt_count = 0;
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTSETBSIZ);
+       }
+       /* Get notified at logical end of tape */
+       mt_com.mt_op = MTEWARN;
+       mt_com.mt_count = 1;
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTEWARN);
+       }
+    }
+@@ -2480,7 +2506,7 @@
+        dev->min_block_size == 0) {    /* variable block mode */
+       mt_com.mt_op = MTSETBSIZ;
+       mt_com.mt_count = 0;
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTSETBSIZ);
+       }
+    }
+@@ -2491,7 +2517,7 @@
+    } else {
+       neof = 1;
+    }
+-   if (tape_ioctl(dev->fd(), MTIOCSETEOTMODEL, (caddr_t)&neof) < 0) {
++   if (dev->d_ioctl(dev->fd(), MTIOCSETEOTMODEL, (caddr_t)&neof) < 0) {
+       berrno be;
+       dev->dev_errno = errno;         /* save errno */
+       Mmsg2(dev->errmsg, _("Unable to set eotmodel on device %s: ERR=%s\n"),
+@@ -2508,7 +2534,7 @@
+        dev->min_block_size == 0) {    /* variable block mode */
+       mt_com.mt_op = MTSRSZ;
+       mt_com.mt_count = 0;
+-      if (tape_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
++      if (dev->d_ioctl(dev->fd(), MTIOCTOP, (char *)&mt_com) < 0) {
+          dev->clrerror(MTSRSZ);
+       }
+    }
+@@ -2520,7 +2546,7 @@
+ {
+    Dmsg0(100, "dev_get_os_pos\n");
+    return dev->has_cap(CAP_MTIOCGET) && 
+-          tape_ioctl(dev->fd(), MTIOCGET, (char *)mt_stat) == 0 &&
++          dev->d_ioctl(dev->fd(), MTIOCGET, (char *)mt_stat) == 0 &&
+           mt_stat->mt_fileno >= 0;
+ }
+ 
+Index: src/stored/faketape.c
+===================================================================
+--- src/stored/faketape.c	(révision 7044)
++++ src/stored/faketape.c	(copie de travail)
+@@ -101,7 +101,7 @@
+ /* theses function will replace open/read/write/close/ioctl
+  * in bacula core
+  */
+-int faketape_open(const char *pathname, int flags)
++int faketape_open(const char *pathname, int flags, ...)
+ {
+    ASSERT(pathname != NULL);
+ 
+Index: src/stored/dev.h
+===================================================================
+--- src/stored/dev.h	(révision 7044)
++++ src/stored/dev.h	(copie de travail)
+@@ -95,7 +95,8 @@
+    B_TAPE_DEV,
+    B_DVD_DEV,
+    B_FIFO_DEV,
+-   B_VTL_DEV 
++   B_FAKETAPE_DEV,		/* change to B_TAPE_DEV after init */
++   B_VTL_DEV
+ };
+ 
+ /* Generic status bits returned from status_dev() */
+@@ -312,6 +313,7 @@
+    int is_fifo() const { return dev_type == B_FIFO_DEV; }
+    int is_dvd() const  { return dev_type == B_DVD_DEV; }
+    int is_vtl() const  { return dev_type == B_VTL_DEV; }
++   int is_faketape() const  { return dev_type == B_FAKETAPE_DEV; }
+    int is_open() const { return m_fd >= 0; }
+    int is_offline() const { return state & ST_OFFLINE; }
+    int is_labeled() const { return state & ST_LABEL; }
+@@ -421,6 +423,14 @@
+    uint32_t get_block_num() const { return block_num; };
+    int fd() const { return m_fd; };
+ 
++   /* low level operations */
++   void init_backend();
++   int (*d_open)(const char *pathname, int flags, ...);
++   int (*d_read)(int fd, void *buffer, unsigned int count);
++   int (*d_write)(int fd, const void *buffer, unsigned int count);
++   int (*d_close)(int fd);
++   int (*d_ioctl)(int fd, unsigned long int request, ...);
++
+    /* 
+     * Locking and blocking calls
+     */
+Index: src/stored/faketape.h
+===================================================================
+--- src/stored/faketape.h	(révision 7044)
++++ src/stored/faketape.h	(copie de travail)
+@@ -45,7 +45,7 @@
+ /* 
+  * Theses functions will replace open/read/write
+  */
+-int faketape_open(const char *pathname, int flags);
++int faketape_open(const char *pathname, int flags, ...);
+ int faketape_read(int fd, void *buffer, unsigned int count);
+ int faketape_write(int fd, const void *buffer, unsigned int count);
+ int faketape_close(int fd);
