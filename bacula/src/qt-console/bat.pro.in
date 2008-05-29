@@ -147,8 +147,8 @@ HEADERS += status/storstat.h
 SOURCES += status/storstat.cpp
 
 # Utility sources
-HEADERS += util/fmtwidgetitem.h
-SOURCES += util/fmtwidgetitem.cpp
+HEADERS += util/fmtwidgetitem.h util/comboutil.h
+SOURCES += util/fmtwidgetitem.cpp util/comboutil.cpp
 
 INSTALLS += bins
 INSTALLS += confs

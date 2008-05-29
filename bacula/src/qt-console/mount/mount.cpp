@@ -48,8 +48,7 @@ mountDialog::mountDialog(Console *console, QString &storageName)
    setupUi(this);
    this->show();
 
-   QString labelText("Storage : ");
-   labelText += storageName;
+   QString labelText( tr("Storage : %1").arg(storageName) );
    storageLabel->setText(labelText);
 }
 
@@ -57,7 +56,7 @@ void mountDialog::accept()
 {
    QString scmd;
    if (m_storageName == "") {
-      QMessageBox::warning(this, "No Storage name", "No Storage name given",
+      QMessageBox::warning(this, tr("No Storage name"), tr("No Storage name given"),
                            QMessageBox::Ok, QMessageBox::Ok);
       return;
    }
@@ -69,10 +68,10 @@ void mountDialog::accept()
       Pmsg1(000, "sending command : %s\n",scmd.toUtf8().data());
    }
 
-   m_console->display_text("Context sensitive command :\n\n");
+   m_console->display_text( tr("Context sensitive command :\n\n"));
    m_console->display_text("****    ");
    m_console->display_text(scmd + "    ****\n");
-   m_console->display_text("Director Response :\n\n");
+   m_console->display_text(tr("Director Response :\n\n"));
 
    m_console->write_dir(scmd.toUtf8().data());
    m_console->displayToPrompt();

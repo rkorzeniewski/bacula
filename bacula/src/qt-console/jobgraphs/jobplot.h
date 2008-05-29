@@ -128,6 +128,7 @@ private slots:
    void reGraph();
 
 private:
+   void fillSymbolCombo(QComboBox *q);
    void setSymbolType(int, int type);
    void addCurve();
    void writeSettings();

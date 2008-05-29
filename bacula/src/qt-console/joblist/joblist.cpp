@@ -41,6 +41,7 @@
 #include "jobgraphs/jobplot.h"
 #endif
 #include "util/fmtwidgetitem.h"
+#include "util/comboutil.h"
 
 /*
  * Constructor for the class
@@ -226,47 +227,26 @@ void JobList::prepareFilterWidgets()
    if (!m_populated) {
       clientComboBox->addItem(tr("Any"));
       clientComboBox->addItems(m_console->client_list);
-      int clientIndex = clientComboBox->findText(m_clientName, Qt::MatchExactly);
-      if (clientIndex != -1)
-         clientComboBox->setCurrentIndex(clientIndex);
+      comboSel(clientComboBox, m_clientName);
 
       QStringList volumeList;
       m_console->getVolumeList(volumeList);
       volumeComboBox->addItem(tr("Any"));
       volumeComboBox->addItems(volumeList);
-      int volumeIndex = volumeComboBox->findText(m_mediaName, Qt::MatchExactly);
-      if (volumeIndex != -1) {
-         volumeComboBox->setCurrentIndex(volumeIndex);
-      }
+      comboSel(volumeComboBox, m_mediaName);
+
       jobComboBox->addItem(tr("Any"));
       jobComboBox->addItems(m_console->job_list);
-      int jobIndex = jobComboBox->findText(m_jobName, Qt::MatchExactly);
-      if (jobIndex != -1) {
-         jobComboBox->setCurrentIndex(jobIndex);
-      }
+      comboSel(jobComboBox, m_jobName);
 
-      levelComboBox->addItem(tr("Any"));
-      levelComboBox->addItem(job_level_to_str(L_FULL), L_FULL);
-      levelComboBox->addItem(job_level_to_str(L_INCREMENTAL), L_INCREMENTAL);
-      levelComboBox->addItem(job_level_to_str(L_DIFFERENTIAL), L_DIFFERENTIAL);
-      levelComboBox->addItem(job_level_to_str(L_SINCE), L_SINCE);
-      levelComboBox->addItem(job_level_to_str(L_VERIFY_CATALOG), L_VERIFY_CATALOG);
-      levelComboBox->addItem(job_level_to_str(L_VERIFY_INIT), L_VERIFY_INIT);
-      levelComboBox->addItem(job_level_to_str(L_VERIFY_VOLUME_TO_CATALOG), L_VERIFY_VOLUME_TO_CATALOG);
-      levelComboBox->addItem(job_level_to_str(L_VERIFY_DISK_TO_CATALOG), L_VERIFY_DISK_TO_CATALOG);
-      levelComboBox->addItem(job_level_to_str(L_VERIFY_DATA), L_VERIFY_DATA);
-      /* levelComboBox->addItem(job_level_to_str(L_BASE), L_BASE);  base jobs ignored */ 
+      levelComboFill(levelComboBox);
 
-      purgedComboBox->addItem(tr("Any"), -1);
-      purgedComboBox->addItem(tr("No"), 0);
-      purgedComboBox->addItem(tr("Yes"), 1);
+      boolComboFill(purgedComboBox);
 
       fileSetComboBox->addItem(tr("Any"));
       fileSetComboBox->addItems(m_console->fileset_list);
-      int filesetIndex = fileSetComboBox->findText(m_filesetName, Qt::MatchExactly);
-      if (filesetIndex != -1) {
-         fileSetComboBox->setCurrentIndex(filesetIndex);
-      }
+      comboSel(fileSetComboBox, m_filesetName);
+
       QStringList statusLongList;
       m_console->getStatusList(statusLongList);
       statusComboBox->addItem(tr("Any"));
@@ -299,36 +279,14 @@ void JobList::fillQueryString(QString &query)
                " LEFT OUTER JOIN Media ON (JobMedia.MediaId=Media.MediaId) ";
       conditions.append("Media.VolumeName='" + m_mediaName + "'");
    }
-   int clientIndex = clientComboBox->currentIndex();
-   if (clientIndex != -1)
-      m_clientName = clientComboBox->itemText(clientIndex);
-   if (m_clientName != tr("Any")) {
-      conditions.append("Client.Name='" + m_clientName + "'");
-   }
-   int jobIndex = jobComboBox->currentIndex();
-   if (jobIndex != -1)
-      m_jobName = jobComboBox->itemText(jobIndex);
-   if ((jobIndex != -1) && (jobComboBox->itemText(jobIndex) != tr("Any"))) {
-      conditions.append("Job.Name='" + jobComboBox->itemText(jobIndex) + "'");
-   }
-   int levelIndex = levelComboBox->currentIndex();
-   if ((levelIndex != -1) && (levelComboBox->itemText(levelIndex) != tr("Any"))) {
-      conditions.append( QString("Job.Level='%1'").arg(levelComboBox->itemData(levelIndex).toChar()) );
-   }
-   int statusIndex = statusComboBox->currentIndex();
-   if ((statusIndex != -1) && (statusComboBox->itemText(statusIndex) != tr("Any"))) {
-      conditions.append("Status.JobStatusLong='" + statusComboBox->itemText(statusIndex) + "'");
-   }
-   int purgedIndex = purgedComboBox->currentIndex();
-   if (purgedIndex != -1 && purgedComboBox->itemData(purgedIndex).toInt() >= 0 ) {
-      conditions.append("Job.PurgedFiles='" + purgedComboBox->itemData(purgedIndex).toString() + "'");
-   }
-   int fileSetIndex = fileSetComboBox->currentIndex();
-   if (fileSetIndex != -1)
-      m_filesetName = fileSetComboBox->itemText(fileSetIndex);
-   if ((fileSetIndex != -1) && (fileSetComboBox->itemText(fileSetIndex) != tr("Any"))) {
-      conditions.append("FileSet.FileSet='" + fileSetComboBox->itemText(fileSetIndex) + "'");
-   }
+
+   comboCond(conditions, clientComboBox, "Client.Name");
+   comboCond(conditions, jobComboBox, "Job.Name");
+   levelComboCond(conditions, levelComboBox, "Job.Level");
+   comboCond(conditions, statusComboBox, "Status.JobStatusLong");
+   boolComboCond(conditions, purgedComboBox, "Job.PurgedFiles");
+   comboCond(conditions, fileSetComboBox, "FileSet.FileSet");
+
    /* If Limit check box For limit by days is checked  */
    if (daysCheckBox->checkState() == Qt::Checked) {
       QDateTime stamp = QDateTime::currentDateTime().addDays(-daysSpinBox->value());
@@ -448,6 +406,7 @@ void JobList::createConnections()
    connect(graphButton, SIGNAL(pressed()), this, SLOT(graphTable()));
 #else
    graphButton->setEnabled(false);
+   graphButton->setVisible(false);
 #endif
    /* for the tableItemChanged to maintain m_currentJob */
    connect(mp_tableWidget, SIGNAL(
@@ -617,9 +576,9 @@ void JobList::consoleCancelJob()
 /*
  * Graph this table
  */
-#ifdef HAVE_QWT
 void JobList::graphTable()
 {
+#ifdef HAVE_QWT
    JobPlotPass pass;
    pass.recordLimitCheck = limitCheckBox->checkState();
    pass.daysLimitCheck = daysCheckBox->checkState();
@@ -635,8 +594,8 @@ void JobList::graphTable()
    pass.use = true;
    QTreeWidgetItem* pageSelectorTreeWidgetItem = mainWin->getFromHash(this);
    new JobPlot(pageSelectorTreeWidgetItem, pass);
-}
 #endif
+}
 
 /*
  * Save user settings associated with this page
