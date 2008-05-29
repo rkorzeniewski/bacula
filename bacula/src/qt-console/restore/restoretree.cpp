@@ -174,7 +174,7 @@ void restoreTree::populateDirectoryTree()
    prBar1->setVisible(true);
    prBar1->setRange(0,taskcount);
    prBar1->setValue(0);
-   prLabel1->setText(tr("Task ") + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+   prLabel1->setText(tr("Task %1 of %2").arg(ontask).arg(taskcount));
    prLabel1->setVisible(true);
    prBar2->setVisible(true);
    prBar2->setRange(0,0);
@@ -192,7 +192,7 @@ void restoreTree::populateDirectoryTree()
       m_prevDaysCheckState = daysCheckBox->checkState();
       updateRefresh();
       prBar1->setValue(ontask++);
-      prLabel1->setText(tr("Task ") + QString("%1").arg(ontask)+ " of " + QString("%1").arg(taskcount));
+      prLabel1->setText(tr("Task %1 of %2").arg(ontask).arg(taskcount));
       prBar2->setValue(0);
       prBar2->setRange(0,0);
       prLabel2->setText(tr("Querying Jobs"));
@@ -235,7 +235,7 @@ void restoreTree::populateDirectoryTree()
       if (mainWin->m_sqlDebug)
          Pmsg1(000, "Query cmd : %s\n", cmd.toUtf8().data());
       prBar1->setValue(ontask++);
-      prLabel1->setText(tr("Task ") + QString("%1").arg(ontask) + " of " + QString("%1").arg(taskcount));
+      prLabel1->setText(tr("Task %1 of %2").arg(ontask).arg(taskcount));
       prBar2->setValue(0);
       prBar2->setRange(0,0);
       prLabel2->setText(tr("Querying for Directories"));
@@ -278,7 +278,7 @@ void restoreTree::populateDirectoryTree()
    } else {
      QMessageBox::warning(this, "Bat",
         tr("No jobs were selected in the job query !!!.\n"
-      "Press OK to continue?"),
+      "Press OK to continue"),
       QMessageBox::Ok );
    }
    prBar1->setVisible(false);
@@ -381,7 +381,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
    bool ok = true, added = false;
 
    if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-      QString msg = QString(tr("In addDirectory cwd \"%1\" newdir \"%2\"\n"))
+      QString msg = QString("In addDirectory cwd \"%1\" newdir \"%2\"\n")
                     .arg(m_cwd)
                     .arg(newdir);
       Pmsg0(000, msg.toUtf8().data());
@@ -435,7 +435,7 @@ bool restoreTree::addDirectory(QString &m_cwd, QString &newdirr)
       } else {
          ok = false;
          if ((mainWin->m_miscDebug) && (m_debugTrap)) {
-            QString msg = QString(tr("In else of if parent cwd \"%1\" newdir \"%2\"\n"))
+            QString msg = QString("In else of if parent cwd \"%1\" newdir \"%2\"\n")
                  .arg(m_cwd)
                  .arg(newdir);
             Pmsg0(000, msg.toUtf8().data());
@@ -518,7 +518,7 @@ void restoreTree::directoryCurrentItemChanged(QTreeWidgetItem *item, QTreeWidget
            this, SLOT(fileTableItemChanged(QTableWidgetItem *)));
    QBrush blackBrush(Qt::black);
    QString directory = item->data(0, Qt::UserRole).toString();
-   directoryLabel->setText(tr("Present Working Directory : ") + directory);
+   directoryLabel->setText(tr("Present Working Directory: %1").arg(directory));
    int pathid = m_directoryPathIdHash.value(directory, -1);
    if (pathid != -1) {
       QString cmd =
@@ -1506,9 +1506,9 @@ void restoreTree::restoreButtonPushed()
 {
    /* Set progress bars and repaint */
    prLabel1->setVisible(true);
-   prLabel1->setText("Task 1 of 3");
+   prLabel1->setText(tr("Task 1 of 3"));
    prLabel2->setVisible(true);
-   prLabel2->setText("Processing Checked directories");
+   prLabel2->setText(tr("Processing Checked directories"));
    prBar1->setVisible(true);
    prBar1->setRange(0, 3);
    prBar1->setValue(0);
@@ -1613,8 +1613,8 @@ void restoreTree::restoreButtonPushed()
       ++diter;
    } /* while (*diter) */
    prBar1->setValue(1);
-   prLabel1->setText("Task 2 of 3");
-   prLabel2->setText("Processing Exceptions");
+   prLabel1->setText( tr("Task 2 of 3"));
+   prLabel2->setText(tr("Processing Exceptions"));
    prBar2->setRange(0, 0);
    repaint();
 
@@ -1651,8 +1651,8 @@ void restoreTree::restoreButtonPushed()
    } /* while ftera.hasNext */
    /* The progress bars for the next step */
    prBar1->setValue(2);
-   prLabel1->setText("Task 3 of 3");
-   prLabel2->setText("Filling Database Table");
+   prLabel1->setText(tr("Task 3 of 3"));
+   prLabel2->setText(tr("Filling Database Table"));
    prBar2->setRange(0, vFMCounter);
    vFMCounter = 0;
    prBar2->setValue(vFMCounter);

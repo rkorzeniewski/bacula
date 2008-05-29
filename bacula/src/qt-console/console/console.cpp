@@ -129,11 +129,11 @@ void Console::connect_dir()
    m_textEdit = textEdit;   /* our console screen */
 
    if (!m_dir) {          
-      mainWin->set_status("No Director found.");
+      mainWin->set_status( tr("No Director found."));
       goto bail_out;
    }
    if (m_sock) {
-      mainWin->set_status("Already connected.");
+      mainWin->set_status( tr("Already connected."));
       goto bail_out;
    }
 
@@ -187,7 +187,7 @@ void Console::connect_dir()
       if (!m_dir->tls_ctx) {
          display_textf(_("Failed to initialize TLS context for Director \"%s\".\n"),
             m_dir->name());
-         mainWin->set_status("Connection failed");
+         mainWin->set_status( tr("Connection failed") );
          goto bail_out;
       }
    }
@@ -537,7 +537,7 @@ void Console::write_dir(const char *msg)
       QApplication::setOverrideCursor(Qt::WaitCursor);
       write(msg);
    } else {
-      mainWin->set_status(" Director not connected. Click on connect button.");
+      mainWin->set_status( tr(" Director not connected. Click on connect button."));
       mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
       QBrush redBrush(Qt::red);
       QTreeWidgetItem *item = mainWin->getFromHash(this);
@@ -799,10 +799,8 @@ bool Console::is_connectedGui()
    if (is_connected()) {
       return true;
    } else {
-      QString message("Director ");
-      message += " is currently disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
+      QString message = tr("Director is currently disconnected\nPlease reconnect!");
+      QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    }
 }
@@ -814,27 +812,21 @@ bool Console::is_connectedGui()
 bool Console::preventInUseConnect()
 {
    if (!is_connected()) {
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
+      QString message = tr("Director %1 is currently disconnected\n"
+			   "Please reconnect!").arg(m_dir->name());
+      QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else if (!m_at_main_prompt){
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently busy\n  Please complete restore or other "
-                 " operation !!  This is a limitation that will be resolved before a beta"
-                 " release.  This is currently an alpha release.";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
+      QString message = tr("Director %1 is currently busy\n  Please complete "
+			   "restore or other operation!  This is a limitation "
+			   "that will be resolved before a beta release.  "
+			   "This is currently an alpha release.").arg(m_dir->name());
+      QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else if (!m_at_prompt){
-      QString message("Director ");
-      message += m_dir->name();
-      message += " is currently not at a prompt\n  Please try again!!";
-      QMessageBox::warning(this, "Bat",
-         tr(message.toUtf8().data()), QMessageBox::Ok );
+      QString message = tr("Director %1 is currently not at a prompt\n"
+			   "  Please try again!").arg(m_dir->name());
+      QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else {
       return true;

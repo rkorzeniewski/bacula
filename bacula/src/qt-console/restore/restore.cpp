@@ -395,8 +395,8 @@ void restorePage::unmarkButtonPushed()
       m_console->discardToPrompt();
    }
    if (count == 0) {
-      mainWin->set_status("Nothing selected, nothing done");
-      statusLine->setText("Nothing selected, nothing done");
+      mainWin->set_status(tr("Nothing selected, nothing done"));
+      statusLine->setText(tr("Nothing selected, nothing done"));
    }
 
 }
@@ -420,7 +420,7 @@ bool restorePage::cwd(const char *dir)
       Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
       Dmsg1(000, "stat=%d\n", stat);
-      QMessageBox::critical(this, "Error", "cd command failed", QMessageBox::Ok);
+      QMessageBox::critical(this, "Error", tr("cd command failed"), QMessageBox::Ok);
    }
    m_console->discardToPrompt();
    return true;  /* ***FIXME*** return real status */
@@ -439,7 +439,7 @@ char *restorePage::get_cwd()
       Dmsg2(100, "cwd=%s msg=%s\n", m_cwd.toUtf8().data(), m_console->msg());
    } else {
       Dmsg1(000, "Something went wrong read stat=%d\n", stat);
-      QMessageBox::critical(this, "Error", ".pwd command failed", QMessageBox::Ok);
+      QMessageBox::critical(this, "Error", tr(".pwd command failed"), QMessageBox::Ok);
    }
    m_console->discardToPrompt(); 
    return m_cwd.toUtf8().data();

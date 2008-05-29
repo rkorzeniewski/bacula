@@ -394,8 +394,8 @@ void DirStat::runningTableItemChanged(QTableWidgetItem * /*currentItem*/, QTable
       m_selectedJobsList.append(sitem->text());
    }
    if (m_selectedJobsList.count() > 1) {
-      actionCancelRunning->setText(QString("Cancel list of %1 Jobs").arg(m_selectedJobsList.count()));
+      actionCancelRunning->setText(tr("Cancel list of %1 Jobs").arg(m_selectedJobsList.count()));
    } else {
-      actionCancelRunning->setText("Cancel Single Job");
+      actionCancelRunning->setText(tr("Cancel Single Job"));
    }
 }

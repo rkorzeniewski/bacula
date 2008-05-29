@@ -83,6 +83,11 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
 
    createConnections();
 
+#ifndef HAVE_QWT
+   actionJobPlot->setEnabled(false);
+   actionJobPlot->setVisible(false);
+#endif
+
    this->show();
 
    readSettings();
@@ -468,14 +473,14 @@ void MainWin::restoreButtonClicked()
    new prerestorePage();
 }
 
-#ifdef HAVE_QWT
 void MainWin::jobPlotButtonClicked()
 {
+#ifdef HAVE_QWT
    JobPlotPass pass;
    pass.use = false;
    new JobPlot(NULL, pass);
-}
 #endif
+}
 
 /*
  * The user just finished typing a line in the command line edit box
@@ -687,6 +692,9 @@ void MainWin::setPreferences()
       break;
    }
    prefs.openPlotCheckBox->setCheckState(m_openPlot ? Qt::Checked : Qt::Unchecked);
+#ifndef HAVE_QWT
+   prefs.openPlotCheckBox->setVisible(false);
+#endif
    prefs.openBrowserCheckBox->setCheckState(m_openBrowser ? Qt::Checked : Qt::Unchecked);
    prefs.openDirStatCheckBox->setCheckState(m_openDirStat ? Qt::Checked : Qt::Unchecked);
    prefs.exec();

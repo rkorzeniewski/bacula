@@ -107,11 +107,11 @@ void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
 
    m_dir = dir;
    if (!m_dir) {          
-      mainWin->set_status("No Director found.");
+      mainWin->set_status( tr("No Director found.") );
       return;
    }
    if (m_sock) {
-      mainWin->set_status("Already connected.");
+      mainWin->set_status( tr("Already connected.") );
       return;
    }
 
@@ -177,7 +177,7 @@ void DirComm::connect_dir(DIRRES *dir, CONRES *cons)
                           _("Director daemon"), m_dir->address,
                           NULL, m_dir->DIRport, 0);
    if (m_sock == NULL) {
-      mainWin->set_status("Connection failed");
+     mainWin->set_status( tr("Connection failed") );
       return;
    } else {
       /* Update page selector to green to indicate that Console is connected */
@@ -289,7 +289,7 @@ void DirComm::write_dir(const char *msg)
       QApplication::setOverrideCursor(Qt::WaitCursor);
       write(msg);
    } else {
-      mainWin->set_status(" Director not connected. Click on connect button.");
+      mainWin->set_status( tr(" Director not connected. Click on connect button.") );
       mainWin->actionConnect->setIcon(QIcon(":images/disconnected.png"));
       QBrush redBrush(Qt::red);
       QTreeWidgetItem *item = mainWin->getFromHash(this);
@@ -518,10 +518,9 @@ bool DirComm::is_connectedGui()
    if (is_connected()) {
       return true;
    } else {
-      QString message("Director ");
-      message += " is curerntly disconnected\n  Please reconnect!!";
-      QMessageBox::warning(this, tr("Bat"),
-         tr(message.toUtf8().data()), QMessageBox::Ok );
+     QString message( tr("Director is currently disconnected\n  Please reconnect!"));
+     QMessageBox::warning(this, "Bat",
+         message.toUtf8().data(), QMessageBox::Ok );
       return false;
    }
 }
