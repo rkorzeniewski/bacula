@@ -53,10 +53,14 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
-setdebug level=51 storage=DDS-4
+setdebug level=151 storage=DDS-4
 restore where=${cwd}/tmp/bacula-restores select all done 
 yes
 wait
+restore where=${cwd}/tmp/bacula-restores select all done 
+yes
+wait
+status storage=DDS-4
 messages
 @$out
 quit
