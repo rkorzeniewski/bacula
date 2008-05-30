@@ -101,7 +101,7 @@ void faketape_debug(int level)
 /* theses function will replace open/read/write/close/ioctl
  * in bacula core
  */
-int faketape_open(const char *pathname, int flags)
+int faketape_open(const char *pathname, int flags, ...)
 {
    ASSERT(pathname != NULL);
 
@@ -413,7 +413,7 @@ faketape::faketape()
    current_file = 0;
    current_block = -1;
 
-   max_block = 2*1024*100;      /* 100MB */
+   max_block = 2*1024*2048;      /* 2GB */
 }
 
 faketape::~faketape()
