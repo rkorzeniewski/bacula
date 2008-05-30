@@ -628,7 +628,7 @@ int Console::read()
             break;
          } 
          app->processEvents();
-         if (m_api_set && m_messages_pending) {
+         if (m_api_set && m_messages_pending && m_notifier->isEnabled()) {
             write_dir(".messages");
             m_messages_pending = false;
          }
