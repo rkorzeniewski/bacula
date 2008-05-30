@@ -106,6 +106,7 @@
       <option id='jobtype_any' value='all type'>__Any__</option>
       <option id='jobtype_B' value='B'>__Backup__</option>
       <option id='jobtype_R' value='R'>__Restore__</option>
+      <option id='jobtype_D' value='D'>__Admin__</option>
     </select>
   </td>
 </tr>
