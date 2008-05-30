@@ -309,11 +309,11 @@ static void send_blocked_status(DEVICE *dev, STATUS_PKT *sp)
    }
    /* Send autochanger slot status */
    if (dev->is_autochanger()) {
-      if (dev->Slot > 0) {
+      if (dev->get_slot() > 0) {
          len = Mmsg(msg, _("    Slot %d is loaded in drive %d.\n"), 
-            dev->Slot, dev->drive_index);
+            dev->get_slot(), dev->drive_index);
          sendit(msg, len, sp);
-      } else if (dev->Slot == 0) {
+      } else if (dev->get_slot() == 0) {
          len = Mmsg(msg, _("    Drive %d is not loaded.\n"), dev->drive_index);
          sendit(msg, len, sp);
       } else {
