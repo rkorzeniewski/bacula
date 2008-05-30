@@ -139,7 +139,7 @@ init_dev(JCR *jcr, DEVRES *device)
 
    dev = (DEVICE *)malloc(sizeof(DEVICE));
    memset(dev, 0, sizeof(DEVICE));
-   dev->Slot = -1;       /* unknown */
+   dev->clear_slot();         /* unknown */
 
    /* Copy user supplied device parameters from Resource */
    dev->dev_name = get_memory(strlen(device->device_name)+1);
@@ -302,7 +302,6 @@ DEVICE::open(DCR *dcr, int omode)
    Dmsg4(100, "open dev: type=%d dev_name=%s vol=%s mode=%s\n", dev_type,
          print_name(), VolCatInfo.VolCatName, mode_to_str(omode));
    state &= ~(ST_LABEL|ST_APPEND|ST_READ|ST_EOT|ST_WEOT|ST_EOF);
-   Slot = -1;          /* unknown slot */
    label_type = B_BACULA_LABEL;
    if (is_tape() || is_fifo()) {
       open_tape_device(dcr, omode);
@@ -1547,6 +1546,19 @@ void DEVICE::unlock_door()
    tape_ioctl(m_fd, MTIOCTOP, (char *)&mt_com);
 #endif
 }
+
+void DEVICE::set_slot(int32_t slot)
+{ 
+   m_slot = slot; 
+   if (vol) vol->clear_slot();
+}
+
+void DEVICE::clear_slot()
+{ 
+   m_slot = -1; 
+   if (vol) vol->set_slot(-1);
+}
+
  
 
 /*
@@ -1868,7 +1880,6 @@ void DEVICE::close()
    file_addr = 0;
    EndFile = EndBlock = 0;
    openmode = 0;
-   Slot = -1;             /* unknown slot */
    clear_volhdr();
    memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    if (tid) {

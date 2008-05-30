@@ -197,10 +197,8 @@ struct VOLUME_CAT_INFO {
 
 
 class DEVRES;                        /* Device resource defined in stored_conf.h */
-
 class DCR; /* forward reference */
 class VOLRES; /* forward reference */
-
 
 /*
  * Device structure definition. There is one of these for
@@ -216,6 +214,8 @@ private:
    bool m_unload;                     /* set when Volume must be unloaded */
    bool m_load;                       /* set when Volume must be loaded */
    int m_num_reserved;                /* counter of device reservations */
+   int32_t m_slot;                    /* slot loaded in drive or -1 if none */ 
+
 public:
    DEVICE * volatile swap_dev;        /* Swap vol from this device */
    dlist *attached_dcrs;              /* attached DCR list */
@@ -237,7 +237,6 @@ public:
    bool initiated;                    /* set when init_dev() called */
    int label_type;                    /* Bacula/ANSI/IBM label types */
    uint32_t drive_index;              /* Autochanger drive index (base 0) */
-   int32_t  Slot;                     /* Slot currently in drive (base 1) */
    POOLMEM *dev_name;                 /* Physical device name */
    POOLMEM *prt_name;                 /* Name used for display purposes */
    char *errmsg;                      /* nicely edited error message */
@@ -385,6 +384,7 @@ public:
    void clear_load() { m_load = false; };
    char *bstrerror(void) { return errmsg; };
    char *print_errmsg() { return errmsg; };
+   int32_t get_slot() const { return m_slot; };
 
 
    void clear_volhdr();          /* in dev.c */
@@ -415,6 +415,10 @@ public:
    void clrerror(int func);      /* in dev.c */
    boffset_t lseek(DCR *dcr, boffset_t offset, int whence); /* in dev.c */
    bool update_pos(DCR *dcr);    /* in dev.c */
+   void set_slot(int32_t slot);  /* in dev.c */
+   void clear_slot();            /* in dev.c */
+
+
    bool update_freespace();      /* in dvd.c */
 
    uint32_t get_file() const { return file; };
@@ -556,6 +560,7 @@ public:
    void set_in_use() { m_in_use = true; };
    void clear_in_use() { m_in_use = false; };
    void set_slot(int32_t slot) { m_slot = slot; };
+   void clear_slot() { m_slot = -1; };
    int32_t get_slot() const { return m_slot; };
 };
 
