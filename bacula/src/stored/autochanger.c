@@ -453,13 +453,12 @@ bool unload_dev(DCR *dcr, DEVICE *dev)
 
    save_dev = dcr->dev;               /* save dcr device */
    dcr->dev = dev;                    /* temporarily point dcr at other device */
-   save_slot = dcr->VolCatInfo.Slot;
 
    if (dev->get_slot() <= 0 && get_autochanger_loaded_slot(dcr) <= 0) {
-      dcr->VolCatInfo.Slot = save_slot;
       dcr->dev = save_dev;
       return false;
    }
+   save_slot = dcr->VolCatInfo.Slot;
    dcr->VolCatInfo.Slot = dev->get_slot();
 
    dev->dlock();
