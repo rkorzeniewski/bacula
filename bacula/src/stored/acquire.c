@@ -194,7 +194,7 @@ bool acquire_device_for_read(DCR *dcr)
 
 
    /* Volume info is always needed because of VolParts */
-   Dmsg0(200, "dir_get_volume_info\n");
+   Dmsg1(150, "dir_get_volume_info vol=%s\n", dcr->VolumeName);
    if (!dir_get_volume_info(dcr, GET_VOL_INFO_FOR_READ)) {
       Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
    }
