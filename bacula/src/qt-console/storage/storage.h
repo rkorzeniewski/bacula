@@ -69,6 +69,8 @@ private:
    int m_currentAutoChanger;
    bool m_populated;
    bool m_checkcurwidget;
+   void writeExpandedSettings();
+   QTreeWidgetItem *m_topItem;
 };
 
 #endif /* _STORAGE_H_ */

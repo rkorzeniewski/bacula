@@ -65,6 +65,8 @@ Storage::Storage()
 
 Storage::~Storage()
 {
+   if (m_populated)
+      writeExpandedSettings();
 }
 
 /*
@@ -73,10 +75,11 @@ Storage::~Storage()
  */
 void Storage::populateTree()
 {
-   QTreeWidgetItem *topItem;
-
    if (!m_console->preventInUseConnect())
        return;
+
+   if (m_populated)
+      writeExpandedSettings();
 
    m_checkcurwidget = false;
    mp_treeWidget->clear();
@@ -86,18 +89,25 @@ void Storage::populateTree()
         << tr("Changer") << tr("Slot") << tr("Status") << tr("Enabled") << tr("Pool") 
         << tr("Media Type") );
 
-   topItem = new QTreeWidgetItem(mp_treeWidget);
-   topItem->setText(0, tr("Storage"));
-   topItem->setData(0, Qt::UserRole, 0);
-   topItem->setExpanded(true);
+   m_topItem = new QTreeWidgetItem(mp_treeWidget);
+   m_topItem->setText(0, tr("Storage"));
+   m_topItem->setData(0, Qt::UserRole, 0);
+   m_topItem->setExpanded(true);
 
    mp_treeWidget->setColumnCount(headerlist.count());
    mp_treeWidget->setHeaderLabels(headerlist);
 
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("StorageTreeExpanded");
+
    foreach(QString storageName, m_console->storage_list){
-      TreeItemFormatter storageItem(*topItem, 1);
+      TreeItemFormatter storageItem(*m_topItem, 1);
       storageItem.setTextFld(0, storageName);
-      storageItem.widget()->setExpanded(true);
+      if(settings.contains(storageName)) {
+         storageItem.widget()->setExpanded(settings.value(storageName).toBool());
+      } else {
+         storageItem.widget()->setExpanded(true);
+      }
 
       /* Set up query QString and header QStringList */
       QString query("SELECT StorageId AS ID, AutoChanger AS Changer"
@@ -203,7 +213,7 @@ void Storage::PgSeltreeWidgetClicked()
    if(!m_populated) {
       populateTree();
       createContextMenu();
-      m_populated=true;
+      m_populated = true;
    }
 }
 
@@ -309,7 +319,7 @@ void Storage::currentStackItem()
       populateTree();
       /* Create the context menu for the storage tree */
       createContextMenu();
-      m_populated=true;
+      m_populated = true;
    }
 }
 
@@ -384,4 +394,19 @@ void Storage::statusStorageWindow()
 {
    QTreeWidgetItem *parentItem = mainWin->getFromHash(this);
    new StorStat(m_currentStorage, parentItem);
+}
+
+/*
+ * Write settings to save expanded states of the pools
+ */
+void Storage::writeExpandedSettings()
+{
+   QSettings settings(m_console->m_dir->name(), "bat");
+   settings.beginGroup("StorageTreeExpanded");
+   int childcount = m_topItem->childCount();
+   for (int cnt=0; cnt<childcount; cnt++) {
+      QTreeWidgetItem *item = m_topItem->child(cnt);
+      settings.setValue(item->text(0), item->isExpanded());
+   }
+   settings.endGroup();
 }
