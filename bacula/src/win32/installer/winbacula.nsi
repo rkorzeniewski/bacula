@@ -684,6 +684,7 @@ Section "Director Service" SecDirectorDaemon
     File /oname=$PLUGINSDIR\create_database.cmd ${SRC_DIR}\create_postgresql_database.cmd
     File /oname=$PLUGINSDIR\drop_database.cmd ${SRC_DIR}\drop_postgresql_database.cmd
     File /oname=$PLUGINSDIR\make_tables.cmd ${SRC_DIR}\make_postgresql_tables.cmd
+    File ${SRC_DIR}\create_postgresql_database.sql
     File ${SRC_DIR}\make_postgresql_tables.sql
     File /oname=$PLUGINSDIR\drop_tables.cmd ${SRC_DIR}\drop_postgresql_tables.cmd
     File ${SRC_DIR}\drop_postgresql_tables.sql
