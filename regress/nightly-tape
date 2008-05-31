@@ -7,6 +7,7 @@ echo "Begin nightly-tape `date`"
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
 export REGRESS_DEBUG
+rm -rf Testing
 svn update
 scripts/config_dart
 nice ctest -D Nightly -R "^tape:"
