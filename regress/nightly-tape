@@ -3,6 +3,7 @@
 # test only the disk based regression scripts
 #
 # Include full output
+LANG=C
 echo "Begin nightly-tape `date`"
 save_debug=${REGRESS_DEBUG}
 REGRESS_DEBUG=1
