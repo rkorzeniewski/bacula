@@ -6,28 +6,4 @@
 . scripts/functions
 
 scripts/cleanup
-
-if test x@autochanger@ != x/dev/null; then
-   slot=`bin/@changer_script@ @autochanger@ loaded 0 @tape_drive@ $DRIVE1`
-   if test "x${slot}" != "x$SLOT2"; then
-      bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
-      bin/@changer_script@ @autochanger@ load $SLOT2 @tape_drive@ $DRIVE1
-   fi
-
-   init_drive @tape_drive@
-fi
-
-
-#
-# If we have an autochanger always load tape in slot 1
-#
-if test x@autochanger@ != x/dev/null; then
-   slot=`bin/@changer_script@ @autochanger@ loaded 0 @tape_drive@ $DRIVE1`
-   if test "x${slot}" != "x$SLOT1"; then
-      bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
-      bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
-   fi
-fi
-
-init_drive @tape_drive@
-
+scripts/prepare-two-tapes

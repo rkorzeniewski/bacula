@@ -28,6 +28,12 @@ if test x@autochanger@ != x/dev/null; then
       init_drive @tape_drive@
       slot=$SLOT2
       ;;
+   default)
+      bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
+      bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
+      init_drive @tape_drive@
+      slot=$SLOT1
+      ;;
   esac
 
 # init the other slot
