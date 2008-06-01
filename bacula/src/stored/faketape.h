@@ -45,7 +45,7 @@
 /* 
  * Theses functions will replace open/read/write
  */
-int faketape_open(const char *pathname, int flags);
+int faketape_open(const char *pathname, int flags, ...);
 int faketape_read(int fd, void *buffer, unsigned int count);
 int faketape_write(int fd, const void *buffer, unsigned int count);
 int faketape_close(int fd);
@@ -77,6 +77,7 @@ private:
    int truncate_file();
    int seek_file();
    void check_eof() { if(needEOF) weof(1);};
+   void check_inplace() { if (!inplace) seek_file();};
    void update_pos();
 
 public:
