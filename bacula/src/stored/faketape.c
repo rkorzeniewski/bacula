@@ -63,7 +63,7 @@ Device {
 #ifdef USE_FAKETAPE
 #include "faketape.h"
 
-static int dbglevel = 1000;
+static int dbglevel = 10;
 #define FILE_OFFSET 30
 faketape *ftape_list[FTAPE_MAX_DRIVE];
 
@@ -444,7 +444,6 @@ int faketape::write(const void *buffer, unsigned int count)
       return -1;
    }
 
-   Dmsg1(dbglevel, "write inplace=%i\n", inplace);
    check_inplace();
 
    if (!atEOD) {                /* if not at the end of the data */
@@ -636,6 +635,26 @@ int faketape::bsr(int count)
    int orig_f = current_file;
    int orig_b = current_block;
 
+   /* begin of tape, do nothing */
+   if (atBOT) {
+      errno = EIO;
+      return -1;
+   }
+
+   if (atEOF) {
+      if (!current_block) {
+	 if (current_file > 0) {
+	    current_file--;
+	 }
+	 current_block=-1;
+	 errno = EIO;
+	 return -1;
+
+      } else {
+	 atEOF=false;
+      }
+   }
+
    current_block=0;
    seek_file();
 
@@ -672,7 +691,11 @@ int faketape::bsr(int count)
    }
 
    Dmsg2(dbglevel, "bsr %i:%i\n", current_file, current_block);
+   errno=0;
    atEOT = atEOF = atEOD = false;
+   atBOT = (current_block == 0 && current_file == 0);
+
+   current_block = -1;
 
    return 0;
 }
@@ -808,7 +831,9 @@ int faketape::read(void *buffer, unsigned int count)
       return -1;
    } 			/* read ok */
 
-   current_block++;
+   if (current_block >= 0) {
+      current_block++;
+   }
 
    return nb;
 }
