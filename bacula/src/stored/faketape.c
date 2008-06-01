@@ -63,7 +63,7 @@ Device {
 #ifdef USE_FAKETAPE
 #include "faketape.h"
 
-static int dbglevel = 10;
+static int dbglevel = 1000;
 #define FILE_OFFSET 30
 faketape *ftape_list[FTAPE_MAX_DRIVE];
 
