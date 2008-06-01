@@ -33,7 +33,7 @@ messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Default drive=$DRIVE1
 label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
-update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default drive=0
+update Volume=TestVolume001 MaxVolBytes=3000000 pool=Default drive=$DRIVE1
 sql
 select * from Storage;
 select VolumeName,InChanger,Slot,StorageId from Media;
@@ -54,9 +54,7 @@ run_bacula
 check_for_zombie_jobs storage=DDS-4
 stop_bacula
 
-mt -f ${TAPE_DRIVE} rewind
-mtx -f ${AUTOCHANGER} unload
-sleep 15
+bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $SLOT2 ${TAPE_DRIVE} 0
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out /dev/null
