@@ -444,9 +444,8 @@ int faketape::write(const void *buffer, unsigned int count)
       return -1;
    }
 
-   if (!inplace) {
-      seek_file();
-   }
+   Dmsg1(dbglevel, "write inplace=%i\n", inplace);
+   check_inplace();
 
    if (!atEOD) {                /* if not at the end of the data */
       truncate_file();
@@ -498,16 +497,20 @@ int faketape::weof(int count)
       return -1;
    }
    needEOF = false;
+
+   check_inplace();
    truncate_file();             /* nothing after this point */
 
-   /* TODO: check this */
+   uint32_t c=0;
+   ::write(fd, &c, sizeof(uint32_t));
+
    current_file += count;
    current_block = 0;
+   seek_file();
 
-   uint32_t c=0;
-   seek_file();
-   ::write(fd, &c, sizeof(uint32_t));
-   seek_file();
+   c=0;
+   ::write(fd, &c, sizeof(uint32_t));   
+   lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(uint32_t), SEEK_SET);
 
    atEOD = false;
    atBOT = false;
@@ -526,10 +529,12 @@ int faketape::fsf(int count)
 /*
  * 1 0 -> fsf -> 2 0 -> fsf -> 2 -1
  */
+   check_inplace();
    check_eof();
 
    int ret;
-   if (atEOT) {
+   if (atEOT || atEOD) {
+      errno = EIO;
       current_block = -1;
       return -1;
    }
@@ -543,6 +548,7 @@ int faketape::fsf(int count)
       ret = 0;
    } else {
       Dmsg0(dbglevel, "Try to FSF after EOT\n");
+      errno = EIO;
       current_file = last_file ;
       current_block = -1;
       atEOD=true;
@@ -563,6 +569,7 @@ int faketape::fsr(int count)
    uint32_t s;
    Dmsg3(dbglevel, "fsr %i:%i count=%i\n", current_file,current_block, count);
 
+   check_inplace();
    check_eof();
 
    if (atEOT) {
@@ -613,6 +620,7 @@ int faketape::bsr(int count)
    ASSERT(count == 1);
    ASSERT(fd >= 0);
 
+   check_inplace();
    check_eof();
 
    if (!count) {
@@ -676,7 +684,9 @@ int faketape::bsf(int count)
    Dmsg3(dbglevel, "bsf %i:%i count=%i\n", current_file, current_block, count);
    int ret = 0;
 
+   check_inplace();
    check_eof();
+
    atBOT = atEOF = atEOT = atEOD = false;
 
    if (current_file - count < 0) {
@@ -745,48 +755,61 @@ int faketape::read(void *buffer, unsigned int count)
    Dmsg2(dbglevel, "read %i:%i\n", current_file, current_block);
 
    if (atEOT || atEOD) {
-      return 0;
+      errno = EIO;
+      return -1;
    }
 
    if (atEOF) {
-      current_file++;
-      current_block=0;
-      inplace = false;
-      atEOF = false;
+      if (current_file >= last_file) {
+         atEOD = true;
+         atEOF = false;
+         current_block=-1;
+         return 0;
+      }
+      atEOF=false;
    }
 
-   if (!inplace) {
-      seek_file();
-   }
+   check_inplace();
+   check_eof();
 
    atEOD = atBOT = false;
-   current_block++;
 
+   /* reading size of data */
    nb = ::read(fd, &s, sizeof(uint32_t));
    if (nb <= 0) {
-      atEOF = true;
+      atEOF = true;		/* TODO: check this */
       return 0;
    }
+
    if (s > count) {             /* not enough buffer to read block */
       Dmsg2(dbglevel, "Need more buffer to read next block %i > %i\n",s,count);
       lseek(fd, s, SEEK_CUR);
       errno = ENOMEM;
       return -1;
    }
+
    if (!s) {                    /* EOF */
       atEOF = true;
-      lseek(fd, lseek(fd, 0, SEEK_CUR) - sizeof(uint32_t), SEEK_SET);
+      if (current_file < last_file) { /* move to next file if possible */
+         current_file++;
+         current_block = 0;
+         inplace=false;
+      }
       return 0;
    }
+
+   /* reading data itself */
    nb = ::read(fd, buffer, s);
-   if (s != nb) {
-      atEOF = true;
-      if (current_file == last_file) {
-         atEOD = true;
-         current_block = -1;
-      }
-      Dmsg0(dbglevel, "EOF during reading\n");
-   }
+   if (s != nb) {		/* read error */
+      errno=EIO;
+      atEOT = true;
+      current_block = -1;
+      Dmsg0(dbglevel, "EOT during reading\n");
+      return -1;
+   } 			/* read ok */
+
+   current_block++;
+
    return nb;
 }
 
@@ -864,16 +887,17 @@ int faketape::seek_file()
    ASSERT(online);
    ASSERT(current_file >= 0);
    Dmsg2(dbglevel, "seek_file %i:%i\n", current_file, current_block);
+   inplace = true;
 
    off_t pos = ((off_t)current_file)<<FILE_OFFSET;
    if(lseek(fd, pos, SEEK_SET) == -1) {
       return -1;
    }
+
    last_file = MAX(last_file, current_file);
    if (current_block > 0) {
       fsr(current_block);
    }
-   inplace = true;
 
    return 0;
 }
