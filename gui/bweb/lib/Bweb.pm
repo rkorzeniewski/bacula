@@ -2252,9 +2252,11 @@ sub get_param
 
     if ($elt{client}) {
 	my $client = CGI::param('client');
-	$ret{client} = $client;
-	$client = $self->dbh_join($client);
-	$limit .= "AND Client.Name = $client ";
+	if ($client) {
+	    $ret{client} = $client;
+	    $client = $self->dbh_quote($client);
+	    $limit .= "AND Client.Name = $client ";
+	}
     }
 
     if ($elt{level}) {
@@ -4893,7 +4895,7 @@ sub display_next_job
 # check jobs against their schedule
 sub check_job
 {
-    my ($self, $sched, $schedname, $job, $job_pool, $client) = @_;
+    my ($self, $sched, $schedname, $job, $job_pool, $client, $type) = @_;
     return undef if (!$self->can_view_client($client));
 
     my $sch = $sched->get_scheds($schedname);    
@@ -4902,7 +4904,10 @@ sub check_job
     my $end = $sched->{end}; # this backup must have start before the next one
     my @ret;
     foreach my $s (@$sch) {
-	my $pool = $sched->get_pool($s) || $job_pool;
+	my $pool;
+	if ($type eq 'B') {	# we take the pool only for backup job
+	    $pool = $sched->get_pool($s) || $job_pool;
+	}
 	my $level = $sched->get_level($s);
 	my ($l) = ($level =~ m/^(.)/); # we keep the first letter
 	my $evts = $sched->get_event($s);
@@ -4910,11 +4915,11 @@ sub check_job
 	foreach my $evt (reverse @$evts) {
 	    my $all = $self->dbh_selectrow_hashref("
  SELECT 1
-   FROM Job JOIN Pool USING (PoolId) JOIN Client USING (ClientId)
+   FROM Job JOIN Client USING (ClientId) LEFT JOIN Pool USING (PoolId)
   WHERE Job.StartTime >= '$evt' 
     AND Job.StartTime <  '$end'
-    AND Job.Type = 'B'
     AND Job.Name = '$job'
+    AND Job.Type = '$type'
     AND Job.JobStatus = 'T'
     AND Job.Level = '$l'
 " . ($pool?" AND Pool.Name = '$pool' ":'') . "
@@ -4953,13 +4958,15 @@ sub display_missing_job
 				end => $arg->{end});
 
     my $job = $bconsole->send_cmd("show job");
-    my ($jname, $jsched, $jclient, $jpool);
+    my ($jname, $jsched, $jclient, $jpool, $jtype);
     foreach my $j (split(/\r?\n/, $job)) {
-	if ($j =~ /Job: name=([\w\d\-]+?) JobType=/i) {
+	if ($j =~ /Job: name=([\w\d\-]+?) JobType=(\d+)/i) {
 	    if ($jname and $jsched) {
-		$self->check_job($sched, $jsched, $jname, $jpool, $jclient);
+		$self->check_job($sched, $jsched, $jname, 
+				 $jpool, $jclient, $jtype);
 	    }
 	    $jname = $1;
+	    $jtype = chr($2);
 	    $jclient = $jpool = $jsched = undef;
 	} elsif ($j =~ /Client: name=(.+?) address=/i) {
 	    $jclient = $1;
