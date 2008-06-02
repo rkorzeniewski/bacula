@@ -2,6 +2,15 @@ Index: src/stored/faketape.c
 ===================================================================
 --- src/stored/faketape.c	(révision 7092)
 +++ src/stored/faketape.c	(copie de travail)
+@@ -63,7 +63,7 @@
+ #ifdef USE_FAKETAPE
+ #include "faketape.h"
+ 
+-static int dbglevel = 10;
++static int dbglevel = 0;
+ #define FILE_OFFSET 30
+ faketape *ftape_list[FTAPE_MAX_DRIVE];
+ 
 @@ -170,6 +170,7 @@
  int faketape::tape_op(struct mtop *mt_com)
  {
@@ -51,13 +60,15 @@ Index: src/stored/faketape.c
        break;
  
     case MTOFFL:                 /* put tape offline */
-@@ -253,19 +262,28 @@
+@@ -253,19 +262,30 @@
        break;
  
     case MTEOM:/* Go to the end of the recorded media (for appending files). */
 +      while (next_FM) {
 +	 lseek(fd, next_FM, SEEK_SET);
-+	 read_next_fm(true);
++	 if (read_next_fm(true)) {
++	    current_file++;
++	 }
 +      }
 +      off_t l;
 +      while (::read(fd, &l, sizeof(l)) > 0) {
@@ -88,7 +99,7 @@ Index: src/stored/faketape.c
        break;
  
     case MTERASE:                /* not used by bacula */
-@@ -275,7 +293,8 @@
+@@ -275,7 +295,8 @@
  
        current_file = 0;
        current_block = -1;
@@ -98,7 +109,7 @@ Index: src/stored/faketape.c
        truncate_file();
        break;
  
-@@ -405,8 +424,8 @@
+@@ -405,8 +426,8 @@
     atEOT = false;
     atEOD = false;
     online = false;
@@ -108,7 +119,7 @@ Index: src/stored/faketape.c
  
     file_block = 0;
     last_file = 0;
-@@ -444,8 +463,6 @@
+@@ -444,8 +465,6 @@
        return -1;
     }
  
@@ -117,7 +128,7 @@ Index: src/stored/faketape.c
     if (!atEOD) {                /* if not at the end of the data */
        truncate_file();
     }
-@@ -460,14 +477,6 @@
+@@ -460,14 +479,6 @@
  
     needEOF = true;              /* next operation need EOF mark */
  
@@ -132,7 +143,7 @@ Index: src/stored/faketape.c
     uint32_t size = count;
     ::write(fd, &size, sizeof(uint32_t));
     nb = ::write(fd, buffer, count);
-@@ -484,43 +493,68 @@
+@@ -484,43 +495,68 @@
     return nb;
  }
  
@@ -214,7 +225,7 @@ Index: src/stored/faketape.c
  {   
     ASSERT(online);
     ASSERT(current_file >= 0);
-@@ -528,24 +562,33 @@
+@@ -528,24 +564,33 @@
  /*
   * 1 0 -> fsf -> 2 0 -> fsf -> 2 -1
   */
@@ -257,7 +268,7 @@ Index: src/stored/faketape.c
        Dmsg0(dbglevel, "Try to FSF after EOT\n");
        errno = EIO;
        current_file = last_file ;
-@@ -553,10 +596,44 @@
+@@ -553,10 +598,44 @@
        atEOD=true;
        ret = -1;
     }
@@ -303,7 +314,7 @@ Index: src/stored/faketape.c
  int faketape::fsr(int count)
  {
     ASSERT(online);
-@@ -568,7 +645,6 @@
+@@ -568,7 +647,6 @@
     uint32_t s;
     Dmsg3(dbglevel, "fsr %i:%i count=%i\n", current_file,current_block, count);
  
@@ -311,7 +322,7 @@ Index: src/stored/faketape.c
     check_eof();
  
     if (atEOT) {
-@@ -595,20 +671,23 @@
+@@ -595,20 +673,23 @@
                 current_file, current_block, nb,s);
           errno = EIO;
           ret = -1;
@@ -340,7 +351,7 @@ Index: src/stored/faketape.c
  int faketape::bsr(int count)
  {
     Dmsg2(dbglevel, "bsr current_block=%i count=%i\n", 
-@@ -619,7 +698,6 @@
+@@ -619,7 +700,6 @@
     ASSERT(count == 1);
     ASSERT(fd >= 0);
  
@@ -348,7 +359,7 @@ Index: src/stored/faketape.c
     check_eof();
  
     if (!count) {
-@@ -641,22 +719,21 @@
+@@ -641,22 +721,21 @@
        return -1;
     }
  
@@ -383,7 +394,7 @@ Index: src/stored/faketape.c
  
     do {
        if (!atEOF) {
-@@ -700,31 +777,35 @@
+@@ -700,31 +779,35 @@
     return 0;
  }
  
@@ -428,7 +439,7 @@ Index: src/stored/faketape.c
     }
     return ret;
  }
-@@ -749,6 +830,9 @@
+@@ -749,6 +832,9 @@
     return 0;
  }
  
@@ -438,7 +449,7 @@ Index: src/stored/faketape.c
  int faketape::close()
  {
     check_eof();
-@@ -756,18 +840,15 @@
+@@ -756,18 +842,15 @@
     fd = -1;
     return 0;
  }
@@ -464,7 +475,7 @@ Index: src/stored/faketape.c
  int faketape::read(void *buffer, unsigned int count)
  {
     ASSERT(online);
-@@ -778,6 +859,10 @@
+@@ -778,6 +861,10 @@
     Dmsg2(dbglevel, "read %i:%i\n", current_file, current_block);
  
     if (atEOT || atEOD) {
@@ -475,7 +486,7 @@ Index: src/stored/faketape.c
        errno = EIO;
        return -1;
     }
-@@ -792,10 +877,10 @@
+@@ -792,10 +879,10 @@
        atEOF=false;
     }
  
@@ -487,7 +498,7 @@ Index: src/stored/faketape.c
  
     /* reading size of data */
     nb = ::read(fd, &s, sizeof(uint32_t));
-@@ -813,11 +898,10 @@
+@@ -813,11 +900,10 @@
  
     if (!s) {                    /* EOF */
        atEOF = true;
@@ -502,7 +513,7 @@ Index: src/stored/faketape.c
        return 0;
     }
  
-@@ -825,7 +909,7 @@
+@@ -825,7 +911,7 @@
     nb = ::read(fd, buffer, s);
     if (s != nb) {		/* read error */
        errno=EIO;
@@ -511,7 +522,7 @@ Index: src/stored/faketape.c
        current_block = -1;
        Dmsg0(dbglevel, "EOT during reading\n");
        return -1;
-@@ -860,36 +944,25 @@
+@@ -860,36 +946,25 @@
        return -1;
     }
  
@@ -556,7 +567,7 @@ Index: src/stored/faketape.c
  void faketape::update_pos()
  {
     ASSERT(online);
-@@ -901,32 +974,12 @@
+@@ -901,32 +976,12 @@
     Dmsg1(dbglevel+1, "update_pos=%i\n", file_block);
  
     if (file_block > max_block) {
