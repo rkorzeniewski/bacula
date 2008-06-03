@@ -493,7 +493,7 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       }
       got_vol = dir_find_next_appendable_volume(dcr);   /* get suggested volume */
       if (got_vol) {
-         return true;
+         goto get_out;
       } else {
          if (stat == W_TIMEOUT || stat == W_MOUNT) {
             Mmsg(dev->errmsg, _(
@@ -539,6 +539,8 @@ bool dir_ask_sysop_to_create_appendable_volume(DCR *dcr)
       }
       Dmsg1(100, "Someone woke me for device %s\n", dev->print_name());
    }
+
+get_out:
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Dmsg0(100, "leave dir_ask_sysop_to_mount_create_appendable_volume\n");
@@ -618,7 +620,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
       if (dev->poll) {
          Dmsg1(400, "Poll timeout in mount vol on device %s\n", dev->print_name());
          Dmsg1(400, "Blocked=%s\n", dev->print_blocked());
-         goto bail_out;
+         goto get_out;
       }
 
       if (stat == W_TIMEOUT) {
@@ -641,7 +643,7 @@ bool dir_ask_sysop_to_mount_volume(DCR *dcr, int mode)
       break;
    }
 
-bail_out:
+get_out:
    set_jcr_job_status(jcr, JS_Running);
    dir_send_job_status(jcr);
    Dmsg0(400, "leave dir_ask_sysop_to_mount_volume\n");
