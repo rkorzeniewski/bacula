@@ -1,4 +1,4 @@
-              Technical notes on version 2.3
+              Technical notes on version 2.5
 
           
 New features:
@@ -24,12 +24,18 @@ Add long term statistics job table
 
 
 General:
+
+Release Version 2.4.0:
+04Jun08
+kes  Fix Win32 build.
 03Jun08
 kes  Make sure to clear JS_WaitMedia when operator mounts a Volume.
+     This fixes bug #1095.
 31May08
 kes  Add create_postgresql_database.sql to Win32 installer. Should 
      fix problem reported by Juilio Monteiro.
-kes  Get correct slot when auto unloading a device.
+kes  Get correct slot when auto unloading a device. This fixes bug
+     #1086.
 30May08
 kes  Fix multiple media restore.
 kes  Make DEVICE Slot private and access it via a method.
