@@ -385,7 +385,7 @@ void JobList::tableItemChanged(QTableWidgetItem *currentItem, QTableWidgetItem *
       jobitem = mp_tableWidget->item(row, m_statusIndex);
       QString status = jobitem->text();
       mp_tableWidget->removeAction(actionCancelJob);
-      if (status == tr("Running")) {
+      if (status == tr("Running") || status == tr("Created, not yet running")) {
          mp_tableWidget->addAction(actionCancelJob);
       }
    }
