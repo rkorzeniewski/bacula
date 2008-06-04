@@ -4,8 +4,8 @@
 
 #undef  VERSION
 #define VERSION "2.3.22"
-#define BDATE   "01 June 2008"
-#define LSMDATE "01Jun08"
+#define BDATE   "04 June 2008"
+#define LSMDATE "04Jun08"
 
 #define PROG_COPYRIGHT "Copyright (C) %d-2008 Free Software Foundation Europe e.V.\n"
 #define BYEAR "2008"       /* year for copyright messages in progs */
@@ -62,7 +62,7 @@
  *  run regress test.
  */
 #ifdef DEVELOPER
-//#define USE_FAKETAPE
+#define USE_FAKETAPE
 #endif
 
 /* 

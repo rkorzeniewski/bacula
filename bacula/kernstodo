@@ -114,6 +114,8 @@ Professional Needs:
 
 Priority:
 ================
+- Fix #ifdefing so that smartalloc can be disabled. Check manual
+  -- the default is enabled.
 - Change calling sequence to delete_job_id_range() in ua_cmds.c 
   the preceding strtok() is done inside the subroutine only once.
 - Dangling softlinks are not restored properly.  For example, take a
