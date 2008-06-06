@@ -66,8 +66,8 @@ messages
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=LTO1 client=$clientname
-check_for_zombie_jobs storage=LTO3 client=$clientname
+check_for_zombie_jobs storage=LTO1 $clientname
+check_for_zombie_jobs storage=LTO3 $clientname
 
 stop_bacula
 
