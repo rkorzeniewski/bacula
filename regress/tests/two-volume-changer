@@ -39,7 +39,7 @@ select * from Storage;
 select VolumeName,InChanger,Slot,StorageId from Media;
 
 @#setdebug level=1000 client=$CLIENT 
-@#setdebug level=250 storage=DDS-4
+setdebug level=150 storage=DDS-4
 run job=$JobName yes
 wait
 sql
