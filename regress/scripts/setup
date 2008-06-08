@@ -33,7 +33,7 @@ check_exit_code
 cd src/win32
 make clean
 cd ../..
-make
+make -j3
 check_exit_code
 make install
 check_exit_code
