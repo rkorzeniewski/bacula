@@ -52,19 +52,27 @@ int faketape_close(int fd);
 int faketape_ioctl(int fd, unsigned long int request, ...);
 void faketape_debug(int level);
 
+typedef enum {
+   FT_READ_EOF,			/* Need to read the entire EOF struct */
+   FT_SKIP_EOF			/* Have already read the EOF byte */
+} FT_READ_FM_MODE;
+
 class faketape {
 private:
    int         fd;              /* Our file descriptor */
 
-   off_t       file_block;       /* size */
+   off_t       file_block;	/* size */
    off_t       max_block;
+
+   off_t       last_FM;		/* last file mark (last file) */
+   off_t       next_FM;		/* next file mark (next file) */
+   off_t       cur_FM;		/* current file mark */
 
    bool        atEOF;           /* End of file */
    bool        atEOT;           /* End of media */
    bool        atEOD;           /* End of data */
    bool        atBOT;           /* Begin of tape */
    bool        online;          /* volume online */
-   bool        inplace;         /* have to seek before writing ? */
    bool        needEOF;         /* check if last operation need eof */
 
    int32_t     last_file;       /* last file of the volume */
@@ -72,19 +80,18 @@ private:
    int32_t     current_block;   /* current position */
 
    void destroy();
-   int find_maxfile();
    int offline();
    int truncate_file();
-   int seek_file();
-   void check_eof() { if(needEOF) weof(1);};
-   void check_inplace() { if (!inplace) seek_file();};
+   void check_eof() { if(needEOF) weof();};
    void update_pos();
+   bool read_fm(FT_READ_FM_MODE readfirst);
+   void set_eot() { eot_count=0; atEOT=true;};
 
 public:
-   int fsf(int count);
+   int fsf();
    int fsr(int count);
-   int weof(int count);
-   int bsf(int count);
+   int weof();
+   int bsf();
    int bsr(int count);
 
    faketape();
