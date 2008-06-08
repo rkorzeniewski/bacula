@@ -599,6 +599,7 @@ bool write_block_to_dev(DCR *dcr)
    dev->VolCatInfo.VolCatBlocks++;
    dev->EndBlock = dev->block_num;
    dev->EndFile  = dev->file;
+   dev->LastBlock = block->BlockNumber;
    block->BlockNumber++;
 
    /* Update dcr values */
@@ -688,11 +689,15 @@ static void reread_last_block(DCR *dcr)
              * If we wrote block and the block numbers don't agree
              *  we have a possible problem.
              */
+#ifdef xxx
             if (lblock->VolSessionId == block->VolSessionId &&
+                lblock->VolSessionTime == block->VolSessionTime &&
                 lblock->BlockNumber+1 != block->BlockNumber) {
+#endif
+            if (lblock->BlockNumber != dev->LastBlock) {
                Jmsg(jcr, M_ERROR, 0, _(
-"Re-read of last block OK, but block numbers differ. Last block=%u Current block=%u.\n"),
-                    lblock->BlockNumber, block->BlockNumber);
+"Re-read of last block OK, but block numbers differ. Read block=%u Want block=%u.\n"),
+                    lblock->BlockNumber, dev->LastBlock);
             } else {
                Jmsg(jcr, M_INFO, 0, _("Re-read of last block succeeded.\n"));
             }
