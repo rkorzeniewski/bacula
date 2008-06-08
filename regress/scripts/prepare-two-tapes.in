@@ -17,36 +17,35 @@ if test x@autochanger@ != x/dev/null; then
    case $slot in
    0)
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
-      init_drive @tape_drive@
       slot=$SLOT1
       ;;
    $SLOT1)
-      init_drive @tape_drive@
       slot=$SLOT1
       ;;
    $SLOT2)
-      init_drive @tape_drive@
       slot=$SLOT2
       ;;
    default)
       bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
-      init_drive @tape_drive@
       slot=$SLOT1
       ;;
   esac
+  init_drive @tape_drive@
+  bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
+
 
 # init the other slot
   case $slot in
    $SLOT1)
-      bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
       bin/@changer_script@ @autochanger@ load $SLOT2 @tape_drive@ $DRIVE1
-      init_drive @tape_drive@
       ;;
    $SLOT2)
-      bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
-      init_drive @tape_drive@
       ;;
+   default)
+      echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
+      exit 1
    esac
+   init_drive @tape_drive@
 fi
