@@ -241,6 +241,7 @@ public:
    POOLMEM *prt_name;                 /* Name used for display purposes */
    char *errmsg;                      /* nicely edited error message */
    uint32_t block_num;                /* current block number base 0 */
+   uint32_t LastBlock;                /* last DEV_BLOCK number written to Volume */
    uint32_t file;                     /* current file number base 0 */
    uint64_t file_addr;                /* Current file read/write address */
    uint64_t file_size;                /* Current file size */

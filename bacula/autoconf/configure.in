@@ -2342,6 +2342,7 @@ if test "${support_bat}" = "yes" ; then
   chmod 755 install_conf_file build-depkgs-qt-console
   echo "Creating bat Makefile"
   $QMAKEBIN
+  make clean
   cd ${BUILD_DIR}
 fi
 
