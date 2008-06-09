@@ -78,7 +78,7 @@ const int sd_dbglvl = 300;
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-#include "faketape.h"
+#include "vtape.h"
 
 
 /* Daemon globals from stored.c */

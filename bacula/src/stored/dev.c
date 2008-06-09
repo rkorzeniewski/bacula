@@ -127,12 +127,12 @@ init_dev(JCR *jcr, DEVRES *device)
          device->dev_type = B_TAPE_DEV;
       } else if (S_ISFIFO(statp.st_mode)) {
          device->dev_type = B_FIFO_DEV;
-#ifdef USE_FAKETAPE
+#ifdef USE_VTAPE
       /* must set DeviceType = Faketape 
        * in normal mode, autodetection is disabled
        */
       } else if (S_ISREG(statp.st_mode)) { 
-         device->dev_type = B_FAKETAPE_DEV;
+         device->dev_type = B_VTAPE_DEV;
 #endif
       } else if (!(device->cap_bits & CAP_REQMOUNT)) {
          Jmsg2(jcr, M_ERROR, 0, _("%s is an unknown device type. Must be tape or directory\n"
@@ -275,12 +275,12 @@ init_dev(JCR *jcr, DEVRES *device)
 /* Choose the right backend */
 void DEVICE::init_backend()
 {
-   if (is_faketape()) {
-      d_open  = faketape_open;
-      d_write = faketape_write;
-      d_close = faketape_close;
-      d_ioctl = faketape_ioctl;
-      d_read  = faketape_read;
+   if (is_vtape()) {
+      d_open  = vtape_open;
+      d_write = vtape_write;
+      d_close = vtape_close;
+      d_ioctl = vtape_ioctl;
+      d_read  = vtape_read;
 
 #ifdef HAVE_WIN32
    } else if (is_tape()) {
@@ -1890,7 +1890,7 @@ void DEVICE::close()
 
    switch (dev_type) {
    case B_VTL_DEV:
-   case B_FAKETAPE_DEV:
+   case B_VTAPE_DEV:
    case B_TAPE_DEV:
       unlock_door(); 
    default:
@@ -1964,7 +1964,7 @@ bool DEVICE::truncate(DCR *dcr) /* We need the DCR for DVD-writing */
    Dmsg1(100, "truncate %s\n", print_name());
    switch (dev_type) {
    case B_VTL_DEV:
-   case B_FAKETAPE_DEV:
+   case B_VTAPE_DEV:
    case B_TAPE_DEV:
       /* maybe we should rewind and write and eof ???? */
       return true;                    /* we don't really truncate tapes */
