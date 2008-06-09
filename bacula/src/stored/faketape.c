@@ -60,13 +60,13 @@ Device {
 #include "bacula.h"             /* define 64bit file usage */
 #include "stored.h"
 
-#include "faketape.h"
+#include "vtape.h"
 
 static int dbglevel = 100;
 #define FILE_OFFSET 30
-faketape *ftape_list[FTAPE_MAX_DRIVE];
+vtape *ftape_list[FTAPE_MAX_DRIVE];
 
-static faketape *get_tape(int fd)
+static vtape *get_tape(int fd)
 {
    ASSERT(fd >= 0);
 
@@ -78,7 +78,7 @@ static faketape *get_tape(int fd)
    return ftape_list[fd];
 }
 
-static bool put_tape(faketape *ftape)
+static bool put_tape(vtape *ftape)
 {
    ASSERT(ftape != NULL);
 
@@ -91,7 +91,7 @@ static bool put_tape(faketape *ftape)
    return true;
 }
 
-void faketape_debug(int level)
+void vtape_debug(int level)
 {
    dbglevel = level;
 }
@@ -100,12 +100,12 @@ void faketape_debug(int level)
 /* theses function will replace open/read/write/close/ioctl
  * in bacula core
  */
-int faketape_open(const char *pathname, int flags, ...)
+int vtape_open(const char *pathname, int flags, ...)
 {
    ASSERT(pathname != NULL);
 
    int fd;
-   faketape *tape = new faketape();
+   vtape *tape = new vtape();
    fd = tape->open(pathname, flags);
    if (fd > 0) {
       put_tape(tape);
@@ -113,35 +113,35 @@ int faketape_open(const char *pathname, int flags, ...)
    return fd;
 }
 
-int faketape_read(int fd, void *buffer, unsigned int count)
+int vtape_read(int fd, void *buffer, unsigned int count)
 {
-   faketape *tape = get_tape(fd);
+   vtape *tape = get_tape(fd);
    ASSERT(tape != NULL);
    return tape->read(buffer, count);
 }
 
-int faketape_write(int fd, const void *buffer, unsigned int count)
+int vtape_write(int fd, const void *buffer, unsigned int count)
 {
-   faketape *tape = get_tape(fd);
+   vtape *tape = get_tape(fd);
    ASSERT(tape != NULL);
    return tape->write(buffer, count);
 }
 
-int faketape_close(int fd)
+int vtape_close(int fd)
 {
-   faketape *tape = get_tape(fd);
+   vtape *tape = get_tape(fd);
    ASSERT(tape != NULL);
    tape->close();
    delete tape;
    return 0;
 }
 
-int faketape_ioctl(int fd, unsigned long int request, ...)
+int vtape_ioctl(int fd, unsigned long int request, ...)
 {
    va_list argp;
    int result=0;
 
-   faketape *t = get_tape(fd);
+   vtape *t = get_tape(fd);
    if (!t) {
       errno = EBADF;
       return -1;
@@ -166,7 +166,7 @@ int faketape_ioctl(int fd, unsigned long int request, ...)
 
 /****************************************************************/
 
-int faketape::tape_op(struct mtop *mt_com)
+int vtape::tape_op(struct mtop *mt_com)
 {
    int result=0;
    int count = mt_com->mt_count;
@@ -232,14 +232,14 @@ int faketape::tape_op(struct mtop *mt_com)
       break;
 
    case MTREW:                  /* Rewind. */
-      Dmsg0(dbglevel, "rewind faketape\n");
+      Dmsg0(dbglevel, "rewind vtape\n");
       check_eof();
       atEOF = atEOD = false;
       atBOT = true;
       current_file = 0;
       current_block = 0;
       lseek(fd, 0, SEEK_SET);
-      result = !read_fm(FT_READ_EOF);
+      result = !read_fm(VT_READ_EOF);
       break;
 
    case MTOFFL:                 /* put tape offline */
@@ -263,7 +263,7 @@ int faketape::tape_op(struct mtop *mt_com)
    case MTEOM:/* Go to the end of the recorded media (for appending files). */
       while (next_FM) {
 	 lseek(fd, next_FM, SEEK_SET);
-	 if (read_fm(FT_READ_EOF)) {
+	 if (read_fm(VT_READ_EOF)) {
 	    current_file++;
 	 }
       }
@@ -295,7 +295,7 @@ int faketape::tape_op(struct mtop *mt_com)
       current_file = 0;
       current_block = -1;
       lseek(fd, 0, SEEK_SET);
-      read_fm(FT_READ_EOF);
+      read_fm(VT_READ_EOF);
       truncate_file();
       break;
 
@@ -342,7 +342,7 @@ int faketape::tape_op(struct mtop *mt_com)
    return result == 0 ? 0 : -1;
 }
 
-int faketape::tape_get(struct mtget *mt_get)
+int vtape::tape_get(struct mtget *mt_get)
 {
    int density = 1;
    int block_size = 1024;
@@ -391,7 +391,7 @@ int faketape::tape_get(struct mtget *mt_get)
    return 0;
 }
 
-int faketape::tape_pos(struct mtpos *mt_pos)
+int vtape::tape_pos(struct mtpos *mt_pos)
 {
    if (current_block >= 0) {
       mt_pos->mt_blkno = current_block;
@@ -406,7 +406,7 @@ int faketape::tape_pos(struct mtpos *mt_pos)
  * of a tape. When you wrote something, data after the
  * current position are discarded.
  */
-int faketape::truncate_file()
+int vtape::truncate_file()
 {  
    Dmsg2(dbglevel, "truncate %i:%i\n", current_file, current_block);
    ftruncate(fd, lseek(fd, 0, SEEK_CUR));
@@ -416,7 +416,7 @@ int faketape::truncate_file()
    return 0;
 }
 
-faketape::faketape()
+vtape::vtape()
 {
    fd = -1;
 
@@ -435,11 +435,11 @@ faketape::faketape()
    max_block = 2*1024*2048;      /* 2GB */
 }
 
-faketape::~faketape()
+vtape::~vtape()
 {
 }
 
-int faketape::get_fd()
+int vtape::get_fd()
 {
    return this->fd;
 }
@@ -447,7 +447,7 @@ int faketape::get_fd()
 /*
  * TODO: check if after a write op, and other tape op put a EOF
  */
-int faketape::write(const void *buffer, unsigned int count)
+int vtape::write(const void *buffer, unsigned int count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -504,7 +504,7 @@ int faketape::write(const void *buffer, unsigned int count)
  *  N : Next FileMark offset
  *  C : Current FileMark Offset
  */
-int faketape::weof()
+int vtape::weof()
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -553,7 +553,7 @@ int faketape::weof()
 /*
  * Go to next FM
  */
-int faketape::fsf()
+int vtape::fsf()
 {   
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -574,7 +574,7 @@ int faketape::fsf()
 
    if (next_FM > cur_FM) {	/* not the last file */
       lseek(fd, next_FM, SEEK_SET);
-      read_fm(FT_READ_EOF);
+      read_fm(VT_READ_EOF);
       current_file++;
       atEOF = true;
       ret = 0;
@@ -604,11 +604,11 @@ int faketape::fsf()
  * +---+------+---+---------------+-+
  */
 
-bool faketape::read_fm(FT_READ_FM_MODE read_all)
+bool vtape::read_fm(VT_READ_FM_MODE read_all)
 {
    int ret;
    uint32_t c;
-   if (read_all == FT_READ_EOF) {
+   if (read_all == VT_READ_EOF) {
       ::read(fd, &c, sizeof(c));
       if (c != 0) {
 	 lseek(fd, cur_FM, SEEK_SET);
@@ -632,7 +632,7 @@ bool faketape::read_fm(FT_READ_FM_MODE read_all)
 /*
  * TODO: Check fsr with EOF
  */
-int faketape::fsr(int count)
+int vtape::fsr(int count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -672,7 +672,7 @@ int faketape::fsr(int count)
          ret = -1;
 	 if (next_FM) {
             current_file++;
-	    read_fm(FT_SKIP_EOF);
+	    read_fm(VT_SKIP_EOF);
 	 }
          atEOF = true;          /* stop the loop */
       }
@@ -686,7 +686,7 @@ int faketape::fsr(int count)
  * BSR + BSR + EOF => last block
  * current_block = -1
  */
-int faketape::bsr(int count)
+int vtape::bsr(int count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -739,7 +739,7 @@ int faketape::bsr(int count)
       lseek(fd, cur_FM, SEEK_SET);
    }
 
-   ret = read_fm(FT_READ_EOF);
+   ret = read_fm(VT_READ_EOF);
 
    do {
       if (!atEOF) {
@@ -789,7 +789,7 @@ int faketape::bsr(int count)
  * EOF + BSF => just before EOF
  * file 0 + BSF => BOT + errno
  */
-int faketape::bsf()
+int vtape::bsf()
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -802,7 +802,7 @@ int faketape::bsf()
 
    if (current_file == 0) {/* BOT + errno */      
       lseek(fd, 0, SEEK_SET);
-      read_fm(FT_READ_EOF);
+      read_fm(VT_READ_EOF);
       current_file = 0;
       current_block = 0;
       atBOT = true;
@@ -818,9 +818,9 @@ int faketape::bsf()
 }
 
 /* 
- * Put faketape in offline mode
+ * Put vtape in offline mode
  */
-int faketape::offline()
+int vtape::offline()
 {
    close();
    
@@ -840,7 +840,7 @@ int faketape::offline()
 /* A filemark is automatically written to tape if the last tape operation
  * before close was a write.
  */
-int faketape::close()
+int vtape::close()
 {
    check_eof();
    ::close(fd);
@@ -856,7 +856,7 @@ int faketape::close()
  * naled by returning zero bytes for two consecutive read calls.  The third
  * read returns an error.
  */
-int faketape::read(void *buffer, unsigned int count)
+int vtape::read(void *buffer, unsigned int count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
@@ -900,7 +900,7 @@ int faketape::read(void *buffer, unsigned int count)
 
    if (!s) {                    /* EOF */
       atEOF = true;
-      if (read_fm(FT_SKIP_EOF)) {
+      if (read_fm(VT_SKIP_EOF)) {
 	 current_file++;
       }
 
@@ -924,9 +924,9 @@ int faketape::read(void *buffer, unsigned int count)
    return nb;
 }
 
-int faketape::open(const char *pathname, int uflags)
+int vtape::open(const char *pathname, int uflags)
 {
-   Dmsg2(dbglevel, "faketape::open(%s, %i)\n", pathname, uflags);
+   Dmsg2(dbglevel, "vtape::open(%s, %i)\n", pathname, uflags);
 
    online = true;               /* assume that drive contains a tape */
 
@@ -954,8 +954,8 @@ int faketape::open(const char *pathname, int uflags)
    atBOT = true;
    atEOT = atEOD = false;
 
-   /* If the faketape is empty, start by writing a EOF */
-   if (online && !read_fm(FT_READ_EOF)) {
+   /* If the vtape is empty, start by writing a EOF */
+   if (online && !read_fm(VT_READ_EOF)) {
       weof();
       last_file = current_file=0;
    }
@@ -964,7 +964,7 @@ int faketape::open(const char *pathname, int uflags)
 }
 
 /* use this to track file usage */
-void faketape::update_pos()
+void vtape::update_pos()
 {
    ASSERT(online);
    struct stat statp;
@@ -981,7 +981,7 @@ void faketape::update_pos()
    }
 }
 
-void faketape::dump()
+void vtape::dump()
 {
    Dmsg0(dbglevel+1, "===================\n");
    Dmsg2(dbglevel, "file:block = %i:%i\n", current_file, current_block);

@@ -26,13 +26,13 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- * faketape.h - Emulate the Linux st (scsi tape) driver on file.
+ * vtape.h - Emulate the Linux st (scsi tape) driver on file.
  * for regression and bug hunting purpose
  *
  */
 
-#ifndef FAKETAPE_H
-#define FAKETAPE_H
+#ifndef VTAPE_H
+#define VTAPE_H
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -43,19 +43,19 @@
 /* 
  * Theses functions will replace open/read/write
  */
-int faketape_open(const char *pathname, int flags, ...);
-int faketape_read(int fd, void *buffer, unsigned int count);
-int faketape_write(int fd, const void *buffer, unsigned int count);
-int faketape_close(int fd);
-int faketape_ioctl(int fd, unsigned long int request, ...);
-void faketape_debug(int level);
+int vtape_open(const char *pathname, int flags, ...);
+int vtape_read(int fd, void *buffer, unsigned int count);
+int vtape_write(int fd, const void *buffer, unsigned int count);
+int vtape_close(int fd);
+int vtape_ioctl(int fd, unsigned long int request, ...);
+void vtape_debug(int level);
 
 typedef enum {
-   FT_READ_EOF,			/* Need to read the entire EOF struct */
-   FT_SKIP_EOF			/* Have already read the EOF byte */
-} FT_READ_FM_MODE;
+   VT_READ_EOF,			/* Need to read the entire EOF struct */
+   VT_SKIP_EOF			/* Have already read the EOF byte */
+} VT_READ_FM_MODE;
 
-class faketape {
+class vtape {
 private:
    int         fd;              /* Our file descriptor */
 
@@ -82,7 +82,7 @@ private:
    int truncate_file();
    void check_eof() { if(needEOF) weof();};
    void update_pos();
-   bool read_fm(FT_READ_FM_MODE readfirst);
+   bool read_fm(VT_READ_FM_MODE readfirst);
 
 public:
    int fsf();
@@ -91,8 +91,8 @@ public:
    int bsf();
    int bsr(int count);
 
-   faketape();
-   ~faketape();
+   vtape();
+   ~vtape();
 
    int get_fd();
    void dump();
@@ -106,4 +106,4 @@ public:
    int tape_pos(struct mtpos *mt_com);
 };
 
-#endif /* !FAKETAPE_H */
+#endif /* !VTAPE_H */
