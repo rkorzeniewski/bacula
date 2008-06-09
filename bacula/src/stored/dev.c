@@ -128,7 +128,7 @@ init_dev(JCR *jcr, DEVRES *device)
       } else if (S_ISFIFO(statp.st_mode)) {
          device->dev_type = B_FIFO_DEV;
 #ifdef USE_VTAPE
-      /* must set DeviceType = Faketape 
+      /* must set DeviceType = Vtape 
        * in normal mode, autodetection is disabled
        */
       } else if (S_ISREG(statp.st_mode)) { 
