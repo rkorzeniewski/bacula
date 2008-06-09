@@ -30,7 +30,7 @@ DRIVE2=1
 SLOT1=1
 SLOT2=2
 AUTOCHANGER="/tmp/ach_config"
-USE_FAKETAPE=--enable-faketape
+USE_FAKETAPE=yes
 AUTOCHANGER_SCRIPT=disk-changer
 
 You can remplace /tmp/ by what you want.
