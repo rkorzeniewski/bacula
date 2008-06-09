@@ -25,8 +25,8 @@ if test x@autochanger@ != x/dev/null; then
       bin/@changer_script@ @autochanger@ load $SLOT2 @tape_drive1@ 1
    fi
    echo "WEOF drive 1"
-   mt -f @tape_drive1@ rewind
-   mt -f @tape_drive1@ weof
+   init_drive @tape_drive1@
+
    echo "unload slot $SLOT2 in drive 1"
    bin/@changer_script@ @autochanger@ unload $SLOT2 @tape_drive1@ 1
 
@@ -37,8 +37,8 @@ if test x@autochanger@ != x/dev/null; then
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ 0
    fi
    echo "WEOF drive 0"
-   mt -f @tape_drive@ rewind
-   mt -f @tape_drive@ weof
+   init_drive @tape_drive@
+
    echo "unload slot $SLOT1 from drive 0"
    bin/@changer_script@ @autochanger@ unload $SLOT1 @tape_drive@ 0
 fi
