@@ -58,11 +58,11 @@
 #endif
 
 /*
- * USE_FAKETAPE is a dummy tape driver. This is useful to
+ * USE_VTAPE is a dummy tape driver. This is useful to
  *  run regress test.
  */
 #ifdef DEVELOPER
-#define USE_FAKETAPE
+#define USE_VTAPE
 #endif
 
 /* 
