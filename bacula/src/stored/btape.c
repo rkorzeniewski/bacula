@@ -44,8 +44,8 @@
 #include "bacula.h"
 #include "stored.h"
 
-#ifdef USE_FAKETAPE
-#include "faketape.h"
+#ifdef USE_VTAPE
+#include "vtape.h"
 #endif
 
 /* Dummy functions */
