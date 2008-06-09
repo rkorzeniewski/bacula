@@ -56,10 +56,10 @@ if test x${AUTOCHANGER} = x/dev/null ; then
 fi
 }
 
-require_faketape() 
+require_vtape() 
 {
-if test x${USE_FAKETAPE} = x ; then
-   echo "$TestName test needs the faketape driver."
+if test x${USE_VTAPE} = x ; then
+   echo "$TestName test needs the vtape driver."
    exit 1
 fi
 }
@@ -262,7 +262,7 @@ debug_wait()
 
 init_drive()
 {
-  if test a$USE_FAKETAPE = a; then
+  if test a$USE_VTAPE = a; then
     mt -f $1 rewind
     mt -f $1 weof
   else
