@@ -78,9 +78,8 @@ const int sd_dbglvl = 300;
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-#ifdef USE_FAKETAPE
-# include "faketape.h"
-#endif
+#include "faketape.h"
+
 
 /* Daemon globals from stored.c */
 extern STORES *me;                    /* "Global" daemon resource */

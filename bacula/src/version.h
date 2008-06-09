@@ -62,7 +62,7 @@
  *  run regress test.
  */
 #ifdef DEVELOPER
-//#define USE_FAKETAPE
+#define USE_FAKETAPE
 #endif
 
 /* 

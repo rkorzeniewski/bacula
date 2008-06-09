@@ -60,7 +60,6 @@ Device {
 #include "bacula.h"             /* define 64bit file usage */
 #include "stored.h"
 
-#ifdef USE_FAKETAPE
 #include "faketape.h"
 
 static int dbglevel = 100;
@@ -240,7 +239,7 @@ int faketape::tape_op(struct mtop *mt_com)
       current_file = 0;
       current_block = 0;
       lseek(fd, 0, SEEK_SET);
-      read_fm(FT_READ_EOF);
+      result = !read_fm(FT_READ_EOF);
       break;
 
    case MTOFFL:                 /* put tape offline */
@@ -912,7 +911,7 @@ int faketape::read(void *buffer, unsigned int count)
    nb = ::read(fd, buffer, s);
    if (s != nb) {		/* read error */
       errno=EIO;
-      set_eot();
+      atEOT=true;
       current_block = -1;
       Dmsg0(dbglevel, "EOT during reading\n");
       return -1;
@@ -976,7 +975,7 @@ void faketape::update_pos()
    Dmsg1(dbglevel+1, "update_pos=%i\n", file_block);
 
    if (file_block > max_block) {
-      set_eot();
+      atEOT = true;
    } else {
       atEOT = false;
    }
@@ -992,4 +991,3 @@ void faketape::dump()
          atEOF, atEOT, atEOD, atBOT);  
 }
 
-#endif /* USE_FAKETAPE */

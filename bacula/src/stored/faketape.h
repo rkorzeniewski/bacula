@@ -38,8 +38,6 @@
 #include <stddef.h>
 #include "bacula.h"
 
-#ifdef USE_FAKETAPE
-
 #define FTAPE_MAX_DRIVE 50
 
 /* 
@@ -85,7 +83,6 @@ private:
    void check_eof() { if(needEOF) weof();};
    void update_pos();
    bool read_fm(FT_READ_FM_MODE readfirst);
-   void set_eot() { eot_count=0; atEOT=true;};
 
 public:
    int fsf();
@@ -109,5 +106,4 @@ public:
    int tape_pos(struct mtpos *mt_com);
 };
 
-#endif /* USE_FAKETAPE */
 #endif /* !FAKETAPE_H */
