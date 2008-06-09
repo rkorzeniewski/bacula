@@ -1461,7 +1461,6 @@ Optional Features:
   --enable-bwx-console     enable build of wxWidgets console disabled
   --enable-tray-monitor   enable build of Gnome tray monitor (compatible with KDE) disabled
   --enable-smartalloc     enable smartalloc debugging support disabled
-  --enable-faketape	     enable faketape debugging support disabled
   --enable-static-tools   enable static tape tools disabled
   --enable-static-fd      enable static File daemon disabled
   --enable-static-sd      enable static Storage daemon disabled
@@ -13430,7 +13429,6 @@ _ACEOF
 
 fi
 
-support_faketape=no
 support_mysql=no
 support_sqlite=no
 support_sqlite3=no
@@ -13681,25 +13679,6 @@ if test x$support_smartalloc = xyes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define SMARTALLOC 1
-_ACEOF
-
-fi
-
-# -------------------------------------------
-# faketape (default off)
-# -------------------------------------------
-# Check whether --enable-faketape was given.
-if test "${enable_faketape+set}" = set; then
-  enableval=$enable_faketape; if test x$enableval = xyes; then
-    support_faketape=yes
-  fi
-fi
-
-
-if test x$support_faketape = xyes; then
-
-cat >>confdefs.h <<\_ACEOF
-#define USE_FAKETAPE 1
 _ACEOF
 
 fi
@@ -32275,7 +32254,6 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto}
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc}
-  enable-faketape:	      ${support_faketape}
   bat support:		      ${support_bat} ${QWT_LDFLAGS}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-bwx-console:	      ${support_wx_console} ${wx_version}

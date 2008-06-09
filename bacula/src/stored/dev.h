@@ -95,7 +95,8 @@ enum {
    B_TAPE_DEV,
    B_DVD_DEV,
    B_FIFO_DEV,
-   B_VTL_DEV 
+   B_FAKETAPE_DEV,		/* change to B_TAPE_DEV after init */
+   B_VTL_DEV
 };
 
 /* Generic status bits returned from status_dev() */
@@ -307,11 +308,13 @@ public:
    int is_autochanger() const { return capabilities & CAP_AUTOCHANGER; }
    int requires_mount() const { return capabilities & CAP_REQMOUNT; }
    int is_removable() const { return capabilities & CAP_REM; }
-   int is_tape() const { return dev_type == B_TAPE_DEV; }
+   int is_tape() const { return (dev_type == B_TAPE_DEV || 
+                                 dev_type == B_FAKETAPE_DEV); }
    int is_file() const { return dev_type == B_FILE_DEV; }
    int is_fifo() const { return dev_type == B_FIFO_DEV; }
    int is_dvd() const  { return dev_type == B_DVD_DEV; }
    int is_vtl() const  { return dev_type == B_VTL_DEV; }
+   int is_faketape() const  { return dev_type == B_FAKETAPE_DEV; }
    int is_open() const { return m_fd >= 0; }
    int is_offline() const { return state & ST_OFFLINE; }
    int is_labeled() const { return state & ST_LABEL; }
@@ -425,6 +428,14 @@ public:
    uint32_t get_file() const { return file; };
    uint32_t get_block_num() const { return block_num; };
    int fd() const { return m_fd; };
+
+   /* low level operations */
+   void init_backend();
+   int (*d_open)(const char *pathname, int flags, ...);
+   int (*d_read)(int fd, void *buffer, unsigned int count);
+   int (*d_write)(int fd, const void *buffer, unsigned int count);
+   int (*d_close)(int fd);
+   int (*d_ioctl)(int fd, unsigned long int request, ...);
 
    /* 
     * Locking and blocking calls

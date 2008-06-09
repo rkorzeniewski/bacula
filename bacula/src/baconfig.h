@@ -86,12 +86,6 @@
 void InitWinAPIWrapper();
 
 #define  OSDependentInit()    InitWinAPIWrapper()
-#define  tape_open            win32_tape_open
-#define  tape_ioctl           win32_tape_ioctl
-#define  tape_read            win32_tape_read
-#define  tape_write           win32_tape_write
-#define  tape_close           win32_tape_close
-#define  IS_TAPE(x)           S_ISCHR(x)
 
 #define sbrk(x)  0
 
@@ -116,22 +110,6 @@ void InitWinAPIWrapper();
 #define CATS_IMP_EXP
 
 #define  OSDependentInit()
-
-#if defined(USE_FAKETAPE)
-#  define  tape_open            faketape_open
-#  define  tape_ioctl           faketape_ioctl
-#  define  tape_read            faketape_read
-#  define  tape_write           faketape_write
-#  define  tape_close           faketape_close
-#  define  IS_TAPE(x)           S_ISREG(x)
-#else  /* UNIX && !FAKETAPE */
-#  define  tape_open            ::open
-#  define  tape_ioctl           ::ioctl
-#  define  tape_read            ::read
-#  define  tape_write           ::write
-#  define  tape_close           ::close
-#  define  IS_TAPE(x)           S_ISCHR(x)
-#endif
 
 #endif /* HAVE_WIN32 */
 
