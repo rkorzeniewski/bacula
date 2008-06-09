@@ -28,8 +28,8 @@ Director {
 Autochanger {
   Name = LTO
   Changer Device = @working_dir@/ach/conf
-  Changer Command ="@scriptdir@/@changer_script@ %c %o %S %a %d"
-  Device = LTO3_0, LTO3_1, LTO3_2, LTO1_3, LTO1_4
+  Changer Command ="@scriptdir@/disk-changer %c %o %S %a %d"
+  Device = LTO3_0, LTO3_1, LTO3_2, LTO1_5, LTO1_3, LTO1_4, LTO1-ANSI_6
 }
 
 
@@ -120,6 +120,42 @@ Device {
   Maximum Job Spool Size = 10M
   Spool Directory =  @working_dir@
   Device Type = Tape
+}
+
+Device {
+  Name = LTO1_5
+  Media Type = LTO1
+  Archive Device = @working_dir@/ach/drive5
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 5
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+  @@sbindir@/tape_options
+  Maximum File Size = 10M
+  Maximum Volume Size = 30M
+  Maximum Job Spool Size = 10M
+  Spool Directory =  @working_dir@
+  Device Type = Tape
+  Auto Select = no
+}
+
+Device {
+  Name = LTO1-ANSI_6
+  Media Type = LTO1-ANSI
+  Archive Device = @working_dir@/ach/drive6
+  AutomaticMount = yes;               # when device opened, read it
+  Autochanger = yes
+  Drive Index = 6
+  AlwaysOpen = yes;
+  RemovableMedia = yes;
+  @@sbindir@/tape_options
+  Maximum File Size = 10M
+  Maximum Volume Size = 30M
+  Maximum Job Spool Size = 10M
+  Spool Directory =  @working_dir@
+  Device Type = Tape
+  Label Type = ansi
 }
 
 
