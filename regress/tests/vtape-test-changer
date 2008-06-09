@@ -7,20 +7,20 @@
 # TAPE_DRIVE="$cwd/working/ach/drive0"
 # TAPE_DRIVE1="$cwd/working/ach/drive0"
 # AUTOCHANGER="$cwd/working/ach/conf"
-# USE_FAKETAPE=--enable-faketape
+# USE_VTAPE=yes
 # AUTOCHANGER_SCRIPT=disk-changer
 # 
 
-TestName="faketape-test-changer"
+TestName="vtape-test-changer"
 JobName=backup
 . scripts/functions
 
-require_faketape
+require_vtape
 
 scripts/cleanup
 scripts/copy-tape-confs
-cp scripts/bacula-dir-faketape.conf bin/bacula-dir.conf
-cp scripts/bacula-sd-faketape.conf bin/bacula-sd.conf
+cp scripts/bacula-dir-vtape.conf bin/bacula-dir.conf
+cp scripts/bacula-sd-vtape.conf bin/bacula-sd.conf
 scripts/prepare-fake-autochanger
 
 echo "${cwd}/build" >${cwd}/tmp/file-list
@@ -77,7 +77,7 @@ END_OF_DATA
 run_bacula
 check_for_zombie_jobs storage=LTO1 $clientname
 check_for_zombie_jobs storage=LTO3 $clientname
-check_for_zombie_jobs storage=LTO1-ANSI_6 client=$clientname
+check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
 
 touch ${cwd}/build/po/*.po
 
@@ -98,9 +98,9 @@ messages
 END_OF_DATA
 
 run_bconsole
-check_for_zombie_jobs storage=LTO1 client=$clientname
-check_for_zombie_jobs storage=LTO3 client=$clientname
-check_for_zombie_jobs storage=LTO1-ANSI_6 client=$clientname
+check_for_zombie_jobs storage=LTO1 $clientname
+check_for_zombie_jobs storage=LTO3 $clientname
+check_for_zombie_jobs storage=LTO1-ANSI_6 $clientname
 stop_bacula
 
 check_two_logs

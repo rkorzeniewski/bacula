@@ -6,7 +6,7 @@
 . scripts/functions
 
 # check if user wants to run this test
-if test x$USE_FAKETAPE = x; then
+if test x$USE_VTAPE = x; then
     exit 1
 fi
 
