@@ -184,7 +184,6 @@ then
     AM_GNU_GETTEXT
 fi
 
-support_faketape=no
 support_mysql=no
 support_sqlite=no
 support_sqlite3=no
@@ -404,19 +403,6 @@ AC_ARG_ENABLE(smartalloc,
 
 if test x$support_smartalloc = xyes; then
    AC_DEFINE(SMARTALLOC, 1, [Set if you want Smartalloc enabled])
-fi
-
-# -------------------------------------------
-# faketape (default off)
-# -------------------------------------------
-AC_ARG_ENABLE(faketape,
-  [  --enable-faketape	     enable faketape debugging support [disabled]],
-  [if test x$enableval = xyes; then
-    support_faketape=yes
-  fi])
-
-if test x$support_faketape = xyes; then
-   AC_DEFINE(USE_FAKETAPE, 1, [Set if you want faketape enabled])
 fi
 
 # -------------------------------------------
@@ -2496,7 +2482,6 @@ Configuration on `date`:
   Encryption support:	      ${support_crypto} 
   ZLIB support: 	      ${have_zlib}
   enable-smartalloc:	      ${support_smartalloc} 
-  enable-faketape:	      ${support_faketape} 
   bat support:		      ${support_bat} ${QWT_LDFLAGS}
   enable-gnome: 	      ${support_gnome} ${gnome_version}
   enable-bwx-console:	      ${support_wx_console} ${wx_version}
