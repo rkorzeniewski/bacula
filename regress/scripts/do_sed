@@ -57,6 +57,8 @@ sed -f ${out} ${cwd}/scripts/bacula-fd-2d.conf.in >${cwd}/scripts/bacula-fd-2d.c
 sed -f ${out} ${cwd}/scripts/bacula-sd-2d.conf.in >${cwd}/scripts/bacula-sd-2d.conf
 sed -f ${out} ${cwd}/scripts/bacula-dir-2d.conf.in >${cwd}/scripts/bacula-dir-2d.conf
 sed -f ${out} ${cwd}/scripts/bconsole-2d.conf.in >${cwd}/scripts/bconsole-2d.conf
+sed -f ${out} ${cwd}/scripts/regress-config.in >${cwd}/scripts/regress-config
+
 
 scripts/config_dart
 
