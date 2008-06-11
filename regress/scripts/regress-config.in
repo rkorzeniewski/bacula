@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# This is the configuration script for regression testing
+#
+
+. ${1}/config
+
+CFLAGS="-g -O2 -Wall" \
+ ./configure \
+    --sbindir=${1}/bin \
+    --sysconfdir=${1}/bin \
+    --mandir=${1}/bin \
+    --with-pid-dir=${1}/working \
+    --with-subsys-dir=${1}/working \
+    --enable-smartalloc \
+    --disable-readline \
+    --with-working-dir=${1}/working \
+    --with-archivedir=${1}/tmp \
+    --with-dump-email=${EMAIL} \
+    --with-job-email=${EMAIL} \
+    --with-smtp-host=${SMTP_HOST} \
+    --with-db-name=@db_name@ \
+    --with-db-user=@db_user@ \
+    ${OPENSSL} \
+    ${TCPWRAPPERS} \
+    ${WHICHDB} \
+    --with-baseport=${BASEPORT}
+
+exit 0
+#!/bin/sh
+#
+# This is the configuration script for regression testing
+#
+
+. ${1}/config
+
+CFLAGS="-g -O2 -Wall" \
+ ./configure \
+    --sbindir=${1}/bin \
+    --sysconfdir=${1}/bin \
+    --mandir=${1}/bin \
+    --with-pid-dir=${1}/working \
+    --with-subsys-dir=${1}/working \
+    --enable-smartalloc \
+    --disable-readline \
+    --with-working-dir=${1}/working \
+    --with-archivedir=${1}/tmp \
+    --with-dump-email=${EMAIL} \
+    --with-job-email=${EMAIL} \
+    --with-smtp-host=${SMTP_HOST} \
+    --with-db-name=@db_name@ \
+    --with-db-user=@db_user@ \
+    ${OPENSSL} \
+    ${TCPWRAPPERS} \
+    ${WHICHDB} \
+    --with-baseport=${BASEPORT}
+
+exit 0
