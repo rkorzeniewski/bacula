@@ -205,7 +205,7 @@ Storage {
 Catalog {
   Name = MyCatalog
   @libdbi@
-  dbname = regress; user = regress; password = ""
+  dbname = @db_name@; user = @db_user@; password = "@db_password@"
 }
 
 
