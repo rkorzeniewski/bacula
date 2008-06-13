@@ -445,7 +445,10 @@ int vtape::get_fd()
 }
 
 /*
- * TODO: check if after a write op, and other tape op put a EOF
+ * Write a variable block of count size.
+ * block = vtape_header + data
+ * vtape_header = sizeof(data)
+ * if vtape_header == 0, this is a EOF
  */
 int vtape::write(const void *buffer, unsigned int count)
 {
@@ -852,9 +855,9 @@ int vtape::close()
  * When a filemark is encountered while reading, the following happens.  If
  * there are data remaining in the buffer when the filemark is found, the
  * buffered data is returned.  The next read returns zero bytes.  The following
- * read returns data from the next file.  The end of recorded data is sig‐
- * naled by returning zero bytes for two consecutive read calls.  The third
- * read returns an error.
+ * read returns data from the next file.  The end of recorded data is signaled
+ * by returning zero bytes for two consecutive read calls.  The third read
+ * returns an error.
  */
 int vtape::read(void *buffer, unsigned int count)
 {
