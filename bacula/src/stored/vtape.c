@@ -975,7 +975,7 @@ void vtape::update_pos()
       file_block = statp.st_blocks;
    } 
 
-   Dmsg1(dbglevel+1, "update_pos=%i\n", file_block);
+   Dmsg1(dbglevel*2, "update_pos=%i\n", file_block);
 
    if (file_block > max_block) {
       atEOT = true;
