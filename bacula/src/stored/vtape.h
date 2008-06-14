@@ -44,11 +44,11 @@
  * Theses functions will replace open/read/write
  */
 int vtape_open(const char *pathname, int flags, ...);
-int vtape_read(int fd, void *buffer, unsigned int count);
-int vtape_write(int fd, const void *buffer, unsigned int count);
 int vtape_close(int fd);
 int vtape_ioctl(int fd, unsigned long int request, ...);
 void vtape_debug(int level);
+ssize_t vtape_read(int fd, void *buffer, size_t count);
+ssize_t vtape_write(int fd, const void *buffer, size_t count);
 
 typedef enum {
    VT_READ_EOF,			/* Need to read the entire EOF struct */
@@ -97,8 +97,8 @@ public:
    int get_fd();
    void dump();
    int open(const char *pathname, int flags);
-   int read(void *buffer, unsigned int count);
-   int write(const void *buffer, unsigned int count);
+   ssize_t read(void *buffer, size_t count);
+   ssize_t write(const void *buffer, size_t count);
    int close();
 
    int tape_op(struct mtop *mt_com);

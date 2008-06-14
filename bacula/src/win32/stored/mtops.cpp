@@ -181,7 +181,7 @@ static int tape_op(int fd, struct mtop *mt_com);
 static int tape_pos(int fd, struct mtpos *mt_pos);
 
 int
-win32_tape_open(const char *file, int flags, int mode)
+win32_tape_open(const char *file, int flags, ...)
 {
    HANDLE hDevice = INVALID_HANDLE_VALUE;
    char szDeviceName[256] = "\\\\.\\";
@@ -274,8 +274,26 @@ win32_tape_open(const char *file, int flags, int mode)
    return (int)idxFile + 3;
 }
 
+ssize_t
+win32_read(int fd, void *buffer, size_t count)
+{
+   return read(fd, buffer, count);
+}
+
+ssize_t
+win32_write(int fd, const void *buffer, size_t count)
+{
+   return write(fd, buffer, count);
+}
+
 int
-win32_tape_read(int fd, void *buffer, unsigned int count)
+ioctl(int d, unsigned long int req, ...)
+{
+   return -1;
+}
+
+ssize_t
+win32_tape_read(int fd, void *buffer, size_t count)
 {
    if (buffer == NULL) {
       errno = EINVAL;
@@ -346,8 +364,8 @@ win32_tape_read(int fd, void *buffer, unsigned int count)
    }
 }
 
-int
-win32_tape_write(int fd, const void *buffer, unsigned int count)
+ssize_t
+win32_tape_write(int fd, const void *buffer, size_t count)
 {
    if (buffer == NULL) {
       errno = EINVAL;

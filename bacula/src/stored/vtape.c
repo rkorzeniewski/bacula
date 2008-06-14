@@ -113,14 +113,14 @@ int vtape_open(const char *pathname, int flags, ...)
    return fd;
 }
 
-int vtape_read(int fd, void *buffer, unsigned int count)
+ssize_t vtape_read(int fd, void *buffer, size_t count)
 {
    vtape *tape = get_tape(fd);
    ASSERT(tape != NULL);
    return tape->read(buffer, count);
 }
 
-int vtape_write(int fd, const void *buffer, unsigned int count)
+ssize_t vtape_write(int fd, const void *buffer, size_t count)
 {
    vtape *tape = get_tape(fd);
    ASSERT(tape != NULL);
@@ -450,14 +450,14 @@ int vtape::get_fd()
  * vtape_header = sizeof(data)
  * if vtape_header == 0, this is a EOF
  */
-int vtape::write(const void *buffer, unsigned int count)
+ssize_t vtape::write(const void *buffer, size_t count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
    ASSERT(count > 0);
    ASSERT(buffer);
 
-   unsigned int nb;
+   ssize_t nb;
    Dmsg3(dbglevel*2, "write len=%i %i:%i\n", 
 	 count, current_file,current_block);
 
@@ -485,7 +485,7 @@ int vtape::write(const void *buffer, unsigned int count)
    ::write(fd, &size, sizeof(uint32_t));
    nb = ::write(fd, buffer, count);
    
-   if (nb != count) {
+   if (nb != (ssize_t)count) {
       atEOT = true;
       Dmsg2(dbglevel, 
             "Not enough space writing only %i of %i requested\n", 
@@ -859,11 +859,11 @@ int vtape::close()
  * by returning zero bytes for two consecutive read calls.  The third read
  * returns an error.
  */
-int vtape::read(void *buffer, unsigned int count)
+ssize_t vtape::read(void *buffer, size_t count)
 {
    ASSERT(online);
    ASSERT(current_file >= 0);
-   unsigned int nb;
+   ssize_t nb;
    uint32_t s;
    
    Dmsg2(dbglevel*2, "read %i:%i\n", current_file, current_block);
@@ -912,7 +912,7 @@ int vtape::read(void *buffer, unsigned int count)
 
    /* reading data itself */
    nb = ::read(fd, buffer, s);
-   if (s != nb) {		/* read error */
+   if (nb != (ssize_t)s) { /* read error */
       errno=EIO;
       atEOT=true;
       current_block = -1;

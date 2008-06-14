@@ -740,7 +740,12 @@ _Z14start_watchdogv
 _Z17register_watchdogP12s_watchdog_t
 _Z19unregister_watchdogP12s_watchdog_t
 watchdog_thread
- 
+
+; mtops.o
+__Z10win32_readiPvj
+__Z11win32_writeiPKvj
+__Z11win32_ioctlimz
+
 console_command DATA
 plugin_list DATA
 plugin_bopen DATA

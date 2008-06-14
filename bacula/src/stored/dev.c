@@ -275,29 +275,40 @@ init_dev(JCR *jcr, DEVRES *device)
 /* Choose the right backend */
 void DEVICE::init_backend()
 {
-   if (is_vtape()) {
-      d_open  = vtape_open;
-      d_write = vtape_write;
-      d_close = vtape_close;
-      d_ioctl = vtape_ioctl;
-      d_read  = vtape_read;
 
 #ifdef HAVE_WIN32
-   } else if (is_tape()) {
+   if (is_tape()) {
       d_open  = win32_tape_open;
       d_write = win32_tape_write;
       d_close = win32_tape_close;
       d_ioctl = win32_tape_ioctl;
       d_read  = win32_tape_read;
-#endif
 
    } else {
+      d_open  = ::open;
+      d_close = ::close;
+      d_ioctl = win32_ioctl;	/* dummy function */
+      d_write = win32_write;	/* win32 read/write are not POSIX */
+      d_read  = win32_read;
+   }
+
+#else  /* POSIX / UNIX Interface */
+
+   if (is_vtape()) {		/* test backend */
+      d_open  = vtape_open;	/* vtape isn't available for WIN32 */
+      d_write = vtape_write;
+      d_close = vtape_close;
+      d_ioctl = vtape_ioctl;
+      d_read  = vtape_read;
+
+   } else {			/* tape and file are using normal io */
       d_open  = ::open;
       d_write = ::write;
       d_close = ::close;
       d_ioctl = ::ioctl;
       d_read  = ::read;
    }
+#endif
 }
 
 /*
