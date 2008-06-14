@@ -287,7 +287,7 @@ win32_write(int fd, const void *buffer, size_t count)
 }
 
 int
-ioctl(int d, unsigned long int req, ...)
+win32_ioctl(int d, unsigned long int req, ...)
 {
    return -1;
 }
