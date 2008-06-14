@@ -432,10 +432,10 @@ public:
    /* low level operations */
    void init_backend();
    int (*d_open)(const char *pathname, int flags, ...);
-   int (*d_read)(int fd, void *buffer, unsigned int count);
-   int (*d_write)(int fd, const void *buffer, unsigned int count);
    int (*d_close)(int fd);
    int (*d_ioctl)(int fd, unsigned long int request, ...);
+   ssize_t (*d_read)(int fd, void *buffer, size_t count);
+   ssize_t (*d_write)(int fd, const void *buffer, size_t count);
 
    /* 
     * Locking and blocking calls
