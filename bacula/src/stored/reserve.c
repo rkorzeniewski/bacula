@@ -1088,16 +1088,16 @@ int search_res_for_device(RCTX &rctx)
    /* Look through Autochangers first */
    foreach_res(changer, R_AUTOCHANGER) {
       Dmsg1(dbglvl, "Try match changer res=%s\n", changer->hdr.name);
-      if (!rctx.device->autoselect) {
-         Dmsg1(100, "Device %s not autoselect skipped.\n",
-         rctx.device->hdr.name);
-         continue;              /* device is not available */
-      }
       /* Find resource, and make sure we were able to open it */
       if (strcmp(rctx.device_name, changer->hdr.name) == 0) {
          /* Try each device in this AutoChanger */
          foreach_alist(rctx.device, changer->device) {
             Dmsg1(dbglvl, "Try changer device %s\n", rctx.device->hdr.name);
+            if (!rctx.device->autoselect) {
+               Dmsg1(100, "Device %s not autoselect skipped.\n",
+               rctx.device->hdr.name);
+               continue;              /* device is not available */
+            }
             stat = reserve_device(rctx);
             if (stat != 1) {             /* try another device */
                continue;
