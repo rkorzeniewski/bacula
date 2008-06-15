@@ -1,258 +1,143 @@
-Index: src/dird/job.c
+Index: src/dird/ua_update.c
 ===================================================================
---- src/dird/job.c	(revision 6595)
-+++ src/dird/job.c	(working copy)
-@@ -806,7 +806,7 @@
-    jcr->jr.VolSessionId = jcr->VolSessionId;
-    jcr->jr.VolSessionTime = jcr->VolSessionTime;
-    jcr->jr.JobErrors = jcr->Errors;
--   if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr)) {
-+   if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr, jcr->job->stats_enabled)) {
-       Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"),
-          db_strerror(jcr->db));
-    }
-Index: src/dird/ua_prune.c
-===================================================================
---- src/dird/ua_prune.c	(revision 6595)
-+++ src/dird/ua_prune.c	(working copy)
-@@ -107,6 +107,7 @@
-  *    prune files (from) client=xxx
-  *    prune jobs (from) client=xxx
-  *    prune volume=xxx
-+ *    prune stats
+--- src/dird/ua_update.c	(révision 7132)
++++ src/dird/ua_update.c	(copie de travail)
+@@ -42,6 +42,7 @@
+ static int update_volume(UAContext *ua);
+ static bool update_pool(UAContext *ua);
+ static bool update_job(UAContext *ua);
++static bool update_stats(UAContext *ua);
+ 
+ /*
+  * Update a Pool Record in the database.
+@@ -53,6 +54,8 @@
+  *         changes pool info for volume
+  *    update slots [scan=...]
+  *         updates autochanger slots
++ *    update stats [days=...]
++ *         updates long term statistics
   */
- int prunecmd(UAContext *ua, const char *cmd)
+ int update_cmd(UAContext *ua, const char *cmd)
  {
-@@ -119,6 +120,7 @@
-       NT_("Files"),
-       NT_("Jobs"),
-       NT_("Volume"),
-+      NT_("Stats"),
+@@ -62,6 +65,7 @@
+       NT_("pool"),   /* 2 */
+       NT_("slots"),  /* 3 */
+       NT_("jobid"),  /* 4 */
++      NT_("stats"),  /* 5 */
        NULL};
  
     if (!open_client_db(ua)) {
-@@ -127,7 +129,7 @@
- 
-    /* First search args */
-    kw = find_arg_keyword(ua, keywords);
--   if (kw < 0 || kw > 2) {
-+   if (kw < 0 || kw > 3) {
-       /* no args, so ask user */
-       kw = do_keyword_prompt(ua, _("Choose item to prune"), keywords);
-    }
-@@ -162,6 +164,9 @@
-       }
-       prune_volume(ua, &mr);
-       return true;
-+   case 3:  /* prune stats */
-+      /* TODO: prune JobStat table */
-+      return true;
+@@ -82,6 +86,9 @@
+    case 4:
+       update_job(ua);
+       return 1;
++   case 5:
++      update_stats(ua);
++      return 1;
     default:
        break;
     }
-Index: src/dird/dird_conf.c
-===================================================================
---- src/dird/dird_conf.c	(revision 6595)
-+++ src/dird/dird_conf.c	(working copy)
-@@ -133,6 +133,7 @@
-    {"tlskey",               store_dir,       ITEM(res_dir.tls_keyfile), 0, 0, 0},
-    {"tlsdhfile",            store_dir,       ITEM(res_dir.tls_dhfile), 0, 0, 0},
-    {"tlsallowedcn",         store_alist_str, ITEM(res_dir.tls_allowed_cns), 0, 0, 0},
-+   {"statisticsretention",  store_time,      ITEM(res_dir.stats_retention),  0, ITEM_DEFAULT, 60*60*24*31*12*5},
-    {NULL, NULL, {0}, 0, 0, 0}
- };
+@@ -90,6 +97,7 @@
+    add_prompt(ua, _("Volume parameters"));
+    add_prompt(ua, _("Pool from resource"));
+    add_prompt(ua, _("Slots from autochanger"));
++   add_prompt(ua, _("Long term statistics"));
+    switch (do_prompt(ua, _("item"), _("Choose catalog item to update"), NULL, 0)) {
+    case 0:
+       update_volume(ua);
+@@ -100,6 +108,9 @@
+    case 2:
+       update_slots(ua);
+       break;
++   case 3:
++      update_stats(ua);
++      break;
+    default:
+       break;
+    }
+@@ -789,6 +800,25 @@
+ }
  
-@@ -322,6 +323,7 @@
-    {"selectionpattern",   store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
-    {"runscript",          store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
-    {"selectiontype",      store_migtype, ITEM(res_job.selection_type), 0, 0, 0},
-+   {"usestatistics",      store_bool,  ITEM(res_job.stats_enabled), 0, 0, 0},
-    {"accurate",           store_bool, ITEM(res_job.accurate), 0,0,0},
-    {"allowduplicatejobs", store_bool, ITEM(res_job.AllowDuplicateJobs), 0, ITEM_DEFAULT, false},
-    {"allowhigherduplicates",   store_bool, ITEM(res_job.AllowHigherDuplicates), 0, ITEM_DEFAULT, true},
-@@ -652,6 +654,9 @@
-       if (res->res_job.RegexWhere) {
-            sendit(sock, _("  --> RegexWhere=%s\n"), NPRT(res->res_job.RegexWhere));
-       }
-+      if (res->res_job.stats_enabled) {
-+           sendit(sock, _("  --> StatsEnabled=%d\n"), res->res_job.stats_enabled);
-+      }
-       if (res->res_job.RestoreBootstrap) {
-          sendit(sock, _("  --> Bootstrap=%s\n"), NPRT(res->res_job.RestoreBootstrap));
-       }
-Index: src/dird/dird_conf.h
-===================================================================
---- src/dird/dird_conf.h	(revision 6595)
-+++ src/dird/dird_conf.h	(working copy)
-@@ -129,6 +129,7 @@
-    bool tls_enable;                   /* Enable TLS */
-    bool tls_require;                  /* Require TLS */
-    bool tls_verify_peer;              /* TLS Verify Client Certificate */
-+   utime_t stats_retention;           /* Stats retention period in seconds */
- 
-    /* Methods */
-    char *name() const;
-@@ -426,6 +427,7 @@
-    bool write_part_after_job;         /* Set to write part after job in SD */
-    bool enabled;                      /* Set if job enabled */
-    bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
-+   bool stats_enabled;                /* Keep job records in a table for long term statistics */
-    bool accurate;                     /* Set if it is an accurate backup job */
-    bool AllowDuplicateJobs;           /* Allow duplicate jobs */
-    bool AllowHigherDuplicates;        /* Permit Higher Level */
+ /*
++ * Update long term statistics
++ */
++static bool update_stats(UAContext *ua)
++{
++   int i = find_arg_with_value(ua, NT_("days"));
++   utime_t since=0;
++
++   if (i >= 0) {
++      since = atoi(ua->argv[i]) * 24*60*60;
++   }
++
++   int nb = db_update_stats(ua->jcr, ua->db, since);
++   if (nb > 1) {
++      ua->info_msg(_("Updating %i jobs.\n"), nb);
++   }
++   return true;
++}
++
++/*
+  * Update pool record -- pull info from current POOL resource
+  */
+ static bool update_pool(UAContext *ua)
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(revision 6595)
-+++ src/cats/sql_update.c	(working copy)
-@@ -142,7 +142,7 @@
-  *           1 on success
-  */
- int
--db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
-+db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
- {
-    char dt[MAX_TIME_LENGTH];
-    char rdt[MAX_TIME_LENGTH];
-@@ -192,11 +192,17 @@
-       edit_int64(jr->JobId, ed3));
+--- src/cats/sql_update.c	(révision 7132)
++++ src/cats/sql_update.c	(copie de travail)
+@@ -126,6 +126,28 @@
+ }
  
-    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
+ /*
++ * Update Long term statistics with all jobs that were run before
++ * age seconds
++ */
++int
++db_update_stats(JCR *jcr, B_DB *mdb, time_t age)
++{
++   char ed1[30];
++   utime_t now = (utime_t)time(NULL);
++   edit_uint64(now - age, ed1);
 +
-+   if (stat && stats_enabled) {
-+      Mmsg(mdb->cmd,
-+	   "INSERT INTO JobStat (SELECT * FROM Job WHERE JobId=%s)",
-+	   edit_int64(jr->JobId, ed3));
-+      INSERT_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
-+   }
-    db_unlock(mdb);
-    return stat;
++   Mmsg(mdb->cmd,
++        "INSERT INTO JobStat " 
++         "SELECT * " 
++          "FROM Job "
++         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
++           "AND JobId NOT IN (SELECT JobId FROM JobStat) "
++           "AND JobTDate < %s ", ed1);
++   INSERT_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
++   return mdb->num_rows;
++}
++
++/*
+  * Given an incoming integer, set the string buffer to either NULL or the value
+  *
+  */
+@@ -134,7 +156,6 @@
+    bsnprintf(s, n, id ? "%s" : "NULL", edit_int64(id, ed1));
  }
  
 -
  /*
-  * Update Client record
-  *   Returns: 0 on failure
-Index: src/cats/make_sqlite3_tables.in
-===================================================================
---- src/cats/make_sqlite3_tables.in	(revision 6595)
-+++ src/cats/make_sqlite3_tables.in	(working copy)
-@@ -75,6 +75,9 @@
-    );
- CREATE INDEX inx6 ON Job (Name);
- 
-+-- Create a table like Job for long term statistics 
-+CREATE TABLE JobStat (LIKE Job);
-+
- CREATE TABLE Location (
-    LocationId INTEGER,
-    Location TEXT NOT NULL,
-Index: src/cats/make_postgresql_tables.in
-===================================================================
---- src/cats/make_postgresql_tables.in	(revision 6595)
-+++ src/cats/make_postgresql_tables.in	(working copy)
-@@ -81,6 +81,9 @@
- 
- CREATE INDEX job_name_idx on job (name);
- 
-+-- Create a table like Job for long term statistics 
-+CREATE TABLE jobstat (LIKE job);
-+
- CREATE TABLE Location (
-    LocationId	      serial	  not null,
-    Location	      text	  not null,
+  * Update the Job record at end of Job
+  *
+@@ -292,7 +313,6 @@
+ {
+    int stat;
+    char ed1[50];
+-
+    db_lock(mdb);
+    Mmsg(mdb->cmd, "UPDATE Storage SET AutoChanger=%d WHERE StorageId=%s", 
+       sr->AutoChanger, edit_int64(sr->StorageId, ed1));
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(revision 6595)
-+++ src/cats/protos.h	(working copy)
-@@ -124,7 +124,7 @@
+--- src/cats/protos.h	(révision 7132)
++++ src/cats/protos.h	(copie de travail)
+@@ -134,5 +134,6 @@
+ int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
+ int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
+ void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
++int db_update_stats(JCR *jcr, B_DB *mdb, time_t age);
  
- /* sql_update.c */
- bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
--int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
-+int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr, bool stats_enabled);
- int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
- int  db_update_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pr);
- bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
-Index: src/cats/make_sqlite_tables.in
-===================================================================
---- src/cats/make_sqlite_tables.in	(revision 6595)
-+++ src/cats/make_sqlite_tables.in	(working copy)
-@@ -75,6 +75,9 @@
-    );
- CREATE INDEX inx6 ON Job (Name);
- 
-+-- Create a table like Job for long term statistics 
-+CREATE TABLE JobStat (LIKE Job);
-+
- CREATE TABLE Location (
-    LocationId INTEGER,
-    Location TEXT NOT NULL,
-Index: src/cats/sql_create.c
-===================================================================
---- src/cats/sql_create.c	(revision 6595)
-+++ src/cats/sql_create.c	(working copy)
-@@ -112,7 +112,7 @@
- bool
- db_create_jobmedia_record(JCR *jcr, B_DB *mdb, JOBMEDIA_DBR *jm)
- {
--   bool ok = true;;
-+   bool ok = true;
-    int count;
-    char ed1[50], ed2[50];
- 
-@@ -162,8 +162,6 @@
-    return ok;
- }
- 
--
--
- /* Create Unique Pool record
-  * Returns: false on failure
-  *          true  on success
-Index: src/cats/make_mysql_tables.in
-===================================================================
---- src/cats/make_mysql_tables.in	(revision 6595)
-+++ src/cats/make_mysql_tables.in	(working copy)
-@@ -115,6 +115,8 @@
-    INDEX (Name(128))
-    );
- 
-+-- Create a table like Job for long term statistics 
-+CREATE TABLE JobStat (LIKE Job);
- 
- CREATE TABLE Location (
-    LocationId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-Index: src/stored/bscan.c
-===================================================================
---- src/stored/bscan.c	(revision 6595)
-+++ src/stored/bscan.c	(working copy)
-@@ -619,7 +619,7 @@
-                jr.VolSessionTime = mjcr->VolSessionTime;
-                jr.JobTDate = (utime_t)mjcr->start_time;
-                jr.ClientId = mjcr->ClientId;
--               if (!db_update_job_end_record(bjcr, db, &jr)) {
-+               if (!db_update_job_end_record(bjcr, db, &jr, false)) {
-                   Pmsg1(0, _("Could not update job record. ERR=%s\n"), db_strerror(db));
-                }
-                mjcr->read_dcr = NULL;
-@@ -1122,7 +1122,7 @@
-       return 1;
-    }
- 
--   if (!db_update_job_end_record(bjcr, db, jr)) {
-+   if (!db_update_job_end_record(bjcr, db, jr, false)) {
-       Pmsg2(0, _("Could not update JobId=%u record. ERR=%s\n"), jr->JobId,  db_strerror(db));
-       free_jcr(mjcr);
-       return 0;
-Index: src/jcr.h
-===================================================================
---- src/jcr.h	(revision 6595)
-+++ src/jcr.h	(working copy)
-@@ -289,6 +289,7 @@
-    bool unlink_bsr;                   /* Unlink bsr file created */
-    bool VSS;                          /* VSS used by FD */
-    bool Encrypt;                      /* Encryption used by FD */
-+   bool stats_enabled;                /* Keep all job records in a table for long term statistics */
- #endif /* DIRECTOR_DAEMON */
- 
- 
+ #endif /* __SQL_PROTOS_H */
