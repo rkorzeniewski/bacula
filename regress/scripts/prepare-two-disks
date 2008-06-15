@@ -4,3 +4,5 @@
 #
 rm -rf tmp/disk-changer
 mkdir tmp/disk-changer
+touch tmp/disk-changer/slot1
+touch tmp/disk-changer/slot2
