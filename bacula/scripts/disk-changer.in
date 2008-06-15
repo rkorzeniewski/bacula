@@ -223,6 +223,11 @@ case $cmd in
 	 fi
 	 i=`expr $i + 1`
       done
+      # check if slot exists
+      if [ ! -f $dir/slot${slot} ] ; then
+	  echo "Storage Element $slot is Empty"
+	  exit 1
+      fi
       if [ -f $dir/loaded${drive} ]; then
 	 ld=`cat $dir/loaded${drive}`
       else
