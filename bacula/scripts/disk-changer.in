@@ -225,8 +225,8 @@ case $cmd in
       done
       # check if slot exists
       if [ ! -f $dir/slot${slot} ] ; then
-	  echo "source Element Address $slot is Empty"
-	  exit 1
+         echo "source Element Address $slot is Empty"
+         exit 1
       fi
       if [ -f $dir/loaded${drive} ]; then
 	 ld=`cat $dir/loaded${drive}`
