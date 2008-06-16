@@ -1501,6 +1501,16 @@ sub from_human_sec
     return $1 * $mult;   
 }
 
+# get long term statistic table
+sub get_stat_table
+{
+    my ($self) = @_;
+    my $ret = $self->{info}->{stat_job_table} || 'Job';
+    if ($ret !~ m/^job$/i) {
+	$ret = "(SELECT * FROM Job UNION SELECT * FROM $ret)";
+    }
+    return $ret;
+}
 
 sub connect_db
 {
@@ -2927,6 +2937,9 @@ sub groups_save
     $self->can_do('r_group_mgnt');
 
     my $arg = $self->get_form(qw/qclient_group jclients qnewgroup qcomment/);
+    if (!$arg->{qcomment}) {
+        $arg->{qcomment} = "''";
+    }
 
     if (!$arg->{qclient_group} and $arg->{qnewgroup}) {
 	my $query = "
@@ -3619,7 +3632,7 @@ sub _display_group_stats
     unless ($carg->{qclient_group}) {
  	return $self->error("Can't get group");
     }
-    my $jobt = $self->{info}->{stat_job_table} || 'Job';
+    my $jobt = $self->get_stat_table();
     my ($limit, $label) = $self->get_limit(%arg);
 
     my $query = "
@@ -3692,7 +3705,7 @@ sub get_time_overview
 	$arg->{type}='day';
 	$type = 'DAY';
     }
-    my $jobt = $self->{info}->{stat_job_table} || 'Job';
+    my $jobt = $self->get_stat_table();
     my $stime1 = $self->{sql}->{"STARTTIME_P" . $type}; # get 1,2,3
     $stime1 =~ s/Job.StartTime/date/;
     my $stime2 = $self->{sql}->{"STARTTIME_" . $type}; # get 2007-01-03, 2007-01-23

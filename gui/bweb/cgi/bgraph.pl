@@ -58,7 +58,7 @@ my $debug = $bweb->{debug};
 # CREATE TABLE job_old (LIKE Job);
 # INSERT INTO job_old
 #    (SELECT * FROM Job WHERE JobId NOT IN (SELECT JobId FROM job_old) );
-my $jobt = $conf->{stat_job_table} || 'Job';
+my $jobt = $bweb->get_stat_table();
 
 my $graph = CGI::param('graph') || 'job_size';
 my $legend = CGI::param('legend') || 'on' ;
@@ -70,17 +70,17 @@ my $arg = $bweb->get_form(qw/width height limit offset age where jobid
 my ($limitq, $label) = $bweb->get_limit(age   => $arg->{age},
 					limit => $arg->{limit},
 					offset=> $arg->{offset},
-					order => "$jobt.StartTime ASC",
+					order => "Job.StartTime ASC",
 					);
 
 my $statusq='';
 if ($arg->{status} and $arg->{status} ne 'Any') {
-    $statusq = " AND $jobt.JobStatus = '$arg->{status}' ";
+    $statusq = " AND Job.JobStatus = '$arg->{status}' ";
 }
     
 my $levelq='';
 if ($arg->{level} and $arg->{level} ne 'Any') {
-    $levelq = " AND $jobt.Level = '$arg->{level}' ";
+    $levelq = " AND Job.Level = '$arg->{level}' ";
 } 
 
 my $filesetq='';
@@ -90,7 +90,7 @@ if ($arg->{jfilesets}) {
 
 my $jobnameq='';
 if ($arg->{jjobnames}) {
-    $jobnameq = " AND $jobt.Name IN ($arg->{jjobnames}) ";
+    $jobnameq = " AND Job.Name IN ($arg->{jjobnames}) ";
 } else {
     $arg->{jjobnames} = 'all';	# skip warning
 } 
@@ -151,11 +151,11 @@ if ($gtype eq 'balloon') {
     my $all = $dbh->selectall_arrayref("
 SELECT $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)
                                   - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime))
-         AS duration, $order, JobId, $jobt.Name
+         AS duration, $order, JobId, Job.Name
        
- FROM $jobt, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.Type = 'B'
+ FROM $jobt AS Job, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $levelq
@@ -274,14 +274,14 @@ if ($graph eq 'job_size') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
-       Client.Name                      AS clientname,
-       $jobt.Name                       AS jobname,
-       $jobt.JobBytes                   AS jobbytes
-FROM $jobt, FileSet, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.FileSetId = FileSet.FileSetId
-  AND $jobt.Type = 'B'
+       UNIX_TIMESTAMP(Job.StartTime)  AS starttime,
+       Client.Name                    AS clientname,
+       Job.Name                       AS jobname,
+       Job.JobBytes                   AS jobbytes
+FROM $jobt AS Job, FileSet, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -312,14 +312,14 @@ if ($graph eq 'job_file') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
-       Client.Name                      AS clientname,
-       $jobt.Name                       AS jobname,
-       $jobt.JobFiles                   AS jobfiles
-FROM $jobt, FileSet, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.FileSetId = FileSet.FileSetId
-  AND $jobt.Type = 'B'
+       UNIX_TIMESTAMP(Job.StartTime)  AS starttime,
+       Client.Name                    AS clientname,
+       Job.Name                       AS jobname,
+       Job.JobFiles                   AS jobfiles
+FROM $jobt AS Job, FileSet, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -446,19 +446,19 @@ elsif ($graph eq 'job_rate') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP($jobt.StartTime)  AS starttime,
-       Client.Name                      AS clientname,
-       $jobt.Name                       AS jobname,
-       $jobt.JobBytes /
+       UNIX_TIMESTAMP(Job.StartTime)  AS starttime,
+       Client.Name                    AS clientname,
+       Job.Name                       AS jobname,
+       Job.JobBytes /
        ($bweb->{sql}->{SEC_TO_INT}(
                           $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                         - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) + 0.01) 
          AS rate
 
-FROM $jobt, FileSet, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.FileSetId = FileSet.FileSetId
-  AND $jobt.Type = 'B'
+FROM $jobt AS Job, FileSet, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -491,16 +491,16 @@ elsif ($graph eq 'job_duration') {
 
     my $query = "
 SELECT 
-       UNIX_TIMESTAMP($jobt.StartTime)                         AS starttime,
-       Client.Name                                             AS clientname,
-       $jobt.Name                                              AS jobname,
+       UNIX_TIMESTAMP(Job.StartTime)       AS starttime,
+       Client.Name                         AS clientname,
+       Job.Name                            AS jobname,
   $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                              - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
          AS duration
-FROM $jobt, FileSet, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.FileSetId = FileSet.FileSetId
-  AND $jobt.Type = 'B'
+FROM $jobt AS Job, FileSet, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $filesetq
@@ -552,16 +552,15 @@ $limitq
     }
     
     my $stime = $bweb->{sql}->{"STARTTIME_$d"};
-    $stime =~ s/Job\./$jobt\./;
 
     my $query = "
 SELECT
      " . ($per_t?"":"UNIX_TIMESTAMP") . "($stime) AS A,
      $t(JobBytes)                  AS nb
-FROM $jobt, FileSet, Client $filter $groupf
-WHERE $jobt.ClientId = Client.ClientId
-  AND $jobt.FileSetId = FileSet.FileSetId
-  AND $jobt.Type = 'B'
+FROM $jobt AS Job, FileSet, Client $filter $groupf
+WHERE Job.ClientId = Client.ClientId
+  AND Job.FileSetId = FileSet.FileSetId
+  AND Job.Type = 'B'
   $clientq
   $statusq
   $filesetq
