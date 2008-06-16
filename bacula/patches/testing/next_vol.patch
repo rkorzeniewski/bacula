@@ -1,0 +1,56 @@
+Index: src/dird/next_vol.c
+===================================================================
+--- src/dird/next_vol.c	(revision 7148)
++++ src/dird/next_vol.c	(working copy)
+@@ -94,28 +94,30 @@
+                 */
+                if (prune) {
+                   Dmsg0(150, "Call prune_volumes\n");
+-                  prune_volumes(jcr, InChanger, mr);
++                  ok = prune_volumes(jcr, InChanger, mr);
+                }
+-               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+-               if (!ok && create) {
+-                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+-                        ok, index, InChanger, mr->VolStatus);
+-                  /*
+-                   * 5. Try pulling a volume from the Scratch pool
+-                   */ 
+-                  ok = get_scratch_volume(jcr, InChanger, mr);
+-               }
+-               /*
+-                * If we are using an Autochanger and have not found
+-                * a volume, retry looking for any volume. 
+-                */
+-               if (InChanger) {
+-                  InChanger = false;
+-                  if (!ok) {
+-                     continue;           /* retry again accepting any volume */
+-                  }
+-               }
+-            }
++	       if (!ok) {
++		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
++		  if (!ok && create) {
++		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
++			   ok, index, InChanger, mr->VolStatus);
++		     /*
++		      * 5. Try pulling a volume from the Scratch pool
++		      */ 
++		     ok = get_scratch_volume(jcr, InChanger, mr);
++		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
++			   ok, index, InChanger, mr->VolStatus);
++		  }
++		  /*
++		   * If we are using an Autochanger and have not found
++		   * a volume, retry looking for any volume. 
++		   */
++		  if (!ok && InChanger) {
++		     InChanger = false;
++		     continue;           /* retry again accepting any volume */
++		  }
++	       }
++	    }
+          }
+ 
+ 
