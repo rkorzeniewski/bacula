@@ -2161,7 +2161,7 @@ FROM Media
  LEFT  JOIN Location ON (Location.LocationId = Media.LocationId)
 
 WHERE Media.InChanger <> 1
-  AND Media.VolStatus IN ('Purged', 'Full', 'Append')
+  AND Media.VolStatus IN ('Purged', 'Full', 'Append', 'Recycle')
   AND Media.Recycle = 1
   $sql
 ORDER BY Media.VolUseDuration DESC, Media.VolMounts ASC, expire ASC 
