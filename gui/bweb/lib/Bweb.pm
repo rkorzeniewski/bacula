@@ -3619,7 +3619,7 @@ sub _display_group_stats
     unless ($carg->{qclient_group}) {
  	return $self->error("Can't get group");
     }
-
+    my $jobt = $self->{info}->{stat_job_table} || 'Job';
     my ($limit, $label) = $self->get_limit(%arg);
 
     my $query = "
@@ -3629,7 +3629,8 @@ SELECT
     sum(Job.JobErrors)   AS nb_err,
     sum(Job.JobFiles)    AS nb_files,
     client_group.client_group_name  AS clientname
-FROM Job JOIN Client USING (ClientId) 
+FROM $jobt AS Job
+         JOIN Client USING (ClientId) 
          JOIN client_group_member ON (Client.ClientId = client_group_member.ClientId) 
          JOIN client_group USING (client_group_id)
 WHERE 
