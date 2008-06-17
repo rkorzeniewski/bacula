@@ -21,7 +21,7 @@ JobName=backup
 start_test
 
 cat <<EOF > ${cwd}/tmp/bconcmds
-@out ${cwd}/tmp/log.out
+@$out ${cwd}/tmp/log.out
 label barcodes storage=LTO3 slots=48-59 drive=0 pool=Scratch
 yes
 update volume=vol59 pool=Test enabled=no
@@ -49,7 +49,7 @@ run_bacula
 echo $PWD/build/po > tmp/file-list
 
 cat <<EOF > ${cwd}/tmp/bconcmds
-@out ${cwd}/tmp/log2.out
+@$out ${cwd}/tmp/log2.out
 list volume
 @# Must choose vol56
 run level=full pool=Test NightlySave yes
