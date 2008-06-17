@@ -293,9 +293,8 @@ void DEVICE::init_backend()
    }
 
 #else  /* POSIX / UNIX Interface */
-
    if (is_vtape()) {		/* test backend */
-      d_open  = vtape_open;	/* vtape isn't available for WIN32 */
+      d_open  = vtape_open;	/* vtape isn't available for WIN32 or FreeBSD */
       d_write = vtape_write;
       d_close = vtape_close;
       d_ioctl = vtape_ioctl;
