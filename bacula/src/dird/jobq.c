@@ -742,7 +742,7 @@ static void dec_read_store(JCR *jcr)
    if (jcr->rstore) {
       jcr->rstore->NumConcurrentReadJobs--;    /* back out rstore */
       jcr->rstore->NumConcurrentJobs--;        /* back out rstore */
-      Dmsg1(200, "Dec wncj=%d\n", jcr->rstore->NumConcurrentJobs);
+      Dmsg1(200, "Dec rncj=%d\n", jcr->rstore->NumConcurrentJobs);
       ASSERT(jcr->rstore->NumConcurrentReadJobs >= 0);
       ASSERT(jcr->rstore->NumConcurrentJobs >= 0);
    }
