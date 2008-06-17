@@ -1,0 +1,118 @@
+#!/bin/sh
+#
+# This script will test next vol algo with
+# vtape
+#
+
+. scripts/functions
+
+require_vtape
+
+scripts/cleanup
+scripts/copy-tape-confs
+cp scripts/bacula-dir-vtape.conf bin/bacula-dir.conf
+cp scripts/bacula-sd-vtape.conf bin/bacula-sd.conf
+
+scripts/prepare-fake-autochanger
+
+TestName="next-vol-test"
+JobName=backup
+
+start_test
+
+cat <<EOF > ${cwd}/tmp/bconcmds
+@out ${cwd}/tmp/log.out
+label barcodes storage=LTO3 slots=48-59 drive=0 pool=Scratch
+yes
+update volume=vol59 pool=Test enabled=no
+update volume=vol58 pool=Test volstatus=Recycle
+purge  volume=vol57
+update volume=vol56 pool=Test
+update volume=vol55 pool=Test volstatus=Full volretention=15 
+update volume=vol54 volstatus=Recycle
+purge  volume=vol53
+update volume=vol52 MaxVolJobs=1
+update volume=vol51 inchanger=no volstatus=Recycle
+purge  volume=vol50
+update volume=vol50 inchanger=no
+update volume=vol49 inchanger=no
+update volume=vol48 inchanger=no pool=Test
+update volume  AllFromPool=Test
+sql
+update Media SET VolJobs=1 WHERE VolumeName='vol52';
+
+list volume
+EOF
+
+run_bacula
+
+echo $PWD/build/po > tmp/file-list
+
+cat <<EOF > ${cwd}/tmp/bconcmds
+@out ${cwd}/tmp/log2.out
+list volume
+@# Must choose vol56
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol58
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol55
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol54
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol52 <--------- BUG vol50
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol53
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+@# Must choose vol57
+run level=full pool=Test NightlySave yes
+wait
+message
+list volume
+restore fileset="Full Set" pool=Test where=${cwd}/tmp/bacula-restores select all done
+yes
+wait
+messages
+wait
+messages
+@# Must Wait
+@#run level=full pool=Test NightlySave yes
+@#wait
+@#message
+@#list volume
+EOF
+
+run_bconsole
+
+check_for_zombie_jobs storage=LTO3
+stop_bacula
+
+cp tmp/log2.out tmp/log1.out
+check_two_logs
+
+
+awk '/Must choose/ { print $4 } '    tmp/log2.out > tmp/normal
+awk '/Volume name.+:/ { print $3 } ' tmp/log2.out > tmp/real
+diff tmp/normal tmp/real > /dev/null
+
+
+export dstat=$?
+
+end_test
