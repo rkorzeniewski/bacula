@@ -166,6 +166,19 @@ int vtape_ioctl(int fd, unsigned long int request, ...)
 
 /****************************************************************/
 
+#ifdef HAVE_FREEBSD_OS
+int vtape::tape_op(struct mtop *mt_com)
+{
+   return -1;
+}
+
+int vtape::tape_get(struct mtget *mt_get)
+{
+   return -1;
+}
+
+#else  /* Posix */
+
 int vtape::tape_op(struct mtop *mt_com)
 {
    int result=0;
@@ -390,6 +403,8 @@ int vtape::tape_get(struct mtget *mt_get)
 
    return 0;
 }
+
+#endif /* ! HAVE_FREEBSD_OS */
 
 int vtape::tape_pos(struct mtpos *mt_pos)
 {
