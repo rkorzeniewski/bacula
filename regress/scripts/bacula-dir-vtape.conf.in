@@ -27,6 +27,7 @@ Job {
   Pool = Default
   Maximum Concurrent Jobs = 10
   SpoolData = yes
+  Max Wait Time = 1m
 # Prefer Mounted Volumes = no
 }
 
@@ -343,6 +344,15 @@ Pool {
   Recycle = yes                       # Bacula can automatically recycle Volumes
   AutoPrune = yes                     # Prune expired volumes
   Volume Retention = 365d             # one year
+}
+
+Pool {
+  Name = Test
+  Pool Type = Backup
+  Recycle = yes                       # Bacula can automatically recycle Volumes
+  AutoPrune = yes                     # Prune expired volumes
+  Volume Retention = 365d             # one year
+  MaximumVolumeJobs = 1
 }
 
 Pool {
