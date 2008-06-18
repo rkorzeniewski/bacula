@@ -67,7 +67,7 @@ fi
 require_linux()
 {
 os=`uname`
-if [ $os != 'Linux']; then
+if [ $os != 'Linux' ]; then
    echo "This test $TestName runs only on Linux"
    exit 0
 fi
