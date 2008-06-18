@@ -60,7 +60,16 @@ require_vtape()
 {
 if test x${USE_VTAPE} = x ; then
    echo "$TestName test needs the vtape driver."
-   exit 1
+   exit 0
+fi
+}
+
+require_linux()
+{
+os=`uname`
+if [ $os != 'Linux']; then
+   echo "This test $TestName runs only on Linux"
+   exit 0
 fi
 }
 
