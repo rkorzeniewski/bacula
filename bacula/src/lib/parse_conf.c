@@ -212,12 +212,12 @@ static void init_resource(CONFIG *config, int type, RES_ITEM *items, int pass)
             items[i].default_value);
       if (items[i].flags & ITEM_DEFAULT && items[i].default_value != 0) {
          if (items[i].handler == store_bit) {
-            *(int *)(items[i].value) |= items[i].code;
+            *(uint32_t *)(items[i].value) |= items[i].code;
          } else if (items[i].handler == store_bool) {
             *(bool *)(items[i].value) = items[i].default_value != 0;
-         } else if (items[i].handler == store_pint ||
-                    items[i].handler == store_int) {
-            *(int *)(items[i].value) = items[i].default_value;
+         } else if (items[i].handler == store_pint32 ||
+                    items[i].handler == store_int32) {
+            *(uint32_t *)(items[i].value) = items[i].default_value;
          } else if (items[i].handler == store_int64) {
             *(int64_t *)(items[i].value) = items[i].default_value;
          } else if (items[i].handler == store_size) {
@@ -600,19 +600,19 @@ void store_defs(LEX *lc, RES_ITEM *item, int index, int pass)
 
 
 /* Store an integer at specified address */
-void store_int(LEX *lc, RES_ITEM *item, int index, int pass)
+void store_int32(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_INT32);
-   *(int *)(item->value) = lc->int32_val;
+   *(uint32_t *)(item->value) = lc->int32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
 
 /* Store a positive integer at specified address */
-void store_pint(LEX *lc, RES_ITEM *item, int index, int pass)
+void store_pint32(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_PINT32);
-   *(int *)(item->value) = lc->pint32_val;
+   *(uint32_t *)(item->value) = lc->pint32_val;
    scan_to_eol(lc);
    set_bit(index, res_all.hdr.item_present);
 }
@@ -716,9 +716,9 @@ void store_bit(LEX *lc, RES_ITEM *item, int index, int pass)
 {
    lex_get_token(lc, T_NAME);
    if (strcasecmp(lc->str, "yes") == 0 || strcasecmp(lc->str, "true") == 0) {
-      *(int *)(item->value) |= item->code;
+      *(uint32_t *)(item->value) |= item->code;
    } else if (strcasecmp(lc->str, "no") == 0 || strcasecmp(lc->str, "false") == 0) {
-      *(int *)(item->value) &= ~(item->code);
+      *(uint32_t *)(item->value) &= ~(item->code);
    } else {
       scan_err2(lc, _("Expect %s, got: %s"), "YES, NO, TRUE, or FALSE", lc->str); /* YES and NO must not be translated */
    }
@@ -754,7 +754,7 @@ void store_label(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the label pass 2 so that type is defined */
    for (i=0; tapelabels[i].name; i++) {
       if (strcasecmp(lc->str, tapelabels[i].name) == 0) {
-         *(int *)(item->value) = tapelabels[i].token;
+         *(uint32_t *)(item->value) = tapelabels[i].token;
          i = 0;
          break;
       }

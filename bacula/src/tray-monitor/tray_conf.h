@@ -65,9 +65,9 @@ enum {
 /* Director */
 struct DIRRES {
    RES   hdr;
-   int   DIRport;                     /* UA server port */
+   uint32_t DIRport;                  /* UA server port */
    char *address;                     /* UA server address */
-   int enable_ssl;                    /* Use SSL */
+   bool enable_ssl;                   /* Use SSL */
 };
 
 /*
@@ -76,7 +76,7 @@ struct DIRRES {
  */
 struct MONITOR {
    RES   hdr;
-   int require_ssl;                   /* Require SSL for all connections */
+   bool require_ssl;                  /* Require SSL for all connections */
    MSGS *messages;                    /* Daemon message handler */
    char *password;                    /* UA server password */
    utime_t RefreshInterval;           /* Status refresh interval */
@@ -92,10 +92,10 @@ struct MONITOR {
 struct CLIENT {
    RES   hdr;
 
-   int   FDport;                      /* Where File daemon listens */
+   uint32_t FDport;                   /* Where File daemon listens */
    char *address;
    char *password;
-   int enable_ssl;                    /* Use SSL */
+   bool enable_ssl;                   /* Use SSL */
 };
 
 /*
@@ -105,10 +105,10 @@ struct CLIENT {
 struct STORE {
    RES   hdr;
 
-   int   SDport;                      /* port where Directors connect */
+   uint32_t SDport;                   /* port where Directors connect */
    char *address;
    char *password;
-   int enable_ssl;                    /* Use SSL */
+   bool enable_ssl;                   /* Use SSL */
 };
 
 struct CONFONTRES {

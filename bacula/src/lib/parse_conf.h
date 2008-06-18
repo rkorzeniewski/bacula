@@ -58,9 +58,9 @@ struct RES_ITEM {
       RES *resvalue;
       RES **presvalue;
    };
-   int  code;                         /* item code/additional info */
-   int  flags;                        /* flags: default, required, ... */
-   int  default_value;                /* default value */
+   int32_t  code;                     /* item code/additional info */
+   uint32_t  flags;                   /* flags: default, required, ... */
+   int32_t  default_value;            /* default value */
 };
 
 /* For storing name_addr items in res_items table */
@@ -77,8 +77,8 @@ public:
    RES *next;                         /* pointer to next resource of this type */
    char *name;                        /* resource name */
    char *desc;                        /* resource description */
-   int   rcode;                       /* resource id or type */
-   int   refcnt;                      /* reference count for releasing */
+   uint32_t rcode;                    /* resource id or type */
+   int32_t  refcnt;                   /* reference count for releasing */
    char  item_present[MAX_RES_ITEMS]; /* set if item is present in conf file */
 };
 
@@ -91,7 +91,7 @@ public:
 struct RES_TABLE {
    const char *name;                  /* resource name */
    RES_ITEM *items;                   /* list of resource keywords */
-   int rcode;                         /* code if needed */
+   uint32_t rcode;                    /* code if needed */
 };
 
 
@@ -135,12 +135,12 @@ class CONFIG {
 public:
    const char *m_cf;                   /* config file */
    LEX_ERROR_HANDLER *m_scan_error;    /* error handler if non-null */
-   int m_err_type;                     /* the way to terminate on failure */
+   int32_t m_err_type;                 /* the way to terminate on failure */
    void *m_res_all;                    /* pointer to res_all buffer */
-   int m_res_all_size;                 /* length of buffer */
+   int32_t m_res_all_size;             /* length of buffer */
    /* The below are not yet implemented */
-   int m_r_first;                      /* first daemon resource type */
-   int m_r_last;                       /* last daemon resource type */
+   int32_t m_r_first;                  /* first daemon resource type */
+   int32_t m_r_last;                   /* last daemon resource type */
    RES_TABLE *m_resources;             /* pointer to table of permitted resources */      
    RES **m_res_head;                   /* pointer to defined resources */
    brwlock_t m_res_lock;               /* resource lock */
@@ -149,11 +149,11 @@ public:
    void init(
       const char *cf,
       LEX_ERROR_HANDLER *scan_error,
-      int err_type,
+      int32_t err_type,
       void *vres_all,
-      int res_all_size,
-      int r_first,
-      int r_last,
+      int32_t res_all_size,
+      int32_t r_first,
+      int32_t r_last,
       RES_TABLE *resources,
       RES **res_head);
 
@@ -198,8 +198,8 @@ void store_strname(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_res(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_alist_res(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_alist_str(LEX *lc, RES_ITEM *item, int index, int pass);
-void store_int(LEX *lc, RES_ITEM *item, int index, int pass);
-void store_pint(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_int32(LEX *lc, RES_ITEM *item, int index, int pass);
+void store_pint32(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_msgs(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_int64(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_bit(LEX *lc, RES_ITEM *item, int index, int pass);

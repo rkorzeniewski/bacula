@@ -111,7 +111,7 @@ enum {
 
 #define job_waiting(jcr) \
   (jcr->JobStatus == JS_WaitFD       || \
-   jcr->JobStatus == JS_WaitSD	     || \
+   jcr->JobStatus == JS_WaitSD       || \
    jcr->JobStatus == JS_WaitMedia    || \
    jcr->JobStatus == JS_WaitMount    || \
    jcr->JobStatus == JS_WaitStoreRes || \
@@ -164,13 +164,13 @@ typedef void (JCR_free_HANDLER)(JCR *jcr);
 class JCR {
 private:
    pthread_mutex_t mutex;             /* jcr mutex */
-   volatile int _use_count;           /* use count */
+   volatile int32_t _use_count;       /* use count */
 public:
    void lock() {P(mutex); };
    void unlock() {V(mutex); };
    void inc_use_count(void) {lock(); _use_count++; unlock(); };
    void dec_use_count(void) {lock(); _use_count--; unlock(); };
-   int  use_count() { return _use_count; };
+   int32_t use_count() { return _use_count; };
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
@@ -197,10 +197,10 @@ public:
    uint64_t JobBytes;                 /* Number of bytes processed this job */
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    uint32_t Errors;                   /* Number of non-fatal errors */
-   volatile int JobStatus;            /* ready, running, blocked, terminated */
-   int JobType;                       /* backup, restore, verify ... */
-   int JobLevel;                      /* Job level */
-   int JobPriority;                   /* Job priority */
+   volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
+   int32_t JobType;                   /* backup, restore, verify ... */
+   int32_t JobLevel;                  /* Job level */
+   int32_t JobPriority;               /* Job priority */
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */
@@ -215,7 +215,7 @@ public:
    char *where;                       /* prefix to restore files to */
    char *RegexWhere;                  /* file relocation in restore */
    alist *where_bregexp;              /* BREGEXP alist for path manipulation */
-   int cached_pnl;                    /* cached path length */
+   int32_t cached_pnl;                /* cached path length */
    POOLMEM *cached_path;              /* cached path */
    bool prefix_links;                 /* Prefix links with Where path */
    bool gui;                          /* set if gui using console */
@@ -269,8 +269,8 @@ public:
    uint32_t SDJobFiles;               /* Number of files written, this job */
    uint64_t SDJobBytes;               /* Number of bytes processed this job */
    uint32_t SDErrors;                 /* Number of non-fatal errors */
-   volatile int SDJobStatus;          /* Storage Job Status */
-   volatile int FDJobStatus;          /* File daemon Job Status */
+   volatile int32_t SDJobStatus;      /* Storage Job Status */
+   volatile int32_t FDJobStatus;      /* File daemon Job Status */
    uint32_t ExpectedFiles;            /* Expected restore files */
    uint32_t MediaId;                  /* DB record IDs associated with this job */
    FileId_t FileId;                   /* Last file id inserted */
@@ -292,10 +292,10 @@ public:
    POOLMEM *rstore_source;            /* Where read storage came from */
    POOLMEM *wstore_source;            /* Where write storage came from */
    POOLMEM *catalog_source;           /* Where catalog came from */
-   int replace;                       /* Replace option */
-   int NumVols;                       /* Number of Volume used in pool */
-   int reschedule_count;              /* Number of times rescheduled */
-   int FDVersion;                     /* File daemon version number */
+   uint32_t replace;                  /* Replace option */
+   int32_t NumVols;                   /* Number of Volume used in pool */
+   int32_t reschedule_count;          /* Number of times rescheduled */
+   int32_t FDVersion;                 /* File daemon version number */
    int64_t spool_size;                /* Spool size for this job */
    bool spool_data;                   /* Spool data in SD */
    bool acquired_resource_locks;      /* set if resource locks acquired */
@@ -316,7 +316,7 @@ public:
    uint32_t num_files_examined;       /* files examined this job */
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *acl_text;                 /* text of ACL for backup */
-   int last_type;                     /* type of last file saved/verified */
+   int32_t last_type;                 /* type of last file saved/verified */
    /*********FIXME********* add missing files and files to be retried */
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
@@ -326,8 +326,8 @@ public:
    POOLMEM *compress_buf;             /* Compression buffer */
    int32_t compress_buf_size;         /* Length of compression buffer */
    void *pZLIB_compress_workset;      /* zlib compression session data */
-   int replace;                       /* Replace options */
-   int buf_size;                      /* length of buffer */
+   int32_t replace;                   /* Replace options */
+   int32_t buf_size;                  /* length of buffer */
    FF_PKT *ff;                        /* Find Files packet */
    char stored_addr[MAX_NAME_LENGTH]; /* storage daemon address */
    uint32_t StartFile;
@@ -342,7 +342,7 @@ public:
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
 #ifdef USE_TCADB
-   TCADB *file_list;		      /* Previous file list (accurate mode) */
+   TCADB *file_list;                  /* Previous file list (accurate mode) */
    POOLMEM *hash_name;
 #else
    htable *file_list;                 /* Previous file list (accurate mode) */
@@ -356,7 +356,7 @@ public:
    JCR *prev_dev;                     /* previous JCR attached to device */
    char *dir_auth_key;                /* Dir auth key */
    pthread_cond_t job_start_wait;     /* Wait for FD to start Job */
-   int type;
+   int32_t type;
    DCR *read_dcr;                     /* device context for reading */
    DCR *dcr;                          /* device context record */
    alist *dcrs;                       /* list of dcrs open */
@@ -367,7 +367,7 @@ public:
    int32_t NumWriteVolumes;           /* number of volumes written */
    int32_t NumReadVolumes;            /* total number of volumes to read */
    int32_t CurReadVolume;             /* current read volume number */
-   int label_errors;                  /* count of label errors */
+   int32_t label_errors;              /* count of label errors */
    bool session_opened;
    long Ticket;                       /* ticket for this job */
    bool ignore_label_errors;          /* ignore Volume label errors */
@@ -375,7 +375,7 @@ public:
    bool no_attributes;                /* set if no attributes wanted */
    int64_t spool_size;                /* Spool size for this job */
    bool spool_data;                   /* set to spool data */
-   int CurVol;                        /* Current Volume count */
+   int32_t CurVol;                    /* Current Volume count */
    DIRRES* director;                  /* Director resource */
    alist *write_store;                /* list of write storage devices sent by DIR */ 
    alist *read_store;                 /* list of read devices sent by DIR */
@@ -395,13 +395,12 @@ public:
    uint32_t read_StartBlock;
    uint32_t read_EndBlock;
    /* Device wait times */
-   int min_wait;
-   int max_wait;
-   int max_num_wait;
-   int wait_sec;
-   int rem_wait_sec;
-   int num_wait;
-
+   int32_t min_wait;
+   int32_t max_wait;
+   int32_t max_num_wait;
+   int32_t wait_sec;
+   int32_t rem_wait_sec;
+   int32_t num_wait;
 #endif /* STORAGE_DAEMON */
 
 };
@@ -412,10 +411,10 @@ public:
  */
 struct s_last_job {
    dlink link;
-   int Errors;                        /* FD/SD errors */
-   int JobType;
-   int JobStatus;
-   int JobLevel;
+   int32_t Errors;                    /* FD/SD errors */
+   int32_t JobType;
+   int32_t JobStatus;
+   int32_t JobLevel;
    uint32_t JobId;
    uint32_t VolSessionId;
    uint32_t VolSessionTime;

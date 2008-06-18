@@ -105,7 +105,7 @@ static RES_ITEM cons_items[] = {
 static RES_ITEM dir_items[] = {
    {"name",           store_name,      ITEM(res_dir.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description",    store_str,       ITEM(res_dir.hdr.desc), 0, 0, 0},
-   {"dirport",        store_int,       ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"dirport",        store_pint32,    ITEM(res_dir.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",        store_str,       ITEM(res_dir.address),  0, 0, 0},
    {"password",       store_password,  ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"tlsauthenticate",store_bool,    ITEM(res_dir.tls_enable), 0, 0, 0},

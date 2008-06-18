@@ -118,7 +118,7 @@ static RES_ITEM dir_items[] = {
    {"scriptsdirectory", store_dir, ITEM(res_dir.scripts_directory), 0, 0, 0},
    {"piddirectory",store_dir,     ITEM(res_dir.pid_directory), 0, ITEM_REQUIRED, 0},
    {"subsysdirectory", store_dir,  ITEM(res_dir.subsys_directory), 0, 0, 0},
-   {"maximumconcurrentjobs", store_pint, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"maximumconcurrentjobs", store_pint32, ITEM(res_dir.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"password",    store_password, ITEM(res_dir.password), 0, ITEM_REQUIRED, 0},
    {"fdconnecttimeout", store_time,ITEM(res_dir.FDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
    {"sdconnecttimeout", store_time,ITEM(res_dir.SDConnectTimeout), 0, ITEM_DEFAULT, 60 * 30},
@@ -182,15 +182,15 @@ static RES_ITEM cli_items[] = {
    {"description", store_str,     ITEM(res_client.hdr.desc), 0, 0, 0},
    {"address",  store_str,        ITEM(res_client.address),  0, ITEM_REQUIRED, 0},
    {"fdaddress",  store_str,      ITEM(res_client.address),  0, 0, 0},
-   {"fdport",   store_pint,       ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
+   {"fdport",   store_pint32,     ITEM(res_client.FDport),   0, ITEM_DEFAULT, 9102},
    {"password", store_password,   ITEM(res_client.password), 0, ITEM_REQUIRED, 0},
-   {"fdpassword", store_password,   ITEM(res_client.password), 0, 0, 0},
+   {"fdpassword", store_password, ITEM(res_client.password), 0, 0, 0},
    {"catalog",  store_res,        ITEM(res_client.catalog),  R_CATALOG, ITEM_REQUIRED, 0},
    {"fileretention", store_time,  ITEM(res_client.FileRetention), 0, ITEM_DEFAULT, 60*60*24*60},
    {"jobretention",  store_time,  ITEM(res_client.JobRetention),  0, ITEM_DEFAULT, 60*60*24*180},
    {"heartbeatinterval", store_time, ITEM(res_client.heartbeat_interval), 0, ITEM_DEFAULT, 0},
    {"autoprune", store_bool,      ITEM(res_client.AutoPrune), 0, ITEM_DEFAULT, true},
-   {"maximumconcurrentjobs", store_pint, ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"maximumconcurrentjobs", store_pint32,   ITEM(res_client.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"tlsauthenticate",      store_bool,      ITEM(res_client.tls_authenticate), 0, 0, 0},
    {"tlsenable",            store_bool,      ITEM(res_client.tls_enable), 0, 0, 0},
    {"tlsrequire",           store_bool,      ITEM(res_client.tls_require), 0, 0, 0},
@@ -209,7 +209,7 @@ static RES_ITEM cli_items[] = {
 static RES_ITEM store_items[] = {
    {"name",        store_name,     ITEM(res_store.hdr.name),   0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(res_store.hdr.desc),   0, 0, 0},
-   {"sdport",      store_pint,     ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
+   {"sdport",      store_pint32,   ITEM(res_store.SDport),     0, ITEM_DEFAULT, 9103},
    {"address",     store_str,      ITEM(res_store.address),    0, ITEM_REQUIRED, 0},
    {"sdaddress",   store_str,      ITEM(res_store.address),    0, 0, 0},
    {"password",    store_password, ITEM(res_store.password),   0, ITEM_REQUIRED, 0},
@@ -219,8 +219,8 @@ static RES_ITEM store_items[] = {
    {"autochanger", store_bool,     ITEM(res_store.autochanger), 0, ITEM_DEFAULT, 0},
    {"enabled",     store_bool,     ITEM(res_store.enabled),     0, ITEM_DEFAULT, true},
    {"heartbeatinterval", store_time, ITEM(res_store.heartbeat_interval), 0, ITEM_DEFAULT, 0},
-   {"maximumconcurrentjobs", store_pint, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
-   {"sddport", store_pint, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
+   {"maximumconcurrentjobs", store_pint32, ITEM(res_store.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"sddport", store_pint32, ITEM(res_store.SDDport), 0, 0, 0}, /* deprecated */
    {"tlsauthenticate",      store_bool,      ITEM(res_store.tls_authenticate), 0, 0, 0},
    {"tlsenable",            store_bool,      ITEM(res_store.tls_enable), 0, 0, 0},
    {"tlsrequire",           store_bool,      ITEM(res_store.tls_require), 0, 0, 0},
@@ -241,7 +241,7 @@ static RES_ITEM cat_items[] = {
    {"description", store_str,   ITEM(res_cat.hdr.desc),    0, 0, 0},
    {"address",  store_str,      ITEM(res_cat.db_address),  0, 0, 0},
    {"dbaddress", store_str,     ITEM(res_cat.db_address),  0, 0, 0},
-   {"dbport",   store_pint,     ITEM(res_cat.db_port),      0, 0, 0},
+   {"dbport",   store_pint32,   ITEM(res_cat.db_port),      0, 0, 0},
    /* keep this password as store_str for the moment */
    {"password", store_str,      ITEM(res_cat.db_password), 0, 0, 0},
    {"dbpassword", store_str,    ITEM(res_cat.db_password), 0, 0, 0},
@@ -279,25 +279,25 @@ RES_ITEM job_items[] = {
    {"run",       store_alist_str, ITEM(res_job.run_cmds), 0, 0, 0},
    /* Root of where to restore files */
    {"where",    store_dir,      ITEM(res_job.RestoreWhere), 0, 0, 0},
-   {"regexwhere",    store_str,   ITEM(res_job.RegexWhere), 0, 0, 0},
-   {"stripprefix",    store_str,  ITEM(res_job.strip_prefix), 0, 0, 0},
+   {"regexwhere",    store_str, ITEM(res_job.RegexWhere), 0, 0, 0},
+   {"stripprefix",   store_str, ITEM(res_job.strip_prefix), 0, 0, 0},
    {"addprefix",    store_str,  ITEM(res_job.add_prefix), 0, 0, 0},
    {"addsuffix",    store_str,  ITEM(res_job.add_suffix), 0, 0, 0},
    /* Where to find bootstrap during restore */
    {"bootstrap",store_dir,      ITEM(res_job.RestoreBootstrap), 0, 0, 0},
    /* Where to write bootstrap file during backup */
    {"writebootstrap",store_dir, ITEM(res_job.WriteBootstrap), 0, 0, 0},
-   {"writeverifylist",store_dir, ITEM(res_job.WriteVerifyList), 0, 0, 0},
+   {"writeverifylist",store_dir,ITEM(res_job.WriteVerifyList), 0, 0, 0},
    {"replace",  store_replace,  ITEM(res_job.replace), 0, ITEM_DEFAULT, REPLACE_ALWAYS},
    {"maxrunschedtime", store_time, ITEM(res_job.MaxRunSchedTime), 0, 0, 0},
    {"maxruntime",   store_time, ITEM(res_job.MaxRunTime), 0, 0, 0},
    /* xxxMaxWaitTime are deprecated */
    {"fullmaxwaittime",  store_time, ITEM(res_job.FullMaxRunTime), 0, 0, 0},
    {"incrementalmaxwaittime",  store_time, ITEM(res_job.IncMaxRunTime), 0, 0, 0},
-   {"differentialmaxwaittime",  store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
+   {"differentialmaxwaittime", store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
    {"fullmaxruntime",  store_time, ITEM(res_job.FullMaxRunTime), 0, 0, 0},
    {"incrementalmaxruntime",  store_time, ITEM(res_job.IncMaxRunTime), 0, 0, 0},
-   {"differentialmaxruntime",  store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
+   {"differentialmaxruntime", store_time, ITEM(res_job.DiffMaxRunTime), 0, 0, 0},
    {"maxwaittime",  store_time, ITEM(res_job.MaxWaitTime), 0, 0, 0},
    {"maxstartdelay",store_time, ITEM(res_job.MaxStartDelay), 0, 0, 0},
    {"maxfullinterval",  store_time, ITEM(res_job.MaxFullInterval), 0, 0, 0},
@@ -319,11 +319,11 @@ RES_ITEM job_items[] = {
    {"runafterfailedjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
    {"clientrunbeforejob", store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
    {"clientrunafterjob",  store_short_runscript,  ITEM(res_job.RunScripts),  0, 0, 0},
-   {"maximumconcurrentjobs", store_pint, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
+   {"maximumconcurrentjobs", store_pint32, ITEM(res_job.MaxConcurrentJobs), 0, ITEM_DEFAULT, 1},
    {"rescheduleonerror", store_bool, ITEM(res_job.RescheduleOnError), 0, ITEM_DEFAULT, false},
    {"rescheduleinterval", store_time, ITEM(res_job.RescheduleInterval), 0, ITEM_DEFAULT, 60 * 30},
-   {"rescheduletimes",    store_pint, ITEM(res_job.RescheduleTimes), 0, 0, 0},
-   {"priority",           store_pint, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
+   {"rescheduletimes",    store_pint32, ITEM(res_job.RescheduleTimes), 0, 0, 0},
+   {"priority",           store_pint32, ITEM(res_job.Priority), 0, ITEM_DEFAULT, 10},
    {"writepartafterjob",  store_bool, ITEM(res_job.write_part_after_job), 0, ITEM_DEFAULT, true},
    {"selectionpattern",   store_str, ITEM(res_job.selection_pattern), 0, 0, 0},
    {"runscript",          store_runscript, ITEM(res_job.RunScripts), 0, ITEM_NO_EQUALS, 0},
@@ -380,9 +380,9 @@ static RES_ITEM pool_items[] = {
    {"purgeoldestvolume", store_bool,  ITEM(res_pool.purge_oldest_volume), 0, 0, 0},
    {"recycleoldestvolume", store_bool,  ITEM(res_pool.recycle_oldest_volume), 0, 0, 0},
    {"recyclecurrentvolume", store_bool, ITEM(res_pool.recycle_current_volume), 0, 0, 0},
-   {"maximumvolumes",  store_pint,    ITEM(res_pool.max_volumes),   0, 0,        0},
-   {"maximumvolumejobs", store_pint,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
-   {"maximumvolumefiles", store_pint, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
+   {"maximumvolumes",  store_pint32,    ITEM(res_pool.max_volumes),   0, 0,        0},
+   {"maximumvolumejobs", store_pint32,  ITEM(res_pool.MaxVolJobs),    0, 0,       0},
+   {"maximumvolumefiles", store_pint32, ITEM(res_pool.MaxVolFiles),   0, 0,       0},
    {"maximumvolumebytes", store_size, ITEM(res_pool.MaxVolBytes),   0, 0,       0},
    {"catalogfiles",    store_bool,    ITEM(res_pool.catalog_files),  0, ITEM_DEFAULT, true},
    {"volumeretention", store_time,    ITEM(res_pool.VolRetention),   0, ITEM_DEFAULT, 60*60*24*365},
@@ -407,8 +407,8 @@ static RES_ITEM pool_items[] = {
 static RES_ITEM counter_items[] = {
    {"name",            store_name,    ITEM(res_counter.hdr.name),        0, ITEM_REQUIRED, 0},
    {"description",     store_str,     ITEM(res_counter.hdr.desc),        0, 0,     0},
-   {"minimum",         store_int,     ITEM(res_counter.MinValue),        0, ITEM_DEFAULT, 0},
-   {"maximum",         store_pint,    ITEM(res_counter.MaxValue),        0, ITEM_DEFAULT, INT32_MAX},
+   {"minimum",         store_int32,   ITEM(res_counter.MinValue),        0, ITEM_DEFAULT, 0},
+   {"maximum",         store_pint32,  ITEM(res_counter.MaxValue),        0, ITEM_DEFAULT, INT32_MAX},
    {"wrapcounter",     store_res,     ITEM(res_counter.WrapCounter),     R_COUNTER, 0, 0},
    {"catalog",         store_res,     ITEM(res_counter.Catalog),         R_CATALOG, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}
@@ -515,7 +515,7 @@ const char *level_to_str(int level)
 
    bsnprintf(level_no, sizeof(level_no), "%c (%d)", level, level);    /* default if not found */
    for (i=0; joblevels[i].level_name; i++) {
-      if (level == joblevels[i].level) {
+      if (level == (int)joblevels[i].level) {
          str = joblevels[i].level_name;
          break;
       }
@@ -1627,7 +1627,7 @@ void store_migtype(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the type both pass 1 and pass 2 */
    for (i=0; migtypes[i].type_name; i++) {
       if (strcasecmp(lc->str, migtypes[i].type_name) == 0) {
-         *(int *)(item->value) = migtypes[i].job_type;
+         *(uint32_t *)(item->value) = migtypes[i].job_type;
          i = 0;
          break;
       }
@@ -1653,7 +1653,7 @@ void store_jobtype(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the type both pass 1 and pass 2 */
    for (i=0; jobtypes[i].type_name; i++) {
       if (strcasecmp(lc->str, jobtypes[i].type_name) == 0) {
-         *(int *)(item->value) = jobtypes[i].job_type;
+         *(uint32_t *)(item->value) = jobtypes[i].job_type;
          i = 0;
          break;
       }
@@ -1677,7 +1677,7 @@ void store_level(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Store the level pass 2 so that type is defined */
    for (i=0; joblevels[i].level_name; i++) {
       if (strcasecmp(lc->str, joblevels[i].level_name) == 0) {
-         *(int *)(item->value) = joblevels[i].level;
+         *(uint32_t *)(item->value) = joblevels[i].level;
          i = 0;
          break;
       }
@@ -1697,7 +1697,7 @@ void store_replace(LEX *lc, RES_ITEM *item, int index, int pass)
    /* Scan Replacement options */
    for (i=0; ReplaceOptions[i].name; i++) {
       if (strcasecmp(lc->str, ReplaceOptions[i].name) == 0) {
-         *(int *)(item->value) = ReplaceOptions[i].token;
+         *(uint32_t *)(item->value) = ReplaceOptions[i].token;
          i = 0;
          break;
       }
@@ -1745,13 +1745,13 @@ static void store_runscript_when(LEX *lc, RES_ITEM *item, int index, int pass)
    lex_get_token(lc, T_NAME);
 
    if (strcasecmp(lc->str, "before") == 0) {
-      *(int *)(item->value) = SCRIPT_Before ;
+      *(uint32_t *)(item->value) = SCRIPT_Before ;
    } else if (strcasecmp(lc->str, "after") == 0) {
-      *(int *)(item->value) = SCRIPT_After;
+      *(uint32_t *)(item->value) = SCRIPT_After;
    } else if (strcasecmp(lc->str, "aftervss") == 0) {
-      *(int *)(item->value) = SCRIPT_AfterVSS;
+      *(uint32_t *)(item->value) = SCRIPT_AfterVSS;
    } else if (strcasecmp(lc->str, "always") == 0) {
-      *(int *)(item->value) = SCRIPT_Any;
+      *(uint32_t *)(item->value) = SCRIPT_Any;
    } else {
       scan_err2(lc, _("Expect %s, got: %s"), "Before, After, AfterVSS or Always", lc->str);
    }
