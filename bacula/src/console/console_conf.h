@@ -80,7 +80,7 @@ struct CONRES {
 /* Director */
 struct DIRRES {
    RES   hdr;
-   int   DIRport;                     /* UA server port */
+   uint32_t DIRport;                  /* UA server port */
    char *address;                     /* UA server address */
    char *password;                    /* UA server password */
    bool tls_authenticate;             /* Authenticate with TLS */

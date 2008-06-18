@@ -72,20 +72,20 @@ enum {
 /* Used for certain KeyWord tables */
 struct s_kw {
    const char *name;
-   int token;
+   uint32_t token;
 };
 
 /* Job Level keyword structure */
 struct s_jl {
-   const char *level_name;                  /* level keyword */
-   int  level;                        /* level */
-   int  job_type;                     /* JobType permitting this level */
+   const char *level_name;                 /* level keyword */
+   uint32_t  level;                        /* level */
+   uint32_t  job_type;                     /* JobType permitting this level */
 };
 
 /* Job Type keyword structure */
 struct s_jt {
    const char *type_name;
-   int job_type;
+   uint32_t job_type;
 };
 
 /* Definition of the contents of each Resource */
@@ -125,11 +125,11 @@ public:
    char *tls_dhfile;                  /* TLS Diffie-Hellman Parameters */
    alist *tls_allowed_cns;            /* TLS Allowed Clients */
    TLS_CONTEXT *tls_ctx;              /* Shared TLS Context */
+   utime_t stats_retention;           /* Stats retention period in seconds */
    bool tls_authenticate;             /* Authenticated with TLS */
    bool tls_enable;                   /* Enable TLS */
    bool tls_require;                  /* Require TLS */
    bool tls_verify_peer;              /* TLS Verify Client Certificate */
-   utime_t stats_retention;           /* Stats retention period in seconds */
 
    /* Methods */
    char *name() const;
@@ -150,10 +150,10 @@ public:
    RES hdr;
 
    bool found;                        /* found with SD */
-   int num_writers;                   /* number of writers */
-   int max_writers;                   /* = 1 for files */
-   int reserved;                      /* number of reserves */
-   int num_drives;                    /* for autochanger */
+   int32_t num_writers;               /* number of writers */
+   int32_t max_writers;               /* = 1 for files */
+   int32_t reserved;                  /* number of reserves */
+   int32_t num_drives;                /* for autochanger */
    bool autochanger;                  /* set if device is autochanger */
    bool open;                         /* drive open */
    bool append;                       /* in append mode */
@@ -225,14 +225,14 @@ class CAT {
 public:
    RES   hdr;
 
-   int   db_port;                     /* Port */
+   uint32_t db_port;                  /* Port */
    char *db_address;                  /* host name for remote access */
    char *db_socket;                   /* Socket for local access */
    char *db_password;
    char *db_user;
    char *db_name;
    char *db_driver;                   /* Select appropriate driver */
-   int   mult_db_connections;         /* set if multiple connections wanted */
+   uint32_t mult_db_connections;      /* set if multiple connections wanted */
 
    /* Methods */
    char *name() const;
@@ -249,7 +249,7 @@ class CLIENT {
 public:
    RES   hdr;
 
-   int   FDport;                      /* Where File daemon listens */
+   uint32_t FDport;                   /* Where File daemon listens */
    utime_t FileRetention;             /* file retention period in seconds */
    utime_t JobRetention;              /* job retention period in seconds */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
@@ -284,8 +284,8 @@ class STORE {
 public:
    RES   hdr;
 
-   int   SDport;                      /* port where Directors connect */
-   int   SDDport;                     /* data port for File daemon */
+   uint32_t SDport;                   /* port where Directors connect */
+   uint32_t SDDport;                  /* data port for File daemon */
    char *address;
    char *password;
    char *media_type;
@@ -305,7 +305,7 @@ public:
    bool  autochanger;                 /* set if autochanger */
    int64_t StorageId;                 /* Set from Storage DB record */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
-   int  drives;                       /* number of drives in autochanger */
+   uint32_t drives;                   /* number of drives in autochanger */
 
    /* Methods */
    char *dev_name() const;
@@ -363,13 +363,13 @@ class JOB {
 public:
    RES   hdr;
 
-   int   JobType;                     /* job type (backup, verify, restore */
-   int   JobLevel;                    /* default backup/verify level */
-   int   Priority;                    /* Job priority */
-   int   RestoreJobId;                /* What -- JobId to restore */
-   int   RescheduleTimes;             /* Number of times to reschedule job */
-   int   replace;                     /* How (overwrite, ..) */
-   int   selection_type;
+   uint32_t   JobType;                /* job type (backup, verify, restore */
+   uint32_t   JobLevel;               /* default backup/verify level */
+   int32_t   Priority;                /* Job priority */
+   uint32_t   RestoreJobId;           /* What -- JobId to restore */
+   int32_t   RescheduleTimes;         /* Number of times to reschedule job */
+   uint32_t   replace;                /* How (overwrite, ..) */
+   uint32_t   selection_type;
 
    char *RestoreWhere;                /* Where on disk to restore -- directory */
    char *RegexWhere;                  /* RegexWhere option */
@@ -469,7 +469,7 @@ struct FOPTS {
 struct INCEXE {
    FOPTS *current_opts;               /* points to current options structure */
    FOPTS **opts_list;                 /* options list */
-   int num_opts;                      /* number of options items */
+   int32_t num_opts;                  /* number of options items */
    alist name_list;                   /* filename list -- holds char * */
    alist plugin_list;                 /* filename list for plugins */
 };
@@ -484,9 +484,9 @@ public:
 
    bool new_include;                  /* Set if new include used */
    INCEXE **include_items;            /* array of incexe structures */
-   int num_includes;                  /* number in array */
+   int32_t num_includes;              /* number in array */
    INCEXE **exclude_items;
-   int num_excludes;
+   int32_t num_excludes;
    bool have_MD5;                     /* set if MD5 initialized */
    struct MD5Context md5c;            /* MD5 of include/exclude */
    char MD5[30];                      /* base 64 representation of MD5 */
@@ -598,9 +598,9 @@ union URES {
 class RUN {
 public:
    RUN *next;                         /* points to next run record */
-   int level;                         /* level override */
-   int Priority;                      /* priority override */
-   int job_type;
+   uint32_t level;                    /* level override */
+   int32_t Priority;                  /* priority override */
+   uint32_t job_type;
    bool spool_data;                   /* Data spooling override */
    bool spool_data_set;               /* Data spooling override given */
    bool write_part_after_job;         /* Write part after job override */
@@ -613,8 +613,8 @@ public:
    STORE *storage;                    /* Storage override */
    MSGS *msgs;                        /* Messages override */
    char *since;
-   int level_no;
-   int minute;                        /* minute to run job */
+   uint32_t level_no;
+   uint32_t minute;                   /* minute to run job */
    time_t last_run;                   /* last time run */
    time_t next_run;                   /* next time to run */
    char hour[nbytes_for_bits(24)];    /* bit set for each hour */

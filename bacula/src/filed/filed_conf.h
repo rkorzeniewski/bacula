@@ -82,7 +82,7 @@ struct CLIENT {
    char *plugin_directory;            /* Plugin directory */
    char *scripts_directory;
    MSGS *messages;                    /* daemon message handler */
-   int MaxConcurrentJobs;
+   uint32_t MaxConcurrentJobs;
    utime_t SDConnectTimeout;          /* timeout in seconds */
    utime_t heartbeat_interval;        /* Interval to send heartbeats */
    uint32_t max_network_buffer_size;  /* max network buf size */
