@@ -3,20 +3,18 @@
 # This script will test next vol algo with
 # vtape
 #
-
 . scripts/functions
 
-require_vtape
+TestName="next-vol-test"
+JobName=backup
 
+require_linux
 scripts/cleanup
 scripts/copy-tape-confs
 cp scripts/bacula-dir-vtape.conf bin/bacula-dir.conf
 cp scripts/bacula-sd-vtape.conf bin/bacula-sd.conf
-
 scripts/prepare-fake-autochanger
 
-TestName="next-vol-test"
-JobName=backup
 
 start_test
 
@@ -71,7 +69,7 @@ run level=full pool=Test NightlySave yes
 wait
 message
 list volume
-@# Must choose vol52 <--------- BUG vol50
+@# Must choose vol52
 run level=full pool=Test NightlySave yes
 wait
 message
