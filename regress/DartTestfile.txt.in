@@ -60,6 +60,7 @@ ADD_TEST(disk:verify-vol-test "@regressdir@/tests/verify-vol-test")
 ADD_TEST(disk:virtual-changer-test "@regressdir@/tests/virtual-changer-test")
 ADD_TEST(disk:weird-files2-test "@regressdir@/tests/weird-files2-test")
 ADD_TEST(disk:weird-files-test "@regressdir@/tests/weird-files-test")
+ADD_TEST(disk:next-vol-test "@regressdir@/tests/next-vol-test")
 
 ADD_TEST(tape:ansi-label-tape "@regressdir@/tests/ansi-label-tape")
 ADD_TEST(tape:backup-bacula-tape "@regressdir@/tests/backup-bacula-tape")
