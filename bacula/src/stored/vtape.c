@@ -62,6 +62,9 @@ Device {
 
 #include "vtape.h"
 
+
+#ifdef USE_VTAPE
+
 static int dbglevel = 100;
 #define FILE_OFFSET 30
 vtape *ftape_list[FTAPE_MAX_DRIVE];
@@ -163,21 +166,6 @@ int vtape_ioctl(int fd, unsigned long int request, ...)
 
    return result;
 }
-
-/****************************************************************/
-
-#ifdef HAVE_FREEBSD_OS
-int vtape::tape_op(struct mtop *mt_com)
-{
-   return -1;
-}
-
-int vtape::tape_get(struct mtget *mt_get)
-{
-   return -1;
-}
-
-#else  /* Posix */
 
 int vtape::tape_op(struct mtop *mt_com)
 {
@@ -403,8 +391,6 @@ int vtape::tape_get(struct mtget *mt_get)
 
    return 0;
 }
-
-#endif /* ! HAVE_FREEBSD_OS */
 
 int vtape::tape_pos(struct mtpos *mt_pos)
 {
@@ -1009,3 +995,35 @@ void vtape::dump()
          atEOF, atEOT, atEOD, atBOT);  
 }
 
+#else  /* USE_VTAPE */
+
+int vtape_ioctl(int fd, unsigned long int request, ...)
+{
+   return -1;
+}
+
+int vtape_open(const char *pathname, int flags, ...)
+{
+   return -1;
+}
+
+int vtape_close(int fd)
+{
+   return -1;
+}
+
+void vtape_debug(int level)
+{
+}
+
+ssize_t vtape_read(int fd, void *buffer, size_t count)
+{
+   return -1;
+}
+
+ssize_t vtape_write(int fd, const void *buffer, size_t count)
+{
+   return -1;
+}
+
+#endif  /* ! USE_VTAPE */

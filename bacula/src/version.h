@@ -61,7 +61,7 @@
  * USE_VTAPE is a dummy tape driver. This is useful to
  *  run regress test.
  */
-#ifdef DEVELOPER
+#ifdef HAVE_LINUX_OS
 #define USE_VTAPE
 #endif
 
