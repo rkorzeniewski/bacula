@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+#  Test if daemons start
+#
+
+TestName="pretest"
+JobName=backup
+error=0
+
+. scripts/functions
+
+copy_test_confs
+
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+messages
+quit
+END_OF_DATA
+
+start_test
+
+if ! run_bacula
+then
+   echo "error: bconsole error"
+   error=1
+fi
+
+for i in bacula-fd bacula-sd bacula-dir
+do
+   if ! ps -C $i >/dev/null
+   then
+      echo "error: $i not running"
+      error=1
+   fi
+done
+
+stop_bacula
+
+export dstat=0
+export bstat=$error
+export rstat=0
+
+end_test
+
+exit $error

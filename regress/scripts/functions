@@ -107,9 +107,11 @@ run_bacula()
      bin/bacula-ctl-fd start
      bin/bacula-ctl-dir start
      cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
+     return $?
    else
      bin/bacula start 2>&1 >/dev/null
      cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf  2>&1 >/dev/null
+     return $?
    fi
 }
 
