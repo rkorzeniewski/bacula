@@ -32,7 +32,7 @@ Index: src/dird/dird.c
     Dmsg0(200, "Start UA server\n");
     start_UA_server(director->DIRaddrs);
  
-@@ -881,6 +884,37 @@
+@@ -881,6 +884,38 @@
     return OK;
  }
  
@@ -62,7 +62,8 @@ Index: src/dird/dird.c
 +         }
 +
 +      } else {                            /* connection is OK */
-+	 db_cleanup_job_record(NULL, db); /* check if jobs are running ?? */
++         db_cleanup_job_record(NULL, db); /* check if jobs are running ?? */
++	 db_close_database(NULL, db);
 +      }
 +   }
 +}
