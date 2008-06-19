@@ -98,10 +98,17 @@ echo "volume=TestVolume001" >tmp/bscan.bsr
 
 bscan_libdbi
 
-if test "$debug" -eq 1 ; then
-  bin/bscan -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4                
+# If the database has a password pass it to bscan
+if test "x${db_passwd}" = "x"; then
+  PASSWD=
 else
-  bin/bscan -w working $BSCANLIBDBI -u regress -n regress -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
+  PASSWD="-P ${db_passwd}"
+fi
+
+if test "$debug" -eq 1 ; then
+  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4                
+else
+  bin/bscan -w working $BSCANLIBDBI -u ${db_user} -n ${db_name} $PASSWD -m -s -v -b tmp/bscan.bsr -c bin/bacula-sd.conf DDS-4 2>&1 >/dev/null
 fi
 
 echo $BSCANLIBDBI
