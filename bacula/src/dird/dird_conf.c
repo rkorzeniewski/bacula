@@ -245,6 +245,7 @@ static RES_ITEM cat_items[] = {
    /* keep this password as store_str for the moment */
    {"password", store_str,      ITEM(res_cat.db_password), 0, 0, 0},
    {"dbpassword", store_str,    ITEM(res_cat.db_password), 0, 0, 0},
+   {"dbuser",   store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"user",     store_str,      ITEM(res_cat.db_user),     0, 0, 0},
    {"dbname",   store_str,      ITEM(res_cat.db_name),     0, ITEM_REQUIRED, 0},
    {"dbdriver", store_str,      ITEM(res_cat.db_driver),   0, 0, 0},
