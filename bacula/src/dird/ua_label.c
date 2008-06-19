@@ -1015,3 +1015,142 @@ static bool is_cleaning_tape(UAContext *ua, MEDIA_DBR *mr, POOL_DBR *pr)
    return strncmp(mr->VolumeName, ua->jcr->pool->cleaning_prefix,
                   strlen(ua->jcr->pool->cleaning_prefix)) == 0;
 }
+
+
+/*
+ * Print slots from AutoChanger
+ */
+void status_slots(UAContext *ua, STORE *store_r)
+{
+   USTORE store;
+   POOL_DBR pr;
+   vol_list_t *vl, *vol_list = NULL;
+   MEDIA_DBR mr;
+   char *slot_list;
+   int max_slots;
+   int drive;
+   int i=1;
+
+   if (!open_client_db(ua)) {
+      return;
+   }
+   store.store = store_r;
+
+   pm_strcpy(store.store_source, _("command line"));
+   set_wstorage(ua->jcr, &store);
+   drive = get_storage_drive(ua, store.store);
+
+   max_slots = get_num_slots_from_SD(ua);
+
+   if (max_slots <= 0) {
+      ua->warning_msg(_("No slots in changer to scan.\n"));
+      return;
+   }
+   slot_list = (char *)malloc(max_slots+1);
+   if (!get_user_slot_list(ua, slot_list, max_slots)) {
+      free(slot_list);
+      return;
+   }
+
+   vol_list = get_vol_list_from_SD(ua, true /* want to see all slots */);
+
+   if (!vol_list) {
+      ua->warning_msg(_("No Volumes found, or no barcodes.\n"));
+      goto bail_out;
+   }
+   if (!ua->api) {
+      ua->info_msg(_(" Slot |   Volume Name    |   Status  |    Type    |      Pool          |  Loaded |\n"));
+      ua->info_msg(_("------+------------------+-----------+------------+--------------------+---------|\n"));
+   }
+   /* Walk through the list getting the media records */
+   for (vl=vol_list; vl; vl=vl->next) {
+      if (vl->Slot > max_slots) {
+         ua->warning_msg(_("Slot %d greater than max %d ignored.\n"),
+            vl->Slot, max_slots);
+         continue;
+      }
+      /* Check if user wants us to look at this slot */
+      if (!slot_list[vl->Slot]) {
+         Dmsg1(100, "Skipping slot=%d\n", vl->Slot);
+         continue;
+      }
+
+      slot_list[vl->Slot] = 0;        /* clear Slot */
+
+      if (!vl->VolName) {
+         Dmsg1(100, "No VolName for Slot=%d.\n", vl->Slot);
+	 if (!ua->api) {
+	    ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+			 vl->Slot, '*',
+			 "?", "?", "?", "?", 0);
+	 } else {
+	    ua->info_msg(_("%i||||||\n"), vl->Slot);
+	 }
+         continue;
+      }
+
+      /* Hope that slots are ordered */
+      for (; i < vl->Slot; i++) {
+	 if (slot_list[i]) {
+	    if (!ua->api) {
+	       ua->info_msg(_(" %4i | %16s | %9s | %10s | %18s |    %i    |\n"),
+			    i, "", "", "", "", 0);
+	    } else {
+	       ua->info_msg(_("%i||||||\n"), i);
+	    }	    
+	    slot_list[i]=0;
+	 }
+      }
+
+      memset(&mr, 0, sizeof(mr));
+      bstrncpy(mr.VolumeName, vl->VolName, sizeof(mr.VolumeName));
+      db_lock(ua->db);
+      if (mr.VolumeName[0] && db_get_media_record(ua->jcr, ua->db, &mr)) {
+	 memset(&pr, 0, sizeof(POOL_DBR));
+	 pr.PoolId = mr.PoolId;
+	 if (!db_get_pool_record(ua->jcr, ua->db, &pr)) {
+	    strcpy(pr.Name, "?");
+	 }
+
+	 if (!ua->api) {
+	    /* Print information */
+	    ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+			 vl->Slot, ((vl->Slot==mr.Slot)?' ':'*'),
+			 mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name, 0);
+	 } else {
+	    ua->info_msg(_("%i|%i|%s|%s|%s|%s|%i|\n"),
+			 vl->Slot, mr.Slot, mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name, 0);
+	 }
+
+         db_unlock(ua->db);
+         continue;
+      } else {			/* TODO: get information from catalog  */
+	 ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+		      vl->Slot, '*',
+		      mr.VolumeName, "?", "?", "?", 0);
+      }
+      db_unlock(ua->db);
+   }
+
+   /* Display the rest of the autochanger
+    */
+   for (; i <= max_slots; i++) {
+      if (slot_list[i]) {
+	 if (!ua->api) {
+	    ua->info_msg(_(" %4i | %16s | %9s | %10s | %18s |    %i    |\n"),
+			 i, "", "", "", "", 0);
+	 } else {
+	    ua->info_msg(_("%i||||||\n"), i);
+	 } 
+	 slot_list[i]=0;
+      }
+   }
+
+bail_out:
+
+   free_vol_list(vol_list);
+   free(slot_list);
+   close_sd_bsock(ua);
+
+   return;
+}

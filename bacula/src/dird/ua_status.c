@@ -47,6 +47,7 @@ static void do_storage_status(UAContext *ua, STORE *store, char *cmd);
 static void do_client_status(UAContext *ua, CLIENT *client, char *cmd);
 static void do_director_status(UAContext *ua);
 static void do_all_status(UAContext *ua);
+void status_slots(UAContext *ua, STORE *store);
 
 static char OKqstatus[]   = "1000 OK .status\n";
 static char DotStatusJob[] = "JobId=%s JobStatus=%c JobErrors=%d\n";
@@ -157,7 +158,11 @@ int status_cmd(UAContext *ua, const char *cmd)
       } else {
          store = get_storage_resource(ua, false/*no default*/);
          if (store) {
-            do_storage_status(ua, store, NULL);
+	    if (find_arg(ua, NT_("slots")) > 0) {
+	       status_slots(ua, store);
+	    } else {
+	       do_storage_status(ua, store, NULL);
+	    }
          }
          return 1;
       }
