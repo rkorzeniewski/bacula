@@ -38,8 +38,6 @@
 #include <stddef.h>
 #include "bacula.h"
 
-#define FTAPE_MAX_DRIVE 50
-
 /* 
  * Theses functions will replace open/read/write
  */
@@ -49,6 +47,10 @@ int vtape_ioctl(int fd, unsigned long int request, ...);
 void vtape_debug(int level);
 ssize_t vtape_read(int fd, void *buffer, size_t count);
 ssize_t vtape_write(int fd, const void *buffer, size_t count);
+
+#ifdef USE_VTAPE
+
+#define FTAPE_MAX_DRIVE 50
 
 typedef enum {
    VT_READ_EOF,			/* Need to read the entire EOF struct */
@@ -105,5 +107,8 @@ public:
    int tape_get(struct mtget *mt_com);
    int tape_pos(struct mtpos *mt_com);
 };
+
+
+#endif	/*!USE_VTAPE */
 
 #endif /* !VTAPE_H */
