@@ -233,7 +233,7 @@ Catalog {
   Name = MyCatalog
 # Uncomment the following line if you want the dbi driver
 # dbdriver = "dbi:mysql"; dbaddress = 127.0.0.1; dbport = 3306
-  dbname = @db_name@; user = @db_user@; password = ""
+  dbname = "@db_name@"; dbuser = "@db_user@"; dbpassword = "@db_password@"
 }
 
 # Reasonable message delivery -- send most everything to email address
