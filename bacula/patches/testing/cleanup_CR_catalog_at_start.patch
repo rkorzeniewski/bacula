@@ -13,7 +13,7 @@ This avoid phantom jobs with bweb or bat.
 
 Index: src/dird/dird.c
 ===================================================================
---- src/dird/dird.c	(revision 7173)
+--- src/dird/dird.c	(revision 7176)
 +++ src/dird/dird.c	(working copy)
 @@ -40,6 +40,7 @@
  /* Forward referenced subroutines */
@@ -73,7 +73,7 @@ Index: src/dird/dird.c
     bool OK = true;
 Index: src/cats/sql_update.c
 ===================================================================
---- src/cats/sql_update.c	(revision 7173)
+--- src/cats/sql_update.c	(revision 7176)
 +++ src/cats/sql_update.c	(working copy)
 @@ -288,6 +288,18 @@
  }
@@ -82,10 +82,10 @@ Index: src/cats/sql_update.c
 +db_cleanup_job_record(JCR *jcr, B_DB *mdb)
 +{
 +   int stat;
-+   char query[] = "UPDATE Job SET JobStatus = 'f' WHERE JobStatus IN ('R', 'C')";
++   char query[] = "UPDATE Job SET JobStatus = 'f', EndTime = NOW() WHERE JobStatus IN ('R', 'C')";
 +
 +   db_lock(mdb);
-+   stat = UPDATE_DB(jcr, mdb, mdb->cmd);
++   stat = UPDATE_DB(jcr, mdb, query);
 +   db_unlock(mdb);
 +   return stat;
 +}
@@ -96,7 +96,7 @@ Index: src/cats/sql_update.c
     int stat;
 Index: src/cats/protos.h
 ===================================================================
---- src/cats/protos.h	(revision 7173)
+--- src/cats/protos.h	(revision 7176)
 +++ src/cats/protos.h	(working copy)
 @@ -123,6 +123,7 @@
  void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *ctx, e_list_type type);
