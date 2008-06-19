@@ -304,5 +304,9 @@ fi
 # Source the configuration variables
 . ${cwd}/config
 
+db_name=${db_name:-"regress"}
+db_user=${db_user:-"regress"}
+db_password=${db_password:-""}
+
 CLIENT=${HOST}-fd
 AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}
