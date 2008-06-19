@@ -15,7 +15,7 @@ nice ctest -D Experimental -R "^(disk|tape|changer):"
 rtn=$?
 i=0
 while [ $i -le 5 ]; do
-   if [ $rtn = 0 ] ; then
+   if [ $rtn = 0 ] || [ "$rtn" = "8" ]; then
       break;
    fi
    echo "Submit failed, waiting 5 mins"
