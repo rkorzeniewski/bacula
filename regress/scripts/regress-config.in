@@ -4,6 +4,11 @@
 #
 
 . ${1}/config
+if test "x@db_password@" = "x"; then
+  PASSWD=
+else
+  PASSWO="--with-db-password=\"@db_password@\""
+fi
 
 CFLAGS="-g -O2 -Wall" \
  ./configure \
@@ -21,6 +26,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-smtp-host=${SMTP_HOST} \
     --with-db-name=@db_name@ \
     --with-db-user=@db_user@ \
+    ${PASSWD} \
     ${OPENSSL} \
     ${TCPWRAPPERS} \
     ${WHICHDB} \

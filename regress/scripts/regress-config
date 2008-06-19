@@ -4,6 +4,11 @@
 #
 
 . ${1}/config
+if test "x" = "x"; then
+  PASSWD=
+else
+  PASSWO="--with-db-password=\"\""
+fi
 
 CFLAGS="-g -O2 -Wall" \
  ./configure \
@@ -21,6 +26,7 @@ CFLAGS="-g -O2 -Wall" \
     --with-smtp-host=${SMTP_HOST} \
     --with-db-name=regress \
     --with-db-user=regress \
+    ${PASSWD} \
     ${OPENSSL} \
     ${TCPWRAPPERS} \
     ${WHICHDB} \
