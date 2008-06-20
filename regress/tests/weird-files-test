@@ -72,7 +72,7 @@ ${cwd}/bin/testls weird-files | sort >${cwd}/tmp/restored
 cd ${cwd}
 
 check_two_logs
-#diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
-diff ${cwd}/tmp/original ${cwd}/tmp/restored                
+#diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+diff -u ${cwd}/tmp/original ${cwd}/tmp/restored                
 dstat=$?
 end_test

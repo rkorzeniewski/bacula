@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# Run a job with a limited tape size so that the tape fills up.
+#  Then manually unload the tape and load a new one, label
+#  it.
+#
+TestName="two-vol-manual-tape"
+JobName=twovolmanualtape
+. scripts/functions
+
+require_tape_drive
+require_autochanger
+
+scripts/cleanup
+scripts/copy-tape-confs
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+# Get a tape in the drive either from slot 1 or slot 2
+slot=`bin/mtx-changer ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
+case $slot in
+ 0)
+    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=$SLOT1
+    ;;
+ $SLOT1)
+    slot=$SLOT1
+    ;;
+ $SLOT2)
+    slot=$SLOT2
+    ;;
+ default)
+    mt -f ${TAPE_DRIVE} rewind                
+    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
+    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=$SLOT1
+    ;;
+esac
+mt -f ${TAPE_DRIVE} rewind
+mt -f ${TAPE_DRIVE} weof
+
+
+change_jobname $JobName
+start_test
+
+# Write out bconsole commands
+cat <<END_OF_DATA >tmp/bconcmds
+@out /dev/null
+messages
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
+update Volume=TestVolume001 MaxVolBytes=4000000 pool=Default drive=0
+sql                               
+select * from Storage;
+select VolumeName,InChanger,StorageId from Media;
+
+@#setdebug level=150 storage=DDS-4
+run job=$JobName yes
+@# This sleep must be long enough for the first tape to fill (4MB)
+@#  otherwise the following mtx-changer commands will fail
+@sleep 80
+sql                               
+select * from Storage;
+select VolumeName,InChanger,StorageId from Media;
+
+unmount storage=DDS-4
+list volumes
+status storage=DDS-4
+messages
+quit
+END_OF_DATA
+
+run_bacula
+
+# load the other slot
+mt -f ${TAPE_DRIVE} rewind
+case $slot in
+ $SLOT1)
+    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
+    bin/mtx-changer ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
+    ;;
+ $SLOT2)
+    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
+    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    ;;
+ default)
+    echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
+    exit 1
+esac
+
+mt -f ${TAPE_DRIVE} rewind
+mt -f ${TAPE_DRIVE} weof
+
+# second half of job -- write on next tape
+cat <<END_OF_DATA >tmp/bconcmds
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default drive=0
+mount storage=DDS-4
+@# 
+@# now do a restore
+@#
+@#restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+@#yes
+wait
+list volumes
+messages
+@$out
+quit
+END_OF_DATA
+
+# run second half
+run_bconsole
+
+touch tmp/log2.out
+ 
+check_for_zombie_jobs storage=DDS-4
+stop_bacula
+
+check_two_logs
+#check_restore_diff
+dstat=0   # no diff
+rstat=0   # no restore
+end_test
