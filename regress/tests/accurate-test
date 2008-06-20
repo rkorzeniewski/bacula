@@ -26,6 +26,8 @@ rm -rf ${cwd}/build/accurate
 
 # add extra files
 mkdir ${cwd}/build/accurate
+mkdir ${cwd}/build/accurate/dirtest
+echo "test test" > ${cwd}/build/accurate/dirtest/hello
 echo "test test" > ${cwd}/build/accurate/xxx
 echo "test test" > ${cwd}/build/accurate/yyy
 echo "test test" > ${cwd}/build/accurate/zzz
@@ -81,6 +83,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 # Now do a second backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/xxx  # delete a file
+rm ${cwd}/build/accurate/dirtest/hello
 
 run_bconsole
 check_for_zombie_jobs storage=File
@@ -94,6 +97,7 @@ rm -rf ${cwd}/tmp/bacula-restores
 # Now do a third backup after making few changes
 ################################################################
 rm ${cwd}/build/accurate/yyyyyy  # delete a file
+rmdir ${cwd}/build/accurate/dirtest
 
 run_bconsole
 check_for_zombie_jobs storage=File
