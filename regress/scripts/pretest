@@ -19,20 +19,29 @@ END_OF_DATA
 
 start_test
 
-if ! run_bacula
-then
-   echo "error: bconsole error"
+run_bacula
+if [ $? -ne 0 ]; then
+   echo "Error: bconsole error"
    error=1
 fi
 
-for i in bacula-fd bacula-sd bacula-dir
-do
-   if ! ps -C $i >/dev/null
-   then
-      echo "error: $i not running"
-      error=1
-   fi
-done
+bin/bacula-ctl-dir status >/dev/null
+if [ $? -ne 0 ]; then
+   echo "Error: bacula-dir failed to start"
+   error=1
+fi
+
+bin/bacula-ctl-fd status >/dev/null
+if [ $? -ne 0 ]; then
+   echo "Error: bacula-fd failed to start"
+   error=1
+fi
+
+bin/bacula-ctl-sd status >/dev/null
+if [ $? -ne 0 ]; then
+   echo "Error: bacula-sd failed to start"
+   error=1
+fi
 
 stop_bacula
 
