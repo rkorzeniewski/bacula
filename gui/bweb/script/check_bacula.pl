@@ -22,7 +22,27 @@
 
 =head3 EXAMPLES
 
-    check_bacula.pl -C c1 -C c2 -w 10 -c 15 -S S1_LTO1 -S S1_LTO2 -m 2 -m S%
+   Check :
+      - if more than 10 jobs are running for client c1 and c2 for 1 hour
+
+    check_bacula.pl -C c1 -C c2 -w 10 -c 15 -a 1
+
+      - if more than 10 jobs are running for group g1 for 2 hours
+
+    check_bacula.pl -g g1 -w 10 -c 15 -a 2
+
+      - if S1_LTO1 and S1_LTO2 storage deamon are responding to status cmd
+
+    check_bacula.pl -S S1_LTO1 -S S1_LTO2
+
+      - if the scratch pool contains 5 volumes with mediatype Tape% at minimum
+
+    check_bacula.pl -s 2 -m Tape%
+
+
+   You can mix all options
+
+   check_bacula.pl -g g1 -w 10 -c 15 -S S1_LTO1 -s 2 -m Tape%
 
 =head1 LICENSE
 
