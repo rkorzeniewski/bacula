@@ -159,6 +159,7 @@ mount_next_vol:
    } else {
       autochanger = false;
       VolCatInfo.Slot = 0;
+      ask = true;
    }
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*
@@ -177,7 +178,6 @@ mount_next_vol:
       ask = false;
    }
    Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
-   dev->must_unload();       /* release next time if we "recurse" */
 
    if (ask && !dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
       Dmsg0(150, "Error return ask_sysop ...\n");
@@ -225,15 +225,20 @@ mount_next_vol:
       if (try_autolabel(false) == try_read_vol) {
          break;                       /* created a new volume label */
       }
+      dev->set_unload();              /* force ask sysop */
+      ask = true;
+      goto mount_next_vol;
+#ifdef xxx
       /* If DVD, ignore the error, very often you cannot open the device
        * (when there is no DVD, or when the one inserted is a wrong one) */
       if (dev->poll || dev->is_dvd()) {
          goto mount_next_vol;
       } else {
-         Jmsg(jcr, M_ERROR, 0, _("Could not open device %s: ERR=%s\n"),
+         Jmsg2(jcr, M_ERROR, 0, _("Could not open device %s: ERR=%s\n"),
             dev->print_name(), dev->print_errmsg());
          goto bail_out;
       }
+#endif 
    }
 
    /*
@@ -243,6 +248,7 @@ read_volume:
 
    switch (check_volume_label(ask, autochanger)) {
    case check_next_vol:
+      dev->set_unload();                 /* want a different Volume */
       goto mount_next_vol;
    case check_read_vol:
       goto read_volume;
