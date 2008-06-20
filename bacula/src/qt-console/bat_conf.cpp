@@ -79,7 +79,7 @@ int  res_all_size = sizeof(res_all);
 static RES_ITEM dir_items[] = {
    {"name",        store_name,     ITEM(dir_res.hdr.name), 0, ITEM_REQUIRED, 0},
    {"description", store_str,      ITEM(dir_res.hdr.desc), 0, 0, 0},
-   {"dirport",     store_int,      ITEM(dir_res.DIRport),  0, ITEM_DEFAULT, 9101},
+   {"dirport",     store_pint32,   ITEM(dir_res.DIRport),  0, ITEM_DEFAULT, 9101},
    {"address",     store_str,      ITEM(dir_res.address),  0, ITEM_REQUIRED, 0},
    {"password",    store_password, ITEM(dir_res.password), 0, 0, 0},
    {"tlsauthenticate",store_bool,    ITEM(dir_res.tls_authenticate), 0, 0, 0},
