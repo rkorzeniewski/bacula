@@ -4056,17 +4056,19 @@ sub display_group_stats
 
     my $filter = $self->get_client_group_filter();
 
+    my $jobt = $self->get_stat_table();
+
     my ($limit, $label) = $self->get_limit(%$arg);
     my ($where, undef) = $self->get_param('client_groups', 'level');
 
     my $query = "
-SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
+SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_err, nb_resto
   FROM (
 
     SELECT sum(JobBytes) AS nb_byte,
            sum(JobFiles) AS nb_file,
            count(1) AS nb_job, client_group_name 
-      FROM job_old JOIN client_group_member USING (ClientId) 
+      FROM $jobt AS Job JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id) $filter
      WHERE JobStatus = 'T' AND Type IN ('M', 'B', 'g') 
            $where $limit
@@ -4074,8 +4076,17 @@ SELECT client_group_name AS name, nb_byte, nb_file, nb_job, nb_resto
 
   ) AS T1 LEFT JOIN (
 
+    SELECT count(1) AS nb_err, client_group_name 
+      FROM $jobt AS Job JOIN client_group_member USING (ClientId) 
+      JOIN client_group USING (client_group_id)
+     WHERE JobStatus IN ('E','e','f','A') AND Type = 'B'
+           $where $limit
+    GROUP BY client_group_name ORDER BY client_group_name
+
+  ) AS T3 USING (client_group_name) LEFT JOIN (
+
     SELECT count(1) AS nb_resto, client_group_name 
-      FROM job_old JOIN client_group_member USING (ClientId) 
+      FROM $jobt AS Job JOIN client_group_member USING (ClientId) 
       JOIN client_group USING (client_group_id)
      WHERE JobStatus = 'T' AND Type = 'R'
            $where $limit

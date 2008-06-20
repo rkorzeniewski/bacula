@@ -65,6 +65,18 @@
     </select>
   </td>
 </tr>
+<TMPL_IF db_client_groups>
+<tr>
+  <td valign='top'>
+    <h2>__Groups__</h2>
+    <select name='client_group' size='10' class='formulaire' multiple>
+<TMPL_LOOP db_client_groups>
+        <option id= 'group_<TMPL_VAR name>'><TMPL_VAR name></option>
+</TMPL_LOOP>
+    </select>
+  </td>
+</tr>
+</TMPL_IF>
 <tr>
   <td> <h2> __Type__ </h2> 
  <select name='graph' class='formulaire'>
@@ -178,4 +190,7 @@
    document.getElementById('imggraph').src='bgraph.pl?<TMPL_VAR url>'
   </TMPL_IF>
 
+  <TMPL_LOOP qclient_groups>
+     document.getElementById('group_' + <TMPL_VAR name>).selected = true;
+  </TMPL_LOOP>
 </script>
