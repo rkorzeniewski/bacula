@@ -78,6 +78,7 @@ ADD_TEST(tape:verify-vol-tape "@regressdir@/tests/verify-vol-tape")
 ADD_TEST(changer:incremental-changer "@regressdir@/tests/incremental-changer")
 ADD_TEST(changer:two-pool-changer "@regressdir@/tests/two-pool-changer")
 ADD_TEST(changer:two-volume-changer "@regressdir@/tests/two-volume-changer")
+ADD_TEST(changer:two-vol-manual-tape "@regressdir@/tests/two-vol-manual-tape")
 ADD_TEST(changer:vol-duration-changer "@regressdir@/tests/vol-duration-changer")
 
 ADD_TEST(2drive-changer:2drive-incremental-changer "@regressdir@/tests/2drive-incremental-changer")

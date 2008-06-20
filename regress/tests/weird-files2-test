@@ -76,7 +76,7 @@ stop_bacula
 bin/testls weird-files2 >${cwd}/tmp/restored
 
 check_two_logs
-diff ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
+diff -u ${cwd}/tmp/original ${cwd}/tmp/restored 2>&1 >/dev/null
 #diff -u ${cwd}/tmp/original ${cwd}/tmp/restored
 dstat=$?
 
