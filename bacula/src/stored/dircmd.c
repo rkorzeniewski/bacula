@@ -97,7 +97,7 @@ static void send_dir_busy_message(BSOCK *dir, DEVICE *dev);
 struct s_cmds {
    const char *cmd;
    bool (*func)(JCR *jcr);
-   int monitoraccess; /* specify if monitors have access to this function */
+   bool monitoraccess;                      /* set if monitors can access this cmd */
 };
 
 /*
