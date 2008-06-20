@@ -28,7 +28,6 @@ bacula: all
 	@rm -f w.tar.gz w.tar
 	@rm -rf tmp working
 	mkdir tmp working
-	scripts/create_sed
 	echo "Doing: scripts/setup"
 	scripts/setup
 
