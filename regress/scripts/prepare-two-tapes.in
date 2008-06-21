@@ -30,7 +30,7 @@ if test x@autochanger@ != x/dev/null; then
    $SLOT2)
       slot=$SLOT2
       ;;
-   default)
+   *)
       bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
       slot=$SLOT1
@@ -48,7 +48,7 @@ if test x@autochanger@ != x/dev/null; then
    $SLOT2)
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
       ;;
-   default)
+   *)
       echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
       exit 1
    esac
