@@ -1,4 +1,3 @@
-<br/>
  <div class='titlediv'>
   <h1 class='newstitle'> Statistiques (<TMPL_VAR label>)</h1>
  </div>
@@ -9,18 +8,26 @@
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("Nom", "Nb Jobs", "Nb Bytes", "Nb Bytes", "Nb Fichiers", "Nb Resto");
+var header = new Array("Nom", "Nb Jobs", "Nb Err", "% Ok", ,  "Nb Resto", 
+                       "Nb Bytes", "Nb Bytes", "Nb Fichiers");
 
 var data = new Array();
 
 <TMPL_LOOP stats>
+
+var nb_job=<TMPL_IF nb_job><TMPL_VAR nb_job><TMPL_ELSE>0</TMPL_IF>;
+var nb_err=<TMPL_IF nb_err><TMPL_VAR nb_err><TMPL_ELSE>0</TMPL_IF>;
+var t_ok = (nb_job - nb_err)/(nb_job + 0.0001)*100;
+
 data.push( 
   new Array( "<TMPL_VAR name>", 
-	     "<TMPL_VAR nb_job>",
+	     nb_job,
+             nb_err,
+             t_ok.toFixed(2),
+	     "<TMPL_VAR nb_resto>",
 	     human_size(<TMPL_VAR nb_byte>),
 	     <TMPL_VAR nb_byte>,
-	     "<TMPL_VAR nb_file>",
-	     "<TMPL_VAR nb_resto>"
+	     "<TMPL_VAR nb_file>"
              )
 ) ; 
 </TMPL_LOOP>

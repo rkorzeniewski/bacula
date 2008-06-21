@@ -8,7 +8,7 @@
  </div>
 
 <script type="text/javascript" language="JavaScript">
-var header = new Array("__Name__", "__Nb Jobs__", "__Nb Err__", "__Ok Rate__", ,  "__Nb Resto__", 
+var header = new Array("__Name__", "__Nb Jobs__", "__Nb Err__", "__% Ok__", ,  "__Nb Resto__", 
                        "__Nb Bytes__", "__Nb Bytes__", "__Nb Files__");
 
 var data = new Array();
@@ -17,7 +17,7 @@ var data = new Array();
 
 var nb_job=<TMPL_IF nb_job><TMPL_VAR nb_job><TMPL_ELSE>0</TMPL_IF>;
 var nb_err=<TMPL_IF nb_err><TMPL_VAR nb_err><TMPL_ELSE>0</TMPL_IF>;
-var t_ok = (nb_job - nb_err)/(nb_job + 0.0001);
+var t_ok = (nb_job - nb_err)/(nb_job + 0.0001)*100;
 
 data.push( 
   new Array( "<TMPL_VAR name>", 
