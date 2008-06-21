@@ -58,9 +58,8 @@ StorStat::StorStat(QString &storage, QTreeWidgetItem *parentTreeWidgetItem)
 {
    m_storage = storage;
    setupUi(this);
-   m_name = tr("Storage Status %1").arg(m_storage);
    m_closeable = true;
-   pgInitialize(parentTreeWidgetItem);
+   pgInitialize(tr("Storage Status %1").arg(m_storage), parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
    m_cursor = new QTextCursor(textEditHeader->document());
@@ -259,11 +258,12 @@ void StorStat::populateTerminated()
             p_tableitem->setFlags(0);
             if (flaglist[column].contains("R"))
                p_tableitem->setTextAlignment(Qt::AlignRight);
-            if (flaglist[column].contains("C"))
+            if (flaglist[column].contains("C")) {
                if (field == "OK")
                   p_tableitem->setBackground(Qt::green);
                else
                   p_tableitem->setBackground(Qt::red);
+	    }
             terminatedTable->setItem(row, column, p_tableitem);
             column += 1;
          }

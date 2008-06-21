@@ -25,7 +25,7 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
- 
+
 /*
  *   Version $Id$
  *
@@ -33,12 +33,13 @@
  *
  *   Riccardo Ghetta, May 2008
  *
- */ 
+ */
 
 #include <QComboBox>
 #include <QString>
 #include <QStringList>
 #include "bat.h"
+#include "fmtwidgetitem.h"
 #include "comboutil.h"
 
 static const QString QS_ANY(QObject::tr("Any"));
@@ -94,7 +95,7 @@ void levelComboFill(QComboBox *combo)
    combo->addItem(job_level_to_str(L_VERIFY_VOLUME_TO_CATALOG), L_VERIFY_VOLUME_TO_CATALOG);
    combo->addItem(job_level_to_str(L_VERIFY_DISK_TO_CATALOG), L_VERIFY_DISK_TO_CATALOG);
    combo->addItem(job_level_to_str(L_VERIFY_DATA), L_VERIFY_DATA);
-   /* combo->addItem(job_level_to_str(L_BASE), L_BASE);  base jobs ignored */ 
+   /* combo->addItem(job_level_to_str(L_BASE), L_BASE);  base jobs ignored */
 }
 
 void levelComboCond(QStringList &cndlist, const QComboBox *combo, const char *fldname)
@@ -106,3 +107,48 @@ void levelComboCond(QStringList &cndlist, const QComboBox *combo, const char *fl
    }
 }
 
+/* job status combo */
+void jobStatusComboFill(QComboBox *combo)
+{
+   static const char js[] = {
+		      JS_Terminated,
+                      JS_Created,
+		      JS_Running,
+		      JS_Blocked,
+		      JS_ErrorTerminated,
+		      JS_Error,
+		      JS_FatalError,
+		      JS_Differences,
+		      JS_Canceled,
+		      JS_WaitFD,
+		      JS_WaitSD,
+		      JS_WaitMedia,
+		      JS_WaitMount,
+		      JS_WaitStoreRes,
+		      JS_WaitJobRes,
+		      JS_WaitClientRes,
+		      JS_WaitMaxJobs,
+		      JS_WaitStartTime,
+		      JS_WaitPriority,
+		      JS_AttrDespooling,
+		      JS_AttrInserting,
+		      JS_DataDespooling,
+		      JS_DataCommitting,
+		      '\0'};
+
+   int pos;
+
+   combo->addItem(QS_ANY);
+   for (pos = 0 ; js[pos] != '\0' ; ++pos) {
+     combo->addItem(convertJobStatus( QString(js[pos]) ), js[pos]);
+   }
+}
+
+void jobStatusComboCond(QStringList &cndlist, const QComboBox *combo, const char *fldname)
+{
+   int index = combo->currentIndex();
+   if (index != -1 && combo->itemText(index) != QS_ANY ) {
+      QString cnd = combo->itemData(index).toChar();
+      cndlist.append( QString("%1='%2'").arg(fldname).arg(cnd) );
+   }
+}

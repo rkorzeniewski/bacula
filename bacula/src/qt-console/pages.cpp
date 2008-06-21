@@ -50,7 +50,6 @@ bool isWin32Path(QString &fullPath)
    return toret;
 }
 
-
 /*
  * dockPage
  * This function is intended to be called from within the Pages class to pull
@@ -187,11 +186,19 @@ void Pages::closeStackPage()
  */
 void Pages::pgInitialize()
 {
-   pgInitialize(NULL);
+   pgInitialize(QString(), NULL);
 }
 
-void Pages::pgInitialize(QTreeWidgetItem *parentTreeWidgetItem)
+void Pages::pgInitialize(const QString &name)
 {
+   pgInitialize(name, NULL);
+}
+
+void Pages::pgInitialize(const QString &tname, QTreeWidgetItem *parentTreeWidgetItem)
+{
+   if (tname.size()) {
+      m_name = tname;
+   }
    m_parent = mainWin->stackedWidget;
    m_console = mainWin->currentConsole();
 

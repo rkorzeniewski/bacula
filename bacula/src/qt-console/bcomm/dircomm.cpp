@@ -337,12 +337,19 @@ void DirComm::beginNewCommand()
 void DirComm::displayToPrompt()
 { 
    int stat = 0;
+   QString buf;
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-         m_console->display_text(msg());
+	buf += msg();
+	if (buf.size() >= 8196 || m_messages_pending) {
+	   m_console->display_text(buf);
+	   buf.clear();
+	   m_messages_pending = false;
+	}
       }
    }
+   m_console->display_text(buf);
    if (mainWin->m_commDebug) Pmsg1(000, "endDisplaytoPrompt=%d\n", stat);
 }
 

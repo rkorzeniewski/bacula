@@ -42,8 +42,26 @@
 #include <QString>
 #include <QStringList>
 #include <math.h>
-#include "bacula.h"
+#include "bat.h"
 #include "fmtwidgetitem.h"
+
+/***********************************************
+ *
+ * common helpers
+ *
+ ***********************************************/
+
+QString convertJobStatus(const QString &sts)
+{
+   QString code( sts.trimmed() );
+   if ( code.size() != 1) {
+      return QObject::tr("Invalid job status %1").arg(sts);
+   }
+
+   char buf[256];
+   jobstatus_to_ascii_gui( code[0].toAscii(), buf, sizeof(buf));
+   return QString(buf);
+}
 
 /***********************************************
  *
@@ -263,28 +281,30 @@ void ItemFormatterBase::setDurationFld(int index, const QString &fld)
 
 void ItemFormatterBase::setVolStatusFld(int index, const QString &fld, bool center)
 {
-   setTextFld(index, fld, center);
+  QString mp(fld.trimmed());
+   setTextFld(index, volume_status_to_str(mp.toUtf8()), center);
 
-   if (fld == "Append" ) {
+   if (mp == "Append" ) {
       setBackground(index, Qt::green);
-   } else if (fld == "Error") {
+   } else if (mp == "Error") {
       setBackground(index, Qt::red);
-   } else if (fld == "Used" || fld == "Full"){
+   } else if (mp == "Used" || mp == "Full"){
       setBackground(index, Qt::yellow);
+   } else if (mp == "Read-only" || mp == "Disabled"){
+      setBackground(index, Qt::lightGray);
    }
 }
 
-void ItemFormatterBase::setJobStatusFld(int index, const QString &shortstatus, 
-					const QString &longstatus, bool center)
+void ItemFormatterBase::setJobStatusFld(int index, const QString &status, bool center)
 {
    /* C (created, not yet running) uses the default background */
    static QString greenchars("TR");
    static QString redchars("BEf");
    static QString yellowchars("eDAFSMmsjdctp");
 
-   setTextFld(index, longstatus, center);
+   setTextFld(index, convertJobStatus(status), center);
 
-   QString st(shortstatus.trimmed());
+   QString st(status.trimmed());
    if (greenchars.contains(st, Qt::CaseSensitive)) {
       setBackground(index, Qt::green);
    } else if (redchars.contains(st, Qt::CaseSensitive)) {

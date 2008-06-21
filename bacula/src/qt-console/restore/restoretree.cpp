@@ -360,12 +360,13 @@ void restoreTree::parseDirectory(QString &dir_in)
    }
 
    for (int k=0; k<pathAfter.count(); k++) {
-      if (addDirectory(pathAfter[k], dirAfter[k]))
+      if (addDirectory(pathAfter[k], dirAfter[k])) {
          if ((mainWin->m_miscDebug) && (m_debugTrap))
             Pmsg2(000, "Adding After %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
-      else
+      } else {
          if ((mainWin->m_miscDebug) && (m_debugTrap))
             Pmsg2(000, "Error Adding %s %s\n", pathAfter[k].toUtf8().data(), dirAfter[k].toUtf8().data());
+      }
    }
 }
 
@@ -1122,7 +1123,7 @@ void restoreTree::versionTableItemChanged(QTableWidgetItem *item)
       m_versionExceptionHash.remove(fullPath);
    } else if (prevState != curState) {
       if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "  THE STATE OF THE version Check has changed, Setting StateList[%i] to %i\n", row, curState);
-      if ((curState == Qt::Checked) || (curState == Qt::PartiallyChecked) && (row != 0)) {
+      if ((curState == Qt::Checked) || (curState == Qt::PartiallyChecked && row != 0)) {
          if (mainWin->m_rtVerTabICDebug) Pmsg2(000, "Inserting into m_versionExceptionHash %s, %i\n", fullPath.toUtf8().data(), thisJobNum);
          m_versionExceptionHash.insert(fullPath, thisJobNum);
          if (fileState != Qt::Checked) {

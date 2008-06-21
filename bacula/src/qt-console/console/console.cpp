@@ -590,9 +590,10 @@ void Console::displayToPrompt()
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
 	buf += msg();
-	if (buf.size() >= 8196) {
+	if (buf.size() >= 8196 || m_messages_pending) {
 	   display_text(buf);
 	   buf.clear();
+	   m_messages_pending = false;
 	}
       }
    }
