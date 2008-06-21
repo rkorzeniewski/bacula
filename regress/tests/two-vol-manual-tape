@@ -14,12 +14,16 @@ require_autochanger
 scripts/cleanup
 scripts/copy-tape-confs
 echo "${cwd}/build" >${cwd}/tmp/file-list
+MTX=$AUTOCHANGER_SCRIPT
+
+init_slot $TAPE_DRIVE $SLOT1
+init_slot $TAPE_DRIVE $SLOT2
 
 # Get a tape in the drive either from slot 1 or slot 2
-slot=`bin/mtx-changer ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
+slot=`bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
 case $slot in
  0)
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=$SLOT1
     ;;
  $SLOT1)
@@ -28,16 +32,14 @@ case $slot in
  $SLOT2)
     slot=$SLOT2
     ;;
- default)
-    mt -f ${TAPE_DRIVE} rewind                
-    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+ *)
+    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=$SLOT1
     ;;
 esac
-mt -f ${TAPE_DRIVE} rewind
-mt -f ${TAPE_DRIVE} weof
 
+init_drive ${TAPE_DRIVE}
 
 change_jobname $JobName
 start_test
@@ -72,23 +74,21 @@ END_OF_DATA
 run_bacula
 
 # load the other slot
-mt -f ${TAPE_DRIVE} rewind
 case $slot in
  $SLOT1)
-    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} load   $SLOT2 ${TAPE_DRIVE} $DRIVE1
     ;;
  $SLOT2)
-    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
     ;;
- default)
+ *)
     echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
     exit 1
 esac
 
-mt -f ${TAPE_DRIVE} rewind
-mt -f ${TAPE_DRIVE} weof
+init_drive ${TAPE_DRIVE}
 
 # second half of job -- write on next tape
 cat <<END_OF_DATA >tmp/bconcmds
