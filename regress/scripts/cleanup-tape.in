@@ -19,7 +19,7 @@ if test x@autochanger@ != x/dev/null; then
       ;;
    $SLOT1)
       ;;
-   default)
+   *)
       bin/@changer_script@ @autochanger@ unload $slot @tape_drive@ $DRIVE1
       bin/@changer_script@ @autochanger@ load $SLOT1 @tape_drive@ $DRIVE1
       ;;
