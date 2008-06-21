@@ -43,9 +43,8 @@ ClientStat::ClientStat(QString &client, QTreeWidgetItem *parentTreeWidgetItem)
 {
    m_client = client;
    setupUi(this);
-   m_name = tr("Client Status %1").arg(m_client);
    m_closeable = true;
-   pgInitialize(parentTreeWidgetItem);
+   pgInitialize(tr("Client Status %1").arg(m_client), parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/status.png")));
    m_cursor = new QTextCursor(textEditHeader->document());
@@ -166,11 +165,12 @@ void ClientStat::populateTerminated()
             p_tableitem->setFlags(0);
             if (flaglist[column].contains("R"))
                p_tableitem->setTextAlignment(Qt::AlignRight);
-            if (flaglist[column].contains("C"))
+            if (flaglist[column].contains("C")) {
                if (field == "OK")
                   p_tableitem->setBackground(Qt::green);
                else
-                  p_tableitem->setBackground(Qt::red);
+		 p_tableitem->setBackground(Qt::red);
+	    }
             terminatedTable->setItem(results.size() - row - 1, column, p_tableitem);
             column += 1;
          }

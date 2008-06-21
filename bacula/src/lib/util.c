@@ -256,6 +256,53 @@ void jobstatus_to_ascii(int JobStatus, char *msg, int maxlen)
 }
 
 /*
+ * Convert a JobStatus code into a human readable form - gui version
+ */
+void jobstatus_to_ascii_gui(int JobStatus, char *msg, int maxlen)
+{
+   const char *cnv = NULL;
+   switch (JobStatus) {
+   case JS_Terminated:
+      cnv = _("Completed successfully");
+      break;
+   case JS_ErrorTerminated:
+      cnv = _("Terminated with errors");
+      break;
+   case JS_FatalError:
+      cnv = _("Fatal error");
+      break;
+   case JS_Created:
+      cnv = _("Created, not yet running");
+      break;
+   case JS_Canceled:
+      cnv = _("Canceled by user");
+      break;
+   case JS_Differences:
+      cnv = _("Verify found differences");
+      break;
+   case JS_WaitFD:
+      cnv = _("Waiting for File daemon");
+      break;
+   case JS_WaitSD:
+      cnv = _("Waiting for Storage daemon");
+      break;
+   case JS_WaitPriority:
+      cnv = _("Waiting for higher priority jobs");
+      break;
+   case JS_AttrInserting:
+      cnv = _("Batch inserting file records");
+      break;
+   };
+
+   if (cnv) {
+      bstrncpy(msg, cnv, maxlen);
+   } else {
+     jobstatus_to_ascii( JobStatus, msg, maxlen);
+   }
+}
+
+
+/*
  * Convert Job Termination Status into a string
  */
 const char *job_status_to_str(int stat)
@@ -374,6 +421,32 @@ const char *job_level_to_str(int level)
       break;
    }
    return str;
+}
+
+const char *volume_status_to_str(const char *status)
+{
+   int pos;
+   const char *vs[] = {
+      NT_("Append"),    _("Append"),
+      NT_("Archive"),   _("Archive"),
+      NT_("Disabled"),  _("Disabled"),
+      NT_("Full"),      _("Full"),
+      NT_("Used"),      _("Used"),
+      NT_("Cleaning"),  _("Cleaning"),
+      NT_("Recycle"),   _("Recycle"),
+      NT_("Read-Only"), _("Read-Only"),
+      NT_("Error"),     _("Error"),
+      NULL,             NULL};
+
+   if (status) {
+     for (pos = 0 ; vs[pos] ; pos += 2) {
+       if ( !strcmp(vs[pos],status) ) {
+	 return vs[pos+1];
+       }
+     }
+   }
+
+   return _("Invalid volume status");
 }
 
 

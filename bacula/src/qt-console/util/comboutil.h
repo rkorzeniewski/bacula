@@ -59,4 +59,8 @@ void boolComboCond(QStringList &cndlist, const QComboBox *combo, const char *fld
 void levelComboFill(QComboBox *combo);
 void levelComboCond(QStringList &cndlist, const QComboBox *combo, const char *fldname);
 
+/* job status combo */
+void jobStatusComboFill(QComboBox *combo);
+void jobStatusComboCond(QStringList &cndlist, const QComboBox *combo, const char *fldname);
+
 #endif /* _COMBOUTIL_H_ */

@@ -66,7 +66,7 @@ private:
    void createContextMenu();
    void mediaList(QTreeWidgetItem *parent, const QString &storageID);
    QString m_currentStorage;
-   int m_currentAutoChanger;
+   bool m_currentAutoChanger;
    bool m_populated;
    bool m_checkcurwidget;
    void writeExpandedSettings();

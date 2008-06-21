@@ -77,8 +77,7 @@ JobPlotControls::JobPlotControls()
 JobPlot::JobPlot(QTreeWidgetItem *parentTreeWidgetItem, JobPlotPass &passVals)
 {
    setupUserInterface();
-   m_name = tr("JobPlot");
-   pgInitialize(parentTreeWidgetItem);
+   pgInitialize(tr("JobPlot"), parentTreeWidgetItem);
    readSplitterSettings();
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/applications-graphics.png")));

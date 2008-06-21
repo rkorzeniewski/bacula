@@ -41,9 +41,8 @@
 JobLog::JobLog(QString &jobId, QTreeWidgetItem *parentTreeWidgetItem)
 {
    setupUi(this);
-   m_name = tr("JobLog");
    m_closeable = true;
-   pgInitialize(parentTreeWidgetItem);
+   pgInitialize(tr("JobLog"), parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/joblog.png")));
    m_cursor = new QTextCursor(textEdit->document());

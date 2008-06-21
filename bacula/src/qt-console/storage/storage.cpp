@@ -47,8 +47,7 @@
 Storage::Storage()
 {
    setupUi(this);
-   m_name = tr("Storage");
-   pgInitialize();
+   pgInitialize(tr("Storage"));
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/package-x-generic.png")));
 
@@ -245,7 +244,7 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          /* set a hold variable to the storage name in case the context sensitive
           * menu is used */
          m_currentStorage = currentwidgetitem->text(0);
-         m_currentAutoChanger = currentwidgetitem->text(2).toInt();
+         m_currentAutoChanger = currentwidgetitem->text(2) == tr("Yes");
          mp_treeWidget->addAction(actionStatusStorageInConsole);
          mp_treeWidget->addAction(actionStatusStorageWindow);
          mp_treeWidget->addAction(actionLabelStorage);
@@ -253,24 +252,23 @@ void Storage::treeItemChanged(QTreeWidgetItem *currentwidgetitem, QTreeWidgetIte
          mp_treeWidget->addAction(actionUnMountStorage);
          mp_treeWidget->addAction(actionRelease);
          QString text;
-         text = "Status Storage \"" + m_currentStorage + "\"";
+         text = tr("Status Storage \"%1\"").arg(m_currentStorage);;
          actionStatusStorageInConsole->setText(text);
-         text = "Status Storage \"" + m_currentStorage + "\" in Window";
+         text = tr("Status Storage \"%1\" in Window").arg(m_currentStorage);;
          actionStatusStorageWindow->setText(text);
-         text = "Label media in Storage \"" + m_currentStorage + "\"";
+         text = tr("Label media in Storage \"%1\"").arg(m_currentStorage);
          actionLabelStorage->setText(text);
-         text = "Mount media in Storage \"" + m_currentStorage + "\"";
+         text = tr("Mount media in Storage \"%1\"").arg(m_currentStorage);
          actionMountStorage->setText(text);
-         text = "\"UN\" Mount media in Storage \"" + m_currentStorage + "\"";
-         actionUnMountStorage->setText(text);
-         text = "Release media in Storage \"" + m_currentStorage + "\"";
+         text = tr("\"UN\" Mount media in Storage \"%1\"").arg(m_currentStorage);
+         text = tr("Release media in Storage \"%1\"").arg(m_currentStorage);
          actionRelease->setText(text);
-         if (m_currentAutoChanger != 0) {
+         if (m_currentAutoChanger) {
             mp_treeWidget->addAction(actionUpdateSlots);
             mp_treeWidget->addAction(actionUpdateSlotsScan);
-            text = "Barcode Scan media in Storage \"" + m_currentStorage + "\"";
+            text = tr("Barcode Scan media in Storage \"%1\"").arg(m_currentStorage);
             actionUpdateSlots->setText(text);
-            text = "Mount and read scan media in Storage \"" + m_currentStorage + "\"";
+            text = tr("Read scan media in Storage \"%1\"").arg( m_currentStorage);
             actionUpdateSlotsScan->setText(text);
          }
       }

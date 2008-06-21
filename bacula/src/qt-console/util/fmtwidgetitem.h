@@ -39,6 +39,14 @@ class QTableWidgetItem;
 class QString;
 class QBrush;
 
+
+/*
+ * common conversion routines
+ *
+ */
+QString convertJobStatus(const QString &sts);
+
+
 /*
  * base class for formatters
  *
@@ -79,8 +87,7 @@ public:
    void setVolStatusFld(int index, const QString &fld, bool center = true);
   
    /* fld value interpreted as job status. Colored accordingly */
-   void setJobStatusFld(int index, const QString &shortStatus, const QString &longstatus, 
-			bool center = true);
+   void setJobStatusFld(int index, const QString &status, bool center = true);
   
    /* fld value interpreted as job type. */
    void setJobTypeFld(int index, const QString &fld, bool center = false);

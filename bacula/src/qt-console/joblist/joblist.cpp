@@ -56,7 +56,7 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
    m_jobName = jobName;
    m_filesetName = filesetName;
    m_filesetName = filesetName;
-   pgInitialize(parentTreeWidgetItem);
+   pgInitialize("", parentTreeWidgetItem);
    QTreeWidgetItem* thisitem = mainWin->getFromHash(this);
    thisitem->setIcon(0,QIcon(QString::fromUtf8(":images/emblem-system.png")));
 
@@ -192,9 +192,7 @@ void JobList::populateTable()
          jobitem.setBytesFld(col++, fld.next());
 
 	 /* job status */
-	 QString shortstatus(fld.next());
-	 QString longstatus(fld.next());
-         jobitem.setJobStatusFld(col++, shortstatus, longstatus);
+         jobitem.setJobStatusFld(col++, fld.next());
 
 	 /* purged */
 	 jobitem.setBoolFld(col++, fld.next());
@@ -247,10 +245,7 @@ void JobList::prepareFilterWidgets()
       fileSetComboBox->addItems(m_console->fileset_list);
       comboSel(fileSetComboBox, m_filesetName);
 
-      QStringList statusLongList;
-      m_console->getStatusList(statusLongList);
-      statusComboBox->addItem(tr("Any"));
-      statusComboBox->addItems(statusLongList);
+      jobStatusComboFill(statusComboBox);
    }
 }
 
@@ -266,12 +261,10 @@ void JobList::fillQueryString(QString &query)
             " Client.Name AS Client,"
             " Job.Starttime AS JobStart, Job.Type AS JobType,"
             " Job.Level AS BackupLevel, Job.Jobfiles AS FileCount,"
-            " Job.JobBytes AS Bytes,"
-            " Job.JobStatus AS Status, Status.JobStatusLong AS StatusLong,"
+            " Job.JobBytes AS Bytes, Job.JobStatus AS Status,"
             " Job.PurgedFiles AS Purged, FileSet.FileSet"
             " FROM Job"
             " JOIN Client ON (Client.ClientId=Job.ClientId)"
-            " JOIN Status ON (Job.JobStatus=Status.JobStatus)"
             " LEFT OUTER JOIN FileSet ON (FileSet.FileSetId=Job.FileSetId) ";
    QStringList conditions;
    if (m_mediaName != tr("Any")) {
@@ -283,7 +276,7 @@ void JobList::fillQueryString(QString &query)
    comboCond(conditions, clientComboBox, "Client.Name");
    comboCond(conditions, jobComboBox, "Job.Name");
    levelComboCond(conditions, levelComboBox, "Job.Level");
-   comboCond(conditions, statusComboBox, "Status.JobStatusLong");
+   jobStatusComboCond(conditions, statusComboBox, "Job.JobStatus");
    boolComboCond(conditions, purgedComboBox, "Job.PurgedFiles");
    comboCond(conditions, fileSetComboBox, "FileSet.FileSet");
 

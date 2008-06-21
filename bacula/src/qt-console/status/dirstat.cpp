@@ -166,11 +166,12 @@ void DirStat::populateTerminated()
             p_tableitem->setFlags(0);
             if (flaglist[column].contains("R"))
                p_tableitem->setTextAlignment(Qt::AlignRight);
-            if (flaglist[column].contains("C"))
+            if (flaglist[column].contains("C")) {
                if (field == "OK")
                   p_tableitem->setBackground(Qt::green);
                else
                   p_tableitem->setBackground(Qt::red);
+	    }
             terminatedTable->setItem(results.size() - row - 1, column, p_tableitem);
             column += 1;
          }

@@ -79,7 +79,8 @@ public slots:
 
 protected:
    void pgInitialize();
-   void pgInitialize(QTreeWidgetItem *);
+   void pgInitialize(const QString &);
+   void pgInitialize(const QString &, QTreeWidgetItem *);
    virtual void treeWidgetName(QString &);
    virtual void changeEvent(QEvent *event);
    void setConsoleCurrent();
