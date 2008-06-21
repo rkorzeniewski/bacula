@@ -45,9 +45,12 @@ fi
 
 stop_bacula
 
-export dstat=0
-export bstat=$error
-export rstat=0
+dstat=0
+bstat=$error
+rstat=0
+export dstat
+export bstat
+export rstat
 
 end_test
 
