@@ -56,6 +56,7 @@ extern "C" void *sched_wait(void *arg);
 
 static int  start_server(jobq_t *jq);
 static bool acquire_resources(JCR *jcr);
+static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je);
 static void dec_read_store(JCR *jcr);
 static void dec_write_store(JCR *jcr);
 
@@ -484,74 +485,10 @@ void *jobq_server(void *arg)
             jcr->acquired_resource_locks = false;
          }
 
-         /*
-          * Reschedule the job if necessary and requested
-          */
-         if (jcr->job->RescheduleOnError &&
-             jcr->JobStatus != JS_Terminated &&
-             jcr->JobStatus != JS_Canceled &&
-             jcr->JobType == JT_BACKUP &&
-             (jcr->job->RescheduleTimes == 0 ||
-              jcr->reschedule_count < jcr->job->RescheduleTimes)) {
-             char dt[50], dt2[50];
-
-             /*
-              * Reschedule this job by cleaning it up, but
-              *  reuse the same JobId if possible.
-              */
-            time_t now = time(NULL);
-            jcr->reschedule_count++;
-            jcr->sched_time = now + jcr->job->RescheduleInterval;
-            bstrftime(dt, sizeof(dt), now);
-            bstrftime(dt2, sizeof(dt2), jcr->sched_time);
-            Dmsg4(2300, "Rescheduled Job %s to re-run in %d seconds.(now=%u,then=%u)\n", jcr->Job,
-                  (int)jcr->job->RescheduleInterval, now, jcr->sched_time);
-            Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds (%s).\n"),
-                 jcr->Job, dt, (int)jcr->job->RescheduleInterval, dt2);
-            dird_free_jcr_pointers(jcr);     /* partial cleanup old stuff */
-            jcr->JobStatus = -1;
-            set_jcr_job_status(jcr, JS_WaitStartTime);
-            jcr->SDJobStatus = 0;
-            if (jcr->JobBytes == 0) {
-               Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
-               V(jq->mutex);
-               jobq_add(jq, jcr);     /* queue the job to run again */
-               P(jq->mutex);
-               free_jcr(jcr);         /* release jcr */
-               free(je);              /* free the job entry */
-               continue;              /* look for another job to run */
-            }
-            /*
-             * Something was actually backed up, so we cannot reuse
-             *   the old JobId or there will be database record
-             *   conflicts.  We now create a new job, copying the
-             *   appropriate fields.
-             */           
-            JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
-            set_jcr_defaults(njcr, jcr->job);
-            njcr->reschedule_count = jcr->reschedule_count;
-            njcr->sched_time = jcr->sched_time;
-            njcr->JobLevel = jcr->JobLevel;
-            njcr->JobStatus = -1;
-            set_jcr_job_status(njcr, jcr->JobStatus);
-            if (jcr->rstore) {
-               copy_rstorage(njcr, jcr->rstorage, _("previous Job"));
-            } else {
-               free_rstorage(njcr);
-            }
-            if (jcr->wstore) {
-               copy_wstorage(njcr, jcr->wstorage, _("previous Job"));
-            } else {
-               free_wstorage(njcr);
-            }
-            njcr->messages = jcr->messages;
-            Dmsg0(2300, "Call to run new job\n");
-            V(jq->mutex);
-            run_job(njcr);            /* This creates a "new" job */
-            free_jcr(njcr);           /* release "new" jcr */
-            P(jq->mutex);
-            Dmsg0(2300, "Back from running new job.\n");
+         if (reschedule_job(jcr, jq, je)) {
+            continue;              /* go look for more work */
          }
+
          /* Clean up and release old jcr */
          Dmsg2(2300, "====== Termination job=%d use_cnt=%d\n", jcr->JobId, jcr->use_count());
          jcr->SDJobStatus = 0;
@@ -662,6 +599,94 @@ void *jobq_server(void *arg)
    V(jq->mutex);
    Dmsg0(2300, "End jobq_server\n");
    return NULL;
+}
+
+/*
+ * Returns true if cleanup done and we should look for more work
+ */
+static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
+{
+   /*
+    * Reschedule the job if necessary and requested
+    */
+   if (jcr->job->RescheduleOnError &&
+       jcr->JobStatus != JS_Terminated &&
+       jcr->JobStatus != JS_Canceled &&
+       jcr->JobType == JT_BACKUP &&
+       (jcr->job->RescheduleTimes == 0 ||
+        jcr->reschedule_count < jcr->job->RescheduleTimes)) {
+       char dt[50], dt2[50];
+
+       /*
+        * Reschedule this job by cleaning it up, but
+        *  reuse the same JobId if possible.
+        */
+      time_t now = time(NULL);
+      jcr->reschedule_count++;
+      jcr->sched_time = now + jcr->job->RescheduleInterval;
+      bstrftime(dt, sizeof(dt), now);
+      bstrftime(dt2, sizeof(dt2), jcr->sched_time);
+      Dmsg4(2300, "Rescheduled Job %s to re-run in %d seconds.(now=%u,then=%u)\n", jcr->Job,
+            (int)jcr->job->RescheduleInterval, now, jcr->sched_time);
+      Jmsg(jcr, M_INFO, 0, _("Rescheduled Job %s at %s to re-run in %d seconds (%s).\n"),
+           jcr->Job, dt, (int)jcr->job->RescheduleInterval, dt2);
+      dird_free_jcr_pointers(jcr);     /* partial cleanup old stuff */
+      jcr->JobStatus = -1;
+      set_jcr_job_status(jcr, JS_WaitStartTime);
+      jcr->SDJobStatus = 0;
+      if (!allow_duplicate_job(jcr)) {
+         return false;
+      }
+      if (jcr->JobBytes == 0) {
+         Dmsg2(2300, "Requeue job=%d use=%d\n", jcr->JobId, jcr->use_count());
+         V(jq->mutex);
+         jobq_add(jq, jcr);     /* queue the job to run again */
+         P(jq->mutex);
+         free_jcr(jcr);         /* release jcr */
+         free(je);              /* free the job entry */
+         return true;           /* we already cleaned up */
+      }
+      /*
+       * Something was actually backed up, so we cannot reuse
+       *   the old JobId or there will be database record
+       *   conflicts.  We now create a new job, copying the
+       *   appropriate fields.
+       */           
+      JCR *njcr = new_jcr(sizeof(JCR), dird_free_jcr);
+      set_jcr_defaults(njcr, jcr->job);
+      njcr->reschedule_count = jcr->reschedule_count;
+      njcr->sched_time = jcr->sched_time;
+      njcr->JobLevel = jcr->JobLevel;
+      njcr->pool = jcr->pool;
+      njcr->run_pool_override = jcr->run_pool_override;
+      njcr->full_pool = jcr->full_pool;
+      njcr->run_full_pool_override = jcr->run_full_pool_override;
+      njcr->inc_pool = jcr->inc_pool;
+      njcr->run_inc_pool_override = jcr->run_inc_pool_override;
+      njcr->diff_pool = jcr->diff_pool;
+      njcr->JobStatus = -1;
+      set_jcr_job_status(njcr, jcr->JobStatus);
+      if (jcr->rstore) {
+         copy_rstorage(njcr, jcr->rstorage, _("previous Job"));
+      } else {
+         free_rstorage(njcr);
+      }
+      if (jcr->wstore) {
+         copy_wstorage(njcr, jcr->wstorage, _("previous Job"));
+      } else {
+         free_wstorage(njcr);
+      }
+      njcr->messages = jcr->messages;
+      njcr->spool_data = jcr->spool_data;
+      njcr->write_part_after_job = jcr->write_part_after_job;
+      Dmsg0(2300, "Call to run new job\n");
+      V(jq->mutex);
+      run_job(njcr);            /* This creates a "new" job */
+      free_jcr(njcr);           /* release "new" jcr */
+      P(jq->mutex);
+      Dmsg0(2300, "Back from running new job.\n");
+   }
+   return false;
 }
 
 /*

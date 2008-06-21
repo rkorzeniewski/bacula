@@ -645,6 +645,7 @@ bool allow_duplicate_job(JCR *jcr)
    }
    if (!job->AllowHigherDuplicates) {
       foreach_jcr(djcr) {
+         char ec1[50];
          if (strcmp(job->name(), djcr->job->name()) == 0) {
             bool cancel_queued = false;
             if (job->DuplicateJobProximity > 0) {
@@ -656,7 +657,8 @@ bool allow_duplicate_job(JCR *jcr)
             /* Cancel */
             if (!(job->CancelQueuedDuplicates || job->CancelRunningDuplicates)) {
                /* Zap current job */
-               Jmsg(jcr, M_FATAL, 0, _("Duplicate job not allowed.\n"));
+               Jmsg(jcr, M_FATAL, 0, _("Duplicate job not allowed. JobId=%s\n"),
+                  edit_uint64(djcr->JobId, ec1));
                return false;
             }
             /* If CancelQueuedDuplicates is set do so only if job is queued */
@@ -677,7 +679,6 @@ bool allow_duplicate_job(JCR *jcr)
             }
             if (cancel_queued || job->CancelRunningDuplicates) {
                UAContext *ua = new_ua_context(djcr);
-               char ec1[50];
                Jmsg(jcr, M_INFO, 0, _("Cancelling duplicate JobId=%s.\n"), 
                   edit_uint64(djcr->JobId, ec1));
                ua->jcr = djcr;
