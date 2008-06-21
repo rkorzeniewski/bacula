@@ -2,6 +2,7 @@
 #
 # Cleanup left over files -- both before and after test run
 #
+. scripts/functions
 scripts/cleanup
 
 if test x@autochanger@ != x/dev/null; then
