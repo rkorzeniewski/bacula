@@ -11,33 +11,9 @@ JobName=twovolmanualtape
 require_tape_drive
 require_autochanger
 
-scripts/cleanup
+scripts/cleanup-tape
 scripts/copy-tape-confs
 echo "${cwd}/build" >${cwd}/tmp/file-list
-
-# Get a tape in the drive either from slot 1 or slot 2
-slot=`bin/mtx-changer ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
-case $slot in
- 0)
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-    slot=$SLOT1
-    ;;
- $SLOT1)
-    slot=$SLOT1
-    ;;
- $SLOT2)
-    slot=$SLOT2
-    ;;
- default)
-    mt -f ${TAPE_DRIVE} rewind                
-    bin/mtx-changer ${AUTOCHANGER} unload $slot ${TAPE_DRIVE} $DRIVE1
-    bin/mtx-changer ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-    slot=$SLOT1
-    ;;
-esac
-mt -f ${TAPE_DRIVE} rewind
-mt -f ${TAPE_DRIVE} weof
-
 
 change_jobname $JobName
 start_test
