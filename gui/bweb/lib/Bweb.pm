@@ -3750,7 +3750,7 @@ FROM (
     JOIN Status              USING (JobStatus)
    WHERE client_group_name IN ($arg->{jclient_groups})
          $limit $filter2
-
+     AND JobStatus IN ('T', 'f', 'A', 'e', 'E')
    GROUP BY Client.Name, date
 ) AS sub JOIN Status USING (severity)
  ORDER BY name, date

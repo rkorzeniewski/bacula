@@ -7,6 +7,8 @@ UPDATE status SET severity = 15;
 UPDATE status SET severity = 100 where jobstatus = 'f';
 UPDATE status SET severity = 90 where jobstatus = 'A';
 UPDATE status SET severity = 10 where jobstatus = 'T';
+UPDATE status SET severity = 20 where jobstatus = 'e';
+UPDATE status SET severity = 25 where jobstatus = 'E';
 
 -- New tables for bresto (same as brestore)
 
