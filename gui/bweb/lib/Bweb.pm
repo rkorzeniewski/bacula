@@ -4926,7 +4926,6 @@ sub check_job
     my $sch = $sched->get_scheds($schedname);    
     return undef if (!$sch);
 
-    my $end = $sched->{end}; # this backup must have start before the next one
     my @ret;
     foreach my $s (@$sch) {
 	my $pool;
@@ -4936,6 +4935,7 @@ sub check_job
 	my $level = $sched->get_level($s);
 	my ($l) = ($level =~ m/^(.)/); # we keep the first letter
 	my $evts = $sched->get_event($s);
+	my $end = $sched->{end}; # this backup must have start before the next one
 	
 	foreach my $evt (reverse @$evts) {
 	    my $all = $self->dbh_selectrow_hashref("
