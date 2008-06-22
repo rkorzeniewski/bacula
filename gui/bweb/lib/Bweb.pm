@@ -3749,8 +3749,8 @@ FROM (
     JOIN Client              USING (ClientId)  $filter
     JOIN Status              USING (JobStatus)
    WHERE client_group_name IN ($arg->{jclient_groups})
-         $limit $filter2
      AND JobStatus IN ('T', 'f', 'A', 'e', 'E')
+         $limit $filter2
    GROUP BY Client.Name, date
 ) AS sub JOIN Status USING (severity)
  ORDER BY name, date
@@ -3784,7 +3784,8 @@ FROM (
     JOIN client_group_member USING (ClientId)
     JOIN client_group        USING (client_group_id) $filter3
     JOIN Status              USING (JobStatus)
-   WHERE true $filter1 $filter2
+   WHERE JobStatus IN ('T', 'f', 'A', 'e', 'E')
+       $filter1 $filter2
    GROUP BY client_group_name, date
 ) AS sub JOIN Status USING (severity)
  ORDER BY name, date
