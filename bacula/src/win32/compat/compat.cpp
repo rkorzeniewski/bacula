@@ -2349,6 +2349,70 @@ file_dup2(int, int)
 }
 #endif
 
+/* 
+ * Emulation of mmap and unmmap for tokyo dbm
+ */
+void *mmap(void *start, size_t length, int prot, int flags,
+	   int fd, off_t offset)
+{
+   DWORD fm_access = 0;
+   DWORD mv_access = 0;
+   HANDLE h;
+   HANDLE mv;
+
+   if (length == 0) {
+      return MAP_FAILED;
+   }
+   if (!fd) {
+      return MAP_FAILED;
+   }
+
+   if (flags & PROT_WRITE) {
+      fm_access |= PAGE_READWRITE;
+   } else if (flags & PROT_READ) {
+      fm_access |= PAGE_READONLY;
+   }
+   
+   if (flags & PROT_READ) {
+      mv_access |= FILE_MAP_READ;
+   }
+   if (flags & PROT_WRITE) {
+      mv_access |= FILE_MAP_WRITE;
+   }
+
+   h = CreateFileMapping((HANDLE)_get_osfhandle (fd), 
+			 NULL /* security */, 
+			 fm_access, 
+			 0 /* MaximumSizeHigh */, 
+			 0 /* MaximumSizeLow */, 
+			 NULL /* name of the file mapping object */);
+
+   if (!h || h == INVALID_HANDLE_VALUE) {
+      return MAP_FAILED;
+   }
+
+   mv = MapViewOfFile(h, mv_access, 
+		      0 /* offset hi */, 
+		      0 /* offset lo */,
+		      length);
+   CloseHandle(h);
+
+   if (!mv || mv == INVALID_HANDLE_VALUE) {
+      return MAP_FAILED;
+   }
+
+   return (void *) mv;
+}
+
+int munmap(void *start, size_t length)
+{
+   if (!start) {
+      return -1;
+   }
+   UnmapViewOfFile(start);
+   return 0;
+}
+
 #ifdef HAVE_MINGW
 /* syslog function, added by Nicolas Boichat */
 void openlog(const char *ident, int option, int facility) {}  
