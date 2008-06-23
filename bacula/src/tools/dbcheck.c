@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -41,6 +41,8 @@
 #include "lib/runscript.h"
 #include "dird/dird_conf.h"
 
+extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);
+
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) 
    { return 1; }
@@ -71,6 +73,7 @@ static ID_LIST id_list;
 static NAME_LIST name_list;
 static char buf[20000];
 static bool quit = false;
+static CONFIG *config;
 
 #define MAX_ID_LIST_LEN 10000000
 
@@ -104,7 +107,7 @@ static void usage()
 "Usage: dbcheck [-c config] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>]\n"
 "       -b              batch mode\n"
 "       -C              catalog name in the director conf file\n"
-"       -c              director conf filename\n"
+"       -c              Director conf filename\n"
 "       -d <nn>         set debug level to <nn>\n"
 "       -dt             print timestamp in debug output\n"
 "       -f              fix inconsistencies\n"
@@ -180,7 +183,8 @@ int main (int argc, char *argv[])
       if (argc > 0) {
          Pmsg0(0, _("Warning skipping the additional parameters for working directory/dbname/user/password/host.\n"));
       }
-      parse_config(configfile);
+      config = new_config_parser();
+      parse_dir_config(config, configfile, M_ERROR_TERM);
       LockRes();
       foreach_res(catalog, R_CATALOG) {
          if (catalogname && !strcmp(catalog->hdr.name, catalogname)) {

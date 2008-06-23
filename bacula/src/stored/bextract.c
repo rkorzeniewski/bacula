@@ -39,6 +39,8 @@
 #include "stored.h"
 #include "findlib/find.h"
 
+extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
+
 static void do_extract(char *fname);
 static bool record_cb(DCR *dcr, DEV_RECORD *rec);
 
@@ -64,6 +66,7 @@ static char *wbuf;                    /* write buffer address */
 static uint32_t wsize;                /* write size */
 static uint64_t fileAddr = 0;         /* file write address */
 
+static CONFIG *config;
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
 STORES *me = NULL;                    /* our Global resource */
@@ -78,7 +81,7 @@ PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
 "Usage: bextract <options> <bacula-archive-device-name> <directory-to-store-files>\n"
 "       -b <file>       specify a bootstrap file\n"
-"       -c <file>       specify a configuration file\n"
+"       -c <file>       specify a Storage configuration file\n"
 "       -d <nn>         set debug level to <nn>\n"
 "       -dt             print timestamp in debug output\n"
 "       -e <file>       exclude list\n"
@@ -198,7 +201,8 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_sd_config(config, configfile, M_ERROR_TERM);
 
    if (!got_inc) {                            /* If no include file, */
       add_fname_to_include_list(ff, 0, "/");  /*   include everything */
@@ -343,11 +347,11 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          build_attr_output_fnames(jcr, attr);
 
-	 if (attr->type == FT_DELETED) { /* TODO: choose the right fname/ofname */
-	    Jmsg(jcr, M_INFO, 0, _("%s was deleted.\n"), attr->fname);
-	    extract = false;
-	    return true;
-	 }
+         if (attr->type == FT_DELETED) { /* TODO: choose the right fname/ofname */
+            Jmsg(jcr, M_INFO, 0, _("%s was deleted.\n"), attr->fname);
+            extract = false;
+            return true;
+         }
 
          extract = false;
          stat = create_file(jcr, attr, &bfd, REPLACE_ALWAYS);
@@ -521,4 +525,3 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
    Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatParts);
    return 1;
 }
-

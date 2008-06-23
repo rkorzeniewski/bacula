@@ -54,8 +54,6 @@
 
 /* Imported variables */
 extern BSOCK *filed_chan;
-extern int r_first, r_last;
-extern struct s_res resources[];
 extern struct s_last_job last_job;
 extern bool init_done;
 

@@ -40,6 +40,7 @@
 
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
+extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
 static void do_blocks(char *infname);
 static void do_jobs(char *infname);
@@ -58,6 +59,7 @@ static JCR *jcr;
 static SESSION_LABEL sessrec;
 static uint32_t num_files = 0;
 static ATTR *attr;
+static CONFIG *config;
 
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
@@ -78,7 +80,7 @@ PROG_COPYRIGHT
 "\nVersion: %s (%s)\n\n"
 "Usage: bls [options] <device-name>\n"
 "       -b <file>       specify a bootstrap file\n"
-"       -c <file>       specify a config file\n"
+"       -c <file>       specify a Storage configuration file\n"
 "       -d <nn>         set debug level to <nn>\n"
 "       -dt             print timestamp in debug output\n"
 "       -e <file>       exclude list\n"
@@ -214,7 +216,8 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_sd_config(config, configfile, M_ERROR_TERM);
 
    if (ff->included_files_list == NULL) {
       add_fname_to_include_list(ff, 0, "/");
@@ -475,4 +478,3 @@ bool dir_get_volume_info(DCR *dcr, enum get_vol_info_rw  writing)
    Dmsg2(500, "Vol=%s num_parts=%d\n", dcr->VolCatInfo.VolCatName, dcr->VolCatInfo.VolCatParts);
    return 1;
 }
-

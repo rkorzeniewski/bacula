@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +46,7 @@
 int authenticate_director(JCR *jcr, MONITOR *monitor, DIRRES *director);
 int authenticate_file_daemon(JCR *jcr, MONITOR *monitor, CLIENT* client);
 int authenticate_storage_daemon(JCR *jcr, MONITOR *monitor, STORE* store);
+extern bool parse_tmon_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
@@ -63,6 +64,7 @@ static int nitems = 0;
 static int fullitem = 0; //Item to be display in detailled status window
 static int lastupdated = -1; //Last item updated
 static monitoritem items[32];
+static CONFIG *config;
 
 /* Data received from DIR/FD/SD */
 static char OKqstatus[]   = "%c000 OK .status\n";
@@ -253,7 +255,8 @@ int main(int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_tmon_config(config, configfile, M_ERROR_TERM);
 
    LockRes();
    nitems = 0;
@@ -529,6 +532,9 @@ int main(int argc, char *argv[])
    
    gtk_object_destroy(GTK_OBJECT(window));
    gtk_object_destroy(GTK_OBJECT(mTrayMenu));
+   config->free_resources();
+   free(config);
+   config = NULL;
    term_msg();
 
 #if TRAY_DEBUG_MEMORY

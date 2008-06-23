@@ -39,6 +39,7 @@
 
 /* Imported Functions */
 extern void *handle_client_request(void *dir_sock);
+extern bool parse_fd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
 void terminate_filed(int sig);
@@ -56,7 +57,7 @@ char *configfile = NULL;
 static bool foreground = false;
 static workq_t dir_workq;             /* queue of work from Director */
 static pthread_t server_tid;
-
+static CONFIG *config;
 
 static void usage()
 {
@@ -181,7 +182,8 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_fd_config(config, configfile, M_ERROR_TERM);
 
    if (init_crypto() != 0) {
       Emsg0(M_ERROR, 0, _("Cryptography library initialization failed.\n"));
@@ -262,8 +264,12 @@ void terminate_filed(int sig)
    if (debug_level > 0) {
       print_memory_pool_stats();
    }
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+   }
    term_msg();
-   free_config_resources();
    cleanup_crypto();
    close_memory_pool();               /* release free memory in pool */
    sm_dump(false);                    /* dump orphaned buffers */

@@ -38,9 +38,6 @@
 #include "dird.h"
 
 /* Imported variables */
-extern int r_first;
-extern int r_last;
-extern struct s_res resources[];
 
 
 /* Forward referenced functions */

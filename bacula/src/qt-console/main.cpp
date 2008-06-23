@@ -47,9 +47,12 @@ void terminate_console(int sig);
 static void usage();
 static int check_resources();
 
+extern bool parse_bat_config(CONFIG *config, const char *configfile, int exit_code);
+
 #define CONFIG_FILE "./bat.conf"   /* default configuration file */
 
 /* Static variables */
+static CONFIG *config;
 static char *configfile = NULL;
 
 int main(int argc, char *argv[])
@@ -136,7 +139,8 @@ int main(int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_bat_config(config, configfile, M_ERROR_TERM);
 
    if (init_crypto() != 0) {
       Emsg0(M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));

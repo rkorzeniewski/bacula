@@ -46,7 +46,7 @@ static void dir_sql_query(JCR *jcr, const char *cmd);
 /* Exported subroutines */
 extern "C" void reload_config(int sig);
 extern void invalidate_schedules();
-
+extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Imported subroutines */
 JCR *wait_for_next_job(char *runjob);
@@ -74,15 +74,10 @@ char *configfile = NULL;
 void *start_heap;
 
 /* Globals Imported */
-extern int r_first, r_last;           /* first and last resources */
-extern RES_TABLE resources[];
-extern RES **res_head;
 extern RES_ITEM job_items[];
-extern int  res_all_size;
-
 #if defined(_MSC_VER)
 extern "C" { // work around visual compiler mangling variables
-    extern URES res_all;
+   extern URES res_all;
 }
 #else
 extern URES res_all;
@@ -229,9 +224,7 @@ int main (int argc, char *argv[])
    }
 
    config = new_config_parser();
-   config->init(configfile, NULL, M_ERROR_TERM, (void *)&res_all, res_all_size,
-                r_first, r_last, resources, res_head);
-   config->parse_config();
+   parse_dir_config(config, configfile, M_ERROR_TERM);
 
    if (init_crypto() != 0) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
@@ -355,9 +348,11 @@ void terminate_dird(int sig)
    if (debug_level > 5) {
       print_memory_pool_stats();
    }
-   config->free_resources();
-   free(config);
-   config = NULL;
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+   }
    term_ua_server();
    term_msg();                        /* terminate message handler */
    cleanup_crypto();
@@ -486,7 +481,7 @@ void reload_config(int sig)
    reload_table[table].res_table = config->save_resources();
    Dmsg1(100, "Saved old config in table %d\n", table);
 
-   ok = parse_config(configfile, 0, M_ERROR);  /* no exit on error */
+   ok = parse_dir_config(config, configfile, M_ERROR);
 
    Dmsg0(100, "Reloaded config file\n");
    if (!ok || !check_resources() || !check_catalog()) {

@@ -40,13 +40,13 @@
  * resources, so it will define the following
  * global values.
  */
-extern int r_first;
-extern int r_last;
+extern int32_t r_first;
+extern int32_t r_last;
 extern RES_TABLE resources[];
 extern RES **res_head;
 
 brwlock_t res_lock;                   /* resource lock */
-static int res_locked = 0;            /* set when resource chains locked -- for debug */
+static int res_locked = 0;            /* resource chain lock count -- for debug */
 
 
 /* #define TRACE_RES */

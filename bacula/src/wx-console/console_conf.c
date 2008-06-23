@@ -1,28 +1,7 @@
 /*
- *   Main configuration file parser for Bacula User Agent
- *    some parts may be split into separate files such as
- *    the schedule configuration (sch_config.c).
- *
- *   Note, the configuration file parser consists of three parts
- *
- *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
- *
- *   2. The generic config  scanner in lib/parse_config.c and
- * lib/parse_config.h.
- * These files contain the parser code, some utility
- * routines, and the common store routines (name, int,
- * string).
- *
- *   3. The daemon specific file, which contains the Resource
- * definitions as well as any specific store routines
- * for the resource records.
- *
- *     Kern Sibbald, January MM, September MM
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2000-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2000-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -46,6 +25,27 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *   Main configuration file parser for Bacula User Agent
+ *    some parts may be split into separate files such as
+ *    the schedule configuration (sch_config.c).
+ *
+ *   Note, the configuration file parser consists of three parts
+ *
+ *   1. The generic lexical scanner in lib/lex.c and lib/lex.h
+ *
+ *   2. The generic config  scanner in lib/parse_config.c and
+ * lib/parse_config.h.
+ * These files contain the parser code, some utility
+ * routines, and the common store routines (name, int,
+ * string).
+ *
+ *   3. The daemon specific file, which contains the Resource
+ * definitions as well as any specific store routines
+ * for the resource records.
+ *
+ *     Kern Sibbald, January MM, September MM
+ */
 
 /* _("...") macro returns a wxChar*, so if we need a char*, we need to convert it with:
  * wxString(_("...")).mb_str(*wxConvCurrent) */
@@ -66,8 +66,8 @@
  * types. Note, these should be unique for each
  * daemon though not a requirement.
  */
-int r_first = R_FIRST;
-int r_last  = R_LAST;
+int32_t r_first = R_FIRST;
+int32_t r_last  = R_LAST;
 static RES *sres_head[R_LAST - R_FIRST + 1];
 RES **res_head = sres_head;
 
@@ -86,7 +86,7 @@ extern "C" { // work around visual compiler mangling variables
 #else
 URES res_all;
 #endif
-int  res_all_size = sizeof(res_all);
+int32_t res_all_size = sizeof(res_all);
 
 /* Definition of records permitted within each
  * resource with the routine to process the record
@@ -334,4 +334,11 @@ void save_resource(int type, RES_ITEM *items, int pass)
                   res->res_dir.hdr.name);
       }
    }
+}
+
+bool parse_wxcons_config(CONFIG *config, const char *configfile, LEX_ERROR_HANDLER *scan_error)
+{
+   config->init(configfile, scan_error, M_ERROR_TERM, (void *)&res_all, res_all_size,
+      r_first, r_last, resources, res_head);
+   return config->parse_config();
 }

@@ -42,9 +42,6 @@
 #include "dird.h"
 
 /* Imported variables */
-extern int r_first;
-extern int r_last;
-extern struct s_res resources[];
 
 /* Imported functions */
 extern void do_messages(UAContext *ua, const char *cmd);

@@ -38,6 +38,7 @@ class RES;                         /* Declare forware referenced structure */
 typedef void (MSG_RES_HANDLER)(LEX *lc, RES_ITEM *item, int index, int pass);
 
 
+
 /* This is the structure that defines
  * the record types (items) permitted within each
  * resource. It is used to define the configuration
@@ -122,7 +123,7 @@ inline char *MSGS::name() const { return hdr.name; }
 /* 
  * Old C style configuration routines -- deprecated do not use.
  */
-int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
+//int   parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error = NULL, int err_type=M_ERROR_TERM);
 void    free_config_resources(void);
 RES   **save_config_resources(void);
 RES   **new_res_head();
@@ -138,6 +139,7 @@ public:
    int32_t m_err_type;                 /* the way to terminate on failure */
    void *m_res_all;                    /* pointer to res_all buffer */
    int32_t m_res_all_size;             /* length of buffer */
+
    /* The below are not yet implemented */
    int32_t m_r_first;                  /* first daemon resource type */
    int32_t m_r_last;                   /* last daemon resource type */
@@ -208,3 +210,10 @@ void store_time(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_size(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_defs(LEX *lc, RES_ITEM *item, int index, int pass);
 void store_label(LEX *lc, RES_ITEM *item, int index, int pass);
+
+/* ***FIXME*** eliminate these globals */
+extern int32_t r_first;
+extern int32_t r_last;
+extern RES_TABLE resources[];
+extern RES **res_head;
+extern int32_t res_all_size;

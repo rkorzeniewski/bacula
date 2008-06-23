@@ -44,6 +44,7 @@
  
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
+extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
 static void do_scan(void);
@@ -102,6 +103,7 @@ static int num_pools = 0;
 static int num_media = 0;
 static int num_files = 0;
 
+static CONFIG *config;
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
 STORES *me = NULL;                    /* our Global resource */
@@ -251,7 +253,8 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_sd_config(config, configfile, M_ERROR_TERM);
    LockRes();
    me = (STORES *)GetNextRes(R_STORAGE, NULL);
    if (!me) {

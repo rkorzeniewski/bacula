@@ -42,8 +42,6 @@
 
 /* Imported variables */
 extern BSOCK *filed_chan;
-extern int r_first, r_last;
-extern struct s_res resources[];
 extern void *start_heap;
 
 /* Static variables */

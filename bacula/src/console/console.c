@@ -61,6 +61,7 @@
 
 /* Imported functions */
 int authenticate_director(JCR *jcr, DIRRES *director, CONRES *cons);
+extern bool parse_cons_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
 static void terminate_console(int sig);
@@ -91,6 +92,7 @@ static int numcon;
 static POOLMEM *args;
 static char *argk[MAX_CMD_ARGS];
 static char *argv[MAX_CMD_ARGS];
+static CONFIG *config;
 
 
 /* Command prototypes */
@@ -633,7 +635,8 @@ int main(int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_cons_config(config, configfile, M_ERROR_TERM);
 
    if (init_crypto() != 0) {
       Emsg0(M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
@@ -845,6 +848,9 @@ static void terminate_console(int sig)
       exit(1);
    }
    already_here = true;
+   config->free_resources();
+   free(config);
+   config = NULL;
    cleanup_crypto();
    free_pool_memory(args);
    if (!no_conio) {
