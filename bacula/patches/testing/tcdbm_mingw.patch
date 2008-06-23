@@ -1,0 +1,316 @@
+Index: tokyocabinet/myconf.h
+===================================================================
+--- tokyocabinet/myconf.h	(révision 7137)
++++ tokyocabinet/myconf.h	(copie de travail)
+@@ -206,13 +206,16 @@
+ #include <unistd.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+-#include <sys/mman.h>
+ #include <sys/time.h>
+-#include <sys/times.h>
+ #include <fcntl.h>
+ #include <dirent.h>
++
++#ifndef HAVE_WIN32
++#include <sys/mman.h>
++#include <sys/times.h>
+ #include <regex.h>
+ #include <glob.h>
++#endif
+ 
+ #if TCUSEPTHREAD
+ #include <pthread.h>
+Index: tokyocabinet/tcutil.c
+===================================================================
+--- tokyocabinet/tcutil.c	(révision 7137)
++++ tokyocabinet/tcutil.c	(copie de travail)
+@@ -2271,7 +2271,7 @@
+   return (a < b) ? a : b;
+ }
+ 
+-
++#ifndef HAVE_WIN32
+ /* Get a random number as long integer based on uniform distribution. */
+ unsigned long tclrand(void){
+   static unsigned int cnt = 0;
+@@ -2288,7 +2288,6 @@
+   return (mask ^ cnt++) ^ (unsigned long)rand_r(&seed);
+ }
+ 
+-
+ /* Get a random number as double decimal based on uniform distribution. */
+ double tcdrand(void){
+   return tclrand() / (ULONG_MAX + 0.01);
+@@ -2300,6 +2299,7 @@
+   assert(sd >= 0.0);
+   return sqrt(-2.0 * log(tcdrand())) * cos(2 * 3.141592653589793 * tcdrand()) * sd + avg;
+ }
++#endif
+ 
+ 
+ /* Compare two strings with case insensitive evaluation. */
+@@ -2681,7 +2681,7 @@
+   return buf;
+ }
+ 
+-
++#ifndef HAVE_WIN32
+ /* Check whether a string matches a regular expression. */
+ bool tcregexmatch(const char *str, const char *regex){
+   assert(str && regex);
+@@ -2744,7 +2744,22 @@
+   return tcxstrtomalloc(xstr);
+ }
+ 
++#endif
+ 
++#ifdef HAVE_WIN32
++
++struct timezone {
++   int tz_minuteswest; /* minutes à l'ouest de Greenwich  */
++   int tz_dsttime;     /* type de changement horaire      */
++};
++
++int gettimeofday(struct timeval *tv, struct timezone *tz)
++{
++   return -1;
++}
++
++#endif
++
+ /* Get the time of day in seconds. */
+ double tctime(void){
+   struct timeval tv;
+@@ -2752,6 +2767,7 @@
+   return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+ }
+ 
++#ifndef HAVE_WIN32
+ 
+ /* Get the Gregorian calendar of a time. */
+ void tccalendar(int64_t t, int jl, int *yearp, int *monp, int *dayp,
+@@ -3064,7 +3080,6 @@
+   return 0;
+ }
+ 
+-
+ /* Get the day of week of a date. */
+ int tcdayofweek(int year, int mon, int day){
+   if(mon < 3){
+@@ -3105,8 +3120,10 @@
+ #endif
+ }
+ 
++#endif /* HAVE_WIN32 */
+ 
+ 
++
+ /*************************************************************************************************
+  * filesystem utilities
+  *************************************************************************************************/
+@@ -3115,6 +3132,7 @@
+ #define TCFILEMODE     00644             // permission of a creating file
+ #define TCIOBUFSIZ     16384             // size of an I/O buffer
+ 
++#ifndef HAVE_WIN32
+ 
+ /* Get the canonicalized absolute path of a file. */
+ char *tcrealpath(const char *path){
+@@ -3124,6 +3142,7 @@
+   return tcstrdup(buf);
+ }
+ 
++#endif /* HAVE_WIN32 */
+ 
+ /* Read whole data of a file. */
+ void *tcreadfile(const char *path, int limit, int *sp){
+@@ -3251,6 +3270,7 @@
+   return list;
+ }
+ 
++#ifndef HAVE_WIN32
+ 
+ /* Expand a pattern into a list of matched paths. */
+ TCLIST *tcglobpat(const char *pattern){
+@@ -3267,6 +3287,9 @@
+   return list;
+ }
+ 
++#else 
++#define lstat stat
++#endif
+ 
+ /* Remove a file or a directory and its sub ones recursively. */
+ bool tcremovelink(const char *path){
+@@ -3333,6 +3356,7 @@
+ 
+ /* Lock a file. */
+ bool tclock(int fd, bool ex, bool nb){
++#ifndef HAVE_WIN32
+   assert(fd >= 0);
+   struct flock lock;
+   memset(&lock, 0, sizeof(struct flock));
+@@ -3344,6 +3368,7 @@
+   while(fcntl(fd, nb ? F_SETLK : F_SETLKW, &lock) == -1){
+     if(errno != EINTR) return false;
+   }
++#endif
+   return true;
+ }
+ 
+@@ -5009,6 +5034,122 @@
+   return wp - obuf;;
+ }
+ 
++#ifdef HAVE_WIN32
+ 
++#include <windef.h>
++#include <winbase.h>
+ 
++int msync(void *start, size_t length, int flags)
++{
++   return 0;
++}
++int fsync(int fd)
++{
++   return 0;
++}
++/*
++ * Emulation of mmap and unmmap for tokyo dbm
++ */
++void *mmap(void *start, size_t length, int prot, int flags,
++           int fd, off_t offset)
++{
++   DWORD fm_access = 0;
++   DWORD mv_access = 0;
++   HANDLE h;
++   HANDLE mv;
++
++   if (length == 0) {
++      return MAP_FAILED;
++   }
++   if (!fd) {
++      return MAP_FAILED;
++   }
++
++   if (flags & PROT_WRITE) {
++      fm_access |= PAGE_READWRITE;
++   } else if (flags & PROT_READ) {
++      fm_access |= PAGE_READONLY;
++   }
++
++   if (flags & PROT_READ) {
++      mv_access |= FILE_MAP_READ;
++   }
++   if (flags & PROT_WRITE) {
++      mv_access |= FILE_MAP_WRITE;
++   }
++
++   h = CreateFileMapping((HANDLE)_get_osfhandle (fd),
++                         NULL /* security */,
++                         fm_access,
++                         0 /* MaximumSizeHigh */,
++                         0 /* MaximumSizeLow */,
++                         NULL /* name of the file mapping object */);
++
++   if (!h || h == INVALID_HANDLE_VALUE) {
++      return MAP_FAILED;
++   }
++
++   mv = MapViewOfFile(h, mv_access,
++                      0 /* offset hi */,
++                      0 /* offset lo */,
++                      length);
++   CloseHandle(h);
++
++   if (!mv || mv == INVALID_HANDLE_VALUE) {
++      return MAP_FAILED;
++   }
++
++   return (void *) mv;
++}
++
++int munmap(void *start, size_t length)
++{
++   if (!start) {
++      return -1;
++   }
++   UnmapViewOfFile(start);
++   return 0;
++}
++
++ssize_t pread(int fd, void *buf, size_t count, off_t offset)
++{
++   __int64 cur_pos;
++   ssize_t num_read;
++
++   if ((cur_pos = _lseeki64(fd, 0, SEEK_CUR)) == (off_t)-1)
++      return -1;
++
++   if (_lseeki64(fd, offset, SEEK_SET) == (off_t)-1)
++      return -1;
++
++   num_read = read(fd, buf, count);
++
++   if (_lseeki64(fd, cur_pos, SEEK_SET) == (off_t)-1)
++      return -1;
++
++   return num_read;
++}
++
++ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset)
++{
++   __int64 cur_pos;
++   ssize_t num_write;
++
++   if ((cur_pos = _lseeki64(fd, 0, SEEK_CUR)) == (off_t)-1)
++      return -1;
++
++   if (_lseeki64(fd, offset, SEEK_SET) == (off_t)-1)
++      return -1;
++
++   num_write = write(fd, buf, count);
++
++   if (_lseeki64(fd, cur_pos, SEEK_SET) == (off_t)-1)
++      return -1;
++
++   return num_write;
++}
++
++#endif
++
++
+ // END OF FILE
+Index: tokyocabinet/tcutil.h
+===================================================================
+--- tokyocabinet/tcutil.h	(révision 7137)
++++ tokyocabinet/tcutil.h	(copie de travail)
+@@ -2160,8 +2160,27 @@
+ #define TCMAPRNUM(TC_map) \
+   ((TC_map)->rnum)
+ 
++#ifdef HAVE_WIN32
++#include <sys/types.h>
+ 
++/* mmap implementation for tokyodbm */
++#define PROT_WRITE 0x2             /* Page can be written.  */
++#define PROT_READ  0x1             /* page can be read */
++#define MAP_SHARED 0x01            /* Share changes.  */
++#define MAP_FAILED ((void *) -1)
++#define MS_SYNC 0
+ 
++void *mmap(void *start, size_t length, int prot, int flags,
++           int fd, off_t offset);
++int munmap(void *start, size_t length);
++int msync(void *start, size_t length, int flags);
++int fsync(int fd);
++ssize_t pread(int fd, void *buf, size_t count, off_t offset);
++ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);
++
++#endif
++
++
+ __TCUTIL_CLINKAGEEND
+ #endif                                   /* duplication check */
+ 
