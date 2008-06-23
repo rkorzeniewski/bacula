@@ -43,7 +43,7 @@
 #include "stored.h"
 
 /* Imported functions */
-
+extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Forward referenced functions */
 void terminate_stored(int sig);
@@ -73,6 +73,7 @@ bool init_done = false;
 static bool foreground = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static workq_t dird_workq;            /* queue for processing connections */
+static CONFIG *config;
 
 
 static void usage()
@@ -209,7 +210,8 @@ int main (int argc, char *argv[])
       configfile = bstrdup(CONFIG_FILE);
    }
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_sd_config(config, configfile, M_ERROR_TERM);
 
    if (init_crypto() != 0) {
       Jmsg((JCR *)NULL, M_ERROR_TERM, 0, _("Cryptography library initialization failed.\n"));
@@ -614,7 +616,11 @@ void terminate_stored(int sig)
       free(configfile);
       configfile = NULL;
    }
-   free_config_resources();
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+  }
 
    if (debug_level > 10) {
       print_memory_pool_stats();

@@ -50,6 +50,7 @@
 
 /* Dummy functions */
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
+extern bool parse_sd_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* External subroutines */
 extern void free_config_resources();
@@ -102,6 +103,7 @@ static void do_unfill();
 
 
 /* Static variables */
+static CONFIG *config;
 #define CONFIG_FILE "bacula-sd.conf"
 char *configfile = NULL;
 
@@ -269,8 +271,8 @@ int main(int margc, char *margv[])
 
    daemon_start_time = time(NULL);
 
-   parse_config(configfile);
-
+   config = new_config_parser();
+   parse_sd_config(config, configfile, M_ERROR_TERM);
 
    /* See if we can open a device */
    if (margc == 0) {
@@ -321,7 +323,11 @@ static void terminate_btape(int stat)
    if (configfile) {
       free(configfile);
    }
-   free_config_resources();
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+   }
    if (args) {
       free_pool_memory(args);
       args = NULL;

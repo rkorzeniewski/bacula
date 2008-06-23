@@ -57,8 +57,8 @@
  * types. Note, these should be unique for each
  * daemon though not a requirement.
  */
-int r_first = R_FIRST;
-int r_last  = R_LAST;
+int32_t r_first = R_FIRST;
+int32_t r_last  = R_LAST;
 static RES *sres_head[R_LAST - R_FIRST + 1];
 RES **res_head = sres_head;
 
@@ -88,12 +88,12 @@ static void store_short_runscript(LEX *lc, RES_ITEM *item, int index, int pass);
  */
 #if defined(_MSC_VER)
 extern "C" { // work around visual compiler mangling variables
-    URES res_all;
+   URES res_all;
 }
 #else
 URES res_all;
 #endif
-int  res_all_size = sizeof(res_all);
+int32_t res_all_size = sizeof(res_all);
 
 
 /* Definition of records permitted within each
@@ -1991,4 +1991,11 @@ extern "C" char *job_code_callback_filesetname(JCR *jcr, const char* param)
    } else {
       return NULL;
    }
+}
+
+bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code)
+{
+   config->init(configfile, NULL, exit_code, (void *)&res_all, res_all_size,
+      r_first, r_last, resources, res_head);
+   return config->parse_config();
 }

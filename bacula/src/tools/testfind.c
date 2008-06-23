@@ -44,6 +44,7 @@
 int generate_daemon_event(JCR *jcr, const char *event) { return 1; }
 int generate_job_event(JCR *jcr, const char *event) { return 1; }
 void generate_plugin_event(JCR *jcr, bEventType eventType, void *value) { }
+extern bool parse_dir_config(CONFIG *config, const char *configfile, int exit_code);
 
 /* Global variables */
 static int num_files = 0;
@@ -52,6 +53,7 @@ static int max_path_len = 0;
 static int trunc_fname = 0;
 static int trunc_path = 0;
 static int attrs = 0;
+static CONFIG *config;
 
 static JCR *jcr;
 
@@ -133,7 +135,8 @@ main (int argc, char *const *argv)
    argc -= optind;
    argv += optind;
 
-   parse_config(configfile);
+   config = new_config_parser();
+   parse_dir_config(config, configfile, M_ERROR_TERM);
 
    MSGS *msg;
 
@@ -166,7 +169,12 @@ main (int argc, char *const *argv)
    find_files(jcr, ff, print_file, NULL);
 
    free_jcr(jcr);
-   free_config_resources();
+   if (config) {
+      config->free_resources();
+      free(config);
+      config = NULL;
+   }
+   
    term_last_jobs_list();
 
    /* Clean up fileset */

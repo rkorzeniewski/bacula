@@ -40,9 +40,6 @@
 /* Imported subroutines */
 
 /* Imported variables */
-extern int r_first;
-extern int r_last;
-extern struct s_res resources[];
 extern jobq_t job_queue;              /* job queue */
 
 

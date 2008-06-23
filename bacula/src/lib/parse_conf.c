@@ -69,15 +69,6 @@
 #define MAX_PATH  1024
 #endif
 
-/* Each daemon has a slightly different set of
- * resources, so it will define the following
- * global values.
- */
-extern int r_first;
-extern int r_last;
-extern RES_TABLE resources[];
-extern RES **res_head;
-
 /*
  * Define the Union of all the common resource structure definitions.
  */
@@ -93,7 +84,6 @@ extern "C" URES res_all;
 #else
 extern  URES res_all;
 #endif
-extern int res_all_size;
 
 extern brwlock_t res_lock;            /* resource lock */
 
@@ -811,6 +801,7 @@ void CONFIG::init(
  *  Note, the default behavior unless you have set an alternate
  *  scan_error handler is to die on an error.
  */
+#ifdef xxx
 int
 parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
 {
@@ -822,6 +813,7 @@ parse_config(const char *cf, LEX_ERROR_HANDLER *scan_error, int err_type)
    free(config);
    return ok;
 }
+#endif
       
    
 bool CONFIG::parse_config()
@@ -979,8 +971,8 @@ bool CONFIG::parse_config()
       }
       if (debug_level >= 900 && pass == 2) {
          int i;
-         for (i=r_first; i<=r_last; i++) {
-            dump_resource(i, res_head[i-r_first], prtmsg, NULL);
+         for (i=m_r_first; i<=m_r_last; i++) {
+            dump_resource(i, m_res_head[i-m_r_first], prtmsg, NULL);
          }
       }
       lc = lex_close_file(lc);
@@ -1079,6 +1071,8 @@ RES **CONFIG::new_res_head()
    return res;
 }
 
+
+#ifdef xxx
 void free_config_resources()
 {
    for (int i=r_first; i<=r_last; i++) {
@@ -1087,7 +1081,6 @@ void free_config_resources()
    }
 }
 
-#ifdef xxx
 RES **save_config_resources()
 {
    int num = r_last - r_first + 1;

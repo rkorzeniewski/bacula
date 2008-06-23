@@ -56,8 +56,8 @@
  * types. Note, these should be unique for each
  * daemon though not a requirement.
  */
-int r_first = R_FIRST;
-int r_last  = R_LAST;
+int32_t r_first = R_FIRST;
+int32_t r_last  = R_LAST;
 static RES *sres_head[R_LAST - R_FIRST + 1];
 RES **res_head = sres_head;
 
@@ -72,12 +72,12 @@ RES **res_head = sres_head;
  */
 #if defined(_MSC_VER)
 extern "C" { // work around visual compiler mangling variables
-    URES res_all;
+   URES res_all;
 }
 #else
 URES res_all;
 #endif
-int  res_all_size = sizeof(res_all);
+int32_t res_all_size = sizeof(res_all);
 
 /* Definition of records permitted within each
  * resource with the routine to process the record
@@ -444,4 +444,11 @@ void save_resource(int type, RES_ITEM *items, int pass)
                res->res_dir.hdr.name);
       }
    }
+}
+
+bool parse_fd_config(CONFIG *config, const char *configfile, int exit_code)
+{
+   config->init(configfile, NULL, exit_code, (void *)&res_all, res_all_size,
+      r_first, r_last, resources, res_head);
+   return config->parse_config();
 }

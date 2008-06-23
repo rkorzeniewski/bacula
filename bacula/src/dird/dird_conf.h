@@ -78,14 +78,14 @@ struct s_kw {
 /* Job Level keyword structure */
 struct s_jl {
    const char *level_name;                 /* level keyword */
-   uint32_t  level;                        /* level */
-   uint32_t  job_type;                     /* JobType permitting this level */
+   int32_t  level;                         /* level */
+   int32_t  job_type;                      /* JobType permitting this level */
 };
 
 /* Job Type keyword structure */
 struct s_jt {
    const char *type_name;
-   uint32_t job_type;
+   int32_t job_type;
 };
 
 /* Definition of the contents of each Resource */
