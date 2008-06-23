@@ -133,13 +133,26 @@ CGI::param(-name=> 'client_group', -value => \@group);
 
 my ($where, undef) = $bweb->get_param(qw/clients client_groups/);
 
+my $c_filter ="";
+my $g_filter = "";
+
+if (@client) {
+    $c_filter = " JOIN Client USING (ClientId) ";
+}
+
+if (@group) {
+    $g_filter = " JOIN client_group_member USING (ClientId) " .
+                " JOIN client_group USING (client_group_id) ";
+}
+
 ################################################################
 # check if more than X jobs are running for too long (more than
 # 2 hours) since Y ago
 
 $query = "
 SELECT count(1) AS nb
-  FROM Job 
+  FROM Job $c_filter $g_filter
+
  WHERE JobStatus = 'R'
    AND Type = 'B'
    AND JobTDate > $since
@@ -164,7 +177,8 @@ if ($res) {
 
 $query = "
 SELECT count(1) AS nb
-  FROM Job 
+  FROM Job $c_filter $g_filter
+
  WHERE JobStatus IN ('E','e','f','A')
    AND Type = 'B'
    AND JobTDate > $since
