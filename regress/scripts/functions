@@ -320,7 +320,7 @@ if [ x$USE_VTAPE = xyes ]; then
    AUTOCHANGER_SCRIPT=disk-changer
    DRIVE1=0
    DRIVE2=1
-   cat > AUTOCHANGER <<EOF
+   cat > $AUTOCHANGER <<EOF
 maxdrive=2
 maxslot=10
 EOF
