@@ -5,7 +5,11 @@
 /bin/cp -f scripts/test-console.conf bin/bconsole.conf
 
 # get proper SD tape definitions
-cp -f scripts/linux_tape_options bin/tape_options
+if [ x$USE_VTAPE = xyes ]; then
+    cp -f scripts/vtape_tape_options bin/tape_options
+else 
+    cp -f scripts/linux_tape_options bin/tape_options
+fi
 if test x`uname` = xFreeBSD ; then
    cp -f scripts/freebsd_tape_options bin/tape_options
 fi
