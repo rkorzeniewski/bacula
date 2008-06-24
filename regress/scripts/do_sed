@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 cwd=`pwd`
-. ${cwd}/config
+. ${cwd}/scripts/functions
 mkdir -p ${cwd}/bin
 out="${cwd}/tmp/sed_tmp"
 
