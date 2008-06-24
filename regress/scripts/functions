@@ -309,4 +309,21 @@ db_user=${db_user:-"regress"}
 db_password=${db_password:-""}
 
 CLIENT=${HOST}-fd
+
+if [ x$USE_VTAPE = xyes ]; then
+   mkdir -p $cwd/working/ach
+   SLOT1=1
+   SLOT2=2
+   TAPE_DRIVE=$cwd/working/ach/drive1
+   TAPE_DRIVE1=$cwd/working/ach/drive1
+   AUTOCHANGER=$cwd/working/ach/config
+   AUTOCHANGER_SCRIPT=disk-changer
+   DRIVE1=0
+   DRIVE2=1
+   cat > AUTOCHANGER <<EOF
+maxdrive=2
+maxslot=10
+EOF
+fi
+
 AUTOCHANGER_SCRIPT=${AUTOCHANGER_SCRIPT:-mtx-changer}

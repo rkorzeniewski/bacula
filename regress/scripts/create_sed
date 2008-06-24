@@ -3,7 +3,7 @@
 # Create the sed file for configuring everything
 #
 cwd=`pwd`
-. ${cwd}/config
+. ${cwd}/scripts/functions
 mkdir -p ${cwd}/bin
 mkdir -p ${cwd}/tmp
 out="${cwd}/tmp/sed_tmp"
