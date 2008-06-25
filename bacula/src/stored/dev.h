@@ -95,7 +95,7 @@ enum {
    B_TAPE_DEV,
    B_DVD_DEV,
    B_FIFO_DEV,
-   B_VTAPE_DEV,		/* change to B_TAPE_DEV after init */
+   B_VTAPE_DEV,                       /* change to B_TAPE_DEV after init */
    B_VTL_DEV
 };
 
@@ -545,6 +545,7 @@ public:
    void mark_volume_in_error();
    void mark_volume_not_inchanger();
    int try_autolabel(bool opened);
+   bool find_a_volume();
    bool is_suitable_volume_mounted();
    bool is_eod_valid();
    int check_volume_label(bool &ask, bool &autochanger);

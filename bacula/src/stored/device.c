@@ -122,6 +122,7 @@ bool fixup_device_block_write_error(DCR *dcr)
         edit_uint64_with_commas(dev->VolCatInfo.VolCatBlocks, b2),
         bstrftime(dt, sizeof(dt), time(NULL)));
 
+   Dmsg0(050, "set_unload\n");
    dev->set_unload();
    if (!dcr->mount_next_write_volume()) {
       free_block(label_blk);
@@ -129,6 +130,7 @@ bool fixup_device_block_write_error(DCR *dcr)
       dev->dlock();  
       goto bail_out;
    }
+   Dmsg1(050, "must_unload=%d\n", dev->must_unload());
    dev->dlock();                    /* lock again */
 
    dev->VolCatInfo.VolCatJobs++;              /* increment number of jobs on vol */

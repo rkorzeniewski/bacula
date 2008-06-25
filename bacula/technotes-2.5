@@ -31,6 +31,8 @@ vtape driver
 
 General:
 25Jun08
+kes  Add debug code and refactor subroutine in stored/mount.c
+kes  Fix format problem in bscan output reported in bug #1105.
 ebl  Fix get_next_volume_for_append logic with autochanger
       - use pruned volumes if found
       - don't reset the inchanger flag after getting a recycled volume
@@ -38,6 +40,7 @@ ebl  Fix get_next_volume_for_append logic with autochanger
      Fix recycle_oldest_purged_volume to take InChanger flag in account
 23Jun08
 ebl  Add mmap/unmmap implementation for tokyodbm under win32
+22Jun08
 kes  Make first step toward eliminating globals from config
      scanning. Also should be a workaround for FORTIFY_SOURCE
      GNU C bug -- fixes bug #1042.
