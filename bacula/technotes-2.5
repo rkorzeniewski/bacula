@@ -30,6 +30,12 @@ vtape driver
 
 
 General:
+25Jun08
+ebl  Fix get_next_volume_for_append logic with autochanger
+      - use pruned volumes if found
+      - don't reset the inchanger flag after getting a recycled volume
+        or a scratch one
+     Fix recycle_oldest_purged_volume to take InChanger flag in account
 23Jun08
 ebl  Add mmap/unmmap implementation for tokyodbm under win32
 kes  Make first step toward eliminating globals from config

@@ -338,17 +338,15 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
          edit_int64(mr->PoolId, ed1), mr->MediaType);
      item = 1;
    } else {
-      char changer[100];
+      POOL_MEM changer(PM_FNAME);
       /* Find next available volume */
       if (InChanger) {
-         bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s",
-            edit_int64(mr->StorageId, ed1));
-      } else {
-         changer[0] = 0;
+         Mmsg(changer, "AND InChanger=1 AND StorageId=%s",
+	      edit_int64(mr->StorageId, ed1));
       }
       if (strcmp(mr->VolStatus, "Recycle") == 0 ||
           strcmp(mr->VolStatus, "Purged") == 0) {
-         order = "ORDER BY LastWritten ASC,MediaId";  /* take oldest */
+         order = "AND Recycle=1 ORDER BY LastWritten ASC,MediaId";  /* take oldest that can be recycled */
       } else {
          order = "ORDER BY LastWritten IS NULL,LastWritten DESC,MediaId";   /* take most recently written */
       }
@@ -364,7 +362,7 @@ db_find_next_volume(JCR *jcr, B_DB *mdb, int item, bool InChanger, MEDIA_DBR *mr
          "%s "
          "%s LIMIT %d",
          edit_int64(mr->PoolId, ed1), mr->MediaType,
-         mr->VolStatus, changer, order, item);
+         mr->VolStatus, changer.c_str(), order, item);
    }
    Dmsg1(050, "fnextvol=%s\n", mdb->cmd);
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
