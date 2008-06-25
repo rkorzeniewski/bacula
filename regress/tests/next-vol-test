@@ -20,8 +20,9 @@ start_test
 
 cat <<EOF > ${cwd}/tmp/bconcmds
 @$out ${cwd}/tmp/log.out
-label barcodes storage=LTO3 slots=48-59 drive=0 pool=Scratch
+label barcodes storage=LTO3 slots=47-59 drive=0 pool=Scratch
 yes
+update volume=vol47 pool=Test inchanger=no RecyclePool=Test
 update volume=vol59 pool=Test enabled=no
 update volume=vol58 pool=Test volstatus=Recycle
 purge  volume=vol57
@@ -38,6 +39,7 @@ update volume=vol48 inchanger=no pool=Test
 update volume  AllFromPool=Test
 sql
 update Media SET VolJobs=1 WHERE VolumeName='vol52';
+update Media SET LastWritten='2006-01-01 01:00:00';
 
 list volume
 EOF
@@ -110,7 +112,24 @@ awk '/Must choose/ { print $4 } '    tmp/log2.out > tmp/normal
 awk '/Volume name.+:/ { print $3 } ' tmp/log2.out > tmp/real
 diff tmp/normal tmp/real > /dev/null
 
-
 export dstat=$?
+
+# try to break the old code 
+# in this situation, we have 1 available volume (vol50) and bacula will try to use
+# vol47, vol48 and vol49 and will stop without using vol50.
+
+cat <<EOF > ${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log2.out
+update volume=vol47 pool=Test VolStatus=Used VolRetention=10s inchanger=no RecyclePool=Test
+update volume=vol48 pool=Test VolStatus=Used VolRetention=10s inchanger=no RecyclePool=Test
+update volume=vol49 pool=Test VolStatus=Used VolRetention=10s inchanger=no RecyclePool=Test
+update volume=vol50 pool=Test VolStatus=Used VolRetention=10s inchanger=yes RecyclePool=Test
+sql
+update Media SET LastWritten='2005-01-01 01:00:00' WHERE VolumeName IN ('vol47', 'vol48', 'vol49');
+
+list volume
+run level=full pool=Test NightlySave yes
+wait
+EOF
 
 end_test
