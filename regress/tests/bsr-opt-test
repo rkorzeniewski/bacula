@@ -31,6 +31,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+setdebug level=150 storage=File1
 restore bootstrap=${cwd}/working/restore.bsr where=${cwd}/tmp/bacula-restores select storage=File1
 unmark *
 cd ${cwd}/build/src/cats
