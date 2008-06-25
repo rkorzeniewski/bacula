@@ -16,10 +16,21 @@ scripts/copy-tape-confs
 echo "${cwd}/build" >${cwd}/tmp/file-list
 MTX=$AUTOCHANGER_SCRIPT
 
+# Sleep longer if real tape
+if [ x${USE_VTAPE} = xyes ] ; then
+   sleep=20 
+else
+   sleep=90
+fi
+
+slot=0
+export slot
+
+# TODO -- check this
 init_slot $TAPE_DRIVE $SLOT1
 init_slot $TAPE_DRIVE $SLOT2
 
-# Get a tape in the drive either from slot 1 or slot 2
+# Get a tape from slot1
 slot=`bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
 case $slot in
  0)
@@ -29,10 +40,8 @@ case $slot in
  $SLOT1)
     slot=$SLOT1
     ;;
- $SLOT2)
-    slot=$SLOT2
-    ;;
  *)
+    rewind_drive ${TAPE_DRIVE}
     bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
     bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
     slot=$SLOT1
@@ -44,26 +53,32 @@ init_drive ${TAPE_DRIVE}
 change_jobname $JobName
 start_test
 
-# Write out bconsole commands
+# Label second volume
 cat <<END_OF_DATA >tmp/bconcmds
 @out /dev/null
 messages
 @$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
-update Volume=TestVolume001 MaxVolBytes=4000000 pool=Default drive=0
-sql                               
-select * from Storage;
-select VolumeName,InChanger,StorageId from Media;
+label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default drive=0
+unmount storage=DDS-4
+END_OF_DATA
 
-@#setdebug level=150 storage=DDS-4
+run_bacula
+
+load_other_slot $slot
+init_drive ${TAPE_DRIVE}
+
+# label first volume, and run first half of job
+cat <<END_OF_DATA >tmp/bconcmds
+@$out tmp/log1.out
+label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
+update Volume=TestVolume001 MaxVolBytes=500000 pool=Default drive=0
+list volumes
+setdebug level=150 storage=DDS-4
 run job=$JobName yes
 @# This sleep must be long enough for the first tape to fill (4MB)
 @#  otherwise the following mtx-changer commands will fail
-@sleep 80
-sql                               
-select * from Storage;
-select VolumeName,InChanger,StorageId from Media;
-
+@sleep $sleep
+list volumes
 unmount storage=DDS-4
 list volumes
 status storage=DDS-4
@@ -71,30 +86,15 @@ messages
 quit
 END_OF_DATA
 
-run_bacula
+run_bconsole
 
-# load the other slot
-case $slot in
- $SLOT1)
-    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
-    bin/$MTX ${AUTOCHANGER} load   $SLOT2 ${TAPE_DRIVE} $DRIVE1
-    ;;
- $SLOT2)
-    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
-    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
-    ;;
- *)
-    echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $slot"
-    exit 1
-esac
-
+load_other_slot $slot
 init_drive ${TAPE_DRIVE}
 
-# second half of job -- write on next tape
 cat <<END_OF_DATA >tmp/bconcmds
-@$out tmp/log1.out
-label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default drive=0
 mount storage=DDS-4
+@# backup should continue
+wait
 @# 
 @# now do a restore
 @#
@@ -107,7 +107,7 @@ messages
 quit
 END_OF_DATA
 
-# run second half
+# run second half of backup + restore
 run_bconsole
 
 touch tmp/log2.out
