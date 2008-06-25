@@ -51,6 +51,13 @@ So, you can choose between the following scripts:
  ./experimental-all    # experimental disk and tape testing
  ./experimental-disk   # experimental disk testing
 
+We recommend that you start with the ./experimental-disk runs so that
+you can check that everything is working fine.  Once that is done,
+try a nightly-xxx run.  The difference is the experimental runs are just
+that -- they are things where you are experimenting and it is expected that
+something might be broken (bad ctest configuration, experimental source
+code, ...), and nightly runs are not expected to fail.
+
 If you are a developer and you have modified your local SVN repository, you
 should be running the experimental tests -- they are designed for developers.
 If you do modify your local repository and commit it, then run a nightly
