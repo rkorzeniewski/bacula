@@ -348,6 +348,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
          Dmsg2(dbglvl, "reserve_vol free vol=%s at %p\n", vol->vol_name, vol->vol_name);
          free_volume(dev);
 //       volume_unused(dcr);
+         Dmsg0(50, "set_unload\n");
          dev->set_unload();             /* have to unload current volume */
          debug_list_volumes("reserve_vol free");
       }
@@ -389,6 +390,7 @@ VOLRES *reserve_volume(DCR *dcr, const char *VolumeName)
                VolumeName, vol->dev->print_name(), dev->print_name());
             free_volume(dev);            /* free any volume attached to our drive */
 //          volume_unused(dcr);
+            Dmsg0(50, "set_unload\n");
             dev->set_unload();           /* Unload any volume that is on our drive */
             dcr->dev = vol->dev;         /* temp point to other dev */
             slot = get_autochanger_loaded_slot(dcr);  /* get slot on other drive */

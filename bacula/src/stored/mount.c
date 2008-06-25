@@ -96,6 +96,7 @@ mount_next_vol:
          goto no_lock_bail_out;
       }
       lock_volumes();
+      Dmsg1(150, "Continue after dir_ask_sysop_to_mount. must_load=%d\n", dev->must_load());
    }
    if (job_canceled(jcr)) {
       Jmsg(jcr, M_FATAL, 0, _("Job %d canceled.\n"), jcr->JobId);
@@ -108,34 +109,10 @@ mount_next_vol:
    }
    do_swapping(true /*writing*/);
 
-   if (!is_suitable_volume_mounted()) {
-      bool have_vol = false;
-      /* Do we have a candidate volume? */
-      if (dev->vol) {
-         bstrncpy(VolumeName, dev->vol->vol_name, sizeof(VolumeName));
-         have_vol = dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
-      }
-      /*
-       * Get Director's idea of what tape we should have mounted.
-       *    in dcr->VolCatInfo
-       */
-      if (!have_vol) {
-         Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
-         while (!dir_find_next_appendable_volume(dcr)) {
-            Dmsg0(200, "not dir_find_next\n");
-            if (job_canceled(jcr)) {
-               goto bail_out;
-            }
-            unlock_volumes();
-            if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
-               goto no_lock_bail_out;
-             }
-             lock_volumes();
-             Dmsg0(200, "Again dir_find_next_append...\n");
-         }
-         goto mount_next_vol;   
-      }
+   if (!find_a_volume()) {
+      goto no_lock_bail_out;
    }
+
    if (job_canceled(jcr)) {
       goto bail_out;
    }
@@ -179,9 +156,13 @@ mount_next_vol:
    }
    Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
 
-   if (ask && !dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
-      Dmsg0(150, "Error return ask_sysop ...\n");
-      goto bail_out;          /* error return */
+   if (ask) {
+      unlock_volumes();
+      if (!dir_ask_sysop_to_mount_volume(dcr, ST_APPEND)) {
+         Dmsg0(150, "Error return ask_sysop ...\n");
+         goto no_lock_bail_out;
+      }
+      lock_volumes();
    }
    if (job_canceled(jcr)) {
       goto bail_out;
@@ -225,30 +206,22 @@ mount_next_vol:
       if (try_autolabel(false) == try_read_vol) {
          break;                       /* created a new volume label */
       }
+      Dmsg0(50, "set_unload\n");
       dev->set_unload();              /* force ask sysop */
       ask = true;
+      Dmsg0(150, "goto mount_next_vol\n");
       goto mount_next_vol;
-#ifdef xxx
-      /* If DVD, ignore the error, very often you cannot open the device
-       * (when there is no DVD, or when the one inserted is a wrong one) */
-      if (dev->poll || dev->is_dvd()) {
-         goto mount_next_vol;
-      } else {
-         Jmsg2(jcr, M_ERROR, 0, _("Could not open device %s: ERR=%s\n"),
-            dev->print_name(), dev->print_errmsg());
-         goto bail_out;
-      }
-#endif 
    }
 
    /*
     * Now check the volume label to make sure we have the right tape mounted
     */
 read_volume:
-
    switch (check_volume_label(ask, autochanger)) {
    case check_next_vol:
+      Dmsg0(50, "set_unload\n");
       dev->set_unload();                 /* want a different Volume */
+      Dmsg0(150, "goto mount_next_vol\n");
       goto mount_next_vol;
    case check_read_vol:
       goto read_volume;
@@ -294,6 +267,7 @@ read_volume:
          goto mount_next_vol;
       }
       if (!is_eod_valid()) {
+         Dmsg0(150, "goto mount_next_vol\n");
          goto mount_next_vol;
       }
 
@@ -318,6 +292,40 @@ bail_out:
 
 no_lock_bail_out:
    return false;
+}
+
+bool DCR::find_a_volume()  
+{
+   DCR *dcr = this;
+   if (!is_suitable_volume_mounted()) {
+      bool have_vol = false;
+      /* Do we have a candidate volume? */
+      if (dev->vol) {
+         bstrncpy(VolumeName, dev->vol->vol_name, sizeof(VolumeName));
+         have_vol = dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
+      }
+      /*
+       * Get Director's idea of what tape we should have mounted.
+       *    in dcr->VolCatInfo
+       */
+      if (!have_vol) {
+         Dmsg0(200, "Before dir_find_next_appendable_volume.\n");
+         while (!dir_find_next_appendable_volume(dcr)) {
+            Dmsg0(200, "not dir_find_next\n");
+            if (job_canceled(jcr)) {
+               unlock_volumes();
+               return false;
+            }
+            unlock_volumes();
+            if (!dir_ask_sysop_to_create_appendable_volume(dcr)) {
+               return false;
+             }
+             lock_volumes();
+             Dmsg0(150, "Again dir_find_next_append...\n");
+         }
+      }
+   }
+   return true;
 }
 
 int DCR::check_volume_label(bool &ask, bool &autochanger)
@@ -649,6 +657,7 @@ void DCR::mark_volume_in_error()
    Dmsg0(150, "dir_update_vol_info. Set Error.\n");
    dir_update_volume_info(this, false, false);
    volume_unused(this);
+   Dmsg0(50, "set_unload\n");
    dev->set_unload();                 /* must get a new volume */
 }
 
@@ -687,7 +696,6 @@ void DCR::release_volume()
    dev->block_num = dev->file = 0;
    dev->EndBlock = dev->EndFile = 0;
    memset(&dev->VolCatInfo, 0, sizeof(dev->VolCatInfo));
-// memset(&VolCatInfo, 0, sizeof(VolCatInfo));
    dev->clear_volhdr();
    /* Force re-read of label */
    dev->clear_labeled();
@@ -704,6 +712,7 @@ void DCR::release_volume()
    if (dev->is_open()) {
       dev->offline_or_rewind();
    }
+   Dmsg0(50, "set_unload\n");
    dev->set_unload();
    Dmsg0(190, "release_volume\n");
 }
