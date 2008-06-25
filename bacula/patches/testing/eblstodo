@@ -78,6 +78,9 @@ Gestion des stats :
    - générer un format simple UNIXSTAMP|label|unit|value
    - possibilité d'ajouter ça dans la base de donnée ou dans rrd
 
+Exchange backup:
+http://www.petri.co.il/brick_level_backup_of_mailboxes_by_using_exmerge.htm
+
 API :
 
  - apr (apache portable runtime) pour les exemples de chargement
