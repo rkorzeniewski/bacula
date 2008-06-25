@@ -293,6 +293,44 @@ init_drive()
   fi
 }
 
+rewind_drive()
+{
+  if test a$USE_VTAPE = a; then
+    mt -f $1 rewind
+  fi
+}
+
+
+#
+# $1 has currently loaded slot, load the other one i.e. if 1, load 2;
+#    if 2, load 1; if 0 load 1
+#
+load_other_slot()
+{
+rewind_drive ${TAPE_DRIVE}
+case $1 in
+ 0)
+    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=1
+    ;;
+ $SLOT1)
+    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
+    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT2 ${TAPE_DRIVE} $DRIVE1
+    slot=2
+    ;;
+ $SLOT2)
+    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} unload $1 ${TAPE_DRIVE} $DRIVE1
+    bin/${AUTOCHANGER_SCRIPT} ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=1
+    ;;
+ *)
+    echo "Something went wrong. Expected $SLOT1 or $SLOT2, got $1"
+    exit 1
+    ;;
+esac
+}
+
+
 # Save current directory
 cwd=`pwd`
 if test "x${REGRESS_DEBUG}" = "x1"; then
