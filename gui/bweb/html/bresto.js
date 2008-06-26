@@ -352,19 +352,21 @@ function ext_init()
     }});
 
    file_selection_grid.on('enddrag', function(dd,e) { 
-        alert(e) ; return true;
+	 alert('enddrag'); alert(e) ; return true;
     });
    file_selection_grid.on('notifyDrop', function(dd,e) { 
-        alert(e) ; return true;
+        alert('notifyDrop'); alert(e) ; return true;
     });
    func1 = function(e,b,c) { 
-   		if (e.browserEvent.keyCode == 46) {
-			for (elt in file_selection_grid.getSelectionModel().getSelections()) {
-				alert(elt);
-//				file_selection_store.remove(elt);
-			}
-		} 
-	};
+      if (e.browserEvent.keyCode == 46) {
+            var m = file_selection_grid.getSelections();
+            if(m.length > 0) {
+               for(var i = 0, len = m.length; i < len; i++){        		
+		file_selection_store.remove(m[i]); 
+               }
+            }
+      }
+   };
    file_selection_grid.on('keypress', func1);
 ///////////////////////////////////////////////////////
 
