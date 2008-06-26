@@ -79,7 +79,7 @@ function init_params(baseParams)
 {
    baseParams['client']= Ext.brestore.client;
 
-   if (Ext.brestore.option_vosb) {	   
+   if (Ext.brestore.option_vosb) {         
       baseParams['jobid'] = Ext.brestore.jobid;
    } else {
       baseParams['date'] = Ext.brestore.jobdate;
@@ -118,23 +118,30 @@ function ext_init()
     tree.render();
 //    root.expand();
 
-    tree.on('click', function(node, event) { 
+    click_cb = function(node, event) { 
         Ext.brestore.path = get_node_path(node);
-	where_field.setValue(Ext.brestore.path);
+        where_field.setValue(Ext.brestore.path);
         file_store.removeAll();
-	file_versions_store.removeAll();
+        file_versions_store.removeAll();
         file_store.load({params:init_params({action: 'list_files',
-					     path:Ext.brestore.path,
+                                             path:Ext.brestore.path,
                                              node:node.id})
                        });
         return true;
-    });
+    };
+    tree.on('click', click_cb);
 
     tree.on('beforeload', function(e) {
         file_store.removeAll();
         return true;
     });
 
+    tree.on('load', function(n,e) {
+        if (!n.firstChild) {
+           click_cb(n, e);
+        }
+        return true;
+    });
 
 ////////////////////////////////////////////////////////////////
 
@@ -171,7 +178,7 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            dataIndex: 'pathid',
@@ -198,7 +205,7 @@ function ext_init()
         enableDrag: true,
         enableDragDrop: true,
         selModel: new Ext.grid.RowSelectionModel(),
-	        loadMask: true,
+                loadMask: true,
         autoSizeColumns: true,
         enableColLock:false
         
@@ -213,13 +220,13 @@ function ext_init()
     // TODO: selection only when using dblclick
     files_grid.selModel.on('rowselect', function(e,i,r) { 
         if (r.json[4] == '.') {
-			return true;
-		}
+                        return true;
+                }
         Ext.brestore.filename = r.json[4];
         file_versions_store.load({params:init_params({action: 'list_versions',
-						     vafv: Ext.brestore.option_vafv,
-  	                                             pathid: r.json[2],
-	                                             filenameid: r.json[1]
+                                                     vafv: Ext.brestore.option_vafv,
+                                                     pathid: r.json[2],
+                                                     filenameid: r.json[1]
                                                      })
                                  });
         return true;
@@ -259,18 +266,18 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            dataIndex: 'pathid',
-	   header: 'PathId',
+           header: 'PathId',
            hidden: true
         },{
            dataIndex: 'filenameid',
            hidden: true
         },{
            dataIndex: 'fileid',
-	   header: 'FileId',
+           header: 'FileId',
            hidden: true
         }
         ]);
@@ -352,7 +359,7 @@ function ext_init()
     }});
 
    file_selection_grid.on('enddrag', function(dd,e) { 
-	 alert('enddrag'); alert(e) ; return true;
+         alert('enddrag'); alert(e) ; return true;
     });
    file_selection_grid.on('notifyDrop', function(dd,e) { 
         alert('notifyDrop'); alert(e) ; return true;
@@ -361,8 +368,8 @@ function ext_init()
       if (e.browserEvent.keyCode == 46) {
             var m = file_selection_grid.getSelections();
             if(m.length > 0) {
-               for(var i = 0, len = m.length; i < len; i++){        		
-		file_selection_store.remove(m[i]); 
+               for(var i = 0, len = m.length; i < len; i++){                    
+                file_selection_store.remove(m[i]); 
                }
             }
       }
@@ -415,14 +422,14 @@ function ext_init()
         },{
            header:    "Date",
            dataIndex: 'mtime',
-	   renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
+           renderer: Ext.util.Format.dateRenderer('Y-m-d h:i'),
            width:     100
         },{
            header:    "MD5",
            dataIndex: 'md5',
            width:     160
         },{
-	   header:    "pathid",
+           header:    "pathid",
            dataIndex: 'pathid',
            hidden: true
         },{
@@ -528,14 +535,14 @@ function ext_init()
         triggerAction: 'all',
         emptyText:'Select a job...',
         selectOnFocus:true,
-		loadMask: true,
+                loadMask: true,
         forceSelection: true,
         width:350
     });
 
     job_combo.on('select', function(e,c) {
         Ext.brestore.jobid = c.json[0];
-	Ext.brestore.jobdate = c.json[1];
+        Ext.brestore.jobdate = c.json[1];
         Ext.brestore.root_path='';
         root.setText("Root");
         tree_loader.baseParams = init_params({init:1, action: 'list_dirs'});
@@ -546,25 +553,25 @@ function ext_init()
 
     function sel_option(item, check)
     {
-	if (item.id == 'id_vosb') {
-	   Ext.brestore.option_vosb = check;
-	}
-	if (item.id == 'id_vafv') {
-	   Ext.brestore.option_vafv = check;
-	}
+        if (item.id == 'id_vosb') {
+           Ext.brestore.option_vosb = check;
+        }
+        if (item.id == 'id_vafv') {
+           Ext.brestore.option_vafv = check;
+        }
     }
 
     var menu = new Ext.menu.Menu({
         id: 'div-main-menu',
         items: [ 
-	   new Ext.menu.CheckItem({
-	        id: 'id_vosb',
+           new Ext.menu.CheckItem({
+                id: 'id_vosb',
                 text: 'View only selected backup',
                 checked: Ext.brestore.option_vosb,
                 checkHandler: sel_option
             }),
-	   new Ext.menu.CheckItem({
-	        id: 'id_vafv',
+           new Ext.menu.CheckItem({
+                id: 'id_vafv',
                 text: 'View all file versions',
                 checked: Ext.brestore.option_vafv,
                 checkHandler: sel_option
@@ -584,7 +591,7 @@ function ext_init()
     });
 
     var tb = new Ext.Toolbar('div-toolbar', [
-	client_combo,
+        client_combo,
         job_combo,
         '-',
         {
@@ -607,16 +614,16 @@ function ext_init()
             text:'Options',
             menu: menu  // assign menu by instance
         },
-	{
-	    icon: '/bweb/mR.png', // icons can also be specified inline
+        {
+            icon: '/bweb/mR.png', // icons can also be specified inline
             cls: 'x-btn-icon',
-	    title: 'restore',
-	    handler: function() { 
-	        if (Ext.brestore.dlglaunch) {
-		   Ext.brestore.dlglaunch.show();
+            title: 'restore',
+            handler: function() { 
+                if (Ext.brestore.dlglaunch) {
+                   Ext.brestore.dlglaunch.show();
                    return 0;
-		}
-		Ext.brestore.dlglaunch = new Ext.LayoutDialog("div-resto-dlg", {
+                }
+                Ext.brestore.dlglaunch = new Ext.LayoutDialog("div-resto-dlg", {
 //                        modal:true,
                         width:600,
                         height:500,
@@ -625,20 +632,20 @@ function ext_init()
                         minHeight:300,
                         proxyDrag: true,
 //                        west: {
-//	                        split:true,
-//	                        initialSize: 150,
-//	                        minSize: 100,
-//	                        maxSize: 250,
-//	                        titlebar: true,
-//	                        collapsible: true,
-//	                        animate: true
-//	                    },
-	                center: {
-	                        autoScroll:true,
-//	                        tabPosition: 'top',
-//	                        closeOnTab: true,
-//	                        alwaysShowTabs: true
-	                }
+//                              split:true,
+//                              initialSize: 150,
+//                              minSize: 100,
+//                              maxSize: 250,
+//                              titlebar: true,
+//                              collapsible: true,
+//                              animate: true
+//                          },
+                        center: {
+                                autoScroll:true,
+//                              tabPosition: 'top',
+//                              closeOnTab: true,
+//                              alwaysShowTabs: true
+                        }
                 });
 
     var fs = new Ext.form.Form({
@@ -738,7 +745,7 @@ function ext_init()
           addprefix_text.disable();
           stripprefix_text.disable();
           useregexp_bp.disable();
-	  rwhere_text.disable();
+          rwhere_text.disable();
        }
     }); 
 
@@ -747,12 +754,12 @@ function ext_init()
           addsuffix_text.disable();
           addprefix_text.disable();
           stripprefix_text.disable();
-	  rwhere_text.enable();
+          rwhere_text.enable();
        } else {
           addsuffix_text.enable();
           addprefix_text.enable();
           stripprefix_text.enable();
-	  rwhere_text.disable();
+          rwhere_text.disable();
        }
     }); 
 
@@ -806,7 +813,7 @@ function ext_init()
            header:    "Volume",
            id:        'volumename', 
            dataIndex: 'volumename',
-	   width:     140
+           width:     140
         }
    ]);
 
@@ -817,7 +824,7 @@ function ext_init()
         enableDrag: false,
         enableDrop: false,
         loadMask: true,
-	width: 200,
+        width: 200,
         enableColLock:false        
     });
 
@@ -844,9 +851,9 @@ function ext_init()
             fieldLabel: 'Replace',
             hiddenName:'replace',
             store: new Ext.data.SimpleStore({
-   		 fields: ['replace'],
-		 data : [['always'],['never'],['if newer']]
-	    }),
+                 fields: ['replace'],
+                 data : [['always'],['never'],['if newer']]
+            }),
             displayField:'replace',
             typeAhead: true,
             mode: 'local',
@@ -872,7 +879,7 @@ function ext_init()
         rclient_combo,
         storage_combo,
         where_text
-	);
+        );
     fs.fieldset(
         {legend:'File relocation'},
         usefilerelocation_bp,
@@ -889,28 +896,28 @@ function ext_init()
     fs.render('div-resto-form');
 
 //      var f = new Ext.form.BasicForm('div-resto-form', {url: '/bweb/test', method: 'GET',
-//	                                                baseParams: {init: 1}
-// 						       }
+//                                                      baseParams: {init: 1}
+//                                                     }
 //                                     );
 
     var launch_restore = function() {
-	var items = file_selection_store.data.items;
-	var tab_fileid=new Array();
-	var tab_dirid=new Array();
-	var tab_jobid=new Array();
+        var items = file_selection_store.data.items;
+        var tab_fileid=new Array();
+        var tab_dirid=new Array();
+        var tab_jobid=new Array();
         for(var i=0;i<items.length;i++) {
-		if (items[i].data['fileid']) {
-			tab_fileid.push(items[i].data['fileid']);
-		} else {
-			tab_dirid.push(items[i].data['pathid']);
-		}
-		tab_jobid.push(items[i].data['jobid']);
-	}
-	var res = ';fileid=' + tab_fileid.join(";fileid=");
-	var res2 = ';dirid=' + tab_dirid.join(";dirid=");
-	var res3 = ';jobid=' + tab_jobid.join(";jobid=");
+                if (items[i].data['fileid']) {
+                        tab_fileid.push(items[i].data['fileid']);
+                } else {
+                        tab_dirid.push(items[i].data['pathid']);
+                }
+                tab_jobid.push(items[i].data['jobid']);
+        }
+        var res = ';fileid=' + tab_fileid.join(";fileid=");
+        var res2 = ';dirid=' + tab_dirid.join(";dirid=");
+        var res3 = ';jobid=' + tab_jobid.join(";jobid=");
 
-	var res4 = ';client=' + rclient_combo.getValue();
+        var res4 = ';client=' + rclient_combo.getValue();
         if (storage_combo.getValue()) {
            res4 = res4 + ';storage=' + storage_combo.getValue();
         }
@@ -926,14 +933,14 @@ function ext_init()
                  reg.push('!^!' + addprefix_text.getValue() + '!');
               }
               if (addsuffix_text.getValue()) {
-		 reg.push('!([^/])$!$1' + addsuffix_text.getValue() + '!');
+                 reg.push('!([^/])$!$1' + addsuffix_text.getValue() + '!');
               }
               res4 = res4 + ';regexwhere=' + reg.join(',');
            }
         } else {
            res4 = res4 + ';where=' + where_text.getValue();
         }
-	window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
+        window.location='/cgi-bin/bweb/bresto.pl?action=restore' + res + res2 + res3 + res4;
     } // end launch_restore
 
     var dialog = Ext.brestore.dlglaunch;
