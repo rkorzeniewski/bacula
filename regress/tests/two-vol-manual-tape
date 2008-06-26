@@ -30,23 +30,7 @@ export slot
 init_slot $TAPE_DRIVE $SLOT1
 init_slot $TAPE_DRIVE $SLOT2
 
-# Get a tape from slot1
-slot=`bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
-case $slot in
- 0)
-    bin/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
-    slot=$SLOT1
-    ;;
- $SLOT1)
-    slot=$SLOT1
-    ;;
- *)
-    rewind_drive ${TAPE_DRIVE}
-    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
-    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
-    slot=$SLOT1
-    ;;
-esac
+load_slot1
 
 init_drive ${TAPE_DRIVE}
 
@@ -60,10 +44,12 @@ messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume002 slot=0 pool=Default drive=0
 unmount storage=DDS-4
+quit
 END_OF_DATA
 
 run_bacula
 
+# Load slot2
 load_other_slot $slot
 init_drive ${TAPE_DRIVE}
 
@@ -87,6 +73,7 @@ quit
 END_OF_DATA
 
 run_bconsole
+
 
 load_other_slot $slot
 init_drive ${TAPE_DRIVE}

@@ -300,6 +300,26 @@ rewind_drive()
   fi
 }
 
+load_slot1() 
+{
+# Get a tape from slot1
+slot=`bin/$MTX ${AUTOCHANGER} loaded 0 ${TAPE_DRIVE} $DRIVE1`
+case $slot in
+ 0)
+    bin/$MTX ${AUTOCHANGER} load $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=$SLOT1
+    ;;
+ $SLOT1)
+    slot=$SLOT1
+    ;;
+ *)
+    rewind_drive ${TAPE_DRIVE}
+    bin/$MTX ${AUTOCHANGER} unload $slot  ${TAPE_DRIVE} $DRIVE1
+    bin/$MTX ${AUTOCHANGER} load   $SLOT1 ${TAPE_DRIVE} $DRIVE1
+    slot=$SLOT1
+    ;;
+esac
+}
 
 #
 # $1 has currently loaded slot, load the other one i.e. if 1, load 2;
