@@ -74,11 +74,10 @@ END_OF_DATA
 
 run_bconsole
 
-
 load_other_slot $slot
-init_drive ${TAPE_DRIVE}
 
 cat <<END_OF_DATA >tmp/bconcmds
+@$out tmp/log1.out
 mount storage=DDS-4
 @# backup should continue
 wait
