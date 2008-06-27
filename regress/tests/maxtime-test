@@ -51,6 +51,7 @@ rm ${cwd}/tmp/fifo ${cwd}/tmp/fifo2 ${cwd}/tmp/fifo3
 export dstat=0
 export bstat=0
 export rstat=0
+touch ${cwd}/tmp/log1.out
 
 grep -e '1: Fatal error: Max wait time exceeded. Job canceled.' ${cwd}/tmp/RUN_MAXTIME.log >/dev/null
 if [ $? -eq 0 ]
