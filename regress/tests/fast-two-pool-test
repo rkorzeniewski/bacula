@@ -57,7 +57,7 @@ list jobs
 status storage=DDS-4
 messages
 setdebug level=150 storage=DDS-4
-setdebug level=200 client          
+@#setdebug level=200 client          
 restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
 yes
 wait
