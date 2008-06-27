@@ -287,20 +287,20 @@ void DEVICE::init_backend()
    } else {
       d_open  = ::open;
       d_close = ::close;
-      d_ioctl = win32_ioctl;	/* dummy function */
-      d_write = win32_write;	/* win32 read/write are not POSIX */
+      d_ioctl = win32_ioctl;    /* dummy function */
+      d_write = win32_write;    /* win32 read/write are not POSIX */
       d_read  = win32_read;
    }
 
 #else  /* POSIX / UNIX Interface */
-   if (is_vtape()) {		/* test backend */
-      d_open  = vtape_open;	/* vtape isn't available for WIN32 or FreeBSD */
+   if (is_vtape()) {            /* test backend */
+      d_open  = vtape_open;     /* vtape isn't available for WIN32 or FreeBSD */
       d_write = vtape_write;
       d_close = vtape_close;
       d_ioctl = vtape_ioctl;
       d_read  = vtape_read;
 
-   } else {			/* tape and file are using normal io */
+   } else {                     /* tape and file are using normal io */
       d_open  = ::open;
       d_write = ::write;
       d_close = ::close;
@@ -1687,7 +1687,7 @@ bool DEVICE::weof(int num)
 {
    struct mtop mt_com;
    int stat;
-   Dmsg0(129, "weof_dev\n");
+   Dmsg1(129, "=== weof_dev=%s\n", print_name());
    
    if (!is_open()) {
       dev_errno = EBADF;
@@ -1869,6 +1869,18 @@ void DEVICE::clrerror(int func)
    Dmsg0(200, "Did MTCSE\n");
 }
 #endif
+}
+
+
+/*
+ * Set to unload the current volume in the drive
+ */
+void DEVICE::set_unload()
+{
+   if (!m_unload && VolHdr.VolumeName[0] != 0) {
+       m_unload = true;
+       memcpy(UnloadVolName, VolHdr.VolumeName, sizeof(UnloadVolName));
+   }
 }
 
 
@@ -2414,7 +2426,6 @@ void init_device_wait_timers(DCR *dcr)
    dev->rem_wait_sec = dev->wait_sec;
    dev->num_wait = 0;
    dev->poll = false;
-   dev->BadVolName[0] = 0;
 
    jcr->min_wait = 60 * 60;
    jcr->max_wait = 24 * 60 * 60;

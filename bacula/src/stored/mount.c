@@ -109,7 +109,7 @@ mount_next_vol:
    }
    do_swapping(true /*writing*/);
 
-   if (!find_a_volume()) {
+   if (retry < 2 && !find_a_volume()) {
       goto no_lock_bail_out;
    }
 
@@ -146,15 +146,15 @@ mount_next_vol:
     *   we will fail, recurse and ask the operator the next time.
     */
    if (!dev->must_unload() && dev->is_tape() && dev->has_cap(CAP_AUTOMOUNT)) {
-      Dmsg0(150, "(1)Ask=0\n");
+      Dmsg0(250, "(1)Ask=0\n");
       ask = false;                 /* don't ask SYSOP this time */
    }
    /* Don't ask if not removable */
    if (!dev->is_removable()) {
-      Dmsg0(150, "(2)Ask=0\n");
+      Dmsg0(250, "(2)Ask=0\n");
       ask = false;
    }
-   Dmsg2(150, "Ask=%d autochanger=%d\n", ask, autochanger);
+   Dmsg2(250, "Ask=%d autochanger=%d\n", ask, autochanger);
 
    if (ask) {
       unlock_volumes();
@@ -294,6 +294,11 @@ no_lock_bail_out:
    return false;
 }
 
+/*
+ * This routine is meant to be called once the first pass
+ *   to ensure that we have a candidate volume to mount.
+ *   Otherwise, we ask the sysop to created one.
+ */
 bool DCR::find_a_volume()  
 {
    DCR *dcr = this;
@@ -361,6 +366,12 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
       char saveVolumeName[MAX_NAME_LENGTH];
 
+      Dmsg1(150, "Vol NAME Error Name=%s\n", VolumeName);
+      if (dev->is_volume_to_unload()) {
+         ask = true;
+         goto check_next_volume;
+      }
+
       /* If not removable, Volume is broken */
       if (!dev->is_removable()) {
          Jmsg(jcr, M_WARNING, 0, _("Volume \"%s\" not on device %s.\n"),
@@ -369,13 +380,6 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
          goto check_next_volume;
       }
 
-      Dmsg1(150, "Vol NAME Error Name=%s\n", VolumeName);
-      /* If polling and got a previous bad name, ignore it */
-      if (dev->poll && strcmp(dev->BadVolName, dev->VolHdr.VolumeName) == 0) {
-         ask = true;
-         Dmsg1(200, "Vol Name error supress due to poll. Name=%s\n", VolumeName);
-         goto check_next_volume;
-      }
       /*
        * OK, we got a different volume mounted. First save the
        *  requested Volume info (dcr) structure, then query if
@@ -402,7 +406,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
             mark_volume_not_inchanger();
          }
          dev->VolCatInfo = devVolCatInfo;    /* structure assignment */
-         bstrncpy(dev->BadVolName, dev->VolHdr.VolumeName, sizeof(dev->BadVolName));
+         dev->set_unload();                  /* unload this volume */
          Jmsg(jcr, M_WARNING, 0, _("Director wanted Volume \"%s\".\n"
               "    Current Volume \"%s\" not acceptable because:\n"
               "    %s"),
@@ -420,6 +424,13 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
        */
       Dmsg1(150, "Got new Volume name=%s\n", VolumeName);
       dev->VolCatInfo = VolCatInfo;   /* structure assignment */
+      Dmsg1(100, "Call reserve_volume=%s\n", dev->VolHdr.VolumeName);
+      if (reserve_volume(this, dev->VolHdr.VolumeName) == NULL) {
+         Jmsg2(jcr, M_WARNING, 0, _("Could not reserve volume %s on %s\n"),
+            dev->VolHdr.VolumeName, dev->print_name());
+         ask = true;
+         goto check_next_volume;
+      }
       break;                /* got a Volume */
    /*
     * At this point, we assume we have a blank tape mounted.
@@ -487,9 +498,8 @@ bool DCR::is_suitable_volume_mounted()
 void DCR::do_swapping(bool is_writing)
 {
    if (dev->must_unload()) {
-      Dmsg1(100, "swapping: unloading %s\n", dev->print_name());
+      Dmsg1(100, "must_unload release %s\n", dev->print_name());
       release_volume();
-      dev->clear_unload();
    }
    /*
     * See if we are asked to swap the Volume from another device
@@ -513,7 +523,7 @@ void DCR::do_swapping(bool is_writing)
       dev->swap_dev = NULL;
    }
    if (dev->must_load()) {
-      Dmsg1(100, "swapping: must load %s\n", dev->print_name());
+      Dmsg1(100, "Must load %s\n", dev->print_name());
       if (autoload_device(this, is_writing, NULL) > 0) {
          dev->clear_load();
       }
@@ -712,8 +722,8 @@ void DCR::release_volume()
    if (dev->is_open()) {
       dev->offline_or_rewind();
    }
-   Dmsg0(50, "set_unload\n");
-   dev->set_unload();
+// Dmsg0(50, "set_unload\n");
+// dev->set_unload();
    Dmsg0(190, "release_volume\n");
 }
 

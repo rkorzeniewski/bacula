@@ -168,6 +168,10 @@ int read_dev_volume_label(DCR *dcr)
    }
    free_record(record);               /* finished reading Volume record */
 
+   if (!dev->is_volume_to_unload()) {
+      dev->clear_unload();
+   }
+
    if (!ok) {
       if (forge_on || jcr->ignore_label_errors) {
          dev->set_labeled();         /* set has Bacula label */
@@ -212,15 +216,6 @@ int read_dev_volume_label(DCR *dcr)
    }
 
    dev->set_labeled();               /* set has Bacula label */
-   Dmsg1(100, "Call reserve_volume=%s\n", dev->VolHdr.VolumeName);
-   Dmsg2(100, "=== dcr->dev=%p dev=%p\n", dcr->dev, dev);
-   if (reserve_volume(dcr, dev->VolHdr.VolumeName) == NULL) {
-      Mmsg2(jcr->errmsg, _("Could not reserve volume %s on %s\n"),
-           dev->VolHdr.VolumeName, dev->print_name());
-      stat = VOL_NAME_ERROR;
-      goto bail_out;
-   }
-   Dmsg2(100, "=== dcr->dev=%p dev=%p\n", dcr->dev, dev);
 
    /* Compare Volume Names */
    Dmsg2(130, "Compare Vol names: VolName=%s hdr=%s\n", VolName?VolName:"*", dev->VolHdr.VolumeName);
@@ -237,10 +232,9 @@ int read_dev_volume_label(DCR *dcr)
       }
       Dmsg0(150, "return VOL_NAME_ERROR\n");
       stat = VOL_NAME_ERROR;
-      volume_unused(dcr);             /* mark volume "released" */
       goto bail_out;
    }
-   Dmsg1(130, "Copy vol_name=%s\n", dev->VolHdr.VolumeName);
+
 
    if (debug_level >= 10) {
       dump_volume_label(dev);
@@ -253,11 +247,19 @@ int read_dev_volume_label(DCR *dcr)
          stat = read_ansi_ibm_label(dcr);            
          /* If we want a label and didn't find it, return error */
          if (stat != VOL_OK) {
-            volume_unused(dcr);       /* mark volume "released" */
             goto bail_out;
          }
       }
    }
+
+   Dmsg1(100, "Call reserve_volume=%s\n", dev->VolHdr.VolumeName);
+   if (reserve_volume(dcr, dev->VolHdr.VolumeName) == NULL) {
+      Mmsg2(jcr->errmsg, _("Could not reserve volume %s on %s\n"),
+           dev->VolHdr.VolumeName, dev->print_name());
+      stat = VOL_NAME_ERROR;
+      goto bail_out;
+   }
+
    empty_block(block);
    return VOL_OK;
 

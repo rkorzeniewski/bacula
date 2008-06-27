@@ -195,13 +195,13 @@ int vtape::tape_op(struct mtop *mt_com)
 
    case MTFSF:                  /* Forward space over mt_count filemarks. */
       do {
-	 result = fsf();
+         result = fsf();
       } while (--count > 0 && result == 0);
       break;
 
    case MTBSF:                  /* Backward space over mt_count filemarks. */
       do {
-	 result = bsf();
+         result = bsf();
       } while (--count > 0 && result == 0);
       break;
 
@@ -228,7 +228,7 @@ int vtape::tape_op(struct mtop *mt_com)
 
    case MTWEOF:                 /* Write mt_count filemarks. */
       do {
-	 result = weof();
+         result = weof();
       } while (result == 0 && --count > 0);
       break;
 
@@ -263,19 +263,19 @@ int vtape::tape_op(struct mtop *mt_com)
 
    case MTEOM:/* Go to the end of the recorded media (for appending files). */
       while (next_FM) {
-	 lseek(fd, next_FM, SEEK_SET);
-	 if (read_fm(VT_READ_EOF)) {
-	    current_file++;
-	 }
+         lseek(fd, next_FM, SEEK_SET);
+         if (read_fm(VT_READ_EOF)) {
+            current_file++;
+         }
       }
       off_t l;
       while (::read(fd, &l, sizeof(l)) > 0) {
-	 if (l) {
-	    lseek(fd, l, SEEK_CUR);
-	 } else {
-	    ASSERT(0);
-	 }
-	 Dmsg0(dbglevel, "skip 1 block\n");
+         if (l) {
+            lseek(fd, l, SEEK_CUR);
+         } else {
+            ASSERT(0);
+         }
+         Dmsg0(dbglevel, "skip 1 block\n");
       }
       current_block = -1;
       atEOF = false;
@@ -460,7 +460,7 @@ ssize_t vtape::write(const void *buffer, size_t count)
 
    ssize_t nb;
    Dmsg3(dbglevel*2, "write len=%i %i:%i\n", 
-	 count, current_file,current_block);
+         count, current_file,current_block);
 
    if (atEOT) {
       Dmsg0(dbglevel, "write nothing, EOT !\n");
@@ -576,20 +576,20 @@ int vtape::fsf()
    atBOT = false;
    Dmsg2(dbglevel+1, "fsf %i <= %i\n", current_file, last_file);
 
-   if (next_FM > cur_FM) {	/* not the last file */
+   if (next_FM > cur_FM) {      /* not the last file */
       lseek(fd, next_FM, SEEK_SET);
       read_fm(VT_READ_EOF);
       current_file++;
       atEOF = true;
       ret = 0;
 
-   } else if (atEOF) {		/* last file mark */
+   } else if (atEOF) {          /* last file mark */
       current_block=-1;
       errno = EIO;
       atEOF = false;
       atEOD = true;
 
-   } else {			/* last file, but no at the end */
+   } else {                     /* last file, but no at the end */
       fsr(100000);
 
       Dmsg0(dbglevel, "Try to FSF after EOT\n");
@@ -615,8 +615,8 @@ bool vtape::read_fm(VT_READ_FM_MODE read_all)
    if (read_all == VT_READ_EOF) {
       ::read(fd, &c, sizeof(c));
       if (c != 0) {
-	 lseek(fd, cur_FM, SEEK_SET);
-	 return false;
+         lseek(fd, cur_FM, SEEK_SET);
+         return false;
       }
    }
 
@@ -628,7 +628,7 @@ bool vtape::read_fm(VT_READ_FM_MODE read_all)
    current_block=0;
    
    Dmsg3(dbglevel, "Read FM cur=%lli last=%lli next=%lli\n", 
-	 cur_FM, last_FM, next_FM);
+         cur_FM, last_FM, next_FM);
 
    return (ret == sizeof(next_FM));
 }
@@ -646,7 +646,7 @@ int vtape::fsr(int count)
    off_t where=0;
    uint32_t s;
    Dmsg4(dbglevel, "fsr %i:%i EOF=%i c=%i\n", 
-	 current_file,current_block,atEOF,count);
+         current_file,current_block,atEOF,count);
 
    check_eof();
 
@@ -674,10 +674,10 @@ int vtape::fsr(int count)
                current_file, current_block, nb,s);
          errno = EIO;
          ret = -1;
-	 if (next_FM) {
+         if (next_FM) {
             current_file++;
-	    read_fm(VT_SKIP_EOF);
-	 }
+            read_fm(VT_SKIP_EOF);
+         }
          atEOF = true;          /* stop the loop */
       }
    }
@@ -726,7 +726,7 @@ int vtape::bsr(int count)
       lseek(fd, cur_FM, SEEK_SET);
       atEOF = false;
       if (current_file > 0) {
-	 current_file--;
+         current_file--;
       }
       current_block=-1;
       errno = EIO;
@@ -736,7 +736,7 @@ int vtape::bsr(int count)
    /*
     * First, go to cur/last_FM and read all blocks to find the good one
     */
-   if (cur_FM == orig) {	/* already just before  EOF */
+   if (cur_FM == orig) {        /* already just before  EOF */
       lseek(fd, last_FM, SEEK_SET);
 
    } else {
@@ -747,7 +747,7 @@ int vtape::bsr(int count)
 
    do {
       if (!atEOF) {
-         last2 = last;		/* keep track of the 2 last blocs position */
+         last2 = last;          /* keep track of the 2 last blocs position */
          last = lseek(fd, 0, SEEK_CUR);
          last_f = current_file;
          last_b = current_block;
@@ -891,7 +891,7 @@ ssize_t vtape::read(void *buffer, size_t count)
    /* reading size of data */
    nb = ::read(fd, &s, sizeof(uint32_t));
    if (nb <= 0) {
-      atEOF = true;		/* TODO: check this */
+      atEOF = true;             /* TODO: check this */
       return 0;
    }
 
@@ -905,7 +905,7 @@ ssize_t vtape::read(void *buffer, size_t count)
    if (!s) {                    /* EOF */
       atEOF = true;
       if (read_fm(VT_SKIP_EOF)) {
-	 current_file++;
+         current_file++;
       }
 
       return 0;
@@ -919,7 +919,7 @@ ssize_t vtape::read(void *buffer, size_t count)
       current_block = -1;
       Dmsg0(dbglevel, "EOT during reading\n");
       return -1;
-   } 			/* read ok */
+   }                    /* read ok */
 
    if (current_block >= 0) {
       current_block++;
@@ -936,6 +936,7 @@ int vtape::open(const char *pathname, int uflags)
 
    struct stat statp;   
    if (stat(pathname, &statp) != 0) {
+      fd = -1;
       Dmsg1(dbglevel, "Can't stat on %s\n", pathname);
       if (uflags & O_NONBLOCK) {
          online = false;
