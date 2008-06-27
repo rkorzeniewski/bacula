@@ -55,7 +55,7 @@ Device {
   Name = Drive-1                   # 
   Device Type = File
   Media Type = DDS-4
-  Archive Device = @disk_drive@/drive0
+  Archive Device = @disk_drive@/drive1
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
   Drive Index = 1
