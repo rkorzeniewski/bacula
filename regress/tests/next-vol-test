@@ -3,6 +3,12 @@
 # This script will test next vol algo with
 # vtape
 #
+# TODO: Test Pool with RecyclePool
+#       Test Pool without RecyclePool
+#       Test with enabled=false
+#       Test with recycle=no
+#       Track scratch usage
+#
 . scripts/functions
 
 TestName="next-vol-test"
