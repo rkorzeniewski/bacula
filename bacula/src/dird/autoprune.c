@@ -182,7 +182,7 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
           */
          if (ok && lmr.PoolId == mr->PoolId) {
             Dmsg2(050, "Vol=%s MediaId=%d purged.\n", lmr.VolumeName, (int)lmr.MediaId);
-            mr = &lmr;                    /* struct copy */
+            memcpy(mr, &lmr, sizeof(lmr));
             break;                        /* got a volume */
          }
          /*

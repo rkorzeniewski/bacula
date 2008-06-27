@@ -30,6 +30,12 @@ vtape driver
 
 
 General:
+27Jun08
+kes  Generally clean up the manual tape loading code. The main
+     conceptial change is that when a volume is marked to be unloaded,
+     its volume name is retained, and it is only marked as unloaded
+     when either the autoloader says it is unloaded or another tape
+     is read on that drive.                                     
 25Jun08
 kes  Add debug code and refactor subroutine in stored/mount.c
 kes  Fix format problem in bscan output reported in bug #1105.

@@ -1203,7 +1203,7 @@ static int bootstrap_cmd(JCR *jcr)
    }
 
    while (dir->recv() >= 0) {
-       Dmsg1(200, "filed<dird: bootstrap file %s\n", dir->msg);
+       Dmsg1(200, "filed<dird: bootstrap: %s", dir->msg);
        fputs(dir->msg, bs);
    }
    fclose(bs);

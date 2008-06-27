@@ -57,7 +57,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
    STORE *store = jcr->wstore;
 
    bstrncpy(mr->MediaType, store->media_type, sizeof(mr->MediaType));
-   Dmsg3(050, "find_next_vol_for_append: JobId=%u PoolId=%d, MediaType=%s\n", 
+   Dmsg3(100, "find_next_vol_for_append: JobId=%u PoolId=%d, MediaType=%s\n", 
          (uint32_t)jcr->JobId, (int)mr->PoolId, mr->MediaType);
    /*
     * If we are using an Autochanger, restrict Volume
@@ -82,7 +82,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
           * 2. Try finding a recycled volume
           */
          ok = find_recycled_volume(jcr, InChanger, mr);
-         Dmsg2(050, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
+         Dmsg2(150, "find_recycled_volume ok=%d FW=%d\n", ok, mr->FirstWritten);
          if (!ok) {
             /*
              * 3. Try recycling any purged volume
@@ -94,30 +94,28 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                 */
                if (prune) {
                   Dmsg0(150, "Call prune_volumes\n");
-                  ok = prune_volumes(jcr, InChanger, mr);
+                  prune_volumes(jcr, InChanger, mr);
                }
-	       if (!ok) {
-		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-		  if (!ok && create) {
-		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
-			   ok, index, InChanger, mr->VolStatus);
-		     /*
-		      * 5. Try pulling a volume from the Scratch pool
-		      */ 
-		     ok = get_scratch_volume(jcr, InChanger, mr);
-		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
-			   ok, index, InChanger, mr->VolStatus);
-		  }
-		  /*
-		   * If we are using an Autochanger and have not found
-		   * a volume, retry looking for any volume. 
-		   */
-		  if (!ok && InChanger) {
-		     InChanger = false;
-		     continue;           /* retry again accepting any volume */
-		  }
-	       }
-	    }
+               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+               if (!ok && create) {
+                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+                        ok, index, InChanger, mr->VolStatus);
+                  /*
+                   * 5. Try pulling a volume from the Scratch pool
+                   */ 
+                  ok = get_scratch_volume(jcr, InChanger, mr);
+               }
+               /*
+                * If we are using an Autochanger and have not found
+                * a volume, retry looking for any volume. 
+                */
+               if (InChanger) {
+                  InChanger = false;
+                  if (!ok) {
+                     continue;           /* retry again accepting any volume */
+                  }
+               }
+            }
          }
 
 
@@ -132,14 +130,14 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
           */
          if (!ok && (jcr->pool->purge_oldest_volume ||
                      jcr->pool->recycle_oldest_volume)) {
-            Dmsg2(050, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
+            Dmsg2(200, "No next volume found. PurgeOldest=%d\n RecyleOldest=%d",
                 jcr->pool->purge_oldest_volume, jcr->pool->recycle_oldest_volume);
             /* Find oldest volume to recycle */
             ok = db_find_next_volume(jcr, jcr->db, -1, InChanger, mr);
-            Dmsg1(050, "Find oldest=%d\n", ok);
+            Dmsg1(400, "Find oldest=%d\n", ok);
             if (ok && prune) {
                UAContext *ua;
-               Dmsg0(050, "Try purge.\n");
+               Dmsg0(400, "Try purge.\n");
                /*
                 * 7.  Try to purging oldest volume only if not UA calling us.
                 */
@@ -157,12 +155,12 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
                free_ua_context(ua);
                if (ok) {
                   ok = recycle_volume(jcr, mr);
-                  Dmsg1(050, "Recycle after purge oldest=%d\n", ok);
+                  Dmsg1(400, "Recycle after purge oldest=%d\n", ok);
                }
             }
          }
       }
-      Dmsg2(050, "VolJobs=%d FirstWritten=%d\n", mr->VolJobs, mr->FirstWritten);
+      Dmsg2(100, "VolJobs=%d FirstWritten=%d\n", mr->VolJobs, mr->FirstWritten);
       if (ok) {
          /* If we can use the volume, check if it is expired */
          if (has_volume_expired(jcr, mr)) {
@@ -177,7 +175,7 @@ int find_next_volume_for_append(JCR *jcr, MEDIA_DBR *mr, int index,
       break;
    } /* end for loop */
    db_unlock(jcr->db);
-   Dmsg1(050, "return ok=%d find_next_vol\n", ok);
+   Dmsg1(150, "return ok=%d find_next_vol\n", ok);
    return ok;
 }
 
