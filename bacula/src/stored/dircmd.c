@@ -650,7 +650,8 @@ static bool mount_cmd(JCR *jcr)
       if (dcr) {
          dev = dcr->dev;
          dev->dlock();                 /* Use P to avoid indefinite block */
-         Dmsg1(100, "mount cmd blocked=%d\n", dev->blocked());
+         Dmsg2(100, "mount cmd blocked=%d must_unload=%d\n", dev->blocked(), 
+            dev->must_unload());
          switch (dev->blocked()) {         /* device blocked? */
          case BST_WAITING_FOR_SYSOP:
             /* Someone is waiting, wake him */
