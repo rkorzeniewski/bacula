@@ -28,7 +28,7 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output /dev/null
 messages
 @$out ${cwd}/tmp/log1.out
-@#setdebug level=200 storage=DDS-4
+setdebug level=200 storage=DDS-4
 label storage=DDS-4 volume=Vol001 slot=0 pool=Default
 purge volume=Vol001
 relabel pool=Default storage=DDS-4 oldVolume=Vol001 volume=Vol002 slot=0
