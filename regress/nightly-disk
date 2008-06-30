@@ -10,6 +10,7 @@ REGRESS_DEBUG=1
 export REGRESS_DEBUG
 rm -rf Testing
 svn update
+make distclean
 scripts/config_dart
 nice ctest -D Nightly -R "^disk:"
 rtn=$?
