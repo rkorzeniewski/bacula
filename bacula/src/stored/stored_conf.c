@@ -140,7 +140,7 @@ static RES_ITEM dev_items[] = {
    {"checklabels",           store_bit,  ITEM(res_dev.cap_bits), CAP_CHECKLABELS, ITEM_DEFAULT, 0},
    {"requiresmount",         store_bit,  ITEM(res_dev.cap_bits), CAP_REQMOUNT, ITEM_DEFAULT, 0},
    {"offlineonunmount",      store_bit,  ITEM(res_dev.cap_bits), CAP_OFFLINEUNMOUNT, ITEM_DEFAULT, 0},
-   {"autoselect",            store_bit,  ITEM(res_dev.autoselect), 1, ITEM_DEFAULT, 1},
+   {"autoselect",            store_bool, ITEM(res_dev.autoselect), 1, ITEM_DEFAULT, 1},
    {"changerdevice",         store_strname,ITEM(res_dev.changer_name), 0, 0, 0},
    {"changercommand",        store_strname,ITEM(res_dev.changer_command), 0, 0, 0},
    {"alertcommand",          store_strname,ITEM(res_dev.alert_command), 0, 0, 0},
