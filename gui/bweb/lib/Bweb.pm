@@ -4492,10 +4492,10 @@ SELECT Job.Name as name, Client.Name as clientname
     }
 
     $query = "
-SELECT count(1) AS nbline, JobId AS jobid, 
-       GROUP_CONCAT($logtext $self->{sql}->{CONCAT_SEP}) AS logtxt
+SELECT count(1) AS nbline, 
+       GROUP_CONCAT($logtext $self->{sql}->{CONCAT_SEP}) AS logtxt, id
   FROM  (
-    SELECT JobId, Time, LogText
+    SELECT 1 AS id, Time, LogText
     FROM Log 
    WHERE ( Log.JobId = $arg->{jobid} 
       OR (Log.JobId = 0 
@@ -4506,7 +4506,7 @@ SELECT count(1) AS nbline, JobId AS jobid,
  LIMIT $arg->{limit}
  OFFSET $arg->{offset}
  ) AS temp
- GROUP BY JobId
+ GROUP BY id
 
 ";
 
@@ -4918,6 +4918,22 @@ sub display_next_job
     print "<b>$arg->{job}:</b><pre>", sort @ret, "</pre><br>";
 }
 
+# permit to verify for higher level backup
+# we attempt a Increment, we made a Full, that ok
+# TODO: Pool may have change
+sub get_higher_level
+{
+    my ($self, $level) = @_;
+    if ($level eq 'F') {
+	return "'F'";
+    } elsif ($level eq 'D') {
+	return "'F', 'D'";
+    } elsif ($level eq 'I') {
+	return "'F', 'D', 'I'";
+    }
+    return "''";
+}
+
 # check jobs against their schedule
 sub check_job
 {
@@ -4935,6 +4951,7 @@ sub check_job
 	}
 	my $level = $sched->get_level($s);
 	my ($l) = ($level =~ m/^(.)/); # we keep the first letter
+	$l = $self->get_higher_level($l);
 	my $evts = $sched->get_event($s);
 	my $end = $sched->{end}; # this backup must have start before the next one
 	
@@ -4947,7 +4964,7 @@ sub check_job
     AND Job.Name = '$job'
     AND Job.Type = '$type'
     AND Job.JobStatus = 'T'
-    AND Job.Level = '$l'
+    AND Job.Level IN ($l)
 " . ($pool?" AND Pool.Name = '$pool' ":'') . "
     AND Client.Name = '$client'
  LIMIT 1
