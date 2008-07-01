@@ -80,7 +80,7 @@ messages
 @# now do a restore
 @#
 @#setdebug level=400 storage=File1
-restore bootstrap=tmp/kern.bsr where=tmp/bacula-restores select all storage=File1 done
+restore bootstrap=${cwd}/tmp/kern.bsr where=${cwd}/tmp/bacula-restores select all storage=File1 done
 yes
 wait
 messages
