@@ -177,7 +177,7 @@ bin_to_base64(char *buf, int buflen, char *bin, int binlen, int compatible)
    if (rem && j < buflen) {
       mask = (1 << rem) - 1;
       if (compatible) {
-         buf[j++] = base64_digits[((reg & mask) << 6) - rem];
+         buf[j++] = base64_digits[(reg & mask) << 6 - rem];
       } else {
          buf[j++] = base64_digits[reg & mask];
       }

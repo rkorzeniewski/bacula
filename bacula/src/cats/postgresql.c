@@ -546,7 +546,7 @@ void my_postgresql_free_result(B_DB *mdb)
    db_unlock(mdb);
 }
 
-int my_postgresql_currval(B_DB *mdb, char *table_name)
+int my_postgresql_currval(B_DB *mdb, const char *table_name)
 {
    // Obtain the current value of the sequence that
    // provides the serial value for primary key of the table.
@@ -710,7 +710,7 @@ int my_postgresql_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    int res;
    int count=30;
    size_t len;
-   char *digest;
+   const char *digest;
    char ed1[50];
 
    mdb->esc_name = check_pool_memory_size(mdb->esc_name, mdb->fnl*2+1);
