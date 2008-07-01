@@ -75,7 +75,7 @@ Device {
   Name = Virtual-1
   Device Type = File
   Media Type = Disk
-  Archive Device = tmp
+  Archive Device = @tmpdir@
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
   Drive Index = 0
@@ -88,7 +88,7 @@ Device {
   Name = Virtual-2
   Device Type = File
   Media Type = Disk
-  Archive Device = tmp
+  Archive Device = @tmpdir@
   AutomaticMount = yes;               # when device opened, read it
   Autochanger = yes
   Drive Index = 1
