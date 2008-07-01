@@ -568,6 +568,15 @@ items 13-15.
 
 
   - TODO:
+  0001088: volume FirstWritten attribute is set to time of mount request, not time of first write
+  Description 	When a Bacula job requests mounting a tape volume that is not present in the drive,
+  once the tape is mounted, its FirstWritten attribute is set to the time when the volume was requested.
+  Consequently, if the job has been waiting longer than the maximum use duration of the volume,
+  the volume is promoted to Used immediately because the maximum use duration has apparently expired before
+  the use has even started.
+
+To avoid that, the FirstWritten attribute should be set to the time the volume was mounted (= the current time when the setting takes place).
+
  x Backup a file that is not in accurate list (change NOCHG to LINK, FILE, etc..)
  * Manage JobFiles (Deleted compte pour 1 ?)
 
