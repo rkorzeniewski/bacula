@@ -55,6 +55,8 @@ MTX=@MTX@
 #  Note Debian has a different mt than the standard Linux version. 
 #    When no tape is in the drive it waits 2 minutes.  
 #    When a tape is in the drive, it prints user unfriendly output.
+#  Note, with Ubuntu Gusty (8.04), there are two versions of mt,
+#    so we attempt to figure out which one.
 #
 
 OS=`uname`
@@ -66,10 +68,12 @@ case ${OS} in
     ready="Current Driver State: at rest."
     ;;
   Linux)
-    if test -e /etc/debian_version ; then
-       ready="drive status"
-    else
-       ready="ONLINE"
+    ready="ONLINE"
+    if test -f /etc/debian_version ; then
+       mt --version|grep "mt-st"	  
+       if test $? -eq 1 ; then
+	  ready="drive status"
+       fi
     fi
   ;;
 esac
@@ -197,10 +201,6 @@ case $cmd in
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       cat ${TMPFILE} | grep " Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
-
-# If you want/can use IMPORT/EXPORT slots as normal slots within bacula
-# replace the previous line by this one
-# sed "s/ IMPORT\/EXPORT//" "${TMPFILE}" | grep " Storage Element [0-9]*:.*Full" | awk "{print \$3 \$4}" | sed "s/Full *\(:VolumeTag=\)*//"
 #
 # If you have a VXA PacketLoader and the above does not work, try
 #  turning it off and enabling the following line.

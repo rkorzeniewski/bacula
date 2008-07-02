@@ -30,6 +30,14 @@ vtape driver
 
 
 General:
+02Jul08
+kes  Fix mtx-changer to detect both versions of Ubuntu (Debian)
+     mt. This fixes bug #1116.
+kes  Add const in python files to reduce compiler warnings.
+     This may have to be backed out because of later compiler
+     strict checking.
+kes  Fix failure of 2drive-concurrent-test. Always read label;
+     clear_unload() only after drive is defined in acquire_for_read().
 27Jun08
 kes  Generally clean up the manual tape loading code. The main
      conceptial change is that when a volume is marked to be unloaded,

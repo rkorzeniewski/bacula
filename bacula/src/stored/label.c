@@ -85,6 +85,7 @@ int read_dev_volume_label(DCR *dcr)
          return VOL_IO_ERROR;
       }
    }
+#ifdef xxx
    if (dev->is_labeled()) {              /* did we already read label? */
       /* Compare Volume Names allow special wild card */
       if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolumeName, VolName) != 0) {
@@ -104,6 +105,7 @@ int read_dev_volume_label(DCR *dcr)
       Dmsg0(130, "Leave read_volume_label() VOL_OK\n");
       return VOL_OK;       /* label already read */
    }
+#endif
 
    dev->clear_labeled();
    dev->clear_append();

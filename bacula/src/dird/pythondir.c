@@ -67,7 +67,7 @@ PyMethodDef JobMethods[] = {
 
 struct s_vars {
    const char *name;
-   char *fmt;
+   const char *fmt;
 };
 
 /* Read-only variables */
