@@ -1,0 +1,344 @@
+Index: src/dird/next_vol.c
+===================================================================
+--- src/dird/next_vol.c	(revision 7286)
++++ src/dird/next_vol.c	(working copy)
+@@ -94,28 +94,30 @@
+                 */
+                if (prune) {
+                   Dmsg0(150, "Call prune_volumes\n");
+-                  prune_volumes(jcr, InChanger, mr);
++                  ok = prune_volumes(jcr, InChanger, mr);
+                }
+-               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
+-               if (!ok && create) {
+-                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
+-                        ok, index, InChanger, mr->VolStatus);
+-                  /*
+-                   * 5. Try pulling a volume from the Scratch pool
+-                   */ 
+-                  ok = get_scratch_volume(jcr, InChanger, mr);
+-               }
+-               /*
+-                * If we are using an Autochanger and have not found
+-                * a volume, retry looking for any volume. 
+-                */
+-               if (InChanger) {
+-                  InChanger = false;
+-                  if (!ok) {
+-                     continue;           /* retry again accepting any volume */
+-                  }
+-               }
+-            }
++	       if (!ok) {
++		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
++		  if (!ok && create) {
++		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
++			   ok, index, InChanger, mr->VolStatus);
++		     /*
++		      * 5. Try pulling a volume from the Scratch pool
++		      */ 
++		     ok = get_scratch_volume(jcr, InChanger, mr);
++		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
++			   ok, index, InChanger, mr->VolStatus);
++		  }
++		  /*
++		   * If we are using an Autochanger and have not found
++		   * a volume, retry looking for any volume. 
++		   */
++		  if (!ok && InChanger) {
++		     InChanger = false;
++		     continue;           /* retry again accepting any volume */
++		  }
++	       }
++	    }
+          }
+ 
+ 
+Index: src/dird/autoprune.c
+===================================================================
+--- src/dird/autoprune.c	(revision 7286)
++++ src/dird/autoprune.c	(working copy)
+@@ -176,6 +176,17 @@
+             prune_list.num_ids = 0;             /* reset count */
+          }
+          ok = is_volume_purged(ua, &lmr);
++
++	 /* 
++	  * Check if this volume is available (InChanger + StorageId) 
++	  * If not, just skip this volume and try the next one
++	  */
++	 if (ok && InChanger) {
++	    if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
++	       ok = false;		/* skip this volume, ie not loadable */
++	    }
++	 }
++
+          /*
+           * If purged and not moved to another Pool, 
+           *   then we stop pruning and take this volume.
+Index: src/filed/accurate.c
+===================================================================
+--- src/filed/accurate.c	(revision 7286)
++++ src/filed/accurate.c	(working copy)
+@@ -36,7 +36,7 @@
+ static int dbglvl=200;
+ 
+ typedef struct PrivateCurFile {
+-#ifndef USE_TCADB
++#ifdef USE_HTABLE
+    hlink link;
+ #endif
+    char *fname;			/* not stored with tchdb mode */
+@@ -45,9 +45,9 @@
+    bool seen;
+ } CurFile;
+ 
++
+ #ifdef USE_TCADB
+-static void realfree(void *p);	/* used by tokyo code */
+-
++static void realfree(void *p);	/* used by tokyo/db code */
+ /*
+  * Update hash element seen=1
+  */
+@@ -190,10 +190,150 @@
+    return true;
+ }
+ 
+-#else  /* HTABLE mode */
++#endif	/* USE_TCADB */
++#ifdef USE_DB
+ 
++/*
++ * Update hash element seen=1
++ */
+ static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
+ {
++   bool ret=true;
++   DBT dbkey, dbdata;
++
++   elt->seen = 1;
++
++   dbkey.data = elt->fname;
++   dbkey.size = (u_int32_t)strlen(elt->fname)+1;
++   dbdata.data = elt;
++   dbdata.size = sizeof(CurFile);
++   if ((ret = jcr->file_list->put(jcr->file_list, NULL, &dbkey, &dbdata, 0))) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%i\n"), ret);
++      return 0;
++   }
++
++   return 1;
++}
++
++static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
++{
++   ret->seen = 0;
++   DBT dbkey, dbdata;
++   /* Zero out the DBTs before using them. */
++   memset(&dbkey, 0, sizeof(DBT));
++   memset(&dbdata, 0, sizeof(DBT));
++
++   dbkey.data = fname;
++   dbkey.ulen = strlen(fname)+1;
++   
++   dbdata.data = ret;
++   dbdata.ulen = sizeof(CurFile);
++   dbdata.flags = DB_DBT_USERMEM;
++
++   if (jcr->file_list->get(jcr->file_list, NULL, &dbkey, &dbdata, 0) == 0) {
++      return 1;
++   } else {
++      return 0;
++   }
++}
++
++/* Create tokyo dbm hash file 
++ * If something goes wrong, we cancel accurate mode.
++ */
++static bool accurate_init(JCR *jcr, int nbfile)
++{
++   int ret;
++
++   if ((ret = db_create(&jcr->file_list, NULL, 0)) != 0) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk\n"));
++      return 0;
++   }
++
++   jcr->file_list->set_errfile(jcr->file_list, stderr);
++   jcr->file_list->set_errpfx(jcr->file_list, "hash");
++
++   if ((ret = jcr->file_list->set_cachesize(jcr->file_list, 0, 32 * 1024 * 1024, 0)) != 0) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size\n"));
++   }
++
++   jcr->hash_name  = get_pool_memory(PM_MESSAGE);
++   make_unique_filename(&jcr->hash_name, jcr->JobId, "accurate");
++
++   if ((ret = jcr->file_list->open(jcr->file_list,
++				   NULL, jcr->hash_name, NULL, DB_BTREE, DB_CREATE, 0600)) != 0) {
++      jcr->file_list->close(jcr->file_list, DB_NOSYNC);
++      jcr->file_list=NULL;
++      free_pool_memory(jcr->hash_name);
++      jcr->hash_name = NULL;
++      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size\n"));
++      return 0;
++   }
++
++   return jcr->file_list != NULL;
++}
++
++/* This function is called at the end of backup
++ * We walk over all hash disk element, and we check
++ * for elt.seen.
++ */
++bool accurate_send_deleted_list(JCR *jcr)
++{
++   CurFile elt;
++   FF_PKT *ff_pkt;
++   int stream = STREAM_UNIX_ATTRIBUTES;
++   DBC *cursorp=NULL;
++   DBT dbkey, dbdata;
++   /* Zero out the DBTs before using them. */
++   memset(&dbkey, 0, sizeof(DBT));
++   memset(&dbdata, 0, sizeof(DBT));
++   dbdata.data = &elt;
++   dbdata.ulen = sizeof(CurFile);
++   dbdata.flags = DB_DBT_USERMEM;
++
++   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
++      goto bail_out;
++   }
++
++   if (jcr->file_list == NULL) {
++      goto bail_out;
++   }
++
++   ff_pkt = init_find_files();
++   ff_pkt->type = FT_DELETED;
++
++   /* traverse records */
++   jcr->file_list->cursor(jcr->file_list, NULL, &cursorp, 0); 
++
++   while(cursorp->c_get(cursorp, &dbkey, &dbdata, DB_NEXT) == 0) {
++      if (!elt.seen) {	/* already seen */
++	 ff_pkt->fname = (char *) dbkey.data;
++	 ff_pkt->statp.st_mtime = elt.mtime;
++	 ff_pkt->statp.st_ctime = elt.ctime;
++	 encode_and_send_attributes(jcr, ff_pkt, stream);
++      }
++   }
++   cursorp->c_close(cursorp);
++
++   term_find_files(ff_pkt);
++bail_out:
++
++   if (jcr->file_list) {
++      jcr->file_list->close(jcr->file_list, DB_NOSYNC);
++      if (!bstrcmp(jcr->hash_name, "*")) {
++	 unlink(jcr->hash_name);
++      }
++      free_pool_memory(jcr->hash_name);
++      jcr->hash_name = NULL;
++      jcr->file_list = NULL;
++   }
++   return true;
++}
++
++#endif	/* USE_DB */
++#ifdef USE_HTABLE
++
++static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
++{
+    CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
+    temp->seen = 1;		/* records are in memory */
+    return true;
+@@ -286,7 +426,22 @@
+       Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"));
+       ret = false;
+    }
+-#else  /* HTABLE */
++#endif
++#ifdef USE_DB
++   DBT dbkey, dbdata;
++   memset(&dbkey, 0, sizeof(DBT));
++   memset(&dbdata, 0, sizeof(DBT));
++   dbkey.data = elt.fname;
++   dbkey.size = (u_int32_t)strlen(elt.fname)+1;
++   dbdata.data = &elt;
++   dbdata.size = sizeof(CurFile);
++   if ((ret = jcr->file_list->put(jcr->file_list, NULL, &dbkey, &dbdata, 0))) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%i\n"), ret);
++      return false;
++   }
++
++#endif
++#ifdef USE_HTABLE
+    CurFile *item;
+    /* we store CurFile, fname and ctime/mtime in the same chunk */
+    item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
+Index: src/filed/filed.h
+===================================================================
+--- src/filed/filed.h	(revision 7286)
++++ src/filed/filed.h	(working copy)
+@@ -37,7 +37,11 @@
+ #define FILE_DAEMON 1
+ #ifdef USE_TCADB		      /* hash disk based */
+ # include <tcadb.h>
+-#else
++#endif
++#ifdef  USE_DB
++# include <db.h>
++#endif
++#ifdef USE_HTABLE
+ # include "lib/htable.h"
+ #endif
+ #include "filed_conf.h"
+Index: src/baconfig.h
+===================================================================
+--- src/baconfig.h	(revision 7286)
++++ src/baconfig.h	(working copy)
+@@ -113,6 +113,12 @@
+ 
+ #endif /* HAVE_WIN32 */
+ 
++/* Select db backend for accurate mode */
++#ifndef USE_TCADB
++# ifndef USE_DB
++#  define USE_HTABLE
++# endif
++#endif
+ 
+ #ifdef ENABLE_NLS
+    #include <libintl.h>
+Index: src/win32/build-depkgs-mingw32
+===================================================================
+--- src/win32/build-depkgs-mingw32	(revision 7286)
++++ src/win32/build-depkgs-mingw32	(working copy)
+@@ -519,7 +519,7 @@
+    process_cmd_utils
+    process_mkisofs
+    process_dvd_rw_tools
+-   process_qt4
++#   process_qt4
+ else
+    for dependency in "$@"
+    do
+Index: src/jcr.h
+===================================================================
+--- src/jcr.h	(revision 7286)
++++ src/jcr.h	(working copy)
+@@ -344,7 +344,12 @@
+ #ifdef USE_TCADB
+    TCADB *file_list;                  /* Previous file list (accurate mode) */
+    POOLMEM *hash_name;
+-#else
++#endif
++#ifdef USE_DB
++   DB *file_list;
++   POOLMEM *hash_name;
++#endif
++#ifdef USE_HTABLE
+    htable *file_list;                 /* Previous file list (accurate mode) */
+ #endif
+ #endif /* FILE_DAEMON */
