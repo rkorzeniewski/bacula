@@ -99,7 +99,7 @@ Index: src/filed/accurate.c
 +
 +   if ((ret = jcr->file_list->open(jcr->file_list,
 +				   NULL, jcr->hash_name, NULL, 
-+				   DB_BTREE, DB_CREATE | DB_PRIVATE, 0600)) != 0)
++				   DB_BTREE, DB_CREATE, 0600)) != 0)
 +   {
 +      jcr->file_list->close(jcr->file_list, DB_NOSYNC);
 +      jcr->file_list=NULL;
