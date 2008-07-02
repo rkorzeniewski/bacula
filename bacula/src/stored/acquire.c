@@ -70,7 +70,6 @@ bool acquire_device_for_read(DCR *dcr)
          dev->num_writers, jcr->JobId);
       goto get_out;
    }
-   dev->clear_unload();
 
    /* Find next Volume, if any */
    vol = jcr->VolList;
@@ -172,6 +171,8 @@ bool acquire_device_for_read(DCR *dcr)
          goto get_out;
       }
    }
+
+   dev->clear_unload();
 
    if (reserve_volume(dcr, dcr->VolumeName) == NULL) {
       Dmsg2(100, "Could not reserve volume %s on %s\n", dcr->VolumeName,
