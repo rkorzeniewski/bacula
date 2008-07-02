@@ -1,85 +1,7 @@
-Index: src/dird/next_vol.c
-===================================================================
---- src/dird/next_vol.c	(revision 7286)
-+++ src/dird/next_vol.c	(working copy)
-@@ -94,28 +94,30 @@
-                 */
-                if (prune) {
-                   Dmsg0(150, "Call prune_volumes\n");
--                  prune_volumes(jcr, InChanger, mr);
-+                  ok = prune_volumes(jcr, InChanger, mr);
-                }
--               ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
--               if (!ok && create) {
--                  Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
--                        ok, index, InChanger, mr->VolStatus);
--                  /*
--                   * 5. Try pulling a volume from the Scratch pool
--                   */ 
--                  ok = get_scratch_volume(jcr, InChanger, mr);
--               }
--               /*
--                * If we are using an Autochanger and have not found
--                * a volume, retry looking for any volume. 
--                */
--               if (InChanger) {
--                  InChanger = false;
--                  if (!ok) {
--                     continue;           /* retry again accepting any volume */
--                  }
--               }
--            }
-+	       if (!ok) {
-+		  ok = recycle_oldest_purged_volume(jcr, InChanger, mr);
-+		  if (!ok && create) {
-+		     Dmsg4(050, "after prune volumes_vol ok=%d index=%d InChanger=%d Vstat=%s\n",
-+			   ok, index, InChanger, mr->VolStatus);
-+		     /*
-+		      * 5. Try pulling a volume from the Scratch pool
-+		      */ 
-+		     ok = get_scratch_volume(jcr, InChanger, mr);
-+		     Dmsg4(050, "after get scratch volume ok=%d index=%d InChanger=%d Vstat=%s\n",
-+			   ok, index, InChanger, mr->VolStatus);
-+		  }
-+		  /*
-+		   * If we are using an Autochanger and have not found
-+		   * a volume, retry looking for any volume. 
-+		   */
-+		  if (!ok && InChanger) {
-+		     InChanger = false;
-+		     continue;           /* retry again accepting any volume */
-+		  }
-+	       }
-+	    }
-          }
- 
- 
-Index: src/dird/autoprune.c
-===================================================================
---- src/dird/autoprune.c	(revision 7286)
-+++ src/dird/autoprune.c	(working copy)
-@@ -176,6 +176,17 @@
-             prune_list.num_ids = 0;             /* reset count */
-          }
-          ok = is_volume_purged(ua, &lmr);
-+
-+	 /* 
-+	  * Check if this volume is available (InChanger + StorageId) 
-+	  * If not, just skip this volume and try the next one
-+	  */
-+	 if (ok && InChanger) {
-+	    if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
-+	       ok = false;		/* skip this volume, ie not loadable */
-+	    }
-+	 }
-+
-          /*
-           * If purged and not moved to another Pool, 
-           *   then we stop pruning and take this volume.
 Index: src/filed/accurate.c
 ===================================================================
---- src/filed/accurate.c	(revision 7286)
-+++ src/filed/accurate.c	(working copy)
+--- src/filed/accurate.c	(révision 7288)
++++ src/filed/accurate.c	(copie de travail)
 @@ -36,7 +36,7 @@
  static int dbglvl=200;
  
@@ -101,7 +23,7 @@ Index: src/filed/accurate.c
  /*
   * Update hash element seen=1
   */
-@@ -190,10 +190,150 @@
+@@ -190,10 +190,152 @@
     return true;
  }
  
@@ -120,37 +42,37 @@ Index: src/filed/accurate.c
 +   elt->seen = 1;
 +
 +   dbkey.data = elt->fname;
-+   dbkey.size = (u_int32_t)strlen(elt->fname)+1;
++   dbkey.size = strlen(elt->fname)+1;
 +   dbdata.data = elt;
 +   dbdata.size = sizeof(CurFile);
 +   if ((ret = jcr->file_list->put(jcr->file_list, NULL, &dbkey, &dbdata, 0))) {
 +      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%i\n"), ret);
 +      return 0;
 +   }
-+
 +   return 1;
 +}
 +
-+static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
++static bool accurate_lookup(JCR *jcr, char *fname, CurFile *elt)
 +{
-+   ret->seen = 0;
++   int ret=false;
++   elt->seen = 0;
 +   DBT dbkey, dbdata;
 +   /* Zero out the DBTs before using them. */
 +   memset(&dbkey, 0, sizeof(DBT));
 +   memset(&dbdata, 0, sizeof(DBT));
 +
 +   dbkey.data = fname;
-+   dbkey.ulen = strlen(fname)+1;
++   dbkey.size = strlen(fname)+1;
 +   
-+   dbdata.data = ret;
++   dbdata.data = elt;
 +   dbdata.ulen = sizeof(CurFile);
 +   dbdata.flags = DB_DBT_USERMEM;
 +
 +   if (jcr->file_list->get(jcr->file_list, NULL, &dbkey, &dbdata, 0) == 0) {
-+      return 1;
-+   } else {
-+      return 0;
++      ret=true;
 +   }
++   elt->fname = fname;
++   return ret;
 +}
 +
 +/* Create tokyo dbm hash file 
@@ -161,7 +83,7 @@ Index: src/filed/accurate.c
 +   int ret;
 +
 +   if ((ret = db_create(&jcr->file_list, NULL, 0)) != 0) {
-+      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk\n"));
++      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%i\n"), ret);
 +      return 0;
 +   }
 +
@@ -169,19 +91,21 @@ Index: src/filed/accurate.c
 +   jcr->file_list->set_errpfx(jcr->file_list, "hash");
 +
 +   if ((ret = jcr->file_list->set_cachesize(jcr->file_list, 0, 32 * 1024 * 1024, 0)) != 0) {
-+      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size\n"));
++      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size ERR=%i\n"), ret);
 +   }
 +
 +   jcr->hash_name  = get_pool_memory(PM_MESSAGE);
 +   make_unique_filename(&jcr->hash_name, jcr->JobId, "accurate");
 +
 +   if ((ret = jcr->file_list->open(jcr->file_list,
-+				   NULL, jcr->hash_name, NULL, DB_BTREE, DB_CREATE, 0600)) != 0) {
++				   NULL, jcr->hash_name, NULL, 
++				   DB_BTREE, DB_CREATE | DB_PRIVATE, 0600)) != 0)
++   {
 +      jcr->file_list->close(jcr->file_list, DB_NOSYNC);
 +      jcr->file_list=NULL;
 +      free_pool_memory(jcr->hash_name);
 +      jcr->hash_name = NULL;
-+      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size\n"));
++      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size ERR=%i\n"), ret);
 +      return 0;
 +   }
 +
@@ -253,7 +177,7 @@ Index: src/filed/accurate.c
     CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
     temp->seen = 1;		/* records are in memory */
     return true;
-@@ -286,7 +426,22 @@
+@@ -286,7 +428,21 @@
        Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"));
        ret = false;
     }
@@ -263,24 +187,32 @@ Index: src/filed/accurate.c
 +   DBT dbkey, dbdata;
 +   memset(&dbkey, 0, sizeof(DBT));
 +   memset(&dbdata, 0, sizeof(DBT));
-+   dbkey.data = elt.fname;
-+   dbkey.size = (u_int32_t)strlen(elt.fname)+1;
++   dbkey.data = fname;
++   dbkey.size = strlen(fname)+1;
 +   dbdata.data = &elt;
 +   dbdata.size = sizeof(CurFile);
 +   if ((ret = jcr->file_list->put(jcr->file_list, NULL, &dbkey, &dbdata, 0))) {
 +      Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%i\n"), ret);
 +      return false;
 +   }
-+
 +#endif
 +#ifdef USE_HTABLE
     CurFile *item;
     /* we store CurFile, fname and ctime/mtime in the same chunk */
     item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
+@@ -296,7 +452,7 @@
+    jcr->file_list->insert(item->fname, item); 
+ #endif
+ 
+-// Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
++   //Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
+    return ret;
+ }
+ 
 Index: src/filed/filed.h
 ===================================================================
---- src/filed/filed.h	(revision 7286)
-+++ src/filed/filed.h	(working copy)
+--- src/filed/filed.h	(révision 7288)
++++ src/filed/filed.h	(copie de travail)
 @@ -37,7 +37,11 @@
  #define FILE_DAEMON 1
  #ifdef USE_TCADB		      /* hash disk based */
@@ -296,8 +228,8 @@ Index: src/filed/filed.h
  #include "filed_conf.h"
 Index: src/baconfig.h
 ===================================================================
---- src/baconfig.h	(revision 7286)
-+++ src/baconfig.h	(working copy)
+--- src/baconfig.h	(révision 7288)
++++ src/baconfig.h	(copie de travail)
 @@ -113,6 +113,12 @@
  
  #endif /* HAVE_WIN32 */
@@ -313,8 +245,8 @@ Index: src/baconfig.h
     #include <libintl.h>
 Index: src/win32/build-depkgs-mingw32
 ===================================================================
---- src/win32/build-depkgs-mingw32	(revision 7286)
-+++ src/win32/build-depkgs-mingw32	(working copy)
+--- src/win32/build-depkgs-mingw32	(révision 7288)
++++ src/win32/build-depkgs-mingw32	(copie de travail)
 @@ -519,7 +519,7 @@
     process_cmd_utils
     process_mkisofs
@@ -326,8 +258,8 @@ Index: src/win32/build-depkgs-mingw32
     do
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(revision 7286)
-+++ src/jcr.h	(working copy)
+--- src/jcr.h	(révision 7288)
++++ src/jcr.h	(copie de travail)
 @@ -344,7 +344,12 @@
  #ifdef USE_TCADB
     TCADB *file_list;                  /* Previous file list (accurate mode) */
