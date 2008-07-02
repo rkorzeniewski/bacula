@@ -70,7 +70,7 @@ case ${OS} in
   Linux)
     ready="ONLINE"
     if test -f /etc/debian_version ; then
-       mt --version|grep "mt-st"	  
+       mt --version|grep "mt-st" >/dev/null 2>&1
        if test $? -eq 1 ; then
 	  ready="drive status"
        fi
