@@ -4974,7 +4974,8 @@ sub check_job
 	    } else {
 		push @{$self->{tmp}}, {date => $evt, level => $level,
 				       type => 'Backup', name => $job,
-				       pool => $pool, volume => $pool};
+				       pool => $pool, volume => $pool,
+		                       client => $client};
 	    }
 	    $end = $evt;
 	}
@@ -5023,6 +5024,7 @@ sub display_missing_job
 	id => $cur_id++,
 	title => "Missing Job (since $arg->{begin} to $arg->{end})",
 	list => $self->{tmp},
+	wiki_url => $self->{info}->{wiki_url},
     }, "scheduled_job.tpl");
 
     delete $self->{tmp};

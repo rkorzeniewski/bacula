@@ -9,6 +9,9 @@
        <img src='/bweb/R.png' alt=''>  __Run now__ </button>
       <button type="submit" class="bp" name='action' title='__Disable__' value='disable_job'>
        <img src='/bweb/inflag0.png' alt=''> __Disable__ </button>
+<TMPL_IF wiki_url>
+       <a id='wiki' href="<TMPL_VAR wiki_url>" title='__View doc__'><img src='/bweb/doc.png' alt='__View doc__'></a>__View doc__
+</TMPL_IF>
      <input type='hidden' name='pool' value=''>
      <input type='hidden' name='level' value=''>
      <input type='hidden' name='media' value=''>
@@ -28,6 +31,8 @@ var header = new Array("__Scheduled__",
 var data = new Array();
 var chkbox;
 
+var wiki_url <TMPL_IF wiki_url>='<TMPL_VAR wiki_url>'</TMPL_IF>;
+
 <TMPL_LOOP list>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
@@ -37,6 +42,9 @@ chkbox.onclick = function() {
  document.form1.level.value = '<TMPL_VAR level>';
  document.form1.pool.value = '<TMPL_VAR pool>';
  document.form1.media.value = '<TMPL_VAR volume>';
+ if (wiki_url) {
+   document.getElementById('wiki').href=wiki_url + '<TMPL_VAR client>';
+ }
 } ;
 
 data.push( new Array(
