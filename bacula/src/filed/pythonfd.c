@@ -109,21 +109,21 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    }
    switch (i) {
    case 0:                            /* FD's name */
-      return Py_BuildValue(getvars[i].fmt, my_name);
+      return Py_BuildValue((char *)getvars[i].fmt, my_name);
    case 1:                            /* level */
-      return Py_BuildValue(getvars[i].fmt, job_level_to_str(jcr->JobLevel));
+      return Py_BuildValue((char *)getvars[i].fmt, job_level_to_str(jcr->JobLevel));
    case 2:                            /* type */
-      return Py_BuildValue(getvars[i].fmt, job_type_to_str(jcr->JobType));
+      return Py_BuildValue((char *)getvars[i].fmt, job_type_to_str(jcr->JobType));
    case 3:                            /* JobId */
-      return Py_BuildValue(getvars[i].fmt, jcr->JobId);
+      return Py_BuildValue((char *)getvars[i].fmt, jcr->JobId);
    case 4:                            /* Client */
-      return Py_BuildValue(getvars[i].fmt, jcr->client_name);
+      return Py_BuildValue((char *)getvars[i].fmt, jcr->client_name);
    case 5:                            /* JobName */
-      return Py_BuildValue(getvars[i].fmt, jcr->Job);
+      return Py_BuildValue((char *)getvars[i].fmt, jcr->Job);
    case 6:                            /* JobStatus */
       buf[1] = 0;
       buf[0] = jcr->JobStatus;
-      return Py_BuildValue(getvars[i].fmt, buf);
+      return Py_BuildValue((char *)getvars[i].fmt, buf);
    }
    bsnprintf(errmsg, sizeof(errmsg), _("Attribute %s not found."), attrname);
 bail_out:
@@ -166,7 +166,7 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
    }
    /* Get argument value ***FIXME*** handle other formats */
    if (setvars[i].fmt != NULL) {
-      if (!PyArg_Parse(value, setvars[i].fmt, &strval)) {
+      if (!PyArg_Parse(value, (char *)setvars[i].fmt, &strval)) {
          PyErr_SetString(PyExc_TypeError, _("Read-only attribute"));
          return -1;
       }
@@ -245,7 +245,7 @@ int generate_job_event(JCR *jcr, const char *event)
    }
 
    bstrncpy(jcr->event, event, sizeof(jcr->event));
-   result = PyObject_CallFunction(method, "O", Job);
+   result = PyObject_CallFunction(method, (char *)"O", Job);
    jcr->event[0] = 0;             /* no event in progress */
    if (result == NULL) {
       if (PyErr_Occurred()) {

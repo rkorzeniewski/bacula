@@ -232,6 +232,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
    PyObject *pJob;
    int stat = -1;
    PyObject *result = NULL;
+   char *obj_fmt = (char *)"O";
 
    if (!StartUp_module) {
       Dmsg0(100, "No startup module.\n");
@@ -254,7 +255,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
       }
       ((JobObject *)pJob)->jcr = jcr;
       bstrncpy(jcr->event, event, sizeof(jcr->event));
-      result = PyObject_CallFunction(JobStart_method, "O", pJob);
+      result = PyObject_CallFunction(JobStart_method, obj_fmt, pJob);
       jcr->event[0] = 0;             /* no event in progress */
       if (result == NULL) {
          JobStart_method = NULL;
@@ -277,7 +278,7 @@ int generate_daemon_event(JCR *jcr, const char *event)
       }
       bstrncpy(jcr->event, event, sizeof(jcr->event));
       Dmsg1(100, "Call daemon event=%s\n", event);
-      result = PyObject_CallFunction(JobEnd_method, "O", jcr->Python_job);
+      result = PyObject_CallFunction(JobEnd_method, obj_fmt, jcr->Python_job);
       jcr->event[0] = 0;             /* no event in progress */
       if (result == NULL) {
          if (PyErr_Occurred()) {

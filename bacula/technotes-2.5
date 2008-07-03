@@ -30,6 +30,12 @@ vtape driver
 
 
 General:
+03Jul08
+kes  Fix python compiler string warning. Note, IMO the GNU C++ 
+     compiler guys have made a *very* bad change to their compiler.
+     They now force all strings to be 'const' unless you explicitly
+     cast them, which is extremely ugly and ruins nice code as well
+     as creates a lot of useless work.
 02Jul08
 kes  Fix mtx-changer to detect both versions of Ubuntu (Debian)
      mt. This fixes bug #1116.

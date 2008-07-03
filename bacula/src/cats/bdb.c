@@ -98,7 +98,7 @@ dbid_list::~dbid_list()
    free(DBId);
 }
 
-static POOLMEM *make_filename(B_DB *mdb, char *name)
+static POOLMEM *make_filename(B_DB *mdb, const char *name)
 {
    char sep;
    POOLMEM *dbf;
