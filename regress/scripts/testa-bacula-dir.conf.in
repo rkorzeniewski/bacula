@@ -117,6 +117,7 @@ Messages {
   console = all, !skipped, !terminate
 
   append = "@working_dir@/log" = all, !skipped
+  catalog = all, !skipped
 }
 
 Messages {
@@ -124,6 +125,7 @@ Messages {
   mailcommand = "@sbindir@/bsmtp -h localhost -f \"\(Bacula regression\) %r\" -s \"Regression: %t %e of %c %l\" %r"
   console = all, !skipped, !terminate, !restored
   append = "@working_dir@/log" = all, !skipped
+  catalog = all, !skipped
 }
 
     

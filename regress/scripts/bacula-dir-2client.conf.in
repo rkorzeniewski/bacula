@@ -251,6 +251,7 @@ Messages {
 #          also keep all your messages if the scroll off the console.
 #
   append = "@working_dir@/log" = all, !skipped
+  catalog = all, !skipped
 }
 
 #
@@ -261,6 +262,7 @@ Messages {
 # mail = @job_email@ = all, !skipped            
   console = all, !skipped, !saved
   append = "@working_dir@/log" = all, !skipped
+  catalog = all, !skipped
 }
 
     

@@ -130,6 +130,7 @@ Catalog {
 Messages {
   Name = Standard
   console = all, !skipped, saved
+  catalog = all, !skipped
 }
 
 # Default pool definition
