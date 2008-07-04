@@ -59,6 +59,17 @@ Job {
   ClientRunAfterJob = "/bin/echo ClientRunAfterJob"
 }
 
+Job {
+  Name = "RUN_SUBST"
+  JobDefs = DefaultJob
+  FileSet = FS_TESTJOB
+  RunBeforeJob = "/bin/echo client_name=%c (@hostname@-fd) dir_name=%d (@hostname@-dir) jobid=%i job=%n type=%t"
+  ClientRunBeforeJob = "/bin/echo client_name=%c (@hostname@-fd) dir_name=%d (@hostname@-dir) jobid=%i job=%n type=%t"
+  ClientRunAfterJob = "/bin/echo client_name=%c (@hostname@-fd) dir_name=%d (@hostname@-dir) jobid=%i job=%n type=%t"
+  Run After Job = "/bin/echo client_name=%c (@hostname@-fd) dir_name=%d (@hostname@-dir) jobid=%i job=%n type=%t vol=%v status=%e"
+}
+
+
 #After job are after before job
 Job {
   Name = "RUN_DIR_FAILED_BUG"
@@ -235,6 +246,7 @@ Catalog {
 Messages {
   Name = Standard
   console = all, !skipped, !saved
+  catalog = all, !skipped
 }
 
 # Default pool definition

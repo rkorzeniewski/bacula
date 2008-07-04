@@ -186,6 +186,7 @@ Messages {
 #          also keep all your messages if the scroll off the console.
 #
   append = "@working_dir@/log" = all, !skipped
+  catalog = all, !skipped
 }
 
 #
