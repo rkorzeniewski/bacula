@@ -624,7 +624,8 @@ int DCR::try_autolabel(bool opened)
       /* Create a new Volume label and write it to the device */
       if (!write_new_volume_label_to_dev(dcr, VolumeName,
              pool_name, false, /* no relabel */ false /* defer DVD label */)) {
-         Dmsg0(150, "!write_vol_label\n");
+         Dmsg2(150, "write_vol_label failed. vol=%s, pool=%s\n",
+           VolumeName, pool_name);
          if (opened) { 
             mark_volume_in_error();
          }
