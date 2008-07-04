@@ -9,12 +9,14 @@
        <img src='/bweb/R.png' alt=''>  __Run now__ </button>
       <button type="submit" class="bp" name='action' title='__Disable__' value='disable_job'>
        <img src='/bweb/inflag0.png' alt=''> __Disable__ </button>
+       <button type="submit" onsubmit='document.form1.level.value="all"' class="bp" name='action' value='job' title='__view__ <TMPL_VAR Client> __jobs__'><img src='/bweb/zoom.png'>__View jobs__</button>
 <TMPL_IF wiki_url>
        <a id='wiki' href="<TMPL_VAR wiki_url>" title='__View doc__'><img src='/bweb/doc.png' alt='__View doc__'></a>__View doc__
 </TMPL_IF>
      <input type='hidden' name='pool' value=''>
      <input type='hidden' name='level' value=''>
      <input type='hidden' name='media' value=''>
+     <input type='hidden' name='client' value=''>
     </form>
  </div>
 
@@ -42,6 +44,7 @@ chkbox.onclick = function() {
  document.form1.level.value = '<TMPL_VAR level>';
  document.form1.pool.value = '<TMPL_VAR pool>';
  document.form1.media.value = '<TMPL_VAR volume>';
+ document.form1.client.value = '<TMPL_VAR client>';
  if (wiki_url) {
    document.getElementById('wiki').href=wiki_url + '<TMPL_VAR client>';
  }
