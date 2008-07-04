@@ -324,6 +324,10 @@ bool write_new_volume_label_to_dev(DCR *dcr, const char *VolName,
 
    Dmsg0(150, "write_volume_label()\n");
    empty_block(dcr->block);
+   if (*VolName == 0) {
+      Pmsg0(0, "=== ERROR: write_new_volume_label_to_dev called with NULL VolName\n");
+      goto bail_out;
+   }
 
    if (relabel) {
       volume_unused(dcr);             /* mark current volume unused */
