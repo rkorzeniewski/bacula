@@ -104,6 +104,7 @@ AC_ARG_WITH(dbi,
      support_dbi=yes
      db_type=DBI
      DB_TYPE=dbi
+     uncomment_dbi=" "
 
   else
      AC_MSG_RESULT(no)
@@ -115,6 +116,7 @@ AC_SUBST(SQL_LFLAGS)
 AC_SUBST(SQL_INCLUDE)
 AC_SUBST(SQL_BINDIR)
 AC_SUBST(DBI_DBD_DRIVERDIR)  
+AC_SUBST(uncomment_dbi)
 
 ])
 

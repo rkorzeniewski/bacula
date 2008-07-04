@@ -1253,6 +1253,20 @@ AC_ARG_WITH(db_password,
 AC_SUBST(db_password)
 
 #
+# Pickup a database port
+#
+db_port=" "
+AC_ARG_WITH(db_port,
+    [  --with-db-port=DBPORT            specify a database port (default null)],
+    [
+        if test "x$withval" != "x" ; then
+	     db_port=$withval
+	fi
+    ]
+)
+AC_SUBST(db_port)
+
+#
 # Handle users and groups for each daemon
 #
 dir_user=
@@ -1405,8 +1419,13 @@ if test x$DB_TYPE = xdbi; then
        else
 	 support_batch_insert=yes
       fi])
-   fi  
+   fi
+else 
+# If dbi was not chosen, let the comment in file
+uncomment_dbi="#"  
 fi
+
+AC_SUBST(uncomment_dbi)
 
 if test $support_batch_insert = yes ; then
    AC_DEFINE(HAVE_BATCH_FILE_INSERT, 1, [Set if DB batch insert code enabled])
@@ -2463,6 +2482,7 @@ Configuration on `date`:
   Statically Linked DIR:      ${support_static_dir}
   Statically Linked CONS:     ${support_static_cons}
   Database type:	      ${db_type}
+  Database port:          ${db_port}
   Database lib: 	      ${DB_LIBS}
   Database name:	      ${db_name}
   Database user:	      ${db_user}

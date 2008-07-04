@@ -30,7 +30,17 @@ vtape driver
 
 
 General:
+04Jul08
+kes  Add some SD debug code.
+kes  Do find_a_volume() each time an unload is done.
+kes  Apply Joao's DBI patch that adds easier configuration of DBI drivers,
+     and adds --with-db-port to ./configure.
+kes  Use Qmsg() in job.c watchdog callback.
 03Jul08
+kes  Release main control rwlock if ABORTing.
+kes  Make watchdog connect timeout queue messages rather than sending
+     directly to avoid lock conflicts with the real thread.
+kes  Add const char in dbd.c to avoid compiler warnings.
 kes  Fix python compiler string warning. Note, IMO the GNU C++ 
      compiler guys have made a *very* bad change to their compiler.
      They now force all strings to be 'const' unless you explicitly
