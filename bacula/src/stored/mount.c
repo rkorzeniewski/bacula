@@ -69,6 +69,7 @@ bool DCR::mount_next_write_volume()
 {
    int retry = 0;
    bool ask = false, recycle, autochanger;
+   bool do_find = true;
    int mode;
    DCR *dcr = this;
 
@@ -104,12 +105,17 @@ mount_next_vol:
    }
    recycle = false;
 
+   if (retry >= 2) {
+      do_find = false; 
+   }
+
    if (dev->must_unload()) {
       ask = true;                     /* ask operator to mount tape */
+      do_find = true;                 /* re-find a volume after unload */
    }
    do_swapping(true /*writing*/);
 
-   if (retry < 2 && !find_a_volume()) {
+   if (do_find && !find_a_volume()) {
       goto no_lock_bail_out;
    }
 
@@ -366,7 +372,7 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       VOLUME_CAT_INFO dcrVolCatInfo, devVolCatInfo;
       char saveVolumeName[MAX_NAME_LENGTH];
 
-      Dmsg1(150, "Vol NAME Error Name=%s\n", VolumeName);
+      Dmsg2(150, "Vol NAME Error Have=%s, want=%s\n", dev->VolHdr.VolumeName, VolumeName);
       if (dev->is_volume_to_unload()) {
          ask = true;
          goto check_next_volume;
@@ -486,7 +492,6 @@ check_read_volume:
 
 bool DCR::is_suitable_volume_mounted()
 {
-
    /* Volume mounted? */
    if (dev->VolHdr.VolumeName[0] == 0 || dev->swap_dev || dev->must_unload()) {
       return false;                      /* no */
@@ -698,7 +703,7 @@ void DCR::release_volume()
 
    if (WroteVol) {
       Jmsg0(jcr, M_ERROR, 0, _("Hey!!!!! WroteVol non-zero !!!!!\n"));
-      Dmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
+      Pmsg0(190, "Hey!!!!! WroteVol non-zero !!!!!\n");
    }
    /*
     * First erase all memory of the current volume
