@@ -501,17 +501,17 @@ static void job_monitor_watchdog(watchdog_t *self)
       /* check MaxWaitTime */
       if (job_check_maxwaittime(jcr)) {
          set_jcr_job_status(jcr, JS_Canceled);
-         Jmsg(jcr, M_FATAL, 0, _("Max wait time exceeded. Job canceled.\n"));
+         Qmsg(jcr, M_FATAL, 0, _("Max wait time exceeded. Job canceled.\n"));
          cancel = true;
       /* check MaxRunTime */
       } else if (job_check_maxruntime(jcr)) {
          set_jcr_job_status(jcr, JS_Canceled);
-         Jmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
+         Qmsg(jcr, M_FATAL, 0, _("Max run time exceeded. Job canceled.\n"));
          cancel = true;
       /* check MaxRunSchedTime */ 
       } else if (job_check_maxschedruntime(jcr)) {
          set_jcr_job_status(jcr, JS_Canceled);
-         Jmsg(jcr, M_FATAL, 0, _("Max sched run time exceeded. Job canceled.\n"));
+         Qmsg(jcr, M_FATAL, 0, _("Max sched run time exceeded. Job canceled.\n"));
          cancel = true;
       }
 

@@ -424,7 +424,7 @@ void free_jcr(JCR *jcr)
    lock_jcr_chain();
    jcr->dec_use_count();              /* decrement use count */
    if (jcr->use_count() < 0) {
-      Emsg2(M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
+      Jmsg2(jcr, M_ERROR, 0, _("JCR use_count=%d JobId=%d\n"),
          jcr->use_count(), jcr->JobId);
    }
    if (jcr->JobId > 0) {
@@ -484,8 +484,8 @@ void free_jcr(JCR *jcr)
       break;
    default:
       break;
-
    }
+
    if (jcr->daemon_free_jcr) {
       jcr->daemon_free_jcr(jcr);      /* call daemon free routine */
    }
@@ -825,7 +825,7 @@ bool init_jcr_subsystem(void)
 static void jcr_timeout_check(watchdog_t *self)
 {
    JCR *jcr;
-   BSOCK *fd;
+   BSOCK *bs;
    time_t timer_start;
 
    Dmsg0(dbglvl, "Start JCR timeout checks\n");
@@ -838,37 +838,37 @@ static void jcr_timeout_check(watchdog_t *self)
       if (jcr->JobId == 0) {
          continue;
       }
-      fd = jcr->store_bsock;
-      if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->set_timed_out();
-            Jmsg(jcr, M_ERROR, 0, _(
+      bs = jcr->store_bsock;
+      if (bs) {
+         timer_start = bs->timer_start;
+         if (timer_start && (watchdog_time - timer_start) > bs->timeout) {
+            bs->timer_start = 0;      /* turn off timer */
+            bs->set_timed_out();
+            Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Storage daemon.\n"),
                  watchdog_time - timer_start);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
          }
       }
-      fd = jcr->file_bsock;
-      if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->set_timed_out();
-            Jmsg(jcr, M_ERROR, 0, _(
+      bs = jcr->file_bsock;
+      if (bs) {
+         timer_start = bs->timer_start;
+         if (timer_start && (watchdog_time - timer_start) > bs->timeout) {
+            bs->timer_start = 0;      /* turn off timer */
+            bs->set_timed_out();
+            Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading File daemon.\n"),
                  watchdog_time - timer_start);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);
          }
       }
-      fd = jcr->dir_bsock;
-      if (fd) {
-         timer_start = fd->timer_start;
-         if (timer_start && (watchdog_time - timer_start) > fd->timeout) {
-            fd->timer_start = 0;      /* turn off timer */
-            fd->set_timed_out();
-            Jmsg(jcr, M_ERROR, 0, _(
+      bs = jcr->dir_bsock;
+      if (bs) {
+         timer_start = bs->timer_start;
+         if (timer_start && (watchdog_time - timer_start) > bs->timeout) {
+            bs->timer_start = 0;      /* turn off timer */
+            bs->set_timed_out();
+            Qmsg(jcr, M_ERROR, 0, _(
 "Watchdog sending kill after %d secs to thread stalled reading Director.\n"),
                  watchdog_time - timer_start);
             pthread_kill(jcr->my_thread_id, TIMEOUT_SIGNAL);

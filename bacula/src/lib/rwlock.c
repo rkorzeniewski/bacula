@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2001-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2001-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -294,11 +294,13 @@ int rwl_writeunlock(brwlock_t *rwl)
       return stat;
    }
    if (rwl->w_active <= 0) {
-      Emsg0(M_ABORT, 0, _("rwl_writeunlock called too many times.\n"));
+      pthread_mutex_unlock(&rwl->mutex);
+      Jmsg0(NULL, M_ABORT, 0, _("rwl_writeunlock called too many times.\n"));
    }
    rwl->w_active--;
    if (!pthread_equal(pthread_self(), rwl->writer_id)) {
-      Emsg0(M_ABORT, 0, _("rwl_writeunlock by non-owner.\n"));
+      pthread_mutex_unlock(&rwl->mutex);
+      Jmsg0(NULL, M_ABORT, 0, _("rwl_writeunlock by non-owner.\n"));
    }
    if (rwl->w_active > 0) {
       stat = 0;                       /* writers still active */
@@ -364,7 +366,7 @@ void *thread_routine(void *arg)
          status = rwl_writelock(&data[element].lock);
          if (status != 0) {
             berrno be;
-            Emsg1(M_ABORT, 0, _("Write lock failed. ERR=%s\n"), be.bstrerror(status));
+            Jmsg1(NULL, M_ABORT, 0, _("Write lock failed. ERR=%s\n"), be.bstrerror(status));
          }
          data[element].data = self->thread_num;
          data[element].writes++;
@@ -372,7 +374,7 @@ void *thread_routine(void *arg)
          status = rwl_writeunlock(&data[element].lock);
          if (status != 0) {
             berrno be;
-            Emsg1(M_ABORT, 0, _("Write unlock failed. ERR=%s\n"), be.bstrerror(status));
+            Jmsg1(NULL, M_ABORT, 0, _("Write unlock failed. ERR=%s\n"), be.bstrerror(status));
          }
       } else {
          /*
@@ -383,7 +385,7 @@ void *thread_routine(void *arg)
           status = rwl_readlock(&data[element].lock);
           if (status != 0) {
              berrno be;
-             Emsg1(M_ABORT, 0, _("Read lock failed. ERR=%s\n"), be.bstrerror(status));
+             Jmsg1(NULL, M_ABORT, 0, _("Read lock failed. ERR=%s\n"), be.bstrerror(status));
           }
           self->reads++;
           if (data[element].data == self->thread_num)
@@ -391,7 +393,7 @@ void *thread_routine(void *arg)
           status = rwl_readunlock(&data[element].lock);
           if (status != 0) {
              berrno be;
-             Emsg1(M_ABORT, 0, _("Read unlock failed. ERR=%s\n"), be.bstrerror(status));
+             Jmsg1(NULL, M_ABORT, 0, _("Read unlock failed. ERR=%s\n"), be.bstrerror(status));
           }
       }
       element++;
@@ -433,7 +435,7 @@ int main (int argc, char *argv[])
         status = rwl_init (&data[data_count].lock);
         if (status != 0) {
            berrno be;
-           Emsg1(M_ABORT, 0, _("Init rwlock failed. ERR=%s\n"), be.bstrerror(status));
+           Jmsg1(NULL, M_ABORT, 0, _("Init rwlock failed. ERR=%s\n"), be.bstrerror(status));
         }
     }
 
@@ -449,7 +451,7 @@ int main (int argc, char *argv[])
             NULL, thread_routine, (void*)&threads[count]);
         if (status != 0) {
            berrno be;
-           Emsg1(M_ABORT, 0, _("Create thread failed. ERR=%s\n"), be.bstrerror(status));
+           Jmsg1(NULL, M_ABORT, 0, _("Create thread failed. ERR=%s\n"), be.bstrerror(status));
         }
     }
 
@@ -461,7 +463,7 @@ int main (int argc, char *argv[])
         status = pthread_join (threads[count].thread_id, NULL);
         if (status != 0) {
            berrno be;
-           Emsg1(M_ABORT, 0, _("Join thread failed. ERR=%s\n"), be.bstrerror(status));
+           Jmsg1(NULL, M_ABORT, 0, _("Join thread failed. ERR=%s\n"), be.bstrerror(status));
         }
         thread_writes += threads[count].writes;
         printf (_("%02d: interval %d, writes %d, reads %d\n"),
