@@ -20,7 +20,7 @@ scripts/copy-testa-confs
 echo "${cwd}/tmp/largefile" >${cwd}/tmp/file-list
 # Create 56MB file with random data
 echo "Creating a 56MB file with random data ..."
-dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000
+dd if=/dev/urandom of=${cwd}/tmp/largefile bs=1024 count=55000 >/dev/null 2>&1
 echo "largefile created"
 
 change_jobname MultiVol $JobName
