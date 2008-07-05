@@ -193,19 +193,35 @@ void restorePage::addDirectory(QString &newdirr)
       Pmsg0(000, msg.toUtf8().data());
    }
 
-   /* add unix '/' directory first */
-   if (m_dirPaths.empty()) {
-      if (isWin32Path(newdir)) {
-         /* this is a windows drive */
-         if (mainWin->m_miscDebug) {
-            Pmsg0(000, "Need to do windows \"letter\":/\n");
-         }
-         fullpath.replace(0,1,"");
-         windrive = true;
-      } else {
+   if (isWin32Path(newdir)) {
+      /* this is a windows drive */
+      if (mainWin->m_miscDebug) {
+         Pmsg0(000, "Found windows drive\n");
+      }
+      windrive = true;
+   }
+   
+   if (windrive) {
+      if (fullpath.left(1) == "/") {
+         fullpath.replace(0, 1, "");           /* strip leading / */
+      }
+      /* If drive and not already in add it */
+      if (fullpath.length() == 3 && !m_dirPaths.contains(fullpath)) {
          QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
          item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
-         
+         item->setText(0, fullpath.toUtf8().data());
+         if (mainWin->m_miscDebug) {
+            Pmsg1(000, "Pre Inserting %s\n",fullpath.toUtf8().data());
+         }
+         m_dirPaths.insert(fullpath, item);
+         m_dirTreeItems.insert(item, fullpath);
+      }
+   } else {
+      // Unix add / first if not already there 
+      if (m_dirPaths.empty()) {
+         QTreeWidgetItem *item = new QTreeWidgetItem(directoryWidget);
+         item->setIcon(0,QIcon(QString::fromUtf8(":images/folder.png")));
+            
          QString text("/");
          item->setText(0, text.toUtf8().data());
          if (mainWin->m_miscDebug) {
@@ -215,9 +231,8 @@ void restorePage::addDirectory(QString &newdirr)
          m_dirTreeItems.insert(item, text);
       }
    }
-
  
-   /* is it already existent ?? */
+   /* Does it already exist ?? */
    if (!m_dirPaths.contains(fullpath)) {
       QTreeWidgetItem *item = NULL;
       if (windrive) {
