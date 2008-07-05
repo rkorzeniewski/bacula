@@ -215,6 +215,7 @@ void restorePage::addDirectory(QString &newdirr)
          }
          m_dirPaths.insert(fullpath, item);
          m_dirTreeItems.insert(item, fullpath);
+         directoryWidget->setCurrentItem(NULL);
       }
    } else {
       // Unix add / first if not already there 
