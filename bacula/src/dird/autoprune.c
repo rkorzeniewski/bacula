@@ -96,7 +96,7 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
    POOL_MEM query(PM_MESSAGE);
    UAContext *ua;
    bool ok = false;
-   char ed1[50], ed2[100];
+   char ed1[50], ed2[100], ed3[50];
    POOL_DBR spr;
 
    Dmsg1(050, "Prune volumes PoolId=%d\n", jcr->jr.PoolId);
@@ -138,10 +138,18 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
     *  RecyclePoolId is the current pool or the scratch pool
     */
    const char *select = "SELECT DISTINCT MediaId,LastWritten FROM Media WHERE "
-        "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' "
+        "(PoolId=%s OR RecyclePoolId IN (%s)) AND MediaType='%s' %s"
         "ORDER BY LastWritten ASC,MediaId";
 
-   Mmsg(query, select, ed1, ed2, mr->MediaType);
+   if (InChanger) {
+      char changer[100];
+      /* Ensure it is in this autochanger */
+      bsnprintf(changer, sizeof(changer), "AND InChanger=1 AND StorageId=%s ",
+         edit_int64(mr->StorageId, ed3));
+      Mmsg(query, select, ed1, ed2, mr->MediaType, changer);
+   } else {
+      Mmsg(query, select, ed1, ed2, mr->MediaType, "");
+   }
 
    Dmsg1(050, "query=%s\n", query.c_str());
    if (!db_get_query_dbids(ua->jcr, ua->db, query, ids)) {
@@ -176,6 +184,17 @@ bool prune_volumes(JCR *jcr, bool InChanger, MEDIA_DBR *mr)
             prune_list.num_ids = 0;             /* reset count */
          }
          ok = is_volume_purged(ua, &lmr);
+
+         /*
+          * Check if this volume is available (InChanger + StorageId)
+          * If not, just skip this volume and try the next one
+          */
+         if (ok && InChanger) {
+            if (!lmr.InChanger || (lmr.StorageId != mr->StorageId)) {
+               ok = false;             /* skip this volume, ie not loadable */
+            }
+         }
+
          /*
           * If purged and not moved to another Pool, 
           *   then we stop pruning and take this volume.
