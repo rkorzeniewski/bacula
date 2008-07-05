@@ -1,0 +1,10 @@
+#!/bin/sh 
+. ./config
+# get proper SD tape definitions
+cp -f scripts/linux_tape_options bin/tape_options
+if test x`uname` = xFreeBSD ; then
+   cp -f scripts/freebsd_tape_options bin/tape_options
+fi
+if test x${USE_VTAPE} = xyes ; then
+  echo "  Device Type = vtape" >>bin/tape_options
+fi

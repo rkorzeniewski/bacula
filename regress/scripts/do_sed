@@ -74,11 +74,7 @@ cp ${cwd}/bin/mtx-changer ${cwd}/tmp/bac$$
 sed "s%^MTX.*$%MTX=${AUTOCHANGER_PATH}%g" ${cwd}/tmp/bac$$ >${cwd}/bin/mtx-changer
 chmod 755 ${cwd}/bin/mtx-changer ${cwd}/scripts/prepare-fake-autochanger
 
-# get proper SD tape definitions
-cp -f ${cwd}/scripts/linux_tape_options ${cwd}/bin/tape_options
-if test x`uname` = xFreeBSD ; then
-   cp -f ${cwd}/scripts/freebsd_tape_options ${cwd}/bin/tape_options
-fi
+scripts/set_tape_options
 
 rm -f ${out}
 rm -f ${cwd}/tmp/bac$$
