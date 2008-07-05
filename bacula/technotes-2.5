@@ -30,6 +30,13 @@ vtape driver
 
 
 General:
+05Jul08
+kes  Apply Eric's patch to ensure that autoprune does not return
+     a Volume not in the autochanger unless requested to do so.
+kes  Correct bat restore display of multiple drives. This fixes    
+     bug #1117.
+kes  Do find_a_volume() each time an unload is done. This
+     fixes the failure of maxvol2-test.
 04Jul08
 kes  Add some SD debug code.
 kes  Do find_a_volume() each time an unload is done.
