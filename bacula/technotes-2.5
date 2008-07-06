@@ -30,6 +30,11 @@ vtape driver
 
 
 General:
+06Jul08
+kes  Remove sleep at end of ./bacula
+kes  Clear hash packet for hardlinked files correctly. This corrects
+     a long standing bug where hardlinked files selected individually
+     would occasionally not be restored.
 05Jul08
 kes  Apply Eric's patch to ensure that autoprune does not return
      a Volume not in the autochanger unless requested to do so.
@@ -63,7 +68,7 @@ kes  Fix failure of 2drive-concurrent-test. Always read label;
      clear_unload() only after drive is defined in acquire_for_read().
 27Jun08
 kes  Generally clean up the manual tape loading code. The main
-     conceptial change is that when a volume is marked to be unloaded,
+     conceptual change is that when a volume is marked to be unloaded,
      its volume name is retained, and it is only marked as unloaded
      when either the autoloader says it is unloaded or another tape
      is read on that drive.                                     
@@ -95,7 +100,7 @@ kes  Add --with-db-password to ./configure
 kes  Fix regress to handle db_password.
 ebl  Add new "status storage slots" that list autochanger
      content.
-ebl  Update vtape driver to compile only under linux.
+ebl  Update vtape driver to compile only under Linux.
 ebl  Fix a bug when restoring with a wrong mediatype.
 18Jun08
 kes  Eliminate ints from conf files and structures to avoid
@@ -116,10 +121,10 @@ ebl  Fix autoselect option broken for a while. Fix #1089. Need some
      work with StorageId to be able to use a particular drive in a 
      autochanger.
 09Jun08
-ebl  Rename faketape to vtape.
-ebl  Update faketape driver.
+ebl  Rename vtape to vtape.
+ebl  Update vtape driver.
 08Jun08
-ebl  Modify faketape driver to avoid sparse file.
+ebl  Modify vtape driver to avoid sparse file.
 kes  Add make clean of qt-source directory during ./configure
 kes  Store last block number written to tape in DEVICE and
      use it for testing for correct last block on EOT.
@@ -200,7 +205,7 @@ kes  Make sure we unload the right slot when swapping.
 10May08
 kes  Add debug times, reduce size of two-pool-changer test 
 08May08
-ebl  Tweak autoconf scripts for faketape
+ebl  Tweak autoconf scripts for vtape
 07May08
 kes  Improve SD reserve debug code.
 kes  Testing an improvement to free up volumes no longer in use.
@@ -388,7 +393,7 @@ kes  Fix Win32 FD backup/restore memory leak due to improper termination
 16Mar08
 ebl  Reduce memory usage for accurate backup, working only with ctime
      and mtime. (not all Lstat field) 
-     About 40MB for my linux system (400.000 files)
+     About 40MB for my Linux system (400.000 files)
 14Mar08
 kes  Add dcr->reserved_volume flag that allows us to release a volume
      even if it is not vol->released.  This allows maxvol2 to work when

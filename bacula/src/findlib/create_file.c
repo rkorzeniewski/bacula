@@ -327,6 +327,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 #endif /* HAVE_CHFLAGS */
             Qmsg3(jcr, M_ERROR, 0, _("Could not hard link %s -> %s: ERR=%s\n"),
                   attr->ofname, attr->olname, be.bstrerror());
+            Dmsg3(200, "Could not hard link %s -> %s: ERR=%s\n",
+                  attr->ofname, attr->olname, be.bstrerror());
             return CF_ERROR;
 #ifdef HAVE_CHFLAGS
                   }

@@ -60,7 +60,6 @@ struct f_link {
     struct f_link *next;
     dev_t dev;                        /* device */
     ino_t ino;                        /* inode with device is unique */
-    short linkcount;
     uint32_t FileIndex;               /* Bacula FileIndex of this file */
     char name[1];                     /* The name */
 };
@@ -415,12 +414,17 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
              lp->dev == (dev_t)ff_pkt->statp.st_dev) {
              /* If we have already backed up the hard linked file don't do it again */
              if (strcmp(lp->name, fname) == 0) {
+                Dmsg2(400, "== Name identical skip FI=%d file=%s\n", lp->FileIndex, fname);
                 return 1;             /* ignore */
              }
              ff_pkt->link = lp->name;
              ff_pkt->type = FT_LNKSAVED;       /* Handle link, file already saved */
              ff_pkt->LinkFI = lp->FileIndex;
-             return handle_file(jcr, ff_pkt, top_level);
+             ff_pkt->linked = 0;
+             rtn_stat = handle_file(jcr, ff_pkt, top_level);
+             Dmsg3(400, "FT_LNKSAVED FI=%d LinkFI=%d file=%s\n", 
+                ff_pkt->FileIndex, lp->FileIndex, lp->name);
+             return rtn_stat;
          }
 
       /* File not previously dumped. Chain it into our list. */
@@ -428,10 +432,12 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       lp = (struct f_link *)bmalloc(sizeof(struct f_link) + len);
       lp->ino = ff_pkt->statp.st_ino;
       lp->dev = ff_pkt->statp.st_dev;
+      lp->FileIndex = 0;                  /* set later */
       bstrncpy(lp->name, fname, len);
       lp->next = ff_pkt->linkhash[linkhash];
       ff_pkt->linkhash[linkhash] = lp;
       ff_pkt->linked = lp;            /* mark saved link */
+      Dmsg2(400, "added to hash FI=%d file=%s\n", ff_pkt->FileIndex, lp->name);
    } else {
       ff_pkt->linked = NULL;
    }
@@ -454,6 +460,8 @@ find_one_file(JCR *jcr, FF_PKT *ff_pkt,
       if (ff_pkt->linked) {
          ff_pkt->linked->FileIndex = ff_pkt->FileIndex;
       }
+      Dmsg3(400, "FT_REG FI=%d linked=%d file=%s\n", ff_pkt->FileIndex, 
+         ff_pkt->linked ? 1 : 0, fname);
       if (ff_pkt->flags & FO_KEEPATIME) {
          utime(fname, &restore_times);
       }       

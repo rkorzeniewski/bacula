@@ -1023,9 +1023,28 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    ua->info_msg(_("\nBuilding directory tree for JobId(s) %s ...  "),
                 rx->JobIds);
 
+#define new_get_file_list
+#ifdef new_get_file_list
    if (!db_get_file_list(ua->jcr, ua->db, rx->JobIds, insert_tree_handler, (void *)&tree)) {
       ua->error_msg("%s", db_strerror(ua->db));
    }
+#else
+   for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+      char ed1[50];
+
+      if (JobId == last_JobId) {
+         continue;                    /* eliminate duplicate JobIds */
+      }
+      last_JobId = JobId;
+      /*
+       * Find files for this JobId and insert them in the tree
+       */
+      Mmsg(rx->query, uar_sel_files, edit_int64(JobId, ed1));
+      if (!db_sql_query(ua->db, rx->query, insert_tree_handler, (void *)&tree)) {
+         ua->error_msg("%s", db_strerror(ua->db));
+      }
+   }
+#endif
    if (tree.FileCount == 0) {
       ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
          "is not possible.Most likely your retention policy pruned the files\n"));
