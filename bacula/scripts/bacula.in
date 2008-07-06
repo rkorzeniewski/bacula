@@ -27,8 +27,6 @@ case "$1" in
       [ -x ${SCRIPTDIR}/bacula-ctl-fd ] && ${SCRIPTDIR}/bacula-ctl-fd $1 $2
       [ -x ${SCRIPTDIR}/bacula-ctl-sd ] && ${SCRIPTDIR}/bacula-ctl-sd $1 $2
       [ -x ${SCRIPTDIR}/bacula-ctl-dir ] && ${SCRIPTDIR}/bacula-ctl-dir $1 $2
-      echo
-      sleep 6
       ;;
 
    restart)

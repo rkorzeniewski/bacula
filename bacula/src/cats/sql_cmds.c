@@ -275,7 +275,7 @@ const char *uar_list_jobs =
 const char *uar_sel_files =
    "SELECT Path.Path,Filename.Name,FileIndex,JobId,LStat "
    "FROM File,Filename,Path "
-   "WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
+   "WHERE File.JobId IN (%s) AND Filename.FilenameId=File.FilenameId "
    "AND Path.PathId=File.PathId";
 
 const char *uar_del_temp  = "DROP TABLE temp";

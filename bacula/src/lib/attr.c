@@ -75,7 +75,7 @@ int unpack_attributes_record(JCR *jcr, int32_t stream, char *rec, ATTR *attr)
     */
    attr->stream = stream;
    Dmsg1(400, "Attr: %s\n", rec);
-   if (sscanf(rec, "%ld %ld", &attr->file_index, &attr->type) != 2) {
+   if (sscanf(rec, "%d %d", &attr->file_index, &attr->type) != 2) {
       Jmsg(jcr, M_FATAL, 0, _("Error scanning attributes: %s\n"), rec);
       Dmsg1(100, "\nError scanning attributes. %s\n", rec);
       return 0;
@@ -244,7 +244,7 @@ void print_ls_output(JCR *jcr, ATTR *attr)
 
    if (attr->type == FT_DELETED) { /* TODO: change this to get last seen values */
       bsnprintf(buf, sizeof(buf),
-		"----------   - -        -                - ---------- --------  %s\n", attr->ofname);
+                "----------   - -        -                - ---------- --------  %s\n", attr->ofname);
       Dmsg1(20, "%s", buf);
       Jmsg(jcr, M_RESTORED, 1, "%s", buf);
       return;

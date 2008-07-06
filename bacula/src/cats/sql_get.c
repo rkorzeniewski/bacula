@@ -1036,9 +1036,11 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
       db_unlock(mdb);
       return false;
    }
-
-   POOL_MEM buf (PM_MESSAGE);
-   
+   POOL_MEM buf(PM_MESSAGE);
+         
+#define new_db_get_file_list
+#ifdef new_db_get_file_list
+   /* This is broken, at least if called from ua_restore.c */
    Mmsg(buf,
  "SELECT Path.Path, Filename.Name, File.FileIndex, File.JobId, File.LStat "
  "FROM ( "
@@ -1051,10 +1053,16 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
  "JOIN File ON (File.FileId = Temp.FileId) "
  "WHERE File.FileIndex > 0 ",
              jobids);
+#else
+   /*  
+    * I am not sure that this works the same as the code in ua_restore.c
+    *  but it is very similar.
+    */
+   Mmsg(buf, uar_sel_files, jobids);
+#endif
 
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
-
 
 /* Full : do nothing
  * Differential : get the last full id
