@@ -42,6 +42,7 @@ messages
 @# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+setdebug level=200 client=localhost-fd
 restore where=${cwd}/tmp/bacula-restores storage=File
 5
 cd ${cwd}/weird-files/subdir
