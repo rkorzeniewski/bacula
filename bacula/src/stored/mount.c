@@ -522,6 +522,7 @@ void DCR::do_swapping(bool is_writing)
       }
       if (dev->vol) {
          dev->vol->clear_swapping();
+         Dmsg1(100, "=== set in_use vol=%s\n", dev->vol->vol_name);
          dev->vol->set_in_use();
          dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
       }
