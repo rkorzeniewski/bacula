@@ -46,6 +46,12 @@ install: installdirs
 	   $(MV) -f ${DESTDIR}${scriptdir}/mtx-changer ${DESTDIR}${scriptdir}/mtx-changer.old; \
 	fi
 	$(INSTALL_SCRIPT) mtx-changer $(DESTDIR)$(scriptdir)/mtx-changer
+	@if  test -f ${DESTDIR}${scriptdir}/mtx-changer.conf; then \
+	   echo "  ==> Saving existing mtx-changer.conf to mtx-changer.conf.new"; \
+	   $(INSTALL_SCRIPT) mtx-changer.conf $(DESTDIR)$(scriptdir)/mtx-changer.conf.new; \
+	else \
+	   $(INSTALL_SCRIPT) mtx-changer.conf $(DESTDIR)$(scriptdir)/mtx-changer.conf; \
+	fi
 	@if  test -f ${DESTDIR}${scriptdir}/disk-changer; then \
 	   echo "  ==> Saving existing disk-changer to disk-changer.old"; \
 	   $(MV) -f ${DESTDIR}${scriptdir}/disk-changer ${DESTDIR}${scriptdir}/disk-changer.old; \
