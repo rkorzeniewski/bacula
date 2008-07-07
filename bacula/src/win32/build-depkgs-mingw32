@@ -197,6 +197,21 @@ process_pcre()
    do_make Makefile PREFIX=${DEPPKG_DIR} install
 }
 
+process_db()
+{
+   if get_source "${URL_DB}" "${DIR_DB}" "${MKD_DB}"
+   then
+          echo No Patch
+   fi
+   cd build_unix
+   ../dist/configure --host=mingw32 --enable-mingw --prefix=${DEPPKG_DIR}
+   > make.log
+   echo Building DB
+   do_make Makefile
+   echo Installing DB
+   do_make Makefile install_setup install_include install_lib
+}
+
 process_pthreads()
 {
    if get_source "${URL_PTHREADS}" "${DIR_PTHREADS}" "${MKD_PTHREADS}"
