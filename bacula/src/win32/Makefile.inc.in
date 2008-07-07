@@ -45,6 +45,9 @@ INCLUDE_OPENSSL := -I$(DEPKGS)/include
 INCLUDE_WX := -I$(DEPKGS)/lib/wx_dll/msw -I$(DEPKGS)/include
 INCLUDE_MYSQL := -I$(DEPKGS)/include/mysql
 
+LIBS_DB := \
+        $(DEPKGS)/lib/libdb.a
+
 LIBS_PTHREADS := \
         $(DEPKGS)/lib/libpthreadGCE.a
 
