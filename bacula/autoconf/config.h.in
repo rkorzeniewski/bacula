@@ -2,6 +2,9 @@
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
+
+/* Define if you want to use Berkeley DB as accurate backend */
+#undef USE_DB
    
 /* Define if you want to use MySQL as Catalog database */
 #undef USE_MYSQL_DB
