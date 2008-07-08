@@ -1,8 +1,8 @@
 Index: src/filed/accurate.c
 ===================================================================
---- src/filed/accurate.c	(révision 7288)
+--- src/filed/accurate.c	(révision 7344)
 +++ src/filed/accurate.c	(copie de travail)
-@@ -32,193 +32,295 @@
+@@ -32,193 +32,310 @@
  
  #include "bacula.h"
  #include "filed.h"
@@ -56,6 +56,7 @@ Index: src/filed/accurate.c
 +   void finish();
 +private:
 +   DB *db;                      /* DB object */
++   DB_ENV *dbenv;               /* DB Env object */
 +   DBC *cursorp;                /* DB cursor  */
 +   DBT dbkey;
 +   DBT dbdata;
@@ -74,6 +75,10 @@ Index: src/filed/accurate.c
 +   if (db) {
 +      db->close(db, DB_NOSYNC);
 +      db = NULL;
++   }
++   if (dbenv) {
++      dbenv->close(dbenv, 0);
++      dbenv = NULL;
 +   }
 +   if (hash_name) {
 +      unlink(hash_name);        /* remove the hash on disk */
@@ -96,18 +101,28 @@ Index: src/filed/accurate.c
 -   elt = (CurFile*)tcadbget(jcr->file_list, 
 -			    fname, strlen(fname)+1, &size);
 -   if (elt)
-+   if ((ret = db_create(&db, NULL, 0)) != 0) {
-+      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%i\n"), ret);
-+      return 0;
++   if ((ret = db_env_create(&dbenv, 0)) != 0) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't open initialize hash disk ERR=%i\n"), ret);
++      return false;
 +   }
 +
-+   db->set_errfile(db, stderr);
-+   db->set_errpfx(db, "hash");
++   dbenv->set_cachesize(dbenv, 0, 32 * 1024 * 1024, 0);
++   dbenv->set_errfile(dbenv, stderr);
++   dbenv->set_errpfx(dbenv, "hash");
++   
 +
-+   if ((ret = db->set_cachesize(db, 0, 32 * 1024 * 1024, 0)) != 0) {
-+      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk cache size ERR=%i\n"), ret);
-+      db->close(db, DB_NOSYNC);
-+      db=NULL;
++   if ((ret = dbenv->open(dbenv, NULL, DB_PRIVATE, 0)) != 0) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't open initialize hash disk ERR=%i\n"), ret);
++      dbenv->close(dbenv, 0);
++      dbenv = NULL;
++      return false;
++   }
++
++   dbenv->set_flags(dbenv, DB_TXN_NOSYNC | DB_TXN_WRITE_NOSYNC, 1);
++   
++   if ((ret = db_create(&db, dbenv, 0)) != 0) {
++      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%i\n"), ret);
++      return false;
 +   }
 +
 +   hash_name  = get_pool_memory(PM_MESSAGE);
@@ -128,11 +143,11 @@ Index: src/filed/accurate.c
 +      free_pool_memory(hash_name);
 +      hash_name = NULL;
 +      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk ERR=%i\n"), ret);
-+      return 0;
++      return false;
     }
 -   return found;
 +
-+   return db != NULL;
++   return true;
  }
  
 -/* Create tokyo dbm hash file 
@@ -432,7 +447,7 @@ Index: src/filed/accurate.c
     return true;
  }
  
-@@ -228,7 +330,8 @@
+@@ -228,7 +345,8 @@
   */
  bool accurate_send_deleted_list(JCR *jcr)
  {
@@ -442,7 +457,7 @@ Index: src/filed/accurate.c
     FF_PKT *ff_pkt;
     int stream = STREAM_UNIX_ATTRIBUTES;
  
-@@ -242,31 +345,28 @@
+@@ -242,31 +360,28 @@
  
     ff_pkt = init_find_files();
     ff_pkt->type = FT_DELETED;
@@ -483,7 +498,7 @@ Index: src/filed/accurate.c
  static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
  {
     bool ret = true;
-@@ -278,25 +378,12 @@
+@@ -278,25 +393,12 @@
     elt.mtime = statp.st_mtime;
     elt.seen = 0;
  
@@ -512,7 +527,7 @@ Index: src/filed/accurate.c
     return ret;
  }
  
-@@ -324,7 +411,7 @@
+@@ -324,7 +426,7 @@
        fname = ff_pkt->fname;
     } 
  
@@ -521,7 +536,7 @@ Index: src/filed/accurate.c
        Dmsg1(dbglvl, "accurate %s (not found)\n", fname);
        stat = true;
        goto bail_out;
-@@ -343,7 +430,7 @@
+@@ -343,7 +445,7 @@
       stat = true;
     }
  
@@ -530,7 +545,7 @@ Index: src/filed/accurate.c
     Dmsg2(dbglvl, "accurate %s = %i\n", fname, stat);
  
  bail_out:
-@@ -379,7 +466,7 @@
+@@ -379,7 +481,7 @@
     while (dir->recv() >= 0) {
        len = strlen(dir->msg) + 1;
        if (len < dir->msglen) {
@@ -539,7 +554,7 @@ Index: src/filed/accurate.c
        }
     }
  
-@@ -398,17 +485,3 @@
+@@ -398,17 +500,3 @@
  
     return true;
  }
@@ -559,7 +574,7 @@ Index: src/filed/accurate.c
 -#endif
 Index: src/filed/filed.h
 ===================================================================
---- src/filed/filed.h	(révision 7288)
+--- src/filed/filed.h	(révision 7344)
 +++ src/filed/filed.h	(copie de travail)
 @@ -35,11 +35,35 @@
  
@@ -604,7 +619,7 @@ Index: src/filed/filed.h
  #include "findlib/find.h"
 Index: src/baconfig.h
 ===================================================================
---- src/baconfig.h	(révision 7288)
+--- src/baconfig.h	(révision 7344)
 +++ src/baconfig.h	(copie de travail)
 @@ -113,6 +113,12 @@
  
@@ -621,7 +636,7 @@ Index: src/baconfig.h
     #include <libintl.h>
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 7288)
+--- src/jcr.h	(révision 7344)
 +++ src/jcr.h	(copie de travail)
 @@ -341,12 +341,7 @@
     CRYPTO_CTX crypto;                 /* Crypto ctx */
