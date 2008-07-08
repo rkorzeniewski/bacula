@@ -1022,10 +1022,7 @@ bool db_get_media_record(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr)
  * 2) Take only the last version of each file (Temp subquery) => accurate list is ok
  * 3) Join the result to file table to get fileindex, jobid and lstat information
  *
- * TODO: On postgresql, this is done with
-SELECT DISTINCT ON (PathId, FilenameId) FileIndex, Path, Name, LStat
-  FROM File JOIN Filename USING (FilenameId) JOIN Path USING (PathId) WHERE JobId IN (40341)
- ORDER BY PathId, FilenameId, JobId DESC
+ * TODO: See if we can do the SORT only if needed (as an argument)
  */
 bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids, 
                       DB_RESULT_HANDLER *result_handler, void *ctx)
@@ -1051,7 +1048,8 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
  "JOIN Filename ON (Filename.FilenameId = Temp.FilenameId) "
  "JOIN Path ON (Path.PathId = Temp.PathId) "
  "JOIN File ON (File.FileId = Temp.FileId) "
- "WHERE File.FileIndex > 0 ",
+"WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",     /* Return sorted by JobId, */
+							      /* FileIndex for restore code */ 
              jobids);
 #else
    /*  

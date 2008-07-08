@@ -491,6 +491,7 @@ void print_bsr(UAContext *ua, RBSR *bsr)
  * Add a FileIndex to the list of BootStrap records.
  *  Here we are only dealing with JobId's and the FileIndexes
  *  associated with those JobIds.
+ * We expect that JobId, FileIndex are sorted ascending.
  */
 void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex)
 {
