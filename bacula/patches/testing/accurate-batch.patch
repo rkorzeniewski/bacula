@@ -1,0 +1,109 @@
+Index: src/dird/backup.c
+===================================================================
+--- src/dird/backup.c	(revision 7339)
++++ src/dird/backup.c	(working copy)
+@@ -133,6 +133,7 @@
+       return true;
+    }
+    POOLMEM *jobids = get_pool_memory(PM_FNAME);
++
+    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
+ 
+    if (*jobids == 0) {
+@@ -150,8 +151,14 @@
+    Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
+    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
+ 
+-   db_get_file_list(jcr, jcr->db, jobids, accurate_list_handler, (void *)jcr);
++   if (!db_open_batch_connexion(jcr, jcr->db)) {
++      Mmsg1(&jcr->db->errmsg, "Can't start accurate mode");
++      Jmsg1(jcr, M_FATAL, 0, "%s", jcr->db->errmsg);
++      return false;
++   }
+ 
++   db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
++
+    free_pool_memory(jobids);
+    free_pool_memory(nb);
+ 
+Index: src/cats/sql_create.c
+===================================================================
+--- src/cats/sql_create.c	(revision 7339)
++++ src/cats/sql_create.c	(working copy)
+@@ -758,7 +758,7 @@
+ {
+    int JobStatus = jcr->JobStatus;
+ 
+-   if (!jcr->db_batch) {         /* no files to backup ? */
++   if (!jcr->batch_started) {         /* no files to backup ? */
+       Dmsg0(50,"db_create_file_record : no files\n");
+       return true;
+    }
+@@ -831,20 +831,8 @@
+    return true;
+ }
+ 
+-/*
+- * Create File record in B_DB
+- *
+- *  In order to reduce database size, we store the File attributes,
+- *  the FileName, and the Path separately.  In principle, there
+- *  is a single FileName record and a single Path record, no matter
+- *  how many times it occurs.  This is this subroutine, we separate
+- *  the file and the path and fill temporary tables with this three records.
+- */
+-bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
++bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
+ {
+-   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
+-   Dmsg0(dbglevel, "put_file_into_catalog\n");
+-
+    if (!jcr->db_batch) {
+       Dmsg2(100, "Opendb attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
+       jcr->db_batch = db_init_database(jcr, 
+@@ -868,15 +856,42 @@
+          Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+          return false;
+       }      
+-      
++      Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
++            jcr->db_batch->connected, jcr->db_batch->db);
++
++   }
++   return true;
++}
++
++/*
++ * Create File record in B_DB
++ *
++ *  In order to reduce database size, we store the File attributes,
++ *  the FileName, and the Path separately.  In principle, there
++ *  is a single FileName record and a single Path record, no matter
++ *  how many times it occurs.  This is this subroutine, we separate
++ *  the file and the path and fill temporary tables with this three records.
++ */
++bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
++{
++   Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
++   Dmsg0(dbglevel, "put_file_into_catalog\n");
++
++   if (!jcr->batch_started) {
++
++      if (!db_open_batch_connexion(jcr, mdb)) {
++         Mmsg1(&mdb->errmsg, 
++              "Can't start batch mode: ERR=%s", db_strerror(jcr->db_batch));
++         Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
++         return false;
++      }
+       if (!sql_batch_start(jcr, jcr->db_batch)) {
+          Mmsg1(&mdb->errmsg, 
+               "Can't start batch mode: ERR=%s", db_strerror(jcr->db_batch));
+          Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+          return false;
+       }
+-      Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
+-            jcr->db_batch->connected, jcr->db_batch->db);
++      jcr->batch_started = true;
+    }
+    B_DB *bdb = jcr->db_batch;
+ 
