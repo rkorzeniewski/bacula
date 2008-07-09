@@ -486,7 +486,7 @@ void restoreTree::jobComboChanged(int)
    }
    job_defaults job_defs;
 
-   (void)index;
+   //(void)index;
    job_defs.job_name = jobCombo->currentText();
    if (m_console->get_job_defaults(job_defs)) {
       fileSetCombo->setCurrentIndex(fileSetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));

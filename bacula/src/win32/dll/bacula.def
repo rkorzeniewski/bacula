@@ -722,7 +722,9 @@ _Z18jobstatus_to_asciiiPci
 _Z19last_path_separatorPKc
 _Z21set_working_directoryPc
 _Z5lcasePc
- 
+_Z20volume_status_to_strPKc 
+_Z22jobstatus_to_ascii_guiiPci
+
 ; var.o
 _Z10var_configP6var_st12var_config_tz
 _Z10var_createPP6var_st
