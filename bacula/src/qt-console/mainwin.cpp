@@ -100,7 +100,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent)
    if (m_miscDebug) {
       QString directoryResourceName;
       m_currentConsole->getDirResName(directoryResourceName);
-      Pmsg1(000, "Setting initial window to %s\n", directoryResourceName.toUtf8().data());
+      Pmsg1(100, "Setting initial window to %s\n", directoryResourceName.toUtf8().data());
    }
 }
 
@@ -458,7 +458,7 @@ void MainWin::statusPageButtonClicked()
    bool found = false;
    foreach(Pages *page, m_pagehash) {
       if (m_currentConsole == page->console()) {
- 	 if (page->name() == tr("Director Status")) {
+         if (page->name() == tr("Director Status")) {
             found = true;
             page->setCurrent();
          }
@@ -825,8 +825,8 @@ void MainWin::readPreferences()
    settings.beginGroup("Misc");
    m_longList = settings.value("longList", false).toBool();
    ItemFormatterBase::setBytesConversion(
-	 (ItemFormatterBase::BYTES_CONVERSION) settings.value("byteConvert", 
-	 ItemFormatterBase::BYTES_CONVERSION_IEC).toInt());
+         (ItemFormatterBase::BYTES_CONVERSION) settings.value("byteConvert", 
+         ItemFormatterBase::BYTES_CONVERSION_IEC).toInt());
    m_openPlot = settings.value("openplot", false).toBool();
    m_openBrowser = settings.value("openbrowser", false).toBool();
    m_openDirStat = settings.value("opendirstat", false).toBool();
@@ -846,5 +846,4 @@ void MainWin::readPreferences()
    m_rtRestore3Debug = settings.value("rtRestore3Debug", false).toBool();
    settings.endGroup();
 }
-
 
