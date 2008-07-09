@@ -1,0 +1,62 @@
+
+BUILD SYSTEM: Ubuntu gutsy
+STATUS: Bat segfault quickly
+
+REQUIRE: 
+ - Bacula cross compilation tool (must be able to compile bacula-fd.exe)
+ - wine (apt-get install wine)
+ - qt mingw32 distribution
+
+ORIGINAL HOWTO (french):
+http://doc.qtfr.org/post/2007/04/10/Cross-Compilation-Native-dapplication-Qt-depuis-Linux
+
+Legend:
+# comment
+$ shell command
+* tips
+
+
+bacula setup
+------------
+$ cd bacula/src/win32
+$ make
+
+Don't run any configure, make or make install
+Make sure that bacula/src/win32/release/bacula.dll is built
+
+QT4 setup
+----------
+
+Install QT for mingw
+
+Get the mingw installation from http://trolltech.com/developer/downloads/qt/windows
+
+$ wine qt-win-opensource-4.4.0-mingw.exe
+ * Install under c:\Qt (no space)
+ * no worry about mingw installation
+
+$ cp -r ~/.wine/drive_c/Qt/4.4.0/src/    depkgs-mingw32/include
+$ cp -r ~/.wine/drive_c/Qt/4.4.0/include depkgs-mingw32/include/qt
+$ cp -r ~/.wine/drive_c/Qt/4.4.0/lib     depkgs-mingw32/lib/qt
+
+Compile bat
+-----------
+
+$ cd bacula/src/qt-console
+$ cp bat.pro.mingw bat.pro
+$ qmake-qt4 -spec win32-x-g++
+$ make
+
+
+Run Bat with wine
+-----------------
+$ cd bacula/src/qt-console/debug
+
+# configure a bat.conf
+# copy all dll to this directory
+
+$ wine bat 
+
+
+That all, easy isn't it ?
+
