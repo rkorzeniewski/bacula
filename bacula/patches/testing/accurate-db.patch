@@ -1,7 +1,7 @@
 Index: src/filed/accurate.c
 ===================================================================
---- src/filed/accurate.c	(révision 7344)
-+++ src/filed/accurate.c	(copie de travail)
+--- src/filed/accurate.c	(revision 7346)
++++ src/filed/accurate.c	(working copy)
 @@ -32,193 +32,310 @@
  
  #include "bacula.h"
@@ -111,7 +111,7 @@ Index: src/filed/accurate.c
 +   dbenv->set_errpfx(dbenv, "hash");
 +   
 +
-+   if ((ret = dbenv->open(dbenv, NULL, DB_PRIVATE, 0)) != 0) {
++   if ((ret = dbenv->open(dbenv, working_directory, DB_PRIVATE, 0)) != 0) {
 +      Jmsg(jcr, M_ERROR, 1, _("Can't open initialize hash disk ERR=%i\n"), ret);
 +      dbenv->close(dbenv, 0);
 +      dbenv = NULL;
@@ -574,8 +574,8 @@ Index: src/filed/accurate.c
 -#endif
 Index: src/filed/filed.h
 ===================================================================
---- src/filed/filed.h	(révision 7344)
-+++ src/filed/filed.h	(copie de travail)
+--- src/filed/filed.h	(revision 7346)
++++ src/filed/filed.h	(working copy)
 @@ -35,11 +35,35 @@
  
  
@@ -619,8 +619,8 @@ Index: src/filed/filed.h
  #include "findlib/find.h"
 Index: src/baconfig.h
 ===================================================================
---- src/baconfig.h	(révision 7344)
-+++ src/baconfig.h	(copie de travail)
+--- src/baconfig.h	(revision 7346)
++++ src/baconfig.h	(working copy)
 @@ -113,6 +113,12 @@
  
  #endif /* HAVE_WIN32 */
@@ -636,8 +636,8 @@ Index: src/baconfig.h
     #include <libintl.h>
 Index: src/jcr.h
 ===================================================================
---- src/jcr.h	(révision 7344)
-+++ src/jcr.h	(copie de travail)
+--- src/jcr.h	(revision 7346)
++++ src/jcr.h	(working copy)
 @@ -341,12 +341,7 @@
     CRYPTO_CTX crypto;                 /* Crypto ctx */
     DIRRES* director;                  /* Director resource */
