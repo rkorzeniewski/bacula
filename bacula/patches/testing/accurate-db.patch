@@ -2,7 +2,7 @@ Index: src/filed/accurate.c
 ===================================================================
 --- src/filed/accurate.c	(révision 7351)
 +++ src/filed/accurate.c	(copie de travail)
-@@ -32,193 +32,310 @@
+@@ -32,193 +32,311 @@
  
  #include "bacula.h"
  #include "filed.h"
@@ -61,6 +61,7 @@ Index: src/filed/accurate.c
 +   DBT dbkey;
 +   DBT dbdata;
 +   POOLMEM *hash_name;          /* file name for hash */
++   bool first_pass;
 +};
 +
 +void AccurateBackendDB::destroy()
@@ -77,6 +78,7 @@ Index: src/filed/accurate.c
 +      db = NULL;
 +   }
 +   if (dbenv) {
++      dbenv->dbremove(dbenv, NULL, hash_name, NULL, 0);
 +      dbenv->close(dbenv, 0);
 +      dbenv = NULL;
 +   }
@@ -106,21 +108,21 @@ Index: src/filed/accurate.c
 +      return false;
 +   }
 +
-+   dbenv->set_cachesize(dbenv, 0, 32 * 1024 * 1024, 0);
++   dbenv->set_cachesize(dbenv, 0, 256 * 1024 * 1024, 0);
 +   dbenv->set_errfile(dbenv, stderr);
 +   dbenv->set_errpfx(dbenv, "hash");
 +   
-+   int flags = DB_PRIVATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_CREATE | DB_THREAD;
++   int flags = DB_PRIVATE | DB_INIT_MPOOL | DB_CREATE | DB_THREAD;
 +   if ((ret = dbenv->open(dbenv, working_directory, flags, 0)) != 0) {
++      destroy();
 +      Jmsg(jcr, M_ERROR, 1, _("Can't open initialize hash disk ERR=%i\n"), ret);
-+      dbenv->close(dbenv, 0);
-+      dbenv = NULL;
 +      return false;
 +   }
 +
 +   dbenv->set_flags(dbenv, DB_TXN_NOSYNC, 1);
 +   
 +   if ((ret = db_create(&db, dbenv, 0)) != 0) {
++      destroy();
 +      Jmsg(jcr, M_ERROR, 1, _("Can't open accurate hash disk ERR=%i\n"), ret);
 +      return false;
 +   }
@@ -138,14 +140,13 @@ Index: src/filed/accurate.c
 -      memcpy(ret, elt, sizeof(CurFile));
 -      realfree(elt);
 -//    Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
-+      db->close(db, DB_NOSYNC);
-+      db=NULL;
-+      free_pool_memory(hash_name);
-+      hash_name = NULL;
++      destroy();
 +      Jmsg(jcr, M_ERROR, 1, _("Can't setup hash disk ERR=%i\n"), ret);
 +      return false;
     }
 -   return found;
++   
++   first_pass=0;
 +
 +   return true;
  }
@@ -447,7 +448,7 @@ Index: src/filed/accurate.c
     return true;
  }
  
-@@ -228,7 +345,8 @@
+@@ -228,7 +346,8 @@
   */
  bool accurate_send_deleted_list(JCR *jcr)
  {
@@ -457,7 +458,7 @@ Index: src/filed/accurate.c
     FF_PKT *ff_pkt;
     int stream = STREAM_UNIX_ATTRIBUTES;
  
-@@ -242,31 +360,28 @@
+@@ -242,31 +361,28 @@
  
     ff_pkt = init_find_files();
     ff_pkt->type = FT_DELETED;
@@ -498,7 +499,7 @@ Index: src/filed/accurate.c
  static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
  {
     bool ret = true;
-@@ -278,25 +393,12 @@
+@@ -278,25 +394,12 @@
     elt.mtime = statp.st_mtime;
     elt.seen = 0;
  
@@ -527,7 +528,7 @@ Index: src/filed/accurate.c
     return ret;
  }
  
-@@ -324,7 +426,7 @@
+@@ -324,7 +427,7 @@
        fname = ff_pkt->fname;
     } 
  
@@ -536,7 +537,7 @@ Index: src/filed/accurate.c
        Dmsg1(dbglvl, "accurate %s (not found)\n", fname);
        stat = true;
        goto bail_out;
-@@ -343,7 +445,7 @@
+@@ -343,7 +446,7 @@
       stat = true;
     }
  
@@ -545,7 +546,7 @@ Index: src/filed/accurate.c
     Dmsg2(dbglvl, "accurate %s = %i\n", fname, stat);
  
  bail_out:
-@@ -379,7 +481,7 @@
+@@ -379,7 +482,7 @@
     while (dir->recv() >= 0) {
        len = strlen(dir->msg) + 1;
        if (len < dir->msglen) {
@@ -554,7 +555,7 @@ Index: src/filed/accurate.c
        }
     }
  
-@@ -398,17 +500,3 @@
+@@ -398,17 +501,3 @@
  
     return true;
  }
