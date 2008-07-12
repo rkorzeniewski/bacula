@@ -39,6 +39,12 @@ $ cp -r ~/.wine/drive_c/Qt/4.4.0/src/    depkgs-mingw32/include
 $ cp -r ~/.wine/drive_c/Qt/4.4.0/include depkgs-mingw32/include/qt
 $ cp -r ~/.wine/drive_c/Qt/4.4.0/lib     depkgs-mingw32/lib/qt
 
+MINGW setup
+-----------
+cross-tools/mingw32/mingw32/include/wchar.h:397
+- #ifndef  _NO_OLDNAMES
++ #ifdef   _NO_OLDNAMES___DIS
+
 Compile bat
 -----------
 
