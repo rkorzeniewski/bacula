@@ -94,13 +94,17 @@ void openssl_post_errors(JCR *jcr, int code, const char *errstring)
  */
 static unsigned long get_openssl_thread_id(void)
 {
-   /* Comparison without use of pthread_equal() is mandated by the OpenSSL API */
+#ifdef HAVE_WIN32
+   return (unsigned long)getpid();
+#else
    /*
-    * Note that this creates problems with the new Win32 pthreads
-    *   emulation code, which defines pthread_t as a structure. For
-    *   this reason, we continue to use a very old implementation.
+    * Comparison without use of pthread_equal() is mandated by the OpenSSL API */
+    *
+    * Note: this creates problems with the new Win32 pthreads
+    *   emulation code, which defines pthread_t as a structure.
     */
    return ((unsigned long)pthread_self());
+#endif
 }
 
 /*
