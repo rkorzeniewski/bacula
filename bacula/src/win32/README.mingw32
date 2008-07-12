@@ -306,6 +306,21 @@ in the .../bacula/src/win32/cats/bacula_cats.def file.
 === end manual changing of bacula_cats.def ==========
 
 
+Running gdb on the Win32 files
+==================================================
+You can use the mingw32 gdb to debug Bacula on Win32 by downloading
+it from Source Forge:
+
+http://sourceforge.net/project/showfiles.php?group_id=2435&package_id=20507
+
+Download one of their .exe versions, which is an installer that you
+can run on Win32 to install gdb.  This gdb is built with mingw32 so will
+run independently of any cygwin installation.  Note, not all the releases
+come with an installer. I had to go back 3 or 4 versions to find it.  Otherwise
+you can download the source and build it.  Thanks to Eric Bollengier for
+this tip.
+
+
 Structure of the MinGW32 build environment
 ==========================================
 
