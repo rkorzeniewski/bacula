@@ -55,20 +55,12 @@ extern bool parse_bat_config(CONFIG *config, const char *configfile, int exit_co
 static CONFIG *config;
 static char *configfile = NULL;
 
-#ifdef HAVE_WIN32
-void dummy_free_jcr(JCR *jcr)
-{}
-#endif
-
 int main(int argc, char *argv[])
 {
    int ch;
    bool no_signals = true;
    bool test_config = false;
 
-#ifdef HAVE_WIN32
-   JCR *jcr = new_jcr(sizeof(JCR), dummy_free_jcr);
-#endif
 
    app = new QApplication(argc, argv);        
    app->setQuitOnLastWindowClosed(true);
