@@ -3,15 +3,15 @@ Instructions to build Bacula using the MinGW32 on Linux
 
 This file documents the tools (scripts) we use for building Bacula for
 Microsoft Windows using the cross-compiler tools on a Linux system.  We
-use Fedora Core 5 and SuSE so those should definitely work.  But there
+use Ubuntu 8.04 so building on that system should definitely work.  But there
 shouldn't be any issues on other Linux distributions.
 
 We don't officially support this script, but it is what we use, and it should
 build on any Linux machine if you carefully follow the instructions and have
 all the prerequisite programs loaded on your machine.
 
-It has also been tested on other systems such as FreeBSD and CentOS.  We
-expect that there may be problems on systems other than Linux where you
+It has also been tested on other systems such as FreeBSD, CentOS, Fedora, and SUSE.
+We expect that there may be problems on systems other than Linux where you
 are pretty much on your own.  However, we will try to provide responses to
 your questions on the bacula-devel list, but we can't guarantee anything.
 
@@ -29,7 +29,7 @@ The new directory structure is:
     depkgs-mingw32 (MinGW32) 3rd Party Dependencies for MinGW32 build
 or
     depkgs-msvc (MS VC++)    3rd Party Dependencies for Microsoft VC++ build.
-      bin              --
+      bin              --    NOTE!  depkgs-msvc is no longer suppored
       include            |
       lib                |
       man                |   Created by script
@@ -56,8 +56,7 @@ If you're reading this file you've probably already enlisted in the SVN tree or
 extracted the contents of the source tar.  If not you need to do that first.
 
 You also need to download one of the doc tar balls and extract to your
-top level Bacula directory.  It is referred to as bacula-top in the
-diagram located in README.win32.  It will be signified in this file as ...
+top level Bacula directory. 
 
 The extracted doc directory name will be bacula-docs-version where version
 is the version number.  The directory must be renamed to docs (ie remove
@@ -111,8 +110,9 @@ depkgs-mingw32/scons/lib64 to depkgs-mingw32/scons/lib will fix the
 problem.
 
 You need the header files from the Microsoft VSS SDK.  Unfortunately the SDK
-can only be downloaded and installed on a Windows system.  You can find it on
-Microsoft's web-site at:
+can only be downloaded and installed on a Windows system.  We do not have
+the right to distribute it, so you must download it yourself.
+You can find it on Microsoft's web-site at:
 
 http://www.microsoft.com/downloads/details.aspx?FamilyID=0b4f56e4-0ccc-4626-826a-ed2c4c95c871&DisplayLang=en
 
@@ -155,7 +155,9 @@ Finally, to build the Microsoft Windows version of Bacula, do the following:
    make
 
 If all goes well, you will end with all the executables in the
-.../bacula/src/win32/release directory.
+.../bacula/src/win32/release directory, and the installer binary
+containing everything will be named winbacula-xx.yy.zz.exe where
+xx.yy.zz is the Bacula version you are building.
 
 If you have an older build environment, you might do the following
 to ensure that you pick up all the new Win32 changes:
@@ -165,9 +167,6 @@ to ensure that you pick up all the new Win32 changes:
    svn update
    cd src/win32
    make
-
-The installer is now built as part of the default rule when you
-say "make" in the src/win32 directory.
 
 
 Updating the 3rd party package patches
@@ -340,3 +339,4 @@ executables, etc.
 Makefile.template is a template for creating new Makefiles, if you are
 creating a new directory, copy Makefile.template to Makefile in that
 directory and edit to suit.
+
