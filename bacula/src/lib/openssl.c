@@ -98,7 +98,7 @@ static unsigned long get_openssl_thread_id(void)
    return (unsigned long)getpid();
 #else
    /*
-    * Comparison without use of pthread_equal() is mandated by the OpenSSL API */
+    * Comparison without use of pthread_equal() is mandated by the OpenSSL API 
     *
     * Note: this creates problems with the new Win32 pthreads
     *   emulation code, which defines pthread_t as a structure.
