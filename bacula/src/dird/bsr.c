@@ -1,18 +1,7 @@
 /*
- *
- *   Bacula Director -- Bootstrap Record routines.
- *
- *      BSR (bootstrap record) handling routines split from
- *        ua_restore.c July MMIII
- *
- *     Kern Sibbald, July MMII
- *
- *   Version $Id$
- */
-/*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2002-2006 Free Software Foundation Europe e.V.
+   Copyright (C) 2002-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -36,14 +25,23 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ *
+ *   Bacula Director -- Bootstrap Record routines.
+ *
+ *      BSR (bootstrap record) handling routines split from
+ *        ua_restore.c July MMIII
+ *
+ *     Kern Sibbald, July MMII
+ *
+ *   Version $Id$
+ */
 
 #include "bacula.h"
 #include "dird.h"
 
 /* Forward referenced functions */
 static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd);
-void print_bsr(UAContext *ua, RBSR *bsr);
-
 
 /*
  * Create new FileIndex entry for BSR
@@ -233,12 +231,8 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
 {
    FILE *fd;
    POOL_MEM fname(PM_MESSAGE);
-   POOL_MEM volmsg(PM_MESSAGE);
    uint32_t count = 0;;
    bool err;
-   char *p;
-   JobId_t JobId;
-   char Device[MAX_NAME_LENGTH];
 
    make_unique_restore_filename(ua, fname);
    fd = fopen(fname.c_str(), "w+b");
@@ -253,7 +247,7 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    err = ferror(fd);
    fclose(fd);
    if (count == 0) {
-      ua->info_msg(_("No files found to restore/migrate. No bootstrap file written.\n"));
+      ua->info_msg(_("No files found to read. No bootstrap file written.\n"));
       goto bail_out;
    }
    if (err) {
@@ -262,8 +256,18 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
       goto bail_out;
    }
 
-
    ua->send_msg(_("Bootstrap records written to %s\n"), fname.c_str());
+
+bail_out:
+   return count;
+}
+
+void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
+{
+   char *p;
+   POOL_MEM volmsg(PM_MESSAGE);
+   JobId_t JobId;
+   char Device[MAX_NAME_LENGTH];
 
    /* Tell the user what he will need to mount */
    ua->send_msg("\n");
@@ -314,13 +318,11 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    }
    if (ua->num_prompts == 0) {
       ua->send_msg(_("No Volumes found to restore.\n"));
-      count = 0;
    }
    ua->num_prompts = 0;
    ua->send_msg("\n");
 
-bail_out:
-   return count;
+   return;
 }
 
 /*

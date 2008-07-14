@@ -61,6 +61,12 @@ void vbackup_cleanup(JCR *jcr, int TermCode);
  */
 bool do_vbackup_init(JCR *jcr)
 {
+   /* ***FIXME*** remove when implemented in job.c */
+   if (!jcr->rpool_source) {
+      jcr->rpool_source = get_pool_memory(PM_MESSAGE);
+      pm_strcpy(jcr->rpool_source, _("unknown source"));
+   }
+   
    if (!get_or_create_fileset_record(jcr)) {
       Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
       return false;
@@ -86,12 +92,12 @@ bool do_vbackup_init(JCR *jcr)
 
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
+   Dmsg1(000, "Accurate jobids=%s\n", jobids);
    if (*jobids == 0) {
       free_pool_memory(jobids);
       Jmsg(jcr, M_FATAL, 0, _("Cannot find previous JobIds.\n"));
       return false;
    }
-
 
    if (!create_bootstrap_file(jcr, jobids)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get or create the FileSet record.\n"));
@@ -487,15 +493,18 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
    memset(&rx, 0, sizeof(rx));
    rx.bsr = new_bsr();
    ua = new_ua_context(jcr);
+   rx.JobIds = jobids;
 
 #define new_get_file_list
 #ifdef new_get_file_list
-   if (!db_get_file_list(jcr, ua->db, jobids, insert_bootstrap_handler, (void *)&rx.bsr)) {
+   if (!db_get_file_list(jcr, ua->db, jobids, insert_bootstrap_handler, (void *)rx.bsr)) {
       Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(ua->db));
    }
 #else
-   JobId_t JobId;
-   for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+   char *p;
+   JobId_t JobId, last_JobId = 0;
+   rx.query = get_pool_memory(PM_MESSAGE);
+   for (p=rx.JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
       char ed1[50];
 
       if (JobId == last_JobId) {
@@ -505,15 +514,22 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
       /*
        * Find files for this JobId and insert them in the tree
        */
-      Mmsg(rx->query, uar_sel_files, edit_int64(JobId, ed1));
-      if (!db_sql_query(ua->db, rx->query, insert_tree_handler, (void *)&rx.bsr)) {
+      Mmsg(rx.query, uar_sel_files, edit_int64(JobId, ed1));
+      Dmsg1(000, "uar_sel_files=%s\n", rx.query);
+      if (!db_sql_query(ua->db, rx.query, insert_bootstrap_handler, (void *)rx.bsr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(ua->db));
       }
+      free_pool_memory(rx.query);
+      rx.query = NULL;
    }
 #endif
 
    complete_bsr(ua, rx.bsr);
+   Dmsg0(000, "Print bsr\n");
+   print_bsr(ua, rx.bsr);
+
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
+   Dmsg1(000, "Found %d files to consolidate.\n", jcr->ExpectedFiles);
    if (jcr->ExpectedFiles == 0) {
       free_ua_context(ua);
       free_bsr(rx.bsr);
