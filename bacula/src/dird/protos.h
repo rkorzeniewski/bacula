@@ -58,15 +58,23 @@ extern bool do_backup(JCR *jcr);
 extern void backup_cleanup(JCR *jcr, int TermCode);
 extern void update_bootstrap_file(JCR *jcr);
 
+/* vbackup.c */
+extern bool do_vbackup_init(JCR *jcr);
+extern bool do_vbackup(JCR *jcr);
+extern void vbackup_cleanup(JCR *jcr, int TermCode);
+
+
 /* bsr.c */
 RBSR *new_bsr();
 void free_bsr(RBSR *bsr);
 bool complete_bsr(UAContext *ua, RBSR *bsr);
 uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx);
+void display_bsr_info(UAContext *ua, RESTORE_CTX &rx);
 void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
 void add_findex_all(RBSR *bsr, uint32_t JobId);
 RBSR_FINDEX *new_findex();
 void make_unique_restore_filename(UAContext *ua, POOLMEM **fname);
+void print_bsr(UAContext *ua, RBSR *bsr);
 
 
 /* catreq.c */

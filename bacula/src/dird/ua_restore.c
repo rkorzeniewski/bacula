@@ -194,6 +194,8 @@ int restore_cmd(UAContext *ua, const char *cmd)
          ua->warning_msg(_("No files selected to be restored.\n"));
          goto bail_out;
       }
+      display_bsr_info(ua, rx);          /* display vols needed, etc */
+
       /* If no count of files, use bsr generated value (often wrong) */
       if (rx.selected_files == 0) {
          rx.selected_files = selected_files;

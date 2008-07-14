@@ -85,27 +85,6 @@ int read_dev_volume_label(DCR *dcr)
          return VOL_IO_ERROR;
       }
    }
-#ifdef xxx
-   if (dev->is_labeled()) {              /* did we already read label? */
-      /* Compare Volume Names allow special wild card */
-      if (VolName && *VolName && *VolName != '*' && strcmp(dev->VolHdr.VolumeName, VolName) != 0) {
-         Mmsg(jcr->errmsg, _("Wrong Volume mounted on device %s: Wanted %s have %s\n"),
-            dev->print_name(), VolName, dev->VolHdr.VolumeName);
-         /*
-          * Cancel Job if too many label errors
-          *  => we are in a loop
-          */
-         if (!dev->poll && jcr->label_errors++ > 100) {
-            Jmsg(jcr, M_FATAL, 0, _("Too many tries: %s"), jcr->errmsg);
-         }
-         Dmsg0(150, "return VOL_NAME_ERROR\n");
-         stat = VOL_NAME_ERROR;
-         goto bail_out;
-      }
-      Dmsg0(130, "Leave read_volume_label() VOL_OK\n");
-      return VOL_OK;       /* label already read */
-   }
-#endif
 
    dev->clear_labeled();
    dev->clear_append();
