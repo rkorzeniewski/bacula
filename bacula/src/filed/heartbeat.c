@@ -20,7 +20,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   Bacula® is a registered trademark of Kern Sibbald.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -65,6 +65,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
    dir = dup_bsock(jcr->dir_bsock);
 
    jcr->hb_bsock = sd;
+   jcr->hb_started = true;
    jcr->hb_dir_bsock = dir;
 
    /* Hang reading the socket to the SD, and every time we get
@@ -85,7 +86,7 @@ extern "C" void *sd_heartbeat_thread(void *arg)
          break;
       }
       if (n == 1) {                   /* input waiting */
-         bnet_recv(sd);               /* read it -- probably heartbeat from sd */
+         sd->recv();                  /* read it -- probably heartbeat from sd */
          if (sd->msglen <= 0) {
             Dmsg1(100, "Got BNET_SIG %d from SD\n", sd->msglen);
          } else {
@@ -94,9 +95,10 @@ extern "C" void *sd_heartbeat_thread(void *arg)
       }
       Dmsg2(100, "wait_intr=%d stop=%d\n", n, is_bnet_stop(sd));
    }
-   bnet_close(sd);
-   bnet_close(dir);
+   sd->close();
+   dir->close();
    jcr->hb_bsock = NULL;
+   jcr->hb_started = false;
    jcr->hb_dir_bsock = NULL;
    return NULL;
 }
@@ -111,6 +113,7 @@ void start_heartbeat_monitor(JCR *jcr)
     */
    if (!no_signals) {
       jcr->hb_bsock = NULL;
+      jcr->hb_started = false;
       jcr->hb_dir_bsock = NULL;
       pthread_create(&jcr->heartbeat_id, NULL, sd_heartbeat_thread, (void *)jcr);
    }
@@ -124,11 +127,11 @@ void stop_heartbeat_monitor(JCR *jcr)
       return;
    }
    /* Wait max 10 secs for heartbeat thread to start */
-   while (jcr->hb_bsock == NULL && cnt++ < 200) {
+   while (!jcr->hb_started && cnt++ < 200) {
       bmicrosleep(0, 50000);         /* wait for start */
    }
 
-   if (jcr->hb_bsock) {
+   if (jcr->hb_started) {
       jcr->hb_bsock->set_timed_out();       /* set timed_out to terminate read */
       jcr->hb_bsock->set_terminated();      /* set to terminate read */
    }
@@ -141,7 +144,7 @@ void stop_heartbeat_monitor(JCR *jcr)
    bmicrosleep(0, 50000);
    cnt = 0;
    /* Wait max 100 secs for heartbeat thread to stop */
-   while (jcr->hb_bsock && cnt++ < 200) {
+   while (jcr->hb_started && cnt++ < 200) {
       pthread_kill(jcr->heartbeat_id, TIMEOUT_SIGNAL);  /* make heartbeat thread go away */
       bmicrosleep(0, 500000);
    }
@@ -164,6 +167,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
    dir = dup_bsock(jcr->dir_bsock);
 
    jcr->hb_bsock = dir;
+   jcr->hb_started = true;
 
    for ( ; !is_bnet_stop(dir); ) {
       time_t now, next;
@@ -178,6 +182,7 @@ extern "C" void *dir_heartbeat_thread(void *arg)
    }
    dir->close();
    jcr->hb_bsock = NULL;
+   jcr->hb_started = false;
    return NULL;
 }
 

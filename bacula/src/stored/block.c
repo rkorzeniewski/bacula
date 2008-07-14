@@ -20,7 +20,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   Bacula® is a registered trademark of Kern Sibbald.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -727,7 +727,6 @@ static bool terminate_writing_volume(DCR *dcr)
        Jmsg(dcr->jcr, M_FATAL, 0, _("Could not create JobMedia record for Volume=\"%s\" Job=%s\n"),
             dcr->VolCatInfo.VolCatName, dcr->jcr->Job);
        ok = false;
-       goto bail_out;
    }
    dcr->block->write_failed = true;
    if (!dev->weof(1)) {         /* end the tape */
@@ -780,7 +779,6 @@ static bool terminate_writing_volume(DCR *dcr)
       Jmsg(dcr->jcr, M_ERROR, 0, "%s", dev->errmsg);
    }
 
-bail_out:
    dev->set_ateot();                  /* no more writing this tape */
    Dmsg1(50, "*** Leave terminate_writing_volume -- %s\n", ok?"OK":"ERROR");
    return ok;

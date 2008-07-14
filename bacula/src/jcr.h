@@ -20,7 +20,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   Bacula® is a registered trademark of Kern Sibbald.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -245,7 +245,7 @@ public:
    pthread_t SD_msg_chan;             /* Message channel thread id */
    pthread_cond_t term_wait;          /* Wait for job termination */
    workq_ele_t *work_item;            /* Work queue item if scheduled */
-   volatile bool sd_msg_thread_done;  /* Set when Storage message thread terms */
+   volatile bool sd_msg_thread_done;  /* Set when Storage message thread done */
    BSOCK *ua;                         /* User agent */
    JOB *job;                          /* Job resource */
    JOB *verify_job;                   /* Job resource of verify previous job */
@@ -335,6 +335,7 @@ public:
    uint32_t StartBlock;
    uint32_t EndBlock;
    pthread_t heartbeat_id;            /* id of heartbeat thread */
+   volatile bool hb_started;          /* heartbeat running */
    BSOCK *hb_bsock;                   /* duped SD socket */
    BSOCK *hb_dir_bsock;               /* duped DIR socket */
    alist *RunScripts;                 /* Commands to run before and after job */
