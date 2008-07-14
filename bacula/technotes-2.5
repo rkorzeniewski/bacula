@@ -30,6 +30,14 @@ vtape driver
 
 
 General:
+14Jul08 
+kes  Change Bacula trademark owner from John Walker to Kern Sibbald
+kes  First non-working cut of vbackup
+kes  Correct FD heartbeat code to use volatile variable accessed by
+     two threads.
+kes  Zero thread id with memset if on Win32 in case it is a struct.
+kes  If cannot create JobMedia record, continue to try to write eof
+     and clean up in block.c
 12Jul08
 kes  Add code to interface OpenSSL to new Win32 pthreads code which
      used a structure for thread_t.

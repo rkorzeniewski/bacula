@@ -20,7 +20,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA.
 
-   Bacula® is a registered trademark of John Walker.
+   Bacula® is a registered trademark of Kern Sibbald.
    The licensor of Bacula is the Free Software Foundation Europe
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
@@ -89,6 +89,7 @@ void InitWinAPIWrapper();
 
 #define sbrk(x)  0
 
+#define clear_thread_id(x) memset(&(x), 0, sizeof(x))
 
 #if defined(BUILDING_DLL)
 #  define DLL_IMP_EXP   _declspec(dllexport)
@@ -105,6 +106,8 @@ void InitWinAPIWrapper();
 #endif
 
 #else  /* HAVE_WIN32 */
+
+#define clear_thread_id(x) x = 0
 
 #define DLL_IMP_EXP
 #define CATS_IMP_EXP
