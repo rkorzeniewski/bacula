@@ -528,7 +528,7 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
    }
    if (rc.level_name) {
       if (!get_level_from_name(jcr, rc.level_name)) {
-         ua->send_msg(_("Level %s not valid.\n"), rc.level_name);
+         ua->send_msg(_("Level \"%s\" not valid.\n"), rc.level_name);
          return false;
       }
       rc.level_name = NULL;
@@ -683,6 +683,7 @@ static void select_job_level(UAContext *ua, JCR *jcr)
       add_prompt(ua, _("Incremental"));
       add_prompt(ua, _("Differential"));
       add_prompt(ua, _("Since"));
+      add_prompt(ua, _("VirtualFull"));
       switch (do_prompt(ua, "", _("Select level"), NULL, 0)) {
       case 0:
          jcr->JobLevel = L_BASE;
@@ -698,6 +699,9 @@ static void select_job_level(UAContext *ua, JCR *jcr)
          break;
       case 4:
          jcr->JobLevel = L_SINCE;
+         break;
+      case 5:
+         jcr->JobLevel = L_VIRTUAL_FULL;
          break;
       default:
          break;

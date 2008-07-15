@@ -65,6 +65,9 @@ static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
 bool do_backup_init(JCR *jcr)
 {
 
+   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+      return do_vbackup_init(jcr);
+   }
    free_rstorage(jcr);                   /* we don't read so release */
 
    if (!get_or_create_fileset_record(jcr)) {
@@ -129,7 +132,7 @@ bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
 
-   if (jcr->accurate==false || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
       return true;
    }
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
@@ -175,6 +178,9 @@ bool do_backup(JCR *jcr)
    STORE *store;
    char ed1[100];
 
+   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+      return do_vbackup(jcr);
+   }
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Backup JobId %s, Job=%s\n"),
@@ -428,6 +434,10 @@ void backup_cleanup(JCR *jcr, int TermCode)
    CLIENT_DBR cr;
    double kbps, compression;
    utime_t RunTime;
+
+   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+      vbackup_cleanup(jcr, TermCode);
+   }
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
    memset(&mr, 0, sizeof(mr));

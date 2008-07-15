@@ -456,6 +456,7 @@ struct s_jl joblevels[] = {
    {"Incremental",   L_INCREMENTAL,     JT_BACKUP},
    {"Differential",  L_DIFFERENTIAL,    JT_BACKUP},
    {"Since",         L_SINCE,           JT_BACKUP},
+   {"VirtualFull",   L_VIRTUAL_FULL,    JT_BACKUP},
    {"Catalog",       L_VERIFY_CATALOG,  JT_VERIFY},
    {"InitCatalog",   L_VERIFY_INIT,     JT_VERIFY},
    {"VolumeToCatalog", L_VERIFY_VOLUME_TO_CATALOG,   JT_VERIFY},

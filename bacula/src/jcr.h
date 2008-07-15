@@ -52,6 +52,7 @@
 #define L_VERIFY_DATA            'A'  /* verify data on volume */
 #define L_BASE                   'B'  /* Base level job */
 #define L_NONE                   ' '  /* None, for Restore and Admin */
+#define L_VIRTUAL_FULL           'f'  /* Virtual full backup */
 
 
 /* Job Types. These are stored in the DB */
@@ -201,6 +202,7 @@ public:
    int32_t JobType;                   /* backup, restore, verify ... */
    int32_t JobLevel;                  /* Job level */
    int32_t JobPriority;               /* Job priority */
+   bool    JobReads;                  /* Set if job reads Volumes */        
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */

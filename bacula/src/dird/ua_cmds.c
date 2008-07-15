@@ -1120,7 +1120,7 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
       }
       if (strcasecmp(ua->argk[i], NT_("level")) == 0) {
          if (!get_level_from_name(ua->jcr, ua->argv[i])) {
-            ua->error_msg(_("Level %s not valid.\n"), ua->argv[i]);
+            ua->error_msg(_("Level \"%s\" not valid.\n"), ua->argv[i]);
          }
          continue;
       }

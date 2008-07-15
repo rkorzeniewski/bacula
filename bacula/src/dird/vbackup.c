@@ -140,23 +140,10 @@ bool do_vbackup(JCR *jcr)
 {
    char ed1[100];
    BSOCK *sd;
-   JCR *mig_jcr = jcr->mig_jcr;    /* newly backed up job */
-
-   /*
-    * If mig_jcr is NULL, there is nothing to do for this job,
-    *  so set a normal status, cleanup and return OK.
-    */
-   if (!mig_jcr) {
-      set_jcr_job_status(jcr, JS_Terminated);
-      vbackup_cleanup(jcr, jcr->JobStatus);
-      return true;
-   }
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Vbackup JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
-
-
 
    /*
     * Open a message channel connection with the Storage
@@ -166,7 +153,6 @@ bool do_vbackup(JCR *jcr)
     */
    Dmsg0(110, "Open connection with storage daemon\n");
    set_jcr_job_status(jcr, JS_WaitSD);
-   set_jcr_job_status(mig_jcr, JS_WaitSD);
    /*
     * Start conversation with Storage daemon
     */
@@ -177,7 +163,7 @@ bool do_vbackup(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   Dmsg2(dbglevel, "Read store=%s, write store=%s\n", 
+   Dmsg2(000, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
    if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
@@ -216,23 +202,6 @@ bool do_vbackup(JCR *jcr)
       return false;
    }
 
-
-   mig_jcr->start_time = time(NULL);
-   mig_jcr->jr.StartTime = mig_jcr->start_time;
-   mig_jcr->jr.JobTDate = mig_jcr->start_time;
-   set_jcr_job_status(mig_jcr, JS_Running);
-
-   /* Update job start record for the real migration backup job */
-   if (!db_update_job_start_record(mig_jcr, mig_jcr->db, &mig_jcr->jr)) {
-      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(mig_jcr->db));
-      return false;
-   }
-
-   Dmsg4(dbglevel, "mig_jcr: Name=%s JobId=%d Type=%c Level=%c\n",
-      mig_jcr->jr.Name, (int)mig_jcr->jr.JobId, 
-      mig_jcr->jr.JobType, mig_jcr->jr.JobLevel);
-
-
    /*
     * Start the job prior to starting the message thread below
     * to avoid two threads from using the BSOCK structure at
@@ -251,7 +220,6 @@ bool do_vbackup(JCR *jcr)
 
 
    set_jcr_job_status(jcr, JS_Running);
-   set_jcr_job_status(mig_jcr, JS_Running);
 
    /* Pickup Job termination data */
    /* Note, the SD stores in jcr->JobFiles/ReadBytes/JobBytes/Errors */
@@ -263,14 +231,6 @@ bool do_vbackup(JCR *jcr)
    }
 
    vbackup_cleanup(jcr, jcr->JobStatus);
-   if (mig_jcr) {
-      char jobid[50];
-      UAContext *ua = new_ua_context(jcr);
-      edit_uint64(jcr->previous_jr.JobId, jobid);
-      /* Purge all old file records, but leave Job record */
-      purge_files_from_jobs(ua, jobid);
-      free_ua_context(ua);
-   }
    return true;
 }
 
