@@ -112,6 +112,7 @@ bool setup_job(JCR *jcr)
    if ((errstat = pthread_cond_init(&jcr->term_wait, NULL)) != 0) {
       berrno be;
       Jmsg1(jcr, M_FATAL, 0, _("Unable to init job cond variable: ERR=%s\n"), be.bstrerror(errstat));
+      jcr->unlock();
       goto bail_out;
    }
    jcr->term_wait_inited = true;
@@ -148,6 +149,7 @@ bool setup_job(JCR *jcr)
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
    Dmsg2(500, "pool=%s (From %s)\n", jcr->pool->name(), jcr->pool_source);
+   /* ****FIXME**** */
    if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
@@ -1050,19 +1052,30 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->JobStatus = JS_Created;
    switch (jcr->JobType) {
    case JT_ADMIN:
-   case JT_RESTORE:
       jcr->JobLevel = L_NONE;
       break;
+   case JT_VERIFY:
+   case JT_RESTORE:
    case JT_COPY:
    case JT_MIGRATE:
+      jcr->JobReads = true;
+      jcr->JobLevel = job->JobLevel;
+      break;
+   case JT_BACKUP:
+      jcr->JobLevel = job->JobLevel;
+      if (jcr->JobLevel == L_VIRTUAL_FULL) {
+         jcr->JobReads = true;
+      }
+      break;
+   default:
+      jcr->JobLevel = job->JobLevel;
+      break;
+   }
+   if (jcr->JobReads) {
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
          pm_strcpy(jcr->rpool_source, _("unknown source"));
       }
-      /* Fall-through wanted */
-   default:
-      jcr->JobLevel = job->JobLevel;
-      break;
    }
    if (!jcr->fname) {
       jcr->fname = get_pool_memory(PM_FNAME);
@@ -1141,16 +1154,10 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
  */
 void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 {
-   switch(jcr->JobType) {
-   case JT_RESTORE:
-   case JT_VERIFY:
-   case JT_COPY:
-   case JT_MIGRATE:
+   if (jcr->JobReads) {
       copy_rstorage(jcr, storage, where);
-      break;
-   default:
+   } else {
       copy_wstorage(jcr, storage, where);
-      break;
    }
 }
 
@@ -1162,16 +1169,10 @@ void set_rwstorage(JCR *jcr, USTORE *store)
       Jmsg(jcr, M_FATAL, 0, _("No storage specified.\n"));
       return;
    }
-   switch(jcr->JobType) {
-   case JT_RESTORE:
-   case JT_VERIFY:
-   case JT_COPY:
-   case JT_MIGRATE:
+   if (jcr->JobReads) {
       set_rstorage(jcr, store);
-      break;
-   default:
+   } else {
       set_wstorage(jcr, store);
-      break;
    }
 }
 
