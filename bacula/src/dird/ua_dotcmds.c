@@ -505,6 +505,7 @@ static bool levelscmd(UAContext *ua, const char *cmd)
    ua->send_msg("Incremental\n");
    ua->send_msg("Full\n");
    ua->send_msg("Differential\n");
+   ua->send_msg("VirtualFull\n");
    ua->send_msg("Catalog\n");
    ua->send_msg("InitCatalog\n");
    ua->send_msg("VolumeToCatalog\n");
