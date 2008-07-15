@@ -937,6 +937,10 @@ static bool release_cmd(JCR *jcr)
 
 static bool bootstrap_cmd(JCR *jcr)
 {
+   /* If getting the bootstrap file succeeds, we do not need
+    *  the FD because we will be reading.
+    */
+   jcr->need_fd = false;
    return get_bootstrap_file(jcr, jcr->dir_bsock);
 }
 
