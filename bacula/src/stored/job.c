@@ -146,6 +146,7 @@ bool job_cmd(JCR *jcr)
    jcr->PreferMountedVols = PreferMountedVols;
 
    jcr->authenticated = false;
+   jcr->need_fd = true;
 
    /*
     * Pass back an authorization key for the File daemon
@@ -169,12 +170,11 @@ bool run_cmd(JCR *jcr)
 
    Dsm_check(1);
    Dmsg1(200, "Run_cmd: %s\n", jcr->dir_bsock->msg);
-   /* The following jobs don't need the FD */
-   switch (jcr->JobType) {
-   case JT_COPY:
-   case JT_MIGRATE:
-   case JT_ARCHIVE:
-      jcr->authenticated = true;
+
+   /* If we do not need the FD, we are doing a migrate, copy, or virtual
+    *   backup.
+    */
+   if (!jcr->need_fd) {
       do_mac(jcr);
       return false;
    }

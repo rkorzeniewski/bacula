@@ -27,7 +27,7 @@
 */
 /*
  * SD -- mac.c --  responsible for doing
- *     migration, archive, and copy jobs.
+ *     migration, archive, copy, and virtual backup jobs.
  *
  *     Kern Sibbald, January MMVI
  *
@@ -66,6 +66,9 @@ bool do_mac(JCR *jcr)
       break;
    case JT_COPY:
       Type = "Copy";
+      break;
+   case JT_BACKUP:
+      Type = "Virtual Backup";
       break;
    default:
       Type = "Unknown";

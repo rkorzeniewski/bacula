@@ -174,12 +174,14 @@ bool do_vbackup(JCR *jcr)
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
    }
-   Dmsg0(150, "Storage daemon connection OK\n");
+   Dmsg0(000, "Storage daemon connection OK\n");
 
    if (!send_bootstrap_file(jcr, sd) ||
        !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
       return false;
    }
+
+   Dmsg0(000, "Bootstrap file sent\n");
 
    /*    
     * We re-update the job start record so that the start
@@ -485,8 +487,8 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
 #endif
 
    complete_bsr(ua, rx.bsr);
-   Dmsg0(000, "Print bsr\n");
-   print_bsr(ua, rx.bsr);
+// Dmsg0(000, "Print bsr\n");
+// print_bsr(ua, rx.bsr);
 
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    Dmsg1(000, "Found %d files to consolidate.\n", jcr->ExpectedFiles);
