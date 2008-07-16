@@ -678,29 +678,29 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 {
    if (jcr->JobType == JT_BACKUP) {
       start_prompt(ua, _("Levels:\n"));
-      add_prompt(ua, _("Base"));
+//    add_prompt(ua, _("Base"));
       add_prompt(ua, _("Full"));
       add_prompt(ua, _("Incremental"));
       add_prompt(ua, _("Differential"));
       add_prompt(ua, _("Since"));
       add_prompt(ua, _("VirtualFull"));
       switch (do_prompt(ua, "", _("Select level"), NULL, 0)) {
+//    case 0:
+//       jcr->JobLevel = L_BASE;
+//       break;
       case 0:
-         jcr->JobLevel = L_BASE;
-         break;
-      case 1:
          jcr->JobLevel = L_FULL;
          break;
-      case 2:
+      case 1:
          jcr->JobLevel = L_INCREMENTAL;
          break;
-      case 3:
+      case 2:
          jcr->JobLevel = L_DIFFERENTIAL;
          break;
-      case 4:
+      case 3:
          jcr->JobLevel = L_SINCE;
          break;
-      case 5:
+      case 4:
          jcr->JobLevel = L_VIRTUAL_FULL;
          break;
       default:

@@ -1049,7 +1049,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
  "JOIN Path ON (Path.PathId = Temp.PathId) "
  "JOIN File ON (File.FileId = Temp.FileId) "
 "WHERE File.FileIndex > 0 ORDER BY JobId, FileIndex ASC",     /* Return sorted by JobId, */
-							      /* FileIndex for restore code */ 
+                                                              /* FileIndex for restore code */ 
              jobids);
 #else
    /*  
@@ -1097,7 +1097,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
       return false;
    }
 
-   if (jr->JobLevel == L_INCREMENTAL) {
+   if (jr->JobLevel == L_INCREMENTAL || jr->JobLevel == L_VIRTUAL_FULL) {
 
       /* Now, find the last differential backup after the last full */
       Mmsg(query, 

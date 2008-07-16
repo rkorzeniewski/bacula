@@ -1156,9 +1156,8 @@ void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 {
    if (jcr->JobReads) {
       copy_rstorage(jcr, storage, where);
-   } else {
-      copy_wstorage(jcr, storage, where);
    }
+   copy_wstorage(jcr, storage, where);
 }
 
 
@@ -1171,9 +1170,8 @@ void set_rwstorage(JCR *jcr, USTORE *store)
    }
    if (jcr->JobReads) {
       set_rstorage(jcr, store);
-   } else {
-      set_wstorage(jcr, store);
    }
+   set_wstorage(jcr, store);
 }
 
 void free_rwstorage(JCR *jcr)
