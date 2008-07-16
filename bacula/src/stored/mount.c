@@ -142,7 +142,7 @@ mount_next_vol:
    } else {
       autochanger = false;
       VolCatInfo.Slot = 0;
-      ask = true;
+      ask = retry >= 2;
    }
    Dmsg1(150, "autoload_dev returns %d\n", autochanger);
    /*

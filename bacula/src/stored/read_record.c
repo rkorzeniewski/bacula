@@ -52,7 +52,7 @@ static bool try_repositioning(JCR *jcr, DEV_RECORD *rec, DCR *dcr);
 static char *rec_state_to_str(DEV_RECORD *rec);
 #endif
 
-static const int dbglvl = 1000;
+static const int dbglvl = 200;
 
 bool read_records(DCR *dcr,
        bool record_cb(DCR *dcr, DEV_RECORD *rec),

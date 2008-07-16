@@ -90,6 +90,13 @@ bool do_vbackup_init(JCR *jcr)
 
    Dmsg2(dbglevel, "Read pool=%s (From %s)\n", jcr->rpool->name(), jcr->rpool_source);
 
+   jcr->start_time = time(NULL);
+   jcr->jr.StartTime = jcr->start_time;
+   jcr->jr.JobLevel = L_FULL;      /* we want this to appear as a Full backup */
+   if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
+      Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
+   }
+
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
    Dmsg1(000, "Accurate jobids=%s\n", jobids);
@@ -220,7 +227,6 @@ bool do_vbackup(JCR *jcr)
       return false;
    }
 
-
    set_jcr_job_status(jcr, JS_Running);
 
    /* Pickup Job termination data */
@@ -243,8 +249,8 @@ bool do_vbackup(JCR *jcr)
 void vbackup_cleanup(JCR *jcr, int TermCode)
 {
    char sdt[50], edt[50], schedt[50];
-   char ec1[30], ec2[30], ec3[30], ec4[30], ec5[30], compress[50];
-   char ec6[30], ec7[30], ec8[30], elapsed[50];
+   char ec1[30], ec3[30], ec4[30], compress[50];
+   char ec7[30], ec8[30], elapsed[50];
    char term_code[100], fd_term_msg[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type = M_INFO;
@@ -257,7 +263,22 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
 
+   jcr->JobLevel = L_FULL;            /* we want this to appear as a Full backup */
+   jcr->jr.JobLevel = L_FULL;         /* we want this to appear as a Full backup */
+   jcr->JobFiles = jcr->SDJobFiles;
+   jcr->JobBytes = jcr->SDJobBytes;
    update_job_end(jcr, TermCode);
+
+#ifdef xxx
+   /* ***FIXME*** set to time of last incremental */
+   /* Update final items to set them to the previous job's values */
+   Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
+               "JobTDate=%s WHERE JobId=%s", 
+      jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
+      edit_uint64(jcr->previous_jr.JobTDate, ec1),
+      edit_uint64(mig_jcr->jr.JobId, ec2));
+   db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
+#endif
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
@@ -365,9 +386,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
 "  End time:               %s\n"
 "  Elapsed time:           %s\n"
 "  Priority:               %d\n"
-"  FD Files Written:       %s\n"
 "  SD Files Written:       %s\n"
-"  FD Bytes Written:       %s (%sB)\n"
 "  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
 "  Software Compression:   %s\n"
@@ -378,9 +397,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
 "  Last Volume Bytes:      %s (%sB)\n"
-"  Non-fatal FD errors:    %d\n"
 "  SD Errors:              %d\n"
-"  FD termination status:  %s\n"
 "  SD termination status:  %s\n"
 "  Termination:            %s\n\n"),
         my_name, VERSION, LSMDATE, edt,
@@ -399,11 +416,8 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         edit_utime(RunTime, elapsed, sizeof(elapsed)),
         jcr->JobPriority,
         edit_uint64_with_commas(jcr->jr.JobFiles, ec1),
-        edit_uint64_with_commas(jcr->SDJobFiles, ec2),
         edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
         edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
-        edit_uint64_with_commas(jcr->SDJobBytes, ec5),
-        edit_uint64_with_suffix(jcr->SDJobBytes, ec6),
         kbps,
         compress,
         jcr->VSS?_("yes"):_("no"),
@@ -414,9 +428,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         jcr->VolSessionTime,
         edit_uint64_with_commas(mr.VolBytes, ec7),
         edit_uint64_with_suffix(mr.VolBytes, ec8),
-        jcr->Errors,
         jcr->SDErrors,
-        fd_term_msg,
         sd_term_msg,
         term_msg);
 
@@ -487,8 +499,8 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
 #endif
 
    complete_bsr(ua, rx.bsr);
-// Dmsg0(000, "Print bsr\n");
-// print_bsr(ua, rx.bsr);
+   Dmsg0(000, "Print bsr\n");
+   print_bsr(ua, rx.bsr);
 
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    Dmsg1(000, "Found %d files to consolidate.\n", jcr->ExpectedFiles);
