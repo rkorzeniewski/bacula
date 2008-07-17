@@ -61,12 +61,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode);
  */
 bool do_vbackup_init(JCR *jcr)
 {
-   /* ***FIXME*** remove when implemented in job.c */
-   if (!jcr->rpool_source) {
-      jcr->rpool_source = get_pool_memory(PM_MESSAGE);
-      pm_strcpy(jcr->rpool_source, _("unknown source"));
-   }
-   
    if (!get_or_create_fileset_record(jcr)) {
       Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
       return false;
@@ -124,7 +118,7 @@ bool do_vbackup_init(JCR *jcr)
          return false;
       }
    }
-   /* ***FIXME*** this is probably not needed */
+
    if (!set_migration_wstorage(jcr, jcr->pool)) {
       return false;
    }
@@ -170,6 +164,7 @@ bool do_vbackup(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
+   Dmsg2(000, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
    Dmsg2(000, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());

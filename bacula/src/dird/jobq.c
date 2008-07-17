@@ -700,7 +700,7 @@ static bool acquire_resources(JCR *jcr)
    bool skip_this_jcr = false;
 
    jcr->acquired_resource_locks = false;
-   if (jcr->rstore == jcr->wstore) {           /* deadlock */
+   if (jcr->rstore && jcr->rstore == jcr->wstore) {    /* possible deadlock */
       Jmsg(jcr, M_FATAL, 0, _("Job canceled. Attempt to read and write same device.\n"
          "    Read storage \"%s\" (From %s) -- Write storage \"%s\" (From %s)\n"), 
          jcr->rstore->name(), jcr->rstore_source, jcr->wstore->name(), jcr->wstore_source);
