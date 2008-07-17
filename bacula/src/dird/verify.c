@@ -69,6 +69,23 @@ bool do_verify_init(JCR *jcr)
    if (!allow_duplicate_job(jcr)) {
       return false;
    }
+   switch (jcr->JobLevel) {
+   case L_VERIFY_INIT:
+   case L_VERIFY_CATALOG:
+   case L_VERIFY_DISK_TO_CATALOG:
+      free_rstorage(jcr);
+      free_wstorage(jcr);
+      break;
+   case L_VERIFY_VOLUME_TO_CATALOG:
+      free_wstorage(jcr);
+      break;
+   case L_VERIFY_DATA:
+      break;
+   default:
+      Jmsg2(jcr, M_FATAL, 0, _("Unimplemented Verify level %d(%c)\n"), jcr->JobLevel,
+         jcr->JobLevel);
+      return false;
+   }
    return true;
 }
 

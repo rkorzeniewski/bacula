@@ -148,9 +148,23 @@ bool setup_job(JCR *jcr)
       jcr->pool_source = get_pool_memory(PM_MESSAGE);
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
-   Dmsg2(500, "pool=%s (From %s)\n", jcr->pool->name(), jcr->pool_source);
-   /* ****FIXME**** */
-   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
+
+   switch (jcr->JobType) {
+   case JT_VERIFY:
+   case JT_RESTORE:
+   case JT_COPY:
+   case JT_MIGRATE:
+      jcr->JobReads = true;
+      break;
+   case JT_BACKUP:
+      if (jcr->JobLevel == L_VIRTUAL_FULL) {
+         jcr->JobReads = true;
+      }
+      break;
+   default:
+      break;
+   }
+   if (jcr->JobReads) {
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
          pm_strcpy(jcr->rpool_source, _("unknown source"));
@@ -1050,33 +1064,16 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    jcr->job = job;
    jcr->JobType = job->JobType;
    jcr->JobStatus = JS_Created;
+
    switch (jcr->JobType) {
    case JT_ADMIN:
       jcr->JobLevel = L_NONE;
-      break;
-   case JT_VERIFY:
-   case JT_RESTORE:
-   case JT_COPY:
-   case JT_MIGRATE:
-      jcr->JobReads = true;
-      jcr->JobLevel = job->JobLevel;
-      break;
-   case JT_BACKUP:
-      jcr->JobLevel = job->JobLevel;
-      if (jcr->JobLevel == L_VIRTUAL_FULL) {
-         jcr->JobReads = true;
-      }
       break;
    default:
       jcr->JobLevel = job->JobLevel;
       break;
    }
-   if (jcr->JobReads) {
-      if (!jcr->rpool_source) {
-         jcr->rpool_source = get_pool_memory(PM_MESSAGE);
-         pm_strcpy(jcr->rpool_source, _("unknown source"));
-      }
-   }
+
    if (!jcr->fname) {
       jcr->fname = get_pool_memory(PM_FNAME);
    }
