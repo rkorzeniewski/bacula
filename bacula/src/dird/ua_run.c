@@ -207,29 +207,29 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
       add_prompt(ua, _("Storage"));          /* 1 */
       add_prompt(ua, _("Job"));              /* 2 */
       add_prompt(ua, _("FileSet"));          /* 3 */
-      if (jcr->JobType == JT_RESTORE) {
+      if (jcr->get_JobType() == JT_RESTORE) {
          add_prompt(ua, _("Restore Client"));   /* 4 */
       } else {
          add_prompt(ua, _("Client"));        /* 4 */
       }
       add_prompt(ua, _("When"));             /* 5 */
       add_prompt(ua, _("Priority"));         /* 6 */
-      if (jcr->JobType == JT_BACKUP ||
-          jcr->JobType == JT_COPY ||
-          jcr->JobType == JT_MIGRATE ||
-          jcr->JobType == JT_VERIFY) {
+      if (jcr->get_JobType() == JT_BACKUP ||
+          jcr->get_JobType() == JT_COPY ||
+          jcr->get_JobType() == JT_MIGRATE ||
+          jcr->get_JobType() == JT_VERIFY) {
          add_prompt(ua, _("Pool"));          /* 7 */
-         if (jcr->JobType == JT_VERIFY) {
+         if (jcr->get_JobType() == JT_VERIFY) {
             add_prompt(ua, _("Verify Job"));  /* 8 */
          }
-      } else if (jcr->JobType == JT_RESTORE) {
+      } else if (jcr->get_JobType() == JT_RESTORE) {
          add_prompt(ua, _("Bootstrap"));     /* 7 */
          add_prompt(ua, _("Where"));         /* 8 */
          add_prompt(ua, _("File Relocation"));/* 9 */    
          add_prompt(ua, _("Replace"));       /* 10 */
          add_prompt(ua, _("JobId"));         /* 11 */
       }
-      if (jcr->JobType == JT_BACKUP || jcr->JobType == JT_RESTORE) {
+      if (jcr->get_JobType() == JT_BACKUP || jcr->get_JobType() == JT_RESTORE) {
          add_prompt(ua, _("Plugin Options")); /* 12 */
       }
       switch (do_prompt(ua, "", _("Select parameter to modify"), NULL, 0)) {
@@ -299,10 +299,10 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
          goto try_again;
       case 7: 
          /* Pool or Bootstrap depending on JobType */
-         if (jcr->JobType == JT_BACKUP ||
-             jcr->JobType == JT_COPY ||
-             jcr->JobType == JT_MIGRATE ||
-             jcr->JobType == JT_VERIFY) {      /* Pool */
+         if (jcr->get_JobType() == JT_BACKUP ||
+             jcr->get_JobType() == JT_COPY ||
+             jcr->get_JobType() == JT_MIGRATE ||
+             jcr->get_JobType() == JT_VERIFY) {      /* Pool */
             rc.pool = select_pool_resource(ua);
             if (rc.pool) {
                jcr->pool = rc.pool;
@@ -336,7 +336,7 @@ int modify_job_parameters(UAContext *ua, JCR *jcr, run_ctx &rc)
          goto try_again;
       case 8:
          /* Verify Job */
-         if (jcr->JobType == JT_VERIFY) {
+         if (jcr->get_JobType() == JT_VERIFY) {
             rc.verify_job = select_job_resource(ua);
             if (rc.verify_job) {
               jcr->verify_job = rc.verify_job;
@@ -515,7 +515,8 @@ static bool reset_restore_context(UAContext *ua, JCR *jcr, run_ctx &rc)
 
 
    /* If pool changed, update migration write storage */
-   if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
+   if (jcr->get_JobType() == JT_MIGRATE || jcr->get_JobType() == JT_COPY ||
+      (jcr->get_JobType() == JT_BACKUP && jcr->get_JobLevel() == L_VIRTUAL_FULL)) {
       if (!set_migration_wstorage(jcr, rc.pool)) {
          return false;
       }
@@ -676,7 +677,7 @@ bail_out_reg:
 
 static void select_job_level(UAContext *ua, JCR *jcr)
 {
-   if (jcr->JobType == JT_BACKUP) {
+   if (jcr->get_JobType() == JT_BACKUP) {
       start_prompt(ua, _("Levels:\n"));
 //    add_prompt(ua, _("Base"));
       add_prompt(ua, _("Full"));
@@ -689,24 +690,24 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 //       jcr->JobLevel = L_BASE;
 //       break;
       case 0:
-         jcr->JobLevel = L_FULL;
+         jcr->set_JobLevel(L_FULL);
          break;
       case 1:
-         jcr->JobLevel = L_INCREMENTAL;
+         jcr->set_JobLevel(L_INCREMENTAL);
          break;
       case 2:
-         jcr->JobLevel = L_DIFFERENTIAL;
+         jcr->set_JobLevel(L_DIFFERENTIAL);
          break;
       case 3:
-         jcr->JobLevel = L_SINCE;
+         jcr->set_JobLevel(L_SINCE);
          break;
       case 4:
-         jcr->JobLevel = L_VIRTUAL_FULL;
+         jcr->set_JobLevel(L_VIRTUAL_FULL);
          break;
       default:
          break;
       }
-   } else if (jcr->JobType == JT_VERIFY) {
+   } else if (jcr->get_JobType() == JT_VERIFY) {
       start_prompt(ua, _("Levels:\n"));
       add_prompt(ua, _("Initialize Catalog"));
       add_prompt(ua, _("Verify Catalog"));
@@ -715,19 +716,19 @@ static void select_job_level(UAContext *ua, JCR *jcr)
       add_prompt(ua, _("Verify Volume Data (not yet implemented)"));
       switch (do_prompt(ua, "",  _("Select level"), NULL, 0)) {
       case 0:
-         jcr->JobLevel = L_VERIFY_INIT;
+         jcr->set_JobLevel(L_VERIFY_INIT);
          break;
       case 1:
-         jcr->JobLevel = L_VERIFY_CATALOG;
+         jcr->set_JobLevel(L_VERIFY_CATALOG);
          break;
       case 2:
-         jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
+         jcr->set_JobLevel(L_VERIFY_VOLUME_TO_CATALOG);
          break;
       case 3:
-         jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
+         jcr->set_JobLevel(L_VERIFY_DISK_TO_CATALOG);
          break;
       case 4:
-         jcr->JobLevel = L_VERIFY_DATA;
+         jcr->set_JobLevel(L_VERIFY_DATA);
          break;
       default:
          break;
@@ -741,8 +742,8 @@ static void select_job_level(UAContext *ua, JCR *jcr)
 static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char *verify_list,
    char *jid, const char *replace, char *client_name) 
 {
-   Dmsg1(800, "JobType=%c\n", jcr->JobType);
-   switch (jcr->JobType) {
+   Dmsg1(800, "JobType=%c\n", jcr->get_JobType());
+   switch (jcr->get_JobType()) {
       char ec1[30];
       char dt[MAX_TIME_LENGTH];
    case JT_ADMIN:
@@ -761,11 +762,11 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                  jcr->wstore?jcr->wstore->name():"*None*",
                  bstrutime(dt, sizeof(dt), jcr->sched_time),
                  jcr->JobPriority);
-      jcr->JobLevel = L_FULL;
+      jcr->set_JobLevel(L_FULL);
       break;
    case JT_BACKUP:
    case JT_VERIFY:
-      if (jcr->JobType == JT_BACKUP) {
+      if (jcr->get_JobType() == JT_BACKUP) {
          if (ua->api) ua->signal(BNET_RUN_CMD);   
          ua->send_msg(_("Run %s job\n"
                         "JobName:  %s\n"
@@ -779,7 +780,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                         "%s%s%s"),
                  _("Backup"),
                  job->name(),
-                 level_to_str(jcr->JobLevel),
+                 level_to_str(jcr->get_JobLevel()),
                  jcr->client->name(),
                  jcr->fileset->name(),
                  NPRT(jcr->pool->name()), jcr->pool_source,
@@ -816,7 +817,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
                         "Priority:    %d\n"),
               _("Verify"),
               job->name(),
-              level_to_str(jcr->JobLevel),
+              level_to_str(jcr->get_JobLevel()),
               jcr->client->name(),
               jcr->fileset->name(),
               NPRT(jcr->pool->name()), jcr->pool_source,
@@ -838,7 +839,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
             jcr->RestoreJobId = ua->int64_val;
          }
       }
-      jcr->JobLevel = L_FULL;      /* default level */
+      jcr->set_JobLevel(L_FULL);      /* default level */
       Dmsg1(800, "JobId to restore=%d\n", jcr->RestoreJobId);
       if (jcr->RestoreJobId == 0) {
          if (ua->api) ua->signal(BNET_RUN_CMD);   
@@ -936,12 +937,12 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
    case JT_COPY:
    case JT_MIGRATE:
       char *prt_type;
-      if (jcr->JobType == JT_COPY) {
+      if (jcr->get_JobType() == JT_COPY) {
          prt_type = _("Run Copy job\n");
       } else {
          prt_type = _("Run Migration job\n");
       }
-      jcr->JobLevel = L_FULL;      /* default level */
+      jcr->set_JobLevel(L_FULL);      /* default level */
       if (ua->api) ua->signal(BNET_RUN_CMD);   
       ua->send_msg("%s"
                      "JobName:       %s\n"
@@ -969,7 +970,7 @@ static bool display_job_parameters(UAContext *ua, JCR *jcr, JOB *job, const char
            jcr->JobPriority);
       break;
    default:
-      ua->error_msg(_("Unknown Job Type=%d\n"), jcr->JobType);
+      ua->error_msg(_("Unknown Job Type=%d\n"), jcr->get_JobType());
       return false;
    }
    return true;

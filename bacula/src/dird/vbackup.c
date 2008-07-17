@@ -258,7 +258,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    memset(&mr, 0, sizeof(mr));
    memset(&cr, 0, sizeof(cr));
 
-   jcr->JobLevel = L_FULL;            /* we want this to appear as a Full backup */
+   jcr->set_JobLevel(L_FULL);         /* we want this to appear as a Full backup */
    jcr->jr.JobLevel = L_FULL;         /* we want this to appear as a Full backup */
    jcr->JobFiles = jcr->SDJobFiles;
    jcr->JobBytes = jcr->SDJobBytes;
@@ -399,7 +399,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         HOST_OS, DISTNAME, DISTVER,
         jcr->jr.JobId,
         jcr->jr.Job,
-        level_to_str(jcr->JobLevel), jcr->since,
+        level_to_str(jcr->get_JobLevel()), jcr->since,
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,

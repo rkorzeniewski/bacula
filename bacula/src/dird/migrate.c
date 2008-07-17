@@ -282,7 +282,7 @@ bool do_migration(JCR *jcr)
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
-        jcr->JobType == JT_MIGRATE ? "Migration" : "Copy",
+        jcr->get_JobType() == JT_MIGRATE ? "Migration" : "Copy",
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
 
@@ -392,7 +392,7 @@ bool do_migration(JCR *jcr)
    }
 
    migration_cleanup(jcr, jcr->JobStatus);
-   if (jcr->JobType == JT_MIGRATE && mig_jcr) {
+   if (jcr->get_JobType() == JT_MIGRATE && mig_jcr) {
       char jobid[50];
       UAContext *ua = new_ua_context(jcr);
       edit_uint64(jcr->previous_jr.JobId, jobid);
@@ -1075,7 +1075,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
       db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
 
       /* Now mark the previous job as migrated if it terminated normally */
-      if (jcr->JobType == JT_MIGRATE && jcr->JobStatus == JS_Terminated) {
+      if (jcr->get_JobType() == JT_MIGRATE && jcr->JobStatus == JS_Terminated) {
          Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
               (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
          db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
@@ -1150,7 +1150,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
          break;
       }
   } else {
-     if (jcr->JobType == JT_MIGRATE && jcr->previous_jr.JobId != 0) {
+     if (jcr->get_JobType() == JT_MIGRATE && jcr->previous_jr.JobId != 0) {
         /* Mark previous job as migrated */
         Mmsg(query, "UPDATE Job SET Type='%c' WHERE JobId=%s",
              (char)JT_MIGRATED_JOB, edit_uint64(jcr->previous_jr.JobId, ec1));
@@ -1206,7 +1206,7 @@ void migration_cleanup(JCR *jcr, int TermCode)
         mig_jcr ? edit_uint64(mig_jcr->jr.JobId, ec7) : "0",
         edit_uint64(jcr->jr.JobId, ec8),
         jcr->jr.Job,
-        level_to_str(jcr->JobLevel), jcr->since,
+        level_to_str(jcr->get_JobLevel()), jcr->since,
         jcr->client->name(),
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->rpool->name(), jcr->rpool_source,

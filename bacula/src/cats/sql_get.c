@@ -105,8 +105,8 @@ int db_get_file_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, FILE_DBR *fdbr)
    int stat = 0;
    char ed1[50], ed2[50], ed3[50];
 
-   if (jcr->JobLevel == L_VERIFY_DISK_TO_CATALOG) {
-   Mmsg(mdb->cmd,
+   if (jcr->get_JobLevel() == L_VERIFY_DISK_TO_CATALOG) {
+      Mmsg(mdb->cmd,
 "SELECT FileId, LStat, MD5 FROM File,Job WHERE "
 "File.JobId=Job.JobId AND File.PathId=%s AND "
 "File.FilenameId=%s AND Job.Type='B' AND Job.JobSTATUS='T' AND "

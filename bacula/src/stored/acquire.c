@@ -650,7 +650,7 @@ static void attach_dcr_to_dev(DCR *dcr)
    JCR *jcr = dcr->jcr;
 
    if (jcr) Dmsg1(500, "JobId=%u enter attach_dcr_to_dev\n", (uint32_t)jcr->JobId);
-   if (!dcr->attached_to_dev && dev->initiated && jcr && jcr->JobType != JT_SYSTEM) {
+   if (!dcr->attached_to_dev && dev->initiated && jcr && jcr->get_JobType() != JT_SYSTEM) {
       dev->attached_dcrs->append(dcr);  /* attach dcr to device */
       dcr->attached_to_dev = true;
       Dmsg1(500, "JobId=%u attach_dcr_to_dev\n", (uint32_t)jcr->JobId);

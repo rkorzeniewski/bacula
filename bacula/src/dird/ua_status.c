@@ -158,11 +158,11 @@ int status_cmd(UAContext *ua, const char *cmd)
       } else {
          store = get_storage_resource(ua, false/*no default*/);
          if (store) {
-	    if (find_arg(ua, NT_("slots")) > 0) {
-	       status_slots(ua, store);
-	    } else {
-	       do_storage_status(ua, store, NULL);
-	    }
+            if (find_arg(ua, NT_("slots")) > 0) {
+               status_slots(ua, store);
+            } else {
+               do_storage_status(ua, store, NULL);
+            }
          }
          return 1;
       }
@@ -439,7 +439,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
    MEDIA_DBR mr;
    int orig_jobtype;
 
-   orig_jobtype = jcr->JobType;
+   orig_jobtype = jcr->get_JobType();
    memset(&mr, 0, sizeof(mr));
    if (sp->job->JobType == JT_BACKUP) {
       jcr->db = NULL;
@@ -482,7 +482,7 @@ static void prt_runtime(UAContext *ua, sched_pkt *sp)
       db_close_database(jcr, jcr->db);
    }
    jcr->db = ua->db;                  /* restore ua db to jcr */
-   jcr->JobType = orig_jobtype;
+   jcr->set_JobType(orig_jobtype);
 }
 
 /*
@@ -594,7 +594,7 @@ static void list_running_jobs(UAContext *ua)
          /* this is a console or other control job. We only show console
           * jobs in the status output.
           */
-         if (jcr->JobType == JT_CONSOLE && !ua->api) {
+         if (jcr->get_JobType() == JT_CONSOLE && !ua->api) {
             bstrftime_nc(dt, sizeof(dt), jcr->start_time);
             ua->send_msg(_("Console connected at %s\n"), dt);
          }
@@ -752,13 +752,13 @@ static void list_running_jobs(UAContext *ua)
          msg = _("Dir inserting Attributes");
          break;
       }
-      switch (jcr->JobType) {
+      switch (jcr->get_JobType()) {
       case JT_ADMIN:
       case JT_RESTORE:
          bstrncpy(level, "      ", sizeof(level));
          break;
       default:
-         bstrncpy(level, level_to_str(jcr->JobLevel), sizeof(level));
+         bstrncpy(level, level_to_str(jcr->get_JobLevel()), sizeof(level));
          level[7] = 0;
          break;
       }

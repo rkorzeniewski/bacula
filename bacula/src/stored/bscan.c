@@ -539,7 +539,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
 
          jr.PoolId = pr.PoolId;
          mjcr->start_time = jr.StartTime;
-         mjcr->JobLevel = jr.JobLevel;
+         mjcr->set_JobLevel(jr.JobLevel);
 
          mjcr->client_name = get_pool_memory(PM_FNAME);
          pm_strcpy(mjcr->client_name, label.ClientName);
@@ -1132,7 +1132,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
    }
    if (verbose) {
       Pmsg3(000, _("Updated Job termination record for JobId=%u Level=%s TermStat=%c\n"), 
-         jr->JobId, job_level_to_str(mjcr->JobLevel), jr->JobStatus);
+         jr->JobId, job_level_to_str(mjcr->get_JobLevel()), jr->JobStatus);
    }
    if (verbose > 1) {
       const char *term_msg;
@@ -1176,7 +1176,7 @@ static int update_job_record(B_DB *db, JOB_DBR *jr, SESSION_LABEL *elabel,
         mjcr->JobId,
         mjcr->Job,
         mjcr->fileset_name,
-        job_level_to_str(mjcr->JobLevel),
+        job_level_to_str(mjcr->get_JobLevel()),
         mjcr->client_name,
         sdt,
         edt,
@@ -1273,8 +1273,8 @@ static JCR *create_jcr(JOB_DBR *jr, DEV_RECORD *rec, uint32_t JobId)
     *   the JobId and the ClientId.
     */
    jobjcr = new_jcr(sizeof(JCR), bscan_free_jcr);
-   jobjcr->JobType = jr->JobType;
-   jobjcr->JobLevel = jr->JobLevel;
+   jobjcr->set_JobType(jr->JobType);
+   jobjcr->set_JobLevel(jr->JobLevel);
    jobjcr->JobStatus = jr->JobStatus;
    bstrncpy(jobjcr->Job, jr->Job, sizeof(jobjcr->Job));
    jobjcr->JobId = JobId;      /* this is JobId on tape */

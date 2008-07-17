@@ -149,22 +149,7 @@ bool setup_job(JCR *jcr)
       pm_strcpy(jcr->pool_source, _("unknown source"));
    }
 
-   switch (jcr->JobType) {
-   case JT_VERIFY:
-   case JT_RESTORE:
-   case JT_COPY:
-   case JT_MIGRATE:
-      jcr->JobReads = true;
-      break;
-   case JT_BACKUP:
-      if (jcr->JobLevel == L_VIRTUAL_FULL) {
-         jcr->JobReads = true;
-      }
-      break;
-   default:
-      break;
-   }
-   if (jcr->JobReads) {
+   if (jcr->JobReads()) {
       if (!jcr->rpool_source) {
          jcr->rpool_source = get_pool_memory(PM_MESSAGE);
          pm_strcpy(jcr->rpool_source, _("unknown source"));
@@ -198,7 +183,7 @@ bool setup_job(JCR *jcr)
     *  this allows us to setup a proper job start record for restarting
     *  in case of later errors.
     */
-   switch (jcr->JobType) {
+   switch (jcr->get_JobType()) {
    case JT_BACKUP:
       if (!do_backup_init(jcr)) {
          backup_cleanup(jcr, JS_ErrorTerminated);
@@ -226,7 +211,7 @@ bool setup_job(JCR *jcr)
       }
       break;
    default:
-      Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
+      Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->get_JobType());
       set_jcr_job_status(jcr, JS_ErrorTerminated);
       break;
    }
@@ -309,7 +294,7 @@ static void *job_thread(void *arg)
       }
       generate_job_event(jcr, "JobRun");
 
-      switch (jcr->JobType) {
+      switch (jcr->get_JobType()) {
       case JT_BACKUP:
          if (do_backup(jcr)) {
             do_autoprune(jcr);
@@ -347,7 +332,7 @@ static void *job_thread(void *arg)
          }
          break;
       default:
-         Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->JobType);
+         Pmsg1(0, _("Unimplemented job type: %d\n"), jcr->get_JobType());
          break;
       }
    }
@@ -586,13 +571,13 @@ static bool job_check_maxruntime(JCR *jcr)
          watchdog_time, jcr->start_time, job->MaxRunTime, job->FullMaxRunTime, 
          job->IncMaxRunTime, job->DiffMaxRunTime);
 
-   if (jcr->JobLevel == L_FULL && job->FullMaxRunTime != 0 &&
+   if (jcr->get_JobLevel() == L_FULL && job->FullMaxRunTime != 0 &&
          (watchdog_time - jcr->start_time) >= job->FullMaxRunTime) {
       cancel = true;
-   } else if (jcr->JobLevel == L_DIFFERENTIAL && job->DiffMaxRunTime != 0 &&
+   } else if (jcr->get_JobLevel() == L_DIFFERENTIAL && job->DiffMaxRunTime != 0 &&
          (watchdog_time - jcr->start_time) >= job->DiffMaxRunTime) {
       cancel = true;
-   } else if (jcr->JobLevel == L_INCREMENTAL && job->IncMaxRunTime != 0 &&
+   } else if (jcr->get_JobLevel() == L_INCREMENTAL && job->IncMaxRunTime != 0 &&
          (watchdog_time - jcr->start_time) >= job->IncMaxRunTime) {
       cancel = true;
    } else if ((watchdog_time - jcr->start_time) >= job->MaxRunTime) {
@@ -718,7 +703,7 @@ void apply_pool_overrides(JCR *jcr)
    /*
     * Apply any level related Pool selections
     */
-   switch (jcr->JobLevel) {
+   switch (jcr->get_JobLevel()) {
    case L_FULL:
       if (jcr->full_pool) {
          jcr->pool = jcr->full_pool;
@@ -836,8 +821,8 @@ void init_jcr_job_record(JCR *jcr)
    jcr->jr.SchedTime = jcr->sched_time;
    jcr->jr.StartTime = jcr->start_time;
    jcr->jr.EndTime = 0;               /* perhaps rescheduled, clear it */
-   jcr->jr.JobType = jcr->JobType;
-   jcr->jr.JobLevel = jcr->JobLevel;
+   jcr->jr.JobType = jcr->get_JobType();
+   jcr->jr.JobLevel = jcr->get_JobLevel();
    jcr->jr.JobStatus = jcr->JobStatus;
    jcr->jr.JobId = jcr->JobId;
    bstrncpy(jcr->jr.Name, jcr->job->name(), sizeof(jcr->jr.Name));
@@ -1062,15 +1047,15 @@ void get_job_storage(USTORE *store, JOB *job, RUN *run)
 void set_jcr_defaults(JCR *jcr, JOB *job)
 {
    jcr->job = job;
-   jcr->JobType = job->JobType;
+   jcr->set_JobType(job->JobType);
    jcr->JobStatus = JS_Created;
 
-   switch (jcr->JobType) {
+   switch (jcr->get_JobType()) {
    case JT_ADMIN:
-      jcr->JobLevel = L_NONE;
+      jcr->set_JobLevel(L_NONE);
       break;
    default:
-      jcr->JobLevel = job->JobLevel;
+      jcr->set_JobLevel(job->JobLevel);
       break;
    }
 
@@ -1127,20 +1112,20 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
    /* This can be overridden by Console program */
    jcr->verify_job = job->verify_job;
    /* If no default level given, set one */
-   if (jcr->JobLevel == 0) {
-      switch (jcr->JobType) {
+   if (jcr->get_JobLevel() == 0) {
+      switch (jcr->get_JobType()) {
       case JT_VERIFY:
-         jcr->JobLevel = L_VERIFY_CATALOG;
+         jcr->set_JobLevel(L_VERIFY_CATALOG);
          break;
       case JT_BACKUP:
-         jcr->JobLevel = L_INCREMENTAL;
+         jcr->set_JobLevel(L_INCREMENTAL);
          break;
       case JT_RESTORE:
       case JT_ADMIN:
-         jcr->JobLevel = L_NONE;
+         jcr->set_JobLevel(L_NONE);
          break;
       default:
-         jcr->JobLevel = L_FULL;
+         jcr->set_JobLevel(L_FULL);
          break;
       }
    }
@@ -1151,7 +1136,7 @@ void set_jcr_defaults(JCR *jcr, JOB *job)
  */
 void copy_rwstorage(JCR *jcr, alist *storage, const char *where)
 {
-   if (jcr->JobReads) {
+   if (jcr->JobReads()) {
       copy_rstorage(jcr, storage, where);
    }
    copy_wstorage(jcr, storage, where);
@@ -1165,7 +1150,7 @@ void set_rwstorage(JCR *jcr, USTORE *store)
       Jmsg(jcr, M_FATAL, 0, _("No storage specified.\n"));
       return;
    }
-   if (jcr->JobReads) {
+   if (jcr->JobReads()) {
       set_rstorage(jcr, store);
    }
    set_wstorage(jcr, store);

@@ -177,7 +177,7 @@ static void  list_running_jobs(STATUS_PKT *sp)
                     njcr->JobId, njcr->Job);
          sendit(msg.c_str(), len, sp);
          len = Mmsg(msg, _("    %s%s Job started: %s\n"),
-                    vss, job_type_to_str(njcr->JobType), dt);
+                    vss, job_type_to_str(njcr->get_JobType()), dt);
       }
       sendit(msg.c_str(), len, sp);
       if (njcr->JobId == 0) {

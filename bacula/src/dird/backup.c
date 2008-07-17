@@ -65,7 +65,7 @@ static char OldEndJob[]  = "2800 End Job TermCode=%d JobFiles=%u "
 bool do_backup_init(JCR *jcr)
 {
 
-   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
       return do_vbackup_init(jcr);
    }
    free_rstorage(jcr);                   /* we don't read so release */
@@ -132,7 +132,7 @@ bool send_accurate_current_files(JCR *jcr)
 {
    POOL_MEM buf;
 
-   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+   if (!jcr->accurate || job_canceled(jcr) || jcr->get_JobLevel()==L_FULL) {
       return true;
    }
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
@@ -178,7 +178,7 @@ bool do_backup(JCR *jcr)
    STORE *store;
    char ed1[100];
 
-   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
       return do_vbackup(jcr);
    }
 
@@ -378,7 +378,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
 
       if (is_bnet_error(fd)) {
          Jmsg(jcr, M_FATAL, 0, _("Network error with FD during %s: ERR=%s\n"),
-              job_type_to_str(jcr->JobType), fd->bstrerror());
+              job_type_to_str(jcr->get_JobType()), fd->bstrerror());
       }
       fd->signal(BNET_TERMINATE);   /* tell Client we are terminating */
    }
@@ -435,7 +435,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
    double kbps, compression;
    utime_t RunTime;
 
-   if (jcr->JobLevel == L_VIRTUAL_FULL) {
+   if (jcr->get_JobLevel() == L_VIRTUAL_FULL) {
       vbackup_cleanup(jcr, TermCode);
    }
 
@@ -573,7 +573,7 @@ void backup_cleanup(JCR *jcr, int TermCode)
         HOST_OS, DISTNAME, DISTVER,
         jcr->jr.JobId,
         jcr->jr.Job,
-        level_to_str(jcr->JobLevel), jcr->since,
+        level_to_str(jcr->get_JobLevel()), jcr->since,
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
@@ -630,7 +630,7 @@ void update_bootstrap_file(JCR *jcr)
          fd = bpipe ? bpipe->wfd : NULL;
       } else {
          /* ***FIXME*** handle BASE */
-         fd = fopen(fname, jcr->JobLevel==L_FULL?"w+b":"a+b");
+         fd = fopen(fname, jcr->get_JobLevel()==L_FULL?"w+b":"a+b");
       }
       if (fd) {
          VolCount = db_get_job_volume_parameters(jcr, jcr->db, jcr->JobId,
@@ -646,7 +646,7 @@ void update_bootstrap_file(JCR *jcr)
          /* Start output with when and who wrote it */
          bstrftimes(edt, sizeof(edt), time(NULL));
          fprintf(fd, "# %s - %s - %s%s\n", edt, jcr->jr.Job,
-                 level_to_str(jcr->JobLevel), jcr->since);
+                 level_to_str(jcr->get_JobLevel()), jcr->since);
          for (int i=0; i < VolCount; i++) {
             /* Write the record */
             fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);

@@ -184,7 +184,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    } 
    sd->fsend(jobcmd, edit_int64(jcr->JobId, ed1), jcr->Job, 
              job_name.c_str(), client_name.c_str(), 
-             jcr->JobType, jcr->JobLevel,
+             jcr->get_JobType(), jcr->get_JobLevel(),
              fileset_name.c_str(), !jcr->pool->catalog_files,
              jcr->job->SpoolAttributes, jcr->fileset->MD5, jcr->spool_data, 
              jcr->write_part_after_job, jcr->job->PreferMountedVolumes,
@@ -219,7 +219,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
    /* Do read side of storage daemon */
    if (ok && rstore) {
       /* For the moment, only migrate and copy have rpool */
-      if (jcr->JobType == JT_MIGRATE || jcr->JobType == JT_COPY) {
+      if (jcr->get_JobType() == JT_MIGRATE || jcr->get_JobType() == JT_COPY) {
          pm_strcpy(pool_type, jcr->rpool->pool_type);
          pm_strcpy(pool_name, jcr->rpool->name());
       } else {

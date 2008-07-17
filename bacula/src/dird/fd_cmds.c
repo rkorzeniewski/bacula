@@ -184,7 +184,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
     * Lookup the last FULL backup job to get the time/date for a
     * differential or incremental save.
     */
-   switch (jcr->JobLevel) {
+   switch (jcr->get_JobLevel()) {
    case L_DIFFERENTIAL:
    case L_INCREMENTAL:
       POOLMEM *stime = get_pool_memory(PM_MESSAGE);
@@ -193,7 +193,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       jcr->jr.JobId = 0;     /* flag to return since time */
       have_full = db_find_job_start_time(jcr, jcr->db, &jcr->jr, &jcr->stime);
       /* If there was a successful job, make sure it is recent enough */
-      if (jcr->JobLevel == L_INCREMENTAL && have_full && jcr->job->MaxDiffInterval > 0) {
+      if (jcr->get_JobLevel() == L_INCREMENTAL && have_full && jcr->job->MaxDiffInterval > 0) {
          /* Lookup last diff job */
          if (db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_DIFFERENTIAL)) {
             diff_time = str_to_utime(stime);
@@ -212,22 +212,22 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
          Jmsg(jcr, M_INFO, 0, "%s", db_strerror(jcr->db));
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Full backup found in catalog. Doing FULL backup.\n"));
          bsnprintf(since, since_len, _(" (upgraded from %s)"),
-            level_to_str(jcr->JobLevel));
-         jcr->JobLevel = jcr->jr.JobLevel = L_FULL;
+            level_to_str(jcr->get_JobLevel()));
+         jcr->set_JobLevel(jcr->jr.JobLevel = L_FULL);
        } else if (do_diff) {
          /* No recent diff job found, so upgrade this one to Full */
          Jmsg(jcr, M_INFO, 0, _("No prior or suitable Differential backup found in catalog. Doing Differential backup.\n"));
          bsnprintf(since, since_len, _(" (upgraded from %s)"),
-            level_to_str(jcr->JobLevel));
-         jcr->JobLevel = jcr->jr.JobLevel = L_DIFFERENTIAL;
+            level_to_str(jcr->get_JobLevel()));
+         jcr->set_JobLevel(jcr->jr.JobLevel = L_DIFFERENTIAL);
       } else {
          if (jcr->job->rerun_failed_levels) {
             if (db_find_failed_job_since(jcr, jcr->db, &jcr->jr, jcr->stime, JobLevel)) {
                Jmsg(jcr, M_INFO, 0, _("Prior failed job found in catalog. Upgrading to %s.\n"),
                   level_to_str(JobLevel));
                bsnprintf(since, since_len, _(" (upgraded from %s)"),
-                  level_to_str(jcr->JobLevel));
-               jcr->JobLevel = jcr->jr.JobLevel = JobLevel;
+                  level_to_str(jcr->get_JobLevel()));
+               jcr->set_JobLevel(jcr->jr.JobLevel = JobLevel);
                jcr->jr.JobId = jcr->JobId;
                break;
             }
@@ -238,7 +238,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       jcr->jr.JobId = jcr->JobId;
       break;
    }
-   Dmsg2(100, "Level=%c last start time=%s\n", jcr->JobLevel, jcr->stime);
+   Dmsg2(100, "Level=%c last start time=%s\n", jcr->get_JobLevel(), jcr->stime);
 }
 
 static void send_since_time(JCR *jcr)
@@ -266,7 +266,7 @@ bool send_level_command(JCR *jcr)
    /*
     * Send Level command to File daemon
     */
-   switch (jcr->JobLevel) {
+   switch (jcr->get_JobLevel()) {
    case L_BASE:
       fd->fsend(levelcmd, not_accurate, "base", " ", 0);
       break;
@@ -286,7 +286,7 @@ bool send_level_command(JCR *jcr)
    case L_SINCE:
    default:
       Jmsg2(jcr, M_FATAL, 0, _("Unimplemented backup level %d %c\n"),
-         jcr->JobLevel, jcr->JobLevel);
+         jcr->get_JobLevel(), jcr->get_JobLevel());
       return 0;
    }
    Dmsg1(120, ">filed: %s", fd->msg);
@@ -588,7 +588,7 @@ int send_runscripts_commands(JCR *jcr)
    Dmsg0(120, "bdird: sending runscripts to fd\n");
    
    foreach_alist(cmd, jcr->job->RunScripts) {
-      if (cmd->can_run_at_level(jcr->JobLevel) && cmd->target) {
+      if (cmd->can_run_at_level(jcr->get_JobLevel()) && cmd->target) {
          ehost = edit_job_codes(jcr, ehost, cmd->target, "");
          Dmsg2(200, "bdird: runscript %s -> %s\n", cmd->target, ehost);
 
