@@ -134,8 +134,8 @@ bool job_cmd(JCR *jcr)
    unbash_spaces(fileset_name);
    jcr->fileset_name = get_pool_memory(PM_NAME);
    pm_strcpy(jcr->fileset_name, fileset_name);
-   jcr->JobType = JobType;
-   jcr->JobLevel = level;
+   jcr->set_JobType(JobType);
+   jcr->set_JobLevel(level);
    jcr->no_attributes = no_attributes;
    jcr->spool_attributes = spool_attributes;
    jcr->spool_data = spool_data;

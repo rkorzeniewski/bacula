@@ -140,9 +140,9 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 0:                            /* Job */
       return Py_BuildValue((char *)getvars[i].fmt, jcr->job->hdr.name);
    case 1:                            /* level */
-      return Py_BuildValue((char *)getvars[i].fmt, job_level_to_str(jcr->JobLevel));
+      return Py_BuildValue((char *)getvars[i].fmt, job_level_to_str(jcr->get_JobLevel()));
    case 2:                            /* type */
-      return Py_BuildValue((char *)getvars[i].fmt, job_type_to_str(jcr->JobType));
+      return Py_BuildValue((char *)getvars[i].fmt, job_type_to_str(jcr->get_JobType()));
    case 3:                            /* JobId */
       return Py_BuildValue((char *)getvars[i].fmt, jcr->JobId);
    case 4:                            /* Client */
@@ -296,9 +296,9 @@ int job_setattr(PyObject *self, char *attrname, PyObject *value)
       }
       for (i=0; joblevels[i].level_name; i++) {
          if (strcmp(strval, joblevels[i].level_name) == 0) {
-            if (joblevels[i].job_type == jcr->JobType) {
-               jcr->JobLevel = joblevels[i].level;
-               jcr->jr.JobLevel = jcr->JobLevel;
+            if (joblevels[i].job_type == jcr->get_JobType()) {
+               jcr->set_JobLevel(joblevels[i].level);
+               jcr->jr.JobLevel = jcr->get_JobLevel();
                return 0;
             }
          }

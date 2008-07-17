@@ -57,7 +57,7 @@ bool do_mac(JCR *jcr)
    char ec1[50];
    DEVICE *dev;
 
-   switch(jcr->JobType) {
+   switch(jcr->get_JobType()) {
    case JT_MIGRATE:
       Type = "Migration";
       break;

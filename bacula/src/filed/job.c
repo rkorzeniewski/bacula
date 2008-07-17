@@ -1235,16 +1235,16 @@ static int level_cmd(JCR *jcr)
    }
    /* Base backup requested? */
    if (strcmp(level, "base") == 0) {
-      jcr->JobLevel = L_BASE;
+      jcr->set_JobLevel(L_BASE);
    /* Full backup requested? */
    } else if (strcmp(level, "full") == 0) {
-      jcr->JobLevel = L_FULL;
+      jcr->set_JobLevel(L_FULL);
    } else if (strstr(level, "differential")) {
-      jcr->JobLevel = L_DIFFERENTIAL;
+      jcr->set_JobLevel(L_DIFFERENTIAL);
       free_memory(level);
       return 1;
    } else if (strstr(level, "incremental")) {
-      jcr->JobLevel = L_INCREMENTAL;
+      jcr->set_JobLevel(L_INCREMENTAL);
       free_memory(level);
       return 1;
    /*
@@ -1255,8 +1255,8 @@ static int level_cmd(JCR *jcr)
       buf = get_memory(dir->msglen+1);
       utime_t since_time, adj;
       btime_t his_time, bt_start, rt=0, bt_adj=0;
-      if (jcr->JobLevel == L_NONE) {
-         jcr->JobLevel = L_SINCE;     /* if no other job level set, do it now */
+      if (jcr->get_JobLevel() == L_NONE) {
+         jcr->set_JobLevel(L_SINCE);     /* if no other job level set, do it now */
       }
       if (sscanf(dir->msg, "level = since_utime %s mtime_only=%d",
                  buf, &mtime_only) != 2) {
@@ -1318,7 +1318,7 @@ static int level_cmd(JCR *jcr)
    if (buf) {
       free_memory(buf);
    }
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->JobLevel);
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->get_JobLevel());
    return dir->fsend(OKlevel);
 
 bail_out:
@@ -1418,7 +1418,7 @@ static int backup_cmd(JCR *jcr)
 #endif
 
    set_jcr_job_status(jcr, JS_Blocked);
-   jcr->JobType = JT_BACKUP;
+   jcr->set_JobType(JT_BACKUP);
    Dmsg1(100, "begin backup ff=%p\n", jcr->ff);
 
    if (sd == NULL) {
@@ -1592,22 +1592,22 @@ static int verify_cmd(JCR *jcr)
    BSOCK *sd  = jcr->store_bsock;
    char level[100];
 
-   jcr->JobType = JT_VERIFY;
+   jcr->set_JobType(JT_VERIFY);
    if (sscanf(dir->msg, verifycmd, level) != 1) {
       dir->fsend(_("2994 Bad verify command: %s\n"), dir->msg);
       return 0;
    }
 
    if (strcasecmp(level, "init") == 0) {
-      jcr->JobLevel = L_VERIFY_INIT;
+      jcr->set_JobLevel(L_VERIFY_INIT);
    } else if (strcasecmp(level, "catalog") == 0){
-      jcr->JobLevel = L_VERIFY_CATALOG;
+      jcr->set_JobLevel(L_VERIFY_CATALOG);
    } else if (strcasecmp(level, "volume") == 0){
-      jcr->JobLevel = L_VERIFY_VOLUME_TO_CATALOG;
+      jcr->set_JobLevel(L_VERIFY_VOLUME_TO_CATALOG);
    } else if (strcasecmp(level, "data") == 0){
-      jcr->JobLevel = L_VERIFY_DATA;
+      jcr->set_JobLevel(L_VERIFY_DATA);
    } else if (strcasecmp(level, "disk_to_catalog") == 0) {
-      jcr->JobLevel = L_VERIFY_DISK_TO_CATALOG;
+      jcr->set_JobLevel(L_VERIFY_DISK_TO_CATALOG);
    } else {
       dir->fsend(_("2994 Bad verify level: %s\n"), dir->msg);
       return 0;
@@ -1616,12 +1616,12 @@ static int verify_cmd(JCR *jcr)
    dir->fsend(OKverify);
 
    generate_daemon_event(jcr, "JobStart");
-   generate_plugin_event(jcr, bEventLevel, (void *)jcr->JobLevel);
+   generate_plugin_event(jcr, bEventLevel, (void *)jcr->get_JobLevel());
    generate_plugin_event(jcr, bEventStartVerifyJob);
 
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
-   switch (jcr->JobLevel) {
+   switch (jcr->get_JobLevel()) {
    case L_VERIFY_INIT:
    case L_VERIFY_CATALOG:
       do_verify(jcr);
@@ -1717,7 +1717,7 @@ static int restore_cmd(JCR *jcr)
    dir->fsend(OKrestore);
    Dmsg1(110, "bfiled>dird: %s", dir->msg);
 
-   jcr->JobType = JT_RESTORE;
+   jcr->set_JobType(JT_RESTORE);
 
    set_jcr_job_status(jcr, JS_Blocked);
 

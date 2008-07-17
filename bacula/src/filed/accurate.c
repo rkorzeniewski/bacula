@@ -39,14 +39,14 @@ typedef struct PrivateCurFile {
 #ifndef USE_TCADB
    hlink link;
 #endif
-   char *fname;			/* not stored with tchdb mode */
+   char *fname;                 /* not stored with tchdb mode */
    time_t ctime;
    time_t mtime;
    bool seen;
 } CurFile;
 
 #ifdef USE_TCADB
-static void realfree(void *p);	/* used by tokyo code */
+static void realfree(void *p);  /* used by tokyo code */
 
 /*
  * Update hash element seen=1
@@ -57,8 +57,8 @@ static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 
    elt->seen = 1;
    if (!tcadbput(jcr->file_list, 
-		 elt->fname, strlen(elt->fname)+1, 
-		 elt, sizeof(CurFile)))
+                 elt->fname, strlen(elt->fname)+1, 
+                 elt, sizeof(CurFile)))
    { /* TODO: disabling accurate mode ?  */
       Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk\n"));
       ret = false;
@@ -75,7 +75,7 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    CurFile *elt;
 
    elt = (CurFile*)tcadbget(jcr->file_list, 
-			    fname, strlen(fname)+1, &size);
+                            fname, strlen(fname)+1, &size);
    if (elt)
    {
       /* TODO: don't malloc/free results */
@@ -97,10 +97,10 @@ static bool accurate_init(JCR *jcr, int nbfile)
 //
 //   tchdbsetcache(jcr->file_list, 300000);
 //   tchdbtune(jcr->file_list,
-//	     nbfile,		/* nb bucket 0.5n to 4n */
-//	     6,			/* size of element 2^x */
-//	     16,
-//	     0);		/* options like compression */
+//           nbfile,            /* nb bucket 0.5n to 4n */
+//           6,                 /* size of element 2^x */
+//           16,
+//           0);                /* options like compression */
 //
    jcr->hash_name  = get_pool_memory(PM_MESSAGE);
    POOLMEM *temp = get_pool_memory(PM_MESSAGE);
@@ -109,7 +109,7 @@ static bool accurate_init(JCR *jcr, int nbfile)
       make_unique_filename(&jcr->hash_name, jcr->JobId, "accurate");
       pm_strcat(jcr->hash_name, ".tcb");
       Mmsg(temp, "%s#bnum=%i#mode=e#opts=l",
-	   jcr->hash_name, nbfile*4); 
+           jcr->hash_name, nbfile*4); 
       Dmsg1(dbglvl, "Doing accurate hash on disk %s\n", jcr->hash_name);
    } else {
       Dmsg0(dbglvl, "Doing accurate hash on memory\n");
@@ -140,7 +140,7 @@ bool accurate_send_deleted_list(JCR *jcr)
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+   if (!jcr->accurate || jcr->get_JobLevel() == L_FULL) {
       goto bail_out;
    }
 
@@ -155,18 +155,18 @@ bool accurate_send_deleted_list(JCR *jcr)
    tcadbiterinit(jcr->file_list);
    while((key = tcadbiternext2(jcr->file_list)) != NULL) {
       elt = (CurFile *) tcadbget(jcr->file_list, 
-				 key, strlen(key)+1, &size);
+                                 key, strlen(key)+1, &size);
       if (elt)
       {
-	 if (!elt->seen) {	/* already seen */
-	    ff_pkt->fname = key;
-	    ff_pkt->statp.st_mtime = elt->mtime;
-	    ff_pkt->statp.st_ctime = elt->ctime;
-	    encode_and_send_attributes(jcr, ff_pkt, stream);
-	 }
-	 realfree(elt);
+         if (!elt->seen) {      /* already seen */
+            ff_pkt->fname = key;
+            ff_pkt->statp.st_mtime = elt->mtime;
+            ff_pkt->statp.st_ctime = elt->ctime;
+            encode_and_send_attributes(jcr, ff_pkt, stream);
+         }
+         realfree(elt);
       }
-      realfree(key);		/* tokyo cabinet have to use real free() */
+      realfree(key);            /* tokyo cabinet have to use real free() */
    }
 
    term_find_files(ff_pkt);
@@ -174,13 +174,13 @@ bail_out:
    /* TODO: clean htable when this function is not reached ? */
    if (jcr->file_list) {
       if(!tcadbclose(jcr->file_list)){
-	 Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk\n"));
+         Jmsg(jcr, M_ERROR, 1, _("Can't close accurate hash disk\n"));
       }
 
       /* delete the object */
       tcadbdel(jcr->file_list);
       if (!bstrcmp(jcr->hash_name, "*")) {
-	 unlink(jcr->hash_name);
+         unlink(jcr->hash_name);
       }
 
       free_pool_memory(jcr->hash_name);
@@ -195,7 +195,7 @@ bail_out:
 static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 {
    CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
-   temp->seen = 1;		/* records are in memory */
+   temp->seen = 1;              /* records are in memory */
    return true;
 }
 
@@ -232,7 +232,7 @@ bool accurate_send_deleted_list(JCR *jcr)
    FF_PKT *ff_pkt;
    int stream = STREAM_UNIX_ATTRIBUTES;
 
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+   if (!jcr->accurate || jcr->get_JobLevel() == L_FULL) {
       goto bail_out;
    }
 
@@ -280,8 +280,8 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 
 #ifdef USE_TCADB
    if (!tcadbput(jcr->file_list,
-		 fname, strlen(fname)+1,
-		 &elt, sizeof(CurFile)))
+                 fname, strlen(fname)+1,
+                 &elt, sizeof(CurFile)))
    {
       Jmsg(jcr, M_ERROR, 1, _("Can't update accurate hash disk ERR=%s\n"));
       ret = false;
@@ -312,7 +312,7 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    char *fname;
    CurFile elt;
 
-   if (!jcr->accurate || jcr->JobLevel == L_FULL) {
+   if (!jcr->accurate || jcr->get_JobLevel() == L_FULL) {
       return true;
    }
 
@@ -360,7 +360,7 @@ int accurate_cmd(JCR *jcr)
    int len;
    int32_t nb;
 
-   if (!jcr->accurate || job_canceled(jcr) || jcr->JobLevel==L_FULL) {
+   if (!jcr->accurate || job_canceled(jcr) || jcr->get_JobLevel()==L_FULL) {
       return true;
    }
 
@@ -379,7 +379,7 @@ int accurate_cmd(JCR *jcr)
    while (dir->recv() >= 0) {
       len = strlen(dir->msg) + 1;
       if (len < dir->msglen) {
-	 accurate_add_file(jcr, dir->msg, dir->msg + len);
+         accurate_add_file(jcr, dir->msg, dir->msg + len);
       }
    }
 

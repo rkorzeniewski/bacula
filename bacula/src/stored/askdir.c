@@ -330,7 +330,7 @@ bool dir_update_volume_info(DCR *dcr, bool label, bool update_LastWritten)
    POOL_MEM VolumeName;
 
    /* If system job, do not update catalog */
-   if (jcr->JobType == JT_SYSTEM) {
+   if (jcr->get_JobType() == JT_SYSTEM) {
       return true;
    }
 
@@ -394,7 +394,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
    char ed1[50];
 
    /* If system job, do not update catalog */
-   if (jcr->JobType == JT_SYSTEM) {
+   if (jcr->get_JobType() == JT_SYSTEM) {
       return true;
    }
 

@@ -221,6 +221,37 @@ void unlock_last_jobs_list()
    V(last_jobs_mutex);
 }
 
+/* Set Job type in JCR and also set appropriate read flag */
+void JCR::set_JobType(int32_t JobType)
+{
+   m_JobType = JobType;
+}
+
+/* Set Job level in JCR and also set appropriate read flag */
+void JCR::set_JobLevel(int32_t JobLevel)
+{
+   m_JobLevel = JobLevel;
+}
+
+bool JCR::JobReads()
+{
+   switch (m_JobType) {
+   case JT_VERIFY:
+   case JT_RESTORE:
+   case JT_COPY:
+   case JT_MIGRATE:
+      return true;
+   case JT_BACKUP:
+      if (m_JobLevel == L_VIRTUAL_FULL) {
+         return true;
+      }
+      break;
+   default:
+      break;
+   }
+   return false;
+}
+
 /*
  * Push a subroutine address into the job end callback stack
  */
@@ -287,8 +318,8 @@ JCR *new_jcr(int size, JCR_free_HANDLER *daemon_free_jcr)
    /* Setup some dummy values */
    bstrncpy(jcr->Job, "*System*", sizeof(jcr->Job));
    jcr->JobId = 0;
-   jcr->JobType = JT_SYSTEM;          /* internal job until defined */
-   jcr->JobLevel = L_NONE;
+   jcr->set_JobType(JT_SYSTEM);          /* internal job until defined */
+   jcr->set_JobLevel(L_NONE);
    set_jcr_job_status(jcr, JS_Created);       /* ready to run */
    set_jcr_in_tsd(jcr);
    sigtimer.sa_flags = 0;
@@ -446,7 +477,7 @@ void free_jcr(JCR *jcr)
    Dmsg1(dbglvl, "End job=%d\n", jcr->JobId);
 
    /* Keep some statistics */
-   switch (jcr->JobType) {
+   switch (jcr->get_JobType()) {
    case JT_BACKUP:
    case JT_VERIFY:
    case JT_RESTORE:
@@ -459,7 +490,7 @@ void free_jcr(JCR *jcr)
          je = (struct s_last_job *)malloc(sizeof(struct s_last_job));
          memset(je, 0, sizeof(struct s_last_job));  /* zero in case unset fields */
          je->Errors = jcr->Errors;
-         je->JobType = jcr->JobType;
+         je->JobType = jcr->get_JobType();
          je->JobId = jcr->JobId;
          je->VolSessionId = jcr->VolSessionId;
          je->VolSessionTime = jcr->VolSessionTime;
@@ -467,7 +498,7 @@ void free_jcr(JCR *jcr)
          je->JobFiles = jcr->JobFiles;
          je->JobBytes = jcr->JobBytes;
          je->JobStatus = jcr->JobStatus;
-         je->JobLevel = jcr->JobLevel;
+         je->JobLevel = jcr->get_JobLevel();
          je->start_time = jcr->start_time;
          je->end_time = time(NULL);
 

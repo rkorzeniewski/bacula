@@ -120,9 +120,9 @@ PyObject *job_getattr(PyObject *self, char *attrname)
    case 1:                            /* SD's name */
       return Py_BuildValue((char *)getvars[i].fmt, my_name);
    case 2:                            /* level */
-      return Py_BuildValue((char *)getvars[i].fmt, job_level_to_str(jcr->JobLevel));
+      return Py_BuildValue((char *)getvars[i].fmt, job_level_to_str(jcr->get_JobLevel()));
    case 3:                            /* type */
-      return Py_BuildValue((char *)getvars[i].fmt, job_type_to_str(jcr->JobType));
+      return Py_BuildValue((char *)getvars[i].fmt, job_type_to_str(jcr->get_JobType()));
    case 4:                            /* JobId */
       return Py_BuildValue((char *)getvars[i].fmt, jcr->JobId);
    case 5:                            /* Client */

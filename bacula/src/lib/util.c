@@ -441,7 +441,7 @@ const char *volume_status_to_str(const char *status)
    if (status) {
      for (pos = 0 ; vs[pos] ; pos += 2) {
        if ( !strcmp(vs[pos],status) ) {
-	 return vs[pos+1];
+         return vs[pos+1];
        }
      }
    }
@@ -738,7 +738,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to, job_co
             break;
          case 'l':
             if (jcr) {
-               str = job_level_to_str(jcr->JobLevel);
+               str = job_level_to_str(jcr->get_JobLevel());
             } else {
                str = _("*none*");
             }
@@ -769,7 +769,7 @@ POOLMEM *edit_job_codes(JCR *jcr, char *omsg, char *imsg, const char *to, job_co
             break;
          case 't':
             if (jcr) {
-               str = job_type_to_str(jcr->JobType);
+               str = job_type_to_str(jcr->get_JobType());
             } else {
                str = _("*none*");
             }

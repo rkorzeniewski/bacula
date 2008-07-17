@@ -166,6 +166,8 @@ class JCR {
 private:
    pthread_mutex_t mutex;             /* jcr mutex */
    volatile int32_t _use_count;       /* use count */
+   int32_t m_JobType;                 /* backup, restore, verify ... */
+   int32_t m_JobLevel;                /* Job level */
 public:
    void lock() {P(mutex); };
    void unlock() {V(mutex); };
@@ -175,6 +177,12 @@ public:
    void init_mutex(void) {pthread_mutex_init(&mutex, NULL); };
    void destroy_mutex(void) {pthread_mutex_destroy(&mutex); };
    bool is_job_canceled() {return job_canceled(this); };
+   int32_t get_JobType() { return m_JobType; };
+   int32_t get_JobLevel() { return m_JobLevel; };
+
+   void set_JobLevel(int32_t JobLevel); /* in lib/jcr.c */
+   void set_JobType(int32_t JobType);  /* in lib/jcr.c */
+   bool JobReads();                    /* in lib/jcr.c */
 
    /* Global part of JCR common to all daemons */
    dlink link;                        /* JCR chain link */
@@ -199,10 +207,7 @@ public:
    uint64_t ReadBytes;                /* Bytes read -- before compression */
    uint32_t Errors;                   /* Number of non-fatal errors */
    volatile int32_t JobStatus;        /* ready, running, blocked, terminated */
-   int32_t JobType;                   /* backup, restore, verify ... */
-   int32_t JobLevel;                  /* Job level */
    int32_t JobPriority;               /* Job priority */
-   bool    JobReads;                  /* Set if job reads Volumes */        
    time_t sched_time;                 /* job schedule time, i.e. when it should start */
    time_t start_time;                 /* when job actually started */
    time_t run_time;                   /* used for computing speed */

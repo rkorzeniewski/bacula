@@ -93,10 +93,10 @@ static int job_item(JCR *jcr, int code,
       str = my_name;
       break;
    case 3:                            /* level */
-      str = job_level_to_str(jcr->JobLevel);
+      str = job_level_to_str(jcr->get_JobLevel());
       break;
    case 4:                            /* type */
-      str = job_type_to_str(jcr->JobType);
+      str = job_type_to_str(jcr->get_JobType());
       break;
    case 5:                            /* JobId */
       bsnprintf(buf, sizeof(buf), "%d", jcr->JobId);

@@ -612,7 +612,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
    if (jcr->job->RescheduleOnError &&
        jcr->JobStatus != JS_Terminated &&
        jcr->JobStatus != JS_Canceled &&
-       jcr->JobType == JT_BACKUP &&
+       jcr->get_JobType() == JT_BACKUP &&
        (jcr->job->RescheduleTimes == 0 ||
         jcr->reschedule_count < jcr->job->RescheduleTimes)) {
        char dt[50], dt2[50];
@@ -656,7 +656,7 @@ static bool reschedule_job(JCR *jcr, jobq_t *jq, jobq_item_t *je)
       set_jcr_defaults(njcr, jcr->job);
       njcr->reschedule_count = jcr->reschedule_count;
       njcr->sched_time = jcr->sched_time;
-      njcr->JobLevel = jcr->JobLevel;
+      njcr->set_JobLevel(jcr->get_JobLevel());
       njcr->pool = jcr->pool;
       njcr->run_pool_override = jcr->run_pool_override;
       njcr->full_pool = jcr->full_pool;
