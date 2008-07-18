@@ -316,7 +316,7 @@ bool Console::sql_cmd(const char *query, QStringList &results)
    while ((stat = read()) > 0) {
       if (mainWin->m_displayAll) {
          display_text(msg());
-	 display_text("\n");
+         display_text("\n");
       }
       strip_trailing_junk(msg());
       results << msg();
@@ -589,12 +589,12 @@ void Console::displayToPrompt()
    if (mainWin->m_commDebug) Pmsg0(000, "DisplaytoPrompt\n");
    while (!m_at_prompt) {
       if ((stat=read()) > 0) {
-	buf += msg();
-	if (buf.size() >= 8196 || m_messages_pending) {
-	   display_text(buf);
-	   buf.clear();
-	   m_messages_pending = false;
-	}
+        buf += msg();
+        if (buf.size() >= 8196 || m_messages_pending) {
+           display_text(buf);
+           buf.clear();
+           m_messages_pending = false;
+        }
       }
    }
    display_text(buf);
@@ -609,12 +609,29 @@ void Console::discardToPrompt()
       displayToPrompt();
    } else {
       while (!m_at_prompt) {
-	 stat=read();
+         stat=read();
       }
    }
    if (mainWin->m_commDebug) Pmsg1(000, "endDiscardToPrompt=%d\n", stat);
 }
 
+int Console::sock_read()
+{
+   int stat;
+#ifdef HAVE_WIN32
+   bool isEnabled = m_notifier->isEnabled();
+   if (isEnabled) {
+      m_notifier->setEnabled(false);
+   }
+   stat = m_sock->recv();
+   if (isEnabled) {
+      m_notifier->setEnabled(true);
+   }
+#else
+   stat = m_sock->recv();
+#endif
+   return stat;
+}
 
 /* 
  * Blocking read from director
@@ -635,7 +652,7 @@ int Console::read()
          }
       }
       m_sock->msg[0] = 0;
-      stat = m_sock->recv();
+      stat = sock_read();
       if (stat >= 0) {
          if (mainWin->m_commDebug) Pmsg1(000, "got: %s\n", m_sock->msg);
          if (m_at_prompt) {
@@ -715,19 +732,19 @@ int Console::read()
          break;
       case BNET_ERROR_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "ERROR MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          display_text(msg());
          QMessageBox::critical(this, "Error", msg(), QMessageBox::Ok);
          break;
       case BNET_WARNING_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "WARNING MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          display_text(msg());
          QMessageBox::critical(this, "Warning", msg(), QMessageBox::Ok);
          break;
       case BNET_INFO_MSG:
          if (mainWin->m_commDebug) Pmsg0(000, "INFO MSG\n");
-         m_sock->recv();              /* get the message */
+         stat = sock_read();          /* get the message */
          display_text(msg());
          mainWin->set_status(msg());
          break;
@@ -814,19 +831,19 @@ bool Console::preventInUseConnect()
 {
    if (!is_connected()) {
       QString message = tr("Director %1 is currently disconnected\n"
-			   "Please reconnect!").arg(m_dir->name());
+                           "Please reconnect!").arg(m_dir->name());
       QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else if (!m_at_main_prompt){
       QString message = tr("Director %1 is currently busy\n  Please complete "
-			   "restore or other operation!  This is a limitation "
-			   "that will be resolved before a beta release.  "
-			   "This is currently an alpha release.").arg(m_dir->name());
+                           "restore or other operation!  This is a limitation "
+                           "that will be resolved before a beta release.  "
+                           "This is currently an alpha release.").arg(m_dir->name());
       QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else if (!m_at_prompt){
       QString message = tr("Director %1 is currently not at a prompt\n"
-			   "  Please try again!").arg(m_dir->name());
+                           "  Please try again!").arg(m_dir->name());
       QMessageBox::warning(this, "Bat", message, QMessageBox::Ok );
       return false;
    } else {
