@@ -55,6 +55,9 @@ $ cp -r ~/.wine/drive_c/Qt/4.4.0/lib     depkgs-mingw32/lib/qt
 MINGW setup
 -----------
 
+If you have a problem with wchar.c about a redefinition of struct stat (i think you will have
+this problem too) Apply this patch to your cross-tool installation.
+
 --- cross-tools/mingw32/mingw32/include/wchar.h.org     2008-07-13 15:18:52.000000000 +0200
 +++ cross-tools/mingw32/mingw32/include/wchar.h 2008-07-12 14:47:10.000000000 +0200
 @@ -394,7 +394,7 @@
