@@ -178,6 +178,17 @@ bool setup_job(JCR *jcr)
       goto bail_out;
    }
 
+   if (jcr->JobReads() && !jcr->rstorage) {
+      if (jcr->job->storage) {
+         copy_rwstorage(jcr, jcr->job->storage, _("Job resource"));
+      } else {
+         copy_rwstorage(jcr, jcr->job->pool->storage, _("Pool resource"));
+      }
+   }
+   if (!jcr->JobReads()) {
+      free_rstorage(jcr);
+   }
+
    /*
     * Now, do pre-run stuff, like setting job level (Inc/diff, ...)
     *  this allows us to setup a proper job start record for restarting

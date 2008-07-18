@@ -93,7 +93,7 @@ bool do_vbackup_init(JCR *jcr)
 
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
-   Dmsg1(000, "Accurate jobids=%s\n", jobids);
+   Dmsg1(100, "Accurate jobids=%s\n", jobids);
    if (*jobids == 0) {
       free_pool_memory(jobids);
       Jmsg(jcr, M_FATAL, 0, _("Cannot find previous JobIds.\n"));
@@ -164,8 +164,8 @@ bool do_vbackup(JCR *jcr)
    /*
     * Now start a job with the Storage daemon
     */
-   Dmsg2(000, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
-   Dmsg2(000, "Read store=%s, write store=%s\n", 
+   Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
+   Dmsg2(100, "Read store=%s, write store=%s\n", 
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
    if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
@@ -176,14 +176,12 @@ bool do_vbackup(JCR *jcr)
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
    }
-   Dmsg0(000, "Storage daemon connection OK\n");
+   Dmsg0(100, "Storage daemon connection OK\n");
 
    if (!send_bootstrap_file(jcr, sd) ||
        !response(jcr, sd, OKbootstrap, "Bootstrap", DISPLAY_ERROR)) {
       return false;
    }
-
-   Dmsg0(000, "Bootstrap file sent\n");
 
    /*    
     * We re-update the job start record so that the start
@@ -484,7 +482,7 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
        * Find files for this JobId and insert them in the tree
        */
       Mmsg(rx.query, uar_sel_files, edit_int64(JobId, ed1));
-      Dmsg1(000, "uar_sel_files=%s\n", rx.query);
+      Dmsg1(100, "uar_sel_files=%s\n", rx.query);
       if (!db_sql_query(ua->db, rx.query, insert_bootstrap_handler, (void *)rx.bsr)) {
          Jmsg(jcr, M_ERROR, 0, "%s", db_strerror(ua->db));
       }
@@ -494,8 +492,8 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
 #endif
 
    complete_bsr(ua, rx.bsr);
-   Dmsg0(000, "Print bsr\n");
-   print_bsr(ua, rx.bsr);
+//   Dmsg0(000, "Print bsr\n");
+//   print_bsr(ua, rx.bsr);
 
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
    Dmsg1(000, "Found %d files to consolidate.\n", jcr->ExpectedFiles);
