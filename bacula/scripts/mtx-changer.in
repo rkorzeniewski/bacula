@@ -170,7 +170,7 @@ case $cmd in
       make_temp_file
       if test ${inventory} -ne 0 ; then
 	${MTX} -f $ctl inventory
-      }
+      fi
       ${MTX} -f $ctl status >${TMPFILE}
       rtn=$?
       if test ${vxa_packetloader} -ne 0 ; then
