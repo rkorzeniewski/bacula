@@ -64,7 +64,7 @@ this problem too) Apply this patch to your cross-tool installation.
         time_t  st_ctime;       /* Creation time */
  };
 
--#ifdef _NO_OLDNAMES
+-#ifndef _NO_OLDNAMES
 +#ifdef _NO_OLDNAMES_DISABLE
  /* NOTE: Must be the same as _stat above. */
  struct stat
