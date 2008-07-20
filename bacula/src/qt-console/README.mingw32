@@ -33,7 +33,6 @@ bacula setup
 $ cd bacula/src/win32
 $ make
 
-Don't run any configure, make or make install
 Make sure that bacula/src/win32/release/bacula.dll is built
 
 QT4 setup
@@ -51,12 +50,11 @@ $ wine qt-win-opensource-4.4.0-mingw.exe
 $ cp -r ~/.wine/drive_c/Qt/4.4.0/src/    depkgs-mingw32/include
 $ cp -r ~/.wine/drive_c/Qt/4.4.0/include depkgs-mingw32/include/qt
 $ cp -r ~/.wine/drive_c/Qt/4.4.0/lib     depkgs-mingw32/lib/qt
+# copy ~/.wine/drive_c/Qt/4.4.0/bin/QtCore4.dll to src/win32/release
+# copy ~/.wine/drive_c/Qt/4.4.0/bin/QtGui4.dll to src/win32/release
 
 MINGW setup
 -----------
-
-If you have a problem with wchar.c about a redefinition of struct stat (i think you will have
-this problem too) Apply this patch to your cross-tool installation.
 
 --- cross-tools/mingw32/mingw32/include/wchar.h.org     2008-07-13 15:18:52.000000000 +0200
 +++ cross-tools/mingw32/mingw32/include/wchar.h 2008-07-12 14:47:10.000000000 +0200
@@ -74,9 +72,14 @@ Compile bat
 -----------
 
 $ cd bacula/src/qt-console
-$ cp bat.pro.mingw bat.pro
-$ qmake-qt4 -spec win32-x-g++
-$ make
+$ ./make-win32
+
+Cleanup
+-------
+$ cd bacula/src/qt-console
+$ ./make-win32 clean
+
+
 
 Run Bat on Windows
 ------------------
@@ -92,17 +95,16 @@ You'll need
    mingwm10.dll
    bat.conf
 
-You can find QT dlls on ~/.wine/drive_c/Qt/4.4.0/bin
+You can find the Qt dlls in ~/.wine/drive_c/Qt/4.4.0/bin
 
 Run Bat with wine
 -----------------
 $ cd bacula/src/qt-console/debug
 
 # configure a bat.conf
-# copy all dll to this directory
+# copy all dlls to this directory
 
 $ wine bat 
 
 
 That all, easy isn't it ?
-

@@ -774,7 +774,7 @@ void BSOCK::restore_blocking (int flags)
  *            0 if timeout
  *           -1 if error
  */
-int BSOCK::wait_data(int sec)
+int BSOCK::wait_data(int sec, int usec)
 {
    fd_set fdset;
    struct timeval tv;
@@ -783,7 +783,7 @@ int BSOCK::wait_data(int sec)
    FD_SET((unsigned)m_fd, &fdset);
    for (;;) {
       tv.tv_sec = sec;
-      tv.tv_usec = 0;
+      tv.tv_usec = usec;
       switch (select(m_fd + 1, &fdset, NULL, NULL, &tv)) {
       case 0:                      /* timeout */
          b_errno = 0;
@@ -804,7 +804,7 @@ int BSOCK::wait_data(int sec)
 /*
  * As above, but returns on interrupt
  */
-int BSOCK::wait_data_intr(int sec)
+int BSOCK::wait_data_intr(int sec, int usec)
 {
    fd_set fdset;
    struct timeval tv;
@@ -812,7 +812,7 @@ int BSOCK::wait_data_intr(int sec)
    FD_ZERO(&fdset);
    FD_SET((unsigned)m_fd, &fdset);
    tv.tv_sec = sec;
-   tv.tv_usec = 0;
+   tv.tv_usec = usec;
    switch (select(m_fd + 1, &fdset, NULL, NULL, &tv)) {
    case 0:                      /* timeout */
       b_errno = 0;

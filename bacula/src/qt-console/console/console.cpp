@@ -641,7 +641,7 @@ int Console::read()
    int stat = 0;
    while (m_sock) {
       for (;;) {
-         stat = bnet_wait_data_intr(m_sock, 1);
+         stat = m_sock->wait_data_intr(0, 50000);
          if (stat > 0) {
             break;
          } 
