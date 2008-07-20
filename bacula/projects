@@ -1296,6 +1296,34 @@ Item 1: Backup and Restore of Windows Encrypted Files through raw encryption fun
         necessary, in larger data sets (ie, tens or hundreds of gigabytes) it
         can easily produce multi-megabyte report emails!
 
+   Item n?: Expand the Verify Job capability to verify Jobs older than the 
+   last one. For VolumeToCatalog Jobs
+   Date: 17 Januar 2008
+   Origin: portrix.net Hamburg, Germany.
+   Contact: Christian Sabelmann
+   Status: 70% of the required Code is part of the Verify function since v. 2.x
+
+   What:
+   The ability to tell Bacula which Job should verify instead of 
+   automatically verify just the last one.
+
+   Why: 
+   It is sad that such a powerfull feature like Verify Jobs 
+   (VolumeToCatalog) is restricted to be used only with the last backup Job 
+   of a client. Actual users who have to do daily Backups are forced to 
+   also do daily Verify Jobs in order to take advantage of this useful 
+   feature.  This Daily Verify after Backup conduct is not always desired 
+   and Verify Jobs have to be sometimes scheduled. (Not necessarily 
+   scheduled in Bacula). With this feature Admins can verify Jobs once a 
+   Week or less per month, selecting the Jobs they want to verify.  This 
+   feature is also not to difficult to implement taking in account older 
+   bug reports about this feature and the selection of the Job to be verified.
+          
+   Notes: For the verify Job, the user could select the Job to be verified 
+   from a List of the latest Jobs of a client. It would also be possible to 
+   verify a certain volume.  All of these would naturaly apply only for 
+   Jobs whose file information are still in the catalog.
+
 ========== Already implemented ================================
 
 Item  n:  make changing "spooldata=yes|no" possible for

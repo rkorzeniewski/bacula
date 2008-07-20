@@ -348,14 +348,17 @@ static int tls_pem_callback(char *buf, int size, const void *userdata)
 #include "readline.h"
 #include "history.h"
 
-static char eol = ';';
+static char eol = '\0';
 static int eolcmd(FILE *input, BSOCK *UA_sock)
 {
    if ((argc > 1) && (strchr("!$%&'()*+,-/:;<>?[]^`{|}~", argk[1][0]) != NULL)) {
       eol = argk[1][0];
       return 1;
+   } else if (argc == 1) {
+      eol = '\0';
    }
-   sendit(_("Missing or illegal separator character.\n"));
+
+   sendit(_("Illegal separator character.\n"));
    return 1;
 }
 
@@ -371,20 +374,31 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
       do_history = 0;
       rl_catch_signals = 0;              /* do it ourselves */
       line = readline((char *)prompt);   /* cast needed for old readlines */
-
       if (!line) {
          exit(1);
       }
       strip_trailing_junk(line);
       command = line;
-   } else {
-      *next = eol;
+   } else if (next) {
       command = next + 1;
+   } else {
+     sendit(_("Command logic problem\n"));
+     sock->msglen = 0;
+     sock->msg[0] = 0;
+     return 0;
    }
 
-   next = strchr(command, eol);
-   if (next != NULL) {
-      *next = '\0';
+   /*
+    * Split "line" into multiple commands separated by the eol character.
+    *   Each part is pointed to by "next" until finally it becomes null.
+    */
+   if (eol == '\0') {
+      next = NULL;
+   } else {
+      next = strchr(command, eol);
+      if (next) {
+         *next = '\0';
+      }
    }
    if (command != line && isatty(fileno(input))) {
       senditf("%s%s\n", prompt, command);
@@ -395,7 +409,7 @@ get_cmd(FILE *input, const char *prompt, BSOCK *sock, int sec)
       do_history++;
    }
 
-   if (next == NULL) {
+   if (!next) {
       if (do_history) {
         add_history(line);
       }
