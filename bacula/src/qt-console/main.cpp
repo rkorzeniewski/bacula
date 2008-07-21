@@ -136,7 +136,9 @@ int main(int argc, char *argv[])
    }
 
    OSDependentInit();
+#ifdef HAVE_WIN32
    WSA_Init();                        /* Initialize Windows sockets */
+#endif
 
    if (configfile == NULL) {
       configfile = bstrdup(CONFIG_FILE);
