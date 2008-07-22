@@ -266,7 +266,6 @@ bool acquire_device_for_read(DCR *dcr)
             dev->close();                                                          
          }
          dev->set_load();
-         ASSERT(0);
          /* Fall through */
       default:
          Jmsg1(jcr, M_WARNING, 0, "%s", jcr->errmsg);
