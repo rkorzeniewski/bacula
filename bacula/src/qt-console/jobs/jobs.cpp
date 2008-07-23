@@ -50,6 +50,7 @@ Jobs::Jobs()
 
    /* tableWidget, Storage Tree Tree Widget inherited from ui_client.h */
    m_populated = false;
+   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    /* add context sensitive menu items specific to this classto the page
@@ -69,10 +70,12 @@ Jobs::~Jobs()
  */
 void Jobs::populateTable()
 {
-   QBrush blackBrush(Qt::black);
-
+   if (m_populating)
+      return;
+   m_populating = true;
    if (!m_console->preventInUseConnect())
       return;
+   QBrush blackBrush(Qt::black);
    m_checkcurwidget = false;
    tableWidget->clear();
    m_checkcurwidget = true;
@@ -122,6 +125,7 @@ void Jobs::populateTable()
    /* Resize rows and columns */
    tableWidget->resizeColumnsToContents();
    tableWidget->resizeRowsToContents();
+   m_populating = true;
 }
 
 /*

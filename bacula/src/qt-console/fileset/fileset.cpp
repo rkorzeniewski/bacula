@@ -51,6 +51,7 @@ FileSet::FileSet()
 
    /* tableWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
    m_populated = false;
+   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    readSettings();
@@ -71,10 +72,14 @@ FileSet::~FileSet()
  */
 void FileSet::populateTable()
 {
-   QBrush blackBrush(Qt::black);
+   if (m_populating)
+      return;
+   m_populating = true;
 
    if (!m_console->preventInUseConnect())
        return;
+
+   QBrush blackBrush(Qt::black);
 
    m_checkcurwidget = false;
    tableWidget->clear();
@@ -140,6 +145,7 @@ void FileSet::populateTable()
    /* Resize rows and columns */
    tableWidget->resizeColumnsToContents();
    tableWidget->resizeRowsToContents();
+   m_populating = false;
 }
 
 /*
