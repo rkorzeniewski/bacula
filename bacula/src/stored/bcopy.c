@@ -258,9 +258,20 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
          Pmsg0(000, _("Volume label not copied.\n"));
          return true;
       case SOS_LABEL:
-         jobs++;
+         if (bsr && rec->match_stat < 1) {
+            /* Skipping record, because does not match BSR filter */
+            if (verbose) {
+             Pmsg0(-1, _("Copy skipped. Record does not match BSR filter.\n"));
+            }
+         } else {
+            jobs++;
+         }
          break;
       case EOS_LABEL:
+         if (bsr && rec->match_stat < 1) {
+            /* Skipping record, because does not match BSR filter */
+           return true;
+        }
          while (!write_record_to_block(out_block, rec)) {
             Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
                        rec->remainder);
@@ -292,6 +303,10 @@ static bool record_cb(DCR *in_dcr, DEV_RECORD *rec)
    }
 
    /*  Write record */
+   if (bsr && rec->match_stat < 1) {
+      /* Skipping record, because does not match BSR filter */
+      return true;
+   }
    records++;
    while (!write_record_to_block(out_block, rec)) {
       Dmsg2(150, "!write_record_to_block data_len=%d rem=%d\n", rec->data_len,
