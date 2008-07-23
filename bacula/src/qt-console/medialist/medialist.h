@@ -69,6 +69,7 @@ private:
    QString m_currentVolumeName;
    QString m_currentVolumeId;
    bool m_populated;
+   bool m_populating;
    bool m_checkcurwidget;
    QTreeWidgetItem *m_topItem;
 };

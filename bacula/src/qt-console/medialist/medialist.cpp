@@ -76,6 +76,9 @@ MediaList::~MediaList()
  */
 void MediaList::populateTree()
 {
+   if (m_populating)
+      return;
+   m_populating = true;
    QTreeWidgetItem *pooltreeitem;
 
    if (!m_console->preventInUseConnect())
@@ -218,6 +221,7 @@ void MediaList::populateTree()
    for(int cnter=0; cnter<headerlist.count(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
+   m_populating = false;
 }
 
 /*
