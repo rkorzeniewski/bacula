@@ -56,6 +56,7 @@ MediaList::MediaList()
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    m_populated = false;
+   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    /* add context sensitive menu items specific to this classto the page

@@ -53,6 +53,7 @@ Storage::Storage()
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_storage.h */
    m_populated = false;
+   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    m_currentStorage = "";
@@ -74,6 +75,9 @@ Storage::~Storage()
  */
 void Storage::populateTree()
 {
+   if (m_populating)
+      return;
+   m_populating = true;
    if (!m_console->preventInUseConnect())
        return;
 
@@ -146,6 +150,7 @@ void Storage::populateTree()
    for(int cnter=0; cnter<headerlist.size(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
+   m_populating = false;
 }
 void Storage::mediaList(QTreeWidgetItem *parent, const QString &storageID)
 {
