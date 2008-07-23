@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-20087 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -146,7 +146,7 @@ void prerestorePage::okButtonPushed()
    cmd += " fileset=\"" + filesetCombo->currentText() + "\"";
    cmd += " client=\"" + clientCombo->currentText() + "\"";
    if (selectJobRadio->isChecked()) {
-      if (poolCombo->currentText() != "Any" ){
+      if (poolCombo->currentText() != tr("Any") ){
          cmd += " pool=\"" + poolCombo->currentText() + "\"";
       }
       cmd += " storage=\"" + storageCombo->currentText() + "\"";
@@ -171,12 +171,10 @@ void prerestorePage::okButtonPushed()
       Pmsg1(000, "preRestore command \'%s\'\n", cmd.toUtf8().data());
    }
    m_console->write_dir(cmd.toUtf8().data());
-// consoleCommand(cmd);
 
    /* Note, do not turn notifier back on here ... */
    if (selectFilesRadio->isChecked()) {
       setConsoleCurrent();
-//    new restorePage();
       closeStackPage();
    } else {
       closeStackPage();
@@ -210,7 +208,7 @@ void prerestorePage::job_name_change(int index)
    if (m_console->get_job_defaults(job_defs)) {
       filesetCombo->setCurrentIndex(filesetCombo->findText(job_defs.fileset_name, Qt::MatchExactly));
       clientCombo->setCurrentIndex(clientCombo->findText(job_defs.client_name, Qt::MatchExactly));
-      poolCombo->setCurrentIndex(poolCombo->findText(job_defs.pool_name, Qt::MatchExactly));
+      poolCombo->setCurrentIndex(poolCombo->findText(tr("Any"), Qt::MatchExactly));
       storageCombo->setCurrentIndex(storageCombo->findText(job_defs.store_name, Qt::MatchExactly));
    }
 }
