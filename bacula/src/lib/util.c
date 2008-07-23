@@ -433,6 +433,7 @@ const char *volume_status_to_str(const char *status)
       NT_("Full"),      _("Full"),
       NT_("Used"),      _("Used"),
       NT_("Cleaning"),  _("Cleaning"),
+      NT_("Purged"),    _("Purged"),
       NT_("Recycle"),   _("Recycle"),
       NT_("Read-Only"), _("Read-Only"),
       NT_("Error"),     _("Error"),
