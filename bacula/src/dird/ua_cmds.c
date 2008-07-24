@@ -1566,6 +1566,8 @@ static int status_handler(void *ctx, int num_fields, char **row)
 int wait_cmd(UAContext *ua, const char *cmd)
 {
    JCR *jcr;
+   int i;
+   time_t stop_time = 0;
 
    /*
     * no args
@@ -1588,6 +1590,11 @@ int wait_cmd(UAContext *ua, const char *cmd)
          }
       }
       return 1;
+   }
+
+   i = find_arg_with_value(ua, NT_("timeout")); 
+   if (i > 0 && ua->argv[i]) {
+      stop_time = time(NULL) + str_to_int64(ua->argv[i]);
    }
 
    /* we have jobid, jobname or ujobid argument */
@@ -1627,6 +1634,27 @@ int wait_cmd(UAContext *ua, const char *cmd)
             free_jcr(jcr);
          }
          break;
+      /* Wait for a mount request */
+      } else if (strcasecmp(ua->argk[i], "mount") == 0) {
+         for (bool waiting=false; !waiting; ) {
+            foreach_jcr(jcr) {
+               if (jcr->JobId != 0 && 
+                   (jcr->JobStatus == JS_WaitMedia || jcr->JobStatus == JS_WaitMount)) {
+                  waiting = true;
+                  break;
+               }
+            }
+            endeach_jcr(jcr);
+            if (waiting) {
+               break;
+            }
+            if (stop_time && (time(NULL) >= stop_time)) {
+               ua->warning_msg(_("Wait on mount timed out\n"));
+               return 1;
+            }
+            bmicrosleep(1, 0);
+         }
+         return 1;
       }
    }
 

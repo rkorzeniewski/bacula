@@ -32,6 +32,16 @@ separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
 
 
 General:
+24Jul08
+kes  Implement console 'wait mount' command. Doesn't yet work.
+kes  Implement timeout=nn on console 'wait mount timeout=nn' command.
+kes  Break the do_swapping into do_unload, do_swapping, and
+     do_load.  It is much more logical that way.
+kes  Implement a set_dcr_from_vol subroutine in acquire.c for
+     reading volumes. This allows the dcr to be refreshed after being
+     zapped when the wrong volume is mounted.
+     This should fix bug #1126 -- During multiple tape restore, bacula 
+     does not ask for physical tape change, but rereads same tape
 23Jul08
 kes  Apply patch submitted for bug #1107 with a small modification.
      This fixes a bug where bcopy copied too many records.

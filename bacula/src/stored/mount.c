@@ -113,7 +113,9 @@ mount_next_vol:
       ask = true;                     /* ask operator to mount tape */
       do_find = true;                 /* re-find a volume after unload */
    }
-   do_swapping(true /*writing*/);
+   do_unload();
+   do_swapping(true /*is_writing*/);
+   do_load(true /*is_writing*/);
 
    if (do_find && !find_a_volume()) {
       goto no_lock_bail_out;
@@ -500,12 +502,30 @@ bool DCR::is_suitable_volume_mounted()
    return dir_get_volume_info(this, GET_VOL_INFO_FOR_WRITE);
 }
 
-void DCR::do_swapping(bool is_writing)
+bool DCR::do_unload()
 {
    if (dev->must_unload()) {
       Dmsg1(100, "must_unload release %s\n", dev->print_name());
       release_volume();
    }
+   return false;
+}
+
+bool DCR::do_load(bool is_writing)
+{
+   if (dev->must_load()) {
+      Dmsg1(100, "Must load %s\n", dev->print_name());
+      if (autoload_device(this, is_writing, NULL) > 0) {
+         dev->clear_load();
+         return true;
+      }
+      return false;
+   }
+   return true;
+}
+
+void DCR::do_swapping(bool is_writing)
+{
    /*
     * See if we are asked to swap the Volume from another device
     *  if so, unload the other device here, and attach the
@@ -527,12 +547,6 @@ void DCR::do_swapping(bool is_writing)
          dev->VolHdr.VolumeName[0] = 0;  /* don't yet have right Volume */
       }
       dev->swap_dev = NULL;
-   }
-   if (dev->must_load()) {
-      Dmsg1(100, "Must load %s\n", dev->print_name());
-      if (autoload_device(this, is_writing, NULL) > 0) {
-         dev->clear_load();
-      }
    }
 }
 

@@ -552,6 +552,8 @@ public:
    int check_volume_label(bool &ask, bool &autochanger);
    void release_volume();
    void do_swapping(bool is_writing);
+   bool do_unload();
+   bool do_load(bool is_writing);
    bool is_tape_position_ok();
 };
 
