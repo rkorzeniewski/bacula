@@ -21,6 +21,12 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 test -f $DAEMON || exit 0
 
+#
+# Disable Glibc malloc checks, it doesn't help and it keeps from getting
+#   good dumps
+MALLOC_CHECK_=0
+export MALLOC_CHECK_
+
 if [ -n "`getent services ${NAME}`" ]; then
    BPORT=`getent services ${NAME} | awk '{ gsub("/tcp","",$2); print $2; }'`
 fi
