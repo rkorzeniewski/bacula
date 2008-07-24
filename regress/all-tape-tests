@@ -28,6 +28,6 @@ nice tests/restore-by-file-tape
 nice tests/small-file-size-tape
 nice tests/truncate-bug-tape
 nice tests/verify-vol-tape
-# nice tests/two-vol-manual-tape
+nice tests/manual-two-vol-tape
 echo "End all non-root tape tests"
 echo "End all non-root tape tests" >>test.out
