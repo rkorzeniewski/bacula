@@ -4,8 +4,8 @@
 #  Then manually unload the tape and load a new one, label
 #  it.
 #
-TestName="two-vol-manual-tape"
-JobName=twovolmanualtape
+TestName="manual-two-vol-tape"
+JobName=manualtwovolltape
 . scripts/functions
 
 require_tape_drive
@@ -59,11 +59,12 @@ cat <<END_OF_DATA >tmp/bconcmds
 label storage=DDS-4 volume=TestVolume001 slot=0 pool=Default drive=0
 update Volume=TestVolume001 MaxVolBytes=500000 pool=Default drive=0
 list volumes
-setdebug level=150 storage=DDS-4
+@#setdebug level=150 storage=DDS-4
 run job=$JobName yes
 @# This sleep must be long enough for the first tape to fill (4MB)
 @#  otherwise the following mtx-changer commands will fail
-@sleep $sleep
+@#sleep $sleep
+wait mount timeout=180
 list volumes
 unmount storage=DDS-4
 list volumes
@@ -78,17 +79,24 @@ load_other_slot $slot
 
 cat <<END_OF_DATA >tmp/bconcmds
 @$out tmp/log1.out
+wait mount timeout=180
+setdebug level=200 storage=DDS-4
 mount storage=DDS-4
 @# backup should continue
 wait
+list volumes
 @# 
 @# now do a restore
 @#
-@#restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
-@#yes
-wait
+restore where=${cwd}/tmp/bacula-restores select all storage=DDS-4 done
+yes
+@sleep $sleep
+wait mount timeout=180
+exec "sh -c 'load_other_slot $slot'"
+unmount storage=DDS-4
 list volumes
 messages
+wait
 @$out
 quit
 END_OF_DATA
