@@ -17,10 +17,10 @@ scripts/prepare-two-tapes
  
 echo "${cwd}/build" >${cwd}/tmp/file-list
 
-outf="tmp/sed_tmp"
-echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
-cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
-sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
+#outf="tmp/sed_tmp"
+#echo "s%# Maximum File Size%  Maximum File Size%g" >${outf}
+#cp ${cwd}/bin/bacula-sd.conf ${cwd}/tmp/1
+#sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-sd.conf
 
 change_jobname $JobName
 start_test
@@ -32,6 +32,7 @@ messages
 @$out tmp/log1.out
 label storage=DDS-4 volume=TestVolume002 slot=$SLOT2 pool=Default drive=$DRIVE1
 label storage=DDS-4 volume=TestVolume001 slot=$SLOT1 pool=Default drive=$DRIVE1
+list volumes
 @#setdebug level=10 client=$CLIENT 
 setdebug level=150 storage=DDS-4
 run job=$JobName yes
