@@ -1,0 +1,87 @@
+#!/bin/sh
+#
+# Run a simple backup of the Bacula build directory then do a virtual
+#   backup to another device.
+#
+# This script uses the virtual disk autochanger
+#
+TestName="virtual-backup-test"
+JobName=Vbackup
+. scripts/functions
+
+
+scripts/cleanup
+scripts/copy-migration-confs
+scripts/prepare-two-disks
+echo "${cwd}/build" >${cwd}/tmp/file-list
+
+change_jobname NightlySave $JobName
+start_test
+
+#
+# Note, we first backup into Pool Default, 
+#          then Migrate into Pool Full. 
+#              Pool Default uses Storage=File
+#              Pool Full    uses Storage=DiskChanger
+
+# Write out bconsole commands
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output
+messages
+@$out ${cwd}/tmp/log1.out
+@#setdebug level=100 storage=File
+label storage=File volume=FileVolume001 Pool=Default
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
+@# run several jobs
+run job=$JobName level=Full yes
+wait
+messages
+list jobs
+@exec "sh -c 'touch ${cwd}/build/src/dird/*.c'"
+run job=$JobName level=Incremental yes
+wait
+messages
+list jobs
+@exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
+run job=$JobName level=Differential yes
+wait
+messages
+list jobs
+@exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
+run job=$JobName level=Incremental yes
+wait
+messages
+list jobs
+list volumes
+setdebug level=100 dir
+@# should migrate two jobs
+@#setdebug level=51 storage=DiskChanger
+run job=$JobName level=VirtualFull yes
+wait
+messages
+list volumes
+list jobs
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+list volumes
+wait
+messages
+@output
+quit
+END_OF_DATA
+
+run_bacula
+check_for_zombie_jobs storage=File
+stop_bacula
+
+check_two_logs
+check_restore_diff
+end_test
