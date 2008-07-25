@@ -97,7 +97,7 @@ void output_status(STATUS_PKT *sp)
    list_devices(sp);
 
 
-   len = Mmsg(msg, _("In Use Volume status:\n"));
+   len = Mmsg(msg, _("Used Volume status:\n"));
    if (!sp->api) sendit(msg, len, sp);
 
    list_volumes(sendit, (void *)sp);
