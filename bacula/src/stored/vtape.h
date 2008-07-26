@@ -43,7 +43,7 @@
  */
 int vtape_open(const char *pathname, int flags, ...);
 int vtape_close(int fd);
-int vtape_ioctl(int fd, unsigned long int request, ...);
+int vtape_ioctl(int fd, int request, ...);
 void vtape_debug(int level);
 ssize_t vtape_read(int fd, void *buffer, size_t count);
 ssize_t vtape_write(int fd, const void *buffer, size_t count);
@@ -53,20 +53,20 @@ ssize_t vtape_write(int fd, const void *buffer, size_t count);
 #define FTAPE_MAX_DRIVE 50
 
 typedef enum {
-   VT_READ_EOF,			/* Need to read the entire EOF struct */
-   VT_SKIP_EOF			/* Have already read the EOF byte */
+   VT_READ_EOF,                 /* Need to read the entire EOF struct */
+   VT_SKIP_EOF                  /* Have already read the EOF byte */
 } VT_READ_FM_MODE;
 
 class vtape {
 private:
    int         fd;              /* Our file descriptor */
 
-   off_t       file_block;	/* size */
+   off_t       file_block;      /* size */
    off_t       max_block;
 
-   off_t       last_FM;		/* last file mark (last file) */
-   off_t       next_FM;		/* next file mark (next file) */
-   off_t       cur_FM;		/* current file mark */
+   off_t       last_FM;         /* last file mark (last file) */
+   off_t       next_FM;         /* next file mark (next file) */
+   off_t       cur_FM;          /* current file mark */
 
    bool        atEOF;           /* End of file */
    bool        atEOT;           /* End of media */
@@ -109,6 +109,6 @@ public:
 };
 
 
-#endif	/*!USE_VTAPE */
+#endif  /*!USE_VTAPE */
 
 #endif /* !VTAPE_H */
