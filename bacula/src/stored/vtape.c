@@ -998,7 +998,7 @@ void vtape::dump()
 
 #else  /* USE_VTAPE */
 
-int vtape_ioctl(int fd, unsigned long int request, ...)
+int vtape_ioctl(int fd, int request, ...)
 {
    return -1;
 }
