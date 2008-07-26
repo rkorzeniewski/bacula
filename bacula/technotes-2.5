@@ -32,6 +32,10 @@ separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
 
 
 General:
+26Jul08
+kes  When a migration job actually runs, re-check the Job record
+     and skip if the job is already migrated. This should
+     significantly reduce the problems with bug #1129.
 24Jul08
 kes  Set MALLOC_CHECK_=0 in environment before starting Bacula to
      turn off glibc checks that prevent getting good dumps.

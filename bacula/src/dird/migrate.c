@@ -164,10 +164,6 @@ bool do_migration_init(JCR *jcr)
       return true;                    /* no work */
    }
 
-   Dmsg5(dbglevel, "JobId=%d: Previous: Name=%s JobId=%d Type=%c Level=%c\n",
-      (int)jcr->JobId,
-      jcr->previous_jr.Name, (int)jcr->previous_jr.JobId, 
-      jcr->previous_jr.JobType, jcr->previous_jr.JobLevel);
 
    Dmsg5(dbglevel, "JobId=%d: Current: Name=%s JobId=%d Type=%c Level=%c\n",
       (int)jcr->JobId,
@@ -280,12 +276,25 @@ bool do_migration(JCR *jcr)
       return true;
    }
 
+   if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Could not get job record for JobId %s to migrate. ERR=%s"),
+           edit_int64(jcr->previous_jr.JobId, ed1),
+           db_strerror(jcr->db));
+      set_jcr_job_status(jcr, JS_Terminated);
+      migration_cleanup(jcr, jcr->JobStatus);
+      return true;
+   }
+   /* Make sure this job was not already migrated */
+   if (jcr->previous_jr.JobType != JT_BACKUP) {
+      set_jcr_job_status(jcr, JS_Terminated);
+      migration_cleanup(jcr, jcr->JobStatus);
+      return true;
+   }
+
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start %s JobId %s, Job=%s\n"),
         jcr->get_JobType() == JT_MIGRATE ? "Migration" : "Copy",
         edit_uint64(jcr->JobId, ed1), jcr->Job);
-
-
 
    /*
     * Open a message channel connection with the Storage
