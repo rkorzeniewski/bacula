@@ -60,6 +60,8 @@
 #define ETIME ETIMEDOUT
 #endif
 
+#define ioctl_req_t long unsigned int
+
 #ifdef PROTOTYPES
 # define __PROTO(p)     p
 #else
@@ -607,11 +609,15 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 /* take this 'shortcut' */
 #define fseeko fseek
 #define ftello ftell
+#undef  ioctl_req_t
+#define ioctl_req_t int
 #endif
 
 
 #ifdef __alpha__
 #define OSF 1
+#undef  ioctl_req_t
+#define ioctl_req_t int
 #endif
 
 #ifdef HAVE_SUN_OS
@@ -623,6 +629,8 @@ int  m_msg(const char *file, int line, POOLMEM *&pool_buf, const char *fmt, ...)
 #define set_thread_concurrency(x)  thr_setconcurrency(x)
 extern int thr_setconcurrency(int);
 #define SunOS 1
+#undef  ioctl_req_t
+#define ioctl_req_t int
 
 #else
 
@@ -676,6 +684,8 @@ extern int h_errno;
  */
 extern "C" int getdomainname(char *name, int namelen);
 extern "C" int setdomainname(char *name, int namelen);
+#undef  ioctl_req_t
+#define ioctl_req_t int
 #endif /* HAVE_HPUX_OS */
 
 
@@ -683,6 +693,8 @@ extern "C" int setdomainname(char *name, int namelen);
 extern "C" int fchdir(int filedes);
 extern "C" long gethostid(void);
 extern "C" int mknod ( const char *path, int mode, dev_t device );
+#undef  ioctl_req_t
+#define ioctl_req_t int
 #endif
 
 

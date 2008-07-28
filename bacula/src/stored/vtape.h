@@ -43,7 +43,7 @@
  */
 int vtape_open(const char *pathname, int flags, ...);
 int vtape_close(int fd);
-int vtape_ioctl(int fd, int request, ...);
+int vtape_ioctl(int fd, ioctl_req_t request, ...);
 void vtape_debug(int level);
 ssize_t vtape_read(int fd, void *buffer, size_t count);
 ssize_t vtape_write(int fd, const void *buffer, size_t count);
