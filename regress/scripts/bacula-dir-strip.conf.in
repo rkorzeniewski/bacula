@@ -104,13 +104,13 @@ Job {
 FileSet {
   Name = "Full Set"
   Include { Options { 
-      strippath = 1
+      strippath = 3
       compression = gzip
     }
     File =  <@tmpdir@/file-list
   }
   Include {
-     File = /etc
+#    File = /usr/include
   }
 }
 

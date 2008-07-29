@@ -10,7 +10,10 @@ scripts/cleanup
 scripts/copy-strip-confs
 
 
-echo "${cwd}/build/src/dird" >${cwd}/tmp/file-list
+rm -rf /tmp/$$-strip
+mkdir /tmp/$$-strip
+cp -rpf ${cwd}/build/src/dird/ /tmp/$$-strip/
+echo "/tmp/$$-strip" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName
 start_test
@@ -54,6 +57,17 @@ check_for_zombie_jobs storage=FileStorage
 stop_bacula
 
 check_two_logs
-# check_restore_diff does not work because we cannot read all /etc, so skip it
-dstat=0
+#
+# Kludge remove this next line when strip is fixed
+#
+rm -rf tmp/bacula-restores/tmp
+if test "$debug" -eq 1 ; then
+   diff -ur /tmp/$$-strip/dird/ tmp/bacula-restores/
+else 
+   diff -r /tmp/$$-strip/dird/ tmp/bacula-restores/ 2>&1 >/dev/null
+fi
+dstat=$?
+
+rm -rf /tmp/$$-strip
+
 end_test
