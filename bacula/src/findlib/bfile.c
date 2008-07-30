@@ -956,7 +956,7 @@ boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
    if (bfd->cmd_plugin && plugin_bwrite) {
       return plugin_blseek(bfd->jcr, offset, whence);
    }
-   pos = (boffset_t)lseek(bfd->fid, (off_t)offset, whence);
+   pos = (boffset_t)lseek(bfd->fid, offset, whence);
    bfd->berrno = errno;
    return pos;
 }

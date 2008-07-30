@@ -144,7 +144,7 @@ bool read_last_jobs_list(int fd, uint64_t addr)
    uint32_t num;
 
    Dmsg1(100, "read_last_jobs seek to %d\n", (int)addr);
-   if (addr == 0 || lseek(fd, (off_t)addr, SEEK_SET) < 0) {
+   if (addr == 0 || lseek(fd, (boffset_t)addr, SEEK_SET) < 0) {
       return false;
    }
    if (read(fd, &num, sizeof(num)) != sizeof(num)) {
@@ -183,7 +183,7 @@ uint64_t write_last_jobs_list(int fd, uint64_t addr)
    uint32_t num;
 
    Dmsg1(100, "write_last_jobs seek to %d\n", (int)addr);
-   if (lseek(fd, (off_t)addr, SEEK_SET) < 0) {
+   if (lseek(fd, (boffset_t)addr, SEEK_SET) < 0) {
       return 0;
    }
    if (last_jobs) {

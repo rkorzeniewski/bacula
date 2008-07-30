@@ -204,12 +204,11 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       switch(attr->type) {
       case FT_REGE:
       case FT_REG:
-         Dmsg1(100, "Create file %s\n", attr->ofname);
+         Dmsg1(100, "Create=%s\n", attr->ofname);
          mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY; /*  O_NOFOLLOW; */
          if (IS_CTG(attr->statp.st_mode)) {
             mode |= O_CTG;               /* set contiguous bit if needed */
          }
-         Dmsg1(50, "Create file: %s\n", attr->ofname);
          if (is_bopen(bfd)) {
             Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             bclose(bfd);
@@ -221,6 +220,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             be.set_errno(bfd->berrno);
             Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
                   attr->ofname, be.bstrerror());
+            Dmsg2(100,"Could not create %s: ERR=%s\n", attr->ofname, be.bstrerror());
             return CF_ERROR;
          }
          return CF_EXTRACT;

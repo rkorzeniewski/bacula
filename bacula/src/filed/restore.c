@@ -255,7 +255,7 @@ void do_restore(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
-      Dmsg4(30, "Got hdr: Files=%d FilInx=%d Stream=%d, %s.\n", 
+      Dmsg4(130, "Got hdr: Files=%d FilInx=%d Stream=%d, %s.\n", 
             jcr->JobFiles, file_index, rctx.stream, stream_to_ascii(rctx.stream));
 
       /* * Now we expect the Stream Data */
@@ -268,7 +268,7 @@ void do_restore(JCR *jcr)
                sd->msglen, rctx.size);
          goto bail_out;
       }
-      Dmsg3(30, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream), 
+      Dmsg3(130, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream), 
             sd->msglen, extract);
 
       /* If we change streams, close and reset alternate data streams */
@@ -314,7 +314,7 @@ void do_restore(JCR *jcr)
             free_signature(rctx);
             free_session(rctx);
             jcr->ff->flags = 0;
-            Dmsg0(30, "Stop extracting.\n");
+            Dmsg0(130, "Stop extracting.\n");
          } else if (is_bopen(&rctx.bfd)) {
             Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
             bclose(&rctx.bfd);
@@ -334,7 +334,7 @@ void do_restore(JCR *jcr)
          if (file_index != attr->file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
                  file_index, attr->file_index);
-            Dmsg0(100, "File index error\n");
+            Dmsg0(200, "File index error\n");
             goto bail_out;
          }
 
@@ -364,7 +364,7 @@ void do_restore(JCR *jcr)
          } else {
             stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
          }
-         Dmsg2(30, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
+         Dmsg2(130, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
          switch (stat) {
          case CF_ERROR:
          case CF_SKIP:
@@ -566,7 +566,7 @@ void do_restore(JCR *jcr)
                }
 
                rctx.fork_size = rsrc_len;
-               Dmsg0(30, "Restoring resource fork\n");
+               Dmsg0(130, "Restoring resource fork\n");
             }
 
             if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags, 
@@ -583,7 +583,7 @@ void do_restore(JCR *jcr)
 
       case STREAM_HFSPLUS_ATTRIBUTES:
 #ifdef HAVE_DARWIN_OS
-         Dmsg0(30, "Restoring Finder Info\n");
+         Dmsg0(130, "Restoring Finder Info\n");
          jcr->ff->flags |= FO_HFSPLUS;
          if (sd->msglen != 32) {
             Jmsg(jcr, M_ERROR, 0, _("     Invalid length of Finder Info (got %d, not 32)\n"), sd->msglen);
@@ -657,7 +657,7 @@ void do_restore(JCR *jcr)
       default:
          /* If extracting, wierd stream (not 1 or 2), close output file anyway */
          if (extract) {
-            Dmsg1(30, "Found wierd stream %d\n", rctx.stream);
+            Dmsg1(130, "Found wierd stream %d\n", rctx.stream);
             if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
             }
@@ -960,7 +960,7 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
     *  be used in Bacula.
     */
    compress_len = jcr->compress_buf_size;
-   Dmsg2(100, "Comp_len=%d msglen=%d\n", compress_len, *length);
+   Dmsg2(200, "Comp_len=%d msglen=%d\n", compress_len, *length);
    if ((stat=uncompress((Byte *)jcr->compress_buf, &compress_len,
                (const Byte *)*data, (uLong)*length)) != Z_OK) {
       Qmsg(jcr, M_ERROR, 0, _("Uncompression error on file %s. ERR=%s\n"),
@@ -969,7 +969,7 @@ bool decompress_data(JCR *jcr, char **data, uint32_t *length)
    }
    *data = jcr->compress_buf;
    *length = compress_len;
-   Dmsg2(100, "Write uncompressed %d bytes, total before write=%s\n", compress_len, edit_uint64(jcr->JobBytes, ec1));
+   Dmsg2(200, "Write uncompressed %d bytes, total before write=%s\n", compress_len, edit_uint64(jcr->JobBytes, ec1));
    return true;
 #else
    Qmsg(jcr, M_ERROR, 0, _("GZIP data stream found, but GZIP not configured!\n"));
@@ -1059,7 +1059,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
          return 0;
       }
 
-      Dmsg2(100, "decrypted len=%d encrypted len=%d\n", decrypted_len, wsize);
+      Dmsg2(200, "decrypted len=%d encrypted len=%d\n", decrypted_len, wsize);
 
       cipher_ctx->buf_len += decrypted_len;
       wbuf = cipher_ctx->buf;
@@ -1080,7 +1080,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       wsize = cipher_ctx->packet_len - CRYPTO_LEN_SIZE;
       wbuf = &wbuf[CRYPTO_LEN_SIZE]; /* Skip the block length header */
       cipher_ctx->buf_len -= cipher_ctx->packet_len;
-      Dmsg2(30, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
+      Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
    }
 
    if (flags & FO_SPARSE) {
@@ -1100,13 +1100,13 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
    }
    jcr->JobBytes += wsize;
    *addr += wsize;
-   Dmsg2(30, "Write %u bytes, JobBytes=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
+   Dmsg2(130, "Write %u bytes, JobBytes=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
 
    /* Clean up crypto buffers */
    if (flags & FO_ENCRYPT) {
       /* Move any remaining data to start of buffer */
       if (cipher_ctx->buf_len > 0) {
-         Dmsg1(30, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
+         Dmsg1(130, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
          memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len], 
             cipher_ctx->buf_len);
       }
@@ -1143,7 +1143,7 @@ again:
             cipher_ctx->buf_len, decrypted_len, jcr->last_fname);
    }
 
-   Dmsg2(30, "Flush decrypt len=%d buf_len=%d\n", decrypted_len, cipher_ctx->buf_len);
+   Dmsg2(130, "Flush decrypt len=%d buf_len=%d\n", decrypted_len, cipher_ctx->buf_len);
    /* If nothing new was decrypted, and our output buffer is empty, return */
    if (decrypted_len == 0 && cipher_ctx->buf_len == 0) {
       return true;
@@ -1156,7 +1156,7 @@ again:
    wsize = cipher_ctx->packet_len - CRYPTO_LEN_SIZE;
    wbuf = &cipher_ctx->buf[CRYPTO_LEN_SIZE]; /* Decrypted, possibly decompressed output here. */
    cipher_ctx->buf_len -= cipher_ctx->packet_len;
-   Dmsg2(30, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
+   Dmsg2(130, "Encryption writing full block, %u bytes, remaining %u bytes in buffer\n", wsize, cipher_ctx->buf_len);
 
    if (flags & FO_SPARSE) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
@@ -1170,16 +1170,16 @@ again:
       }
    }
 
-   Dmsg0(30, "Call store_data\n");
+   Dmsg0(130, "Call store_data\n");
    if (!store_data(jcr, bfd, wbuf, wsize, (flags & FO_WIN32DECOMP) != 0)) {
       return false;
    }
    jcr->JobBytes += wsize;
-   Dmsg2(30, "Flush write %u bytes, JobBytes=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
+   Dmsg2(130, "Flush write %u bytes, JobBytes=%s\n", wsize, edit_uint64(jcr->JobBytes, ec1));
 
    /* Move any remaining data to start of buffer */
    if (cipher_ctx->buf_len > 0) {
-      Dmsg1(30, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
+      Dmsg1(130, "Moving %u buffered bytes to start of buffer\n", cipher_ctx->buf_len);
       memmove(cipher_ctx->buf, &cipher_ctx->buf[cipher_ctx->packet_len], 
          cipher_ctx->buf_len);
    }

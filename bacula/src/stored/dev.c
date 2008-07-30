@@ -1972,7 +1972,7 @@ boffset_t DEVICE::lseek(DCR *dcr, boffset_t offset, int whence)
 #if defined(HAVE_WIN32)
       return ::_lseeki64(m_fd, (__int64)offset, whence);
 #else
-      return ::lseek(m_fd, (off_t)offset, whence);
+      return ::lseek(m_fd, offset, whence);
 #endif
    }
    return -1;

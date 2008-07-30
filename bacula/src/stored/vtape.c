@@ -268,7 +268,7 @@ int vtape::tape_op(struct mtop *mt_com)
             current_file++;
          }
       }
-      off_t l;
+      boffset_t l;
       while (::read(fd, &l, sizeof(l)) > 0) {
          if (l) {
             lseek(fd, l, SEEK_CUR);
@@ -527,8 +527,8 @@ int vtape::weof()
    cur_FM = lseek(fd, 0, SEEK_CUR); // current position
    
    /* update previous next_FM  */
-   lseek(fd, last_FM + sizeof(uint32_t)+sizeof(off_t), SEEK_SET);
-   ::write(fd, &cur_FM, sizeof(off_t));
+   lseek(fd, last_FM + sizeof(uint32_t)+sizeof(boffset_t), SEEK_SET);
+   ::write(fd, &cur_FM, sizeof(boffset_t));
    lseek(fd, cur_FM, SEEK_SET);
 
    next_FM = 0;
@@ -643,7 +643,7 @@ int vtape::fsr(int count)
    ASSERT(fd >= 0);
    
    int i,nb, ret=0;
-   off_t where=0;
+   boffset_t where=0;
    uint32_t s;
    Dmsg4(dbglevel, "fsr %i:%i EOF=%i c=%i\n", 
          current_file,current_block,atEOF,count);
@@ -707,8 +707,8 @@ int vtape::bsr(int count)
    int last_f=0;
    int last_b=0;
 
-   off_t last=-1, last2=-1;
-   off_t orig = lseek(fd, 0, SEEK_CUR);
+   boffset_t last=-1, last2=-1;
+   boffset_t orig = lseek(fd, 0, SEEK_CUR);
    int orig_f = current_file;
    int orig_b = current_block;
 
@@ -780,7 +780,7 @@ int vtape::bsr(int count)
    Dmsg2(dbglevel, "bsr %i:%i\n", current_file, current_block);
    errno=0;
    atEOT = atEOF = atEOD = false;
-   atBOT = (lseek(fd, 0, SEEK_CUR) - (sizeof(uint32_t)+2*sizeof(off_t))) == 0;
+   atBOT = (lseek(fd, 0, SEEK_CUR) - (sizeof(uint32_t)+2*sizeof(boffset_t))) == 0;
 
    if (orig_b == -1) {
       current_block = orig_b;

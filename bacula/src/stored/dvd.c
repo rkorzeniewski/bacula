@@ -486,7 +486,7 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
       break;
    case SEEK_CUR:
       Dmsg1(400, "lseek_dvd SEEK_CUR to %s\n", edit_int64(offset, ed1));
-      if ((pos = lseek(dev->fd(), (off_t)0, SEEK_CUR)) < 0) {
+      if ((pos = lseek(dev->fd(), 0, SEEK_CUR)) < 0) {
          Dmsg0(400, "Seek error.\n");
          return pos;                  
       }
@@ -518,7 +518,7 @@ boffset_t lseek_dvd(DCR *dcr, boffset_t offset, int whence)
        *  right part number, simply seek
        */
       if (dev->is_part_spooled() && dev->part > dev->num_dvd_parts) {
-         if ((pos = lseek(dev->fd(), (off_t)0, SEEK_END)) < 0) {
+         if ((pos = lseek(dev->fd(), 0, SEEK_END)) < 0) {
             return pos;   
          } else {
             Dmsg1(400, "lseek_dvd SEEK_END returns %s\n", 

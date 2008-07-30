@@ -511,7 +511,7 @@ static bool write_spool_header(DCR *dcr)
 #if defined(HAVE_WIN32)
             boffset_t   pos = _lseeki64(dcr->spool_fd, (__int64)0, SEEK_CUR);
 #else
-            boffset_t   pos = lseek(dcr->spool_fd, (off_t)0, SEEK_CUR);
+            boffset_t   pos = lseek(dcr->spool_fd, 0, SEEK_CUR);
 #endif
             if (ftruncate(dcr->spool_fd, pos - stat) != 0) {
                berrno be;
@@ -553,7 +553,7 @@ static bool write_spool_data(DCR *dcr)
 #if defined(HAVE_WIN32)
             boffset_t   pos = _lseeki64(dcr->spool_fd, (__int64)0, SEEK_CUR);
 #else
-            boffset_t   pos = lseek(dcr->spool_fd, (off_t)0, SEEK_CUR);
+            boffset_t   pos = lseek(dcr->spool_fd, 0, SEEK_CUR);
 #endif
             if (ftruncate(dcr->spool_fd, pos - stat - sizeof(spool_hdr)) != 0) {
                berrno be;
@@ -622,7 +622,7 @@ static void update_attr_spool_size(ssize_t size)
 
 bool commit_attribute_spool(JCR *jcr)
 {
-   off_t size;
+   boffset_t size;
    char ec1[30];
    char tbuf[100];
 
