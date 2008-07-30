@@ -180,8 +180,10 @@ export bstat
 export rstat
 
 J=JobA
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "${cwd}/build/po/fr.old.po" tmp/RUN_$J 
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "${cwd}/build/po/fr.old.po" tmp/RUN_$J > /dev/null
+
+if [ $? = 0 ] 
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -190,9 +192,10 @@ else
 fi
 
 J=JobB
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "tmp/bacula-restore${cwd}/po/fr.po.old" tmp/RUN_$J > /dev/null
 # $cwd begins with /
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "tmp/bacula-restore${cwd}/po/fr.po.old" tmp/RUN_$J
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -201,8 +204,9 @@ else
 fi
 
 J=JobC
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "tmp/bacula-restore${cwd}/build/po/fr.po" tmp/RUN_$J
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "tmp/bacula-restore${cwd}/build/po/fr.po" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -211,7 +215,8 @@ else
 fi
 
 J=JobD
-if grep -q "Restore Error"  tmp/RUN_$J
+grep "Restore Error"  tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -220,8 +225,9 @@ else
 fi
 
 J=JobE
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "${cwd}/tmp/fr.po"  tmp/RUN_$J
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "${cwd}/tmp/fr.po"  tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -230,8 +236,9 @@ else
 fi
 
 J=JobF
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "${cwd}/build/po/fr.po" tmp/RUN_$J
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "${cwd}/build/po/fr.po" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -240,8 +247,9 @@ else
 fi
 
 J=JobG
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "tmp/bacula-restore/build/po/fr.po" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -250,8 +258,9 @@ else
 fi
 
 J=JobH
-if grep -q "Restore OK"  tmp/RUN_$J &&
-   grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+grep -q "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -260,8 +269,9 @@ else
 fi
 
 J=JobI
-if grep  -q "Restore OK"  tmp/RUN_$J &&
-   grep  -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "${cwd}/build/po/fr.po.old" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -271,10 +281,11 @@ fi
 
 
 J=JobJ
-if grep -q "Restore OK"      tmp/RUN_$J &&
-   grep -q "/etc/passwd.old" tmp/RUN_$J &&
-   grep -q -e "Where: *tmp/bacula-restore-it" tmp/RUN_$J &&
-   grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J
+grep "Restore OK"      tmp/RUN_$J > /dev/null && \
+grep "/etc/passwd.old" tmp/RUN_$J > /dev/null && \
+grep "Where: *tmp/bacula-restore-it" tmp/RUN_$J > /dev/null && \
+grep "${cwd}/build/po/fr.po.old" tmp/RUN_$J > /dev/null
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
 else
@@ -289,7 +300,8 @@ find ${cwd}/build > tmp/list
 sed -e 's/[Rr][Ee][Aa][Dd][Mm][Ee]/readme/' -e 's/\([ch]\)$/.old.\1/' tmp/list > tmp/list.sed
 ./build/src/tools/bregtest -s -f tmp/list -e '/readme/readme/i,/([ch])$/.old.$1/' > tmp/list.bsed
 
-if diff tmp/list.bsed tmp/list.sed >/dev/null 2>&1
+diff tmp/list.bsed tmp/list.sed >/dev/null 2>&1
+if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo bregtest ok
 else
