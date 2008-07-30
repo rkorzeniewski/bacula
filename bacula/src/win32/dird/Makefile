@@ -68,6 +68,7 @@ DIRD_OBJS = \
 	$(OBJDIR)/ua_status.o \
 	$(OBJDIR)/ua_tree.o \
 	$(OBJDIR)/ua_update.o \
+	$(OBJDIR)/vbackup.o \
 	$(OBJDIR)/verify.o \
 	$(OBJDIR)/service.o \
 	$(OBJDIR)/main.o \

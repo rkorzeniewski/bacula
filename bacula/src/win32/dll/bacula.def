@@ -289,7 +289,7 @@ _ZN5BSOCK11set_lockingEv
 _Z9new_bsockv
 _ZN5BSOCK10free_bsockEv
 _ZN5BSOCK12set_blockingEv
-_ZN5BSOCK14wait_data_intrEi
+_ZN5BSOCK14wait_data_intrEii
 _ZN5BSOCK15set_buffer_sizeEji
 _ZN5BSOCK15set_nonblockingEv
 _ZN5BSOCK16restore_blockingEi
@@ -307,7 +307,7 @@ _ZN5BSOCK7destroyEv
 _ZN5BSOCK8fin_initEP3JCRiPKcS3_iP8sockaddr
 _ZN5BSOCK8get_peerEPci
 _ZN5BSOCK9bstrerrorEv
-_ZN5BSOCK9wait_dataEi
+_ZN5BSOCK9wait_dataEii
  
 ; bsys.o
 _Z10b_strerroriPcj
@@ -509,6 +509,9 @@ _Z21unlock_last_jobs_listv
 _Z23get_jcr_by_partial_namePc
 _Z7new_jcriPFvP3JCRE
 _Z9lock_jobsv
+_ZN3JCR11set_JobTypeEi
+_ZN3JCR12set_JobLevelEi
+_ZN3JCR8JobReadsEv
 timeout_handler
 
 
