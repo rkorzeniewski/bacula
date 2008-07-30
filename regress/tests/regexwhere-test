@@ -258,8 +258,8 @@ else
 fi
 
 J=JobH
-grep -q "Restore OK"  tmp/RUN_$J > /dev/null && \
-grep -q "${cwd}/build/po/fr.po.old" tmp/RUN_$J > /dev/null
+grep "Restore OK"  tmp/RUN_$J > /dev/null && \
+grep "${cwd}/build/po/fr.po.old" tmp/RUN_$J > /dev/null
 if [ $? = 0 ]
 then
     [ "$debug" = 1 ] && echo $J ok
