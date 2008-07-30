@@ -61,12 +61,12 @@ class vtape {
 private:
    int         fd;              /* Our file descriptor */
 
-   off_t       file_block;      /* size */
-   off_t       max_block;
+   boffset_t   file_block;      /* size */
+   boffset_t   max_block;
 
-   off_t       last_FM;         /* last file mark (last file) */
-   off_t       next_FM;         /* next file mark (next file) */
-   off_t       cur_FM;          /* current file mark */
+   boffset_t   last_FM;         /* last file mark (last file) */
+   boffset_t   next_FM;         /* next file mark (next file) */
+   boffset_t   cur_FM;          /* current file mark */
 
    bool        atEOF;           /* End of file */
    bool        atEOT;           /* End of media */
