@@ -114,6 +114,23 @@ Professional Needs:
 
 Priority:
 ================
+- Can be posible modify package to create and use configuration files in 
+   the Debian manner? 
+
+   For example:
+
+   /etc/bacula/bacula-dir.conf
+   /etc/bacula/conf.d/pools.conf
+   /etc/bacula/conf.d/clients.conf
+   /etc/bacula/conf.d/storages.conf
+
+   and into bacula-dir.conf file include
+
+   @/etc/bacula/conf.d/pools.conf
+   @/etc/bacula/conf.d/clients.conf
+   @/etc/bacula/conf.d/storages.conf
+- Possibly add an Inconsistent state when a Volume is in error
+  for non I/O reasons.
 - Fix #ifdefing so that smartalloc can be disabled. Check manual
   -- the default is enabled.
 - Change calling sequence to delete_job_id_range() in ua_cmds.c 
