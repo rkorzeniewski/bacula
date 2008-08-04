@@ -1276,7 +1276,7 @@ Requires: libstdc++
 Requires: zlib
 %endif
 
-%if %{bat} && %{fc8}
+%if %{bat} && %{fc9}
 Requires: openssl
 Requires: glibc >= 2.8
 Requires: fontconfig
@@ -2374,6 +2374,8 @@ fi
 %endif
 
 %changelog
+* Mon Aug 04 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- fix bat dependencies
 * Sat Jun 28 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - add su110 target
 * Sat May 24 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
