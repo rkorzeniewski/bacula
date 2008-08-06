@@ -32,29 +32,48 @@
 #include <string.h>
 #include <fcntl.h>
 #include "bacula.h"
-
+#include "dird/dird.h"
 typedef struct {
-   int32_t path;
-   int32_t filename;
+   char *path;
+   char *fname;
    int32_t seen;
    int32_t pad;
    int64_t mtime;
    int64_t ctime;
 } AccurateElt;
 
-#define NB_ELT 50000000
+#define NB_ELT 500
 
 typedef struct {
    char *buf;
-   rblink *link;
+   rblink link;
 } MY;
+
+typedef struct {
+   char *path;
+   char *fname;
+   int64_t index;
+   rblink link;
+} MY_INDEX;
+
+static int my_index_cmp(void *item1, void *item2)
+{
+   MY_INDEX *elt1, *elt2;
+   elt1 = (MY_INDEX *) item1;
+   elt2 = (MY_INDEX *) item2;
+   int r = strcmp(elt1->fname, elt2->fname);
+   if (r) {
+      return r;
+   }
+   r = strcmp(elt1->path, elt2->path);
+   return r;
+}
 
 static int my_cmp(void *item1, void *item2)
 {
    MY *elt1, *elt2;
    elt1 = (MY *) item1;
    elt2 = (MY *) item2;
-   printf("cmp(%s, %s)\n", elt1->buf, elt2->buf);
    return strcmp(elt1->buf, elt2->buf);
 }
 
@@ -64,7 +83,7 @@ rblist *load_rb(const char *file)
    char buffer[1024];
    MY *res;
    rblist *lst;
-   lst = New(rblist(res, res->link));
+   lst = New(rblist(res, &res->link));
 
    fp = fopen(file, "r");
    if (!fp) {
@@ -181,7 +200,190 @@ void AccurateBuffer::update_elt(int nb)
    _dirty = 1;
 }
 
+typedef struct B_DBx
+{
+   POOLMEM *fname;
+   int fnl;
+   POOLMEM *path;
+   int pnl;
+} B_DBx;
 
+/*
+ * Given a full filename, split it into its path
+ *  and filename parts. They are returned in pool memory
+ *  in the mdb structure.
+ */
+void split_path_and_file(B_DBx *mdb, const char *fname)
+{
+   const char *p, *f;
+
+   /* Find path without the filename.
+    * I.e. everything after the last / is a "filename".
+    * OK, maybe it is a directory name, but we treat it like
+    * a filename. If we don't find a / then the whole name
+    * must be a path name (e.g. c:).
+    */
+   for (p=f=fname; *p; p++) {
+      if (IsPathSeparator(*p)) {
+         f = p;                       /* set pos of last slash */
+      }
+   }
+   if (IsPathSeparator(*f)) {                   /* did we find a slash? */
+      f++;                            /* yes, point to filename */
+   } else {                           /* no, whole thing must be path name */
+      f = p;
+   }
+
+   /* If filename doesn't exist (i.e. root directory), we
+    * simply create a blank name consisting of a single
+    * space. This makes handling zero length filenames
+    * easier.
+    */
+   mdb->fnl = p - f;
+   if (mdb->fnl > 0) {
+      mdb->fname = check_pool_memory_size(mdb->fname, mdb->fnl+1);
+      memcpy(mdb->fname, f, mdb->fnl);    /* copy filename */
+      mdb->fname[mdb->fnl] = 0;
+   } else {
+      mdb->fname[0] = 0;
+      mdb->fnl = 0;
+   }
+
+   mdb->pnl = f - fname;
+   if (mdb->pnl > 0) {
+      mdb->path = check_pool_memory_size(mdb->path, mdb->pnl+1);
+      memcpy(mdb->path, fname, mdb->pnl);
+      mdb->path[mdb->pnl] = 0;
+   } else {
+      mdb->path[0] = 0;
+      mdb->pnl = 0;
+   }
+
+   Dmsg2(500, "split path=%s file=%s\n", mdb->path, mdb->fname);
+}
+
+#ifdef _TEST_TREE
+int main()
+{
+   AccurateElt *elt;
+   char *start_heap = (char *)sbrk(0);
+   MY *myp, *res;
+   MY_INDEX *idx;
+
+   FILE *fp;
+   fp = fopen("lst", "r");
+   if (!fp) {
+      exit (5);
+   }
+   rblist *index, *rb_file, *rb_path;
+   index   = New(rblist(idx, &idx->link)); /* (pathid, filenameid) => index */
+   rb_path = New(rblist(myp, &myp->link)); /* pathid => path */
+   rb_file = New(rblist(myp, &myp->link)); /* filenameid => filename */
+
+   B_DBx mdb;
+   mdb.fname = get_pool_memory(PM_FNAME);
+   mdb.path = get_pool_memory(PM_FNAME);
+
+   AccurateBuffer *accbuf = new AccurateBuffer;
+   char buf[4096];
+   int64_t count=0;
+   printf("loading...\n");
+   while (fgets(buf, sizeof(buf), fp)) {
+      int len = strlen(buf);
+      if (len > 0) {
+	 buf[len-1]=0;       /* zap \n */
+      }
+      split_path_and_file(&mdb, buf);
+
+      MY_INDEX *idx = (MY_INDEX *)malloc(sizeof(MY_INDEX));
+      memset(idx, 0, sizeof(MY_INDEX));
+
+      myp = (MY *)malloc(sizeof(MY));
+      memset(myp, 0, sizeof(MY));
+      myp->buf = bstrdup(mdb.path);
+      res = (MY *)rb_path->insert(myp, my_cmp);
+      if (res != myp) {
+	 free(myp->buf);
+	 free(myp);
+      }
+
+      idx->path = res->buf;
+
+      myp = (MY *)malloc(sizeof(MY));
+      memset(myp, 0, sizeof(MY));
+      myp->buf = bstrdup(mdb.fname);
+      res = (MY *)rb_file->insert(myp, my_cmp);
+      if (res != myp) {
+	 free(myp->buf);
+	 free(myp);
+      }
+
+      idx->fname = res->buf;
+
+      idx->index = count;
+      index->insert(idx, my_index_cmp);
+
+      elt = (AccurateElt *)accbuf->get_elt(count);
+      elt->mtime = count;
+      elt->path = idx->path;
+      elt->fname = idx->fname;
+      accbuf->update_elt(count);
+
+      count++;
+   }
+
+   printf("fetch and update...\n");
+   fprintf(stderr, "count;%lli\n", count);
+   fprintf(stderr, "heap;%lld\n", (long long)((char *)sbrk(0) - start_heap));
+      
+   fseek(fp, 0, SEEK_SET);
+   int toggle=0;
+   while (fgets(buf, sizeof(buf), fp)) {
+      int len = strlen(buf);
+      if (len > 0) {
+	 buf[len-1]=0;       /* zap \n */
+      }
+      split_path_and_file(&mdb, buf);
+      
+      MY search;
+      search.buf = mdb.fname;
+      MY *f = (MY *)rb_file->search(&search, my_cmp);
+
+      if (!f) {
+	 continue;			/* not found, skip */
+      }
+
+      search.buf = mdb.path;
+      MY *p = (MY *)rb_path->search(&search, my_cmp);
+      if (!p) {
+	 continue;			/* not found, skip */
+      }
+
+      MY_INDEX idx;
+      idx.path = p->buf;
+      idx.fname = f->buf;
+      MY_INDEX *res = (MY_INDEX *)index->search(&idx, my_index_cmp);
+      
+      if (!res) {
+	 continue;			/* not found skip */
+      }
+
+      AccurateElt *elt = (AccurateElt *)accbuf->get_elt(res->index);
+      elt->seen=toggle;
+      accbuf->update_elt(res->index);
+      toggle = (toggle+1)%100000;
+   }
+
+   for(int j=0;j<=count; j++) {
+      AccurateElt *elt = (AccurateElt *)accbuf->get_elt(j);
+      if (elt->path && elt->fname) {
+	 if (!elt->seen) {
+	    printf("%s%s\n", elt->path, elt->fname);
+	 }
+      }
+   }
+}
+#else
 #ifdef _TEST_OPEN
 int main()
 {
@@ -189,13 +391,6 @@ int main()
    int i;
    AccurateElt elt;
    char *start_heap = (char *)sbrk(0);
-
-   rblist *rb_file = load_rb("files");
-   rblist *rb_path = load_rb("path");
-
-   char *etc = (char *)rb_path->search((void *)"/etc/", my_cmp);
-
-   printf("%p\n", etc);
 
    fd = open("testfile", O_CREAT | O_RDWR, 0600);
    if (fd<0) {
@@ -322,3 +517,4 @@ int main()
 }
 #endif	/* _TEST_BUF */
 #endif	/* _TEST_OPEN */
+#endif  /* _TEST_TREE */
