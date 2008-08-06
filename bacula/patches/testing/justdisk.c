@@ -22,7 +22,8 @@
  cd regress/build
  make
  cd patches/testing
- g++ -g -Wall -I../../src -I../../src/lib -L../../src/lib justdisk.c -lbac -lpthread -lssl -D_TEST_BUF
+ g++ -g -Wall -I../../src -I../../src/lib -L../../src/lib justdisk.c -lbac -lpthread -lssl -D_TEST_TREE
+ find / > lst
  ./a.out
  */
 
