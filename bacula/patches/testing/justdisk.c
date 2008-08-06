@@ -19,7 +19,11 @@
  */
 
 /*
-g++ -g -Wall -I../../src -I../../src/lib -L../../src/lib justdisk.c -lbac -lpthread -lssl -D_TEST_OPEN
+ cd regress/build
+ make
+ cd patches/testing
+ g++ -g -Wall -I../../src -I../../src/lib -L../../src/lib justdisk.c -lbac -lpthread -lssl -D_TEST_BUF
+ ./a.out
  */
 
 #include <stdio.h>
@@ -30,11 +34,12 @@ g++ -g -Wall -I../../src -I../../src/lib -L../../src/lib justdisk.c -lbac -lpthr
 #include "bacula.h"
 
 typedef struct {
-   int path;
-   int filename;
-   int mtime;
-   int ctime;
-   int seen;
+   int32_t path;
+   int32_t filename;
+   int32_t seen;
+   int32_t pad;
+   int64_t mtime;
+   int64_t ctime;
 } AccurateElt;
 
 #define NB_ELT 50000000
@@ -85,6 +90,97 @@ rblist *load_rb(const char *file)
 
    return lst;
 }
+
+/* buffer used for 4k io operations */
+class AccurateBuffer
+{
+public:
+   AccurateBuffer() { 
+      _fp=NULL; 
+      _nb=-1;
+      _max_nb=-1;
+      _dirty=0; 
+      memset(_buf, 0, sizeof(_buf));
+   };
+   void *get_elt(int nb);
+   void init();
+   void destroy();
+   void update_elt(int nb);
+   ~AccurateBuffer() {
+      destroy();
+   }
+private:
+   char _buf[4096];
+   int _nb;
+   int _max_nb;
+   char _dirty;
+   FILE *_fp;
+};
+
+void AccurateBuffer::init()
+{
+   _fp = fopen("testfile", "w+");
+   if (!_fp) {
+      exit(1);
+   }
+   _nb=-1;
+   _max_nb=-1;
+}
+
+void AccurateBuffer::destroy()
+{
+   if (_fp) {
+      fclose(_fp);
+      _fp = NULL;
+   }
+}
+
+void *AccurateBuffer::get_elt(int nb)
+{
+   int page=nb*sizeof(AccurateElt)/sizeof(_buf);
+
+   if (!_fp) {
+      init();
+   }
+
+   if (page != _nb) {		/* not the same page */
+      if (_dirty) {		/* have to sync on disk */
+//	 printf("put dirty page on disk %i\n", _nb);
+	 if (fseek(_fp, _nb*sizeof(_buf), SEEK_SET) == -1) {
+	    perror("bad fseek");
+	    exit(3);
+	 }
+	 if (fwrite(_buf, sizeof(_buf), 1, _fp) != 1) {
+	    perror("writing...");
+	    exit(2);
+	 }
+	 _dirty=0;
+      }
+      if (page <= _max_nb) {	/* we read it only if the page exists */
+//       printf("read page from disk %i <= %i\n", page, _max_nb);
+	 fseek(_fp, page*sizeof(_buf), SEEK_SET);
+	 if (fread(_buf, sizeof(_buf), 1, _fp) != 1) {
+//	    printf("memset to zero\n");
+	    memset(_buf, 0, sizeof(_buf));
+	 }
+      } else {
+	 memset(_buf, 0, sizeof(_buf));
+      }
+      _nb = page;
+      _max_nb = MAX(_max_nb, page);
+   }
+
+   /* compute addr of the element in _buf */
+   int addr=(nb%(sizeof(_buf)/sizeof(AccurateElt)))*sizeof(AccurateElt);
+// printf("addr=%i\n", addr);
+   return (void *) (_buf + addr);
+}
+
+void AccurateBuffer::update_elt(int nb)
+{
+   _dirty = 1;
+}
+
 
 #ifdef _TEST_OPEN
 int main()
@@ -138,6 +234,51 @@ int main()
    return (0);
 }
 #else  /* _TEST_OPEN */
+#ifdef _TEST_BUF
+int main()
+{
+   char *start_heap = (char *)sbrk(0);
+
+   int i;
+   AccurateElt *elt;
+   AccurateBuffer *buf = new AccurateBuffer;
+
+   /* 1) Loading */
+   printf("Loading...\n");
+   for (i=0; i<NB_ELT; i++) {
+      elt = (AccurateElt *) buf->get_elt(i);
+      elt->mtime = i;
+      buf->update_elt(i);
+   }
+
+   /* 2) load and update */
+   printf("Load and update...\n");
+   for (i=0; i<NB_ELT; i++) {
+      elt = (AccurateElt *) buf->get_elt(i);
+      if (elt->mtime != i) {
+	 printf("Something is wrong with elt %i mtime=%lli\n", i, elt->mtime);	 
+	 exit (0);
+      }
+      elt->seen = i;
+      buf->update_elt(i);
+   }
+
+   /* 3) Fetch all of them */
+   printf("Fetch them...\n");
+   for (i=0; i<NB_ELT; i++) {
+      elt = (AccurateElt *) buf->get_elt(i);
+      if (elt->seen != i || elt->mtime != i) {
+	 printf("Something is wrong with elt %i mtime=%lli seen=%i\n", i, elt->mtime, elt->seen);
+	 exit (0);
+      }
+   }
+   fprintf(stderr, "heap;%lld\n", (long long)((char *)sbrk(0) - start_heap));
+   delete buf;
+
+   return(0);
+}
+
+#else
 int main()
 {
    FILE *fd;
@@ -179,4 +320,5 @@ int main()
    fclose(fd);
    return(0);
 }
+#endif	/* _TEST_BUF */
 #endif	/* _TEST_OPEN */
