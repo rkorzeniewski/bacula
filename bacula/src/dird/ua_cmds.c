@@ -1084,6 +1084,9 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
                return 1;
             }
             continue;
+         } else {
+            ua->error_msg(_("Client name missing.\n"));
+            return 1;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("job")) == 0) {
@@ -1098,7 +1101,11 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
                return 1;
             }
             continue;
+         } else {
+            ua->error_msg(_("Job name missing.\n"));
+            return 1;
          }
+
       }
       if (strcasecmp(ua->argk[i], NT_("fileset")) == 0) {
          if (ua->argv[i]) {
@@ -1112,6 +1119,9 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
                return 1;
             }
             continue;
+         } else {
+            ua->error_msg(_("Fileset name missing.\n"));
+            return 1;
          }
       }
       if (strcasecmp(ua->argk[i], NT_("listing")) == 0) {
@@ -1119,10 +1129,15 @@ static int estimate_cmd(UAContext *ua, const char *cmd)
          continue;
       }
       if (strcasecmp(ua->argk[i], NT_("level")) == 0) {
-         if (!get_level_from_name(ua->jcr, ua->argv[i])) {
-            ua->error_msg(_("Level \"%s\" not valid.\n"), ua->argv[i]);
+         if (ua->argv[i]) {
+            if (!get_level_from_name(ua->jcr, ua->argv[i])) {
+               ua->error_msg(_("Level \"%s\" not valid.\n"), ua->argv[i]);
+            }
+            continue;
+         } else {
+           ua->error_msg(_("Level value missing.\n"));
+           return 1;
          }
-         continue;
       }
    }
    if (!job && !(client && fileset)) {
