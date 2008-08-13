@@ -1324,6 +1324,47 @@ Item 1: Backup and Restore of Windows Encrypted Files through raw encryption fun
    verify a certain volume.  All of these would naturaly apply only for 
    Jobs whose file information are still in the catalog.
 
+Item X:   Add EFS support on Windows
+   Origin: Alex Ehrlich (Alex.Ehrlich-at-mail.ee)
+   Date:   05 August 2008
+   Status:
+
+   What:   For each file backed up or restored by FD on Windows, check if
+           the file is encrypted; if so then use OpenEncryptedFileRaw,
+           ReadEncryptedFileRaw, WriteEncryptedFileRaw,
+           CloseEncryptedFileRaw instead of BackupRead and BackupWrite
+           API calls.
+
+   Why:    Many laptop users utilize the EFS functionality today; so do.
+           some non-laptop ones, too.
+           Currently files encrypted by means of EFS cannot be backed up.
+           It means a Windows boutique cannot rely on Bacula as its
+           backup solution, at least when using Windows 2K, XPP,
+           "better" Vista etc on workstations, unless EFS is
+           forbidden by policies.
+           The current situation might result into "false sense of
+           security" among the end-users.
+
+   Notes:  Using xxxEncryptedFileRaw API would allow to backup and
+           restore EFS-encrypted files without decrypting their data.
+           Note that such files cannot be restored "portably" (at least,
+           easily) but they would be restoreable to a different (or
+           reinstalled) Win32 machine; the restore would require setup
+           of a EFS recovery agent in advance, of course, and this shall
+           be clearly reflected in the documentation, but this is the
+           normal Windows SysAdmin's business.
+           When "portable" backup is requested the EFS-encrypted files
+           shall be clearly reported as errors.
+           See MSDN on the "Backup and Restore of Encrypted Files" topic:
+           http://msdn.microsoft.com/en-us/library/aa363783.aspx
+           Maybe the EFS support requires a new flag in the database for
+           each file, too?
+           Unfortunately, the implementation is not as straightforward as
+           1-to-1 replacement of BackupRead with ReadEncryptedFileRaw,
+           requiring some FD code rewrite to work with
+           encrypted-file-related callback functions.
+
+                                                                                                                                                                                              encrypted-file-related callback functions.
 ========== Already implemented ================================
 
 Item  n:  make changing "spooldata=yes|no" possible for
