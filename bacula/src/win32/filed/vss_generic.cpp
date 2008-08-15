@@ -118,7 +118,11 @@ class IXMLDOMDocument;
    static t_CreateVssBackupComponents p_CreateVssBackupComponents = NULL;
    static t_VssFreeSnapshotProperties p_VssFreeSnapshotProperties = NULL;
 
+#ifdef _WIN64
+   #define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z"
+#else
    #define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z"
+#endif
 
 
 #include "vss.h"

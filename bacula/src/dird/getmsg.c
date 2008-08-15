@@ -80,9 +80,9 @@ void set_jcr_sd_job_status(JCR *jcr, int SDJobStatus)
       case JS_WaitMedia:
       case JS_WaitMount:
       case JS_WaitMaxJobs:
-	 set_waittime = true;
+         set_waittime = true;
       default:
-	 break;
+         break;
    }
 
    if (job_waiting(jcr)) {
@@ -134,7 +134,7 @@ int bget_dirmsg(BSOCK *bs)
 
    for (;;) {
       n = bs->recv();
-      Dmsg2(100, "bget_dirmsg %d: %s\n", n, bs->msg);
+      Dmsg2(300, "bget_dirmsg %d: %s\n", n, bs->msg);
 
       if (is_bnet_stop(bs)) {
          return n;                    /* error or terminate */
