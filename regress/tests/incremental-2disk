@@ -18,7 +18,7 @@ cd bin
 cd ..
 
 scripts/copy-2disk-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
 
 echo "${cwd}/tmp/build" >${cwd}/tmp/file-list
 if test ! -d ${cwd}/tmp/build ; then

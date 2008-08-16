@@ -16,7 +16,7 @@ JobName=Two-pool
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
  
 # Make a relatively large backup set 5 x source code directory
 #  Reduced to 1 for portable

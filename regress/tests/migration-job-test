@@ -12,7 +12,7 @@ JobName=MigrationJobSave
 
 scripts/cleanup
 scripts/copy-migration-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
 echo "${cwd}/build" >${cwd}/tmp/file-list
 
 change_jobname NightlySave $JobName

@@ -21,7 +21,7 @@ start_test
 #
 # Note, we first backup into Pool Default, 
 #          then Migrate into Pool Full. 
-#              Pool Default uses Storage=File
+#              Pool Default forced to use Storage=DiskChanger
 #              Pool Full    uses Storage=DiskChanger
 
 # Write out bconsole commands
@@ -29,33 +29,34 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 @output
 messages
 @$out ${cwd}/tmp/log1.out
-@#setdebug level=100 storage=File
-label storage=File volume=FileVolume001 Pool=Default
+setdebug level=150 storage=DiskChanger
 label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume003 slot=3 Pool=Full drive=0
+setdebug level=0 storage=DiskChanger
 @# run several jobs
 run job=$JobName level=Full yes
 wait
 messages
 list jobs
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.c'"
-run job=$JobName level=Incremental yes
+run job=$JobName level=Incremental storage=DiskChanger yes
 wait
 messages
 list jobs
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
-run job=$JobName level=Differential yes
+run job=$JobName level=Differential storage=DiskChanger yes
 wait
 messages
 list jobs
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
-run job=$JobName level=Incremental yes
+run job=$JobName level=Incremental storage=DiskChanger yes
 wait
 messages
 list jobs
 list volumes
 @# 
-@# now do a normal restore of normal backups
+@# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select
@@ -67,15 +68,45 @@ list volumes
 @#setdebug level=100 dir
 @# should Consolidate Full, Differential and Incremental
 @#setdebug level=51 storage=DiskChanger
-run job=$JobName level=VirtualFull yes
+run job=$JobName level=VirtualFull storage=DiskChanger yes
 wait
 messages
 list volumes
 list jobs
 @# 
-@# now do a restore of the consolidated Full
+@# now do a restore
 @#
 @$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+wait
+update Volume=ChangerVolume002
+11
+Default
+list volumes
+list jobs
+messages
+@exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
+run job=$JobName level=Incremental storage=DiskChanger yes
+wait
+messages
+list jobs
+list volumes
+@# Now do another Consolidation
+setdebug level=150 storage=DiskChanger
+run job=$JobName level=VirtualFull storage=DiskChanger yes
+wait
+messages
+list volumes
+list jobs
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+setdebug level=0 storage=DiskChanger
 restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
 unmark *
 mark *

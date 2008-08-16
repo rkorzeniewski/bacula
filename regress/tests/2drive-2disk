@@ -11,7 +11,7 @@ JobName="2drive2disk"
 
 scripts/cleanup
 scripts/copy-2disk-drive-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
 
 CLIENT=2drive2disk
 
