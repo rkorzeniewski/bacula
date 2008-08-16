@@ -54,8 +54,18 @@ wait
 messages
 list jobs
 list volumes
-setdebug level=100 dir
-@# should migrate two jobs
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+restore where=${cwd}/tmp/bacula-restores select
+unmark *
+mark *
+done
+yes
+list volumes
+@#setdebug level=100 dir
+@# should Consolidate Full, Differential and Incremental
 @#setdebug level=51 storage=DiskChanger
 run job=$JobName level=VirtualFull yes
 wait
@@ -71,8 +81,39 @@ unmark *
 mark *
 done
 yes
-list volumes
 wait
+update Volume=ChangerVolume002
+11
+Default
+list volumes
+list jobs
+messages
+@exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
+run job=$JobName level=Incremental yes
+wait
+messages
+list jobs
+list volumes
+@# Now do another Consolidation
+setdebug level=150 storage=DiskChanger
+run job=$JobName level=VirtualFull yes
+wait
+messages
+list volumes
+list jobs
+@# 
+@# now do a restore
+@#
+@$out ${cwd}/tmp/log2.out
+setdebug level=0 storage=DiskChanger
+restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
+unmark *
+mark *
+done
+yes
+wait
+list volumes
+list jobs
 messages
 @output
 quit

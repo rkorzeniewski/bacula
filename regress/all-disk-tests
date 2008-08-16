@@ -56,6 +56,8 @@ nice tests/migration-volume-test
 nice tests/migration-time-test
 nice tests/hardlink-test
 nice tests/tls-test
+nice tests/virtual-changer-test
+nice tests/virtual-backup-test
 echo "End non-root disk tests"
 echo "End non-root disk tests" >>test.out
 
