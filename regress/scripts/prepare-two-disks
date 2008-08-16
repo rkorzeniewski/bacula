@@ -4,5 +4,7 @@
 #
 rm -rf tmp/disk-changer
 mkdir tmp/disk-changer
-touch tmp/disk-changer/slot1
-touch tmp/disk-changer/slot2
+# Create 10 slots
+for i in 1 2 3 4 5 6 7 8 9 10 ; do
+   touch tmp/disk-changer/slot$i
+done
