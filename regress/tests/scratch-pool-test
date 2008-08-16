@@ -22,7 +22,7 @@ fi
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
  
 echo "${cwd}/build" >${cwd}/tmp/file-list
 

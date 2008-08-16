@@ -16,7 +16,7 @@ JobName=Three-pool-recycle
 cwd=`pwd`
 scripts/cleanup
 scripts/copy-2disk-confs
-scripts/prepare-two-disks
+scripts/prepare-disk-changer
 
 # remove Client Run Before Job
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
