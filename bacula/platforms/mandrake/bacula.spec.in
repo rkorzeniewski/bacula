@@ -1,5 +1,5 @@
 # Bacula RPM spec file
-# Copyright (C) 2000-2006 Kern Sibbald
+# Copyright (C) 2000-2008 Kern Sibbald
 
 # Platform Build Configuration
 
@@ -534,7 +534,6 @@ BuildRequires: GConf2-devel
 BuildRequires: freetype-devel
 %endif
 %if %{fc9}
-BuildRequires: libtermcap-devel
 BuildRequires: glibc-devel >= 2.8
 BuildRequires: zlib-static
 %endif
@@ -660,7 +659,6 @@ Requires: libtermcap
 %endif
 %if %{fc9}
 Requires: glibc >= 2.8
-Requires: libtermcap
 %endif
 
 %if %{mysql} && ! %{su9} && ! %{mdk} && ! %{mysql4} && ! %{mysql5}
@@ -824,7 +822,6 @@ Requires: libtermcap
 %endif
 %if %{fc9}
 Requires: glibc >= 2.8
-Requires: libtermcap
 %endif
 
 %if %{python}
@@ -2374,6 +2371,8 @@ fi
 %endif
 
 %changelog
+* Sun Aug 17 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
+- remove libtermcap dependancy for FC9
 * Mon Aug 04 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
 - fix bat dependencies
 * Sat Jun 28 2008 D. Scott Barninger <barninger@fairfieldcomputers.com>
