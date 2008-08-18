@@ -1,7 +1,7 @@
 Index: src/dird/dird.c
 ===================================================================
---- src/dird/dird.c	(revision 7482)
-+++ src/dird/dird.c	(working copy)
+--- src/dird/dird.c	(révision 7482)
++++ src/dird/dird.c	(copie de travail)
 @@ -40,7 +40,7 @@
  /* Forward referenced subroutines */
  void terminate_dird(int sig);
@@ -85,10 +85,33 @@ Index: src/dird/dird.c
        /* Loop over all pools, defining/updating them in each database */
        POOL *pool;
        foreach_res(pool, R_POOL) {
+Index: src/cats/sqlite.c
+===================================================================
+--- src/cats/sqlite.c	(révision 7482)
++++ src/cats/sqlite.c	(copie de travail)
+@@ -59,14 +59,17 @@
+ 
+ int QueryDB(const char *file, int line, JCR *jcr, B_DB *db, char *select_cmd);
+ 
+-
+ /*
+  * Retrieve database type
+  */
+ const char *
+ db_get_type(void)
+ {
++#ifdef HAVE_SQLITE3
++   return "SQLite3";
++#else
+    return "SQLite";
++#endif
+ }
+ 
+ /*
 Index: src/baconfig.h
 ===================================================================
---- src/baconfig.h	(revision 7482)
-+++ src/baconfig.h	(working copy)
+--- src/baconfig.h	(révision 7482)
++++ src/baconfig.h	(copie de travail)
 @@ -79,7 +79,8 @@
  
  /* Allow printing of NULL pointers */
