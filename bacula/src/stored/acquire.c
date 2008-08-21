@@ -430,11 +430,14 @@ bool release_device(DCR *dcr)
    dcr->clear_reserved();
 
    if (dev->can_read()) {
+      VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
       dev->clear_read();              /* clear read bit */
-      Dmsg0(100, "dir_update_vol_info. Release0\n");
-      dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
-      volume_unused(dcr);
-
+      Dmsg2(000, "dir_update_vol_info. label=%d Vol=%s\n",
+         dev->is_labeled(), vol->VolCatName);
+      if (dev->is_labeled() && vol->VolCatName[0] != 0) {
+         dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
+         volume_unused(dcr);
+      }
    } else if (dev->num_writers > 0) {
       /* 
        * Note if WEOT is set, we are at the end of the tape
