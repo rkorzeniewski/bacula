@@ -795,7 +795,7 @@ if ($action eq 'list_client') {	# list all client [ ['c1'],['c2']..]
 
     print "]\n";
     exit 0;
-} elsif ($action eq 'list_storage') { # TODO: use .storage hier
+} elsif ($action eq 'list_storage') { # TODO: use .storage here
     print CGI::header('application/x-javascript');
 
     my $q="SELECT Name FROM Storage";

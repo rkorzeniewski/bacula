@@ -112,8 +112,8 @@ install -m 644 -o root -g root  lang/tpl/es/*.tpl ${SHARE_DIR}/bweb/tpl/es
 install -m 644 -o root -g root  lang/tpl/fr/*.tpl ${SHARE_DIR}/bweb/tpl/fr
 
 # copy the bweb graphics elements (bweb elements must reside in /bweb)
-if [ ! -d ${WEB_DIR} ] ; then
-   mkdir ${WEB_DIR}/bweb
+if [ ! -d ${WEB_DIR}/bweb ] ; then
+   mkdir -p ${WEB_DIR}/bweb
 fi
 install -m 644 -o root -g root  html/*.{js,png,css,gif,ico,html} ${WEB_DIR}/bweb
 
