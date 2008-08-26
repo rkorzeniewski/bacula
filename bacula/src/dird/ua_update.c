@@ -774,9 +774,9 @@ static int update_volume(UAContext *ua)
          } else {
             ua->info_msg(_("No current RecyclePool\n"));
          }
-	 if (!select_pool_dbr(ua, &pr, NT_("recyclepool"))) {
-	    return 0;
-	 }
+         if (!select_pool_dbr(ua, &pr, NT_("recyclepool"))) {
+            return 0;
+         }
          update_vol_recyclepool(ua, pr.Name, &mr);
          return 1;
 
