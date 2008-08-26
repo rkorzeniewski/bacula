@@ -268,6 +268,7 @@ void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
    POOL_MEM volmsg(PM_MESSAGE);
    JobId_t JobId;
    char Device[MAX_NAME_LENGTH];
+   RBSR *bsr;
 
    /* Tell the user what he will need to mount */
    ua->send_msg("\n");
@@ -276,38 +277,38 @@ void display_bsr_info(UAContext *ua, RESTORE_CTX &rx)
                   "===========================================================================\n"));
    /* Create Unique list of Volumes using prompt list */
    start_prompt(ua, "");
-   if (*rx.JobIds) {
-      /* Ensure that the volumes are printed in JobId order */
-      for (p=rx.JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
-         for (RBSR *nbsr=rx.bsr; nbsr; nbsr=nbsr->next) {
-            if (JobId != nbsr->JobId) {
-               continue;
-            }
-            for (int i=0; i < nbsr->VolCount; i++) {
-               if (nbsr->VolParams[i].VolumeName[0]) {
-                  if (!get_storage_device(Device, nbsr->VolParams[i].Storage)) {
-                     Device[0] = 0;
-                  }
-                  Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
-                       nbsr->VolParams[i].VolumeName, 
-                       nbsr->VolParams[i].Storage, Device);
-                  add_prompt(ua, volmsg.c_str());
+   if (*rx.JobIds == 0) {
+      /* Print Volumes in any order */
+      for (bsr=rx.bsr; bsr; bsr=bsr->next) {
+         for (int i=0; i < bsr->VolCount; i++) {
+            if (bsr->VolParams[i].VolumeName[0]) {
+               if (!get_storage_device(Device, bsr->VolParams[i].Storage)) {
+                  Device[0] = 0;
                }
+               Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
+                    bsr->VolParams[i].VolumeName, 
+                    bsr->VolParams[i].Storage, Device);
+               add_prompt(ua, volmsg.c_str());
             }
          }
       }
    } else {
-      /* Print Volumes in any order */
-      for (RBSR *nbsr=rx.bsr; nbsr; nbsr=nbsr->next) {
-         for (int i=0; i < nbsr->VolCount; i++) {
-            if (nbsr->VolParams[i].VolumeName[0]) {
-               if (!get_storage_device(Device, nbsr->VolParams[i].Storage)) {
-                  Device[0] = 0;
+      /* Ensure that the volumes are printed in JobId order */
+      for (p=rx.JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
+         for (bsr=rx.bsr; bsr; bsr=bsr->next) {
+            if (JobId != bsr->JobId) {
+               continue;
+            }
+            for (int i=0; i < bsr->VolCount; i++) {
+               if (bsr->VolParams[i].VolumeName[0]) {
+                  if (!get_storage_device(Device, bsr->VolParams[i].Storage)) {
+                     Device[0] = 0;
+                  }
+                  Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
+                       bsr->VolParams[i].VolumeName, 
+                       bsr->VolParams[i].Storage, Device);
+                  add_prompt(ua, volmsg.c_str());
                }
-               Mmsg(volmsg, "%-25.25s %-25.25s %-25.25s", 
-                    nbsr->VolParams[i].VolumeName, 
-                    nbsr->VolParams[i].Storage, Device);
-               add_prompt(ua, volmsg.c_str());
             }
          }
       }
