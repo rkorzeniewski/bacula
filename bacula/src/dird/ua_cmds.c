@@ -1411,10 +1411,14 @@ static int delete_volume(UAContext *ua)
       "and all Jobs saved on that volume from the Catalog\n"),
       mr.VolumeName);
 
-   bsnprintf(buf, sizeof(buf), _("Are you sure you want to delete Volume \"%s\"? (yes/no): "),
-      mr.VolumeName);
-   if (!get_yesno(ua, buf)) {
-      return 1;
+   if (find_arg(ua, "yes") >= 0) {
+      ua->pint32_val = 1; /* Have "yes" on command line already" */
+   } else {
+      bsnprintf(buf, sizeof(buf), _("Are you sure you want to delete Volume \"%s\"? (yes/no): "),
+         mr.VolumeName);
+      if (!get_yesno(ua, buf)) {
+         return 1;
+      }
    }
    if (ua->pint32_val) {
       db_delete_media_record(ua->jcr, ua->db, &mr);
