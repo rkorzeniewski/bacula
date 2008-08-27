@@ -226,6 +226,8 @@ void encode_stat(char *buf, FF_PKT *ff_pkt, int data_stream)
   #if !HAVE_GCC & HAVE_SUN_OS
     /* Sun compiler does not handle templates correctly */
     #define plug(st, val) st = val
+  #elif __sgi
+    #define plug(st, val) st = val
   #else
     /* Use templates to do the casting */
     template <class T> void plug(T &st, uint64_t val)
