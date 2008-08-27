@@ -72,6 +72,11 @@ extern "C" char *tgoto (const char *, int, int);
 #elif HAVE_AIX_OS 
 #include <curses.h>
 #include <term.h>
+#elif defined(__sgi)
+extern "C" int tgetent(char *, char *);
+extern "C" int tgetnum(char id[2]);
+extern "C" char *tgetstr(char id[2], char **);
+extern "C" char *tgoto(char *, int, int);
 #elif defined (__digital__) && defined (__unix__)
 extern "C" int tgetent(void *, const char *);
 extern "C" int tgetnum(const char *);

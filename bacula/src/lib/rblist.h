@@ -93,15 +93,6 @@ public:
    void destroy(void);
 };
 
-inline rblist::rblist(void *item, rblink *link)
-{
-   init(item, link);
-}
-
-/* Constructor with link at head of item */
-inline rblist::rblist(void): head(0), loffset(0), num_items(0)
-{
-}
 
 /*
  * This allows us to do explicit initialization,
@@ -116,6 +107,16 @@ inline void rblist::init(void *item, rblink *link)
       Emsg0(M_ABORT, 0, "Improper rblist initialization.\n");
    }
    num_items = 0;
+}
+
+inline rblist::rblist(void *item, rblink *link)
+{
+   init(item, link);
+}
+
+/* Constructor with link at head of item */
+inline rblist::rblist(void): head(0), loffset(0), num_items(0)
+{
 }
 
 inline void rblist::set_parent(void *item, void *parent)
