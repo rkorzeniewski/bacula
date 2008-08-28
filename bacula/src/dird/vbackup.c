@@ -61,6 +61,8 @@ void vbackup_cleanup(JCR *jcr, int TermCode);
  */
 bool do_vbackup_init(JCR *jcr)
 {
+   char *p;
+
    if (!get_or_create_fileset_record(jcr)) {
       Dmsg1(dbglevel, "JobId=%d no FileSet\n", (int)jcr->JobId);
       return false;
@@ -72,6 +74,12 @@ bool do_vbackup_init(JCR *jcr)
       return false;
    }
 
+   jcr->jr.PoolId = get_or_create_pool_record(jcr, jcr->pool->name());
+   if (jcr->jr.PoolId == 0) {
+      Dmsg1(dbglevel, "JobId=%d no PoolId\n", (int)jcr->JobId);
+      Jmsg(jcr, M_FATAL, 0, _("Could not get or create a Pool record.\n"));
+      return false;
+   }
    /*
     * Note, at this point, pool is the pool for this job.  We
     *  transfer it to rpool (read pool), and a bit later,
@@ -81,6 +89,8 @@ bool do_vbackup_init(JCR *jcr)
    jcr->rpool = jcr->pool;            /* save read pool */
    pm_strcpy(jcr->rpool_source, jcr->pool_source);
 
+   /* If pool storage specified, use it for restore */
+   copy_rstorage(jcr, jcr->pool->storage, _("Pool resource"));
 
    Dmsg2(dbglevel, "Read pool=%s (From %s)\n", jcr->rpool->name(), jcr->rpool_source);
 
@@ -102,6 +112,26 @@ bool do_vbackup_init(JCR *jcr)
       return false;
    }
 
+   /*
+    * Now we find the last job that ran and store it's info in
+    *  the previous_jr record.  We will set our times to the
+    *  values from that job so that anything changed after that
+    *  time will be picked up on the next backup.
+    */
+   p = strrchr(jobids, ',');              /* find last jobid */
+   if (p != NULL) {
+      p++;
+   } else {
+      p = jobids;
+   }
+   memset(&jcr->previous_jr, 0, sizeof(jcr->previous_jr));
+   jcr->previous_jr.JobId = str_to_int64(p);
+   if (!db_get_job_record(jcr, jcr->db, &jcr->previous_jr)) {
+      Jmsg(jcr, M_FATAL, 0, _("Error getting Job record for previous Job: ERR=%s"),
+               db_strerror(jcr->db));
+      return false;
+   }
+
    if (!create_bootstrap_file(jcr, jobids)) {
       Jmsg(jcr, M_FATAL, 0, _("Could not get or create the FileSet record.\n"));
       free_pool_memory(jobids);
@@ -120,7 +150,6 @@ bool do_vbackup_init(JCR *jcr)
          return false;
       }
    }
-
    if (!set_migration_wstorage(jcr, jcr->pool)) {
       return false;
    }
@@ -128,13 +157,14 @@ bool do_vbackup_init(JCR *jcr)
 
    Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
 
-   create_clones(jcr);
+// create_clones(jcr);
 
    return true;
 }
 
 /*
- * Do a backup of the specified FileSet
+ * Do a virtual backup, which consolidates all previous backups into
+ *  a sort of synthetic Full.
  *
  *  Returns:  false on failure
  *            true  on success
@@ -144,8 +174,19 @@ bool do_vbackup(JCR *jcr)
    char ed1[100];
    BSOCK *sd;
 
+   Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
+   Dmsg2(100, "Read store=%s, write store=%s\n", 
+      ((STORE *)jcr->rstorage->first())->name(),
+      ((STORE *)jcr->wstorage->first())->name());
+   /* ***FIXME***  we really should simply verify that the pools are different */
+   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
+      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
+           ((STORE *)jcr->rstorage->first())->name());
+      return false;
+   }
+
    /* Print Job Start message */
-   Jmsg(jcr, M_INFO, 0, _("Start Vbackup JobId %s, Job=%s\n"),
+   Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
 
    /*
@@ -163,18 +204,10 @@ bool do_vbackup(JCR *jcr)
       return false;
    }
    sd = jcr->store_bsock;
+
    /*
     * Now start a job with the Storage daemon
     */
-   Dmsg2(100, "rstorage=%p wstorage=%p\n", jcr->rstorage, jcr->wstorage);
-   Dmsg2(100, "Read store=%s, write store=%s\n", 
-      ((STORE *)jcr->rstorage->first())->name(),
-      ((STORE *)jcr->wstorage->first())->name());
-   if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
-      Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
-           ((STORE *)jcr->rstorage->first())->name());
-      return false;
-   }
    if (!start_storage_daemon_job(jcr, jcr->rstorage, jcr->wstorage)) {
       return false;
    }
@@ -200,7 +233,7 @@ bool do_vbackup(JCR *jcr)
    jcr->jr.JobTDate = jcr->start_time;
    set_jcr_job_status(jcr, JS_Running);
 
-   /* Update job start record for this migration control job */
+   /* Update job start record */
    if (!db_update_job_start_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_FATAL, 0, "%s", db_strerror(jcr->db));
       return false;
@@ -253,6 +286,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    CLIENT_DBR cr;
    double kbps, compression;
    utime_t RunTime;
+   POOL_MEM query(PM_MESSAGE);
 
    Dmsg2(100, "Enter backup_cleanup %d %c\n", TermCode, TermCode);
    memset(&mr, 0, sizeof(mr));
@@ -264,16 +298,13 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    jcr->JobBytes = jcr->SDJobBytes;
    update_job_end(jcr, TermCode);
 
-#ifdef xxx
-   /* ***FIXME*** set to time of last incremental */
    /* Update final items to set them to the previous job's values */
    Mmsg(query, "UPDATE Job SET StartTime='%s',EndTime='%s',"
                "JobTDate=%s WHERE JobId=%s", 
       jcr->previous_jr.cStartTime, jcr->previous_jr.cEndTime, 
       edit_uint64(jcr->previous_jr.JobTDate, ec1),
-      edit_uint64(mig_jcr->jr.JobId, ec2));
-   db_sql_query(mig_jcr->db, query.c_str(), NULL, NULL);
-#endif
+      edit_uint64(jcr->JobId, ec3));
+   db_sql_query(jcr->db, query.c_str(), NULL, NULL);
 
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),

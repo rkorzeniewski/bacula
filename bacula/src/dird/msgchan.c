@@ -218,8 +218,9 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
     */
    /* Do read side of storage daemon */
    if (ok && rstore) {
-      /* For the moment, only migrate and copy have rpool */
-      if (jcr->get_JobType() == JT_MIGRATE || jcr->get_JobType() == JT_COPY) {
+      /* For the moment, only migrate, copy and vbackup have rpool */
+      if (jcr->get_JobType() == JT_MIGRATE || jcr->get_JobType() == JT_COPY ||
+           (jcr->get_JobType() == JT_BACKUP && jcr->get_JobLevel() == L_VIRTUAL_FULL)) {
          pm_strcpy(pool_type, jcr->rpool->pool_type);
          pm_strcpy(pool_name, jcr->rpool->name());
       } else {
@@ -230,6 +231,7 @@ bool start_storage_daemon_job(JCR *jcr, alist *rstore, alist *wstore)
       bash_spaces(pool_name);
       foreach_alist(storage, rstore) {
          Dmsg1(100, "Rstore=%s\n", storage->name());
+         pm_strcpy(store_name, storage->name());
          bash_spaces(store_name);
          pm_strcpy(media_type, storage->media_type);
          bash_spaces(media_type);
