@@ -188,6 +188,10 @@ bool do_vbackup(JCR *jcr)
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),
         edit_uint64(jcr->JobId, ed1), jcr->Job);
+   if (!jcr->accurate) {
+      Jmsg(jcr, M_WARNING, 0, 
+_("This Job is not an Accurate backup so is not equivalent to a Full backup.\n"));
+   }
 
    /*
     * Open a message channel connection with the Storage
