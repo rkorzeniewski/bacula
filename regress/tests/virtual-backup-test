@@ -58,13 +58,13 @@ list volumes
 @# now do a normal restore of normal backups
 @#
 @$out ${cwd}/tmp/log2.out
+setdebug level=10 dir
 restore where=${cwd}/tmp/bacula-restores select
 unmark *
 mark *
 done
 yes
 list volumes
-@#setdebug level=100 dir
 @# should Consolidate Full, Differential and Incremental
 @#setdebug level=51 storage=DiskChanger
 run job=$JobName level=VirtualFull yes
