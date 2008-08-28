@@ -1073,8 +1073,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
 {
    char clientid[50], jobid[50], filesetid[50];
    char date[MAX_TIME_LENGTH];
-
-   POOL_MEM query (PM_FNAME);
+   POOL_MEM query(PM_FNAME);
    bstrutime(date, sizeof(date),  time(NULL) + 1);
    jobids[0]='\0';
 
@@ -1098,7 +1097,6 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
    }
 
    if (jr->JobLevel == L_INCREMENTAL || jr->JobLevel == L_VIRTUAL_FULL) {
-
       /* Now, find the last differential backup after the last full */
       Mmsg(query, 
 "INSERT INTO btemp3%s (JobId, StartTime, EndTime, JobTDate, PurgedFiles) "

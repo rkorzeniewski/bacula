@@ -135,21 +135,6 @@ static bool is_volume_selected(RBSR_FINDEX *fi,
 }
 
 
-
-static void print_findex(UAContext *ua, RBSR_FINDEX *fi)
-{
-   ua->send_msg("fi=0x%lx\n", fi);
-   for ( ; fi; fi=fi->next) {
-      if (fi->findex == fi->findex2) {
-         ua->send_msg("FileIndex=%d\n", fi->findex);
-         Dmsg1(1000, "FileIndex=%d\n", fi->findex);
-      } else {
-         ua->send_msg("FileIndex=%d-%d\n", fi->findex, fi->findex2);
-         Dmsg2(1000, "FileIndex=%d-%d\n", fi->findex, fi->findex2);
-      }
-   }
-}
-
 /* Create a new bootstrap record */
 RBSR *new_bsr()
 {
@@ -257,6 +242,10 @@ uint32_t write_bsr_file(UAContext *ua, RESTORE_CTX &rx)
    }
 
    ua->send_msg(_("Bootstrap records written to %s\n"), fname.c_str());
+
+   if (debug_level >= 10) {
+      print_bsr(ua, rx);
+   }
 
 bail_out:
    return count;
@@ -469,22 +458,9 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
    return total_count;
 }
 
-void print_bsr(UAContext *ua, RBSR *bsr)
+void print_bsr(UAContext *ua, RESTORE_CTX &rx)
 {
-   for ( ; bsr; bsr=bsr->next) {
-      for (int i=0; i < bsr->VolCount; i++) {
-         ua->send_msg("Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
-         ua->send_msg("MediaType\"%s\"\n", bsr->VolParams[i].MediaType);
-         ua->send_msg("VolSessionId=%u\n", bsr->VolSessionId);
-         ua->send_msg("VolSessionTime=%u\n", bsr->VolSessionTime);
-         ua->send_msg("VolFile=%u-%u\n", bsr->VolParams[i].StartFile,
-                  bsr->VolParams[i].EndFile);
-         ua->send_msg("VolBlock=%u-%u\n", bsr->VolParams[i].StartBlock,
-                  bsr->VolParams[i].EndBlock);
-         print_findex(ua, bsr->fi);
-      }
-      print_bsr(ua, bsr->next);
-   }
+   write_bsr(ua, rx, stdout);
 }
 
 

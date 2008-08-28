@@ -74,7 +74,7 @@ void add_findex(RBSR *bsr, uint32_t JobId, int32_t findex);
 void add_findex_all(RBSR *bsr, uint32_t JobId);
 RBSR_FINDEX *new_findex();
 void make_unique_restore_filename(UAContext *ua, POOLMEM **fname);
-void print_bsr(UAContext *ua, RBSR *bsr);
+void print_bsr(UAContext *ua, RESTORE_CTX &rx);
 
 
 /* catreq.c */

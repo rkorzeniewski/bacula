@@ -432,7 +432,7 @@ bool release_device(DCR *dcr)
    if (dev->can_read()) {
       VOLUME_CAT_INFO *vol = &dev->VolCatInfo;
       dev->clear_read();              /* clear read bit */
-      Dmsg2(000, "dir_update_vol_info. label=%d Vol=%s\n",
+      Dmsg2(150, "dir_update_vol_info. label=%d Vol=%s\n",
          dev->is_labeled(), vol->VolCatName);
       if (dev->is_labeled() && vol->VolCatName[0] != 0) {
          dir_update_volume_info(dcr, false, false); /* send Volume info to Director */
