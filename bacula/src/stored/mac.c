@@ -122,6 +122,7 @@ bail_out:
 ok_out:
    if (jcr->dcr) {
       dev = jcr->dcr->dev;
+      Dmsg1(100, "ok=%d\n", ok);
       if (ok || dev->can_write()) {
          /* Flush out final partial block of this session */
          if (!write_block_to_device(jcr->dcr)) {
@@ -173,7 +174,7 @@ ok_out:
    generate_daemon_event(jcr, "JobEnd");
    dir->fsend(Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
-   Dmsg4(200, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
+   Dmsg4(100, Job_end, jcr->Job, jcr->JobStatus, jcr->JobFiles, ec1); 
        
    dir->signal(BNET_EOD);             /* send EOD to Director daemon */
 
@@ -191,6 +192,9 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    DEVICE *dev = jcr->dcr->dev;
    char buf1[100], buf2[100];
    int32_t stream;   
+   uint32_t last_VolSessionId = 0;
+   uint32_t last_VolSessionTime = 0;
+   int32_t  last_FileIndex = 0;
    
    /* If label and not for us, discard it */
    if (rec->FileIndex < 0 && rec->match_stat <= 0) {
@@ -203,6 +207,23 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case EOT_LABEL:
    case EOM_LABEL:
       return true;                    /* don't write vol labels */
+   }
+   /*
+    * For normal migration jobs, FileIndex values are sequential because
+    *  we are dealing with one job.  However, for Vbackup (consolidation),
+    *  we will be getting records from multiple jobs and writing them back
+    *  out, so we need to ensure that the output FileIndex is sequential.
+    *  We do so by detecting a FileIndex change and incrementing the
+    *  JobFiles, which we then use as the output FileIndex.
+    */
+   if (rec->VolSessionId != last_VolSessionId || 
+       rec->VolSessionTime != last_VolSessionTime ||
+       (rec->FileIndex > 0 && rec->FileIndex != last_FileIndex)) {
+      jcr->JobFiles++;
+      last_VolSessionId = rec->VolSessionId;
+      last_VolSessionTime = rec->VolSessionTime;
+      last_FileIndex = rec->FileIndex;
+      rec->FileIndex = jcr->JobFiles;     /* set sequential output FileIndex */
    }
    /*
     * Modify record SessionId and SessionTime to correspond to
@@ -228,9 +249,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       Dmsg2(200, "===== Wrote block new pos %u:%u\n", dev->file, dev->block_num);
    }
    jcr->JobBytes += rec->data_len;   /* increment bytes this job */
-   if (rec->FileIndex > 0) {
-      jcr->JobFiles = rec->FileIndex;
-   } else {
+   if (rec->FileIndex <= 0) {
       return true;                    /* don't send LABELs to Dir */
    }
    Dmsg5(500, "wrote_record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
