@@ -142,7 +142,7 @@ bcopy.o: bcopy.c
 
 bcopy:	$(COPYOBJS) ../findlib/libfind.a ../lib/libbac.a
 	$(CXX) $(TTOOL_LDFLAGS) $(LDFLAGS) -L../lib -L../findlib -o $@ $(COPYOBJS) \
- $(DB_LIBS) $(FDLIBS) -lfind -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
+ -lbac -lm $(LIBS) $(GETTEXT_LIBS) $(OPENSSL_LIBS)
 
 
 Makefile: $(srcdir)/Makefile.in $(topdir)/config.status
