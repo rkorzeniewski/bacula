@@ -92,8 +92,10 @@ bool do_vbackup_init(JCR *jcr)
    }
 
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
+   jcr->jr.JobLevel = L_VIRTUAL_FULL;
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
-   Dmsg1(100, "Accurate jobids=%s\n", jobids);
+   jcr->jr.JobLevel = L_FULL;
+   Dmsg1(10, "Accurate jobids=%s\n", jobids);
    if (*jobids == 0) {
       free_pool_memory(jobids);
       Jmsg(jcr, M_FATAL, 0, _("Cannot find previous JobIds.\n"));
@@ -244,7 +246,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
    char sdt[50], edt[50], schedt[50];
    char ec1[30], ec3[30], ec4[30], compress[50];
    char ec7[30], ec8[30], elapsed[50];
-   char term_code[100], fd_term_msg[100], sd_term_msg[100];
+   char term_code[100], sd_term_msg[100];
    const char *term_msg;
    int msg_type = M_INFO;
    MEDIA_DBR mr;
@@ -359,16 +361,13 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
          bsnprintf(compress, sizeof(compress), "%.1f %%", compression);
       }
    }
-   jobstatus_to_ascii(jcr->FDJobStatus, fd_term_msg, sizeof(fd_term_msg));
    jobstatus_to_ascii(jcr->SDJobStatus, sd_term_msg, sizeof(sd_term_msg));
-
-// bmicrosleep(15, 0);                /* for debugging SIGHUP */
 
    Jmsg(jcr, msg_type, 0, _("Bacula %s %s (%s): %s\n"
 "  Build OS:               %s %s %s\n"
 "  JobId:                  %d\n"
 "  Job:                    %s\n"
-"  Backup Level:           %s%s\n"
+"  Backup Level:           Virtual Full\n"
 "  Client:                 \"%s\" %s\n"
 "  FileSet:                \"%s\" %s\n"
 "  Pool:                   \"%s\" (From %s)\n"
@@ -382,8 +381,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
 "  SD Files Written:       %s\n"
 "  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
-"  Software Compression:   %s\n"
-"  VSS:                    %s\n"
 "  Encryption:             %s\n"
 "  Accurate:               %s\n"
 "  Volume name(s):         %s\n"
@@ -397,7 +394,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         HOST_OS, DISTNAME, DISTVER,
         jcr->jr.JobId,
         jcr->jr.Job,
-        level_to_str(jcr->get_JobLevel()), jcr->since,
         jcr->client->name(), cr.Uname,
         jcr->fileset->name(), jcr->FSCreateTime,
         jcr->pool->name(), jcr->pool_source,
@@ -412,8 +408,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
         edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
         kbps,
-        compress,
-        jcr->VSS?_("yes"):_("no"),
         jcr->Encrypt?_("yes"):_("no"),
         jcr->accurate?_("yes"):_("no"),
         jcr->VolumeName,
@@ -492,11 +486,10 @@ static bool create_bootstrap_file(JCR *jcr, POOLMEM *jobids)
 #endif
 
    complete_bsr(ua, rx.bsr);
-//   Dmsg0(000, "Print bsr\n");
-//   print_bsr(ua, rx.bsr);
-
    jcr->ExpectedFiles = write_bsr_file(ua, rx);
-   Dmsg1(000, "Found %d files to consolidate.\n", jcr->ExpectedFiles);
+   if (debug_level >= 10) {
+      Dmsg1(000,  "Found %d files to consolidate.\n", jcr->ExpectedFiles);
+   }
    if (jcr->ExpectedFiles == 0) {
       free_ua_context(ua);
       free_bsr(rx.bsr);

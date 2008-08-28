@@ -104,7 +104,7 @@ static bool yes_no(const char *prompt);
 static void usage()
 {
    fprintf(stderr,
-"Usage: dbcheck [-c config] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>]\n"
+"Usage: dbcheck [-c config] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>] [<dbport>]\n"
 "       -b              batch mode\n"
 "       -C              catalog name in the director conf file\n"
 "       -c              Director conf filename\n"
@@ -120,8 +120,10 @@ int main (int argc, char *argv[])
 {
    int ch;
    const char *user, *password, *db_name, *dbhost;
+   int dbport = 0;
    char *configfile = NULL;
    char *catalogname = NULL;
+   char *endptr;
 
    setlocale(LC_ALL, "");
    bindtextdomain("bacula", LOCALEDIR);
@@ -220,9 +222,10 @@ int main (int argc, char *argv[])
          if (dbhost && dbhost[0] == 0) {
             dbhost = NULL;
          }
+         dbport = catalog->db_port;
       }
    } else {
-      if (argc > 5) {
+      if (argc > 6) {
          Pmsg0(0, _("Wrong number of arguments.\n"));
          usage();
       }
@@ -254,11 +257,24 @@ int main (int argc, char *argv[])
          user = argv[2];
          password = argv[3];
          dbhost = argv[4];
+      } else if (argc == 6) {
+         db_name = argv[1];
+         user = argv[2];
+         password = argv[3];
+         dbhost = argv[4];
+         dbport = strtol(argv[5], &endptr, 10);
+         if (*endptr != '\0') {
+            Pmsg0(0, _("Database port must be a numeric value.\n"));
+            exit(1);
+         } else if (dbport == LONG_MIN || dbport == LONG_MAX) {
+            Pmsg0(0, _("Database port must be a int value.\n"));
+            exit(1);
+         }
       }
    }
 
    /* Open database */
-   db = db_init_database(NULL, db_name, user, password, dbhost, 0, NULL, 0);
+   db = db_init_database(NULL, db_name, user, password, dbhost, dbport, NULL, 0);
    if (!db_open_database(NULL, db)) {
       Emsg1(M_FATAL, 0, "%s", db_strerror(db));
           return 1;
