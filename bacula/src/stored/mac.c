@@ -208,22 +208,26 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case EOM_LABEL:
       return true;                    /* don't write vol labels */
    }
-   /*
-    * For normal migration jobs, FileIndex values are sequential because
-    *  we are dealing with one job.  However, for Vbackup (consolidation),
-    *  we will be getting records from multiple jobs and writing them back
-    *  out, so we need to ensure that the output FileIndex is sequential.
-    *  We do so by detecting a FileIndex change and incrementing the
-    *  JobFiles, which we then use as the output FileIndex.
-    */
-   if (rec->VolSessionId != last_VolSessionId || 
-       rec->VolSessionTime != last_VolSessionTime ||
-       (rec->FileIndex > 0 && rec->FileIndex != last_FileIndex)) {
-      jcr->JobFiles++;
-      last_VolSessionId = rec->VolSessionId;
-      last_VolSessionTime = rec->VolSessionTime;
-      last_FileIndex = rec->FileIndex;
-      rec->FileIndex = jcr->JobFiles;     /* set sequential output FileIndex */
+   if (jcr->get_JobType() == JT_BACKUP) {
+      /*
+       * For normal migration jobs, FileIndex values are sequential because
+       *  we are dealing with one job.  However, for Vbackup (consolidation),
+       *  we will be getting records from multiple jobs and writing them back
+       *  out, so we need to ensure that the output FileIndex is sequential.
+       *  We do so by detecting a FileIndex change and incrementing the
+       *  JobFiles, which we then use as the output FileIndex.
+       */
+      if (rec->VolSessionId != last_VolSessionId || 
+          rec->VolSessionTime != last_VolSessionTime ||
+          (rec->FileIndex > 0 && rec->FileIndex != last_FileIndex)) {
+         jcr->JobFiles++;
+         last_VolSessionId = rec->VolSessionId;
+         last_VolSessionTime = rec->VolSessionTime;
+         last_FileIndex = rec->FileIndex;
+      }
+      if (rec->FileIndex > 0) {
+         rec->FileIndex = jcr->JobFiles;     /* set sequential output FileIndex */
+      }
    }
    /*
     * Modify record SessionId and SessionTime to correspond to
