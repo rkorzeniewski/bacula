@@ -262,11 +262,12 @@ int main (int argc, char *argv[])
          user = argv[2];
          password = argv[3];
          dbhost = argv[4];
+         errno = 0;
          dbport = strtol(argv[5], &endptr, 10);
          if (*endptr != '\0') {
             Pmsg0(0, _("Database port must be a numeric value.\n"));
             exit(1);
-         } else if (dbport == LONG_MIN || dbport == LONG_MAX) {
+         } else if (errno == ERANGE) {
             Pmsg0(0, _("Database port must be a int value.\n"));
             exit(1);
          }
