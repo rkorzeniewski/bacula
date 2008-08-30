@@ -153,6 +153,7 @@ bool do_vbackup_init(JCR *jcr)
    if (!set_migration_wstorage(jcr, jcr->pool)) {
       return false;
    }
+   jcr->pool = jcr->pool->NextPool;
    pm_strcpy(jcr->pool_source, _("Job Pool's NextPool resource"));
 
    Dmsg2(dbglevel, "Write pool=%s read rpool=%s\n", jcr->pool->name(), jcr->rpool->name());
@@ -179,11 +180,13 @@ bool do_vbackup(JCR *jcr)
       ((STORE *)jcr->rstorage->first())->name(),
       ((STORE *)jcr->wstorage->first())->name());
    /* ***FIXME***  we really should simply verify that the pools are different */
+#ifdef xxx
    if (((STORE *)jcr->rstorage->first())->name() == ((STORE *)jcr->wstorage->first())->name()) {
       Jmsg(jcr, M_FATAL, 0, _("Read storage \"%s\" same as write storage.\n"),
            ((STORE *)jcr->rstorage->first())->name());
       return false;
    }
+#endif
 
    /* Print Job Start message */
    Jmsg(jcr, M_INFO, 0, _("Start Virtual Backup JobId %s, Job=%s\n"),

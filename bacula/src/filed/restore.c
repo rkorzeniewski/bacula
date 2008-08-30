@@ -331,12 +331,14 @@ void do_restore(JCR *jcr)
          if (!unpack_attributes_record(jcr, rctx.stream, sd->msg, attr)) {
             goto bail_out;
          }
+#ifdef xxx
          if (file_index != attr->file_index) {
             Jmsg(jcr, M_FATAL, 0, _("Record header file index %ld not equal record index %ld\n"),
                  file_index, attr->file_index);
             Dmsg0(200, "File index error\n");
             goto bail_out;
          }
+#endif
 
          Dmsg3(200, "File %s\nattrib=%s\nattribsEx=%s\n", attr->fname,
                attr->attr, attr->attrEx);

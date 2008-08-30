@@ -413,6 +413,9 @@ const char *job_level_to_str(int level)
    case L_VERIFY_DATA:
       str = _("Verify Data");
       break;
+   case L_VIRTUAL_FULL:
+      str = _("Virtual Full");
+      break;
    case L_NONE:
       str = " ";
       break;

@@ -113,6 +113,7 @@ bool do_mac(JCR *jcr)
    jcr->run_time = time(NULL);
    set_start_vol_position(jcr->dcr);
 
+   jcr->JobFiles = 0;
    ok = read_records(jcr->read_dcr, record_cb, mount_next_read_volume);
    goto ok_out;
 
@@ -192,10 +193,13 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    DEVICE *dev = jcr->dcr->dev;
    char buf1[100], buf2[100];
    int32_t stream;   
-   uint32_t last_VolSessionId = 0;
-   uint32_t last_VolSessionTime = 0;
-   int32_t  last_FileIndex = 0;
    
+#ifdef xxx
+   Dmsg5(000, "on entry     JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
+      jcr->JobId,
+      FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
+      stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
+#endif
    /* If label and not for us, discard it */
    if (rec->FileIndex < 0 && rec->match_stat <= 0) {
       return true;
@@ -217,15 +221,16 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        *  We do so by detecting a FileIndex change and incrementing the
        *  JobFiles, which we then use as the output FileIndex.
        */
-      if (rec->VolSessionId != last_VolSessionId || 
-          rec->VolSessionTime != last_VolSessionTime ||
-          (rec->FileIndex > 0 && rec->FileIndex != last_FileIndex)) {
-         jcr->JobFiles++;
-         last_VolSessionId = rec->VolSessionId;
-         last_VolSessionTime = rec->VolSessionTime;
-         last_FileIndex = rec->FileIndex;
-      }
-      if (rec->FileIndex > 0) {
+      if (rec->FileIndex > 0) { 
+         /* If something changed, increment FileIndex */
+         if (rec->VolSessionId != rec->last_VolSessionId || 
+             rec->VolSessionTime != rec->last_VolSessionTime ||
+             rec->FileIndex != rec->last_FileIndex) {
+            jcr->JobFiles++;
+            rec->last_VolSessionId = rec->VolSessionId;
+            rec->last_VolSessionTime = rec->VolSessionTime;
+            rec->last_FileIndex = rec->FileIndex;
+         }
          rec->FileIndex = jcr->JobFiles;     /* set sequential output FileIndex */
       }
    }
@@ -235,11 +240,10 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
     */
    rec->VolSessionId = jcr->VolSessionId;
    rec->VolSessionTime = jcr->VolSessionTime;
-   Dmsg5(200, "before write_rec JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
+   Dmsg5(200, "before write JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
       jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,
-      stream_to_ascii(buf1, rec->Stream,rec->FileIndex), rec->data_len);
-
+      stream_to_ascii(buf2, rec->Stream, rec->FileIndex), rec->data_len);
    while (!write_record_to_block(jcr->dcr->block, rec)) {
       Dmsg4(200, "!write_record_to_block blkpos=%u:%u len=%d rem=%d\n", 
             dev->file, dev->block_num, rec->data_len, rec->remainder);
