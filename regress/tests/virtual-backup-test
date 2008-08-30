@@ -59,7 +59,6 @@ list volumes
 @# 
 @# now do a normal restore of normal backups
 @#
-@$out ${cwd}/tmp/log2.out
 setdebug level=10 dir
 restore where=${cwd}/tmp/bacula-restores select
 unmark *
@@ -78,7 +77,6 @@ list jobs
 @# 
 @# now do a restore of the consolidated Full
 @#
-@$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
 unmark *
 mark *
@@ -96,6 +94,11 @@ run_bacula
 check_for_zombie_jobs storage=File
 stop_bacula
 
+#
+# We only used one log so copy it to the second log
+#  so that any restore errors will be picked up
+#
+cp -f ${cwd}/tmp/log1.out ${cwd}/tmp/log2.out
 check_two_logs
 check_restore_diff
 end_test
