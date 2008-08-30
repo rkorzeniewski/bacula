@@ -11,7 +11,7 @@ JobName=Vbackup
 
 
 scripts/cleanup
-scripts/copy-migration-confs
+scripts/copy-virtual-confs
 scripts/prepare-disk-changer
 echo "${cwd}/build" >${cwd}/tmp/file-list
 
@@ -30,12 +30,13 @@ cat <<END_OF_DATA >${cwd}/tmp/bconcmds
 messages
 @$out ${cwd}/tmp/log1.out
 setdebug level=150 storage=DiskChanger
-label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Full drive=0
+label storage=DiskChanger volume=ChangerVolume001 slot=1 Pool=Default drive=0
 label storage=DiskChanger volume=ChangerVolume002 slot=2 Pool=Full drive=0
 label storage=DiskChanger volume=ChangerVolume003 slot=3 Pool=Full drive=0
 setdebug level=0 storage=DiskChanger
 @# run several jobs
-run job=$JobName level=Full yes
+@exec "sh -c 'date > ${cwd}/build/date'"
+run job=$JobName level=Full storage=DiskChanger yes
 wait
 messages
 list jobs
@@ -49,6 +50,7 @@ run job=$JobName level=Differential storage=DiskChanger yes
 wait
 messages
 list jobs
+@exec "sh -c 'date > ${cwd}/build/date'"
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
 run job=$JobName level=Incremental storage=DiskChanger yes
 wait
@@ -64,17 +66,20 @@ unmark *
 mark *
 done
 yes
+wait
 list volumes
 @#setdebug level=100 dir
-@# should Consolidate Full, Differential and Incremental
-@#setdebug level=51 storage=DiskChanger
+@#
+@# Now do a Virtual backup
+@#
+setdebug level=151 storage=DiskChanger
 run job=$JobName level=VirtualFull storage=DiskChanger yes
 wait
 messages
 list volumes
 list jobs
 @# 
-@# now do a restore
+@# now do a restore of the Virtual backup
 @#
 @$out ${cwd}/tmp/log2.out
 restore where=${cwd}/tmp/bacula-restores select storage=DiskChanger
@@ -83,6 +88,7 @@ mark *
 done
 yes
 wait
+@# Move Volume to Default pool
 update Volume=ChangerVolume002
 11
 Default
@@ -90,12 +96,17 @@ list volumes
 list jobs
 messages
 @exec "sh -c 'touch ${cwd}/build/src/dird/*.o'"
+@#
+@# Do an incremental on top of the Virtual Full
+@#
 run job=$JobName level=Incremental storage=DiskChanger yes
 wait
 messages
 list jobs
 list volumes
+@#
 @# Now do another Consolidation
+@#
 setdebug level=150 storage=DiskChanger
 run job=$JobName level=VirtualFull storage=DiskChanger yes
 wait
@@ -103,7 +114,7 @@ messages
 list volumes
 list jobs
 @# 
-@# now do a restore
+@# now do a restore should restore from new Virtual backup
 @#
 @$out ${cwd}/tmp/log2.out
 setdebug level=0 storage=DiskChanger
@@ -121,7 +132,7 @@ quit
 END_OF_DATA
 
 run_bacula
-check_for_zombie_jobs storage=File
+check_for_zombie_jobs storage=DiskChanger
 stop_bacula
 
 check_two_logs
