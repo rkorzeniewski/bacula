@@ -108,6 +108,9 @@ struct DEV_RECORD {
    uint8_t  ser_buf[WRITE_RECHDR_LENGTH];   /* serialized record header goes here */
    POOLMEM *data;                     /* Record data. This MUST be a memory pool item */
    int32_t match_stat;                /* bsr match status */
+   uint32_t last_VolSessionId;        /* used in sequencing FI for Vbackup */
+   uint32_t last_VolSessionTime;
+   int32_t  last_FileIndex;
 };
 
 
