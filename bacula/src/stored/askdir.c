@@ -409,7 +409,7 @@ bool dir_create_jobmedia_record(DCR *dcr)
       dcr->StartBlock, dcr->EndBlock, 
       dcr->Copy, dcr->Stripe, 
       edit_uint64(dcr->VolMediaId, ed1));
-    Dmsg1(100, ">dird %s", dir->msg);
+   Dmsg1(100, ">dird %s", dir->msg);
    if (dir->recv() <= 0) {
       Dmsg0(190, "create_jobmedia error bnet_recv\n");
       Jmsg(jcr, M_FATAL, 0, _("Error creating JobMedia record: ERR=%s\n"),

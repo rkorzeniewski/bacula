@@ -32,7 +32,16 @@ separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
 
 
 General:
+30Aug08
+kes  Another try at fixing Vbackup. It looks much better this time.
+     Disable file index sanity check in FD with value stored in
+     attributes record because with Vbackup the File Index gets
+     changed, but not the attributes record.
+     Enhance some debug code.
+     Fix handling of re-indexing records that are copied in Vbackup.
 29Aug08
+kes  Made level_to_str() know about Virtual backup.
+kes  Set correct Virtual backup write pool.
 kes  Fix compile warning in new dbcheck port code.
 kes  Fix migration code broken by previous virtual backup fix.
 28Aug08
