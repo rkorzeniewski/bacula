@@ -1030,6 +1030,10 @@ void status_slots(UAContext *ua, STORE *store_r)
    int max_slots;
    int drive;
    int i=1;
+   /* output format */
+   const char *slot_api_empty_format="%i||||||\n";
+   const char *slot_api_full_format="%i|%i|%s|%s|%s|%s|%i|\n";
+   const char *slot_hformat=" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n";
 
    if (!open_client_db(ua)) {
       return;
@@ -1059,9 +1063,10 @@ void status_slots(UAContext *ua, STORE *store_r)
       goto bail_out;
    }
    if (!ua->api) {
-      ua->info_msg(_(" Slot |   Volume Name    |   Status  |         Type         |      Pool          |  Loaded |\n"));
+      ua->info_msg(_(" Slot |   Volume Name    |   Status  |     Media Type       |      Pool          |  Loaded |\n"));
       ua->info_msg(_("------+------------------+-----------+----------------------+--------------------+---------|\n"));
    }
+
    /* Walk through the list getting the media records */
    for (vl=vol_list; vl; vl=vl->next) {
       if (vl->Slot > max_slots) {
@@ -1080,11 +1085,11 @@ void status_slots(UAContext *ua, STORE *store_r)
       if (!vl->VolName) {
          Dmsg1(100, "No VolName for Slot=%d.\n", vl->Slot);
          if (!ua->api) {
-            ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
+            ua->info_msg(slot_hformat,
                          vl->Slot, '*',
                          "?", "?", "?", "?", 0);
          } else {
-            ua->info_msg(_("%i||||||\n"), vl->Slot);
+            ua->info_msg(slot_api_empty_format, vl->Slot);
          }
          continue;
       }
@@ -1093,10 +1098,10 @@ void status_slots(UAContext *ua, STORE *store_r)
       for (; i < vl->Slot; i++) {
          if (slot_list[i]) {
             if (!ua->api) {
-               ua->info_msg(_(" %4i | %16s | %9s | %20s | %18s |    %i    |\n"),
-                            i, "", "", "", "", 0);
+               ua->info_msg(slot_hformat,
+                            i, ' ', "", "", "", "", 0);
             } else {
-               ua->info_msg(_("%i||||||\n"), i);
+               ua->info_msg(slot_api_empty_format, i);
             }       
             slot_list[i]=0;
          }
@@ -1114,18 +1119,19 @@ void status_slots(UAContext *ua, STORE *store_r)
 
          if (!ua->api) {
             /* Print information */
-            ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
+            ua->info_msg(slot_hformat,
                          vl->Slot, ((vl->Slot==mr.Slot)?' ':'*'),
                          mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name, 0);
          } else {
-            ua->info_msg(_("%i|%i|%s|%s|%s|%s|%i|\n"),
-                         vl->Slot, mr.Slot, mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name, 0);
+            ua->info_msg(slot_api_full_format,
+                         vl->Slot, mr.Slot, mr.VolumeName, mr.VolStatus, 
+                         mr.MediaType, pr.Name, 0);
          }
 
          db_unlock(ua->db);
          continue;
       } else {                  /* TODO: get information from catalog  */
-         ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
+         ua->info_msg(slot_hformat,
                       vl->Slot, '*',
                       mr.VolumeName, "?", "?", "?", 0);
       }
@@ -1137,10 +1143,10 @@ void status_slots(UAContext *ua, STORE *store_r)
    for (; i <= max_slots; i++) {
       if (slot_list[i]) {
          if (!ua->api) {
-            ua->info_msg(_(" %4i | %16s | %9s | %20s | %18s |    %i    |\n"),
-                         i, "", "", "", "", 0);
+            ua->info_msg(slot_hformat,
+                         i, ' ', "", "", "", "", 0);
          } else {
-            ua->info_msg(_("%i||||||\n"), i);
+            ua->info_msg(slot_api_empty_format, i);
          } 
          slot_list[i]=0;
       }
