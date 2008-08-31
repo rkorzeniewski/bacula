@@ -961,7 +961,9 @@ int vtape::open(const char *pathname, int uflags)
 
    /* If the vtape is empty, start by writing a EOF */
    if (online && !read_fm(VT_READ_EOF)) {
-      weof();
+      lseek(fd, 0, SEEK_SET);          /* rewind */
+      cur_FM = next_FM = last_FM = 0;  /* reset */
+      weof();                          /* write the first EOF */
       last_file = current_file=0;
    }
 
