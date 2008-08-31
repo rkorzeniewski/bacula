@@ -1059,8 +1059,8 @@ void status_slots(UAContext *ua, STORE *store_r)
       goto bail_out;
    }
    if (!ua->api) {
-      ua->info_msg(_(" Slot |   Volume Name    |   Status  |    Type    |      Pool          |  Loaded |\n"));
-      ua->info_msg(_("------+------------------+-----------+------------+--------------------+---------|\n"));
+      ua->info_msg(_(" Slot |   Volume Name    |   Status  |         Type         |      Pool          |  Loaded |\n"));
+      ua->info_msg(_("------+------------------+-----------+----------------------+--------------------+---------|\n"));
    }
    /* Walk through the list getting the media records */
    for (vl=vol_list; vl; vl=vl->next) {
@@ -1080,7 +1080,7 @@ void status_slots(UAContext *ua, STORE *store_r)
       if (!vl->VolName) {
          Dmsg1(100, "No VolName for Slot=%d.\n", vl->Slot);
          if (!ua->api) {
-            ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+            ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
                          vl->Slot, '*',
                          "?", "?", "?", "?", 0);
          } else {
@@ -1093,7 +1093,7 @@ void status_slots(UAContext *ua, STORE *store_r)
       for (; i < vl->Slot; i++) {
          if (slot_list[i]) {
             if (!ua->api) {
-               ua->info_msg(_(" %4i | %16s | %9s | %10s | %18s |    %i    |\n"),
+               ua->info_msg(_(" %4i | %16s | %9s | %20s | %18s |    %i    |\n"),
                             i, "", "", "", "", 0);
             } else {
                ua->info_msg(_("%i||||||\n"), i);
@@ -1114,7 +1114,7 @@ void status_slots(UAContext *ua, STORE *store_r)
 
          if (!ua->api) {
             /* Print information */
-            ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+            ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
                          vl->Slot, ((vl->Slot==mr.Slot)?' ':'*'),
                          mr.VolumeName, mr.VolStatus, mr.MediaType, pr.Name, 0);
          } else {
@@ -1125,7 +1125,7 @@ void status_slots(UAContext *ua, STORE *store_r)
          db_unlock(ua->db);
          continue;
       } else {                  /* TODO: get information from catalog  */
-         ua->info_msg(_(" %4i%c| %16s | %9s | %10s | %18s |    %i    |\n"),
+         ua->info_msg(_(" %4i%c| %16s | %9s | %20s | %18s |    %i    |\n"),
                       vl->Slot, '*',
                       mr.VolumeName, "?", "?", "?", 0);
       }
@@ -1137,7 +1137,7 @@ void status_slots(UAContext *ua, STORE *store_r)
    for (; i <= max_slots; i++) {
       if (slot_list[i]) {
          if (!ua->api) {
-            ua->info_msg(_(" %4i | %16s | %9s | %10s | %18s |    %i    |\n"),
+            ua->info_msg(_(" %4i | %16s | %9s | %20s | %18s |    %i    |\n"),
                          i, "", "", "", "", 0);
          } else {
             ua->info_msg(_("%i||||||\n"), i);
