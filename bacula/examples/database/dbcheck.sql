@@ -1,11 +1,29 @@
+
 -- This script does the same as dbcheck, but in full SQL in order to be faster
 -- To run it, exec it like this : psql -U bacula bacula (YOUR username and database)
 -- then \i dbckeck.sql
--- It will tell you what it does. At the end you'll have to commit yourself. Check the numbers of altered records before ...
+-- It will tell you what it does. At the end you'll have to commit yourself. 
+-- Check the numbers of altered records before ...
+--
+--  Notes from Marc Cousin, the author of this script: 01Sep08
+--  The script version won't work better with mysql without indexes.
+
+--  The reason is that the script works with global queries instead of many small 
+--  queries like dbcheck. So PostgreSQL can optimise the query by building hash 
+--  joins or merge joins.
+
+--  Mysql can't do that (last time I checked, at least ...), and will do nested 
+--  loops between job and file for instance. And without the missing indexes, 
+--  mysql will still be as slow as with dbcheck, as you'll more or less have 
+----thousands of full scans on the job table (where postgresql will do only a few 
+--  to build its hash).
+
+--  So for dbcheck with mysql, there is no other solution than adding the missing 
+--  indexes (but adding and dropping them just for the dbcheck is a good option).
 
 --repair_bad_paths():
---    -    SELECT PathId,Path from Path "
---        "WHERE Path NOT LIKE '%/'
+--  -    SELECT PathId,Path from Path "
+--      "WHERE Path NOT LIKE '%/'
 --    - ask for confirmation
 --    - add a slash, doing one update for each record to be updated ...
 --
