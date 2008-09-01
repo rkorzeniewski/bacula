@@ -210,12 +210,9 @@ CREATE TABLE Media (
    RecyclePoolId INTEGER UNSIGNED DEFAULT 0 REFERENCES Pool,
    Comment BLOB,
    PRIMARY KEY(MediaId),
+   UNIQUE (VolumeName(128)),
    INDEX (PoolId)
    );
-
-CREATE INDEX inx8 ON Media (PoolId);
-
-
 
 CREATE TABLE Pool (
    PoolId INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,

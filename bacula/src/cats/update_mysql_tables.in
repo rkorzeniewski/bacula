@@ -15,6 +15,10 @@ USE ${db_name};
 -- Create a table like Job for long term statistics
 CREATE TABLE JobStat (LIKE Job);
 
+-- Fix bad index on Media table
+DROP INDEX inx8;
+CREATE UNIQUE INDEX inx8 ON Media (VolumeName(128));
+
 DELETE FROM Version;
 INSERT INTO Version (VersionId) VALUES (11);
 
