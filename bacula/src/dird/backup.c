@@ -651,6 +651,9 @@ void update_bootstrap_file(JCR *jcr)
             /* Write the record */
             fprintf(fd, "Volume=\"%s\"\n", VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", VolParams[i].MediaType);
+            if (VolParams[i].Slot > 0) {
+               fprintf(fd, "Slot=%d\n", VolParams[i].Slot);
+            }
             fprintf(fd, "VolSessionId=%u\n", jcr->VolSessionId);
             fprintf(fd, "VolSessionTime=%u\n", jcr->VolSessionTime);
             fprintf(fd, "VolFile=%u-%u\n", VolParams[i].StartFile,

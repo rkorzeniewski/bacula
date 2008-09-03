@@ -399,12 +399,12 @@ bool cancel_job(UAContext *ua, JCR *jcr)
          }
          Dmsg0(200, "Connected to file daemon\n");
          fd = ua->jcr->file_bsock;
-         bnet_fsend(fd, "cancel Job=%s\n", jcr->Job);
-         while (bnet_recv(fd) >= 0) {
+         fd->fsend("cancel Job=%s\n", jcr->Job);
+         while (fd->recv() >= 0) {
             ua->send_msg("%s", fd->msg);
          }
-         bnet_sig(fd, BNET_TERMINATE);
-         bnet_close(fd);
+         fd->signal(BNET_TERMINATE);
+         fd->close();
          ua->jcr->file_bsock = NULL;
       }
 

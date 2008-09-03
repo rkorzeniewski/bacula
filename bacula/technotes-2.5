@@ -30,10 +30,42 @@ Add long term statistics job table
 *vtape driver
 *Ignore Dir
 separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
-Copy jobs
+*Copy jobs
+examples/database/dbcheck.sql
+dbi database driver
+  --enable-libdb
+  dbdriver in bacula-dir.conf
+--with-db-port
+support for Ubuntu
+status_slots???
+spoolSize by Job???
+recyclepool in dird/ua_select.co???
+enhancement to wait command: wait mount  ...
+parse config
+plugindirectory
+dbport
+dbdriver
+maxrunschedtime???
+fullmaxwaittime???
+incrementalmaxwaittime???
+differentialmaxwaittime???
+fullmaxruntime???
+differentialmaxruntime???
+incrementalmaxruntime???
+optimizejobscheduling???
+spoolsize???
+usestatistics???
+pluginoptions
+plugin
 
+remove reader/writer in FOPTS????
 
 General:
+03Sep08
+kes  Add Slot if it is non-zero to writing bsr file after a
+     backup.
+kes  Change a number of bnet_fsend() into class method calls.
+kes  Begin audit of diff of 2.4 branch to trunk code.
 01Sep08
 ebl  Fix the mysql creation script that double-created an 
      index of the same field on the Media table.

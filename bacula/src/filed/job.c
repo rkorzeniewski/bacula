@@ -229,7 +229,7 @@ void *handle_client_request(void *dirp)
    for (quit=false; !quit;) {
 
       /* Read command */
-      if (bnet_recv(dir) < 0) {
+      if (dir->recv() < 0) {
          break;               /* connection terminated */
       }
       dir->msg[dir->msglen] = 0;
@@ -239,14 +239,14 @@ void *handle_client_request(void *dirp)
          if (strncmp(cmds[i].cmd, dir->msg, strlen(cmds[i].cmd)) == 0) {
             found = true;         /* indicate command found */
             if (!jcr->authenticated && cmds[i].func != hello_cmd) {
-               bnet_fsend(dir, no_auth);
-               bnet_sig(dir, BNET_EOD);
+               dir->fsend(no_auth);
+               dir->signal(BNET_EOD);
                break;
             }
             if ((jcr->authenticated) && (!cmds[i].monitoraccess) && (jcr->director->monitor)) {
                Dmsg1(100, "Command \"%s\" is invalid.\n", cmds[i].cmd);
-               bnet_fsend(dir, invalid_cmd);
-               bnet_sig(dir, BNET_EOD);
+               dir->fsend(invalid_cmd);
+               dir->signal(BNET_EOD);
                break;
             }
             Dmsg1(100, "Executing %s command.\n", cmds[i].cmd);
@@ -258,7 +258,7 @@ void *handle_client_request(void *dirp)
          }
       }
       if (!found) {              /* command not found */
-         bnet_fsend(dir, errmsg);
+         dir->fsend(errmsg);
          quit = true;
          break;
       }
@@ -266,7 +266,7 @@ void *handle_client_request(void *dirp)
 
    /* Inform Storage daemon that we are done */
    if (jcr->store_bsock) {
-      bnet_sig(jcr->store_bsock, BNET_TERMINATE);
+      jcr->store_bsock->signal(BNET_TERMINATE);
    }
 
    /* Run the after job */
@@ -275,7 +275,7 @@ void *handle_client_request(void *dirp)
    if (jcr->JobId) {            /* send EndJob if running a job */
       char ed1[50], ed2[50];
       /* Send termination status back to Dir */
-      bnet_fsend(dir, EndJob, jcr->JobStatus, jcr->JobFiles,
+      dir->fsend(EndJob, jcr->JobStatus, jcr->JobFiles,
                  edit_uint64(jcr->ReadBytes, ed1),
                  edit_uint64(jcr->JobBytes, ed2), jcr->Errors, jcr->VSS,
                  jcr->crypto.pki_encrypt);
@@ -1348,7 +1348,7 @@ static int session_cmd(JCR *jcr)
       return 0;
    }
 
-   return bnet_fsend(dir, OKsession);
+   return dir->fsend(OKsession);
 }
 
 /*
@@ -1778,7 +1778,7 @@ static int open_sd_read_session(JCR *jcr)
    /*
     * Open Read Session with Storage daemon
     */
-   bnet_fsend(sd, read_open, "DummyVolume",
+   sd->fsend(read_open, "DummyVolume",
       jcr->VolSessionId, jcr->VolSessionTime, jcr->StartFile, jcr->EndFile,
       jcr->StartBlock, jcr->EndBlock);
    Dmsg1(110, ">stored: %s", sd->msg);
@@ -1805,7 +1805,7 @@ static int open_sd_read_session(JCR *jcr)
    /*
     * Start read of data with Storage daemon
     */
-   bnet_fsend(sd, read_data, jcr->Ticket);
+   sd->fsend(read_data, jcr->Ticket);
    Dmsg1(110, ">stored: %s", sd->msg);
 
    /*
@@ -1824,7 +1824,7 @@ static int open_sd_read_session(JCR *jcr)
 static void filed_free_jcr(JCR *jcr)
 {
    if (jcr->store_bsock) {
-      bnet_close(jcr->store_bsock);
+      jcr->store_bsock->close();
    }
    free_bootstrap(jcr);
    if (jcr->last_fname) {
@@ -1891,12 +1891,12 @@ static int send_bootstrap_file(JCR *jcr)
       goto bail_out;
    }
    sd->msglen = pm_strcpy(sd->msg, bootstrap);
-   bnet_send(sd);
+   sd->send();
    while (fgets(buf, sizeof(buf), bs)) {
       sd->msglen = Mmsg(sd->msg, "%s", buf);
-      bnet_send(sd);
+      sd->send();
    }
-   bnet_sig(sd, BNET_EOD);
+   sd->signal(BNET_EOD);
    fclose(bs);
    if (!response(jcr, sd, OKSDbootstrap, "Bootstrap")) {
       set_jcr_job_status(jcr, JS_ErrorTerminated);
