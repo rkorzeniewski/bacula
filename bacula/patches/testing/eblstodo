@@ -1,6 +1,10 @@
 Idees
 ------
 
+Continious Backup Linux
+ - stap 
+http://www.redhat.com/magazine/011sep05/features/systemtap/
+http://sourceware.org/systemtap/
 
 Deduplication:
  proba de collision en fonction de la taille du hash
