@@ -71,6 +71,9 @@ Professional Needs:
 
 Priority:
 ================
+- Autolabel only if Volume catalog information indicates tape not
+  written. This will avoid overwriting a tape that gets an I/O
+  error on reading the volume label.
 - Can be posible modify package to create and use configuration files in 
    the Debian manner? 
 
