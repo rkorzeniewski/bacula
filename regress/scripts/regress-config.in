@@ -7,7 +7,7 @@
 if test "x@db_password@" = "x"; then
   PASSWD=
 else
-  PASSWD="--with-db-password=\"@db_password@\""
+  PASSWD="--with-db-password=@db_password@"
 fi
 
 CFLAGS="-g -O2 -Wall" \
