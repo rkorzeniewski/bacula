@@ -27,9 +27,14 @@ messages
 @# 
 @# now do a verify volume
 @#
-@$out ${cwd}/tmp/original
+@$out ${cwd}/tmp/log2.out
 setdebug level=12 dir
 run job=VerifyVolume
+yes
+wait
+messages
+@$out ${cwd}/tmp/log3.out
+run job=VerifyVolume level=DiskToCatalog
 yes
 wait
 messages
@@ -45,7 +50,11 @@ stop_bacula
 
 grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
 bstat=$?
-grep "^  Termination: *Verify OK" ${cwd}/tmp/original 2>&1 >/dev/null
+grep "^  Termination: *Verify OK" tmp/log2.out 2>&1 >/dev/null
 rstat=$?
+if test $rstat=0; then
+   grep "^  Termination: *Verify OK" tmp/log3.out 2>&1 >/dev/null
+   rstat=$?
+fi
 dstat=0
 end_test
