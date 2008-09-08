@@ -352,7 +352,7 @@ int wait_for_job_termination(JCR *jcr, int timeout)
 
    if (fd) {
       if (timeout) {
-         tid = start_bsock_timer(fd, timeout); /* TODO: use user timeout */
+         tid = start_bsock_timer(fd, timeout); /* TODO: New timeout directive??? */
       }
       /* Wait for Client to terminate */
       while ((n = bget_dirmsg(fd)) >= 0) {

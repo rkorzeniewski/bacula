@@ -461,7 +461,6 @@ int DCR::check_volume_label(bool &ask, bool &autochanger)
       case try_default:
          break;
       }
-
       /* NOTE! Fall-through wanted. */
    case VOL_NO_MEDIA:
    default:
