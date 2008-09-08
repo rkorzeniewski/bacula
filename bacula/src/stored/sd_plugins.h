@@ -32,8 +32,8 @@
  *
  */
  
-#ifndef __FD_PLUGINS_H 
-#define __FD_PLUGINS_H
+#ifndef __SD_PLUGINS_H 
+#define __SD_PLUGINS_H
 
 #ifndef _BACULA_H
 #ifdef __cplusplus
@@ -149,8 +149,8 @@ typedef enum {
 } pVariable;
 
 
-#define DIR_PLUGIN_MAGIC     "*DirPluginData*" 
-#define DIR_PLUGIN_INTERFACE_VERSION  1
+#define SD_PLUGIN_MAGIC     "*DirPluginData*" 
+#define SD_PLUGIN_INTERFACE_VERSION  1
 
 typedef struct s_pluginInfo {
    uint32_t size;
@@ -180,4 +180,4 @@ typedef struct s_pluginFuncs {
 }
 #endif
 
-#endif /* __FD_PLUGINS_H */
+#endif /* __SD_PLUGINS_H */
