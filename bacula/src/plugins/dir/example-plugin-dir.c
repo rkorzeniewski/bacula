@@ -42,7 +42,7 @@ extern "C" {
 #define PLUGIN_AUTHOR       "Kern Sibbald"
 #define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
-#define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"
+#define PLUGIN_DESCRIPTION  "Test Director Daemon Plugin"
 
 /* Forward referenced functions */
 static bRC newPlugin(bpContext *ctx);

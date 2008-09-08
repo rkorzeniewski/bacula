@@ -205,12 +205,12 @@ typedef enum {
 typedef struct s_pluginInfo {
    uint32_t size;
    uint32_t version;
-   char *plugin_magic;
-   char *plugin_license;
-   char *plugin_author;
-   char *plugin_date;
-   char *plugin_version;
-   char *plugin_description;
+   const char *plugin_magic;
+   const char *plugin_license;
+   const char *plugin_author;
+   const char *plugin_date;
+   const char *plugin_version;
+   const char *plugin_description;
 } pInfo;
 
 /*

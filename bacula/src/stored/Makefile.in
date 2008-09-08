@@ -27,7 +27,7 @@ SDOBJS =  stored.o ansi_label.o vtape.o \
 	  device.o dircmd.o dvd.o ebcdic.o fd_cmds.o job.o \
 	  label.o lock.o mac.o match_bsr.o mount.o parse_bsr.o \
 	  pythonsd.o read.o read_record.o record.o \
-	  reserve.o scan.o \
+	  reserve.o scan.o sd_plugins.o \
 	  spool.o status.o stored_conf.o wait.o
 
 # btape
