@@ -122,6 +122,8 @@
 \t
 \a
 BEGIN;
+-- Uncomment to raise to '1GB' or more to get better results
+-- SET work_mem TO '1GB';
 
 SELECT('eliminate_admin_records()');
 DELETE FROM Job WHERE Job.Type='D';
@@ -137,7 +139,9 @@ UPDATE FileName Set Name=substr(Name,1,char_length(Name)-1) WHERE Name LIKE '%/'
 
 SELECT('eliminate_duplicate_filenames()');
 CREATE TEMP TABLE t1 AS SELECT Name,min(FileNameId) AS minfilenameid FROM FileName GROUP BY Name HAVING count(*) > 1;
+ANALYSE t1;
 CREATE TEMP TABLE t2 AS SELECT FileName.Name, FileName.FileNameId, t1.minfilenameid from FileName join t1 ON (FileName.Name=t1.Name) WHERE FileNameId <> minfilenameid;
+ANALYSE t2;
 UPDATE File SET FileNameId=(SELECT t2.minfilenameid FROM t2 WHERE t2.FileNameId=File.FileNameId) WHERE FileNameId IN (SELECT FileNameId FROM t2);
 DELETE FROM FileName WHERE FileNameId IN (SELECT FileNameId FROM t2);
 DROP TABLE t1;
@@ -145,7 +149,9 @@ DROP TABLE t2;
 
 SELECT('eliminate_duplicate_paths()');
 CREATE TEMP TABLE t1 AS SELECT Path,min(PathId) AS minpathid FROM Path GROUP BY Path HAVING count(*) > 1;
+ANALYSE t1;
 CREATE TEMP TABLE t2 AS SELECT Path.Path, Path.PathId, t1.minpathid from Path join t1 ON (Path.Path=t1.Path) WHERE PathId <> minpathid;
+ANALYSE t2;
 UPDATE Path SET PathId=(SELECT t2.minpathid FROM t2 WHERE t2.PathId=Path.PathId) WHERE PathId IN (SELECT PathId FROM t2);
 DELETE FROM Path WHERE PathId IN (SELECT PathId FROM t2);
 DROP TABLE t1;
@@ -165,6 +171,7 @@ CREATE TEMP TABLE t1 AS
     SELECT Path.PathId
     FROM Path LEFT OUTER JOIN File ON (Path.PathId=File.PathId)
     WHERE File.PathId IS NULL;
+ANALYSE t1;
 DELETE FROM Path WHERE PathId IN (SELECT PathID FROM t1);
 DROP TABLE t1;
 
@@ -173,6 +180,7 @@ CREATE TEMP TABLE t1 AS
     SELECT FileName.FileNameId
     FROM FileName LEFT OUTER JOIN File ON (FileName.FileNameId=File.FileNameId)
     WHERE File.FileNameId IS NULL;
+ANALYSE t1;
 DELETE FROM FileName WHERE FileNameId IN (SELECT FileNameId FROM t1);
 DROP TABLE t1;
 
