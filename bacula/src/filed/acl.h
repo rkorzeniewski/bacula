@@ -1,7 +1,4 @@
 /*
- * Properties we use for getting and setting ACLs.
- */
-/*
    Bacula® - The Network Backup Solution
 
    Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
@@ -28,6 +25,9 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+/*
+ * Properties we use for getting and setting ACLs.
+ */
 
 #ifndef _BACULA_ACL_
 #define _BACULA_ACL_
