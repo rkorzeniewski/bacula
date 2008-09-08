@@ -353,11 +353,11 @@ char *apply_rp_codes(struct plugin_ctx * p_ctx)
             str = "%";
             break;
          case 'w':
-	     str = p_ctx->where;
+             str = p_ctx->where;
              break;
          case 'r':
-	    snprintf(add, 2, "%c", p_ctx->replace);
-	    str = add;
+            snprintf(add, 2, "%c", p_ctx->replace);
+            str = add;
             break;
          default:
             add[0] = '%';
@@ -391,7 +391,7 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    case IO_OPEN:
 //    printf("bpipe-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
-	 char *writer_codes = apply_rp_codes(p_ctx);
+         char *writer_codes = apply_rp_codes(p_ctx);
 
          p_ctx->fd = popen(writer_codes, "w");
          printf("bpipe-fd: IO_OPEN writer=%s\n", writer_codes);
