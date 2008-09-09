@@ -42,6 +42,7 @@
 static int update_volume(UAContext *ua);
 static bool update_pool(UAContext *ua);
 static bool update_job(UAContext *ua);
+static bool update_stats(UAContext *ua);
 
 /*
  * Update a Pool Record in the database.
@@ -53,6 +54,8 @@ static bool update_job(UAContext *ua);
  *         changes pool info for volume
  *    update slots [scan=...]
  *         updates autochanger slots
+ *    update stats [days=...]
+ *         updates long term statistics
  */
 int update_cmd(UAContext *ua, const char *cmd)
 {
@@ -62,6 +65,7 @@ int update_cmd(UAContext *ua, const char *cmd)
       NT_("pool"),   /* 2 */
       NT_("slots"),  /* 3 */
       NT_("jobid"),  /* 4 */
+      NT_("stats"),  /* 5 */
       NULL};
 
    if (!open_client_db(ua)) {
@@ -82,6 +86,9 @@ int update_cmd(UAContext *ua, const char *cmd)
    case 4:
       update_job(ua);
       return 1;
+   case 5:
+      update_stats(ua);
+      return 1;
    default:
       break;
    }
@@ -90,6 +97,7 @@ int update_cmd(UAContext *ua, const char *cmd)
    add_prompt(ua, _("Volume parameters"));
    add_prompt(ua, _("Pool from resource"));
    add_prompt(ua, _("Slots from autochanger"));
+   add_prompt(ua, _("Long term statistics"));
    switch (do_prompt(ua, _("item"), _("Choose catalog item to update"), NULL, 0)) {
    case 0:
       update_volume(ua);
@@ -99,6 +107,9 @@ int update_cmd(UAContext *ua, const char *cmd)
       break;
    case 2:
       update_slots(ua);
+      break;
+   case 3:
+      update_stats(ua);
       break;
    default:
       break;
@@ -786,6 +797,24 @@ static int update_volume(UAContext *ua)
       }
    }
    return 1;
+}
+
+/*
+ * Update long term statistics
+ */
+static bool update_stats(UAContext *ua)
+{
+   int i = find_arg_with_value(ua, NT_("days"));
+   utime_t since=0;
+
+   if (i >= 0) {
+      since = atoi(ua->argv[i]) * 24*60*60;
+   }
+
+   int nb = db_update_stats(ua->jcr, ua->db, since);
+   ua->info_msg(_("Updating %i job(s).\n"), nb);
+
+   return true;
 }
 
 /*

@@ -126,6 +126,28 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 }
 
 /*
+ * Update Long term statistics with all jobs that were run before
+ * age seconds
+ */
+int
+db_update_stats(JCR *jcr, B_DB *mdb, time_t age)
+{
+   char ed1[30];
+   utime_t now = (utime_t)time(NULL);
+   edit_uint64(now - age, ed1);
+
+   Mmsg(mdb->cmd,
+        "INSERT INTO JobStat " 
+         "SELECT * " 
+          "FROM Job "
+         "WHERE JobStatus IN ('T', 'f', 'A', 'E') "
+           "AND JobId NOT IN (SELECT JobId FROM JobStat) "
+           "AND JobTDate < %s ", ed1);
+   QUERY_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
+   return sql_affected_rows(mdb);
+}
+
+/*
  * Given an incoming integer, set the string buffer to either NULL or the value
  *
  */
@@ -134,7 +156,6 @@ static void edit_num_or_null(char *s, size_t n, uint64_t id) {
    bsnprintf(s, n, id ? "%s" : "NULL", edit_int64(id, ed1));
 }
 
-
 /*
  * Update the Job record at end of Job
  *
@@ -142,7 +163,7 @@ static void edit_num_or_null(char *s, size_t n, uint64_t id) {
  *           1 on success
  */
 int
-db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
+db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
 {
    char dt[MAX_TIME_LENGTH];
    char rdt[MAX_TIME_LENGTH];
@@ -193,12 +214,6 @@ db_update_job_end_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr, bool stats_enabled)
 
    stat = UPDATE_DB(jcr, mdb, mdb->cmd);
 
-   if (stat && stats_enabled) {
-      Mmsg(mdb->cmd,
-           "INSERT INTO JobStat (SELECT * FROM Job WHERE JobId=%s)",
-           edit_int64(jr->JobId, ed3));
-      INSERT_DB(jcr, mdb, mdb->cmd); /* TODO: get a message ? */
-   }
    db_unlock(mdb);
    return stat;
 }
@@ -292,7 +307,6 @@ db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr)
 {
    int stat;
    char ed1[50];
-
    db_lock(mdb);
    Mmsg(mdb->cmd, "UPDATE Storage SET AutoChanger=%d WHERE StorageId=%s", 
       sr->AutoChanger, edit_int64(sr->StorageId, ed1));

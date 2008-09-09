@@ -854,7 +854,7 @@ void update_job_end_record(JCR *jcr)
    jcr->jr.VolSessionId = jcr->VolSessionId;
    jcr->jr.VolSessionTime = jcr->VolSessionTime;
    jcr->jr.JobErrors = jcr->Errors;
-   if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr, jcr->job->stats_enabled)) {
+   if (!db_update_job_end_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error updating job record. %s"),
          db_strerror(jcr->db));
    }

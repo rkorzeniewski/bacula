@@ -124,7 +124,7 @@ void db_list_client_records(JCR *jcr, B_DB *mdb, DB_LIST_HANDLER *sendit, void *
 
 /* sql_update.c */
 bool db_update_job_start_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
-int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr, bool stats_enabled);
+int  db_update_job_end_record(JCR *jcr, B_DB *db, JOB_DBR *jr);
 int  db_update_client_record(JCR *jcr, B_DB *mdb, CLIENT_DBR *cr);
 int  db_update_pool_record(JCR *jcr, B_DB *db, POOL_DBR *pr);
 bool db_update_storage_record(JCR *jcr, B_DB *mdb, STORAGE_DBR *sr);
@@ -134,5 +134,6 @@ int  db_update_counter_record(JCR *jcr, B_DB *mdb, COUNTER_DBR *cr);
 int  db_add_digest_to_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, char *digest, int type);
 int  db_mark_file_record(JCR *jcr, B_DB *mdb, FileId_t FileId, JobId_t JobId);
 void db_make_inchanger_unique(JCR *jcr, B_DB *mdb, MEDIA_DBR *mr);
+int db_update_stats(JCR *jcr, B_DB *mdb, time_t age);
 
 #endif /* __SQL_PROTOS_H */
