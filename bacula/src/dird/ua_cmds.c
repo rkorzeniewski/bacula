@@ -155,7 +155,7 @@ bool do_a_command(UAContext *ua)
    BSOCK *user = ua->UA_sock;
 
 
-   Dmsg1(900, "Command: %s\n", ua->UA_sock->msg);
+   Dmsg1(900, "Command: %s\n", ua->argk[0]);
    if (ua->argc == 0) {
       return false;
    }

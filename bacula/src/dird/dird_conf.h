@@ -428,7 +428,6 @@ public:
    bool write_part_after_job;         /* Set to write part after job in SD */
    bool enabled;                      /* Set if job enabled */
    bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
-   bool stats_enabled;                /* Keep job records in a table for long term statistics */
    bool accurate;                     /* Set if it is an accurate backup job */
    bool AllowDuplicateJobs;           /* Allow duplicate jobs */
    bool AllowHigherDuplicates;        /* Permit Higher Level */

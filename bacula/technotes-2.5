@@ -61,6 +61,11 @@ plugin
 remove reader/writer in FOPTS????
 
 General:
+09Sep08
+ebl  Change the new statistic implementation. Remove the UseStatistic
+     directive and add a "update stats [days=...]" command. You can
+     now decide when copy job records from Job table to JobStat.
+     Statistics are much more accurate with this.
 08Sep08
 kes  Fix SQL case problem that may cause the failure of DiskToCatalog
      in bug #1149.
