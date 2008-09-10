@@ -34,9 +34,7 @@
 #define __PLUGINS_H
 
 #include "bacula.h"
-#ifndef HAVE_WIN32
 #include <dlfcn.h>
-#endif
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
 #define NAMELEN(dirent) (strlen((dirent)->d_name))

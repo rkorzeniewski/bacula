@@ -62,8 +62,13 @@ remove reader/writer in FOPTS????
 
 General:
 09Sep08
+kes  Enable Win32 plugin load code in lib.
+kes  Make Verify code that computes disk checksums use the same
+     algorithm as backup when dealing with sparse files.
+kes  Attempt to run VSS on any systems newer than Vista -- should
+     make it work on Windows Server 2008.
 ebl  Change the new statistic implementation. Remove the UseStatistic
-     directive and add a "update stats [days=...]" command. You can
+     directive and add a 'update stats [days=...]' command. You can
      now decide when copy job records from Job table to JobStat.
      Statistics are much more accurate with this.
 08Sep08
@@ -282,7 +287,7 @@ kes  Fix bug where SD did not ask operator if the device could not
 kes  Add dbuser to DIR conf file (replaces user).
 kes  Add --with-db-password to ./configure
 kes  Fix regress to handle db_password.
-ebl  Add new "status storage slots" that list autochanger
+ebl  Add new 'status storage slots' that list autochanger
      content.
 ebl  Update vtape driver to compile only under Linux.
 ebl  Fix a bug when restoring with a wrong mediatype.

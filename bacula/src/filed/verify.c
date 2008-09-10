@@ -333,13 +333,32 @@ int digest_file(JCR *jcr, FF_PKT *ff_pkt, DIGEST *digest)
  * Read message digest of bfd, updating digest
  * In case of errors we need the job control record and file name.
  */
-int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
+static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
 {
    char buf[DEFAULT_NETWORK_BUFFER_SIZE];
    int64_t n;
+   int64_t bufsiz = (int64_t)sizeof(buf);
+   FF_PKT *ff_pkt = (FF_PKT *)jcr->ff;
+   uint64_t fileAddr = 0;             /* file address */
+
 
    Dmsg0(50, "=== read_digest\n");
-   while ((n=bread(bfd, buf, sizeof(buf))) > 0) {
+   while ((n=bread(bfd, buf, bufsiz)) > 0) {
+      /* Check for sparse blocks */
+      if (ff_pkt->flags & FO_SPARSE) {
+         bool haveBlock = true;
+         if (n == bufsiz &&
+             fileAddr+n < (uint64_t)ff_pkt->statp.st_size ||
+             ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
+               (uint64_t)ff_pkt->statp.st_size == 0)) {
+            haveBlock = !is_buf_zero(buf, bufsiz);
+         }
+         fileAddr += n;               /* update file address */
+         if (!haveBlock) {
+            continue;                 /* skip block of zeros */
+         }
+      }
+      
       crypto_digest_update(digest, (uint8_t *)buf, n);
       jcr->JobBytes += n;
       jcr->ReadBytes += n;

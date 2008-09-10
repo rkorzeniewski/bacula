@@ -58,7 +58,7 @@ Plugin *new_plugin()
 bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type)
 {
    bool found = false;
-#ifndef HAVE_WIN32
+//#ifndef HAVE_WIN32
    t_loadPlugin loadPlugin;
    Plugin *plugin;
    DIR* dp = NULL;
@@ -153,7 +153,7 @@ get_out:
    if (dp) {
       closedir(dp);
    }
-#endif
+//#endif
    return found;
 }
 
@@ -162,7 +162,7 @@ get_out:
  */
 void unload_plugins()
 {
-#ifndef HAVE_WIN32
+//#ifndef HAVE_WIN32
    Plugin *plugin;
 
    if (!plugin_list) {
@@ -179,5 +179,5 @@ void unload_plugins()
    }
    delete plugin_list;
    plugin_list = NULL;
-#endif
+//#endif
 }

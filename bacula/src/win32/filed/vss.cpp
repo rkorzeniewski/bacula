@@ -1,15 +1,7 @@
-
-// vss.cpp -- Interface to Volume Shadow Copies (VSS)
-//
-// Copyright transferred from MATRIX-Computer GmbH to
-//   Kern Sibbald by express permission.
-//
-// Author          : Thorsten Engel
-// Created On      : Fri May 06 21:44:00 2005
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2005-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2005-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -33,6 +25,13 @@
    (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
    Switzerland, email:ftf@fsfeurope.org.
 */
+// vss.cpp -- Interface to Volume Shadow Copies (VSS)
+//
+// Copyright transferred from MATRIX-Computer GmbH to
+//   Kern Sibbald by express permission.
+//
+// Author          : Thorsten Engel
+// Created On      : Fri May 06 21:44:00 2005
 
 
 #ifdef WIN32_VSS
@@ -74,9 +73,9 @@ void VSSInit()
          atexit(VSSCleanup);
          return;
       }
-   /* Vista or Longhorn */
-   } else if (g_MajorVersion == 6 && g_MinorVersion == 0) {
-      /* Probably will not work */
+   /* Vista or Longhorn or later */
+//       } else if (g_MajorVersion == 6 && g_MinorVersion == 0) {
+   } else if (g_MajorVersion >= 6) {
       g_pVSSClient = new VSSClientVista();
       atexit(VSSCleanup);
       return;
