@@ -166,7 +166,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool do_diff = false;
    time_t now;
    utime_t last_full_time;
-   utime_t diff_time;
+   utime_t last_diff_time;
 
    since[0] = 0;
    /* If job cloned and a since time already given, use it */
@@ -196,8 +196,8 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       if (jcr->get_JobLevel() == L_INCREMENTAL && have_full && jcr->job->MaxDiffInterval > 0) {
          /* Lookup last diff job */
          if (db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_DIFFERENTIAL)) {
-            diff_time = str_to_utime(stime);
-            do_diff = ((now - diff_time) <= jcr->job->MaxDiffInterval);
+            last_diff_time = str_to_utime(stime);
+            do_diff = ((now - last_diff_time) >= jcr->job->MaxDiffInterval);
          }
       }
       if (have_full && jcr->job->MaxFullInterval > 0 &&
