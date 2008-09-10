@@ -831,19 +831,21 @@ int send_data(JCR *jcr, int stream, FF_PKT *ff_pkt, DIGEST *digest,
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
          ser_declare;
-         bool haveBlock = true;
+         bool allZeros = false;
          if (sd->msglen == rsize &&
              fileAddr+sd->msglen < (uint64_t)ff_pkt->statp.st_size ||
              ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
                (uint64_t)ff_pkt->statp.st_size == 0)) {
-            haveBlock = !is_buf_zero(rbuf, rsize);
+            allZeros = is_buf_zero(rbuf, rsize);
          }
-         if (haveBlock) {
+         if (!allZeros) {
+            /* Put file address as first data in buffer */
             ser_begin(wbuf, SPARSE_FADDR_SIZE);
             ser_uint64(fileAddr);     /* store fileAddr in begin of buffer */
          }
          fileAddr += sd->msglen;      /* update file address */
-         if (!haveBlock) {
+         /* Skip block of all zeros */
+         if (allZeros) {
             continue;                 /* skip block of zeros */
          }
       }
