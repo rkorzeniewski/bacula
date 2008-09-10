@@ -730,13 +730,8 @@ int get_attributes_and_compare_to_catalog(JCR *jcr, JobId_t JobId)
             db_escape_string(jcr, jcr->db, buf, Opts_Digest, strlen(Opts_Digest));
             if (strcmp(buf, fdbr.Digest) != 0) {
                prt_fname(jcr);
-               if (debug_level >= 10) {
-                  Jmsg(jcr, M_INFO, 0, _("      %s not same. File=%s Cat=%s\n"),
-                       stream_to_ascii(stream), buf, fdbr.Digest);
-               } else {
-                  Jmsg(jcr, M_INFO, 0, _("      %s differs.\n"),
-                       stream_to_ascii(stream));
-               }
+               Jmsg(jcr, M_INFO, 0, _("      %s differs. File=%s Cat=%s\n"),
+                    stream_to_ascii(stream), buf, fdbr.Digest);
                stat = JS_Differences;
             }
             do_Digest = CRYPTO_DIGEST_NONE;

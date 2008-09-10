@@ -346,15 +346,16 @@ static int read_digest(BFILE *bfd, DIGEST *digest, JCR *jcr)
    while ((n=bread(bfd, buf, bufsiz)) > 0) {
       /* Check for sparse blocks */
       if (ff_pkt->flags & FO_SPARSE) {
-         bool haveBlock = true;
+         bool allZeros = false;
          if (n == bufsiz &&
              fileAddr+n < (uint64_t)ff_pkt->statp.st_size ||
              ((ff_pkt->type == FT_RAW || ff_pkt->type == FT_FIFO) &&
                (uint64_t)ff_pkt->statp.st_size == 0)) {
-            haveBlock = !is_buf_zero(buf, bufsiz);
+            allZeros = is_buf_zero(buf, bufsiz);
          }
          fileAddr += n;               /* update file address */
-         if (!haveBlock) {
+         /* Skip any block of all zeros */
+         if (allZeros) {
             continue;                 /* skip block of zeros */
          }
       }
