@@ -165,7 +165,7 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
    bool do_full = false;
    bool do_diff = false;
    time_t now;
-   utime_t full_time;
+   utime_t last_full_time;
    utime_t diff_time;
 
    since[0] = 0;
@@ -202,8 +202,8 @@ void get_level_since_time(JCR *jcr, char *since, int since_len)
       }
       if (have_full && jcr->job->MaxFullInterval > 0 &&
          db_find_last_job_start_time(jcr, jcr->db, &jcr->jr, &stime, L_FULL)) {
-         full_time = str_to_utime(stime);
-         do_full = ((now - full_time) <= jcr->job->MaxFullInterval);
+         last_full_time = str_to_utime(stime);
+         do_full = ((now - last_full_time) >= jcr->job->MaxFullInterval);
       }
       free_pool_memory(stime);
 
