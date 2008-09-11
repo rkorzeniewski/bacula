@@ -657,9 +657,9 @@ void do_restore(JCR *jcr)
          break;
 
       default:
-         /* If extracting, wierd stream (not 1 or 2), close output file anyway */
+         /* If extracting, weird stream (not 1 or 2), close output file anyway */
          if (extract) {
-            Dmsg1(130, "Found wierd stream %d\n", rctx.stream);
+            Dmsg1(130, "Found weird stream %d\n", rctx.stream);
             if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
                Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
             }
