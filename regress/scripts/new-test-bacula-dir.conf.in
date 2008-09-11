@@ -186,7 +186,8 @@ Job {
 # List of files to be backed up
 FileSet {
   Name = "Full Set"
-  Include {  Options { signature=MD5 }
+  Include {  
+     Options { signature=MD5; sparse=yes }
      File =  <@tmpdir@/file-list
   }
 }
