@@ -482,7 +482,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       break;
 
    default:
-      /* If extracting, wierd stream (not 1 or 2), close output file anyway */
+      /* If extracting, weird stream (not 1 or 2), close output file anyway */
       if (extract) {
          if (!is_bopen(&bfd)) {
             Emsg0(M_ERROR, 0, _("Logic error output file should be open but is not.\n"));
