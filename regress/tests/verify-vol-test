@@ -11,6 +11,8 @@ cwd=`pwd`
 scripts/cleanup
 scripts/copy-test-confs
 echo "${cwd}/build" >${cwd}/tmp/file-list
+rm -f ${cwd}/build/sparsefile
+dd if=${cwd}/build/configure of=${cwd}/build/sparsefile bs=1 count=1 seek=10M
 
 change_jobname NightlySave $JobName
 start_test
@@ -41,6 +43,14 @@ messages
 @$out
 quit
 END_OF_DATA
+
+#
+#  ***FIXME***
+# Note, add sparse file backup and check that checksum is
+#  correct.  Bug #1140
+#  create sparse file
+#  dd if=/dev/zero of=sparsefile bs=1 count=0 seek=10M
+#
 
 run_bacula
 
