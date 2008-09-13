@@ -126,8 +126,8 @@ static RES_ITEM options_items[] = {
    {"hfsplussupport",  store_opts,    {0},     0, 0, 0},
    {"noatime",         store_opts,    {0},     0, 0, 0},
    {"enhancedwild",    store_opts,    {0},     0, 0, 0},
-   {"drivetype",       store_drivetype, {0},     0, 0, 0},
-   {"checkfilechanges",store_opts,    {0},     0, 0, 0},
+   {"drivetype",       store_drivetype, {0},   0, 0, 0},
+   {"checkfilechanges",store_opts,    {0},     0, 0, 1},
    {"strippath",       store_opts,    {0},     0, 0, 0},
    {"honornodumpflag", store_opts,    {0},     0, 0, 0},
    {NULL, NULL, {0}, 0, 0, 0}

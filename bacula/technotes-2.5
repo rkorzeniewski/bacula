@@ -2,43 +2,18 @@
 
           
 New features:
-*Accurate files
-*TLS authentication 
-*bextract Win32 data
-*Run afterVSS
-*Multiple command/console per runscript
-*console command in runscript
 *Bat API
 Plugin API
-*State file updated on job term
 PluginOptions
 FD Version
-*Duplicate Job directives
- - Allow Duplicate Jobs
- - Allow Higher Duplicates
- - Cancel Queued Duplicates
- - Cancel Running Duplicates
- Ensure they work with RerunFailedLevels
-*MaxFullInterval
-*MaxDiffInterval
-*Honor nodump flag
-*Improved status commands for Bat
-*Spooling/despooling status
 Implement ftruncate for NFS devices
-*Add long term statistics job table
-*  (Use Statistics)
-*vtape driver
-*Ignore Dir
 separator in console (!$%&'()*+,-/:;<>?[]^`{|}~)
-*Copy jobs
 examples/database/dbcheck.sql
 dbi database driver
   --enable-libdb
   dbdriver in bacula-dir.conf
 --with-db-port
 support for Ubuntu
-*status_slots
-*spoolSize by Job
 recyclepool in dird/ua_select.co???
 enhancement to wait command: wait mount  ...
 parse config
@@ -53,14 +28,16 @@ fullmaxruntime???
 differentialmaxruntime???
 incrementalmaxruntime???
 optimizejobscheduling???
-*spoolsize
-*usestatistics
 pluginoptions
 plugin
+checkfilechanges default = yes.
 
 remove reader/writer in FOPTS????
 
 General:
+13Sep08
+kes  Add host name to items printed during dump.
+kes  Make Check File Changes default on.
 11Sep08
 kes  Set the default FD timeout to 3 minutes (previously 30).
 kes  Apply Bastian Friedrich's weird spelling correction patch.
