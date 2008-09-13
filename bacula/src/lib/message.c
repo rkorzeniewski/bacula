@@ -54,6 +54,7 @@ bool dbg_timestamp = false;           /* print timestamp in debug output */
 time_t daemon_start_time = 0;         /* Daemon start time */
 const char *version = VERSION " (" BDATE ")";
 char my_name[30];                     /* daemon name is stored here */
+char host_name[50];                   /* host machine name */
 char *exepath = (char *)NULL;
 char *exename = (char *)NULL;
 int console_msg_pending = false;
@@ -108,6 +109,9 @@ void my_name_is(int argc, char *argv[], const char *name)
    char cpath[1024];
    int len;
 
+   if (gethostname(host_name, sizeof(host_name)) != 0) {
+      bstrncpy(host_name, "Hostname unknown", sizeof(host_name));
+   }
    bstrncpy(my_name, name, sizeof(my_name));
    if (argc>0 && argv && argv[0]) {
       /* strip trailing filename and save exepath */
