@@ -54,6 +54,11 @@ static char *rec_state_to_str(DEV_RECORD *rec);
 
 static const int dbglvl = 500;
 
+/*
+ * This subroutine reads all the records and passes them back to your
+ *  callback routine (also mount routine at EOM).
+ * You must not change any values in the DEV_RECORD packet
+ */
 bool read_records(DCR *dcr,
        bool record_cb(DCR *dcr, DEV_RECORD *rec),
        bool mount_cb(DCR *dcr))
