@@ -212,7 +212,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
    case EOM_LABEL:
       return true;                    /* don't write vol labels */
    }
-   if (jcr->get_JobType() == JT_BACKUP) {
+//   if (jcr->get_JobType() == JT_BACKUP) {
       /*
        * For normal migration jobs, FileIndex values are sequential because
        *  we are dealing with one job.  However, for Vbackup (consolidation),
@@ -221,7 +221,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
        *  We do so by detecting a FileIndex change and incrementing the
        *  JobFiles, which we then use as the output FileIndex.
        */
-      if (rec->FileIndex > 0) { 
+      if (rec->FileIndex >= 0) { 
          /* If something changed, increment FileIndex */
          if (rec->VolSessionId != rec->last_VolSessionId || 
              rec->VolSessionTime != rec->last_VolSessionTime ||
@@ -233,7 +233,7 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
          }
          rec->FileIndex = jcr->JobFiles;     /* set sequential output FileIndex */
       }
-   }
+//   }
    /*
     * Modify record SessionId and SessionTime to correspond to
     * output.
@@ -256,10 +256,13 @@ static bool record_cb(DCR *dcr, DEV_RECORD *rec)
       }
       Dmsg2(200, "===== Wrote block new pos %u:%u\n", dev->file, dev->block_num);
    }
-   jcr->JobBytes += rec->data_len;   /* increment bytes this job */
-   if (rec->FileIndex <= 0) {
+   /* Restore packet */
+   rec->VolSessionId = rec->last_VolSessionId;
+   rec->VolSessionTime = rec->last_VolSessionTime;
+   if (rec->FileIndex < 0) {
       return true;                    /* don't send LABELs to Dir */
    }
+   jcr->JobBytes += rec->data_len;   /* increment bytes this job */
    Dmsg5(500, "wrote_record JobId=%d FI=%s SessId=%d Strm=%s len=%d\n",
       jcr->JobId,
       FI_to_ascii(buf1, rec->FileIndex), rec->VolSessionId,

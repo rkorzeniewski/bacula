@@ -313,6 +313,7 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
       edit_uint64(jcr->JobId, ec3));
    db_sql_query(jcr->db, query.c_str(), NULL, NULL);
 
+   /* Get the fully updated job record */
    if (!db_get_job_record(jcr, jcr->db, &jcr->jr)) {
       Jmsg(jcr, M_WARNING, 0, _("Error getting Job record for Job report: ERR=%s"),
          db_strerror(jcr->db));
@@ -419,8 +420,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
 "  SD Files Written:       %s\n"
 "  SD Bytes Written:       %s (%sB)\n"
 "  Rate:                   %.1f KB/s\n"
-"  Encryption:             %s\n"
-"  Accurate:               %s\n"
 "  Volume name(s):         %s\n"
 "  Volume Session Id:      %d\n"
 "  Volume Session Time:    %d\n"
@@ -446,8 +445,6 @@ void vbackup_cleanup(JCR *jcr, int TermCode)
         edit_uint64_with_commas(jcr->jr.JobBytes, ec3),
         edit_uint64_with_suffix(jcr->jr.JobBytes, ec4),
         kbps,
-        jcr->Encrypt?_("yes"):_("no"),
-        jcr->accurate?_("yes"):_("no"),
         jcr->VolumeName,
         jcr->VolSessionId,
         jcr->VolSessionTime,
