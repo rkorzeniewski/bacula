@@ -309,7 +309,6 @@ RES_ITEM job_items[] = {
    {"prunefiles",  store_bool, ITEM(res_job.PruneFiles), 0, ITEM_DEFAULT, false},
    {"prunevolumes",store_bool, ITEM(res_job.PruneVolumes), 0, ITEM_DEFAULT, false},
    {"enabled",     store_bool, ITEM(res_job.enabled), 0, ITEM_DEFAULT, true},
-   {"optimizejobscheduling",store_bool, ITEM(res_job.OptimizeJobScheduling), 0, ITEM_DEFAULT, false},
    {"spoolattributes",store_bool, ITEM(res_job.SpoolAttributes), 0, ITEM_DEFAULT, false},
    {"spooldata",   store_bool, ITEM(res_job.spool_data), 0, ITEM_DEFAULT, false},
    {"spoolsize",   store_size, ITEM(res_job.spool_size), 0, 0, 0},

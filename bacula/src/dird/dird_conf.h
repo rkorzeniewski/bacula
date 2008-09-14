@@ -427,7 +427,6 @@ public:
    bool PreferMountedVolumes;         /* Prefer vols mounted rather than new one */
    bool write_part_after_job;         /* Set to write part after job in SD */
    bool enabled;                      /* Set if job enabled */
-   bool OptimizeJobScheduling;        /* Set if we should optimize Job scheduling */
    bool accurate;                     /* Set if it is an accurate backup job */
    bool AllowDuplicateJobs;           /* Allow duplicate jobs */
    bool AllowHigherDuplicates;        /* Permit Higher Level */
