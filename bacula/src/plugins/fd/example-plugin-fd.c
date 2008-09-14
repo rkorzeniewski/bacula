@@ -1,36 +1,14 @@
 /*
-   Bacula® - The Network Backup Solution
 
-   Copyright (C) 2007-2008 Free Software Foundation Europe e.V.
+   Copyright (C) 2007-2008 Kern Sibbald
 
-   The main author of Bacula is Kern Sibbald, with contributions from
-   many others, a complete list can be found in the file AUTHORS.
-   This program is Free Software; you can redistribute it and/or
-   modify it under the terms of version two of the GNU General Public
-   License as published by the Free Software Foundation, which is 
-   listed in the file LICENSE.
+   You may freely use this code to create your own plugin provided
+   it is to write a plugin for Bacula licensed under GPLv2
+   (as Bacula is), and in that case, you may also remove
+   the above Copyright and this notice as well as modify 
+   the code in any way. 
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-
-   Bacula® is a registered trademark of Kern Sibbald.
-   The licensor of Bacula is the Free Software Foundation Europe
-   (FSFE), Fiduciary Program, Sumatrastrasse 25, 8006 Zürich,
-   Switzerland, email:ftf@fsfeurope.org.
 */
-/*
- * Sample Plugin program
- *
- *  Kern Sibbald, October 2007
- *
- */
 #include <stdio.h>
 #include "fd_plugins.h"
 
@@ -39,7 +17,7 @@ extern "C" {
 #endif
 
 #define PLUGIN_LICENSE      "GPL"
-#define PLUGIN_AUTHOR       "Kern Sibbald"
+#define PLUGIN_AUTHOR       "Your name"
 #define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
 #define PLUGIN_DESCRIPTION  "Test File Daemon Plugin"

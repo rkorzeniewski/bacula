@@ -61,6 +61,7 @@ static bRC endRestoreFile(bpContext *ctx);
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp);
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp);
 
+static char *apply_rp_codes(struct plugin_ctx * p_ctx);
 
 /* Pointers to Bacula functions */
 static bFuncs *bfuncs = NULL;
@@ -290,93 +291,6 @@ static bRC endBackupFile(bpContext *ctx)
    return bRC_OK;
 }
 
-/*
- * Apply codes in writer command:
- * %w -> "where"
- * %r -> "replace"
- *
- * Replace:
- * 'always' => 'a', chr(97)
- * 'ifnewer' => 'w', chr(119)
- * 'ifolder' => 'o', chr(111)
- * 'never' => 'n', chr(110)
- *
- * This function will allocate the required amount of memory with malloc.
- * Need to be free()d manually.
- * Inspired by edit_job_codes in lib/util.c
- */
-
-char *apply_rp_codes(struct plugin_ctx * p_ctx)
-{
-   char *p, *q;
-   const char *str;
-   char add[10];
-   int w_count = 0, r_count = 0;
-   char *omsg;
-
-   char *imsg = p_ctx->writer;
-
-   if (!imsg) {
-      return NULL;
-   }
-
-   if ((p = imsg)) {
-      while ((q = strstr(p, "%w"))) {
-         w_count++;
-         p=q+1;
-      }
-
-      p = imsg;
-      while ((q = strstr(p, "%r"))) {
-         r_count++;
-         p=q+1;
-      }
-   }
-
-   /* Required mem: 
-    * len(imsg) 
-    * + number of "where" codes * (len(where)-2) 
-    * - number of "replace" codes
-    */
-   omsg = (char*)malloc(strlen(imsg) + (w_count * (strlen(p_ctx->where)-2)) - r_count + 1);
-   if (!omsg) {
-      fprintf(stderr, "Out of memory.");
-      exit(1);
-   }
-
-   *omsg = 0;
-   //printf("apply_rp_codes: %s\n", imsg);
-   for (p=imsg; *p; p++) {
-      if (*p == '%') {
-         switch (*++p) {
-         case '%':
-            str = "%";
-            break;
-         case 'w':
-             str = p_ctx->where;
-             break;
-         case 'r':
-            snprintf(add, 2, "%c", p_ctx->replace);
-            str = add;
-            break;
-         default:
-            add[0] = '%';
-            add[1] = *p;
-            add[2] = 0;
-            str = add;
-            break;
-         }
-      } else {
-         add[0] = *p;
-         add[1] = 0;
-         str = add;
-      }
-      //printf("add_str %s\n", str);
-      strcat(omsg, str);
-      //printf("omsg=%s\n", omsg);
-   }
-   return omsg;
-}
 
 /*
  * Bacula is calling us to do the actual I/O
@@ -493,6 +407,94 @@ static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
 {
 // printf("bpipe-fd: setFileAttributes\n");
    return bRC_OK;
+}
+
+/*************************************************************************
+ * Apply codes in writer command:
+ * %w -> "where"
+ * %r -> "replace"
+ *
+ * Replace:
+ * 'always' => 'a', chr(97)
+ * 'ifnewer' => 'w', chr(119)
+ * 'ifolder' => 'o', chr(111)
+ * 'never' => 'n', chr(110)
+ *
+ * This function will allocate the required amount of memory with malloc.
+ * Need to be free()d manually.
+ * Inspired by edit_job_codes in lib/util.c
+ */
+
+static char *apply_rp_codes(struct plugin_ctx * p_ctx)
+{
+   char *p, *q;
+   const char *str;
+   char add[10];
+   int w_count = 0, r_count = 0;
+   char *omsg;
+
+   char *imsg = p_ctx->writer;
+
+   if (!imsg) {
+      return NULL;
+   }
+
+   if ((p = imsg)) {
+      while ((q = strstr(p, "%w"))) {
+         w_count++;
+         p=q+1;
+      }
+
+      p = imsg;
+      while ((q = strstr(p, "%r"))) {
+         r_count++;
+         p=q+1;
+      }
+   }
+
+   /* Required mem: 
+    * len(imsg) 
+    * + number of "where" codes * (len(where)-2) 
+    * - number of "replace" codes
+    */
+   omsg = (char*)malloc(strlen(imsg) + (w_count * (strlen(p_ctx->where)-2)) - r_count + 1);
+   if (!omsg) {
+      fprintf(stderr, "Out of memory.");
+      exit(1);
+   }
+
+   *omsg = 0;
+   //printf("apply_rp_codes: %s\n", imsg);
+   for (p=imsg; *p; p++) {
+      if (*p == '%') {
+         switch (*++p) {
+         case '%':
+            str = "%";
+            break;
+         case 'w':
+             str = p_ctx->where;
+             break;
+         case 'r':
+            snprintf(add, 2, "%c", p_ctx->replace);
+            str = add;
+            break;
+         default:
+            add[0] = '%';
+            add[1] = *p;
+            add[2] = 0;
+            str = add;
+            break;
+         }
+      } else {
+         add[0] = *p;
+         add[1] = 0;
+         str = add;
+      }
+      //printf("add_str %s\n", str);
+      strcat(omsg, str);
+      //printf("omsg=%s\n", omsg);
+   }
+   return omsg;
 }
 
 
