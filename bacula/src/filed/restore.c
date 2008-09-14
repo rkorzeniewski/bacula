@@ -366,6 +366,10 @@ void do_restore(JCR *jcr)
          } else {
             stat = create_file(jcr, attr, &rctx.bfd, jcr->replace);
          }
+         jcr->lock();  
+         pm_strcpy(jcr->last_fname, attr->ofname);
+         jcr->last_type = attr->type;
+         jcr->unlock();
          Dmsg2(130, "Outfile=%s create_file stat=%d\n", attr->ofname, stat);
          switch (stat) {
          case CF_ERROR:
@@ -375,11 +379,7 @@ void do_restore(JCR *jcr)
             extract = true;
             /* FALLTHROUGH */
          case CF_CREATED:        /* File created, but there is no content */
-            jcr->lock();  
-            pm_strcpy(jcr->last_fname, attr->ofname);
-            jcr->last_type = attr->type;
             jcr->JobFiles++;
-            jcr->unlock();
             rctx.fileAddr = 0;
             print_ls_output(jcr, attr);
 

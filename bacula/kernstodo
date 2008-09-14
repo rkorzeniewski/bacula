@@ -71,6 +71,9 @@ Professional Needs:
 
 Priority:
 ================
+- Deadlock detection, watchdog sees if counter advances when jobs are
+  running.  With debug on, can do a "status" command.
+- User options for plugins.
 - Autolabel only if Volume catalog information indicates tape not
   written. This will avoid overwriting a tape that gets an I/O
   error on reading the volume label.
