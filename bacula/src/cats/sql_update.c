@@ -130,7 +130,7 @@ db_update_job_start_record(JCR *jcr, B_DB *mdb, JOB_DBR *jr)
  * age seconds
  */
 int
-db_update_stats(JCR *jcr, B_DB *mdb, time_t age)
+db_update_stats(JCR *jcr, B_DB *mdb, utime_t age)
 {
    char ed1[30];
    utime_t now = (utime_t)time(NULL);
