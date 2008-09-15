@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# Do some tests with statistics commands
+#
+TestName="stats-test"
+JobName=backup
+. scripts/functions
+
+scripts/cleanup
+scripts/copy-confs
+
+#
+# Zap out any schedule in default conf file so that
+#  it doesn't start during our test
+#
+outf="tmp/sed_tmp"
+echo "s%  Schedule =%# Schedule =%g" >${outf}
+cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
+sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
+
+change_jobname Client1 $JobName
+start_test
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@output /dev/null
+messages
+@$out ${cwd}/tmp/log1.out
+label volume=TestVolume001 storage=File pool=Default
+run job=$JobName yes
+wait
+messages
+update stats days=1
+@$out ${cwd}/tmp/log2.out
+sql
+SELECT * FROM JobStat;
+
+run job=$JobName yes
+wait
+messages
+@$out ${cwd}/tmp/log3.out
+update stats
+sql
+SELECT * FROM JobStat;
+
+list jobs
+quit
+END_OF_DATA
+
+run_bacula
+export dstat=0
+export rstat=0
+export bstat=0
+check_for_zombie_jobs storage=File
+stop_bacula
+
+# TODO: do grep into log2 log3 to see differences
+
+end_test
