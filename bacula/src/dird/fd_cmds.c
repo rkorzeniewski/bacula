@@ -261,8 +261,8 @@ static void send_since_time(JCR *jcr)
 bool send_level_command(JCR *jcr)
 {
    BSOCK   *fd = jcr->file_bsock;
-   const char *accurate=jcr->job->accurate?"accurate_":"";
-   const char *not_accurate="";
+   const char *accurate = jcr->job->accurate?"accurate_":"";
+   const char *not_accurate = "";
    /*
     * Send Level command to File daemon
     */

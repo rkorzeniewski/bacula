@@ -26,7 +26,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id$
+ *   Version $Id $
  *
  */
 
@@ -216,7 +216,7 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
 
 static bool accurate_init(JCR *jcr, int nbfile)
 {
-   CurFile *elt=NULL;
+   CurFile *elt = NULL;
    jcr->file_list = (htable *)malloc(sizeof(htable));
    jcr->file_list->init(elt, &elt->link, nbfile);
    return true;
@@ -243,7 +243,7 @@ bool accurate_send_deleted_list(JCR *jcr)
    ff_pkt = init_find_files();
    ff_pkt->type = FT_DELETED;
 
-   foreach_htable (elt, jcr->file_list) {
+   foreach_htable(elt, jcr->file_list) {
       if (!elt->seen) { /* already seen */
          Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
@@ -352,7 +352,7 @@ bail_out:
 }
 
 /* 
- * TODO: use bigbuffer from htable
+ * TODO: use big buffer from htable
  */
 int accurate_cmd(JCR *jcr)
 {
@@ -393,7 +393,6 @@ int accurate_cmd(JCR *jcr)
          edit_uint64_with_commas(sm_max_bytes, b3),
          edit_uint64_with_commas(sm_buffers, b4),
          edit_uint64_with_commas(sm_max_buffers, b5));
-
 #endif
 
    return true;

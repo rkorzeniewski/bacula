@@ -62,52 +62,57 @@
 /*
  * This subroutine gets a big buffer.
  */
-void htable::malloc_buf(int size)
+void htable::malloc_big_buf(int size)
 {
    struct h_mem *hmem;
 
    hmem = (struct h_mem *)malloc(size);
    total_size += size;
    blocks++;
-   hmem->next = this->mem;
-   this->mem = hmem;
-   hmem->mem = mem->first;
+   hmem->next = mem_block;
+   mem_block = hmem;
+   hmem->mem = mem_block->first;
    hmem->rem = (char *)hmem + size - hmem->mem;
-   Dmsg2(200, "malloc buf size=%d rem=%d\n", size, hmem->rem);
+   Dmsg3(100, "malloc buf=%p size=%d rem=%d\n", hmem, size, hmem->rem);
 }
 
 /* This routine frees the whole tree */
-void htable::hash_free()
+void htable::hash_big_free()
 {
    struct h_mem *hmem, *rel;
 
-   for (hmem=mem; hmem; ) {
+   for (hmem=mem_block; hmem; ) {
       rel = hmem;
       hmem = hmem->next;
+      Dmsg1(100, "free malloc buf=%p\n", rel);
       free(rel);
    }
 }
 
 #endif
 
+/*
+ * Normal hash malloc routine that gets a 
+ *  "small" buffer from the big buffer
+ */
 char *htable::hash_malloc(int size)
 {
 #ifdef BIG_MALLOC
    char *buf;
    int asize = BALIGN(size);
 
-   if (mem->rem < asize) {
+   if (mem_block->rem < asize) {
       uint32_t mb_size;
       if (total_size >= 1000000) {
          mb_size = 1000000;
       } else {
          mb_size = 100000;
       }
-      malloc_buf(mb_size);
+      malloc_big_buf(mb_size);
    }
-   mem->rem -= asize;
-   buf = mem->mem;
-   mem->mem += asize;
+   mem_block->rem -= asize;
+   buf = mem_block->mem;
+   mem_block->mem += asize;
    return buf;
 #else 
    total_size += size;
@@ -147,6 +152,7 @@ void htable::init(void *item, void *link, int tsize)
 {
    int pwr;
 
+   memset(this, 0, sizeof(htable));
    if (tsize < 31) {
       tsize = 31;
    }
@@ -157,18 +163,12 @@ void htable::init(void *item, void *link, int tsize)
    loffset = (char *)link - (char *)item;
    mask = ~((~0)<<pwr);               /* 3 bits => table size = 8 */
    rshift = 30 - pwr;                 /* start using bits 28, 29, 30 */
-   num_items = 0;                     /* number of entries in table */
    buckets = 1<<pwr;                  /* hash table size -- power of two */
    max_items = buckets * 4;           /* allow average 4 entries per chain */
    table = (hlink **)malloc(buckets * sizeof(hlink *));
    memset(table, 0, buckets * sizeof(hlink *));
-   walkptr = NULL;
-   walk_index = 0;
-   total_size = 0;
-   blocks = 0;
 #ifdef BIG_MALLOC
-   mem = NULL;
-   malloc_buf(1000000);   /* ***FIXME*** need variable or some estimate */
+   malloc_big_buf(1000000);   /* ***FIXME*** need variable or some estimate */
 #endif
 }
 
@@ -352,7 +352,7 @@ void *htable::first()
 void htable::destroy()
 {
 #ifdef BIG_MALLOC
-   hash_free();
+   hash_big_free();
 #else
    void *ni;
    void *li = first();

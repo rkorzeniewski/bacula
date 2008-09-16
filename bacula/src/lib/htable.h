@@ -68,7 +68,7 @@ struct hlink {
 
 struct h_mem {
    struct h_mem *next;                /* next buffer */
-   int rem;                           /* remaining bytes */
+   int32_t rem;                       /* remaining bytes in big_buffer */
    char *mem;                         /* memory pointer */
    char first[1];                     /* first byte */
 };
@@ -88,8 +88,8 @@ class htable : public SMARTALLOC {
    uint32_t total_size;               /* total bytes malloced */
    uint32_t blocks;                   /* blocks malloced */
 #ifdef BIG_MALLOC
-   struct h_mem *mem;                 /* malloced memory blocks */
-   void malloc_buf(int size);         /* Get a bit buffer */
+   struct h_mem *mem_block;           /* malloc'ed memory block chain */
+   void malloc_big_buf(int size);     /* Get a big buffer */
 #endif
    void hash_index(char *key);        /* produce hash key,index */
    void grow_table();                 /* grow the table */
@@ -107,6 +107,6 @@ public:
    uint32_t size();                   /* return size of table */
    char *hash_malloc(int size);       /* malloc bytes for a hash entry */
 #ifdef BIG_MALLOC
-   void hash_free();                  /* free all hash allocated bytes */
+   void hash_big_free();              /* free all hash allocated big buffers */
 #endif
 };
