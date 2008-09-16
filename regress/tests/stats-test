@@ -14,7 +14,8 @@ scripts/copy-confs
 #  it doesn't start during our test
 #
 outf="tmp/sed_tmp"
-echo "s%  Schedule =%# Schedule =%g" >${outf}
+echo "s%  Schedule =%# Schedule =%g" > $outf
+echo "s% DIRport%Statistics Retention = 1 sec; DIRport%g" >> $outf
 cp ${cwd}/bin/bacula-dir.conf ${cwd}/tmp/1
 sed -f ${outf} ${cwd}/tmp/1 >${cwd}/bin/bacula-dir.conf
 
@@ -30,19 +31,24 @@ run job=$JobName yes
 wait
 messages
 update stats days=1
-@$out ${cwd}/tmp/log2.out
 sql
-SELECT * FROM JobStat;
+SELECT "FOUND" AS test FROM JobStat;
 
 run job=$JobName yes
 wait
 messages
-@$out ${cwd}/tmp/log3.out
+@sleep 5
+@$out ${cwd}/tmp/log2.out
 update stats
 sql
-SELECT * FROM JobStat;
+SELECT "FOUND" AS test FROM JobStat;
 
 list jobs
+prune stats yes
+@$out ${cwd}/tmp/log3.out
+sql
+SELECT "FOUND" AS test FROM JobStat;
+
 quit
 END_OF_DATA
 
@@ -53,6 +59,23 @@ export bstat=0
 check_for_zombie_jobs storage=File
 stop_bacula
 
-# TODO: do grep into log2 log3 to see differences
+
+COUNT=$(grep FOUND ${cwd}/tmp/log1.out | wc -l)
+if [ $COUNT -ne 1 ]; then
+    print_debug "Bad count in jobstat table"
+    bstat=1
+fi
+
+COUNT=$(grep FOUND ${cwd}/tmp/log2.out | wc -l)
+if [ $COUNT -ne 3 ]; then
+    print_debug "Bad count in jobstat table"
+    bstat=2
+fi
+
+COUNT=$(grep FOUND ${cwd}/tmp/log3.out | wc -l)
+if [ $COUNT -ne 1 ]; then
+    print_debug "Bad count in jobstat table"
+    bstat=3
+fi
 
 end_test
