@@ -26,7 +26,7 @@
    Switzerland, email:ftf@fsfeurope.org.
 */
 /*
- *   Version $Id $
+ *  Version $Id $
  *
  */
 

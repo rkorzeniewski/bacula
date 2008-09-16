@@ -1107,6 +1107,22 @@ Item  n:  make changing "spooldata=yes|no" possible for
 
   Notes:  ./.
 
+Item 1:   Implement an option to modify the last written date for volumes
+Date:     16 September 2008
+Origin:   Franck (xeoslaenor at gmail dot com)
+Status:   Proposing
+What:     The ability to modify the last written date for a volume
+Why:      It's sometime necessary to jump a volume when you have a pool of volume
+          which recycles the oldest volume at each backup.
+          Sometime, it needs to cancel a set of backup (one day
+          backup, completely) and we want to avoid that bacula
+          choose the volume (which is not written at all) from
+          the cancelled backup (It has to jump to next volume).
+          in this case, we just need to update the written date
+          manually to avoir the "oldest volume" purge.
+Notes:    An option can be add to "update volume" command (like 'written date'
+          choice for example)
+
 ============= Empty Feature Request form ===========
 Item  n:  One line summary ...
   Date:   Date submitted 
@@ -1428,4 +1444,3 @@ Item h10: Clustered file-daemons
    Notes: Kern: I don't understand the request enough to be able to
           implement it. A lot more design detail should be presented
           before voting on this project.
-
