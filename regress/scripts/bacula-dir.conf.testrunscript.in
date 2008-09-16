@@ -57,6 +57,13 @@ Job {
   ClientRunBeforeJob = "/bin/echo ClientRunBeforeJob"
   Run After Job = "/bin/echo RunAfterJob"
   ClientRunAfterJob = "/bin/echo ClientRunAfterJob"
+  RunScript {
+    Command = "/bin/echo ClientRunBefore1"
+    Command = "/bin/echo ClientRunBefore2"
+    Command = "/bin/echo ClientRunBefore3"
+    Command = "/bin/echo ClientRunBefore4"
+    RunsWhen = Before
+  }
 }
 
 Job {
@@ -105,6 +112,7 @@ Job {
   }
   RunScript {
     Command = "/bin/false RUN_FD_FAILED3"
+    Command = "/bin/false RUN_FD_FAILED4"
     failjobonerror = yes
     RunsWhen = Before
   }
@@ -171,6 +179,7 @@ Job {
     Console = "purge volume=TestVolume001 yes"
     Console = "st dir"
     RunsWhen = Before
+    failjobonerror = no
     runsonclient = no
   }
 }
