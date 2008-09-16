@@ -749,7 +749,7 @@ static void add_fileset(JCR *jcr, const char *item)
     */
    if (subcode != ' ') {
       state = state_error;
-      Dmsg0(100, "Set state=error\n"); 
+      Dmsg0(100, "Set state=error or double code.\n");
    }
    switch (code) {
    case 'I':

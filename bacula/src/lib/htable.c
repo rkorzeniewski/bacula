@@ -227,12 +227,14 @@ void htable::grow_table()
    Dmsg1(100, "Grow called old size = %d\n", buckets);
    /* Setup a bigger table */
    htable *big = (htable *)malloc(sizeof(htable));
+   memcpy(big, this, sizeof(htable));  /* start with original class data */
    big->loffset = loffset;
    big->mask = mask<<1 | 1;
    big->rshift = rshift - 1;
    big->num_items = 0;
    big->buckets = buckets * 2;
    big->max_items = big->buckets * 4;
+   /* Create a bigger hash table */
    big->table = (hlink **)malloc(big->buckets * sizeof(hlink *));
    memset(big->table, 0, big->buckets * sizeof(hlink *));
    big->walkptr = NULL;
