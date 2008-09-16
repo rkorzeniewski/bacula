@@ -107,7 +107,7 @@ static struct s_cmds cmds[] = {
    {"RunBeforeJob", runbefore_cmd, 0},
    {"RunAfterJob",  runafter_cmd,  0},
    {"Run",          runscript_cmd, 0},
-   {"accurate",     accurate_cmd, 0},
+   {"accurate",     accurate_cmd,  0},
    {NULL,       NULL}                  /* list terminator */
 };
 
@@ -1226,7 +1226,7 @@ static int level_cmd(JCR *jcr)
    int mtime_only;
 
    level = get_memory(dir->msglen+1);
-   Dmsg1(110, "level_cmd: %s", dir->msg);
+   Dmsg1(100, "level_cmd: %s", dir->msg);
    if (strstr(dir->msg, "accurate")) {
       jcr->accurate = true;
    }
