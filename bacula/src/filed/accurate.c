@@ -336,10 +336,12 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
    }
 
    if (elt.mtime != ff_pkt->statp.st_mtime) {
-     Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
+//   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
+     Dmsg(dbglvl, "%s      st_mtime differs\n", fname);
      stat = true;
    } else if (elt.ctime != ff_pkt->statp.st_ctime) {
-     Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
+//   Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
+     Dmsg(dbglvl, "%s      st_ctime differs\n", fname);
      stat = true;
    }
 
