@@ -397,7 +397,7 @@ run_bconsole
 
 grep yyy ${cwd}/tmp/log3.out > /dev/null
 if [ $? != 0 ] ; then
-    print_debug "Can't find xxx file into 'list files' output (${cwd}/tmp/log3.out)"
+    print_debug "Can't find yyy file into 'list files' output (${cwd}/tmp/log3.out)"
     dstat=2
 fi
 
