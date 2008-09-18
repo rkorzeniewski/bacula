@@ -151,7 +151,8 @@ typedef struct s_baculaInfo {
    uint32_t version;
 } bInfo;
 
-/* Bacula Core Routines -- not used by plugins */
+/* Bacula Core Routines -- not used within a plugin */
+#ifdef FILE_DAEMON
 struct BFILE;                   /* forward referenced */
 struct FF_PKT;
 void load_fd_plugins(const char *plugin_dir);
@@ -163,6 +164,7 @@ void plugin_name_stream(JCR *jcr, char *name);
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace);
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
+#endif
 
 #ifdef __cplusplus
 extern "C" {
