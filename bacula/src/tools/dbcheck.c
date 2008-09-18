@@ -63,8 +63,6 @@ typedef struct s_name_ctx {
    int tot_ids;                       /* total to process */
 } NAME_LIST;
 
-
-
 /* Global variables */
 static bool fix = false;
 static bool batch = false;
@@ -99,6 +97,17 @@ static void repair_bad_paths();
 static void repair_bad_filenames();
 static void do_interactive_mode();
 static bool yes_no(const char *prompt);
+static bool check_idx(const char *col_name);
+static bool create_tmp_idx(const char *idx_name, const char *table_name, 
+              const char *col_name);
+static bool drop_tmp_idx(const char *idx_name, const char *table_name);
+#ifdef HAVE_MYSQL
+static int check_idx_handler(void *ctx, int num_fields, char **row);
+#endif
+
+
+/* Global variables */
+static const char *idx_tmp_name;
 
 
 static void usage()
@@ -134,7 +143,6 @@ int main (int argc, char *argv[])
 
    memset(&id_list, 0, sizeof(id_list));
    memset(&name_list, 0, sizeof(name_list));
-
 
    while ((ch = getopt(argc, argv, "bc:C:d:fv?")) != -1) {
       switch (ch) {
@@ -813,6 +821,15 @@ static void eliminate_orphaned_file_records()
 
 static void eliminate_orphaned_path_records()
 {
+   idx_tmp_name = NULL;
+   /* check the existence of the required "one column" index */
+   if (!check_idx("PathId"))  {
+      if (yes_no(_("Create temporary index? (yes/no): "))) {
+         /* create temporary index PathId  */
+         create_tmp_idx("idxPIchk", "File", "PathId");
+      }
+   }
+
    const char *query = "SELECT DISTINCT Path.PathId,File.PathId FROM Path "
                "LEFT OUTER JOIN File ON (Path.PathId=File.PathId) "
                "WHERE File.PathId IS NULL LIMIT 300000";
@@ -847,11 +864,22 @@ static void eliminate_orphaned_path_records()
       if (!make_id_list(query, &id_list)) {
          exit(1);
       }
-   }
+   } 
+   /* drop temporary index idx_tmp_name */
+   drop_tmp_idx("idxPIchk", "File");
 }
 
 static void eliminate_orphaned_filename_records()
 {
+   idx_tmp_name = NULL;
+   /* check the existence of the required "one column" index */
+   if (!check_idx("FilenameId") )      {
+      if (yes_no(_("Create temporary index? (yes/no): "))) {
+         /* create temporary index FilenameId  */
+         create_tmp_idx("idxFIchk", "File", "FilenameId");
+      }
+   }
+
    const char *query = "SELECT Filename.FilenameId,File.FilenameId FROM Filename "
                 "LEFT OUTER JOIN File ON (Filename.FilenameId=File.FilenameId) "
                 "WHERE File.FilenameId IS NULL LIMIT 300000";
@@ -887,6 +915,9 @@ static void eliminate_orphaned_filename_records()
          exit(1);
       }
    }
+   /* drop temporary index idx_tmp_name */
+   drop_tmp_idx("idxFIchk", "File");
+
 }
 
 static void eliminate_orphaned_fileset_records()
@@ -1230,3 +1261,143 @@ static bool yes_no(const char *prompt)
 }
 
 bool python_set_prog(JCR*, char const*) { return false; }
+
+
+/*
+ * The code below to add indexes is needed only for MySQL, and
+ *  that to improve the performance.
+ */
+
+#ifdef HAVE_MYSQL
+#define MAXIDX          100
+typedef struct s_idx_list {
+   char *key_name;
+   int  count_key; /* how many times the index meets *key_name */
+   int  count_col; /* how many times meets the desired column name */
+} IDX_LIST;
+
+static IDX_LIST idx_list[MAXIDX];
+
+/* 
+ * Called here with each table index to be added to the list
+ */
+static int check_idx_handler(void *ctx, int num_fields, char **row)
+{
+   /* Table | Non_unique | Key_name | Seq_in_index | Column_name |...
+    * File  |          0 | PRIMARY  |            1 | FileId      |... 
+    */
+   char *name, *key_name, *col_name;
+   int i, len;
+   int found = false;
+   name = (char *)ctx;
+   key_name = row[2];
+   col_name = row[4];
+   for(i = 0; (idx_list[i].key_name != NULL) && (i < MAXIDX); i++) {
+      if (strcasecmp(idx_list[i].key_name, key_name) == 0 ) {
+         idx_list[i].count_key++;
+         found = true;
+         if (strcasecmp(col_name, name) == 0) {
+            idx_list[i].count_col++;
+         }
+         break;
+      }
+   }
+   /* if the new Key_name, add it to the list */
+   if (!found) {
+      len = strlen(key_name) + 1;
+      idx_list[i].key_name = (char *)malloc(len);
+      bstrncpy(idx_list[i].key_name, key_name, len);
+      idx_list[i].count_key = 1;
+      if (strcasecmp(col_name, name) == 0) {
+         idx_list[i].count_col = 1;
+      } else {
+         idx_list[i].count_col = 0;
+      }
+   }
+   return 0;
+}
+#endif
+
+/*
+ * Return TRUE if "one column" index over *col_name exists
+ */
+static bool check_idx(const char *col_name)
+{
+#ifdef HAVE_MYSQL
+   int i;
+   int found = false;
+
+   memset(&idx_list, 0, sizeof(idx_list));
+   char *query = "SHOW INDEX FROM File";
+   if (!db_sql_query(db, query, check_idx_handler, (void *)col_name)) {
+      printf("%s\n", db_strerror(db));
+   }
+
+   for(i = 0; (idx_list[i].key_name != NULL) && (i < MAXIDX) ; i++) {
+      /* NOTE : if (idx_list[i].count_key > 1) then index idx_list[i].key_name is "multiple-column" index */
+      if ((idx_list[i].count_key == 1) && (idx_list[i].count_col == 1)) {
+         /* "one column" index over *col_name found */
+         found = true;
+      }
+   }
+   if (found) {
+      if (verbose) {
+         printf(_("Ok. Index over the %s column already exists and dbcheck will work faster.\n"), col_name);
+      }
+   } else {
+      printf(_("Note. Index over the %s column not found, that can greatly slow down dbcheck.\n"), col_name);
+   }
+
+   return found;
+#else
+   return true;
+#endif
+}
+
+/*
+ * Create temporary one-column index
+ */
+static bool create_tmp_idx(const char *idx_name, const char *table_name, 
+               const char *col_name)
+{
+   idx_tmp_name = NULL;
+   printf(_("Create temporary index... This may take some time!\n"));
+   bsnprintf(buf, sizeof(buf), "CREATE INDEX %s ON %s (%s)", idx_name, table_name, col_name); 
+   if (verbose) {
+      printf("%s\n", buf);
+   }
+   if (db_sql_query(db, buf, NULL, NULL)) {
+      idx_tmp_name = idx_name;
+      if (verbose) {
+         printf(_("Temporary index created.\n"));
+      }
+   } else {
+      printf("%s\n", db_strerror(db));
+      return false;
+   }
+   return true;
+}
+
+/*
+ * Drop temporary index
+ */
+static bool drop_tmp_idx(const char *idx_name, const char *table_name)
+{
+   if (idx_tmp_name != NULL) {
+      printf(_("Drop temporary index.\n"));
+      bsnprintf(buf, sizeof(buf), "DROP INDEX %s ON %s", idx_name, table_name);
+      if (verbose) {
+         printf("%s\n", buf);
+      }
+      if (!db_sql_query(db, buf, NULL, NULL)) {
+         printf("%s\n", db_strerror(db));
+         return false;
+      } else {
+         if (verbose) {
+            printf(_("Temporary index %s deleted.\n"), idx_tmp_name);
+         }
+      }
+   }
+   idx_tmp_name = NULL;
+   return true;
+}
