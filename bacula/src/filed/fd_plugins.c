@@ -361,6 +361,8 @@ bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 
 void load_fd_plugins(const char *plugin_dir)
 {
+   Plugin *plugin;
+
    if (!plugin_dir) {
       return;
    }
@@ -375,7 +377,7 @@ void load_fd_plugins(const char *plugin_dir)
    plugin_bwrite = my_plugin_bwrite;
    plugin_blseek = my_plugin_blseek;
    foreach_alist(plugin, plugin_list) {
-      Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n", plugin->file));
+      Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n"), plugin->file);
    }
 
 }
