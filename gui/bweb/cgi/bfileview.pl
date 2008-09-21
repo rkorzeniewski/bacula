@@ -78,12 +78,14 @@ $bweb->display_job_zoom($jobid);
 
 unless ($jobid) {
     $bweb->error("Can't get where or jobid");
+    $bweb->display_end();
     exit 0;
 }
 
 unless ($base_fich and -w $base_fich) {
     $bweb->error("fv_write_path ($base_fich) is not writable." . 
 		 " See Bweb configuration.");
+    $bweb->display_end();
     exit 0;
 }
 
@@ -94,6 +96,19 @@ if (-f "$base_fich/$md5_rep.png" and -f "$base_fich/$md5_rep.tpl")
     exit 0;
 }
 
+my $r = $bweb->dbh_selectrow_hashref("SELECT PurgedFiles AS ok FROM Job WHERE JobId = $jobid");
+if (!$r || $r->{ok}) {
+    $bweb->error("File information for job $jobid has been pruned from catalog");
+    $bweb->display_end();
+    exit 0;    
+} 
+
+$r = $bweb->dbh_selectrow_hashref("SELECT JobId AS ok FROM brestore_knownjobid WHERE JobId = $jobid");
+if (!$r || !$r->{ok}) {		# TODO: compute information
+    $bweb->error("Path information for job $jobid has not been updated in the catalog");
+    $bweb->display_end();
+    exit 0;    
+} 
 
 # if it's a file, display it
 if ($fnid and $pathid)
@@ -266,8 +281,14 @@ sub fv_get_file_attribute
 {
     my ($jobid, $full_name) = @_;
     
-    my $filename = $bweb->dbh_quote(basename($full_name));
-    my $path     = $bweb->dbh_quote(dirname($full_name) . "/");
+    # default to /
+    my $path = "'/'";
+    my $filename = "''";
+    
+    if ($full_name ne '/') {
+	$filename = $bweb->dbh_quote(basename($full_name));
+	$path     = $bweb->dbh_quote(dirname($full_name) . "/");
+    }
 
     my $attr = $bweb->dbh_selectrow_hashref("
  SELECT 1    AS found,
@@ -277,8 +298,8 @@ sub fv_get_file_attribute
         base64_decode_lstat(12, LStat) AS mtime,
         base64_decode_lstat(13, LStat) AS ctime
 
-   FROM File INNER JOIN Filename USING (FilenameId)
-             INNER JOIN Path     USING (PathId)
+   FROM File JOIN Filename USING (FilenameId)
+             JOIN Path     USING (PathId)
   WHERE Name  = $filename
    AND  Path  = $path
    AND  JobId = $jobid

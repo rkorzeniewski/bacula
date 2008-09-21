@@ -267,6 +267,9 @@ chown www-data /var/spool/bweb
 You have to remove "<!-- Remove this to activate bfileview" and "-->" from
 tpl/en/display_job_zoom.tpl.
 
+Add (or configure) a writable location to the parameters in bweb.conf 
+   'fv_write_path' => '/var/spool/bweb',
+
 You MUST use brestore.pl -b to initialize the database, and
 you CAN use bfileview.pl mode=batch jobid=xxx where=/ to compute tree size.
 

@@ -234,6 +234,7 @@ our %k_re = ( dbi      => qr/^(dbi:(Pg|mysql):(?:\w+=[\w\d\.-]+;?)+)$/i,
 	      display_log_time => qr!^(on)?$!,
 	      enable_security => qr/^(on)?$/,
 	      enable_security_acl => qr/^(on)?$/,
+	      default_age => qr/^(?:\d+(?:[ywdhms]\s*)?)+\s*$/,
 	      );
 
 =head1 FUNCTION
@@ -272,6 +273,9 @@ sub load
 	$self->save();
 	return $self->error("If you update from an old bweb install, your must reload this page and if it's fail again, you have to configure bweb again...") ;
     }
+
+    # set default values
+    $self->{default_age} = '7d';
 
     foreach my $k (keys %$VAR1) {
 	$self->{$k} = $VAR1->{$k};
@@ -1271,7 +1275,6 @@ use DBI;
 use POSIX qw/strftime/;
 
 our $config_file='/etc/bacula/bweb.conf';
-
 our $cur_id=0;
 
 =head1 VARIABLE
@@ -1423,6 +1426,25 @@ sub human_size
     }
     $format = ($i>0)?'%0.1f %s':'%i %s';
     return sprintf($format, $val, $unit[$i]);
+}
+
+sub human_sec_unit
+{
+    my $val = shift;
+    my $orig = $val;
+    if ($val =~ /^(?:\d+(?:[ywdhms]\s*)?)+\s*$/) {
+        for ($val) {
+            s/y/*52w/g;
+            s/w/*7d/g;
+            s/d/*24h/g;
+            s/h/*60m/g;
+            s/m/*60s/g;
+            s/s(\d)/+$1/g;
+            s/s//;
+        }
+        $val = eval $val;
+    }
+    return int($val);
 }
 
 # display Day, Hour, Year
@@ -1740,7 +1762,7 @@ sub get_form
 		 slot   =>   0,
 		 drive  =>   0,
 		 priority => 10,
-		 age    => 60*60*24*7,
+		 age    => $self->{info}->{default_age},
 		 days   => 1,
 		 maxvoljobs  => 0,
 		 maxvolbytes => 0,
@@ -1798,6 +1820,10 @@ sub get_form
 	    my $value = CGI::param($i) || $opt_i{$i} ;
 	    if ($value =~ /^(\d+)$/) {
 		$ret{$i} = $1;
+	    } elsif ($value eq 'age' &&  # can have unit
+		     $i =~ /^(?:\d+(?:[ywdhms]\s*)?)+\s*$/) # 2y1h2m34s
+	    {
+		$ret{$i} = human_sec_unit($i);
 	    }
 	} elsif ($opt_s{$i}) {	# simple string param
 	    my $value = CGI::param($i) || '';
@@ -2212,6 +2238,7 @@ SELECT
 
     $row->{db_size} = human_size($row->{db_size});
     $row->{label} = $label;
+    $row->{age} = $arg{age};
 
     $self->display($row, "general.tpl");
 }
@@ -3618,6 +3645,7 @@ GROUP BY Client.Name
     $row->{ID} = $cur_id++;
     $row->{label} = $label;
     $row->{grapharg} = "client";
+    $row->{age} = $arg{age};
 
     $self->display($row, "display_client_stats.tpl");
 }

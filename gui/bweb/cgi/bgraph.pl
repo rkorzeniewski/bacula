@@ -103,7 +103,7 @@ if ($arg->{jclients}) {
 }
 
 my $groupf='';			# from clause
-my $groupq='';			# whre clause
+my $groupq='';			# where clause
 if ($arg->{jclient_groups}) {
     $groupf = " JOIN client_group_member ON (Client.ClientId = client_group_member.clientid) 
                 JOIN client_group USING (client_group_id)";
@@ -231,6 +231,7 @@ sub make_tab
     my $ret = {};
     
     foreach my $row (@$all_row) {
+	# Todo, add Level to label if option is set ->[4]
 	my $label = $row->[1] . "/" . $row->[2] ; # client/backup name
 
 	$ret->{date}->[$i]   = $row->[0];	
@@ -277,7 +278,8 @@ SELECT
        UNIX_TIMESTAMP(Job.StartTime)  AS starttime,
        Client.Name                    AS clientname,
        Job.Name                       AS jobname,
-       Job.JobBytes                   AS jobbytes
+       Job.JobBytes                   AS jobbytes,
+       Job.Level                      AS joblevel
 FROM $jobt AS Job, FileSet, Client $filter $groupf
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId
@@ -315,7 +317,8 @@ SELECT
        UNIX_TIMESTAMP(Job.StartTime)  AS starttime,
        Client.Name                    AS clientname,
        Job.Name                       AS jobname,
-       Job.JobFiles                   AS jobfiles
+       Job.JobFiles                   AS jobfiles,
+       Job.Level                      AS joblevel
 FROM $jobt AS Job, FileSet, Client $filter $groupf
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId
@@ -356,7 +359,8 @@ elsif ($graph eq 'file_histo' and $arg->{where}) {
 SELECT UNIX_TIMESTAMP(Job.StartTime)    AS starttime,
        Client.Name                      AS client,
        Job.Name                         AS jobname,
-       base64_decode_lstat(8,LStat)     AS lstat
+       base64_decode_lstat(8,LStat)     AS lstat,
+       Job.Level                        AS joblevel
 
 FROM Job, FileSet, Filename, Path, File, Client $filter
 WHERE Job.ClientId = Client.ClientId
@@ -406,7 +410,8 @@ elsif ($graph eq 'rep_histo' and $arg->{where}) {
 SELECT UNIX_TIMESTAMP(Job.StartTime) AS starttime,
        Client.Name                   AS client,
        Job.Name                      AS jobname,
-       brestore_pathvisibility.size  AS size
+       brestore_pathvisibility.size  AS size,
+       Job.Level                     AS joblevel
 
 FROM Job, Client $filter, FileSet, Path, brestore_pathvisibility
 WHERE Job.ClientId = Client.ClientId
@@ -453,7 +458,8 @@ SELECT
        ($bweb->{sql}->{SEC_TO_INT}(
                           $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                         - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) + 0.01) 
-         AS rate
+         AS rate,
+       Job.Level                      AS joblevel
 
 FROM $jobt AS Job, FileSet, Client $filter $groupf
 WHERE Job.ClientId = Client.ClientId
@@ -496,7 +502,9 @@ SELECT
        Job.Name                            AS jobname,
   $bweb->{sql}->{SEC_TO_INT}(  $bweb->{sql}->{UNIX_TIMESTAMP}(EndTime)  
                              - $bweb->{sql}->{UNIX_TIMESTAMP}(StartTime)) 
-         AS duration
+         AS duration,
+       Job.Level                      AS joblevel
+
 FROM $jobt AS Job, FileSet, Client $filter $groupf
 WHERE Job.ClientId = Client.ClientId
   AND Job.FileSetId = FileSet.FileSetId

@@ -10,6 +10,8 @@ button.formulaire { border: 0px; font-size: 9pt;  background-color: transparent;
 button.bp { border: 0px; background-color: transparent; }
 
 td.joberr { background-color: red; color: white;}
+.joberr a:link { color: white; }
+.joberr a:visited { color: #ffe0c0; } 
 
 .pSlice, .pSliceFull, .pSliceError, .pSliceAppend, .pSlicePurged, .pSliceRecycle, 
 .pSliceArchive, .pSliceUsed, .pSliceRead_Only, .pSliceDisabled,

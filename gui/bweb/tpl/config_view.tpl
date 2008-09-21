@@ -19,6 +19,7 @@
     <tr><td title="__use a wiki for jobs documentation?__">wiki_url:</td> <td> <TMPL_VAR wiki_url> </td></tr>
     <tr><td title="/path/to/your/template_dir">template_dir:</td> <td> <TMPL_VAR template_dir> </td></tr>
     <tr><td title="__Default language__">__language:__</td> <td> <TMPL_VAR lang> </td></tr>
+    <tr><td title="__Default Age__">__default_age:__</td> <td> <TMPL_VAR default_age> </td></tr>
     <tr><td title="__display timestamp in job log__">display_log_time:</td> <td> <TMPL_VAR display_log_time> </td></tr>
     <tr><td title="__user managment__">__security:__</td> <td> <TMPL_VAR enable_security> </td></tr>
     <tr><td title="__user filter__">__security acl:__</td> <td> <TMPL_VAR enable_security_acl> </td></tr>
