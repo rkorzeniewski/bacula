@@ -215,6 +215,7 @@ sub get_graph
     $graph->set('x_label' => 'Time',
 		'x_number_format' => sub { strftime('%D', localtime($_[0])) },
 		'x_tick_number' => 5*$arg->{width}/800,
+                'overwrite' => 1,
 		@options,
 		);
 
