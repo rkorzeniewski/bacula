@@ -350,12 +350,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
-#ifdef USE_TCADB
-   TCADB *file_list;                  /* Previous file list (accurate mode) */
-   POOLMEM *hash_name;
-#else
-   htable *file_list;                 /* Previous file list (accurate mode) */
-#endif
+   rblist *file_list;                 /* Previous file list (accurate mode) */
 #endif /* FILE_DAEMON */
 
 
