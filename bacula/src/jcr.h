@@ -350,7 +350,7 @@ public:
    CRYPTO_CTX crypto;                 /* Crypto ctx */
    DIRRES* director;                  /* Director resource */
    bool VSS;                          /* VSS used by FD */
-   rblist *file_list;                 /* Previous file list (accurate mode) */
+   htable *file_list;                 /* Previous file list (accurate mode) */
 #endif /* FILE_DAEMON */
 
 
