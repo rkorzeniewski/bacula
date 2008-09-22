@@ -36,25 +36,17 @@
 static int dbglvl=200;
 
 typedef struct PrivateCurFile {
-   rblink link;
+   hlink link;
    char *fname;
    time_t ctime;
    time_t mtime;
    bool seen;
 } CurFile;
 
-static int my_cmp(void *item1, void *item2)
-{
-   CurFile *elt1, *elt2;
-   elt1 = (CurFile *) item1;
-   elt2 = (CurFile *) item2;
-   return strcmp(elt1->fname, elt2->fname);
-}
-
 static bool accurate_mark_file_as_seen(JCR *jcr, CurFile *elt)
 {
    /* TODO: just use elt->seen = 1 */
-   CurFile *temp = (CurFile *)jcr->file_list->search(elt, my_cmp);
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(elt->fname);
    if (temp) {
       temp->seen = 1;              /* records are in memory */
    }
@@ -66,9 +58,7 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    bool found=false;
    ret->seen = 0;
 
-   CurFile search;
-   search.fname = fname;
-   CurFile *temp = (CurFile *)jcr->file_list->search(&search, my_cmp);
+   CurFile *temp = (CurFile *)jcr->file_list->lookup(fname);
    if (temp) {
       memcpy(ret, temp, sizeof(CurFile));
       found=true;
@@ -81,7 +71,8 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
 static bool accurate_init(JCR *jcr, int nbfile)
 {
    CurFile *elt = NULL;
-   jcr->file_list = New(rblist(elt, &elt->link));
+   jcr->file_list = (htable *)malloc(sizeof(htable));
+   jcr->file_list->init(elt, &elt->link, nbfile);
    return true;
 }
 
@@ -106,7 +97,7 @@ bool accurate_send_deleted_list(JCR *jcr)
    ff_pkt = init_find_files();
    ff_pkt->type = FT_DELETED;
 
-   foreach_rblist(elt, jcr->file_list) {
+   foreach_htable(elt, jcr->file_list) {
       if (!elt->seen) { /* already seen */
 //         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
@@ -121,7 +112,8 @@ bool accurate_send_deleted_list(JCR *jcr)
 bail_out:
    /* TODO: clean htable when this function is not reached ? */
    if (jcr->file_list) {
-      delete jcr->file_list;
+      jcr->file_list->destroy();
+      free(jcr->file_list);
       jcr->file_list = NULL;
    }
    return true;
@@ -140,11 +132,11 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
 
    CurFile *item;
    /* we store CurFile, fname and ctime/mtime in the same chunk */
-   item = (CurFile *)malloc(sizeof(CurFile)+strlen(fname)+1);
+   item = (CurFile *)jcr->file_list->hash_malloc(sizeof(CurFile)+strlen(fname)+1);
    memcpy(item, &elt, sizeof(CurFile));
    item->fname  = (char *)item+sizeof(CurFile);
    strcpy(item->fname, fname);
-   jcr->file_list->insert(item, my_cmp); 
+   jcr->file_list->insert(item->fname, item); 
 
 //   Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
    return ret;
