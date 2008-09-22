@@ -233,7 +233,8 @@ public:
    bool cached_attribute;             /* set if attribute is cached */
    POOLMEM *attr;                     /* Attribute string from SD */
    B_DB *db;                          /* database pointer */
-   B_DB *db_batch;                    /* database pointer for batch insert */
+   B_DB *db_batch;                    /* database pointer for batch and accurate */
+   bool batch_started;                /* is batch mode already started ? */
    ATTR_DBR *ar;                      /* DB attribute record */
    guid_list *id_list;                /* User/group id to name list */
    bool accurate;                     /* true if job is accurate */

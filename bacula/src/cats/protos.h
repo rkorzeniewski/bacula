@@ -49,6 +49,7 @@ B_DB *db_init_database(JCR *jcr, const char *db_name, const char *db_user, const
                        int mult_db_connections);
 int  db_open_database(JCR *jcr, B_DB *db);
 void db_close_database(JCR *jcr, B_DB *db);
+bool db_open_batch_connexion(JCR *jcr, B_DB *mdb);
 void db_escape_string(JCR *jcr, B_DB *db, char *snew, char *old, int len);
 char *db_strerror(B_DB *mdb);
 int  db_next_index(JCR *jcr, B_DB *mdb, char *table, char *index);
