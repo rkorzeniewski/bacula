@@ -15,7 +15,8 @@
   <td valign='top'>
     <h2>__Level__</h2>
     <select name='level' class='formulaire'>
-      <option id='level_Any' value='Any'>__Any__</option>
+      <option id='level_Any' title='__Any level (grouped)__' value='Any'>__Any__</option>
+      <option id='level_All' title='__All levels (separated)__' value='All'>__All__</option>
       <option id='level_F' value='F'>__Full__</option>
       <option id='level_D' value='D'>__Differential__</option>
       <option id='level_I' value='I'>__Incremental__</option>

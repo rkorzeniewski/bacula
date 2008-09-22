@@ -79,7 +79,7 @@ if ($arg->{status} and $arg->{status} ne 'Any') {
 }
     
 my $levelq='';
-if ($arg->{level} and $arg->{level} ne 'Any') {
+if ($arg->{level} and $arg->{level} !~ 'All|Any') {
     $levelq = " AND Job.Level = '$arg->{level}' ";
 } 
 
@@ -232,8 +232,11 @@ sub make_tab
     my $ret = {};
     
     foreach my $row (@$all_row) {
-	# Todo, add Level to label if option is set ->[4]
 	my $label = $row->[1] . "/" . $row->[2] ; # client/backup name
+
+	if ($arg->{level} eq 'All') {		  # can separate level
+	    $label = $row->[4] . ': ' . $label;	  # if users ask for
+	}
 
 	$ret->{date}->[$i]   = $row->[0];	
 	$ret->{$label}->[$i] = $row->[3];
