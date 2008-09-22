@@ -635,5 +635,43 @@ vertical_list:
    return;
 }
 
+/* 
+ * Open a new connexion to mdb catalog. This function is used
+ * by batch and accurate mode.
+ */
+bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
+{
+   int multi_db=false;
+
+#ifdef HAVE_BATCH_FILE_INSERT
+   multi_db=true;		/* we force a new connexion only if batch insert is enabled */
+#endif
+
+   if (!jcr->db_batch) {
+      jcr->db_batch = db_init_database(jcr, 
+                                      mdb->db_name, 
+                                      mdb->db_user,
+                                      mdb->db_password, 
+                                      mdb->db_address,
+                                      mdb->db_port,
+                                      mdb->db_socket,
+                                      multi_db /* multi_db = true when using batch mode */);
+      if (!jcr->db_batch) {
+         Jmsg0(jcr, M_FATAL, 0, "Could not init batch connexion");
+         return false;
+      }
+
+      if (!db_open_database(jcr, jcr->db_batch)) {
+         Mmsg2(&jcr->db_batch->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
+              jcr->db_batch->db_name, db_strerror(jcr->db_batch));
+         Jmsg1(jcr, M_FATAL, 0, "%s", jcr->db_batch->errmsg);
+         return false;
+      }      
+      Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
+            jcr->db_batch->connected, jcr->db_batch->db);
+
+   }
+   return true;
+}
 
 #endif /* HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL*/

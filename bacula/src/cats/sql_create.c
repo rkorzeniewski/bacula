@@ -758,7 +758,7 @@ bool db_write_batch_file_records(JCR *jcr)
 {
    int JobStatus = jcr->JobStatus;
 
-   if (!jcr->db_batch) {         /* no files to backup ? */
+   if (!jcr->batch_started) {         /* no files to backup ? */
       Dmsg0(50,"db_create_file_record : no files\n");
       return true;
    }
@@ -845,38 +845,19 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
    Dmsg1(dbglevel, "Fname=%s\n", ar->fname);
    Dmsg0(dbglevel, "put_file_into_catalog\n");
 
-   if (!jcr->db_batch) {
-      Dmsg2(100, "Opendb attr. Stream=%d fname=%s\n", ar->Stream, ar->fname);
-      jcr->db_batch = db_init_database(jcr, 
-                                      mdb->db_name, 
-                                      mdb->db_user,
-                                      mdb->db_password, 
-                                      mdb->db_address,
-                                      mdb->db_port,
-                                      mdb->db_socket,
-                                      1 /* multi_db = true */);
-      if (!jcr->db_batch) {
-         Mmsg1(&mdb->errmsg, _("Could not init batch database: \"%s\".\n"),
-                        jcr->db->db_name);
-         Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
+   /* Open the dedicated connexion */
+   if (!jcr->batch_started) {
+
+      if (!db_open_batch_connexion(jcr, mdb)) {
          return false;
       }
-
-      if (!db_open_database(jcr, jcr->db_batch)) {
-         Mmsg2(&mdb->errmsg,  _("Could not open database \"%s\": ERR=%s\n"),
-              jcr->db->db_name, db_strerror(jcr->db_batch));
-         Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
-         return false;
-      }      
-      
       if (!sql_batch_start(jcr, jcr->db_batch)) {
          Mmsg1(&mdb->errmsg, 
               "Can't start batch mode: ERR=%s", db_strerror(jcr->db_batch));
          Jmsg1(jcr, M_FATAL, 0, "%s", mdb->errmsg);
          return false;
       }
-      Dmsg3(100, "initdb ref=%d connected=%d db=%p\n", jcr->db_batch->ref_count,
-            jcr->db_batch->connected, jcr->db_batch->db);
+      jcr->batch_started = true;
    }
    B_DB *bdb = jcr->db_batch;
 
@@ -895,12 +876,12 @@ bool db_create_file_attributes_record(JCR *jcr, B_DB *mdb, ATTR_DBR *ar)
 
 
 /*
-   if (bdb->changes > 100000) {
-      db_write_batch_file_records(jcr);
-      bdb->changes = 0;
-      sql_batch_start(jcr, bdb);
-   }
-*/
+ * if (bdb->changes > 100000) {
+ *    db_write_batch_file_records(jcr);
+ *    bdb->changes = 0;
+ *     sql_batch_start(jcr, bdb);
+ * }
+ */
 
    return sql_batch_insert(jcr, bdb, ar);
 }

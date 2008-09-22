@@ -136,6 +136,7 @@ bool send_accurate_current_files(JCR *jcr)
       return true;
    }
    POOLMEM *jobids = get_pool_memory(PM_FNAME);
+
    db_accurate_get_jobids(jcr, jcr->db, &jcr->jr, jobids);
 
    if (*jobids == 0) {
@@ -153,13 +154,19 @@ bool send_accurate_current_files(JCR *jcr)
    Dmsg2(200, "jobids=%s nb=%s\n", jobids, nb);
    jcr->file_bsock->fsend("accurate files=%s\n", nb); 
 
-   db_get_file_list(jcr, jcr->db, jobids, accurate_list_handler, (void *)jcr);
+   if (!db_open_batch_connexion(jcr, jcr->db)) {
+      Jmsg0(jcr, M_FATAL, 0, "Can't get dedicate sql connexion");
+      return false;
+   }
+
+   db_get_file_list(jcr, jcr->db_batch, jobids, accurate_list_handler, (void *)jcr);
+
+   /* TODO: close the batch connexion ? (can be used very soon) */
 
    free_pool_memory(jobids);
    free_pool_memory(nb);
 
    jcr->file_bsock->signal(BNET_EOD);
-   /* TODO: use response() ? */
 
    return true;
 }
