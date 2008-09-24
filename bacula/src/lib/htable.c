@@ -137,7 +137,7 @@ void htable::hash_index(char *key)
    }
    /* Multiply by large prime number, take top bits, mask for remainder */
    index = ((hash * 1103515249) >> rshift) & mask;
-   Dmsg2(100, "Leave hash_index hash=0x%x index=%d\n", hash, index);
+   Dmsg2(500, "Leave hash_index hash=0x%x index=%d\n", hash, index);
 }
 
 /*
@@ -276,22 +276,22 @@ bool htable::insert(char *key, void *item)
       return false;                   /* already exists */
    }
    ASSERT(index < buckets);
-   Dmsg2(100, "Insert: hash=%p index=%d\n", hash, index);
+   Dmsg2(500, "Insert: hash=%p index=%d\n", hash, index);
    hp = (hlink *)(((char *)item)+loffset);
-   Dmsg4(100, "Insert hp=%p index=%d item=%p offset=%u\n", hp,
+   Dmsg4(500, "Insert hp=%p index=%d item=%p offset=%u\n", hp,
       index, item, loffset);
    hp->next = table[index];
    hp->hash = hash;
    hp->key = key;
    table[index] = hp;
-   Dmsg3(100, "Insert hp->next=%p hp->hash=0x%x hp->key=%s\n",
+   Dmsg3(500, "Insert hp->next=%p hp->hash=0x%x hp->key=%s\n",
       hp->next, hp->hash, hp->key);
 
    if (++num_items >= max_items) {
-      Dmsg2(100, "num_items=%d max_items=%d\n", num_items, max_items);
+      Dmsg2(500, "num_items=%d max_items=%d\n", num_items, max_items);
       grow_table();
    }
-   Dmsg3(100, "Leave insert index=%d num_items=%d key=%s\n", index, num_items, key);
+   Dmsg3(500, "Leave insert index=%d num_items=%d key=%s\n", index, num_items, key);
    return true;
 }
 
@@ -301,7 +301,7 @@ void *htable::lookup(char *key)
    for (hlink *hp=table[index]; hp; hp=(hlink *)hp->next) {
 //    Dmsg2(100, "hp=%p key=%s\n", hp, hp->key);
       if (hash == hp->hash && strcmp(key, hp->key) == 0) {
-         Dmsg1(100, "lookup return %p\n", ((char *)hp)-loffset);
+         Dmsg1(500, "lookup return %p\n", ((char *)hp)-loffset);
          return ((char *)hp)-loffset;
       }
    }
@@ -310,43 +310,43 @@ void *htable::lookup(char *key)
 
 void *htable::next()
 {
-   Dmsg1(100, "Enter next: walkptr=%p\n", walkptr);
+   Dmsg1(500, "Enter next: walkptr=%p\n", walkptr);
    if (walkptr) {
       walkptr = (hlink *)(walkptr->next);
    }
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];
       if (walkptr) {
-         Dmsg3(100, "new walkptr=%p next=%p inx=%d\n", walkptr,
+         Dmsg3(500, "new walkptr=%p next=%p inx=%d\n", walkptr,
             walkptr->next, walk_index-1);
       }
    }
    if (walkptr) {
-      Dmsg2(100, "next: rtn %p walk_index=%d\n",
+      Dmsg2(500, "next: rtn %p walk_index=%d\n",
          ((char *)walkptr)-loffset, walk_index);
       return ((char *)walkptr)-loffset;
    }
-   Dmsg0(100, "next: return NULL\n");
+   Dmsg0(500, "next: return NULL\n");
    return NULL;
 }
 
 void *htable::first()
 {
-   Dmsg0(100, "Enter first\n");
+   Dmsg0(500, "Enter first\n");
    walkptr = table[0];                /* get first bucket */
    walk_index = 1;                    /* Point to next index */
    while (!walkptr && walk_index < buckets) {
       walkptr = table[walk_index++];  /* go to next bucket */
       if (walkptr) {
-         Dmsg3(100, "first new walkptr=%p next=%p inx=%d\n", walkptr,
+         Dmsg3(500, "first new walkptr=%p next=%p inx=%d\n", walkptr,
             walkptr->next, walk_index-1);
       }
    }
    if (walkptr) {
-      Dmsg1(100, "Leave first walkptr=%p\n", walkptr);
+      Dmsg1(500, "Leave first walkptr=%p\n", walkptr);
       return ((char *)walkptr)-loffset;
    }
-   Dmsg0(100, "Leave first walkptr=NULL\n");
+   Dmsg0(500, "Leave first walkptr=NULL\n");
    return NULL;
 }
 
