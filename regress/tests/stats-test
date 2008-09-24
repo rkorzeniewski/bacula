@@ -32,7 +32,7 @@ wait
 messages
 update stats days=1
 sql
-SELECT "FOUND" AS test FROM JobStat;
+SELECT 'FOUND' AS test FROM JobStat;
 
 run job=$JobName yes
 wait
@@ -41,13 +41,13 @@ messages
 @$out ${cwd}/tmp/log2.out
 update stats
 sql
-SELECT "FOUND" AS test FROM JobStat;
+SELECT 'FOUND' AS test FROM JobStat;
 
 list jobs
 prune stats yes
 @$out ${cwd}/tmp/log3.out
 sql
-SELECT "FOUND" AS test FROM JobStat;
+SELECT 'FOUND' AS test FROM JobStat;
 
 quit
 END_OF_DATA
