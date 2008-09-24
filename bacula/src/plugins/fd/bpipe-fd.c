@@ -45,7 +45,7 @@ extern "C" {
 #define PLUGIN_AUTHOR       "Kern Sibbald"
 #define PLUGIN_DATE         "January 2008"
 #define PLUGIN_VERSION      "1"
-#define PLUGIN_DESCRIPTION  "Pipe File Daemon Plugin"
+#define PLUGIN_DESCRIPTION  "Bacula Pipe File Daemon Plugin"
 
 /* Forward referenced functions */
 static bRC newPlugin(bpContext *ctx);
@@ -153,6 +153,9 @@ bRC unloadPlugin()
 static bRC newPlugin(bpContext *ctx)
 {
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)malloc(sizeof(struct plugin_ctx));
+   if (!p_ctx) {
+      return bRC_Error;
+   }
    memset(p_ctx, 0, sizeof(struct plugin_ctx));
    ctx->pContext = (void *)p_ctx;        /* set our context pointer */
    return bRC_OK;
@@ -168,6 +171,7 @@ static bRC freePlugin(bpContext *ctx)
       free(p_ctx->cmd);                  /* free any allocated command string */
    }
    free(p_ctx);                          /* free our private context */
+   p_ctx = NULL;
    return bRC_OK;
 }
 
@@ -195,6 +199,11 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
 // char *name;
 
+   /*
+    * Most events don't interest us so we ignore them.
+    *   the printfs are so that plugin writers can enable them to see
+    *   what is really going on.
+    */
    switch (event->eventType) {
    case bEventJobStart:
 //    printf("bpipe-fd: JobStart=%s\n", (char *)value);
@@ -203,10 +212,10 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
 //    printf("bpipe-fd: JobEnd\n");
       break;
    case bEventStartBackupJob:
-//    printf("bpipe-fd: BackupStart\n");
+//    printf("bpipe-fd: StartBackupJob\n");
       break;
    case bEventEndBackupJob:
-//    printf("bpipe-fd: BackupEnd\n");
+//    printf("bpipe-fd: EndBackupJob\n");
       break;
    case bEventLevel:
 //    printf("bpipe-fd: JobLevel=%c %d\n", (int)value, (int)value);
@@ -216,14 +225,17 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       break;
 
    case bEventStartRestoreJob:
+//    printf("bpipe-fd: StartRestoreJob\n");
       break;
 
    case bEventEndRestoreJob:
+//    printf("bpipe-fd: EndRestoreJob\n");
       break;
 
    /* Plugin command e.g. plugin = <plugin-name>:<name-space>:read command:write command */
    case bEventRestoreCommand:
       printf("bpipe-fd: EventRestoreCommand cmd=%s\n", (char *)value);
+      /* Fall-through wanted */
    case bEventBackupCommand:
       char *p;
       printf("bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
@@ -460,7 +472,7 @@ static char *apply_rp_codes(struct plugin_ctx * p_ctx)
    omsg = (char*)malloc(strlen(imsg) + (w_count * (strlen(p_ctx->where)-2)) - r_count + 1);
    if (!omsg) {
       fprintf(stderr, "Out of memory.");
-      exit(1);
+      return NULL;
    }
 
    *omsg = 0;

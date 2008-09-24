@@ -206,6 +206,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
   
    Dmsg1(000, "send_plugin_name=%s\n", sp->cmd);
+   /* Send stream header */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles+1, STREAM_PLUGIN_NAME)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
            sd->bstrerror());
@@ -214,9 +215,11 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    Dmsg1(000, "send: %s\n", sd->msg);
 
    if (start) {
+      /* Send data -- not much */
       stat = sd->fsend("%ld 1 %d %s%c", jcr->JobFiles+1, sp->portable, sp->cmd, 0);
    } else {
-      stat = sd->fsend("%ld 0");
+      /* Send end of data */
+      stat = sd->fsend("0 0");
    }
    if (!stat) {
       Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
@@ -246,17 +249,17 @@ void plugin_name_stream(JCR *jcr, char *name)
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
    skip_spaces(&p);
    start = *p == '1';
-   skip_nonspaces(&p);             /* skip start/end flag */
-   skip_spaces(&p);
-   portable = *p == '1';
-   skip_nonspaces(&p);             /* skip portable flag */
-   skip_spaces(&p);
-   cmd = p;
-    
-   /* Check for restore end */
-   if (!start) {
+   if (start) {
+      /* Start of plugin data */
+      skip_nonspaces(&p);          /* skip start/end flag */
+      skip_spaces(&p);
+      portable = *p == '1';
+      skip_nonspaces(&p);          /* skip portable flag */
+      skip_spaces(&p);
+      cmd = p;
+   } else {
       /*
-       * If end of restore, notify plugin, then clear flags   
+       * End of plugin data, notify plugin, then clear flags   
        */
       plugin = (Plugin *)jcr->plugin;
       plug_func(plugin)->endRestoreFile(&plugin_ctx_list[i]);
@@ -359,6 +362,10 @@ bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
    return true;
 }
 
+/*
+ * This entry point is called internally by Bacula to ensure
+ *  that the plugin IO calls come into this code.
+ */
 void load_fd_plugins(const char *plugin_dir)
 {
    Plugin *plugin;

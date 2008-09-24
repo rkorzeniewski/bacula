@@ -49,10 +49,20 @@
 #endif
 
 #include <sys/types.h>
-#ifndef __CONFIG_H
-#define __CONFIG_H
-#include "config.h"
+
+#if defined(HAVE_WIN32)
+#if defined(HAVE_MINGW)
+#include "mingwconfig.h"
+#else
+#include "winconfig.h"
 #endif
+#else
+#ifndef __CONFIG_H
+#include "config.h"
+#define __CONFIG_H
+#endif
+#endif
+
 #include "bc_types.h"
 #include "lib/plugins.h"
 #include <sys/stat.h>
