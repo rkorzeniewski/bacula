@@ -19,6 +19,9 @@ remove reader/writer in FOPTS????
 
 General:
 24Sep08
+kes  This code should fix the race condition that leads to a Director
+     crash at job end time when the job list is updated. This was reported
+     in bug #1162.
 kes  Add more plugin documentation and fix include of config.h for
      Win32 build (I hope).
 22Sep08

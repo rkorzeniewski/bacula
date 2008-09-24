@@ -753,10 +753,10 @@ static int get_job_to_migrate(JCR *jcr)
                goto bail_out;
             }
             pool_bytes -= ctx.value;
-            Dmsg1(dbglevel, "Total migrate Job bytes=%s\n", edit_int64(ctx.value, ed1));
+            Dmsg1(dbglevel, "Total migrate Job bytes=%s\n", edit_int64_with_commas(ctx.value, ed1));
             Dmsg2(dbglevel, "lowbytes=%s poolafter=%s\n", 
-                  edit_int64(jcr->rpool->MigrationLowBytes, ed1),
-                  edit_int64(pool_bytes, ed2));
+                  edit_int64_with_commas(jcr->rpool->MigrationLowBytes, ed1),
+                  edit_int64_with_commas(pool_bytes, ed2));
             if (pool_bytes <= (int64_t)jcr->rpool->MigrationLowBytes) {
                Dmsg0(dbglevel, "We should be done.\n");
                break;
