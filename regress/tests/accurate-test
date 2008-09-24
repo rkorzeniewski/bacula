@@ -7,6 +7,7 @@
 # Run a accurate backup of the Bacula build directory
 #   then restore it.
 #
+
 TestName="accurate-test"
 JobName=backup
 . scripts/functions
@@ -90,6 +91,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 4
 
 rm -rf ${cwd}/tmp/bacula-restores
 
@@ -104,6 +106,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 3
 
 rm -rf ${cwd}/tmp/bacula-restores
 
@@ -117,6 +120,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 2
 
 rm -rf ${cwd}/tmp/bacula-restores
 
@@ -130,6 +134,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 2
 
 rm -rf ${cwd}/tmp/bacula-restores
 
@@ -143,6 +148,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 2
 
 rm -rf ${cwd}/tmp/bacula-restores
 
@@ -240,6 +246,7 @@ touch ${cwd}/build/accurate/bbbbbb
 
 run_bconsole
 check_for_zombie_jobs storage=File
+check_files_written ${cwd}/tmp/log1.out 3
 
 check_two_logs
 check_restore_diff
@@ -359,6 +366,7 @@ check_for_zombie_jobs storage=File
 
 check_two_logs
 check_restore_diff
+check_files_written ${cwd}/tmp/log1.out 1
 
 rm -rf ${cwd}/tmp/bacula-restores
 
