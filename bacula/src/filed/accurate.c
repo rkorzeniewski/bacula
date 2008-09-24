@@ -62,7 +62,7 @@ static bool accurate_lookup(JCR *jcr, char *fname, CurFile *ret)
    if (temp) {
       memcpy(ret, temp, sizeof(CurFile));
       found=true;
-//      Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
+      Dmsg1(dbglvl, "lookup <%s> ok\n", fname);
    }
 
    return found;
@@ -99,7 +99,7 @@ bool accurate_send_deleted_list(JCR *jcr)
 
    foreach_htable(elt, jcr->file_list) {
       if (!elt->seen) { /* already seen */
-//         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
+         Dmsg2(dbglvl, "deleted fname=%s seen=%i\n", elt->fname, elt->seen);
          ff_pkt->fname = elt->fname;
          ff_pkt->statp.st_mtime = elt->mtime;
          ff_pkt->statp.st_ctime = elt->ctime;
@@ -138,7 +138,7 @@ static bool accurate_add_file(JCR *jcr, char *fname, char *lstat)
    strcpy(item->fname, fname);
    jcr->file_list->insert(item->fname, item); 
 
-//   Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
+   Dmsg2(dbglvl, "add fname=<%s> lstat=%s\n", fname, lstat);
    return ret;
 }
 
@@ -179,11 +179,13 @@ bool accurate_check_file(JCR *jcr, FF_PKT *ff_pkt)
 
    if (elt.mtime != ff_pkt->statp.st_mtime) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_mtime differs\n"), fname);
-     Dmsg1(dbglvl, "%s      st_mtime differs\n", fname);
+      Dmsg3(dbglvl, "%s      st_mtime differs (%i!=%i)\n", 
+            fname, elt.mtime, ff_pkt->statp.st_mtime);
      stat = true;
    } else if (elt.ctime != ff_pkt->statp.st_ctime) {
 //   Jmsg(jcr, M_SAVED, 0, _("%s      st_ctime differs\n"), fname);
-     Dmsg1(dbglvl, "%s      st_ctime differs\n", fname);
+      Dmsg3(dbglvl, "%s      st_ctime differs\n", 
+            fname, elt.ctime, ff_pkt->statp.st_ctime);
      stat = true;
    }
 
