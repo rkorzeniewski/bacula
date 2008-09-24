@@ -98,6 +98,18 @@ print_debug()
    fi
 }
 
+check_files_written()
+{
+    LOG=$1
+    NB=$2
+    FILES=`awk '/FD Files Written:/ { last=$4 } END { print last }' $LOG`
+
+    if [ "$NB" != "$FILES" ]; then
+        print_debug "Expect $NB files, get $FILES"
+        bstat=2
+    fi
+}
+
 run_bacula()
 {
    debug_wait
@@ -187,13 +199,13 @@ change_jobname()
 check_two_logs()
 {
    grep "^  Termination: *Backup OK" tmp/log1.out 2>&1 >/dev/null
-   bstat=$?
+   bstat=${bstat-$?}
    grep "^  Termination: .*Backup Error" tmp/log1.out 2>&1 >/dev/null
    if test $? -eq 0; then
       bstat=2
    fi
    grep "^  Termination: *Restore OK" tmp/log2.out 2>&1 >/dev/null
-   rstat=$?
+   rstat=${rstat-$?}
    grep "^  Termination: .*Restore Error" tmp/log2.out 2>&1 >/dev/null
    if test $? -eq 0; then
       rstat=2
