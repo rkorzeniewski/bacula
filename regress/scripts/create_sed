@@ -24,6 +24,7 @@ os=`uname -s`-`./scripts/get-os`
 dbengine=`echo ${WHICHDB} | sed -e 's/--with-//' -e 's/=.*//'`
 bversion=`sed -n -e 's/^.*VERSION.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
 bdate=`sed -n -e 's/^.*LSMDATE.*"\(.*\)"$/\1/p' ${srcdir}/src/version.h`
+builddir="${cwd}/build"
 
 # Create sed command script
 echo "s%@sbindir@%${cwd}/bin%g" >${out}
@@ -71,3 +72,4 @@ echo "s%@win32_password@%${WIN32_PASSWORD}%g" >>${out}
 echo "s%@db_name@%${db_name}%g" >>${out}
 echo "s%@db_user@%${db_user}%g" >>${out}
 echo "s%@db_password@%${db_password}%g" >>${out}
+echo "s%@builddir@%${builddir}%g" >>${out}

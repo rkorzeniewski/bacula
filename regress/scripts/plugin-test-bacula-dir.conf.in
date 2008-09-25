@@ -19,7 +19,7 @@ Director {                            # define myself
   WorkingDirectory = "@working_dir@"
   PidDirectory = "@piddir@"
   SubSysDirectory = "@subsysdir@"
-  PluginDirectory = "@sbindir@"
+  PluginDirectory = "@sbindir@/plugins"
   Maximum Concurrent Jobs = 4
   Password = "pNvX1WiXnwv2C/F7E52LGvw6rKjbbPvu2kyuPa9pVaL3"         # Console password
   Messages = Standard
@@ -114,15 +114,14 @@ Job {
 }
 
 Job {
-  Name = "FIFOTest"
+  Name = "pluginTest"
   Type = Backup
   Client=@hostname@-fd 
-  FileSet="FIFOSet"
+  FileSet="pluginSet"
   Storage = File
   Messages = Standard
   Pool = Default
   Write Bootstrap = "@working_dir@/NightlySave.bsr"
-  ClientRunBeforeJob = "/bin/sleep 60"
 }
 
 
@@ -216,13 +215,14 @@ FileSet {
 }
 
 FileSet {
-  Name = "FIFOSet"
+  Name = "pluginSet"
   Include {
     Options {
       readfifo = yes
       signature=MD5 
     }
     File = <@tmpdir@/file-list
+    Plugin = "bpipe:/@bpipe@/encrypt-bug.jpg:cat @builddir@/../encrypt-bug.jpg:cat >@tmpdir@/encrypt-bug.jpg"
   }
 }
 
