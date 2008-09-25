@@ -1007,6 +1007,22 @@ AC_SUBST(scriptdir)
 
 
 # ------------------------------------------
+# Where to place plugindir (script files)
+# ------------------------------------------
+plugindir=`eval echo ${sysconfdir}`
+AC_ARG_WITH(plugindir,
+   [  --with-plugindir=PATH    specify path of Bacula plugins directory],
+   [
+       if test "x$withval" != "xno" ; then     
+	      plugindir=$withval
+       fi
+   ]
+)
+
+AC_SUBST(plugindir)
+
+
+# ------------------------------------------
 # Where to send dump email
 # ------------------------------------------
 dump_email=root@localhost
