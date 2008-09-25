@@ -2,9 +2,6 @@
 /* ------------------------------------------------------------------------- */
 /* --                     CONFIGURE SPECIFIED FEATURES                    -- */
 /* ------------------------------------------------------------------------- */
-
-/* Define if you want to use Berkeley DB as accurate backend */
-#undef USE_DB
    
 /* Define if you want to use MySQL as Catalog database */
 #undef USE_MYSQL_DB
@@ -307,6 +304,9 @@
 
 /* Set if you have the DBI driver */
 #undef HAVE_DBI
+
+/* Define to 1 if you have the <db.h> header file. */
+#undef HAVE_DB_H
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -869,6 +869,9 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
+
+/* Set if DB Berkeley is used for accurate backup */
+#undef USE_DB
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
