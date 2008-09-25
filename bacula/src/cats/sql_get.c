@@ -1062,7 +1062,8 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
    return db_sql_query(mdb, buf.c_str(), result_handler, ctx);
 }
 
-/* Full : do nothing
+/* The decision do change an incr/diff was done before
+ * Full : do nothing
  * Differential : get the last full id
  * Incremental : get the last full + last diff + last incr(s) ids
  *
@@ -1071,6 +1072,7 @@ bool db_get_file_list(JCR *jcr, B_DB *mdb, char *jobids,
 bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb, 
                             JOB_DBR *jr, POOLMEM *jobids)
 {
+   bool ret=false;
    char clientid[50], jobid[50], filesetid[50];
    char date[MAX_TIME_LENGTH];
    POOL_MEM query(PM_FNAME);
@@ -1079,7 +1081,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
 
    /* First, find the last good Full backup for this job/client/fileset */
    Mmsg(query, 
-"CREATE TEMPORARY TABLE btemp3%s AS "
+"CREATE TABLE btemp3%s AS "
  "SELECT JobId, StartTime, EndTime, JobTDate, PurgedFiles "
    "FROM Job JOIN FileSet USING (FileSetId) "
   "WHERE ClientId = %s "
@@ -1093,7 +1095,7 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
         edit_uint64(jr->FileSetId, filesetid));
 
    if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
-      return false;
+      goto bail_out;
    }
 
    if (jr->JobLevel == L_INCREMENTAL || jr->JobLevel == L_VIRTUAL_FULL) {
@@ -1112,7 +1114,9 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
            jobid,
            filesetid);
 
-      db_sql_query(mdb, query.c_str(), NULL, NULL);
+      if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
+         goto bail_out;
+      }
 
       /* We just have to take all incremental after the last Full/Diff */
       Mmsg(query, 
@@ -1128,18 +1132,22 @@ bool db_accurate_get_jobids(JCR *jcr, B_DB *mdb,
            clientid,
            jobid,
            filesetid);
-      db_sql_query(mdb, query.c_str(), NULL, NULL);
+      if (!db_sql_query(mdb, query.c_str(), NULL, NULL)) {
+         goto bail_out;
+      }
    }
 
    /* build a jobid list ie: 1,2,3,4 */
    Mmsg(query, "SELECT JobId FROM btemp3%s", jobid);
    db_sql_query(mdb, query.c_str(), db_get_int_handler, jobids);
    Dmsg1(1, "db_accurate_get_jobids=%s\n", jobids);
+   ret = true;
 
+bail_out:
    Mmsg(query, "DROP TABLE btemp3%s", jobid);
    db_sql_query(mdb, query.c_str(), NULL, NULL);
 
-   return true;
+   return ret;
 }
 
 /*
