@@ -454,6 +454,7 @@ _Z13is_name_validPcPS_
 _Z13str_to_uint64Pc
 _Z14size_to_uint64PciPy
 _Z17duration_to_utimePcPx
+_Z22edit_int64_with_commasxPc
 _Z23edit_uint64_with_commasyPc
 _Z23edit_uint64_with_suffixyPc
  
