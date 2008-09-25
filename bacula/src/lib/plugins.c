@@ -58,7 +58,6 @@ Plugin *new_plugin()
 bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char *type)
 {
    bool found = false;
-//#ifndef HAVE_WIN32
    t_loadPlugin loadPlugin;
    Plugin *plugin;
    DIR* dp = NULL;
@@ -77,7 +76,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
 
    if (!(dp = opendir(plugin_dir))) {
       berrno be;
-      Jmsg(NULL, M_ERROR, 0, _("Failed to open Plugin directory %s: ERR=%s\n"), 
+      Jmsg(NULL, M_ERROR_TERM, 0, _("Failed to open Plugin directory %s: ERR=%s\n"), 
             plugin_dir, be.bstrerror());
       goto get_out;
    }
@@ -90,7 +89,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
    for ( ;; ) {
       if ((readdir_r(dp, entry, &result) != 0) || (result == NULL)) {
          if (!found) {
-            Jmsg(NULL, M_INFO, 0, _("Failed to find any plugins in %s\n"), 
+            Jmsg(NULL, M_WARNING, 0, _("Failed to find any plugins in %s\n"), 
                   plugin_dir);
          }
          break;
@@ -153,7 +152,6 @@ get_out:
    if (dp) {
       closedir(dp);
    }
-//#endif
    return found;
 }
 
@@ -162,7 +160,6 @@ get_out:
  */
 void unload_plugins()
 {
-//#ifndef HAVE_WIN32
    Plugin *plugin;
 
    if (!plugin_list) {
@@ -179,5 +176,4 @@ void unload_plugins()
    }
    delete plugin_list;
    plugin_list = NULL;
-//#endif
 }

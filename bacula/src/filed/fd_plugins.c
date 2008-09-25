@@ -35,7 +35,11 @@
 #include "filed.h"
 
 const int dbglvl = 50;
+#ifdef HAVE_WIN32
+const char *plugin_type = "-fd.dll";
+#else
 const char *plugin_type = "-fd.so";
+#endif
 
 extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
@@ -90,7 +94,7 @@ void generate_plugin_event(JCR *jcr, bEventType eventType, void *value)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
+   if (!plugin_list || !jcr->plugin_ctx_list) {
       return;                         /* Return if no plugins loaded */
    }
 
@@ -136,7 +140,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    struct save_pkt sp;
    bEvent event;
 
-   if (!plugin_list) {
+   if (!plugin_list || !jcr->plugin_ctx_list) {
       return 1;                            /* Return if no plugins loaded */
    }
 
@@ -244,6 +248,9 @@ void plugin_name_stream(JCR *jcr, char *name)
    int len;
    int i = 0;
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
+   if (!plugin_ctx_list) {
+      goto bail_out;
+   }
 
    Dmsg1(100, "Read plugin stream string=%s\n", name);
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
@@ -375,7 +382,14 @@ void load_fd_plugins(const char *plugin_dir)
    }
 
    plugin_list = New(alist(10, not_owned_by_alist));
-   load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type);
+   if (!load_plugins((void *)&binfo, (void *)&bfuncs, plugin_dir, plugin_type)) {
+      /* Either none found, or some error */
+      if (plugin_list->size() == 0) {
+         delete plugin_list;
+         plugin_list = NULL;
+         return;
+      }
+   }
 
    /* Plug entry points called from findlib */
    plugin_bopen  = my_plugin_bopen;
@@ -391,6 +405,8 @@ void load_fd_plugins(const char *plugin_dir)
 
 /*
  * Create a new instance of each plugin for this Job
+ *   Note, plugin_list can exist but jcr->plugin_ctx_list can
+ *   be NULL if no plugins were loaded.
  */
 void new_plugins(JCR *jcr)
 {
@@ -427,8 +443,8 @@ void free_plugins(JCR *jcr)
    Plugin *plugin;
    int i = 0;
 
-   if (!plugin_list) {
-      return;
+   if (!plugin_list || !jcr->plugin_ctx_list) {
+      return;                         /* no plugins, nothing to do */
    }
 
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
