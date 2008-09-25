@@ -109,14 +109,14 @@ static int check_idx_handler(void *ctx, int num_fields, char **row);
 /* Global variables */
 static const char *idx_tmp_name;
 
-
 static void usage()
 {
    fprintf(stderr,
-"Usage: dbcheck [-c config] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>] [<dbport>]\n"
+"Usage: dbcheck [-c config ] [-B] [-C catalog name] [-d debug_level] <working-directory> <bacula-database> <user> <password> [<dbhost>] [<dbport>]\n"
 "       -b              batch mode\n"
 "       -C              catalog name in the director conf file\n"
 "       -c              Director conf filename\n"
+"       -B              print catalog configuration and exit\n"
 "       -d <nn>         set debug level to <nn>\n"
 "       -dt             print timestamp in debug output\n"
 "       -f              fix inconsistencies\n"
@@ -130,6 +130,7 @@ int main (int argc, char *argv[])
    int ch;
    const char *user, *password, *db_name, *dbhost;
    int dbport = 0;
+   bool print_catalog=false;
    char *configfile = NULL;
    char *catalogname = NULL;
    char *endptr;
@@ -144,8 +145,12 @@ int main (int argc, char *argv[])
    memset(&id_list, 0, sizeof(id_list));
    memset(&name_list, 0, sizeof(name_list));
 
-   while ((ch = getopt(argc, argv, "bc:C:d:fv?")) != -1) {
+   while ((ch = getopt(argc, argv, "bc:C:d:fvB?")) != -1) {
       switch (ch) {
+      case 'B':
+         print_catalog = true;     /* get catalog information from config */
+         break;
+
       case 'b':                    /* batch */
          batch = true;
          break;
@@ -223,6 +228,16 @@ int main (int argc, char *argv[])
             exit(1);
          }
          set_working_directory(director->working_directory);
+
+         /* Print catalog information and exit (-B) */
+         if (print_catalog) {
+            POOLMEM *buf = get_pool_memory(PM_MESSAGE);
+            printf("%sdb_type=%s\nworking_dir=%s\n", catalog->display(buf),
+                   db_get_type(), working_directory);
+            free_pool_memory(buf);
+            exit(0);
+         }
+
          db_name = catalog->db_name;
          user = catalog->db_user;
          password = catalog->db_password;

@@ -507,6 +507,16 @@ struct s_kw ReplaceOptions[] = {
    {NULL,               0}
 };
 
+char *CAT::display(POOLMEM *dst) {
+   Mmsg(dst,"catalog=%s\ndb_name=%s\ndb_driver=%s\ndb_user=%s\n"
+        "db_password=%s\ndb_address=%s\ndb_port=%i\n"
+        "db_socket=%s\n",
+        name(), NPRTB(db_name),
+        NPRTB(db_driver), NPRTB(db_user), NPRTB(db_password),
+        NPRTB(db_address), db_port, NPRTB(db_socket));
+   return dst;
+}
+
 const char *level_to_str(int level)
 {
    int i;

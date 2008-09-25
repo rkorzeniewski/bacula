@@ -79,7 +79,8 @@
 
 /* Allow printing of NULL pointers */
 #define NPRT(x) (x)?(x):_("*None*")
- 
+#define NPRTB(x) (x)?(x):""
+
 #if defined(HAVE_WIN32)
 
 #define WIN32_REPARSE_POINT 1
