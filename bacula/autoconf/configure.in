@@ -1281,9 +1281,9 @@ AC_SUBST(db_password)
 #
 db_port=" "
 AC_ARG_WITH(db_port,
-    [  --with-db-port=DBPORT            specify a database port (default null)],
+    [  --with-db-port=DBPORT		specify a database port (default null)],
     [
-        if test "x$withval" != "x" ; then
+	if test "x$withval" != "x" ; then
 	     db_port=$withval
 	fi
     ]
@@ -2356,6 +2356,7 @@ AC_OUTPUT([autoconf/Make.common \
 	   src/cats/drop_bacula_database \
 	   src/findlib/Makefile \
 	   src/tools/Makefile \
+	   src/plugins/fd/Makefile \
 	   po/Makefile.in \
 	   updatedb/update_mysql_tables_10_to_11 \
 	   updatedb/update_sqlite3_tables_10_to_11 \
@@ -2472,70 +2473,70 @@ fi
 echo "
 Configuration on `date`:
 
-  Host:                       $host -- ${DISTNAME} ${DISTVER}
-  Bacula version:             ${VERSION} (${DATE})
+  Host: 		      $host -- ${DISTNAME} ${DISTVER}
+  Bacula version:	      ${VERSION} (${DATE})
   Source code location:       ${srcdir}
-  Install binaries:           ${sbindir}
+  Install binaries:	      ${sbindir}
   Install config files:       ${sysconfdir}
-  Scripts directory:          ${scriptdir}
-  Archive directory:          ${archivedir}
-  Working directory:          ${working_dir}
-  PID directory:              ${piddir}
-  Subsys directory:           ${subsysdir}
-  Man directory:              ${mandir}
-  Data directory:             ${datadir}
-  C Compiler:                 ${CC} ${CCVERSION}
-  C++ Compiler:               ${CXX} ${CXXVERSION}
-  Compiler flags:             ${WCFLAGS} ${CFLAGS} 
-  Linker flags:               ${WLDFLAGS} ${LDFLAGS}
-  Libraries:                  ${LIBS}
+  Scripts directory:	      ${scriptdir}
+  Archive directory:	      ${archivedir}
+  Working directory:	      ${working_dir}
+  PID directory:	      ${piddir}
+  Subsys directory:	      ${subsysdir}
+  Man directory:	      ${mandir}
+  Data directory:	      ${datadir}
+  C Compiler:		      ${CC} ${CCVERSION}
+  C++ Compiler: 	      ${CXX} ${CXXVERSION}
+  Compiler flags:	      ${WCFLAGS} ${CFLAGS} 
+  Linker flags: 	      ${WLDFLAGS} ${LDFLAGS}
+  Libraries:		      ${LIBS}
   Statically Linked Tools:    ${support_static_tools}
   Statically Linked FD:       ${support_static_fd}
   Statically Linked SD:       ${support_static_sd}
   Statically Linked DIR:      ${support_static_dir}
   Statically Linked CONS:     ${support_static_cons}
-  Database type:              ${db_type}
-  Database port:              ${db_port}
-  Database lib:               ${DB_LIBS}
-  Database name:              ${db_name}
-  Database user:              ${db_user}
+  Database type:	      ${db_type}
+  Database port:	      ${db_port}
+  Database lib: 	      ${DB_LIBS}
+  Database name:	      ${db_name}
+  Database user:	      ${db_user}
 
-  Job Output Email:           ${job_email}
-  Traceback Email:            ${dump_email}
-  SMTP Host Address:          ${smtp_host}
+  Job Output Email:	      ${job_email}
+  Traceback Email:	      ${dump_email}
+  SMTP Host Address:	      ${smtp_host}
 
-  Director Port:              ${dir_port}
-  File daemon Port:           ${fd_port}
-  Storage daemon Port:        ${sd_port}
+  Director Port:	      ${dir_port}
+  File daemon Port:	      ${fd_port}
+  Storage daemon Port:	      ${sd_port}
 
-  Director User:              ${dir_user}
-  Director Group:             ${dir_group}
-  Storage Daemon User:        ${sd_user}
-  Storage DaemonGroup:        ${sd_group}
-  File Daemon User:           ${fd_user}
-  File Daemon Group:          ${fd_group}
+  Director User:	      ${dir_user}
+  Director Group:	      ${dir_group}
+  Storage Daemon User:	      ${sd_user}
+  Storage DaemonGroup:	      ${sd_group}
+  File Daemon User:	      ${fd_user}
+  File Daemon Group:	      ${fd_group}
 
   SQL binaries Directory      ${SQL_BINDIR}
 
-  Large file support:         $largefile_support
+  Large file support:	      $largefile_support
   Bacula conio support:       ${got_conio} ${CONS_LIBS}
-  readline support:           ${got_readline} ${PRTREADLINE_SRC}
+  readline support:	      ${got_readline} ${PRTREADLINE_SRC}
   TCP Wrappers support:       ${TCPW_MSG} ${WRAPLIBS}
-  TLS support:                ${support_tls}
-  Encryption support:         ${support_crypto} 
-  ZLIB support:               ${have_zlib}
-  enable-smartalloc:          ${support_smartalloc} 
-  bat support:                ${support_bat} ${QWT_LDFLAGS}
-  enable-gnome:               ${support_gnome} ${gnome_version}
-  enable-bwx-console:         ${support_wx_console} ${wx_version}
-  enable-tray-monitor:        ${support_tray_monitor}
-  client-only:                ${build_client_only}
-  build-dird:                 ${build_dird}
-  build-stored:               ${build_stored}
-  ACL support:                ${have_acl}
-  Python support:             ${support_python} ${PYTHON_LIBS}
+  TLS support:		      ${support_tls}
+  Encryption support:	      ${support_crypto} 
+  ZLIB support: 	      ${have_zlib}
+  enable-smartalloc:	      ${support_smartalloc} 
+  bat support:		      ${support_bat} ${QWT_LDFLAGS}
+  enable-gnome: 	      ${support_gnome} ${gnome_version}
+  enable-bwx-console:	      ${support_wx_console} ${wx_version}
+  enable-tray-monitor:	      ${support_tray_monitor}
+  client-only:		      ${build_client_only}
+  build-dird:		      ${build_dird}
+  build-stored: 	      ${build_stored}
+  ACL support:		      ${have_acl}
+  Python support:	      ${support_python} ${PYTHON_LIBS}
   Batch insert enabled:       ${support_batch_insert}
-  Berkeley DB support:        ${support_libdb} ${BDB_LIBS}
+  Berkeley DB support:	      ${support_libdb} ${BDB_LIBS}
 
   " > config.out
 
