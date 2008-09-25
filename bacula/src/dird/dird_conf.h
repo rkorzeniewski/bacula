@@ -236,6 +236,7 @@ public:
 
    /* Methods */
    char *name() const;
+   char *display(POOLMEM *dst);       /* Get catalog information */
 };
 
 inline char *CAT::name() const { return hdr.name; }
