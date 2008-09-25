@@ -808,6 +808,7 @@ OPENSSL_INC
 working_dir
 archivedir
 scriptdir
+plugindir
 dump_email
 job_email
 smtp_host
@@ -1506,6 +1507,7 @@ Optional Packages:
   --with-working-dir=PATH	 specify path of Bacula working directory
   --with-archivedir=PATH	specify path of SD archive directory
   --with-scriptdir=PATH    specify path of Bacula scripts directory
+  --with-plugindir=PATH    specify path of Bacula plugins directory
   --with-dump-email=EMAIL	 dump email address
   --with-job-email=EMAIL	 job output email address
   --with-smtp-host=HOST		 SMTP mail host address
@@ -21025,6 +21027,25 @@ fi
 
 
 # ------------------------------------------
+# Where to place plugindir (script files)
+# ------------------------------------------
+plugindir=`eval echo ${sysconfdir}`
+
+# Check whether --with-plugindir was given.
+if test "${with_plugindir+set}" = set; then
+  withval=$with_plugindir;
+       if test "x$withval" != "xno" ; then
+	      plugindir=$withval
+       fi
+
+
+fi
+
+
+
+
+
+# ------------------------------------------
 # Where to send dump email
 # ------------------------------------------
 dump_email=root@localhost
@@ -35781,6 +35802,7 @@ OPENSSL_INC!$OPENSSL_INC$ac_delim
 working_dir!$working_dir$ac_delim
 archivedir!$archivedir$ac_delim
 scriptdir!$scriptdir$ac_delim
+plugindir!$plugindir$ac_delim
 dump_email!$dump_email$ac_delim
 job_email!$job_email$ac_delim
 smtp_host!$smtp_host$ac_delim
@@ -35842,7 +35864,7 @@ DISTVER!$DISTVER$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 63; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 64; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
