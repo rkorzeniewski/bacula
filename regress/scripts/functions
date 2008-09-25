@@ -116,7 +116,7 @@ run_bacula()
    zstat=0
    if test "$debug" -eq 1 ; then
      bin/bacula-ctl-sd start
-     bin/bacula-ctl-fd start
+     bin/bacula-ctl-fd start $1
      bin/bacula-ctl-dir start
      cat tmp/bconcmds | bin/bconsole -c bin/bconsole.conf
      return $?
