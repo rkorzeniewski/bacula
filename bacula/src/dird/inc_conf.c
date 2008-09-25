@@ -57,9 +57,7 @@ static void store_plugin_name(LEX *lc, RES_ITEM *item, int index, int pass);
 static void options_res(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_base(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass);
 static void store_ignoredir(LEX *lc, RES_ITEM *item, int index, int pass);
-static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass);
 static void setup_current_opts(void);
 
 
@@ -119,8 +117,6 @@ static RES_ITEM options_items[] = {
    {"exclude",         store_opts,    {0},     0, 0, 0},
    {"aclsupport",      store_opts,    {0},     0, 0, 0},
    {"plugin",          store_plugin,  {0},     0, 0, 0},
-   {"reader",          store_reader,  {0},     0, 0, 0},
-   {"writer",          store_writer,  {0},     0, 0, 0},
    {"ignorecase",      store_opts,    {0},     0, 0, 0},
    {"fstype",          store_fstype,  {0},     0, 0, 0},
    {"hfsplussupport",  store_opts,    {0},     0, 0, 0},
@@ -504,38 +500,6 @@ static void store_plugin(LEX *lc, RES_ITEM *item, int index, int pass)
    }
    scan_to_eol(lc);
 }
-
-
-/* Store reader info */
-static void store_reader(LEX *lc, RES_ITEM *item, int index, int pass)
-{
-   int token;
-
-   token = lex_get_token(lc, T_NAME);
-   if (pass == 1) {
-      /*
-       * Pickup reader command
-       */
-      res_incexe.current_opts->reader = bstrdup(lc->str);
-   }
-   scan_to_eol(lc);
-}
-
-/* Store writer innfo */
-static void store_writer(LEX *lc, RES_ITEM *item, int index, int pass)
-{
-   int token;
-
-   token = lex_get_token(lc, T_NAME);
-   if (pass == 1) {
-      /*
-       * Pickup writer command
-       */
-      res_incexe.current_opts->writer = bstrdup(lc->str);
-   }
-   scan_to_eol(lc);
-}
-
 
 
 /* Store Wild-card info */
