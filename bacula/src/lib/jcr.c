@@ -55,14 +55,6 @@
 
 const int dbglvl = 3400;
 
-/*
- * Setting a NULL in tsd doesn't clear the tsd but instead tells
- *   pthreads not to call the tsd destructor. Consequently, we 
- *   define this *invalid* jcr address and stuff it in the tsd
- *   when the jcr is no longer valid.
- */
-#define INVALID_JCR ((JCR *)(-1))
-
 /* External variables we reference */
 extern time_t watchdog_time;
 

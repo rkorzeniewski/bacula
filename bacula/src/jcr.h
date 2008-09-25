@@ -411,6 +411,15 @@ public:
 };
 
 /*
+ * Setting a NULL in tsd doesn't clear the tsd but instead tells
+ *   pthreads not to call the tsd destructor. Consequently, we 
+ *   define this *invalid* jcr address and stuff it in the tsd
+ *   when the jcr is not valid.
+ */
+#define INVALID_JCR ((JCR *)(-1))
+
+
+/*
  * Structure for all daemons that keeps some summary
  *  info on the last job run.
  */

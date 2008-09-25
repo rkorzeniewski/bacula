@@ -33,6 +33,8 @@
 #include "bacula.h"
 #include "plugins.h"
 
+static const int dbglvl = 50;
+
 /* All loaded plugins */
 alist *plugin_list = NULL;
 
@@ -78,6 +80,8 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       berrno be;
       Jmsg(NULL, M_ERROR_TERM, 0, _("Failed to open Plugin directory %s: ERR=%s\n"), 
             plugin_dir, be.bstrerror());
+      Dmsg2(dbglvl, "Failed to open Plugin directory %s: ERR=%s\n", 
+            plugin_dir, be.bstrerror());
       goto get_out;
    }
    
@@ -91,6 +95,7 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
          if (!found) {
             Jmsg(NULL, M_WARNING, 0, _("Failed to find any plugins in %s\n"), 
                   plugin_dir);
+            Dmsg1(dbglvl, "Failed to find any plugins in %s\n", plugin_dir);
          }
          break;
       }
@@ -102,10 +107,10 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       len = strlen(result->d_name);
       type_len = strlen(type);
       if (len < type_len+1 || strcmp(&result->d_name[len-type_len], type) != 0) {
-         Dmsg3(100, "Rejected plugin: want=%s name=%s len=%d\n", type, result->d_name, len);
+         Dmsg3(dbglvl, "Rejected plugin: want=%s name=%s len=%d\n", type, result->d_name, len);
          continue;
       }
-      Dmsg2(100, "Loaded plugin: name=%s len=%d\n", result->d_name, len);
+      Dmsg2(dbglvl, "Loaded plugin: name=%s len=%d\n", result->d_name, len);
        
       pm_strcpy(fname, plugin_dir);
       if (need_slash) {
@@ -122,6 +127,8 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       if (!plugin->pHandle) {
          Jmsg(NULL, M_ERROR, 0, _("Plugin load %s failed: ERR=%s\n"), 
               fname.c_str(), NPRT(dlerror()));
+         Dmsg2(dbglvl, "Plugin load %s failed: ERR=%s\n", fname.c_str(), 
+               NPRT(dlerror()));
          goto get_out;
       }
 
@@ -130,11 +137,15 @@ bool load_plugins(void *binfo, void *bfuncs, const char *plugin_dir, const char 
       if (!loadPlugin) {
          Jmsg(NULL, M_ERROR, 0, _("Lookup of loadPlugin in plugin %s failed: ERR=%s\n"),
             fname.c_str(), NPRT(dlerror()));
+         Dmsg2(dbglvl, "Lookup of loadPlugin in plugin %s failed: ERR=%s\n", 
+            fname.c_str(), NPRT(dlerror()));
          goto get_out;
       }
       plugin->unloadPlugin = (t_unloadPlugin)dlsym(plugin->pHandle, "unloadPlugin");
       if (!plugin->unloadPlugin) {
          Jmsg(NULL, M_ERROR, 0, _("Lookup of unloadPlugin in plugin %s failed: ERR=%s\n"),
+            fname.c_str(), NPRT(dlerror()));
+         Dmsg2(dbglvl, "Lookup of unloadPlugin in plugin %s failed: ERR=%s\n",
             fname.c_str(), NPRT(dlerror()));
          goto get_out;
       }

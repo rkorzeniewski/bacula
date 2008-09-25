@@ -148,7 +148,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    event.eventType = bEventBackupCommand;
 
    /* Handle plugin command here backup */
-   Dmsg1(100, "plugin cmd=%s\n", cmd);
+   Dmsg1(dbglvl, "plugin cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
       Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
       goto bail_out;
@@ -159,12 +159,12 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    }
 
    foreach_alist(plugin, plugin_list) {
-      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      Dmsg3(dbglvl, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) != 0) {
          i++;
          continue;
       }
-      Dmsg1(100, "Command plugin = %s\n", cmd);
+      Dmsg1(dbglvl, "Command plugin = %s\n", cmd);
       /* Send the backup command */
       if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, cmd) != bRC_OK) {
          goto bail_out;
@@ -175,7 +175,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          sp.type = FT_REG;
          sp.portable = true;
          sp.cmd = cmd;
-         Dmsg3(000, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
+         Dmsg3(dbglvl, "startBackup st_size=%p st_blocks=%p sp=%p\n", &sp.statp.st_size, &sp.statp.st_blocks,
                 &sp);
          /* Get the file save parameters */
          if (plug_func(plugin)->startBackupFile(&plugin_ctx_list[i], &sp) != bRC_OK) {
@@ -188,7 +188,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          ff_pkt->fname = sp.fname;
          ff_pkt->type = sp.type;
          memcpy(&ff_pkt->statp, &sp.statp, sizeof(ff_pkt->statp));
-         Dmsg1(000, "Save_file: file=%s\n", ff_pkt->fname);
+         Dmsg1(dbglvl, "Save_file: file=%s\n", ff_pkt->fname);
          save_file(jcr, ff_pkt, true);
          if (plug_func(plugin)->endBackupFile(&plugin_ctx_list[i]) != bRC_More) {
             goto bail_out;
@@ -209,7 +209,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
    int stat;
    struct save_pkt *sp = (struct save_pkt *)jcr->plugin_sp;
   
-   Dmsg1(000, "send_plugin_name=%s\n", sp->cmd);
+   Dmsg1(dbglvl, "send_plugin_name=%s\n", sp->cmd);
    /* Send stream header */
    if (!sd->fsend("%ld %d 0", jcr->JobFiles+1, STREAM_PLUGIN_NAME)) {
      Jmsg1(jcr, M_FATAL, 0, _("Network send error to SD. ERR=%s\n"),
@@ -230,7 +230,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
             sd->bstrerror());
          return false;
    }
-   Dmsg1(000, "send: %s\n", sd->msg);
+   Dmsg1(dbglvl, "send: %s\n", sd->msg);
    sd->signal(BNET_EOD);            /* indicate end of plugin name data */
    return true;
 }
@@ -252,7 +252,7 @@ void plugin_name_stream(JCR *jcr, char *name)
       goto bail_out;
    }
 
-   Dmsg1(100, "Read plugin stream string=%s\n", name);
+   Dmsg1(dbglvl, "Read plugin stream string=%s\n", name);
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
    skip_spaces(&p);
    start = *p == '1';
@@ -279,7 +279,7 @@ void plugin_name_stream(JCR *jcr, char *name)
     * After this point, we are dealing with a restore start
     */
 
-   Dmsg1(100, "plugin restore cmd=%s\n", cmd);
+   Dmsg1(dbglvl, "plugin restore cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
       Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
       goto bail_out;
@@ -294,12 +294,12 @@ void plugin_name_stream(JCR *jcr, char *name)
     */
    foreach_alist(plugin, plugin_list) {
       bEvent event;
-      Dmsg3(100, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
+      Dmsg3(dbglvl, "plugin=%s cmd=%s len=%d\n", plugin->file, cmd, len);
       if (strncmp(plugin->file, cmd, len) != 0) {
          i++;
          continue;
       }
-      Dmsg1(100, "Restore Command plugin = %s\n", cmd);
+      Dmsg1(dbglvl, "Restore Command plugin = %s\n", cmd);
       event.eventType = bEventRestoreCommand;     
       if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], 
             &event, cmd) != bRC_OK) {
@@ -378,6 +378,7 @@ void load_fd_plugins(const char *plugin_dir)
    Plugin *plugin;
 
    if (!plugin_dir) {
+      Dmsg0(dbglvl, "plugin dir is NULL\n");
       return;
    }
 
@@ -387,6 +388,7 @@ void load_fd_plugins(const char *plugin_dir)
       if (plugin_list->size() == 0) {
          delete plugin_list;
          plugin_list = NULL;
+         Dmsg0(dbglvl, "No plugins loaded\n");
          return;
       }
    }
@@ -399,6 +401,8 @@ void load_fd_plugins(const char *plugin_dir)
    plugin_blseek = my_plugin_blseek;
    foreach_alist(plugin, plugin_list) {
       Jmsg(NULL, M_INFO, 0, _("Loaded plugin: %s\n"), plugin->file);
+      Dmsg1(dbglvl, "Loaded plugin: %s\n", plugin->file);
+
    }
 
 }
@@ -414,12 +418,14 @@ void new_plugins(JCR *jcr)
    int i = 0;
 
    if (!plugin_list) {
+      Dmsg0(dbglvl, "plugin list is NULL\n");
       return;
    }
 
    int num = plugin_list->size();
 
    if (num == 0) {
+      Dmsg0(dbglvl, "No plugins loaded\n");
       return;
    }
 
@@ -462,7 +468,7 @@ static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(000, "plugin_bopen\n");
+   Dmsg0(dbglvl, "plugin_bopen\n");
    io.func = IO_OPEN;
    io.count = 0;
    io.buf = NULL;
@@ -477,7 +483,7 @@ static int my_plugin_bclose(JCR *jcr)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(000, "plugin_bclose\n");
+   Dmsg0(dbglvl, "plugin_bclose\n");
    io.func = IO_CLOSE;
    io.count = 0;
    io.buf = NULL;
@@ -490,7 +496,7 @@ static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(000, "plugin_bread\n");
+   Dmsg0(dbglvl, "plugin_bread\n");
    io.func = IO_READ;
    io.count = count;
    io.buf = (char *)buf;
@@ -503,7 +509,7 @@ static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(000, "plugin_bwrite\n");
+   Dmsg0(dbglvl, "plugin_bwrite\n");
    io.func = IO_WRITE;
    io.count = count;
    io.buf = (char *)buf;
@@ -516,7 +522,7 @@ static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(000, "plugin_bseek\n");
+   Dmsg0(dbglvl, "plugin_bseek\n");
    io.func = IO_SEEK;
    io.offset = offset;
    io.whence = whence;

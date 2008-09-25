@@ -65,7 +65,7 @@ brwlock_t con_lock;                   /* Console lock structure */
 /* Forward referenced functions */
 
 /* Imported functions */
-
+void create_jcr_key();
 
 /* Static storage */
 
@@ -188,6 +188,10 @@ init_msg(JCR *jcr, MSGS *msg)
 
    if (jcr == NULL && msg == NULL) {
       init_last_jobs_list();
+      /* Create a daemon key then set invalid jcr */
+      /* Maybe we should give the daemon a jcr??? */
+      create_jcr_key();
+      set_jcr_in_tsd(INVALID_JCR);
    }
 
 #if !defined(HAVE_WIN32)
