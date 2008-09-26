@@ -110,13 +110,16 @@ enum {
 struct io_pkt {
    int32_t func;                      /* Function code */
    int32_t count;                     /* read/write count */
+   int32_t flags;                     /* Open flags */
    mode_t mode;                       /* permissions for created files */
-   int32_t flags;                     /* open flags (e.g. O_WRONLY ...) */
    char *buf;                         /* read/write buffer */
+   const char *fname;                 /* open filename */
    int32_t status;                    /* return status */
    int32_t io_errno;                  /* errno code */  
-   int32_t whence;
-   boffset_t offset;
+   int32_t lerror;                    /* Win32 error code */
+   int32_t whence;                    /* lseek argument */
+   boffset_t offset;                  /* lseek argument */
+   bool win32;                        /* Win32 GetLastError returned */
 };
 
 /****************************************************************************

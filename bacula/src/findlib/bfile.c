@@ -41,11 +41,11 @@
 
 const int dbglvl = 200;
 
-int       (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode) = NULL;
-int       (*plugin_bclose)(JCR *jcr) = NULL;
-ssize_t   (*plugin_bread)(JCR *jcr, void *buf, size_t count) = NULL;
-ssize_t   (*plugin_bwrite)(JCR *jcr, void *buf, size_t count) = NULL;
-boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence) = NULL;
+int       (*plugin_bopen)(BFILE *bfd, const char *fname, int flags, mode_t mode) = NULL;
+int       (*plugin_bclose)(BFILE *bfd) = NULL;
+ssize_t   (*plugin_bread)(BFILE *bfd, void *buf, size_t count) = NULL;
+ssize_t   (*plugin_bwrite)(BFILE *bfd, void *buf, size_t count) = NULL;
+boffset_t (*plugin_blseek)(BFILE *bfd, boffset_t offset, int whence) = NULL;
 
 
 #ifdef HAVE_DARWIN_OS
@@ -421,7 +421,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
    if (bfd->cmd_plugin && plugin_bopen) {
       int rtnstat;
       Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
-      rtnstat = plugin_bopen(bfd->jcr, fname, flags, mode);
+      rtnstat = plugin_bopen(bfd, fname, flags, mode);
       free_pool_memory(win32_fname_wchar);
       free_pool_memory(win32_fname);
       return rtnstat;
@@ -563,7 +563,7 @@ int bclose(BFILE *bfd)
    }
 
    if (bfd->cmd_plugin && plugin_bclose) {
-      stat = plugin_bclose(bfd->jcr);
+      stat = plugin_bclose(bfd);
       goto all_done;
    }
 
@@ -618,7 +618,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
    bfd->rw_bytes = 0;
 
    if (bfd->cmd_plugin && plugin_bread) {
-      return plugin_bread(bfd->jcr, buf, count);
+      return plugin_bread(bfd, buf, count);
    }
 
    if (bfd->use_backup_api) {
@@ -655,7 +655,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    bfd->rw_bytes = 0;
 
    if (bfd->cmd_plugin && plugin_bwrite) {
-      return plugin_bwrite(bfd->jcr, buf, count);
+      return plugin_bwrite(bfd, buf, count);
    }
 
    if (bfd->use_backup_api) {
@@ -698,7 +698,7 @@ boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
    DWORD dwResult;
 
    if (bfd->cmd_plugin && plugin_bwrite) {
-      return plugin_blseek(bfd->jcr, offset, whence);
+      return plugin_blseek(bfd, offset, whence);
    }
 
    dwResult = SetFilePointer(bfd->fh, offset_low, &offset_high, whence);
@@ -828,7 +828,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    if (bfd->cmd_plugin && plugin_bopen) {
       Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
-      return plugin_bopen(bfd->jcr, fname, flags, mode);
+      return plugin_bopen(bfd, fname, flags, mode);
    }
 
    /* Normal file open */
@@ -895,7 +895,7 @@ int bclose(BFILE *bfd)
    Dmsg1(400, "Close file %d\n", bfd->fid);
 
    if (bfd->cmd_plugin && plugin_bclose) {
-      stat = plugin_bclose(bfd->jcr);
+      stat = plugin_bclose(bfd);
       bfd->fid = -1;
       bfd->cmd_plugin = false;
    }
@@ -924,7 +924,7 @@ ssize_t bread(BFILE *bfd, void *buf, size_t count)
    ssize_t stat;
 
    if (bfd->cmd_plugin && plugin_bread) {
-      return plugin_bread(bfd->jcr, buf, count);
+      return plugin_bread(bfd, buf, count);
    }
 
    stat = read(bfd->fid, buf, count);
@@ -937,7 +937,7 @@ ssize_t bwrite(BFILE *bfd, void *buf, size_t count)
    ssize_t stat;
 
    if (bfd->cmd_plugin && plugin_bwrite) {
-      return plugin_bwrite(bfd->jcr, buf, count);
+      return plugin_bwrite(bfd, buf, count);
    }
    stat = write(bfd->fid, buf, count);
    bfd->berrno = errno;
@@ -954,7 +954,7 @@ boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
    boffset_t pos;
 
    if (bfd->cmd_plugin && plugin_bwrite) {
-      return plugin_blseek(bfd->jcr, offset, whence);
+      return plugin_blseek(bfd, offset, whence);
    }
    pos = (boffset_t)lseek(bfd->fid, offset, whence);
    bfd->berrno = errno;

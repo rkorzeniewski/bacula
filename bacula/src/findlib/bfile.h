@@ -107,7 +107,8 @@ HANDLE bget_handle(BFILE *bfd);
 struct BFILE {
    int fid;                           /* file id on Unix */
    int m_flags;                       /* open flags */
-   int berrno;
+   int berrno;                        /* errno */
+   int32_t lerror;                    /* not used - simplies Win32 builds */
    JCR *jcr;                          /* jcr for editing job codes */
    PROCESS_WIN32_BACKUPAPIBLOCK_CONTEXT win32DecompContext; /* context for decomposition of win32 backup streams */
    int use_backup_decomp;             /* set if using BackupRead Stream Decomposition */
