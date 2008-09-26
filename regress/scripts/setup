@@ -40,6 +40,7 @@ cd ../..
 make -j3
 check_exit_code
 make install
+mkdir -p ../bin/plugins
 check_exit_code
 cp src/tools/testls ../bin
 check_exit_code
