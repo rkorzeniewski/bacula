@@ -1,16 +1,16 @@
 #
 # Simple Makefile for building test FD plugins for Bacula
 #
-# Version $Id: $
+# Version $Id: Makefile.in 7638 2008-09-25 14:04:17Z kerns $
 #
 #
 # This file is pulled in by all the Unix Bacula Makefiles
 #   so it has all the "common" definitions
 #
 
-DATE="24 September 2008"
-LSMDATE=24Sep08
-VERSION=2.5.3
+DATE="25 September 2008"
+LSMDATE=25Sep08
+VERSION=2.5.4
 VERNAME=bacula-$(VERSION)#
 MAINT=Kern Sibbald#
 MAINTEMAIL=<kern@sibbald.com>#

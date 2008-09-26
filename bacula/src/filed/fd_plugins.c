@@ -44,11 +44,11 @@ const char *plugin_type = "-fd.so";
 extern int save_file(JCR *jcr, FF_PKT *ff_pkt, bool top_level);
 
 /* Function pointers to be set here */
-extern DLL_IMP_EXP int     (*plugin_bopen)(JCR *jcr, const char *fname, int flags, mode_t mode);
-extern DLL_IMP_EXP int     (*plugin_bclose)(JCR *jcr);
-extern DLL_IMP_EXP ssize_t (*plugin_bread)(JCR *jcr, void *buf, size_t count);
-extern DLL_IMP_EXP ssize_t (*plugin_bwrite)(JCR *jcr, void *buf, size_t count);
-extern DLL_IMP_EXP boffset_t (*plugin_blseek)(JCR *jcr, boffset_t offset, int whence);
+extern DLL_IMP_EXP int     (*plugin_bopen)(BFILE *bfd, const char *fname, int flags, mode_t mode);
+extern DLL_IMP_EXP int     (*plugin_bclose)(BFILE *bfd);
+extern DLL_IMP_EXP ssize_t (*plugin_bread)(BFILE *bfd, void *buf, size_t count);
+extern DLL_IMP_EXP ssize_t (*plugin_bwrite)(BFILE *bfd, void *buf, size_t count);
+extern DLL_IMP_EXP boffset_t (*plugin_blseek)(BFILE *bfd, boffset_t offset, int whence);
 
 
 /* Forward referenced functions */
@@ -60,11 +60,11 @@ static bRC baculaJobMsg(bpContext *ctx, const char *file, int line,
 static bRC baculaDebugMsg(bpContext *ctx, const char *file, int line,
   int level, const char *fmt, ...);
 
-static int     my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode);
-static int     my_plugin_bclose(JCR *jcr);
-static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count);
-static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count);
-static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence);
+static int     my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode);
+static int     my_plugin_bclose(BFILE *bfd);
+static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count);
+static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count);
+static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence);
 
 
 /* Bacula info */
@@ -463,8 +463,9 @@ void free_plugins(JCR *jcr)
    jcr->plugin_ctx_list = NULL;
 }
 
-static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
+static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
+   JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
@@ -472,14 +473,25 @@ static int my_plugin_bopen(JCR *jcr, const char *fname, int flags, mode_t mode)
    io.func = IO_OPEN;
    io.count = 0;
    io.buf = NULL;
-   io.mode = mode;
+   io.fname = fname;
    io.flags = flags;
+   io.mode = mode;
+   io.win32 = false;
+   io.lerror = 0;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   bfd->berrno = io.io_errno;
+   if (io.win32) {
+      errno = b_errno_win32;
+   } else {
+      errno = io.io_errno;
+      bfd->lerror = io.lerror;
+   }
    return io.status;
 }
 
-static int my_plugin_bclose(JCR *jcr)
+static int my_plugin_bclose(BFILE *bfd)
 {
+   JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
@@ -487,12 +499,22 @@ static int my_plugin_bclose(JCR *jcr)
    io.func = IO_CLOSE;
    io.count = 0;
    io.buf = NULL;
+   io.win32 = false;
+   io.lerror = 0;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   bfd->berrno = io.io_errno;
+   if (io.win32) {
+      errno = b_errno_win32;
+   } else {
+      errno = io.io_errno;
+      bfd->lerror = io.lerror;
+   }
    return io.status;
 }
 
-static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count)
+static ssize_t my_plugin_bread(BFILE *bfd, void *buf, size_t count)
 {
+   JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
@@ -500,12 +522,22 @@ static ssize_t my_plugin_bread(JCR *jcr, void *buf, size_t count)
    io.func = IO_READ;
    io.count = count;
    io.buf = (char *)buf;
+   io.win32 = false;
+   io.lerror = 0;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   bfd->berrno = io.io_errno;
+   if (io.win32) {
+      errno = b_errno_win32;
+   } else {
+      errno = io.io_errno;
+      bfd->lerror = io.lerror;
+   }
    return (ssize_t)io.status;
 }
 
-static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
+static ssize_t my_plugin_bwrite(BFILE *bfd, void *buf, size_t count)
 {
+   JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
@@ -513,12 +545,22 @@ static ssize_t my_plugin_bwrite(JCR *jcr, void *buf, size_t count)
    io.func = IO_WRITE;
    io.count = count;
    io.buf = (char *)buf;
+   io.win32 = false;
+   io.lerror = 0;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   bfd->berrno = io.io_errno;
+   if (io.win32) {
+      errno = b_errno_win32;
+   } else {
+      errno = io.io_errno;
+      bfd->lerror = io.lerror;
+   }
    return (ssize_t)io.status;
 }
 
-static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence)
+static boffset_t my_plugin_blseek(BFILE *bfd, boffset_t offset, int whence)
 {
+   JCR *jcr = bfd->jcr;
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
@@ -526,7 +568,16 @@ static boffset_t my_plugin_blseek(JCR *jcr, boffset_t offset, int whence)
    io.func = IO_SEEK;
    io.offset = offset;
    io.whence = whence;
+   io.win32 = false;
+   io.lerror = 0;
    plug_func(plugin)->pluginIO(plugin_ctx, &io);
+   bfd->berrno = io.io_errno;
+   if (io.win32) {
+      errno = b_errno_win32;
+   } else {
+      errno = io.io_errno;
+      bfd->lerror = io.lerror;
+   }
    return (boffset_t)io.offset;
 }
 
