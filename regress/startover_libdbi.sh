@@ -4,8 +4,9 @@
 
 PWD=`pwd`
 
-CATALOG_MODE="postgresql postgresql-batchinsert postgresql-dbi postgresql-dbi-batchinsert \
-              mysql mysql-batchinsert mysql-dbi mysql-dbi-batchinsert"
+CATALOG_MODE="mysql-dbi mysql-dbi-batchinsert"
+#"postgresql postgresql-batchinsert postgresql-dbi postgresql-dbi-batchinsert \
+#              mysql mysql-batchinsert mysql-dbi mysql-dbi-batchinsert"
 
 for CT in $CATALOG_MODE ; do
 
@@ -21,29 +22,35 @@ for CT in $CATALOG_MODE ; do
 
    if test "$WITHOUT_DBI" = "" ; then
 
-     _WHICHDB="WHICHDB=\"--disable-nls --with-${CATALOG} ${ENABLE_BATCH_INSERT}\""
+     _WHICHDB="WHICHDB=\"--with-${CATALOG}\""
+     _OPENSSL="OPENSSL=\"--with-openssll --disable-nls ${ENABLE_BATCH_INSERT}\""
      _LIBDBI="#LIBDBI"
    else 
-     if test "$CATALOG" = "mysql" ; then
-        DBPORT=3306
-     else
-        DBPORT=5432
-     fi
+      if test "$CATALOG" = "mysql" ; then
+         DBPORT=3306
+      elif test "$CATALOG" = "postgresql" ; then
+         DBPORT=5432
+      elif test "$CATALOG" = "sqlite" ; then
+         DBPORT=0
+      elif test "$CATALOG" = "sqlite3" ; then
+         DBPORT=0
+      fi
 
-     _WHICHDB="WHICHDB=\"--disable-nls --with-dbi --with-dbi-driver=${CATALOG} ${ENABLE_BATCH_INSERT} --with-db-port=${DBPORT}\""
-     _LIBDBI="LIBDBI=\"dbdriver = dbi:${CATALOG}; dbaddress = 127.0.0.1; dbport = ${DBPORT}\""
-
+      _WHICHDB="WHICHDB=\"--with-dbi\""
+      _OPENSSL="OPENSSL=\"--with-openssl --disable-nls ${ENABLE_BATCH_INSERT} --with-dbi-driver=${CATALOG} --with-db-port=${DBPORT}\""
+      _LIBDBI="LIBDBI=\"dbdriver = dbi:${CATALOG}; dbaddress = 127.0.0.1; dbport = ${DBPORT}\""
    fi
 
    _SITE_NAME="SITE_NAME=joaohf-bacula-${CT}"   
    
-   # subustitute config values
+   # substitute config values
    cp -a ${PWD}/config ${PWD}/config.tmp
 
    mkdir -p tmp
 
    echo "/^SITE_NAME/c $_SITE_NAME" >> tmp/config_sed
    echo "/^WHICHDB/c $_WHICHDB"  >> tmp/config_sed
+   echo "/^OPENSSL/c $_OPENSSL" >> tmp/config_sed
    echo "/^#LIBDBI/c $_LIBDBI" >> tmp/config_sed
    echo "/^LIBDBI/c $_LIBDBI" >> tmp/config_sed
 
@@ -51,10 +58,12 @@ for CT in $CATALOG_MODE ; do
    rm tmp/config_sed
 
    make setup
-   ./experimental-disk
-   echo "  ==== Submiting ${_SITE_NAME} ====" >> test.out
+   echo " ==== Starting ${_SITE_NAME} ====" >> test.out
+   
+   if test x"$1" = "xctest" ; then
+      ./experimental-disk
+   else 
+      ./all-disk-tests
+   fi
+   echo " ==== Submiting ${_SITE_NAME} ====" >> test.out
 done
-
-
-
-
