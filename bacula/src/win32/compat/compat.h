@@ -1,7 +1,7 @@
 /*
    Bacula® - The Network Backup Solution
 
-   Copyright (C) 2004-2007 Free Software Foundation Europe e.V.
+   Copyright (C) 2004-2008 Free Software Foundation Europe e.V.
 
    The main author of Bacula is Kern Sibbald, with contributions from
    many others, a complete list can be found in the file AUTHORS.
@@ -386,7 +386,7 @@ int win32_ftruncate(int fd, int64_t length);
 #define MAP_FAILED ((void *) -1)
 
 void *mmap(void *start, size_t length, int prot, int flags,
-	   int fd, off_t offset);
+           int fd, off_t offset);
 int munmap(void *start, size_t length);
 
 #endif /* __COMPAT_H_ */

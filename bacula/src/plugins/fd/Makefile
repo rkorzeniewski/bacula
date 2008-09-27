@@ -8,9 +8,9 @@
 #   so it has all the "common" definitions
 #
 
-DATE="25 September 2008"
-LSMDATE=25Sep08
-VERSION=2.5.4
+DATE="26 September 2008"
+LSMDATE=26Sep08
+VERSION=2.5.5
 VERNAME=bacula-$(VERSION)#
 MAINT=Kern Sibbald#
 MAINTEMAIL=<kern@sibbald.com>#
@@ -31,6 +31,7 @@ manprefix =
 datarootdir = ${prefix}/share
 sbindir = /home/kern/bacula/bin
 sysconfdir = /home/kern/bacula/bin
+plugindir = /home/kern/bacula/bin
 scriptdir = /home/kern/bacula/bin
 mandir = /home/kern/bacula/bin
 manext = 8
@@ -125,5 +126,16 @@ bpipe-fd.o: bpipe-fd.c ${FDDIR}/fd_plugins.h
 bpipe-fd.so: bpipe-fd.o 
 	$(CXX) $(LDFLAGS) -shared bpipe-fd.o -o bpipe-fd.so
 
+install: all
+	$(INSTALL_PROGRAM) bpipe-fd.so $(DESTDIR)$(plugindir)/bpipe-fd.so
+
 clean:
 	rm -f main *.so *.o 1 2 3
+
+distclean: clean
+	rm -f Makefile
+
+uninstall:
+	$(RMF) $(DESTDIR)$(plugindir)/bpipe-fd.so
+
+depend:

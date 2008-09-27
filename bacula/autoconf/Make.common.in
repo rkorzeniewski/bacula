@@ -26,6 +26,7 @@ manprefix =
 datarootdir = @datarootdir@
 sbindir = @sbindir@
 sysconfdir = @sysconfdir@
+plugindir = @plugindir@
 scriptdir = @scriptdir@
 mandir = @mandir@
 manext = 8

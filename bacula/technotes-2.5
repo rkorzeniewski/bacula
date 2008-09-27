@@ -17,6 +17,11 @@ dbdriver
 remove reader/writer in FOPTS????
 
 General:
+27Sep08
+kes  Implement build and install of bpipe-fd.so plugin.
+kes  Rework the interface that passes packets to the plugin
+     so that the packet is started and ended by the packet size.
+     This allows the driver to do a sanity check.
 26Sep08
 kes  Rework the pluginIO Bacula internal code to enable   
      proper handling of Win32 error codes from GetLastError.
