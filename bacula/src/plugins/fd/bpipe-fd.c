@@ -279,6 +279,7 @@ static bRC startBackupFile(bpContext *ctx, struct save_pkt *sp)
    struct plugin_ctx *p_ctx = (struct plugin_ctx *)ctx->pContext;
    time_t now = time(NULL);
    sp->fname = p_ctx->fname;
+   sp->type = FT_REG;
    sp->statp.st_mode = 0700 | S_IFREG;
    sp->statp.st_ctime = now;
    sp->statp.st_mtime = now;

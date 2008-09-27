@@ -71,6 +71,7 @@
  * This packet is used for file save info transfer.
 */
 struct save_pkt {
+  int32_t pkt_size;                   /* size of this packet */
   char *fname;                        /* Full path and filename */
   char *link;                         /* Link name if any */
   struct stat statp;                  /* System stat() packet for file */
@@ -78,12 +79,14 @@ struct save_pkt {
   uint32_t flags;                     /* Bacula internal flags */
   bool portable;                      /* set if data format is portable */
   char *cmd;                          /* command */
+  int32_t pkt_end;                    /* end packet sentinel */
 };
 
 /*
  * This packet is used for file restore info transfer.
 */
 struct restore_pkt {
+   int32_t pkt_size;                  /* size of this packet */
    int32_t stream;                    /* attribute stream id */
    int32_t data_stream;               /* id of data stream to follow */
    int32_t type;                      /* file type FT */
@@ -97,6 +100,7 @@ struct restore_pkt {
    const char *where;                 /* where */
    const char *RegexWhere;            /* regex where */
    int replace;                       /* replace flag */
+   int32_t pkt_end;                   /* end packet sentinel */
 };
 
 enum {
@@ -108,6 +112,7 @@ enum {
 };
 
 struct io_pkt {
+   int32_t pkt_size;                  /* Size of this packet */
    int32_t func;                      /* Function code */
    int32_t count;                     /* read/write count */
    int32_t flags;                     /* Open flags */
@@ -120,6 +125,7 @@ struct io_pkt {
    int32_t whence;                    /* lseek argument */
    boffset_t offset;                  /* lseek argument */
    bool win32;                        /* Win32 GetLastError returned */
+   int32_t pkt_end;                   /* end packet sentinel */
 };
 
 /****************************************************************************
