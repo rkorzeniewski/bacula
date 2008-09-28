@@ -85,7 +85,6 @@ private:
    QString m_filesetName;
    QString m_currentJob;
    bool m_populated;
-   bool m_populating;
    bool m_checkCurrentWidget;
    int m_jobIdIndex;
    int m_purgedIndex;

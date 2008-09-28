@@ -62,7 +62,6 @@ JobList::JobList(const QString &mediaName, const QString &clientName,
 
    m_resultCount = 0;
    m_populated = false;
-   m_populating = false;
    m_closeable = false;
    if ((m_mediaName != "") || (m_clientName != "") || (m_jobName != "") || (m_filesetName != ""))
       m_closeable=true;
@@ -109,14 +108,12 @@ JobList::~JobList()
  */
 void JobList::populateTable()
 {
-   if (m_populating)
-      return;
-   m_populating = true;
    if (!m_console->preventInUseConnect())
        return;
 
    /* Can't do this in constructor because not neccesarily conected in constructor */
    prepareFilterWidgets();
+   m_populated = true;
 
    /* Set up query */
    QString query;
@@ -222,7 +219,6 @@ void JobList::populateTable()
           tr("The Jobs query returned no results.\n"
          "Press OK to continue?"), QMessageBox::Ok );
    }
-   m_populating = false;
 }
 
 void JobList::prepareFilterWidgets()
@@ -318,7 +314,6 @@ void JobList::PgSeltreeWidgetClicked()
 {
    if (!m_populated) {
       populateTable();
-      m_populated=true;
    }
 }
 
@@ -328,10 +323,8 @@ void JobList::PgSeltreeWidgetClicked()
  */
 void JobList::currentStackItem()
 {
-   populateTable();
-   if (!m_populated) {
-      m_populated=true;
-   }
+/*   if (!m_populated) populate every time user comes back to this object */
+      populateTable();
 }
 
 /*

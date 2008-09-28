@@ -66,7 +66,6 @@ private:
    void createContextMenu();
    QString m_currentlyselected;
    bool m_populated;
-   bool m_populating;
    bool m_checkcurwidget;
    int m_typeIndex;
 };
