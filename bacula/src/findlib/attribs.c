@@ -551,14 +551,19 @@ int encode_attribsEx(JCR *jcr, char *attribsEx, FF_PKT *ff_pkt)
 
    attribsEx[0] = 0;                  /* no extended attributes */
 
+   if (jcr->cmd_plugin) {
+      return STREAM_UNIX_ATTRIBUTES;
+   }
+
    unix_name_to_win32(&ff_pkt->sys_fname, ff_pkt->fname);
 
    // try unicode version
    if (p_GetFileAttributesExW)  {
-      POOLMEM* pwszBuf = get_pool_memory (PM_FNAME);   
+      POOLMEM* pwszBuf = get_pool_memory(PM_FNAME);   
       make_win32_path_UTF8_2_wchar(&pwszBuf, ff_pkt->fname);
 
-      BOOL b=p_GetFileAttributesExW((LPCWSTR) pwszBuf, GetFileExInfoStandard, (LPVOID)&atts);
+      BOOL b=p_GetFileAttributesExW((LPCWSTR)pwszBuf, GetFileExInfoStandard, 
+                                    (LPVOID)&atts);
       free_pool_memory(pwszBuf);
 
       if (!b) {

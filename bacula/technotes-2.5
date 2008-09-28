@@ -17,6 +17,14 @@ dbdriver
 remove reader/writer in FOPTS????
 
 General:
+28Sep08
+kes  Add cmd_plugin flag to jcr so we can globally know if a 
+     command plugin is running.
+kes  If command plugin running, do not attempt (for the moment)
+     to get Win32 extended attributes.
+kes  Ensure that proper Win32 flags are set in bfile packet
+     if plugin_bopen() works on Win32.
+kes  Remove generated src/plugins/fd/Makefile
 27Sep08
 kes  Implement build and install of bpipe-fd.so plugin.
 kes  Rework the interface that passes packets to the plugin

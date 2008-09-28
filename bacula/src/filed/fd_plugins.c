@@ -144,6 +144,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
       return 1;                            /* Return if no plugins loaded */
    }
 
+   jcr->cmd_plugin = true;
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
    event.eventType = bEventBackupCommand;
 
@@ -206,6 +207,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
    Jmsg1(jcr, M_ERROR, 0, "Command plugin \"%s\" not found.\n", cmd);
 
 bail_out:
+   jcr->cmd_plugin = false;
    return 1;
 }
 
