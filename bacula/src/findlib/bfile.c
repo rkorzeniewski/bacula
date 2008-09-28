@@ -422,9 +422,18 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       int rtnstat;
       Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
       rtnstat = plugin_bopen(bfd, fname, flags, mode);
+      if (rtnstat >= 0) {
+         if (flags & O_CREAT || flags & O_WRONLY) {   /* Open existing for write */
+            bfd->mode = BF_WRITE;
+         } else {
+            bfd->mode = BF_READ;
+         }
+      } else {
+         bfd->mode = BF_CLOSED;
+      }
       free_pool_memory(win32_fname_wchar);
       free_pool_memory(win32_fname);
-      return rtnstat;
+      return bfd->mode == BF_CLOSED ? -1 : 1;
    }
 
    if (!(p_CreateFileA || p_CreateFileW))

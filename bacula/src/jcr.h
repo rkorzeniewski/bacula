@@ -244,6 +244,7 @@ public:
    Plugin *plugin;                    /* plugin instance */
    save_pkt *plugin_sp;               /* plugin save packet */
    char *plugin_options;              /* user set options for plugin */
+   bool cmd_plugin;                   /* Set when processing a command Plugin = */
 
    /* Daemon specific part of JCR */
    /* This should be empty in the library */
@@ -325,7 +326,6 @@ public:
    POOLMEM *last_fname;               /* last file saved/verified */
    POOLMEM *acl_text;                 /* text of ACL for backup */
    int32_t last_type;                 /* type of last file saved/verified */
-   /*********FIXME********* add missing files and files to be retried */
    int incremental;                   /* set if incremental for SINCE */
    time_t mtime;                      /* begin time for SINCE */
    int listing;                       /* job listing in estimate */
