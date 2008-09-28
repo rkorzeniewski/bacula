@@ -68,7 +68,6 @@ private:
    QString m_currentStorage;
    bool m_currentAutoChanger;
    bool m_populated;
-   bool m_populating;
    bool m_checkcurwidget;
    void writeExpandedSettings();
    QTreeWidgetItem *m_topItem;

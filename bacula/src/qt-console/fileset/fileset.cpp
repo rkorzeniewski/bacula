@@ -51,7 +51,6 @@ FileSet::FileSet()
 
    /* tableWidget, FileSet Tree Tree Widget inherited from ui_fileset.h */
    m_populated = false;
-   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    readSettings();
@@ -72,12 +71,9 @@ FileSet::~FileSet()
  */
 void FileSet::populateTable()
 {
-   if (m_populating)
-      return;
-   m_populating = true;
-
    if (!m_console->preventInUseConnect())
        return;
+   m_populated = true;
 
    QBrush blackBrush(Qt::black);
 
@@ -145,7 +141,6 @@ void FileSet::populateTable()
    /* Resize rows and columns */
    tableWidget->resizeColumnsToContents();
    tableWidget->resizeRowsToContents();
-   m_populating = false;
 }
 
 /*
@@ -157,7 +152,6 @@ void FileSet::PgSeltreeWidgetClicked()
    if (!m_populated) {
       populateTable();
       createContextMenu();
-      m_populated = true;
    }
 }
 
@@ -229,7 +223,6 @@ void FileSet::currentStackItem()
       populateTable();
       /* Create the context menu for the fileset table */
       createContextMenu();
-      m_populated=true;
    }
 }
 

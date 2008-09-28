@@ -56,7 +56,6 @@ MediaList::MediaList()
 
    /* mp_treeWidget, Storage Tree Tree Widget inherited from ui_medialist.h */
    m_populated = false;
-   m_populating = false;
    m_checkcurwidget = true;
    m_closeable = false;
    /* add context sensitive menu items specific to this classto the page
@@ -77,9 +76,10 @@ MediaList::~MediaList()
  */
 void MediaList::populateTree()
 {
-   if (m_populating)
-      return;
-   m_populating = true;
+   if (m_populated)
+      writeExpandedSettings();
+   m_populated = true;
+
    QTreeWidgetItem *pooltreeitem;
 
    if (!m_console->preventInUseConnect())
@@ -92,8 +92,6 @@ void MediaList::populateTree()
       << tr("RecyclePool") << tr("Last Written"));
 
    m_checkcurwidget = false;
-   if (m_populated)
-      writeExpandedSettings();
    mp_treeWidget->clear();
    m_checkcurwidget = true;
    mp_treeWidget->setColumnCount(headerlist.count());
@@ -222,7 +220,6 @@ void MediaList::populateTree()
    for(int cnter=0; cnter<headerlist.count(); cnter++) {
       mp_treeWidget->resizeColumnToContents(cnter);
    }
-   m_populating = false;
 }
 
 /*
@@ -252,7 +249,6 @@ void MediaList::PgSeltreeWidgetClicked()
    if (!m_populated) {
       populateTree();
       createContextMenu();
-      m_populated=true;
    }
 }
 
@@ -323,7 +319,6 @@ void MediaList::currentStackItem()
       populateTree();
       /* Create the context menu for the medialist tree */
       createContextMenu();
-      m_populated=true;
    }
 }
 
