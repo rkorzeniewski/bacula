@@ -9,7 +9,8 @@ JobName=pluginTest
 scripts/cleanup
 scripts/copy-plugin-confs
 file=encrypt-bug.jpg
-echo "${cwd}/${file}" >${cwd}/tmp/file-list
+rm -rf ${cwd}/tmp/*
+echo "${cwd}/README" >${cwd}/tmp/file-list
 
 start_test
 
@@ -29,7 +30,6 @@ END_OF_DATA
 run_bacula -d50
 
 cat <<END_OF_DATA >${cwd}/tmp/bconcmds
-@$out /dev/null
 messages
 @# 
 @# now do a restore
@@ -44,13 +44,48 @@ messages
 quit
 END_OF_DATA
 
+run_bconsole
 
+stop_bacula
+
+# ****FIXME**** test if the restore of the two files is OK
+
+#
+# Remove plugin so we can try the restore without the plugin
+#
+mv -f ${cwd}/bin/plugins/bpipe-fd.so ${cwd}/bin/plugins/bpipe-fd.sox
+
+cat <<END_OF_DATA >${cwd}/tmp/bconcmds
+@$out ${cwd}/tmp/log2.out
+@# remove plugin
+@exec "sh -c 'rm -f ${cwd}/bin/plugins/bpipe-fd.so'"
+@# 
+@# now do a restore without the plugin
+@#
+@$out ${cwd}/tmp/log2.out
+@#setdebug level=50 client=$CLIENT
+restore where=${cwd}/tmp  select all storage=File1 done
+yes
+wait
+messages
+@$out
+quit
+END_OF_DATA
+
+run_bacula -d50
 run_bconsole
 
 check_for_zombie_jobs storage=File1
 stop_bacula
+#
+# Restore plugin
+#
+mv -f ${cwd}/bin/plugins/bpipe-fd.sox ${cwd}/bin/plugins/bpipe-fd.so
 
 check_two_logs
+#
+# ****FIXME**** test that all three files are restored correctly
+#
 diff ${cwd}/${file} ${cwd}/tmp/${file}
 dstat=$?
 end_test

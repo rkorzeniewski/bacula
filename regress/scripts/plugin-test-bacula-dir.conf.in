@@ -223,6 +223,7 @@ FileSet {
     }
     File = <@tmpdir@/file-list
     Plugin = "bpipe:/@bpipe@/encrypt-bug.jpg:cat @builddir@/../encrypt-bug.jpg:cat >@tmpdir@/encrypt-bug.jpg"
+    Plugin = "bpipe:/@bpipe@/Makefile:cat @builddir@/../Makefile:cat >@tmpdir@/Makefile"
   }
 }
 
