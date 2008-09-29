@@ -17,6 +17,7 @@ CFLAGS="-g -O2 -Wall" \
     --mandir=${1}/bin \
     --with-pid-dir=${1}/working \
     --with-subsys-dir=${1}/working \
+    --with-plugindir=${1}/bin/plugins \
     --enable-smartalloc \
     --disable-readline \
     --with-working-dir=${1}/working \
