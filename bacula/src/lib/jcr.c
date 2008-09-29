@@ -670,7 +670,9 @@ JCR *get_jcr_by_full_name(char *Job)
 
 void set_jcr_job_status(JCR *jcr, int JobStatus)
 {
-    bool set_waittime=false;
+    bool set_waittime = false;
+    int oldJobStatus = jcr->JobStatus;
+
     Dmsg2(800, "set_jcr_job_status(%s, %c)\n", jcr->Job, JobStatus);
     /* if wait state is new, we keep current time for watchdog MaxWaitTime */
     switch (JobStatus) {
@@ -732,8 +734,11 @@ void set_jcr_job_status(JCR *jcr, int JobStatus)
          jcr->wait_time = time(NULL);
       }
    }
-   Dmsg3(200, "jid=%u leave set_jcr_job_status=%c set=%c\n", (uint32_t)jcr->JobId,
-         jcr->JobStatus, JobStatus);
+   if (oldJobStatus != jcr->JobStatus) {
+      Dmsg3(200, "jid=%u leave set_old_job_status=%c new_set=%c\n", (uint32_t)jcr->JobId,
+         oldJobStatus, JobStatus);
+//    generate_plugin_event(jcr, bEventStatusChange, NULL);
+   }
 }
 
 #ifdef TRACE_JCR_CHAIN
