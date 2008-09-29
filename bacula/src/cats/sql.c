@@ -50,7 +50,7 @@
 
 uint32_t bacula_db_version = 0;
 
-int db_type = -1;
+int db_type = -1;        /* SQL engine type index */
 
 /* Forward referenced subroutines */
 void print_dashes(B_DB *mdb);
@@ -710,7 +710,7 @@ bool db_open_batch_connexion(JCR *jcr, B_DB *mdb)
    int multi_db=false;
 
 #ifdef HAVE_BATCH_FILE_INSERT
-   multi_db=true;		/* we force a new connexion only if batch insert is enabled */
+   multi_db=true;               /* we force a new connexion only if batch insert is enabled */
 #endif
 
    if (!jcr->db_batch) {
