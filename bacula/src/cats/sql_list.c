@@ -78,7 +78,7 @@ int db_list_sql_query(JCR *jcr, B_DB *mdb, const char *query, DB_LIST_HANDLER *s
 }
 
 void
-db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr, 
+db_list_pool_records(JCR *jcr, B_DB *mdb, POOL_DBR *pdbr,
                      DB_LIST_HANDLER *sendit, void *ctx, e_list_type type)
 {
    db_lock(mdb);
@@ -172,7 +172,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
             "EndFile,EndBlock,VolParts,LabelType,StorageId,DeviceId,"
             "LocationId,RecycleCount,InitialWrite,ScratchPoolId,RecyclePoolId, "
             "Comment"
-            " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
+            " FROM Media WHERE Media.PoolId=%s ORDER BY MediaId",
             edit_int64(mdbr->PoolId, ed1));
       }
    } else {
@@ -183,7 +183,7 @@ db_list_media_records(JCR *jcr, B_DB *mdb, MEDIA_DBR *mdbr,
       } else {
          Mmsg(mdb->cmd, "SELECT MediaId,VolumeName,VolStatus,Enabled,"
             "VolBytes,VolFiles,VolRetention,Recycle,Slot,InChanger,MediaType,LastWritten "
-            "FROM Media WHERE Media.PoolId=%s ORDER BY MediaId", 
+            "FROM Media WHERE Media.PoolId=%s ORDER BY MediaId",
             edit_int64(mdbr->PoolId, ed1));
       }
    }
@@ -281,7 +281,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "Job.FileSetId,FileSet.FileSet "
             "FROM Job,Client,Pool,FileSet WHERE Job.JobId=%s AND "
             "Client.ClientId=Job.ClientId AND Pool.PoolId=Job.PoolId "
-            "AND FileSet.FileSetId=Job.FileSetId", 
+            "AND FileSet.FileSetId=Job.FileSetId",
             edit_int64(jr->JobId, ed1));
       }
    } else {
@@ -294,7 +294,7 @@ db_list_job_records(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit,
             "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
             "FROM Job WHERE Job='%s' ORDER BY StartTime,JobId ASC", jr->Job);
       } else if (jr->JobId != 0) {
-         Mmsg(mdb->cmd, 
+         Mmsg(mdb->cmd,
             "SELECT JobId,Name,StartTime,Type,Level,JobFiles,JobBytes,JobStatus "
             "FROM Job WHERE JobId=%s", edit_int64(jr->JobId, ed1));
       } else {                           /* all records */
@@ -350,25 +350,26 @@ db_list_job_totals(JCR *jcr, B_DB *mdb, JOB_DBR *jr, DB_LIST_HANDLER *sendit, vo
    db_unlock(mdb);
 }
 
-/*
- * Stupid MySQL is NON-STANDARD !
- */
-#ifdef HAVE_MYSQL
-#define FN "CONCAT(Path.Path,Filename.Name)"
-#else
-#define FN "Path.Path||Filename.Name"
-#endif
-
 void
 db_list_files_for_job(JCR *jcr, B_DB *mdb, JobId_t jobid, DB_LIST_HANDLER *sendit, void *ctx)
 {
    char ed1[50];
    db_lock(mdb);
 
-   Mmsg(mdb->cmd, "SELECT " FN " AS Filename FROM File,"
-"Filename,Path WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
-"AND Path.PathId=File.PathId",
-      edit_int64(jobid, ed1));
+   /*
+    * Stupid MySQL is NON-STANDARD !
+    */
+   if (db_type == SQL_TYPE_MYSQL) {
+      Mmsg(mdb->cmd, "SELECT CONCAT(Path.Path,Filename.Name) AS Filename FROM File,"
+   "Filename,Path WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
+   "AND Path.PathId=File.PathId",
+         edit_int64(jobid, ed1));
+   } else {
+      Mmsg(mdb->cmd, "SELECT Path.Path||Filename.Name AS Filename FROM File,"
+   "Filename,Path WHERE File.JobId=%s AND Filename.FilenameId=File.FilenameId "
+   "AND Path.PathId=File.PathId",
+         edit_int64(jobid, ed1));
+   }
 
    if (!QUERY_DB(jcr, mdb, mdb->cmd)) {
       db_unlock(mdb);

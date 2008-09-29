@@ -1451,6 +1451,11 @@ if test x$DB_TYPE = xdbi; then
       pkg=$?	 
    fi
 
+   if test $DB_PROG = sqlite3; then
+      A=`nm $DB_PROG_LIB | grep pthread_mutex_lock`
+      pkg=$?
+   fi
+
    if test $pkg = 0; then
       AC_ARG_ENABLE(batch-insert,
       [ --enable-batch-insert	    enable the DB batch insert code [disabled]],

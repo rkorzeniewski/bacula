@@ -42,7 +42,7 @@
  */
 
 /*
-   Here is how database versions work. 
+   Here is how database versions work.
 
    While I am working on a new release with database changes, the
    update scripts are in the src/cats directory under the names
@@ -59,7 +59,7 @@
    will be copied to the updatedb directory with the correct name
    (in the present case 8 to 9).
 
-   Now, in principle, each of the different DB implementations 
+   Now, in principle, each of the different DB implementations
    can have a different version, but in practice they are all
    the same (simplifies things). The exception is the internal
    database, which is no longer used, and hence, no longer changes.
@@ -72,7 +72,8 @@
 enum {
    SQL_TYPE_MYSQL      = 0,
    SQL_TYPE_POSTGRESQL = 1,
-   SQL_TYPE_SQLITE     = 2
+   SQL_TYPE_SQLITE     = 2,
+   SQL_TYPE_SQLITE3
 };
 
 
@@ -178,14 +179,14 @@ struct B_DB {
 #define sql_num_fields(x)     ((x)->ncolumn)
 #define SQL_ROW               char**
 
-#define sql_batch_start(x,y)    my_batch_start(x,y) 
-#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
+#define sql_batch_start(x,y)    my_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
 #define sql_batch_lock_filename_query   my_sqlite_batch_lock_query
 #define sql_batch_unlock_tables_query   my_sqlite_batch_unlock_query
 #define sql_batch_fill_filename_query   my_sqlite_batch_fill_filename_query
-#define sql_batch_fill_path_query       my_sqlite_batch_fill_path_query    
+#define sql_batch_fill_path_query       my_sqlite_batch_fill_path_query
 
 /* In cats/sqlite.c */
 void       my_sqlite_free_table(B_DB *mdb);
@@ -202,7 +203,7 @@ extern const char* my_sqlite_batch_fill_path_query;
 #else
 
 /*                    S Q L I T E 3            */
- 
+
 
 #ifdef HAVE_SQLITE3
 
@@ -307,8 +308,8 @@ struct B_DB {
 #define sql_field_seek(x, y)  my_sqlite_field_seek((x), (y))
 #define sql_fetch_field(x)    my_sqlite_fetch_field(x)
 #define sql_num_fields(x)     ((x)->ncolumn)
-#define sql_batch_start(x,y)    my_batch_start(x,y)   
-#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
+#define sql_batch_start(x,y)    my_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define SQL_ROW               char**
 #define sql_batch_lock_path_query       my_sqlite_batch_lock_query
@@ -395,8 +396,8 @@ struct B_DB {
 #define SQL_FIELD             MYSQL_FIELD
 
 #define sql_batch_start(x,y)    my_batch_start(x,y)
-#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)   
-#define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)   
+#define sql_batch_end(x,y,z)    my_batch_end(x,y,z)
+#define sql_batch_insert(x,y,z) my_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_mysql_batch_lock_path_query
 #define sql_batch_lock_filename_query   my_mysql_batch_lock_filename_query
 #define sql_batch_unlock_tables_query   my_mysql_batch_unlock_tables_query
@@ -476,7 +477,7 @@ struct B_DB {
    POOLMEM *esc_path;             /* Escaped path name */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
-};     
+};
 
 void               my_postgresql_free_result(B_DB *mdb);
 POSTGRESQL_ROW     my_postgresql_fetch_row  (B_DB *mdb);
@@ -513,8 +514,8 @@ extern const char* my_pg_batch_fill_path_query;
 #define sql_fetch_field(x)    my_postgresql_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
 
-#define sql_batch_start(x,y)    my_postgresql_batch_start(x,y)   
-#define sql_batch_end(x,y,z)    my_postgresql_batch_end(x,y,z)   
+#define sql_batch_start(x,y)    my_postgresql_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_postgresql_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_postgresql_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_pg_batch_lock_path_query
 #define sql_batch_lock_filename_query   my_pg_batch_lock_filename_query
@@ -602,7 +603,7 @@ struct B_DB {
    POOLMEM *esc_path;             /* Escaped path name */
    int fnl;                       /* file name length */
    int pnl;                       /* path name length */
-};     
+};
 
 void               my_dbi_free_result(B_DB *mdb);
 DBI_ROW            my_dbi_fetch_row  (B_DB *mdb);
@@ -622,15 +623,15 @@ typedef struct ATTR_DBR ATTR_DBR;
 int my_dbi_batch_insert(JCR *jcr, B_DB *mdb, ATTR_DBR *ar);
 char *my_postgresql_copy_escape(char *dest, char *src, size_t len);
 // typedefs for libdbi work with postgresql copy insert
-typedef int (*custom_function_insert_t)(void*, const char*, int);   
+typedef int (*custom_function_insert_t)(void*, const char*, int);
 typedef char* (*custom_function_error_t)(void*);
 typedef int (*custom_function_end_t)(void*, const char*);
 
-extern const char* my_dbi_batch_lock_path_query[3];
-extern const char* my_dbi_batch_lock_filename_query[3];
-extern const char* my_dbi_batch_unlock_tables_query[3];
-extern const char* my_dbi_batch_fill_filename_query[3];
-extern const char* my_dbi_batch_fill_path_query[3];
+extern const char* my_dbi_batch_lock_path_query[4];
+extern const char* my_dbi_batch_lock_filename_query[4];
+extern const char* my_dbi_batch_unlock_tables_query[4];
+extern const char* my_dbi_batch_fill_filename_query[4];
+extern const char* my_dbi_batch_fill_path_query[4];
 
 /* "Generic" names for easier conversion */
 #define sql_store_result(x)   (x)->result
@@ -647,8 +648,8 @@ extern const char* my_dbi_batch_fill_path_query[3];
 #define sql_field_seek(x, y)  my_dbi_field_seek((x), (y))
 #define sql_fetch_field(x)    my_dbi_fetch_field(x)
 #define sql_num_fields(x)     ((x)->num_fields)
-#define sql_batch_start(x,y)    my_dbi_batch_start(x,y)   
-#define sql_batch_end(x,y,z)    my_dbi_batch_end(x,y,z)   
+#define sql_batch_start(x,y)    my_dbi_batch_start(x,y)
+#define sql_batch_end(x,y,z)    my_dbi_batch_end(x,y,z)
 #define sql_batch_insert(x,y,z) my_dbi_batch_insert(x,y,z)
 #define sql_batch_lock_path_query       my_dbi_batch_lock_path_query[db_type]
 #define sql_batch_lock_filename_query   my_dbi_batch_lock_filename_query[db_type]
@@ -725,13 +726,13 @@ struct B_DB {
  */
 struct B_DB {
    int dummy;                         /* for SunOS compiler */
-};     
+};
 
 #endif /*  __SQL_C */
 
-/* ==============================================================   
+/* ==============================================================
  *
- *  What follows are definitions that are used "globally" for all 
+ *  What follows are definitions that are used "globally" for all
  *   the different SQL engines and both inside and external to the
  *   cats directory.
  */
@@ -1002,7 +1003,7 @@ struct MEDIA_DBR {
    char    cLastWritten[MAX_TIME_LENGTH];  /* LastWritten returned from DB */
    char    cLabelDate[MAX_TIME_LENGTH];    /* LabelData returned from DB */
    char    cInitialWrite[MAX_TIME_LENGTH]; /* InitialWrite returned from DB */
-   bool    set_first_written;                
+   bool    set_first_written;
    bool    set_label_date;
 };
 
@@ -1052,7 +1053,7 @@ struct db_int64_ctx {
 #include "sql_cmds.h"
 
 /*
- * Exported globals from sql.c  
+ * Exported globals from sql.c
  */
 extern int DLL_IMP_EXP db_type;        /* SQL engine type index */
 

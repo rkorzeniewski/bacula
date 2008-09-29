@@ -421,7 +421,7 @@ const char *uar_jobid_fileindex_from_table =
 /* ====== ua_prune.c */
 
 /* List of SQL commands to create temp table and indicies  */
-const char *create_deltabs[3] = {
+const char *create_deltabs[4] = {
    /* MySQL */
    "CREATE TEMPORARY TABLE DelCandidates ("
    "JobId INTEGER UNSIGNED NOT NULL, "
@@ -442,12 +442,19 @@ const char *create_deltabs[3] = {
    "PurgedFiles TINYINT, "
    "FileSetId INTEGER UNSIGNED, "
    "JobFiles INTEGER UNSIGNED, "
+   "JobStatus CHAR)",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE DelCandidates ("
+   "JobId INTEGER UNSIGNED NOT NULL, "
+   "PurgedFiles TINYINT, "
+   "FileSetId INTEGER UNSIGNED, "
+   "JobFiles INTEGER UNSIGNED, "
    "JobStatus CHAR)"};
 
 /* ======= ua_restore.c */
 
 /* List Jobs where a particular file is saved */
-const char *uar_file[3] = {
+const char *uar_file[4] = {
    /* Mysql */
    "SELECT Job.JobId as JobId,"
    "CONCAT(Path.Path,Filename.Name) as Name, "
@@ -474,9 +481,18 @@ const char *uar_file[3] = {
    "AND Client.ClientId=Job.ClientId "
    "AND Job.JobId=File.JobId "
    "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
+   "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20",
+   /* SQLite3 */
+   "SELECT Job.JobId as JobId,"
+   "Path.Path||Filename.Name as Name, "
+   "StartTime,Type as JobType,JobStatus,JobFiles,JobBytes "
+   "FROM Client,Job,File,Filename,Path WHERE Client.Name='%s' "
+   "AND Client.ClientId=Job.ClientId "
+   "AND Job.JobId=File.JobId "
+   "AND Path.PathId=File.PathId AND Filename.FilenameId=File.FilenameId "
    "AND Filename.Name='%s' ORDER BY StartTime DESC LIMIT 20"};
 
-const char *uar_create_temp[3] = {
+const char *uar_create_temp[4] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -515,9 +531,22 @@ const char *uar_create_temp[3] = {
    "VolumeName TEXT,"
    "StartFile INTEGER UNSIGNED,"
    "VolSessionId INTEGER UNSIGNED,"
+   "VolSessionTime INTEGER UNSIGNED)",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE temp ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED,"
+   "ClientId INTEGER UNSIGNED,"
+   "Level CHAR,"
+   "JobFiles INTEGER UNSIGNED,"
+   "JobBytes BIGINT UNSIGNED,"
+   "StartTime TEXT,"
+   "VolumeName TEXT,"
+   "StartFile INTEGER UNSIGNED,"
+   "VolSessionId INTEGER UNSIGNED,"
    "VolSessionTime INTEGER UNSIGNED)"};
 
-const char *uar_create_temp1[3] = {
+const char *uar_create_temp1[4] = {
    /* Mysql */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
@@ -529,6 +558,10 @@ const char *uar_create_temp1[3] = {
    /* SQLite */
    "CREATE TEMPORARY TABLE temp1 ("
    "JobId INTEGER UNSIGNED NOT NULL,"
+   "JobTDate BIGINT UNSIGNED)",
+   /* SQLite3 */
+   "CREATE TEMPORARY TABLE temp1 ("
+   "JobId INTEGER UNSIGNED NOT NULL,"
    "JobTDate BIGINT UNSIGNED)"};
 
 /* Query to get all files in a directory -- no recursing   
@@ -538,7 +571,7 @@ const char *uar_create_temp1[3] = {
  *  for each time it was backed up.
  */
 
-const char *uar_jobid_fileindex_from_dir[3] = {
+const char *uar_jobid_fileindex_from_dir[4] = {
    /* Mysql */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
@@ -559,6 +592,16 @@ const char *uar_jobid_fileindex_from_dir[3] = {
    "AND Path.PathId=File.Pathid "
    "AND Filename.FilenameId=File.FilenameId",
    /* SQLite */
+   "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
+   "WHERE Job.JobId IN (%s) "
+   "AND Job.JobId=File.JobId "
+   "AND Path.Path='%s' "
+   "AND Client.Name='%s' "
+   "AND Job.ClientId=Client.ClientId "
+   "AND Path.PathId=File.Pathid "
+   "AND Filename.FilenameId=File.FilenameId "
+   "GROUP BY File.FileIndex ",
+   /* SQLite3 */
    "SELECT Job.JobId,File.FileIndex FROM Job,File,Path,Filename,Client "
    "WHERE Job.JobId IN (%s) "
    "AND Job.JobId=File.JobId "
