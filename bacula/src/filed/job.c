@@ -214,7 +214,6 @@ void *handle_client_request(void *dirp)
    jcr->last_fname = get_pool_memory(PM_FNAME);
    jcr->last_fname[0] = 0;
    jcr->client_name = get_memory(strlen(my_name) + 1);
-   new_plugins(jcr);                  /* instantiate plugins for this jcr */
    pm_strcpy(jcr->client_name, my_name);
    jcr->crypto.pki_sign = me->pki_sign;
    jcr->crypto.pki_encrypt = me->pki_encrypt;
@@ -227,7 +226,6 @@ void *handle_client_request(void *dirp)
    /**********FIXME******* add command handler error code */
 
    for (quit=false; !quit;) {
-
       /* Read command */
       if (dir->recv() < 0) {
          break;               /* connection terminated */
@@ -398,6 +396,7 @@ static int cancel_cmd(JCR *jcr)
             cjcr->store_bsock->set_terminated();
             pthread_kill(cjcr->my_thread_id, TIMEOUT_SIGNAL);
          }
+         generate_plugin_event(cjcr, bEventCancelCommand, NULL);
          set_jcr_job_status(cjcr, JS_Canceled);
          free_jcr(cjcr);
          dir->fsend(_("2001 Job %s marked to be canceled.\n"), Job);
@@ -471,6 +470,7 @@ static int job_cmd(JCR *jcr)
    free_pool_memory(sd_auth_key);
    Dmsg2(120, "JobId=%d Auth=%s\n", jcr->JobId, jcr->sd_auth_key);
    Mmsg(jcr->errmsg, "JobId=%d Job=%s", jcr->JobId, jcr->Job);
+   new_plugins(jcr);                  /* instantiate plugins for this jcr */
    generate_plugin_event(jcr, bEventJobStart, (void *)jcr->errmsg);
    return dir->fsend(OKjob, VERSION, LSMDATE, HOST_OS, DISTNAME, DISTVER);
 }
