@@ -56,10 +56,10 @@ int db_type = -1;
 void print_dashes(B_DB *mdb);
 void print_result(B_DB *mdb);
 
-B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user, 
-              const char *db_password, const char *db_address, int db_port, 
+B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *db_user,
+              const char *db_password, const char *db_address, int db_port,
               const char *db_socket, int mult_db_connections)
-{              
+{
 #ifdef HAVE_DBI
    char *p;
    if (!db_driver) {
@@ -68,13 +68,15 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
    if (strlen(db_driver) < 5 || db_driver[3] != ':' || strncasecmp(db_driver, "dbi", 3) != 0) {
       Jmsg0(jcr, M_ABORT, 0, _("Invalid driver type, must be \"dbi:<type>\"\n"));
    }
-   p = (char *)(db_driver + 4);      
+   p = (char *)(db_driver + 4);
    if (strcasecmp(p, "mysql") == 0) {
       db_type = SQL_TYPE_MYSQL;
    } else if (strcasecmp(p, "postgresql") == 0) {
       db_type = SQL_TYPE_POSTGRESQL;
    } else if (strcasecmp(p, "sqlite") == 0) {
       db_type = SQL_TYPE_SQLITE;
+   } else if (strcasecmp(p, "sqlite3") == 0) {
+      db_type = SQL_TYPE_SQLITE3;
    } else {
       Jmsg1(jcr, M_ABORT, 0, _("Unknown database type: %s\n"), p);
    }
@@ -85,14 +87,14 @@ B_DB *db_init(JCR *jcr, const char *db_driver, const char *db_name, const char *
 #elif HAVE_SQLITE
    db_type = SQL_TYPE_SQLITE;
 #elif HAVE_SQLITE3
-   db_type = SQL_TYPE_SQLITE;
+   db_type = SQL_TYPE_SQLITE3;
 #endif
 
    return db_init_database(jcr, db_name, db_user, db_password, db_address,
              db_port, db_socket, mult_db_connections);
 }
 
-dbid_list::dbid_list() 
+dbid_list::dbid_list()
 {
    memset(this, 0, sizeof(dbid_list));
    max_ids = 1000;
@@ -101,8 +103,8 @@ dbid_list::dbid_list()
    PurgedFiles = NULL;
 }
 
-dbid_list::~dbid_list() 
-{ 
+dbid_list::~dbid_list()
+{
    free(DBId);
 }
 
@@ -390,6 +392,41 @@ void db_start_transaction(JCR *jcr, B_DB *mdb)
    }
    db_unlock(mdb);
 #endif
+
+#ifdef HAVE_DBI
+   if (db_type == SQL_TYPE_SQLITE) {
+      if (!mdb->allow_transactions) {
+         return;
+      }
+      db_lock(mdb);
+      /* Allow only 10,000 changes per transaction */
+      if (mdb->transaction && mdb->changes > 10000) {
+         db_end_transaction(jcr, mdb);
+      }
+      if (!mdb->transaction) {
+         //my_sqlite_query(mdb, "BEGIN");  /* begin transaction */
+         db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
+         Dmsg0(400, "Start SQLite transaction\n");
+         mdb->transaction = 1;
+      }
+      db_unlock(mdb);
+   } else if (db_type == SQL_TYPE_POSTGRESQL) {
+      if (!mdb->allow_transactions) {
+         return;
+      }
+      db_lock(mdb);
+      /* Allow only 25,000 changes per transaction */
+      if (mdb->transaction && mdb->changes > 25000) {
+         db_end_transaction(jcr, mdb);
+      }
+      if (!mdb->transaction) {
+         db_sql_query(mdb, "BEGIN", NULL, NULL);  /* begin transaction */
+         Dmsg0(400, "Start PosgreSQL transaction\n");
+         mdb->transaction = 1;
+      }
+      db_unlock(mdb);
+   }
+#endif
 }
 
 void db_end_transaction(JCR *jcr, B_DB *mdb)
@@ -436,6 +473,35 @@ void db_end_transaction(JCR *jcr, B_DB *mdb)
    }
    mdb->changes = 0;
    db_unlock(mdb);
+#endif
+
+#ifdef HAVE_DBI
+   if (db_type == SQL_TYPE_SQLITE) {
+      if (!mdb->allow_transactions) {
+         return;
+      }
+      db_lock(mdb);
+      if (mdb->transaction) {
+         //my_sqlite_query(mdb, "COMMIT"); /* end transaction */
+         db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
+         mdb->transaction = 0;
+         Dmsg1(400, "End SQLite transaction changes=%d\n", mdb->changes);
+      }
+      mdb->changes = 0;
+      db_unlock(mdb);
+   } else if (db_type == SQL_TYPE_POSTGRESQL) {
+      if (!mdb->allow_transactions) {
+         return;
+      }
+      db_lock(mdb);
+      if (mdb->transaction) {
+         db_sql_query(mdb, "COMMIT", NULL, NULL); /* end transaction */
+         mdb->transaction = 0;
+         Dmsg1(400, "End PostgreSQL transaction changes=%d\n", mdb->changes);
+      }
+      mdb->changes = 0;
+      db_unlock(mdb);
+   }
 #endif
 }
 

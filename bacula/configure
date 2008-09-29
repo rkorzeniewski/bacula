@@ -22438,6 +22438,70 @@ echo "$as_me: error: Unable to find psql in standard locations" >&2;}
            fi
            DB_PROG_LIB=$SQL_LIBDIR/libpq.a
         ;;
+        "sqlite")
+           db_prog="sqlite"
+           if test -f /usr/local/bin/sqlite; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/sqlite; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find sqlite in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+        ;;
+        "sqlite3")
+           db_prog="sqlite3"
+           if test -f /usr/local/bin/sqlite3; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite3; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi
+           elif test -f $withval/bin/sqlite3; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi
+           else
+              { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+              { { echo "$as_me:$LINENO: error: Unable to find sqlite in standard locations" >&5
+echo "$as_me: error: Unable to find sqlite in standard locations" >&2;}
+   { (exit 1); exit 1; }; }
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+        ;;
         *)
            { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -22510,6 +22574,11 @@ if test x$DB_TYPE = xdbi; then
    fi
 
    if test $DB_PROG = mysql; then
+      A=`nm $DB_PROG_LIB | grep pthread_mutex_lock`
+      pkg=$?
+   fi
+
+   if test $DB_PROG = sqlite3; then
       A=`nm $DB_PROG_LIB | grep pthread_mutex_lock`
       pkg=$?
    fi

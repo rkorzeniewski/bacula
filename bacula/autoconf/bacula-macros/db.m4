@@ -222,6 +222,64 @@ AC_ARG_WITH(dbi-driver,
            fi
            DB_PROG_LIB=$SQL_LIBDIR/libpq.a
         ;;
+        "sqlite")
+           db_prog="sqlite"
+           if test -f /usr/local/bin/sqlite; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi                 
+           elif test -f $withval/bin/sqlite; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi                 
+           else
+              AC_MSG_RESULT(no)
+              AC_MSG_ERROR(Unable to find sqlite in standard locations)
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite.a
+        ;;
+        "sqlite3")
+           db_prog="sqlite3"
+           if test -f /usr/local/bin/sqlite3; then
+              SQL_BINDIR=/usr/local/bin
+              if test -d /usr/local/lib64; then
+                 SQL_LIBDIR=/usr/local/lib64
+              else
+                 SQL_LIBDIR=/usr/local/lib
+              fi
+           elif test -f /usr/bin/sqlite3; then
+              SQL_BINDIR=/usr/bin
+              if test -d /usr/lib64; then
+                 SQL_LIBDIR=/usr/lib64
+              else
+                 SQL_LIBDIR=/usr/lib
+              fi                 
+           elif test -f $withval/bin/sqlite3; then
+              SQL_BINDIR=$withval/bin
+              if test -d $withval/lib64; then
+                 SQL_LIBDIR=$withval/lib64
+              else
+                 SQL_LIBDIR=$withval/lib
+              fi                 
+           else
+              AC_MSG_RESULT(no)
+              AC_MSG_ERROR(Unable to find sqlite in standard locations)
+           fi
+           DB_PROG_LIB=$SQL_LIBDIR/libsqlite3.a
+        ;;                
         *)
            AC_MSG_RESULT(no)
            AC_MSG_ERROR(Unable to set DBI driver. $withval is not supported)

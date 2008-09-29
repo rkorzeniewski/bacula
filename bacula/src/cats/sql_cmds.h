@@ -70,9 +70,9 @@ extern const char CATS_IMP_EXP *uar_jobids_fileindex;
 extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_table;
 extern const char CATS_IMP_EXP *uar_sel_jobid_temp;
 
-extern const char CATS_IMP_EXP *create_deltabs[3];
+extern const char CATS_IMP_EXP *create_deltabs[4];
 
-extern const char CATS_IMP_EXP *uar_file[3];
-extern const char CATS_IMP_EXP *uar_create_temp[3];
-extern const char CATS_IMP_EXP *uar_create_temp1[3];
-extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[3];
+extern const char CATS_IMP_EXP *uar_file[4];
+extern const char CATS_IMP_EXP *uar_create_temp[4];
+extern const char CATS_IMP_EXP *uar_create_temp1[4];
+extern const char CATS_IMP_EXP *uar_jobid_fileindex_from_dir[4];
