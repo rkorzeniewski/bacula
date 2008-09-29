@@ -166,7 +166,7 @@ int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level)
          continue;
       }
       Dmsg1(dbglvl, "Command plugin = %s\n", cmd);
-      /* Send the backup command */
+      /* Send the backup command to the right plugin*/
       if (plug_func(plugin)->handlePluginEvent(&plugin_ctx_list[i], &event, cmd) != bRC_OK) {
          goto bail_out;
       }
@@ -279,7 +279,7 @@ void plugin_name_stream(JCR *jcr, char *name)
        * End of plugin data, notify plugin, then clear flags   
        */
       plugin = (Plugin *)jcr->plugin;
-      plug_func(plugin)->endRestoreFile(&plugin_ctx_list[i]);
+      plug_func(plugin)->endRestoreFile((bpContext *)jcr->plugin_ctx);
       jcr->plugin_ctx = NULL;
       jcr->plugin = NULL;
       goto bail_out;
