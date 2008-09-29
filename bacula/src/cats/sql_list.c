@@ -42,6 +42,8 @@
 #include "bacula.h"
 #include "cats.h"
 
+extern int db_type;
+
 #if    HAVE_SQLITE3 || HAVE_MYSQL || HAVE_SQLITE || HAVE_POSTGRESQL || HAVE_DBI
 
 /* -----------------------------------------------------------------------
