@@ -75,7 +75,7 @@ int enable_backup_privileges(JCR *jcr, int ignore_errors);
 
 
 /* from makepath.c */
-int makepath(ATTR *attr, const char *path, mode_t mode,
+bool makepath(ATTR *attr, const char *path, mode_t mode,
            mode_t parent_mode, uid_t owner, gid_t group,
            int keep_dir_modes);
 
