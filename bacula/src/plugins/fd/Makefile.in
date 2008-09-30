@@ -39,6 +39,7 @@ bpipe-fd.so: bpipe-fd.o
 	$(CXX) $(LDFLAGS) -shared bpipe-fd.o -o bpipe-fd.so
 
 install: all
+	$(MKDIR) $(DESTDIR)$(plugindir)
 	$(INSTALL_PROGRAM) bpipe-fd.so $(DESTDIR)$(plugindir)/bpipe-fd.so
 
 clean:
