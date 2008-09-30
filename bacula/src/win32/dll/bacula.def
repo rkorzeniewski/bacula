@@ -513,6 +513,11 @@ _Z9lock_jobsv
 _ZN3JCR11set_JobTypeEi
 _ZN3JCR12set_JobLevelEi
 _ZN3JCR8JobReadsEv
+_ZN3JCR11set_JobTypeEi
+_ZN3JCR12set_JobLevelEi
+_ZN3JCR14get_ActionNameEb
+_ZN3JCR17get_OperationNameEv
+_ZN3JCR8JobReadsEv
 timeout_handler
 
 
