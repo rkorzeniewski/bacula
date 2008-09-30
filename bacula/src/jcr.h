@@ -99,6 +99,7 @@ enum {
    MT_OLDEST_VOL,
    MT_POOL_OCCUPANCY,
    MT_POOL_TIME,
+   MT_POOL_UNCOPIED_JOBS,
    MT_CLIENT,
    MT_VOLUME,
    MT_JOB,
@@ -180,6 +181,8 @@ public:
    int32_t get_JobType() { return m_JobType; };
    int32_t get_JobLevel() { return m_JobLevel; };
 
+   const char *get_OperationName();    /* in lib/jcr.c */
+   const char *get_ActionName(bool past); /* in lib/jcr.c */
    void set_JobLevel(int32_t JobLevel); /* in lib/jcr.c */
    void set_JobType(int32_t JobType);  /* in lib/jcr.c */
    bool JobReads();                    /* in lib/jcr.c */

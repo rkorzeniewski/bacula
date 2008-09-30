@@ -225,6 +225,52 @@ void unlock_last_jobs_list()
    V(last_jobs_mutex);
 }
 
+/* Get an ASCII representation of the Operation being performed as an english Noun */
+const char *JCR::get_OperationName()
+{
+   switch(m_JobType) {
+   case JT_BACKUP:
+      return _("Backup");
+   case JT_VERIFY:
+      return _("Verifying");
+   case JT_RESTORE:
+      return _("Restoring");
+   case JT_ARCHIVE:
+      return _("Archiving");
+   case JT_COPY:
+      return _("Copying");
+   case JT_MIGRATE:
+      return _("Migration");
+   case JT_SCAN:
+      return _("Scanning");
+   default:
+      return _("Unknown operation");
+   }
+}
+
+/* Get an ASCII representation of the Action being performed either an english Verb or Adjective */
+const char *JCR::get_ActionName(bool past)
+{
+   switch(m_JobType) {
+   case JT_BACKUP:
+      return _("backup");
+   case JT_VERIFY:
+      return (past == true) ? _("verified") : _("verify");
+   case JT_RESTORE:
+      return (past == true) ? _("restored") : _("restore");
+   case JT_ARCHIVE:
+      return (past == true) ? _("archived") : _("archive");
+   case JT_COPY:
+      return (past == true) ? _("copied") : _("copy");
+   case JT_MIGRATE:
+      return (past == true) ? _("migrated") : _("migrate");
+   case JT_SCAN:
+      return (past == true) ? _("scanned") : _("scan");
+   default:
+      return _("unknown action");
+   }
+}
+
 /* Set Job type in JCR and also set appropriate read flag */
 void JCR::set_JobType(int32_t JobType)
 {

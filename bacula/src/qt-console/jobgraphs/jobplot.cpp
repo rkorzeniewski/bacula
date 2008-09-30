@@ -361,10 +361,21 @@ void JobPlot::addCurve()
 
    // attach data
    int size = m_pjd.count();
+   int j = 0;
+#if defined(__GNU_C)
    double tval[size];
    double fval[size];
    double bval[size];
-   int j = 0;
+#else
+   double *tval;
+   double *fval;
+   double *bval;
+
+   tval = (double *)malloc(size * sizeof(double));
+   fval = (double *)malloc(size * sizeof(double));
+   bval = (double *)malloc(size * sizeof(double));
+#endif
+
    foreach (PlotJobData* plotJobData, m_pjd) {
 //      printf("%.0f %.0f %s\n", plotJobData->bytes, plotJobData->files,
 //              plotJobData->dt.toString(mainWin->m_dtformat).toUtf8().data());
@@ -400,6 +411,12 @@ void JobPlot::addCurve()
          mX->attach(m_jobPlot);
       }
    }
+
+#if !defined(__GNU_C)
+   free(tval);
+   free(fval);
+   free(bval);
+#endif
 }
 
 /*

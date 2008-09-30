@@ -69,8 +69,10 @@ static int donecmd(UAContext *ua, TREE_CTX *tree);
 
 struct cmdstruct { const char *key; int (*func)(UAContext *ua, TREE_CTX *tree); const char *help; };
 static struct cmdstruct commands[] = {
+ { NT_("add"),        markcmd,      _("add dir/file to be restored recursively, wildcards allowed")},
  { NT_("cd"),         cdcmd,        _("change current directory")},
  { NT_("count"),      countcmd,     _("count marked files in and below the cd")},
+ { NT_("delete"),     unmarkcmd,    _("delete dir/file to be restored recursively in dir")},
  { NT_("dir"),        dircmd,       _("long list current directory, wildcards allowed")},
  { NT_(".dir"),       dot_dircmd,   _("long list current directory, wildcards allowed")},
  { NT_("done"),       donecmd,      _("leave file selection mode")},
