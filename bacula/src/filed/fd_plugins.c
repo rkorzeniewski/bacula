@@ -278,6 +278,7 @@ void plugin_name_stream(JCR *jcr, char *name)
       /*
        * End of plugin data, notify plugin, then clear flags   
        */
+      Dmsg2(dbglvl, "End plugin data plugin=%p ctx=%p\n", jcr->plugin, jcr->plugin_ctx);
       if (jcr->plugin) {
          plugin = (Plugin *)jcr->plugin;
          plug_func(plugin)->endRestoreFile((bpContext *)jcr->plugin_ctx);
