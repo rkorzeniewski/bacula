@@ -1,4 +1,7 @@
-          Release Notes for brestore 2.2.0
+          Release Notes for brestore 2.4
+
+Version 2.4.2
+ - Load Gtk only in non batch mode
 
 Version 2.2.5-2:
  - Use 2 transactions in brestore.pl -b

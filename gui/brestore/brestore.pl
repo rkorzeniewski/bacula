@@ -65,10 +65,6 @@ my $glade_file = 'brestore.glade' ;
 
 =cut
 
-use Gtk2;		# auto-initialize Gtk2
-use Gtk2::GladeXML;
-use Gtk2::SimpleList;		# easy wrapper for list views
-use Gtk2::Gdk::Keysyms;		# keyboard code constants
 use Data::Dumper qw/Dumper/;
 my $debug=0;			# can be on brestore.conf
 our ($VERSION) = ('$Revision$' =~ /(\d+)/);
@@ -3307,6 +3303,14 @@ if ($batch_mod) {
     }
     exit (0);
 }
+
+# load Gtk libraries only in non batch mode
+eval "
+ use Gtk2;
+ use Gtk2::GladeXML;
+ use Gtk2::SimpleList;
+ use Gtk2::Gdk::Keysyms;
+";
 
 $glade_file = $p->{glade_file} || $glade_file;
 
