@@ -706,7 +706,7 @@ boffset_t blseek(BFILE *bfd, boffset_t offset, int whence)
    LONG  offset_high = (LONG)(offset >> 32);
    DWORD dwResult;
 
-   if (bfd->cmd_plugin && plugin_bwrite) {
+   if (bfd->cmd_plugin && plugin_blseek) {
       return plugin_blseek(bfd, offset, whence);
    }
 

@@ -17,6 +17,11 @@ dbdriver
 remove reader/writer in FOPTS????
 
 General:
+03Oct08
+kes  Fix plugin_bwrite - plugin-blseek mixup pointed out by James.
+kes  Rewrite plugin restore interface a bit to correspond to how Bacula
+     creates and writes to the restored file.
+kes  Add some DebugMessage() calls to the bpipe-fd.c program.
 30Sep08
 kes  Apply Marco van Wieringen's set of patches, cleans up Migration/Copy
      Implement 'Pool Uncopied Jobs', allow Solaris Compiler to build

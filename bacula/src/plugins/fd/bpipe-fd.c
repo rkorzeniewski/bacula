@@ -37,6 +37,9 @@
 #undef free
 #undef strdup
 
+#define fi __FILE__
+#define li __LINE__
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -206,7 +209,7 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
     */
    switch (event->eventType) {
    case bEventJobStart:
-//    printf("bpipe-fd: JobStart=%s\n", (char *)value);
+      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: JobStart=%s\n", (char *)value);
       break;
    case bEventJobEnd:
 //    printf("bpipe-fd: JobEnd\n");
@@ -238,25 +241,25 @@ static bRC handlePluginEvent(bpContext *ctx, bEvent *event, void *value)
       /* Fall-through wanted */
    case bEventBackupCommand:
       char *p;
-      printf("bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
+      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: pluginEvent cmd=%s\n", (char *)value);
       p_ctx->cmd = strdup((char *)value);
       p = strchr(p_ctx->cmd, ':');
       if (!p) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Plugin terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "Plugin terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate plugin */
       p_ctx->fname = p;
       p = strchr(p, ':');
       if (!p) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "File terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "File terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate file */
       p_ctx->reader = p;
       p = strchr(p, ':');
       if (!p) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Reader terminator not found: %s\n", (char *)value);
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "Reader terminator not found: %s\n", (char *)value);
          return bRC_Error;
       }
       *p++ = 0;           /* terminate reader string */
@@ -316,15 +319,16 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    io->io_errno = 0;
    switch(io->func) {
    case IO_OPEN:
-//    printf("bpipe-fd: IO_OPEN\n");
+      bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN\n");
       if (io->flags & (O_CREAT | O_WRONLY)) {
          char *writer_codes = apply_rp_codes(p_ctx);
 
          p_ctx->fd = popen(writer_codes, "w");
-         printf("bpipe-fd: IO_OPEN writer=%s\n", writer_codes);
+         bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN fd=%d writer=%s\n", 
+             p_ctx->fd, writer_codes);
          if (!p_ctx->fd) {
             io->io_errno = errno;
-            bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
                "Open pipe writer=%s failed: ERR=%s\n", writer_codes, strerror(errno));
             if (writer_codes) {
                free(writer_codes);
@@ -336,10 +340,11 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
          }
       } else {
          p_ctx->fd = popen(p_ctx->reader, "r");
-//       printf("bpipe-fd: IO_OPEN reader=%s\n", p_ctx->reader);
+         bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_OPEN fd=%p reader=%s\n", 
+            p_ctx->fd, p_ctx->reader);
          if (!p_ctx->fd) {
             io->io_errno = errno;
-            bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+            bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
                "Open pipe reader=%s failed: ERR=%s\n", p_ctx->reader, strerror(errno));
             return bRC_Error;
          }
@@ -349,38 +354,40 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
 
    case IO_READ:
       if (!p_ctx->fd) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Logic error: NULL read FD\n");
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "Logic error: NULL read FD\n");
          return bRC_Error;
       }
       io->status = fread(io->buf, 1, io->count, p_ctx->fd);
-//    printf("bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
+//    bfuncs->DebugMessage(ctx, fi, li, 50, "bpipe-fd: IO_READ buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
             "Pipe read error: ERR=%s\n", strerror(errno));
-//       printf("Error reading pipe\n");
+         bfuncs->DebugMessage(ctx, fi, li, 50, 
+            "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
       break;
 
    case IO_WRITE:
       if (!p_ctx->fd) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Logic error: NULL write FD\n");
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "Logic error: NULL write FD\n");
          return bRC_Error;
       }
 //    printf("bpipe-fd: IO_WRITE fd=%p buf=%p len=%d\n", p_ctx->fd, io->buf, io->count);
       io->status = fwrite(io->buf, 1, io->count, p_ctx->fd);
 //    printf("bpipe-fd: IO_WRITE buf=%p len=%d\n", io->buf, io->status);
       if (io->status == 0 && ferror(p_ctx->fd)) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, 
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, 
             "Pipe write error\n");
-//       printf("Error writing pipe\n");
+         bfuncs->DebugMessage(ctx, fi, li, 50, 
+            "Pipe read error: ERR=%s\n", strerror(errno));
          return bRC_Error;
       }
       break;
 
    case IO_CLOSE:
       if (!p_ctx->fd) {
-         bfuncs->JobMessage(ctx, __FILE__, __LINE__, M_FATAL, 0, "Logic error: NULL FD\n");
+         bfuncs->JobMessage(ctx, fi, li, M_FATAL, 0, "Logic error: NULL FD on bpipe close\n");
          return bRC_Error;
       }
       io->status = pclose(p_ctx->fd);
@@ -405,6 +412,16 @@ static bRC endRestoreFile(bpContext *ctx)
    return bRC_OK;
 }
 
+/*
+ * This is called during restore to create the file (if necessary)
+ * We must return in rp->create_status:
+ *   
+ *  CF_ERROR    -- error
+ *  CF_SKIP     -- skip processing this file
+ *  CF_EXTRACT  -- extract the file (i.e.call i/o routines)
+ *  CF_CREATED  -- created, but no content to extract (typically directories)
+ *
+ */
 static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
 {
 // printf("bpipe-fd: createFile\n");
@@ -413,9 +430,14 @@ static bRC createFile(bpContext *ctx, struct restore_pkt *rp)
    }
    strncpy(((struct plugin_ctx *)ctx->pContext)->where, rp->where, 513);
    ((struct plugin_ctx *)ctx->pContext)->replace = rp->replace;
+   rp->create_status = CF_EXTRACT;
    return bRC_OK;
 }
 
+/*
+ * We will get here if the File is a directory after everything
+ * is written in the directory.
+ */
 static bRC setFileAttributes(bpContext *ctx, struct restore_pkt *rp)
 {
 // printf("bpipe-fd: setFileAttributes\n");
