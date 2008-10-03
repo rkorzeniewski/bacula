@@ -69,17 +69,6 @@ struct utimbuf {
 int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result);
 #endif
 
-/*
- * Status codes returned by create_file()
- */
-enum {
-   CF_SKIP = 1,                       /* skip file (not newer or something) */
-   CF_ERROR,                          /* error creating file */
-   CF_EXTRACT,                        /* file created, data to extract */
-   CF_CREATED                         /* file created, no data to extract */
-};
-
-
 /*  
  * Options saved int "options" of the include/exclude lists.
  * They are directly jammed ito  "flag" of ff packet

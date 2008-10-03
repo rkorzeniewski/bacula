@@ -197,4 +197,16 @@ typedef float             float32_t;
 #define sockopt_val_t void *
 #endif
 
+/*
+ * Status codes returned by create_file()
+ *   Used in findlib, filed, and plugins
+ */
+enum {
+   CF_SKIP = 1,                       /* skip file (not newer or something) */
+   CF_ERROR,                          /* error creating file */
+   CF_EXTRACT,                        /* file created, data to extract */
+   CF_CREATED                         /* file created, no data to extract */
+};
+
+
 #endif /* __bc_types_INCLUDED */

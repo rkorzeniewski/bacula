@@ -292,9 +292,10 @@ void plugin_name_stream(JCR *jcr, char *name)
     * After this point, we are dealing with a restore start
     */
 
-   Dmsg1(dbglvl, "plugin restore cmd=%s\n", cmd);
+// Dmsg1(dbglvl, "plugin restore cmd=%s\n", cmd);
    if (!(p = strchr(cmd, ':'))) {
-      Jmsg1(jcr, M_ERROR, 0, "Malformed plugin command: %s\n", cmd);
+      Jmsg1(jcr, M_ERROR, 0,
+           _("Malformed plugin command. Name not terminated by colon: %s\n"), cmd);
       goto bail_out;
    }
    len = p - cmd;
@@ -340,7 +341,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct restore_pkt rp;
-   struct io_pkt io;
+   mode_t mode;
 
    if (!set_cmd_plugin(bfd, jcr)) {
       return CF_ERROR;
@@ -360,17 +361,22 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    rp.where = jcr->where;
    rp.RegexWhere = jcr->RegexWhere;
    rp.replace = jcr->replace;
+   rp.create_status = CF_ERROR;
+   Dmsg1(dbglvl, "call plugin createFile=%s\n", rp.ofname);
    if (plug_func(plugin)->createFile(plugin_ctx, &rp) != bRC_OK) {
       return CF_ERROR;
    }
-   io.pkt_size = sizeof(io);
-   io.pkt_end = sizeof(io);
-   io.func = IO_OPEN;
-   io.count = 0;
-   io.buf = NULL;
-   io.mode = 0777 & attr->statp.st_mode;
-   io.flags = O_WRONLY;
-   if (plug_func(plugin)->pluginIO(plugin_ctx, &io) != bRC_OK) {
+   if (rp.create_status == CF_ERROR || rp.create_status == CF_CREATED) {
+      return rp.create_status;
+   }
+   mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
+   Dmsg0(dbglvl, "call bopen\n");
+   if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
+      berrno be;
+      be.set_errno(bfd->berrno);
+      Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
+            attr->ofname, be.bstrerror());
+      Dmsg2(dbglvl,"Could not create %s: ERR=%s\n", attr->ofname, be.bstrerror());
       return CF_ERROR;
    }
    return CF_EXTRACT;
@@ -383,6 +389,7 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
  */
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
+   Dmsg0(dbglvl, "plugin_set_attributes\n");
    return true;
 }
 
@@ -529,6 +536,7 @@ static int my_plugin_bclose(BFILE *bfd)
       errno = io.io_errno;
       bfd->lerror = io.lerror;
    }
+   Dmsg1(dbglvl, "plugin_bclose stat=%d\n", io.status);
    return io.status;
 }
 

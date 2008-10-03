@@ -100,6 +100,7 @@ struct restore_pkt {
    const char *where;                 /* where */
    const char *RegexWhere;            /* regex where */
    int replace;                       /* replace flag */
+   int create_status;                 /* status from createFile() */
    int32_t pkt_end;                   /* end packet sentinel */
 };
 
