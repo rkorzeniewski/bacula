@@ -53,6 +53,9 @@
            <option id='lang_es' value='es'>Spanish</option>
           </select>
      </td></tr>
+     <tr><td>default_age:</td>
+         <td> <input class="formulaire" type='text' value='<TMPL_VAR default_age>' title='24h15m' size='64' name='default_age'> 
+         </td></tr>
      <tr><td>display_log_time:</td> 
          <td> <input class="formulaire" title="Afficher l'heure des logs" type='checkbox' name='display_log_time' <TMPL_IF display_log_time> checked='checked' value='on' </TMPL_IF> > 
          </td></tr>

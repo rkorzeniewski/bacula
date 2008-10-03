@@ -1,7 +1,7 @@
 <br/>
  <div class='titlediv'>
   <h1 class='newstitle'> 
-	Job ejecut√°ndose <TMPL_VAR JobName> on <TMPL_VAR Client>
+	Job ejecut·ndose <TMPL_VAR JobName> on <TMPL_VAR Client>
   </h1>
  </div>
  <div class='bodydiv'>

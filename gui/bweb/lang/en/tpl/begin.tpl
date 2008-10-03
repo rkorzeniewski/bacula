@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Bweb - Bacula Web Interface</title>
-<link rel="SHORTCUT ICON" href="/bweb/favicon.ico">
+<link rel="SHORTCUT ICON" href="/bweb/favicon.ico"/>
 <script type="text/javascript" language="JavaScript" src="/bweb/natcompare.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/nrs_table.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/bweb.js"></script>
@@ -78,7 +78,7 @@ if ('Main' == ('_' + '_Main_' + '_')) {
  <li> <a href="bweb.pl?action=about"> About </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Logged as <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
-<button type="submit" class="bp" class="button" title="Search media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Search client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Search media or client"></li> </button>
+<button type="submit" class="bp" class="button" title="Search media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Search client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Search media or client"></button></li>
 </ul>
 
 <form name="search" action="bweb.pl?" method='GET'>

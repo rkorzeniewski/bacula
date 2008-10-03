@@ -48,14 +48,14 @@
 <TMPL_UNLESS hide_since>
 <tr>
   <td valign='top'>
-    <h2>Depuis</h2>
+    <h2>Hier</h2>
     <input type='text' id='since' name='since' size='22' title='YYYY-MM-DD'
      value='<TMPL_VAR since>' class='formulaire'>
   </td>
  </tr>
 <tr>
   <td valign='top'>
-    <h2>PÃ©riode</h2>
+    <h2>Période</h2>
     <select name='age' class='formulaire' onclick='document.getElementById("since").value="";'>
       <option id='age_86400'   value='86400'>1 day</option>
       <option id='age_172800'   value='172800'>2 days</option>
@@ -68,10 +68,10 @@
 <TMPL_ELSE>
 <tr>
   <td valign='top'>
-    <h2>PÃ©riode</h2>
+    <h2>Période</h2>
     <select name='age' class='formulaire'>
       <option id='age_86400'   value='86400'>Last 24h</option>
-      <option id='age_172800'   value='237600'>This weekend</option>
+      <option id='age_237600'   value='237600'>This weekend</option>
       <option id='age_604800'   value='604800'>Cette semaine</option>
       <option id='age_2678400'  value='2678400'>30 derniers jours</option>
       <option id='age_15552000' value='15552000'>Last 6 months</option>
@@ -84,9 +84,9 @@
   <td valign='top'>
     <h2>Time slice</h2>
     <select name='type' class='formulaire'>
-      <option id='slice_day'   value='day'>Par jour</option>
-      <option id='slice_week'  value='week'>Par semaine</option>
-      <option id='slice_month' value='month'>Par mois</option>
+      <option id='slice_day'   value='day'>Per days</option>
+      <option id='slice_week'  value='week'>Per weeks</option>
+      <option id='slice_month' value='month'>Per months</option>
     </select>     
   </td>
  </tr>
@@ -106,6 +106,7 @@
       <option id='jobtype_any' value='all type'>Tous</option>
       <option id='jobtype_B' value='B'>Backup</option>
       <option id='jobtype_R' value='R'>Restauration</option>
+      <option id='jobtype_D' value='D'>Admin</option>
     </select>
   </td>
 </tr>

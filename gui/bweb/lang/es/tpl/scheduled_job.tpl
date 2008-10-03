@@ -9,9 +9,14 @@
        <img src='/bweb/R.png' alt=''>  Ejecutar Ahora </button>
       <button type="submit" class="bp" name='action' title='Desactivar' value='disable_job'>
        <img src='/bweb/inflag0.png' alt=''> Desactivar </button>
+       <button type="submit" onsubmit='document.form1.level.value="all"' class="bp" name='action' value='job' title='view <TMPL_VAR Client> jobs'><img src='/bweb/zoom.png'>Ver jobs</button>
+<TMPL_IF wiki_url>
+       <a id='wiki' href="<TMPL_VAR wiki_url>" title='View doc'><img src='/bweb/doc.png' alt='View doc'></a>View doc
+</TMPL_IF>
      <input type='hidden' name='pool' value=''>
      <input type='hidden' name='level' value=''>
      <input type='hidden' name='media' value=''>
+     <input type='hidden' name='client' value=''>
     </form>
  </div>
 
@@ -28,6 +33,8 @@ var header = new Array("Programado",
 var data = new Array();
 var chkbox;
 
+var wiki_url <TMPL_IF wiki_url>='<TMPL_VAR wiki_url>'</TMPL_IF>;
+
 <TMPL_LOOP list>
 chkbox = document.createElement('INPUT');
 chkbox.type  = 'radio';
@@ -37,6 +44,10 @@ chkbox.onclick = function() {
  document.form1.level.value = '<TMPL_VAR level>';
  document.form1.pool.value = '<TMPL_VAR pool>';
  document.form1.media.value = '<TMPL_VAR volume>';
+ document.form1.client.value = '<TMPL_VAR client>';
+ if (wiki_url) {
+   document.getElementById('wiki').href=wiki_url + '<TMPL_VAR client>';
+ }
 } ;
 
 data.push( new Array(

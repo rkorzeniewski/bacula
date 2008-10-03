@@ -20,7 +20,9 @@ bweb_add_refresh();
    <tr><td>Job failed (<TMPL_VAR label>):</td> 
        
 <td <TMPL_IF nb_err> class='joberr' </TMPL_IF>>
+  <a href="?action=job;level=Any;status=f;age=<TMPL_VAR age>;jobtype=B">
    <TMPL_VAR nb_err> 
+  </a>
 </td>
        <td></td>         <td></td>
        <td></td>         <td></td>

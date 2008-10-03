@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Bweb - Bacula Web Interface</title>
-<link rel="SHORTCUT ICON" href="/bweb/favicon.ico">
+<link rel="SHORTCUT ICON" href="/bweb/favicon.ico"/>
 <script type="text/javascript" language="JavaScript" src="/bweb/natcompare.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/nrs_table.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/bweb.js"></script>
@@ -35,10 +35,10 @@ if ('Principal' == ('_' + '_Main_' + '_')) {
      <li><a href="bweb.pl?action=job_group">Jobs by group</a>
      <li><a href="bweb.pl?action=overview">Jobs overview</a>
      <li><a href="bweb.pl?action=missing">Missing Jobs</a>
-     <li><a href="bweb.pl?action=job">脷ltimos Jobs</a> </li>
-     <li><a href="bweb.pl?action=running">Jobs en Ejecuci贸n</a>
-     <li><a href="bweb.pl?action=next_job">Pr贸ximos Jobs</a> </li>
-     <li><a href="bweb.pl?action=restore" title="Launch brestore">Recuperaci贸n</a> </li>
+     <li><a href="bweb.pl?action=job">趌timos Jobs</a> </li>
+     <li><a href="bweb.pl?action=running">Jobs en Ejecuci髇</a>
+     <li><a href="bweb.pl?action=next_job">Pr髕imos Jobs</a> </li>
+     <li><a href="bweb.pl?action=restore" title="Launch brestore">Recuperaci髇</a> </li>
      <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>
@@ -60,17 +60,17 @@ if ('Principal' == ('_' + '_Main_' + '_')) {
 </TMPL_LOOP>
   </ul>
  </li>
- <li><a href="bweb.pl?action=graph"> Estad铆sticas </a>
+ <li><a href="bweb.pl?action=graph"> Estad韘ticas </a>
   <ul>
-    <li><a href="bweb.pl?action=graph"> Estad铆sticas </a>
+    <li><a href="bweb.pl?action=graph"> Estad韘ticas </a>
     <li><a href="btime.pl"> Backup Timing </a>
     <li><a href="bweb.pl?action=group_stats"> Groupes </a>
     <!-- <li><a href="bperf.pl"> Perfs </a> -->
   </ul>
  </li>
- <li> <a href="bweb.pl?action=view_conf"> Configuraci贸n </a> 
+ <li> <a href="bweb.pl?action=view_conf"> Configuraci髇 </a> 
 <TMPL_IF enable_security>
-  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuraci贸n </a> 
+  <ul> <li> <a href="bweb.pl?action=view_conf"> Configuraci髇 </a> 
        <li> <a href="bweb.pl?action=users"> Manage users </a>
   </ul>
 </TMPL_IF>
@@ -78,7 +78,7 @@ if ('Principal' == ('_' + '_Main_' + '_')) {
  <li> <a href="bweb.pl?action=about"> Acerca </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Usuario <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
-<button type="submit" class="bp" class="button" title="Search media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Search client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Search media or client"></li> </button>
+<button type="submit" class="bp" class="button" title="Search media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Search client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Search media or client"></button></li>
 </ul>
 
 <form name="search" action="bweb.pl?" method='GET'>

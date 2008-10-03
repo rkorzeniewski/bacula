@@ -60,8 +60,8 @@
       <option id='age_86400'   value='86400'>1 day</option>
       <option id='age_172800'   value='172800'>2 days</option>
       <option id='age_604800'   value='604800'>Esta semana</option>
-      <option id='age_2678400'  value='2678400'>Ãšltimos 30 dias</option>
-      <option id='age_15552000' value='15552000'>Ãšltimos 6 meses</option>
+      <option id='age_2678400'  value='2678400'>Últimos 30 dias</option>
+      <option id='age_15552000' value='15552000'>Últimos 6 meses</option>
     </select>     
   </td>
  </tr>
@@ -71,10 +71,10 @@
     <h2>Tiempo</h2>
     <select name='age' class='formulaire'>
       <option id='age_86400'   value='86400'>Last 24h</option>
-      <option id='age_172800'   value='237600'>This weekend</option>
+      <option id='age_237600'   value='237600'>This weekend</option>
       <option id='age_604800'   value='604800'>Esta Semana</option>
-      <option id='age_2678400'  value='2678400'>Ãšltimos 30 dÃ­as</option>
-      <option id='age_15552000' value='15552000'>Ãšltimos 6 meses</option>
+      <option id='age_2678400'  value='2678400'>Últimos 30 días</option>
+      <option id='age_15552000' value='15552000'>Últimos 6 meses</option>
     </select>     
   </td>
  </tr>
@@ -93,7 +93,7 @@
 </TMPL_IF>
  <tr>
   <td valign='bottom'> 
-    <h2>NÃºmero de items</h2>
+    <h2>Número de items</h2>
     <input type='text' name='limit' value='<TMPL_VAR limit>' 
 	class='formulaire' size='4'>
   </td>
@@ -105,7 +105,8 @@
     <select name='jobtype' class='formulaire'>
       <option id='jobtype_any' value='all type'>Cualquiera</option>
       <option id='jobtype_B' value='B'>Backup</option>
-      <option id='jobtype_R' value='R'>RecuperaciÃ³n</option>
+      <option id='jobtype_R' value='R'>Recuperación</option>
+      <option id='jobtype_D' value='D'>Admin</option>
     </select>
   </td>
 </tr>

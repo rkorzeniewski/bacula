@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Bweb - Interface Web de Bacula</title>
-<link rel="SHORTCUT ICON" href="/bweb/favicon.ico">
+<link rel="SHORTCUT ICON" href="/bweb/favicon.ico"/>
 <script type="text/javascript" language="JavaScript" src="/bweb/natcompare.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/nrs_table.js"></script>
 <script type="text/javascript" language="JavaScript" src="/bweb/bweb.js"></script>
@@ -14,7 +14,7 @@
 
 <script type="text/javascript" language="JavaScript">
 if (navigator.appName == 'Konqueror') {
-        alert("DÃ©solÃ©, bweb fonctionne seulement avec mozilla.");
+        alert("Désolé, bweb fonctionne seulement avec mozilla.");
 }
 if ('Accueil' == ('_' + '_Main_' + '_')) {
 	document.write("<font color='red'>Update your configuration to use the correct tpl directory (You are using devel tpl)</font>");
@@ -31,10 +31,10 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
  </li>
  <li style="padding: 0.25em 2em;">Jobs
    <ul> 
-     <li><a href="bweb.pl?action=run_job">Jobs dÃ©finis</a>
+     <li><a href="bweb.pl?action=run_job">Jobs définis</a>
      <li><a href="bweb.pl?action=job_group">Jobs par groupe</a>
      <li><a href="bweb.pl?action=overview">Jobs overview</a>
-     <li><a href="bweb.pl?action=missing">Jobs absents</a>
+     <li><a href="bweb.pl?action=missing">Missing Jobs</a>
      <li><a href="bweb.pl?action=job">Historique</a> </li>
      <li><a href="bweb.pl?action=running">Jobs en cours</a>
      <li><a href="bweb.pl?action=next_job">Prochains jobs</a> </li>
@@ -42,9 +42,9 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
      <li><a href="/bweb/bresto.html" title="Try bresto">Web Restore</a> </li>
    </ul>
  </li>
- <li style="padding: 0.25em 2em;">MÃ©dias
+ <li style="padding: 0.25em 2em;">Médias
   <ul>
-     <li><a href="bweb.pl?action=pool">Pools de mÃ©dia</a> </li>
+     <li><a href="bweb.pl?action=pool">Pools de média</a> </li>
      <li><a href="bweb.pl?action=location">Localisations</a> </li>
      <li><a href="bweb.pl?action=media">Tous les Medias</a><hr></li>
      <li><a href="bweb.pl?action=add_media">Ajouter des Medias</a><hr></li>
@@ -78,7 +78,7 @@ if ('Accueil' == ('_' + '_Main_' + '_')) {
  <li> <a href="bweb.pl?action=about"> A propos </a> </li>
  <li style="padding: 0.25em 2em;float: right;">&nbsp;Logged as <TMPL_VAR NAME=loginname> </li>
  <li style="float: right;white-space: nowrap;">
-<button type="submit" class="bp" class="button" title="Chercher un media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Chercher un client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Chercher un media ou un client"></li> </button>
+<button type="submit" class="bp" class="button" title="Chercher un media" onclick="search_media();"><img src="/bweb/tape.png" alt=''></button><button type="submit" title="Chercher un client" onclick="search_client();" class='bp'><img src="/bweb/client.png" alt=''></button><input class='formulaire' style="margin: 0 2px 0 2px; padding: 0 0 0 0;" id='searchbox' type='text' size='8' value='search...' onclick="this.value='';" title="Chercher un media ou un client"></button></li>
 </ul>
 
 <form name="search" action="bweb.pl?" method='GET'>

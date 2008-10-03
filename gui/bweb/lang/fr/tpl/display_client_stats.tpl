@@ -5,9 +5,9 @@
  <div class='bodydiv'>
 <form action='?'>
      <table id='id<TMPL_VAR ID>'></table>
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_duration;age=2592000;width=420;height=200" alt='Not enough data' > &nbsp;
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
-     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=2592000;width=420;height=200" alt='Not enough data'> &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_duration;age=<TMPL_VAR age>;width=420;height=200" alt='Not enough data' > &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_rate;age=<TMPL_VAR age>;width=420;height=200" alt='Not enough data'> &nbsp;
+     <img src="bgraph.pl?<TMPL_VAR grapharg>=<TMPL_VAR clientname>;graph=job_size;age=<TMPL_VAR age>;width=420;height=200" alt='Not enough data'> &nbsp;
 <!--	<div class="otherboxtitle">
           Actions &nbsp;
         </div>

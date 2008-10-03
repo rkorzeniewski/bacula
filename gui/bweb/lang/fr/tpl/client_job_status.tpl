@@ -38,7 +38,7 @@
 </table>
 <form name='form1' action='?' method='GET'>
 <button type="submit" class="bp" name='action' value='dsp_cur_job' 
-> <img src='/bweb/update.png' title='RafraÃ®chir' alt=''>Rafra&icirc;chir</button>
+> <img src='/bweb/update.png' title='Rafraîchir' alt=''>Rafraîchir</button>
 <input type='hidden' name='client' value='<TMPL_VAR Client>'>
 <input type='hidden' name='jobid' value='<TMPL_VAR JobId>'>
 <button type="submit" class="bp" name='action' value='cancel_job'
