@@ -71,15 +71,15 @@
  * This packet is used for file save info transfer.
 */
 struct save_pkt {
-  int32_t pkt_size;                   /* size of this packet */
-  char *fname;                        /* Full path and filename */
-  char *link;                         /* Link name if any */
-  struct stat statp;                  /* System stat() packet for file */
-  int32_t type;                       /* FT_xx for this file */             
-  uint32_t flags;                     /* Bacula internal flags */
-  bool portable;                      /* set if data format is portable */
-  char *cmd;                          /* command */
-  int32_t pkt_end;                    /* end packet sentinel */
+   int32_t pkt_size;                  /* size of this packet */
+   char *fname;                       /* Full path and filename */
+   char *link;                        /* Link name if any */
+   struct stat statp;                 /* System stat() packet for file */
+   int32_t type;                      /* FT_xx for this file */             
+   uint32_t flags;                    /* Bacula internal flags */
+   bool portable;                     /* set if data format is portable */
+   char *cmd;                         /* command */
+   int32_t pkt_end;                   /* end packet sentinel */
 };
 
 /*
