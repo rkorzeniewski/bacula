@@ -420,16 +420,19 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 
    if (bfd->cmd_plugin && plugin_bopen) {
       int rtnstat;
-      Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
+      Dmsg1(50, "call plugin_bopen fname=%s\n", fname);
       rtnstat = plugin_bopen(bfd, fname, flags, mode);
       if (rtnstat >= 0) {
          if (flags & O_CREAT || flags & O_WRONLY) {   /* Open existing for write */
+            Dmsg1(50, "plugin_open for write OK file=%s.\n", fname);
             bfd->mode = BF_WRITE;
          } else {
+            Dmsg1(50, "plugin_open for read OK file=%s.\n", fname);
             bfd->mode = BF_READ;
          }
       } else {
          bfd->mode = BF_CLOSED;
+         Dmsg1(000, "plugin_bopen returned bad status=%d\n", rtnstat);
       }
       free_pool_memory(win32_fname_wchar);
       free_pool_memory(win32_fname);
