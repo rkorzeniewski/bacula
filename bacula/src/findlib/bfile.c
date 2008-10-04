@@ -422,6 +422,7 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
       int rtnstat;
       Dmsg1(50, "call plugin_bopen fname=%s\n", fname);
       rtnstat = plugin_bopen(bfd, fname, flags, mode);
+      Dmsg1(50, "return from plugin_bopen status=%d\n", rtnstat);
       if (rtnstat >= 0) {
          if (flags & O_CREAT || flags & O_WRONLY) {   /* Open existing for write */
             Dmsg1(50, "plugin_open for write OK file=%s.\n", fname);
@@ -432,12 +433,13 @@ int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
          }
       } else {
          bfd->mode = BF_CLOSED;
-         Dmsg1(000, "plugin_bopen returned bad status=%d\n", rtnstat);
+         Dmsg1(000, "==== plugin_bopen returned bad status=%d\n", rtnstat);
       }
       free_pool_memory(win32_fname_wchar);
       free_pool_memory(win32_fname);
       return bfd->mode == BF_CLOSED ? -1 : 1;
    }
+   Dmsg0(50, "=== NOT plugin\n");
 
    if (!(p_CreateFileA || p_CreateFileW))
       return 0;
@@ -571,11 +573,13 @@ int bclose(BFILE *bfd)
       bfd->errmsg = NULL;
    }
    if (bfd->mode == BF_CLOSED) {
+      Dmsg0(50, "=== BFD already closed.\n");
       return 0;
    }
 
    if (bfd->cmd_plugin && plugin_bclose) {
       stat = plugin_bclose(bfd);
+      Dmsg0(50, "==== BFD closed!!!\n");
       goto all_done;
    }
 
@@ -839,8 +843,10 @@ bool is_restore_stream_supported(int stream)
 int bopen(BFILE *bfd, const char *fname, int flags, mode_t mode)
 {
    if (bfd->cmd_plugin && plugin_bopen) {
-      Dmsg1(000, "call plugin_bopen fname=%s\n", fname);
-      return plugin_bopen(bfd, fname, flags, mode);
+      Dmsg1(50, "call plugin_bopen fname=%s\n", fname);
+      bfd->fid = plugin_bopen(bfd, fname, flags, mode);
+      Dmsg1(50, "Plugin bopen stat=%d\n", bfd->fid);
+      return bfd->fid;
    }
 
    /* Normal file open */

@@ -181,7 +181,7 @@ void new_plugins(JCR *jcr);
 void free_plugins(JCR *jcr);
 void generate_plugin_event(JCR *jcr, bEventType event, void *value=NULL);
 bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start);
-void plugin_name_stream(JCR *jcr, char *name);    
+bool plugin_name_stream(JCR *jcr, char *name);    
 int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace);
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd);
 int plugin_save(JCR *jcr, FF_PKT *ff_pkt, bool top_level);

@@ -88,6 +88,8 @@ struct r_ctx {
    intmax_t fork_size;                 /* Size of alternate stream */
    int fork_flags;                     /* Options for extract_data() */
    int32_t type;                       /* file type FT_ */
+   ATTR *attr;                         /* Pointer to attributes */
+   bool extract;                       /* set when extracting */
 
    SIGNATURE *sig;                     /* Cryptographic signature (if any) for file */
    CRYPTO_SESSION *cs;                 /* Cryptographic session data (if any) for file */
@@ -108,11 +110,12 @@ static void deallocate_cipher(r_ctx &rctx);
 static void deallocate_fork_cipher(r_ctx &rctx);
 static void free_signature(r_ctx &rctx);
 static void free_session(r_ctx &rctx);
+static void close_previous_stream(r_ctx &rctx);
 
 
 
 static bool verify_signature(JCR *jcr, r_ctx &rctx);
-int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
+int32_t extract_data(JCR *jcr, r_ctx &rctx, POOLMEM *buf, int32_t buflen,
                      uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx);
 bool flush_cipher(JCR *jcr, BFILE *bfd, uint64_t *addr, int flags, 
                   RESTORE_CIPHER_CTX *cipher_ctx);
@@ -147,14 +150,13 @@ void do_restore(JCR *jcr)
 {
    BSOCK *sd;
    uint32_t VolSessionId, VolSessionTime;
-   bool extract = false;
    int32_t file_index;
    char ec1[50];                       /* Buffer printing huge values */
    uint32_t buf_size;                  /* client buffer size */
    int stat;
-   ATTR *attr;
    intmax_t rsrc_len = 0;             /* Original length of resource fork */
    r_ctx rctx;
+   ATTR *attr;
    /* ***FIXME*** make configurable */
    crypto_digest_t signing_algorithm = have_sha2 ? 
                                        CRYPTO_DIGEST_SHA256 : CRYPTO_DIGEST_SHA1;
@@ -240,7 +242,7 @@ void do_restore(JCR *jcr)
     */
    binit(&rctx.bfd);
    binit(&rctx.forkbfd);
-   attr = new_attr(jcr);
+   attr = rctx.attr = new_attr(jcr);
    jcr->acl_text = get_pool_memory(PM_MESSAGE);
 
    
@@ -255,8 +257,8 @@ void do_restore(JCR *jcr)
          Jmsg1(jcr, M_FATAL, 0, _("Record header scan error: %s\n"), sd->msg);
          goto bail_out;
       }
-      Dmsg4(130, "Got hdr: Files=%d FilInx=%d Stream=%d, %s.\n", 
-            jcr->JobFiles, file_index, rctx.stream, stream_to_ascii(rctx.stream));
+      Dmsg5(50, "Got hdr: Files=%d FilInx=%d size=%d Stream=%d, %s.\n", 
+            jcr->JobFiles, file_index, rctx.size, rctx.stream, stream_to_ascii(rctx.stream));
 
       /* * Now we expect the Stream Data */
       if (bget_msg(sd) < 0) {
@@ -266,10 +268,12 @@ void do_restore(JCR *jcr)
       if (rctx.size != (uint32_t)sd->msglen) {
          Jmsg2(jcr, M_FATAL, 0, _("Actual data size %d not same as header %d\n"), 
                sd->msglen, rctx.size);
+         Dmsg2(50, "Actual data size %d not same as header %d\n",
+               sd->msglen, rctx.size);
          goto bail_out;
       }
       Dmsg3(130, "Got stream: %s len=%d extract=%d\n", stream_to_ascii(rctx.stream), 
-            sd->msglen, extract);
+            sd->msglen, rctx.extract);
 
       /* If we change streams, close and reset alternate data streams */
       if (rctx.prev_stream != rctx.stream) {
@@ -285,40 +289,8 @@ void do_restore(JCR *jcr)
       switch (rctx.stream) {
       case STREAM_UNIX_ATTRIBUTES:
       case STREAM_UNIX_ATTRIBUTES_EX:
-         /*
-          * If extracting, it was from previous stream, so
-          * close the output file and validate the signature.
-          */
-         if (extract) {
-            if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
-               Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
-            }
+         close_previous_stream(rctx);     /* if any previous stream open, close it */
 
-            if (rctx.prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
-               deallocate_cipher(rctx);
-               deallocate_fork_cipher(rctx);
-            }
-
-            if (jcr->plugin) {
-               plugin_set_attributes(jcr, attr, &rctx.bfd);
-            } else {
-               set_attributes(jcr, attr, &rctx.bfd);
-            }
-            extract = false;
-
-            /* Verify the cryptographic signature, if any */
-            rctx.type = attr->type;
-            verify_signature(jcr, rctx);
-
-            /* Free Signature */
-            free_signature(rctx);
-            free_session(rctx);
-            jcr->ff->flags = 0;
-            Dmsg0(130, "Stop extracting.\n");
-         } else if (is_bopen(&rctx.bfd)) {
-            Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
-            bclose(&rctx.bfd);
-         }
 
          /* TODO: manage deleted files */
          if (rctx.type == FT_DELETED) { /* deleted file */
@@ -360,7 +332,7 @@ void do_restore(JCR *jcr)
           *  us if we need to extract or not.
           */
          jcr->num_files_examined++;
-         extract = false;
+         rctx.extract = false;
          if (jcr->plugin) {
             stat = plugin_create_file(jcr, attr, &rctx.bfd, jcr->replace);
          } else {
@@ -376,7 +348,7 @@ void do_restore(JCR *jcr)
          case CF_SKIP:
             break;
          case CF_EXTRACT:        /* File created and we expect file data */
-            extract = true;
+            rctx.extract = true;
             /* FALLTHROUGH */
          case CF_CREATED:        /* File created, but there is no content */
             jcr->JobFiles++;
@@ -387,10 +359,10 @@ void do_restore(JCR *jcr)
                /* Only restore the resource fork for regular files */
                from_base64(&rsrc_len, attr->attrEx);
                if (attr->type == FT_REG && rsrc_len > 0) {
-                  extract = true;
+                  rctx.extract = true;
                }
             }
-            if (!extract) {
+            if (!rctx.extract) {
                /* set attributes now because file will not be extracted */
                if (jcr->plugin) {
                   plugin_set_attributes(jcr, attr, &rctx.bfd);
@@ -409,7 +381,7 @@ void do_restore(JCR *jcr)
          /* Is this an unexpected session data entry? */
          if (rctx.cs) {
             Jmsg0(jcr, M_ERROR, 0, _("Unexpected cryptographic session data stream.\n"));
-            extract = false;
+            rctx.extract = false;
             bclose(&rctx.bfd);
             continue;
          }
@@ -417,7 +389,7 @@ void do_restore(JCR *jcr)
          /* Do we have any keys at all? */
          if (!jcr->crypto.pki_recipients) {
             Jmsg(jcr, M_ERROR, 0, _("No private decryption keys have been defined to decrypt encrypted backup data.\n"));
-            extract = false;
+            rctx.extract = false;
             bclose(&rctx.bfd);
             break;
          }
@@ -428,7 +400,7 @@ void do_restore(JCR *jcr)
          jcr->crypto.digest = crypto_digest_new(jcr, signing_algorithm);
          if (!jcr->crypto.digest) {
             Jmsg0(jcr, M_FATAL, 0, _("Could not create digest.\n"));
-            extract = false;
+            rctx.extract = false;
             bclose(&rctx.bfd);
             break;
          }
@@ -453,7 +425,7 @@ void do_restore(JCR *jcr)
          }
 
          if (cryptoerr != CRYPTO_ERROR_NONE) {
-            extract = false;
+            rctx.extract = false;
             bclose(&rctx.bfd);
             continue;
          }
@@ -471,7 +443,7 @@ void do_restore(JCR *jcr)
       case STREAM_ENCRYPTED_FILE_GZIP_DATA:
       case STREAM_ENCRYPTED_WIN32_GZIP_DATA:
          /* Force an expected, consistent stream type here */
-         if (extract && (rctx.prev_stream == rctx.stream 
+         if (rctx.extract && (rctx.prev_stream == rctx.stream 
                          || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES
                          || rctx.prev_stream == STREAM_UNIX_ATTRIBUTES_EX
                          || rctx.prev_stream == STREAM_ENCRYPTED_SESSION_DATA)) {
@@ -498,7 +470,7 @@ void do_restore(JCR *jcr)
                if (!rctx.cipher_ctx.cipher) {
                   if (!rctx.cs) {
                      Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
-                     extract = false;
+                     rctx.extract = false;
                      bclose(&rctx.bfd);
                      continue;
                   }
@@ -507,7 +479,7 @@ void do_restore(JCR *jcr)
                            &rctx.cipher_ctx.block_size)) == NULL) {
                      Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
                      free_session(rctx);
-                     extract = false;
+                     rctx.extract = false;
                      bclose(&rctx.bfd);
                      continue;
                   }
@@ -520,9 +492,8 @@ void do_restore(JCR *jcr)
                rctx.flags |= FO_WIN32DECOMP;    /* "decompose" BackupWrite data */
             }
 
-            if (extract_data(jcr, &rctx.bfd, sd->msg, sd->msglen, &rctx.fileAddr, 
+            if (extract_data(jcr, rctx, sd->msg, sd->msglen, &rctx.fileAddr, 
                              rctx.flags, &rctx.cipher_ctx) < 0) {
-               extract = false;
                bclose(&rctx.bfd);
                continue;
             }
@@ -541,10 +512,10 @@ void do_restore(JCR *jcr)
             rctx.fork_flags |= FO_ENCRYPT;
 
             /* Set up a decryption context */
-            if (extract && !rctx.fork_cipher_ctx.cipher) {
+            if (rctx.extract && !rctx.fork_cipher_ctx.cipher) {
                if (!rctx.cs) {
                   Jmsg1(jcr, M_ERROR, 0, _("Missing encryption session data stream for %s\n"), jcr->last_fname);
-                  extract = false;
+                  rctx.extract = false;
                   bclose(&rctx.bfd);
                   continue;
                }
@@ -552,18 +523,18 @@ void do_restore(JCR *jcr)
                if ((rctx.fork_cipher_ctx.cipher = crypto_cipher_new(rctx.cs, false, &rctx.fork_cipher_ctx.block_size)) == NULL) {
                   Jmsg1(jcr, M_ERROR, 0, _("Failed to initialize decryption context for %s\n"), jcr->last_fname);
                   free_session(rctx);
-                  extract = false;
+                  rctx.extract = false;
                   bclose(&rctx.bfd);
                   continue;
                }
             }
          }
 
-         if (extract) {
+         if (rctx.extract) {
             if (rctx.prev_stream != rctx.stream) {
                if (bopen_rsrc(&rctx.forkbfd, jcr->last_fname, O_WRONLY | O_TRUNC | O_BINARY, 0) < 0) {
                   Jmsg(jcr, M_ERROR, 0, _("     Cannot open resource fork for %s.\n"), jcr->last_fname);
-                  extract = false;
+                  rctx.extract = false;
                   continue;
                }
 
@@ -571,9 +542,8 @@ void do_restore(JCR *jcr)
                Dmsg0(130, "Restoring resource fork\n");
             }
 
-            if (extract_data(jcr, &rctx.forkbfd, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags, 
+            if (extract_data(jcr, rctx, sd->msg, sd->msglen, &rctx.fork_addr, rctx.fork_flags, 
                              &rctx.fork_cipher_ctx) < 0) {
-               extract = false;
                bclose(&rctx.forkbfd);
                continue;
             }
@@ -632,7 +602,7 @@ void do_restore(JCR *jcr)
             continue;
          }
          /* Save signature. */
-         if (extract && (rctx.sig = crypto_sign_decode(jcr, (uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
+         if (rctx.extract && (rctx.sig = crypto_sign_decode(jcr, (uint8_t *)sd->msg, (uint32_t)sd->msglen)) == NULL) {
             Jmsg1(jcr, M_ERROR, 0, _("Failed to decode message signature for %s\n"), jcr->last_fname);
          }
          break;
@@ -652,35 +622,13 @@ void do_restore(JCR *jcr)
          break;
 
       case STREAM_PLUGIN_NAME:
-         Dmsg1(000, "restore stream_plugin_name=%s\n", sd->msg);
+         close_previous_stream(rctx);
+         Dmsg1(50, "restore stream_plugin_name=%s\n", sd->msg);
          plugin_name_stream(jcr, sd->msg);
          break;
 
       default:
-         /* If extracting, weird stream (not 1 or 2), close output file anyway */
-         if (extract) {
-            Dmsg1(130, "Found weird stream %d\n", rctx.stream);
-            if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
-               Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
-            }
-            /* Flush and deallocate cipher context */
-            deallocate_cipher(rctx);
-            deallocate_fork_cipher(rctx);
-
-            if (jcr->plugin) {
-               plugin_set_attributes(jcr, attr, &rctx.bfd);
-            } else {
-               set_attributes(jcr, attr, &rctx.bfd);
-            }
-
-            /* Verify the cryptographic signature if any */
-            rctx.type = attr->type;
-            verify_signature(jcr, rctx);
-            extract = false;
-         } else if (is_bopen(&rctx.bfd)) {
-            Jmsg0(jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
-            bclose(&rctx.bfd);
-         }
+         close_previous_stream(rctx);
          Jmsg(jcr, M_ERROR, 0, _("Unknown stream=%d ignored. This shouldn't happen!\n"),
               rctx.stream);
          Dmsg2(0, "Unknown stream=%d data=%s\n", rctx.stream, sd->msg);
@@ -689,32 +637,15 @@ void do_restore(JCR *jcr)
 
    } /* end while get_msg() */
 
-   /* If output file is still open, it was the last one in the
+   /*
+    * If output file is still open, it was the last one in the
     * archive since we just hit an end of file, so close the file.
     */
    if (is_bopen(&rctx.forkbfd)) {
       bclose_chksize(jcr, &rctx.forkbfd, rctx.fork_size);
    }
-   if (extract) {
-      /* Flush and deallocate cipher context */
-      deallocate_cipher(rctx);
-      deallocate_fork_cipher(rctx);
 
-      if (jcr->plugin) {
-         plugin_set_attributes(jcr, attr, &rctx.bfd);
-      } else {
-         set_attributes(jcr, attr, &rctx.bfd);
-      }
-
-      /* Verify the cryptographic signature on the last file, if any */
-      rctx.type = attr->type;
-      verify_signature(jcr, rctx);
-   }
-
-   if (is_bopen(&rctx.bfd)) {
-      bclose(&rctx.bfd);
-   }
-
+   close_previous_stream(rctx);
    set_jcr_job_status(jcr, JS_Terminated);
    goto ok_out;
 
@@ -757,7 +688,7 @@ ok_out:
    }
    bclose(&rctx.forkbfd);
    bclose(&rctx.bfd);
-   free_attr(attr);
+   free_attr(rctx.attr);
    free_pool_memory(jcr->acl_text);
    Dmsg2(10, "End Do Restore. Files=%d Bytes=%s\n", jcr->JobFiles,
       edit_uint64(jcr->JobBytes, ec1));
@@ -1017,9 +948,10 @@ bool store_data(JCR *jcr, BFILE *bfd, char *data, const int32_t length, bool win
  * The flags specify whether to use sparse files or compression.
  * Return value is the number of bytes written, or -1 on errors.
  */
-int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
+int32_t extract_data(JCR *jcr, r_ctx &rctx, POOLMEM *buf, int32_t buflen,
       uint64_t *addr, int flags, RESTORE_CIPHER_CTX *cipher_ctx)
 {
+   BFILE *bfd = &rctx.bfd;
    char *wbuf;                        /* write buffer */
    uint32_t wsize;                    /* write size */
    uint32_t rsize;                    /* read size */
@@ -1053,7 +985,7 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
                                 &decrypted_len)) {
          /* Decryption failed. Shouldn't happen. */
          Jmsg(jcr, M_FATAL, 0, _("Decryption error\n"));
-         return -1;
+         goto bail_out;
       }
 
       if (decrypted_len == 0) {
@@ -1087,18 +1019,18 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
 
    if (flags & FO_SPARSE) {
       if (!sparse_data(jcr, bfd, addr, &wbuf, &wsize)) {
-         return -1;
+         goto bail_out;
       }
    }
 
    if (flags & FO_GZIP) {
       if (!decompress_data(jcr, &wbuf, &wsize)) {
-         return -1;
+         goto bail_out;
       }
    }
 
    if (!store_data(jcr, bfd, wbuf, wsize, (flags & FO_WIN32DECOMP) != 0)) {
-      return -1;
+      goto bail_out;
    }
    jcr->JobBytes += wsize;
    *addr += wsize;
@@ -1117,7 +1049,58 @@ int32_t extract_data(JCR *jcr, BFILE *bfd, POOLMEM *buf, int32_t buflen,
       cipher_ctx->packet_len = 0;
    }
    return wsize;
+
+bail_out:
+   rctx.extract = false;
+   return -1;
+
 }
+
+
+/*
+ * If extracting, close any previous stream
+ */
+static void close_previous_stream(r_ctx &rctx)
+{
+   /*
+    * If extracting, it was from previous stream, so
+    * close the output file and validate the signature.
+    */
+   if (rctx.extract) {
+      if (rctx.size > 0 && !is_bopen(&rctx.bfd)) {
+         Jmsg0(rctx.jcr, M_ERROR, 0, _("Logic error: output file should be open\n"));
+         Dmsg2(000, "=== logic error size=%d bopen=%d\n", rctx.size, 
+            is_bopen(&rctx.bfd));
+      }
+
+      if (rctx.prev_stream != STREAM_ENCRYPTED_SESSION_DATA) {
+         deallocate_cipher(rctx);
+         deallocate_fork_cipher(rctx);
+      }
+
+      if (rctx.jcr->plugin) {
+         plugin_set_attributes(rctx.jcr, rctx.attr, &rctx.bfd);
+      } else {
+         set_attributes(rctx.jcr, rctx.attr, &rctx.bfd);
+      }
+      rctx.extract = false;
+
+      /* Verify the cryptographic signature, if any */
+      rctx.type = rctx.attr->type;
+      verify_signature(rctx.jcr, rctx);
+
+      /* Free Signature */
+      free_signature(rctx);
+      free_session(rctx);
+      rctx.jcr->ff->flags = 0;
+      Dmsg0(130, "Stop extracting.\n");
+   } else if (is_bopen(&rctx.bfd)) {
+      Jmsg0(rctx.jcr, M_ERROR, 0, _("Logic error: output file should not be open\n"));
+      Dmsg0(000, "=== logic error !open\n");
+      bclose(&rctx.bfd);
+   }
+}
+
 
 /*
  * In the context of jcr, flush any remaining data from the cipher context,
