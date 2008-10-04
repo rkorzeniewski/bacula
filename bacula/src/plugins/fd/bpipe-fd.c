@@ -400,12 +400,20 @@ static bRC pluginIO(bpContext *ctx, struct io_pkt *io)
    return bRC_OK;
 }
 
+/*
+ * Bacula is notifying us that a plugin name string was found, and
+ *   passing us the plugin command, so we can prepare for a restore.
+ */
 static bRC startRestoreFile(bpContext *ctx, const char *cmd)
 {
 // printf("bpipe-fd: startRestoreFile cmd=%s\n", cmd);
    return bRC_OK;
 }
 
+/*
+ * Bacula is notifying us that the plugin data has terminated, so
+ *  the restore for this particular file is done.
+ */
 static bRC endRestoreFile(bpContext *ctx)
 {
 // printf("bpipe-fd: endRestoreFile\n");

@@ -226,7 +226,7 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
            sd->bstrerror());
      return false;
    }
-   Dmsg1(000, "send: %s\n", sd->msg);
+   Dmsg1(50, "send: %s\n", sd->msg);
 
    if (start) {
       /* Send data -- not much */
@@ -248,8 +248,11 @@ bool send_plugin_name(JCR *jcr, BSOCK *sd, bool start)
 /*
  * Plugin name stream found during restore.  The record passed in
  *  argument name was generated in send_plugin_name() above.
+ *
+ * Returns: true  if start of stream
+ *          false if end of steam
  */
-void plugin_name_stream(JCR *jcr, char *name)    
+bool plugin_name_stream(JCR *jcr, char *name)    
 {
    char *p = name;
    char *cmd;
@@ -258,9 +261,6 @@ void plugin_name_stream(JCR *jcr, char *name)
    int len;
    int i = 0;
    bpContext *plugin_ctx_list = (bpContext *)jcr->plugin_ctx_list;
-   if (!plugin_ctx_list) {
-      goto bail_out;
-   }
 
    Dmsg1(dbglvl, "Read plugin stream string=%s\n", name);
    skip_nonspaces(&p);             /* skip over jcr->JobFiles */
@@ -285,6 +285,9 @@ void plugin_name_stream(JCR *jcr, char *name)
       }
       jcr->plugin_ctx = NULL;
       jcr->plugin = NULL;
+      goto bail_out;
+   }
+   if (!plugin_ctx_list) {
       goto bail_out;
    }
       
@@ -321,10 +324,11 @@ void plugin_name_stream(JCR *jcr, char *name)
       }
       jcr->plugin_ctx = &plugin_ctx_list[i];
       jcr->plugin = plugin;
+      plug_func(plugin)->startRestoreFile((bpContext *)jcr->plugin_ctx, cmd);
       goto bail_out;
    }
 bail_out:
-   return;
+   return start;
 }
 
 /*
@@ -379,15 +383,22 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    if (rp.create_status == CF_CREATED) {
       return rp.create_status;        /* yes, no need to bopen */
    }
+
    flags =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
    Dmsg0(dbglvl, "call bopen\n");
-   if ((bopen(bfd, attr->ofname, flags, S_IRUSR | S_IWUSR)) < 0) {
+   int stat = bopen(bfd, attr->ofname, flags, S_IRUSR | S_IWUSR);
+   Dmsg1(50, "bopen status=%d\n", stat);
+   if (stat < 0) {
       berrno be;
       be.set_errno(bfd->berrno);
       Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
             attr->ofname, be.bstrerror());
-      Dmsg2(dbglvl,"Could not create %s: ERR=%s\n", attr->ofname, be.bstrerror());
+      Dmsg2(dbglvl,"Could not bopen file %s: ERR=%s\n", attr->ofname, be.bstrerror());
       return CF_ERROR;
+   }
+
+   if (!is_bopen(bfd)) {
+      Dmsg0(000, "===== BFD is not open!!!!\n");
    }
    return CF_EXTRACT;
 }
@@ -400,6 +411,10 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 bool plugin_set_attributes(JCR *jcr, ATTR *attr, BFILE *ofd)
 {
    Dmsg0(dbglvl, "plugin_set_attributes\n");
+   if (is_bopen(ofd)) {
+      bclose(ofd);
+   }
+   pm_strcpy(attr->ofname, "*none*");
    return true;
 }
 
@@ -502,7 +517,7 @@ static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(dbglvl, "plugin_bopen\n");
+   Dmsg1(dbglvl, "plugin_bopen flags=%x\n", flags);
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_OPEN;
@@ -521,6 +536,7 @@ static int my_plugin_bopen(BFILE *bfd, const char *fname, int flags, mode_t mode
       errno = io.io_errno;
       bfd->lerror = io.lerror;
    }
+   Dmsg1(50, "Return from plugin open status=%d\n", io.status);
    return io.status;
 }
 
@@ -530,7 +546,7 @@ static int my_plugin_bclose(BFILE *bfd)
    Plugin *plugin = (Plugin *)jcr->plugin;
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    struct io_pkt io;
-   Dmsg0(dbglvl, "plugin_bclose\n");
+   Dmsg0(dbglvl, "===== plugin_bclose\n");
    io.pkt_size = sizeof(io);
    io.pkt_end = sizeof(io);
    io.func = IO_CLOSE;
