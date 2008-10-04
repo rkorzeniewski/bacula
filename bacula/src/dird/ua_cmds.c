@@ -160,9 +160,11 @@ bool do_a_command(UAContext *ua)
       return false;
    }
 
+#ifdef xxxx
    while (ua->jcr->wstorage->size()) {
       ua->jcr->wstorage->remove(0);
    }
+#endif
 
    len = strlen(ua->argk[0]);
    for (i=0; i<comsize; i++) {     /* search for command */
