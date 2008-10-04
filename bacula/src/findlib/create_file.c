@@ -71,7 +71,8 @@ static int path_already_seen(JCR *jcr, char *path, int pnl);
  */
 int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
 {
-   mode_t new_mode, parent_mode, mode;
+   mode_t new_mode, parent_mode;
+   int flags;
    uid_t uid;
    gid_t gid;
    int pnl;
@@ -205,9 +206,9 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
       case FT_REGE:
       case FT_REG:
          Dmsg1(100, "Create=%s\n", attr->ofname);
-         mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY; /*  O_NOFOLLOW; */
+         flags =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY; /*  O_NOFOLLOW; */
          if (IS_CTG(attr->statp.st_mode)) {
-            mode |= O_CTG;               /* set contiguous bit if needed */
+            flags |= O_CTG;              /* set contiguous bit if needed */
          }
          if (is_bopen(bfd)) {
             Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
@@ -215,7 +216,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          }
       
 
-         if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
+         if ((bopen(bfd, attr->ofname, flags, S_IRUSR | S_IWUSR)) < 0) {
             berrno be;
             be.set_errno(bfd->berrno);
             Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
@@ -265,7 +266,7 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
          if (attr->type == FT_RAW || attr->type == FT_FIFO) {
             btimer_t *tid;
             Dmsg1(400, "FT_RAW|FT_FIFO %s\n", attr->ofname);
-            mode =  O_WRONLY | O_BINARY;
+            flags =  O_WRONLY | O_BINARY;
             /* Timeout open() in 60 seconds */
             if (attr->type == FT_FIFO) {
                Dmsg0(400, "Set FIFO timer\n");
@@ -276,8 +277,8 @@ int create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
             if (is_bopen(bfd)) {
                Qmsg1(jcr, M_ERROR, 0, _("bpkt already open fid=%d\n"), bfd->fid);
             }
-            Dmsg2(400, "open %s mode=0x%x\n", attr->ofname, mode);
-            if ((bopen(bfd, attr->ofname, mode, 0)) < 0) {
+            Dmsg2(400, "open %s flags=0x%x\n", attr->ofname, flags);
+            if ((bopen(bfd, attr->ofname, flags, 0)) < 0) {
                berrno be;
                be.set_errno(bfd->berrno);
                Qmsg2(jcr, M_ERROR, 0, _("Could not open %s: ERR=%s\n"),

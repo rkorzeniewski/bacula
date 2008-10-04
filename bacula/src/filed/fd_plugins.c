@@ -341,7 +341,8 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    bpContext *plugin_ctx = (bpContext *)jcr->plugin_ctx;
    Plugin *plugin = (Plugin *)jcr->plugin;
    struct restore_pkt rp;
-   mode_t mode;
+   int flags;
+   int rc;
 
    if (!set_cmd_plugin(bfd, jcr)) {
       return CF_ERROR;
@@ -363,15 +364,24 @@ int plugin_create_file(JCR *jcr, ATTR *attr, BFILE *bfd, int replace)
    rp.replace = jcr->replace;
    rp.create_status = CF_ERROR;
    Dmsg1(dbglvl, "call plugin createFile=%s\n", rp.ofname);
-   if (plug_func(plugin)->createFile(plugin_ctx, &rp) != bRC_OK) {
+   rc = plug_func(plugin)->createFile(plugin_ctx, &rp);
+   if (rc != bRC_OK) {
+      Qmsg2(jcr, M_ERROR, 0, _("Plugin createFile call failed. Stat=%d file=%s\n"),
+            rc, attr->ofname);
       return CF_ERROR;
    }
-   if (rp.create_status == CF_ERROR || rp.create_status == CF_CREATED) {
-      return rp.create_status;
+   if (rp.create_status == CF_ERROR) {
+      Qmsg1(jcr, M_ERROR, 0, _("Plugin createFile call failed. Returned CF_ERROR file=%s\n"),
+            attr->ofname);
+      return CF_ERROR;
    }
-   mode =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
+   /* Created link or directory? */
+   if (rp.create_status == CF_CREATED) {
+      return rp.create_status;        /* yes, no need to bopen */
+   }
+   flags =  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY;
    Dmsg0(dbglvl, "call bopen\n");
-   if ((bopen(bfd, attr->ofname, mode, S_IRUSR | S_IWUSR)) < 0) {
+   if ((bopen(bfd, attr->ofname, flags, S_IRUSR | S_IWUSR)) < 0) {
       berrno be;
       be.set_errno(bfd->berrno);
       Qmsg2(jcr, M_ERROR, 0, _("Could not create %s: ERR=%s\n"),
