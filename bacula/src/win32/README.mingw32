@@ -142,6 +142,9 @@ following:
         texinfo
         bison
         flex
+        python
+        unzip
+        tar
 
 and possibly other packages.
 
@@ -339,4 +342,3 @@ executables, etc.
 Makefile.template is a template for creating new Makefiles, if you are
 creating a new directory, copy Makefile.template to Makefile in that
 directory and edit to suit.
-
