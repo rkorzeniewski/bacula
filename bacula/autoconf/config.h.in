@@ -39,9 +39,6 @@
 /* Define if you want to use SQLite3 */
 #undef HAVE_SQLITE3
 
-/* Define if you want to use Berkeley DB */
-#undef HAVE_BERKELEY_DB
-
 /* Define if you want to use mSQL */
 #undef HAVE_MSQL
 
@@ -869,9 +866,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Set if DB Berkeley is used for accurate backup */
-#undef USE_DB
 
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
