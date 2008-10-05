@@ -62,5 +62,6 @@ struct RBSR {
    int      VolCount;                 /* Volume parameter count */
    VOL_PARAMS *VolParams;             /* Volume, start/end file/blocks */
    RBSR_FINDEX *fi;                   /* File indexes this JobId */
+   char *fileregex;                   /* Only restore files matching regex */
 };
 

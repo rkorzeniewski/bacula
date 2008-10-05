@@ -351,6 +351,9 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            if (bsr->fileregex) {
+               fprintf(fd, "FileRegex=%s\n", bsr->fileregex);
+            }
             if (get_storage_device(device, bsr->VolParams[i].Storage)) {
                fprintf(fd, "Device=\"%s\"\n", device);
             }
@@ -414,6 +417,9 @@ static uint32_t write_bsr(UAContext *ua, RESTORE_CTX &rx, FILE *fd)
             }
             fprintf(fd, "Volume=\"%s\"\n", bsr->VolParams[i].VolumeName);
             fprintf(fd, "MediaType=\"%s\"\n", bsr->VolParams[i].MediaType);
+            if (bsr->fileregex) {
+               fprintf(fd, "FileRegex=%s\n", bsr->fileregex);
+            }
             if (get_storage_device(device, bsr->VolParams[i].Storage)) {
                fprintf(fd, "Device=\"%s\"\n", device);
             }

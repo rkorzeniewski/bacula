@@ -57,6 +57,7 @@ static BSR *store_include(LEX *lc, BSR *bsr);
 static BSR *store_exclude(LEX *lc, BSR *bsr);
 static BSR *store_stream(LEX *lc, BSR *bsr);
 static BSR *store_slot(LEX *lc, BSR *bsr);
+static BSR *store_fileregex(LEX *lc, BSR *bsr);
 static bool is_fast_rejection_ok(BSR *bsr);
 static bool is_positioning_ok(BSR *bsr);
 
@@ -87,8 +88,8 @@ struct kw_items items[] = {
    {"stream",   store_stream},
    {"slot",     store_slot},
    {"device",   store_device},
+   {"fileregex", store_fileregex},
    {NULL, NULL}
-
 };
 
 /*
@@ -445,6 +446,32 @@ static BSR *store_count(LEX *lc, BSR *bsr)
    return bsr;
 }
 
+static BSR *store_fileregex(LEX *lc, BSR *bsr)
+{
+   int token;
+   int rc;
+ 
+   token = lex_get_token(lc, T_STRING);
+   if (token == T_ERROR) {
+      return NULL;
+   }
+
+   if (bsr->fileregex) free(bsr->fileregex);
+   bsr->fileregex = bstrdup(lc->str);
+
+   if (bsr->fileregex_re == NULL)
+      bsr->fileregex_re = (regex_t *)bmalloc(sizeof(regex_t));
+
+   rc = regcomp(bsr->fileregex_re, bsr->fileregex, REG_EXTENDED|REG_NOSUB);
+   if (rc != 0) {
+      char prbuf[500];
+      regerror(rc, bsr->fileregex_re, prbuf, sizeof(prbuf));
+      Emsg2(M_ERROR, 0, _("REGEX '%s' compile error. ERR=%s\n"),
+            bsr->fileregex, prbuf);
+      return NULL;
+   }
+   return bsr;
+}
 
 static BSR *store_jobtype(LEX *lc, BSR *bsr)
 {
@@ -817,6 +844,13 @@ void free_bsr(BSR *bsr)
    free_bsr_item((BSR *)bsr->FileIndex);
    free_bsr_item((BSR *)bsr->JobType);
    free_bsr_item((BSR *)bsr->JobLevel);
+   if (bsr->fileregex) bfree(bsr->fileregex);
+   if (bsr->fileregex_re) {
+      regfree(bsr->fileregex_re);
+      free(bsr->fileregex_re);
+   }
+   if (bsr->attr) free_attr(bsr->attr);
+
    free_bsr(bsr->next);
    free(bsr);
 }

@@ -504,11 +504,26 @@ void *jobq_server(void *arg)
       Dmsg0(2300, "Done check ready, now check wait queue.\n");
       if (!jq->waiting_jobs->empty() && !jq->quit) {
          int Priority;
+         bool running_allow_mix = false;
          je = (jobq_item_t *)jq->waiting_jobs->first();
          jobq_item_t *re = (jobq_item_t *)jq->running_jobs->first();
          if (re) {
             Priority = re->jcr->JobPriority;
-            Dmsg2(2300, "JobId %d is running. Look for pri=%d\n", re->jcr->JobId, Priority);
+            Dmsg2(2300, "JobId %d is running. Look for pri=%d\n",
+		  re->jcr->JobId, Priority);
+	    running_allow_mix = true;
+	    for ( ; re; ) {
+	       Dmsg2(2300, "JobId %d is also running with %s\n",
+		     re->jcr->JobId, 
+		     re->jcr->job->allow_mixed_priority ? "mix" : "no mix");
+	       if (!re->jcr->job->allow_mixed_priority) {
+		  running_allow_mix = false;
+		  break;
+	       }
+	       re = (jobq_item_t *)jq->running_jobs->next(re);
+	    }
+            Dmsg1(2300, "The running job(s) %s mixing priorities.\n",
+		  running_allow_mix ? "allow" : "don't allow");
          } else {
             Priority = je->jcr->JobPriority;
             Dmsg1(2300, "No job running. Look for Job pri=%d\n", Priority);
@@ -522,11 +537,14 @@ void *jobq_server(void *arg)
             JCR *jcr = je->jcr;
             jobq_item_t *jn = (jobq_item_t *)jq->waiting_jobs->next(je);
 
-            Dmsg3(2300, "Examining Job=%d JobPri=%d want Pri=%d\n",
-               jcr->JobId, jcr->JobPriority, Priority);
+            Dmsg4(2300, "Examining Job=%d JobPri=%d want Pri=%d (%s)\n",
+		  jcr->JobId, jcr->JobPriority, Priority,
+		  jcr->job->allow_mixed_priority ? "mix" : "no mix");
 
             /* Take only jobs of correct Priority */
-            if (jcr->JobPriority != Priority) {
+            if (!(jcr->JobPriority == Priority
+		  || (jcr->JobPriority < Priority &&
+		      jcr->job->allow_mixed_priority && running_allow_mix))) {
                set_jcr_job_status(jcr, JS_WaitPriority);
                break;
             }

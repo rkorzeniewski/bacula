@@ -987,6 +987,39 @@ static void split_path_and_filename(UAContext *ua, RESTORE_CTX *rx, char *name)
    Dmsg2(100, "split path=%s file=%s\n", rx->path, rx->fname);
 }
 
+static bool ask_for_fileregex(UAContext *ua, RESTORE_CTX *rx)
+{
+   ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
+                  "is not possible.Most likely your retention policy pruned the files\n"));
+   if (get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
+      if (ua->pint32_val == 1)
+         return true;
+      while (get_cmd(ua, _("\nRegexp matching files to restore? (empty to abort): "))) {
+         if (ua->cmd[0] == '\0') {
+            break;
+         } else {
+            regex_t *fileregex_re = NULL;
+            int rc;
+            char errmsg[500] = "";
+
+            fileregex_re = (regex_t *)bmalloc(sizeof(regex_t));
+            rc = regcomp(fileregex_re, ua->cmd, REG_EXTENDED|REG_NOSUB);
+            if (rc != 0)
+               regerror(rc, fileregex_re, errmsg, sizeof(errmsg));
+            regfree(fileregex_re);
+            free(fileregex_re);
+            if (*errmsg) {
+               ua->send_msg(_("Regex compile error: %s\n"), errmsg);
+            } else {
+               rx->bsr->fileregex = bstrdup(ua->cmd);
+               return true;
+            }
+         }
+      }
+   }
+   return false;
+}
+
 static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
 {
    TREE_CTX tree;
@@ -1048,19 +1081,15 @@ static bool build_directory_tree(UAContext *ua, RESTORE_CTX *rx)
    }
 #endif
    if (tree.FileCount == 0) {
-      ua->send_msg(_("\nThere were no files inserted into the tree, so file selection\n"
-         "is not possible.Most likely your retention policy pruned the files\n"));
-      if (!get_yesno(ua, _("\nDo you want to restore all the files? (yes|no): "))) {
-         OK = false;
-      } else {
+      OK = ask_for_fileregex(ua, rx);
+      if (OK) {
          last_JobId = 0;
          for (p=rx->JobIds; get_next_jobid_from_list(&p, &JobId) > 0; ) {
              if (JobId == last_JobId) {
                 continue;                    /* eliminate duplicate JobIds */
              }
              add_findex_all(rx->bsr, JobId);
-          }
-          OK = true;
+         }
       }
    } else {
       char ec1[50];

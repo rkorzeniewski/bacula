@@ -74,7 +74,7 @@ static int match_jobid(BSR *bsr, BSR_JOBID *jobid, SESSION_LABEL *sessrec, bool 
 static int match_findex(BSR *bsr, BSR_FINDEX *findex, DEV_RECORD *rec, bool done);
 static int match_volfile(BSR *bsr, BSR_VOLFILE *volfile, DEV_RECORD *rec, bool done);
 static int match_stream(BSR *bsr, BSR_STREAM *stream, DEV_RECORD *rec, bool done);
-static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, bool done);
+static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, bool done, JCR *jcr);
 static int match_block_sesstime(BSR *bsr, BSR_SESSTIME *sesstime, DEV_BLOCK *block);
 static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block);
 static BSR *find_smallest_volfile(BSR *fbsr, BSR *bsr);
@@ -148,6 +148,33 @@ static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
    return 0;
 }
 
+static int match_fileregex(BSR *bsr, DEV_RECORD *rec, JCR *jcr)
+{
+   if (bsr->fileregex_re == NULL)
+      return 1;
+
+   if (bsr->attr == NULL)
+      bsr->attr = new_attr(jcr);
+
+   /* The code breaks if the first record associated with a file is
+    * not of this type
+    */
+   if (rec->Stream == STREAM_UNIX_ATTRIBUTES ||
+       rec->Stream == STREAM_UNIX_ATTRIBUTES_EX) {
+      bsr->skip_file = false;
+      if (unpack_attributes_record(jcr, rec->Stream, rec->data, bsr->attr)) {
+         if (regexec(bsr->fileregex_re, bsr->attr->fname, 0, NULL, 0) == 0) {
+            Dmsg2(dbglevel, "Matched pattern, fname=%s FI=%d\n",
+                  bsr->attr->fname, rec->FileIndex);
+         } else {
+            Dmsg2(dbglevel, "Didn't match, skipping fname=%s FI=%d\n",
+                  bsr->attr->fname, rec->FileIndex);
+            bsr->skip_file = true;
+         }
+      }
+   }
+   return 1;
+}
 
 /*********************************************************************
  *
@@ -157,7 +184,7 @@ static int match_block_sessid(BSR *bsr, BSR_SESSID *sessid, DEV_BLOCK *block)
  *                      reposition the tape
  *       returns -1 no additional matches possible
  */
-int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec)
+int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *sessrec, JCR *jcr)
 {
    int stat;
 
@@ -168,7 +195,7 @@ int match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec, SESSION_LABEL *se
     */
    if (bsr) {
       bsr->reposition = false;
-      stat = match_all(bsr, rec, volrec, sessrec, true);
+      stat = match_all(bsr, rec, volrec, sessrec, true, jcr);
       /*
        * Note, bsr->reposition is set by match_all when
        *  a bsr is done. We turn it off if a match was
@@ -328,7 +355,7 @@ bool is_this_bsr_done(BSR *bsr, DEV_RECORD *rec)
  *   returns -1 no additional matches possible
  */
 static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
-                     SESSION_LABEL *sessrec, bool done)
+                     SESSION_LABEL *sessrec, bool done, JCR *jcr)
 {
    if (bsr->done) {
 //    Dmsg0(dbglevel, "bsr->done set\n");
@@ -363,6 +390,18 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
          rec->FileIndex, bsr->FileIndex->findex, bsr->FileIndex->findex2);
       goto no_match;
    }
+
+   if (!match_fileregex(bsr, rec, jcr)) {
+     Dmsg1(dbglevel, "Fail on fileregex='%s'\n", bsr->fileregex);
+     goto no_match;
+   }
+
+   /* This flag is set by match_fileregex (and perhaps other tests) */
+   if (bsr->skip_file) {
+      Dmsg1(dbglevel, "Skipping findex=%d\n", rec->FileIndex);
+      goto no_match;
+   }
+
    /*
     * If a count was specified and we have a FileIndex, assume
     *   it is a Bacula created bsr (or the equivalent). We
@@ -410,7 +449,7 @@ static int match_all(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
 
 no_match:
    if (bsr->next) {
-      return match_all(bsr->next, rec, volrec, sessrec, bsr->done && done);
+      return match_all(bsr->next, rec, volrec, sessrec, bsr->done && done, jcr);
    }
    if (bsr->done && done) {
       return -1;

@@ -255,7 +255,7 @@ bool read_records(DCR *dcr,
           * Apply BSR filter
           */
          if (jcr->bsr) {
-            rec->match_stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec);
+            rec->match_stat = match_bsr(jcr->bsr, rec, &dev->VolHdr, &sessrec, jcr);
             if (rec->match_stat == -1) { /* no more possible matches */
                done = true;   /* all items found, stop */
                Dmsg2(dbglvl, "All done=(file:block) %u:%u\n", dev->file, dev->block_num);
@@ -278,6 +278,7 @@ bool read_records(DCR *dcr,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);
             break;                    /* read second part of record */
          }
+
          Dmsg6(dbglvl, "OK callback. recno=%d state=%s blk=%d SI=%d ST=%d FI=%d\n", record,
                rec_state_to_str(rec), block->BlockNumber,
                rec->VolSessionId, rec->VolSessionTime, rec->FileIndex);

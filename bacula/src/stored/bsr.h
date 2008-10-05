@@ -38,6 +38,12 @@
 #ifndef __BSR_H
 #define __BSR_H 1
 
+#ifndef HAVE_REGEX_H
+#include "lib/bregex.h"
+#else
+#include <regex.h>
+#endif
+
 /*
  * List of Volume names to be read by Storage daemon.
  *  Formed by Storage daemon from BSR
@@ -143,6 +149,7 @@ struct BSR {
    bool          done;                /* set when everything found for this bsr */
    bool          use_fast_rejection;  /* set if fast rejection can be used */
    bool          use_positioning;     /* set if we can position the archive */
+   bool          skip_file;           /* skip all records for current file */
    BSR_VOLUME   *volume;
    uint32_t      count;               /* count of files to restore this bsr */
    uint32_t      found;               /* count of restored files this bsr */
@@ -157,6 +164,9 @@ struct BSR {
    BSR_JOBTYPE  *JobType;
    BSR_JOBLEVEL *JobLevel;
    BSR_STREAM   *stream;
+   char         *fileregex;           /* set if restore is filtered on filename */
+   regex_t      *fileregex_re;
+   ATTR         *attr;                /* scratch space for unpacking */
 };
 
 
