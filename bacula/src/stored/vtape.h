@@ -52,6 +52,8 @@ ssize_t vtape_write(int fd, const void *buffer, size_t count);
 
 #define FTAPE_MAX_DRIVE 50
 
+#define VTAPE_MAX_BLOCK 20*1024*2048;      /* 20GB */
+
 typedef enum {
    VT_READ_EOF,                 /* Need to read the entire EOF struct */
    VT_SKIP_EOF                  /* Have already read the EOF byte */
