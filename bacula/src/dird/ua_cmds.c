@@ -790,12 +790,12 @@ static void do_storage_setdebug(UAContext *ua, STORE *store, int level, int trac
    }
    Dmsg0(120, _("Connected to storage daemon\n"));
    sd = jcr->store_bsock;
-   bnet_fsend(sd, "setdebug=%d trace=%d\n", level, trace_flag);
-   if (bnet_recv(sd) >= 0) {
+   sd->fsend("setdebug=%d trace=%d\n", level, trace_flag);
+   if (sd->recv() >= 0) {
       ua->send_msg("%s", sd->msg);
    }
-   bnet_sig(sd, BNET_TERMINATE);
-   bnet_close(sd);
+   sd->signal(BNET_TERMINATE);
+   sd->close();
    jcr->store_bsock = NULL;
    return;
 }
@@ -816,12 +816,12 @@ static void do_client_setdebug(UAContext *ua, CLIENT *client, int level, int tra
    }
    Dmsg0(120, "Connected to file daemon\n");
    fd = ua->jcr->file_bsock;
-   bnet_fsend(fd, "setdebug=%d trace=%d\n", level, trace_flag);
-   if (bnet_recv(fd) >= 0) {
+   fd->fsend("setdebug=%d trace=%d\n", level, trace_flag);
+   if (fd->recv() >= 0) {
       ua->send_msg("%s", fd->msg);
    }
-   bnet_sig(fd, BNET_TERMINATE);
-   bnet_close(fd);
+   fd->signal(BNET_TERMINATE);
+   fd->close();
    ua->jcr->file_bsock = NULL;
    return;
 }
@@ -916,9 +916,6 @@ static int setdebug_cmd(UAContext *ua, const char *cmd)
    int trace_flag = -1;
    int i;
 
-   if (!open_client_db(ua)) {
-      return 1;
-   }
    Dmsg1(120, "setdebug:%s:\n", cmd);
 
    level = -1;

@@ -2028,7 +2028,7 @@ debian)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2066,7 +2066,7 @@ freebsd)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2133,7 +2133,7 @@ redhat)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2165,7 +2165,7 @@ mandrake)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2186,7 +2186,7 @@ gentoo)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2205,7 +2205,7 @@ slackware)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2238,7 +2238,7 @@ suse)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2259,7 +2259,7 @@ suse5)
 	ping -c 1 $hostname 2>&1 1>/dev/null
 	if test ! $? = 0; then
 	   hostname="localhost"
-	}
+	fi
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
