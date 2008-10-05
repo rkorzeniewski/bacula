@@ -84,7 +84,7 @@ class IXMLDOMDocument;
 #define uuid(x)
 
 #ifdef B_VSS_XP
-   #pragma message("compile VSS for Windows XP")   
+// #pragma message("compile VSS for Windows XP")   
    #define VSSClientGeneric VSSClientXP
    
    #include "inc/WinXP/vss.h"
@@ -94,7 +94,7 @@ class IXMLDOMDocument;
 #endif
 
 #ifdef B_VSS_W2K3
-   #pragma message("compile VSS for Windows 2003")
+// #pragma message("compile VSS for Windows 2003")
    #define VSSClientGeneric VSSClient2003
    
    #include "inc/Win2003/vss.h"
@@ -103,7 +103,7 @@ class IXMLDOMDocument;
 #endif
 
 #ifdef B_VSS_VISTA
-   #pragma message("compile VSS for Vista")
+// #pragma message("compile VSS for Vista")
    #define VSSClientGeneric VSSClientVista
 
    #include "inc/Win2003/vss.h"
@@ -118,11 +118,6 @@ class IXMLDOMDocument;
    static t_CreateVssBackupComponents p_CreateVssBackupComponents = NULL;
    static t_VssFreeSnapshotProperties p_VssFreeSnapshotProperties = NULL;
 
-#ifdef _WIN64
-   #define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z"
-#else
-   #define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z"
-#endif
 
 
 #include "vss.h"
@@ -208,13 +203,23 @@ inline const wchar_t* GetStringFromWriterStatus(VSS_WRITER_STATE eWriterStatus)
 
 // Constructor
 
+/* 32 bit entrypoint name */
+#define VSSVBACK_ENTRY "?CreateVssBackupComponents@@YGJPAPAVIVssBackupComponents@@@Z"
+/* 64 bit entrypoint name */
+#define VSSVBACK64_ENTRY "?CreateVssBackupComponents@@YAJPEAPEAVIVssBackupComponents@@@Z"
+
+
 VSSClientGeneric::VSSClientGeneric()
 {
    m_hLib = LoadLibraryA("VSSAPI.DLL");
    if (m_hLib) {      
       p_CreateVssBackupComponents = (t_CreateVssBackupComponents)
          GetProcAddress(m_hLib, VSSVBACK_ENTRY);
-                                 
+      /* If we don't find it try the 64 bit entry point */
+      if (!p_CreateVssBackupComponents) {
+         p_CreateVssBackupComponents = (t_CreateVssBackupComponents)
+           GetProcAddress(m_hLib, VSSVBACK64_ENTRY);
+      }
       p_VssFreeSnapshotProperties = (t_VssFreeSnapshotProperties)
           GetProcAddress(m_hLib, "VssFreeSnapshotProperties");      
    } 

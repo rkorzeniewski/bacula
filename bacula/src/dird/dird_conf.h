@@ -398,6 +398,7 @@ public:
    int64_t spool_size;                /* Size of spool file for this job */
    uint32_t MaxConcurrentJobs;        /* Maximum concurrent jobs */
    uint32_t NumConcurrentJobs;        /* number of concurrent jobs running */
+   bool allow_mixed_priority;         /* Allow jobs with higher priority concurrently with this */
 
    MSGS      *messages;               /* How and where to send messages */
    SCHED     *schedule;               /* When -- Automatic schedule */

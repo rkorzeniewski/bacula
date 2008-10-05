@@ -178,7 +178,7 @@ void     _give_back_device_lock(const char *file, int line, DEVICE *dev, bsteal_
 
 /* From match_bsr.c */
 int      match_bsr(BSR *bsr, DEV_RECORD *rec, VOLUME_LABEL *volrec,
-              SESSION_LABEL *sesrec);
+              SESSION_LABEL *sesrec, JCR *jcr);
 int      match_bsr_block(BSR *bsr, DEV_BLOCK *block);
 void     position_bsr_block(BSR *bsr, DEV_BLOCK *block);
 BSR     *find_next_bsr(BSR *root_bsr, DEVICE *dev);
