@@ -2048,6 +2048,11 @@ darwin)
 	   platforms/darwin/Makefile"
   ;;
 debian)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
 	if `grep -q ubuntu /etc/apt/sources.list`; then
 	   DISTNAME="ubuntu"
 	fi
@@ -2081,6 +2086,14 @@ debian)
 	fi
   ;;
 freebsd)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTVER=`uname -a |awk '{print $3}'`
 	VER=`echo $DISTVER | cut -c 1`
 	if test x$VER = x4 ; then
@@ -2140,6 +2153,14 @@ openbsd)
 	    platforms/openbsd/bacula-dir"
   ;;
 redhat)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	if test -f /etc/whitebox-release ; then
 	   f=/etc/whitebox-release
 	else
@@ -2164,6 +2185,14 @@ redhat)
 	    "
   ;;
 mandrake)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTVER=`cat /etc/mandrake-release | grep release |\
 	   cut -f 5 -d ' '`
 	TAPEDRIVE="/dev/nst0"
@@ -2177,6 +2206,14 @@ mandrake)
 	    "
   ;;
 gentoo)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTVER=`awk '/version / {print $5}' < /etc/gentoo-release`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
@@ -2188,6 +2225,14 @@ gentoo)
 	    platforms/gentoo/bacula-dir"
   ;;
 slackware)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTVER=`cat /etc/slackware-version`
 	TAPEDRIVE="/dev/nst0"
 	PSCMD="ps -e -o pid,command"
@@ -2213,6 +2258,14 @@ solaris)
 	LIBS="$LIBS -lresolv"
   ;;
 suse)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTVER=`cat /etc/SuSE-release |grep VERSION|\
 	    cut -f 3 -d ' '`
 	TAPEDRIVE="/dev/nst0"
@@ -2226,6 +2279,14 @@ suse)
 	    platforms/suse/bacula.spec"
   ;;
 suse5)
+#	Make sure hostname is resolved
+	ping -c 1 $hostname 2>&1 1>/dev/null
+	if test ! $? = 0; then
+	   hostname="localhost"
+	}
+	if `grep -q ubuntu /etc/apt/sources.list`; then
+	   DISTNAME="ubuntu"
+	fi
 	DISTNAME=suse
 	DISTVER=5.x
 	TAPEDRIVE="/dev/nst0"
